@@ -1,18 +1,17 @@
 <template>
   <div class="home">
-    <p>Home</p>
+    <WalletConnect msg="Welcome"/>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import WalletConnect from '@/components/WalletConnect.vue' // @ is an alias to /src
 
 export default defineComponent({
-  name: 'HomeView',
+  name: 'WelcomeView',
   components: {
-  },
-  data () {
-    return {}
+    WalletConnect
   }
 })
 </script>
