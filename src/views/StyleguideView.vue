@@ -1,6 +1,6 @@
 <template>
   <div class="styleguide page-container">
-    <div class="container mx-auto">
+    <div class="container mx-auto pb-8">
       <div class="grid grid-cols-12 gap-6 pt-8">
         <div class="col-span-6">
           <h1 class="text text-large-heading">Typography & color</h1>
@@ -74,16 +74,120 @@
           </div>
         </div>
       </div>
+
+      <div class="grid grid-cols-12 gap-6 mt-8">
+        <div class="col-span-12">
+          <h1 class="text text-large-heading">Buttons</h1>
+
+          <!-- Large - Primary -->
+          <h2 class="text text-default-heading mt-6">Large - Primary</h2>
+          <div class="flex mt-4">
+            <button class="btn btn-primary btn-large-primary mr-4">
+              Buy Tokens
+            </button>
+            <button class="btn btn-primary btn-large-primary js-loading">
+              Buy Tokens
+            </button>
+          </div>
+
+          <!-- Large - Secondary -->
+          <h2 class="text text-default-heading mt-6">Large - Secondary</h2>
+          <div class="flex mt-4">
+            <button class="btn btn-secondary btn-large-secondary mr-4">
+              Buy Tokens
+            </button>
+            <button class="btn btn-secondary btn-large-secondary js-loading">
+              Buy Tokens
+            </button>
+          </div>
+
+          <!-- Large - Boxes -->
+          <h2 class="text text-default-heading mt-6">Large - Boxes</h2>
+          <div class="flex mt-4">
+            <button class="btn btn-box btn-large-box mr-4">
+              <img
+                src="@/assets/icons/google.svg"
+              />
+              Buy Tokens
+            </button>
+            <button class="btn btn-box btn-large-box js-loading">
+              Buy Tokens
+            </button>
+          </div>
+
+          <!-- Medium - Secondary -->
+          <h2 class="text text-default-heading mt-6">Medium - Secondary</h2>
+          <div class="flex mt-4">
+            <button class="btn btn-secondary btn-medium-secondary mr-4">
+              None
+            </button>
+            <button class="btn btn-secondary btn-medium-secondary js-loading mr-4">
+              None
+            </button>
+            <button class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4">
+              None
+            </button>
+            <button class="btn btn-secondary btn-medium-secondary btn-emphatized success mr-4">
+              None
+            </button>
+          </div>
+
+          <!-- Medium - Secondary + Icon -->
+          <h2 class="text text-default-heading mt-6">Medium - Secondary + Icon</h2>
+          <div class="flex mt-4">
+            <button class="btn btn-secondary btn-medium-secondary btn-icon mr-4">
+              <DuplicateIcon class="icon w-4 h-4" />
+              Copy
+            </button>
+            <button class="btn btn-secondary btn-medium-secondary btn-icon js-loading mr-4">
+              <DuplicateIcon class="icon w-4 h-4" />
+              Copy
+            </button>
+            <button class="btn btn-secondary btn-medium-secondary btn-icon btn-emphatized mr-4">
+              <DuplicateIcon class="icon w-4 h-4" />
+              Copy
+            </button>
+            <button class="btn btn-secondary btn-medium-secondary btn-emphatized success btn-icon mr-4">
+              <DuplicateIcon class="icon w-4 h-4" />
+              Copy
+            </button>
+          </div>
+
+          <!-- Circle on background -->
+          <h2 class="text text-default-heading mt-6">Circle on background</h2>
+          <div class="inline-flex mt-4 bg-light-grey p-4 rounded-lg">
+            <button class="btn btn-close">
+              <XIcon class="icon w-5 h-5" />
+            </button>
+          </div>
+
+          <!-- Header buttons -->
+          <h2 class="text text-default-heading mt-6">Header buttons</h2>
+          <div class="inline-flex mt-4 bg-light-grey p-4 rounded-lg">
+            <button class="btn btn-header mr-4">
+              <BellIcon class="icon w-4 h-4" />
+            </button>
+            <button class="btn btn-header">
+              <BellIcon class="icon w-4 h-4" />
+              <span class="counter">8</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import { DuplicateIcon, XIcon, BellIcon } from '@heroicons/vue/solid'
 
 export default defineComponent({
   name: 'StyleguideView',
   components: {
+    DuplicateIcon,
+    XIcon,
+    BellIcon
   },
   data () {
     return {}

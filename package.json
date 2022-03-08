@@ -8,6 +8,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@heroicons/vue": "^1.0.6",
     "autoprefixer": "^10.4.2",
     "core-js": "^3.8.3",
     "postcss": "^8.4.8",
