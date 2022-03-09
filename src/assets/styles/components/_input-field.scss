@@ -1,0 +1,40 @@
+.input-field {
+
+    input {
+        background: $white;
+        font-size: 14px;
+        line-height: 24px;
+        border: solid 1px $grey;
+        border-radius: $rounded;
+        box-shadow: none !important;
+        padding: 12px 32px 12px 16px;
+        min-width: 135px;
+        margin-top: 8px;
+
+        &:hover {
+            border-color: $mediumBlue;
+        }
+
+        &:active,
+        &:focus {
+            border-color: $lightElectric;
+        }
+
+        &.error {
+            border-color: $lightRed;
+        }
+    }
+
+    .msg {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 24px;
+        margin-top: 4px;
+        color: $lightRed;
+
+        &.hidden {
+            display: none;
+        }
+    }
+}

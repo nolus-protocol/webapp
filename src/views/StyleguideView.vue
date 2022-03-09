@@ -311,6 +311,36 @@
           </div>
         </div>
       </div>
+
+      <!-- Textfields -->
+      <div class="grid grid-cols-12 gap-6 mt-8">
+        <div class="col-span-12">
+          <h1 class="text text-large-heading">Textfields</h1>
+
+          <!-- Input -->
+          <h2 class="text text-default-heading mt-6">Input</h2>
+          <div class="flex mt-4">
+            <div class="inline-block mr-5">
+              <InputField
+                type="text"
+                name="exampleInputField"
+                id="example-input-field"
+                label="Example Input Field"
+              ></InputField>
+            </div>
+            <div class="inline-block">
+              <InputField
+                type="text"
+                name="exampleInputField"
+                id="example-input-field"
+                label="Example Input Field"
+                :isError="true"
+                errorMsg="This is error!"
+              ></InputField>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -322,6 +352,7 @@ import PickerDefault from '@/components/PickerDefault.vue'
 import PickerIcon from '@/components/PickerIcon.vue'
 import PickerCombo from '@/components/PickerCombo.vue'
 import RadioInput from '@/components/RadioInput.vue'
+import InputField from '@/components/InputField.vue'
 
 export default defineComponent({
   name: 'StyleguideView',
@@ -332,7 +363,8 @@ export default defineComponent({
     PickerDefault,
     PickerIcon,
     PickerCombo,
-    RadioInput
+    RadioInput,
+    InputField
   },
   data () {
     return {}
