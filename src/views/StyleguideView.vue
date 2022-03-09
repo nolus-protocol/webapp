@@ -283,6 +283,34 @@
           </div>
         </div>
       </div>
+
+      <!-- Checkbox & radio -->
+      <div class="grid grid-cols-12 gap-6 mt-8">
+        <div class="col-span-12">
+          <h1 class="text text-large-heading">Checkbox & radio</h1>
+
+          <!-- Checkbox -->
+          <h2 class="text text-default-heading mt-6">Checkbox</h2>
+          <div class="flex mt-4">
+
+            <div class="relative block checkbox-container">
+              <div class="flex items-center">
+                <input id="checkbox1" aria-describedby="checkbox1-description" name="checkbox1" type="checkbox" />
+                <label for="checkbox1">Checkbox Example</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Radio -->
+          <h2 class="text text-default-heading mt-6">Radio</h2>
+          <div class="flex mt-4">
+
+            <RadioInput
+              :options="[{ name: 'exampleRadio', value: '1', label: 'Option 1' }, { name: 'exampleRadio', value: '2', label: 'Option 2' },]"
+            ></RadioInput>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -293,6 +321,7 @@ import { DuplicateIcon, XIcon, BellIcon } from '@heroicons/vue/solid'
 import PickerDefault from '@/components/PickerDefault.vue'
 import PickerIcon from '@/components/PickerIcon.vue'
 import PickerCombo from '@/components/PickerCombo.vue'
+import RadioInput from '@/components/RadioInput.vue'
 
 export default defineComponent({
   name: 'StyleguideView',
@@ -302,7 +331,8 @@ export default defineComponent({
     BellIcon,
     PickerDefault,
     PickerIcon,
-    PickerCombo
+    PickerCombo,
+    RadioInput
   },
   data () {
     return {}

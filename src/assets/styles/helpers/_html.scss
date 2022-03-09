@@ -38,6 +38,10 @@ button {
     font-smoothing: always;
 }
 
+input[type="radio"] {
+    accent-color: $lightElectric;
+}
+
 .page-container {
     width: 100%;
     min-height: 100vh;

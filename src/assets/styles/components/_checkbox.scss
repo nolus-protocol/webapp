@@ -1,0 +1,34 @@
+.checkbox {
+
+    &-container {
+
+        input[type="checkbox"] {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 1px solid rgba(131, 149, 176, 0.5);
+            border-radius: 3px;
+            margin-right: 8px;
+            vertical-align: middle;
+
+            &:checked {
+                background-color: $lightElectric !important;
+            }
+        }
+
+        label {
+            display: inline-block;
+            vertical-align: middle;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1;
+        }
+
+        &:hover {
+            
+            input[type="checkbox"] {
+                border-color: #5e7699;
+            }
+        }
+    }
+}
