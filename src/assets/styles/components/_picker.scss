@@ -1,0 +1,144 @@
+.picker {
+
+    &-container {
+
+        &.icon {
+            
+            button {
+                min-width: 181px;
+            }
+        }
+
+        &.combo {
+            button {
+                overflow: hidden;
+
+                &:hover {
+                    
+                    span.absolute {
+                        border-color: $mediumBlue;
+                    }
+                }
+
+                &:active,
+                &:focus {
+
+                    span.absolute {
+                        border-color: $lightElectric;
+                        background-color: #e9f0fc;
+
+                        svg {
+                            color: $lightElectric;
+                        }
+                    }
+                }
+                
+                .block {
+                    min-height: 24px;
+                }
+
+                span.absolute {
+                    background-color: transparent;
+                    margin: 0;
+                    padding: 0 14px;
+                    border-left: 1px solid $grey;
+
+                    svg {
+                        color: #8395b0;
+                    }
+                }
+            }
+        }
+
+        button {
+            background: $white;
+            font-size: 14px;
+            line-height: 24px;
+            border: solid 1px $grey;
+            border-radius: $rounded;
+            box-shadow: none !important;
+            padding: 12px 32px 12px 16px;
+            min-width: 135px;
+
+            &:hover {
+                border-color: $mediumBlue;
+            }
+
+            &:active,
+            &:focus {
+                border-color: $lightElectric;
+            }
+        }
+
+        .msg {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 24px;
+            margin-top: 4px;
+            color: $lightRed;
+
+            &.hidden {
+                display: none;
+            }
+        }
+        
+        ul {
+            border: 1px solid $grey;
+            border-radius: $rounded;
+            box-shadow: 0 8px 48px 0 rgba(7, 45, 99, 0.16);
+
+            li {
+                border-bottom: 1px solid $grey;
+                color: $textMain;
+                font-weight: 400;
+
+                &:hover {
+                    color: $textMain;
+                    background-color: $grey;
+                }
+
+                &:last-of-type {
+                    border-bottom: none;
+                }
+
+                svg {
+                    color: $textMain !important;
+                }
+            }
+        }
+    }
+
+    &.error {
+        
+        .picker-container {
+            button {
+                border-color: $lightRed;
+            }
+
+            &.combo {
+
+                span.absolute {
+                    border-color: $lightRed;
+                    background-color: transparent;
+
+                    svg {
+                        color: $lightRed;
+                    }
+                }
+            }
+        }
+    }
+
+    &.small {
+
+        .picker-container {
+            
+            button {
+                font-size: 14px;
+                min-width: 72px !important;
+                padding: 8px 32px 8px 12px;
+            }
+        }
+    }
+}

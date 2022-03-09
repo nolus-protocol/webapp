@@ -1,6 +1,8 @@
 <template>
   <div class="styleguide page-container">
     <div class="container mx-auto pb-8">
+
+      <!-- Typography & Colors -->
       <div class="grid grid-cols-12 gap-6 pt-8">
         <div class="col-span-6">
           <h1 class="text text-large-heading">Typography & color</h1>
@@ -75,6 +77,7 @@
         </div>
       </div>
 
+      <!-- Buttons -->
       <div class="grid grid-cols-12 gap-6 mt-8">
         <div class="col-span-12">
           <h1 class="text text-large-heading">Buttons</h1>
@@ -174,6 +177,112 @@
           </div>
         </div>
       </div>
+
+      <!-- Pickers -->
+      <div class="grid grid-cols-12 gap-6 mt-8">
+        <div class="col-span-12">
+          <h1 class="text text-large-heading">Pickers</h1>
+
+          <!-- Picker -->
+          <h2 class="text text-default-heading mt-6">Picker</h2>
+          <div class="flex mt-5">
+            <div class="inline-block mr-5">
+              <PickerDefault
+                label="Picker Example"
+                :options="[{value: 0, label: 'Option 1'}, {value: 1, label: 'Option 2'}, {value: 2, label: 'Option 3'},]"
+              ></PickerDefault>
+            </div>
+
+            <div class="inline-block">
+              <PickerDefault
+                label="Picker Error Example"
+                :options="[{value: 0, label: 'Option 1'}, {value: 1, label: 'Option 2'}, {value: 2, label: 'Option 3'},]"
+                :isError="true"
+                errorMsg="This is error!"
+              ></PickerDefault>
+            </div>
+          </div>
+          <div class="flex mt-5">
+            <div class="inline-block mr-5">
+              <PickerIcon
+                label="Picker Icon Example"
+                :options="[{value: 0, label: 'Option 1', icon: require('@/assets/icons/coins/nls.svg')}, {value: 1, label: 'Option 2', icon: require('@/assets/icons/coins/nls.svg')}, {value: 2, label: 'Option 3', icon: require('@/assets/icons/coins/nls.svg')},]"
+              ></PickerIcon>
+            </div>
+
+            <div class="inline-block">
+              <PickerIcon
+                label="Picker Icon Example"
+                :options="[{value: 0, label: 'Option 1', icon: require('@/assets/icons/coins/nls.svg')}, {value: 1, label: 'Option 2', icon: require('@/assets/icons/coins/nls.svg')}, {value: 2, label: 'Option 3', icon: require('@/assets/icons/coins/nls.svg')},]"
+                :isError="true"
+                errorMsg="This is error!"
+              ></PickerIcon>
+            </div>
+          </div>
+
+          <!-- Picker Small -->
+          <h2 class="text text-default-heading mt-6">Picker Small</h2>
+          <div class="flex mt-5">
+            <div class="inline-block mr-5">
+              <PickerDefault
+                label="Picker Example"
+                type="small"
+                :options="[{value: 0, label: 'Option 1'}, {value: 1, label: 'Option 2'}, {value: 2, label: 'Option 3'},]"
+              ></PickerDefault>
+            </div>
+
+            <div class="inline-block">
+              <PickerDefault
+                label="Picker Error Example"
+                type="small"
+                :options="[{value: 0, label: 'Option 1'}, {value: 1, label: 'Option 2'}, {value: 2, label: 'Option 3'},]"
+                :isError="true"
+                errorMsg="This is error!"
+              ></PickerDefault>
+            </div>
+          </div>
+
+          <div class="flex mt-5">
+            <div class="inline-block mr-5">
+              <PickerIcon
+                label="Picker Icon Example"
+                type="small"
+                :options="[{value: 0, label: 'Option 1', icon: require('@/assets/icons/coins/nls.svg')}, {value: 1, label: 'Option 2', icon: require('@/assets/icons/coins/nls.svg')}, {value: 2, label: 'Option 3', icon: require('@/assets/icons/coins/nls.svg')},]"
+              ></PickerIcon>
+            </div>
+
+            <div class="inline-block">
+              <PickerIcon
+                label="Picker Icon Example"
+                type="small"
+                :options="[{value: 0, label: 'Option 1', icon: require('@/assets/icons/coins/nls.svg')}, {value: 1, label: 'Option 2', icon: require('@/assets/icons/coins/nls.svg')}, {value: 2, label: 'Option 3', icon: require('@/assets/icons/coins/nls.svg')},]"
+                :isError="true"
+                errorMsg="This is error!"
+              ></PickerIcon>
+            </div>
+          </div>
+
+          <!-- Combo -->
+          <h2 class="text text-default-heading mt-6">Combo</h2>
+          <div class="flex mt-5">
+            <div class="inline-block mr-5">
+              <PickerCombo
+                label="PickerCombo Example"
+                :options="[{value: 0, label: 'Option 1'}, {value: 1, label: 'Option 2'}, {value: 2, label: 'Option 3'},]"
+              ></PickerCombo>
+            </div>
+
+            <div class="inline-block">
+              <PickerCombo
+                label="PickerCombo Error Example"
+                :options="[{value: 0, label: 'Option 1'}, {value: 1, label: 'Option 2'}, {value: 2, label: 'Option 3'},]"
+                :isError="true"
+                errorMsg="This is error!"
+              ></PickerCombo>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -181,13 +290,19 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { DuplicateIcon, XIcon, BellIcon } from '@heroicons/vue/solid'
+import PickerDefault from '@/components/PickerDefault.vue'
+import PickerIcon from '@/components/PickerIcon.vue'
+import PickerCombo from '@/components/PickerCombo.vue'
 
 export default defineComponent({
   name: 'StyleguideView',
   components: {
     DuplicateIcon,
     XIcon,
-    BellIcon
+    BellIcon,
+    PickerDefault,
+    PickerIcon,
+    PickerCombo
   },
   data () {
     return {}
