@@ -42,9 +42,11 @@
                     margin: 0;
                     padding: 0 14px;
                     border-left: 1px solid $grey;
+                    transition: 0.3s;
 
                     svg {
                         color: #8395b0;
+                        transition: 0.3s;
                     }
                 }
             }
@@ -59,6 +61,7 @@
             box-shadow: none !important;
             padding: 12px 32px 12px 16px;
             min-width: 135px;
+            transition: 0.3s;
 
             &:hover {
                 border-color: $mediumBlue;

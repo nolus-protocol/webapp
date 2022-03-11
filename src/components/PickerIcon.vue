@@ -6,9 +6,11 @@
         ]"
     >
         <Listbox as="div" v-model="selected">
-            <ListboxLabel class="block text-normal-copy text-primary text-medium">
-                {{ this.label }}
-            </ListboxLabel>
+            <div v-if="typeof this.label !== 'undefined' && this.label !== null && this.label.length > 0">
+                <ListboxLabel class="block text-normal-copy text-primary text-medium">
+                    {{ this.label }}
+                </ListboxLabel>
+            </div>
             <div class="mt-1 relative picker-container icon">
                 <ListboxButton class="relative w-full bg-white border border-gray-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     <span class="flex items-center">

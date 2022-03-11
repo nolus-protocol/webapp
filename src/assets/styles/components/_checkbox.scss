@@ -10,6 +10,7 @@
             border-radius: 3px;
             margin-right: 8px;
             vertical-align: middle;
+            transition: 0.3s;
 
             &:checked {
                 background-color: $lightElectric !important;

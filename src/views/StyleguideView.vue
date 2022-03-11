@@ -341,6 +341,58 @@
           </div>
         </div>
       </div>
+
+      <!-- Currency field -->
+      <div class="grid grid-cols-12 gap-6 mt-8">
+        <div class="col-span-12">
+          <h1 class="text text-large-heading">Currency field</h1>
+
+          <div class="flex mt-5">
+            <div class="inline-block mr-5">
+              <CurrencyField
+                name="currency-field-example"
+                id="currency-field-example"
+                label="Currency Field Example"
+              ></CurrencyField>
+            </div>
+            <div class="inline-block mr-5">
+              <CurrencyField
+                name="currency-field-example-error"
+                id="currency-field-example-error"
+                label="Currency Field Example Error"
+                :isError="true"
+                errorMsg="Error is error!"
+              ></CurrencyField>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Multi Line Currency field -->
+      <div class="grid grid-cols-12 gap-6 mt-8">
+        <div class="col-span-12">
+          <h1 class="text text-large-heading">Multiline currency field</h1>
+
+          <div class="flex mt-5">
+            <div class="inline-block mr-5">
+              <MultipleCurrencyField
+                name="multiple-currency-field-example"
+                id="multiple-currency-field-example"
+                label="Multiple Currency Field Example"
+              ></MultipleCurrencyField>
+            </div>
+            <div class="inline-block mr-5">
+              <MultipleCurrencyField
+                name="multiple-currency-field-example-error"
+                id="multiple-currency-field-example-error"
+                label="Multiple Currency Field Example Error"
+                :isError="true"
+                errorMsg="Error is error!"
+              ></MultipleCurrencyField>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -353,6 +405,8 @@ import PickerIcon from '@/components/PickerIcon.vue'
 import PickerCombo from '@/components/PickerCombo.vue'
 import RadioInput from '@/components/RadioInput.vue'
 import InputField from '@/components/InputField.vue'
+import CurrencyField from '@/components/CurrencyField.vue'
+import MultipleCurrencyField from '@/components/MultipleCurrencyField.vue'
 
 export default defineComponent({
   name: 'StyleguideView',
@@ -364,7 +418,9 @@ export default defineComponent({
     PickerIcon,
     PickerCombo,
     RadioInput,
-    InputField
+    InputField,
+    CurrencyField,
+    MultipleCurrencyField
   },
   data () {
     return {}
