@@ -50,3 +50,29 @@ input[type="radio"] {
         background-color: $white;
     }
 }
+
+.separator-line {
+    position: relative;
+
+    &:before,
+    &:after {
+        content: " ";
+        display: block;
+        position: absolute;
+        width: 100%;
+        height: 1px;
+        background-color: $grey;
+        left: 0;
+        top: 50%;
+    }
+}
+
+.logo {
+
+    &-float {
+        display: inline-block;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+}
