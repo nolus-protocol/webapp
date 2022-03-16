@@ -37,6 +37,7 @@
         &:disabled,
         &.js-disabled,
         &.js-loading {
+            color: $darkGrey;
             background-color: $grey;
             cursor: default;
         }

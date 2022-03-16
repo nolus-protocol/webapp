@@ -14,7 +14,7 @@
                         <span
                             class="inline-block align-baseline"
                         >
-                            Import Ledger
+                            Import seed
                         </span>
                     </h1>
 
@@ -29,18 +29,14 @@
                         shadow-box
                         "
                     >
-                        <p
-                            class="text-normal-copy text-primary"
-                        >
-                            Use the <span class="text-secondary">Cosmos Application</span> on your Ledger dongle to connect the hardware wallet.
-                        </p>
+                        <TextField
+                            name="seed"
+                            id="seed"
+                            label="Mnemonic seed"
+                        ></TextField>
                         <div class="flex mt-6">
-                            <button class="btn btn-primary btn-large-primary mr-4 js-loading">
-                                Connect Ledger
-                            </button>
-
-                            <button class="btn btn-secondary btn-large-secondary invisible">
-                                Cancel
+                            <button class="btn btn-primary btn-large-primary mr-4" disabled="disabled">
+                                Register
                             </button>
                         </div>
                     </div>
@@ -53,12 +49,14 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import LogoLink from '@/components/LogoLink.vue'
+import TextField from '@/components/TextField.vue'
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
 
 export default defineComponent({
-  name: 'ImportLedgerView',
+  name: 'ImportSeedView',
   components: {
     LogoLink,
+    TextField,
     ArrowLeftIcon
   },
   data () {

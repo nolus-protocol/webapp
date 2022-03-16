@@ -14,7 +14,7 @@
                         <span
                             class="inline-block align-baseline"
                         >
-                            Import Ledger
+                            Connecting to Kepler
                         </span>
                     </h1>
 
@@ -32,14 +32,14 @@
                         <p
                             class="text-normal-copy text-primary"
                         >
-                            Use the <span class="text-secondary">Cosmos Application</span> on your Ledger dongle to connect the hardware wallet.
+                            Continue by approving the connection in the extension
                         </p>
                         <div class="flex mt-6">
                             <button class="btn btn-primary btn-large-primary mr-4 js-loading">
-                                Connect Ledger
+                                Connecting to Kepler
                             </button>
 
-                            <button class="btn btn-secondary btn-large-secondary invisible">
+                            <button class="btn btn-secondary btn-large-secondary">
                                 Cancel
                             </button>
                         </div>
@@ -56,7 +56,7 @@ import LogoLink from '@/components/LogoLink.vue'
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
 
 export default defineComponent({
-  name: 'ImportLedgerView',
+  name: 'ConnectingKeprl',
   components: {
     LogoLink,
     ArrowLeftIcon

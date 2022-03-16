@@ -1,6 +1,7 @@
 .input-field {
 
-    input {
+    input,
+    textarea {
         background: $white;
         font-size: 14px;
         line-height: 24px;
@@ -11,6 +12,8 @@
         min-width: 135px;
         margin-top: 8px;
         transition: 0.3s;
+        display: block;
+        width: 100%;
 
         &:hover {
             border-color: $mediumBlue;
@@ -24,6 +27,10 @@
         &.error {
             border-color: $lightRed;
         }
+    }
+
+    textarea {
+        min-height: 154px;
     }
 
     .msg {
