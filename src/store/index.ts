@@ -14,13 +14,12 @@ import OpenLogin from '@toruslabs/openlogin'
 
 export default createStore({
   state: {
-    torusClient: {} || null,
-    wallet: {} || null
+    torusClient: {},
+    wallet: {}
   },
-  getters: {
-  },
+  getters: {},
   mutations: {
-    signWallet (state, payload: {wallet: NolusWallet}) {
+    signWallet (state, payload: { wallet: NolusWallet }) {
       state.wallet = payload.wallet
     },
     torusLogin (state, payload: OpenLogin) {
@@ -63,7 +62,10 @@ export default createStore({
         try {
           const transport = await TransportWebUSB.create()
 
-          ledgerWallet = await nolusLedgerWallet(new LedgerSigner(transport, { prefix: BECH32_PREFIX_ACC_ADDR, hdPaths: paths }))
+          ledgerWallet = await nolusLedgerWallet(new LedgerSigner(transport, {
+            prefix: BECH32_PREFIX_ACC_ADDR,
+            hdPaths: paths
+          }))
           await ledgerWallet.useAccount()
 
           context.commit('signWallet', { wallet: ledgerWallet })
@@ -73,9 +75,7 @@ export default createStore({
         } catch (e) {
           console.log('break!')
           console.log(e)
-          // if ((e as Error).name === 'TransportOpenUserCancelled') {
           breakLoop = true
-          // }
         }
       }
 
@@ -88,10 +88,7 @@ export default createStore({
       const privateKey = await KeyUtils.getPrivateKeyFromMnemonic(mnemonic, path)
       const publicKey = await KeyUtils.getPublicKeyFromPrivateKey(privateKey)
       const address = KeyUtils.getAddressFromPublicKey(publicKey)
-      console.log('Address: ', address)
-      console.log('isValidAddress: ', KeyUtils.isAddressValid(address))
       const directSecrWallet = await DirectSecp256k1Wallet.fromKey(privateKey, BECH32_PREFIX_ACC_ADDR)
-
       const nolusWalletOfflineSigner = await nolusOfflineSigner(directSecrWallet)
       await nolusWalletOfflineSigner.useAccount()
       context.commit('signWallet', { wallet: nolusWalletOfflineSigner })
@@ -108,20 +105,18 @@ export default createStore({
         console.log('1private key: ', openlogin.privKey)
         await openlogin.login()
       } else {
-        console.log('2private key: ', openlogin.privKey)
-        const enc = new TextEncoder()
-        console.log('2private key encoded: ', enc.encode(openlogin.privKey))
-
-        const directSecrWallet = await DirectSecp256k1Wallet.fromKey(enc.encode(openlogin.privKey.replace('0x', '')), BECH32_PREFIX_ACC_ADDR)
-
+        const bufferedPrivateKey = Buffer.from(openlogin.privKey.trim().replace('0x', ''), 'hex')
+        const directSecrWallet = await DirectSecp256k1Wallet.fromKey(bufferedPrivateKey, BECH32_PREFIX_ACC_ADDR)
         const nolusWalletOfflineSigner = await nolusOfflineSigner(directSecrWallet)
         await nolusWalletOfflineSigner.useAccount()
+        console.log(nolusWalletOfflineSigner.address)
         context.commit('signWallet', { wallet: nolusWalletOfflineSigner })
       }
     },
     async torusLogout (context) {
       if (context.state.torusClient) {
-        await (context.state.torusClient as OpenLogin).logout()
+        const openlogin = (context.state.torusClient as OpenLogin)
+        await openlogin.logout()
       }
     },
     async generateWallet () {
@@ -133,6 +128,5 @@ export default createStore({
       console.log('isValidAddress: ', KeyUtils.isAddressValid(address))
     }
   },
-  modules: {
-  }
+  modules: {}
 })

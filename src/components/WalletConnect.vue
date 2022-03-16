@@ -15,7 +15,6 @@
 <script>
 import store from '@/store'
 import router from '@/router'
-import { NolusWallet } from '@/wallet/NolusWallet'
 
 export default {
   name: 'WalletConnect',
@@ -67,7 +66,10 @@ export default {
 
       const DEFAULT_FEE = {
         // TODO 0.0025unolus
-        amount: [{ denom: 'unolus', amount: '20' }],
+        amount: [{
+          denom: 'unolus',
+          amount: '20'
+        }],
         gas: '100000'
       }
       // const txResponse = await state.wallet.currentWallet?.sendTokens(
@@ -78,7 +80,10 @@ export default {
       // )
 
       console.log(wallet)
-      const txResponse = await wallet.sendTokens(wallet.address, 'nolus1j78dy05hhgnccegduee0dkwyst2j0vvcmefn4d', [{ denom: 'unolus', amount: '20000000' }], DEFAULT_FEE)
+      const txResponse = await wallet.sendTokens(wallet.address, 'nolus15dqqhetmfc4a9akf358zj8hz36e59zx686wg76', [{
+        denom: 'unolus',
+        amount: '20000000'
+      }], DEFAULT_FEE)
       console.log(txResponse)
       // console.log(wallet.sendTokens(store.state.wallet.address))
       // store.dispatch('connectToKeplr')
