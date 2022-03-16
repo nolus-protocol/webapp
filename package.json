@@ -8,7 +8,29 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@cosmjs/amino": "^0.27.0",
+    "@cosmjs/cosmwasm-stargate": "^0.27.0",
+    "@cosmjs/crypto": "^0.27.0",
+    "@cosmjs/encoding": "^0.27.0",
+    "@cosmjs/ledger-amino": "^0.27.0",
+    "@cosmjs/proto-signing": "0.27.0",
+    "@cosmjs/stargate": "^0.27.0",
+    "@cosmjs/tendermint-rpc": "^0.27.0",
+    "@keplr-wallet/crypto": "^0.9.10",
+    "@keplr-wallet/types": "^0.9.10",
+    "@keplr-wallet/unit": "^0.9.10",
+    "@ledgerhq/hw-app-cosmos": "^6.20.0",
+    "@ledgerhq/hw-transport-webhid": "^6.20.0",
+    "@ledgerhq/hw-transport-webusb": "^6.20.0",
+    "@ledgerhq/logs": "^6.10.0",
+    "@toruslabs/openlogin": "^1.6.0",
+    "@types/crypto-js": "^4.1.1",
     "core-js": "^3.8.3",
+    "crypto-browserify": "^3.12.0",
+    "crypto-js": "^4.1.1",
+    "path-browserify": "^1.0.1",
+    "process": "^0.11.10",
+    "stream-browserify": "^3.0.0",
     "vue": "^3.2.13",
     "vue-router": "^4.0.12",
     "vuex": "^4.0.0"
@@ -32,7 +54,8 @@
     "lint-staged": "^11.1.2",
     "sass": "^1.49.9",
     "sass-loader": "^10.1.0",
-    "typescript": "~4.5.5"
+    "typescript": "~4.5.5",
+    "webpack": "^5.69.1"
   },
   "gitHooks": {
     "pre-commit": "lint-staged"
