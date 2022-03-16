@@ -1,10 +1,8 @@
 <template>
   <div class="page-container home">
-    <a href="#" class="logo-float p-8">
-      <img
-        src="@/assets/icons/logo.svg"
-      />
-    </a>
+    <LogoLink
+      href="#"
+    ></LogoLink>
     <div class="container mx-auto">
       <div class="grid grid-cols-12 gap-6 pt-24">
         <div class="col-start-4 col-span-5">
@@ -58,10 +56,12 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import LogoLink from '@/components/LogoLink.vue'
 
 export default defineComponent({
   name: 'HomeView',
   components: {
+    LogoLink
   },
   data () {
     return {}

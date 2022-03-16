@@ -2,6 +2,7 @@
 import HomeView from '../views/HomeView.vue'
 import WelcomeView from '@/views/WelcomeView.vue'
 import StyleguideView from '@/views/StyleguideView.vue'
+import ImportLedgerView from '@/views/ImportLedgerView.vue'
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 
 const routes: Array<RouteRecordRaw> = [
@@ -19,6 +20,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/styleguide',
     name: 'styleguide',
     component: StyleguideView
+  },
+  {
+    path: '/import-ledger',
+    name: 'importLedger',
+    component: ImportLedgerView
   }
 ]
 
