@@ -1,0 +1,51 @@
+<template>
+  <fieldset>
+    <div class="block input-field">
+        <label
+            :for="this.id"
+            class="block text-normal-copy text-primary text-medium"
+        >{{ this.label }}</label>
+        <div class="field-container text-field-buttons">
+          <textarea
+              :name="this.name"
+              :id="this.id"
+              :class="typeof this.isError !== 'undefined' && this.isError === true ? 'error' : ''"
+          ></textarea>
+          <div class="flex align-center justify-end p-3 bg-light-grey buttons-container">
+            <button class="btn btn-secondary btn-medium-secondary btn-icon mr-4">
+              <DuplicateIcon class="icon w-4 h-4" />
+              Copy
+            </button>
+            <button class="btn btn-secondary btn-medium-secondary btn-icon">
+              <PrinterIcon class="icon w-4 h-4" />
+              Print
+            </button>
+          </div>
+        </div>
+        <span :class="[
+            'msg error ',
+            typeof this.errorMsg !== 'undefined' && this.errorMsg !== null ? '' : 'hidden'
+        ]">{{ typeof this.errorMsg !== 'undefined' && this.errorMsg !== null ? this.errorMsg : '' }}</span>
+    </div>
+  </fieldset>
+</template>
+
+<script>
+import { DuplicateIcon, PrinterIcon } from '@heroicons/vue/solid'
+
+export default {
+  name: 'TextFieldButtons',
+  components: {
+    DuplicateIcon,
+    PrinterIcon
+  },
+  props: ['name', 'id', 'label', 'isError', 'errorMsg', 'buttons'],
+  data () {
+    return {
+      default: {
+        value: ''
+      }
+    }
+  }
+}
+</script>

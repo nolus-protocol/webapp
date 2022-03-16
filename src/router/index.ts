@@ -5,6 +5,7 @@ import StyleguideView from '@/views/StyleguideView.vue'
 import ImportLedgerView from '@/views/ImportLedgerView.vue'
 import ConnectingKeplr from '@/views/ConnectingKeplr.vue'
 import ImportSeedView from '@/views/ImportSeedView.vue'
+import CreateAccountView from '@/views/CreateAccountView.vue'
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 
 const routes: Array<RouteRecordRaw> = [
@@ -37,6 +38,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/import-seed',
     name: 'importSeedView',
     component: ImportSeedView
+  },
+  {
+    path: '/create-account',
+    name: 'createAccountView',
+    component: CreateAccountView
   }
 ]
 

@@ -46,3 +46,18 @@
         }
     }
 }
+
+.text-field-buttons {
+
+    textarea {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    .buttons-container {
+        border-bottom-left-radius: $rounded;
+        border-bottom-right-radius: $rounded;
+        border: 1px solid $grey;
+        border-top: none;
+    }
+}
