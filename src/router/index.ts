@@ -7,6 +7,7 @@ import ConnectingKeplr from '@/views/ConnectingKeplr.vue'
 import ImportSeedView from '@/views/ImportSeedView.vue'
 import CreateAccountView from '@/views/CreateAccountView.vue'
 import ConfirmMnemonicView from '@/views/ConfirmMnemonicView.vue'
+import SetPassword from '@/views/SetPassword.vue'
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 
 const routes: Array<RouteRecordRaw> = [
@@ -49,6 +50,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/confirm-mnemonic',
     name: 'ConfirmMnemonicView',
     component: ConfirmMnemonicView
+  },
+  {
+    path: '/set-password',
+    name: 'SetPassword',
+    component: SetPassword
   }
 ]
 
