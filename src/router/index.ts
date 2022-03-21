@@ -6,6 +6,7 @@ import ImportLedgerView from '@/views/ImportLedgerView.vue'
 import ConnectingKeplr from '@/views/ConnectingKeplr.vue'
 import ImportSeedView from '@/views/ImportSeedView.vue'
 import CreateAccountView from '@/views/CreateAccountView.vue'
+import ConfirmMnemonicView from '@/views/ConfirmMnemonicView.vue'
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 
 const routes: Array<RouteRecordRaw> = [
@@ -43,6 +44,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/create-account',
     name: 'createAccountView',
     component: CreateAccountView
+  },
+  {
+    path: '/confirm-mnemonic',
+    name: 'ConfirmMnemonicView',
+    component: ConfirmMnemonicView
   }
 ]
 

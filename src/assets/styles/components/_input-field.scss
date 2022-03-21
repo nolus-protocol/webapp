@@ -1,7 +1,8 @@
 .input-field {
 
     input,
-    textarea {
+    textarea,
+    .editable-block {
         background: $white;
         font-size: 14px;
         line-height: 24px;
@@ -27,9 +28,20 @@
         &.error {
             border-color: $lightRed;
         }
+
+        & > div {
+            display: inline-block;
+            border-radius: $rounded;
+            background-color: $textMain;
+            color: $white;
+            padding: 8px 12px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
     }
 
-    textarea {
+    textarea,
+    .editable-block {
         min-height: 154px;
     }
 
@@ -59,5 +71,20 @@
         border-bottom-right-radius: $rounded;
         border: 1px solid $grey;
         border-top: none;
+    }
+}
+
+.editable-block-options {
+
+    .editable-block-option {
+        display: inline-block;
+        background-color: $white;
+        border: 1px solid rgba(7, 45, 99, 0.1);
+        border-radius: $rounded;
+        padding: 8px 12px;
+        margin-top: 12px;
+        margin-right: 12px;
+        box-shadow: 0 8px 32px 0 rgba(7, 45, 99, 0.05);
+        font-size: 14px;
     }
 }
