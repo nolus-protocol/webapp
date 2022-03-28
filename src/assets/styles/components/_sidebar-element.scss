@@ -1,0 +1,130 @@
+.sidebar-container {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 100%;
+    max-width: 210px;
+    height: 100vh;
+
+    .top,
+    .bot {
+        display: block;
+        width: 100%;
+    }
+
+    .sidebar-elements-container {
+        
+        &:hover {
+
+            .sidebar-element {
+                color: $textMain;
+                background-color: transparent;
+
+                .icon { display: inline-block; }
+                .iconHover { display: none; }
+            }
+        }
+
+        .block {
+            margin-bottom: 12px;
+
+            &:last-of-type {
+                margin-bottom: 0 !important;
+            }
+        }
+    }
+
+    .logo {
+
+        &-float {
+            position: relative !important;
+            width: 100%;
+
+            img {
+                margin: 0 auto;
+            }
+        }
+    }
+}
+
+.sidebar-element {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 8px 16px;
+    background: transparent;
+    border-radius: 12px;
+
+    @extend .text-large-copy;
+    @extend .text-medium;
+
+    &.active {
+        color: $orange;
+        background-color: $grey;
+
+        .icon { display: none; }
+        .iconHover { display: inline-block; }
+    }
+
+    &:hover,
+    &:active {
+        color: $orange !important;
+        background-color: $grey !important;
+
+        .icon { display: none !important; }
+        .iconHover { display: inline-block !important; }
+    }
+
+    .icon,
+    .iconHover {
+        display: inline-block;
+        position: relative;
+        margin: 0;
+    }
+
+    .iconHover {
+        display: none;
+    }
+
+    span {
+        display: inline-block;
+        margin-left: 8px;
+    }
+}
+
+.sidebar-social-element {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin-right: 16px;
+
+    &:last-of-type {
+        margin-right: 0 !important;
+    }
+
+    img {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+}
+
+.sidebar-link-element {
+    display: block;
+    text-align: left;
+    color: rgba(7, 45, 99, 0.5);
+
+    @extend .text-detail;
+
+    &:hover,
+    &:active {
+        color: $textMain;
+    }
+}

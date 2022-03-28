@@ -2,7 +2,10 @@
   <a
     :id="this.id"
     :href="this.href"
-    class="sidebar-element"
+    :class="[
+      'sidebar-element',
+      (typeof this.isActive !== 'undefined' && this.isActive === true ? 'active' : '')
+    ]"
   >
     <img 
         class="icon"
@@ -21,6 +24,6 @@
 <script type="ts">
 export default {
   name: 'SidebarElement',
-  props: ['id', 'href', 'label', 'icon', 'iconHover']
+  props: ['id', 'href', 'label', 'icon', 'iconHover', 'isActive']
 }
 </script>

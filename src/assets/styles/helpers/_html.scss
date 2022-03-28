@@ -9,7 +9,7 @@
 
 html,
 body {
-    background: $grey;
+    background: $lighestGrey;
     position: relative;
     margin: 0;
     min-height: 100vh;
@@ -79,14 +79,4 @@ input[type="radio"] {
 
 .warning-box {
     background-color: #fff9ea;
-}
-
-.sidebar-container {
-
-    .logo {
-
-        &-float {
-            position: relative !important;
-        }
-    }
 }
