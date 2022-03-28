@@ -83,7 +83,29 @@ export default {
     PickerIcon,
     ArrowDownIcon
   },
-  props: ['name', 'id', 'label', 'isError', 'errorMsg', 'nameSecondary', 'idSecondary'],
+  props: {
+    name: {
+      type: String
+    },
+    nameSecondary: {
+      type: String
+    },
+    id: {
+      type: String
+    },
+    idSecondary: {
+      type: String
+    },
+    label: {
+      type: String
+    },
+    isError: {
+      type: Boolean
+    },
+    errorMsg: {
+      type: String
+    }
+  },
   data () {
     return {
       default: {

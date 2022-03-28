@@ -1,6 +1,8 @@
 .input-field {
 
-    input {
+    input,
+    textarea,
+    .editable-block {
         background: $white;
         font-size: 14px;
         line-height: 24px;
@@ -11,6 +13,8 @@
         min-width: 135px;
         margin-top: 8px;
         transition: 0.3s;
+        display: block;
+        width: 100%;
 
         &:hover {
             border-color: $mediumBlue;
@@ -24,6 +28,21 @@
         &.error {
             border-color: $lightRed;
         }
+
+        & > div {
+            display: inline-block;
+            border-radius: $rounded;
+            background-color: $textMain;
+            color: $white;
+            padding: 8px 12px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+    }
+
+    textarea,
+    .editable-block {
+        min-height: 154px;
     }
 
     .msg {
@@ -37,5 +56,35 @@
         &.hidden {
             display: none;
         }
+    }
+}
+
+.text-field-buttons {
+
+    textarea {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    .buttons-container {
+        border-bottom-left-radius: $rounded;
+        border-bottom-right-radius: $rounded;
+        border: 1px solid $grey;
+        border-top: none;
+    }
+}
+
+.editable-block-options {
+
+    .editable-block-option {
+        display: inline-block;
+        background-color: $white;
+        border: 1px solid rgba(7, 45, 99, 0.1);
+        border-radius: $rounded;
+        padding: 8px 12px;
+        margin-top: 12px;
+        margin-right: 12px;
+        box-shadow: 0 8px 32px 0 rgba(7, 45, 99, 0.05);
+        font-size: 14px;
     }
 }

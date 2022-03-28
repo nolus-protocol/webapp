@@ -34,7 +34,11 @@
 <script lang="ts">
 export default {
   name: 'RadioInput',
-  props: ['options'],
+  props: {
+    options: {
+      type: String
+    }
+  },
   data () {
     return {
       selected: {
