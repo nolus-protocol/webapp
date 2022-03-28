@@ -1,21 +1,23 @@
 import { createStore } from 'vuex'
 import { NolusClient } from '@/client/NolusClient'
 import { Window as KeplrWindow } from '@keplr-wallet/types'
-import KeplrEmbedChainInfo from '@/config/wallet'
+import KeplrEmbedChainInfo, { IBCAssets } from '@/config/wallet'
 import { nolusLedgerWallet, nolusOfflineSigner } from '@/wallet/NolusWalletFactory'
 import { makeCosmoshubPath } from '@cosmjs/amino'
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
 import { LedgerSigner } from '@cosmjs/ledger-amino'
-import { BECH32_PREFIX_ACC_ADDR } from '@/constants/chain'
+import { BECH32_PREFIX_ACC_ADDR, COIN_MINIMAL_DENOM } from '@/constants/chain'
 import { NolusWallet } from '@/wallet/NolusWallet'
 import { KeyUtils } from '@/utils/KeyUtils'
 import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing'
 import OpenLogin from '@toruslabs/openlogin'
+import { makeIBCMinimalDenom } from '@/utils/AssetUtils'
 
 export default createStore({
   state: {
     torusClient: {},
-    wallet: {}
+    wallet: {},
+    balances: []
   },
   getters: {},
   mutations: {
@@ -24,6 +26,9 @@ export default createStore({
     },
     torusLogin (state, payload: OpenLogin) {
       state.torusClient = payload
+    },
+    updateBalances (state, payload: { balances: [] }) {
+      state.balances = payload.balances
     }
   },
   actions: {
@@ -47,7 +52,7 @@ export default createStore({
           const nolusWalletOfflineSigner = await nolusOfflineSigner(offlineSigner)
           await nolusWalletOfflineSigner.useAccount()
           context.commit('signWallet', { wallet: nolusWalletOfflineSigner })
-          // TODO Update balance
+          await context.dispatch('updateBalances', { walletAddress: nolusWalletOfflineSigner.address })
         }
       }
     },
@@ -69,9 +74,7 @@ export default createStore({
           await ledgerWallet.useAccount()
 
           context.commit('signWallet', { wallet: ledgerWallet })
-          console.log(ledgerWallet.address)
-          console.log(ledgerWallet.pubKey)
-          console.log(ledgerWallet.algo)
+          await context.dispatch('updateBalances', { walletAddress: ledgerWallet.address })
         } catch (e) {
           console.log('break!')
           console.log(e)
@@ -86,12 +89,11 @@ export default createStore({
       const path = accountNumbers.map(makeCosmoshubPath)[0]
       const mnemonic = 'industry helmet coach enforce laundry excuse core argue poem master sugar demand'
       const privateKey = await KeyUtils.getPrivateKeyFromMnemonic(mnemonic, path)
-      const publicKey = await KeyUtils.getPublicKeyFromPrivateKey(privateKey)
-      const address = KeyUtils.getAddressFromPublicKey(publicKey)
       const directSecrWallet = await DirectSecp256k1Wallet.fromKey(privateKey, BECH32_PREFIX_ACC_ADDR)
       const nolusWalletOfflineSigner = await nolusOfflineSigner(directSecrWallet)
       await nolusWalletOfflineSigner.useAccount()
       context.commit('signWallet', { wallet: nolusWalletOfflineSigner })
+      await context.dispatch('updateBalances', { walletAddress: nolusWalletOfflineSigner.address })
     },
     async loginViaTorus (context) {
       const openlogin = new OpenLogin({
@@ -109,8 +111,8 @@ export default createStore({
         const directSecrWallet = await DirectSecp256k1Wallet.fromKey(bufferedPrivateKey, BECH32_PREFIX_ACC_ADDR)
         const nolusWalletOfflineSigner = await nolusOfflineSigner(directSecrWallet)
         await nolusWalletOfflineSigner.useAccount()
-        console.log(nolusWalletOfflineSigner.address)
         context.commit('signWallet', { wallet: nolusWalletOfflineSigner })
+        await context.dispatch('updateBalances', { walletAddress: nolusWalletOfflineSigner.address })
       }
     },
     async torusLogout (context) {
@@ -126,6 +128,32 @@ export default createStore({
       const address = KeyUtils.getAddressFromPublicKey(publicKey)
       console.log('Address: ', address)
       console.log('isValidAddress: ', KeyUtils.isAddressValid(address))
+    },
+    async updateBalances (context, payload: { walletAddress: string }) {
+      if (!payload.walletAddress) {
+        return
+      }
+      const ibcBalances = []
+      const nolusBalance = await NolusClient.getInstance()
+        .getBalance(payload.walletAddress,
+          COIN_MINIMAL_DENOM)
+      ibcBalances.push({
+        udenom: COIN_MINIMAL_DENOM,
+        balance: nolusBalance
+      })
+
+      for (const asset of IBCAssets) {
+        const ibcDenom = makeIBCMinimalDenom(asset.sourceChannelId, asset.coinMinimalDenom)
+        const balance = await NolusClient.getInstance()
+          .getBalance(payload.walletAddress,
+            ibcDenom)
+
+        ibcBalances.push({
+          udenom: asset.coinMinimalDenom,
+          balance: balance
+        })
+      }
+      context.commit('updateBalances', { balances: ibcBalances })
     }
   },
   modules: {}

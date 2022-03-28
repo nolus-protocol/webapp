@@ -39,7 +39,26 @@ export default {
     DuplicateIcon,
     PrinterIcon
   },
-  props: ['name', 'id', 'label', 'isError', 'errorMsg', 'buttons'],
+  props: {
+    name: {
+      type: String
+    },
+    id: {
+      type: String
+    },
+    label: {
+      type: String
+    },
+    buttons: {
+      type: String
+    },
+    isError: {
+      type: Boolean
+    },
+    errorMsg: {
+      type: String
+    }
+  },
   data () {
     return {
       default: {

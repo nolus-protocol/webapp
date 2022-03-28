@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <WalletConnect msg="Welcome"/>
+    <WalletConnect/>
   </div>
 </template>
 

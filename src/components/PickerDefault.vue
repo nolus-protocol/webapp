@@ -113,7 +113,7 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 import {
   Listbox,
   ListboxButton,
@@ -134,7 +134,23 @@ export default {
     CheckIcon,
     ChevronDownIcon
   },
-  props: ['label', 'type', 'options', 'isError', 'errorMsg'],
+  props: {
+    label: {
+      type: String
+    },
+    type: {
+      type: String
+    },
+    options: {
+      type: String
+    },
+    isError: {
+      type: Boolean
+    },
+    errorMsg: {
+      type: String
+    }
+  },
   data () {
     return {
       selected: {
