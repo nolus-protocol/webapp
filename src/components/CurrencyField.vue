@@ -45,7 +45,7 @@
   </fieldset>
 </template>
 
-<script type="ts">
+<script lang="ts">
 import PickerIcon from '@/components/PickerIcon.vue'
 
 export default {
@@ -53,7 +53,23 @@ export default {
   components: {
     PickerIcon
   },
-  props: ['name', 'id', 'label', 'isError', 'errorMsg'],
+  props: {
+    name: {
+      type: String
+    },
+    id: {
+      type: String
+    },
+    label: {
+      type: String
+    },
+    isError: {
+      type: Boolean
+    },
+    errorMsg: {
+      type: String
+    }
+  },
   data () {
     return {
       default: {

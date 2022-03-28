@@ -42,7 +42,23 @@
 export default {
   name: 'SelectorTextField',
   components: {},
-  props: ['name', 'id', 'label', 'isError', 'errorMsg'],
+  props: {
+    name: {
+      type: String
+    },
+    id: {
+      type: String
+    },
+    label: {
+      type: String
+    },
+    isError: {
+      type: Boolean
+    },
+    errorMsg: {
+      type: String
+    }
+  },
   data () {
     return {
       default: {
