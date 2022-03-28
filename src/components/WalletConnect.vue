@@ -10,7 +10,6 @@
     <button class="btn btn-primary btn-large-primary mr-4" v-on:click="torusLogout">Logout from Torus</button>
     <button class="btn btn-primary btn-large-primary mr-4" v-on:click="sendTokens">Send tokens</button>
     <button class="btn btn-primary btn-large-primary mr-4" v-on:click="updateBalances">Update balances</button>
-    <button class="bg-light-electric p-8 m-1 rounded-md border-2 border-b-dark">test</button>
   </div>
 </template>
 
@@ -47,7 +46,7 @@ export default {
       store.dispatch('torusLogout')
     },
     updateBalances: () => {
-      store.dispatch('updateBalances', { walletAddress: store.state.wallet.address })
+      store.dispatch('updateBalances', { walletAddress: store.state.wallet?.address })
     },
     sendTokens: async () => {
       const wallet = store.state.wallet
@@ -60,7 +59,7 @@ export default {
         gas: '100000'
       }
       console.log(wallet)
-      const txResponse = await wallet.sendTokens(wallet.address, 'nolus15dqqhetmfc4a9akf358zj8hz36e59zx686wg76', [{
+      const txResponse = await wallet.sendTokens(wallet.address as string, 'nolus15dqqhetmfc4a9akf358zj8hz36e59zx686wg76', [{
         denom: 'unolus',
         amount: '20000000'
       }], DEFAULT_FEE)

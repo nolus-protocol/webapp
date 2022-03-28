@@ -10,12 +10,52 @@ import ConfirmMnemonicView from '@/views/ConfirmMnemonicView.vue'
 import SetPassword from '@/views/SetPassword.vue'
 import SetWalletName from '@/views/SetWalletName.vue'
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
+import AuthView from '@/views/AuthView.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'home',
     component: HomeView
+  },
+  {
+    path: '/auth',
+    component: AuthView,
+    children: [
+      {
+        path: '',
+        name: 'authHome',
+        component: HomeView
+      },
+      {
+        path: 'connecting-to-keplr',
+        name: 'connectingKeplr',
+        component: ConnectingKeplr
+      },
+      {
+        path: 'import-ledger',
+        name: 'importLedger',
+        component: ImportLedgerView
+      },
+      {
+        path: 'import-seed',
+        name: 'importSeedView',
+        component: ImportSeedView
+      },
+      {
+        path: 'create-account',
+        name: 'createAccountView',
+        component: CreateAccountView,
+        children: [
+          {
+            path: 'confirm-mnemonic',
+            name: 'ConfirmMnemonicView',
+            component: ConfirmMnemonicView
+          }
+        ]
+      }
+
+    ]
   },
   {
     path: '/welcome',
@@ -27,31 +67,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'styleguide',
     component: StyleguideView
   },
-  {
-    path: '/import-ledger',
-    name: 'importLedger',
-    component: ImportLedgerView
-  },
-  {
-    path: '/connecting-to-keplr',
-    name: 'connectingKeprl',
-    component: ConnectingKeplr
-  },
-  {
-    path: '/import-seed',
-    name: 'importSeedView',
-    component: ImportSeedView
-  },
-  {
-    path: '/create-account',
-    name: 'createAccountView',
-    component: CreateAccountView
-  },
-  {
-    path: '/confirm-mnemonic',
-    name: 'ConfirmMnemonicView',
-    component: ConfirmMnemonicView
-  },
+
   {
     path: '/set-password',
     name: 'SetPassword',
