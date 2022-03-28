@@ -59,20 +59,18 @@ export default createStore({
     async connectToLedger (context) {
       let breakLoop = false
       let ledgerWallet = null
-      // 10 sec timeout to let the user unlock his hardware
+      // 20 sec timeout to let the user unlock his hardware
       const to = setTimeout(() => (breakLoop = true), 20000)
       const accountNumbers = [0]
       const paths = accountNumbers.map(makeCosmoshubPath)
       while (!ledgerWallet && !breakLoop) {
         try {
           const transport = await TransportWebUSB.create()
-
           ledgerWallet = await nolusLedgerWallet(new LedgerSigner(transport, {
             prefix: BECH32_PREFIX_ACC_ADDR,
             hdPaths: paths
           }))
           await ledgerWallet.useAccount()
-
           context.commit('signWallet', { wallet: ledgerWallet })
           await context.dispatch('updateBalances', { walletAddress: ledgerWallet.address })
         } catch (e) {
@@ -81,7 +79,6 @@ export default createStore({
           breakLoop = true
         }
       }
-
       clearTimeout(to)
     },
     async connectViaMnemonic (context) {

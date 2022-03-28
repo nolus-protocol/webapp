@@ -4,7 +4,7 @@
     <div class="container mx-auto">
       <div class="grid grid-cols-12 gap-6 pt-24">
         <div class="col-start-4 col-span-5">
-          <router-view></router-view>
+          <router-view/>
         </div>
       </div>
     </div>
