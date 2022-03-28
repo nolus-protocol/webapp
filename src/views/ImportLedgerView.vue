@@ -1,6 +1,7 @@
 <template>
   <h1 class="text-to-big-number text-primary text-center relative">
     <button
+      v-on:click="clickBack"
       type="button"
       class="inline-block align-baseline absolute left-0 top-2/4 -mt-2.5"
     >
@@ -45,6 +46,8 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
+import router from '@/router'
+import store from '@/store'
 
 export default defineComponent({
   name: 'ImportLedgerView',
@@ -53,6 +56,17 @@ export default defineComponent({
   },
   data () {
     return {}
+  },
+  mounted () {
+    this.connectViaLedger()
+  },
+  methods: {
+    clickBack: () => {
+      router.go(-1)
+    },
+    connectViaLedger: async () => {
+      store.dispatch('connectToLedger')
+    }
   }
 })
 </script>
