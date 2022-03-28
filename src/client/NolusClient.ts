@@ -1,5 +1,5 @@
 import { Tendermint34Client } from '@cosmjs/tendermint-rpc'
-import { CosmWasmClient, cosmWasmTypes } from '@cosmjs/cosmwasm-stargate'
+import { CosmWasmClient } from '@cosmjs/cosmwasm-stargate'
 import { Coin } from '@cosmjs/proto-signing'
 
 export class NolusClient {
@@ -54,7 +54,7 @@ export class NolusClient {
     if (!balance) {
       throw new Error('Balance is missing!')
     }
-    return balance
+    return await balance
   }
 
   public async getBlockHeight (): Promise<number> {

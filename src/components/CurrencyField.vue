@@ -45,7 +45,7 @@
   </fieldset>
 </template>
 
-<script type="ts">
+<script lang="ts">
 import PickerIcon from '@/components/PickerIcon.vue'
 
 export default {

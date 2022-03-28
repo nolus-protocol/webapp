@@ -19,7 +19,7 @@
   </fieldset>
 </template>
 
-<script>
+<script lang="ts">
 export default {
   name: 'InputField',
   props: ['type', 'name', 'id', 'label', 'isError', 'errorMsg'],

@@ -73,7 +73,7 @@
   </fieldset>
 </template>
 
-<script type="ts">
+<script lang="ts">
 import PickerIcon from '@/components/PickerIcon.vue'
 import { ArrowDownIcon } from '@heroicons/vue/solid'
 

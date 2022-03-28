@@ -1,22 +1,19 @@
 <template>
-<!--  <nav>-->
-<!--    <router-link to="/">Home</router-link> |-->
-<!--    <router-link to="/welcome">Welcome</router-link> |-->
-<!--  </nav>-->
+  <!--  <nav>-->
+  <!--    <router-link to="/">Home</router-link> |-->
+  <!--    <router-link to="/welcome">Welcome</router-link> |-->
+  <!--  </nav>-->
   <router-view/>
 </template>
 
 <script lang="ts">
 
-import { ComponentPublicInstance } from '@vue/runtime-core'
 import { NolusClient } from '@/client/NolusClient'
 
 export default {
   name: 'App',
-  components: {
-
-  },
-  errorCaptured (err: any, instance: ComponentPublicInstance | null, info: string) {
+  components: {},
+  errorCaptured (err: unknown) {
     console.log('errorCaptured: ', err)
   },
   mounted () {
