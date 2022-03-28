@@ -16,7 +16,7 @@ import { makeIBCMinimalDenom } from '@/utils/AssetUtils'
 export default createStore({
   state: {
     torusClient: {},
-    wallet: {},
+    wallet: {} as NolusWallet,
     balances: []
   },
   getters: {},
