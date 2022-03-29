@@ -1,6 +1,7 @@
 <template>
   <h1 class="text-to-big-number text-primary text-center relative">
     <button
+      v-on:click="clickBack"
       type="button"
       class="inline-block align-baseline absolute left-0 top-2/4 -mt-2.5"
     >
@@ -41,6 +42,7 @@
 import { defineComponent } from 'vue'
 import TextField from '@/components/TextField.vue'
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
+import router from '@/router'
 
 export default defineComponent({
   name: 'ImportSeedView',
@@ -50,6 +52,11 @@ export default defineComponent({
   },
   data () {
     return {}
+  },
+  methods: {
+    clickBack: () => {
+      router.go(-1)
+    }
   }
 })
 </script>

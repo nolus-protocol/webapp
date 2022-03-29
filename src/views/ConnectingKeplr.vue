@@ -46,9 +46,10 @@
 import { defineComponent } from 'vue'
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
 import router from '@/router'
+import store from '@/store'
 
 export default defineComponent({
-  name: 'ConnectingKeprl',
+  name: 'ConnectingKeplr',
   components: {
     ArrowLeftIcon
   },
@@ -59,6 +60,10 @@ export default defineComponent({
     clickBack: () => {
       router.go(-1)
     }
+  },
+  mounted () {
+    store.dispatch('connectToKeplr')
+    router.push({ name: 'home' })
   }
 })
 </script>
