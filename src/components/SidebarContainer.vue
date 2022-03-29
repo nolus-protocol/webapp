@@ -82,7 +82,7 @@
         <SidebarSocialElement
           id="redit"
           href="#"
-          :icon="require('@/assets/icons/redit.svg')"
+          :icon="require('@/assets/icons/reddit.svg')"
         >
         </SidebarSocialElement>
         <SidebarSocialElement
