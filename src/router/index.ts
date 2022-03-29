@@ -9,6 +9,7 @@ import CreateAccountView from '@/views/CreateAccountView.vue'
 import ConfirmMnemonicView from '@/views/ConfirmMnemonicView.vue'
 import SetPassword from '@/views/SetPassword.vue'
 import SetWalletName from '@/views/SetWalletName.vue'
+import DashboardView from '@/views/DashboardView.vue'
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import AuthView from '@/views/AuthView.vue'
 
@@ -77,6 +78,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/set-wallet-name',
     name: 'SetWalletName',
     component: SetWalletName
+  },
+  {
+    path: '/dashboard',
+    name: 'DashboardView',
+    component: DashboardView
   }
 ]
 
