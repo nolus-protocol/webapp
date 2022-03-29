@@ -39,16 +39,20 @@
         Create new account
       </button>
     </div>
+
+    <ErrorModal v-show="true"/>
   </div>
+
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
 import router from '@/router'
+import ErrorModal from '@/components/modals/ErrorModal.vue'
 
 export default defineComponent({
   name: 'HomeView',
-  components: {},
+  components: { ErrorModal },
   data () {
     return {}
   },
