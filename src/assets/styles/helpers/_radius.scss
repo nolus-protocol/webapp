@@ -1,0 +1,10 @@
+.radius {
+
+    &-circle {
+        border-radius: $circle;
+    }
+
+    &-modal {
+        border-radius: $heavyRounded;
+    }
+}
