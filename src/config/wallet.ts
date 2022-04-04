@@ -100,6 +100,22 @@ export class WalletManager {
   public static removeWalletConnectMechanism () {
     localStorage.removeItem('wallet_connect_mechanism')
   }
+
+  private static encryptPubKey (pubKey: string) {
+
+  }
+
+  public static storeEncryptedPk (encryptedPk: string) {
+    localStorage.setItem('secure-storage', encryptedPk)
+  }
+
+  public static getPrivateKey (): string | null {
+    return localStorage.getItem('secure-storage')
+  }
+
+  public static removePrivateKey () {
+    localStorage.removeItem('secure-storage')
+  }
 }
 
 export default KeplrEmbedChainInfo

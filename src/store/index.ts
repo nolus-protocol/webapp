@@ -1,7 +1,7 @@
 import { createStore } from 'vuex'
 import { NolusClient } from '@/client/NolusClient'
 import { Window as KeplrWindow } from '@keplr-wallet/types'
-import KeplrEmbedChainInfo, { IBCAssets } from '@/config/wallet'
+import KeplrEmbedChainInfo, { IBCAssets, WalletManager } from '@/config/wallet'
 import { nolusLedgerWallet, nolusOfflineSigner } from '@/wallet/NolusWalletFactory'
 import { makeCosmoshubPath } from '@cosmjs/amino'
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
@@ -12,11 +12,15 @@ import { KeyUtils } from '@/utils/KeyUtils'
 import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing'
 import OpenLogin from '@toruslabs/openlogin'
 import { makeIBCMinimalDenom } from '@/utils/AssetUtils'
+import { fromHex, toHex } from '@cosmjs/encoding'
+import CryptoJS from 'crypto-js'
+import { EncryptionUtils } from '@/utils/EncryptionUtils'
 
 export default createStore({
   state: {
     torusClient: {},
     wallet: {} as NolusWallet,
+    privateKey: '',
     balances: []
   },
   getters: {},
@@ -26,6 +30,9 @@ export default createStore({
     },
     torusLogin (state, payload: OpenLogin) {
       state.torusClient = payload
+    },
+    setPrivateKey (state, payload: { privateKey: string }) {
+      state.privateKey = payload.privateKey
     },
     updateBalances (state, payload: { balances: [] }) {
       state.balances = payload.balances
@@ -81,15 +88,17 @@ export default createStore({
       }
       clearTimeout(to)
     },
-    async connectViaMnemonic (context) {
+    async connectViaMnemonic (context, payload: { mnemonic: string }) {
+      console.log('mnemonic: ' + payload.mnemonic)
       const accountNumbers = [0]
       const path = accountNumbers.map(makeCosmoshubPath)[0]
-      const mnemonic = 'industry helmet coach enforce laundry excuse core argue poem master sugar demand'
-      const privateKey = await KeyUtils.getPrivateKeyFromMnemonic(mnemonic, path)
+      // const mnemonic = 'industry helmet coach enforce laundry excuse core argue poem master sugar demand'
+      const privateKey = await KeyUtils.getPrivateKeyFromMnemonic(payload.mnemonic, path)
       const directSecrWallet = await DirectSecp256k1Wallet.fromKey(privateKey, BECH32_PREFIX_ACC_ADDR)
       const nolusWalletOfflineSigner = await nolusOfflineSigner(directSecrWallet)
       await nolusWalletOfflineSigner.useAccount()
       context.commit('signWallet', { wallet: nolusWalletOfflineSigner })
+      context.commit('setPrivateKey', { privateKey: toHex(privateKey) })
       await context.dispatch('updateBalances', { walletAddress: nolusWalletOfflineSigner.address })
     },
     async loginViaTorus (context) {
@@ -109,6 +118,7 @@ export default createStore({
         const nolusWalletOfflineSigner = await nolusOfflineSigner(directSecrWallet)
         await nolusWalletOfflineSigner.useAccount()
         context.commit('signWallet', { wallet: nolusWalletOfflineSigner })
+        context.commit('setPrivateKey', { privateKey: toHex(bufferedPrivateKey) })
         await context.dispatch('updateBalances', { walletAddress: nolusWalletOfflineSigner.address })
       }
     },
@@ -120,11 +130,39 @@ export default createStore({
     },
     async generateWallet () {
       const generatedPrivateKey = KeyUtils.generatePrivateKey()
+      console.log('generated wallet hex: ', toHex(generatedPrivateKey))
       console.log(generatedPrivateKey)
       const publicKey = await KeyUtils.getPublicKeyFromPrivateKey(generatedPrivateKey)
       const address = KeyUtils.getAddressFromPublicKey(publicKey)
       console.log('Address: ', address)
       console.log('isValidAddress: ', KeyUtils.isAddressValid(address))
+    },
+    storePrivateKey (context, payload: { password: string }) {
+      if (payload.password !== '' && context.state.privateKey !== '') {
+        const pubKey = toHex(context.state.wallet.pubKey || new Uint8Array(0))
+        const encryptedPbKey = EncryptionUtils.encryptEncryptionKey(pubKey, payload.password)
+        const encryptedPk = EncryptionUtils.encryptPrivateKey(
+          context.state.privateKey,
+          pubKey,
+          payload.password)
+
+        // TODO save pubkey
+        WalletManager.storeEncryptedPk(encryptedPk)
+        context.commit('setPrivateKey', { privateKey: '' })
+      }
+    },
+    async loadPrivateKeyAndSign (context, payload: { password: string }) {
+      if (context.state.privateKey === '' && payload.password !== '') {
+        const encryptedPk = WalletManager.getPrivateKey()
+        const decrypted = CryptoJS.AES.decrypt(encryptedPk || '', payload.password)
+        const pkHex = decrypted.toString(CryptoJS.enc.Utf8)
+        const directSecrWallet = await DirectSecp256k1Wallet.fromKey(fromHex(pkHex), BECH32_PREFIX_ACC_ADDR)
+        const nolusWalletOfflineSigner = await nolusOfflineSigner(directSecrWallet)
+        await nolusWalletOfflineSigner.useAccount()
+        context.commit('signWallet', { wallet: nolusWalletOfflineSigner })
+        context.commit('setPrivateKey', { privateKey: '' })
+        await context.dispatch('updateBalances', { walletAddress: nolusWalletOfflineSigner.address })
+      }
     },
     async updateBalances (context, payload: { walletAddress: string }) {
       if (!payload.walletAddress) {

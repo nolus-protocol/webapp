@@ -29,10 +29,14 @@
       name="seed"
       id="seed"
       label="Mnemonic seed"
+      :error-msg="errorMessage"
+      :is-error="errorMessage !== ''"
+      v-model:value.trim="mnemonicSeed"
     ></TextField>
+
     <div class="flex mt-6">
-      <button class="btn btn-primary btn-large-primary mr-4" disabled="disabled">
-        Register
+      <button v-on:click="clickImport" class="btn btn-primary btn-large-primary mr-4">
+        Import
       </button>
     </div>
   </div>
@@ -43,6 +47,7 @@ import { defineComponent } from 'vue'
 import TextField from '@/components/TextField.vue'
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
 import router from '@/router'
+import store from '@/store'
 
 export default defineComponent({
   name: 'ImportSeedView',
@@ -51,11 +56,24 @@ export default defineComponent({
     ArrowLeftIcon
   },
   data () {
-    return {}
+    return {
+      mnemonicSeed: '',
+      errorMessage: ''
+    }
   },
   methods: {
-    clickBack: () => {
+    clickBack (value: string) {
       router.go(-1)
+    },
+    clickImport () {
+      if (this.mnemonicSeed === '') {
+        this.errorMessage = 'Mnemonic seed field must be not empty!'
+        return
+      }
+      store.dispatch('connectViaMnemonic', { mnemonic: this.mnemonicSeed })
+      this.mnemonicSeed = ''
+      this.errorMessage = ''
+      router.push({ name: 'setPassword' })
     }
   }
 })

@@ -1,17 +1,19 @@
 <template>
   <fieldset>
     <div class="block input-field">
-        <label
-            :for="this.id"
-            class="block text-normal-copy text-primary text-medium"
-        >{{ this.label }}</label>
-        <input
-            :type="this.type"
-            :name="this.name"
-            :id="this.id"
-            :class="typeof this.isError !== 'undefined' && this.isError === true ? 'error' : ''"
-        >
-        <span :class="[
+      <label
+        :for="this.id"
+        class="block text-normal-copy text-primary text-medium"
+      >{{ this.label }}</label>
+      <input
+        :type="this.type"
+        :name="this.name"
+        :id="this.id"
+        :value="value"
+        @input='$emit("update:value", $event.target.value)'
+        :class="typeof this.isError !== 'undefined' && this.isError === true ? 'error' : ''"
+      >
+      <span :class="[
             'msg error ',
             typeof this.errorMsg !== 'undefined' && this.errorMsg !== null ? '' : 'hidden'
         ]">{{ typeof this.errorMsg !== 'undefined' && this.errorMsg !== null ? this.errorMsg : '' }}</span>
@@ -27,6 +29,9 @@ export default {
       type: String
     },
     name: {
+      type: String
+    },
+    value: {
       type: String
     },
     id: {

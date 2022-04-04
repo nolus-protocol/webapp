@@ -63,31 +63,31 @@
       <div class="flex items-center">
         <SidebarSocialElement
           id="twitter"
-          href="#"
+          :href="TWITTER_ACCOUNT"
           :icon="require('@/assets/icons/twitter.svg')"
         >
         </SidebarSocialElement>
         <SidebarSocialElement
           id="telegram"
-          href="#"
+          :href="TELEGRAM_ACCOUNT"
           :icon="require('@/assets/icons/telegram.svg')"
         >
         </SidebarSocialElement>
         <SidebarSocialElement
           id="discord"
-          href="#"
+          :href="DISCORD_ACCOUNT"
           :icon="require('@/assets/icons/discord.svg')"
         >
         </SidebarSocialElement>
         <SidebarSocialElement
           id="redit"
-          href="#"
+          :href="REDDIT_ACCOUNT"
           :icon="require('@/assets/icons/reddit.svg')"
         >
         </SidebarSocialElement>
         <SidebarSocialElement
           id="medium"
-          href="#"
+          :href="MEDIUM_ACCOUNT"
           :icon="require('@/assets/icons/medium.svg')"
         >
         </SidebarSocialElement>
@@ -108,6 +108,14 @@ import LogoLink from '@/components/LogoLink.vue'
 import SidebarElement from '@/components/SidebarElement.vue'
 import SidebarSocialElement from '@/components/SidebarSocialElement.vue'
 import SidebarLinkElement from '@/components/SidebarLinkElement.vue'
+import {
+  DISCORD_ACCOUNT,
+  LINKEDIN_ACCOUNT,
+  MEDIUM_ACCOUNT,
+  REDDIT_ACCOUNT,
+  TELEGRAM_ACCOUNT,
+  TWITTER_ACCOUNT
+} from '@/constants/webapp'
 
 export default {
   name: 'SidebarContainer',
@@ -117,6 +125,16 @@ export default {
     SidebarSocialElement,
     SidebarLinkElement
   },
-  props: []
+  props: [],
+  data () {
+    return {
+      TWITTER_ACCOUNT: TWITTER_ACCOUNT,
+      TELEGRAM_ACCOUNT: TELEGRAM_ACCOUNT,
+      MEDIUM_ACCOUNT: MEDIUM_ACCOUNT,
+      REDDIT_ACCOUNT: REDDIT_ACCOUNT,
+      LINKEDIN_ACCOUNT: LINKEDIN_ACCOUNT,
+      DISCORD_ACCOUNT: DISCORD_ACCOUNT
+    }
+  }
 }
 </script>

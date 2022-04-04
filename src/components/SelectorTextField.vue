@@ -1,40 +1,33 @@
 <template>
-    <div class="block input-field">
-        <label
-            :for="this.id"
-            class="block text-normal-copy text-primary text-medium"
-        >{{ this.label }}</label>
-        <div
-            class="block editable-block"
-        >
-            <div>
-                myself
-            </div>
-        </div>
-        <div class="editable-block-options">
-            <button
-                id="swallow"
-                class="editable-block-option"
-            >
-                swallow
-            </button>
-            <button
-                id="rich"
-                class="editable-block-option"
-            >
-                rich
-            </button>
-            <button
-                id="unveil"
-                class="editable-block-option"
-            >
-                unveil
-            </button>
-        </div>
-        <div class="block mt-6">
-            <button class="btn btn-primary btn-large-primary">Confirm</button>
-        </div>
+  <div class="block input-field">
+    <label
+      :for="this.id"
+      class="block text-normal-copy text-primary text-medium"
+    >{{ this.label }}</label>
+    <div
+      class="block editable-block"
+    >
+      <div v-for="(word, index) in confirmMnemonicPhrase" :key="word" v-on:click="onWordClick(word, index, false)">
+        {{ word }}
+      </div>
     </div>
+    <div class="editable-block-options">
+      <button v-for="(word, index) in this.mnemonicPhrase"
+              :key="word"
+              id="{{word}}"
+              class="editable-block-option"
+              v-on:click="onWordClick(word, index, true)"
+      >
+        {{ word }}
+      </button>
+    </div>
+    <div class="block mt-6">
+      <button class="btn btn-primary btn-large-primary" v-on:click="onClickConfirm(confirmMnemonicPhrase)"
+              :disabled="confirmMnemonicPhrase.length !== 24">
+        Confirm
+      </button>
+    </div>
+  </div>
 </template>
 
 <script type="ts">
@@ -52,6 +45,12 @@ export default {
     label: {
       type: String
     },
+    values: {
+      type: Array
+    },
+    onClickConfirm: {
+      type: Function
+    },
     isError: {
       type: Boolean
     },
@@ -61,8 +60,18 @@ export default {
   },
   data () {
     return {
-      default: {
-        value: ''
+      mnemonicPhrase: this.values,
+      confirmMnemonicPhrase: []
+    }
+  },
+  methods: {
+    onWordClick (value, index, isRandomWord) {
+      if (isRandomWord) {
+        this.confirmMnemonicPhrase.push(value)
+        this.mnemonicPhrase.splice(index, 1)
+      } else {
+        this.mnemonicPhrase.push(value)
+        this.confirmMnemonicPhrase.splice(index, 1)
       }
     }
   }
