@@ -158,9 +158,11 @@ export default defineComponent({
       }
 
       store.dispatch('connectViaMnemonic', { mnemonic: this.mnemonic })
+
       console.log('confirmMnemonic: ', confirmMnemonic)
       console.log('mnemonic: ', this.mnemonic)
       console.log('confirmMnemonic: ', this.mnemonic.trim() === confirmMnemonic.trim())
+      this.mnemonic = ''
       router.push({ name: 'setPassword' })
     },
     btnContinueToConfirm () {
