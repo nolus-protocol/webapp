@@ -1,16 +1,18 @@
 <template>
   <fieldset>
     <div class="block input-field">
-        <label
-            :for="this.id"
-            class="block text-normal-copy text-primary text-medium"
-        >{{ this.label }}</label>
-        <textarea
-            :name="this.name"
-            :id="this.id"
-            :class="typeof this.isError !== 'undefined' && this.isError === true ? 'error' : ''"
-        ></textarea>
-        <span :class="[
+      <label
+        :for="this.id"
+        class="block text-normal-copy text-primary text-medium"
+      >{{ this.label }}</label>
+      <textarea
+        :name="this.name"
+        :id="this.id"
+        :value="value"
+        @input='$emit("update:value", $event.target.value)'
+        :class="typeof this.isError !== 'undefined' && this.isError === true ? 'error' : ''"
+      ></textarea>
+      <span :class="[
             'msg error ',
             typeof this.errorMsg !== 'undefined' && this.errorMsg !== null ? '' : 'hidden'
         ]">{{ typeof this.errorMsg !== 'undefined' && this.errorMsg !== null ? this.errorMsg : '' }}</span>
@@ -28,6 +30,9 @@ export default {
     id: {
       type: String
     },
+    value: {
+      type: String
+    },
     label: {
       type: String
     },
@@ -36,13 +41,6 @@ export default {
     },
     errorMsg: {
       type: String
-    }
-  },
-  data () {
-    return {
-      default: {
-        value: ''
-      }
     }
   }
 }

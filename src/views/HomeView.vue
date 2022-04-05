@@ -40,7 +40,7 @@
       </button>
     </div>
 
-    <ErrorModal v-show="true"/>
+    <ErrorModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>
   </div>
 
 </template>
@@ -54,7 +54,9 @@ export default defineComponent({
   name: 'HomeView',
   components: { ErrorModal },
   data () {
-    return {}
+    return {
+      showModal: false
+    }
   },
   methods: {
     clickConnectToKeplr: () => {
@@ -65,6 +67,9 @@ export default defineComponent({
     },
     clickImportSeed: () => {
       router.push({ name: 'importSeedView' })
+    },
+    tryButton: () => {
+      console.log('btn try again')
     }
   }
 })

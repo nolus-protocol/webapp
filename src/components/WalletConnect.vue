@@ -10,6 +10,7 @@
     <button class="btn btn-primary btn-large-primary mr-4" v-on:click="torusLogout">Logout from Torus</button>
     <button class="btn btn-primary btn-large-primary mr-4" v-on:click="sendTokens">Send tokens</button>
     <button class="btn btn-primary btn-large-primary mr-4" v-on:click="updateBalances">Update balances</button>
+    <button class="btn btn-primary btn-large-primary mr-4" v-on:click="generateMnemonic">Generate mnemonic</button>
   </div>
 </template>
 
@@ -17,6 +18,7 @@
 import router from '@/router'
 import store from '@/store'
 import '../index.css'
+import { Bip39, Random } from '@cosmjs/crypto'
 
 export default {
   name: 'WalletConnect',
@@ -31,7 +33,7 @@ export default {
       store.dispatch('generateWallet')
     },
     connectViaMnemonic: () => {
-      store.dispatch('connectViaMnemonic')
+      store.dispatch('connectViaMnemonic', { mnemonic: '' })
     },
     createWallet: () => {
       router.push({
@@ -47,6 +49,27 @@ export default {
     },
     updateBalances: () => {
       store.dispatch('updateBalances', { walletAddress: store.state.wallet?.address })
+    },
+
+    // const entropy = crypto_1.Random.getBytes(words === 12 ? 16 : 32);
+    // const mnemonic = crypto_1.Bip39.encode(entropy);
+    // // TODO: add support for more languages
+    // return mnemonic.toString();
+    generateMnemonic () {
+      const entropy = Random.getBytes(32)
+      const mnemonic = Bip39.encode(entropy)
+      console.log(mnemonic.toString())
+
+      const words = mnemonic.toString().split(' ')
+      for (let i = 0; i < words.length; i++) {
+        words[i] = words[i].trim()
+      }
+      words.sort((word1, word2) => {
+        // Sort alpahbetically.
+        return word1 > word2 ? 1 : -1
+      })
+
+      console.log('random words: ', words)
     },
     sendTokens: async () => {
       const wallet = store.state.wallet

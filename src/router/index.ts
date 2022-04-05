@@ -5,19 +5,18 @@ import StyleguideView from '@/views/StyleguideView.vue'
 import ImportLedgerView from '@/views/ImportLedgerView.vue'
 import ConnectingKeplr from '@/views/ConnectingKeplr.vue'
 import ImportSeedView from '@/views/ImportSeedView.vue'
-import CreateAccountView from '@/views/CreateAccountView.vue'
-import ConfirmMnemonicView from '@/views/ConfirmMnemonicView.vue'
 import SetPassword from '@/views/SetPassword.vue'
 import SetWalletName from '@/views/SetWalletName.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import AuthView from '@/views/AuthView.vue'
+import CreateAccountView from '@/views/CreateAccountView.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    name: 'home',
-    component: HomeView
+    name: 'dashboard',
+    component: DashboardView
   },
   {
     path: '/auth',
@@ -44,16 +43,21 @@ const routes: Array<RouteRecordRaw> = [
         component: ImportSeedView
       },
       {
+        path: 'set-password',
+        name: 'setPassword',
+        component: SetPassword
+      },
+      {
         path: 'create-account',
         name: 'createAccountView',
-        component: CreateAccountView,
-        children: [
-          {
-            path: 'confirm-mnemonic',
-            name: 'ConfirmMnemonicView',
-            component: ConfirmMnemonicView
-          }
-        ]
+        component: CreateAccountView
+        // children: [
+        //   {
+        //     path: 'confirm-mnemonic',
+        //     name: 'ConfirmMnemonicView',
+        //     component: ConfirmMnemonicView
+        //   }
+        // ]
       }
 
     ]
@@ -67,12 +71,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/styleguide',
     name: 'styleguide',
     component: StyleguideView
-  },
-
-  {
-    path: '/set-password',
-    name: 'SetPassword',
-    component: SetPassword
   },
   {
     path: '/set-wallet-name',

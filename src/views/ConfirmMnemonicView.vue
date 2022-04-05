@@ -1,20 +1,22 @@
 <template>
-  <h1 class="text-to-big-number text-primary text-center relative">
-    <button
-      type="button"
-      class="inline-block align-baseline absolute left-0 top-2/4 -mt-2.5"
-    >
-      <ArrowLeftIcon class="h-5 w-5" aria-hidden="true"/>
-    </button>
-    <span
-      class="inline-block align-baseline"
-    >
+  <div>
+    <h1 class="text-to-big-number text-primary text-center relative">
+
+      <button
+        type="button"
+        class="inline-block align-baseline absolute left-0 top-2/4 -mt-2.5"
+      >
+        <ArrowLeftIcon class="h-5 w-5" aria-hidden="true"/>
+      </button>
+      <span
+        class="inline-block align-baseline"
+      >
                             Confirm mnemonic
                         </span>
-  </h1>
+    </h1>
 
-  <div
-    class="
+    <div
+      class="
                         block
                         rounded-2xl
                         bg-white
@@ -23,11 +25,12 @@
                         border border-standart
                         shadow-box
                         "
-  >
-    <SelectorTextField
-      id="confirm-mnemonic"
-      label="Confirm mnemonic seed"
-    ></SelectorTextField>
+    >
+      <SelectorTextField
+        id="confirm-mnemonic"
+        label="Confirm mnemonic seed"
+      ></SelectorTextField>
+    </div>
   </div>
 </template>
 

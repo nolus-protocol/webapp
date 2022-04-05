@@ -54,7 +54,9 @@ export default defineComponent({
     ArrowLeftIcon
   },
   data () {
-    return {}
+    return {
+      showModal: false
+    }
   },
   methods: {
     clickBack: () => {
