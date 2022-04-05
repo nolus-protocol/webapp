@@ -3,12 +3,13 @@
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    position: sticky;
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    max-width: 210px;
+    max-width: 190px;
     height: 100vh;
+    transform: translateZ(0);
 
     .top,
     .bot {
