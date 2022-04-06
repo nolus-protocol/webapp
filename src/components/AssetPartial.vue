@@ -1,5 +1,5 @@
 <template>
-  <div class="grid grid-cols-4 gap-6 border-b border-standart py-3 px-6 items-center">
+  <div class="grid grid-cols-3 md:grid-cols-4 gap-6 border-b border-standart py-3 px-6 items-center">
 
     <!-- Ticker -->
     <div class="inline-flex items-center">
@@ -39,7 +39,7 @@
     </div>
 
     <!-- Earnings -->
-    <div class="block">
+    <div class="hidden md:block">
       <div class="flex items-center justify-end text-primary text-medium text-small-copy text-right m-0">
         Up to {{ this.earnings }}% APY
       </div>

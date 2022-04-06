@@ -129,3 +129,13 @@
         color: $textMain;
     }
 }
+
+.sidebar-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+}

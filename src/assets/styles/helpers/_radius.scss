@@ -11,4 +11,11 @@
     &-medium {
         border-radius: $mediumRounded;
     }
+
+    &-0-sm {
+        
+        @media (max-width: $md) {
+            border-radius: 0 !important;
+        }
+    }
 }

@@ -233,6 +233,11 @@
     }
 }
 
+.with-icon {
+    padding: 0 16px;
+    width: auto;
+}
+
 @keyframes button-anim {
     from {
       transform: rotate(0);
