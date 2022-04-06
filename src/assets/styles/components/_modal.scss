@@ -1,0 +1,58 @@
+.modal {
+
+    &-send-receive {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        width: 100%;
+        height: calc(100vh - 60px);
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+
+        &-header {
+            width: 100%;
+            border-bottom: 1px solid $borderColor;
+
+            button {
+                display: inline-block;
+                background-color: $lightGrey;
+                color: $mediumBlue;
+                width: 50%;
+                padding: 25px 0;
+                font-size: 28px;
+                font-weight: 700;
+                text-align: center;
+
+                &:first-of-type {
+                    border-right: 1px solid $borderColor;
+                }
+
+                &.active {
+                    background-color: $white;
+                    color: $textMain;
+                }
+            }
+        }
+
+        &-input-area {
+            flex-grow: 1;
+            width: 100%;
+            padding: 40px 24px 108px;
+        }
+
+        &-actions {
+            width: 100%;
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            padding: 16px 24px;
+
+            @extend .shadow-box;
+
+            button {
+                width: 100%;
+            }
+        }
+    }
+}

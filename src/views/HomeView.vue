@@ -40,7 +40,8 @@
       </button>
     </div>
 
-    <ErrorModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>
+    <SendReceiveModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>
+    <!-- <ErrorModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
   </div>
 
 </template>
@@ -49,13 +50,17 @@
 import { defineComponent } from 'vue'
 import router from '@/router'
 import ErrorModal from '@/components/modals/ErrorModal.vue'
+import SendReceiveModal from '@/components/modals/SendReceiveModal.vue'
 
 export default defineComponent({
   name: 'HomeView',
-  components: { ErrorModal },
+  components: { 
+    ErrorModal,
+    SendReceiveModal
+  },
   data () {
     return {
-      showModal: false
+      showModal: true
     }
   },
   methods: {
