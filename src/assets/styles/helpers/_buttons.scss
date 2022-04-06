@@ -208,6 +208,11 @@
         color: #768ba9;
         position: relative; 
 
+        &.rounded-r-none {
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+        }
+
         &:hover,
         &:focus {
             color: $dark;

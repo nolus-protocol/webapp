@@ -108,7 +108,7 @@
       <BellIcon class="icon w-4 h-4" />
       <span class="counter">8</span>
     </button>
-    <button class="btn btn-header with-icon shadow-box">
+    <button class="btn btn-header with-icon shadow-box rounded-r-none">
       <img
         src="@/assets/icons/money-wallet.svg"
         class="inline-blcok mr-2"
