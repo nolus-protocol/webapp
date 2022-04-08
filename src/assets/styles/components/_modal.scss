@@ -68,6 +68,10 @@
                     padding: 25px 40px;
                 }
 
+                &.wrap {
+                    flex-wrap: wrap;
+                }
+
                 .back-arrow {
                     display: inline-block;
                     position: absolute;
@@ -78,6 +82,11 @@
                     @media (min-width: $md) {
                         left: 40px;
                     }
+                }
+
+                .success-icon {
+                    background-color: $lightGreen;
+                    color: $iconGreen;
                 }
             }
         }
@@ -111,7 +120,7 @@
 
             @extend .shadow-box;
 
-            button {
+            button:not(.btn-auto) {
                 width: 100%;
             }
 
