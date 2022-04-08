@@ -8,6 +8,10 @@
         border-radius: $heavyRounded;
     }
 
+    &-light {
+        border-radius: $lightRounded;
+    }
+
     &-medium {
         border-radius: $mediumRounded;
     }

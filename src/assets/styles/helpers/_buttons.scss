@@ -236,6 +236,31 @@
             border-radius: $circle;
         }
     }
+
+    &-close-modal {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        top: 0;
+        right: 50%;
+        transform: translateX(50%) translateZ(0);
+        width: 100%;
+        padding: 22px 0;
+
+        @media (min-width: $md) {
+            border-radius: $circle;
+            background-color: $white;
+            width: 50px;
+            height: 50px;
+            border: 1px solid $borderColor;
+            box-shadow: 0 8px 48px 0 $shadowModalColor;
+            padding: 0;
+            top: 24px;
+            right: 24px;
+            transform: translateZ(0);
+        }
+    }
 }
 
 .with-icon {

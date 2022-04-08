@@ -9,6 +9,28 @@
         height: calc(100vh - 60px);
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
+        overflow: hidden;
+
+        @media (min-width: $md) {
+            height: auto;
+            border-bottom-left-radius: $heavyRounded;
+            border-bottom-right-radius: $heavyRounded;
+        }
+
+        &-parent {
+
+            @media (min-width: $md) and (orientation: landscape) {
+                overflow-x: hidden;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                align-items: flex-start;
+                padding: 40px 0;
+            }
+
+            @media (min-width: $lg) {
+                align-items: center;
+            }
+        }
 
         &-header {
             width: 100%;
@@ -39,19 +61,37 @@
             flex-grow: 1;
             width: 100%;
             padding: 40px 24px 108px;
+            overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+
+            @media (min-width: $md) {
+                padding: 40px 40px 24px !important;
+            }
         }
 
         &-actions {
             width: 100%;
+            max-width: inherit;
             position: absolute;
-            left: 0;
+            left: 50%;
             bottom: 0;
             padding: 16px 24px;
+            transform: translateX(-50%) translateZ(0);
+            background-color: $white;
 
             @extend .shadow-box;
 
             button {
                 width: 100%;
+            }
+
+            @media (min-width: $md) {
+                position: relative;
+                left: initial;
+                bottom: initial;
+                padding: 0 40px 40px;
+                transform: translateZ(0);
             }
         }
     }
