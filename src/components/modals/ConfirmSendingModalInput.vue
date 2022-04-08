@@ -30,7 +30,16 @@
 
         <!-- Input Area -->
         <div class="modal-send-receive-input-area pt-0">
-          <div class="block bg-light-grey radius-rounded p-4 text-left break-words">
+          <div class="block text-left">
+            <InputField
+              type="password"
+              name="password"
+              id="password"
+              label="Password"
+            ></InputField>
+          </div>
+
+          <div class="block bg-light-grey radius-rounded p-4 text-left break-words mt-4">
             <div class="block">
               <p class="text-normal-copy text-primary m-0">Send to:</p>
               <p class="text-normal-copy text-primary text-bold m-0">0x3371e0F5bF7c5DD1d9A7eF8366E633283759951a</p>
@@ -47,20 +56,16 @@
             </div>
 
             <div class="block mt-3">
-              <p class="text-normal-copy text-primary m-0">Tx Id:</p>
-              <p class="text-normal-copy text-primary text-bold m-0">C1FAC987E9515B…63BE5162B4A00310244A</p>
-              <button class="btn btn-secondary btn-medium-secondary btn-icon mt-2">
-                <DuplicateIcon class="icon w-4 h-4" />
-                Copy
-              </button>
+              <p class="text-normal-copy text-primary m-0">Tax & Fee:</p>
+              <p class="text-normal-copy text-primary text-bold m-0">0.000094 NOMO</p>
             </div>
           </div>
         </div>
 
         <!-- Actions -->
         <div class="modal-send-receive-actions">
-            <button class="btn btn-primary btn-large-primary js-loading">
-                Next
+            <button class="btn btn-primary btn-large-primary">
+              Send
             </button>
         </div>
     </div>
@@ -68,13 +73,14 @@
 </template>
 
 <script>
-import { ArrowLeftIcon, DuplicateIcon } from '@heroicons/vue/solid'
+import { ArrowLeftIcon } from '@heroicons/vue/solid'
+import InputField from '@/components/InputField.vue'
 
 export default {
-  name: 'ConfirmSendingModal',
+  name: 'ConfirmSendingModalInput',
   components: {
     ArrowLeftIcon,
-    DuplicateIcon
+    InputField
   },
   props: {
     tryButton: {
