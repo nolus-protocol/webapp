@@ -88,6 +88,11 @@
                     background-color: $lightGreen;
                     color: $iconGreen;
                 }
+
+                .error-icon {
+                    background-color: $iconBackgroundRed;
+                    color: $lightRed;
+                }
             }
         }
 
