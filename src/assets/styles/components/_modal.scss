@@ -36,7 +36,7 @@
             width: 100%;
             border-bottom: 1px solid $borderColor;
 
-            button {
+            & > button {
                 display: inline-block;
                 background-color: $lightGrey;
                 color: $mediumBlue;
@@ -55,6 +55,31 @@
                     color: $textMain;
                 }
             }
+
+            .navigation-header {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 25px 24px;
+                width: 100%;
+                position: relative;
+
+                @media (min-width: $md) {
+                    padding: 25px 40px;
+                }
+
+                .back-arrow {
+                    display: inline-block;
+                    position: absolute;
+                    left: 24px;
+                    top: 50%;
+                    transform: translateY(-50%) translateZ(0);
+
+                    @media (min-width: $md) {
+                        left: 40px;
+                    }
+                }
+            }
         }
 
         &-input-area {
@@ -67,6 +92,10 @@
 
             @media (min-width: $md) {
                 padding: 40px 40px 24px !important;
+            }
+
+            &.pt-0 {
+                padding-top: 0 !important;
             }
         }
 
@@ -95,4 +124,8 @@
             }
         }
     }
+}
+
+.no-border {
+    border: none;
 }

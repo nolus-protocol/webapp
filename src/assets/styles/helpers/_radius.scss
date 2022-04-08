@@ -16,6 +16,10 @@
         border-radius: $mediumRounded;
     }
 
+    &-rounded {
+        border-radius: $rounded;
+    }
+
     &-0-sm {
         
         @media (max-width: $md) {
