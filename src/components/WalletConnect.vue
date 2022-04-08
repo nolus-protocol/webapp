@@ -18,7 +18,7 @@
 import router from '@/router'
 import store from '@/store'
 import '../index.css'
-import { Bip39, Random } from '@cosmjs/crypto'
+import { WalletManager } from '@/config/wallet'
 
 export default {
   name: 'WalletConnect',
@@ -56,20 +56,20 @@ export default {
     // // TODO: add support for more languages
     // return mnemonic.toString();
     generateMnemonic () {
-      const entropy = Random.getBytes(32)
-      const mnemonic = Bip39.encode(entropy)
-      console.log(mnemonic.toString())
+      // const entropy = Random.getBytes(32)
+      // const mnemonic = Bip39.encode(entropy)
+      // console.log(mnemonic.toString())
+      //
+      // const words = mnemonic.toString().split(' ')
+      // for (let i = 0; i < words.length; i++) {
+      //   words[i] = words[i].trim()
+      // }
+      // words.sort((word1, word2) => {
+      //   // Sort alpahbetically.
+      //   return word1 > word2 ? 1 : -1
+      // })
 
-      const words = mnemonic.toString().split(' ')
-      for (let i = 0; i < words.length; i++) {
-        words[i] = words[i].trim()
-      }
-      words.sort((word1, word2) => {
-        // Sort alpahbetically.
-        return word1 > word2 ? 1 : -1
-      })
-
-      console.log('random words: ', words)
+      WalletManager.storeEncryptedPubKey('')
     },
     sendTokens: async () => {
       const wallet = store.state.wallet

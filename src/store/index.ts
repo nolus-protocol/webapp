@@ -1,7 +1,7 @@
 import { createStore } from 'vuex'
 import { NolusClient } from '@/client/NolusClient'
 import { Window as KeplrWindow } from '@keplr-wallet/types'
-import KeplrEmbedChainInfo, { IBCAssets, WalletManager } from '@/config/wallet'
+import KeplrEmbedChainInfo, { IBCAssets, WalletConnectMechanism, WalletManager } from '@/config/wallet'
 import { nolusLedgerWallet, nolusOfflineSigner } from '@/wallet/NolusWalletFactory'
 import { makeCosmoshubPath } from '@cosmjs/amino'
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
@@ -13,17 +13,26 @@ import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing'
 import OpenLogin from '@toruslabs/openlogin'
 import { makeIBCMinimalDenom } from '@/utils/AssetUtils'
 import { fromHex, toHex } from '@cosmjs/encoding'
-import CryptoJS from 'crypto-js'
 import { EncryptionUtils } from '@/utils/EncryptionUtils'
+import router from '@/router'
+import { Coin } from '@keplr-wallet/unit'
+import { CurrencyUtils } from '@/utils/CurrencyUtils'
+
+export interface AssetBalance {
+  udenom: string,
+  balance: Coin
+}
 
 export default createStore({
   state: {
     torusClient: {},
     wallet: {} as NolusWallet,
     privateKey: '',
-    balances: []
+    balances: [] as AssetBalance[]
   },
-  getters: {},
+  getters: {
+    getBalances: state => state.balances
+  },
   mutations: {
     signWallet (state, payload: { wallet: NolusWallet }) {
       state.wallet = payload.wallet
@@ -60,6 +69,8 @@ export default createStore({
           await nolusWalletOfflineSigner.useAccount()
           context.commit('signWallet', { wallet: nolusWalletOfflineSigner })
           await context.dispatch('updateBalances', { walletAddress: nolusWalletOfflineSigner.address })
+          WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.EXTENSION)
+          router.push({ name: 'dashboard' })
         }
       }
     },
@@ -80,6 +91,7 @@ export default createStore({
           await ledgerWallet.useAccount()
           context.commit('signWallet', { wallet: ledgerWallet })
           await context.dispatch('updateBalances', { walletAddress: ledgerWallet.address })
+          WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.LEDGER)
         } catch (e) {
           console.log('break!')
           console.log(e)
@@ -100,6 +112,7 @@ export default createStore({
       context.commit('signWallet', { wallet: nolusWalletOfflineSigner })
       context.commit('setPrivateKey', { privateKey: toHex(privateKey) })
       await context.dispatch('updateBalances', { walletAddress: nolusWalletOfflineSigner.address })
+      WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.MNEMONIC)
     },
     async loginViaTorus (context) {
       const openlogin = new OpenLogin({
@@ -120,6 +133,7 @@ export default createStore({
         context.commit('signWallet', { wallet: nolusWalletOfflineSigner })
         context.commit('setPrivateKey', { privateKey: toHex(bufferedPrivateKey) })
         await context.dispatch('updateBalances', { walletAddress: nolusWalletOfflineSigner.address })
+        WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.TORUS)
       }
     },
     async torusLogout (context) {
@@ -127,15 +141,6 @@ export default createStore({
         const openlogin = (context.state.torusClient as OpenLogin)
         await openlogin.logout()
       }
-    },
-    async generateWallet () {
-      const generatedPrivateKey = KeyUtils.generatePrivateKey()
-      console.log('generated wallet hex: ', toHex(generatedPrivateKey))
-      console.log(generatedPrivateKey)
-      const publicKey = await KeyUtils.getPublicKeyFromPrivateKey(generatedPrivateKey)
-      const address = KeyUtils.getAddressFromPublicKey(publicKey)
-      console.log('Address: ', address)
-      console.log('isValidAddress: ', KeyUtils.isAddressValid(address))
     },
     storePrivateKey (context, payload: { password: string }) {
       if (payload.password !== '' && context.state.privateKey !== '') {
@@ -146,17 +151,18 @@ export default createStore({
           pubKey,
           payload.password)
 
-        // TODO save pubkey
+        WalletManager.storeEncryptedPubKey(encryptedPbKey)
         WalletManager.storeEncryptedPk(encryptedPk)
         context.commit('setPrivateKey', { privateKey: '' })
       }
     },
     async loadPrivateKeyAndSign (context, payload: { password: string }) {
       if (context.state.privateKey === '' && payload.password !== '') {
+        const encryptedPubKey = WalletManager.getEncryptedPubKey()
         const encryptedPk = WalletManager.getPrivateKey()
-        const decrypted = CryptoJS.AES.decrypt(encryptedPk || '', payload.password)
-        const pkHex = decrypted.toString(CryptoJS.enc.Utf8)
-        const directSecrWallet = await DirectSecp256k1Wallet.fromKey(fromHex(pkHex), BECH32_PREFIX_ACC_ADDR)
+        const decryptedPubKey = EncryptionUtils.decryptEncryptionKey(encryptedPubKey, payload.password)
+        const decryptedPrivateKey = EncryptionUtils.decryptPrivateKey(encryptedPk, decryptedPubKey, payload.password)
+        const directSecrWallet = await DirectSecp256k1Wallet.fromKey(fromHex(decryptedPrivateKey), BECH32_PREFIX_ACC_ADDR)
         const nolusWalletOfflineSigner = await nolusOfflineSigner(directSecrWallet)
         await nolusWalletOfflineSigner.useAccount()
         context.commit('signWallet', { wallet: nolusWalletOfflineSigner })
@@ -168,13 +174,13 @@ export default createStore({
       if (!payload.walletAddress) {
         return
       }
-      const ibcBalances = []
+      const ibcBalances = [] as AssetBalance[]
       const nolusBalance = await NolusClient.getInstance()
         .getBalance(payload.walletAddress,
           COIN_MINIMAL_DENOM)
       ibcBalances.push({
         udenom: COIN_MINIMAL_DENOM,
-        balance: nolusBalance
+        balance: CurrencyUtils.convertCosmosCoinToKeplCoin(nolusBalance)
       })
 
       for (const asset of IBCAssets) {
@@ -185,7 +191,7 @@ export default createStore({
 
         ibcBalances.push({
           udenom: asset.coinMinimalDenom,
-          balance: balance
+          balance: CurrencyUtils.convertCosmosCoinToKeplCoin(balance)
         })
       }
       context.commit('updateBalances', { balances: ibcBalances })

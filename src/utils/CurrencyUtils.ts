@@ -25,11 +25,20 @@ export class CurrencyUtils {
   }
 
   public static convertUNolusToNolus (tokenAmount: string): CoinPretty {
+    return this.convertMinimalDenomToDenom(tokenAmount, COIN_MINIMAL_DENOM, COIN_DENOM, COIN_DECIMALS)
+  }
+
+  public static convertMinimalDenomToDenom (
+    tokenAmount: string,
+    minimalDenom: string,
+    denom: string,
+    decimals: number
+  ): CoinPretty {
     const amount = new Dec(tokenAmount)
     return new CoinPretty({
-      coinDecimals: COIN_DECIMALS,
-      coinMinimalDenom: COIN_MINIMAL_DENOM,
-      coinDenom: COIN_DENOM
+      coinDecimals: decimals,
+      coinMinimalDenom: minimalDenom,
+      coinDenom: denom
     }, amount)
   }
 

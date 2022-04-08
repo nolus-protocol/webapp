@@ -65,7 +65,6 @@ export default defineComponent({
   },
   mounted () {
     store.dispatch('connectToKeplr')
-    router.push({ name: 'home' })
   }
 })
 </script>

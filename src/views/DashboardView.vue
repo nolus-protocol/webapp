@@ -2,24 +2,25 @@
   <div class="page-container home">
     <SidebarContainer>
     </SidebarContainer>
-    
+
     <div class="container mx-auto mt-16">
       <div class="grid grid-cols-12 gap-6">
         <div class="col-start-3 col-span-9">
-          
+
           <!-- Header -->
           <div class="flex items-center justify-between">
             <div class="left">
               <h1 class="text-default-heading text-primary m-0">Assets</h1>
             </div>
             <div class="right">
-              <button class="btn btn-secondary btn-large-secondary mr-4">Send / Receive</button>
+              <button v-on:click="test" class="btn btn-secondary btn-large-secondary mr-4">Send / Receive</button>
               <button class="btn btn-primary btn-large-primary">Buy Tokens</button>
             </div>
           </div>
 
           <!-- Wallet -->
-          <div class="flex items-center justify-between bg-white mt-6 border-standart shadow-box radius-medium py-5 px-6">
+          <div
+            class="flex items-center justify-between bg-white mt-6 border-standart shadow-box radius-medium py-5 px-6">
             <div class="left inline-block w-1/2">
               <p class="text-large-copy text-primary text-medium m-0">Wallet Balance</p>
               <p class="text-big-number text-primary m-0 mt-1">$ 123,423.00</p>
@@ -30,7 +31,7 @@
 
           <!-- Existing Assets -->
           <div class="block bg-white mt-6 border-standart shadow-box radius-medium overflow-hidden">
-            
+
             <!-- Top -->
             <div class="flex items-baseline justify-between pt-5 px-6">
               <div class="left inline-block w-1/2">
@@ -39,7 +40,8 @@
               <div class="right inline-block w-1/2">
                 <div class="relative block checkbox-container ml-auto mr-0">
                   <div class="flex items-center w-full justify-end">
-                    <input id="hide-small-balances" aria-describedby="hide-small-balances" name="hide-small-balances" type="checkbox" checked="checked">
+                    <input id="hide-small-balances" aria-describedby="hide-small-balances" name="hide-small-balances"
+                           type="checkbox" checked="checked">
                     <label for="hide-small-balances">Hide small balances</label>
                   </div>
                 </div>
@@ -60,7 +62,8 @@
                   Price
                 </div>
 
-                <div class="inline-flex items-center justify-end text-medium text-detail text-dark-grey text-right text-upper">
+                <div
+                  class="inline-flex items-center justify-end text-medium text-detail text-dark-grey text-right text-upper">
                   <span class="inline-block">Balance</span>
                   <img
                     :src="require('@/assets/icons/tooltip.svg')"
@@ -70,7 +73,8 @@
                   />
                 </div>
 
-                <div class="inline-flex items-center justify-end text-medium text-detail text-dark-grey text-right text-upper">
+                <div
+                  class="inline-flex items-center justify-end text-medium text-detail text-dark-grey text-right text-upper">
                   <span class="inline-block">Earnings</span>
                   <img
                     :src="require('@/assets/icons/tooltip.svg')"
@@ -84,31 +88,16 @@
               <!-- Assets Container -->
               <div class="block">
                 <AssetPartial
-                  icon="btc.svg"
-                  ticker="BTC"
-                  fullName="Bitcoin"
+                  v-for="asset in this.assets"
+                  :key="asset"
+                  :asset-info=getAssetInfo(asset.udenom)
                   price="29,836.42"
                   change="4.19"
-                  :changeDirection="'true'"
-                  balance="32,430.22"
-                  balanceOther="1.23456780"
-                  balanceOtherTicker="nBTC"
+                  :changeDirection=true
+                  balance="0"
+                  :assetBalance=asset.balance.amount.toString()
                   earnings="24"
-                >
-                </AssetPartial>
-                <AssetPartial
-                  icon="btc.svg"
-                  ticker="BTC"
-                  fullName="Bitcoin"
-                  price="29,836.42"
-                  change="4.19"
-                  :changeDirection="'true'"
-                  balance="32,430.22"
-                  balanceOther="1.23456780"
-                  balanceOtherTicker="nBTC"
-                  earnings="24"
-                >
-                </AssetPartial>
+                />
               </div>
             </div>
           </div>
@@ -122,6 +111,8 @@
 import { defineComponent } from 'vue'
 import SidebarContainer from '@/components/SidebarContainer.vue'
 import AssetPartial from '@/components/AssetPartial.vue'
+import store, { AssetBalance } from '@/store'
+import { AssetUtils } from '@/utils/AssetUtils'
 
 export default defineComponent({
   name: 'DashboardView',
@@ -130,7 +121,28 @@ export default defineComponent({
     AssetPartial
   },
   data () {
-    return {}
+    return {
+      assets: [] as AssetBalance[]
+    }
+  },
+  watch: {
+    '$store.state.balances' (balances) {
+      console.log(balances)
+      this.assets = balances
+    }
+  },
+  computed: {},
+  methods: {
+    getAssetInfo (minimalDenom: string) {
+      console.log(minimalDenom)
+      return AssetUtils.getAssetInfoByAbbr(minimalDenom)
+    },
+    test () {
+      console.log('balances: ', store.state.balances)
+      store.state.balances.forEach(e => {
+        console.log(e)
+      })
+    }
   }
 })
 </script>

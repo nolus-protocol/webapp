@@ -59,7 +59,7 @@ const KeplrEmbedChainInfo = (networkName: string, chainId: string, tendermintRpc
       average: 0.025,
       high: 0.03
     },
-    features: ['stargate', 'ibc-transfer', 'no-legacy-stdTx']
+    features: ['ibc-transfer']
   }
 }
 
@@ -89,32 +89,52 @@ export enum WalletConnectMechanism {
 }
 
 export class WalletManager {
+  public static WALLET_SECURE_DATA = 'wallet-secure-data'
+  public static WALLET_SECURE_KEY = 'wallet-secure-key'
+  public static WALLET_CONNECT_MECHANISM = 'wallet_connect_mechanism'
+
   public static saveWalletConnectMechanism (walletConnectMechanism: WalletConnectMechanism) {
-    localStorage.setItem('wallet_connect_mechanism', walletConnectMechanism)
+    localStorage.setItem(this.WALLET_CONNECT_MECHANISM, walletConnectMechanism)
   }
 
   public static getWalletConnectMechanism (): string | null {
-    return localStorage.getItem('wallet_connect_mechanism')
+    return localStorage.getItem(this.WALLET_CONNECT_MECHANISM)
   }
 
   public static removeWalletConnectMechanism () {
-    localStorage.removeItem('wallet_connect_mechanism')
+    localStorage.removeItem(this.WALLET_CONNECT_MECHANISM)
   }
 
-  private static encryptPubKey (pubKey: string) {
+  public static storeEncryptedPubKey (pubKey: string) {
+    localStorage.setItem(this.WALLET_SECURE_KEY, pubKey)
+  }
 
+  public static getEncryptedPubKey (): string {
+    const pubkey = localStorage.getItem(this.WALLET_SECURE_KEY)
+    if (!pubkey) {
+      throw new Error('Missing encrypted key')
+    }
+    return pubkey
+  }
+
+  public static removeEncryptedPubKey () {
+    localStorage.removeItem(this.WALLET_SECURE_KEY)
   }
 
   public static storeEncryptedPk (encryptedPk: string) {
-    localStorage.setItem('secure-storage', encryptedPk)
+    localStorage.setItem(this.WALLET_SECURE_DATA, encryptedPk)
   }
 
-  public static getPrivateKey (): string | null {
-    return localStorage.getItem('secure-storage')
+  public static getPrivateKey (): string {
+    const pvKey = localStorage.getItem(this.WALLET_SECURE_DATA)
+    if (!pvKey) {
+      throw new Error('Missing encrypted private key')
+    }
+    return pvKey
   }
 
   public static removePrivateKey () {
-    localStorage.removeItem('secure-storage')
+    localStorage.removeItem(this.WALLET_SECURE_DATA)
   }
 }
 

@@ -2,7 +2,7 @@
   <div class="sidebar-container">
     <div class="top">
       <LogoLink
-        href="#"
+        link="/"
       ></LogoLink>
 
       <div class="sidebar-elements-container block p-8">
