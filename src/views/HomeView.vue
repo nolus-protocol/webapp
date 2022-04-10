@@ -39,8 +39,9 @@
         Create new account
       </button>
     </div>
-  
-   <ConfirmSendingModalError :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>
+
+    <ReceiveSendModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>
+    <!-- <ConfirmSendingModalError :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <ConfirmSendingModalSuccess :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <ConfirmSendingModalInput :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <ConfirmSendingModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
@@ -59,6 +60,7 @@ import ConfirmSendingModal from '@/components/modals/ConfirmSendingModal.vue'
 import ConfirmSendingModalInput from '@/components/modals/ConfirmSendingModalInput.vue'
 import ConfirmSendingModalSuccess from '@/components/modals/ConfirmSendingModalSuccess.vue'
 import ConfirmSendingModalError from '@/components/modals/ConfirmSendingModalError.vue'
+import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
 
 export default defineComponent({
   name: 'HomeView',
@@ -68,7 +70,8 @@ export default defineComponent({
     ConfirmSendingModal,
     ConfirmSendingModalInput,
     ConfirmSendingModalSuccess,
-    ConfirmSendingModalError
+    ConfirmSendingModalError,
+    ReceiveSendModal
   },
   data () {
     return {
