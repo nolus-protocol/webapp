@@ -39,7 +39,8 @@
         Create new account
       </button>
     </div>
-
+    
+    <SupplyWithdrawModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>
     <!-- <LeaseModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <BuySwapModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <SwapBuyModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
@@ -69,6 +70,7 @@ import ReceiveQrCodeModal from '@/components/modals/ReceiveQrCodeModal.vue'
 import SwapBuyModal from '@/components/modals/SwapBuyModal.vue'
 import BuySwapModal from '@/components/modals/BuySwapModal.vue'
 import LeaseModal from '@/components/modals/LeaseModal.vue'
+import SupplyWithdrawModal from '@/components/modals/SupplyWithdrawModal.vue'
 
 export default defineComponent({
   name: 'HomeView',
@@ -83,7 +85,8 @@ export default defineComponent({
     ReceiveQrCodeModal,
     SwapBuyModal,
     BuySwapModal,
-    LeaseModal
+    LeaseModal,
+    SupplyWithdrawModal
   },
   data () {
     return {
