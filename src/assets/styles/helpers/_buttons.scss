@@ -1,6 +1,15 @@
 .btn {
     position: relative;
 
+    &-large-label {
+        font-size: 14px;
+        font-weight: 700;
+        color: $lightElectric;
+        line-height: 12px;
+        background-color: transparent;
+        padding: 12px 0;
+    }
+
     &-large-primary {
         font-size: 14px;
         font-weight: 700;
