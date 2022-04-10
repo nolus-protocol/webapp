@@ -13,12 +13,13 @@ import AuthView from '@/views/AuthView.vue'
 import CreateAccountView from '@/views/CreateAccountView.vue'
 import LeaseView from '@/views/LeaseView.vue'
 import EarningsView from '@/views/EarningsView.vue'
+import HistoryView from '@/views/HistoryView.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'dashboard',
-    component: HomeView
+    component: HistoryView
   },
   {
     path: '/auth',

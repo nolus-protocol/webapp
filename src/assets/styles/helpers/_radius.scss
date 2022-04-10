@@ -20,6 +20,10 @@
         border-radius: $rounded;
     }
 
+    &-pill {
+        border-radius: $pill;
+    }
+
     &-0-sm {
         
         @media (max-width: $md) {
