@@ -65,7 +65,7 @@
         <!-- Actions -->
         <div class="modal-send-receive-actions">
             <button class="btn btn-primary btn-large-primary">
-                Next
+                Swap ETH for BTC
             </button>
         </div>
     </div>
