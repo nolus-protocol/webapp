@@ -40,7 +40,8 @@
       </button>
     </div>
 
-    <ReceiveQrCodeModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>
+    <SwapBuyModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>
+    <!-- <ReceiveQrCodeModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <ReceiveSendModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <ConfirmSendingModalError :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <ConfirmSendingModalSuccess :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
@@ -63,6 +64,7 @@ import ConfirmSendingModalSuccess from '@/components/modals/ConfirmSendingModalS
 import ConfirmSendingModalError from '@/components/modals/ConfirmSendingModalError.vue'
 import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
 import ReceiveQrCodeModal from '@/components/modals/ReceiveQrCodeModal.vue'
+import SwapBuyModal from '@/components/modals/SwapBuyModal.vue'
 
 export default defineComponent({
   name: 'HomeView',
@@ -74,7 +76,8 @@ export default defineComponent({
     ConfirmSendingModalSuccess,
     ConfirmSendingModalError,
     ReceiveSendModal,
-    ReceiveQrCodeModal
+    ReceiveQrCodeModal,
+    SwapBuyModal
   },
   data () {
     return {
