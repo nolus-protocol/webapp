@@ -40,7 +40,7 @@
       </button>
     </div>
 
-    <LeaseModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>
+    <!-- <LeaseModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <BuySwapModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <SwapBuyModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <ReceiveQrCodeModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->

@@ -11,12 +11,13 @@ import DashboardView from '@/views/DashboardView.vue'
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import AuthView from '@/views/AuthView.vue'
 import CreateAccountView from '@/views/CreateAccountView.vue'
+import LeaseView from '@/views/LeaseView.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'dashboard',
-    component: HomeView
+    component: LeaseView
   },
   {
     path: '/auth',
