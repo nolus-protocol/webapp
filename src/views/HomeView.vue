@@ -40,7 +40,8 @@
       </button>
     </div>
     
-    <SupplyWithdrawModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>
+    <WithdrawSupplyModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>
+    <!-- <SupplyWithdrawModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <LeaseModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <BuySwapModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <SwapBuyModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
@@ -71,6 +72,7 @@ import SwapBuyModal from '@/components/modals/SwapBuyModal.vue'
 import BuySwapModal from '@/components/modals/BuySwapModal.vue'
 import LeaseModal from '@/components/modals/LeaseModal.vue'
 import SupplyWithdrawModal from '@/components/modals/SupplyWithdrawModal.vue'
+import WithdrawSupplyModal from '@/components/modals/WithdrawSupplyModal.vue'
 
 export default defineComponent({
   name: 'HomeView',
@@ -86,7 +88,8 @@ export default defineComponent({
     SwapBuyModal,
     BuySwapModal,
     LeaseModal,
-    SupplyWithdrawModal
+    SupplyWithdrawModal,
+    WithdrawSupplyModal
   },
   data () {
     return {
