@@ -88,7 +88,7 @@
               <!-- Assets Container -->
               <div class="block">
                 <AssetPartial
-                  v-for="asset in this.assets"
+                  v-for="asset in this.manipulatedAssets"
                   :key="asset"
                   :asset-info=getAssetInfo(asset.udenom)
                   price="29,836.42"
@@ -123,7 +123,7 @@ export default defineComponent({
   },
   data () {
     return {
-      assets: [] as AssetBalance[],
+      manipulatedAssets: [] as AssetBalance[],
       mainAssets: [] as AssetBalance[],
       hideLowerBalances: false
     }
@@ -131,7 +131,7 @@ export default defineComponent({
   watch: {
     '$store.state.balances' (balances) {
       this.mainAssets = balances
-      this.assets = balances
+      this.manipulatedAssets = balances
       if (this.hideLowerBalances) {
         this.filterSmallBalances()
       }
@@ -140,7 +140,7 @@ export default defineComponent({
       if (this.hideLowerBalances) {
         this.filterSmallBalances()
       } else {
-        this.assets = this.mainAssets
+        this.manipulatedAssets = this.mainAssets
       }
     }
   },
@@ -151,9 +151,8 @@ export default defineComponent({
       return AssetUtils.getAssetInfoByAbbr(minimalDenom)
     },
     filterSmallBalances () {
-      this.assets = this.assets.filter(asset => asset.balance.amount.gt(new Int('1')))
+      this.manipulatedAssets = this.manipulatedAssets.filter(asset => asset.balance.amount.gt(new Int('1')))
     }
-
   }
 })
 </script>
