@@ -17,6 +17,7 @@ import { EncryptionUtils } from '@/utils/EncryptionUtils'
 import router from '@/router'
 import { Coin } from '@keplr-wallet/unit'
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
+import { WalletUtils } from '@/utils/WalletUtils'
 
 export interface AssetBalance {
   udenom: string,
@@ -49,7 +50,9 @@ export default createStore({
   },
   actions: {
     async connectToKeplr (context) {
+      await WalletUtils.getKeplr()
       const keplrWindow = window as KeplrWindow
+
       if (!keplrWindow.getOfflineSigner || !keplrWindow.keplr) {
         throw new Error('Keplr wallet is not installed.')
       } else if (!keplrWindow.keplr.experimentalSuggestChain) {

@@ -147,7 +147,6 @@ export default defineComponent({
   computed: {},
   methods: {
     getAssetInfo (minimalDenom: string) {
-      console.log(minimalDenom)
       return AssetUtils.getAssetInfoByAbbr(minimalDenom)
     },
     filterSmallBalances () {
