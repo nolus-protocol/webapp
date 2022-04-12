@@ -171,9 +171,10 @@ export default createStore({
       }
     },
     async updateBalances (context, payload: { walletAddress: string }) {
-      if (!payload.walletAddress) {
+      if (!payload.walletAddress && !KeyUtils.isAddressValid(payload.walletAddress)) {
         return
       }
+
       const ibcBalances = [] as AssetBalance[]
       const nolusBalance = await NolusClient.getInstance()
         .getBalance(payload.walletAddress,

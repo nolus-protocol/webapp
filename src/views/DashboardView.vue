@@ -13,7 +13,7 @@
               <h1 class="text-default-heading text-primary m-0">Assets</h1>
             </div>
             <div class="right">
-              <button v-on:click="test" class="btn btn-secondary btn-large-secondary mr-4">Send / Receive</button>
+              <button class="btn btn-secondary btn-large-secondary mr-4">Send / Receive</button>
               <button class="btn btn-primary btn-large-primary">Buy Tokens</button>
             </div>
           </div>
@@ -41,7 +41,7 @@
                 <div class="relative block checkbox-container ml-auto mr-0">
                   <div class="flex items-center w-full justify-end">
                     <input id="hide-small-balances" aria-describedby="hide-small-balances" name="hide-small-balances"
-                           type="checkbox" checked="checked">
+                           type="checkbox" checked="checked" v-model="hideLowerBalances">
                     <label for="hide-small-balances">Hide small balances</label>
                   </div>
                 </div>
@@ -111,8 +111,9 @@
 import { defineComponent } from 'vue'
 import SidebarContainer from '@/components/SidebarContainer.vue'
 import AssetPartial from '@/components/AssetPartial.vue'
-import store, { AssetBalance } from '@/store'
+import { AssetBalance } from '@/store'
 import { AssetUtils } from '@/utils/AssetUtils'
+import { Int } from '@keplr-wallet/unit'
 
 export default defineComponent({
   name: 'DashboardView',
@@ -122,13 +123,25 @@ export default defineComponent({
   },
   data () {
     return {
-      assets: [] as AssetBalance[]
+      assets: [] as AssetBalance[],
+      mainAssets: [] as AssetBalance[],
+      hideLowerBalances: false
     }
   },
   watch: {
     '$store.state.balances' (balances) {
-      console.log(balances)
+      this.mainAssets = balances
       this.assets = balances
+      if (this.hideLowerBalances) {
+        this.filterSmallBalances()
+      }
+    },
+    hideLowerBalances () {
+      if (this.hideLowerBalances) {
+        this.filterSmallBalances()
+      } else {
+        this.assets = this.mainAssets
+      }
     }
   },
   computed: {},
@@ -137,12 +150,10 @@ export default defineComponent({
       console.log(minimalDenom)
       return AssetUtils.getAssetInfoByAbbr(minimalDenom)
     },
-    test () {
-      console.log('balances: ', store.state.balances)
-      store.state.balances.forEach(e => {
-        console.log(e)
-      })
+    filterSmallBalances () {
+      this.assets = this.assets.filter(asset => asset.balance.amount.gt(new Int('1')))
     }
+
   }
 })
 </script>

@@ -12,7 +12,8 @@
       />
       <div class="inline-block">
         <p class="text-primary text-medium text-small-heading text-left uppercase m-0">
-          {{ this.assetInfo.coinAbbreviation.toUpperCase() }}</p>
+          {{ this.assetInfo.coinAbbreviation.toUpperCase() }}
+        </p>
         <p class="text-dark-grey text-small-copy text-left capitalize m-0">{{ this.assetInfo.chainName }}</p>
       </div>
     </div>
@@ -43,8 +44,6 @@
             assetInfo.coinDecimals
           )
         }}
-        <!--        {{ this.balanceOther }}-->
-        <!--        {{ this.balanceOtherTicker }}-->
       </div>
     </div>
 
