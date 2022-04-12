@@ -7,15 +7,14 @@
       (typeof this.isActive !== 'undefined' && this.isActive === true ? 'active' : '')
     ]"
   >
-    <img 
-        class="icon"
-        :src="this.icon"
+    <img
+      class="icon"
+      :src="this.icon"
     />
-    <img 
-        class="iconHover"
-        :src="this.iconHover"
+    <img
+      class="iconHover"
+      :src="this.iconHover"
     />
-    
     <span>
         {{ this.label }}
     </span>

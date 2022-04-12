@@ -1,34 +1,23 @@
-import { CHAIN_NAME, COIN_DENOM } from '../constants/chain'
 import { Buffer } from 'buffer'
 import { Hash } from '@keplr-wallet/crypto'
+import { assetsInfo } from '@/config/assetsInfo'
 
-interface AssetInfo {
-    chainName: string,
-    coinDenom: string,
-    coinAbbreviation: string,
-    coinIcon: string
+export interface AssetInfo {
+  chainName: string,
+  coinDenom: string,
+  coinMinimalDenom: string,
+  coinDecimals: number,
+  coinAbbreviation: string,
+  coinIcon: string
 }
 
 export class AssetUtils {
   private static assetInfo (): { [key: string]: AssetInfo; } {
-    return {
-      nls: {
-        chainName: CHAIN_NAME,
-        coinDenom: COIN_DENOM,
-        coinAbbreviation: 'NLS',
-        coinIcon: './media/coins/nolus.svg'
-      },
-      eth: {
-        chainName: 'Ethereum',
-        coinDenom: 'Ether',
-        coinAbbreviation: 'ETH',
-        coinIcon: ''
-      }
-    }
+    return assetsInfo
   }
 
   public static getAssetInfoByAbbr (coinAbbreviation: string): AssetInfo {
-    return this.assetInfo()[coinAbbreviation]
+    return this.assetInfo()[coinAbbreviation] || this.assetInfo().unolus
   }
 }
 
