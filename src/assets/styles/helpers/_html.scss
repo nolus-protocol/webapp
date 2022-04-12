@@ -81,3 +81,12 @@ input[type="radio"] {
 .warning-box {
     background-color: #fff9ea;
 }
+
+.left-and-right {
+    display: block;
+    text-align: left;
+
+    @media (min-width: $md) {
+        text-align: right;
+    }
+}
