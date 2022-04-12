@@ -53,7 +53,9 @@ export class KeyUtils {
     }
   }
 
-  public static generatePrivateKey () {
-    return Random.getBytes(32)
+  public static generateMnemonic (): string {
+    const entropy = Random.getBytes(32)
+    const mnemonic = Bip39.encode(entropy)
+    return mnemonic.toString()
   }
 }

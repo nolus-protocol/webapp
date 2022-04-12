@@ -110,10 +110,10 @@ import { defineComponent } from 'vue'
 import InputField from '@/components/InputField.vue'
 import TextFieldButtons from '@/components/TextFieldButtons.vue'
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
-import { Bip39, Random } from '@cosmjs/crypto'
 import SelectorTextField from '@/components/SelectorTextField.vue'
 import store from '@/store'
 import router from '@/router'
+import { KeyUtils } from '@/utils/KeyUtils'
 
 export default defineComponent({
   name: 'CreateAccountView',
@@ -132,10 +132,7 @@ export default defineComponent({
     }
   },
   mounted () {
-    const entropy = Random.getBytes(32)
-    const mnemonic = Bip39.encode(entropy)
-    this.mnemonic = mnemonic.toString()
-
+    this.mnemonic = KeyUtils.generateMnemonic()
     const words = this.mnemonic.split(' ')
     for (let i = 0; i < words.length; i++) {
       words[i] = words[i].trim()

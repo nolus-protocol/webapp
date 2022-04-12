@@ -41,7 +41,8 @@
               <div class="right w-full md:w-1/2 mt-4 md:mt-0 inline-flex justify-start md:justify-end">
                 <div class="relative block checkbox-container">
                   <div class="flex items-center w-full justify-end">
-                    <input id="hide-small-balances" aria-describedby="hide-small-balances" name="hide-small-balances" type="checkbox" checked="checked">
+                    <input id="hide-small-balances" aria-describedby="hide-small-balances" name="hide-small-balances"
+                           type="checkbox" checked="checked" v-model="hideLowerBalances">
                     <label for="hide-small-balances">Hide small balances</label>
                   </div>
                 </div>
@@ -62,7 +63,8 @@
                   Price
                 </div>
 
-                <div class="inline-flex items-center justify-end text-medium text-detail text-dark-grey text-right text-upper">
+                <div
+                  class="inline-flex items-center justify-end text-medium text-detail text-dark-grey text-right text-upper">
                   <span class="inline-block">Balance</span>
                   <img
                     :src="require('@/assets/icons/tooltip.svg')"
@@ -86,31 +88,16 @@
               <!-- Assets Container -->
               <div class="block">
                 <AssetPartial
-                  icon="btc.svg"
-                  ticker="BTC"
-                  fullName="Bitcoin"
+                  v-for="asset in this.manipulatedAssets"
+                  :key="asset"
+                  :asset-info=getAssetInfo(asset.udenom)
                   price="29,836.42"
                   change="4.19"
-                  :changeDirection="'true'"
-                  balance="32,430.22"
-                  balanceOther="1.23456780"
-                  balanceOtherTicker="nBTC"
+                  :changeDirection=true
+                  balance="0"
+                  :assetBalance=asset.balance.amount.toString()
                   earnings="24"
-                >
-                </AssetPartial>
-                <AssetPartial
-                  icon="btc.svg"
-                  ticker="BTC"
-                  fullName="Bitcoin"
-                  price="29,836.42"
-                  change="4.19"
-                  :changeDirection="'true'"
-                  balance="32,430.22"
-                  balanceOther="1.23456780"
-                  balanceOtherTicker="nBTC"
-                  earnings="24"
-                >
-                </AssetPartial>
+                />
               </div>
             </div>
           </div>
@@ -124,6 +111,9 @@
 import { defineComponent } from 'vue'
 import SidebarContainer from '@/components/SidebarContainer.vue'
 import AssetPartial from '@/components/AssetPartial.vue'
+import { AssetBalance } from '@/store'
+import { AssetUtils } from '@/utils/AssetUtils'
+import { Int } from '@keplr-wallet/unit'
 
 export default defineComponent({
   name: 'DashboardView',
@@ -132,7 +122,37 @@ export default defineComponent({
     AssetPartial
   },
   data () {
-    return {}
+    return {
+      manipulatedAssets: [] as AssetBalance[],
+      mainAssets: [] as AssetBalance[],
+      hideLowerBalances: false
+    }
+  },
+  watch: {
+    '$store.state.balances' (balances) {
+      this.mainAssets = balances
+      this.manipulatedAssets = balances
+      if (this.hideLowerBalances) {
+        this.filterSmallBalances()
+      }
+    },
+    hideLowerBalances () {
+      if (this.hideLowerBalances) {
+        this.filterSmallBalances()
+      } else {
+        this.manipulatedAssets = this.mainAssets
+      }
+    }
+  },
+  computed: {},
+  methods: {
+    getAssetInfo (minimalDenom: string) {
+      console.log(minimalDenom)
+      return AssetUtils.getAssetInfoByAbbr(minimalDenom)
+    },
+    filterSmallBalances () {
+      this.manipulatedAssets = this.manipulatedAssets.filter(asset => asset.balance.amount.gt(new Int('1')))
+    }
   }
 })
 </script>
