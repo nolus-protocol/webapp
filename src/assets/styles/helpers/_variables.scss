@@ -16,6 +16,7 @@ $lightElectric: #2868e1;
 $mediumElectric: #245dc7;
 $darkElectric: #1f51ad;
 
+$iconBackgroundRed: #edd4cf;
 $lightRed: #e42929;
 $mediumRed: #c92424;
 $darkRed: #b02020;
@@ -23,13 +24,20 @@ $darkRed: #b02020;
 $lightGreen: #50e3a5;
 $mediumGreen: #47c993;
 $darkGreen: #1ab171;
+$iconGreen: #3cad76;
 
 $lightYellow: #ffd782;
 $mediumYellow: #ffc74f;
 $darkYellow: #ffb922;
+$bgYellow: #fff9e9;
 
 $orange: #ff562e;
 $dark: #07162c;
+
+$borderColor: rgba(7, 45, 99, 0.1);
+
+$shadowModalColor: rgba(7, 45, 99, 0.16);
+$shadowBoxColor: rgba(7, 45, 99, 0.05);
 
 // Borders
 $lightRounded: 6px;
@@ -37,3 +45,11 @@ $rounded: 8px;
 $mediumRounded: 12px;
 $heavyRounded: 16px;
 $circle: 100%;
+$pill: 100px;
+
+// Breakpoints
+$sm: 576px;
+$md: 768px;
+$lg: 992px;
+$xl: 1200px;
+$xxl: 1400px;

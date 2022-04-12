@@ -102,12 +102,27 @@
       </div>
     </div>
   </div>
+
+  <div class="sidebar-header">
+    <button class="btn btn-header shadow-box mr-2">
+      <BellIcon class="icon w-4 h-4" />
+      <span class="counter">8</span>
+    </button>
+    <button class="btn btn-header with-icon shadow-box rounded-r-none">
+      <img
+        src="@/assets/icons/money-wallet.svg"
+        class="inline-blcok mr-2"
+      />
+      <span class="label text-detail">My precious</span>
+    </button>
+  </div>
 </template>
 <script type="ts">
 import LogoLink from '@/components/LogoLink.vue'
 import SidebarElement from '@/components/SidebarElement.vue'
 import SidebarSocialElement from '@/components/SidebarSocialElement.vue'
 import SidebarLinkElement from '@/components/SidebarLinkElement.vue'
+import { BellIcon } from '@heroicons/vue/solid'
 import {
   DISCORD_ACCOUNT,
   LINKEDIN_ACCOUNT,
@@ -123,7 +138,8 @@ export default {
     LogoLink,
     SidebarElement,
     SidebarSocialElement,
-    SidebarLinkElement
+    SidebarLinkElement,
+    BellIcon,
   },
   props: [],
   data () {

@@ -10,14 +10,38 @@
     max-width: 190px;
     height: 100vh;
     transform: translateZ(0);
+    z-index: 2;
+
+    .top {
+        display: block;
+    }
+
+    .bot {
+        display: none;
+
+        @media (min-width: $lg) {
+            display: block;
+        }
+    }
 
     .top,
     .bot {
-        display: block;
         width: 100%;
     }
 
     .sidebar-elements-container {
+
+        @media (max-width: $lg) {
+            display: flex;
+            justify-content: space-between;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            background: $white;
+            width: 100vw;
+            border-top: 1px solid $borderColor;
+            padding: 8px;
+        }
         
         &:hover {
 
@@ -31,10 +55,13 @@
         }
 
         .block {
-            margin-bottom: 12px;
+            
+            @media (min-width: $lg) {
+                margin-bottom: 12px;
 
-            &:last-of-type {
-                margin-bottom: 0 !important;
+                &:last-of-type {
+                    margin-bottom: 0 !important;
+                }
             }
         }
     }
@@ -55,26 +82,50 @@
 .sidebar-element {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    padding: 8px 16px;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0 16px;
     background: transparent;
     border-radius: 12px;
+    
+    font-size: 12px;
+    line-height: 1.2;
 
-    @extend .text-large-copy;
     @extend .text-medium;
+
+    @media (min-width: $lg) {
+        font-size: 16px;
+        line-height: 1.4;
+        flex-direction: row;
+        justify-content: flex-start;
+        padding: 8px 16px;
+    }
 
     &.active {
         color: $orange;
-        background-color: $grey;
+
+        @media (min-width: $lg) {
+            background-color: $grey;
+        }
 
         .icon { display: none; }
-        .iconHover { display: inline-block; }
+
+        .iconHover { 
+            display: block;
+
+            @media (min-width: $lg) {
+                display: inline-block; 
+            }
+        }
     }
 
     &:hover,
     &:active {
         color: $orange !important;
-        background-color: $grey !important;
+
+        @media (min-width: $lg) {
+            background-color: $grey !important;
+        }
 
         .icon { display: none !important; }
         .iconHover { display: inline-block !important; }
@@ -82,9 +133,13 @@
 
     .icon,
     .iconHover {
-        display: inline-block;
+        display: block;
         position: relative;
         margin: 0;
+
+        @media (min-width: $lg) {
+            display: inline-block;
+        }
     }
 
     .iconHover {
@@ -92,8 +147,12 @@
     }
 
     span {
-        display: inline-block;
-        margin-left: 8px;
+        display: block;
+
+        @media (min-width: $lg) {
+            display: inline-block;
+            margin-left: 8px;
+        }
     }
 }
 
@@ -127,5 +186,52 @@
     &:hover,
     &:active {
         color: $textMain;
+    }
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    padding: 8px;
+    background-color: $white;
+    border-bottom: 1px solid $borderColor;
+    z-index: 1;
+
+    .btn-header {
+
+        @media (max-width: $lg) {
+            background-color: $white;
+            border-radius: 0;
+            border: none;
+            width: 48px;
+            height: 48px;
+            padding: 0;
+
+            svg {
+                width: 55%;
+                height: 55%;
+            }
+
+            img {
+                width: 20px;
+                height: 20px;
+                margin-right: 0;
+            }
+            
+            .label {
+                display: none;
+            }
+        }
+    }
+
+    @media (min-width: $lg) {
+        padding: 0;
+        background-color: transparent !important;
+        border: none !important;
     }
 }

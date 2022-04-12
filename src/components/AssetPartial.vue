@@ -1,5 +1,8 @@
 <template>
-  <div class="grid grid-cols-4 gap-6 border-b border-standart py-3 px-6 items-center">
+  <div :class="[
+          'grid gap-6 border-b border-standart py-3 px-6 items-center justify-between',
+          this.cols ? 'grid-cols-'+ this.cols : 'grid-cols-3 md:grid-cols-4'
+        ]">
 
     <!-- Ticker -->
     <div class="inline-flex items-center">
@@ -19,7 +22,7 @@
     </div>
 
     <!-- Price -->
-    <div class="block">
+    <div v-if="this.price" class="block">
       <p class="text-primary text-medium text-large-copy text-right m-0">${{ this.price }}</p>
       <div class="flex items-center justify-end text-primary text-small-copy text-right m-0">
         <img
@@ -33,7 +36,7 @@
     </div>
 
     <!-- Balance -->
-    <div class="block">
+    <div v-if="this.balance" class="block">
       <p class="text-primary text-medium text-large-copy text-right m-0">${{ this.balance }}</p>
       <div class="flex items-center justify-end text-dark-grey text-small-copy text-right m-0">
         {{
@@ -48,7 +51,7 @@
     </div>
 
     <!-- Earnings -->
-    <div class="block">
+    <div v-if="this.earnings" class="hidden md:block">
       <div class="flex items-center justify-end text-primary text-medium text-small-copy text-right m-0">
         Up to {{ this.earnings }}% APY
       </div>
@@ -83,8 +86,11 @@ export default {
       type: String
     },
     earnings: {
-      type: String
-    }
+      type: String,
+    },
+    cols: {
+      type: Number
+    },
   },
   data () {
     return {}

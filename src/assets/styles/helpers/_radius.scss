@@ -8,7 +8,26 @@
         border-radius: $heavyRounded;
     }
 
+    &-light {
+        border-radius: $lightRounded;
+    }
+
     &-medium {
         border-radius: $mediumRounded;
+    }
+
+    &-rounded {
+        border-radius: $rounded;
+    }
+
+    &-pill {
+        border-radius: $pill;
+    }
+
+    &-0-sm {
+        
+        @media (max-width: $md) {
+            border-radius: 0 !important;
+        }
     }
 }

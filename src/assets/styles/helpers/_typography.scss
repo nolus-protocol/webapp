@@ -77,6 +77,11 @@
         color: $darkGreen;
     }
 
+    &-patch {
+        color: $mediumBlue;
+        background-color: $grey;
+    }
+
     // Text Weigths
     &-bold {
         font-weight: 700;

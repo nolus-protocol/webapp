@@ -1,0 +1,102 @@
+<template>
+  <div class="page-container home">
+    <div class="none">
+      <SidebarContainer>
+      </SidebarContainer>
+    </div>
+
+    <div class="container mx-auto pt-24 lg:pt-16">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-start-3 lg:col-span-9">
+          
+          <!-- Header -->
+          <div class="flex flex-wrap items-center justify-between px-4 md:px-0">
+            <div class="left w-full md:w-1/2">
+              <h1 class="text-default-heading text-primary m-0">History</h1>
+            </div>
+            <div class="right w-full md:w-1/2 mt-4 md:mt-0 inline-flex justify-start md:justify-end">
+            </div>
+          </div>
+
+          <!-- History -->
+          <div class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm overflow-hidden">
+
+            <!-- Assets -->
+            <div class="block md:mt-4">
+
+              <!-- Assets Header -->
+              <div class="hidden md:grid md:grid-cols-4 lg:grid-cols-5 gap-6 border-b border-standart pb-3 px-6">
+
+                <div class="hidden lg:block text-medium text-detail text-dark-grey text-left text-upper">
+                  Type
+                </div>
+
+                <div class="hidden md:block text-medium text-detail text-dark-grey text-left text-upper">
+                  ID
+                </div>
+
+                <div class="flex items-center justify-start text-medium text-detail text-dark-grey text-left text-upper">
+                  <span class="inline-block">Action</span>
+                </div>
+
+                <div class="hidden md:flex items-center justify-end text-medium text-detail text-dark-grey text-right text-upper">
+                  <span class="inline-block">Fee</span>
+                </div>
+
+                <div class="hidden md:flex items-center justify-end text-medium text-detail text-dark-grey text-right text-upper">
+                  <span class="inline-block">Time</span>
+                </div>
+              </div>
+
+              <!-- Assets Container -->
+              <div class="block pt-3">
+
+                <!-- History Element -->
+                <div class="grid grid-cols-2  md:grid-cols-4 lg:grid-cols-5 gap-6 border-b border-standart pb-3 px-6">
+
+                <div class="hidden lg:block text-regular text-detail text-primary text-left">
+                  C1FAC987E9515B...
+                </div>
+
+                <div class="hidden md:block text-medium text-detail text-primary text-left">
+                  <span class="inline-block py-1 px-2 text-patch radius-pill">
+                    Transfer
+                  </span>
+                </div>
+
+                <div class="block col-span-2 md:col-span-1 text-regular text-detail text-primary text-left">
+                  <span class="text-bold">Stake</span> 797020...qtcrpy to <span class="text-bold">Pylon Governance</span>
+                </div>
+
+                <div class="block col-span-1 items-center justify-start md:justify-end text-regular text-detail text-primary">
+                  <span class="left-and-right">0.481215 NLS</span>
+                </div>
+
+                <div class="flex col-span-1 items-center justify-end text-regular text-detail text-primary text-right">
+                  2 hours ago
+                </div>
+              </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent } from 'vue'
+import SidebarContainer from '@/components/SidebarContainer.vue'
+
+export default defineComponent({
+  name: 'HistoryView',
+  components: {
+    SidebarContainer,
+  },
+  data () {
+    return {}
+  }
+})
+</script>
