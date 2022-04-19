@@ -44,7 +44,6 @@
               <li
                 :class="[active ? 'text-white bg-indigo-600' : 'text-gray-900', 'cursor-default select-none relative py-2 pl-3 pr-9']">
                 <div class="flex items-center">
-                  <!--                  <img :src=getAssetInfo(option.udenom).coinIcon alt="" class="flex-shrink-0 h-6 w-6 rounded-full"/>-->
                   <img :src="require('@/assets/icons/coins/'+ getAssetInfo(option.udenom).coinIcon)" alt=""
                        class="flex-shrink-0 h-6 w-6 rounded-full"/>
                   <span :class="[selected ? 'font-semibold' : 'font-normal', 'ml-3 block truncate']">

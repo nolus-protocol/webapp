@@ -14,7 +14,7 @@
       <div class="flex items-center">
         <div class="inline-block w-1/2">
           <input
-            type="text"
+            type="number"
             :name="this.name"
             :id="this.id"
             :value="value"
@@ -32,8 +32,7 @@
             :options="currencyOptions"
             type="small"
             @update-currency="onUpdateCurrency"
-          >
-          </CurrencyPicker>
+          />
         </div>
       </div>
     </div>

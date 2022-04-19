@@ -16,6 +16,7 @@ import { EncryptionUtils } from '@/utils/EncryptionUtils'
 import { Coin } from '@keplr-wallet/unit'
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
 import { WalletUtils } from '@/utils/WalletUtils'
+import { DeliverTxResponse } from '@cosmjs/stargate'
 
 export interface AssetBalance {
   udenom: string,
@@ -201,6 +202,36 @@ export default createStore({
         })
       }
       context.commit('updateBalances', { balances: ibcBalances })
+    },
+    async transferTokens (context, payload: {
+      receiverAddress: string,
+      amount: string | undefined,
+      feeAmount: string
+    }): Promise<DeliverTxResponse | undefined> {
+      console.log('payload: ', payload)
+      if (!payload.amount) {
+        return
+      }
+      const DEFAULT_FEE = {
+        // TODO 0.0025unolus
+        amount: [{
+          denom: 'unolus',
+          amount: payload.feeAmount
+        }],
+        gas: '100000'
+      }
+      const txResponse = await context.state.wallet.sendTokens(
+        context.state.wallet.address as string,
+        payload.receiverAddress,
+        [{
+          denom: 'unolus',
+          amount: payload.amount
+        }],
+        DEFAULT_FEE
+      )
+
+      await context.dispatch('updateBalances', { walletAddress: context.state.wallet.address })
+      return txResponse
     }
   },
   modules: {}

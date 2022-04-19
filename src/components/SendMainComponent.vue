@@ -4,12 +4,14 @@
              v-model:selectedCurrency="selectedCurrency"
              v-model:amount="amount"
              v-model:memo="memo"
-             v-model:sendTo="sendTo"
+             v-model:receiverAddress="receiverAddress"
              v-model:password="password"
              v-model:onNextClick="onNextClick"
              v-model:onSendClick="onSendClick"
              v-model:onConfirmBackClick="onConfirmBackClick"
              v-model:onClickOkBtn="onClickOkBtn"
+             :receiverErrorMsg="receiverErrorMsg"
+             :amountErrorMsg="amountErrorMsg"
   />
 </template>
 
@@ -20,7 +22,10 @@ import SendingConfirmComponent from '@/components/SendingConfirmComponent.vue'
 import SendComponent from '@/components/SendComponent.vue'
 import SendingSuccessComponent from '@/components/SendingSuccessComponent.vue'
 import SendingFailedComponent from '@/components/SendingFailedComponent.vue'
-import { AssetBalance } from '@/store'
+import store, { AssetBalance } from '@/store'
+import { Bech32 } from '@cosmjs/encoding'
+import { Dec, Int } from '@keplr-wallet/unit'
+import { CurrencyUtils } from '@/utils/CurrencyUtils'
 
 const ScreenState = Object.freeze({
   MAIN: 'SendComponent',
@@ -49,9 +54,11 @@ export default defineComponent({
       selectedCurrency: {} as AssetBalance,
       amount: '',
       memo: '',
-      sendTo: '',
+      receiverAddress: '',
       password: '',
-      currentSendStep: ScreenState.MAIN
+      currentSendStep: ScreenState.MAIN,
+      receiverErrorMsg: '',
+      amountErrorMsg: ''
     }
   },
   watch: {
@@ -61,23 +68,40 @@ export default defineComponent({
       }
     },
     amount () {
+      this.isAmountFieldValid()
       console.log('amount:', this.amount)
     },
     memo () {
       console.log('memo:', this.memo)
+    },
+    receiverAddress () {
+      this.isReceiverAddressValid()
     }
   },
   methods: {
-    updateCurrency (value: AssetBalance) {
-      this.selectedCurrency = value
-    },
     onNextClick () {
-      console.log('click next! ', this.selectedCurrency)
-      this.currentSendStep = ScreenState.CONFIRM
+      this.isAmountFieldValid()
+      this.isReceiverAddressValid()
+      if (this.amountErrorMsg === '' && this.receiverErrorMsg === '') {
+        this.currentSendStep = ScreenState.CONFIRM
+      }
     },
-    onSendClick () {
+    async onSendClick () {
       console.log(this.password)
-      this.currentSendStep = ScreenState.SUCCESS
+
+      const txResponse = await store.dispatch('transferTokens', {
+        receiverAddress: this.receiverAddress,
+        amount: CurrencyUtils.convertNolusToUNolus(this.amount).amount.toString(),
+        feeAmount: '0.25'
+      })
+
+      if (txResponse) {
+        console.log('txResponse: ', txResponse)
+        // setTxId(txResponse.transactionHash)
+        this.currentSendStep = txResponse.code === 0 ? ScreenState.SUCCESS : ScreenState.FAILED
+      }
+
+      // this.currentSendStep = ScreenState.SUCCESS
     },
     onConfirmBackClick () {
       this.currentSendStep = ScreenState.MAIN
@@ -89,9 +113,42 @@ export default defineComponent({
     resetData () {
       this.amount = ''
       this.memo = ''
-      this.sendTo = ''
+      this.receiverAddress = ''
       this.password = ''
       this.currentSendStep = ScreenState.MAIN
+    },
+    isReceiverAddressValid () {
+      if (this.receiverAddress || this.receiverAddress.trim() !== '') {
+        try {
+          Bech32.decode(this.receiverAddress, 44)
+          this.receiverErrorMsg = ''
+        } catch (e) {
+          console.log('address is not valid!')
+          this.receiverErrorMsg = 'address is not valid!'
+        }
+      } else {
+        console.log('missing receiver address')
+        this.receiverErrorMsg = 'missing receiver address'
+      }
+    },
+    isAmountFieldValid () {
+      if (this.amount || this.amount !== '') {
+        this.amountErrorMsg = ''
+        const amountInUnls = CurrencyUtils.convertNolusToUNolus(this.amount)
+        const walletBalance = String(this.currentBalance[0].balance.amount || 0)
+        const isLowerThanOrEqualsToZero = new Dec(amountInUnls.amount || '0').lte(new Dec(0))
+        const isGreaterThanWalletBalance = new Int(amountInUnls.amount.toString() || '0').gt(new Int(walletBalance))
+        if (isLowerThanOrEqualsToZero) {
+          console.log('balance is too low')
+          this.amountErrorMsg = 'balance is too low'
+        }
+        if (isGreaterThanWalletBalance) {
+          console.log('balance is too big')
+          this.amountErrorMsg = 'balance is too big'
+        }
+      } else {
+        this.amountErrorMsg = 'missing amount value'
+      }
     }
   }
 })

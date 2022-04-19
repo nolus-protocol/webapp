@@ -13,7 +13,7 @@
     <div class="block bg-light-grey radius-rounded p-4 text-left break-words">
       <div class="block">
         <p class="text-normal-copy text-primary m-0">Send to:</p>
-        <p class="text-normal-copy text-primary text-bold m-0">{{ sendTo }}</p>
+        <p class="text-normal-copy text-primary text-bold m-0">{{ receiverAddress }}</p>
       </div>
 
       <div class="block mt-3">
@@ -67,7 +67,7 @@ export default defineComponent({
     memo: {
       type: String
     },
-    sendTo: {
+    receiverAddress: {
       type: String
     },
     password: {

@@ -21,7 +21,10 @@
           :value="amount"
           @input='$emit("update:amount", $event.target.value)'
           :currency-options="currentBalance"
+          :option="selectedCurrency"
           @update-currency="onUpdateCurrency"
+          :error-msg="amountErrorMsg"
+          :is-error="amountErrorMsg !== ''"
         />
       </div>
 
@@ -38,8 +41,10 @@
           name="sendTo"
           id="sendTo"
           label="Send to"
-          :value="sendTo"
-          @input='$emit("update:sendTo", $event.target.value)'
+          :value="receiverAddress"
+          @input='$emit("update:receiverAddress", $event.target.value)'
+          :error-msg="receiverErrorMsg"
+          :is-error="receiverErrorMsg !== ''"
         />
       </div>
 
@@ -102,7 +107,7 @@ export default defineComponent({
     memo: {
       type: String
     },
-    sendTo: {
+    receiverAddress: {
       type: String
     },
     password: {
@@ -119,6 +124,12 @@ export default defineComponent({
     },
     onClickOkBtn: {
       type: Function
+    },
+    receiverErrorMsg: {
+      type: String
+    },
+    amountErrorMsg: {
+      type: String
     }
   },
   methods: {
