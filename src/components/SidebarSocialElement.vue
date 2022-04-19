@@ -7,7 +7,7 @@
     ]"
     target="_blank"
   >
-    <img 
+    <img
       class="icon"
       :src="this.icon"
     />

@@ -39,19 +39,19 @@
         Create new account
       </button>
     </div>
-    
-    <WithdrawSupplyModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>
-    <!-- <SupplyWithdrawModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
+
+    <!--    <WithdrawSupplyModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>-->
+    <!--    <SupplyWithdrawModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>-->
     <!-- <LeaseModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
-    <!-- <BuySwapModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
+    <!--    <BuySwapModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>-->
     <!-- <SwapBuyModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <ReceiveQrCodeModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
-    <!-- <ReceiveSendModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
+    <ReceiveSendModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>
     <!-- <ConfirmSendingModalError :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <ConfirmSendingModalSuccess :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <ConfirmSendingModalInput :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <ConfirmSendingModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
-    <!-- <SendReceiveModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
+    <!--    <SendReceiveModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>-->
     <!-- <ErrorModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
   </div>
 
@@ -61,11 +61,6 @@
 import { defineComponent } from 'vue'
 import router from '@/router'
 import ErrorModal from '@/components/modals/ErrorModal.vue'
-import SendReceiveModal from '@/components/modals/SendReceiveModal.vue'
-import ConfirmSendingModal from '@/components/modals/ConfirmSendingModal.vue'
-import ConfirmSendingModalInput from '@/components/modals/ConfirmSendingModalInput.vue'
-import ConfirmSendingModalSuccess from '@/components/modals/ConfirmSendingModalSuccess.vue'
-import ConfirmSendingModalError from '@/components/modals/ConfirmSendingModalError.vue'
 import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
 import ReceiveQrCodeModal from '@/components/modals/ReceiveQrCodeModal.vue'
 import SwapBuyModal from '@/components/modals/SwapBuyModal.vue'
@@ -76,13 +71,8 @@ import WithdrawSupplyModal from '@/components/modals/WithdrawSupplyModal.vue'
 
 export default defineComponent({
   name: 'HomeView',
-  components: { 
+  components: {
     ErrorModal,
-    SendReceiveModal,
-    ConfirmSendingModal,
-    ConfirmSendingModalInput,
-    ConfirmSendingModalSuccess,
-    ConfirmSendingModalError,
     ReceiveSendModal,
     ReceiveQrCodeModal,
     SwapBuyModal,

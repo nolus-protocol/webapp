@@ -8,20 +8,23 @@
     <div class="container mx-auto pt-24 lg:pt-16">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-start-3 lg:col-span-9">
-          
+
           <!-- Header -->
           <div class="flex flex-wrap items-center justify-between px-4 lg:px-0">
             <div class="left w-full md:w-1/2">
               <h1 class="text-default-heading text-primary m-0">Assets</h1>
             </div>
             <div class="right w-full md:w-1/2 mt-4 md:mt-0 inline-flex justify-start md:justify-end">
-              <button class="btn btn-secondary btn-large-secondary mr-4">Send / Receive</button>
+              <button class="btn btn-secondary btn-large-secondary mr-4" v-on:click="showSendModal = true">Send /
+                Receive
+              </button>
               <button class="btn btn-primary btn-large-primary">Buy Tokens</button>
             </div>
           </div>
 
           <!-- Wallet -->
-          <div class="flex items-center justify-between bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm py-5 px-6">
+          <div
+            class="flex items-center justify-between bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm py-5 px-6">
             <div class="left inline-block w-1/2">
               <p class="text-large-copy text-primary text-medium m-0">Wallet Balance</p>
               <p class="text-big-number text-primary m-0 mt-1">$ 123,423.00</p>
@@ -32,7 +35,7 @@
 
           <!-- Existing Assets -->
           <div class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm overflow-hidden">
-            
+
             <!-- Top -->
             <div class="flex flex-wrap items-baseline justify-between pt-5 px-6">
               <div class="left w-full md:w-1/2">
@@ -74,7 +77,8 @@
                   />
                 </div>
 
-                <div class="hidden md:inline-flex items-center justify-end text-medium text-detail text-dark-grey text-right text-upper">
+                <div
+                  class="hidden md:inline-flex items-center justify-end text-medium text-detail text-dark-grey text-right text-upper">
                   <span class="inline-block">Earnings</span>
                   <img
                     :src="require('@/assets/icons/tooltip.svg')"
@@ -104,6 +108,8 @@
         </div>
       </div>
     </div>
+    <ReceiveSendModal v-show="showSendModal" @close-modal="showSendModal = false"/>
+
   </div>
 </template>
 
@@ -114,18 +120,21 @@ import AssetPartial from '@/components/AssetPartial.vue'
 import { AssetBalance } from '@/store'
 import { AssetUtils } from '@/utils/AssetUtils'
 import { Int } from '@keplr-wallet/unit'
+import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
 
 export default defineComponent({
   name: 'DashboardView',
   components: {
     SidebarContainer,
-    AssetPartial
+    AssetPartial,
+    ReceiveSendModal
   },
   data () {
     return {
       manipulatedAssets: [] as AssetBalance[],
       mainAssets: [] as AssetBalance[],
-      hideLowerBalances: false
+      hideLowerBalances: false,
+      showSendModal: false
     }
   },
   watch: {
@@ -144,7 +153,6 @@ export default defineComponent({
       }
     }
   },
-  computed: {},
   methods: {
     getAssetInfo (minimalDenom: string) {
       return AssetUtils.getAssetInfoByAbbr(minimalDenom)

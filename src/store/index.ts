@@ -1,6 +1,5 @@
 import { createStore } from 'vuex'
 import { NolusClient } from '@/client/NolusClient'
-import { Window as KeplrWindow } from '@keplr-wallet/types'
 import KeplrEmbedChainInfo, { IBCAssets, WalletConnectMechanism, WalletManager } from '@/config/wallet'
 import { nolusLedgerWallet, nolusOfflineSigner } from '@/wallet/NolusWalletFactory'
 import { makeCosmoshubPath } from '@cosmjs/amino'
@@ -14,7 +13,6 @@ import OpenLogin from '@toruslabs/openlogin'
 import { makeIBCMinimalDenom } from '@/utils/AssetUtils'
 import { fromHex, toHex } from '@cosmjs/encoding'
 import { EncryptionUtils } from '@/utils/EncryptionUtils'
-import router from '@/router'
 import { Coin } from '@keplr-wallet/unit'
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
 import { WalletUtils } from '@/utils/WalletUtils'
@@ -32,10 +30,14 @@ export default createStore({
     balances: [] as AssetBalance[]
   },
   getters: {
-    getBalances: state => state.balances
+    getBalances: state => state.balances,
+    async getWallet (state) {
+      return await state.wallet
+    }
   },
   mutations: {
     signWallet (state, payload: { wallet: NolusWallet }) {
+      console.log('dsadada')
       state.wallet = payload.wallet
     },
     torusLogin (state, payload: OpenLogin) {
@@ -50,30 +52,29 @@ export default createStore({
   },
   actions: {
     async connectToKeplr (context) {
-      await WalletUtils.getKeplr()
-      const keplrWindow = window as KeplrWindow
+      const keplrWindow = await WalletUtils.getKeplr()
 
-      if (!keplrWindow.getOfflineSigner || !keplrWindow.keplr) {
+      if (!keplrWindow?.getOfflineSigner) {
         throw new Error('Keplr wallet is not installed.')
-      } else if (!keplrWindow.keplr.experimentalSuggestChain) {
+      } else if (!keplrWindow.experimentalSuggestChain) {
         throw new Error('Keplr version is not latest. Please upgrade your Keplr wallet')
       } else {
         let chainId = ''
         try {
           chainId = await NolusClient.getInstance().getChainId()
-          await keplrWindow.keplr?.experimentalSuggestChain(KeplrEmbedChainInfo('devnet', chainId, 'https://net-dev.nolus.io:26612', 'https://net-dev.nolus.io:26614'))
+          await keplrWindow.experimentalSuggestChain(KeplrEmbedChainInfo('devnet', chainId, 'https://net-dev.nolus.io:26612', 'https://net-dev.nolus.io:26614'))
         } catch (e) {
           throw new Error('Failed to fetch suggest chain.')
         }
-        await keplrWindow.keplr?.enable(chainId)
+        await keplrWindow.enable(chainId)
         if (keplrWindow.getOfflineSigner) {
           const offlineSigner = keplrWindow.getOfflineSigner(chainId)
           const nolusWalletOfflineSigner = await nolusOfflineSigner(offlineSigner)
           await nolusWalletOfflineSigner.useAccount()
-          context.commit('signWallet', { wallet: nolusWalletOfflineSigner })
+          await context.commit('signWallet', { wallet: nolusWalletOfflineSigner })
           await context.dispatch('updateBalances', { walletAddress: nolusWalletOfflineSigner.address })
           WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.EXTENSION)
-          router.push({ name: 'dashboard' })
+          // router.push({ name: 'dashboard' })
         }
       }
     },
@@ -174,6 +175,7 @@ export default createStore({
       }
     },
     async updateBalances (context, payload: { walletAddress: string }) {
+      console.log(payload.walletAddress)
       if (!payload.walletAddress && !KeyUtils.isAddressValid(payload.walletAddress)) {
         return
       }

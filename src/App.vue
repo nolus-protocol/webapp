@@ -7,7 +7,6 @@
 import { NolusClient } from '@/client/NolusClient'
 import { ComponentPublicInstance } from 'vue'
 import { WalletConnectMechanism, WalletManager } from '@/config/wallet'
-import router from '@/router'
 import store from '@/store'
 
 export default {
@@ -20,7 +19,7 @@ export default {
   ) {
     console.log('errorCaptured: ', err)
   },
-  mounted () {
+  async mounted () {
     const walletConnectMechanism = WalletManager.getWalletConnectMechanism()
     NolusClient.setInstance('https://net-dev.nolus.io:26612')
     if (walletConnectMechanism) {
@@ -28,8 +27,6 @@ export default {
         console.log('extension')
         store.dispatch('connectToKeplr')
       }
-    } else {
-      router.push({ name: 'dashboard' })
     }
 
     setInterval(() => {

@@ -5,9 +5,6 @@ import { createApp } from 'vue'
 import '@/index.css'
 import '@/assets/styles/global.scss'
 
-import '@/index.css'
-import '@/assets/styles/global.scss'
-
 const app = createApp(App)
 app
   .use(store)

@@ -9,7 +9,7 @@
         <div class="block">
           <SidebarElement
             id="assets"
-            href="#"
+            href="/"
             label="Assets"
             :icon="require('@/assets/icons/assets.svg')"
             :iconHover="require('@/assets/icons/assets_active.svg')"
@@ -20,7 +20,7 @@
         <div class="block">
           <SidebarElement
             id="lease"
-            href="#"
+            href="/lease"
             label="Lease"
             :icon="require('@/assets/icons/lease.svg')"
             :iconHover="require('@/assets/icons/lease_active.svg')"
@@ -40,7 +40,7 @@
         <div class="block">
           <SidebarElement
             id="earn"
-            href="#"
+            href="/earn"
             label="Earn"
             :icon="require('@/assets/icons/earn.svg')"
             :iconHover="require('@/assets/icons/earn_active.svg')"
@@ -50,7 +50,7 @@
         <div class="block">
           <SidebarElement
             id="history"
-            href="#"
+            @click="$router.push('/history')"
             label="History"
             :icon="require('@/assets/icons/history.svg')"
             :iconHover="require('@/assets/icons/history_active.svg')"
@@ -105,7 +105,7 @@
 
   <div class="sidebar-header">
     <button class="btn btn-header shadow-box mr-2">
-      <BellIcon class="icon w-4 h-4" />
+      <BellIcon class="icon w-4 h-4"/>
       <span class="counter">8</span>
     </button>
     <button class="btn btn-header with-icon shadow-box rounded-r-none">
@@ -139,7 +139,7 @@ export default {
     SidebarElement,
     SidebarSocialElement,
     SidebarLinkElement,
-    BellIcon,
+    BellIcon
   },
   props: [],
   data () {

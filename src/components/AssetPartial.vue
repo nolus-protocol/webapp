@@ -86,11 +86,11 @@ export default {
       type: String
     },
     earnings: {
-      type: String,
+      type: String
     },
     cols: {
       type: Number
-    },
+    }
   },
   data () {
     return {}
