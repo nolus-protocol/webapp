@@ -38,10 +38,7 @@
 
     <div class="flex justify-center mt-7">
       <div class="inline-block w-[210px] h-[210px] p-4 bg-white border border-standart radius-rounded">
-        <img
-          src="@/assets/icons/qr-code.svg"
-          class="block w-full h-full m-0"
-        />
+        <qrcode-vue :value="modelValue.walletAddress" foreground="#072d63" render-as="svg" :size="180"/>
       </div>
     </div>
   </div>
@@ -50,6 +47,7 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue'
 import { ArrowLeftIcon, DuplicateIcon } from '@heroicons/vue/solid'
+import QrcodeVue from 'qrcode.vue'
 
 export interface ReceiveQrCodeComponentProps {
   walletAddress: string,
@@ -61,7 +59,8 @@ export default defineComponent({
   name: 'ReceiveComponent',
   components: {
     ArrowLeftIcon,
-    DuplicateIcon
+    DuplicateIcon,
+    QrcodeVue
   },
   props: {
     modelValue: {

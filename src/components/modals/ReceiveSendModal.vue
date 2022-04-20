@@ -22,16 +22,26 @@
         <button :class="!isSendActive ? 'active' : ''" v-on:click="switchTab(false)">Receive</button>
       </div>
 
-      <component v-bind:is="isSendActive ? 'SendMainComponent' : 'ReceiveMainComponent'"
-                 v-model:onClose="onCloseModal"/>
+      <component :is="this.currentComponent.is"
+                 v-model="this.currentComponent.props"/>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import SendMainComponent from '@/components/SendMainComponent.vue'
+import SendMainComponent, { SendMainComponentProps } from '@/components/SendMainComponent.vue'
 import ReceiveMainComponent from '@/components/ReceiveMainComponent.vue'
+
+enum ScreenState {
+  SEND = 'SendMainComponent',
+  RECEIVE = 'ReceiveMainComponent'
+}
+
+interface ReceiveSendModalData {
+  is: string,
+  props: object | SendMainComponentProps
+}
 
 export default defineComponent({
   name: 'ReceiveSendModal',
@@ -39,14 +49,36 @@ export default defineComponent({
     SendMainComponent,
     ReceiveMainComponent
   },
-  props: {},
   data () {
     return {
+      currentComponent: {} as ReceiveSendModalData,
       isSendActive: true
+    }
+  },
+  mounted () {
+    this.currentComponent = {
+      is: ScreenState.SEND,
+      props: {
+        onClose: () => this.onCloseModal()
+      }
     }
   },
   methods: {
     switchTab (value: boolean) {
+      if (value) {
+        this.currentComponent = {
+          is: ScreenState.SEND,
+          props: {
+            onClose: () => this.onCloseModal()
+          }
+        }
+      } else {
+        this.currentComponent = {
+          is: ScreenState.RECEIVE,
+          props: {}
+        }
+      }
+
       this.isSendActive = value
     },
     onCloseModal () {

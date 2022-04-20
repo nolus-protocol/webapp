@@ -62,7 +62,6 @@ import { defineComponent } from 'vue'
 import router from '@/router'
 import ErrorModal from '@/components/modals/ErrorModal.vue'
 import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
-import ReceiveQrCodeModal from '@/components/modals/ReceiveQrCodeModal.vue'
 import SwapBuyModal from '@/components/modals/SwapBuyModal.vue'
 import BuySwapModal from '@/components/modals/BuySwapModal.vue'
 import LeaseModal from '@/components/modals/LeaseModal.vue'
@@ -74,7 +73,6 @@ export default defineComponent({
   components: {
     ErrorModal,
     ReceiveSendModal,
-    ReceiveQrCodeModal,
     SwapBuyModal,
     BuySwapModal,
     LeaseModal,

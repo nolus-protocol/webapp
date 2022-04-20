@@ -17,7 +17,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, PropType } from 'vue'
 import { StarIcon } from '@heroicons/vue/solid'
 import SendingConfirmComponent from '@/components/SendingConfirmComponent.vue'
 import SendComponent from '@/components/SendComponent.vue'
@@ -34,6 +34,11 @@ const ScreenState = Object.freeze({
   SUCCESS: 'SendingSuccessComponent',
   FAILED: 'SendingFailedComponent'
 })
+
+export interface SendMainComponentProps {
+  onClose: () => void
+}
+
 export default defineComponent({
   name: 'SendMainComponent',
   components: {
@@ -44,9 +49,8 @@ export default defineComponent({
     SendingFailedComponent
   },
   props: {
-    onClose: {
-      type: Function,
-      default: () => ({})
+    modelValue: {
+      type: Object as PropType<SendMainComponentProps>
     }
   },
   data () {
@@ -111,7 +115,7 @@ export default defineComponent({
     },
     onClickOkBtn () {
       this.resetData()
-      this.onClose()
+      this.modelValue?.onClose()
     },
     resetData () {
       this.amount = ''

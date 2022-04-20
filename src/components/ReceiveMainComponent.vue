@@ -8,13 +8,14 @@ import { NolusWallet } from '@/wallet/NolusWallet'
 import store from '@/store'
 import ReceiveComponent, { ReceiveComponentProps } from '@/components/ReceiveComponent.vue'
 import ReceiveQrCodeComponent, { ReceiveQrCodeComponentProps } from '@/components/ReceiveQrCodeComponent.vue'
+import { StringUtils } from '@/utils/StringUtils'
 
 const ScreenState = Object.freeze({
   MAIN: 'ReceiveComponent',
   SCAN: 'ReceiveQrCodeComponent'
 })
 
-interface ReceiveMainComponentProps {
+interface ReceiveMainComponentData {
   is: string,
   props: ReceiveComponentProps | ReceiveQrCodeComponentProps
 }
@@ -26,9 +27,8 @@ export default defineComponent({
     ReceiveQrCodeComponent
   },
   props: {
-    onClose: {
-      type: Function,
-      default: () => ({})
+    modelValue: {
+      type: Object
     }
   },
   mounted () {
@@ -43,7 +43,7 @@ export default defineComponent({
   },
   data () {
     return {
-      currentComponent: {} as ReceiveMainComponentProps
+      currentComponent: {} as ReceiveMainComponentData
     }
   },
   watch: {
@@ -63,10 +63,9 @@ export default defineComponent({
           onCopyClick: () => this.onCopyClick()
         }
       }
-      console.log('scan is clicked!')
     },
     onCopyClick () {
-      console.log('copy is clicked!')
+      StringUtils.copyToClipboard(this.currentComponent.props.walletAddress)
     },
     onBackClick () {
       this.currentComponent = {
@@ -77,9 +76,6 @@ export default defineComponent({
           onCopyClick: () => this.onCopyClick()
         }
       }
-    },
-    onCloseModal () {
-      this.onClose()
     }
   }
 
