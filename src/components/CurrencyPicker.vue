@@ -6,7 +6,7 @@
         ]"
   >
     <Listbox as="div" v-model="selected.value"
-             @update:modelValue="$emit('update-currency', selected.value)">
+             @update:modelValue="$emit('update-currency', selected.value)" disabled>
       <div v-if="typeof this.label !== 'undefined' && this.label !== null && this.label.length > 0">
         <ListboxLabel class="block text-normal-copy text-primary text-medium">
           {{ this.label }}

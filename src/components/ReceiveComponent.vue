@@ -18,14 +18,14 @@
       </div>
 
       <div class="block mt-4">
-        <p class="text-normal-copy text-primary text-medium m-0">Tx Id:</p>
-        <p class="text-normal-copy text-primary text-bold m-0">C1FAC987E9515B…63BE5162B4A00310244A</p>
+        <p class="text-normal-copy text-primary text-medium m-0">Wallet address:</p>
+        <p class="text-normal-copy text-primary text-bold m-0">{{ modelValue.walletAddress }}</p>
         <div class="flex items-center justify-start mt-2">
-          <button class="btn btn-secondary btn-medium-secondary btn-icon mr-2">
+          <button class="btn btn-secondary btn-medium-secondary btn-icon mr-2" v-on:click="modelValue.onCopyClick">
             <DuplicateIcon class="icon w-4 h-4"/>
             Copy
           </button>
-          <button class="btn btn-secondary btn-medium-secondary btn-icon">
+          <button class="btn btn-secondary btn-medium-secondary btn-icon" v-on:click="modelValue.onScanClick">
             <QrcodeIcon class="icon w-4 h-4"/>
             Scan code
           </button>
@@ -40,10 +40,8 @@
           />
         </div>
         <div class="block grow-1">
-          <p class="text-left text-primary text-normal-copy">Send only <span class="text-bold">WBTC</span> to this
+          <p class="text-left text-primary text-normal-copy">Send only <span class="text-bold">NOLUS</span> to this
             deposit address.</p>
-          <p class="text-left text-primary text-normal-copy">Ensure the network is <span class="text-bold">Ethereum (ERC20)</span>.
-          </p>
         </div>
       </div>
     </div>
@@ -54,7 +52,13 @@
 import PickerIcon from '@/components/PickerIcon.vue'
 import { DuplicateIcon, QrcodeIcon } from '@heroicons/vue/solid'
 import PickerDefault from '@/components/PickerDefault.vue'
-import { defineComponent } from 'vue'
+import { defineComponent, PropType } from 'vue'
+
+export interface ReceiveComponentProps {
+  walletAddress: string,
+  onScanClick: () => void,
+  onCopyClick: () => void
+}
 
 export default defineComponent({
   name: 'ReceiveComponent',
@@ -62,10 +66,12 @@ export default defineComponent({
     PickerIcon,
     DuplicateIcon,
     QrcodeIcon,
-    // CurrencyField,
     PickerDefault
-    // PickerCombo,
-    // InputField
+  },
+  props: {
+    modelValue: {
+      type: Object as PropType<ReceiveComponentProps>
+    }
   }
 })
 </script>

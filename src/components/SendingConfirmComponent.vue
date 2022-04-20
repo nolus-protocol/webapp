@@ -39,7 +39,7 @@
 
       <div class="block mt-3">
         <p class="text-normal-copy text-primary m-0">Amount:</p>
-        <p class="text-normal-copy text-primary text-bold m-0">1.023994 NOMO</p>
+        <p class="text-normal-copy text-primary text-bold m-0">{{ formatAmount(amount) }}</p>
       </div>
 
       <div class="block mt-3">
@@ -61,6 +61,7 @@
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
 import InputField from '@/components/InputField.vue'
 import { defineComponent } from 'vue'
+import { CurrencyUtils } from '@/utils/CurrencyUtils'
 
 export default defineComponent({
   name: 'SendingConfirmComponent',
@@ -96,6 +97,12 @@ export default defineComponent({
     },
     onClickOkBtn: {
       type: Function
+    }
+  },
+  methods: {
+    formatAmount (value: string) {
+      const amountInUNls = CurrencyUtils.convertNolusToUNolus(value)
+      return CurrencyUtils.convertUNolusToNolus(amountInUNls.amount.toString())
     }
   }
 })

@@ -5,7 +5,7 @@
             typeof this.isError !== 'undefined' && this.isError === true ? ' error' : ''
         ]"
   >
-    <Listbox as="div" v-model="selected">
+    <Listbox as="div" v-model="selected" :disabled="disabled">
       <ListboxLabel class="block text-normal-copy text-primary text-medium">
         {{ this.label }}
       </ListboxLabel>
@@ -137,13 +137,16 @@ export default defineComponent({
       type: String
     },
     options: {
-      type: String
+      type: Array
     },
     isError: {
       type: Boolean
     },
     errorMsg: {
       type: String
+    },
+    disabled: {
+      type: Boolean
     }
   },
   data () {

@@ -12,6 +12,7 @@
              v-model:onClickOkBtn="onClickOkBtn"
              :receiverErrorMsg="receiverErrorMsg"
              :amountErrorMsg="amountErrorMsg"
+             :txHash="this.txHash"
   />
 </template>
 
@@ -50,20 +51,21 @@ export default defineComponent({
   },
   data () {
     return {
+      currentSendStep: ScreenState.MAIN,
       currentBalance: [] as AssetBalance[],
       selectedCurrency: {} as AssetBalance,
       amount: '',
       memo: '',
       receiverAddress: '',
       password: '',
-      currentSendStep: ScreenState.MAIN,
+      txHash: '',
       receiverErrorMsg: '',
       amountErrorMsg: ''
     }
   },
   watch: {
     '$store.state.balances' (balances: AssetBalance[]) {
-      if (balances && this.currentBalance.length === 0) {
+      if (balances) {
         this.currentBalance = balances
       }
     },
@@ -79,6 +81,10 @@ export default defineComponent({
     }
   },
   methods: {
+    reset () {
+      console.log('here')
+      Object.assign(this.$data, this.$options.data)
+    },
     onNextClick () {
       this.isAmountFieldValid()
       this.isReceiverAddressValid()
@@ -94,14 +100,11 @@ export default defineComponent({
         amount: CurrencyUtils.convertNolusToUNolus(this.amount).amount.toString(),
         feeAmount: '0.25'
       })
-
       if (txResponse) {
         console.log('txResponse: ', txResponse)
-        // setTxId(txResponse.transactionHash)
+        this.txHash = txResponse.transactionHash
         this.currentSendStep = txResponse.code === 0 ? ScreenState.SUCCESS : ScreenState.FAILED
       }
-
-      // this.currentSendStep = ScreenState.SUCCESS
     },
     onConfirmBackClick () {
       this.currentSendStep = ScreenState.MAIN

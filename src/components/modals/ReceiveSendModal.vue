@@ -22,21 +22,22 @@
         <button :class="!isSendActive ? 'active' : ''" v-on:click="switchTab(false)">Receive</button>
       </div>
 
-      <component v-bind:is="isSendActive ? 'SendMainComponent' : 'ReceiveComponent'" v-model:onClose="onCloseModal"/>
+      <component v-bind:is="isSendActive ? 'SendMainComponent' : 'ReceiveMainComponent'"
+                 v-model:onClose="onCloseModal"/>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import ReceiveComponent from '@/components/ReceiveComponent.vue'
 import SendMainComponent from '@/components/SendMainComponent.vue'
+import ReceiveMainComponent from '@/components/ReceiveMainComponent.vue'
 
 export default defineComponent({
   name: 'ReceiveSendModal',
   components: {
     SendMainComponent,
-    ReceiveComponent
+    ReceiveMainComponent
   },
   props: {},
   data () {

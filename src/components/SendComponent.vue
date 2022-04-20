@@ -32,6 +32,7 @@
         <PickerDefault
           label="Network"
           :options="[{value: 2, label: 'NLS'},{value: 0, label: 'ETH'}, {value: 1, label: 'BTC'}]"
+          :disabled="true"
         ></PickerDefault>
       </div>
 
