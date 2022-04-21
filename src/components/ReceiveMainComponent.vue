@@ -10,10 +10,10 @@ import ReceiveComponent, { ReceiveComponentProps } from '@/components/ReceiveCom
 import ReceiveQrCodeComponent, { ReceiveQrCodeComponentProps } from '@/components/ReceiveQrCodeComponent.vue'
 import { StringUtils } from '@/utils/StringUtils'
 
-const ScreenState = Object.freeze({
-  MAIN: 'ReceiveComponent',
-  SCAN: 'ReceiveQrCodeComponent'
-})
+enum ScreenState {
+  MAIN = 'ReceiveComponent',
+  SCAN = 'ReceiveQrCodeComponent'
+}
 
 interface ReceiveMainComponentData {
   is: string,

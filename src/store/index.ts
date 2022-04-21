@@ -16,7 +16,7 @@ import { EncryptionUtils } from '@/utils/EncryptionUtils'
 import { Coin } from '@keplr-wallet/unit'
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
 import { WalletUtils } from '@/utils/WalletUtils'
-import { DeliverTxResponse } from '@cosmjs/stargate'
+import { DeliverTxResponse, IndexedTx } from '@cosmjs/stargate'
 
 export interface AssetBalance {
   udenom: string,
@@ -38,7 +38,6 @@ export default createStore({
   },
   mutations: {
     signWallet (state, payload: { wallet: NolusWallet }) {
-      console.log('dsadada')
       state.wallet = payload.wallet
     },
     torusLogin (state, payload: OpenLogin) {
@@ -54,7 +53,6 @@ export default createStore({
   actions: {
     async connectToKeplr (context) {
       const keplrWindow = await WalletUtils.getKeplr()
-
       if (!keplrWindow?.getOfflineSigner) {
         throw new Error('Keplr wallet is not installed.')
       } else if (!keplrWindow.experimentalSuggestChain) {
@@ -202,6 +200,9 @@ export default createStore({
         })
       }
       context.commit('updateBalances', { balances: ibcBalances })
+    },
+    searchTx (context): Promise<readonly IndexedTx[]> {
+      return context.state.wallet.searchTx({ sentFromOrTo: context.state.wallet.address || '' })
     },
     async transferTokens (context, payload: {
       receiverAddress: string,

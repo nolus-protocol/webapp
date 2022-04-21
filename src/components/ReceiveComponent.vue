@@ -13,7 +13,8 @@
       <div class="block mt-4">
         <PickerDefault
           label="Network"
-          :options="[{value: 0, label: 'ETH'}, {value: 1, label: 'BTC'}, {value: 2, label: 'NLS'},]"
+          :options="this.networks"
+          :disabled="true"
         ></PickerDefault>
       </div>
 
@@ -72,7 +73,22 @@ export default defineComponent({
     modelValue: {
       type: Object as PropType<ReceiveComponentProps>
     }
+  },
+  data () {
+    return {
+      networks: [{
+        value: 'NLS',
+        label: 'NLS'
+      }, {
+        value: 'ETH',
+        label: 'ETH'
+      }, {
+        value: 'BTC',
+        label: 'BTC'
+      }]
+    }
   }
+
 })
 </script>
 

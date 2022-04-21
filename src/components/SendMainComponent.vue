@@ -28,12 +28,12 @@ import { Bech32 } from '@cosmjs/encoding'
 import { Dec, Int } from '@keplr-wallet/unit'
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
 
-const ScreenState = Object.freeze({
-  MAIN: 'SendComponent',
-  CONFIRM: 'SendingConfirmComponent',
-  SUCCESS: 'SendingSuccessComponent',
-  FAILED: 'SendingFailedComponent'
-})
+enum ScreenState {
+  MAIN = 'SendComponent',
+  CONFIRM = 'SendingConfirmComponent',
+  SUCCESS = 'SendingSuccessComponent',
+  FAILED = 'SendingFailedComponent'
+}
 
 export interface SendMainComponentProps {
   onClose: () => void

@@ -51,11 +51,12 @@
               </div>
 
               <!-- Assets Container -->
-              <div class="block pt-3">
+              <div class="block">
 
                 <!-- History Element -->
-                <div class="grid grid-cols-2  md:grid-cols-4 lg:grid-cols-5 gap-6 border-b border-standart pb-3 px-6"
-                     v-for="transaction in this.transactions">
+                <div
+                  class="grid grid-cols-2 pt-3 md:grid-cols-4 lg:grid-cols-5 gap-6 border-b border-standart pb-3 px-6"
+                  v-for="transaction in this.transactions" :key="transaction.id">
 
                   <div class="hidden lg:block text-regular text-detail text-primary text-left">
                     {{ truncateString(transaction.id) }}
@@ -63,7 +64,7 @@
 
                   <div class="hidden md:block text-medium text-detail text-primary text-left">
                   <span class="inline-block py-1 px-2 text-patch radius-pill">
-                    {{ transaction.action }}
+                    {{ capitalize(transaction.action) }}
                   </span>
                   </div>
 
@@ -98,12 +99,12 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import SidebarContainer from '@/components/SidebarContainer.vue'
-import store from '@/store'
 import { IndexedTx } from '@cosmjs/stargate'
 import { Coin, DecodedTxRaw, decodeTxRaw } from '@cosmjs/proto-signing'
 import { COIN_MINIMAL_DENOM } from '@/constants/chain'
 import { StringUtils } from '@/utils/StringUtils'
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
+import store from '@/store'
 
 interface ITransaction {
   id: string,
@@ -125,8 +126,7 @@ export default defineComponent({
     }
   },
   watch: {
-    async '$store.state.wallet' () {
-      console.log('dada', store.state.wallet.address)
+    '$store.state.wallet' () {
       this.getTransactions()
     }
   },
@@ -135,8 +135,7 @@ export default defineComponent({
   },
   methods: {
     async getTransactions () {
-      const res = await store.state.wallet?.searchTx({ sentFromOrTo: store.state.wallet.address || '' })
-      console.log(this.transactions)
+      const res = await store.dispatch('searchTx')
       this.prepareTransactions(res)
     },
     prepareTransactions (results: readonly IndexedTx[]) {
@@ -163,6 +162,9 @@ export default defineComponent({
       const convertFee = CurrencyUtils.convertCosmosCoinToKeplCoin(fee[0])
       const feeAmount = CurrencyUtils.convertCoinUNolusToNolus(convertFee)
       return feeAmount?.toString()
+    },
+    capitalize (value: string) {
+      return StringUtils.capitalize(value)
     }
   }
 })

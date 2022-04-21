@@ -7,7 +7,7 @@
   >
     <Listbox as="div" v-model="selected" :disabled="disabled">
       <ListboxLabel class="block text-normal-copy text-primary text-medium">
-        {{ this.label }}
+        {{ label }}
       </ListboxLabel>
       <div class="mt-1 relative picker-container">
         <ListboxButton
@@ -116,7 +116,12 @@
 <script lang="ts">
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue'
 import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/solid'
-import { defineComponent } from 'vue'
+import { defineComponent, PropType } from 'vue'
+
+export interface PickerDefaultOptions {
+  label: string,
+  value: string
+}
 
 export default defineComponent({
   name: 'PickerDefault',
@@ -137,7 +142,7 @@ export default defineComponent({
       type: String
     },
     options: {
-      type: Array
+      type: Array as PropType<PickerDefaultOptions[]>
     },
     isError: {
       type: Boolean
@@ -149,12 +154,15 @@ export default defineComponent({
       type: Boolean
     }
   },
+  mounted () {
+    this.selected = {
+      value: 'NLS',
+      label: 'NLS'
+    }
+  },
   data () {
     return {
-      selected: {
-        value: -1,
-        label: 'Default Value'
-      }
+      selected: {} as PickerDefaultOptions
     }
   }
 })

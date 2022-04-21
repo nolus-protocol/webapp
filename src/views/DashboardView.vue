@@ -153,6 +153,9 @@ export default defineComponent({
       }
     }
   },
+  mounted () {
+    console.log('test env', process.env.VUE_APP_NETWORKS)
+  },
   methods: {
     getAssetInfo (minimalDenom: string) {
       return AssetUtils.getAssetInfoByAbbr(minimalDenom)
