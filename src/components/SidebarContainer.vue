@@ -111,17 +111,20 @@
     <button class="btn btn-header with-icon shadow-box rounded-r-none">
       <img
         src="@/assets/icons/money-wallet.svg"
-        class="inline-blcok mr-2"
+        class="inline-block mr-2"
       />
       <span class="label text-detail">My precious</span>
     </button>
   </div>
+
+  <WalletOpen />
 </template>
 <script type="ts">
 import LogoLink from '@/components/LogoLink.vue'
 import SidebarElement from '@/components/SidebarElement.vue'
 import SidebarSocialElement from '@/components/SidebarSocialElement.vue'
 import SidebarLinkElement from '@/components/SidebarLinkElement.vue'
+import WalletOpen from '@/components/WalletOpen.vue'
 import { BellIcon } from '@heroicons/vue/solid'
 import {
   DISCORD_ACCOUNT,
@@ -140,6 +143,7 @@ export default {
     SidebarSocialElement,
     SidebarLinkElement,
     BellIcon,
+    WalletOpen,
   },
   props: [],
   data () {
