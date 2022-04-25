@@ -1,13 +1,12 @@
 <template>
   <!-- Input Area -->
   <div class="modal-send-receive-input-area">
-    <div class="block py-3 px-4 bg-light-grey radius-light text-left text-normal-copy text-primary text-medium">
+    <div
+      class="block py-3 px-4 bg-light-grey radius-light text-left text-normal-copy text-primary text-medium"
+    >
       Current balance:
 
-      <a
-        href="#"
-        class="text-secondary text-bold underline ml-2"
-      >
+      <a href="#" class="text-secondary text-bold underline ml-2">
         {{ formatCurrentBalance(currentBalance) }}
       </a>
     </div>
@@ -18,20 +17,25 @@
           name="amount"
           id="amount"
           label="Amount"
-          :value="amount"
-          @input='$emit("update:amount", $event.target.value)'
-          :currency-options="currentBalance"
-          :option="selectedCurrency"
-          @update-currency="onUpdateCurrency"
-          :error-msg="amountErrorMsg"
-          :is-error="amountErrorMsg !== ''"
+          :value="currentComponent.amount ?? ''"
+          @input="(event) => (currentComponent.amount = event.target.value)"
+          :currency-options="currentComponent.currentBalance"
+          :option="currentComponent.selectedCurrency"
+          @update-currency="currentComponent.onUpdateCurrency"
+          
+          :error-msg="currentComponent.amountErrorMsg"
+          :is-error="currentComponent.amountErrorMsg !== ''"
         />
       </div>
 
       <div class="block mt-4">
         <PickerDefault
           label="Network"
-          :options="[{value: 2, label: 'NLS'},{value: 0, label: 'ETH'}, {value: 1, label: 'BTC'}]"
+          :options="[
+            { value: 2, label: 'NLS' },
+            { value: 0, label: 'ETH' },
+            { value: 1, label: 'BTC' },
+          ]"
           :disabled="true"
         ></PickerDefault>
       </div>
@@ -42,10 +46,12 @@
           name="sendTo"
           id="sendTo"
           label="Send to"
-          :value="receiverAddress"
-          @input='$emit("update:receiverAddress", $event.target.value)'
-          :error-msg="receiverErrorMsg"
-          :is-error="receiverErrorMsg !== ''"
+          :value="currentComponent.receiverAddress"
+          @input="
+            (event) => (currentComponent.receiverAddress = event.target.value)
+          "
+          :error-msg="currentComponent.receiverErrorMsg"
+          :is-error="currentComponent.receiverErrorMsg !== ''"
         />
       </div>
 
@@ -55,13 +61,15 @@
           name="memo"
           id="memo"
           label="Memo (optional)"
-          :value="memo"
-          @input='$emit("update:memo", $event.target.value)'
+          :value="currentComponent.memo ?? ''"
+          @input="(event) => (currentComponent.memo = event.target.value)"
         ></InputField>
 
         <div class="block mt-2">
-          <button class="btn btn-secondary btn-medium-secondary btn-icon ml-auto mr-0 flex items-center">
-            <StarIcon class="inline-block icon w-4 h-4 mr-1"/>
+          <button
+            class="btn btn-secondary btn-medium-secondary btn-icon ml-auto mr-0 flex items-center"
+          >
+            <StarIcon class="inline-block icon w-4 h-4 mr-1" />
             Save as contact
           </button>
         </div>
@@ -71,81 +79,62 @@
 
   <!-- Actions -->
   <div class="modal-send-receive-actions">
-    <button class="btn btn-primary btn-large-primary" v-on:click="onNextClick">
+    <button class="btn btn-primary btn-large-primary" v-on:click="currentComponent.onNextClick">
       Next
     </button>
   </div>
 </template>
 
 <script lang="ts">
-import { StarIcon } from '@heroicons/vue/solid'
-import CurrencyField from '@/components/CurrencyField.vue'
-import PickerDefault from '@/components/PickerDefault.vue'
-import InputField from '@/components/InputField.vue'
-import { defineComponent, PropType } from 'vue'
-import { AssetBalance } from '@/store'
-import { CurrencyUtils } from '@/utils/CurrencyUtils'
+import { StarIcon } from "@heroicons/vue/solid";
+import CurrencyField from "@/components/CurrencyField.vue";
+import PickerDefault from "@/components/PickerDefault.vue";
+import InputField from "@/components/InputField.vue";
+import { defineComponent, PropType } from "vue";
+import { AssetBalance } from "@/store";
+import { CurrencyUtils } from "@/utils/CurrencyUtils";
+
+export type SendComponentProps  = {
+  currentBalance: AssetBalance[],
+  selectedCurrency: AssetBalance,
+  amount: string,
+  memo: string,
+  receiverAddress: string,
+  password: string,
+  onNextClick: () => void,
+  onSendClick: () => void,
+  onConfirmBackClick: () => void,
+  onClickOkBtn: () => void,
+  receiverErrorMsg?: string,
+  amountErrorMsg?: string,
+}
 
 export default defineComponent({
-  name: 'SendComponent',
+  name: "SendComponent",
   components: {
     StarIcon,
     CurrencyField,
     PickerDefault,
-    InputField
+    InputField,
   },
   props: {
-    currentBalance: {
-      type: Array as PropType<AssetBalance[]>
-    },
-    selectedCurrency: {
-      type: Object as PropType<AssetBalance>
-    },
-    amount: {
-      type: String,
-      default: ''
-    },
-    memo: {
-      type: String
-    },
-    receiverAddress: {
-      type: String
-    },
-    password: {
-      type: String
-    },
-    onNextClick: {
-      type: Function
-    },
-    onSendClick: {
-      type: Function
-    },
-    onConfirmBackClick: {
-      type: Function
-    },
-    onClickOkBtn: {
-      type: Function
-    },
-    receiverErrorMsg: {
-      type: String
-    },
-    amountErrorMsg: {
-      type: String
+    currentComponent: {
+      type: Object as PropType<SendComponentProps>,
     }
   },
   methods: {
-    formatCurrentBalance (value: AssetBalance[]) {
+    formatCurrentBalance(value: AssetBalance[]) {
       if (value) {
-        return CurrencyUtils.convertUNolusToNolus(value[0]?.balance.amount.toString()).toString()
+        return CurrencyUtils.convertUNolusToNolus(
+          value[0]?.balance.amount.toString()
+        ).toString();
       }
     },
-    onUpdateCurrency (value: AssetBalance) {
-      this.$emit('update:selectedCurrency', value)
-    }
-  }
-})
+    onUpdateCurrency(value: AssetBalance) {
+      this.$emit("update:selectedCurrency", value);
+    },
+  },
+});
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
