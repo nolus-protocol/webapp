@@ -17,7 +17,7 @@
           name="amount"
           id="amount"
           label="Amount"
-          :value="currentComponent.amount ?? ''"
+          :value="currentComponent.amount"
           @input="(event) => (currentComponent.amount = event.target.value)"
           :currency-options="currentComponent.currentBalance"
           :option="currentComponent.selectedCurrency"
@@ -50,6 +50,7 @@
           @input="
             (event) => (currentComponent.receiverAddress = event.target.value)
           "
+
           :error-msg="currentComponent.receiverErrorMsg"
           :is-error="currentComponent.receiverErrorMsg !== ''"
         />
@@ -94,7 +95,7 @@ import { defineComponent, PropType } from "vue";
 import { AssetBalance } from "@/store";
 import { CurrencyUtils } from "@/utils/CurrencyUtils";
 
-export type SendComponentProps  = {
+export type SendComponentProps = {
   currentBalance: AssetBalance[],
   selectedCurrency: AssetBalance,
   amount: string,

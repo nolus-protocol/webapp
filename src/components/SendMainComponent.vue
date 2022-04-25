@@ -1,16 +1,12 @@
 <template>
   <component
     :is="currentComponent.is"
-    v-model:currentComponent="currentComponent.props"
-    :receiverErrorMsg="currentComponent.receiverErrorMsg"
-    :amountErrorMsg="currentComponent.amountErrorMsg"
-    :txHash="currentComponent.txHash"
+    v-model:currentComponent="currentComponent"
   />
-  {{ currentComponent }}
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
+import { defineComponent } from "vue";
 import { StarIcon } from "@heroicons/vue/solid";
 import SendingConfirmComponent, {
   SendingConfirmComponentProps,
@@ -21,9 +17,7 @@ import SendComponent, {
 import SendingSuccessComponent, {
   SendingSuccessComponentProps,
 } from "@/components/SendingSuccessComponent.vue";
-import SendingFailedComponent, {
-  SendingFailedComponentProps,
-} from "@/components/SendingFailedComponent.vue";
+import SendingFailedComponent from "@/components/SendingFailedComponent.vue";
 import store, { AssetBalance } from "@/store";
 import { Bech32 } from "@cosmjs/encoding";
 import { Dec, Int } from "@keplr-wallet/unit";
@@ -38,20 +32,21 @@ const ScreenState = Object.freeze({
 
 export type SendMainComponentType =
   | SendComponentProps
-  | SendComponentProps
   | SendingSuccessComponentProps
   | SendingConfirmComponentProps;
+
 export type ExtractSendMainComponentType<A> = A extends {
   receiverErrorMsg: string;
   amountErrorMsg: string;
 }
   ? A
   : SendComponentProps;
-export type SendMainComponentData = {
+
+export interface SendMainComponentData
+  extends ExtractSendMainComponentType<SendMainComponentType> {
   is: string;
   txHash: string;
-  props: ExtractSendMainComponentType<SendMainComponentType>;
-};
+}
 
 export interface SendMainComponentProps {
   onClose: () => void;
@@ -75,39 +70,36 @@ export default defineComponent({
     this.currentComponent = {
       is: ScreenState.MAIN,
       txHash: "",
-      props: {
-        //@ts-ignore
-        currentBalance: [] as AssetBalance[],
-        selectedCurrency: {} as AssetBalance,
-        amount: "",
-        memo: "",
-        receiverAddress: "",
-        password: "",
-        onNextClick: () => this.onNextClick,
-        onSendClick: () => this.onSendClick,
-        onConfirmBackClick: () => this.onConfirmBackClick,
-        onClickOkBtn: () => this.onClickOkBtn,
-        receiverErrorMsg: "",
-        amountErrorMsg: "",
-      },
+      currentBalance: [] as AssetBalance[],
+      selectedCurrency: {} as AssetBalance,
+      amount: "",
+      memo: "",
+      receiverAddress: "",
+      password: "",
+      onNextClick: () => this.onNextClick,
+      onSendClick: () => this.onSendClick,
+      onConfirmBackClick: () => this.onConfirmBackClick,
+      onClickOkBtn: () => this.onClickOkBtn,
+      receiverErrorMsg: "",
+      amountErrorMsg: "",
     };
   },
   data() {
     return {
-      currentComponent: {} as SendMainComponentData,
+      currentComponent: {} as SendMainComponentData
     };
   },
   watch: {
     "$store.state.balances"(balances: AssetBalance[]) {
-      //@ts-ignore
-      this.currentComponent.props.currentBalance = balances ?? [];
+      this.currentComponent.currentBalance = balances ?? [];
     },
-    "currentComponent.props.amount"() {
+    "currentComponent.amount" (oldValue, newValue) {
+    
       this.isAmountFieldValid();
-      console.log("amount:", this.currentComponent.props.amount);
+      console.log("amount:", this.currentComponent.amount);
     },
     memo() {
-      console.log("memo:", this.currentComponent.props.memo);
+      console.log("memo:", this.currentComponent.memo);
     },
     receiverAddress() {
       this.isReceiverAddressValid();
@@ -122,19 +114,19 @@ export default defineComponent({
       this.isAmountFieldValid();
       this.isReceiverAddressValid();
       if (
-        this.currentComponent.props.amountErrorMsg === "" &&
-        this.currentComponent.props.receiverErrorMsg === ""
+        this.currentComponent.amountErrorMsg === "" &&
+        this.currentComponent.receiverErrorMsg === ""
       ) {
         this.currentComponent.is = ScreenState.CONFIRM;
       }
     },
     async onSendClick() {
-      console.log(this.currentComponent.props.password);
+      console.log(this.currentComponent.password);
 
       const txResponse = await store.dispatch("transferTokens", {
-        receiverAddress: this.currentComponent.props.receiverAddress,
+        receiverAddress: this.currentComponent.receiverAddress,
         amount: CurrencyUtils.convertNolusToUNolus(
-          this.currentComponent.props.amount
+          this.currentComponent.amount
         ).amount.toString(),
         feeAmount: "0.25",
       });
@@ -153,42 +145,37 @@ export default defineComponent({
       this.modelValue?.onClose();
     },
     resetData() {
-      this.currentComponent.props.amount = "";
-      this.currentComponent.props.memo = "";
-      this.currentComponent.props.receiverAddress = "";
-      this.currentComponent.props.password = "";
+      this.currentComponent.amount = "";
+      this.currentComponent.memo = "";
+      this.currentComponent.receiverAddress = "";
+      this.currentComponent.password = "";
       this.currentComponent.is = ScreenState.MAIN;
     },
     isReceiverAddressValid() {
       if (
-        this.currentComponent.props.receiverAddress ||
-        this.currentComponent.props.receiverAddress.trim() !== ""
+        this.currentComponent.receiverAddress ||
+        this.currentComponent.receiverAddress.trim() !== ""
       ) {
         try {
-          Bech32.decode(this.currentComponent.props.receiverAddress, 44);
-          this.currentComponent.props.receiverErrorMsg = "";
+          Bech32.decode(this.currentComponent.receiverAddress, 44);
+          this.currentComponent.receiverErrorMsg = "";
         } catch (e) {
           console.log("address is not valid!");
-          this.currentComponent.props.receiverErrorMsg =
-            "address is not valid!";
+          this.currentComponent.receiverErrorMsg = "address is not valid!";
         }
       } else {
         console.log("missing receiver address");
-        this.currentComponent.props.receiverErrorMsg =
-          "missing receiver address";
+        this.currentComponent.receiverErrorMsg = "missing receiver address";
       }
     },
     isAmountFieldValid() {
-      if (
-        this.currentComponent.props.amount ||
-        this.currentComponent.props.amount !== ""
-      ) {
-        this.currentComponent.props.amountErrorMsg = "";
+      if (this.currentComponent.amount || this.currentComponent.amount !== "") {
+        this.currentComponent.amountErrorMsg = "";
         const amountInUnls = CurrencyUtils.convertNolusToUNolus(
-          this.currentComponent.props.amount
+          this.currentComponent.amount
         );
         const walletBalance = String(
-          this.currentComponent.props.currentBalance[0]?.balance.amount || 0
+          this.currentComponent.currentBalance[0]?.balance.amount || 0
         );
         const isLowerThanOrEqualsToZero = new Dec(
           amountInUnls.amount || "0"
@@ -198,14 +185,14 @@ export default defineComponent({
         ).gt(new Int(walletBalance));
         if (isLowerThanOrEqualsToZero) {
           console.log("balance is too low");
-          this.currentComponent.props.amountErrorMsg = "balance is too low";
+          this.currentComponent.amountErrorMsg = "balance is too low";
         }
         if (isGreaterThanWalletBalance) {
           console.log("balance is too big");
-          this.currentComponent.props.amountErrorMsg = "balance is too big";
+          this.currentComponent.amountErrorMsg = "balance is too big";
         }
       } else {
-        this.currentComponent.props.amountErrorMsg = "missing amount value";
+        this.currentComponent.amountErrorMsg = "missing amount value";
       }
     },
   },
