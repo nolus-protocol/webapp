@@ -105,8 +105,8 @@ export type SendComponentProps = {
   onSendClick: () => void,
   onConfirmBackClick: () => void,
   onClickOkBtn: () => void,
-  receiverErrorMsg?: string,
-  amountErrorMsg?: string,
+  receiverErrorMsg: string,
+  amountErrorMsg: string,
 }
 
 export default defineComponent({
@@ -131,7 +131,7 @@ export default defineComponent({
       }
     },
     onUpdateCurrency(value: AssetBalance) {
-      this.$emit("update:.currentComponent.selectedCurrency", value);
+      this.$emit("update:currentComponent.selectedCurrency", value);
     },
   },
 });

@@ -97,11 +97,11 @@ export default defineComponent({
       if(this.currentComponent.amount) this.isAmountFieldValid()
       console.log("amount:", this.currentComponent.amount);
     },
-    memo() {
+    "currentComponent.memo"() {
       console.log("memo:", this.currentComponent.memo);
     },
-    receiverAddress() {
-      this.isReceiverAddressValid();
+    "currentComponent.receiverAddress"() {
+      if(this.currentComponent.receiverAddress) this.isReceiverAddressValid();
     },
   },
   methods: {
