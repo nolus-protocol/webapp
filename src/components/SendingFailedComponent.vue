@@ -50,19 +50,8 @@
 import { DuplicateIcon, XIcon } from '@heroicons/vue/solid'
 import { defineComponent, PropType } from 'vue'
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
+import { BaseSendType } from './types/baseSend.type'
 
-export type SendingFailedComponentProps = {
-currentBalance: string,
-    amount: string,
-    memo: string,
-    receiverAddress: string,
-    password: string,
-    txHash: string,
-    onNextClick:() => void,
-    onSendClick:() => void,
-    onConfirmBackClick:() => void,
-    onClickOkBtn:() => void
-}
 export default defineComponent({
   name: 'SendingFailedComponent',
   components: {
@@ -71,7 +60,7 @@ export default defineComponent({
   },
   props: {
     currentComponent: {
-       type: Object as PropType<SendingFailedComponentProps>,
+       type: Object as PropType<BaseSendType>,
     }
   },
   methods: {

@@ -8,20 +8,17 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { StarIcon } from "@heroicons/vue/solid";
-import SendingConfirmComponent, {
-  SendingConfirmComponentProps,
-} from "@/components/SendingConfirmComponent.vue";
+import SendingConfirmComponent from "@/components/SendingConfirmComponent.vue";
 import SendComponent, {
   SendComponentProps,
 } from "@/components/SendComponent.vue";
-import SendingSuccessComponent, {
-  SendingSuccessComponentProps,
-} from "@/components/SendingSuccessComponent.vue";
+import SendingSuccessComponent from "@/components/SendingSuccessComponent.vue";
 import SendingFailedComponent from "@/components/SendingFailedComponent.vue";
 import store, { AssetBalance } from "@/store";
 import { Bech32 } from "@cosmjs/encoding";
 import { Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@/utils/CurrencyUtils";
+import { BaseSendType } from "./types/baseSend.type";
 
 const ScreenState = Object.freeze({
   MAIN: "SendComponent",
@@ -30,10 +27,7 @@ const ScreenState = Object.freeze({
   FAILED: "SendingFailedComponent",
 });
 
-export type SendMainComponentType =
-  | SendComponentProps
-  | SendingSuccessComponentProps
-  | SendingConfirmComponentProps;
+export type SendMainComponentType = SendComponentProps | BaseSendType;
 
 export type ExtractSendMainComponentType<A> = A extends {
   receiverErrorMsg: string;
@@ -47,7 +41,6 @@ export interface SendMainComponentData
   is: string;
   txHash: string;
 }
-
 export interface SendMainComponentProps {
   onClose: () => void;
 }
@@ -76,10 +69,10 @@ export default defineComponent({
       memo: "",
       receiverAddress: "",
       password: "",
-      onNextClick: () => this.onNextClick,
-      onSendClick: () => this.onSendClick,
-      onConfirmBackClick: () => this.onConfirmBackClick,
-      onClickOkBtn: () => this.onClickOkBtn,
+      onNextClick: () => this.onNextClick(),
+      onSendClick: () => this.onSendClick(),
+      onConfirmBackClick: () => this.onConfirmBackClick(),
+      onClickOkBtn: () => this.onClickOkBtn(),
       receiverErrorMsg: "",
       amountErrorMsg: "",
     };
@@ -94,14 +87,14 @@ export default defineComponent({
       this.currentComponent.currentBalance = balances ?? [];
     },
     "currentComponent.amount"() {
-      if(this.currentComponent.amount) this.isAmountFieldValid()
+      if (this.currentComponent.amount) this.isAmountFieldValid();
       console.log("amount:", this.currentComponent.amount);
     },
     "currentComponent.memo"() {
       console.log("memo:", this.currentComponent.memo);
     },
     "currentComponent.receiverAddress"() {
-      if(this.currentComponent.receiverAddress) this.isReceiverAddressValid();
+      if (this.currentComponent.receiverAddress) this.isReceiverAddressValid();
     },
   },
   methods: {
@@ -119,6 +112,7 @@ export default defineComponent({
         this.currentComponent.is = ScreenState.CONFIRM;
       }
     },
+
     async onSendClick() {
       console.log(this.currentComponent.password);
 

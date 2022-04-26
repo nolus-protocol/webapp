@@ -34,7 +34,7 @@
 
       <div class="block mt-3">
         <p class="text-normal-copy text-primary m-0">Memo:</p>
-        <p class="text-normal-copy text-primary text-bold m-0">{{ memo }}</p>
+        <p class="text-normal-copy text-primary text-bold m-0">{{ currentComponent.memo }}</p>
       </div>
 
       <div class="block mt-3">
@@ -62,18 +62,8 @@ import { ArrowLeftIcon } from '@heroicons/vue/solid'
 import InputField from '@/components/InputField.vue'
 import { defineComponent, PropType } from 'vue'
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
+import { BaseSendType } from './types/baseSend.type'
 
-export type SendingConfirmComponentProps = {
-  currentBalance: string,
-    amount: string,
-    memo: string,
-    receiverAddress: string,
-    password: string,
-    onNextClick: () => void,
-    onSendClick: () => void,
-    onConfirmBackClick: () => void,
-    onClickOkBtn: () => void
-}
 export default defineComponent({
   name: 'SendingConfirmComponent',
   components: {
@@ -82,7 +72,7 @@ export default defineComponent({
   },
   props: {
     currentComponent: {
-       type: Object as PropType<SendingConfirmComponentProps>,
+       type: Object as PropType<BaseSendType>,
     }
   },
   methods: {

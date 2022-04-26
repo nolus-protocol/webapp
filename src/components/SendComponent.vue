@@ -93,20 +93,11 @@ import InputField from "@/components/InputField.vue";
 import { defineComponent, PropType } from "vue";
 import { AssetBalance } from "@/store";
 import { CurrencyUtils } from "@/utils/CurrencyUtils";
+import {BaseSendType} from './types/baseSend.type';
 
-export type SendComponentProps = {
-  currentBalance: AssetBalance[],
-  selectedCurrency: AssetBalance,
-  amount: string,
-  memo: string,
-  receiverAddress: string,
-  password: string,
-  onNextClick: () => void,
-  onSendClick: () => void,
-  onConfirmBackClick: () => void,
-  onClickOkBtn: () => void,
-  receiverErrorMsg: string,
-  amountErrorMsg: string,
+export type SendComponentProps = BaseSendType & {
+  receiverErrorMsg?: string,
+  amountErrorMsg?: string,
 }
 
 export default defineComponent({
@@ -122,6 +113,7 @@ export default defineComponent({
       type: Object as PropType<SendComponentProps>,
     }
   },
+
   methods: {
     formatCurrentBalance(value: AssetBalance[]) {
       if (value) {
