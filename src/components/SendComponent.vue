@@ -7,7 +7,7 @@
       Current balance:
 
       <a href="#" class="text-secondary text-bold underline ml-2">
-        {{ formatCurrentBalance(currentBalance) }}
+        {{ formatCurrentBalance(currentComponent.currentBalance) }}
       </a>
     </div>
 
@@ -50,7 +50,6 @@
           @input="
             (event) => (currentComponent.receiverAddress = event.target.value)
           "
-
           :error-msg="currentComponent.receiverErrorMsg"
           :is-error="currentComponent.receiverErrorMsg !== ''"
         />
@@ -132,7 +131,7 @@ export default defineComponent({
       }
     },
     onUpdateCurrency(value: AssetBalance) {
-      this.$emit("update:selectedCurrency", value);
+      this.$emit("update:.currentComponent.selectedCurrency", value);
     },
   },
 });

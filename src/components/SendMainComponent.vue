@@ -86,16 +86,15 @@ export default defineComponent({
   },
   data() {
     return {
-      currentComponent: {} as SendMainComponentData
+      currentComponent: {} as SendMainComponentData,
     };
   },
   watch: {
     "$store.state.balances"(balances: AssetBalance[]) {
       this.currentComponent.currentBalance = balances ?? [];
     },
-    "currentComponent.amount" (oldValue, newValue) {
-    
-      this.isAmountFieldValid();
+    "currentComponent.amount"() {
+      if(this.currentComponent.amount) this.isAmountFieldValid()
       console.log("amount:", this.currentComponent.amount);
     },
     memo() {
