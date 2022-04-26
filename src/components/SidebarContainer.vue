@@ -105,10 +105,10 @@
 
   <div class="sidebar-header">
     <button class="btn btn-header shadow-box mr-2">
-      <BellIcon class="icon w-4 h-4" />
+      <BellIcon class="icon w-4 h-4"/>
       <span class="counter">8</span>
     </button>
-    <button class="btn btn-header with-icon shadow-box rounded-r-none">
+    <button class="btn btn-header with-icon shadow-box rounded-r-none" v-on:click="toggleWalletPopup">
       <img
         src="@/assets/icons/money-wallet.svg"
         class="inline-block mr-2"
@@ -117,7 +117,7 @@
     </button>
   </div>
 
-  <WalletOpen />
+  <WalletOpen v-show="showWalletPopup"/>
 </template>
 <script type="ts">
 import LogoLink from '@/components/LogoLink.vue'
@@ -143,17 +143,23 @@ export default {
     SidebarSocialElement,
     SidebarLinkElement,
     BellIcon,
-    WalletOpen,
+    WalletOpen
   },
   props: [],
   data () {
     return {
+      showWalletPopup: false,
       TWITTER_ACCOUNT: TWITTER_ACCOUNT,
       TELEGRAM_ACCOUNT: TELEGRAM_ACCOUNT,
       MEDIUM_ACCOUNT: MEDIUM_ACCOUNT,
       REDDIT_ACCOUNT: REDDIT_ACCOUNT,
       LINKEDIN_ACCOUNT: LINKEDIN_ACCOUNT,
       DISCORD_ACCOUNT: DISCORD_ACCOUNT
+    }
+  },
+  methods: {
+    toggleWalletPopup () {
+      this.showWalletPopup = !this.showWalletPopup
     }
   }
 }
