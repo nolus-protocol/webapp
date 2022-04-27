@@ -6,7 +6,7 @@
 import { defineComponent } from 'vue'
 import { NolusWallet } from '@/wallet/NolusWallet'
 import store from '@/store'
-import ReceiveComponent, { ReceiveComponentProps } from '@/components/ReceiveComponent.vue'
+import ReceiveComponent,{ ReceiveComponentProps }  from '@/components/ReceiveComponent.vue'
 import ReceiveQrCodeComponent, { ReceiveQrCodeComponentProps } from '@/components/ReceiveQrCodeComponent.vue'
 import { StringUtils } from '@/utils/StringUtils'
 
@@ -76,7 +76,9 @@ export default defineComponent({
           onCopyClick: () => this.onCopyClick()
         }
       }
-    }
+    },
+
+  
   }
 
 })

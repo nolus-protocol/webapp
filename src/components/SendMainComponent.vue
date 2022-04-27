@@ -78,6 +78,7 @@ export default defineComponent({
     };
   },
   data() {
+   
     return {
       currentComponent: {} as SendMainComponentData,
     };
@@ -138,23 +139,25 @@ export default defineComponent({
       this.modelValue?.onClose();
     },
     resetData() {
-      this.currentComponent.amount = "";
-      this.currentComponent.memo = "";
-      this.currentComponent.receiverAddress = "";
-      this.currentComponent.password = "";
-      this.currentComponent.is = ScreenState.MAIN;
+      let {amount, memo, receiverAddress, password, is} = this.currentComponent;
+      amount = "";
+      memo = "";
+      receiverAddress = "";
+      password = "";
+      is = ScreenState.MAIN;
     },
     isReceiverAddressValid() {
+    let {receiverAddress, receiverErrorMsg} = this.currentComponent;
       if (
-        this.currentComponent.receiverAddress ||
-        this.currentComponent.receiverAddress.trim() !== ""
+        receiverAddress ||
+       receiverAddress.trim() !== ""
       ) {
         try {
-          Bech32.decode(this.currentComponent.receiverAddress, 44);
+          Bech32.decode(receiverAddress, 44);
           this.currentComponent.receiverErrorMsg = "";
         } catch (e) {
           console.log("address is not valid!");
-          this.currentComponent.receiverErrorMsg = "address is not valid!";
+          receiverErrorMsg = "address is not valid!";
         }
       } else {
         console.log("missing receiver address");
@@ -162,10 +165,11 @@ export default defineComponent({
       }
     },
     isAmountFieldValid() {
-      if (this.currentComponent.amount || this.currentComponent.amount !== "") {
+      let {amount} = this.currentComponent;
+      if (amount || amount !== "") {
         this.currentComponent.amountErrorMsg = "";
         const amountInUnls = CurrencyUtils.convertNolusToUNolus(
-          this.currentComponent.amount
+         amount
         );
         const walletBalance = String(
           this.currentComponent.currentBalance[0]?.balance.amount || 0
