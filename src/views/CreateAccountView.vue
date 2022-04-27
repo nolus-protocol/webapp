@@ -111,9 +111,10 @@ import InputField from '@/components/InputField.vue'
 import TextFieldButtons from '@/components/TextFieldButtons.vue'
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
 import SelectorTextField from '@/components/SelectorTextField.vue'
-import store from '@/store'
+import { useStore } from '@/store'
 import router from '@/router'
 import { KeyUtils } from '@/utils/KeyUtils'
+import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 
 export default defineComponent({
   name: 'CreateAccountView',
@@ -154,7 +155,7 @@ export default defineComponent({
         return
       }
 
-      store.dispatch('connectViaMnemonic', { mnemonic: this.mnemonic })
+      useStore().dispatch(WalletActionTypes.CONNECT_VIA_MNEMONIC, { mnemonic: this.mnemonic })
 
       console.log('confirmMnemonic: ', confirmMnemonic)
       console.log('mnemonic: ', this.mnemonic)
