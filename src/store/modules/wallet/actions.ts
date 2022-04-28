@@ -240,7 +240,6 @@ export const actions: ActionTree<State, RootState> & Actions = {
     const wallet = getters.getNolusWallet()
     return wallet?.searchTx({ sentFromOrTo: wallet?.address || '' })
   },
-
   async [WalletActionTypes.TRANSFER_TOKENS] ({
     commit,
     getters

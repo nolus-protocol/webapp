@@ -26,16 +26,3 @@ export const mutations: MutationTree<State> & Mutations = {
     state.balances = payload.balances
   }
 }
-
-//     signWallet (state, payload: { wallet: NolusWallet }) {
-//       state.wallet = payload.wallet
-//     },
-//     torusLogin (state, payload: OpenLogin) {
-//       state.torusClient = payload
-//     },
-//     setPrivateKey (state, payload: { privateKey: string }) {
-//       state.privateKey = payload.privateKey
-//     },
-//     updateBalances (state, payload: { balances: [] }) {
-//       state.balances = payload.balances
-//     }
