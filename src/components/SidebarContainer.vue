@@ -9,7 +9,7 @@
         <div class="block">
           <SidebarElement
             id="assets"
-            href="#"
+            href="/"
             label="Assets"
             :icon="require('@/assets/icons/assets.svg')"
             :iconHover="require('@/assets/icons/assets_active.svg')"
@@ -20,7 +20,7 @@
         <div class="block">
           <SidebarElement
             id="lease"
-            href="#"
+            href="/lease"
             label="Lease"
             :icon="require('@/assets/icons/lease.svg')"
             :iconHover="require('@/assets/icons/lease_active.svg')"
@@ -40,7 +40,7 @@
         <div class="block">
           <SidebarElement
             id="earn"
-            href="#"
+            href="/earn"
             label="Earn"
             :icon="require('@/assets/icons/earn.svg')"
             :iconHover="require('@/assets/icons/earn_active.svg')"
@@ -50,7 +50,7 @@
         <div class="block">
           <SidebarElement
             id="history"
-            href="#"
+            @click="$router.push('/history')"
             label="History"
             :icon="require('@/assets/icons/history.svg')"
             :iconHover="require('@/assets/icons/history_active.svg')"

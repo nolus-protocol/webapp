@@ -1,17 +1,17 @@
 <template>
-    <div
-        :class="[
+  <div
+    :class="[
             typeof this.type !== 'undefined' && this.type !== null ? 'picker '+ this.type : 'picker ',
             typeof this.isError !== 'undefined' && this.isError === true ? ' error' : ''
         ]"
-    >
-        <Listbox as="div" v-model="selected">
-            <ListboxLabel class="block text-normal-copy text-primary text-medium">
-                {{ this.label }}
-            </ListboxLabel>
-            <div class="mt-1 relative picker-container">
-                <ListboxButton
-                    class="
+  >
+    <Listbox as="div" v-model="selected" :disabled="disabled">
+      <ListboxLabel class="block text-normal-copy text-primary text-medium">
+        {{ label }}
+      </ListboxLabel>
+      <div class="mt-1 relative picker-container">
+        <ListboxButton
+          class="
                     bg-white
                     relative
                     w-full
@@ -29,10 +29,10 @@
                     focus:border-indigo-500
                     sm:text-sm
                     "
-                >
-                    <span class="block truncate">{{ selected.label }}</span>
-                    <span
-                    class="
+        >
+          <span class="block truncate">{{ selected.label }}</span>
+          <span
+            class="
                         absolute
                         inset-y-0
                         right-0
@@ -41,23 +41,23 @@
                         pr-2
                         pointer-events-none
                     "
-                    >
-                        <ChevronDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
+          >
+                        <ChevronDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true"/>
                     </span>
-                </ListboxButton>
+        </ListboxButton>
 
-                <span :class="[
+        <span :class="[
                     'msg error ',
                     typeof this.errorMsg !== 'undefined' && this.errorMsg !== null ? '' : 'hidden'
                 ]">{{ typeof this.errorMsg !== 'undefined' && this.errorMsg !== null ? this.errorMsg : '' }}</span>
 
-                <transition
-                    leave-active-class="transition ease-in duration-100"
-                    leave-from-class="opacity-100"
-                    leave-to-class="opacity-0"
-                >
-                    <ListboxOptions
-                    class="
+        <transition
+          leave-active-class="transition ease-in duration-100"
+          leave-from-class="opacity-100"
+          leave-to-class="opacity-0"
+        >
+          <ListboxOptions
+            class="
                         absolute
                         z-10
                         mt-1
@@ -72,22 +72,22 @@
                         focus:outline-none
                         sm:text-sm
                     "
-                    >
-                        <ListboxOption
-                            as="template"
-                            v-for="option in this.options"
-                            :key="option.value"
-                            :value="option"
-                            v-slot="{ active, selected }"
-                        >
-                            <li
-                            :class="[
+          >
+            <ListboxOption
+              as="template"
+              v-for="option in this.options"
+              :key="option.value"
+              :value="option"
+              v-slot="{ active, selected }"
+            >
+              <li
+                :class="[
                                 active ? 'text-white bg-indigo-600' : 'text-gray-900',
                                 'cursor-default select-none relative py-2 pl-3 pr-9',
                             ]"
-                            >
+              >
                             <span
-                                :class="[
+                              :class="[
                                 selected ? 'font-semibold' : 'font-normal',
                                 'block truncate',
                                 ]"
@@ -95,35 +95,35 @@
                                 {{ option.label }}
                             </span>
 
-                            <span
-                                v-if="selected"
-                                :class="[
+                <span
+                  v-if="selected"
+                  :class="[
                                 active ? 'text-white' : 'text-indigo-600',
                                 'absolute inset-y-0 right-0 flex items-center pr-4',
                                 ]"
-                            >
-                                <CheckIcon class="h-5 w-5" aria-hidden="true" />
+                >
+                                <CheckIcon class="h-5 w-5" aria-hidden="true"/>
                             </span>
-                            </li>
-                        </ListboxOption>
-                    </ListboxOptions>
-                </transition>
-            </div>
-        </Listbox>
-    </div>
+              </li>
+            </ListboxOption>
+          </ListboxOptions>
+        </transition>
+      </div>
+    </Listbox>
+  </div>
 </template>
 
 <script lang="ts">
-import {
-  Listbox,
-  ListboxButton,
-  ListboxLabel,
-  ListboxOption,
-  ListboxOptions
-} from '@headlessui/vue'
+import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue'
 import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/solid'
+import { defineComponent, PropType } from 'vue'
 
-export default {
+export interface PickerDefaultOptions {
+  label: string,
+  value: string
+}
+
+export default defineComponent({
   name: 'PickerDefault',
   components: {
     Listbox,
@@ -142,22 +142,28 @@ export default {
       type: String
     },
     options: {
-      type: String
+      type: Array as PropType<PickerDefaultOptions[]>
     },
     isError: {
       type: Boolean
     },
     errorMsg: {
       type: String
+    },
+    disabled: {
+      type: Boolean
+    }
+  },
+  mounted () {
+    this.selected = {
+      value: 'NLS',
+      label: 'NLS'
     }
   },
   data () {
     return {
-      selected: {
-        value: -1,
-        label: 'Default Value'
-      }
+      selected: {} as PickerDefaultOptions
     }
   }
-}
+})
 </script>

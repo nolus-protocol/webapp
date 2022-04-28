@@ -8,7 +8,6 @@
     <div class="container mx-auto pt-24 lg:pt-16">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-start-3 lg:col-span-9">
-          
           <!-- Header -->
           <div class="flex flex-wrap items-center justify-between px-4 lg:px-0 md:mb-5">
             <div class="left w-full md:w-1/2">
@@ -30,12 +29,12 @@
               </div>
               <div class="flex items-center justify-between border-b border-standart">
                 <div class="left">
-                  <AssetPartial
-                    icon="btc.svg"
-                    ticker="0.000000324 BTC"
-                    fullName="~$5"
-                  >
-                  </AssetPartial>
+                  <!--                  <AssetPartial-->
+                  <!--                    icon="btc.svg"-->
+                  <!--                    ticker="0.000000324 BTC"-->
+                  <!--                    fullName="~$5"-->
+                  <!--                  >-->
+                  <!--                  </AssetPartial>-->
                 </div>
                 <div class="right pr-4">
                   <button class="btn btn-primary btn-large-primary">
@@ -45,12 +44,12 @@
               </div>
               <div class="flex items-center justify-between border-b border-standart">
                 <div class="left">
-                  <AssetPartial
-                    icon="btc.svg"
-                    ticker="0.000000324 BTC"
-                    fullName="~$5"
-                  >
-                  </AssetPartial>
+                  <!--                  <AssetPartial-->
+                  <!--                    icon="btc.svg"-->
+                  <!--                    ticker="0.000000324 BTC"-->
+                  <!--                    fullName="~$5"-->
+                  <!--                  >-->
+                  <!--                  </AssetPartial>-->
                 </div>
                 <div class="right pr-4">
                   <button class="btn btn-primary btn-large-primary js-loading">
@@ -60,12 +59,12 @@
               </div>
               <div class="flex items-center justify-between border-b border-standart">
                 <div class="left">
-                  <AssetPartial
-                    icon="btc.svg"
-                    ticker="0.000000324 BTC"
-                    fullName="~$5"
-                  >
-                  </AssetPartial>
+                  <!--                  <AssetPartial-->
+                  <!--                    icon="btc.svg"-->
+                  <!--                    ticker="0.000000324 BTC"-->
+                  <!--                    fullName="~$5"-->
+                  <!--                  >-->
+                  <!--                  </AssetPartial>-->
                 </div>
                 <div class="right pr-4">
                   <button class="btn btn-secondary btn-large-secondary btn-emphatized success">
@@ -76,7 +75,8 @@
             </div>
 
             <!-- Portfolio -->
-            <div class="block order-2 md:order-1 bg-white border-y border-standart radius-medium md:col-span-7 mt-3 md:mt-0">
+            <div
+              class="block order-2 md:order-1 bg-white border-y border-standart radius-medium md:col-span-7 mt-3 md:mt-0">
               <div class="flex items-center justify-between px-5 pt-5 pb-4">
                 <h2 class="text-large-copy text-primary text-left text-medium my-0">Your earning portfolio</h2>
                 <button class="btn btn-label btn-large-label">
@@ -84,34 +84,35 @@
                 </button>
               </div>
               <!-- Assets -->
-            <div class="block mt-6 md:mt-4">
+              <div class="block mt-6 md:mt-4">
 
-              <!-- Assets Header -->
-              <div class="grid grid-cols-2 gap-6 border-b border-standart pb-3 px-6">
+                <!-- Assets Header -->
+                <div class="grid grid-cols-2 gap-6 border-b border-standart pb-3 px-6">
 
-                <div class="text-medium text-detail text-dark-grey text-left text-upper">
-                  Asset
+                  <div class="text-medium text-detail text-dark-grey text-left text-upper">
+                    Asset
+                  </div>
+
+                  <div
+                    class="inline-flex items-center justify-end text-medium text-detail text-dark-grey text-right text-upper">
+                    <span class="inline-block">Current Balance</span>
+                  </div>
                 </div>
 
-                <div class="inline-flex items-center justify-end text-medium text-detail text-dark-grey text-right text-upper">
-                  <span class="inline-block">Current Balance</span>
+                <!-- Assets Container -->
+                <div class="block">
+                  <!--                  <AssetPartial-->
+                  <!--                    icon="btc.svg"-->
+                  <!--                    ticker="BTC"-->
+                  <!--                    fullName="Bitcoin"-->
+                  <!--                    balance="32,430.22"-->
+                  <!--                    balanceOther="1.23456780"-->
+                  <!--                    balanceOtherTicker="nBTC"-->
+                  <!--                    cols="2"-->
+                  <!--                  >-->
+                  <!--                  </AssetPartial>-->
                 </div>
               </div>
-
-              <!-- Assets Container -->
-              <div class="block">
-                <AssetPartial
-                  icon="btc.svg"
-                  ticker="BTC"
-                  fullName="Bitcoin"
-                  balance="32,430.22"
-                  balanceOther="1.23456780"
-                  balanceOtherTicker="nBTC"
-                  cols="2"
-                >
-                </AssetPartial>
-              </div>
-            </div>
             </div>
           </div>
         </div>

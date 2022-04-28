@@ -11,9 +11,9 @@ import DashboardView from '@/views/DashboardView.vue'
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import AuthView from '@/views/AuthView.vue'
 import CreateAccountView from '@/views/CreateAccountView.vue'
+import HistoryView from '@/views/HistoryView.vue'
 import LeaseView from '@/views/LeaseView.vue'
 import EarningsView from '@/views/EarningsView.vue'
-import HistoryView from '@/views/HistoryView.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -62,7 +62,6 @@ const routes: Array<RouteRecordRaw> = [
         //   }
         // ]
       }
-
     ]
   },
   {
@@ -81,10 +80,21 @@ const routes: Array<RouteRecordRaw> = [
     component: SetWalletName
   },
   {
-    path: '/dashboard',
-    name: 'DashboardView',
-    component: DashboardView
+    path: '/history',
+    name: 'history',
+    component: HistoryView
+  },
+  {
+    path: '/lease',
+    name: 'lease',
+    component: LeaseView
+  },
+  {
+    path: '/earn',
+    name: 'earn',
+    component: EarningsView
   }
+
 ]
 
 const router = createRouter({

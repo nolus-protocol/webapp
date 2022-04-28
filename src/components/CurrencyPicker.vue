@@ -5,7 +5,8 @@
             typeof this.isError !== 'undefined' && this.isError === true ? ' error' : ''
         ]"
   >
-    <Listbox as="div" v-model="selected">
+    <Listbox as="div" v-model="selected.value"
+             @update:modelValue="$emit('update-currency', selected.value)" disabled>
       <div v-if="typeof this.label !== 'undefined' && this.label !== null && this.label.length > 0">
         <ListboxLabel class="block text-normal-copy text-primary text-medium">
           {{ this.label }}
@@ -15,8 +16,11 @@
         <ListboxButton
           class="relative w-full bg-white border border-gray-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     <span class="flex items-center">
-                    <img :src="selected.icon" alt="" class="flex-shrink-0 h-6 w-6 rounded-full"/>
-                    <span class="ml-3 block truncate">{{ selected.label }}</span>
+                    <img :src="require('@/assets/icons/coins/'+ getAssetInfo(selected.value.udenom).coinIcon)" alt=""
+                         class="flex-shrink-0 h-6 w-6 rounded-full"/>
+                                          <span class="ml-3 block truncate">{{
+                                              getAssetInfo(selected.value.udenom).chainName
+                                            }}</span>
                     </span>
           <span class="ml-3 absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
                         <ChevronDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true"/>
@@ -35,14 +39,15 @@
         >
           <ListboxOptions
             class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-56 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
-            <ListboxOption as="template" v-for="option in this.options" :key="option.value" :value="option"
+            <ListboxOption as="template" v-for="option in this.options" :key="option.udenom" :value="option"
                            v-slot="{ active, selected }">
               <li
                 :class="[active ? 'text-white bg-indigo-600' : 'text-gray-900', 'cursor-default select-none relative py-2 pl-3 pr-9']">
                 <div class="flex items-center">
-                  <img :src="option.icon" alt="" class="flex-shrink-0 h-6 w-6 rounded-full"/>
+                  <img :src="require('@/assets/icons/coins/'+ getAssetInfo(option.udenom).coinIcon)" alt=""
+                       class="flex-shrink-0 h-6 w-6 rounded-full"/>
                   <span :class="[selected ? 'font-semibold' : 'font-normal', 'ml-3 block truncate']">
-                                {{ option.label }}
+                                {{ getAssetInfo(option.udenom).chainName }}
                                 </span>
                 </div>
 
@@ -62,9 +67,12 @@
 <script lang="ts">
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue'
 import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/solid'
+import { defineComponent, PropType } from 'vue'
+import { AssetUtils } from '@/utils/AssetUtils'
+import { AssetBalance } from '@/store'
 
-export default {
-  name: 'PickerIcon',
+export default defineComponent({
+  name: 'CurrencyPicker',
   components: {
     Listbox,
     ListboxButton,
@@ -76,13 +84,17 @@ export default {
   },
   props: {
     label: {
-      type: String
+      type: String,
+      default: ''
     },
     type: {
       type: String
     },
     options: {
-      type: Array
+      type: Array as PropType<AssetBalance[]>
+    },
+    currencyoption: {
+      type: Object as PropType<AssetBalance>
     },
     isError: {
       type: Boolean
@@ -91,14 +103,20 @@ export default {
       type: String
     }
   },
+  mounted () {
+    console.log('mounted: ', this.currencyoption)
+  },
   data () {
     return {
       selected: {
-        value: -1,
-        label: 'Default Value',
-        icon: require('@/assets/icons/coins/nls.svg')
+        value: {} as AssetBalance
       }
     }
+  },
+  methods: {
+    getAssetInfo (minimalDenom: string) {
+      return AssetUtils.getAssetInfoByAbbr(minimalDenom)
+    }
   }
-}
+})
 </script>

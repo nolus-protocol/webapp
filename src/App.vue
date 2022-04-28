@@ -20,7 +20,7 @@ export default {
   ) {
     console.log('errorCaptured: ', err)
   },
-  mounted () {
+  async mounted () {
     const walletConnectMechanism = WalletManager.getWalletConnectMechanism()
     useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK)
     // NolusClient.setInstance('https://net-dev.nolus.io:26612')

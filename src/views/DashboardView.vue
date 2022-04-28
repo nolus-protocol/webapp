@@ -15,7 +15,9 @@
               <h1 class="text-default-heading text-primary m-0">Assets</h1>
             </div>
             <div class="right w-full md:w-1/2 mt-4 md:mt-0 inline-flex justify-start md:justify-end">
-              <button class="btn btn-secondary btn-large-secondary mr-4">Send / Receive</button>
+              <button class="btn btn-secondary btn-large-secondary mr-4" v-on:click="showSendModal = true">Send /
+                Receive
+              </button>
               <button class="btn btn-primary btn-large-primary">Buy Tokens</button>
             </div>
           </div>
@@ -106,6 +108,8 @@
         </div>
       </div>
     </div>
+    <ReceiveSendModal v-show="showSendModal" @close-modal="showSendModal = false"/>
+
   </div>
 </template>
 
@@ -121,13 +125,15 @@ export default defineComponent({
   name: 'DashboardView',
   components: {
     SidebarContainer,
-    AssetPartial
+    AssetPartial,
+    ReceiveSendModal
   },
   data () {
     return {
       manipulatedAssets: [] as AssetBalance[],
       mainAssets: [] as AssetBalance[],
-      hideLowerBalances: false
+      hideLowerBalances: false,
+      showSendModal: false
     }
   },
   watch: {
@@ -146,7 +152,9 @@ export default defineComponent({
       }
     }
   },
-  computed: {},
+  mounted () {
+    console.log('test env', process.env.VUE_APP_NETWORKS)
+  },
   methods: {
     getAssetInfo (minimalDenom: string) {
       return AssetUtils.getAssetInfoByAbbr(minimalDenom)
