@@ -23,10 +23,12 @@ import SendingConfirmComponent from '@/components/SendingConfirmComponent.vue'
 import SendComponent from '@/components/SendComponent.vue'
 import SendingSuccessComponent from '@/components/SendingSuccessComponent.vue'
 import SendingFailedComponent from '@/components/SendingFailedComponent.vue'
-import store, { AssetBalance } from '@/store'
 import { Bech32 } from '@cosmjs/encoding'
 import { Dec, Int } from '@keplr-wallet/unit'
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
+import { AssetBalance } from '@/store/modules/wallet/state'
+import { useStore } from '@/store'
+import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 
 enum ScreenState {
   MAIN = 'SendComponent',
@@ -68,7 +70,7 @@ export default defineComponent({
     }
   },
   watch: {
-    '$store.state.balances' (balances: AssetBalance[]) {
+    '$store.state.wallet.balances' (balances: AssetBalance[]) {
       if (balances) {
         this.currentBalance = balances
       }
@@ -99,7 +101,7 @@ export default defineComponent({
     async onSendClick () {
       console.log(this.password)
 
-      const txResponse = await store.dispatch('transferTokens', {
+      const txResponse = await useStore().dispatch(WalletActionTypes.TRANSFER_TOKENS, {
         receiverAddress: this.receiverAddress,
         amount: CurrencyUtils.convertNolusToUNolus(this.amount).amount.toString(),
         feeAmount: '0.25'

@@ -62,7 +62,8 @@ export interface Actions {
 
   [WalletActionTypes.TRANSFER_TOKENS] ({
     commit,
-    getters
+    getters,
+    dispatch
   }: AugmentedActionContext, payload: {
     receiverAddress: string,
     amount: string | undefined,
@@ -237,18 +238,19 @@ export const actions: ActionTree<State, RootState> & Actions = {
     commit,
     getters
   }): Promise<readonly IndexedTx[]> {
-    const wallet = getters.getNolusWallet()
+    const wallet = getters.getNolusWallet
     return wallet?.searchTx({ sentFromOrTo: wallet?.address || '' })
   },
   async [WalletActionTypes.TRANSFER_TOKENS] ({
     commit,
-    getters
+    getters,
+    dispatch
   }, payload: {
     receiverAddress: string,
     amount: string | undefined,
     feeAmount: string
   }): Promise<DeliverTxResponse | undefined> {
-    const wallet = getters.getNolusWallet()
+    const wallet = getters.getNolusWallet
     console.log('payload: ', payload)
     if (!payload.amount) {
       return
@@ -271,7 +273,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
       DEFAULT_FEE
     )
 
-    // await context.dispatch('updateBalances', { walletAddress: context.state.wallet.address })
+    await dispatch(WalletActionTypes.UPDATE_BALANCES, { walletAddress: getters.getNolusWallet.address })
     return txResponse
   }
 }

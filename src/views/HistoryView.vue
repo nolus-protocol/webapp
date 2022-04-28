@@ -104,7 +104,8 @@ import { Coin, DecodedTxRaw, decodeTxRaw } from '@cosmjs/proto-signing'
 import { COIN_MINIMAL_DENOM } from '@/constants/chain'
 import { StringUtils } from '@/utils/StringUtils'
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
-import store from '@/store'
+import { useStore } from '@/store'
+import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 
 interface ITransaction {
   id: string,
@@ -126,7 +127,7 @@ export default defineComponent({
     }
   },
   watch: {
-    '$store.state.wallet' () {
+    '$store.state.wallet.wallet' () {
       this.getTransactions()
     }
   },
@@ -135,7 +136,7 @@ export default defineComponent({
   },
   methods: {
     async getTransactions () {
-      const res = await store.dispatch('searchTx')
+      const res = await useStore().dispatch(WalletActionTypes.SEARCH_TX)
       this.prepareTransactions(res)
     },
     prepareTransactions (results: readonly IndexedTx[]) {

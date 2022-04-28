@@ -83,8 +83,8 @@ import CurrencyField from '@/components/CurrencyField.vue'
 import PickerDefault from '@/components/PickerDefault.vue'
 import InputField from '@/components/InputField.vue'
 import { defineComponent, PropType } from 'vue'
-import { AssetBalance } from '@/store'
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
+import { AssetBalance } from '@/store/modules/wallet/state'
 
 export default defineComponent({
   name: 'SendComponent',

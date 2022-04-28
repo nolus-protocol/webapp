@@ -5,10 +5,10 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { NolusWallet } from '@/wallet/NolusWallet'
-import store from '@/store'
 import ReceiveComponent, { ReceiveComponentProps } from '@/components/ReceiveComponent.vue'
 import ReceiveQrCodeComponent, { ReceiveQrCodeComponentProps } from '@/components/ReceiveQrCodeComponent.vue'
 import { StringUtils } from '@/utils/StringUtils'
+import { useStore } from '@/store'
 
 enum ScreenState {
   MAIN = 'ReceiveComponent',
@@ -35,7 +35,7 @@ export default defineComponent({
     this.currentComponent = {
       is: ScreenState.MAIN,
       props: {
-        walletAddress: store.state.wallet.address as string,
+        walletAddress: useStore().getters.getNolusWallet?.address || '',
         onScanClick: () => this.onScanClick(),
         onCopyClick: () => this.onCopyClick()
       }
@@ -58,7 +58,7 @@ export default defineComponent({
       this.currentComponent = {
         is: ScreenState.SCAN,
         props: {
-          walletAddress: store.state.wallet.address as string,
+          walletAddress: useStore().getters.getNolusWallet?.address || '',
           onBackClick: () => this.onBackClick(),
           onCopyClick: () => this.onCopyClick()
         }
@@ -71,7 +71,7 @@ export default defineComponent({
       this.currentComponent = {
         is: ScreenState.MAIN,
         props: {
-          walletAddress: store.state.wallet.address as string,
+          walletAddress: useStore().getters.getNolusWallet?.address || '',
           onScanClick: () => this.onScanClick(),
           onCopyClick: () => this.onCopyClick()
         }

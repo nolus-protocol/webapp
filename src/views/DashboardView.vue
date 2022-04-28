@@ -120,6 +120,7 @@ import AssetPartial from '@/components/AssetPartial.vue'
 import { AssetUtils } from '@/utils/AssetUtils'
 import { Int } from '@keplr-wallet/unit'
 import { AssetBalance } from '@/store/modules/wallet/state'
+import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
 
 export default defineComponent({
   name: 'DashboardView',
