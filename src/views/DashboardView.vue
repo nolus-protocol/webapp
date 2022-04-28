@@ -8,7 +8,7 @@
     <div class="container mx-auto pt-24 lg:pt-16">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-start-3 lg:col-span-9">
-          
+
           <!-- Header -->
           <div class="flex flex-wrap items-center justify-between px-4 lg:px-0">
             <div class="left w-full md:w-1/2">
@@ -21,7 +21,8 @@
           </div>
 
           <!-- Wallet -->
-          <div class="flex items-center justify-between bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm py-5 px-6">
+          <div
+            class="flex items-center justify-between bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm py-5 px-6">
             <div class="left inline-block w-1/2">
               <p class="text-large-copy text-primary text-medium m-0">Wallet Balance</p>
               <p class="text-big-number text-primary m-0 mt-1">$ 123,423.00</p>
@@ -32,7 +33,7 @@
 
           <!-- Existing Assets -->
           <div class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm overflow-hidden">
-            
+
             <!-- Top -->
             <div class="flex flex-wrap items-baseline justify-between pt-5 px-6">
               <div class="left w-full md:w-1/2">
@@ -74,7 +75,8 @@
                   />
                 </div>
 
-                <div class="hidden md:inline-flex items-center justify-end text-medium text-detail text-dark-grey text-right text-upper">
+                <div
+                  class="hidden md:inline-flex items-center justify-end text-medium text-detail text-dark-grey text-right text-upper">
                   <span class="inline-block">Earnings</span>
                   <img
                     :src="require('@/assets/icons/tooltip.svg')"
@@ -111,9 +113,9 @@
 import { defineComponent } from 'vue'
 import SidebarContainer from '@/components/SidebarContainer.vue'
 import AssetPartial from '@/components/AssetPartial.vue'
-import { AssetBalance } from '@/store'
 import { AssetUtils } from '@/utils/AssetUtils'
 import { Int } from '@keplr-wallet/unit'
+import { AssetBalance } from '@/store/modules/wallet/state'
 
 export default defineComponent({
   name: 'DashboardView',
@@ -129,7 +131,7 @@ export default defineComponent({
     }
   },
   watch: {
-    '$store.state.balances' (balances) {
+    '$store.state.wallet.balances' (balances) {
       this.mainAssets = balances
       this.manipulatedAssets = balances
       if (this.hideLowerBalances) {

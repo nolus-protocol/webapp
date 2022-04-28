@@ -47,7 +47,8 @@
 import { defineComponent } from 'vue'
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
 import router from '@/router'
-import store from '@/store'
+import { useStore } from '@/store'
+import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 
 export default defineComponent({
   name: 'ImportLedgerView',
@@ -65,7 +66,7 @@ export default defineComponent({
       router.go(-1)
     },
     connectViaLedger: async () => {
-      store.dispatch('connectToLedger')
+      useStore().dispatch(WalletActionTypes.CONNECT_LEDGER)
     }
   }
 })

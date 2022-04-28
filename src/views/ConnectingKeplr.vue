@@ -46,7 +46,8 @@
 import { defineComponent } from 'vue'
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
 import router from '@/router'
-import store from '@/store'
+import { useStore } from '@/store'
+import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 
 export default defineComponent({
   name: 'ConnectingKeplr',
@@ -64,7 +65,7 @@ export default defineComponent({
     }
   },
   mounted () {
-    store.dispatch('connectToKeplr')
+    useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
   }
 })
 </script>

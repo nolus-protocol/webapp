@@ -47,7 +47,8 @@ import { defineComponent } from 'vue'
 import TextField from '@/components/TextField.vue'
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
 import router from '@/router'
-import store from '@/store'
+import { useStore } from '@/store'
+import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 
 export default defineComponent({
   name: 'ImportSeedView',
@@ -70,7 +71,7 @@ export default defineComponent({
         this.errorMessage = 'Mnemonic seed field must be not empty!'
         return
       }
-      store.dispatch('connectViaMnemonic', { mnemonic: this.mnemonicSeed })
+      useStore().dispatch(WalletActionTypes.CONNECT_VIA_MNEMONIC, { mnemonic: this.mnemonicSeed })
       this.mnemonicSeed = ''
       this.errorMessage = ''
       router.push({ name: 'setPassword' })
