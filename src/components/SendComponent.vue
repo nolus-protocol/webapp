@@ -22,7 +22,6 @@
           :currency-options="currentComponent.currentBalance"
           :option="currentComponent.selectedCurrency"
           @update-currency="currentComponent.onUpdateCurrency"
-          
           :error-msg="currentComponent.amountErrorMsg"
           :is-error="currentComponent.amountErrorMsg !== ''"
         />
@@ -95,9 +94,19 @@ import { AssetBalance } from "@/store";
 import { CurrencyUtils } from "@/utils/CurrencyUtils";
 import {BaseSendType} from './types/baseSend.type';
 
-export type SendComponentProps = BaseSendType & {
+export type SendComponentProps = {
   receiverErrorMsg?: string,
   amountErrorMsg?: string,
+  currentBalance: AssetBalance[],
+    selectedCurrency: AssetBalance,
+    amount: string,
+    memo: string,
+    receiverAddress: string,
+    password: string,
+    onNextClick: () => void,
+    onSendClick: () => void,
+    onConfirmBackClick: () => void,
+    onClickOkBtn: () => void
 }
 
 export default defineComponent({

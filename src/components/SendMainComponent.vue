@@ -8,12 +8,12 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { StarIcon } from "@heroicons/vue/solid";
-import SendingConfirmComponent from "@/components/SendingConfirmComponent.vue";
+import SendingConfirmComponent, { SendConfirmComponentProps } from "@/components/SendingConfirmComponent.vue";
 import SendComponent, {
   SendComponentProps,
 } from "@/components/SendComponent.vue";
 import SendingSuccessComponent from "@/components/SendingSuccessComponent.vue";
-import SendingFailedComponent from "@/components/SendingFailedComponent.vue";
+import SendingFailedComponent, { SendFailedComponentProps } from "@/components/SendingFailedComponent.vue";
 import store, { AssetBalance } from "@/store";
 import { Bech32 } from "@cosmjs/encoding";
 import { Dec, Int } from "@keplr-wallet/unit";
@@ -27,22 +27,17 @@ enum ScreenState {
   FAILED = 'SendingFailedComponent'
 }
 
-export type SendMainComponentType = SendComponentProps | BaseSendType;
-
-export type ExtractSendMainComponentType<A> = A extends {
-  receiverErrorMsg: string;
-  amountErrorMsg: string;
+const isSendComponentProps = (x: unknown): x is SendComponentProps =>{
+  return typeof x === "object" && x !== null && x.hasOwnProperty("receiverErrorMsg") && x.hasOwnProperty("amountErrorMsg")
 }
-  ? A
-  : SendComponentProps;
+type ExtractSendМainComponentData = SendComponentProps | SendConfirmComponentProps | SendFailedComponentProps | SendFailedComponentProps;
 
-export interface SendMainComponentData
-  extends ExtractSendMainComponentType<SendMainComponentType> {
-  is: string;
-  txHash: string;
+type SendMainComponentData  = ExtractSendМainComponentData & {
+  is: string,
+  txHash: string,
 }
 export interface SendMainComponentProps {
-  onClose: () => void;
+  onClose: () => void
 }
 
 export default defineComponent({
@@ -106,11 +101,8 @@ export default defineComponent({
     onNextClick() {
       this.isAmountFieldValid();
       this.isReceiverAddressValid();
-      if (
-        this.currentComponent.amountErrorMsg === "" &&
-        this.currentComponent.receiverErrorMsg === ""
-      ) {
-        this.currentComponent.is = ScreenState.CONFIRM;
+      if (isSendComponentProps(this.currentComponent) && this.currentComponent.amountErrorMsg === '' && this.currentComponent.receiverErrorMsg === '') {
+        this.currentComponent.is = ScreenState.CONFIRM
       }
     },
 
@@ -139,34 +131,36 @@ export default defineComponent({
       this.modelValue?.onClose();
     },
     resetData() {
-      let {amount, memo, receiverAddress, password, is} = this.currentComponent;
-      amount = "";
-      memo = "";
-      receiverAddress = "";
-      password = "";
-      is = ScreenState.MAIN;
+      this.currentComponent.amount = "";
+      this.currentComponent.memo = "";
+      this.currentComponent.receiverAddress = "";
+      this.currentComponent.password = "";
+      this.currentComponent.is = ScreenState.MAIN;
     },
     isReceiverAddressValid() {
-    let {receiverAddress, receiverErrorMsg} = this.currentComponent;
+      if (isSendComponentProps(this.currentComponent)) {
+        
+      } ;
+    let {receiverAddress} = this.currentComponent;
       if (
-        receiverAddress ||
-       receiverAddress.trim() !== ""
+        isSendComponentProps(this.currentComponent) &&
+        (receiverAddress || receiverAddress.trim() !== "")
       ) {
         try {
           Bech32.decode(receiverAddress, 44);
           this.currentComponent.receiverErrorMsg = "";
         } catch (e) {
           console.log("address is not valid!");
-          receiverErrorMsg = "address is not valid!";
+          this.currentComponent.receiverErrorMsg = "address is not valid!";
         }
       } else {
         console.log("missing receiver address");
-        this.currentComponent.receiverErrorMsg = "missing receiver address";
+        if (isSendComponentProps(this.currentComponent)) this.currentComponent.receiverErrorMsg = "missing receiver address";
       }
     },
     isAmountFieldValid() {
       let {amount} = this.currentComponent;
-      if (amount || amount !== "") {
+      if ((amount || amount !== "") && isSendComponentProps(this.currentComponent)) {
         this.currentComponent.amountErrorMsg = "";
         const amountInUnls = CurrencyUtils.convertNolusToUNolus(
          amount
@@ -189,7 +183,7 @@ export default defineComponent({
           this.currentComponent.amountErrorMsg = "balance is too big";
         }
       } else {
-        this.currentComponent.amountErrorMsg = "missing amount value";
+        if(isSendComponentProps(this.currentComponent)) this.currentComponent.amountErrorMsg = "missing amount value";
       }
     },
   },
