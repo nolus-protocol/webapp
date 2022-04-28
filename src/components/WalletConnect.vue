@@ -16,24 +16,25 @@
 
 <script lang="ts">
 import router from '@/router'
-import store from '@/store'
 import '../index.css'
 import { WalletManager } from '@/config/wallet'
+import { useStore } from '@/store'
+import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 
 export default {
   name: 'WalletConnect',
   methods: {
     connectToKeplr: () => {
-      store.dispatch('connectToKeplr')
+      useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
     },
     connectViaLedger: async () => {
-      store.dispatch('connectToLedger')
+      useStore().dispatch(WalletActionTypes.CONNECT_LEDGER)
     },
     generateWallet: () => {
-      store.dispatch('generateWallet')
+      // useStore().dispatch(Ac)
     },
     connectViaMnemonic: () => {
-      store.dispatch('connectViaMnemonic', { mnemonic: '' })
+      useStore().dispatch(WalletActionTypes.CONNECT_VIA_MNEMONIC, { mnemonic: '' })
     },
     createWallet: () => {
       router.push({
@@ -42,13 +43,13 @@ export default {
       console.log('create wallet')
     },
     torusLogin: () => {
-      store.dispatch('loginViaTorus')
+      useStore().dispatch(WalletActionTypes.LOGIN_VIA_TORUS)
     },
     torusLogout: () => {
-      store.dispatch('torusLogout')
+      useStore().dispatch(WalletActionTypes.TORUS_LOGOUT)
     },
     updateBalances: () => {
-      store.dispatch('updateBalances', { walletAddress: store.state.wallet?.address })
+      useStore().dispatch(WalletActionTypes.UPDATE_BALANCES, { walletAddress: useStore().getters.getNolusWallet?.address || '' })
     },
 
     // const entropy = crypto_1.Random.getBytes(words === 12 ? 16 : 32);
@@ -72,7 +73,7 @@ export default {
       WalletManager.storeEncryptedPubKey('')
     },
     sendTokens: async () => {
-      const wallet = store.state.wallet
+      const wallet = useStore().getters.getNolusWallet
       const DEFAULT_FEE = {
         // TODO 0.0025unolus
         amount: [{
@@ -82,7 +83,7 @@ export default {
         gas: '100000'
       }
       console.log(wallet)
-      const txResponse = await wallet.sendTokens(wallet.address as string, 'nolus15dqqhetmfc4a9akf358zj8hz36e59zx686wg76', [{
+      const txResponse = await wallet?.sendTokens(wallet.address as string, 'nolus15dqqhetmfc4a9akf358zj8hz36e59zx686wg76', [{
         denom: 'unolus',
         amount: '20000000'
       }], DEFAULT_FEE)

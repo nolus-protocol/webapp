@@ -117,9 +117,9 @@
 import { defineComponent } from 'vue'
 import SidebarContainer from '@/components/SidebarContainer.vue'
 import AssetPartial from '@/components/AssetPartial.vue'
-import { AssetBalance } from '@/store'
 import { AssetUtils } from '@/utils/AssetUtils'
 import { Int } from '@keplr-wallet/unit'
+import { AssetBalance } from '@/store/modules/wallet/state'
 import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
 
 export default defineComponent({
@@ -138,7 +138,7 @@ export default defineComponent({
     }
   },
   watch: {
-    '$store.state.balances' (balances) {
+    '$store.state.wallet.balances' (balances) {
       this.mainAssets = balances
       this.manipulatedAssets = balances
       if (this.hideLowerBalances) {

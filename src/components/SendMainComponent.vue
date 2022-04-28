@@ -14,11 +14,12 @@ import SendComponent, {
 } from "@/components/SendComponent.vue";
 import SendingSuccessComponent from "@/components/SendingSuccessComponent.vue";
 import SendingFailedComponent, { SendFailedComponentProps } from "@/components/SendingFailedComponent.vue";
-import store, { AssetBalance } from "@/store";
 import { Bech32 } from "@cosmjs/encoding";
 import { Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@/utils/CurrencyUtils";
-import { BaseSendType } from "./types/baseSend.type";
+import { useStore } from '@/store'
+import { WalletActionTypes } from "@/store/modules/wallet/action-types";
+import { AssetBalance } from "@/store/modules/wallet/state";
 
 enum ScreenState {
   MAIN = 'SendComponent',
@@ -79,12 +80,10 @@ export default defineComponent({
     };
   },
   watch: {
-    "$store.state.balances"(balances: AssetBalance[]) {
-      this.currentComponent.currentBalance = balances ?? [];
-    },
-    "currentComponent.amount"() {
-      if (this.currentComponent.amount) this.isAmountFieldValid();
-      console.log("amount:", this.currentComponent.amount);
+    '$store.state.wallet.balances' (balances: AssetBalance[]) {
+      if (balances) {
+        this.currentComponent.currentBalance = balances
+      }
     },
     "currentComponent.memo"() {
       console.log("memo:", this.currentComponent.memo);
@@ -106,23 +105,21 @@ export default defineComponent({
       }
     },
 
-    async onSendClick() {
-      console.log(this.currentComponent.password);
+    async onSendClick () {
+      console.log(this.currentComponent.password)
 
-      const txResponse = await store.dispatch("transferTokens", {
+      const txResponse = await useStore().dispatch(WalletActionTypes.TRANSFER_TOKENS, {
         receiverAddress: this.currentComponent.receiverAddress,
-        amount: CurrencyUtils.convertNolusToUNolus(
-          this.currentComponent.amount
-        ).amount.toString(),
-        feeAmount: "0.25",
-      });
+        amount: CurrencyUtils.convertNolusToUNolus(this.currentComponent.amount).amount.toString(),
+        feeAmount: '0.25'
+      })
       if (txResponse) {
-        console.log("txResponse: ", txResponse);
-        this.currentComponent.txHash = txResponse.transactionHash;
-        this.currentComponent.is =
-          txResponse.code === 0 ? ScreenState.SUCCESS : ScreenState.FAILED;
+        console.log('txResponse: ', txResponse)
+        this.currentComponent.txHash = txResponse.transactionHash
+        this.currentComponent.is = txResponse.code === 0 ? ScreenState.SUCCESS : ScreenState.FAILED
       }
     },
+
     onConfirmBackClick() {
       this.currentComponent.is = ScreenState.MAIN;
     },

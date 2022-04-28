@@ -48,8 +48,8 @@
 import { CheckIcon, DuplicateIcon } from '@heroicons/vue/solid'
 import { defineComponent, PropType } from 'vue'
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
-import { BaseSendType } from './types/baseSend.type'
-import { AssetBalance } from '@/store'
+import { AssetBalance } from '@/store/modules/wallet/state'
+
 
 export type SendFailedComponentProps = {
   currentBalance: AssetBalance[],

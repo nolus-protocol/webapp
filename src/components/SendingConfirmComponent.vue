@@ -62,8 +62,7 @@ import { ArrowLeftIcon } from '@heroicons/vue/solid'
 import InputField from '@/components/InputField.vue'
 import { defineComponent, PropType } from 'vue'
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
-import { BaseSendType } from './types/baseSend.type'
-import { AssetBalance } from '@/store'
+import { AssetBalance } from '@/store/modules/wallet/state'
 
 export type SendConfirmComponentProps = {
   currentBalance: AssetBalance[],

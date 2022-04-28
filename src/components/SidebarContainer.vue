@@ -108,20 +108,23 @@
       <BellIcon class="icon w-4 h-4"/>
       <span class="counter">8</span>
     </button>
-    <button class="btn btn-header with-icon shadow-box rounded-r-none">
+    <button class="btn btn-header with-icon shadow-box rounded-r-none" v-on:click="toggleWalletPopup">
       <img
         src="@/assets/icons/money-wallet.svg"
-        class="inline-blcok mr-2"
+        class="inline-block mr-2"
       />
       <span class="label text-detail">My precious</span>
     </button>
   </div>
+
+  <WalletOpen v-show="showWalletPopup"/>
 </template>
 <script type="ts">
 import LogoLink from '@/components/LogoLink.vue'
 import SidebarElement from '@/components/SidebarElement.vue'
 import SidebarSocialElement from '@/components/SidebarSocialElement.vue'
 import SidebarLinkElement from '@/components/SidebarLinkElement.vue'
+import WalletOpen from '@/components/WalletOpen.vue'
 import { BellIcon } from '@heroicons/vue/solid'
 import {
   DISCORD_ACCOUNT,
@@ -139,17 +142,24 @@ export default {
     SidebarElement,
     SidebarSocialElement,
     SidebarLinkElement,
-    BellIcon
+    BellIcon,
+    WalletOpen
   },
   props: [],
   data () {
     return {
+      showWalletPopup: false,
       TWITTER_ACCOUNT: TWITTER_ACCOUNT,
       TELEGRAM_ACCOUNT: TELEGRAM_ACCOUNT,
       MEDIUM_ACCOUNT: MEDIUM_ACCOUNT,
       REDDIT_ACCOUNT: REDDIT_ACCOUNT,
       LINKEDIN_ACCOUNT: LINKEDIN_ACCOUNT,
       DISCORD_ACCOUNT: DISCORD_ACCOUNT
+    }
+  },
+  methods: {
+    toggleWalletPopup () {
+      this.showWalletPopup = !this.showWalletPopup
     }
   }
 }

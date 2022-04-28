@@ -1,0 +1,23 @@
+.wallet-open {
+    position: fixed;
+    top: $mobileHeaderHeight;
+    right: 0;
+    display: none;
+    width: 100%;
+    max-height: calc(100vh - $mobileHeaderHeight);
+    z-index: 2;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
+    &.open {
+        display: block;
+    }
+
+    @media (min-width: $lg) {
+        max-width: 450px;
+        top: 46px;
+        border-top-left-radius: $rounded;
+        border-bottom-left-radius: $rounded;
+    }
+}

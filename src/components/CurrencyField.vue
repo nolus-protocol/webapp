@@ -46,9 +46,8 @@
 
 <script lang="ts">
 import CurrencyPicker from '@/components/CurrencyPicker.vue'
+import { AssetBalance } from '@/store/modules/wallet/state'
 import { defineComponent, PropType } from 'vue'
-import { AssetBalance } from '@/store'
-
 export default defineComponent({
   name: 'CurrencyField',
   components: {
