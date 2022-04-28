@@ -2,6 +2,7 @@
   <component
     :is="currentComponent.is"
     v-model:currentComponent="currentComponent"
+    :receiverErrorMsg="currentComponent.receiverErrorMsg"
   />
 </template>
 
@@ -134,30 +135,37 @@ export default defineComponent({
       this.currentComponent.is = ScreenState.MAIN
     },
     isReceiverAddressValid () {
-      if (isSendComponentProps(this.currentComponent)) {
-
-      }
       const { receiverAddress } = this.currentComponent
-      if (
-        isSendComponentProps(this.currentComponent) &&
-        (receiverAddress || receiverAddress.trim() !== '')
-      ) {
+      if (receiverAddress || receiverAddress.trim() !== '') {
         try {
           Bech32.decode(receiverAddress, 44)
-          this.currentComponent.receiverErrorMsg = ''
+          this.currentComponent = {
+            receiverErrorMsg: '',
+            ...this.currentComponent
+          }
+          
         } catch (e) {
           console.log('address is not valid!')
-          this.currentComponent.receiverErrorMsg = 'address is not valid!'
+          this.currentComponent = {
+            receiverErrorMsg: 'address is not valid!',
+            ...this.currentComponent
+          }
         }
       } else {
         console.log('missing receiver address')
-        if (isSendComponentProps(this.currentComponent)) this.currentComponent.receiverErrorMsg = 'missing receiver address'
+         this.currentComponent = {
+           receiverErrorMsg: 'missing receiver address',
+           ...this.currentComponent
+         }
       }
     },
     isAmountFieldValid () {
       const { amount } = this.currentComponent
-      if ((amount || amount !== '') && isSendComponentProps(this.currentComponent)) {
-        this.currentComponent.amountErrorMsg = ''
+      if (amount || amount !== '') {
+        this.currentComponent = {
+          amountErrorMsg: '',
+          ...this.currentComponent
+        } 
         const amountInUnls = CurrencyUtils.convertNolusToUNolus(
           amount
         )
@@ -172,14 +180,23 @@ export default defineComponent({
         ).gt(new Int(walletBalance))
         if (isLowerThanOrEqualsToZero) {
           console.log('balance is too low')
-          this.currentComponent.amountErrorMsg = 'balance is too low'
+          this.currentComponent = {
+            amountErrorMsg: 'balance is too low',
+            ...this.currentComponent
+          }
         }
         if (isGreaterThanWalletBalance) {
           console.log('balance is too big')
-          this.currentComponent.amountErrorMsg = 'balance is too big'
+          this.currentComponent = {
+            amountErrorMsg: 'balance is too big',
+            ...this.currentComponent
+          }
         }
       } else {
-        if (isSendComponentProps(this.currentComponent)) this.currentComponent.amountErrorMsg = 'missing amount value'
+        this.currentComponent = {
+          amountErrorMsg: 'missing amount value',
+          ...this.currentComponent
+        }
       }
     }
   }

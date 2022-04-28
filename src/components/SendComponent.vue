@@ -94,8 +94,8 @@ import { CurrencyUtils } from '@/utils/CurrencyUtils'
 import { AssetBalance } from '@/store/modules/wallet/state'
 
 export type SendComponentProps = {
-  receiverErrorMsg?: string,
-  amountErrorMsg?: string,
+  receiverErrorMsg: string,
+  amountErrorMsg: string,
   currentBalance: AssetBalance[],
     selectedCurrency: AssetBalance,
     amount: string,
