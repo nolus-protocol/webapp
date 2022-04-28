@@ -4,10 +4,11 @@
 
 <script lang="ts">
 
-import { NolusClient } from '@/client/NolusClient'
 import { ComponentPublicInstance } from 'vue'
 import { WalletConnectMechanism, WalletManager } from '@/config/wallet'
-import store from '@/store'
+import { useStore } from '@/store'
+import { WalletActionTypes } from '@/store/modules/wallet/action-types'
+import { ApplicationActionTypes } from '@/store/modules/application/action-types'
 
 export default {
   name: 'App',
@@ -21,17 +22,18 @@ export default {
   },
   async mounted () {
     const walletConnectMechanism = WalletManager.getWalletConnectMechanism()
-    NolusClient.setInstance('https://net-dev.nolus.io:26612')
+    useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK)
+    // NolusClient.setInstance('https://net-dev.nolus.io:26612')
     if (walletConnectMechanism) {
       if (walletConnectMechanism === WalletConnectMechanism.EXTENSION) {
-        console.log('extension')
-        store.dispatch('connectToKeplr')
+        useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
       }
+    } else {
+      // router.push({ name: 'dashboard' })
     }
 
     setInterval(() => {
-      console.log('sent!')
-      store.dispatch('updateBalances', { walletAddress: store.state.wallet.address })
+      useStore().dispatch(WalletActionTypes.UPDATE_BALANCES, { walletAddress: useStore().getters.getNolusWallet?.address || '' })
     }, 5000)
   },
   data () {

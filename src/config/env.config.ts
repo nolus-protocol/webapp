@@ -18,5 +18,9 @@ export const NETWORKS: { [key: string]: NetworkAddress; } = {
   devnet: {
     tendermintRpc: 'https://net-dev.nolus.io:26612',
     api: 'https://net-dev.nolus.io:26614'
+  },
+  testnet: {
+    tendermintRpc: 'https://net-rila.nolus.io:26657',
+    api: 'https://net-rila.nolus.io:1317'
   }
 }

@@ -45,8 +45,9 @@
 import { defineComponent } from 'vue'
 import InputField from '@/components/InputField.vue'
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
-import store from '@/store'
+import { useStore } from '@/store'
 import router from '@/router'
+import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 
 export default defineComponent({
   name: 'SetPassword',
@@ -66,7 +67,7 @@ export default defineComponent({
         this.errorMessage = 'Please set password.'
         return
       }
-      store.dispatch('storePrivateKey', { password: this.password })
+      useStore().dispatch(WalletActionTypes.STORE_PRIVATE_KEY, { password: this.password })
       router.push({ name: 'dashboard' })
       this.errorMessage = ''
     }
