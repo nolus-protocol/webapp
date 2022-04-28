@@ -72,7 +72,7 @@ export default defineComponent({
   },
   props: {
     currentComponent: {
-       type: Object as PropType<SendFailedComponentProps>,
+      type: Object as PropType<SendFailedComponentProps>
     }
   },
   methods: {

@@ -15,7 +15,7 @@
 
     <!-- Wallet Body -->
     <div class="wallet-open-body p-4 lg:p-6 border-b border-standart">
-      
+
       <div class="block">
         <PickerDefault
           label="Language"
@@ -54,7 +54,7 @@ import PickerDefault from '@/components/PickerDefault.vue'
 export default {
   name: 'WalletOpen',
   components: {
-    PickerDefault,
+    PickerDefault
   },
   props: []
 }

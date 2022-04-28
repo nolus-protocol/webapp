@@ -76,9 +76,8 @@ export default defineComponent({
           onCopyClick: () => this.onCopyClick()
         }
       }
-    },
+    }
 
-  
   }
 
 })

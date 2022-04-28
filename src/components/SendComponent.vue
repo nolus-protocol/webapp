@@ -108,32 +108,32 @@ export type SendComponentProps = {
     onClickOkBtn: () => void
 }
 export default defineComponent({
-  name: "SendComponent",
+  name: 'SendComponent',
   components: {
     StarIcon,
     CurrencyField,
     PickerDefault,
-    InputField,
+    InputField
   },
   props: {
     currentComponent: {
-      type: Object as PropType<SendComponentProps>,
+      type: Object as PropType<SendComponentProps>
     }
   },
 
   methods: {
-    formatCurrentBalance(value: AssetBalance[]) {
+    formatCurrentBalance (value: AssetBalance[]) {
       if (value) {
         return CurrencyUtils.convertUNolusToNolus(
           value[0]?.balance.amount.toString()
-        ).toString();
+        ).toString()
       }
     },
-    onUpdateCurrency(value: AssetBalance) {
-      this.$emit("update:currentComponent.selectedCurrency", value);
-    },
-  },
-});
+    onUpdateCurrency (value: AssetBalance) {
+      this.$emit('update:currentComponent.selectedCurrency', value)
+    }
+  }
+})
 </script>
 
 <style scoped></style>

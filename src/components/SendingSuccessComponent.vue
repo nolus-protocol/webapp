@@ -50,7 +50,6 @@ import { defineComponent, PropType } from 'vue'
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
 import { AssetBalance } from '@/store/modules/wallet/state'
 
-
 export type SendFailedComponentProps = {
   currentBalance: AssetBalance[],
   selectedCurrency: AssetBalance,
@@ -72,7 +71,7 @@ export default defineComponent({
   },
   props: {
     currentComponent: {
-       type: Object as PropType<SendFailedComponentProps>,
+      type: Object as PropType<SendFailedComponentProps>
     }
   },
   methods: {

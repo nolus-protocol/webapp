@@ -77,7 +77,6 @@ export type SendConfirmComponentProps = {
   onClickOkBtn: () => void
 }
 
-
 export default defineComponent({
   name: 'SendingConfirmComponent',
   components: {
@@ -86,7 +85,7 @@ export default defineComponent({
   },
   props: {
     currentComponent: {
-       type: Object as PropType<SendConfirmComponentProps>,
+      type: Object as PropType<SendConfirmComponentProps>
     }
   },
   methods: {
