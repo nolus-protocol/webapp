@@ -5,7 +5,8 @@
             typeof this.isError !== 'undefined' && this.isError === true ? ' error' : ''
         ]"
   >
-    <Listbox as="div" v-model="selected" :disabled="disabled">
+    <Listbox as="div" v-model="selected" @update:modelValue="$emit('update-selected', selected)"
+             :disabled="disabled">
       <ListboxLabel class="block text-normal-copy text-primary text-medium">
         {{ label }}
       </ListboxLabel>
@@ -118,7 +119,7 @@ import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } f
 import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/solid'
 import { defineComponent, PropType } from 'vue'
 
-export interface PickerDefaultOptions {
+export interface PickerDefaultOption {
   label: string,
   value: string
 }
@@ -141,8 +142,11 @@ export default defineComponent({
     type: {
       type: String
     },
+    defaultOption: {
+      type: Object as PropType<PickerDefaultOption>
+    },
     options: {
-      type: Array as PropType<PickerDefaultOptions[]>
+      type: Array as PropType<PickerDefaultOption[]>
     },
     isError: {
       type: Boolean
@@ -155,14 +159,17 @@ export default defineComponent({
     }
   },
   mounted () {
-    this.selected = {
-      value: 'NLS',
-      label: 'NLS'
+    console.log('mounted picker: ', this.defaultOption)
+    this.selected = this.defaultOption as PickerDefaultOption
+  },
+  watch: {
+    defaultOption () {
+      this.selected = this.defaultOption as PickerDefaultOption
     }
   },
   data () {
     return {
-      selected: {} as PickerDefaultOptions
+      selected: {} as PickerDefaultOption
     }
   }
 })

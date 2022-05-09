@@ -2,7 +2,7 @@ import { DEFAULT_PRIMARY_NETWORK, NetworkAddress, NETWORKS } from './env.config'
 
 export class EnvNetworks {
   public getEnvNetworks (): string[] {
-    const envNetworks = process.env.NETWORKS
+    const envNetworks = process.env.VUE_APP_NETWORKS
     if (envNetworks) {
       return envNetworks.split(' ')
     }

@@ -92,6 +92,7 @@ export class WalletManager {
   public static WALLET_SECURE_DATA = 'wallet-secure-data'
   public static WALLET_SECURE_KEY = 'wallet-secure-key'
   public static WALLET_CONNECT_MECHANISM = 'wallet_connect_mechanism'
+  public static WALLET_ADDRESS = 'wallet_address'
 
   public static saveWalletConnectMechanism (walletConnectMechanism: WalletConnectMechanism) {
     localStorage.setItem(this.WALLET_CONNECT_MECHANISM, walletConnectMechanism)
@@ -135,6 +136,25 @@ export class WalletManager {
 
   public static removePrivateKey () {
     localStorage.removeItem(this.WALLET_SECURE_DATA)
+  }
+
+  public static storeWalletAddress (address: string) {
+    localStorage.setItem(this.WALLET_ADDRESS, address)
+  }
+
+  public static getWalletAddress (): string {
+    return localStorage.getItem(this.WALLET_ADDRESS) || ''
+  }
+
+  public static removeWalletAddress () {
+    localStorage.removeItem(this.WALLET_ADDRESS)
+  }
+
+  public static eraseWalletInfo () {
+    localStorage.removeItem(this.WALLET_ADDRESS)
+    localStorage.removeItem(this.WALLET_SECURE_DATA)
+    localStorage.removeItem(this.WALLET_SECURE_KEY)
+    localStorage.removeItem(this.WALLET_CONNECT_MECHANISM)
   }
 }
 

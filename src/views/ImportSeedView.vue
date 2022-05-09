@@ -49,6 +49,7 @@ import { ArrowLeftIcon } from '@heroicons/vue/solid'
 import router from '@/router'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
+import { RouteNames } from '@/router/RouterNames'
 
 export default defineComponent({
   name: 'ImportSeedView',
@@ -74,7 +75,7 @@ export default defineComponent({
       useStore().dispatch(WalletActionTypes.CONNECT_VIA_MNEMONIC, { mnemonic: this.mnemonicSeed })
       this.mnemonicSeed = ''
       this.errorMessage = ''
-      router.push({ name: 'setPassword' })
+      router.push({ name: RouteNames.SET_PASSWORD })
     }
   }
 })

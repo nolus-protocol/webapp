@@ -17,7 +17,6 @@
 <script lang="ts">
 import router from '@/router'
 import '../index.css'
-import { WalletManager } from '@/config/wallet'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 
@@ -49,7 +48,7 @@ export default {
       useStore().dispatch(WalletActionTypes.TORUS_LOGOUT)
     },
     updateBalances: () => {
-      useStore().dispatch(WalletActionTypes.UPDATE_BALANCES, { walletAddress: useStore().getters.getNolusWallet?.address || '' })
+      useStore().dispatch(WalletActionTypes.UPDATE_BALANCES)
     },
 
     // const entropy = crypto_1.Random.getBytes(words === 12 ? 16 : 32);
@@ -70,7 +69,7 @@ export default {
       //   return word1 > word2 ? 1 : -1
       // })
 
-      WalletManager.storeEncryptedPubKey('')
+      // WalletManager.storeEncryptedPubKey('')
     },
     sendTokens: async () => {
       const wallet = useStore().getters.getNolusWallet
