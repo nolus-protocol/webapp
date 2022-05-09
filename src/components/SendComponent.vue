@@ -31,7 +31,8 @@
       <div class="block mt-4">
         <PickerDefault
           label="Network"
-          :options="[{value: 2, label: 'NLS'},{value: 0, label: 'ETH'}, {value: 1, label: 'BTC'}]"
+          :default-option="{label: 'NLS', value: 'NLS'}"
+          :options="[{value: 'NLS', label: 'NLS'},{value: 'ETH', label: 'ETH'}, {value: 'BTC', label: 'BTC'}]"
           :disabled="true"
         ></PickerDefault>
       </div>

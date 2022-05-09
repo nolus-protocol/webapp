@@ -35,7 +35,7 @@
     </div>
 
     <div class="block mt-7 text-center">
-      <button class="btn btn-primary btn-large-primary w-80">
+      <button class="btn btn-primary btn-large-primary w-80" v-on:click="clickCreateAccount">
         Create new account
       </button>
     </div>
@@ -46,7 +46,7 @@
     <!--    <BuySwapModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>-->
     <!-- <SwapBuyModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <ReceiveQrCodeModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
-    <ReceiveSendModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>
+    <!--    <ReceiveSendModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>-->
     <!-- <ConfirmSendingModalError :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <ConfirmSendingModalSuccess :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
     <!-- <ConfirmSendingModalInput :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
@@ -60,24 +60,18 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import router from '@/router'
-import ErrorModal from '@/components/modals/ErrorModal.vue'
-import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
-import SwapBuyModal from '@/components/modals/SwapBuyModal.vue'
-import BuySwapModal from '@/components/modals/BuySwapModal.vue'
-import LeaseModal from '@/components/modals/LeaseModal.vue'
-import SupplyWithdrawModal from '@/components/modals/SupplyWithdrawModal.vue'
-import WithdrawSupplyModal from '@/components/modals/WithdrawSupplyModal.vue'
+import { RouteNames } from '@/router/RouterNames'
 
 export default defineComponent({
   name: 'HomeView',
   components: {
-    ErrorModal,
-    ReceiveSendModal,
-    SwapBuyModal,
-    BuySwapModal,
-    LeaseModal,
-    SupplyWithdrawModal,
-    WithdrawSupplyModal
+    // ErrorModal,
+    // ReceiveSendModal
+    // SwapBuyModal,
+    // BuySwapModal,
+    // LeaseModal,
+    // SupplyWithdrawModal,
+    // WithdrawSupplyModal
   },
   data () {
     return {
@@ -86,16 +80,19 @@ export default defineComponent({
   },
   methods: {
     clickConnectToKeplr: () => {
-      router.push({ name: 'connectingKeplr' })
+      router.push({ name: RouteNames.CONNECT_KEPLR })
     },
     clickImportLedger: () => {
-      router.push({ name: 'importLedger' })
+      router.push({ name: RouteNames.IMPORT_LEDGER })
     },
     clickImportSeed: () => {
-      router.push({ name: 'importSeedView' })
+      router.push({ name: RouteNames.IMPORT_SEED })
     },
     tryButton: () => {
       console.log('btn try again')
+    },
+    clickCreateAccount: () => {
+      router.push({ name: RouteNames.CREATE_ACCOUNT })
     }
   }
 })

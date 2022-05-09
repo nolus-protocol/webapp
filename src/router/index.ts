@@ -1,7 +1,4 @@
-// import { createRouter, createWebHistory, RouteRecordRaw } from ''
 import HomeView from '../views/HomeView.vue'
-import WelcomeView from '@/views/WelcomeView.vue'
-import StyleguideView from '@/views/StyleguideView.vue'
 import ImportLedgerView from '@/views/ImportLedgerView.vue'
 import ConnectingKeplr from '@/views/ConnectingKeplr.vue'
 import ImportSeedView from '@/views/ImportSeedView.vue'
@@ -14,45 +11,50 @@ import CreateAccountView from '@/views/CreateAccountView.vue'
 import HistoryView from '@/views/HistoryView.vue'
 import LeaseView from '@/views/LeaseView.vue'
 import EarningsView from '@/views/EarningsView.vue'
+import { WalletUtils } from '@/utils/WalletUtils'
+import { RouteNames } from '@/router/RouterNames'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    name: 'dashboard',
-    component: DashboardView
+    name: RouteNames.DASHBOARD,
+    component: DashboardView,
+    meta: { requiresAuth: true }
   },
   {
     path: '/auth',
+    name: '',
     component: AuthView,
+    meta: { requiresAuth: false },
     children: [
       {
         path: '',
-        name: 'authHome',
+        name: RouteNames.AUTH,
         component: HomeView
       },
       {
         path: 'connecting-to-keplr',
-        name: 'connectingKeplr',
+        name: RouteNames.CONNECT_KEPLR,
         component: ConnectingKeplr
       },
       {
         path: 'import-ledger',
-        name: 'importLedger',
+        name: RouteNames.IMPORT_LEDGER,
         component: ImportLedgerView
       },
       {
         path: 'import-seed',
-        name: 'importSeedView',
+        name: RouteNames.IMPORT_SEED,
         component: ImportSeedView
       },
       {
         path: 'set-password',
-        name: 'setPassword',
+        name: RouteNames.SET_PASSWORD,
         component: SetPassword
       },
       {
         path: 'create-account',
-        name: 'createAccountView',
+        name: RouteNames.CREATE_ACCOUNT,
         component: CreateAccountView
         // children: [
         //   {
@@ -64,37 +66,39 @@ const routes: Array<RouteRecordRaw> = [
       }
     ]
   },
-  {
-    path: '/welcome',
-    name: 'welcome',
-    component: WelcomeView
-  },
-  {
-    path: '/styleguide',
-    name: 'styleguide',
-    component: StyleguideView
-  },
+  // {
+  //   path: '/welcome',
+  //   name: 'welcome',
+  //   component: WelcomeView
+  // },
+  // {
+  //   path: '/styleguide',
+  //   name: 'styleguide',
+  //   component: StyleguideView
+  // },
   {
     path: '/set-wallet-name',
-    name: 'SetWalletName',
+    name: RouteNames.SET_WALLET_NAME,
     component: SetWalletName
   },
   {
     path: '/history',
-    name: 'history',
-    component: HistoryView
+    name: RouteNames.HISTORY,
+    component: HistoryView,
+    meta: { requiresAuth: true }
   },
   {
     path: '/lease',
-    name: 'lease',
-    component: LeaseView
+    name: RouteNames.LEASE,
+    component: LeaseView,
+    meta: { requiresAuth: true }
   },
   {
     path: '/earn',
-    name: 'earn',
-    component: EarningsView
+    name: RouteNames.EARN,
+    component: EarningsView,
+    meta: { requiresAuth: true }
   }
-
 ]
 
 const router = createRouter({
@@ -102,12 +106,19 @@ const router = createRouter({
   routes
 })
 
-// router.beforeEach((to, from, next) => {
-//   if (to.name !== 'welcome' && !localStorage.getItem('wallet_connect_via')) {
-//     next({ name: 'welcome' })
-//   } else {
-//     next()
-//   }
-// })
+router.beforeEach((to, from, next) => {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    if (!WalletUtils.isAuth()) {
+      next({ name: RouteNames.AUTH })
+    } else {
+      next()
+    }
+  } else {
+    if (to.name === 'auth' && WalletUtils.isAuth()) {
+      next({ name: RouteNames.DASHBOARD })
+    }
+    next()
+  }
+})
 
 export default router

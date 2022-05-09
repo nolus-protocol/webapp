@@ -9,7 +9,7 @@
         <div class="block">
           <SidebarElement
             id="assets"
-            href="/"
+            v-on:click="pushToDashboard"
             label="Assets"
             :icon="require('@/assets/icons/assets.svg')"
             :iconHover="require('@/assets/icons/assets_active.svg')"
@@ -20,7 +20,7 @@
         <div class="block">
           <SidebarElement
             id="lease"
-            href="/lease"
+            v-on:click="pushToLease"
             label="Lease"
             :icon="require('@/assets/icons/lease.svg')"
             :iconHover="require('@/assets/icons/lease_active.svg')"
@@ -40,8 +40,8 @@
         <div class="block">
           <SidebarElement
             id="earn"
-            href="/earn"
             label="Earn"
+            v-on:click="pushToEarn"
             :icon="require('@/assets/icons/earn.svg')"
             :iconHover="require('@/assets/icons/earn_active.svg')"
           >
@@ -50,7 +50,7 @@
         <div class="block">
           <SidebarElement
             id="history"
-            @click="$router.push('/history')"
+            v-on:click="pushToHistory"
             label="History"
             :icon="require('@/assets/icons/history.svg')"
             :iconHover="require('@/assets/icons/history_active.svg')"
@@ -134,6 +134,8 @@ import {
   TELEGRAM_ACCOUNT,
   TWITTER_ACCOUNT
 } from '@/constants/webapp'
+import router from '@/router'
+import { RouteNames } from '@/router/RouterNames'
 
 export default {
   name: 'SidebarContainer',
@@ -160,6 +162,18 @@ export default {
   methods: {
     toggleWalletPopup () {
       this.showWalletPopup = !this.showWalletPopup
+    },
+    pushToHistory () {
+      router.push({ name: RouteNames.HISTORY })
+    },
+    pushToLease () {
+      router.push({ name: RouteNames.LEASE })
+    },
+    pushToDashboard () {
+      router.push({ name: RouteNames.DASHBOARD })
+    },
+    pushToEarn () {
+      router.push({ name: RouteNames.EARN })
     }
   }
 }

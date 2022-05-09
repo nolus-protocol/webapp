@@ -48,6 +48,7 @@ import { ArrowLeftIcon } from '@heroicons/vue/solid'
 import { useStore } from '@/store'
 import router from '@/router'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
+import { RouteNames } from '@/router/RouterNames'
 
 export default defineComponent({
   name: 'SetPassword',
@@ -68,7 +69,7 @@ export default defineComponent({
         return
       }
       useStore().dispatch(WalletActionTypes.STORE_PRIVATE_KEY, { password: this.password })
-      router.push({ name: 'dashboard' })
+      router.push({ name: RouteNames.DASHBOARD })
       this.errorMessage = ''
     }
   }
