@@ -6,13 +6,16 @@
       <div class="block">
         <PickerIcon
           label="Asset"
-          :options="[{value: 0, label: 'Option 1', icon: require('@/assets/icons/coins/nls.svg')}, {value: 1, label: 'Option 2', icon: require('@/assets/icons/coins/nls.svg')}, {value: 2, label: 'Option 3', icon: require('@/assets/icons/coins/nls.svg')},]"
+          :default-option="{value: 'NLS', label: 'Nolus', icon: require('@/assets/icons/coins/nls.svg')}"
+          :options="[{value: 'NLS', label: 'Nolus', icon: require('@/assets/icons/coins/nls.svg')}]"
+          :disabled="true"
         ></PickerIcon>
       </div>
 
       <div class="block mt-4">
         <PickerDefault
           label="Network"
+          :default-option="{value: 'NLS', label: 'NLS'}"
           :options="this.networks"
           :disabled="true"
         ></PickerDefault>

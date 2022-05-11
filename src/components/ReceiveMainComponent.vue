@@ -3,12 +3,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import { NolusWallet } from '@/wallet/NolusWallet'
+import { defineComponent, PropType } from 'vue'
 import ReceiveComponent, { ReceiveComponentProps } from '@/components/ReceiveComponent.vue'
 import ReceiveQrCodeComponent, { ReceiveQrCodeComponentProps } from '@/components/ReceiveQrCodeComponent.vue'
 import { StringUtils } from '@/utils/StringUtils'
-import { useStore } from '@/store'
+import { WalletManager } from '@/config/wallet'
 
 enum ScreenState {
   MAIN = 'ReceiveComponent',
@@ -20,6 +19,10 @@ interface ReceiveMainComponentData {
   props: ReceiveComponentProps | ReceiveQrCodeComponentProps
 }
 
+export interface ReceiveMainComponentProps {
+  onClose: () => void
+}
+
 export default defineComponent({
   name: 'ReceiveMainComponent',
   components: {
@@ -28,14 +31,14 @@ export default defineComponent({
   },
   props: {
     modelValue: {
-      type: Object
+      type: Object as PropType<ReceiveMainComponentProps>
     }
   },
   mounted () {
     this.currentComponent = {
       is: ScreenState.MAIN,
       props: {
-        walletAddress: useStore().getters.getNolusWallet?.address || '',
+        walletAddress: WalletManager.getWalletAddress(),
         onScanClick: () => this.onScanClick(),
         onCopyClick: () => this.onCopyClick()
       }
@@ -47,18 +50,19 @@ export default defineComponent({
     }
   },
   watch: {
-    '$store.state.wallet' (wallet: NolusWallet) {
-      if (wallet) {
-        this.currentComponent.props.walletAddress = wallet.address as string
-      }
-    }
+    // '$store.state.wallet' (wallet: NolusWallet) {
+    //   if (wallet) {
+    //     this.currentComponent.props.walletAddress = wallet.address as string
+    //   }
+    // }
   },
   methods: {
     onScanClick () {
+      console.log('scannnn')
       this.currentComponent = {
         is: ScreenState.SCAN,
         props: {
-          walletAddress: useStore().getters.getNolusWallet?.address || '',
+          walletAddress: WalletManager.getWalletAddress(),
           onBackClick: () => this.onBackClick(),
           onCopyClick: () => this.onCopyClick()
         }
@@ -71,7 +75,7 @@ export default defineComponent({
       this.currentComponent = {
         is: ScreenState.MAIN,
         props: {
-          walletAddress: useStore().getters.getNolusWallet?.address || '',
+          walletAddress: WalletManager.getWalletAddress() || '',
           onScanClick: () => this.onScanClick(),
           onCopyClick: () => this.onCopyClick()
         }

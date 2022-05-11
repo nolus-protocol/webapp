@@ -5,7 +5,7 @@
             typeof this.isError !== 'undefined' && this.isError === true ? ' error' : ''
         ]"
   >
-    <Listbox as="div" v-model="selected">
+    <Listbox as="div" v-model="selected" :disabled="disabled">
       <div v-if="typeof this.label !== 'undefined' && this.label !== null && this.label.length > 0">
         <ListboxLabel class="block text-normal-copy text-primary text-medium">
           {{ this.label }}
@@ -62,8 +62,15 @@
 <script lang="ts">
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue'
 import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/solid'
+import { defineComponent, PropType } from 'vue'
 
-export default {
+export interface PickerIconOption {
+  label: string,
+  value: string,
+  icon: string
+}
+
+export default defineComponent({
   name: 'PickerIcon',
   components: {
     Listbox,
@@ -81,24 +88,29 @@ export default {
     type: {
       type: String
     },
+    defaultOption: {
+      type: Object as PropType<PickerIconOption>
+    },
     options: {
-      type: Array
+      type: Array as PropType<PickerIconOption[]>
     },
     isError: {
       type: Boolean
     },
     errorMsg: {
       type: String
+    },
+    disabled: {
+      type: Boolean
     }
+  },
+  mounted () {
+    this.selected = this.defaultOption as PickerIconOption
   },
   data () {
     return {
-      selected: {
-        value: -1,
-        label: 'Default Value',
-        icon: require('@/assets/icons/coins/nls.svg')
-      }
+      selected: {} as PickerIconOption
     }
   }
-}
+})
 </script>

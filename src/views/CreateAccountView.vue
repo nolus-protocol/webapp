@@ -115,6 +115,7 @@ import { useStore } from '@/store'
 import router from '@/router'
 import { KeyUtils } from '@/utils/KeyUtils'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
+import { RouteNames } from '@/router/RouterNames'
 
 export default defineComponent({
   name: 'CreateAccountView',
@@ -161,7 +162,7 @@ export default defineComponent({
       console.log('mnemonic: ', this.mnemonic)
       console.log('confirmMnemonic: ', this.mnemonic.trim() === confirmMnemonic.trim())
       this.mnemonic = ''
-      router.push({ name: 'setPassword' })
+      router.push({ name: RouteNames.SET_PASSWORD })
     },
     btnContinueToConfirm () {
       this.isCreateFormOpen = false

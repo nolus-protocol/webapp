@@ -39,6 +39,9 @@
             <!-- Top -->
             <div class="flex flex-wrap items-baseline justify-between pt-5 px-6">
               <div class="left w-full md:w-1/2">
+                <!--                <div class="loader">-->
+                <!--                  <div class="loader__element"></div>-->
+                <!--                </div>-->
                 <p class="text-large-copy text-primary text-medium m-0">Existing assets</p>
               </div>
               <div class="right w-full md:w-1/2 mt-4 md:mt-0 inline-flex justify-start md:justify-end">
@@ -152,9 +155,6 @@ export default defineComponent({
         this.manipulatedAssets = this.mainAssets
       }
     }
-  },
-  mounted () {
-    console.log('test env', process.env.VUE_APP_NETWORKS)
   },
   methods: {
     getAssetInfo (minimalDenom: string) {

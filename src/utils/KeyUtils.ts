@@ -44,7 +44,7 @@ export class KeyUtils {
     return Secp256k1.compressPubkey(pubkey)
   }
 
-  public static isAddressValid (address: string, prefix = BECH32_PREFIX_ACC_ADDR) {
+  public static isAddressValid (address: string, prefix = BECH32_PREFIX_ACC_ADDR): boolean {
     try {
       const decoded = Bech32.decode(address)
       return (!prefix || prefix === decoded.prefix) && decoded.data.length === 20

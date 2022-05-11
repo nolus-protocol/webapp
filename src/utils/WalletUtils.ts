@@ -1,5 +1,7 @@
 import { Keplr } from '@keplr-wallet/types'
 import { Window as KeplrWindow } from '@keplr-wallet/types/build/window'
+import { KeyUtils } from '@/utils/KeyUtils'
+import { WalletManager } from '@/config/wallet'
 
 export class WalletUtils {
   public static async getKeplr (): Promise<Keplr | undefined> {
@@ -25,5 +27,9 @@ export class WalletUtils {
 
       document.addEventListener('readystatechange', documentStateChange)
     })
+  }
+
+  public static isAuth (): boolean {
+    return KeyUtils.isAddressValid(WalletManager.getWalletAddress()) && WalletManager.getWalletConnectMechanism() !== null
   }
 }

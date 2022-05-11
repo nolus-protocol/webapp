@@ -17,12 +17,15 @@ import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
 import { makeCosmoshubPath } from '@cosmjs/amino'
 import { KeyUtils } from '@/utils/KeyUtils'
 import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing'
-import { toHex } from '@cosmjs/encoding'
+import { fromHex, toHex } from '@cosmjs/encoding'
 import OpenLogin from '@toruslabs/openlogin'
 import { Getters } from '@/store/modules/wallet/getters'
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
-import { makeIBCMinimalDenom } from '@/utils/AssetUtils'
 import { DeliverTxResponse, IndexedTx } from '@cosmjs/stargate'
+import { EnvNetworks } from '@/config/envNetworks'
+import { EncryptionUtils } from '@/utils/EncryptionUtils'
+import { makeIBCMinimalDenom } from '@/utils/AssetUtils'
+import { RouteNames } from '@/router/RouterNames'
 
 type AugmentedActionContext = {
   commit<K extends keyof Mutations> (
@@ -40,7 +43,11 @@ export interface Actions {
 
   [WalletActionTypes.CONNECT_LEDGER] ({ commit }: AugmentedActionContext): void,
 
-  [WalletActionTypes.CONNECT_VIA_MNEMONIC] ({ commit }: AugmentedActionContext, payload: { mnemonic: string }): void,
+  [WalletActionTypes.CONNECT_VIA_MNEMONIC] ({
+    commit,
+    getters,
+    dispatch
+  }: AugmentedActionContext, payload: { mnemonic: string }): void,
 
   [WalletActionTypes.LOGIN_VIA_TORUS] ({ commit }: AugmentedActionContext): void,
 
@@ -49,11 +56,19 @@ export interface Actions {
     getters
   }: AugmentedActionContext): void,
 
-  [WalletActionTypes.STORE_PRIVATE_KEY] ({ commit }: AugmentedActionContext, payload: { password: string }): void,
+  [WalletActionTypes.STORE_PRIVATE_KEY] ({
+    commit,
+    getters,
+    dispatch
+  }: AugmentedActionContext, payload: { password: string }): void,
 
-  [WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN] ({ commit }: AugmentedActionContext, payload: { password: string }): void,
+  [WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN] ({
+    commit,
+    getters,
+    dispatch
+  }: AugmentedActionContext, payload: { password: string }): void,
 
-  [WalletActionTypes.UPDATE_BALANCES] ({ commit }: AugmentedActionContext, payload: { walletAddress: string }): void,
+  [WalletActionTypes.UPDATE_BALANCES] ({ commit }: AugmentedActionContext): void,
 
   [WalletActionTypes.SEARCH_TX] ({
     commit,
@@ -87,7 +102,10 @@ export const actions: ActionTree<State, RootState> & Actions = {
       let chainId = ''
       try {
         chainId = await NolusClient.getInstance().getChainId()
-        await keplrWindow.keplr?.experimentalSuggestChain(KeplrEmbedChainInfo('devnet', chainId, 'https://net-dev.nolus.io:26612', 'https://net-dev.nolus.io:26614'))
+        const envNetwork = new EnvNetworks()
+        const networkConfig = envNetwork.loadNetworkConfig()
+
+        await keplrWindow.keplr?.experimentalSuggestChain(KeplrEmbedChainInfo(envNetwork.getStoredNetworkName() || '', chainId, networkConfig?.tendermintRpc as string, networkConfig?.api as string))
       } catch (e) {
         throw new Error('Failed to fetch suggest chain.')
       }
@@ -99,7 +117,8 @@ export const actions: ActionTree<State, RootState> & Actions = {
         commit(WalletMutationTypes.SIGN_WALLET, { wallet: nolusWalletOfflineSigner })
         dispatch(WalletActionTypes.UPDATE_BALANCES, { walletAddress: nolusWalletOfflineSigner.address }) // check this
         WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.EXTENSION)
-        router.push({ name: 'dashboard' })
+        WalletManager.storeWalletAddress(nolusWalletOfflineSigner.address || '')
+        router.push({ name: RouteNames.DASHBOARD })
       }
     }
   },
@@ -129,7 +148,11 @@ export const actions: ActionTree<State, RootState> & Actions = {
     }
     clearTimeout(to)
   },
-  async [WalletActionTypes.CONNECT_VIA_MNEMONIC] ({ commit }, payload: { mnemonic: string }) {
+  async [WalletActionTypes.CONNECT_VIA_MNEMONIC] ({
+    commit,
+    getters,
+    dispatch
+  }, payload: { mnemonic: string }) {
     console.log('mnemonic: ' + payload.mnemonic)
     const accountNumbers = [0]
     const path = accountNumbers.map(makeCosmoshubPath)[0]
@@ -140,8 +163,9 @@ export const actions: ActionTree<State, RootState> & Actions = {
     await nolusWalletOfflineSigner.useAccount()
     commit(WalletMutationTypes.SIGN_WALLET, { wallet: nolusWalletOfflineSigner })
     commit(WalletMutationTypes.SET_PRIVATE_KEY, { privateKey: toHex(privateKey) })
-    // await dispatch('updateBalances', { walletAddress: nolusWalletOfflineSigner.address })
     WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.MNEMONIC)
+    WalletManager.storeWalletAddress(nolusWalletOfflineSigner.address || '')
+    await dispatch(WalletActionTypes.UPDATE_BALANCES)
   },
   async [WalletActionTypes.LOGIN_VIA_TORUS] ({ commit }) {
     const openlogin = new OpenLogin({
@@ -176,45 +200,54 @@ export const actions: ActionTree<State, RootState> & Actions = {
     // }
   },
   async [WalletActionTypes.STORE_PRIVATE_KEY] ({
-    commit
+    commit,
+    getters,
+    dispatch
   }, payload: { password: string }) {
     console.log('')
-    // if (payload.password !== '' && context.state.privateKey !== '') {
-    //   const pubKey = toHex(context.state.wallet.pubKey || new Uint8Array(0))
-    //   const encryptedPbKey = EncryptionUtils.encryptEncryptionKey(pubKey, payload.password)
-    //   const encryptedPk = EncryptionUtils.encryptPrivateKey(
-    //     context.state.privateKey,
-    //     pubKey,
-    //     payload.password)
-    //
-    //   WalletManager.storeEncryptedPubKey(encryptedPbKey)
-    //   WalletManager.storeEncryptedPk(encryptedPk)
-    //   commit(WalletMutationTypes.SET_PRIVATE_KEY, { privateKey: '' })
-    // }
+    if (payload.password !== '' && getters.getPrivateKey !== '') {
+      const pubKey = toHex(getters.getNolusWallet.pubKey || new Uint8Array(0))
+      const encryptedPbKey = EncryptionUtils.encryptEncryptionKey(pubKey, payload.password)
+      const encryptedPk = EncryptionUtils.encryptPrivateKey(
+        getters.getPrivateKey,
+        pubKey,
+        payload.password)
+
+      WalletManager.storeEncryptedPubKey(encryptedPbKey)
+      WalletManager.storeEncryptedPk(encryptedPk)
+      commit(WalletMutationTypes.SET_PRIVATE_KEY, { privateKey: '' })
+    }
   },
-  async [WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN] ({ commit }, payload: { password: string }) {
-    //       if (context.state.privateKey === '' && payload.password !== '') {
-    //         const encryptedPubKey = WalletManager.getEncryptedPubKey()
-    //         const encryptedPk = WalletManager.getPrivateKey()
-    //         const decryptedPubKey = EncryptionUtils.decryptEncryptionKey(encryptedPubKey, payload.password)
-    //         const decryptedPrivateKey = EncryptionUtils.decryptPrivateKey(encryptedPk, decryptedPubKey, payload.password)
-    //         const directSecrWallet = await DirectSecp256k1Wallet.fromKey(fromHex(decryptedPrivateKey), BECH32_PREFIX_ACC_ADDR)
-    //         const nolusWalletOfflineSigner = await nolusOfflineSigner(directSecrWallet)
-    //         await nolusWalletOfflineSigner.useAccount()
-    //         context.commit('signWallet', { wallet: nolusWalletOfflineSigner })
-    //         context.commit('setPrivateKey', { privateKey: '' })
-    //         await context.dispatch('updateBalances', { walletAddress: nolusWalletOfflineSigner.address })
-    //       }
+  async [WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN] ({
+    commit,
+    getters,
+    dispatch
+  }, payload: { password: string }) {
+    if (getters.getPrivateKey === '' && payload.password !== '') {
+      const encryptedPubKey = WalletManager.getEncryptedPubKey()
+      const encryptedPk = WalletManager.getPrivateKey()
+      const decryptedPubKey = EncryptionUtils.decryptEncryptionKey(encryptedPubKey, payload.password)
+      const decryptedPrivateKey = EncryptionUtils.decryptPrivateKey(encryptedPk, decryptedPubKey, payload.password)
+      const directSecrWallet = await DirectSecp256k1Wallet.fromKey(fromHex(decryptedPrivateKey), BECH32_PREFIX_ACC_ADDR)
+      const nolusWalletOfflineSigner = await nolusOfflineSigner(directSecrWallet)
+      await nolusWalletOfflineSigner.useAccount()
+
+      commit(WalletMutationTypes.SIGN_WALLET, { wallet: nolusWalletOfflineSigner })
+      commit(WalletMutationTypes.SET_PRIVATE_KEY, { privateKey: '' })
+      await dispatch(WalletActionTypes.UPDATE_BALANCES)
+    }
   },
-  async [WalletActionTypes.UPDATE_BALANCES] ({ commit }, payload: { walletAddress: string }) {
-    console.log(payload.walletAddress)
-    if (!payload.walletAddress && !KeyUtils.isAddressValid(payload.walletAddress)) {
+  async [WalletActionTypes.UPDATE_BALANCES] ({ commit }) {
+    const walletAddress = WalletManager.getWalletAddress() || ''
+    if (!WalletUtils.isAuth()) {
+      WalletManager.eraseWalletInfo()
+      router.push(RouteNames.AUTH)
       return
     }
 
     const ibcBalances = [] as AssetBalance[]
     const nolusBalance = await NolusClient.getInstance()
-      .getBalance(payload.walletAddress,
+      .getBalance(walletAddress,
         COIN_MINIMAL_DENOM)
     ibcBalances.push({
       udenom: COIN_MINIMAL_DENOM,
@@ -224,7 +257,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
     for (const asset of IBCAssets) {
       const ibcDenom = makeIBCMinimalDenom(asset.sourceChannelId, asset.coinMinimalDenom)
       const balance = await NolusClient.getInstance()
-        .getBalance(payload.walletAddress,
+        .getBalance(walletAddress,
           ibcDenom)
 
       ibcBalances.push({
@@ -234,12 +267,12 @@ export const actions: ActionTree<State, RootState> & Actions = {
     }
     commit(WalletMutationTypes.UPDATE_BALANCES, { balances: ibcBalances })
   },
-  [WalletActionTypes.SEARCH_TX] ({
+  async [WalletActionTypes.SEARCH_TX] ({
     commit,
     getters
   }): Promise<readonly IndexedTx[]> {
-    const wallet = getters.getNolusWallet
-    return wallet?.searchTx({ sentFromOrTo: wallet?.address || '' })
+    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
+    return cosmWasmClient.searchTx({ sentFromOrTo: WalletManager.getWalletAddress() || '' })
   },
   async [WalletActionTypes.TRANSFER_TOKENS] ({
     commit,
@@ -273,7 +306,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
       DEFAULT_FEE
     )
 
-    await dispatch(WalletActionTypes.UPDATE_BALANCES, { walletAddress: getters.getNolusWallet.address })
+    await dispatch(WalletActionTypes.UPDATE_BALANCES)
     return txResponse
   }
 }
