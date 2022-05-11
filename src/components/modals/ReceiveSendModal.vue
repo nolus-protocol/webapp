@@ -35,6 +35,7 @@ import ReceiveMainComponent from '@/components/ReceiveMainComponent.vue'
 
 enum ScreenState {
   SEND = 'SendMainComponent',
+  LEASE = 'SendMainComponent',
   RECEIVE = 'ReceiveMainComponent'
 }
 
@@ -75,7 +76,9 @@ export default defineComponent({
       } else {
         this.currentComponent = {
           is: ScreenState.RECEIVE,
-          props: {}
+          props: {
+            onClose: () => this.onCloseModal()
+          }
         }
       }
 

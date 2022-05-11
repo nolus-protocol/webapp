@@ -56,7 +56,7 @@ export interface ReceiveQrCodeComponentProps {
 }
 
 export default defineComponent({
-  name: 'ReceiveComponent',
+  name: 'ReceiveQrCodeComponent',
   components: {
     ArrowLeftIcon,
     DuplicateIcon,
