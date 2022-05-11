@@ -70,7 +70,6 @@ import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/solid'
 import { defineComponent, PropType } from 'vue'
 import { AssetUtils } from '@/utils/AssetUtils'
 import { AssetBalance } from '@/store/modules/wallet/state'
-
 export default defineComponent({
   name: 'CurrencyPicker',
   components: {
