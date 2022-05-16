@@ -35,7 +35,6 @@ import ReceiveMainComponent from '@/components/ReceiveMainComponent.vue'
 
 enum ScreenState {
   SEND = 'SendMainComponent',
-  LEASE = 'SendMainComponent',
   RECEIVE = 'ReceiveMainComponent'
 }
 

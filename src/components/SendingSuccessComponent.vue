@@ -48,20 +48,7 @@
 import { CheckIcon, DuplicateIcon } from '@heroicons/vue/solid'
 import { defineComponent, PropType } from 'vue'
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
-import { AssetBalance } from '@/store/modules/wallet/state'
-
-export type SendSuccessComponentProps = {
-  currentBalance: AssetBalance[],
-  selectedCurrency: AssetBalance,
-  amount: string,
-  memo: string,
-  receiverAddress: string,
-  password: string,
-  onNextClick: () => void,
-  onSendClick: () => void,
-  onConfirmBackClick: () => void,
-  onClickOkBtn: () => void
-}
+import { SendComponentProps } from '@/components/SendComponent.vue'
 
 export default defineComponent({
   name: 'SendingSuccessComponent',
@@ -70,8 +57,8 @@ export default defineComponent({
     DuplicateIcon
   },
   props: {
-    currentComponent: {
-      type: Object as PropType<SendSuccessComponentProps>
+    modelValue: {
+      type: Object as PropType<SendComponentProps>
     }
   },
   methods: {

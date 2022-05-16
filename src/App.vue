@@ -21,7 +21,6 @@ export default {
     console.log('errorCaptured: ', err)
   },
   async mounted () {
-    const walletConnectMechanism = WalletManager.getWalletConnectMechanism()
     useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK)
     useStore().dispatch(WalletActionTypes.UPDATE_BALANCES)
     setInterval(() => {

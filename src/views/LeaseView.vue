@@ -15,7 +15,9 @@
               <h1 class="text-default-heading text-primary m-0">Leases</h1>
             </div>
             <div class="right w-full md:w-1/2 mt-4 md:mt-0 inline-flex justify-start md:justify-end">
-              <button class="btn btn-primary btn-large-primary w-full md:w-1/2">Lease new</button>
+              <button class="btn btn-primary btn-large-primary w-full md:w-1/2" v-on:click="showSendModal = true">
+                Lease new
+              </button>
             </div>
           </div>
 
@@ -60,28 +62,31 @@
               </button>
               <button class="btn btn-secondary btn-large-secondary">
                 Repay
-            </button>
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+  <LeaseModal v-show="showSendModal" @close-modal="showSendModal = false"/>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
 import SidebarContainer from '@/components/SidebarContainer.vue'
-import AssetPartial from '@/components/AssetPartial.vue'
+import LeaseModal from '@/components/modals/LeaseModal.vue'
 
 export default defineComponent({
   name: 'LeaseView',
   components: {
-    SidebarContainer,
-    AssetPartial
+    LeaseModal,
+    SidebarContainer
   },
   data () {
-    return {}
+    return {
+      showSendModal: false
+    }
   }
 })
 </script>
