@@ -37,11 +37,11 @@
           <div class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm overflow-hidden">
 
             <!-- Top -->
-            <div class="flex flex-wrap items-baseline justify-between pt-5 px-6">
-              <div class="left w-full md:w-1/2">
-                <!--                <div class="loader">-->
-                <!--                  <div class="loader__element"></div>-->
-                <!--                </div>-->
+            <div class="flex flex-wrap items-baseline justify-between pt-5 px-6 relative">
+              <div class="loader-boxed" v-show="showLoading">
+                <div class="loader__element"></div>
+              </div>
+              <div class="left w-full md:w-1/2 relative">
                 <p class="text-large-copy text-primary text-medium m-0">Existing assets</p>
               </div>
               <div class="right w-full md:w-1/2 mt-4 md:mt-0 inline-flex justify-start md:justify-end">
@@ -137,7 +137,8 @@ export default defineComponent({
       manipulatedAssets: [] as AssetBalance[],
       mainAssets: [] as AssetBalance[],
       hideLowerBalances: false,
-      showSendModal: false
+      showSendModal: false,
+      showLoading: true
     }
   },
   watch: {
@@ -147,6 +148,7 @@ export default defineComponent({
       if (this.hideLowerBalances) {
         this.filterSmallBalances()
       }
+      this.showLoading = false
     },
     hideLowerBalances () {
       if (this.hideLowerBalances) {

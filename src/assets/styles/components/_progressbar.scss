@@ -1,4 +1,4 @@
-.loader {
+[class*="loader"] {
   background-color: var(--main-color);
   overflow: hidden;
   width: 100%;
@@ -16,8 +16,13 @@
   --back-color: rgba(40, 82, 145, 0.1);
   --loader-color: #2868e1;
 }
+.loader-boxed {
+  position: absolute;
+  height: fit-content;
+}
 
 .loader__element {
+  position: relative;
   height: var(--size);
   width: 100%;
   background: var(--back-color);
