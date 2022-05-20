@@ -69,13 +69,14 @@
       </div>
     </div>
   </div>
-
+<button class="btn btn-primary btn-large-primary" v-on:click="showErrorModal = true">click me</button>
   <!-- Actions -->
   <div class="modal-send-receive-actions">
     <button class="btn btn-primary btn-large-primary" v-on:click="modelValue.onNextClick">
       Next
     </button>
   </div>
+      <ErrorModal v-show="showErrorModal" @close-modal="showErrorModal = false"/>
 </template>
 
 <script lang="ts">
@@ -86,6 +87,7 @@ import InputField from '@/components/InputField.vue'
 import { defineComponent, PropType } from 'vue'
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
 import { AssetBalance } from '@/store/modules/wallet/state'
+import ErrorModal from '@/components/modals/ErrorModal.vue'
 
 export interface SendComponentProps {
   receiverErrorMsg: string,
@@ -109,7 +111,8 @@ export default defineComponent({
     StarIcon,
     CurrencyField,
     PickerDefault,
-    InputField
+    InputField,
+    ErrorModal
   },
   props: {
     modelValue: {

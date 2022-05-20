@@ -10,7 +10,7 @@
   align-items: center;
   align-content: center;
   justify-content: flex-start;
-  z-index: 100000;
+  z-index: 98;
   --time: 3s;
   --size: 3px;
   --back-color: rgba(40, 82, 145, 0.1);
@@ -36,6 +36,7 @@
   height: var(--size);
   width: 0;
   animation: getWidth var(--time) ease-in infinite;
+  z-index: 10;
 }
 
 @keyframes getWidth {
