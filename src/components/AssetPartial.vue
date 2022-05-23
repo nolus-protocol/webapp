@@ -23,7 +23,7 @@
 
     <!-- Price -->
     <div v-if="this.price" class="block">
-      <p class="text-primary text-medium text-large-copy text-right m-0">${{ this.price }}</p>
+      <p class="text-primary text-medium text-large-copy text-right m-0">{{ formatPrice(this.price) }}</p>
       <div class="flex items-center justify-end text-primary text-small-copy text-right m-0">
         <img
           :src="require('@/assets/icons/change-'+ (this.changeDirection ? 'positive' : 'negative') +'.svg')"
@@ -37,7 +37,9 @@
 
     <!-- Balance -->
     <div v-if="this.balance" class="block">
-      <p class="text-primary text-medium text-large-copy text-right m-0">${{ this.balance }}</p>
+      <p class="text-primary text-medium text-large-copy text-right m-0">{{
+          calculateBalance(this.price, this.assetBalance)
+        }}</p>
       <div class="flex items-center justify-end text-dark-grey text-small-copy text-right m-0">
         {{
           convertminimalDenomToDenom(
@@ -96,8 +98,15 @@ export default {
     return {}
   },
   methods: {
+    formatPrice (price: string) {
+      return CurrencyUtils.formatPrice(price)
+    },
     convertminimalDenomToDenom (tokenAmount: string, minimalDenom: string, denom: string, decimals: number) {
       return CurrencyUtils.convertMinimalDenomToDenom(tokenAmount, minimalDenom, denom, decimals)
+    },
+    calculateBalance (price: string, tokenAmount: string) {
+      console.log(tokenAmount)
+      return CurrencyUtils.calculateBalance(price, tokenAmount)
     }
   }
 }
