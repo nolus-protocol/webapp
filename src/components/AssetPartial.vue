@@ -38,11 +38,11 @@
     <!-- Balance -->
     <div v-if="this.balance" class="block">
       <p class="text-primary text-medium text-large-copy text-right m-0">{{
-          calculateBalance(this.price, this.assetBalance)
+          calculateBalance(this.price, this.assetBalance, assetInfo.coinMinimalDenom)
         }}</p>
       <div class="flex items-center justify-end text-dark-grey text-small-copy text-right m-0">
         {{
-          convertminimalDenomToDenom(
+          convertMinimalDenomToDenom(
             this.assetBalance,
             assetInfo.coinMinimalDenom,
             assetInfo.coinDenom,
@@ -65,6 +65,7 @@
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
 import { PropType } from 'vue'
 import { AssetInfo } from '@/utils/AssetUtils'
+import { Coin } from '@keplr-wallet/unit'
 
 export default {
   name: 'AssetPartial',
@@ -101,12 +102,12 @@ export default {
     formatPrice (price: string) {
       return CurrencyUtils.formatPrice(price)
     },
-    convertminimalDenomToDenom (tokenAmount: string, minimalDenom: string, denom: string, decimals: number) {
+    convertMinimalDenomToDenom (tokenAmount: string, minimalDenom: string, denom: string, decimals: number) {
       return CurrencyUtils.convertMinimalDenomToDenom(tokenAmount, minimalDenom, denom, decimals)
     },
-    calculateBalance (price: string, tokenAmount: string) {
+    calculateBalance (price: string, tokenAmount: string, minimalDenom: string) {
       console.log(tokenAmount)
-      return CurrencyUtils.calculateBalance(price, tokenAmount)
+      return CurrencyUtils.calculateBalance(price, new Coin(minimalDenom, tokenAmount))
     }
   }
 }
