@@ -69,7 +69,7 @@
       </div>
     </div>
   </div>
-<button class="btn btn-primary btn-large-primary" v-on:click="showErrorModal = true">click me</button>
+<button class="btn btn-primary btn-large-primary" @click="showErrorModal = true">click me</button>
   <!-- Actions -->
   <div class="modal-send-receive-actions">
     <button class="btn btn-primary btn-large-primary" v-on:click="modelValue.onNextClick">
@@ -119,7 +119,11 @@ export default defineComponent({
       type: Object as PropType<SendComponentProps>
     }
   },
-
+  data() {
+    return {
+      showErrorModal: false
+    }
+  },
   methods: {
     formatCurrentBalance (value: AssetBalance[]) {
       if (value) {
