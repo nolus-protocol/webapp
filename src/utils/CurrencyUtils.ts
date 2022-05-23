@@ -1,6 +1,7 @@
-import { Coin, CoinPretty, Dec, DecUtils } from '@keplr-wallet/unit'
+import { Coin, CoinPretty, Dec, DecUtils, Int, PricePretty } from '@keplr-wallet/unit'
 import { Coin as CosmosCoin } from '@cosmjs/proto-signing'
 import { COIN_DECIMALS, COIN_DENOM, COIN_MINIMAL_DENOM } from '../constants/chain'
+import { assetsInfo } from '@/config/assetsInfo'
 
 export class CurrencyUtils {
   public static convertNolusToUNolus (tokenAmount: string): Coin {
@@ -60,5 +61,29 @@ export class CurrencyUtils {
       return new Coin('', 0)
     }
     return new Coin(cosmosCoin.denom, cosmosCoin.amount)
+  }
+
+  public static getDenomFromMinimalDenom (minimalDenom: string) {
+    return minimalDenom?.replace(minimalDenom[0], '')
+  }
+
+  public static calculateBalance (price: string, tokenAmount: Coin) {
+    const tokenDecimal = assetsInfo[tokenAmount.denom]
+    const amount = new Dec(tokenAmount.amount).quoTruncate(new Dec(10).pow(new Int(tokenDecimal.coinDecimals)))
+    return new PricePretty({
+      currency: 'usd',
+      maxDecimals: 4,
+      symbol: '$',
+      locale: 'en-US'
+    }, new Dec(price).mul(amount))
+  }
+
+  public static formatPrice (price: string) {
+    return new PricePretty({
+      currency: 'usd',
+      maxDecimals: 4,
+      symbol: '$',
+      locale: 'en-US'
+    }, new Dec(price))
   }
 }

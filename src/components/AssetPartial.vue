@@ -23,7 +23,7 @@
 
     <!-- Price -->
     <div v-if="this.price" class="block">
-      <p class="text-primary text-medium text-large-copy text-right m-0">${{ this.price }}</p>
+      <p class="text-primary text-medium text-large-copy text-right m-0">{{ formatPrice(this.price) }}</p>
       <div class="flex items-center justify-end text-primary text-small-copy text-right m-0">
         <img
           :src="require('@/assets/icons/change-'+ (this.changeDirection ? 'positive' : 'negative') +'.svg')"
@@ -37,10 +37,12 @@
 
     <!-- Balance -->
     <div v-if="this.balance" class="block">
-      <p class="text-primary text-medium text-large-copy text-right m-0">${{ this.balance }}</p>
+      <p class="text-primary text-medium text-large-copy text-right m-0">{{
+          calculateBalance(this.price, this.assetBalance, assetInfo.coinMinimalDenom)
+        }}</p>
       <div class="flex items-center justify-end text-dark-grey text-small-copy text-right m-0">
         {{
-          convertminimalDenomToDenom(
+          convertMinimalDenomToDenom(
             this.assetBalance,
             assetInfo.coinMinimalDenom,
             assetInfo.coinDenom,
@@ -63,6 +65,7 @@
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
 import { PropType } from 'vue'
 import { AssetInfo } from '@/utils/AssetUtils'
+import { Coin } from '@keplr-wallet/unit'
 
 export default {
   name: 'AssetPartial',
@@ -96,8 +99,15 @@ export default {
     return {}
   },
   methods: {
-    convertminimalDenomToDenom (tokenAmount: string, minimalDenom: string, denom: string, decimals: number) {
+    formatPrice (price: string) {
+      return CurrencyUtils.formatPrice(price)
+    },
+    convertMinimalDenomToDenom (tokenAmount: string, minimalDenom: string, denom: string, decimals: number) {
       return CurrencyUtils.convertMinimalDenomToDenom(tokenAmount, minimalDenom, denom, decimals)
+    },
+    calculateBalance (price: string, tokenAmount: string, minimalDenom: string) {
+      console.log(tokenAmount)
+      return CurrencyUtils.calculateBalance(price, new Coin(minimalDenom, tokenAmount))
     }
   }
 }

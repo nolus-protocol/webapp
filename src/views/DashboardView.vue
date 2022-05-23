@@ -98,7 +98,7 @@
                   v-for="asset in this.manipulatedAssets"
                   :key="asset"
                   :asset-info=getAssetInfo(asset.udenom)
-                  price="29,836.42"
+                  :price=getMarketPrice(asset.udenom)
                   change="4.19"
                   :changeDirection=true
                   balance="0"
@@ -124,6 +124,8 @@ import { AssetUtils } from '@/utils/AssetUtils'
 import { Int } from '@keplr-wallet/unit'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
+import { useStore } from '@/store'
+import { CurrencyUtils } from '@/utils/CurrencyUtils'
 
 export default defineComponent({
   name: 'DashboardView',
@@ -161,6 +163,13 @@ export default defineComponent({
   methods: {
     getAssetInfo (minimalDenom: string) {
       return AssetUtils.getAssetInfoByAbbr(minimalDenom)
+    },
+    getMarketPrice (minimalDenom: string) {
+      const prices = useStore().state.oracle.prices
+      if (prices) {
+        return prices[CurrencyUtils.getDenomFromMinimalDenom(minimalDenom)]?.amount || '0'
+      }
+      return '0'
     },
     filterSmallBalances () {
       this.manipulatedAssets = this.manipulatedAssets.filter(asset => asset.balance.amount.gt(new Int('1')))
