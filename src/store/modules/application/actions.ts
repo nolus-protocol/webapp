@@ -39,13 +39,5 @@ export const actions: ActionTree<State, RootState> & Actions = {
         networkAddresses: loadedNetworkConfig
       } as NetworkConfig
     })
-    // try {
-    //   await dispatch.wallet.connectKeplr({
-    //     tendermintRpc: loadedNetworkConfig.tendermintRpc,
-    //     api: loadedNetworkConfig.api
-    //   })
-    // } catch (e) {
-    //   throw e
-    // }
   }
 }

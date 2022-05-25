@@ -23,6 +23,7 @@
           :currency-options="modelValue.currentBalance"
           :option="modelValue.selectedCurrency"
           @update-currency="onUpdateCurrency"
+          :disabled-currency-picker="true"
           :error-msg="modelValue.amountErrorMsg"
           :is-error="modelValue.amountErrorMsg !== ''"
         />

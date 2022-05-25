@@ -41,7 +41,6 @@
           <SidebarElement
             id="earn"
             label="Earn"
-            v-on:click="pushToEarn"
             :icon="require('@/assets/icons/earn.svg')"
             :iconHover="require('@/assets/icons/earn_active.svg')"
           >

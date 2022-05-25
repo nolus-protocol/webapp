@@ -31,6 +31,7 @@
           <CurrencyPicker
             :options="currencyOptions"
             type="small"
+            :disabled="disabledCurrencyPicker"
             @update-currency="onUpdateCurrency"
           />
         </div>
@@ -48,6 +49,7 @@
 import CurrencyPicker from '@/components/CurrencyPicker.vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import { defineComponent, PropType } from 'vue'
+
 export default defineComponent({
   name: 'CurrencyField',
   components: {
@@ -71,6 +73,9 @@ export default defineComponent({
     },
     label: {
       type: String
+    },
+    disabledCurrencyPicker: {
+      type: Boolean
     },
     isError: {
       type: Boolean

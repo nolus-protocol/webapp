@@ -1,6 +1,6 @@
 <template>
   <div
-    class="fixed flex items-end md:items-center top-0 bottom-0 left-0 right-0 justify-center bg-white/70 backdrop-blur-xl z-[99] modal-send-receive-parent"
+    class="fixed flex items-end md:items-center top-0 bottom-0 left-0 right-0 justify-center bg-white/70 backdrop-blur-xl z-[999999999] modal-send-receive-parent"
     @click="$emit('close-modal')">
 
     <button

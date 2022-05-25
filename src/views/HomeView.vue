@@ -2,7 +2,7 @@
   <h1 class="text-to-big-number text-primary text-center">Sign in</h1>
   <div class="block rounded-2xl bg-white mt-8 p-10 border border-standart shadow-box">
     <div class="flex">
-      <button class="btn btn-box btn-large-box mr-4 basis-0 grow">
+      <button class="btn btn-box btn-large-box mr-4 basis-0 grow" disabled>
         <img
           src="@/assets/icons/google.svg"
         />
@@ -15,8 +15,8 @@
         Import existing account
       </button>
     </div>
-    <div class="flex mt-4">
-      <button v-on:click="clickImportLedger" class="btn btn-box btn-large-box mr-4 basis-0 grow">
+    <div class="flex mt-4" aria-disabled="true">
+      <button v-on:click="clickImportLedger" class="btn btn-box btn-large-box mr-4 basis-0 grow" disabled>
         <img
           src="@/assets/icons/clock.svg"
         />

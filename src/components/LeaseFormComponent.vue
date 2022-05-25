@@ -7,6 +7,13 @@
           name="amountInvestment"
           id="amount-investment"
           label="How much do you want to invest?"
+          :value="modelValue.amount"
+          @input="(event) => (modelValue.amount = event.target.value)"
+          :currency-options="modelValue.currentBalance"
+          :option="modelValue.selectedCurrency"
+          @update-currency="onUpdateCurrency"
+          :error-msg="modelValue.amountErrorMsg"
+          :is-error="modelValue.amountErrorMsg !== ''"
         ></CurrencyField>
       </div>
 
@@ -89,6 +96,7 @@
 import CurrencyField from '@/components/CurrencyField.vue'
 import { defineComponent, PropType } from 'vue'
 import { SendComponentProps } from '@/components/SendComponent.vue'
+import { AssetBalance } from '@/store/modules/wallet/state'
 
 export default defineComponent({
   name: 'LeaseFormComponent',
@@ -102,6 +110,12 @@ export default defineComponent({
   },
   mounted () {
     console.log(this.modelValue)
+  },
+  methods: {
+    onUpdateCurrency (value: AssetBalance) {
+      console.log('currency test: ', value)
+      this.$emit('update:modelValue.selectedCurrency', value)
+    }
   }
 })
 </script>

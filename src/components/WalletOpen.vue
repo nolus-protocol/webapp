@@ -47,7 +47,7 @@
     <!-- Wallet Actions -->
     <div class="wallet-open-actions p-4 lg:p-6">
       <div class="flex justify-end">
-        <button class="btn btn-secondary btn-large-secondary">
+        <button class="btn btn-secondary btn-large-secondary" v-on:click="onClickDisconnect">
           Disconnect
         </button>
       </div>
@@ -61,6 +61,9 @@ import { EnvNetworks } from '@/config/envNetworks'
 import { StringUtils } from '@/utils/StringUtils'
 import { useStore } from '@/store'
 import { ApplicationActionTypes } from '@/store/modules/application/action-types'
+import { WalletManager } from '@/config/wallet'
+import router from '@/router'
+import { RouteNames } from '@/router/RouterNames'
 
 export default defineComponent({
   name: 'WalletOpen',
@@ -93,6 +96,10 @@ export default defineComponent({
     onUpdateNetwork (value: PickerDefaultOption) {
       EnvNetworks.saveCurrentNetwork(value.value)
       useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK)
+    },
+    onClickDisconnect () {
+      WalletManager.eraseWalletInfo()
+      router.push({ name: RouteNames.AUTH })
     }
   }
 })

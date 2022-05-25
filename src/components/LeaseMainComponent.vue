@@ -14,6 +14,9 @@ import SendingFailedComponent from '@/components/SendingFailedComponent.vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import LeaseFormComponent from '@/components/LeaseFormComponent.vue'
 import { SendComponentProps } from '@/components/SendComponent.vue'
+import { useStore } from '@/store'
+import { Lease } from '@/contracts/lease/Lease'
+import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 
 enum ScreenState {
   MAIN = 'LeaseFormComponent',
@@ -64,6 +67,12 @@ export default defineComponent({
         onClickOkBtn: () => this.onClickOkBtn()
       } as SendComponentProps
     }
+    const balances = useStore().state.wallet.balances
+
+    console.log('balances lease: ', balances)
+    if (balances) {
+      this.currentComponent.props.currentBalance = balances
+    }
   },
   data () {
     return {
@@ -75,12 +84,32 @@ export default defineComponent({
       if (balances) {
         this.currentComponent.props.currentBalance = balances
       }
+    },
+    'currentComponent.props.selectedCurrency' () {
+      if (this.currentComponent.props.selectedCurrency) {
+        console.log('selected:', this.currentComponent.props.selectedCurrency)
+      }
     }
   },
   methods: {
-    onNextClick () {
+    async onNextClick () {
       console.log('click next')
-      this.currentComponent.is = ScreenState.CONFIRM
+      const wallet = useStore().state.wallet.wallet
+      const leaseContract = new Lease()
+      const downpayment = await leaseContract.getDownpayment(this.currentComponent.props.amount, 'unolus')
+
+      if (!wallet) {
+        useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
+      }
+      useStore().dispatch(WalletActionTypes.OPEN_LEASE, {
+        denom: 'unolus',
+        feeAmount: '0.25'
+      })
+      // wallet?.execute()
+      console.log(downpayment)
+      // console.log('selected currency: ', this.currentComponent.props.selectedCurrency)
+      // console.log('how much: ', this.currentComponent.props.amount)
+      // this.currentComponent.is = ScreenState.CONFIRM
       // if (this.currentComponent.props.amountErrorMsg === '' &&
       //   this.currentComponent.props.receiverErrorMsg === '') {
       //   this.currentComponent.is = ScreenState.CONFIRM

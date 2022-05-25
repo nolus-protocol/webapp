@@ -18,6 +18,7 @@ import { CurrencyUtils } from '@/utils/CurrencyUtils'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { AssetBalance } from '@/store/modules/wallet/state'
+import { WalletUtils } from '@/utils/WalletUtils'
 
 enum ScreenState {
   MAIN = 'SendComponent',
@@ -68,6 +69,10 @@ export default defineComponent({
         onClickOkBtn: () => this.onClickOkBtn()
       } as SendComponentProps
     }
+    const balances = useStore().state.wallet.balances
+    if (balances) {
+      this.currentComponent.props.currentBalance = balances
+    }
   },
   data () {
     return {
@@ -104,21 +109,28 @@ export default defineComponent({
         this.currentComponent.is = ScreenState.CONFIRM
       }
     },
-
     async onSendClick () {
-      console.log(this.currentComponent.props.password)
-      const txResponse = await useStore().dispatch(WalletActionTypes.TRANSFER_TOKENS, {
-        receiverAddress: this.currentComponent.props.receiverAddress,
-        amount: CurrencyUtils.convertNolusToUNolus(this.currentComponent.props.amount).amount.toString(),
-        feeAmount: '0.25'
-      })
-      if (txResponse) {
-        console.log('txResponse: ', txResponse)
-        this.currentComponent.is = txResponse.code === 0 ? ScreenState.SUCCESS : ScreenState.FAILED
-        this.currentComponent.props.txHash = txResponse.transactionHash
+      const wallet = useStore().state.wallet.wallet
+      if (!wallet) {
+        if (WalletUtils.isConnectedViaMnemonic()) {
+          useStore().dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, { password: this.currentComponent.props.password })
+        } else {
+          useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
+        }
+      }
+      if (wallet) {
+        const txResponse = await useStore().dispatch(WalletActionTypes.TRANSFER_TOKENS, {
+          receiverAddress: this.currentComponent.props.receiverAddress,
+          amount: CurrencyUtils.convertNolusToUNolus(this.currentComponent.props.amount).amount.toString(),
+          feeAmount: '0.25'
+        })
+        if (txResponse) {
+          console.log('txResponse: ', txResponse)
+          this.currentComponent.is = txResponse.code === 0 ? ScreenState.SUCCESS : ScreenState.FAILED
+          this.currentComponent.props.txHash = txResponse.transactionHash
+        }
       }
     },
-
     onConfirmBackClick () {
       this.currentComponent.is = ScreenState.MAIN
     },

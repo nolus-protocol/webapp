@@ -6,7 +6,7 @@
         ]"
   >
     <Listbox as="div" v-model="selected.value"
-             @update:modelValue="$emit('update-currency', selected.value)" disabled>
+             @update:modelValue="$emit('update-currency', selected.value)" :disabled="disabled">
       <div v-if="typeof this.label !== 'undefined' && this.label !== null && this.label.length > 0">
         <ListboxLabel class="block text-normal-copy text-primary text-medium">
           {{ this.label }}
@@ -70,6 +70,7 @@ import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/solid'
 import { defineComponent, PropType } from 'vue'
 import { AssetUtils } from '@/utils/AssetUtils'
 import { AssetBalance } from '@/store/modules/wallet/state'
+
 export default defineComponent({
   name: 'CurrencyPicker',
   components: {
@@ -94,6 +95,9 @@ export default defineComponent({
     },
     currencyoption: {
       type: Object as PropType<AssetBalance>
+    },
+    disabled: {
+      type: Boolean
     },
     isError: {
       type: Boolean

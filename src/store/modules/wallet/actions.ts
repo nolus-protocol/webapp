@@ -26,6 +26,10 @@ import { EnvNetworks } from '@/config/envNetworks'
 import { EncryptionUtils } from '@/utils/EncryptionUtils'
 import { makeIBCMinimalDenom } from '@/utils/AssetUtils'
 import { RouteNames } from '@/router/RouterNames'
+import { NolusWallet } from '@/wallet/NolusWallet'
+import { CONTRACTS } from '@/config/contracts.config'
+import { openLease } from '@/contracts/lease/LeaseMsg'
+import { Dec, Int } from '@keplr-wallet/unit'
 
 type AugmentedActionContext = {
   commit<K extends keyof Mutations> (
@@ -39,7 +43,7 @@ type AugmentedActionContext = {
 } & Omit<ActionContext<State, RootState>, 'commit'>
 
 export interface Actions {
-  [WalletActionTypes.CONNECT_KEPLR] ({ commit }: AugmentedActionContext): void,
+  [WalletActionTypes.CONNECT_KEPLR] ({ commit }: AugmentedActionContext, payload: { isFromAuth: boolean }): void,
 
   [WalletActionTypes.CONNECT_LEDGER] ({ commit }: AugmentedActionContext): void,
 
@@ -84,13 +88,23 @@ export interface Actions {
     amount: string | undefined,
     feeAmount: string
   }): Promise<DeliverTxResponse | undefined>
+
+  [WalletActionTypes.OPEN_LEASE] ({
+    commit,
+    getters,
+    dispatch
+  }: AugmentedActionContext, payload: {
+    denom: string,
+    feeAmount: string
+  }): void
+
 }
 
 export const actions: ActionTree<State, RootState> & Actions = {
   async [WalletActionTypes.CONNECT_KEPLR] ({
     commit,
     dispatch
-  }) {
+  }, payload: { isFromAuth: false }) {
     await WalletUtils.getKeplr()
     const keplrWindow = window as KeplrWindow
 
@@ -118,7 +132,9 @@ export const actions: ActionTree<State, RootState> & Actions = {
         dispatch(WalletActionTypes.UPDATE_BALANCES, { walletAddress: nolusWalletOfflineSigner.address }) // check this
         WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.EXTENSION)
         WalletManager.storeWalletAddress(nolusWalletOfflineSigner.address || '')
-        router.push({ name: RouteNames.DASHBOARD })
+        if (payload.isFromAuth) {
+          router.push({ name: RouteNames.DASHBOARD })
+        }
       }
     }
   },
@@ -288,11 +304,16 @@ export const actions: ActionTree<State, RootState> & Actions = {
     if (!payload.amount) {
       return
     }
+    const coinDecimals = new Int(10).pow(new Int(6).absUInt())
+    console.log('coinDec: ', coinDecimals)
+    const feeAmount = new Dec(payload.feeAmount).mul(new Dec(coinDecimals))
+    console.log('feeAmount: ', feeAmount.truncate().toString())
     const DEFAULT_FEE = {
       // TODO 0.0025unolus
+
       amount: [{
         denom: 'unolus',
-        amount: payload.feeAmount
+        amount: feeAmount.truncate().toString()
       }],
       gas: '100000'
     }
@@ -308,5 +329,37 @@ export const actions: ActionTree<State, RootState> & Actions = {
 
     await dispatch(WalletActionTypes.UPDATE_BALANCES)
     return txResponse
+  },
+  async [WalletActionTypes.OPEN_LEASE] ({
+    commit,
+    getters,
+    dispatch
+  }, payload: {
+    denom: string,
+    feeAmount: string
+  }) {
+    const wallet = getters.getNolusWallet as NolusWallet
+    const DEFAULT_FEE = {
+      // TODO 0.0025unolus
+      amount: [{
+        denom: 'unolus',
+        amount: payload.feeAmount
+      }],
+      gas: '500000'
+    }
+
+    // TODO add funds! [{ denom: lppDenom, amount: downpayment }]
+    const result = await wallet.execute(
+      wallet.address as string,
+      CONTRACTS.leaser.instance,
+      openLease(payload.denom),
+      DEFAULT_FEE,
+      undefined,
+      [{
+        denom: 'unolus',
+        amount: '180'
+      }]
+    )
+    console.log(result)
   }
 }

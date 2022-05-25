@@ -15,7 +15,7 @@
 
   <!-- Input Area -->
   <div class="modal-send-receive-input-area pt-0">
-    <div class="block text-left">
+    <div v-if="isMnemonicWallet()" class="block text-left">
       <InputField
         type="password"
         name="password"
@@ -63,6 +63,7 @@ import InputField from '@/components/InputField.vue'
 import { defineComponent, PropType } from 'vue'
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
 import { SendComponentProps } from '@/components/SendComponent.vue'
+import { WalletUtils } from '@/utils/WalletUtils'
 
 export default defineComponent({
   name: 'SendingConfirmComponent',
@@ -79,6 +80,9 @@ export default defineComponent({
     formatAmount (value: string) {
       const amountInUNls = CurrencyUtils.convertNolusToUNolus(value)
       return CurrencyUtils.convertUNolusToNolus(amountInUNls.amount.toString())
+    },
+    isMnemonicWallet () {
+      return WalletUtils.isConnectedViaMnemonic()
     }
   }
 })

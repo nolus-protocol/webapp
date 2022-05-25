@@ -31,22 +31,6 @@ export default {
     }, 5000)
 
     useStore().dispatch(OracleActionTypes.GET_PRICES)
-
-    const quoteMsg = {
-      quote: {
-        downpayment: {
-          denom: 'unolus',
-          amount: '100'
-        }
-      }
-    }
-    // const denoms = { supported_denom_pairs: {} }
-    // NolusClient.setInstance('https://net-dev.nolus.io:26612')
-    // const cosm = await NolusClient.getInstance().getCosmWasmClient()
-    // const oracleContract = new Oracle()
-    // console.log('price: ', await oracleContract.getPrices(['OSMO', 'NOLUS', 'ATOM']))
-    // console.log(await cosm.queryContractSmart('nolus16xz4vg9xh9arxfky5zwl8g6mtk9dxkjt7h608f80dplkfzgr3mesht9ns4', getPriceMsg))
-    // console.log(await cosm.queryContractSmart('nolus17u2a36dg0zv9t8zdfmxczzam0kp0r6tvlqm46amxz7qcfjm04tsqk06mrs', quoteMsg))
   },
   data () {
     return {}

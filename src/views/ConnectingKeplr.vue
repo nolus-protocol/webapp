@@ -65,7 +65,7 @@ export default defineComponent({
     }
   },
   mounted () {
-    useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
+    useStore().dispatch(WalletActionTypes.CONNECT_KEPLR, { isFromAuth: true })
   }
 })
 </script>

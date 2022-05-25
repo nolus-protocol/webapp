@@ -28,8 +28,8 @@
 
       <div class="block mt-3">
         <p class="text-normal-copy text-primary m-0">Tx Id:</p>
-        <p class="text-normal-copy text-primary text-bold m-0">C1FAC987E9515B…63BE5162B4A00310244A</p>
-        <button class="btn btn-secondary btn-medium-secondary btn-icon mt-2">
+        <p class="text-normal-copy text-primary text-bold m-0">{{ modelValue.txHash }}</p>
+        <button class="btn btn-secondary btn-medium-secondary btn-icon mt-2" v-on:click="btnCopyClick">
           <DuplicateIcon class="icon w-4 h-4"/>
           Copy
         </button>
@@ -50,6 +50,7 @@ import { DuplicateIcon, XIcon } from '@heroicons/vue/solid'
 import { defineComponent, PropType } from 'vue'
 import { CurrencyUtils } from '@/utils/CurrencyUtils'
 import { SendComponentProps } from '@/components/SendComponent.vue'
+import { StringUtils } from '@/utils/StringUtils'
 
 export default defineComponent({
   name: 'SendingFailedComponent',
@@ -66,6 +67,9 @@ export default defineComponent({
     formatAmount (value: string) {
       const amountInUNls = CurrencyUtils.convertNolusToUNolus(value)
       return CurrencyUtils.convertUNolusToNolus(amountInUNls.amount.toString())
+    },
+    btnCopyClick () {
+      StringUtils.copyToClipboard(this.modelValue?.txHash || '')
     }
   }
 })
