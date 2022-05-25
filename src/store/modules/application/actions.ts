@@ -9,6 +9,7 @@ import { NolusClient } from '@/client/NolusClient'
 import { EnvNetworks } from '@/config/envNetworks'
 import { ApplicationMutationTypes } from '@/store/modules/application/mutation-types'
 import { DEFAULT_PRIMARY_NETWORK, NetworkConfig } from '@/config/env.config'
+import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 
 type AugmentedActionContext = {
   commit<K extends keyof Mutations> (
@@ -22,11 +23,17 @@ type AugmentedActionContext = {
 } & Omit<ActionContext<State, RootState>, 'commit'>
 
 export interface Actions {
-  [ApplicationActionTypes.CHANGE_NETWORK] ({ commit }: AugmentedActionContext): void,
+  [ApplicationActionTypes.CHANGE_NETWORK] ({
+    commit,
+    dispatch
+  }: AugmentedActionContext): void,
 }
 
 export const actions: ActionTree<State, RootState> & Actions = {
-  [ApplicationActionTypes.CHANGE_NETWORK] ({ commit }) {
+  [ApplicationActionTypes.CHANGE_NETWORK] ({
+    commit,
+    dispatch
+  }) {
     const envNetworks = new EnvNetworks()
     const loadedNetworkConfig = envNetworks.loadNetworkConfig()
     if (!loadedNetworkConfig) {
@@ -39,5 +46,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
         networkAddresses: loadedNetworkConfig
       } as NetworkConfig
     })
+
+    dispatch(WalletActionTypes.CONNECT_KEPLR)
   }
 }

@@ -36,4 +36,8 @@ export class WalletUtils {
   public static isConnectedViaMnemonic (): boolean {
     return WalletManager.getWalletConnectMechanism() === WalletConnectMechanism.MNEMONIC
   }
+
+  public static isConnectedViaExtension (): boolean {
+    return WalletManager.getWalletConnectMechanism() === WalletConnectMechanism.EXTENSION
+  }
 }

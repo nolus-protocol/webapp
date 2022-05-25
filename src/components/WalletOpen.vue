@@ -64,6 +64,7 @@ import { ApplicationActionTypes } from '@/store/modules/application/action-types
 import { WalletManager } from '@/config/wallet'
 import router from '@/router'
 import { RouteNames } from '@/router/RouterNames'
+import { WalletUtils } from '@/utils/WalletUtils'
 
 export default defineComponent({
   name: 'WalletOpen',
@@ -90,12 +91,14 @@ export default defineComponent({
       label: StringUtils.capitalize(envNetwork.getStoredNetworkName() || ''),
       value: envNetwork.getStoredNetworkName() || ''
     }
-    console.log(this.currentNetwork)
   },
   methods: {
     onUpdateNetwork (value: PickerDefaultOption) {
+      console.log('loggg')
       EnvNetworks.saveCurrentNetwork(value.value)
-      useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK)
+      if (WalletUtils.isConnectedViaExtension()) {
+        useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK)
+      }
     },
     onClickDisconnect () {
       WalletManager.eraseWalletInfo()
