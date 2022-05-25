@@ -17,8 +17,8 @@ build:
     - docker
   script:
     - version=$(sh ./version.sh)
-    - npm install
-    - npm run build
+    - yarn install
+    - yarn run build
 
   artifacts:
     name: "build-$CI_COMMIT_REF_SLUG"
