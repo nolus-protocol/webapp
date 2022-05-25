@@ -1,0 +1,42 @@
+stages:
+- build
+- deploy
+
+
+
+variables:
+  BUCKET_NAME_DEV: app-dev.nolus.io
+  BUCKET_NAME_TEST: app-staging.nolus.io
+  BUCKET_NAME_PROD: app.nolus.io
+
+
+build:
+  stage: build
+  image: node:17.3.0
+  tags:
+    - docker
+  script:
+    - version=$(sh ./version.sh)
+    - npm install
+    - npm run build
+
+  artifacts:
+    name: "build-$CI_COMMIT_REF_SLUG"
+    paths:
+      - dist/
+
+deploy-aws-dev:
+  stage: deploy
+  image:
+    name: amazon/aws-cli
+    entrypoint: [""]
+  tags:
+    - docker
+  script:
+    - aws --version
+    - aws s3 sync build s3://${BUCKET_NAME_DEV}
+  environment:
+    name: development
+    url: http://${BUCKET_NAME_DEV}.s3-website-eu-west-1.amazonaws.com
+  only:
+    - main
