@@ -132,7 +132,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
         dispatch(WalletActionTypes.UPDATE_BALANCES, { walletAddress: nolusWalletOfflineSigner.address }) // check this
         WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.EXTENSION)
         WalletManager.storeWalletAddress(nolusWalletOfflineSigner.address || '')
-        if (payload.isFromAuth) {
+        if (payload?.isFromAuth) {
           router.push({ name: RouteNames.DASHBOARD })
         }
       }
@@ -356,7 +356,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
       DEFAULT_FEE,
       undefined,
       [{
-        denom: 'unolus',
+        denom: payload.denom,
         amount: '180'
       }]
     )
