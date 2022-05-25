@@ -34,10 +34,10 @@ deploy-aws-dev:
     - docker
   script:
     - aws --version
-    - aws s3 sync build s3://${BUCKET_NAME_DEV}
+    - aws s3 sync build s3://app-dev.nolus.io
   environment:
     name: development
-    url: http://${BUCKET_NAME_DEV}.s3-website-eu-west-1.amazonaws.com
+    url: http://app-dev.nolus.io.s3-website-eu-west-1.amazonaws.com
   only:
     - main
     
