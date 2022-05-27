@@ -6,6 +6,7 @@ import { Mutations } from './mutations'
 import { Getters } from '@/store/modules/wallet/getters'
 import { OracleActionTypes } from '@/store/modules/oracle/action-types'
 import { OracleMutationTypes } from '@/store/modules/oracle/mutation-types'
+import { OraclePricesResp } from '@/contracts/models/OraclePricesResp'
 
 type AugmentedActionContext = {
   commit<K extends keyof Mutations> (
@@ -24,7 +25,7 @@ export interface Actions {
 
 export const actions: ActionTree<State, RootState> & Actions = {
   async [OracleActionTypes.GET_PRICES] ({ commit }) {
-    const pricesResponse = {
+    const pricesResponse: OraclePricesResp = {
       prices: [
         {
           denom: 'OSMO',

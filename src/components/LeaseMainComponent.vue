@@ -96,13 +96,13 @@ export default defineComponent({
       console.log('click next')
       const wallet = useStore().state.wallet.wallet
       const leaseContract = new Lease()
-      const downpayment = await leaseContract.getDownpayment(this.currentComponent.props.amount, 'unolus')
+      const downpayment = await leaseContract.getDownpayment(this.currentComponent.props.amount, 'UST')
 
       if (!wallet) {
         useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
       }
       useStore().dispatch(WalletActionTypes.OPEN_LEASE, {
-        denom: 'unolus',
+        denom: 'UST',
         feeAmount: '0.25'
       })
       // wallet?.execute()

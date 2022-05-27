@@ -27,7 +27,7 @@
             class="flex items-center justify-between bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm py-5 px-6">
             <div class="left inline-block w-1/2">
               <p class="text-large-copy text-primary text-medium m-0">Wallet Balance</p>
-              <p class="text-big-number text-primary m-0 mt-1">$ 123,423.00</p>
+              <p class="text-big-number text-primary m-0 mt-1">{{ calculateTotalBalance() }}</p>
             </div>
             <div class="right inline-block w-1/2">
             </div>
@@ -121,7 +121,7 @@ import { defineComponent } from 'vue'
 import SidebarContainer from '@/components/SidebarContainer.vue'
 import AssetPartial from '@/components/AssetPartial.vue'
 import { AssetUtils } from '@/utils/AssetUtils'
-import { Int } from '@keplr-wallet/unit'
+import { Coin, Dec, Int } from '@keplr-wallet/unit'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
 import { useStore } from '@/store'
@@ -173,6 +173,18 @@ export default defineComponent({
     },
     filterSmallBalances () {
       this.manipulatedAssets = this.manipulatedAssets.filter(asset => asset.balance.amount.gt(new Int('1')))
+    },
+    calculateTotalBalance () {
+      let totalBalance = new Dec(0)
+      this.mainAssets.forEach(asset => {
+        const assetBalance = CurrencyUtils.calculateBalance(
+          this.getMarketPrice(asset.udenom),
+          new Coin(asset.udenom, asset.balance.amount.toString())
+        )
+        totalBalance = totalBalance.add(assetBalance.toDec())
+      })
+
+      return CurrencyUtils.formatPrice(totalBalance.toString()).toString()
     }
   }
 })
