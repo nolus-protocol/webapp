@@ -2,6 +2,7 @@
   <div v-if="isCreateFormOpen">
     <h1 class="text-to-big-number text-primary text-center relative">
       <button
+        v-on:click="clickBack"
         type="button"
         class="inline-block align-baseline absolute left-0 top-2/4 -mt-2.5"
       >
@@ -29,6 +30,8 @@
         id="mnemonicSeed"
         label="Mnemonic seed"
         :value="mnemonic"
+        :on-click-copy="onClickCopy"
+        :on-click-print="onClickPrint"
       ></TextFieldButtons>
       <div class="flex rounded p-4 warning-box mt-6">
         <div class="inline-block mr-2">
@@ -43,22 +46,22 @@
             seed can’t be recovered.</p>
         </div>
       </div>
-      <div class="block mt-6">
-        <InputField
-          type="email"
-          name="email"
-          id="email"
-          label="Email"
-        ></InputField>
-      </div>
-      <div class="block mt-6">
-        <InputField
-          type="password"
-          name="password"
-          id="password"
-          label="Password"
-        ></InputField>
-      </div>
+      <!--      <div class="block mt-6">-->
+      <!--        <InputField-->
+      <!--          type="email"-->
+      <!--          name="email"-->
+      <!--          id="email"-->
+      <!--          label="Email"-->
+      <!--        ></InputField>-->
+      <!--      </div>-->
+      <!--      <div class="block mt-6">-->
+      <!--        <InputField-->
+      <!--          type="password"-->
+      <!--          name="password"-->
+      <!--          id="password"-->
+      <!--          label="Password"-->
+      <!--        ></InputField>-->
+      <!--      </div>-->
       <div class="block mt-6">
         <button v-on:click="btnContinueToConfirm" class="btn btn-primary btn-large-primary">
           Continue
@@ -107,7 +110,6 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import InputField from '@/components/InputField.vue'
 import TextFieldButtons from '@/components/TextFieldButtons.vue'
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
 import SelectorTextField from '@/components/SelectorTextField.vue'
@@ -116,12 +118,12 @@ import router from '@/router'
 import { KeyUtils } from '@/utils/KeyUtils'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { RouteNames } from '@/router/RouterNames'
+import { StringUtils } from '@/utils/StringUtils'
 
 export default defineComponent({
   name: 'CreateAccountView',
   components: {
     ArrowLeftIcon,
-    InputField,
     TextFieldButtons,
     SelectorTextField
   },
@@ -157,10 +159,6 @@ export default defineComponent({
       }
 
       useStore().dispatch(WalletActionTypes.CONNECT_VIA_MNEMONIC, { mnemonic: this.mnemonic })
-
-      console.log('confirmMnemonic: ', confirmMnemonic)
-      console.log('mnemonic: ', this.mnemonic)
-      console.log('confirmMnemonic: ', this.mnemonic.trim() === confirmMnemonic.trim())
       this.mnemonic = ''
       router.push({ name: RouteNames.SET_PASSWORD })
     },
@@ -169,6 +167,21 @@ export default defineComponent({
     },
     btnBackToCreateMnemonic () {
       this.isCreateFormOpen = true
+    },
+    onClickCopy () {
+      StringUtils.copyToClipboard(this.mnemonic)
+    },
+    onClickPrint () {
+      const printWindow = window.open()
+      printWindow?.document.open('text/plain')
+      printWindow?.document.write(this.mnemonic)
+      printWindow?.document.close()
+      printWindow?.focus()
+      printWindow?.print()
+      printWindow?.close()
+    },
+    clickBack: () => {
+      router.go(-1)
     }
   }
 })

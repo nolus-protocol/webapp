@@ -15,11 +15,11 @@
             :class="typeof this.isError !== 'undefined' && this.isError === true ? 'error' : ''"
           ></textarea>
         <div class="flex align-center justify-end p-3 bg-light-grey buttons-container">
-          <button class="btn btn-secondary btn-medium-secondary btn-icon mr-4">
+          <button class="btn btn-secondary btn-medium-secondary btn-icon mr-4" v-on:click="onClickCopy">
             <DuplicateIcon class="icon w-4 h-4"/>
             Copy
           </button>
-          <button class="btn btn-secondary btn-medium-secondary btn-icon">
+          <button class="btn btn-secondary btn-medium-secondary btn-icon" v-on:click="onClickPrint">
             <PrinterIcon class="icon w-4 h-4"/>
             Print
           </button>
@@ -63,6 +63,12 @@ export default {
     },
     errorMsg: {
       type: String
+    },
+    onClickCopy: {
+      type: Function
+    },
+    onClickPrint: {
+      type: Function
     }
   },
   data () {
