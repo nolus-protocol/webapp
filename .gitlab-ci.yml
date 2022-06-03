@@ -17,6 +17,7 @@ build:
     - docker
   script:
     - version=$(sh ./version.sh)
+    - printenv NPM_TOKEN
     - npm config set //registry.npmjs.org/:_authToken ${NPM_TOKEN}
     - yarn install
     - yarn run build
