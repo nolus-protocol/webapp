@@ -1,7 +1,7 @@
 import { GetterTree } from 'vuex'
 import { RootState } from '@/store'
 import { AssetBalance, State } from './state'
-import { NolusWallet } from '@/wallet/NolusWallet'
+import { NolusWallet } from '@nolus/nolusjs'
 
 export type Getters = {
   getBalances (state: State): AssetBalance[]

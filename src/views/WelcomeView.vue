@@ -6,7 +6,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import WalletConnect from '@/components/WalletConnect.vue' // @ is an alias to /src
+import WalletConnect from '@/components/WalletConnect.vue'
 
 export default defineComponent({
   name: 'WelcomeView',

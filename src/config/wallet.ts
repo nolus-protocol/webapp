@@ -1,59 +1,46 @@
 import { ChainInfo } from '@keplr-wallet/types'
-import {
-  BECH32_PREFIX_ACC_ADDR,
-  BECH32_PREFIX_ACC_PUB,
-  BECH32_PREFIX_CONS_ADDR,
-  BECH32_PREFIX_CONS_PUB,
-  BECH32_PREFIX_VAL_ADDR,
-  BECH32_PREFIX_VAL_PUB,
-  CHAIN_NAME,
-  COIN_DECIMALS,
-  COIN_DENOM,
-  COIN_GECKO_ID,
-  COIN_MINIMAL_DENOM,
-  COIN_TYPE
-} from '../constants/chain'
+import { ChainConstants } from '@nolus/nolusjs'
 
 const KeplrEmbedChainInfo = (networkName: string, chainId: string, tendermintRpc: string, rest: string): ChainInfo => {
   return {
     chainId: chainId,
-    chainName: CHAIN_NAME + '-' + networkName,
+    chainName: ChainConstants.CHAIN_NAME + '-' + networkName,
     rpc: tendermintRpc,
     rest: rest,
     bip44: {
-      coinType: COIN_TYPE
+      coinType: ChainConstants.COIN_TYPE
     },
     bech32Config: {
-      bech32PrefixAccAddr: BECH32_PREFIX_ACC_ADDR,
-      bech32PrefixAccPub: BECH32_PREFIX_ACC_PUB,
-      bech32PrefixValAddr: BECH32_PREFIX_VAL_ADDR,
-      bech32PrefixValPub: BECH32_PREFIX_VAL_PUB,
-      bech32PrefixConsAddr: BECH32_PREFIX_CONS_ADDR,
-      bech32PrefixConsPub: BECH32_PREFIX_CONS_PUB
+      bech32PrefixAccAddr: ChainConstants.BECH32_PREFIX_ACC_ADDR,
+      bech32PrefixAccPub: ChainConstants.BECH32_PREFIX_ACC_PUB,
+      bech32PrefixValAddr: ChainConstants.BECH32_PREFIX_VAL_ADDR,
+      bech32PrefixValPub: ChainConstants.BECH32_PREFIX_VAL_PUB,
+      bech32PrefixConsAddr: ChainConstants.BECH32_PREFIX_CONS_ADDR,
+      bech32PrefixConsPub: ChainConstants.BECH32_PREFIX_CONS_PUB
     },
     currencies: [
       {
-        coinDenom: COIN_DENOM,
-        coinMinimalDenom: COIN_MINIMAL_DENOM,
-        coinDecimals: COIN_DECIMALS,
-        coinGeckoId: COIN_GECKO_ID
+        coinDenom: ChainConstants.COIN_DENOM,
+        coinMinimalDenom: ChainConstants.COIN_MINIMAL_DENOM,
+        coinDecimals: ChainConstants.COIN_DECIMALS,
+        coinGeckoId: ChainConstants.COIN_GECKO_ID
       }
     ],
     feeCurrencies: [
       {
-        coinDenom: COIN_DENOM,
-        coinMinimalDenom: COIN_MINIMAL_DENOM,
-        coinDecimals: COIN_DECIMALS,
-        coinGeckoId: COIN_GECKO_ID
+        coinDenom: ChainConstants.COIN_DENOM,
+        coinMinimalDenom: ChainConstants.COIN_MINIMAL_DENOM,
+        coinDecimals: ChainConstants.COIN_DECIMALS,
+        coinGeckoId: ChainConstants.COIN_GECKO_ID
       }
     ],
     stakeCurrency: {
-      coinDenom: COIN_DENOM,
-      coinMinimalDenom: COIN_MINIMAL_DENOM,
-      coinDecimals: COIN_DECIMALS,
-      coinGeckoId: COIN_GECKO_ID
+      coinDenom: ChainConstants.COIN_DENOM,
+      coinMinimalDenom: ChainConstants.COIN_MINIMAL_DENOM,
+      coinDecimals: ChainConstants.COIN_DECIMALS,
+      coinGeckoId: ChainConstants.COIN_GECKO_ID
     },
-    coinType: COIN_TYPE,
+    coinType: ChainConstants.COIN_TYPE,
     gasPriceStep: {
       low: 0.01,
       average: 0.025,

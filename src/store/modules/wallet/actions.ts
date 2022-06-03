@@ -6,30 +6,26 @@ import { Mutations } from './mutations'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { Window as KeplrWindow } from '@keplr-wallet/types/build/window'
-import { NolusClient } from '@/client/NolusClient'
 import KeplrEmbedChainInfo, { IBCAssets, WalletConnectMechanism, WalletManager } from '@/config/wallet'
-import { nolusLedgerWallet, nolusOfflineSigner } from '@/wallet/NolusWalletFactory'
 import router from '@/router'
 import { WalletMutationTypes } from '@/store/modules/wallet/mutation-types'
-import { BECH32_PREFIX_ACC_ADDR, COIN_MINIMAL_DENOM } from '@/constants/chain'
-import { LedgerSigner } from '@cosmjs/ledger-amino'
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
-import { makeCosmoshubPath } from '@cosmjs/amino'
-import { KeyUtils } from '@/utils/KeyUtils'
 import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing'
 import { fromHex, toHex } from '@cosmjs/encoding'
 import OpenLogin from '@toruslabs/openlogin'
 import { Getters } from '@/store/modules/wallet/getters'
-import { CurrencyUtils } from '@/utils/CurrencyUtils'
 import { DeliverTxResponse, IndexedTx } from '@cosmjs/stargate'
 import { EnvNetworks } from '@/config/envNetworks'
 import { EncryptionUtils } from '@/utils/EncryptionUtils'
-import { makeIBCMinimalDenom } from '@/utils/AssetUtils'
 import { RouteNames } from '@/router/RouterNames'
-import { NolusWallet } from '@/wallet/NolusWallet'
-import { CONTRACTS } from '@/config/contracts.config'
-import { openLease } from '@/contracts/lease/LeaseMsg'
 import { Dec, Int } from '@keplr-wallet/unit'
+import { CONTRACTS } from '@/config/contracts.config'
+import { makeCosmoshubPath } from '@cosmjs/amino'
+import { AssetUtils, KeyUtils, NolusClient, NolusWallet, NolusWalletFactory } from '@nolus/nolusjs'
+import { ChainConstants } from '@nolus/nolusjs/build/constants'
+import { CurrencyUtils } from '@nolus/nolusjs/build/utils/CurrencyUtils'
+import { openLease } from '@nolus/nolusjs/build/contracts/messages/LeaseMsg'
+import { LedgerSigner } from '@cosmjs/ledger-amino'
 
 type AugmentedActionContext = {
   commit<K extends keyof Mutations> (
@@ -126,7 +122,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
       await keplrWindow.keplr?.enable(chainId)
       if (keplrWindow.getOfflineSigner) {
         const offlineSigner = keplrWindow.getOfflineSigner(chainId)
-        const nolusWalletOfflineSigner = await nolusOfflineSigner(offlineSigner)
+        const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(offlineSigner)
         await nolusWalletOfflineSigner.useAccount()
         commit(WalletMutationTypes.SIGN_WALLET, { wallet: nolusWalletOfflineSigner })
         dispatch(WalletActionTypes.UPDATE_BALANCES, { walletAddress: nolusWalletOfflineSigner.address }) // check this
@@ -148,8 +144,9 @@ export const actions: ActionTree<State, RootState> & Actions = {
     while (!ledgerWallet && !breakLoop) {
       try {
         const transport = await TransportWebUSB.create()
-        ledgerWallet = await nolusLedgerWallet(new LedgerSigner(transport, {
-          prefix: BECH32_PREFIX_ACC_ADDR,
+
+        ledgerWallet = await NolusWalletFactory.nolusLedgerWallet(new LedgerSigner(transport, {
+          prefix: ChainConstants.BECH32_PREFIX_ACC_ADDR,
           hdPaths: paths
         }))
         await ledgerWallet.useAccount()
@@ -174,8 +171,8 @@ export const actions: ActionTree<State, RootState> & Actions = {
     const path = accountNumbers.map(makeCosmoshubPath)[0]
     // const mnemonic = 'industry helmet coach enforce laundry excuse core argue poem master sugar demand'
     const privateKey = await KeyUtils.getPrivateKeyFromMnemonic(payload.mnemonic, path)
-    const directSecrWallet = await DirectSecp256k1Wallet.fromKey(privateKey, BECH32_PREFIX_ACC_ADDR)
-    const nolusWalletOfflineSigner = await nolusOfflineSigner(directSecrWallet)
+    const directSecrWallet = await DirectSecp256k1Wallet.fromKey(privateKey, ChainConstants.BECH32_PREFIX_ACC_ADDR)
+    const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(directSecrWallet)
     await nolusWalletOfflineSigner.useAccount()
     commit(WalletMutationTypes.SIGN_WALLET, { wallet: nolusWalletOfflineSigner })
     commit(WalletMutationTypes.SET_PRIVATE_KEY, { privateKey: toHex(privateKey) })
@@ -196,8 +193,8 @@ export const actions: ActionTree<State, RootState> & Actions = {
       await openlogin.login()
     } else {
       const bufferedPrivateKey = Buffer.from(openlogin.privKey.trim().replace('0x', ''), 'hex')
-      const directSecrWallet = await DirectSecp256k1Wallet.fromKey(bufferedPrivateKey, BECH32_PREFIX_ACC_ADDR)
-      const nolusWalletOfflineSigner = await nolusOfflineSigner(directSecrWallet)
+      const directSecrWallet = await DirectSecp256k1Wallet.fromKey(bufferedPrivateKey, ChainConstants.BECH32_PREFIX_ACC_ADDR)
+      const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(directSecrWallet)
       await nolusWalletOfflineSigner.useAccount()
       commit(WalletMutationTypes.SIGN_WALLET, { wallet: nolusWalletOfflineSigner })
       commit(WalletMutationTypes.SET_PRIVATE_KEY, { privateKey: toHex(bufferedPrivateKey) })
@@ -244,8 +241,8 @@ export const actions: ActionTree<State, RootState> & Actions = {
       const encryptedPk = WalletManager.getPrivateKey()
       const decryptedPubKey = EncryptionUtils.decryptEncryptionKey(encryptedPubKey, payload.password)
       const decryptedPrivateKey = EncryptionUtils.decryptPrivateKey(encryptedPk, decryptedPubKey, payload.password)
-      const directSecrWallet = await DirectSecp256k1Wallet.fromKey(fromHex(decryptedPrivateKey), BECH32_PREFIX_ACC_ADDR)
-      const nolusWalletOfflineSigner = await nolusOfflineSigner(directSecrWallet)
+      const directSecrWallet = await DirectSecp256k1Wallet.fromKey(fromHex(decryptedPrivateKey), ChainConstants.BECH32_PREFIX_ACC_ADDR)
+      const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(directSecrWallet)
       await nolusWalletOfflineSigner.useAccount()
 
       commit(WalletMutationTypes.SIGN_WALLET, { wallet: nolusWalletOfflineSigner })
@@ -264,14 +261,14 @@ export const actions: ActionTree<State, RootState> & Actions = {
     const ibcBalances = [] as AssetBalance[]
     const nolusBalance = await NolusClient.getInstance()
       .getBalance(walletAddress,
-        COIN_MINIMAL_DENOM)
+        ChainConstants.COIN_MINIMAL_DENOM)
     ibcBalances.push({
-      udenom: COIN_MINIMAL_DENOM,
+      udenom: ChainConstants.COIN_MINIMAL_DENOM,
       balance: CurrencyUtils.convertCosmosCoinToKeplCoin(nolusBalance)
     })
 
     for (const asset of IBCAssets) {
-      const ibcDenom = makeIBCMinimalDenom(asset.sourceChannelId, asset.coinMinimalDenom)
+      const ibcDenom = AssetUtils.makeIBCMinimalDenom(asset.sourceChannelId, asset.coinMinimalDenom)
       const balance = await NolusClient.getInstance()
         .getBalance(walletAddress,
           ibcDenom)
@@ -348,18 +345,23 @@ export const actions: ActionTree<State, RootState> & Actions = {
       gas: '500000'
     }
 
+    const result = wallet.еxecuteContract(CONTRACTS.leaser.instance, openLease(payload.denom), DEFAULT_FEE, undefined, [{
+      denom: payload.denom,
+      amount: '180'
+    }])
+
     // TODO add funds! [{ denom: lppDenom, amount: downpayment }]
-    const result = await wallet.execute(
-      wallet.address as string,
-      CONTRACTS.leaser.instance,
-      openLease(payload.denom),
-      DEFAULT_FEE,
-      undefined,
-      [{
-        denom: payload.denom,
-        amount: '180'
-      }]
-    )
+    // const result = await wallet.execute(
+    //   wallet.address as string,
+    //   CONTRACTS.leaser.instance,
+    //   openLease(payload.denom),
+    //   DEFAULT_FEE,
+    //   undefined,
+    // [{
+    //   denom: payload.denom,
+    //   amount: '180'
+    // }]
+    // )
     console.log(result)
   }
 }

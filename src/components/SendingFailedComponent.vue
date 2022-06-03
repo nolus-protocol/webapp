@@ -48,9 +48,9 @@
 <script lang="ts">
 import { DuplicateIcon, XIcon } from '@heroicons/vue/solid'
 import { defineComponent, PropType } from 'vue'
-import { CurrencyUtils } from '@/utils/CurrencyUtils'
 import { SendComponentProps } from '@/components/SendComponent.vue'
 import { StringUtils } from '@/utils/StringUtils'
+import { CurrencyUtils } from '@nolus/nolusjs'
 
 export default defineComponent({
   name: 'SendingFailedComponent',

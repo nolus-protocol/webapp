@@ -62,10 +62,11 @@
 </template>
 
 <script lang="ts">
-import { CurrencyUtils } from '@/utils/CurrencyUtils'
 import { PropType } from 'vue'
 import { AssetInfo } from '@/utils/AssetUtils'
-import { Coin } from '@keplr-wallet/unit'
+import { CurrencyUtils } from '@nolus/nolusjs'
+import { assetsInfo } from '@/config/assetsInfo'
+import { Coin, Int } from '@keplr-wallet/unit'
 
 export default {
   name: 'AssetPartial',
@@ -107,7 +108,9 @@ export default {
     },
     calculateBalance (price: string, tokenAmount: string, minimalDenom: string) {
       console.log(tokenAmount)
-      return CurrencyUtils.calculateBalance(price, new Coin(minimalDenom, tokenAmount))
+      const tokenDecimals = assetsInfo[minimalDenom].coinDecimals
+      const coin = new Coin(minimalDenom, new Int(tokenAmount))
+      return CurrencyUtils.calculateBalance(price, coin, tokenDecimals)
     }
   }
 }

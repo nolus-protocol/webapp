@@ -1,5 +1,3 @@
-import { Buffer } from 'buffer'
-import { Hash } from '@keplr-wallet/crypto'
 import { assetsInfo } from '@/config/assetsInfo'
 
 export interface AssetInfo {
@@ -19,13 +17,4 @@ export class AssetUtils {
   public static getAssetInfoByAbbr (coinAbbreviation: string): AssetInfo {
     return this.assetInfo()[coinAbbreviation] || this.assetInfo().unolus
   }
-}
-
-export function makeIBCMinimalDenom (sourceChannelId: string, coinMinimalDenom: string): string {
-  return (
-    'ibc/' +
-    Buffer.from(Hash.sha256(Buffer.from(`transfer/${sourceChannelId}/${coinMinimalDenom}`)))
-      .toString('hex')
-      .toUpperCase()
-  )
 }

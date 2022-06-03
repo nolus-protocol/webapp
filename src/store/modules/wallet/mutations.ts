@@ -2,8 +2,8 @@ import { MutationTree } from 'vuex'
 
 import { AssetBalance, State } from './state'
 import { WalletMutationTypes } from './mutation-types'
-import { NolusWallet } from '@/wallet/NolusWallet'
 import OpenLogin from '@toruslabs/openlogin'
+import { NolusWallet } from '@nolus/nolusjs'
 
 export type Mutations<S = State> = {
   [WalletMutationTypes.SIGN_WALLET] (state: S, payload: { wallet: NolusWallet }): void,

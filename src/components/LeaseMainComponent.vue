@@ -15,8 +15,6 @@ import { AssetBalance } from '@/store/modules/wallet/state'
 import LeaseFormComponent from '@/components/LeaseFormComponent.vue'
 import { SendComponentProps } from '@/components/SendComponent.vue'
 import { useStore } from '@/store'
-import { Lease } from '@/contracts/lease/Lease'
-import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 
 enum ScreenState {
   MAIN = 'LeaseFormComponent',
@@ -95,18 +93,18 @@ export default defineComponent({
     async onNextClick () {
       console.log('click next')
       const wallet = useStore().state.wallet.wallet
-      const leaseContract = new Lease()
-      const downpayment = await leaseContract.getDownpayment(this.currentComponent.props.amount, 'UST')
-
-      if (!wallet) {
-        useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
-      }
-      useStore().dispatch(WalletActionTypes.OPEN_LEASE, {
-        denom: 'UST',
-        feeAmount: '0.25'
-      })
+      // const leaseContract = new Lease()
+      // const downpayment = await leaseContract.getDownpayment(this.currentComponent.props.amount, 'UST')
+      //
+      // if (!wallet) {
+      //   useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
+      // }
+      // useStore().dispatch(WalletActionTypes.OPEN_LEASE, {
+      //   denom: 'UST',
+      //   feeAmount: '0.25'
+      // })
       // wallet?.execute()
-      console.log(downpayment)
+      // console.log(downpayment)
       // console.log('selected currency: ', this.currentComponent.props.selectedCurrency)
       // console.log('how much: ', this.currentComponent.props.amount)
       // this.currentComponent.is = ScreenState.CONFIRM

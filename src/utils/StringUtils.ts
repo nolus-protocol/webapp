@@ -18,4 +18,8 @@ export class StringUtils {
     if (typeof value !== 'string') return ''
     return value.charAt(0).toUpperCase() + value.slice(1)
   }
+
+  public static getDenomFromMinimalDenom (minimalDenom: string) {
+    return minimalDenom?.replace(minimalDenom[0], '')
+  }
 }

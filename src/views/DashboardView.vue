@@ -125,7 +125,9 @@ import { Coin, Dec, Int } from '@keplr-wallet/unit'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
 import { useStore } from '@/store'
-import { CurrencyUtils } from '@/utils/CurrencyUtils'
+import { CurrencyUtils } from '@nolus/nolusjs'
+import { assetsInfo } from '@/config/assetsInfo'
+import { StringUtils } from '@/utils/StringUtils'
 
 export default defineComponent({
   name: 'DashboardView',
@@ -167,7 +169,7 @@ export default defineComponent({
     getMarketPrice (minimalDenom: string) {
       const prices = useStore().state.oracle.prices
       if (prices) {
-        return prices[CurrencyUtils.getDenomFromMinimalDenom(minimalDenom)]?.amount || '0'
+        return prices[StringUtils.getDenomFromMinimalDenom(minimalDenom)]?.amount || '0'
       }
       return '0'
     },
@@ -177,9 +179,13 @@ export default defineComponent({
     calculateTotalBalance () {
       let totalBalance = new Dec(0)
       this.mainAssets.forEach(asset => {
+        const decimals = assetsInfo[asset.udenom].coinDecimals
         const assetBalance = CurrencyUtils.calculateBalance(
           this.getMarketPrice(asset.udenom),
-          new Coin(asset.udenom, asset.balance.amount.toString())
+          new Coin(asset.udenom,
+            asset.balance.amount.toString()
+          ),
+          decimals
         )
         totalBalance = totalBalance.add(assetBalance.toDec())
       })

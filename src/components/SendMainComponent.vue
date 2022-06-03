@@ -14,11 +14,11 @@ import SendingSuccessComponent from '@/components/SendingSuccessComponent.vue'
 import SendingFailedComponent from '@/components/SendingFailedComponent.vue'
 import { Bech32 } from '@cosmjs/encoding'
 import { Dec, Int } from '@keplr-wallet/unit'
-import { CurrencyUtils } from '@/utils/CurrencyUtils'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import { WalletUtils } from '@/utils/WalletUtils'
+import { CurrencyUtils } from '@nolus/nolusjs'
 
 enum ScreenState {
   MAIN = 'SendComponent',

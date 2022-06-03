@@ -1,7 +1,7 @@
 import { Keplr } from '@keplr-wallet/types'
 import { Window as KeplrWindow } from '@keplr-wallet/types/build/window'
-import { KeyUtils } from '@/utils/KeyUtils'
 import { WalletConnectMechanism, WalletManager } from '@/config/wallet'
+import { KeyUtils } from '@nolus/nolusjs'
 
 export class WalletUtils {
   public static async getKeplr (): Promise<Keplr | undefined> {

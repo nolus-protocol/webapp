@@ -1,12 +1,12 @@
-import { CHAIN_NAME, COIN_DECIMALS, COIN_DENOM, COIN_MINIMAL_DENOM } from '@/constants/chain'
 import { AssetInfo } from '@/utils/AssetUtils'
+import { ChainConstants } from '@nolus/nolusjs'
 
 export const assetsInfo: { [key: string]: AssetInfo; } = {
   unolus: {
-    chainName: CHAIN_NAME,
-    coinDenom: COIN_DENOM,
-    coinMinimalDenom: COIN_MINIMAL_DENOM,
-    coinDecimals: COIN_DECIMALS,
+    chainName: ChainConstants.CHAIN_NAME,
+    coinDenom: ChainConstants.COIN_DENOM,
+    coinMinimalDenom: ChainConstants.COIN_MINIMAL_DENOM,
+    coinDecimals: ChainConstants.COIN_DECIMALS,
     coinAbbreviation: 'NLS',
     coinIcon: 'nls.svg'
   },
@@ -14,7 +14,7 @@ export const assetsInfo: { [key: string]: AssetInfo; } = {
     chainName: 'Secret Network',
     coinDenom: 'scrt',
     coinMinimalDenom: 'uscrt',
-    coinDecimals: COIN_DECIMALS,
+    coinDecimals: 6,
     coinAbbreviation: 'SCRT',
     coinIcon: 'scrt.svg'
   },
@@ -22,7 +22,7 @@ export const assetsInfo: { [key: string]: AssetInfo; } = {
     chainName: 'Terra - LUNA',
     coinDenom: 'luna',
     coinMinimalDenom: 'uluna',
-    coinDecimals: COIN_DECIMALS,
+    coinDecimals: 6,
     coinAbbreviation: 'LUNA',
     coinIcon: 'terra-luna.svg'
   },
@@ -30,7 +30,7 @@ export const assetsInfo: { [key: string]: AssetInfo; } = {
     chainName: 'Lum Network',
     coinDenom: 'lum',
     coinMinimalDenom: 'ulum',
-    coinDecimals: COIN_DECIMALS,
+    coinDecimals: 6,
     coinAbbreviation: 'lum',
     coinIcon: 'lum.svg'
   }

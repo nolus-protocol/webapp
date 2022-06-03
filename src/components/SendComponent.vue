@@ -85,8 +85,8 @@ import CurrencyField from '@/components/CurrencyField.vue'
 import PickerDefault from '@/components/PickerDefault.vue'
 import InputField from '@/components/InputField.vue'
 import { defineComponent, PropType } from 'vue'
-import { CurrencyUtils } from '@/utils/CurrencyUtils'
 import { AssetBalance } from '@/store/modules/wallet/state'
+import { CurrencyUtils } from '@nolus/nolusjs'
 
 export interface SendComponentProps {
   receiverErrorMsg: string,

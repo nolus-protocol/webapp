@@ -61,9 +61,9 @@
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
 import InputField from '@/components/InputField.vue'
 import { defineComponent, PropType } from 'vue'
-import { CurrencyUtils } from '@/utils/CurrencyUtils'
 import { SendComponentProps } from '@/components/SendComponent.vue'
 import { WalletUtils } from '@/utils/WalletUtils'
+import { CurrencyUtils } from '@nolus/nolusjs'
 
 export default defineComponent({
   name: 'SendingConfirmComponent',

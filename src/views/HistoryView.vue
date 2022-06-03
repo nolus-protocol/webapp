@@ -101,11 +101,10 @@ import { defineComponent } from 'vue'
 import SidebarContainer from '@/components/SidebarContainer.vue'
 import { IndexedTx } from '@cosmjs/stargate'
 import { Coin, DecodedTxRaw, decodeTxRaw } from '@cosmjs/proto-signing'
-import { COIN_MINIMAL_DENOM } from '@/constants/chain'
 import { StringUtils } from '@/utils/StringUtils'
-import { CurrencyUtils } from '@/utils/CurrencyUtils'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
+import { ChainConstants, CurrencyUtils } from '@nolus/nolusjs'
 
 interface ITransaction {
   id: string,
@@ -150,7 +149,7 @@ export default defineComponent({
             sender: rawTx[0].events[3].attributes[1].value || '',
             action: rawTx[0].events[3].type || '',
             memo: decodedTx.body.memo || '',
-            fee: decodedTx?.authInfo?.fee?.amount.filter(coin => coin.denom === COIN_MINIMAL_DENOM) || null
+            fee: decodedTx?.authInfo?.fee?.amount.filter(coin => coin.denom === ChainConstants.COIN_MINIMAL_DENOM) || null
           }
           this.transactions.push(transactionResult)
         })

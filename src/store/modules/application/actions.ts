@@ -5,11 +5,11 @@ import { State } from './state'
 import { Mutations } from './mutations'
 import { Getters } from '@/store/modules/wallet/getters'
 import { ApplicationActionTypes } from '@/store/modules/application/action-types'
-import { NolusClient } from '@/client/NolusClient'
 import { EnvNetworks } from '@/config/envNetworks'
 import { ApplicationMutationTypes } from '@/store/modules/application/mutation-types'
 import { DEFAULT_PRIMARY_NETWORK, NetworkConfig } from '@/config/env.config'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
+import { NolusClient } from '@nolus/nolusjs/build'
 
 type AugmentedActionContext = {
   commit<K extends keyof Mutations> (

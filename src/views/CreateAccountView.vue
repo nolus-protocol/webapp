@@ -115,10 +115,10 @@ import { ArrowLeftIcon } from '@heroicons/vue/solid'
 import SelectorTextField from '@/components/SelectorTextField.vue'
 import { useStore } from '@/store'
 import router from '@/router'
-import { KeyUtils } from '@/utils/KeyUtils'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { RouteNames } from '@/router/RouterNames'
 import { StringUtils } from '@/utils/StringUtils'
+import { KeyUtils } from '@nolus/nolusjs'
 
 export default defineComponent({
   name: 'CreateAccountView',
