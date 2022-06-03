@@ -296,7 +296,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
     amount: string | undefined,
     feeAmount: string
   }): Promise<DeliverTxResponse | undefined> {
-    const wallet = getters.getNolusWallet
+    const wallet = getters.getNolusWallet as NolusWallet
     console.log('payload: ', payload)
     if (!payload.amount) {
       return
@@ -314,15 +314,13 @@ export const actions: ActionTree<State, RootState> & Actions = {
       }],
       gas: '100000'
     }
-    const txResponse = await wallet.sendTokens(
-      wallet.address as string,
-      payload.receiverAddress,
+
+    const txResponse = await wallet.transferAmount(payload.receiverAddress,
       [{
         denom: 'unolus',
         amount: payload.amount
       }],
-      DEFAULT_FEE
-    )
+      DEFAULT_FEE)
 
     await dispatch(WalletActionTypes.UPDATE_BALANCES)
     return txResponse
