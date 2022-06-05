@@ -53,21 +53,7 @@ export default defineComponent({
   mounted () {
     this.currentComponent = {
       is: ScreenState.MAIN,
-      props: {
-        currentBalance: [] as AssetBalance[],
-        selectedCurrency: {} as AssetBalance,
-        amount: '',
-        memo: '',
-        receiverAddress: '',
-        password: '',
-        onNextClick: () => this.onNextClick(),
-        receiverErrorMsg: '',
-        amountErrorMsg: '',
-        txHash: '',
-        onSendClick: () => this.onSendClick(),
-        onConfirmBackClick: () => this.onConfirmBackClick(),
-        onClickOkBtn: () => this.onClickOkBtn()
-      } as SendComponentProps
+      props: this.initProps()
     }
     const balances = useStore().state.wallet.balances
     if (balances) {
@@ -101,6 +87,23 @@ export default defineComponent({
     }
   },
   methods: {
+    initProps () {
+      return {
+        currentBalance: [] as AssetBalance[],
+        selectedCurrency: {} as AssetBalance,
+        amount: '',
+        memo: '',
+        receiverAddress: '',
+        password: '',
+        onNextClick: () => this.onNextClick(),
+        receiverErrorMsg: '',
+        amountErrorMsg: '',
+        txHash: '',
+        onSendClick: () => this.onSendClick(),
+        onConfirmBackClick: () => this.onConfirmBackClick(),
+        onClickOkBtn: () => this.onClickOkBtn()
+      } as SendComponentProps
+    },
     onNextClick () {
       this.isAmountFieldValid()
       this.isReceiverAddressValid()
@@ -142,7 +145,7 @@ export default defineComponent({
       console.log('resetData')
       this.currentComponent = {
         is: ScreenState.MAIN,
-        props: {} as SendComponentProps
+        props: this.initProps()
       }
     },
     isReceiverAddressValid () {
