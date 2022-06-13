@@ -1,4 +1,4 @@
-import { NetworkConfig } from '@/config/env.config'
+import { NetworkConfig } from '@/config/env'
 
 export type State = {
   network: NetworkConfig | null

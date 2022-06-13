@@ -7,9 +7,10 @@ import { Getters } from '@/store/modules/wallet/getters'
 import { ApplicationActionTypes } from '@/store/modules/application/action-types'
 import { EnvNetworks } from '@/config/envNetworks'
 import { ApplicationMutationTypes } from '@/store/modules/application/mutation-types'
-import { DEFAULT_PRIMARY_NETWORK, NetworkConfig } from '@/config/env.config'
+import { DEFAULT_PRIMARY_NETWORK, NetworkConfig } from '@/config/env'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { NolusClient } from '@nolus/nolusjs/build'
+import { WalletUtils } from '@/utils/WalletUtils'
 
 type AugmentedActionContext = {
   commit<K extends keyof Mutations> (
@@ -47,6 +48,8 @@ export const actions: ActionTree<State, RootState> & Actions = {
       } as NetworkConfig
     })
 
-    dispatch(WalletActionTypes.CONNECT_KEPLR)
+    if (WalletUtils.isConnectedViaExtension()) {
+      dispatch(WalletActionTypes.CONNECT_KEPLR)
+    }
   }
 }

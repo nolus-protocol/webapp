@@ -31,8 +31,8 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { SendMainComponentProps } from '@/components/SendMainComponent.vue'
-import LeaseMainComponent from '@/components/LeaseMainComponent.vue'
+import { SendMainComponentProps } from '@/components/SendComponents/SendMainComponent.vue'
+import LeaseMainComponent from '@/components/LeaseComponents/LeaseMainComponent.vue'
 
 enum ScreenState {
   LEASE = 'LeaseMainComponent',

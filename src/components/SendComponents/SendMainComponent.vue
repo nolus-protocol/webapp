@@ -8,10 +8,10 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue'
 import { StarIcon } from '@heroicons/vue/solid'
-import SendingConfirmComponent from '@/components/SendingConfirmComponent.vue'
-import SendComponent, { SendComponentProps } from '@/components/SendComponent.vue'
-import SendingSuccessComponent from '@/components/SendingSuccessComponent.vue'
-import SendingFailedComponent from '@/components/SendingFailedComponent.vue'
+import SendingConfirmComponent from '@/components/SendComponents/SendingConfirmComponent.vue'
+import SendComponent, { SendComponentProps } from '@/components/SendComponents/SendComponent.vue'
+import SendingSuccessComponent from '@/components/SendComponents/SendingSuccessComponent.vue'
+import SendingFailedComponent from '@/components/SendComponents/SendingFailedComponent.vue'
 import { Bech32 } from '@cosmjs/encoding'
 import { Dec, Int } from '@keplr-wallet/unit'
 import { useStore } from '@/store'
@@ -117,21 +117,15 @@ export default defineComponent({
       if (!wallet) {
         if (WalletUtils.isConnectedViaMnemonic()) {
           useStore().dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, { password: this.currentComponent.props.password })
+            .then(() => {
+              this.transferAmount()
+            })
         } else {
           useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
+          this.transferAmount()
         }
-      }
-      if (wallet) {
-        const txResponse = await useStore().dispatch(WalletActionTypes.TRANSFER_TOKENS, {
-          receiverAddress: this.currentComponent.props.receiverAddress,
-          amount: CurrencyUtils.convertNolusToUNolus(this.currentComponent.props.amount).amount.toString(),
-          feeAmount: '0.25'
-        })
-        if (txResponse) {
-          console.log('txResponse: ', txResponse)
-          this.currentComponent.is = txResponse.code === 0 ? ScreenState.SUCCESS : ScreenState.FAILED
-          this.currentComponent.props.txHash = txResponse.transactionHash
-        }
+      } else {
+        this.transferAmount()
       }
     },
     onConfirmBackClick () {
@@ -189,6 +183,37 @@ export default defineComponent({
         }
       } else {
         this.currentComponent.props.amountErrorMsg = 'missing amount value'
+      }
+    },
+    async transferAmount () {
+      const wallet = useStore().getters.getNolusWallet
+      if (wallet) {
+        const coinDecimals = new Int(10).pow(new Int(6).absUInt())
+        const feeAmount = new Dec('0.25').mul(new Dec(coinDecimals))
+        console.log('feeAmount: ', feeAmount.truncate().toString())
+        const DEFAULT_FEE = {
+          amount: [{
+            denom: 'unolus',
+            amount: WalletUtils.isConnectedViaExtension() ? '0.25' : feeAmount.truncate().toString()
+          }],
+          gas: '100000'
+        }
+        const txResponse = await useStore().dispatch(
+          WalletActionTypes.TRANSFER_TOKENS,
+          {
+            receiverAddress: this.currentComponent.props.receiverAddress,
+            fee: DEFAULT_FEE,
+            funds: [{
+              amount: CurrencyUtils.convertNolusToUNolus(this.currentComponent.props.amount).amount.toString(),
+              denom: 'unolus'
+            }]
+          }
+        )
+        if (txResponse) {
+          console.log('txResponse: ', txResponse)
+          this.currentComponent.is = txResponse.code === 0 ? ScreenState.SUCCESS : ScreenState.FAILED
+          this.currentComponent.props.txHash = txResponse.transactionHash
+        }
       }
     }
   }

@@ -1,4 +1,4 @@
-import { assetsInfo } from '@/config/assetsInfo'
+import { assetInfo } from '@/config/assetInfo'
 
 export interface AssetInfo {
   chainName: string,
@@ -11,7 +11,7 @@ export interface AssetInfo {
 
 export class AssetUtils {
   private static assetInfo (): { [key: string]: AssetInfo; } {
-    return assetsInfo
+    return assetInfo
   }
 
   public static getAssetInfoByAbbr (coinAbbreviation: string): AssetInfo {

@@ -3,13 +3,16 @@
     <label
       :for="this.id"
       class="block text-normal-copy text-primary text-medium"
-    >{{ this.label }}</label>
+    >{{ this.label }}</label
+    >
 
     <div
       :class="[
-              typeof this.isError !== 'undefined' && this.isError === true ? 'error' : '',
-              'currency-field p-3.5'
-          ]"
+        typeof this.isError !== 'undefined' && this.isError === true
+          ? 'error'
+          : '',
+        'currency-field p-3.5',
+      ]"
     >
       <div class="flex items-center">
         <div class="inline-block w-1/2">
@@ -18,19 +21,18 @@
             :name="this.name"
             :id="this.id"
             :value="value"
-            @input='$emit("update:value", $event.target.value)'
+            :step="this.step"
+            @input="$emit('update:value', $event.target.value)"
+            :disabled="disabledInputField"
             class="text-small-heading text-bold text-primary"
-          >
-          <span
-            class="block text-normal-copy text-light-blue"
-          >
-                      $1,000
-                  </span>
+          />
+          <span class="block text-normal-copy text-light-blue"> $1,000 </span>
         </div>
         <div class="inline-block w-1/2">
           <CurrencyPicker
             :options="currencyOptions"
             type="small"
+            :currency-option="option"
             :disabled="disabledCurrencyPicker"
             @update-currency="onUpdateCurrency"
           />
@@ -38,10 +40,19 @@
       </div>
     </div>
 
-    <span :class="[
-          'msg error ',
-          typeof this.errorMsg !== 'undefined' && this.errorMsg !== null ? '' : 'hidden'
-      ]">{{ typeof this.errorMsg !== 'undefined' && this.errorMsg !== null ? this.errorMsg : '' }}</span>
+    <span
+      :class="[
+        'msg error ',
+        typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
+          ? ''
+          : 'hidden',
+      ]"
+    >{{
+        typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
+          ? this.errorMsg
+          : ''
+      }}</span
+    >
   </div>
 </template>
 
@@ -65,6 +76,9 @@ export default defineComponent({
     currencyOptions: {
       type: Array as PropType<AssetBalance[]>
     },
+    step: {
+      type: String
+    },
     option: {
       type: Object as PropType<AssetBalance>
     },
@@ -73,6 +87,9 @@ export default defineComponent({
     },
     label: {
       type: String
+    },
+    disabledInputField: {
+      type: Boolean
     },
     disabledCurrencyPicker: {
       type: Boolean

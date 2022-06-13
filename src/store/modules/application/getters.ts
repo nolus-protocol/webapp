@@ -1,7 +1,7 @@
 import { GetterTree } from 'vuex'
 import { RootState } from '@/store'
 import { State } from './state'
-import { NetworkConfig } from '@/config/env.config'
+import { NetworkConfig } from '@/config/env'
 
 export type Getters = {
   getNetwork (state: State): NetworkConfig | null

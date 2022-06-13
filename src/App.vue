@@ -21,6 +21,9 @@ export default {
   ) {
     console.log('errorCaptured: ', err)
   },
+  validations () {
+
+  },
   async mounted () {
     useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK)
     useStore().dispatch(WalletActionTypes.UPDATE_BALANCES)

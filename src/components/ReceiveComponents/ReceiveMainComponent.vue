@@ -4,8 +4,10 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue'
-import ReceiveComponent, { ReceiveComponentProps } from '@/components/ReceiveComponent.vue'
-import ReceiveQrCodeComponent, { ReceiveQrCodeComponentProps } from '@/components/ReceiveQrCodeComponent.vue'
+import ReceiveComponent, { ReceiveComponentProps } from '@/components/ReceiveComponents/ReceiveComponent.vue'
+import ReceiveQrCodeComponent, {
+  ReceiveQrCodeComponentProps
+} from '@/components/ReceiveComponents/ReceiveQrCodeComponent.vue'
 import { StringUtils } from '@/utils/StringUtils'
 import { WalletManager } from '@/config/wallet'
 

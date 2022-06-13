@@ -1,7 +1,7 @@
 import { AssetInfo } from '@/utils/AssetUtils'
 import { ChainConstants } from '@nolus/nolusjs'
 
-export const assetsInfo: { [key: string]: AssetInfo; } = {
+export const assetInfo: { [key: string]: AssetInfo; } = {
   unolus: {
     chainName: ChainConstants.CHAIN_NAME,
     coinDenom: ChainConstants.COIN_DENOM,
@@ -31,7 +31,7 @@ export const assetsInfo: { [key: string]: AssetInfo; } = {
     coinDenom: 'lum',
     coinMinimalDenom: 'ulum',
     coinDecimals: 6,
-    coinAbbreviation: 'lum',
+    coinAbbreviation: 'LUM',
     coinIcon: 'lum.svg'
   }
 }

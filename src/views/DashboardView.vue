@@ -111,7 +111,7 @@
         </div>
       </div>
     </div>
-    <ReceiveSendModal v-show="showSendModal" @close-modal="showSendModal = false"/>
+    <ReceiveSendModal ref="ReceiveSendModal" v-show="showSendModal" @close-modal="showSendModal = false"/>
 
   </div>
 </template>
@@ -126,7 +126,7 @@ import { AssetBalance } from '@/store/modules/wallet/state'
 import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
 import { useStore } from '@/store'
 import { CurrencyUtils } from '@nolus/nolusjs'
-import { assetsInfo } from '@/config/assetsInfo'
+import { assetInfo } from '@/config/assetInfo'
 import { StringUtils } from '@/utils/StringUtils'
 
 export default defineComponent({
@@ -179,7 +179,7 @@ export default defineComponent({
     calculateTotalBalance () {
       let totalBalance = new Dec(0)
       this.mainAssets.forEach(asset => {
-        const decimals = assetsInfo[asset.udenom].coinDecimals
+        const decimals = assetInfo[asset.udenom].coinDecimals
         const assetBalance = CurrencyUtils.calculateBalance(
           this.getMarketPrice(asset.udenom),
           new Coin(asset.udenom,
