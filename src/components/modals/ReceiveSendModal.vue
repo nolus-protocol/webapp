@@ -30,8 +30,8 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import SendMainComponent, { SendMainComponentProps } from '@/components/SendMainComponent.vue'
-import ReceiveMainComponent from '@/components/ReceiveMainComponent.vue'
+import SendMainComponent, { SendMainComponentProps } from '@/components/SendComponents/SendMainComponent.vue'
+import ReceiveMainComponent from '@/components/ReceiveComponents/ReceiveMainComponent.vue'
 
 enum ScreenState {
   SEND = 'SendMainComponent',

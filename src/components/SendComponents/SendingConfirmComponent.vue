@@ -61,7 +61,7 @@
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
 import InputField from '@/components/InputField.vue'
 import { defineComponent, PropType } from 'vue'
-import { SendComponentProps } from '@/components/SendComponent.vue'
+import { SendComponentProps } from '@/components/SendComponents/SendComponent.vue'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { CurrencyUtils } from '@nolus/nolusjs'
 

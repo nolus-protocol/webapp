@@ -4,18 +4,32 @@
       <label
         :for="this.id"
         class="block text-normal-copy text-primary text-medium"
-      >{{ this.label }}</label>
+        >{{ this.label }}</label
+      >
       <textarea
         :name="this.name"
         :id="this.id"
         :value="value"
-        @input='$emit("update:value", $event.target.value)'
-        :class="typeof this.isError !== 'undefined' && this.isError === true ? 'error' : ''"
+        @input="$emit('update:value', $event.target.value)"
+        :class="
+          typeof this.isError !== 'undefined' && this.isError === true
+            ? 'error'
+            : ''
+        "
       ></textarea>
-      <span :class="[
-            'msg error ',
-            typeof this.errorMsg !== 'undefined' && this.errorMsg !== null ? '' : 'hidden'
-        ]">{{ typeof this.errorMsg !== 'undefined' && this.errorMsg !== null ? this.errorMsg : '' }}</span>
+      <span
+        :class="[
+          'msg error ',
+          typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
+            ? ''
+            : 'hidden',
+        ]"
+        >{{
+          typeof this.errorMsg !== "undefined" && this.errorMsg !== null
+            ? this.errorMsg
+            : ""
+        }}</span
+      >
     </div>
   </fieldset>
 </template>

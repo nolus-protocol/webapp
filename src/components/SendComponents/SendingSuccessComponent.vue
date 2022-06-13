@@ -47,7 +47,7 @@
 <script lang="ts">
 import { CheckIcon, DuplicateIcon } from '@heroicons/vue/solid'
 import { defineComponent, PropType } from 'vue'
-import { SendComponentProps } from '@/components/SendComponent.vue'
+import { SendComponentProps } from '@/components/SendComponents/SendComponent.vue'
 import { StringUtils } from '@/utils/StringUtils'
 import { CurrencyUtils } from '@nolus/nolusjs'
 

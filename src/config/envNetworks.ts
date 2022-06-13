@@ -1,4 +1,4 @@
-import { DEFAULT_PRIMARY_NETWORK, NetworkAddress, NETWORKS } from './env.config'
+import { DEFAULT_PRIMARY_NETWORK, NetworkAddress, NETWORKS } from './env'
 
 export class EnvNetworks {
   public getEnvNetworks (): string[] {

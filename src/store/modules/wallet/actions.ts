@@ -10,22 +10,22 @@ import KeplrEmbedChainInfo, { IBCAssets, WalletConnectMechanism, WalletManager }
 import router from '@/router'
 import { WalletMutationTypes } from '@/store/modules/wallet/mutation-types'
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
-import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing'
+import { Coin, DirectSecp256k1Wallet } from '@cosmjs/proto-signing'
 import { fromHex, toHex } from '@cosmjs/encoding'
 import OpenLogin from '@toruslabs/openlogin'
 import { Getters } from '@/store/modules/wallet/getters'
-import { DeliverTxResponse, IndexedTx } from '@cosmjs/stargate'
+import { DeliverTxResponse, IndexedTx, StdFee } from '@cosmjs/stargate'
 import { EnvNetworks } from '@/config/envNetworks'
 import { EncryptionUtils } from '@/utils/EncryptionUtils'
 import { RouteNames } from '@/router/RouterNames'
-import { Dec, Int } from '@keplr-wallet/unit'
-import { CONTRACTS } from '@/config/contracts.config'
+import { CONTRACTS } from '@/config/contracts'
 import { makeCosmoshubPath } from '@cosmjs/amino'
 import { AssetUtils, KeyUtils, NolusClient, NolusWallet, NolusWalletFactory } from '@nolus/nolusjs'
 import { ChainConstants } from '@nolus/nolusjs/build/constants'
 import { CurrencyUtils } from '@nolus/nolusjs/build/utils/CurrencyUtils'
-import { openLease } from '@nolus/nolusjs/build/contracts/messages/LeaseMsg'
 import { LedgerSigner } from '@cosmjs/ledger-amino'
+import { openLeaseMsg } from '@nolus/nolusjs/build/contracts'
+import { ExecuteResult } from '@cosmjs/cosmwasm-stargate'
 
 type AugmentedActionContext = {
   commit<K extends keyof Mutations> (
@@ -66,7 +66,7 @@ export interface Actions {
     commit,
     getters,
     dispatch
-  }: AugmentedActionContext, payload: { password: string }): void,
+  }: AugmentedActionContext, payload: { password: string }): Promise<void>,
 
   [WalletActionTypes.UPDATE_BALANCES] ({ commit }: AugmentedActionContext): void,
 
@@ -81,8 +81,9 @@ export interface Actions {
     dispatch
   }: AugmentedActionContext, payload: {
     receiverAddress: string,
-    amount: string | undefined,
-    feeAmount: string
+    memo?: string
+    funds: Coin[]
+    fee: StdFee,
   }): Promise<DeliverTxResponse | undefined>
 
   [WalletActionTypes.OPEN_LEASE] ({
@@ -90,9 +91,10 @@ export interface Actions {
     getters,
     dispatch
   }: AugmentedActionContext, payload: {
-    denom: string,
-    feeAmount: string
-  }): void
+    denom: string
+    fee: StdFee,
+    funds?: Coin[]
+  }): Promise<ExecuteResult>
 
 }
 
@@ -235,7 +237,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
     commit,
     getters,
     dispatch
-  }, payload: { password: string }) {
+  }, payload: { password: string }): Promise<void> {
     if (getters.getPrivateKey === '' && payload.password !== '') {
       const encryptedPubKey = WalletManager.getEncryptedPubKey()
       const encryptedPk = WalletManager.getPrivateKey()
@@ -293,34 +295,21 @@ export const actions: ActionTree<State, RootState> & Actions = {
     dispatch
   }, payload: {
     receiverAddress: string,
-    amount: string | undefined,
-    feeAmount: string
+    memo?: string,
+    funds: Coin[]
+    fee: StdFee,
   }): Promise<DeliverTxResponse | undefined> {
     const wallet = getters.getNolusWallet as NolusWallet
     console.log('payload: ', payload)
-    if (!payload.amount) {
+    if (!payload.funds) {
       return
     }
-    const coinDecimals = new Int(10).pow(new Int(6).absUInt())
-    console.log('coinDec: ', coinDecimals)
-    const feeAmount = new Dec(payload.feeAmount).mul(new Dec(coinDecimals))
-    console.log('feeAmount: ', feeAmount.truncate().toString())
-    const DEFAULT_FEE = {
-      // TODO 0.0025unolus
 
-      amount: [{
-        denom: 'unolus',
-        amount: feeAmount.truncate().toString()
-      }],
-      gas: '100000'
-    }
-
-    const txResponse = await wallet.transferAmount(payload.receiverAddress,
-      [{
-        denom: 'unolus',
-        amount: payload.amount
-      }],
-      DEFAULT_FEE)
+    const txResponse = await wallet.transferAmount(
+      payload.receiverAddress,
+      payload.funds,
+      payload.fee, payload.memo
+    )
 
     await dispatch(WalletActionTypes.UPDATE_BALANCES)
     return txResponse
@@ -330,36 +319,12 @@ export const actions: ActionTree<State, RootState> & Actions = {
     getters,
     dispatch
   }, payload: {
-    denom: string,
-    feeAmount: string
-  }) {
+    denom: string
+    fee: StdFee,
+    funds?: Coin[]
+  }): Promise<ExecuteResult> {
     const wallet = getters.getNolusWallet as NolusWallet
-    const DEFAULT_FEE = {
-      // TODO 0.0025unolus
-      amount: [{
-        denom: 'unolus',
-        amount: payload.feeAmount
-      }],
-      gas: '500000'
-    }
-
-    const result = wallet.еxecuteContract(CONTRACTS.leaser.instance, openLease(payload.denom), DEFAULT_FEE, undefined, [{
-      denom: payload.denom,
-      amount: '180'
-    }])
-
-    // TODO add funds! [{ denom: lppDenom, amount: downpayment }]
-    // const result = await wallet.execute(
-    //   wallet.address as string,
-    //   CONTRACTS.leaser.instance,
-    //   openLease(payload.denom),
-    //   DEFAULT_FEE,
-    //   undefined,
-    // [{
-    //   denom: payload.denom,
-    //   amount: '180'
-    // }]
-    // )
-    console.log(result)
+    const result = await wallet.еxecuteContract(CONTRACTS.leaser.instance, openLeaseMsg(payload.denom), payload.fee, undefined, payload.funds)
+    return result
   }
 }

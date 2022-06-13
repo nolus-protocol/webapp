@@ -18,7 +18,7 @@
                     <span class="flex items-center">
                     <img :src="require('@/assets/icons/coins/'+ getAssetInfo(selected.value.udenom).coinIcon)" alt=""
                          class="flex-shrink-0 h-6 w-6 rounded-full"/>
-                                          <span class="ml-3 block truncate">{{
+                                          <span class="ml-3 block truncate"> {{
                                               getAssetInfo(selected.value.udenom).chainName
                                             }}</span>
                     </span>
@@ -93,7 +93,7 @@ export default defineComponent({
     options: {
       type: Array as PropType<AssetBalance[]>
     },
-    currencyoption: {
+    currencyOption: {
       type: Object as PropType<AssetBalance>
     },
     disabled: {
@@ -107,13 +107,17 @@ export default defineComponent({
     }
   },
   mounted () {
-    console.log('mounted: ', this.currencyoption)
+    this.selected.value = this.currencyOption as AssetBalance
   },
   data () {
     return {
       selected: {
         value: {} as AssetBalance
       }
+    }
+  },
+  watch: {
+    'props.currencyOption' () {
     }
   },
   methods: {
