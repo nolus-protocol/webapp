@@ -40,5 +40,5 @@ deploy-aws-dev:
     name: development
     url: http://${BUCKET_NAME_DEV}.s3-website-eu-west-1.amazonaws.com
   only:
-    - main
+    - feature/one-ui-template
     
