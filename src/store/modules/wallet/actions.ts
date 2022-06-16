@@ -324,7 +324,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
     funds?: Coin[]
   }): Promise<ExecuteResult> {
     const wallet = getters.getNolusWallet as NolusWallet
-    const result = await wallet.еxecuteContract(CONTRACTS.leaser.instance, openLeaseMsg(payload.denom), payload.fee, undefined, payload.funds)
+    const result = await wallet.executeContract(CONTRACTS.leaser.instance, openLeaseMsg(payload.denom), payload.fee, undefined, payload.funds)
     return result
   }
 }

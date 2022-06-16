@@ -22,49 +22,11 @@
           </div>
 
           <!-- Leases -->
-          <div class="bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm pb-5">
-            <div class="grid grid-cols-1 lg:grid-cols-3">
-              <div class="lg:col-span-1 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5">
-                <div class="flex">
-                  <img
-                    :src="require('@/assets/icons/coins/btc.svg')"
-                    width="36"
-                    height="36"
-                    class="inline-block m-0 mr-3"
-                  />
-                  <h1 class="text-primary text-large-heading text-bold">
-                    3.000000
-                    <span class="inline-block ml-2 text-primary text-large-copy text-regular">nBTC</span>
-                  </h1>
-                </div>
-
-                <div class="block mt-4 pl-12">
-                  <div class="block">
-                    <p class="text-detail text-primary m-0">Your total asset value</p>
-                    <p class="text-primary text-default-heading text-medium m-0 mt-1">$111,824.94</p>
-                  </div>
-                  <div class="block mt-4">
-                    <p class="text-detail text-primary m-0">Your total liquidation value</p>
-                    <p class="flex items-center text-primary text-default-heading text-medium m-0 mt-1">
-                      <i class="inline-block w-2 h-2 radius-circle bg-light-red mr-1"></i>
-                      $105,639.639
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div class="lg:col-span-2 px-6 pt-5">
-                <!-- Graph -->
-              </div>
-            </div>
-            <div class="flex items-center justify-end border-t border-standart pt-4 px-6">
-              <button class="btn btn-secondary btn-large-secondary mr-4">
-                Claim
-              </button>
-              <button class="btn btn-secondary btn-large-secondary">
-                Repay
-              </button>
-            </div>
-          </div>
+          <LeaseInfo
+            v-bind:key="leaseInfo"
+            v-for="leaseInfo in this.leases"
+            :asset-info="leaseInfo"
+          />
         </div>
       </div>
     </div>
@@ -76,16 +38,30 @@
 import { defineComponent } from 'vue'
 import SidebarContainer from '@/components/SidebarContainer.vue'
 import LeaseModal from '@/components/modals/LeaseModal.vue'
+import { Lease, LeaseStatus } from '@nolus/nolusjs/build/contracts'
+import { CONTRACTS } from '@/config/contracts'
+import { WalletManager } from '@/config/wallet'
+import LeaseInfo from '@/components/LeaseInfo.vue'
 
 export default defineComponent({
   name: 'LeaseView',
   components: {
     LeaseModal,
+    LeaseInfo,
     SidebarContainer
   },
   data () {
     return {
-      showSendModal: false
+      showSendModal: false,
+      leases: [] as LeaseStatus[]
+    }
+  },
+  async mounted () {
+    const leaseClient = new Lease()
+    const openedLeases: string[] = await leaseClient.getCurrentOpenLeases(CONTRACTS.leaser.instance, WalletManager.getWalletAddress())
+    for (const leaseAddress of openedLeases) {
+      const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus(leaseAddress)
+      this.leases.push(leaseInfo)
     }
   }
 })
