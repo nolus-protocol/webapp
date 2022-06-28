@@ -1,127 +1,127 @@
 .text {
+	// Text Sizes
+	&-big-number {
+		font-size: 48px;
+		font-family: "Garet Bolder";
+		line-height: 1.1;
+	}
 
-    // Text Sizes
-    &-big-number {
-        font-size: 48px;
-        font-weight: 700;
-        line-height: 1.1;
-    }
+	&-to-big-number {
+		font-size: 40px;
+		font-family: "Garet Bolder";
+		line-height: 1.1;
+	}
 
-    &-to-big-number {
-        font-size: 40px;
-        font-weight: 700;
-        line-height: 1.1;
-    }
+	&-large-heading {
+		font-size: 32px;
+		font-family: "Garet Bolder";
+		line-height: 1.1;
+	}
 
-    &-large-heading {
-        font-size: 32px;
-        font-weight: 700;
-        line-height: 1.1;
-    }
+	&-default-heading {
+		font-size: 20px;
+		font-family: "Garet Bolder";
+		line-height: 1.2;
+	}
 
-    &-default-heading {
-        font-size: 20px;
-        font-weight: 700;
-        line-height: 1.2;
-    }
+	&-small-heading {
+		font-size: 18px;
+		font-family: "Garet Bolder";
+		line-height: 1.2;
+	}
 
-    &-small-heading {
-        font-size: 18px;
-        font-weight: 700;
-        line-height: 1.2;
-    }
+	&-large-copy {
+		font-size: 16px;
+		line-height: 1.4;
+	}
 
-    &-large-copy {
-        font-size: 16px;
-        line-height: 1.4;
-    }
+	&-normal-copy {
+		font-size: 14px;
+		line-height: 1.4;
+	}
 
-    &-normal-copy {
-        font-size: 14px;
-        line-height: 1.4;
-    }
+	&-small-copy {
+		font-size: 13px;
+		line-height: 1.3;
+	}
 
-    &-small-copy {
-        font-size: 13px;
-        line-height: 1.3;
-    }
+	&-detail {
+		font-size: 12px;
+		line-height: 1.2;
+		color: $lightBlue;
+	}
 
-    &-detail {
-        font-size: 12px;
-        line-height: 1.2;
-    }
+	// Text Colors
+	&-primary {
+		color: $textMain;
+	}
 
-    // Text Colors
-    &-primary {
-        color: $textMain;
-    }
+	&-secondary {
+		color: $orange;
+	}
 
-    &-secondary {
-        color: $orange;
-    }
+	&-white {
+		color: $white;
+	}
 
-    &-white {
-        color: $white;
-    }
+	&-disabled,
+	&-dark-grey {
+		color: $darkGrey;
+	}
 
-    &-disabled,
-    &-dark-grey {
-        color: $darkGrey;
-    }
+	&-yellow {
+		color: $darkYellow;
+	}
 
-    &-yellow {
-        color: $darkYellow;
-    }
+	&-green {
+		color: $darkGreen;
+	}
 
-    &-green {
-        color: $darkGreen;
-    }
+	&-patch {
+		color: $mediumBlue;
+		background-color: $grey;
+	}
 
-    &-patch {
-        color: $mediumBlue;
-        background-color: $grey;
-    }
+	// Text Weigths
+	&-bold {
+		font-family: "Garet Bolder";
+	}
 
-    // Text Weigths
-    &-bold {
-        font-weight: 700;
-    }
+	&-medium {
+		font-family: "Gared Regular";
+	}
 
-    &-medium {
-        font-weight: 600;
-    }
+	&-regular {
+		font-family: "Garet";
+	}
 
-    &-regular {
-        font-weight: 400;
-    }
+	// Text Allignment
+	&-left {
+		text-align: left;
+	}
 
-    // Text Allignment
-    &-left {
-        text-align: left;
-    }
+	&-center {
+		text-align: center;
+	}
 
-    &-center {
-        text-align: center;
-    }
+	&-right {
+		text-align: right;
+	}
 
-    &-right {
-        text-align: right;
-    }
+	// Text Styles
+	&-upper {
+		text-transform: uppercase;
+	}
 
-    // Text Styles
-    &-upper {
-        text-transform: uppercase;
-    }
+	&-capital {
+		text-transform: capitalize;
+	}
 
-    &-capital {
-        text-transform: capitalize;
-    }
+	&-lower {
+		text-transform: lowercase;
+	}
 
-    &-lower {
-        text-transform: lowercase;
-    }
-
-    &-normal {
-        text-transform: none;
-    }
+	&-normal {
+		text-transform: none;
+	}
 }

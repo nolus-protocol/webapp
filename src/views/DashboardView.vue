@@ -1,54 +1,76 @@
 <template>
   <div class="page-container home">
     <div class="none">
-      <SidebarContainer>
-      </SidebarContainer>
+      <SidebarContainer> </SidebarContainer>
     </div>
 
     <div class="container mx-auto pt-24 lg:pt-16">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-start-3 lg:col-span-9">
-
           <!-- Header -->
           <div class="flex flex-wrap items-center justify-between px-4 lg:px-0">
             <div class="left w-full md:w-1/2">
               <h1 class="text-default-heading text-primary m-0">Assets</h1>
             </div>
-            <div class="right w-full md:w-1/2 mt-4 md:mt-0 inline-flex justify-start md:justify-end">
-              <button class="btn btn-secondary btn-large-secondary mr-4" v-on:click="showSendModal = true">Send /
-                Receive
+            <div
+              class="right w-full md:w-1/2 mt-4 md:mt-0 inline-flex justify-start md:justify-end"
+            >
+              <button
+                class="btn btn-secondary btn-large-secondary mr-4"
+                v-on:click="showSendModal = true"
+              >
+                Send / Receive
               </button>
-              <button class="btn btn-primary btn-large-primary">Buy Tokens</button>
+              <button class="btn btn-primary btn-large-primary">
+                Buy Tokens
+              </button>
             </div>
           </div>
 
           <!-- Wallet -->
           <div
-            class="flex items-center justify-between bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm py-5 px-6">
+            class="flex items-center justify-between bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm py-5 px-6"
+          >
             <div class="left inline-block w-1/2">
-              <p class="text-large-copy text-primary text-medium m-0">Wallet Balance</p>
-              <p class="text-big-number text-primary m-0 mt-1">{{ calculateTotalBalance() }}</p>
+              <p class="text-large-copy text-primary text-medium m-0">
+                Wallet Balance
+              </p>
+              <p class="text-big-number text-primary m-0 mt-1">
+                {{ calculateTotalBalance() }}
+              </p>
             </div>
-            <div class="right inline-block w-1/2">
-            </div>
+            <div class="right inline-block w-1/2"></div>
           </div>
 
           <!-- Existing Assets -->
-          <div class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm overflow-hidden">
-
+          <div
+            class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm overflow-hidden"
+          >
             <!-- Top -->
-            <div class="flex flex-wrap items-baseline justify-between pt-5 px-6 relative">
+            <div
+              class="flex flex-wrap items-baseline justify-between pt-5 px-6 relative"
+            >
               <div class="loader-boxed" v-show="showLoading">
                 <div class="loader__element"></div>
               </div>
               <div class="left w-full md:w-1/2 relative">
-                <p class="text-large-copy text-primary text-medium m-0">Existing assets</p>
+                <p class="text-large-copy text-primary text-medium m-0">
+                  Existing assets
+                </p>
               </div>
-              <div class="right w-full md:w-1/2 mt-4 md:mt-0 inline-flex justify-start md:justify-end">
+              <div
+                class="right w-full md:w-1/2 mt-4 md:mt-0 inline-flex justify-start md:justify-end"
+              >
                 <div class="relative block checkbox-container">
                   <div class="flex items-center w-full justify-end">
-                    <input id="hide-small-balances" aria-describedby="hide-small-balances" name="hide-small-balances"
-                           type="checkbox" checked="checked" v-model="hideLowerBalances">
+                    <input
+                      id="hide-small-balances"
+                      aria-describedby="hide-small-balances"
+                      name="hide-small-balances"
+                      type="checkbox"
+                      checked="checked"
+                      v-model="hideLowerBalances"
+                    />
                     <label for="hide-small-balances">Hide small balances</label>
                   </div>
                 </div>
@@ -57,20 +79,25 @@
 
             <!-- Assets -->
             <div class="block mt-6 md:mt-4">
-
               <!-- Assets Header -->
-              <div class="grid grid-cols-3 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6">
-
-                <div class="text-medium text-detail text-dark-grey text-left text-upper">
+              <div
+                class="grid grid-cols-3 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6"
+              >
+                <div
+                  class="text-medium text-detail text-dark-grey text-left text-upper"
+                >
                   Assets
                 </div>
 
-                <div class="text-medium text-detail text-dark-grey text-right text-upper">
+                <div
+                  class="text-medium text-detail text-dark-grey text-right text-upper"
+                >
                   Price
                 </div>
 
                 <div
-                  class="inline-flex items-center justify-end text-medium text-detail text-dark-grey text-right text-upper">
+                  class="inline-flex items-center justify-end text-medium text-detail text-dark-grey text-right text-upper"
+                >
                   <span class="inline-block">Balance</span>
                   <img
                     :src="require('@/assets/icons/tooltip.svg')"
@@ -81,7 +108,8 @@
                 </div>
 
                 <div
-                  class="hidden md:inline-flex items-center justify-end text-medium text-detail text-dark-grey text-right text-upper">
+                  class="hidden md:inline-flex items-center justify-end text-medium text-detail text-dark-grey text-right text-upper"
+                >
                   <span class="inline-block">Earnings</span>
                   <img
                     :src="require('@/assets/icons/tooltip.svg')"
@@ -97,12 +125,12 @@
                 <AssetPartial
                   v-for="asset in this.manipulatedAssets"
                   :key="asset"
-                  :asset-info=getAssetInfo(asset.udenom)
-                  :price=getMarketPrice(asset.udenom)
+                  :asset-info="getAssetInfo(asset.udenom)"
+                  :price="getMarketPrice(asset.udenom)"
                   change="4.19"
-                  :changeDirection=true
+                  :changeDirection="true"
                   balance="0"
-                  :assetBalance=asset.balance.amount.toString()
+                  :assetBalance="asset.balance.amount.toString()"
                   earnings="24"
                 />
               </div>
@@ -111,87 +139,93 @@
         </div>
       </div>
     </div>
-    <ReceiveSendModal ref="ReceiveSendModal" v-show="showSendModal" @close-modal="showSendModal = false"/>
-
+    <ReceiveSendModal
+      ref="ReceiveSendModal"
+      v-show="showSendModal"
+      @close-modal="showSendModal = false"
+    />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import SidebarContainer from '@/components/SidebarContainer.vue'
-import AssetPartial from '@/components/AssetPartial.vue'
-import { AssetUtils } from '@/utils/AssetUtils'
-import { Coin, Dec, Int } from '@keplr-wallet/unit'
-import { AssetBalance } from '@/store/modules/wallet/state'
-import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
-import { useStore } from '@/store'
-import { CurrencyUtils } from '@nolus/nolusjs'
-import { assetInfo } from '@/config/assetInfo'
-import { StringUtils } from '@/utils/StringUtils'
+import { defineComponent } from "vue";
+import SidebarContainer from "@/components/SidebarContainer.vue";
+import AssetPartial from "@/components/AssetPartial.vue";
+import { AssetUtils } from "@/utils/AssetUtils";
+import { Coin, Dec, Int } from "@keplr-wallet/unit";
+import { AssetBalance } from "@/store/modules/wallet/state";
+import ReceiveSendModal from "@/components/modals/ReceiveSendModal.vue";
+import { useStore } from "@/store";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { assetInfo } from "@/config/assetInfo";
+import { StringUtils } from "@/utils/StringUtils";
 
 export default defineComponent({
-  name: 'DashboardView',
+  name: "DashboardView",
   components: {
     SidebarContainer,
     AssetPartial,
-    ReceiveSendModal
+    ReceiveSendModal,
   },
-  data () {
+  data() {
     return {
       manipulatedAssets: [] as AssetBalance[],
       mainAssets: [] as AssetBalance[],
       hideLowerBalances: false,
       showSendModal: false,
-      showLoading: true
-    }
+      showLoading: true,
+    };
   },
   watch: {
-    '$store.state.wallet.balances' (balances) {
-      this.mainAssets = balances
-      this.manipulatedAssets = balances
+    "$store.state.wallet.balances"(balances) {
+      this.mainAssets = balances;
+      this.manipulatedAssets = balances;
       if (this.hideLowerBalances) {
-        this.filterSmallBalances()
+        this.filterSmallBalances();
       }
-      this.showLoading = false
+      this.showLoading = false;
     },
-    hideLowerBalances () {
+    hideLowerBalances() {
       if (this.hideLowerBalances) {
-        this.filterSmallBalances()
+        this.filterSmallBalances();
       } else {
-        this.manipulatedAssets = this.mainAssets
+        this.manipulatedAssets = this.mainAssets;
       }
-    }
+    },
   },
   methods: {
-    getAssetInfo (minimalDenom: string) {
-      return AssetUtils.getAssetInfoByAbbr(minimalDenom)
+    getAssetInfo(minimalDenom: string) {
+      return AssetUtils.getAssetInfoByAbbr(minimalDenom);
     },
-    getMarketPrice (minimalDenom: string) {
-      const prices = useStore().state.oracle.prices
+    getMarketPrice(minimalDenom: string) {
+      const prices = useStore().state.oracle.prices;
       if (prices) {
-        return prices[StringUtils.getDenomFromMinimalDenom(minimalDenom)]?.amount || '0'
+        return (
+          prices[StringUtils.getDenomFromMinimalDenom(minimalDenom)]?.amount ||
+          "0"
+        );
       }
-      return '0'
+      return "0";
     },
-    filterSmallBalances () {
-      this.manipulatedAssets = this.manipulatedAssets.filter(asset => asset.balance.amount.gt(new Int('1')))
+    filterSmallBalances() {
+      this.manipulatedAssets = this.manipulatedAssets.filter((asset) =>
+        asset.balance.amount.gt(new Int("1"))
+      );
     },
-    calculateTotalBalance () {
-      let totalBalance = new Dec(0)
-      this.mainAssets.forEach(asset => {
-        const decimals = assetInfo[asset.udenom].coinDecimals
+    calculateTotalBalance() {
+      let totalBalance = new Dec(0);
+      this.mainAssets.forEach((asset) => {
+        const decimals = assetInfo[asset.udenom].coinDecimals;
         const assetBalance = CurrencyUtils.calculateBalance(
           this.getMarketPrice(asset.udenom),
-          new Coin(asset.udenom,
-            asset.balance.amount.toString()
-          ),
+          new Coin(asset.udenom, asset.balance.amount.toString()),
           decimals
-        )
-        totalBalance = totalBalance.add(assetBalance.toDec())
-      })
+        );
+        totalBalance = totalBalance.add(assetBalance.toDec());
+      });
 
-      return CurrencyUtils.formatPrice(totalBalance.toString()).toString()
-    }
-  }
-})
+      return CurrencyUtils.formatPrice(totalBalance.toString()).toString();
+    },
+  },
+});
 </script>

@@ -1,147 +1,346 @@
 .picker {
+	&-container {
+		&.icon {
+			button {
+				//min-width: 181px;
+			}
+		}
+		ul {
+			list-style-type: square;
+			padding: 12px 16px;
+			background: #ffffff;
+			/* background-neutral-medium */
+			border: 1px solid #ebeff5 !important;
+			box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15) !important;
+			border-radius: 6px !important;
+			li {
+				border-bottom: none !important;
+				font-family: "Garet-Medium";
+				font-size: 12px;
+				line-height: 17px;
+				color: #072d63;
+				position: relative;
+				position: relative;
+				display: flex;
+				padding-left: 0;
+				&:first-of-type {
+					padding-top: 0;
+				}
+				&:last-of-type {
+					padding-bottom: 0;
+				}
+				span.truncate {
+					overflow: unset;
+				}
+				img.icon-option {
+					width: 16px;
+				}
 
-    &-container {
+				&:not(:last-of-type) {
+					margin-bottom: 20px;
+				}
+			}
+			&.combo {
+				min-height: 31px;
+				ul {
+					list-style-type: square;
 
-        &.icon {
-            
-            button {
-                min-width: 181px;
-            }
-        }
+					background: #ffffff;
+					/* background-neutral-medium */
+					border: 1px solid #ebeff5 !important;
+					box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15) !important;
+					border-radius: 6px !important;
 
-        &.combo {
-            button {
-                overflow: hidden;
+					padding: 0;
+					&:before {
+						content: "\e816";
+						font-family: "nolus";
+						font-size: 2.5em;
+						margin-right: 8px;
+						color: $textMain;
+					}
+				}
+			}
+			button {
+				overflow: hidden;
+				&[aria-expanded="true"] {
+					border-color: #2868e1;
 
-                &:hover {
-                    
-                    span.absolute {
-                        border-color: $mediumBlue;
-                    }
-                }
+					span.absolute {
+						border-color: #2868e1;
+						background-color: #e9f0fc;
+						svg {
+							color: #2868e1;
+						}
+					}
+				}
+				&:hover {
+					span.absolute {
+						border-color: $mediumBlue;
+					}
+				}
 
-                &:active,
-                &:focus {
+				&:active,
+				&:focus {
+					span.absolute {
+						background-color: #e9f0fc;
+						svg {
+							color: $lightElectric;
+						}
+					}
+				}
 
-                    span.absolute {
-                        border-color: $lightElectric;
-                        background-color: #e9f0fc;
+				.block {
+					min-height: 24px;
+				}
 
-                        svg {
-                            color: $lightElectric;
-                        }
-                    }
-                }
-                
-                .block {
-                    min-height: 24px;
-                }
+				span.absolute {
+					margin: 0;
+					padding: 0 14px;
+					border-left: 1px solid $grey;
+					transition: 0.3s;
 
-                span.absolute {
-                    background-color: transparent;
-                    margin: 0;
-                    padding: 0 14px;
-                    border-left: 1px solid $grey;
-                    transition: 0.3s;
+					svg {
+						color: #8395b0;
+						transition: 0.3s;
+					}
+				}
+			}
+		}
 
-                    svg {
-                        color: #8395b0;
-                        transition: 0.3s;
-                    }
-                }
-            }
-        }
+		button {
+			font-size: 14px;
+			line-height: 24px;
+			border: solid 1px $grey;
+			border-radius: $rounded;
+			box-shadow: none !important;
+			padding: 12px 32px 12px 16px;
+			height: 42px;
+			transition: 0.3s;
+			min-height: 36px;
+			&[aria-expanded="true"] {
+				border-color: #2868e1;
+				&.combo {
+					span.absolute {
+						border-left: 1px solid #2868e1;
+						background-color: #e9f0fc;
+					}
+				}
+			}
+			&:hover {
+				border-color: $mediumBlue;
+			}
 
-        button {
-            background: $white;
-            font-size: 14px;
-            line-height: 24px;
-            border: solid 1px $grey;
-            border-radius: $rounded;
-            box-shadow: none !important;
-            padding: 12px 32px 12px 16px;
-            min-width: 135px;
-            transition: 0.3s;
+			&:active,
+			&:focus {
+				border-color: $lightElectric;
+			}
+			span {
+				span.truncate {
+					overflow: hidden;
+					text-overflow: ellipsis;
+					white-space: nowrap;
+				}
+			}
+		}
 
-            &:hover {
-                border-color: $mediumBlue;
-            }
+		.msg {
+			display: block;
+			font-size: 14px;
+			font-family: "Garet-Medium";
+			line-height: 24px;
+			margin-top: 4px;
+			color: $lightRed;
 
-            &:active,
-            &:focus {
-                border-color: $lightElectric;
-            }
-        }
+			&.hidden {
+				display: none;
+			}
+		}
 
-        .msg {
-            display: block;
-            font-size: 14px;
-            font-weight: 500;
-            line-height: 24px;
-            margin-top: 4px;
-            color: $lightRed;
+		ul {
+			border: 1px solid $grey;
+			border-radius: $rounded;
+			box-shadow: 0 8px 48px 0 rgba(7, 45, 99, 0.16);
 
-            &.hidden {
-                display: none;
-            }
-        }
-        
-        ul {
-            border: 1px solid $grey;
-            border-radius: $rounded;
-            box-shadow: 0 8px 48px 0 rgba(7, 45, 99, 0.16);
+			li {
+				border-bottom: 1px solid $grey;
+				color: $textMain;
+				span {
+					font-size: 12px;
+					line-height: 17px;
+				}
 
-            li {
-                border-bottom: 1px solid $grey;
-                color: $textMain;
-                font-weight: 400;
+				&:hover:not([class*="icon"]) {
+					color: $cta-color-scale-blue-light;
+				}
+				&.active {
+					color: $cta-color-scale-blue-light;
+				}
+				&:last-of-type {
+					border-bottom: none;
+				}
 
-                &:hover {
-                    color: $textMain;
-                    background-color: $grey;
-                }
+				svg {
+					color: $textMain;
+				}
+				.selected {
+					color: $cta-color-scale-blue-light;
+				}
+			}
+		}
+		&.combo {
+			button {
+				span.absolute {
+					color: $lightBlue;
+					border-left: 1px solid $borderColor;
+				}
+				&:focus,
+				&[aria-expanded="true"] {
+					span.absolute {
+						color: $lightElectric;
+						border-left: 1px solid $lightElectric;
+						background-color: $activeButton;
+					}
+				}
+				&:hover {
+					span.absolute {
+						color: $mediumBlue;
+						border-left: 1px solid $mediumBlue;
+					}
+				}
+			}
+		}
+	}
 
-                &:last-of-type {
-                    border-bottom: none;
-                }
+	&.error {
+		.picker-container {
+			button {
+				border-color: $lightRed !important;
+			}
+			&.combo {
+				span.absolute {
+					border-color: $lightRed;
+					background-color: transparent;
 
-                svg {
-                    color: $textMain !important;
-                }
-            }
-        }
-    }
+					svg {
+						color: $lightRed;
+					}
+				}
+			}
+		}
+	}
 
-    &.error {
-        
-        .picker-container {
-            button {
-                border-color: $lightRed;
-            }
+	&.small {
+		.picker-container {
+			button {
+				font-size: 14px;
+				min-width: 72px !important;
+				width: fit-content;
+				padding: 8px 32px 8px 12px;
+			}
+		}
+	}
+}
+// .combo {
+// 	z-index: 3333;
+// 	button {
+// 		&[aria-expanded="true"] {
+// 			border-color: #2868e1;
 
-            &.combo {
+// 			span.absolute {
+// 				border-color: #2868e1;
+// 				background-color: #e9f0fc;
+// 			}
+// 		}
+// 	}
+// }
 
-                span.absolute {
-                    border-color: $lightRed;
-                    background-color: transparent;
+.nolus-combo {
+	/* White */
+	padding: 12px 0px;
+	background: #ffffff;
+	/* cta-bule-light */
 
-                    svg {
-                        color: $lightRed;
-                    }
-                }
-            }
-        }
-    }
+	// border: 1px solid #2868e1;
+	border-radius: 6px;
+	ul {
+		padding: 12px 19px;
+		gap: 20px;
+		z-index: 99;
+		/* White */
 
-    &.small {
+		background: $white;
+		/* background-neutral-medium */
 
-        .picker-container {
-            
-            button {
-                font-size: 14px;
-                min-width: 72px !important;
-                padding: 8px 32px 8px 12px;
-            }
-        }
-    }
+		border: 1px solid $borderColor;
+		/* field-shadow-heavy */
+
+		box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15);
+		border-radius: 6px;
+		li {
+			margin-bottom: 27.75px;
+			font-size: 12px;
+			line-height: 17px;
+			font-family: "Garet-Medium";
+		}
+	}
+}
+.nolus-combo-field {
+	outline: 1px solid $grey;
+	transition: 0.3s;
+	.button {
+		border-left: 1px solid $grey;
+	}
+	input {
+		padding: 12px 32px 12px 12px;
+	}
+	&:focus,
+	&:focus-within {
+		outline: 1px solid $lightElectric;
+		.nolus-combo-button {
+			border-left: 1px solid $grey;
+			// padding: 5px;
+			// background-color: $activeButton;
+			color: $lightElectric;
+			border-left: 1px solid $lightElectric;
+			background-color: $activeButton;
+			span.icon {
+				color: #276ee3;
+			}
+		}
+	}
+	&.error {
+		outline: 1px solid $lightRed;
+		button {
+			border-left: 1px solid $lightRed;
+			padding: 5px;
+		}
+		//color: $lightRed;
+		span.icon {
+			color: $lightRed;
+			margin-right: 0px;
+		}
+	}
+	&:hover {
+		outline: 1px solid $lightBlue;
+		.nolus-combo-button {
+			border-left: 1px solid $lightBlue;
+			span.icon {
+				margin-right: 0;
+				color: $lightBlue;
+			}
+		}
+	}
+	.nolus-combo-button {
+		border-left: 1px solid $grey;
+		&:hover {
+			border-left: 1px solid $lightBlue;
+		}
+
+		padding: 5px;
+		span.icon {
+			margin-right: 0;
+			color: $lightBlue;
+		}
+	}
 }

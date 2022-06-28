@@ -2,11 +2,13 @@
 @import "./helpers/fonts";
 @import "./helpers/typography";
 @import "./helpers/buttons";
+@import "./helpers/html";
 @import "./helpers/border";
 @import "./helpers/shadow";
 @import "./helpers/radius";
-@import "./helpers/html";
-
+@import "./helpers/distance";
+@import "./helpers/colors";
+@import "./helpers/animations";
 @import "./components/picker";
 @import "./components/checkbox";
 @import "./components/input-field";
@@ -16,3 +18,5 @@
 @import "./components/boxes";
 @import "./components/wallet-open";
 @import "./components/progressbar";
+@import "./components/notification";
+@import "./components/snackbar";

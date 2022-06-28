@@ -1,237 +1,258 @@
 .sidebar-container {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    max-width: 190px;
-    height: 100vh;
-    transform: translateZ(0);
-    z-index: 2;
+	display: inline-flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-between;
+	position: sticky;
+	top: 0;
+	left: 0;
+	width: 100%;
+	max-width: 190px;
+	height: 100vh;
+	transform: translateZ(0);
+	z-index: 2;
 
-    .top {
-        display: block;
-    }
+	.top {
+		display: block;
+	}
 
-    .bot {
-        display: none;
+	.bot {
+		display: none;
 
-        @media (min-width: $lg) {
-            display: block;
-        }
-    }
+		@media (min-width: $lg) {
+			display: block;
+		}
+	}
 
-    .top,
-    .bot {
-        width: 100%;
-    }
+	.top,
+	.bot {
+		width: 100%;
+	}
 
-    .sidebar-elements-container {
+	.sidebar-elements-container {
+		@media (max-width: $lg) {
+			display: flex;
+			justify-content: space-between;
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			background: $white;
+			width: 100vw;
+			border-top: 1px solid $borderColor;
+			padding: 8px;
+		}
 
-        @media (max-width: $lg) {
-            display: flex;
-            justify-content: space-between;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            background: $white;
-            width: 100vw;
-            border-top: 1px solid $borderColor;
-            padding: 8px;
-        }
-        
-        &:hover {
+		&:hover {
+			.sidebar-element {
+				color: $textMain;
+				background-color: transparent;
 
-            .sidebar-element {
-                color: $textMain;
-                background-color: transparent;
+				.icon {
+					display: inline-block;
+				}
+				.iconHover {
+					display: none;
+				}
+			}
+		}
 
-                .icon { display: inline-block; }
-                .iconHover { display: none; }
-            }
-        }
+		.block {
+			@media (min-width: $lg) {
+				margin-bottom: 12px;
 
-        .block {
-            
-            @media (min-width: $lg) {
-                margin-bottom: 12px;
+				&:last-of-type {
+					margin-bottom: 0 !important;
+				}
+			}
+		}
+	}
 
-                &:last-of-type {
-                    margin-bottom: 0 !important;
-                }
-            }
-        }
-    }
+	.logo {
+		&-float {
+			position: relative !important;
+			width: 100%;
 
-    .logo {
-
-        &-float {
-            position: relative !important;
-            width: 100%;
-
-            img {
-                margin: 0 auto;
-            }
-        }
-    }
+			img {
+				margin: 0 auto;
+			}
+		}
+	}
+	@media (max-width: $lg) {
+		position: fixed;
+	}
 }
 
 .sidebar-element {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    padding: 0 16px;
-    background: transparent;
-    border-radius: 12px;
-    
-    font-size: 12px;
-    line-height: 1.2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	padding: 0 16px;
+	background: transparent;
+	border-radius: 12px;
+	position: relative;
+	font-size: 16px;
+	line-height: 23px;
+	font-family: "Garet-Medium";
+	transition: 0.3s;
+	.icon {
+		font-size: 2.5em;
+		margin-left: -10px;
+		left: 10x;
+		color: $lightBlue;
+		transition: 0.3s;
+	}
+	&:hover {
+		.icon {
+			color: $brand-accent;
+		}
+	}
+	@media (min-width: $lg) {
+		font-size: 16px;
+		line-height: 1.4;
+		flex-direction: row;
+		justify-content: flex-start;
+		padding: 8px 16px;
+		font-family: "Garet-Medium";
+	}
 
-    @extend .text-medium;
+	&.active {
+		color: $orange;
 
-    @media (min-width: $lg) {
-        font-size: 16px;
-        line-height: 1.4;
-        flex-direction: row;
-        justify-content: flex-start;
-        padding: 8px 16px;
-    }
+		@media (min-width: $lg) {
+			background-color: $borderColor;
+		}
 
-    &.active {
-        color: $orange;
+		// .icon {
+		// 	display: none;
+		// }
 
-        @media (min-width: $lg) {
-            background-color: $grey;
-        }
+		// .iconHover {
+		// 	display: block;
 
-        .icon { display: none; }
+		// 	@media (min-width: $lg) {
+		// 		display: inline-block;
+		// 	}
+		// }
+	}
 
-        .iconHover { 
-            display: block;
+	&:hover,
+	&:active {
+		color: $orange !important;
 
-            @media (min-width: $lg) {
-                display: inline-block; 
-            }
-        }
-    }
+		@media (min-width: $lg) {
+			background-color: $background-scale-darker !important;
+		}
 
-    &:hover,
-    &:active {
-        color: $orange !important;
+		// .icon {
+		// 	display: none !important;
+		// }
+		// .iconHover {
+		// 	display: inline-block !important;
+		// }
+	}
 
-        @media (min-width: $lg) {
-            background-color: $grey !important;
-        }
+	// .icon,
+	// .iconHover {
+	// 	display: block;
+	// 	position: relative;
+	// 	margin: 0;
 
-        .icon { display: none !important; }
-        .iconHover { display: inline-block !important; }
-    }
+	// 	@media (min-width: $lg) {
+	// 		display: inline-block;
+	// 	}
+	// }
 
-    .icon,
-    .iconHover {
-        display: block;
-        position: relative;
-        margin: 0;
+	// .iconHover {
+	// 	display: none;
+	// }
 
-        @media (min-width: $lg) {
-            display: inline-block;
-        }
-    }
+	span {
+		display: block;
 
-    .iconHover {
-        display: none;
-    }
-
-    span {
-        display: block;
-
-        @media (min-width: $lg) {
-            display: inline-block;
-            margin-left: 8px;
-        }
-    }
+		@media (min-width: $lg) {
+			display: inline-block;
+			margin-left: 8px;
+		}
+	}
 }
 
 .sidebar-social-element {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    margin-right: 16px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	margin-right: 16px;
+	font-family: "Garet-Medium";
 
-    &:last-of-type {
-        margin-right: 0 !important;
-    }
+	&:last-of-type {
+		margin-right: 0 !important;
+	}
 
-    img {
-        display: block;
-        width: 100%;
-        max-width: 100%;
-        margin: 0 auto;
-    }
+	img {
+		display: block;
+		width: 100%;
+		max-width: 100%;
+		margin: 0 auto;
+	}
 }
 
 .sidebar-link-element {
-    display: block;
-    text-align: left;
-    color: rgba(7, 45, 99, 0.5);
+	display: block;
+	text-align: left;
+	color: rgba(7, 45, 99, 0.5);
 
-    @extend .text-detail;
+	@extend .text-detail;
 
-    &:hover,
-    &:active {
-        color: $textMain;
-    }
+	&:hover,
+	&:active {
+		color: $textMain;
+	}
 }
 
 .sidebar-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: flex-end;
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 100%;
-    padding: 8px;
-    background-color: $white;
-    border-bottom: 1px solid $borderColor;
-    z-index: 1;
+	display: flex;
+	align-items: flex-start;
+	justify-content: flex-end;
+	position: fixed;
+	top: 0;
+	right: 0;
+	width: 100%;
+	padding: 8px;
+	background-color: $white;
+	border-bottom: 1px solid $borderColor;
+	z-index: 1;
 
-    .btn-header {
+	.btn-header {
+		@media (max-width: $lg) {
+			background-color: $white;
+			border-radius: 0;
+			border: none;
+			width: 48px;
+			height: 48px;
+			padding: 0;
 
-        @media (max-width: $lg) {
-            background-color: $white;
-            border-radius: 0;
-            border: none;
-            width: 48px;
-            height: 48px;
-            padding: 0;
+			svg {
+				width: 55%;
+				height: 55%;
+			}
 
-            svg {
-                width: 55%;
-                height: 55%;
-            }
+			img {
+				width: 20px;
+				height: 20px;
+				margin-right: 0;
+			}
 
-            img {
-                width: 20px;
-                height: 20px;
-                margin-right: 0;
-            }
-            
-            .label {
-                display: none;
-            }
-        }
-    }
+			.label {
+				display: none;
+			}
+		}
+	}
 
-    @media (min-width: $lg) {
-        padding: 0;
-        background-color: transparent !important;
-        border: none !important;
-    }
+	@media (min-width: $lg) {
+		padding: 0;
+		background-color: transparent !important;
+		border: none !important;
+	}
 }

@@ -1,90 +1,221 @@
-.input-field {
+.input-field,
+.combo-field {
+	input,
+	textarea,
+	.editable-block {
+		background: $white;
+		font-size: 14px;
+		line-height: 24px;
+		border: solid 1px $grey;
+		border-radius: $lightRounded;
+		box-shadow: none;
+		padding: 12px 32px 12px 16px;
+		min-width: 135px;
+		transition: 0.3s;
+		display: block;
+		width: 100%;
+		/* field-shadow-normal */
 
-    input,
-    textarea,
-    .editable-block {
-        background: $white;
-        font-size: 14px;
-        line-height: 24px;
-        border: solid 1px $grey;
-        border-radius: $rounded;
-        box-shadow: none !important;
-        padding: 12px 32px 12px 16px;
-        min-width: 135px;
-        margin-top: 8px;
-        transition: 0.3s;
-        display: block;
-        width: 100%;
+		border-radius: 6px;
+		&:hover {
+			border-color: $mediumBlue !important;
+		}
 
-        &:hover {
-            border-color: $mediumBlue;
-        }
+		&:active,
+		&:focus {
+			border-color: $lightElectric !important;
+			box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.06);
+		}
 
-        &:active,
-        &:focus {
-            border-color: $lightElectric;
-        }
+		&.error {
+			border-color: $lightRed;
+		}
 
-        &.error {
-            border-color: $lightRed;
-        }
+		& > div {
+			display: inline-block;
+			border-radius: $lightRounded;
+			background-color: $textMain;
+			color: $white;
+			padding: 8px 12px;
+			margin-right: 8px;
+			margin-bottom: 8px;
+		}
+	}
 
-        & > div {
-            display: inline-block;
-            border-radius: $rounded;
-            background-color: $textMain;
-            color: $white;
-            padding: 8px 12px;
-            margin-right: 8px;
-            margin-bottom: 8px;
-        }
-    }
+	textarea,
+	.editable-block {
+		min-height: 154px;
+	}
 
-    textarea,
-    .editable-block {
-        min-height: 154px;
-    }
+	.msg {
+		display: block;
+		font-size: 14px;
+		font-family: "Garet-Medium";
+		line-height: 24px;
+		margin-top: 4px;
+		color: $lightRed;
 
-    .msg {
-        display: block;
-        font-size: 14px;
-        font-weight: 500;
-        line-height: 24px;
-        margin-top: 4px;
-        color: $lightRed;
-
-        &.hidden {
-            display: none;
-        }
-    }
+		&.hidden {
+			display: none;
+		}
+	}
 }
 
 .text-field-buttons {
+	textarea {
+		border-bottom-left-radius: 0;
+		border-bottom-right-radius: 0;
+	}
 
-    textarea {
-        border-bottom-left-radius: 0;
-        border-bottom-right-radius: 0;
-    }
-
-    .buttons-container {
-        border-bottom-left-radius: $rounded;
-        border-bottom-right-radius: $rounded;
-        border: 1px solid $grey;
-        border-top: none;
-    }
+	.buttons-container {
+		border-bottom-left-radius: $lightRounded;
+		border-bottom-right-radius: $lightRounded;
+		border: 1px solid $grey;
+		border-top: none;
+	}
 }
 
 .editable-block-options {
+	.editable-block-option {
+		display: inline-block;
+		background-color: $white;
+		border: 1px solid rgba(7, 45, 99, 0.1);
+		border-radius: $lightRounded;
+		padding: 8px 12px;
+		margin-top: 12px;
+		margin-right: 12px;
+		//box-shadow: 0 8px 32px 0 rgba(7, 45, 99, 0.05);
+		font-size: 14px;
+		background: #ffffff;
+		/* background-neutral-dark */
 
-    .editable-block-option {
-        display: inline-block;
-        background-color: $white;
-        border: 1px solid rgba(7, 45, 99, 0.1);
-        border-radius: $rounded;
-        padding: 8px 12px;
-        margin-top: 12px;
-        margin-right: 12px;
-        box-shadow: 0 8px 32px 0 rgba(7, 45, 99, 0.05);
-        font-size: 14px;
-    }
+		border: 1px solid #c1cad7;
+		border-radius: 6px;
+
+		/* Inside auto layout */
+
+		flex: none;
+		order: 2;
+		flex-grow: 0;
+	}
+}
+label {
+	font-family: "Garet-Medium";
+	font-size: 14px !important;
+	line-height: 20px !important;
+	color: #082d63 !important;
+}
+.actionField {
+	position: relative;
+	textarea {
+		padding-bottom: 60px;
+	}
+	.buttons-container {
+		position: absolute;
+		bottom: 1px;
+		left: 1px;
+		border-bottom-left-radius: 6px;
+		border-bottom-right-radius: 6px;
+		width: calc(100% - 2px);
+		border-top: 1px solid #c1cad7;
+		// border-top: 1px solid #c1cad7;
+		background: linear-gradient(314.47deg, #ebeff5 2.19%, #f7f9fc 100%);
+		/* background-neutral-dark */
+
+		//border: 1px solid #c1cad7;
+		border-radius: 0px 0px 6px 6px;
+	}
+}
+
+// *******************
+.nolus-field {
+	input {
+		& + button {
+			position: absolute;
+			right: 0;
+			top: 0;
+			height: -webkit-fill-available;
+			border: none;
+			border-left: 1px solid #c1cad7;
+		}
+		&.error {
+			& + button {
+				border-left: 1px solid #e42929;
+				svg {
+					path {
+						fill: #e42929 !important;
+					}
+				}
+			}
+		}
+	}
+	.input-field {
+		input {
+			&:focus {
+				& + button {
+					transition: 0.3s;
+					border-left: 1px solid #2868e1 !important;
+					svg {
+						path {
+							fill: #2868e1 !important;
+						}
+					}
+				}
+			}
+			&:hover {
+				& + button {
+					border-left: 1px solid #8396b1 !important;
+					svg {
+						path {
+							fill: #8396b1 !important;
+						}
+					}
+				}
+			}
+		}
+	}
+	.error {
+		&.msg {
+			display: block;
+			font-size: 14px;
+			font-family: "Garet-Medium";
+			line-height: 24px;
+			margin-top: 4px;
+			color: #e42929;
+		}
+	}
+}
+
+.combo-field {
+	position: relative;
+	input {
+	}
+	.combo-popup {
+		box-sizing: border-box;
+
+		/* Auto layout */
+
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		padding: 12px 0px;
+		gap: 20px;
+
+		position: absolute;
+		width: 240px;
+		height: 152px;
+		left: 398px;
+		top: 795px;
+
+		/* White */
+
+		background: $white;
+		/* background-neutral-medium */
+
+		border: 1px solid $borderColor;
+		/* field-shadow-heavy */
+
+		box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15);
+		border-radius: 6px;
+	}
 }

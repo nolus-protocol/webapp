@@ -1,6 +1,8 @@
 .box {
-
-    &-warning {
-        background-color: $bgYellow;
-    }
+	&-warning {
+		background-color: $bgYellow;
+		& > div:first-of-type {
+			min-width: 24px;
+		}
+	}
 }
