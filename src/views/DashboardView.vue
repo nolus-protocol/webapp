@@ -97,8 +97,8 @@
                 <AssetPartial
                   v-for="asset in this.manipulatedAssets"
                   :key="asset"
-                  :asset-info=getAssetInfo(asset.udenom)
-                  :price=getMarketPrice(asset.udenom)
+                  :asset-info=getAssetInfo(asset.balance.denom)
+                  :price=getMarketPrice(asset.balance.denom)
                   change="4.19"
                   :changeDirection=true
                   balance="0"
@@ -147,6 +147,7 @@ export default defineComponent({
   },
   watch: {
     '$store.state.wallet.balances' (balances) {
+      console.log('Balances: ', balances)
       this.mainAssets = balances
       this.manipulatedAssets = balances
       if (this.hideLowerBalances) {
@@ -164,6 +165,7 @@ export default defineComponent({
   },
   methods: {
     getAssetInfo (minimalDenom: string) {
+      console.log('minimalllll: ', minimalDenom)
       return AssetUtils.getAssetInfoByAbbr(minimalDenom)
     },
     getMarketPrice (minimalDenom: string) {
@@ -179,10 +181,10 @@ export default defineComponent({
     calculateTotalBalance () {
       let totalBalance = new Dec(0)
       this.mainAssets.forEach(asset => {
-        const decimals = assetInfo[asset.udenom].coinDecimals
+        const decimals = assetInfo[asset.balance.denom].coinDecimals
         const assetBalance = CurrencyUtils.calculateBalance(
-          this.getMarketPrice(asset.udenom),
-          new Coin(asset.udenom,
+          this.getMarketPrice(asset.balance.denom),
+          new Coin(asset.balance.denom,
             asset.balance.amount.toString()
           ),
           decimals

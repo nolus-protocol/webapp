@@ -82,7 +82,7 @@ export default defineComponent({
   },
   methods: {
     formatAmount (value: string, selectedCurrency: AssetBalance) {
-      const denom = assetInfo[selectedCurrency.udenom].coinDenom
+      const denom = assetInfo[selectedCurrency.balance.denom].coinDenom
       return value + ' ' + denom
     },
     isMnemonicWallet () {

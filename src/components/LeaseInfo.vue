@@ -91,7 +91,6 @@ export default {
       const assetInf = assetInfo[minimalDenom]
       if (prices && assetInf) {
         const coinPrice = prices[assetInf.coinDenom]
-        console.log(tokenAmount)
         const tokenDecimals = assetInf.coinDecimals
         const coinAmount = new Coin(minimalDenom, new Int(tokenAmount))
         return CurrencyUtils.calculateBalance(coinPrice.amount, coinAmount, 0).toString()

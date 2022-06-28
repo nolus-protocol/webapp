@@ -190,7 +190,7 @@ export default defineComponent({
       const currentBalance = this.getCurrentBalanceByDenom(selectedDownPaymentDenom)
 
       if (downPaymentAmount || downPaymentAmount !== '') {
-        const decimals = assetInfo[currentBalance.udenom].coinDecimals
+        const decimals = assetInfo[currentBalance.balance.denom].coinDecimals
         this.currentComponent.props.downPaymentErrorMsg = ''
         const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
           downPaymentAmount,
