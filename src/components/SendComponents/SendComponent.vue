@@ -12,7 +12,7 @@
     </div>
 
     <div class="block text-left">
-      <div class="block mt-4">
+      <div class="block mt-nolus-255">
         <CurrencyField
           name="amount"
           id="amount"
@@ -28,7 +28,7 @@
         />
       </div>
 
-      <div class="block mt-4">
+      <div class="block mt-nolus-255">
         <PickerDefault
           label="Network"
           :default-option="{ label: 'NLS', value: 'NLS' }"
@@ -41,7 +41,7 @@
         ></PickerDefault>
       </div>
 
-      <div class="block mt-4">
+      <div class="block mt-nolus-255">
         <InputField
           type="text"
           name="sendTo"
@@ -52,9 +52,16 @@
           :error-msg="modelValue.receiverErrorMsg"
           :is-error="modelValue.receiverErrorMsg !== ''"
         />
+        <!--    <PickerCombo
+          name="sendTo"
+          id="sendTo"
+          label="Send to"
+          value="modelValue.receiverAddress"
+          :options="addressOptions"
+        /> -->
       </div>
 
-      <div class="block mt-4">
+      <div class="block mt-nolus-255">
         <InputField
           type="text"
           name="memo"
@@ -90,11 +97,14 @@
 <script lang="ts">
 import { StarIcon } from "@heroicons/vue/solid";
 import CurrencyField from "@/components/CurrencyField.vue";
-import PickerDefault from "@/components/PickerDefault.vue";
+import PickerDefault, {
+  PickerDefaultOption,
+} from "@/components/PickerDefault.vue";
 import InputField from "@/components/InputField.vue";
 import { defineComponent, PropType } from "vue";
 import { AssetBalance } from "@/store/modules/wallet/state";
 import { CurrencyUtils } from "@nolus/nolusjs";
+import PickerCombo from "@/components/PickerCombo.vue";
 
 export interface SendComponentProps {
   receiverErrorMsg: string;
@@ -119,13 +129,47 @@ export default defineComponent({
     CurrencyField,
     PickerDefault,
     InputField,
+    PickerCombo,
   },
   props: {
     modelValue: {
       type: Object as PropType<SendComponentProps>,
     },
   },
-
+  data() {
+    return {
+      addressOptions: [] as PickerDefaultOption[],
+    };
+  },
+  mounted() {
+    this.addressOptions = [
+      {
+        id: "1",
+        value: "nolus1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3rtesmj",
+        label: "Silviya Stancheva’s Binance",
+      },
+      {
+        id: "2",
+        value: "nolus1tygms3xhhs3yv487phx3dw4a95jn7t7lht9pdx",
+        label: "Petar Petrov KuCoin",
+      },
+      {
+        id: "3",
+        value: "nolus1vnn8pr2hqrm64mge8724jmzcm7usnsm5e4qqle",
+        label: "Gancho Manev Binance",
+      },
+      {
+        id: "4",
+        value: "nolus10d07y265gmmuvt4z0w9aw880jnsr700jvjr65k",
+        label: "Gero Nikolov’s Ledger",
+      },
+      {
+        id: "5",
+        value: "nolus1jv65s3grqf6v6jl3dp4t6c9t9rk99cd8305rt6",
+        label: "Silviya Stancheva’s Binance",
+      },
+    ];
+  },
   methods: {
     formatCurrentBalance(value: AssetBalance[]) {
       if (value) {

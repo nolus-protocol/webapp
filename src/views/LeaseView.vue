@@ -21,7 +21,7 @@
               <h1 class="nls-20 nls-font-700 text-primary m-0">Leases</h1>
             </div>
             <div
-              class="right w-full md:w-1/2 mt-4 md:mt-0 inline-flex justify-start md:justify-end"
+              class="right w-full md:w-1/2 mt-nolus-255 md:mt-0 inline-flex justify-start md:justify-end"
             >
               <button
                 class="btn btn-primary btn-large-primary w-full md:w-1/2"

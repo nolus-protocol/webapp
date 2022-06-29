@@ -21,7 +21,7 @@
         ></PickerIcon>
       </div>
 
-      <div class="block mt-4">
+      <div class="block mt-nolus-255">
         <PickerDefault
           label="Network"
           :default-option="{ value: 'NLS', label: 'NLS' }"
@@ -30,9 +30,9 @@
         ></PickerDefault>
       </div>
 
-      <div class="block mt-4">
-        <p class="nls-14 nls-font-400 text-primary m-0">Wallet address:</p>
-        <p class="nls-14 nls-font-400 text-primary nls-font-700 m-0">
+      <div class="block mt-nolus-36">
+        <p class="nls-14 nls-font-500 text-primary m-0">Wallet address:</p>
+        <p class="nls-14 text-primary nls-font-700 m-0">
           {{ modelValue.walletAddress }}
         </p>
         <div class="flex items-center justify-start mt-2">
@@ -54,7 +54,7 @@
       </div>
 
       <div
-        class="flex items-center box box-warning radius-rounded p-4 mt-4 text-left break-words"
+        class="flex items-center box box-warning radius-rounded p-4 mt-nolus-255 text-left break-words"
       >
         <div class="inline-block mr-2">
           <img

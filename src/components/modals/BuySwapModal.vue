@@ -20,7 +20,7 @@
       <!-- Input Area -->
       <div class="modal-send-receive-input-area">
         <div
-          class="flex items-center box box-warning radius-rounded p-4 mt-4 text-left break-words"
+          class="flex items-center box box-warning radius-rounded p-4 mt-nolus-255 text-left break-words"
         >
           <div class="inline-block mr-2">
             <img
@@ -41,7 +41,7 @@
         </div>
 
         <div class="block text-left">
-          <div class="block mt-4">
+          <div class="block mt-nolus-255">
             <MultipleCurrencyField
               name="multiple-currency-field-example"
               id="multiple-currency-field-example"

@@ -32,7 +32,7 @@
           <p class="text nls-font-700 nls-18 m-0">Notifications</p>
         </div>
         <div
-          class="right w-full md:w-1/2 mt-4 md:mt-0 inline-flex justify-start md:justify-end"
+          class="right w-full md:w-1/2 mt-nolus-255 md:mt-0 inline-flex justify-start md:justify-end"
         >
           <div class="relative block checkbox-container">
             <div class="flex items-center w-full justify-end">

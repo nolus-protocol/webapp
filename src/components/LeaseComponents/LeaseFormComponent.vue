@@ -20,7 +20,7 @@
         />
       </div>
 
-      <div class="block mt-4">
+      <div class="block mt-nolus-255">
         <CurrencyField
           name="amountInterest"
           id="amount-interest"

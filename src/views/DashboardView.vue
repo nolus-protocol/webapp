@@ -21,7 +21,7 @@
               <h1 class="nls-20 nls-font-700 text-primary m-0">Assets</h1>
             </div>
             <div
-              class="right w-full md:w-1/2 mt-4 md:mt-0 inline-flex justify-start md:justify-end"
+              class="right w-full md:w-1/2 mt-nolus-255 md:mt-0 inline-flex justify-start md:justify-end"
             >
               <button
                 class="btn btn-secondary btn-large-secondary mr-4"
@@ -66,7 +66,7 @@
                 <p class="nls-16 nls-font-500 m-0">Existing assets</p>
               </div>
               <div
-                class="right w-full md:w-1/2 mt-4 md:mt-0 inline-flex justify-start md:justify-end"
+                class="right w-full md:w-1/2 mt-nolus-255 md:mt-0 inline-flex justify-start md:justify-end"
               >
                 <div class="relative block checkbox-container">
                   <div class="flex items-center w-full justify-end">
@@ -85,7 +85,7 @@
             </div>
 
             <!-- Assets -->
-            <div class="block mt-6 md:mt-4">
+            <div class="block mt-6 md:mt-nolus-255">
               <!-- Assets Header -->
               <div
                 class="grid grid-cols-3 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6"

@@ -31,7 +31,7 @@
     </div>
 
     <div
-      class="block bg-light-grey radius-rounded p-4 text-left break-words mt-4"
+      class="block bg-light-grey radius-rounded p-4 text-left break-words mt-nolus-255"
     >
       <div class="block">
         <p class="nls-14 nls-font-400 text-primary m-0">Contract address:</p>

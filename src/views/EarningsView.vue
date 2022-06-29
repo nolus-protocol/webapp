@@ -39,7 +39,7 @@
                   </button>
                 </div>
                 <!-- Assets -->
-                <div class="block mt-6 md:mt-4">
+                <div class="block mt-6 md:mt-nolus-255">
                   <!-- Assets Header -->
                   <div
                     class="grid grid-cols-2 gap-6 border-b border-standart pb-3 px-6"

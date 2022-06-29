@@ -24,10 +24,10 @@
 
           <!-- History -->
           <div
-            class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm overflow-hidden"
+            class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm overflow-hidden pt-4"
           >
             <!-- Assets -->
-            <div class="block md:mt-4">
+            <div class="block md:mt-nolus-255">
               <!-- Assets Header -->
               <div
                 class="hidden md:grid lg:grid-cols-12 flex items-center gap-6 border-b border-standart pb-3 px-6"
@@ -269,7 +269,8 @@ import { StringUtils } from "@/utils/StringUtils";
 import { useStore } from "@/store";
 import { WalletActionTypes } from "@/store/modules/wallet/action-types";
 import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
-
+import Notifications from "@/components/Notifications.vue";
+import WalletOpen from "@/components/WalletOpen.vue";
 interface ITransaction {
   id: string;
   receiver: string;
@@ -283,6 +284,8 @@ export default defineComponent({
   name: "HistoryView",
   components: {
     SidebarContainer,
+    WalletOpen,
+    Notifications,
   },
   data() {
     return {

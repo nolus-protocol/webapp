@@ -21,7 +21,7 @@
             :name="this.name"
             :id="this.id"
             class="nls-font-700 nls-18 nls-font-700 text-primary"
-            value="10,000"
+            value=""
           />
           <span class="block nls-14 nls-font-400 text-light-blue">
             $1,000
@@ -29,25 +29,20 @@
         </div>
         <div class="inline-block w-1/2">
           <PickerIcon
-            :label="false"
+            label="Asset"
+            :default-option="{
+              value: 'NLS',
+              label: 'NLS',
+              icon: require('@/assets/icons/coins/nls.svg'),
+            }"
             :options="[
               {
-                value: 0,
-                label: 'Option 1',
-                icon: require('@/assets/icons/coins/nls.svg'),
-              },
-              {
-                value: 1,
-                label: 'Option 2',
-                icon: require('@/assets/icons/coins/nls.svg'),
-              },
-              {
-                value: 2,
-                label: 'Option 3',
+                value: 'NLS',
+                label: 'NLS',
                 icon: require('@/assets/icons/coins/nls.svg'),
               },
             ]"
-            type="small"
+            :disabled="true"
           ></PickerIcon>
         </div>
       </div>
@@ -63,7 +58,7 @@
             :name="this.nameSecondary"
             :id="this.idSecondary"
             class="nls-font-700 nls-18 nls-font-700 text-primary"
-            value="10,000"
+            value=""
           />
           <span class="block nls-14 nls-font-400 text-light-blue">
             $1,000
@@ -71,25 +66,20 @@
         </div>
         <div class="inline-block w-1/2">
           <PickerIcon
-            :label="false"
+            label="Asset"
+            :default-option="{
+              value: 'NLS',
+              label: 'NLS',
+              icon: require('@/assets/icons/coins/nls.svg'),
+            }"
             :options="[
               {
-                value: 0,
-                label: 'Option 1',
-                icon: require('@/assets/icons/coins/nls.svg'),
-              },
-              {
-                value: 1,
-                label: 'Option 2',
-                icon: require('@/assets/icons/coins/nls.svg'),
-              },
-              {
-                value: 2,
-                label: 'Option 3',
+                value: 'NLS',
+                label: 'NLS',
                 icon: require('@/assets/icons/coins/nls.svg'),
               },
             ]"
-            type="small"
+            :disabled="true"
           ></PickerIcon>
         </div>
       </div>

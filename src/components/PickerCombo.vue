@@ -133,7 +133,6 @@ export default {
   watch: {
     selected() {
       //@ts-ignore
-      (this.formFieldModel || {}).value = this.selected.value;
     },
   },
   // TODO : set query wather to filter input value

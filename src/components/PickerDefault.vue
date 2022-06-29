@@ -104,6 +104,7 @@ import { CheckIcon, ChevronDownIcon } from "@heroicons/vue/solid";
 import { defineComponent, PropType } from "vue";
 
 export interface PickerDefaultOption {
+  id?: string;
   label: string;
   value: string;
 }

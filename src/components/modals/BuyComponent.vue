@@ -16,8 +16,6 @@
       </div>
     </div>
     <div class="block text-left">
-      <!-- <DynamicForm :formValue="formDataModel" /> -->
-      <!-- <DynamicForm :formValue="formDataModel" /> -->
       <MultipleCurrencyField
         name="multiple-currency-field-example"
         id="multiple-currency-field-example"
@@ -58,6 +56,7 @@ import { defineComponent, PropType } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { AssetBalance } from "@/store/modules/wallet/state";
 import TooltipComponent from "@/components/TooltipComponent.vue";
+import MultipleCurrencyField from "@/components/MultipleCurrencyField.vue";
 
 export interface SendComponentProps {
   receiverErrorMsg: string;
@@ -83,6 +82,7 @@ export default defineComponent({
     PickerDefault,
     InputField,
     TooltipComponent,
+    MultipleCurrencyField,
   },
   props: {
     modelValue: {

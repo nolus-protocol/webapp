@@ -1,6 +1,6 @@
 <template>
   <!-- Header -->
-  <div class="flex modal-send-receive-header no-border">
+  <div class="flex modal-send-receive-header no-border bg-whiteGrey">
     <div class="navigation-header">
       <button
         type="button"
@@ -16,10 +16,10 @@
   </div>
 
   <!-- Input Area -->
-  <div class="modal-send-receive-input-area pt-0">
+  <div class="modal-send-receive-input-area pt-0 bg-whiteGrey">
     <div class="block text-left break-words">
       <div class="flex items-center">
-        <span class="nls-14 nls-font-400 text-primary nls-font-400 m-0 mr-2"
+        <span class="nls-14 text-primary nls-font-500 m-0 mr-2"
           >Nolus token</span
         >
         <div
@@ -33,7 +33,7 @@
         </div>
       </div>
       <div class="block mt-1">
-        <p class="nls-14 nls-font-400 text-primary nls-font-700 m-0">
+        <p class="nls-14 text-primary nls-font-700 m-0">
           {{ modelValue.walletAddress }}
         </p>
         <button
