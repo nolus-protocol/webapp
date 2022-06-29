@@ -3,80 +3,102 @@
     <div class="block input-field">
       <label
         :for="this.id"
-        class="block text-normal-copy text-primary text-medium"
-      >{{ this.label }}</label>
+        class="block nls-14 nls-font-400 text-primary nls-font-400"
+        >{{ this.label }}</label
+      >
       <div class="field-container text-field-buttons">
-          <textarea
-            :name="this.name"
-            :id="this.id"
-            :value="value"
-            @input='$emit("update:value", $event.target.value)'
-            :disabled="true"
-            :class="typeof this.isError !== 'undefined' && this.isError === true ? 'error' : ''"
-          ></textarea>
-        <div class="flex align-center justify-end p-3 bg-light-grey buttons-container">
-          <button class="btn btn-secondary btn-medium-secondary btn-icon mr-4" v-on:click="onClickCopy">
-            <DuplicateIcon class="icon w-4 h-4"/>
+        <textarea
+          :name="this.name"
+          :id="this.id"
+          :value="value"
+          @input="$emit('update:value', $event.target.value)"
+          :disabled="true"
+          :class="
+            typeof this.isError !== 'undefined' && this.isError === true
+              ? 'error'
+              : ''
+          "
+        ></textarea>
+        <div
+          class="flex align-center justify-end p-3 bg-light-grey buttons-container"
+        >
+          <button
+            class="btn btn-secondary btn-medium-secondary btn-icon mr-4"
+            v-on:click="onClickCopy"
+          >
+            <DuplicateIcon class="icon w-4 h-4" />
             Copy
           </button>
-          <button class="btn btn-secondary btn-medium-secondary btn-icon" v-on:click="onClickPrint">
-            <PrinterIcon class="icon w-4 h-4"/>
+          <button
+            class="btn btn-secondary btn-medium-secondary btn-icon"
+            v-on:click="onClickPrint"
+          >
+            <PrinterIcon class="icon w-4 h-4" />
             Print
           </button>
         </div>
       </div>
-      <span :class="[
-            'msg error ',
-            typeof this.errorMsg !== 'undefined' && this.errorMsg !== null ? '' : 'hidden'
-        ]">{{ typeof this.errorMsg !== 'undefined' && this.errorMsg !== null ? this.errorMsg : '' }}</span>
+      <span
+        :class="[
+          'msg error ',
+          typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
+            ? ''
+            : 'hidden',
+        ]"
+        >{{
+          typeof this.errorMsg !== "undefined" && this.errorMsg !== null
+            ? this.errorMsg
+            : ""
+        }}</span
+      >
     </div>
   </fieldset>
 </template>
 
 <script>
-import { DuplicateIcon, PrinterIcon } from '@heroicons/vue/solid'
+import { DuplicateIcon, PrinterIcon } from "@heroicons/vue/solid";
 
 export default {
-  name: 'TextFieldButtons',
+  name: "TextFieldButtons",
   components: {
     DuplicateIcon,
-    PrinterIcon
+    PrinterIcon,
   },
   props: {
     name: {
-      type: String
+      type: String,
     },
     id: {
-      type: String
+      type: String,
     },
     value: {
-      type: String
+      type: String,
     },
     label: {
-      type: String
+      type: String,
     },
     buttons: {
-      type: String
+      type: String,
     },
     isError: {
-      type: Boolean
+      type: Boolean,
     },
     errorMsg: {
-      type: String
+      type: String,
     },
     onClickCopy: {
-      type: Function
+      type: Function,
     },
     onClickPrint: {
-      type: Function
-    }
+      type: Function,
+    },
   },
-  data () {
+  data() {
     return {
       default: {
-        value: ''
-      }
-    }
-  }
-}
+        value: "",
+      },
+    };
+  },
+};
 </script>

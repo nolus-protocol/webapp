@@ -1,13 +1,12 @@
 <template>
   <!-- Input Area -->
   <div class="modal-send-receive-input-area">
-    <div class="block py-3 px-4 bg-light-grey radius-light text-left text-normal-copy text-primary text-medium">
+    <div
+      class="block py-3 px-4 bg-light-grey radius-light text-left nls-14 nls-font-400 text-primary"
+    >
       Current balance:
 
-      <a
-        href="#"
-        class="text-secondary text-bold underline ml-2"
-      >
+      <a href="#" class="text-secondary nls-font-700 underline ml-2">
         {{ formatCurrentBalance(modelValue.currentBalance) }}
       </a>
     </div>
@@ -32,8 +31,12 @@
       <div class="block mt-4">
         <PickerDefault
           label="Network"
-          :default-option="{label: 'NLS', value: 'NLS'}"
-          :options="[{value: 'NLS', label: 'NLS'},{value: 'ETH', label: 'ETH'}, {value: 'BTC', label: 'BTC'}]"
+          :default-option="{ label: 'NLS', value: 'NLS' }"
+          :options="[
+            { value: 'NLS', label: 'NLS' },
+            { value: 'ETH', label: 'ETH' },
+            { value: 'BTC', label: 'BTC' },
+          ]"
           :disabled="true"
         ></PickerDefault>
       </div>
@@ -62,8 +65,10 @@
         ></InputField>
 
         <div class="block mt-2">
-          <button class="btn btn-secondary btn-medium-secondary btn-icon ml-auto mr-0 flex items-center">
-            <StarIcon class="inline-block icon w-4 h-4 mr-1"/>
+          <button
+            class="btn btn-secondary btn-medium-secondary btn-icon ml-auto mr-0 flex items-center"
+          >
+            <StarIcon class="inline-block icon w-4 h-4 mr-1" />
             Save as contact
           </button>
         </div>
@@ -73,62 +78,65 @@
 
   <!-- Actions -->
   <div class="modal-send-receive-actions">
-    <button class="btn btn-primary btn-large-primary" v-on:click="modelValue.onNextClick">
+    <button
+      class="btn btn-primary btn-large-primary"
+      v-on:click="modelValue.onNextClick"
+    >
       Next
     </button>
   </div>
 </template>
 
 <script lang="ts">
-import { StarIcon } from '@heroicons/vue/solid'
-import CurrencyField from '@/components/CurrencyField.vue'
-import PickerDefault from '@/components/PickerDefault.vue'
-import InputField from '@/components/InputField.vue'
-import { defineComponent, PropType } from 'vue'
-import { AssetBalance } from '@/store/modules/wallet/state'
-import { CurrencyUtils } from '@nolus/nolusjs'
+import { StarIcon } from "@heroicons/vue/solid";
+import CurrencyField from "@/components/CurrencyField.vue";
+import PickerDefault from "@/components/PickerDefault.vue";
+import InputField from "@/components/InputField.vue";
+import { defineComponent, PropType } from "vue";
+import { AssetBalance } from "@/store/modules/wallet/state";
+import { CurrencyUtils } from "@nolus/nolusjs";
 
 export interface SendComponentProps {
-  receiverErrorMsg: string,
-  amountErrorMsg: string,
-  currentBalance: AssetBalance[],
-  selectedCurrency: AssetBalance,
-  amount: string,
-  memo: string,
-  receiverAddress: string,
-  password: string,
-  txHash: string,
-  onNextClick: () => void,
-  onSendClick: () => void,
-  onConfirmBackClick: () => void,
-  onClickOkBtn: () => void,
+  receiverErrorMsg: string;
+  amountErrorMsg: string;
+  currentBalance: AssetBalance[];
+  selectedCurrency: AssetBalance;
+  amount: string;
+  memo: string;
+  receiverAddress: string;
+  password: string;
+  txHash: string;
+  onNextClick: () => void;
+  onSendClick: () => void;
+  onConfirmBackClick: () => void;
+  onClickOkBtn: () => void;
 }
 
 export default defineComponent({
-  name: 'SendComponent',
+  name: "SendComponent",
   components: {
     StarIcon,
     CurrencyField,
     PickerDefault,
-    InputField
+    InputField,
   },
   props: {
     modelValue: {
-      type: Object as PropType<SendComponentProps>
-    }
+      type: Object as PropType<SendComponentProps>,
+    },
   },
 
   methods: {
-    formatCurrentBalance (value: AssetBalance[]) {
+    formatCurrentBalance(value: AssetBalance[]) {
       if (value) {
         return CurrencyUtils.convertUNolusToNolus(
           value[0]?.balance.amount.toString()
-        ).toString()
+        ).toString();
       }
     },
-    onUpdateCurrency (value: AssetBalance) {
-      this.$emit('update:modelValue.selectedCurrency', value)
-    }
-  }
-})
+    onUpdateCurrency(value: AssetBalance) {
+      this.$emit("update:modelValue.selectedCurrency", value);
+    },
+  },
+});
 </script>

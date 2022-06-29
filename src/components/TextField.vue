@@ -3,7 +3,7 @@
     <div class="block input-field">
       <label
         :for="this.id"
-        class="block text-normal-copy text-primary text-medium"
+        class="block nls-14 nls-font-400 text-primary nls-font-400"
         >{{ this.label }}</label
       >
       <textarea
@@ -36,26 +36,26 @@
 
 <script>
 export default {
-  name: 'TextField',
+  name: "TextField",
   props: {
     name: {
-      type: String
+      type: String,
     },
     id: {
-      type: String
+      type: String,
     },
     value: {
-      type: String
+      type: String,
     },
     label: {
-      type: String
+      type: String,
     },
     isError: {
-      type: Boolean
+      type: Boolean,
     },
     errorMsg: {
-      type: String
-    }
-  }
-}
+      type: String,
+    },
+  },
+};
 </script>

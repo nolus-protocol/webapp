@@ -1,56 +1,48 @@
 <template>
   <div
     :class="[
-            typeof this.type !== 'undefined' && this.type !== null ? 'picker '+ this.type : 'picker ',
-            typeof this.isError !== 'undefined' && this.isError === true ? ' error' : ''
-        ]"
+      typeof this.type !== 'undefined' && this.type !== null
+        ? 'picker ' + this.type
+        : 'picker ',
+      typeof this.isError !== 'undefined' && this.isError === true
+        ? ' error'
+        : '',
+    ]"
   >
-    <Listbox as="div" v-model="selected" @update:modelValue="$emit('update-selected', selected)"
-             :disabled="disabled">
-      <ListboxLabel class="block text-normal-copy text-primary text-medium">
+    <Listbox
+      as="div"
+      v-model="selected"
+      @update:modelValue="$emit('update-selected', selected)"
+      :disabled="disabled"
+    >
+      <ListboxLabel class="block nls-14 nls-font-400 text-primary nls-font-400">
         {{ label }}
       </ListboxLabel>
       <div class="mt-1 relative picker-container">
         <ListboxButton
-          class="
-                    bg-white
-                    relative
-                    w-full
-                    border border-gray-300
-                    rounded-md
-                    shadow-sm
-                    pl-3
-                    pr-10
-                    py-2
-                    text-left
-                    cursor-default
-                    focus:outline-none
-                    focus:ring-1
-                    focus:ring-indigo-500
-                    focus:border-indigo-500
-                    sm:text-sm
-                    "
+          class="bg-white relative w-full border border-gray-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         >
           <span class="block truncate">{{ selected.label }}</span>
           <span
-            class="
-                        absolute
-                        inset-y-0
-                        right-0
-                        flex
-                        items-center
-                        pr-2
-                        pointer-events-none
-                    "
+            class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
           >
-                        <ChevronDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true"/>
-                    </span>
+            <ChevronDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
+          </span>
         </ListboxButton>
 
-        <span :class="[
-                    'msg error ',
-                    typeof this.errorMsg !== 'undefined' && this.errorMsg !== null ? '' : 'hidden'
-                ]">{{ typeof this.errorMsg !== 'undefined' && this.errorMsg !== null ? this.errorMsg : '' }}</span>
+        <span
+          :class="[
+            'msg error ',
+            typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
+              ? ''
+              : 'hidden',
+          ]"
+          >{{
+            typeof this.errorMsg !== "undefined" && this.errorMsg !== null
+              ? this.errorMsg
+              : ""
+          }}</span
+        >
 
         <transition
           leave-active-class="transition ease-in duration-100"
@@ -58,21 +50,7 @@
           leave-to-class="opacity-0"
         >
           <ListboxOptions
-            class="
-                        absolute
-                        z-10
-                        mt-1
-                        w-full
-                        bg-white
-                        shadow-lg
-                        max-h-60
-                        rounded-md
-                        py-1
-                        text-base
-                        overflow-auto
-                        focus:outline-none
-                        sm:text-sm
-                    "
+            class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm"
           >
             <ListboxOption
               as="template"
@@ -83,28 +61,28 @@
             >
               <li
                 :class="[
-                                active ? 'text-white bg-indigo-600' : 'text-gray-900',
-                                'cursor-default select-none relative py-2 pl-3 pr-9',
-                            ]"
+                  active ? 'text-white bg-indigo-600' : 'text-gray-900',
+                  'cursor-default select-none relative py-2 pl-3 pr-9',
+                ]"
               >
-                            <span
-                              :class="[
-                                selected ? 'font-semibold' : 'font-normal',
-                                'block truncate',
-                                ]"
-                            >
-                                {{ option.label }}
-                            </span>
+                <span
+                  :class="[
+                    selected ? 'font-semibold' : 'font-normal',
+                    'block truncate',
+                  ]"
+                >
+                  {{ option.label }}
+                </span>
 
                 <span
                   v-if="selected"
                   :class="[
-                                active ? 'text-white' : 'text-indigo-600',
-                                'absolute inset-y-0 right-0 flex items-center pr-4',
-                                ]"
+                    active ? 'text-white' : 'text-indigo-600',
+                    'absolute inset-y-0 right-0 flex items-center pr-4',
+                  ]"
                 >
-                                <CheckIcon class="h-5 w-5" aria-hidden="true"/>
-                            </span>
+                  <CheckIcon class="h-5 w-5" aria-hidden="true" />
+                </span>
               </li>
             </ListboxOption>
           </ListboxOptions>
@@ -115,17 +93,23 @@
 </template>
 
 <script lang="ts">
-import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue'
-import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/solid'
-import { defineComponent, PropType } from 'vue'
+import {
+  Listbox,
+  ListboxButton,
+  ListboxLabel,
+  ListboxOption,
+  ListboxOptions,
+} from "@headlessui/vue";
+import { CheckIcon, ChevronDownIcon } from "@heroicons/vue/solid";
+import { defineComponent, PropType } from "vue";
 
 export interface PickerDefaultOption {
-  label: string,
-  value: string
+  label: string;
+  value: string;
 }
 
 export default defineComponent({
-  name: 'PickerDefault',
+  name: "PickerDefault",
   components: {
     Listbox,
     ListboxButton,
@@ -133,44 +117,44 @@ export default defineComponent({
     ListboxOption,
     ListboxOptions,
     CheckIcon,
-    ChevronDownIcon
+    ChevronDownIcon,
   },
   props: {
     label: {
-      type: String
+      type: String,
     },
     type: {
-      type: String
+      type: String,
     },
     defaultOption: {
-      type: Object as PropType<PickerDefaultOption>
+      type: Object as PropType<PickerDefaultOption>,
     },
     options: {
-      type: Array as PropType<PickerDefaultOption[]>
+      type: Array as PropType<PickerDefaultOption[]>,
     },
     isError: {
-      type: Boolean
+      type: Boolean,
     },
     errorMsg: {
-      type: String
+      type: String,
     },
     disabled: {
-      type: Boolean
-    }
+      type: Boolean,
+    },
   },
-  mounted () {
-    console.log('mounted picker: ', this.defaultOption)
-    this.selected = this.defaultOption as PickerDefaultOption
+  mounted() {
+    console.log("mounted picker: ", this.defaultOption);
+    this.selected = this.defaultOption as PickerDefaultOption;
   },
   watch: {
-    defaultOption () {
-      this.selected = this.defaultOption as PickerDefaultOption
-    }
+    defaultOption() {
+      this.selected = this.defaultOption as PickerDefaultOption;
+    },
   },
-  data () {
+  data() {
     return {
-      selected: {} as PickerDefaultOption
-    }
-  }
-})
+      selected: {} as PickerDefaultOption,
+    };
+  },
+});
 </script>

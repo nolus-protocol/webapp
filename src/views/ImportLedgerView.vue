@@ -5,31 +5,17 @@
       type="button"
       class="inline-block align-baseline absolute left-0 top-2/4 -mt-2.5"
     >
-      <ArrowLeftIcon class="h-5 w-5" aria-hidden="true"/>
+      <ArrowLeftIcon class="h-5 w-5" aria-hidden="true" />
     </button>
-    <span
-      class="inline-block align-baseline"
-    >
-                            Import Ledger
-                        </span>
+    <span class="inline-block align-baseline"> Import Ledger </span>
   </h1>
 
   <div
-    class="
-                        block
-                        rounded-2xl
-                        bg-white
-                        mt-8
-                        p-10
-                        border border-standart
-                        shadow-box
-                        "
+    class="block rounded-2xl bg-white mt-8 p-10 border border-standart shadow-box"
   >
-    <p
-      class="text-normal-copy text-primary"
-    >
-      Use the <span class="text-secondary">Cosmos Application</span> on your Ledger dongle to connect the hardware
-      wallet.
+    <p class="nls-14 nls-font-400 text-primary">
+      Use the <span class="text-secondary">Cosmos Application</span> on your
+      Ledger dongle to connect the hardware wallet.
     </p>
     <div class="flex mt-6">
       <button class="btn btn-primary btn-large-primary mr-4 js-loading">
@@ -44,30 +30,30 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import { ArrowLeftIcon } from '@heroicons/vue/solid'
-import router from '@/router'
-import { useStore } from '@/store'
-import { WalletActionTypes } from '@/store/modules/wallet/action-types'
+import { defineComponent } from "vue";
+import { ArrowLeftIcon } from "@heroicons/vue/solid";
+import router from "@/router";
+import { useStore } from "@/store";
+import { WalletActionTypes } from "@/store/modules/wallet/action-types";
 
 export default defineComponent({
-  name: 'ImportLedgerView',
+  name: "ImportLedgerView",
   components: {
-    ArrowLeftIcon
+    ArrowLeftIcon,
   },
-  data () {
-    return {}
+  data() {
+    return {};
   },
-  mounted () {
-    this.connectViaLedger()
+  mounted() {
+    this.connectViaLedger();
   },
   methods: {
     clickBack: () => {
-      router.go(-1)
+      router.go(-1);
     },
     connectViaLedger: async () => {
-      useStore().dispatch(WalletActionTypes.CONNECT_LEDGER)
-    }
-  }
-})
+      useStore().dispatch(WalletActionTypes.CONNECT_LEDGER);
+    },
+  },
+});
 </script>

@@ -2,8 +2,8 @@
   <div class="block currency-field-container">
     <label
       :for="this.id"
-      class="block text-normal-copy text-primary text-medium"
-    >{{ this.label }}</label
+      class="block nls-14 nls-font-400 text-primary nls-font-400"
+      >{{ this.label }}</label
     >
 
     <div
@@ -24,9 +24,11 @@
             :step="this.step"
             @input="$emit('update:value', $event.target.value)"
             :disabled="disabledInputField"
-            class="text-small-heading text-bold text-primary"
+            class="nls-font-700 nls-18 nls-font-700 text-primary"
           />
-          <span class="block text-normal-copy text-light-blue"> $1,000 </span>
+          <span class="block nls-14 nls-font-400 text-light-blue">
+            $1,000
+          </span>
         </div>
         <div class="inline-block w-1/2">
           <CurrencyPicker
@@ -47,67 +49,67 @@
           ? ''
           : 'hidden',
       ]"
-    >{{
-        typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
+      >{{
+        typeof this.errorMsg !== "undefined" && this.errorMsg !== null
           ? this.errorMsg
-          : ''
+          : ""
       }}</span
     >
   </div>
 </template>
 
 <script lang="ts">
-import CurrencyPicker from '@/components/CurrencyPicker.vue'
-import { AssetBalance } from '@/store/modules/wallet/state'
-import { defineComponent, PropType } from 'vue'
+import CurrencyPicker from "@/components/CurrencyPicker.vue";
+import { AssetBalance } from "@/store/modules/wallet/state";
+import { defineComponent, PropType } from "vue";
 
 export default defineComponent({
-  name: 'CurrencyField',
+  name: "CurrencyField",
   components: {
-    CurrencyPicker
+    CurrencyPicker,
   },
   props: {
     name: {
-      type: String
+      type: String,
     },
     value: {
-      type: String
+      type: String,
     },
     currencyOptions: {
-      type: Array as PropType<AssetBalance[]>
+      type: Array as PropType<AssetBalance[]>,
     },
     step: {
-      type: String
+      type: String,
     },
     option: {
-      type: Object as PropType<AssetBalance>
+      type: Object as PropType<AssetBalance>,
     },
     id: {
-      type: String
+      type: String,
     },
     label: {
-      type: String
+      type: String,
     },
     disabledInputField: {
-      type: Boolean
+      type: Boolean,
     },
     disabledCurrencyPicker: {
-      type: Boolean
+      type: Boolean,
     },
     isError: {
-      type: Boolean
+      type: Boolean,
     },
     errorMsg: {
-      type: String
-    }
+      type: String,
+    },
   },
-  data () {
-    return {}
+  data() {
+    return {};
   },
   methods: {
-    onUpdateCurrency (value: AssetBalance) {
-      this.$emit('update-currency', value)
-    }
-  }
-})
+    onUpdateCurrency(value: AssetBalance) {
+      this.$emit("update-currency", value);
+    },
+  },
+});
 </script>

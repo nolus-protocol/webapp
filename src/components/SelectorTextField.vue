@@ -2,28 +2,35 @@
   <div class="block input-field">
     <label
       :for="this.id"
-      class="block text-normal-copy text-primary text-medium"
-    >{{ this.label }}</label>
-    <div
-      class="block editable-block"
+      class="block nls-14 nls-font-400 text-primary nls-font-400"
+      >{{ this.label }}</label
     >
-      <div v-for="(word, index) in confirmMnemonicPhrase" :key="word" v-on:click="onWordClick(word, index, false)">
+    <div class="block editable-block">
+      <div
+        v-for="(word, index) in confirmMnemonicPhrase"
+        :key="word"
+        v-on:click="onWordClick(word, index, false)"
+      >
         {{ word }}
       </div>
     </div>
     <div class="editable-block-options">
-      <button v-for="(word, index) in this.mnemonicPhrase"
-              :key="word"
-              id="{{word}}"
-              class="editable-block-option"
-              v-on:click="onWordClick(word, index, true)"
+      <button
+        v-for="(word, index) in this.mnemonicPhrase"
+        :key="word"
+        id="{{word}}"
+        class="editable-block-option"
+        v-on:click="onWordClick(word, index, true)"
       >
         {{ word }}
       </button>
     </div>
     <div class="block mt-6">
-      <button class="btn btn-primary btn-large-primary" v-on:click="onClickConfirm(confirmMnemonicPhrase)"
-              :disabled="confirmMnemonicPhrase.length !== 24">
+      <button
+        class="btn btn-primary btn-large-primary"
+        v-on:click="onClickConfirm(confirmMnemonicPhrase)"
+        :disabled="confirmMnemonicPhrase.length !== 24"
+      >
         Confirm
       </button>
     </div>

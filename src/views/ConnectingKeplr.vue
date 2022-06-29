@@ -5,29 +5,15 @@
       v-on:click="clickBack"
       class="inline-block align-baseline absolute left-0 top-2/4 -mt-2.5"
     >
-      <ArrowLeftIcon class="h-5 w-5" aria-hidden="true"/>
+      <ArrowLeftIcon class="h-5 w-5" aria-hidden="true" />
     </button>
-    <span
-      class="inline-block align-baseline"
-    >
-                            Connecting to Kepler
-                        </span>
+    <span class="inline-block align-baseline"> Connecting to Kepler </span>
   </h1>
 
   <div
-    class="
-                        block
-                        rounded-2xl
-                        bg-white
-                        mt-8
-                        p-10
-                        border border-standart
-                        shadow-box
-                        "
+    class="block rounded-2xl bg-white mt-8 p-10 border border-standart shadow-box"
   >
-    <p
-      class="text-normal-copy text-primary"
-    >
+    <p class="nls-14 nls-font-400 text-primary">
       Continue by approving the connection in the extension
     </p>
     <div class="flex mt-6">
@@ -35,7 +21,10 @@
         Connecting to Kepler
       </button>
 
-      <button v-on:click="clickBack" class="btn btn-secondary btn-large-secondary">
+      <button
+        v-on:click="clickBack"
+        class="btn btn-secondary btn-large-secondary"
+      >
         Cancel
       </button>
     </div>
@@ -43,29 +32,29 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import { ArrowLeftIcon } from '@heroicons/vue/solid'
-import router from '@/router'
-import { useStore } from '@/store'
-import { WalletActionTypes } from '@/store/modules/wallet/action-types'
+import { defineComponent } from "vue";
+import { ArrowLeftIcon } from "@heroicons/vue/solid";
+import router from "@/router";
+import { useStore } from "@/store";
+import { WalletActionTypes } from "@/store/modules/wallet/action-types";
 
 export default defineComponent({
-  name: 'ConnectingKeplr',
+  name: "ConnectingKeplr",
   components: {
-    ArrowLeftIcon
+    ArrowLeftIcon,
   },
-  data () {
+  data() {
     return {
-      showModal: false
-    }
+      showModal: false,
+    };
   },
   methods: {
     clickBack: () => {
-      router.go(-1)
-    }
+      router.go(-1);
+    },
   },
-  mounted () {
-    useStore().dispatch(WalletActionTypes.CONNECT_KEPLR, { isFromAuth: true })
-  }
-})
+  mounted() {
+    useStore().dispatch(WalletActionTypes.CONNECT_KEPLR, { isFromAuth: true });
+  },
+});
 </script>

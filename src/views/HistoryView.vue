@@ -1,92 +1,243 @@
 <template>
-  <div class="page-container home">
-    <div class="none">
-      <SidebarContainer>
-      </SidebarContainer>
+  <div class="container w-full grid grid-cols-12 mx-auto grid-parent">
+    <div class="lg:col-span-3">
+      <SidebarContainer />
     </div>
-
-    <div class="container mx-auto pt-24 lg:pt-16">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-start-3 lg:col-span-9">
-          <!-- Header -->
-          <div class="flex flex-wrap items-center justify-between px-4 md:px-0">
-            <div class="left w-full md:w-1/2">
-              <h1 class="text-default-heading text-primary m-0">History</h1>
+    <div class="lg:col-span-9 pb-8">
+      <div class="grid grid-cols-10 grid-child">
+        <div class="col-span-12 mt-nolus-60">
+          <div class="col-span-12">
+            <div class="sidebar-header">
+              <!-- <Notifications /> -->
+              <Notifications />
+              <WalletOpen />
             </div>
-            <div class="right w-full md:w-1/2 mt-4 md:mt-0 inline-flex justify-start md:justify-end">
+          </div>
+        </div>
+        <div class="col-span-12">
+          <!-- Header -->
+          <div class="flex flex-wrap items-center justify-between px-4 lg:px-0">
+            <div class="left w-full md:w-1/2">
+              <h1 class="nls-20 nls-font-700 text-primary m-0">History</h1>
             </div>
           </div>
 
           <!-- History -->
-          <div class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm overflow-hidden">
-
+          <div
+            class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm overflow-hidden"
+          >
             <!-- Assets -->
             <div class="block md:mt-4">
-
               <!-- Assets Header -->
-              <div class="hidden md:grid md:grid-cols-4 lg:grid-cols-5 gap-6 border-b border-standart pb-3 px-6">
-
-                <div class="hidden lg:block text-medium text-detail text-dark-grey text-left text-upper">
+              <div
+                class="hidden md:grid lg:grid-cols-12 flex items-center gap-6 border-b border-standart pb-3 px-6"
+              >
+                <div
+                  class="hidden col-span-2 lg:block nls-font-500 nls-12 text-dark-grey text-left text-upper"
+                >
                   ID
                 </div>
 
-                <div class="hidden md:block text-medium text-detail text-dark-grey text-left text-upper">
+                <div
+                  class="hidden col-span-2 md:block nls-font-500 nls-12 text-dark-grey text-left text-upper"
+                >
                   Type
                 </div>
 
                 <div
-                  class="flex items-center justify-start text-medium text-detail text-dark-grey text-left text-upper">
+                  class="flex items-center col-span-4 justify-start nls-font-500 nls-12 text-dark-grey text-left text-upper"
+                >
                   <span class="inline-block">Action</span>
                 </div>
 
                 <div
-                  class="hidden md:flex items-center justify-end text-medium text-detail text-dark-grey text-right text-upper">
+                  class="hidden md:flex col-span-2 items-center justify-end nls-font-500 nls-12 text-dark-grey text-right text-upper"
+                >
                   <span class="inline-block">Fee</span>
                 </div>
 
                 <div
-                  class="hidden md:flex items-center justify-end text-medium text-detail text-dark-grey text-right text-upper">
+                  class="hidden md:flex col-span-2 items-center justify-end nls-font-500 nls-12 text-dark-grey text-right text-upper"
+                >
                   <span class="inline-block">Time</span>
                 </div>
               </div>
 
               <!-- Assets Container -->
               <div class="block">
+                <!-- History Element -->
+                <div
+                  class="grid grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6 flex items-center"
+                >
+                  <div
+                    class="hidden lg:block col-span-2 nls-14 nls-font-400 text-primary text-left"
+                  >
+                    C1FAC987E9515B...
+                  </div>
 
+                  <div class="hidden md:block col-span-2 text-left">
+                    <span
+                      class="inline-block py-1 px-2 text-patch nls-font-500 nls-12 text-primary radius-pill"
+                    >
+                      Transfer
+                    </span>
+                  </div>
+
+                  <div class="block col-span-4 text-primary text-left">
+                    <span class="nls-12 nls-font-700"
+                      >Stake 797020...qtcrpy to Pylon Governance</span
+                    >
+
+                    <!--                    <span class="text-bold">Stake</span> 797020...qtcrpy to <span-->
+                    <!--                    class="text-bold">Pylon Governance</span>-->
+                  </div>
+
+                  <div
+                    class="block col-span-2 items-center justify-start md:justify-end"
+                  >
+                    <span
+                      class="left-and-right nls-14 nls-font-400 text-primary"
+                    >
+                      0.481215 NLS
+                    </span>
+                  </div>
+
+                  <div
+                    class="flex col-span-2 items-center justify-end nls-14 nls-font-400 text-primary text-right"
+                  >
+                    2 hours ago
+                  </div>
+                </div>
+              </div>
+
+              <div class="block">
+                <!-- History Element -->
+                <div
+                  class="grid grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6"
+                >
+                  <div
+                    class="hidden lg:block col-span-2 nls-14 nls-font-400 text-primary text-left"
+                  >
+                    C1FAC987E9515B...
+                  </div>
+
+                  <div class="hidden md:block col-span-2 text-left">
+                    <span
+                      class="inline-block py-1 px-2 text-patch nls-font-500 nls-12 text-primary radius-pill"
+                    >
+                      Send
+                    </span>
+                  </div>
+
+                  <div class="block col-span-4 text-primary text-left">
+                    <span class="nls-12 nls-font-700">
+                      Send 139UST to Pylon Governance
+                    </span>
+
+                    <!--                    <span class="text-bold">Stake</span> 797020...qtcrpy to <span-->
+                    <!--                    class="text-bold">Pylon Governance</span>-->
+                  </div>
+
+                  <div
+                    class="block col-span-2 items-center justify-start md:justify-end text-primary"
+                  >
+                    <span class="left-and-right nls-14 nls-font-400">
+                      0.481215 NLS
+                    </span>
+                  </div>
+
+                  <div
+                    class="flex col-span-2 items-center justify-end nls-14 nls-font-400 text-primary text-right"
+                  >
+                    2 hours ago
+                  </div>
+                </div>
+              </div>
+
+              <div class="block">
+                <!-- History Element -->
+                <div
+                  class="grid grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6"
+                >
+                  <div
+                    class="hidden lg:block col-span-2 nls-14 nls-font-400 text-primary text-left"
+                  >
+                    C1FAC987E9515B...
+                  </div>
+
+                  <div class="hidden md:block col-span-2 text-left">
+                    <span
+                      class="inline-block py-1 px-2 text-patch nls-font-500 nls-12 text-primary radius-pill"
+                    >
+                      Vote
+                    </span>
+                  </div>
+
+                  <div
+                    class="block col-span-4 nls-14 nls-font-400 text-primary text-left"
+                  >
+                    <span class="nls-12 nls-font-700">
+                      Vote Yes to Proposal ID: 123
+                    </span>
+
+                    <!--                    <span class="text-bold">Stake</span> 797020...qtcrpy to <span-->
+                    <!--                    class="text-bold">Pylon Governance</span>-->
+                  </div>
+
+                  <div
+                    class="block col-span-2 items-center justify-start md:justify-endtext-primary"
+                  >
+                    <span class="left-and-right nls-14 nls-font-400">
+                      0.481215 NLS
+                    </span>
+                  </div>
+
+                  <div
+                    class="flex col-span-2 items-center justify-end nls-14 nls-font-400 text-primary text-right"
+                  >
+                    2 hours ago
+                  </div>
+                </div>
+              </div>
+              <div class="block">
                 <!-- History Element -->
                 <div
                   class="grid grid-cols-2 pt-3 md:grid-cols-4 lg:grid-cols-5 gap-6 border-b border-standart pb-3 px-6"
-                  v-for="transaction in this.transactions" :key="transaction.id">
-
-                  <div class="hidden lg:block text-regular text-detail text-primary text-left">
+                  v-for="transaction in this.transactions"
+                  :key="transaction.id"
+                >
+                  <div
+                    class="hidden lg:block nls-14 nls-font-400 text-primary text-left"
+                  >
                     {{ truncateString(transaction.id) }}
                   </div>
 
-                  <div class="hidden md:block text-medium text-detail text-primary text-left">
-                  <span class="inline-block py-1 px-2 text-patch radius-pill">
-                    {{ capitalize(transaction.action) }}
-                  </span>
+                  <div class="hidden md:block text-left">
+                    <span
+                      class="inline-block py-1 px-2 text-patch nls-font-500 nls-12 text-primary radius-pill"
+                    >
+                      {{ capitalize(transaction.action) }}
+                    </span>
                   </div>
 
-                  <div class="block col-span-2 md:col-span-1 text-regular text-detail text-primary text-left">
+                  <div
+                    class="block col-span-2 md:col-span-1 nls-14 nls-font-500 nls-12 text-primary text-left"
+                  >
                     {{ truncateString(transaction.sender) }}
-                    <span class="text-bold"> to </span>
+                    <span> to </span>
                     {{ truncateString(transaction.receiver) }}
                     <!--                    <span class="text-bold">Stake</span> 797020...qtcrpy to <span-->
                     <!--                    class="text-bold">Pylon Governance</span>-->
                   </div>
 
                   <div
-                    class="block col-span-1 items-center justify-start md:justify-end text-regular text-detail text-primary">
-                    <span class="left-and-right">{{ convertFeeAmount(transaction.fee) }}</span>
+                    class="block col-span-1 items-center justify-start md:justify-end nls-14 nls-font-400 nls-font-500 nls-12 text-primary"
+                  >
+                    <span class="left-and-right">{{
+                      convertFeeAmount(transaction.fee)
+                    }}</span>
                   </div>
-
-                  <!--                  <div-->
-                  <!--                    class="flex col-span-1 items-center justify-end text-regular text-detail text-primary text-right">-->
-                  <!--                    2 hours ago-->
-                  <!--                  </div>-->
                 </div>
-
               </div>
             </div>
           </div>
@@ -94,78 +245,94 @@
       </div>
     </div>
   </div>
+  <div class="page-container home">
+    <div class="container mx-auto pt-24 lg:pt-16">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-start-3 lg:col-span-9"></div>
+      </div>
+    </div>
+
+    <ReceiveSendModal
+      ref="ReceiveSendModal"
+      v-show="showSendModal"
+      @close-modal="showSendModal = false"
+    />
+  </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import SidebarContainer from '@/components/SidebarContainer.vue'
-import { IndexedTx } from '@cosmjs/stargate'
-import { Coin, DecodedTxRaw, decodeTxRaw } from '@cosmjs/proto-signing'
-import { StringUtils } from '@/utils/StringUtils'
-import { useStore } from '@/store'
-import { WalletActionTypes } from '@/store/modules/wallet/action-types'
-import { ChainConstants, CurrencyUtils } from '@nolus/nolusjs'
+import { defineComponent } from "vue";
+import SidebarContainer from "@/components/SidebarContainer.vue";
+import { IndexedTx } from "@cosmjs/stargate";
+import { Coin, DecodedTxRaw, decodeTxRaw } from "@cosmjs/proto-signing";
+import { StringUtils } from "@/utils/StringUtils";
+import { useStore } from "@/store";
+import { WalletActionTypes } from "@/store/modules/wallet/action-types";
+import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
 
 interface ITransaction {
-  id: string,
-  receiver: string,
-  sender: string,
-  action: string,
-  memo: string,
-  fee: Coin[] | null
+  id: string;
+  receiver: string;
+  sender: string;
+  action: string;
+  memo: string;
+  fee: Coin[] | null;
 }
 
 export default defineComponent({
-  name: 'HistoryView',
+  name: "HistoryView",
   components: {
-    SidebarContainer
+    SidebarContainer,
   },
-  data () {
+  data() {
     return {
-      transactions: [] as ITransaction[]
-    }
+      transactions: [] as ITransaction[],
+    };
   },
   watch: {
-    '$store.state.wallet.wallet' () {
-      this.getTransactions()
-    }
+    "$store.state.wallet.wallet"() {
+      this.getTransactions();
+    },
   },
-  mounted () {
-    this.getTransactions()
+  mounted() {
+    this.getTransactions();
   },
   methods: {
-    async getTransactions () {
-      const res = await useStore().dispatch(WalletActionTypes.SEARCH_TX)
-      this.prepareTransactions(res)
+    async getTransactions() {
+      const res = await useStore().dispatch(WalletActionTypes.SEARCH_TX);
+      this.prepareTransactions(res);
     },
-    prepareTransactions (results: readonly IndexedTx[]) {
+    prepareTransactions(results: readonly IndexedTx[]) {
       if (results) {
-        (results).forEach((tx) => {
-          const rawTx = JSON.parse(tx.rawLog)
-          const decodedTx: DecodedTxRaw = decodeTxRaw(tx.tx)
+        results.forEach((tx) => {
+          const rawTx = JSON.parse(tx.rawLog);
+          const decodedTx: DecodedTxRaw = decodeTxRaw(tx.tx);
           const transactionResult: ITransaction = {
-            id: tx.hash || '',
-            receiver: rawTx[0].events[3].attributes[0].value || '',
-            sender: rawTx[0].events[3].attributes[1].value || '',
-            action: rawTx[0].events[3].type || '',
-            memo: decodedTx.body.memo || '',
-            fee: decodedTx?.authInfo?.fee?.amount.filter(coin => coin.denom === ChainConstants.COIN_MINIMAL_DENOM) || null
-          }
-          this.transactions.push(transactionResult)
-        })
+            id: tx.hash || "",
+            receiver: rawTx[0].events[3].attributes[0].value || "",
+            sender: rawTx[0].events[3].attributes[1].value || "",
+            action: rawTx[0].events[3].type || "",
+            memo: decodedTx.body.memo || "",
+            fee:
+              decodedTx?.authInfo?.fee?.amount.filter(
+                (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
+              ) || null,
+          };
+          this.transactions.push(transactionResult);
+        });
       }
     },
-    truncateString (text: string) {
-      return StringUtils.truncateString(text, 10, 6)
+    truncateString(text: string) {
+      return StringUtils.truncateString(text, 10, 6);
     },
-    convertFeeAmount (fee: Coin[]) {
-      const convertFee = CurrencyUtils.convertCosmosCoinToKeplCoin(fee[0])
-      const feeAmount = CurrencyUtils.convertCoinUNolusToNolus(convertFee)
-      return feeAmount?.toString()
+    convertFeeAmount(fee: Coin[]) {
+      const convertFee = CurrencyUtils.convertCosmosCoinToKeplCoin(fee[0]);
+      const feeAmount = CurrencyUtils.convertCoinUNolusToNolus(convertFee);
+      return feeAmount?.toString();
     },
-    capitalize (value: string) {
-      return StringUtils.capitalize(value)
-    }
-  }
-})
+    capitalize(value: string) {
+      return StringUtils.capitalize(value);
+    },
+  },
+});
 </script>

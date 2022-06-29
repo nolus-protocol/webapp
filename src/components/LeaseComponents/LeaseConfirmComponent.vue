@@ -7,9 +7,11 @@
         class="back-arrow"
         v-on:click="modelValue.onConfirmBackClick"
       >
-        <ArrowLeftIcon class="h-5 w-5" aria-hidden="true"/>
+        <ArrowLeftIcon class="h-5 w-5" aria-hidden="true" />
       </button>
-      <h1 class="text-large-heading text-center text-primary">Confirm sending</h1>
+      <h1 class="nls-font-700 nls-32 text-center text-primary">
+        Confirm sending
+      </h1>
     </div>
   </div>
 
@@ -28,66 +30,78 @@
       ></InputField>
     </div>
 
-    <div class="block bg-light-grey radius-rounded p-4 text-left break-words mt-4">
+    <div
+      class="block bg-light-grey radius-rounded p-4 text-left break-words mt-4"
+    >
       <div class="block">
-        <p class="text-normal-copy text-primary m-0">Contract address:</p>
-        <p class="text-normal-copy text-primary text-bold m-0">{{ modelValue.contractAddress }}</p>
+        <p class="nls-14 nls-font-400 text-primary m-0">Contract address:</p>
+        <p class="nls-14 nls-font-400 text-primary nls-font-700 m-0">
+          {{ modelValue.contractAddress }}
+        </p>
       </div>
 
       <div class="block mt-3">
-        <p class="text-normal-copy text-primary m-0">Memo:</p>
-        <p class="text-normal-copy text-primary text-bold m-0">{{ modelValue.memo }}</p>
+        <p class="nls-14 nls-font-400 text-primary m-0">Memo:</p>
+        <p class="nls-14 nls-font-400 text-primary nls-font-700 m-0">
+          {{ modelValue.memo }}
+        </p>
       </div>
 
       <div class="block mt-3">
-        <p class="text-normal-copy text-primary m-0">Amount:</p>
-        <p class="text-normal-copy text-primary text-bold m-0">
-          {{ formatAmount(modelValue.amount, modelValue.selectedCurrency) }}</p>
+        <p class="nls-14 nls-font-400 text-primary m-0">Amount:</p>
+        <p class="nls-14 nls-font-400 text-primary nls-font-700 m-0">
+          {{ formatAmount(modelValue.amount, modelValue.selectedCurrency) }}
+        </p>
       </div>
 
       <div class="block mt-3">
-        <p class="text-normal-copy text-primary m-0">Tax & Fee:</p>
-        <p class="text-normal-copy text-primary text-bold m-0">0.000094 NOMO</p>
+        <p class="nls-14 nls-font-400 text-primary m-0">Tax & Fee:</p>
+        <p class="nls-14 nls-font-400 text-primary nls-font-700 m-0">
+          0.000094 NOMO
+        </p>
       </div>
     </div>
   </div>
 
   <!-- Actions -->
   <div class="modal-send-receive-actions">
-    <button class="btn btn-primary btn-large-primary" v-on:click="modelValue.onSendClick">
+    <button
+      class="btn btn-primary btn-large-primary"
+      v-on:click="modelValue.onSendClick"
+    >
       Send
     </button>
   </div>
 </template>
 
 <script lang="ts">
-import { ArrowLeftIcon } from '@heroicons/vue/solid'
-import InputField from '@/components/InputField.vue'
-import { defineComponent, PropType } from 'vue'
-import { WalletUtils } from '@/utils/WalletUtils'
-import { LeaseComponentProps } from '@/components/LeaseComponents/LeaseFormComponent.vue'
-import { AssetBalance } from '@/store/modules/wallet/state'
-import { assetInfo } from '@/config/assetInfo'
+import { ArrowLeftIcon } from "@heroicons/vue/solid";
+import InputField from "@/components/InputField.vue";
+import { defineComponent, PropType } from "vue";
+import { WalletUtils } from "@/utils/WalletUtils";
+import { LeaseComponentProps } from "@/components/LeaseComponents/LeaseFormComponent.vue";
+import { AssetBalance } from "@/store/modules/wallet/state";
+import { assetInfo } from "@/config/assetInfo";
 
 export default defineComponent({
-  name: 'LeaseConfirmComponent',
+  name: "LeaseConfirmComponent",
   components: {
     ArrowLeftIcon,
-    InputField
+    InputField,
   },
   props: {
     modelValue: {
-      type: Object as PropType<LeaseComponentProps>
-    }
+      type: Object as PropType<LeaseComponentProps>,
+    },
   },
   methods: {
-    formatAmount (value: string, selectedCurrency: AssetBalance) {
-      const denom = assetInfo[selectedCurrency.udenom].coinDenom
-      return value + ' ' + denom
+    formatAmount(value: string, selectedCurrency: AssetBalance) {
+      const denom = assetInfo[selectedCurrency.udenom].coinDenom;
+      return value + " " + denom;
     },
-    isMnemonicWallet () {
-      return WalletUtils.isConnectedViaMnemonic()
-    }
-  }
-})
+    isMnemonicWallet() {
+      return WalletUtils.isConnectedViaMnemonic();
+    },
+  },
+});
 </script>
