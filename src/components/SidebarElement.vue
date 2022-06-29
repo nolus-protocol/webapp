@@ -4,9 +4,7 @@
     :href="this.href"
     :class="[
       'sidebar-element',
-      typeof this.isActive !== 'undefined' && this.isActive === true
-        ? 'active'
-        : false,
+      this.$route.path == this.href ? 'active' : false,
     ]"
   >
     <span :class="['icon', `icon-${this.label.toLowerCase()}`]"></span>

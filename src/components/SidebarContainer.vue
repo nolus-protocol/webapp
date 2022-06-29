@@ -11,7 +11,6 @@
             href="/"
             :icon="require('@/assets/icons/assets.svg')"
             :iconHover="require('@/assets/icons/assets_active.svg')"
-            :isActive="true"
           >
           </SidebarElement>
         </div>
@@ -20,6 +19,7 @@
             id="lease"
             v-on:click="pushToLease"
             label="Lease"
+            href="/lease"
             :icon="require('@/assets/icons/lease.svg')"
             :iconHover="require('@/assets/icons/lease_active.svg')"
           >
@@ -39,6 +39,7 @@
           <SidebarElement
             id="earn"
             label="Earn"
+            href="/earn"
             v-on:click="pushToEarn"
             :icon="require('@/assets/icons/earn.svg')"
             :iconHover="require('@/assets/icons/earn_active.svg')"
@@ -50,6 +51,7 @@
             id="history"
             v-on:click="pushToHistory"
             label="History"
+            href="/history"
             :icon="require('@/assets/icons/history.svg')"
             :iconHover="require('@/assets/icons/history_active.svg')"
           >
