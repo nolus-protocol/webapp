@@ -139,19 +139,12 @@
       </div>
     </div>
   </div>
-  <div class="page-container home">
-    <div class="container mx-auto pt-24 lg:pt-16">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-start-3 lg:col-span-9"></div>
-      </div>
-    </div>
 
-    <ReceiveSendModal
-      ref="ReceiveSendModal"
-      v-show="showSendModal"
-      @close-modal="showSendModal = false"
-    />
-  </div>
+  <ReceiveSendModal
+    ref="ReceiveSendModal"
+    v-show="showSendModal"
+    @close-modal="showSendModal = false"
+  />
 </template>
 
 <script lang="ts">
