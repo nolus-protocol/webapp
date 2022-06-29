@@ -16,7 +16,9 @@
         </div>
         <div class="col-span-12">
           <!-- Header -->
-          <div class="flex flex-wrap items-center justify-between px-4 lg:px-0">
+          <div
+            class="flex flex-wrap items-center justify-between items-baseline px-4 lg:px-0"
+          >
             <div class="left w-full md:w-1/2">
               <h1 class="nls-20 nls-font-700 text-primary m-0">Assets</h1>
             </div>

@@ -105,13 +105,14 @@ export default defineComponent({
     },
     onNextClick() {
       this.$emit("defaultState", true);
-      // this.isAmountFieldValid();
-      // this.isReceiverAddressValid();
-      // if (this.currentComponent.props.amountErrorMsg === '' &&
-      //   this.currentComponent.props.receiverErrorMsg === '') {
-      //   this.currentComponent.is = ScreenState.CONFIRM
-      // }
-      this.currentComponent.is = ScreenState.SUCCESS;
+      this.isAmountFieldValid();
+      this.isReceiverAddressValid();
+      if (
+        this.currentComponent.props.amountErrorMsg === "" &&
+        this.currentComponent.props.receiverErrorMsg === ""
+      ) {
+        this.currentComponent.is = ScreenState.CONFIRM;
+      }
     },
     async onSendClick() {
       const wallet = useStore().state.wallet.wallet;

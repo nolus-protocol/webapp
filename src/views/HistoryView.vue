@@ -24,10 +24,10 @@
 
           <!-- History -->
           <div
-            class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm overflow-hidden pt-4"
+            class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm overflow-hidden"
           >
             <!-- Assets -->
-            <div class="block md:mt-nolus-255">
+            <div class="block md:mt-4">
               <!-- Assets Header -->
               <div
                 class="hidden md:grid lg:grid-cols-12 flex items-center gap-6 border-b border-standart pb-3 px-6"
@@ -202,17 +202,17 @@
               <div class="block">
                 <!-- History Element -->
                 <div
-                  class="grid grid-cols-2 pt-3 md:grid-cols-4 lg:grid-cols-5 gap-6 border-b border-standart pb-3 px-6"
+                  class="grid grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6"
                   v-for="transaction in this.transactions"
                   :key="transaction.id"
                 >
                   <div
-                    class="hidden lg:block nls-14 nls-font-400 text-primary text-left"
+                    class="hidden col-span-2 lg:block nls-14 nls-font-400 text-primary text-left"
                   >
                     {{ truncateString(transaction.id) }}
                   </div>
 
-                  <div class="hidden md:block text-left">
+                  <div class="hidden col-span-2 md:block text-left">
                     <span
                       class="inline-block py-1 px-2 text-patch nls-font-500 nls-12 text-primary radius-pill"
                     >
@@ -221,17 +221,19 @@
                   </div>
 
                   <div
-                    class="block col-span-2 md:col-span-1 nls-14 nls-font-500 nls-12 text-primary text-left"
+                    class="block col-span-4 nls-14 nls-font-400 text-primary text-left"
                   >
-                    {{ truncateString(transaction.sender) }}
-                    <span> to </span>
-                    {{ truncateString(transaction.receiver) }}
+                    <span class="nls-12 nls-font-700">
+                      {{ truncateString(transaction.sender) }}
+                      to
+                      {{ truncateString(transaction.receiver) }}
+                    </span>
                     <!--                    <span class="text-bold">Stake</span> 797020...qtcrpy to <span-->
                     <!--                    class="text-bold">Pylon Governance</span>-->
                   </div>
 
                   <div
-                    class="block col-span-1 items-center justify-start md:justify-end nls-14 nls-font-400 nls-font-500 nls-12 text-primary"
+                    class="block col-span-2 items-center justify-start md:justify-endtext-primary"
                   >
                     <span class="left-and-right">{{
                       convertFeeAmount(transaction.fee)
@@ -269,8 +271,7 @@ import { StringUtils } from "@/utils/StringUtils";
 import { useStore } from "@/store";
 import { WalletActionTypes } from "@/store/modules/wallet/action-types";
 import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
-import Notifications from "@/components/Notifications.vue";
-import WalletOpen from "@/components/WalletOpen.vue";
+
 interface ITransaction {
   id: string;
   receiver: string;
@@ -284,8 +285,6 @@ export default defineComponent({
   name: "HistoryView",
   components: {
     SidebarContainer,
-    WalletOpen,
-    Notifications,
   },
   data() {
     return {
