@@ -271,7 +271,8 @@ import { StringUtils } from "@/utils/StringUtils";
 import { useStore } from "@/store";
 import { WalletActionTypes } from "@/store/modules/wallet/action-types";
 import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
-
+import Notifications from "@/components/Notifications.vue";
+import WalletOpen from "@/components/WalletOpen.vue";
 interface ITransaction {
   id: string;
   receiver: string;
@@ -285,6 +286,8 @@ export default defineComponent({
   name: "HistoryView",
   components: {
     SidebarContainer,
+    Notifications,
+    WalletOpen,
   },
   data() {
     return {
@@ -294,6 +297,7 @@ export default defineComponent({
   watch: {
     "$store.state.wallet.wallet"() {
       this.getTransactions();
+      console.log("FROM HISTORY", this.transactions);
     },
   },
   mounted() {
