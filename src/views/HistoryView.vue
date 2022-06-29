@@ -235,7 +235,7 @@
                   <div
                     class="block col-span-2 items-center justify-start md:justify-endtext-primary"
                   >
-                    <span class="left-and-right">{{
+                    <span class="left-and-right nls-14 nls-font-400">{{
                       convertFeeAmount(transaction.fee)
                     }}</span>
                   </div>
@@ -247,19 +247,11 @@
       </div>
     </div>
   </div>
-  <div class="page-container home">
-    <div class="container mx-auto pt-24 lg:pt-16">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-start-3 lg:col-span-9"></div>
-      </div>
-    </div>
-
-    <ReceiveSendModal
-      ref="ReceiveSendModal"
-      v-show="showSendModal"
-      @close-modal="showSendModal = false"
-    />
-  </div>
+  <ReceiveSendModal
+    ref="ReceiveSendModal"
+    v-show="showSendModal"
+    @close-modal="showSendModal = false"
+  />
 </template>
 
 <script lang="ts">
