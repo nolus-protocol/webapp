@@ -58,9 +58,7 @@
             class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm"
           >
             <!-- Top -->
-            <div
-              class="flex flex-wrap items-baseline justify-between pt-5 px-6"
-            >
+            <div class="flex flex-wrap items-baseline justify-between px-6">
               <div class="loader-boxed" v-show="showLoading">
                 <div class="loader__element"></div>
               </div>
