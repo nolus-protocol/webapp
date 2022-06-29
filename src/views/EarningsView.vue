@@ -292,7 +292,7 @@
                     <div
                       :class="[
                         'grid gap-6 border-b border-standart px-nolus-24 py-nolus-12  items-center justify-between',
-                        this.cols
+                        this.colsWalletOpen
                           ? 'grid-cols-' + this.cols
                           : 'grid-cols-3 md:grid-cols-4',
                       ]"
