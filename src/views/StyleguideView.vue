@@ -1780,13 +1780,4 @@ export default defineComponent({
 .row-actions:hover .info-show {
   display: none;
 }
-@key-frame show-anime {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-    display: flex;
-  }
-}
 </style>

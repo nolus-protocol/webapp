@@ -13,33 +13,32 @@
 	font-size: 1.8em !important;
 }
 .nls-btn-show {
-	opacity: 0;
 	display: none;
-	transition: 0.3s;
+	transition: 0.2s;
 }
 
 .row-actions:hover .nls-btn-show {
-	opacity: 1;
+	transition: 0.2s;
+
 	display: flex;
 	animation-name: show-anime;
-	animation-duration: 0.3s;
-	animation-delay: 0.5s;
+	animation-duration: 0.2s;
 	animation-iteration-count: 1;
 	animation-timing-function: ease-in;
 }
 .info-show {
 	animation-name: show-anime;
-	animation-duration: 0.3s;
-	animation-delay: 0.5s;
+	animation-duration: 0.2s;
 	animation-iteration-count: 1;
 	animation-timing-function: ease-in;
-	transition: 0.3s;
+	transition: 0.2s;
 }
 .row-actions:hover .info-show {
 	display: none;
 }
 @keyframes show-anime {
 	0% {
+		display: none;
 		opacity: 0;
 	}
 	100% {
@@ -47,7 +46,6 @@
 		display: flex;
 	}
 }
-
 // @-moz-keyframes slide-fade-bottom {
 // 	0% {
 // 		opacity: 0;

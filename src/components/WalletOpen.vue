@@ -20,9 +20,7 @@
       <h2 class="nls-font-700 nls-18 text-primary text-left m-0">
         Your Wallet
       </h2>
-      <div
-        class="flex grey-box py-nolus-10 items-center bg-light-grey radius-rounded"
-      >
+      <div class="flex grey-box items-center bg-light-grey radius-rounded">
         <span class="icon-wallet"></span>
         <span class="nls-14 nls-font-400 text-primary">My precious</span>
       </div>
@@ -144,7 +142,6 @@ export default defineComponent({
 
 .bg-light-grey {
   background: #f7f9fc;
-  padding: 14px 11px;
   margin-top: 11px;
 }
 .justify-content {
