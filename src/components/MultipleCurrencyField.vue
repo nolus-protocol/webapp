@@ -3,7 +3,7 @@
     <label
       :for="this.id"
       class="block nls-14 nls-font-400 text-primary nls-font-400"
-      >{{ this.label }}</label
+    >{{ this.label }}</label
     >
 
     <div
@@ -92,54 +92,54 @@
           ? ''
           : 'hidden',
       ]"
-      >{{
-        typeof this.errorMsg !== "undefined" && this.errorMsg !== null
+    >{{
+        typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
           ? this.errorMsg
-          : ""
+          : ''
       }}</span
     >
   </div>
 </template>
 
 <script lang="ts">
-import PickerIcon from "@/components/PickerIcon.vue";
-import { ArrowDownIcon } from "@heroicons/vue/solid";
+import PickerIcon from '@/components/PickerIcon.vue'
+import { ArrowDownIcon } from '@heroicons/vue/solid'
 
 export default {
-  name: "MultipleCurrencyField",
+  name: 'MultipleCurrencyField',
   components: {
     PickerIcon,
-    ArrowDownIcon,
+    ArrowDownIcon
   },
   props: {
     name: {
-      type: String,
+      type: String
     },
     nameSecondary: {
-      type: String,
+      type: String
     },
     id: {
-      type: String,
+      type: String
     },
     idSecondary: {
-      type: String,
+      type: String
     },
     label: {
-      type: String,
+      type: String
     },
     isError: {
-      type: Boolean,
+      type: Boolean
     },
     errorMsg: {
-      type: String,
-    },
+      type: String
+    }
   },
-  data() {
+  data () {
     return {
       default: {
-        value: "",
-      },
-    };
-  },
-};
+        value: ''
+      }
+    }
+  }
+}
 </script>

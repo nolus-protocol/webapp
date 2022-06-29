@@ -30,30 +30,30 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import { ArrowLeftIcon } from "@heroicons/vue/solid";
-import router from "@/router";
-import { useStore } from "@/store";
-import { WalletActionTypes } from "@/store/modules/wallet/action-types";
+import { defineComponent } from 'vue'
+import { ArrowLeftIcon } from '@heroicons/vue/solid'
+import router from '@/router'
+import { useStore } from '@/store'
+import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 
 export default defineComponent({
-  name: "ImportLedgerView",
+  name: 'ImportLedgerView',
   components: {
-    ArrowLeftIcon,
+    ArrowLeftIcon
   },
-  data() {
-    return {};
+  data () {
+    return {}
   },
-  mounted() {
-    this.connectViaLedger();
+  mounted () {
+    this.connectViaLedger()
   },
   methods: {
     clickBack: () => {
-      router.go(-1);
+      router.go(-1)
     },
     connectViaLedger: async () => {
-      useStore().dispatch(WalletActionTypes.CONNECT_LEDGER);
-    },
-  },
-});
+      useStore().dispatch(WalletActionTypes.CONNECT_LEDGER)
+    }
+  }
+})
 </script>

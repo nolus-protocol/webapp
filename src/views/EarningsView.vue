@@ -397,24 +397,24 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import SidebarContainer from "@/components/SidebarContainer.vue";
-import AssetPartial from "@/components/AssetPartial.vue";
-import Notifications from "@/components/Notifications.vue";
-import WalletOpen from "@/components/WalletOpen.vue";
+import { defineComponent } from 'vue'
+import SidebarContainer from '@/components/SidebarContainer.vue'
+import AssetPartial from '@/components/AssetPartial.vue'
+import Notifications from '@/components/Notifications.vue'
+import WalletOpen from '@/components/WalletOpen.vue'
 
 export default defineComponent({
-  name: "EarningsView",
+  name: 'EarningsView',
   components: {
     SidebarContainer,
     AssetPartial,
     Notifications,
-    WalletOpen,
+    WalletOpen
   },
-  data() {
+  data () {
     return {
-      cols: 2 as number,
-    };
-  },
-});
+      cols: 2 as number
+    }
+  }
+})
 </script>

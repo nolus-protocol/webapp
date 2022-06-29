@@ -263,14 +263,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import SidebarContainer from "@/components/SidebarContainer.vue";
-import { IndexedTx } from "@cosmjs/stargate";
-import { Coin, DecodedTxRaw, decodeTxRaw } from "@cosmjs/proto-signing";
-import { StringUtils } from "@/utils/StringUtils";
-import { useStore } from "@/store";
-import { WalletActionTypes } from "@/store/modules/wallet/action-types";
-import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
+import { defineComponent } from 'vue'
+import SidebarContainer from '@/components/SidebarContainer.vue'
+import { IndexedTx } from '@cosmjs/stargate'
+import { Coin, DecodedTxRaw, decodeTxRaw } from '@cosmjs/proto-signing'
+import { StringUtils } from '@/utils/StringUtils'
+import { useStore } from '@/store'
+import { WalletActionTypes } from '@/store/modules/wallet/action-types'
+import { ChainConstants, CurrencyUtils } from '@nolus/nolusjs'
 
 interface ITransaction {
   id: string;
@@ -282,59 +282,59 @@ interface ITransaction {
 }
 
 export default defineComponent({
-  name: "HistoryView",
+  name: 'HistoryView',
   components: {
-    SidebarContainer,
+    SidebarContainer
   },
-  data() {
+  data () {
     return {
-      transactions: [] as ITransaction[],
-    };
+      transactions: [] as ITransaction[]
+    }
   },
   watch: {
-    "$store.state.wallet.wallet"() {
-      this.getTransactions();
-    },
+    '$store.state.wallet.wallet' () {
+      this.getTransactions()
+    }
   },
-  mounted() {
-    this.getTransactions();
+  mounted () {
+    this.getTransactions()
   },
   methods: {
-    async getTransactions() {
-      const res = await useStore().dispatch(WalletActionTypes.SEARCH_TX);
-      this.prepareTransactions(res);
+    async getTransactions () {
+      const res = await useStore().dispatch(WalletActionTypes.SEARCH_TX)
+      this.prepareTransactions(res)
     },
-    prepareTransactions(results: readonly IndexedTx[]) {
+    prepareTransactions (results: readonly IndexedTx[]) {
       if (results) {
         results.forEach((tx) => {
-          const rawTx = JSON.parse(tx.rawLog);
-          const decodedTx: DecodedTxRaw = decodeTxRaw(tx.tx);
+          const rawTx = JSON.parse(tx.rawLog)
+          const decodedTx: DecodedTxRaw = decodeTxRaw(tx.tx)
           const transactionResult: ITransaction = {
-            id: tx.hash || "",
-            receiver: rawTx[0].events[3].attributes[0].value || "",
-            sender: rawTx[0].events[3].attributes[1].value || "",
-            action: rawTx[0].events[3].type || "",
-            memo: decodedTx.body.memo || "",
+            id: tx.hash || '',
+            receiver: rawTx[0].events[3].attributes[0].value || '',
+            sender: rawTx[0].events[3].attributes[1].value || '',
+            action: rawTx[0].events[3].type || '',
+            memo: decodedTx.body.memo || '',
             fee:
               decodedTx?.authInfo?.fee?.amount.filter(
                 (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
-              ) || null,
-          };
-          this.transactions.push(transactionResult);
-        });
+              ) || null
+          }
+          this.transactions.push(transactionResult)
+        })
       }
     },
-    truncateString(text: string) {
-      return StringUtils.truncateString(text, 10, 6);
+    truncateString (text: string) {
+      return StringUtils.truncateString(text, 10, 6)
     },
-    convertFeeAmount(fee: Coin[]) {
-      const convertFee = CurrencyUtils.convertCosmosCoinToKeplCoin(fee[0]);
-      const feeAmount = CurrencyUtils.convertCoinUNolusToNolus(convertFee);
-      return feeAmount?.toString();
+    convertFeeAmount (fee: Coin[]) {
+      const convertFee = CurrencyUtils.convertCosmosCoinToKeplCoin(fee[0])
+      const feeAmount = CurrencyUtils.convertCoinUNolusToNolus(convertFee)
+      return feeAmount?.toString()
     },
-    capitalize(value: string) {
-      return StringUtils.capitalize(value);
-    },
-  },
-});
+    capitalize (value: string) {
+      return StringUtils.capitalize(value)
+    }
+  }
+})
 </script>

@@ -33,10 +33,10 @@
             value: "s.stancheva@nolus.io",
           }, -->
       <InputField
-        type="email"
-        name="email"
         id="email"
         label="Email"
+        name="email"
+        type="email"
         value=""
         @input="$emit('update:value', $event.target.value)"
       ></InputField>
@@ -66,10 +66,10 @@
 </template>
 
 <script lang="ts">
-import { CheckIcon } from "@heroicons/vue/solid";
-import InputField from "@/components/InputField.vue";
-import { defineComponent, PropType } from "vue";
-import { AssetBalance } from "@/store/modules/wallet/state";
+import { CheckIcon } from '@heroicons/vue/solid'
+import InputField from '@/components/InputField.vue'
+import { defineComponent } from 'vue'
+import { AssetBalance } from '@/store/modules/wallet/state'
 
 export interface SendComponentProps {
   receiverErrorMsg: string;
@@ -88,11 +88,11 @@ export interface SendComponentProps {
 }
 
 export default defineComponent({
-  name: "ConfirmEmailModal",
+  name: 'ConfirmEmailModal',
   components: {
     CheckIcon,
-    InputField,
+    InputField
   },
-  props: {},
-});
+  props: {}
+})
 </script>

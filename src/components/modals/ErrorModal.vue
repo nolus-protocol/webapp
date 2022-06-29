@@ -23,8 +23,8 @@
         </p>
         <div class="flex gap-2 mt-5">
           <button
-            v-on:click="this.tryButton"
             class="bg-light-electric text-white px-4 py-2 rounded-md nls-font-700 text-sm"
+            v-on:click="this.tryButton"
           >
             Try again
           </button>
@@ -41,17 +41,17 @@
 </template>
 
 <script>
-import { CheckIcon } from "@heroicons/vue/solid";
+import { CheckIcon } from '@heroicons/vue/solid'
 
 export default {
-  name: "ErrorModal",
+  name: 'ErrorModal',
   components: {
-    CheckIcon,
+    CheckIcon
   },
   props: {
     tryButton: {
-      type: Function,
-    },
-  },
-};
+      type: Function
+    }
+  }
+}
 </script>

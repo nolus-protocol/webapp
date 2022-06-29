@@ -46,39 +46,39 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import SidebarContainer from "@/components/SidebarContainer.vue";
-import LeaseModal from "@/components/modals/LeaseModal.vue";
-import { Lease, LeaseStatus } from "@nolus/nolusjs/build/contracts";
-import { CONTRACTS } from "@/config/contracts";
-import { WalletManager } from "@/config/wallet";
-import LeaseInfo from "@/components/LeaseInfo.vue";
+import { defineComponent } from 'vue'
+import SidebarContainer from '@/components/SidebarContainer.vue'
+import LeaseModal from '@/components/modals/LeaseModal.vue'
+import { Lease, LeaseStatus } from '@nolus/nolusjs/build/contracts'
+import { CONTRACTS } from '@/config/contracts'
+import { WalletManager } from '@/config/wallet'
+import LeaseInfo from '@/components/LeaseInfo.vue'
 
 export default defineComponent({
-  name: "LeaseView",
+  name: 'LeaseView',
   components: {
     LeaseModal,
     LeaseInfo,
-    SidebarContainer,
+    SidebarContainer
   },
-  data() {
+  data () {
     return {
       showSendModal: false,
-      leases: [] as LeaseStatus[],
-    };
+      leases: [] as LeaseStatus[]
+    }
   },
-  async mounted() {
-    const leaseClient = new Lease();
+  async mounted () {
+    const leaseClient = new Lease()
     const openedLeases: string[] = await leaseClient.getCurrentOpenLeases(
       CONTRACTS.leaser.instance,
       WalletManager.getWalletAddress()
-    );
+    )
     for (const leaseAddress of openedLeases) {
       const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus(
         leaseAddress
-      );
-      this.leases.push(leaseInfo);
+      )
+      this.leases.push(leaseInfo)
     }
-  },
-});
+  }
+})
 </script>

@@ -146,25 +146,25 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import SidebarContainer from "@/components/SidebarContainer.vue";
-import AssetPartial from "@/components/AssetPartial.vue";
-import { AssetUtils } from "@/utils/AssetUtils";
-import { Coin, Dec, Int } from "@keplr-wallet/unit";
-import { AssetBalance } from "@/store/modules/wallet/state";
-import ReceiveSendModal from "@/components/modals/ReceiveSendModal.vue";
-import { useStore } from "@/store";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import { assetInfo } from "@/config/assetInfo";
-import { StringUtils } from "@/utils/StringUtils";
-import LogoLink from "@/components/LogoLink.vue";
-import SidebarElement from "@/components/SidebarElement.vue";
-import TooltipComponent from "@/components/TooltipComponent.vue";
-import Notifications from "@/components/Notifications.vue";
-import WalletOpen from "@/components/WalletOpen.vue";
-import NolusChart from "@/components/templates/utils/NolusChart.vue";
+import { defineComponent } from 'vue'
+import SidebarContainer from '@/components/SidebarContainer.vue'
+import AssetPartial from '@/components/AssetPartial.vue'
+import { AssetUtils } from '@/utils/AssetUtils'
+import { Coin, Dec, Int } from '@keplr-wallet/unit'
+import { AssetBalance } from '@/store/modules/wallet/state'
+import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
+import { useStore } from '@/store'
+import { CurrencyUtils } from '@nolus/nolusjs'
+import { assetInfo } from '@/config/assetInfo'
+import { StringUtils } from '@/utils/StringUtils'
+import LogoLink from '@/components/LogoLink.vue'
+import SidebarElement from '@/components/SidebarElement.vue'
+import TooltipComponent from '@/components/TooltipComponent.vue'
+import Notifications from '@/components/Notifications.vue'
+import WalletOpen from '@/components/WalletOpen.vue'
+import NolusChart from '@/components/templates/utils/NolusChart.vue'
 export default defineComponent({
-  name: "DashboardView",
+  name: 'DashboardView',
   components: {
     SidebarContainer,
     AssetPartial,
@@ -174,67 +174,67 @@ export default defineComponent({
     TooltipComponent,
     Notifications,
     WalletOpen,
-    NolusChart,
+    NolusChart
   },
-  data() {
+  data () {
     return {
       manipulatedAssets: [] as AssetBalance[],
       mainAssets: [] as AssetBalance[],
       hideLowerBalances: false,
       showSendModal: false,
-      showLoading: true,
-    };
+      showLoading: true
+    }
   },
   watch: {
-    "$store.state.wallet.balances"(balances) {
-      this.mainAssets = balances;
-      this.manipulatedAssets = balances;
+    '$store.state.wallet.balances' (balances) {
+      this.mainAssets = balances
+      this.manipulatedAssets = balances
       if (this.hideLowerBalances) {
-        this.filterSmallBalances();
+        this.filterSmallBalances()
       }
-      this.showLoading = false;
+      this.showLoading = false
     },
-    hideLowerBalances() {
+    hideLowerBalances () {
       if (this.hideLowerBalances) {
-        this.filterSmallBalances();
+        this.filterSmallBalances()
       } else {
-        this.manipulatedAssets = this.mainAssets;
+        this.manipulatedAssets = this.mainAssets
       }
-    },
+    }
   },
   methods: {
-    getAssetInfo(minimalDenom: string) {
-      return AssetUtils.getAssetInfoByAbbr(minimalDenom);
+    getAssetInfo (minimalDenom: string) {
+      return AssetUtils.getAssetInfoByAbbr(minimalDenom)
     },
-    getMarketPrice(minimalDenom: string) {
-      const prices = useStore().state.oracle.prices;
+    getMarketPrice (minimalDenom: string) {
+      const prices = useStore().state.oracle.prices
       if (prices) {
         return (
           prices[StringUtils.getDenomFromMinimalDenom(minimalDenom)]?.amount ||
-          "0"
-        );
+          '0'
+        )
       }
-      return "0";
+      return '0'
     },
-    filterSmallBalances() {
+    filterSmallBalances () {
       this.manipulatedAssets = this.manipulatedAssets.filter((asset) =>
-        asset.balance.amount.gt(new Int("1"))
-      );
+        asset.balance.amount.gt(new Int('1'))
+      )
     },
-    calculateTotalBalance() {
-      let totalBalance = new Dec(0);
+    calculateTotalBalance () {
+      let totalBalance = new Dec(0)
       this.mainAssets.forEach((asset) => {
-        const decimals = assetInfo[asset.udenom].coinDecimals;
+        const decimals = assetInfo[asset.udenom].coinDecimals
         const assetBalance = CurrencyUtils.calculateBalance(
           this.getMarketPrice(asset.udenom),
           new Coin(asset.udenom, asset.balance.amount.toString()),
           decimals
-        );
-        totalBalance = totalBalance.add(assetBalance.toDec());
-      });
+        )
+        totalBalance = totalBalance.add(assetBalance.toDec())
+      })
 
-      return CurrencyUtils.formatPrice(totalBalance.toString()).toString();
-    },
-  },
-});
+      return CurrencyUtils.formatPrice(totalBalance.toString()).toString()
+    }
+  }
+})
 </script>

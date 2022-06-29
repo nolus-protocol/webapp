@@ -154,56 +154,53 @@
   </div>
 </template>
 <script lang="ts">
-import PickerDefault, {
-  PickerDefaultOption,
-} from "@/components/PickerDefault.vue";
-import { defineComponent, PropType } from "vue";
-import { EnvNetworks } from "@/config/envNetworks";
-import { StringUtils } from "@/utils/StringUtils";
-import { useStore } from "@/store";
-import { ApplicationActionTypes } from "@/store/modules/application/action-types";
+import PickerDefault, { PickerDefaultOption } from '@/components/PickerDefault.vue'
+import { defineComponent } from 'vue'
+import { EnvNetworks } from '@/config/envNetworks'
+import { useStore } from '@/store'
+import { ApplicationActionTypes } from '@/store/modules/application/action-types'
 
 export default defineComponent({
-  name: "Notifications",
+  name: 'Notifications',
   components: {
-    PickerDefault,
+    PickerDefault
   },
-  data() {
+  data () {
     return {
-      notificationPopup: false,
+      notificationPopup: false
       // networks: [] as PickerDefaultOption[],
       // currentNetwork: {} as PickerDefaultOption,
-    };
+    }
   },
-  mounted() {
-    const envNetwork = new EnvNetworks();
+  mounted () {
+    const envNetwork = new EnvNetworks()
     // envNetwork.getEnvNetworks().forEach((network) => {
     //   (this.walletModel || {}).defaultOptions.push({
     //     label: StringUtils.capitalize(network),
     //     value: network,
     //   });
     // });
-    console.log("curr: ", envNetwork.getStoredNetworkName());
+    console.log('curr: ', envNetwork.getStoredNetworkName())
     // (this.walletModel || {}).defaultOption = {
     //   label: StringUtils.capitalize(envNetwork.getStoredNetworkName() || ""),
     //   value: envNetwork.getStoredNetworkName() || "",
     // };
-    //console.log((this.walletModel || {}).defaultOption);
+    // console.log((this.walletModel || {}).defaultOption);
   },
   methods: {
-    togglePopup() {
-      this.notificationPopup = !this.notificationPopup;
+    togglePopup () {
+      this.notificationPopup = !this.notificationPopup
     },
-    handleFocusOut() {
-      alert("hi");
-      this.notificationPopup = false;
+    handleFocusOut () {
+      alert('hi')
+      this.notificationPopup = false
     },
-    onUpdateNetwork(value: PickerDefaultOption) {
-      EnvNetworks.saveCurrentNetwork(value.value);
-      useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK);
-    },
-  },
-});
+    onUpdateNetwork (value: PickerDefaultOption) {
+      EnvNetworks.saveCurrentNetwork(value.value)
+      useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK)
+    }
+  }
+})
 </script>
 <style scoped>
 .icon-wallet {
@@ -216,6 +213,7 @@ export default defineComponent({
   padding: 14px 11px;
   margin-top: 11px;
 }
+
 .justify-content {
   justify-content: space-between !important;
 }

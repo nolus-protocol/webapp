@@ -40,7 +40,7 @@
           C1FAC987E9515B…63BE5162B4A00310244A
         </p>
         <button class="btn btn-secondary btn-medium-secondary btn-icon mt-2">
-          <DuplicateIcon class="icon w-4 h-4" />
+          <DuplicateIcon class="icon w-4 h-4"/>
           Copy
         </button>
       </div>
@@ -59,27 +59,27 @@
 </template>
 
 <script lang="ts">
-import { CheckIcon, DuplicateIcon } from "@heroicons/vue/solid";
-import { defineComponent, PropType } from "vue";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import { SendComponentProps } from "./SendComponent.vue";
+import { CheckIcon, DuplicateIcon } from '@heroicons/vue/solid'
+import { defineComponent, PropType } from 'vue'
+import { CurrencyUtils } from '@nolus/nolusjs'
+import { SendComponentProps } from './SendComponent.vue'
 
 export default defineComponent({
-  name: "SendingPendingComponent",
+  name: 'SendingPendingComponent',
   components: {
     CheckIcon,
-    DuplicateIcon,
+    DuplicateIcon
   },
   props: {
     modelValue: {
-      type: Object as PropType<SendComponentProps>,
-    },
+      type: Object as PropType<SendComponentProps>
+    }
   },
   methods: {
-    formatAmount(value: string) {
-      const amountInUNls = CurrencyUtils.convertNolusToUNolus(value);
-      return CurrencyUtils.convertUNolusToNolus(amountInUNls.amount.toString());
-    },
-  },
-});
+    formatAmount (value: string) {
+      const amountInUNls = CurrencyUtils.convertNolusToUNolus(value)
+      return CurrencyUtils.convertUNolusToNolus(amountInUNls.amount.toString())
+    }
+  }
+})
 </script>

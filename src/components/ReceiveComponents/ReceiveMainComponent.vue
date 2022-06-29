@@ -1,21 +1,19 @@
 <template>
-  <component :is="this.currentComponent.is" v-model="currentComponent.props" />
+  <component :is="this.currentComponent.is" v-model="currentComponent.props"/>
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
-import ReceiveComponent, {
-  ReceiveComponentProps,
-} from "@/components/ReceiveComponents/ReceiveComponent.vue";
+import { defineComponent, PropType } from 'vue'
+import ReceiveComponent, { ReceiveComponentProps } from '@/components/ReceiveComponents/ReceiveComponent.vue'
 import ReceiveQrCodeComponent, {
-  ReceiveQrCodeComponentProps,
-} from "@/components/ReceiveComponents/ReceiveQrCodeComponent.vue";
-import { StringUtils } from "@/utils/StringUtils";
-import { WalletManager } from "@/config/wallet";
+  ReceiveQrCodeComponentProps
+} from '@/components/ReceiveComponents/ReceiveQrCodeComponent.vue'
+import { StringUtils } from '@/utils/StringUtils'
+import { WalletManager } from '@/config/wallet'
 
 enum ScreenState {
-  MAIN = "ReceiveComponent",
-  SCAN = "ReceiveQrCodeComponent",
+  MAIN = 'ReceiveComponent',
+  SCAN = 'ReceiveQrCodeComponent',
 }
 
 interface ReceiveMainComponentData {
@@ -28,30 +26,30 @@ export interface ReceiveMainComponentProps {
 }
 
 export default defineComponent({
-  name: "ReceiveMainComponent",
+  name: 'ReceiveMainComponent',
   components: {
     ReceiveComponent,
-    ReceiveQrCodeComponent,
+    ReceiveQrCodeComponent
   },
   props: {
     modelValue: {
-      type: Object as PropType<ReceiveMainComponentProps>,
-    },
+      type: Object as PropType<ReceiveMainComponentProps>
+    }
   },
-  mounted() {
+  mounted () {
     this.currentComponent = {
       is: ScreenState.MAIN,
       props: {
         walletAddress: WalletManager.getWalletAddress(),
         onScanClick: () => this.onScanClick(),
-        onCopyClick: () => this.onCopyClick(),
-      },
-    };
+        onCopyClick: () => this.onCopyClick()
+      }
+    }
   },
-  data() {
+  data () {
     return {
-      currentComponent: {} as ReceiveMainComponentData,
-    };
+      currentComponent: {} as ReceiveMainComponentData
+    }
   },
   watch: {
     // '$store.state.wallet' (wallet: NolusWallet) {
@@ -61,34 +59,34 @@ export default defineComponent({
     // }
   },
   methods: {
-    onScanClick() {
-      this.$emit("defaultState", true);
-      console.log("scannnn");
+    onScanClick () {
+      this.$emit('defaultState', true)
+      console.log('scannnn')
       this.currentComponent = {
         is: ScreenState.SCAN,
         props: {
           walletAddress: WalletManager.getWalletAddress(),
           onBackClick: () => this.onBackClick(),
-          onCopyClick: () => this.onCopyClick(),
-        },
-      };
+          onCopyClick: () => this.onCopyClick()
+        }
+      }
     },
-    onCopyClick() {
-      this.$emit("defaultState", false);
-      StringUtils.copyToClipboard(this.currentComponent.props.walletAddress);
+    onCopyClick () {
+      this.$emit('defaultState', false)
+      StringUtils.copyToClipboard(this.currentComponent.props.walletAddress)
     },
-    onBackClick() {
+    onBackClick () {
       this.currentComponent = {
         is: ScreenState.MAIN,
         props: {
-          walletAddress: WalletManager.getWalletAddress() || "",
+          walletAddress: WalletManager.getWalletAddress() || '',
           onScanClick: () => this.onScanClick(),
-          onCopyClick: () => this.onCopyClick(),
-        },
-      };
-    },
-  },
-});
+          onCopyClick: () => this.onCopyClick()
+        }
+      }
+    }
+  }
+})
 </script>
 
 <style scoped></style>

@@ -70,12 +70,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import router from "@/router";
-import { RouteNames } from "@/router/RouterNames";
+import { defineComponent } from 'vue'
+import router from '@/router'
+import { RouteNames } from '@/router/RouterNames'
 
 export default defineComponent({
-  name: "HomeView",
+  name: 'HomeView',
   components: {
     // ErrorModal,
     // ReceiveSendModal
@@ -85,27 +85,27 @@ export default defineComponent({
     // SupplyWithdrawModal,
     // WithdrawSupplyModal
   },
-  data() {
+  data () {
     return {
-      showModal: true,
-    };
+      showModal: true
+    }
   },
   methods: {
     clickConnectToKeplr: () => {
-      router.push({ name: RouteNames.CONNECT_KEPLR });
+      router.push({ name: RouteNames.CONNECT_KEPLR })
     },
     clickImportLedger: () => {
-      router.push({ name: RouteNames.IMPORT_LEDGER });
+      router.push({ name: RouteNames.IMPORT_LEDGER })
     },
     clickImportSeed: () => {
-      router.push({ name: RouteNames.IMPORT_SEED });
+      router.push({ name: RouteNames.IMPORT_SEED })
     },
     tryButton: () => {
-      console.log("btn try again");
+      console.log('btn try again')
     },
     clickCreateAccount: () => {
-      router.push({ name: RouteNames.CREATE_ACCOUNT });
-    },
-  },
-});
+      router.push({ name: RouteNames.CREATE_ACCOUNT })
+    }
+  }
+})
 </script>

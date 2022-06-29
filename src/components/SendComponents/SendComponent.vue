@@ -75,7 +75,7 @@
           <button
             class="btn btn-secondary btn-medium-secondary btn-icon ml-auto mr-0 flex items-center"
           >
-            <StarIcon class="inline-block icon w-4 h-4 mr-1" />
+            <StarIcon class="inline-block icon w-4 h-4 mr-1"/>
             Save as contact
           </button>
         </div>
@@ -95,16 +95,14 @@
 </template>
 
 <script lang="ts">
-import { StarIcon } from "@heroicons/vue/solid";
-import CurrencyField from "@/components/CurrencyField.vue";
-import PickerDefault, {
-  PickerDefaultOption,
-} from "@/components/PickerDefault.vue";
-import InputField from "@/components/InputField.vue";
-import { defineComponent, PropType } from "vue";
-import { AssetBalance } from "@/store/modules/wallet/state";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import PickerCombo from "@/components/PickerCombo.vue";
+import { StarIcon } from '@heroicons/vue/solid'
+import CurrencyField from '@/components/CurrencyField.vue'
+import PickerDefault, { PickerDefaultOption } from '@/components/PickerDefault.vue'
+import InputField from '@/components/InputField.vue'
+import { defineComponent, PropType } from 'vue'
+import { AssetBalance } from '@/store/modules/wallet/state'
+import { CurrencyUtils } from '@nolus/nolusjs'
+import PickerCombo from '@/components/PickerCombo.vue'
 
 export interface SendComponentProps {
   receiverErrorMsg: string;
@@ -123,64 +121,64 @@ export interface SendComponentProps {
 }
 
 export default defineComponent({
-  name: "SendComponent",
+  name: 'SendComponent',
   components: {
     StarIcon,
     CurrencyField,
     PickerDefault,
     InputField,
-    PickerCombo,
+    PickerCombo
   },
   props: {
     modelValue: {
-      type: Object as PropType<SendComponentProps>,
-    },
+      type: Object as PropType<SendComponentProps>
+    }
   },
-  data() {
+  data () {
     return {
-      addressOptions: [] as PickerDefaultOption[],
-    };
+      addressOptions: [] as PickerDefaultOption[]
+    }
   },
-  mounted() {
+  mounted () {
     this.addressOptions = [
       {
-        id: "1",
-        value: "nolus1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3rtesmj",
-        label: "Silviya Stancheva’s Binance",
+        id: '1',
+        value: 'nolus1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3rtesmj',
+        label: 'Silviya Stancheva’s Binance'
       },
       {
-        id: "2",
-        value: "nolus1tygms3xhhs3yv487phx3dw4a95jn7t7lht9pdx",
-        label: "Petar Petrov KuCoin",
+        id: '2',
+        value: 'nolus1tygms3xhhs3yv487phx3dw4a95jn7t7lht9pdx',
+        label: 'Petar Petrov KuCoin'
       },
       {
-        id: "3",
-        value: "nolus1vnn8pr2hqrm64mge8724jmzcm7usnsm5e4qqle",
-        label: "Gancho Manev Binance",
+        id: '3',
+        value: 'nolus1vnn8pr2hqrm64mge8724jmzcm7usnsm5e4qqle',
+        label: 'Gancho Manev Binance'
       },
       {
-        id: "4",
-        value: "nolus10d07y265gmmuvt4z0w9aw880jnsr700jvjr65k",
-        label: "Gero Nikolov’s Ledger",
+        id: '4',
+        value: 'nolus10d07y265gmmuvt4z0w9aw880jnsr700jvjr65k',
+        label: 'Gero Nikolov’s Ledger'
       },
       {
-        id: "5",
-        value: "nolus1jv65s3grqf6v6jl3dp4t6c9t9rk99cd8305rt6",
-        label: "Silviya Stancheva’s Binance",
-      },
-    ];
+        id: '5',
+        value: 'nolus1jv65s3grqf6v6jl3dp4t6c9t9rk99cd8305rt6',
+        label: 'Silviya Stancheva’s Binance'
+      }
+    ]
   },
   methods: {
-    formatCurrentBalance(value: AssetBalance[]) {
+    formatCurrentBalance (value: AssetBalance[]) {
       if (value) {
         return CurrencyUtils.convertUNolusToNolus(
           value[0]?.balance.amount.toString()
-        ).toString();
+        ).toString()
       }
     },
-    onUpdateCurrency(value: AssetBalance) {
-      this.$emit("update:modelValue.selectedCurrency", value);
-    },
-  },
-});
+    onUpdateCurrency (value: AssetBalance) {
+      this.$emit('update:modelValue.selectedCurrency', value)
+    }
+  }
+})
 </script>

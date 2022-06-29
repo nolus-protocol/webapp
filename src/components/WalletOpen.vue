@@ -32,7 +32,7 @@
     <div
       class="box-open-body bg-white p-4 lg:p-6 border-b border-standart text-left"
     >
-      <DynamicForm :formValue="walletData" />
+      <DynamicForm :formValue="walletData"/>
       <div class="block">
         <PickerDefault
           label="Language"
@@ -75,65 +75,63 @@
   </div>
 </template>
 <script lang="ts">
-import PickerDefault, {
-  PickerDefaultOption,
-} from "@/components/PickerDefault.vue";
-import { defineComponent, PropType } from "vue";
-import { EnvNetworks } from "@/config/envNetworks";
-import { StringUtils } from "@/utils/StringUtils";
-import { useStore } from "@/store";
-import { ApplicationActionTypes } from "@/store/modules/application/action-types";
-import { WalletManager } from "@/config/wallet";
-import router from "@/router";
-import { RouteNames } from "@/router/RouterNames";
-import { WalletUtils } from "@/utils/WalletUtils";
+import PickerDefault, { PickerDefaultOption } from '@/components/PickerDefault.vue'
+import { defineComponent } from 'vue'
+import { EnvNetworks } from '@/config/envNetworks'
+import { StringUtils } from '@/utils/StringUtils'
+import { useStore } from '@/store'
+import { ApplicationActionTypes } from '@/store/modules/application/action-types'
+import { WalletManager } from '@/config/wallet'
+import router from '@/router'
+import { RouteNames } from '@/router/RouterNames'
+import { WalletUtils } from '@/utils/WalletUtils'
 
 export default defineComponent({
-  name: "WalletOpen",
+  name: 'WalletOpen',
   components: {
-    PickerDefault,
+    PickerDefault
   },
 
   props: [],
-  data() {
+  data () {
     return {
       showWalletPopup: false,
       networks: [] as PickerDefaultOption[],
-      currentNetwork: {} as PickerDefaultOption,
-    };
+      currentNetwork: {} as PickerDefaultOption
+    }
   },
-  mounted() {
-    const envNetwork = new EnvNetworks();
+  mounted () {
+    const envNetwork = new EnvNetworks()
     envNetwork.getEnvNetworks().forEach((network) => {
       this.networks.push({
         label: StringUtils.capitalize(network),
-        value: network,
-      });
-    });
-    console.log("curr: ", envNetwork.getStoredNetworkName());
+        value: network
+      })
+    })
+    console.log('curr: ', envNetwork.getStoredNetworkName())
     this.currentNetwork = {
-      label: StringUtils.capitalize(envNetwork.getStoredNetworkName() || ""),
-      value: envNetwork.getStoredNetworkName() || "",
-    };
+      label: StringUtils.capitalize(envNetwork.getStoredNetworkName() || ''),
+      value: envNetwork.getStoredNetworkName() || ''
+    }
   },
 
   methods: {
-    togglePopup() {
-      this.showWalletPopup = !this.showWalletPopup;
+    togglePopup () {
+      this.showWalletPopup = !this.showWalletPopup
     },
-    onUpdateNetwork(value: PickerDefaultOption) {
-      console.log("loggg");
-      EnvNetworks.saveCurrentNetwork(value.value);
+    onUpdateNetwork (value: PickerDefaultOption) {
+      console.log('loggg')
+      EnvNetworks.saveCurrentNetwork(value.value)
       if (WalletUtils.isConnectedViaExtension()) {
-        useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK);
+        useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK)
       }
     },
-    onClickDisconnect() {
-      WalletManager.eraseWalletInfo();
-      router.push({ name: RouteNames.AUTH });
-    },
-  },
-});
+    onClickDisconnect () {
+      WalletManager.eraseWalletInfo()
+      router.push({ name: RouteNames.AUTH })
+    }
+  }
+})
 </script>
 
 <style scoped>
@@ -147,6 +145,7 @@ export default defineComponent({
   padding: 14px 11px;
   margin-top: 11px;
 }
+
 .justify-content {
   justify-content: space-between !important;
 }

@@ -102,22 +102,21 @@
   </div>
 </template>
 <script type="ts">
-import LogoLink from '@/components/LogoLink.vue';
-import SidebarElement from '@/components/SidebarElement.vue';
-import SidebarSocialElement from '@/components/SidebarSocialElement.vue';
-import SidebarLinkElement from '@/components/SidebarLinkElement.vue';
-import WalletOpen from "@/components/WalletOpen.vue";
-import { BellIcon } from '@heroicons/vue/solid';
+import LogoLink from '@/components/LogoLink.vue'
+import SidebarElement from '@/components/SidebarElement.vue'
+import SidebarSocialElement from '@/components/SidebarSocialElement.vue'
+import SidebarLinkElement from '@/components/SidebarLinkElement.vue'
+import WalletOpen from '@/components/WalletOpen.vue'
+import { BellIcon } from '@heroicons/vue/solid'
 import {
   DISCORD_ACCOUNT,
   LINKEDIN_ACCOUNT,
-  MEDIUM_ACCOUNT,
   REDDIT_ACCOUNT,
   TELEGRAM_ACCOUNT,
   TWITTER_ACCOUNT
-} from '@/constants/webapp';
-import router from '@/router';
-import { RouteNames } from '@/router/RouterNames';
+} from '@/constants/webapp'
+import router from '@/router'
+import { RouteNames } from '@/router/RouterNames'
 
 export default {
   name: 'SidebarContainer',
@@ -135,7 +134,7 @@ export default {
       showWalletPopup: false,
       TWITTER_ACCOUNT: TWITTER_ACCOUNT,
       TELEGRAM_ACCOUNT: TELEGRAM_ACCOUNT,
-      //MEDIUM_ACCOUNT: rou,
+      // MEDIUM_ACCOUNT: rou,
       REDDIT_ACCOUNT: REDDIT_ACCOUNT,
       LINKEDIN_ACCOUNT: LINKEDIN_ACCOUNT,
       DISCORD_ACCOUNT: DISCORD_ACCOUNT

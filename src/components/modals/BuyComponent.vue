@@ -5,7 +5,7 @@
       class="flex items-center box box-warning radius-rounded p-4 mb-nolus-24 text-left break-words"
     >
       <div class="inline-block mr-2">
-        <img src="@/assets/icons/info.svg" class="block mx-auto my-0 w-5 h-5" />
+        <img class="block mx-auto my-0 w-5 h-5" src="@/assets/icons/info.svg"/>
       </div>
       <div class="block box box-warning grow-1">
         <p class="text-left nls-14 nls-font-400">
@@ -17,9 +17,9 @@
     </div>
     <div class="block text-left">
       <MultipleCurrencyField
-        name="multiple-currency-field-example"
         id="multiple-currency-field-example"
         label="Multiple Currency Field Example"
+        name="multiple-currency-field-example"
       ></MultipleCurrencyField>
       <div class="flex w-full mt-nolus-255">
         <div class="grow-3 text-right nls-font-500 nls-14">
@@ -48,15 +48,15 @@
 </template>
 
 <script lang="ts">
-import { StarIcon } from "@heroicons/vue/solid";
-import CurrencyField from "@/components/CurrencyField.vue";
-import PickerDefault from "@/components/PickerDefault.vue";
-import InputField from "@/components/InputField.vue";
-import { defineComponent, PropType } from "vue";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import { AssetBalance } from "@/store/modules/wallet/state";
-import TooltipComponent from "@/components/TooltipComponent.vue";
-import MultipleCurrencyField from "@/components/MultipleCurrencyField.vue";
+import { StarIcon } from '@heroicons/vue/solid'
+import CurrencyField from '@/components/CurrencyField.vue'
+import PickerDefault from '@/components/PickerDefault.vue'
+import InputField from '@/components/InputField.vue'
+import { defineComponent, PropType } from 'vue'
+import { CurrencyUtils } from '@nolus/nolusjs'
+import { AssetBalance } from '@/store/modules/wallet/state'
+import TooltipComponent from '@/components/TooltipComponent.vue'
+import MultipleCurrencyField from '@/components/MultipleCurrencyField.vue'
 
 export interface SendComponentProps {
   receiverErrorMsg: string;
@@ -75,26 +75,26 @@ export interface SendComponentProps {
 }
 
 export default defineComponent({
-  name: "BuyComponent",
+  name: 'BuyComponent',
   components: {
     StarIcon,
     CurrencyField,
     PickerDefault,
     InputField,
     TooltipComponent,
-    MultipleCurrencyField,
+    MultipleCurrencyField
   },
   props: {
     modelValue: {
-      type: Object as PropType<SendComponentProps>,
-    },
+      type: Object as PropType<SendComponentProps>
+    }
   },
-  data() {
+  data () {
     return {
       //  formDataModel: [] as DynamicFormProps[],
-    };
+    }
   },
-  mounted() {
+  mounted () {
     // this.formDataModel = [
     //   {
     //     formFields: [
@@ -110,16 +110,16 @@ export default defineComponent({
     // ];
   },
   methods: {
-    formatCurrentBalance(value: AssetBalance[]) {
+    formatCurrentBalance (value: AssetBalance[]) {
       if (value) {
         return CurrencyUtils.convertUNolusToNolus(
           value[0]?.balance.amount.toString()
-        ).toString();
+        ).toString()
       }
     },
-    onUpdateCurrency(value: AssetBalance) {
-      this.$emit("update:modelValue.selectedCurrency", value);
-    },
-  },
-});
+    onUpdateCurrency (value: AssetBalance) {
+      this.$emit('update:modelValue.selectedCurrency', value)
+    }
+  }
+})
 </script>

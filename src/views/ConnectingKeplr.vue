@@ -32,29 +32,29 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import { ArrowLeftIcon } from "@heroicons/vue/solid";
-import router from "@/router";
-import { useStore } from "@/store";
-import { WalletActionTypes } from "@/store/modules/wallet/action-types";
+import { defineComponent } from 'vue'
+import { ArrowLeftIcon } from '@heroicons/vue/solid'
+import router from '@/router'
+import { useStore } from '@/store'
+import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 
 export default defineComponent({
-  name: "ConnectingKeplr",
+  name: 'ConnectingKeplr',
   components: {
-    ArrowLeftIcon,
+    ArrowLeftIcon
   },
-  data() {
+  data () {
     return {
-      showModal: false,
-    };
+      showModal: false
+    }
   },
   methods: {
     clickBack: () => {
-      router.go(-1);
-    },
+      router.go(-1)
+    }
   },
-  mounted() {
-    useStore().dispatch(WalletActionTypes.CONNECT_KEPLR, { isFromAuth: true });
-  },
-});
+  mounted () {
+    useStore().dispatch(WalletActionTypes.CONNECT_KEPLR, { isFromAuth: true })
+  }
+})
 </script>

@@ -4,7 +4,7 @@
     @click="$emit('close-modal')"
   >
     <button class="btn-close-modal" @click="$emit('close-modal')">
-      <img src="@/assets/icons/cross.svg" class="inline-block w-4 h-4" />
+      <img class="inline-block w-4 h-4" src="@/assets/icons/cross.svg"/>
     </button>
 
     <div
@@ -24,8 +24,8 @@
         >
           <div class="inline-block mr-2">
             <img
-              src="@/assets/icons/info.svg"
               class="block mx-auto my-0 w-5 h-5"
+              src="@/assets/icons/info.svg"
             />
           </div>
           <div class="block grow-1">
@@ -43,9 +43,9 @@
         <div class="block text-left">
           <div class="block mt-nolus-255">
             <MultipleCurrencyField
-              name="multiple-currency-field-example"
               id="multiple-currency-field-example"
               label="Multiple Currency Field Example"
+              name="multiple-currency-field-example"
             ></MultipleCurrencyField>
           </div>
         </div>
@@ -87,21 +87,21 @@
 </template>
 
 <script lang="ts">
-import { CheckIcon, StarIcon } from "@heroicons/vue/solid";
-import MultipleCurrencyField from "@/components/MultipleCurrencyField.vue";
-import { defineComponent } from "vue";
+import { CheckIcon, StarIcon } from '@heroicons/vue/solid'
+import MultipleCurrencyField from '@/components/MultipleCurrencyField.vue'
+import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: "BuySwapModal",
+  name: 'BuySwapModal',
   components: {
     CheckIcon,
     StarIcon,
-    MultipleCurrencyField,
+    MultipleCurrencyField
   },
   props: {
     tryButton: {
-      type: Function,
-    },
-  },
-});
+      type: Function
+    }
+  }
+})
 </script>

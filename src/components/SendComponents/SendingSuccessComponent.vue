@@ -2,7 +2,7 @@
   <!-- Header -->
   <div class="flex modal-send-receive-header no-border">
     <div class="navigation-header wrap">
-      <CheckIcon class="h-14 w-14 radius-circle p-2 success-icon" />
+      <CheckIcon class="h-14 w-14 radius-circle p-2 success-icon"/>
       <h1 class="nls-font-700 nls-32 text-center text-primary w-full mt-3">
         Sending successful
       </h1>
@@ -42,7 +42,7 @@
           class="btn btn-secondary btn-medium-secondary btn-icon mt-2"
           v-on:click="btnCopyClick"
         >
-          <DuplicateIcon class="icon w-4 h-4" />
+          <DuplicateIcon class="icon w-4 h-4"/>
           Copy
         </button>
       </div>
@@ -61,32 +61,32 @@
 </template>
 
 <script lang="ts">
-import { CheckIcon, DuplicateIcon } from "@heroicons/vue/solid";
-import { defineComponent, PropType } from "vue";
-import { SendComponentProps } from "@/components/SendComponents/SendComponent.vue";
-import { StringUtils } from "@/utils/StringUtils";
-import { CurrencyUtils } from "@nolus/nolusjs";
+import { CheckIcon, DuplicateIcon } from '@heroicons/vue/solid'
+import { defineComponent, PropType } from 'vue'
+import { SendComponentProps } from '@/components/SendComponents/SendComponent.vue'
+import { StringUtils } from '@/utils/StringUtils'
+import { CurrencyUtils } from '@nolus/nolusjs'
 
 export default defineComponent({
-  name: "SendingSuccessComponent",
+  name: 'SendingSuccessComponent',
   components: {
     CheckIcon,
-    DuplicateIcon,
+    DuplicateIcon
   },
   props: {
     modelValue: {
-      type: Object as PropType<SendComponentProps>,
-    },
+      type: Object as PropType<SendComponentProps>
+    }
   },
   methods: {
-    formatAmount(value: string) {
-      const amountInUNls = CurrencyUtils.convertNolusToUNolus(value);
-      return CurrencyUtils.convertUNolusToNolus(amountInUNls.amount.toString());
+    formatAmount (value: string) {
+      const amountInUNls = CurrencyUtils.convertNolusToUNolus(value)
+      return CurrencyUtils.convertUNolusToNolus(amountInUNls.amount.toString())
     },
-    btnCopyClick() {
-      console.log("copy!");
-      StringUtils.copyToClipboard(this.modelValue?.txHash || "");
-    },
-  },
-});
+    btnCopyClick () {
+      console.log('copy!')
+      StringUtils.copyToClipboard(this.modelValue?.txHash || '')
+    }
+  }
+})
 </script>

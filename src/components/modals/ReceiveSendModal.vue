@@ -5,7 +5,7 @@
     @clicked="onClickChild"
   >
     <button class="btn-close-modal" @click="$emit('close-modal')">
-      <img src="@/assets/icons/cross.svg" class="inline-block w-4 h-4" />
+      <img class="inline-block w-4 h-4" src="@/assets/icons/cross.svg"/>
     </button>
 
     <div
@@ -39,15 +39,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import SendMainComponent, {
-  SendMainComponentProps,
-} from "@/components/SendComponents/SendMainComponent.vue";
-import ReceiveMainComponent from "@/components/ReceiveComponents/ReceiveMainComponent.vue";
+import { defineComponent } from 'vue'
+import SendMainComponent, { SendMainComponentProps } from '@/components/SendComponents/SendMainComponent.vue'
+import ReceiveMainComponent from '@/components/ReceiveComponents/ReceiveMainComponent.vue'
 
 enum ScreenState {
-  SEND = "SendMainComponent",
-  RECEIVE = "ReceiveMainComponent",
+  SEND = 'SendMainComponent',
+  RECEIVE = 'ReceiveMainComponent',
 }
 
 interface ReceiveSendModalData {
@@ -56,52 +54,52 @@ interface ReceiveSendModalData {
 }
 
 export default defineComponent({
-  name: "ReceiveSendModal",
+  name: 'ReceiveSendModal',
   components: {
     SendMainComponent,
-    ReceiveMainComponent,
+    ReceiveMainComponent
   },
-  data() {
+  data () {
     return {
       currentComponent: {} as ReceiveSendModalData,
       isSendActive: true,
-      isDefaultState: false,
-    };
+      isDefaultState: false
+    }
   },
-  mounted() {
+  mounted () {
     this.currentComponent = {
       is: ScreenState.SEND,
       props: {
-        onClose: () => this.onCloseModal(),
-      },
-    };
+        onClose: () => this.onCloseModal()
+      }
+    }
   },
   methods: {
-    onClickChild(value: boolean) {
-      this.isDefaultState = value; // someValue
+    onClickChild (value: boolean) {
+      this.isDefaultState = value // someValue
     },
-    switchTab(value: boolean) {
+    switchTab (value: boolean) {
       if (value) {
         this.currentComponent = {
           is: ScreenState.SEND,
           props: {
-            onClose: () => this.onCloseModal(),
-          },
-        };
+            onClose: () => this.onCloseModal()
+          }
+        }
       } else {
         this.currentComponent = {
           is: ScreenState.RECEIVE,
           props: {
-            onClose: () => this.onCloseModal(),
-          },
-        };
+            onClose: () => this.onCloseModal()
+          }
+        }
       }
 
-      this.isSendActive = value;
+      this.isSendActive = value
     },
-    onCloseModal() {
-      this.$emit("close-modal");
-    },
-  },
-});
+    onCloseModal () {
+      this.$emit('close-modal')
+    }
+  }
+})
 </script>

@@ -15,7 +15,7 @@
         >
           <span
             class="relative z-10 p-2 text-xs leading-none text-white whitespace-no-wrap bg-black shadow-lg"
-            >A top aligned tooltip.</span
+          >A top aligned tooltip.</span
           >
           <div
             class="absolute w-3 h-3 -mt-2 rotate-45 bg-black"
@@ -28,7 +28,7 @@
 
     <div class="block text-left mt-nolus-16">
       <!-- <DynamicForm :formValue="formDataModel" /> -->
-      <CurrencyField name="amountSupply" id="amountSupply" label="Amount" />
+      <CurrencyField id="amountSupply" label="Amount" name="amountSupply"/>
     </div>
   </div>
 
@@ -44,14 +44,14 @@
 </template>
 
 <script lang="ts">
-import { StarIcon } from "@heroicons/vue/solid";
-import CurrencyField from "@/components/CurrencyField.vue";
-import PickerDefault from "@/components/PickerDefault.vue";
-import InputField from "@/components/InputField.vue";
-import { defineComponent, PropType } from "vue";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import { AssetBalance } from "@/store/modules/wallet/state";
-import TooltipComponent from "@/components/TooltipComponent.vue";
+import { StarIcon } from '@heroicons/vue/solid'
+import CurrencyField from '@/components/CurrencyField.vue'
+import PickerDefault from '@/components/PickerDefault.vue'
+import InputField from '@/components/InputField.vue'
+import { defineComponent, PropType } from 'vue'
+import { CurrencyUtils } from '@nolus/nolusjs'
+import { AssetBalance } from '@/store/modules/wallet/state'
+import TooltipComponent from '@/components/TooltipComponent.vue'
 
 export interface SupplyComponentProps {
   receiverErrorMsg: string;
@@ -70,25 +70,25 @@ export interface SupplyComponentProps {
 }
 
 export default defineComponent({
-  name: "SupplyComponent",
+  name: 'SupplyComponent',
   components: {
     StarIcon,
     CurrencyField,
     PickerDefault,
     InputField,
-    TooltipComponent,
+    TooltipComponent
   },
   props: {
     modelValue: {
-      type: Object as PropType<SupplyComponentProps>,
-    },
+      type: Object as PropType<SupplyComponentProps>
+    }
   },
-  data() {
+  data () {
     return {
       // formDataModel: [] as DynamicFormProps[],
-    };
+    }
   },
-  mounted() {
+  mounted () {
     // this.formDataModel = [
     //   {
     //     formFields: [
@@ -117,16 +117,16 @@ export default defineComponent({
     // ];
   },
   methods: {
-    formatCurrentBalance(value: AssetBalance[]) {
+    formatCurrentBalance (value: AssetBalance[]) {
       if (value) {
         return CurrencyUtils.convertUNolusToNolus(
           value[0]?.balance.amount.toString()
-        ).toString();
+        ).toString()
       }
     },
-    onUpdateCurrency(value: AssetBalance) {
-      this.$emit("update:modelValue.selectedCurrency", value);
-    },
-  },
-});
+    onUpdateCurrency (value: AssetBalance) {
+      this.$emit('update:modelValue.selectedCurrency', value)
+    }
+  }
+})
 </script>

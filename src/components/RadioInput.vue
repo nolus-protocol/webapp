@@ -23,8 +23,8 @@
         </div>
         <div class="ml-3 text-sm">
           <label :for="option.value" class="font-medium text-gray-700">{{
-            option.label
-          }}</label>
+              option.label
+            }}</label>
         </div>
       </div>
     </div>

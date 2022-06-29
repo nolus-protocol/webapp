@@ -81,48 +81,48 @@
 </template>
 
 <script lang="ts">
-import { PropType } from "vue";
-import { AssetInfo } from "@/utils/AssetUtils";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import { assetInfo } from "@/config/assetInfo";
-import { Coin, Int } from "@keplr-wallet/unit";
+import { PropType } from 'vue'
+import { AssetInfo } from '@/utils/AssetUtils'
+import { CurrencyUtils } from '@nolus/nolusjs'
+import { assetInfo } from '@/config/assetInfo'
+import { Coin, Int } from '@keplr-wallet/unit'
 
 export default {
-  name: "AssetPartial",
+  name: 'AssetPartial',
   props: {
     assetInfo: {
-      type: Object as PropType<AssetInfo>,
+      type: Object as PropType<AssetInfo>
     },
     price: {
-      type: String,
+      type: String
     },
     change: {
-      type: String,
+      type: String
     },
     changeDirection: {
-      type: Boolean,
+      type: Boolean
     },
     balance: {
-      type: String,
+      type: String
     },
     assetBalance: {
-      type: String,
+      type: String
     },
     earnings: {
-      type: String,
+      type: String
     },
     cols: {
-      type: Number,
-    },
+      type: Number
+    }
   },
-  data() {
-    return {};
+  data () {
+    return {}
   },
   methods: {
-    formatPrice(price: string) {
-      return CurrencyUtils.formatPrice(price);
+    formatPrice (price: string) {
+      return CurrencyUtils.formatPrice(price)
     },
-    convertMinimalDenomToDenom(
+    convertMinimalDenomToDenom (
       tokenAmount: string,
       minimalDenom: string,
       denom: string,
@@ -133,14 +133,14 @@ export default {
         minimalDenom,
         denom,
         decimals
-      );
+      )
     },
-    calculateBalance(price: string, tokenAmount: string, minimalDenom: string) {
-      console.log(tokenAmount);
-      const tokenDecimals = assetInfo[minimalDenom].coinDecimals;
-      const coin = new Coin(minimalDenom, new Int(tokenAmount));
-      return CurrencyUtils.calculateBalance(price, coin, tokenDecimals);
-    },
-  },
-};
+    calculateBalance (price: string, tokenAmount: string, minimalDenom: string) {
+      console.log(tokenAmount)
+      const tokenDecimals = assetInfo[minimalDenom].coinDecimals
+      const coin = new Coin(minimalDenom, new Int(tokenAmount))
+      return CurrencyUtils.calculateBalance(price, coin, tokenDecimals)
+    }
+  }
+}
 </script>

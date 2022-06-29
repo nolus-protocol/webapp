@@ -7,7 +7,7 @@
         class="back-arrow"
         v-on:click="modelValue.onConfirmBackClick"
       >
-        <ArrowLeftIcon class="h-5 w-5" aria-hidden="true" />
+        <ArrowLeftIcon class="h-5 w-5" aria-hidden="true"/>
       </button>
       <h1 class="nls-font-700 nls-32 text-center text-primary">
         Confirm sending
@@ -71,32 +71,32 @@
 </template>
 
 <script lang="ts">
-import { ArrowLeftIcon } from "@heroicons/vue/solid";
-import InputField from "@/components/InputField.vue";
-import { defineComponent, PropType } from "vue";
-import { SendComponentProps } from "@/components/SendComponents/SendComponent.vue";
-import { WalletUtils } from "@/utils/WalletUtils";
-import { CurrencyUtils } from "@nolus/nolusjs";
+import { ArrowLeftIcon } from '@heroicons/vue/solid'
+import InputField from '@/components/InputField.vue'
+import { defineComponent, PropType } from 'vue'
+import { SendComponentProps } from '@/components/SendComponents/SendComponent.vue'
+import { WalletUtils } from '@/utils/WalletUtils'
+import { CurrencyUtils } from '@nolus/nolusjs'
 
 export default defineComponent({
-  name: "SendingConfirmComponent",
+  name: 'SendingConfirmComponent',
   components: {
     ArrowLeftIcon,
-    InputField,
+    InputField
   },
   props: {
     modelValue: {
-      type: Object as PropType<SendComponentProps>,
-    },
+      type: Object as PropType<SendComponentProps>
+    }
   },
   methods: {
-    formatAmount(value: string) {
-      const amountInUNls = CurrencyUtils.convertNolusToUNolus(value);
-      return CurrencyUtils.convertUNolusToNolus(amountInUNls.amount.toString());
+    formatAmount (value: string) {
+      const amountInUNls = CurrencyUtils.convertNolusToUNolus(value)
+      return CurrencyUtils.convertUNolusToNolus(amountInUNls.amount.toString())
     },
-    isMnemonicWallet() {
-      return WalletUtils.isConnectedViaMnemonic();
-    },
-  },
-});
+    isMnemonicWallet () {
+      return WalletUtils.isConnectedViaMnemonic()
+    }
+  }
+})
 </script>
