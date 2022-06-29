@@ -1,8 +1,5 @@
 <template>
-  <component
-    :is="currentComponent.is"
-    v-model="currentComponent.props"
-  />
+  <component :is="currentComponent.is" v-model="currentComponent.props"/>
 </template>
 
 <script lang="ts">
@@ -24,16 +21,16 @@ enum ScreenState {
   MAIN = 'SendComponent',
   CONFIRM = 'SendingConfirmComponent',
   SUCCESS = 'SendingSuccessComponent',
-  FAILED = 'SendingFailedComponent'
+  FAILED = 'SendingFailedComponent',
 }
 
 interface SendMainComponentData {
-  is: string,
-  props: SendComponentProps
+  is: string;
+  props: SendComponentProps;
 }
 
 export interface SendMainComponentProps {
-  onClose: () => void
+  onClose: () => void;
 }
 
 export default defineComponent({
@@ -105,10 +102,13 @@ export default defineComponent({
       } as SendComponentProps
     },
     onNextClick () {
+      this.$emit('defaultState', true)
       this.isAmountFieldValid()
       this.isReceiverAddressValid()
-      if (this.currentComponent.props.amountErrorMsg === '' &&
-        this.currentComponent.props.receiverErrorMsg === '') {
+      if (
+        this.currentComponent.props.amountErrorMsg === '' &&
+        this.currentComponent.props.receiverErrorMsg === ''
+      ) {
         this.currentComponent.is = ScreenState.CONFIRM
       }
     },
@@ -116,7 +116,10 @@ export default defineComponent({
       const wallet = useStore().state.wallet.wallet
       if (!wallet) {
         if (WalletUtils.isConnectedViaMnemonic()) {
-          useStore().dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, { password: this.currentComponent.props.password })
+          useStore()
+            .dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, {
+              password: this.currentComponent.props.password
+            })
             .then(() => {
               this.transferAmount()
             })
@@ -150,20 +153,20 @@ export default defineComponent({
           this.currentComponent.props.receiverErrorMsg = ''
         } catch (e) {
           console.log('address is not valid!')
-          this.currentComponent.props.receiverErrorMsg = 'address is not valid!'
+          this.currentComponent.props.receiverErrorMsg =
+            'address is not valid!'
         }
       } else {
         console.log('missing receiver address')
-        this.currentComponent.props.receiverErrorMsg = 'missing receiver address'
+        this.currentComponent.props.receiverErrorMsg =
+          'missing receiver address'
       }
     },
     isAmountFieldValid () {
       const amount = this.currentComponent.props.amount
       if (amount || amount !== '') {
         this.currentComponent.props.amountErrorMsg = ''
-        const amountInUnls = CurrencyUtils.convertNolusToUNolus(
-          amount
-        )
+        const amountInUnls = CurrencyUtils.convertNolusToUNolus(amount)
         const walletBalance = String(
           this.currentComponent.props.currentBalance[0]?.balance.amount || 0
         )
@@ -192,10 +195,14 @@ export default defineComponent({
         const feeAmount = new Dec('0.25').mul(new Dec(coinDecimals))
         console.log('feeAmount: ', feeAmount.truncate().toString())
         const DEFAULT_FEE = {
-          amount: [{
-            denom: 'unolus',
-            amount: WalletUtils.isConnectedViaExtension() ? '0.25' : feeAmount.truncate().toString()
-          }],
+          amount: [
+            {
+              denom: 'unolus',
+              amount: WalletUtils.isConnectedViaExtension()
+                ? '0.25'
+                : feeAmount.truncate().toString()
+            }
+          ],
           gas: '100000'
         }
         const txResponse = await useStore().dispatch(
@@ -203,15 +210,20 @@ export default defineComponent({
           {
             receiverAddress: this.currentComponent.props.receiverAddress,
             fee: DEFAULT_FEE,
-            funds: [{
-              amount: CurrencyUtils.convertNolusToUNolus(this.currentComponent.props.amount).amount.toString(),
-              denom: 'unolus'
-            }]
+            funds: [
+              {
+                amount: CurrencyUtils.convertNolusToUNolus(
+                  this.currentComponent.props.amount
+                ).amount.toString(),
+                denom: 'unolus'
+              }
+            ]
           }
         )
         if (txResponse) {
           console.log('txResponse: ', txResponse)
-          this.currentComponent.is = txResponse.code === 0 ? ScreenState.SUCCESS : ScreenState.FAILED
+          this.currentComponent.is =
+            txResponse.code === 0 ? ScreenState.SUCCESS : ScreenState.FAILED
           this.currentComponent.props.txHash = txResponse.transactionHash
         }
       }

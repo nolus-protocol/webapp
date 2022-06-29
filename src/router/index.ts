@@ -5,6 +5,7 @@ import ImportSeedView from '@/views/ImportSeedView.vue'
 import SetPassword from '@/views/SetPassword.vue'
 import SetWalletName from '@/views/SetWalletName.vue'
 import DashboardView from '@/views/DashboardView.vue'
+import StyleguideView from '@/views/StyleguideView.vue'
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import AuthView from '@/views/AuthView.vue'
 import CreateAccountView from '@/views/CreateAccountView.vue'
@@ -71,11 +72,11 @@ const routes: Array<RouteRecordRaw> = [
   //   name: 'welcome',
   //   component: WelcomeView
   // },
-  // {
-  //   path: '/styleguide',
-  //   name: 'styleguide',
-  //   component: StyleguideView
-  // },
+  {
+    path: '/styleguide',
+    name: 'styleguide',
+    component: StyleguideView
+  },
   {
     path: '/set-wallet-name',
     name: RouteNames.SET_WALLET_NAME,
@@ -107,7 +108,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  if (to.matched.some(record => record.meta.requiresAuth)) {
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (!WalletUtils.isAuth()) {
       next({ name: RouteNames.AUTH })
     } else {

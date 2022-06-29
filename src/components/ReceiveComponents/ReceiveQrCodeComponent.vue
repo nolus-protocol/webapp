@@ -1,6 +1,6 @@
 <template>
   <!-- Header -->
-  <div class="flex modal-send-receive-header no-border">
+  <div class="flex modal-send-receive-header no-border bg-whiteGrey">
     <div class="navigation-header">
       <button
         type="button"
@@ -9,17 +9,22 @@
       >
         <ArrowLeftIcon class="h-5 w-5" aria-hidden="true"/>
       </button>
-      <h1 class="text-large-heading text-center text-primary">Receive QR code</h1>
+      <h1 class="nls-font-700 nls-32 text-center text-primary">
+        Receive QR code
+      </h1>
     </div>
   </div>
 
   <!-- Input Area -->
-  <div class="modal-send-receive-input-area pt-0">
+  <div class="modal-send-receive-input-area pt-0 bg-whiteGrey">
     <div class="block text-left break-words">
       <div class="flex items-center">
-        <span class="text-normal-copy text-primary text-medium m-0 mr-2">Nolus token</span>
+        <span class="nls-14 text-primary nls-font-500 m-0 mr-2"
+        >Nolus token</span
+        >
         <div
-          class="inline-flex items-center bg-light-grey radius-rounded text-normal-copy text-primary text-medium m-0 p-1 ">
+          class="inline-flex items-center bg-light-grey radius-rounded nls-14 nls-font-400 text-primary nls-font-400 m-0 p-1"
+        >
           <img
             src="@/assets/icons/coins/nls.svg"
             class="inline-block w-4 h-4 mr-1 my-0"
@@ -28,8 +33,13 @@
         </div>
       </div>
       <div class="block mt-1">
-        <p class="text-normal-copy text-primary text-bold m-0">{{ modelValue.walletAddress }}</p>
-        <button class="btn btn-secondary btn-medium-secondary btn-icon mt-2" v-on:click="modelValue.onCopyClick">
+        <p class="nls-14 text-primary nls-font-700 m-0">
+          {{ modelValue.walletAddress }}
+        </p>
+        <button
+          class="btn btn-secondary btn-medium-secondary btn-icon mt-2"
+          v-on:click="modelValue.onCopyClick"
+        >
           <DuplicateIcon class="icon w-4 h-4"/>
           Copy
         </button>
@@ -37,8 +47,15 @@
     </div>
 
     <div class="flex justify-center mt-7">
-      <div class="inline-block w-[210px] h-[210px] p-4 bg-white border border-standart radius-rounded">
-        <qrcode-vue :value="modelValue.walletAddress" foreground="#072d63" render-as="svg" :size="180"/>
+      <div
+        class="inline-block w-[210px] h-[210px] p-4 bg-white border border-standart radius-rounded"
+      >
+        <qrcode-vue
+          :value="modelValue.walletAddress"
+          foreground="#072d63"
+          render-as="svg"
+          :size="180"
+        />
       </div>
     </div>
   </div>
@@ -50,9 +67,9 @@ import { ArrowLeftIcon, DuplicateIcon } from '@heroicons/vue/solid'
 import QrcodeVue from 'qrcode.vue'
 
 export interface ReceiveQrCodeComponentProps {
-  walletAddress: string,
-  onBackClick: () => void,
-  onCopyClick: () => void
+  walletAddress: string;
+  onBackClick: () => void;
+  onCopyClick: () => void;
 }
 
 export default defineComponent({

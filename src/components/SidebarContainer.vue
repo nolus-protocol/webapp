@@ -1,16 +1,14 @@
 <template>
   <div class="sidebar-container">
     <div class="top">
-      <LogoLink
-        link="/"
-      ></LogoLink>
+      <LogoLink link="/"></LogoLink>
 
-      <div class="sidebar-elements-container block p-8">
+      <div class="sidebar-elements-container block">
         <div class="block">
           <SidebarElement
             id="assets"
-            v-on:click="pushToDashboard"
             label="Assets"
+            href="/"
             :icon="require('@/assets/icons/assets.svg')"
             :iconHover="require('@/assets/icons/assets_active.svg')"
             :isActive="true"
@@ -41,6 +39,7 @@
           <SidebarElement
             id="earn"
             label="Earn"
+            v-on:click="pushToEarn"
             :icon="require('@/assets/icons/earn.svg')"
             :iconHover="require('@/assets/icons/earn_active.svg')"
           >
@@ -101,22 +100,6 @@
       </div>
     </div>
   </div>
-
-  <div class="sidebar-header">
-    <button class="btn btn-header shadow-box mr-2">
-      <BellIcon class="icon w-4 h-4"/>
-      <span class="counter">8</span>
-    </button>
-    <button class="btn btn-header with-icon shadow-box rounded-r-none" v-on:click="toggleWalletPopup">
-      <img
-        src="@/assets/icons/money-wallet.svg"
-        class="inline-block mr-2"
-      />
-      <span class="label text-detail">My precious</span>
-    </button>
-  </div>
-
-  <WalletOpen v-show="showWalletPopup"/>
 </template>
 <script type="ts">
 import LogoLink from '@/components/LogoLink.vue'
@@ -128,7 +111,6 @@ import { BellIcon } from '@heroicons/vue/solid'
 import {
   DISCORD_ACCOUNT,
   LINKEDIN_ACCOUNT,
-  MEDIUM_ACCOUNT,
   REDDIT_ACCOUNT,
   TELEGRAM_ACCOUNT,
   TWITTER_ACCOUNT
@@ -152,12 +134,14 @@ export default {
       showWalletPopup: false,
       TWITTER_ACCOUNT: TWITTER_ACCOUNT,
       TELEGRAM_ACCOUNT: TELEGRAM_ACCOUNT,
-      MEDIUM_ACCOUNT: MEDIUM_ACCOUNT,
+      // MEDIUM_ACCOUNT: rou,
       REDDIT_ACCOUNT: REDDIT_ACCOUNT,
       LINKEDIN_ACCOUNT: LINKEDIN_ACCOUNT,
       DISCORD_ACCOUNT: DISCORD_ACCOUNT
+
     }
   },
+
   methods: {
     toggleWalletPopup () {
       this.showWalletPopup = !this.showWalletPopup

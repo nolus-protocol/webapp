@@ -2,7 +2,7 @@
   <div class="block currency-field-container">
     <label
       :for="this.id"
-      class="block text-normal-copy text-primary text-medium"
+      class="block nls-14 nls-font-400 text-primary nls-font-400"
     >{{ this.label }}</label
     >
 
@@ -24,9 +24,11 @@
             :step="this.step"
             @input="$emit('update:value', $event.target.value)"
             :disabled="disabledInputField"
-            class="text-small-heading text-bold text-primary"
+            class="nls-font-700 nls-18 nls-font-700 text-primary"
           />
-          <span class="block text-normal-copy text-light-blue"> $1,000 </span>
+          <span class="block nls-14 nls-font-400 text-light-blue">
+            $1,000
+          </span>
         </div>
         <div class="inline-block w-1/2">
           <CurrencyPicker

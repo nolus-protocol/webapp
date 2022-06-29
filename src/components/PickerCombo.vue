@@ -1,136 +1,102 @@
 <template>
-    <div
-        :class="[
-            typeof this.type !== 'undefined' && this.type !== null ? 'picker '+ this.type : 'picker ',
-            typeof this.isError !== 'undefined' && this.isError === true ? ' error' : ''
-        ]"
+  <div class="">
+    <Combobox v-model="selected">
+      <ComboboxLabel>{{ formFieldModel.label }}</ComboboxLabel>
+      <div class="relative mt-1">
+        <div
+          :class="formFieldModel.isError ? 'error' : false"
+          class="relative nolus-combo-field w-full cursor-default overflow-hidden rounded-lg bg-white text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm"
+        >
+          <ComboboxInput
+            class="bg-white relative w-full pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            :displayValue="(el) => el.label || selected.label"
+            @change="query = $event.target.value"
+            @update="(event) => (selected = event.target)"
+          />
+          <ComboboxButton
+            class="absolute nolus-combo-button formFieldModelombo-button inset-y-0 right-0 flex items-center"
+          >
+            <span class="icon icon-star mr-0"></span>
+          </ComboboxButton>
+        </div>
+        <TransitionRoot
+          leave="transition ease-in duration-100"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-100"
+          @after-leave="query = ''"
+          class="nolus-combo"
+        >
+          <ComboboxOptions
+            class="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+          >
+            <ComboboxOption
+              v-for="option in formFieldModel.options"
+              as="template"
+              :key="option.value"
+              :value="option"
+              v-slot="{ selected }"
+            >
+              <li class="flex justify-start">
+                <span class="icon icon-person"/>
+                <span
+                  class="block truncate"
+                  :class="{
+                    'color-light-electric': selected,
+                    'text-primary': !selected,
+                  }"
+                >
+                  {{ option.label }}
+                </span>
+              </li>
+            </ComboboxOption>
+          </ComboboxOptions>
+        </TransitionRoot>
+      </div>
+    </Combobox>
+    <span
+      :class="[
+        'msg error color-light-red nls-font-500 nls-14',
+        typeof formFieldModel.errorMsg !== 'undefined' &&
+        formFieldModel.errorMsg !== null
+          ? ''
+          : 'hidden',
+      ]"
+    >{{
+        typeof formFieldModel.errorMsg !== 'undefined' &&
+        formFieldModel.errorMsg !== null
+          ? formFieldModel.errorMsg
+          : ''
+      }}</span
     >
-        <Listbox as="div" v-model="selected">
-            <ListboxLabel class="block text-normal-copy text-primary text-medium">
-                {{ this.label }}
-            </ListboxLabel>
-            <div class="mt-1 relative picker-container combo">
-                <ListboxButton
-                    class="
-                    bg-white
-                    relative
-                    w-full
-                    border border-gray-300
-                    rounded-md
-                    shadow-sm
-                    pl-3
-                    pr-10
-                    py-2
-                    text-left
-                    cursor-default
-                    focus:outline-none
-                    focus:ring-1
-                    focus:ring-indigo-500
-                    focus:border-indigo-500
-                    sm:text-sm
-                    "
-                >
-                    <span class="block truncate">{{ selected.label }}</span>
-                    <span
-                    class="
-                        absolute
-                        inset-y-0
-                        right-0
-                        flex
-                        items-center
-                        pr-2
-                        pointer-events-none
-                    "
-                    >
-                        <StarIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
-                    </span>
-                </ListboxButton>
-
-                <span :class="[
-                    'msg error ',
-                    typeof this.errorMsg !== 'undefined' && this.errorMsg !== null ? '' : 'hidden'
-                ]">{{ typeof this.errorMsg !== 'undefined' && this.errorMsg !== null ? this.errorMsg : '' }}</span>
-
-                <transition
-                    leave-active-class="transition ease-in duration-100"
-                    leave-from-class="opacity-100"
-                    leave-to-class="opacity-0"
-                >
-                    <ListboxOptions
-                    class="
-                        absolute
-                        z-10
-                        mt-1
-                        w-full
-                        bg-white
-                        shadow-lg
-                        max-h-60
-                        rounded-md
-                        py-1
-                        text-base
-                        overflow-auto
-                        focus:outline-none
-                        sm:text-sm
-                    "
-                    >
-                        <ListboxOption
-                            as="template"
-                            v-for="option in this.options"
-                            :key="option.value"
-                            :value="option"
-                            v-slot="{ active, selected }"
-                        >
-                            <li
-                            :class="[
-                                active ? 'text-white bg-indigo-600' : 'text-gray-900',
-                                'cursor-default select-none relative py-2 pl-3 pr-9',
-                            ]"
-                            >
-                            <span
-                                :class="[
-                                selected ? 'font-semibold' : 'font-normal',
-                                'block truncate',
-                                ]"
-                            >
-                                {{ option.label }}
-                            </span>
-
-                            <span
-                                v-if="selected"
-                                :class="[
-                                active ? 'text-white' : 'text-indigo-600',
-                                'absolute inset-y-0 right-0 flex items-center pr-4',
-                                ]"
-                            >
-                                <CheckIcon class="h-5 w-5" aria-hidden="true" />
-                            </span>
-                            </li>
-                        </ListboxOption>
-                    </ListboxOptions>
-                </transition>
-            </div>
-        </Listbox>
-    </div>
+  </div>
 </template>
 
 <script lang="ts">
 import {
-  Listbox,
-  ListboxButton,
-  ListboxLabel,
-  ListboxOption,
-  ListboxOptions
+  Combobox,
+  ComboboxButton,
+  ComboboxInput,
+  ComboboxLabel,
+  ComboboxOption,
+  ComboboxOptions,
+  TransitionRoot
 } from '@headlessui/vue'
 import { CheckIcon, StarIcon } from '@heroicons/vue/solid'
+import { PropType } from '@vue/runtime-core'
+import type { Ref } from 'vue'
+import { ref } from 'vue'
+import { PickerDefaultOption } from './PickerDefault.vue'
 
 export default {
   name: 'PickerCombo',
   components: {
-    Listbox,
-    ListboxButton,
-    ListboxLabel,
-    ListboxOption,
-    ListboxOptions,
+    Combobox,
+    ComboboxButton,
+    ComboboxLabel,
+    ComboboxInput,
+    ComboboxOption,
+    ComboboxOptions,
+    TransitionRoot,
     CheckIcon,
     StarIcon
   },
@@ -141,23 +107,34 @@ export default {
     type: {
       type: String
     },
+    defaultOption: {
+      type: Object as PropType<PickerDefaultOption>
+    },
     options: {
-      type: String
+      type: Array as PropType<PickerDefaultOption[]>
     },
     isError: {
       type: Boolean
     },
     errorMsg: {
       type: String
+    },
+    disabled: {
+      type: Boolean
     }
   },
   data () {
     return {
-      selected: {
-        value: -1,
-        label: ''
-      }
+      selected: {} as PickerDefaultOption,
+      query: ref('') as Ref<string>
+    }
+  },
+
+  watch: {
+    selected () {
+      // @ts-ignore
     }
   }
+  // TODO : set query wather to filter input value
 }
 </script>

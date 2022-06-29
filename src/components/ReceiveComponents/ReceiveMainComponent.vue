@@ -13,16 +13,16 @@ import { WalletManager } from '@/config/wallet'
 
 enum ScreenState {
   MAIN = 'ReceiveComponent',
-  SCAN = 'ReceiveQrCodeComponent'
+  SCAN = 'ReceiveQrCodeComponent',
 }
 
 interface ReceiveMainComponentData {
-  is: string,
-  props: ReceiveComponentProps | ReceiveQrCodeComponentProps
+  is: string;
+  props: ReceiveComponentProps | ReceiveQrCodeComponentProps;
 }
 
 export interface ReceiveMainComponentProps {
-  onClose: () => void
+  onClose: () => void;
 }
 
 export default defineComponent({
@@ -60,6 +60,7 @@ export default defineComponent({
   },
   methods: {
     onScanClick () {
+      this.$emit('defaultState', true)
       console.log('scannnn')
       this.currentComponent = {
         is: ScreenState.SCAN,
@@ -71,6 +72,7 @@ export default defineComponent({
       }
     },
     onCopyClick () {
+      this.$emit('defaultState', false)
       StringUtils.copyToClipboard(this.currentComponent.props.walletAddress)
     },
     onBackClick () {
@@ -83,12 +85,8 @@ export default defineComponent({
         }
       }
     }
-
   }
-
 })
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

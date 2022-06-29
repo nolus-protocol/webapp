@@ -1,21 +1,32 @@
 <template>
-  <div class="page-container home">
-    <div class="none">
-      <SidebarContainer>
-      </SidebarContainer>
+  <div class="container w-full grid grid-cols-12 mx-auto grid-parent">
+    <div class="lg:col-span-3">
+      <SidebarContainer />
     </div>
-
-    <div class="container mx-auto pt-24 lg:pt-16">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-start-3 lg:col-span-9">
-
+    <div class="lg:col-span-9 pb-8">
+      <div class="grid grid-cols-10 grid-child">
+        <div class="col-span-12 mt-nolus-60">
+          <div class="col-span-12">
+            <div class="sidebar-header">
+              <!-- <Notifications /> -->
+              <Notifications />
+              <WalletOpen />
+            </div>
+          </div>
+        </div>
+        <div class="col-span-12">
           <!-- Header -->
           <div class="flex flex-wrap items-center justify-between px-4 lg:px-0">
             <div class="left w-full md:w-1/2">
-              <h1 class="text-default-heading text-primary m-0">Leases</h1>
+              <h1 class="nls-20 nls-font-700 text-primary m-0">Leases</h1>
             </div>
-            <div class="right w-full md:w-1/2 mt-4 md:mt-0 inline-flex justify-start md:justify-end">
-              <button class="btn btn-primary btn-large-primary w-full md:w-1/2" v-on:click="showSendModal = true">
+            <div
+              class="right w-full md:w-1/2 mt-nolus-255 md:mt-0 inline-flex justify-start md:justify-end"
+            >
+              <button
+                class="btn btn-primary btn-large-primary w-full md:w-1/2"
+                v-on:click="showSendModal = true"
+              >
                 Lease new
               </button>
             </div>
@@ -31,7 +42,7 @@
       </div>
     </div>
   </div>
-  <LeaseModal v-show="showSendModal" @close-modal="showSendModal = false"/>
+  <LeaseModal v-show="showSendModal" @close-modal="showSendModal = false" />
 </template>
 
 <script lang="ts">
@@ -58,9 +69,14 @@ export default defineComponent({
   },
   async mounted () {
     const leaseClient = new Lease()
-    const openedLeases: string[] = await leaseClient.getCurrentOpenLeases(CONTRACTS.leaser.instance, WalletManager.getWalletAddress())
+    const openedLeases: string[] = await leaseClient.getCurrentOpenLeases(
+      CONTRACTS.leaser.instance,
+      WalletManager.getWalletAddress()
+    )
     for (const leaseAddress of openedLeases) {
-      const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus(leaseAddress)
+      const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus(
+        leaseAddress
+      )
       this.leases.push(leaseInfo)
     }
   }

@@ -1,101 +1,113 @@
 <template>
   <div
-    class="fixed flex items-end md:items-center top-0 bottom-0 left-0 right-0 justify-center bg-white/70 backdrop-blur-xl z-[99] modal-send-receive-parent"
-    @click="$emit('close-modal')">
-
-    <button
-      class="btn-close-modal"
-      @click="$emit('close-modal')"
-    >
-      <img
-        src="@/assets/icons/cross.svg"
-        class="inline-block w-4 h-4"
-      />
+    class="fixed flex items-end modal md:items-center top-0 bottom-0 left-0 right-0 justify-center bg-white/70 backdrop-blur-xl z-[99] modal-send-receive-parent"
+    @click="$emit('close-modal')"
+  >
+    <button class="btn-close-modal" @click="$emit('close-modal')">
+      <img class="inline-block w-4 h-4" src="@/assets/icons/cross.svg"/>
     </button>
 
-    <div class="text-center bg-white w-full max-w-[516px] radius-modal mx-auto shadow-modal modal-send-receive"
-         @click.stop>
-
+    <div
+      class="text-center bg-white w-full max-w-[516px] radius-modal mx-auto shadow-modal modal-send-receive"
+      @click.stop
+    >
       <!-- Header -->
       <div class="flex modal-send-receive-header">
-        <button class="active">Supply</button>
-        <button>Withdraw</button>
-      </div>
-
-      <!-- Input Area -->
-      <div class="modal-send-receive-input-area">
-
-        <div class="block text-left">
-          <div class="block mt-4">
-            <CurrencyField
-              name="amount"
-              id="amount"
-              label="Amount"
-            ></CurrencyField>
-          </div>
-
-          <div class="block mt-4">
-            <p class="text-primary text-normal-copy text-medium m-0">Deposit lock period</p>
-            <div class="flex mt-2">
-              <button class="w-100 btn btn-secondary btn-medium-secondary grow-1 mr-2">
-                None
-              </button>
-              <button class="w-100 btn btn-secondary btn-medium-secondary grow-1 mr-2">
-                3mo
-              </button>
-              <button class="w-100 btn btn-secondary btn-medium-secondary grow-1 mr-2">
-                6mo
-              </button>
-              <button class="w-100 btn btn-secondary btn-medium-secondary grow-1 mr-2">
-                12mo
-              </button>
-              <button class="w-100 btn btn-secondary btn-medium-secondary grow-1">
-                18mo
-              </button>
-            </div>
-          </div>
-
-          <div
-            class="block py-3 px-4 mt-4 bg-light-grey radius-light text-left text-normal-copy text-primary text-medium">
-            Expected APY:
-            <span class="text-bold">24%</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Actions -->
-      <div class="modal-send-receive-actions">
-        <button class="btn btn-primary btn-large-primary">
+        <button
+          :class="isSendActive ? 'active' : ''"
+          v-on:click="switchTab(true)"
+        >
           Supply
         </button>
+        <button
+          :class="!isSendActive ? 'active' : ''"
+          v-on:click="switchTab(false)"
+        >
+          Withdraw
+        </button>
       </div>
+      <component
+        :is="this.currentComponent.is"
+        v-model="this.currentComponent.props"
+      />
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { DuplicateIcon, QrcodeIcon } from '@heroicons/vue/solid'
-import PickerIcon from '@/components/PickerIcon.vue'
-import CurrencyField from '@/components/CurrencyField.vue'
-import PickerDefault from '@/components/PickerDefault.vue'
-import PickerCombo from '@/components/PickerCombo.vue'
-import InputField from '@/components/InputField.vue'
 import { defineComponent } from 'vue'
+import SupplyComponent from '@/components/modals/SupplyComponent.vue'
+import WithdrawComponent from '@/components/modals/WithdrawComponent.vue'
+import { AssetBalance } from '@/store/modules/wallet/state'
+
+enum ScreenState {
+  SUPPLY = 'SupplyComponent',
+  WITHDRAW = 'WithdrawComponent',
+}
+
+export interface SupplyComponentProps {
+  receiverErrorMsg: string;
+  amountErrorMsg: string;
+  currentBalance: AssetBalance[];
+  selectedCurrency: AssetBalance;
+  amount: string;
+  memo: string;
+  receiverAddress: string;
+  password: string;
+  txHash: string;
+  onNextClick: () => void;
+  onSendClick: () => void;
+  onConfirmBackClick: () => void;
+  onClickOkBtn: () => void;
+}
+
+interface SupplyWidthdrawModalData {
+  is: string;
+  props: object | SupplyComponentProps;
+}
 
 export default defineComponent({
   name: 'SupplyWithdrawModal',
   components: {
-    PickerIcon,
-    DuplicateIcon,
-    QrcodeIcon,
-    CurrencyField,
-    PickerDefault,
-    PickerCombo,
-    InputField
+    SupplyComponent,
+    WithdrawComponent
   },
-  props: {
-    tryButton: {
-      type: Function
+  data () {
+    return {
+      currentComponent: {} as SupplyWidthdrawModalData,
+      isSendActive: true
+    }
+  },
+  mounted () {
+    this.currentComponent = {
+      is: ScreenState.SUPPLY,
+      props: {
+        onClose: () => this.onCloseModal()
+      }
+    }
+  },
+  methods: {
+    switchTab (value: boolean) {
+      if (value) {
+        this.currentComponent = {
+          is: ScreenState.SUPPLY,
+          props: {
+            onClose: () => this.onCloseModal()
+          }
+        }
+      } else {
+        this.currentComponent = {
+          is: ScreenState.WITHDRAW,
+          props: {
+            onClose: () => this.onCloseModal()
+          }
+        }
+      }
+
+      this.isSendActive = value
+    },
+    onCloseModal () {
+      this.$emit('close-modal')
     }
   }
 })

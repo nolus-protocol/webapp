@@ -3,19 +3,19 @@
     <div class="block input-field">
       <label
         :for="this.id"
-        class="block text-normal-copy text-primary text-medium"
-        >{{ this.label }}</label
+        class="block nls-14 nls-font-400 text-primary nls-font-400"
+      >{{ this.label }}</label
       >
       <textarea
-        :name="this.name"
         :id="this.id"
-        :value="value"
-        @input="$emit('update:value', $event.target.value)"
         :class="
           typeof this.isError !== 'undefined' && this.isError === true
             ? 'error'
             : ''
         "
+        :name="this.name"
+        :value="value"
+        @input="$emit('update:value', $event.target.value)"
       ></textarea>
       <span
         :class="[
@@ -24,10 +24,10 @@
             ? ''
             : 'hidden',
         ]"
-        >{{
-          typeof this.errorMsg !== "undefined" && this.errorMsg !== null
+      >{{
+          typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
             ? this.errorMsg
-            : ""
+            : ''
         }}</span
       >
     </div>

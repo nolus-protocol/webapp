@@ -4,20 +4,22 @@
     :href="this.href"
     :class="[
       'sidebar-element',
-      (typeof this.isActive !== 'undefined' && this.isActive === true ? 'active' : '')
+      typeof this.isActive !== 'undefined' && this.isActive === true
+        ? 'active'
+        : false,
     ]"
   >
-    <img
+    <span :class="['icon', `icon-${this.label.toLowerCase()}`]"></span>
+    <!-- <span class="icon" :class="`icon-${this.label}`"></span> -->
+    <!-- <img
       class="icon"
       :src="this.icon"
     />
     <img
       class="iconHover"
       :src="this.iconHover"
-    />
-    <span>
-        {{ this.label }}
-    </span>
+    /> -->
+    <span> {{ this.label }} </span>
   </a>
 </template>
 <script type="ts">

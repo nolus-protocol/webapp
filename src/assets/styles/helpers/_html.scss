@@ -1,92 +1,415 @@
 *,
 *:before,
 *:after {
-    box-sizing: inherit;
-    outline: none;
-    margin: 0;
-    padding: 0;
+	box-sizing: inherit;
+	outline: none;
+	margin: 0;
+	padding: 0;
 }
 
 html,
 body {
-    background-color: $lighestGrey;
-    background-image: linear-gradient(299deg, $gradientGrey 98%, $lighestGrey);
-    position: relative;
-    margin: 0;
-    min-height: 100vh;
+	background-color: $lighestGrey;
+	background: linear-gradient(314.47deg, #ebeff5 2.19%, #f7f9fc 100%);
+	position: relative;
+	margin: 0;
+	min-height: 100vh;
 
-    box-sizing: border-box;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    scroll-behavior: smooth;
+	box-sizing: border-box;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	scroll-behavior: smooth;
 
-    font-family: 'Garet', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
-    font-smoothing: always;
-    color: $textMain;
+	font-family: "Garet", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+		Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+		"Segoe UI Symbol";
+	font-smoothing: always;
+	color: $textMain;
 }
 
 hr {
-    background-color: rgba(7, 45, 99, 0.1);
-    border: none;
-    height: 1px;
+	background-color: rgba(7, 45, 99, 0.1);
+	border: none;
+	height: 1px;
 }
 
 input,
 select,
 textarea,
 button {
-    font-family: 'Garet', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
-    font-smoothing: always;
+	font-family: "Garet", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+		Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+		"Segoe UI Symbol";
+	font-smoothing: always;
 }
 
-input[type="radio"] {
-    accent-color: $lightElectric;
-}
+// input[type="radio"] {
+// 	accent-color: $lightElectric;
+// }
 
 .page-container {
-    width: 100%;
-    min-height: 100vh;
-
-    &.styleguide {
-        background-color: $white;
-    }
+	width: 100%;
+	min-height: 100vh;
 }
 
 .separator-line {
-    position: relative;
+	position: relative;
 
-    &:before,
-    &:after {
-        content: " ";
-        display: block;
-        position: absolute;
-        width: 100%;
-        height: 1px;
-        background-color: $grey;
-        left: 0;
-        top: 50%;
-    }
+	&:before,
+	&:after {
+		content: " ";
+		display: block;
+		position: absolute;
+		width: 100%;
+		height: 1px;
+		background-color: $borderColor;
+		left: 0;
+		top: 46%;
+	}
 }
 
 .logo {
-
-    &-float {
-        display: inline-block;
-        position: absolute;
-        top: 0;
-        left: 0;
-    }
+	&-float {
+		display: inline-block;
+		position: absolute;
+		top: 0;
+		left: 0;
+	}
 }
 
 .warning-box {
-    background-color: #fff9ea;
+	background-color: #fff9ea;
 }
 
 .left-and-right {
-    display: block;
-    text-align: left;
+	display: block;
+	text-align: left;
 
-    @media (min-width: $md) {
-        text-align: right;
-    }
+	@media (min-width: $md) {
+		text-align: right;
+	}
+}
+
+.text {
+	&-big-number {
+		font-family: "Garet Bolder";
+		line-height: 1.1;
+		font-size: 48px;
+		&-sub {
+			font-size: 40px;
+			font-family: "Garet Bolder";
+		}
+	}
+	&-large-heading {
+		font-family: "Garet Bolder";
+		line-height: 1.1;
+		font-size: 32px;
+	}
+}
+.text-large-copy {
+	font-family: "Garet-Medium";
+	line-height: 1.4;
+	.nls-font-400-copy {
+		font-size: 16px;
+	}
+	.text-bold-copy {
+		font-family: "Garet Bolder";
+		font-size: 16px;
+	}
+}
+.text-normal-copy {
+	font-family: "Garet";
+	font-size: 14px;
+	line-height: 1.4;
+	.nls-font-400-copy {
+		font-family: "Garet-Medium";
+		font-size: 14px;
+	}
+	.text-bold-copy {
+		font-family: "Garet Bolder";
+		font-size: 14px;
+	}
+}
+
+.text-small-copy {
+	color: $lightBlue;
+	font-family: "Garet";
+	font-size: 13px;
+	line-height: 1.3;
+	.nls-font-400-copy {
+		font-family: "Garet-Medium";
+		font-size: 13px;
+	}
+	.text-bold-copy {
+		font-family: "Garet Bolder";
+		font-size: 13px;
+	}
+}
+.text-detail {
+	color: $lightBlue;
+	font-family: "Garet-Medium";
+	font-size: 12px;
+	line-height: 1.2;
+}
+.text-patch {
+	color: #5e7699;
+	background-color: #ebeff5;
+}
+input[type="checkbox" i] {
+	position: relative;
+}
+// input[type="radio" i] {
+// 	position: relative;
+// 	background-color: white;
+// 	z-index: 10;
+// 	&:before {
+// 		content: "";
+// 		opacity: 0;
+// 		width: 16px;
+// 		height: 16px;
+// 		background: white;
+// 		display: block;
+// 		border-radius: 50%;
+// 		border: 3px solid $lightElectric;
+// 		position: absolute;
+// 		left: 0;
+// 		top: 0;
+// 		z-index: 1;
+// 	}
+// 	&:checked {
+// 		&:before {
+// 			content: "";
+// 			opacity: 1;
+// 		}
+// 	}
+// }
+
+.disabled {
+	background-color: $borderColor;
+	color: $lightBlue;
+	pointer-events: none;
+}
+.nls-font-700 {
+	font-family: "Garet Bolder";
+}
+.nls-font-600 {
+	font-family: "Garet-Bold";
+}
+.nls-font-500 {
+	font-family: "Garet-Medium";
+}
+.nls-font-400 {
+	font-family: "Garet";
+}
+.nls-40 {
+	font-size: 40px;
+	line-height: 50px;
+}
+.nls-48 {
+	font-size: 48px;
+	line-height: 70px;
+}
+.nls-32 {
+	font-size: 32px;
+	line-height: 46px;
+}
+.nls-20 {
+	font-size: 20px;
+	line-height: 29px;
+}
+.nls-18 {
+	font-size: 18px;
+	line-height: 26px;
+}
+.nls-16 {
+	font-size: 16px;
+	line-height: 23px;
+}
+.nls-14 {
+	font-size: 14px;
+	line-height: 20px;
+}
+.nls-13 {
+	font-size: 13px;
+	line-height: 19px;
+}
+.nls-12 {
+	font-size: 12px;
+	line-height: 17px;
+}
+.group-tooltip {
+	font-size: 10px;
+	line-height: 14px;
+
+	.icon-tooltip {
+		color: #8395b0;
+		margin: 0;
+		margin-left: 5px;
+
+		&::before {
+			margin: 0;
+		}
+	}
+	&:hover {
+		.group-hover\:flex {
+			background-color: $lightElectric;
+			box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15);
+			border-radius: 4px;
+			border-radius: 6px;
+			min-width: 120px;
+			text-align: center;
+		}
+	}
+}
+.sm\:col-span-12 {
+	grid-column: span 12 / span 12;
+}
+.sm\:w-full {
+	width: 100%;
+}
+.sm\:color-white {
+	color: $white;
+}
+:root {
+	input[type="checkbox"],
+	input[type="radio"] {
+		--active: #275efe;
+		--active-inner: #fff;
+		--focus: 2px rgba(39, 94, 254, 0.3);
+		--border: #bbc1e1;
+		--border-hover: #275efe;
+		--background: #fff;
+		--disabled: #f6f8ff;
+		--disabled-inner: #e1e6f9;
+		-webkit-appearance: none;
+		-moz-appearance: none;
+		height: 21px !important;
+		outline: none;
+		display: inline-block;
+		vertical-align: top;
+		position: relative;
+		margin: 0;
+		cursor: pointer;
+		border: 1px solid var(--bc, var(--border));
+		background: var(--b, var(--background));
+		transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+		&:after {
+			content: "";
+			display: block;
+			left: 0;
+			top: 0;
+			position: absolute;
+			transition: transform var(--d-t, 0.3s) var(--d-t-e, ease),
+				opacity var(--d-o, 0.2s);
+		}
+		&:checked {
+			--b: var(--active);
+			--bc: var(--active);
+			--d-o: 0.3s;
+			--d-t: 0.6s;
+			--d-t-e: cubic-bezier(0.2, 0.85, 0.32, 1.2);
+		}
+		&:disabled {
+			--b: var(--disabled);
+			cursor: not-allowed;
+			opacity: 0.9;
+			&:checked {
+				--b: var(--disabled-inner);
+				--bc: var(--border);
+			}
+			& + label {
+				cursor: not-allowed;
+			}
+		}
+		&:hover {
+			&:not(:checked) {
+				&:not(:disabled) {
+					--bc: var(--border-hover);
+				}
+			}
+		}
+		&:focus {
+			box-shadow: 0 0 0 var(--focus);
+		}
+		&:not(.switch) {
+			width: 21px;
+			&:after {
+				opacity: var(--o, 0);
+			}
+			&:checked {
+				--o: 1;
+			}
+		}
+		& + label {
+			font-size: 14px;
+			line-height: 21px;
+			display: inline-block;
+			vertical-align: top;
+			cursor: pointer;
+			margin-left: 4px;
+		}
+	}
+	input[type="checkbox"] {
+		&:not(.switch) {
+			border-radius: 7px;
+			&:after {
+				width: 5px;
+				height: 9px;
+				border: 2px solid var(--active-inner);
+				border-top: 0;
+				border-left: 0;
+				left: 7px;
+				top: 4px;
+				transform: rotate(var(--r, 20deg));
+			}
+			&:checked {
+				--r: 43deg;
+			}
+		}
+		&.switch {
+			width: 38px;
+			border-radius: 11px;
+			&:after {
+				left: 2px;
+				top: 2px;
+				border-radius: 50%;
+				width: 15px;
+				height: 15px;
+				background: var(--ab, var(--border));
+				transform: translateX(var(--x, 0));
+			}
+			&:checked {
+				--ab: var(--active-inner);
+				--x: 17px;
+			}
+
+			&:disabled {
+				&:not(:checked) {
+					&:after {
+						opacity: 0.6;
+					}
+				}
+			}
+		}
+		&:focus {
+			box-shadow: none;
+		}
+	}
+	input[type="radio"] {
+		border-radius: 50%;
+		&:after {
+			width: 19px;
+			height: 19px;
+			border-radius: 50%;
+			background: var(--active-inner);
+			opacity: 0;
+			transform: scale(var(--s, 0.7));
+		}
+		&:checked {
+			--s: 0.5;
+		}
+		&:focus {
+			box-shadow: none;
+		}
+	}
 }

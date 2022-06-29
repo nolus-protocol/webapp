@@ -1,44 +1,58 @@
 // Colors
 $white: #fff;
 $textMain: #072d63;
+//Neutrals background scale
 
 $gradientGrey: #f0f4f7;
+
+// Neutrals background scale grey
 $lighestGrey: #fafbfc;
 $lightGrey: #f7f9fc;
-$grey: #ebeff5;
+$grey: #C1CAD7;
 $darkGrey: #8fa0b8;
 
-$lightBlue: #8395b0;
+// Neutral typography scale grey-blue
+$lightBlue: #8396B1;
 $mediumBlue: #5e7699;
-$darkBlue: #082d63;
+$darkBlue: #1F51AD;
 
+// CTA color scale blue
 $lightElectric: #2868e1;
 $mediumElectric: #245dc7;
 $darkElectric: #1f51ad;
 
+$activeButton: rgba(40, 104, 225, 0.1);
 $iconBackgroundRed: #edd4cf;
-$lightRed: #e42929;
+
+//CTA color scale red
+$lightRed: #E42929;
 $mediumRed: #c92424;
 $darkRed: #b02020;
 
+// CTA color scale green
 $lightGreen: #50e3a5;
 $mediumGreen: #47c993;
 $darkGreen: #1ab171;
-$iconGreen: #3cad76;
 
+$iconGreen: #dcf9ed;
+
+// CTA color scale yellow
 $lightYellow: #ffd782;
 $mediumYellow: #ffc74f;
 $darkYellow: #ffb922;
+
 $bgYellow: #fff9e9;
+$warnYewwol: #ffbf36;
 
+// band accent
 $orange: #ff562e;
-$dark: #07162c;
+$dark: #082D63;
 
-$borderColor: rgba(7, 45, 99, 0.1);
 
 $shadowModalColor: rgba(7, 45, 99, 0.16);
 $shadowBoxColor: rgba(7, 45, 99, 0.05);
 
+$borderColor: #EBEFF5;
 // Borders
 $lightRounded: 6px;
 $rounded: 8px;
@@ -56,3 +70,48 @@ $xxl: 1400px;
 
 // Layout
 $mobileHeaderHeight: 65px;
+
+:root {
+    --font-size-main-head: 48px
+    --line-height-main-head: 70px
+}
+//DUAL THEME COLORS
+
+    $background-scale: #71767e;
+    $background-medium-scale: #F7F9FC;
+    $background-scale-darker: #EBEFF5;
+
+    $neutral-typography-scale-light: #8396B1;
+    $neutral-typography-scale-medium: #5E7699;
+    $neutral-typography-scale-dark: #082D63;
+
+    //CTA color scale
+    $cta-color-scale-blue-light: #2868E1;
+    $cta-color-scale-blue-medium: #245DC7;
+    $cta-color-scale-blue-dark: #1F51AD;
+
+    $cta-color-scale-red-light: #E42929;
+    $cta-color-scale-red-medium: #C92424;
+    $cta-color-scale-red-dark: #B02020;
+
+    $cta-color-scale-green-light: #50E3A5;
+    $cta-color-scale-green-medium: #47C993;
+    $cta-color-scale-green-dark: #1AB171;
+
+    $cta-color-scale-yellow-light: #FFD782;
+    $cta-color-scale-yellow-medium: #FFC74F;
+    $cta-color-scale-yellow-dark: #FFB922;
+
+    //Brand accent
+    $brand-accent: #FF562E;
+
+
+.dark-theme {
+    --background-scale: #07162C;
+    --background-scale-darker: #EBEFF5;
+}
+
+// tailwind
+.bg-light-grey {
+    background-color: #F7F9FC;
+}

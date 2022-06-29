@@ -1,26 +1,43 @@
 <template>
-  <div class="wallet-open open bg-white shadow-modal">
-
+  <button
+    class="show-box-wallet btn btn-header with-icon shadow-box rounded-r-none"
+    @click="togglePopup"
+  >
+    <span
+      class="icon-wallet mr-0"
+      style="font-size: 1.5em !important; margin-right: 0"
+    ></span>
+    <span class="nls-13 nls-font-400 text-primary">My precious</span>
+  </button>
+  <div
+    :class="showWalletPopup ? 'active' : false"
+    class="box-open bg-transparent shadow-modal c-navbar-wallet__container transition duration-3 ease-2"
+  >
     <!-- Wallet Header -->
-    <div class="wallet-open-header p-4 lg:p-6 border-b border-standart">
-      <h2 class="text-large-copy text-primary text-bold m-0">Your Wallet</h2>
-      <div class="flex items-center bg-light-grey radius-rounded p-3 mt-3">
-        <img
-          src="@/assets/icons/money-wallet.svg"
-          class="inline-block mr-2"
-        />
-        <span class="text-normal-copy">My precious</span>
+    <div
+      class="box-open-header bg-white p-4 lg:p-6 border-b border-standart radius-top-left"
+    >
+      <h2 class="nls-font-700 nls-18 text-primary text-left m-0">
+        Your Wallet
+      </h2>
+      <div
+        class="flex grey-box py-nolus-10 items-center bg-light-grey radius-rounded"
+      >
+        <span class="icon-wallet"></span>
+        <span class="nls-14 nls-font-400 text-primary">My precious</span>
       </div>
     </div>
 
     <!-- Wallet Body -->
-    <div class="wallet-open-body p-4 lg:p-6 border-b border-standart">
-
+    <div
+      class="box-open-body bg-white p-4 lg:p-6 border-b border-standart text-left"
+    >
+      <DynamicForm :formValue="walletData"/>
       <div class="block">
         <PickerDefault
           label="Language"
-          :default-option="{label: 'English', value: 'en'}"
-          :options="[{value: 'en', label: 'English'}]"
+          :default-option="{ label: 'English', value: 'en' }"
+          :options="[{ value: 'en', label: 'English' }]"
           :disabled="true"
         />
       </div>
@@ -28,8 +45,11 @@
       <div class="block mt-3">
         <PickerDefault
           label="Currency"
-          :default-option="{label: 'USD', value: 'USD'}"
-          :options="[{value: 'USD', label: 'USD'}, {value: 'EUR', label: 'EUR'}]"
+          :default-option="{ label: 'USD', value: 'USD' }"
+          :options="[
+            { value: 'USD', label: 'USD' },
+            { value: 'EUR', label: 'EUR' },
+          ]"
           :disabled="true"
         />
       </div>
@@ -45,9 +65,9 @@
     </div>
 
     <!-- Wallet Actions -->
-    <div class="wallet-open-actions p-4 lg:p-6">
+    <div class="box-open-actions p-4 lg:p-6 bg-white">
       <div class="flex justify-end">
-        <button class="btn btn-secondary btn-large-secondary" v-on:click="onClickDisconnect">
+        <button class="btn btn-secondary btn-large-secondary">
           Disconnect
         </button>
       </div>
@@ -71,16 +91,18 @@ export default defineComponent({
   components: {
     PickerDefault
   },
+
   props: [],
   data () {
     return {
+      showWalletPopup: false,
       networks: [] as PickerDefaultOption[],
       currentNetwork: {} as PickerDefaultOption
     }
   },
   mounted () {
     const envNetwork = new EnvNetworks()
-    envNetwork.getEnvNetworks().forEach(network => {
+    envNetwork.getEnvNetworks().forEach((network) => {
       this.networks.push({
         label: StringUtils.capitalize(network),
         value: network
@@ -92,7 +114,11 @@ export default defineComponent({
       value: envNetwork.getStoredNetworkName() || ''
     }
   },
+
   methods: {
+    togglePopup () {
+      this.showWalletPopup = !this.showWalletPopup
+    },
     onUpdateNetwork (value: PickerDefaultOption) {
       console.log('loggg')
       EnvNetworks.saveCurrentNetwork(value.value)
@@ -107,3 +133,20 @@ export default defineComponent({
   }
 })
 </script>
+
+<style scoped>
+.icon-wallet {
+  font-size: 2em !important;
+  margin-right: 0 !important;
+}
+
+.bg-light-grey {
+  background: #f7f9fc;
+  padding: 14px 11px;
+  margin-top: 11px;
+}
+
+.justify-content {
+  justify-content: space-between !important;
+}
+</style>
