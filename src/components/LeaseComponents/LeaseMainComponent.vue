@@ -90,6 +90,8 @@ export default defineComponent({
 
         if (this.isDownPaymentAmountValid()) {
           if (this.leaseContract) {
+            console.log('downpayment1: ', this.currentComponent.props.downPayment)
+            console.log('downpayment2: ', this.currentComponent.props.selectedDownPaymentCurrency)
             const makeLeaseApplyResp = await this.leaseContract.makeLeaseApply(
               CONTRACTS.leaser.instance,
               this.currentComponent.props.downPayment,

@@ -111,12 +111,12 @@ export default {
       const prices = useStore().getters.getPrices
       const assetInf = assetInfo[minimalDenom]
       if (prices && assetInf) {
-        const coinPrice = prices[assetInf.coinDenom]
+        const coinPrice = prices[assetInf.coinDenom]?.amount || '0'
         console.log(tokenAmount)
         const tokenDecimals = assetInf.coinDecimals
         const coinAmount = new Coin(minimalDenom, new Int(tokenAmount))
         return CurrencyUtils.calculateBalance(
-          coinPrice.amount,
+          coinPrice,
           coinAmount,
           0
         ).toString()

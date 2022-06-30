@@ -269,6 +269,15 @@ export const actions: ActionTree<State, RootState> & Actions = {
       balance: CurrencyUtils.convertCosmosCoinToKeplCoin(nolusBalance)
     })
 
+    const uusdcBalance = await NolusClient.getInstance()
+      .getBalance(walletAddress,
+        'uusdc')
+
+    ibcBalances.push({
+      udenom: 'uusdc',
+      balance: CurrencyUtils.convertCosmosCoinToKeplCoin(uusdcBalance)
+    })
+
     for (const asset of IBCAssets) {
       const ibcDenom = AssetUtils.makeIBCMinimalDenom(asset.sourceChannelId, asset.coinMinimalDenom)
       const balance = await NolusClient.getInstance()

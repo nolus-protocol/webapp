@@ -34,6 +34,14 @@ export const assetInfo: { [key: string]: AssetInfo; } = {
     coinAbbreviation: 'LUM',
     coinIcon: 'lum.svg'
   },
+  uusdc: {
+    chainName: 'USDC',
+    coinDenom: 'usdc',
+    coinMinimalDenom: 'uusdc',
+    coinDecimals: 6,
+    coinAbbreviation: 'USDC',
+    coinIcon: 'btc.svg'
+  },
   'ibc/8A34AF0C1943FD0DFCDE9ADBF0B2C9959C45E87E6088EA2FC6ADACD59261B8A2': {
     chainName: 'Lum Network',
     coinDenom: 'lum',

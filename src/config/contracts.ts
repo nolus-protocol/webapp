@@ -5,11 +5,11 @@ export interface ContractsInfo {
 
 export const CONTRACTS: { [key: string]: ContractsInfo } = {
   oracle: {
-    instance: 'nolus1s8uk3v45ydxrj2xq4lgn246kvcrqqra6u3r83yzx0t00gs30kasq5fmmhw',
+    instance: 'nolus1436kxs0w2es6xlqpp9rd35e3d0cjnw4sv8j3a7483sgks29jqwgsv3wzl4',
     codeId: '66'
   },
   leaser: {
-    instance: 'nolus1ur7hv5e2ws5yueqd2845ktnrns4ujyxt2dvfwtm8uhw5awxjuzhsz90h63',
+    instance: 'nolus1zwv6feuzhy6a9wekh96cd57lsarmqlwxdypdsplw6zhfncqw6ftqmx7chl',
     codeId: '69'
   }
 }
