@@ -1,0 +1,6 @@
+import { LeaseStatus } from '@nolus/nolusjs/build/contracts'
+
+export interface LeaseData {
+  leaseAddress: string,
+  leaseStatus: LeaseStatus
+}

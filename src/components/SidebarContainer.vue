@@ -18,10 +18,10 @@
         <div class="block">
           <SidebarElement
             id="lease"
-            v-on:click="pushToLease"
-            label="Lease"
             :icon="require('@/assets/icons/lease.svg')"
             :iconHover="require('@/assets/icons/lease_active.svg')"
+            label="Lease"
+            v-on:click="pushToLease"
           >
           </SidebarElement>
         </div>

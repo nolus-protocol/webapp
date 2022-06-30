@@ -90,8 +90,6 @@ export default defineComponent({
 
         if (this.isDownPaymentAmountValid()) {
           if (this.leaseContract) {
-            console.log('downpayment1: ', this.currentComponent.props.downPayment)
-            console.log('downpayment2: ', this.currentComponent.props.selectedDownPaymentCurrency)
             const makeLeaseApplyResp = await this.leaseContract.makeLeaseApply(
               CONTRACTS.leaser.instance,
               this.currentComponent.props.downPayment,
@@ -114,7 +112,6 @@ export default defineComponent({
         contractAddress: CONTRACTS.leaser.instance,
         currentBalance: [] as AssetBalance[],
         selectedDownPaymentCurrency: {
-          udenom: 'ulum',
           balance: new Coin(
             'ibc/8A34AF0C1943FD0DFCDE9ADBF0B2C9959C45E87E6088EA2FC6ADACD59261B8A2',
             0
