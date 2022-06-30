@@ -273,7 +273,6 @@ export const actions: ActionTree<State, RootState> & Actions = {
         'uusdc')
 
     ibcBalances.push({
-      udenom: 'uusdc',
       balance: CurrencyUtils.convertCosmosCoinToKeplCoin(uusdcBalance)
     })
 
