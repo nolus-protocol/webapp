@@ -2,7 +2,6 @@ import { Coin } from '@keplr-wallet/unit'
 import { NolusWallet } from '@nolus/nolusjs/build'
 
 export interface AssetBalance {
-  udenom: string,
   balance: Coin
 }
 

@@ -1,7 +1,7 @@
 <template>
   <div class="container w-full grid grid-cols-12 mx-auto grid-parent">
     <div class="lg:col-span-3">
-      <SidebarContainer />
+      <SidebarContainer/>
     </div>
     <div class="lg:col-span-9 pb-8">
       <div class="grid grid-cols-10 grid-child">
@@ -9,8 +9,8 @@
           <div class="col-span-12">
             <div class="sidebar-header">
               <!-- <Notifications /> -->
-              <Notifications />
-              <WalletOpen />
+              <Notifications/>
+              <WalletOpen/>
             </div>
           </div>
         </div>
@@ -42,7 +42,8 @@
       </div>
     </div>
   </div>
-  <LeaseModal v-show="showSendModal" @close-modal="showSendModal = false" />
+  <LeaseModal v-show="showSendModal" @close-modal="showSendModal = false"/>
+  <RepayModal v-show="showRepayModal" @close-modal="showRepayModal = false"/>
 </template>
 
 <script lang="ts">
@@ -53,17 +54,20 @@ import { Lease, LeaseStatus } from '@nolus/nolusjs/build/contracts'
 import { CONTRACTS } from '@/config/contracts'
 import { WalletManager } from '@/config/wallet'
 import LeaseInfo from '@/components/LeaseInfo.vue'
+import RepayModal from '@/components/modals/RepayModal.vue'
 
 export default defineComponent({
   name: 'LeaseView',
   components: {
     LeaseModal,
+    RepayModal,
     LeaseInfo,
     SidebarContainer
   },
   data () {
     return {
       showSendModal: false,
+      showRepayModal: true,
       leases: [] as LeaseStatus[]
     }
   },

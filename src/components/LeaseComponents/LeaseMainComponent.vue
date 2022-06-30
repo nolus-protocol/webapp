@@ -90,6 +90,8 @@ export default defineComponent({
 
         if (this.isDownPaymentAmountValid()) {
           if (this.leaseContract) {
+            console.log('downpayment1: ', this.currentComponent.props.downPayment)
+            console.log('downpayment2: ', this.currentComponent.props.selectedDownPaymentCurrency)
             const makeLeaseApplyResp = await this.leaseContract.makeLeaseApply(
               CONTRACTS.leaser.instance,
               this.currentComponent.props.downPayment,
@@ -190,7 +192,7 @@ export default defineComponent({
       const currentBalance = this.getCurrentBalanceByDenom(selectedDownPaymentDenom)
 
       if (downPaymentAmount || downPaymentAmount !== '') {
-        const decimals = assetInfo[currentBalance.udenom].coinDecimals
+        const decimals = assetInfo[currentBalance.balance.denom].coinDecimals
         this.currentComponent.props.downPaymentErrorMsg = ''
         const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
           downPaymentAmount,
