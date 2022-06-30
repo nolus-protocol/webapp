@@ -265,7 +265,6 @@ export const actions: ActionTree<State, RootState> & Actions = {
       .getBalance(walletAddress,
         ChainConstants.COIN_MINIMAL_DENOM)
     ibcBalances.push({
-      udenom: ChainConstants.COIN_MINIMAL_DENOM,
       balance: CurrencyUtils.convertCosmosCoinToKeplCoin(nolusBalance)
     })
 
@@ -285,7 +284,6 @@ export const actions: ActionTree<State, RootState> & Actions = {
           ibcDenom)
 
       ibcBalances.push({
-        udenom: asset.coinMinimalDenom,
         balance: CurrencyUtils.convertCosmosCoinToKeplCoin(balance)
       })
     }

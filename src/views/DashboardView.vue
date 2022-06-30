@@ -1,7 +1,7 @@
 <template>
   <div class="container w-full grid grid-cols-12 mx-auto grid-parent">
     <div class="lg:col-span-3">
-      <SidebarContainer />
+      <SidebarContainer/>
     </div>
     <div class="lg:col-span-9 pb-8">
       <div class="grid grid-cols-10 grid-child">
@@ -9,8 +9,8 @@
           <div class="col-span-12">
             <div class="sidebar-header">
               <!-- <Notifications /> -->
-              <Notifications />
-              <WalletOpen />
+              <Notifications/>
+              <WalletOpen/>
             </div>
           </div>
         </div>
@@ -49,7 +49,7 @@
               </p>
             </div>
             <div class="right inline-block w-2/3">
-              <NolusChart />
+              <NolusChart/>
             </div>
           </div>
 
@@ -59,7 +59,7 @@
           >
             <!-- Top -->
             <div class="flex flex-wrap items-baseline justify-between px-6">
-              <div class="loader-boxed" v-show="showLoading">
+              <div v-show="showLoading" class="loader-boxed">
                 <div class="loader__element"></div>
               </div>
               <div class="left w-full md:w-1/2">
@@ -72,11 +72,11 @@
                   <div class="flex items-center w-full justify-end">
                     <input
                       id="hide-small-balances"
+                      v-model="hideLowerBalances"
                       aria-describedby="hide-small-balances"
+                      checked="checked"
                       name="hide-small-balances"
                       type="checkbox"
-                      checked="checked"
-                      v-model="hideLowerBalances"
                     />
                     <label for="hide-small-balances">Hide small balances</label>
                   </div>
@@ -106,14 +106,14 @@
                   class="inline-flex items-center justify-end nls-font-500 text-dark-grey nls-12 text-right text-upper"
                 >
                   <span class="inline-block">Balance</span>
-                  <TooltipComponent content="Content goes here" />
+                  <TooltipComponent content="Content goes here"/>
                 </div>
 
                 <div
                   class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey nls-12 text-right text-upper"
                 >
                   <span class="inline-block">Earnings</span>
-                  <TooltipComponent content="Content goes here" />
+                  <TooltipComponent content="Content goes here"/>
                 </div>
               </div>
 
@@ -122,12 +122,12 @@
                 <AssetPartial
                   v-for="asset in this.manipulatedAssets"
                   :key="asset"
-                  :asset-info="getAssetInfo(asset.udenom)"
-                  :price="getMarketPrice(asset.udenom)"
-                  change="4.19"
-                  :changeDirection="true"
-                  balance="0"
+                  :asset-info=getAssetInfo(asset.balance.denom)
                   :assetBalance="asset.balance.amount.toString()"
+                  :changeDirection="true"
+                  :denom=asset.balance.denom
+                  :price=getMarketPrice(asset.balance.denom)
+                  change="4.19"
                   earnings="24"
                 />
               </div>
@@ -139,8 +139,8 @@
   </div>
 
   <ReceiveSendModal
-    ref="ReceiveSendModal"
     v-show="showSendModal"
+    ref="ReceiveSendModal"
     @close-modal="showSendModal = false"
   />
 </template>
@@ -155,22 +155,17 @@ import { AssetBalance } from '@/store/modules/wallet/state'
 import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
 import { useStore } from '@/store'
 import { CurrencyUtils } from '@nolus/nolusjs'
-import { assetInfo } from '@/config/assetInfo'
-import { StringUtils } from '@/utils/StringUtils'
-import LogoLink from '@/components/LogoLink.vue'
-import SidebarElement from '@/components/SidebarElement.vue'
 import TooltipComponent from '@/components/TooltipComponent.vue'
 import Notifications from '@/components/Notifications.vue'
 import WalletOpen from '@/components/WalletOpen.vue'
 import NolusChart from '@/components/templates/utils/NolusChart.vue'
+
 export default defineComponent({
   name: 'DashboardView',
   components: {
     SidebarContainer,
     AssetPartial,
     ReceiveSendModal,
-    LogoLink,
-    SidebarElement,
     TooltipComponent,
     Notifications,
     WalletOpen,
@@ -187,6 +182,7 @@ export default defineComponent({
   },
   watch: {
     '$store.state.wallet.balances' (balances) {
+      console.log('Balances: ', balances)
       this.mainAssets = balances
       this.manipulatedAssets = balances
       if (this.hideLowerBalances) {
@@ -203,16 +199,14 @@ export default defineComponent({
     }
   },
   methods: {
-    getAssetInfo (minimalDenom: string) {
-      return AssetUtils.getAssetInfoByAbbr(minimalDenom)
+    getAssetInfo (denom: string) {
+      return AssetUtils.getAssetInfoByAbbr(denom)
     },
-    getMarketPrice (minimalDenom: string) {
+    getMarketPrice (denom: string) {
       const prices = useStore().state.oracle.prices
       if (prices) {
-        return (
-          prices[StringUtils.getDenomFromMinimalDenom(minimalDenom)]?.amount ||
-          '0'
-        )
+        const tokenDenom = AssetUtils.getAssetInfoByAbbr(denom).coinDenom
+        return prices[tokenDenom]?.amount || '0'
       }
       return '0'
     },
@@ -223,12 +217,17 @@ export default defineComponent({
     },
     calculateTotalBalance () {
       let totalBalance = new Dec(0)
-      this.mainAssets.forEach((asset) => {
-        const decimals = assetInfo[asset.udenom].coinDecimals
+      this.mainAssets.forEach(asset => {
+        const {
+          coinDecimals,
+          coinDenom
+        } = AssetUtils.getAssetInfoByAbbr(asset.balance.denom)
         const assetBalance = CurrencyUtils.calculateBalance(
-          this.getMarketPrice(asset.udenom),
-          new Coin(asset.udenom, asset.balance.amount.toString()),
-          decimals
+          this.getMarketPrice(asset.balance.denom),
+          new Coin(coinDenom,
+            asset.balance.amount.toString()
+          ),
+          coinDecimals
         )
         totalBalance = totalBalance.add(assetBalance.toDec())
       })

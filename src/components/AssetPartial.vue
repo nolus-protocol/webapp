@@ -10,9 +10,9 @@
       <img
         v-if="this.assetInfo.coinIcon"
         :src="require('@/assets/icons/coins/' + this.assetInfo.coinIcon)"
-        width="32"
-        height="32"
         class="inline-block m-0 mr-4"
+        height="32"
+        width="32"
       />
       <div class="inline-block">
         <p class="text-primary nls-font-500 nls-18 text-left uppercase m-0">
@@ -45,14 +45,10 @@
     </div>
 
     <!-- Balance -->
-    <div v-if="this.balance" class="block">
+    <div class="block">
       <p class="text-primary nls-font-500 nls-16 text-right m-0">
         {{
-          calculateBalance(
-            this.price,
-            this.assetBalance,
-            assetInfo.coinMinimalDenom
-          )
+          calculateBalance(this.price, this.assetBalance, this.denom)
         }}
       </p>
       <div
@@ -113,6 +109,9 @@ export default {
     },
     cols: {
       type: Number
+    },
+    denom: {
+      type: String
     }
   },
   data () {
@@ -135,10 +134,10 @@ export default {
         decimals
       )
     },
-    calculateBalance (price: string, tokenAmount: string, minimalDenom: string) {
+    calculateBalance (price: string, tokenAmount: string, denom: string) {
       console.log(tokenAmount)
-      const tokenDecimals = assetInfo[minimalDenom].coinDecimals
-      const coin = new Coin(minimalDenom, new Int(tokenAmount))
+      const tokenDecimals = assetInfo[denom].coinDecimals
+      const coin = new Coin(denom, new Int(tokenAmount))
       return CurrencyUtils.calculateBalance(price, coin, tokenDecimals)
     }
   }

@@ -10,30 +10,6 @@ export const assetInfo: { [key: string]: AssetInfo; } = {
     coinAbbreviation: 'NLS',
     coinIcon: 'nls.svg'
   },
-  uscrt: {
-    chainName: 'Secret Network',
-    coinDenom: 'scrt',
-    coinMinimalDenom: 'uscrt',
-    coinDecimals: 6,
-    coinAbbreviation: 'SCRT',
-    coinIcon: 'scrt.svg'
-  },
-  uluna: {
-    chainName: 'Terra - LUNA',
-    coinDenom: 'luna',
-    coinMinimalDenom: 'uluna',
-    coinDecimals: 6,
-    coinAbbreviation: 'LUNA',
-    coinIcon: 'terra-luna.svg'
-  },
-  ulum: {
-    chainName: 'Lum Network',
-    coinDenom: 'lum',
-    coinMinimalDenom: 'ulum',
-    coinDecimals: 6,
-    coinAbbreviation: 'LUM',
-    coinIcon: 'lum.svg'
-  },
   uusdc: {
     chainName: 'USDC',
     coinDenom: 'usdc',
