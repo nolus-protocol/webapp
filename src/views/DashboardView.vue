@@ -97,6 +97,7 @@
                 <AssetPartial
                   v-for="asset in this.manipulatedAssets"
                   :key="asset"
+                  :denom=asset.balance.denom
                   :asset-info=getAssetInfo(asset.balance.denom)
                   :price=getMarketPrice(asset.balance.denom)
                   change="4.19"
@@ -126,8 +127,6 @@ import { AssetBalance } from '@/store/modules/wallet/state'
 import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
 import { useStore } from '@/store'
 import { CurrencyUtils } from '@nolus/nolusjs'
-import { assetInfo } from '@/config/assetInfo'
-import { StringUtils } from '@/utils/StringUtils'
 
 export default defineComponent({
   name: 'DashboardView',
@@ -164,14 +163,14 @@ export default defineComponent({
     }
   },
   methods: {
-    getAssetInfo (minimalDenom: string) {
-      console.log('minimalllll: ', minimalDenom)
-      return AssetUtils.getAssetInfoByAbbr(minimalDenom)
+    getAssetInfo (denom: string) {
+      return AssetUtils.getAssetInfoByAbbr(denom)
     },
-    getMarketPrice (minimalDenom: string) {
+    getMarketPrice (denom: string) {
       const prices = useStore().state.oracle.prices
       if (prices) {
-        return prices[StringUtils.getDenomFromMinimalDenom(minimalDenom)]?.amount || '0'
+        const tokenDenom = AssetUtils.getAssetInfoByAbbr(denom).coinDenom
+        return prices[tokenDenom]?.amount || '0'
       }
       return '0'
     },
@@ -181,13 +180,13 @@ export default defineComponent({
     calculateTotalBalance () {
       let totalBalance = new Dec(0)
       this.mainAssets.forEach(asset => {
-        const decimals = assetInfo[asset.balance.denom].coinDecimals
+        const { coinDecimals, coinDenom } = AssetUtils.getAssetInfoByAbbr(asset.balance.denom)
         const assetBalance = CurrencyUtils.calculateBalance(
           this.getMarketPrice(asset.balance.denom),
-          new Coin(asset.balance.denom,
+          new Coin(coinDenom,
             asset.balance.amount.toString()
           ),
-          decimals
+          coinDecimals
         )
         totalBalance = totalBalance.add(assetBalance.toDec())
       })
