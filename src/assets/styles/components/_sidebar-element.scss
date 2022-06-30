@@ -45,7 +45,7 @@
 
 		&:hover {
 			.sidebar-element {
-				color: $textMain;
+				// color: $textMain;
 
 				.icon {
 					display: inline-block;
@@ -108,7 +108,7 @@
 	&:hover {
 		background-color: $borderColor;
 		.icon {
-			//	color: $brand-accent;
+			color: #8396b1 !important;
 		}
 	}
 	@media (min-width: $lg) {
@@ -124,6 +124,9 @@
 
 	&.active {
 		color: $orange;
+		&:hover {
+			color: $lightBlue;
+		}
 		.icon {
 			color: $brand-accent;
 		}

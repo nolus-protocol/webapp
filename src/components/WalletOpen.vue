@@ -1,5 +1,6 @@
 <template>
   <div
+    v-cloak
     id="wallet-nls"
     class="wallet-nls box-open bg-transparent shadow-modal c-navbar-wallet__container transition duration-3 ease-2"
   >
@@ -7,7 +8,7 @@
     <div
       class="box-open-header bg-white p-4 lg:p-6 border-b border-standart radius-top-left"
     >
-      <h2 class="nls-font-700 nls-18 text-primary text-left m-0">
+      <h2 class="nls-font-700 nls-18 text-primary text-left m-0" v-cloak>
         Your Wallet
       </h2>
       <div class="flex grey-box items-center bg-light-grey radius-rounded">

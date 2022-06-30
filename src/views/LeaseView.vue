@@ -8,9 +8,7 @@
         <div class="col-span-12 mt-nolus-60">
           <div class="col-span-12">
             <div class="sidebar-header">
-              <!-- <Notifications /> -->
-              <Notifications />
-              <WalletOpen />
+              <SidebarHeader />
             </div>
           </div>
         </div>
@@ -53,6 +51,7 @@ import { Lease, LeaseStatus } from "@nolus/nolusjs/build/contracts";
 import { CONTRACTS } from "@/config/contracts";
 import { WalletManager } from "@/config/wallet";
 import LeaseInfo from "@/components/LeaseInfo.vue";
+import SidebarHeader from "@/components/Sideheader.vue";
 
 export default defineComponent({
   name: "LeaseView",
@@ -60,6 +59,7 @@ export default defineComponent({
     LeaseModal,
     LeaseInfo,
     SidebarContainer,
+    SidebarHeader,
   },
   data() {
     return {

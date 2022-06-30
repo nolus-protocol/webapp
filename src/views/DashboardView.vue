@@ -8,7 +8,6 @@
         <div class="col-span-12 mt-nolus-60">
           <div class="col-span-12">
             <div class="sidebar-header">
-              <!-- <Notifications /> -->
               <SidebarHeader />
             </div>
           </div>
@@ -131,6 +130,7 @@
                 />
               </div>
             </div>
+            SidebarHeader
           </div>
         </div>
       </div>

@@ -8,9 +8,7 @@
         <div class="col-span-12 mt-nolus-60">
           <div class="col-span-12">
             <div class="sidebar-header">
-              <!-- <Notifications /> -->
-              <Notifications />
-              <WalletOpen />
+              <SidebarHeader />
             </div>
           </div>
         </div>
@@ -402,6 +400,7 @@ import SidebarContainer from "@/components/SidebarContainer.vue";
 import AssetPartial from "@/components/AssetPartial.vue";
 import Notifications from "@/components/Notifications.vue";
 import WalletOpen from "@/components/WalletOpen.vue";
+import SidebarHeader from "@/components/Sideheader.vue";
 
 export default defineComponent({
   name: "EarningsView",
@@ -410,6 +409,7 @@ export default defineComponent({
     AssetPartial,
     Notifications,
     WalletOpen,
+    SidebarHeader,
   },
   data() {
     return {

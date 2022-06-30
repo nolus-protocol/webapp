@@ -9,8 +9,7 @@
           <div class="col-span-12">
             <div class="sidebar-header">
               <!-- <Notifications /> -->
-              <Notifications />
-              <WalletOpen />
+              <SidebarHeader />
             </div>
           </div>
         </div>
@@ -251,7 +250,7 @@
     ref="ReceiveSendModal"
     v-show="showSendModal"
     @close-modal="showSendModal = false"
-  />
+  /><SidebarHeader />
 </template>
 
 <script lang="ts">
@@ -265,6 +264,8 @@ import { WalletActionTypes } from "@/store/modules/wallet/action-types";
 import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
 import Notifications from "@/components/Notifications.vue";
 import WalletOpen from "@/components/WalletOpen.vue";
+import SidebarHeader from "@/components/Sideheader.vue";
+
 interface ITransaction {
   id: string;
   receiver: string;
@@ -280,6 +281,7 @@ export default defineComponent({
     SidebarContainer,
     Notifications,
     WalletOpen,
+    SidebarHeader,
   },
   data() {
     return {
