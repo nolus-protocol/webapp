@@ -1,5 +1,5 @@
 <template>
-  <div class="container w-full grid grid-cols-12 mx-auto grid-parent">
+  <div class="container w-full grid grid-cols-12 mx-auto grid-parent" v-cloak>
     <div class="lg:col-span-3">
       <SidebarContainer />
     </div>

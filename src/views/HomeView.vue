@@ -1,5 +1,5 @@
 <template>
-  <div class="block w-[516px] pb-nolus-40">
+  <div class="block w-[516px] pb-nolus-40" v-cloak>
     <h1 class="nls-40 nls-font-700 text-primary text-center mb-nolus-32">
       Connect Wallet
     </h1>
