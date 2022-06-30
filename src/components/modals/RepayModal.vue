@@ -32,27 +32,6 @@
             $36,423.02
           </a>
         </div>
-        <!-- <DynamicForm :formValue="formDataModel" /> -->
-        <!-- {
-            fieldType: "currencyField",
-            className: "block currency-field-container",
-            label: "Balance To Repay",
-            options: [
-              {
-                value: "NLS",
-                label: "NLS",
-              },
-              {
-                value: "ETH",
-                label: "ETH",
-              },
-              {
-                value: "BTC",
-                label: "BTC",
-              },
-            ],
-          }, -->
-
         <CurrencyField
           id="repayBalance"
           label="Balance To Repay"
