@@ -1,17 +1,5 @@
 <template>
-  <button
-    class="show-box-pop btn btn-header mr-2 c-navbar-qr__button"
-    @click="togglePopup"
-  >
-    <span
-      class="icon-bell mr-0"
-      style="font-size: 1.5em; margin-right: 0"
-    ></span>
-    <span class="counter">8</span>
-  </button>
-
   <div
-    :class="notificationPopup ? 'active' : false"
     class="box-open bg-white notify shadow-modal c-navbar-qr__container transition duration-3 ease-2"
   >
     <!-- Notifications Body -->
@@ -55,12 +43,7 @@
         >
           <!-- Ticker -->
           <div class="inline-flex items-center">
-            <img
-              :src="require('@/assets/icons/coins/btc.svg')"
-              width="32"
-              height="32"
-              class="inline-block m-0 mr-4"
-            />
+            <imgtogglePopup height="32" class="inline-block m-0 mr-4" />
             <div class="inline-block">
               <p
                 class="text-primary nls-14 nls-font-700 text-left uppercase m-0"
@@ -168,6 +151,7 @@ export default defineComponent({
   components: {
     PickerDefault,
   },
+  props: ["isActive"],
   data() {
     return {
       notificationPopup: false,
@@ -195,7 +179,7 @@ export default defineComponent({
       this.notificationPopup = !this.notificationPopup;
     },
     handleFocusOut() {
-      alert("hi");
+      //  alert("hi");
       this.notificationPopup = false;
     },
     onUpdateNetwork(value: PickerDefaultOption) {

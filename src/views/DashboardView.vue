@@ -9,8 +9,7 @@
           <div class="col-span-12">
             <div class="sidebar-header">
               <!-- <Notifications /> -->
-              <Notifications />
-              <WalletOpen />
+              <SidebarHeader />
             </div>
           </div>
         </div>
@@ -41,10 +40,10 @@
             class="flex items-center justify-start bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm py-5 px-6"
           >
             <div class="left inline-block w-1/3">
-              <p class="text-large-copy text-primary nls-font-400 m-0">
+              <p class="nls-font-500 nls-16 text-primary mb-nolus-6 m-0">
                 Wallet Balance
               </p>
-              <p class="text-big-number text-primary m-0 mt-1">
+              <p class="nls-font-700 nls-48 text-primary m-0 mt-1">
                 {{ calculateTotalBalance() }}
               </p>
             </div>
@@ -163,6 +162,7 @@ import TooltipComponent from "@/components/TooltipComponent.vue";
 import Notifications from "@/components/Notifications.vue";
 import WalletOpen from "@/components/WalletOpen.vue";
 import NolusChart from "@/components/templates/utils/NolusChart.vue";
+import SidebarHeader from "@/components/Sideheader.vue";
 export default defineComponent({
   name: "DashboardView",
   components: {
@@ -175,6 +175,7 @@ export default defineComponent({
     Notifications,
     WalletOpen,
     NolusChart,
+    SidebarHeader,
   },
   data() {
     return {

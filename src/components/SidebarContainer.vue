@@ -3,8 +3,8 @@
     <div class="top">
       <LogoLink link="/"></LogoLink>
 
-      <div class="sidebar-elements-container block">
-        <div class="block">
+      <div class="sidebar-elements-container block mt-nolus-55">
+        <div class="block nls-nav-link">
           <SidebarElement
             id="assets"
             label="Assets"
@@ -14,7 +14,7 @@
           >
           </SidebarElement>
         </div>
-        <div class="block">
+        <div class="block nls-nav-link">
           <SidebarElement
             id="lease"
             v-on:click="pushToLease"
@@ -25,7 +25,7 @@
           >
           </SidebarElement>
         </div>
-        <div class="block">
+        <div class="block nls-nav-link">
           <SidebarElement
             id="trade"
             href="#"
@@ -35,7 +35,7 @@
           >
           </SidebarElement>
         </div>
-        <div class="block">
+        <div class="block nls-nav-link">
           <SidebarElement
             id="earn"
             label="Earn"
@@ -46,7 +46,7 @@
           >
           </SidebarElement>
         </div>
-        <div class="block">
+        <div class="block nls-nav-link">
           <SidebarElement
             id="history"
             v-on:click="pushToHistory"
@@ -59,7 +59,7 @@
         </div>
       </div>
     </div>
-    <div class="bot px-8 pb-8">
+    <div class="bot pb-8">
       <div class="flex items-center">
         <SidebarSocialElement
           id="twitter"
@@ -99,6 +99,7 @@
           label="Terms of Service"
         >
         </SidebarLinkElement>
+        <!-- this.$route.path == this.href ? 'active' : false, -->
       </div>
     </div>
   </div>

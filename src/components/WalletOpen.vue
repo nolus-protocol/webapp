@@ -1,17 +1,7 @@
 <template>
-  <button
-    class="show-box-wallet btn btn-header with-icon shadow-box rounded-r-none"
-    @click="togglePopup"
-  >
-    <span
-      class="icon-wallet mr-0"
-      style="font-size: 1.5em !important; margin-right: 0"
-    ></span>
-    <span class="nls-13 nls-font-400 text-primary">My precious</span>
-  </button>
   <div
-    :class="showWalletPopup ? 'active' : false"
-    class="box-open bg-transparent shadow-modal c-navbar-wallet__container transition duration-3 ease-2"
+    id="wallet-nls"
+    class="wallet-nls box-open bg-transparent shadow-modal c-navbar-wallet__container transition duration-3 ease-2"
   >
     <!-- Wallet Header -->
     <div
@@ -30,7 +20,6 @@
     <div
       class="box-open-body bg-white p-4 lg:p-6 border-b border-standart text-left"
     >
-      <DynamicForm :formValue="walletData" />
       <div class="block">
         <PickerDefault
           label="Language"
@@ -58,6 +47,7 @@
           :default-option="this.currentNetwork"
           :options="this.networks"
           @update-selected="onUpdateNetwork"
+          @focus="showWallet = true"
         />
       </div>
     </div>
@@ -84,8 +74,8 @@ import { ApplicationActionTypes } from "@/store/modules/application/action-types
 import { WalletManager } from "@/config/wallet";
 import router from "@/router";
 import { RouteNames } from "@/router/RouterNames";
+import Test from "@/directives";
 import { WalletUtils } from "@/utils/WalletUtils";
-
 export default defineComponent({
   name: "WalletOpen",
   components: {
@@ -95,11 +85,12 @@ export default defineComponent({
   props: [],
   data() {
     return {
-      showWalletPopup: false,
+      showWallet: false,
       networks: [] as PickerDefaultOption[],
       currentNetwork: {} as PickerDefaultOption,
     };
   },
+
   mounted() {
     const envNetwork = new EnvNetworks();
     envNetwork.getEnvNetworks().forEach((network) => {
@@ -116,8 +107,9 @@ export default defineComponent({
   },
 
   methods: {
-    togglePopup() {
-      this.showWalletPopup = !this.showWalletPopup;
+    handleFocusOut() {
+      //alert("j");
+      this.showWallet = false;
     },
     onUpdateNetwork(value: PickerDefaultOption) {
       console.log("loggg");

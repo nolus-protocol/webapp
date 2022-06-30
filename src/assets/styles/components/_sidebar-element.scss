@@ -30,6 +30,7 @@
 	}
 
 	.sidebar-elements-container {
+		max-width: 132px;
 		@media (max-width: $lg) {
 			display: flex;
 			justify-content: space-between;
@@ -57,7 +58,7 @@
 
 		.block {
 			@media (min-width: $lg) {
-				margin-bottom: 12px;
+				margin-bottom: 20px;
 
 				&:last-of-type {
 					margin-bottom: 0 !important;
@@ -70,9 +71,10 @@
 		&-float {
 			position: relative !important;
 			width: 100%;
+			padding-left: 0;
 
 			img {
-				margin: 0 auto;
+				margin: 0;
 			}
 		}
 	}
@@ -87,6 +89,7 @@
 	justify-content: center;
 	flex-direction: column;
 	padding: 0 16px;
+
 	background: transparent;
 	border-radius: 12px;
 	position: relative;
@@ -95,9 +98,10 @@
 	font-family: "Garet-Medium";
 	transition: 0.3s;
 	.icon {
-		font-size: 2.5em;
-		margin-left: -10px;
-		left: 10x;
+		font-size: 1.8em;
+		margin-top: 12.62px;
+		margin-bottom: 11.62px;
+		margin-right: 6.5px;
 		color: $lightBlue;
 		transition: 0.3s;
 	}
@@ -109,11 +113,13 @@
 	}
 	@media (min-width: $lg) {
 		font-size: 16px;
-		line-height: 1.4;
+
 		flex-direction: row;
 		justify-content: flex-start;
-		padding: 8px 16px;
 		font-family: "Garet-Medium";
+		&:not(.icon) {
+			line-height: 23px;
+		}
 	}
 
 	&.active {
@@ -173,7 +179,6 @@
 
 		@media (min-width: $lg) {
 			display: inline-block;
-			margin-left: 8px;
 		}
 	}
 }
@@ -193,8 +198,9 @@
 
 	img {
 		display: block;
-		width: 100%;
-		max-width: 100%;
+		width: 20px;
+		height: 16.24px;
+
 		margin: 0 auto;
 	}
 }

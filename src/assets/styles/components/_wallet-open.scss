@@ -2,7 +2,7 @@
 	position: fixed;
 	top: $mobileHeaderHeight;
 	right: 0;
-	display: none;
+	//	display: none;
 	width: 100%;
 	max-height: calc(100vh - $mobileHeaderHeight);
 	z-index: 2;

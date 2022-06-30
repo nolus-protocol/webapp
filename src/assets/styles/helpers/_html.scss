@@ -106,7 +106,7 @@ button {
 		font-size: 32px;
 	}
 }
-.text-large-copy {
+.nls-font-500 nls-16 {
 	font-family: "Garet-Medium";
 	line-height: 1.4;
 	.nls-font-400-copy {
@@ -256,8 +256,8 @@ input[type="checkbox" i] {
 			box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15);
 			border-radius: 4px;
 			border-radius: 6px;
-			min-width: 120px;
-			text-align: center;
+			min-width: 196px;
+			//text-align: center;
 		}
 	}
 }

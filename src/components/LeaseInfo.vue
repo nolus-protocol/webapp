@@ -17,7 +17,7 @@
           <h1 class="text-primary nls-font-700 nls-32 nls-font-700">
             {{ this.assetInfo.amount.amount || "" }}
             <span
-              class="inline-block ml-2 text-primary text-large-copy nls-14 nls-font-400"
+              class="inline-block ml-2 text-primary nls-font-500 nls-16 nls-14 nls-font-400"
               >{{ formatLeaseDenom(this.assetInfo.amount) }}</span
             >
           </h1>
