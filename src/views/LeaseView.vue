@@ -29,6 +29,12 @@
               >
                 Lease new
               </button>
+              <button
+                class="btn btn-primary btn-large-primary w-full md:w-1/2"
+                v-on:click="showRepayModal = true"
+              >
+                Repay
+              </button>
             </div>
           </div>
 
