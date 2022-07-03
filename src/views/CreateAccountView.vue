@@ -108,82 +108,82 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import TextFieldButtons from "@/components/TextFieldButtons.vue";
-import { ArrowLeftIcon } from "@heroicons/vue/solid";
-import SelectorTextField from "@/components/SelectorTextField.vue";
-import { useStore } from "@/store";
-import router from "@/router";
-import { WalletActionTypes } from "@/store/modules/wallet/action-types";
-import { RouteNames } from "@/router/RouterNames";
-import { StringUtils } from "@/utils/StringUtils";
-import { KeyUtils } from "@nolus/nolusjs";
+import { defineComponent } from 'vue'
+import TextFieldButtons from '@/components/TextFieldButtons.vue'
+import { ArrowLeftIcon } from '@heroicons/vue/solid'
+import SelectorTextField from '@/components/SelectorTextField.vue'
+import { useStore } from '@/store'
+import router from '@/router'
+import { WalletActionTypes } from '@/store/modules/wallet/action-types'
+import { RouteNames } from '@/router/RouterNames'
+import { StringUtils } from '@/utils/StringUtils'
+import { KeyUtils } from '@nolus/nolusjs'
 
 export default defineComponent({
-  name: "CreateAccountView",
+  name: 'CreateAccountView',
   components: {
     ArrowLeftIcon,
     TextFieldButtons,
-    SelectorTextField,
+    SelectorTextField
   },
-  data() {
+  data () {
     return {
       isCreateFormOpen: true,
-      mnemonic: "",
+      mnemonic: '',
       mnemonicWords: [] as string[],
-      confirmScreenErrorMsg: "",
-    };
+      confirmScreenErrorMsg: ''
+    }
   },
-  mounted() {
-    this.mnemonic = KeyUtils.generateMnemonic();
-    const words = this.mnemonic.split(" ");
+  mounted () {
+    this.mnemonic = KeyUtils.generateMnemonic()
+    const words = this.mnemonic.split(' ')
     for (let i = 0; i < words.length; i++) {
-      words[i] = words[i].trim();
+      words[i] = words[i].trim()
     }
     words.sort((word1, word2) => {
-      return word1 > word2 ? 1 : -1;
-    });
-    this.mnemonicWords = words;
+      return word1 > word2 ? 1 : -1
+    })
+    this.mnemonicWords = words
   },
   methods: {
-    onClickConfirmMnemonic(value: []) {
-      let confirmMnemonic = "";
+    onClickConfirmMnemonic (value: []) {
+      let confirmMnemonic = ''
       value.forEach((word) => {
-        confirmMnemonic += " " + word;
-      });
+        confirmMnemonic += ' ' + word
+      })
 
       if (this.mnemonic.trim() !== confirmMnemonic.trim()) {
-        this.confirmScreenErrorMsg = "The mnemonic phrase does not match!";
-        return;
+        this.confirmScreenErrorMsg = 'The mnemonic phrase does not match!'
+        return
       }
 
       useStore().dispatch(WalletActionTypes.CONNECT_VIA_MNEMONIC, {
-        mnemonic: this.mnemonic,
-      });
-      this.mnemonic = "";
-      router.push({ name: RouteNames.SET_PASSWORD });
+        mnemonic: this.mnemonic
+      })
+      this.mnemonic = ''
+      router.push({ name: RouteNames.SET_PASSWORD })
     },
-    btnContinueToConfirm() {
-      this.isCreateFormOpen = false;
+    btnContinueToConfirm () {
+      this.isCreateFormOpen = false
     },
-    btnBackToCreateMnemonic() {
-      this.isCreateFormOpen = true;
+    btnBackToCreateMnemonic () {
+      this.isCreateFormOpen = true
     },
-    onClickCopy() {
-      StringUtils.copyToClipboard(this.mnemonic);
+    onClickCopy () {
+      StringUtils.copyToClipboard(this.mnemonic)
     },
-    onClickPrint() {
-      const printWindow = window.open();
-      printWindow?.document.open("text/plain");
-      printWindow?.document.write(this.mnemonic);
-      printWindow?.document.close();
-      printWindow?.focus();
-      printWindow?.print();
-      printWindow?.close();
+    onClickPrint () {
+      const printWindow = window.open()
+      printWindow?.document.open('text/plain')
+      printWindow?.document.write(this.mnemonic)
+      printWindow?.document.close()
+      printWindow?.focus()
+      printWindow?.print()
+      printWindow?.close()
     },
     clickBack: () => {
-      router.go(-1);
-    },
-  },
-});
+      router.go(-1)
+    }
+  }
+})
 </script>

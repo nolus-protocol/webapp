@@ -10,9 +10,9 @@
         <div class="flex">
           <img
             :src="require('@/assets/icons/coins/btc.svg')"
-            width="36"
-            height="36"
             class="inline-block m-0 mr-3"
+            height="36"
+            width="36"
           />
           <h1 class="text-primary nls-font-700 nls-32 nls-font-700">
             {{ this.assetInfo.amount.amount || "" }}

@@ -2,7 +2,7 @@
   <!-- Header -->
   <div class="flex modal-send-receive-header no-border">
     <div class="navigation-header wrap">
-      <XIcon class="h-14 w-14 radius-circle p-2 error-icon" />
+      <XIcon class="h-14 w-14 radius-circle p-2 error-icon"/>
       <h1 class="nls-font-700 nls-32 text-center text-primary w-full mt-3">
         Sending failed
       </h1>
@@ -47,7 +47,7 @@
           class="btn btn-secondary btn-medium-secondary btn-icon mt-2"
           v-on:click="btnCopyClick"
         >
-          <DuplicateIcon class="icon w-4 h-4" />
+          <DuplicateIcon class="icon w-4 h-4"/>
           Copy
         </button>
       </div>
@@ -66,31 +66,31 @@
 </template>
 
 <script lang="ts">
-import { DuplicateIcon, XIcon } from "@heroicons/vue/solid";
-import { defineComponent, PropType } from "vue";
-import { StringUtils } from "@/utils/StringUtils";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import { LeaseComponentProps } from "@/components/LeaseComponents/LeaseFormComponent.vue";
+import { DuplicateIcon, XIcon } from '@heroicons/vue/solid'
+import { defineComponent, PropType } from 'vue'
+import { StringUtils } from '@/utils/StringUtils'
+import { CurrencyUtils } from '@nolus/nolusjs'
+import { LeaseComponentProps } from '@/components/LeaseComponents/LeaseFormComponent.vue'
 
 export default defineComponent({
-  name: "LeaseFailedComponent",
+  name: 'LeaseFailedComponent',
   components: {
     XIcon,
-    DuplicateIcon,
+    DuplicateIcon
   },
   props: {
     modelValue: {
-      type: Object as PropType<LeaseComponentProps>,
-    },
+      type: Object as PropType<LeaseComponentProps>
+    }
   },
   methods: {
-    formatAmount(value: string) {
-      const amountInUNls = CurrencyUtils.convertNolusToUNolus(value);
-      return CurrencyUtils.convertUNolusToNolus(amountInUNls.amount.toString());
+    formatAmount (value: string) {
+      const amountInUNls = CurrencyUtils.convertNolusToUNolus(value)
+      return CurrencyUtils.convertUNolusToNolus(amountInUNls.amount.toString())
     },
-    btnCopyClick() {
-      StringUtils.copyToClipboard(this.modelValue?.txHash || "");
-    },
-  },
-});
+    btnCopyClick () {
+      StringUtils.copyToClipboard(this.modelValue?.txHash || '')
+    }
+  }
+})
 </script>

@@ -1,5 +1,8 @@
 <template>
-  <div class="container w-full grid grid-cols-12 mx-auto grid-parent">
+  <div
+    class="lg:container w-full lg:grid lg:grid-cols-12 mx-auto grid-parent md-nls-px-25 sm-nls-0 body"
+    v-cloak
+  >
     <div class="lg:col-span-3">
       <SidebarContainer />
     </div>

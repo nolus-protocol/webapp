@@ -1,14 +1,14 @@
 <template>
   <Line
-    :chart-options="chartOptions"
     :chart-data="chartData"
     :chart-id="chartId"
-    :dataset-id-key="datasetIdKey"
-    :plugins="plugins"
+    :chart-options="chartOptions"
     :css-classes="cssClasses"
+    :dataset-id-key="datasetIdKey"
+    :height="height"
+    :plugins="plugins"
     :styles="styles"
     :width="width"
-    :height="height"
   />
 </template>
 
@@ -17,16 +17,16 @@ import { defineComponent, h, PropType } from "vue";
 
 import { generateChart } from "vue-chartjs";
 import {
+  CategoryScale,
   Chart as ChartJS,
-  Title,
-  Tooltip,
   Legend,
+  LinearScale,
   LineController,
   LineElement,
-  PointElement,
-  CategoryScale,
-  LinearScale,
   Plugin,
+  PointElement,
+  Title,
+  Tooltip,
 } from "chart.js";
 
 ChartJS.register(
@@ -101,7 +101,11 @@ export default defineComponent({
   },
   setup(props) {
     const DATA_COUNT = 31;
-    const NUMBER_CFG = { count: DATA_COUNT, min: 0, max: 100 };
+    const NUMBER_CFG = {
+      count: DATA_COUNT,
+      min: 0,
+      max: 100,
+    };
     const chartData = {
       labels: [
         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
@@ -168,7 +172,7 @@ export default defineComponent({
     };
 
     return () =>
-      //@ts-ignore
+      // @ts-ignore
       h(LineWithLine, {
         chartData,
         chartOptions,

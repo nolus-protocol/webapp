@@ -445,6 +445,9 @@ input[type="checkbox" i] {
 		padding-right: 16px;
 		padding-left: 16px;
 	}
+	.nls-md-hidden {
+		display: none;
+	}
 }
 
 @media (max-width: $sm) {

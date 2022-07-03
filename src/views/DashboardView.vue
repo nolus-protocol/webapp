@@ -155,6 +155,7 @@ import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { AssetBalance } from "@/store/modules/wallet/state";
 import ReceiveSendModal from "@/components/modals/ReceiveSendModal.vue";
 import { useStore } from "@/store";
+import SidebarHeader from "@/components/Sideheader.vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { assetInfo } from "@/config/assetInfo";
 import { StringUtils } from "@/utils/StringUtils";
@@ -164,11 +165,11 @@ import TooltipComponent from "@/components/TooltipComponent.vue";
 import Notifications from "@/components/Notifications.vue";
 import WalletOpen from "@/components/WalletOpen.vue";
 import NolusChart from "@/components/templates/utils/NolusChart.vue";
-import SidebarHeader from "@/components/Sideheader.vue";
 export default defineComponent({
   name: "DashboardView",
   components: {
     SidebarContainer,
+    SidebarHeader,
     AssetPartial,
     ReceiveSendModal,
     LogoLink,
@@ -177,7 +178,6 @@ export default defineComponent({
     Notifications,
     WalletOpen,
     NolusChart,
-    SidebarHeader,
   },
   data() {
     return {

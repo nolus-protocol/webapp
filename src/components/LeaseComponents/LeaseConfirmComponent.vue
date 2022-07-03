@@ -7,7 +7,7 @@
         class="back-arrow"
         v-on:click="modelValue.onConfirmBackClick"
       >
-        <ArrowLeftIcon class="h-5 w-5" aria-hidden="true" />
+        <ArrowLeftIcon class="h-5 w-5" aria-hidden="true"/>
       </button>
       <h1 class="nls-font-700 nls-32 text-center text-primary">
         Confirm sending
@@ -75,33 +75,33 @@
 </template>
 
 <script lang="ts">
-import { ArrowLeftIcon } from "@heroicons/vue/solid";
-import InputField from "@/components/InputField.vue";
-import { defineComponent, PropType } from "vue";
-import { WalletUtils } from "@/utils/WalletUtils";
-import { LeaseComponentProps } from "@/components/LeaseComponents/LeaseFormComponent.vue";
-import { AssetBalance } from "@/store/modules/wallet/state";
-import { assetInfo } from "@/config/assetInfo";
+import { ArrowLeftIcon } from '@heroicons/vue/solid'
+import InputField from '@/components/InputField.vue'
+import { defineComponent, PropType } from 'vue'
+import { WalletUtils } from '@/utils/WalletUtils'
+import { LeaseComponentProps } from '@/components/LeaseComponents/LeaseFormComponent.vue'
+import { AssetBalance } from '@/store/modules/wallet/state'
+import { assetInfo } from '@/config/assetInfo'
 
 export default defineComponent({
-  name: "LeaseConfirmComponent",
+  name: 'LeaseConfirmComponent',
   components: {
     ArrowLeftIcon,
-    InputField,
+    InputField
   },
   props: {
     modelValue: {
-      type: Object as PropType<LeaseComponentProps>,
-    },
+      type: Object as PropType<LeaseComponentProps>
+    }
   },
   methods: {
-    formatAmount(value: string, selectedCurrency: AssetBalance) {
-      const denom = assetInfo[selectedCurrency.udenom].coinDenom;
-      return value + " " + denom;
+    formatAmount (value: string, selectedCurrency: AssetBalance) {
+      const denom = assetInfo[selectedCurrency.udenom].coinDenom
+      return value + ' ' + denom
     },
-    isMnemonicWallet() {
-      return WalletUtils.isConnectedViaMnemonic();
-    },
-  },
-});
+    isMnemonicWallet () {
+      return WalletUtils.isConnectedViaMnemonic()
+    }
+  }
+})
 </script>

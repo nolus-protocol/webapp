@@ -140,9 +140,8 @@
 import PickerDefault, {
   PickerDefaultOption,
 } from "@/components/PickerDefault.vue";
-import { defineComponent, PropType } from "vue";
+import { defineComponent } from "vue";
 import { EnvNetworks } from "@/config/envNetworks";
-import { StringUtils } from "@/utils/StringUtils";
 import { useStore } from "@/store";
 import { ApplicationActionTypes } from "@/store/modules/application/action-types";
 
@@ -172,7 +171,7 @@ export default defineComponent({
     //   label: StringUtils.capitalize(envNetwork.getStoredNetworkName() || ""),
     //   value: envNetwork.getStoredNetworkName() || "",
     // };
-    //console.log((this.walletModel || {}).defaultOption);
+    // console.log((this.walletModel || {}).defaultOption);
   },
   methods: {
     togglePopup() {
@@ -200,6 +199,7 @@ export default defineComponent({
   padding: 14px 11px;
   margin-top: 11px;
 }
+
 .justify-content {
   justify-content: space-between !important;
 }

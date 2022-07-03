@@ -7,7 +7,7 @@
         class="back-arrow"
         v-on:click="modelValue.onBackClick"
       >
-        <ArrowLeftIcon class="h-5 w-5" aria-hidden="true" />
+        <ArrowLeftIcon class="h-5 w-5" aria-hidden="true"/>
       </button>
       <h1 class="nls-font-700 nls-32 text-center text-primary">
         Receive QR code
@@ -20,7 +20,7 @@
     <div class="block text-left break-words">
       <div class="flex items-center">
         <span class="nls-14 text-primary nls-font-500 m-0 mr-2"
-          >Nolus token</span
+        >Nolus token</span
         >
         <div
           class="inline-flex items-center bg-light-grey radius-rounded nls-14 nls-font-400 text-primary nls-font-400 m-0 p-1"
@@ -40,7 +40,7 @@
           class="btn btn-secondary btn-medium-secondary btn-icon mt-2"
           v-on:click="modelValue.onCopyClick"
         >
-          <DuplicateIcon class="icon w-4 h-4" />
+          <DuplicateIcon class="icon w-4 h-4"/>
           Copy
         </button>
       </div>
@@ -62,9 +62,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
-import { ArrowLeftIcon, DuplicateIcon } from "@heroicons/vue/solid";
-import QrcodeVue from "qrcode.vue";
+import { defineComponent, PropType } from 'vue'
+import { ArrowLeftIcon, DuplicateIcon } from '@heroicons/vue/solid'
+import QrcodeVue from 'qrcode.vue'
 
 export interface ReceiveQrCodeComponentProps {
   walletAddress: string;
@@ -73,16 +73,16 @@ export interface ReceiveQrCodeComponentProps {
 }
 
 export default defineComponent({
-  name: "ReceiveQrCodeComponent",
+  name: 'ReceiveQrCodeComponent',
   components: {
     ArrowLeftIcon,
     DuplicateIcon,
-    QrcodeVue,
+    QrcodeVue
   },
   props: {
     modelValue: {
-      type: Object as PropType<ReceiveQrCodeComponentProps>,
-    },
-  },
-});
+      type: Object as PropType<ReceiveQrCodeComponentProps>
+    }
+  }
+})
 </script>

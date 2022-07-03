@@ -37,7 +37,7 @@
               v-slot="{ selected }"
             >
               <li class="flex justify-start">
-                <span class="icon icon-person" />
+                <span class="icon icon-person"/>
                 <span
                   class="block truncate"
                   :class="{
@@ -61,11 +61,11 @@
           ? ''
           : 'hidden',
       ]"
-      >{{
-        typeof formFieldModel.errorMsg !== "undefined" &&
+    >{{
+        typeof formFieldModel.errorMsg !== 'undefined' &&
         formFieldModel.errorMsg !== null
           ? formFieldModel.errorMsg
-          : ""
+          : ''
       }}</span
     >
   </div>
@@ -73,22 +73,22 @@
 
 <script lang="ts">
 import {
-  ComboboxButton,
-  ComboboxLabel,
   Combobox,
+  ComboboxButton,
   ComboboxInput,
-  ComboboxOptions,
+  ComboboxLabel,
   ComboboxOption,
-  TransitionRoot,
-} from "@headlessui/vue";
-import { CheckIcon, StarIcon } from "@heroicons/vue/solid";
-import { PropType } from "@vue/runtime-core";
-import { ref, computed } from "vue";
-import type { Ref } from "vue";
-import { PickerDefaultOption } from "./PickerDefault.vue";
+  ComboboxOptions,
+  TransitionRoot
+} from '@headlessui/vue'
+import { CheckIcon, StarIcon } from '@heroicons/vue/solid'
+import { PropType } from '@vue/runtime-core'
+import type { Ref } from 'vue'
+import { ref } from 'vue'
+import { PickerDefaultOption } from './PickerDefault.vue'
 
 export default {
-  name: "PickerCombo",
+  name: 'PickerCombo',
   components: {
     Combobox,
     ComboboxButton,
@@ -98,43 +98,43 @@ export default {
     ComboboxOptions,
     TransitionRoot,
     CheckIcon,
-    StarIcon,
+    StarIcon
   },
   props: {
     label: {
-      type: String,
+      type: String
     },
     type: {
-      type: String,
+      type: String
     },
     defaultOption: {
-      type: Object as PropType<PickerDefaultOption>,
+      type: Object as PropType<PickerDefaultOption>
     },
     options: {
-      type: Array as PropType<PickerDefaultOption[]>,
+      type: Array as PropType<PickerDefaultOption[]>
     },
     isError: {
-      type: Boolean,
+      type: Boolean
     },
     errorMsg: {
-      type: String,
+      type: String
     },
     disabled: {
-      type: Boolean,
-    },
+      type: Boolean
+    }
   },
-  data() {
+  data () {
     return {
       selected: {} as PickerDefaultOption,
-      query: ref("") as Ref<string>,
-    };
+      query: ref('') as Ref<string>
+    }
   },
 
   watch: {
-    selected() {
-      //@ts-ignore
-    },
-  },
+    selected () {
+      // @ts-ignore
+    }
+  }
   // TODO : set query wather to filter input value
-};
+}
 </script>

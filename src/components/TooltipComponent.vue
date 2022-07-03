@@ -32,9 +32,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
+import { defineComponent } from "vue";
 
 export interface TooltipProps {}
+
 export default defineComponent({
   name: "TooltipComponent",
 

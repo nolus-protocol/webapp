@@ -40,14 +40,14 @@
             class="btn btn-secondary btn-medium-secondary btn-icon mr-2"
             v-on:click="modelValue.onCopyClick"
           >
-            <DuplicateIcon class="icon w-4 h-4" />
+            <DuplicateIcon class="icon w-4 h-4"/>
             Copy
           </button>
           <button
             class="btn btn-secondary btn-medium-secondary btn-icon"
             v-on:click="modelValue.onScanClick"
           >
-            <QrcodeIcon class="icon w-4 h-4" />
+            <QrcodeIcon class="icon w-4 h-4"/>
             Scan code
           </button>
         </div>
@@ -74,10 +74,10 @@
 </template>
 
 <script lang="ts">
-import PickerIcon from "@/components/PickerIcon.vue";
-import { DuplicateIcon, QrcodeIcon } from "@heroicons/vue/solid";
-import PickerDefault from "@/components/PickerDefault.vue";
-import { defineComponent, PropType } from "vue";
+import PickerIcon from '@/components/PickerIcon.vue'
+import { DuplicateIcon, QrcodeIcon } from '@heroicons/vue/solid'
+import PickerDefault from '@/components/PickerDefault.vue'
+import { defineComponent, PropType } from 'vue'
 
 export interface ReceiveComponentProps {
   walletAddress: string;
@@ -86,37 +86,37 @@ export interface ReceiveComponentProps {
 }
 
 export default defineComponent({
-  name: "ReceiveComponent",
+  name: 'ReceiveComponent',
   components: {
     PickerIcon,
     DuplicateIcon,
     QrcodeIcon,
-    PickerDefault,
+    PickerDefault
   },
   props: {
     modelValue: {
-      type: Object as PropType<ReceiveComponentProps>,
-    },
+      type: Object as PropType<ReceiveComponentProps>
+    }
   },
-  data() {
+  data () {
     return {
       networks: [
         {
-          value: "NLS",
-          label: "NLS",
+          value: 'NLS',
+          label: 'NLS'
         },
         {
-          value: "ETH",
-          label: "ETH",
+          value: 'ETH',
+          label: 'ETH'
         },
         {
-          value: "BTC",
-          label: "BTC",
-        },
-      ],
-    };
-  },
-});
+          value: 'BTC',
+          label: 'BTC'
+        }
+      ]
+    }
+  }
+})
 </script>
 
 <style scoped></style>

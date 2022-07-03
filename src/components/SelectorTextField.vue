@@ -3,7 +3,7 @@
     <label
       :for="this.id"
       class="block nls-14 nls-font-400 text-primary nls-font-400"
-      >{{ this.label }}</label
+    >{{ this.label }}</label
     >
     <div class="block editable-block">
       <div
