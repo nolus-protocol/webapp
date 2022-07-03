@@ -1,5 +1,8 @@
 <template>
-  <div class="container w-full grid grid-cols-12 mx-auto grid-parent" v-cloak>
+  <div
+    class="lg:container w-full lg:grid lg:grid-cols-12 mx-auto grid-parent md-nls-px-25 sm-nls-0 body"
+    v-cloak
+  >
     <div class="lg:col-span-3">
       <SidebarContainer />
     </div>
@@ -15,14 +18,12 @@
         <div class="col-span-12">
           <!-- Header -->
           <div
-            class="flex flex-wrap items-center justify-between items-baseline px-4 lg:px-0"
+            class="table-header flex mt-nolus-255 flex-wrap items-center justify-between items-baseline lg:px-0"
           >
-            <div class="left w-full md:w-1/2">
+            <div class="left">
               <h1 class="nls-20 nls-font-700 text-primary m-0">Assets</h1>
             </div>
-            <div
-              class="right w-full md:w-1/2 mt-nolus-255 md:mt-0 inline-flex justify-start md:justify-end"
-            >
+            <div class="right md:mt-0 inline-flex justify-end">
               <button
                 class="btn btn-secondary btn-large-secondary mr-4"
                 v-on:click="showSendModal = true"
@@ -36,7 +37,7 @@
           </div>
           <!-- Wallet -->
           <div
-            class="flex items-center justify-start bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm py-5 px-6"
+            class="flex balance-box items-center justify-start bg-white mt-nolus-24 border-standart shadow-box radius-medium radius-0-sm py-5 px-6"
           >
             <div class="left inline-block w-1/3">
               <p class="nls-font-500 nls-16 text-primary mb-nolus-6 m-0">
@@ -61,7 +62,9 @@
                 <div class="loader__element"></div>
               </div>
               <div class="left w-full md:w-1/2">
-                <p class="nls-16 nls-font-500 m-0">Existing assets</p>
+                <p class="nls-16 nls-font-500 m-0 md-mt-nolus-17">
+                  Existing assets
+                </p>
               </div>
               <div
                 class="right w-full md:w-1/2 mt-nolus-255 md:mt-0 inline-flex justify-start md:justify-end"
@@ -130,7 +133,6 @@
                 />
               </div>
             </div>
-            SidebarHeader
           </div>
         </div>
       </div>

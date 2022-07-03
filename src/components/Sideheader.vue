@@ -23,7 +23,9 @@
         style="font-size: 1.5em !important; margin-right: 0"
       ></span>
 
-      <span class="nls-13 nls-font-400 text-primary">My precious</span>
+      <span class="nls-13 nls-font-400 text-primary nls-md-hidden"
+        >My precious</span
+      >
     </button>
 
     <!-- <Notifications /> -->

@@ -23,7 +23,7 @@
 <script type="ts">
 export default {
   name: 'SidebarElement',
-  props: ['id', 'href', 'label', 'icon', 'iconHover', 'isActive']
+  props: ['id', 'href', 'label', 'icon', 'iconHover', 'isActive', 'mobile']
 }
 </script>
 <style scoped>

@@ -23,6 +23,9 @@
 .mt-nolus-20 {
 	margin-top: 20px;
 }
+.mt-nolus-22 {
+	margin-top: 22px;
+}
 .mt-nolus-30 {
 	margin-top: 30px;
 }
@@ -56,14 +59,26 @@
 .mb-nolus-24 {
 	margin-bottom: 24px;
 }
+.mb-nolus-28 {
+	margin-bottom: 28px;
+}
+.mb-nolus-30 {
+	margin-bottom: 30px;
+}
 .mb-nolus-32 {
 	margin-bottom: 32px;
+}
+.mb-nolus-37 {
+	margin-bottom: 37px;
 }
 .mb-nolus-38 {
 	margin-bottom: 38px;
 }
 .mb-nolus-40 {
 	margin-bottom: 40px;
+}
+.mb-nolus-48 {
+	margin-bottom: 48px;
 }
 .mb-nolus-61 {
 	margin-top: 61px;
@@ -157,4 +172,31 @@
 
 .p-nolus-40 {
 	padding: 40px;
+}
+@media (max-width: $lg) {
+	.md-nls-px-25 {
+		padding-left: 25px;
+		padding-right: 25px;
+	}
+	.md-nls-pl-25 {
+		margin-left: 25px;
+	}
+	.sidebar-elements-container {
+	}
+}
+@media (max-width: $md) {
+	.sidebar-elements-container {
+	}
+}
+
+@media (max-width: $md) {
+	.sm-nls-0 {
+		padding-left: 0;
+		padding-right: 0px;
+	}
+	.md-mt-nolus-17 {
+		margin-top: 17px;
+	}
+}
+@media (max-width: $sm) {
 }
