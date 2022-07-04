@@ -35,19 +35,19 @@
           <span class="flex items-center">
             <img
               :src="
-                require('@/assets/icons/coins/' +
-                  getAssetInfo(selected.value.udenom).coinIcon)
-              "
+                                        require('@/assets/icons/coins/' +
+                                          getAssetInfo(selected.value?.balance?.denom).coinIcon)
+                                      "
               alt=""
               class="flex-shrink-0 h-6 w-6 rounded-full"
             />
-            <span class="ml-3 block truncate">
-              {{
-                getAssetInfo(
-                  selected.value.udenom
-                ).coinAbbreviation.toUpperCase()
-              }}</span
-            >
+                        <span class="ml-3 block truncate">
+                          {{
+                            getAssetInfo(
+                              selected.value?.balance?.denom
+                            ).coinAbbreviation.toUpperCase()
+                          }}
+                        </span>
           </span>
           <span
             class="ml-3 absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
@@ -80,7 +80,8 @@
           >
             <ListboxOption
               v-for="option in this.options"
-              :key="option.udenom"
+              :key="option.balance.denom"
+              :value="option"
               v-slot="{ active, selected }"
               :value="option"
               as="template"
@@ -95,7 +96,7 @@
                   <img
                     :src="
                       require('@/assets/icons/coins/' +
-                        getAssetInfo(option.udenom).coinIcon)
+                        getAssetInfo(option.balance.denom).coinIcon)
                     "
                     alt=""
                     class="flex-shrink-0 h-6 w-6 rounded-full"
@@ -107,7 +108,7 @@
                     ]"
                   >
                     {{
-                      getAssetInfo(option.udenom).coinAbbreviation.toUpperCase()
+                      getAssetInfo(option.balance.denom).coinAbbreviation.toUpperCase()
                     }}
                   </span>
                 </div>
@@ -182,13 +183,10 @@ export default defineComponent({
       }
     }
   },
-  watch: {
-    'props.currencyOption' () {
-    }
-  },
+  watch: {},
   methods: {
-    getAssetInfo (minimalDenom: string) {
-      return AssetUtils.getAssetInfoByAbbr(minimalDenom)
+    getAssetInfo (denom: string) {
+      return AssetUtils.getAssetInfoByAbbr(denom)
     }
   }
 })

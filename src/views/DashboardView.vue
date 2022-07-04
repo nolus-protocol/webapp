@@ -123,11 +123,11 @@
                 <AssetPartial
                   v-for="asset in this.manipulatedAssets"
                   :key="asset"
-                  :asset-info="getAssetInfo(asset.udenom)"
+                  :asset-info=getAssetInfo(asset.balance.denom)
                   :assetBalance="asset.balance.amount.toString()"
                   :changeDirection="true"
-                  :price="getMarketPrice(asset.udenom)"
-                  balance="0"
+                  :denom=asset.balance.denom
+                  :price=getMarketPrice(asset.balance.denom)
                   change="4.19"
                   earnings="24"
                 />
@@ -157,10 +157,6 @@ import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
 import { useStore } from '@/store'
 import SidebarHeader from '@/components/Sideheader.vue'
 import { CurrencyUtils } from '@nolus/nolusjs'
-import { assetInfo } from '@/config/assetInfo'
-import { StringUtils } from '@/utils/StringUtils'
-import LogoLink from '@/components/LogoLink.vue'
-import SidebarElement from '@/components/SidebarElement.vue'
 import TooltipComponent from '@/components/TooltipComponent.vue'
 import Notifications from '@/components/Notifications.vue'
 import WalletOpen from '@/components/WalletOpen.vue'
@@ -173,8 +169,6 @@ export default defineComponent({
     SidebarHeader,
     AssetPartial,
     ReceiveSendModal,
-    LogoLink,
-    SidebarElement,
     TooltipComponent,
     Notifications,
     WalletOpen,
@@ -191,6 +185,7 @@ export default defineComponent({
   },
   watch: {
     '$store.state.wallet.balances' (balances) {
+      console.log('Balances: ', balances)
       this.mainAssets = balances
       this.manipulatedAssets = balances
       if (this.hideLowerBalances) {
@@ -207,16 +202,14 @@ export default defineComponent({
     },
   },
   methods: {
-    getAssetInfo (minimalDenom: string) {
-      return AssetUtils.getAssetInfoByAbbr(minimalDenom)
+    getAssetInfo (denom: string) {
+      return AssetUtils.getAssetInfoByAbbr(denom)
     },
-    getMarketPrice (minimalDenom: string) {
+    getMarketPrice (denom: string) {
       const prices = useStore().state.oracle.prices
       if (prices) {
-        return (
-          prices[StringUtils.getDenomFromMinimalDenom(minimalDenom)]?.amount ||
-          '0'
-        )
+        const tokenDenom = AssetUtils.getAssetInfoByAbbr(denom).coinDenom
+        return prices[tokenDenom]?.amount || '0'
       }
       return '0'
     },
@@ -227,12 +220,17 @@ export default defineComponent({
     },
     calculateTotalBalance () {
       let totalBalance = new Dec(0)
-      this.mainAssets.forEach((asset) => {
-        const decimals = assetInfo[asset.udenom].coinDecimals
+      this.mainAssets.forEach(asset => {
+        const {
+          coinDecimals,
+          coinDenom
+        } = AssetUtils.getAssetInfoByAbbr(asset.balance.denom)
         const assetBalance = CurrencyUtils.calculateBalance(
-          this.getMarketPrice(asset.udenom),
-          new Coin(asset.udenom, asset.balance.amount.toString()),
-          decimals
+          this.getMarketPrice(asset.balance.denom),
+          new Coin(coinDenom,
+            asset.balance.amount.toString()
+          ),
+          coinDecimals
         )
         totalBalance = totalBalance.add(assetBalance.toDec())
       })

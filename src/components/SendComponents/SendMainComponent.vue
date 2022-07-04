@@ -10,12 +10,13 @@ import SendComponent, { SendComponentProps } from '@/components/SendComponents/S
 import SendingSuccessComponent from '@/components/SendComponents/SendingSuccessComponent.vue'
 import SendingFailedComponent from '@/components/SendComponents/SendingFailedComponent.vue'
 import { Bech32 } from '@cosmjs/encoding'
-import { Dec, Int } from '@keplr-wallet/unit'
+import { Coin, Dec, Int } from '@keplr-wallet/unit'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { CurrencyUtils } from '@nolus/nolusjs'
+import { ChainConstants } from '@nolus/nolusjs/build/constants'
 
 enum ScreenState {
   MAIN = 'SendComponent',
@@ -87,7 +88,7 @@ export default defineComponent({
     initProps () {
       return {
         currentBalance: [] as AssetBalance[],
-        selectedCurrency: {} as AssetBalance,
+        selectedCurrency: { balance: new Coin(ChainConstants.COIN_MINIMAL_DENOM, new Int('0')) } as AssetBalance,
         amount: '',
         memo: '',
         receiverAddress: '',

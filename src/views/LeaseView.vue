@@ -32,9 +32,9 @@
 
           <!-- Leases -->
           <LeaseInfo
-            v-for="leaseInfo in this.leases"
-            v-bind:key="leaseInfo"
-            :asset-info="leaseInfo"
+            v-bind:key="lease.leaseAddress"
+            v-for="lease in this.leases"
+            :lease-info="lease"
           />
         </div>
       </div>
@@ -50,6 +50,8 @@ import LeaseModal from '@/components/modals/LeaseModal.vue'
 import { Lease, LeaseStatus } from '@nolus/nolusjs/build/contracts'
 import { CONTRACTS } from '@/config/contracts'
 import { WalletManager } from '@/config/wallet'
+import RepayModal from '@/components/modals/RepayModal.vue'
+import { LeaseData } from '@/types/LeaseData'
 import LeaseInfo from '@/components/LeaseInfo.vue'
 import SidebarHeader from '@/components/Sideheader.vue'
 
@@ -57,6 +59,7 @@ export default defineComponent({
   name: 'LeaseView',
   components: {
     LeaseModal,
+    RepayModal,
     LeaseInfo,
     SidebarContainer,
     SidebarHeader,
@@ -64,7 +67,8 @@ export default defineComponent({
   data () {
     return {
       showSendModal: false,
-      leases: [] as LeaseStatus[],
+      showRepayModal: false,
+      leases: [] as LeaseData[]
     }
   },
   async mounted () {
@@ -74,10 +78,11 @@ export default defineComponent({
       WalletManager.getWalletAddress()
     )
     for (const leaseAddress of openedLeases) {
-      const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus(
-        leaseAddress
-      )
-      this.leases.push(leaseInfo)
+      const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus(leaseAddress)
+      this.leases.push({
+        leaseAddress: leaseAddress,
+        leaseStatus: leaseInfo
+      })
     }
   },
 })

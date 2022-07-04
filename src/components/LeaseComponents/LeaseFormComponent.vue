@@ -166,8 +166,8 @@ export default defineComponent({
       return this.modelValue?.leaseApply?.annual_interest_rate || ''
     },
     pricePerToken () {
-      if (this.modelValue?.selectedCurrency?.udenom) {
-        return this.getPrice(this.modelValue?.selectedCurrency?.udenom).amount
+      if (this.modelValue?.selectedCurrency?.balance.denom) {
+        return this.getPrice(this.modelValue?.selectedCurrency?.balance.denom).amount
       }
       return '0'
     },
@@ -176,8 +176,8 @@ export default defineComponent({
         const leaseCurrency = this.modelValue?.selectedCurrency
         if (leaseCurrency) {
           return CurrencyUtils.calculateBalance(
-            this.getPrice(leaseCurrency.udenom).amount,
-            new Coin(leaseCurrency.udenom, this.modelValue?.amount as string),
+            this.getPrice(leaseCurrency.balance.denom).amount,
+            new Coin(leaseCurrency.balance.denom, this.modelValue?.amount as string),
             0
           )
         }
