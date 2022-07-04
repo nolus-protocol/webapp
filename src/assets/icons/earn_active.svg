@@ -1,8 +1,10 @@
 <svg id="earn_active" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-  <g id="Component_385_4" data-name="Component 385 – 4">
-    <rect id="Rectangle_882" data-name="Rectangle 882" width="32" height="32" fill="#fff" opacity="0"/>
-  </g>
-  <g id="Group_2557" data-name="Group 2557" transform="translate(-230.5 -4.5)">
-    <path id="Subtraction_11" data-name="Subtraction 11" d="M22631.5,14213.04h-25a1,1,0,1,1,0-2h2.256a13.071,13.071,0,0,1-2.756-8,13.008,13.008,0,0,1,12-12.964v12.941l-3.242-3.249a1.012,1.012,0,0,0-1.416,0,1.018,1.018,0,0,0-.289.71.987.987,0,0,0,.289.7l4.914,4.919a.272.272,0,0,0,.039.034.988.988,0,0,0,1.41,0l4.953-4.947a1,1,0,1,0-1.416-1.414l-3.242,3.237v-12.936a13,13,0,0,1,9.246,20.962h2.256a1,1,0,1,1,0,2Z" transform="translate(-22372.502 -14181.541)" fill="#ff562e"/>
-  </g>
+    <g id="Component_385_4" data-name="Component 385 – 4">
+        <rect id="Rectangle_882" data-name="Rectangle 882" width="32" height="32" fill="#fff" opacity="0"/>
+    </g>
+    <g id="Group_2557" data-name="Group 2557" transform="translate(-230.5 -4.5)">
+        <path id="Subtraction_11" data-name="Subtraction 11"
+              d="M22631.5,14213.04h-25a1,1,0,1,1,0-2h2.256a13.071,13.071,0,0,1-2.756-8,13.008,13.008,0,0,1,12-12.964v12.941l-3.242-3.249a1.012,1.012,0,0,0-1.416,0,1.018,1.018,0,0,0-.289.71.987.987,0,0,0,.289.7l4.914,4.919a.272.272,0,0,0,.039.034.988.988,0,0,0,1.41,0l4.953-4.947a1,1,0,1,0-1.416-1.414l-3.242,3.237v-12.936a13,13,0,0,1,9.246,20.962h2.256a1,1,0,1,1,0,2Z"
+              transform="translate(-22372.502 -14181.541)" fill="#ff562e"/>
+    </g>
 </svg>

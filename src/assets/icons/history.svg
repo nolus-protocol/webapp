@@ -1,6 +1,9 @@
 <svg id="history" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-  <g id="Component_385_2" data-name="Component 385 – 2">
-    <rect id="Rectangle_882" data-name="Rectangle 882" width="32" height="32" fill="#fff" opacity="0"/>
-  </g>
-  <path id="Subtraction_13" data-name="Subtraction 13" d="M20898,14206a13.008,13.008,0,1,1,9.193-3.81A12.912,12.912,0,0,1,20898,14206Zm0-20.771a1,1,0,0,0-1,1V14194a1,1,0,0,0,1,1h3.873a1,1,0,1,0,0-2H20899v-6.77A1,1,0,0,0,20898,14185.229Z" transform="translate(-20882 -14177)" fill="#7587a2" stroke="rgba(0,0,0,0)" stroke-miterlimit="10" stroke-width="1" opacity="0.8"/>
+    <g id="Component_385_2" data-name="Component 385 – 2">
+        <rect id="Rectangle_882" data-name="Rectangle 882" width="32" height="32" fill="#fff" opacity="0"/>
+    </g>
+    <path id="Subtraction_13" data-name="Subtraction 13"
+          d="M20898,14206a13.008,13.008,0,1,1,9.193-3.81A12.912,12.912,0,0,1,20898,14206Zm0-20.771a1,1,0,0,0-1,1V14194a1,1,0,0,0,1,1h3.873a1,1,0,1,0,0-2H20899v-6.77A1,1,0,0,0,20898,14185.229Z"
+          transform="translate(-20882 -14177)" fill="#7587a2" stroke="rgba(0,0,0,0)" stroke-miterlimit="10"
+          stroke-width="1" opacity="0.8"/>
 </svg>

@@ -11,7 +11,6 @@
             :id="option.value"
             :aria-describedby="`${option.value}-description`"
             :name="option.name"
-            type="radio"
             class="
               focus:ring-indigo-500
               h-4
@@ -19,6 +18,7 @@
               text-indigo-600
               border-gray-300
             "
+            type="radio"
           />
         </div>
         <div class="ml-3 text-sm">

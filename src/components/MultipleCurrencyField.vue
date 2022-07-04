@@ -17,10 +17,10 @@
       <div class="flex items-center px-3.5">
         <div class="inline-block w-1/2">
           <input
-            type="text"
-            :name="this.name"
             :id="this.id"
+            :name="this.name"
             class="nls-font-700 nls-18 nls-font-700 text-primary"
+            type="text"
             value=""
           />
           <span class="block nls-14 nls-font-400 text-light-blue">
@@ -29,12 +29,12 @@
         </div>
         <div class="inline-block w-1/2">
           <PickerIcon
-            label="Asset"
             :default-option="{
               value: 'NLS',
               label: 'NLS',
               icon: require('@/assets/icons/coins/nls.svg'),
             }"
+            :disabled="true"
             :options="[
               {
                 value: 'NLS',
@@ -42,7 +42,7 @@
                 icon: require('@/assets/icons/coins/nls.svg'),
               },
             ]"
-            :disabled="true"
+            label="Asset"
           ></PickerIcon>
         </div>
       </div>
@@ -54,10 +54,10 @@
       <div class="flex items-center px-3.5">
         <div class="inline-block w-1/2">
           <input
-            type="text"
-            :name="this.nameSecondary"
             :id="this.idSecondary"
+            :name="this.nameSecondary"
             class="nls-font-700 nls-18 nls-font-700 text-primary"
+            type="text"
             value=""
           />
           <span class="block nls-14 nls-font-400 text-light-blue">
@@ -66,12 +66,12 @@
         </div>
         <div class="inline-block w-1/2">
           <PickerIcon
-            label="Asset"
             :default-option="{
               value: 'NLS',
               label: 'NLS',
               icon: require('@/assets/icons/coins/nls.svg'),
             }"
+            :disabled="true"
             :options="[
               {
                 value: 'NLS',
@@ -79,7 +79,7 @@
                 icon: require('@/assets/icons/coins/nls.svg'),
               },
             ]"
-            :disabled="true"
+            label="Asset"
           ></PickerIcon>
         </div>
       </div>

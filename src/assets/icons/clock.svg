@@ -1,10 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="27.857" viewBox="0 0 32 27.857">
-  <defs>
-    <style>
-      .cls-1 {
-        fill: #072d63;
-      }
-    </style>
-  </defs>
-  <path id="Path_414" data-name="Path 414" class="cls-1" d="M0,19.947v7.91H12.037V26.1H1.754V19.947Zm30.246,0V26.1H19.963v1.754H32V19.947ZM12.054,7.91V19.946h7.909V18.364H13.808V7.91ZM0,0V7.91H1.754V1.754H12.037V0ZM19.963,0V1.754H30.246V7.91H32V0Z"/>
+    <defs>
+        <style>
+            .cls-1 {
+            fill: #072d63;
+            }
+        </style>
+    </defs>
+    <path id="Path_414" data-name="Path 414" class="cls-1"
+          d="M0,19.947v7.91H12.037V26.1H1.754V19.947Zm30.246,0V26.1H19.963v1.754H32V19.947ZM12.054,7.91V19.946h7.909V18.364H13.808V7.91ZM0,0V7.91H1.754V1.754H12.037V0ZM19.963,0V1.754H30.246V7.91H32V0Z"/>
 </svg>

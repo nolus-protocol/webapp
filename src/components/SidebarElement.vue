@@ -1,13 +1,11 @@
 <template>
   <a
     :id="this.id"
-    :href="this.href"
     :class="[
       'sidebar-element',
-      typeof this.isActive !== 'undefined' && this.isActive === true
-        ? 'active'
-        : false,
+      this.$route.path == this.href ? 'active' : false,
     ]"
+    :href="this.href"
   >
     <span :class="['icon', `icon-${this.label.toLowerCase()}`]"></span>
     <!-- <span class="icon" :class="`icon-${this.label}`"></span> -->
@@ -25,6 +23,32 @@
 <script type="ts">
 export default {
   name: 'SidebarElement',
-  props: ['id', 'href', 'label', 'icon', 'iconHover', 'isActive']
+  props: ['id', 'href', 'label', 'icon', 'iconHover', 'isActive', 'mobile']
 }
 </script>
+<style scoped>
+[class^="icon-"] {
+}
+
+[class^="icon-"]:before,
+[class*=" icon-"]:before {
+  font-family: "nolus";
+  font-style: normal;
+  font-weight: normal;
+  speak: never;
+  display: inline-block;
+  text-decoration: inherit;
+  width: unset;
+  margin-right: 0;
+  text-align: center;
+  opacity: 1;
+  font-variant: normal;
+  text-transform: none;
+  line-height: unset;
+  margin-left: 0;
+  font-size: 30px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* text-shadow: 1px 1px 1px rgb(127 127 127 / 30%); */
+}
+</style>

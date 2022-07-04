@@ -1,16 +1,11 @@
 <template>
   <a
     :id="this.id"
+    :class="['sidebar-social-element, color-light-blue']"
     :href="this.href"
-    :class="[
-      'sidebar-social-element',
-    ]"
     target="_blank"
   >
-    <img
-      class="icon"
-      :src="this.icon"
-    />
+    <span :class="['icon', `icon-${this.id.toLowerCase()}`]"></span>
   </a>
 </template>
 <script type="ts">

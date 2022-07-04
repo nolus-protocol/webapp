@@ -10,10 +10,10 @@
     ]"
   >
     <Listbox
-      as="div"
       v-model="selected"
-      @update:modelValue="$emit('update-selected', selected)"
       :disabled="disabled"
+      as="div"
+      @update:modelValue="$emit('update-selected', selected)"
     >
       <ListboxLabel class="block nls-14 nls-font-400 text-primary nls-font-400">
         {{ label }}
@@ -26,7 +26,7 @@
           <span
             class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
           >
-            <ChevronDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true"/>
+            <ChevronDownIcon aria-hidden="true" class="h-5 w-5 text-gray-400"/>
           </span>
         </ListboxButton>
 
@@ -53,11 +53,11 @@
             class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm"
           >
             <ListboxOption
-              as="template"
               v-for="option in this.options"
               :key="option.value"
-              :value="option"
               v-slot="{ active, selected }"
+              :value="option"
+              as="template"
             >
               <li
                 :class="[
@@ -81,7 +81,7 @@
                     'absolute inset-y-0 right-0 flex items-center pr-4',
                   ]"
                 >
-                  <CheckIcon class="h-5 w-5" aria-hidden="true"/>
+                  <CheckIcon aria-hidden="true" class="h-5 w-5"/>
                 </span>
               </li>
             </ListboxOption>

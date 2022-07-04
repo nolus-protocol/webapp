@@ -1,5 +1,5 @@
 <template>
-  <div class="home">
+  <div v-cloak class="home">
     <WalletConnect/>
   </div>
 </template>
@@ -11,7 +11,7 @@ import WalletConnect from '@/components/WalletConnect.vue'
 export default defineComponent({
   name: 'WelcomeView',
   components: {
-    WalletConnect
-  }
+    WalletConnect,
+  },
 })
 </script>
