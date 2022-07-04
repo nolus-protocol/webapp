@@ -1,154 +1,157 @@
 .modal {
-	&-header {
-		padding: 23px 20px 19px 40px;
-		border-bottom: 1px solid $borderColor;
-	}
-	&-send-receive {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: flex-start;
-		width: 100%;
-		height: calc(100vh - 60px);
-		border-bottom-left-radius: 0;
-		border-bottom-right-radius: 0;
-		overflow: hidden;
+  &-header {
+    padding: 23px 20px 19px 40px;
+    border-bottom: 1px solid $borderColor;
+  }
 
-		@media (min-width: $md) {
-			height: auto;
-			border-bottom-left-radius: $heavyRounded;
-			border-bottom-right-radius: $heavyRounded;
-		}
+  &-send-receive {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    height: calc(100vh - 60px);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    overflow: hidden;
 
-		&-parent {
-			@media (min-width: $md) and (orientation: landscape) {
-				overflow-x: hidden;
-				overflow-y: auto;
-				-webkit-overflow-scrolling: touch;
-				align-items: flex-start;
-				padding: 40px 0;
-			}
+    @media (min-width: $md) {
+      height: auto;
+      border-bottom-left-radius: $heavyRounded;
+      border-bottom-right-radius: $heavyRounded;
+    }
 
-			@media (min-width: $lg) {
-				align-items: center;
-			}
-		}
+    &-parent {
+      @media (min-width: $md) and (orientation: landscape) {
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        align-items: flex-start;
+        padding: 40px 0;
+      }
 
-		&-header {
-			width: 100%;
-			border-bottom: 1px solid $borderColor;
+      @media (min-width: $lg) {
+        align-items: center;
+      }
+    }
 
-			& > button {
-				display: inline-block;
-				background-color: $lightGrey;
-				color: $mediumBlue;
-				width: 50%;
-				padding: 25px 0;
-				font-size: 28px;
-				font-family: "Garet Bolder";
-				text-align: center;
+    &-header {
+      width: 100%;
+      border-bottom: 1px solid $borderColor;
 
-				&:first-of-type {
-					border-right: 1px solid $borderColor;
-				}
+      & > button {
+        display: inline-block;
+        background-color: $lightGrey;
+        color: $mediumBlue;
+        width: 50%;
+        padding: 25px 0;
+        font-size: 28px;
+        font-family: "Garet Bolder";
+        text-align: center;
 
-				&.active {
-					background-color: $white;
-					color: $textMain;
-				}
-			}
+        &:first-of-type {
+          border-right: 1px solid $borderColor;
+        }
 
-			.navigation-header {
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				padding: 25px 24px;
-				width: 100%;
-				position: relative;
+        &.active {
+          background-color: $white;
+          color: $textMain;
+        }
+      }
 
-				@media (min-width: $md) {
-					padding: 25px 40px;
-				}
+      .navigation-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 25px 24px;
+        width: 100%;
+        position: relative;
 
-				&.wrap {
-					flex-wrap: wrap;
-				}
+        @media (min-width: $md) {
+          padding: 25px 40px;
+        }
 
-				.back-arrow {
-					display: inline-block;
-					position: absolute;
-					left: 24px;
-					top: 50%;
-					transform: translateY(-50%) translateZ(0);
+        &.wrap {
+          flex-wrap: wrap;
+        }
 
-					@media (min-width: $md) {
-						left: 40px;
-					}
-				}
+        .back-arrow {
+          display: inline-block;
+          position: absolute;
+          left: 24px;
+          top: 50%;
+          transform: translateY(-50%) translateZ(0);
 
-				.success-icon {
-					background-color: $iconGreen;
-					color: $lightGreen;
-				}
+          @media (min-width: $md) {
+            left: 40px;
+          }
+        }
 
-				.error-icon {
-					background-color: $iconBackgroundRed;
-					color: $lightRed;
-				}
-			}
-		}
+        .success-icon {
+          background-color: $iconGreen;
+          color: $lightGreen;
+        }
 
-		&-input-area {
-			flex-grow: 1;
-			width: 100%;
-			padding: 40px 24px 108px;
-			overflow-x: hidden;
-			overflow-y: auto;
-			-webkit-overflow-scrolling: touch;
+        .error-icon {
+          background-color: $iconBackgroundRed;
+          color: $lightRed;
+        }
+      }
+    }
 
-			@media (min-width: $md) {
-				padding: 40px 40px 24px !important;
-			}
+    &-input-area {
+      flex-grow: 1;
+      width: 100%;
+      padding: 40px 24px 108px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
 
-			&.pt-0 {
-				padding-top: 0 !important;
-			}
-		}
+      @media (min-width: $md) {
+        padding: 40px 40px 24px !important;
+      }
 
-		&-actions {
-			width: 100%;
-			max-width: inherit;
-			position: absolute;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			bottom: 0;
-			padding: 16px 24px;
-			background-color: $white;
+      &.pt-0 {
+        padding-top: 0 !important;
+      }
+    }
 
-			@extend .shadow-box;
+    &-actions {
+      width: 100%;
+      max-width: inherit;
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      bottom: 0;
+      padding: 16px 24px;
+      background-color: $white;
 
-			button:not(.btn-auto) {
-				width: 100%;
-			}
+      @extend .shadow-box;
 
-			@media (min-width: $md) {
-				position: relative;
-				left: initial;
-				bottom: initial;
-				padding: 0 40px 40px;
-				transform: translateZ(0);
-			}
-		}
-	}
-	.nls-balance {
-		padding: 13px 12px 12px 16px;
-		a {
-			color: $brand-accent;
-		}
-	}
+      button:not(.btn-auto) {
+        width: 100%;
+      }
+
+      @media (min-width: $md) {
+        position: relative;
+        left: initial;
+        bottom: initial;
+        padding: 0 40px 40px;
+        transform: translateZ(0);
+      }
+    }
+  }
+
+  .nls-balance {
+    padding: 13px 12px 12px 16px;
+
+    a {
+      color: $brand-accent;
+    }
+  }
 }
 
 .no-border {
-	border: none;
+  border: none;
 }

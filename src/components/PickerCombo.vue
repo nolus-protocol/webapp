@@ -8,8 +8,8 @@
           class="relative nolus-combo-field w-full cursor-default overflow-hidden rounded-lg bg-white text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm"
         >
           <ComboboxInput
-            class="bg-white relative w-full pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             :displayValue="(el) => el.label || selected.label"
+            class="bg-white relative w-full pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             @change="query = $event.target.value"
             @update="(event) => (selected = event.target)"
           />
@@ -20,30 +20,30 @@
           </ComboboxButton>
         </div>
         <TransitionRoot
+          class="nolus-combo"
           leave="transition ease-in duration-100"
           leaveFrom="opacity-100"
           leaveTo="opacity-100"
           @after-leave="query = ''"
-          class="nolus-combo"
         >
           <ComboboxOptions
             class="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
           >
             <ComboboxOption
               v-for="option in formFieldModel.options"
-              as="template"
               :key="option.value"
-              :value="option"
               v-slot="{ selected }"
+              :value="option"
+              as="template"
             >
               <li class="flex justify-start">
                 <span class="icon icon-person"/>
                 <span
-                  class="block truncate"
                   :class="{
                     'color-light-electric': selected,
                     'text-primary': !selected,
                   }"
+                  class="block truncate"
                 >
                   {{ option.label }}
                 </span>

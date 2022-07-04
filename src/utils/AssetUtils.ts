@@ -10,11 +10,11 @@ export interface AssetInfo {
 }
 
 export class AssetUtils {
-  private static assetInfo (): { [key: string]: AssetInfo; } {
-    return assetInfo
-  }
-
   public static getAssetInfoByAbbr (coinAbbreviation: string): AssetInfo {
     return this.assetInfo()[coinAbbreviation] || this.assetInfo().unolus
+  }
+
+  private static assetInfo (): { [key: string]: AssetInfo; } {
+    return assetInfo
   }
 }

@@ -17,8 +17,8 @@
     <div class="editable-block-options">
       <button
         v-for="(word, index) in this.mnemonicPhrase"
-        :key="word"
         id="{{word}}"
+        :key="word"
         class="editable-block-option"
         v-on:click="onWordClick(word, index, true)"
       >
@@ -27,9 +27,9 @@
     </div>
     <div class="block mt-6">
       <button
+        :disabled="confirmMnemonicPhrase.length !== 24"
         class="btn btn-primary btn-large-primary"
         v-on:click="onClickConfirm(confirmMnemonicPhrase)"
-        :disabled="confirmMnemonicPhrase.length !== 24"
       >
         Confirm
       </button>

@@ -1,8 +1,8 @@
-import TestMe from "./test.directive";
+import TestMe from './test.directive'
 
 export default {
-  install(Vue: any) {
-    Vue.directive("test-me", TestMe);
+  install (Vue: any) {
+    Vue.directive('test-me', TestMe)
     // Vue.directive('other-directive', myOtherDirective)
-  },
-};
+  }
+}

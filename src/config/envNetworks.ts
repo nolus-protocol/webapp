@@ -1,6 +1,14 @@
 import { DEFAULT_PRIMARY_NETWORK, NetworkAddress, NETWORKS } from './env'
 
 export class EnvNetworks {
+  public static saveCurrentNetwork (networkName: string) {
+    localStorage.setItem('currentNetwork', networkName)
+  }
+
+  public static removeCurrentNetwork () {
+    localStorage.removeItem('currentNetwork')
+  }
+
   public getEnvNetworks (): string[] {
     const envNetworks = process.env.VUE_APP_NETWORKS
     if (envNetworks) {
@@ -21,13 +29,5 @@ export class EnvNetworks {
 
   public getStoredNetworkName (): string | null {
     return localStorage.getItem('currentNetwork')
-  }
-
-  public static saveCurrentNetwork (networkName: string) {
-    localStorage.setItem('currentNetwork', networkName)
-  }
-
-  public static removeCurrentNetwork () {
-    localStorage.removeItem('currentNetwork')
   }
 }

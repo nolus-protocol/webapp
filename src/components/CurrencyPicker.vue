@@ -10,10 +10,10 @@
     ]"
   >
     <Listbox
-      as="div"
       v-model="selected.value"
-      @update:modelValue="$emit('update-currency', selected.value)"
       :disabled="disabled"
+      as="div"
+      @update:modelValue="$emit('update-currency', selected.value)"
     >
       <div
         v-if="
@@ -52,7 +52,7 @@
           <span
             class="ml-3 absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
           >
-            <ChevronDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true"/>
+            <ChevronDownIcon aria-hidden="true" class="h-5 w-5 text-gray-400"/>
           </span>
         </ListboxButton>
 
@@ -79,11 +79,11 @@
             class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-56 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
           >
             <ListboxOption
-              as="template"
               v-for="option in this.options"
               :key="option.udenom"
-              :value="option"
               v-slot="{ active, selected }"
+              :value="option"
+              as="template"
             >
               <li
                 :class="[
@@ -119,7 +119,7 @@
                     'absolute inset-y-0 right-0 flex items-center pr-4',
                   ]"
                 >
-                  <CheckIcon class="h-5 w-5" aria-hidden="true"/>
+                  <CheckIcon aria-hidden="true" class="h-5 w-5"/>
                 </span>
               </li>
             </ListboxOption>

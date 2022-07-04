@@ -43,7 +43,7 @@
         >
           <!-- Ticker -->
           <div class="inline-flex items-center">
-            <imgtogglePopup height="32" class="inline-block m-0 mr-4" />
+            <imgtogglePopup class="inline-block m-0 mr-4" height="32"/>
             <div class="inline-block">
               <p
                 class="text-primary nls-14 nls-font-700 text-left uppercase m-0"
@@ -72,9 +72,9 @@
           <div class="inline-flex items-center">
             <img
               :src="require('@/assets/icons/coins/btc.svg')"
-              width="32"
-              height="32"
               class="inline-block m-0 mr-4"
+              height="32"
+              width="32"
             />
             <div class="inline-block">
               <p
@@ -103,9 +103,9 @@
           <div class="inline-flex items-center">
             <img
               :src="require('@/assets/icons/coins/nls.svg')"
-              width="32"
-              height="32"
               class="inline-block m-0 mr-4"
+              height="32"
+              width="32"
             />
             <div class="inline-block">
               <p
@@ -137,36 +137,34 @@
   </div>
 </template>
 <script lang="ts">
-import PickerDefault, {
-  PickerDefaultOption,
-} from "@/components/PickerDefault.vue";
-import { defineComponent } from "vue";
-import { EnvNetworks } from "@/config/envNetworks";
-import { useStore } from "@/store";
-import { ApplicationActionTypes } from "@/store/modules/application/action-types";
+import PickerDefault, { PickerDefaultOption } from '@/components/PickerDefault.vue'
+import { defineComponent } from 'vue'
+import { EnvNetworks } from '@/config/envNetworks'
+import { useStore } from '@/store'
+import { ApplicationActionTypes } from '@/store/modules/application/action-types'
 
 export default defineComponent({
-  name: "Notifications",
+  name: 'Notifications',
   components: {
-    PickerDefault,
+    PickerDefault
   },
-  props: ["isActive"],
-  data() {
+  props: ['isActive'],
+  data () {
     return {
-      notificationPopup: false,
+      notificationPopup: false
       // networks: [] as PickerDefaultOption[],
       // currentNetwork: {} as PickerDefaultOption,
-    };
+    }
   },
-  mounted() {
-    const envNetwork = new EnvNetworks();
+  mounted () {
+    const envNetwork = new EnvNetworks()
     // envNetwork.getEnvNetworks().forEach((network) => {
     //   (this.walletModel || {}).defaultOptions.push({
     //     label: StringUtils.capitalize(network),
     //     value: network,
     //   });
     // });
-    console.log("curr: ", envNetwork.getStoredNetworkName());
+    console.log('curr: ', envNetwork.getStoredNetworkName())
     // (this.walletModel || {}).defaultOption = {
     //   label: StringUtils.capitalize(envNetwork.getStoredNetworkName() || ""),
     //   value: envNetwork.getStoredNetworkName() || "",
@@ -174,19 +172,19 @@ export default defineComponent({
     // console.log((this.walletModel || {}).defaultOption);
   },
   methods: {
-    togglePopup() {
-      this.notificationPopup = !this.notificationPopup;
+    togglePopup () {
+      this.notificationPopup = !this.notificationPopup
     },
-    handleFocusOut() {
+    handleFocusOut () {
       //  alert("hi");
-      this.notificationPopup = false;
+      this.notificationPopup = false
     },
-    onUpdateNetwork(value: PickerDefaultOption) {
-      EnvNetworks.saveCurrentNetwork(value.value);
-      useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK);
-    },
-  },
-});
+    onUpdateNetwork (value: PickerDefaultOption) {
+      EnvNetworks.saveCurrentNetwork(value.value)
+      useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK)
+    }
+  }
+})
 </script>
 <style scoped>
 .icon-wallet {

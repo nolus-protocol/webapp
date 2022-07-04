@@ -1,17 +1,17 @@
 <template>
   <div
-    class="lg:container w-full lg:grid lg:grid-cols-12 mx-auto grid-parent md-nls-px-25 sm-nls-0 body"
     v-cloak
+    class="lg:container w-full lg:grid lg:grid-cols-12 mx-auto grid-parent md-nls-px-25 sm-nls-0 body"
   >
     <div class="lg:col-span-3">
-      <SidebarContainer />
+      <SidebarContainer/>
     </div>
     <div class="lg:col-span-9 pb-8">
       <div class="grid grid-cols-10 grid-child">
         <div class="col-span-12 mt-nolus-60">
           <div class="col-span-12">
             <div class="sidebar-header">
-              <SidebarHeader />
+              <SidebarHeader/>
             </div>
           </div>
         </div>
@@ -72,9 +72,9 @@
                       <div class="inline-flex items-center">
                         <img
                           :src="require('@/assets/icons/coins/btc.svg')"
-                          width="32"
-                          height="32"
                           class="inline-block m-0 mr-4"
+                          height="32"
+                          width="32"
                         />
                         <div class="inline-block">
                           <p
@@ -127,9 +127,9 @@
                       <div class="inline-flex items-center">
                         <img
                           :src="require('@/assets/icons/coins/nls.svg')"
-                          width="32"
-                          height="32"
                           class="inline-block m-0 mr-4"
+                          height="32"
+                          width="32"
                         />
                         <div class="inline-block">
                           <p
@@ -182,9 +182,9 @@
                       <div class="inline-flex items-center">
                         <img
                           :src="require('@/assets/icons/coins/atom.svg')"
-                          width="32"
-                          height="32"
                           class="inline-block m-0 mr-4"
+                          height="32"
+                          width="32"
                         />
                         <div class="inline-block">
                           <p
@@ -260,9 +260,9 @@
                       <div class="inline-flex items-center">
                         <img
                           :src="require('@/assets/icons/coins/btc.svg')"
-                          width="32"
-                          height="32"
                           class="inline-block m-0 mr-4"
+                          height="32"
+                          width="32"
                         />
                         <div class="inline-block">
                           <p
@@ -302,9 +302,9 @@
                       <div class="inline-flex items-center">
                         <img
                           :src="require('@/assets/icons/coins/btc.svg')"
-                          width="32"
-                          height="32"
                           class="inline-block m-0 mr-4"
+                          height="32"
+                          width="32"
                         />
                         <div class="inline-block">
                           <p
@@ -344,9 +344,9 @@
                       <div class="inline-flex items-center">
                         <img
                           :src="require('@/assets/icons/coins/btc.svg')"
-                          width="32"
-                          height="32"
                           class="inline-block m-0 mr-4"
+                          height="32"
+                          width="32"
                         />
                         <div class="inline-block">
                           <p
@@ -390,23 +390,23 @@
     </div>
 
     <ReceiveSendModal
-      ref="ReceiveSendModal"
       v-show="showSendModal"
+      ref="ReceiveSendModal"
       @close-modal="showSendModal = false"
     />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import SidebarContainer from "@/components/SidebarContainer.vue";
-import AssetPartial from "@/components/AssetPartial.vue";
-import Notifications from "@/components/Notifications.vue";
-import WalletOpen from "@/components/WalletOpen.vue";
-import SidebarHeader from "@/components/Sideheader.vue";
+import { defineComponent } from 'vue'
+import SidebarContainer from '@/components/SidebarContainer.vue'
+import AssetPartial from '@/components/AssetPartial.vue'
+import Notifications from '@/components/Notifications.vue'
+import WalletOpen from '@/components/WalletOpen.vue'
+import SidebarHeader from '@/components/Sideheader.vue'
 
 export default defineComponent({
-  name: "EarningsView",
+  name: 'EarningsView',
   components: {
     SidebarContainer,
     AssetPartial,
@@ -414,11 +414,11 @@ export default defineComponent({
     WalletOpen,
     SidebarHeader,
   },
-  data() {
+  data () {
     return {
       cols: 2 as number,
-    };
+    }
   },
-});
+})
 </script>
 <style scoped></style>

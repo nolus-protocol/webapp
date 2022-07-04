@@ -44,18 +44,17 @@
   </div>
 </template>
 <script type="ts">
-import LogoLink from '@/components/LogoLink.vue';
-import SidebarElement from '@/components/SidebarElement.vue';
-import SidebarSocialElement from '@/components/SidebarSocialElement.vue';
-import SidebarLinkElement from '@/components/SidebarLinkElement.vue';
+import LogoLink from '@/components/LogoLink.vue'
+import SidebarElement from '@/components/SidebarElement.vue'
+import SidebarSocialElement from '@/components/SidebarSocialElement.vue'
+import SidebarLinkElement from '@/components/SidebarLinkElement.vue'
 import {
   DISCORD_ACCOUNT,
   LINKEDIN_ACCOUNT,
-  MEDIUM_ACCOUNT,
   REDDIT_ACCOUNT,
   TELEGRAM_ACCOUNT,
   TWITTER_ACCOUNT
-} from '@/constants/webapp';
+} from '@/constants/webapp'
 
 export default {
   name: 'SidebarContainer',
@@ -63,7 +62,7 @@ export default {
     LogoLink,
     SidebarElement,
     SidebarSocialElement,
-    SidebarLinkElement,
+    SidebarLinkElement
   },
   props: [],
   data () {
@@ -71,13 +70,12 @@ export default {
       showWalletPopup: false,
       TWITTER_ACCOUNT: TWITTER_ACCOUNT,
       TELEGRAM_ACCOUNT: TELEGRAM_ACCOUNT,
-      //MEDIUM_ACCOUNT: rou,
+      // MEDIUM_ACCOUNT: rou,
       REDDIT_ACCOUNT: REDDIT_ACCOUNT,
       LINKEDIN_ACCOUNT: LINKEDIN_ACCOUNT,
       DISCORD_ACCOUNT: DISCORD_ACCOUNT
     }
-  },
-
+  }
 
 }
 </script>

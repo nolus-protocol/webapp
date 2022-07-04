@@ -1,10 +1,10 @@
 .shadow {
 
-    &-box {
-        box-shadow: 0 8px 32px 0 $shadowBoxColor;
-    }
+  &-box {
+    box-shadow: 0 8px 32px 0 $shadowBoxColor;
+  }
 
-    &-modal {
-        box-shadow: 0 8px 48px 0 $shadowModalColor;
-    }
+  &-modal {
+    box-shadow: 0 8px 48px 0 $shadowModalColor;
+  }
 }

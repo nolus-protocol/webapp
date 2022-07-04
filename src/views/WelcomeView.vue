@@ -1,17 +1,17 @@
 <template>
-  <div class="home" v-cloak>
-    <WalletConnect />
+  <div v-cloak class="home">
+    <WalletConnect/>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import WalletConnect from "@/components/WalletConnect.vue";
+import { defineComponent } from 'vue'
+import WalletConnect from '@/components/WalletConnect.vue'
 
 export default defineComponent({
-  name: "WelcomeView",
+  name: 'WelcomeView',
   components: {
     WalletConnect,
   },
-});
+})
 </script>

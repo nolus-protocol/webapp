@@ -10,9 +10,9 @@
       <img
         v-if="this.assetInfo.coinIcon"
         :src="require('@/assets/icons/coins/' + this.assetInfo.coinIcon)"
-        width="32"
-        height="32"
         class="inline-block m-0 mr-4"
+        height="32"
+        width="32"
       />
       <div class="inline-block">
         <p class="text-primary nls-font-500 nls-18 text-left uppercase m-0">

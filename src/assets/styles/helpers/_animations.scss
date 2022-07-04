@@ -1,51 +1,56 @@
 @keyframes slide-fade-bottom {
-	0% {
-		opacity: 1;
-		transform: translateY(20px);
-	}
-	100% {
-		opacity: 1;
-		transform: none;
-	}
+  0% {
+    opacity: 1;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 [class^="icon-"] {
-	font-size: 1.8em !important;
+  font-size: 1.8em !important;
 }
+
 .nls-btn-show {
-	display: none;
-	transition: 0.2s;
+  display: none;
+  transition: 0.2s;
 }
 
 .row-actions:hover .nls-btn-show {
-	transition: 0.2s;
+  transition: 0.2s;
 
-	display: flex;
-	animation-name: show-anime;
-	animation-duration: 0.2s;
-	animation-iteration-count: 1;
-	animation-timing-function: ease-in;
+  display: flex;
+  animation-name: show-anime;
+  animation-duration: 0.2s;
+  animation-iteration-count: 1;
+  animation-timing-function: ease-in;
 }
+
 .info-show {
-	animation-name: show-anime;
-	animation-duration: 0.2s;
-	animation-iteration-count: 1;
-	animation-timing-function: ease-in;
-	transition: 0.2s;
+  animation-name: show-anime;
+  animation-duration: 0.2s;
+  animation-iteration-count: 1;
+  animation-timing-function: ease-in;
+  transition: 0.2s;
 }
+
 .row-actions:hover .info-show {
-	display: none;
+  display: none;
 }
+
 @keyframes show-anime {
-	0% {
-		display: none;
-		opacity: 0;
-	}
-	100% {
-		opacity: 1;
-		display: flex;
-	}
+  0% {
+    display: none;
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+    display: flex;
+  }
 }
+
 // @-moz-keyframes slide-fade-bottom {
 // 	0% {
 // 		opacity: 0;
@@ -80,64 +85,73 @@
 // }
 
 .ease-2 {
-	transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
+  transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
 }
+
 .duration-3 {
-	transition-duration: 0.5s;
+  transition-duration: 0.5s;
 }
+
 .transition {
-	transition-property: color, background-color, border-color, fill, stroke,
-		opacity, box-shadow, transform, filter, -webkit-text-decoration-color,
-		-webkit-backdrop-filter;
-	transition-property: color, background-color, border-color,
-		text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter,
-		backdrop-filter;
-	transition-property: color, background-color, border-color,
-		text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter,
-		backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;
+  transition-property: color, background-color, border-color, fill, stroke,
+  opacity, box-shadow, transform, filter, -webkit-text-decoration-color,
+  -webkit-backdrop-filter;
+  transition-property: color, background-color, border-color,
+  text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter,
+  backdrop-filter;
+  transition-property: color, background-color, border-color,
+  text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter,
+  backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;
 }
+
 .shadow-1,
 .shadow-navbar-icon {
-	box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000),
-		var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000),
+  var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
+
 .c-navbar-qr__container,
 .c-navbar-wallet__container {
-	//	display: none;
+  //	display: none;
 }
+
 .show-box-pop {
-	position: relative;
+  position: relative;
 }
+
 .c-navbar-wallet__container {
-	//	display: none;
+  //	display: none;
 }
+
 .c-navbar-qr__container,
 .c-navbar-wallet__container {
-	border-radius: $rounded;
-	display: block;
-	transition-duration: 0.3s;
-	transition-property: color, background-color, border-color,
-		text-decoration-color, fill, stroke, -webkit-text-decoration-color;
-	transition-timing-function: ease;
-	-webkit-animation-duration: 0.75s;
-	animation-duration: 0.75s;
-	-webkit-animation-fill-mode: backwards;
-	animation-fill-mode: backwards;
-	-webkit-animation-name: slide-fade-bottom;
-	animation-name: slide-fade-bottom;
-	-webkit-animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
-	animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
+  border-radius: $rounded;
+  display: block;
+  transition-duration: 0.3s;
+  transition-property: color, background-color, border-color,
+  text-decoration-color, fill, stroke, -webkit-text-decoration-color;
+  transition-timing-function: ease;
+  -webkit-animation-duration: 0.75s;
+  animation-duration: 0.75s;
+  -webkit-animation-fill-mode: backwards;
+  animation-fill-mode: backwards;
+  -webkit-animation-name: slide-fade-bottom;
+  animation-name: slide-fade-bottom;
+  -webkit-animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
+  animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
 }
 
 .show-box-wallet:hover,
 .show-box-wallet:focus-within {
-	.radius-top-left {
-		border-top-left-radius: 6px;
-	}
-	.radius-bottom-left {
-		border-bottom-left-radius: 6px;
-	}
+  .radius-top-left {
+    border-top-left-radius: 6px;
+  }
+
+  .radius-bottom-left {
+    border-bottom-left-radius: 6px;
+  }
 }
+
 // .c-navbar-wallet__container. {
 // 	opacity: 1;
 // 	transition-duration: 0.3s;
@@ -174,5 +188,5 @@
 // 	transform: translateY(1rem);
 // }
 .top-full {
-	top: 100%;
+  top: 100%;
 }

@@ -1,11 +1,11 @@
 <template>
   <a
     :id="this.id"
-    :href="this.href"
     :class="[
       'sidebar-element',
       this.$route.path == this.href ? 'active' : false,
     ]"
+    :href="this.href"
   >
     <span :class="['icon', `icon-${this.label.toLowerCase()}`]"></span>
     <!-- <span class="icon" :class="`icon-${this.label}`"></span> -->
@@ -29,6 +29,7 @@ export default {
 <style scoped>
 [class^="icon-"] {
 }
+
 [class^="icon-"]:before,
 [class*=" icon-"]:before {
   font-family: "nolus";

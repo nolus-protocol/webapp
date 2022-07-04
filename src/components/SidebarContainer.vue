@@ -1,5 +1,5 @@
 <template>
-  <div class="sidebar-container" :class="showMobileNav ? 'mobile-nav' : false">
+  <div :class="showMobileNav ? 'mobile-nav' : false" class="sidebar-container">
     <div class="top">
       <LogoLink link="/"></LogoLink>
 
@@ -11,51 +11,51 @@
 					transform: translateY(0);
 					padding: 24px; -->
         <div
-          class="lg:hidden"
           :style="
             showMobileNav
               ? 'z-index:5; background-color: #fff;box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15); transform: translateY(0)'
               : false
           "
+          class="lg:hidden"
         >
           <div
             class="nls-nav-link flex flex-start nls-md-flex-row mb-nolus-30 mt-nolus-22"
           >
             <SidebarElement
               id="history"
-              v-on:click="pushToHistory"
-              label="History"
               href="/history"
+              label="History"
+              v-on:click="pushToHistory"
             >
             </SidebarElement>
           </div>
           <div class="nls-md-show mb-nolus-24">
-            <SidebarSocial />
+            <SidebarSocial/>
           </div>
         </div>
 
         <div class="md:flex md:justify-between sidebar-elements-block lg:block">
           <div class="block nls-nav-link">
-            <SidebarElement id="assets" label="Assets" href="/">
+            <SidebarElement id="assets" href="/" label="Assets">
             </SidebarElement>
           </div>
           <div class="block nls-nav-link">
             <SidebarElement
               id="lease"
-              v-on:click="pushToLease"
-              label="Lease"
               href="/lease"
+              label="Lease"
+              v-on:click="pushToLease"
             >
             </SidebarElement>
           </div>
           <div class="block nls-nav-link">
-            <SidebarElement id="trade" href="#" label="Trade"> </SidebarElement>
+            <SidebarElement id="trade" href="#" label="Trade"></SidebarElement>
           </div>
           <div class="block nls-nav-link">
             <SidebarElement
               id="earn"
-              label="Earn"
               href="/earn"
+              label="Earn"
               v-on:click="pushToEarn"
             >
             </SidebarElement>
@@ -63,9 +63,9 @@
           <div class="block nls-nav-link nls-md-hidden">
             <SidebarElement
               id="history"
-              v-on:click="pushToHistory"
-              label="History"
               href="/history"
+              label="History"
+              v-on:click="pushToHistory"
             >
             </SidebarElement>
           </div>
@@ -73,26 +73,26 @@
           <div class="block nls-nav-link nls-md-show">
             <SidebarElement
               id="more"
-              v-on:click="showMobileNav = !showMobileNav"
               label="More"
+              v-on:click="showMobileNav = !showMobileNav"
             >
             </SidebarElement>
           </div>
         </div>
       </div>
     </div>
-    <SidebarSocial />
+    <SidebarSocial/>
     <div class="backdrop"></div>
   </div>
 </template>
 <script type="ts">
-import LogoLink from '@/components/LogoLink.vue';
-import SidebarElement from '@/components/SidebarElement.vue';
-import SidebarSocialElement from '@/components/SidebarSocialElement.vue';
-import SidebarLinkElement from '@/components/SidebarLinkElement.vue';
-import WalletOpen from "@/components/WalletOpen.vue";
-import SidebarSocial from "@/components/SidebarSocial.vue";
-import { BellIcon } from '@heroicons/vue/solid';
+import LogoLink from '@/components/LogoLink.vue'
+import SidebarElement from '@/components/SidebarElement.vue'
+import SidebarSocialElement from '@/components/SidebarSocialElement.vue'
+import SidebarLinkElement from '@/components/SidebarLinkElement.vue'
+import WalletOpen from '@/components/WalletOpen.vue'
+import SidebarSocial from '@/components/SidebarSocial.vue'
+import { BellIcon } from '@heroicons/vue/solid'
 import {
   DISCORD_ACCOUNT,
   LINKEDIN_ACCOUNT,

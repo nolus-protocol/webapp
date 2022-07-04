@@ -1,11 +1,11 @@
 <template>
   <h1 class="text-to-big-number text-primary text-center relative">
     <button
+      class="inline-block align-baseline absolute left-0 top-2/4 -mt-2.5"
       type="button"
       v-on:click="clickBack"
-      class="inline-block align-baseline absolute left-0 top-2/4 -mt-2.5"
     >
-      <ArrowLeftIcon class="h-5 w-5" aria-hidden="true" />
+      <ArrowLeftIcon aria-hidden="true" class="h-5 w-5"/>
     </button>
     <span class="inline-block align-baseline"> Connecting to Kepler </span>
   </h1>
@@ -22,8 +22,8 @@
       </button>
 
       <button
-        v-on:click="clickBack"
         class="btn btn-secondary btn-large-secondary"
+        v-on:click="clickBack"
       >
         Cancel
       </button>

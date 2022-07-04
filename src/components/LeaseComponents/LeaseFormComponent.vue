@@ -4,36 +4,36 @@
     <div class="block text-left">
       <div class="block">
         <CurrencyField
-          name="amountInvestment"
           id="amount-investment"
-          label="How much do you want to invest?"
-          :value="modelValue.downPayment"
-          :step="'1'"
-          @input="(event) => (modelValue.downPayment = event.target.value)"
           :currency-options="modelValue.currentBalance"
+          :error-msg="modelValue.downPaymentErrorMsg"
+          :is-error="modelValue.downPaymentErrorMsg !== ''"
           :option="modelValue.selectedDownPaymentCurrency"
+          :step="'1'"
+          :value="modelValue.downPayment"
+          label="How much do you want to invest?"
+          name="amountInvestment"
+          @input="(event) => (modelValue.downPayment = event.target.value)"
           @update-currency="
             (event) => (modelValue.selectedDownPaymentCurrency = event)
           "
-          :error-msg="modelValue.downPaymentErrorMsg"
-          :is-error="modelValue.downPaymentErrorMsg !== ''"
         />
       </div>
 
       <div class="block mt-nolus-255">
         <CurrencyField
-          name="amountInterest"
           id="amount-interest"
-          label="Get up to:"
-          :value="modelValue.amount"
-          @input="(event) => (modelValue.amount = event.target.value)"
           :currency-options="modelValue.currentBalance"
-          :option="modelValue.selectedCurrency"
-          @update-currency="(event) => (modelValue.selectedCurrency = event)"
-          :error-msg="modelValue.amountErrorMsg"
-          :is-error="modelValue.amountErrorMsg !== ''"
           :disabled-currency-picker="true"
           :disabled-input-field="disabledInputField"
+          :error-msg="modelValue.amountErrorMsg"
+          :is-error="modelValue.amountErrorMsg !== ''"
+          :option="modelValue.selectedCurrency"
+          :value="modelValue.amount"
+          label="Get up to:"
+          name="amountInterest"
+          @input="(event) => (modelValue.amount = event.target.value)"
+          @update-currency="(event) => (modelValue.selectedCurrency = event)"
         />
       </div>
     </div>
@@ -55,9 +55,9 @@
           {{ calculateLeaseAmount }}
           <img
             :src="require('@/assets/icons/tooltip.svg')"
-            width="12"
-            height="12"
             class="inline-block m-0 ml-1"
+            height="12"
+            width="12"
           />
         </span>
       </p>
@@ -72,9 +72,9 @@
           {{ this.annualInterestRate }}
           <img
             :src="require('@/assets/icons/tooltip.svg')"
-            width="12"
-            height="12"
             class="inline-block m-0 ml-1"
+            height="12"
+            width="12"
           />
         </span>
       </p>
@@ -86,9 +86,9 @@
           $18,585.00
           <img
             :src="require('@/assets/icons/tooltip.svg')"
-            width="12"
-            height="12"
             class="inline-block m-0 ml-1"
+            height="12"
+            width="12"
           />
         </span>
       </p>

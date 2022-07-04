@@ -6,7 +6,7 @@
     >
       Current balance:
 
-      <a href="#" class="text-secondary nls-font-700 underline ml-2">
+      <a class="text-secondary nls-font-700 underline ml-2" href="#">
         {{ formatCurrentBalance(modelValue.currentBalance) }}
       </a>
     </div>
@@ -14,43 +14,43 @@
     <div class="block text-left">
       <div class="block mt-nolus-255">
         <CurrencyField
-          name="amount"
           id="amount"
-          label="Amount"
-          :value="modelValue.amount"
-          @input="(event) => (modelValue.amount = event.target.value)"
           :currency-options="modelValue.currentBalance"
-          :option="modelValue.selectedCurrency"
-          @update-currency="onUpdateCurrency"
           :disabled-currency-picker="true"
           :error-msg="modelValue.amountErrorMsg"
           :is-error="modelValue.amountErrorMsg !== ''"
+          :option="modelValue.selectedCurrency"
+          :value="modelValue.amount"
+          label="Amount"
+          name="amount"
+          @input="(event) => (modelValue.amount = event.target.value)"
+          @update-currency="onUpdateCurrency"
         />
       </div>
 
       <div class="block mt-nolus-255">
         <PickerDefault
-          label="Network"
           :default-option="{ label: 'NLS', value: 'NLS' }"
+          :disabled="true"
           :options="[
             { value: 'NLS', label: 'NLS' },
             { value: 'ETH', label: 'ETH' },
             { value: 'BTC', label: 'BTC' },
           ]"
-          :disabled="true"
+          label="Network"
         ></PickerDefault>
       </div>
 
       <div class="block mt-nolus-255">
         <InputField
-          type="text"
-          name="sendTo"
           id="sendTo"
-          label="Send to"
-          :value="modelValue.receiverAddress"
-          @input="(event) => (modelValue.receiverAddress = event.target.value)"
           :error-msg="modelValue.receiverErrorMsg"
           :is-error="modelValue.receiverErrorMsg !== ''"
+          :value="modelValue.receiverAddress"
+          label="Send to"
+          name="sendTo"
+          type="text"
+          @input="(event) => (modelValue.receiverAddress = event.target.value)"
         />
         <!--    <PickerCombo
           name="sendTo"
@@ -63,11 +63,11 @@
 
       <div class="block mt-nolus-255">
         <InputField
-          type="text"
-          name="memo"
           id="memo"
-          label="Memo (optional)"
           :value="modelValue.memo"
+          label="Memo (optional)"
+          name="memo"
+          type="text"
           @input="(event) => (modelValue.memo = event.target.value)"
         ></InputField>
 
