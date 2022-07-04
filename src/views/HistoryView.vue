@@ -67,7 +67,6 @@
                   class="grid grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6"
                   v-for="transaction in this.transactions"
                   :key="transaction.id"
-                  class="grid grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6"
                 >
                   <div
                     class="hidden col-span-2 lg:block nls-14 nls-font-400 text-primary text-left"
@@ -124,8 +123,6 @@ import { StringUtils } from '@/utils/StringUtils'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { ChainConstants, CurrencyUtils } from '@nolus/nolusjs'
-import Notifications from '@/components/Notifications.vue'
-import WalletOpen from '@/components/WalletOpen.vue'
 import SidebarHeader from '@/components/Sideheader.vue'
 
 interface ITransaction {
@@ -141,20 +138,18 @@ export default defineComponent({
   name: 'HistoryView',
   components: {
     SidebarContainer,
-    Notifications,
-    WalletOpen,
-    SidebarHeader,
+    SidebarHeader
   },
   data () {
     return {
-      transactions: [] as ITransaction[],
+      transactions: [] as ITransaction[]
     }
   },
   watch: {
     '$store.state.wallet.wallet' () {
       this.getTransactions()
       console.log('FROM HISTORY', this.transactions)
-    },
+    }
   },
   mounted () {
     this.getTransactions()
@@ -178,7 +173,7 @@ export default defineComponent({
             fee:
               decodedTx?.authInfo?.fee?.amount.filter(
                 (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
-              ) || null,
+              ) || null
           }
           this.transactions.push(transactionResult)
         })
@@ -194,7 +189,7 @@ export default defineComponent({
     },
     capitalize (value: string) {
       return StringUtils.capitalize(value)
-    },
-  },
+    }
+  }
 })
 </script>

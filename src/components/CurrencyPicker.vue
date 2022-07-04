@@ -83,7 +83,6 @@
               :key="option.balance.denom"
               :value="option"
               v-slot="{ active, selected }"
-              :value="option"
               as="template"
             >
               <li
