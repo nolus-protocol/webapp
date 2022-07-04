@@ -8,9 +8,7 @@
         <div class="col-span-12 mt-nolus-60">
           <div class="col-span-12">
             <div class="sidebar-header">
-              <!-- <Notifications /> -->
-              <Notifications/>
-              <WalletOpen/>
+              <SidebarHeader/>
             </div>
           </div>
         </div>
@@ -49,7 +47,6 @@
     </div>
   </div>
   <LeaseModal v-show="showSendModal" @close-modal="showSendModal = false"/>
-  <RepayModal v-show="showRepayModal" @close-modal="showRepayModal = false"/>
 </template>
 
 <script lang="ts">
@@ -62,6 +59,7 @@ import { WalletManager } from '@/config/wallet'
 import RepayModal from '@/components/modals/RepayModal.vue'
 import { LeaseData } from '@/types/LeaseData'
 import LeaseInfo from '@/components/LeaseInfo.vue'
+import SidebarHeader from '@/components/Sideheader.vue'
 
 export default defineComponent({
   name: 'LeaseView',
@@ -69,7 +67,8 @@ export default defineComponent({
     LeaseModal,
     RepayModal,
     LeaseInfo,
-    SidebarContainer
+    SidebarContainer,
+    SidebarHeader,
   },
   data () {
     return {
@@ -91,6 +90,6 @@ export default defineComponent({
         leaseStatus: leaseInfo
       })
     }
-  }
+  },
 })
 </script>

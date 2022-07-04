@@ -2,11 +2,11 @@
   <div v-if="isCreateFormOpen" class="">
     <h1 class="text-to-big-number text-primary text-center relative">
       <button
-        v-on:click="clickBack"
-        type="button"
         class="inline-block align-baseline absolute left-0 top-2/4 -mt-2.5"
+        type="button"
+        v-on:click="clickBack"
       >
-        <ArrowLeftIcon class="h-5 w-5" aria-hidden="true" />
+        <ArrowLeftIcon aria-hidden="true" class="h-5 w-5"/>
       </button>
       <span class="inline-block align-baseline"> Create account </span>
     </h1>
@@ -23,16 +23,16 @@
       ></TextFieldButtons> -->
 
       <TextFieldButtons
-        name="mnemonicSeed"
         id="mnemonicSeed"
-        label="Mnemonic seed"
-        :value="mnemonic"
         :on-click-copy="onClickCopy"
         :on-click-print="onClickPrint"
+        :value="mnemonic"
+        label="Mnemonic seed"
+        name="mnemonicSeed"
       ></TextFieldButtons>
       <div class="flex rounded p-4 warning-box mt-6">
         <div class="inline-block mr-2">
-          <img src="@/assets/icons/warning.svg" />
+          <img src="@/assets/icons/warning.svg"/>
         </div>
         <div class="inline-block flex-1">
           <p class="text-primary nls-font-700 nls-14 nls-font-400">
@@ -62,13 +62,13 @@
       <!--      </div>-->
 
       <div class="block mt-6 w-full">
-        <DynamicForm :formValue="formDataCredentialsModel" />
+        <DynamicForm :formValue="formDataCredentialsModel"/>
       </div>
 
       <div class="block mt-6 sm:color-white">
         <button
-          v-on:click="btnContinueToConfirm"
           class="btn btn-primary btn-large-primary sm:w-full"
+          v-on:click="btnContinueToConfirm"
         >
           Continue
         </button>
@@ -80,13 +80,13 @@
       class="text-to-big-number text-primary text-center relative max-w-[516px]"
     >
       <button
-        type="button"
         class="inline-block align-baseline absolute left-0 top-2/4 -mt-2.5"
+        type="button"
       >
         <ArrowLeftIcon
-          v-on:click="btnBackToCreateMnemonic"
-          class="h-5 w-5"
           aria-hidden="true"
+          class="h-5 w-5"
+          v-on:click="btnBackToCreateMnemonic"
         />
       </button>
       <span class="inline-block align-baseline"> Confirm mnemonic </span>
@@ -97,11 +97,11 @@
     >
       <SelectorTextField
         id="confirm-mnemonic"
-        label="Confirm mnemonic seed"
-        :is-error="confirmScreenErrorMsg !== ''"
         :error-msg="confirmScreenErrorMsgx"
-        :values="mnemonicWords"
+        :is-error="confirmScreenErrorMsg !== ''"
         :on-click-confirm="onClickConfirmMnemonic"
+        :values="mnemonicWords"
+        label="Confirm mnemonic seed"
       ></SelectorTextField>
     </div>
   </div>

@@ -1,9 +1,8 @@
 <template>
-  <router-view/>
+  <router-view v-cloak/>
 </template>
 
 <script lang="ts">
-
 import { ComponentPublicInstance } from 'vue'
 import { WalletManager } from '@/config/wallet'
 import { useStore } from '@/store'
@@ -22,7 +21,6 @@ export default {
     console.log('errorCaptured: ', err)
   },
   validations () {
-
   },
   async mounted () {
     useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK)
@@ -37,6 +35,6 @@ export default {
   },
   data () {
     return {}
-  }
+  },
 }
 </script>

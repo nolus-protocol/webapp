@@ -1,15 +1,19 @@
-<svg id="Group_1368" data-name="Group 1368" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-  <defs>
-    <style>
-      .cls-1 {
-        fill: #072d63;
-      }
+<svg id="Group_1368" data-name="Group 1368" xmlns="http://www.w3.org/2000/svg" width="32" height="32"
+     viewBox="0 0 32 32">
+    <defs>
+        <style>
+            .cls-1 {
+            fill: #072d63;
+            }
 
-      .cls-2 {
-        fill: #fff;
-      }
-    </style>
-  </defs>
-  <path id="Path_327" data-name="Path 327" class="cls-1" d="M25.6,0H6.4A6.4,6.4,0,0,0,0,6.4V25.6A6.4,6.4,0,0,0,6.4,32H25.6A6.4,6.4,0,0,0,32,25.6V6.4A6.4,6.4,0,0,0,25.6,0Z"/>
-  <path id="Path_328" data-name="Path 328" class="cls-2" d="M29.693,37.778V28.687l9.752,9.091h5.425v-.235L33.654,27.192l10.351-9.824V17.25H38.547l-8.853,8.681V17.25H25.3V37.778Z" transform="translate(-18.663 -11.514)"/>
+            .cls-2 {
+            fill: #fff;
+            }
+        </style>
+    </defs>
+    <path id="Path_327" data-name="Path 327" class="cls-1"
+          d="M25.6,0H6.4A6.4,6.4,0,0,0,0,6.4V25.6A6.4,6.4,0,0,0,6.4,32H25.6A6.4,6.4,0,0,0,32,25.6V6.4A6.4,6.4,0,0,0,25.6,0Z"/>
+    <path id="Path_328" data-name="Path 328" class="cls-2"
+          d="M29.693,37.778V28.687l9.752,9.091h5.425v-.235L33.654,27.192l10.351-9.824V17.25H38.547l-8.853,8.681V17.25H25.3V37.778Z"
+          transform="translate(-18.663 -11.514)"/>
 </svg>

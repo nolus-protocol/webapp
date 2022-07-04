@@ -1,5 +1,8 @@
 <template>
-  <div class="container w-full grid grid-cols-12 mx-auto grid-parent">
+  <div
+    v-cloak
+    class="lg:container w-full lg:grid lg:grid-cols-12 mx-auto grid-parent md-nls-px-25 sm-nls-0 body"
+  >
     <div class="lg:col-span-3">
       <SidebarContainer/>
     </div>
@@ -8,16 +11,16 @@
         <div class="col-span-12 mt-nolus-60">
           <div class="col-span-12">
             <div class="sidebar-header">
-              <!-- <Notifications /> -->
-              <Notifications/>
-              <WalletOpen/>
+              <SidebarHeader/>
             </div>
           </div>
         </div>
         <div class="col-span-12">
           <!-- Header -->
-          <div class="flex flex-wrap items-center justify-between px-4 lg:px-0">
-            <div class="left w-full md:w-1/2">
+          <div
+            class="table-header flex mt-nolus-255 flex-wrap items-center justify-between items-baseline lg:px-0"
+          >
+            <div class="left">
               <h1 class="nls-20 nls-font-700 text-primary m-0">History</h1>
             </div>
           </div>
@@ -29,15 +32,15 @@
             <div class="block md:mt-4">
               <!-- Assets Header -->
               <div
-                class="hidden md:grid lg:grid-cols-12 flex items-center gap-6 border-b border-standart pb-3 px-6"
+                class="nls-md-hidden md:grid lg:grid-cols-12 flex items-center gap-6 border-b border-standart pb-3 px-6"
               >
                 <div
-                  class="hidden col-span-2 lg:block nls-font-500 nls-12 text-dark-grey text-left text-upper"
+                  class="nls-md-hidden col-span-2 lg:block nls-font-500 nls-12 text-dark-grey text-left text-upper"
                 >
                   ID
                 </div>
                 <div
-                  class="hidden col-span-2 md:block nls-font-500 nls-12 text-dark-grey text-left text-upper"
+                  class="nls-md-hidden col-span-2 md:block nls-font-500 nls-12 text-dark-grey text-left text-upper"
                 >
                   Type
                 </div>
@@ -47,12 +50,12 @@
                   <span class="inline-block">Action</span>
                 </div>
                 <div
-                  class="hidden md:flex col-span-2 items-center justify-end nls-font-500 nls-12 text-dark-grey text-right text-upper"
+                  class="md:flex col-span-2 items-center justify-end nls-font-500 nls-12 text-dark-grey text-right text-upper"
                 >
                   <span class="inline-block">Fee</span>
                 </div>
                 <div
-                  class="hidden md:flex col-span-2 items-center justify-end nls-font-500 nls-12 text-dark-grey text-right text-upper"
+                  class="md:flex col-span-2 items-center justify-end nls-font-500 nls-12 text-dark-grey text-right text-upper"
                 >
                   <span class="inline-block">Time</span>
                 </div>
@@ -70,9 +73,11 @@
                   >
                     {{ truncateString(transaction.id) }}
                   </div>
-                  <div class="hidden col-span-2 md:block text-left">
+                  <div
+                    class="nls-md-hidden hidden col-span-2 md:block text-left"
+                  >
                     <span
-                      class="inline-block py-1 px-2 text-patch nls-font-500 nls-12 text-primary radius-pill"
+                      class="nls-md-hidden inline-block py-1 px-2 text-patch nls-font-500 nls-12 text-primary radius-pill"
                     >
                       {{ capitalize(transaction.action) }}
                     </span>
@@ -104,8 +109,8 @@
     </div>
   </div>
   <ReceiveSendModal
-    ref="ReceiveSendModal"
     v-show="showSendModal"
+    ref="ReceiveSendModal"
     @close-modal="showSendModal = false"
   />
 </template>
@@ -118,8 +123,7 @@ import { StringUtils } from '@/utils/StringUtils'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { ChainConstants, CurrencyUtils } from '@nolus/nolusjs'
-import Notifications from '@/components/Notifications.vue'
-import WalletOpen from '@/components/WalletOpen.vue'
+import SidebarHeader from '@/components/Sideheader.vue'
 
 interface ITransaction {
   id: string;
@@ -134,8 +138,7 @@ export default defineComponent({
   name: 'HistoryView',
   components: {
     SidebarContainer,
-    Notifications,
-    WalletOpen
+    SidebarHeader
   },
   data () {
     return {

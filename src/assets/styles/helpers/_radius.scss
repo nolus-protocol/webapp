@@ -1,33 +1,33 @@
 .radius {
 
-    &-circle {
-        border-radius: $circle;
-    }
+  &-circle {
+    border-radius: $circle;
+  }
 
-    &-modal {
-        border-radius: $heavyRounded;
-    }
+  &-modal {
+    border-radius: $heavyRounded;
+  }
 
-    &-light {
-        border-radius: $lightRounded;
-    }
+  &-light {
+    border-radius: $lightRounded;
+  }
 
-    &-medium {
-        border-radius: $mediumRounded;
-    }
+  &-medium {
+    border-radius: $mediumRounded;
+  }
 
-    &-rounded {
-        border-radius: $rounded;
-    }
+  &-rounded {
+    border-radius: $rounded;
+  }
 
-    &-pill {
-        border-radius: $pill;
-    }
+  &-pill {
+    border-radius: $pill;
+  }
 
-    &-0-sm {
-        
-        @media (max-width: $md) {
-            border-radius: 0 !important;
-        }
+  &-0-sm {
+
+    @media (max-width: $md) {
+      border-radius: 0 !important;
     }
+  }
 }

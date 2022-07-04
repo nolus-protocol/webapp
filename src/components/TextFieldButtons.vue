@@ -8,16 +8,16 @@
       >
       <div class="field-container text-field-buttons">
         <textarea
-          :name="this.name"
           :id="this.id"
-          :value="value"
-          @input="$emit('update:value', $event.target.value)"
-          :disabled="true"
           :class="
             typeof this.isError !== 'undefined' && this.isError === true
               ? 'error'
               : ''
           "
+          :disabled="true"
+          :name="this.name"
+          :value="value"
+          @input="$emit('update:value', $event.target.value)"
         ></textarea>
         <div
           class="flex align-center justify-end p-3 bg-light-grey buttons-container"

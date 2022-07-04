@@ -1,6 +1,7 @@
 <svg data-name="Component 408 – 1" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
     <g data-name="Group 1329" transform="rotate(180 8 8)">
         <rect data-name="Rectangle 326" width="16" height="16" rx="8" style="opacity:.2;fill:#e42929"/>
-        <path d="M10.9 2.108 8.911.114a.429.429 0 0 0-.592 0L6.325 2.1a.408.408 0 0 0 0 .588.421.421 0 0 0 .292.121h1.26a.106.106 0 0 1 .1.1v6.46a.626.626 0 0 0 1.251 0V2.913a.1.1 0 0 1 .1-.1h1.26A.418.418 0 0 0 11 2.387a.435.435 0 0 0-.125-.3z" transform="translate(-.602 3.005)" style="fill:#e42929"/>
+        <path d="M10.9 2.108 8.911.114a.429.429 0 0 0-.592 0L6.325 2.1a.408.408 0 0 0 0 .588.421.421 0 0 0 .292.121h1.26a.106.106 0 0 1 .1.1v6.46a.626.626 0 0 0 1.251 0V2.913a.1.1 0 0 1 .1-.1h1.26A.418.418 0 0 0 11 2.387a.435.435 0 0 0-.125-.3z"
+              transform="translate(-.602 3.005)" style="fill:#e42929"/>
     </g>
 </svg>
