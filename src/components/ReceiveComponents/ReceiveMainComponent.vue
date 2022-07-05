@@ -58,6 +58,7 @@ export default defineComponent({
     //   }
     // }
   },
+  emits: ['defaultState'],
   methods: {
     onScanClick () {
       this.$emit('defaultState', true)

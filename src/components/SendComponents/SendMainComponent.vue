@@ -84,6 +84,7 @@ export default defineComponent({
       }
     }
   },
+  emits: ['defaultState'],
   methods: {
     initProps () {
       return {

@@ -168,6 +168,7 @@ export default defineComponent({
       }
     ]
   },
+  emits: ['update:modelValue.selectedCurrency'],
   methods: {
     formatCurrentBalance (value: AssetBalance[]) {
       if (value) {
