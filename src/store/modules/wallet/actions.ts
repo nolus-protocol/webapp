@@ -24,7 +24,7 @@ import { AssetUtils, KeyUtils, NolusClient, NolusWallet, NolusWalletFactory } fr
 import { ChainConstants } from '@nolus/nolusjs/build/constants'
 import { CurrencyUtils } from '@nolus/nolusjs/build/utils/CurrencyUtils'
 import { LedgerSigner } from '@cosmjs/ledger-amino'
-import { openLeaseMsg } from '@nolus/nolusjs/build/contracts'
+import { openLeaseMsg, repayLeaseMsg } from '@nolus/nolusjs/build/contracts'
 import { ExecuteResult } from '@cosmjs/cosmwasm-stargate'
 
 type AugmentedActionContext = {
@@ -91,6 +91,17 @@ export interface Actions {
     getters,
     dispatch
   }: AugmentedActionContext, payload: {
+    denom: string
+    fee: StdFee,
+    funds?: Coin[]
+  }): Promise<ExecuteResult>
+
+  [WalletActionTypes.REPAY_LEASE] ({
+    commit,
+    getters,
+    dispatch
+  }: AugmentedActionContext, payload: {
+    contractAddress: string,
     denom: string
     fee: StdFee,
     funds?: Coin[]
@@ -331,6 +342,20 @@ export const actions: ActionTree<State, RootState> & Actions = {
   }): Promise<ExecuteResult> {
     const wallet = getters.getNolusWallet as NolusWallet
     const result = await wallet.executeContract(CONTRACTS.leaser.instance, openLeaseMsg(payload.denom), payload.fee, undefined, payload.funds)
+    return result
+  },
+  async [WalletActionTypes.REPAY_LEASE] ({
+    commit,
+    getters,
+    dispatch
+  }, payload: {
+    contractAddress: string,
+    denom: string
+    fee: StdFee,
+    funds?: Coin[]
+  }): Promise<ExecuteResult> {
+    const wallet = getters.getNolusWallet as NolusWallet
+    const result = await wallet.executeContract(payload.contractAddress, repayLeaseMsg(), payload.fee, undefined, payload.funds)
     return result
   }
 }

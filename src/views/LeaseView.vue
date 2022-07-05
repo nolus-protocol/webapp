@@ -23,7 +23,7 @@
             >
               <button
                 class="btn btn-primary btn-large-primary w-full md:w-1/2"
-                v-on:click="showSendModal = true"
+                v-on:click="showLeaseModal = true"
               >
                 Lease new
               </button>
@@ -40,7 +40,7 @@
       </div>
     </div>
   </div>
-  <LeaseModal v-show="showSendModal" @close-modal="showSendModal = false"/>
+  <LeaseModal v-show="showLeaseModal" @close-modal="showLeaseModal = false"/>
 </template>
 
 <script lang="ts">
@@ -50,7 +50,6 @@ import LeaseModal from '@/components/modals/LeaseModal.vue'
 import { Lease, LeaseStatus } from '@nolus/nolusjs/build/contracts'
 import { CONTRACTS } from '@/config/contracts'
 import { WalletManager } from '@/config/wallet'
-import RepayModal from '@/components/modals/RepayModal.vue'
 import { LeaseData } from '@/types/LeaseData'
 import LeaseInfo from '@/components/LeaseInfo.vue'
 import SidebarHeader from '@/components/Sideheader.vue'
@@ -59,15 +58,13 @@ export default defineComponent({
   name: 'LeaseView',
   components: {
     LeaseModal,
-    RepayModal,
     LeaseInfo,
     SidebarContainer,
-    SidebarHeader,
+    SidebarHeader
   },
   data () {
     return {
-      showSendModal: false,
-      showRepayModal: false,
+      showLeaseModal: false,
       leases: [] as LeaseData[]
     }
   },
@@ -84,6 +81,6 @@ export default defineComponent({
         leaseStatus: leaseInfo
       })
     }
-  },
+  }
 })
 </script>

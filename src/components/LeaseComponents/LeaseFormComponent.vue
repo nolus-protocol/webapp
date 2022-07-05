@@ -40,10 +40,10 @@
 
     <div class="flex justify-end mt-5">
       <p
-        v-if="modelValue.selectedCurrency.udenom"
+        v-if="modelValue.selectedCurrency?.balance?.denom"
         class="inline-block m-0 text-left text-primary nls-14 nls-font-400"
       >
-        1 {{ formatAssetInfo(modelValue.selectedCurrency.udenom) }} price in
+        1 {{ formatAssetInfo(modelValue.selectedCurrency?.balance?.denom) }} price in
         USD:
         <span class="inline-block nls-font-700 ml-5">{{ pricePerToken }}</span>
       </p>
@@ -187,9 +187,9 @@ export default defineComponent({
     }
   },
   methods: {
-    getPrice (minimalDenom: string): Price {
+    getPrice (currencyDenom: string): Price {
       const prices = useStore().getters.getPrices
-      const denom = StringUtils.getDenomFromMinimalDenom(minimalDenom)
+      const denom = StringUtils.getDenomFromMinimalDenom(currencyDenom)
       if (prices) {
         return prices[denom]
       }
@@ -198,9 +198,9 @@ export default defineComponent({
         denom: ''
       }
     },
-    formatAssetInfo (minimalDenom: string) {
-      if (minimalDenom) {
-        return assetInfo[minimalDenom].coinAbbreviation
+    formatAssetInfo (currencyDenom: string) {
+      if (currencyDenom) {
+        return assetInfo[currencyDenom].coinAbbreviation
       }
       return ''
     }
