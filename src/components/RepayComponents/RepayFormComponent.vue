@@ -1,72 +1,55 @@
 <template>
-  <div
-    class="fixed flex modal items-center top-0 bottom-0 left-0 right-0 justify-center bg-white/70 backdrop-blur-xl z-[99]"
-    @click="$emit('close-modal')"
-  >
+  <div class="block text-left px-10 mt-nolus-41">
     <div
-      class="text-center modal bg-white w-full max-w-[516px] radius-modal mx-auto shadow-modal"
-      @click.stop
+      class="block nls-balance mb-nolus-13 bg-light-grey radius-light text-left text-primary"
     >
-      <button class="btn-close-modal" @click="$emit('close-modal')">
-        <img class="inline-block w-4 h-4" src="@/assets/icons/cross.svg"/>
-      </button>
-      <div class="flex modal-header">
-        <p class="nls-32 nls-font-700">Repay</p>
-      </div>
+      Current balance:
 
-      <div class="block text-left px-10 mt-nolus-41">
-        <div
-          class="block nls-balance mb-nolus-13 bg-light-grey radius-light text-left text-primary"
-        >
-          Current balance:
-
-          <a class="text-secondary nls-font-700 underline ml-2" href="#">
-            $36,423.02
-          </a>
-        </div>
-        <CurrencyField
-          id="repayBalance"
-          label="Balance To Repay"
-          name="repayBalance"
-          :value="modelValue.amount"
-          :step="'1'"
-          @input="(event) => (modelValue.amount = event.target.value)"
-          :currency-options="modelValue.currentBalance"
-          :option="modelValue.selectedCurrency"
-          @update-currency="
-            (event) => (modelValue.selectedDownPaymentCurrency = event)
+      <a class="text-secondary nls-font-700 underline ml-2" href="#">
+        $36,423.02
+      </a>
+    </div>
+    <CurrencyField
+      id="repayBalance"
+      label="Balance To Repay"
+      name="repayBalance"
+      :value="modelValue.amount"
+      :step="'1'"
+      @input="(event) => (modelValue.amount = event.target.value)"
+      :currency-options="modelValue.currentBalance"
+      :option="modelValue.selectedCurrency"
+      @update-currency="
+            (event) => (modelValue.selectedCurrency = event)
           "
-          :error-msg="modelValue.amountErrorMsg"
-          :is-error="modelValue.amountErrorMsg !== ''"
-        />
-        <div class="flex w-full">
-          <div class="grow-3 text-right nls-font-500 nls-14">
-            <p class="mb-nolus-12 mt-nolus-255 mr-nolus-20">
-              Repayment Amount:
-            </p>
-            <p class="mb-nolus-12 mr-nolus-20">Outstanding Lease:</p>
-          </div>
-          <div class="text-right nls-font-700 nls-14">
-            <p class="mb-nolus-12 mt-nolus-255 flex justify-end align-center">
-              $1,112.00
-              <TooltipComponent content="Content goes here"/>
-            </p>
-            <p class="mb-nolus-12 flex justify-end align-center">
-              $35,311.00
-              <TooltipComponent content="Content goes here"/>
-            </p>
-          </div>
-        </div>
+      :error-msg="modelValue.amountErrorMsg"
+      :is-error="modelValue.amountErrorMsg !== ''"
+    />
+    <div class="flex w-full">
+      <div class="grow-3 text-right nls-font-500 nls-14">
+        <p class="mb-nolus-12 mt-nolus-255 mr-nolus-20">
+          Repayment Amount:
+        </p>
+        <p class="mb-nolus-12 mr-nolus-20">Outstanding Lease:</p>
       </div>
-      <div class="modal-send-receive-actions mt-nolus-20">
-        <button
-          class="btn btn-primary btn-large-primary text-center"
-          v-on:click="modelValue.onNextClick"
-        >
-          Repay
-        </button>
+      <div class="text-right nls-font-700 nls-14">
+        <p class="mb-nolus-12 mt-nolus-255 flex justify-end align-center">
+          {{ calculateBalance(modelValue.amount, modelValue.selectedCurrency?.balance?.denom) }}
+          <TooltipComponent content="Content goes here"/>
+        </p>
+        <p class="mb-nolus-12 flex justify-end align-center">
+          {{ calculateBalance(modelValue.outstandingLoanAmount.amount, modelValue.outstandingLoanAmount.denom) }}
+          <TooltipComponent content="Content goes here"/>
+        </p>
       </div>
     </div>
+  </div>
+  <div class="modal-send-receive-actions mt-nolus-20">
+    <button
+      class="btn btn-primary btn-large-primary text-center"
+      v-on:click="modelValue.onNextClick"
+    >
+      Repay
+    </button>
   </div>
 </template>
 
@@ -74,8 +57,14 @@
 import CurrencyField from '@/components/CurrencyField.vue'
 import { defineComponent, PropType } from 'vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
+import { useStore } from '@/store'
+import { assetInfo } from '@/config/assetInfo'
+import { Coin, Int } from '@keplr-wallet/unit'
+import { CurrencyUtils } from '@nolus/nolusjs'
+import { Asset } from '@nolus/nolusjs/build/contracts'
 
 export interface RepayComponentProps {
+  outstandingLoanAmount: Asset,
   amountErrorMsg: string;
   passwordErrorMsg: string
   currentBalance: AssetBalance[];
@@ -114,7 +103,26 @@ export default defineComponent({
     // }
   },
   computed: {},
-  methods: {}
+  methods: {
+    calculateBalance (tokenAmount: string, denom: string) {
+      console.log('amount: ', tokenAmount)
+      console.log('denom: ', denom)
+      const prices = useStore().getters.getPrices
+      const assetInf = assetInfo[denom]
+      if (prices && assetInf) {
+        const coinPrice = prices[assetInf.coinDenom]?.amount || '0'
+        const tokenDecimals = assetInf.coinDecimals
+        const coinAmount = new Coin(denom, new Int(tokenAmount || '0'))
+        return CurrencyUtils.calculateBalance(
+          coinPrice,
+          coinAmount,
+          0
+        ).toString()
+      }
+
+      return '0'
+    }
+  }
 
 })
 </script>

@@ -1,6 +1,7 @@
 <template>
   <div
-    class="fixed flex modal items-center top-0 bottom-0 left-0 right-0 justify-center bg-white/70 backdrop-blur-xl z-[99]"
+    class="fixed flex modal items-center top-0 bottom-0 left-0 right-0 justify-center bg-white/70 z-[99]"
+    style="linear-gradient(314.47 deg, #EBEFF5 2.19 %, #F7F9FC 100 %);"
     @click="$emit('close-modal')"
   >
     <div
@@ -23,8 +24,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, PropType } from 'vue'
 import RepayMainComponent, { SendMainComponentProps } from '@/components/RepayComponents/RepayMainComponent.vue'
+import { LeaseData } from '@/types/LeaseData'
 
 enum ScreenState {
   REPAY = 'RepayMainComponent',
@@ -40,7 +42,11 @@ export default defineComponent({
   components: {
     RepayMainComponent
   },
-  props: {},
+  props: {
+    leaseInfo: {
+      type: Object as PropType<LeaseData>
+    }
+  },
   data () {
     return {
       currentComponent: {} as RepayModalData
@@ -50,7 +56,8 @@ export default defineComponent({
     this.currentComponent = {
       is: ScreenState.REPAY,
       props: {
-        onClose: () => this.onCloseModal()
+        onClose: () => this.onCloseModal(),
+        leaseData: this.leaseInfo
       }
     }
   },

@@ -36,7 +36,7 @@
       <div class="block">
         <p class="nls-14 nls-font-400 text-primary m-0">Contract address:</p>
         <p class="nls-14 nls-font-400 text-primary nls-font-700 m-0">
-          {{ modelValue.contractAddress }}
+          {{ modelValue.receiverAddress }}
         </p>
       </div>
 
