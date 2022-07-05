@@ -7,7 +7,7 @@
       Current balance:
 
       <a class="text-secondary nls-font-700 underline ml-2" href="#">
-        {{ formatCurrentBalance(modelValue.currentBalance) }}
+        {{ formatCurrentBalance(modelValue.selectedCurrency) }}
       </a>
     </div>
 
@@ -16,7 +16,7 @@
         <CurrencyField
           id="amount"
           :currency-options="modelValue.currentBalance"
-          :disabled-currency-picker="true"
+          :disabled-currency-picker="false"
           :error-msg="modelValue.amountErrorMsg"
           :is-error="modelValue.amountErrorMsg !== ''"
           :option="modelValue.selectedCurrency"
@@ -24,7 +24,7 @@
           label="Amount"
           name="amount"
           @input="(event) => (modelValue.amount = event.target.value)"
-          @update-currency="onUpdateCurrency"
+          @update-currency="(event) => (modelValue.selectedCurrency = event)"
         />
       </div>
 
@@ -95,14 +95,16 @@
 </template>
 
 <script lang="ts">
+import { defineComponent, PropType } from 'vue'
 import { StarIcon } from '@heroicons/vue/solid'
+import { CurrencyUtils } from '@nolus/nolusjs'
+
 import CurrencyField from '@/components/CurrencyField.vue'
 import PickerDefault, { PickerDefaultOption } from '@/components/PickerDefault.vue'
 import InputField from '@/components/InputField.vue'
-import { defineComponent, PropType } from 'vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
-import { CurrencyUtils } from '@nolus/nolusjs'
 import PickerCombo from '@/components/PickerCombo.vue'
+import { assetInfo } from '@/config/assetInfo'
 
 export interface SendComponentProps {
   receiverErrorMsg: string;
@@ -131,7 +133,8 @@ export default defineComponent({
   },
   props: {
     modelValue: {
-      type: Object as PropType<SendComponentProps>
+      type: Object as PropType<SendComponentProps>,
+      default: {}
     }
   },
   data () {
@@ -170,15 +173,13 @@ export default defineComponent({
   },
   emits: ['update:modelValue.selectedCurrency'],
   methods: {
-    formatCurrentBalance (value: AssetBalance[]) {
-      if (value) {
-        return CurrencyUtils.convertUNolusToNolus(
-          value[0]?.balance.amount.toString()
+    formatCurrentBalance (selectedCurrency: AssetBalance) {
+      if (selectedCurrency) {
+        const asset = assetInfo[selectedCurrency.balance.denom]
+        return CurrencyUtils.convertMinimalDenomToDenom(
+          selectedCurrency.balance.amount.toString(), selectedCurrency.balance.denom, asset.coinDenom, asset.coinDecimals
         ).toString()
       }
-    },
-    onUpdateCurrency (value: AssetBalance) {
-      this.$emit('update:modelValue.selectedCurrency', value)
     }
   }
 })
