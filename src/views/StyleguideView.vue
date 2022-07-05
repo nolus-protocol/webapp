@@ -9,66 +9,66 @@
             <div class="block">
               <SidebarElement
                 id="assets"
-                v-on:click="pushToDashboard"
-                href="#typography_and_colors"
-                label="T&C"
                 :icon="require('@/assets/icons/assets.svg')"
                 :iconHover="require('@/assets/icons/assets_active.svg')"
                 :isActive="true"
+                href="#typography_and_colors"
+                label="T&C"
+                v-on:click="pushToDashboard"
               >
               </SidebarElement>
             </div>
             <div class="block">
               <SidebarElement
                 id="lease"
-                v-on:click="pushToLease"
-                href="#buttons"
-                label="Buttons"
                 :icon="require('@/assets/icons/lease.svg')"
                 :iconHover="require('@/assets/icons/lease_active.svg')"
+                href="#buttons"
+                label="Buttons"
+                v-on:click="pushToLease"
               >
               </SidebarElement>
             </div>
             <div class="block">
               <SidebarElement
                 id="trade"
-                href="#form-template"
-                label="Form"
                 :icon="require('@/assets/icons/trade.svg')"
                 :iconHover="require('@/assets/icons/trade_active.svg')"
+                href="#form-template"
+                label="Form"
               >
               </SidebarElement>
             </div>
             <div class="block">
               <SidebarElement
                 id="earn"
-                label="Headers"
-                href="#header"
-                v-on:click="pushToEarn"
                 :icon="require('@/assets/icons/earn.svg')"
                 :iconHover="require('@/assets/icons/earn_active.svg')"
+                href="#header"
+                label="Headers"
+                v-on:click="pushToEarn"
               >
               </SidebarElement>
             </div>
             <div class="block">
               <SidebarElement
                 id="history"
-                v-on:click="pushToHistory"
-                label="Icons"
+                :icon="require('@/assets/icons/history.svg')"
+                :iconHover="require('@/assets/icons/history_active.svg')"
                 href="#icons"
-                :icon="require('@/assets/icons/history.svg')"
-                :iconHover="require('@/assets/icons/history_active.svg')"
+                label="Icons"
+                v-on:click="pushToHistory"
               >
               </SidebarElement>
             </div>
             <div class="block">
               <SidebarElement
                 id="history"
-                v-on:click="pushToHistory"
-                label="S&T"
+                :icon="require('@/assets/icons/history.svg')"
+                :iconHover="require('@/assets/icons/history_active.svg')"
                 href="#snackbar"
-                :icon="require('@/assets/icons/history.svg')"
-                :iconHover="require('@/assets/icons/history_active.svg')"
+                label="S&T"
+                v-on:click="pushToHistory"
               >
               </SidebarElement>
             </div>
@@ -76,11 +76,11 @@
             <div class="block">
               <SidebarElement
                 id="history"
-                v-on:click="pushToHistory"
-                label="Modals"
+                :icon="require('@/assets/icons/history.svg')"
+                :iconHover="require('@/assets/icons/history_active.svg')"
                 href="#modals"
-                :icon="require('@/assets/icons/history.svg')"
-                :iconHover="require('@/assets/icons/history_active.svg')"
+                label="Modals"
+                v-on:click="pushToHistory"
               >
               </SidebarElement>
             </div>
@@ -88,11 +88,11 @@
             <div class="block">
               <SidebarElement
                 id="history"
-                v-on:click="pushToHistory"
-                label="History"
-                href="#history"
                 :icon="require('@/assets/icons/history.svg')"
                 :iconHover="require('@/assets/icons/history_active.svg')"
+                href="#history"
+                label="History"
+                v-on:click="pushToHistory"
               >
               </SidebarElement>
             </div>
@@ -150,7 +150,7 @@
               <BellIcon class="icon w-4 h-4" />
               <span class="counter">8</span>
             </button> -->
-            <Notifications />
+            <Notifications/>
             <!-- <button
               class="btn btn-header with-icon shadow-box rounded-r-none"
               v-on:click="toggleWalletPopup"
@@ -161,7 +161,7 @@
               />
               <span class="label nls-font-400 nls-12">My precious</span>
             </button> -->
-            <WalletOpen :walletModel="walletData" />
+            <WalletOpen :walletModel="walletData"/>
             <!-- <WalletOpen v-show="showWalletPopup" :walletModel="walletData" /> -->
           </div>
         </div>
@@ -432,7 +432,7 @@
             <h2 class="text nls-20 nls-font-700 mt-6">Circle on background</h2>
             <div class="inline-flex mt-nolus-255 p-4 rounded-lg">
               <button class="btn btn-close">
-                <span class="icon-close circle" />
+                <span class="icon-close circle"/>
               </button>
             </div>
 
@@ -440,10 +440,10 @@
             <h2 class="text nls-20 nls-font-700 mt-6">Header buttons</h2>
             <div class="inline-flex mt-nolus-255 p-4 rounded-lg">
               <button class="btn btn-header mr-4">
-                <BellIcon class="icon w-4 h-4" />
+                <BellIcon class="icon w-4 h-4"/>
               </button>
               <button class="btn btn-header">
-                <BellIcon class="icon w-4 h-4" />
+                <BellIcon class="icon w-4 h-4"/>
                 <span class="counter">8</span>
               </button>
             </div>
@@ -525,14 +525,14 @@
                       <div class="flex items-center w-full justify-end">
                         <input
                           id="hide-small-balances"
+                          v-model="hideLowerBalances"
                           aria-describedby="hide-small-balances"
+                          checked="checked"
                           name="hide-small-balances"
                           type="checkbox"
-                          checked="checked"
-                          v-model="hideLowerBalances"
                         />
                         <label for="hide-small-balances"
-                          >Hide small balances</label
+                        >Hide small balances</label
                         >
                       </div>
                     </div>
@@ -570,7 +570,7 @@
                         >
                           <span
                             class="relative z-10 p-2 text-xs leading-none text-white whitespace-no-wrap bg-black shadow-lg"
-                            >A top aligned tooltip.</span
+                          >A top aligned tooltip.</span
                           >
                           <div
                             class="absolute w-3 h-3 -mt-2 rotate-45 bg-black"
@@ -594,7 +594,7 @@
                         >
                           <span
                             class="relative z-10 p-2 text-xs leading-none text-white whitespace-no-wrap bg-black shadow-lg"
-                            >A top aligned tooltip.</span
+                          >A top aligned tooltip.</span
                           >
                           <div
                             class="absolute w-3 h-3 -mt-2 rotate-45 bg-black"
@@ -621,9 +621,9 @@
                     <div class="flex mb-nolus-32">
                       <img
                         :src="require('@/assets/icons/coins/btc.svg')"
-                        width="36"
-                        height="36"
                         class="inline-block m-0 mr-3"
+                        height="36"
+                        width="36"
                       />
                       <div class="flex flex-col">
                         <h1
@@ -632,11 +632,11 @@
                           3.000000
                           <span
                             class="inline-block text-primary nls-16 nls-font-400 nls-14 nls-font-400"
-                            >BTC</span
+                          >BTC</span
                           >
                         </h1>
                         <span class="nls-13 nls-font-400 text-dark-grey"
-                          >$111,824.94</span
+                        >$111,824.94</span
                         >
                       </div>
                     </div>
@@ -721,9 +721,9 @@
                       <div class="inline-flex items-center">
                         <img
                           :src="require('@/assets/icons/coins/btc.svg')"
-                          width="32"
-                          height="32"
                           class="inline-block m-0 mr-4"
+                          height="32"
+                          width="32"
                         />
                         <div class="inline-block">
                           <p
@@ -763,9 +763,9 @@
                       <div class="inline-flex items-center">
                         <img
                           :src="require('@/assets/icons/coins/btc.svg')"
-                          width="32"
-                          height="32"
                           class="inline-block m-0 mr-4"
+                          height="32"
+                          width="32"
                         />
                         <div class="inline-block">
                           <p
@@ -805,9 +805,9 @@
                       <div class="inline-flex items-center">
                         <img
                           :src="require('@/assets/icons/coins/btc.svg')"
-                          width="32"
-                          height="32"
                           class="inline-block m-0 mr-4"
+                          height="32"
+                          width="32"
                         />
                         <div class="inline-block">
                           <p
@@ -884,9 +884,9 @@
                       <div class="inline-flex items-center">
                         <img
                           :src="require('@/assets/icons/coins/btc.svg')"
-                          width="32"
-                          height="32"
                           class="inline-block m-0 mr-4"
+                          height="32"
+                          width="32"
                         />
                         <div class="inline-block">
                           <p
@@ -939,9 +939,9 @@
                       <div class="inline-flex items-center">
                         <img
                           :src="require('@/assets/icons/coins/nls.svg')"
-                          width="32"
-                          height="32"
                           class="inline-block m-0 mr-4"
+                          height="32"
+                          width="32"
                         />
                         <div class="inline-block">
                           <p
@@ -994,9 +994,9 @@
                       <div class="inline-flex items-center">
                         <img
                           :src="require('@/assets/icons/coins/atom.svg')"
-                          width="32"
-                          height="32"
                           class="inline-block m-0 mr-4"
+                          height="32"
+                          width="32"
                         />
                         <div class="inline-block">
                           <p
@@ -1062,15 +1062,15 @@
                       <div class="flex items-center w-full justify-end">
                         <input
                           id="hide-small-balances"
+                          v-model="hideLowerBalances"
                           aria-describedby="hide-small-balances"
+                          checked="checked"
                           name="hide-small-balances"
                           type="checkbox"
-                          checked="checked"
-                          v-model="hideLowerBalances"
                         />
                         <p
-                          for="hide-small-balances"
                           class="nls-13 nls-font-400"
+                          for="hide-small-balances"
                         >
                           Hide small balances
                         </p>
@@ -1110,7 +1110,7 @@
                         >
                           <span
                             class="relative z-10 p-2 text-xs leading-none text-white whitespace-no-wrap bg-black shadow-lg"
-                            >A top aligned tooltip.</span
+                          >A top aligned tooltip.</span
                           >
                           <div
                             class="absolute w-3 h-3 -mt-2 rotate-45 bg-black"
@@ -1134,7 +1134,7 @@
                         >
                           <span
                             class="relative z-10 p-2 text-xs leading-none text-white whitespace-no-wrap bg-black shadow-lg"
-                            >A top aligned tooltip.</span
+                          >A top aligned tooltip.</span
                           >
                           <div
                             class="absolute w-3 h-3 -mt-2 rotate-45 bg-black"
@@ -1163,9 +1163,9 @@
                     <div class="inline-flex items-center">
                       <img
                         :src="require('@/assets/icons/coins/btc.svg')"
-                        width="32"
-                        height="32"
                         class="inline-block m-0 mr-4"
+                        height="32"
+                        width="32"
                       />
                       <div class="inline-block">
                         <p
@@ -1236,9 +1236,9 @@
                     <div class="inline-flex items-center">
                       <img
                         :src="require('@/assets/icons/coins/nls.svg')"
-                        width="32"
-                        height="32"
                         class="inline-block m-0 mr-4"
+                        height="32"
+                        width="32"
                       />
                       <div class="inline-block">
                         <p
@@ -1311,7 +1311,7 @@
               <!-- CONNECT -->
               <div class="col-span-12 mt-nolus-41">
                 <div class="max-w-[515px] mr-auto ml-auto">
-                  <HomeView />
+                  <HomeView/>
                 </div>
               </div>
               <!-- /CONNECT -->
@@ -1330,173 +1330,173 @@
             <div
               class="flex flex-col col-span-2 justify-center justify-start mt-10"
             >
-              <span class="icon-assets" />
+              <span class="icon-assets"/>
               <p>.icon-assets</p>
             </div>
             <div
               class="flex flex-col col-span-2 justify-center justify-start mt-10"
             >
-              <span class="icon-wallet" />
+              <span class="icon-wallet"/>
               <p>.icon-wallet</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-arrow-long-down" />
+              <span class="icon-arrow-long-down"/>
               <p>.icon-arrow-long-down</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-arrow-long-up" />
+              <span class="icon-arrow-long-up"/>
               <p>.icon-arrow-long-up</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-arrow-short-down" />
+              <span class="icon-arrow-short-down"/>
               <p>.icon-arrow-short-down</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-arrow-short-left" />
+              <span class="icon-arrow-short-left"/>
               <p>.icon-arrow-short-left</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-arrow-short-right" />
+              <span class="icon-arrow-short-right"/>
               <p>.icon-arrow-short-right</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-arrow-short-up" />
+              <span class="icon-arrow-short-up"/>
               <p>.icon-arrow-short-up</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-bell" />
+              <span class="icon-bell"/>
               <p>.icon-bell</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-calendar" />
+              <span class="icon-calendar"/>
               <p>.icon-calendar</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-close" />
+              <span class="icon-close"/>
               <p>.icon-close</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-collapse" />
+              <span class="icon-collapse"/>
               <p>.icon-collapse</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-copy" />
+              <span class="icon-copy"/>
               <p>.icon-copy</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-discord" />
+              <span class="icon-discord"/>
               <p>.icon-discord</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-google" />
+              <span class="icon-google"/>
               <p>.icon-google</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-keplr" />
+              <span class="icon-keplr"/>
               <p>.icon-keplr</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-medium" />
+              <span class="icon-medium"/>
               <p>.icon-medium</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-earn" />
+              <span class="icon-earn"/>
               <p>.icon-earn</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-nav-governance" />
+              <span class="icon-nav-governance"/>
               <p>.icon-nav-governance</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-nav-history" />
+              <span class="icon-nav-history"/>
               <p>.icon-history</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-nav-lease" />
+              <span class="icon-nav-lease"/>
               <p>.icon-nav-lease</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-nav-more" />
+              <span class="icon-nav-more"/>
               <p>.icon-nav-more</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-nav-swap" />
+              <span class="icon-nav-swap"/>
               <p>.icon-nav-swap</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-person" />
+              <span class="icon-person"/>
               <p>.icon-person</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-picker" />
+              <span class="icon-picker"/>
               <p>.icon-picker</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-print" />
+              <span class="icon-print"/>
               <p>.icon-print</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-reddit" />
+              <span class="icon-reddit"/>
               <p>.icon-reddit</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-scan" />
+              <span class="icon-scan"/>
               <p>.icon-scan</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-star" />
+              <span class="icon-star"/>
               <p>.icon-star</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-success" />
+              <span class="icon-success"/>
               <p>.icon-success</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-telegram" />
+              <span class="icon-telegram"/>
               <p>.icon-telegram</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-tooltip" />
+              <span class="icon-tooltip"/>
               <p>.icon-tooltip</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-twitter" />
+              <span class="icon-twitter"/>
               <p>.icon-twitter</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-recover" />
+              <span class="icon-recover"/>
               <p>.icon-recover</p>
             </div>
           </div>
@@ -1528,14 +1528,14 @@
           <div class="relative flex flex-col items-center group group-tooltip">
             <svg
               class="w-5 h-5"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
               fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path
-                fill-rule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
                 clip-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                fill-rule="evenodd"
               />
             </svg>
             <div
@@ -1543,7 +1543,7 @@
             >
               <span
                 class="relative z-10 p-2 text-xs leading-none text-white whitespace-no-wrap bg-black shadow-lg"
-                >A top aligned tooltip.</span
+              >A top aligned tooltip.</span
               >
               <div
                 class="absolute w-3 h-3 -mt-2 rotate-45 bg-black"
@@ -1565,36 +1565,36 @@
               <!-- Medium - Secondary -->
               <div class="flex mt-nolus-255">
                 <button
-                  v-on:click="showSendModal = true"
                   class="btn btn-secondary btn-medium-secondary mr-4"
+                  v-on:click="showSendModal = true"
                 >
                   Send / Receive
                 </button>
 
                 <button
-                  @click="() => (showErrorModal = true)"
                   class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
+                  @click="() => (showErrorModal = true)"
                 >
                   Error Modal
                 </button>
 
                 <button
-                  @click="() => (showSupplyWithdrawModal = true)"
                   class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
+                  @click="() => (showSupplyWithdrawModal = true)"
                 >
                   Supply Modal
                 </button>
 
                 <button
-                  @click="() => (showRepayModal = true)"
                   class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
+                  @click="() => (showRepayModal = true)"
                 >
                   Repay Modal
                 </button>
 
                 <button
-                  @click="() => (showSwapModal = true)"
                   class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
+                  @click="() => (showSwapModal = true)"
                 >
                   Swap
                 </button>
@@ -1609,31 +1609,31 @@
         />
 
         <SwapBuyModal
-          :try-button="tryButton"
           v-show="showSwapModal"
+          :try-button="tryButton"
           @close-modal="showSwapModal = false"
         />
 
         <SupplyWithdrawModal
-          :try-button="tryButton"
           v-show="showSupplyWithdrawModal"
+          :try-button="tryButton"
           @close-modal="showSupplyWithdrawModal = false"
         />
 
         <RepayModal
-          :try-button="tryButton"
           v-show="showRepayModal"
+          :try-button="tryButton"
           @close-modal="showRepayModal = false"
         />
 
         <ErrorModal
-          :try-button="tryButton"
           v-show="showErrorModal"
+          :try-button="tryButton"
           @close-modal="showErrorModal = false"
         />
         <ConfirmEmailModal
-          :try-button="tryButton"
           v-show="showConfirmEmailModal"
+          :try-button="tryButton"
           @close-modal="showConfirmEmailModal = false"
         />
 
@@ -1646,7 +1646,7 @@
               <h1 class="text nls-font-700 nls-32">History</h1>
             </div>
             <div class="col-span-12 pt-8">
-              <HistoryView />
+              <HistoryView/>
             </div>
           </div>
         </div>
@@ -1658,7 +1658,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { DuplicateIcon, XIcon, BellIcon } from '@heroicons/vue/solid'
+import { BellIcon, DuplicateIcon, XIcon } from '@heroicons/vue/solid'
 import PickerDefault from '@/components/PickerDefault.vue'
 import PickerIcon from '@/components/PickerIcon.vue'
 import PickerCombo from '@/components/PickerCombo.vue'
@@ -1686,6 +1686,7 @@ import SwapBuyModal from '@/components/modals/SwapBuyModal.vue'
 import SendingPendingComponent from '@/components/SendComponents/SendingPendingComponent.vue'
 
 import SnackBar from '@/components/templates/utils/Snackbar.vue'
+
 export default defineComponent({
   name: 'StyleguideView',
   components: {
@@ -1754,6 +1755,7 @@ export default defineComponent({
 [class^="icon-"] {
   font-size: 1.8em !important;
 }
+
 .nls-btn-show {
   opacity: 0;
   display: none;
@@ -1769,6 +1771,7 @@ export default defineComponent({
   animation-iteration-count: 1;
   animation-timing-function: ease-in;
 }
+
 .info-show {
   animation-name: show-anime;
   animation-duration: 0.3s;
@@ -1777,16 +1780,8 @@ export default defineComponent({
   animation-timing-function: ease-in;
   transition: 0.3s;
 }
+
 .row-actions:hover .info-show {
   display: none;
-}
-@key-frame show-anime {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-    display: flex;
-  }
 }
 </style>

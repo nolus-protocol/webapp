@@ -1,126 +1,142 @@
 .currency-field-container {
-	position: relative;
+  position: relative;
 
-	.currency-field {
-		display: block;
-		position: relative;
-		border: 1px solid $grey;
-		border-radius: $rounded;
-		margin-top: 8px;
-		transition: 0.3s;
-		background-color: #fff;
+  .currency-field {
+    display: block;
+    position: relative;
+    border: 1px solid $grey;
+    border-radius: $rounded;
+    margin-top: 8px;
+    transition: 0.3s;
+    background-color: #fff;
 
-		&:hover {
-			border-color: $mediumBlue;
-			.picker-container button {
-				border-color: $mediumBlue;
-			}
-		}
+    &:hover {
+      border-color: $mediumBlue;
 
-		&:active,
-		&:focus-within {
-			border-color: $lightElectric;
-			border: 1px solid #2868e1;
-			box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.06) !important;
-			border-radius: 6px;
-			.picker-container button {
-				border-color: #2868e1;
-			}
-		}
+      .picker-container button {
+        border-color: $mediumBlue;
+      }
+    }
 
-		&.error {
-			border-color: $lightRed;
-		}
-		label {
-			display: none;
-		}
-		input {
-			width: 100%;
-		}
-		.picker-container {
-			display: flex;
-			justify-content: flex-end;
-			button {
-				border-color: $grey;
-				max-width: 91px;
-				justify-content: space-between;
-				display: flex;
-				align-items: stretch;
-				padding: 9px;
-				img {
-					width: 16px;
-					& + span {
-						margin-left: 4px !important;
-					}
-				}
-				span: {
-					font-family: "Garet";
-					font-size: 13;
-					line-height: 19px;
-				}
-				div:first-of-type {
-					span {
-						line-height: 1;
-					}
-				}
-			}
-		}
-	}
-	::-webkit-inner-spin-button {
-		-webkit-appearance: none;
-		margin: 0;
-	}
-	.separator {
-		display: block;
-		width: 100%;
-		height: 1px;
-		position: relative;
-		background-color: #ebeff5;
-		::-webkit-inner-spin-button {
-			-webkit-appearance: none;
-			margin: 0;
-		}
+    &:active,
+    &:focus-within {
+      border-color: $lightElectric;
+      border: 1px solid #2868e1;
+      box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.06) !important;
+      border-radius: 6px;
 
-		.arrow-box {
-			display: inline-block;
-			position: absolute;
-			width: 34px;
-			height: 34px;
-			padding: 9px;
-			background-color: $white;
-			border-radius: $lightRounded;
-			border: 1px solid $grey;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-		}
-	}
+      .picker-container button {
+        border-color: #2868e1;
+      }
+    }
 
-	.msg {
-		display: block;
-		font-size: 14px;
-		font-family: "Garet-Medium";
-		line-height: 24px;
-		margin-top: 4px;
-		color: $lightRed;
+    &.error {
+      border-color: $lightRed;
+    }
 
-		&.hidden {
-			display: none;
-		}
-	}
-	button[id^="headlessui-listbox-button-"] {
-		span.absolute {
-			color: #8396b1;
-		}
-	}
-	.error {
-		.picker-container {
-			button {
-				border-color: $lightRed !important;
-			}
-			.error {
-				display: none;
-			}
-		}
-	}
+    label {
+      display: none;
+    }
+
+    input {
+      width: 100%;
+    }
+
+    .picker-container {
+      display: flex;
+      justify-content: flex-end;
+
+      button {
+        border-color: $grey;
+        max-width: 91px;
+        justify-content: space-between;
+        display: flex;
+        align-items: stretch;
+        padding: 9px;
+
+        img {
+          width: 16px;
+
+          & + span {
+            margin-left: 4px !important;
+          }
+        }
+
+        span: {
+          font-family: "Garet";
+          font-size: 13;
+          line-height: 19px;
+        }
+
+        div:first-of-type {
+          span {
+            line-height: 1;
+          }
+        }
+      }
+    }
+  }
+
+  ::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .separator {
+    display: block;
+    width: 100%;
+    height: 1px;
+    position: relative;
+    background-color: #ebeff5;
+
+    ::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .arrow-box {
+      display: inline-block;
+      position: absolute;
+      width: 34px;
+      height: 34px;
+      padding: 9px;
+      background-color: $white;
+      border-radius: $lightRounded;
+      border: 1px solid $grey;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  .msg {
+    display: block;
+    font-size: 14px;
+    font-family: "Garet-Medium";
+    line-height: 24px;
+    margin-top: 4px;
+    color: $lightRed;
+
+    &.hidden {
+      display: none;
+    }
+  }
+
+  button[id^="headlessui-listbox-button-"] {
+    span.absolute {
+      color: #8396b1;
+    }
+  }
+
+  .error {
+    .picker-container {
+      button {
+        border-color: $lightRed !important;
+      }
+
+      .error {
+        display: none;
+      }
+    }
+  }
 }

@@ -72,46 +72,47 @@ $xxl: 1400px;
 $mobileHeaderHeight: 65px;
 
 :root {
-    --font-size-main-head: 48px
-    --line-height-main-head: 70px
+  --font-size-main-head: 48px
+  --line-height-main-head: 70px
 }
+
 //DUAL THEME COLORS
 
-    $background-scale: #71767e;
-    $background-medium-scale: #F7F9FC;
-    $background-scale-darker: #EBEFF5;
+$background-scale: #71767e;
+$background-medium-scale: #F7F9FC;
+$background-scale-darker: #EBEFF5;
 
-    $neutral-typography-scale-light: #8396B1;
-    $neutral-typography-scale-medium: #5E7699;
-    $neutral-typography-scale-dark: #082D63;
+$neutral-typography-scale-light: #8396B1;
+$neutral-typography-scale-medium: #5E7699;
+$neutral-typography-scale-dark: #082D63;
 
-    //CTA color scale
-    $cta-color-scale-blue-light: #2868E1;
-    $cta-color-scale-blue-medium: #245DC7;
-    $cta-color-scale-blue-dark: #1F51AD;
+//CTA color scale
+$cta-color-scale-blue-light: #2868E1;
+$cta-color-scale-blue-medium: #245DC7;
+$cta-color-scale-blue-dark: #1F51AD;
 
-    $cta-color-scale-red-light: #E42929;
-    $cta-color-scale-red-medium: #C92424;
-    $cta-color-scale-red-dark: #B02020;
+$cta-color-scale-red-light: #E42929;
+$cta-color-scale-red-medium: #C92424;
+$cta-color-scale-red-dark: #B02020;
 
-    $cta-color-scale-green-light: #50E3A5;
-    $cta-color-scale-green-medium: #47C993;
-    $cta-color-scale-green-dark: #1AB171;
+$cta-color-scale-green-light: #50E3A5;
+$cta-color-scale-green-medium: #47C993;
+$cta-color-scale-green-dark: #1AB171;
 
-    $cta-color-scale-yellow-light: #FFD782;
-    $cta-color-scale-yellow-medium: #FFC74F;
-    $cta-color-scale-yellow-dark: #FFB922;
+$cta-color-scale-yellow-light: #FFD782;
+$cta-color-scale-yellow-medium: #FFC74F;
+$cta-color-scale-yellow-dark: #FFB922;
 
-    //Brand accent
-    $brand-accent: #FF562E;
+//Brand accent
+$brand-accent: #FF562E;
 
 
 .dark-theme {
-    --background-scale: #07162C;
-    --background-scale-darker: #EBEFF5;
+  --background-scale: #07162C;
+  --background-scale-darker: #EBEFF5;
 }
 
 // tailwind
 .bg-light-grey {
-    background-color: #F7F9FC;
+  background-color: #F7F9FC;
 }

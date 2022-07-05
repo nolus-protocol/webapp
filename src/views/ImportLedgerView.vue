@@ -1,11 +1,11 @@
 <template>
   <h1 class="text-to-big-number text-primary text-center relative">
     <button
-      v-on:click="clickBack"
-      type="button"
       class="inline-block align-baseline absolute left-0 top-2/4 -mt-2.5"
+      type="button"
+      v-on:click="clickBack"
     >
-      <ArrowLeftIcon class="h-5 w-5" aria-hidden="true" />
+      <ArrowLeftIcon aria-hidden="true" class="h-5 w-5"/>
     </button>
     <span class="inline-block align-baseline"> Import Ledger </span>
   </h1>

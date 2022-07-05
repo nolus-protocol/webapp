@@ -1,5 +1,5 @@
 <template>
-  <div class="block w-[516px] pb-nolus-40">
+  <div v-cloak class="block w-[516px] pb-nolus-40">
     <h1 class="nls-40 nls-font-700 text-primary text-center mb-nolus-32">
       Connect Wallet
     </h1>
@@ -8,31 +8,31 @@
     >
       <div class="flex bg-white">
         <button class="btn btn-box btn-large-box mr-4 basis-0 grow">
-          <span class="icon icon-google" />
+          <span class="icon icon-google"/>
           Sign In With Google
         </button>
         <button
-          v-on:click="clickImportSeed"
           class="btn btn-box btn-large-box basis-0 grow"
+          v-on:click="clickImportSeed"
         >
-          <span class="icon icon-recover" />
+          <span class="icon icon-recover"/>
 
           Recover
         </button>
       </div>
       <div class="flex mt-nolus-20">
         <button
-          v-on:click="clickImportLedger"
           class="btn btn-box btn-large-box mr-4 basis-0 grow"
+          v-on:click="clickImportLedger"
         >
-          <span class="icon icon-ledger" />
+          <span class="icon icon-ledger"/>
           Ledger
         </button>
         <button
-          v-on:click="clickConnectToKeplr"
           class="btn btn-box btn-large-box basis-0 grow"
+          v-on:click="clickConnectToKeplr"
         >
-          <span class="icon icon-keplr ml-1" />
+          <span class="icon icon-keplr ml-1"/>
           Keplr
         </button>
       </div>

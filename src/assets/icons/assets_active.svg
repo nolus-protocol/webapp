@@ -1,8 +1,10 @@
 <svg id="assets_active" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-  <g id="Component_385_1" data-name="Component 385 – 1">
-    <rect id="Rectangle_882" data-name="Rectangle 882" width="32" height="32" fill="#fff" opacity="0"/>
-  </g>
-  <g id="Group_2559" data-name="Group 2559" transform="translate(-29.521 -3.796)">
-    <path id="Subtraction_9" data-name="Subtraction 9" d="M45054.543,28394.145v0l-.793-.947-12.684-15.316h.012l0,0h26.164l-12.7,16.262Zm-13.551-18.25,0,0,5.063-5.512h16.176l.293.328,4.754,5.18h-26.187a.569.569,0,0,0-.1.006Z" transform="translate(-45008.641 -28361.969)" fill="#ff562e"/>
-  </g>
+    <g id="Component_385_1" data-name="Component 385 – 1">
+        <rect id="Rectangle_882" data-name="Rectangle 882" width="32" height="32" fill="#fff" opacity="0"/>
+    </g>
+    <g id="Group_2559" data-name="Group 2559" transform="translate(-29.521 -3.796)">
+        <path id="Subtraction_9" data-name="Subtraction 9"
+              d="M45054.543,28394.145v0l-.793-.947-12.684-15.316h.012l0,0h26.164l-12.7,16.262Zm-13.551-18.25,0,0,5.063-5.512h16.176l.293.328,4.754,5.18h-26.187a.569.569,0,0,0-.1.006Z"
+              transform="translate(-45008.641 -28361.969)" fill="#ff562e"/>
+    </g>
 </svg>

@@ -1,104 +1,88 @@
 <template>
-  <div class="sidebar-container">
+  <div :class="showMobileNav ? 'mobile-nav' : false" class="sidebar-container">
     <div class="top">
       <LogoLink link="/"></LogoLink>
 
-      <div class="sidebar-elements-container block">
-        <div class="block">
-          <SidebarElement
-            id="assets"
-            label="Assets"
-            href="/"
-            :icon="require('@/assets/icons/assets.svg')"
-            :iconHover="require('@/assets/icons/assets_active.svg')"
-            :isActive="true"
+      <div
+        class="sidebar-elements-container nls-nav-more flex flex-col mt-nolus-55"
+      >
+        <!-- z-index: 5;
+					background-color: $white;
+					transform: translateY(0);
+					padding: 24px; -->
+        <div
+          :style="
+            showMobileNav
+              ? 'z-index:5; background-color: #fff;box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15); transform: translateY(0)'
+              : false
+          "
+          class="lg:hidden"
+        >
+          <div
+            class="nls-nav-link flex flex-start nls-md-flex-row mb-nolus-30 mt-nolus-22"
           >
-          </SidebarElement>
+            <SidebarElement
+              id="history"
+              href="/history"
+              label="History"
+              v-on:click="pushToHistory"
+            >
+            </SidebarElement>
+          </div>
+          <div class="nls-md-show mb-nolus-24">
+            <SidebarSocial/>
+          </div>
         </div>
-        <div class="block">
-          <SidebarElement
-            id="lease"
-            :icon="require('@/assets/icons/lease.svg')"
-            :iconHover="require('@/assets/icons/lease_active.svg')"
-            label="Lease"
-            v-on:click="pushToLease"
-          >
-          </SidebarElement>
-        </div>
-        <div class="block">
-          <SidebarElement
-            id="trade"
-            href="#"
-            label="Trade"
-            :icon="require('@/assets/icons/trade.svg')"
-            :iconHover="require('@/assets/icons/trade_active.svg')"
-          >
-          </SidebarElement>
-        </div>
-        <div class="block">
-          <SidebarElement
-            id="earn"
-            label="Earn"
-            v-on:click="pushToEarn"
-            :icon="require('@/assets/icons/earn.svg')"
-            :iconHover="require('@/assets/icons/earn_active.svg')"
-          >
-          </SidebarElement>
-        </div>
-        <div class="block">
-          <SidebarElement
-            id="history"
-            v-on:click="pushToHistory"
-            label="History"
-            :icon="require('@/assets/icons/history.svg')"
-            :iconHover="require('@/assets/icons/history_active.svg')"
-          >
-          </SidebarElement>
+
+        <div class="md:flex md:justify-between sidebar-elements-block lg:block">
+          <div class="block nls-nav-link">
+            <SidebarElement id="assets" href="/" label="Assets">
+            </SidebarElement>
+          </div>
+          <div class="block nls-nav-link">
+            <SidebarElement
+              id="lease"
+              href="/lease"
+              label="Lease"
+              v-on:click="pushToLease"
+            >
+            </SidebarElement>
+          </div>
+          <div class="block nls-nav-link">
+            <SidebarElement id="trade" href="#" label="Trade"></SidebarElement>
+          </div>
+          <div class="block nls-nav-link">
+            <SidebarElement
+              id="earn"
+              href="/earn"
+              label="Earn"
+              v-on:click="pushToEarn"
+            >
+            </SidebarElement>
+          </div>
+          <div class="block nls-nav-link nls-md-hidden">
+            <SidebarElement
+              id="history"
+              href="/history"
+              label="History"
+              v-on:click="pushToHistory"
+            >
+            </SidebarElement>
+          </div>
+
+          <div class="block nls-nav-link nls-md-show">
+            <SidebarElement
+              id="more"
+              label="More"
+              v-on:click="showMobileNav = !showMobileNav"
+            >
+            </SidebarElement>
+          </div>
         </div>
       </div>
     </div>
-    <div class="bot px-8 pb-8">
-      <div class="flex items-center">
-        <SidebarSocialElement
-          id="twitter"
-          :href="TWITTER_ACCOUNT"
-          :icon="require('@/assets/icons/twitter.svg')"
-        >
-        </SidebarSocialElement>
-        <SidebarSocialElement
-          id="telegram"
-          :href="TELEGRAM_ACCOUNT"
-          :icon="require('@/assets/icons/telegram.svg')"
-        >
-        </SidebarSocialElement>
-        <SidebarSocialElement
-          id="discord"
-          :href="DISCORD_ACCOUNT"
-          :icon="require('@/assets/icons/discord.svg')"
-        >
-        </SidebarSocialElement>
-        <SidebarSocialElement
-          id="redit"
-          :href="REDDIT_ACCOUNT"
-          :icon="require('@/assets/icons/reddit.svg')"
-        >
-        </SidebarSocialElement>
-        <SidebarSocialElement
-          id="medium"
-          :href="MEDIUM_ACCOUNT"
-          :icon="require('@/assets/icons/medium.svg')"
-        >
-        </SidebarSocialElement>
-      </div>
-      <div class="block mt-3">
-        <SidebarLinkElement
-          id="term-of-service"
-          href="#"
-          label="Terms of Service"
-        >
-        </SidebarLinkElement>
-      </div>
-    </div>
+    <SidebarSocial/>
+    <div class="backdrop"></div>
   </div>
 </template>
 <script type="ts">
@@ -107,6 +91,7 @@ import SidebarElement from '@/components/SidebarElement.vue'
 import SidebarSocialElement from '@/components/SidebarSocialElement.vue'
 import SidebarLinkElement from '@/components/SidebarLinkElement.vue'
 import WalletOpen from '@/components/WalletOpen.vue'
+import SidebarSocial from '@/components/SidebarSocial.vue'
 import { BellIcon } from '@heroicons/vue/solid'
 import {
   DISCORD_ACCOUNT,
@@ -126,11 +111,13 @@ export default {
     SidebarSocialElement,
     SidebarLinkElement,
     BellIcon,
-    WalletOpen
+    WalletOpen,
+    SidebarSocial
   },
   props: [],
   data () {
     return {
+      showMobileNav: false,
       showWalletPopup: false,
       TWITTER_ACCOUNT: TWITTER_ACCOUNT,
       TELEGRAM_ACCOUNT: TELEGRAM_ACCOUNT,
