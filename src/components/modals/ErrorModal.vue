@@ -18,7 +18,7 @@
           class="nls-font-700 nls-18 text-primary text-center nls-14 nls-font-400 mt-2 mb-0"
         >
           Messages are used to interact with SDK modules or other CW smart
-          contracts. Since messages are executed in a set-and-forget manner, you
+          contracts. Since index are executed in a set-and-forget manner, you
           will not get a response on
         </p>
         <div class="flex gap-2 mt-5">

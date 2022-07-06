@@ -19,7 +19,7 @@
           <!-- Header -->
           <div class="flex flex-wrap items-center justify-between px-4 lg:px-0">
             <div class="left w-full md:w-1/2">
-              <h1 class="nls-20 nls-font-700 text-primary m-0">Earnings</h1>
+              <h1 class="nls-20 nls-font-700 text-primary m-0">{{ $t('message.earnings') }}</h1>
             </div>
           </div>
 
@@ -33,10 +33,10 @@
                   class="flex items-center justify-between px-nolus-24 px-nolus-24 pt-nolus-24"
                 >
                   <h2 class="nls-16 nls-font-500 text-left my-0">
-                    Your earning portfolio
+                    {{ $t('message.earnings-portfolio') }}
                   </h2>
                   <button class="btn btn-label btn-large-label">
-                    View all earning assets
+                    {{ $t('message.view-all-earning-assets') }}
                   </button>
                 </div>
                 <!-- Assets -->
@@ -48,13 +48,13 @@
                     <div
                       class="nls-font-500 nls-12 text-dark-grey text-left text-upper"
                     >
-                      Asset
+                      {{ $t('message.asset') }}
                     </div>
 
                     <div
                       class="inline-flex items-center justify-end nls-font-500 nls-font-500 nls-12 text-dark-grey text-right text-upper"
                     >
-                      <span class="inline-block">Current Balance</span>
+                      <span class="inline-block">{{ $t('message.current-balance') }}</span>
                     </div>
                   </div>
 
@@ -109,7 +109,7 @@
                           class="btn btn-secondary btn-medium-secondary"
                           data-v-37958d79=""
                         >
-                          Supply / Withdraw
+                          {{ $t('message.supply-withdraw') }}
                         </button>
                       </div>
                     </div>
@@ -164,7 +164,7 @@
                           class="btn btn-secondary btn-medium-secondary"
                           data-v-37958d79=""
                         >
-                          Supply / Withdraw
+                          {{ $t('message.supply-withdraw') }}
                         </button>
                       </div>
                     </div>
@@ -206,7 +206,7 @@
                           class="btn btn-secondary btn-medium-secondary"
                           data-v-37958d79=""
                         >
-                          Supply / Withdraw
+                          {{ $t('message.supply-withdraw') }}
                         </button>
                       </div>
                       <div class="block info-show">
@@ -238,10 +238,10 @@
                   class="flex items-center justify-between px-nolus-24 pt-nolus-24"
                 >
                   <h2 class="nls-16 nls-font-500 text-left my-0">
-                    Pending rewards
+                    {{ $t('message.pending-rewards') }}
                   </h2>
                   <button class="btn btn-label btn-large-label">
-                    Claim all
+                    {{ $t('message.claim-all') }}
                   </button>
                 </div>
                 <!-- Assets -->
@@ -284,7 +284,7 @@
                           class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
                           data-v-37958d79=""
                         >
-                          None
+                          {{ $t('message.none') }}
                         </button>
                       </div>
                     </div>
@@ -326,7 +326,7 @@
                           class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
                           data-v-37958d79=""
                         >
-                          None
+                          {{ $t('message.none') }}
                         </button>
                       </div>
                     </div>
@@ -368,7 +368,7 @@
                           class="btn btn-secondary btn-medium-secondary js-loading mr-4"
                           data-v-37958d79=""
                         >
-                          None
+                          {{ $t('message.none') }}
                         </button>
                       </div>
                     </div>
@@ -412,13 +412,13 @@ export default defineComponent({
     AssetPartial,
     Notifications,
     WalletOpen,
-    SidebarHeader,
+    SidebarHeader
   },
   data () {
     return {
-      cols: 2 as number,
+      cols: 2 as number
     }
-  },
+  }
 })
 </script>
 <style scoped></style>
