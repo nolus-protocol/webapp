@@ -37,7 +37,24 @@
     "get-up-to": "Get up to:",
     "leased-amount": "Leased amount:",
     "annual-interest": "Annual interest:",
-    "liquidation-price": "Liquidation price:"
+    "liquidation-price": "Liquidation price:",
+    "memo": "Memo:",
+    "contract-address": "Contract address:",
+    "confirm-sending": "Confirm sending",
+    "sending-failed": "Sending failed",
+    "sending-successful": "Sending successful",
+    "something-went-wrong": "Something went wrong",
+    "tx-id": "Transaction id:",
+    "ok": "Ok",
+    "send": "Send",
+    "password": "Password",
+    "amount": "Amount:",
+    "tax-and-fee": "Tax & Fee:",
+    "copy": "Copy",
+    "receive": "Receive",
+    "wallet-address": "Wallet address:",
+    "scan-code": "Scan code",
+    "network": "Network"
   }
 }
 
