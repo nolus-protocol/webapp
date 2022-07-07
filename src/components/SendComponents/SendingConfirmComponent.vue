@@ -71,12 +71,14 @@
 </template>
 
 <script lang="ts">
-import { ArrowLeftIcon } from '@heroicons/vue/solid'
-import InputField from '@/components/InputField.vue'
 import { defineComponent, PropType } from 'vue'
+import { ArrowLeftIcon } from '@heroicons/vue/solid'
+import { CurrencyUtils } from '@nolus/nolusjs'
+
+import InputField from '@/components/InputField.vue'
 import { SendComponentProps } from '@/components/SendComponents/SendComponent.vue'
 import { WalletUtils } from '@/utils/WalletUtils'
-import { CurrencyUtils } from '@nolus/nolusjs'
+import { assetInfo } from '@/config/assetInfo'
 
 export default defineComponent({
   name: 'SendingConfirmComponent',
@@ -91,8 +93,12 @@ export default defineComponent({
   },
   methods: {
     formatAmount (value: string) {
-      const amountInUNls = CurrencyUtils.convertNolusToUNolus(value)
-      return CurrencyUtils.convertUNolusToNolus(amountInUNls.amount.toString())
+      const selectedCurrency = this.modelValue?.selectedCurrency
+      if (selectedCurrency) {
+        const {coinDenom, coinMinimalDenom, coinDecimals} = assetInfo[selectedCurrency.balance.denom]
+        const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(value, coinMinimalDenom, coinDecimals)
+        return CurrencyUtils.convertMinimalDenomToDenom(minimalDenom.amount.toString(), coinMinimalDenom, coinDenom, coinDecimals)
+      }
     },
     isMnemonicWallet () {
       return WalletUtils.isConnectedViaMnemonic()
