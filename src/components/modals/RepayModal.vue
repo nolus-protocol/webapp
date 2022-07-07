@@ -24,9 +24,11 @@
 </template>
 
 <script lang="ts">
+import CurrencyField from '@/components/CurrencyField.vue'
 import { defineComponent, PropType } from 'vue'
-import RepayMainComponent, { SendMainComponentProps } from '@/components/RepayComponents/RepayMainComponent.vue'
+import TooltipComponent from '@/components/TooltipComponent.vue'
 import { LeaseData } from '@/types/LeaseData'
+import RepayMainComponent, { SendMainComponentProps } from '@/components/RepayComponents/RepayMainComponent.vue'
 
 enum ScreenState {
   REPAY = 'RepayMainComponent',
@@ -40,6 +42,8 @@ interface RepayModalData {
 export default defineComponent({
   name: 'RepayModal',
   components: {
+    CurrencyField,
+    TooltipComponent,
     RepayMainComponent
   },
   props: {

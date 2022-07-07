@@ -48,48 +48,33 @@
         <span class="inline-block nls-font-700 ml-5">{{ pricePerToken }}</span>
       </p>
     </div>
-    <div class="flex justify-end mt-3">
-      <p class="inline-block m-0 text-left text-primary nls-14 nls-font-400">
-        {{ $t('message.leased-amount') }}
-        <span class="inline-block nls-font-700 ml-5">
+    <div class="text-right nls-font-700 nls-14">
+      <p class="mb-nolus-12 mt-nolus-255 flex justify-end align-center">
+        Leased amount:
+        <span class="flex nls-font-700 ml-5">
           {{ calculateLeaseAmount }}
-          <img
-            :src="require('@/assets/icons/tooltip.svg')"
-            class="inline-block m-0 ml-1"
-            height="12"
-            width="12"
-          />
+          <TooltipComponent content="Content goes here"/>
         </span>
       </p>
     </div>
-    <div class="flex justify-end mt-3">
+    <div class="text-right nls-font-700 nls-14">
       <p
         v-if="this.annualInterestRate"
-        class="inline-block m-0 text-left text-primary nls-14 nls-font-400"
+        class="mb-nolus-12 mt-nolus-255 flex justify-end align-center"
       >
-        {{ $t('message.annual-interest') }}
-        <span class="inline-block nls-font-700 ml-5">
+        Annual interest:
+        <span class="flex nls-font-700 ml-5">
           {{ this.annualInterestRate }}
-          <img
-            :src="require('@/assets/icons/tooltip.svg')"
-            class="inline-block m-0 ml-1"
-            height="12"
-            width="12"
-          />
+          <TooltipComponent content="Content goes here"/>
         </span>
       </p>
     </div>
-    <div class="flex justify-end mt-3">
-      <p class="inline-block m-0 text-left text-primary nls-14 nls-font-400">
-        {{ $t('message.liquidation-price') }}
-        <span class="inline-block nls-font-700 ml-5">
+    <div class="text-right nls-font-700 nls-14">
+      <p class="mb-nolus-12 mt-nolus-255 flex justify-end align-center">
+        Liquidation price:
+        <span class="flex nls-font-700 ml-5">
           $18,585.00
-          <img
-            :src="require('@/assets/icons/tooltip.svg')"
-            class="inline-block m-0 ml-1"
-            height="12"
-            width="12"
-          />
+          <TooltipComponent content="Content goes here"/>
         </span>
       </p>
     </div>
@@ -117,6 +102,7 @@ import { Price } from '@/store/modules/oracle/state'
 import { assetInfo } from '@/config/assetInfo'
 import { CurrencyUtils } from '@nolus/nolusjs'
 import { Coin } from '@keplr-wallet/unit'
+import TooltipComponent from '@/components/TooltipComponent.vue'
 
 export interface LeaseComponentProps {
   contractAddress: string;
@@ -141,7 +127,8 @@ export interface LeaseComponentProps {
 export default defineComponent({
   name: 'LeaseFormComponent',
   components: {
-    CurrencyField
+    CurrencyField,
+    TooltipComponent
   },
   props: {
     modelValue: {
@@ -177,7 +164,10 @@ export default defineComponent({
         if (leaseCurrency) {
           return CurrencyUtils.calculateBalance(
             this.getPrice(leaseCurrency.balance.denom).amount,
-            new Coin(leaseCurrency.balance.denom, this.modelValue?.amount as string),
+            new Coin(
+              leaseCurrency.balance.denom,
+              this.modelValue?.amount as string
+            ),
             0
           )
         }
