@@ -25,16 +25,26 @@
 
 <script lang="ts">
 import CurrencyField from '@/components/CurrencyField.vue'
-import { defineComponent } from 'vue'
-import { CurrencyUtils } from '@nolus/nolusjs'
-import { AssetBalance } from '@/store/modules/wallet/state'
+import { defineComponent, PropType } from 'vue'
 import TooltipComponent from '@/components/TooltipComponent.vue'
+import { LeaseData } from '@/types/LeaseData'
+import RepayMainComponent, { SendMainComponentProps } from '@/components/RepayComponents/RepayMainComponent.vue'
+
+enum ScreenState {
+  REPAY = 'RepayMainComponent',
+}
+
+interface RepayModalData {
+  is: string;
+  props: object | SendMainComponentProps;
+}
 
 export default defineComponent({
   name: 'RepayModal',
   components: {
     CurrencyField,
-    TooltipComponent
+    TooltipComponent,
+    RepayMainComponent
   },
   props: {
     leaseInfo: {
