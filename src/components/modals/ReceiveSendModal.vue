@@ -20,13 +20,13 @@
           :class="isSendActive ? 'active' : ''"
           v-on:click="switchTab(true)"
         >
-          Send
+          {{ $t('message.send') }}
         </button>
         <button
           :class="!isSendActive ? 'active' : ''"
           v-on:click="switchTab(false)"
         >
-          Receive
+          {{ $t('message.receive') }}
         </button>
       </div>
 
@@ -75,7 +75,7 @@ export default defineComponent({
       }
     }
   },
-  emits: ["defaultState", "close-modal"],
+  emits: ['defaultState', 'close-modal'],
   methods: {
     onClickChild (value: boolean) {
       this.isDefaultState = value // someValue

@@ -16,7 +16,7 @@
           <!-- Header -->
           <div class="flex flex-wrap items-center justify-between px-4 lg:px-0">
             <div class="left w-full md:w-1/2">
-              <h1 class="nls-20 nls-font-700 text-primary m-0">Leases</h1>
+              <h1 class="nls-20 nls-font-700 text-primary m-0">{{ $t('message.leases') }}</h1>
             </div>
             <div
               class="right w-full md:w-1/2 mt-nolus-255 md:mt-0 inline-flex justify-start md:justify-end"
@@ -25,7 +25,7 @@
                 class="btn btn-primary btn-large-primary w-full md:w-1/2"
                 v-on:click="showLeaseModal = true"
               >
-                Lease new
+                {{ $t('message.lease-new') }}
               </button>
             </div>
           </div>

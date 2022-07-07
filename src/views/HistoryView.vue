@@ -21,7 +21,7 @@
             class="table-header flex mt-nolus-255 flex-wrap items-center justify-between items-baseline lg:px-0"
           >
             <div class="left">
-              <h1 class="nls-20 nls-font-700 text-primary m-0">History</h1>
+              <h1 class="nls-20 nls-font-700 text-primary m-0">{{ $t('message.history') }}</h1>
             </div>
           </div>
           <!-- History -->
@@ -42,22 +42,22 @@
                 <div
                   class="nls-md-hidden col-span-2 md:block nls-font-500 nls-12 text-dark-grey text-left text-upper"
                 >
-                  Type
+                  {{ $t('message.type') }}
                 </div>
                 <div
                   class="flex items-center col-span-4 justify-start nls-font-500 nls-12 text-dark-grey text-left text-upper"
                 >
-                  <span class="inline-block">Action</span>
+                  <span class="inline-block">{{ $t('message.action') }}</span>
                 </div>
                 <div
                   class="md:flex col-span-2 items-center justify-end nls-font-500 nls-12 text-dark-grey text-right text-upper"
                 >
-                  <span class="inline-block">Fee</span>
+                  <span class="inline-block">{{ $t('message.fee') }}</span>
                 </div>
                 <div
                   class="md:flex col-span-2 items-center justify-end nls-font-500 nls-12 text-dark-grey text-right text-upper"
                 >
-                  <span class="inline-block">Time</span>
+                  <span class="inline-block">{{ $t('message.time') }}</span>
                 </div>
               </div>
               <!-- Assets Container -->
@@ -87,7 +87,7 @@
                   >
                     <span class="nls-12 nls-font-700">
                       {{ truncateString(transaction.sender) }}
-                      to
+                      {{ $t('message.to') }}
                       {{ truncateString(transaction.receiver) }}
                     </span>
                     <!--                    <span class="text-bold">Stake</span> 797020...qtcrpy to <span-->

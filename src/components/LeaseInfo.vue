@@ -32,7 +32,7 @@
 
         <div class="block mt-nolus-255 pl-12">
           <div class="block">
-            <p class="text-detail text-primary m-0">Outstanding Loan Amount</p>
+            <p class="text-detail text-primary m-0">{{ $t('message.outstanding-loan-amount') }}</p>
             <p class="text-primary nls-20 nls-font-700 nls-font-400 m-0 mt-1">
               {{
                 calculateBalance(
@@ -43,7 +43,7 @@
             </p>
           </div>
           <div class="block mt-nolus-255">
-            <p class="text-detail text-primary m-0">Interest Due</p>
+            <p class="text-detail text-primary m-0">{{ $t('message.interest-due') }}</p>
             <p
               class="flex items-center text-primary nls-20 nls-font-700 nls-font-400 m-0 mt-1"
             >
@@ -56,7 +56,7 @@
             </p>
           </div>
           <div class="block mt-nolus-255">
-            <p class="text-detail text-primary m-0">Interest Rate</p>
+            <p class="text-detail text-primary m-0">{{ $t('message.interest-rate') }}</p>
             <p
               class="flex items-center text-primary nls-20 nls-font-700 nls-font-400 m-0 mt-1"
             >
@@ -72,8 +72,10 @@
     <div
       class="flex items-center justify-end border-t border-standart pt-4 px-6"
     >
-      <button class="btn btn-secondary btn-large-secondary mr-4">Claim</button>
-      <button class="btn btn-secondary btn-large-secondary" v-on:click="showRepayModal = true">Repay</button>
+      <button class="btn btn-secondary btn-large-secondary" v-on:click="showRepayModal = true">{{
+          $t('message.repay')
+        }}
+      </button>
     </div>
   </div>
 

@@ -11,7 +11,7 @@
           :option="modelValue.selectedDownPaymentCurrency"
           :step="'1'"
           :value="modelValue.downPayment"
-          label="How much do you want to invest?"
+          :label="$t('message.invest-question')"
           name="amountInvestment"
           @input="(event) => (modelValue.downPayment = event.target.value)"
           @update-currency="
@@ -30,7 +30,7 @@
           :is-error="modelValue.amountErrorMsg !== ''"
           :option="modelValue.selectedCurrency"
           :value="modelValue.amount"
-          label="Get up to:"
+          :label="$t('message.get-up-to')"
           name="amountInterest"
           @input="(event) => (modelValue.amount = event.target.value)"
           @update-currency="(event) => (modelValue.selectedCurrency = event)"
@@ -50,7 +50,7 @@
     </div>
     <div class="flex justify-end mt-3">
       <p class="inline-block m-0 text-left text-primary nls-14 nls-font-400">
-        Leased amount:
+        {{ $t('message.leased-amount') }}
         <span class="inline-block nls-font-700 ml-5">
           {{ calculateLeaseAmount }}
           <img
@@ -67,7 +67,7 @@
         v-if="this.annualInterestRate"
         class="inline-block m-0 text-left text-primary nls-14 nls-font-400"
       >
-        Annual interest:
+        {{ $t('message.annual-interest') }}
         <span class="inline-block nls-font-700 ml-5">
           {{ this.annualInterestRate }}
           <img
@@ -81,7 +81,7 @@
     </div>
     <div class="flex justify-end mt-3">
       <p class="inline-block m-0 text-left text-primary nls-14 nls-font-400">
-        Liquidation price:
+        {{ $t('message.liquidation-price') }}
         <span class="inline-block nls-font-700 ml-5">
           $18,585.00
           <img
@@ -101,7 +101,7 @@
       class="btn btn-primary btn-large-primary"
       v-on:click="modelValue.onNextClick"
     >
-      Lease
+      {{ $t('message.lease') }}
     </button>
   </div>
 </template>

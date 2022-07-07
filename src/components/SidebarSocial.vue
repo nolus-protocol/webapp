@@ -36,7 +36,7 @@
       <SidebarLinkElement
         id="term-of-service"
         href="#"
-        label="Terms of Service"
+        :label="$t('message.term-of-service')"
       >
       </SidebarLinkElement>
       <!-- this.$route.path == this.href ? 'active' : false, -->

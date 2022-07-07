@@ -17,7 +17,7 @@
               icon: require('@/assets/icons/coins/nls.svg'),
             },
           ]"
-          label="Asset"
+          :label="$t('message.asset')"
         ></PickerIcon>
       </div>
 
@@ -26,12 +26,12 @@
           :default-option="{ value: 'NLS', label: 'NLS' }"
           :disabled="true"
           :options="this.networks"
-          label="Network"
+          :label="$t('message.network')"
         ></PickerDefault>
       </div>
 
       <div class="block mt-nolus-36">
-        <p class="nls-14 nls-font-500 text-primary m-0">Wallet address:</p>
+        <p class="nls-14 nls-font-500 text-primary m-0">{{ $t('message.wallet-address') }}</p>
         <p class="nls-14 text-primary nls-font-700 m-0">
           {{ modelValue.walletAddress }}
         </p>
@@ -41,14 +41,14 @@
             v-on:click="modelValue.onCopyClick"
           >
             <DuplicateIcon class="icon w-4 h-4"/>
-            Copy
+            {{ $t('message.copy') }}
           </button>
           <button
             class="btn btn-secondary btn-medium-secondary btn-icon"
             v-on:click="modelValue.onScanClick"
           >
             <QrcodeIcon class="icon w-4 h-4"/>
-            Scan code
+            {{ $t('message.scan-code') }}
           </button>
         </div>
       </div>

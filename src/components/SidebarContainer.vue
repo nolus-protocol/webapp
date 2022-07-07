@@ -6,10 +6,6 @@
       <div
         class="sidebar-elements-container nls-nav-more flex flex-col mt-nolus-55"
       >
-        <!-- z-index: 5;
-					background-color: $white;
-					transform: translateY(0);
-					padding: 24px; -->
         <div
           :style="
             showMobileNav
@@ -24,10 +20,9 @@
             <SidebarElement
               id="history"
               href="/history"
-              label="History"
+              :label="$t('message.history')"
               v-on:click="pushToHistory"
-            >
-            </SidebarElement>
+            />
           </div>
           <div class="nls-md-show mb-nolus-24">
             <SidebarSocial/>
@@ -36,47 +31,42 @@
 
         <div class="md:flex md:justify-between sidebar-elements-block lg:block">
           <div class="block nls-nav-link">
-            <SidebarElement id="assets" href="/" label="Assets">
-            </SidebarElement>
+            <SidebarElement id="assets" href="/" :label="$t('message.assets')"/>
           </div>
           <div class="block nls-nav-link">
             <SidebarElement
               id="lease"
               href="/lease"
-              label="Lease"
+              :label="$t('message.lease')"
               v-on:click="pushToLease"
-            >
-            </SidebarElement>
+            />
           </div>
           <div class="block nls-nav-link">
-            <SidebarElement id="trade" href="#" label="Trade"></SidebarElement>
+            <SidebarElement id="trade" href="#" :label="$t('message.trade')"/>
           </div>
           <div class="block nls-nav-link">
             <SidebarElement
               id="earn"
               href="/earn"
-              label="Earn"
+              :label="$t('message.earn')"
               v-on:click="pushToEarn"
-            >
-            </SidebarElement>
+            />
           </div>
           <div class="block nls-nav-link nls-md-hidden">
             <SidebarElement
               id="history"
               href="/history"
-              label="History"
+              :label="$t('message.history')"
               v-on:click="pushToHistory"
-            >
-            </SidebarElement>
+            />
           </div>
 
           <div class="block nls-nav-link nls-md-show">
             <SidebarElement
               id="more"
-              label="More"
+              :label="$t('message.more')"
               v-on:click="showMobileNav = !showMobileNav"
-            >
-            </SidebarElement>
+            />
           </div>
         </div>
       </div>
@@ -88,11 +78,7 @@
 <script type="ts">
 import LogoLink from '@/components/LogoLink.vue'
 import SidebarElement from '@/components/SidebarElement.vue'
-import SidebarSocialElement from '@/components/SidebarSocialElement.vue'
-import SidebarLinkElement from '@/components/SidebarLinkElement.vue'
-import WalletOpen from '@/components/WalletOpen.vue'
 import SidebarSocial from '@/components/SidebarSocial.vue'
-import { BellIcon } from '@heroicons/vue/solid'
 import {
   DISCORD_ACCOUNT,
   LINKEDIN_ACCOUNT,
@@ -108,10 +94,6 @@ export default {
   components: {
     LogoLink,
     SidebarElement,
-    SidebarSocialElement,
-    SidebarLinkElement,
-    BellIcon,
-    WalletOpen,
     SidebarSocial
   },
   props: [],
