@@ -448,6 +448,9 @@ input[type="checkbox" i] {
 	.nls-md-hidden {
 		display: none;
 	}
+	.nls-md-invisible {
+		visibility: hidden;
+	}
 }
 
 @media (max-width: $sm) {
@@ -464,5 +467,12 @@ input[type="checkbox" i] {
 	}
 	.sidebar-elements-block {
 		border-top: 1px solid $borderColor;
+	}
+	.nls-sm-hidden {
+		display: none;
+	}
+	.nls-sm-inline-flex-half {
+		display: inline-flex;
+		width: 50%;
 	}
 }

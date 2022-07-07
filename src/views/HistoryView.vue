@@ -32,25 +32,25 @@
             <div class="block md:mt-4">
               <!-- Assets Header -->
               <div
-                class="nls-md-hidden md:grid lg:grid-cols-12 flex items-center gap-6 border-b border-standart pb-3 px-6"
+                class="nls-sm-hidden md:grid grid-cols-12 flex items-center gap-6 border-b border-standart pb-3 px-6"
               >
                 <div
-                  class="nls-md-hidden col-span-2 lg:block nls-font-500 nls-12 text-dark-grey text-left text-upper"
+                  class="col-span-2 hidden lg:block nls-font-500 nls-12 text-dark-grey text-left text-upper"
                 >
                   ID
                 </div>
                 <div
-                  class="nls-md-hidden col-span-2 md:block nls-font-500 nls-12 text-dark-grey text-left text-upper"
+                  class="lg:col-span-2 col-span-3 block invisible lg:visible nls-font-500 nls-12 text-dark-grey text-left text-upper"
                 >
                   Type
                 </div>
                 <div
-                  class="flex items-center col-span-4 justify-start nls-font-500 nls-12 text-dark-grey text-left text-upper"
+                  class="flex items-center col-span-4 col-span-2 justify-start nls-font-500 nls-12 text-dark-grey lg:text-left text-upper"
                 >
                   <span class="inline-block">Action</span>
                 </div>
                 <div
-                  class="md:flex col-span-2 items-center justify-end nls-font-500 nls-12 text-dark-grey text-right text-upper"
+                  class="md:flex lg:col-span-2 col-span-3 items-center justify-end nls-font-500 nls-12 text-dark-grey text-right text-upper"
                 >
                   <span class="inline-block">Fee</span>
                 </div>
@@ -64,21 +64,23 @@
               <div class="block">
                 <!-- History Element -->
                 <div
-                  class="grid grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6 flex items-center"
+                  class="md:grid md:grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6 md:flex items-center"
                 >
                   <div
-                    class="nls-md-hidden lg:block col-span-2 nls-14 nls-font-400 text-primary text-left"
+                    class="nls-sm-hidden block col-span-3 lg:col-span-2 nls-14 nls-font-400 text-primary text-left"
                   >
                     C1FAC987E9515B...
                   </div>
-                  <div class="nls-md-hidden md:block col-span-2 text-left">
+                  <div class="hidden lg:block col-span-2 text-left">
                     <span
                       class="inline-block py-1 px-2 text-patch nls-font-500 nls-12 text-primary radius-pill"
                     >
                       Transfer
                     </span>
                   </div>
-                  <div class="block col-span-4 text-primary text-left">
+                  <div
+                    class="block col-span-5 lg:col-span-4 text-primary text-left"
+                  >
                     <span class="nls-12 nls-font-700"
                       >Stake 797020...qtcrpy to Pylon Governance</span
                     >
@@ -86,16 +88,16 @@
                     <!--                    class="text-bold">Pylon Governance</span>-->
                   </div>
                   <div
-                    class="block col-span-2 items-center justify-start md:justify-end"
+                    class="block col-span-2 items-center justify-start md:justify-end nls-sm-inline-flex-half"
                   >
                     <span
-                      class="left-and-right nls-14 nls-font-400 text-primary"
+                      class="left-and-right nls-14 nls-font-400 text-primary mt-nls-sm-9"
                     >
                       0.481215 NLS
                     </span>
                   </div>
                   <div
-                    class="flex col-span-2 items-center justify-end nls-14 nls-font-400 text-primary text-right"
+                    class="mt-nls-sm-9 flex col-span-2 items-center justify-end nls-14 nls-font-400 text-primary text-right nls-sm-inline-flex-half"
                   >
                     2 hours ago
                   </div>
@@ -104,36 +106,40 @@
               <div class="block">
                 <!-- History Element -->
                 <div
-                  class="grid grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6"
+                  class="md:grid md:grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6 md:flex items-center"
                 >
                   <div
-                    class="hidden lg:block col-span-2 nls-14 nls-font-400 text-primary text-left"
+                    class="nls-sm-hidden block col-span-3 lg:col-span-2 nls-14 nls-font-400 text-primary text-left"
                   >
                     C1FAC987E9515B...
                   </div>
-                  <div class="hidden md:block col-span-2 text-left">
+                  <div class="hidden lg:block col-span-2 text-left">
                     <span
                       class="inline-block py-1 px-2 text-patch nls-font-500 nls-12 text-primary radius-pill"
                     >
-                      Send
+                      Transfer
                     </span>
                   </div>
-                  <div class="block col-span-4 text-primary text-left">
-                    <span class="nls-12 nls-font-700">
-                      Send 139UST to Pylon Governance
-                    </span>
+                  <div
+                    class="block col-span-5 lg:col-span-4 text-primary text-left"
+                  >
+                    <span class="nls-12 nls-font-700"
+                      >Send 139UST to Pylon Governance</span
+                    >
                     <!--                    <span class="text-bold">Stake</span> 797020...qtcrpy to <span-->
                     <!--                    class="text-bold">Pylon Governance</span>-->
                   </div>
                   <div
-                    class="block col-span-2 items-center justify-start md:justify-end text-primary"
+                    class="block col-span-2 items-center justify-start md:justify-end nls-sm-inline-flex-half"
                   >
-                    <span class="left-and-right nls-14 nls-font-400">
+                    <span
+                      class="left-and-right nls-14 nls-font-400 text-primary mt-nls-sm-9"
+                    >
                       0.481215 NLS
                     </span>
                   </div>
                   <div
-                    class="flex col-span-2 items-center justify-end nls-14 nls-font-400 text-primary text-right"
+                    class="mt-nls-sm-9 flex col-span-2 items-center justify-end nls-14 nls-font-400 text-primary text-right nls-sm-inline-flex-half"
                   >
                     2 hours ago
                   </div>
@@ -142,47 +148,50 @@
               <div class="block">
                 <!-- History Element -->
                 <div
-                  class="grid grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6"
+                  class="md:grid md:grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6 md:flex items-center"
                 >
                   <div
-                    class="hidden lg:block col-span-2 nls-14 nls-font-400 text-primary text-left"
+                    class="nls-sm-hidden block col-span-3 lg:col-span-2 nls-14 nls-font-400 text-primary text-left"
                   >
                     C1FAC987E9515B...
                   </div>
-                  <div class="hidden md:block col-span-2 text-left">
+                  <div class="hidden lg:block col-span-2 text-left">
                     <span
                       class="inline-block py-1 px-2 text-patch nls-font-500 nls-12 text-primary radius-pill"
                     >
-                      Vote
+                      Transfer
                     </span>
                   </div>
                   <div
-                    class="block col-span-4 nls-14 nls-font-400 text-primary text-left"
+                    class="block col-span-5 lg:col-span-4 text-primary text-left"
                   >
-                    <span class="nls-12 nls-font-700">
-                      Vote Yes to Proposal ID: 123
-                    </span>
+                    <span class="nls-12 nls-font-700"
+                      >Stake 797020...qtcrpy to Pylon Governance</span
+                    >
                     <!--                    <span class="text-bold">Stake</span> 797020...qtcrpy to <span-->
                     <!--                    class="text-bold">Pylon Governance</span>-->
                   </div>
                   <div
-                    class="block col-span-2 items-center justify-start md:justify-endtext-primary"
+                    class="block col-span-2 items-center justify-start md:justify-end nls-sm-inline-flex-half"
                   >
-                    <span class="left-and-right nls-14 nls-font-400">
+                    <span
+                      class="left-and-right nls-14 nls-font-400 text-primary mt-nls-sm-9"
+                    >
                       0.481215 NLS
                     </span>
                   </div>
                   <div
-                    class="flex col-span-2 items-center justify-end nls-14 nls-font-400 text-primary text-right"
+                    class="mt-nls-sm-9 flex col-span-2 items-center justify-end nls-14 nls-font-400 text-primary text-right nls-sm-inline-flex-half"
                   >
                     2 hours ago
                   </div>
                 </div>
               </div>
+              <!-- here -->
               <div class="block">
                 <!-- History Element -->
                 <div
-                  class="grid grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6"
+                  class="grid lg:grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6"
                   v-for="transaction in this.transactions"
                   :key="transaction.id"
                 >
@@ -191,11 +200,9 @@
                   >
                     {{ truncateString(transaction.id) }}
                   </div>
-                  <div
-                    class="nls-md-hidden hidden col-span-2 md:block text-left"
-                  >
+                  <div class="hidden col-span-2 md:block text-left">
                     <span
-                      class="nls-md-hidden inline-block py-1 px-2 text-patch nls-font-500 nls-12 text-primary radius-pill"
+                      class="inline-block py-1 px-2 text-patch nls-font-500 nls-12 text-primary radius-pill"
                     >
                       {{ capitalize(transaction.action) }}
                     </span>

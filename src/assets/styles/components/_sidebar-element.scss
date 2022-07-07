@@ -186,6 +186,9 @@
 			display: inline-block;
 		}
 	}
+	@media (max-width: $sm) {
+		padding: 0 8px;
+	}
 }
 
 .sidebar-social-element {
