@@ -160,7 +160,7 @@
               />
               <span class="label nls-font-400 nls-12">My precious</span>
             </button> -->
-            <SidebarHeader />
+            <SidebarHeader/>
             <!-- <WalletOpen v-show="showWalletPopup" :walletModel="walletData" /> -->
           </div>
         </div>
@@ -431,7 +431,7 @@
             <h2 class="text nls-20 nls-font-700 mt-6">Circle on background</h2>
             <div class="inline-flex mt-nolus-255 p-4 rounded-lg">
               <button class="btn btn-close">
-                <span class="icon-close circle" />
+                <span class="icon-close circle"/>
               </button>
             </div>
 
@@ -439,10 +439,10 @@
             <h2 class="text nls-20 nls-font-700 mt-6">Header buttons</h2>
             <div class="inline-flex mt-nolus-255 p-4 rounded-lg">
               <button class="btn btn-header mr-4">
-                <BellIcon class="icon w-4 h-4" />
+                <BellIcon class="icon w-4 h-4"/>
               </button>
               <button class="btn btn-header">
-                <BellIcon class="icon w-4 h-4" />
+                <BellIcon class="icon w-4 h-4"/>
                 <span class="counter">8</span>
               </button>
             </div>
@@ -531,7 +531,7 @@
                           type="checkbox"
                         />
                         <label for="hide-small-balances"
-                          >Hide small balances</label
+                        >Hide small balances</label
                         >
                       </div>
                     </div>
@@ -569,7 +569,7 @@
                         >
                           <span
                             class="relative z-10 p-2 text-xs leading-none text-white whitespace-no-wrap bg-black shadow-lg"
-                            >A top aligned tooltip.</span
+                          >A top aligned tooltip.</span
                           >
                           <div
                             class="absolute w-3 h-3 -mt-2 rotate-45 bg-black"
@@ -593,7 +593,7 @@
                         >
                           <span
                             class="relative z-10 p-2 text-xs leading-none text-white whitespace-no-wrap bg-black shadow-lg"
-                            >A top aligned tooltip.</span
+                          >A top aligned tooltip.</span
                           >
                           <div
                             class="absolute w-3 h-3 -mt-2 rotate-45 bg-black"
@@ -631,11 +631,11 @@
                           3.000000
                           <span
                             class="inline-block text-primary nls-16 nls-font-400 nls-14 nls-font-400"
-                            >BTC</span
+                          >BTC</span
                           >
                         </h1>
                         <span class="nls-13 nls-font-400 text-dark-grey"
-                          >$111,824.94</span
+                        >$111,824.94</span
                         >
                       </div>
                     </div>
@@ -1109,7 +1109,7 @@
                         >
                           <span
                             class="relative z-10 p-2 text-xs leading-none text-white whitespace-no-wrap bg-black shadow-lg"
-                            >A top aligned tooltip.</span
+                          >A top aligned tooltip.</span
                           >
                           <div
                             class="absolute w-3 h-3 -mt-2 rotate-45 bg-black"
@@ -1133,7 +1133,7 @@
                         >
                           <span
                             class="relative z-10 p-2 text-xs leading-none text-white whitespace-no-wrap bg-black shadow-lg"
-                            >A top aligned tooltip.</span
+                          >A top aligned tooltip.</span
                           >
                           <div
                             class="absolute w-3 h-3 -mt-2 rotate-45 bg-black"
@@ -1310,7 +1310,7 @@
               <!-- CONNECT -->
               <div class="col-span-12 mt-nolus-41">
                 <div class="max-w-[515px] mr-auto ml-auto">
-                  <HomeView />
+                  <HomeView/>
                 </div>
               </div>
               <!-- /CONNECT -->
@@ -1329,173 +1329,173 @@
             <div
               class="flex flex-col col-span-2 justify-center justify-start mt-10"
             >
-              <span class="icon-assets" />
+              <span class="icon-assets"/>
               <p>.icon-assets</p>
             </div>
             <div
               class="flex flex-col col-span-2 justify-center justify-start mt-10"
             >
-              <span class="icon-wallet" />
+              <span class="icon-wallet"/>
               <p>.icon-wallet</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-arrow-long-down" />
+              <span class="icon-arrow-long-down"/>
               <p>.icon-arrow-long-down</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-arrow-long-up" />
+              <span class="icon-arrow-long-up"/>
               <p>.icon-arrow-long-up</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-arrow-short-down" />
+              <span class="icon-arrow-short-down"/>
               <p>.icon-arrow-short-down</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-arrow-short-left" />
+              <span class="icon-arrow-short-left"/>
               <p>.icon-arrow-short-left</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-arrow-short-right" />
+              <span class="icon-arrow-short-right"/>
               <p>.icon-arrow-short-right</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-arrow-short-up" />
+              <span class="icon-arrow-short-up"/>
               <p>.icon-arrow-short-up</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-bell" />
+              <span class="icon-bell"/>
               <p>.icon-bell</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-calendar" />
+              <span class="icon-calendar"/>
               <p>.icon-calendar</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-close" />
+              <span class="icon-close"/>
               <p>.icon-close</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-collapse" />
+              <span class="icon-collapse"/>
               <p>.icon-collapse</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-copy" />
+              <span class="icon-copy"/>
               <p>.icon-copy</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-discord" />
+              <span class="icon-discord"/>
               <p>.icon-discord</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-google" />
+              <span class="icon-google"/>
               <p>.icon-google</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-keplr" />
+              <span class="icon-keplr"/>
               <p>.icon-keplr</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-medium" />
+              <span class="icon-medium"/>
               <p>.icon-medium</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-earn" />
+              <span class="icon-earn"/>
               <p>.icon-earn</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-nav-governance" />
+              <span class="icon-nav-governance"/>
               <p>.icon-nav-governance</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-nav-history" />
+              <span class="icon-nav-history"/>
               <p>.icon-history</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-nav-lease" />
+              <span class="icon-nav-lease"/>
               <p>.icon-nav-lease</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-nav-more" />
+              <span class="icon-nav-more"/>
               <p>.icon-nav-more</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-nav-swap" />
+              <span class="icon-nav-swap"/>
               <p>.icon-nav-swap</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-person" />
+              <span class="icon-person"/>
               <p>.icon-person</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-picker" />
+              <span class="icon-picker"/>
               <p>.icon-picker</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-print" />
+              <span class="icon-print"/>
               <p>.icon-print</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-reddit" />
+              <span class="icon-reddit"/>
               <p>.icon-reddit</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-scan" />
+              <span class="icon-scan"/>
               <p>.icon-scan</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-star" />
+              <span class="icon-star"/>
               <p>.icon-star</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-success" />
+              <span class="icon-success"/>
               <p>.icon-success</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-telegram" />
+              <span class="icon-telegram"/>
               <p>.icon-telegram</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-tooltip" />
+              <span class="icon-tooltip"/>
               <p>.icon-tooltip</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-twitter" />
+              <span class="icon-twitter"/>
               <p>.icon-twitter</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-recover" />
+              <span class="icon-recover"/>
               <p>.icon-recover</p>
             </div>
           </div>
@@ -1542,7 +1542,7 @@
             >
               <span
                 class="relative z-10 p-2 text-xs leading-none text-white whitespace-no-wrap bg-black shadow-lg"
-                >A top aligned tooltip.</span
+              >A top aligned tooltip.</span
               >
               <div
                 class="absolute w-3 h-3 -mt-2 rotate-45 bg-black"
@@ -1645,7 +1645,7 @@
               <h1 class="text nls-font-700 nls-32">History</h1>
             </div>
             <div class="col-span-12 pt-8">
-              <HistoryView />
+              <HistoryView/>
             </div>
           </div>
         </div>
@@ -1656,68 +1656,43 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import { DuplicateIcon, XIcon, BellIcon } from "@heroicons/vue/solid";
-import PickerDefault from "@/components/PickerDefault.vue";
-import PickerIcon from "@/components/PickerIcon.vue";
-import PickerCombo from "@/components/PickerCombo.vue";
-import RadioInput from "@/components/RadioInput.vue";
-import InputField from "@/components/InputField.vue";
-import CurrencyField from "@/components/CurrencyField.vue";
-import MultipleCurrencyField from "@/components/MultipleCurrencyField.vue";
-import LogoLink from "@/components/LogoLink.vue";
+import { defineComponent } from 'vue'
+import { BellIcon } from '@heroicons/vue/solid'
+import LogoLink from '@/components/LogoLink.vue'
 
-import SidebarElement from "@/components/SidebarElement.vue";
-import SidebarSocialElement from "@/components/SidebarSocialElement.vue";
-import SidebarLinkElement from "@/components/SidebarLinkElement.vue";
-import WalletOpen from "@/components/WalletOpen.vue";
-import AssetPartial from "@/components/AssetPartial.vue";
-import Notifications from "@/components/Notifications.vue";
-import SupplyWithdrawModal from "@/components/modals/SupplyWithdrawModal.vue";
-import ErrorModal from "@/components/modals/ErrorModal.vue";
-import ConfirmEmailModal from "@/components/modals/ConfirmEmailModal.vue";
-import LeaseModal from "@/components/modals/LeaseModal.vue";
-import RepayModal from "@/components/modals/RepayModal.vue";
-import HistoryView from "@/views/HistoryView.vue";
-import HomeView from "@/views/HomeView.vue";
-import ReceiveSendModal from "@/components/modals/ReceiveSendModal.vue";
-import SwapBuyModal from "@/components/modals/SwapBuyModal.vue";
-import SendingPendingComponent from "@/components/SendComponents/SendingPendingComponent.vue";
+import SidebarElement from '@/components/SidebarElement.vue'
+import SidebarSocialElement from '@/components/SidebarSocialElement.vue'
+import SidebarLinkElement from '@/components/SidebarLinkElement.vue'
+import SupplyWithdrawModal from '@/components/modals/SupplyWithdrawModal.vue'
+import ErrorModal from '@/components/modals/ErrorModal.vue'
+import ConfirmEmailModal from '@/components/modals/ConfirmEmailModal.vue'
+import RepayModal from '@/components/modals/RepayModal.vue'
+import HistoryView from '@/views/HistoryView.vue'
+import HomeView from '@/views/HomeView.vue'
+import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
+import SwapBuyModal from '@/components/modals/SwapBuyModal.vue'
 
-import SnackBar from "@/components/templates/utils/Snackbar.vue";
+import SnackBar from '@/components/templates/utils/Snackbar.vue'
+
 export default defineComponent({
-  name: "StyleguideView",
+  name: 'StyleguideView',
   components: {
-    DuplicateIcon,
-    XIcon,
     BellIcon,
-    PickerDefault,
-    PickerIcon,
-    PickerCombo,
-    RadioInput,
-    InputField,
-    CurrencyField,
-    MultipleCurrencyField,
     LogoLink,
     SidebarElement,
     SidebarSocialElement,
     SidebarLinkElement,
-    WalletOpen,
-    AssetPartial,
     SnackBar,
-    Notifications,
     ReceiveSendModal,
-    SendingPendingComponent,
     SwapBuyModal,
     SupplyWithdrawModal,
     ErrorModal,
     ConfirmEmailModal,
-    LeaseModal,
     RepayModal,
     HistoryView,
-    HomeView,
+    HomeView
   },
-  data() {
+  data () {
     return {
       hover: false as boolean,
       showSwapModal: false as boolean,
@@ -1729,24 +1704,26 @@ export default defineComponent({
       showErrorModal: false as boolean,
       showConfirmEmailModal: false as boolean,
       cols: 0 as number,
-      colstest: 0 as number,
-    };
+      colstest: 0 as number
+    }
   },
-  mounted() {
-    (this.colstest = 4), (this.showSwapModal = false);
-    this.showRepayModal = false;
-    this.showLeaseModal = false;
-    this.showSendModal = false;
-    this.showErrorModal = false;
-    this.showConfirmEmailModal = false;
-    (this.showSupplyWithdrawModal = false), (this.cols = 2);
+  mounted () {
+    this.colstest = 4
+    this.showSwapModal = false
+    this.showRepayModal = false
+    this.showLeaseModal = false
+    this.showSendModal = false
+    this.showErrorModal = false
+    this.showConfirmEmailModal = false
+    this.showSupplyWithdrawModal = false
+    this.cols = 2
   },
   methods: {
     tryButton: () => {
       // this.showModal = true;
-    },
-  },
-});
+    }
+  }
+})
 </script>
 
 <style scoped>

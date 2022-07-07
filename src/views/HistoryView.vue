@@ -4,14 +4,14 @@
     class="lg:container w-full lg:grid lg:grid-cols-12 mx-auto grid-parent md-nls-px-25 sm-nls-0 body"
   >
     <div class="lg:col-span-3">
-      <SidebarContainer />
+      <SidebarContainer/>
     </div>
     <div class="lg:col-span-9 pb-8">
       <div class="grid grid-cols-10 grid-child">
         <div class="col-span-12 mt-nolus-60">
           <div class="col-span-12">
             <div class="sidebar-header">
-              <SidebarHeader />
+              <SidebarHeader/>
             </div>
           </div>
         </div>
@@ -82,7 +82,7 @@
                     class="block col-span-5 lg:col-span-4 text-primary text-left"
                   >
                     <span class="nls-12 nls-font-700"
-                      >Stake 797020...qtcrpy to Pylon Governance</span
+                    >Stake 797020...qtcrpy to Pylon Governance</span
                     >
                     <!--                    <span class="text-bold">Stake</span> 797020...qtcrpy to <span-->
                     <!--                    class="text-bold">Pylon Governance</span>-->
@@ -124,7 +124,7 @@
                     class="block col-span-5 lg:col-span-4 text-primary text-left"
                   >
                     <span class="nls-12 nls-font-700"
-                      >Send 139UST to Pylon Governance</span
+                    >Send 139UST to Pylon Governance</span
                     >
                     <!--                    <span class="text-bold">Stake</span> 797020...qtcrpy to <span-->
                     <!--                    class="text-bold">Pylon Governance</span>-->
@@ -166,7 +166,7 @@
                     class="block col-span-5 lg:col-span-4 text-primary text-left"
                   >
                     <span class="nls-12 nls-font-700"
-                      >Stake 797020...qtcrpy to Pylon Governance</span
+                    >Stake 797020...qtcrpy to Pylon Governance</span
                     >
                     <!--                    <span class="text-bold">Stake</span> 797020...qtcrpy to <span-->
                     <!--                    class="text-bold">Pylon Governance</span>-->
@@ -222,8 +222,8 @@
                     class="block col-span-2 items-center justify-start md:justify-endtext-primary"
                   >
                     <span class="left-and-right nls-14 nls-font-400">{{
-                      convertFeeAmount(transaction.fee)
-                    }}</span>
+                        convertFeeAmount(transaction.fee)
+                      }}</span>
                   </div>
                 </div>
               </div>
@@ -233,22 +233,17 @@
       </div>
     </div>
   </div>
-  <ReceiveSendModal
-    v-show="showSendModal"
-    ref="ReceiveSendModal"
-    @close-modal="showSendModal = false"
-  />
 </template>
 <script lang="ts">
-import { defineComponent } from "vue";
-import SidebarContainer from "@/components/SidebarContainer.vue";
-import { IndexedTx } from "@cosmjs/stargate";
-import { Coin, DecodedTxRaw, decodeTxRaw } from "@cosmjs/proto-signing";
-import { StringUtils } from "@/utils/StringUtils";
-import { useStore } from "@/store";
-import { WalletActionTypes } from "@/store/modules/wallet/action-types";
-import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
-import SidebarHeader from "@/components/Sideheader.vue";
+import { defineComponent } from 'vue'
+import SidebarContainer from '@/components/SidebarContainer.vue'
+import { IndexedTx } from '@cosmjs/stargate'
+import { Coin, DecodedTxRaw, decodeTxRaw } from '@cosmjs/proto-signing'
+import { StringUtils } from '@/utils/StringUtils'
+import { useStore } from '@/store'
+import { WalletActionTypes } from '@/store/modules/wallet/action-types'
+import { ChainConstants, CurrencyUtils } from '@nolus/nolusjs'
+import SidebarHeader from '@/components/Sideheader.vue'
 
 interface ITransaction {
   id: string;
@@ -260,61 +255,61 @@ interface ITransaction {
 }
 
 export default defineComponent({
-  name: "HistoryView",
+  name: 'HistoryView',
   components: {
     SidebarContainer,
-    SidebarHeader,
+    SidebarHeader
   },
-  data() {
+  data () {
     return {
-      transactions: [] as ITransaction[],
-    };
+      transactions: [] as ITransaction[]
+    }
   },
   watch: {
-    "$store.state.wallet.wallet"() {
-      this.getTransactions();
-      console.log("FROM HISTORY", this.transactions);
-    },
+    '$store.state.wallet.wallet' () {
+      this.getTransactions()
+      console.log('FROM HISTORY', this.transactions)
+    }
   },
-  mounted() {
-    this.getTransactions();
+  mounted () {
+    this.getTransactions()
   },
   methods: {
-    async getTransactions() {
-      const res = await useStore().dispatch(WalletActionTypes.SEARCH_TX);
-      this.prepareTransactions(res);
+    async getTransactions () {
+      const res = await useStore().dispatch(WalletActionTypes.SEARCH_TX)
+      this.prepareTransactions(res)
     },
-    prepareTransactions(results: readonly IndexedTx[]) {
+    prepareTransactions (results: readonly IndexedTx[]) {
       if (results) {
         results.forEach((tx) => {
-          const rawTx = JSON.parse(tx.rawLog);
-          const decodedTx: DecodedTxRaw = decodeTxRaw(tx.tx);
+          const rawTx = JSON.parse(tx.rawLog)
+          const decodedTx: DecodedTxRaw = decodeTxRaw(tx.tx)
           const transactionResult: ITransaction = {
-            id: tx.hash || "",
-            receiver: rawTx[0].events[3].attributes[0].value || "",
-            sender: rawTx[0].events[3].attributes[1].value || "",
-            action: rawTx[0].events[3].type || "",
-            memo: decodedTx.body.memo || "",
+            id: tx.hash || '',
+            receiver: rawTx[0].events[3].attributes[0].value || '',
+            sender: rawTx[0].events[3].attributes[1].value || '',
+            action: rawTx[0].events[3].type || '',
+            memo: decodedTx.body.memo || '',
             fee:
               decodedTx?.authInfo?.fee?.amount.filter(
                 (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
-              ) || null,
-          };
-          this.transactions.push(transactionResult);
-        });
+              ) || null
+          }
+          this.transactions.push(transactionResult)
+        })
       }
     },
-    truncateString(text: string) {
-      return StringUtils.truncateString(text, 10, 6);
+    truncateString (text: string) {
+      return StringUtils.truncateString(text, 10, 6)
     },
-    convertFeeAmount(fee: Coin[]) {
-      const convertFee = CurrencyUtils.convertCosmosCoinToKeplCoin(fee[0]);
-      const feeAmount = CurrencyUtils.convertCoinUNolusToNolus(convertFee);
-      return feeAmount?.toString();
+    convertFeeAmount (fee: Coin[]) {
+      const convertFee = CurrencyUtils.convertCosmosCoinToKeplCoin(fee[0])
+      const feeAmount = CurrencyUtils.convertCoinUNolusToNolus(convertFee)
+      return feeAmount?.toString()
     },
-    capitalize(value: string) {
-      return StringUtils.capitalize(value);
-    },
-  },
-});
+    capitalize (value: string) {
+      return StringUtils.capitalize(value)
+    }
+  }
+})
 </script>

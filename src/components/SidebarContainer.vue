@@ -33,7 +33,7 @@
             </SidebarElement>
           </div>
           <div class="nls-md-show mb-nolus-24">
-            <SidebarSocial />
+            <SidebarSocial/>
           </div>
         </div>
 
@@ -93,18 +93,14 @@
         </div>
       </div>
     </div>
-    <SidebarSocial />
+    <SidebarSocial/>
     <div class="backdrop"></div>
   </div>
 </template>
 <script type="ts">
 import LogoLink from '@/components/LogoLink.vue'
 import SidebarElement from '@/components/SidebarElement.vue'
-import SidebarSocialElement from '@/components/SidebarSocialElement.vue'
-import SidebarLinkElement from '@/components/SidebarLinkElement.vue'
-import WalletOpen from '@/components/WalletOpen.vue'
 import SidebarSocial from '@/components/SidebarSocial.vue'
-import { BellIcon } from '@heroicons/vue/solid'
 import {
   DISCORD_ACCOUNT,
   LINKEDIN_ACCOUNT,
@@ -120,10 +116,6 @@ export default {
   components: {
     LogoLink,
     SidebarElement,
-    SidebarSocialElement,
-    SidebarLinkElement,
-    BellIcon,
-    WalletOpen,
     SidebarSocial
   },
   props: [],
@@ -137,12 +129,12 @@ export default {
       REDDIT_ACCOUNT: REDDIT_ACCOUNT,
       LINKEDIN_ACCOUNT: LINKEDIN_ACCOUNT,
       DISCORD_ACCOUNT: DISCORD_ACCOUNT,
-  isMobile: false,
+      isMobile: false
     }
   },
-mounted() {
-  this.isMobile = screen?.width < 576
-},
+  mounted () {
+    this.isMobile = screen?.width < 576
+  },
 
   methods: {
     toggleWalletPopup () {

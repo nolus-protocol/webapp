@@ -40,10 +40,10 @@
 
     <div class="flex justify-end mt-5">
       <p
-        v-if="modelValue.selectedCurrency.udenom"
+        v-if="modelValue.selectedCurrency?.balance?.denom"
         class="inline-block m-0 text-left text-primary nls-14 nls-font-400"
       >
-        1 {{ formatAssetInfo(modelValue.selectedCurrency.udenom) }} price in
+        1 {{ formatAssetInfo(modelValue.selectedCurrency?.balance?.denom) }} price in
         USD:
         <span class="inline-block nls-font-700 ml-5">{{ pricePerToken }}</span>
       </p>
@@ -53,7 +53,7 @@
         Leased amount:
         <span class="flex nls-font-700 ml-5">
           {{ calculateLeaseAmount }}
-          <TooltipComponent content="Content goes here" />
+          <TooltipComponent content="Content goes here"/>
         </span>
       </p>
     </div>
@@ -65,7 +65,7 @@
         Annual interest:
         <span class="flex nls-font-700 ml-5">
           {{ this.annualInterestRate }}
-          <TooltipComponent content="Content goes here" />
+          <TooltipComponent content="Content goes here"/>
         </span>
       </p>
     </div>
@@ -74,7 +74,7 @@
         Liquidation price:
         <span class="flex nls-font-700 ml-5">
           $18,585.00
-          <TooltipComponent content="Content goes here" />
+          <TooltipComponent content="Content goes here"/>
         </span>
       </p>
     </div>
@@ -92,17 +92,17 @@
 </template>
 
 <script lang="ts">
-import CurrencyField from "@/components/CurrencyField.vue";
-import { defineComponent, PropType } from "vue";
-import { AssetBalance } from "@/store/modules/wallet/state";
-import { LeaseApply } from "@nolus/nolusjs/build/contracts";
-import { useStore } from "@/store";
-import { StringUtils } from "@/utils/StringUtils";
-import { Price } from "@/store/modules/oracle/state";
-import { assetInfo } from "@/config/assetInfo";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import { Coin } from "@keplr-wallet/unit";
-import TooltipComponent from "@/components/TooltipComponent.vue";
+import CurrencyField from '@/components/CurrencyField.vue'
+import { defineComponent, PropType } from 'vue'
+import { AssetBalance } from '@/store/modules/wallet/state'
+import { LeaseApply } from '@nolus/nolusjs/build/contracts'
+import { useStore } from '@/store'
+import { StringUtils } from '@/utils/StringUtils'
+import { Price } from '@/store/modules/oracle/state'
+import { assetInfo } from '@/config/assetInfo'
+import { CurrencyUtils } from '@nolus/nolusjs'
+import { Coin } from '@keplr-wallet/unit'
+import TooltipComponent from '@/components/TooltipComponent.vue'
 
 export interface LeaseComponentProps {
   contractAddress: string;
@@ -125,42 +125,42 @@ export interface LeaseComponentProps {
 }
 
 export default defineComponent({
-  name: "LeaseFormComponent",
+  name: 'LeaseFormComponent',
   components: {
     CurrencyField,
-    TooltipComponent,
+    TooltipComponent
   },
   props: {
     modelValue: {
-      type: Object as PropType<LeaseComponentProps>,
-    },
+      type: Object as PropType<LeaseComponentProps>
+    }
   },
-  data() {
+  data () {
     return {
-      disabledInputField: true,
-    };
+      disabledInputField: true
+    }
   },
-  mounted() {
-    console.log(this.modelValue);
+  mounted () {
+    console.log(this.modelValue)
   },
   watch: {
-    "modelValue.leaseApply"() {
-      this.disabledInputField = !this.modelValue?.leaseApply;
-    },
+    'modelValue.leaseApply' () {
+      this.disabledInputField = !this.modelValue?.leaseApply
+    }
   },
   computed: {
-    annualInterestRate() {
-      return this.modelValue?.leaseApply?.annual_interest_rate || "";
+    annualInterestRate () {
+      return this.modelValue?.leaseApply?.annual_interest_rate || ''
     },
-    pricePerToken() {
-      if (this.modelValue?.selectedCurrency?.udenom) {
-        return this.getPrice(this.modelValue?.selectedCurrency?.udenom).amount;
+    pricePerToken () {
+      if (this.modelValue?.selectedCurrency?.balance.denom) {
+        return this.getPrice(this.modelValue?.selectedCurrency?.balance.denom).amount
       }
-      return "0";
+      return '0'
     },
-    calculateLeaseAmount() {
+    calculateLeaseAmount () {
       if (this.modelValue?.amount) {
-        const leaseCurrency = this.modelValue?.selectedCurrency;
+        const leaseCurrency = this.modelValue?.selectedCurrency
         if (leaseCurrency) {
           return CurrencyUtils.calculateBalance(
             this.getPrice(leaseCurrency.balance.denom).amount,
@@ -169,31 +169,31 @@ export default defineComponent({
               this.modelValue?.amount as string
             ),
             0
-          );
+          )
         }
       }
 
-      return "0";
-    },
+      return '0'
+    }
   },
   methods: {
-    getPrice(minimalDenom: string): Price {
-      const prices = useStore().getters.getPrices;
-      const denom = StringUtils.getDenomFromMinimalDenom(minimalDenom);
+    getPrice (currencyDenom: string): Price {
+      const prices = useStore().getters.getPrices
+      const denom = StringUtils.getDenomFromMinimalDenom(currencyDenom)
       if (prices) {
-        return prices[denom];
+        return prices[denom]
       }
       return {
-        amount: "0",
-        denom: "",
-      };
-    },
-    formatAssetInfo(minimalDenom: string) {
-      if (minimalDenom) {
-        return assetInfo[minimalDenom].coinAbbreviation;
+        amount: '0',
+        denom: ''
       }
-      return "";
     },
-  },
-});
+    formatAssetInfo (currencyDenom: string) {
+      if (currencyDenom) {
+        return assetInfo[currencyDenom].coinAbbreviation
+      }
+      return ''
+    }
+  }
+})
 </script>
