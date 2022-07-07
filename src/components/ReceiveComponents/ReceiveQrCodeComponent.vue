@@ -41,7 +41,7 @@
           v-on:click="modelValue.onCopyClick"
         >
           <DuplicateIcon class="icon w-4 h-4"/>
-          Copy
+          {{ $t('message.copy') }}
         </button>
       </div>
     </div>

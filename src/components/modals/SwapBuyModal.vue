@@ -72,6 +72,7 @@ export default defineComponent({
       }
     }
   },
+  emits: ['defaultState', 'close-modal'],
   methods: {
     onClickChild (value: boolean) {
       this.isDefaultState = value // someValue

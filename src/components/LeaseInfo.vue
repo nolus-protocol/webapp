@@ -1,6 +1,7 @@
 <template>
   <!-- Leases -->
   <div
+    v-if="leaseInfo.leaseStatus"
     class="bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm pb-5"
   >
     <div class="grid grid-cols-1 lg:grid-cols-3">
@@ -15,51 +16,51 @@
             width="36"
           />
           <h1 class="text-primary nls-font-700 nls-32 nls-font-700">
-            {{ this.leaseInfo.leaseStatus.amount.amount || '' }}
+            {{ this.leaseInfo.leaseStatus?.amount?.amount || '' }}
             <span
               class="inline-block ml-2 text-primary text-large-copy nls-14 nls-font-400"
-            >{{ formatLeaseDenom(this.leaseInfo.leaseStatus.amount) }}</span
+            >{{ formatLeaseDenom(this.leaseInfo.leaseStatus?.amount) }}</span
             >
           </h1>
         </div>
         {{
           calculateBalance(
-            this.leaseInfo.leaseStatus.amount.amount,
-            this.leaseInfo.leaseStatus.amount.denom
+            this.leaseInfo.leaseStatus?.amount?.amount,
+            this.leaseInfo.leaseStatus?.amount?.denom
           )
         }}
 
         <div class="block mt-nolus-255 pl-12">
           <div class="block">
-            <p class="text-detail text-primary m-0">Outstanding Loan Amount</p>
+            <p class="text-detail text-primary m-0">{{ $t('message.outstanding-loan-amount') }}</p>
             <p class="text-primary nls-20 nls-font-700 nls-font-400 m-0 mt-1">
               {{
                 calculateBalance(
-                  this.leaseInfo.leaseStatus.amount.amount,
-                  this.leaseInfo.leaseStatus.amount.denom
+                  this.leaseInfo.leaseStatus?.amount?.amount,
+                  this.leaseInfo.leaseStatus?.amount?.denom
                 )
               }}
             </p>
           </div>
           <div class="block mt-nolus-255">
-            <p class="text-detail text-primary m-0">Interest Due</p>
+            <p class="text-detail text-primary m-0">{{ $t('message.interest-due') }}</p>
             <p
               class="flex items-center text-primary nls-20 nls-font-700 nls-font-400 m-0 mt-1"
             >
               {{
                 calculateBalance(
-                  this.leaseInfo.leaseStatus.interest_due.amount,
-                  this.leaseInfo.leaseStatus.interest_due.denom
+                  this.leaseInfo.leaseStatus?.interest_due?.amount,
+                  this.leaseInfo.leaseStatus?.interest_due?.denom
                 )
               }}
             </p>
           </div>
           <div class="block mt-nolus-255">
-            <p class="text-detail text-primary m-0">Interest Rate</p>
+            <p class="text-detail text-primary m-0">{{ $t('message.interest-rate') }}</p>
             <p
               class="flex items-center text-primary nls-20 nls-font-700 nls-font-400 m-0 mt-1"
             >
-              {{ formatInterestRate(this.leaseInfo.leaseStatus.annual_interest) }}
+              {{ formatInterestRate(this.leaseInfo.leaseStatus?.annual_interest) }}
             </p>
           </div>
         </div>
@@ -71,10 +72,14 @@
     <div
       class="flex items-center justify-end border-t border-standart pt-4 px-6"
     >
-      <button class="btn btn-secondary btn-large-secondary mr-4">Claim</button>
-      <button class="btn btn-secondary btn-large-secondary">Repay</button>
+      <button class="btn btn-secondary btn-large-secondary" v-on:click="showRepayModal = true">{{
+          $t('message.repay')
+        }}
+      </button>
     </div>
   </div>
+
+  <RepayModal v-show="showRepayModal" :lease-info="leaseInfo" @close-modal="showRepayModal = false"/>
 </template>
 
 <script lang="ts">
@@ -85,16 +90,20 @@ import { CurrencyUtils } from '@nolus/nolusjs'
 import { Coin, Dec, Int } from '@keplr-wallet/unit'
 import { useStore } from '@/store'
 import { LeaseData } from '@/types/LeaseData'
+import RepayModal from '@/components/modals/RepayModal.vue'
 
 export default {
   name: 'LeaseInfo',
+  components: { RepayModal },
   props: {
     leaseInfo: {
       type: Object as PropType<LeaseData>
     }
   },
   data () {
-    return {}
+    return {
+      showRepayModal: false
+    }
   },
   methods: {
     formatLeaseDenom (asset: Asset) {

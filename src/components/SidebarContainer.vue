@@ -18,10 +18,9 @@
             <SidebarElement
               id="history"
               href="/history"
-              label="History"
+              :label="$t('message.history')"
               v-on:click="pushToHistory"
-            >
-            </SidebarElement>
+            />
           </div>
           <div class="nls-nav-link flex flex-start nls-md-flex-row mb-nolus-30">
             <SidebarElement
@@ -39,38 +38,34 @@
 
         <div class="md:flex md:justify-between sidebar-elements-block lg:block">
           <div class="block nls-nav-link">
-            <SidebarElement id="assets" href="/" label="Assets">
-            </SidebarElement>
+            <SidebarElement id="assets" href="/" :label="$t('message.assets')"/>
           </div>
           <div class="block nls-nav-link">
             <SidebarElement
               id="lease"
               href="/lease"
-              label="Lease"
+              :label="$t('message.lease')"
               v-on:click="pushToLease"
-            >
-            </SidebarElement>
+            />
           </div>
           <div class="block nls-nav-link">
-            <SidebarElement id="trade" href="#" label="Trade"></SidebarElement>
+            <SidebarElement id="trade" href="#" :label="$t('message.trade')"/>
           </div>
           <div class="block nls-nav-link">
             <SidebarElement
               id="earn"
               href="/earn"
-              label="Earn"
+              :label="$t('message.earn')"
               v-on:click="pushToEarn"
-            >
-            </SidebarElement>
+            />
           </div>
           <div class="block nls-nav-link nls-md-hidden">
             <SidebarElement
               id="history"
               href="/history"
-              label="History"
+              :label="$t('message.history')"
               v-on:click="pushToHistory"
-            >
-            </SidebarElement>
+            />
           </div>
 
           <div class="block nls-nav-link nls-md-show">

@@ -11,7 +11,7 @@ import WalletConnect from '@/components/WalletConnect.vue'
 export default defineComponent({
   name: 'WelcomeView',
   components: {
-    WalletConnect,
-  },
+    WalletConnect
+  }
 })
 </script>

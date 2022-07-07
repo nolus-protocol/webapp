@@ -16,16 +16,16 @@
           <!-- Header -->
           <div class="flex flex-wrap items-center justify-between px-4 lg:px-0">
             <div class="left w-full md:w-1/2">
-              <h1 class="nls-20 nls-font-700 text-primary m-0">Leases</h1>
+              <h1 class="nls-20 nls-font-700 text-primary m-0">{{ $t('message.leases') }}</h1>
             </div>
             <div
               class="right w-full md:w-1/2 mt-nolus-255 md:mt-0 inline-flex justify-start md:justify-end"
             >
               <button
                 class="btn btn-primary btn-large-primary w-full md:w-1/2"
-                v-on:click="showSendModal = true"
+                v-on:click="showLeaseModal = true"
               >
-                Lease new
+                {{ $t('message.lease-new') }}
               </button>
             </div>
           </div>
@@ -40,7 +40,7 @@
       </div>
     </div>
   </div>
-  <LeaseModal v-show="showSendModal" @close-modal="showSendModal = false"/>
+  <LeaseModal v-show="showLeaseModal" @close-modal="showLeaseModal = false"/>
 </template>
 
 <script lang="ts">
@@ -50,7 +50,6 @@ import LeaseModal from '@/components/modals/LeaseModal.vue'
 import { Lease, LeaseStatus } from '@nolus/nolusjs/build/contracts'
 import { CONTRACTS } from '@/config/contracts'
 import { WalletManager } from '@/config/wallet'
-import RepayModal from '@/components/modals/RepayModal.vue'
 import { LeaseData } from '@/types/LeaseData'
 import LeaseInfo from '@/components/LeaseInfo.vue'
 import SidebarHeader from '@/components/Sideheader.vue'
@@ -59,15 +58,13 @@ export default defineComponent({
   name: 'LeaseView',
   components: {
     LeaseModal,
-    RepayModal,
     LeaseInfo,
     SidebarContainer,
-    SidebarHeader,
+    SidebarHeader
   },
   data () {
     return {
-      showSendModal: false,
-      showRepayModal: false,
+      showLeaseModal: false,
       leases: [] as LeaseData[]
     }
   },
@@ -84,6 +81,6 @@ export default defineComponent({
         leaseStatus: leaseInfo
       })
     }
-  },
+  }
 })
 </script>

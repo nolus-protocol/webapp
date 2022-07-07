@@ -54,6 +54,13 @@ export const actions: ActionTree<State, RootState> & Actions = {
             amount: '1.1',
             denom: 'B'
           }
+        },
+        {
+          denom: 'USDC',
+          price: {
+            amount: '1.1',
+            denom: 'B'
+          }
         }
       ]
     }

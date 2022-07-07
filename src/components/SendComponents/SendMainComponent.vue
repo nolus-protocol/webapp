@@ -5,18 +5,19 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue'
 import { StarIcon } from '@heroicons/vue/solid'
+import { Dec, Int } from '@keplr-wallet/unit'
+import { CurrencyUtils } from '@nolus/nolusjs'
+import { Bech32 } from '@cosmjs/encoding'
+
 import SendingConfirmComponent from '@/components/SendComponents/SendingConfirmComponent.vue'
 import SendComponent, { SendComponentProps } from '@/components/SendComponents/SendComponent.vue'
 import SendingSuccessComponent from '@/components/SendComponents/SendingSuccessComponent.vue'
 import SendingFailedComponent from '@/components/SendComponents/SendingFailedComponent.vue'
-import { Bech32 } from '@cosmjs/encoding'
-import { Coin, Dec, Int } from '@keplr-wallet/unit'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import { WalletUtils } from '@/utils/WalletUtils'
-import { CurrencyUtils } from '@nolus/nolusjs'
-import { ChainConstants } from '@nolus/nolusjs/build/constants'
+import { assetInfo } from '@/config/assetInfo'
 
 enum ScreenState {
   MAIN = 'SendComponent',
@@ -56,6 +57,7 @@ export default defineComponent({
     const balances = useStore().state.wallet.balances
     if (balances) {
       this.currentComponent.props.currentBalance = balances
+      this.currentComponent.props.selectedCurrency = balances[0]
     }
   },
   data () {
@@ -67,6 +69,10 @@ export default defineComponent({
     '$store.state.wallet.balances' (balances: AssetBalance[]) {
       if (balances) {
         this.currentComponent.props.currentBalance = balances
+
+        if (!this.currentComponent.props.selectedCurrency) {
+          this.currentComponent.props.selectedCurrency = balances[0]
+        }
       }
     },
     'currentComponent.props.memo' () {
@@ -84,11 +90,12 @@ export default defineComponent({
       }
     }
   },
+  emits: ['defaultState'],
   methods: {
     initProps () {
       return {
         currentBalance: [] as AssetBalance[],
-        selectedCurrency: { balance: new Coin(ChainConstants.COIN_MINIMAL_DENOM, new Int('0')) } as AssetBalance,
+        selectedCurrency: {} as AssetBalance,
         amount: '',
         memo: '',
         receiverAddress: '',
@@ -165,35 +172,38 @@ export default defineComponent({
     },
     isAmountFieldValid () {
       const amount = this.currentComponent.props.amount
-      if (amount || amount !== '') {
-        this.currentComponent.props.amountErrorMsg = ''
-        const amountInUnls = CurrencyUtils.convertNolusToUNolus(amount)
-        const walletBalance = String(
-          this.currentComponent.props.currentBalance[0]?.balance.amount || 0
-        )
-        const isLowerThanOrEqualsToZero = new Dec(
-          amountInUnls.amount || '0'
-        ).lte(new Dec(0))
-        const isGreaterThanWalletBalance = new Int(
-          amountInUnls.amount.toString() || '0'
-        ).gt(new Int(walletBalance))
-        if (isLowerThanOrEqualsToZero) {
-          this.currentComponent.props.amountErrorMsg = 'balance is too low'
-          console.log('balance is too low')
-        }
-        if (isGreaterThanWalletBalance) {
-          this.currentComponent.props.amountErrorMsg = 'balance is too big'
-          console.log('balance is too big')
-        }
-      } else {
+      if (!amount) {
         this.currentComponent.props.amountErrorMsg = 'missing amount value'
+      }
+
+      this.currentComponent.props.amountErrorMsg = ''
+      const selectedCurrency = this.currentComponent.props.selectedCurrency
+      const {coinMinimalDenom, coinDecimals} = assetInfo[selectedCurrency.balance.denom]
+      const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, coinMinimalDenom, coinDecimals)
+      const walletBalance = String(
+        selectedCurrency?.balance.amount || 0
+      )
+      const isLowerThanOrEqualsToZero = new Dec(
+        minimalDenom.amount || '0'
+      ).lte(new Dec(0))
+      const isGreaterThanWalletBalance = new Int(
+        minimalDenom.amount.toString() || '0'
+      ).gt(new Int(walletBalance))
+
+      if (isLowerThanOrEqualsToZero) {
+        this.currentComponent.props.amountErrorMsg = 'balance is too low'
+        console.log('balance is too low')
+      }
+      if (isGreaterThanWalletBalance) {
+        this.currentComponent.props.amountErrorMsg = 'balance is too big'
+        console.log('balance is too big')
       }
     },
     async transferAmount () {
       const wallet = useStore().getters.getNolusWallet
       if (wallet) {
-        const coinDecimals = new Int(10).pow(new Int(6).absUInt())
-        const feeAmount = new Dec('0.25').mul(new Dec(coinDecimals))
+        const feeDecimals = new Int(10).pow(new Int(6).absUInt())
+        const feeAmount = new Dec('0.25').mul(new Dec(feeDecimals))
         console.log('feeAmount: ', feeAmount.truncate().toString())
         const DEFAULT_FEE = {
           amount: [
@@ -206,6 +216,10 @@ export default defineComponent({
           ],
           gas: '100000'
         }
+
+        const selectedCurrency = this.currentComponent.props.selectedCurrency
+        const {coinMinimalDenom, coinDecimals} = assetInfo[selectedCurrency.balance.denom]
+        const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(this.currentComponent.props.amount, coinMinimalDenom, coinDecimals)
         const txResponse = await useStore().dispatch(
           WalletActionTypes.TRANSFER_TOKENS,
           {
@@ -213,10 +227,8 @@ export default defineComponent({
             fee: DEFAULT_FEE,
             funds: [
               {
-                amount: CurrencyUtils.convertNolusToUNolus(
-                  this.currentComponent.props.amount
-                ).amount.toString(),
-                denom: 'unolus'
+                amount: minimalDenom.amount.toString(),
+                denom: selectedCurrency.balance.denom
               }
             ]
           }

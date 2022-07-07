@@ -11,7 +11,7 @@
           :option="modelValue.selectedDownPaymentCurrency"
           :step="'1'"
           :value="modelValue.downPayment"
-          label="How much do you want to invest?"
+          :label="$t('message.invest-question')"
           name="amountInvestment"
           @input="(event) => (modelValue.downPayment = event.target.value)"
           @update-currency="
@@ -30,7 +30,7 @@
           :is-error="modelValue.amountErrorMsg !== ''"
           :option="modelValue.selectedCurrency"
           :value="modelValue.amount"
-          label="Get up to:"
+          :label="$t('message.get-up-to')"
           name="amountInterest"
           @input="(event) => (modelValue.amount = event.target.value)"
           @update-currency="(event) => (modelValue.selectedCurrency = event)"
@@ -86,7 +86,7 @@
       class="btn btn-primary btn-large-primary"
       v-on:click="modelValue.onNextClick"
     >
-      Lease
+      {{ $t('message.lease') }}
     </button>
   </div>
 </template>

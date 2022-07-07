@@ -1,6 +1,7 @@
 <template>
   <div
-    class="fixed flex items-end md:items-center top-0 bottom-0 left-0 right-0 justify-center bg-white/70 backdrop-blur-xl z-[999999999] modal-send-receive-parent"
+    class="fixed flex items-end md:items-center top-0 bottom-0 left-0 right-0 justify-center bg-white/70 z-[999999999] modal-send-receive-parent"
+    style="linear-gradient(314.47 deg, #EBEFF5 2.19 %, #F7F9FC 100 %);"
     @click="$emit('close-modal')"
     @clicked="onClickChild"
   >
@@ -19,13 +20,13 @@
           :class="isSendActive ? 'active' : ''"
           v-on:click="switchTab(true)"
         >
-          Send
+          {{ $t('message.send') }}
         </button>
         <button
           :class="!isSendActive ? 'active' : ''"
           v-on:click="switchTab(false)"
         >
-          Receive
+          {{ $t('message.receive') }}
         </button>
       </div>
 
@@ -74,6 +75,7 @@ export default defineComponent({
       }
     }
   },
+  emits: ['defaultState', 'close-modal'],
   methods: {
     onClickChild (value: boolean) {
       this.isDefaultState = value // someValue

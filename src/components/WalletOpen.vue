@@ -56,7 +56,7 @@
     <!-- Wallet Actions -->
     <div class="box-open-actions p-4 lg:p-6 bg-white">
       <div class="flex justify-end">
-        <button class="btn btn-secondary btn-large-secondary">
+        <button class="btn btn-secondary btn-large-secondary" v-on:click="onClickDisconnect">
           Disconnect
         </button>
       </div>

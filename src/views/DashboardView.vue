@@ -148,15 +148,16 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import { Coin, Dec, Int } from '@keplr-wallet/unit'
+import { CurrencyUtils } from '@nolus/nolusjs'
+
 import SidebarContainer from '@/components/SidebarContainer.vue'
 import AssetPartial from '@/components/AssetPartial.vue'
 import { AssetUtils } from '@/utils/AssetUtils'
-import { Coin, Dec, Int } from '@keplr-wallet/unit'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
 import { useStore } from '@/store'
 import SidebarHeader from '@/components/Sideheader.vue'
-import { CurrencyUtils } from '@nolus/nolusjs'
 import TooltipComponent from '@/components/TooltipComponent.vue'
 import Notifications from '@/components/Notifications.vue'
 import WalletOpen from '@/components/WalletOpen.vue'
@@ -172,7 +173,7 @@ export default defineComponent({
     TooltipComponent,
     Notifications,
     WalletOpen,
-    NolusChart,
+    NolusChart
   },
   data () {
     return {
@@ -185,7 +186,6 @@ export default defineComponent({
   },
   watch: {
     '$store.state.wallet.balances' (balances) {
-      console.log('Balances: ', balances)
       this.mainAssets = balances
       this.manipulatedAssets = balances
       if (this.hideLowerBalances) {
