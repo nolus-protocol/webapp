@@ -12,7 +12,7 @@
 		height: calc(100vh - 60px);
 		border-bottom-left-radius: 0;
 		border-bottom-right-radius: 0;
-		overflow: hidden;
+		//	overflow: hidden;
 
 		@media (min-width: $md) {
 			height: auto;
@@ -22,8 +22,8 @@
 
 		&-parent {
 			@media (min-width: $md) and (orientation: landscape) {
-				overflow-x: hidden;
-				overflow-y: auto;
+				// overflow-x: hidden;
+				// overflow-y: auto;
 				-webkit-overflow-scrolling: touch;
 				align-items: flex-start;
 				padding: 40px 0;
@@ -102,8 +102,8 @@
 			flex-grow: 1;
 			width: 100%;
 			padding: 40px 24px 108px;
-			overflow-x: hidden;
-			overflow-y: auto;
+			// overflow-x: hidden;
+			// overflow-y: auto;
 			-webkit-overflow-scrolling: touch;
 
 			@media (min-width: $md) {

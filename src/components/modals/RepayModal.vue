@@ -8,7 +8,7 @@
       @click.stop
     >
       <button class="btn-close-modal" @click="$emit('close-modal')">
-        <img class="inline-block w-4 h-4" src="@/assets/icons/cross.svg"/>
+        <img class="inline-block w-4 h-4" src="@/assets/icons/cross.svg" />
       </button>
       <div class="flex modal-header">
         <p class="nls-32 nls-font-700">Repay</p>
@@ -69,11 +69,11 @@
           <div class="text-right nls-font-700 nls-14">
             <p class="mb-nolus-12 mt-nolus-255 flex justify-end align-center">
               $1,112.00
-              <TooltipComponent content="Content goes here"/>
+              <TooltipComponent content="Content goes here" />
             </p>
             <p class="mb-nolus-12 flex justify-end align-center">
               $35,311.00
-              <TooltipComponent content="Content goes here"/>
+              <TooltipComponent content="Content goes here" />
             </p>
           </div>
         </div>
@@ -91,41 +91,41 @@
 </template>
 
 <script lang="ts">
-import { StarIcon } from '@heroicons/vue/solid'
-import CurrencyField from '@/components/CurrencyField.vue'
-import PickerDefault from '@/components/PickerDefault.vue'
-import InputField from '@/components/InputField.vue'
-import { defineComponent } from 'vue'
-import { CurrencyUtils } from '@nolus/nolusjs'
-import { AssetBalance } from '@/store/modules/wallet/state'
+import { StarIcon } from "@heroicons/vue/solid";
+import CurrencyField from "@/components/CurrencyField.vue";
+import PickerDefault from "@/components/PickerDefault.vue";
+import InputField from "@/components/InputField.vue";
+import { defineComponent } from "vue";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { AssetBalance } from "@/store/modules/wallet/state";
 // import DynamicForm, {
 //   DynamicFormProps,
 // } from "@/components/templates/dynamic-form-template/DynamicForm.vue";
-import TooltipComponent from '@/components/TooltipComponent.vue'
+import TooltipComponent from "@/components/TooltipComponent.vue";
 
 export default defineComponent({
-  name: 'LeaseModal',
+  name: "LeaseModal",
   components: {
     StarIcon,
     CurrencyField,
     PickerDefault,
     InputField,
-    TooltipComponent
+    TooltipComponent,
   },
 
   methods: {
-    formatCurrentBalance (value: AssetBalance[]) {
+    formatCurrentBalance(value: AssetBalance[]) {
       if (value) {
         return CurrencyUtils.convertUNolusToNolus(
           value[0]?.balance.amount.toString()
-        ).toString()
+        ).toString();
       }
     },
-    onUpdateCurrency (value: AssetBalance) {
-      this.$emit('update:modelValue.selectedCurrency', value)
-    }
-  }
-})
+    onUpdateCurrency(value: AssetBalance) {
+      this.$emit("update:modelValue.selectedCurrency", value);
+    },
+  },
+});
 </script>
 <style scoped>
 .modal-send-receive-actions {
