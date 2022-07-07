@@ -48,48 +48,33 @@
         <span class="inline-block nls-font-700 ml-5">{{ pricePerToken }}</span>
       </p>
     </div>
-    <div class="flex justify-end mt-3">
-      <p class="inline-block m-0 text-left text-primary nls-14 nls-font-400">
+    <div class="text-right nls-font-700 nls-14">
+      <p class="mb-nolus-12 mt-nolus-255 flex justify-end align-center">
         Leased amount:
-        <span class="inline-block nls-font-700 ml-5">
+        <span class="flex nls-font-700 ml-5">
           {{ calculateLeaseAmount }}
-          <img
-            :src="require('@/assets/icons/tooltip.svg')"
-            class="inline-block m-0 ml-1"
-            height="12"
-            width="12"
-          />
+          <TooltipComponent content="Content goes here" />
         </span>
       </p>
     </div>
-    <div class="flex justify-end mt-3">
+    <div class="text-right nls-font-700 nls-14">
       <p
         v-if="this.annualInterestRate"
-        class="inline-block m-0 text-left text-primary nls-14 nls-font-400"
+        class="mb-nolus-12 mt-nolus-255 flex justify-end align-center"
       >
         Annual interest:
-        <span class="inline-block nls-font-700 ml-5">
+        <span class="flex nls-font-700 ml-5">
           {{ this.annualInterestRate }}
-          <img
-            :src="require('@/assets/icons/tooltip.svg')"
-            class="inline-block m-0 ml-1"
-            height="12"
-            width="12"
-          />
+          <TooltipComponent content="Content goes here" />
         </span>
       </p>
     </div>
-    <div class="flex justify-end mt-3">
-      <p class="inline-block m-0 text-left text-primary nls-14 nls-font-400">
+    <div class="text-right nls-font-700 nls-14">
+      <p class="mb-nolus-12 mt-nolus-255 flex justify-end align-center">
         Liquidation price:
-        <span class="inline-block nls-font-700 ml-5">
+        <span class="flex nls-font-700 ml-5">
           $18,585.00
-          <img
-            :src="require('@/assets/icons/tooltip.svg')"
-            class="inline-block m-0 ml-1"
-            height="12"
-            width="12"
-          />
+          <TooltipComponent content="Content goes here" />
         </span>
       </p>
     </div>
@@ -107,16 +92,17 @@
 </template>
 
 <script lang="ts">
-import CurrencyField from '@/components/CurrencyField.vue'
-import { defineComponent, PropType } from 'vue'
-import { AssetBalance } from '@/store/modules/wallet/state'
-import { LeaseApply } from '@nolus/nolusjs/build/contracts'
-import { useStore } from '@/store'
-import { StringUtils } from '@/utils/StringUtils'
-import { Price } from '@/store/modules/oracle/state'
-import { assetInfo } from '@/config/assetInfo'
-import { CurrencyUtils } from '@nolus/nolusjs'
-import { Coin } from '@keplr-wallet/unit'
+import CurrencyField from "@/components/CurrencyField.vue";
+import { defineComponent, PropType } from "vue";
+import { AssetBalance } from "@/store/modules/wallet/state";
+import { LeaseApply } from "@nolus/nolusjs/build/contracts";
+import { useStore } from "@/store";
+import { StringUtils } from "@/utils/StringUtils";
+import { Price } from "@/store/modules/oracle/state";
+import { assetInfo } from "@/config/assetInfo";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { Coin } from "@keplr-wallet/unit";
+import TooltipComponent from "@/components/TooltipComponent.vue";
 
 export interface LeaseComponentProps {
   contractAddress: string;
@@ -139,71 +125,75 @@ export interface LeaseComponentProps {
 }
 
 export default defineComponent({
-  name: 'LeaseFormComponent',
+  name: "LeaseFormComponent",
   components: {
-    CurrencyField
+    CurrencyField,
+    TooltipComponent,
   },
   props: {
     modelValue: {
-      type: Object as PropType<LeaseComponentProps>
-    }
+      type: Object as PropType<LeaseComponentProps>,
+    },
   },
-  data () {
+  data() {
     return {
-      disabledInputField: true
-    }
+      disabledInputField: true,
+    };
   },
-  mounted () {
-    console.log(this.modelValue)
+  mounted() {
+    console.log(this.modelValue);
   },
   watch: {
-    'modelValue.leaseApply' () {
-      this.disabledInputField = !this.modelValue?.leaseApply
-    }
+    "modelValue.leaseApply"() {
+      this.disabledInputField = !this.modelValue?.leaseApply;
+    },
   },
   computed: {
-    annualInterestRate () {
-      return this.modelValue?.leaseApply?.annual_interest_rate || ''
+    annualInterestRate() {
+      return this.modelValue?.leaseApply?.annual_interest_rate || "";
     },
-    pricePerToken () {
-      if (this.modelValue?.selectedCurrency?.balance.denom) {
-        return this.getPrice(this.modelValue?.selectedCurrency?.balance.denom).amount
+    pricePerToken() {
+      if (this.modelValue?.selectedCurrency?.udenom) {
+        return this.getPrice(this.modelValue?.selectedCurrency?.udenom).amount;
       }
-      return '0'
+      return "0";
     },
-    calculateLeaseAmount () {
+    calculateLeaseAmount() {
       if (this.modelValue?.amount) {
-        const leaseCurrency = this.modelValue?.selectedCurrency
+        const leaseCurrency = this.modelValue?.selectedCurrency;
         if (leaseCurrency) {
           return CurrencyUtils.calculateBalance(
             this.getPrice(leaseCurrency.balance.denom).amount,
-            new Coin(leaseCurrency.balance.denom, this.modelValue?.amount as string),
+            new Coin(
+              leaseCurrency.balance.denom,
+              this.modelValue?.amount as string
+            ),
             0
-          )
+          );
         }
       }
 
-      return '0'
-    }
+      return "0";
+    },
   },
   methods: {
-    getPrice (minimalDenom: string): Price {
-      const prices = useStore().getters.getPrices
-      const denom = StringUtils.getDenomFromMinimalDenom(minimalDenom)
+    getPrice(minimalDenom: string): Price {
+      const prices = useStore().getters.getPrices;
+      const denom = StringUtils.getDenomFromMinimalDenom(minimalDenom);
       if (prices) {
-        return prices[denom]
+        return prices[denom];
       }
       return {
-        amount: '0',
-        denom: ''
-      }
+        amount: "0",
+        denom: "",
+      };
     },
-    formatAssetInfo (minimalDenom: string) {
+    formatAssetInfo(minimalDenom: string) {
       if (minimalDenom) {
-        return assetInfo[minimalDenom].coinAbbreviation
+        return assetInfo[minimalDenom].coinAbbreviation;
       }
-      return ''
-    }
-  }
-})
+      return "";
+    },
+  },
+});
 </script>

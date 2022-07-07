@@ -4,7 +4,7 @@
     @click="$emit('close-modal')"
   >
     <button class="btn-close-modal" @click="$emit('close-modal')">
-      <img class="inline-block w-4 h-4" src="@/assets/icons/cross.svg"/>
+      <img class="inline-block w-4 h-4" src="@/assets/icons/cross.svg" />
     </button>
 
     <div
@@ -29,12 +29,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import { SendMainComponentProps } from '@/components/SendComponents/SendMainComponent.vue'
-import LeaseMainComponent from '@/components/LeaseComponents/LeaseMainComponent.vue'
+import { defineComponent } from "vue";
+import { SendMainComponentProps } from "@/components/SendComponents/SendMainComponent.vue";
+import LeaseMainComponent from "@/components/LeaseComponents/LeaseMainComponent.vue";
 
 enum ScreenState {
-  LEASE = 'LeaseMainComponent',
+  LEASE = "LeaseMainComponent",
 }
 
 interface LeaseModalData {
@@ -43,28 +43,28 @@ interface LeaseModalData {
 }
 
 export default defineComponent({
-  name: 'LeaseModal',
+  name: "LeaseModal",
   components: {
-    LeaseMainComponent
+    LeaseMainComponent,
   },
   props: {},
-  data () {
+  data() {
     return {
-      currentComponent: {} as LeaseModalData
-    }
+      currentComponent: {} as LeaseModalData,
+    };
   },
-  mounted () {
+  mounted() {
     this.currentComponent = {
       is: ScreenState.LEASE,
       props: {
-        onClose: () => this.onCloseModal()
-      }
-    }
+        onClose: () => this.onCloseModal(),
+      },
+    };
   },
   methods: {
-    onCloseModal () {
-      this.$emit('close-modal')
-    }
-  }
-})
+    onCloseModal() {
+      this.$emit("close-modal");
+    },
+  },
+});
 </script>

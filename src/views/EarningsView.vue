@@ -23,11 +23,11 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-7">
+          <div class="md:grid md:grid-cols-12 md:gap-4">
+            <div class="md:col-span-7 lg:col-span-7">
               <!-- Portfolio -->
               <div
-                class="nolus-box block order-2 md:order-1 bg-white border-y border-standart radius-medium md:col-span-7 mt-6"
+                class="nolus-box block order-2 order-1 bg-white border-y border-standart radius-medium md:col-span-7 mt-6"
               >
                 <div
                   class="flex items-center justify-between px-nolus-24 px-nolus-24 pt-nolus-24"
@@ -35,7 +35,7 @@
                   <h2 class="nls-16 nls-font-500 text-left my-0">
                     Your earning portfolio
                   </h2>
-                  <button class="btn btn-label btn-large-label">
+                  <button class="btn btn-label btn-large-label text-right">
                     View all earning assets
                   </button>
                 </div>
@@ -229,7 +229,7 @@
               <!-- Portfolio -->
             </div>
 
-            <div class="col-span-5">
+            <div class="md:col-span-5 lg:co-span-5">
               <!-- Rewards -->
               <div
                 class="nolus-box block order-2 md:order-1 bg-white border-y border-standart radius-medium md:col-span-7 mt-6"
@@ -281,7 +281,7 @@
                       <!-- Balance -->
                       <div class="flex justify-end">
                         <button
-                          class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
+                          class="btn btn-secondary btn-medium-secondary btn-emphatized"
                           data-v-37958d79=""
                         >
                           None
@@ -323,7 +323,7 @@
                       <!-- Balance -->
                       <div class="flex justify-end">
                         <button
-                          class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
+                          class="btn btn-secondary btn-medium-secondary btn-emphatized"
                           data-v-37958d79=""
                         >
                           None
@@ -365,7 +365,7 @@
                       <!-- Balance -->
                       <div class="flex justify-end">
                         <button
-                          class="btn btn-secondary btn-medium-secondary js-loading mr-4"
+                          class="btn btn-secondary btn-medium-secondary js-loading"
                           data-v-37958d79=""
                         >
                           None

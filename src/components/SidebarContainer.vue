@@ -6,10 +6,6 @@
       <div
         class="sidebar-elements-container nls-nav-more flex flex-col mt-nolus-55"
       >
-        <!-- z-index: 5;
-					background-color: $white;
-					transform: translateY(0);
-					padding: 24px; -->
         <div
           :style="
             showMobileNav
@@ -18,9 +14,7 @@
           "
           class="lg:hidden"
         >
-          <div
-            class="nls-nav-link flex flex-start nls-md-flex-row mb-nolus-30 mt-nolus-22"
-          >
+          <div class="nls-nav-link flex flex-start nls-md-flex-row mt-nolus-22">
             <SidebarElement
               id="history"
               href="/history"
@@ -29,8 +23,17 @@
             >
             </SidebarElement>
           </div>
+          <div class="nls-nav-link flex flex-start nls-md-flex-row mb-nolus-30">
+            <SidebarElement
+              id="governance"
+              label="Govern"
+              href="https://wallet.keplr.app/#/dashboard"
+              target="_blank"
+            >
+            </SidebarElement>
+          </div>
           <div class="nls-md-show mb-nolus-24">
-            <SidebarSocial/>
+            <SidebarSocial />
           </div>
         </div>
 
@@ -73,15 +76,24 @@
           <div class="block nls-nav-link nls-md-show">
             <SidebarElement
               id="more"
-              label="More"
               v-on:click="showMobileNav = !showMobileNav"
+              :label="this.isMobile ? 'More' : 'Settings'"
+            >
+            </SidebarElement>
+          </div>
+          <div class="block nls-nav-link nls-md-hidden">
+            <SidebarElement
+              id="governance"
+              label="Govern"
+              href="https://wallet.keplr.app/#/dashboard"
+              target="_blank"
             >
             </SidebarElement>
           </div>
         </div>
       </div>
     </div>
-    <SidebarSocial/>
+    <SidebarSocial />
     <div class="backdrop"></div>
   </div>
 </template>
@@ -124,10 +136,13 @@ export default {
       // MEDIUM_ACCOUNT: rou,
       REDDIT_ACCOUNT: REDDIT_ACCOUNT,
       LINKEDIN_ACCOUNT: LINKEDIN_ACCOUNT,
-      DISCORD_ACCOUNT: DISCORD_ACCOUNT
-
+      DISCORD_ACCOUNT: DISCORD_ACCOUNT,
+  isMobile: false,
     }
   },
+mounted() {
+  this.isMobile = screen?.width < 576
+},
 
   methods: {
     toggleWalletPopup () {
@@ -148,3 +163,10 @@ export default {
   }
 }
 </script>
+<style lang="scss" scoped>
+[target="_blank"]:after {
+  content: "\e801";
+  font-family: "nolus";
+  margin-left: 7px;
+}
+</style>
