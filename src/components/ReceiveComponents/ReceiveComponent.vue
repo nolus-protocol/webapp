@@ -4,12 +4,12 @@
     <div class="block text-left">
       <div class="block">
         <PickerIcon
-          label="Asset"
           :default-option="{
             value: 'NLS',
             label: 'Nolus',
             icon: require('@/assets/icons/coins/nls.svg'),
           }"
+          :disabled="true"
           :options="[
             {
               value: 'NLS',
@@ -17,16 +17,16 @@
               icon: require('@/assets/icons/coins/nls.svg'),
             },
           ]"
-          :disabled="true"
+          label="Asset"
         ></PickerIcon>
       </div>
 
       <div class="block mt-nolus-255">
         <PickerDefault
-          label="Network"
           :default-option="{ value: 'NLS', label: 'NLS' }"
-          :options="this.networks"
           :disabled="true"
+          :options="this.networks"
+          label="Network"
         ></PickerDefault>
       </div>
 
@@ -58,8 +58,8 @@
       >
         <div class="inline-block mr-2">
           <img
-            src="@/assets/icons/info.svg"
             class="block mx-auto my-0 w-5 h-5"
+            src="@/assets/icons/info.svg"
           />
         </div>
         <div class="block grow-1">

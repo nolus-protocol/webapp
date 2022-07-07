@@ -3,11 +3,11 @@
   <div class="flex modal-send-receive-header no-border">
     <div class="navigation-header">
       <button
-        type="button"
         class="back-arrow"
+        type="button"
         v-on:click="modelValue.onConfirmBackClick"
       >
-        <ArrowLeftIcon class="h-5 w-5" aria-hidden="true"/>
+        <ArrowLeftIcon aria-hidden="true" class="h-5 w-5"/>
       </button>
       <h1 class="nls-font-700 nls-32 text-center text-primary">
         Confirm sending
@@ -19,13 +19,13 @@
   <div class="modal-send-receive-input-area pt-0">
     <div v-if="isMnemonicWallet()" class="block text-left">
       <InputField
-        type="password"
-        name="password"
         id="password"
-        label="Password"
         :error-msg="modelValue.passwordErrorMsg"
         :is-error="modelValue.passwordErrorMsg !== ''"
         :value="modelValue.password"
+        label="Password"
+        name="password"
+        type="password"
         @input="(event) => (modelValue.password = event.target.value)"
       ></InputField>
     </div>
@@ -96,7 +96,7 @@ export default defineComponent({
   },
   methods: {
     formatAmount (value: string, selectedCurrency: AssetBalance) {
-      const denom = assetInfo[selectedCurrency.udenom].coinDenom
+      const denom = assetInfo[selectedCurrency.balance.denom].coinDenom
       return value + ' ' + denom
     },
     isMnemonicWallet () {

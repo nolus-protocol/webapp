@@ -112,7 +112,6 @@ export default defineComponent({
         contractAddress: CONTRACTS.leaser.instance,
         currentBalance: [] as AssetBalance[],
         selectedDownPaymentCurrency: {
-          udenom: 'ulum',
           balance: new Coin(
             'ibc/8A34AF0C1943FD0DFCDE9ADBF0B2C9959C45E87E6088EA2FC6ADACD59261B8A2',
             0
@@ -190,7 +189,7 @@ export default defineComponent({
       const currentBalance = this.getCurrentBalanceByDenom(selectedDownPaymentDenom)
 
       if (downPaymentAmount || downPaymentAmount !== '') {
-        const decimals = assetInfo[currentBalance.udenom].coinDecimals
+        const decimals = assetInfo[currentBalance.balance.denom].coinDecimals
         this.currentComponent.props.downPaymentErrorMsg = ''
         const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
           downPaymentAmount,

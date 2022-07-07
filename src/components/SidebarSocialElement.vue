@@ -1,8 +1,8 @@
 <template>
   <a
     :id="this.id"
-    :href="this.href"
     :class="['sidebar-social-element, color-light-blue']"
+    :href="this.href"
     target="_blank"
   >
     <span :class="['icon', `icon-${this.id.toLowerCase()}`]"></span>

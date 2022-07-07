@@ -10,10 +10,10 @@
     ]"
   >
     <Listbox
-      as="div"
       v-model="selected"
-      @update:modelValue="$emit('update-selected', selected)"
       :disabled="disabled"
+      as="div"
+      @update:modelValue="$emit('update-selected', selected)"
     >
       <ListboxLabel class="block nls-14 nls-font-500 text-primary">
         {{ label }}
@@ -53,11 +53,11 @@
             class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm"
           >
             <ListboxOption
-              as="template"
               v-for="option in this.options"
               :key="option.value"
-              :value="option"
               v-slot="{ active, selected }"
+              :value="option"
+              as="template"
             >
               <li
                 :class="[

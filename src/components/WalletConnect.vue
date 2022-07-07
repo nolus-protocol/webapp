@@ -92,7 +92,7 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .ConnectLayout {
   display: inline-block;
 }

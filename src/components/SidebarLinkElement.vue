@@ -1,10 +1,10 @@
 <template>
   <a
     :id="this.id"
-    :href="this.href"
     :class="[
       'sidebar-link-element',
     ]"
+    :href="this.href"
   >
     <span>
         {{ this.label }}

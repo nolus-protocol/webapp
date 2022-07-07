@@ -9,66 +9,66 @@
             <div class="block">
               <SidebarElement
                 id="assets"
-                v-on:click="pushToDashboard"
-                href="#typography_and_colors"
-                label="T&C"
                 :icon="require('@/assets/icons/assets.svg')"
                 :iconHover="require('@/assets/icons/assets_active.svg')"
                 :isActive="true"
+                href="#typography_and_colors"
+                label="T&C"
+                v-on:click="pushToDashboard"
               >
               </SidebarElement>
             </div>
             <div class="block">
               <SidebarElement
                 id="lease"
-                v-on:click="pushToLease"
-                href="#buttons"
-                label="Buttons"
                 :icon="require('@/assets/icons/lease.svg')"
                 :iconHover="require('@/assets/icons/lease_active.svg')"
+                href="#buttons"
+                label="Buttons"
+                v-on:click="pushToLease"
               >
               </SidebarElement>
             </div>
             <div class="block">
               <SidebarElement
                 id="trade"
-                href="#form-template"
-                label="Form"
                 :icon="require('@/assets/icons/trade.svg')"
                 :iconHover="require('@/assets/icons/trade_active.svg')"
+                href="#form-template"
+                label="Form"
               >
               </SidebarElement>
             </div>
             <div class="block">
               <SidebarElement
                 id="earn"
-                label="Headers"
-                href="#header"
-                v-on:click="pushToEarn"
                 :icon="require('@/assets/icons/earn.svg')"
                 :iconHover="require('@/assets/icons/earn_active.svg')"
+                href="#header"
+                label="Headers"
+                v-on:click="pushToEarn"
               >
               </SidebarElement>
             </div>
             <div class="block">
               <SidebarElement
                 id="history"
-                v-on:click="pushToHistory"
-                label="Icons"
+                :icon="require('@/assets/icons/history.svg')"
+                :iconHover="require('@/assets/icons/history_active.svg')"
                 href="#icons"
-                :icon="require('@/assets/icons/history.svg')"
-                :iconHover="require('@/assets/icons/history_active.svg')"
+                label="Icons"
+                v-on:click="pushToHistory"
               >
               </SidebarElement>
             </div>
             <div class="block">
               <SidebarElement
                 id="history"
-                v-on:click="pushToHistory"
-                label="S&T"
+                :icon="require('@/assets/icons/history.svg')"
+                :iconHover="require('@/assets/icons/history_active.svg')"
                 href="#snackbar"
-                :icon="require('@/assets/icons/history.svg')"
-                :iconHover="require('@/assets/icons/history_active.svg')"
+                label="S&T"
+                v-on:click="pushToHistory"
               >
               </SidebarElement>
             </div>
@@ -76,11 +76,11 @@
             <div class="block">
               <SidebarElement
                 id="history"
-                v-on:click="pushToHistory"
-                label="Modals"
+                :icon="require('@/assets/icons/history.svg')"
+                :iconHover="require('@/assets/icons/history_active.svg')"
                 href="#modals"
-                :icon="require('@/assets/icons/history.svg')"
-                :iconHover="require('@/assets/icons/history_active.svg')"
+                label="Modals"
+                v-on:click="pushToHistory"
               >
               </SidebarElement>
             </div>
@@ -88,11 +88,11 @@
             <div class="block">
               <SidebarElement
                 id="history"
-                v-on:click="pushToHistory"
-                label="History"
-                href="#history"
                 :icon="require('@/assets/icons/history.svg')"
                 :iconHover="require('@/assets/icons/history_active.svg')"
+                href="#history"
+                label="History"
+                v-on:click="pushToHistory"
               >
               </SidebarElement>
             </div>
@@ -150,7 +150,6 @@
               <BellIcon class="icon w-4 h-4" />
               <span class="counter">8</span>
             </button> -->
-
             <!-- <button
               class="btn btn-header with-icon shadow-box rounded-r-none"
               v-on:click="toggleWalletPopup"
@@ -525,11 +524,11 @@
                       <div class="flex items-center w-full justify-end">
                         <input
                           id="hide-small-balances"
+                          v-model="hideLowerBalances"
                           aria-describedby="hide-small-balances"
+                          checked="checked"
                           name="hide-small-balances"
                           type="checkbox"
-                          checked="checked"
-                          v-model="hideLowerBalances"
                         />
                         <label for="hide-small-balances"
                           >Hide small balances</label
@@ -621,9 +620,9 @@
                     <div class="flex mb-nolus-32">
                       <img
                         :src="require('@/assets/icons/coins/btc.svg')"
-                        width="36"
-                        height="36"
                         class="inline-block m-0 mr-3"
+                        height="36"
+                        width="36"
                       />
                       <div class="flex flex-col">
                         <h1
@@ -721,9 +720,9 @@
                       <div class="inline-flex items-center">
                         <img
                           :src="require('@/assets/icons/coins/btc.svg')"
-                          width="32"
-                          height="32"
                           class="inline-block m-0 mr-4"
+                          height="32"
+                          width="32"
                         />
                         <div class="inline-block">
                           <p
@@ -763,9 +762,9 @@
                       <div class="inline-flex items-center">
                         <img
                           :src="require('@/assets/icons/coins/btc.svg')"
-                          width="32"
-                          height="32"
                           class="inline-block m-0 mr-4"
+                          height="32"
+                          width="32"
                         />
                         <div class="inline-block">
                           <p
@@ -805,9 +804,9 @@
                       <div class="inline-flex items-center">
                         <img
                           :src="require('@/assets/icons/coins/btc.svg')"
-                          width="32"
-                          height="32"
                           class="inline-block m-0 mr-4"
+                          height="32"
+                          width="32"
                         />
                         <div class="inline-block">
                           <p
@@ -884,9 +883,9 @@
                       <div class="inline-flex items-center">
                         <img
                           :src="require('@/assets/icons/coins/btc.svg')"
-                          width="32"
-                          height="32"
                           class="inline-block m-0 mr-4"
+                          height="32"
+                          width="32"
                         />
                         <div class="inline-block">
                           <p
@@ -939,9 +938,9 @@
                       <div class="inline-flex items-center">
                         <img
                           :src="require('@/assets/icons/coins/nls.svg')"
-                          width="32"
-                          height="32"
                           class="inline-block m-0 mr-4"
+                          height="32"
+                          width="32"
                         />
                         <div class="inline-block">
                           <p
@@ -994,9 +993,9 @@
                       <div class="inline-flex items-center">
                         <img
                           :src="require('@/assets/icons/coins/atom.svg')"
-                          width="32"
-                          height="32"
                           class="inline-block m-0 mr-4"
+                          height="32"
+                          width="32"
                         />
                         <div class="inline-block">
                           <p
@@ -1062,15 +1061,15 @@
                       <div class="flex items-center w-full justify-end">
                         <input
                           id="hide-small-balances"
+                          v-model="hideLowerBalances"
                           aria-describedby="hide-small-balances"
+                          checked="checked"
                           name="hide-small-balances"
                           type="checkbox"
-                          checked="checked"
-                          v-model="hideLowerBalances"
                         />
                         <p
-                          for="hide-small-balances"
                           class="nls-13 nls-font-400"
+                          for="hide-small-balances"
                         >
                           Hide small balances
                         </p>
@@ -1163,9 +1162,9 @@
                     <div class="inline-flex items-center">
                       <img
                         :src="require('@/assets/icons/coins/btc.svg')"
-                        width="32"
-                        height="32"
                         class="inline-block m-0 mr-4"
+                        height="32"
+                        width="32"
                       />
                       <div class="inline-block">
                         <p
@@ -1236,9 +1235,9 @@
                     <div class="inline-flex items-center">
                       <img
                         :src="require('@/assets/icons/coins/nls.svg')"
-                        width="32"
-                        height="32"
                         class="inline-block m-0 mr-4"
+                        height="32"
+                        width="32"
                       />
                       <div class="inline-block">
                         <p
@@ -1528,14 +1527,14 @@
           <div class="relative flex flex-col items-center group group-tooltip">
             <svg
               class="w-5 h-5"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
               fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path
-                fill-rule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
                 clip-rule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                fill-rule="evenodd"
               />
             </svg>
             <div
@@ -1565,36 +1564,36 @@
               <!-- Medium - Secondary -->
               <div class="flex mt-nolus-255">
                 <button
-                  v-on:click="showSendModal = true"
                   class="btn btn-secondary btn-medium-secondary mr-4"
+                  v-on:click="showSendModal = true"
                 >
                   Send / Receive
                 </button>
 
                 <button
-                  @click="() => (showErrorModal = true)"
                   class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
+                  @click="() => (showErrorModal = true)"
                 >
                   Error Modal
                 </button>
 
                 <button
-                  @click="() => (showSupplyWithdrawModal = true)"
                   class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
+                  @click="() => (showSupplyWithdrawModal = true)"
                 >
                   Supply Modal
                 </button>
 
                 <button
-                  @click="() => (showRepayModal = true)"
                   class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
+                  @click="() => (showRepayModal = true)"
                 >
                   Repay Modal
                 </button>
 
                 <button
-                  @click="() => (showSwapModal = true)"
                   class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
+                  @click="() => (showSwapModal = true)"
                 >
                   Swap
                 </button>
@@ -1609,31 +1608,31 @@
         />
 
         <SwapBuyModal
-          :try-button="tryButton"
           v-show="showSwapModal"
+          :try-button="tryButton"
           @close-modal="showSwapModal = false"
         />
 
         <SupplyWithdrawModal
-          :try-button="tryButton"
           v-show="showSupplyWithdrawModal"
+          :try-button="tryButton"
           @close-modal="showSupplyWithdrawModal = false"
         />
 
         <RepayModal
-          :try-button="tryButton"
           v-show="showRepayModal"
+          :try-button="tryButton"
           @close-modal="showRepayModal = false"
         />
 
         <ErrorModal
-          :try-button="tryButton"
           v-show="showErrorModal"
+          :try-button="tryButton"
           @close-modal="showErrorModal = false"
         />
         <ConfirmEmailModal
-          :try-button="tryButton"
           v-show="showConfirmEmailModal"
+          :try-button="tryButton"
           @close-modal="showConfirmEmailModal = false"
         />
 
@@ -1754,6 +1753,7 @@ export default defineComponent({
 [class^="icon-"] {
   font-size: 1.8em !important;
 }
+
 .nls-btn-show {
   opacity: 0;
   display: none;
@@ -1769,6 +1769,7 @@ export default defineComponent({
   animation-iteration-count: 1;
   animation-timing-function: ease-in;
 }
+
 .info-show {
   animation-name: show-anime;
   animation-duration: 0.3s;
@@ -1777,6 +1778,7 @@ export default defineComponent({
   animation-timing-function: ease-in;
   transition: 0.3s;
 }
+
 .row-actions:hover .info-show {
   display: none;
 }

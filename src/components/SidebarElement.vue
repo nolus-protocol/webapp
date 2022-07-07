@@ -1,7 +1,6 @@
 <template>
   <a
     :id="this.id"
-    :href="this.href"
     :class="[
       'sidebar-element',
       this.$route.path == this.href ? 'active' : false,
@@ -30,6 +29,7 @@ export default {
 <style scoped>
 [class^="icon-"] {
 }
+
 [class^="icon-"]:before,
 [class*=" icon-"]:before {
   font-family: "nolus";

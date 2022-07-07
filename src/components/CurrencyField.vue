@@ -15,14 +15,14 @@
       <div class="flex items-center">
         <div class="inline-block w-1/2">
           <input
-            type="number"
-            :name="this.name"
             :id="this.id"
-            :value="value"
-            :step="this.step"
-            @input="$emit('update:value', $event.target.value)"
             :disabled="disabledInputField"
+            :name="this.name"
+            :step="this.step"
+            :value="value"
             class="nls-font-700 nls-18 nls-font-700 text-primary"
+            type="number"
+            @input="$emit('update:value', $event.target.value)"
           />
           <span class="block nls-14 nls-font-400 text-light-blue">
             $1,000
@@ -30,10 +30,10 @@
         </div>
         <div class="inline-block w-1/2">
           <CurrencyPicker
-            :options="currencyOptions"
-            type="small"
             :currency-option="option"
             :disabled="disabledCurrencyPicker"
+            :options="currencyOptions"
+            type="small"
             @update-currency="onUpdateCurrency"
           />
         </div>

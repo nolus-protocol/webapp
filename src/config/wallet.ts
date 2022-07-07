@@ -54,14 +54,14 @@ export const IBCAssets: {
   sourceChannelId: string,
   coinMinimalDenom: string
 }[] = [
-  {
-    sourceChannelId: 'channel-88',
-    coinMinimalDenom: 'uscrt'
-  },
-  {
-    sourceChannelId: 'channel-72',
-    coinMinimalDenom: 'uluna'
-  },
+  // {
+  //   sourceChannelId: 'channel-88',
+  //   coinMinimalDenom: 'uscrt'
+  // },
+  // {
+  //   sourceChannelId: 'channel-72',
+  //   coinMinimalDenom: 'uluna'
+  // },
   {
     sourceChannelId: 'channel-115',
     coinMinimalDenom: 'ulum'

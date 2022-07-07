@@ -95,36 +95,44 @@ button {
 		font-family: "Garet Bolder";
 		line-height: 1.1;
 		font-size: 48px;
+
 		&-sub {
 			font-size: 40px;
 			font-family: "Garet Bolder";
 		}
 	}
+
 	&-large-heading {
 		font-family: "Garet Bolder";
 		line-height: 1.1;
 		font-size: 32px;
 	}
 }
+
 .nls-font-500 nls-16 {
 	font-family: "Garet-Medium";
 	line-height: 1.4;
+
 	.nls-font-400-copy {
 		font-size: 16px;
 	}
+
 	.text-bold-copy {
 		font-family: "Garet Bolder";
 		font-size: 16px;
 	}
 }
+
 .text-normal-copy {
 	font-family: "Garet";
 	font-size: 14px;
 	line-height: 1.4;
+
 	.nls-font-400-copy {
 		font-family: "Garet-Medium";
 		font-size: 14px;
 	}
+
 	.text-bold-copy {
 		font-family: "Garet Bolder";
 		font-size: 14px;
@@ -136,28 +144,34 @@ button {
 	font-family: "Garet";
 	font-size: 13px;
 	line-height: 1.3;
+
 	.nls-font-400-copy {
 		font-family: "Garet-Medium";
 		font-size: 13px;
 	}
+
 	.text-bold-copy {
 		font-family: "Garet Bolder";
 		font-size: 13px;
 	}
 }
+
 .text-detail {
 	color: $lightBlue;
 	font-family: "Garet-Medium";
 	font-size: 12px;
 	line-height: 1.2;
 }
+
 .text-patch {
 	color: #5e7699;
 	background-color: #ebeff5;
 }
+
 input[type="checkbox" i] {
 	position: relative;
 }
+
 // input[type="radio" i] {
 // 	position: relative;
 // 	background-color: white;
@@ -189,54 +203,68 @@ input[type="checkbox" i] {
 	color: $lightBlue;
 	pointer-events: none;
 }
+
 .nls-font-700 {
 	font-family: "Garet Bolder";
 }
+
 .nls-font-600 {
 	font-family: "Garet-Bold";
 }
+
 .nls-font-500 {
 	font-family: "Garet-Medium";
 }
+
 .nls-font-400 {
 	font-family: "Garet";
 }
+
 .nls-40 {
 	font-size: 40px;
 	line-height: 50px;
 }
+
 .nls-48 {
 	font-size: 48px;
 	line-height: 70px;
 }
+
 .nls-32 {
 	font-size: 32px;
 	line-height: 46px;
 }
+
 .nls-20 {
 	font-size: 20px;
 	line-height: 29px;
 }
+
 .nls-18 {
 	font-size: 18px;
 	line-height: 26px;
 }
+
 .nls-16 {
 	font-size: 16px;
 	line-height: 23px;
 }
+
 .nls-14 {
 	font-size: 14px;
 	line-height: 20px;
 }
+
 .nls-13 {
 	font-size: 13px;
 	line-height: 19px;
 }
+
 .nls-12 {
 	font-size: 12px;
 	line-height: 17px;
 }
+
 .group-tooltip {
 	font-size: 10px;
 	line-height: 14px;
@@ -250,6 +278,7 @@ input[type="checkbox" i] {
 			margin: 0;
 		}
 	}
+
 	&:hover {
 		.group-hover\:flex {
 			background-color: $lightElectric;
@@ -261,15 +290,19 @@ input[type="checkbox" i] {
 		}
 	}
 }
+
 .sm\:col-span-12 {
 	grid-column: span 12 / span 12;
 }
+
 .sm\:w-full {
 	width: 100%;
 }
+
 .sm\:color-white {
 	color: $white;
 }
+
 :root {
 	input[type="checkbox"],
 	input[type="radio"] {
@@ -293,6 +326,7 @@ input[type="checkbox" i] {
 		border: 1px solid var(--bc, var(--border));
 		background: var(--b, var(--background));
 		transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+
 		&:after {
 			content: "";
 			display: block;
@@ -302,6 +336,7 @@ input[type="checkbox" i] {
 			transition: transform var(--d-t, 0.3s) var(--d-t-e, ease),
 				opacity var(--d-o, 0.2s);
 		}
+
 		&:checked {
 			--b: var(--active);
 			--bc: var(--active);
@@ -309,18 +344,22 @@ input[type="checkbox" i] {
 			--d-t: 0.6s;
 			--d-t-e: cubic-bezier(0.2, 0.85, 0.32, 1.2);
 		}
+
 		&:disabled {
 			--b: var(--disabled);
 			cursor: not-allowed;
 			opacity: 0.9;
+
 			&:checked {
 				--b: var(--disabled-inner);
 				--bc: var(--border);
 			}
+
 			& + label {
 				cursor: not-allowed;
 			}
 		}
+
 		&:hover {
 			&:not(:checked) {
 				&:not(:disabled) {
@@ -328,18 +367,23 @@ input[type="checkbox" i] {
 				}
 			}
 		}
+
 		&:focus {
 			box-shadow: 0 0 0 var(--focus);
 		}
+
 		&:not(.switch) {
 			width: 21px;
+
 			&:after {
 				opacity: var(--o, 0);
 			}
+
 			&:checked {
 				--o: 1;
 			}
 		}
+
 		& + label {
 			font-size: 14px;
 			line-height: 21px;
@@ -349,6 +393,7 @@ input[type="checkbox" i] {
 			margin-left: 4px;
 		}
 	}
+
 	input[type="checkbox"] {
 		&:not(.switch) {
 			//border-radius: 7px;
@@ -362,13 +407,16 @@ input[type="checkbox" i] {
 				top: 4px;
 				transform: rotate(var(--r, 20deg));
 			}
+
 			&:checked {
 				--r: 43deg;
 			}
 		}
+
 		&.switch {
 			width: 38px;
 			border-radius: 11px;
+
 			&:after {
 				left: 2px;
 				top: 2px;
@@ -378,6 +426,7 @@ input[type="checkbox" i] {
 				background: var(--ab, var(--border));
 				transform: translateX(var(--x, 0));
 			}
+
 			&:checked {
 				--ab: var(--active-inner);
 				--x: 17px;
@@ -391,12 +440,15 @@ input[type="checkbox" i] {
 				}
 			}
 		}
+
 		&:focus {
 			box-shadow: none;
 		}
 	}
+
 	input[type="radio"] {
 		border-radius: 50%;
+
 		&:after {
 			width: 19px;
 			height: 19px;
@@ -405,23 +457,28 @@ input[type="checkbox" i] {
 			opacity: 0;
 			transform: scale(var(--s, 0.7));
 		}
+
 		&:checked {
 			--s: 0.5;
 		}
+
 		&:focus {
 			box-shadow: none;
 		}
 	}
 }
+
 [v-cloak] {
 	background-color: red;
 	//display: none;
 }
+
 @media (min-width: $md) {
 	.nls-md-show {
 		display: none;
 	}
 }
+
 @media (max-width: $lg) {
 	.nls-md-show {
 		display: block;
@@ -435,11 +492,13 @@ input[type="checkbox" i] {
 	.btn-header {
 		background-color: transparent;
 		box-shadow: none;
+
 		&.shadow-box {
 			box-shadow: none;
 		}
 	}
 }
+
 @media (max-width: $md) {
 	.table-header {
 		padding-right: 16px;

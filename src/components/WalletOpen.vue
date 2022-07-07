@@ -8,7 +8,7 @@
     <div
       class="box-open-header bg-white p-4 lg:p-6 border-b border-standart radius-top-left"
     >
-      <h2 class="nls-font-700 nls-18 text-primary text-left m-0" v-cloak>
+      <h2 v-cloak class="nls-font-700 nls-18 text-primary text-left m-0">
         Your Wallet
       </h2>
       <div class="flex grey-box items-center bg-light-grey radius-rounded">
@@ -23,32 +23,32 @@
     >
       <div class="block">
         <PickerDefault
-          label="Language"
           :default-option="{ label: 'English', value: 'en' }"
-          :options="[{ value: 'en', label: 'English' }]"
           :disabled="true"
+          :options="[{ value: 'en', label: 'English' }]"
+          label="Language"
         />
       </div>
 
       <div class="block mt-3">
         <PickerDefault
-          label="Currency"
           :default-option="{ label: 'USD', value: 'USD' }"
+          :disabled="true"
           :options="[
             { value: 'USD', label: 'USD' },
             { value: 'EUR', label: 'EUR' },
           ]"
-          :disabled="true"
+          label="Currency"
         />
       </div>
 
       <div class="block mt-3">
         <PickerDefault
-          label="Network"
           :default-option="this.currentNetwork"
           :options="this.networks"
-          @update-selected="onUpdateNetwork"
+          label="Network"
           @focus="showWallet = true"
+          @update-selected="onUpdateNetwork"
         />
       </div>
     </div>
@@ -64,67 +64,65 @@
   </div>
 </template>
 <script lang="ts">
-import PickerDefault, {
-  PickerDefaultOption,
-} from "@/components/PickerDefault.vue";
-import { defineComponent, PropType } from "vue";
-import { EnvNetworks } from "@/config/envNetworks";
-import { StringUtils } from "@/utils/StringUtils";
-import { useStore } from "@/store";
-import { ApplicationActionTypes } from "@/store/modules/application/action-types";
-import { WalletManager } from "@/config/wallet";
-import router from "@/router";
-import { RouteNames } from "@/router/RouterNames";
-import Test from "@/directives";
-import { WalletUtils } from "@/utils/WalletUtils";
+import PickerDefault, { PickerDefaultOption } from '@/components/PickerDefault.vue'
+import { defineComponent } from 'vue'
+import { EnvNetworks } from '@/config/envNetworks'
+import { StringUtils } from '@/utils/StringUtils'
+import { useStore } from '@/store'
+import { ApplicationActionTypes } from '@/store/modules/application/action-types'
+import { WalletManager } from '@/config/wallet'
+import router from '@/router'
+import { RouteNames } from '@/router/RouterNames'
+import { WalletUtils } from '@/utils/WalletUtils'
+
 export default defineComponent({
-  name: "WalletOpen",
+  name: 'WalletOpen',
   components: {
-    PickerDefault,
+    PickerDefault
   },
 
   props: [],
-  data() {
+  data () {
     return {
       showWallet: false,
       networks: [] as PickerDefaultOption[],
-      currentNetwork: {} as PickerDefaultOption,
-    };
+      currentNetwork: {} as PickerDefaultOption
+    }
   },
 
-  mounted() {
-    const envNetwork = new EnvNetworks();
+  mounted () {
+    const envNetwork = new EnvNetworks()
     envNetwork.getEnvNetworks().forEach((network) => {
       this.networks.push({
         label: StringUtils.capitalize(network),
-        value: network,
-      });
-    });
-    console.log("curr: ", envNetwork.getStoredNetworkName());
+        value: network
+      })
+    })
+    console.log('curr: ', envNetwork.getStoredNetworkName())
     this.currentNetwork = {
-      label: StringUtils.capitalize(envNetwork.getStoredNetworkName() || ""),
-      value: envNetwork.getStoredNetworkName() || "",
-    };
+      label: StringUtils.capitalize(envNetwork.getStoredNetworkName() || ''),
+      value: envNetwork.getStoredNetworkName() || ''
+    }
   },
 
   methods: {
-    handleFocusOut() {
-      //alert("j");
-      this.showWallet = false;
+    handleFocusOut () {
+      // alert("j");
+      this.showWallet = false
     },
-    onUpdateNetwork(value: PickerDefaultOption) {
-      console.log("loggg");
-      EnvNetworks.saveCurrentNetwork(value.value);
+    onUpdateNetwork (value: PickerDefaultOption) {
+      console.log('loggg')
+      EnvNetworks.saveCurrentNetwork(value.value)
       if (WalletUtils.isConnectedViaExtension()) {
-        useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK);
+        useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK)
       }
     },
-    onClickDisconnect() {
-      WalletManager.eraseWalletInfo();
-      router.push({ name: RouteNames.AUTH });
-    },
-  },
-});
+    onClickDisconnect () {
+      WalletManager.eraseWalletInfo()
+      router.push({ name: RouteNames.AUTH })
+    }
+  }
+})
 </script>
 
 <style scoped>
@@ -137,6 +135,7 @@ export default defineComponent({
   background: #f7f9fc;
   margin-top: 11px;
 }
+
 .justify-content {
   justify-content: space-between !important;
 }

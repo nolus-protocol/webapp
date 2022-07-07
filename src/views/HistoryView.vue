@@ -1,7 +1,7 @@
 <template>
   <div
-    class="lg:container w-full lg:grid lg:grid-cols-12 mx-auto grid-parent md-nls-px-25 sm-nls-0 body"
     v-cloak
+    class="lg:container w-full lg:grid lg:grid-cols-12 mx-auto grid-parent md-nls-px-25 sm-nls-0 body"
   >
     <div class="lg:col-span-3">
       <SidebarContainer />
@@ -234,8 +234,8 @@
     </div>
   </div>
   <ReceiveSendModal
-    ref="ReceiveSendModal"
     v-show="showSendModal"
+    ref="ReceiveSendModal"
     @close-modal="showSendModal = false"
   />
 </template>
@@ -248,8 +248,6 @@ import { StringUtils } from "@/utils/StringUtils";
 import { useStore } from "@/store";
 import { WalletActionTypes } from "@/store/modules/wallet/action-types";
 import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
-import Notifications from "@/components/Notifications.vue";
-import WalletOpen from "@/components/WalletOpen.vue";
 import SidebarHeader from "@/components/Sideheader.vue";
 
 interface ITransaction {
@@ -265,8 +263,6 @@ export default defineComponent({
   name: "HistoryView",
   components: {
     SidebarContainer,
-    Notifications,
-    WalletOpen,
     SidebarHeader,
   },
   data() {

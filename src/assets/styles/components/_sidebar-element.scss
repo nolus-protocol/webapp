@@ -52,6 +52,7 @@
 				.icon {
 					display: inline-block;
 				}
+
 				.iconHover {
 					display: none;
 				}
@@ -80,6 +81,7 @@
 			}
 		}
 	}
+
 	@media (max-width: $lg) {
 		position: fixed;
 	}
@@ -271,6 +273,7 @@
 		border: none !important;
 	}
 }
+
 .sub-nav-service {
 	.sidebar-link-element {
 		font-size: 14px;
@@ -308,9 +311,11 @@
 			border-top-right-radius: 12px;
 			border-bottom: 1px solid $borderColor;
 			height: 100%;
+
 			& > div {
 				padding-left: 24px;
 			}
+
 			// animation-name: slideUp;
 			// animation-duration: 22s;
 			// animation-timing-function: linear;
@@ -320,6 +325,7 @@
 				display: flex;
 				flex-direction: row !important;
 			}
+
 			// &:hover {
 			// 	& > div:first-of-type {
 			// z-index: 5;
@@ -337,6 +343,7 @@
 				}
 			}
 		}
+
 		& > div:last-of-type {
 			z-index: 10;
 			background: $white;
@@ -346,6 +353,7 @@
 				.sidebar-element {
 					flex-direction: column;
 					margin-bottom: 10px;
+
 					&.active {
 					}
 				}
@@ -353,9 +361,11 @@
 		}
 	}
 }
+
 .backdrop {
 	display: none;
 }
+
 .mobile-nav {
 	.backdrop {
 		height: 100vh;
@@ -367,8 +377,10 @@
 		background: rgba(173, 173, 173, 0.1);
 		backdrop-filter: blur(60px);
 	}
+
 	.active {
 		color: $lightBlue;
+
 		.icon {
 			color: $lightBlue;
 		}
@@ -376,6 +388,7 @@
 
 	#more {
 		color: $orange;
+
 		.icon {
 			color: $orange;
 		}
@@ -401,6 +414,7 @@
 			&:hover {
 				background-color: transparent;
 				color: $orange;
+
 				.icon {
 					color: $orange !important;
 				}
