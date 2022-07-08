@@ -44,6 +44,12 @@
 			width: 100vw;
 			//	border-top: 1px solid $borderColor;
 		}
+		@media (max-width: $sm) {
+			.sidebar-element {
+				padding-left: 8px;
+				padding-right: 8px;
+			}
+		}
 
 		&:hover {
 			.sidebar-element {

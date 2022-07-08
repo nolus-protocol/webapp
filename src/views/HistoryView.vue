@@ -4,24 +4,26 @@
     class="lg:container w-full lg:grid lg:grid-cols-12 mx-auto grid-parent md-nls-px-25 sm-nls-0 body"
   >
     <div class="lg:col-span-3">
-      <SidebarContainer/>
+      <SidebarContainer />
     </div>
     <div class="lg:col-span-9 pb-8">
       <div class="grid grid-cols-10 grid-child">
         <div class="col-span-12 mt-nolus-60">
           <div class="col-span-12">
             <div class="sidebar-header">
-              <SidebarHeader/>
+              <SidebarHeader />
             </div>
           </div>
         </div>
-        <div class="col-span-12">
+        <div class="col-span-12 mb-sm-nolus-70p">
           <!-- Header -->
           <div
             class="table-header flex mt-nolus-255 flex-wrap items-center justify-between items-baseline lg:px-0"
           >
             <div class="left">
-              <h1 class="nls-20 nls-font-700 text-primary m-0">{{ $t('message.history') }}</h1>
+              <h1 class="nls-20 nls-font-700 text-primary m-0">
+                {{ $t("message.history") }}
+              </h1>
             </div>
           </div>
           <!-- History -->
@@ -42,22 +44,22 @@
                 <div
                   class="nls-md-hidden col-span-2 md:block nls-font-500 nls-12 text-dark-grey text-left text-upper"
                 >
-                  {{ $t('message.type') }}
+                  {{ $t("message.type") }}
                 </div>
                 <div
                   class="flex items-center col-span-4 justify-start nls-font-500 nls-12 text-dark-grey text-left text-upper"
                 >
-                  <span class="inline-block">{{ $t('message.action') }}</span>
+                  <span class="inline-block">{{ $t("message.action") }}</span>
                 </div>
                 <div
                   class="md:flex col-span-2 items-center justify-end nls-font-500 nls-12 text-dark-grey text-right text-upper"
                 >
-                  <span class="inline-block">{{ $t('message.fee') }}</span>
+                  <span class="inline-block">{{ $t("message.fee") }}</span>
                 </div>
                 <div
                   class="md:flex col-span-2 items-center justify-end nls-font-500 nls-12 text-dark-grey text-right text-upper"
                 >
-                  <span class="inline-block">{{ $t('message.time') }}</span>
+                  <span class="inline-block">{{ $t("message.time") }}</span>
                 </div>
               </div>
               <!-- Assets Container -->
@@ -87,7 +89,7 @@
                   >
                     <span class="nls-12 nls-font-700">
                       {{ truncateString(transaction.sender) }}
-                      {{ $t('message.to') }}
+                      {{ $t("message.to") }}
                       {{ truncateString(transaction.receiver) }}
                     </span>
                     <!--                    <span class="text-bold">Stake</span> 797020...qtcrpy to <span-->
@@ -97,8 +99,8 @@
                     class="block col-span-2 items-center justify-start md:justify-endtext-primary"
                   >
                     <span class="left-and-right nls-14 nls-font-400">{{
-                        convertFeeAmount(transaction.fee)
-                      }}</span>
+                      convertFeeAmount(transaction.fee)
+                    }}</span>
                   </div>
                 </div>
               </div>
@@ -115,15 +117,15 @@
   />
 </template>
 <script lang="ts">
-import { defineComponent } from 'vue'
-import SidebarContainer from '@/components/SidebarContainer.vue'
-import { IndexedTx } from '@cosmjs/stargate'
-import { Coin, DecodedTxRaw, decodeTxRaw } from '@cosmjs/proto-signing'
-import { StringUtils } from '@/utils/StringUtils'
-import { useStore } from '@/store'
-import { WalletActionTypes } from '@/store/modules/wallet/action-types'
-import { ChainConstants, CurrencyUtils } from '@nolus/nolusjs'
-import SidebarHeader from '@/components/Sideheader.vue'
+import { defineComponent } from "vue";
+import SidebarContainer from "@/components/SidebarContainer.vue";
+import { IndexedTx } from "@cosmjs/stargate";
+import { Coin, DecodedTxRaw, decodeTxRaw } from "@cosmjs/proto-signing";
+import { StringUtils } from "@/utils/StringUtils";
+import { useStore } from "@/store";
+import { WalletActionTypes } from "@/store/modules/wallet/action-types";
+import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
+import SidebarHeader from "@/components/Sideheader.vue";
 
 interface ITransaction {
   id: string;
@@ -135,61 +137,61 @@ interface ITransaction {
 }
 
 export default defineComponent({
-  name: 'HistoryView',
+  name: "HistoryView",
   components: {
     SidebarContainer,
-    SidebarHeader
+    SidebarHeader,
   },
-  data () {
+  data() {
     return {
-      transactions: [] as ITransaction[]
-    }
+      transactions: [] as ITransaction[],
+    };
   },
   watch: {
-    '$store.state.wallet.wallet' () {
-      this.getTransactions()
-      console.log('FROM HISTORY', this.transactions)
-    }
+    "$store.state.wallet.wallet"() {
+      this.getTransactions();
+      console.log("FROM HISTORY", this.transactions);
+    },
   },
-  mounted () {
-    this.getTransactions()
+  mounted() {
+    this.getTransactions();
   },
   methods: {
-    async getTransactions () {
-      const res = await useStore().dispatch(WalletActionTypes.SEARCH_TX)
-      this.prepareTransactions(res)
+    async getTransactions() {
+      const res = await useStore().dispatch(WalletActionTypes.SEARCH_TX);
+      this.prepareTransactions(res);
     },
-    prepareTransactions (results: readonly IndexedTx[]) {
+    prepareTransactions(results: readonly IndexedTx[]) {
       if (results) {
         results.forEach((tx) => {
-          const rawTx = JSON.parse(tx.rawLog)
-          const decodedTx: DecodedTxRaw = decodeTxRaw(tx.tx)
+          const rawTx = JSON.parse(tx.rawLog);
+          const decodedTx: DecodedTxRaw = decodeTxRaw(tx.tx);
           const transactionResult: ITransaction = {
-            id: tx.hash || '',
-            receiver: rawTx[0].events[3].attributes[0].value || '',
-            sender: rawTx[0].events[3].attributes[1].value || '',
-            action: rawTx[0].events[3].type || '',
-            memo: decodedTx.body.memo || '',
+            id: tx.hash || "",
+            receiver: rawTx[0].events[3].attributes[0].value || "",
+            sender: rawTx[0].events[3].attributes[1].value || "",
+            action: rawTx[0].events[3].type || "",
+            memo: decodedTx.body.memo || "",
             fee:
               decodedTx?.authInfo?.fee?.amount.filter(
                 (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
-              ) || null
-          }
-          this.transactions.push(transactionResult)
-        })
+              ) || null,
+          };
+          this.transactions.push(transactionResult);
+        });
       }
     },
-    truncateString (text: string) {
-      return StringUtils.truncateString(text, 10, 6)
+    truncateString(text: string) {
+      return StringUtils.truncateString(text, 10, 6);
     },
-    convertFeeAmount (fee: Coin[]) {
-      const convertFee = CurrencyUtils.convertCosmosCoinToKeplCoin(fee[0])
-      const feeAmount = CurrencyUtils.convertCoinUNolusToNolus(convertFee)
-      return feeAmount?.toString()
+    convertFeeAmount(fee: Coin[]) {
+      const convertFee = CurrencyUtils.convertCosmosCoinToKeplCoin(fee[0]);
+      const feeAmount = CurrencyUtils.convertCoinUNolusToNolus(convertFee);
+      return feeAmount?.toString();
     },
-    capitalize (value: string) {
-      return StringUtils.capitalize(value)
-    }
-  }
-})
+    capitalize(value: string) {
+      return StringUtils.capitalize(value);
+    },
+  },
+});
 </script>

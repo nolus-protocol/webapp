@@ -506,6 +506,10 @@ input[type="checkbox" i] {
 	.nls-md-hidden {
 		display: none;
 	}
+	.nls-sm-title {
+		margin-top: 26px;
+		margin-bottom: 11.5px;
+	}
 }
 
 @media (max-width: $sm) {

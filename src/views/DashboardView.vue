@@ -6,7 +6,7 @@
     <div class="lg:col-span-3">
       <SidebarContainer />
     </div>
-    <div class="lg:col-span-8 col-span-9 pb-8">
+    <div class="lg:col-span-9 pb-8">
       <div class="grid grid-cols-10 grid-child">
         <div class="col-span-12 mt-nolus-60">
           <div class="col-span-12">
@@ -15,10 +15,10 @@
             </div>
           </div>
         </div>
-        <div class="col-span-12">
+        <div class="col-span-12 mb-sm-nolus-70">
           <!-- Header -->
           <div
-            class="table-header flex mt-nolus-255 flex-wrap items-center justify-between items-baseline lg:px-0"
+            class="table-header flex mt-nolus-255 flex-wrap items-center justify-between items-baseline lg:px-0 relative z-10"
           >
             <div class="left">
               <h1 class="nls-20 nls-font-700 text-primary m-0">Assets</h1>
@@ -39,7 +39,7 @@
           <div
             class="flex balance-box items-center justify-start bg-white mt-nolus-24 border-standart shadow-box radius-medium radius-0-sm py-5 px-6"
           >
-            <div class="left inline-block w-1/2">
+            <div class="left inline-block w-1/3">
               <p class="nls-font-500 nls-16 text-primary mb-nolus-6 m-0">
                 Wallet Balance
               </p>
@@ -47,7 +47,7 @@
                 {{ calculateTotalBalance() }}
               </p>
             </div>
-            <div class="right inline-block w-1/2">
+            <div class="right inline-block w-2/3">
               <NolusChart />
             </div>
           </div>
@@ -70,7 +70,9 @@
                 class="right w-full md:w-1/2 mt-nolus-255 md:mt-0 inline-flex justify-start md:justify-end"
               >
                 <div class="relative block checkbox-container">
-                  <div class="flex items-center w-full justify-end">
+                  <div
+                    class="flex items-center w-full justify-end relative z-10"
+                  >
                     <input
                       id="hide-small-balances"
                       v-model="hideLowerBalances"
@@ -106,14 +108,14 @@
                 <div
                   class="inline-flex items-center justify-end nls-font-500 text-dark-grey nls-12 text-right text-upper"
                 >
-                  <span class="inline-block mr-nolus-5">Balance</span>
+                  <span class="inline-block">Balance</span>
                   <TooltipComponent content="Content goes here" />
                 </div>
 
                 <div
                   class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey nls-12 text-right text-upper"
                 >
-                  <span class="inline-block mr-nolus-5">Earnings</span>
+                  <span class="inline-block">Earnings</span>
                   <TooltipComponent content="Content goes here" />
                 </div>
               </div>
@@ -148,16 +150,15 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { Coin, Dec, Int } from "@keplr-wallet/unit";
-import { CurrencyUtils } from "@nolus/nolusjs";
-
 import SidebarContainer from "@/components/SidebarContainer.vue";
 import AssetPartial from "@/components/AssetPartial.vue";
 import { AssetUtils } from "@/utils/AssetUtils";
+import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { AssetBalance } from "@/store/modules/wallet/state";
 import ReceiveSendModal from "@/components/modals/ReceiveSendModal.vue";
 import { useStore } from "@/store";
 import SidebarHeader from "@/components/Sideheader.vue";
+import { CurrencyUtils } from "@nolus/nolusjs";
 import TooltipComponent from "@/components/TooltipComponent.vue";
 import Notifications from "@/components/Notifications.vue";
 import WalletOpen from "@/components/WalletOpen.vue";
@@ -186,6 +187,7 @@ export default defineComponent({
   },
   watch: {
     "$store.state.wallet.balances"(balances) {
+      console.log("Balances: ", balances);
       this.mainAssets = balances;
       this.manipulatedAssets = balances;
       if (this.hideLowerBalances) {

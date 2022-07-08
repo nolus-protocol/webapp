@@ -4,39 +4,43 @@
     class="lg:container w-full lg:grid lg:grid-cols-12 mx-auto grid-parent md-nls-px-25 sm-nls-0 body"
   >
     <div class="lg:col-span-3">
-      <SidebarContainer/>
+      <SidebarContainer />
     </div>
     <div class="lg:col-span-9 pb-8">
       <div class="grid grid-cols-10 grid-child">
         <div class="col-span-12 mt-nolus-60">
           <div class="col-span-12">
             <div class="sidebar-header">
-              <SidebarHeader/>
+              <SidebarHeader />
             </div>
           </div>
         </div>
-        <div class="col-span-12">
+        <div class="col-span-12 mb-sm-nolus-70">
           <!-- Header -->
           <div class="flex flex-wrap items-center justify-between px-4 lg:px-0">
             <div class="left w-full md:w-1/2">
-              <h1 class="nls-20 nls-font-700 text-primary m-0">{{ $t('message.earnings') }}</h1>
+              <h1 class="nls-20 nls-font-700 text-primary m-0 nls-sm-title">
+                Earnings
+              </h1>
             </div>
           </div>
 
-          <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-7">
+          <div class="md:grid md:grid-cols-12 md:gap-4">
+            <div class="md:col-span-7 lg:col-span-7">
               <!-- Portfolio -->
               <div
-                class="nolus-box block order-2 md:order-1 bg-white border-y border-standart radius-medium md:col-span-7 mt-6"
+                class="nolus-box block order-2 order-1 bg-white border-y border-standart radius-medium md:col-span-7 md:mt-6"
               >
                 <div
-                  class="flex items-center justify-between px-nolus-24 px-nolus-24 pt-nolus-24"
+                  class="lg:flex block items-center justify-between px-nolus-24 px-nolus-24 pt-nolus-24"
                 >
                   <h2 class="nls-16 nls-font-500 text-left my-0">
-                    {{ $t('message.earnings-portfolio') }}
+                    Your earning portfolio
                   </h2>
-                  <button class="btn btn-label btn-large-label">
-                    {{ $t('message.view-all-earning-assets') }}
+                  <button
+                    class="btn btn-label btn-large-label text-right nls-md-hidden"
+                  >
+                    View all earning assets
                   </button>
                 </div>
                 <!-- Assets -->
@@ -48,13 +52,13 @@
                     <div
                       class="nls-font-500 nls-12 text-dark-grey text-left text-upper"
                     >
-                      {{ $t('message.asset') }}
+                      Asset
                     </div>
 
                     <div
                       class="inline-flex items-center justify-end nls-font-500 nls-font-500 nls-12 text-dark-grey text-right text-upper"
                     >
-                      <span class="inline-block">{{ $t('message.current-balance') }}</span>
+                      <span class="inline-block">Current Balance</span>
                     </div>
                   </div>
 
@@ -109,7 +113,7 @@
                           class="btn btn-secondary btn-medium-secondary"
                           data-v-37958d79=""
                         >
-                          {{ $t('message.supply-withdraw') }}
+                          Supply / Withdraw
                         </button>
                       </div>
                     </div>
@@ -164,7 +168,7 @@
                           class="btn btn-secondary btn-medium-secondary"
                           data-v-37958d79=""
                         >
-                          {{ $t('message.supply-withdraw') }}
+                          Supply / Withdraw
                         </button>
                       </div>
                     </div>
@@ -206,7 +210,7 @@
                           class="btn btn-secondary btn-medium-secondary"
                           data-v-37958d79=""
                         >
-                          {{ $t('message.supply-withdraw') }}
+                          Supply / Withdraw
                         </button>
                       </div>
                       <div class="block info-show">
@@ -229,7 +233,7 @@
               <!-- Portfolio -->
             </div>
 
-            <div class="col-span-5">
+            <div class="md:col-span-5 lg:co-span-5">
               <!-- Rewards -->
               <div
                 class="nolus-box block order-2 md:order-1 bg-white border-y border-standart radius-medium md:col-span-7 mt-6"
@@ -238,10 +242,10 @@
                   class="flex items-center justify-between px-nolus-24 pt-nolus-24"
                 >
                   <h2 class="nls-16 nls-font-500 text-left my-0">
-                    {{ $t('message.pending-rewards') }}
+                    Pending rewards
                   </h2>
                   <button class="btn btn-label btn-large-label">
-                    {{ $t('message.claim-all') }}
+                    Claim all
                   </button>
                 </div>
                 <!-- Assets -->
@@ -281,10 +285,10 @@
                       <!-- Balance -->
                       <div class="flex justify-end">
                         <button
-                          class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
+                          class="btn btn-secondary btn-medium-secondary btn-emphatized"
                           data-v-37958d79=""
                         >
-                          {{ $t('message.none') }}
+                          None
                         </button>
                       </div>
                     </div>
@@ -323,10 +327,10 @@
                       <!-- Balance -->
                       <div class="flex justify-end">
                         <button
-                          class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
+                          class="btn btn-secondary btn-medium-secondary btn-emphatized"
                           data-v-37958d79=""
                         >
-                          {{ $t('message.none') }}
+                          None
                         </button>
                       </div>
                     </div>
@@ -365,10 +369,10 @@
                       <!-- Balance -->
                       <div class="flex justify-end">
                         <button
-                          class="btn btn-secondary btn-medium-secondary js-loading mr-4"
+                          class="btn btn-secondary btn-medium-secondary js-loading"
                           data-v-37958d79=""
                         >
-                          {{ $t('message.none') }}
+                          None
                         </button>
                       </div>
                     </div>
@@ -398,27 +402,27 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import SidebarContainer from '@/components/SidebarContainer.vue'
-import AssetPartial from '@/components/AssetPartial.vue'
-import Notifications from '@/components/Notifications.vue'
-import WalletOpen from '@/components/WalletOpen.vue'
-import SidebarHeader from '@/components/Sideheader.vue'
+import { defineComponent } from "vue";
+import SidebarContainer from "@/components/SidebarContainer.vue";
+import AssetPartial from "@/components/AssetPartial.vue";
+import Notifications from "@/components/Notifications.vue";
+import WalletOpen from "@/components/WalletOpen.vue";
+import SidebarHeader from "@/components/Sideheader.vue";
 
 export default defineComponent({
-  name: 'EarningsView',
+  name: "EarningsView",
   components: {
     SidebarContainer,
     AssetPartial,
     Notifications,
     WalletOpen,
-    SidebarHeader
+    SidebarHeader,
   },
-  data () {
+  data() {
     return {
-      cols: 2 as number
-    }
-  }
-})
+      cols: 2 as number,
+    };
+  },
+});
 </script>
 <style scoped></style>
