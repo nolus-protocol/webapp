@@ -1,9 +1,11 @@
 <template>
   <fieldset>
     <div class="block input-field">
-      <label :for="this.id" class="block nls-14 nls-font-500 text-primary">{{
-        this.label
-      }}</label>
+      <label
+        :for="this.id"
+        class="block nls-14 nls-font-500 mb-nolus-5 text-primary"
+        >{{ this.label }}</label
+      >
       <textarea
         :id="this.id"
         :class="

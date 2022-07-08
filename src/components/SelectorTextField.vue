@@ -2,8 +2,8 @@
   <div class="block input-field">
     <label
       :for="this.id"
-      class="block nls-14 nls-font-400 text-primary nls-font-400"
-    >{{ this.label }}</label
+      class="block nls-14 nls-font-500 mb-nolus-5 text-primary"
+      >{{ this.label }}</label
     >
     <div class="block editable-block">
       <div

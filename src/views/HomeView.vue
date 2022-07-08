@@ -1,5 +1,5 @@
 <template>
-  <div v-cloak class="block w-[516px] pb-nolus-40">
+  <div v-cloak class="block lg:w-[516px] pb-nolus-40">
     <h1 class="nls-40 nls-font-700 text-primary text-center mb-nolus-32">
       {{ $t("message.connect-wallet") }}
     </h1>

@@ -1,600 +1,614 @@
 .btn {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: $white;
-  transition: 0.3s;
-
-  &-large-label {
-    font-size: 14px;
-    line-height: 20px;
-    font-family: "Garet";
-    color: $lightElectric;
-    background-color: transparent;
-    padding: 12px 0;
-  }
-
-  &-outline {
-    color: $lightElectric;
-    font-family: "Garet Bolder";
-    font-size: 12px;
-    line-height: 17px;
-  }
-
-  &-large-primary {
-    font-size: 14px;
-    line-height: 20px;
-    font-family: "Garet Bolder";
-    color: $white;
-    background-color: $lightElectric;
-    padding: 12px 24px;
-    border-radius: $rounded;
-
-    &.js-loading::before {
-      content: "";
-      display: block;
-      width: 1.2em;
-      height: 1.2em;
-      position: absolute;
-      left: calc(50% - 0.6em);
-      top: calc(50% - 0.6em);
-      border: 2px solid #dbe3f4;
-      border-radius: 50%;
-      opacity: 1;
-    }
-
-    &::after {
-      content: "";
-      display: block;
-      width: 1.2em;
-      height: 1.2em;
-      position: absolute;
-      left: calc(50% - 0.6em);
-      top: calc(50% - 0.6em);
-      border: 0.15em solid transparent;
-      border-right-color: $lightElectric;
-      border-radius: 50%;
-      animation: button-anim 0.7s linear infinite;
-      opacity: 0;
-    }
-
-    &:hover,
-    &:focus {
-      background-color: $mediumElectric;
-    }
-
-    &:active {
-      background-color: $darkElectric;
-    }
-
-    &:disabled,
-    &.js-disabled,
-    &.js-loading {
-      color: $darkGrey;
-      background-color: $background-scale-darker;
-      cursor: default;
-    }
-
-    &.js-loading {
-      color: transparent;
-
-      &::after {
-        opacity: 1;
-      }
-    }
-  }
-
-  &-large-secondary {
-    position: relative;
-    padding: 12px 24px;
-    background: $white;
-    border: 1px solid $grey;
-    border-radius: 8px;
-    font-family: "Garet Bolder";
-    font-size: 14px;
-    line-height: 20px;
-
-    &:hover,
-    &:focus {
-      background: $lightGrey;
-      border: 1px solid $lightBlue;
-      box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.05);
-    }
-
-    &.js-loading {
-      color: transparent;
-      background-color: #ebeff5;
-      pointer-events: none;
-      cursor: default;
-
-      &::before {
-        content: "";
-        display: block;
-        width: 1.2em;
-        height: 1.2em;
-        position: absolute;
-        left: calc(50% - 0.6em);
-        top: calc(50% - 0.6em);
-        border: 2px solid #dbe3f4;
-        border-radius: 50%;
-        opacity: 1;
-      }
-
-      &::after {
-        content: "";
-        display: block;
-        width: 1.2em;
-        height: 1.2em;
-        position: absolute;
-        left: calc(50% - 0.6em);
-        top: calc(50% - 0.6em);
-        border: 0.15em solid transparent;
-        border-right-color: $lightElectric;
-        border-radius: 50%;
-        animation: button-anim 0.7s linear infinite;
-        opacity: 1;
-      }
-
-      &::selection {
-        color: transparent;
-      }
-    }
-
-    &:active {
-      background: $activeButton;
-      border: 1px solid $lightElectric;
-      color: $lightElectric;
-    }
-
-    &-emphatized {
-      background-color: $lightElectric;
-      // &:hover,
-      // &:focus {
-      // 	background-color: $mediumElectric;
-      // }
-    }
-  }
-
-  &-medium-secondary {
-    font-family: "Garet-Medium";
-    font-size: 13px;
-    line-height: 19px;
-    padding: 8px 12px;
-    border: 1px solid $grey;
-    transition: 0.3s;
-
-    &:not(.btn-emphatized):hover,
-    &:not(.btn-emphatized):focus {
-      background: $lightGrey;
-      border: 1px solid $lightBlue;
-      box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.05);
-    }
-
-    &:active {
-      background: $activeButton !important;
-      border: 1px solid $lightElectric !important;
-      color: $lightElectric !important;
-    }
-  }
-
-  &-large-box,
-  &-medium-box,
-  &-small-secondary {
-    font-size: 14px;
-    font-family: "Garet";
-    color: $dark;
-    line-height: 20px;
-    background-color: $white;
-    padding: 19px 24px;
-    border: 1px solid $grey;
-    border-radius: $rounded;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    &-icon {
-      display: inline-flex;
-      align-items: baseline;
-    }
-
-    .icon {
-      color: $dark !important;
-      display: inline-block;
-      font-size: 2.2rem !important;
-      margin-bottom: 20px;
-    }
-
-    &::after {
-      content: "";
-      display: block;
-      width: 1.2em;
-      height: 1.2em;
-      position: absolute;
-      left: calc(50% - 0.6em);
-      top: calc(50% - 0.6em);
-      border: 0.15em solid transparent;
-      border-right-color: $cta-color-scale-blue-light;
-      border-radius: 50%;
-      animation: button-anim 0.7s linear infinite;
-      opacity: 0;
-    }
-
-    &.js-loading::before {
-      content: "";
-      display: block;
-      width: 1.2em;
-      height: 1.2em;
-      position: absolute;
-      left: calc(50% - 0.6em);
-      top: calc(50% - 0.6em);
-      border: 2px solid #dbe3f4;
-      border-radius: 50%;
-      opacity: 1;
-    }
-
-    &:not(.btn-emphatized):hover {
-      background-color: $lightGrey;
-    }
-
-    &:not(.btn-emphatized):focus {
-      background-color: $activeButton;
-    }
-
-    &:not(.btn-emphatized):active {
-      border-color: $lightElectric;
-      background-color: rgba(40, 104, 225, 0.1);
-
-      .icon {
-        color: $lightElectric;
-      }
-    }
-
-    &:active {
-      background: $activeButton !important;
-      border: 1px solid $lightElectric !important;
-      color: $lightElectric !important;
-    }
-
-    &:disabled,
-    &.js-disabled,
-    &.js-loading {
-      background-color: $activeButton;
-      cursor: default;
-      pointer-events: none;
-    }
-
-    &.js-loading {
-      color: transparent;
-
-      .icon {
-        color: transparent;
-      }
-
-      &::after {
-        opacity: 1;
-      }
-    }
-  }
-
-  &-large-box {
-    background-color: $white;
-
-    &:hover {
-      background: $lightGrey;
-      /* typography-neutral-light */
-
-      border: 1px solid $neutral-typography-scale-light;
-      /* field-shadow-normal */
-
-      box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.06);
-      border-radius: 8px;
-    }
-
-    &:active {
-      background: rgba(40, 104, 225, 0.1);
-      /* cta-bule-light */
-
-      border: 1px solid #2868e1;
-      border-radius: 8px;
-    }
-  }
-
-  &-large-box {
-    font-family: "Garet";
-
-    img {
-      display: block;
-      margin: 0 auto 12px;
-    }
-  }
-
-  &-medium-secondary,
-  &-medium-box {
-    font-size: 13px;
-    font-family: "Garet" !important;
-    padding: 8px 12px !important;
-    border-radius: $lightRounded;
-  }
-
-  &-small-secondary {
-    font-size: 13px;
-    font-family: "Garet" !important;
-    padding: 4px 8px !important;
-    border-radius: $lightRounded;
-    background-color: $white;
-
-    &:before {
-      width: 0.85em;
-      height: 0.85em;
-    }
-
-    &:s {
-      width: 0.85em;
-      height: 0.85em;
-      position: absolute;
-      left: calc(50% - 0.425em);
-      top: calc(50% - 0.425em);
-    }
-  }
-
-  &-small-secondary {
-    font-family: "Garet-Medium";
-    font-size: 13px;
-    line-height: 19px;
-    border: 1px solid #c1cad7;
-    border-radius: 6px;
-    padding: 4px 12px;
-
-    &:not(.btn-emphatized):hover,
-    &:not(.btn-emphatized):focus {
-      border: 1px solid $lightBlue;
-      background: $lightGrey;
-      box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.06);
-    }
-  }
-
-  &-emphatized {
-    background-color: $lightElectric;
-    border-color: $lightElectric;
-    color: $white;
-    font-family: "Garet-Medium";
-
-    .icon {
-      color: $white !important;
-
-      svg {
-        margin-right: 8px;
-      }
-    }
-
-    &.success {
-      background-color: $darkGreen;
-      border-color: $darkGreen;
-    }
-
-    &.dark {
-      background-color: $dark;
-      border-color: $white;
-    }
-
-    // &:hover,
-    // &:focus {
-    // 	background-color: $mediumElectric;
-    // }
-    &-emphatized {
-      background-color: $lightElectric;
-      // &:hover,
-      // &:focus {
-      // 	background-color: $mediumElectric;
-      // }
-    }
-  }
-
-  &-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 50px;
-    height: 50px;
-    background: $white;
-    border-radius: $circle;
-    background: $white;
-    /* field-shadow-heavy */
-
-    box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15);
-
-    [class^="icon-"] {
-      margin-right: 0;
-      font-size: 1.8rem !important;
-    }
-
-    //&:hover,
-    &:focus {
-      box-shadow: 0 8px 48px 0 rgba(7, 45, 99, 0.16);
-    }
-
-    &:active {
-      background: rgba(255, 255, 255, 0.6);
-      box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15);
-    }
-  }
-
-  &-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 45px;
-    height: 40.86px;
-    background: $white;
-    border-radius: 0px 0px $lightRounded $lightRounded;
-    border: 1px solid $borderColor;
-    box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.06);
-    transition: 0.3s;
-    color: #768ba9;
-    position: relative;
-
-    &.rounded-r-none {
-      border-top-right-radius: 0 !important;
-      border-bottom-right-radius: 0 !important;
-    }
-
-    &:hover,
-    &:focus {
-      color: $dark;
-    }
-
-    &:hover {
-      order: 1px solid $borderColor;
-      /* field-shadow-normal */
-
-      box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.06);
-      border-radius: 0px 0px 6px 6px;
-    }
-
-    &:active {
-      color: #768ba9;
-      background-color: #f7f9fc;
-
-      /* background-neutral-medium */
-
-      border: 1px solid $borderColor;
-    }
-
-    .counter {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      font-size: 10px;
-      color: $white;
-      background-color: $orange;
-      font-family: "Garet Bolder";
-      transform: translate(5%, -100%);
-      padding: 1px 5px 0;
-      border-radius: $circle;
-    }
-  }
-
-  &-close-modal {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    top: 0;
-    right: 50%;
-    transform: translateX(50%) translateZ(0);
-    width: 100%;
-    padding: 22px 0;
-
-    @media (min-width: $md) {
-      border-radius: $circle;
-      background-color: $white;
-      width: 50px;
-      height: 50px;
-      border: 1px solid $borderColor;
-      box-shadow: 0 8px 48px 0 $shadowModalColor;
-      padding: 0;
-      top: 24px;
-      right: 24px;
-      transform: translateZ(0);
-    }
-  }
-
-  [class*="icon-"] {
-    font-size: 1.8em;
-
-    &:not(.circle):before {
-      margin-left: 0em;
-    }
-  }
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: $white;
+	transition: 0.3s;
+
+	&-large-label {
+		font-size: 14px;
+		line-height: 20px;
+		font-family: "Garet";
+		color: $lightElectric;
+		background-color: transparent;
+		padding: 12px 0;
+	}
+
+	&-outline {
+		color: $lightElectric;
+		font-family: "Garet Bolder";
+		font-size: 12px;
+		line-height: 17px;
+	}
+
+	&-large-primary {
+		font-size: 14px;
+		line-height: 20px;
+		font-family: "Garet Bolder";
+		color: $white;
+		background-color: $lightElectric;
+		padding: 12px 24px;
+		border-radius: $rounded;
+
+		&.js-loading::before {
+			content: "";
+			display: block;
+			width: 1.2em;
+			height: 1.2em;
+			position: absolute;
+			left: calc(50% - 0.6em);
+			top: calc(50% - 0.6em);
+			border: 2px solid #dbe3f4;
+			border-radius: 50%;
+			opacity: 1;
+		}
+
+		&::after {
+			content: "";
+			display: block;
+			width: 1.2em;
+			height: 1.2em;
+			position: absolute;
+			left: calc(50% - 0.6em);
+			top: calc(50% - 0.6em);
+			border: 0.15em solid transparent;
+			border-right-color: $lightElectric;
+			border-radius: 50%;
+			animation: button-anim 0.7s linear infinite;
+			opacity: 0;
+		}
+
+		&:hover,
+		&:focus {
+			background-color: $mediumElectric;
+		}
+
+		&:active {
+			background-color: $darkElectric;
+		}
+
+		&:disabled,
+		&.js-disabled,
+		&.js-loading {
+			color: $darkGrey;
+			background-color: $background-scale-darker;
+			cursor: default;
+		}
+
+		&.js-loading {
+			color: transparent;
+
+			&::after {
+				opacity: 1;
+			}
+		}
+	}
+
+	&-large-secondary {
+		position: relative;
+		padding: 12px 24px;
+		background: $white;
+		border: 1px solid $grey;
+		border-radius: 8px;
+		font-family: "Garet Bolder";
+		font-size: 14px;
+		line-height: 20px;
+
+		&:hover,
+		&:focus {
+			background: $lightGrey;
+			border: 1px solid $lightBlue;
+			box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.05);
+		}
+
+		&.js-loading {
+			color: transparent;
+			background-color: #ebeff5;
+			pointer-events: none;
+			cursor: default;
+
+			&::before {
+				content: "";
+				display: block;
+				width: 1.2em;
+				height: 1.2em;
+				position: absolute;
+				left: calc(50% - 0.6em);
+				top: calc(50% - 0.6em);
+				border: 2px solid #dbe3f4;
+				border-radius: 50%;
+				opacity: 1;
+			}
+
+			&::after {
+				content: "";
+				display: block;
+				width: 1.2em;
+				height: 1.2em;
+				position: absolute;
+				left: calc(50% - 0.6em);
+				top: calc(50% - 0.6em);
+				border: 0.15em solid transparent;
+				border-right-color: $lightElectric;
+				border-radius: 50%;
+				animation: button-anim 0.7s linear infinite;
+				opacity: 1;
+			}
+
+			&::selection {
+				color: transparent;
+			}
+		}
+
+		&:active {
+			//	background-color: #1f51ad;
+			background: $activeButton;
+			border: 1px solid $lightElectric;
+			color: $lightElectric;
+		}
+
+		&-emphatized {
+			background-color: $lightElectric;
+			// &:hover,
+			// &:focus {
+			// 	background-color: $mediumElectric;
+			// }
+		}
+	}
+
+	&-medium-secondary {
+		font-family: "Garet-Medium";
+		font-size: 13px;
+		line-height: 19px;
+		padding: 8px 12px;
+		border: 1px solid $grey;
+		transition: 0.3s;
+
+		&:not(.btn-emphatized):hover,
+		&:not(.btn-emphatized):focus {
+			background: $lightGrey;
+			border: 1px solid $lightBlue;
+			box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.05);
+		}
+
+		&:active:not(.btn-emphatized) {
+			//	background-color: #1f51ad;
+			background: $activeButton !important;
+			border: 1px solid $lightElectric !important;
+			color: $lightElectric !important;
+		}
+	}
+
+	&-large-box,
+	&-medium-box,
+	&-small-secondary {
+		font-size: 14px;
+		font-family: "Garet";
+		color: $dark;
+		line-height: 20px;
+		background-color: $white;
+		padding: 19px 24px;
+		border: 1px solid $grey;
+		border-radius: $rounded;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+
+		&-icon {
+			display: inline-flex;
+			align-items: baseline;
+		}
+
+		.icon {
+			color: $dark !important;
+			display: inline-block;
+			font-size: 2.2rem !important;
+			margin-bottom: 20px;
+		}
+
+		&::after {
+			content: "";
+			display: block;
+			width: 1.2em;
+			height: 1.2em;
+			position: absolute;
+			left: calc(50% - 0.6em);
+			top: calc(50% - 0.6em);
+			border: 0.15em solid transparent;
+			border-right-color: $cta-color-scale-blue-light;
+			border-radius: 50%;
+			animation: button-anim 0.7s linear infinite;
+			opacity: 0;
+		}
+
+		&.js-loading::before {
+			content: "";
+			display: block;
+			width: 1.2em;
+			height: 1.2em;
+			position: absolute;
+			left: calc(50% - 0.6em);
+			top: calc(50% - 0.6em);
+			border: 2px solid #dbe3f4;
+			border-radius: 50%;
+			opacity: 1;
+		}
+
+		&:not(.btn-emphatized):hover {
+			background-color: $lightGrey;
+		}
+
+		&:not(.btn-emphatized):focus {
+			background-color: $activeButton;
+		}
+
+		&:not(.btn-emphatized):active {
+			border-color: $lightElectric;
+			background-color: rgba(40, 104, 225, 0.1);
+
+			.icon {
+				color: $lightElectric;
+			}
+		}
+
+		&:active {
+			background-color: #1f51ad;
+			// background: $activeButton !important;
+			// border: 1px solid $lightElectric !important;
+			// color: $lightElectric !important;
+		}
+
+		&:disabled,
+		&.js-disabled,
+		&.js-loading {
+			background-color: $activeButton;
+			cursor: default;
+			pointer-events: none;
+		}
+
+		&.js-loading {
+			color: transparent;
+
+			.icon {
+				color: transparent;
+			}
+
+			&::after {
+				opacity: 1;
+			}
+		}
+	}
+
+	&-large-box {
+		background-color: $white;
+
+		&:hover {
+			background: $lightGrey;
+			/* typography-neutral-light */
+
+			border: 1px solid $neutral-typography-scale-light;
+			/* field-shadow-normal */
+
+			box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.06);
+			border-radius: 8px;
+		}
+
+		&:active {
+			background: rgba(40, 104, 225, 0.1);
+			/* cta-bule-light */
+
+			border: 1px solid #2868e1;
+			border-radius: 8px;
+		}
+	}
+
+	&-large-box {
+		font-family: "Garet";
+
+		img {
+			display: block;
+			margin: 0 auto 12px;
+		}
+	}
+
+	&-medium-secondary,
+	&-medium-box {
+		font-size: 13px;
+		font-family: "Garet" !important;
+		padding: 8px 12px !important;
+		border-radius: $lightRounded;
+	}
+
+	&-small-secondary {
+		font-size: 13px;
+		font-family: "Garet" !important;
+		padding: 4px 8px !important;
+		border-radius: $lightRounded;
+		background-color: $white;
+
+		&:before {
+			width: 0.85em;
+			height: 0.85em;
+		}
+
+		&:s {
+			width: 0.85em;
+			height: 0.85em;
+			position: absolute;
+			left: calc(50% - 0.425em);
+			top: calc(50% - 0.425em);
+		}
+	}
+
+	&-small-secondary {
+		font-family: "Garet-Medium";
+		font-size: 13px;
+		line-height: 19px;
+		border: 1px solid #c1cad7;
+		border-radius: 6px;
+		padding: 4px 12px;
+
+		&:not(.btn-emphatized):hover,
+		&:not(.btn-emphatized):focus {
+			border: 1px solid $lightBlue;
+			background: $lightGrey;
+			box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.06);
+		}
+		&:active:not(.btn-emphatized) {
+			background: $activeButton !important;
+			border: 1px solid $lightElectric !important;
+			color: $lightElectric !important;
+		}
+	}
+
+	&-emphatized {
+		background-color: $lightElectric;
+		border-color: $lightElectric;
+		color: $white;
+		font-family: "Garet-Medium";
+
+		.icon {
+			color: $white !important;
+
+			svg {
+				margin-right: 8px;
+			}
+		}
+
+		&.success {
+			background-color: $darkGreen;
+			border-color: $darkGreen;
+		}
+
+		&.dark {
+			background-color: $dark;
+			border-color: $white;
+		}
+
+		// &:hover,
+		// &:focus {
+		// 	background-color: $mediumElectric;
+		// }
+		&-emphatized {
+			background-color: $lightElectric;
+			// &:hover,
+			// &:focus {
+			// 	background-color: $mediumElectric;
+			// }
+		}
+	}
+
+	&-close {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 50px;
+		height: 50px;
+		background: $white;
+		border-radius: $circle;
+		background: $white;
+		/* field-shadow-heavy */
+
+		box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15);
+
+		[class^="icon-"] {
+			margin-right: 0;
+			font-size: 1.8rem !important;
+		}
+
+		//&:hover,
+		&:focus {
+			box-shadow: 0 8px 48px 0 rgba(7, 45, 99, 0.16);
+		}
+
+		&:active {
+			background: rgba(255, 255, 255, 0.6);
+			box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15);
+		}
+	}
+
+	&-header {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 45px;
+		height: 40.86px;
+		background: $white;
+		border-radius: 0px 0px $lightRounded $lightRounded;
+		border: 1px solid $borderColor;
+		box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.06);
+		transition: 0.3s;
+		color: #768ba9;
+		position: relative;
+
+		&.rounded-r-none {
+			border-top-right-radius: 0 !important;
+			border-bottom-right-radius: 0 !important;
+		}
+
+		&:hover,
+		&:focus {
+			color: $dark;
+		}
+
+		&:hover {
+			order: 1px solid $borderColor;
+			/* field-shadow-normal */
+
+			box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.06);
+			border-radius: 0px 0px 6px 6px;
+		}
+
+		&:active {
+			color: #768ba9;
+			background-color: #f7f9fc;
+
+			/* background-neutral-medium */
+
+			border: 1px solid $borderColor;
+		}
+
+		.counter {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			font-size: 10px;
+			color: $white;
+			background-color: $orange;
+			font-family: "Garet Bolder";
+			transform: translate(5%, -100%);
+			padding: 1px 5px 0;
+			border-radius: $circle;
+		}
+	}
+
+	&-close-modal {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		position: absolute;
+		top: 0;
+		right: 50%;
+		transform: translateX(50%) translateZ(0);
+		width: 100%;
+		padding: 22px 0;
+
+		@media (min-width: $md) {
+			border-radius: $circle;
+			background-color: $white;
+			width: 50px;
+			height: 50px;
+			border: 1px solid $borderColor;
+			box-shadow: 0 8px 48px 0 $shadowModalColor;
+			padding: 0;
+			top: 24px;
+			right: 24px;
+			transform: translateZ(0);
+		}
+	}
+
+	[class*="icon-"] {
+		font-size: 1.8em;
+
+		&:not(.circle):before {
+			margin-left: 0em;
+		}
+	}
 }
 
 [class*="icon-"] {
-  font-size: 1.2rem;
+	font-size: 1.2rem;
 }
 
 .with-icon {
-  padding: 0 16px;
-  width: auto;
+	padding: 0 16px;
+	width: auto;
 }
 
 @keyframes button-anim {
-  from {
-    transform: rotate(0);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+	from {
+		transform: rotate(0);
+	}
+	to {
+		transform: rotate(360deg);
+	}
 }
 
 .js-loading {
-  pointer-events: none;
-  border: none;
+	pointer-events: none;
+	border: none;
 
-  &::selection {
-    color: transparent;
-  }
+	&::selection {
+		color: transparent;
+	}
 }
 
 button {
-  display: flex;
-  align-items: center;
+	display: flex;
+	align-items: center;
 
-  [class*="icon-"] {
-    margin-right: 8px;
-  }
+	[class*="icon-"] {
+		margin-right: 0px;
+		&:before {
+			margin-right: 0;
+		}
+	}
 }
 
 .js-loading {
-  color: transparent;
-  background-color: #ebeff5;
-  pointer-events: none;
-  cursor: default;
+	color: transparent;
+	background-color: #ebeff5;
+	pointer-events: none;
+	cursor: default;
 
-  &::before {
-    content: "";
-    display: block;
-    width: 1.2em;
-    height: 1.2em;
-    position: absolute;
-    left: calc(50% - 0.6em);
-    top: calc(50% - 0.6em);
-    border: 2px solid #dbe3f4;
-    border-radius: 50%;
-    opacity: 1;
-  }
+	&::before {
+		content: "";
+		display: block;
+		width: 1.2em;
+		height: 1.2em;
+		position: absolute;
+		left: calc(50% - 0.6em);
+		top: calc(50% - 0.6em);
+		border: 2px solid #dbe3f4;
+		border-radius: 50%;
+		opacity: 1;
+	}
 
-  &::after {
-    content: "";
-    display: block;
-    width: 1.2em;
-    height: 1.2em;
-    position: absolute;
-    left: calc(50% - 0.6em);
-    top: calc(50% - 0.6em);
-    border: 0.15em solid transparent;
-    border-right-color: $lightElectric;
-    border-radius: 50%;
-    animation: button-anim 0.7s linear infinite;
-    opacity: 1;
-  }
+	&::after {
+		content: "";
+		display: block;
+		width: 1.2em;
+		height: 1.2em;
+		position: absolute;
+		left: calc(50% - 0.6em);
+		top: calc(50% - 0.6em);
+		border: 0.15em solid transparent;
+		border-right-color: $lightElectric;
+		border-radius: 50%;
+		animation: button-anim 0.7s linear infinite;
+		opacity: 1;
+	}
 
-  &::selection {
-    color: transparent;
-  }
+	&::selection {
+		color: transparent;
+	}
 }
 
 .btn {
-  &-icon {
-    .icon {
-      position: relative;
+	&-icon {
+		.icon {
+			position: relative;
 
-      &:before {
-        position: absolute;
-        left: 0;
-        top: -3px;
-      }
-    }
-  }
+			&:before {
+				position: absolute;
+				left: 0;
+				top: -3px;
+			}
+			&.icon-copy {
+				margin-right: 8px;
+			}
+		}
+	}
 }
