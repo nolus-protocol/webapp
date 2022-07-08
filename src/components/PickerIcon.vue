@@ -17,9 +17,7 @@
           this.label.length > 0
         "
       >
-        <ListboxLabel
-          class="block nls-14 nls-font-400 text-primary nls-font-400"
-        >
+        <ListboxLabel class="block nls-14 nls-font-500 text-primary">
           {{ this.label }}
         </ListboxLabel>
       </div>
@@ -38,7 +36,7 @@
           <span
             class="ml-3 absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
           >
-            <ChevronDownIcon aria-hidden="true" class="h-5 w-5 text-gray-400"/>
+            <ChevronDownIcon aria-hidden="true" class="h-5 w-5 text-gray-400" />
           </span>
         </ListboxButton>
 
@@ -49,10 +47,10 @@
               ? ''
               : 'hidden',
           ]"
-        >{{
-            typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
+          >{{
+            typeof this.errorMsg !== "undefined" && this.errorMsg !== null
               ? this.errorMsg
-              : ''
+              : ""
           }}</span
         >
 
@@ -100,7 +98,7 @@
                     'absolute inset-y-0 right-0 flex items-center pr-4',
                   ]"
                 >
-                  <CheckIcon aria-hidden="true" class="h-5 w-5"/>
+                  <CheckIcon aria-hidden="true" class="h-5 w-5" />
                 </span>
               </li>
             </ListboxOption>
@@ -112,9 +110,15 @@
 </template>
 
 <script lang="ts">
-import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue'
-import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/solid'
-import { defineComponent, PropType } from 'vue'
+import {
+  Listbox,
+  ListboxButton,
+  ListboxLabel,
+  ListboxOption,
+  ListboxOptions,
+} from "@headlessui/vue";
+import { CheckIcon, ChevronDownIcon } from "@heroicons/vue/solid";
+import { defineComponent, PropType } from "vue";
 
 export interface PickerIconOption {
   label: string;
@@ -123,7 +127,7 @@ export interface PickerIconOption {
 }
 
 export default defineComponent({
-  name: 'PickerIcon',
+  name: "PickerIcon",
   components: {
     Listbox,
     ListboxButton,
@@ -131,38 +135,38 @@ export default defineComponent({
     ListboxOption,
     ListboxOptions,
     CheckIcon,
-    ChevronDownIcon
+    ChevronDownIcon,
   },
   props: {
     label: {
-      type: String
+      type: String,
     },
     type: {
-      type: String
+      type: String,
     },
     defaultOption: {
-      type: Object as PropType<PickerIconOption>
+      type: Object as PropType<PickerIconOption>,
     },
     options: {
-      type: Array as PropType<PickerIconOption[]>
+      type: Array as PropType<PickerIconOption[]>,
     },
     isError: {
-      type: Boolean
+      type: Boolean,
     },
     errorMsg: {
-      type: String
+      type: String,
     },
     disabled: {
-      type: Boolean
-    }
+      type: Boolean,
+    },
   },
-  mounted () {
-    this.selected = this.defaultOption as PickerIconOption
+  mounted() {
+    this.selected = this.defaultOption as PickerIconOption;
   },
-  data () {
+  data() {
     return {
-      selected: {} as PickerIconOption
-    }
-  }
-})
+      selected: {} as PickerIconOption,
+    };
+  },
+});
 </script>

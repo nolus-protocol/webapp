@@ -1,6 +1,7 @@
 <template>
   <div id="notifications-nls">
     <button
+      :class="showNotifications ? 'active' : false"
       class="show-box-pop btn btn-header mr-2 c-navbar-qr__button"
       @click="this.showNotifications = !this.showNotifications"
     >
@@ -11,10 +12,11 @@
       <span class="counter">8</span>
     </button>
 
-    <Notifications v-show="this.showNotifications"/>
+    <Notifications v-show="this.showNotifications" />
   </div>
   <div id="wallet-nls">
     <button
+      :class="showWallet ? 'active' : false"
       class="show-box-wallet btn btn-header with-icon shadow-box rounded-r-none"
       @click="this.showWallet = !this.showWallet"
     >
@@ -24,57 +26,66 @@
       ></span>
 
       <span class="nls-13 nls-font-400 text-primary nls-md-hidden"
-      >My precious</span
+        >My precious</span
       >
     </button>
 
     <!-- <Notifications /> -->
-    <WalletOpen v-show="this.showWallet"/>
+    <WalletOpen v-show="this.showWallet" />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import Notifications from '@/components/Notifications.vue'
-import WalletOpen from '@/components/WalletOpen.vue'
+import { defineComponent } from "vue";
+import Notifications from "@/components/Notifications.vue";
+import WalletOpen from "@/components/WalletOpen.vue";
 
 export default defineComponent({
-  name: 'SidebarHeader',
+  name: "SidebarHeader",
   components: {
     Notifications,
-    WalletOpen
+    WalletOpen,
   },
-  data () {
+  data() {
     return {
       showWallet: false,
-      showNotifications: false
-    }
+      showNotifications: false,
+    };
   },
 
   watch: {
-    showWallet () {
-      document.addEventListener('click', (event) => {
+    showWallet() {
+      document.addEventListener("click", (event) => {
         if (
           // @ts-ignore
-          event.target.closest('#wallet-nls')
+          event.target.closest("#wallet-nls")
         ) {
-          return
+          return;
         }
-        this.showWallet = false
-      })
+        this.showWallet = false;
+      });
     },
-    showNotifications () {
-      document.addEventListener('click', (event) => {
+    showNotifications() {
+      document.addEventListener("click", (event) => {
         if (
           // @ts-ignore
-          event.target.closest('#notifications-nls')
+          event.target.closest("#notifications-nls")
         ) {
-          return
+          return;
         }
 
-        this.showNotifications = false
-      })
-    }
-  }
-})
+        this.showNotifications = false;
+      });
+    },
+  },
+});
 </script>
+<style scoped>
+@media (max-width: 768px) {
+  .active {
+    /* background-neutral-medium */
+    background-color: red;
+    /* background: #ebeff5;*/
+  }
+}
+</style>

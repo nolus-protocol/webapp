@@ -1,10 +1,10 @@
 <template>
   <div
-    class="fixed flex items-end modal md:items-center top-0 bottom-0 left-0 right-0 justify-center bg-white/70 backdrop-blur-xl z-[99] modal-send-receive-parent"
+    class="fixed flex items-end modal md:items-center top-0 bottom-0 left-0 right-0 justify-center bg-white/70 z-[99] modal-send-receive-parent"
     @click="$emit('close-modal')"
   >
     <button class="btn-close-modal" @click="$emit('close-modal')">
-      <img class="inline-block w-4 h-4" src="@/assets/icons/cross.svg"/>
+      <img class="inline-block w-4 h-4" src="@/assets/icons/cross.svg" />
     </button>
 
     <div
@@ -35,14 +35,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import SupplyComponent from '@/components/modals/SupplyComponent.vue'
-import WithdrawComponent from '@/components/modals/WithdrawComponent.vue'
-import { AssetBalance } from '@/store/modules/wallet/state'
+import { defineComponent } from "vue";
+import SupplyComponent from "@/components/modals/SupplyComponent.vue";
+import WithdrawComponent from "@/components/modals/WithdrawComponent.vue";
+import { AssetBalance } from "@/store/modules/wallet/state";
 
 enum ScreenState {
-  SUPPLY = 'SupplyComponent',
-  WITHDRAW = 'WithdrawComponent',
+  SUPPLY = "SupplyComponent",
+  WITHDRAW = "WithdrawComponent",
 }
 
 export interface SupplyComponentProps {
@@ -67,48 +67,48 @@ interface SupplyWidthdrawModalData {
 }
 
 export default defineComponent({
-  name: 'SupplyWithdrawModal',
+  name: "SupplyWithdrawModal",
   components: {
     SupplyComponent,
-    WithdrawComponent
+    WithdrawComponent,
   },
-  data () {
+  data() {
     return {
       currentComponent: {} as SupplyWidthdrawModalData,
-      isSendActive: true
-    }
+      isSendActive: true,
+    };
   },
-  mounted () {
+  mounted() {
     this.currentComponent = {
       is: ScreenState.SUPPLY,
       props: {
-        onClose: () => this.onCloseModal()
-      }
-    }
+        onClose: () => this.onCloseModal(),
+      },
+    };
   },
   methods: {
-    switchTab (value: boolean) {
+    switchTab(value: boolean) {
       if (value) {
         this.currentComponent = {
           is: ScreenState.SUPPLY,
           props: {
-            onClose: () => this.onCloseModal()
-          }
-        }
+            onClose: () => this.onCloseModal(),
+          },
+        };
       } else {
         this.currentComponent = {
           is: ScreenState.WITHDRAW,
           props: {
-            onClose: () => this.onCloseModal()
-          }
-        }
+            onClose: () => this.onCloseModal(),
+          },
+        };
       }
 
-      this.isSendActive = value
+      this.isSendActive = value;
     },
-    onCloseModal () {
-      this.$emit('close-modal')
-    }
-  }
-})
+    onCloseModal() {
+      this.$emit("close-modal");
+    },
+  },
+});
 </script>

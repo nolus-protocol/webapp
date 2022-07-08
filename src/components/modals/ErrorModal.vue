@@ -1,6 +1,6 @@
 <template>
   <div
-    class="fixed flex items-center top-0 bottom-0 left-0 right-0 justify-center bg-white/70 backdrop-blur-xl z-[99]"
+    class="fixed flex items-center top-0 bottom-0 left-0 right-0 justify-center bg-white/70 z-[99]"
     @click="$emit('close-modal')"
   >
     <div
@@ -41,17 +41,17 @@
 </template>
 
 <script>
-import { CheckIcon } from '@heroicons/vue/solid'
+import { CheckIcon } from "@heroicons/vue/solid";
 
 export default {
-  name: 'ErrorModal',
+  name: "ErrorModal",
   components: {
-    CheckIcon
+    CheckIcon,
   },
   props: {
     tryButton: {
-      type: Function
-    }
-  }
-}
+      type: Function,
+    },
+  },
+};
 </script>

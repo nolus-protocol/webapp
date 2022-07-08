@@ -4,14 +4,14 @@
     class="lg:container w-full lg:grid lg:grid-cols-12 mx-auto grid-parent md-nls-px-25 sm-nls-0 body"
   >
     <div class="lg:col-span-3">
-      <SidebarContainer/>
+      <SidebarContainer />
     </div>
-    <div class="lg:col-span-9 pb-8">
+    <div class="lg:col-span-8 col-span-9 pb-8">
       <div class="grid grid-cols-10 grid-child">
         <div class="col-span-12 mt-nolus-60">
           <div class="col-span-12">
             <div class="sidebar-header">
-              <SidebarHeader/>
+              <SidebarHeader />
             </div>
           </div>
         </div>
@@ -39,7 +39,7 @@
           <div
             class="flex balance-box items-center justify-start bg-white mt-nolus-24 border-standart shadow-box radius-medium radius-0-sm py-5 px-6"
           >
-            <div class="left inline-block w-1/3">
+            <div class="left inline-block w-1/2">
               <p class="nls-font-500 nls-16 text-primary mb-nolus-6 m-0">
                 Wallet Balance
               </p>
@@ -47,8 +47,8 @@
                 {{ calculateTotalBalance() }}
               </p>
             </div>
-            <div class="right inline-block w-2/3">
-              <NolusChart/>
+            <div class="right inline-block w-1/2">
+              <NolusChart />
             </div>
           </div>
 
@@ -106,15 +106,15 @@
                 <div
                   class="inline-flex items-center justify-end nls-font-500 text-dark-grey nls-12 text-right text-upper"
                 >
-                  <span class="inline-block">Balance</span>
-                  <TooltipComponent content="Content goes here"/>
+                  <span class="inline-block mr-nolus-5">Balance</span>
+                  <TooltipComponent content="Content goes here" />
                 </div>
 
                 <div
                   class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey nls-12 text-right text-upper"
                 >
-                  <span class="inline-block">Earnings</span>
-                  <TooltipComponent content="Content goes here"/>
+                  <span class="inline-block mr-nolus-5">Earnings</span>
+                  <TooltipComponent content="Content goes here" />
                 </div>
               </div>
 
@@ -123,11 +123,11 @@
                 <AssetPartial
                   v-for="asset in this.manipulatedAssets"
                   :key="asset"
-                  :asset-info=getAssetInfo(asset.balance.denom)
+                  :asset-info="getAssetInfo(asset.balance.denom)"
                   :assetBalance="asset.balance.amount.toString()"
                   :changeDirection="true"
-                  :denom=asset.balance.denom
-                  :price=getMarketPrice(asset.balance.denom)
+                  :denom="asset.balance.denom"
+                  :price="getMarketPrice(asset.balance.denom)"
                   change="4.19"
                   earnings="24"
                 />
@@ -147,24 +147,24 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import { Coin, Dec, Int } from '@keplr-wallet/unit'
-import { CurrencyUtils } from '@nolus/nolusjs'
+import { defineComponent } from "vue";
+import { Coin, Dec, Int } from "@keplr-wallet/unit";
+import { CurrencyUtils } from "@nolus/nolusjs";
 
-import SidebarContainer from '@/components/SidebarContainer.vue'
-import AssetPartial from '@/components/AssetPartial.vue'
-import { AssetUtils } from '@/utils/AssetUtils'
-import { AssetBalance } from '@/store/modules/wallet/state'
-import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
-import { useStore } from '@/store'
-import SidebarHeader from '@/components/Sideheader.vue'
-import TooltipComponent from '@/components/TooltipComponent.vue'
-import Notifications from '@/components/Notifications.vue'
-import WalletOpen from '@/components/WalletOpen.vue'
-import NolusChart from '@/components/templates/utils/NolusChart.vue'
+import SidebarContainer from "@/components/SidebarContainer.vue";
+import AssetPartial from "@/components/AssetPartial.vue";
+import { AssetUtils } from "@/utils/AssetUtils";
+import { AssetBalance } from "@/store/modules/wallet/state";
+import ReceiveSendModal from "@/components/modals/ReceiveSendModal.vue";
+import { useStore } from "@/store";
+import SidebarHeader from "@/components/Sideheader.vue";
+import TooltipComponent from "@/components/TooltipComponent.vue";
+import Notifications from "@/components/Notifications.vue";
+import WalletOpen from "@/components/WalletOpen.vue";
+import NolusChart from "@/components/templates/utils/NolusChart.vue";
 
 export default defineComponent({
-  name: 'DashboardView',
+  name: "DashboardView",
   components: {
     SidebarContainer,
     SidebarHeader,
@@ -173,70 +173,67 @@ export default defineComponent({
     TooltipComponent,
     Notifications,
     WalletOpen,
-    NolusChart
+    NolusChart,
   },
-  data () {
+  data() {
     return {
       manipulatedAssets: [] as AssetBalance[],
       mainAssets: [] as AssetBalance[],
       hideLowerBalances: false,
       showSendModal: false,
       showLoading: true,
-    }
+    };
   },
   watch: {
-    '$store.state.wallet.balances' (balances) {
-      this.mainAssets = balances
-      this.manipulatedAssets = balances
+    "$store.state.wallet.balances"(balances) {
+      this.mainAssets = balances;
+      this.manipulatedAssets = balances;
       if (this.hideLowerBalances) {
-        this.filterSmallBalances()
+        this.filterSmallBalances();
       }
-      this.showLoading = false
+      this.showLoading = false;
     },
-    hideLowerBalances () {
+    hideLowerBalances() {
       if (this.hideLowerBalances) {
-        this.filterSmallBalances()
+        this.filterSmallBalances();
       } else {
-        this.manipulatedAssets = this.mainAssets
+        this.manipulatedAssets = this.mainAssets;
       }
     },
   },
   methods: {
-    getAssetInfo (denom: string) {
-      return AssetUtils.getAssetInfoByAbbr(denom)
+    getAssetInfo(denom: string) {
+      return AssetUtils.getAssetInfoByAbbr(denom);
     },
-    getMarketPrice (denom: string) {
-      const prices = useStore().state.oracle.prices
+    getMarketPrice(denom: string) {
+      const prices = useStore().state.oracle.prices;
       if (prices) {
-        const tokenDenom = AssetUtils.getAssetInfoByAbbr(denom).coinDenom
-        return prices[tokenDenom]?.amount || '0'
+        const tokenDenom = AssetUtils.getAssetInfoByAbbr(denom).coinDenom;
+        return prices[tokenDenom]?.amount || "0";
       }
-      return '0'
+      return "0";
     },
-    filterSmallBalances () {
+    filterSmallBalances() {
       this.manipulatedAssets = this.manipulatedAssets.filter((asset) =>
-        asset.balance.amount.gt(new Int('1'))
-      )
+        asset.balance.amount.gt(new Int("1"))
+      );
     },
-    calculateTotalBalance () {
-      let totalBalance = new Dec(0)
-      this.mainAssets.forEach(asset => {
-        const {
-          coinDecimals,
-          coinDenom
-        } = AssetUtils.getAssetInfoByAbbr(asset.balance.denom)
+    calculateTotalBalance() {
+      let totalBalance = new Dec(0);
+      this.mainAssets.forEach((asset) => {
+        const { coinDecimals, coinDenom } = AssetUtils.getAssetInfoByAbbr(
+          asset.balance.denom
+        );
         const assetBalance = CurrencyUtils.calculateBalance(
           this.getMarketPrice(asset.balance.denom),
-          new Coin(coinDenom,
-            asset.balance.amount.toString()
-          ),
+          new Coin(coinDenom, asset.balance.amount.toString()),
           coinDecimals
-        )
-        totalBalance = totalBalance.add(assetBalance.toDec())
-      })
+        );
+        totalBalance = totalBalance.add(assetBalance.toDec());
+      });
 
-      return CurrencyUtils.formatPrice(totalBalance.toString()).toString()
+      return CurrencyUtils.formatPrice(totalBalance.toString()).toString();
     },
   },
-})
+});
 </script>
