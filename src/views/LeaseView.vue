@@ -1,5 +1,7 @@
 <template>
-  <div class="container w-full grid grid-cols-12 mx-auto grid-parent">
+  <div
+    class="lg:container w-full lg:grid lg:grid-cols-12 mx-auto grid-parent md-nls-px-25 sm-nls-0 body"
+  >
     <div class="lg:col-span-3">
       <SidebarContainer />
     </div>
@@ -16,7 +18,7 @@
           <!-- Header -->
           <div class="flex flex-wrap items-center justify-between px-4 lg:px-0">
             <div class="left w-full md:w-1/2">
-              <h1 class="nls-20 nls-font-700 text-primary m-0">
+              <h1 class="nls-20 nls-font-700 text-primary m-0 nls-sm-title">
                 {{ $t("message.leases") }}
               </h1>
             </div>

@@ -293,6 +293,7 @@
                       </div>
                     </div>
                   </div>
+                  SidebarContainer
                   <div class="block">
                     <div
                       :class="[
@@ -386,19 +387,12 @@
       </div>
     </div>
   </div>
-  <div class="page-container home">
-    <div class="container mx-auto pt-24 lg:pt-16">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-start-3 lg:col-span-9"></div>
-      </div>
-    </div>
 
-    <ReceiveSendModal
-      v-show="showSendModal"
-      ref="ReceiveSendModal"
-      @close-modal="showSendModal = false"
-    />
-  </div>
+  <ReceiveSendModal
+    v-show="showSendModal"
+    ref="ReceiveSendModal"
+    @close-modal="showSendModal = false"
+  />
 </template>
 
 <script lang="ts">
