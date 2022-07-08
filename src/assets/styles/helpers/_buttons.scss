@@ -142,6 +142,7 @@
     }
 
     &:active {
+      //	background-color: #1f51ad;
       background: $activeButton;
       border: 1px solid $lightElectric;
       color: $lightElectric;
@@ -171,7 +172,8 @@
       box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.05);
     }
 
-    &:active {
+    &:active:not(.btn-emphatized) {
+      //	background-color: #1f51ad;
       background: $activeButton !important;
       border: 1px solid $lightElectric !important;
       color: $lightElectric !important;
@@ -252,9 +254,10 @@
     }
 
     &:active {
-      background: $activeButton !important;
-      border: 1px solid $lightElectric !important;
-      color: $lightElectric !important;
+      background-color: #1f51ad;
+      // background: $activeButton !important;
+      // border: 1px solid $lightElectric !important;
+      // color: $lightElectric !important;
     }
 
     &:disabled,
@@ -352,6 +355,12 @@
       border: 1px solid $lightBlue;
       background: $lightGrey;
       box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.06);
+    }
+
+    &:active:not(.btn-emphatized) {
+      background: $activeButton !important;
+      border: 1px solid $lightElectric !important;
+      color: $lightElectric !important;
     }
   }
 
@@ -538,11 +547,16 @@
 }
 
 button {
+  //	z-index: 4;
   display: flex;
   align-items: center;
 
   [class*="icon-"] {
-    margin-right: 8px;
+    margin-right: 0px;
+
+    &:before {
+      margin-right: 0;
+    }
   }
 }
 
@@ -594,6 +608,10 @@ button {
         position: absolute;
         left: 0;
         top: -3px;
+      }
+
+      &.icon-copy {
+        margin-right: 8px;
       }
     }
   }

@@ -15,11 +15,13 @@
             </div>
           </div>
         </div>
-        <div class="col-span-12">
+        <div class="col-span-12 mb-sm-nolus-70">
           <!-- Header -->
           <div class="flex flex-wrap items-center justify-between px-4 lg:px-0">
             <div class="left w-full md:w-1/2">
-              <h1 class="nls-20 nls-font-700 text-primary m-0">{{ $t('message.earnings') }}</h1>
+              <h1 class="nls-20 nls-font-700 text-primary m-0 nls-sm-title">
+                Earnings
+              </h1>
             </div>
           </div>
 
@@ -27,15 +29,17 @@
             <div class="md:col-span-7 lg:col-span-7">
               <!-- Portfolio -->
               <div
-                class="nolus-box block order-2 order-1 bg-white border-y border-standart radius-medium md:col-span-7 mt-6"
+                class="nolus-box block order-2 order-1 bg-white border-y border-standart radius-medium md:col-span-7 md:mt-6"
               >
                 <div
-                  class="flex items-center justify-between px-nolus-24 px-nolus-24 pt-nolus-24"
+                  class="lg:flex block items-center justify-between px-nolus-24 px-nolus-24 pt-nolus-24"
                 >
                   <h2 class="nls-16 nls-font-500 text-left my-0">
-                    {{ $t('message.earnings-portfolio') }}
+                    Your earning portfolio
                   </h2>
-                  <button class="btn btn-label btn-large-label text-right">
+                  <button
+                    class="btn btn-label btn-large-label text-right nls-md-hidden"
+                  >
                     View all earning assets
                   </button>
                 </div>
@@ -48,13 +52,13 @@
                     <div
                       class="nls-font-500 nls-12 text-dark-grey text-left text-upper"
                     >
-                      {{ $t('message.asset') }}
+                      Asset
                     </div>
 
                     <div
                       class="inline-flex items-center justify-end nls-font-500 nls-font-500 nls-12 text-dark-grey text-right text-upper"
                     >
-                      <span class="inline-block">{{ $t('message.current-balance') }}</span>
+                      <span class="inline-block">Current Balance</span>
                     </div>
                   </div>
 
@@ -109,7 +113,7 @@
                           class="btn btn-secondary btn-medium-secondary"
                           data-v-37958d79=""
                         >
-                          {{ $t('message.supply-withdraw') }}
+                          Supply / Withdraw
                         </button>
                       </div>
                     </div>
@@ -164,7 +168,7 @@
                           class="btn btn-secondary btn-medium-secondary"
                           data-v-37958d79=""
                         >
-                          {{ $t('message.supply-withdraw') }}
+                          Supply / Withdraw
                         </button>
                       </div>
                     </div>
@@ -206,7 +210,7 @@
                           class="btn btn-secondary btn-medium-secondary"
                           data-v-37958d79=""
                         >
-                          {{ $t('message.supply-withdraw') }}
+                          Supply / Withdraw
                         </button>
                       </div>
                       <div class="block info-show">
@@ -238,10 +242,10 @@
                   class="flex items-center justify-between px-nolus-24 pt-nolus-24"
                 >
                   <h2 class="nls-16 nls-font-500 text-left my-0">
-                    {{ $t('message.pending-rewards') }}
+                    Pending rewards
                   </h2>
                   <button class="btn btn-label btn-large-label">
-                    {{ $t('message.claim-all') }}
+                    Claim all
                   </button>
                 </div>
                 <!-- Assets -->
@@ -284,11 +288,12 @@
                           class="btn btn-secondary btn-medium-secondary btn-emphatized"
                           data-v-37958d79=""
                         >
-                          {{ $t('message.none') }}
+                          None
                         </button>
                       </div>
                     </div>
                   </div>
+                  SidebarContainer
                   <div class="block">
                     <div
                       :class="[
@@ -326,7 +331,7 @@
                           class="btn btn-secondary btn-medium-secondary btn-emphatized"
                           data-v-37958d79=""
                         >
-                          {{ $t('message.none') }}
+                          None
                         </button>
                       </div>
                     </div>
@@ -368,7 +373,7 @@
                           class="btn btn-secondary btn-medium-secondary js-loading"
                           data-v-37958d79=""
                         >
-                          {{ $t('message.none') }}
+                          None
                         </button>
                       </div>
                     </div>
@@ -382,19 +387,12 @@
       </div>
     </div>
   </div>
-  <div class="page-container home">
-    <div class="container mx-auto pt-24 lg:pt-16">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-start-3 lg:col-span-9"></div>
-      </div>
-    </div>
 
-    <ReceiveSendModal
-      v-show="showSendModal"
-      ref="ReceiveSendModal"
-      @close-modal="showSendModal = false"
-    />
-  </div>
+  <ReceiveSendModal
+    v-show="showSendModal"
+    ref="ReceiveSendModal"
+    @close-modal="showSendModal = false"
+  />
 </template>
 
 <script lang="ts">

@@ -15,7 +15,7 @@
             </div>
           </div>
         </div>
-        <div class="col-span-12">
+        <div class="col-span-12 mb-sm-nolus-70">
           <!-- Header -->
           <div
             class="table-header flex mt-nolus-255 flex-wrap items-center justify-between items-baseline lg:px-0"
@@ -123,11 +123,11 @@
                 <AssetPartial
                   v-for="asset in this.manipulatedAssets"
                   :key="asset"
-                  :asset-info=getAssetInfo(asset.balance.denom)
+                  :asset-info="getAssetInfo(asset.balance.denom)"
                   :assetBalance="asset.balance.amount.toString()"
                   :changeDirection="true"
-                  :denom=asset.balance.denom
-                  :price=getMarketPrice(asset.balance.denom)
+                  :denom="asset.balance.denom"
+                  :price="getMarketPrice(asset.balance.denom)"
                   change="4.19"
                   earnings="24"
                 />
@@ -148,16 +148,15 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { Coin, Dec, Int } from '@keplr-wallet/unit'
-import { CurrencyUtils } from '@nolus/nolusjs'
-
 import SidebarContainer from '@/components/SidebarContainer.vue'
 import AssetPartial from '@/components/AssetPartial.vue'
 import { AssetUtils } from '@/utils/AssetUtils'
+import { Coin, Dec, Int } from '@keplr-wallet/unit'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
 import { useStore } from '@/store'
 import SidebarHeader from '@/components/Sideheader.vue'
+import { CurrencyUtils } from '@nolus/nolusjs'
 import TooltipComponent from '@/components/TooltipComponent.vue'
 import Notifications from '@/components/Notifications.vue'
 import WalletOpen from '@/components/WalletOpen.vue'
@@ -181,11 +180,12 @@ export default defineComponent({
       mainAssets: [] as AssetBalance[],
       hideLowerBalances: false,
       showSendModal: false,
-      showLoading: true,
+      showLoading: true
     }
   },
   watch: {
     '$store.state.wallet.balances' (balances) {
+      console.log('Balances: ', balances)
       this.mainAssets = balances
       this.manipulatedAssets = balances
       if (this.hideLowerBalances) {
@@ -199,7 +199,7 @@ export default defineComponent({
       } else {
         this.manipulatedAssets = this.mainAssets
       }
-    },
+    }
   },
   methods: {
     getAssetInfo (denom: string) {
@@ -220,23 +220,23 @@ export default defineComponent({
     },
     calculateTotalBalance () {
       let totalBalance = new Dec(0)
-      this.mainAssets.forEach(asset => {
+      this.mainAssets.forEach((asset) => {
         const {
           coinDecimals,
           coinDenom
-        } = AssetUtils.getAssetInfoByAbbr(asset.balance.denom)
+        } = AssetUtils.getAssetInfoByAbbr(
+          asset.balance.denom
+        )
         const assetBalance = CurrencyUtils.calculateBalance(
           this.getMarketPrice(asset.balance.denom),
-          new Coin(coinDenom,
-            asset.balance.amount.toString()
-          ),
+          new Coin(coinDenom, asset.balance.amount.toString()),
           coinDecimals
         )
         totalBalance = totalBalance.add(assetBalance.toDec())
       })
 
       return CurrencyUtils.formatPrice(totalBalance.toString()).toString()
-    },
-  },
+    }
+  }
 })
 </script>

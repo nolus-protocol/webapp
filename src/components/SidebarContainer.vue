@@ -38,7 +38,11 @@
 
         <div class="md:flex md:justify-between sidebar-elements-block lg:block">
           <div class="block nls-nav-link">
-            <SidebarElement id="assets" href="/" :label="$t('message.assets')"/>
+            <SidebarElement
+              id="assets"
+              href="/"
+              :label="$t('message.assets')"
+            />
           </div>
           <div class="block nls-nav-link">
             <SidebarElement

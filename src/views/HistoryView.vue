@@ -15,13 +15,15 @@
             </div>
           </div>
         </div>
-        <div class="col-span-12">
+        <div class="col-span-12 mb-sm-nolus-70p">
           <!-- Header -->
           <div
             class="table-header flex mt-nolus-255 flex-wrap items-center justify-between items-baseline lg:px-0"
           >
             <div class="left">
-              <h1 class="nls-20 nls-font-700 text-primary m-0">{{ $t('message.history') }}</h1>
+              <h1 class="nls-20 nls-font-700 text-primary m-0">
+                {{ $t('message.history') }}
+              </h1>
             </div>
           </div>
           <!-- History -->
