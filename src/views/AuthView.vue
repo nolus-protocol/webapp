@@ -4,7 +4,7 @@
     <div class="container mx-auto">
       <div class="flex items-center justify-center pt-24">
         <div class="">
-          <router-view />
+          <router-view/>
         </div>
       </div>
     </div>
@@ -12,17 +12,17 @@
 </template>
 
 <script lang="ts">
-import LogoLink from "@/components/LogoLink.vue";
-import { defineComponent } from "vue";
+import LogoLink from '@/components/LogoLink.vue'
+import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: "AuthView",
+  name: 'AuthView',
   components: {
-    LogoLink,
+    LogoLink
   },
-  data() {
-    return {};
+  data () {
+    return {}
   },
-  methods: {},
-});
+  methods: {}
+})
 </script>

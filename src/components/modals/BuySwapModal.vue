@@ -4,7 +4,7 @@
     @click="$emit('close-modal')"
   >
     <button class="btn-close-modal" @click="$emit('close-modal')">
-      <img class="inline-block w-4 h-4" src="@/assets/icons/cross.svg" />
+      <img class="inline-block w-4 h-4" src="@/assets/icons/cross.svg"/>
     </button>
 
     <div
@@ -87,21 +87,18 @@
 </template>
 
 <script lang="ts">
-import { CheckIcon, StarIcon } from "@heroicons/vue/solid";
-import MultipleCurrencyField from "@/components/MultipleCurrencyField.vue";
-import { defineComponent } from "vue";
+import MultipleCurrencyField from '@/components/MultipleCurrencyField.vue'
+import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: "BuySwapModal",
+  name: 'BuySwapModal',
   components: {
-    CheckIcon,
-    StarIcon,
-    MultipleCurrencyField,
+    MultipleCurrencyField
   },
   props: {
     tryButton: {
-      type: Function,
-    },
-  },
-});
+      type: Function
+    }
+  }
+})
 </script>

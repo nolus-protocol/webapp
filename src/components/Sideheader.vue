@@ -16,7 +16,7 @@
       <span class="counter">8</span>
     </button>
 
-    <Notifications v-show="this.showNotifications" />
+    <Notifications v-show="this.showNotifications"/>
   </div>
   <div id="wallet-nls">
     <button
@@ -30,61 +30,61 @@
       ></span>
 
       <span class="nls-13 nls-font-400 text-primary nls-md-hidden"
-        >My precious</span
+      >My precious</span
       >
     </button>
 
     <!-- <Notifications /> -->
-    <WalletOpen v-show="this.showWallet" />
+    <WalletOpen v-show="this.showWallet"/>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import Notifications from "@/components/Notifications.vue";
-import WalletOpen from "@/components/WalletOpen.vue";
-import LogoLink from "@/components/LogoLink.vue";
+import { defineComponent } from 'vue'
+import Notifications from '@/components/Notifications.vue'
+import WalletOpen from '@/components/WalletOpen.vue'
+import LogoLink from '@/components/LogoLink.vue'
 
 export default defineComponent({
-  name: "SidebarHeader",
+  name: 'SidebarHeader',
   components: {
     Notifications,
     WalletOpen,
-    LogoLink,
+    LogoLink
   },
-  data() {
+  data () {
     return {
       showWallet: false,
-      showNotifications: false,
-    };
+      showNotifications: false
+    }
   },
 
   watch: {
-    showWallet() {
-      document.addEventListener("click", (event) => {
+    showWallet () {
+      document.addEventListener('click', (event) => {
         if (
           // @ts-ignore
-          event.target.closest("#wallet-nls")
+          event.target.closest('#wallet-nls')
         ) {
-          return;
+          return
         }
-        this.showWallet = false;
-      });
+        this.showWallet = false
+      })
     },
-    showNotifications() {
-      document.addEventListener("click", (event) => {
+    showNotifications () {
+      document.addEventListener('click', (event) => {
         if (
           // @ts-ignore
-          event.target.closest("#notifications-nls")
+          event.target.closest('#notifications-nls')
         ) {
-          return;
+          return
         }
 
-        this.showNotifications = false;
-      });
-    },
-  },
-});
+        this.showNotifications = false
+      })
+    }
+  }
+})
 </script>
 <style scoped>
 @media (max-width: 768px) {

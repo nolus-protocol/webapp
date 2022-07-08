@@ -1,164 +1,166 @@
 .modal {
-	&-header {
-		padding: 23px 20px 19px 40px;
-		border-bottom: 1px solid $borderColor;
-	}
+  &-header {
+    padding: 23px 20px 19px 40px;
+    border-bottom: 1px solid $borderColor;
+  }
 
-	&-send-receive {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: flex-start;
-		width: 100%;
-		height: calc(100vh - 60px);
-		border-bottom-left-radius: 0;
-		border-bottom-right-radius: 0;
-		//overflow: hidden;
+  &-send-receive {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    height: calc(100vh - 60px);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    //overflow: hidden;
 
-		@media (min-width: $md) {
-			height: auto;
-			border-bottom-left-radius: $heavyRounded;
-			border-bottom-right-radius: $heavyRounded;
-		}
+    @media (min-width: $md) {
+      height: auto;
+      border-bottom-left-radius: $heavyRounded;
+      border-bottom-right-radius: $heavyRounded;
+    }
 
-		&-parent {
-			background: linear-gradient(314.47deg, #ebeff5 2.19%, #f7f9fc 100%);
-			@media (min-width: $md) and (orientation: landscape) {
-				// overflow-x: hidden;
-				// overflow-y: auto;
-				-webkit-overflow-scrolling: touch;
-				align-items: flex-start;
-				padding-top: 10vh;
-			}
+    &-parent {
+      background: linear-gradient(314.47deg, #ebeff5 2.19%, #f7f9fc 100%);
+      @media (min-width: $md) and (orientation: landscape) {
+        // overflow-x: hidden;
+        // overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        align-items: flex-start;
+        padding-top: 10vh;
+      }
 
-			// @media (min-width: $lg) {
-			// 	top: 10vh;
-			// }
-		}
+      // @media (min-width: $lg) {
+      // 	top: 10vh;
+      // }
+    }
 
-		&-header {
-			border-top-left-radius: 16px;
-			border-top-right-radius: 16px;
-			overflow: hidden;
-			width: 100%;
-			border-bottom: 1px solid $borderColor;
+    &-header {
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      overflow: hidden;
+      width: 100%;
+      border-bottom: 1px solid $borderColor;
 
-			& > button {
-				display: inline-block;
-				background-color: $lightGrey;
-				color: $mediumBlue;
-				width: 50%;
-				padding: 25px 0;
-				font-size: 28px;
-				font-family: "Garet Bolder";
-				text-align: center;
+      & > button {
+        display: inline-block;
+        background-color: $lightGrey;
+        color: $mediumBlue;
+        width: 50%;
+        padding: 25px 0;
+        font-size: 28px;
+        font-family: "Garet Bolder";
+        text-align: center;
 
-				&:first-of-type {
-					border-right: 1px solid $borderColor;
-				}
+        &:first-of-type {
+          border-right: 1px solid $borderColor;
+        }
 
-				&.active {
-					background-color: $white;
-					color: $textMain;
-				}
-			}
+        &.active {
+          background-color: $white;
+          color: $textMain;
+        }
+      }
 
-			.navigation-header {
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				padding: 25px 24px;
-				width: 100%;
-				position: relative;
+      .navigation-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 25px 24px;
+        width: 100%;
+        position: relative;
 
-				@media (min-width: $md) {
-					padding: 25px 40px;
-				}
+        @media (min-width: $md) {
+          padding: 25px 40px;
+        }
 
-				&.wrap {
-					flex-wrap: wrap;
-				}
+        &.wrap {
+          flex-wrap: wrap;
+        }
 
-				.back-arrow {
-					display: inline-block;
-					position: absolute;
-					left: 24px;
-					top: 50%;
-					transform: translateY(-50%) translateZ(0);
+        .back-arrow {
+          display: inline-block;
+          position: absolute;
+          left: 24px;
+          top: 50%;
+          transform: translateY(-50%) translateZ(0);
 
-					@media (min-width: $md) {
-						left: 40px;
-					}
-				}
+          @media (min-width: $md) {
+            left: 40px;
+          }
+        }
 
-				.success-icon {
-					background-color: $iconGreen;
-					color: $lightGreen;
-				}
+        .success-icon {
+          background-color: $iconGreen;
+          color: $lightGreen;
+        }
 
-				.error-icon {
-					background-color: $iconBackgroundRed;
-					color: $lightRed;
-				}
-			}
-		}
+        .error-icon {
+          background-color: $iconBackgroundRed;
+          color: $lightRed;
+        }
+      }
+    }
 
-		&-input-area {
-			flex-grow: 1;
-			width: 100%;
-			padding: 40px 24px 108px;
-			// overflow-x: hidden;
-			// overflow-y: auto;
-			-webkit-overflow-scrolling: touch;
+    &-input-area {
+      flex-grow: 1;
+      width: 100%;
+      padding: 40px 24px 108px;
+      // overflow-x: hidden;
+      // overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
 
-			@media (min-width: $md) {
-				padding: 40px 40px 24px !important;
-			}
+      @media (min-width: $md) {
+        padding: 40px 40px 24px !important;
+      }
 
-			&.pt-0 {
-				padding-top: 0 !important;
-			}
-		}
+      &.pt-0 {
+        padding-top: 0 !important;
+      }
+    }
 
-		&-actions {
-			width: 100%;
-			max-width: inherit;
-			position: absolute;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			bottom: 0;
-			padding: 16px 24px;
-			background-color: $white;
-			button {
-				margin-bottom: 40px;
-			}
-			@extend .shadow-box;
+    &-actions {
+      width: 100%;
+      max-width: inherit;
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      bottom: 0;
+      padding: 16px 24px;
+      background-color: $white;
 
-			button:not(.btn-auto) {
-				width: 100%;
-			}
+      button {
+        margin-bottom: 40px;
+      }
 
-			@media (min-width: $md) {
-				position: relative;
-				left: initial;
-				bottom: initial;
-				padding: 0 40px 0px;
-				transform: translateZ(0);
-				border-radius: 16px;
-			}
-		}
-	}
+      @extend .shadow-box;
 
-	.nls-balance {
-		padding: 13px 12px 12px 16px;
+      button:not(.btn-auto) {
+        width: 100%;
+      }
 
-		a {
-			color: $brand-accent;
-		}
-	}
+      @media (min-width: $md) {
+        position: relative;
+        left: initial;
+        bottom: initial;
+        padding: 0 40px 0px;
+        transform: translateZ(0);
+        border-radius: 16px;
+      }
+    }
+  }
+
+  .nls-balance {
+    padding: 13px 12px 12px 16px;
+
+    a {
+      color: $brand-accent;
+    }
+  }
 }
 
 .no-border {
-	border: none;
+  border: none;
 }

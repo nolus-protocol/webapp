@@ -1,14 +1,14 @@
 <template>
   <div class="container w-full grid grid-cols-12 mx-auto grid-parent">
     <div class="lg:col-span-3">
-      <SidebarContainer />
+      <SidebarContainer/>
     </div>
     <div class="lg:col-span-9 pb-8">
       <div class="grid grid-cols-10 grid-child">
         <div class="col-span-12 mt-nolus-60">
           <div class="col-span-12">
             <div class="sidebar-header">
-              <SidebarHeader />
+              <SidebarHeader/>
             </div>
           </div>
         </div>
@@ -17,7 +17,7 @@
           <div class="flex flex-wrap items-center justify-between px-4 lg:px-0">
             <div class="left w-full md:w-1/2">
               <h1 class="nls-20 nls-font-700 text-primary m-0">
-                {{ $t("message.leases") }}
+                {{ $t('message.leases') }}
               </h1>
             </div>
             <div
@@ -27,7 +27,7 @@
                 class="btn btn-primary btn-large-primary w-full md:w-1/2"
                 v-on:click="showLeaseModal = true"
               >
-                {{ $t("message.lease-new") }}
+                {{ $t('message.lease-new') }}
               </button>
             </div>
           </div>
@@ -42,49 +42,49 @@
       </div>
     </div>
   </div>
-  <LeaseModal v-show="showLeaseModal" @close-modal="showLeaseModal = false" />
+  <LeaseModal v-show="showLeaseModal" @close-modal="showLeaseModal = false"/>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import SidebarContainer from "@/components/SidebarContainer.vue";
-import LeaseModal from "@/components/modals/LeaseModal.vue";
-import { Lease, LeaseStatus } from "@nolus/nolusjs/build/contracts";
-import { CONTRACTS } from "@/config/contracts";
-import { WalletManager } from "@/config/wallet";
-import { LeaseData } from "@/types/LeaseData";
-import LeaseInfo from "@/components/LeaseInfo.vue";
-import SidebarHeader from "@/components/Sideheader.vue";
+import { defineComponent } from 'vue'
+import SidebarContainer from '@/components/SidebarContainer.vue'
+import LeaseModal from '@/components/modals/LeaseModal.vue'
+import { Lease, LeaseStatus } from '@nolus/nolusjs/build/contracts'
+import { CONTRACTS } from '@/config/contracts'
+import { WalletManager } from '@/config/wallet'
+import { LeaseData } from '@/types/LeaseData'
+import LeaseInfo from '@/components/LeaseInfo.vue'
+import SidebarHeader from '@/components/Sideheader.vue'
 
 export default defineComponent({
-  name: "LeaseView",
+  name: 'LeaseView',
   components: {
     LeaseModal,
     LeaseInfo,
     SidebarContainer,
-    SidebarHeader,
+    SidebarHeader
   },
-  data() {
+  data () {
     return {
       showLeaseModal: false,
-      leases: [] as LeaseData[],
-    };
+      leases: [] as LeaseData[]
+    }
   },
-  async mounted() {
-    const leaseClient = new Lease();
+  async mounted () {
+    const leaseClient = new Lease()
     const openedLeases: string[] = await leaseClient.getCurrentOpenLeases(
       CONTRACTS.leaser.instance,
       WalletManager.getWalletAddress()
-    );
+    )
     for (const leaseAddress of openedLeases) {
       const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus(
         leaseAddress
-      );
+      )
       this.leases.push({
         leaseAddress: leaseAddress,
-        leaseStatus: leaseInfo,
-      });
+        leaseStatus: leaseInfo
+      })
     }
-  },
-});
+  }
+})
 </script>

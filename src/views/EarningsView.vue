@@ -4,14 +4,14 @@
     class="lg:container w-full lg:grid lg:grid-cols-12 mx-auto grid-parent md-nls-px-25 sm-nls-0 body"
   >
     <div class="lg:col-span-3">
-      <SidebarContainer />
+      <SidebarContainer/>
     </div>
     <div class="lg:col-span-9 pb-8">
       <div class="grid grid-cols-10 grid-child">
         <div class="col-span-12 mt-nolus-60">
           <div class="col-span-12">
             <div class="sidebar-header">
-              <SidebarHeader />
+              <SidebarHeader/>
             </div>
           </div>
         </div>
@@ -402,27 +402,27 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import SidebarContainer from "@/components/SidebarContainer.vue";
-import AssetPartial from "@/components/AssetPartial.vue";
-import Notifications from "@/components/Notifications.vue";
-import WalletOpen from "@/components/WalletOpen.vue";
-import SidebarHeader from "@/components/Sideheader.vue";
+import { defineComponent } from 'vue'
+import SidebarContainer from '@/components/SidebarContainer.vue'
+import AssetPartial from '@/components/AssetPartial.vue'
+import Notifications from '@/components/Notifications.vue'
+import WalletOpen from '@/components/WalletOpen.vue'
+import SidebarHeader from '@/components/Sideheader.vue'
 
 export default defineComponent({
-  name: "EarningsView",
+  name: 'EarningsView',
   components: {
     SidebarContainer,
     AssetPartial,
     Notifications,
     WalletOpen,
-    SidebarHeader,
+    SidebarHeader
   },
-  data() {
+  data () {
     return {
-      cols: 2 as number,
-    };
-  },
-});
+      cols: 2 as number
+    }
+  }
+})
 </script>
 <style scoped></style>
