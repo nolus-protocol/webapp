@@ -1,5 +1,9 @@
 <template>
   <div id="notifications-nls">
+    <div class="nls-md-show">
+      <LogoLink link="/"></LogoLink>
+    </div>
+
     <button
       :class="showNotifications ? 'active' : false"
       class="show-box-pop btn btn-header mr-2 c-navbar-qr__button"
@@ -39,12 +43,14 @@
 import { defineComponent } from "vue";
 import Notifications from "@/components/Notifications.vue";
 import WalletOpen from "@/components/WalletOpen.vue";
+import LogoLink from "@/components/LogoLink.vue";
 
 export default defineComponent({
   name: "SidebarHeader",
   components: {
     Notifications,
     WalletOpen,
+    LogoLink,
   },
   data() {
     return {

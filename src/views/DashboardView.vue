@@ -18,7 +18,7 @@
         <div class="col-span-12 mb-sm-nolus-70">
           <!-- Header -->
           <div
-            class="table-header flex mt-nolus-255 flex-wrap items-center justify-between items-baseline lg:px-0 relative z-10"
+            class="table-header flex mt-nolus-255 flex-wrap items-center justify-between items-baseline lg:px-0"
           >
             <div class="left">
               <h1 class="nls-20 nls-font-700 text-primary m-0">Assets</h1>
@@ -70,9 +70,7 @@
                 class="right w-full md:w-1/2 mt-nolus-255 md:mt-0 inline-flex justify-start md:justify-end"
               >
                 <div class="relative block checkbox-container">
-                  <div
-                    class="flex items-center w-full justify-end relative z-10"
-                  >
+                  <div class="flex items-center w-full justify-end">
                     <input
                       id="hide-small-balances"
                       v-model="hideLowerBalances"
