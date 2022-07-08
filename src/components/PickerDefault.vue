@@ -26,7 +26,7 @@
           <span
             class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
           >
-            <ChevronDownIcon aria-hidden="true" class="h-5 w-5 text-gray-400"/>
+            <ChevronDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true"/>
           </span>
         </ListboxButton>
 
@@ -81,7 +81,7 @@
                     'absolute inset-y-0 right-0 flex items-center pr-4',
                   ]"
                 >
-                  <CheckIcon aria-hidden="true" class="h-5 w-5"/>
+                  <CheckIcon class="h-5 w-5" aria-hidden="true"/>
                 </span>
               </li>
             </ListboxOption>

@@ -398,18 +398,12 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import SidebarContainer from '@/components/SidebarContainer.vue'
-import AssetPartial from '@/components/AssetPartial.vue'
-import Notifications from '@/components/Notifications.vue'
-import WalletOpen from '@/components/WalletOpen.vue'
 import SidebarHeader from '@/components/Sideheader.vue'
 
 export default defineComponent({
   name: 'EarningsView',
   components: {
     SidebarContainer,
-    AssetPartial,
-    Notifications,
-    WalletOpen,
     SidebarHeader
   },
   data () {

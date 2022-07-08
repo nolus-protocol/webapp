@@ -1642,26 +1642,15 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { BellIcon, DuplicateIcon, XIcon } from '@heroicons/vue/solid'
-import PickerDefault from '@/components/PickerDefault.vue'
-import PickerIcon from '@/components/PickerIcon.vue'
-import PickerCombo from '@/components/PickerCombo.vue'
-import RadioInput from '@/components/RadioInput.vue'
-import InputField from '@/components/InputField.vue'
-import CurrencyField from '@/components/CurrencyField.vue'
-import MultipleCurrencyField from '@/components/MultipleCurrencyField.vue'
+import { BellIcon } from '@heroicons/vue/solid'
 import LogoLink from '@/components/LogoLink.vue'
 
 import SidebarElement from '@/components/SidebarElement.vue'
 import SidebarSocialElement from '@/components/SidebarSocialElement.vue'
 import SidebarLinkElement from '@/components/SidebarLinkElement.vue'
-import WalletOpen from '@/components/WalletOpen.vue'
-import AssetPartial from '@/components/AssetPartial.vue'
-import Notifications from '@/components/Notifications.vue'
 import SupplyWithdrawModal from '@/components/modals/SupplyWithdrawModal.vue'
 import ErrorModal from '@/components/modals/ErrorModal.vue'
 import ConfirmEmailModal from '@/components/modals/ConfirmEmailModal.vue'
-import LeaseModal from '@/components/modals/LeaseModal.vue'
 import RepayModal from '@/components/modals/RepayModal.vue'
 import HistoryView from '@/views/HistoryView.vue'
 import HomeView from '@/views/HomeView.vue'
@@ -1674,31 +1663,17 @@ import SnackBar from '@/components/templates/utils/Snackbar.vue'
 export default defineComponent({
   name: 'StyleguideView',
   components: {
-    DuplicateIcon,
-    XIcon,
     BellIcon,
-    PickerDefault,
-    PickerIcon,
-    PickerCombo,
-    RadioInput,
-    InputField,
-    CurrencyField,
-    MultipleCurrencyField,
     LogoLink,
     SidebarElement,
     SidebarSocialElement,
     SidebarLinkElement,
-    WalletOpen,
-    AssetPartial,
     SnackBar,
-    Notifications,
     ReceiveSendModal,
-    SendingPendingComponent,
     SwapBuyModal,
     SupplyWithdrawModal,
     ErrorModal,
     ConfirmEmailModal,
-    LeaseModal,
     RepayModal,
     HistoryView,
     HomeView,
@@ -1720,13 +1695,15 @@ export default defineComponent({
     }
   },
   mounted () {
-    (this.colstest = 4), (this.showSwapModal = false)
+    this.colstest = 4
+    this.showSwapModal = false
     this.showRepayModal = false
     this.showLeaseModal = false
     this.showSendModal = false
     this.showErrorModal = false
-    this.showConfirmEmailModal = false;
-    (this.showSupplyWithdrawModal = false), (this.cols = 2)
+    this.showConfirmEmailModal = false
+    this.showSupplyWithdrawModal = false
+    this.cols = 2
   },
   methods: {
     tryButton: () => {

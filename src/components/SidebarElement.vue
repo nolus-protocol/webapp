@@ -5,9 +5,9 @@
       'sidebar-element',
       this.$route.path == this.href ? 'active' : false,
     ]"
-    :href="this.href"
+    :target="target || '_self'"
   >
-    <span :class="['icon', `icon-${this.label.toLowerCase()}`]"></span>
+    <span :class="['icon', `icon-${this.id}`]"></span>
     <!-- <span class="icon" :class="`icon-${this.label}`"></span> -->
     <!-- <img
       class="icon"
@@ -23,7 +23,7 @@
 <script type="ts">
 export default {
   name: 'SidebarElement',
-  props: ['id', 'href', 'label', 'icon', 'iconHover', 'isActive', 'mobile']
+  props: ['id', 'href', 'label', 'icon', 'iconHover', 'isActive', 'mobile', 'target']
 }
 </script>
 <style scoped>
