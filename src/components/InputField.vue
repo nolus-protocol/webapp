@@ -2,8 +2,8 @@
   <fieldset>
     <div class="block input-field">
       <label :for="this.id" class="block nls-14 nls-font-500 text-primary">{{
-        this.label
-      }}</label>
+          this.label
+        }}</label>
       <input
         :id="this.id"
         :class="
@@ -23,10 +23,10 @@
             ? ''
             : 'hidden',
         ]"
-        >{{
-          typeof this.errorMsg !== "undefined" && this.errorMsg !== null
+      >{{
+          typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
             ? this.errorMsg
-            : ""
+            : ''
         }}</span
       >
     </div>
@@ -35,36 +35,36 @@
 
 <script lang="ts">
 export default {
-  name: "InputField",
+  name: 'InputField',
   props: {
     type: {
-      type: String,
+      type: String
     },
     name: {
-      type: String,
+      type: String
     },
     value: {
-      type: String,
+      type: String
     },
     id: {
-      type: String,
+      type: String
     },
     label: {
-      type: String,
+      type: String
     },
     isError: {
-      type: Boolean,
+      type: Boolean
     },
     errorMsg: {
-      type: String,
-    },
+      type: String
+    }
   },
-  data() {
+  data () {
     return {
       default: {
-        value: "",
-      },
-    };
-  },
-};
+        value: ''
+      }
+    }
+  }
+}
 </script>

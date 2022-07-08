@@ -25,7 +25,7 @@
             />
           </div>
           <div class="nls-md-show mb-nolus-24">
-            <SidebarSocial />
+            <SidebarSocial/>
           </div>
         </div>
 
@@ -46,7 +46,7 @@
             />
           </div>
           <div class="block nls-nav-link">
-            <SidebarElement id="trade" href="#" :label="$t('message.trade')" />
+            <SidebarElement id="trade" href="#" :label="$t('message.trade')"/>
           </div>
           <div class="block nls-nav-link">
             <SidebarElement
@@ -75,7 +75,7 @@
         </div>
       </div>
     </div>
-    <SidebarSocial />
+    <SidebarSocial/>
     <div class="backdrop"></div>
   </div>
 </template>

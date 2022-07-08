@@ -41,17 +41,17 @@
 </template>
 
 <script>
-import { CheckIcon } from "@heroicons/vue/solid";
+import { CheckIcon } from '@heroicons/vue/solid'
 
 export default {
-  name: "ErrorModal",
+  name: 'ErrorModal',
   components: {
-    CheckIcon,
+    CheckIcon
   },
   props: {
     tryButton: {
-      type: Function,
-    },
-  },
-};
+      type: Function
+    }
+  }
+}
 </script>

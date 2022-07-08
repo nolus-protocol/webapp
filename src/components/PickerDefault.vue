@@ -26,7 +26,7 @@
           <span
             class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
           >
-            <ChevronDownIcon aria-hidden="true" class="h-5 w-5 text-gray-400" />
+            <ChevronDownIcon aria-hidden="true" class="h-5 w-5 text-gray-400"/>
           </span>
         </ListboxButton>
 
@@ -37,10 +37,10 @@
               ? ''
               : 'hidden',
           ]"
-          >{{
-            typeof this.errorMsg !== "undefined" && this.errorMsg !== null
+        >{{
+            typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
               ? this.errorMsg
-              : ""
+              : ''
           }}</span
         >
 
@@ -81,7 +81,7 @@
                     'absolute inset-y-0 right-0 flex items-center pr-4',
                   ]"
                 >
-                  <CheckIcon aria-hidden="true" class="h-5 w-5" />
+                  <CheckIcon aria-hidden="true" class="h-5 w-5"/>
                 </span>
               </li>
             </ListboxOption>
@@ -93,15 +93,9 @@
 </template>
 
 <script lang="ts">
-import {
-  Listbox,
-  ListboxButton,
-  ListboxLabel,
-  ListboxOption,
-  ListboxOptions,
-} from "@headlessui/vue";
-import { CheckIcon, ChevronDownIcon } from "@heroicons/vue/solid";
-import { defineComponent, PropType } from "vue";
+import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue'
+import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/solid'
+import { defineComponent, PropType } from 'vue'
 
 export interface PickerDefaultOption {
   id?: string;
@@ -110,7 +104,7 @@ export interface PickerDefaultOption {
 }
 
 export default defineComponent({
-  name: "PickerDefault",
+  name: 'PickerDefault',
   components: {
     Listbox,
     ListboxButton,
@@ -118,44 +112,44 @@ export default defineComponent({
     ListboxOption,
     ListboxOptions,
     CheckIcon,
-    ChevronDownIcon,
+    ChevronDownIcon
   },
   props: {
     label: {
-      type: String,
+      type: String
     },
     type: {
-      type: String,
+      type: String
     },
     defaultOption: {
-      type: Object as PropType<PickerDefaultOption>,
+      type: Object as PropType<PickerDefaultOption>
     },
     options: {
-      type: Array as PropType<PickerDefaultOption[]>,
+      type: Array as PropType<PickerDefaultOption[]>
     },
     isError: {
-      type: Boolean,
+      type: Boolean
     },
     errorMsg: {
-      type: String,
+      type: String
     },
     disabled: {
-      type: Boolean,
-    },
+      type: Boolean
+    }
   },
-  mounted() {
-    console.log("mounted picker: ", this.defaultOption);
-    this.selected = this.defaultOption as PickerDefaultOption;
+  mounted () {
+    console.log('mounted picker: ', this.defaultOption)
+    this.selected = this.defaultOption as PickerDefaultOption
   },
   watch: {
-    defaultOption() {
-      this.selected = this.defaultOption as PickerDefaultOption;
-    },
+    defaultOption () {
+      this.selected = this.defaultOption as PickerDefaultOption
+    }
   },
-  data() {
+  data () {
     return {
-      selected: {} as PickerDefaultOption,
-    };
-  },
-});
+      selected: {} as PickerDefaultOption
+    }
+  }
+})
 </script>

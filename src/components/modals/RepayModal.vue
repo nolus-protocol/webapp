@@ -9,10 +9,10 @@
       @click.stop
     >
       <button class="btn-close-modal" @click="$emit('close-modal')">
-        <img class="inline-block w-4 h-4" src="@/assets/icons/cross.svg" />
+        <img class="inline-block w-4 h-4" src="@/assets/icons/cross.svg"/>
       </button>
       <div class="flex modal-header">
-        <p class="nls-32 nls-font-700">{{ $t("message.repay") }}</p>
+        <p class="nls-32 nls-font-700">{{ $t('message.repay') }}</p>
       </div>
 
       <component
@@ -24,14 +24,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
-import RepayMainComponent, {
-  SendMainComponentProps,
-} from "@/components/RepayComponents/RepayMainComponent.vue";
-import { LeaseData } from "@/types/LeaseData";
+import { defineComponent, PropType } from 'vue'
+import RepayMainComponent, { SendMainComponentProps } from '@/components/RepayComponents/RepayMainComponent.vue'
+import { LeaseData } from '@/types/LeaseData'
 
 enum ScreenState {
-  REPAY = "RepayMainComponent",
+  REPAY = 'RepayMainComponent',
 }
 
 interface RepayModalData {
@@ -40,35 +38,35 @@ interface RepayModalData {
 }
 
 export default defineComponent({
-  name: "RepayModal",
+  name: 'RepayModal',
   components: {
-    RepayMainComponent,
+    RepayMainComponent
   },
   props: {
     leaseInfo: {
-      type: Object as PropType<LeaseData>,
-    },
+      type: Object as PropType<LeaseData>
+    }
   },
-  data() {
+  data () {
     return {
-      currentComponent: {} as RepayModalData,
-    };
+      currentComponent: {} as RepayModalData
+    }
   },
-  mounted() {
+  mounted () {
     this.currentComponent = {
       is: ScreenState.REPAY,
       props: {
         onClose: () => this.onCloseModal(),
-        leaseData: this.leaseInfo,
-      },
-    };
+        leaseData: this.leaseInfo
+      }
+    }
   },
   methods: {
-    onCloseModal() {
-      this.$emit("close-modal");
-    },
-  },
-});
+    onCloseModal () {
+      this.$emit('close-modal')
+    }
+  }
+})
 </script>
 <style scoped>
 .modal-send-receive-actions {

@@ -66,10 +66,10 @@
 </template>
 
 <script lang="ts">
-import { CheckIcon } from "@heroicons/vue/solid";
-import InputField from "@/components/InputField.vue";
-import { defineComponent } from "vue";
-import { AssetBalance } from "@/store/modules/wallet/state";
+import { CheckIcon } from '@heroicons/vue/solid'
+import InputField from '@/components/InputField.vue'
+import { defineComponent } from 'vue'
+import { AssetBalance } from '@/store/modules/wallet/state'
 
 export interface SendComponentProps {
   receiverErrorMsg: string;
@@ -88,11 +88,11 @@ export interface SendComponentProps {
 }
 
 export default defineComponent({
-  name: "ConfirmEmailModal",
+  name: 'ConfirmEmailModal',
   components: {
     CheckIcon,
-    InputField,
+    InputField
   },
-  props: {},
-});
+  props: {}
+})
 </script>

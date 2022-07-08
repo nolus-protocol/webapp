@@ -4,7 +4,7 @@
       <label
         :for="this.id"
         class="block nls-14 nls-font-500 mb-nolus-5 text-primary"
-        >{{ this.label }}</label
+      >{{ this.label }}</label
       >
       <textarea
         :id="this.id"
@@ -24,10 +24,10 @@
             ? ''
             : 'hidden',
         ]"
-        >{{
-          typeof this.errorMsg !== "undefined" && this.errorMsg !== null
+      >{{
+          typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
             ? this.errorMsg
-            : ""
+            : ''
         }}</span
       >
     </div>
@@ -36,26 +36,26 @@
 
 <script>
 export default {
-  name: "TextField",
+  name: 'TextField',
   props: {
     name: {
-      type: String,
+      type: String
     },
     id: {
-      type: String,
+      type: String
     },
     value: {
-      type: String,
+      type: String
     },
     label: {
-      type: String,
+      type: String
     },
     isError: {
-      type: Boolean,
+      type: Boolean
     },
     errorMsg: {
-      type: String,
-    },
-  },
-};
+      type: String
+    }
+  }
+}
 </script>

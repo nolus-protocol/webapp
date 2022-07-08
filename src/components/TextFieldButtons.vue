@@ -4,7 +4,7 @@
       <label
         :for="this.id"
         class="block nls-14 nls-font-500 mb-nolus-5 text-primary"
-        >{{ this.label }}</label
+      >{{ this.label }}</label
       >
       <div class="field-container text-field-buttons">
         <textarea
@@ -26,14 +26,14 @@
             class="btn btn-secondary btn-medium-secondary btn-icon mr-4"
             v-on:click="onClickCopy"
           >
-            <DuplicateIcon class="icon w-4 h-4" />
+            <DuplicateIcon class="icon w-4 h-4"/>
             Copy
           </button>
           <button
             class="btn btn-secondary btn-medium-secondary btn-icon"
             v-on:click="onClickPrint"
           >
-            <PrinterIcon class="icon w-4 h-4" />
+            <PrinterIcon class="icon w-4 h-4"/>
             Print
           </button>
         </div>
@@ -45,10 +45,10 @@
             ? ''
             : 'hidden',
         ]"
-        >{{
-          typeof this.errorMsg !== "undefined" && this.errorMsg !== null
+      >{{
+          typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
             ? this.errorMsg
-            : ""
+            : ''
         }}</span
       >
     </div>
@@ -56,49 +56,49 @@
 </template>
 
 <script>
-import { DuplicateIcon, PrinterIcon } from "@heroicons/vue/solid";
+import { DuplicateIcon, PrinterIcon } from '@heroicons/vue/solid'
 
 export default {
-  name: "TextFieldButtons",
+  name: 'TextFieldButtons',
   components: {
     DuplicateIcon,
-    PrinterIcon,
+    PrinterIcon
   },
   props: {
     name: {
-      type: String,
+      type: String
     },
     id: {
-      type: String,
+      type: String
     },
     value: {
-      type: String,
+      type: String
     },
     label: {
-      type: String,
+      type: String
     },
     buttons: {
-      type: String,
+      type: String
     },
     isError: {
-      type: Boolean,
+      type: Boolean
     },
     errorMsg: {
-      type: String,
+      type: String
     },
     onClickCopy: {
-      type: Function,
+      type: Function
     },
     onClickPrint: {
-      type: Function,
-    },
+      type: Function
+    }
   },
-  data() {
+  data () {
     return {
       default: {
-        value: "",
-      },
-    };
-  },
-};
+        value: ''
+      }
+    }
+  }
+}
 </script>

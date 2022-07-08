@@ -37,7 +37,7 @@
               modelValue.selectedCurrency?.balance?.denom
             )
           }}
-          <TooltipComponent content="Content goes here " />
+          <TooltipComponent content="Content goes here "/>
         </p>
         <p class="mb-nolus-12 flex justify-end align-center mr-nolus-5">
           {{
@@ -46,7 +46,7 @@
               modelValue.outstandingLoanAmount.denom
             )
           }}
-          <TooltipComponent content="Content goes here" />
+          <TooltipComponent content="Content goes here"/>
         </p>
       </div>
     </div>
@@ -62,15 +62,15 @@
 </template>
 
 <script lang="ts">
-import CurrencyField from "@/components/CurrencyField.vue";
-import { defineComponent, PropType } from "vue";
-import { AssetBalance } from "@/store/modules/wallet/state";
-import { useStore } from "@/store";
-import { assetInfo } from "@/config/assetInfo";
-import { Coin, Int } from "@keplr-wallet/unit";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import { Asset } from "@nolus/nolusjs/build/contracts";
-import TooltipComponent from "@/components/TooltipComponent.vue";
+import CurrencyField from '@/components/CurrencyField.vue'
+import { defineComponent, PropType } from 'vue'
+import { AssetBalance } from '@/store/modules/wallet/state'
+import { useStore } from '@/store'
+import { assetInfo } from '@/config/assetInfo'
+import { Coin, Int } from '@keplr-wallet/unit'
+import { CurrencyUtils } from '@nolus/nolusjs'
+import { Asset } from '@nolus/nolusjs/build/contracts'
+import TooltipComponent from '@/components/TooltipComponent.vue'
 
 export interface RepayComponentProps {
   outstandingLoanAmount: Asset;
@@ -89,23 +89,23 @@ export interface RepayComponentProps {
 }
 
 export default defineComponent({
-  name: "RepayFormComponent",
+  name: 'RepayFormComponent',
   components: {
     CurrencyField,
-    TooltipComponent,
+    TooltipComponent
   },
   props: {
     modelValue: {
-      type: Object as PropType<RepayComponentProps>,
-    },
+      type: Object as PropType<RepayComponentProps>
+    }
   },
-  data() {
+  data () {
     return {
-      disabledInputField: true,
-    };
+      disabledInputField: true
+    }
   },
-  mounted() {
-    console.log(this.modelValue);
+  mounted () {
+    console.log(this.modelValue)
   },
   watch: {
     // 'modelValue.leaseApply' () {
@@ -114,24 +114,24 @@ export default defineComponent({
   },
   computed: {},
   methods: {
-    calculateBalance(tokenAmount: string, denom: string) {
-      console.log("amount: ", tokenAmount);
-      console.log("denom: ", denom);
-      const prices = useStore().getters.getPrices;
-      const assetInf = assetInfo[denom];
+    calculateBalance (tokenAmount: string, denom: string) {
+      console.log('amount: ', tokenAmount)
+      console.log('denom: ', denom)
+      const prices = useStore().getters.getPrices
+      const assetInf = assetInfo[denom]
       if (prices && assetInf) {
-        const coinPrice = prices[assetInf.coinDenom]?.amount || "0";
-        const tokenDecimals = assetInf.coinDecimals;
-        const coinAmount = new Coin(denom, new Int(tokenAmount || "0"));
+        const coinPrice = prices[assetInf.coinDenom]?.amount || '0'
+        const tokenDecimals = assetInf.coinDecimals
+        const coinAmount = new Coin(denom, new Int(tokenAmount || '0'))
         return CurrencyUtils.calculateBalance(
           coinPrice,
           coinAmount,
           0
-        ).toString();
+        ).toString()
       }
 
-      return "0";
-    },
-  },
-});
+      return '0'
+    }
+  }
+})
 </script>

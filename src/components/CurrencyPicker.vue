@@ -50,7 +50,7 @@
           <span
             class="ml-3 absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
           >
-            <ChevronDownIcon aria-hidden="true" class="h-5 w-5 text-gray-400" />
+            <ChevronDownIcon aria-hidden="true" class="h-5 w-5 text-gray-400"/>
           </span>
         </ListboxButton>
 
@@ -61,10 +61,10 @@
               ? ''
               : 'hidden',
           ]"
-          >{{
-            typeof this.errorMsg !== "undefined" && this.errorMsg !== null
+        >{{
+            typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
               ? this.errorMsg
-              : ""
+              : ''
           }}</span
         >
 
@@ -119,7 +119,7 @@
                     'absolute inset-y-0 right-0 flex items-center pr-4',
                   ]"
                 >
-                  <CheckIcon aria-hidden="true" class="h-5 w-5" />
+                  <CheckIcon aria-hidden="true" class="h-5 w-5"/>
                 </span>
               </li>
             </ListboxOption>
@@ -131,20 +131,14 @@
 </template>
 
 <script lang="ts">
-import {
-  Listbox,
-  ListboxButton,
-  ListboxLabel,
-  ListboxOption,
-  ListboxOptions,
-} from "@headlessui/vue";
-import { CheckIcon, ChevronDownIcon } from "@heroicons/vue/solid";
-import { defineComponent, PropType } from "vue";
-import { AssetUtils } from "@/utils/AssetUtils";
-import { AssetBalance } from "@/store/modules/wallet/state";
+import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue'
+import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/solid'
+import { defineComponent, PropType } from 'vue'
+import { AssetUtils } from '@/utils/AssetUtils'
+import { AssetBalance } from '@/store/modules/wallet/state'
 
 export default defineComponent({
-  name: "CurrencyPicker",
+  name: 'CurrencyPicker',
   components: {
     Listbox,
     ListboxButton,
@@ -152,47 +146,47 @@ export default defineComponent({
     ListboxOption,
     ListboxOptions,
     CheckIcon,
-    ChevronDownIcon,
+    ChevronDownIcon
   },
   props: {
     label: {
       type: String,
-      default: "",
+      default: ''
     },
     type: {
-      type: String,
+      type: String
     },
     options: {
-      type: Array as PropType<AssetBalance[]>,
+      type: Array as PropType<AssetBalance[]>
     },
     currencyOption: {
-      type: Object as PropType<AssetBalance>,
+      type: Object as PropType<AssetBalance>
     },
     disabled: {
-      type: Boolean,
+      type: Boolean
     },
     isError: {
-      type: Boolean,
+      type: Boolean
     },
     errorMsg: {
-      type: String,
-    },
+      type: String
+    }
   },
-  mounted() {
-    this.selected.value = this.currencyOption as AssetBalance;
+  mounted () {
+    this.selected.value = this.currencyOption as AssetBalance
   },
-  data() {
+  data () {
     return {
       selected: {
-        value: {} as AssetBalance,
-      },
-    };
+        value: {} as AssetBalance
+      }
+    }
   },
   watch: {},
   methods: {
-    getAssetInfo(denom: string) {
-      return AssetUtils.getAssetInfoByAbbr(denom);
-    },
-  },
-});
+    getAssetInfo (denom: string) {
+      return AssetUtils.getAssetInfoByAbbr(denom)
+    }
+  }
+})
 </script>
