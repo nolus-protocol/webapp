@@ -44,7 +44,7 @@
       </div>
     </div>
   </div>
-  <LeaseModal v-show="showLeaseModal" @close-modal="showLeaseModal = false" />
+  <LeaseModal v-if="showLeaseModal" @close-modal="showLeaseModal = false" />
 </template>
 
 <script lang="ts">
