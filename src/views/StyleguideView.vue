@@ -146,22 +146,7 @@
       <div class="grid grid-cols-10 grid-child">
         <div class="col-span-12">
           <div class="sidebar-header">
-            <!-- <button class="btn btn-header shadow-box mr-2">
-              <BellIcon class="icon w-4 h-4" />
-              <span class="counter">8</span>
-            </button> -->
-            <!-- <button
-              class="btn btn-header with-icon shadow-box rounded-r-none"
-              v-on:click="toggleWalletPopup"
-            >
-              <img
-                src="@/assets/icons/money-wallet.svg"
-                class="inline-block mr-2"
-              />
-              <span class="label nls-font-400 nls-12">My precious</span>
-            </button> -->
             <SidebarHeader/>
-            <!-- <WalletOpen v-show="showWalletPopup" :walletModel="walletData" /> -->
           </div>
         </div>
 
@@ -1671,7 +1656,8 @@ import HistoryView from '@/views/HistoryView.vue'
 import HomeView from '@/views/HomeView.vue'
 import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
 import SwapBuyModal from '@/components/modals/SwapBuyModal.vue'
-
+import SendingPendingComponent from '@/components/SendComponents/SendingPendingComponent.vue'
+import SidebarHeader from '@/components/Sideheader.vue'
 import SnackBar from '@/components/templates/utils/Snackbar.vue'
 
 export default defineComponent({
@@ -1690,7 +1676,8 @@ export default defineComponent({
     ConfirmEmailModal,
     RepayModal,
     HistoryView,
-    HomeView
+    HomeView,
+    SidebarHeader
   },
   data () {
     return {

@@ -1,6 +1,11 @@
 <template>
   <div id="notifications-nls">
+    <div class="nls-md-show">
+      <LogoLink link="/"></LogoLink>
+    </div>
+
     <button
+      :class="showNotifications ? 'active' : false"
       class="show-box-pop btn btn-header mr-2 c-navbar-qr__button"
       @click="this.showNotifications = !this.showNotifications"
     >
@@ -15,6 +20,7 @@
   </div>
   <div id="wallet-nls">
     <button
+      :class="showWallet ? 'active' : false"
       class="show-box-wallet btn btn-header with-icon shadow-box rounded-r-none"
       @click="this.showWallet = !this.showWallet"
     >
@@ -37,12 +43,14 @@
 import { defineComponent } from 'vue'
 import Notifications from '@/components/Notifications.vue'
 import WalletOpen from '@/components/WalletOpen.vue'
+import LogoLink from '@/components/LogoLink.vue'
 
 export default defineComponent({
   name: 'SidebarHeader',
   components: {
     Notifications,
-    WalletOpen
+    WalletOpen,
+    LogoLink
   },
   data () {
     return {
@@ -78,3 +86,12 @@ export default defineComponent({
   }
 })
 </script>
+<style scoped>
+@media (max-width: 768px) {
+  .active {
+    /* background-neutral-medium */
+    background-color: red;
+    /* background: #ebeff5;*/
+  }
+}
+</style>

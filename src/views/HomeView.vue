@@ -1,5 +1,5 @@
 <template>
-  <div v-cloak class="block w-[516px] pb-nolus-40">
+  <div v-cloak class="block lg:w-[516px] pb-nolus-40">
     <h1 class="nls-40 nls-font-700 text-primary text-center mb-nolus-32">
       {{ $t('message.connect-wallet') }}
     </h1>
@@ -9,7 +9,7 @@
       <div class="flex bg-white">
         <button class="btn btn-box btn-large-box mr-4 basis-0 grow">
           <span class="icon icon-google"/>
-          {{ $t('message.sign-with-google') }}
+          {{ $t('message.google') }}
         </button>
         <button
           class="btn btn-box btn-large-box basis-0 grow"
@@ -38,7 +38,9 @@
       </div>
 
       <div class="block separator-line nls-font-400 nls-12 text-center mt-7">
-        <span class="bg-white px-3 relative z-[2]">{{ $t('message.continue-with') }}</span>
+        <span class="bg-white px-3 relative z-[2]">{{
+            $t('message.continue-with')
+          }}</span>
       </div>
 
       <div
@@ -52,20 +54,6 @@
         </button>
       </div>
     </div>
-
-    <!--    <WithdrawSupplyModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>-->
-    <!--    <SupplyWithdrawModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>-->
-    <!-- <LeaseModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
-    <!--    <BuySwapModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>-->
-    <!-- <SwapBuyModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
-    <!-- <ReceiveQrCodeModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
-    <!--    <ReceiveSendModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>-->
-    <!-- <ConfirmSendingModalError :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
-    <!-- <ConfirmSendingModalSuccess :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
-    <!-- <ConfirmSendingModalInput :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
-    <!-- <ConfirmSendingModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
-    <!--    <SendReceiveModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/>-->
-    <!-- <ErrorModal :try-button="tryButton" v-show="showModal" @close-modal="showModal = false"/> -->
   </div>
 </template>
 
@@ -76,15 +64,7 @@ import { RouteNames } from '@/router/RouterNames'
 
 export default defineComponent({
   name: 'HomeView',
-  components: {
-    // ErrorModal,
-    // ReceiveSendModal
-    // SwapBuyModal,
-    // BuySwapModal,
-    // LeaseModal,
-    // SupplyWithdrawModal,
-    // WithdrawSupplyModal
-  },
+  components: {},
   data () {
     return {
       showModal: true

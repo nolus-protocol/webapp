@@ -79,7 +79,7 @@
     </div>
   </div>
 
-  <RepayModal v-show="showRepayModal" :lease-info="leaseInfo" @close-modal="showRepayModal = false"/>
+  <RepayModal v-if="showRepayModal" :lease-info="leaseInfo" @close-modal="showRepayModal = false"/>
 </template>
 
 <script lang="ts">

@@ -2,8 +2,8 @@
   <div class="page-container home">
     <LogoLink link="/"></LogoLink>
     <div class="container mx-auto">
-      <div class="grid grid-cols-12 gap-6 pt-24">
-        <div class="col-start-4 col-span-5">
+      <div class="flex items-center justify-center pt-24">
+        <div class="">
           <router-view/>
         </div>
       </div>

@@ -266,29 +266,28 @@ input[type="checkbox" i] {
 }
 
 .group-tooltip {
-	font-size: 10px;
-	line-height: 14px;
+  font-size: 10px;
+  line-height: 14px;
 
-	.icon-tooltip {
-		color: #8395b0;
-		margin: 0;
-		margin-left: 5px;
+  .icon-tooltip {
+    color: #8395b0;
+    margin: 0;
 
-		&::before {
-			margin: 0;
-		}
-	}
+    &::before {
+      margin: 0;
+    }
+  }
 
-	&:hover {
-		.group-hover\:flex {
-			background-color: $lightElectric;
-			box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15);
-			border-radius: 4px;
-			border-radius: 6px;
-			min-width: 196px;
-			//text-align: center;
-		}
-	}
+  &:hover {
+    .group-hover\:flex {
+      background-color: $lightElectric;
+      box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15);
+      border-radius: 4px;
+      border-radius: 6px;
+      min-width: 196px;
+      //text-align: center;
+    }
+  }
 }
 
 .sm\:col-span-12 {
@@ -500,16 +499,17 @@ input[type="checkbox" i] {
 }
 
 @media (max-width: $md) {
-	.table-header {
-		padding-right: 16px;
-		padding-left: 16px;
-	}
-	.nls-md-hidden {
-		display: none;
-	}
-	.nls-md-invisible {
-		visibility: hidden;
-	}
+  .table-header {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+  .nls-md-hidden {
+    display: none;
+  }
+  .nls-sm-title {
+    margin-top: 26px;
+    margin-bottom: 11.5px;
+  }
 }
 
 @media (max-width: $sm) {

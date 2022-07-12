@@ -18,26 +18,34 @@
       @input="(event) => (modelValue.amount = event.target.value)"
       :currency-options="modelValue.currentBalance"
       :option="modelValue.selectedCurrency"
-      @update-currency="
-            (event) => (modelValue.selectedCurrency = event)
-          "
+      @update-currency="(event) => (modelValue.selectedCurrency = event)"
       :error-msg="modelValue.amountErrorMsg"
       :is-error="modelValue.amountErrorMsg !== ''"
     />
     <div class="flex w-full">
       <div class="grow-3 text-right nls-font-500 nls-14">
-        <p class="mb-nolus-12 mt-nolus-255 mr-nolus-20">
-          Repayment Amount:
-        </p>
+        <p class="mb-nolus-12 mt-nolus-255 mr-nolus-20">Repayment Amount:</p>
         <p class="mb-nolus-12 mr-nolus-20">Outstanding Lease:</p>
       </div>
       <div class="text-right nls-font-700 nls-14">
-        <p class="mb-nolus-12 mt-nolus-255 flex justify-end align-center">
-          {{ calculateBalance(modelValue.amount, modelValue.selectedCurrency?.balance?.denom) }}
-          <TooltipComponent content="Content goes here"/>
+        <p
+          class="mb-nolus-12 mt-nolus-255 flex justify-end align-center mr-nolus-5"
+        >
+          {{
+            calculateBalance(
+              modelValue.amount,
+              modelValue.selectedCurrency?.balance?.denom
+            )
+          }}
+          <TooltipComponent content="Content goes here "/>
         </p>
-        <p class="mb-nolus-12 flex justify-end align-center">
-          {{ calculateBalance(modelValue.outstandingLoanAmount.amount, modelValue.outstandingLoanAmount.denom) }}
+        <p class="mb-nolus-12 flex justify-end align-center mr-nolus-5">
+          {{
+            calculateBalance(
+              modelValue.outstandingLoanAmount.amount,
+              modelValue.outstandingLoanAmount.denom
+            )
+          }}
           <TooltipComponent content="Content goes here"/>
         </p>
       </div>
@@ -62,11 +70,12 @@ import { assetInfo } from '@/config/assetInfo'
 import { Coin, Int } from '@keplr-wallet/unit'
 import { CurrencyUtils } from '@nolus/nolusjs'
 import { Asset } from '@nolus/nolusjs/build/contracts'
+import TooltipComponent from '@/components/TooltipComponent.vue'
 
 export interface RepayComponentProps {
-  outstandingLoanAmount: Asset,
+  outstandingLoanAmount: Asset;
   amountErrorMsg: string;
-  passwordErrorMsg: string
+  passwordErrorMsg: string;
   currentBalance: AssetBalance[];
   selectedCurrency: AssetBalance;
   amount: string;
@@ -82,7 +91,8 @@ export interface RepayComponentProps {
 export default defineComponent({
   name: 'RepayFormComponent',
   components: {
-    CurrencyField
+    CurrencyField,
+    TooltipComponent
   },
   props: {
     modelValue: {
@@ -123,6 +133,5 @@ export default defineComponent({
       return '0'
     }
   }
-
 })
 </script>

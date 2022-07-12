@@ -3,6 +3,7 @@
     "create-new-account": "Create new account",
     "connect-wallet": "Connect Wallet",
     "sign-with-google": "Sign In With Google",
+    "google": "Google",
     "continue-with": "Or continue with",
     "recover": "Recover",
     "history": "History",
@@ -57,4 +58,3 @@
     "network": "Network"
   }
 }
-

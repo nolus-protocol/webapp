@@ -11,7 +11,7 @@
       <span class="inline-block align-baseline"> Create account </span>
     </h1>
     <div
-      class="block rounded-2xl bg-white mt-8 p-10 border border-standart shadow-box max-w-[516px]"
+      class="block rounded-2xl bg-white mt-8 p-10 border border-standart shadow-box md:max-w-[516px]"
     >
       <!--   <TextFieldButtons
         name="mnemonicSeed"
@@ -75,9 +75,9 @@
       </div>
     </div>
   </div>
-  <div v-else class="max-w-[516px]">
+  <div v-else class="md:max-w-[516px]">
     <h1
-      class="text-to-big-number text-primary text-center relative max-w-[516px]"
+      class="text-to-big-number text-primary text-center relative md:max-w-[516px]"
     >
       <button
         class="inline-block align-baseline absolute left-0 top-2/4 -mt-2.5"

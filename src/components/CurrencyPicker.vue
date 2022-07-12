@@ -22,9 +22,7 @@
           this.label.length > 0
         "
       >
-        <ListboxLabel
-          class="block nls-14 nls-font-400 text-primary nls-font-400"
-        >
+        <ListboxLabel class="block nls-14 nls-font-500 text-primary">
           {{ this.label }}
         </ListboxLabel>
       </div>
@@ -35,19 +33,19 @@
           <span class="flex items-center">
             <img
               :src="
-                                        require('@/assets/icons/coins/' +
-                                          getAssetInfo(selected.value?.balance?.denom).coinIcon)
-                                      "
+                require('@/assets/icons/coins/' +
+                  getAssetInfo(selected.value?.balance?.denom).coinIcon)
+              "
               alt=""
               class="flex-shrink-0 h-6 w-6 rounded-full"
             />
-                        <span class="ml-3 block truncate">
-                          {{
-                            getAssetInfo(
-                              selected.value?.balance?.denom
-                            ).coinAbbreviation.toUpperCase()
-                          }}
-                        </span>
+            <span class="ml-3 block truncate">
+              {{
+                getAssetInfo(
+                  selected.value?.balance?.denom
+                ).coinAbbreviation.toUpperCase()
+              }}
+            </span>
           </span>
           <span
             class="ml-3 absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
@@ -107,7 +105,9 @@
                     ]"
                   >
                     {{
-                      getAssetInfo(option.balance.denom).coinAbbreviation.toUpperCase()
+                      getAssetInfo(
+                        option.balance.denom
+                      ).coinAbbreviation.toUpperCase()
                     }}
                   </span>
                 </div>

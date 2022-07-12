@@ -41,20 +41,21 @@
     <div class="flex justify-end mt-5">
       <p
         v-if="modelValue.selectedCurrency?.balance?.denom"
-        class="inline-block m-0 text-left text-primary nls-14 nls-font-400"
+        class="mb-nolus-12 mt-nolus-255 flex justify-end align-center"
       >
-        1 {{ formatAssetInfo(modelValue.selectedCurrency?.balance?.denom) }} price in
-        USD:
+        1
+        {{ formatAssetInfo(modelValue.selectedCurrency?.balance?.denom) }} price
+        in USD:
         <span class="inline-block nls-font-700 ml-5">{{ pricePerToken }}</span>
       </p>
     </div>
     <div class="text-right nls-font-700 nls-14">
       <p class="mb-nolus-12 mt-nolus-255 flex justify-end align-center">
-        Leased amount:
-        <span class="flex nls-font-700 ml-5">
+        {{ $t('message.leased-amount') }}
+        <span class="flex nls-font-700 ml-5 mr-nolus-5">
           {{ calculateLeaseAmount }}
-          <TooltipComponent content="Content goes here"/>
         </span>
+        <TooltipComponent content="Content goes here"/>
       </p>
     </div>
     <div class="text-right nls-font-700 nls-14">
@@ -62,20 +63,18 @@
         v-if="this.annualInterestRate"
         class="mb-nolus-12 mt-nolus-255 flex justify-end align-center"
       >
-        Annual interest:
-        <span class="flex nls-font-700 ml-5">
+        {{ $t('message.annual-interest') }}
+        <span class="flex nls-font-700 ml-5 mr-nolus-5">
           {{ this.annualInterestRate }}
-          <TooltipComponent content="Content goes here"/>
         </span>
+        <TooltipComponent content="Content goes here"/>
       </p>
     </div>
     <div class="text-right nls-font-700 nls-14">
       <p class="mb-nolus-12 mt-nolus-255 flex justify-end align-center">
-        Liquidation price:
-        <span class="flex nls-font-700 ml-5">
-          $18,585.00
-          <TooltipComponent content="Content goes here"/>
-        </span>
+        {{ $t('message.liquidation-price') }}
+        <span class="flex nls-font-700 ml-5 mr-nolus-5"> $18,585.00 </span>
+        <TooltipComponent content="Content goes here"/>
       </p>
     </div>
   </div>
@@ -154,7 +153,8 @@ export default defineComponent({
     },
     pricePerToken () {
       if (this.modelValue?.selectedCurrency?.balance.denom) {
-        return this.getPrice(this.modelValue?.selectedCurrency?.balance.denom).amount
+        return this.getPrice(this.modelValue?.selectedCurrency?.balance.denom)
+          .amount
       }
       return '0'
     },
