@@ -26,7 +26,7 @@
           </span>
         </div>
         <div class="inline-block w-1/2">
-          <PickerDefault
+          <Picker
             :default-option="this.assets[0]"
             :disabled="true"
             :options="this.assets"
@@ -53,7 +53,7 @@
           </span>
         </div>
         <div class="inline-block w-1/2">
-          <PickerDefault
+          <Picker
             :default-option="this.assets[0]"
             :disabled="true"
             :options="this.assets"
@@ -82,12 +82,12 @@
 <script lang="ts">
 import { ArrowDownIcon } from '@heroicons/vue/solid'
 
-import PickerDefault from '@/components/PickerDefault.vue'
+import Picker from '@/components/Picker.vue'
 
 export default {
   name: 'MultipleCurrencyField',
   components: {
-    PickerDefault,
+    Picker,
     ArrowDownIcon
   },
   props: {

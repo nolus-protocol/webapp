@@ -109,11 +109,11 @@
 </template>
 
 <script lang="ts">
+import { defineComponent, PropType } from 'vue'
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue'
 import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/solid'
-import { defineComponent, PropType } from 'vue'
 
-export interface PickerDefaultOption {
+export interface PickerOption {
   id?: string;
   label: string;
   value: string;
@@ -121,7 +121,7 @@ export interface PickerDefaultOption {
 }
 
 export default defineComponent({
-  name: 'PickerDefault',
+  name: 'Picker',
   components: {
     Listbox,
     ListboxButton,
@@ -139,10 +139,10 @@ export default defineComponent({
       type: String
     },
     defaultOption: {
-      type: Object as PropType<PickerDefaultOption>
+      type: Object as PropType<PickerOption>
     },
     options: {
-      type: Array as PropType<PickerDefaultOption[]>
+      type: Array as PropType<PickerOption[]>
     },
     isError: {
       type: Boolean
@@ -156,16 +156,16 @@ export default defineComponent({
   },
   mounted () {
     console.log('mounted picker: ', this.defaultOption)
-    this.selected = this.defaultOption as PickerDefaultOption
+    this.selected = this.defaultOption as PickerOption
   },
   watch: {
     defaultOption () {
-      this.selected = this.defaultOption as PickerDefaultOption
+      this.selected = this.defaultOption as PickerOption
     }
   },
   data () {
     return {
-      selected: {} as PickerDefaultOption
+      selected: {} as PickerOption
     }
   }
 })

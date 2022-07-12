@@ -3,7 +3,7 @@
   <div class="modal-send-receive-input-area">
     <div class="block text-left">
       <div class="block">
-        <PickerDefault
+        <Picker
           :default-option="this.assets[0]"
           :disabled="true"
           :options="this.assets"
@@ -12,7 +12,7 @@
       </div>
 
       <div class="block mt-nolus-255">
-        <PickerDefault
+        <Picker
           :default-option="this.networks[0]"
           :disabled="true"
           :options="this.networks"
@@ -67,7 +67,7 @@
 import { defineComponent, PropType } from 'vue'
 import { DuplicateIcon, QrcodeIcon } from '@heroicons/vue/solid'
 
-import PickerDefault from '@/components/PickerDefault.vue'
+import Picker from '@/components/Picker.vue'
 
 export interface ReceiveComponentProps {
   walletAddress: string;
@@ -80,7 +80,7 @@ export default defineComponent({
   components: {
     DuplicateIcon,
     QrcodeIcon,
-    PickerDefault
+    Picker
   },
   props: {
     modelValue: {
