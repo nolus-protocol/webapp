@@ -29,7 +29,7 @@
       </div>
 
       <div class="block mt-nolus-255">
-        <PickerDefault
+        <Picker
           :default-option="{ label: 'NLS', value: 'NLS' }"
           :disabled="true"
           :options="[
@@ -38,7 +38,7 @@
             { value: 'BTC', label: 'BTC' },
           ]"
           label="Network"
-        ></PickerDefault>
+        />
       </div>
 
       <div class="block mt-nolus-255">
@@ -100,7 +100,7 @@ import { StarIcon } from '@heroicons/vue/solid'
 import { CurrencyUtils } from '@nolus/nolusjs'
 
 import CurrencyField from '@/components/CurrencyField.vue'
-import PickerDefault, { PickerDefaultOption } from '@/components/PickerDefault.vue'
+import Picker, { PickerOption } from '@/components/Picker.vue'
 import InputField from '@/components/InputField.vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import PickerCombo from '@/components/PickerCombo.vue'
@@ -127,7 +127,7 @@ export default defineComponent({
   components: {
     StarIcon,
     CurrencyField,
-    PickerDefault,
+    Picker,
     InputField,
     PickerCombo
   },
@@ -139,7 +139,7 @@ export default defineComponent({
   },
   data () {
     return {
-      addressOptions: [] as PickerDefaultOption[]
+      addressOptions: [] as PickerOption[]
     }
   },
   mounted () {

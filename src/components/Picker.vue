@@ -22,7 +22,15 @@
         <ListboxButton
           class="bg-white relative w-full border border-gray-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         >
-          <span class="block truncate">{{ selected.label }}</span>
+          <span class="flex items-center">
+            <img
+              v-if="selected.icon"
+              :src="selected.icon"
+              alt=""
+              class="flex-shrink-0 h-6 w-6 rounded-full"
+            />
+            <span class="ml-3 block truncate">{{ selected.label }}</span>
+          </span>
           <span
             class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
           >
@@ -65,14 +73,22 @@
                   'cursor-default select-none relative py-2 pl-3 pr-9',
                 ]"
               >
-                <span
-                  :class="[
-                    selected ? 'font-semibold' : 'font-normal',
-                    'block truncate',
-                  ]"
-                >
-                  {{ option.label }}
-                </span>
+                <div class="flex items-center">
+                  <img
+                    v-if="option.icon"
+                    :src="option.icon"
+                    alt=""
+                    class="flex-shrink-0 h-6 w-6 rounded-full"
+                  />
+                  <span
+                    :class="[
+                      selected ? 'font-semibold' : 'font-normal',
+                      'ml-3 block truncate',
+                    ]"
+                  >
+                    {{ option.label }}
+                  </span>
+                </div>
 
                 <span
                   v-if="selected"
@@ -93,18 +109,19 @@
 </template>
 
 <script lang="ts">
+import { defineComponent, PropType } from 'vue'
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue'
 import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/solid'
-import { defineComponent, PropType } from 'vue'
 
-export interface PickerDefaultOption {
+export interface PickerOption {
   id?: string;
   label: string;
   value: string;
+  icon?: string;
 }
 
 export default defineComponent({
-  name: 'PickerDefault',
+  name: 'Picker',
   components: {
     Listbox,
     ListboxButton,
@@ -122,10 +139,10 @@ export default defineComponent({
       type: String
     },
     defaultOption: {
-      type: Object as PropType<PickerDefaultOption>
+      type: Object as PropType<PickerOption>
     },
     options: {
-      type: Array as PropType<PickerDefaultOption[]>
+      type: Array as PropType<PickerOption[]>
     },
     isError: {
       type: Boolean
@@ -139,16 +156,16 @@ export default defineComponent({
   },
   mounted () {
     console.log('mounted picker: ', this.defaultOption)
-    this.selected = this.defaultOption as PickerDefaultOption
+    this.selected = this.defaultOption as PickerOption
   },
   watch: {
     defaultOption () {
-      this.selected = this.defaultOption as PickerDefaultOption
+      this.selected = this.defaultOption as PickerOption
     }
   },
   data () {
     return {
-      selected: {} as PickerDefaultOption
+      selected: {} as PickerOption
     }
   }
 })

@@ -42,12 +42,13 @@
 </template>
 
 <script lang="ts">
-import { StarIcon } from '@heroicons/vue/solid'
-import CurrencyField from '@/components/CurrencyField.vue'
-import PickerDefault from '@/components/PickerDefault.vue'
-import InputField from '@/components/InputField.vue'
 import { defineComponent, PropType } from 'vue'
+import { StarIcon } from '@heroicons/vue/solid'
 import { CurrencyUtils } from '@nolus/nolusjs'
+
+import CurrencyField from '@/components/CurrencyField.vue'
+import Picker from '@/components/Picker.vue'
+import InputField from '@/components/InputField.vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import MultipleCurrencyField from '@/components/MultipleCurrencyField.vue'
 
@@ -72,7 +73,7 @@ export default defineComponent({
   components: {
     StarIcon,
     CurrencyField,
-    PickerDefault,
+    Picker,
     InputField,
     MultipleCurrencyField
   },
