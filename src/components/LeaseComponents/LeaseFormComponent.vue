@@ -98,7 +98,7 @@ import { LeaseApply } from '@nolus/nolusjs/build/contracts'
 import { useStore } from '@/store'
 import { StringUtils } from '@/utils/StringUtils'
 import { Price } from '@/store/modules/oracle/state'
-import { assetInfo } from '@/config/assetInfo'
+import { assetsInfo } from '@/config/assetsInfo'
 import { CurrencyUtils } from '@nolus/nolusjs'
 import { Coin } from '@keplr-wallet/unit'
 import TooltipComponent from '@/components/TooltipComponent.vue'
@@ -190,7 +190,7 @@ export default defineComponent({
     },
     formatAssetInfo (currencyDenom: string) {
       if (currencyDenom) {
-        return assetInfo[currencyDenom].coinAbbreviation
+        return assetsInfo[currencyDenom].coinAbbreviation
       }
       return ''
     }

@@ -85,7 +85,7 @@
 <script lang="ts">
 import { PropType } from 'vue'
 import { Asset } from '@nolus/nolusjs/build/contracts'
-import { assetInfo } from '@/config/assetInfo'
+import { assetsInfo } from '@/config/assetsInfo'
 import { CurrencyUtils } from '@nolus/nolusjs'
 import { Coin, Dec, Int } from '@keplr-wallet/unit'
 import { useStore } from '@/store'
@@ -108,7 +108,7 @@ export default {
   methods: {
     formatLeaseDenom (asset: Asset) {
       if (asset) {
-        const assetInf = assetInfo[asset.denom]
+        const assetInf = assetsInfo[asset.denom]
         return assetInf.coinDenom
       }
 
@@ -119,7 +119,7 @@ export default {
     },
     calculateBalance (tokenAmount: string, denom: string) {
       const prices = useStore().getters.getPrices
-      const assetInf = assetInfo[denom]
+      const assetInf = assetsInfo[denom]
       if (prices && assetInf) {
         const coinPrice = prices[assetInf.coinDenom]?.amount || '0'
         const tokenDecimals = assetInf.coinDecimals

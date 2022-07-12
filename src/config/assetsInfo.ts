@@ -1,7 +1,7 @@
-import { AssetInfo } from '@/utils/AssetUtils'
 import { ChainConstants } from '@nolus/nolusjs'
+import { AssetInfo } from '@/types/AssetInfo'
 
-export const assetInfo: { [key: string]: AssetInfo; } = {
+export const assetsInfo: { [key: string]: AssetInfo; } = {
   unolus: {
     chainName: ChainConstants.CHAIN_NAME,
     coinDenom: ChainConstants.COIN_DENOM,

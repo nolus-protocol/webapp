@@ -66,7 +66,7 @@ import CurrencyField from '@/components/CurrencyField.vue'
 import { defineComponent, PropType } from 'vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import { useStore } from '@/store'
-import { assetInfo } from '@/config/assetInfo'
+import { assetsInfo } from '@/config/assetsInfo'
 import { Coin, Int } from '@keplr-wallet/unit'
 import { CurrencyUtils } from '@nolus/nolusjs'
 import { Asset } from '@nolus/nolusjs/build/contracts'
@@ -118,7 +118,7 @@ export default defineComponent({
       console.log('amount: ', tokenAmount)
       console.log('denom: ', denom)
       const prices = useStore().getters.getPrices
-      const assetInf = assetInfo[denom]
+      const assetInf = assetsInfo[denom]
       if (prices && assetInf) {
         const coinPrice = prices[assetInf.coinDenom]?.amount || '0'
         const tokenDecimals = assetInf.coinDecimals

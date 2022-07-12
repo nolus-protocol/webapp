@@ -1269,9 +1269,9 @@
                         <!-- {{
           convertminimalDenomToDenom(
             this.assetBalance,
-            assetInfo.coinMinimalDenom,
-            assetInfo.coinDenom,
-            assetInfo.coinDecimals
+            assetsInfo.coinMinimalDenom,
+            assetsInfo.coinDenom,
+            assetsInfo.coinDecimals
           )
         }} -->200, 000 NLS
                       </div>
@@ -1656,7 +1656,6 @@ import HistoryView from '@/views/HistoryView.vue'
 import HomeView from '@/views/HomeView.vue'
 import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
 import SwapBuyModal from '@/components/modals/SwapBuyModal.vue'
-import SendingPendingComponent from '@/components/SendComponents/SendingPendingComponent.vue'
 import SidebarHeader from '@/components/Sideheader.vue'
 import SnackBar from '@/components/templates/utils/Snackbar.vue'
 

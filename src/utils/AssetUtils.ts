@@ -1,20 +1,12 @@
-import { assetInfo } from '@/config/assetInfo'
-
-export interface AssetInfo {
-  chainName: string,
-  coinDenom: string,
-  coinMinimalDenom: string,
-  coinDecimals: number,
-  coinAbbreviation: string,
-  coinIcon: string
-}
+import { assetsInfo } from '@/config/assetsInfo'
+import { AssetInfo } from '@/types/AssetInfo'
 
 export class AssetUtils {
   public static getAssetInfoByAbbr (coinAbbreviation: string): AssetInfo {
-    return this.assetInfo()[coinAbbreviation] || this.assetInfo().unolus
+    return this.assetsInfo()[coinAbbreviation] || this.assetsInfo().unolus
   }
 
-  private static assetInfo (): { [key: string]: AssetInfo; } {
-    return assetInfo
+  private static assetsInfo (): { [key: string]: AssetInfo; } {
+    return assetsInfo
   }
 }

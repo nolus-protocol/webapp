@@ -81,7 +81,7 @@ import { defineComponent, PropType } from 'vue'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { RepayComponentProps } from '@/components/RepayComponents/RepayFormComponent.vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
-import { assetInfo } from '@/config/assetInfo'
+import { assetsInfo } from '@/config/assetsInfo'
 
 export default defineComponent({
   name: 'RepayConfirmComponent',
@@ -96,7 +96,7 @@ export default defineComponent({
   },
   methods: {
     formatAmount (value: string, selectedCurrency: AssetBalance) {
-      const denom = assetInfo[selectedCurrency.balance.denom].coinDenom
+      const denom = assetsInfo[selectedCurrency.balance.denom].coinDenom
       return value + ' ' + denom
     },
     isMnemonicWallet () {

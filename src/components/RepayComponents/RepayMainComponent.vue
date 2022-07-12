@@ -17,7 +17,7 @@ import { Dec, Int } from '@keplr-wallet/unit'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { CurrencyUtils } from '@nolus/nolusjs'
-import { assetInfo } from '@/config/assetInfo'
+import { assetsInfo } from '@/config/assetsInfo'
 
 enum ScreenState {
   MAIN = 'RepayFormComponent',
@@ -139,7 +139,7 @@ export default defineComponent({
     },
     isAmountValid (): boolean {
       let isValid = true
-      const decimals = assetInfo[this.currentComponent.props.selectedCurrency.balance.denom].coinDecimals
+      const decimals = assetsInfo[this.currentComponent.props.selectedCurrency.balance.denom].coinDecimals
       const amount = this.currentComponent.props.amount
       const microAmount = CurrencyUtils.convertDenomToMinimalDenom(amount, this.currentComponent.props.selectedCurrency.balance.denom, decimals).amount.toString()
       const walletBalance = String(
