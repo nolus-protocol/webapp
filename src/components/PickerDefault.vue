@@ -22,7 +22,15 @@
         <ListboxButton
           class="bg-white relative w-full border border-gray-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         >
-          <span class="block truncate">{{ selected.label }}</span>
+          <span class="flex items-center">
+            <img
+              v-if="selected.icon"
+              :src="selected.icon"
+              alt=""
+              class="flex-shrink-0 h-6 w-6 rounded-full"
+            />
+            <span class="ml-3 block truncate">{{ selected.label }}</span>
+          </span>
           <span
             class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
           >
@@ -65,14 +73,22 @@
                   'cursor-default select-none relative py-2 pl-3 pr-9',
                 ]"
               >
-                <span
-                  :class="[
-                    selected ? 'font-semibold' : 'font-normal',
-                    'block truncate',
-                  ]"
-                >
-                  {{ option.label }}
-                </span>
+                <div class="flex items-center">
+                  <img
+                    v-if="option.icon"
+                    :src="option.icon"
+                    alt=""
+                    class="flex-shrink-0 h-6 w-6 rounded-full"
+                  />
+                  <span
+                    :class="[
+                      selected ? 'font-semibold' : 'font-normal',
+                      'ml-3 block truncate',
+                    ]"
+                  >
+                    {{ option.label }}
+                  </span>
+                </div>
 
                 <span
                   v-if="selected"
@@ -101,6 +117,7 @@ export interface PickerDefaultOption {
   id?: string;
   label: string;
   value: string;
+  icon?: string;
 }
 
 export default defineComponent({

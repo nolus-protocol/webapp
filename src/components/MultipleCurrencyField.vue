@@ -26,22 +26,12 @@
           </span>
         </div>
         <div class="inline-block w-1/2">
-          <PickerIcon
-            :default-option="{
-              value: 'NLS',
-              label: 'NLS',
-              icon: require('@/assets/icons/coins/nls.svg'),
-            }"
+          <PickerDefault
+            :default-option="this.assets[0]"
             :disabled="true"
-            :options="[
-              {
-                value: 'NLS',
-                label: 'NLS',
-                icon: require('@/assets/icons/coins/nls.svg'),
-              },
-            ]"
+            :options="this.assets"
             label="Asset"
-          ></PickerIcon>
+          />
         </div>
       </div>
       <div class="separator">
@@ -63,22 +53,12 @@
           </span>
         </div>
         <div class="inline-block w-1/2">
-          <PickerIcon
-            :default-option="{
-              value: 'NLS',
-              label: 'NLS',
-              icon: require('@/assets/icons/coins/nls.svg'),
-            }"
+          <PickerDefault
+            :default-option="this.assets[0]"
             :disabled="true"
-            :options="[
-              {
-                value: 'NLS',
-                label: 'NLS',
-                icon: require('@/assets/icons/coins/nls.svg'),
-              },
-            ]"
+            :options="this.assets"
             label="Asset"
-          ></PickerIcon>
+          />
         </div>
       </div>
     </div>
@@ -100,13 +80,14 @@
 </template>
 
 <script lang="ts">
-import PickerIcon from '@/components/PickerIcon.vue'
 import { ArrowDownIcon } from '@heroicons/vue/solid'
+
+import PickerDefault from '@/components/PickerDefault.vue'
 
 export default {
   name: 'MultipleCurrencyField',
   components: {
-    PickerIcon,
+    PickerDefault,
     ArrowDownIcon
   },
   props: {
@@ -134,6 +115,13 @@ export default {
   },
   data () {
     return {
+      assets: [
+        {
+          value: 'NLS',
+          label: 'NLS',
+          icon: require('@/assets/icons/coins/nls.svg')
+        }
+      ],
       default: {
         value: ''
       }
