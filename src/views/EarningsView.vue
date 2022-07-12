@@ -389,7 +389,7 @@
   </div>
 
   <ReceiveSendModal
-    v-show="showSendModal"
+    v-if="showSendModal"
     ref="ReceiveSendModal"
     @close-modal="showSendModal = false"
   />
