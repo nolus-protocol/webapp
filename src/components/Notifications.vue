@@ -137,23 +137,23 @@
   </div>
 </template>
 <script lang="ts">
-import PickerDefault, { PickerDefaultOption } from '@/components/PickerDefault.vue'
 import { defineComponent } from 'vue'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
+import Picker, { PickerOption } from '@/components/Picker.vue'
 import { useStore } from '@/store'
 import { ApplicationActionTypes } from '@/store/modules/application/action-types'
 
 export default defineComponent({
   name: 'Notifications',
   components: {
-    PickerDefault
+    Picker
   },
   props: ['isActive'],
   data () {
     return {
       notificationPopup: false
-      // networks: [] as PickerDefaultOption[],
-      // currentNetwork: {} as PickerDefaultOption,
+      // networks: [] as PickerOption[],
+      // currentNetwork: {} as PickerOption,
     }
   },
   mounted () {
@@ -179,8 +179,13 @@ export default defineComponent({
       //  alert("hi");
       this.notificationPopup = false
     },
+<<<<<<< HEAD
     onUpdateNetwork (value: PickerDefaultOption) {
       EnvNetworkUtils.saveCurrentNetwork(value.value)
+=======
+    onUpdateNetwork (value: PickerOption) {
+      EnvNetworks.saveCurrentNetwork(value.value)
+>>>>>>> main
       useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK)
     }
   }

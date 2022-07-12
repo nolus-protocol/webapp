@@ -85,7 +85,8 @@ import { CheckIcon, StarIcon } from '@heroicons/vue/solid'
 import { PropType } from '@vue/runtime-core'
 import type { Ref } from 'vue'
 import { ref } from 'vue'
-import { PickerDefaultOption } from './PickerDefault.vue'
+
+import { PickerOption } from './Picker.vue'
 
 export default {
   name: 'PickerCombo',
@@ -108,10 +109,10 @@ export default {
       type: String
     },
     defaultOption: {
-      type: Object as PropType<PickerDefaultOption>
+      type: Object as PropType<PickerOption>
     },
     options: {
-      type: Array as PropType<PickerDefaultOption[]>
+      type: Array as PropType<PickerOption[]>
     },
     isError: {
       type: Boolean
@@ -125,7 +126,7 @@ export default {
   },
   data () {
     return {
-      selected: {} as PickerDefaultOption,
+      selected: {} as PickerOption,
       query: ref('') as Ref<string>
     }
   },

@@ -3,31 +3,21 @@
   <div class="modal-send-receive-input-area">
     <div class="block text-left">
       <div class="block">
-        <PickerIcon
-          :default-option="{
-            value: 'NLS',
-            label: 'Nolus',
-            icon: require('@/assets/icons/coins/nls.svg'),
-          }"
+        <Picker
+          :default-option="this.assets[0]"
           :disabled="true"
-          :options="[
-            {
-              value: 'NLS',
-              label: 'Nolus',
-              icon: require('@/assets/icons/coins/nls.svg'),
-            },
-          ]"
+          :options="this.assets"
           :label="$t('message.asset')"
-        ></PickerIcon>
+        />
       </div>
 
       <div class="block mt-nolus-255">
-        <PickerDefault
-          :default-option="{ value: 'NLS', label: 'NLS' }"
+        <Picker
+          :default-option="this.networks[0]"
           :disabled="true"
           :options="this.networks"
           :label="$t('message.network')"
-        ></PickerDefault>
+        />
       </div>
 
       <div class="block mt-nolus-36">
@@ -74,10 +64,10 @@
 </template>
 
 <script lang="ts">
-import PickerIcon from '@/components/PickerIcon.vue'
-import { DuplicateIcon, QrcodeIcon } from '@heroicons/vue/solid'
-import PickerDefault from '@/components/PickerDefault.vue'
 import { defineComponent, PropType } from 'vue'
+import { DuplicateIcon, QrcodeIcon } from '@heroicons/vue/solid'
+
+import Picker from '@/components/Picker.vue'
 
 export interface ReceiveComponentProps {
   walletAddress: string;
@@ -88,10 +78,9 @@ export interface ReceiveComponentProps {
 export default defineComponent({
   name: 'ReceiveComponent',
   components: {
-    PickerIcon,
     DuplicateIcon,
     QrcodeIcon,
-    PickerDefault
+    Picker
   },
   props: {
     modelValue: {
@@ -100,6 +89,13 @@ export default defineComponent({
   },
   data () {
     return {
+      assets: [
+        {
+          value: 'NLS',
+          label: 'NLS',
+          icon: require('@/assets/icons/coins/nls.svg')
+        }
+      ],
       networks: [
         {
           value: 'NLS',

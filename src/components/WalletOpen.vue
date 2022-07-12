@@ -22,7 +22,7 @@
       class="box-open-body bg-white p-4 lg:p-6 border-b border-standart text-left"
     >
       <div class="block">
-        <PickerDefault
+        <Picker
           :default-option="{ label: 'English', value: 'en' }"
           :disabled="true"
           :options="[{ value: 'en', label: 'English' }]"
@@ -31,7 +31,7 @@
       </div>
 
       <div class="block mt-3">
-        <PickerDefault
+        <Picker
           :default-option="{ label: 'USD', value: 'USD' }"
           :disabled="true"
           :options="[
@@ -43,7 +43,7 @@
       </div>
 
       <div class="block mt-3">
-        <PickerDefault
+        <Picker
           :default-option="this.currentNetwork"
           :options="this.networks"
           label="Network"
@@ -67,9 +67,9 @@
   </div>
 </template>
 <script lang="ts">
-import PickerDefault, { PickerDefaultOption } from '@/components/PickerDefault.vue'
 import { defineComponent } from 'vue'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
+import Picker, { PickerOption } from '@/components/Picker.vue'
 import { StringUtils } from '@/utils/StringUtils'
 import { useStore } from '@/store'
 import { ApplicationActionTypes } from '@/store/modules/application/action-types'
@@ -81,15 +81,15 @@ import { WalletUtils } from '@/utils/WalletUtils'
 export default defineComponent({
   name: 'WalletOpen',
   components: {
-    PickerDefault
+    Picker
   },
 
   props: [],
   data () {
     return {
       showWallet: false,
-      networks: [] as PickerDefaultOption[],
-      currentNetwork: {} as PickerDefaultOption
+      networks: [] as PickerOption[],
+      currentNetwork: {} as PickerOption
     }
   },
 
@@ -113,7 +113,7 @@ export default defineComponent({
       // alert("j");
       this.showWallet = false
     },
-    onUpdateNetwork (value: PickerDefaultOption) {
+    onUpdateNetwork (value: PickerOption) {
       console.log('loggg')
       EnvNetworkUtils.saveCurrentNetwork(value.value)
       if (WalletUtils.isConnectedViaExtension()) {
