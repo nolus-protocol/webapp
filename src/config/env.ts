@@ -1,12 +1,4 @@
-export interface NetworkAddress {
-  'tendermintRpc': string,
-  'api': string
-}
-
-export interface NetworkConfig {
-  networkName: string,
-  networkAddresses: NetworkAddress
-}
+import { NetworkAddress } from '@/types/NetworkAddress'
 
 export const DEFAULT_PRIMARY_NETWORK = 'devnet'
 

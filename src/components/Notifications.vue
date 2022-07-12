@@ -139,7 +139,7 @@
 <script lang="ts">
 import PickerDefault, { PickerDefaultOption } from '@/components/PickerDefault.vue'
 import { defineComponent } from 'vue'
-import { EnvNetworks } from '@/config/envNetworks'
+import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 import { useStore } from '@/store'
 import { ApplicationActionTypes } from '@/store/modules/application/action-types'
 
@@ -157,7 +157,7 @@ export default defineComponent({
     }
   },
   mounted () {
-    const envNetwork = new EnvNetworks()
+    const envNetwork = new EnvNetworkUtils()
     // envNetwork.getEnvNetworks().forEach((network) => {
     //   (this.walletModel || {}).defaultOptions.push({
     //     label: StringUtils.capitalize(network),
@@ -180,7 +180,7 @@ export default defineComponent({
       this.notificationPopup = false
     },
     onUpdateNetwork (value: PickerDefaultOption) {
-      EnvNetworks.saveCurrentNetwork(value.value)
+      EnvNetworkUtils.saveCurrentNetwork(value.value)
       useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK)
     }
   }
