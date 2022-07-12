@@ -139,15 +139,9 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
-import Picker, { PickerOption } from '@/components/Picker.vue'
-import { useStore } from '@/store'
-import { ApplicationActionTypes } from '@/store/modules/application/action-types'
 
 export default defineComponent({
   name: 'Notifications',
-  components: {
-    Picker
-  },
   props: ['isActive'],
   data () {
     return {
@@ -178,15 +172,6 @@ export default defineComponent({
     handleFocusOut () {
       //  alert("hi");
       this.notificationPopup = false
-    },
-<<<<<<< HEAD
-    onUpdateNetwork (value: PickerDefaultOption) {
-      EnvNetworkUtils.saveCurrentNetwork(value.value)
-=======
-    onUpdateNetwork (value: PickerOption) {
-      EnvNetworks.saveCurrentNetwork(value.value)
->>>>>>> main
-      useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK)
     }
   }
 })
