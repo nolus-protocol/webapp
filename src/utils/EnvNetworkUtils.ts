@@ -1,6 +1,7 @@
-import { DEFAULT_PRIMARY_NETWORK, NetworkAddress, NETWORKS } from './env'
+import { DEFAULT_PRIMARY_NETWORK, NETWORKS } from '../config/env'
+import { NetworkAddress } from '@/types/NetworkAddress'
 
-export class EnvNetworks {
+export class EnvNetworkUtils {
   public static saveCurrentNetwork (networkName: string) {
     localStorage.setItem('currentNetwork', networkName)
   }
@@ -20,7 +21,7 @@ export class EnvNetworks {
 
   public loadNetworkConfig (): NetworkAddress | null {
     if (!this.getStoredNetworkName() || !NETWORKS[this.getStoredNetworkName() as string]) {
-      EnvNetworks.saveCurrentNetwork(DEFAULT_PRIMARY_NETWORK)
+      EnvNetworkUtils.saveCurrentNetwork(DEFAULT_PRIMARY_NETWORK)
       return NETWORKS[DEFAULT_PRIMARY_NETWORK]
     }
 

@@ -15,7 +15,7 @@ import { fromHex, toHex } from '@cosmjs/encoding'
 import OpenLogin from '@toruslabs/openlogin'
 import { Getters } from '@/store/modules/wallet/getters'
 import { DeliverTxResponse, IndexedTx, StdFee } from '@cosmjs/stargate'
-import { EnvNetworks } from '@/config/envNetworks'
+import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 import { EncryptionUtils } from '@/utils/EncryptionUtils'
 import { RouteNames } from '@/router/RouterNames'
 import { CONTRACTS } from '@/config/contracts'
@@ -125,7 +125,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
       let chainId = ''
       try {
         chainId = await NolusClient.getInstance().getChainId()
-        const envNetwork = new EnvNetworks()
+        const envNetwork = new EnvNetworkUtils()
         const networkConfig = envNetwork.loadNetworkConfig()
 
         await keplrWindow.keplr?.experimentalSuggestChain(KeplrEmbedChainInfo(envNetwork.getStoredNetworkName() || '', chainId, networkConfig?.tendermintRpc as string, networkConfig?.api as string))

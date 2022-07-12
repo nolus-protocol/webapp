@@ -5,12 +5,13 @@ import { State } from './state'
 import { Mutations } from './mutations'
 import { Getters } from '@/store/modules/wallet/getters'
 import { ApplicationActionTypes } from '@/store/modules/application/action-types'
-import { EnvNetworks } from '@/config/envNetworks'
+import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 import { ApplicationMutationTypes } from '@/store/modules/application/mutation-types'
-import { DEFAULT_PRIMARY_NETWORK, NetworkConfig } from '@/config/env'
+import { DEFAULT_PRIMARY_NETWORK } from '@/config/env'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { NolusClient } from '@nolus/nolusjs/build'
 import { WalletUtils } from '@/utils/WalletUtils'
+import { NetworkConfig } from '@/types/NetworkConfig'
 
 type AugmentedActionContext = {
   commit<K extends keyof Mutations> (
@@ -35,7 +36,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
     commit,
     dispatch
   }) {
-    const envNetworks = new EnvNetworks()
+    const envNetworks = new EnvNetworkUtils()
     const loadedNetworkConfig = envNetworks.loadNetworkConfig()
     if (!loadedNetworkConfig) {
       throw new Error('Please select different network')

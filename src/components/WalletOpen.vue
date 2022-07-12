@@ -68,9 +68,8 @@
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue'
-
+import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 import Picker, { PickerOption } from '@/components/Picker.vue'
-import { EnvNetworks } from '@/config/envNetworks'
 import { StringUtils } from '@/utils/StringUtils'
 import { useStore } from '@/store'
 import { ApplicationActionTypes } from '@/store/modules/application/action-types'
@@ -95,7 +94,7 @@ export default defineComponent({
   },
 
   mounted () {
-    const envNetwork = new EnvNetworks()
+    const envNetwork = new EnvNetworkUtils()
     envNetwork.getEnvNetworks().forEach((network) => {
       this.networks.push({
         label: StringUtils.capitalize(network),
@@ -116,7 +115,7 @@ export default defineComponent({
     },
     onUpdateNetwork (value: PickerOption) {
       console.log('loggg')
-      EnvNetworks.saveCurrentNetwork(value.value)
+      EnvNetworkUtils.saveCurrentNetwork(value.value)
       if (WalletUtils.isConnectedViaExtension()) {
         useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK)
       }
