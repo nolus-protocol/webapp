@@ -78,7 +78,7 @@ import { CurrencyUtils } from '@nolus/nolusjs'
 import InputField from '@/components/InputField.vue'
 import { SendComponentProps } from '@/components/SendComponents/SendComponent.vue'
 import { WalletUtils } from '@/utils/WalletUtils'
-import { assetInfo } from '@/config/assetInfo'
+import { assetsInfo } from '@/config/assetsInfo'
 
 export default defineComponent({
   name: 'SendingConfirmComponent',
@@ -95,7 +95,11 @@ export default defineComponent({
     formatAmount (value: string) {
       const selectedCurrency = this.modelValue?.selectedCurrency
       if (selectedCurrency) {
-        const {coinDenom, coinMinimalDenom, coinDecimals} = assetInfo[selectedCurrency.balance.denom]
+        const {
+          coinDenom,
+          coinMinimalDenom,
+          coinDecimals
+        } = assetsInfo[selectedCurrency.balance.denom]
         const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(value, coinMinimalDenom, coinDecimals)
         return CurrencyUtils.convertMinimalDenomToDenom(minimalDenom.amount.toString(), coinMinimalDenom, coinDenom, coinDecimals)
       }

@@ -73,10 +73,10 @@ import Picker, { PickerOption } from '@/components/Picker.vue'
 import { StringUtils } from '@/utils/StringUtils'
 import { useStore } from '@/store'
 import { ApplicationActionTypes } from '@/store/modules/application/action-types'
-import { WalletManager } from '@/config/wallet'
 import router from '@/router'
 import { RouteNames } from '@/router/RouterNames'
 import { WalletUtils } from '@/utils/WalletUtils'
+import { WalletManager } from '@/wallet/WalletManager'
 
 export default defineComponent({
   name: 'WalletOpen',

@@ -17,7 +17,7 @@ import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import { WalletUtils } from '@/utils/WalletUtils'
-import { assetInfo } from '@/config/assetInfo'
+import { assetsInfo } from '@/config/assetsInfo'
 
 enum ScreenState {
   MAIN = 'SendComponent',
@@ -178,7 +178,10 @@ export default defineComponent({
 
       this.currentComponent.props.amountErrorMsg = ''
       const selectedCurrency = this.currentComponent.props.selectedCurrency
-      const {coinMinimalDenom, coinDecimals} = assetInfo[selectedCurrency.balance.denom]
+      const {
+        coinMinimalDenom,
+        coinDecimals
+      } = assetsInfo[selectedCurrency.balance.denom]
       const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, coinMinimalDenom, coinDecimals)
       const walletBalance = String(
         selectedCurrency?.balance.amount || 0
@@ -218,7 +221,10 @@ export default defineComponent({
         }
 
         const selectedCurrency = this.currentComponent.props.selectedCurrency
-        const {coinMinimalDenom, coinDecimals} = assetInfo[selectedCurrency.balance.denom]
+        const {
+          coinMinimalDenom,
+          coinDecimals
+        } = assetsInfo[selectedCurrency.balance.denom]
         const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(this.currentComponent.props.amount, coinMinimalDenom, coinDecimals)
         const txResponse = await useStore().dispatch(
           WalletActionTypes.TRANSFER_TOKENS,

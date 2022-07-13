@@ -104,7 +104,7 @@ import Picker, { PickerOption } from '@/components/Picker.vue'
 import InputField from '@/components/InputField.vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import PickerCombo from '@/components/PickerCombo.vue'
-import { assetInfo } from '@/config/assetInfo'
+import { assetsInfo } from '@/config/assetsInfo'
 
 export interface SendComponentProps {
   receiverErrorMsg: string;
@@ -175,7 +175,7 @@ export default defineComponent({
   methods: {
     formatCurrentBalance (selectedCurrency: AssetBalance) {
       if (selectedCurrency) {
-        const asset = assetInfo[selectedCurrency.balance.denom]
+        const asset = assetsInfo[selectedCurrency.balance.denom]
         return CurrencyUtils.convertMinimalDenomToDenom(
           selectedCurrency.balance.amount.toString(), selectedCurrency.balance.denom, asset.coinDenom, asset.coinDecimals
         ).toString()

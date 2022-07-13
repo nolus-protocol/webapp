@@ -4,11 +4,11 @@
 
 <script lang="ts">
 import { ComponentPublicInstance } from 'vue'
-import { WalletManager } from '@/config/wallet'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { ApplicationActionTypes } from '@/store/modules/application/action-types'
 import { OracleActionTypes } from '@/store/modules/oracle/action-types'
+import { WalletManager } from '@/wallet/WalletManager'
 
 export default {
   name: 'App',
@@ -35,6 +35,6 @@ export default {
   },
   data () {
     return {}
-  },
+  }
 }
 </script>

@@ -14,7 +14,7 @@ import { Coin, Dec, Int } from '@keplr-wallet/unit'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { CurrencyUtils } from '@nolus/nolusjs'
-import { assetInfo } from '@/config/assetInfo'
+import { assetsInfo } from '@/config/assetsInfo'
 import LeaseFailedComponent from '@/components/LeaseComponents/LeaseFailedComponent.vue'
 import LeaseSuccessComponent from '@/components/LeaseComponents/LeaseSuccessComponent.vue'
 import LeaseConfirmComponent from '@/components/LeaseComponents/LeaseConfirmComponent.vue'
@@ -189,7 +189,7 @@ export default defineComponent({
       const currentBalance = this.getCurrentBalanceByDenom(selectedDownPaymentDenom)
 
       if (downPaymentAmount || downPaymentAmount !== '') {
-        const decimals = assetInfo[currentBalance.balance.denom].coinDecimals
+        const decimals = assetsInfo[currentBalance.balance.denom].coinDecimals
         this.currentComponent.props.downPaymentErrorMsg = ''
         const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
           downPaymentAmount,

@@ -6,7 +6,7 @@ import { Mutations } from './mutations'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { Window as KeplrWindow } from '@keplr-wallet/types/build/window'
-import KeplrEmbedChainInfo, { IBCAssets, WalletConnectMechanism, WalletManager } from '@/config/wallet'
+import KeplrEmbedChainInfo from '@/config/keplr'
 import router from '@/router'
 import { WalletMutationTypes } from '@/store/modules/wallet/mutation-types'
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
@@ -26,6 +26,9 @@ import { CurrencyUtils } from '@nolus/nolusjs/build/utils/CurrencyUtils'
 import { LedgerSigner } from '@cosmjs/ledger-amino'
 import { openLeaseMsg, repayLeaseMsg } from '@nolus/nolusjs/build/contracts'
 import { ExecuteResult } from '@cosmjs/cosmwasm-stargate'
+import { IbcAssets, supportedCurrencies } from '@/config/currencies'
+import { WalletConnectMechanism } from '@/types/WalletConnectMechanism'
+import { WalletManager } from '@/wallet/WalletManager'
 
 type AugmentedActionContext = {
   commit<K extends keyof Mutations> (
@@ -272,23 +275,17 @@ export const actions: ActionTree<State, RootState> & Actions = {
     }
 
     const ibcBalances = [] as AssetBalance[]
-    const nolusBalance = await NolusClient.getInstance()
-      .getBalance(walletAddress,
-        ChainConstants.COIN_MINIMAL_DENOM)
-    ibcBalances.push({
-      balance: CurrencyUtils.convertCosmosCoinToKeplCoin(nolusBalance)
-    })
+    for (const currency of supportedCurrencies) {
+      const balance = await NolusClient.getInstance()
+        .getBalance(walletAddress,
+          currency)
+      ibcBalances.push({
+        balance: CurrencyUtils.convertCosmosCoinToKeplCoin(balance)
+      })
+    }
 
-    const uusdcBalance = await NolusClient.getInstance()
-      .getBalance(walletAddress,
-        'uusdc')
-
-    ibcBalances.push({
-      balance: CurrencyUtils.convertCosmosCoinToKeplCoin(uusdcBalance)
-    })
-
-    for (const asset of IBCAssets) {
-      const ibcDenom = AssetUtils.makeIBCMinimalDenom(asset.sourceChannelId, asset.coinMinimalDenom)
+    for (const ibcAsset of IbcAssets) {
+      const ibcDenom = AssetUtils.makeIBCMinimalDenom(ibcAsset.sourceChannelId, ibcAsset.coinMinimalDenom)
       const balance = await NolusClient.getInstance()
         .getBalance(walletAddress,
           ibcDenom)
@@ -297,6 +294,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
         balance: CurrencyUtils.convertCosmosCoinToKeplCoin(balance)
       })
     }
+
     commit(WalletMutationTypes.UPDATE_BALANCES, { balances: ibcBalances })
   },
   async [WalletActionTypes.SEARCH_TX] ({

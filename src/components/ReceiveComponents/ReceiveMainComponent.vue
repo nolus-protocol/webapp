@@ -9,7 +9,7 @@ import ReceiveQrCodeComponent, {
   ReceiveQrCodeComponentProps
 } from '@/components/ReceiveComponents/ReceiveQrCodeComponent.vue'
 import { StringUtils } from '@/utils/StringUtils'
-import { WalletManager } from '@/config/wallet'
+import { WalletManager } from '@/wallet/WalletManager'
 
 enum ScreenState {
   MAIN = 'ReceiveComponent',
