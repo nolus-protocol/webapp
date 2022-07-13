@@ -36,15 +36,14 @@ export const actions: ActionTree<State, RootState> & Actions = {
     commit,
     dispatch
   }) {
-    const envNetworks = new EnvNetworkUtils()
-    const loadedNetworkConfig = envNetworks.loadNetworkConfig()
+    const loadedNetworkConfig = EnvNetworkUtils.loadNetworkConfig()
     if (!loadedNetworkConfig) {
       throw new Error('Please select different network')
     }
     NolusClient.setInstance(loadedNetworkConfig.tendermintRpc)
     commit(ApplicationMutationTypes.APP_NETWORK, {
       network: {
-        networkName: envNetworks.getStoredNetworkName() || DEFAULT_PRIMARY_NETWORK,
+        networkName: EnvNetworkUtils.getStoredNetworkName() || DEFAULT_PRIMARY_NETWORK,
         networkAddresses: loadedNetworkConfig
       } as NetworkConfig
     })

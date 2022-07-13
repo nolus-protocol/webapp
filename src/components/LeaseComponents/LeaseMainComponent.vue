@@ -18,6 +18,7 @@ import { assetsInfo } from '@/config/assetsInfo'
 import LeaseFailedComponent from '@/components/LeaseComponents/LeaseFailedComponent.vue'
 import LeaseSuccessComponent from '@/components/LeaseComponents/LeaseSuccessComponent.vue'
 import LeaseConfirmComponent from '@/components/LeaseComponents/LeaseConfirmComponent.vue'
+import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 
 enum ScreenState {
   MAIN = 'LeaseFormComponent',
@@ -56,8 +57,6 @@ export default defineComponent({
       is: ScreenState.MAIN,
       props: this.initProps()
     }
-    // default down payment currency. TODO Change when unolus is ready!
-
     console.log('balances lease: ', balances)
     if (balances) {
       this.currentComponent.props.currentBalance = balances
@@ -91,7 +90,7 @@ export default defineComponent({
         if (this.isDownPaymentAmountValid()) {
           if (this.leaseContract) {
             const makeLeaseApplyResp = await this.leaseContract.makeLeaseApply(
-              CONTRACTS.leaser.instance,
+              CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance,
               this.currentComponent.props.downPayment,
               this.currentComponent.props.selectedDownPaymentCurrency.balance.denom
             )
@@ -109,7 +108,7 @@ export default defineComponent({
   methods: {
     initProps () {
       return {
-        contractAddress: CONTRACTS.leaser.instance,
+        contractAddress: CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance,
         currentBalance: [] as AssetBalance[],
         selectedDownPaymentCurrency: {
           balance: new Coin(

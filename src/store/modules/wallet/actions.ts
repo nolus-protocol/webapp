@@ -128,10 +128,9 @@ export const actions: ActionTree<State, RootState> & Actions = {
       let chainId = ''
       try {
         chainId = await NolusClient.getInstance().getChainId()
-        const envNetwork = new EnvNetworkUtils()
-        const networkConfig = envNetwork.loadNetworkConfig()
+        const networkConfig = EnvNetworkUtils.loadNetworkConfig()
 
-        await keplrWindow.keplr?.experimentalSuggestChain(KeplrEmbedChainInfo(envNetwork.getStoredNetworkName() || '', chainId, networkConfig?.tendermintRpc as string, networkConfig?.api as string))
+        await keplrWindow.keplr?.experimentalSuggestChain(KeplrEmbedChainInfo(EnvNetworkUtils.getStoredNetworkName(), chainId, networkConfig?.tendermintRpc as string, networkConfig?.api as string))
       } catch (e) {
         throw new Error('Failed to fetch suggest chain.')
       }
@@ -339,7 +338,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
     funds?: Coin[]
   }): Promise<ExecuteResult> {
     const wallet = getters.getNolusWallet as NolusWallet
-    const result = await wallet.executeContract(CONTRACTS.leaser.instance, openLeaseMsg(payload.denom), payload.fee, undefined, payload.funds)
+    const result = await wallet.executeContract(CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance, openLeaseMsg(payload.denom), payload.fee, undefined, payload.funds)
     return result
   },
   async [WalletActionTypes.REPAY_LEASE] ({
