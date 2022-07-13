@@ -71,7 +71,15 @@
               v-on:click="pushToHistory"
             />
           </div>
-
+          <div class="block nls-nav-link nls-md-hidden">
+            <SidebarElement
+              id="governance"
+              label="Govern"
+              href="https://wallet.keplr.app/#/dashboard"
+              target="_blank"
+            >
+            </SidebarElement>
+          </div>
           <div class="block nls-nav-link nls-md-show">
             <SidebarElement
               id="more"
