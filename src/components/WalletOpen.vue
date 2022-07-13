@@ -94,17 +94,16 @@ export default defineComponent({
   },
 
   mounted () {
-    const envNetwork = new EnvNetworkUtils()
-    envNetwork.getEnvNetworks().forEach((network) => {
+    EnvNetworkUtils.getEnvNetworks().forEach((network) => {
       this.networks.push({
         label: StringUtils.capitalize(network),
         value: network
       })
     })
-    console.log('curr: ', envNetwork.getStoredNetworkName())
+    console.log('curr: ', EnvNetworkUtils.getStoredNetworkName())
     this.currentNetwork = {
-      label: StringUtils.capitalize(envNetwork.getStoredNetworkName() || ''),
-      value: envNetwork.getStoredNetworkName() || ''
+      label: StringUtils.capitalize(EnvNetworkUtils.getStoredNetworkName() || ''),
+      value: EnvNetworkUtils.getStoredNetworkName() || ''
     }
   },
 

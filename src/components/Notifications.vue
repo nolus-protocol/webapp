@@ -14,10 +14,7 @@
         <div
           class="left w-full md:w-1/2 px-nolus-16 py-nolus-12 nls-font-500 nls-18"
         >
-          <!--                <div class="loader">-->
-          <!--                  <div class="loader__element"></div>-->
-          <!--                </div>-->
-          <p class="text nls-font-700 nls-18 m-0">Notifications</p>
+          <p class="text nls-font-700 nls-18 m-0">{{ $t('message.notifications') }}</p>
         </div>
         <div
           class="right w-full md:w-1/2 mt-nolus-255 md:mt-0 inline-flex justify-start md:justify-end"
@@ -27,7 +24,7 @@
               <p
                 class="text nls-font-500 nls-12 color-light-blue cursor-pointer"
               >
-                Clear All
+                {{ $t('message.clear-all') }}
               </p>
             </div>
           </div>
@@ -138,7 +135,6 @@
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 
 export default defineComponent({
   name: 'Notifications',
@@ -146,24 +142,9 @@ export default defineComponent({
   data () {
     return {
       notificationPopup: false
-      // networks: [] as PickerOption[],
-      // currentNetwork: {} as PickerOption,
     }
   },
   mounted () {
-    const envNetwork = new EnvNetworkUtils()
-    // envNetwork.getEnvNetworks().forEach((network) => {
-    //   (this.walletModel || {}).defaultOptions.push({
-    //     label: StringUtils.capitalize(network),
-    //     value: network,
-    //   });
-    // });
-    console.log('curr: ', envNetwork.getStoredNetworkName())
-    // (this.walletModel || {}).defaultOption = {
-    //   label: StringUtils.capitalize(envNetwork.getStoredNetworkName() || ""),
-    //   value: envNetwork.getStoredNetworkName() || "",
-    // };
-    // console.log((this.walletModel || {}).defaultOption);
   },
   methods: {
     togglePopup () {

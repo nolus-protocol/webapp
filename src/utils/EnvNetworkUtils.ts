@@ -10,7 +10,7 @@ export class EnvNetworkUtils {
     localStorage.removeItem('currentNetwork')
   }
 
-  public getEnvNetworks (): string[] {
+  public static getEnvNetworks (): string[] {
     const envNetworks = process.env.VUE_APP_NETWORKS
     if (envNetworks) {
       return envNetworks.split(' ')
@@ -19,7 +19,7 @@ export class EnvNetworkUtils {
     return []
   }
 
-  public loadNetworkConfig (): NetworkAddress | null {
+  public static loadNetworkConfig (): NetworkAddress | null {
     if (!this.getStoredNetworkName() || !NETWORKS[this.getStoredNetworkName() as string]) {
       EnvNetworkUtils.saveCurrentNetwork(DEFAULT_PRIMARY_NETWORK)
       return NETWORKS[DEFAULT_PRIMARY_NETWORK]
@@ -28,7 +28,7 @@ export class EnvNetworkUtils {
     return NETWORKS[this.getStoredNetworkName() as string]
   }
 
-  public getStoredNetworkName (): string | null {
-    return localStorage.getItem('currentNetwork')
+  public static getStoredNetworkName (): string {
+    return localStorage.getItem('currentNetwork') || DEFAULT_PRIMARY_NETWORK
   }
 }

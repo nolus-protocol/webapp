@@ -55,6 +55,8 @@
     "receive": "Receive",
     "wallet-address": "Wallet address:",
     "scan-code": "Scan code",
-    "network": "Network"
+    "network": "Network",
+    "clear-all": "Clear All",
+    "notifications": "Notifications"
   }
 }
