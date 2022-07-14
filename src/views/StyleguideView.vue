@@ -144,11 +144,17 @@
     </div>
     <div class="lg:col-span-9 pb-8">
       <div class="grid grid-cols-10 grid-child">
+<<<<<<< HEAD
         <div class="col-span-12">
           <div class="sidebar-header">
             <SidebarHeader/>
           </div>
         </div>
+=======
+         <div class="sidebar-header">
+              <SidebarHeader/>
+            </div>
+>>>>>>> 6cf3224 (remove sidebar unused components)
 
         <!-- TYPOGRAPHY & COLORS -->
         <div id="typography_and_colors" class="col-span-12">
@@ -1646,8 +1652,14 @@ import { BellIcon } from '@heroicons/vue/solid'
 import LogoLink from '@/components/LogoLink.vue'
 
 import SidebarElement from '@/components/SidebarElement.vue'
+<<<<<<< HEAD
 import SidebarSocialElement from '@/components/SidebarSocialElement.vue'
 import SidebarLinkElement from '@/components/SidebarLinkElement.vue'
+=======
+import WalletOpen from '@/components/WalletOpen.vue'
+import AssetPartial from '@/components/AssetPartial.vue'
+import Notifications from '@/components/Notifications.vue'
+>>>>>>> 6cf3224 (remove sidebar unused components)
 import SupplyWithdrawModal from '@/components/modals/SupplyWithdrawModal.vue'
 import ErrorModal from '@/components/modals/ErrorModal.vue'
 import ConfirmEmailModal from '@/components/modals/ConfirmEmailModal.vue'
@@ -1656,7 +1668,12 @@ import HistoryView from '@/views/HistoryView.vue'
 import HomeView from '@/views/HomeView.vue'
 import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
 import SwapBuyModal from '@/components/modals/SwapBuyModal.vue'
+<<<<<<< HEAD
 import SidebarHeader from '@/components/Sideheader.vue'
+=======
+import SendingPendingComponent from '@/components/SendComponents/SendingPendingComponent.vue'
+import SidebarHeader from "@/components/Sideheader.vue";
+>>>>>>> 6cf3224 (remove sidebar unused components)
 import SnackBar from '@/components/templates/utils/Snackbar.vue'
 
 export default defineComponent({
@@ -1665,8 +1682,13 @@ export default defineComponent({
     BellIcon,
     LogoLink,
     SidebarElement,
+<<<<<<< HEAD
     SidebarSocialElement,
     SidebarLinkElement,
+=======
+    WalletOpen,
+    AssetPartial,
+>>>>>>> 6cf3224 (remove sidebar unused components)
     SnackBar,
     ReceiveSendModal,
     SwapBuyModal,
