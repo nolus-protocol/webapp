@@ -9,11 +9,13 @@
       >
         <ArrowLeftIcon aria-hidden="true" class="h-5 w-5"/>
       </button>
-      <CheckIcon v-if="step===3" class="h-14 w-14 radius-circle p-2 success-icon"/>
-      <XIcon v-if="step===4" class="h-14 w-14 radius-circle p-2 error-icon"/>
-      <h1 class="nls-font-700 nls-32 text-center text-primary">
-        Confirm sending
-      </h1>
+      <div class="flex flex-col justify-center items-center">
+        <CheckIcon v-if="step===3" class="h-14 w-14 radius-circle p-2 success-icon mb-2"/>
+        <XIcon v-if="step===4" class="h-14 w-14 radius-circle p-2 error-icon mb-2"/>
+        <h1 class="nls-font-700 nls-32 text-center text-primary">
+          {{ title }}
+        </h1>
+      </div>
     </div>
   </div>
 
@@ -30,9 +32,7 @@
       ></InputField>
     </div>
 
-    <div
-      class="block bg-light-grey radius-rounded p-4 text-left break-words mt-nolus-255"
-    >
+    <div class="block bg-light-grey radius-rounded p-4 text-left break-words mt-nolus-255">
       <div class="block">
         <p class="nls-14 nls-font-400 text-primary m-0">Send to:</p>
         <p class="nls-14 text-primary nls-font-700 m-0">
@@ -50,7 +50,11 @@
       <div class="block mt-3">
         <p class="nls-14 nls-font-400 text-primary m-0">Amount:</p>
         <p class="nls-14 text-primary nls-font-700 m-0">
+          <<<<<<< HEAD
           {{ formatAmount(modelValue.amount) }}
+          =======
+          {{ formatAmount(modelValue.amount) }}
+          >>>>>>> 4fd8da4 (fix success and error ui)
         </p>
       </div>
 
@@ -64,22 +68,17 @@
   <!-- Actions -->
   <div class="modal-send-receive-actions">
     <button
-
       class="btn btn-primary btn-large-primary"
-      v-on:click="modelValue.onSendClick"
-    >
-      Send
+      v-on:click="modelValue.onSendClick">
+      {{ btnContent }}
     </button>
-
   </div>
-  <!-- {{this.$parent.$options.name}} -->
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue'
-import { ArrowLeftIcon } from '@heroicons/vue/solid'
+import { ArrowLeftIcon, CheckIcon } from '@heroicons/vue/solid'
 import { CurrencyUtils } from '@nolus/nolusjs'
-
 import InputField from '@/components/InputField.vue'
 import { SendComponentProps } from '@/components/SendComponents/SendComponent.vue'
 import { WalletUtils } from '@/utils/WalletUtils'
@@ -94,7 +93,8 @@ export default defineComponent({
   name: 'ConfirmComponent',
   components: {
     ArrowLeftIcon,
-    InputField
+    InputField,
+    CheckIcon
   },
   props: {
     modelValue: {
@@ -112,6 +112,7 @@ export default defineComponent({
     }
   },
   mounted () {
+    this.$emit('defaultState', true)
     this.parentComponentName = ParentComponent.SEND || ParentComponent.REPAY
   },
   computed: {
@@ -134,6 +135,7 @@ export default defineComponent({
           coinMinimalDenom,
           coinDecimals
         } = assetsInfo[selectedCurrency.balance.denom]
+
         const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(value, coinMinimalDenom, coinDecimals)
         return CurrencyUtils.convertMinimalDenomToDenom(minimalDenom.amount.toString(), coinMinimalDenom, coinDenom, coinDecimals)
       }

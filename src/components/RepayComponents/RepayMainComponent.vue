@@ -113,7 +113,6 @@ export default defineComponent({
       } as RepayComponentProps
     },
     async onNextClick () {
-      this.$emit('defaultState', true)
       if (this.isAmountValid()) {
         this.currentComponent.is = ScreenState.CONFIRM
         this.step = 2;

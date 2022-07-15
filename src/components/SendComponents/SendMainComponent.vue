@@ -42,6 +42,7 @@ export default defineComponent({
     modelValue: {
       type: Object as PropType<SendMainComponentProps>
     }
+
   },
   mounted () {
     this.currentComponent = {
@@ -56,7 +57,8 @@ export default defineComponent({
   },
   data () {
     return {
-      currentComponent: {} as SendMainComponentData
+      currentComponent: {} as SendMainComponentData,
+      step: 1
     }
   },
   watch: {
@@ -104,6 +106,7 @@ export default defineComponent({
     },
     onNextClick () {
       this.currentComponent.is = ScreenState.CONFIRM
+      this.step = 3
       this.$emit('defaultState', true)
       this.isAmountFieldValid()
       this.isReceiverAddressValid()
