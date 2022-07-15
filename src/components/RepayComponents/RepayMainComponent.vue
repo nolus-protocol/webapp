@@ -71,6 +71,7 @@ export default defineComponent({
 
     if (balances) {
       this.currentComponent.props.currentBalance = balances
+      this.currentComponent.props.selectedCurrency = balances[0]
     }
   },
   data () {
@@ -84,6 +85,10 @@ export default defineComponent({
     '$store.state.wallet.balances' (balances: AssetBalance[]) {
       if (balances) {
         this.currentComponent.props.currentBalance = balances
+
+        if (!this.currentComponent.props.selectedCurrency) {
+          this.currentComponent.props.selectedCurrency = balances[0]
+        }
       }
     },
     async 'currentComponent.props.amount' () {
