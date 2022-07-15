@@ -54,7 +54,7 @@ export default defineComponent({
   emits: ['defaultState'],
   methods: {
     onScanClick () {
-      this.$emit('defaultState', true)
+      this.$emit('defaultState', false)
       console.log('scannnn')
       this.currentComponent = {
         is: ScreenState.SCAN,
@@ -66,10 +66,10 @@ export default defineComponent({
       }
     },
     onCopyClick () {
-      this.$emit('defaultState', false)
       StringUtils.copyToClipboard(this.currentComponent.props.walletAddress)
     },
     onBackClick () {
+       this.$emit('defaultState', true)
       this.currentComponent = {
         is: ScreenState.MAIN,
         props: {

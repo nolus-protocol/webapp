@@ -1602,6 +1602,7 @@
           v-if="showSwapModal"
           @close-modal="showSwapModal = false"/>
 
+<<<<<<< HEAD
         <SupplyWithdrawModal
           v-show="showSupplyWithdrawModal"
 
@@ -1609,10 +1610,17 @@
         />
         <LeaseModal v-show="showLeaseModal" @close-modal="showLeaseModal = false"/>
         <RepayMainComponent v-if="showRepayModal" @close-modal="showRepayModal = false"/>
+=======
+          <Dialog
+            :titles="['Supply', 'Withdraw']"
+            v-show="showSupplyWithdrawModal"
+            @close-modal="showSupplyWithdrawModal = false"/>
 
-        <ErrorModal
-          v-show="showErrorModal"
-          @close-modal="showErrorModal = false"
+        <LeaseModal v-show="showLeaseModal" @close-modal="showLeaseModal = false" />
+        <RepayMainComponent v-show="showRepayModal" @close-modal="showRepayModal = false" />
+>>>>>>> 37830a3 (supply witdraw optimization)
+
+        <ErrorModal v-show="showErrorModal" @close-modal="showErrorModal = false"
         />
         <ConfirmEmailModal
           v-show="showConfirmEmailModal"
@@ -1644,7 +1652,13 @@ import { BellIcon } from '@heroicons/vue/solid'
 import LogoLink from '@/components/LogoLink.vue'
 
 import SidebarElement from '@/components/SidebarElement.vue'
+<<<<<<< HEAD
 import SupplyWithdrawModal from '@/components/modals/SupplyWithdrawModal.vue'
+=======
+import WalletOpen from '@/components/WalletOpen.vue'
+import AssetPartial from '@/components/AssetPartial.vue'
+import Notifications from '@/components/Notifications.vue'
+>>>>>>> 37830a3 (supply witdraw optimization)
 import ErrorModal from '@/components/modals/ErrorModal.vue'
 import ConfirmEmailModal from '@/components/modals/ConfirmEmailModal.vue'
 import RepayModal from '@/components/modals/RepayModal.vue'
@@ -1664,9 +1678,13 @@ export default defineComponent({
     LogoLink,
     SidebarElement,
     SnackBar,
+<<<<<<< HEAD
     ReceiveSendModal,
     SwapBuyModal,
     SupplyWithdrawModal,
+=======
+    Notifications,
+>>>>>>> 37830a3 (supply witdraw optimization)
     ErrorModal,
     ConfirmEmailModal,
     RepayModal,

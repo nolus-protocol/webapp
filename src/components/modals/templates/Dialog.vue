@@ -39,6 +39,8 @@ import { defineComponent } from 'vue'
 import ReceiveMainComponent from '@/components/ReceiveComponents/ReceiveMainComponent.vue'
 import SwapMainComponent from '@/components/modals/SwapMainComponent.vue'
 import BuyMainComponent from '@/components/modals/BuyMainComponent.vue'
+import SupplyMainComponent from '@/components/modals/SupplyMainComponent.vue'
+import WithdrawMainComponent from '@/components/modals/WithdrawMainComponent.vue'
 
 interface ReceiveSendModalData {
   is: string;
@@ -51,7 +53,9 @@ export default defineComponent({
     SendMainComponent,
     ReceiveMainComponent,
     SwapMainComponent,
-    BuyMainComponent
+    BuyMainComponent,
+    SupplyMainComponent,
+    WithdrawMainComponent
   },
   props: ['titles'],
   data () {
@@ -88,6 +92,7 @@ export default defineComponent({
       this.$emit('close-modal')
     }
   }
+
 })
 
 </script>

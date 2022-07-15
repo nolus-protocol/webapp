@@ -1,13 +1,13 @@
 <template>
   <div class="modal-send-receive-input-area">
     <div
-      class="block mb-nolus-13 bg-light-grey nls-balance radius-light text-left text-primary">
+      class="flex py-3 px-4 bg-light-grey radius-light text-left nls-14 nls-font-400 text-primary">
       <span class="nls-14 nls-font-500"> Current balance:</span>
-      <a class="nls-14 nls-font-700 underline ml-2" href="#">
+      <a class="text-secondary  nls-14 nls-font-700 underline ml-2" href="#">
         {{ formatCurrentBalance(modelValue.currentBalance) || ' 125 NLS' }}
       </a>
     </div>
-    <div class="block text-left">
+    <div class="block text-left  mt-nolus-16">
       <CurrencyField id="amountSupply" label="Amount" name="amountSupply"/>
         <WarningBox isWarning="true" class="mt-nolus-255">
         <template v-slot:icon>
@@ -51,8 +51,8 @@ import CurrencyField from '@/components/CurrencyField.vue'
 import { defineComponent, PropType } from 'vue'
 import { CurrencyUtils } from '@nolus/nolusjs'
 import { AssetBalance } from '@/store/modules/wallet/state'
-import { SupplyComponentProps } from './SupplyComponent.vue'
 import WarningBox from '@/components/modals/templates/WarningBox.vue';
+import { SupplyComponentProps } from './SupplyMainComponent.vue'
 
 export default defineComponent({
   name: 'SwapComponent',
