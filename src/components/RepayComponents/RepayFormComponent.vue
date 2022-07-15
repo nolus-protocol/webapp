@@ -70,7 +70,11 @@ import { assetsInfo } from '@/config/assetsInfo'
 import { Coin, Int } from '@keplr-wallet/unit'
 import { CurrencyUtils } from '@nolus/nolusjs'
 import { Asset } from '@nolus/nolusjs/build/contracts'
+<<<<<<< HEAD
 import TooltipComponent from '@/components/TooltipComponent.vue'
+=======
+import TooltipComponent from '@/components/TooltipComponent.vue';
+>>>>>>> 5a08ed0 (reduce last steps by multistep modal forms)
 
 export interface RepayComponentProps {
   outstandingLoanAmount: Asset;
@@ -107,12 +111,7 @@ export default defineComponent({
   mounted () {
     console.log(this.modelValue)
   },
-  watch: {
-    // 'modelValue.leaseApply' () {
-    //   this.disabledInputField = !this.modelValue?.leaseApply
-    // }
-  },
-  computed: {},
+
   methods: {
     calculateBalance (tokenAmount: string, denom: string) {
       console.log('amount: ', tokenAmount)

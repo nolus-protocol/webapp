@@ -1,9 +1,26 @@
 .box {
+  .icon:before {
+    margin-left: 0;
+    margin-right: 10px;
+    font-size: 1.4em;
+  }
   &-warning {
     background-color: $bgYellow;
-
+    .icon {
+      color: $darkYellow;
+    }
     & > div:first-of-type {
       min-width: 24px;
     }
   }
+  &-error {
+    background-color: $warnError;
+    .icon {
+      color: $darkRed;
+    }
+    & > div:first-of-type {
+      min-width: 24px;
+    }
+  }
+
 }

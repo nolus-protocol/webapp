@@ -1,16 +1,16 @@
 <template>
   <!-- Input Area -->
   <div class="modal-send-receive-input-area">
-  <WarningBox>
-  <template v-slot:icon>
-    <img class="block mx-auto my-0 w-5 h-5" src="@/assets/icons/info.svg"/>
-  </template>
-  <template v-slot:content>
-      Send only <span class="nls-font-700">WBTC</span> to this deposit
-      address. Ensure the network is
-      <span class="nls-font-700">Ethereum (ERC20)</span>
-  </template>
-  </WarningBox>
+    <WarningBox :isWarning="true">
+      <template v-slot:icon>
+       <i class="icon icon-tooltip"></i>
+      </template>
+      <template v-slot:content>
+          Send only <span class="nls-font-700">WBTC</span> to this deposit
+          address. Ensure the network is
+          <span class="nls-font-700">Ethereum (ERC20)</span>
+      </template>
+    </WarningBox>
     <div class="block text-left">
       <MultipleCurrencyField
         id="multiple-currency-field-example"
@@ -87,26 +87,6 @@ export default defineComponent({
     modelValue: {
       type: Object as PropType<SendComponentProps>
     }
-  },
-  data () {
-    return {
-      //  formDataModel: [] as DynamicFormProps[],
-    }
-  },
-  mounted () {
-    // this.formDataModel = [
-    //   {
-    //     formFields: [
-    //       {
-    //         fieldType: "multipleCurrencyField",
-    //         inputType: "number",
-    //         className: "block currency-field-container",
-    //         label: "",
-    //         nameSecondary: "secondary",
-    //       },
-    //     ],
-    //   },
-    // ];
   },
   methods: {
     formatCurrentBalance (value: AssetBalance[]) {

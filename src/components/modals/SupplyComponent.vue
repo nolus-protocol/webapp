@@ -27,7 +27,6 @@
     </div>
 
     <div class="block text-left mt-nolus-16">
-      <!-- <DynamicForm :formValue="formDataModel" /> -->
       <CurrencyField id="amountSupply" label="Amount" name="amountSupply"/>
     </div>
   </div>
@@ -83,39 +82,6 @@ export default defineComponent({
     modelValue: {
       type: Object as PropType<SupplyComponentProps>
     }
-  },
-  data () {
-    return {
-      // formDataModel: [] as DynamicFormProps[],
-    }
-  },
-  mounted () {
-    // this.formDataModel = [
-    //   {
-    //     formFields: [
-    //       {
-    //         fieldType: "currencyField",
-    //         pickerType: "small",
-    //         className: "block currency-field-container",
-    //         label: "Amount",
-    //         options: [
-    //           {
-    //             value: "NLS",
-    //             label: "NLS",
-    //           },
-    //           {
-    //             value: "ETH",
-    //             label: "ETH",
-    //           },
-    //           {
-    //             value: "BTC",
-    //             label: "BTC",
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // ];
   },
   methods: {
     formatCurrentBalance (value: AssetBalance[]) {

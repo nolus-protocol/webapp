@@ -51,13 +51,6 @@ export default defineComponent({
       currentComponent: {} as ReceiveMainComponentData
     }
   },
-  watch: {
-    // '$store.state.wallet' (wallet: NolusWallet) {
-    //   if (wallet) {
-    //     this.currentComponent.props.walletAddress = wallet.address as string
-    //   }
-    // }
-  },
   emits: ['defaultState'],
   methods: {
     onScanClick () {

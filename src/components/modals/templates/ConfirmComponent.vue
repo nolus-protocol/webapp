@@ -9,6 +9,8 @@
       >
         <ArrowLeftIcon aria-hidden="true" class="h-5 w-5"/>
       </button>
+      <CheckIcon v-if="step===3" class="h-14 w-14 radius-circle p-2 success-icon"/>
+      <XIcon v-if="step===4" class="h-14 w-14 radius-circle p-2 error-icon"/>
       <h1 class="nls-font-700 nls-32 text-center text-primary">
         Confirm sending
       </h1>
@@ -62,12 +64,15 @@
   <!-- Actions -->
   <div class="modal-send-receive-actions">
     <button
+
       class="btn btn-primary btn-large-primary"
       v-on:click="modelValue.onSendClick"
     >
       Send
     </button>
+
   </div>
+  <!-- {{this.$parent.$options.name}} -->
 </template>
 
 <script lang="ts">
@@ -80,8 +85,13 @@ import { SendComponentProps } from '@/components/SendComponents/SendComponent.vu
 import { WalletUtils } from '@/utils/WalletUtils'
 import { assetsInfo } from '@/config/assetsInfo'
 
+enum ParentComponent {
+  SEND = 'SendMainComponent',
+  REPAY = 'RepayMainComponent'
+}
+
 export default defineComponent({
-  name: 'SendingConfirmComponent',
+  name: 'ConfirmComponent',
   components: {
     ArrowLeftIcon,
     InputField
@@ -89,6 +99,30 @@ export default defineComponent({
   props: {
     modelValue: {
       type: Object as PropType<SendComponentProps>
+    },
+    step: {
+      type: Number
+    }
+  },
+  data () {
+    return {
+      title: 'Confirm sending',
+      btnContent: 'Send',
+      parentComponentName: ''
+    }
+  },
+  mounted () {
+    this.parentComponentName = ParentComponent.SEND || ParentComponent.REPAY
+  },
+  computed: {
+    getStep () {
+      return this.step
+    }
+  },
+  watch: {
+    'step' () {
+      this.title = this.step === 2 ? 'Confirm Sending' : (this.step === 3 ? 'Sending successful' : 'Error')
+      this.btnContent = this.step === 2 ? 'Send' : 'Ok'
     }
   },
   methods: {
