@@ -49,7 +49,7 @@
         </template>
         <template v-slot:content>
           Send only <span class="nls-font-700">NOLUS</span> to this deposit
-            address.
+          address.
         </template>
       </WarningBox>
 
@@ -75,13 +75,9 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue'
-<<<<<<< HEAD
 import { DuplicateIcon, QrcodeIcon } from '@heroicons/vue/solid'
-
 import Picker from '@/components/Picker.vue'
-=======
-import WarningBox from '@/components/modals/templates/WarningBox.vue';
->>>>>>> ff90454 (warning box refactoring)
+import WarningBox from '@/components/modals/templates/WarningBox.vue'
 
 export interface ReceiveComponentProps {
   walletAddress: string;
@@ -94,12 +90,8 @@ export default defineComponent({
   components: {
     DuplicateIcon,
     QrcodeIcon,
-<<<<<<< HEAD
-    Picker
-=======
-    PickerDefault,
+    Picker,
     WarningBox
->>>>>>> ff90454 (warning box refactoring)
   },
   props: {
     modelValue: {
