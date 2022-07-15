@@ -144,10 +144,8 @@
     </div>
     <div class="lg:col-span-9 pb-8">
       <div class="grid grid-cols-10 grid-child">
-        <div class="col-span-12">
-          <div class="sidebar-header">
-            <SidebarHeader/>
-          </div>
+        <div class="sidebar-header">
+          <SidebarHeader/>
         </div>
 
         <!-- TYPOGRAPHY & COLORS -->
@@ -1646,8 +1644,6 @@ import { BellIcon } from '@heroicons/vue/solid'
 import LogoLink from '@/components/LogoLink.vue'
 
 import SidebarElement from '@/components/SidebarElement.vue'
-import SidebarSocialElement from '@/components/SidebarSocialElement.vue'
-import SidebarLinkElement from '@/components/SidebarLinkElement.vue'
 import SupplyWithdrawModal from '@/components/modals/SupplyWithdrawModal.vue'
 import ErrorModal from '@/components/modals/ErrorModal.vue'
 import ConfirmEmailModal from '@/components/modals/ConfirmEmailModal.vue'
@@ -1665,8 +1661,6 @@ export default defineComponent({
     BellIcon,
     LogoLink,
     SidebarElement,
-    SidebarSocialElement,
-    SidebarLinkElement,
     SnackBar,
     ReceiveSendModal,
     SwapBuyModal,

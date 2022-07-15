@@ -43,7 +43,17 @@
         </div>
       </div>
 
-      <div
+      <WarningBox class="mt-nolus-255">
+        <template v-slot:icon>
+          <img class="block mx-auto my-0 w-5 h-5" src="@/assets/icons/info.svg"/>
+        </template>
+        <template v-slot:content>
+          Send only <span class="nls-font-700">NOLUS</span> to this deposit
+          address.
+        </template>
+      </WarningBox>
+
+      <!-- <div
         class="flex items-center box box-warning radius-rounded p-4 mt-nolus-255 text-left break-words"
       >
         <div class="inline-block mr-2">
@@ -58,7 +68,7 @@
             address.
           </p>
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
@@ -66,8 +76,8 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue'
 import { DuplicateIcon, QrcodeIcon } from '@heroicons/vue/solid'
-
 import Picker from '@/components/Picker.vue'
+import WarningBox from '@/components/modals/templates/WarningBox.vue'
 
 export interface ReceiveComponentProps {
   walletAddress: string;
@@ -80,7 +90,8 @@ export default defineComponent({
   components: {
     DuplicateIcon,
     QrcodeIcon,
-    Picker
+    Picker,
+    WarningBox
   },
   props: {
     modelValue: {

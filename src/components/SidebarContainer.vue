@@ -2,7 +2,6 @@
   <div :class="showMobileNav ? 'mobile-nav' : false" class="sidebar-container">
     <div class="top">
       <LogoLink link="/"></LogoLink>
-
       <div
         class="sidebar-elements-container nls-nav-more flex flex-col mt-nolus-55"
       >
@@ -71,7 +70,15 @@
               v-on:click="pushToHistory"
             />
           </div>
-
+          <div class="block nls-nav-link nls-md-hidden">
+            <SidebarElement
+              id="governance"
+              label="Govern"
+              href="https://wallet.keplr.app/#/dashboard"
+              target="_blank"
+            >
+            </SidebarElement>
+          </div>
           <div class="block nls-nav-link nls-md-show">
             <SidebarElement
               id="more"
@@ -92,14 +99,13 @@
         </div>
       </div>
     </div>
-    <SidebarSocial/>
+
     <div class="backdrop"></div>
   </div>
 </template>
 <script type="ts">
 import LogoLink from '@/components/LogoLink.vue'
 import SidebarElement from '@/components/SidebarElement.vue'
-import SidebarSocial from '@/components/SidebarSocial.vue'
 import {
   DISCORD_ACCOUNT,
   LINKEDIN_ACCOUNT,
@@ -114,8 +120,7 @@ export default {
   name: 'SidebarContainer',
   components: {
     LogoLink,
-    SidebarElement,
-    SidebarSocial
+    SidebarElement
   },
   props: [],
   data () {
@@ -124,7 +129,6 @@ export default {
       showWalletPopup: false,
       TWITTER_ACCOUNT: TWITTER_ACCOUNT,
       TELEGRAM_ACCOUNT: TELEGRAM_ACCOUNT,
-      // MEDIUM_ACCOUNT: rou,
       REDDIT_ACCOUNT: REDDIT_ACCOUNT,
       LINKEDIN_ACCOUNT: LINKEDIN_ACCOUNT,
       DISCORD_ACCOUNT: DISCORD_ACCOUNT,

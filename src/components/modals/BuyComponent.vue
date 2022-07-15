@@ -1,20 +1,16 @@
 <template>
   <!-- Input Area -->
   <div class="modal-send-receive-input-area">
-    <div
-      class="flex items-center box box-warning radius-rounded p-4 mb-nolus-24 text-left break-words"
-    >
-      <div class="inline-block mr-2">
-        <img class="block mx-auto my-0 w-5 h-5" src="@/assets/icons/info.svg"/>
-      </div>
-      <div class="block box box-warning grow-1">
-        <p class="text-left nls-14 nls-font-400">
-          Send only <span class="nls-font-700">WBTC</span> to this deposit
-          address. Ensure the network is
-          <span class="nls-font-700">Ethereum (ERC20)</span>
-        </p>
-      </div>
-    </div>
+  <WarningBox>
+  <template v-slot:icon>
+    <img class="block mx-auto my-0 w-5 h-5" src="@/assets/icons/info.svg"/>
+  </template>
+  <template v-slot:content>
+      Send only <span class="nls-font-700">WBTC</span> to this deposit
+      address. Ensure the network is
+      <span class="nls-font-700">Ethereum (ERC20)</span>
+  </template>
+  </WarningBox>
     <div class="block text-left">
       <MultipleCurrencyField
         id="multiple-currency-field-example"
@@ -58,6 +54,7 @@ import InputField from '@/components/InputField.vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import TooltipComponent from '@/components/TooltipComponent.vue'
 import MultipleCurrencyField from '@/components/MultipleCurrencyField.vue'
+import WarningBox from '@/components/modals/templates/WarningBox.vue';
 
 export interface SendComponentProps {
   receiverErrorMsg: string;
@@ -83,7 +80,8 @@ export default defineComponent({
     Picker,
     InputField,
     TooltipComponent,
-    MultipleCurrencyField
+    MultipleCurrencyField,
+    WarningBox
   },
   props: {
     modelValue: {
