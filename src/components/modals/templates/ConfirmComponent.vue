@@ -112,7 +112,7 @@ export default defineComponent({
     }
   },
   mounted () {
-    this.$emit('defaultState', true)
+    this.$emit('defaultState', false)
     this.parentComponentName = ParentComponent.SEND || ParentComponent.REPAY
   },
   computed: {

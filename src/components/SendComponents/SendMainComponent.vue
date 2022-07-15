@@ -105,9 +105,14 @@ export default defineComponent({
       } as SendComponentProps
     },
     onNextClick () {
+<<<<<<< HEAD
       this.currentComponent.is = ScreenState.CONFIRM
       this.step = 3
       this.$emit('defaultState', true)
+=======
+      this.currentComponent.is = ScreenState.CONFIRM;
+      this.step = 3;
+>>>>>>> e97b039 (remove modal tabs after first step)
       this.isAmountFieldValid()
       this.isReceiverAddressValid()
       if (
