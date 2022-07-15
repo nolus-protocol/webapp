@@ -25,7 +25,7 @@
             @input="$emit('update:value', $event.target.value)"
           />
           <span class="block nls-14 nls-font-400 text-light-blue">
-            $1,000
+            {{this.calculateInputBalance()}}
           </span>
         </div>
         <div class="inline-block w-1/2">
@@ -57,9 +57,14 @@
 </template>
 
 <script lang="ts">
+import { defineComponent, PropType } from 'vue'
+import { Coin, Int } from '@keplr-wallet/unit'
+import { CurrencyUtils } from '@nolus/nolusjs'
+
 import CurrencyPicker from '@/components/CurrencyPicker.vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
-import { defineComponent, PropType } from 'vue'
+import { assetsInfo } from '@/config/assetsInfo'
+import { useStore } from '@/store'
 
 export default defineComponent({
   name: 'CurrencyField',
@@ -107,6 +112,22 @@ export default defineComponent({
   methods: {
     onUpdateCurrency (value: AssetBalance) {
       this.$emit('update-currency', value)
+    },
+    calculateInputBalance () {
+      const prices = useStore().state.oracle.prices
+
+      if (!this.value || !this.option || !prices) {
+        return '$0'
+      }
+
+      const denom = this.option.balance.denom
+      const { coinDecimals, coinDenom, coinMinimalDenom } = assetsInfo[denom]
+
+      const { amount } = CurrencyUtils.convertDenomToMinimalDenom(this.value, coinMinimalDenom, coinDecimals)
+      const coin = new Coin(denom, new Int(String(amount)))
+      const tokenPrice = prices[coinDenom]?.amount || '0'
+
+      return CurrencyUtils.calculateBalance(tokenPrice, coin, coinDecimals)
     }
   }
 })
