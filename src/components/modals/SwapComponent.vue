@@ -9,14 +9,11 @@
         {{ formatCurrentBalance(modelValue.currentBalance) || ' 125 ETH' }}
       </a>
     </div>
-
     <div class="block text-left">
-      <!-- <DynamicForm :formValue="formDataModel" /> -->
       <MultipleCurrencyField
         id="multiple-currency-field-example"
         label="Multiple Currency Field Example"
-        name="multiple-currency-field-example"
-      ></MultipleCurrencyField>
+        name="multiple-currency-field-example" />
       <div class="flex w-full mt-nolus-255">
         <div class="grow-3 text-right nls-font-500 nls-14">
           <p class="mb-nolus-12 mr-nolus-20 mt-nollus-255">Minimum received:</p>
@@ -34,8 +31,7 @@
   <div class="modal-send-receive-actions">
     <button
       class="btn btn-primary btn-large-primary text-center"
-      v-on:click="modelValue.onNextClick"
-    >
+      v-on:click="modelValue.onNextClick">
       Swap ETH for BTC
     </button>
   </div>
@@ -81,21 +77,6 @@ export default defineComponent({
     modelValue: {
       type: Object as PropType<SwapComponentProps>
     }
-  },
-  mounted () {
-    // this.formDataModel = [
-    //   {
-    //     formFields: [
-    //       {
-    //         fieldType: "multipleCurrencyField",
-    //         inputType: "number",
-    //         className: "block currency-field-container",
-    //         label: "",
-    //         nameSecondary: "secondary",
-    //       },
-    //     ],
-    //   },
-    // ];
   },
   methods: {
     formatCurrentBalance (value: AssetBalance[]) {

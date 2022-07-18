@@ -57,21 +57,9 @@ const routes: Array<RouteRecordRaw> = [
         path: 'create-account',
         name: RouteNames.CREATE_ACCOUNT,
         component: CreateAccountView
-        // children: [
-        //   {
-        //     path: 'confirm-mnemonic',
-        //     name: 'ConfirmMnemonicView',
-        //     component: ConfirmMnemonicView
-        //   }
-        // ]
       }
     ]
   },
-  // {
-  //   path: '/welcome',
-  //   name: 'welcome',
-  //   component: WelcomeView
-  // },
   {
     path: '/styleguide',
     name: 'styleguide',

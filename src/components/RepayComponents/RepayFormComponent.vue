@@ -107,12 +107,7 @@ export default defineComponent({
   mounted () {
     console.log(this.modelValue)
   },
-  watch: {
-    // 'modelValue.leaseApply' () {
-    //   this.disabledInputField = !this.modelValue?.leaseApply
-    // }
-  },
-  computed: {},
+
   methods: {
     calculateBalance (tokenAmount: string, denom: string) {
       console.log('amount: ', tokenAmount)

@@ -51,17 +51,10 @@ export default defineComponent({
       currentComponent: {} as ReceiveMainComponentData
     }
   },
-  watch: {
-    // '$store.state.wallet' (wallet: NolusWallet) {
-    //   if (wallet) {
-    //     this.currentComponent.props.walletAddress = wallet.address as string
-    //   }
-    // }
-  },
   emits: ['defaultState'],
   methods: {
     onScanClick () {
-      this.$emit('defaultState', true)
+      this.$emit('defaultState', false)
       console.log('scannnn')
       this.currentComponent = {
         is: ScreenState.SCAN,
@@ -73,10 +66,10 @@ export default defineComponent({
       }
     },
     onCopyClick () {
-      this.$emit('defaultState', false)
       StringUtils.copyToClipboard(this.currentComponent.props.walletAddress)
     },
     onBackClick () {
+       this.$emit('defaultState', true)
       this.currentComponent = {
         is: ScreenState.MAIN,
         props: {

@@ -9,10 +9,8 @@ import { Dec, Int } from '@keplr-wallet/unit'
 import { CurrencyUtils } from '@nolus/nolusjs'
 import { Bech32 } from '@cosmjs/encoding'
 
-import SendingConfirmComponent from '@/components/SendComponents/SendingConfirmComponent.vue'
+import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
 import SendComponent, { SendComponentProps } from '@/components/SendComponents/SendComponent.vue'
-import SendingSuccessComponent from '@/components/SendComponents/SendingSuccessComponent.vue'
-import SendingFailedComponent from '@/components/SendComponents/SendingFailedComponent.vue'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { AssetBalance } from '@/store/modules/wallet/state'
@@ -21,9 +19,7 @@ import { assetsInfo } from '@/config/assetsInfo'
 
 enum ScreenState {
   MAIN = 'SendComponent',
-  CONFIRM = 'SendingConfirmComponent',
-  SUCCESS = 'SendingSuccessComponent',
-  FAILED = 'SendingFailedComponent',
+  CONFIRM = 'ConfirmComponent'
 }
 
 interface SendMainComponentData {
@@ -40,14 +36,13 @@ export default defineComponent({
   components: {
     StarIcon,
     SendComponent,
-    SendingConfirmComponent,
-    SendingSuccessComponent,
-    SendingFailedComponent
+    ConfirmComponent
   },
   props: {
     modelValue: {
       type: Object as PropType<SendMainComponentProps>
     }
+
   },
   mounted () {
     this.currentComponent = {
@@ -62,7 +57,8 @@ export default defineComponent({
   },
   data () {
     return {
-      currentComponent: {} as SendMainComponentData
+      currentComponent: {} as SendMainComponentData,
+      step: 1
     }
   },
   watch: {
@@ -76,7 +72,7 @@ export default defineComponent({
       }
     },
     'currentComponent.props.memo' () {
-      console.log('memo:', this.currentComponent.props.memo)
+      // console.log('memo:', this.currentComponent.props.memo)
     },
     'currentComponent.props.receiverAddress' () {
       if (this.currentComponent.props.receiverAddress) {
@@ -86,7 +82,6 @@ export default defineComponent({
     'currentComponent.props.amount' () {
       if (this.currentComponent.props.amount) {
         this.isAmountFieldValid()
-        console.log('amount:', this.currentComponent.props.amount)
       }
     }
   },
@@ -110,7 +105,7 @@ export default defineComponent({
       } as SendComponentProps
     },
     onNextClick () {
-      this.$emit('defaultState', true)
+      this.step = 3
       this.isAmountFieldValid()
       this.isReceiverAddressValid()
       if (
@@ -136,7 +131,7 @@ export default defineComponent({
           this.transferAmount()
         }
       } else {
-        this.transferAmount()
+        this.onClickOkBtn()
       }
     },
     onConfirmBackClick () {
@@ -240,9 +235,7 @@ export default defineComponent({
           }
         )
         if (txResponse) {
-          console.log('txResponse: ', txResponse)
-          this.currentComponent.is =
-            txResponse.code === 0 ? ScreenState.SUCCESS : ScreenState.FAILED
+          txResponse.code === 0 ? this.step = 3 : this.step = 4
           this.currentComponent.props.txHash = txResponse.transactionHash
         }
       }

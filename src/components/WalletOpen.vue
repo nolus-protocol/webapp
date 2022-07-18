@@ -109,7 +109,6 @@ export default defineComponent({
 
   methods: {
     handleFocusOut () {
-      // alert("j");
       this.showWallet = false
     },
     onUpdateNetwork (value: PickerOption) {

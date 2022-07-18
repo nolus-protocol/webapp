@@ -49,33 +49,34 @@
         <span class="inline-block nls-font-700 ml-5">{{ pricePerToken }}</span>
       </p>
     </div>
-    <div class="text-right nls-font-700 nls-14">
-      <p class="mb-nolus-12 mt-nolus-255 flex justify-end align-center">
-        {{ $t('message.leased-amount') }}
-        <span class="flex nls-font-700 ml-5 mr-nolus-5">
+    <div class="flex w-full">
+      <div class="grow-3 text-right nls-font-500 nls-14">
+        <p class="mb-nolus-12 mt-nolus-255 mr-nolus-20">
+          {{ $t('message.leased-amount') }}
+        </p>
+        <p v-if="this.annualInterestRate" class="mb-nolus-12 mr-nolus-20"> {{ $t('message.annual-interest') }}</p>
+        <p class="mb-nolus-12 mt-nolus-255 mr-nolus-20">
+          {{ $t('message.liquidation-price') }}
+        </p>
+      </div>
+      <div class="text-right nls-font-700 nls-14">
+        <p class="mb-nolus-12 mt-nolus-255 flex justify-end align-center">
           {{ calculateLeaseAmount }}
-        </span>
-        <TooltipComponent content="Content goes here"/>
-      </p>
-    </div>
-    <div class="text-right nls-font-700 nls-14">
-      <p
-        v-if="this.annualInterestRate"
-        class="mb-nolus-12 mt-nolus-255 flex justify-end align-center"
-      >
-        {{ $t('message.annual-interest') }}
-        <span class="flex nls-font-700 ml-5 mr-nolus-5">
+          <TooltipComponent content="Content goes here"/>
+        </p>
+        <p v-if="this.annualInterestRate" class="mb-nolus-12 flex justify-end align-center">
+          {{ $t('message.annual-interest') }}
+          <span class="flex nls-font-700 ml-5">
           {{ this.annualInterestRate }}
+          <TooltipComponent content="Content goes here"/>
         </span>
-        <TooltipComponent content="Content goes here"/>
-      </p>
-    </div>
-    <div class="text-right nls-font-700 nls-14">
-      <p class="mb-nolus-12 mt-nolus-255 flex justify-end align-center">
-        {{ $t('message.liquidation-price') }}
-        <span class="flex nls-font-700 ml-5 mr-nolus-5"> $18,585.00 </span>
-        <TooltipComponent content="Content goes here"/>
-      </p>
+          <TooltipComponent content="Content goes here"/>
+        </p>
+        <p class="mb-nolus-12 mt-nolus-255 flex justify-end align-center">
+          $18,585.00
+          <TooltipComponent content="Content goes here"/>
+        </p>
+      </div>
     </div>
   </div>
 
@@ -101,6 +102,7 @@ import { Price } from '@/store/modules/oracle/state'
 import { assetsInfo } from '@/config/assetsInfo'
 import { CurrencyUtils } from '@nolus/nolusjs'
 import { Coin } from '@keplr-wallet/unit'
+
 import TooltipComponent from '@/components/TooltipComponent.vue'
 
 export interface LeaseComponentProps {

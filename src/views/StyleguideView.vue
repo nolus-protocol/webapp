@@ -1569,6 +1569,12 @@
 
                 <button
                   class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
+                  @click="() => (showLeaseModal = true)"
+                >
+                  Lease Modal
+                </button>
+                <button
+                  class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
                   @click="() => (showRepayModal = true)"
                 >
                   Repay Modal
@@ -1585,37 +1591,28 @@
           </div>
         </div>
         <!-- send/receive -->
-        <ReceiveSendModal
-          v-show="showSendModal"
-          @close-modal="showSendModal = false"
-        />
 
-        <SwapBuyModal
-          v-show="showSwapModal"
-          :try-button="tryButton"
-          @close-modal="showSwapModal = false"
-        />
+        <Dialog
+          :titles="['Send', 'Receive']"
+          v-if="showSendModal"
+          @close-modal="showSendModal = false"/>
 
-        <SupplyWithdrawModal
+        <Dialog
+          :titles="['Swap', 'Buy']"
+          v-if="showSwapModal"
+          @close-modal="showSwapModal = false"/>
+        <Dialog
+          :titles="['Supply', 'Withdraw']"
           v-show="showSupplyWithdrawModal"
-          :try-button="tryButton"
-          @close-modal="showSupplyWithdrawModal = false"
-        />
+          @close-modal="showSupplyWithdrawModal = false"/>
 
-        <RepayModal
-          v-show="showRepayModal"
-          :try-button="tryButton"
-          @close-modal="showRepayModal = false"
-        />
+        <LeaseModal v-show="showLeaseModal" @close-modal="showLeaseModal = false"/>
+        <RepayMainComponent v-show="showRepayModal" @close-modal="showRepayModal = false"/>
 
-        <ErrorModal
-          v-show="showErrorModal"
-          :try-button="tryButton"
-          @close-modal="showErrorModal = false"
+        <ErrorModal v-show="showErrorModal" @close-modal="showErrorModal = false"
         />
         <ConfirmEmailModal
           v-show="showConfirmEmailModal"
-          :try-button="tryButton"
           @close-modal="showConfirmEmailModal = false"
         />
 
@@ -1644,7 +1641,7 @@ import { BellIcon } from '@heroicons/vue/solid'
 import LogoLink from '@/components/LogoLink.vue'
 
 import SidebarElement from '@/components/SidebarElement.vue'
-import SupplyWithdrawModal from '@/components/modals/SupplyWithdrawModal.vue'
+import Notifications from '@/components/Notifications.vue'
 import ErrorModal from '@/components/modals/ErrorModal.vue'
 import ConfirmEmailModal from '@/components/modals/ConfirmEmailModal.vue'
 import RepayModal from '@/components/modals/RepayModal.vue'
@@ -1654,6 +1651,8 @@ import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
 import SwapBuyModal from '@/components/modals/SwapBuyModal.vue'
 import SidebarHeader from '@/components/Sideheader.vue'
 import SnackBar from '@/components/templates/utils/Snackbar.vue'
+import RepayMainComponent from '@/components/RepayComponents/RepayMainComponent.vue'
+import LeaseModal from '@/components/modals/LeaseModal.vue'
 
 export default defineComponent({
   name: 'StyleguideView',
@@ -1664,10 +1663,12 @@ export default defineComponent({
     SnackBar,
     ReceiveSendModal,
     SwapBuyModal,
-    SupplyWithdrawModal,
+    Notifications,
     ErrorModal,
     ConfirmEmailModal,
     RepayModal,
+    LeaseModal,
+    RepayMainComponent,
     HistoryView,
     HomeView,
     SidebarHeader
@@ -1697,12 +1698,8 @@ export default defineComponent({
     this.showConfirmEmailModal = false
     this.showSupplyWithdrawModal = false
     this.cols = 2
-  },
-  methods: {
-    tryButton: () => {
-      // this.showModal = true;
-    }
   }
+
 })
 </script>
 

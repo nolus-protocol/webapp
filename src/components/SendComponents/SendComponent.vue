@@ -103,7 +103,6 @@ import CurrencyField from '@/components/CurrencyField.vue'
 import Picker, { PickerOption } from '@/components/Picker.vue'
 import InputField from '@/components/InputField.vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
-import PickerCombo from '@/components/PickerCombo.vue'
 import { assetsInfo } from '@/config/assetsInfo'
 
 export interface SendComponentProps {
@@ -128,13 +127,12 @@ export default defineComponent({
     StarIcon,
     CurrencyField,
     Picker,
-    InputField,
-    PickerCombo
+    InputField
   },
   props: {
     modelValue: {
       type: Object as PropType<SendComponentProps>,
-      default: {}
+      default: {} as object
     }
   },
   data () {

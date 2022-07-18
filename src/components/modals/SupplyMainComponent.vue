@@ -2,32 +2,14 @@
   <!-- Input Area -->
   <div class="modal-send-receive-input-area">
     <div
-      class="bg-light-grey radius-light text-left text-primary flex items-center nls-balance"
+      class="flex py-3 px-4 bg-light-grey radius-light text-left nls-14 nls-font-400 text-primary"
     >
       <span class="nls-14 nls-font-500">Expected APY:</span>
-      <span class="nls-14 nls-font-700"> 24%</span>
-      <!-- tooltip-->
-      <div
-        class="relative flex flex-col items-center icon-tooltip group group-tooltip"
-      >
-        <div
-          class="absolute bottom-0 flex flex-col items-center hidden mb-7 group-hover:flex"
-        >
-          <span
-            class="relative z-10 p-2 text-xs leading-none text-white whitespace-no-wrap bg-black shadow-lg"
-          >A top aligned tooltip.</span
-          >
-          <div
-            class="absolute w-3 h-3 -mt-2 rotate-45 bg-black"
-            style="background: #000; bottom: -4px"
-          ></div>
-        </div>
-      </div>
-      <!-- /tooltip-->
+      <span class="nls-14 nls-font-700  ml-2"> 24%</span>
+        <TooltipComponent content="Content goes here"/>
     </div>
 
     <div class="block text-left mt-nolus-16">
-      <!-- <DynamicForm :formValue="formDataModel" /> -->
       <CurrencyField id="amountSupply" label="Amount" name="amountSupply"/>
     </div>
   </div>
@@ -83,39 +65,6 @@ export default defineComponent({
     modelValue: {
       type: Object as PropType<SupplyComponentProps>
     }
-  },
-  data () {
-    return {
-      // formDataModel: [] as DynamicFormProps[],
-    }
-  },
-  mounted () {
-    // this.formDataModel = [
-    //   {
-    //     formFields: [
-    //       {
-    //         fieldType: "currencyField",
-    //         pickerType: "small",
-    //         className: "block currency-field-container",
-    //         label: "Amount",
-    //         options: [
-    //           {
-    //             value: "NLS",
-    //             label: "NLS",
-    //           },
-    //           {
-    //             value: "ETH",
-    //             label: "ETH",
-    //           },
-    //           {
-    //             value: "BTC",
-    //             label: "BTC",
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // ];
   },
   methods: {
     formatCurrentBalance (value: AssetBalance[]) {
