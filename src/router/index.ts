@@ -103,10 +103,11 @@ router.beforeEach((to, from, next) => {
       next()
     }
   } else {
-    if (to.name === 'auth' && WalletUtils.isAuth()) {
+    if (to.name === RouteNames.AUTH && WalletUtils.isAuth()) {
       next({ name: RouteNames.DASHBOARD })
+    } else {
+      next()
     }
-    next()
   }
 })
 
