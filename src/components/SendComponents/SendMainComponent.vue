@@ -1,5 +1,5 @@
 <template>
-  <component :is="currentComponent.is" v-model="currentComponent.props"/>
+  <component :is="currentComponent.is" v-model="currentComponent.props" :step="step" />
 </template>
 
 <script lang="ts">
@@ -8,22 +8,17 @@ import { StarIcon } from '@heroicons/vue/solid'
 import { Dec, Int } from '@keplr-wallet/unit'
 import { CurrencyUtils } from '@nolus/nolusjs'
 import { Bech32 } from '@cosmjs/encoding'
-
-import SendingConfirmComponent from '@/components/SendComponents/SendingConfirmComponent.vue'
 import SendComponent, { SendComponentProps } from '@/components/SendComponents/SendComponent.vue'
-import SendingSuccessComponent from '@/components/SendComponents/SendingSuccessComponent.vue'
-import SendingFailedComponent from '@/components/SendComponents/SendingFailedComponent.vue'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { assetsInfo } from '@/config/assetsInfo'
+import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
 
 enum ScreenState {
   MAIN = 'SendComponent',
-  CONFIRM = 'SendingConfirmComponent',
-  SUCCESS = 'SendingSuccessComponent',
-  FAILED = 'SendingFailedComponent',
+  CONFIRM = 'ConfirmComponent'
 }
 
 interface SendMainComponentData {
@@ -40,9 +35,7 @@ export default defineComponent({
   components: {
     StarIcon,
     SendComponent,
-    SendingConfirmComponent,
-    SendingSuccessComponent,
-    SendingFailedComponent
+    ConfirmComponent
   },
   props: {
     modelValue: {
@@ -62,7 +55,8 @@ export default defineComponent({
   },
   data () {
     return {
-      currentComponent: {} as SendMainComponentData
+      currentComponent: {} as SendMainComponentData,
+      step: 1
     }
   },
   watch: {
@@ -118,6 +112,7 @@ export default defineComponent({
         this.currentComponent.props.receiverErrorMsg === ''
       ) {
         this.currentComponent.is = ScreenState.CONFIRM
+         this.step = 2;
       }
     },
     async onSendClick () {
@@ -127,9 +122,11 @@ export default defineComponent({
           useStore()
             .dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, {
               password: this.currentComponent.props.password
+
             })
             .then(() => {
               this.transferAmount()
+              this.step = 3
             })
         } else {
           useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
@@ -240,9 +237,7 @@ export default defineComponent({
           }
         )
         if (txResponse) {
-          console.log('txResponse: ', txResponse)
-          this.currentComponent.is =
-            txResponse.code === 0 ? ScreenState.SUCCESS : ScreenState.FAILED
+          txResponse.code === 0 ? this.step = 3 : this.step = 4;
           this.currentComponent.props.txHash = txResponse.transactionHash
         }
       }

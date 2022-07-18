@@ -1,16 +1,15 @@
 <template>
   <!-- Input Area -->
   <div class="modal-send-receive-input-area">
-  <WarningBox>
-  <template v-slot:icon>
-    <img class="block mx-auto my-0 w-5 h-5" src="@/assets/icons/info.svg"/>
-  </template>
-  <template v-slot:content>
-      Send only <span class="nls-font-700">WBTC</span> to this deposit
-      address. Ensure the network is
-      <span class="nls-font-700">Ethereum (ERC20)</span>
-  </template>
-  </WarningBox>
+    <div
+      class="block mb-nolus-13 py-3 px-4 bg-light-grey radius-light text-left nls-14 nls-font-400 text-primary nls-font-400"
+    >
+      Current balance:
+      <a class="text-secondary nls-font-700 underline ml-2" href="#">
+        {{ formatCurrentBalance(modelValue.currentBalance) || ' 125 ETH' }}
+      </a>
+    </div>
+
     <div class="block text-left">
       <MultipleCurrencyField
         id="multiple-currency-field-example"
@@ -19,14 +18,12 @@
       ></MultipleCurrencyField>
       <div class="flex w-full mt-nolus-255">
         <div class="grow-3 text-right nls-font-500 nls-14">
-          <p class="mb-nolus-12 mr-nolus-20">1 BTC price in USD::</p>
-          <p class="mb-nolus-12 mr-nolus-20">Ramp fee:</p>
-          <p class="mr-nolus-20">Network fees:</p>
+          <p class="mb-nolus-12 mr-nolus-20 mt-nollus-255">Minimum received:</p>
+          <p class="mb-nolus-12 mr-nolus-20">TX fee:</p>
         </div>
         <div class="text-right nls-font-700 nls-14">
-          <p class="mb-nolus-12">$37,274.98</p>
-          <p class="mb-nolus-12">-$2.49</p>
-          <p>-$0.09233</p>
+          <p class="mb-nolus-12 mt-nollus-255">0.456232 ETH</p>
+          <p class="mb-nolus-12">0.09233 ETH</p>
         </div>
       </div>
     </div>
@@ -38,7 +35,7 @@
       class="btn btn-primary btn-large-primary text-center"
       v-on:click="modelValue.onNextClick"
     >
-      Buy BTC with USD
+      Swap ETH for BTC
     </button>
   </div>
 </template>
@@ -52,11 +49,9 @@ import CurrencyField from '@/components/CurrencyField.vue'
 import Picker from '@/components/Picker.vue'
 import InputField from '@/components/InputField.vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
-import TooltipComponent from '@/components/TooltipComponent.vue'
 import MultipleCurrencyField from '@/components/MultipleCurrencyField.vue'
-import WarningBox from '@/components/modals/templates/WarningBox.vue';
 
-export interface SendComponentProps {
+export interface SwapComponentProps {
   receiverErrorMsg: string;
   amountErrorMsg: string;
   currentBalance: AssetBalance[];
@@ -73,24 +68,17 @@ export interface SendComponentProps {
 }
 
 export default defineComponent({
-  name: 'BuyComponent',
+  name: 'SwapComponent',
   components: {
     StarIcon,
     CurrencyField,
     Picker,
     InputField,
-    TooltipComponent,
-    MultipleCurrencyField,
-    WarningBox
+    MultipleCurrencyField
   },
   props: {
     modelValue: {
-      type: Object as PropType<SendComponentProps>
-    }
-  },
-  data () {
-    return {
-      //  formDataModel: [] as DynamicFormProps[],
+      type: Object as PropType<SwapComponentProps>
     }
   },
   mounted () {

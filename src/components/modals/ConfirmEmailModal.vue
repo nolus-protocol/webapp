@@ -40,8 +40,7 @@
         value=""
         @input="$emit('update:value', $event.target.value)"
       ></InputField>
-      <!-- <DynamicForm :formValue="formDataModel" /> -->
-      <p>That's not you? <span>Sign In with another email address</span></p>
+     <p>That's not you? <span>Sign In with another email address</span></p>
       <div class="flex w-full">
         <div class="text-right nls-font-500 nls-14">
           <button

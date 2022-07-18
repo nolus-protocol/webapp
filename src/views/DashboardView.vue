@@ -139,11 +139,10 @@
     </div>
   </div>
 
-  <ReceiveSendModal
-    v-if="showSendModal"
-    ref="ReceiveSendModal"
-    @close-modal="showSendModal = false"
-  />
+  <Dialog
+    :titles="['Send', 'Receive']"
+    v-show="showSendModal"
+    @close-modal="showSendModal = false"/>
 </template>
 
 <script lang="ts">
@@ -153,7 +152,6 @@ import AssetPartial from '@/components/AssetPartial.vue'
 import { AssetUtils } from '@/utils/AssetUtils'
 import { Coin, Dec, Int } from '@keplr-wallet/unit'
 import { AssetBalance } from '@/store/modules/wallet/state'
-import ReceiveSendModal from '@/components/modals/ReceiveSendModal.vue'
 import { useStore } from '@/store'
 import SidebarHeader from '@/components/Sideheader.vue'
 import { CurrencyUtils } from '@nolus/nolusjs'
@@ -161,6 +159,8 @@ import TooltipComponent from '@/components/TooltipComponent.vue'
 import Notifications from '@/components/Notifications.vue'
 import WalletOpen from '@/components/WalletOpen.vue'
 import NolusChart from '@/components/templates/utils/NolusChart.vue'
+import Dialog from '@/components/modals/templates/Dialog.vue';
+
 
 export default defineComponent({
   name: 'DashboardView',
@@ -168,11 +168,11 @@ export default defineComponent({
     SidebarContainer,
     SidebarHeader,
     AssetPartial,
-    ReceiveSendModal,
     TooltipComponent,
     Notifications,
     WalletOpen,
-    NolusChart
+    NolusChart,
+    Dialog
   },
   data () {
     return {

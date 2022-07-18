@@ -1,5 +1,23 @@
 <template>
-  <component :is="currentComponent.is" v-model="currentComponent.props"/>
+   <div
+    class="fixed flex modal items-center top-0 bottom-0 left-0 right-0 justify-center z-[99] modal-send-receive-parent"
+    style="linear-gradient(314.47 deg, #EBEFF5 2.19 %, #F7F9FC 100 %);"
+  >
+    <div
+      class="text-center modal bg-white w-full max-w-[516px] radius-modal mx-auto shadow-modal"
+      @click.stop
+    >
+      <button class="btn-close-modal" @click="$emit('close-modal')">
+        <img class="inline-block w-4 h-4" src="@/assets/icons/cross.svg"/>
+      </button>
+      <div class="flex modal-header">
+        <p class="nls-32 nls-font-700">{{ $t('message.repay') }}</p>
+      </div>
+
+    <component :is="currentComponent.is" v-model="currentComponent.props"  :step="step"/>
+  </div>
+  </div>
+
 </template>
 
 <script lang="ts">
@@ -9,9 +27,7 @@ import { AssetBalance } from '@/store/modules/wallet/state'
 import RepayFormComponent, { RepayComponentProps } from '@/components/RepayComponents/RepayFormComponent.vue'
 import { useStore } from '@/store'
 import { Lease } from '@nolus/nolusjs/build/contracts'
-import RepayFailedComponent from '@/components/RepayComponents/RepayFailedComponent.vue'
-import RepaySuccessComponent from '@/components/RepayComponents/RepaySuccessComponent.vue'
-import RepayConfirmComponent from '@/components/RepayComponents/RepayConfirmComponent.vue'
+import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue';
 import { LeaseData } from '@/types/LeaseData'
 import { Dec, Int } from '@keplr-wallet/unit'
 import { WalletUtils } from '@/utils/WalletUtils'
@@ -21,9 +37,7 @@ import { assetsInfo } from '@/config/assetsInfo'
 
 enum ScreenState {
   MAIN = 'RepayFormComponent',
-  CONFIRM = 'RepayConfirmComponent',
-  SUCCESS = 'RepaySuccessComponent',
-  FAILED = 'RepayFailedComponent',
+  CONFIRM = 'ConfirmComponent',
 }
 
 interface RepayMainComponentData {
@@ -41,9 +55,7 @@ export default defineComponent({
   components: {
     StarIcon,
     RepayFormComponent,
-    RepayConfirmComponent,
-    RepaySuccessComponent,
-    RepayFailedComponent
+    ConfirmComponent
   },
   props: {
     modelValue: {
@@ -59,20 +71,25 @@ export default defineComponent({
     }
 
     if (balances) {
-      this.currentComponent.props.currentBalance = balances
+      this.currentComponent.props.currentBalance = balances;
+      this.currentComponent.props.selectedCurrency = balances[0]
     }
   },
   data () {
     return {
+      step: 1 as number,
       currentComponent: {} as RepayMainComponentData,
-      // leaseApplyResponse: null || ({} as LeaseApply),
       leaseContract: {} as Lease
     }
   },
   watch: {
     '$store.state.wallet.balances' (balances: AssetBalance[]) {
       if (balances) {
-        this.currentComponent.props.currentBalance = balances
+        this.currentComponent.props.currentBalance = balances;
+        if (!this.currentComponent.props.selectedCurrency) {
+          this.currentComponent.props.selectedCurrency = balances[0]
+        }
+
       }
     },
     async 'currentComponent.props.amount' () {
@@ -103,7 +120,8 @@ export default defineComponent({
     },
     async onNextClick () {
       if (this.isAmountValid()) {
-        this.currentComponent.is = ScreenState.CONFIRM
+        this.currentComponent.is = ScreenState.CONFIRM;
+        this.step = 2;
       }
     },
     async onSendClick () {
@@ -114,6 +132,7 @@ export default defineComponent({
             useStore().dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, { password: this.currentComponent.props.password })
               .then(() => {
                 this.repayLease()
+                this.step = 3
               })
           }
         } else {
@@ -206,11 +225,10 @@ export default defineComponent({
             }
           )
           if (execResult) {
-            console.log('execResult: ', execResult)
-            this.currentComponent.is = ScreenState.SUCCESS
+            this.step = 3;
           }
         } catch (e) {
-          this.currentComponent.is = ScreenState.FAILED
+          this.step = 4;
         }
       }
     }

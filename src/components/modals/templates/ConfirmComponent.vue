@@ -9,9 +9,13 @@
       >
         <ArrowLeftIcon aria-hidden="true" class="h-5 w-5"/>
       </button>
-      <h1 class="nls-font-700 nls-32 text-center text-primary">
-        Confirm sending
-      </h1>
+      <div class="flex flex-col justify-center items-center">
+        <CheckIcon v-if="step===3" class="h-14 w-14 radius-circle p-2 success-icon mb-2"/>
+        <XIcon v-if="step===4" class="h-14 w-14 radius-circle p-2 error-icon mb-2"/>
+        <h1 class="nls-font-700 nls-32 text-center text-primary">
+          {{ title }}
+        </h1>
+      </div>
     </div>
   </div>
 
@@ -28,9 +32,7 @@
       ></InputField>
     </div>
 
-    <div
-      class="block bg-light-grey radius-rounded p-4 text-left break-words mt-nolus-255"
-    >
+    <div class="block bg-light-grey radius-rounded p-4 text-left break-words mt-nolus-255">
       <div class="block">
         <p class="nls-14 nls-font-400 text-primary m-0">Send to:</p>
         <p class="nls-14 text-primary nls-font-700 m-0">
@@ -48,6 +50,7 @@
       <div class="block mt-3">
         <p class="nls-14 nls-font-400 text-primary m-0">Amount:</p>
         <p class="nls-14 text-primary nls-font-700 m-0">
+
           {{ formatAmount(modelValue.amount) }}
         </p>
       </div>
@@ -63,32 +66,63 @@
   <div class="modal-send-receive-actions">
     <button
       class="btn btn-primary btn-large-primary"
-      v-on:click="modelValue.onSendClick"
-    >
-      Send
+      v-on:click="btnAction">
+      {{ btnContent }}
     </button>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue'
-import { ArrowLeftIcon } from '@heroicons/vue/solid'
+import { ArrowLeftIcon, CheckIcon } from '@heroicons/vue/solid'
 import { CurrencyUtils } from '@nolus/nolusjs'
-
 import InputField from '@/components/InputField.vue'
 import { SendComponentProps } from '@/components/SendComponents/SendComponent.vue'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { assetsInfo } from '@/config/assetsInfo'
 
+enum ParentComponent {
+  SEND = 'SendMainComponent',
+  REPAY = 'RepayMainComponent'
+}
+
 export default defineComponent({
-  name: 'SendingConfirmComponent',
+  name: 'ConfirmComponent',
   components: {
     ArrowLeftIcon,
-    InputField
+    InputField,
+    CheckIcon
   },
   props: {
     modelValue: {
       type: Object as PropType<SendComponentProps>
+    },
+    step: {
+      type: Number
+    }
+  },
+  data () {
+    return {
+      title: 'Confirm sending',
+      btnContent: 'Send',
+      parentComponentName: '',
+      btnAction: this.modelValue?.onSendClick
+    }
+  },
+  mounted () {
+    this.$emit('defaultState', false)
+    this.parentComponentName = ParentComponent.SEND || ParentComponent.REPAY
+  },
+  computed: {
+    getStep () {
+      return this.step
+    }
+  },
+  watch: {
+    'step' () {
+      this.title = this.step === 2 ? 'Confirm Sending' : (this.step === 3 ? 'Sending successful' : 'Error')
+      this.btnContent = this.step === 2 ? 'Send' : 'Ok'
+      this.btnAction = this.step === 2 ? this.modelValue?.onSendClick : this.modelValue?.onClickOkBtn
     }
   },
   methods: {
@@ -100,6 +134,7 @@ export default defineComponent({
           coinMinimalDenom,
           coinDecimals
         } = assetsInfo[selectedCurrency.balance.denom]
+
         const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(value, coinMinimalDenom, coinDecimals)
         return CurrencyUtils.convertMinimalDenomToDenom(minimalDenom.amount.toString(), coinMinimalDenom, coinDenom, coinDecimals)
       }

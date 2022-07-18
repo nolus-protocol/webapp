@@ -5,18 +5,11 @@
       'sidebar-element',
       this.$route.path == this.href ? 'active' : false,
     ]"
+    :href="this.href"
     :target="target || '_self'"
   >
     <span :class="['icon', `icon-${this.id}`]"></span>
-    <!-- <span class="icon" :class="`icon-${this.label}`"></span> -->
-    <!-- <img
-      class="icon"
-      :src="this.icon"
-    />
-    <img
-      class="iconHover"
-      :src="this.iconHover"
-    /> -->
+
     <span> {{ this.label }} </span>
   </a>
 </template>
