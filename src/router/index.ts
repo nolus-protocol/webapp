@@ -96,18 +96,11 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
+  const isAuth = WalletUtils.isAuth()
   if (to.matched.some((record) => record.meta.requiresAuth)) {
-    if (!WalletUtils.isAuth()) {
-      next({ name: RouteNames.AUTH })
-    } else {
-      next()
-    }
+    isAuth ? next() : next({ name: RouteNames.AUTH })
   } else {
-    if (to.name === RouteNames.AUTH && WalletUtils.isAuth()) {
-      next({ name: RouteNames.DASHBOARD })
-    } else {
-      next()
-    }
+    to.name === RouteNames.AUTH && isAuth ? next({ name: RouteNames.DASHBOARD }) : next()
   }
 })
 
