@@ -19,11 +19,7 @@ import { assetsInfo } from '@/config/assetsInfo'
 
 enum ScreenState {
   MAIN = 'SendComponent',
-<<<<<<< HEAD
-  CONFIRM = 'ConfirmComponent',
-=======
   CONFIRM = 'ConfirmComponent'
->>>>>>> 37830a3 (supply witdraw optimization)
 }
 
 interface SendMainComponentData {

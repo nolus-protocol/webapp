@@ -50,11 +50,7 @@
       <div class="block mt-3">
         <p class="nls-14 nls-font-400 text-primary m-0">Amount:</p>
         <p class="nls-14 text-primary nls-font-700 m-0">
-          <<<<<<< HEAD
           {{ formatAmount(modelValue.amount) }}
-          =======
-          {{ formatAmount(modelValue.amount) }}
-          >>>>>>> 4fd8da4 (fix success and error ui)
         </p>
       </div>
 
