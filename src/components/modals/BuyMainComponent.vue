@@ -1,16 +1,16 @@
 <template>
   <!-- Input Area -->
   <div class="modal-send-receive-input-area">
-  <WarningBox>
-  <template v-slot:icon>
-    <img class="block mx-auto my-0 w-5 h-5" src="@/assets/icons/info.svg"/>
-  </template>
-  <template v-slot:content>
-      Send only <span class="nls-font-700">WBTC</span> to this deposit
-      address. Ensure the network is
-      <span class="nls-font-700">Ethereum (ERC20)</span>
-  </template>
-  </WarningBox>
+    <WarningBox :isWarning="true">
+      <template v-slot:icon>
+        <i class="icon icon-tooltip"></i>
+      </template>
+      <template v-slot:content>
+        Send only <span class="nls-font-700">WBTC</span> to this deposit
+        address. Ensure the network is
+        <span class="nls-font-700">Ethereum (ERC20)</span>
+      </template>
+    </WarningBox>
     <div class="block text-left">
       <MultipleCurrencyField
         id="multiple-currency-field-example"
@@ -54,7 +54,7 @@ import InputField from '@/components/InputField.vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import TooltipComponent from '@/components/TooltipComponent.vue'
 import MultipleCurrencyField from '@/components/MultipleCurrencyField.vue'
-import WarningBox from '@/components/modals/templates/WarningBox.vue';
+import WarningBox from '@/components/modals/templates/WarningBox.vue'
 
 export interface SendComponentProps {
   receiverErrorMsg: string;
@@ -88,7 +88,6 @@ export default defineComponent({
       type: Object as PropType<SendComponentProps>
     }
   },
-
   methods: {
     formatCurrentBalance (value: AssetBalance[]) {
       if (value) {

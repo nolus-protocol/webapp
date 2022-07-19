@@ -1,5 +1,4 @@
 <template>
-  <!-- Input Area -->
   <div class="modal-send-receive-input-area">
     <div class="block text-left">
       <div class="block">
@@ -43,7 +42,7 @@
         </div>
       </div>
 
-      <WarningBox class="mt-nolus-255">
+      <WarningBox isWarning="false" class="mt-nolus-255">
         <template v-slot:icon>
           <img class="block mx-auto my-0 w-5 h-5" src="@/assets/icons/info.svg"/>
         </template>
@@ -53,22 +52,6 @@
         </template>
       </WarningBox>
 
-      <!-- <div
-        class="flex items-center box box-warning radius-rounded p-4 mt-nolus-255 text-left break-words"
-      >
-        <div class="inline-block mr-2">
-          <img
-            class="block mx-auto my-0 w-5 h-5"
-            src="@/assets/icons/info.svg"
-          />
-        </div>
-        <div class="block grow-1">
-          <p class="text-left text-primary nls-14 nls-font-400">
-            Send only <span class="nls-font-700">NOLUS</span> to this deposit
-            address.
-          </p>
-        </div>
-      </div> -->
     </div>
   </div>
 </template>

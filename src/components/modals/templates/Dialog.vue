@@ -41,7 +41,6 @@ import SwapMainComponent from '@/components/modals/SwapMainComponent.vue'
 import BuyMainComponent from '@/components/modals/BuyMainComponent.vue'
 import SupplyMainComponent from '@/components/modals/SupplyMainComponent.vue'
 import WithdrawMainComponent from '@/components/modals/WithdrawMainComponent.vue'
-import RepayMainComponent from '@/components/RepayComponents/RepayMainComponent.vue'
 
 interface ReceiveSendModalData {
   is: string;

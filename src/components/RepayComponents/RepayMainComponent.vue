@@ -1,5 +1,9 @@
 <template>
+<<<<<<< HEAD
    <div
+=======
+  <div
+>>>>>>> main
     class="fixed flex modal items-center top-0 bottom-0 left-0 right-0 justify-center z-[99] modal-send-receive-parent"
     style="linear-gradient(314.47 deg, #EBEFF5 2.19 %, #F7F9FC 100 %);"
   >
@@ -14,10 +18,16 @@
         <p class="nls-32 nls-font-700">{{ $t('message.repay') }}</p>
       </div>
 
+<<<<<<< HEAD
     <component :is="currentComponent.is" v-model="currentComponent.props"  :step="step"/>
   </div>
   </div>
 
+=======
+  <component :is="currentComponent.is" v-model="currentComponent.props"  :step="step"/>
+  </div>
+  </div>
+>>>>>>> main
 </template>
 
 <script lang="ts">
@@ -37,7 +47,7 @@ import { assetsInfo } from '@/config/assetsInfo'
 
 enum ScreenState {
   MAIN = 'RepayFormComponent',
-  CONFIRM = 'ConfirmComponent',
+  CONFIRM = 'ConfirmComponent'
 }
 
 interface RepayMainComponentData {
@@ -71,7 +81,6 @@ export default defineComponent({
     }
 
     if (balances) {
-      this.currentComponent.props.currentBalance = balances;
       this.currentComponent.props.selectedCurrency = balances[0]
     }
   },
@@ -89,7 +98,6 @@ export default defineComponent({
         if (!this.currentComponent.props.selectedCurrency) {
           this.currentComponent.props.selectedCurrency = balances[0]
         }
-
       }
     },
     async 'currentComponent.props.amount' () {
@@ -120,11 +128,13 @@ export default defineComponent({
     },
     async onNextClick () {
       if (this.isAmountValid()) {
-        this.currentComponent.is = ScreenState.CONFIRM;
+        this.currentComponent.is = ScreenState.CONFIRM
         this.step = 2;
       }
     },
     async onSendClick () {
+      if(this.step == 2) {
+        this.step = 3;
       const wallet = useStore().state.wallet.wallet
       if (!wallet) {
         if (WalletUtils.isConnectedViaMnemonic()) {
@@ -141,6 +151,9 @@ export default defineComponent({
         }
       } else {
         await this.repayLease()
+      }
+      } else {
+        this.onClickOkBtn()
       }
     },
     onConfirmBackClick () {
@@ -228,7 +241,11 @@ export default defineComponent({
             this.step = 3;
           }
         } catch (e) {
+<<<<<<< HEAD
           this.step = 4;
+=======
+          this.step = 4
+>>>>>>> main
         }
       }
     }

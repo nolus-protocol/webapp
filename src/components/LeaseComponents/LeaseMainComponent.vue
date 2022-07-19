@@ -25,7 +25,6 @@
   </div>
 </template>
 
-
 <script lang="ts">
 import { defineComponent, PropType } from 'vue'
 import { StarIcon } from '@heroicons/vue/solid'
@@ -37,14 +36,14 @@ import { CONTRACTS } from '@/config/contracts'
 import { Coin, Dec, Int } from '@keplr-wallet/unit'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
-import { CurrencyUtils } from '@nolus/nolusjs'
-import { assetsInfo } from '@/config/assetsInfo'
+import { CurrencyUtils, NolusClient } from '@nolus/nolusjs'
 import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
+import { assetsInfo } from '@/config/assetsInfo'
 
 enum ScreenState {
   MAIN = 'LeaseFormComponent',
-  CONFIRM = 'ConfirmComponent',
+  CONFIRM = 'ConfirmComponent'
 }
 
 interface LeaseMainComponentData {
@@ -68,24 +67,24 @@ export default defineComponent({
       type: Object as PropType<SendMainComponentProps>
     }
   },
-  mounted () {
+  async mounted () {
     const balances = useStore().state.wallet.balances
-    this.leaseContract = new Lease()
+    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
+    this.leaseContract = new Lease(cosmWasmClient)
     this.currentComponent = {
       is: ScreenState.MAIN,
       props: this.initProps()
     }
-    console.log('balances lease: ', balances)
     if (balances) {
       this.currentComponent.props.currentBalance = balances
     }
   },
   data () {
     return {
+      step: 1 as number,
       currentComponent: {} as LeaseMainComponentData,
       leaseApplyResponse: null || ({} as LeaseApply),
-      leaseContract: {} as Lease,
-      step: 1
+      leaseContract: {} as Lease
     }
   },
   watch: {
@@ -153,28 +152,32 @@ export default defineComponent({
       } as LeaseComponentProps
     },
     async onNextClick () {
+      this.step = 2
       if (this.isAmountValid() && this.isDownPaymentAmountValid()) {
-        this.currentComponent.is = ScreenState.CONFIRM;
-        this.step = 2;
+        this.currentComponent.is = ScreenState.CONFIRM
       }
     },
     async onSendClick () {
-      const wallet = useStore().state.wallet.wallet
-      if (!wallet) {
-        if (WalletUtils.isConnectedViaMnemonic()) {
-          if (this.isPasswordValid()) {
-            useStore().dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, { password: this.currentComponent.props.password })
-              .then(() => {
-                this.openLease()
-                this.step = 3
-              })
+      if (this.step === 2) {
+        this.step = 3
+        const wallet = useStore().state.wallet.wallet
+        if (!wallet) {
+          if (WalletUtils.isConnectedViaMnemonic()) {
+            if (this.isPasswordValid()) {
+              useStore().dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, { password: this.currentComponent.props.password })
+                .then(() => {
+                  this.openLease()
+                })
+            }
+          } else {
+            await useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
+            await this.openLease()
           }
         } else {
-          await useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
           await this.openLease()
         }
       } else {
-        await this.openLease()
+        this.onClickOkBtn()
       }
     },
     onConfirmBackClick () {
@@ -272,7 +275,7 @@ export default defineComponent({
       }
       this.currentComponent.props.amount = leaseApplyData.borrow.amount
       // this.currentComponent.props.selectedCurrency = this.changeSelectedCurrency(leaseApplyData.borrow.denom)
-      this.currentComponent.props.selectedCurrency = this.getCurrentBalanceByDenom(leaseApplyData.borrow.denom)
+      this.currentComponent.props.selectedCurrency = this.getCurrentBalanceByDenom(leaseApplyData.borrow.symbol)
     },
     getCurrentBalanceByDenom (denom: string) {
       let result: AssetBalance = {} as AssetBalance
@@ -309,7 +312,7 @@ export default defineComponent({
             }
           )
           if (execResult) {
-          this.step = 3
+            this.step = 3
           }
         } catch (e) {
           this.step = 4

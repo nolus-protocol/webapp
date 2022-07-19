@@ -41,6 +41,7 @@ export default defineComponent({
     modelValue: {
       type: Object as PropType<SendMainComponentProps>
     }
+
   },
   mounted () {
     this.currentComponent = {
@@ -70,7 +71,7 @@ export default defineComponent({
       }
     },
     'currentComponent.props.memo' () {
-      console.log('memo:', this.currentComponent.props.memo)
+      // console.log('memo:', this.currentComponent.props.memo)
     },
     'currentComponent.props.receiverAddress' () {
       if (this.currentComponent.props.receiverAddress) {
@@ -80,7 +81,6 @@ export default defineComponent({
     'currentComponent.props.amount' () {
       if (this.currentComponent.props.amount) {
         this.isAmountFieldValid()
-        console.log('amount:', this.currentComponent.props.amount)
       }
     }
   },
@@ -104,7 +104,7 @@ export default defineComponent({
       } as SendComponentProps
     },
     onNextClick () {
-      this.$emit('defaultState', true)
+      this.step = 3
       this.isAmountFieldValid()
       this.isReceiverAddressValid()
       if (
@@ -133,7 +133,7 @@ export default defineComponent({
           this.transferAmount()
         }
       } else {
-        this.transferAmount()
+        this.onClickOkBtn()
       }
     },
     onConfirmBackClick () {
@@ -237,7 +237,11 @@ export default defineComponent({
           }
         )
         if (txResponse) {
+<<<<<<< HEAD
           txResponse.code === 0 ? this.step = 3 : this.step = 4;
+=======
+          txResponse.code === 0 ? this.step = 3 : this.step = 4
+>>>>>>> main
           this.currentComponent.props.txHash = txResponse.transactionHash
         }
       }

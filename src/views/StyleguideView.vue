@@ -433,8 +433,6 @@
         </div>
         <!-- /BUTTONS -->
 
-
-
         <!-- HEADERS -->
         <div id="header" class="col-span-12">
           <div class="grid grid-cols-12 gap-6 pt-8">
@@ -1561,6 +1559,12 @@
 
                 <button
                   class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
+                  @click="() => (showLeaseModal = true)"
+                >
+                  Lease Modal
+                </button>
+                <button
+                  class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
                   @click="() => (showRepayModal = true)"
                 >
                   Repay Modal
@@ -1576,7 +1580,6 @@
             </div>
           </div>
         </div>
-
         <Dialog
           :titles="['Send', 'Receive']"
           v-show="showSendModal"
@@ -1587,13 +1590,13 @@
           v-if="showSwapModal"
           @close-modal="showSwapModal = false"/>
 
-          <Dialog
-            :titles="['Supply', 'Withdraw']"
-            v-show="showSupplyWithdrawModal"
-            @close-modal="showSupplyWithdrawModal = false"/>
+        <Dialog
+          :titles="['Supply', 'Withdraw']"
+          v-show="showSupplyWithdrawModal"
+          @close-modal="showSupplyWithdrawModal = false"/>
 
-        <LeaseMainComponent v-show="showLeaseModal" @close-modal="showLeaseModal = false" />
-        <RepayMainComponent v-show="showRepayModal" @close-modal="showRepayModal = false" />
+        <LeaseMainComponent v-show="showLeaseModal" @close-modal="showLeaseModal = false"/>
+        <RepayMainComponent v-show="showRepayModal" @close-modal="showRepayModal = false"/>
 
         <ErrorModal v-show="showErrorModal" @close-modal="showErrorModal = false"
         />
@@ -1626,7 +1629,6 @@ import { BellIcon } from '@heroicons/vue/solid'
 import LogoLink from '@/components/LogoLink.vue'
 
 import SidebarElement from '@/components/SidebarElement.vue'
-import Notifications from '@/components/Notifications.vue'
 import ErrorModal from '@/components/modals/ErrorModal.vue'
 import ConfirmEmailModal from '@/components/modals/ConfirmEmailModal.vue'
 import HistoryView from '@/views/HistoryView.vue'
@@ -1635,7 +1637,7 @@ import SidebarHeader from '@/components/Sideheader.vue'
 import SnackBar from '@/components/templates/utils/Snackbar.vue'
 import RepayMainComponent from '@/components/RepayComponents/RepayMainComponent.vue'
 import LeaseMainComponent from '@/components/LeaseComponents/LeaseMainComponent.vue'
-import Dialog from '@/components/modals/templates/Dialog.vue';
+import Dialog from '@/components/modals/templates/Dialog.vue'
 
 export default defineComponent({
   name: 'StyleguideView',
@@ -1644,7 +1646,6 @@ export default defineComponent({
     LogoLink,
     SidebarElement,
     SnackBar,
-    Notifications,
     ErrorModal,
     ConfirmEmailModal,
     LeaseMainComponent,
@@ -1680,12 +1681,8 @@ export default defineComponent({
     this.showConfirmEmailModal = false
     this.showSupplyWithdrawModal = false
     this.cols = 2
-  },
-  methods: {
-    tryButton: () => {
-      // this.showModal = true;
-    }
   }
+
 })
 </script>
 
