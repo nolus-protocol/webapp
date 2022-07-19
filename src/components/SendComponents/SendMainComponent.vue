@@ -1,5 +1,5 @@
 <template>
-  <component :is="currentComponent.is" v-model="currentComponent.props" :step="step" />
+  <component :is="currentComponent.is" v-model="currentComponent.props" :step="step"/>
 </template>
 
 <script lang="ts">
@@ -112,7 +112,7 @@ export default defineComponent({
         this.currentComponent.props.receiverErrorMsg === ''
       ) {
         this.currentComponent.is = ScreenState.CONFIRM
-         this.step = 2;
+        this.step = 2
       }
     },
     async onSendClick () {
@@ -130,7 +130,7 @@ export default defineComponent({
             })
         } else {
           useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
-          this.transferAmount()
+          await this.transferAmount()
         }
       } else {
         this.onClickOkBtn()
@@ -237,11 +237,7 @@ export default defineComponent({
           }
         )
         if (txResponse) {
-<<<<<<< HEAD
-          txResponse.code === 0 ? this.step = 3 : this.step = 4;
-=======
           txResponse.code === 0 ? this.step = 3 : this.step = 4
->>>>>>> main
           this.currentComponent.props.txHash = txResponse.transactionHash
         }
       }

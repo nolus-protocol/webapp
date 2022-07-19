@@ -1,9 +1,5 @@
 <template>
-<<<<<<< HEAD
-   <div
-=======
   <div
->>>>>>> main
     class="fixed flex modal items-center top-0 bottom-0 left-0 right-0 justify-center z-[99] modal-send-receive-parent"
     style="linear-gradient(314.47 deg, #EBEFF5 2.19 %, #F7F9FC 100 %);"
   >
@@ -17,17 +13,9 @@
       <div class="flex modal-header">
         <p class="nls-32 nls-font-700">{{ $t('message.repay') }}</p>
       </div>
-
-<<<<<<< HEAD
-    <component :is="currentComponent.is" v-model="currentComponent.props"  :step="step"/>
+      <component :is="currentComponent.is" v-model="currentComponent.props" :step="step"/>
+    </div>
   </div>
-  </div>
-
-=======
-  <component :is="currentComponent.is" v-model="currentComponent.props"  :step="step"/>
-  </div>
-  </div>
->>>>>>> main
 </template>
 
 <script lang="ts">
@@ -37,7 +25,7 @@ import { AssetBalance } from '@/store/modules/wallet/state'
 import RepayFormComponent, { RepayComponentProps } from '@/components/RepayComponents/RepayFormComponent.vue'
 import { useStore } from '@/store'
 import { Lease } from '@nolus/nolusjs/build/contracts'
-import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue';
+import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
 import { LeaseData } from '@/types/LeaseData'
 import { Dec, Int } from '@keplr-wallet/unit'
 import { WalletUtils } from '@/utils/WalletUtils'
@@ -94,7 +82,7 @@ export default defineComponent({
   watch: {
     '$store.state.wallet.balances' (balances: AssetBalance[]) {
       if (balances) {
-        this.currentComponent.props.currentBalance = balances;
+        this.currentComponent.props.currentBalance = balances
         if (!this.currentComponent.props.selectedCurrency) {
           this.currentComponent.props.selectedCurrency = balances[0]
         }
@@ -129,29 +117,29 @@ export default defineComponent({
     async onNextClick () {
       if (this.isAmountValid()) {
         this.currentComponent.is = ScreenState.CONFIRM
-        this.step = 2;
+        this.step = 2
       }
     },
     async onSendClick () {
-      if(this.step == 2) {
-        this.step = 3;
-      const wallet = useStore().state.wallet.wallet
-      if (!wallet) {
-        if (WalletUtils.isConnectedViaMnemonic()) {
-          if (this.isPasswordValid()) {
-            useStore().dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, { password: this.currentComponent.props.password })
-              .then(() => {
-                this.repayLease()
-                this.step = 3
-              })
+      if (this.step === 2) {
+        this.step = 3
+        const wallet = useStore().state.wallet.wallet
+        if (!wallet) {
+          if (WalletUtils.isConnectedViaMnemonic()) {
+            if (this.isPasswordValid()) {
+              useStore().dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, { password: this.currentComponent.props.password })
+                .then(() => {
+                  this.repayLease()
+                  this.step = 3
+                })
+            }
+          } else {
+            await useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
+            await this.repayLease()
           }
         } else {
-          await useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
           await this.repayLease()
         }
-      } else {
-        await this.repayLease()
-      }
       } else {
         this.onClickOkBtn()
       }
@@ -238,14 +226,10 @@ export default defineComponent({
             }
           )
           if (execResult) {
-            this.step = 3;
+            this.step = 3
           }
         } catch (e) {
-<<<<<<< HEAD
-          this.step = 4;
-=======
           this.step = 4
->>>>>>> main
         }
       }
     }

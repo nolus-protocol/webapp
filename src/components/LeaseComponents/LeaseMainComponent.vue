@@ -36,7 +36,7 @@ import { CONTRACTS } from '@/config/contracts'
 import { Coin, Dec, Int } from '@keplr-wallet/unit'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
-import { CurrencyUtils, NolusClient } from '@nolus/nolusjs'
+import { CurrencyUtils } from '@nolus/nolusjs'
 import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 import { assetsInfo } from '@/config/assetsInfo'
@@ -69,8 +69,7 @@ export default defineComponent({
   },
   async mounted () {
     const balances = useStore().state.wallet.balances
-    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-    this.leaseContract = new Lease(cosmWasmClient)
+    this.leaseContract = new Lease()
     this.currentComponent = {
       is: ScreenState.MAIN,
       props: this.initProps()
@@ -275,7 +274,7 @@ export default defineComponent({
       }
       this.currentComponent.props.amount = leaseApplyData.borrow.amount
       // this.currentComponent.props.selectedCurrency = this.changeSelectedCurrency(leaseApplyData.borrow.denom)
-      this.currentComponent.props.selectedCurrency = this.getCurrentBalanceByDenom(leaseApplyData.borrow.symbol)
+      this.currentComponent.props.selectedCurrency = this.getCurrentBalanceByDenom(leaseApplyData.borrow.denom)
     },
     getCurrentBalanceByDenom (denom: string) {
       let result: AssetBalance = {} as AssetBalance
