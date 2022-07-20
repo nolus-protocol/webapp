@@ -151,7 +151,6 @@ export default defineComponent({
       this.notificationPopup = !this.notificationPopup
     },
     handleFocusOut () {
-      //  alert("hi");
       this.notificationPopup = false
     }
   }

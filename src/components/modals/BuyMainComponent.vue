@@ -1,27 +1,32 @@
 <template>
   <!-- Input Area -->
   <div class="modal-send-receive-input-area">
-    <div
-      class="block mb-nolus-13 py-3 px-4 bg-light-grey radius-light text-left nls-14 nls-font-400 text-primary nls-font-400"
-    >
-      Current balance:
-      <a class="text-secondary nls-font-700 nls-14 underline ml-2" href="#">
-        {{ formatCurrentBalance(modelValue.currentBalance) || ' 125 ETH' }}
-      </a>
-    </div>
+    <WarningBox :isWarning="true">
+      <template v-slot:icon>
+        <i class="icon icon-tooltip"></i>
+      </template>
+      <template v-slot:content>
+        Send only <span class="nls-font-700">WBTC</span> to this deposit
+        address. Ensure the network is
+        <span class="nls-font-700">Ethereum (ERC20)</span>
+      </template>
+    </WarningBox>
     <div class="block text-left">
       <MultipleCurrencyField
         id="multiple-currency-field-example"
         label="Multiple Currency Field Example"
-        name="multiple-currency-field-example" />
+        name="multiple-currency-field-example"
+      ></MultipleCurrencyField>
       <div class="flex w-full mt-nolus-255">
         <div class="grow-3 text-right nls-font-500 nls-14">
-          <p class="mb-nolus-12 mr-nolus-20 mt-nollus-255">Minimum received:</p>
-          <p class="mb-nolus-12 mr-nolus-20">TX fee:</p>
+          <p class="mb-nolus-12 mr-nolus-20">1 BTC price in USD::</p>
+          <p class="mb-nolus-12 mr-nolus-20">Ramp fee:</p>
+          <p class="mr-nolus-20">Network fees:</p>
         </div>
         <div class="text-right nls-font-700 nls-14">
-          <p class="mb-nolus-12 mt-nollus-255">0.456232 ETH</p>
-          <p class="mb-nolus-12">0.09233 ETH</p>
+          <p class="mb-nolus-12">$37,274.98</p>
+          <p class="mb-nolus-12">-$2.49</p>
+          <p>-$0.09233</p>
         </div>
       </div>
     </div>
@@ -31,8 +36,9 @@
   <div class="modal-send-receive-actions">
     <button
       class="btn btn-primary btn-large-primary text-center"
-      v-on:click="modelValue.onNextClick">
-      Swap ETH for BTC
+      v-on:click="modelValue.onNextClick"
+    >
+      Buy BTC with USD
     </button>
   </div>
 </template>
@@ -46,9 +52,11 @@ import CurrencyField from '@/components/CurrencyField.vue'
 import Picker from '@/components/Picker.vue'
 import InputField from '@/components/InputField.vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
+import TooltipComponent from '@/components/TooltipComponent.vue'
 import MultipleCurrencyField from '@/components/MultipleCurrencyField.vue'
+import WarningBox from '@/components/modals/templates/WarningBox.vue'
 
-export interface SwapComponentProps {
+export interface SendComponentProps {
   receiverErrorMsg: string;
   amountErrorMsg: string;
   currentBalance: AssetBalance[];
@@ -65,17 +73,19 @@ export interface SwapComponentProps {
 }
 
 export default defineComponent({
-  name: 'SwapComponent',
+  name: 'BuyComponent',
   components: {
     StarIcon,
     CurrencyField,
     Picker,
     InputField,
-    MultipleCurrencyField
+    TooltipComponent,
+    MultipleCurrencyField,
+    WarningBox
   },
   props: {
     modelValue: {
-      type: Object as PropType<SwapComponentProps>
+      type: Object as PropType<SendComponentProps>
     }
   },
   methods: {

@@ -78,8 +78,7 @@
       </button>
     </div>
   </div>
-
-  <RepayMainComponent v-if="showRepayModal" @close-modal="showRepayModal = false"/>
+  <RepayMainComponent v-if="showRepayModal" :lease-info="leaseInfo" @close-modal="showRepayModal = false"/>
 </template>
 
 <script lang="ts">
@@ -91,7 +90,6 @@ import { Coin, Dec, Int } from '@keplr-wallet/unit'
 import { useStore } from '@/store'
 import { LeaseData } from '@/types/LeaseData'
 import RepayMainComponent from '@/components/RepayComponents/RepayMainComponent.vue'
-
 export default {
   name: 'LeaseInfo',
   components: { RepayMainComponent },

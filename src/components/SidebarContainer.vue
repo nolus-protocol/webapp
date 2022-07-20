@@ -88,18 +88,62 @@
             </SidebarElement>
           </div>
           <div class="block nls-nav-link nls-md-hidden">
-            <SidebarElement
-              id="governance"
-              label="Govern"
-              href="https://wallet.keplr.app/#/dashboard"
-              target="_blank"
-            >
-            </SidebarElement>
+
           </div>
         </div>
       </div>
-    </div>
 
+
+    </div>
+ <div class="lg:bot lg:pb-8">
+    <div class="flex items-center sub-nav-social">
+      <SidebarElement
+        id="twitter"
+        :href="TWITTER_ACCOUNT"
+        :icon="require('@/assets/icons/twitter.svg')"
+        target="_blkank"
+      >
+      </SidebarElement>
+      <SidebarElement
+        id="telegram"
+        :href="TELEGRAM_ACCOUNT"
+        :icon="require('@/assets/icons/telegram.svg')"
+        target="_blkank"
+      >
+      </SidebarElement>
+      <SidebarElement
+        id="discord"
+        :href="DISCORD_ACCOUNT"
+        :icon="require('@/assets/icons/discord.svg')"
+        target="_blkank"
+      >
+      </SidebarElement>
+      <SidebarElement
+        id="reddit"
+        :href="REDDIT_ACCOUNT"
+        :icon="require('@/assets/icons/reddit.svg')"
+        target="_blkank"
+      >
+      </SidebarElement>
+      <SidebarElement
+        id="medium"
+        :href="MEDIUM_ACCOUNT"
+        :icon="require('@/assets/icons/medium.svg')"
+        target="_blkank"
+      >
+      </SidebarElement>
+    </div>
+    <div class="block mt-3 nls-12 nls-font-400 sub-nav-service">
+      <SidebarLinkElement
+        id="term-of-service"
+        href="#"
+        :label="$t('message.term-of-service')"
+        target="_blkank"
+      >
+      </SidebarLinkElement>
+      <!-- this.$route.path == this.href ? 'active' : false, -->
+    </div>
+  </div>
     <div class="backdrop"></div>
   </div>
 </template>

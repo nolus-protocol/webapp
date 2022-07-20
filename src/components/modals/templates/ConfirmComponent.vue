@@ -50,6 +50,7 @@
       <div class="block mt-3">
         <p class="nls-14 nls-font-400 text-primary m-0">Amount:</p>
         <p class="nls-14 text-primary nls-font-700 m-0">
+
           {{ formatAmount(modelValue.amount) }}
         </p>
       </div>
@@ -65,7 +66,7 @@
   <div class="modal-send-receive-actions">
     <button
       class="btn btn-primary btn-large-primary"
-      v-on:click="modelValue.onSendClick">
+      v-on:click="btnAction">
       {{ btnContent }}
     </button>
   </div>
@@ -104,7 +105,8 @@ export default defineComponent({
     return {
       title: 'Confirm sending',
       btnContent: 'Send',
-      parentComponentName: ''
+      parentComponentName: '',
+      btnAction: this.modelValue?.onSendClick
     }
   },
   mounted () {
@@ -120,6 +122,7 @@ export default defineComponent({
     'step' () {
       this.title = this.step === 2 ? 'Confirm Sending' : (this.step === 3 ? 'Sending successful' : 'Error')
       this.btnContent = this.step === 2 ? 'Send' : 'Ok'
+      this.btnAction = this.step === 2 ? this.modelValue?.onSendClick : this.modelValue?.onClickOkBtn
     }
   },
   methods: {

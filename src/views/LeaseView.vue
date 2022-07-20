@@ -44,13 +44,13 @@
       </div>
     </div>
   </div>
-  <LeaseModal v-if="showLeaseModal" @close-modal="showLeaseModal = false"/>
+  <LeaseMainComponent v-if="showLeaseModal" @close-modal="showLeaseModal = false"/>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
 import SidebarContainer from '@/components/SidebarContainer.vue'
-import LeaseModal from '@/components/modals/LeaseModal.vue'
+import LeaseMainComponent from '@/components/LeaseComponents/LeaseMainComponent.vue'
 import { Lease, LeaseStatus } from '@nolus/nolusjs/build/contracts'
 import { CONTRACTS } from '@/config/contracts'
 import { LeaseData } from '@/types/LeaseData'
@@ -62,7 +62,7 @@ import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 export default defineComponent({
   name: 'LeaseView',
   components: {
-    LeaseModal,
+    LeaseMainComponent,
     LeaseInfo,
     SidebarContainer,
     SidebarHeader

@@ -13,14 +13,14 @@
     <div
       class="block rounded-2xl bg-white mt-8 p-10 border border-standart shadow-box md:max-w-[516px]"
     >
-      <!--   <TextFieldButtons
+        <TextFieldButtons
         name="mnemonicSeed"
         id="mnemonicSeed"
         label="Mnemonic seed"
         :value="mnemonic"
         :on-click-copy="onClickCopy"
         :on-click-print="onClickPrint"
-      ></TextFieldButtons> -->
+      ></TextFieldButtons>
 
       <TextFieldButtons
         id="mnemonicSeed"
@@ -44,25 +44,24 @@
           </p>
         </div>
       </div>
-      <!--      <div class="block mt-6">-->
-      <!--        <InputField-->
-      <!--          type="email"-->
-      <!--          name="email"-->
-      <!--          id="email"-->
-      <!--          label="Email"-->
-      <!--        ></InputField>-->
-      <!--      </div>-->
-      <!--      <div class="block mt-6">-->
-      <!--        <InputField-->
-      <!--          type="password"-->
-      <!--          name="password"-->
-      <!--          id="password"-->
-      <!--          label="Password"-->
-      <!--        ></InputField>-->
-      <!--      </div>-->
+            <div class="block mt-6">
+              <InputField
+                type="email"
+                name="email"
+                id="email"
+                label="Email"
+              ></InputField>
+            </div>
+            <div class="block mt-6">
+              <InputField
+                type="password"
+                name="password"
+                id="password"
+                label="Password"
+              ></InputField>
+            </div>
 
       <div class="block mt-6 w-full">
-        <DynamicForm :formValue="formDataCredentialsModel"/>
       </div>
 
       <div class="block mt-6 sm:color-white">

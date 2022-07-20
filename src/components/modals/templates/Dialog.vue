@@ -76,7 +76,6 @@ export default defineComponent({
   },
   methods: {
     onClickChild (value: boolean) {
-      alert(value)
       this.isDefaultState = value
     },
     switchTab (value: number, title: string) {

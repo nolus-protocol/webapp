@@ -1,5 +1,5 @@
 <template>
-  <component :is="currentComponent.is" v-model="currentComponent.props"/>
+  <component :is="currentComponent.is" v-model="currentComponent.props" :step="step"/>
 </template>
 
 <script lang="ts">
@@ -8,14 +8,13 @@ import { StarIcon } from '@heroicons/vue/solid'
 import { Dec, Int } from '@keplr-wallet/unit'
 import { CurrencyUtils } from '@nolus/nolusjs'
 import { Bech32 } from '@cosmjs/encoding'
-
-import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
 import SendComponent, { SendComponentProps } from '@/components/SendComponents/SendComponent.vue'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { assetsInfo } from '@/config/assetsInfo'
+import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
 
 enum ScreenState {
   MAIN = 'SendComponent',
@@ -113,6 +112,7 @@ export default defineComponent({
         this.currentComponent.props.receiverErrorMsg === ''
       ) {
         this.currentComponent.is = ScreenState.CONFIRM
+        this.step = 2
       }
     },
     async onSendClick () {
@@ -122,16 +122,18 @@ export default defineComponent({
           useStore()
             .dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, {
               password: this.currentComponent.props.password
+
             })
             .then(() => {
               this.transferAmount()
+              this.step = 3
             })
         } else {
           useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
-          this.transferAmount()
+          await this.transferAmount()
         }
       } else {
-        this.onClickOkBtn()
+        this.transferAmount()
       }
     },
     onConfirmBackClick () {

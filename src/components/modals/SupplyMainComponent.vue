@@ -6,7 +6,7 @@
     >
       <span class="nls-14 nls-font-500">Expected APY:</span>
       <span class="nls-14 nls-font-700  ml-2"> 24%</span>
-        <TooltipComponent content="Content goes here"/>
+      <TooltipComponent content="Content goes here"/>
     </div>
 
     <div class="block text-left mt-nolus-16">
