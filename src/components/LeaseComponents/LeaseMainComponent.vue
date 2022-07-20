@@ -157,8 +157,6 @@ export default defineComponent({
       }
     },
     async onSendClick () {
-      if (this.step === 2) {
-        this.step = 3
         const wallet = useStore().state.wallet.wallet
         if (!wallet) {
           if (WalletUtils.isConnectedViaMnemonic()) {
@@ -166,6 +164,7 @@ export default defineComponent({
               useStore().dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, { password: this.currentComponent.props.password })
                 .then(() => {
                   this.openLease()
+                  this.step = 3;
                 })
             }
           } else {
@@ -175,9 +174,7 @@ export default defineComponent({
         } else {
           await this.openLease()
         }
-      } else {
-        this.onClickOkBtn()
-      }
+
     },
     onConfirmBackClick () {
       this.currentComponent.is = ScreenState.MAIN

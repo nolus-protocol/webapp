@@ -133,7 +133,7 @@ export default defineComponent({
           await this.transferAmount()
         }
       } else {
-        this.onClickOkBtn()
+         this.transferAmount()
       }
     },
     onConfirmBackClick () {

@@ -121,8 +121,6 @@ export default defineComponent({
       }
     },
     async onSendClick () {
-      if (this.step === 2) {
-        this.step = 3
         const wallet = useStore().state.wallet.wallet
         if (!wallet) {
           if (WalletUtils.isConnectedViaMnemonic()) {
@@ -140,9 +138,6 @@ export default defineComponent({
         } else {
           await this.repayLease()
         }
-      } else {
-        this.onClickOkBtn()
-      }
     },
     onConfirmBackClick () {
       this.currentComponent.is = ScreenState.MAIN
