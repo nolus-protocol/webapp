@@ -24,7 +24,7 @@ import { AssetUtils, KeyUtils, NolusClient, NolusWallet, NolusWalletFactory } fr
 import { ChainConstants } from '@nolus/nolusjs/build/constants'
 import { CurrencyUtils } from '@nolus/nolusjs/build/utils/CurrencyUtils'
 import { LedgerSigner } from '@cosmjs/ledger-amino'
-import { openLeaseMsg, repayLeaseMsg } from '@nolus/nolusjs/build/contracts'
+import { Lease } from '@nolus/nolusjs/build/contracts'
 import { ExecuteResult } from '@cosmjs/cosmwasm-stargate'
 import { IbcAssets, supportedCurrencies } from '@/config/currencies'
 import { WalletConnectMechanism } from '@/types/WalletConnectMechanism'
@@ -338,7 +338,9 @@ export const actions: ActionTree<State, RootState> & Actions = {
     funds?: Coin[]
   }): Promise<ExecuteResult> {
     const wallet = getters.getNolusWallet as NolusWallet
-    const result = await wallet.executeContract(CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance, openLeaseMsg(payload.denom), payload.fee, undefined, payload.funds)
+    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
+    const leaseClient = new Lease(cosmWasmClient)
+    const result = await leaseClient.openLease(CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance, wallet, payload.denom, payload.fee, payload.funds)
     return result
   },
   async [WalletActionTypes.REPAY_LEASE] ({
@@ -352,7 +354,9 @@ export const actions: ActionTree<State, RootState> & Actions = {
     funds?: Coin[]
   }): Promise<ExecuteResult> {
     const wallet = getters.getNolusWallet as NolusWallet
-    const result = await wallet.executeContract(payload.contractAddress, repayLeaseMsg(), payload.fee, undefined, payload.funds)
+    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
+    const leaseClient = new Lease(cosmWasmClient)
+    const result = await leaseClient.repayLease(payload.contractAddress, wallet, payload.fee, payload.funds)
     return result
   }
 }

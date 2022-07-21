@@ -3,7 +3,7 @@ import { ContractConfig } from '@/types/ContractConfig'
 export const CONTRACTS: ContractConfig = {
   devnet: {
     oracle: {
-      instance: 'nolus1436kxs0w2es6xlqpp9rd35e3d0cjnw4sv8j3a7483sgks29jqwgsv3wzl4',
+      instance: 'nolus1mf6ptkssddfmxvhdx0ech0k03ktp6kf9yk59renau2gvht3nq2gqkxgywu',
       codeId: ''
     },
     leaser: {

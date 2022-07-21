@@ -30,7 +30,7 @@ import { LeaseData } from '@/types/LeaseData'
 import { Dec, Int } from '@keplr-wallet/unit'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
-import { CurrencyUtils } from '@nolus/nolusjs'
+import { CurrencyUtils, NolusClient } from '@nolus/nolusjs'
 import { assetsInfo } from '@/config/assetsInfo'
 
 enum ScreenState {
@@ -60,13 +60,17 @@ export default defineComponent({
       type: Object as PropType<SendMainComponentProps>
     }
   },
-  mounted () {
+  async mounted () {
     const balances = useStore().state.wallet.balances
-    this.leaseContract = new Lease()
+    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
+    this.leaseContract = new Lease(cosmWasmClient)
+    console.log('leases2: ', this.modelValue?.leaseData)
     this.currentComponent = {
       is: ScreenState.MAIN,
       props: this.initProps()
     }
+
+    console.log('receiver address: ', this.currentComponent.props.receiverAddress)
 
     if (balances) {
       this.currentComponent.props.selectedCurrency = balances[0]
@@ -99,7 +103,7 @@ export default defineComponent({
   methods: {
     initProps () {
       return {
-        outstandingLoanAmount: this.modelValue?.leaseData?.leaseStatus?.amount || '',
+        outstandingLoanAmount: this.modelValue?.leaseData?.leaseStatus?.opened?.amount || '',
         currentBalance: [] as AssetBalance[],
         selectedCurrency: {} as AssetBalance,
         receiverAddress: this.modelValue?.leaseData.leaseAddress || '',
@@ -121,23 +125,23 @@ export default defineComponent({
       }
     },
     async onSendClick () {
-        const wallet = useStore().state.wallet.wallet
-        if (!wallet) {
-          if (WalletUtils.isConnectedViaMnemonic()) {
-            if (this.isPasswordValid()) {
-              useStore().dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, { password: this.currentComponent.props.password })
-                .then(() => {
-                  this.repayLease()
-                  this.step = 3
-                })
-            }
-          } else {
-            await useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
-            await this.repayLease()
+      const wallet = useStore().state.wallet.wallet
+      if (!wallet) {
+        if (WalletUtils.isConnectedViaMnemonic()) {
+          if (this.isPasswordValid()) {
+            useStore().dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, { password: this.currentComponent.props.password })
+              .then(() => {
+                this.repayLease()
+                this.step = 3
+              })
           }
         } else {
+          await useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
           await this.repayLease()
         }
+      } else {
+        await this.repayLease()
+      }
     },
     onConfirmBackClick () {
       this.currentComponent.is = ScreenState.MAIN
@@ -160,8 +164,6 @@ export default defineComponent({
       const walletBalance = String(
         this.currentComponent.props.selectedCurrency?.balance?.amount || 0
       )
-
-      console.log('<<wallet: ', walletBalance)
 
       if (microAmount || microAmount !== '') {
         this.currentComponent.props.amountErrorMsg = ''
