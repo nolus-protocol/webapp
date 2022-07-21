@@ -54,7 +54,8 @@ export default defineComponent({
       props: this.initProps()
     }
     if (balances) {
-      this.currentComponent.props.currentBalance = balances
+      this.currentComponent.props.currentBalance = balances;
+      this.currentComponent.props.selectedCurrency = balances[0]
     }
   },
   data () {
@@ -68,8 +69,13 @@ export default defineComponent({
   watch: {
     '$store.state.wallet.balances' (balances: AssetBalance[]) {
       if (balances) {
-        this.currentComponent.props.currentBalance = balances
+        this.currentComponent.props.currentBalance = balances;
+
+        if (!this.currentComponent.props.selectedCurrency) {
+          this.currentComponent.props.selectedCurrency = balances[0]
+        }
       }
+
     },
     async 'currentComponent.props.amount' () {
       const amount = this.currentComponent.props.amount
@@ -130,7 +136,6 @@ export default defineComponent({
       } as LeaseComponentProps
     },
     async onNextClick () {
-
       if (this.isAmountValid() && this.isDownPaymentAmountValid()) {
         this.currentComponent.is = ScreenState.CONFIRM;
         this.step = 2
@@ -224,7 +229,7 @@ export default defineComponent({
         isValid = false
       }
 
-      if (amount || amount !== '') {
+      if (isValid && (amount || amount !== '')) {
         this.currentComponent.props.amountErrorMsg = ''
         const isLowerThanOrEqualsToZero = new Int(amount).lt(new Int(1))
         const isGreaterThenBorrow = new Int(amount).gt(new Int(leaseBorrowAmount || ''))
