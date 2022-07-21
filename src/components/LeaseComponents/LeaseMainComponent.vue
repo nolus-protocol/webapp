@@ -1,28 +1,5 @@
 <template>
-  <div
-    class="fixed flex items-end md:items-center top-0 bottom-0 left-0 right-0 justify-center bg-white/70 z-[99] modal-send-receive-parent"
-    style="linear-gradient(314.47 deg, #EBEFF5 2.19 %, #F7F9FC 100 %);"
-  >
-    <button class="btn-close-modal" @click="$emit('close-modal')">
-      <img class="inline-block w-4 h-4" src="@/assets/icons/cross.svg"/>
-    </button>
-
-    <div
-      class="text-center bg-white w-full max-w-[516px] radius-modal mx-auto shadow-modal modal-send-receive"
-      @click.stop
-    >
-      <!-- Header -->
-      <div class="flex modal-send-receive-header">
-        <div class="navigation-header">
-          <h1 class="block w-full nls-font-700 nls-32 text-left text-primary">
-            {{ $t('message.lease') }}
-          </h1>
-        </div>
-      </div>
-
-      <component :is="currentComponent.is" v-model="currentComponent.props" :step="step"/>
-    </div>
-  </div>
+  <component :is="currentComponent.is" v-model="currentComponent.props" :step="step"/>
 </template>
 
 <script lang="ts">
@@ -153,9 +130,10 @@ export default defineComponent({
       } as LeaseComponentProps
     },
     async onNextClick () {
-      this.step = 2
+
       if (this.isAmountValid() && this.isDownPaymentAmountValid()) {
-        this.currentComponent.is = ScreenState.CONFIRM
+        this.currentComponent.is = ScreenState.CONFIRM;
+        this.step = 2
       }
     },
     async onSendClick () {
