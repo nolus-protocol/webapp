@@ -295,6 +295,7 @@ export default defineComponent({
             this.step = 3
           }
         } catch (e) {
+          console.log(e);
           this.step = 4
         }
       }
