@@ -1,5 +1,4 @@
 .radius {
-
   &-circle {
     border-radius: $circle;
   }
@@ -24,8 +23,11 @@
     border-radius: $pill;
   }
 
-  &-0-sm {
+  &-half-rounded {
+    border-radius: $halfRounded;
+  }
 
+  &-0-sm {
     @media (max-width: $md) {
       border-radius: 0 !important;
     }

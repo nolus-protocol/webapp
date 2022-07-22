@@ -10,13 +10,12 @@
   font-size: 17px;
   min-height: 60px;
   background: $white;
-  border: 1px solid #ebeff5;
-  /* field-shadow-heavy */
-  box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15);
+  border: 1px solid $borderColor;
+  box-shadow: 0px 8px 48px $shadowModalColor;
   border-radius: 8px;
   color: $dark;
   font-size: 14px;
-  line-height: 20px;
+  line-height: $line-height-20;
 
   .icon {
     width: 15px;
@@ -45,6 +44,7 @@
       position: absolute;
       left: 15px;
       top: calc(50% - 0.75em);
+      // What is this colour????
       border: 2px solid #dbe3f4;
       border-radius: 50%;
       opacity: 1;

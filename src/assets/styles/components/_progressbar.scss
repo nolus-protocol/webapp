@@ -12,8 +12,8 @@
   z-index: 100000;
   --time: 3s;
   --size: 3px;
-  --back-color: rgba(40, 82, 145, 0.1);
-  --loader-color: #2868e1;
+  --back-color: $mediumElectric;
+  --loader-color: $lightElectric;
 }
 
 .loader-boxed {

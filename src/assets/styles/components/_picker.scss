@@ -1,26 +1,19 @@
 .picker {
   &-container {
-    &.icon {
-      button {
-        //min-width: 181px;
-      }
-    }
-
     ul {
       list-style-type: square;
       padding: 12px 16px;
-      background: #ffffff;
-      /* background-neutral-medium */
-      border: 1px solid #ebeff5 !important;
-      box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15) !important;
-      border-radius: 6px !important;
+      background: $white;
+      border: 1px solid $borderColor !important;
+      box-shadow: 0px 8px 48px $shadowModalColor !important;
+      border-radius: $lightRounded !important;
 
       li {
         border-bottom: none !important;
         font-family: "Garet-Medium";
         font-size: 12px;
         line-height: 17px;
-        color: #072d63;
+        color: $textMain;
         position: relative;
         position: relative;
         display: flex;
@@ -53,10 +46,9 @@
         ul {
           list-style-type: square;
 
-          background: #ffffff;
-          /* background-neutral-medium */
-          border: 1px solid #ebeff5 !important;
-          box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15) !important;
+          background: $white;
+          border: 1px solid $borderColor !important;
+          box-shadow: 0px 8px 48px $shadowModalColor !important;
           border-radius: 6px !important;
 
           padding: 0;
@@ -75,14 +67,15 @@
         overflow: hidden;
 
         &[aria-expanded="true"] {
-          border-color: #2868e1;
+          border-color: $lightElectric;
 
           span.absolute {
-            border-color: #2868e1;
+            border-color: $lightElectric;
+            // what is this colour
             background-color: #e9f0fc;
 
             svg {
-              color: #2868e1;
+              color: $lightElectric;
             }
           }
         }
@@ -96,6 +89,7 @@
         &:active,
         &:focus {
           span.absolute {
+            // what is this colour?
             background-color: #e9f0fc;
 
             svg {
@@ -115,6 +109,7 @@
           transition: 0.3s;
 
           svg {
+            // what is this colour?
             color: #8395b0;
             transition: 0.3s;
           }
@@ -128,17 +123,17 @@
       border: solid 1px $grey;
       border-radius: $rounded;
       box-shadow: none !important;
-      //padding: 12px 32px 12px 16px !important;
       height: 42px;
       transition: 0.3s;
       min-height: 36px;
 
       &[aria-expanded="true"] {
-        border-color: #2868e1;
+        border-color: $lightElectric;
 
         &.combo {
           span.absolute {
-            border-left: 1px solid #2868e1;
+            border-left: 1px solid $lightElectric;
+            // what is this colour?
             background-color: #e9f0fc;
           }
         }
@@ -178,7 +173,7 @@
     ul {
       border: 1px solid $grey;
       border-radius: $rounded;
-      box-shadow: 0 8px 48px 0 rgba(7, 45, 99, 0.16);
+      box-shadow: 0 8px 48px 0 $shadowModalColor;
 
       li {
         border-bottom: 1px solid $grey;
@@ -190,11 +185,11 @@
         }
 
         &:hover:not([class*="icon"]) {
-          color: $cta-color-scale-blue-light;
+          color: $lightElectric;
         }
 
         &.active {
-          color: $cta-color-scale-blue-light;
+          color: $lightElectric;
         }
 
         &:last-of-type {
@@ -206,7 +201,7 @@
         }
 
         .selected {
-          color: $cta-color-scale-blue-light;
+          color: $lightElectric;
         }
       }
     }
@@ -260,51 +255,25 @@
     .picker-container {
       button {
         font-size: 14px;
-        //	min-width: 72px !important;
-        //width: fit-content;
         padding: 8px 32px 8px 12px;
       }
     }
   }
 }
 
-// .combo {
-// 	z-index: 3333;
-// 	button {
-// 		&[aria-expanded="true"] {
-// 			border-color: #2868e1;
-
-// 			span.absolute {
-// 				border-color: #2868e1;
-// 				background-color: #e9f0fc;
-// 			}
-// 		}
-// 	}
-// }
-
 .nolus-combo {
-  /* White */
   padding: 12px 0px;
-  background: #ffffff;
-  /* cta-bule-light */
-
-  // border: 1px solid #2868e1;
+  background: $white;
   border-radius: 6px;
 
   ul {
     padding: 12px 19px;
     gap: 20px;
     z-index: 99;
-    /* White */
-
     background: $white;
-    /* background-neutral-medium */
-
     border: 1px solid $borderColor;
-    /* field-shadow-heavy */
-
-    box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15);
-    border-radius: 6px;
+    box-shadow: 0px 8px 48px $shadowModalColor;
+    border-radius: $lightRounded;
 
     li {
       margin-bottom: 27.75px;
@@ -333,14 +302,13 @@
 
     .nolus-combo-button {
       border-left: 1px solid $grey;
-      // padding: 5px;
-      // background-color: $activeButton;
       color: $lightElectric;
       border-left: 1px solid $lightElectric;
       background-color: $activeButton;
 
       span.icon {
-        color: #276ee3;
+        // WHAT IS THIS COLOUR????
+        color: $lightElectric;
       }
     }
   }
@@ -353,7 +321,6 @@
       padding: 5px;
     }
 
-    //color: $lightRed;
     span.icon {
       color: $lightRed;
       margin-right: 0px;

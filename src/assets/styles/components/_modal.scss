@@ -13,7 +13,6 @@
     height: calc(100vh - 60px);
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
-    //overflow: hidden;
 
     @media (min-width: $md) {
       height: auto;
@@ -22,18 +21,12 @@
     }
 
     &-parent {
-      background: linear-gradient(314.47deg, #ebeff5 2.19%, #f7f9fc 100%);
+      background: linear-gradient(314.47deg, $borderColor 2.19%, $lightGrey 100%);
       @media (min-width: $md) and (orientation: landscape) {
-        // overflow-x: hidden;
-        // overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         align-items: flex-start;
         padding-top: 10vh;
       }
-
-      // @media (min-width: $lg) {
-      // 	top: 10vh;
-      // }
     }
 
     &-header {
@@ -107,8 +100,6 @@
       flex-grow: 1;
       width: 100%;
       padding: 40px 24px 108px;
-      // overflow-x: hidden;
-      // overflow-y: auto;
       -webkit-overflow-scrolling: touch;
 
       @media (min-width: $md) {

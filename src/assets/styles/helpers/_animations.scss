@@ -106,8 +106,8 @@
 
 .shadow-1,
 .shadow-navbar-icon {
-  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000),
-  var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 $black),
+  var(--tw-ring-shadow, 0 0 $black), var(--tw-shadow);
 }
 
 .c-navbar-qr__container,
