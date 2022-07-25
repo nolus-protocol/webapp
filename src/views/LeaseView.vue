@@ -58,6 +58,7 @@ import LeaseInfo from '@/components/LeaseInfo.vue'
 import SidebarHeader from '@/components/Sideheader.vue'
 import { WalletManager } from '@/wallet/WalletManager'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
+import { NolusClient } from '@nolus/nolusjs'
 
 export default defineComponent({
   name: 'LeaseView',
@@ -74,7 +75,8 @@ export default defineComponent({
     }
   },
   async mounted () {
-    const leaseClient = new Lease()
+    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
+    const leaseClient = new Lease(cosmWasmClient)
     const openedLeases: string[] = await leaseClient.getCurrentOpenLeases(
       CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance,
       WalletManager.getWalletAddress()
@@ -88,6 +90,8 @@ export default defineComponent({
         leaseStatus: leaseInfo
       })
     }
+
+    console.log('leases: ', this.leases)
   }
 })
 </script>
