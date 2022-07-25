@@ -40,7 +40,7 @@
         >
           <!-- Ticker -->
           <div class="inline-flex items-center">
-            <imgtogglePopup class="inline-block m-0 mr-4" height="32"/>
+            <!-- <imgtogglePopup class="inline-block m-0 mr-4" height="32"/> -->
             <div class="inline-block">
               <p
                 class="text-primary nls-14 nls-font-700 text-left uppercase m-0"
