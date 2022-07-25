@@ -44,8 +44,7 @@
       position: absolute;
       left: 15px;
       top: calc(50% - 0.75em);
-      // What is this colour????
-      border: 2px solid #dbe3f4;
+      border: 2px solid $borderColor;
       border-radius: 50%;
       opacity: 1;
     }

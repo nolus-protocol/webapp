@@ -71,8 +71,7 @@
 
           span.absolute {
             border-color: $lightElectric;
-            // what is this colour
-            background-color: #e9f0fc;
+            background-color: $borderColor;
 
             svg {
               color: $lightElectric;
@@ -89,8 +88,7 @@
         &:active,
         &:focus {
           span.absolute {
-            // what is this colour?
-            background-color: #e9f0fc;
+            background-color: $borderColor;
 
             svg {
               color: $lightElectric;
@@ -109,8 +107,7 @@
           transition: 0.3s;
 
           svg {
-            // what is this colour?
-            color: #8395b0;
+            color: $lightBlue;
             transition: 0.3s;
           }
         }
@@ -133,8 +130,7 @@
         &.combo {
           span.absolute {
             border-left: 1px solid $lightElectric;
-            // what is this colour?
-            background-color: #e9f0fc;
+            background-color: $borderColor;
           }
         }
       }
@@ -163,7 +159,7 @@
       font-family: "Garet-Medium";
       line-height: 24px;
       margin-top: 4px;
-      color: $lightRed;
+      color: $mediumRed;
 
       &.hidden {
         display: none;
@@ -235,16 +231,16 @@
   &.error {
     .picker-container {
       button {
-        border-color: $lightRed !important;
+        border-color: $mediumRed !important;
       }
 
       &.combo {
         span.absolute {
-          border-color: $lightRed;
+          border-color: $mediumRed;
           background-color: transparent;
 
           svg {
-            color: $lightRed;
+            color: $mediumRed;
           }
         }
       }
@@ -307,22 +303,21 @@
       background-color: $activeButton;
 
       span.icon {
-        // WHAT IS THIS COLOUR????
         color: $lightElectric;
       }
     }
   }
 
   &.error {
-    outline: 1px solid $lightRed;
+    outline: 1px solid $mediumRed;
 
     button {
-      border-left: 1px solid $lightRed;
+      border-left: 1px solid $mediumRed;
       padding: 5px;
     }
 
     span.icon {
-      color: $lightRed;
+      color: $mediumRed;
       margin-right: 0px;
     }
   }

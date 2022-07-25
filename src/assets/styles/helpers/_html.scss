@@ -28,8 +28,7 @@ body {
 }
 
 hr {
-	// What is this colour?
-	background-color: rgba(7, 45, 99, 0.1);
+	background-color: $borderColor;
 	border: none;
 	height: 1px;
 }
@@ -75,8 +74,7 @@ button {
 }
 
 .warning-box {
-	// what is this colour?
-	background-color: #fff9ea;
+	background-color: $bgYellow;
 }
 
 .left-and-right {
@@ -242,8 +240,7 @@ input[type="checkbox" i] {
   line-height: 14px;
 
   .icon-tooltip {
-	// what is this colour?????
-    color: #8395b0;
+    color: $lightBlue;
     margin: 0;
 
     &::before {
@@ -279,8 +276,7 @@ input[type="checkbox" i] {
 	input[type="radio"] {
 		--active: $lightElectric;
 		--active-inner: $white;
-		// What is this colour?
-		--focus: 2px rgba(39, 94, 254, 0.3);
+		--focus: 2px $lightElectric;
 		--border: $borderColor;
 		--border-hover: $lightElectric;
 		--background: $white;

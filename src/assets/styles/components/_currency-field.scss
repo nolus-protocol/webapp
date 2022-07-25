@@ -29,7 +29,7 @@
 		}
 
 		&.error {
-			border-color: $lightRed;
+			border-color: $mediumRed;
 		}
 		label {
 			display: none;
@@ -102,7 +102,7 @@
 		font-family: "Garet-Medium";
 		line-height: 24px;
 		margin-top: 4px;
-		color: $lightRed;
+		color: $mediumRed;
 
 		&.hidden {
 			display: none;
@@ -116,7 +116,7 @@
 	.error {
 		.picker-container {
 			button {
-				border-color: $lightRed !important;
+				border-color: $grey !important;
 			}
 			.error {
 				display: none;

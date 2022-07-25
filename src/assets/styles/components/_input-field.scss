@@ -28,7 +28,7 @@
     }
 
     &.error {
-      border-color: $lightRed;
+      border-color: $mediumRed;
     }
 
     & > div {
@@ -53,7 +53,7 @@
     font-family: "Garet-Medium";
     line-height: 24px;
     margin-top: 4px;
-    color: $lightRed;
+    color: $mediumRed;
 
     &.hidden {
       display: none;

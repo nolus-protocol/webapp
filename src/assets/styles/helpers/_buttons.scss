@@ -33,8 +33,7 @@ button {
     position: absolute;
     left: calc(50% - 0.6em);
     top: calc(50% - 0.6em);
-    // what is this colour?????
-    border: 2px solid #dbe3f4;
+    border: 2px solid $borderColor;
     border-radius: $halfRounded;
     opacity: 1;
   }
@@ -112,8 +111,7 @@ button {
       position: absolute;
       left: calc(50% - 0.6em);
       top: calc(50% - 0.6em);
-      // what is this colour?
-      border: 2px solid #dbe3f4;
+      border: 2px solid $borderColor;
       border-radius: $halfRounded;
       opacity: 1;
     }
@@ -202,8 +200,7 @@ button {
       position: absolute;
       left: calc(50% - 0.6em);
       top: calc(50% - 0.6em);
-      // What is #dbe3f4?
-      border: 2px solid #dbe3f4;
+      border: 2px solid $borderColor;
       border-radius: $halfRounded;
       opacity: 1;
     }
@@ -312,8 +309,7 @@ button {
         position: absolute;
         left: calc(50% - 0.6em);
         top: calc(50% - 0.6em);
-        // what is this colour?
-        border: 2px solid #dbe3f4;
+        border: 2px solid $borderColor;
         border-radius: $halfRounded;
         opacity: 1;
       }
@@ -478,8 +474,7 @@ button {
     border: 1px solid $borderColor;
     box-shadow: 0px 12px 32px $shadowBoxColor;
     transition: 0.3s;
-    // what is this colour?
-    color: #768ba9;
+    color: $lightBlue;
     position: relative;
 
     &.rounded-r-none {
@@ -499,8 +494,7 @@ button {
     }
 
     &:active {
-      // what is this colour????????
-      color: #768ba9;
+      color: $lightBlue;
       background-color: $lightGrey;
       border: 1px solid $borderColor;
     }

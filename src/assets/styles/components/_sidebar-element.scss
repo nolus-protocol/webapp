@@ -336,8 +336,7 @@
     position: fixed;
     width: 100vw;
     left: 0;
-    // What is this colour?
-    background: rgba(173, 173, 173, 0.1);
+    background: $lightGrey;
   }
 
   .active {

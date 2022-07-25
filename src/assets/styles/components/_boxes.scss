@@ -7,16 +7,16 @@
   &-warning {
     background-color: $bgYellow;
     .icon {
-      color: $darkYellow;
+      color: $warnYellow;
     }
     & > div:first-of-type {
       min-width: 24px;
     }
   }
   &-error {
-    background-color: $warnError;
+    background-color: $lightRed;
     .icon {
-      color: $darkRed;
+      color: $mediumRed
     }
     & > div:first-of-type {
       min-width: 24px;
