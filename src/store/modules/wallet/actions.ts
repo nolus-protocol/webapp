@@ -53,7 +53,7 @@ export interface Actions {
     commit,
     getters,
     dispatch
-  }: AugmentedActionContext, payload: { importStr: string }): void,
+  }: AugmentedActionContext, payload: { mnemonic: string }): void,
 
   [WalletActionTypes.LOGIN_VIA_TORUS] ({ commit }: AugmentedActionContext): void,
 
@@ -183,15 +183,15 @@ export const actions: ActionTree<State, RootState> & Actions = {
     commit,
     getters,
     dispatch
-  }, { importStr }: { importStr: string }) {
+  }, { mnemonic }: { mnemonic: string }) {
     let privateKey: Uint8Array
-    if (KeyUtilities.isPrivateKey(importStr)) {
-      privateKey = Buffer.from(importStr.trim().replace("0x", ""), "hex");
+    if (KeyUtilities.isPrivateKey(mnemonic)) {
+      privateKey = Buffer.from(mnemonic.trim().replace("0x", ""), "hex");
     } else {
       const accountNumbers = [0]
       const path = accountNumbers.map(makeCosmoshubPath)[0]
       // const mnemonic = 'industry helmet coach enforce laundry excuse core argue poem master sugar demand'
-      privateKey = await KeyUtils.getPrivateKeyFromMnemonic(importStr, path)
+      privateKey = await KeyUtils.getPrivateKeyFromMnemonic(mnemonic, path)
     }
 
     const directSecrWallet = await DirectSecp256k1Wallet.fromKey(privateKey, ChainConstants.BECH32_PREFIX_ACC_ADDR)

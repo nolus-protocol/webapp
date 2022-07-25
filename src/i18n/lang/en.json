@@ -57,6 +57,10 @@
     "scan-code": "Scan code",
     "network": "Network",
     "clear-all": "Clear All",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "import": "Import",
+    "import-seed": "Import seed",
+    "mnemonic-seed-or-key": "Mnemonic seed or private key",
+    "text-field-error":  "Text field must not be empty!"
   }
 }

@@ -4,17 +4,17 @@
       <ArrowLeftIcon aria-hidden="true" class="h-5 w-5" />
     </button>
     <span class="inline-block align-baseline">
-      Import seed
+      {{ $t('message.import-seed') }}
     </span>
   </h1>
 
   <div class="block rounded-2xl bg-white mt-8 p-10 border border-standart shadow-box">
     <TextField id="seed" v-model:value.trim="importStr" :error-msg="errorMessage" :is-error="errorMessage !== ''"
-      label="Mnemonic seed or private key" name="seed"></TextField>
+      :label="$t('message.mnemonic-seed-or-key')" name="seed" />
 
     <div class="flex mt-6">
       <button class="btn btn-primary btn-large-primary mr-4" v-on:click="clickImport">
-        Import
+      {{ $t('message.import') }}
       </button>
     </div>
   </div>
@@ -48,10 +48,11 @@ export default defineComponent({
     },
     clickImport () {
       if (this.importStr === '') {
-        this.errorMessage = 'Text field must not be empty!'
+        this.errorMessage = this.$t('message.text-field-error')
         return
       }
-      useStore().dispatch(WalletActionTypes.CONNECT_VIA_MNEMONIC, { importStr: this.importStr })
+
+      useStore().dispatch(WalletActionTypes.CONNECT_VIA_MNEMONIC, { mnemonic: this.importStr })
       this.importStr = ''
       this.errorMessage = ''
       router.push({ name: RouteNames.SET_PASSWORD })
