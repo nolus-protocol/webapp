@@ -2,10 +2,9 @@
   <a
     :id="this.id"
     :class="[
-      'sidebar-element',
+      'sidebar-element cursor-pointer',
       this.$route.path == this.href ? 'active' : false,
     ]"
-    :href="this.href"
     :target="target || '_self'"
   >
     <span :class="['icon', `icon-${this.id}`]"></span>

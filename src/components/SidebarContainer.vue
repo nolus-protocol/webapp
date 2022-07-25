@@ -1,9 +1,9 @@
 <template>
   <div :class="showMobileNav ? 'mobile-nav' : false" class="sidebar-container">
     <div class="top">
-      <LogoLink link="/"></LogoLink>
+      <LogoLink link="/" />
       <div
-        class="sidebar-elements-container nls-nav-more flex flex-col mt-[55[px]]"
+        class="sidebar-elements-container nls-nav-more flex flex-col mt-[55px]"
       >
         <div
           :style="
@@ -25,13 +25,9 @@
             <SidebarElement
               id="governance"
               label="Govern"
-              href="https://wallet.keplr.app/#/dashboard"
               target="_blank"
-            >
-            </SidebarElement>
-          </div>
-          <div class="nls-md-show mb-6">
-            <SidebarSocial/>
+              v-on:click="openExternal('https://wallet.keplr.app/#/dashboard', '_blank')"
+            />
           </div>
         </div>
 
@@ -41,6 +37,7 @@
               id="assets"
               href="/"
               :label="$t('message.assets')"
+              v-on:click="pushToDashboard"
             />
           </div>
           <div class="block nls-nav-link">
@@ -74,80 +71,67 @@
             <SidebarElement
               id="governance"
               label="Govern"
-              href="https://wallet.keplr.app/#/dashboard"
               target="_blank"
-            >
-            </SidebarElement>
+              v-on:click="openExternal('https://wallet.keplr.app/#/dashboard', '_blank')"
+            />
           </div>
           <div class="block nls-nav-link nls-md-show">
             <SidebarElement
               id="more"
               v-on:click="showMobileNav = !showMobileNav"
               :label="this.isMobile ? 'More' : 'Settings'"
-            >
-            </SidebarElement>
-          </div>
-          <div class="block nls-nav-link nls-md-hidden">
-
+            />
           </div>
         </div>
       </div>
-
-
     </div>
  <div class="lg:bot lg:pb-8">
     <div class="flex items-center sub-nav-social">
       <SidebarElement
         id="twitter"
-        :href="TWITTER_ACCOUNT"
         :icon="require('@/assets/icons/twitter.svg')"
         target="_blkank"
-      >
-      </SidebarElement>
+        v-on:click="openExternal(TWITTER_ACCOUNT, '_blank')"
+      />
       <SidebarElement
         id="telegram"
-        :href="TELEGRAM_ACCOUNT"
         :icon="require('@/assets/icons/telegram.svg')"
         target="_blkank"
-      >
-      </SidebarElement>
+        v-on:click="openExternal(TELEGRAM_ACCOUNT, '_blank')"
+      />
       <SidebarElement
         id="discord"
-        :href="DISCORD_ACCOUNT"
         :icon="require('@/assets/icons/discord.svg')"
         target="_blkank"
-      >
-      </SidebarElement>
+        v-on:click="openExternal(DISCORD_ACCOUNT, '_blank')"
+      />
       <SidebarElement
         id="reddit"
-        :href="REDDIT_ACCOUNT"
         :icon="require('@/assets/icons/reddit.svg')"
         target="_blkank"
-      >
-      </SidebarElement>
+        v-on:click="openExternal(REDDIT_ACCOUNT, '_blank')"
+      />
       <SidebarElement
         id="medium"
-        :href="MEDIUM_ACCOUNT"
         :icon="require('@/assets/icons/medium.svg')"
         target="_blkank"
-      >
-      </SidebarElement>
+        v-on:click="openExternal(MEDIUM_ACCOUNT, '_blank')"
+      />
     </div>
     <div class="block mt-3 nls-12 nls-font-400 sub-nav-service">
-      <SidebarLinkElement
+      <!-- <SidebarElement
         id="term-of-service"
         href="#"
         :label="$t('message.term-of-service')"
         target="_blkank"
-      >
-      </SidebarLinkElement>
+      /> -->
       <!-- this.$route.path == this.href ? 'active' : false, -->
     </div>
   </div>
     <div class="backdrop"></div>
   </div>
 </template>
-<script type="ts">
+<script lang="ts">
 import LogoLink from '@/components/LogoLink.vue'
 import SidebarElement from '@/components/SidebarElement.vue'
 import {
@@ -155,7 +139,8 @@ import {
   LINKEDIN_ACCOUNT,
   REDDIT_ACCOUNT,
   TELEGRAM_ACCOUNT,
-  TWITTER_ACCOUNT
+  TWITTER_ACCOUNT,
+  MEDIUM_ACCOUNT
 } from '@/constants/webapp'
 import router from '@/router'
 import { RouteNames } from '@/router/RouterNames'
@@ -176,13 +161,13 @@ export default {
       REDDIT_ACCOUNT: REDDIT_ACCOUNT,
       LINKEDIN_ACCOUNT: LINKEDIN_ACCOUNT,
       DISCORD_ACCOUNT: DISCORD_ACCOUNT,
+      MEDIUM_ACCOUNT: MEDIUM_ACCOUNT,
       isMobile: false
     }
   },
   mounted () {
     this.isMobile = screen?.width < 576
   },
-
   methods: {
     toggleWalletPopup () {
       this.showWalletPopup = !this.showWalletPopup
@@ -198,6 +183,9 @@ export default {
     },
     pushToEarn () {
       router.push({ name: RouteNames.EARN })
+    },
+    openExternal (url: string, target: string) {
+      window.open(url, target)
     }
   }
 }
