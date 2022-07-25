@@ -141,6 +141,7 @@ export default defineComponent({
     }
   },
   mounted () {
+    console.log('mounted::: ', this.modelValue)
     this.addressOptions = [
       {
         id: '1',

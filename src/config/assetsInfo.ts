@@ -2,7 +2,7 @@ import { ChainConstants } from '@nolus/nolusjs'
 import { AssetInfo } from '@/types/AssetInfo'
 
 export const assetsInfo: { [key: string]: AssetInfo; } = {
-  unolus: {
+  unls: {
     chainName: ChainConstants.CHAIN_NAME,
     coinDenom: ChainConstants.COIN_DENOM,
     coinMinimalDenom: ChainConstants.COIN_MINIMAL_DENOM,

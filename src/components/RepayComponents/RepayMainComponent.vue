@@ -32,6 +32,7 @@ import { WalletUtils } from '@/utils/WalletUtils'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { CurrencyUtils, NolusClient } from '@nolus/nolusjs'
 import { assetsInfo } from '@/config/assetsInfo'
+import { ChainConstants } from '@nolus/nolusjs/build/constants'
 
 enum ScreenState {
   MAIN = 'RepayFormComponent',
@@ -204,7 +205,7 @@ export default defineComponent({
         const feeAmount = new Dec('0.25').mul(new Dec(coinDecimals))
         const DEFAULT_FEE = {
           amount: [{
-            denom: 'unolus',
+            denom: ChainConstants.COIN_MINIMAL_DENOM,
             amount: WalletUtils.isConnectedViaExtension() ? '0.25' : feeAmount.truncate().toString()
           }],
           gas: '2000000'

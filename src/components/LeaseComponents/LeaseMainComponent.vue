@@ -40,6 +40,7 @@ import { CurrencyUtils, NolusClient } from '@nolus/nolusjs'
 import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 import { assetsInfo } from '@/config/assetsInfo'
+import { ChainConstants } from '@nolus/nolusjs/build/constants'
 
 enum ScreenState {
   MAIN = 'LeaseFormComponent',
@@ -290,7 +291,7 @@ export default defineComponent({
         console.log('feeAmount: ', feeAmount.truncate().toString())
         const DEFAULT_FEE = {
           amount: [{
-            denom: 'unolus',
+            denom: ChainConstants.COIN_MINIMAL_DENOM,
             amount: WalletUtils.isConnectedViaExtension() ? '0.25' : feeAmount.truncate().toString()
           }],
           gas: '2000000'

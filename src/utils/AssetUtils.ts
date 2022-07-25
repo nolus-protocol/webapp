@@ -3,7 +3,7 @@ import { AssetInfo } from '@/types/AssetInfo'
 
 export class AssetUtils {
   public static getAssetInfoByAbbr (coinAbbreviation: string): AssetInfo {
-    return this.assetsInfo()[coinAbbreviation] || this.assetsInfo().unolus
+    return this.assetsInfo()[coinAbbreviation] || this.assetsInfo().unls
   }
 
   private static assetsInfo (): { [key: string]: AssetInfo; } {

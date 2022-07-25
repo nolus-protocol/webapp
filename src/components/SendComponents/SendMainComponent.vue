@@ -15,6 +15,7 @@ import { AssetBalance } from '@/store/modules/wallet/state'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { assetsInfo } from '@/config/assetsInfo'
 import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
+import { ChainConstants } from '@nolus/nolusjs/build/constants'
 
 enum ScreenState {
   MAIN = 'SendComponent',
@@ -49,10 +50,13 @@ export default defineComponent({
       props: this.initProps()
     }
     const balances = useStore().state.wallet.balances
+    console.log('balances: ', balances)
     if (balances) {
       this.currentComponent.props.currentBalance = balances
       this.currentComponent.props.selectedCurrency = balances[0]
     }
+
+    console.log('selected value: ', this.currentComponent.props.selectedCurrency)
   },
   data () {
     return {
@@ -208,7 +212,7 @@ export default defineComponent({
         const DEFAULT_FEE = {
           amount: [
             {
-              denom: 'unolus',
+              denom: ChainConstants.COIN_MINIMAL_DENOM,
               amount: WalletUtils.isConnectedViaExtension()
                 ? '0.25'
                 : feeAmount.truncate().toString()
