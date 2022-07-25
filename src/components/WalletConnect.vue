@@ -33,7 +33,7 @@ export default {
       // useStore().dispatch(Ac)
     },
     connectViaMnemonic: () => {
-      useStore().dispatch(WalletActionTypes.CONNECT_VIA_MNEMONIC, { mnemonic: '' })
+      useStore().dispatch(WalletActionTypes.CONNECT_VIA_MNEMONIC, { importStr: '' })
     },
     createWallet: () => {
       router.push({

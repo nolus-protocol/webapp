@@ -1,34 +1,37 @@
 import { ActionContext, ActionTree } from 'vuex'
-import { RootState } from '@/store'
+import { Window as KeplrWindow } from '@keplr-wallet/types/build/window'
+import { DeliverTxResponse, IndexedTx, StdFee } from '@cosmjs/stargate'
+import { Coin, DirectSecp256k1Wallet } from '@cosmjs/proto-signing'
+import { fromHex, toHex } from '@cosmjs/encoding'
+import { makeCosmoshubPath } from '@cosmjs/amino'
+import { LedgerSigner } from '@cosmjs/ledger-amino'
+import { ExecuteResult } from '@cosmjs/cosmwasm-stargate'
+import { AssetUtils, KeyUtils, NolusClient, NolusWallet, NolusWalletFactory } from '@nolus/nolusjs'
+import { ChainConstants } from '@nolus/nolusjs/build/constants'
+import { openLeaseMsg, repayLeaseMsg } from '@nolus/nolusjs/build/contracts'
+import { CurrencyUtils } from '@nolus/nolusjs/build/utils/CurrencyUtils'
+import OpenLogin from '@toruslabs/openlogin'
+import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
 
-import { AssetBalance, State } from './state'
-import { Mutations } from './mutations'
+import { RootState } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { WalletUtils } from '@/utils/WalletUtils'
-import { Window as KeplrWindow } from '@keplr-wallet/types/build/window'
+import { KeyUtils as KeyUtilities } from '@/utils/KeyUtils'
 import KeplrEmbedChainInfo from '@/config/keplr'
 import router from '@/router'
 import { WalletMutationTypes } from '@/store/modules/wallet/mutation-types'
-import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
-import { Coin, DirectSecp256k1Wallet } from '@cosmjs/proto-signing'
-import { fromHex, toHex } from '@cosmjs/encoding'
-import OpenLogin from '@toruslabs/openlogin'
 import { Getters } from '@/store/modules/wallet/getters'
-import { DeliverTxResponse, IndexedTx, StdFee } from '@cosmjs/stargate'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 import { EncryptionUtils } from '@/utils/EncryptionUtils'
 import { RouteNames } from '@/router/RouterNames'
 import { CONTRACTS } from '@/config/contracts'
-import { makeCosmoshubPath } from '@cosmjs/amino'
-import { AssetUtils, KeyUtils, NolusClient, NolusWallet, NolusWalletFactory } from '@nolus/nolusjs'
-import { ChainConstants } from '@nolus/nolusjs/build/constants'
-import { CurrencyUtils } from '@nolus/nolusjs/build/utils/CurrencyUtils'
-import { LedgerSigner } from '@cosmjs/ledger-amino'
 import { Lease } from '@nolus/nolusjs/build/contracts'
-import { ExecuteResult } from '@cosmjs/cosmwasm-stargate'
 import { IbcAssets, supportedCurrencies } from '@/config/currencies'
 import { WalletConnectMechanism } from '@/types/WalletConnectMechanism'
 import { WalletManager } from '@/wallet/WalletManager'
+
+import { AssetBalance, State } from './state'
+import { Mutations } from './mutations'
 
 type AugmentedActionContext = {
   commit<K extends keyof Mutations> (
@@ -50,7 +53,7 @@ export interface Actions {
     commit,
     getters,
     dispatch
-  }: AugmentedActionContext, payload: { mnemonic: string }): void,
+  }: AugmentedActionContext, payload: { importStr: string }): void,
 
   [WalletActionTypes.LOGIN_VIA_TORUS] ({ commit }: AugmentedActionContext): void,
 
@@ -180,12 +183,17 @@ export const actions: ActionTree<State, RootState> & Actions = {
     commit,
     getters,
     dispatch
-  }, payload: { mnemonic: string }) {
-    console.log('mnemonic: ' + payload.mnemonic)
-    const accountNumbers = [0]
-    const path = accountNumbers.map(makeCosmoshubPath)[0]
-    // const mnemonic = 'industry helmet coach enforce laundry excuse core argue poem master sugar demand'
-    const privateKey = await KeyUtils.getPrivateKeyFromMnemonic(payload.mnemonic, path)
+  }, { importStr }: { importStr: string }) {
+    let privateKey: Uint8Array
+    if (KeyUtilities.isPrivateKey(importStr)) {
+      privateKey = Buffer.from(importStr.trim().replace("0x", ""), "hex");
+    } else {
+      const accountNumbers = [0]
+      const path = accountNumbers.map(makeCosmoshubPath)[0]
+      // const mnemonic = 'industry helmet coach enforce laundry excuse core argue poem master sugar demand'
+      privateKey = await KeyUtils.getPrivateKeyFromMnemonic(importStr, path)
+    }
+
     const directSecrWallet = await DirectSecp256k1Wallet.fromKey(privateKey, ChainConstants.BECH32_PREFIX_ACC_ADDR)
     const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(directSecrWallet)
     await nolusWalletOfflineSigner.useAccount()

@@ -157,7 +157,7 @@ export default defineComponent({
       }
 
       useStore().dispatch(WalletActionTypes.CONNECT_VIA_MNEMONIC, {
-        mnemonic: this.mnemonic
+        importStr: this.mnemonic
       })
       this.mnemonic = ''
       router.push({ name: RouteNames.SET_PASSWORD })
