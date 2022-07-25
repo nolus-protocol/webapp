@@ -1557,7 +1557,7 @@
                   Supply Modal
                 </button>
 
-                <button
+                <!-- <button
                   class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
                   @click="() => (showLeaseModal = true)"
                 >
@@ -1568,7 +1568,7 @@
                   @click="() => (showRepayModal = true)"
                 >
                   Repay Modal
-                </button>
+                </button> -->
 
                 <button
                   class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"

@@ -1,21 +1,5 @@
 <template>
-  <div
-    class="fixed flex modal items-center top-0 bottom-0 left-0 right-0 justify-center z-[99] modal-send-receive-parent"
-    style="linear-gradient(314.47 deg, #EBEFF5 2.19 %, #F7F9FC 100 %);"
-  >
-    <div
-      class="text-center modal bg-white w-full max-w-[516px] radius-modal mx-auto shadow-modal"
-      @click.stop
-    >
-      <button class="btn-close-modal" @click="$emit('close-modal')">
-        <img class="inline-block w-4 h-4" src="@/assets/icons/cross.svg"/>
-      </button>
-      <div class="flex modal-header">
-        <p class="nls-32 nls-font-700">{{ $t('message.repay') }}</p>
-      </div>
-      <component :is="currentComponent.is" v-model="currentComponent.props" :step="step"/>
-    </div>
-  </div>
+    <component :is="currentComponent.is" v-model="currentComponent.props" :step="step"/>
 </template>
 
 <script lang="ts">
@@ -74,7 +58,8 @@ export default defineComponent({
     console.log('receiver address: ', this.currentComponent.props.receiverAddress)
 
     if (balances) {
-      this.currentComponent.props.selectedCurrency = balances[0]
+      this.currentComponent.props.selectedCurrency = balances[0];
+
     }
   },
   data () {
@@ -227,6 +212,7 @@ export default defineComponent({
             this.step = 3
           }
         } catch (e) {
+          console.log(e);
           this.step = 4
         }
       }
