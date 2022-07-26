@@ -11,12 +11,11 @@ button {
   }
 }
 
-
 .js-loading {
   color: transparent;
   background-color: $borderColor;
   pointer-events: none;
-  cursor: default;
+  cursor: pointer;
 
   pointer-events: none;
   border: none;
@@ -103,34 +102,6 @@ button {
     padding: 12px 24px;
     border-radius: $rounded;
 
-    &.js-loading::before {
-      content: "";
-      display: block;
-      width: 1.2em;
-      height: 1.2em;
-      position: absolute;
-      left: calc(50% - 0.6em);
-      top: calc(50% - 0.6em);
-      border: 2px solid $borderColor;
-      border-radius: $halfRounded;
-      opacity: 1;
-    }
-
-    &::after {
-      content: "";
-      display: block;
-      width: 1.2em;
-      height: 1.2em;
-      position: absolute;
-      left: calc(50% - 0.6em);
-      top: calc(50% - 0.6em);
-      border: 0.15em solid transparent;
-      border-right-color: $lightElectric;
-      border-radius: $halfRounded;
-      animation: button-anim 0.7s linear infinite;
-      opacity: 0;
-    }
-
     &:hover,
     &:focus {
       background-color: $mediumElectric;
@@ -140,9 +111,14 @@ button {
       background-color: $darkElectric;
     }
 
-    &:disabled,
     &.js-disabled,
     &.js-loading {
+      color: transparent;
+      background-color: $background-scale-darker;
+      cursor: default;
+    }
+
+    &:disabled { 
       color: $lightBlue;
       background-color: $background-scale-darker;
       cursor: default;
@@ -232,18 +208,6 @@ button {
       background-color: $activeButton;
       cursor: default;
       pointer-events: none;
-    }
-
-    &.js-loading {
-      color: transparent;
-
-      .icon {
-        color: transparent;
-      }
-
-      &::after {
-        opacity: 1;
-      }
     }
   }
 

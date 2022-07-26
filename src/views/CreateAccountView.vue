@@ -1,100 +1,69 @@
 <template>
-  <div v-if="isCreateFormOpen" class="">
-    <h1 class="text-to-big-number text-primary text-center relative">
-      <button
-        class="inline-block align-baseline absolute left-0 top-2/4 -mt-2.5"
-        type="button"
-        v-on:click="clickBack"
-      >
-        <ArrowLeftIcon aria-hidden="true" class="h-5 w-5"/>
-      </button>
-      <span class="inline-block align-baseline"> Create account </span>
-    </h1>
-    <div
-      class="block rounded-2xl bg-white mt-8 p-10 border border-standart shadow-box md:max-w-[516px]"
-    >
-        <TextFieldButtons
-        name="mnemonicSeed"
-        id="mnemonicSeed"
-        label="Mnemonic seed"
-        :value="mnemonic"
-        :on-click-copy="onClickCopy"
-        :on-click-print="onClickPrint"
-      ></TextFieldButtons>
-
-      <TextFieldButtons
-        id="mnemonicSeed"
-        :on-click-copy="onClickCopy"
-        :on-click-print="onClickPrint"
-        :value="mnemonic"
-        label="Mnemonic seed"
-        name="mnemonicSeed"
-      ></TextFieldButtons>
-      <div class="flex rounded p-4 warning-box mt-6">
-        <div class="inline-block mr-2">
-          <img src="@/assets/icons/warning.svg"/>
-        </div>
-        <div class="inline-block flex-1">
-          <p class="text-primary nls-font-700 nls-14 nls-font-400">
-            Backup your mnemonic seed securely.
-          </p>
-          <p class="text-primary nls-14 nls-font-400 mt-1">
-            Anyone with your mnemonic seed can take your assets. Lost mnemonic
-            seed can’t be recovered.
-          </p>
-        </div>
-      </div>
-            <div class="block mt-6">
-              <InputField
-                type="email"
-                name="email"
-                id="email"
-                label="Email"
-              ></InputField>
-            </div>
-            <div class="block mt-6">
-              <InputField
-                type="password"
-                name="password"
-                id="password"
-                label="Password"
-              ></InputField>
-            </div>
-
-      <div class="block mt-6 w-full">
-      </div>
-
-      <div class="block mt-6 sm:color-white">
+  <div v-if="isCreateFormOpen">
+    <div class="block rounded-2xl bg-white mt-8 pb-10 pt-6 border border-standart shadow-box md:max-w-[516px]">
+      <h1 class="text-to-big-number text-primary nls-32 text-center relative">
         <button
-          class="btn btn-primary btn-large-primary sm:w-full"
-          v-on:click="btnContinueToConfirm"
+          class="inline-block align-baseline absolute left-0 top-2/4 -mt-2.5 px-10"
+          type="button"
+          v-on:click="clickBack"
         >
-          Continue
+          <ArrowLeftIcon aria-hidden="true" class="h-5 w-5"/>
         </button>
+        <span class="inline-block align-baseline"> Create wallet </span>
+      </h1>
+
+      <div class="separator-line p-6"></div>
+
+      <div class="px-10">
+        <TextFieldButtons
+          name="mnemonicSeed"
+          id="mnemonicSeed"
+          label="Mnemonic seed"
+          :value="mnemonic"
+          :on-click-copy="onClickCopy"
+          :on-click-print="onClickPrint"
+        ></TextFieldButtons>
+
+        <div class="flex rounded p-4 warning-box mt-6">
+          <div class="inline-block mr-2">
+            <img src="@/assets/icons/warning.svg"/>
+          </div>
+          <div class="inline-block flex-1">
+            <p class="text-primary nls-font-700 nls-14">
+              Backup your mnemonic seed securely. <span class="text-primary nls-14 nls-font-400">
+              Never share it with others or enter it in unverified sites.</span>
+            </p>
+          </div>
+        </div>
+
+          <div class="block mt-6 sm:color-white">
+            <button
+              class="btn btn-primary btn-large-primary"
+              v-on:click="btnContinueToConfirm"
+            >
+              Continue
+          </button>
+        </div>
       </div>
     </div>
   </div>
-  <div v-else class="md:max-w-[516px]">
-    <h1
-      class="text-to-big-number text-primary text-center relative md:max-w-[516px]"
-    >
-      <button
-        class="inline-block align-baseline absolute left-0 top-2/4 -mt-2.5"
-        type="button"
-      >
-        <ArrowLeftIcon
-          aria-hidden="true"
-          class="h-5 w-5"
-          v-on:click="btnBackToCreateMnemonic"
-        />
-      </button>
-      <span class="inline-block align-baseline"> Confirm mnemonic </span>
-    </h1>
 
-    <div
-      class="block rounded-2xl bg-white mt-8 p-10 border border-standart shadow-box"
-    >
-      <SelectorTextField
+  <div v-else class="md:max-w-[516px]">
+    <div class="block rounded-2xl bg-white mt-8 pb-10 pt-6 border border-standart shadow-box">
+      <h1 class="text-to-big-number text-primary nls-32 text-center relative md:max-w-[516px]">
+        <button class="inline-block align-baseline absolute left-0 top-2/4 -mt-2.5 px-10" type="button">
+          <ArrowLeftIcon
+            aria-hidden="true"
+            class="h-5 w-5"
+            v-on:click="btnBackToCreateMnemonic"
+          />
+        </button>
+        <span class="inline-block align-baseline"> Confirm mnemonic </span>
+      </h1>
+
+      <div class="separator-line p-6"></div>
+
+      <SelectorTextField class="px-10"
         id="confirm-mnemonic"
         :error-msg="confirmScreenErrorMsgx"
         :is-error="confirmScreenErrorMsg !== ''"

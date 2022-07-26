@@ -1,12 +1,11 @@
 <template>
-  <div v-cloak class="block lg:w-[516px] pb-nolus-40">
-    <h1 class="nls-40 nls-font-700 text-primary text-center mb-nolus-32">
-      {{ $t('message.connect-wallet') }}
-    </h1>
-    <div
-      class="bg-white rounded-2xl border border-standart shadow-box p-nolus-40"
-    >
-      <div class="flex bg-white">
+  <div v-cloak class="block lg:w-[516px] pb-10">
+    <div class="bg-white rounded-2xl border border-standart shadow-box">
+        <h1 class="nls-32 nls-font-700 text-primary text-center p-6">
+        {{ $t('message.connect-wallet') }}
+      </h1>
+      <div class="separator-line"></div>
+      <div class="flex bg-white px-10 pt-6">
         <button class="btn btn-box btn-large-box mr-4 basis-0 grow">
           <span class="icon icon-google"/>
           {{ $t('message.google') }}
@@ -16,11 +15,10 @@
           v-on:click="clickImportSeed"
         >
           <span class="icon icon-recover"/>
-
           {{ $t('message.recover') }}
         </button>
       </div>
-      <div class="flex mt-nolus-20">
+      <div class="flex mt-5 px-10">
         <button
           class="btn btn-box btn-large-box mr-4 basis-0 grow"
           v-on:click="clickImportLedger"
@@ -37,17 +35,15 @@
         </button>
       </div>
 
-      <div class="block separator-line nls-font-400 nls-12 text-center mt-7">
+      <div class="block separator-line nls-font-400 nls-12 text-center mt-7 mx-10">
         <span class="bg-white px-3 relative z-[2]">{{
             $t('message.continue-with')
           }}</span>
       </div>
 
-      <div
-        class="flex align-center justify-center mt-7 text-center mr-auto ml-auto"
-      >
+      <div class="flex align-center justify-center mt-7 text-center mr-auto ml-auto">
         <button
-          class="btn btn-primary btn-large-primary w-80"
+          class="btn btn-primary btn-large-primary w-80 mb-10"
           v-on:click="clickCreateAccount"
         >
           {{ $t('message.create-new-account') }}
