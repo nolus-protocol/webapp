@@ -1,155 +1,139 @@
 .bg {
-  &-whiteGrey {
-    background-color: #f7f9fc;
+  &-white {
+    background-color: $white;
+  }
+
+  &-lightGrey {
+    color: $lightGrey;
   }
 
   &-grey {
-    background-color: #ebeff5;
+    color: $grey;
   }
 
   &-grey-dark {
-    background-color: #c1cad7;
+    color: $darkGrey;
   }
 
   &-light-blue {
-    background-color: #8396b1;
+    background-color: $lightBlue;
   }
 
   &-medium-blue {
-    background-color: #5e7699;
+    background-color: $mediumBlue;
   }
 
   &-dark-blue {
-    background-color: #082d63;
+    background-color: $darkBlue;
   }
 
   &-light-electric {
-    background-color: #2868e1;
+    background-color: $lightElectric;
   }
 
   &-medium-electric {
-    background-color: #245dc7;
+    background-color: $mediumElectric;
   }
 
   &-dark-electric {
-    background-color: #1f51ad;
+    background-color: $darkElectric;
   }
 
   &-light-red {
-    background-color: #e42929;
+    color: $lightRed;
   }
 
   &-medium-red {
-    background-color: #c92424;
-  }
-
-  &-dark-red {
-    background-color: #b02020;
+    color: $mediumRed;
   }
 
   &-light-green {
-    background-color: #50e3a5;
+    color: $lightGreen;
   }
 
   &-medium-green {
-    background-color: #47c993;
-  }
-
-  &-dark-green {
-    background-color: #1ab171;
+    color: $mediumGreen;
   }
 
   &-light-yellow {
-    background-color: #ffd782;
+    color: $lightYellow;
   }
 
   &-medium-yellow {
-    background-color: #ffc74f;
-  }
-
-  &-dark-yellow {
-    background-color: #ffb922;
+    color: $mediumYellow;
   }
 
   &-orange {
-    background-color: #ff562e;
+    color: $orange;
   }
 }
 
 .color {
-  &-whiteGrey {
-    color: #f7f9fc;
+  &-white {
+    background-color: $white;
+  }
+  
+  &-lightGrey {
+    color: $lightGrey;
   }
 
   &-grey {
-    color: #ebeff5;
+    color: $grey;
   }
 
   &-grey-dark {
-    color: #c1cad7;
+    color: $darkGrey;
   }
 
   &-light-blue {
-    color: #8396b1;
+    color: $lightBlue;
   }
 
   &-medium-blue {
-    color: #5e7699;
+    color: $mediumBlue;
   }
 
   &-dark-blue {
-    color: #082d63;
+    color: $darkBlue;
   }
 
   &-light-electric {
-    color: #2868e1;
+    color: $lightElectric;
   }
 
   &-medium-electric {
-    color: #245dc7;
+    color: $mediumElectric;
   }
 
   &-dark-electric {
-    color: #1f51ad;
+    color: $darkElectric;
   }
 
   &-light-red {
-    color: #e42929;
+    color: $lightRed;
   }
 
   &-medium-red {
-    color: #c92424;
+    color: $mediumRed;
   }
-
-  &-dark-red {
-    color: #b02020;
-  }
-
+  
   &-light-green {
-    color: #50e3a5;
+    color: $lightGreen;
   }
 
   &-medium-green {
-    color: #47c993;
-  }
-
-  &-dark-green {
-    color: #1ab171;
+    color: $mediumGreen;
   }
 
   &-light-yellow {
-    color: #ffd782;
+    color: $lightYellow;
   }
 
   &-medium-yellow {
-    color: #ffc74f;
+    color: $mediumYellow;
   }
-
-  &-dark-yellow {
-    color: #ffb922;
-  }
-
+  
   &-orange {
-    color: #ff562e;
+    color: $orange;
   }
 }

@@ -14,9 +14,8 @@
     transition: 0.3s;
     display: block;
     width: 100%;
-    /* field-shadow-normal */
 
-    border-radius: 6px;
+    border-radius: $lightRounded;
 
     &:hover {
       border-color: $mediumBlue !important;
@@ -25,11 +24,11 @@
     &:active,
     &:focus {
       border-color: $lightElectric !important;
-      box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.06);
+      box-shadow: 0px 12px 32px $shadowBoxColor;
     }
 
     &.error {
-      border-color: $lightRed;
+      border-color: $mediumRed;
     }
 
     & > div {
@@ -54,7 +53,7 @@
     font-family: "Garet-Medium";
     line-height: 24px;
     margin-top: 4px;
-    color: $lightRed;
+    color: $mediumRed;
 
     &.hidden {
       display: none;
@@ -80,20 +79,16 @@
   .editable-block-option {
     display: inline-block;
     background-color: $white;
-    border: 1px solid rgba(7, 45, 99, 0.1);
+    border: 1px solid $grey;
     border-radius: $lightRounded;
     padding: 8px 12px;
     margin-top: 12px;
     margin-right: 12px;
-    //box-shadow: 0 8px 32px 0 rgba(7, 45, 99, 0.05);
     font-size: 14px;
-    background: #ffffff;
-    /* background-neutral-dark */
+    background: $white;
 
-    border: 1px solid #c1cad7;
+    border: 1px solid $grey;
     border-radius: 6px;
-
-    /* Inside auto layout */
 
     flex: none;
     order: 2;
@@ -105,7 +100,7 @@ label {
   font-family: "Garet-Medium";
   font-size: 14px !important;
   line-height: 20px !important;
-  color: #082d63 !important;
+  color: $dark !important;
 }
 
 .actionField {
@@ -122,17 +117,12 @@ label {
     border-bottom-left-radius: 6px;
     border-bottom-right-radius: 6px;
     width: calc(100% - 2px);
-    border-top: 1px solid #c1cad7;
-    // border-top: 1px solid #c1cad7;
-    background: linear-gradient(314.47deg, #ebeff5 2.19%, #f7f9fc 100%);
-    /* background-neutral-dark */
-
-    //border: 1px solid #c1cad7;
+    border-top: 1px solid $grey;
+    background: linear-gradient(314.47deg, $borderColor 2.19%, $lightGrey 100%);
     border-radius: 0px 0px 6px 6px;
   }
 }
 
-// *******************
 .nolus-field {
   input {
     & + button {
@@ -141,16 +131,16 @@ label {
       top: 0;
       height: -webkit-fill-available;
       border: none;
-      border-left: 1px solid #c1cad7;
+      border-left: 1px solid $grey;
     }
 
     &.error {
       & + button {
-        border-left: 1px solid #e42929;
+        border-left: 1px solid $mediumRed;
 
         svg {
           path {
-            fill: #e42929 !important;
+            fill: $mediumRed !important;
           }
         }
       }
@@ -162,11 +152,11 @@ label {
       &:focus {
         & + button {
           transition: 0.3s;
-          border-left: 1px solid #2868e1 !important;
+          border-left: 1px solid $lightElectric !important;
 
           svg {
             path {
-              fill: #2868e1 !important;
+              fill: $lightElectric !important;
             }
           }
         }
@@ -174,11 +164,11 @@ label {
 
       &:hover {
         & + button {
-          border-left: 1px solid #8396b1 !important;
+          border-left: 1px solid $lightBlue !important;
 
           svg {
             path {
-              fill: #8396b1 !important;
+              fill: $lightBlue !important;
             }
           }
         }
@@ -193,7 +183,7 @@ label {
       font-family: "Garet-Medium";
       line-height: 24px;
       margin-top: 4px;
-      color: #e42929;
+      color: $mediumRed;
     }
   }
 }
@@ -201,14 +191,8 @@ label {
 .combo-field {
   position: relative;
 
-  input {
-  }
-
   .combo-popup {
     box-sizing: border-box;
-
-    /* Auto layout */
-
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -221,15 +205,9 @@ label {
     left: 398px;
     top: 795px;
 
-    /* White */
-
     background: $white;
-    /* background-neutral-medium */
-
     border: 1px solid $borderColor;
-    /* field-shadow-heavy */
-
-    box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15);
+    box-shadow: 0px 8px 48px $shadowModalColor;
     border-radius: 6px;
   }
 }

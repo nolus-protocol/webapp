@@ -1,8 +1,22 @@
-// Colors
 $white: #fff;
-$textMain: #072d63;
-//Neutrals background scale
+$black: #000;
+$textMain: #082D63;
 
+//Brand accent ??????????????
+$brand-accent: #FF562E;
+
+// Brand accent
+$orange: #ff562e;
+$dark: #082D63;
+
+// Breakpoints
+$sm: 576px;
+$md: 768px;
+$lg: 992px;
+$xl: 1200px;
+$xxl: 1400px;
+
+//Neutrals background scale
 $gradientGrey: #f0f4f7;
 
 // Neutrals background scale grey
@@ -22,52 +36,25 @@ $mediumElectric: #245dc7;
 $darkElectric: #1f51ad;
 
 $activeButton: rgba(40, 104, 225, 0.1);
-$iconBackgroundRed: #edd4cf;
 
-//CTA color scale red
-$lightRed: #E42929;
-$mediumRed: #c92424;
-$darkRed: #b02020;
+// Shadow
+$shadowModalColor: rgba(7, 45, 99, 0.15);
+$shadowBoxColor: rgba(7, 45, 99, 0.06);
 
-// CTA color scale green
-$lightGreen: #50e3a5;
-$mediumGreen: #47c993;
-$darkGreen: #1ab171;
-
-$iconGreen: #dcf9ed;
-
-// CTA color scale yellow
-$lightYellow: #ffd782;
-$mediumYellow: #ffc74f;
-$darkYellow: #ffb922;
-
-$bgYellow: #fff9e9;
-$warnYewwol: #ffbf36;
-
-// band accent
-$orange: #ff562e;
-$dark: #082D63;
-
-$warnError:  rgba(228, 41, 41, 0.15);
-
-$shadowModalColor: rgba(7, 45, 99, 0.16);
-$shadowBoxColor: rgba(7, 45, 99, 0.05);
-
-$borderColor: #EBEFF5;
 // Borders
+$borderColor: #EBEFF5;
+
+$veryLightRounded: 3px;
 $lightRounded: 6px;
 $rounded: 8px;
 $mediumRounded: 12px;
 $heavyRounded: 16px;
+$halfRounded: 50%;
 $circle: 100%;
 $pill: 100px;
 
-// Breakpoints
-$sm: 576px;
-$md: 768px;
-$lg: 992px;
-$xl: 1200px;
-$xxl: 1400px;
+// Line Heights
+$line-height-20: 20px;
 
 // Layout
 $mobileHeaderHeight: 65px;
@@ -83,30 +70,24 @@ $background-scale: #71767e;
 $background-medium-scale: #F7F9FC;
 $background-scale-darker: #EBEFF5;
 
-$neutral-typography-scale-light: #8396B1;
-$neutral-typography-scale-medium: #5E7699;
-$neutral-typography-scale-dark: #082D63;
+//CTA color scale red
+$lightRed: rgba(228, 41, 41, 0.15);;
+$mediumRed: #E42929;
 
-//CTA color scale
-$cta-color-scale-blue-light: #2868E1;
-$cta-color-scale-blue-medium: #245DC7;
-$cta-color-scale-blue-dark: #1F51AD;
+$iconBackgroundRed: #edd4cf;
 
-$cta-color-scale-red-light: #E42929;
-$cta-color-scale-red-medium: #C92424;
-$cta-color-scale-red-dark: #B02020;
+// CTA color scale green
+$lightGreen: rgba(80, 227, 165, 0.15);
+$mediumGreen: #1AB171;
 
-$cta-color-scale-green-light: #50E3A5;
-$cta-color-scale-green-medium: #47C993;
-$cta-color-scale-green-dark: #1AB171;
+$iconGreen: #dcf9ed;
 
-$cta-color-scale-yellow-light: #FFD782;
-$cta-color-scale-yellow-medium: #FFC74F;
-$cta-color-scale-yellow-dark: #FFB922;
+// CTA color scale yellow
+$lightYellow: rgba(255, 215, 130, 0.2);
+$mediumYellow: #FFB922;
 
-//Brand accent
-$brand-accent: #FF562E;
-
+$bgYellow: #fff9e9;
+$warnYellow: #ffbf36;
 
 .dark-theme {
   --background-scale: #07162C;
