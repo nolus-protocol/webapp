@@ -9,6 +9,10 @@ export const CONTRACTS: ContractConfig = {
     leaser: {
       instance: 'nolus1zwv6feuzhy6a9wekh96cd57lsarmqlwxdypdsplw6zhfncqw6ftqmx7chl',
       codeId: ''
+    },
+    lpp: {
+      instance: 'nolus1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sqaa3c5',
+      codeId: ''
     }
   },
   testnet: {
