@@ -8,8 +8,8 @@
         <div
           :style="
             showMobileNav
-              ? 'z-index:5; background-color: #fff;box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15); transform: translateY(0)'
-              : false
+              ? 'z-index: 5; background-color: #fff;box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15); transform: translateY(0)'
+              : ''
           "
           class="lg:hidden"
         >
@@ -79,7 +79,7 @@
             <SidebarElement
               id="more"
               v-on:click="showMobileNav = !showMobileNav"
-              :label="this.isMobile ? 'More' : 'Settings'"
+              :label="isMobile ? 'More' : 'Settings'"
             />
           </div>
         </div>
@@ -131,7 +131,10 @@
     <div class="backdrop"></div>
   </div>
 </template>
+
 <script lang="ts">
+import {defineComponent}from 'vue'
+
 import LogoLink from '@/components/LogoLink.vue'
 import SidebarElement from '@/components/SidebarElement.vue'
 import {
@@ -145,7 +148,7 @@ import {
 import router from '@/router'
 import { RouteNames } from '@/router/RouterNames'
 
-export default {
+export default defineComponent({
   name: 'SidebarContainer',
   components: {
     LogoLink,
@@ -188,8 +191,9 @@ export default {
       window.open(url, target)
     }
   }
-}
+})
 </script>
+
 <style lang="scss" scoped>
 [target="_blank"]:after {
   content: "\e801";

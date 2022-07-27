@@ -1,18 +1,18 @@
 <template>
   <a
-    :id="this.id"
+    :id="id"
     :class="[
       'sidebar-element cursor-pointer',
-      this.$route.path == this.href ? 'active' : false,
+      $route.path == href ? 'active' : false,
     ]"
     :target="target || '_self'"
   >
-    <span :class="['icon', `icon-${this.id}`]"></span>
+    <span :class="['icon', `icon-${id}`]"></span>
 
-    <span> {{ this.label }} </span>
+    <span> {{ label }} </span>
   </a>
 </template>
-<script type="ts">
+<script lang="ts">
 export default {
   name: 'SidebarElement',
   props: ['id', 'href', 'label', 'icon', 'iconHover', 'isActive', 'mobile', 'target']
