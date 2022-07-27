@@ -8,6 +8,7 @@ import DashboardView from '@/views/DashboardView.vue'
 import StyleguideView from '@/views/StyleguideView.vue'
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import AuthView from '@/views/AuthView.vue'
+import MainLayoutView from '@/views/MainLayoutView.vue'
 import CreateAccountView from '@/views/CreateAccountView.vue'
 import HistoryView from '@/views/HistoryView.vue'
 import LeaseView from '@/views/LeaseView.vue'
@@ -18,9 +19,31 @@ import { RouteNames } from '@/router/RouterNames'
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    name: RouteNames.DASHBOARD,
-    component: DashboardView,
-    meta: { requiresAuth: true }
+    name: '',
+    component: MainLayoutView,
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        name: RouteNames.DASHBOARD,
+        component: DashboardView,
+      },
+      {
+        path: '/lease',
+        name: RouteNames.LEASE,
+        component: LeaseView,
+      },
+      {
+        path: '/earn',
+        name: RouteNames.EARN,
+        component: EarningsView,
+      },
+      {
+        path: '/history',
+        name: RouteNames.HISTORY,
+        component: HistoryView,
+      },
+    ]
   },
   {
     path: '/auth',
@@ -70,24 +93,6 @@ const routes: Array<RouteRecordRaw> = [
     name: RouteNames.SET_WALLET_NAME,
     component: SetWalletName
   },
-  {
-    path: '/history',
-    name: RouteNames.HISTORY,
-    component: HistoryView,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/lease',
-    name: RouteNames.LEASE,
-    component: LeaseView,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/earn',
-    name: RouteNames.EARN,
-    component: EarningsView,
-    meta: { requiresAuth: true }
-  }
 ]
 
 const router = createRouter({

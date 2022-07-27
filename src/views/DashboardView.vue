@@ -1,144 +1,124 @@
 <template>
-  <div
-    v-cloak
-    class="lg:container w-full lg:grid lg:grid-cols-12 mx-auto grid-parent md-nls-px-25 sm-nls-0 body"
-  >
-    <div class="lg:col-span-3">
-      <SidebarContainer/>
+  <div class="col-span-12 mb-sm-nolus-70">
+    <!-- Header -->
+    <div
+      class="table-header flex mt-[255px] flex-wrap items-center justify-between items-baseline lg:px-0"
+    >
+      <div class="left">
+        <h1 class="nls-20 nls-font-700 text-primary m-0">Assets</h1>
+      </div>
+      <div class="right md:mt-0 inline-flex justify-end">
+        <button
+          class="btn btn-secondary btn-large-secondary mr-4"
+          v-on:click="showSendModal = true"
+        >
+          Send / Receive
+        </button>
+        <button class="btn btn-primary btn-large-primary">
+          Buy Tokens
+        </button>
+      </div>
     </div>
-    <div class="lg:col-span-9 pb-8">
-      <div class="grid grid-cols-10 grid-child">
-        <div class="col-span-12 mt-[60px]">
-          <div class="col-span-12">
-            <div class="sidebar-header">
-              <SidebarHeader/>
-            </div>
-          </div>
+    <!-- Wallet -->
+    <div
+      class="flex balance-box items-center justify-start bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm py-5 px-6"
+    >
+      <div class="left inline-block w-1/3">
+        <p class="nls-font-500 nls-16 text-primary mb-nolus-6 m-0">
+          Wallet Balance
+        </p>
+        <p class="nls-font-700 nls-48 text-primary m-0 mt-1">
+          {{ calculateTotalBalance() }}
+        </p>
+      </div>
+      <div class="right inline-block w-2/3">
+        <NolusChart/>
+      </div>
+    </div>
+
+    <!-- Existing Assets -->
+    <div
+      class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm"
+    >
+      <!-- Top -->
+      <div class="flex flex-wrap items-baseline justify-between px-6">
+        <div v-show="showLoading" class="loader-boxed">
+          <div class="loader__element"></div>
         </div>
-        <div class="col-span-12 mb-sm-nolus-70">
-          <!-- Header -->
-          <div
-            class="table-header flex mt-[255px] flex-wrap items-center justify-between items-baseline lg:px-0"
-          >
-            <div class="left">
-              <h1 class="nls-20 nls-font-700 text-primary m-0">Assets</h1>
-            </div>
-            <div class="right md:mt-0 inline-flex justify-end">
-              <button
-                class="btn btn-secondary btn-large-secondary mr-4"
-                v-on:click="showSendModal = true"
-              >
-                Send / Receive
-              </button>
-              <button class="btn btn-primary btn-large-primary">
-                Buy Tokens
-              </button>
-            </div>
-          </div>
-          <!-- Wallet -->
-          <div
-            class="flex balance-box items-center justify-start bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm py-5 px-6"
-          >
-            <div class="left inline-block w-1/3">
-              <p class="nls-font-500 nls-16 text-primary mb-nolus-6 m-0">
-                Wallet Balance
-              </p>
-              <p class="nls-font-700 nls-48 text-primary m-0 mt-1">
-                {{ calculateTotalBalance() }}
-              </p>
-            </div>
-            <div class="right inline-block w-2/3">
-              <NolusChart/>
-            </div>
-          </div>
-
-          <!-- Existing Assets -->
-          <div
-            class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm"
-          >
-            <!-- Top -->
-            <div class="flex flex-wrap items-baseline justify-between px-6">
-              <div v-show="showLoading" class="loader-boxed">
-                <div class="loader__element"></div>
-              </div>
-              <div class="left w-full md:w-1/2">
-                <p class="nls-16 nls-font-500 m-0 md-mt-nolus-17">
-                  Existing assets
-                </p>
-              </div>
-              <div
-                class="right w-full md:w-1/2 mt-[255px] md:mt-0 inline-flex justify-start md:justify-end"
-              >
-                <div class="relative block checkbox-container">
-                  <div class="flex items-center w-full justify-end">
-                    <input
-                      id="hide-small-balances"
-                      v-model="hideLowerBalances"
-                      aria-describedby="hide-small-balances"
-                      checked="checked"
-                      name="hide-small-balances"
-                      type="checkbox"
-                    />
-                    <label for="hide-small-balances">Hide small balances</label>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Assets -->
-            <div class="block mt-6 md:mt-[255px]">
-              <!-- Assets Header -->
-              <div
-                class="grid grid-cols-3 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6"
-              >
-                <div
-                  class="nls-font-500 nls-12 text-left text-dark-grey text-upper"
-                >
-                  Assets
-                </div>
-
-                <div
-                  class="nls-font-500 nls-12 text-right text-dark-grey text-upper"
-                >
-                  Price
-                </div>
-
-                <div
-                  class="inline-flex items-center justify-end nls-font-500 text-dark-grey nls-12 text-right text-upper"
-                >
-                  <span class="inline-block">Balance</span>
-                  <TooltipComponent content="Content goes here"/>
-                </div>
-
-                <div
-                  class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey nls-12 text-right text-upper"
-                >
-                  <span class="inline-block">Earnings</span>
-                  <TooltipComponent content="Content goes here"/>
-                </div>
-              </div>
-
-              <!-- Assets Container -->
-              <div class="block">
-                <AssetPartial
-                  v-for="asset in this.manipulatedAssets"
-                  :key="asset"
-                  :asset-info="getAssetInfo(asset.balance.denom)"
-                  :assetBalance="asset.balance.amount.toString()"
-                  :changeDirection="true"
-                  :denom="asset.balance.denom"
-                  :price="getMarketPrice(asset.balance.denom)"
-                  change="4.19"
-                  earnings="24"
-                />
-              </div>
+        <div class="left w-full md:w-1/2">
+          <p class="nls-16 nls-font-500 m-0 md-mt-nolus-17">
+            Existing assets
+          </p>
+        </div>
+        <div
+          class="right w-full md:w-1/2 mt-[255px] md:mt-0 inline-flex justify-start md:justify-end"
+        >
+          <div class="relative block checkbox-container">
+            <div class="flex items-center w-full justify-end">
+              <input
+                id="hide-small-balances"
+                v-model="hideLowerBalances"
+                aria-describedby="hide-small-balances"
+                checked="checked"
+                name="hide-small-balances"
+                type="checkbox"
+              />
+              <label for="hide-small-balances">Hide small balances</label>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- Assets -->
+      <div class="block mt-6 md:mt-[255px]">
+        <!-- Assets Header -->
+        <div
+          class="grid grid-cols-3 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6"
+        >
+          <div
+            class="nls-font-500 nls-12 text-left text-dark-grey text-upper"
+          >
+            Assets
+          </div>
+
+          <div
+            class="nls-font-500 nls-12 text-right text-dark-grey text-upper"
+          >
+            Price
+          </div>
+
+          <div
+            class="inline-flex items-center justify-end nls-font-500 text-dark-grey nls-12 text-right text-upper"
+          >
+            <span class="inline-block">Balance</span>
+            <TooltipComponent content="Content goes here"/>
+          </div>
+
+          <div
+            class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey nls-12 text-right text-upper"
+          >
+            <span class="inline-block">Earnings</span>
+            <TooltipComponent content="Content goes here"/>
+          </div>
+        </div>
+
+        <!-- Assets Container -->
+        <div class="block">
+          <AssetPartial
+            v-for="asset in this.manipulatedAssets"
+            :key="asset"
+            :asset-info="getAssetInfo(asset.balance.denom)"
+            :assetBalance="asset.balance.amount.toString()"
+            :changeDirection="true"
+            :denom="asset.balance.denom"
+            :price="getMarketPrice(asset.balance.denom)"
+            change="4.19"
+            earnings="24"
+          />
+        </div>
+      </div>
     </div>
   </div>
-
   <Dialog
     :titles="['Send', 'Receive']"
     v-if="showSendModal"
@@ -147,13 +127,11 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import SidebarContainer from '@/components/SidebarContainer.vue'
 import AssetPartial from '@/components/AssetPartial.vue'
 import { AssetUtils } from '@/utils/AssetUtils'
 import { Coin, Dec, Int } from '@keplr-wallet/unit'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import { useStore } from '@/store'
-import SidebarHeader from '@/components/Sideheader.vue'
 import { CurrencyUtils } from '@nolus/nolusjs'
 import TooltipComponent from '@/components/TooltipComponent.vue'
 import NolusChart from '@/components/templates/utils/NolusChart.vue'
@@ -162,8 +140,6 @@ import Dialog from '@/components/modals/templates/Dialog.vue'
 export default defineComponent({
   name: 'DashboardView',
   components: {
-    SidebarContainer,
-    SidebarHeader,
     AssetPartial,
     TooltipComponent,
     NolusChart,
