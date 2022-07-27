@@ -2,7 +2,7 @@
   <div class="col-span-12 mb-sm-nolus-70">
     <!-- Header -->
     <div
-      class="table-header flex mt-[255px] flex-wrap items-center justify-between items-baseline lg:px-0"
+      class="table-header flex mt-[25px] flex-wrap items-center justify-between items-baseline lg:px-0"
     >
       <div class="left">
         <h1 class="nls-20 nls-font-700 text-primary m-0">Assets</h1>
@@ -51,7 +51,7 @@
           </p>
         </div>
         <div
-          class="right w-full md:w-1/2 mt-[255px] md:mt-0 inline-flex justify-start md:justify-end"
+          class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end"
         >
           <div class="relative block checkbox-container">
             <div class="flex items-center w-full justify-end">
@@ -70,7 +70,7 @@
       </div>
 
       <!-- Assets -->
-      <div class="block mt-6 md:mt-[255px]">
+      <div class="block mt-6 md:mt-[25px]">
         <!-- Assets Header -->
         <div
           class="grid grid-cols-3 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6"
