@@ -1,7 +1,7 @@
 <template>
-  <div class="block text-left px-10 mt-nolus-41">
+  <div class="block text-left px-10 mt-10">
     <div
-      class="block nls-balance mb-nolus-13 bg-light-grey radius-light text-left text-primary"
+      class="block nls-balance mb-[13px] bg-light-grey radius-light text-left text-primary"
     >
       Current balance:
 
@@ -24,12 +24,12 @@
     />
     <div class="flex w-full">
       <div class="grow-3 text-right nls-font-500 nls-14">
-        <p class="mb-nolus-12 mt-nolus-255 mr-nolus-20">Repayment Amount:</p>
-        <p class="mb-nolus-12 mr-nolus-20">Outstanding Lease:</p>
+        <p class="mb-3 mt-[255px] mr-5">Repayment Amount:</p>
+        <p class="mb-3 mr-5">Outstanding Lease:</p>
       </div>
       <div class="text-right nls-font-700 nls-14">
         <p
-          class="mb-nolus-12 mt-nolus-255 flex justify-end align-center mr-nolus-5"
+          class="mb-3 mt-[255px] flex justify-end align-center mr-[5px]"
         >
           {{
             calculateBalance(
@@ -39,7 +39,7 @@
           }}
           <TooltipComponent content="Content goes here "/>
         </p>
-        <p class="mb-nolus-12 flex justify-end align-center mr-nolus-5">
+        <p class="mb-3 flex justify-end align-center mr-[5px]">
           {{
             calculateBalance(
               modelValue.outstandingLoanAmount.amount,
@@ -51,7 +51,7 @@
       </div>
     </div>
   </div>
-  <div class="modal-send-receive-actions mt-nolus-20">
+  <div class="modal-send-receive-actions mt-5">
     <button
       class="btn btn-primary btn-large-primary text-center"
       v-on:click="modelValue.onNextClick"

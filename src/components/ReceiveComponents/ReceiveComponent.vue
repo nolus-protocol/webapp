@@ -10,7 +10,7 @@
         />
       </div>
 
-      <div class="block mt-nolus-255">
+      <div class="block mt-[255px]">
         <Picker
           :default-option="this.networks[0]"
           :disabled="true"
@@ -19,7 +19,7 @@
         />
       </div>
 
-      <div class="block mt-nolus-36">
+      <div class="block mt-[36px]">
         <p class="nls-14 nls-font-500 text-primary m-0">{{ $t('message.wallet-address') }}</p>
         <p class="nls-14 text-primary nls-font-700 m-0">
           {{ modelValue.walletAddress }}
@@ -42,7 +42,7 @@
         </div>
       </div>
 
-      <WarningBox isWarning="false" class="mt-nolus-255">
+      <WarningBox isWarning="false" class="mt-[255px]">
         <template v-slot:icon>
           <img class="block mx-auto my-0 w-5 h-5" src="@/assets/icons/info.svg"/>
         </template>

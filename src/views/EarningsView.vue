@@ -8,7 +8,7 @@
     </div>
     <div class="lg:col-span-9 pb-8">
       <div class="grid grid-cols-10 grid-child">
-        <div class="col-span-12 mt-nolus-60">
+        <div class="col-span-12 mt-[60px]">
           <div class="col-span-12">
             <div class="sidebar-header">
               <SidebarHeader/>
@@ -32,7 +32,7 @@
                 class="nolus-box block order-2 order-1 bg-white border-y border-standart radius-medium md:col-span-7 md:mt-6"
               >
                 <div
-                  class="lg:flex block items-center justify-between px-nolus-24 px-nolus-24 pt-nolus-24"
+                  class="lg:flex block items-center justify-between px-6 pt-6"
                 >
                   <h2 class="nls-16 nls-font-500 text-left my-0">
                     Your earning portfolio
@@ -44,7 +44,7 @@
                   </button>
                 </div>
                 <!-- Assets -->
-                <div class="block mt-6 md:mt-nolus-255">
+                <div class="block mt-6 md:mt-[255px]">
                   <!-- Assets Header -->
                   <div
                     class="grid grid-cols-2 gap-6 border-b border-standart pb-3 px-6"
@@ -66,7 +66,7 @@
                   <div class="block">
                     <div
                       :class="[
-                        'grid gap-6 row-actions border-b flex border-t border-standart px-nolus-24 py-nolus-12 items-center justify-between',
+                        'grid gap-6 row-actions border-b flex border-t border-standart px-6 py-3 items-center justify-between',
                         this.cols
                           ? 'grid-cols-' + this.cols
                           : 'grid-cols-3 md:grid-cols-4',
@@ -121,7 +121,7 @@
                   <div class="block">
                     <div
                       :class="[
-                        'grid gap-6  row-actions border-b border-standart px-nolus-24 py-nolus-12  items-center justify-between',
+                        'grid gap-6  row-actions border-b border-standart px-6 py-3  items-center justify-between',
                         this.cols
                           ? 'grid-cols-' + this.cols
                           : 'grid-cols-3 md:grid-cols-4',
@@ -176,7 +176,7 @@
                   <div class="block">
                     <div
                       :class="[
-                        'grid gap-6  row-actions border-b border-b border-standart px-nolus-24 py-nolus-12  items-center justify-between',
+                        'grid gap-6  row-actions border-b border-b border-standart px-6 py-3  items-center justify-between',
                         this.cols
                           ? 'grid-cols-' + this.cols
                           : 'grid-cols-3 md:grid-cols-4',
@@ -239,7 +239,7 @@
                 class="nolus-box block order-2 md:order-1 bg-white border-y border-standart radius-medium md:col-span-7 mt-6"
               >
                 <div
-                  class="flex items-center justify-between px-nolus-24 pt-nolus-24"
+                  class="flex items-center justify-between px-6 pt-6"
                 >
                   <h2 class="nls-16 nls-font-500 text-left my-0">
                     Pending rewards
@@ -249,12 +249,12 @@
                   </button>
                 </div>
                 <!-- Assets -->
-                <div class="block mt-nolus-16">
+                <div class="block mt-4">
                   <!-- Assets Container -->
                   <div class="block">
                     <div
                       :class="[
-                        'grid gap-6 border-b border-t border-standart px-nolus-24 py-nolus-12  items-center justify-between',
+                        'grid gap-6 border-b border-t border-standart px-6 py-3  items-center justify-between',
                         this.cols
                           ? 'grid-cols-' + this.cols
                           : 'grid-cols-3 md:grid-cols-4',
@@ -297,7 +297,7 @@
                   <div class="block">
                     <div
                       :class="[
-                        'grid gap-6 border-b border-standart px-nolus-24 py-nolus-12  items-center justify-between',
+                        'grid gap-6 border-b border-standart px-6 py-3  items-center justify-between',
                         this.cols
                           ? 'grid-cols-' + this.cols
                           : 'grid-cols-3 md:grid-cols-4',
@@ -339,7 +339,7 @@
                   <div class="block">
                     <div
                       :class="[
-                        'grid gap-6 border-b border-b border-standart  px-nolus-24 py-nolus-12 items-center justify-between',
+                        'grid gap-6 border-b border-b border-standart  px-6 py-3 items-center justify-between',
                         this.cols
                           ? 'grid-cols-' + this.cols
                           : 'grid-cols-3 md:grid-cols-4',

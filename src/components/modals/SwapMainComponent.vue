@@ -2,7 +2,7 @@
   <!-- Input Area -->
   <div class="modal-send-receive-input-area">
     <div
-      class="block mb-nolus-13 py-3 px-4 bg-light-grey radius-light text-left nls-14 nls-font-400 text-primary nls-font-400"
+      class="block mb-[13px] py-3 px-4 bg-light-grey radius-light text-left nls-14 nls-font-400 text-primary nls-font-400"
     >
       Current balance:
       <a class="text-secondary nls-font-700 underline ml-2" href="#">
@@ -14,14 +14,14 @@
         id="multiple-currency-field-example"
         label="Multiple Currency Field Example"
         name="multiple-currency-field-example" />
-      <div class="flex w-full mt-nolus-255">
+      <div class="flex w-full mt-[255px]">
         <div class="grow-3 text-right nls-font-500 nls-14">
-          <p class="mb-nolus-12 mr-nolus-20 mt-nollus-255">Minimum received:</p>
-          <p class="mb-nolus-12 mr-nolus-20">TX fee:</p>
+          <p class="mb-3 mr-5 mt-nollus-255">Minimum received:</p>
+          <p class="mb-3 mr-5">TX fee:</p>
         </div>
         <div class="text-right nls-font-700 nls-14">
-          <p class="mb-nolus-12 mt-nollus-255">0.456232 ETH</p>
-          <p class="mb-nolus-12">0.09233 ETH</p>
+          <p class="mb-3 mt-nollus-255">0.456232 ETH</p>
+          <p class="mb-3">0.09233 ETH</p>
         </div>
       </div>
     </div>
