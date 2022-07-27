@@ -1,7 +1,7 @@
 <template>
   <div class="col-span-12 mb-sm-nolus-70">
     <!-- Header -->
-    <div class="flex flex-wrap items-center justify-between px-4 lg:px-0">
+    <div class="flex flex-wrap flex mt-[25px] items-center justify-between px-4 lg:px-0">
       <div class="left w-full md:w-1/2">
         <h1 class="nls-20 nls-font-700 text-primary m-0 nls-sm-title">
           Earnings
@@ -28,7 +28,7 @@
             </button>
           </div>
           <!-- Assets -->
-          <div class="block mt-6 md:mt-[255px]">
+          <div class="block mt-6 md:mt-[25px]">
             <!-- Assets Header -->
             <div
               class="grid grid-cols-2 gap-6 border-b border-standart pb-3 px-6"

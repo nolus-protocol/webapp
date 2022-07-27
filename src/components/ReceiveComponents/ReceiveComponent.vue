@@ -10,7 +10,7 @@
         />
       </div>
 
-      <div class="block mt-[255px]">
+      <div class="block mt-[25px]">
         <Picker
           :default-option="this.networks[0]"
           :disabled="true"
@@ -42,7 +42,7 @@
         </div>
       </div>
 
-      <WarningBox isWarning="false" class="mt-[255px]">
+      <WarningBox isWarning="false" class="mt-[25px]">
         <template v-slot:icon>
           <img class="block mx-auto my-0 w-5 h-5" src="@/assets/icons/info.svg"/>
         </template>

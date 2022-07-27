@@ -9,7 +9,7 @@
     </div>
     <div class="block text-left  mt-4">
       <CurrencyField id="amountSupply" label="Amount" name="amountSupply"/>
-        <WarningBox isWarning="true" class="mt-[255px]">
+        <WarningBox isWarning="true" class="mt-[25px]">
         <template v-slot:icon>
           <svg
             fill="none"

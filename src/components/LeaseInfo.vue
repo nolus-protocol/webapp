@@ -33,7 +33,7 @@
           )
         }}
 
-        <div class="block mt-[255px] pl-12">
+        <div class="block mt-[25px] pl-12">
           <div class="block">
             <p class="text-detail text-primary m-0">{{ $t('message.outstanding-loan-amount') }}</p>
             <p class="text-primary nls-20 nls-font-700 nls-font-400 m-0 mt-1">
@@ -45,7 +45,7 @@
               }}
             </p>
           </div>
-          <div class="block mt-[255px]">
+          <div class="block mt-[25px]">
             <p class="text-detail text-primary m-0">{{ $t('message.interest-due') }}</p>
             <p
               class="flex items-center text-primary nls-20 nls-font-700 nls-font-400 m-0 mt-1"
@@ -58,7 +58,7 @@
               }}
             </p>
           </div>
-          <div class="block mt-[255px]">
+          <div class="block mt-[25px]">
             <p class="text-detail text-primary m-0">{{ $t('message.interest-rate') }}</p>
             <p
               class="flex items-center text-primary nls-20 nls-font-700 nls-font-400 m-0 mt-1"

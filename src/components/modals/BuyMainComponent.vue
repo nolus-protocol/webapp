@@ -17,7 +17,7 @@
         label="Multiple Currency Field Example"
         name="multiple-currency-field-example"
       ></MultipleCurrencyField>
-      <div class="flex w-full mt-[255px]">
+      <div class="flex w-full mt-[25px]">
         <div class="grow-3 text-right nls-font-500 nls-14">
           <p class="mb-3 mr-5">1 BTC price in USD::</p>
           <p class="mb-3 mr-5">Ramp fee:</p>

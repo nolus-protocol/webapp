@@ -205,7 +205,7 @@
                   <span class="text nls-14 nls-font-400"> Dark mode </span>
                 </span>
               </p>
-              <div class="flex flex-row justify-between mt-[255px]">
+              <div class="flex flex-row justify-between mt-[25px]">
                 <div class="flex">
                   <div
                     class="d-inline-block w-[81px] h-[81px] bg-whiteGrey"
@@ -221,7 +221,7 @@
               <p class="text nls-20 nls-font-700 mt-8">
                 Neutral typography scale
               </p>
-              <div class="flex flex-row mt-[255px]">
+              <div class="flex flex-row mt-[25px]">
                 <div
                   class="d-inline-block w-[81px] h-[81px] bg-light-blue"
                 ></div>
@@ -234,7 +234,7 @@
               </div>
 
               <p class="text nls-20 nls-font-700 mt-8">CTA color scale</p>
-              <div class="flex flex-row mt-[255px]">
+              <div class="flex flex-row mt-[25px]">
                 <div
                   class="d-inline-block w-[81px] h-[81px] bg-light-electric"
                 ></div>
@@ -247,7 +247,7 @@
               </div>
 
               <p class="text nls-20 nls-font-700 mt-8">CTA color scale</p>
-              <div class="flex flex-row mt-[255px]">
+              <div class="flex flex-row mt-[25px]">
                 <div
                   class="d-inline-block w-[81px] h-[81px] bg-light-red"
                 ></div>
@@ -258,7 +258,7 @@
               </div>
 
               <p class="text nls-20 nls-font-700 mt-8">CTA color scale</p>
-              <div class="flex flex-row mt-[255px]">
+              <div class="flex flex-row mt-[25px]">
                 <div
                   class="d-inline-block w-[81px] h-[81px] bg-light-green"
                 ></div>
@@ -271,7 +271,7 @@
               </div>
 
               <p class="text nls-20 nls-font-700 mt-8">Warning scale</p>
-              <div class="flex flex-row mt-[255px]">
+              <div class="flex flex-row mt-[25px]">
                 <div
                   class="d-inline-block w-[81px] h-[81px] bg-light-yellow"
                 ></div>
@@ -284,7 +284,7 @@
               </div>
 
               <p class="text nls-20 nls-font-700 mt-8">Brand accent</p>
-              <div class="flex flex-row mt-[255px]">
+              <div class="flex flex-row mt-[25px]">
                 <div class="d-inline-block w-[81px] h-[81px] bg-orange"></div>
               </div>
             </div>
@@ -300,7 +300,7 @@
 
             <!-- Large - Primary -->
             <h2 class="text nls-20 nls-font-700 mt-6">Large - Primary</h2>
-            <div class="flex flex-wrap mt-[255px]">
+            <div class="flex flex-wrap mt-[25px]">
               <button
                 class="btn btn-primary btn-large-primary mr-4"
                 style="--anim-index: 0"
@@ -317,7 +317,7 @@
 
             <!-- Large - Secondary -->
             <h2 class="text nls-20 nls-font-700 mt-6">Large - Secondary</h2>
-            <div class="flex mt-[255px]">
+            <div class="flex mt-[25px]">
               <button class="btn btn-secondary btn-large-secondary mr-4">
                 Buy Tokens
               </button>
@@ -328,19 +328,19 @@
 
             <!-- Large - Boxes -->
             <h2 class="text nls-20 nls-font-700 mt-6">Large - Boxes</h2>
-            <div class="grid grid-cols-4 gap-4 mt-[255px]">
+            <div class="grid grid-cols-4 gap-4 mt-[25px]">
               <button class="btn btn-box btn-large-box mr-4 basis-0 grow">
                 <span class="icon icon-google"></span> Sign In With Google
               </button>
 
-              <!-- <button class="btn btn-box btn-large-box js-loading mt-[255px]">
+              <!-- <button class="btn btn-box btn-large-box js-loading mt-[25px]">
                 Buy Tokens
               </button> -->
             </div>
 
             <!-- Medium - Secondary -->
             <h2 class="text nls-20 nls-font-700 mt-6">Medium - Secondary</h2>
-            <div class="flex mt-[255px]">
+            <div class="flex mt-[25px]">
               <button class="btn btn-secondary btn-medium-secondary mr-4">
                 None
               </button>
@@ -361,7 +361,7 @@
             <h2 class="text nls-20 nls-font-700 mt-6">
               Medium - Secondary + Icon
             </h2>
-            <div class="flex mt-[255px]">
+            <div class="flex mt-[25px]">
               <button
                 class="btn btn-secondary btn-medium-secondary btn-icon flex mr-4"
               >
@@ -384,7 +384,7 @@
             </div>
             <!-- Small - Secondary -->
             <h2 class="text nls-20 nls-font-700 mt-6">Small - Secondary</h2>
-            <div class="flex mt-[255px]">
+            <div class="flex mt-[25px]">
               <button class="btn btn-secondary btn-small-secondary flex mr-4">
                 <span>Copy</span>
               </button>
@@ -412,7 +412,7 @@
 
             <!-- Circle on background -->
             <h2 class="text nls-20 nls-font-700 mt-6">Circle on background</h2>
-            <div class="inline-flex mt-[255px] p-4 rounded-lg">
+            <div class="inline-flex mt-[25px] p-4 rounded-lg">
               <button class="btn btn-close">
                 <span class="icon-close circle"/>
               </button>
@@ -420,7 +420,7 @@
 
             <!-- Header buttons -->
             <h2 class="text nls-20 nls-font-700 mt-6">Header buttons</h2>
-            <div class="inline-flex mt-[255px] p-4 rounded-lg">
+            <div class="inline-flex mt-[25px] p-4 rounded-lg">
               <button class="btn btn-header mr-4">
                 <BellIcon class="icon w-4 h-4"/>
               </button>
@@ -450,7 +450,7 @@
                   <h1 class="nls-20 nls-font-700 text-primary m-0">Assets</h1>
                 </div>
                 <div
-                  class="right w-full md:w-1/2 mt-[255px] md:mt-0 inline-flex justify-start md:justify-end"
+                  class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end"
                 >
                   <button
                     class="btn btn-secondary btn-large-secondary mr-4"
@@ -491,7 +491,7 @@
                     <p class="nls-16 nls-font-500 m-0">Existing assets</p>
                   </div>
                   <div
-                    class="right w-full md:w-1/2 mt-[255px] md:mt-0 inline-flex justify-start md:justify-end"
+                    class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end"
                   >
                     <div class="relative block checkbox-container">
                       <div class="flex items-center w-full justify-end">
@@ -512,7 +512,7 @@
                 </div>
 
                 <!-- Assets -->
-                <div class="block mt-6 md:mt-[255px]">
+                <div class="block mt-6 md:mt-[25px]">
                   <!-- Assets Header -->
                   <div
                     class="grid grid-cols-3 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6"
@@ -613,7 +613,7 @@
                       </div>
                     </div>
 
-                    <div class="block mt-[255px] pl-12 mt-[255px]">
+                    <div class="block mt-[25px] pl-12 mt-[25px]">
                       <div class="block">
                         <p class="nls-font-400 nls-12 text-primary m-0">
                           Outstanding Loan Amount
@@ -622,7 +622,7 @@
                           $111,824.94
                         </p>
                       </div>
-                      <div class="flex justify-between mt-[255px]">
+                      <div class="flex justify-between mt-[25px]">
                         <div class="block">
                           <p class="nls-font-400 nls-12 text-primary m-0">
                             Interest Due
@@ -824,7 +824,7 @@
                   </button>
                 </div>
                 <!-- Assets -->
-                <div class="block mt-6 md:mt-[255px]">
+                <div class="block mt-6 md:mt-[25px]">
                   <!-- Assets Header -->
                   <div
                     class="grid grid-cols-2 gap-6 border-b border-standart pb-3 px-6"
@@ -1028,7 +1028,7 @@
                     <p class="nls-16 nls-font-500 m-0">Existing assets</p>
                   </div>
                   <div
-                    class="right w-full md:w-1/2 mt-[255px] md:mt-0 inline-flex justify-start md:justify-end"
+                    class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end"
                   >
                     <div class="relative block checkbox-container">
                       <div class="flex items-center w-full justify-end">
@@ -1052,7 +1052,7 @@
                 </div>
 
                 <!-- Assets -->
-                <div class="block mt-6 md:mt-[255px]">
+                <div class="block mt-6 md:mt-[25px]">
                   <!-- Assets Header -->
                   <div
                     class="grid grid-cols-3 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6"
@@ -1495,7 +1495,7 @@
         <!-- /SNACK BAR-->
 
         <!-- TOOLTIP -->
-        <div class="flex items-center justify-center mt-[255px]">
+        <div class="flex items-center justify-center mt-[25px]">
           <!-- Component Start -->
           <div class="relative flex flex-col items-center group group-tooltip">
             <svg
@@ -1535,7 +1535,7 @@
               <h1 class="text nls-font-700 nls-32">Modals</h1>
 
               <!-- Medium - Secondary -->
-              <div class="flex mt-[255px]">
+              <div class="flex mt-[25px]">
                 <button
                   class="btn btn-secondary btn-medium-secondary mr-4"
                   v-on:click="showSendModal = true"

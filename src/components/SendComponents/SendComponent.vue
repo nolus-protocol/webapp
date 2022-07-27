@@ -12,7 +12,7 @@
     </div>
 
     <div class="block text-left">
-      <div class="block mt-[255px]">
+      <div class="block mt-[25px]">
         <CurrencyField
           id="amount"
           :currency-options="modelValue.currentBalance"
@@ -28,7 +28,7 @@
         />
       </div>
 
-      <div class="block mt-[255px]">
+      <div class="block mt-[25px]">
         <Picker
           :default-option="{ label: 'NLS', value: 'NLS' }"
           :disabled="true"
@@ -41,7 +41,7 @@
         />
       </div>
 
-      <div class="block mt-[255px]">
+      <div class="block mt-[25px]">
         <InputField
           id="sendTo"
           :error-msg="modelValue.receiverErrorMsg"
@@ -61,7 +61,7 @@
         /> -->
       </div>
 
-      <div class="block mt-[255px]">
+      <div class="block mt-[25px]">
         <InputField
           id="memo"
           :value="modelValue.memo"
