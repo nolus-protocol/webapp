@@ -7,7 +7,7 @@
     </div>
     <div class="lg:col-span-9 pb-8">
       <div class="grid grid-cols-10 grid-child">
-        <div class="col-span-12 mt-nolus-60">
+        <div class="col-span-12 mt-[60px]">
           <div class="col-span-12">
             <div class="sidebar-header">
               <SidebarHeader/>
@@ -23,7 +23,7 @@
               </h1>
             </div>
             <div
-              class="right w-full md:w-1/2 mt-nolus-255 md:mt-0 inline-flex justify-start md:justify-end"
+              class="right w-full md:w-1/2 mt-[255px] md:mt-0 inline-flex justify-start md:justify-end"
             >
               <button
                 class="btn btn-primary btn-large-primary w-full md:w-1/2"

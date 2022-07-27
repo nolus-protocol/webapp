@@ -7,9 +7,9 @@
         {{ formatCurrentBalance(modelValue.currentBalance) || ' 125 NLS' }}
       </a>
     </div>
-    <div class="block text-left  mt-nolus-16">
+    <div class="block text-left  mt-4">
       <CurrencyField id="amountSupply" label="Amount" name="amountSupply"/>
-        <WarningBox isWarning="true" class="mt-nolus-255">
+        <WarningBox isWarning="true" class="mt-[255px]">
         <template v-slot:icon>
           <svg
             fill="none"

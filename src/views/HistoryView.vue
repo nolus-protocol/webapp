@@ -8,7 +8,7 @@
     </div>
     <div class="lg:col-span-9 pb-8">
       <div class="grid grid-cols-10 grid-child">
-        <div class="col-span-12 mt-nolus-60">
+        <div class="col-span-12 mt-[60px]">
           <div class="col-span-12">
             <div class="sidebar-header">
               <SidebarHeader/>
@@ -18,7 +18,7 @@
         <div class="col-span-12 mb-sm-nolus-70p">
           <!-- Header -->
           <div
-            class="table-header flex mt-nolus-255 flex-wrap items-center justify-between items-baseline lg:px-0"
+            class="table-header flex mt-[255px] flex-wrap items-center justify-between items-baseline lg:px-0"
           >
             <div class="left">
               <h1 class="nls-20 nls-font-700 text-primary m-0">

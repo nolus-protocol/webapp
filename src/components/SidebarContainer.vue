@@ -3,7 +3,7 @@
     <div class="top">
       <LogoLink link="/"></LogoLink>
       <div
-        class="sidebar-elements-container nls-nav-more flex flex-col mt-nolus-55"
+        class="sidebar-elements-container nls-nav-more flex flex-col mt-[55[px]]"
       >
         <div
           :style="
@@ -13,7 +13,7 @@
           "
           class="lg:hidden"
         >
-          <div class="nls-nav-link flex flex-start nls-md-flex-row mt-nolus-22">
+          <div class="nls-nav-link flex flex-start nls-md-flex-row mt-[22px]">
             <SidebarElement
               id="history"
               href="/history"
@@ -21,7 +21,7 @@
               v-on:click="pushToHistory"
             />
           </div>
-          <div class="nls-nav-link flex flex-start nls-md-flex-row mb-nolus-30">
+          <div class="nls-nav-link flex flex-start nls-md-flex-row mb-[30px]">
             <SidebarElement
               id="governance"
               label="Govern"
@@ -30,7 +30,7 @@
             >
             </SidebarElement>
           </div>
-          <div class="nls-md-show mb-nolus-24">
+          <div class="nls-md-show mb-6">
             <SidebarSocial/>
           </div>
         </div>

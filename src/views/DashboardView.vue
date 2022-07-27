@@ -8,7 +8,7 @@
     </div>
     <div class="lg:col-span-9 pb-8">
       <div class="grid grid-cols-10 grid-child">
-        <div class="col-span-12 mt-nolus-60">
+        <div class="col-span-12 mt-[60px]">
           <div class="col-span-12">
             <div class="sidebar-header">
               <SidebarHeader/>
@@ -18,7 +18,7 @@
         <div class="col-span-12 mb-sm-nolus-70">
           <!-- Header -->
           <div
-            class="table-header flex mt-nolus-255 flex-wrap items-center justify-between items-baseline lg:px-0"
+            class="table-header flex mt-[255px] flex-wrap items-center justify-between items-baseline lg:px-0"
           >
             <div class="left">
               <h1 class="nls-20 nls-font-700 text-primary m-0">Assets</h1>
@@ -37,7 +37,7 @@
           </div>
           <!-- Wallet -->
           <div
-            class="flex balance-box items-center justify-start bg-white mt-nolus-24 border-standart shadow-box radius-medium radius-0-sm py-5 px-6"
+            class="flex balance-box items-center justify-start bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm py-5 px-6"
           >
             <div class="left inline-block w-1/3">
               <p class="nls-font-500 nls-16 text-primary mb-nolus-6 m-0">
@@ -67,7 +67,7 @@
                 </p>
               </div>
               <div
-                class="right w-full md:w-1/2 mt-nolus-255 md:mt-0 inline-flex justify-start md:justify-end"
+                class="right w-full md:w-1/2 mt-[255px] md:mt-0 inline-flex justify-start md:justify-end"
               >
                 <div class="relative block checkbox-container">
                   <div class="flex items-center w-full justify-end">
@@ -86,7 +86,7 @@
             </div>
 
             <!-- Assets -->
-            <div class="block mt-6 md:mt-nolus-255">
+            <div class="block mt-6 md:mt-[255px]">
               <!-- Assets Header -->
               <div
                 class="grid grid-cols-3 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6"

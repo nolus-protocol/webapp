@@ -12,12 +12,12 @@
         class="flex notification-header flex-wrap items-baseline justify-between px-6 bg-white"
       >
         <div
-          class="left w-full md:w-1/2 px-nolus-16 py-nolus-12 nls-font-500 nls-18"
+          class="left w-full md:w-1/2 px-4 py-3 nls-font-500 nls-18"
         >
           <p class="text nls-font-700 nls-18 m-0">{{ $t('message.notifications') }}</p>
         </div>
         <div
-          class="right w-full md:w-1/2 mt-nolus-255 md:mt-0 inline-flex justify-start md:justify-end"
+          class="right w-full md:w-1/2 mt-[255px] md:mt-0 inline-flex justify-start md:justify-end"
         >
           <div class="relative block checkbox-container">
             <div class="flex items-center w-full justify-end">

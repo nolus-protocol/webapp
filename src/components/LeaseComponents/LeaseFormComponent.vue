@@ -20,7 +20,7 @@
         />
       </div>
 
-      <div class="block mt-nolus-255">
+      <div class="block mt-[255px]">
         <CurrencyField
           id="amount-interest"
           :currency-options="modelValue.currentBalance"
@@ -41,7 +41,7 @@
     <div class="flex justify-end mt-5">
       <p
         v-if="modelValue.selectedCurrency?.balance?.denom"
-        class="mb-nolus-12 mt-nolus-255 flex justify-end align-center"
+        class="mb-3 mt-[255px] flex justify-end align-center"
       >
         1
         {{ formatAssetInfo(modelValue.selectedCurrency?.balance?.denom) }} price
@@ -51,20 +51,20 @@
     </div>
     <div class="flex w-full">
       <div class="grow-3 text-right nls-font-500 nls-14">
-        <p class="mb-nolus-12 mt-nolus-255 mr-nolus-20">
+        <p class="mb-3 mt-[255px] mr-5">
           {{ $t('message.leased-amount') }}
         </p>
-        <p v-if="this.annualInterestRate" class="mb-nolus-12 mr-nolus-20"> {{ $t('message.annual-interest') }}</p>
-        <p class="mb-nolus-12 mt-nolus-255 mr-nolus-20">
+        <p v-if="this.annualInterestRate" class="mb-3 mr-5"> {{ $t('message.annual-interest') }}</p>
+        <p class="mb-3 mt-[255px] mr-5">
           {{ $t('message.liquidation-price') }}
         </p>
       </div>
       <div class="text-right nls-font-700 nls-14">
-        <p class="mb-nolus-12 mt-nolus-255 flex justify-end align-center">
+        <p class="mb-3 mt-[255px] flex justify-end align-center">
           {{ calculateLeaseAmount }}
           <TooltipComponent content="Content goes here"/>
         </p>
-        <p v-if="this.annualInterestRate" class="mb-nolus-12 flex justify-end align-center">
+        <p v-if="this.annualInterestRate" class="mb-3 flex justify-end align-center">
           {{ $t('message.annual-interest') }}
           <span class="flex nls-font-700 ml-5">
           {{ this.annualInterestRate }}
@@ -72,7 +72,7 @@
         </span>
           <TooltipComponent content="Content goes here"/>
         </p>
-        <p class="mb-nolus-12 mt-nolus-255 flex justify-end align-center">
+        <p class="mb-3 mt-[255px] flex justify-end align-center">
           $18,585.00
           <TooltipComponent content="Content goes here"/>
         </p>
