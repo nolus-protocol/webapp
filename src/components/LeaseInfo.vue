@@ -82,25 +82,28 @@
         }}
       </button>
 
-      <button class="btn btn-secondary btn-large-secondary" v-if="leaseInfo.leaseStatus.paid">
+      <button class="btn btn-secondary btn-large-secondary" v-if="leaseInfo.leaseStatus.paid"
+              v-on:click="onClickClaim(this.leaseInfo?.leaseAddress)">
         {{
           $t('message.claim')
         }}
       </button>
     </div>
   </div>
- <RepayModal v-if="showRepayModal" :lease-info="leaseInfo" @close-modal="showRepayModal = false"/>
+  <RepayModal v-if="showRepayModal" :lease-info="leaseInfo" @close-modal="showRepayModal = false"/>
 </template>
 
 <script lang="ts">
 import { PropType } from 'vue'
-import { Asset } from '@nolus/nolusjs/build/contracts'
+import { Asset, Lease } from '@nolus/nolusjs/build/contracts'
 import { assetsInfo } from '@/config/assetsInfo'
-import { CurrencyUtils } from '@nolus/nolusjs'
+import { CurrencyUtils, NolusClient } from '@nolus/nolusjs'
 import { Coin, Dec, Int } from '@keplr-wallet/unit'
 import { useStore } from '@/store'
 import { LeaseData } from '@/types/LeaseData'
 import RepayModal from '@/components/modals/RepayModal.vue'
+import { WalletUtils } from '@/utils/WalletUtils'
+import { ChainConstants } from '@nolus/nolusjs/build/constants'
 
 export default {
   name: 'LeaseInfo',
@@ -116,6 +119,26 @@ export default {
     }
   },
   methods: {
+    async onClickClaim (leaseAddress: string) {
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
+      const leaseClient = new Lease(cosmWasmClient)
+      const coinDecimals = new Int(10).pow(new Int(6).absUInt())
+      const feeAmount = new Dec('0.25').mul(new Dec(coinDecimals))
+      const DEFAULT_FEE = {
+        amount: [{
+          denom: ChainConstants.COIN_MINIMAL_DENOM,
+          amount: WalletUtils.isConnectedViaExtension() ? '0.25' : feeAmount.truncate().toString()
+        }],
+        gas: '2000000'
+      }
+
+      const wallet = useStore().getters.getNolusWallet
+
+      if (wallet) {
+        const result = await leaseClient.closeLease(leaseAddress, wallet, DEFAULT_FEE, undefined)
+        console.log('result exec: ', result)
+      }
+    },
     formatLeaseDenom (asset: Asset) {
       if (asset) {
         const assetInfo = assetsInfo[asset.symbol]

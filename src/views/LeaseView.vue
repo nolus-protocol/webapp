@@ -44,7 +44,7 @@
       </div>
     </div>
   </div>
-   <LeaseModal v-if="showLeaseModal" @close-modal="showLeaseModal = false"/>
+  <LeaseModal v-if="showLeaseModal" @close-modal="showLeaseModal = false"/>
 </template>
 
 <script lang="ts">
@@ -82,16 +82,15 @@ export default defineComponent({
       WalletManager.getWalletAddress()
     )
     for (const leaseAddress of openedLeases) {
-      const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus(
-        leaseAddress
-      )
-      this.leases.push({
-        leaseAddress: leaseAddress,
-        leaseStatus: leaseInfo
-      })
-    }
+      const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus(leaseAddress)
 
-    console.log('leases: ', this.leases)
+      if (leaseInfo && !leaseInfo.closed) {
+        this.leases.push({
+          leaseAddress: leaseAddress,
+          leaseStatus: leaseInfo
+        })
+      }
+    }
   }
 })
 </script>
