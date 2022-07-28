@@ -1,11 +1,12 @@
 <template>
-  <div v-cloak class="block lg:w-[516px] pb-10">
-    <div class="bg-white rounded-2xl border border-standart shadow-box">
-        <h1 class="nls-32 nls-font-700 text-primary text-center p-6">
+  <div v-cloak class="block w-screen md:w-[516px]">
+    <div class="bg-white rounded-2xl md:border border-standart shadow-box md:filter-none">
+        <h1 class="nls-32 nls-font-700 text-primary text-center pt-6 pb-5 relative z-[2]">
         {{ $t('message.connect-wallet') }}
       </h1>
-      <div class="separator-line"></div>
-      <div class="flex bg-white px-10 pt-6">
+      <div class="separator-line z-[100]"></div>
+      
+      <div class="flex bg-white px-10 pt-6 relative z-[2]">
         <button class="btn btn-box btn-large-box mr-4 basis-0 grow">
           <span class="icon icon-google"/>
           {{ $t('message.google') }}
@@ -18,7 +19,7 @@
           {{ $t('message.recover') }}
         </button>
       </div>
-      <div class="flex mt-5 px-10">
+      <div class="flex mt-5 px-10 relative z-[2]">
         <button
           class="btn btn-box btn-large-box mr-4 basis-0 grow"
           v-on:click="clickImportLedger"
@@ -35,21 +36,32 @@
         </button>
       </div>
 
-      <div class="block separator-line nls-font-400 nls-12 text-center mt-7 mx-10">
+      <div class="block separator-line nls-font-400 nls-12 text-center mt-7 mx-10 md:mb-0 relative z-[2]">
         <span class="bg-white px-3 relative z-[2]">{{
             $t('message.continue-with')
           }}</span>
       </div>
 
-      <div class="flex align-center justify-center mt-7 text-center mr-auto ml-auto">
+      <div class="bg-white h-[420px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
+
+      <div class="hidden align-center justify-center pt-7 text-center mx-auto md:flex">
         <button
-          class="btn btn-primary btn-large-primary w-80 mb-10"
+          class="btn btn-primary btn-large-primary w-80 mb-4 md:mb-10"
           v-on:click="clickCreateAccount"
         >
           {{ $t('message.create-new-account') }}
         </button>
       </div>
     </div>
+
+      <div class="md:hidden flex align-center justify-center md:pt-7 pt-4 text-center mx-auto bg-white absolute inset-x-0 bottom-0 md:relative shadow-modal z-[100]">
+        <button
+          class="btn btn-primary btn-large-primary w-80 mb-4 lg:mb-10"
+          v-on:click="clickCreateAccount"
+        >
+          {{ $t('message.create-new-account') }}
+        </button>
+      </div>
   </div>
 </template>
 
