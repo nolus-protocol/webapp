@@ -1,10 +1,10 @@
 <template>
-  <button class="grid w-screen place-items-center md:hidden" type="button" v-on:click="clickBack">
+  <button class="grid w-screen place-items-center md:hidden -mt-8 md:mt-auto" type="button" v-on:click="clickBack">
     <ArrowLeftIcon aria-hidden="true" class="h-7 w-7" />
   </button>
   <div class="block rounded-2xl bg-white mt-5 md:mt-8 pb-10 pt-6 md:border border-standart shadow-box w-screen md:w-[516px]">
     <h1 class="text-to-big-number text-primary text-center relative z-[2]">
-      <button class="align-baseline absolute left-0 top-2/4 -mt-2.5 px-6 hidden md:inline-block" type="button" v-on:click="clickBack">
+      <button class="align-baseline absolute left-0 top-2/4 -mt-2.5 px-6 md:px-10 hidden md:inline-block" type="button" v-on:click="clickBack">
         <ArrowLeftIcon aria-hidden="true" class="h-5 w-5" />
       </button>
       <span class="inline-block align-baseline nls-32">
@@ -14,7 +14,7 @@
 
     <div class="separator-line py-6 relative z-[2]"></div>
 
-    <div class="px-6 relative z-[2]">
+    <div class="px-6 md:px-10 relative z-[2]">
       <TextField id="seed" v-model:value.trim="importStr" :error-msg="errorMessage" :is-error="errorMessage !== ''"
         :label="$t('message.mnemonic-seed-or-key')" name="seed" />
 
