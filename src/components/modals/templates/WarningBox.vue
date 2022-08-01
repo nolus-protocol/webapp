@@ -5,7 +5,7 @@
     <i v-else class="icon icon-close"></i>
   </div>
   <div class="block box grow-1">
-    <p class="text-left text-primary nls-14 nls-font-400">
+    <p class="text-left text-primary text-14 nls-font-400">
       <slot name="content"/>
     </p>
   </div>

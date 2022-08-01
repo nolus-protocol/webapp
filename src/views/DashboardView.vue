@@ -2,10 +2,10 @@
   <div class="col-span-12 mb-sm-nolus-70">
     <!-- Header -->
     <div
-      class="table-header flex mt-[25px] flex-wrap items-center justify-between items-baseline lg:px-0"
+      class="table-header flex mt-[25px] flex-wrap items-center justify-between lg:px-0"
     >
       <div class="left">
-        <h1 class="nls-20 nls-font-700 text-primary m-0">Assets</h1>
+        <h1 class="text-20 nls-font-700 text-primary m-0">Assets</h1>
       </div>
       <div class="right md:mt-0 inline-flex justify-end">
         <button
@@ -24,10 +24,10 @@
       class="flex balance-box items-center justify-start bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm py-5 px-6"
     >
       <div class="left inline-block w-1/3">
-        <p class="nls-font-500 nls-16 text-primary mb-nolus-6 m-0">
+        <p class="nls-font-500 text-16 text-primary mb-nolus-6 m-0">
           Wallet Balance
         </p>
-        <p class="nls-font-700 nls-48 text-primary m-0 mt-1">
+        <p class="nls-font-700 text-48 text-primary m-0 mt-1">
           {{ calculateTotalBalance() }}
         </p>
       </div>
@@ -46,7 +46,7 @@
           <div class="loader__element"></div>
         </div>
         <div class="left w-full md:w-1/2">
-          <p class="nls-16 nls-font-500 m-0 md-mt-nolus-17">
+          <p class="text-16 nls-font-500 m-0 md-mt-nolus-17">
             Existing assets
           </p>
         </div>
@@ -76,26 +76,26 @@
           class="grid grid-cols-3 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6"
         >
           <div
-            class="nls-font-500 nls-12 text-left text-dark-grey text-upper"
+            class="nls-font-500 text-12 text-left text-dark-grey text-upper"
           >
             Assets
           </div>
 
           <div
-            class="nls-font-500 nls-12 text-right text-dark-grey text-upper"
+            class="nls-font-500 text-12 text-right text-dark-grey text-upper"
           >
             Price
           </div>
 
           <div
-            class="inline-flex items-center justify-end nls-font-500 text-dark-grey nls-12 text-right text-upper"
+            class="inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper"
           >
             <span class="inline-block">Balance</span>
             <TooltipComponent content="Content goes here"/>
           </div>
 
           <div
-            class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey nls-12 text-right text-upper"
+            class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper"
           >
             <span class="inline-block">Earnings</span>
             <TooltipComponent content="Content goes here"/>

@@ -20,8 +20,8 @@
       </div>
 
       <div class="block mt-[36px]">
-        <p class="nls-14 nls-font-500 text-primary m-0">{{ $t('message.wallet-address') }}</p>
-        <p class="nls-14 text-primary nls-font-700 m-0">
+        <p class="text-14 nls-font-500 text-primary m-0">{{ $t('message.wallet-address') }}</p>
+        <p class="text-14 text-primary nls-font-700 m-0">
           {{ modelValue.walletAddress }}
         </p>
         <div class="flex items-center justify-start mt-2">

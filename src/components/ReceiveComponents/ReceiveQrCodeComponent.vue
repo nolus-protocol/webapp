@@ -9,7 +9,7 @@
       >
         <ArrowLeftIcon aria-hidden="true" class="h-5 w-5"/>
       </button>
-      <h1 class="nls-font-700 nls-32 text-center text-primary">
+      <h1 class="nls-font-700 text-28 md:text-32 text-center text-primary">
         Receive QR code
       </h1>
     </div>
@@ -19,11 +19,11 @@
   <div class="modal-send-receive-input-area pt-0 bg-whiteGrey">
     <div class="block text-left break-words">
       <div class="flex items-center">
-        <span class="nls-14 text-primary nls-font-500 m-0 mr-2"
+        <span class="text-14 text-primary nls-font-500 m-0 mr-2"
         >Nolus token</span
         >
         <div
-          class="inline-flex items-center bg-light-grey radius-rounded nls-14 nls-font-400 text-primary nls-font-400 m-0 p-1"
+          class="inline-flex items-center bg-light-grey radius-rounded text-14 text-primary nls-font-400 m-0 p-1"
         >
           <img
             class="inline-block w-4 h-4 mr-1 my-0"
@@ -33,7 +33,7 @@
         </div>
       </div>
       <div class="block mt-1">
-        <p class="nls-14 text-primary nls-font-700 m-0">
+        <p class="text-14 text-primary nls-font-700 m-0">
           {{ modelValue.walletAddress }}
         </p>
         <button

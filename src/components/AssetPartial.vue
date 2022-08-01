@@ -15,10 +15,10 @@
         width="32"
       />
       <div class="inline-block">
-        <p class="text-primary nls-font-500 nls-18 text-left uppercase m-0">
+        <p class="text-primary nls-font-500 text-18 text-left uppercase m-0">
           {{ this.assetInfo.coinAbbreviation.toUpperCase() }}
         </p>
-        <p class="text-dark-grey nls-13 nls-font-400 text-left capitalize m-0">
+        <p class="text-dark-grey text-12 nls-font-400 text-left capitalize m-0">
           {{ this.assetInfo.chainName }}
         </p>
       </div>
@@ -26,7 +26,7 @@
 
     <!-- Price -->
     <div v-if="this.price" class="block">
-      <p class="text-primary nls-font-500 nls-16 text-right m-0">
+      <p class="text-primary nls-font-500 text-16 text-right m-0">
         {{ formatPrice(this.price) }}
       </p>
       <div class="flex items-center justify-end text-right m-0">
@@ -38,7 +38,7 @@
           "
           class="inline-block m-0 mr-2"
         />
-        <span class="inline-block nls-font-400 nls-13">
+        <span class="inline-block nls-font-400 text-12">
           {{ this.change }}%
         </span>
       </div>
@@ -46,13 +46,13 @@
 
     <!-- Balance -->
     <div class="block">
-      <p class="text-primary nls-font-500 nls-16 text-right m-0">
+      <p class="text-primary nls-font-500 text-16 text-right m-0">
         {{
           calculateBalance(this.price, this.assetBalance, this.denom)
         }}
       </p>
       <div
-        class="flex items-center justify-end text-dark-grey nls-13 nls-font-400 text-right m-0"
+        class="flex items-center justify-end text-dark-grey text-12 nls-font-400 text-right m-0"
       >
         {{
           convertMinimalDenomToDenom(

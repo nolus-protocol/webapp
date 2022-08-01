@@ -12,7 +12,7 @@
       <div class="flex flex-col justify-center items-center">
         <CheckIcon v-if="step===3" class="h-14 w-14 radius-circle p-2 success-icon mb-2"/>
         <XIcon v-if="step===4" class="h-14 w-14 radius-circle p-2 error-icon mb-2"/>
-        <h1 class="nls-font-700 nls-32 text-center text-primary">
+        <h1 class="nls-font-700 text-28 md:text-32 text-center text-primary">
           {{ title }}
         </h1>
       </div>
@@ -34,30 +34,30 @@
 
     <div class="block bg-light-grey radius-rounded p-4 text-left break-words mt-[25px]">
       <div class="block">
-        <p class="nls-14 nls-font-400 text-primary m-0">Send to:</p>
-        <p class="nls-14 text-primary nls-font-700 m-0">
+        <p class="text-14 nls-font-400 text-primary m-0">Send to:</p>
+        <p class="text-14 text-primary nls-font-700 m-0">
           {{ modelValue.receiverAddress }}
         </p>
       </div>
 
       <div class="block mt-3">
-        <p class="nls-14 nls-font-400 text-primary m-0">Memo:</p>
-        <p class="nls-14 text-primary nls-font-700 m-0">
+        <p class="text-14 nls-font-400 text-primary m-0">Memo:</p>
+        <p class="text-14 text-primary nls-font-700 m-0">
           {{ modelValue.memo }}
         </p>
       </div>
 
       <div class="block mt-3">
-        <p class="nls-14 nls-font-400 text-primary m-0">Amount:</p>
-        <p class="nls-14 text-primary nls-font-700 m-0">
+        <p class="text-14 nls-font-400 text-primary m-0">Amount:</p>
+        <p class="text-14 text-primary nls-font-700 m-0">
 
           {{ formatAmount(modelValue.amount) }}
         </p>
       </div>
 
       <div class="block mt-3">
-        <p class="nls-14 nls-font-400 text-primary m-0">Tax & Fee:</p>
-        <p class="nls-14 text-primary nls-font-700 m-0">0.000094 NOMO</p>
+        <p class="text-14 nls-font-400 text-primary m-0">Tax & Fee:</p>
+        <p class="text-14 text-primary nls-font-700 m-0">0.000094 NOMO</p>
       </div>
     </div>
   </div>

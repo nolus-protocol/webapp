@@ -15,12 +15,12 @@
             height="36"
             width="36"
           />
-          <h1 class="text-primary nls-font-700 nls-32 nls-font-700">
+          <h1 class="text-primary nls-font-700 text-28 md:text-32">
             {{
               this.leaseInfo.leaseStatus?.opened?.amount?.amount || this.leaseInfo.leaseStatus?.paid?.amount || ''
             }}
             <span
-              class="inline-block ml-2 text-primary text-large-copy nls-14 nls-font-400"
+              class="inline-block ml-2 text-primary text-large-copy text-14 nls-font-400"
             >{{
                 formatLeaseDenom(this.leaseInfo.leaseStatus?.opened?.amount || this.leaseInfo.leaseStatus?.paid)
               }}</span>
@@ -36,7 +36,7 @@
         <div class="block mt-[25px] pl-12">
           <div class="block">
             <p class="text-detail text-primary m-0">{{ $t('message.outstanding-loan-amount') }}</p>
-            <p class="text-primary nls-20 nls-font-700 nls-font-400 m-0 mt-1">
+            <p class="text-primary text-20 nls-font-400 m-0 mt-1">
               {{
                 calculateBalance(
                   this.leaseInfo.leaseStatus?.opened?.amount?.amount,
@@ -48,7 +48,7 @@
           <div class="block mt-[25px]">
             <p class="text-detail text-primary m-0">{{ $t('message.interest-due') }}</p>
             <p
-              class="flex items-center text-primary nls-20 nls-font-700 nls-font-400 m-0 mt-1"
+              class="flex items-center text-primary text-20 nls-font-400 m-0 mt-1"
             >
               {{
                 calculateBalance(
@@ -60,9 +60,7 @@
           </div>
           <div class="block mt-[25px]">
             <p class="text-detail text-primary m-0">{{ $t('message.interest-rate') }}</p>
-            <p
-              class="flex items-center text-primary nls-20 nls-font-700 nls-font-400 m-0 mt-1"
-            >
+            <p class="flex items-center text-primary text-20 nls-font-400 m-0 mt-1">
               {{ formatInterestRate(this.leaseInfo.leaseStatus?.opened?.interest_rate) }}
             </p>
           </div>

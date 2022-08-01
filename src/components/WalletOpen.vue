@@ -8,12 +8,12 @@
     <div
       class="box-open-header bg-white p-4 lg:p-6 border-b border-standart radius-top-left"
     >
-      <h2 v-cloak class="nls-font-700 nls-18 text-primary text-left m-0">
+      <h2 v-cloak class="nls-font-700 text-18 text-primary text-left m-0">
         Your Wallet
       </h2>
       <div class="flex grey-box items-center bg-light-grey radius-rounded">
         <span class="icon-wallet"></span>
-        <span class="nls-14 nls-font-400 text-primary">My precious</span>
+        <span class="text-14 nls-font-400 text-primary">My precious</span>
       </div>
     </div>
 

@@ -2,10 +2,10 @@
   <div class="col-span-12 mb-sm-nolus-70p">
     <!-- Header -->
     <div
-      class="table-header flex mt-[25px] flex-wrap items-center justify-between items-baseline lg:px-0"
+      class="table-header flex mt-[25px] flex-wrap items-center justify-between lg:px-0"
     >
       <div class="left">
-        <h1 class="nls-20 nls-font-700 text-primary m-0">
+        <h1 class="text-20 nls-font-700 text-primary m-0">
           {{ $t('message.history') }}
         </h1>
       </div>
@@ -21,27 +21,27 @@
           class="nls-sm-hidden md:grid grid-cols-12 flex items-center gap-6 border-b border-standart pb-3 px-6"
         >
           <div
-            class="col-span-2 hidden lg:block nls-font-500 nls-12 text-dark-grey text-left text-upper"
+            class="col-span-2 hidden lg:block nls-font-500 text-12 text-dark-grey text-left text-upper"
           >
             ID
           </div>
           <div
-            class="lg:col-span-2 col-span-3 block invisible lg:visible nls-font-500 nls-12 text-dark-grey text-left text-upper"
+            class="lg:col-span-2 col-span-3 block invisible lg:visible nls-font-500 text-12 text-dark-grey text-left text-upper"
           >
             {{ $t('message.type') }}
           </div>
           <div
-            class="flex items-center col-span-4 col-span-2 justify-start nls-font-500 nls-12 text-dark-grey lg:text-left text-upper"
+            class="flex items-center col-span-4 col-span-2 justify-start nls-font-500 text-12 text-dark-grey lg:text-left text-upper"
           >
             <span class="inline-block">{{ $t('message.action') }}</span>
           </div>
           <div
-            class="md:flex lg:col-span-2 col-span-3 items-center justify-end nls-font-500 nls-12 text-dark-grey text-right text-upper"
+            class="md:flex lg:col-span-2 col-span-3 items-center justify-end nls-font-500 text-12 text-dark-grey text-right text-upper"
           >
             <span class="inline-block">{{ $t('message.fee') }}</span>
           </div>
           <div
-            class="md:flex col-span-2 items-center justify-end nls-font-500 nls-12 text-dark-grey text-right text-upper"
+            class="md:flex col-span-2 items-center justify-end nls-font-500 text-12 text-dark-grey text-right text-upper"
           >
             <span class="inline-block">{{ $t('message.time') }}</span>
           </div>
@@ -53,13 +53,13 @@
             class="md:grid md:grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6 md:flex items-center"
           >
             <div
-              class="nls-sm-hidden block col-span-3 lg:col-span-2 nls-14 nls-font-400 text-primary text-left"
+              class="nls-sm-hidden block col-span-3 lg:col-span-2 text-14 nls-font-400 text-primary text-left"
             >
               C1FAC987E9515B...
             </div>
             <div class="hidden lg:block col-span-2 text-left">
               <span
-                class="inline-block py-1 px-2 text-patch nls-font-500 nls-12 text-primary radius-pill"
+                class="inline-block py-1 px-2 text-patch nls-font-500 text-12 text-primary radius-pill"
               >
                 Transfer
               </span>
@@ -67,7 +67,7 @@
             <div
               class="block col-span-5 lg:col-span-4 text-primary text-left"
             >
-              <span class="nls-12 nls-font-700"
+              <span class="text-12 nls-font-700"
               >Stake 797020...qtcrpy to Pylon Governance</span
               >
               <!--                    <span class="text-bold">Stake</span> 797020...qtcrpy to <span-->
@@ -77,13 +77,13 @@
               class="block col-span-2 items-center justify-start md:justify-end nls-sm-inline-flex-half"
             >
               <span
-                class="left-and-right nls-14 nls-font-400 text-primary mt-nls-sm-9"
+                class="left-and-right text-14 nls-font-400 text-primary mt-nls-sm-9"
               >
                 0.481215 NLS
               </span>
             </div>
             <div
-              class="mt-nls-sm-9 flex col-span-2 items-center justify-end nls-14 nls-font-400 text-primary text-right nls-sm-inline-flex-half"
+              class="mt-nls-sm-9 flex col-span-2 items-center justify-end text-14 nls-font-400 text-primary text-right nls-sm-inline-flex-half"
             >
               2 hours ago
             </div>
@@ -95,13 +95,13 @@
             class="md:grid md:grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6 md:flex items-center"
           >
             <div
-              class="nls-sm-hidden block col-span-3 lg:col-span-2 nls-14 nls-font-400 text-primary text-left"
+              class="nls-sm-hidden block col-span-3 lg:col-span-2 text-14 nls-font-400 text-primary text-left"
             >
               C1FAC987E9515B...
             </div>
             <div class="hidden lg:block col-span-2 text-left">
               <span
-                class="inline-block py-1 px-2 text-patch nls-font-500 nls-12 text-primary radius-pill"
+                class="inline-block py-1 px-2 text-patch nls-font-500 text-12 text-primary radius-pill"
               >
                 Transfer
               </span>
@@ -109,7 +109,7 @@
             <div
               class="block col-span-5 lg:col-span-4 text-primary text-left"
             >
-              <span class="nls-12 nls-font-700"
+              <span class="text-12 nls-font-700"
               >Send 139UST to Pylon Governance</span
               >
               <!--                    <span class="text-bold">Stake</span> 797020...qtcrpy to <span-->
@@ -119,13 +119,13 @@
               class="block col-span-2 items-center justify-start md:justify-end nls-sm-inline-flex-half"
             >
               <span
-                class="left-and-right nls-14 nls-font-400 text-primary mt-nls-sm-9"
+                class="left-and-right text-14 nls-font-400 text-primary mt-nls-sm-9"
               >
                 0.481215 NLS
               </span>
             </div>
             <div
-              class="mt-nls-sm-9 flex col-span-2 items-center justify-end nls-14 nls-font-400 text-primary text-right nls-sm-inline-flex-half"
+              class="mt-nls-sm-9 flex col-span-2 items-center justify-end text-14 nls-font-400 text-primary text-right nls-sm-inline-flex-half"
             >
               2 hours ago
             </div>
@@ -137,13 +137,13 @@
             class="md:grid md:grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6 md:flex items-center"
           >
             <div
-              class="nls-sm-hidden block col-span-3 lg:col-span-2 nls-14 nls-font-400 text-primary text-left"
+              class="nls-sm-hidden block col-span-3 lg:col-span-2 text-14 nls-font-400 text-primary text-left"
             >
               C1FAC987E9515B...
             </div>
             <div class="hidden lg:block col-span-2 text-left">
               <span
-                class="inline-block py-1 px-2 text-patch nls-font-500 nls-12 text-primary radius-pill"
+                class="inline-block py-1 px-2 text-patch nls-font-500 text-12 text-primary radius-pill"
               >
                 Transfer
               </span>
@@ -151,7 +151,7 @@
             <div
               class="block col-span-5 lg:col-span-4 text-primary text-left"
             >
-              <span class="nls-12 nls-font-700"
+              <span class="text-12 nls-font-700"
               >Stake 797020...qtcrpy to Pylon Governance</span
               >
               <!--                    <span class="text-bold">Stake</span> 797020...qtcrpy to <span-->
@@ -161,13 +161,13 @@
               class="block col-span-2 items-center justify-start md:justify-end nls-sm-inline-flex-half"
             >
               <span
-                class="left-and-right nls-14 nls-font-400 text-primary mt-nls-sm-9"
+                class="left-and-right text-14 nls-font-400 text-primary mt-nls-sm-9"
               >
                 0.481215 NLS
               </span>
             </div>
             <div
-              class="mt-nls-sm-9 flex col-span-2 items-center justify-end nls-14 nls-font-400 text-primary text-right nls-sm-inline-flex-half"
+              class="mt-nls-sm-9 flex col-span-2 items-center justify-end text-14 nls-font-400 text-primary text-right nls-sm-inline-flex-half"
             >
               2 hours ago
             </div>
@@ -182,21 +182,21 @@
             :key="transaction.id"
           >
             <div
-              class="hidden col-span-2 lg:block nls-14 nls-font-400 text-primary text-left"
+              class="hidden col-span-2 lg:block text-14 nls-font-400 text-primary text-left"
             >
               {{ truncateString(transaction.id) }}
             </div>
             <div class="hidden col-span-2 md:block text-left">
               <span
-                class="inline-block py-1 px-2 text-patch nls-font-500 nls-12 text-primary radius-pill"
+                class="inline-block py-1 px-2 text-patch nls-font-500 text-12 text-primary radius-pill"
               >
                 {{ capitalize(transaction.action) }}
               </span>
             </div>
             <div
-              class="block col-span-4 nls-14 nls-font-400 text-primary text-left"
+              class="block col-span-4 text-14 nls-font-400 text-primary text-left"
             >
-              <span class="nls-12 nls-font-700">
+              <span class="text-12 nls-font-700">
                 {{ truncateString(transaction.sender) }}
                 {{ $t('message.to') }}
                 {{ truncateString(transaction.receiver) }}
@@ -207,7 +207,7 @@
             <div
               class="block col-span-2 items-center justify-start md:justify-endtext-primary"
             >
-              <span class="left-and-right nls-14 nls-font-400">{{
+              <span class="left-and-right text-14 nls-font-400">{{
                   convertFeeAmount(transaction.fee)
                 }}</span>
             </div>

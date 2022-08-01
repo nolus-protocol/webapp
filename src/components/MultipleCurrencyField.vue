@@ -1,6 +1,6 @@
 <template>
   <div class="block currency-field-container">
-    <label :for="this.id" class="block nls-14 nls-font-500 text-primary">{{
+    <label :for="this.id" class="block text-14 nls-font-500 text-primary">{{
         this.label
       }}</label>
 
@@ -17,11 +17,11 @@
           <input
             :id="this.id"
             :name="this.name"
-            class="nls-font-700 nls-18 nls-font-700 text-primary"
+            class="nls-font-700 text-18 text-primary"
             type="text"
             value=""
           />
-          <span class="block nls-14 nls-font-400 text-light-blue">
+          <span class="block text-14 nls-font-400 text-light-blue">
             $1,000
           </span>
         </div>
@@ -44,11 +44,11 @@
           <input
             :id="this.idSecondary"
             :name="this.nameSecondary"
-            class="nls-font-700 nls-18 nls-font-700 text-primary"
+            class="nls-font-700 text-18 text-primary"
             type="text"
             value=""
           />
-          <span class="block nls-14 nls-font-400 text-light-blue">
+          <span class="block text-14 nls-font-400 text-light-blue">
             $1,000
           </span>
         </div>

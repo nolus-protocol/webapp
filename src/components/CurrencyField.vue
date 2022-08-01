@@ -1,6 +1,6 @@
 <template>
   <div class="block currency-field-container">
-    <label :for="this.id" class="block nls-14 nls-font-500 text-primary">{{
+    <label :for="this.id" class="block text-14 nls-font-500 text-primary">{{
         this.label
       }}</label>
 
@@ -20,11 +20,11 @@
             :name="this.name"
             :step="this.step"
             :value="value"
-            class="nls-font-700 nls-18 nls-font-700 text-primary"
+            class="nls-font-700 text-18 text-primary"
             type="number"
             @input="$emit('update:value', $event.target.value)"
           />
-          <span class="block nls-14 nls-font-400 text-light-blue">
+          <span class="block text-14 nls-font-400 text-light-blue">
             {{this.calculateInputBalance()}}
           </span>
         </div>

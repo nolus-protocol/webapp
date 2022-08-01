@@ -1,9 +1,9 @@
 <template>
   <div class="col-span-12 mb-sm-nolus-70">
     <!-- Header -->
-    <div class="flex flex-wrap flex mt-[25px] items-center justify-between px-4 lg:px-0">
+    <div class="flex flex-wrap mt-[25px] items-center justify-between px-4 lg:px-0">
       <div class="left w-full md:w-1/2">
-        <h1 class="nls-20 nls-font-700 text-primary m-0 nls-sm-title">
+        <h1 class="text-20 nls-font-700 text-primary m-0 nls-sm-title">
           {{ $t('message.leases') }}
         </h1>
       </div>
