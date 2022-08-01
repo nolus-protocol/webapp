@@ -1,7 +1,10 @@
 <template>
-  <div class="block rounded-2xl bg-white mt-8 pb-10 pt-6 border border-standart shadow-box lg:w-[516px]">
-    <h1 class="text-to-big-number text-primary text-center relative">
-      <button class="inline-block align-baseline absolute left-0 top-2/4 -mt-2.5 px-6" type="button" v-on:click="clickBack">
+  <button class="grid w-screen place-items-center md:hidden -mt-8 md:mt-auto" type="button" v-on:click="clickBack">
+    <ArrowLeftIcon aria-hidden="true" class="h-7 w-7" />
+  </button>
+  <div class="block rounded-2xl bg-white mt-5 md:mt-8 pb-10 pt-6 md:border border-standart shadow-box w-screen md:w-[516px]">
+    <h1 class="text-to-big-number text-primary text-center relative z-[2]">
+      <button class="align-baseline absolute left-0 top-2/4 -mt-2.5 px-6 md:px-10 hidden md:inline-block" type="button" v-on:click="clickBack">
         <ArrowLeftIcon aria-hidden="true" class="h-5 w-5" />
       </button>
       <span class="inline-block align-baseline nls-32">
@@ -9,17 +12,25 @@
       </span>
     </h1>
 
-    <div class="separator-line py-6"></div>
+    <div class="separator-line py-6 relative z-[2]"></div>
 
-    <div class="px-6">
+    <div class="px-6 md:px-10 relative z-[2]">
       <TextField id="seed" v-model:value.trim="importStr" :error-msg="errorMessage" :is-error="errorMessage !== ''"
         :label="$t('message.mnemonic-seed-or-key')" name="seed" />
 
-      <div class="flex mt-6">
-        <button class="btn btn-primary btn-large-primary mr-4" v-on:click="clickImport">
+      <div class="mt-6 hidden md:flex">
+        <button class="btn btn-primary btn-large-primary mr-4 disabled" v-on:click="clickImport">
         {{ $t('message.import') }}
         </button>
       </div>
+    </div>
+
+    <div class="bg-white h-[420px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
+
+    <div class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto bg-white absolute inset-x-0 bottom-0 md:relative shadow-modal">
+      <button class="btn btn-primary btn-large-primary w-80 disabled" v-on:click="clickImport">
+      {{ $t('message.import') }}
+      </button>
     </div>
   </div>
 </template>
