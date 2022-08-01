@@ -51,8 +51,8 @@ import CurrencyField from '@/components/CurrencyField.vue'
 import { defineComponent, PropType } from 'vue'
 import { CurrencyUtils } from '@nolus/nolusjs'
 import { AssetBalance } from '@/store/modules/wallet/state'
-import WarningBox from '@/components/modals/templates/WarningBox.vue';
-import { SupplyComponentProps } from './SupplyMainComponent.vue'
+import WarningBox from '@/components/modals/templates/WarningBox.vue'
+import { SupplyComponentProps } from '../SupplyComponents/SupplyMainComponent.vue'
 
 export default defineComponent({
   name: 'SwapComponent',

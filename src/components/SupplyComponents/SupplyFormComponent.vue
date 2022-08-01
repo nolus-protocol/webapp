@@ -27,55 +27,32 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue'
-import { StarIcon } from '@heroicons/vue/solid'
 import { CurrencyUtils } from '@nolus/nolusjs'
 
 import CurrencyField from '@/components/CurrencyField.vue'
-import Picker from '@/components/Picker.vue'
-import InputField from '@/components/InputField.vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
-import TooltipComponent from '@/components/TooltipComponent.vue'
-
-export interface SupplyComponentProps {
-  receiverErrorMsg: string;
-  amountErrorMsg: string;
-  currentBalance: AssetBalance[];
-  selectedCurrency: AssetBalance;
-  amount: string;
-  memo: string;
-  receiverAddress: string;
-  password: string;
-  txHash: string;
-  onNextClick: () => void;
-  onSendClick: () => void;
-  onConfirmBackClick: () => void;
-  onClickOkBtn: () => void;
-}
+import { assetsInfo } from '@/config/assetsInfo'
+import { SupplyComponentProps } from '@/components/SupplyComponents/SupplyMainComponent.vue'
 
 export default defineComponent({
-  name: 'SupplyComponent',
+  name: 'SupplyFormComponent',
   components: {
-    StarIcon,
-    CurrencyField,
-    Picker,
-    InputField,
-    TooltipComponent
+    CurrencyField
   },
   props: {
     modelValue: {
       type: Object as PropType<SupplyComponentProps>
     }
   },
+  emits: ['update:modelValue.selectedCurrency'],
   methods: {
-    formatCurrentBalance (value: AssetBalance[]) {
-      if (value) {
-        return CurrencyUtils.convertUNolusToNolus(
-          value[0]?.balance.amount.toString()
+    formatCurrentBalance (selectedCurrency: AssetBalance) {
+      if (selectedCurrency) {
+        const asset = assetsInfo[selectedCurrency.balance.denom]
+        return CurrencyUtils.convertMinimalDenomToDenom(
+          selectedCurrency.balance.amount.toString(), selectedCurrency.balance.denom, asset.coinDenom, asset.coinDecimals
         ).toString()
       }
-    },
-    onUpdateCurrency (value: AssetBalance) {
-      this.$emit('update:modelValue.selectedCurrency', value)
     }
   }
 })
