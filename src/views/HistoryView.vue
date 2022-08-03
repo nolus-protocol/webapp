@@ -1,25 +1,25 @@
 <template>
-        <div class="col-span-12 mb-sm-nolus-70p">
-          <!-- Header -->
-          <div class="table-header flex mt-[25px] flex-wrap items-center justify-between items-baseline lg:px-0">
-            <div class="left">
-              <h1 class="nls-20 nls-font-700 text-primary m-0">
-                {{ $t('message.history') }}
-              </h1>
-            </div>
-          </div>
-          <!-- History -->
-          <div class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm overflow-hidden">
-            <!-- Assets -->
-            <div class="block md:mt-4">
-              <HistoryTableHeader />
-              <div class="block">
-                <HistoryTableItem v-for="transaction of transactions" :key="transaction.id"
-                  :transaction="transaction" />
-              </div>
-            </div>
-          </div>
+  <div class="col-span-12 mb-sm-nolus-70p">
+    <!-- Header -->
+    <div class="table-header flex mt-[25px] flex-wrap items-center justify-between items-baseline lg:px-0">
+      <div class="left">
+        <h1 class="nls-20 nls-font-700 text-primary m-0">
+          {{ $t('message.history') }}
+        </h1>
+      </div>
+    </div>
+    <!-- History -->
+    <div class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm overflow-hidden">
+      <!-- Assets -->
+      <div class="block md:mt-4">
+        <HistoryTableHeader/>
+        <div class="block">
+          <HistoryTableItem v-for="transaction of transactions" :key="transaction.id"
+                            :transaction="transaction"/>
         </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
@@ -50,36 +50,15 @@ export default defineComponent({
   },
   data () {
     return {
-      transactions: [] as ITransaction[],
-      MOCKED_TRANSACTIONS: [ // @TODO: Remove testing data
-        {
-          id: 'C1FAC987E9515B...',
-          receiver: 'Pylon Governance',
-          sender: 'Mock 797020...qtcrpy',
-          action: 'transfer',
-          memo: '',
-          fee: [{ denom: 'unolus', amount: '481' }]
-        },
-        {
-          id: 'C2FAC987E9515B...',
-          receiver: 'Pylon Governance',
-          sender: 'Mock 797020...qtcrpy',
-          action: 'transfer',
-          memo: '',
-          fee: [{ denom: 'unolus', amount: '481' }]
-        }
-      ] as ITransaction[]
+      transactions: [] as ITransaction[]
     }
   },
   watch: {
     '$store.state.wallet.wallet' () {
       this.getTransactions()
-      console.log('FROM HISTORY', this.transactions)
     }
   },
   mounted () {
-    this.MOCKED_TRANSACTIONS.forEach((tx) => this.transactions.push(tx)) // @TODO: Remove testing data
-
     this.getTransactions()
   },
   methods: {
