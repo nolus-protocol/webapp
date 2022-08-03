@@ -2,7 +2,7 @@
   <!-- Input Area -->
   <div class="modal-send-receive-input-area">
     <div
-      class="block py-3 px-4 bg-light-grey radius-light text-left nls-14 nls-font-400 text-primary"
+      class="block py-3 px-4 bg-light-grey radius-light text-left text-14 nls-font-400 text-primary"
     >
       Current balance:
 

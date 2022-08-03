@@ -12,9 +12,9 @@
         class="flex notification-header flex-wrap items-baseline justify-between px-6 bg-white"
       >
         <div
-          class="left w-full md:w-1/2 px-4 py-3 nls-font-500 nls-18"
+          class="left w-full md:w-1/2 px-4 py-3 nls-font-500 text-18"
         >
-          <p class="text nls-font-700 nls-18 m-0">{{ $t('message.notifications') }}</p>
+          <p class="text nls-font-700 text-18 m-0">{{ $t('message.notifications') }}</p>
         </div>
         <div
           class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end"
@@ -22,7 +22,7 @@
           <div class="relative block checkbox-container">
             <div class="flex items-center w-full justify-end">
               <p
-                class="text nls-font-500 nls-12 color-light-blue cursor-pointer"
+                class="text nls-font-500 text-12 color-light-blue cursor-pointer"
               >
                 {{ $t('message.clear-all') }}
               </p>
@@ -43,11 +43,11 @@
             <!-- <imgtogglePopup class="inline-block m-0 mr-4" height="32"/> -->
             <div class="inline-block">
               <p
-                class="text-primary nls-14 nls-font-700 text-left uppercase m-0"
+                class="text-primary text-14 nls-font-700 text-left uppercase m-0"
               >
                 BTC
               </p>
-              <p class="text-dark-grey nls-12 text-left capitalize m-0">
+              <p class="text-dark-grey text-12 text-left capitalize m-0">
                 Bitcoin
               </p>
             </div>
@@ -55,7 +55,7 @@
 
           <div class="hidden md:block">
             <div
-              class="flex items-center justify-end text-primary nls-font-400 nls-12 text-right m-0"
+              class="flex items-center justify-end text-primary nls-font-400 text-12 text-right m-0"
             >
               <button class="btn btn-outline btn-large-outline">Claim</button>
             </div>
@@ -75,11 +75,11 @@
             />
             <div class="inline-block">
               <p
-                class="text-primary nls-14 nls-font-700 text-left uppercase m-0"
+                class="text-primary text-14 nls-font-700 text-left uppercase m-0"
               >
                 BTC
               </p>
-              <p class="text-dark-grey nls-12 text-left capitalize m-0">
+              <p class="text-dark-grey text-12 text-left capitalize m-0">
                 Bitcoin
               </p>
             </div>
@@ -87,7 +87,7 @@
 
           <div class="hidden md:block">
             <div
-              class="flex items-center justify-end text-primary nls-font-400 nls-12 text-right m-0"
+              class="flex items-center justify-end text-primary nls-font-400 text-12 text-right m-0"
             >
               <button class="btn btn-outline btn-large-outline">Claim</button>
             </div>
@@ -106,11 +106,11 @@
             />
             <div class="inline-block">
               <p
-                class="text-primary nls-14 nls-font-700 text-left uppercase m-0"
+                class="text-primary text-14 nls-font-700 text-left uppercase m-0"
               >
                 NLS
               </p>
-              <p class="text-dark-grey nls-12 text-left capitalize m-0">
+              <p class="text-dark-grey text-12 text-left capitalize m-0">
                 Nolus
               </p>
             </div>
@@ -119,7 +119,7 @@
           <!-- Earnings -->
           <div class="hidden md:block">
             <div
-              class="flex items-center justify-end text-primary nls-font-400 nls-12 text-right m-0"
+              class="flex items-center justify-end text-primary nls-font-400 text-12 text-right m-0"
             >
               <button class="btn btn-outline btn-large-outline">
                 Withdraw

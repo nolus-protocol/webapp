@@ -1,9 +1,9 @@
 <template>
   <div class="col-span-12 mb-sm-nolus-70">
     <!-- Header -->
-    <div class="flex flex-wrap flex mt-[25px] items-center justify-between px-4 lg:px-0">
+    <div class="flex flex-wrap mt-[25px] items-center justify-between px-4 lg:px-0">
       <div class="left w-full md:w-1/2">
-        <h1 class="nls-20 nls-font-700 text-primary m-0 nls-sm-title">
+        <h1 class="text-20 nls-font-700 text-primary m-0 nls-sm-title">
           Earnings
         </h1>
       </div>
@@ -18,7 +18,7 @@
           <div
             class="lg:flex block items-center justify-between px-6 pt-6"
           >
-            <h2 class="nls-16 nls-font-500 text-left my-0">
+            <h2 class="text-16 nls-font-500 text-left my-0">
               Your earning portfolio
             </h2>
             <button
@@ -34,13 +34,13 @@
               class="grid grid-cols-2 gap-6 border-b border-standart pb-3 px-6"
             >
               <div
-                class="nls-font-500 nls-12 text-dark-grey text-left text-upper"
+                class="nls-font-500 text-12 text-dark-grey text-left text-upper"
               >
                 Asset
               </div>
 
               <div
-                class="inline-flex items-center justify-end nls-font-500 nls-font-500 nls-12 text-dark-grey text-right text-upper"
+                class="inline-flex items-center justify-end nls-font-500 text-12 text-dark-grey text-right text-upper"
               >
                 <span class="inline-block">Current Balance</span>
               </div>
@@ -66,12 +66,12 @@
                   />
                   <div class="inline-block">
                     <p
-                      class="text-primary nls-font-500 nls-18 text-left uppercase m-0"
+                      class="text-primary nls-font-500 text-18 text-left uppercase m-0"
                     >
                       BTC
                     </p>
                     <p
-                      class="text-dark-grey nls-13 nls-font-400 text-left capitalize m-0"
+                      class="text-dark-grey text-12 nls-font-400 text-left capitalize m-0"
                     >
                       $32,430.22
                     </p>
@@ -82,12 +82,12 @@
                 <!-- Balance -->
                 <div class="block info-show">
                   <p
-                    class="text-primary nls-font-500 nls-16 nls-font-500 text-right m-0"
+                    class="text-primary nls-font-500 text-16 nls-font-500 text-right m-0"
                   >
                     $14,978.35
                   </p>
                   <div
-                    class="flex items-center justify-end text-dark-grey nls-13 nls-font-400 text-right m-0"
+                    class="flex items-center justify-end text-dark-grey text-12 nls-font-400 text-right m-0"
                   >
                     521.21 ATOM
                   </div>
@@ -121,12 +121,12 @@
                   />
                   <div class="inline-block">
                     <p
-                      class="text-primary nls-font-500 nls-18 text-left uppercase m-0"
+                      class="text-primary nls-font-500 text-18 text-left uppercase m-0"
                     >
                       NLS
                     </p>
                     <p
-                      class="text-dark-grey nls-13 nls-font-400 text-left capitalize m-0"
+                      class="text-dark-grey text-12 nls-font-400 text-left capitalize m-0"
                     >
                       $0.10000
                     </p>
@@ -136,12 +136,12 @@
                 <!-- Balance -->
                 <div class="block info-show">
                   <p
-                    class="text-primary nls-font-500 nls-16 nls-font-500 text-right m-0"
+                    class="text-primary nls-font-500 text-12 nls-font-500 text-right m-0"
                   >
                     $14,978.35
                   </p>
                   <div
-                    class="flex items-center justify-end text-dark-grey nls-13 nls-font-400 text-right m-0"
+                    class="flex items-center justify-end text-dark-grey text-12 nls-font-400 text-right m-0"
                   >
                     521.21 ATOM
                   </div>
@@ -176,12 +176,12 @@
                   />
                   <div class="inline-block">
                     <p
-                      class="text-primary nls-font-500 nls-18 text-left uppercase m-0"
+                      class="text-primary nls-font-500 text-18 text-left uppercase m-0"
                     >
                       ATOM
                     </p>
                     <p
-                      class="text-dark-grey nls-13 nls-font-400 text-left capitalize m-0"
+                      class="text-dark-grey text-12 nls-font-400 text-left capitalize m-0"
                     >
                       $28.74
                     </p>
@@ -199,12 +199,12 @@
                 </div>
                 <div class="block info-show">
                   <p
-                    class="text-primary nls-font-500 nls-16 nls-font-500 text-right m-0"
+                    class="text-primary text-16 nls-font-500 text-right m-0"
                   >
                     $14,978.35
                   </p>
                   <div
-                    class="flex items-center justify-end text-dark-grey nls-13 nls-font-400 text-right m-0"
+                    class="flex items-center justify-end text-dark-grey text-13 nls-font-400 text-right m-0"
                   >
                     521.21 ATOM
                   </div>
@@ -225,7 +225,7 @@
           <div
             class="flex items-center justify-between px-6 pt-6"
           >
-            <h2 class="nls-16 nls-font-500 text-left my-0">
+            <h2 class="text-16 nls-font-500 text-left my-0">
               Pending rewards
             </h2>
             <button class="btn btn-label btn-large-label">
@@ -254,12 +254,12 @@
                   />
                   <div class="inline-block">
                     <p
-                      class="text-primary nls-font-500 nls-18 text-left uppercase m-0"
+                      class="text-primary nls-font-500 text-18 text-left uppercase m-0"
                     >
                       BTC
                     </p>
                     <p
-                      class="text-dark-grey nls-13 nls-font-400 text-left capitalize m-0"
+                      class="text-dark-grey text-12 nls-font-400 text-left capitalize m-0"
                     >
                       ~$5
                     </p>
@@ -297,12 +297,12 @@
                   />
                   <div class="inline-block">
                     <p
-                      class="text-primary nls-font-500 nls-18 text-left uppercase m-0"
+                      class="text-primary nls-font-500 text-18 text-left uppercase m-0"
                     >
                       BTC
                     </p>
                     <p
-                      class="text-dark-grey nls-13 nls-font-400 text-left capitalize m-0"
+                      class="text-dark-grey text-13 nls-font-400 text-left capitalize m-0"
                     >
                       ~$5
                     </p>
@@ -323,7 +323,7 @@
             <div class="block">
               <div
                 :class="[
-                  'grid gap-6 border-b border-b border-standart  px-6 py-3 items-center justify-between',
+                  'grid gap-6 border-b border-standart  px-6 py-3 items-center justify-between',
                   this.cols
                     ? 'grid-cols-' + this.cols
                     : 'grid-cols-3 md:grid-cols-4',
@@ -339,12 +339,12 @@
                   />
                   <div class="inline-block">
                     <p
-                      class="text-primary nls-font-500 nls-18 text-left uppercase m-0"
+                      class="text-primary nls-font-500 text-18 text-left uppercase m-0"
                     >
                       BTC
                     </p>
                     <p
-                      class="text-dark-grey nls-13 nls-font-400 text-left capitalize m-0"
+                      class="text-dark-grey text-13 nls-font-400 text-left capitalize m-0"
                     >
                       ~$5
                     </p>

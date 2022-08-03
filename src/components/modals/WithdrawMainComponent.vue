@@ -1,9 +1,9 @@
 <template>
   <div class="modal-send-receive-input-area">
     <div
-      class="flex py-3 px-4 bg-light-grey radius-light text-left nls-14 nls-font-400 text-primary">
-      <span class="nls-14 nls-font-500"> Current balance:</span>
-      <a class="text-secondary  nls-14 nls-font-700 underline ml-2" href="#">
+      class="flex py-3 px-4 bg-light-grey radius-light text-left text-14 nls-font-400 text-primary">
+      <span class="text-14 nls-font-500"> Current balance:</span>
+      <a class="text-secondary  text-14 nls-font-700 underline ml-2" href="#">
         {{ formatCurrentBalance(modelValue.currentBalance) || ' 125 NLS' }}
       </a>
     </div>
@@ -27,9 +27,9 @@
           </svg>
         </template>
         <template v-slot:content>
-            <span class="nls-font-500 nls-14">21 Days Unbounding Period</span>
+            <span class="nls-font-500 text-14">21 Days Unbounding Period</span>
             <br/>
-            <span class="nls-font-400 nls-14"> Dec 29, 2021 @ 18:00 UTC</span>
+            <span class="nls-font-400 text-14"> Dec 29, 2021 @ 18:00 UTC</span>
         </template>
       </WarningBox>
     </div>

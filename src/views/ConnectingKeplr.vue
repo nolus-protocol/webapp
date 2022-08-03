@@ -7,13 +7,13 @@
       <button class="align-baseline absolute left-0 top-2/4 -mt-2.5 px-6 hidden md:inline-block" type="button" v-on:click="clickBack">
         <ArrowLeftIcon aria-hidden="true" class="h-5 w-5" />
       </button>
-      <span class="inline-block align-baseline nls-32 relative z-[2]"> Connecting Kepler </span>
+      <span class="inline-block align-baseline text-28 md:text-32 relative z-[2]"> Connecting Kepler </span>
     </h1>
 
     <div class="separator-line py-6 relative z-[2]"></div>
 
     <div class="px-4 md:px-10">
-      <p class="nls-14 nls-font-400 text-primary relative z-[2]">
+      <p class="text-14 nls-font-400 text-primary relative z-[2]">
         Continue by approving the connection in the extension
       </p>
       <div class="flex mt-6">

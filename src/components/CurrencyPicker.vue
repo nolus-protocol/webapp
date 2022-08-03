@@ -22,7 +22,7 @@
           this.label.length > 0
         "
       >
-        <ListboxLabel class="block nls-14 nls-font-500 text-primary">
+        <ListboxLabel class="block text-14 nls-font-500 text-primary">
           {{ this.label }}
         </ListboxLabel>
       </div>

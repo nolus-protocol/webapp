@@ -4,11 +4,11 @@
     <ArrowLeftIcon aria-hidden="true" class="h-7 w-7" />
   </button>
   <div class="block rounded-2xl bg-white mt-5 md:mt-8 pb-10 pt-6 border border-standart shadow-box md:max-w-[516px]">
-    <h1 class="text-to-big-number text-primary nls-32 text-center relative">
+    <h1 class="text-to-big-number text-primary text-28 md:text-32 text-center relative">
       <button class="align-baseline absolute left-0 top-2/4 -mt-2.5 px-6 md:px-10 hidden md:inline-block" type="button" v-on:click="clickBack">
         <ArrowLeftIcon aria-hidden="true" class="h-5 w-5" />
       </button>
-      <span class="inline-block align-baseline relative z-[2]"> Create wallet </span>
+      <span class="inline-block align-baseline text-28 md:text-32 relative z-[2]"> Create wallet </span>
     </h1>
 
     <div class="separator-line p-6 relative z-[2]"></div>
@@ -29,8 +29,8 @@
           <img src="@/assets/icons/warning.svg"/>
         </div>
         <div class="inline-block flex-1">
-          <p class="text-primary nls-font-700 nls-14">
-            Backup your mnemonic seed securely. <span class="text-primary nls-14 nls-font-400">
+          <p class="text-primary nls-font-700 text-14">
+            Backup your mnemonic seed securely. <span class="text-primary text-14 nls-font-400">
             Never share it with others or enter it in unverified sites.</span>
           </p>
         </div>
@@ -58,11 +58,11 @@
       <ArrowLeftIcon aria-hidden="true" class="h-7 w-7" />
     </button>
     <div class="block rounded-2xl bg-white mt-5 md:mt-8 pb-10 pt-6 border border-standart shadow-box">
-      <h1 class="text-to-big-number text-primary nls-32 text-center relative md:max-w-[516px]">
+      <h1 class="text-to-big-number text-primary text-center relative md:max-w-[516px]">
         <button class="align-baseline absolute left-0 top-2/4 -mt-2.5 px-6 md:px-10 hidden md:inline-block" type="button" v-on:click="clickBack">
           <ArrowLeftIcon aria-hidden="true" class="h-5 w-5" />
         </button>
-        <span class="inline-block align-baseline"> Confirm mnemonic </span>
+        <span class="inline-block align-baseline text-28 md:text-32"> Confirm mnemonic </span>
       </h1>
 
       <div class="separator-line p-6"></div>

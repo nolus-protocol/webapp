@@ -7,7 +7,7 @@
       <button class="align-baseline absolute left-0 top-2/4 -mt-2.5 px-6 md:px-10 hidden md:inline-block" type="button" v-on:click="clickBack">
         <ArrowLeftIcon aria-hidden="true" class="h-5 w-5" />
       </button>
-      <span class="inline-block align-baseline nls-32">
+      <span class="inline-block align-baseline text-28 md:text-32">
         {{ $t('message.import-seed') }}
       </span>
     </h1>

@@ -1,7 +1,7 @@
 <template>
   <div v-cloak class="block w-screen md:w-[516px] -mt-8 md:mt-auto">
     <div class="bg-white rounded-2xl md:border border-standart shadow-box md:filter-none">
-        <h1 class="nls-32 nls-font-700 text-primary text-center pt-6 pb-5 relative z-[2]">
+        <h1 class="text-28 md:text-32 nls-font-700 text-primary text-center pt-6 pb-5 relative z-[2]">
         {{ $t('message.connect-wallet') }}
       </h1>
       <div class="separator-line z-[100]"></div>
@@ -36,7 +36,7 @@
         </button>
       </div>
 
-      <div class="block separator-line nls-font-400 nls-12 text-center mt-10 md:mt-7 mx-4 md:mx-10 md:mb-0 relative z-[2]">
+      <div class="block separator-line nls-font-400 text-12 text-center mt-10 md:mt-7 mx-4 md:mx-10 md:mb-0 relative z-[2]">
         <span class="bg-white px-3 relative z-[2]">{{
             $t('message.continue-with')
           }}</span>

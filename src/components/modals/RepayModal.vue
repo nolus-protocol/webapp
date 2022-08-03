@@ -12,7 +12,7 @@
         <img class="inline-block w-4 h-4" src="@/assets/icons/cross.svg"/>
       </button>
       <div class="flex modal-header">
-        <p class="nls-32 nls-font-700">{{ $t('message.repay') }}</p>
+        <p class="text-28 md:text-32 nls-font-700">{{ $t('message.repay') }}</p>
       </div>
 
       <component

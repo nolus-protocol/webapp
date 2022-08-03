@@ -50,7 +50,7 @@
       </p>
     </div>
     <div class="flex w-full">
-      <div class="grow-3 text-right nls-font-500 nls-14">
+      <div class="grow-3 text-right nls-font-500 text-14">
         <p class="mb-3 mt-[25px] mr-5">
           {{ $t('message.leased-amount') }}
         </p>
@@ -59,7 +59,7 @@
           {{ $t('message.liquidation-price') }}
         </p>
       </div>
-      <div class="text-right nls-font-700 nls-14">
+      <div class="text-right nls-font-700 text-14">
         <p class="mb-3 mt-[25px] flex justify-end align-center">
           {{ calculateLeaseAmount }}
           <TooltipComponent content="Content goes here"/>
