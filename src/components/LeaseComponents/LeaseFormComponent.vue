@@ -38,7 +38,7 @@
       </div>
     </div>
 
-    <div class="flex justify-end mt-5">
+    <div class="flex justify-end mt-5 mr-5">
       <p
         v-if="modelValue.selectedCurrency?.balance?.denom"
         class="mb-3 mt-[25px] flex justify-end align-center"
@@ -49,7 +49,7 @@
         <span class="inline-block nls-font-700 ml-5">{{ pricePerToken }}</span>
       </p>
     </div>
-    <div class="flex w-full">
+    <div class="flex justify-end">
       <div class="grow-3 text-right nls-font-500 text-14">
         <p class="mb-3 mt-[25px] mr-5">
           {{ $t('message.leased-amount') }}

@@ -7,13 +7,8 @@
           {{ $t('message.leases') }}
         </h1>
       </div>
-      <div
-        class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end"
-      >
-        <button
-          class="btn btn-primary btn-large-primary w-full md:w-1/2"
-          v-on:click="showLeaseModal = true"
-        >
+      <div class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end">
+        <button class="btn btn-primary btn-large-primary w-full md:w-1/2" v-on:click="showLeaseModal = true">
           {{ $t('message.lease-new') }}
         </button>
       </div>

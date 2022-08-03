@@ -21,7 +21,7 @@
         :on-click-print="onClickPrint">
       </TextFieldButtons>
 
-      <div class="flex rounded p-4 warning-box mt-6 relative z-[2]">
+      <div class="flex rounded p-4 warning-box mt-8 md:mt-6 relative z-[2]">
         <div class="inline-block mr-2">
           <img src="@/assets/icons/warning.svg"/>
         </div>
@@ -56,7 +56,7 @@
         <button class="align-baseline absolute left-0 top-2/4 -mt-3 px-4 md:px-10" type="button" v-on:click="clickBack">
           <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
         </button>
-        <span class="inline-block align-baseline text-28 md:text-32"> Confirm mnemonic </span>
+        <span class="inline-block align-baseline text-28 md:text-32"> Confirm Seed </span>
       </h1>
 
       <div class="separator-line p-6"></div>

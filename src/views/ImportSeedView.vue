@@ -1,5 +1,5 @@
 <template>
-  <div class="block rounded-2xl bg-white md:pb-10 pt-6 pb-[300px] -mt-8 md:mt-auto md:border border-standart shadow-box w-screen md:w-[516px]">
+  <div class="block rounded-2xl bg-white md:pb-10 pt-6 pb-[200px] -mt-8 md:mt-auto md:border border-standart shadow-box w-screen md:w-[516px]">
     <h1 class="text-to-big-number text-primary text-center relative z-[2]">
       <button class="align-baseline absolute left-0 top-2/4 -mt-3 px-4 md:px-10" type="button" v-on:click="clickBack">
         <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
