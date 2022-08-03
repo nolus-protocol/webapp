@@ -1,12 +1,9 @@
 <template>
   <div v-if="isCreateFormOpen">
-  <button class="grid w-screen place-items-center md:hidden -mt-8 md:mt-auto" type="button" v-on:click="clickBack">
-    <ArrowLeftIcon aria-hidden="true" class="h-7 w-7" />
-  </button>
-  <div class="block rounded-2xl bg-white mt-5 md:mt-8 pb-10 pt-6 border border-standart shadow-box md:max-w-[516px]">
+  <div class="block rounded-2xl bg-white -mt-8 md:mt-auto pb-10 pt-6 border border-standart shadow-box md:max-w-[516px]">
     <h1 class="text-to-big-number text-primary text-28 md:text-32 text-center relative">
-      <button class="align-baseline absolute left-0 top-2/4 -mt-2.5 px-6 md:px-10 hidden md:inline-block" type="button" v-on:click="clickBack">
-        <ArrowLeftIcon aria-hidden="true" class="h-5 w-5" />
+      <button class="align-baseline absolute left-0 top-2/4 -mt-3 px-6 md:px-10" type="button" v-on:click="clickBack">
+        <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
       </button>
       <span class="inline-block align-baseline text-28 md:text-32 relative z-[2]"> Create wallet </span>
     </h1>
@@ -54,13 +51,10 @@
   </div>
 
   <div v-else class="md:max-w-[516px]">
-    <button class="grid w-screen place-items-center md:hidden -mt-8 md:mt-auto" type="button" v-on:click="clickBack">
-      <ArrowLeftIcon aria-hidden="true" class="h-7 w-7" />
-    </button>
-    <div class="block rounded-2xl bg-white mt-5 md:mt-8 pb-10 pt-6 border border-standart shadow-box">
+    <div class="block rounded-2xl bg-white -mt-8 md:mt-auto pb-10 pt-6 border border-standart shadow-box">
       <h1 class="text-to-big-number text-primary text-center relative md:max-w-[516px]">
-        <button class="align-baseline absolute left-0 top-2/4 -mt-2.5 px-6 md:px-10 hidden md:inline-block" type="button" v-on:click="clickBack">
-          <ArrowLeftIcon aria-hidden="true" class="h-5 w-5" />
+        <button class="align-baseline absolute left-0 top-2/4 -mt-3 px-4 md:px-10" type="button" v-on:click="clickBack">
+          <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
         </button>
         <span class="inline-block align-baseline text-28 md:text-32"> Confirm mnemonic </span>
       </h1>

@@ -5,30 +5,15 @@
       <div class="grid grid-cols-12 gap-6 pt-24">
         <div class="col-start-4 col-span-5">
           <h1 class="text-to-big-number text-primary text-center relative">
-            <button
-              class="inline-block align-baseline absolute left-0 top-2/4 -mt-2.5"
-              type="button"
-            >
+            <button class="inline-block align-baseline absolute left-0 top-2/4 -mt-3" type="button">
               <ArrowLeftIcon aria-hidden="true" class="h-5 w-5"/>
             </button>
-            <span
-              class="inline-block align-baseline"
-            >
-                            Set wallet name
-                        </span>
+            <span class="inline-block align-baseline">
+              Set wallet name
+            </span>
           </h1>
 
-          <div
-            class="
-                        block
-                        rounded-2xl
-                        bg-white
-                        mt-8
-                        p-10
-                        border border-standart
-                        shadow-box
-                        "
-          >
+          <div class="block rounded-2xl bg-white mt-8 p-10 border border-standart shadow-box">
             <InputField
               id="wallet-name"
               label="Wallet name"
