@@ -42,7 +42,7 @@
         </div>
       </div>
 
-      <WarningBox isWarning="false" class="mt-[25px]">
+      <WarningBox :isWarning="true" class="mt-[25px]">
         <template v-slot:icon>
           <img class="block mx-auto my-0 w-5 h-5" src="@/assets/icons/info.svg"/>
         </template>

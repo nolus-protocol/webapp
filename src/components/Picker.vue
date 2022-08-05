@@ -155,7 +155,6 @@ export default defineComponent({
     }
   },
   mounted () {
-    console.log('mounted picker: ', this.defaultOption)
     this.selected = this.defaultOption as PickerOption
   },
   watch: {

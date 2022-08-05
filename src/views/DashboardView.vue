@@ -151,7 +151,6 @@ export default defineComponent({
   },
   watch: {
     '$store.state.wallet.balances' (balances) {
-      console.log('Balances: ', balances)
       this.mainAssets = balances
       this.manipulatedAssets = balances
       if (this.hideLowerBalances) {

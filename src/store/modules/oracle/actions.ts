@@ -69,8 +69,6 @@ export const actions: ActionTree<State, RootState> & Actions = {
       pricesState[e.denom.toLowerCase()] = e.price
     })
 
-    console.log(pricesState)
-
     // const oracleContract = new Oracle()
     // const oraclePrices = await oracleContract.getPrices(['OSMO', 'NOLUS', 'ATOM'])
 

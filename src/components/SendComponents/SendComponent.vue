@@ -133,6 +133,9 @@ export default defineComponent({
     modelValue: {
       type: Object as PropType<SendComponentProps>,
       default: {} as object
+    },
+    step: {
+      type: Number
     }
   },
   data () {
@@ -141,7 +144,6 @@ export default defineComponent({
     }
   },
   mounted () {
-    console.log('mounted::: ', this.modelValue)
     this.addressOptions = [
       {
         id: '1',

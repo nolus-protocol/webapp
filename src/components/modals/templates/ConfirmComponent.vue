@@ -74,7 +74,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue'
-import { ArrowLeftIcon, CheckIcon } from '@heroicons/vue/solid'
+import { ArrowLeftIcon, CheckIcon, XIcon } from '@heroicons/vue/solid'
 import { CurrencyUtils } from '@nolus/nolusjs'
 import InputField from '@/components/InputField.vue'
 import { SendComponentProps } from '@/components/SendComponents/SendComponent.vue'
@@ -91,7 +91,8 @@ export default defineComponent({
   components: {
     ArrowLeftIcon,
     InputField,
-    CheckIcon
+    CheckIcon,
+    XIcon
   },
   props: {
     modelValue: {

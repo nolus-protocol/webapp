@@ -50,13 +50,10 @@ export default defineComponent({
       props: this.initProps()
     }
     const balances = useStore().state.wallet.balances
-    console.log('balances: ', balances)
     if (balances) {
       this.currentComponent.props.currentBalance = balances
       this.currentComponent.props.selectedCurrency = balances[0]
     }
-
-    console.log('selected value: ', this.currentComponent.props.selectedCurrency)
   },
   data () {
     return {
