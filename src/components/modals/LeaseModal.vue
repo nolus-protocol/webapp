@@ -15,7 +15,7 @@
       <!-- Header -->
       <div class="flex modal-send-receive-header">
         <div class="navigation-header">
-          <h1 class="block w-full nls-font-700 text-28 md:text-32 text-left text-primary">
+          <h1 class="block w-full nls-font-700 text-28 md:text-32 text-primary text-center">
             {{ $t('message.lease') }}
           </h1>
         </div>
