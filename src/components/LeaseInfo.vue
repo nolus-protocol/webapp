@@ -88,24 +88,29 @@
       </button>
     </div>
   </div>
-  <RepayModal v-if="showRepayModal" :lease-info="leaseInfo" @close-modal="showRepayModal = false"/>
+
+  <Modal v-if="showRepayModal" @close-modal="showRepayModal = false">
+    <RepayDialog :lease-info="leaseInfo"/>
+  </Modal>
 </template>
 
 <script lang="ts">
 import { PropType } from 'vue'
 import { Asset, Lease } from '@nolus/nolusjs/build/contracts'
-import { assetsInfo } from '@/config/assetsInfo'
 import { CurrencyUtils, NolusClient } from '@nolus/nolusjs'
+import { ChainConstants } from '@nolus/nolusjs/build/constants'
 import { Coin, Dec, Int } from '@keplr-wallet/unit'
+
+import { assetsInfo } from '@/config/assetsInfo'
 import { useStore } from '@/store'
 import { LeaseData } from '@/types/LeaseData'
-import RepayModal from '@/components/modals/RepayModal.vue'
+import RepayDialog from '@/components/modals/RepayDialog.vue'
 import { WalletUtils } from '@/utils/WalletUtils'
-import { ChainConstants } from '@nolus/nolusjs/build/constants'
+import Modal from '@/components/modals/templates/Modal.vue'
 
 export default {
   name: 'LeaseInfo',
-  components: { RepayModal },
+  components: { RepayDialog, Modal },
   props: {
     leaseInfo: {
       type: Object as PropType<LeaseData>
