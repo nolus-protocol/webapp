@@ -7,7 +7,7 @@
         :class="index + 1 === activeTab ? 'active' : ''" @click="switchTab(index + 1)">
       </button>
       <div v-else class="navigation-header">
-        <h1 class="block w-full nls-font-700 text-28 md:text-32 text-left text-primary">
+        <h1 class="block w-full nls-font-700 text-28 md:text-32 text-primary text-center">
           {{ headerList[0] }}
         </h1>
       </div>
