@@ -100,7 +100,7 @@
         <!-- Assets Container -->
         <div class="block">
           <AssetPartial
-            v-for="asset in this.manipulatedAssets"
+            v-for="asset in manipulatedAssets"
             :key="asset"
             :asset-info="getAssetInfo(asset.balance.denom)"
             :assetBalance="asset.balance.amount.toString()"
@@ -114,23 +114,25 @@
       </div>
     </div>
   </div>
-  <Dialog
-    :titles="['Send', 'Receive']"
-    v-if="showSendModal"
-    @close-modal="showSendModal = false"/>
+
+  <Modal v-if="showSendModal" @close-modal="showSendModal = false">
+    <SendReceiveDialog />
+  </Modal>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import { Coin, Dec, Int } from '@keplr-wallet/unit'
+import { CurrencyUtils } from '@nolus/nolusjs'
+
 import AssetPartial from '@/components/AssetPartial.vue'
 import { AssetUtils } from '@/utils/AssetUtils'
-import { Coin, Dec, Int } from '@keplr-wallet/unit'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import { useStore } from '@/store'
-import { CurrencyUtils } from '@nolus/nolusjs'
 import TooltipComponent from '@/components/TooltipComponent.vue'
 import NolusChart from '@/components/templates/utils/NolusChart.vue'
-import Dialog from '@/components/modals/templates/Dialog.vue'
+import Modal from '@/components/modals/templates/Modal.vue'
+import SendReceiveDialog from '@/components/modals/SendReceiveDialog.vue'
 
 export default defineComponent({
   name: 'DashboardView',
@@ -138,7 +140,8 @@ export default defineComponent({
     AssetPartial,
     TooltipComponent,
     NolusChart,
-    Dialog
+    Modal,
+    SendReceiveDialog
   },
   data () {
     return {

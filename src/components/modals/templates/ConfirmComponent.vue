@@ -3,9 +3,10 @@
   <div class="flex modal-send-receive-header no-border">
     <div class="navigation-header">
       <button
+        v-if="step === 2"
         class="back-arrow"
         type="button"
-        v-on:click="modelValue.onConfirmBackClick"
+        v-on:click="onBackButtonClick"
       >
         <ArrowLeftIcon aria-hidden="true" class="h-5 w-5"/>
       </button>
@@ -96,10 +97,16 @@ export default defineComponent({
   },
   props: {
     modelValue: {
-      type: Object as PropType<SendComponentProps>
+      type: Object as PropType<SendComponentProps>,
+      required: true
     },
     step: {
       type: Number
+    }
+  },
+  inject: {
+    setShowDialogHeader: {
+      default: () => () => {}
     }
   },
   data () {
@@ -107,11 +114,13 @@ export default defineComponent({
       title: 'Confirm sending',
       btnContent: 'Send',
       parentComponentName: '',
-      btnAction: this.modelValue?.onSendClick
+      btnAction: this.modelValue.onSendClick,
+      hideDialogHeader: () => this.setShowDialogHeader(false),
+      showDialogHeader: () => this.setShowDialogHeader(true)
     }
   },
   mounted () {
-    this.$emit('defaultState', false)
+    this.hideDialogHeader()
     this.parentComponentName = ParentComponent.SEND || ParentComponent.REPAY
   },
   computed: {
@@ -127,6 +136,10 @@ export default defineComponent({
     }
   },
   methods: {
+    onBackButtonClick () {
+      this.showDialogHeader()
+      this.modelValue?.onConfirmBackClick()
+    },
     formatAmount (value: string) {
       const selectedCurrency = this.modelValue?.selectedCurrency
       if (selectedCurrency) {

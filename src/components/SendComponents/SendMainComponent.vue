@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue'
+import { defineComponent } from 'vue'
 import { StarIcon } from '@heroicons/vue/solid'
 import { Dec, Int } from '@keplr-wallet/unit'
 import { CurrencyUtils } from '@nolus/nolusjs'
@@ -38,11 +38,10 @@ export default defineComponent({
     SendComponent,
     ConfirmComponent
   },
-  props: {
-    modelValue: {
-      type: Object as PropType<SendMainComponentProps>
+  inject: {
+    onModalClose: {
+      default: () => () => {}
     }
-
   },
   mounted () {
     this.currentComponent = {
@@ -58,7 +57,8 @@ export default defineComponent({
   data () {
     return {
       currentComponent: {} as SendMainComponentData,
-      step: 1
+      step: 1,
+      closeModal: this.onModalClose
     }
   },
   watch: {
@@ -85,7 +85,7 @@ export default defineComponent({
       }
     }
   },
-  emits: ['defaultState'],
+  emits: [],
   methods: {
     initProps () {
       return {
@@ -142,7 +142,7 @@ export default defineComponent({
     },
     onClickOkBtn () {
       this.resetData()
-      this.modelValue?.onClose()
+      this.closeModal()
     },
     resetData () {
       console.log('resetData')
