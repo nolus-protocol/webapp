@@ -68,6 +68,7 @@ export default defineComponent({
     },
     prepareTransactions (results: readonly IndexedTx[]) {
       if (results) {
+        this.transactions = []
         results.forEach((tx) => {
           const rawTx = JSON.parse(tx.rawLog)
           const decodedTx: DecodedTxRaw = decodeTxRaw(tx.tx)
