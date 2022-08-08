@@ -8,7 +8,7 @@ import { LedgerSigner } from '@cosmjs/ledger-amino'
 import { ExecuteResult } from '@cosmjs/cosmwasm-stargate'
 import { AssetUtils, KeyUtils, NolusClient, NolusWallet, NolusWalletFactory } from '@nolus/nolusjs'
 import { ChainConstants } from '@nolus/nolusjs/build/constants'
-import { openLeaseMsg, repayLeaseMsg } from '@nolus/nolusjs/build/contracts'
+import { Lease } from '@nolus/nolusjs/build/contracts'
 import { CurrencyUtils } from '@nolus/nolusjs/build/utils/CurrencyUtils'
 import OpenLogin from '@toruslabs/openlogin'
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
@@ -25,7 +25,6 @@ import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 import { EncryptionUtils } from '@/utils/EncryptionUtils'
 import { RouteNames } from '@/router/RouterNames'
 import { CONTRACTS } from '@/config/contracts'
-import { Lease } from '@nolus/nolusjs/build/contracts'
 import { IbcAssets, supportedCurrencies } from '@/config/currencies'
 import { WalletConnectMechanism } from '@/types/WalletConnectMechanism'
 import { WalletManager } from '@/wallet/WalletManager'
@@ -186,7 +185,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
   }, { mnemonic }: { mnemonic: string }) {
     let privateKey: Uint8Array
     if (KeyUtilities.isPrivateKey(mnemonic)) {
-      privateKey = Buffer.from(mnemonic.trim().replace("0x", ""), "hex");
+      privateKey = Buffer.from(mnemonic.trim().replace('0x', ''), 'hex')
     } else {
       const accountNumbers = [0]
       const path = accountNumbers.map(makeCosmoshubPath)[0]
@@ -308,8 +307,8 @@ export const actions: ActionTree<State, RootState> & Actions = {
     commit,
     getters
   }): Promise<readonly IndexedTx[]> {
-    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-    return cosmWasmClient.searchTx({ sentFromOrTo: WalletManager.getWalletAddress() || '' })
+    const nolusClient = await NolusClient.getInstance()
+    return nolusClient.searchTxByAddress(WalletManager.getWalletAddress() || '')
   },
   async [WalletActionTypes.TRANSFER_TOKENS] ({
     commit,
