@@ -1,71 +1,21 @@
 <template>
-  <div
-    class="box-open bg-white notify shadow-modal c-navbar-qr__container transition duration-3 ease-2"
-  >
-    <!-- Notifications Body -->
-
-    <div
-      class="nolus-box notification block border-standart shadow-box radius-medium radius-0-sm overflow-hidden"
-    >
-      <!-- Top -->
-      <div
-        class="flex notification-header flex-wrap items-baseline justify-between px-6 bg-white"
-      >
-        <div
-          class="left w-full md:w-1/2 px-4 py-3 nls-font-500 text-18"
-        >
+  <div class="box-open bg-white notify shadow-modal c-navbar-qr__container transition duration-3 ease-2">
+    <div class="nolus-box notification block border-standart shadow-box radius-medium radius-0-sm overflow-hidden">
+      <div class="flex notification-header justify-between bg-white">
+        <div class="left w-full md:w-1/2 nls-font-500 text-18">
           <p class="text nls-font-700 text-18 m-0">{{ $t('message.notifications') }}</p>
         </div>
-        <div
-          class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end"
-        >
-          <div class="relative block checkbox-container">
-            <div class="flex items-center w-full justify-end">
-              <p
-                class="text nls-font-500 text-12 color-light-blue cursor-pointer"
-              >
-                {{ $t('message.clear-all') }}
-              </p>
-            </div>
-          </div>
+
+        <div class="flex items-center w-full justify-end">
+          <p class="text nls-font-500 text-12 color-light-blue cursor-pointer">
+            {{ $t('message.clear-all') }}
+          </p>
         </div>
       </div>
 
       <!-- Assets -->
-
-      <!-- Assets Container -->
-      <div class="block bg-white">
-        <div
-          class="flex read border-b border-t border-standart py-4 px-6 items-center justify-between"
-        >
-          <!-- Ticker -->
-          <div class="inline-flex items-center">
-            <!-- <imgtogglePopup class="inline-block m-0 mr-4" height="32"/> -->
-            <div class="inline-block">
-              <p
-                class="text-primary text-14 nls-font-700 text-left uppercase m-0"
-              >
-                BTC
-              </p>
-              <p class="text-dark-grey text-12 text-left capitalize m-0">
-                Bitcoin
-              </p>
-            </div>
-          </div>
-
-          <div class="hidden md:block">
-            <div
-              class="flex items-center justify-end text-primary nls-font-400 text-12 text-right m-0"
-            >
-              <button class="btn btn-outline btn-large-outline">Claim</button>
-            </div>
-          </div>
-        </div>
-
-        <div
-          class="flex read border-b border-standart py-4 bg-white px-6 items-center justify-between"
-        >
-          <!-- Ticker -->
+      <div class="block">
+        <div class="flex read border-b border-t border-standart py-4 px-4 items-center justify-between">
           <div class="inline-flex items-center">
             <img
               :src="require('@/assets/icons/coins/btc.svg')"
@@ -73,30 +23,51 @@
               height="32"
               width="32"
             />
+
             <div class="inline-block">
-              <p
-                class="text-primary text-14 nls-font-700 text-left uppercase m-0"
-              >
-                BTC
+              <p class="text-primary text-14 nls-font-500 text-left m-0">
+                You've got BTC rewards
               </p>
               <p class="text-dark-grey text-12 text-left capitalize m-0">
-                Bitcoin
+                ~$5 (0.000000324 BTC)
               </p>
             </div>
           </div>
 
-          <div class="hidden md:block">
-            <div
-              class="flex items-center justify-end text-primary nls-font-400 text-12 text-right m-0"
-            >
+          <div class="block">
+            <div class="flex items-center justify-end text-primary nls-font-700 text-12 text-right m-0">
               <button class="btn btn-outline btn-large-outline">Claim</button>
             </div>
           </div>
         </div>
 
-        <div
-          class="unread flex block border-b border-standart py-4 px-6 items-center justify-between"
-        >
+        <div class="flex read border-b border-t border-standart py-4 px-4 items-center justify-between">
+          <div class="inline-flex items-center">
+            <img
+              :src="require('@/assets/icons/coins/btc.svg')"
+              class="inline-block m-0 mr-4"
+              height="32"
+              width="32"
+            />
+
+            <div class="inline-block">
+              <p class="text-primary text-14 nls-font-500 text-left m-0">
+                You've got BTC rewards
+              </p>
+              <p class="text-dark-grey text-12 text-left capitalize m-0">
+                ~$5 (0.000000324 BTC)
+              </p>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="flex items-center justify-end text-primary nls-font-700 text-12 text-right m-0">
+              <button class="btn btn-outline btn-large-outline">Claim</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="unread flex border-b border-standart py-4 px-4 items-center justify-between">
           <div class="inline-flex items-center">
             <img
               :src="require('@/assets/icons/coins/nls.svg')"
@@ -104,24 +75,21 @@
               height="32"
               width="32"
             />
+
             <div class="inline-block">
-              <p
-                class="text-primary text-14 nls-font-700 text-left uppercase m-0"
-              >
-                NLS
+              <p class="text-primary text-14 nls-font-700 text-left m-0">
+                NLS claim approved
               </p>
-              <p class="text-dark-grey text-12 text-left capitalize m-0">
-                Nolus
+              <p class="text-dark-grey text-12 text-left m-0">
+                (~$5) 43.213 NLS
               </p>
             </div>
           </div>
 
           <!-- Earnings -->
-          <div class="hidden md:block">
-            <div
-              class="flex items-center justify-end text-primary nls-font-400 text-12 text-right m-0"
-            >
-              <button class="btn btn-outline btn-large-outline">
+          <div class="block">
+            <div class="flex items-center justify-end text-primary nls-font-700 text-12 text-right m-0">
+              <button class="btn-outline btn-large-outline">
                 Withdraw
               </button>
             </div>
