@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="table-header flex mt-[25px] flex-wrap items-center justify-between items-baseline lg:px-0">
       <div class="left">
-        <h1 class="nls-20 nls-font-700 text-primary m-0">
+        <h1 class="text-20 nls-font-700 text-primary m-0">
           {{ $t('message.history') }}
         </h1>
       </div>

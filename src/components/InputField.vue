@@ -1,7 +1,7 @@
 <template>
   <fieldset>
     <div class="block input-field">
-      <label :for="this.id" class="block nls-14 nls-font-500 text-primary">{{
+      <label :for="this.id" class="block text-14 nls-font-500 text-primary">{{
           this.label
         }}</label>
       <input

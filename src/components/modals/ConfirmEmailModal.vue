@@ -21,7 +21,7 @@
         <CheckIcon
           class="h-14 w-14 bg-light-red/30 radius-circle p-2 text-dark-red"
         />
-        <h1 class="nls-font-700 nls-32 text-primary text-center mt-3 mb-0">
+        <h1 class="nls-font-700 text-28 md:text-32 text-primary text-center mt-3 mb-0">
           Is your email address
         </h1>
       </div>
@@ -35,7 +35,7 @@
       ></InputField>
       <p>That's not you? <span>Sign In with another email address</span></p>
       <div class="flex w-full">
-        <div class="text-right nls-font-500 nls-14">
+        <div class="text-right nls-font-500 text-14">
           <button
             class="btn btn-secondary btn-medium-secondary btn-icon flex"
             data-v-37958d79=""
@@ -44,7 +44,7 @@
             ><span data-v-37958d79="">Back</span>
           </button>
         </div>
-        <div class="text-right grow-3 nls-font-700 nls-14">
+        <div class="text-right grow-3 nls-font-700 text-14">
           <button
             class="btn btn-secondary btn-medium-secondary btn-emphatized success w-full"
             data-v-37958d79=""

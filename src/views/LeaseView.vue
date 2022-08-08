@@ -1,19 +1,14 @@
 <template>
   <div class="col-span-12 mb-sm-nolus-70">
     <!-- Header -->
-    <div class="flex flex-wrap flex mt-[25px] items-center justify-between px-4 lg:px-0">
+    <div class="flex flex-wrap mt-[25px] items-center justify-between px-4 lg:px-0">
       <div class="left w-full md:w-1/2">
-        <h1 class="nls-20 nls-font-700 text-primary m-0 nls-sm-title">
+        <h1 class="text-20 nls-font-700 text-primary m-0 nls-sm-title">
           {{ $t('message.leases') }}
         </h1>
       </div>
-      <div
-        class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end"
-      >
-        <button
-          class="btn btn-primary btn-large-primary w-full md:w-1/2"
-          v-on:click="showLeaseModal = true"
-        >
+      <div class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end">
+        <button class="btn btn-primary btn-large-primary w-full md:w-1/2" v-on:click="showLeaseModal = true">
           {{ $t('message.lease-new') }}
         </button>
       </div>

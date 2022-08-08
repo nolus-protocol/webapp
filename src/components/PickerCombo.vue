@@ -55,7 +55,7 @@
     </Combobox>
     <span
       :class="[
-        'msg error color-light-red nls-font-500 nls-14',
+        'msg error color-light-red nls-font-500 text-14',
         typeof formFieldModel.errorMsg !== 'undefined' &&
         formFieldModel.errorMsg !== null
           ? ''

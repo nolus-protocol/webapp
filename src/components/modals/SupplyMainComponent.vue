@@ -2,10 +2,10 @@
   <!-- Input Area -->
   <div class="modal-send-receive-input-area">
     <div
-      class="flex py-3 px-4 bg-light-grey radius-light text-left nls-14 nls-font-400 text-primary"
+      class="flex py-3 px-4 bg-light-grey radius-light text-left text-14 nls-font-400 text-primary"
     >
-      <span class="nls-14 nls-font-500">Expected APY:</span>
-      <span class="nls-14 nls-font-700  ml-2"> 24%</span>
+      <span class="text-14 nls-font-500">Expected APY:</span>
+      <span class="text-14 nls-font-700  ml-2"> 24%</span>
       <TooltipComponent content="Content goes here"/>
     </div>
 

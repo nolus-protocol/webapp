@@ -23,11 +23,11 @@
       :is-error="modelValue.amountErrorMsg !== ''"
     />
     <div class="flex w-full">
-      <div class="grow-3 text-right nls-font-500 nls-14">
+      <div class="grow-3 text-right nls-font-500 text-14">
         <p class="mb-3 mt-[25px] mr-5">Repayment Amount:</p>
         <p class="mb-3 mr-5">Outstanding Lease:</p>
       </div>
-      <div class="text-right nls-font-700 nls-14">
+      <div class="text-right nls-font-700 text-14">
         <p
           class="mb-3 mt-[25px] flex justify-end align-center mr-[5px]"
         >

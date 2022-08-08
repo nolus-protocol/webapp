@@ -118,7 +118,7 @@
         v-on:click="openExternal(MEDIUM_ACCOUNT, '_blank')"
       />
     </div>
-    <div class="block mt-3 nls-12 nls-font-400 sub-nav-service">
+    <div class="block mt-3 text-12 nls-font-400 sub-nav-service">
       <!-- <SidebarElement
         id="term-of-service"
         href="#"

@@ -5,11 +5,11 @@
 
   <div id="snackbar" class="snackbar">
     <div>
-      <span v-if="icon" :class="icon" class="icon text nls-16 nls-font-500"/>
-      <span v-if="mainContent" class="text nls-16 nls-font-500 mr-1">{{
+      <span v-if="icon" :class="icon" class="icon text text-16 nls-font-500"/>
+      <span v-if="mainContent" class="text text-16 nls-font-500 mr-1">{{
           mainContent
         }}</span>
-      <span v-if="plainContent" class="text nls-14 nls-font-400">{{
+      <span v-if="plainContent" class="text text-14 nls-font-400">{{
           plainContent
         }}</span>
     </div>

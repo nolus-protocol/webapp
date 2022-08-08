@@ -15,7 +15,7 @@
       as="div"
       @update:modelValue="$emit('update-selected', selected)"
     >
-      <ListboxLabel class="block nls-14 nls-font-500 text-primary">
+      <ListboxLabel class="block text-14 nls-font-500 text-primary">
         {{ label }}
       </ListboxLabel>
       <div class="mt-1 relative picker-container">
