@@ -17,29 +17,35 @@
     <!-- Leases -->
     <LeaseInfo
       v-bind:key="lease.leaseAddress"
-      v-for="lease in this.leases"
+      v-for="lease in leases"
       :lease-info="lease"
     />
   </div>
-  <LeaseModal v-if="showLeaseModal" @close-modal="showLeaseModal = false"/>
+
+  <Modal v-if="showLeaseModal" @close-modal="showLeaseModal = false">
+    <LeaseDialog />
+  </Modal>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import LeaseModal from '@/components/modals/LeaseModal.vue'
+import { NolusClient } from '@nolus/nolusjs'
 import { Lease, LeaseStatus } from '@nolus/nolusjs/build/contracts'
+
+import LeaseDialog from '@/components/modals/LeaseDialog.vue'
+import Modal from '@/components/modals/templates/Modal.vue'
 import { CONTRACTS } from '@/config/contracts'
 import { LeaseData } from '@/types/LeaseData'
 import LeaseInfo from '@/components/LeaseInfo.vue'
 import { WalletManager } from '@/wallet/WalletManager'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
-import { NolusClient } from '@nolus/nolusjs'
 
 export default defineComponent({
   name: 'LeaseView',
   components: {
-    LeaseModal,
-    LeaseInfo
+    LeaseDialog,
+    LeaseInfo,
+    Modal
   },
   data () {
     return {

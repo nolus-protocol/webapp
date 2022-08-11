@@ -3,9 +3,10 @@
   <div class="flex modal-send-receive-header no-border">
     <div class="navigation-header">
       <button
+        v-if="step === 2"
         class="back-arrow"
         type="button"
-        v-on:click="modelValue.onConfirmBackClick"
+        v-on:click="onBackButtonClick"
       >
         <ArrowLeftIcon aria-hidden="true" class="h-5 w-5"/>
       </button>
@@ -74,7 +75,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue'
-import { ArrowLeftIcon, CheckIcon } from '@heroicons/vue/solid'
+import { ArrowLeftIcon, CheckIcon, XIcon } from '@heroicons/vue/solid'
 import { CurrencyUtils } from '@nolus/nolusjs'
 import InputField from '@/components/InputField.vue'
 import { SendComponentProps } from '@/components/SendComponents/SendComponent.vue'
@@ -91,14 +92,21 @@ export default defineComponent({
   components: {
     ArrowLeftIcon,
     InputField,
-    CheckIcon
+    CheckIcon,
+    XIcon
   },
   props: {
     modelValue: {
-      type: Object as PropType<SendComponentProps>
+      type: Object as PropType<SendComponentProps>,
+      required: true
     },
     step: {
       type: Number
+    }
+  },
+  inject: {
+    setShowDialogHeader: {
+      default: () => () => {}
     }
   },
   data () {
@@ -106,11 +114,13 @@ export default defineComponent({
       title: 'Confirm sending',
       btnContent: 'Send',
       parentComponentName: '',
-      btnAction: this.modelValue?.onSendClick
+      btnAction: this.modelValue.onSendClick,
+      hideDialogHeader: () => this.setShowDialogHeader(false),
+      showDialogHeader: () => this.setShowDialogHeader(true)
     }
   },
   mounted () {
-    this.$emit('defaultState', false)
+    this.hideDialogHeader()
     this.parentComponentName = ParentComponent.SEND || ParentComponent.REPAY
   },
   computed: {
@@ -126,6 +136,10 @@ export default defineComponent({
     }
   },
   methods: {
+    onBackButtonClick () {
+      this.showDialogHeader()
+      this.modelValue?.onConfirmBackClick()
+    },
     formatAmount (value: string) {
       const selectedCurrency = this.modelValue?.selectedCurrency
       if (selectedCurrency) {

@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue'
+import { defineComponent } from 'vue'
 import { StarIcon } from '@heroicons/vue/solid'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import LeaseFormComponent, { LeaseComponentProps } from '@/components/LeaseComponents/LeaseFormComponent.vue'
@@ -29,10 +29,6 @@ interface LeaseMainComponentData {
   props: LeaseComponentProps;
 }
 
-export interface SendMainComponentProps {
-  onClose: () => void;
-}
-
 export default defineComponent({
   name: 'LeaseMainComponent',
   components: {
@@ -40,9 +36,10 @@ export default defineComponent({
     LeaseFormComponent,
     ConfirmComponent
   },
-  props: {
-    modelValue: {
-      type: Object as PropType<SendMainComponentProps>
+  emits: [],
+  inject: {
+    onModalClose: {
+      default: () => () => {}
     }
   },
   async mounted () {
@@ -63,7 +60,8 @@ export default defineComponent({
       step: 1 as number,
       currentComponent: {} as LeaseMainComponentData,
       leaseApplyResponse: null || ({} as LeaseApply),
-      leaseContract: {} as Lease
+      leaseContract: {} as Lease,
+      closeModal: this.onModalClose
     }
   },
   watch: {
@@ -165,7 +163,7 @@ export default defineComponent({
     },
     onClickOkBtn () {
       this.resetData()
-      this.modelValue?.onClose()
+      this.closeModal()
     },
     resetData () {
       this.currentComponent = {

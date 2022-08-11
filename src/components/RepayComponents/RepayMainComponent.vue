@@ -28,11 +28,6 @@ interface RepayMainComponentData {
   props: RepayComponentProps;
 }
 
-export interface SendMainComponentProps {
-  onClose: () => void;
-  leaseData: LeaseData
-}
-
 export default defineComponent({
   name: 'RepayMainComponent',
   components: {
@@ -41,15 +36,21 @@ export default defineComponent({
     ConfirmComponent
   },
   props: {
-    modelValue: {
-      type: Object as PropType<SendMainComponentProps>
+    leaseData: {
+      type: Object as PropType<LeaseData>,
+     required: true
+    }
+  },
+  inject: {
+    onModalClose: {
+      default: () => () => {}
     }
   },
   async mounted () {
     const balances = useStore().state.wallet.balances
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
     this.leaseContract = new Lease(cosmWasmClient)
-    console.log('leases2: ', this.modelValue?.leaseData)
+    console.log('leases2: ', this.leaseData)
     this.currentComponent = {
       is: ScreenState.MAIN,
       props: this.initProps()
@@ -62,11 +63,13 @@ export default defineComponent({
 
     }
   },
+  emits: [],
   data () {
     return {
       step: 1 as number,
       currentComponent: {} as RepayMainComponentData,
-      leaseContract: {} as Lease
+      leaseContract: {} as Lease,
+      closeModal: this.onModalClose
     }
   },
   watch: {
@@ -89,10 +92,10 @@ export default defineComponent({
   methods: {
     initProps () {
       return {
-        outstandingLoanAmount: this.modelValue?.leaseData?.leaseStatus?.opened?.amount || '',
+        outstandingLoanAmount: this.leaseData?.leaseStatus?.opened?.amount || '',
         currentBalance: [] as AssetBalance[],
         selectedCurrency: {} as AssetBalance,
-        receiverAddress: this.modelValue?.leaseData.leaseAddress || '',
+        receiverAddress: this.leaseData.leaseAddress || '',
         amount: '',
         password: '',
         passwordErrorMsg: '',
@@ -134,7 +137,7 @@ export default defineComponent({
     },
     onClickOkBtn () {
       this.resetData()
-      this.modelValue?.onClose()
+      this.closeModal()
     },
     resetData () {
       this.currentComponent = {

@@ -1,9 +1,9 @@
 <template>
-  <component :is="this.currentComponent.is" v-model="currentComponent.props"/>
+  <component :is="currentComponent.is" v-model="currentComponent.props"/>
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue'
+import { defineComponent } from 'vue'
 import ReceiveComponent, { ReceiveComponentProps } from '@/components/ReceiveComponents/ReceiveComponent.vue'
 import ReceiveQrCodeComponent, {
   ReceiveQrCodeComponentProps
@@ -21,20 +21,11 @@ interface ReceiveMainComponentData {
   props: ReceiveComponentProps | ReceiveQrCodeComponentProps;
 }
 
-export interface ReceiveMainComponentProps {
-  onClose: () => void;
-}
-
 export default defineComponent({
   name: 'ReceiveMainComponent',
   components: {
     ReceiveComponent,
     ReceiveQrCodeComponent
-  },
-  props: {
-    modelValue: {
-      type: Object as PropType<ReceiveMainComponentProps>
-    }
   },
   mounted () {
     this.currentComponent = {
@@ -46,16 +37,21 @@ export default defineComponent({
       }
     }
   },
-  data () {
-    return {
-      currentComponent: {} as ReceiveMainComponentData
+  inject: {
+    setShowDialogHeader: {
+      default: () => () => {}
     }
   },
-  emits: ['defaultState'],
+  data () {
+    return {
+      currentComponent: {} as ReceiveMainComponentData,
+      hideDialogHeader: () => this.setShowDialogHeader(false),
+      showDialogHeader: () => this.setShowDialogHeader(true)
+    }
+  },
   methods: {
     onScanClick () {
-      this.$emit('defaultState', false)
-      console.log('scannnn')
+      this.hideDialogHeader()
       this.currentComponent = {
         is: ScreenState.SCAN,
         props: {
@@ -69,7 +65,7 @@ export default defineComponent({
       StringUtils.copyToClipboard(this.currentComponent.props.walletAddress)
     },
     onBackClick () {
-       this.$emit('defaultState', true)
+      this.showDialogHeader()
       this.currentComponent = {
         is: ScreenState.MAIN,
         props: {

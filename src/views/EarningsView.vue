@@ -277,7 +277,6 @@
                 </div>
               </div>
             </div>
-            SidebarContainer
             <div class="block">
               <div
                 :class="[

@@ -1,6 +1,6 @@
 module.exports = {
-  purge: ["./index.html", "./src/**/*.{vue,js,ts,jsx,tsx}"],
-  darkMode: false, // or 'media' or 'class'
+  content: ["./index.html", "./src/**/*.{vue,js,ts,jsx,tsx}"],
+  darkMode: 'media', // or 'class'
   theme: {
     colors: {
       white: "#fff",
@@ -25,7 +25,7 @@ module.exports = {
       orange: "#ff562e",
       dark: "#082D63",
     },
-    
+
     fontSize: {
       12: ['12px', '17px'],
       14: ['14px', '20px'],

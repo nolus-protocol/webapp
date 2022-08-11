@@ -100,7 +100,7 @@ export default defineComponent({
         value: network
       })
     })
-    console.log('curr: ', EnvNetworkUtils.getStoredNetworkName())
+    console.log('currentNetwork: ', EnvNetworkUtils.getStoredNetworkName())
     this.currentNetwork = {
       label: StringUtils.capitalize(EnvNetworkUtils.getStoredNetworkName() || ''),
       value: EnvNetworkUtils.getStoredNetworkName() || ''
