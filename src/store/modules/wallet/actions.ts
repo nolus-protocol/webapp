@@ -11,7 +11,6 @@ import { ChainConstants } from '@nolus/nolusjs/build/constants'
 import { Lease } from '@nolus/nolusjs/build/contracts'
 import { CurrencyUtils } from '@nolus/nolusjs/build/utils/CurrencyUtils'
 import OpenLogin from '@toruslabs/openlogin'
-import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
 
 import { RootState } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
@@ -31,6 +30,8 @@ import { WalletManager } from '@/wallet/WalletManager'
 
 import { AssetBalance, State } from './state'
 import { Mutations } from './mutations'
+import BluetoothTransport from '@ledgerhq/hw-transport-web-ble'
+import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
 
 type AugmentedActionContext = {
   commit<K extends keyof Mutations> (
@@ -46,7 +47,10 @@ type AugmentedActionContext = {
 export interface Actions {
   [WalletActionTypes.CONNECT_KEPLR] ({ commit }: AugmentedActionContext, payload: { isFromAuth: boolean }): void,
 
-  [WalletActionTypes.CONNECT_LEDGER] ({ commit }: AugmentedActionContext): void,
+  [WalletActionTypes.CONNECT_LEDGER] ({
+    commit,
+    dispatch
+  }: AugmentedActionContext, payload: { isFromAuth: boolean, isBluetooth: boolean }): void,
 
   [WalletActionTypes.CONNECT_VIA_MNEMONIC] ({
     commit,
@@ -151,27 +155,37 @@ export const actions: ActionTree<State, RootState> & Actions = {
       }
     }
   },
-  async [WalletActionTypes.CONNECT_LEDGER] ({ commit }) {
+  async [WalletActionTypes.CONNECT_LEDGER] ({
+    commit,
+    dispatch
+  }, payload: { isFromAuth: false, isBluetooth: boolean }) {
     let breakLoop = false
-    let ledgerWallet = {} as any
+    let ledgerWallet = null
     // 20 sec timeout to let the user unlock his hardware
     const to = setTimeout(() => (breakLoop = true), 20000)
     const accountNumbers = [0]
     const paths = accountNumbers.map(makeCosmoshubPath)
     while (!ledgerWallet && !breakLoop) {
       try {
-        const transport = await TransportWebUSB.create()
+        const isConnectedViaLedgerBluetooth = WalletManager.getWalletConnectMechanism() === WalletConnectMechanism.LEDGER_BLUETOOTH
+        const transport = payload.isBluetooth || isConnectedViaLedgerBluetooth ? await BluetoothTransport.create() : await TransportWebUSB.create()
 
         ledgerWallet = await NolusWalletFactory.nolusLedgerWallet(new LedgerSigner(transport, {
           prefix: ChainConstants.BECH32_PREFIX_ACC_ADDR,
           hdPaths: paths
         }))
+
         await ledgerWallet.useAccount()
         commit(WalletMutationTypes.SIGN_WALLET, { wallet: ledgerWallet })
-        // await dispatch('updateBalances', { walletAddress: ledgerWallet.address })
-        WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.LEDGER)
+        WalletManager.saveWalletConnectMechanism(
+          payload.isBluetooth ? WalletConnectMechanism.LEDGER_BLUETOOTH : WalletConnectMechanism.LEDGER
+        )
+        WalletManager.storeWalletAddress(ledgerWallet.address || '')
+        await dispatch(WalletActionTypes.UPDATE_BALANCES)
+        if (payload?.isFromAuth) {
+          router.push({ name: RouteNames.DASHBOARD })
+        }
       } catch (e) {
-        console.log('break!')
         console.log(e)
         breakLoop = true
       }

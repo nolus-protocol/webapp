@@ -24,6 +24,7 @@
     "@ledgerhq/hw-app-cosmos": "^6.20.0",
     "@ledgerhq/hw-transport-webhid": "^6.20.0",
     "@ledgerhq/hw-transport-webusb": "^6.20.0",
+    "@ledgerhq/hw-transport-web-ble": "^6.27.2",
     "@ledgerhq/logs": "^6.10.0",
     "@nolus/nolusjs": "^0.0.36",
     "@toruslabs/openlogin": "^1.6.0",
