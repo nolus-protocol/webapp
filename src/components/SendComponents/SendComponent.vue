@@ -175,7 +175,7 @@ export default defineComponent({
   emits: ['update:modelValue.selectedCurrency'],
   methods: {
     formatCurrentBalance (selectedCurrency: AssetBalance) {
-      if (selectedCurrency) {
+      if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
         const asset = assetsInfo[selectedCurrency.balance.denom]
         return CurrencyUtils.convertMinimalDenomToDenom(
           selectedCurrency.balance.amount.toString(), selectedCurrency.balance.denom, asset.coinDenom, asset.coinDecimals
