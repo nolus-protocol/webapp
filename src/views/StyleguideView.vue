@@ -1580,21 +1580,6 @@
             </div>
           </div>
         </div>
-        <Dialog
-          :titles="['Send', 'Receive']"
-          v-show="showSendModal"
-          @close-modal="showSendModal = false"/>
-
-        <Dialog
-          :titles="['Swap', 'Buy']"
-          v-if="showSwapModal"
-          @close-modal="showSwapModal = false"/>
-
-        <Dialog
-          :titles="['Supply', 'Withdraw']"
-          v-show="showSupplyWithdrawModal"
-          @close-modal="showSupplyWithdrawModal = false"/>
-
         <LeaseMainComponent v-show="showLeaseModal" @close-modal="showLeaseModal = false"/>
         <RepayMainComponent v-show="showRepayModal" @close-modal="showRepayModal = false"/>
 
@@ -1637,7 +1622,6 @@ import SidebarHeader from '@/components/Sideheader.vue'
 import SnackBar from '@/components/templates/utils/Snackbar.vue'
 import RepayMainComponent from '@/components/RepayComponents/RepayMainComponent.vue'
 import LeaseMainComponent from '@/components/LeaseComponents/LeaseMainComponent.vue'
-import Dialog from '@/components/modals/templates/Dialog.vue'
 
 export default defineComponent({
   name: 'StyleguideView',
@@ -1652,8 +1636,7 @@ export default defineComponent({
     RepayMainComponent,
     HistoryView,
     HomeView,
-    SidebarHeader,
-    Dialog
+    SidebarHeader
 
   },
   data () {
