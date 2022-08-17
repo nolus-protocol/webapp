@@ -1,46 +1,45 @@
-<template>
-  <div
-    class="fixed flex items-center top-0 bottom-0 left-0 right-0 justify-center bg-white/70 z-[99]"
-    @click="$emit('close-modal')"
-  >
-    <div
-      class="text-center bg-white w-full max-w-[400px] px-10 py-10 radius-modal mx-auto my-10 shadow-modal"
-      @click.stop
-    >
-      <div class="flex flex-col items-center">
-        <CheckIcon
-          class="h-14 w-14 bg-light-red/30 radius-circle p-2 text-dark-red"
-        />
-        <h1 class="nls-font-700 text-28 md:text-32 text-primary text-center mt-3 mb-0">
-          Error
-        </h1>
-        <p
-          class="text-18 text-primary text-center nls-font-400 mt-2 mb-0"
-        >
-          Messages are used to interact with SDK modules or other CW smart
-          contracts. Since index are executed in a set-and-forget manner, you
-          will not get a response on
-        </p>
-        <div class="flex gap-2 mt-5">
-          <button
-            class="bg-light-electric text-white px-4 py-2 rounded-md nls-font-700 text-sm"
-            v-on:click="this.tryButton"
-          >
-            Try again
-          </button>
-          <button
-            class="bg-white border border-dark/20 px-4 py-2 rounded-md nls-font-700 text-sm"
-            @click="$emit('close-modal')"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+<template> 
+  <div class="block rounded-2xl bg-white md:pb-10 pt-6 pb-[210px] -mt-8 md:mt-auto md:border border-standart shadow-box w-screen md:w-[516px]" @click.stop> 
+    <div class="flex flex-col items-center"> 
+        <XIcon class="h-14 w-14 bg-light-red/30 radius-circle p-2 text-dark-red z-[2]"/> 
+        <h1 class="nls-font-700 text-28 md:text-32 text-primary text-center mt-4 z-[2]"> 
+          Error Connecting 
+        </h1> 
+    </div> 
+      
+    <div class="separator-line py-6 relative z-[2]"></div> 
+    
+    <div class="flex flex-col items-center"> 
+      <p class="text-18 text-primary text-center nls-font-400 z-[2]"> 
+        An unknown error has occurred 
+      </p> 
+      
+      <div class="gap-2 mt-6 hidden md:flex"> 
+        <button class="btn btn-primary btn-large-primary" v-on:click="this.tryButton"> 
+          Try again 
+        </button> 
+        
+        <button class="btn btn-secondary btn-large-secondary" @click="$emit('close-modal')"> 
+          Cancel 
+        </button> 
+      </div> 
+      
+      <div class="bg-white h-[430px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div> 
+      
+      <div class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto bg-white absolute inset-x-0 bottom-0 md:relative shadow-modal"> 
+        <button class="btn btn-primary btn-large-primary mr-4 w-40" v-on:click="this.tryButton"> 
+          Try again 
+        </button> 
+        
+        <button class="btn btn-secondary btn-large-secondary w-40" @click="$emit('close-modal')"> 
+          Cancel 
+        </button> 
+      </div> 
+    </div> 
+  </div> 
 </template>
 
-<script>
+<script lang="ts">
 import { CheckIcon } from '@heroicons/vue/solid'
 
 export default {

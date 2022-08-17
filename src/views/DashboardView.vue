@@ -1,9 +1,7 @@
 <template>
-  <div class="col-span-12 mb-sm-nolus-70">
+  <div class="col-span-12 mb-sm-nolus-70 md:pr-[166px]">
     <!-- Header -->
-    <div
-      class="table-header flex mt-[25px] flex-wrap items-center justify-between lg:px-0"
-    >
+    <div class="table-header hidden mt-[25px] flex-wrap items-center justify-between lg:px-0 md:flex">
       <div class="left">
         <h1 class="text-20 nls-font-700 text-primary m-0">Assets</h1>
       </div>
@@ -32,9 +30,7 @@
     </div>
 
     <!-- Existing Assets -->
-    <div
-      class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm"
-    >
+    <div class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm">
       <!-- Top -->
       <div class="flex flex-wrap items-baseline justify-between px-6">
         <div v-show="showLoading" class="loader-boxed">
@@ -45,9 +41,7 @@
             Existing assets
           </p>
         </div>
-        <div
-          class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end"
-        >
+        <div class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end">
           <div class="relative block checkbox-container">
             <div class="flex items-center w-full justify-end">
               <input
@@ -67,38 +61,28 @@
       <!-- Assets -->
       <div class="block mt-6 md:mt-[25px]">
         <!-- Assets Header -->
-        <div
-          class="grid grid-cols-3 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6"
-        >
-          <div
-            class="nls-font-500 text-12 text-left text-dark-grey text-upper"
-          >
+        <div class="grid grid-cols-3 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6">
+          <div class="nls-font-500 text-12 text-left text-dark-grey text-upper">
             Assets
           </div>
 
-          <div
-            class="nls-font-500 text-12 text-right text-dark-grey text-upper"
-          >
+          <div class="nls-font-500 text-12 text-right text-dark-grey text-upper">
             Price
           </div>
 
-          <div
-            class="inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper"
-          >
+          <div class="inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
             <span class="inline-block">Balance</span>
             <TooltipComponent content="Content goes here"/>
           </div>
 
-          <div
-            class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper"
-          >
+          <div class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
             <span class="inline-block">Earnings</span>
             <TooltipComponent content="Content goes here"/>
           </div>
         </div>
 
         <!-- Assets Container -->
-        <div class="block">
+        <div class="block pb-10">
           <AssetPartial
             v-for="asset in manipulatedAssets"
             :key="asset"
