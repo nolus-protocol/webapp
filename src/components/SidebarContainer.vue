@@ -111,13 +111,17 @@
         target="_blkank"
         v-on:click="openExternal(REDDIT_ACCOUNT, '_blank')"
       />
-      <SidebarElement
-        id="medium"
-        :icon="require('@/assets/icons/medium.svg')"
-        target="_blkank"
-        v-on:click="openExternal(MEDIUM_ACCOUNT, '_blank')"
-      />
     </div>
+
+
+    <p class="nls-font-500 text-12 text-dark-grey text-upper pl-2">
+      MAINNET # 4,987,868
+    </p>
+
+    <p class="nls-font-400 text-12 text-dark-grey pl-2">
+      v0.1.3-8c231c5
+    </p>
+
     <div class="block mt-3 text-12 nls-font-400 sub-nav-service">
       <!-- <SidebarElement
         id="term-of-service"

@@ -1,32 +1,79 @@
 <template>
-  <div class="col-span-12 mb-sm-nolus-70 md:pr-[166px]">
+  <div class="col-span-12 lg:mr-[166px]">
     <!-- Header -->
-    <div class="table-header hidden mt-[25px] flex-wrap items-center justify-between lg:px-0 md:flex">
+    <div class="table-header flex mt-[25px] flex-wrap items-center justify-between lg:px-0">
       <div class="left">
-        <h1 class="text-20 nls-font-700 text-primary m-0">Assets</h1>
+        <h1 class="text-20 nls-font-700 text-primary m-0 pb-3 lg:pb-0">Assets</h1>
       </div>
+
       <div class="right md:mt-0 inline-flex justify-end">
         <button class="btn btn-secondary btn-large-secondary mr-4" v-on:click="showSendModal = true">
           Send / Receive
         </button>
+
         <button class="btn btn-primary btn-large-primary">
           Buy Tokens
         </button>
       </div>
     </div>
     <!-- Wallet -->
-    <div class="flex balance-box items-center justify-start bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm py-5 px-6">
+    <div class="flex balance-box items-center justify-start bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6">
       <div class="left inline-block w-1/3">
-        <p class="nls-font-500 text-16 text-primary mb-nolus-6 m-0">
-          Wallet Balance
+        <p class="nls-font-500 text-16 text-primary">
+          Total Assets
         </p>
-        <p class="nls-font-700 text-48 text-primary m-0 mt-1">
-          {{ calculateTotalBalance() }}
+        <p class="nls-font-700 text-32 lg:text-40 text-primary">
+          $123,423.00
         </p>
+
+
+      <div class="separator-line flex py-4 lg:hidden"></div>
       </div>
-      <div class="right inline-block w-2/3">
-        <NolusChart/>
+
+
+      <div class="right flex w-2/3 -mt-8 lg:mt-0">
+        <div class="pt-3 lg:pl-6">
+          <p class="nls-font-400 text-12 text-dark-grey">
+            Available Assets
+          </p>
+
+          <p class="nls-font-500 text-20">
+            $32,423.22
+          </p>
+        </div>
+
+        <div class="pt-3 pl-12 lg:pl-8">
+          <p class="nls-font-400 text-12 text-dark-grey">
+            Active Leases
+          </p>
+
+          <p class="nls-font-500 text-20">
+            $32,423.22
+          </p>
+        </div>
+
+        <!-- HIDDEN ON MOBILE -->
+        <div class="pt-3 pl-12 lg:pl-8 hidden lg:block">
+          <p class="nls-font-400 text-12 text-dark-grey">
+            Supplied & Staked
+          </p>
+
+          <p class="nls-font-500 text-20">
+            $32,423.22
+          </p>
+        </div>
+
+      <!-- HIDDEN ON DESKTOP -->
       </div>
+        <div class="pt-4 block lg:hidden">
+          <p class="nls-font-400 text-12 text-dark-grey">
+            Supplied & Staked
+          </p>
+
+          <p class="nls-font-500 text-20">
+            $32,423.22
+          </p>
+        </div>
     </div>
 
     <!-- Existing Assets -->
@@ -82,7 +129,7 @@
         </div>
 
         <!-- Assets Container -->
-        <div class="block pb-10">
+        <div class="block mb-10 lg:mb-0">
           <AssetPartial
             v-for="asset in manipulatedAssets"
             :key="asset"
