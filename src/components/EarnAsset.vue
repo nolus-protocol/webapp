@@ -3,8 +3,8 @@
     <div
       :class="[
                   'grid gap-6 row-actions border-b flex border-t border-standart px-6 py-3 items-center justify-between',
-                  this.cols
-                    ? 'grid-cols-' + this.cols
+                  cols
+                    ? 'grid-cols-' + cols
                     : 'grid-cols-3 md:grid-cols-4',
                 ]"
     >
@@ -48,6 +48,7 @@
         <button
           class="btn btn-secondary btn-medium-secondary"
           data-v-37958d79=""
+          @click="openSupplyWithdraw"
         >
           {{ $t('message.supply-withdraw') }}
         </button>
@@ -68,10 +69,15 @@ export default {
   name: 'EarnAsset',
   props: {
     asset: {
-      type: Object as PropType<AssetBalance>
+      type: Object as PropType<AssetBalance>,
+      required: true
     },
     cols: {
       type: Number
+    },
+    openSupplyWithdraw: {
+      type: Function,
+      required: true
     }
   },
   data () {

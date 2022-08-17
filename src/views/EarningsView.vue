@@ -4,7 +4,7 @@
     <div class="flex flex-wrap mt-[25px] items-center justify-between px-4 lg:px-0">
       <div class="left w-full md:w-1/2">
         <h1 class="text-20 nls-font-700 text-primary m-0 nls-sm-title">
-          Earnings
+          Earn
         </h1>
       </div>
     </div>
@@ -19,13 +19,23 @@
             class="lg:flex block items-center justify-between px-6 pt-6"
           >
             <h2 class="text-16 nls-font-500 text-left my-0">
-              Your earning portfolio
+              Earning Assets
             </h2>
-            <button
-              class="btn btn-label btn-large-label text-right nls-md-hidden"
-            >
-              View all earning assets
-            </button>
+            <div class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end">
+              <div class="relative block checkbox-container">
+                <div class="flex items-center w-full justify-end">
+                  <input
+                    id="show-small-balances"
+                    v-model="showSmallBalances"
+                    aria-describedby="show-small-balances"
+                    name="show-small-balances"
+                    type="checkbox"
+                    disabled="true"
+                  />
+                  <label for="show-small-balances">Show small balances</label>
+                </div>
+              </div>
+          </div>
           </div>
           <!-- Assets -->
           <div class="block mt-6 md:mt-[25px]">
@@ -48,10 +58,11 @@
 
             <!-- Assets Container -->
             <EarnAsset
-              v-for="asset in this.balances"
+              v-for="asset in balances"
               :key="asset"
               :asset="asset"
-              :cols="this.cols"/>
+              :openSupplyWithdraw="() => openSupplyWithdrawDialog(asset.balance.denom)"
+              :cols="cols"/>
           </div>
         </div>
         <!-- Portfolio -->
@@ -75,132 +86,10 @@
           <!-- Assets -->
           <div class="block mt-4">
             <!-- Assets Container -->
-            <div class="block">
-              <div
-                :class="[
-                  'grid gap-6 border-b border-t border-standart px-6 py-3  items-center justify-between',
-                  this.cols
-                    ? 'grid-cols-' + this.cols
-                    : 'grid-cols-3 md:grid-cols-4',
-                ]"
-              >
-                <!-- Ticker -->
-                <div class="inline-flex items-center">
-                  <img
-                    :src="require('@/assets/icons/coins/btc.svg')"
-                    class="inline-block m-0 mr-4"
-                    height="32"
-                    width="32"
-                  />
-                  <div class="inline-block">
-                    <p
-                      class="text-primary nls-font-500 text-18 text-left uppercase m-0"
-                    >
-                      BTC
-                    </p>
-                    <p
-                      class="text-dark-grey text-12 nls-font-400 text-left capitalize m-0"
-                    >
-                      ~$5
-                    </p>
-                  </div>
-                </div>
-
-                <!-- Balance -->
-                <div class="flex justify-end">
-                  <button
-                    class="btn btn-secondary btn-medium-secondary btn-emphatized"
-                    data-v-37958d79=""
-                  >
-                    None
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="block">
-              <div
-                :class="[
-                  'grid gap-6 border-b border-standart px-6 py-3  items-center justify-between',
-                  this.cols
-                    ? 'grid-cols-' + this.cols
-                    : 'grid-cols-3 md:grid-cols-4',
-                ]"
-              >
-                <!-- Ticker -->
-                <div class="inline-flex items-center">
-                  <img
-                    :src="require('@/assets/icons/coins/btc.svg')"
-                    class="inline-block m-0 mr-4"
-                    height="32"
-                    width="32"
-                  />
-                  <div class="inline-block">
-                    <p
-                      class="text-primary nls-font-500 text-18 text-left uppercase m-0"
-                    >
-                      BTC
-                    </p>
-                    <p
-                      class="text-dark-grey text-13 nls-font-400 text-left capitalize m-0"
-                    >
-                      ~$5
-                    </p>
-                  </div>
-                </div>
-
-                <!-- Balance -->
-                <div class="flex justify-end">
-                  <button
-                    class="btn btn-secondary btn-medium-secondary btn-emphatized"
-                    data-v-37958d79=""
-                  >
-                    None
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="block">
-              <div
-                :class="[
-                  'grid gap-6 border-b border-standart  px-6 py-3 items-center justify-between',
-                  this.cols
-                    ? 'grid-cols-' + this.cols
-                    : 'grid-cols-3 md:grid-cols-4',
-                ]"
-              >
-                <!-- Ticker -->
-                <div class="inline-flex items-center">
-                  <img
-                    :src="require('@/assets/icons/coins/btc.svg')"
-                    class="inline-block m-0 mr-4"
-                    height="32"
-                    width="32"
-                  />
-                  <div class="inline-block">
-                    <p
-                      class="text-primary nls-font-500 text-18 text-left uppercase m-0"
-                    >
-                      BTC
-                    </p>
-                    <p
-                      class="text-dark-grey text-13 nls-font-400 text-left capitalize m-0"
-                    >
-                      ~$5
-                    </p>
-                  </div>
-                </div>
-
-                <!-- Balance -->
-                <div class="flex justify-end">
-                  <button
-                    class="btn btn-secondary btn-medium-secondary js-loading"
-                    data-v-37958d79=""
-                  >
-                    None
-                  </button>
-                </div>
-              </div>
-            </div>
+            <!-- @TODO: Implement rewards -->
+            <EarnReward :cols="cols" :icon="require('@/assets/icons/coins/btc.svg')" asset="BTC" reward="~$5" />
+            <EarnReward :cols="cols" :icon="require('@/assets/icons/coins/btc.svg')" asset="BTC" reward="~$5" />
+            <EarnReward :cols="cols" :icon="require('@/assets/icons/coins/btc.svg')" asset="BTC" reward="~$5" :loading="true" />
             <!-- Assets Container -->
           </div>
         </div>
@@ -208,34 +97,40 @@
     </div>
   </div>
 
-  <Dialog
-    :titles="['Supply', 'Withdraw']"
-    v-if="showDialog"
-    @close-modal="showDialog = false"/>
+  <Modal v-if="showSupplyWithdrawDialog" @close-modal="showSupplyWithdrawDialog = false">
+    <SupplyWithdrawDialog :selectedAsset="selectedAsset" />
+  </Modal>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import Dialog from '@/components/modals/templates/Dialog.vue'
 import { Lease } from '@nolus/nolusjs/build/contracts'
 import { NolusClient } from '@nolus/nolusjs'
+
 import { CONTRACTS } from '@/config/contracts'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import EarnAsset from '@/components/EarnAsset.vue'
+import EarnReward from '@/components/EarningsComponents/EarnReward.vue'
+import SupplyWithdrawDialog from '@/components/modals/SupplyWithdrawDialog.vue'
+import Modal from '@/components/modals/templates/Modal.vue'
 
 export default defineComponent({
   name: 'EarningsView',
   components: {
     EarnAsset,
-    Dialog
+    EarnReward,
+    Modal,
+    SupplyWithdrawDialog
   },
   data () {
     return {
       cols: 2 as number,
-      showDialog: false,
+      showSupplyWithdrawDialog: false,
       availableCurrencies: [] as string[],
-      balances: [] as AssetBalance[]
+      balances: [] as AssetBalance[],
+      selectedAsset: '',
+      showSmallBalances: false
     }
   },
   watch: {
@@ -252,6 +147,12 @@ export default defineComponent({
     const leaseClient = new Lease(cosmWasmClient)
     const result = await leaseClient.getLppConfig(CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance)
     this.availableCurrencies.push(result.lpn_symbol)
+  },
+  methods: {
+    openSupplyWithdrawDialog (denom: string) {
+      this.selectedAsset = denom
+      this.showSupplyWithdrawDialog = true
+    }
   }
 })
 </script>

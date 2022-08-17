@@ -4,13 +4,33 @@
     <div
       class="flex py-3 px-4 bg-light-grey radius-light text-left text-14 nls-font-400 text-primary"
     >
-      <span class="text-14 nls-font-500">Expected APY:</span>
-      <span class="text-14 nls-font-700  ml-2"> 24%</span>
-      <TooltipComponent content="Content goes here"/>
+      <span class="text-14 nls-font-500">Current APR:</span>
+      <span class="text-14 nls-font-700  ml-2"> {{ modelValue.currentAPR}}</span>
     </div>
 
-    <div class="block text-left mt-nolus-16">
-      <CurrencyField id="amountSupply" label="Amount" name="amountSupply"/>
+    <div class="block text-left mt-[25px]">
+      <CurrencyField
+          id="amountSupply"
+          :currency-options="modelValue.currentBalance"
+          :disabled-currency-picker="false"
+          :error-msg="modelValue.amountErrorMsg"
+          :is-error="modelValue.amountErrorMsg !== ''"
+          :option="modelValue.selectedCurrency"
+          :value="modelValue.amount"
+          label="Amount"
+          name="amountSupply"
+          @input="(event) => (modelValue.amount = event.target.value)"
+          @update-currency="(event) => (modelValue.selectedCurrency = event)"
+        />
+
+      <WarningBox :isWarning="true" class="mt-[25px]">
+        <template v-slot:icon>
+         <img class="block mx-auto my-0 w-10 h-10" src="@/assets/icons/diamond-o.svg"/>
+        </template>
+        <template v-slot:content>
+          <span>Rewards will compound automatically over the initially supplied amount</span>
+        </template>
+      </WarningBox>
     </div>
   </div>
 
@@ -25,35 +45,37 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue'
-import { CurrencyUtils } from '@nolus/nolusjs'
+<script lang="ts" setup>
+import { PropType } from 'vue'
 
 import CurrencyField from '@/components/CurrencyField.vue'
+import WarningBox from '@/components/modals/templates/WarningBox.vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
-import { assetsInfo } from '@/config/assetsInfo'
-import { SupplyComponentProps } from '@/components/SupplyComponents/SupplyMainComponent.vue'
 
-export default defineComponent({
-  name: 'SupplyFormComponent',
-  components: {
-    CurrencyField
-  },
-  props: {
+export interface SupplyFormComponentProps {
+  amountErrorMsg: string;
+  currentBalance: AssetBalance[];
+  selectedCurrency: AssetBalance;
+  amount: string;
+  receiverAddress: string;
+  currentAPR: string;
+  password: string;
+  txHash: string;
+  onNextClick: () => void;
+  onSendClick: () => void;
+  onConfirmBackClick: () => void;
+  onClickOkBtn: () => void;
+}
+
+  defineProps({
     modelValue: {
-      type: Object as PropType<SupplyComponentProps>
+      type: Object as PropType<SupplyFormComponentProps>,
+      required: true
+    },
+    step: {
+      type: Number
     }
-  },
-  emits: ['update:modelValue.selectedCurrency'],
-  methods: {
-    formatCurrentBalance (selectedCurrency: AssetBalance) {
-      if (selectedCurrency) {
-        const asset = assetsInfo[selectedCurrency.balance.denom]
-        return CurrencyUtils.convertMinimalDenomToDenom(
-          selectedCurrency.balance.amount.toString(), selectedCurrency.balance.denom, asset.coinDenom, asset.coinDecimals
-        ).toString()
-      }
-    }
-  }
-})
+  })
+
+  defineEmits(['update:modelValue.selectedCurrency'])
 </script>
