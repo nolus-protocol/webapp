@@ -17,6 +17,17 @@
         Ledger dongle to connect the hardware wallet.
       </p>
 
+      <div class="relative block checkbox-container z-[2]">
+        <div class="flex items-center w-full pt-6">
+          <input
+            id="use-bluethooth"
+            name="use-bluethooth"
+            type="checkbox"
+          />
+          <label for="use-bluethooth">Use Bluethooth</label>
+        </div>
+      </div>
+
       <div class="mt-6 hidden md:flex">
         <button class="btn btn-primary btn-large-primary" v-on:click="this.connectViaLedger()">
           Connect
