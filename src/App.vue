@@ -30,9 +30,6 @@ export default {
     }, 5000)
 
     useStore().dispatch(OracleActionTypes.GET_PRICES)
-  },
-  data () {
-    return {}
   }
 }
 </script>

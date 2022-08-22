@@ -23,6 +23,7 @@
             id="use-bluethooth"
             name="use-bluethooth"
             type="checkbox"
+            v-model="isBluetoothConnection"
           />
           <label for="use-bluethooth">Use Bluethooth</label>
         </div>
@@ -58,15 +59,19 @@ export default defineComponent({
   components: {
     ArrowLeftIcon
   },
+  data () {
+    return {
+      isBluetoothConnection: false
+    }
+  },
   methods: {
     clickBack: () => {
       router.go(-1)
     },
-    connectViaLedger: async () => {
-      console.log('click')
+    async connectViaLedger () {
       useStore().dispatch(WalletActionTypes.CONNECT_LEDGER, {
         isFromAuth: true,
-        isBluetooth: false
+        isBluetooth: this.isBluetoothConnection
       })
     }
   }

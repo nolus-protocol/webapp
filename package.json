@@ -22,9 +22,9 @@
     "@keplr-wallet/types": "^0.10.5",
     "@keplr-wallet/unit": "^0.10.5",
     "@ledgerhq/hw-app-cosmos": "^6.20.0",
+    "@ledgerhq/hw-transport-web-ble": "^6.27.2",
     "@ledgerhq/hw-transport-webhid": "^6.20.0",
     "@ledgerhq/hw-transport-webusb": "^6.20.0",
-    "@ledgerhq/hw-transport-web-ble": "^6.27.2",
     "@ledgerhq/logs": "^6.10.0",
     "@nolus/nolusjs": "^0.0.36",
     "@toruslabs/openlogin": "^1.6.0",
@@ -66,7 +66,7 @@
     "lint-staged": "^11.1.2",
     "sass": "^1.49.9",
     "sass-loader": "^10.1.0",
-    "typescript": "~4.5.5",
+    "typescript": "^4.7.4",
     "webpack": "^5.69.1"
   }
 }
