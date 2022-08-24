@@ -1,23 +1,27 @@
 <template>
-  <component :is="components[currentComponent]" v-model="currentComponentProps" :step="step"/>
+  <ConfirmComponent v-if="showConfirmScreen"
+    :selectedCurrency="balances[0]"
+    :receiverAddress="state.receiverAddress"
+    :password="state.password"
+    :amount="state.amount"
+    :txType="TX_TYPE.WITHDRAW"
+    :txHash="state.txHash"
+    :step="step"
+    :onSendClick="onWithdrawClick"
+    :onBackClick="onConfirmBackClick"
+    :onOkClick="onClickOkBtn"
+    @passwordUpdate="(value) => state.password = value"
+  />
+  <!-- @TODO: Refactor to use <WithdrawFormComponent /> directly -->
+  <component v-else :is="WithdrawFormComponent" v-model="state" />
 </template>
 
 <script lang="ts" setup>
 import { ref, computed, inject } from 'vue'
 
-import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
+import ConfirmComponent, { CONFIRM_STEP, TX_TYPE } from '@/components/modals/templates/ConfirmComponent.vue'
 import WithdrawFormComponent, { WithdrawFormComponentProps } from '@/components/WithdrawComponents/WithdrawFormComponent.vue'
 import { useStore } from '@/store'
-
-enum ScreenState {
-  FORM = 'WithdrawFormComponent',
-  CONFIRM = 'ConfirmComponent'
-}
-
-const components = {
-  [ScreenState.FORM]: WithdrawFormComponent,
-  [ScreenState.CONFIRM]: ConfirmComponent
-}
 
 const { selectedAsset } = defineProps({
   selectedAsset: {
@@ -30,10 +34,11 @@ const { selectedAsset } = defineProps({
 const balances = computed(() => useStore().state.wallet.balances)
 const selectedCurrency = computed(() => balances.value.find(asset => asset.balance.denom === selectedAsset) || balances.value[0])
 
-const currentComponent = ref(ScreenState.FORM)
-const currentComponentProps = ref({
+const showConfirmScreen = ref(false)
+const state = ref({
     currentBalance: balances.value,
     selectedCurrency: selectedCurrency.value,
+    receiverAddress: 'Withdraw address', // @TODO: Add withdraw address
     amount: '',
     password: '',
     amountErrorMsg: '',
@@ -44,22 +49,20 @@ const currentComponentProps = ref({
     onClickOkBtn: () => onClickOkBtn()
   } as WithdrawFormComponentProps)
 
-const step = ref(1)
+const step = ref(CONFIRM_STEP.CONFIRM)
 
 const closeModal = inject('onModalClose', () => () => {})
 
 function onNextClick () {
-  step.value = 3
   validateInputs()
 
-  if (!currentComponentProps.value.amountErrorMsg) {
-    currentComponent.value = ScreenState.CONFIRM
-    step.value = 2
+  if (!state.value.amountErrorMsg) {
+    showConfirmScreen.value = true
   }
 }
 
 function onConfirmBackClick () {
-  currentComponent.value = ScreenState.FORM
+  showConfirmScreen.value = false
 }
 
 function onClickOkBtn () {
@@ -68,5 +71,16 @@ function onClickOkBtn () {
 
 function validateInputs () {}
 
-async function onWithdrawClick () {}
+async function onWithdrawClick () {
+  step.value = CONFIRM_STEP.PENDING
+  // @TODO: Implement withdraw
+
+  // Mocked request
+  setTimeout(() => {
+    const success = false
+    const txHash = 'test hash'
+    step.value = success ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR
+    state.value.txHash = txHash
+  }, 3000)
+}
 </script>

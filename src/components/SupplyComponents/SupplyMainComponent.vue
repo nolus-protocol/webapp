@@ -1,26 +1,30 @@
 <template>
-  <component :is="components[currentComponent]" v-model="currentComponentProps" :step="step"/>
+  <ConfirmComponent v-if="showConfirmScreen"
+    :selectedCurrency="balances[0]"
+    :receiverAddress="state.receiverAddress"
+    :password="state.password"
+    :amount="state.amount"
+    :txType="TX_TYPE.SUPPLY"
+    :txHash="state.txHash"
+    :step="step"
+    :onSendClick="onSupplyClick"
+    :onBackClick="onConfirmBackClick"
+    :onOkClick="onClickOkBtn"
+    @passwordUpdate="(value) => state.password = value"
+  />
+  <!-- @TODO: Refactor to use <SupplyFormComponent /> directly -->
+  <component v-else :is="SupplyFormComponent" v-model="state"/>
 </template>
 
 <script lang="ts" setup>
 import { ref, computed, inject } from 'vue'
 
-import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
+import ConfirmComponent, { CONFIRM_STEP, TX_TYPE } from '@/components/modals/templates/ConfirmComponent.vue'
 import SupplyFormComponent, { SupplyFormComponentProps } from '@/components/SupplyComponents/SupplyFormComponent.vue'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { useStore } from '@/store'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { transferCurrency, validateAmount } from '@/components/utils'
-
-enum ScreenState {
-  FORM = 'SupplyFormComponent',
-  CONFIRM = 'ConfirmComponent'
-}
-
-const components = {
-  [ScreenState.FORM]: SupplyFormComponent,
-  [ScreenState.CONFIRM]: ConfirmComponent
-}
 
 const { selectedAsset } = defineProps({
   selectedAsset: {
@@ -32,8 +36,8 @@ const { selectedAsset } = defineProps({
 const balances = computed(() => useStore().state.wallet.balances)
 const selectedCurrency = computed(() => balances.value.find(asset => asset.balance.denom === selectedAsset) || balances.value[0])
 
-const currentComponent = ref(ScreenState.FORM)
-const currentComponentProps = ref({
+const showConfirmScreen = ref(false)
+const state = ref({
     currentBalance: balances.value,
     selectedCurrency: selectedCurrency.value,
     amount: '',
@@ -43,27 +47,22 @@ const currentComponentProps = ref({
     receiverAddress: 'Missing Supply address (Nolus Market)', // @TODO: Add supply address here
     txHash: '',
     onNextClick: () => onNextClick(),
-    onSendClick: () => onSupplyClick(),
-    onConfirmBackClick: () => onConfirmBackClick(),
-    onClickOkBtn: () => onClickOkBtn()
   } as SupplyFormComponentProps)
 
-const step = ref(1)
+const step = ref(CONFIRM_STEP.CONFIRM)
 
 const closeModal = inject('onModalClose', () => () => {})
 
 function onNextClick () {
-  step.value = 3
   validateInputs()
 
-  if (!currentComponentProps.value.amountErrorMsg) {
-    currentComponent.value = ScreenState.CONFIRM
-    step.value = 2
+  if (!state.value.amountErrorMsg) {
+    showConfirmScreen.value = true
   }
 }
 
 function onConfirmBackClick () {
-  currentComponent.value = ScreenState.FORM
+  showConfirmScreen.value = false
 }
 
 function onClickOkBtn () {
@@ -71,10 +70,10 @@ function onClickOkBtn () {
 }
 
 function validateInputs () {
-  currentComponentProps.value.amountErrorMsg = validateAmount(
-    currentComponentProps.value.amount,
-    currentComponentProps.value.selectedCurrency.balance.denom,
-    Number(currentComponentProps.value.selectedCurrency.balance.amount)
+  state.value.amountErrorMsg = validateAmount(
+    state.value.amount,
+    state.value.selectedCurrency.balance.denom,
+    Number(state.value.selectedCurrency.balance.amount)
   )
 }
 
@@ -84,12 +83,11 @@ async function onSupplyClick () {
     if (WalletUtils.isConnectedViaMnemonic()) {
       useStore()
         .dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, {
-          password: currentComponentProps.value.password
+          password: state.value.password
 
         })
         .then(() => {
           transferAmount()
-          step.value = 3
         })
     } else {
       useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
@@ -101,14 +99,15 @@ async function onSupplyClick () {
 }
 
 async function transferAmount () {
+  step.value = CONFIRM_STEP.PENDING
   const { success, txHash } = await transferCurrency(
-    currentComponentProps.value.selectedCurrency.balance.denom,
-    currentComponentProps.value.amount,
-    currentComponentProps.value.receiverAddress
+    state.value.selectedCurrency.balance.denom,
+    state.value.amount,
+    state.value.receiverAddress
   )
 
-  success ? step.value = 4 : step.value = 3
-  currentComponentProps.value.txHash = txHash
+  step.value = success ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR
+  state.value.txHash = txHash
 }
 
 

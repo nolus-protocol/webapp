@@ -73,19 +73,16 @@ import { Asset } from '@nolus/nolusjs/build/contracts'
 import TooltipComponent from '@/components/TooltipComponent.vue'
 
 export interface RepayComponentProps {
-  outstandingLoanAmount: Asset;
-  amountErrorMsg: string;
-  passwordErrorMsg: string;
-  currentBalance: AssetBalance[];
-  selectedCurrency: AssetBalance;
-  amount: string;
-  receiverAddress: string;
-  password: string;
-  txHash: string;
-  onNextClick: () => void;
-  onSendClick: () => void;
-  onConfirmBackClick: () => void;
-  onClickOkBtn: () => void;
+  outstandingLoanAmount: Asset
+  amountErrorMsg: string
+  passwordErrorMsg: string
+  currentBalance: AssetBalance[]
+  selectedCurrency: AssetBalance
+  amount: string
+  receiverAddress: string
+  password: string
+  txHash: string
+  onNextClick: () => void
 }
 
 export default defineComponent({
@@ -96,7 +93,8 @@ export default defineComponent({
   },
   props: {
     modelValue: {
-      type: Object as PropType<RepayComponentProps>
+      type: Object as PropType<RepayComponentProps>,
+      required: true
     }
   },
   data () {

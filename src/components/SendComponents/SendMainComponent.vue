@@ -1,35 +1,40 @@
 <template>
-  <component :is="components[currentComponent]" v-model="currentComponentProps" :step="step"/>
+  <ConfirmComponent v-if="showConfirmScreen"
+    :selectedCurrency="balances[0]"
+    :receiverAddress="state.receiverAddress"
+    :password="state.password"
+    :amount="state.amount"
+    :memo="state.memo"
+    :txType="TX_TYPE.SEND"
+    :txHash="state.txHash"
+    :step="step"
+    :onSendClick="onSendClick"
+    :onBackClick="onConfirmBackClick"
+    :onOkClick="onClickOkBtn"
+    @passwordUpdate="(value) => state.password = value"
+  />
+  <!-- @TODO: Refactor to use <SendComponent /> directly -->
+  <component v-else :is="SendComponent" v-model="state"/>
 </template>
 
 <script lang="ts" setup>
 import { inject, ref, computed } from 'vue'
 
 import SendComponent, { SendComponentProps } from '@/components/SendComponents/SendComponent.vue'
-import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
+import ConfirmComponent, { CONFIRM_STEP, TX_TYPE } from '@/components/modals/templates/ConfirmComponent.vue'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { transferCurrency, validateAmount, validateAddress } from '@/components/utils'
 
-enum ScreenState {
-  MAIN = 'SendComponent',
-  CONFIRM = 'ConfirmComponent'
-}
-
-const components = {
-  [ScreenState.MAIN]: SendComponent,
-  [ScreenState.CONFIRM]: ConfirmComponent
-}
-
-const step = ref(1)
+const step = ref(CONFIRM_STEP.CONFIRM)
 
 const closeModal = inject('onModalClose', () => () => {})
 
 const balances = computed(() => useStore().state.wallet.balances)
 
-const currentComponent = ref(ScreenState.MAIN)
-const currentComponentProps = ref({
+const showConfirmScreen = ref(false)
+const state = ref({
     currentBalance: balances.value,
     selectedCurrency: balances.value[0],
     amount: '',
@@ -39,14 +44,11 @@ const currentComponentProps = ref({
     onNextClick: () => onNextClick(),
     receiverErrorMsg: '',
     amountErrorMsg: '',
-    txHash: '',
-    onSendClick: () => onSendClick(),
-    onConfirmBackClick: () => onConfirmBackClick(),
-    onClickOkBtn: () => onClickOkBtn()
+    txHash: ''
   } as SendComponentProps)
 
 function onConfirmBackClick () {
-  currentComponent.value = ScreenState.MAIN
+  showConfirmScreen.value = false
 }
 
 function onClickOkBtn () {
@@ -54,24 +56,22 @@ function onClickOkBtn () {
 }
 
 function onNextClick () {
-  step.value = 3
   validateInputs()
 
-  if (!currentComponentProps.value.amountErrorMsg && !currentComponentProps.value.receiverErrorMsg) {
-    currentComponent.value = ScreenState.CONFIRM
-    step.value = 2
+  if (!state.value.amountErrorMsg && !state.value.receiverErrorMsg) {
+    showConfirmScreen.value = true
   }
 }
 
 function validateInputs () {
-  currentComponentProps.value.amountErrorMsg = validateAmount(
-    currentComponentProps.value.amount,
-    currentComponentProps.value.selectedCurrency.balance.denom,
-    Number(currentComponentProps.value.selectedCurrency.balance.amount)
+  state.value.amountErrorMsg = validateAmount(
+    state.value.amount,
+    state.value.selectedCurrency.balance.denom,
+    Number(state.value.selectedCurrency.balance.amount)
   )
 
-  currentComponentProps.value.receiverErrorMsg = validateAddress(
-    currentComponentProps.value.receiverAddress
+  state.value.receiverErrorMsg = validateAddress(
+    state.value.receiverAddress
   )
 }
 
@@ -81,12 +81,11 @@ async function onSendClick () {
     if (WalletUtils.isConnectedViaMnemonic()) {
       useStore()
         .dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, {
-          password: currentComponentProps.value.password
+          password: state.value.password
 
         })
         .then(() => {
           transferAmount()
-          step.value = 3
         })
     } else {
       useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
@@ -98,13 +97,15 @@ async function onSendClick () {
 }
 
 async function transferAmount () {
+  step.value = CONFIRM_STEP.PENDING
   const { success, txHash } = await transferCurrency(
-    currentComponentProps.value.selectedCurrency.balance.denom,
-    currentComponentProps.value.amount,
-    currentComponentProps.value.receiverAddress
+    state.value.selectedCurrency.balance.denom,
+    state.value.amount,
+    state.value.receiverAddress,
+    state.value.memo
   )
 
-  success ? step.value = 4 : step.value = 3
-  currentComponentProps.value.txHash = txHash
+  step.value = success ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR
+  state.value.txHash = txHash
 }
 </script>

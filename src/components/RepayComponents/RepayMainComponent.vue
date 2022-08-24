@@ -1,22 +1,38 @@
 <template>
-    <component :is="currentComponent.is" v-model="currentComponent.props" :step="step"/>
+  <ConfirmComponent v-if="showConfirmScreen"
+    :selectedCurrency="currentComponent.props.selectedCurrency"
+    :receiverAddress="currentComponent.props.receiverAddress"
+    :password="currentComponent.props.password"
+    :amount="currentComponent.props.amount"
+    :txType="TX_TYPE.REPAY"
+    :txHash="currentComponent.props.txHash"
+    :step="step"
+    :onSendClick="onSendClick"
+    :onBackClick="onConfirmBackClick"
+    :onOkClick="onClickOkBtn"
+    @passwordUpdate="(value: string) => currentComponent.props.password = value"
+  />
+  <!-- @TODO: Refactor to use <RepayFormComponent /> directly -->
+  <component v-else :is="currentComponent.is" v-model="currentComponent.props"/>
 </template>
 
+<!-- @TODO: Transition component to Composition API -->
 <script lang="ts">
 import { defineComponent, PropType } from 'vue'
 import { StarIcon } from '@heroicons/vue/solid'
+import { Lease } from '@nolus/nolusjs/build/contracts'
+import { CurrencyUtils, NolusClient } from '@nolus/nolusjs'
+import { ChainConstants } from '@nolus/nolusjs/build/constants'
+import { Dec, Int } from '@keplr-wallet/unit'
+
 import { AssetBalance } from '@/store/modules/wallet/state'
 import RepayFormComponent, { RepayComponentProps } from '@/components/RepayComponents/RepayFormComponent.vue'
 import { useStore } from '@/store'
-import { Lease } from '@nolus/nolusjs/build/contracts'
-import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
+import ConfirmComponent, { CONFIRM_STEP, TX_TYPE } from '@/components/modals/templates/ConfirmComponent.vue'
 import { LeaseData } from '@/types/LeaseData'
-import { Dec, Int } from '@keplr-wallet/unit'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
-import { CurrencyUtils, NolusClient } from '@nolus/nolusjs'
 import { assetsInfo } from '@/config/assetsInfo'
-import { ChainConstants } from '@nolus/nolusjs/build/constants'
 
 enum ScreenState {
   MAIN = 'RepayFormComponent',
@@ -52,7 +68,7 @@ export default defineComponent({
     this.leaseContract = new Lease(cosmWasmClient)
     console.log('leases2: ', this.leaseData)
     this.currentComponent = {
-      is: ScreenState.MAIN,
+      is: 'RepayFormComponent',
       props: this.initProps()
     }
 
@@ -66,7 +82,9 @@ export default defineComponent({
   emits: [],
   data () {
     return {
-      step: 1 as number,
+      step: CONFIRM_STEP.CONFIRM,
+      showConfirmScreen: false,
+      TX_TYPE: TX_TYPE,
       currentComponent: {} as RepayMainComponentData,
       leaseContract: {} as Lease,
       closeModal: this.onModalClose
@@ -74,6 +92,7 @@ export default defineComponent({
   },
   watch: {
     '$store.state.wallet.balances' (balances: AssetBalance[]) {
+      // @TODO: Fix constant re-render
       if (balances) {
         this.currentComponent.props.currentBalance = balances
         if (!this.currentComponent.props.selectedCurrency) {
@@ -101,16 +120,12 @@ export default defineComponent({
         passwordErrorMsg: '',
         amountErrorMsg: '',
         txHash: '',
-        onNextClick: () => this.onNextClick(),
-        onSendClick: () => this.onSendClick(),
-        onConfirmBackClick: () => this.onConfirmBackClick(),
-        onClickOkBtn: () => this.onClickOkBtn()
+        onNextClick: () => this.onNextClick()
       } as RepayComponentProps
     },
     async onNextClick () {
       if (this.isAmountValid()) {
-        this.currentComponent.is = ScreenState.CONFIRM
-        this.step = 2
+        this.showConfirmScreen = true
       }
     },
     async onSendClick () {
@@ -121,7 +136,6 @@ export default defineComponent({
             useStore().dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, { password: this.currentComponent.props.password })
               .then(() => {
                 this.repayLease()
-                this.step = 3
               })
           }
         } else {
@@ -133,17 +147,10 @@ export default defineComponent({
       }
     },
     onConfirmBackClick () {
-      this.currentComponent.is = ScreenState.MAIN
+      this.showConfirmScreen = false
     },
     onClickOkBtn () {
-      this.resetData()
       this.closeModal()
-    },
-    resetData () {
-      this.currentComponent = {
-        is: ScreenState.MAIN,
-        props: this.initProps()
-      }
     },
     isAmountValid (): boolean {
       let isValid = true
@@ -189,6 +196,7 @@ export default defineComponent({
     async repayLease () {
       const wallet = useStore().getters.getNolusWallet
       if (wallet && this.isAmountValid()) {
+        this.step = CONFIRM_STEP.PENDING
         const coinDecimals = new Int(10).pow(new Int(6).absUInt())
         const feeAmount = new Dec('0.25').mul(new Dec(coinDecimals))
         const DEFAULT_FEE = {
@@ -212,11 +220,12 @@ export default defineComponent({
             }
           )
           if (execResult) {
-            this.step = 3
+            this.currentComponent.props.txHash = execResult.transactionHash || ''
+            this.step = CONFIRM_STEP.SUCCESS
           }
         } catch (e) {
           console.log(e);
-          this.step = 4
+          this.step = CONFIRM_STEP.ERROR
         }
       }
     }

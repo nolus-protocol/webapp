@@ -53,27 +53,21 @@ import WarningBox from '@/components/modals/templates/WarningBox.vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
 
 export interface SupplyFormComponentProps {
-  amountErrorMsg: string;
-  currentBalance: AssetBalance[];
-  selectedCurrency: AssetBalance;
-  amount: string;
-  receiverAddress: string;
-  currentAPR: string;
-  password: string;
-  txHash: string;
-  onNextClick: () => void;
-  onSendClick: () => void;
-  onConfirmBackClick: () => void;
-  onClickOkBtn: () => void;
+  amountErrorMsg: string
+  currentBalance: AssetBalance[]
+  selectedCurrency: AssetBalance
+  amount: string
+  receiverAddress: string
+  currentAPR: string
+  password: string
+  txHash: string
+  onNextClick: () => void
 }
 
   defineProps({
     modelValue: {
       type: Object as PropType<SupplyFormComponentProps>,
       required: true
-    },
-    step: {
-      type: Number
     }
   })
 

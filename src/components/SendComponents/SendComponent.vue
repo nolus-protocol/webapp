@@ -116,9 +116,6 @@ export interface SendComponentProps {
   password: string;
   txHash: string;
   onNextClick: () => void;
-  onSendClick: () => void;
-  onConfirmBackClick: () => void;
-  onClickOkBtn: () => void;
 }
 
 export default defineComponent({
@@ -133,9 +130,6 @@ export default defineComponent({
     modelValue: {
       type: Object as PropType<SendComponentProps>,
       default: {} as object
-    },
-    step: {
-      type: Number
     }
   },
   data () {

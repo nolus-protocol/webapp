@@ -43,25 +43,20 @@ import { AssetBalance } from '@/store/modules/wallet/state'
 import { assetsInfo } from '@/config/assetsInfo'
 
 export interface WithdrawFormComponentProps {
-  amountErrorMsg: string;
-  currentBalance: AssetBalance[];
-  selectedCurrency: AssetBalance;
-  amount: string;
-  password: string;
-  txHash: string;
-  onNextClick: () => void;
-  onSendClick: () => void;
-  onConfirmBackClick: () => void;
-  onClickOkBtn: () => void;
+  amountErrorMsg: string
+  receiverAddress: string
+  currentBalance: AssetBalance[]
+  selectedCurrency: AssetBalance
+  amount: string
+  password: string
+  txHash: string
+  onNextClick: () => void
 }
 
 defineProps({
   modelValue: {
     type: Object as PropType<WithdrawFormComponentProps>,
     required: true
-  },
-  step: {
-    type: Number
   }
 })
 
