@@ -85,7 +85,7 @@
         </div>
         <div class="left w-full md:w-1/2">
           <p class="text-16 nls-font-500 mt-6">
-            Existing assets
+            Available assets
           </p>
         </div>
         <div class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end">
@@ -99,7 +99,7 @@
                 name="hide-small-balances"
                 type="checkbox"
               />
-              <label for="hide-small-balances">Hide small balances</label>
+              <label for="hide-small-balances">Show small balances</label>
             </div>
           </div>
         </div>
@@ -178,7 +178,7 @@ export default defineComponent({
     return {
       manipulatedAssets: [] as AssetBalance[],
       mainAssets: [] as AssetBalance[],
-      hideLowerBalances: false,
+      hideLowerBalances: true,
       showSendModal: false,
       showLoading: true
     }
@@ -187,7 +187,7 @@ export default defineComponent({
     '$store.state.wallet.balances' (balances) {
       this.mainAssets = balances
       this.manipulatedAssets = balances
-      if (this.hideLowerBalances) {
+      if (!this.hideLowerBalances) {
         this.filterSmallBalances()
       }
       this.showLoading = false
