@@ -1,28 +1,43 @@
 <template>
-  <component :is="currentComponent.is" v-model="currentComponent.props" :step="step"/>
+  <ConfirmComponent v-if="showConfirmScreen"
+                    :selectedCurrency="currentComponent.props.selectedCurrency"
+                    :receiverAddress="currentComponent.props.contractAddress"
+                    :password="currentComponent.props.password"
+                    :amount="currentComponent.props.amount"
+                    :memo="currentComponent.props.memo"
+                    :txType="TX_TYPE.LEASE"
+                    :txHash="currentComponent.props.txHash"
+                    :step="step"
+                    :onSendClick="onSendClick"
+                    :onBackClick="onConfirmBackClick"
+                    :onOkClick="onClickOkBtn"
+                    @passwordUpdate="(value: string) => currentComponent.props.password = value"
+  />
+  <!-- @TODO: Refactor to use <LeaseFormComponent /> directly -->
+  <component v-else :is="currentComponent.is" v-model="currentComponent.props"/>
 </template>
 
+<!-- @TODO: Transition component to Composition API -->
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { StarIcon } from '@heroicons/vue/solid'
-import { AssetBalance } from '@/store/modules/wallet/state'
-import LeaseFormComponent, { LeaseComponentProps } from '@/components/LeaseComponents/LeaseFormComponent.vue'
-import { useStore } from '@/store'
 import { Lease, LeaseApply } from '@nolus/nolusjs/build/contracts'
-import { CONTRACTS } from '@/config/contracts'
+import { CurrencyUtils, NolusClient } from '@nolus/nolusjs'
+import { ChainConstants } from '@nolus/nolusjs/build/constants'
 import { Coin, Dec, Int } from '@keplr-wallet/unit'
+
+import { AssetBalance } from '@/store/modules/wallet/state'
+import LeaseFormComponent from '@/components/LeaseComponents/LeaseFormComponent.vue'
+import { useStore } from '@/store'
+import { CONTRACTS } from '@/config/contracts'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
-import { CurrencyUtils, NolusClient } from '@nolus/nolusjs'
 import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 import { assetsInfo } from '@/config/assetsInfo'
-import { ChainConstants } from '@nolus/nolusjs/build/constants'
-
-enum ScreenState {
-  MAIN = 'LeaseFormComponent',
-  CONFIRM = 'ConfirmComponent'
-}
+import { CONFIRM_STEP } from '@/types/ConfirmStep'
+import { TX_TYPE } from '@/types/TxType'
+import { LeaseComponentProps } from '@/types/component/LeaseComponentProps'
 
 interface LeaseMainComponentData {
   is: string;
@@ -39,7 +54,8 @@ export default defineComponent({
   emits: [],
   inject: {
     onModalClose: {
-      default: () => () => {}
+      default: () => () => {
+      }
     }
   },
   async mounted () {
@@ -47,17 +63,19 @@ export default defineComponent({
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
     this.leaseContract = new Lease(cosmWasmClient)
     this.currentComponent = {
-      is: ScreenState.MAIN,
+      is: 'LeaseFormComponent',
       props: this.initProps()
     }
     if (balances) {
-      this.currentComponent.props.currentBalance = balances;
+      this.currentComponent.props.currentBalance = balances
       this.currentComponent.props.selectedCurrency = balances[0]
     }
   },
   data () {
     return {
-      step: 1 as number,
+      step: CONFIRM_STEP.CONFIRM,
+      TX_TYPE: TX_TYPE,
+      showConfirmScreen: false,
       currentComponent: {} as LeaseMainComponentData,
       leaseApplyResponse: null || ({} as LeaseApply),
       leaseContract: {} as Lease,
@@ -67,13 +85,12 @@ export default defineComponent({
   watch: {
     '$store.state.wallet.balances' (balances: AssetBalance[]) {
       if (balances) {
-        this.currentComponent.props.currentBalance = balances;
+        this.currentComponent.props.currentBalance = balances
 
         if (!this.currentComponent.props.selectedCurrency) {
           this.currentComponent.props.selectedCurrency = balances[0]
         }
       }
-
     },
     async 'currentComponent.props.amount' () {
       const amount = this.currentComponent.props.amount
@@ -127,16 +144,12 @@ export default defineComponent({
         amountErrorMsg: '',
         downPaymentErrorMsg: '',
         txHash: '',
-        leaseApply: null,
-        onSendClick: () => this.onSendClick(),
-        onConfirmBackClick: () => this.onConfirmBackClick(),
-        onClickOkBtn: () => this.onClickOkBtn()
+        leaseApply: null
       } as LeaseComponentProps
     },
     async onNextClick () {
       if (this.isAmountValid() && this.isDownPaymentAmountValid()) {
-        this.currentComponent.is = ScreenState.CONFIRM;
-        this.step = 2
+        this.showConfirmScreen = true
       }
     },
     async onSendClick () {
@@ -147,7 +160,6 @@ export default defineComponent({
             useStore().dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, { password: this.currentComponent.props.password })
               .then(() => {
                 this.openLease()
-                this.step = 3
               })
           }
         } else {
@@ -159,17 +171,10 @@ export default defineComponent({
       }
     },
     onConfirmBackClick () {
-      this.currentComponent.is = ScreenState.MAIN
+      this.showConfirmScreen = false
     },
     onClickOkBtn () {
-      this.resetData()
       this.closeModal()
-    },
-    resetData () {
-      this.currentComponent = {
-        is: ScreenState.MAIN,
-        props: this.initProps()
-      }
     },
     isPasswordValid (): boolean {
       let isValid = true
@@ -267,6 +272,7 @@ export default defineComponent({
     async openLease () {
       const wallet = useStore().getters.getNolusWallet
       if (wallet && this.isAmountValid()) {
+        this.step = CONFIRM_STEP.PENDING
         const coinDecimals = new Int(10).pow(new Int(6).absUInt())
         const feeAmount = new Dec('0.25').mul(new Dec(coinDecimals))
         console.log('feeAmount: ', feeAmount.truncate().toString())
@@ -290,11 +296,12 @@ export default defineComponent({
             }
           )
           if (execResult) {
-            this.step = 3
+            this.currentComponent.props.txHash = execResult.transactionHash || ''
+            this.step = CONFIRM_STEP.SUCCESS
           }
         } catch (e) {
-          console.log(e);
-          this.step = 4
+          console.log(e)
+          this.step = CONFIRM_STEP.ERROR
         }
       }
     }

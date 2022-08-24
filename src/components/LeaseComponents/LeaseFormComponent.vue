@@ -54,7 +54,7 @@
         <p class="mb-3 mt-[25px] mr-5">
           {{ $t('message.leased-amount') }}
         </p>
-        <p v-if="this.annualInterestRate" class="mb-3 mr-5"> {{ $t('message.annual-interest') }}</p>
+        <p v-if="annualInterestRate" class="mb-3 mr-5"> {{ $t('message.annual-interest') }}</p>
         <p class="mb-3 mt-[25px] mr-5">
           {{ $t('message.liquidation-price') }}
         </p>
@@ -64,13 +64,11 @@
           {{ calculateLeaseAmount }}
           <TooltipComponent content="Content goes here"/>
         </p>
-        <p v-if="this.annualInterestRate" class="mb-3 flex justify-end align-center">
-          {{ $t('message.annual-interest') }}
+        <p v-if="annualInterestRate" class="mb-3 flex justify-end align-center">
           <span class="flex nls-font-700 ml-5">
-          {{ this.annualInterestRate }}
+          {{ annualInterestRate }}
           <TooltipComponent content="Content goes here"/>
-        </span>
-          <TooltipComponent content="Content goes here"/>
+          </span>
         </p>
         <p class="mb-3 mt-[25px] flex justify-end align-center">
           $18,585.00
@@ -94,8 +92,6 @@
 <script lang="ts">
 import CurrencyField from '@/components/CurrencyField.vue'
 import { defineComponent, PropType } from 'vue'
-import { AssetBalance } from '@/store/modules/wallet/state'
-import { LeaseApply } from '@nolus/nolusjs/build/contracts'
 import { useStore } from '@/store'
 import { StringUtils } from '@/utils/StringUtils'
 import { Price } from '@/store/modules/oracle/state'
@@ -104,26 +100,7 @@ import { CurrencyUtils } from '@nolus/nolusjs'
 import { Coin } from '@keplr-wallet/unit'
 
 import TooltipComponent from '@/components/TooltipComponent.vue'
-
-export interface LeaseComponentProps {
-  contractAddress: string;
-  amountErrorMsg: string;
-  downPaymentErrorMsg: string;
-  currentBalance: AssetBalance[];
-  selectedDownPaymentCurrency: AssetBalance;
-  selectedCurrency: AssetBalance;
-  downPayment: string;
-  amount: string;
-  memo: string;
-  password: string;
-  passwordErrorMsg: string;
-  txHash: string;
-  leaseApply: LeaseApply | null;
-  onNextClick: () => void;
-  onSendClick: () => void;
-  onConfirmBackClick: () => void;
-  onClickOkBtn: () => void;
-}
+import { LeaseComponentProps } from '@/types/component/LeaseComponentProps'
 
 export default defineComponent({
   name: 'LeaseFormComponent',
@@ -133,16 +110,14 @@ export default defineComponent({
   },
   props: {
     modelValue: {
-      type: Object as PropType<LeaseComponentProps>
+      type: Object as PropType<LeaseComponentProps>,
+      required: true
     }
   },
   data () {
     return {
       disabledInputField: true
     }
-  },
-  mounted () {
-    console.log(this.modelValue)
   },
   watch: {
     'modelValue.leaseApply' () {

@@ -51,7 +51,7 @@ export const validateAmount = (amount: string, denom: string, balance: number) =
   return ''
 }
 
-export const transferCurrency = async (denom: string, amount: string, receiverAddress: string) => {
+export const transferCurrency = async (denom: string, amount: string, receiverAddress: string, memo: string = '') => {
   const wallet = useStore().getters.getNolusWallet
 
   const result = {
@@ -84,23 +84,28 @@ export const transferCurrency = async (denom: string, amount: string, receiverAd
   } = assetsInfo[denom]
   const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, coinMinimalDenom, coinDecimals)
 
-  const txResponse = await useStore().dispatch(
-    WalletActionTypes.TRANSFER_TOKENS,
-    {
-      receiverAddress,
-      fee: DEFAULT_FEE,
-      funds: [
-        {
-          amount: minimalDenom.amount.toString(),
-          denom
-        }
-      ]
-    }
-  )
+  try {
+    const txResponse = await useStore().dispatch(
+      WalletActionTypes.TRANSFER_TOKENS,
+      {
+        receiverAddress,
+        fee: DEFAULT_FEE,
+        memo,
+        funds: [
+          {
+            amount: minimalDenom.amount.toString(),
+            denom
+          }
+        ]
+      }
+    )
 
-  if (txResponse) {
-    result.success = txResponse.code !== 0
-    result.txHash = txResponse.transactionHash
+    if (txResponse) {
+      result.success = txResponse.code === 0
+      result.txHash = txResponse.transactionHash
+    }
+  } catch (e) {
+    console.error('Transaction failed. ', e)
   }
 
   return result

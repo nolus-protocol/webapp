@@ -104,22 +104,7 @@ import Picker, { PickerOption } from '@/components/Picker.vue'
 import InputField from '@/components/InputField.vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import { assetsInfo } from '@/config/assetsInfo'
-
-export interface SendComponentProps {
-  receiverErrorMsg: string;
-  amountErrorMsg: string;
-  currentBalance: AssetBalance[];
-  selectedCurrency: AssetBalance;
-  amount: string;
-  memo: string;
-  receiverAddress: string;
-  password: string;
-  txHash: string;
-  onNextClick: () => void;
-  onSendClick: () => void;
-  onConfirmBackClick: () => void;
-  onClickOkBtn: () => void;
-}
+import { SendComponentProps } from '@/types/component/SendComponentProps'
 
 export default defineComponent({
   name: 'SendComponent',
@@ -133,9 +118,6 @@ export default defineComponent({
     modelValue: {
       type: Object as PropType<SendComponentProps>,
       default: {} as object
-    },
-    step: {
-      type: Number
     }
   },
   data () {

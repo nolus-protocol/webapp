@@ -4,51 +4,65 @@
                     :receiverAddress="state.receiverAddress"
                     :password="state.password"
                     :amount="state.amount"
-                    :memo="state.memo"
-                    :txType="TX_TYPE.SEND"
+                    :txType="TX_TYPE.SUPPLY"
                     :txHash="state.txHash"
                     :step="step"
-                    :onSendClick="onSendClick"
+                    :onSendClick="onSupplyClick"
                     :onBackClick="onConfirmBackClick"
                     :onOkClick="onClickOkBtn"
                     @passwordUpdate="(value) => state.password = value"
   />
-  <!-- @TODO: Refactor to use <SendComponent /> directly -->
-  <component v-else :is="SendComponent" v-model="state"/>
+  <!-- @TODO: Refactor to use <SupplyFormComponent /> directly -->
+  <component v-else :is="SupplyFormComponent" v-model="state"/>
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, ref } from 'vue'
+import { computed, defineProps, inject, ref } from 'vue'
 
-import SendComponent from '@/components/SendComponents/SendComponent.vue'
 import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
-import { useStore } from '@/store'
+import SupplyFormComponent from '@/components/SupplyComponents/SupplyFormComponent.vue'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
+import { useStore } from '@/store'
 import { WalletUtils } from '@/utils/WalletUtils'
-import { transferCurrency, validateAddress, validateAmount } from '@/components/utils'
+import { transferCurrency, validateAmount } from '@/components/utils'
 import { CONFIRM_STEP } from '@/types/ConfirmStep'
-import { SendComponentProps } from '@/types/component/SendComponentProps'
+import { SupplyFormComponentProps } from '@/types/component/SupplyFormComponentProps'
+
+const { selectedAsset } = defineProps({
+  selectedAsset: {
+    type: String,
+    required: true
+  }
+})
+
+const balances = computed(() => useStore().state.wallet.balances)
+const selectedCurrency = computed(() => balances.value.find(asset => asset.balance.denom === selectedAsset) || balances.value[0])
+
+const showConfirmScreen = ref(false)
+const state = ref({
+  currentBalance: balances.value,
+  selectedCurrency: selectedCurrency.value,
+  amount: '',
+  password: '',
+  amountErrorMsg: '',
+  currentAPR: '24.21%', // @TODO: fetch APR
+  receiverAddress: 'Missing Supply address (Nolus Market)', // @TODO: Add supply address here
+  txHash: '',
+  onNextClick: () => onNextClick()
+} as SupplyFormComponentProps)
 
 const step = ref(CONFIRM_STEP.CONFIRM)
 
 const closeModal = inject('onModalClose', () => () => {
 })
 
-const balances = computed(() => useStore().state.wallet.balances)
+function onNextClick () {
+  validateInputs()
 
-const showConfirmScreen = ref(false)
-const state = ref({
-  currentBalance: balances.value,
-  selectedCurrency: balances.value[0],
-  amount: '',
-  memo: '',
-  receiverAddress: '',
-  password: '',
-  onNextClick: () => onNextClick(),
-  receiverErrorMsg: '',
-  amountErrorMsg: '',
-  txHash: ''
-} as SendComponentProps)
+  if (!state.value.amountErrorMsg) {
+    showConfirmScreen.value = true
+  }
+}
 
 function onConfirmBackClick () {
   showConfirmScreen.value = false
@@ -58,27 +72,15 @@ function onClickOkBtn () {
   closeModal()
 }
 
-function onNextClick () {
-  validateInputs()
-
-  if (!state.value.amountErrorMsg && !state.value.receiverErrorMsg) {
-    showConfirmScreen.value = true
-  }
-}
-
 function validateInputs () {
   state.value.amountErrorMsg = validateAmount(
     state.value.amount,
     state.value.selectedCurrency.balance.denom,
     Number(state.value.selectedCurrency.balance.amount)
   )
-
-  state.value.receiverErrorMsg = validateAddress(
-    state.value.receiverAddress
-  )
 }
 
-async function onSendClick () {
+async function onSupplyClick () {
   const wallet = useStore().state.wallet.wallet
   if (!wallet) {
     if (WalletUtils.isConnectedViaMnemonic()) {
@@ -107,11 +109,11 @@ async function transferAmount () {
   } = await transferCurrency(
     state.value.selectedCurrency.balance.denom,
     state.value.amount,
-    state.value.receiverAddress,
-    state.value.memo
+    state.value.receiverAddress
   )
 
   step.value = success ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR
   state.value.txHash = txHash
 }
+
 </script>
