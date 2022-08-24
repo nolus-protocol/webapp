@@ -1,17 +1,17 @@
 <template>
   <ConfirmComponent v-if="showConfirmScreen"
-    :selectedCurrency="currentComponent.props.selectedCurrency"
-    :receiverAddress="currentComponent.props.contractAddress"
-    :password="currentComponent.props.password"
-    :amount="currentComponent.props.amount"
-    :memo="currentComponent.props.memo"
-    :txType="TX_TYPE.LEASE"
-    :txHash="currentComponent.props.txHash"
-    :step="step"
-    :onSendClick="onSendClick"
-    :onBackClick="onConfirmBackClick"
-    :onOkClick="onClickOkBtn"
-    @passwordUpdate="(value: string) => currentComponent.props.password = value"
+                    :selectedCurrency="currentComponent.props.selectedCurrency"
+                    :receiverAddress="currentComponent.props.contractAddress"
+                    :password="currentComponent.props.password"
+                    :amount="currentComponent.props.amount"
+                    :memo="currentComponent.props.memo"
+                    :txType="TX_TYPE.LEASE"
+                    :txHash="currentComponent.props.txHash"
+                    :step="step"
+                    :onSendClick="onSendClick"
+                    :onBackClick="onConfirmBackClick"
+                    :onOkClick="onClickOkBtn"
+                    @passwordUpdate="(value: string) => currentComponent.props.password = value"
   />
   <!-- @TODO: Refactor to use <LeaseFormComponent /> directly -->
   <component v-else :is="currentComponent.is" v-model="currentComponent.props"/>
@@ -27,14 +27,17 @@ import { ChainConstants } from '@nolus/nolusjs/build/constants'
 import { Coin, Dec, Int } from '@keplr-wallet/unit'
 
 import { AssetBalance } from '@/store/modules/wallet/state'
-import LeaseFormComponent, { LeaseComponentProps } from '@/components/LeaseComponents/LeaseFormComponent.vue'
+import LeaseFormComponent from '@/components/LeaseComponents/LeaseFormComponent.vue'
 import { useStore } from '@/store'
 import { CONTRACTS } from '@/config/contracts'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
-import ConfirmComponent, { CONFIRM_STEP, TX_TYPE } from '@/components/modals/templates/ConfirmComponent.vue'
+import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 import { assetsInfo } from '@/config/assetsInfo'
+import { CONFIRM_STEP } from '@/types/ConfirmStep'
+import { TX_TYPE } from '@/types/TxType'
+import { LeaseComponentProps } from '@/types/component/LeaseComponentProps'
 
 interface LeaseMainComponentData {
   is: string;
@@ -51,7 +54,8 @@ export default defineComponent({
   emits: [],
   inject: {
     onModalClose: {
-      default: () => () => {}
+      default: () => () => {
+      }
     }
   },
   async mounted () {
@@ -63,7 +67,7 @@ export default defineComponent({
       props: this.initProps()
     }
     if (balances) {
-      this.currentComponent.props.currentBalance = balances;
+      this.currentComponent.props.currentBalance = balances
       this.currentComponent.props.selectedCurrency = balances[0]
     }
   },
@@ -81,13 +85,12 @@ export default defineComponent({
   watch: {
     '$store.state.wallet.balances' (balances: AssetBalance[]) {
       if (balances) {
-        this.currentComponent.props.currentBalance = balances;
+        this.currentComponent.props.currentBalance = balances
 
         if (!this.currentComponent.props.selectedCurrency) {
           this.currentComponent.props.selectedCurrency = balances[0]
         }
       }
-
     },
     async 'currentComponent.props.amount' () {
       const amount = this.currentComponent.props.amount
@@ -297,7 +300,7 @@ export default defineComponent({
             this.step = CONFIRM_STEP.SUCCESS
           }
         } catch (e) {
-          console.log(e);
+          console.log(e)
           this.step = CONFIRM_STEP.ERROR
         }
       }

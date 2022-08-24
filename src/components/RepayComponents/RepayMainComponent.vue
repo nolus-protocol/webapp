@@ -1,16 +1,16 @@
 <template>
   <ConfirmComponent v-if="showConfirmScreen"
-    :selectedCurrency="currentComponent.props.selectedCurrency"
-    :receiverAddress="currentComponent.props.receiverAddress"
-    :password="currentComponent.props.password"
-    :amount="currentComponent.props.amount"
-    :txType="TX_TYPE.REPAY"
-    :txHash="currentComponent.props.txHash"
-    :step="step"
-    :onSendClick="onSendClick"
-    :onBackClick="onConfirmBackClick"
-    :onOkClick="onClickOkBtn"
-    @passwordUpdate="(value: string) => currentComponent.props.password = value"
+                    :selectedCurrency="currentComponent.props.selectedCurrency"
+                    :receiverAddress="currentComponent.props.receiverAddress"
+                    :password="currentComponent.props.password"
+                    :amount="currentComponent.props.amount"
+                    :txType="TX_TYPE.REPAY"
+                    :txHash="currentComponent.props.txHash"
+                    :step="step"
+                    :onSendClick="onSendClick"
+                    :onBackClick="onConfirmBackClick"
+                    :onOkClick="onClickOkBtn"
+                    @passwordUpdate="(value: string) => currentComponent.props.password = value"
   />
   <!-- @TODO: Refactor to use <RepayFormComponent /> directly -->
   <component v-else :is="currentComponent.is" v-model="currentComponent.props"/>
@@ -26,13 +26,16 @@ import { ChainConstants } from '@nolus/nolusjs/build/constants'
 import { Dec, Int } from '@keplr-wallet/unit'
 
 import { AssetBalance } from '@/store/modules/wallet/state'
-import RepayFormComponent, { RepayComponentProps } from '@/components/RepayComponents/RepayFormComponent.vue'
+import RepayFormComponent from '@/components/RepayComponents/RepayFormComponent.vue'
 import { useStore } from '@/store'
-import ConfirmComponent, { CONFIRM_STEP, TX_TYPE } from '@/components/modals/templates/ConfirmComponent.vue'
+import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
 import { LeaseData } from '@/types/LeaseData'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { assetsInfo } from '@/config/assetsInfo'
+import { RepayComponentProps } from '@/types/component/RepayComponentProps'
+import { CONFIRM_STEP } from '@/types/ConfirmStep'
+import { TX_TYPE } from '@/types/TxType'
 
 enum ScreenState {
   MAIN = 'RepayFormComponent',
@@ -54,12 +57,13 @@ export default defineComponent({
   props: {
     leaseData: {
       type: Object as PropType<LeaseData>,
-     required: true
+      required: true
     }
   },
   inject: {
     onModalClose: {
-      default: () => () => {}
+      default: () => () => {
+      }
     }
   },
   async mounted () {
@@ -75,8 +79,7 @@ export default defineComponent({
     console.log('receiver address: ', this.currentComponent.props.receiverAddress)
 
     if (balances) {
-      this.currentComponent.props.selectedCurrency = balances[0];
-
+      this.currentComponent.props.selectedCurrency = balances[0]
     }
   },
   emits: [],
@@ -224,7 +227,7 @@ export default defineComponent({
             this.step = CONFIRM_STEP.SUCCESS
           }
         } catch (e) {
-          console.log(e);
+          console.log(e)
           this.step = CONFIRM_STEP.ERROR
         }
       }

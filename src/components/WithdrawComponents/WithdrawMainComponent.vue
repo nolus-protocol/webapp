@@ -1,27 +1,29 @@
 <template>
   <ConfirmComponent v-if="showConfirmScreen"
-    :selectedCurrency="balances[0]"
-    :receiverAddress="state.receiverAddress"
-    :password="state.password"
-    :amount="state.amount"
-    :txType="TX_TYPE.WITHDRAW"
-    :txHash="state.txHash"
-    :step="step"
-    :onSendClick="onWithdrawClick"
-    :onBackClick="onConfirmBackClick"
-    :onOkClick="onClickOkBtn"
-    @passwordUpdate="(value) => state.password = value"
+                    :selectedCurrency="balances[0]"
+                    :receiverAddress="state.receiverAddress"
+                    :password="state.password"
+                    :amount="state.amount"
+                    :txType="TX_TYPE.WITHDRAW"
+                    :txHash="state.txHash"
+                    :step="step"
+                    :onSendClick="onWithdrawClick"
+                    :onBackClick="onConfirmBackClick"
+                    :onOkClick="onClickOkBtn"
+                    @passwordUpdate="(value) => state.password = value"
   />
   <!-- @TODO: Refactor to use <WithdrawFormComponent /> directly -->
-  <component v-else :is="WithdrawFormComponent" v-model="state" />
+  <component v-else :is="WithdrawFormComponent" v-model="state"/>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, inject } from 'vue'
+import { computed, defineProps, inject, ref } from 'vue'
 
-import ConfirmComponent, { CONFIRM_STEP, TX_TYPE } from '@/components/modals/templates/ConfirmComponent.vue'
-import WithdrawFormComponent, { WithdrawFormComponentProps } from '@/components/WithdrawComponents/WithdrawFormComponent.vue'
+import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
+import WithdrawFormComponent from '@/components/WithdrawComponents/WithdrawFormComponent.vue'
 import { useStore } from '@/store'
+import { CONFIRM_STEP } from '@/types/ConfirmStep'
+import { WithdrawFormComponentProps } from '@/types/component/WithdrawFormComponentProps'
 
 const { selectedAsset } = defineProps({
   selectedAsset: {
@@ -36,22 +38,23 @@ const selectedCurrency = computed(() => balances.value.find(asset => asset.balan
 
 const showConfirmScreen = ref(false)
 const state = ref({
-    currentBalance: balances.value,
-    selectedCurrency: selectedCurrency.value,
-    receiverAddress: 'Withdraw address', // @TODO: Add withdraw address
-    amount: '',
-    password: '',
-    amountErrorMsg: '',
-    txHash: '',
-    onNextClick: () => onNextClick(),
-    onSendClick: () => onWithdrawClick(),
-    onConfirmBackClick: () => onConfirmBackClick(),
-    onClickOkBtn: () => onClickOkBtn()
-  } as WithdrawFormComponentProps)
+  currentBalance: balances.value,
+  selectedCurrency: selectedCurrency.value,
+  receiverAddress: 'Withdraw address', // @TODO: Add withdraw address
+  amount: '',
+  password: '',
+  amountErrorMsg: '',
+  txHash: '',
+  onNextClick: () => onNextClick(),
+  onSendClick: () => onWithdrawClick(),
+  onConfirmBackClick: () => onConfirmBackClick(),
+  onClickOkBtn: () => onClickOkBtn()
+} as WithdrawFormComponentProps)
 
 const step = ref(CONFIRM_STEP.CONFIRM)
 
-const closeModal = inject('onModalClose', () => () => {})
+const closeModal = inject('onModalClose', () => () => {
+})
 
 function onNextClick () {
   validateInputs()
@@ -69,7 +72,8 @@ function onClickOkBtn () {
   closeModal()
 }
 
-function validateInputs () {}
+function validateInputs () {
+}
 
 async function onWithdrawClick () {
   step.value = CONFIRM_STEP.PENDING

@@ -1,30 +1,32 @@
 <template>
   <ConfirmComponent v-if="showConfirmScreen"
-    :selectedCurrency="balances[0]"
-    :receiverAddress="state.receiverAddress"
-    :password="state.password"
-    :amount="state.amount"
-    :txType="TX_TYPE.SUPPLY"
-    :txHash="state.txHash"
-    :step="step"
-    :onSendClick="onSupplyClick"
-    :onBackClick="onConfirmBackClick"
-    :onOkClick="onClickOkBtn"
-    @passwordUpdate="(value) => state.password = value"
+                    :selectedCurrency="balances[0]"
+                    :receiverAddress="state.receiverAddress"
+                    :password="state.password"
+                    :amount="state.amount"
+                    :txType="TX_TYPE.SUPPLY"
+                    :txHash="state.txHash"
+                    :step="step"
+                    :onSendClick="onSupplyClick"
+                    :onBackClick="onConfirmBackClick"
+                    :onOkClick="onClickOkBtn"
+                    @passwordUpdate="(value) => state.password = value"
   />
   <!-- @TODO: Refactor to use <SupplyFormComponent /> directly -->
   <component v-else :is="SupplyFormComponent" v-model="state"/>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, inject } from 'vue'
+import { computed, defineProps, inject, ref } from 'vue'
 
-import ConfirmComponent, { CONFIRM_STEP, TX_TYPE } from '@/components/modals/templates/ConfirmComponent.vue'
-import SupplyFormComponent, { SupplyFormComponentProps } from '@/components/SupplyComponents/SupplyFormComponent.vue'
+import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
+import SupplyFormComponent from '@/components/SupplyComponents/SupplyFormComponent.vue'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { useStore } from '@/store'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { transferCurrency, validateAmount } from '@/components/utils'
+import { CONFIRM_STEP } from '@/types/ConfirmStep'
+import { SupplyFormComponentProps } from '@/types/component/SupplyFormComponentProps'
 
 const { selectedAsset } = defineProps({
   selectedAsset: {
@@ -38,20 +40,21 @@ const selectedCurrency = computed(() => balances.value.find(asset => asset.balan
 
 const showConfirmScreen = ref(false)
 const state = ref({
-    currentBalance: balances.value,
-    selectedCurrency: selectedCurrency.value,
-    amount: '',
-    password: '',
-    amountErrorMsg: '',
-    currentAPR: '24.21%', // @TODO: fetch APR
-    receiverAddress: 'Missing Supply address (Nolus Market)', // @TODO: Add supply address here
-    txHash: '',
-    onNextClick: () => onNextClick(),
-  } as SupplyFormComponentProps)
+  currentBalance: balances.value,
+  selectedCurrency: selectedCurrency.value,
+  amount: '',
+  password: '',
+  amountErrorMsg: '',
+  currentAPR: '24.21%', // @TODO: fetch APR
+  receiverAddress: 'Missing Supply address (Nolus Market)', // @TODO: Add supply address here
+  txHash: '',
+  onNextClick: () => onNextClick()
+} as SupplyFormComponentProps)
 
 const step = ref(CONFIRM_STEP.CONFIRM)
 
-const closeModal = inject('onModalClose', () => () => {})
+const closeModal = inject('onModalClose', () => () => {
+})
 
 function onNextClick () {
   validateInputs()
@@ -100,7 +103,10 @@ async function onSupplyClick () {
 
 async function transferAmount () {
   step.value = CONFIRM_STEP.PENDING
-  const { success, txHash } = await transferCurrency(
+  const {
+    success,
+    txHash
+  } = await transferCurrency(
     state.value.selectedCurrency.balance.denom,
     state.value.amount,
     state.value.receiverAddress
@@ -109,6 +115,5 @@ async function transferAmount () {
   step.value = success ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR
   state.value.txHash = txHash
 }
-
 
 </script>

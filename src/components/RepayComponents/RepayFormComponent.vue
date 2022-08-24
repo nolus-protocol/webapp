@@ -64,26 +64,12 @@
 <script lang="ts">
 import CurrencyField from '@/components/CurrencyField.vue'
 import { defineComponent, PropType } from 'vue'
-import { AssetBalance } from '@/store/modules/wallet/state'
 import { useStore } from '@/store'
 import { assetsInfo } from '@/config/assetsInfo'
 import { Coin, Int } from '@keplr-wallet/unit'
 import { CurrencyUtils } from '@nolus/nolusjs'
-import { Asset } from '@nolus/nolusjs/build/contracts'
 import TooltipComponent from '@/components/TooltipComponent.vue'
-
-export interface RepayComponentProps {
-  outstandingLoanAmount: Asset
-  amountErrorMsg: string
-  passwordErrorMsg: string
-  currentBalance: AssetBalance[]
-  selectedCurrency: AssetBalance
-  amount: string
-  receiverAddress: string
-  password: string
-  txHash: string
-  onNextClick: () => void
-}
+import { RepayComponentProps } from '@/types/component/RepayComponentProps'
 
 export default defineComponent({
   name: 'RepayFormComponent',

@@ -63,7 +63,8 @@
         name="password"
         type="password"
         @input="(event: Event) => $emit('passwordUpdate', (event.target as HTMLInputElement).value)"
-      ></InputField>
+      >
+      </InputField>
     </div>
   </div>
 
@@ -77,34 +78,8 @@
   </div>
 </template>
 
-<script lang="ts">
-export enum CONFIRM_STEP {
-  CONFIRM = 'Confirm',
-  PENDING = 'Pending',
-  SUCCESS = 'Success',
-  ERROR = 'Error'
-}
-
-export enum TX_TYPE {
-  SEND = 'Send to:',
-  SWAP = 'Swap:',
-  LEASE = 'Lease from:',
-  REPAY = 'Repay to:',
-  SUPPLY = 'Supply to:',
-  WITHDRAW = 'Withdraw from:',
-  IBC_TRANSFER = 'IBC Transfer to:',
-  STAKE = 'Stake to:',
-  GET_REWARD = 'Get Rewards from:',
-  UNDELEGATE = 'Undelegate from:',
-  GRANT = 'Grant to:',
-  CLAIM = 'Claim from:'
-}
-
-export default {}
-</script>
-
 <script lang="ts" setup>
-import { inject, onMounted, computed } from 'vue'
+import { computed, defineEmits, defineProps, inject, onMounted } from 'vue'
 import { ArrowLeftIcon, CheckIcon, XIcon } from '@heroicons/vue/solid'
 import { CurrencyUtils } from '@nolus/nolusjs'
 
@@ -112,6 +87,8 @@ import InputField from '@/components/InputField.vue'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { assetsInfo } from '@/config/assetsInfo'
 import { AssetBalance } from '@/store/modules/wallet/state'
+import { TX_TYPE } from '@/types/TxType'
+import { CONFIRM_STEP } from '@/types/ConfirmStep'
 
 interface Props {
   selectedCurrency: AssetBalance
@@ -137,7 +114,8 @@ const btnAction = computed(() => isStepConfirm.value ? props.onSendClick : props
 
 defineEmits(['passwordUpdate'])
 
-const setShowDialogHeader = inject('setShowDialogHeader', (n: boolean) => {})
+const setShowDialogHeader = inject('setShowDialogHeader', (n: boolean) => {
+})
 
 onMounted(() => {
   setShowDialogHeader(false)

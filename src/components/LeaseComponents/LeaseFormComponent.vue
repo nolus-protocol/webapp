@@ -92,8 +92,6 @@
 <script lang="ts">
 import CurrencyField from '@/components/CurrencyField.vue'
 import { defineComponent, PropType } from 'vue'
-import { AssetBalance } from '@/store/modules/wallet/state'
-import { LeaseApply } from '@nolus/nolusjs/build/contracts'
 import { useStore } from '@/store'
 import { StringUtils } from '@/utils/StringUtils'
 import { Price } from '@/store/modules/oracle/state'
@@ -102,23 +100,7 @@ import { CurrencyUtils } from '@nolus/nolusjs'
 import { Coin } from '@keplr-wallet/unit'
 
 import TooltipComponent from '@/components/TooltipComponent.vue'
-
-export interface LeaseComponentProps {
-  contractAddress: string
-  amountErrorMsg: string
-  downPaymentErrorMsg: string
-  currentBalance: AssetBalance[]
-  selectedDownPaymentCurrency: AssetBalance
-  selectedCurrency: AssetBalance
-  downPayment: string
-  amount: string
-  memo: string
-  password: string
-  passwordErrorMsg: string
-  txHash: string
-  leaseApply: LeaseApply | null
-  onNextClick: () => void
-}
+import { LeaseComponentProps } from '@/types/component/LeaseComponentProps'
 
 export default defineComponent({
   name: 'LeaseFormComponent',

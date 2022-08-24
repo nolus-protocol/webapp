@@ -1,51 +1,54 @@
 <template>
   <ConfirmComponent v-if="showConfirmScreen"
-    :selectedCurrency="balances[0]"
-    :receiverAddress="state.receiverAddress"
-    :password="state.password"
-    :amount="state.amount"
-    :memo="state.memo"
-    :txType="TX_TYPE.SEND"
-    :txHash="state.txHash"
-    :step="step"
-    :onSendClick="onSendClick"
-    :onBackClick="onConfirmBackClick"
-    :onOkClick="onClickOkBtn"
-    @passwordUpdate="(value) => state.password = value"
+                    :selectedCurrency="balances[0]"
+                    :receiverAddress="state.receiverAddress"
+                    :password="state.password"
+                    :amount="state.amount"
+                    :memo="state.memo"
+                    :txType="TX_TYPE.SEND"
+                    :txHash="state.txHash"
+                    :step="step"
+                    :onSendClick="onSendClick"
+                    :onBackClick="onConfirmBackClick"
+                    :onOkClick="onClickOkBtn"
+                    @passwordUpdate="(value) => state.password = value"
   />
   <!-- @TODO: Refactor to use <SendComponent /> directly -->
   <component v-else :is="SendComponent" v-model="state"/>
 </template>
 
 <script lang="ts" setup>
-import { inject, ref, computed } from 'vue'
+import { computed, inject, ref } from 'vue'
 
-import SendComponent, { SendComponentProps } from '@/components/SendComponents/SendComponent.vue'
-import ConfirmComponent, { CONFIRM_STEP, TX_TYPE } from '@/components/modals/templates/ConfirmComponent.vue'
+import SendComponent from '@/components/SendComponents/SendComponent.vue'
+import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { WalletUtils } from '@/utils/WalletUtils'
-import { transferCurrency, validateAmount, validateAddress } from '@/components/utils'
+import { transferCurrency, validateAddress, validateAmount } from '@/components/utils'
+import { CONFIRM_STEP } from '@/types/ConfirmStep'
+import { SendComponentProps } from '@/types/component/SendComponentProps'
 
 const step = ref(CONFIRM_STEP.CONFIRM)
 
-const closeModal = inject('onModalClose', () => () => {})
+const closeModal = inject('onModalClose', () => () => {
+})
 
 const balances = computed(() => useStore().state.wallet.balances)
 
 const showConfirmScreen = ref(false)
 const state = ref({
-    currentBalance: balances.value,
-    selectedCurrency: balances.value[0],
-    amount: '',
-    memo: '',
-    receiverAddress: '',
-    password: '',
-    onNextClick: () => onNextClick(),
-    receiverErrorMsg: '',
-    amountErrorMsg: '',
-    txHash: ''
-  } as SendComponentProps)
+  currentBalance: balances.value,
+  selectedCurrency: balances.value[0],
+  amount: '',
+  memo: '',
+  receiverAddress: '',
+  password: '',
+  onNextClick: () => onNextClick(),
+  receiverErrorMsg: '',
+  amountErrorMsg: '',
+  txHash: ''
+} as SendComponentProps)
 
 function onConfirmBackClick () {
   showConfirmScreen.value = false
@@ -98,7 +101,10 @@ async function onSendClick () {
 
 async function transferAmount () {
   step.value = CONFIRM_STEP.PENDING
-  const { success, txHash } = await transferCurrency(
+  const {
+    success,
+    txHash
+  } = await transferCurrency(
     state.value.selectedCurrency.balance.denom,
     state.value.amount,
     state.value.receiverAddress,

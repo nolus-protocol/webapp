@@ -35,23 +35,13 @@
 </template>
 
 <script lang="ts" setup>
-import { PropType } from 'vue'
+import { defineEmits, defineProps, PropType } from 'vue'
 import { CurrencyUtils } from '@nolus/nolusjs'
 
 import CurrencyField from '@/components/CurrencyField.vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import { assetsInfo } from '@/config/assetsInfo'
-
-export interface WithdrawFormComponentProps {
-  amountErrorMsg: string
-  receiverAddress: string
-  currentBalance: AssetBalance[]
-  selectedCurrency: AssetBalance
-  amount: string
-  password: string
-  txHash: string
-  onNextClick: () => void
-}
+import { WithdrawFormComponentProps } from '@/types/component/WithdrawFormComponentProps'
 
 defineProps({
   modelValue: {
