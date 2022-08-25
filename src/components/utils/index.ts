@@ -28,7 +28,10 @@ export const validateAmount = (amount: string, denom: string, balance: number) =
     return 'missing amount value'
   }
 
-  const { coinMinimalDenom,coinDecimals } = assetsInfo[denom]
+  const {
+    coinMinimalDenom,
+    coinDecimals
+  } = assetsInfo[denom]
   const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, coinMinimalDenom, coinDecimals)
   const walletBalance = String(balance || 0)
 
@@ -51,7 +54,7 @@ export const validateAmount = (amount: string, denom: string, balance: number) =
   return ''
 }
 
-export const transferCurrency = async (denom: string, amount: string, receiverAddress: string, memo: string = '') => {
+export const transferCurrency = async (denom: string, amount: string, receiverAddress: string, memo = '') => {
   const wallet = useStore().getters.getNolusWallet
 
   const result = {

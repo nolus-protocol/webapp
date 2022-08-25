@@ -87,7 +87,7 @@ import InputField from '@/components/InputField.vue'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { assetsInfo } from '@/config/assetsInfo'
 import { AssetBalance } from '@/store/modules/wallet/state'
-import { TX_TYPE } from '@/types/TxType'
+import { TxType } from '@/types/TxType'
 import { CONFIRM_STEP } from '@/types/ConfirmStep'
 
 interface Props {
@@ -96,7 +96,7 @@ interface Props {
   password: string
   amount: string
   memo?: string
-  txType: TX_TYPE
+  txType: TxType
   txHash: string
   step: CONFIRM_STEP
   onSendClick: () => void

@@ -1,4 +1,5 @@
 import { AssetBalance } from '@/store/modules/wallet/state'
+import { TxType } from '@/types/TxType'
 
 export interface SupplyFormComponentProps {
   amountErrorMsg: string
@@ -9,5 +10,6 @@ export interface SupplyFormComponentProps {
   currentAPR: string
   password: string
   txHash: string
+  txType: TxType
   onNextClick: () => void
 }
