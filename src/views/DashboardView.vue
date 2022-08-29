@@ -38,7 +38,7 @@
           </p>
 
           <p class="nls-font-500 text-20">
-            $32,423.22
+            {{ calculateTotalBalance() }}
           </p>
         </div>
 
@@ -79,27 +79,25 @@
     <!-- Existing Assets -->
     <div class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm">
       <!-- Top -->
-      <div class="flex flex-wrap items-baseline justify-between px-6">
+      <div class="flex flex-wrap items-baseline justify-between px-4 pt-6">
         <div v-show="showLoading" class="loader-boxed">
           <div class="loader__element"></div>
         </div>
-        <div class="left w-full md:w-1/2">
-          <p class="text-16 nls-font-500 mt-6">
+        <div class="left w-1/2">
+          <p class="text-16 nls-font-500">
             Available assets
           </p>
         </div>
-        <div class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end">
+        <div class="right w-1/2 mt-0 inline-flex justify-end">
           <div class="relative block checkbox-container">
             <div class="flex items-center w-full justify-end">
               <input
-                id="hide-small-balances"
-                v-model="hideLowerBalances"
-                aria-describedby="hide-small-balances"
-                checked="checked"
-                name="hide-small-balances"
-                type="checkbox"
-              />
-              <label for="hide-small-balances">Show small balances</label>
+                id="show-small-balances"
+                v-model="showSmallBalances"
+                aria-describedby="show-small-balances"
+                name="show-small-balances"
+                type="checkbox"/>
+              <label for="show-small-balances">Show small balances</label>
             </div>
           </div>
         </div>
@@ -178,7 +176,7 @@ export default defineComponent({
     return {
       manipulatedAssets: [] as AssetBalance[],
       mainAssets: [] as AssetBalance[],
-      hideLowerBalances: true,
+      showSmallBalances: true,
       showSendModal: false,
       showLoading: true
     }
@@ -187,13 +185,13 @@ export default defineComponent({
     '$store.state.wallet.balances' (balances) {
       this.mainAssets = balances
       this.manipulatedAssets = balances
-      if (!this.hideLowerBalances) {
+      if (!this.showSmallBalances) {
         this.filterSmallBalances()
       }
       this.showLoading = false
     },
-    hideLowerBalances () {
-      if (this.hideLowerBalances) {
+    showSmallBalances () {
+      if (!this.showSmallBalances) {
         this.filterSmallBalances()
       } else {
         this.manipulatedAssets = this.mainAssets
