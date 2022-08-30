@@ -5,7 +5,7 @@
                     :password="state.password"
                     :amount="state.amount"
                     :memo="state.memo"
-                    :txType="TX_TYPE.SEND"
+                    :txType="TxType.SEND"
                     :txHash="state.txHash"
                     :step="step"
                     :onSendClick="onSendClick"
@@ -28,6 +28,7 @@ import { WalletUtils } from '@/utils/WalletUtils'
 import { transferCurrency, validateAddress, validateAmount } from '@/components/utils'
 import { CONFIRM_STEP } from '@/types/ConfirmStep'
 import { SendComponentProps } from '@/types/component/SendComponentProps'
+import { TxType } from '@/types/TxType'
 
 const step = ref(CONFIRM_STEP.CONFIRM)
 

@@ -4,7 +4,7 @@
                     :receiverAddress="state.receiverAddress"
                     :password="state.password"
                     :amount="state.amount"
-                    :txType="TX_TYPE.WITHDRAW"
+                    :txType="TxType.WITHDRAW"
                     :txHash="state.txHash"
                     :step="step"
                     :onSendClick="onWithdrawClick"
@@ -24,6 +24,7 @@ import WithdrawFormComponent from '@/components/WithdrawComponents/WithdrawFormC
 import { useStore } from '@/store'
 import { CONFIRM_STEP } from '@/types/ConfirmStep'
 import { WithdrawFormComponentProps } from '@/types/component/WithdrawFormComponentProps'
+import { TxType } from '@/types/TxType'
 
 const { selectedAsset } = defineProps({
   selectedAsset: {
