@@ -7,7 +7,7 @@
       </div>
 
       <div class="right md:mt-0 inline-flex justify-end">
-        <button class="btn btn-secondary btn-large-secondary mr-4" v-on:click="showSendModal = true">
+        <button class="btn btn-secondary btn-large-secondary mr-4" v-on:click="openModal(DASHBOARD_ACTIONS.SEND)">
           Send / Receive
         </button>
 
@@ -115,13 +115,13 @@
             Price
           </div>
 
-          <div class="inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
-            <span class="inline-block">Balance</span>
+          <div class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
+            <span class="inline-block">Earn APR</span>
             <TooltipComponent content="Content goes here"/>
           </div>
 
-          <div class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
-            <span class="inline-block">Earnings</span>
+          <div class="inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
+            <span class="inline-block">Balance</span>
             <TooltipComponent content="Content goes here"/>
           </div>
         </div>
@@ -129,23 +129,24 @@
         <!-- Assets Container -->
         <div class="block mb-10 lg:mb-0">
           <AssetPartial
-            v-for="asset in manipulatedAssets"
-            :key="asset"
+            v-for="(asset, index) in manipulatedAssets"
+            :key="`${asset.balance.denom}-${index}`"
             :asset-info="getAssetInfo(asset.balance.denom)"
             :assetBalance="asset.balance.amount.toString()"
             :changeDirection="true"
             :denom="asset.balance.denom"
             :price="getMarketPrice(asset.balance.denom)"
+            :openModal="openModal"
             change="4.19"
-            earnings="24"
+            earnings="24.34"
           />
         </div>
       </div>
     </div>
   </div>
 
-  <Modal v-if="showSendModal" @close-modal="showSendModal = false">
-    <SendReceiveDialog />
+  <Modal v-if="showModal" @close-modal="showModal = false">
+    <component :is="modalOptions[modalAction]" :selectedAsset="selectedAsset"/>
   </Modal>
 </template>
 
@@ -161,7 +162,10 @@ import { useStore } from '@/store'
 import TooltipComponent from '@/components/TooltipComponent.vue'
 import NolusChart from '@/components/templates/utils/NolusChart.vue'
 import Modal from '@/components/modals/templates/Modal.vue'
+import SupplyWithdrawDialog from '@/components/modals/SupplyWithdrawDialog.vue'
 import SendReceiveDialog from '@/components/modals/SendReceiveDialog.vue'
+import LeaseDialog from '@/components/modals/LeaseDialog.vue'
+import { DASHBOARD_ACTIONS } from '@/types/DashboardActions'
 
 export default defineComponent({
   name: 'DashboardView',
@@ -170,19 +174,31 @@ export default defineComponent({
     TooltipComponent,
     NolusChart,
     Modal,
-    SendReceiveDialog
+    SendReceiveDialog,
+    SupplyWithdrawDialog,
+    LeaseDialog
   },
   data () {
     return {
       manipulatedAssets: [] as AssetBalance[],
       mainAssets: [] as AssetBalance[],
       showSmallBalances: true,
-      showSendModal: false,
+      showModal: false,
+      DASHBOARD_ACTIONS,
+      modalOptions: {
+        [DASHBOARD_ACTIONS.SEND]: 'SendReceiveDialog',
+        [DASHBOARD_ACTIONS.SUPPLY]: 'SupplyWithdrawDialog',
+        [DASHBOARD_ACTIONS.LEASE]: 'LeaseDialog'
+        // [DASHBOARD_ACTIONS.STAKE]: ''
+      },
+      modalAction: DASHBOARD_ACTIONS.SEND,
+      selectedAsset: '',
       showLoading: true
     }
   },
   watch: {
     '$store.state.wallet.balances' (balances) {
+      // @TODO: Fix re-rendering
       this.mainAssets = balances
       this.manipulatedAssets = balances
       if (!this.showSmallBalances) {
@@ -199,6 +215,11 @@ export default defineComponent({
     }
   },
   methods: {
+    openModal (action: DASHBOARD_ACTIONS, denom: string = '') {
+      this.selectedAsset = denom
+      this.modalAction = action
+      this.showModal = true
+    },
     getAssetInfo (denom: string) {
       return AssetUtils.getAssetInfoByAbbr(denom)
     },
