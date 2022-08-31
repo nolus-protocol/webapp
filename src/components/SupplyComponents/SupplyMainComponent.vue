@@ -4,7 +4,7 @@
                     :receiverAddress="state.receiverAddress"
                     :password="state.password"
                     :amount="state.amount"
-                    :txType="TX_TYPE.SUPPLY"
+                    :txType="TxType.SUPPLY"
                     :txHash="state.txHash"
                     :step="step"
                     :onSendClick="onSupplyClick"
@@ -17,16 +17,23 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, defineProps, inject, ref } from 'vue'
+import { computed, defineProps, inject, ref, watch } from 'vue'
 
 import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
 import SupplyFormComponent from '@/components/SupplyComponents/SupplyFormComponent.vue'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { useStore } from '@/store'
 import { WalletUtils } from '@/utils/WalletUtils'
-import { transferCurrency, validateAmount } from '@/components/utils'
+import { validateAmount } from '@/components/utils'
 import { CONFIRM_STEP } from '@/types/ConfirmStep'
 import { SupplyFormComponentProps } from '@/types/component/SupplyFormComponentProps'
+import { TxType } from '@/types/TxType'
+import { Dec, Int } from '@keplr-wallet/unit'
+import { ChainConstants } from '@nolus/nolusjs/build/constants'
+import { NolusClient } from '@nolus/nolusjs'
+import { Lease } from '@nolus/nolusjs/build/contracts'
+import { CONTRACTS } from '@/config/contracts'
+import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 
 const { selectedAsset } = defineProps({
   selectedAsset: {
@@ -46,7 +53,7 @@ const state = ref({
   password: '',
   amountErrorMsg: '',
   currentAPR: '24.21%', // @TODO: fetch APR
-  receiverAddress: 'Missing Supply address (Nolus Market)', // @TODO: Add supply address here
+  receiverAddress: CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance, // @TODO: Add supply address here
   txHash: '',
   onNextClick: () => onNextClick()
 } as SupplyFormComponentProps)
@@ -81,6 +88,7 @@ function validateInputs () {
 }
 
 async function onSupplyClick () {
+  console.log('onSupply click')
   const wallet = useStore().state.wallet.wallet
   if (!wallet) {
     if (WalletUtils.isConnectedViaMnemonic()) {
@@ -102,18 +110,48 @@ async function onSupplyClick () {
 }
 
 async function transferAmount () {
-  step.value = CONFIRM_STEP.PENDING
-  const {
-    success,
-    txHash
-  } = await transferCurrency(
-    state.value.selectedCurrency.balance.denom,
-    state.value.amount,
-    state.value.receiverAddress
-  )
-
-  step.value = success ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR
-  state.value.txHash = txHash
+  const wallet = useStore().getters.getNolusWallet
+  if (wallet && state.value.amountErrorMsg === '') {
+    step.value = CONFIRM_STEP.PENDING
+    const coinDecimals = new Int(10).pow(new Int(6).absUInt())
+    const feeAmount = new Dec('0.25').mul(new Dec(coinDecimals))
+    console.log('feeAmount: ', feeAmount.truncate().toString())
+    const DEFAULT_FEE = {
+      amount: [{
+        denom: ChainConstants.COIN_MINIMAL_DENOM,
+        amount: WalletUtils.isConnectedViaExtension() ? '0.25' : feeAmount.truncate().toString()
+      }],
+      gas: '2000000'
+    }
+    try {
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
+      const leaseClient = new Lease(cosmWasmClient)
+      const result = await leaseClient.lenderDeposit(
+        CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance,
+        wallet,
+        DEFAULT_FEE,
+        [{
+          denom: state.value.selectedCurrency.balance.denom,
+          amount: state.value.amount
+        }]
+      )
+      if (result) {
+        state.value.txHash = result.transactionHash || ''
+        step.value = CONFIRM_STEP.SUCCESS
+      }
+    } catch (e) {
+      console.log(e)
+      step.value = CONFIRM_STEP.ERROR
+    }
+  }
 }
+
+watch(() => [...state.value.amount], (currentValue, oldValue) => {
+  validateInputs()
+})
+
+watch(() => [...state.value.selectedCurrency.balance.denom.toString()], (currentValue, oldValue) => {
+  validateInputs()
+})
 
 </script>

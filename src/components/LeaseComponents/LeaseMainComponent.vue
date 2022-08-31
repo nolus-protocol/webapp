@@ -36,7 +36,7 @@ import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 import { assetsInfo } from '@/config/assetsInfo'
 import { CONFIRM_STEP } from '@/types/ConfirmStep'
-import { TX_TYPE } from '@/types/TxType'
+import { TxType } from '@/types/TxType'
 import { LeaseComponentProps } from '@/types/component/LeaseComponentProps'
 
 interface LeaseMainComponentData {
@@ -74,7 +74,7 @@ export default defineComponent({
   data () {
     return {
       step: CONFIRM_STEP.CONFIRM,
-      TX_TYPE: TX_TYPE,
+      TX_TYPE: TxType,
       showConfirmScreen: false,
       currentComponent: {} as LeaseMainComponentData,
       leaseApplyResponse: null || ({} as LeaseApply),

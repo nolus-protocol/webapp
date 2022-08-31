@@ -1,4 +1,4 @@
-export enum TX_TYPE {
+export enum TxType {
   SEND = 'Send to:',
   SWAP = 'Swap:',
   LEASE = 'Lease from:',

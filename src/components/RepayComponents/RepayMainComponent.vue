@@ -35,7 +35,7 @@ import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { assetsInfo } from '@/config/assetsInfo'
 import { RepayComponentProps } from '@/types/component/RepayComponentProps'
 import { CONFIRM_STEP } from '@/types/ConfirmStep'
-import { TX_TYPE } from '@/types/TxType'
+import { TxType } from '@/types/TxType'
 
 enum ScreenState {
   MAIN = 'RepayFormComponent',
@@ -87,7 +87,7 @@ export default defineComponent({
     return {
       step: CONFIRM_STEP.CONFIRM,
       showConfirmScreen: false,
-      TX_TYPE: TX_TYPE,
+      TX_TYPE: TxType,
       currentComponent: {} as RepayMainComponentData,
       leaseContract: {} as Lease,
       closeModal: this.onModalClose
