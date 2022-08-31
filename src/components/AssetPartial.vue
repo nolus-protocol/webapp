@@ -1,54 +1,63 @@
 <template>
   <div
     :class="[
-      'nolus-box grid gap-6 border-b border-standart py-3 px-6 items-center justify-between',
-      this.cols ? 'grid-cols-' + this.cols : 'grid-cols-3 md:grid-cols-4',
+      `nolus-box grid gap-6 ${showActionButtons ? 'row-actions' : ''} border-b border-standart py-3 px-6 items-center justify-between`,
+      cols ? 'grid-cols-' + cols : 'grid-cols-3 md:grid-cols-4',
     ]"
   >
     <!-- Ticker -->
     <div class="inline-flex items-center">
       <img
-        v-if="this.assetInfo.coinIcon"
-        :src="require('@/assets/icons/coins/' + this.assetInfo.coinIcon)"
+        v-if="assetInfo.coinIcon"
+        :src="require('@/assets/icons/coins/' + assetInfo.coinIcon)"
         class="inline-block m-0 mr-4"
         height="32"
         width="32"
       />
       <div class="inline-block">
         <p class="text-primary nls-font-500 text-18 text-left uppercase m-0">
-          {{ this.assetInfo.coinAbbreviation.toUpperCase() }}
+          {{ assetInfo.coinAbbreviation.toUpperCase() }}
         </p>
         <p class="text-dark-grey text-12 nls-font-400 text-left capitalize m-0">
-          {{ this.assetInfo.chainName }}
+          {{ assetInfo.chainName }}
         </p>
       </div>
     </div>
 
     <!-- Price -->
-    <div v-if="this.price" class="block">
+    <div v-if="price" class="block">
       <p class="text-primary nls-font-500 text-16 text-right m-0">
-        {{ formatPrice(this.price) }}
+        {{ formatPrice(price) }}
       </p>
       <div class="flex items-center justify-end text-right m-0">
         <img
           :src="
             require('@/assets/icons/change-' +
-              (this.changeDirection ? 'positive' : 'negative') +
+              (changeDirection ? 'positive' : 'negative') +
               '.svg')
           "
           class="inline-block m-0 mr-2"
         />
         <span class="inline-block nls-font-400 text-12">
-          {{ this.change }}%
+          {{ change }}%
         </span>
       </div>
     </div>
 
+    <!-- Earnings -->
+    <div v-if="earnings" class="hidden md:block">
+      <div
+        class="flex items-center justify-end text-primary nls-font-400 text-small-copy text-right m-0"
+      >
+        {{ earnings }}%
+      </div>
+    </div>
+
     <!-- Balance -->
-    <div class="block">
+    <div class="block info-show">
       <p class="text-primary nls-font-500 text-16 text-right m-0">
         {{
-          calculateBalance(this.price, this.assetBalance, this.denom)
+          calculateBalance(price, assetBalance, denom)
         }}
       </p>
       <div
@@ -56,7 +65,7 @@
       >
         {{
           convertMinimalDenomToDenom(
-            this.assetBalance,
+            assetBalance,
             assetInfo.coinMinimalDenom,
             assetInfo.coinDenom,
             assetInfo.coinDecimals
@@ -64,82 +73,75 @@
         }}
       </div>
     </div>
-
-    <!-- Earnings -->
-    <div v-if="this.earnings" class="hidden md:block">
-      <div
-        class="flex items-center justify-end text-primary nls-font-400 text-small-copy text-right m-0"
+    <div class="flex justify-end nls-btn-show">
+      <button
+        v-if="canLease"
+        class="btn btn-secondary btn-medium-secondary mr-1"
+        @click="openModal(DASHBOARD_ACTIONS.LEASE, denom)"
       >
-        Up to {{ this.earnings }}% APY
-      </div>
+        {{ $t('message.lease') }}
+      </button>
+      <button
+        v-if="canSupply"
+        class="btn btn-secondary btn-medium-secondary"
+        @click="openModal(DASHBOARD_ACTIONS.SUPPLY, denom)"
+      >
+        {{ $t('message.supply') }}
+      </button>
     </div>
   </div>
 </template>
 
-<script lang="ts">
-import { PropType } from 'vue'
+<script lang="ts" setup>
+import { computed } from 'vue'
 import { Coin, Int } from '@keplr-wallet/unit'
 import { CurrencyUtils } from '@nolus/nolusjs'
 
 import { assetsInfo } from '@/config/assetsInfo'
 import { AssetInfo } from '@/types/AssetInfo'
+import { DASHBOARD_ACTIONS } from '@/types/DashboardActions'
 
-export default {
-  name: 'AssetPartial',
-  props: {
-    assetInfo: {
-      type: Object as PropType<AssetInfo>
-    },
-    price: {
-      type: String
-    },
-    change: {
-      type: String
-    },
-    changeDirection: {
-      type: Boolean
-    },
-    balance: {
-      type: String
-    },
-    assetBalance: {
-      type: String
-    },
-    earnings: {
-      type: String
-    },
-    cols: {
-      type: Number
-    },
-    denom: {
-      type: String
-    }
-  },
-  data () {
-    return {}
-  },
-  methods: {
-    formatPrice (price: string) {
-      return CurrencyUtils.formatPrice(price)
-    },
-    convertMinimalDenomToDenom (
-      tokenAmount: string,
-      minimalDenom: string,
-      denom: string,
-      decimals: number
-    ) {
-      return CurrencyUtils.convertMinimalDenomToDenom(
-        tokenAmount,
-        minimalDenom,
-        denom,
-        decimals
-      )
-    },
-    calculateBalance (price: string, tokenAmount: string, denom: string) {
-      const tokenDecimals = assetsInfo[denom].coinDecimals
-      const coin = new Coin(denom, new Int(tokenAmount))
-      return CurrencyUtils.calculateBalance(price, coin, tokenDecimals)
-    }
-  }
+interface Props {
+  assetInfo: AssetInfo
+  price: string
+  change: string
+  changeDirection: boolean
+  assetBalance: string
+  earnings: string
+  cols?: number
+  denom: string
+  openModal: (action: DASHBOARD_ACTIONS, denom: string) => void
+}
+
+const { assetBalance, openModal } = defineProps<Props>()
+
+// @TODO: Determine conditions
+const canLease = computed(() => Number(assetBalance) > 0)
+const canSupply = computed(() => Number(assetBalance) > 0)
+
+const showActionButtons = computed(() => canLease.value || canSupply.value)
+
+function formatPrice (price: string) {
+  return CurrencyUtils.formatPrice(price)
+}
+
+function convertMinimalDenomToDenom (
+  tokenAmount: string,
+  minimalDenom: string,
+  denom: string,
+  decimals: number
+) {
+  return CurrencyUtils.convertMinimalDenomToDenom(
+    tokenAmount,
+    minimalDenom,
+    denom,
+    decimals
+  )
+}
+
+function calculateBalance (price: string, tokenAmount: string, denom: string) {
+  const tokenDecimals = assetsInfo[denom].coinDecimals
+  const coin = new Coin(denom, new Int(tokenAmount))
+  return CurrencyUtils.calculateBalance(price, coin, tokenDecimals)
 }
 </script>
