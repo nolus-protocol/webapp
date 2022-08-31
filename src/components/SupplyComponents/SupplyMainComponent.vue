@@ -31,8 +31,8 @@ import { TxType } from '@/types/TxType'
 import { Dec, Int } from '@keplr-wallet/unit'
 import { ChainConstants } from '@nolus/nolusjs/build/constants'
 import { NolusClient } from '@nolus/nolusjs'
-import { Lease } from '@nolus/nolusjs/build/contracts'
-import { CONTRACTS } from '@/config/contracts'
+import { Lpp } from '@nolus/nolusjs/build/contracts'
+import { lppContracts } from '@/config/contracts'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 
 const { selectedAsset } = defineProps({
@@ -53,7 +53,7 @@ const state = ref({
   password: '',
   amountErrorMsg: '',
   currentAPR: '24.21%', // @TODO: fetch APR
-  receiverAddress: CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance, // @TODO: Add supply address here
+  receiverAddress: lppContracts[EnvNetworkUtils.getStoredNetworkName()][selectedCurrency.value.balance.denom].instance,
   txHash: '',
   onNextClick: () => onNextClick()
 } as SupplyFormComponentProps)
@@ -64,6 +64,10 @@ const closeModal = inject('onModalClose', () => () => {
 })
 
 function onNextClick () {
+  if (!state.value.receiverAddress) {
+    // TODO show error dialog
+    return
+  }
   validateInputs()
 
   if (!state.value.amountErrorMsg) {
@@ -124,9 +128,9 @@ async function transferAmount () {
     }
     try {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-      const leaseClient = new Lease(cosmWasmClient)
-      const result = await leaseClient.lenderDeposit(
-        CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance,
+      const lppClient = new Lpp(cosmWasmClient)
+      const result = await lppClient.lenderDeposit(
+        lppContracts[EnvNetworkUtils.getStoredNetworkName()][state.value.selectedCurrency.balance.denom].instance,
         wallet,
         DEFAULT_FEE,
         [{
@@ -150,6 +154,7 @@ watch(() => [...state.value.amount], (currentValue, oldValue) => {
 
 watch(() => [...state.value.selectedCurrency.balance.denom.toString()], (currentValue, oldValue) => {
   validateInputs()
+  state.value.receiverAddress = lppContracts[EnvNetworkUtils.getStoredNetworkName()][state.value.selectedCurrency.balance.denom]?.instance || ''
 })
 
 </script>

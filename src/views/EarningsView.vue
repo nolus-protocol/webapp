@@ -108,7 +108,7 @@ import { defineComponent } from 'vue'
 import { Lpp } from '@nolus/nolusjs/build/contracts'
 import { NolusClient } from '@nolus/nolusjs'
 
-import { CONTRACTS } from '@/config/contracts'
+import { lppContracts } from '@/config/contracts'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import EarnAsset from '@/components/EarnAsset.vue'
@@ -146,7 +146,7 @@ export default defineComponent({
   async mounted () {
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
     const lppClient = new Lpp(cosmWasmClient)
-    const result = await lppClient.getLppConfig(CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance)
+    const result = await lppClient.getLppConfig(lppContracts[EnvNetworkUtils.getStoredNetworkName()].uusdc.instance)
     this.availableCurrencies.push(result.lpn_symbol)
   },
   methods: {
