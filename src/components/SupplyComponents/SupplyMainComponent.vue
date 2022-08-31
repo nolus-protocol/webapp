@@ -4,7 +4,7 @@
                     :receiverAddress="state.receiverAddress"
                     :password="state.password"
                     :amount="state.amount"
-                    :txType="state.txType"
+                    :txType="TxType.SUPPLY"
                     :txHash="state.txHash"
                     :step="step"
                     :onSendClick="onSupplyClick"
@@ -55,7 +55,6 @@ const state = ref({
   currentAPR: '24.21%', // @TODO: fetch APR
   receiverAddress: CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance, // @TODO: Add supply address here
   txHash: '',
-  txType: TxType.SUPPLY,
   onNextClick: () => onNextClick()
 } as SupplyFormComponentProps)
 
