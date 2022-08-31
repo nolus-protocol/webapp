@@ -18,19 +18,18 @@
     </div>
 
     <!-- Wallet Body -->
-    <div
-      class="box-open-body bg-white p-4 lg:p-6 border-b border-standart text-left"
-    >
-      <div class="block">
+    <div class="box-open-body bg-white p-4 lg:p-6 border-b border-standart text-left">
+      <!-- Language -->
+      <!-- <div class="block">
         <Picker
           :default-option="{ label: 'English', value: 'en' }"
           :disabled="true"
           :options="[{ value: 'en', label: 'English' }]"
           label="Language"
         />
-      </div>
+      </div> -->
 
-      <div class="block mt-3">
+      <div class="block">
         <Picker
           :default-option="{ label: 'USD', value: 'USD' }"
           :disabled="true"
@@ -54,12 +53,9 @@
     </div>
 
     <!-- Wallet Actions -->
-    <div class="box-open-actions p-4 lg:p-6 bg-white">
+    <div class="box-open-actions p-4 lg:pr-6 bg-white">
       <div class="flex justify-end">
-        <button
-          class="btn btn-secondary btn-large-secondary"
-          v-on:click="onClickDisconnect"
-        >
+        <button class="btn btn-secondary btn-large-secondary" v-on:click="onClickDisconnect">
           Disconnect
         </button>
       </div>

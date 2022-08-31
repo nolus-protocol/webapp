@@ -1,58 +1,103 @@
 <template>
-  <div class="col-span-12 mb-sm-nolus-70 md:pr-[166px]">
+  <div class="col-span-12 lg:mr-[166px]">
     <!-- Header -->
-    <div class="table-header hidden mt-[25px] flex-wrap items-center justify-between lg:px-0 md:flex">
+    <div class="table-header flex mt-[25px] flex-wrap items-center justify-between lg:px-0">
       <div class="left">
-        <h1 class="text-20 nls-font-700 text-primary m-0">Assets</h1>
+        <h1 class="text-20 nls-font-700 text-primary m-0 pb-3 lg:pb-0">Assets</h1>
       </div>
+
       <div class="right md:mt-0 inline-flex justify-end">
         <button class="btn btn-secondary btn-large-secondary mr-4" v-on:click="showSendModal = true">
           Send / Receive
         </button>
+
         <button class="btn btn-primary btn-large-primary">
           Buy Tokens
         </button>
       </div>
     </div>
     <!-- Wallet -->
-    <div class="flex balance-box items-center justify-start bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm py-5 px-6">
+    <div class="flex balance-box items-center justify-start bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6">
       <div class="left inline-block w-1/3">
-        <p class="nls-font-500 text-16 text-primary mb-nolus-6 m-0">
-          Wallet Balance
+        <p class="nls-font-500 text-16 text-primary">
+          Total Assets
         </p>
-        <p class="nls-font-700 text-48 text-primary m-0 mt-1">
-          {{ calculateTotalBalance() }}
+        <p class="nls-font-700 text-32 lg:text-40 text-primary">
+          $123,423.00
         </p>
+
+
+      <div class="separator-line flex py-4 lg:hidden"></div>
       </div>
-      <div class="right inline-block w-2/3">
-        <NolusChart/>
+
+
+      <div class="right flex w-2/3 -mt-8 lg:mt-0">
+        <div class="pt-3 lg:pl-6">
+          <p class="nls-font-400 text-12 text-dark-grey">
+            Available Assets
+          </p>
+
+          <p class="nls-font-500 text-20">
+            {{ calculateTotalBalance() }}
+          </p>
+        </div>
+
+        <div class="pt-3 pl-12 lg:pl-8">
+          <p class="nls-font-400 text-12 text-dark-grey">
+            Active Leases
+          </p>
+
+          <p class="nls-font-500 text-20">
+            $32,423.22
+          </p>
+        </div>
+
+        <!-- HIDDEN ON MOBILE -->
+        <div class="pt-3 pl-12 lg:pl-8 hidden lg:block">
+          <p class="nls-font-400 text-12 text-dark-grey">
+            Supplied & Staked
+          </p>
+
+          <p class="nls-font-500 text-20">
+            $32,423.22
+          </p>
+        </div>
+
+      <!-- HIDDEN ON DESKTOP -->
       </div>
+        <div class="pt-4 block lg:hidden">
+          <p class="nls-font-400 text-12 text-dark-grey">
+            Supplied & Staked
+          </p>
+
+          <p class="nls-font-500 text-20">
+            $32,423.22
+          </p>
+        </div>
     </div>
 
     <!-- Existing Assets -->
     <div class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm">
       <!-- Top -->
-      <div class="flex flex-wrap items-baseline justify-between px-6">
+      <div class="flex flex-wrap items-baseline justify-between px-4 pt-6">
         <div v-show="showLoading" class="loader-boxed">
           <div class="loader__element"></div>
         </div>
-        <div class="left w-full md:w-1/2">
-          <p class="text-16 nls-font-500 mt-6">
-            Existing assets
+        <div class="left w-1/2">
+          <p class="text-16 nls-font-500">
+            Available assets
           </p>
         </div>
-        <div class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end">
+        <div class="right w-1/2 mt-0 inline-flex justify-end">
           <div class="relative block checkbox-container">
             <div class="flex items-center w-full justify-end">
               <input
-                id="hide-small-balances"
-                v-model="hideLowerBalances"
-                aria-describedby="hide-small-balances"
-                checked="checked"
-                name="hide-small-balances"
-                type="checkbox"
-              />
-              <label for="hide-small-balances">Hide small balances</label>
+                id="show-small-balances"
+                v-model="showSmallBalances"
+                aria-describedby="show-small-balances"
+                name="show-small-balances"
+                type="checkbox"/>
+              <label for="show-small-balances">Show small balances</label>
             </div>
           </div>
         </div>
@@ -82,7 +127,7 @@
         </div>
 
         <!-- Assets Container -->
-        <div class="block pb-10">
+        <div class="block mb-10 lg:mb-0">
           <AssetPartial
             v-for="asset in manipulatedAssets"
             :key="asset"
@@ -131,7 +176,7 @@ export default defineComponent({
     return {
       manipulatedAssets: [] as AssetBalance[],
       mainAssets: [] as AssetBalance[],
-      hideLowerBalances: false,
+      showSmallBalances: true,
       showSendModal: false,
       showLoading: true
     }
@@ -140,13 +185,13 @@ export default defineComponent({
     '$store.state.wallet.balances' (balances) {
       this.mainAssets = balances
       this.manipulatedAssets = balances
-      if (this.hideLowerBalances) {
+      if (!this.showSmallBalances) {
         this.filterSmallBalances()
       }
       this.showLoading = false
     },
-    hideLowerBalances () {
-      if (this.hideLowerBalances) {
+    showSmallBalances () {
+      if (!this.showSmallBalances) {
         this.filterSmallBalances()
       } else {
         this.manipulatedAssets = this.mainAssets
