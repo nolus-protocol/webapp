@@ -23,7 +23,7 @@ export const CONTRACTS: ContractConfig = {
   }
 }
 
-export const lppContracts: ContractConfig = {
+export const LPP_CONSTANTS: ContractConfig = {
   devnet: {
     uusdc: {
       instance: 'nolus1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sqaa3c5',

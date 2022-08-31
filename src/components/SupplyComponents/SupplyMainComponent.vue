@@ -32,7 +32,7 @@ import { Dec, Int } from '@keplr-wallet/unit'
 import { ChainConstants } from '@nolus/nolusjs/build/constants'
 import { NolusClient } from '@nolus/nolusjs'
 import { Lpp } from '@nolus/nolusjs/build/contracts'
-import { lppContracts } from '@/config/contracts'
+import { LPP_CONSTANTS } from '@/config/contracts'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 
 const { selectedAsset } = defineProps({
@@ -53,7 +53,7 @@ const state = ref({
   password: '',
   amountErrorMsg: '',
   currentAPR: '24.21%', // @TODO: fetch APR
-  receiverAddress: lppContracts[EnvNetworkUtils.getStoredNetworkName()][selectedCurrency.value.balance.denom].instance,
+  receiverAddress: LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][selectedCurrency.value.balance.denom].instance,
   txHash: '',
   onNextClick: () => onNextClick()
 } as SupplyFormComponentProps)
@@ -130,7 +130,7 @@ async function transferAmount () {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
       const lppClient = new Lpp(cosmWasmClient)
       const result = await lppClient.lenderDeposit(
-        lppContracts[EnvNetworkUtils.getStoredNetworkName()][state.value.selectedCurrency.balance.denom].instance,
+        LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][state.value.selectedCurrency.balance.denom].instance,
         wallet,
         DEFAULT_FEE,
         [{
@@ -154,7 +154,7 @@ watch(() => [...state.value.amount], (currentValue, oldValue) => {
 
 watch(() => [...state.value.selectedCurrency.balance.denom.toString()], (currentValue, oldValue) => {
   validateInputs()
-  state.value.receiverAddress = lppContracts[EnvNetworkUtils.getStoredNetworkName()][state.value.selectedCurrency.balance.denom]?.instance || ''
+  state.value.receiverAddress = LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][state.value.selectedCurrency.balance.denom]?.instance || ''
 })
 
 </script>
