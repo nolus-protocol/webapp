@@ -23,14 +23,14 @@
   </div>
 
   <Modal v-if="showLeaseModal" @close-modal="showLeaseModal = false">
-    <LeaseDialog />
+    <LeaseDialog/>
   </Modal>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { NolusClient } from '@nolus/nolusjs'
-import { Lease, LeaseStatus } from '@nolus/nolusjs/build/contracts'
+import { Lease, Leaser, LeaseStatus } from '@nolus/nolusjs/build/contracts'
 
 import LeaseDialog from '@/components/modals/LeaseDialog.vue'
 import Modal from '@/components/modals/templates/Modal.vue'
@@ -55,8 +55,9 @@ export default defineComponent({
   },
   async mounted () {
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
+    const leaserClient = new Leaser(cosmWasmClient)
     const leaseClient = new Lease(cosmWasmClient)
-    const openedLeases: string[] = await leaseClient.getCurrentOpenLeases(
+    const openedLeases: string[] = await leaserClient.getCurrentOpenLeases(
       CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance,
       WalletManager.getWalletAddress()
     )
