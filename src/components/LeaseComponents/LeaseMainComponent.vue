@@ -21,7 +21,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { StarIcon } from '@heroicons/vue/solid'
-import { Lease, LeaseApply } from '@nolus/nolusjs/build/contracts'
+import { LeaseApply, Leaser } from '@nolus/nolusjs/build/contracts'
 import { CurrencyUtils, NolusClient } from '@nolus/nolusjs'
 import { ChainConstants } from '@nolus/nolusjs/build/constants'
 import { Coin, Dec, Int } from '@keplr-wallet/unit'
@@ -61,7 +61,7 @@ export default defineComponent({
   async mounted () {
     const balances = useStore().state.wallet.balances
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-    this.leaseContract = new Lease(cosmWasmClient)
+    this.leaserContract = new Leaser(cosmWasmClient)
     this.currentComponent = {
       is: 'LeaseFormComponent',
       props: this.initProps()
@@ -78,7 +78,7 @@ export default defineComponent({
       showConfirmScreen: false,
       currentComponent: {} as LeaseMainComponentData,
       leaseApplyResponse: null || ({} as LeaseApply),
-      leaseContract: {} as Lease,
+      leaserContract: {} as Leaser,
       closeModal: this.onModalClose
     }
   },
@@ -105,8 +105,8 @@ export default defineComponent({
         this.currentComponent.props.downPayment = new Dec(downPaymentAmount).truncate().toString()
 
         if (this.isDownPaymentAmountValid()) {
-          if (this.leaseContract) {
-            const makeLeaseApplyResp = await this.leaseContract.makeLeaseApply(
+          if (this.leaserContract) {
+            const makeLeaseApplyResp = await this.leaserContract.makeLeaseApply(
               CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance,
               this.currentComponent.props.downPayment,
               this.currentComponent.props.selectedDownPaymentCurrency.balance.denom

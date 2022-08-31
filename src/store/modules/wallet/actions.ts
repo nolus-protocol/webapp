@@ -8,7 +8,7 @@ import { LedgerSigner } from '@cosmjs/ledger-amino'
 import { ExecuteResult } from '@cosmjs/cosmwasm-stargate'
 import { AssetUtils, KeyUtils, NolusClient, NolusWallet, NolusWalletFactory } from '@nolus/nolusjs'
 import { ChainConstants } from '@nolus/nolusjs/build/constants'
-import { Lease } from '@nolus/nolusjs/build/contracts'
+import { Lease, Leaser } from '@nolus/nolusjs/build/contracts'
 import { CurrencyUtils } from '@nolus/nolusjs/build/utils/CurrencyUtils'
 import OpenLogin from '@toruslabs/openlogin'
 
@@ -360,8 +360,8 @@ export const actions: ActionTree<State, RootState> & Actions = {
   }): Promise<ExecuteResult> {
     const wallet = getters.getNolusWallet as NolusWallet
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-    const leaseClient = new Lease(cosmWasmClient)
-    const result = await leaseClient.openLease(CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance, wallet, payload.denom, payload.fee, payload.funds)
+    const leaserClient = new Leaser(cosmWasmClient)
+    const result = await leaserClient.openLease(CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance, wallet, payload.denom, payload.fee, payload.funds)
     return result
   },
   async [WalletActionTypes.REPAY_LEASE] ({

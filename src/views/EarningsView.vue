@@ -35,7 +35,7 @@
                   <label for="show-small-balances">Show small balances</label>
                 </div>
               </div>
-          </div>
+            </div>
           </div>
           <!-- Assets -->
           <div class="block mt-6 md:mt-[25px]">
@@ -87,9 +87,10 @@
           <div class="block mt-4">
             <!-- Assets Container -->
             <!-- @TODO: Implement rewards -->
-            <EarnReward :cols="cols" :icon="require('@/assets/icons/coins/btc.svg')" asset="BTC" reward="~$5" />
-            <EarnReward :cols="cols" :icon="require('@/assets/icons/coins/btc.svg')" asset="BTC" reward="~$5" />
-            <EarnReward :cols="cols" :icon="require('@/assets/icons/coins/btc.svg')" asset="BTC" reward="~$5" :loading="true" />
+            <EarnReward :cols="cols" :icon="require('@/assets/icons/coins/btc.svg')" asset="BTC" reward="~$5"/>
+            <EarnReward :cols="cols" :icon="require('@/assets/icons/coins/btc.svg')" asset="BTC" reward="~$5"/>
+            <EarnReward :cols="cols" :icon="require('@/assets/icons/coins/btc.svg')" asset="BTC" reward="~$5"
+                        :loading="true"/>
             <!-- Assets Container -->
           </div>
         </div>
@@ -98,13 +99,13 @@
   </div>
 
   <Modal v-if="showSupplyWithdrawDialog" @close-modal="showSupplyWithdrawDialog = false">
-    <SupplyWithdrawDialog :selectedAsset="selectedAsset" />
+    <SupplyWithdrawDialog :selectedAsset="selectedAsset"/>
   </Modal>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { Lease } from '@nolus/nolusjs/build/contracts'
+import { Lpp } from '@nolus/nolusjs/build/contracts'
 import { NolusClient } from '@nolus/nolusjs'
 
 import { CONTRACTS } from '@/config/contracts'
@@ -144,8 +145,8 @@ export default defineComponent({
   },
   async mounted () {
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-    const leaseClient = new Lease(cosmWasmClient)
-    const result = await leaseClient.getLppConfig(CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance)
+    const lppClient = new Lpp(cosmWasmClient)
+    const result = await lppClient.getLppConfig(CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance)
     this.availableCurrencies.push(result.lpn_symbol)
   },
   methods: {

@@ -115,7 +115,6 @@ async function transferAmount () {
     step.value = CONFIRM_STEP.PENDING
     const coinDecimals = new Int(10).pow(new Int(6).absUInt())
     const feeAmount = new Dec('0.25').mul(new Dec(coinDecimals))
-    console.log('feeAmount: ', feeAmount.truncate().toString())
     const DEFAULT_FEE = {
       amount: [{
         denom: ChainConstants.COIN_MINIMAL_DENOM,
@@ -140,7 +139,6 @@ async function transferAmount () {
         step.value = CONFIRM_STEP.SUCCESS
       }
     } catch (e) {
-      console.log(e)
       step.value = CONFIRM_STEP.ERROR
     }
   }
