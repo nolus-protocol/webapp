@@ -58,8 +58,8 @@
 
             <!-- Assets Container -->
             <EarnAsset
-              v-for="asset in balances"
-              :key="asset"
+              v-for="(asset, index) in balances"
+              :key="`${asset.balance.denom}-${index}`"
               :asset="asset"
               :openSupplyWithdraw="() => openSupplyWithdrawDialog(asset.balance.denom)"
               :cols="cols"/>

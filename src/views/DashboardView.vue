@@ -198,7 +198,6 @@ export default defineComponent({
   },
   watch: {
     '$store.state.wallet.balances' (balances) {
-      // @TODO: Fix re-rendering
       this.mainAssets = balances
       this.manipulatedAssets = balances
       if (!this.showSmallBalances) {

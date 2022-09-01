@@ -95,7 +95,6 @@ export default defineComponent({
   },
   watch: {
     '$store.state.wallet.balances' (balances: AssetBalance[]) {
-      // @TODO: Fix constant re-render
       if (balances) {
         this.currentComponent.props.currentBalance = balances
         if (!this.currentComponent.props.selectedCurrency) {
