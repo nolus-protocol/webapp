@@ -1,6 +1,7 @@
 import { AssetBalance } from '@/store/modules/wallet/state'
 
 export interface WithdrawFormComponentProps {
+  currentDepositBalance: AssetBalance
   amountErrorMsg: string
   receiverAddress: string
   currentBalance: AssetBalance[]

@@ -1,6 +1,6 @@
 <template>
   <ConfirmComponent v-if="showConfirmScreen"
-                    :selectedCurrency="balances[0]"
+                    :selectedCurrency="state.selectedCurrency"
                     :receiverAddress="state.receiverAddress"
                     :password="state.password"
                     :amount="state.amount"
@@ -17,7 +17,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, defineProps, inject, ref } from 'vue'
+import { computed, defineProps, inject, onMounted, ref, watch } from 'vue'
 
 import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
 import WithdrawFormComponent from '@/components/WithdrawComponents/WithdrawFormComponent.vue'
@@ -25,6 +25,16 @@ import { useStore } from '@/store'
 import { CONFIRM_STEP } from '@/types/ConfirmStep'
 import { WithdrawFormComponentProps } from '@/types/component/WithdrawFormComponentProps'
 import { TxType } from '@/types/TxType'
+import { Coin, Dec, Int } from '@keplr-wallet/unit'
+import { ChainConstants } from '@nolus/nolusjs/build/constants'
+import { WalletUtils } from '@/utils/WalletUtils'
+import { NolusClient } from '@nolus/nolusjs'
+import { Lpp } from '@nolus/nolusjs/build/contracts'
+import { LPP_CONSTANTS } from '@/config/contracts'
+import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
+import { WalletActionTypes } from '@/store/modules/wallet/action-types'
+import { validateAmount } from '@/components/utils'
+import { AssetBalance } from '@/store/modules/wallet/state'
 
 const { selectedAsset } = defineProps({
   selectedAsset: {
@@ -39,9 +49,10 @@ const selectedCurrency = computed(() => balances.value.find(asset => asset.balan
 
 const showConfirmScreen = ref(false)
 const state = ref({
+  currentDepositBalance: {} as AssetBalance,
   currentBalance: balances.value,
   selectedCurrency: selectedCurrency.value,
-  receiverAddress: 'Withdraw address', // @TODO: Add withdraw address
+  receiverAddress: LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][selectedCurrency.value.balance.denom].instance,
   amount: '',
   password: '',
   amountErrorMsg: '',
@@ -52,12 +63,51 @@ const state = ref({
   onClickOkBtn: () => onClickOkBtn()
 } as WithdrawFormComponentProps)
 
+const fetchDepositBalance = async () => {
+  try {
+    const walletAddress = useStore().state.wallet.wallet?.address
+    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
+    const lppClient = new Lpp(cosmWasmClient)
+    const depositBalance = await lppClient.getLenderDeposit(
+      state.value.receiverAddress,
+      walletAddress as string
+    )
+
+    state.value.currentDepositBalance = {
+      balance: new Coin(state.value.selectedCurrency.balance.denom, new Int(depositBalance.balance))
+    } as AssetBalance
+
+    console.log('deposit balance: ', state.value.currentDepositBalance)
+  } catch (e) {
+    console.log('Error: ', e)
+    // TODO show error
+  }
+}
+
+onMounted(async () => {
+  fetchDepositBalance()
+})
+
+watch(() => [...state.value.amount], (currentValue, oldValue) => {
+  validateInputs()
+})
+
+watch(() => [...state.value.selectedCurrency.balance.denom.toString()], (currentValue, oldValue) => {
+  validateInputs()
+  fetchDepositBalance()
+  state.value.receiverAddress = LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][state.value.selectedCurrency.balance.denom]?.instance || ''
+})
+
 const step = ref(CONFIRM_STEP.CONFIRM)
 
 const closeModal = inject('onModalClose', () => () => {
 })
 
 function onNextClick () {
+  if (!state.value.receiverAddress) {
+    // TODO show error dialog
+    return
+  }
   validateInputs()
 
   if (!state.value.amountErrorMsg) {
@@ -74,18 +124,66 @@ function onClickOkBtn () {
 }
 
 function validateInputs () {
+  state.value.amountErrorMsg = validateAmount(
+    state.value.amount,
+    state.value.selectedCurrency.balance.denom,
+    Number(state.value.currentDepositBalance.balance.amount)
+  )
 }
 
 async function onWithdrawClick () {
-  step.value = CONFIRM_STEP.PENDING
-  // @TODO: Implement withdraw
+  const wallet = useStore().state.wallet.wallet
+  if (!wallet) {
+    if (WalletUtils.isConnectedViaMnemonic()) {
+      useStore()
+        .dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, {
+          password: state.value.password
+        })
+        .then(() => {
+          transferAmount()
+        })
+    } else {
+      useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
+      await transferAmount()
+    }
+  } else {
+    transferAmount()
+  }
+}
 
-  // Mocked request
-  setTimeout(() => {
-    const success = false
-    const txHash = 'test hash'
-    step.value = success ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR
-    state.value.txHash = txHash
-  }, 3000)
+async function transferAmount () {
+  const wallet = useStore().getters.getNolusWallet
+  if (wallet && state.value.amountErrorMsg === '') {
+    step.value = CONFIRM_STEP.PENDING
+    const coinDecimals = new Int(10).pow(new Int(6).absUInt())
+    const feeAmount = new Dec('0.25').mul(new Dec(coinDecimals))
+    const DEFAULT_FEE = {
+      amount: [{
+        denom: ChainConstants.COIN_MINIMAL_DENOM,
+        amount: WalletUtils.isConnectedViaExtension() ? '0.25' : feeAmount.truncate().toString()
+      }],
+      gas: '2000000'
+    }
+    try {
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
+      const lppClient = new Lpp(cosmWasmClient)
+      const result = await lppClient.burnDeposit(
+        LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][state.value.selectedCurrency.balance.denom].instance,
+        wallet,
+        state.value.amount,
+        DEFAULT_FEE,
+        [{
+          denom: state.value.selectedCurrency.balance.denom,
+          amount: state.value.amount
+        }]
+      )
+      if (result) {
+        state.value.txHash = result.transactionHash || ''
+        step.value = CONFIRM_STEP.SUCCESS
+      }
+    } catch (e) {
+      step.value = CONFIRM_STEP.ERROR
+    }
+  }
 }
 </script>

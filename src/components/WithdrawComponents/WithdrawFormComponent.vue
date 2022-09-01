@@ -4,7 +4,7 @@
       class="flex py-3 px-4 bg-light-grey radius-light text-left text-14 nls-font-400 text-primary">
       <span class="text-14 nls-font-500"> Available to withdraw:</span>
       <a class="text-secondary  text-14 nls-font-700 underline ml-2" href="#">
-        {{ formatCurrentBalance(modelValue.selectedCurrency) }}
+        {{ formatCurrentBalance(modelValue.currentDepositBalance) }}
       </a>
     </div>
     <div class="block text-left mt-[25px]">
