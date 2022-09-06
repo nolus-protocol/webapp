@@ -19,29 +19,24 @@
           {{ assetInfo.coinAbbreviation.toUpperCase() }}
         </p>
         <p class="text-dark-grey text-12 nls-font-400 text-left capitalize m-0">
-          {{ assetInfo.chainName }}
-        </p>
-      </div>
-    </div>
-
-    <!-- Price -->
-    <div v-if="price" class="block">
-      <p class="text-primary nls-font-500 text-16 text-right m-0">
-        {{ formatPrice(price) }}
-      </p>
-      <div class="flex items-center justify-end text-right m-0">
-        <img
+          <img
           :src="
             require('@/assets/icons/change-' +
               (changeDirection ? 'positive' : 'negative') +
               '.svg')
           "
-          class="inline-block m-0 mr-2"
-        />
-        <span class="inline-block nls-font-400 text-12">
-          {{ change }}%
-        </span>
+          class="inline-block m-0"
+          />
+          {{ formatPrice(price) }}
+        </p>
       </div>
+    </div>
+
+    <!-- Lease up to -->
+    <div class="block">
+      <p class="text-primary nls-font-500 text-14 text-right m-0">
+        {{ formatLeaseUpTo() }}
+      </p>
     </div>
 
     <!-- Earnings -->
@@ -113,7 +108,7 @@ interface Props {
   openModal: (action: DASHBOARD_ACTIONS, denom: string) => void
 }
 
-const { assetBalance, openModal } = defineProps<Props>()
+const { assetBalance, assetInfo, openModal } = defineProps<Props>()
 
 // @TODO: Determine conditions
 const canLease = computed(() => Number(assetBalance) > 0)
@@ -123,6 +118,19 @@ const showActionButtons = computed(() => canLease.value || canSupply.value)
 
 function formatPrice (price: string) {
   return CurrencyUtils.formatPrice(price)
+}
+
+function formatLeaseUpTo () {
+  // @TODO: Add logic for leaseUpToAmount
+  const leaseUpToAmount = (Number(assetBalance) * 1.5)
+  const formattedAmount = convertMinimalDenomToDenom(
+    String(leaseUpToAmount),
+    assetInfo.coinMinimalDenom,
+    assetInfo.coinDenom,
+    assetInfo.coinDecimals
+  )
+
+  return leaseUpToAmount ?  formattedAmount : '150.00%'
 }
 
 function convertMinimalDenomToDenom (
