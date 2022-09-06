@@ -49,6 +49,7 @@
     "tx-id": "Transaction id:",
     "ok": "Ok",
     "send": "Send",
+    "send-receive": "Send / Receive",
     "password": "Password",
     "amount": "Amount:",
     "tax-and-fee": "Tax & Fee:",
@@ -62,6 +63,15 @@
     "import": "Import",
     "import-seed": "Import seed",
     "mnemonic-seed-or-key": "Mnemonic seed or private key",
-    "text-field-error":  "Text field must not be empty!"
+    "text-field-error":  "Text field must not be empty!",
+    "buy-tokens": "Buy Tokens",
+    "total": "Total",
+    "available-assets": "Available Assets",
+    "active-leases": "Active Leases",
+    "supplied-and-staked": "Supplied & Staked",
+    "show-small-balances": "Show small balances",
+    "lease-up-to": "Lease up to",
+    "earn-apr": "Earn APR",
+    "balance": "Balance"
   }
 }

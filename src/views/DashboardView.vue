@@ -3,16 +3,16 @@
     <!-- Header -->
     <div class="table-header flex mt-[25px] flex-wrap items-center justify-between lg:px-0">
       <div class="left">
-        <h1 class="text-20 nls-font-700 text-primary m-0 pb-3 lg:pb-0">Assets</h1>
+        <h1 class="text-20 nls-font-700 text-primary m-0 pb-3 lg:pb-0">{{ $t('message.assets') }}</h1>
       </div>
 
       <div class="right md:mt-0 inline-flex justify-end">
         <button class="btn btn-secondary btn-large-secondary mr-4" v-on:click="openModal(DASHBOARD_ACTIONS.SEND)">
-          Send / Receive
+         {{ $t('message.send-receive') }}
         </button>
 
         <button class="btn btn-primary btn-large-primary">
-          Buy Tokens
+          {{ $t('message.buy-tokens') }}
         </button>
       </div>
     </div>
@@ -20,7 +20,7 @@
     <div class="flex balance-box items-center justify-start bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6">
       <div class="left inline-block w-1/3">
         <p class="nls-font-500 text-16 text-primary">
-          Total
+          {{ $t('message.total') }}
         </p>
         <p class="nls-font-700 text-32 lg:text-40 text-primary">
           {{ totalBalance }}
@@ -34,7 +34,7 @@
       <div class="right flex w-2/3 -mt-8 lg:mt-0">
         <div class="pt-3 lg:pl-6">
           <p class="nls-font-400 text-12 text-dark-grey">
-            Available Assets
+            {{ $t('message.available-assets') }}
           </p>
 
           <p class="nls-font-500 text-20">
@@ -44,7 +44,7 @@
 
         <div class="pt-3 pl-12 lg:pl-8">
           <p class="nls-font-400 text-12 text-dark-grey">
-            Active Leases
+            {{ $t('message.active-leases') }}
           </p>
 
           <p class="nls-font-500 text-20">
@@ -55,7 +55,7 @@
         <!-- HIDDEN ON MOBILE -->
         <div class="pt-3 pl-12 lg:pl-8 hidden lg:block">
           <p class="nls-font-400 text-12 text-dark-grey">
-            Supplied & Staked
+            {{ $t('message.supplied-and-staked') }}
           </p>
 
           <p class="nls-font-500 text-20">
@@ -67,7 +67,7 @@
       </div>
         <div class="pt-4 block lg:hidden">
           <p class="nls-font-400 text-12 text-dark-grey">
-            Supplied & Staked
+            {{ $t('message.supplied-and-staked') }}
           </p>
 
           <p class="nls-font-500 text-20">
@@ -86,7 +86,7 @@
         </div>
         <div class="left w-1/2">
           <p class="text-16 nls-font-500">
-            Available assets
+          {{ $t('message.available-assets') }}
           </p>
         </div>
         <div class="right w-1/2 mt-0 inline-flex justify-end">
@@ -98,7 +98,7 @@
                 aria-describedby="show-small-balances"
                 name="show-small-balances"
                 type="checkbox"/>
-              <label for="show-small-balances">Show small balances</label>
+              <label for="show-small-balances">{{ $t('message.show-small-balances') }}</label>
             </div>
           </div>
         </div>
@@ -109,21 +109,21 @@
         <!-- Assets Header -->
         <div class="grid grid-cols-3 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6">
           <div class="nls-font-500 text-12 text-left text-dark-grey text-upper">
-            Assets
+            {{ $t('message.assets') }}
           </div>
 
           <div class="inline-flex items-center justify-end nls-font-500 text-12 text-right text-dark-grey text-upper">
-            <span class="inline-block">Lease up to</span>
+            <span class="inline-block">{{ $t('message.lease-up-to') }}</span>
             <TooltipComponent content="Content goes here"/>
           </div>
 
           <div class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
-            <span class="inline-block">Earn APR</span>
+            <span class="inline-block">{{ $t('message.earn-apr') }}</span>
             <TooltipComponent content="Content goes here"/>
           </div>
 
           <div class="nls-font-500 text-dark-grey text-12 text-right text-upper">
-            Balance
+            {{ $t('message.balance') }}
           </div>
         </div>
 
