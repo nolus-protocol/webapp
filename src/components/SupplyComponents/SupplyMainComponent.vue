@@ -1,6 +1,6 @@
 <template>
   <ConfirmComponent v-if="showConfirmScreen"
-                    :selectedCurrency="balances[0]"
+                    :selectedCurrency="state.selectedCurrency"
                     :receiverAddress="state.receiverAddress"
                     :password="state.password"
                     :amount="state.amount"
