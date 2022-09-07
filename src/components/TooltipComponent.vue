@@ -17,8 +17,7 @@
           font-family: 'Garet-Medium';
           text-transform: normal !important;
         "
-      >This is a simple tooplip that gives additional clarification on the
-        information below</span
+      >{{ content }}</span
       >
       <div
         class="absolute w-3 h-3 -mt-2 rotate-45 bg-light-electric"

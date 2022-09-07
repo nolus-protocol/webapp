@@ -53,7 +53,7 @@ const state = ref({
   password: '',
   amountErrorMsg: '',
   currentAPR: '24.21%', // @TODO: fetch APR
-  receiverAddress: LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][selectedCurrency.value.balance.denom].instance,
+  receiverAddress: LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][selectedCurrency.value.balance.denom]?.instance || '',
   txHash: '',
   onNextClick: () => onNextClick()
 } as SupplyFormComponentProps)
