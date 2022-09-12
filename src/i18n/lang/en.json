@@ -23,6 +23,7 @@
     "earnings-portfolio": "Your earning portfolio",
     "current-balance": "Current Balance",
     "view-all-earning-assets": "View all earning assets",
+    "earning-asssets": "Earning Assets",
     "supply": "Supply",
     "supply-withdraw": "Supply / Withdraw",
     "pending-rewards": " Pending rewards",
@@ -62,6 +63,7 @@
     "import": "Import",
     "import-seed": "Import seed",
     "mnemonic-seed-or-key": "Mnemonic seed or private key",
-    "text-field-error":  "Text field must not be empty!"
+    "text-field-error": "Text field must not be empty!",
+    "confirm": "Confirm"
   }
 }

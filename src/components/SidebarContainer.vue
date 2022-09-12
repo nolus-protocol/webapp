@@ -113,7 +113,6 @@
       />
     </div>
 
-
     <p class="nls-font-500 text-12 text-dark-grey text-upper pl-2">
       MAINNET # 4,987,868
     </p>
@@ -137,7 +136,7 @@
 </template>
 
 <script lang="ts">
-import {defineComponent}from 'vue'
+import { defineComponent } from 'vue'
 
 import LogoLink from '@/components/LogoLink.vue'
 import SidebarElement from '@/components/SidebarElement.vue'

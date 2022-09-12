@@ -54,6 +54,26 @@ export const validateAmount = (amount: string, denom: string, balance: number) =
   return ''
 }
 
+export const walletOperation = async (operation: () => void, password: string) => {
+  const wallet = useStore().state.wallet.wallet
+  if (!wallet) {
+    if (WalletUtils.isConnectedViaMnemonic()) {
+      useStore()
+        .dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, {
+          password: password
+        })
+        .then(() => {
+          operation()
+        })
+    } else {
+      useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
+      await operation()
+    }
+  } else {
+    operation()
+  }
+}
+
 export const transferCurrency = async (denom: string, amount: string, receiverAddress: string, memo = '') => {
   const wallet = useStore().getters.getNolusWallet
 

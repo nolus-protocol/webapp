@@ -19,7 +19,7 @@
             class="lg:flex block items-center justify-between px-6 pt-6"
           >
             <h2 class="text-16 nls-font-500 text-left my-0">
-              Earning Assets
+              {{$t('message.earning-asset')}}
             </h2>
             <div class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end">
               <div class="relative block checkbox-container">
@@ -86,11 +86,9 @@
           <!-- Assets -->
           <div class="block mt-4">
             <!-- Assets Container -->
-            <!-- @TODO: Implement rewards -->
-            <EarnReward :cols="cols" :icon="require('@/assets/icons/coins/btc.svg')" asset="BTC" reward="~$5"/>
-            <EarnReward :cols="cols" :icon="require('@/assets/icons/coins/btc.svg')" asset="BTC" reward="~$5"/>
-            <EarnReward :cols="cols" :icon="require('@/assets/icons/coins/btc.svg')" asset="BTC" reward="~$5"
-                        :loading="true"/>
+            <EarnReward
+              :reward="totalNlsRewards()"
+              :cols="cols"/>
             <!-- Assets Container -->
           </div>
         </div>
@@ -106,15 +104,17 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { Lpp } from '@nolus/nolusjs/build/contracts'
-import { NolusClient } from '@nolus/nolusjs'
+import { ChainConstants, NolusClient } from '@nolus/nolusjs'
 
 import { LPP_CONSTANTS } from '@/config/contracts'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 import { AssetBalance } from '@/store/modules/wallet/state'
-import EarnAsset from '@/components/EarnAsset.vue'
+import EarnAsset from '@/components/EarningsComponents/EarnAsset.vue'
 import EarnReward from '@/components/EarningsComponents/EarnReward.vue'
 import SupplyWithdrawDialog from '@/components/modals/SupplyWithdrawDialog.vue'
 import Modal from '@/components/modals/templates/Modal.vue'
+import { WalletManager } from '@/wallet/WalletManager'
+import { Coin, Dec, Int } from '@keplr-wallet/unit'
 
 export default defineComponent({
   name: 'EarningsView',
@@ -130,6 +130,7 @@ export default defineComponent({
       showSupplyWithdrawDialog: false,
       availableCurrencies: [] as string[],
       balances: [] as AssetBalance[],
+      rewards: [] as AssetBalance[],
       selectedAsset: '',
       showSmallBalances: false
     }
@@ -144,15 +145,34 @@ export default defineComponent({
     }
   },
   async mounted () {
+    this.getAllRewards()
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
     const lppClient = new Lpp(cosmWasmClient)
-    const result = await lppClient.getLppConfig(LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()].uusdc.instance)
-    this.availableCurrencies.push(result.lpn_symbol)
+
+    for (const [key, value] of Object.entries(LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()])) {
+      const lppConfig = await lppClient.getLppConfig(value.instance)
+      this.availableCurrencies.push(lppConfig.lpn_symbol)
+
+      const lppRewards = await lppClient.getLenderRewards(value.instance, WalletManager.getWalletAddress())
+      this.rewards.push({ balance: new Coin(lppRewards.rewards.symbol, lppRewards.rewards.amount) })
+    }
   },
   methods: {
+    totalNlsRewards (): AssetBalance {
+      let totalBalance = new Dec(0)
+      this.rewards.forEach(reward => {
+        totalBalance = totalBalance.add(reward.balance.amount.toDec())
+      })
+      return { balance: new Coin(ChainConstants.COIN_MINIMAL_DENOM, totalBalance.truncate()) }
+    },
     openSupplyWithdrawDialog (denom: string) {
       this.selectedAsset = denom
       this.showSupplyWithdrawDialog = true
+    },
+    getAllRewards () {
+      for (const [key, value] of Object.entries(LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()])) {
+        console.log(`${key}: ${JSON.stringify(value)}`)
+      }
     }
   }
 })
