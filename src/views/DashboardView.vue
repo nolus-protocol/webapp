@@ -152,7 +152,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue'
+import { computed, ref, provide } from 'vue'
 import { Coin, Dec, Int } from '@keplr-wallet/unit'
 import { CurrencyUtils } from '@nolus/nolusjs'
 
@@ -166,6 +166,7 @@ import SupplyWithdrawDialog from '@/components/modals/SupplyWithdrawDialog.vue'
 import SendReceiveDialog from '@/components/modals/SendReceiveDialog.vue'
 import LeaseDialog from '@/components/modals/LeaseDialog.vue'
 import { DASHBOARD_ACTIONS } from '@/types/DashboardActions'
+import { useLeases } from '@/composables/useLeases'
 
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
@@ -195,6 +196,8 @@ const totalBalance = computed(() => {
 
   return CurrencyUtils.formatPrice(total.toString()).toString()
 })
+const { leases, getLeases } = useLeases()
+provide('getLeases', getLeases)
 
 function filterSmallBalances (balances: AssetBalance[]) {
   return balances.filter((asset) =>
@@ -245,8 +248,22 @@ function getAvailableAssets () {
 }
 
 function getActiveLeases () {
-  // @TODO: get leases
-  let totalLeases = new Dec(235)
+  let totalLeases = new Dec(0)
+  leases.value.forEach(lease => {
+    if (!lease.leaseStatus.opened) {
+      return
+    }
+
+    const denom = lease.leaseStatus.opened.amount.symbol
+    const balance = CurrencyUtils.calculateBalance(
+      getMarketPrice(denom),
+      new Coin(denom, lease.leaseStatus.opened.amount.amount),
+      0
+    )
+
+    totalLeases = totalLeases.add(balance.toDec())
+  })
+
   state.value.activeLeases = totalLeases
   return CurrencyUtils.formatPrice(totalLeases.toString()).toString()
 }
