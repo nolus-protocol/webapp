@@ -27,50 +27,16 @@
   </Modal>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import { NolusClient } from '@nolus/nolusjs'
-import { Lease, Leaser, LeaseStatus } from '@nolus/nolusjs/build/contracts'
+<script lang="ts" setup>
+import { ref } from 'vue'
 
 import LeaseDialog from '@/components/modals/LeaseDialog.vue'
 import Modal from '@/components/modals/templates/Modal.vue'
-import { CONTRACTS } from '@/config/contracts'
-import { LeaseData } from '@/types/LeaseData'
 import LeaseInfo from '@/components/LeaseInfo.vue'
-import { WalletManager } from '@/wallet/WalletManager'
-import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
+import { useLeases } from '@/composables/useLeases'
 
-export default defineComponent({
-  name: 'LeaseView',
-  components: {
-    LeaseDialog,
-    LeaseInfo,
-    Modal
-  },
-  data () {
-    return {
-      showLeaseModal: false,
-      leases: [] as LeaseData[]
-    }
-  },
-  async mounted () {
-    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-    const leaserClient = new Leaser(cosmWasmClient)
-    const leaseClient = new Lease(cosmWasmClient)
-    const openedLeases: string[] = await leaserClient.getCurrentOpenLeases(
-      CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance,
-      WalletManager.getWalletAddress()
-    )
-    for (const leaseAddress of openedLeases) {
-      const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus(leaseAddress)
 
-      if (leaseInfo && !leaseInfo.closed) {
-        this.leases.push({
-          leaseAddress: leaseAddress,
-          leaseStatus: leaseInfo
-        })
-      }
-    }
-  }
-})
+const showLeaseModal = ref(false)
+const { leases } = useLeases()
+
 </script>
