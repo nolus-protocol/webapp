@@ -152,7 +152,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue'
+import { computed, ref, provide } from 'vue'
 import { Coin, Dec, Int } from '@keplr-wallet/unit'
 import { CurrencyUtils } from '@nolus/nolusjs'
 
@@ -196,7 +196,8 @@ const totalBalance = computed(() => {
 
   return CurrencyUtils.formatPrice(total.toString()).toString()
 })
-const { leases } = useLeases()
+const { leases, getLeases } = useLeases()
+provide('getLeases', getLeases)
 
 function filterSmallBalances (balances: AssetBalance[]) {
   return balances.filter((asset) =>

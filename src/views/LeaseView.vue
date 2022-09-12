@@ -28,7 +28,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, provide } from 'vue'
 
 import LeaseDialog from '@/components/modals/LeaseDialog.vue'
 import Modal from '@/components/modals/templates/Modal.vue'
@@ -37,6 +37,8 @@ import { useLeases } from '@/composables/useLeases'
 
 
 const showLeaseModal = ref(false)
-const { leases } = useLeases()
+const { leases, getLeases } = useLeases()
+
+provide('getLeases', getLeases)
 
 </script>

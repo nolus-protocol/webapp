@@ -11,7 +11,8 @@ import { LeaseData } from '@/types/LeaseData'
 export function useLeases() {
   const leases = ref<LeaseData[]>([])
 
-  onMounted(async () => {
+  const getLeases = async () => {
+    const newLeases = []
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
     const leaserClient = new Leaser(cosmWasmClient)
     const leaseClient = new Lease(cosmWasmClient)
@@ -23,13 +24,19 @@ export function useLeases() {
       const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus(leaseAddress)
 
       if (leaseInfo && !leaseInfo.closed) {
-        leases.value.push({
+        newLeases.push({
           leaseAddress: leaseAddress,
           leaseStatus: leaseInfo
         })
       }
     }
+
+    leases.value = newLeases
+  }
+
+  onMounted(() => {
+    getLeases()
   })
 
-  return { leases }
+  return { leases, getLeases }
 }

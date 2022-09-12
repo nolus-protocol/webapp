@@ -56,6 +56,10 @@ export default defineComponent({
     onModalClose: {
       default: () => () => {
       }
+    },
+    getLeases: {
+      default: () => () => {
+      }
     }
   },
   async mounted () {
@@ -79,7 +83,8 @@ export default defineComponent({
       currentComponent: {} as LeaseMainComponentData,
       leaseApplyResponse: null || ({} as LeaseApply),
       leaserContract: {} as Leaser,
-      closeModal: this.onModalClose
+      closeModal: this.onModalClose,
+      updateLeases: this.getLeases
     }
   },
   watch: {
@@ -271,38 +276,41 @@ export default defineComponent({
     },
     async openLease () {
       const wallet = useStore().getters.getNolusWallet
-      if (wallet && this.isAmountValid()) {
-        this.step = CONFIRM_STEP.PENDING
-        const coinDecimals = new Int(10).pow(new Int(6).absUInt())
-        const feeAmount = new Dec('0.25').mul(new Dec(coinDecimals))
-        console.log('feeAmount: ', feeAmount.truncate().toString())
-        const DEFAULT_FEE = {
-          amount: [{
-            denom: ChainConstants.COIN_MINIMAL_DENOM,
-            amount: WalletUtils.isConnectedViaExtension() ? '0.25' : feeAmount.truncate().toString()
-          }],
-          gas: '2000000'
-        }
-        try {
-          const execResult = await useStore().dispatch(
-            WalletActionTypes.OPEN_LEASE,
-            {
+      if (!wallet || !this.isAmountValid()) {
+        return
+      }
+
+      this.step = CONFIRM_STEP.PENDING
+      const coinDecimals = new Int(10).pow(new Int(6).absUInt())
+      const feeAmount = new Dec('0.25').mul(new Dec(coinDecimals))
+      console.log('feeAmount: ', feeAmount.truncate().toString())
+      const DEFAULT_FEE = {
+        amount: [{
+          denom: ChainConstants.COIN_MINIMAL_DENOM,
+          amount: WalletUtils.isConnectedViaExtension() ? '0.25' : feeAmount.truncate().toString()
+        }],
+        gas: '2000000'
+      }
+      try {
+        const execResult = await useStore().dispatch(
+          WalletActionTypes.OPEN_LEASE,
+          {
+            denom: this.currentComponent.props.selectedCurrency.balance.denom,
+            fee: DEFAULT_FEE,
+            funds: [{
               denom: this.currentComponent.props.selectedCurrency.balance.denom,
-              fee: DEFAULT_FEE,
-              funds: [{
-                denom: this.currentComponent.props.selectedCurrency.balance.denom,
-                amount: this.currentComponent.props.amount
-              }]
-            }
-          )
-          if (execResult) {
-            this.currentComponent.props.txHash = execResult.transactionHash || ''
-            this.step = CONFIRM_STEP.SUCCESS
+              amount: this.currentComponent.props.amount
+            }]
           }
-        } catch (e) {
-          console.log(e)
-          this.step = CONFIRM_STEP.ERROR
+        )
+        if (execResult) {
+          this.currentComponent.props.txHash = execResult.transactionHash || ''
+          this.step = CONFIRM_STEP.SUCCESS
+          this.updateLeases()
         }
+      } catch (e) {
+        console.log(e)
+        this.step = CONFIRM_STEP.ERROR
       }
     }
   }
