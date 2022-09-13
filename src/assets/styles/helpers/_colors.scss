@@ -4,15 +4,15 @@
   }
 
   &-lightGrey {
-    color: $lightGrey;
+    background-color: $lightGrey;
   }
 
   &-grey {
-    color: $grey;
+    background-color: $grey;
   }
 
   &-grey-dark {
-    color: $darkGrey;
+    background-color: $darkGrey;
   }
 
   &-light-blue {
@@ -40,37 +40,37 @@
   }
 
   &-light-red {
-    color: $lightRed;
+    background-color: $lightRed;
   }
 
   &-medium-red {
-    color: $mediumRed;
+    background-color: $mediumRed;
   }
 
   &-light-green {
-    color: $lightGreen;
+    background-color: $lightGreen;
   }
 
   &-medium-green {
-    color: $mediumGreen;
+    background-color: $mediumGreen;
   }
 
   &-light-yellow {
-    color: $lightYellow;
+    background-color: $lightYellow;
   }
 
   &-medium-yellow {
-    color: $mediumYellow;
+    background-color: $mediumYellow;
   }
 
   &-orange {
-    color: $orange;
+    background-color: $orange;
   }
 }
 
 .color {
   &-white {
-    background-color: $white;
+    color: $white;
   }
   
   &-lightGrey {
