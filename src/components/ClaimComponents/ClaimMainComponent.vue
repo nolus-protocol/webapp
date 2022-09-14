@@ -1,9 +1,9 @@
 <template>
   <ConfirmComponent v-if="showConfirmScreen"
                     :selectedCurrency="state.selectedCurrency"
-                    :receiverAddress="state.receiverAddress"
+                    receiver-address=""
                     :password="state.password"
-                    :amount="amount"
+                    :amount="state.amount"
                     :txType="TxType.CLAIM"
                     :txHash="state.txHash"
                     :step="step"
@@ -15,33 +15,34 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, defineProps, inject, ref } from 'vue'
+import { computed, defineProps, inject, PropType, ref } from 'vue'
 
 import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
 import { useStore } from '@/store'
 import { CONFIRM_STEP } from '@/types/ConfirmStep'
 import { TxType } from '@/types/TxType'
-import { LPP_CONSTANTS } from '@/config/contracts'
-import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import { ClaimComponentProps } from '@/types/component/ClaimComponentProps'
+import { ContractData, Lease } from '@nolus/nolusjs/build/contracts'
+import { defaultNolusWalletFee } from '@/config/wallet'
+import { walletOperation } from '@/components/utils'
 
 const {
-  amount,
-  selectedAsset
+  reward,
+  contractData
 } = defineProps({
-  amount: {
-    type: String
-  },
-  selectedAsset: {
-    type: String,
+  reward: {
+    type: Object as PropType<AssetBalance>,
     required: true
+  },
+  contractData: {
+    type: Array as PropType<ContractData[]>
   }
 })
 
 // @TODO: Fetch supplied balances instead of wallet balances
 const balances = computed(() => useStore().state.wallet.balances)
-const selectedCurrency = computed(() => balances.value.find(asset => asset.balance.denom === selectedAsset) || balances.value[0])
+const selectedCurrency = computed(() => balances.value.find(asset => asset.balance.denom === reward.balance.denom) || balances.value[0])
 
 const showConfirmScreen = ref(true)
 
@@ -49,10 +50,8 @@ const state = ref({
   currentDepositBalance: {} as AssetBalance,
   currentBalance: balances.value,
   selectedCurrency: selectedCurrency.value,
-  receiverAddress: LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][selectedCurrency.value.balance.denom].instance,
-  amount: '',
+  amount: reward.balance.amount.toString(),
   password: '',
-  amountErrorMsg: '',
   txHash: '',
   onNextClick: () => onNextClick(),
   onSendClick: () => onClickClaim(),
@@ -60,23 +59,12 @@ const state = ref({
   onClickOkBtn: () => onClickOkBtn()
 } as ClaimComponentProps)
 
-// onMounted(async () => {
-// })
-
 const step = ref(CONFIRM_STEP.CONFIRM)
 
 const closeModal = inject('onModalClose', () => () => {
 })
 
 function onNextClick () {
-  if (!state.value.receiverAddress) {
-    // TODO show error dialog
-    return
-  }
-
-  if (!state.value.amountErrorMsg) {
-    showConfirmScreen.value = true
-  }
 }
 
 function onConfirmBackClick () {
@@ -88,6 +76,29 @@ function onClickOkBtn () {
 }
 
 async function onClickClaim () {
+  await walletOperation(requestClaim, state.value.password)
+}
 
+async function requestClaim () {
+  const wallet = useStore().getters.getNolusWallet
+  if (!contractData) {
+    // TODO show error
+  }
+  if (wallet) {
+    step.value = CONFIRM_STEP.PENDING
+    try {
+      const result = await wallet.executeContractSubMsg(contractData as ContractData[], defaultNolusWalletFee(), undefined, undefined)
+      console.log('result: ', result)
+
+      if (result) {
+        state.value.txHash = result.transactionHash || ''
+        step.value = CONFIRM_STEP.SUCCESS
+      } else {
+        step.value = CONFIRM_STEP.ERROR
+      }
+    } catch (e) {
+      step.value = CONFIRM_STEP.ERROR
+    }
+  }
 }
 </script>

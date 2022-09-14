@@ -43,9 +43,7 @@
       </div>
     </div>
   </div>
-  <Modal v-if="showModal" @close-modal="showModal = false">
-    <ClaimDialog/>
-  </Modal>
+
 </template>
 
 <script lang="ts" setup>
@@ -56,44 +54,21 @@ import { Coin, Int } from '@keplr-wallet/unit'
 import { defineProps, PropType, ref } from 'vue'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import { useStore } from '@/store'
-import { Lpp } from '@nolus/nolusjs/build/contracts'
-import { LPP_CONSTANTS } from '@/config/contracts'
-import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
-import { defaultNolusWalletFee } from '@/config/wallet'
-import Modal from '@/components/modals/templates/Modal.vue'
-import ClaimDialog from '@/components/modals/ClaimDialog.vue'
 
-const { reward } = defineProps({
+const { cols, reward, onClickClaim } = defineProps({
   cols: {
     type: Number
   },
   reward: {
     type: Object as PropType<AssetBalance>,
     required: true
+  },
+  onClickClaim: {
+    type: Function
   }
 })
 
 const loading = ref(false)
-const showModal = ref(false)
-
-const claimRewards = async () => {
-  const wallet = useStore().getters.getNolusWallet
-
-  if (wallet) {
-    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-    const lppClient = new Lpp(cosmWasmClient)
-    const lppContract = LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()].uusdc?.instance || '' // TODO change this to work with denom!
-    const res = await lppClient.claimRewards(lppContract, wallet, undefined, defaultNolusWalletFee())
-  } else {
-    // TODO show error message
-  }
-}
-
-const onClickClaim = () => {
-  console.log('dsada')
-  showModal.value = true
-  // walletOperation(claimRewards, '')
-}
 
 const getAssetIcon = (denom: string) => {
   return AssetUtils.getAssetInfoByAbbr(denom).coinIcon || ''

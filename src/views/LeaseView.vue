@@ -55,14 +55,13 @@ export default defineComponent({
   },
   async mounted () {
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-    const leaserClient = new Leaser(cosmWasmClient)
-    const leaseClient = new Lease(cosmWasmClient)
-    const openedLeases: string[] = await leaserClient.getCurrentOpenLeases(
-      CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance,
+    const leaserClient = new Leaser(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance)
+    const openedLeases: string[] = await leaserClient.getCurrentOpenLeasesByOwner(
       WalletManager.getWalletAddress()
     )
     for (const leaseAddress of openedLeases) {
-      const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus(leaseAddress)
+      const leaseClient = new Lease(cosmWasmClient, leaseAddress)
+      const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus()
 
       if (leaseInfo && !leaseInfo.closed) {
         this.leases.push({

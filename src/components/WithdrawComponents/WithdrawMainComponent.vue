@@ -32,7 +32,7 @@ import { Lpp } from '@nolus/nolusjs/build/contracts'
 import { LPP_CONSTANTS } from '@/config/contracts'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
-import { validateAmount } from '@/components/utils'
+import { validateAmount, walletOperation } from '@/components/utils'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import { defaultNolusWalletFee } from '@/config/wallet'
 
@@ -132,23 +132,7 @@ function validateInputs () {
 }
 
 async function onWithdrawClick () {
-  const wallet = useStore().state.wallet.wallet
-  if (!wallet) {
-    if (WalletUtils.isConnectedViaMnemonic()) {
-      useStore()
-        .dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, {
-          password: state.value.password
-        })
-        .then(() => {
-          transferAmount()
-        })
-    } else {
-      useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
-      await transferAmount()
-    }
-  } else {
-    transferAmount()
-  }
+  await walletOperation(transferAmount, state.value.password)
 }
 
 async function transferAmount () {
@@ -157,9 +141,8 @@ async function transferAmount () {
     step.value = CONFIRM_STEP.PENDING
     try {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-      const lppClient = new Lpp(cosmWasmClient)
+      const lppClient = new Lpp(cosmWasmClient, LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][state.value.selectedCurrency.balance.denom].instance)
       const result = await lppClient.burnDeposit(
-        LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][state.value.selectedCurrency.balance.denom].instance,
         wallet,
         state.value.amount,
         defaultNolusWalletFee(),

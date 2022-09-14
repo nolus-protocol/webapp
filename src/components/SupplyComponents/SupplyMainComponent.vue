@@ -24,7 +24,7 @@ import SupplyFormComponent from '@/components/SupplyComponents/SupplyFormCompone
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { useStore } from '@/store'
 import { WalletUtils } from '@/utils/WalletUtils'
-import { validateAmount } from '@/components/utils'
+import { validateAmount, walletOperation } from '@/components/utils'
 import { CONFIRM_STEP } from '@/types/ConfirmStep'
 import { SupplyFormComponentProps } from '@/types/component/SupplyFormComponentProps'
 import { TxType } from '@/types/TxType'
@@ -34,6 +34,7 @@ import { NolusClient } from '@nolus/nolusjs'
 import { Lpp } from '@nolus/nolusjs/build/contracts'
 import { LPP_CONSTANTS } from '@/config/contracts'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
+import { defaultNolusWalletFee } from '@/config/wallet'
 
 const { selectedAsset } = defineProps({
   selectedAsset: {
@@ -92,47 +93,19 @@ function validateInputs () {
 }
 
 async function onSupplyClick () {
-  console.log('onSupply click')
-  const wallet = useStore().state.wallet.wallet
-  if (!wallet) {
-    if (WalletUtils.isConnectedViaMnemonic()) {
-      useStore()
-        .dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, {
-          password: state.value.password
-
-        })
-        .then(() => {
-          transferAmount()
-        })
-    } else {
-      useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
-      await transferAmount()
-    }
-  } else {
-    transferAmount()
-  }
+  await walletOperation(transferAmount, state.value.password)
 }
 
 async function transferAmount () {
   const wallet = useStore().getters.getNolusWallet
   if (wallet && state.value.amountErrorMsg === '') {
     step.value = CONFIRM_STEP.PENDING
-    const coinDecimals = new Int(10).pow(new Int(6).absUInt())
-    const feeAmount = new Dec('0.25').mul(new Dec(coinDecimals))
-    const DEFAULT_FEE = {
-      amount: [{
-        denom: ChainConstants.COIN_MINIMAL_DENOM,
-        amount: WalletUtils.isConnectedViaExtension() ? '0.25' : feeAmount.truncate().toString()
-      }],
-      gas: '2000000'
-    }
     try {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-      const lppClient = new Lpp(cosmWasmClient)
-      const result = await lppClient.lenderDeposit(
-        LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][state.value.selectedCurrency.balance.denom].instance,
+      const lppClient = new Lpp(cosmWasmClient, LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][state.value.selectedCurrency.balance.denom].instance)
+      const result = await lppClient.deposit(
         wallet,
-        DEFAULT_FEE,
+        defaultNolusWalletFee(),
         [{
           denom: state.value.selectedCurrency.balance.denom,
           amount: state.value.amount

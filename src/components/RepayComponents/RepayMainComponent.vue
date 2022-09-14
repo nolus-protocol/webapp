@@ -21,7 +21,7 @@
 import { defineComponent, PropType } from 'vue'
 import { StarIcon } from '@heroicons/vue/solid'
 import { Lease } from '@nolus/nolusjs/build/contracts'
-import { CurrencyUtils, NolusClient } from '@nolus/nolusjs'
+import { CurrencyUtils, NolusClient, NolusWallet } from '@nolus/nolusjs'
 import { ChainConstants } from '@nolus/nolusjs/build/constants'
 import { Dec, Int } from '@keplr-wallet/unit'
 
@@ -36,6 +36,9 @@ import { assetsInfo } from '@/config/assetsInfo'
 import { RepayComponentProps } from '@/types/component/RepayComponentProps'
 import { CONFIRM_STEP } from '@/types/ConfirmStep'
 import { TxType } from '@/types/TxType'
+import { defaultNolusWalletFee } from '@/config/wallet'
+import { Coin } from '@cosmjs/proto-signing'
+import { walletOperation } from '@/components/utils'
 
 enum ScreenState {
   MAIN = 'RepayFormComponent',
@@ -68,16 +71,10 @@ export default defineComponent({
   },
   async mounted () {
     const balances = useStore().state.wallet.balances
-    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-    this.leaseContract = new Lease(cosmWasmClient)
-    console.log('leases2: ', this.leaseData)
     this.currentComponent = {
       is: 'RepayFormComponent',
       props: this.initProps()
     }
-
-    console.log('receiver address: ', this.currentComponent.props.receiverAddress)
-
     if (balances) {
       this.currentComponent.props.selectedCurrency = balances[0]
     }
@@ -89,7 +86,6 @@ export default defineComponent({
       showConfirmScreen: false,
       TX_TYPE: TxType,
       currentComponent: {} as RepayMainComponentData,
-      leaseContract: {} as Lease,
       closeModal: this.onModalClose
     }
   },
@@ -131,22 +127,7 @@ export default defineComponent({
       }
     },
     async onSendClick () {
-      const wallet = useStore().state.wallet.wallet
-      if (!wallet) {
-        if (WalletUtils.isConnectedViaMnemonic()) {
-          if (this.isPasswordValid()) {
-            useStore().dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, { password: this.currentComponent.props.password })
-              .then(() => {
-                this.repayLease()
-              })
-          }
-        } else {
-          await useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
-          await this.repayLease()
-        }
-      } else {
-        await this.repayLease()
-      }
+      await walletOperation(this.repayLease, this.currentComponent.props.password)
     },
     onConfirmBackClick () {
       this.showConfirmScreen = false
@@ -199,34 +180,20 @@ export default defineComponent({
       const wallet = useStore().getters.getNolusWallet
       if (wallet && this.isAmountValid()) {
         this.step = CONFIRM_STEP.PENDING
-        const coinDecimals = new Int(10).pow(new Int(6).absUInt())
-        const feeAmount = new Dec('0.25').mul(new Dec(coinDecimals))
-        const DEFAULT_FEE = {
-          amount: [{
-            denom: ChainConstants.COIN_MINIMAL_DENOM,
-            amount: WalletUtils.isConnectedViaExtension() ? '0.25' : feeAmount.truncate().toString()
-          }],
-          gas: '2000000'
-        }
         try {
-          const execResult = await useStore().dispatch(
-            WalletActionTypes.REPAY_LEASE,
-            {
-              contractAddress: this.currentComponent.props.receiverAddress,
-              denom: this.currentComponent.props.selectedCurrency.balance.denom,
-              fee: DEFAULT_FEE,
-              funds: [{
-                denom: this.currentComponent.props.selectedCurrency.balance.denom,
-                amount: this.currentComponent.props.amount
-              }]
-            }
-          )
-          if (execResult) {
-            this.currentComponent.props.txHash = execResult.transactionHash || ''
+          const funds: Coin[] = [{
+            denom: this.currentComponent.props.selectedCurrency.balance.denom,
+            amount: this.currentComponent.props.amount
+          }]
+          const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
+          const leaseClient = new Lease(cosmWasmClient, this.currentComponent.props.receiverAddress)
+          const result = await leaseClient.repayLease(wallet, defaultNolusWalletFee(), funds)
+
+          if (result) {
+            this.currentComponent.props.txHash = result.transactionHash || ''
             this.step = CONFIRM_STEP.SUCCESS
           }
         } catch (e) {
-          console.log(e)
           this.step = CONFIRM_STEP.ERROR
         }
       }

@@ -88,6 +88,7 @@
             <!-- Assets Container -->
             <EarnReward
               :reward="totalNlsRewards()"
+              :onClickClaim="onClickClaim"
               :cols="cols"/>
             <!-- Assets Container -->
           </div>
@@ -99,11 +100,14 @@
   <Modal v-if="showSupplyWithdrawDialog" @close-modal="showSupplyWithdrawDialog = false">
     <SupplyWithdrawDialog :selectedAsset="selectedAsset"/>
   </Modal>
+  <Modal v-if="showClaimModal" @close-modal="showClaimModal = false">
+    <ClaimDialog :contract-data="this.claimContractData" :reward="totalNlsRewards()"/>
+  </Modal>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { Lpp } from '@nolus/nolusjs/build/contracts'
+import { claimRewardsMsg, ContractData, Lpp } from '@nolus/nolusjs/build/contracts'
 import { ChainConstants, NolusClient } from '@nolus/nolusjs'
 
 import { LPP_CONSTANTS } from '@/config/contracts'
@@ -113,6 +117,7 @@ import EarnAsset from '@/components/EarningsComponents/EarnAsset.vue'
 import EarnReward from '@/components/EarningsComponents/EarnReward.vue'
 import SupplyWithdrawDialog from '@/components/modals/SupplyWithdrawDialog.vue'
 import Modal from '@/components/modals/templates/Modal.vue'
+import ClaimDialog from '@/components/modals/ClaimDialog.vue'
 import { WalletManager } from '@/wallet/WalletManager'
 import { Coin, Dec, Int } from '@keplr-wallet/unit'
 
@@ -122,7 +127,8 @@ export default defineComponent({
     EarnAsset,
     EarnReward,
     Modal,
-    SupplyWithdrawDialog
+    SupplyWithdrawDialog,
+    ClaimDialog
   },
   data () {
     return {
@@ -131,8 +137,10 @@ export default defineComponent({
       availableCurrencies: [] as string[],
       balances: [] as AssetBalance[],
       rewards: [] as AssetBalance[],
+      claimContractData: [] as ContractData[],
       selectedAsset: '',
-      showSmallBalances: false
+      showSmallBalances: false,
+      showClaimModal: false
     }
   },
   watch: {
@@ -147,17 +155,25 @@ export default defineComponent({
   async mounted () {
     this.getAllRewards()
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-    const lppClient = new Lpp(cosmWasmClient)
 
     for (const [key, value] of Object.entries(LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()])) {
-      const lppConfig = await lppClient.getLppConfig(value.instance)
+      const lppClient = new Lpp(cosmWasmClient, value.instance)
+      this.claimContractData.push({
+        contractAddress: value.instance,
+        msg: claimRewardsMsg()
+      })
+
+      const lppConfig = await lppClient.getLppConfig()
       this.availableCurrencies.push(lppConfig.lpn_symbol)
 
-      const lppRewards = await lppClient.getLenderRewards(value.instance, WalletManager.getWalletAddress())
+      const lppRewards = await lppClient.getLenderRewards(WalletManager.getWalletAddress())
       this.rewards.push({ balance: new Coin(lppRewards.rewards.symbol, lppRewards.rewards.amount) })
     }
   },
   methods: {
+    onClickClaim () {
+      this.showClaimModal = true
+    },
     totalNlsRewards (): AssetBalance {
       let totalBalance = new Dec(0)
       this.rewards.forEach(reward => {

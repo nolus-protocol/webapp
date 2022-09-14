@@ -44,7 +44,7 @@ export default defineComponent({
   },
   data () {
     return {
-      showModal: false
+      showClaimModal: false
     }
   },
   methods: {

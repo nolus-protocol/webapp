@@ -26,10 +26,8 @@
           $123,423.00
         </p>
 
-
       <div class="separator-line flex py-4 lg:hidden"></div>
       </div>
-
 
       <div class="right flex w-2/3 -mt-8 lg:mt-0">
         <div class="pt-3 lg:pl-6">
@@ -214,7 +212,7 @@ export default defineComponent({
     }
   },
   methods: {
-    openModal (action: DASHBOARD_ACTIONS, denom: string = '') {
+    openModal (action: DASHBOARD_ACTIONS, denom = '') {
       this.selectedAsset = denom
       this.modalAction = action
       this.showModal = true

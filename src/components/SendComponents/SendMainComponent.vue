@@ -25,7 +25,7 @@ import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { WalletUtils } from '@/utils/WalletUtils'
-import { transferCurrency, validateAddress, validateAmount } from '@/components/utils'
+import { transferCurrency, validateAddress, validateAmount, walletOperation } from '@/components/utils'
 import { CONFIRM_STEP } from '@/types/ConfirmStep'
 import { SendComponentProps } from '@/types/component/SendComponentProps'
 import { TxType } from '@/types/TxType'
@@ -80,24 +80,7 @@ function validateInputs () {
 }
 
 async function onSendClick () {
-  const wallet = useStore().state.wallet.wallet
-  if (!wallet) {
-    if (WalletUtils.isConnectedViaMnemonic()) {
-      useStore()
-        .dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, {
-          password: state.value.password
-
-        })
-        .then(() => {
-          transferAmount()
-        })
-    } else {
-      useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
-      await transferAmount()
-    }
-  } else {
-    transferAmount()
-  }
+  await walletOperation(transferAmount, state.value.password)
 }
 
 async function transferAmount () {

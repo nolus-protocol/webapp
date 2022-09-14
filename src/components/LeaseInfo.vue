@@ -124,7 +124,7 @@ export default {
   methods: {
     async onClickClaim (leaseAddress: string) {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-      const leaseClient = new Lease(cosmWasmClient)
+      const leaseClient = new Lease(cosmWasmClient, leaseAddress)
       const coinDecimals = new Int(10).pow(new Int(6).absUInt())
       const feeAmount = new Dec('0.25').mul(new Dec(coinDecimals))
       const DEFAULT_FEE = {
@@ -138,7 +138,7 @@ export default {
       const wallet = useStore().getters.getNolusWallet
 
       if (wallet) {
-        const result = await leaseClient.closeLease(leaseAddress, wallet, DEFAULT_FEE, undefined)
+        const result = await leaseClient.closeLease(wallet, DEFAULT_FEE, undefined)
         console.log('result exec: ', result)
       }
     },
