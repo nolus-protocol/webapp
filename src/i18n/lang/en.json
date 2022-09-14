@@ -23,6 +23,7 @@
     "earnings-portfolio": "Your earning portfolio",
     "current-balance": "Current Balance",
     "view-all-earning-assets": "View all earning assets",
+    "earning-assets": "Earning Assets",
     "supply": "Supply",
     "supply-withdraw": "Supply / Withdraw",
     "pending-rewards": " Pending rewards",
@@ -73,6 +74,7 @@
     "show-small-balances": "Show small balances",
     "lease-up-to": "Lease up to",
     "earn-apr": "Earn APR",
-    "balance": "Balance"
+    "balance": "Balance",
+    "confirm": "Confirm"
   }
 }

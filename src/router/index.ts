@@ -26,23 +26,23 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: '',
         name: RouteNames.DASHBOARD,
-        component: DashboardView,
+        component: DashboardView
       },
       {
         path: '/lease',
         name: RouteNames.LEASE,
-        component: LeaseView,
+        component: LeaseView
       },
       {
         path: '/earn',
         name: RouteNames.EARN,
-        component: EarningsView,
+        component: EarningsView
       },
       {
         path: '/history',
         name: RouteNames.HISTORY,
-        component: HistoryView,
-      },
+        component: HistoryView
+      }
     ]
   },
   {
@@ -92,7 +92,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/set-wallet-name',
     name: RouteNames.SET_WALLET_NAME,
     component: SetWalletName
-  },
+  }
 ]
 
 const router = createRouter({

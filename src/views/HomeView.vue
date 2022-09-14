@@ -4,9 +4,9 @@
         <h1 class="text-28 md:text-32 nls-font-700 text-primary text-center pt-6 pb-5 relative z-[2]">
         {{ $t('message.connect-wallet') }}
       </h1>
-      
+
       <div class="separator-line z-[100]"></div>
-      
+
       <div class="flex bg-white px-4 md:px-10 pt-10 relative z-[2] lg:pt-6">
         <button class="btn btn-box btn-large-box basis-0 grow" v-on:click="clickConnectToKeplr">
           <span class="icon icon-keplr ml-1"/>
@@ -64,7 +64,7 @@ export default defineComponent({
   components: {},
   data () {
     return {
-      showModal: true
+      showClaimModal: true
     }
   },
   methods: {

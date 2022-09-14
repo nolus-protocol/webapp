@@ -35,7 +35,6 @@ import Modal from '@/components/modals/templates/Modal.vue'
 import LeaseInfo from '@/components/LeaseInfo.vue'
 import { useLeases } from '@/composables/useLeases'
 
-
 const showLeaseModal = ref(false)
 const { leases, getLeases } = useLeases()
 

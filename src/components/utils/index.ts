@@ -1,12 +1,14 @@
 import { Dec, Int } from '@keplr-wallet/unit'
 import { fromBech32 } from '@cosmjs/encoding'
 import { ChainConstants } from '@nolus/nolusjs/build/constants'
-import { CurrencyUtils } from '@nolus/nolusjs'
+import { CurrencyUtils, NolusWallet } from '@nolus/nolusjs'
 
 import { useStore } from '@/store'
 import { WalletUtils } from '@/utils/WalletUtils'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { assetsInfo } from '@/config/assetsInfo'
+import { Coin } from '@cosmjs/proto-signing'
+import { defaultNolusWalletFee } from '@/config/wallet'
 
 export const validateAddress = (address: string) => {
   if (!address || address.trim() == '') {
@@ -54,6 +56,26 @@ export const validateAmount = (amount: string, denom: string, balance: number) =
   return ''
 }
 
+export const walletOperation = async (operation: () => void, password: string) => {
+  const wallet = useStore().state.wallet.wallet
+  if (!wallet) {
+    if (WalletUtils.isConnectedViaMnemonic()) {
+      useStore()
+        .dispatch(WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN, {
+          password: password
+        })
+        .then(() => {
+          operation()
+        })
+    } else {
+      useStore().dispatch(WalletActionTypes.CONNECT_KEPLR)
+      await operation()
+    }
+  } else {
+    operation()
+  }
+}
+
 export const transferCurrency = async (denom: string, amount: string, receiverAddress: string, memo = '') => {
   const wallet = useStore().getters.getNolusWallet
 
@@ -66,21 +88,6 @@ export const transferCurrency = async (denom: string, amount: string, receiverAd
     return result
   }
 
-  const feeDecimals = new Int(10).pow(new Int(6).absUInt())
-  const feeAmount = new Dec('0.25').mul(new Dec(feeDecimals))
-  console.log('feeAmount: ', feeAmount.truncate().toString())
-  const DEFAULT_FEE = {
-    amount: [
-      {
-        denom: ChainConstants.COIN_MINIMAL_DENOM,
-        amount: WalletUtils.isConnectedViaExtension()
-          ? '0.25'
-          : feeAmount.truncate().toString()
-      }
-    ],
-    gas: '100000'
-  }
-
   const {
     coinMinimalDenom,
     coinDecimals
@@ -88,19 +95,17 @@ export const transferCurrency = async (denom: string, amount: string, receiverAd
   const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, coinMinimalDenom, coinDecimals)
 
   try {
-    const txResponse = await useStore().dispatch(
-      WalletActionTypes.TRANSFER_TOKENS,
+    const funds: Coin[] = [
       {
-        receiverAddress,
-        fee: DEFAULT_FEE,
-        memo,
-        funds: [
-          {
-            amount: minimalDenom.amount.toString(),
-            denom
-          }
-        ]
+        amount: minimalDenom.amount.toString(),
+        denom
       }
+    ]
+    const txResponse = await wallet.transferAmount(
+      receiverAddress,
+      funds,
+      defaultNolusWalletFee(),
+      memo
     )
 
     if (txResponse) {

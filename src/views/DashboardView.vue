@@ -26,10 +26,8 @@
           {{ totalBalance }}
         </p>
 
-
       <div class="separator-line flex py-4 lg:hidden"></div>
       </div>
-
 
       <div class="right flex w-2/3 -mt-8 lg:mt-0">
         <div class="pt-3 lg:pl-6">
@@ -167,7 +165,6 @@ import SendReceiveDialog from '@/components/modals/SendReceiveDialog.vue'
 import LeaseDialog from '@/components/modals/LeaseDialog.vue'
 import { DASHBOARD_ACTIONS } from '@/types/DashboardActions'
 import { useLeases } from '@/composables/useLeases'
-
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
   [DASHBOARD_ACTIONS.SUPPLY]: SupplyWithdrawDialog,
@@ -205,7 +202,7 @@ function filterSmallBalances (balances: AssetBalance[]) {
   )
 }
 
-function openModal (action: DASHBOARD_ACTIONS, denom: string = '') {
+function openModal (action: DASHBOARD_ACTIONS, denom = '') {
   state.value.selectedAsset = denom
   state.value.modalAction = action
   state.value.showModal = true
@@ -270,7 +267,7 @@ function getActiveLeases () {
 
 function getSuppliedAndStaked () {
   // @TODO: get suppliedAndStaked
-  let totalSuppliedAndStaked = new Dec(235)
+  const totalSuppliedAndStaked = new Dec(235)
   state.value.suppliedAndStaked = totalSuppliedAndStaked
   return CurrencyUtils.formatPrice(totalSuppliedAndStaked.toString()).toString()
 }

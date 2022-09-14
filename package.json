@@ -26,7 +26,7 @@
     "@ledgerhq/hw-transport-webhid": "^6.20.0",
     "@ledgerhq/hw-transport-webusb": "^6.20.0",
     "@ledgerhq/logs": "^6.10.0",
-    "@nolus/nolusjs": "^0.0.44",
+    "@nolus/nolusjs": "^0.0.47",
     "@toruslabs/openlogin": "^1.6.0",
     "@types/crypto-js": "^4.1.1",
     "autoprefixer": "^10.4.2",

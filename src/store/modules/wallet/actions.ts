@@ -83,39 +83,6 @@ export interface Actions {
     commit,
     getters
   }: AugmentedActionContext): Promise<readonly IndexedTx[]>,
-
-  [WalletActionTypes.TRANSFER_TOKENS] ({
-    commit,
-    getters,
-    dispatch
-  }: AugmentedActionContext, payload: {
-    receiverAddress: string,
-    memo?: string
-    funds: Coin[]
-    fee: StdFee,
-  }): Promise<DeliverTxResponse | undefined>
-
-  [WalletActionTypes.OPEN_LEASE] ({
-    commit,
-    getters,
-    dispatch
-  }: AugmentedActionContext, payload: {
-    denom: string
-    fee: StdFee,
-    funds?: Coin[]
-  }): Promise<ExecuteResult>
-
-  [WalletActionTypes.REPAY_LEASE] ({
-    commit,
-    getters,
-    dispatch
-  }: AugmentedActionContext, payload: {
-    contractAddress: string,
-    denom: string
-    fee: StdFee,
-    funds?: Coin[]
-  }): Promise<ExecuteResult>
-
 }
 
 export const actions: ActionTree<State, RootState> & Actions = {
@@ -323,61 +290,5 @@ export const actions: ActionTree<State, RootState> & Actions = {
   }): Promise<readonly IndexedTx[]> {
     const nolusClient = await NolusClient.getInstance()
     return nolusClient.searchTxByAddress(WalletManager.getWalletAddress() || '')
-  },
-  async [WalletActionTypes.TRANSFER_TOKENS] ({
-    commit,
-    getters,
-    dispatch
-  }, payload: {
-    receiverAddress: string,
-    memo?: string,
-    funds: Coin[]
-    fee: StdFee,
-  }): Promise<DeliverTxResponse | undefined> {
-    const wallet = getters.getNolusWallet as NolusWallet
-    console.log('payload: ', payload)
-    if (!payload.funds) {
-      return
-    }
-
-    const txResponse = await wallet.transferAmount(
-      payload.receiverAddress,
-      payload.funds,
-      payload.fee, payload.memo
-    )
-
-    await dispatch(WalletActionTypes.UPDATE_BALANCES)
-    return txResponse
-  },
-  async [WalletActionTypes.OPEN_LEASE] ({
-    commit,
-    getters,
-    dispatch
-  }, payload: {
-    denom: string
-    fee: StdFee,
-    funds?: Coin[]
-  }): Promise<ExecuteResult> {
-    const wallet = getters.getNolusWallet as NolusWallet
-    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-    const leaserClient = new Leaser(cosmWasmClient)
-    const result = await leaserClient.openLease(CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance, wallet, payload.denom, payload.fee, payload.funds)
-    return result
-  },
-  async [WalletActionTypes.REPAY_LEASE] ({
-    commit,
-    getters,
-    dispatch
-  }, payload: {
-    contractAddress: string,
-    denom: string
-    fee: StdFee,
-    funds?: Coin[]
-  }): Promise<ExecuteResult> {
-    const wallet = getters.getNolusWallet as NolusWallet
-    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-    const leaseClient = new Lease(cosmWasmClient)
-    const result = await leaseClient.repayLease(payload.contractAddress, wallet, payload.fee, payload.funds)
-    return result
   }
 }

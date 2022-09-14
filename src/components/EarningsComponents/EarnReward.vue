@@ -11,7 +11,8 @@
       <!-- Ticker -->
       <div class="inline-flex items-center">
         <img
-          :src="require('@/assets/icons/coins/btc.svg')"
+          v-if="getAssetIcon(reward.balance.denom)"
+          :src="require('@/assets/icons/coins/' + getAssetIcon(reward.balance.denom))"
           class="inline-block m-0 mr-4"
           height="32"
           width="32"
@@ -20,12 +21,12 @@
           <p
             class="text-primary nls-font-500 text-18 text-left uppercase m-0"
           >
-            {{ asset }}
+            {{ convertMinimalDenomToDenom(reward.balance?.amount.toString(), reward.balance?.denom) }}
           </p>
           <p
             class="text-dark-grey text-12 nls-font-400 text-left capitalize m-0"
           >
-            {{ reward }}
+            {{ calculateBalance(reward.balance?.amount.toString(), reward.balance?.denom) }}
           </p>
         </div>
       </div>
@@ -35,34 +36,71 @@
         <button
           :class="`btn btn-secondary btn-medium-secondary ${loading ? 'js-loading' : 'btn-emphatized'}`"
           data-v-37958d79=""
+          v-on:click="onClickClaim"
         >
-          Claim
+          {{ $t('message.claim') }}
         </button>
       </div>
     </div>
   </div>
+
 </template>
 
 <script lang="ts" setup>
-defineProps({
+
+import { AssetUtils } from '@/utils/AssetUtils'
+import { CurrencyUtils, NolusClient } from '@nolus/nolusjs'
+import { Coin, Int } from '@keplr-wallet/unit'
+import { defineProps, PropType, ref } from 'vue'
+import { AssetBalance } from '@/store/modules/wallet/state'
+import { useStore } from '@/store'
+
+const { cols, reward, onClickClaim } = defineProps({
   cols: {
     type: Number
   },
-  icon: {
-    type: String,
-    required: true
-  },
-  asset: {
-    type: String,
-    required: true
-  },
   reward: {
-    type: String,
+    type: Object as PropType<AssetBalance>,
     required: true
   },
-  loading: {
-    type: Boolean,
-    default: false
+  onClickClaim: {
+    type: Function
   }
 })
+
+const loading = ref(false)
+
+const getAssetIcon = (denom: string) => {
+  return AssetUtils.getAssetInfoByAbbr(denom).coinIcon || ''
+}
+
+const getMarketPrice = (denom: string) => {
+  const prices = useStore().state.oracle.prices
+  if (prices) {
+    const tokenDenom = AssetUtils.getAssetInfoByAbbr(denom).coinDenom
+    return prices[tokenDenom]?.amount || '0'
+  }
+  return '0'
+}
+
+const convertMinimalDenomToDenom = (
+  tokenAmount: string,
+  minimalDenom: string
+) => {
+  const assetInfo = AssetUtils.getAssetInfoByAbbr(minimalDenom)
+  return CurrencyUtils.convertMinimalDenomToDenom(
+    tokenAmount,
+    minimalDenom,
+    assetInfo.coinDenom,
+    assetInfo.coinDecimals
+  )
+}
+
+const calculateBalance = (tokenAmount: string, denom: string) => {
+  const price = getMarketPrice(denom)
+  const tokenDecimals = AssetUtils.getAssetInfoByAbbr(denom).coinDecimals
+  const coin = new Coin(denom, new Int(tokenAmount))
+  return CurrencyUtils.calculateBalance(price, coin, tokenDecimals)
+}
+
 </script>

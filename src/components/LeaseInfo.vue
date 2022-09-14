@@ -119,7 +119,7 @@ const showRepayModal = ref(false)
 
 async function onClickClaim (leaseAddress: string) {
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-  const leaseClient = new Lease(cosmWasmClient)
+  const leaseClient = new Lease(cosmWasmClient, leaseAddress)
   const coinDecimals = new Int(10).pow(new Int(6).absUInt())
   const feeAmount = new Dec('0.25').mul(new Dec(coinDecimals))
   const DEFAULT_FEE = {
@@ -133,7 +133,7 @@ async function onClickClaim (leaseAddress: string) {
   const wallet = useStore().getters.getNolusWallet
 
   if (wallet) {
-    const result = await leaseClient.closeLease(leaseAddress, wallet, DEFAULT_FEE, undefined)
+    const result = await leaseClient.closeLease(wallet, DEFAULT_FEE, undefined)
     console.log('result exec: ', result)
   }
 }
@@ -149,11 +149,11 @@ function formatLeaseDenom () {
   return ''
 }
 
-function formatInterestRate (interestRatePromile: number = 0) {
+function formatInterestRate (interestRatePromile = 0) {
   return new Dec(interestRatePromile).quo(new Dec(10)).toString(1) + '%'
 }
 
-function calculateBalance (tokenAmount: string = '0', denom: string = '') {
+function calculateBalance (tokenAmount = '0', denom = '') {
   const prices = useStore().getters.getPrices
   const assetInf = assetsInfo[denom]
   if (prices && assetInf) {
