@@ -21,8 +21,7 @@
 import { defineComponent, PropType } from 'vue'
 import { StarIcon } from '@heroicons/vue/solid'
 import { Lease } from '@nolus/nolusjs/build/contracts'
-import { CurrencyUtils, NolusClient, NolusWallet } from '@nolus/nolusjs'
-import { ChainConstants } from '@nolus/nolusjs/build/constants'
+import { CurrencyUtils, NolusClient } from '@nolus/nolusjs'
 import { Dec, Int } from '@keplr-wallet/unit'
 
 import { AssetBalance } from '@/store/modules/wallet/state'
@@ -30,8 +29,6 @@ import RepayFormComponent from '@/components/RepayComponents/RepayFormComponent.
 import { useStore } from '@/store'
 import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
 import { LeaseData } from '@/types/LeaseData'
-import { WalletUtils } from '@/utils/WalletUtils'
-import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { assetsInfo } from '@/config/assetsInfo'
 import { RepayComponentProps } from '@/types/component/RepayComponentProps'
 import { CONFIRM_STEP } from '@/types/ConfirmStep'
@@ -67,6 +64,10 @@ export default defineComponent({
     onModalClose: {
       default: () => () => {
       }
+    },
+    getLeases: {
+      default: () => () => {
+      }
     }
   },
   async mounted () {
@@ -86,7 +87,9 @@ export default defineComponent({
       showConfirmScreen: false,
       TX_TYPE: TxType,
       currentComponent: {} as RepayMainComponentData,
-      closeModal: this.onModalClose
+      leaseContract: {} as Lease,
+      closeModal: this.onModalClose,
+      updateLeases: this.getLeases
     }
   },
   watch: {

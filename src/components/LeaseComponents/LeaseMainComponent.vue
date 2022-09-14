@@ -55,6 +55,10 @@ export default defineComponent({
     onModalClose: {
       default: () => () => {
       }
+    },
+    getLeases: {
+      default: () => () => {
+      }
     }
   },
   mounted () {
@@ -75,7 +79,9 @@ export default defineComponent({
       showConfirmScreen: false,
       currentComponent: {} as LeaseMainComponentData,
       leaseApplyResponse: null || ({} as LeaseApply),
-      closeModal: this.onModalClose
+      leaserContract: {} as Leaser,
+      closeModal: this.onModalClose,
+      updateLeases: this.getLeases
     }
   },
   watch: {
