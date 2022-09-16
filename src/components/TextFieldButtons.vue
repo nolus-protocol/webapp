@@ -3,7 +3,7 @@
     <div class="block input-field">
       <label
         :for="this.id"
-        class="block text-14 nls-font-500 mb-[5px] text-primary"
+        class="block text-14 nls-font-500 mb-[5px] text-primary dark-text"
       >{{ this.label }}</label
       >
       <div class="field-container text-field-buttons">

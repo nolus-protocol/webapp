@@ -1,5 +1,5 @@
 <template>
-  <div class="block rounded-2xl bg-white -mt-8 md:mt-auto pb-[300px] md:pb-10 pt-6 md:border border-standart shadow-box lg:w-[516px]">
+  <div class="block rounded-2xl background -mt-8 md:mt-auto pb-[300px] md:pb-10 pt-6 md:border nls-border shadow-box lg:w-[516px]">
     <h1 class="text-to-big-number text-primary text-center relative">
       <button class="align-baseline absolute left-0 top-2/4 -mt-3 px-4" type="button" v-on:click="clickBack">
         <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
@@ -21,9 +21,9 @@
     </div>
   </div>
 
-  <div class="bg-white h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
+  <div class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
 
-  <div class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto bg-white absolute inset-x-0 bottom-0 md:relative shadow-modal">
+  <div class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal">
     <button class="btn btn-primary btn-large-primary mr-4 js-loading -px-20 w-80">
       Connecting
     </button>
