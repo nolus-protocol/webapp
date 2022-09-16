@@ -565,7 +565,18 @@ button {
     border: 1px $dark-line solid;
   }
   .btn-large-secondary {
-    background-color: $dark-background;
+    background-color: $dark-background !important;
     border-color: $dark-line;
+    color: $white;
+  }
+  .btn-large-secondary:hover {
+    background-color: $dark-background;
+    border-color: $mediumBlue;
+    color: $white;
+  }
+  .btn-large-secondary:active {
+    background-color: $lightElectric10;
+    border-color: $lightElectric;
+    color: $lightElectric;
   }
 }
