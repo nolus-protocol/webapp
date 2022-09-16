@@ -36,7 +36,7 @@
           </p>
 
           <p class="nls-font-500 text-20">
-            {{ getAvailableAssets() }}
+            {{ availableAssets }}
           </p>
         </div>
 
@@ -46,7 +46,7 @@
           </p>
 
           <p class="nls-font-500 text-20">
-            {{ getActiveLeases() }}
+            {{ activeLeases }}
           </p>
         </div>
 
@@ -57,7 +57,7 @@
           </p>
 
           <p class="nls-font-500 text-20">
-           {{ getSuppliedAndStaked() }}
+           {{ suppliedAndStaked }}
           </p>
         </div>
 
@@ -69,7 +69,7 @@
           </p>
 
           <p class="nls-font-500 text-20">
-            {{ getSuppliedAndStaked() }}
+            {{ suppliedAndStaked }}
           </p>
         </div>
     </div>
@@ -165,6 +165,7 @@ import SendReceiveDialog from '@/components/modals/SendReceiveDialog.vue'
 import LeaseDialog from '@/components/modals/LeaseDialog.vue'
 import { DASHBOARD_ACTIONS } from '@/types/DashboardActions'
 import { useLeases } from '@/composables/useLeases'
+
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
   [DASHBOARD_ACTIONS.SUPPLY]: SupplyWithdrawDialog,
@@ -193,8 +194,59 @@ const totalBalance = computed(() => {
 
   return CurrencyUtils.formatPrice(total.toString()).toString()
 })
+
 const { leases, getLeases } = useLeases()
 provide('getLeases', getLeases)
+
+const activeLeases = computed(() => {
+  let totalLeases = new Dec(0)
+  leases.value.forEach(lease => {
+    if (!lease.leaseStatus.opened) {
+      return
+    }
+
+    const denom = lease.leaseStatus.opened.amount.symbol
+    const balance = CurrencyUtils.calculateBalance(
+      getMarketPrice(denom),
+      new Coin(denom, lease.leaseStatus.opened.amount.amount),
+      0
+    )
+
+    totalLeases = totalLeases.add(balance.toDec())
+  })
+
+  state.value.activeLeases = totalLeases
+  return CurrencyUtils.formatPrice(totalLeases.toString()).toString()
+})
+
+const availableAssets = computed(() => {
+  let totalAssets = new Dec(0)
+  mainAssets.value.forEach((asset) => {
+    const {
+      coinDecimals,
+      coinDenom
+    } = AssetUtils.getAssetInfoByAbbr(
+      asset.balance.denom
+    )
+    const assetBalance = CurrencyUtils.calculateBalance(
+      getMarketPrice(asset.balance.denom),
+      new Coin(coinDenom, asset.balance.amount.toString()),
+      coinDecimals
+    )
+
+    totalAssets = totalAssets.add(assetBalance.toDec())
+  })
+
+  state.value.availableAssets = totalAssets
+  return CurrencyUtils.formatPrice(totalAssets.toString()).toString()
+})
+
+const suppliedAndStaked = computed(() => {
+  // @TODO: get suppliedAndStaked
+  const totalSuppliedAndStaked = new Dec(235)
+  state.value.suppliedAndStaked = totalSuppliedAndStaked
+  return CurrencyUtils.formatPrice(totalSuppliedAndStaked.toString()).toString()
+})
 
 function filterSmallBalances (balances: AssetBalance[]) {
   return balances.filter((asset) =>
@@ -220,55 +272,5 @@ function getMarketPrice (denom: string) {
   }
 
   return '0'
-}
-
-function getAvailableAssets () {
-  let totalAssets = new Dec(0)
-  mainAssets.value.forEach((asset) => {
-    const {
-      coinDecimals,
-      coinDenom
-    } = AssetUtils.getAssetInfoByAbbr(
-      asset.balance.denom
-    )
-    const assetBalance = CurrencyUtils.calculateBalance(
-      getMarketPrice(asset.balance.denom),
-      new Coin(coinDenom, asset.balance.amount.toString()),
-      coinDecimals
-    )
-
-    totalAssets = totalAssets.add(assetBalance.toDec())
-  })
-
-  state.value.availableAssets = totalAssets
-  return CurrencyUtils.formatPrice(totalAssets.toString()).toString()
-}
-
-function getActiveLeases () {
-  let totalLeases = new Dec(0)
-  leases.value.forEach(lease => {
-    if (!lease.leaseStatus.opened) {
-      return
-    }
-
-    const denom = lease.leaseStatus.opened.amount.symbol
-    const balance = CurrencyUtils.calculateBalance(
-      getMarketPrice(denom),
-      new Coin(denom, lease.leaseStatus.opened.amount.amount),
-      0
-    )
-
-    totalLeases = totalLeases.add(balance.toDec())
-  })
-
-  state.value.activeLeases = totalLeases
-  return CurrencyUtils.formatPrice(totalLeases.toString()).toString()
-}
-
-function getSuppliedAndStaked () {
-  // @TODO: get suppliedAndStaked
-  const totalSuppliedAndStaked = new Dec(235)
-  state.value.suppliedAndStaked = totalSuppliedAndStaked
-  return CurrencyUtils.formatPrice(totalSuppliedAndStaked.toString()).toString()
 }
 </script>
