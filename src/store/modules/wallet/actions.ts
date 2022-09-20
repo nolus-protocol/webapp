@@ -169,7 +169,6 @@ export const actions: ActionTree<State, RootState> & Actions = {
     } else {
       const accountNumbers = [0]
       const path = accountNumbers.map(makeCosmoshubPath)[0]
-      // const mnemonic = 'industry helmet coach enforce laundry excuse core argue poem master sugar demand'
       privateKey = await KeyUtils.getPrivateKeyFromMnemonic(mnemonic, path)
     }
 
