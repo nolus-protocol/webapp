@@ -6,6 +6,10 @@ import { Mutations } from './mutations'
 import { Getters } from '@/store/modules/wallet/getters'
 import { OracleActionTypes } from '@/store/modules/oracle/action-types'
 import { OracleMutationTypes } from '@/store/modules/oracle/mutation-types'
+import { Oracle } from '@nolus/nolusjs/build/contracts'
+import { CONTRACTS } from '@/config/contracts'
+import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
+import { NolusClient } from '@nolus/nolusjs'
 
 type AugmentedActionContext = {
   commit<K extends keyof Mutations> (
@@ -68,8 +72,9 @@ export const actions: ActionTree<State, RootState> & Actions = {
       pricesState[e.denom.toLowerCase()] = e.price
     })
 
-    // const oracleContract = new Oracle()
-    // const oraclePrices = await oracleContract.getPrices(['OSMO', 'NOLUS', 'ATOM'])
+    // const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
+    // const oracleContract = new Oracle(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].oracle.instance)
+    // const oraclePrices = await oracleContract.getPricesFor(['unls', 'uusdc'])
 
     commit(OracleMutationTypes.CHANGE_PRICES, { prices: pricesState })
   }

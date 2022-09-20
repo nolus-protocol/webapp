@@ -18,7 +18,7 @@ export default {
     instance: ComponentPublicInstance | null,
     info: string
   ) {
-    console.log('errorCaptured: ', err)
+
   },
   async mounted () {
     useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK)

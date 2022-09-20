@@ -39,7 +39,6 @@ export default {
       router.push({
         path: '/home'
       })
-      console.log('create wallet')
     },
     torusLogin: () => {
       useStore().dispatch(WalletActionTypes.LOGIN_VIA_TORUS)
@@ -58,7 +57,7 @@ export default {
     generateMnemonic () {
       // const entropy = Random.getBytes(32)
       // const mnemonic = Bip39.encode(entropy)
-      // console.log(mnemonic.toString())
+      //
       //
       // const words = mnemonic.toString().split(' ')
       // for (let i = 0; i < words.length; i++) {
@@ -81,12 +80,11 @@ export default {
         }],
         gas: '100000'
       }
-      console.log(wallet)
+
       const txResponse = await wallet?.sendTokens(wallet.address as string, 'nolus15dqqhetmfc4a9akf358zj8hz36e59zx686wg76', [{
         denom: 'unolus',
         amount: '20000000'
       }], DEFAULT_FEE)
-      console.log(txResponse)
     }
   }
 }

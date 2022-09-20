@@ -89,13 +89,11 @@ export default defineComponent({
     }
   },
   mounted () {
-    console.log(this.modelValue)
+
   },
 
   methods: {
     calculateBalance (tokenAmount: string, denom: string) {
-      console.log('amount: ', tokenAmount)
-      console.log('denom: ', denom)
       const prices = useStore().getters.getPrices
       const assetInf = assetsInfo[denom]
       if (prices && assetInf) {

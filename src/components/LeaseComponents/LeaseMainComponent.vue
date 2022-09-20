@@ -113,7 +113,7 @@ export default defineComponent({
             this.currentComponent.props.downPayment,
             this.currentComponent.props.selectedDownPaymentCurrency.balance.denom
           )
-          console.log(makeLeaseApplyResp)
+
           this.currentComponent.props.leaseApply = makeLeaseApplyResp
           this.populateBorrow(makeLeaseApplyResp)
         }

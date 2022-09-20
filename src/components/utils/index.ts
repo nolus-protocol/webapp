@@ -12,7 +12,6 @@ import { defaultNolusWalletFee } from '@/config/wallet'
 
 export const validateAddress = (address: string) => {
   if (!address || address.trim() == '') {
-    console.log('missing receiver address')
     return 'missing receiver address'
   }
 
@@ -20,7 +19,6 @@ export const validateAddress = (address: string) => {
     fromBech32(address, 44)
     return ''
   } catch (e) {
-    console.log('address is not valid!')
     return 'address is not valid!'
   }
 }
@@ -45,11 +43,9 @@ export const validateAmount = (amount: string, denom: string, balance: number) =
   ).gt(new Int(walletBalance))
 
   if (isLowerThanOrEqualsToZero) {
-    console.log('balance is too low')
     return 'balance is too low'
   }
   if (isGreaterThanWalletBalance) {
-    console.log('balance is too big')
     return 'balance is too big'
   }
 

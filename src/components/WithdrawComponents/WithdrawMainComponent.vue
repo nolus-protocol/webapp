@@ -76,10 +76,8 @@ const fetchDepositBalance = async () => {
     state.value.currentDepositBalance = {
       balance: new Coin(state.value.selectedCurrency.balance.denom, new Int(depositBalance.balance))
     } as AssetBalance
-
-    console.log('deposit balance: ', state.value.currentDepositBalance)
   } catch (e) {
-    console.log('Error: ', e)
+
     // TODO show error
   }
 }

@@ -78,7 +78,7 @@ export default defineComponent({
       router.push({ name: RouteNames.IMPORT_SEED })
     },
     tryButton: () => {
-      console.log('btn try again')
+
     },
     clickCreateAccount: () => {
       router.push({ name: RouteNames.CREATE_ACCOUNT })
