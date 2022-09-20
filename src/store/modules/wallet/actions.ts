@@ -152,7 +152,8 @@ export const actions: ActionTree<State, RootState> & Actions = {
         if (payload?.isFromAuth) {
           router.push({ name: RouteNames.DASHBOARD })
         }
-      } catch (e) {
+      } catch (e: any) {
+        throw new Error(e)
         breakLoop = true
       }
     }

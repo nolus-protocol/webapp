@@ -45,6 +45,7 @@
       Connect
     </button>
   </div>
+  <ErrorModal v-if="showError" title="Error connecting" :message="this.errorMessage" :try-button="clickTryAgain"/>
 </template>
 
 <script lang="ts">
@@ -53,15 +54,19 @@ import { ArrowLeftIcon } from '@heroicons/vue/solid'
 import router from '@/router'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
+import ErrorModal from '@/components/modals/ErrorModal.vue'
 
 export default defineComponent({
   name: 'ImportLedgerView',
   components: {
+    ErrorModal,
     ArrowLeftIcon
   },
   data () {
     return {
-      isBluetoothConnection: false
+      isBluetoothConnection: false,
+      showError: false,
+      errorMessage: ''
     }
   },
   methods: {
@@ -69,10 +74,20 @@ export default defineComponent({
       router.go(-1)
     },
     async connectViaLedger () {
-      useStore().dispatch(WalletActionTypes.CONNECT_LEDGER, {
-        isFromAuth: true,
-        isBluetooth: this.isBluetoothConnection
-      })
+      try {
+        await useStore().dispatch(WalletActionTypes.CONNECT_LEDGER, {
+          isFromAuth: true,
+          isBluetooth: this.isBluetoothConnection
+        })
+      } catch (e: any) {
+        this.showError = true
+        this.errorMessage = e.message
+      }
+    },
+    async clickTryAgain () {
+      this.showError = false
+      this.errorMessage = ''
+      await this.connectViaLedger()
     }
   }
 })
