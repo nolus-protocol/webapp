@@ -28,6 +28,7 @@
       Connecting
     </button>
   </div>
+  <ErrorModal v-if="showError" title="Error connecting" :message="this.errorMessage" :try-button="clickTryAgain"/>
 </template>
 
 <script lang="ts">
@@ -36,24 +37,40 @@ import { ArrowLeftIcon } from '@heroicons/vue/solid'
 import router from '@/router'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
+import ErrorModal from '@/components/modals/ErrorModal.vue'
 
 export default defineComponent({
   name: 'ConnectingKeplr',
   components: {
+    ErrorModal,
     ArrowLeftIcon
   },
   data () {
     return {
-      showClaimModal: false
+      showError: false,
+      errorMessage: ''
     }
   },
   methods: {
     clickBack: () => {
       router.go(-1)
+    },
+    async connectKeplr () {
+      try {
+        await useStore().dispatch(WalletActionTypes.CONNECT_KEPLR, { isFromAuth: true })
+      } catch (e: any) {
+        this.showError = true
+        this.errorMessage = e.message
+      }
+    },
+    async clickTryAgain () {
+      this.showError = false
+      this.errorMessage = ''
+      await this.connectKeplr()
     }
   },
-  mounted () {
-    useStore().dispatch(WalletActionTypes.CONNECT_KEPLR, { isFromAuth: true })
+  async mounted () {
+    await this.connectKeplr()
   }
 })
 </script>

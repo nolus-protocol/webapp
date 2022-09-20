@@ -92,7 +92,6 @@ export const actions: ActionTree<State, RootState> & Actions = {
   }, payload: { isFromAuth: false }) {
     await WalletUtils.getKeplr()
     const keplrWindow = window as KeplrWindow
-
     if (!keplrWindow.getOfflineSigner || !keplrWindow.keplr) {
       throw new Error('Keplr wallet is not installed.')
     } else if (!keplrWindow.keplr.experimentalSuggestChain) {
@@ -102,7 +101,6 @@ export const actions: ActionTree<State, RootState> & Actions = {
       try {
         chainId = await NolusClient.getInstance().getChainId()
         const networkConfig = EnvNetworkUtils.loadNetworkConfig()
-
         await keplrWindow.keplr?.experimentalSuggestChain(KeplrEmbedChainInfo(EnvNetworkUtils.getStoredNetworkName(), chainId, networkConfig?.tendermintRpc as string, networkConfig?.api as string))
       } catch (e) {
         throw new Error('Failed to fetch suggest chain.')
