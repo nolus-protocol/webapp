@@ -88,7 +88,6 @@ async function requestClaim () {
     step.value = CONFIRM_STEP.PENDING
     try {
       const result = await wallet.executeContractSubMsg(contractData as ContractData[], defaultNolusWalletFee(), undefined, undefined)
-      console.log('result: ', result)
 
       if (result) {
         state.value.txHash = result.transactionHash || ''

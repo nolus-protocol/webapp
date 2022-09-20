@@ -134,7 +134,6 @@ async function onClickClaim (leaseAddress: string) {
 
   if (wallet) {
     const result = await leaseClient.closeLease(wallet, DEFAULT_FEE, undefined)
-    console.log('result exec: ', result)
   }
 }
 

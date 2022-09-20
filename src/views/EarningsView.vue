@@ -187,7 +187,7 @@ export default defineComponent({
     },
     getAllRewards () {
       for (const [key, value] of Object.entries(LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()])) {
-        console.log(`${key}: ${JSON.stringify(value)}`)
+
       }
     }
   }

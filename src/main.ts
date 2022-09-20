@@ -19,8 +19,3 @@ app.use(store)
   .use(i18n)
   .use(router)
   .mount('#app')
-
-// app.config.errorHandler = (err, instance, info) => {
-//   console.log('error handling: ', err, ' instance: ', instance)
-//   console.log(' instance: ', instance)
-// }

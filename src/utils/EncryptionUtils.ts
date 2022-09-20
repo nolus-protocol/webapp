@@ -20,7 +20,7 @@ export class EncryptionUtils {
   public static encryptPrivateKey (privateKey: string, pubKey: string, password: string) {
     const passwordHash = CryptoJS.SHA512(password).toString()
     const doubleHash = Buffer.from(CryptoJS.SHA512(CryptoJS.SHA512(pubKey).toString()).toString(), 'hex')
-    console.log('hash:', doubleHash)
+
     const iv = doubleHash.slice(0, 16)
     const encryptedData = CryptoJS.AES.encrypt(privateKey, passwordHash, {
       iv: CryptoJS.enc.Utf8.parse(iv.toString())

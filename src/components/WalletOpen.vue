@@ -96,7 +96,7 @@ export default defineComponent({
         value: network
       })
     })
-    console.log('currentNetwork: ', EnvNetworkUtils.getStoredNetworkName())
+
     this.currentNetwork = {
       label: StringUtils.capitalize(EnvNetworkUtils.getStoredNetworkName() || ''),
       value: EnvNetworkUtils.getStoredNetworkName() || ''
@@ -108,7 +108,6 @@ export default defineComponent({
       this.showWallet = false
     },
     onUpdateNetwork (value: PickerOption) {
-      console.log('loggg')
       EnvNetworkUtils.saveCurrentNetwork(value.value)
       if (WalletUtils.isConnectedViaExtension()) {
         useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK)

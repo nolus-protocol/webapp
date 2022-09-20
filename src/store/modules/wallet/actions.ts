@@ -153,7 +153,6 @@ export const actions: ActionTree<State, RootState> & Actions = {
           router.push({ name: RouteNames.DASHBOARD })
         }
       } catch (e) {
-        console.log(e)
         breakLoop = true
       }
     }
@@ -192,7 +191,6 @@ export const actions: ActionTree<State, RootState> & Actions = {
     await openlogin.init()
 
     if (!openlogin.privKey) {
-      console.log('1private key: ', openlogin.privKey)
       await openlogin.login()
     } else {
       const bufferedPrivateKey = Buffer.from(openlogin.privKey.trim().replace('0x', ''), 'hex')
@@ -209,7 +207,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
     commit,
     getters
   }) {
-    console.log('')
+
     // if (use getters) {
     //   const openlogin = (context.state.torusClient as OpenLogin)
     //   await openlogin.logout()
@@ -220,7 +218,6 @@ export const actions: ActionTree<State, RootState> & Actions = {
     getters,
     dispatch
   }, payload: { password: string }) {
-    console.log('')
     if (payload.password !== '' && getters.getPrivateKey !== '') {
       const pubKey = toHex(getters.getNolusWallet.pubKey || new Uint8Array(0))
       const encryptedPbKey = EncryptionUtils.encryptEncryptionKey(pubKey, payload.password)
@@ -257,7 +254,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
     const walletAddress = WalletManager.getWalletAddress() || ''
     if (!WalletUtils.isAuth()) {
       WalletManager.eraseWalletInfo()
-      router.push(RouteNames.AUTH)
+      router.push({ name: RouteNames.AUTH })
       return
     }
 
