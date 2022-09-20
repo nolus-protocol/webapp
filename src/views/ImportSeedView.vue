@@ -12,11 +12,11 @@
     <div class="separator-line py-6 relative z-[2]"></div>
 
     <div class="px-4 md:px-10 relative z-[2]">
-      <TextField id="seed" v-model:value.trim="importStr" :error-msg="errorMessage" :is-error="errorMessage !== ''"
-        :label="$t('message.mnemonic-seed-or-key')" name="seed" />
+      <TextField id="seed" v-model:value.trim="importStr" :error-msg="seedErrorMessage" :is-error="seedErrorMessage !== ''"
+                 :label="$t('message.mnemonic-seed-or-key')" name="seed" />
 
       <div class="mt-6 hidden md:flex">
-        <button class="btn btn-primary btn-large-primary mr-4 disabled" v-on:click="clickImport">
+        <button class="btn btn-primary btn-large-primary mr-4" v-on:click="clickImport">
         {{ $t('message.import') }}
         </button>
       </div>
@@ -30,6 +30,8 @@
       </button>
     </div>
   </div>
+  <ErrorModal v-if="showError" title="Error connecting" :message="this.modalErrorMessage" :try-button="clickTryAgain"/>
+
 </template>
 
 <script lang="ts">
@@ -41,33 +43,47 @@ import router from '@/router'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { RouteNames } from '@/router/RouterNames'
+import ErrorModal from '@/components/modals/ErrorModal.vue'
 
 export default defineComponent({
   name: 'ImportSeedView',
   components: {
     TextField,
-    ArrowLeftIcon
+    ArrowLeftIcon,
+    ErrorModal
   },
   data () {
     return {
+      showError: false,
+      modalErrorMessage: '',
       importStr: '',
-      errorMessage: ''
+      seedErrorMessage: ''
     }
   },
   methods: {
     clickBack (value: string) {
       router.go(-1)
     },
-    clickImport () {
+    async clickImport () {
       if (this.importStr === '') {
-        this.errorMessage = this.$t('message.text-field-error')
+        this.seedErrorMessage = this.$t('message.text-field-error')
         return
       }
 
-      useStore().dispatch(WalletActionTypes.CONNECT_VIA_MNEMONIC, { mnemonic: this.importStr })
-      this.importStr = ''
-      this.errorMessage = ''
-      router.push({ name: RouteNames.SET_PASSWORD })
+      try {
+        await useStore().dispatch(WalletActionTypes.CONNECT_VIA_MNEMONIC, { mnemonic: this.importStr })
+        this.importStr = ''
+        this.seedErrorMessage = ''
+        await router.push({ name: RouteNames.SET_PASSWORD })
+      } catch (e: any) {
+        this.showError = true
+        this.modalErrorMessage = e.message
+      }
+    },
+    async clickTryAgain () {
+      this.showError = false
+      this.modalErrorMessage = ''
+      await this.clickImport()
     }
   }
 })
