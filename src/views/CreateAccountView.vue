@@ -63,14 +63,14 @@
 
       <SelectorTextField class="px-4 md:px-10"
         id="confirm-mnemonic"
-        :error-msg="confirmScreenErrorMsgx"
-        :is-error="confirmScreenErrorMsg !== ''"
-        :on-click-confirm="onClickConfirmMnemonic"
+        :on-click-confirm="confirmMnemonic"
         :values="mnemonicWords"
         label="Confirm mnemonic seed"
       ></SelectorTextField>
     </div>
   </div>
+  <ErrorModal v-if="showErrorModal" title="Error connecting" :message="this.errorMessage" :try-button="clickTryAgain"/>
+
 </template>
 
 <script lang="ts">
@@ -84,20 +84,23 @@ import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { RouteNames } from '@/router/RouterNames'
 import { StringUtils } from '@/utils/StringUtils'
 import { KeyUtils } from '@nolus/nolusjs'
+import ErrorModal from '@/components/modals/ErrorModal.vue'
 
 export default defineComponent({
   name: 'CreateAccountView',
   components: {
     ArrowLeftIcon,
     TextFieldButtons,
-    SelectorTextField
+    SelectorTextField,
+    ErrorModal
   },
   data () {
     return {
       isCreateFormOpen: true,
       mnemonic: '',
       mnemonicWords: [] as string[],
-      confirmScreenErrorMsg: ''
+      showErrorModal: false,
+      errorMessage: ''
     }
   },
   mounted () {
@@ -112,22 +115,28 @@ export default defineComponent({
     this.mnemonicWords = words
   },
   methods: {
-    onClickConfirmMnemonic (value: []) {
+    async confirmMnemonic (value: []) {
       let confirmMnemonic = ''
       value.forEach((word) => {
         confirmMnemonic += ' ' + word
       })
 
       if (this.mnemonic.trim() !== confirmMnemonic.trim()) {
-        this.confirmScreenErrorMsg = 'The mnemonic phrase does not match!'
+        this.showErrorModal = true
+        this.errorMessage = 'The mnemonic phrase does not match!'
         return
       }
 
-      useStore().dispatch(WalletActionTypes.CONNECT_VIA_MNEMONIC, {
-        mnemonic: this.mnemonic
-      })
-      this.mnemonic = ''
-      router.push({ name: RouteNames.SET_PASSWORD })
+      try {
+        await useStore().dispatch(WalletActionTypes.CONNECT_VIA_MNEMONIC, {
+          mnemonic: this.mnemonic
+        })
+        this.mnemonic = ''
+        await router.push({ name: RouteNames.SET_PASSWORD })
+      } catch (e: any) {
+        this.showErrorModal = true
+        this.errorMessage = e.message
+      }
     },
     btnContinueToConfirm () {
       this.isCreateFormOpen = false
@@ -149,6 +158,10 @@ export default defineComponent({
     },
     clickBack: () => {
       router.go(-1)
+    },
+    clickTryAgain () {
+      this.showErrorModal = false
+      this.errorMessage = ''
     }
   }
 })
