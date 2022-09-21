@@ -18,7 +18,7 @@
               id="history"
               href="/history"
               :label="$t('message.history')"
-              v-on:click="pushToHistory"
+              v-on:click="pushTo(RouteNames.HISTORY)"
             />
           </div>
           <div class="nls-nav-link flex flex-start nls-md-flex-row mb-[30px]">
@@ -37,7 +37,7 @@
               id="assets"
               href="/"
               :label="$t('message.assets')"
-              v-on:click="pushToDashboard"
+              v-on:click="pushTo(RouteNames.DASHBOARD)"
             />
           </div>
           <div class="block nls-nav-link">
@@ -45,18 +45,22 @@
               id="lease"
               href="/lease"
               :label="$t('message.lease')"
-              v-on:click="pushToLease"
+              v-on:click="pushTo(RouteNames.LEASE)"
             />
           </div>
           <div class="block nls-nav-link">
-            <SidebarElement id="trade" href="#" :label="$t('message.trade')"/>
+            <SidebarElement
+              id="trade"
+              href="#"
+              :label="$t('message.swap')"
+              @click="openSwapModal"/>
           </div>
           <div class="block nls-nav-link">
             <SidebarElement
               id="earn"
               href="/earn"
               :label="$t('message.earn')"
-              v-on:click="pushToEarn"
+              v-on:click="pushTo(RouteNames.EARN)"
             />
           </div>
           <div class="block nls-nav-link nls-md-hidden">
@@ -64,14 +68,13 @@
               id="history"
               href="/history"
               :label="$t('message.history')"
-              v-on:click="pushToHistory"
+              v-on:click="pushTo(RouteNames.HISTORY)"
             />
           </div>
           <div class="block nls-nav-link nls-md-hidden">
             <SidebarElement
               id="governance"
               label="Govern"
-              target="_blank"
               v-on:click="openExternal('https://wallet.keplr.app/#/dashboard', '_blank')"
             />
           </div>
@@ -90,25 +93,21 @@
       <SidebarElement
         id="twitter"
         :icon="require('@/assets/icons/twitter.svg')"
-        target="_blkank"
         v-on:click="openExternal(TWITTER_ACCOUNT, '_blank')"
       />
       <SidebarElement
         id="telegram"
         :icon="require('@/assets/icons/telegram.svg')"
-        target="_blkank"
         v-on:click="openExternal(TELEGRAM_ACCOUNT, '_blank')"
       />
       <SidebarElement
         id="discord"
         :icon="require('@/assets/icons/discord.svg')"
-        target="_blkank"
         v-on:click="openExternal(DISCORD_ACCOUNT, '_blank')"
       />
       <SidebarElement
         id="reddit"
         :icon="require('@/assets/icons/reddit.svg')"
-        target="_blkank"
         v-on:click="openExternal(REDDIT_ACCOUNT, '_blank')"
       />
     </div>
@@ -121,80 +120,51 @@
       v0.1.3-8c231c5
     </p>
 
-    <div class="block mt-3 text-12 nls-font-400 sub-nav-service">
-      <!-- <SidebarElement
-        id="term-of-service"
-        href="#"
-        :label="$t('message.term-of-service')"
-        target="_blkank"
-      /> -->
-      <!-- this.$route.path == this.href ? 'active' : false, -->
-    </div>
+    <div class="block mt-3 text-12 nls-font-400 sub-nav-service"/>
   </div>
-    <div class="backdrop"></div>
+    <div class="backdrop"/>
   </div>
+
+  <Modal v-if="showSwapModal" @close-modal="showSwapModal = false">
+    <SwapDialog/>
+  </Modal>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script lang="ts" setup>
+import { onMounted, ref } from 'vue'
 
 import LogoLink from '@/components/LogoLink.vue'
 import SidebarElement from '@/components/SidebarElement.vue'
 import {
   DISCORD_ACCOUNT,
-  LINKEDIN_ACCOUNT,
   REDDIT_ACCOUNT,
   TELEGRAM_ACCOUNT,
   TWITTER_ACCOUNT,
-  MEDIUM_ACCOUNT
 } from '@/constants/webapp'
 import router from '@/router'
 import { RouteNames } from '@/router/RouterNames'
+import Modal from '@/components/modals/templates/Modal.vue'
+import SwapDialog from '@/components/modals/SwapDialog.vue'
 
-export default defineComponent({
-  name: 'SidebarContainer',
-  components: {
-    LogoLink,
-    SidebarElement
-  },
-  props: [],
-  data () {
-    return {
-      showMobileNav: false,
-      showWalletPopup: false,
-      TWITTER_ACCOUNT: TWITTER_ACCOUNT,
-      TELEGRAM_ACCOUNT: TELEGRAM_ACCOUNT,
-      REDDIT_ACCOUNT: REDDIT_ACCOUNT,
-      LINKEDIN_ACCOUNT: LINKEDIN_ACCOUNT,
-      DISCORD_ACCOUNT: DISCORD_ACCOUNT,
-      MEDIUM_ACCOUNT: MEDIUM_ACCOUNT,
-      isMobile: false
-    }
-  },
-  mounted () {
-    this.isMobile = screen?.width < 576
-  },
-  methods: {
-    toggleWalletPopup () {
-      this.showWalletPopup = !this.showWalletPopup
-    },
-    pushToHistory () {
-      router.push({ name: RouteNames.HISTORY })
-    },
-    pushToLease () {
-      router.push({ name: RouteNames.LEASE })
-    },
-    pushToDashboard () {
-      router.push({ name: RouteNames.DASHBOARD })
-    },
-    pushToEarn () {
-      router.push({ name: RouteNames.EARN })
-    },
-    openExternal (url: string, target: string) {
-      window.open(url, target)
-    }
-  }
+const showMobileNav = ref(false)
+const isMobile = ref(false)
+const showSwapModal = ref(false)
+
+onMounted(() => {
+  isMobile.value = screen?.width < 576
 })
+
+function openSwapModal () {
+  showSwapModal.value = true
+}
+
+function pushTo (route: RouteNames) {
+  router.push({ name: route })
+}
+
+function openExternal (url: string, target: string) {
+  window.open(url, target)
+}
 </script>
 
 <style lang="scss" scoped>

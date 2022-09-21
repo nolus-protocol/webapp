@@ -4,7 +4,7 @@
     <div
       class="block py-3 px-4 bg-light-grey radius-light text-left text-14 nls-font-400 text-primary"
     >
-      Current balance:
+      Balance:
 
       <a class="text-secondary nls-font-700 underline ml-2" href="#">
         {{ formatCurrentBalance(modelValue.selectedCurrency) }}
