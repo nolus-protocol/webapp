@@ -30,7 +30,7 @@
       </div>
 
       <div class="mt-6 hidden md:flex">
-        <button class="btn btn-primary btn-large-primary" v-on:click="this.connectViaLedger()">
+        <button class="btn btn-primary btn-large-primary" @click="connectViaLedger">
           Connect
         </button>
       </div>
@@ -41,25 +41,30 @@
 
   <div
     class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto bg-white absolute inset-x-0 bottom-0 md:relative shadow-modal">
-    <button class="btn btn-primary btn-large-primary w-80">
+    <button class="btn btn-primary btn-large-primary w-80" @click="connectViaLedger">
       Connect
     </button>
   </div>
-  <ErrorModal v-if="showError" title="Error connecting" :message="this.errorMessage" :try-button="clickTryAgain"/>
+  <Modal v-if="showError" @close-modal="showError = false">
+    <ErrorDialog title="Error connecting" :message="errorMessage" :try-button="clickTryAgain"/>
+  </Modal>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
+
 import router from '@/router'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
-import ErrorModal from '@/components/modals/ErrorModal.vue'
+import ErrorDialog from '@/components/modals/ErrorDialog.vue'
+import Modal from '@/components/modals/templates/Modal.vue'
 
 export default defineComponent({
   name: 'ImportLedgerView',
   components: {
-    ErrorModal,
+    ErrorDialog,
+    Modal,
     ArrowLeftIcon
   },
   data () {

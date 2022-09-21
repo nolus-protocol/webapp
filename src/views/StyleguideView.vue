@@ -1545,13 +1545,6 @@
 
                 <button
                   class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
-                  @click="() => (showErrorModal = true)"
-                >
-                  Error Modal
-                </button>
-
-                <button
-                  class="btn btn-secondary btn-medium-secondary btn-emphatized mr-4"
                   @click="() => (showSupplyWithdrawModal = true)"
                 >
                   Supply Modal
@@ -1583,7 +1576,6 @@
         <LeaseMainComponent v-show="showLeaseModal" @close-modal="showLeaseModal = false"/>
         <RepayMainComponent v-show="showRepayModal" @close-modal="showRepayModal = false"/>
 
-        <ErrorModal v-show="showErrorModal" @close-modal="showErrorModal = false"
         />
         <ConfirmEmailModal
           v-show="showConfirmEmailModal"
@@ -1614,7 +1606,6 @@ import { BellIcon } from '@heroicons/vue/solid'
 import LogoLink from '@/components/LogoLink.vue'
 
 import SidebarElement from '@/components/SidebarElement.vue'
-import ErrorModal from '@/components/modals/ErrorModal.vue'
 import ConfirmEmailModal from '@/components/modals/ConfirmEmailModal.vue'
 import HistoryView from '@/views/HistoryView.vue'
 import HomeView from '@/views/HomeView.vue'
@@ -1630,7 +1621,6 @@ export default defineComponent({
     LogoLink,
     SidebarElement,
     SnackBar,
-    ErrorModal,
     ConfirmEmailModal,
     LeaseMainComponent,
     RepayMainComponent,
@@ -1648,7 +1638,6 @@ export default defineComponent({
       showSendModal: false as boolean,
       showSupplyWithdrawModal: false as boolean,
       showPendingModal: false,
-      showErrorModal: false as boolean,
       showConfirmEmailModal: false as boolean,
       cols: 0 as number,
       colstest: 0 as number
@@ -1660,7 +1649,6 @@ export default defineComponent({
     this.showRepayModal = false
     this.showLeaseModal = false
     this.showSendModal = false
-    this.showErrorModal = false
     this.showConfirmEmailModal = false
     this.showSupplyWithdrawModal = false
     this.cols = 2

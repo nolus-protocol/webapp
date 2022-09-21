@@ -28,22 +28,27 @@
       Connecting
     </button>
   </div>
-  <ErrorModal v-if="showError" title="Error connecting" :message="this.errorMessage" :try-button="clickTryAgain"/>
+  <Modal v-if="showError" @close-modal="showError = false">
+    <ErrorDialog title="Error connecting" :message="errorMessage" :try-button="clickTryAgain"/>
+  </Modal>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
+
 import router from '@/router'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
-import ErrorModal from '@/components/modals/ErrorModal.vue'
+import ErrorDialog from '@/components/modals/ErrorDialog.vue'
+import Modal from '@/components/modals/templates/Modal.vue'
 
 export default defineComponent({
   name: 'ConnectingKeplr',
   components: {
-    ErrorModal,
-    ArrowLeftIcon
+    ErrorDialog,
+    ArrowLeftIcon,
+    Modal
   },
   data () {
     return {

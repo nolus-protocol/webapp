@@ -30,7 +30,9 @@
       </button>
     </div>
   </div>
-  <ErrorModal v-if="showError" title="Error connecting" :message="this.modalErrorMessage" :try-button="clickTryAgain"/>
+  <Modal v-if="showError" @close-modal="showError = false">
+    <ErrorDialog title="Error connecting" :message="modalErrorMessage" :try-button="clickTryAgain"/>
+  </Modal>
 
 </template>
 
@@ -43,14 +45,16 @@ import router from '@/router'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { RouteNames } from '@/router/RouterNames'
-import ErrorModal from '@/components/modals/ErrorModal.vue'
+import ErrorDialog from '@/components/modals/ErrorDialog.vue'
+import Modal from '@/components/modals/templates/Modal.vue'
 
 export default defineComponent({
   name: 'ImportSeedView',
   components: {
     TextField,
     ArrowLeftIcon,
-    ErrorModal
+    ErrorDialog,
+    Modal
   },
   data () {
     return {
@@ -61,7 +65,7 @@ export default defineComponent({
     }
   },
   methods: {
-    clickBack (value: string) {
+    clickBack () {
       router.go(-1)
     },
     async clickImport () {

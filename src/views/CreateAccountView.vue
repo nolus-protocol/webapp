@@ -69,22 +69,26 @@
       ></SelectorTextField>
     </div>
   </div>
-  <ErrorModal v-if="showErrorModal" title="Error connecting" :message="this.errorMessage" :try-button="clickTryAgain"/>
+  <Modal v-if="showErrorModal" @close-modal="showErrorModal = false">
+    <ErrorDialog title="Error connecting" :message="errorMessage" :try-button="clickTryAgain"/>
+  </Modal>
 
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import TextFieldButtons from '@/components/TextFieldButtons.vue'
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
+import { KeyUtils } from '@nolus/nolusjs'
+
+import TextFieldButtons from '@/components/TextFieldButtons.vue'
 import SelectorTextField from '@/components/SelectorTextField.vue'
 import { useStore } from '@/store'
 import router from '@/router'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { RouteNames } from '@/router/RouterNames'
 import { StringUtils } from '@/utils/StringUtils'
-import { KeyUtils } from '@nolus/nolusjs'
-import ErrorModal from '@/components/modals/ErrorModal.vue'
+import ErrorDialog from '@/components/modals/ErrorDialog.vue'
+import Modal from '@/components/modals/templates/Modal.vue'
 
 export default defineComponent({
   name: 'CreateAccountView',
@@ -92,7 +96,8 @@ export default defineComponent({
     ArrowLeftIcon,
     TextFieldButtons,
     SelectorTextField,
-    ErrorModal
+    ErrorDialog,
+    Modal
   },
   data () {
     return {
