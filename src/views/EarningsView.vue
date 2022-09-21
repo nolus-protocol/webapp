@@ -19,7 +19,7 @@
             class="lg:flex block items-center justify-between px-6 pt-6"
           >
             <h2 class="text-16 nls-font-500 text-left my-0">
-              {{$t('message.earning-asset')}}
+              {{$t('message.earning-assets')}}
             </h2>
             <div class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end">
               <div class="relative block checkbox-container">
