@@ -3,7 +3,6 @@
 </template>
 
 <script lang="ts">
-import { ComponentPublicInstance } from 'vue'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { ApplicationActionTypes } from '@/store/modules/application/action-types'
@@ -13,13 +12,6 @@ import { WalletManager } from '@/wallet/WalletManager'
 export default {
   name: 'App',
   components: {},
-  errorCaptured (
-    err: unknown,
-    instance: ComponentPublicInstance | null,
-    info: string
-  ) {
-
-  },
   async mounted () {
     useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK)
     useStore().dispatch(WalletActionTypes.UPDATE_BALANCES)
