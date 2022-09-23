@@ -14,6 +14,9 @@
   />
   <!-- @TODO: Refactor to use <SupplyFormComponent /> directly -->
   <component v-else :is="SupplyFormComponent" v-model="state"/>
+  <Modal v-if="errorDialog.showDialog" @close-modal="errorDialog.showDialog = false">
+    <ErrorDialog title="Error connecting" :message="errorDialog.errorMessage" try-button=""/>
+  </Modal>
 </template>
 
 <script lang="ts" setup>
@@ -21,15 +24,13 @@ import { computed, defineProps, inject, ref, watch } from 'vue'
 
 import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
 import SupplyFormComponent from '@/components/SupplyComponents/SupplyFormComponent.vue'
-import { WalletActionTypes } from '@/store/modules/wallet/action-types'
+import ErrorDialog from '@/components/modals/ErrorDialog.vue'
+import Modal from '@/components/modals/templates/Modal.vue'
 import { useStore } from '@/store'
-import { WalletUtils } from '@/utils/WalletUtils'
 import { validateAmount, walletOperation } from '@/components/utils'
 import { CONFIRM_STEP } from '@/types/ConfirmStep'
 import { SupplyFormComponentProps } from '@/types/component/SupplyFormComponentProps'
 import { TxType } from '@/types/TxType'
-import { Dec, Int } from '@keplr-wallet/unit'
-import { ChainConstants } from '@nolus/nolusjs/build/constants'
 import { NolusClient } from '@nolus/nolusjs'
 import { Lpp } from '@nolus/nolusjs/build/contracts'
 import { LPP_CONSTANTS } from '@/config/contracts'
@@ -60,13 +61,18 @@ const state = ref({
 } as SupplyFormComponentProps)
 
 const step = ref(CONFIRM_STEP.CONFIRM)
+const errorDialog = ref({
+  showDialog: false,
+  errorMessage: ''
+})
 
 const closeModal = inject('onModalClose', () => () => {
 })
 
 function onNextClick () {
   if (!state.value.receiverAddress) {
-    // TODO show error dialog
+    errorDialog.value.showDialog = true
+    errorDialog.value.errorMessage = 'Missing receiver address!'
     return
   }
   validateInputs()

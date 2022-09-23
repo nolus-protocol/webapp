@@ -8,8 +8,8 @@ export const NETWORKS: { [key: string]: NetworkAddress; } = {
     api: 'http://127.0.0.1:1317'
   },
   devnet: {
-    tendermintRpc: 'https://net-dev.nolus.io:26612',
-    api: 'https://net-dev.nolus.io:26614'
+    tendermintRpc: 'https://net-dev.nolus.io:266122',
+    api: 'https://net-dev.nolus.io:266142'
   },
   testnet: {
     tendermintRpc: 'https://net-rila.nolus.io:26657',

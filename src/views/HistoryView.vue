@@ -20,6 +20,9 @@
       </div>
     </div>
   </div>
+  <Modal v-if="this.showErrorDialog" @close-modal="this.showErrorDialog = false">
+    <ErrorDialog title="Error connecting" :message="this.errorMessage" :try-button="onClickTryAgain"/>
+  </Modal>
 </template>
 
 <script lang="ts">
@@ -32,6 +35,8 @@ import HistoryTableHeader from '@/components/HistoryComponents/HistoryTableHeade
 import HistoryTableItem from '@/components/HistoryComponents/HistoryTableItem.vue'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
+import Modal from '@/components/modals/templates/Modal.vue'
+import ErrorDialog from '@/components/modals/ErrorDialog.vue'
 
 export interface ITransaction {
   id: string;
@@ -46,10 +51,14 @@ export default defineComponent({
   name: 'HistoryView',
   components: {
     HistoryTableHeader,
-    HistoryTableItem
+    HistoryTableItem,
+    Modal,
+    ErrorDialog
   },
   data () {
     return {
+      showErrorDialog: false,
+      errorMessage: '',
       transactions: [] as ITransaction[]
     }
   },
@@ -62,9 +71,17 @@ export default defineComponent({
     this.getTransactions()
   },
   methods: {
+    async onClickTryAgain () {
+      await this.getTransactions()
+    },
     async getTransactions () {
-      const res = await useStore().dispatch(WalletActionTypes.SEARCH_TX)
-      this.prepareTransactions(res)
+      try {
+        const res = await useStore().dispatch(WalletActionTypes.SEARCH_TX)
+        this.prepareTransactions(res)
+      } catch (e: any) {
+        this.showErrorDialog = true
+        this.errorMessage = e.message
+      }
     },
     prepareTransactions (results: readonly IndexedTx[]) {
       if (results) {

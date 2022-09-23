@@ -36,8 +36,15 @@ import LeaseInfo from '@/components/LeaseInfo.vue'
 import { useLeases } from '@/composables/useLeases'
 
 const showLeaseModal = ref(false)
+
 const { leases, getLeases } = useLeases()
 
-provide('getLeases', getLeases)
+const errorDialog = ref({
+  showDialog: false,
+  errorMessage: '',
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  tryAgain: (): void => {}
+})
 
+provide('getLeases', getLeases)
 </script>

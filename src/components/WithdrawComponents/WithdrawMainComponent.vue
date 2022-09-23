@@ -14,24 +14,27 @@
   />
   <!-- @TODO: Refactor to use <WithdrawFormComponent /> directly -->
   <component v-else :is="WithdrawFormComponent" v-model="state"/>
+  <Modal v-if="errorDialog.showDialog" @close-modal="errorDialog.showDialog = false">
+    <ErrorDialog title="Error connecting" :message="errorDialog.errorMessage" :try-button="errorDialog.tryAgain"/>
+  </Modal>
 </template>
 
 <script lang="ts" setup>
-import { computed, defineProps, inject, onMounted, ref, watch } from 'vue'
+import { computed, defineProps, inject, onMounted, PropType, ref, watch } from 'vue'
 
 import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
 import WithdrawFormComponent from '@/components/WithdrawComponents/WithdrawFormComponent.vue'
+import ErrorDialog from '@/components/modals/ErrorDialog.vue'
+import Modal from '@/components/modals/templates/Modal.vue'
 import { useStore } from '@/store'
 import { CONFIRM_STEP } from '@/types/ConfirmStep'
 import { WithdrawFormComponentProps } from '@/types/component/WithdrawFormComponentProps'
 import { TxType } from '@/types/TxType'
 import { Coin, Int } from '@keplr-wallet/unit'
-import { WalletUtils } from '@/utils/WalletUtils'
 import { NolusClient } from '@nolus/nolusjs'
 import { Lpp } from '@nolus/nolusjs/build/contracts'
 import { LPP_CONSTANTS } from '@/config/contracts'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
-import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { validateAmount, walletOperation } from '@/components/utils'
 import { AssetBalance } from '@/store/modules/wallet/state'
 import { defaultNolusWalletFee } from '@/config/wallet'
@@ -63,22 +66,27 @@ const state = ref({
   onClickOkBtn: () => onClickOkBtn()
 } as WithdrawFormComponentProps)
 
+const errorDialog = ref({
+  showDialog: false,
+  errorMessage: '',
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  tryAgain: (): void => {}
+})
+
 const fetchDepositBalance = async () => {
   try {
     const walletAddress = useStore().state.wallet.wallet?.address
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-    const lppClient = new Lpp(cosmWasmClient)
-    const depositBalance = await lppClient.getLenderDeposit(
-      state.value.receiverAddress,
-      walletAddress as string
-    )
+    const lppClient = new Lpp(cosmWasmClient, state.value.receiverAddress)
+    const depositBalance = await lppClient.getLenderDeposit(walletAddress as string)
 
     state.value.currentDepositBalance = {
       balance: new Coin(state.value.selectedCurrency.balance.denom, new Int(depositBalance.balance))
     } as AssetBalance
-  } catch (e) {
-
-    // TODO show error
+  } catch (e: any) {
+    errorDialog.value.showDialog = true
+    errorDialog.value.errorMessage = e.message
+    errorDialog.value.tryAgain = await fetchDepositBalance
   }
 }
 
@@ -103,7 +111,9 @@ const closeModal = inject('onModalClose', () => () => {
 
 function onNextClick () {
   if (!state.value.receiverAddress) {
-    // TODO show error dialog
+    errorDialog.value.showDialog = true
+    errorDialog.value.errorMessage = 'Missing receiver address!'
+    errorDialog.value.tryAgain = hideErrorDialog
     return
   }
   validateInputs()
@@ -111,6 +121,11 @@ function onNextClick () {
   if (!state.value.amountErrorMsg) {
     showConfirmScreen.value = true
   }
+}
+
+function hideErrorDialog () {
+  errorDialog.value.showDialog = false
+  errorDialog.value.errorMessage = ''
 }
 
 function onConfirmBackClick () {
