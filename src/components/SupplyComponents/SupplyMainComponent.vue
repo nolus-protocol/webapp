@@ -27,15 +27,16 @@ import SupplyFormComponent from '@/components/SupplyComponents/SupplyFormCompone
 import ErrorDialog from '@/components/modals/ErrorDialog.vue'
 import Modal from '@/components/modals/templates/Modal.vue'
 import { useStore } from '@/store'
-import { validateAmount, walletOperation } from '@/components/utils'
+import { getMicroAmount, validateAmount, walletOperation } from '@/components/utils'
 import { CONFIRM_STEP } from '@/types/ConfirmStep'
 import { SupplyFormComponentProps } from '@/types/component/SupplyFormComponentProps'
 import { TxType } from '@/types/TxType'
-import { NolusClient } from '@nolus/nolusjs'
+import { CurrencyUtils, NolusClient } from '@nolus/nolusjs'
 import { Lpp } from '@nolus/nolusjs/build/contracts'
 import { LPP_CONSTANTS } from '@/config/contracts'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 import { defaultNolusWalletFee } from '@/config/wallet'
+import { assetsInfo } from '@/config/assetsInfo'
 
 const { selectedAsset } = defineProps({
   selectedAsset: {
@@ -107,14 +108,15 @@ async function transferAmount () {
   if (wallet && state.value.amountErrorMsg === '') {
     step.value = CONFIRM_STEP.PENDING
     try {
+      const microAmount = getMicroAmount(state.value.selectedCurrency.balance.denom, state.value.amount)
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
       const lppClient = new Lpp(cosmWasmClient, LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][state.value.selectedCurrency.balance.denom].instance)
       const result = await lppClient.deposit(
         wallet,
         defaultNolusWalletFee(),
         [{
-          denom: state.value.selectedCurrency.balance.denom,
-          amount: state.value.amount
+          denom: microAmount.coinMinimalDenom,
+          amount: microAmount.mAmount.amount.toString()
         }]
       )
       if (result) {

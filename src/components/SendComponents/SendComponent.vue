@@ -126,33 +126,6 @@ export default defineComponent({
     }
   },
   mounted () {
-    this.addressOptions = [
-      {
-        id: '1',
-        value: 'nolus1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3rtesmj',
-        label: 'Silviya Stancheva’s Binance'
-      },
-      {
-        id: '2',
-        value: 'nolus1tygms3xhhs3yv487phx3dw4a95jn7t7lht9pdx',
-        label: 'Petar Petrov KuCoin'
-      },
-      {
-        id: '3',
-        value: 'nolus1vnn8pr2hqrm64mge8724jmzcm7usnsm5e4qqle',
-        label: 'Gancho Manev Binance'
-      },
-      {
-        id: '4',
-        value: 'nolus10d07y265gmmuvt4z0w9aw880jnsr700jvjr65k',
-        label: 'Gero Nikolov’s Ledger'
-      },
-      {
-        id: '5',
-        value: 'nolus1jv65s3grqf6v6jl3dp4t6c9t9rk99cd8305rt6',
-        label: 'Silviya Stancheva’s Binance'
-      }
-    ]
   },
   emits: ['update:modelValue.selectedCurrency'],
   methods: {

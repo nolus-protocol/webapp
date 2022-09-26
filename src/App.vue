@@ -14,6 +14,7 @@ import { WalletManager } from '@/wallet/WalletManager'
 import ErrorDialog from '@/components/modals/ErrorDialog.vue'
 import Modal from '@/components/modals/templates/Modal.vue'
 import { defineComponent } from 'vue'
+import { UPDATE_BALANCE_INTERVAL } from '@/config/env'
 
 export default defineComponent({
   name: 'App',
@@ -42,7 +43,7 @@ export default defineComponent({
           if (WalletManager.getWalletAddress() !== '') {
             await useStore().dispatch(WalletActionTypes.UPDATE_BALANCES)
           }
-        }, 5000)
+        }, UPDATE_BALANCE_INTERVAL)
 
         await useStore().dispatch(OracleActionTypes.GET_PRICES)
       } catch (e: any) {

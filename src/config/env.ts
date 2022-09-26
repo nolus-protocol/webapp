@@ -8,11 +8,13 @@ export const NETWORKS: { [key: string]: NetworkAddress; } = {
     api: 'http://127.0.0.1:1317'
   },
   devnet: {
-    tendermintRpc: 'https://net-dev.nolus.io:266122',
-    api: 'https://net-dev.nolus.io:266142'
+    tendermintRpc: 'https://net-dev.nolus.io:26612',
+    api: 'https://net-dev.nolus.io:26614'
   },
   testnet: {
     tendermintRpc: 'https://net-rila.nolus.io:26657',
     api: 'https://net-rila.nolus.io:1317'
   }
 }
+
+export const UPDATE_BALANCE_INTERVAL = 5 * 1000 // 5000 ms

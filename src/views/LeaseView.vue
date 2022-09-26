@@ -25,6 +25,9 @@
   <Modal v-if="showLeaseModal" @close-modal="showLeaseModal = false">
     <LeaseDialog/>
   </Modal>
+  <Modal v-if="errorDialog.showDialog" @close-modal="errorDialog.showDialog = false">
+    <ErrorDialog title="Error connecting" :message="errorDialog.errorMessage" :try-button="onTryAgain"/>
+  </Modal>
 </template>
 
 <script lang="ts" setup>
@@ -32,12 +35,13 @@ import { ref, provide } from 'vue'
 
 import LeaseDialog from '@/components/modals/LeaseDialog.vue'
 import Modal from '@/components/modals/templates/Modal.vue'
+import ErrorDialog from '@/components/modals/ErrorDialog.vue'
 import LeaseInfo from '@/components/LeaseInfo.vue'
 import { useLeases } from '@/composables/useLeases'
 
 const showLeaseModal = ref(false)
 
-const { leases, getLeases } = useLeases()
+const { leases, getLeases } = useLeases(onLeaseError)
 
 const errorDialog = ref({
   showDialog: false,
@@ -45,6 +49,18 @@ const errorDialog = ref({
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   tryAgain: (): void => {}
 })
+
+function onLeaseError (e: any) {
+  errorDialog.value.showDialog = true
+  errorDialog.value.errorMessage = e.message
+  errorDialog.value.tryAgain = onTryAgain
+}
+
+function onTryAgain () {
+  errorDialog.value.showDialog = false
+  errorDialog.value.errorMessage = ''
+  getLeases()
+}
 
 provide('getLeases', getLeases)
 </script>

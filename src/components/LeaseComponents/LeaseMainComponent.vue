@@ -36,7 +36,7 @@ import { CONFIRM_STEP } from '@/types/ConfirmStep'
 import { TxType } from '@/types/TxType'
 import { LeaseComponentProps } from '@/types/component/LeaseComponentProps'
 import { defaultNolusWalletFee } from '@/config/wallet'
-import { walletOperation } from '@/components/utils'
+import { getMicroAmount, walletOperation } from '@/components/utils'
 
 interface LeaseMainComponentData {
   is: string;
@@ -243,7 +243,6 @@ export default defineComponent({
         return
       }
       this.currentComponent.props.amount = leaseApplyData.borrow.amount
-      // this.currentComponent.props.selectedCurrency = this.changeSelectedCurrency(leaseApplyData.borrow.denom)
       this.currentComponent.props.selectedCurrency = this.getCurrentBalanceByDenom(leaseApplyData.borrow.symbol)
     },
     getCurrentBalanceByDenom (denom: string) {
@@ -260,9 +259,10 @@ export default defineComponent({
       if (wallet && this.isAmountValid()) {
         this.step = CONFIRM_STEP.PENDING
         try {
+          const microAmount = getMicroAmount(this.currentComponent.props.selectedCurrency.balance.denom, this.currentComponent.props.amount)
           const funds = [{
-            denom: this.currentComponent.props.selectedCurrency.balance.denom,
-            amount: this.currentComponent.props.amount
+            denom: microAmount.coinMinimalDenom,
+            amount: microAmount.mAmount.amount.toString()
           }]
           const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
           const leaserClient = new Leaser(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance)
