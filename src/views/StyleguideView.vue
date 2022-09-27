@@ -208,7 +208,7 @@
               <div class="flex flex-row justify-between mt-[25px]">
                 <div class="flex">
                   <div
-                    class="d-inline-block w-[81px] h-[81px] bg-whiteGrey"
+                    class="d-inline-block w-[81px] h-[81px] backgroundGrey"
                   ></div>
                   <div class="d-inline-block w-[81px] h-[81px] bg-grey"></div>
                   <div
@@ -465,7 +465,7 @@
               </div>
               <!-- Wallet -->
               <div
-                class="nolus-box box flex items-center justify-between bg-white mt-6 border-standart shadow-box"
+                class="nolus-box box flex items-center justify-between background mt-6 border-standart shadow-box"
               >
                 <div class="left inline-block">
                   <p class="nls-font-500 nls-16 text-primary mb-nolus-6">
@@ -478,7 +478,7 @@
               </div>
               <!-- Existing Assets -->
               <div
-                class="nolus-box block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm"
+                class="nolus-box block background mt-6 border-standart shadow-box radius-medium radius-0-sm"
               >
                 <div class="loader">
                   <div class="loader__element"></div>
@@ -584,7 +584,7 @@
 
               <!-- Leases -->
               <div
-                class="nolus-box bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm pb-5"
+                class="nolus-box background mt-6 border-standart shadow-box radius-medium radius-0-sm pb-5"
               >
                 <div class="flex justify-start">
                   <div
@@ -665,7 +665,7 @@
 
               <!-- Rewards -->
               <div
-                class="nolus-box block order-2 md:order-1 bg-white border-y border-standart radius-medium md:col-span-7 mt-6"
+                class="nolus-box block order-2 md:order-1 background border-y border-standart radius-medium md:col-span-7 mt-6"
               >
                 <div
                   class="flex items-center justify-between px-nolus-24 pt-nolus-24"
@@ -811,7 +811,7 @@
               </div>
               <!-- Portfolio -->
               <div
-                class="nolus-box block order-2 md:order-1 bg-white border-y border-standart radius-medium md:col-span-7 mt-6"
+                class="nolus-box block order-2 md:order-1 background border-y border-standart radius-medium md:col-span-7 mt-6"
               >
                 <div
                   class="flex items-center justify-between px-nolus-24 px-nolus-24 pt-nolus-24"
@@ -1015,7 +1015,7 @@
               <!-- all assets -->
 
               <div
-                class="nolus-box block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm"
+                class="nolus-box block background mt-6 border-standart shadow-box radius-medium radius-0-sm"
               >
                 <!-- Top -->
                 <div

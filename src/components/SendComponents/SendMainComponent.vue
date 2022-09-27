@@ -1,4 +1,4 @@
-<template>
+ <template>
   <ConfirmComponent v-if="showConfirmScreen"
                     :selectedCurrency="balances[0]"
                     :receiverAddress="state.receiverAddress"

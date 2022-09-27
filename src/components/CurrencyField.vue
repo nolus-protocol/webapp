@@ -20,7 +20,7 @@
             :name="this.name"
             :step="this.step"
             :value="value"
-            class="nls-font-700 text-18 text-primary"
+            class="nls-font-700 text-18 text-primary background"
             type="number"
             @input="$emit('update:value', $event.target.value)"
           />

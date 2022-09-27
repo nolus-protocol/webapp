@@ -2,7 +2,7 @@
   <!-- Leases -->
   <div
     v-if="leaseInfo.leaseStatus"
-    class="bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm pb-5"
+    class="background mt-6 border-standart shadow-box radius-medium radius-0-sm pb-5"
   >
     <div class="grid grid-cols-1 lg:grid-cols-3">
       <div

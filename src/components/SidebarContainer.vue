@@ -1,6 +1,6 @@
 <template>
   <div :class="showMobileNav ? 'mobile-nav' : false" class="sidebar-container">
-    <div class="top">
+    <div class="top pl-8">
       <LogoLink link="/" />
       <div
         class="sidebar-elements-container nls-nav-more flex flex-col mt-[55px]"
@@ -31,6 +31,7 @@
           </div>
         </div>
 
+        <!-- DESKTOP -->
         <div class="md:flex md:justify-between sidebar-elements-block lg:block">
           <div class="block nls-nav-link">
             <SidebarElement
@@ -85,35 +86,7 @@
         </div>
       </div>
     </div>
- <div class="lg:bot lg:pb-8">
-    <div class="flex items-center sub-nav-social">
-      <SidebarElement
-        id="twitter"
-        :icon="require('@/assets/icons/twitter.svg')"
-        target="_blkank"
-        v-on:click="openExternal(TWITTER_ACCOUNT, '_blank')"
-      />
-      <SidebarElement
-        id="telegram"
-        :icon="require('@/assets/icons/telegram.svg')"
-        target="_blkank"
-        v-on:click="openExternal(TELEGRAM_ACCOUNT, '_blank')"
-      />
-      <SidebarElement
-        id="discord"
-        :icon="require('@/assets/icons/discord.svg')"
-        target="_blkank"
-        v-on:click="openExternal(DISCORD_ACCOUNT, '_blank')"
-      />
-      <SidebarElement
-        id="reddit"
-        :icon="require('@/assets/icons/reddit.svg')"
-        target="_blkank"
-        v-on:click="openExternal(REDDIT_ACCOUNT, '_blank')"
-      />
-    </div>
-
-
+ <div class="lg:bot lg:pb-8 pl-8">
     <p class="nls-font-500 text-12 text-dark-grey text-upper pl-2">
       MAINNET # 4,987,868
     </p>

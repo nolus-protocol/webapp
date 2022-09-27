@@ -17,7 +17,7 @@
       </div>
     </div>
     <!-- Wallet -->
-    <div class="flex balance-box items-center justify-start bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6">
+    <div class="flex balance-box items-center justify-start background mt-6 border-standart shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6">
       <div class="left inline-block w-1/3">
         <p class="nls-font-500 text-16 text-primary">
           Total Assets
@@ -37,7 +37,7 @@
             Available Assets
           </p>
 
-          <p class="nls-font-500 text-20">
+          <p class="nls-font-500 text-20 dark-text">
             {{ calculateTotalBalance() }}
           </p>
         </div>
@@ -47,7 +47,7 @@
             Active Leases
           </p>
 
-          <p class="nls-font-500 text-20">
+          <p class="nls-font-500 text-20 dark-text">
             $32,423.22
           </p>
         </div>
@@ -58,7 +58,7 @@
             Supplied & Staked
           </p>
 
-          <p class="nls-font-500 text-20">
+          <p class="nls-font-500 text-20 dark-text">
             $32,423.22
           </p>
         </div>
@@ -70,21 +70,21 @@
             Supplied & Staked
           </p>
 
-          <p class="nls-font-500 text-20">
+          <p class="nls-font-500 text-20 dark-text">
             $32,423.22
           </p>
         </div>
     </div>
 
     <!-- Existing Assets -->
-    <div class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm">
+    <div class="block background mt-6 border-standart shadow-box radius-medium radius-0-sm">
       <!-- Top -->
       <div class="flex flex-wrap items-baseline justify-between px-4 pt-6">
         <div v-show="showLoading" class="loader-boxed">
           <div class="loader__element"></div>
         </div>
         <div class="left w-1/2">
-          <p class="text-16 nls-font-500">
+          <p class="text-16 nls-font-500 dark-text">
             Available assets
           </p>
         </div>
@@ -97,7 +97,7 @@
                 aria-describedby="show-small-balances"
                 name="show-small-balances"
                 type="checkbox"/>
-              <label for="show-small-balances">Show small balances</label>
+              <label class="dark-text" for="show-small-balances">Show small balances</label>
             </div>
           </div>
         </div>

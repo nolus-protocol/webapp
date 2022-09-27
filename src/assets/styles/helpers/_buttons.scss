@@ -60,6 +60,9 @@ button {
   justify-content: center;
   background-color: $white;
   transition: 0.3s;
+  @media (prefers-color-scheme: dark) {
+    background-color: $dark-background;
+  }
 
   &-icon {
     .icon {
@@ -240,6 +243,15 @@ button {
     font-family: "Garet Bolder" !important;
     padding: 8px 12px !important;
     border-radius: $lightRounded;
+    @media (prefers-color-scheme: dark) {
+      border: 1px solid $dark-line !important;
+      color: $white;
+      &:hover {
+        color: $white !important;
+        background-color: $dark-background !important;
+        border: 1px solid $mediumBlue !important;
+      }
+    }
   }
 
   &-large-secondary {
@@ -565,7 +577,18 @@ button {
     border: 1px $dark-line solid;
   }
   .btn-large-secondary {
-    background-color: $dark-background;
+    background-color: $dark-background !important;
     border-color: $dark-line;
+    color: $white;
+  }
+  .btn-large-secondary:hover {
+    background-color: $dark-background;
+    border-color: $mediumBlue;
+    color: $white;
+  }
+  .btn-large-secondary:active {
+    background-color: $lightElectric10;
+    border-color: $lightElectric;
+    color: $lightElectric;
   }
 }

@@ -13,7 +13,7 @@
       <div class="md:col-span-7 lg:col-span-7">
         <!-- Portfolio -->
         <div
-          class="nolus-box block order-2 order-1 bg-white border-y border-standart radius-medium md:col-span-7 md:mt-6"
+          class="nolus-box block order-2 order-1 background border-y border-standart radius-medium md:col-span-7 md:mt-6"
         >
           <div
             class="lg:flex block items-center justify-between px-6 pt-6"
@@ -71,7 +71,7 @@
       <div class="md:col-span-5 lg:co-span-5">
         <!-- Rewards -->
         <div
-          class="nolus-box block order-2 md:order-1 bg-white border-y border-standart radius-medium md:col-span-7 mt-6"
+          class="nolus-box block order-2 md:order-1 background border-y border-standart radius-medium md:col-span-7 mt-6"
         >
           <div
             class="flex items-center justify-between px-6 pt-6"

@@ -1,9 +1,9 @@
 <template>
-  <div class="box-open bg-white notify shadow-modal c-navbar-qr__container transition duration-3 ease-2">
-    <div class="nolus-box notification block border-standart shadow-box radius-medium radius-0-sm overflow-hidden">
-      <div class="flex notification-header justify-between bg-white">
+  <div class="box-open background notify shadow-modal c-navbar-qr__container transition duration-3 ease-2">
+    <div class="nolus-box notification block nls-border shadow-box radius-medium radius-0-sm overflow-hidden">
+      <div class="flex notification-header justify-between background">
         <div class="left w-full md:w-1/2 nls-font-500 text-18">
-          <p class="text nls-font-700 text-18 m-0">{{ $t('message.notifications') }}</p>
+          <p class="dark-text nls-font-700 text-18 m-0">{{ $t('message.notifications') }}</p>
         </div>
 
         <div class="flex items-center w-full justify-end">
@@ -15,7 +15,7 @@
 
       <!-- Assets -->
       <div class="block">
-        <div class="flex read border-b border-t border-standart py-4 px-4 items-center justify-between">
+        <div class="flex read border-b border-t nls-border py-4 px-4 items-center justify-between">
           <div class="inline-flex items-center">
             <img
               :src="require('@/assets/icons/coins/btc.svg')"
@@ -41,7 +41,7 @@
           </div>
         </div>
 
-        <div class="flex read border-b border-t border-standart py-4 px-4 items-center justify-between">
+        <div class="flex read border-b border-t nls-border py-4 px-4 items-center justify-between">
           <div class="inline-flex items-center">
             <img
               :src="require('@/assets/icons/coins/btc.svg')"
@@ -67,7 +67,7 @@
           </div>
         </div>
 
-        <div class="unread flex border-b border-standart py-4 px-4 items-center justify-between">
+        <div class="unread flex border-b nls-border py-4 px-4 items-center justify-between">
           <div class="inline-flex items-center">
             <img
               :src="require('@/assets/icons/coins/nls.svg')"

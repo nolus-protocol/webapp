@@ -28,7 +28,7 @@
       </div>
       <div class="mt-1 relative picker-container icon">
         <ListboxButton
-          class="relative w-full bg-white border border-gray-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          class="relative w-full background border border-gray-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         >
           <span class="flex items-center">
             <img
@@ -39,7 +39,7 @@
               alt=""
               class="flex-shrink-0 h-6 w-6 rounded-full"
             />
-            <span class="ml-3 block truncate">
+            <span class="ml-3 block truncate dark-text">
               {{
                 getAssetInfo(
                   selected.value?.balance?.denom
@@ -74,7 +74,7 @@
           leave-to-class="opacity-0"
         >
           <ListboxOptions
-            class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-56 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
+            class="absolute z-10 mt-1 w-full background shadow-lg max-h-56 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
           >
             <ListboxOption
               v-for="option in this.options"

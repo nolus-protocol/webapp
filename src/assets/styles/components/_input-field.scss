@@ -218,6 +218,9 @@ label {
       background-color: $dark-background;
       border: 1px solid $dark-line;
       color: $white;
+
+      & > div {
+        background-color: $lightElectric;
     }
   }
 
@@ -226,6 +229,7 @@ label {
       background-color: $dark-background;
       border: 1px solid $dark-line;
       color: $white;
+      }
     }
   }
 }

@@ -9,7 +9,7 @@
       </span>
     </h1>
 
-    <div class="block first-letter:rounded-2xl bg-white mt-8 p-10 border border-standart shadow-box">
+    <div class="block first-letter:rounded-2xl background mt-8 p-10 border border-standart shadow-box">
       <SelectorTextField
         id="confirm-mnemonic"
         label="Confirm mnemonic seed"

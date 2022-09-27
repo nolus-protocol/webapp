@@ -390,10 +390,6 @@ input[type="checkbox" i] {
 	}
 }
 
-[v-cloak] {
-	background-color: red;
-}
-
 @media (min-width: $md) {
 	.nls-md-show {
 		display: none;
@@ -466,6 +462,10 @@ input[type="checkbox" i] {
 	background-color: white;
 }
 
+.light-background {
+	background-color: $dark-line;
+}
+
 .background-dark {
 	background-color: transparent;
 }
@@ -475,6 +475,10 @@ input[type="checkbox" i] {
 }
 
 .bg-light-grey {
+	background-color: $lightGrey;
+}
+
+.modal-balance {
 	background-color: $lightGrey;
 }
 
@@ -501,5 +505,12 @@ input[type="checkbox" i] {
 	.bg-light-grey {
 		background-color: $mediumBlue;
 		border: none !important;
+	}
+	body {
+		background-color: $dark-gray;
+		//background: linear-gradient(314.47deg, $dark-line 2.19%, $dark-gray 100%);
+	}
+	.modal-balance {
+		background-color: $dark-line;
 	}
 }

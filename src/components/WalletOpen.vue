@@ -2,23 +2,23 @@
   <div
     v-cloak
     id="wallet-nls"
-    class="wallet-nls box-open bg-transparent shadow-modal c-navbar-wallet__container transition duration-3 ease-2"
+    class="wallet-nls box-open bg-transparent shadow-modal c-navbar-wallet__container transition duration-3 ease-2 border nls-border"
   >
     <!-- Wallet Header -->
     <div
-      class="box-open-header bg-white p-4 lg:p-6 border-b border-standart radius-top-left"
+      class="box-open-header background p-4 lg:p-6 border-b border-standart radius-top-left"
     >
       <h2 v-cloak class="nls-font-700 text-18 text-primary text-left m-0">
         Your Wallet
       </h2>
-      <div class="flex grey-box items-center bg-light-grey radius-rounded">
+      <div class="flex grey-box items-center modal-balance mt-3 radius-rounded">
         <span class="icon-wallet"></span>
-        <span class="text-14 nls-font-400 text-primary">My precious</span>
+        <span class="text-14 nls-font-400 dark-text">My precious</span>
       </div>
     </div>
 
     <!-- Wallet Body -->
-    <div class="box-open-body bg-white p-4 lg:p-6 border-b border-standart text-left">
+    <div class="box-open-body background p-4 lg:p-6 border-b border-standart text-left">
       <!-- Language -->
       <!-- <div class="block">
         <Picker
@@ -53,7 +53,7 @@
     </div>
 
     <!-- Wallet Actions -->
-    <div class="box-open-actions p-4 lg:pr-6 bg-white">
+    <div class="box-open-actions p-4 lg:pr-6 background">
       <div class="flex justify-end">
         <button class="btn btn-secondary btn-large-secondary" v-on:click="onClickDisconnect">
           Disconnect
