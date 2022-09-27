@@ -89,12 +89,20 @@ $mediumYellow: #FFB922;
 $bgYellow: #fff9e9;
 $warnYellow: #ffbf36;
 
+// CTA color scale blue - dark mode
+$dark-lightElectric: #FF562E;
+$dark-mediumElectric: #DF4C29;
+$dark-darkElectric: #B94428;
+
+$dark-background: #142237;
+$dark-gray: #07162C;
+
+$dark-line: #2B384B;
+
+$text-white: #fff;
+$lightElectric10: #2868E11A;
+
 .dark-theme {
   --background-scale: #07162C;
   --background-scale-darker: #EBEFF5;
-}
-
-// tailwind
-.bg-light-grey {
-  background-color: #F7F9FC;
 }

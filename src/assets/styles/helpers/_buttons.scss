@@ -101,6 +101,7 @@ button {
     background-color: $lightElectric;
     padding: 12px 24px;
     border-radius: $rounded;
+  }
 
     &:hover,
     &:focus {
@@ -123,7 +124,6 @@ button {
       background-color: $background-scale-darker;
       cursor: default;
     }
-  }
 
   &-large-box,
   &-medium-box,
@@ -526,5 +526,46 @@ button {
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+// Dark mode setthings
+@media (prefers-color-scheme: dark) {
+  // .btn-large-primary {
+  //   background-color: $dark-lightElectric;
+  // }
+  // .btn-large-primary:hover {
+  //   background-color: $dark-mediumElectric;
+  // }
+  // .btn-large-primary:active {
+  //   background-color: $dark-darkElectric;
+  // }
+  .btn-large-box {
+    background-color: $dark-background;
+    border-color: $dark-line;
+  }
+
+  .btn-large-box:hover {
+    border-color: $mediumBlue !important;
+    background-color: $dark-background !important;
+  }
+
+  .btn-large-box:active {
+    border-color: $lightElectric !important;
+    background-color: $lightElectric10 !important;
+  }
+
+  .js-loading {
+    border: 1px $dark-line solid !important;
+    background-color: transparent !important;
+  }
+
+  .disabled {
+    background-color: $dark-background !important;
+    border: 1px $dark-line solid;
+  }
+  .btn-large-secondary {
+    background-color: $dark-background;
+    border-color: $dark-line;
   }
 }

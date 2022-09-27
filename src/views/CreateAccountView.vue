@@ -1,6 +1,6 @@
 <template>
   <div v-if="isCreateFormOpen">
-  <div class="block rounded-2xl bg-white -mt-8 md:mt-auto pb-10 pt-6 border border-standart shadow-box md:max-w-[516px]">
+  <div class="block rounded-2xl background -mt-8 md:mt-auto pb-10 pt-6 border nls-border shadow-box md:max-w-[516px]">
     <h1 class="text-to-big-number text-primary text-28 md:text-32 text-center relative">
       <button class="align-baseline absolute left-0 top-2/4 -mt-3 px-6 md:px-10" type="button" v-on:click="clickBack">
         <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
@@ -39,9 +39,9 @@
         </button>
       </div>
 
-        <div class="bg-white h-[420px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
+        <div class="background h-[420px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
 
-        <div class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto bg-white absolute inset-x-0 bottom-0 md:relative shadow-modal">
+        <div class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal">
           <button class="btn btn-primary btn-large-primary w-80" v-on:click="btnContinueToConfirm">
             Continue
           </button>
@@ -51,7 +51,7 @@
   </div>
 
   <div v-else class="md:max-w-[516px]">
-    <div class="block rounded-2xl bg-white -mt-8 md:mt-auto pb-10 pt-6 border border-standart shadow-box">
+    <div class="block rounded-2xl background -mt-8 md:mt-auto pb-10 pt-6 border nls-border shadow-box">
       <h1 class="text-to-big-number text-primary text-center relative md:max-w-[516px]">
         <button class="align-baseline absolute left-0 top-2/4 -mt-3 px-4 md:px-10" type="button" v-on:click="clickBack">
           <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
@@ -61,7 +61,7 @@
 
       <div class="separator-line p-6"></div>
 
-      <SelectorTextField class="px-4 md:px-10"
+      <SelectorTextField class="px-4 md:px-10 text-dark"
         id="confirm-mnemonic"
         :error-msg="confirmScreenErrorMsgx"
         :is-error="confirmScreenErrorMsg !== ''"
