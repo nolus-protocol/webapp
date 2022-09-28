@@ -35,7 +35,7 @@ import { CONFIRM_STEP } from '@/types/ConfirmStep'
 import { TxType } from '@/types/TxType'
 import { defaultNolusWalletFee } from '@/config/wallet'
 import { Coin } from '@cosmjs/proto-signing'
-import { walletOperation } from '@/components/utils'
+import { getMicroAmount, walletOperation } from '@/components/utils'
 
 enum ScreenState {
   MAIN = 'RepayFormComponent',
@@ -184,9 +184,10 @@ export default defineComponent({
       if (wallet && this.isAmountValid()) {
         this.step = CONFIRM_STEP.PENDING
         try {
+          const microAmount = getMicroAmount(this.currentComponent.props.selectedCurrency.balance.denom, this.currentComponent.props.amount)
           const funds: Coin[] = [{
-            denom: this.currentComponent.props.selectedCurrency.balance.denom,
-            amount: this.currentComponent.props.amount
+            denom: microAmount.coinMinimalDenom,
+            amount: microAmount.mAmount.amount.toString()
           }]
           const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
           const leaseClient = new Lease(cosmWasmClient, this.currentComponent.props.receiverAddress)

@@ -23,7 +23,7 @@
     ></InputField>
 
     <div class="mt-6 px-4 md:px-10 hidden md:flex">
-      <button class="btn btn-primary btn-large-primary disabled" v-on:click="clickContinue">
+      <button class="btn btn-primary btn-large-primary" v-on:click="clickContinue">
         Continue
       </button>
     </div>

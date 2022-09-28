@@ -67,12 +67,6 @@ export default {
     },
     onClickConfirm: {
       type: Function
-    },
-    isError: {
-      type: Boolean
-    },
-    errorMsg: {
-      type: String
     }
   },
   data () {

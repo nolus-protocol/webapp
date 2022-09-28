@@ -8,29 +8,33 @@ import { WalletManager } from '@/wallet/WalletManager'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 import { LeaseData } from '@/types/LeaseData'
 
-export function useLeases () {
+export function useLeases (onError: (error: any) => void) {
   const leases = ref<LeaseData[]>([])
 
   const getLeases = async () => {
-    const newLeases = []
-    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-    const leaserClient = new Leaser(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance)
-    const openedLeases: string[] = await leaserClient.getCurrentOpenLeasesByOwner(
-      WalletManager.getWalletAddress()
-    )
-    for (const leaseAddress of openedLeases) {
-      const leaseClient = new Lease(cosmWasmClient, leaseAddress)
-      const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus()
+    try {
+      const newLeases = []
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
+      const leaserClient = new Leaser(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance)
+      const openedLeases: string[] = await leaserClient.getCurrentOpenLeasesByOwner(
+        WalletManager.getWalletAddress()
+      )
+      for (const leaseAddress of openedLeases) {
+        const leaseClient = new Lease(cosmWasmClient, leaseAddress)
+        const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus()
 
-      if (leaseInfo && !leaseInfo.closed) {
-        newLeases.push({
-          leaseAddress: leaseAddress,
-          leaseStatus: leaseInfo
-        })
+        if (leaseInfo && !leaseInfo.closed) {
+          newLeases.push({
+            leaseAddress: leaseAddress,
+            leaseStatus: leaseInfo
+          })
+        }
       }
-    }
 
-    leases.value = newLeases
+      leases.value = newLeases
+    } catch (e: any) {
+      onError(e)
+    }
   }
 
   onMounted(() => {

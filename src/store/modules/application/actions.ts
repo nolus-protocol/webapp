@@ -36,20 +36,24 @@ export const actions: ActionTree<State, RootState> & Actions = {
     commit,
     dispatch
   }) {
-    const loadedNetworkConfig = EnvNetworkUtils.loadNetworkConfig()
-    if (!loadedNetworkConfig) {
-      throw new Error('Please select different network')
-    }
-    NolusClient.setInstance(loadedNetworkConfig.tendermintRpc)
-    commit(ApplicationMutationTypes.APP_NETWORK, {
-      network: {
-        networkName: EnvNetworkUtils.getStoredNetworkName() || DEFAULT_PRIMARY_NETWORK,
-        networkAddresses: loadedNetworkConfig
-      } as NetworkConfig
-    })
+    try {
+      const loadedNetworkConfig = EnvNetworkUtils.loadNetworkConfig()
+      if (!loadedNetworkConfig) {
+        throw new Error('Please select different network')
+      }
+      NolusClient.setInstance(loadedNetworkConfig.tendermintRpc)
+      commit(ApplicationMutationTypes.APP_NETWORK, {
+        network: {
+          networkName: EnvNetworkUtils.getStoredNetworkName() || DEFAULT_PRIMARY_NETWORK,
+          networkAddresses: loadedNetworkConfig
+        } as NetworkConfig
+      })
 
-    if (WalletUtils.isConnectedViaExtension()) {
-      dispatch(WalletActionTypes.CONNECT_KEPLR)
+      if (WalletUtils.isConnectedViaExtension()) {
+        dispatch(WalletActionTypes.CONNECT_KEPLR)
+      }
+    } catch (e: any) {
+      throw new Error(e)
     }
   }
 }

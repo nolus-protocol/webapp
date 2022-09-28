@@ -63,41 +63,49 @@
 
       <SelectorTextField class="px-4 md:px-10"
         id="confirm-mnemonic"
-        :error-msg="confirmScreenErrorMsgx"
-        :is-error="confirmScreenErrorMsg !== ''"
-        :on-click-confirm="onClickConfirmMnemonic"
+        :on-click-confirm="confirmMnemonic"
         :values="mnemonicWords"
         label="Confirm mnemonic seed"
       ></SelectorTextField>
     </div>
   </div>
+  <Modal v-if="showErrorModal" @close-modal="showErrorModal = false">
+    <ErrorDialog title="Error connecting" :message="errorMessage" :try-button="clickTryAgain"/>
+  </Modal>
+
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import TextFieldButtons from '@/components/TextFieldButtons.vue'
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
+import { KeyUtils } from '@nolus/nolusjs'
+
+import TextFieldButtons from '@/components/TextFieldButtons.vue'
 import SelectorTextField from '@/components/SelectorTextField.vue'
 import { useStore } from '@/store'
 import router from '@/router'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
 import { RouteNames } from '@/router/RouterNames'
 import { StringUtils } from '@/utils/StringUtils'
-import { KeyUtils } from '@nolus/nolusjs'
+import ErrorDialog from '@/components/modals/ErrorDialog.vue'
+import Modal from '@/components/modals/templates/Modal.vue'
 
 export default defineComponent({
   name: 'CreateAccountView',
   components: {
     ArrowLeftIcon,
     TextFieldButtons,
-    SelectorTextField
+    SelectorTextField,
+    ErrorDialog,
+    Modal
   },
   data () {
     return {
       isCreateFormOpen: true,
       mnemonic: '',
       mnemonicWords: [] as string[],
-      confirmScreenErrorMsg: ''
+      showErrorModal: false,
+      errorMessage: ''
     }
   },
   mounted () {
@@ -112,22 +120,28 @@ export default defineComponent({
     this.mnemonicWords = words
   },
   methods: {
-    onClickConfirmMnemonic (value: []) {
+    async confirmMnemonic (value: []) {
       let confirmMnemonic = ''
       value.forEach((word) => {
         confirmMnemonic += ' ' + word
       })
 
       if (this.mnemonic.trim() !== confirmMnemonic.trim()) {
-        this.confirmScreenErrorMsg = 'The mnemonic phrase does not match!'
+        this.showErrorModal = true
+        this.errorMessage = 'The mnemonic phrase does not match!'
         return
       }
 
-      useStore().dispatch(WalletActionTypes.CONNECT_VIA_MNEMONIC, {
-        mnemonic: this.mnemonic
-      })
-      this.mnemonic = ''
-      router.push({ name: RouteNames.SET_PASSWORD })
+      try {
+        await useStore().dispatch(WalletActionTypes.CONNECT_VIA_MNEMONIC, {
+          mnemonic: this.mnemonic
+        })
+        this.mnemonic = ''
+        await router.push({ name: RouteNames.SET_PASSWORD })
+      } catch (e: any) {
+        this.showErrorModal = true
+        this.errorMessage = e.message
+      }
     },
     btnContinueToConfirm () {
       this.isCreateFormOpen = false
@@ -149,6 +163,10 @@ export default defineComponent({
     },
     clickBack: () => {
       router.go(-1)
+    },
+    clickTryAgain () {
+      this.showErrorModal = false
+      this.errorMessage = ''
     }
   }
 })

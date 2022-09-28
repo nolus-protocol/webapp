@@ -16,3 +16,5 @@ export const NETWORKS: { [key: string]: NetworkAddress; } = {
     api: 'https://net-rila.nolus.io:1317'
   }
 }
+
+export const UPDATE_BALANCE_INTERVAL = 5 * 1000 // 5000 ms

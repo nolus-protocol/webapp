@@ -30,7 +30,7 @@
       </div>
 
       <div class="mt-6 hidden md:flex">
-        <button class="btn btn-primary btn-large-primary" v-on:click="this.connectViaLedger()">
+        <button class="btn btn-primary btn-large-primary" @click="connectViaLedger">
           Connect
         </button>
       </div>
@@ -41,27 +41,37 @@
 
   <div
     class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto bg-white absolute inset-x-0 bottom-0 md:relative shadow-modal">
-    <button class="btn btn-primary btn-large-primary w-80">
+    <button class="btn btn-primary btn-large-primary w-80" @click="connectViaLedger">
       Connect
     </button>
   </div>
+  <Modal v-if="showError" @close-modal="showError = false">
+    <ErrorDialog title="Error connecting" :message="errorMessage" :try-button="clickTryAgain"/>
+  </Modal>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { ArrowLeftIcon } from '@heroicons/vue/solid'
+
 import router from '@/router'
 import { useStore } from '@/store'
 import { WalletActionTypes } from '@/store/modules/wallet/action-types'
+import ErrorDialog from '@/components/modals/ErrorDialog.vue'
+import Modal from '@/components/modals/templates/Modal.vue'
 
 export default defineComponent({
   name: 'ImportLedgerView',
   components: {
+    ErrorDialog,
+    Modal,
     ArrowLeftIcon
   },
   data () {
     return {
-      isBluetoothConnection: false
+      isBluetoothConnection: false,
+      showError: false,
+      errorMessage: ''
     }
   },
   methods: {
@@ -69,10 +79,20 @@ export default defineComponent({
       router.go(-1)
     },
     async connectViaLedger () {
-      useStore().dispatch(WalletActionTypes.CONNECT_LEDGER, {
-        isFromAuth: true,
-        isBluetooth: this.isBluetoothConnection
-      })
+      try {
+        await useStore().dispatch(WalletActionTypes.CONNECT_LEDGER, {
+          isFromAuth: true,
+          isBluetooth: this.isBluetoothConnection
+        })
+      } catch (e: any) {
+        this.showError = true
+        this.errorMessage = e.message
+      }
+    },
+    async clickTryAgain () {
+      this.showError = false
+      this.errorMessage = ''
+      await this.connectViaLedger()
     }
   }
 })

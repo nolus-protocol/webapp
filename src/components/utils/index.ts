@@ -72,6 +72,24 @@ export const walletOperation = async (operation: () => void, password: string) =
   }
 }
 
+export const getMicroAmount = (minimalDenom: string, amount: string) => {
+  if (!minimalDenom) {
+    throw new Error('Missing minimal denom!')
+  }
+
+  if (!amount) {
+    throw new Error('Missing amount!')
+  }
+
+  const {
+    coinMinimalDenom,
+    coinDecimals
+  } = assetsInfo[minimalDenom]
+  const mAmount = CurrencyUtils.convertDenomToMinimalDenom(amount, coinMinimalDenom, coinDecimals)
+
+  return { coinMinimalDenom, coinDecimals, mAmount }
+}
+
 export const transferCurrency = async (denom: string, amount: string, receiverAddress: string, memo = '') => {
   const wallet = useStore().getters.getNolusWallet
 

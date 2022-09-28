@@ -1,14 +1,12 @@
 import { ActionContext, ActionTree } from 'vuex'
 import { Window as KeplrWindow } from '@keplr-wallet/types/build/window'
-import { DeliverTxResponse, IndexedTx, StdFee } from '@cosmjs/stargate'
-import { Coin, DirectSecp256k1Wallet } from '@cosmjs/proto-signing'
+import { IndexedTx } from '@cosmjs/stargate'
+import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing'
 import { fromHex, toHex } from '@cosmjs/encoding'
 import { makeCosmoshubPath } from '@cosmjs/amino'
 import { LedgerSigner } from '@cosmjs/ledger-amino'
-import { ExecuteResult } from '@cosmjs/cosmwasm-stargate'
-import { AssetUtils, KeyUtils, NolusClient, NolusWallet, NolusWalletFactory } from '@nolus/nolusjs'
+import { AssetUtils, KeyUtils, NolusClient, NolusWalletFactory } from '@nolus/nolusjs'
 import { ChainConstants } from '@nolus/nolusjs/build/constants'
-import { Lease, Leaser } from '@nolus/nolusjs/build/contracts'
 import { CurrencyUtils } from '@nolus/nolusjs/build/utils/CurrencyUtils'
 import OpenLogin from '@toruslabs/openlogin'
 
@@ -23,7 +21,6 @@ import { Getters } from '@/store/modules/wallet/getters'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 import { EncryptionUtils } from '@/utils/EncryptionUtils'
 import { RouteNames } from '@/router/RouterNames'
-import { CONTRACTS } from '@/config/contracts'
 import { IbcAssets, supportedCurrencies } from '@/config/currencies'
 import { WalletConnectMechanism } from '@/types/WalletConnectMechanism'
 import { WalletManager } from '@/wallet/WalletManager'
@@ -92,7 +89,6 @@ export const actions: ActionTree<State, RootState> & Actions = {
   }, payload: { isFromAuth: false }) {
     await WalletUtils.getKeplr()
     const keplrWindow = window as KeplrWindow
-
     if (!keplrWindow.getOfflineSigner || !keplrWindow.keplr) {
       throw new Error('Keplr wallet is not installed.')
     } else if (!keplrWindow.keplr.experimentalSuggestChain) {
@@ -102,7 +98,6 @@ export const actions: ActionTree<State, RootState> & Actions = {
       try {
         chainId = await NolusClient.getInstance().getChainId()
         const networkConfig = EnvNetworkUtils.loadNetworkConfig()
-
         await keplrWindow.keplr?.experimentalSuggestChain(KeplrEmbedChainInfo(EnvNetworkUtils.getStoredNetworkName(), chainId, networkConfig?.tendermintRpc as string, networkConfig?.api as string))
       } catch (e) {
         throw new Error('Failed to fetch suggest chain.')
@@ -117,7 +112,7 @@ export const actions: ActionTree<State, RootState> & Actions = {
         WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.EXTENSION)
         WalletManager.storeWalletAddress(nolusWalletOfflineSigner.address || '')
         if (payload?.isFromAuth) {
-          router.push({ name: RouteNames.DASHBOARD })
+          await router.push({ name: RouteNames.DASHBOARD })
         }
       }
     }
@@ -150,9 +145,10 @@ export const actions: ActionTree<State, RootState> & Actions = {
         WalletManager.storeWalletAddress(ledgerWallet.address || '')
         await dispatch(WalletActionTypes.UPDATE_BALANCES)
         if (payload?.isFromAuth) {
-          router.push({ name: RouteNames.DASHBOARD })
+          await router.push({ name: RouteNames.DASHBOARD })
         }
-      } catch (e) {
+      } catch (e: any) {
+        throw new Error(e)
         breakLoop = true
       }
     }
@@ -250,35 +246,39 @@ export const actions: ActionTree<State, RootState> & Actions = {
     }
   },
   async [WalletActionTypes.UPDATE_BALANCES] ({ commit }) {
-    const walletAddress = WalletManager.getWalletAddress() || ''
-    if (!WalletUtils.isAuth()) {
-      WalletManager.eraseWalletInfo()
-      router.push({ name: RouteNames.AUTH })
-      return
+    try {
+      const walletAddress = WalletManager.getWalletAddress() || ''
+      if (!WalletUtils.isAuth()) {
+        WalletManager.eraseWalletInfo()
+        await router.push({ name: RouteNames.AUTH })
+        return
+      }
+
+      const ibcBalances = [] as AssetBalance[]
+      for (const currency of supportedCurrencies) {
+        const balance = await NolusClient.getInstance()
+          .getBalance(walletAddress,
+            currency)
+        ibcBalances.push({
+          balance: CurrencyUtils.convertCosmosCoinToKeplCoin(balance)
+        })
+      }
+
+      for (const ibcAsset of IbcAssets) {
+        const ibcDenom = AssetUtils.makeIBCMinimalDenom(ibcAsset.sourceChannelId, ibcAsset.coinMinimalDenom)
+        const balance = await NolusClient.getInstance()
+          .getBalance(walletAddress,
+            ibcDenom)
+
+        ibcBalances.push({
+          balance: CurrencyUtils.convertCosmosCoinToKeplCoin(balance)
+        })
+      }
+
+      commit(WalletMutationTypes.UPDATE_BALANCES, { balances: ibcBalances })
+    } catch (e: any) {
+      throw new Error(e)
     }
-
-    const ibcBalances = [] as AssetBalance[]
-    for (const currency of supportedCurrencies) {
-      const balance = await NolusClient.getInstance()
-        .getBalance(walletAddress,
-          currency)
-      ibcBalances.push({
-        balance: CurrencyUtils.convertCosmosCoinToKeplCoin(balance)
-      })
-    }
-
-    for (const ibcAsset of IbcAssets) {
-      const ibcDenom = AssetUtils.makeIBCMinimalDenom(ibcAsset.sourceChannelId, ibcAsset.coinMinimalDenom)
-      const balance = await NolusClient.getInstance()
-        .getBalance(walletAddress,
-          ibcDenom)
-
-      ibcBalances.push({
-        balance: CurrencyUtils.convertCosmosCoinToKeplCoin(balance)
-      })
-    }
-
-    commit(WalletMutationTypes.UPDATE_BALANCES, { balances: ibcBalances })
   },
   async [WalletActionTypes.SEARCH_TX] ({
     commit,

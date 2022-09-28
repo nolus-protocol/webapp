@@ -19,7 +19,7 @@
             class="lg:flex block items-center justify-between px-6 pt-6"
           >
             <h2 class="text-16 nls-font-500 text-left my-0">
-              {{$t('message.earning-asset')}}
+              {{$t('message.earning-assets')}}
             </h2>
             <div class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end">
               <div class="relative block checkbox-container">
@@ -103,6 +103,9 @@
   <Modal v-if="showClaimModal" @close-modal="showClaimModal = false">
     <ClaimDialog :contract-data="this.claimContractData" :reward="totalNlsRewards()"/>
   </Modal>
+  <Modal v-if="this.showErrorDialog" @close-modal="this.showErrorDialog = false">
+    <ErrorDialog title="Error connecting" :message="this.errorMessage" :try-button="onClickTryAgain"/>
+  </Modal>
 </template>
 
 <script lang="ts">
@@ -120,6 +123,7 @@ import Modal from '@/components/modals/templates/Modal.vue'
 import ClaimDialog from '@/components/modals/ClaimDialog.vue'
 import { WalletManager } from '@/wallet/WalletManager'
 import { Coin, Dec, Int } from '@keplr-wallet/unit'
+import ErrorDialog from '@/components/modals/ErrorDialog.vue'
 
 export default defineComponent({
   name: 'EarningsView',
@@ -128,7 +132,8 @@ export default defineComponent({
     EarnReward,
     Modal,
     SupplyWithdrawDialog,
-    ClaimDialog
+    ClaimDialog,
+    ErrorDialog
   },
   data () {
     return {
@@ -140,7 +145,9 @@ export default defineComponent({
       claimContractData: [] as ContractData[],
       selectedAsset: '',
       showSmallBalances: false,
-      showClaimModal: false
+      showClaimModal: false,
+      showErrorDialog: false,
+      errorMessage: ''
     }
   },
   watch: {
@@ -153,24 +160,17 @@ export default defineComponent({
     }
   },
   async mounted () {
-    this.getAllRewards()
-    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-
-    for (const [key, value] of Object.entries(LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()])) {
-      const lppClient = new Lpp(cosmWasmClient, value.instance)
-      this.claimContractData.push({
-        contractAddress: value.instance,
-        msg: claimRewardsMsg()
-      })
-
-      const lppConfig = await lppClient.getLppConfig()
-      this.availableCurrencies.push(lppConfig.lpn_symbol)
-
-      const lppRewards = await lppClient.getLenderRewards(WalletManager.getWalletAddress())
-      this.rewards.push({ balance: new Coin(lppRewards.rewards.symbol, lppRewards.rewards.amount) })
+    try {
+      await this.getAllRewards()
+    } catch (e: any) {
+      this.showErrorDialog = true
+      this.errorMessage = e.message
     }
   },
   methods: {
+    async onClickTryAgain () {
+      await this.getAllRewards()
+    },
     onClickClaim () {
       this.showClaimModal = true
     },
@@ -185,9 +185,21 @@ export default defineComponent({
       this.selectedAsset = denom
       this.showSupplyWithdrawDialog = true
     },
-    getAllRewards () {
-      for (const [key, value] of Object.entries(LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()])) {
+    async getAllRewards () {
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
 
+      for (const [key, value] of Object.entries(LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()])) {
+        const lppClient = new Lpp(cosmWasmClient, value.instance)
+        this.claimContractData.push({
+          contractAddress: value.instance,
+          msg: claimRewardsMsg()
+        })
+
+        const lppConfig = await lppClient.getLppConfig()
+        this.availableCurrencies.push(lppConfig.lpn_symbol)
+
+        const lppRewards = await lppClient.getLenderRewards(WalletManager.getWalletAddress())
+        this.rewards.push({ balance: new Coin(lppRewards.rewards.symbol, lppRewards.rewards.amount) })
       }
     }
   }
