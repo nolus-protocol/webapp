@@ -15,7 +15,7 @@
   <!-- @TODO: Refactor to use <SupplyFormComponent /> directly -->
   <component v-else :is="SupplyFormComponent" v-model="state"/>
   <Modal v-if="errorDialog.showDialog" @close-modal="errorDialog.showDialog = false">
-    <ErrorDialog title="Error connecting" :message="errorDialog.errorMessage" try-button=""/>
+    <ErrorDialog title="Error connecting" :message="errorDialog.errorMessage"/>
   </Modal>
 </template>
 
