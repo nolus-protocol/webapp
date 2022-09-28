@@ -121,11 +121,11 @@ export default defineComponent({
       }
 
       const denom = this.option.balance.denom
-      const { coinDecimals, coinDenom, coinMinimalDenom } = assetsInfo[denom]
+      const { coinDecimals, coinMinimalDenom } = assetsInfo[denom]
 
       const { amount } = CurrencyUtils.convertDenomToMinimalDenom(this.value, coinMinimalDenom, coinDecimals)
       const coin = new Coin(denom, new Int(String(amount)))
-      const tokenPrice = prices[coinDenom]?.amount || '0'
+      const tokenPrice = prices[denom]?.amount || '0'
 
       return CurrencyUtils.calculateBalance(tokenPrice, coin, coinDecimals)
     }

@@ -95,10 +95,8 @@ export default defineComponent({
   methods: {
     calculateBalance (tokenAmount: string, denom: string) {
       const prices = useStore().getters.getPrices
-      const assetInf = assetsInfo[denom]
-      if (prices && assetInf) {
-        const coinPrice = prices[assetInf.coinDenom]?.amount || '0'
-        const tokenDecimals = assetInf.coinDecimals
+      if (prices) {
+        const coinPrice = prices[denom]?.amount || '0'
         const coinAmount = new Coin(denom, new Int(tokenAmount || '0'))
         return CurrencyUtils.calculateBalance(
           coinPrice,

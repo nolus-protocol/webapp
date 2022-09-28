@@ -18,3 +18,4 @@ export const NETWORKS: { [key: string]: NetworkAddress; } = {
 }
 
 export const UPDATE_BALANCE_INTERVAL = 5 * 1000 // 5000 ms
+export const UPDATE_PRICES_INTERVAL = 10 * 1000 // 10000 ms
