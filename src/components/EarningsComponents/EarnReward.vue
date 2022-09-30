@@ -77,8 +77,7 @@ const getAssetIcon = (denom: string) => {
 const getMarketPrice = (denom: string) => {
   const prices = useStore().state.oracle.prices
   if (prices) {
-    const tokenDenom = AssetUtils.getAssetInfoByAbbr(denom).coinDenom
-    return prices[tokenDenom]?.amount || '0'
+    return prices[denom]?.amount || '0'
   }
   return '0'
 }

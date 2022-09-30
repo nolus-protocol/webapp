@@ -162,7 +162,7 @@ export default defineComponent({
       }
       return {
         amount: '0',
-        denom: ''
+        symbol: ''
       }
     },
     formatAssetInfo (currencyDenom: string) {

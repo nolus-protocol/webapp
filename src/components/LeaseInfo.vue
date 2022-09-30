@@ -154,10 +154,8 @@ function formatInterestRate (interestRatePromile = 0) {
 
 function calculateBalance (tokenAmount = '0', denom = '') {
   const prices = useStore().getters.getPrices
-  const assetInf = assetsInfo[denom]
-  if (prices && assetInf) {
-    const coinPrice = prices[assetInf.coinDenom]?.amount || '0'
-    const tokenDecimals = assetInf.coinDecimals
+  if (prices) {
+    const coinPrice = prices[denom]?.amount || '0'
     const coinAmount = new Coin(denom, new Int(tokenAmount))
     return CurrencyUtils.calculateBalance(
       coinPrice,

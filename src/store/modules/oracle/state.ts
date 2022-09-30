@@ -1,6 +1,6 @@
 export interface Price {
   amount: string,
-  denom: string
+  symbol: string
 }
 
 export type State = {

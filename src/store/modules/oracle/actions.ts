@@ -6,10 +6,12 @@ import { Mutations } from './mutations'
 import { Getters } from '@/store/modules/wallet/getters'
 import { OracleActionTypes } from '@/store/modules/oracle/action-types'
 import { OracleMutationTypes } from '@/store/modules/oracle/mutation-types'
-import { Oracle } from '@nolus/nolusjs/build/contracts'
+import { Oracle, Prices } from '@nolus/nolusjs/build/contracts'
 import { CONTRACTS } from '@/config/contracts'
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
 import { NolusClient } from '@nolus/nolusjs'
+import { Dec } from '@keplr-wallet/unit'
+import { oracleDenoms } from '@/config/currencies'
 
 type AugmentedActionContext = {
   commit<K extends keyof Mutations> (
@@ -28,54 +30,24 @@ export interface Actions {
 
 export const actions: ActionTree<State, RootState> & Actions = {
   async [OracleActionTypes.GET_PRICES] ({ commit }) {
-    const pricesResponse = {
-      prices: [
-        {
-          denom: 'OSMO',
-          price: {
-            amount: '1.5',
-            denom: 'B'
-          }
-        },
-        {
-          denom: 'NLS',
-          price: {
-            amount: '1.5',
-            denom: 'B'
-          }
-        },
-        {
-          denom: 'ATOM',
-          price: {
-            amount: '1.4',
-            denom: 'B'
-          }
-        },
-        {
-          denom: 'LUM',
-          price: {
-            amount: '1.1',
-            denom: 'B'
-          }
-        },
-        {
-          denom: 'USDC',
-          price: {
-            amount: '1.1',
-            denom: 'B'
-          }
+    try {
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
+      const oracleContract = new Oracle(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].oracle.instance)
+      const oraclePrices: Prices = await oracleContract.getPricesFor(oracleDenoms)
+      const pricesState: { [key: string]: Price } = {}
+
+      oraclePrices.prices.forEach(price => {
+        const calculatedPrice: Dec = new Dec(price.base.amount).quo(new Dec(price.quote.amount))
+        const tokenPrice: Price = {
+          amount: calculatedPrice.toString(),
+          symbol: price.quote.symbol
         }
-      ]
+        pricesState[price.base.symbol] = tokenPrice
+      })
+
+      commit(OracleMutationTypes.CHANGE_PRICES, { prices: pricesState })
+    } catch (e: any) {
+      throw new Error(e)
     }
-    const pricesState: { [key: string]: Price } = {}
-    pricesResponse.prices.forEach(e => {
-      pricesState[e.denom.toLowerCase()] = e.price
-    })
-
-    // const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-    // const oracleContract = new Oracle(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].oracle.instance)
-    // const oraclePrices = await oracleContract.getPricesFor(['unls', 'uusdc'])
-
-    commit(OracleMutationTypes.CHANGE_PRICES, { prices: pricesState })
   }
 }

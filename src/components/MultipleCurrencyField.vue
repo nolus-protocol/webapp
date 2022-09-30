@@ -101,8 +101,8 @@ defineEmits(['updateCurrency', 'updateAmount', 'updateSwapToCurrency'])
 const swapBalance = computed(() => calculateInputBalance(props.amount, props.selectedOption.balance.denom))
 
 const swapFromOptions = computed(() => props.currencyOptions.filter((asset) =>
-    asset.balance.amount.gt(new Int('0'))
-  )
+  asset.balance.amount.gt(new Int('0'))
+)
 )
 
 const swapAmount = computed(() => {
@@ -119,10 +119,10 @@ function calculateInputBalance (amount: string, denom: string) {
     return '$0'
   }
 
-  const { coinDecimals, coinDenom, coinMinimalDenom } = assetsInfo[denom]
+  const { coinDecimals, coinMinimalDenom } = assetsInfo[denom]
   const asset = CurrencyUtils.convertDenomToMinimalDenom(props.amount, coinMinimalDenom, coinDecimals)
   const coin = new Coin(denom, new Int(String(asset.amount)))
-  const tokenPrice = prices[coinDenom]?.amount || '0'
+  const tokenPrice = prices[denom]?.amount || '0'
 
   return CurrencyUtils.calculateBalance(tokenPrice, coin, coinDecimals)
 }
@@ -134,12 +134,11 @@ function calculateSwapAmount (balance: number) {
   }
 
   const swapToDenom = props.swapToOption.balance.denom
-  const { coinDenom } = assetsInfo[swapToDenom]
-  const tokenPrice = prices[coinDenom]?.amount || '0'
+  const tokenPrice = prices[swapToDenom]?.amount || '0'
 
   // @TODO implement coin conversion
-  console.log('converted info > ', tokenPrice, coinDenom)
-  const mockedCoinResult =  new Coin (swapToDenom, new Int((balance / Number(tokenPrice)).toFixed()))
+  console.log('converted info > ', tokenPrice, swapToDenom)
+  const mockedCoinResult = new Coin(swapToDenom, new Int((balance / Number(tokenPrice)).toFixed()))
 
   return mockedCoinResult.amount
 }
