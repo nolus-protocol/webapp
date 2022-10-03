@@ -4,7 +4,6 @@
     :chart-id="chartId"
     :chart-options="chartOptions"
     :css-classes="cssClasses"
-    :dataset-id-key="datasetIdKey"
     :height="height"
     :plugins="plugins"
     :styles="styles"
@@ -21,6 +20,7 @@ import {
   Chart as ChartJS,
   Legend,
   LinearScale,
+  TimeScale,
   LineController,
   LineElement,
   Plugin,
@@ -28,6 +28,48 @@ import {
   Title,
   Tooltip
 } from 'chart.js'
+import 'chartjs-adapter-date-fns'
+
+export const defaultOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      tooltips: {
+        intersect: false
+      },
+      scales: {
+        x: {
+          parsing: false,
+          type: 'time',
+          ticks: {
+            autoSkip: true,
+            maxTicksLimit: 6,
+            maxRotation: 0
+          },
+          grid: {
+            display: false,
+            drawBorder: false,
+            drawOnChartArea: false,
+            drawTicks: false
+          }
+        },
+        y: {
+          ticks: {
+            display: false
+          },
+          grid: {
+            display: false,
+            drawBorder: false,
+            drawOnChartArea: false,
+            drawTicks: false
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        }
+      }
+    }
 
 ChartJS.register(
   Title,
@@ -36,7 +78,8 @@ ChartJS.register(
   LineElement,
   PointElement,
   CategoryScale,
-  LinearScale
+  LinearScale,
+  TimeScale
 )
 
 class LineWithLineController extends LineController {
@@ -78,13 +121,20 @@ export default defineComponent({
       type: String,
       default: 'line-chart'
     },
+    chartData: {
+      type: Object,
+      default: {}
+    },
+    chartOptions: {
+      type: Object,
+      default: defaultOptions
+    },
     width: {
       type: Number
-      // default: 300,
     },
     height: {
       type: Number,
-      default: 80
+      default: 150
     },
     cssClasses: {
       default: '',
@@ -101,82 +151,11 @@ export default defineComponent({
     }
   },
   setup (props) {
-    const DATA_COUNT = 31
-    const NUMBER_CFG = {
-      count: DATA_COUNT,
-      min: 0,
-      max: 100
-    }
-    const chartData = {
-      labels: [
-        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-        21, 22, 23, 24, 25, 26, 27, 28, 29, 30
-      ],
-      showXLabels: 10,
-      datasets: [
-        {
-          label: 'Data One',
-          borderColor: '#2868E1',
-          data: [
-            40, 15, 90, 10, 40, 39, 50, 2, 40, 80, 40, 20, 25, 29, 40, 43, 50,
-            48, 56, 40, 15, 90, 10, 40, 39, 50, 2, 40, 80, 40, 20, 25, 29, 40,
-            43, 50
-          ],
-          tension: 0.4,
-          pointRadius: 0
-        }
-      ]
-    }
-
-    const chartOptions = {
-      responsive: true,
-      maintainAspectRatio: false,
-      tooltips: {
-        intersect: false
-      },
-      scales: {
-        x: {
-          type: 'linear',
-          ticks: {
-            max: 31,
-            min: 0,
-            stepSize: 15
-          },
-          scaleLabel: {
-            display: true,
-            labelString: 'min'
-          },
-          grid: {
-            display: false,
-            drawBorder: false,
-            drawOnChartArea: false,
-            drawTicks: false
-          }
-        },
-        y: {
-          ticks: {
-            display: false
-          },
-          grid: {
-            display: false,
-            drawBorder: false,
-            drawOnChartArea: false,
-            drawTicks: false
-          }
-        }
-      },
-      plugins: {
-        legend: {
-          display: false
-        }
-      }
-    }
-
     return () =>
       // @ts-ignore
       h(LineWithLine, {
-        chartData,
-        chartOptions,
+        chartData: props.chartData,
+        chartOptions: props.chartOptions,
         chartId: props.chartId,
         width: props.width,
         height: props.height,
