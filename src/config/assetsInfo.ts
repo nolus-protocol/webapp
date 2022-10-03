@@ -7,6 +7,7 @@ export const assetsInfo: { [key: string]: AssetInfo; } = {
     coinDenom: ChainConstants.COIN_DENOM,
     coinMinimalDenom: ChainConstants.COIN_MINIMAL_DENOM,
     coinDecimals: ChainConstants.COIN_DECIMALS,
+    coinGeckoId: ChainConstants.COIN_GECKO_ID,
     coinAbbreviation: 'NLS',
     coinIcon: 'nls.svg'
   },
@@ -15,6 +16,7 @@ export const assetsInfo: { [key: string]: AssetInfo; } = {
     coinDenom: 'usdc',
     coinMinimalDenom: 'uusdc',
     coinDecimals: 6,
+    coinGeckoId: 'usd-coin',
     coinAbbreviation: 'USDC',
     coinIcon: 'btc.svg'
   },
@@ -23,6 +25,7 @@ export const assetsInfo: { [key: string]: AssetInfo; } = {
     coinDenom: 'lum',
     coinMinimalDenom: 'ulum',
     coinDecimals: 6,
+    coinGeckoId: 'lum-network',
     coinAbbreviation: 'LUM',
     coinIcon: 'lum.svg'
   }

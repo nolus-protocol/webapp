@@ -23,7 +23,7 @@
             <span
               class="inline-block ml-1 text-primary text-20 nls-font-400 uppercase"
             >{{
-                formatLeaseDenom()
+                getAssetInfo('coinDenom')
               }}</span>
           </h1>
         </div>
@@ -31,12 +31,27 @@
           <!-- @TODO: Fetch this data -->
           <span class="bg-[#ebeff5] rounded p-1 m-1">down payment: $20,000.00</span>
           <span class="bg-[#ebeff5] rounded p-1 m-1">loan: $60,000.00</span>
-          <span class="bg-[#ebeff5] rounded p-1 m-1">{{ `price per ${formatLeaseDenom()}:` }}$29,345.00</span>
+          <span class="bg-[#ebeff5] rounded p-1 m-1">{{ `price per ${getAssetInfo('coinDenom')}:` }}$29,345.00</span>
           <span class="bg-[#ebeff5] rounded p-1 m-1">liq. trigger: $10,000.00</span>
         </div>
       </div>
       <div class="lg:col-span-2 px-6 pt-5">
         <!-- Graph -->
+        <div class="flex justify-between">
+          <div>
+            Current Price
+            <p><b>{{ currentPrice }}</b></p>
+          </div>
+          <div class="flex text-10 h-6">
+            <button
+              v-for="value in CHART_RANGES"
+              :class="`ml-2 w-10 justify-center border rounded ${value.label === chartTimeRange.label ? 'border-2 border-light-electric' : ''}`"
+              @click="chartTimeRange = value">
+              {{ value.label }}
+            </button>
+          </div>
+        </div>
+        <PriceHistoryChart :chartData="chartData" />
       </div>
     </div>
     <div
@@ -96,19 +111,22 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, ref } from 'vue'
-import { Asset, Lease } from '@nolus/nolusjs/build/contracts'
+import { defineProps, ref, watchEffect } from 'vue'
+import { Lease } from '@nolus/nolusjs/build/contracts'
 import { CurrencyUtils, NolusClient } from '@nolus/nolusjs'
 import { ChainConstants } from '@nolus/nolusjs/build/constants'
 import { Coin, Dec, Int } from '@keplr-wallet/unit'
 
 import { assetsInfo } from '@/config/assetsInfo'
+import { AssetInfo } from '@/types/AssetInfo'
 import { useStore } from '@/store'
 import { LeaseData } from '@/types/LeaseData'
+import { CHART_RANGES } from '@/constants/webapp'
 import RepayDialog from '@/components/modals/RepayDialog.vue'
 import { WalletUtils } from '@/utils/WalletUtils'
 import Modal from '@/components/modals/templates/Modal.vue'
 import { AssetUtils } from '@/utils/AssetUtils'
+import PriceHistoryChart from '@/components/templates/utils/NolusChart.vue'
 
 interface Props {
   leaseInfo: LeaseData
@@ -116,6 +134,37 @@ interface Props {
 
 const { leaseInfo } = defineProps<Props>()
 const showRepayModal = ref(false)
+const chartTimeRange = ref(CHART_RANGES['1'])
+const chartData = ref({})
+const currentPrice = ref<string>()
+
+watchEffect(async () => {
+  const { days, interval } = chartTimeRange.value
+  const pricesData = await fetchChartData(days, interval)
+
+  if (days === '1') {
+    currentPrice.value = `$${pricesData[pricesData.length - 1][1].toFixed(2)}`
+  }
+
+  chartData.value = {
+    datasets: [
+      {
+        label: getAssetInfo('coinDenom'),
+        borderColor: '#2868E1',
+        data: pricesData,
+        tension: 0.4,
+        pointRadius: 0
+      }
+    ]
+  }
+})
+
+async function fetchChartData (days: string, interval: string) {
+  // @TODO: Cache bigger time ranges
+  const res = await fetch(`https://api.coingecko.com/api/v3/coins/${getAssetInfo('coinGeckoId')}/market_chart?vs_currency=usd&days=${days}&interval=${interval}`)
+  const { prices } = await res.json()
+  return prices
+}
 
 async function onClickClaim (leaseAddress: string) {
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
@@ -137,12 +186,12 @@ async function onClickClaim (leaseAddress: string) {
   }
 }
 
-function formatLeaseDenom () {
+function getAssetInfo (key: keyof AssetInfo) {
   const denom = leaseInfo.leaseStatus?.opened?.amount.symbol || leaseInfo.leaseStatus?.paid?.symbol
 
   if (denom) {
     const assetInfo = assetsInfo[denom]
-    return assetInfo.coinDenom
+    return assetInfo[key]
   }
 
   return ''
