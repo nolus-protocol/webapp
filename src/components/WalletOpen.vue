@@ -126,6 +126,7 @@ export default defineComponent({
 .icon-wallet {
   font-size: 2em !important;
   margin-right: 0 !important;
+  color: #8396B1;
 }
 
 .bg-light-grey {

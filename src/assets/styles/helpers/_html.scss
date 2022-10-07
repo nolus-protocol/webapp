@@ -444,6 +444,10 @@ input[type="checkbox" i] {
 	}
 	.sidebar-elements-block {
 		border-top: 1px solid $borderColor;
+		@media (prefers-color-scheme: dark) {
+			border-top: 1px solid $dark-line;
+			background-color: $dark-background !important;
+		}
 	}
 	.nls-sm-hidden {
 		display: none;
@@ -495,7 +499,6 @@ input[type="checkbox" i] {
 	.nls-border {
 		border-color: $dark-line;
 	}
-
 	.dark-text {
 		color: $white !important;
 	}
@@ -512,5 +515,41 @@ input[type="checkbox" i] {
 	}
 	.modal-balance {
 		background-color: $dark-line;
+	}
+	.show-box-pop,
+	.btn-header {
+		color: $lightBlue !important;
+		background-color: $dark-background !important;
+		border-color: $dark-line !important;
+		&:hover {
+			color: $white !important;
+			background-color: $dark-background;
+			border-color: $dark-line;
+		}
+		&:active {
+			color: $lightBlue !important;
+			background-color: $dark-background;
+			border-color: $dark-line;
+		}
+	}
+	.border-standart {
+		border-color: $dark-line !important;
+	}
+	.picker-container ul {
+		background-color: $dark-background !important;
+		border-color: $dark-line !important;
+		& li {
+			color: $white !important;
+			&:hover {
+				background-color: $dark-line;
+				border-radius: $veryLightRounded;
+			}
+		}
+	}
+	.icon-keplr::before,
+	.icon-google::before,
+	.icon-ledger::before,
+	.icon-recover::before{
+		color: $lightGrey;
 	}
 }

@@ -225,6 +225,11 @@
   background-color: $white;
   border-bottom: 1px solid $borderColor;
   z-index: 1;
+  
+  @media (prefers-color-scheme: dark) {
+    background-color: $dark-background;
+    border-bottom: 1px solid $dark-line;
+  }
 
   .btn-header {
     [class^="icon-"]:before {

@@ -144,6 +144,13 @@ button {
     align-items: center;
     justify-content: center;
 
+    @media (prefers-color-scheme: dark) {
+      color: $white;
+      &:active {
+        color: $lightElectric;
+      }
+    }
+
     &-icon {
       display: inline-flex;
       align-items: baseline;
@@ -203,6 +210,14 @@ button {
 
     &:active {
       background-color: $darkBlue;
+      @media (prefers-color-scheme: dark) {
+        .icon-keplr::before,
+        .icon-google::before,
+        .icon-ledger::before,
+        .icon-recover::before{
+          color: $lightElectric;
+        }
+      }
     }
 
     &:disabled,
@@ -245,11 +260,16 @@ button {
     border-radius: $lightRounded;
     @media (prefers-color-scheme: dark) {
       border: 1px solid $dark-line !important;
+      background-color: $dark-background !important;
       color: $white;
       &:hover {
         color: $white !important;
         background-color: $dark-background !important;
         border: 1px solid $mediumBlue !important;
+      }
+      &:active {
+        background-color: red !important;
+        border-color: $lightElectric !important;
       }
     }
   }
@@ -553,7 +573,7 @@ button {
   //   background-color: $dark-darkElectric;
   // }
   .btn-large-box {
-    background-color: $dark-background;
+    background-color: $dark-background !important;
     border-color: $dark-line;
   }
 
