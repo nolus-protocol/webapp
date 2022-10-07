@@ -2,16 +2,14 @@
   <div :class="showMobileNav ? 'mobile-nav' : false" class="sidebar-container">
     <div class="top pl-8">
       <LogoLink link="/" />
-      <div
-        class="sidebar-elements-container nls-nav-more flex flex-col mt-[55px]"
-      >
+      <div class="sidebar-elements-container nls-nav-more flex flex-col mt-[55px]">
         <div
           :style="
             showMobileNav
-              ? 'z-index: 5; background-color: #fff;box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15); transform: translateY(0)'
+              ? 'z-index: 5;box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15); transform: translateY(0)'
               : ''
           "
-          class="lg:hidden"
+          class="lg:hidden "
         >
           <div class="nls-nav-link flex flex-start nls-md-flex-row mt-[22px]">
             <SidebarElement

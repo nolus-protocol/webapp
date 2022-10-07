@@ -302,6 +302,9 @@
 			transform: translateY(150%);
 			transition: 0.4s ease-in-out;
 			background-color: $white;
+      @media (prefers-color-scheme: dark) {
+			  background-color: $dark-background;
+      }
 			width: 100vw;
 			border-top-left-radius: 12px;
 			border-top-right-radius: 12px;
@@ -354,6 +357,9 @@
     width: 100vw;
     left: 0;
     background: $lightGrey;
+    @media (prefers-color-scheme: dark) {
+      background: $dark-gray;
+    }
   }
 
   .active {
