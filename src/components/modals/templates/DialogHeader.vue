@@ -1,10 +1,19 @@
 <template>
   <div
-    :class="`text-center bg-white w-full max-w-[516px] radius-modal mx-auto shadow-modal modal-send-receive ${showHeader ? '' : 'pt-[15px]'}`"
-    @click.stop>
+    :class="`text-center bg-white w-full max-w-[516px] radius-modal mx-auto shadow-modal modal-send-receive ${
+      showHeader ? '' : 'pt-[15px]'
+    }`"
+    @click.stop
+  >
     <div v-if="showHeader" class="flex modal-send-receive-header">
-      <button v-if="isTabLayout" v-for="(tab, index) of headerList" :key="`${tab}-${index}`" v-text="tab"
-        :class="index + 1 === activeTab ? 'active' : ''" @click="switchTab(index + 1)">
+      <button
+        v-if="isTabLayout"
+        v-for="(tab, index) of headerList"
+        :key="`${tab}-${index}`"
+        v-text="tab"
+        :class="index + 1 === activeTab ? 'active' : ''"
+        @click="switchTab(index + 1)"
+      >
       </button>
       <div v-else class="navigation-header">
         <h1 class="block w-full nls-font-700 text-28 md:text-32 text-primary text-center">
@@ -14,36 +23,40 @@
     </div>
 
     <template v-if="isTabLayout" v-for="(tab, index) in headerList">
-      <slot :key="index" v-if="index + 1 === activeTab" :name="`tab-${index + 1}`" />
+      <slot
+        :key="index"
+        v-if="index + 1 === activeTab"
+        :name="`tab-${index + 1}`"
+      ></slot>
     </template>
-    <slot v-else />
+    <slot v-else></slot>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, provide, computed, PropType } from 'vue'
+import { ref, provide, computed, type PropType } from 'vue';
+
+const activeTab = ref(1);
+const showHeader = ref(true);
 
 const { headerList } = defineProps({
   headerList: {
     type: Array as PropType<string[]>,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
 const isTabLayout = computed(() => {
-  return headerList.length > 1
-})
+  return headerList.length > 1;
+});
 
-const activeTab = ref(1)
-const showHeader = ref(true)
-
-function switchTab (index: number) {
-  activeTab.value = index
+function switchTab(index: number) {
+  activeTab.value = index;
 }
 
-function setShowDialogHeader (shouldShow: boolean) {
-  showHeader.value = shouldShow
+function setShowDialogHeader(shouldShow: boolean) {
+  showHeader.value = shouldShow;
 }
 
-provide('setShowDialogHeader', setShowDialogHeader)
+provide('setShowDialogHeader', setShowDialogHeader);
 </script>

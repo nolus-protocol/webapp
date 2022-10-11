@@ -1,24 +1,32 @@
 <template>
-  <div class="box-open bg-white notify shadow-modal c-navbar-qr__container transition duration-3 ease-2">
-    <div class="nolus-box notification block border-standart shadow-box radius-medium radius-0-sm overflow-hidden">
+  <div
+    class="box-open bg-white notify shadow-modal c-navbar-qr__container transition duration-3 ease-2"
+  >
+    <div
+      class="nolus-box notification block border-standart shadow-box radius-medium radius-0-sm overflow-hidden"
+    >
       <div class="flex notification-header justify-between bg-white">
         <div class="left w-full md:w-1/2 nls-font-500 text-18">
-          <p class="text nls-font-700 text-18 m-0">{{ $t('message.notifications') }}</p>
+          <p class="text nls-font-700 text-18 m-0">
+            {{ $t("message.notifications") }}
+          </p>
         </div>
 
         <div class="flex items-center w-full justify-end">
           <p class="text nls-font-500 text-12 color-light-blue cursor-pointer">
-            {{ $t('message.clear-all') }}
+            {{ $t("message.clear-all") }}
           </p>
         </div>
       </div>
 
       <!-- Assets -->
       <div class="block">
-        <div class="flex read border-b border-t border-standart py-4 px-4 items-center justify-between">
+        <div
+          class="flex read border-b border-t border-standart py-4 px-4 items-center justify-between"
+        >
           <div class="inline-flex items-center">
             <img
-              :src="require('@/assets/icons/coins/btc.svg')"
+              src="/src/assets/icons/coins/btc.svg"
               class="inline-block m-0 mr-4"
               height="32"
               width="32"
@@ -35,16 +43,20 @@
           </div>
 
           <div class="block">
-            <div class="flex items-center justify-end text-primary nls-font-700 text-12 text-right m-0">
+            <div
+              class="flex items-center justify-end text-primary nls-font-700 text-12 text-right m-0"
+            >
               <button class="btn btn-outline btn-large-outline">Claim</button>
             </div>
           </div>
         </div>
 
-        <div class="flex read border-b border-t border-standart py-4 px-4 items-center justify-between">
+        <div
+          class="flex read border-b border-t border-standart py-4 px-4 items-center justify-between"
+        >
           <div class="inline-flex items-center">
             <img
-              :src="require('@/assets/icons/coins/btc.svg')"
+              src="/src/assets/icons/coins/btc.svg"
               class="inline-block m-0 mr-4"
               height="32"
               width="32"
@@ -61,16 +73,20 @@
           </div>
 
           <div class="block">
-            <div class="flex items-center justify-end text-primary nls-font-700 text-12 text-right m-0">
+            <div
+              class="flex items-center justify-end text-primary nls-font-700 text-12 text-right m-0"
+            >
               <button class="btn btn-outline btn-large-outline">Claim</button>
             </div>
           </div>
         </div>
 
-        <div class="unread flex border-b border-standart py-4 px-4 items-center justify-between">
+        <div
+          class="unread flex border-b border-standart py-4 px-4 items-center justify-between"
+        >
           <div class="inline-flex items-center">
             <img
-              :src="require('@/assets/icons/coins/nls.svg')"
+              src="/src/assets/icons/coins/nls.svg"
               class="inline-block m-0 mr-4"
               height="32"
               width="32"
@@ -88,10 +104,10 @@
 
           <!-- Earnings -->
           <div class="block">
-            <div class="flex items-center justify-end text-primary nls-font-700 text-12 text-right m-0">
-              <button class="btn-outline btn-large-outline">
-                Withdraw
-              </button>
+            <div
+              class="flex items-center justify-end text-primary nls-font-700 text-12 text-right m-0"
+            >
+              <button class="btn-outline btn-large-outline">Withdraw</button>
             </div>
           </div>
         </div>
@@ -101,29 +117,7 @@
     </div>
   </div>
 </template>
-<script lang="ts">
-import { defineComponent } from 'vue'
-
-export default defineComponent({
-  name: 'Notifications',
-  props: ['isActive'],
-  data () {
-    return {
-      notificationPopup: false
-    }
-  },
-  mounted () {
-  },
-  methods: {
-    togglePopup () {
-      this.notificationPopup = !this.notificationPopup
-    },
-    handleFocusOut () {
-      this.notificationPopup = false
-    }
-  }
-})
-</script>
+<script setup lang="ts"></script>
 <style scoped>
 .icon-wallet {
   font-size: 2em !important;

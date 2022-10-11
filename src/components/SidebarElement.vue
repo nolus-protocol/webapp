@@ -8,26 +8,43 @@
     :target="target || '_self'"
   >
     <span :class="['icon', `icon-${id}`]"></span>
-
     <span> {{ label }} </span>
   </a>
 </template>
-<script lang="ts">
-export default {
-  name: 'SidebarElement',
-  props: ['id', 'href', 'label', 'icon', 'iconHover', 'isActive', 'mobile', 'target']
-}
+<script setup lang="ts">
+defineProps({
+  id: {
+    type: String,
+  },
+  href: {
+    type: String,
+  },
+  label: {
+    type: String,
+  },
+  icon: {
+    type: String,
+  },
+  iconHover: {
+    type: String,
+  },
+  isActive: {
+    type: Boolean,
+  },
+  mobile: {
+    type: String,
+  },
+  target: {
+    type: String,
+  },
+});
 </script>
 <style scoped>
-[class^="icon-"] {
-}
-
 [class^="icon-"]:before,
 [class*=" icon-"]:before {
   font-family: "nolus";
   font-style: normal;
   font-weight: normal;
-  speak: never;
   display: inline-block;
   text-decoration: inherit;
   width: unset;

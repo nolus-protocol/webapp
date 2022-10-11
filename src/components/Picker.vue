@@ -1,12 +1,10 @@
 <template>
   <div
     :class="[
-      typeof this.type !== 'undefined' && this.type !== null
-        ? 'picker ' + this.type
+      typeof type !== 'undefined' && type !== null
+        ? 'picker ' + type
         : 'picker ',
-      typeof this.isError !== 'undefined' && this.isError === true
-        ? ' error'
-        : '',
+      typeof isError !== 'undefined' && isError === true ? ' error' : '',
     ]"
   >
     <Listbox
@@ -34,21 +32,19 @@
           <span
             class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
           >
-            <ChevronDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true"/>
+            <ChevronDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
           </span>
         </ListboxButton>
 
         <span
           :class="[
             'msg error ',
-            typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
+            typeof errorMsg !== 'undefined' && errorMsg !== null
               ? ''
               : 'hidden',
           ]"
-        >{{
-            typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
-              ? this.errorMsg
-              : ''
+          >{{
+            typeof errorMsg !== "undefined" && errorMsg !== null ? errorMsg : ""
           }}</span
         >
 
@@ -61,7 +57,7 @@
             class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm"
           >
             <ListboxOption
-              v-for="option in this.options"
+              v-for="option in options"
               :key="option.value"
               v-slot="{ active, selected }"
               :value="option"
@@ -97,7 +93,7 @@
                     'absolute inset-y-0 right-0 flex items-center pr-4',
                   ]"
                 >
-                  <CheckIcon class="h-5 w-5" aria-hidden="true"/>
+                  <CheckIcon class="h-5 w-5" aria-hidden="true" />
                 </span>
               </li>
             </ListboxOption>
@@ -108,10 +104,16 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue'
-import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue'
-import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/solid'
+<script setup lang="ts">
+import { onMounted, ref, watch, type PropType } from 'vue';
+import {
+  Listbox,
+  ListboxButton,
+  ListboxLabel,
+  ListboxOption,
+  ListboxOptions,
+} from '@headlessui/vue';
+import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/24/solid';
 
 export interface PickerOption {
   id?: string;
@@ -120,52 +122,41 @@ export interface PickerOption {
   icon?: string;
 }
 
-export default defineComponent({
-  name: 'Picker',
-  components: {
-    Listbox,
-    ListboxButton,
-    ListboxLabel,
-    ListboxOption,
-    ListboxOptions,
-    CheckIcon,
-    ChevronDownIcon
+const props = defineProps({
+  label: {
+    type: String,
   },
-  props: {
-    label: {
-      type: String
-    },
-    type: {
-      type: String
-    },
-    defaultOption: {
-      type: Object as PropType<PickerOption>
-    },
-    options: {
-      type: Array as PropType<PickerOption[]>
-    },
-    isError: {
-      type: Boolean
-    },
-    errorMsg: {
-      type: String
-    },
-    disabled: {
-      type: Boolean
-    }
+  type: {
+    type: String,
   },
-  mounted () {
-    this.selected = this.defaultOption as PickerOption
+  defaultOption: {
+    type: Object as PropType<PickerOption>,
+    required: true,
   },
-  watch: {
-    defaultOption () {
-      this.selected = this.defaultOption as PickerOption
-    }
+  options: {
+    type: Array as PropType<PickerOption[]>,
   },
-  data () {
-    return {
-      selected: {} as PickerOption
-    }
+  isError: {
+    type: Boolean,
+  },
+  errorMsg: {
+    type: String,
+  },
+  disabled: {
+    type: Boolean,
+  },
+});
+
+const selected = ref({} as PickerOption);
+
+onMounted(() => {
+  selected.value = props.defaultOption as PickerOption;
+});
+
+watch(
+  () => props.defaultOption,
+  (value: PickerOption, b: PickerOption) => {
+    selected.value = props.defaultOption as PickerOption;
   }
-})
+);
 </script>

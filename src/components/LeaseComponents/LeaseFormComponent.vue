@@ -13,10 +13,8 @@
           :value="modelValue.downPayment"
           :label="$t('message.invest-question')"
           name="amountInvestment"
-          @input="(event) => (modelValue.downPayment = event.target.value)"
-          @update-currency="
-            (event) => (modelValue.selectedDownPaymentCurrency = event)
-          "
+          @input="handleDownPaymentChange($event)"
+          @update-currency="(event) => (modelValue.selectedDownPaymentCurrency = event)"
         />
       </div>
 
@@ -32,7 +30,7 @@
           :value="modelValue.amount"
           :label="$t('message.get-up-to')"
           name="amountInterest"
-          @input="(event) => (modelValue.amount = event.target.value)"
+          @input="handleAmountChange($event)"
           @update-currency="(event) => (modelValue.selectedCurrency = event)"
         />
       </div>
@@ -52,27 +50,29 @@
     <div class="flex justify-end">
       <div class="grow-3 text-right nls-font-500 text-14">
         <p class="mb-3 mt-[25px] mr-5">
-          {{ $t('message.leased-amount') }}
+          {{ $t("message.leased-amount") }}
         </p>
-        <p v-if="annualInterestRate" class="mb-3 mr-5"> {{ $t('message.annual-interest') }}</p>
+        <p v-if="annualInterestRate" class="mb-3 mr-5">
+          {{ $t("message.annual-interest") }}
+        </p>
         <p class="mb-3 mt-[25px] mr-5">
-          {{ $t('message.liquidation-price') }}
+          {{ $t("message.liquidation-price") }}
         </p>
       </div>
       <div class="text-right nls-font-700 text-14">
         <p class="mb-3 mt-[25px] flex justify-end align-center">
           {{ calculateLeaseAmount }}
-          <TooltipComponent content="Content goes here"/>
+          <TooltipComponent content="Content goes here" />
         </p>
         <p v-if="annualInterestRate" class="mb-3 flex justify-end align-center">
           <span class="flex nls-font-700 ml-5">
-          {{ annualInterestRate }}
-          <TooltipComponent content="Content goes here"/>
+            {{ annualInterestRate }}
+            <TooltipComponent content="Content goes here" />
           </span>
         </p>
         <p class="mb-3 mt-[25px] flex justify-end align-center">
           $18,585.00
-          <TooltipComponent content="Content goes here"/>
+          <TooltipComponent content="Content goes here" />
         </p>
       </div>
     </div>
@@ -82,95 +82,97 @@
   <div class="modal-send-receive-actions">
     <button
       class="btn btn-primary btn-large-primary"
-      v-on:click="modelValue.onNextClick"
+      @click="modelValue.onNextClick"
     >
-      {{ $t('message.lease') }}
+      {{ $t("message.lease") }}
     </button>
   </div>
 </template>
 
-<script lang="ts">
-import CurrencyField from '@/components/CurrencyField.vue'
-import { defineComponent, PropType } from 'vue'
-import { useStore } from '@/store'
-import { StringUtils } from '@/utils/StringUtils'
-import { Price } from '@/store/modules/oracle/state'
-import { assetsInfo } from '@/config/assetsInfo'
-import { CurrencyUtils } from '@nolus/nolusjs'
-import { Coin } from '@keplr-wallet/unit'
+<script setup lang="ts">
+import CurrencyField from '@/components/CurrencyField.vue';
+import TooltipComponent from '@/components/TooltipComponent.vue';
 
-import TooltipComponent from '@/components/TooltipComponent.vue'
-import { LeaseComponentProps } from '@/types/component/LeaseComponentProps'
+import type { LeaseComponentProps } from '@/types/component/LeaseComponentProps';
 
-export default defineComponent({
-  name: 'LeaseFormComponent',
-  components: {
-    CurrencyField,
-    TooltipComponent
-  },
-  props: {
-    modelValue: {
-      type: Object as PropType<LeaseComponentProps>,
-      required: true
-    }
-  },
-  data () {
-    return {
-      disabledInputField: true
-    }
-  },
-  watch: {
-    'modelValue.leaseApply' () {
-      this.disabledInputField = !this.modelValue?.leaseApply
-    }
-  },
-  computed: {
-    annualInterestRate () {
-      return this.modelValue?.leaseApply?.annual_interest_rate || ''
-    },
-    pricePerToken () {
-      if (this.modelValue?.selectedCurrency?.balance.denom) {
-        return this.getPrice(this.modelValue?.selectedCurrency?.balance.denom)
-          .amount
-      }
-      return '0'
-    },
-    calculateLeaseAmount () {
-      if (this.modelValue?.amount) {
-        const leaseCurrency = this.modelValue?.selectedCurrency
-        if (leaseCurrency) {
-          return CurrencyUtils.calculateBalance(
-            this.getPrice(leaseCurrency.balance.denom).amount,
-            new Coin(
-              leaseCurrency.balance.denom,
-              this.modelValue?.amount as string
-            ),
-            0
-          )
-        }
-      }
+import { ref, watch, type PropType } from 'vue';
+import { StringUtils } from '@/utils/StringUtils';
+import { assetsInfo } from '@/config/assetsInfo';
+import { CurrencyUtils } from '@nolus/nolusjs';
+import { Coin } from '@keplr-wallet/unit';
+import { useOracleStore } from '@/stores/oracle';
+import { computed } from 'vue';
 
-      return '0'
-    }
+const oracle = useOracleStore();
+
+const handleDownPaymentChange = (event: Event) => {
+  props.modelValue.downPayment = (event.target as HTMLInputElement).value;
+};
+const handleAmountChange = (event: Event) => {
+  props.modelValue.amount = (event.target as HTMLInputElement).value;
+};
+
+const props = defineProps({
+  modelValue: {
+    type: Object as PropType<LeaseComponentProps>,
+    required: true,
   },
-  methods: {
-    getPrice (currencyDenom: string): Price {
-      const prices = useStore().getters.getPrices
-      const denom = StringUtils.getDenomFromMinimalDenom(currencyDenom)
-      if (prices) {
-        return prices[denom]
-      }
-      return {
-        amount: '0',
-        symbol: ''
-      }
-    },
-    formatAssetInfo (currencyDenom: string) {
-      if (currencyDenom) {
-        return assetsInfo[currencyDenom].coinAbbreviation
-      }
-      return ''
+});
+
+watch(
+  () => props.modelValue.leaseApply,
+  () => {
+    disabledInputField.value = !props.modelValue?.leaseApply;
+  }
+);
+
+const disabledInputField = ref(true);
+
+const getPrice = (currencyDenom: string) => {
+  const prices = oracle.prices;
+  const denom = StringUtils.getDenomFromMinimalDenom(currencyDenom);
+  if (prices) {
+    return prices[denom];
+  }
+  return {
+    amount: '0',
+    symbol: '',
+  };
+};
+
+const formatAssetInfo = (currencyDenom: string) => {
+  if (currencyDenom) {
+    return assetsInfo[currencyDenom].coinAbbreviation;
+  }
+  return '';
+};
+
+const annualInterestRate = computed(() => {
+  return props.modelValue?.leaseApply?.annual_interest_rate || '';
+});
+
+const pricePerToken = computed(() => {
+  if (props.modelValue?.selectedCurrency?.balance.denom) {
+    return getPrice(props.modelValue?.selectedCurrency?.balance.denom).amount;
+  }
+  return '0';
+});
+
+const calculateLeaseAmount = computed(() => {
+  if (props.modelValue?.amount) {
+    const leaseCurrency = props.modelValue?.selectedCurrency;
+    if (leaseCurrency) {
+      return CurrencyUtils.calculateBalance(
+        getPrice(leaseCurrency.balance.denom).amount,
+        new Coin(
+          leaseCurrency.balance.denom,
+          props.modelValue?.amount as string
+        ),
+        0
+      );
     }
   }
-})
+
+  return '0';
+});
 </script>

@@ -3,48 +3,54 @@
     Show Snackbar
   </button>
 
-  <div id="snackbar" class="snackbar">
+  <div ref="snackbar" id="snackbar" class="snackbar">
     <div>
-      <span v-if="icon" :class="icon" class="icon text text-16 nls-font-500"/>
+      <span v-if="icon" :class="icon" class="icon text text-16 nls-font-500" />
       <span v-if="mainContent" class="text text-16 nls-font-500 mr-1">{{
-          mainContent
-        }}</span>
+        mainContent
+      }}</span>
       <span v-if="plainContent" class="text text-14 nls-font-400">{{
-          plainContent
-        }}</span>
+        plainContent
+      }}</span>
     </div>
 
     <span class="icon-close" @click="closeSnackBar"></span>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { ref } from 'vue';
 
-export default defineComponent({
-  name: 'SnackBar',
-  props: ['icon', 'mainContent', 'plainContent'],
-  data () {
-    return {
-      snackBarComponent: null as any
-    }
+defineProps({
+  icon: {
+    type: String,
   },
-  mounted () {
-    this.snackBarComponent = document.getElementById('snackbar')
+  mainContent: {
+    type: String,
   },
-  methods: {
-    openSnackBar () {
-      const test = this.snackBarComponent
-      test.className = 'show'
-      setTimeout(function () {
-        test.className = test.className.replace('show', '')
-      }, 3000)
-    },
-    closeSnackBar () {
-      const test = this.snackBarComponent
-      test.className = 'show'
-      test.className = test.className.replace('show', '')
-    }
+  plainContent: {
+    type: String,
+  },
+});
+
+const snackbar = ref(null as HTMLElement | null);
+
+const openSnackBar = () => {
+  const element = snackbar.value;
+  if (element) {
+    element.className = 'show';
+    setTimeout(() => {
+      element.className = element.className.replace('show', '');
+    }, 3000);
   }
-})
+};
+
+const closeSnackBar = () => {
+  const element = snackbar.value!;
+  if (element) {
+    element.className = 'show';
+    element.className = element.className.replace('show', '');
+  }
+};
+
 </script>

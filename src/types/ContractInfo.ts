@@ -1,4 +1,4 @@
 export interface ContractInfo {
-  instance: string,
-  codeId: string
+  instance: string;
+  codeId: string;
 }

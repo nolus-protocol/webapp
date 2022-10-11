@@ -2,9 +2,7 @@
   <div class="block currency-field-container">
     <div
       :class="[
-        typeof isError !== 'undefined' && isError === true
-          ? 'error'
-          : '',
+        typeof isError !== 'undefined' && isError === true ? 'error' : '',
         'currency-field py-3.5',
       ]"
     >
@@ -26,13 +24,13 @@
             :currencyOption="selectedOption"
             :disabled="false"
             label="Asset"
-            @update-currency="(value: AssetBalance) => $emit('updateCurrency', value)"
+            @update-currency="(value: any) => $emit('updateCurrency', value)"
           />
         </div>
       </div>
       <div class="separator">
         <div class="arrow-box">
-          <ArrowDownIcon/>
+          <ArrowDownIcon />
         </div>
       </div>
       <div class="flex items-center px-3.5">
@@ -53,7 +51,7 @@
             :currencyOption="swapToOption"
             :disabled="false"
             label="Asset"
-            @update-currency="(value: AssetBalance) => $emit('updateSwapToCurrency', value)"
+            @update-currency="(value: any) => $emit('updateSwapToCurrency', value)"
           />
         </div>
       </div>
@@ -62,84 +60,93 @@
     <span
       :class="[
         'msg error ',
-        typeof errorMsg !== 'undefined' && errorMsg !== null
-          ? ''
-          : 'hidden',
+        typeof errorMsg !== 'undefined' && errorMsg !== null ? '' : 'hidden',
       ]"
-    >{{
-        typeof errorMsg !== 'undefined' && errorMsg !== null
-          ? errorMsg
-          : ''
+      >{{
+        typeof errorMsg !== "undefined" && errorMsg !== null ? errorMsg : ""
       }}</span
     >
   </div>
 </template>
 
 <script lang="ts" setup>
-import { defineProps, defineEmits, computed } from 'vue'
-import { ArrowDownIcon } from '@heroicons/vue/solid'
-import { CurrencyUtils } from '@nolus/nolusjs'
-import { Coin, Int } from '@keplr-wallet/unit'
+import type { AssetBalance } from '@/stores/wallet/state';
+import CurrencyPicker from '@/components/CurrencyPicker.vue';
 
-import CurrencyPicker from '@/components/CurrencyPicker.vue'
-import { AssetBalance } from '@/store/modules/wallet/state'
-import { useStore } from '@/store'
-import { assetsInfo } from '@/config/assetsInfo'
+import { computed } from 'vue';
+import { ArrowDownIcon } from '@heroicons/vue/24/solid';
+import { CurrencyUtils } from '@nolus/nolusjs';
+import { Coin, Int } from '@keplr-wallet/unit';
+import { assetsInfo } from '@/config/assetsInfo';
+import { useOracleStore } from '@/stores/oracle';
+
+const oracle = useOracleStore();
 
 interface Props {
-  amount: string
-  currencyOptions: AssetBalance[]
-  selectedOption: AssetBalance
-  swapToOption: AssetBalance
-  isError: boolean
-  errorMsg: string
+  amount: string;
+  currencyOptions: AssetBalance[];
+  selectedOption: AssetBalance;
+  swapToOption: AssetBalance;
+  isError: boolean;
+  errorMsg: string;
 }
 
-const props = defineProps<Props>()
-defineEmits(['updateCurrency', 'updateAmount', 'updateSwapToCurrency'])
+const props = defineProps<Props>();
+defineEmits(['updateCurrency', 'updateAmount', 'updateSwapToCurrency']);
 
-const swapBalance = computed(() => calculateInputBalance(props.amount, props.selectedOption.balance.denom))
+const swapBalance = computed(() =>
+  calculateInputBalance(props.amount, props.selectedOption.balance.denom)
+);
 
-const swapFromOptions = computed(() => props.currencyOptions.filter((asset) =>
-  asset.balance.amount.gt(new Int('0'))
-)
-)
+const swapFromOptions = computed(() => {
+  return props.currencyOptions.filter((asset) =>
+    asset.balance.amount.gt(new Int('0'))
+  );
+});
 
 const swapAmount = computed(() => {
   if (swapBalance.value !== '$0') {
-    return calculateSwapAmount(Number(swapBalance.value.toDec().toString(1)))
+    return calculateSwapAmount(Number(swapBalance.value.toDec().toString(1)));
   }
-})
+});
 
 // @TODO: Extract function to utils - used also in CurrencyField.
-function calculateInputBalance (amount: string, denom: string) {
-  const prices = useStore().state.oracle.prices
+function calculateInputBalance(amount: string, denom: string) {
+  const prices = oracle.prices;
 
   if (!amount || !denom || !prices) {
-    return '$0'
+    return '$0';
   }
 
-  const { coinDecimals, coinMinimalDenom } = assetsInfo[denom]
-  const asset = CurrencyUtils.convertDenomToMinimalDenom(props.amount, coinMinimalDenom, coinDecimals)
-  const coin = new Coin(denom, new Int(String(asset.amount)))
-  const tokenPrice = prices[denom]?.amount || '0'
+  const { coinDecimals, coinMinimalDenom } = assetsInfo[denom];
+  const asset = CurrencyUtils.convertDenomToMinimalDenom(
+    props.amount,
+    coinMinimalDenom,
+    coinDecimals
+  );
+  const coin = new Coin(denom, new Int(String(asset.amount)));
+  const tokenPrice = prices[denom]?.amount || '0';
 
-  return CurrencyUtils.calculateBalance(tokenPrice, coin, coinDecimals)
+  return CurrencyUtils.calculateBalance(tokenPrice, coin, coinDecimals);
 }
 
-function calculateSwapAmount (balance: number) {
-  const prices = useStore().state.oracle.prices
+function calculateSwapAmount(balance: number) {
+  const prices = oracle.prices;
+
   if (!prices) {
-    return '0'
+    return '0';
   }
 
-  const swapToDenom = props.swapToOption.balance.denom
-  const tokenPrice = prices[swapToDenom]?.amount || '0'
+  const swapToDenom = props.swapToOption.balance.denom;
+  const tokenPrice = prices[swapToDenom]?.amount || '0';
 
   // @TODO implement coin conversion
-  console.log('converted info > ', tokenPrice, swapToDenom)
-  const mockedCoinResult = new Coin(swapToDenom, new Int((balance / Number(tokenPrice)).toFixed()))
+  console.log('converted info > ', tokenPrice, swapToDenom);
+  const mockedCoinResult = new Coin(
+    swapToDenom,
+    new Int((balance / Number(tokenPrice)).toFixed())
+  );
 
-  return mockedCoinResult.amount
+  return mockedCoinResult.amount;
 }
 </script>

@@ -1,82 +1,69 @@
 <template>
-  <component :is="currentComponent.is" v-model="currentComponent.props"/>
+  <component :is="currentComponent.is" v-model="currentComponent.props" />
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import ReceiveComponent, { ReceiveComponentProps } from '@/components/ReceiveComponents/ReceiveComponent.vue'
-import ReceiveQrCodeComponent, {
-  ReceiveQrCodeComponentProps
-} from '@/components/ReceiveComponents/ReceiveQrCodeComponent.vue'
-import { StringUtils } from '@/utils/StringUtils'
-import { WalletManager } from '@/wallet/WalletManager'
+<script setup lang="ts">
+import ReceiveComponent, { type ReceiveComponentProps } from '@/components/ReceiveComponents/ReceiveComponent.vue';
+import ReceiveQrCodeComponent, { type ReceiveQrCodeComponentProps } from '@/components/ReceiveComponents/ReceiveQrCodeComponent.vue';
 
-enum ScreenState {
-  MAIN = 'ReceiveComponent',
-  SCAN = 'ReceiveQrCodeComponent',
-}
+import { inject, onMounted, shallowRef } from 'vue';
+import { StringUtils } from '@/utils/StringUtils';
+import { WalletManager } from '@/wallet/WalletManager';
 
 interface ReceiveMainComponentData {
-  is: string;
+  is: typeof ReceiveComponent | typeof ReceiveQrCodeComponent;
   props: ReceiveComponentProps | ReceiveQrCodeComponentProps;
 }
 
-export default defineComponent({
-  name: 'ReceiveMainComponent',
-  components: {
-    ReceiveComponent,
-    ReceiveQrCodeComponent
-  },
-  mounted () {
-    this.currentComponent = {
-      is: ScreenState.MAIN,
-      props: {
-        walletAddress: WalletManager.getWalletAddress(),
-        onScanClick: () => this.onScanClick(),
-        onCopyClick: () => this.onCopyClick()
-      }
-    }
-  },
-  inject: {
-    setShowDialogHeader: {
-      default: () => () => {}
-    }
-  },
-  data () {
-    return {
-      currentComponent: {} as ReceiveMainComponentData,
-      hideDialogHeader: () => this.setShowDialogHeader(false),
-      showDialogHeader: () => this.setShowDialogHeader(true)
-    }
-  },
-  methods: {
-    onScanClick () {
-      this.hideDialogHeader()
-      this.currentComponent = {
-        is: ScreenState.SCAN,
-        props: {
-          walletAddress: WalletManager.getWalletAddress(),
-          onBackClick: () => this.onBackClick(),
-          onCopyClick: () => this.onCopyClick()
-        }
-      }
-    },
-    onCopyClick () {
-      StringUtils.copyToClipboard(this.currentComponent.props.walletAddress)
-    },
-    onBackClick () {
-      this.showDialogHeader()
-      this.currentComponent = {
-        is: ScreenState.MAIN,
-        props: {
-          walletAddress: WalletManager.getWalletAddress() || '',
-          onScanClick: () => this.onScanClick(),
-          onCopyClick: () => this.onCopyClick()
-        }
-      }
-    }
-  }
-})
-</script>
+const ScreenState = {
+  MAIN: ReceiveComponent,
+  SCAN: ReceiveQrCodeComponent,
+};
 
-<style scoped></style>
+const currentComponent = shallowRef({} as ReceiveMainComponentData);
+const hideDialogHeader = () => setShowDialogHeader(false);
+const showDialogHeader = () => setShowDialogHeader(true);
+const setShowDialogHeader = inject(
+  'setShowDialogHeader',
+  (bool: Boolean) => {}
+);
+
+onMounted(() => {
+  currentComponent.value = {
+    is: ScreenState.MAIN,
+    props: {
+      walletAddress: WalletManager.getWalletAddress(),
+      onScanClick: () => onScanClick(),
+      onCopyClick: () => onCopyClick(),
+    },
+  };
+});
+
+const onScanClick = () => {
+  hideDialogHeader();
+  currentComponent.value = {
+    is: ScreenState.SCAN,
+    props: {
+      walletAddress: WalletManager.getWalletAddress(),
+      onBackClick: () => onBackClick(),
+      onCopyClick: () => onCopyClick(),
+    },
+  };
+};
+
+const onCopyClick = () => {
+  StringUtils.copyToClipboard(currentComponent.value.props.walletAddress);
+};
+
+const onBackClick = () => {
+  showDialogHeader();
+  currentComponent.value = {
+    is: ScreenState.MAIN,
+    props: {
+      walletAddress: WalletManager.getWalletAddress() || '',
+      onScanClick: () => onScanClick(),
+      onCopyClick: () => onCopyClick(),
+    },
+  };
+};
+</script>

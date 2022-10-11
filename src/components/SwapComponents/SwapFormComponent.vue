@@ -3,7 +3,7 @@
     <div
       class="block mb-[13px] py-3 px-4 bg-light-grey radius-light text-left text-14 nls-font-400 text-primary"
     >
-      Balance:
+      {{ $t("message.balance") }}:
       <a class="text-secondary nls-font-700 underline ml-2" href="#">
         {{ formatCurrentBalance(selectedCurrency) }}
       </a>
@@ -23,8 +23,10 @@
       <div class="flex w-full mt-[25px]">
         <!-- @TODO: Implement -->
         <div class="grow-3 text-right nls-font-500 text-14">
-          <p class="mb-3 mr-5 mt-nollus-255">Minimum received:</p>
-          <p class="mb-3 mr-5">TX fee:</p>
+          <p class="mb-3 mr-5 mt-nollus-255">
+            {{ $t("message.minimum-received") }}:
+          </p>
+          <p class="mb-3 mr-5">{{ $t("message.tx-fee") }}:</p>
         </div>
         <div class="text-right nls-font-700 text-14">
           <p class="mb-3 mt-nollus-255">0.456232 ETH</p>
@@ -37,43 +39,58 @@
   <div class="modal-send-receive-actions">
     <button
       class="btn btn-primary btn-large-primary text-center"
-      v-on:click="onSwapClick">
-      {{ `Swap ${coinAbbr} for ${swapToCoinAbbr}` }}
+      @click="onSwapClick"
+    >
+      {{
+        `${$t("message.swap")} ${coinAbbr} ${$t(
+          "message.for"
+        )} ${swapToCoinAbbr}`
+      }}
     </button>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { defineProps, defineEmits, computed } from 'vue'
-import { CurrencyUtils } from '@nolus/nolusjs'
+import type { AssetBalance } from '@/stores/wallet/state';
+import MultipleCurrencyField from '@/components/MultipleCurrencyField.vue';
 
-import { AssetBalance } from '@/store/modules/wallet/state'
-import MultipleCurrencyField from '@/components/MultipleCurrencyField.vue'
-import { assetsInfo } from '@/config/assetsInfo'
-import { AssetUtils } from '@/utils/AssetUtils'
+import { computed } from 'vue';
+import { CurrencyUtils } from '@nolus/nolusjs';
+import { assetsInfo } from '@/config/assetsInfo';
+import { AssetUtils } from '@/utils';
 
 interface Props {
-  selectedCurrency: AssetBalance
-  swapToSelectedCurrency: AssetBalance
-  currentBalance: AssetBalance[]
-  amount: string
-  onSwapClick: () => void
-  errorMsg: string
+  selectedCurrency: AssetBalance;
+  swapToSelectedCurrency: AssetBalance;
+  currentBalance: AssetBalance[];
+  amount: string;
+  onSwapClick: () => void;
+  errorMsg: string;
 }
 
-const props = defineProps<Props>()
-defineEmits(['updateSelected', 'updateAmount', 'updateSwapToSelected'])
+const props = defineProps<Props>();
+defineEmits(['updateSelected', 'updateAmount', 'updateSwapToSelected']);
 
-const coinAbbr = computed(() => AssetUtils.getAssetInfoByAbbr(props.selectedCurrency.balance.denom).coinAbbreviation.toUpperCase())
-const swapToCoinAbbr = computed(() => AssetUtils.getAssetInfoByAbbr(props.swapToSelectedCurrency.balance.denom).coinAbbreviation.toUpperCase())
+const coinAbbr = computed(() =>
+  AssetUtils.getAssetInfoByAbbr(
+    props.selectedCurrency.balance.denom
+  ).coinAbbreviation.toUpperCase()
+);
+const swapToCoinAbbr = computed(() =>
+  AssetUtils.getAssetInfoByAbbr(
+    props.swapToSelectedCurrency.balance.denom
+  ).coinAbbreviation.toUpperCase()
+);
 
-function formatCurrentBalance (selectedCurrency: AssetBalance) {
-    if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
-      const asset = assetsInfo[selectedCurrency.balance.denom]
-      return CurrencyUtils.convertMinimalDenomToDenom(
-        selectedCurrency.balance.amount.toString(), selectedCurrency.balance.denom, asset.coinDenom, asset.coinDecimals
-      ).toString()
-    }
+function formatCurrentBalance(selectedCurrency: AssetBalance) {
+  if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
+    const asset = assetsInfo[selectedCurrency.balance.denom];
+    return CurrencyUtils.convertMinimalDenomToDenom(
+      selectedCurrency.balance.amount.toString(),
+      selectedCurrency.balance.denom,
+      asset.coinDenom,
+      asset.coinDecimals
+    ).toString();
   }
-
+}
 </script>

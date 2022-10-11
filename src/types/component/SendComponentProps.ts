@@ -1,4 +1,4 @@
-import { AssetBalance } from '@/store/modules/wallet/state'
+import type { AssetBalance } from "@/stores/wallet/state";
 
 export interface SendComponentProps {
   receiverErrorMsg: string;

@@ -1,19 +1,21 @@
 <template>
-  <ConfirmComponent v-if="showConfirmScreen"
-                    :selectedCurrency="state.selectedCurrency"
-                    :receiverAddress="state.receiverAddress"
-                    :password="state.password"
-                    :amount="state.amount"
-                    :memo="state.memo"
-                    :txType="TxType.SWAP"
-                    :txHash="state.txHash"
-                    :step="step"
-                    :onSendClick="onSendClick"
-                    :onBackClick="onConfirmBackClick"
-                    :onOkClick="onClickOkBtn"
-                    @passwordUpdate="(value) => state.password = value"
+  <ConfirmComponent
+    v-if="showConfirmScreen"
+    :selectedCurrency="state.selectedCurrency"
+    :receiverAddress="state.receiverAddress"
+    :password="state.password"
+    :amount="state.amount"
+    :memo="state.memo"
+    :txType="TxType.SWAP"
+    :txHash="state.txHash"
+    :step="step"
+    :onSendClick="onSendClick"
+    :onBackClick="onConfirmBackClick"
+    :onOkClick="onClickOkBtn"
+    @passwordUpdate="(value) => (state.password = value)"
   />
-  <SwapFormComponent v-else
+  <SwapFormComponent
+    v-else
     :selectedCurrency="state.selectedCurrency"
     :swapToSelectedCurrency="state.swapToSelectedCurrency"
     :currentBalance="state.currentBalance"
@@ -27,25 +29,26 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, ref, watch } from 'vue'
+import type { AssetBalance } from '@/stores/wallet/state';
 
-import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
-import { useStore } from '@/store'
-import { validateAmount, walletOperation } from '@/components/utils'
-import { CONFIRM_STEP } from '@/types/ConfirmStep'
-import { TxType } from '@/types/TxType'
+import SwapFormComponent from './SwapFormComponent.vue';
+import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue';
 
-import SwapFormComponent from './SwapFormComponent.vue'
-import { AssetBalance } from '@/store/modules/wallet/state'
+import { computed, inject, ref, watch } from 'vue';
+import { validateAmount, walletOperation } from '@/components/utils';
+import { CONFIRM_STEP } from '@/types/ConfirmStep';
+import { TxType } from '@/types/TxType';
+import { useWalletStore } from '@/stores/wallet';
+import { useI18n } from 'vue-i18n';
 
-const step = ref(CONFIRM_STEP.CONFIRM)
+const step = ref(CONFIRM_STEP.CONFIRM);
+const wallet = useWalletStore();
+const i18n = useI18n();
 
-const closeModal = inject('onModalClose', () => () => {
-})
+const closeModal = inject('onModalClose', () => () => {});
+const balances = computed(() => wallet.balances);
 
-const balances = computed(() => useStore().state.wallet.balances)
-
-const showConfirmScreen = ref(false)
+const showConfirmScreen = ref(false);
 const state = ref({
   currentBalance: balances.value,
   selectedCurrency: balances.value[0],
@@ -56,53 +59,64 @@ const state = ref({
   password: '',
   receiverErrorMsg: '',
   errorMsg: '',
-  txHash: ''
-})
+  txHash: '',
+});
 
-function onConfirmBackClick () {
-  showConfirmScreen.value = false
+function onConfirmBackClick() {
+  showConfirmScreen.value = false;
 }
 
-function onClickOkBtn () {
-  closeModal()
+function onClickOkBtn() {
+  closeModal();
 }
 
-function onSwapClick () {
-  validateInputs()
+function onSwapClick() {
+  validateInputs();
 
   if (!state.value.errorMsg) {
-    showConfirmScreen.value = true
+    showConfirmScreen.value = true;
   }
 }
 
-function validateInputs () {
-  state.value.errorMsg = ''
+function validateInputs() {
   state.value.errorMsg = validateAmount(
     state.value.amount,
     state.value.selectedCurrency.balance.denom,
     Number(state.value.selectedCurrency.balance.amount)
-  )
+  );
 
-  if (state.value.selectedCurrency.balance.denom === state.value.swapToSelectedCurrency.balance.denom) {
-    state.value.errorMsg = "can't swap to same currency"
+  if (
+    state.value.selectedCurrency.balance.denom ===
+    state.value.swapToSelectedCurrency.balance.denom
+  ) {
+    state.value.errorMsg = i18n.t('message.swap-same-error');
   }
 }
 
-watch(() => [state.value.amount, state.value.selectedCurrency, state.value.swapToSelectedCurrency], () => {
-  validateInputs()
-})
+watch(
+  () => [
+    state.value.amount,
+    state.value.selectedCurrency,
+    state.value.swapToSelectedCurrency,
+  ],
+  () => {
+    validateInputs();
+  }
+);
 
-async function onSendClick () {
-  await walletOperation(transferAmount, state.value.password)
+async function onSendClick() {
+  await walletOperation(transferAmount, state.value.password);
 }
 
-async function transferAmount () {
-  step.value = CONFIRM_STEP.PENDING
+async function transferAmount() {
+  step.value = CONFIRM_STEP.PENDING;
 
   // @TODO: Implement swap action
 
-  const mockedResponseSuccess = true
-  step.value = mockedResponseSuccess ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR
-  state.value.txHash = 'test hash'
+  const mockedResponseSuccess = true;
+  step.value = mockedResponseSuccess
+    ? CONFIRM_STEP.SUCCESS
+    : CONFIRM_STEP.ERROR;
+  state.value.txHash = 'test hash';
 }
 </script>

@@ -8,45 +8,61 @@
       <div
         class="lg:col-span-1 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5"
       >
-        <p class="text-20 nls-font-500 mb-4">{{ $t('message.lease-position') }}</p>
+        <p class="text-20 nls-font-500 mb-4">
+          {{ $t("message.lease-position") }}
+        </p>
         <div class="flex">
           <img
-            :src="require('@/assets/icons/coins/' + getAssetIcon())"
+            :src="getAssetIcon()"
             class="inline-block m-0 mr-3"
             height="36"
             width="36"
           />
           <h1 class="text-primary nls-font-700 text-28 md:text-32">
             {{
-              leaseInfo.leaseStatus?.opened?.amount?.amount || leaseInfo.leaseStatus?.paid?.amount || ''
+              leaseInfo.leaseStatus?.opened?.amount?.amount ||
+              leaseInfo.leaseStatus?.paid?.amount ||
+              ""
             }}
             <span
               class="inline-block ml-1 text-primary text-20 nls-font-400 uppercase"
-            >{{
-                getAssetInfo('coinDenom')
-              }}</span>
+              >{{ getAssetInfo("coinDenom") }}</span
+            >
           </h1>
         </div>
         <div class="flex flex-wrap text-10 uppercase whitespace-nowrap">
           <!-- @TODO: Fetch this data -->
-          <span class="bg-[#ebeff5] rounded p-1 m-1">down payment: $20,000.00</span>
-          <span class="bg-[#ebeff5] rounded p-1 m-1">loan: $60,000.00</span>
-          <span class="bg-[#ebeff5] rounded p-1 m-1">{{ `price per ${getAssetInfo('coinDenom')}:` }}$29,345.00</span>
-          <span class="bg-[#ebeff5] rounded p-1 m-1">liq. trigger: $10,000.00</span>
+          <span class="bg-[#ebeff5] rounded p-1 m-1">
+            {{ $t('message.down-payment') }}: $20,000.00
+          </span>
+          <span class="bg-[#ebeff5] rounded p-1 m-1">{{ $t('message.loan') }}: $60,000.00</span>
+          <span class="bg-[#ebeff5] rounded p-1 m-1"
+            >{{ `price per ${getAssetInfo("coinDenom")}:` }}$29,345.00</span
+          >
+          <span class="bg-[#ebeff5] rounded p-1 m-1">
+            {{ $t('message.liq-trigger') }}: $10,000.00
+          </span>
         </div>
       </div>
       <div class="lg:col-span-2 px-6 pt-5">
         <!-- Graph -->
         <div class="flex justify-between">
           <div>
-            Current Price
-            <p><b>{{ currentPrice }}</b></p>
+            {{ $t('message.current-price') }}
+            <p>
+              <b>{{ currentPrice }}</b>
+            </p>
           </div>
           <div class="flex text-10 h-6">
             <button
               v-for="value in CHART_RANGES"
-              :class="`ml-2 w-10 justify-center border rounded ${value.label === chartTimeRange.label ? 'border-2 border-light-electric' : ''}`"
-              @click="chartTimeRange = value">
+              :class="`ml-2 w-10 justify-center border rounded ${
+                value.label === chartTimeRange.label
+                  ? 'border-2 border-light-electric'
+                  : ''
+              }`"
+              @click="chartTimeRange = value"
+            >
               {{ value.label }}
             </button>
           </div>
@@ -54,12 +70,12 @@
         <PriceHistoryChart :chartData="chartData" />
       </div>
     </div>
-    <div
-      class="flex items-center justify-between border-t border-standart pt-4 px-6"
-    >
+    <div class="flex items-center justify-between border-t border-standart pt-4 px-6">
       <div class="flex">
         <div class="block">
-          <p class="text-detail text-primary m-0">{{ $t('message.outstanding-loan') }}</p>
+          <p class="text-detail text-primary m-0">
+            {{ $t("message.outstanding-loan") }}
+          </p>
           <p class="text-primary text-20 nls-font-400 m-0 mt-1">
             {{
               calculateBalance(
@@ -70,16 +86,20 @@
           </p>
         </div>
         <div class="block ml-8">
-          <p class="text-detail text-primary m-0">{{ $t('message.interest-fee') }}</p>
+          <p class="text-detail text-primary m-0">
+            {{ $t("message.interest-fee") }}
+          </p>
           <p class="flex items-center text-primary text-20 nls-font-400 m-0 mt-1">
-            {{ formatInterestRate(leaseInfo.leaseStatus?.opened?.interest_rate) }}
+            {{
+              formatInterestRate(leaseInfo.leaseStatus?.opened?.interest_rate)
+            }}
           </p>
         </div>
         <div class="block ml-8">
-          <p class="text-detail text-primary m-0">{{ $t('message.interest-due') }}</p>
-          <p
-            class="flex items-center text-primary text-20 nls-font-400 m-0 mt-1"
-          >
+          <p class="text-detail text-primary m-0">
+            {{ $t("message.interest-due") }}
+          </p>
+          <p class="flex items-center text-primary text-20 nls-font-400 m-0 mt-1">
             {{
               calculateBalance(
                 leaseInfo.leaseStatus?.opened?.current_interest_due?.amount,
@@ -89,61 +109,67 @@
           </p>
         </div>
       </div>
-      <button class="btn btn-secondary btn-large-secondary" v-if="leaseInfo.leaseStatus.opened"
-              v-on:click="showRepayModal = true">
-        {{
-          $t('message.repay')
-        }}
+      <button
+        class="btn btn-secondary btn-large-secondary"
+        v-if="leaseInfo.leaseStatus.opened"
+        @click="showRepayModal = true"
+      >
+        {{ $t("message.repay") }}
       </button>
 
-      <button class="btn btn-secondary btn-large-secondary" v-if="leaseInfo.leaseStatus.paid"
-              v-on:click="onClickClaim(leaseInfo?.leaseAddress)">
-        {{
-          $t('message.claim')
-        }}
+      <button
+        class="btn btn-secondary btn-large-secondary"
+        v-if="leaseInfo.leaseStatus.paid"
+        @click="onClickClaim(leaseInfo?.leaseAddress)"
+      >
+        {{ $t("message.claim") }}
       </button>
     </div>
   </div>
 
   <Modal v-if="showRepayModal" @close-modal="showRepayModal = false">
-    <RepayDialog :lease-info="leaseInfo"/>
+    <RepayDialog :lease-info="leaseInfo" />
   </Modal>
 </template>
 
 <script lang="ts" setup>
-import { defineProps, ref, watchEffect } from 'vue'
-import { Lease } from '@nolus/nolusjs/build/contracts'
-import { CurrencyUtils, NolusClient } from '@nolus/nolusjs'
-import { ChainConstants } from '@nolus/nolusjs/build/constants'
-import { Coin, Dec, Int } from '@keplr-wallet/unit'
+import type { AssetInfo } from '@/types';
+import type { LeaseData } from '@/types';
 
-import { assetsInfo } from '@/config/assetsInfo'
-import { AssetInfo } from '@/types/AssetInfo'
-import { useStore } from '@/store'
-import { LeaseData } from '@/types/LeaseData'
-import { CHART_RANGES } from '@/constants/webapp'
-import RepayDialog from '@/components/modals/RepayDialog.vue'
-import { WalletUtils } from '@/utils/WalletUtils'
-import Modal from '@/components/modals/templates/Modal.vue'
-import { AssetUtils } from '@/utils/AssetUtils'
-import PriceHistoryChart from '@/components/templates/utils/NolusChart.vue'
+import RepayDialog from '@/components/modals/RepayDialog.vue';
+import Modal from '@/components/modals/templates/Modal.vue';
+import PriceHistoryChart from '@/components/templates/utils/NolusChart.vue';
+
+import { ref, watchEffect } from 'vue';
+import { Lease } from '@nolus/nolusjs/build/contracts';
+import { CurrencyUtils, NolusClient, NolusWallet } from '@nolus/nolusjs';
+import { ChainConstants } from '@nolus/nolusjs/build/constants';
+import { Coin, Dec, Int } from '@keplr-wallet/unit';
+import { assetsInfo } from '@/config/assetsInfo';
+import { CHART_RANGES } from '@/constants/webapp';
+import { WalletUtils } from '@/utils/WalletUtils';
+import { AssetUtils } from '@/utils/AssetUtils';
+import { useWalletStore } from '@/stores/wallet';
+import { useOracleStore } from '@/stores/oracle';
 
 interface Props {
-  leaseInfo: LeaseData
+  leaseInfo: LeaseData;
 }
 
-const { leaseInfo } = defineProps<Props>()
-const showRepayModal = ref(false)
-const chartTimeRange = ref(CHART_RANGES['1'])
-const chartData = ref({})
-const currentPrice = ref<string>()
+const { leaseInfo } = defineProps<Props>();
+const showRepayModal = ref(false);
+const chartTimeRange = ref(CHART_RANGES['1']);
+const chartData = ref({});
+const currentPrice = ref<string>();
+const walletStore = useWalletStore();
+const oracleStore = useOracleStore();
 
 watchEffect(async () => {
-  const { days, interval } = chartTimeRange.value
-  const pricesData = await fetchChartData(days, interval)
+  const { days, interval } = chartTimeRange.value;
+  const pricesData = await fetchChartData(days, interval);
 
   if (days === '1') {
-    currentPrice.value = `$${pricesData[pricesData.length - 1][1].toFixed(2)}`
+    currentPrice.value = `$${pricesData[pricesData.length - 1][1].toFixed(2)}`;
   }
 
   chartData.value = {
@@ -153,75 +179,84 @@ watchEffect(async () => {
         borderColor: '#2868E1',
         data: pricesData,
         tension: 0.4,
-        pointRadius: 0
-      }
-    ]
-  }
-})
+        pointRadius: 0,
+      },
+    ],
+  };
+});
 
-async function fetchChartData (days: string, interval: string) {
+async function fetchChartData(days: string, interval: string) {
   // @TODO: Cache bigger time ranges
-  const res = await fetch(`https://api.coingecko.com/api/v3/coins/${getAssetInfo('coinGeckoId')}/market_chart?vs_currency=usd&days=${days}&interval=${interval}`)
-  const { prices } = await res.json()
-  return prices
+  const res = await fetch(
+    `https://api.coingecko.com/api/v3/coins/${getAssetInfo(
+      'coinGeckoId'
+    )}/market_chart?vs_currency=usd&days=${days}&interval=${interval}`
+  );
+  const { prices } = await res.json();
+  return prices;
 }
 
-async function onClickClaim (leaseAddress: string) {
-  const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-  const leaseClient = new Lease(cosmWasmClient, leaseAddress)
-  const coinDecimals = new Int(10).pow(new Int(6).absUInt())
-  const feeAmount = new Dec('0.25').mul(new Dec(coinDecimals))
+async function onClickClaim(leaseAddress: string) {
+  const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+  const leaseClient = new Lease(cosmWasmClient, leaseAddress);
+  const coinDecimals = new Int(10).pow(new Int(6).absUInt());
+  const feeAmount = new Dec('0.25').mul(new Dec(coinDecimals));
   const DEFAULT_FEE = {
-    amount: [{
-      denom: ChainConstants.COIN_MINIMAL_DENOM,
-      amount: WalletUtils.isConnectedViaExtension() ? '0.25' : feeAmount.truncate().toString()
-    }],
-    gas: '2000000'
-  }
+    amount: [
+      {
+        denom: ChainConstants.COIN_MINIMAL_DENOM,
+        amount: WalletUtils.isConnectedViaExtension()
+          ? '0.25'
+          : feeAmount.truncate().toString(),
+      },
+    ],
+    gas: '2000000',
+  };
 
-  const wallet = useStore().getters.getNolusWallet
+  const wallet = walletStore.wallet as NolusWallet;
 
   if (wallet) {
-    const result = await leaseClient.closeLease(wallet, DEFAULT_FEE, undefined)
+    const result = await leaseClient.closeLease(wallet, DEFAULT_FEE, undefined);
   }
 }
 
-function getAssetInfo (key: keyof AssetInfo) {
-  const denom = leaseInfo.leaseStatus?.opened?.amount.symbol || leaseInfo.leaseStatus?.paid?.symbol
+function getAssetInfo(key: keyof AssetInfo) {
+  const denom =
+    leaseInfo.leaseStatus?.opened?.amount.symbol ||
+    leaseInfo.leaseStatus?.paid?.symbol;
 
   if (denom) {
-    const assetInfo = assetsInfo[denom]
-    return assetInfo[key]
+    const assetInfo = assetsInfo[denom];
+    return assetInfo[key];
   }
 
-  return ''
+  return '';
 }
 
-function formatInterestRate (interestRatePromile = 0) {
-  return new Dec(interestRatePromile).quo(new Dec(10)).toString(1) + '%'
+function formatInterestRate(interestRatePromile = 0) {
+  return new Dec(interestRatePromile).quo(new Dec(10)).toString(1) + '%';
 }
 
-function calculateBalance (tokenAmount = '0', denom = '') {
-  const prices = useStore().getters.getPrices
+function calculateBalance(tokenAmount = '0', denom = '') {
+  const prices = oracleStore.prices;
   if (prices) {
-    const coinPrice = prices[denom]?.amount || '0'
-    const coinAmount = new Coin(denom, new Int(tokenAmount))
-    return CurrencyUtils.calculateBalance(
-      coinPrice,
-      coinAmount,
-      0
-    ).toString()
+    const coinPrice = prices[denom]?.amount || '0';
+    const coinAmount = new Coin(denom, new Int(tokenAmount));
+    return CurrencyUtils.calculateBalance(coinPrice, coinAmount, 0).toString();
   }
 
   return CurrencyUtils.calculateBalance(
-    '0',
-    new Coin('', new Int(0)),
+    "0",
+    new Coin("", new Int(0)),
     0
-  ).toString()
+  ).toString();
 }
 
-function getAssetIcon (): string {
-  const denom = leaseInfo.leaseStatus?.opened?.amount.symbol || leaseInfo.leaseStatus?.paid?.symbol || ''
-  return AssetUtils.getAssetInfoByAbbr(denom).coinIcon
+function getAssetIcon(): string {
+  const denom =
+    leaseInfo.leaseStatus?.opened?.amount.symbol ||
+    leaseInfo.leaseStatus?.paid?.symbol ||
+    "";
+  return AssetUtils.getAssetInfoByAbbr(denom).coinIcon;
 }
 </script>

@@ -1,11 +1,11 @@
 <template>
   <div class="col-span-12 mb-sm-nolus-70">
     <!-- Header -->
-    <div class="flex flex-wrap mt-[25px] items-center justify-between px-4 lg:px-0">
+    <div
+      class="flex flex-wrap mt-[25px] items-center justify-between px-4 lg:px-0"
+    >
       <div class="left w-full md:w-1/2">
-        <h1 class="text-20 nls-font-700 text-primary m-0 nls-sm-title">
-          Earn
-        </h1>
+        <h1 class="text-20 nls-font-700 text-primary m-0 nls-sm-title">Earn</h1>
       </div>
     </div>
 
@@ -15,13 +15,13 @@
         <div
           class="nolus-box block order-2 order-1 bg-white border-y border-standart radius-medium md:col-span-7 md:mt-6"
         >
-          <div
-            class="lg:flex block items-center justify-between px-6 pt-6"
-          >
+          <div class="lg:flex block items-center justify-between px-6 pt-6">
             <h2 class="text-16 nls-font-500 text-left my-0">
-              {{$t('message.earning-assets')}}
+              {{ $t("message.earning-assets") }}
             </h2>
-            <div class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end">
+            <div
+              class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end"
+            >
               <div class="relative block checkbox-container">
                 <div class="flex items-center w-full justify-end">
                   <input
@@ -32,7 +32,7 @@
                     type="checkbox"
                     disabled="true"
                   />
-                  <label for="show-small-balances">Show small balances</label>
+                  <label for="show-small-balances">{{ $t('message.show-small-balances') }}</label>
                 </div>
               </div>
             </div>
@@ -46,13 +46,15 @@
               <div
                 class="nls-font-500 text-12 text-dark-grey text-left text-upper"
               >
-                {{ $t('message.asset') }}
+                {{ $t("message.asset") }}
               </div>
 
               <div
                 class="inline-flex items-center justify-end nls-font-500 text-12 text-dark-grey text-right text-upper"
               >
-                <span class="inline-block">{{ $t('message.current-balance') }}</span>
+                <span class="inline-block">{{
+                  $t("message.current-balance")
+                }}</span>
               </div>
             </div>
 
@@ -61,8 +63,11 @@
               v-for="(asset, index) in balances"
               :key="`${asset.balance.denom}-${index}`"
               :asset="asset"
-              :openSupplyWithdraw="() => openSupplyWithdrawDialog(asset.balance.denom)"
-              :cols="cols"/>
+              :openSupplyWithdraw="
+                () => openSupplyWithdrawDialog(asset.balance.denom)
+              "
+              :cols="cols"
+            />
           </div>
         </div>
         <!-- Portfolio -->
@@ -73,15 +78,9 @@
         <div
           class="nolus-box block order-2 md:order-1 bg-white border-y border-standart radius-medium md:col-span-7 mt-6"
         >
-          <div
-            class="flex items-center justify-between px-6 pt-6"
-          >
-            <h2 class="text-16 nls-font-500 text-left my-0">
-              Pending rewards
-            </h2>
-            <button class="btn btn-label btn-large-label">
-              Claim all
-            </button>
+          <div class="flex items-center justify-between px-6 pt-6">
+            <h2 class="text-16 nls-font-500 text-left my-0">{{ $t('message.pending-rewards') }}</h2>
+            <button class="btn btn-label btn-large-label">{{ $t('message.claim-all') }}</button>
           </div>
           <!-- Assets -->
           <div class="block mt-4">
@@ -89,7 +88,8 @@
             <EarnReward
               :reward="totalNlsRewards()"
               :onClickClaim="onClickClaim"
-              :cols="cols"/>
+              :cols="cols"
+            />
             <!-- Assets Container -->
           </div>
         </div>
@@ -97,112 +97,128 @@
     </div>
   </div>
 
-  <Modal v-if="showSupplyWithdrawDialog" @close-modal="showSupplyWithdrawDialog = false">
-    <SupplyWithdrawDialog :selectedAsset="selectedAsset"/>
+  <Modal
+    v-if="showSupplyWithdrawDialog"
+    @close-modal="showSupplyWithdrawDialog = false"
+  >
+    <SupplyWithdrawDialog :selectedAsset="selectedAsset" />
   </Modal>
   <Modal v-if="showClaimModal" @close-modal="showClaimModal = false">
-    <ClaimDialog :contract-data="this.claimContractData" :reward="totalNlsRewards()"/>
+    <ClaimDialog
+      :contract-data="claimContractData"
+      :reward="totalNlsRewards()"
+    />
   </Modal>
-  <Modal v-if="this.showErrorDialog" @close-modal="this.showErrorDialog = false">
-    <ErrorDialog title="Error connecting" :message="this.errorMessage" :try-button="onClickTryAgain"/>
+  <Modal v-if="showErrorDialog" @close-modal="showErrorDialog = false">
+    <ErrorDialog
+      :title="$t('message.error-connecting')"
+      :message="errorMessage"
+      :try-button="onClickTryAgain"
+    />
   </Modal>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import { claimRewardsMsg, ContractData, Lpp } from '@nolus/nolusjs/build/contracts'
-import { ChainConstants, NolusClient } from '@nolus/nolusjs'
+<script setup lang="ts">
+import EarnAsset from '@/components/EarningsComponents/EarnAsset.vue';
+import EarnReward from '@/components/EarningsComponents/EarnReward.vue';
+import SupplyWithdrawDialog from '@/components/modals/SupplyWithdrawDialog.vue';
+import Modal from '@/components/modals/templates/Modal.vue';
+import ClaimDialog from '@/components/modals/ClaimDialog.vue';
+import ErrorDialog from '@/components/modals/ErrorDialog.vue';
 
-import { LPP_CONSTANTS } from '@/config/contracts'
-import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
-import { AssetBalance } from '@/store/modules/wallet/state'
-import EarnAsset from '@/components/EarningsComponents/EarnAsset.vue'
-import EarnReward from '@/components/EarningsComponents/EarnReward.vue'
-import SupplyWithdrawDialog from '@/components/modals/SupplyWithdrawDialog.vue'
-import Modal from '@/components/modals/templates/Modal.vue'
-import ClaimDialog from '@/components/modals/ClaimDialog.vue'
-import { WalletManager } from '@/wallet/WalletManager'
-import { Coin, Dec, Int } from '@keplr-wallet/unit'
-import ErrorDialog from '@/components/modals/ErrorDialog.vue'
+import type { AssetBalance } from '@/stores/wallet/state';
+import { onMounted, ref, watch } from 'vue';
+import { claimRewardsMsg, type ContractData, Lpp} from '@nolus/nolusjs/build/contracts';
+import { ChainConstants, NolusClient } from '@nolus/nolusjs';
 
-export default defineComponent({
-  name: 'EarningsView',
-  components: {
-    EarnAsset,
-    EarnReward,
-    Modal,
-    SupplyWithdrawDialog,
-    ClaimDialog,
-    ErrorDialog
-  },
-  data () {
-    return {
-      cols: 2 as number,
-      showSupplyWithdrawDialog: false,
-      availableCurrencies: [] as string[],
-      balances: [] as AssetBalance[],
-      rewards: [] as AssetBalance[],
-      claimContractData: [] as ContractData[],
-      selectedAsset: '',
-      showSmallBalances: false,
-      showClaimModal: false,
-      showErrorDialog: false,
-      errorMessage: ''
-    }
-  },
-  watch: {
-    '$store.state.wallet.balances' (balances: AssetBalance[]) {
-      if (balances) {
-        this.balances = balances.filter(asset => {
-          return this.availableCurrencies.includes(asset.balance.denom)
-        })
-      }
-    }
-  },
-  async mounted () {
-    try {
-      await this.getAllRewards()
-    } catch (e: any) {
-      this.showErrorDialog = true
-      this.errorMessage = e.message
-    }
-  },
-  methods: {
-    async onClickTryAgain () {
-      await this.getAllRewards()
-    },
-    onClickClaim () {
-      this.showClaimModal = true
-    },
-    totalNlsRewards (): AssetBalance {
-      let totalBalance = new Dec(0)
-      this.rewards.forEach(reward => {
-        totalBalance = totalBalance.add(reward.balance.amount.toDec())
-      })
-      return { balance: new Coin(ChainConstants.COIN_MINIMAL_DENOM, totalBalance.truncate()) }
-    },
-    openSupplyWithdrawDialog (denom: string) {
-      this.selectedAsset = denom
-      this.showSupplyWithdrawDialog = true
-    },
-    async getAllRewards () {
-      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
+import { LPP_CONSTANTS } from '@/config/contracts';
+import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils';
 
-      for (const [key, value] of Object.entries(LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()])) {
-        const lppClient = new Lpp(cosmWasmClient, value.instance)
-        this.claimContractData.push({
-          contractAddress: value.instance,
-          msg: claimRewardsMsg()
-        })
+import { WalletManager } from '@/wallet/WalletManager';
+import { Coin, Dec } from '@keplr-wallet/unit';
+import { storeToRefs } from 'pinia';
+import { useWalletStore } from '@/stores/wallet';
 
-        const lppConfig = await lppClient.getLppConfig()
-        this.availableCurrencies.push(lppConfig.lpn_symbol)
+const cols = ref(2 as number);
+const showSupplyWithdrawDialog = ref(false);
+const availableCurrencies = ref([] as string[]);
+const balances = ref([] as AssetBalance[]);
+const rewards = ref([] as AssetBalance[]);
+const claimContractData = ref([] as ContractData[]);
+const selectedAsset = ref('');
+const showSmallBalances = ref(false);
+const showClaimModal = ref(false);
+const showErrorDialog = ref(false);
+const errorMessage = ref('');
 
-        const lppRewards = await lppClient.getLenderRewards(WalletManager.getWalletAddress())
-        this.rewards.push({ balance: new Coin(lppRewards.rewards.symbol, lppRewards.rewards.amount) })
-      }
-    }
+const wallet = useWalletStore();
+const walletRef = storeToRefs(wallet);
+
+onMounted(async () => {
+  try {
+    await getAllRewards();
+  } catch (e: Error | any) {
+    showErrorDialog.value = true;
+    errorMessage.value = e?.message;
   }
-})
+});
+
+const onClickTryAgain = async () => {
+  await getAllRewards();
+};
+
+const onClickClaim = () => {
+  showClaimModal.value = true;
+};
+
+const totalNlsRewards = (): AssetBalance => {
+  let totalBalance = new Dec(0);
+  rewards.value.forEach((reward) => {
+    totalBalance = totalBalance.add(reward.balance.amount.toDec());
+  });
+  return {
+    balance: new Coin(
+      ChainConstants.COIN_MINIMAL_DENOM,
+      totalBalance.truncate()
+    ),
+  };
+};
+
+const openSupplyWithdrawDialog = (denom: string) => {
+  selectedAsset.value = denom;
+  showSupplyWithdrawDialog.value = true;
+};
+
+const getAllRewards = async () => {
+  const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+
+  for (const [_key, value] of Object.entries(
+    LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()]
+  )) {
+    const lppClient = new Lpp(cosmWasmClient, value.instance);
+    claimContractData.value.push({
+      contractAddress: value.instance,
+      msg: claimRewardsMsg(),
+    });
+
+    const lppConfig = await lppClient.getLppConfig();
+    availableCurrencies.value.push(lppConfig.lpn_symbol);
+
+    const lppRewards = await lppClient.getLenderRewards(
+      WalletManager.getWalletAddress()
+    );
+    rewards.value.push({
+      balance: new Coin(lppRewards.rewards.symbol, lppRewards.rewards.amount),
+    });
+  }
+};
+
+watch(walletRef.balances, async (balances: AssetBalance[]) => {
+  if (balances) {
+    balances = balances.filter((asset) => {
+      return availableCurrencies.value.includes(asset.balance.denom);
+    });
+  }
+});
+
 </script>
-<style scoped></style>

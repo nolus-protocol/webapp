@@ -10,9 +10,7 @@
 </template>
 
 <script lang="ts" setup>
-import SendMainComponent from '@/components/SendComponents/SendMainComponent.vue'
-import ReceiveMainComponent from '@/components/ReceiveComponents/ReceiveMainComponent.vue'
-
-import DialogHeader from './templates/DialogHeader.vue'
-
+import SendMainComponent from '@/components/SendComponents/SendMainComponent.vue';
+import ReceiveMainComponent from '@/components/ReceiveComponents/ReceiveMainComponent.vue';
+import DialogHeader from './templates/DialogHeader.vue';
 </script>

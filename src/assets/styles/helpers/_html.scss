@@ -13,7 +13,8 @@ body {
 	background: linear-gradient(314.47deg, $borderColor 2.19%, $lightGrey 100%);
 	position: relative;
 	margin: 0;
-	min-height: 100vh;
+	height: 100vh;
+	height: calc(var(--vh, 1vh) * 100);
 
 	box-sizing: border-box;
 	-webkit-font-smoothing: antialiased;
@@ -45,7 +46,8 @@ button {
 
 .page-container {
 	width: 100%;
-	min-height: 100vh;
+	height: 100vh;
+	height: calc(var(--vh, 1vh) * 100);
 }
 
 .separator-line {

@@ -1,25 +1,32 @@
 export class StringUtils {
-  public static truncateString (str: string, front: number, back: number): string {
-    return `${str.substr(0, front)}...${str.substr(str.length - back, str.length)}`
+  public static truncateString(
+    str: string,
+    front: number,
+    back: number
+  ): string {
+    return `${str.substr(0, front)}...${str.substr(
+      str.length - back,
+      str.length
+    )}`;
   }
 
-  public static copyToClipboard (text: string): boolean {
+  public static async copyToClipboard(text: string): Promise<boolean> {
     try {
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(text)
+        await navigator.clipboard.writeText(text);
       }
     } catch (e) {
-      return false
+      return false;
     }
-    return true
+    return true;
   }
 
-  public static capitalize (value: string): string {
-    if (typeof value !== 'string') return ''
-    return value.charAt(0).toUpperCase() + value.slice(1)
+  public static capitalize(value: string): string {
+    if (typeof value !== 'string') return '';
+    return value.charAt(0).toUpperCase() + value.slice(1);
   }
 
-  public static getDenomFromMinimalDenom (minimalDenom: string) {
-    return minimalDenom?.replace(minimalDenom[0], '')
+  public static getDenomFromMinimalDenom(minimalDenom: string) {
+    return minimalDenom?.replace(minimalDenom[0], '');
   }
 }

@@ -1,11 +1,11 @@
 <template>
   <!-- Input Area -->
   <div class="modal-send-receive-input-area">
-    <div
-      class="flex py-3 px-4 bg-light-grey radius-light text-left text-14 nls-font-400 text-primary"
-    >
-      <span class="text-14 nls-font-500">Current APR:</span>
-      <span class="text-14 nls-font-700  ml-2"> {{ modelValue.currentAPR }}</span>
+    <div class="flex py-3 px-4 bg-light-grey radius-light text-left text-14 nls-font-400 text-primary">
+      <span class="text-14 nls-font-500">{{ $t('message.current-apr') }}:</span>
+      <span class="text-14 nls-font-700 ml-2">
+        {{ modelValue.currentAPR }}
+      </span>
     </div>
 
     <div class="block text-left mt-[25px]">
@@ -19,16 +19,21 @@
         :value="modelValue.amount"
         label="Amount"
         name="amountSupply"
-        @input="(event) => (modelValue.amount = event.target.value)"
+        @input="handleAmountChange($event)"
         @update-currency="(event) => (modelValue.selectedCurrency = event)"
       />
 
       <WarningBox :isWarning="true" class="mt-[25px]">
         <template v-slot:icon>
-          <img class="block mx-auto my-0 w-10 h-10" src="@/assets/icons/diamond-o.svg"/>
+          <img
+            class="block mx-auto my-0 w-10 h-10"
+            src="@/assets/icons/diamond-o.svg"
+          />
         </template>
         <template v-slot:content>
-          <span>Rewards will compound automatically over the initially supplied amount</span>
+          <span>
+            {{ $t('message.rewards-compount') }}
+          </span>
         </template>
       </WarningBox>
     </div>
@@ -38,26 +43,30 @@
   <div class="modal-send-receive-actions">
     <button
       class="btn btn-primary btn-large-primary text-center"
-      v-on:click="modelValue.onNextClick"
+      @click="modelValue.onNextClick"
     >
-      Supply
+      {{ $t('message.supply') }}
     </button>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { defineEmits, defineProps, PropType } from 'vue'
+import type { SupplyFormComponentProps } from '@/types/component/SupplyFormComponentProps';
+import type { PropType } from 'vue';
 
-import CurrencyField from '@/components/CurrencyField.vue'
-import WarningBox from '@/components/modals/templates/WarningBox.vue'
-import { SupplyFormComponentProps } from '@/types/component/SupplyFormComponentProps'
+import CurrencyField from '@/components/CurrencyField.vue';
+import WarningBox from '@/components/modals/templates/WarningBox.vue';
 
-defineProps({
+const props = defineProps({
   modelValue: {
     type: Object as PropType<SupplyFormComponentProps>,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
-defineEmits(['update:modelValue.selectedCurrency'])
+const handleAmountChange = (event: Event) => {
+  props.modelValue.amount = (event.target as HTMLInputElement).value;
+};
+
+defineEmits(['update:modelValue.selectedCurrency']);
 </script>

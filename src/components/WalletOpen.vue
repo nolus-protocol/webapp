@@ -9,16 +9,18 @@
       class="box-open-header bg-white p-4 lg:p-6 border-b border-standart radius-top-left"
     >
       <h2 v-cloak class="nls-font-700 text-18 text-primary text-left m-0">
-        Your Wallet
+        {{ $t('message.your-wallet') }}
       </h2>
       <div class="flex grey-box items-center bg-light-grey radius-rounded">
         <span class="icon-wallet"></span>
-        <span class="text-14 nls-font-400 text-primary">My precious</span>
+        <span class="text-14 nls-font-400 text-primary">{{ $t('message.precious') }}</span>
       </div>
     </div>
 
     <!-- Wallet Body -->
-    <div class="box-open-body bg-white p-4 lg:p-6 border-b border-standart text-left">
+    <div
+      class="box-open-body bg-white p-4 lg:p-6 border-b border-standart text-left"
+    >
       <!-- Language -->
       <!-- <div class="block">
         <Picker
@@ -43,8 +45,8 @@
 
       <div class="block mt-3">
         <Picker
-          :default-option="this.currentNetwork"
-          :options="this.networks"
+          :default-option="currentNetwork"
+          :options="networks"
           label="Network"
           @focus="showWallet = true"
           @update-selected="onUpdateNetwork"
@@ -55,70 +57,57 @@
     <!-- Wallet Actions -->
     <div class="box-open-actions p-4 lg:pr-6 bg-white">
       <div class="flex justify-end">
-        <button class="btn btn-secondary btn-large-secondary" v-on:click="onClickDisconnect">
-          Disconnect
+        <button
+          class="btn btn-secondary btn-large-secondary"
+          @click="onClickDisconnect"
+        >
+          {{ $t('message.disconnect') }}
         </button>
       </div>
     </div>
   </div>
 </template>
-<script lang="ts">
-import { defineComponent } from 'vue'
-import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
-import Picker, { PickerOption } from '@/components/Picker.vue'
-import { StringUtils } from '@/utils/StringUtils'
-import { useStore } from '@/store'
-import { ApplicationActionTypes } from '@/store/modules/application/action-types'
-import router from '@/router'
-import { RouteNames } from '@/router/RouterNames'
-import { WalletUtils } from '@/utils/WalletUtils'
-import { WalletManager } from '@/wallet/WalletManager'
+<script setup lang="ts">
+import Picker, { type PickerOption } from '@/components/Picker.vue';
+import router from '@/router';
+import { onMounted, ref } from 'vue';
+import { EnvNetworkUtils, StringUtils, WalletUtils } from '@/utils';
+import { RouteNames } from '@/router/RouterNames';
+import { WalletManager } from '@/wallet/WalletManager';
+import { ApplicationActionTypes, useApplicationStore } from '@/stores/application';
 
-export default defineComponent({
-  name: 'WalletOpen',
-  components: {
-    Picker
-  },
+const showWallet = ref(false);
+const networks = ref([] as PickerOption[]);
+const currentNetwork = ref({} as PickerOption);
+const applicaton = useApplicationStore();
 
-  props: [],
-  data () {
-    return {
-      showWallet: false,
-      networks: [] as PickerOption[],
-      currentNetwork: {} as PickerOption
-    }
-  },
+onMounted(() => {
+  EnvNetworkUtils.getEnvNetworks().forEach((network) => {
+    networks.value.push({
+      label: StringUtils.capitalize(network),
+      value: network,
+    });
+  });
 
-  mounted () {
-    EnvNetworkUtils.getEnvNetworks().forEach((network) => {
-      this.networks.push({
-        label: StringUtils.capitalize(network),
-        value: network
-      })
-    })
+  currentNetwork.value = {
+    label: StringUtils.capitalize(EnvNetworkUtils.getStoredNetworkName() || ''),
+    value: EnvNetworkUtils.getStoredNetworkName() || '',
+  };
+});
 
-    this.currentNetwork = {
-      label: StringUtils.capitalize(EnvNetworkUtils.getStoredNetworkName() || ''),
-      value: EnvNetworkUtils.getStoredNetworkName() || ''
-    }
-  },
+const handleFocusOut = () => {
+  showWallet.value = false;
+};
 
-  methods: {
-    handleFocusOut () {
-      this.showWallet = false
-    },
-    onUpdateNetwork (value: PickerOption) {
-      EnvNetworkUtils.saveCurrentNetwork(value.value)
-      if (WalletUtils.isConnectedViaExtension()) {
-        useStore().dispatch(ApplicationActionTypes.CHANGE_NETWORK)
-      }
-    },
-    onClickDisconnect () {
-      WalletManager.eraseWalletInfo()
-      router.push({ name: RouteNames.AUTH })
-    }
-  }
-})
+const onUpdateNetwork = (value: PickerOption) => {
+  EnvNetworkUtils.saveCurrentNetwork(value.value);
+  applicaton[ApplicationActionTypes.CHANGE_NETWORK]();
+};
+
+const onClickDisconnect = () => {
+  WalletManager.eraseWalletInfo();
+  router.push({ name: RouteNames.AUTH });
+};
 </script>
 
 <style scoped>

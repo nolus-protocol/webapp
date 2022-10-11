@@ -1,22 +1,65 @@
 <template>
   <div
     class="fixed flex items-end md:items-center top-0 bottom-0 left-0 right-0 justify-center bg-white/70 z-[999999999] modal-send-receive-parent"
-    style="linear-gradient(314.47 deg, #EBEFF5 2.19 %, #F7F9FC 100 %);">
+    style="linear-gradient(314.47 deg, #EBEFF5 2.19 %, #F7F9FC 100 %);"
+    @keydown.esc="onModalClose"
+  >
     <button class="btn-close-modal" @click="onModalClose">
       <img class="inline-block w-4 h-4" src="@/assets/icons/cross.svg" />
     </button>
-    <slot />
+    <slot></slot>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { provide } from 'vue'
+import { onMounted, onUnmounted, provide } from 'vue';
+import router from '@/router';
 
-const emit = defineEmits(['close-modal'])
+const emit = defineEmits(['close-modal']);
 
-function onModalClose () {
-  emit('close-modal')
-}
+const onModalClose = () => {
+  parseRoute();
+  emit('close-modal');
+};
 
-provide('onModalClose', onModalClose)
+const parseRoute = () => {
+  const path = router.currentRoute.value.path;
+  router.push({
+    path,
+  });
+};
+
+const escapeClicked = (event: KeyboardEvent) => {
+  if (event.key == 'Escape') {
+    onModalClose();
+  }
+};
+
+const backButtonClicked = (event: Event) => {
+  emit('close-modal');
+};
+
+onMounted(() => {
+  const path = router.currentRoute.value.path;
+  router.push({
+    path,
+    hash: '#dialog',
+  });
+  document.addEventListener('keyup', escapeClicked);
+  window.addEventListener('popstate', backButtonClicked);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('keyup', escapeClicked);
+  window.removeEventListener('popstate', backButtonClicked);
+});
+
+provide('onModalClose', onModalClose);
+provide('parseRoute', parseRoute);
 </script>
+<style scoped>
+button.btn-close-modal{
+  padding: 10px;
+  z-index: 99;
+}
+</style>

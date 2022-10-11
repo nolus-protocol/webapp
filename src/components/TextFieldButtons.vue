@@ -2,96 +2,80 @@
   <fieldset>
     <div class="block input-field">
       <label
-        :for="this.id"
+        :for="id"
         class="block text-14 nls-font-500 mb-[5px] text-primary"
-      >{{ this.label }}</label
+        >{{ label }}</label
       >
       <div class="field-container text-field-buttons">
         <textarea
-          :id="this.id"
-          :class="
-            typeof this.isError !== 'undefined' && this.isError === true
-              ? 'error'
-              : ''
-          "
+          :id="id"
+          :class="isError === true ? 'error' : ''"
           :disabled="true"
-          :name="this.name"
+          :name="name"
           :value="value"
-          @input="$emit('update:value', $event.target.value)"
+          @input="$emit('update:value', handleInputChange($event))"
         ></textarea>
-        <div class="flex align-center justify-end p-3 bg-light-grey buttons-container">
-          <button class="btn btn-secondary btn-medium-secondary btn-icon mr-4" v-on:click="onClickCopy">
-            <DuplicateIcon class="icon w-4 h-4"/>
-              Copy
+        <div
+          class="flex align-center justify-end p-3 bg-light-grey buttons-container"
+        >
+          <button
+            class="btn btn-secondary btn-medium-secondary btn-icon mr-4"
+            @click="onClickCopy()"
+          >
+            <DocumentDuplicateIcon class="icon w-4 h-4" />
+            {{ $t("message.copy") }}
           </button>
 
-          <button class="btn btn-secondary btn-medium-secondary btn-icon" v-on:click="onClickPrint">
-            <PrinterIcon class="icon w-4 h-4"/>
-            Print
+          <button
+            class="btn btn-secondary btn-medium-secondary btn-icon"
+            @click="onClickPrint()"
+          >
+            <PrinterIcon class="icon w-4 h-4" />
+            {{ $t("message.print") }}
           </button>
         </div>
       </div>
-      <span
-        :class="[
-          'msg error ',
-          typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
-            ? ''
-            : 'hidden',
-        ]"
-      >{{
-          typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
-            ? this.errorMsg
-            : ''
-        }}</span
-      >
+      <span :class="['msg error ', errorMsg.length > 0 ? '' : 'hidden']">
+        {{ errorMsg }}
+      </span>
     </div>
   </fieldset>
 </template>
 
-<script>
-import { DuplicateIcon, PrinterIcon } from '@heroicons/vue/solid'
+<script setup lang="ts">
+import { DocumentDuplicateIcon, PrinterIcon } from '@heroicons/vue/24/solid';
 
-export default {
-  name: 'TextFieldButtons',
-  components: {
-    DuplicateIcon,
-    PrinterIcon
+defineProps({
+  name: {
+    type: String,
   },
-  props: {
-    name: {
-      type: String
-    },
-    id: {
-      type: String
-    },
-    value: {
-      type: String
-    },
-    label: {
-      type: String
-    },
-    buttons: {
-      type: String
-    },
-    isError: {
-      type: Boolean
-    },
-    errorMsg: {
-      type: String
-    },
-    onClickCopy: {
-      type: Function
-    },
-    onClickPrint: {
-      type: Function
-    }
+  id: {
+    type: String,
   },
-  data () {
-    return {
-      default: {
-        value: ''
-      }
-    }
-  }
-}
+  value: {
+    type: String,
+  },
+  label: {
+    type: String,
+  },
+  isError: {
+    type: Boolean,
+    defualt: false,
+  },
+  errorMsg: {
+    type: String,
+    default: '',
+  },
+  onClickCopy: {
+    type: Function,
+    required: true,
+  },
+  onClickPrint: {
+    type: Function,
+    required: true,
+  },
+});
+
+const handleInputChange = (event: Event) =>
+  (event.target as HTMLInputElement).value;
 </script>

@@ -1,6 +1,6 @@
 module.exports = {
   content: ["./index.html", "./src/**/*.{vue,js,ts,jsx,tsx}"],
-  darkMode: 'media', // or 'class'
+  darkMode: "media", // or 'class'
   theme: {
     colors: {
       white: "#fff",
@@ -27,16 +27,16 @@ module.exports = {
     },
 
     fontSize: {
-      10: ['10px', '14px'],
-      12: ['12px', '17px'],
-      14: ['14px', '20px'],
-      16: ['16px', '23px'],
-      18: ['18px', '26px'],
-      20: ['20px', '29px'],
-      28: ['28px', '46px'],
-      32: ['32px', '46px'],
-      40: ['40px', '58px'],
-      48: ['48px', '70px'],
+      10: ["10px", "14px"],
+      12: ["12px", "17px"],
+      14: ["14px", "20px"],
+      16: ["16px", "23px"],
+      18: ["18px", "26px"],
+      20: ["20px", "29px"],
+      28: ["28px", "46px"],
+      32: ["32px", "46px"],
+      40: ["40px", "58px"],
+      48: ["48px", "70px"],
     },
 
     extend: {},

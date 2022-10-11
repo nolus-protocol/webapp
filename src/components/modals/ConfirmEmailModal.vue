@@ -21,7 +21,9 @@
         <CheckIcon
           class="h-14 w-14 bg-light-red/30 radius-circle p-2 text-dark-red"
         />
-        <h1 class="nls-font-700 text-28 md:text-32 text-primary text-center mt-3 mb-0">
+        <h1
+          class="nls-font-700 text-28 md:text-32 text-primary text-center mt-3 mb-0"
+        >
           Is your email address
         </h1>
       </div>
@@ -57,11 +59,10 @@
   </div>
 </template>
 
-<script lang="ts">
-import { CheckIcon } from '@heroicons/vue/solid'
-import InputField from '@/components/InputField.vue'
-import { defineComponent } from 'vue'
-import { AssetBalance } from '@/store/modules/wallet/state'
+<script setup lang="ts">
+import InputField from '@/components/InputField.vue';
+import type { AssetBalance } from '@/stores/wallet/state';
+import { CheckIcon } from '@heroicons/vue/24/solid';
 
 export interface SendComponentProps {
   receiverErrorMsg: string;
@@ -78,13 +79,4 @@ export interface SendComponentProps {
   onConfirmBackClick: () => void;
   onClickOkBtn: () => void;
 }
-
-export default defineComponent({
-  name: 'ConfirmEmailModal',
-  components: {
-    CheckIcon,
-    InputField
-  },
-  props: {}
-})
 </script>

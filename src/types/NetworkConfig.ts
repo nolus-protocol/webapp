@@ -1,6 +1,6 @@
-import { NetworkAddress } from '@/types/NetworkAddress'
+import type { NetworkAddress } from "@/types";
 
 export interface NetworkConfig {
-  networkName: string,
-  networkAddresses: NetworkAddress
+  networkName: string;
+  networkAddresses: NetworkAddress;
 }

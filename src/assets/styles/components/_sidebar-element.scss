@@ -8,7 +8,7 @@
   left: 0;
   width: 100%;
   max-width: 190px;
-  height: 100vh;
+  height: 100%;
   transform: translateZ(0);
 
   .top {
@@ -289,7 +289,7 @@
 			border-top-left-radius: 12px;
 			border-top-right-radius: 12px;
 			border-bottom: 1px solid $borderColor;
-			height: 100%;
+      position: absolute;
 
 			& > div {
 				padding-left: 24px;

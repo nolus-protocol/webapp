@@ -1,7 +1,7 @@
-import { ContractInfo } from '@/types/ContractInfo'
+import type { ContractInfo } from "@/types";
 
 export interface ContractConfig {
   [key: string]: {
-    [key: string]: ContractInfo
-  }
+    [key: string]: ContractInfo;
+  };
 }

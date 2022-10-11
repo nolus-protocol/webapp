@@ -5,18 +5,18 @@
 </template>
 
 <script lang="ts" setup>
-import { PropType } from 'vue'
+import type { PropType } from 'vue';
+import type { LeaseData } from '@/types';
 
-import DialogHeader from '@/components/modals/templates/DialogHeader.vue'
-import RepayMainComponent from '@/components/RepayComponents/RepayMainComponent.vue'
-import { LeaseData } from '@/types/LeaseData'
+import DialogHeader from '@/components/modals/templates/DialogHeader.vue';
+import RepayMainComponent from '@/components/RepayComponents/RepayMainComponent.vue';
 
 defineProps({
   leaseInfo: {
     type: Object as PropType<LeaseData>,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 </script>
 
 <style scoped>

@@ -1,67 +1,90 @@
 <template>
-  <div class="block rounded-2xl bg-white md:pb-10 pt-6 pb-[210px] -mt-8 md:border border-standart shadow-box w-screen md:w-[516px]" @click.stop>
+  <div
+    class="block rounded-2xl bg-white md:pb-10 pt-6 pb-[210px] -mt-8 md:border border-standart shadow-box w-screen md:w-[516px]"
+    @click.stop
+  >
     <div class="flex flex-col items-center">
-        <XIcon class="h-14 w-14 bg-light-red/30 radius-circle p-2 text-dark-red z-[2]"/>
-        <h1 class="nls-font-700 text-28 md:text-32 text-primary text-center mt-4 z-[2]">
-          {{title}}
-        </h1>
+      <XMarkIcon
+        class="h-14 w-14 bg-light-red/30 radius-circle p-2 text-dark-red z-[2]"
+      />
+      <h1
+        class="nls-font-700 text-28 md:text-32 text-primary text-center mt-4 z-[2]"
+      >
+        {{ title }}
+      </h1>
     </div>
 
     <div class="separator-line py-6 relative z-[2]"></div>
 
     <div class="flex flex-col items-center">
       <p class="text-18 text-primary text-center nls-font-400 z-[2]">
-        {{message}}
+        {{ message }}
       </p>
 
       <div class="gap-2 mt-6 hidden md:flex">
-        <button class="btn btn-primary btn-large-primary" v-on:click="tryButton">
-          Try again
+        <button
+          class="btn btn-primary btn-large-primary"
+          @click="
+            tryButton();
+            parseRoute();
+          "
+        >
+          {{ $t("message.try-again") }}
         </button>
 
-        <button class="btn btn-secondary btn-large-secondary" @click="onModalClose">
-          Cancel
+        <button
+          class="btn btn-secondary btn-large-secondary"
+          @click="onModalClose()"
+        >
+          {{ $t("message.cancel") }}
         </button>
       </div>
 
-      <div class="bg-white h-[430px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
+      <div
+        class="bg-white h-[430px] absolute inset-x-0 bottom-0 z-[0] md:hidden"
+      ></div>
 
-      <div class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto bg-white absolute inset-x-0 bottom-0 md:relative shadow-modal">
-        <button class="btn btn-primary btn-large-primary mr-4 w-40" v-on:click="tryButton">
-          Try again
+      <div
+        class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto bg-white absolute inset-x-0 bottom-0 md:relative shadow-modal"
+      >
+        <button
+          class="btn btn-primary btn-large-primary mr-4 w-40"
+          @click="
+            tryButton();
+            parseRoute();
+          "
+        >
+          {{ $t("message.try-again") }}
         </button>
 
-        <button class="btn btn-secondary btn-large-secondary w-40" @click="onModalClose">
-          Cancel
+        <button
+          class="btn btn-secondary btn-large-secondary w-40"
+          @click="onModalClose()"
+        >
+          {{ $t("message.cancel") }}
         </button>
       </div>
     </div>
   </div>
 </template>
 
-<script lang="ts">
-import { XIcon } from '@heroicons/vue/solid'
+<script setup lang="ts">
+import { XMarkIcon } from '@heroicons/vue/24/solid';
+import { inject } from 'vue';
 
-export default {
-  name: 'ErrorDialog',
-  components: {
-    XIcon
+const onModalClose: Function = inject('onModalClose', () => {});
+const parseRoute: Function = inject('parseRoute', () => {});
+
+defineProps({
+  title: {
+    type: String,
   },
-  inject: {
-    onModalClose: {
-      default: () => () => {}
-    }
+  message: {
+    type: String,
   },
-  props: {
-    title: {
-      type: String
-    },
-    message: {
-      type: String
-    },
-    tryButton: {
-      type: Function
-    }
-  }
-}
+  tryButton: {
+    type: Function,
+    required: true,
+  },
+});
 </script>

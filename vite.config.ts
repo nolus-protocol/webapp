@@ -1,0 +1,71 @@
+import { fileURLToPath, URL } from 'node:url';
+import { resolve, dirname } from 'node:path';
+import { defineConfig, splitVendorChunkPlugin } from 'vite';
+import { execSync } from 'node:child_process';
+
+import vue from '@vitejs/plugin-vue';
+import vueI18n from '@intlify/vite-plugin-vue-i18n';
+import inject from '@rollup/plugin-inject';
+
+const commitHash = execSync('git rev-parse --short HEAD').toString();
+
+export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
+    __COMMIT_HASH__: JSON.stringify(commitHash),
+    'process.env': {}
+  },
+  plugins: [
+    vue(),
+    vueI18n({
+      compositionOnly: true,
+      include: resolve(
+        dirname(fileURLToPath(import.meta.url)),
+        './src/locales/**'
+      ),
+    }),
+    splitVendorChunkPlugin()
+  ],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      process: 'process/browser',
+      stream: 'stream-browserify',
+      zlib: 'browserify-zlib',
+      util: 'util/',
+    },
+  },
+  build: {
+    rollupOptions: {
+      plugins: [
+        inject({ Buffer: ['buffer', 'Buffer'], process: ['process', 'process'] }),
+      ],
+      output: {
+        manualChunks: {
+          '@cosmjs': [
+            '@cosmjs/amino',
+            '@cosmjs/cosmwasm-stargate',
+            '@cosmjs/crypto',
+            '@cosmjs/encoding',
+            '@cosmjs/ledger-amino',
+            '@cosmjs/proto-signing',
+            '@cosmjs/stargate',
+            '@cosmjs/tendermint-rpc'
+          ],
+          '@keplr-wallet': [
+            '@keplr-wallet/crypto',
+            '@keplr-wallet/types',
+            '@keplr-wallet/unit'
+          ],
+          '@ledgerhq': [
+            '@ledgerhq/hw-app-cosmos',
+            '@ledgerhq/hw-transport-web-ble',
+            '@ledgerhq/hw-transport-webhid',
+            '@ledgerhq/hw-transport-webusb',
+            '@ledgerhq/logs'
+          ]
+        },
+      },
+    },
+  },
+});

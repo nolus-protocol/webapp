@@ -1,4 +1,4 @@
 export interface IbcCurrency {
-  sourceChannelId: string,
-  coinMinimalDenom: string
+  sourceChannelId: string;
+  coinMinimalDenom: string;
 }

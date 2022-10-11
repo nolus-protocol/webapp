@@ -1,31 +1,23 @@
 <template>
   <div class="block currency-field-container">
-    <label :for="this.id" class="block text-14 nls-font-500 text-primary">{{
-        this.label
-      }}</label>
-
-    <div
-      :class="[
-        typeof this.isError !== 'undefined' && this.isError === true
-          ? 'error'
-          : '',
-        'currency-field p-3.5',
-      ]"
-    >
+    <label :for="id" class="block text-14 nls-font-500 text-primary">
+      {{ label }}
+    </label>
+    <div :class="[isError === true ? 'error' : '', 'currency-field p-3.5']">
       <div class="flex items-center">
         <div class="inline-block w-1/2">
           <input
-            :id="this.id"
+            :id="id"
             :disabled="disabledInputField"
-            :name="this.name"
-            :step="this.step"
+            :name="name"
+            :step="step"
             :value="value"
             class="nls-font-700 text-18 text-primary"
             type="number"
-            @input="$emit('update:value', $event.target.value)"
+            @input="$emit('update:value', handleInputChange($event))"
           />
           <span class="block text-14 nls-font-400 text-light-blue">
-            {{this.calculateInputBalance()}}
+            {{ calculateInputBalance() }}
           </span>
         </div>
         <div class="inline-block w-1/2">
@@ -40,95 +32,88 @@
       </div>
     </div>
 
-    <span
-      :class="[
-        'msg error ',
-        typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
-          ? ''
-          : 'hidden',
-      ]"
-    >{{
-        typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
-          ? this.errorMsg
-          : ''
-      }}</span
-    >
+    <span :class="['msg error ', errorMsg.length > 0 ? '' : 'hidden']">
+    {{ errorMsg.length > 0 ? errorMsg : "" }}
+    </span>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue'
-import { Coin, Int } from '@keplr-wallet/unit'
-import { CurrencyUtils } from '@nolus/nolusjs'
+<script setup lang="ts">
+import type { AssetBalance } from '@/stores/wallet/state';
+import type { PropType } from 'vue';
 
-import CurrencyPicker from '@/components/CurrencyPicker.vue'
-import { AssetBalance } from '@/store/modules/wallet/state'
-import { assetsInfo } from '@/config/assetsInfo'
-import { useStore } from '@/store'
+import CurrencyPicker from '@/components/CurrencyPicker.vue';
 
-export default defineComponent({
-  name: 'CurrencyField',
-  components: {
-    CurrencyPicker
+import { Coin, Int } from '@keplr-wallet/unit';
+import { CurrencyUtils } from '@nolus/nolusjs';
+import { assetsInfo } from '@/config/assetsInfo';
+import { useOracleStore } from '@/stores/oracle';
+
+const emit = defineEmits(['update-currency', 'update:value']);
+const oracle = useOracleStore();
+
+const props = defineProps({
+  name: {
+    type: String,
   },
-  props: {
-    name: {
-      type: String
-    },
-    value: {
-      type: String
-    },
-    currencyOptions: {
-      type: Array as PropType<AssetBalance[]>
-    },
-    step: {
-      type: String
-    },
-    option: {
-      type: Object as PropType<AssetBalance>
-    },
-    id: {
-      type: String
-    },
-    label: {
-      type: String
-    },
-    disabledInputField: {
-      type: Boolean
-    },
-    disabledCurrencyPicker: {
-      type: Boolean
-    },
-    isError: {
-      type: Boolean
-    },
-    errorMsg: {
-      type: String
-    }
+  value: {
+    type: String,
   },
-  data () {
-    return {}
+  currencyOptions: {
+    type: Array as PropType<AssetBalance[]>,
   },
-  methods: {
-    onUpdateCurrency (value: AssetBalance) {
-      this.$emit('update-currency', value)
-    },
-    calculateInputBalance () {
-      const prices = useStore().state.oracle.prices
+  step: {
+    type: String,
+  },
+  option: {
+    type: Object as PropType<AssetBalance>,
+  },
+  id: {
+    type: String,
+  },
+  label: {
+    type: String,
+  },
+  disabledInputField: {
+    type: Boolean,
+  },
+  disabledCurrencyPicker: {
+    type: Boolean,
+  },
+  isError: {
+    type: Boolean,
+    default: false,
+  },
+  errorMsg: {
+    type: String,
+    default: '',
+  },
+});
 
-      if (!this.value || !this.option || !prices) {
-        return '$0'
-      }
+const onUpdateCurrency = (value: AssetBalance) => {
+  emit('update-currency', value);
+};
 
-      const denom = this.option.balance.denom
-      const { coinDecimals, coinMinimalDenom } = assetsInfo[denom]
+const calculateInputBalance = () => {
+  const prices = oracle.prices;
 
-      const { amount } = CurrencyUtils.convertDenomToMinimalDenom(this.value, coinMinimalDenom, coinDecimals)
-      const coin = new Coin(denom, new Int(String(amount)))
-      const tokenPrice = prices[denom]?.amount || '0'
-
-      return CurrencyUtils.calculateBalance(tokenPrice, coin, coinDecimals)
-    }
+  if (!props.value || !props.option || !prices) {
+    return '$0';
   }
-})
+
+  const denom = props.option.balance.denom;
+  const { coinDecimals, coinMinimalDenom } = assetsInfo[denom];
+
+  const { amount } = CurrencyUtils.convertDenomToMinimalDenom(
+    props.value,
+    coinMinimalDenom,
+    coinDecimals
+  );
+  const coin = new Coin(denom, new Int(String(amount)));
+  const tokenPrice = prices[denom]?.amount || '0';
+
+  return CurrencyUtils.calculateBalance(tokenPrice, coin, coinDecimals);
+};
+
+const handleInputChange = (event: Event) => (event.target as HTMLInputElement).value;
 </script>

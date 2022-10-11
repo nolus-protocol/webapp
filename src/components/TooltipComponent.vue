@@ -17,8 +17,9 @@
           font-family: 'Garet-Medium';
           text-transform: normal !important;
         "
-      >{{ content }}</span
       >
+        {{ content }}
+      </span>
       <div
         class="absolute w-3 h-3 -mt-2 rotate-45 bg-light-electric"
         style="bottom: -4px"
@@ -30,19 +31,11 @@
   <!-- /TOOLTIP -->
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-
-export interface TooltipProps {
-}
-
-export default defineComponent({
-  name: 'TooltipComponent',
-
-  props: {
-    content: {
-      type: String
-    }
-  }
-})
+<script setup lang="ts">
+defineProps({
+  content: {
+    type: String,
+    default: '',
+  },
+});
 </script>

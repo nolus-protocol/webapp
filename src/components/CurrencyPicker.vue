@@ -1,12 +1,8 @@
 <template>
   <div
     :class="[
-      typeof this.type !== 'undefined' && this.type !== null
-        ? 'picker ' + this.type
-        : 'picker ',
-      typeof this.isError !== 'undefined' && this.isError === true
-        ? ' error'
-        : '',
+      type !== null ? 'picker ' + type : 'picker ',
+      isError === true ? ' error' : '',
     ]"
   >
     <Listbox
@@ -15,15 +11,9 @@
       as="div"
       @update:modelValue="$emit('update-currency', selected.value)"
     >
-      <div
-        v-if="
-          typeof this.label !== 'undefined' &&
-          this.label !== null &&
-          this.label.length > 0
-        "
-      >
+      <div v-if="label.length > 0">
         <ListboxLabel class="block text-14 nls-font-500 text-primary">
-          {{ this.label }}
+          {{ label }}
         </ListboxLabel>
       </div>
       <div class="mt-1 relative picker-container icon">
@@ -32,10 +22,7 @@
         >
           <span class="flex items-center">
             <img
-              :src="
-                require('@/assets/icons/coins/' +
-                  getAssetInfo(selected.value?.balance?.denom).coinIcon)
-              "
+              :src="getAssetInfo(selected.value?.balance?.denom).coinIcon"
               alt=""
               class="flex-shrink-0 h-6 w-6 rounded-full"
             />
@@ -50,23 +37,13 @@
           <span
             class="ml-3 absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
           >
-            <ChevronDownIcon aria-hidden="true" class="h-5 w-5 text-gray-400"/>
+            <ChevronDownIcon aria-hidden="true" class="h-5 w-5 text-gray-400" />
           </span>
         </ListboxButton>
 
-        <span
-          :class="[
-            'msg error ',
-            typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
-              ? ''
-              : 'hidden',
-          ]"
-        >{{
-            typeof this.errorMsg !== 'undefined' && this.errorMsg !== null
-              ? this.errorMsg
-              : ''
-          }}</span
-        >
+        <span :class="['msg error ', errorMsg.length > 0 ? '' : 'hidden']">{{
+          errorMsg.length > 0 ? errorMsg : ""
+        }}</span>
 
         <transition
           leave-active-class="transition ease-in duration-100"
@@ -77,7 +54,7 @@
             class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-56 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
           >
             <ListboxOption
-              v-for="option in this.options"
+              v-for="option in options"
               :key="option.balance.denom"
               :value="option"
               v-slot="{ active, selected }"
@@ -91,10 +68,7 @@
               >
                 <div class="flex items-center">
                   <img
-                    :src="
-                      require('@/assets/icons/coins/' +
-                        getAssetInfo(option.balance.denom).coinIcon)
-                    "
+                    :src="getAssetInfo(option.balance.denom).coinIcon"
                     alt=""
                     class="flex-shrink-0 h-6 w-6 rounded-full"
                   />
@@ -119,7 +93,7 @@
                     'absolute inset-y-0 right-0 flex items-center pr-4',
                   ]"
                 >
-                  <CheckIcon aria-hidden="true" class="h-5 w-5"/>
+                  <CheckIcon aria-hidden="true" class="h-5 w-5" />
                 </span>
               </li>
             </ListboxOption>
@@ -130,63 +104,57 @@
   </div>
 </template>
 
-<script lang="ts">
-import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue'
-import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/solid'
-import { defineComponent, PropType } from 'vue'
-import { AssetUtils } from '@/utils/AssetUtils'
-import { AssetBalance } from '@/store/modules/wallet/state'
+<script setup lang="ts">
+import type { AssetBalance } from '@/stores/wallet/state';
+import { type PropType, ref, onMounted } from 'vue';
 
-export default defineComponent({
-  name: 'CurrencyPicker',
-  components: {
-    Listbox,
-    ListboxButton,
-    ListboxLabel,
-    ListboxOption,
-    ListboxOptions,
-    CheckIcon,
-    ChevronDownIcon
+import {
+  Listbox,
+  ListboxButton,
+  ListboxLabel,
+  ListboxOption,
+  ListboxOptions,
+} from '@headlessui/vue';
+import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/24/solid';
+import { AssetUtils } from '@/utils';
+
+const props = defineProps({
+  label: {
+    type: String,
+    default: '',
   },
-  props: {
-    label: {
-      type: String,
-      default: ''
-    },
-    type: {
-      type: String
-    },
-    options: {
-      type: Array as PropType<AssetBalance[]>
-    },
-    currencyOption: {
-      type: Object as PropType<AssetBalance>
-    },
-    disabled: {
-      type: Boolean
-    },
-    isError: {
-      type: Boolean
-    },
-    errorMsg: {
-      type: String
-    }
+  type: {
+    type: String,
+    default: null,
   },
-  mounted () {
-    this.selected.value = this.currencyOption as AssetBalance
+  options: {
+    type: Array as PropType<AssetBalance[]>,
   },
-  data () {
-    return {
-      selected: {
-        value: {} as AssetBalance
-      }
-    }
+  currencyOption: {
+    type: Object as PropType<AssetBalance>,
   },
-  watch: {},
-  methods: {
-    getAssetInfo (denom: string) {
-      return AssetUtils.getAssetInfoByAbbr(denom)
-    }
-  }
-})
+  disabled: {
+    type: Boolean,
+  },
+  isError: {
+    type: Boolean,
+    default: false,
+  },
+  errorMsg: {
+    type: String,
+    default: '',
+  },
+});
+
+const getAssetInfo = (denom: string) => {
+  return AssetUtils.getAssetInfoByAbbr(denom);
+};
+
+const selected = ref({
+  value: {} as AssetBalance,
+});
+
+onMounted(() => {
+  selected.value.value = props.currencyOption as AssetBalance;
+});
 </script>

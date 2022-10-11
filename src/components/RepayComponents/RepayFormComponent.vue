@@ -3,8 +3,7 @@
     <div
       class="block nls-balance mb-[13px] bg-light-grey radius-light text-left text-primary"
     >
-      Current balance:
-
+      {{ $t('message.current-balance') }}:
       <a class="text-secondary nls-font-700 underline ml-2" href="#">
         $36,423.02
       </a>
@@ -15,7 +14,7 @@
       name="repayBalance"
       :value="modelValue.amount"
       :step="'1'"
-      @input="(event) => (modelValue.amount = event.target.value)"
+      @input="handleAmountChange($event)"
       :currency-options="modelValue.currentBalance"
       :option="modelValue.selectedCurrency"
       @update-currency="(event) => (modelValue.selectedCurrency = event)"
@@ -24,29 +23,27 @@
     />
     <div class="flex w-full">
       <div class="grow-3 text-right nls-font-500 text-14">
-        <p class="mb-3 mt-[25px] mr-5">Repayment Amount:</p>
-        <p class="mb-3 mr-5">Outstanding Lease:</p>
+        <p class="mb-3 mt-[25px] mr-5">{{ $t('message.repayment-amount') }}:</p>
+        <p class="mb-3 mr-5">{{ $t('message.outstanding-lease') }}:</p>
       </div>
       <div class="text-right nls-font-700 text-14">
-        <p
-          class="mb-3 mt-[25px] flex justify-end align-center mr-[5px]"
-        >
+        <p class="mb-3 mt-[25px] flex justify-end align-center mr-[5px]">
           {{
             calculateBalance(
               modelValue.amount,
               modelValue.selectedCurrency?.balance?.denom
             )
           }}
-          <TooltipComponent content="Content goes here "/>
+          <TooltipComponent content="Content goes here " />
         </p>
         <p class="mb-3 flex justify-end align-center mr-[5px]">
           {{
             calculateBalance(
               modelValue.outstandingLoanAmount.amount,
-              modelValue.outstandingLoanAmount.denom
+              modelValue.outstandingLoanAmount.symbol
             )
           }}
-          <TooltipComponent content="Content goes here"/>
+          <TooltipComponent content="Content goes here" />
         </p>
       </div>
     </div>
@@ -54,59 +51,46 @@
   <div class="modal-send-receive-actions mt-5">
     <button
       class="btn btn-primary btn-large-primary text-center"
-      v-on:click="modelValue.onNextClick"
+      @click="modelValue.onNextClick"
     >
-      Repay
+      {{ $t('message.repay') }}
     </button>
   </div>
 </template>
 
-<script lang="ts">
-import CurrencyField from '@/components/CurrencyField.vue'
-import { defineComponent, PropType } from 'vue'
-import { useStore } from '@/store'
-import { assetsInfo } from '@/config/assetsInfo'
-import { Coin, Int } from '@keplr-wallet/unit'
-import { CurrencyUtils } from '@nolus/nolusjs'
-import TooltipComponent from '@/components/TooltipComponent.vue'
-import { RepayComponentProps } from '@/types/component/RepayComponentProps'
+<script setup lang="ts">
+import CurrencyField from '@/components/CurrencyField.vue';
+import TooltipComponent from '@/components/TooltipComponent.vue';
 
-export default defineComponent({
-  name: 'RepayFormComponent',
-  components: {
-    CurrencyField,
-    TooltipComponent
-  },
-  props: {
-    modelValue: {
-      type: Object as PropType<RepayComponentProps>,
-      required: true
-    }
-  },
-  data () {
-    return {
-      disabledInputField: true
-    }
-  },
-  mounted () {
+import type { RepayComponentProps } from '@/types/component/RepayComponentProps';
+import { ref, type PropType } from 'vue';
+import { Coin, Int } from '@keplr-wallet/unit';
+import { CurrencyUtils } from '@nolus/nolusjs';
+import { useOracleStore } from '@/stores/oracle';
 
+const oracle = useOracleStore();
+
+const props = defineProps({
+  modelValue: {
+    type: Object as PropType<RepayComponentProps>,
+    required: true,
   },
+});
 
-  methods: {
-    calculateBalance (tokenAmount: string, denom: string) {
-      const prices = useStore().getters.getPrices
-      if (prices) {
-        const coinPrice = prices[denom]?.amount || '0'
-        const coinAmount = new Coin(denom, new Int(tokenAmount || '0'))
-        return CurrencyUtils.calculateBalance(
-          coinPrice,
-          coinAmount,
-          0
-        ).toString()
-      }
+const disabledInputField = ref(true);
+const calculateBalance = (tokenAmount: string, denom: string) => {
+  const prices = oracle.prices;
 
-      return '0'
-    }
+  if (prices) {
+    const coinPrice = prices[denom]?.amount || '0';
+    const coinAmount = new Coin(denom, new Int(tokenAmount || '0'));
+    return CurrencyUtils.calculateBalance(coinPrice, coinAmount, 0).toString();
   }
-})
+
+  return "0";
+};
+
+const handleAmountChange = (event: Event) => {
+  props.modelValue.amount = (event.target as HTMLInputElement).value;
+};
 </script>

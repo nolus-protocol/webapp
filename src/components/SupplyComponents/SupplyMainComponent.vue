@@ -1,141 +1,173 @@
 <template>
-  <ConfirmComponent v-if="showConfirmScreen"
-                    :selectedCurrency="state.selectedCurrency"
-                    :receiverAddress="state.receiverAddress"
-                    :password="state.password"
-                    :amount="state.amount"
-                    :txType="TxType.SUPPLY"
-                    :txHash="state.txHash"
-                    :step="step"
-                    :onSendClick="onSupplyClick"
-                    :onBackClick="onConfirmBackClick"
-                    :onOkClick="onClickOkBtn"
-                    @passwordUpdate="(value) => state.password = value"
+  <ConfirmComponent
+    v-if="showConfirmScreen"
+    :selectedCurrency="state.selectedCurrency"
+    :receiverAddress="state.receiverAddress"
+    :password="state.password"
+    :amount="state.amount"
+    :txType="TxType.SUPPLY"
+    :txHash="state.txHash"
+    :step="step"
+    :onSendClick="onSupplyClick"
+    :onBackClick="onConfirmBackClick"
+    :onOkClick="onClickOkBtn"
+    @passwordUpdate="(value) => (state.password = value)"
   />
   <!-- @TODO: Refactor to use <SupplyFormComponent /> directly -->
-  <component v-else :is="SupplyFormComponent" v-model="state"/>
-  <Modal v-if="errorDialog.showDialog" @close-modal="errorDialog.showDialog = false">
-    <ErrorDialog title="Error connecting" :message="errorDialog.errorMessage"/>
+  <component v-else :is="SupplyFormComponent" v-model="state" />
+  <Modal
+    v-if="errorDialog.showDialog"
+    @close-modal="errorDialog.showDialog = false"
+  >
+    <ErrorDialog
+      title="Error connecting"
+      :message="errorDialog.errorMessage"
+      :try-button="closeModal"
+    />
   </Modal>
 </template>
 
 <script lang="ts" setup>
-import { computed, defineProps, inject, ref, watch } from 'vue'
+import type { SupplyFormComponentProps } from '@/types/component/SupplyFormComponentProps';
 
-import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
-import SupplyFormComponent from '@/components/SupplyComponents/SupplyFormComponent.vue'
-import ErrorDialog from '@/components/modals/ErrorDialog.vue'
-import Modal from '@/components/modals/templates/Modal.vue'
-import { useStore } from '@/store'
-import { getMicroAmount, validateAmount, walletOperation } from '@/components/utils'
-import { CONFIRM_STEP } from '@/types/ConfirmStep'
-import { SupplyFormComponentProps } from '@/types/component/SupplyFormComponentProps'
-import { TxType } from '@/types/TxType'
-import { CurrencyUtils, NolusClient } from '@nolus/nolusjs'
-import { Lpp } from '@nolus/nolusjs/build/contracts'
-import { LPP_CONSTANTS } from '@/config/contracts'
-import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils'
-import { defaultNolusWalletFee } from '@/config/wallet'
-import { assetsInfo } from '@/config/assetsInfo'
+import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue';
+import SupplyFormComponent from '@/components/SupplyComponents/SupplyFormComponent.vue';
+import ErrorDialog from '@/components/modals/ErrorDialog.vue';
+import Modal from '@/components/modals/templates/Modal.vue';
+
+import { getMicroAmount, validateAmount, walletOperation } from '@/components/utils';
+import { CONFIRM_STEP } from '@/types/ConfirmStep';
+import { TxType } from '@/types/TxType';
+import { NolusClient, NolusWallet } from '@nolus/nolusjs';
+import { Lpp } from '@nolus/nolusjs/build/contracts';
+import { LPP_CONSTANTS } from '@/config/contracts';
+import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils';
+import { defaultNolusWalletFee } from '@/config/wallet';
+import { useWalletStore } from '@/stores/wallet';
+import { computed, inject, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { selectedAsset } = defineProps({
   selectedAsset: {
     type: String,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
-const balances = computed(() => useStore().state.wallet.balances)
-const selectedCurrency = computed(() => balances.value.find(asset => asset.balance.denom === selectedAsset) || balances.value[0])
+const i18n = useI18n();
+const walletStore = useWalletStore();
+const balances = computed(() => walletStore.balances);
+const selectedCurrency = computed(
+  () =>
+    balances.value.find((asset) => asset.balance.denom === selectedAsset) ||
+    balances.value[0]
+);
 
-const showConfirmScreen = ref(false)
+const showConfirmScreen = ref(false);
 const state = ref({
   currentBalance: balances.value,
   selectedCurrency: selectedCurrency.value,
   amount: '',
   password: '',
   amountErrorMsg: '',
-  currentAPR: '24.21%', // @TODO: fetch APR
-  receiverAddress: LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][selectedCurrency.value.balance.denom]?.instance || '',
+  currentAPR: '24.21%',
+  receiverAddress:
+    LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][
+      selectedCurrency.value.balance.denom
+    ]?.instance,
   txHash: '',
-  onNextClick: () => onNextClick()
-} as SupplyFormComponentProps)
+  onNextClick: () => onNextClick(),
+} as SupplyFormComponentProps);
 
-const step = ref(CONFIRM_STEP.CONFIRM)
+const step = ref(CONFIRM_STEP.CONFIRM);
 const errorDialog = ref({
   showDialog: false,
-  errorMessage: ''
-})
+  errorMessage: '',
+});
 
-const closeModal = inject('onModalClose', () => () => {
-})
+const closeModal = inject('onModalClose', () => () => {});
 
-function onNextClick () {
+function onNextClick() {
   if (!state.value.receiverAddress) {
-    errorDialog.value.showDialog = true
-    errorDialog.value.errorMessage = 'Missing receiver address!'
-    return
+    errorDialog.value.showDialog = true;
+    errorDialog.value.errorMessage = i18n.t('message.missing-receiver');
+    return;
   }
-  validateInputs()
+  validateInputs();
 
   if (!state.value.amountErrorMsg) {
-    showConfirmScreen.value = true
+    showConfirmScreen.value = true;
   }
 }
 
-function onConfirmBackClick () {
-  showConfirmScreen.value = false
+function onConfirmBackClick() {
+  showConfirmScreen.value = false;
 }
 
-function onClickOkBtn () {
-  closeModal()
+function onClickOkBtn() {
+  closeModal();
 }
 
-function validateInputs () {
+function validateInputs() {
   state.value.amountErrorMsg = validateAmount(
     state.value.amount,
     state.value.selectedCurrency.balance.denom,
     Number(state.value.selectedCurrency.balance.amount)
-  )
+  );
 }
 
-async function onSupplyClick () {
-  await walletOperation(transferAmount, state.value.password)
+async function onSupplyClick() {
+  await walletOperation(transferAmount, state.value.password);
 }
 
-async function transferAmount () {
-  const wallet = useStore().getters.getNolusWallet
-  if (wallet && state.value.amountErrorMsg === '') {
-    step.value = CONFIRM_STEP.PENDING
+async function transferAmount() {
+  const wallet = walletStore.wallet as NolusWallet;
+  if (wallet && state.value.amountErrorMsg === "") {
+    step.value = CONFIRM_STEP.PENDING;
     try {
-      const microAmount = getMicroAmount(state.value.selectedCurrency.balance.denom, state.value.amount)
-      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-      const lppClient = new Lpp(cosmWasmClient, LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][state.value.selectedCurrency.balance.denom].instance)
-      const result = await lppClient.deposit(
-        wallet,
-        defaultNolusWalletFee(),
-        [{
+      const microAmount = getMicroAmount(
+        state.value.selectedCurrency.balance.denom,
+        state.value.amount
+      );
+      const cosmWasmClient =
+        await NolusClient.getInstance().getCosmWasmClient();
+      const lppClient = new Lpp(
+        cosmWasmClient,
+        LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][
+          state.value.selectedCurrency.balance.denom
+        ].instance
+      );
+      const result = await lppClient.deposit(wallet, defaultNolusWalletFee(), [
+        {
           denom: microAmount.coinMinimalDenom,
-          amount: microAmount.mAmount.amount.toString()
-        }]
-      )
+          amount: microAmount.mAmount.amount.toString(),
+        },
+      ]);
       if (result) {
-        state.value.txHash = result.transactionHash || ''
-        step.value = CONFIRM_STEP.SUCCESS
+        state.value.txHash = result.transactionHash || "";
+        step.value = CONFIRM_STEP.SUCCESS;
       }
     } catch (e) {
-      step.value = CONFIRM_STEP.ERROR
+      step.value = CONFIRM_STEP.ERROR;
     }
   }
 }
 
-watch(() => [...state.value.amount], (currentValue, oldValue) => {
-  validateInputs()
-})
+watch(
+  () => [...state.value.amount],
+  (currentValue, oldValue) => {
+    validateInputs();
+  }
+);
 
-watch(() => [...state.value.selectedCurrency.balance.denom.toString()], (currentValue, oldValue) => {
-  validateInputs()
-  state.value.receiverAddress = LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][state.value.selectedCurrency.balance.denom]?.instance || ''
-})
-
+watch(
+  () => [...state.value.selectedCurrency.balance.denom.toString()],
+  (currentValue, oldValue) => {
+    validateInputs();
+    state.value.receiverAddress =
+      LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][
+        state.value.selectedCurrency.balance.denom
+      ]?.instance || "";
+  }
+);
 </script>

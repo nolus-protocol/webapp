@@ -1,43 +1,41 @@
 <template>
-  <ConfirmComponent v-if="showConfirmScreen"
-                    :selectedCurrency="state.selectedCurrency"
-                    :receiverAddress="state.receiverAddress"
-                    :password="state.password"
-                    :amount="state.amount"
-                    :memo="state.memo"
-                    :txType="TxType.SEND"
-                    :txHash="state.txHash"
-                    :step="step"
-                    :onSendClick="onSendClick"
-                    :onBackClick="onConfirmBackClick"
-                    :onOkClick="onClickOkBtn"
-                    @passwordUpdate="(value) => state.password = value"
+  <ConfirmComponent
+    v-if="showConfirmScreen"
+    :selectedCurrency="state.selectedCurrency"
+    :receiverAddress="state.receiverAddress"
+    :password="state.password"
+    :amount="state.amount"
+    :memo="state.memo"
+    :txType="TxType.SEND"
+    :txHash="state.txHash"
+    :step="step"
+    :onSendClick="onSendClick"
+    :onBackClick="onConfirmBackClick"
+    :onOkClick="onClickOkBtn"
+    @passwordUpdate="(value) => (state.password = value)"
   />
-  <!-- @TODO: Refactor to use <SendComponent /> directly -->
-  <component v-else :is="SendComponent" v-model="state"/>
+  <SendComponent v-else v-model="state"/>
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, ref } from 'vue'
+import type { SendComponentProps } from '@/types/component/SendComponentProps';
 
-import SendComponent from '@/components/SendComponents/SendComponent.vue'
-import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
-import { useStore } from '@/store'
-import { WalletActionTypes } from '@/store/modules/wallet/action-types'
-import { WalletUtils } from '@/utils/WalletUtils'
-import { transferCurrency, validateAddress, validateAmount, walletOperation } from '@/components/utils'
-import { CONFIRM_STEP } from '@/types/ConfirmStep'
-import { SendComponentProps } from '@/types/component/SendComponentProps'
-import { TxType } from '@/types/TxType'
+import SendComponent from '@/components/SendComponents/SendComponent.vue';
+import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue';
 
-const step = ref(CONFIRM_STEP.CONFIRM)
+import { transferCurrency, validateAddress, validateAmount, walletOperation} from '@/components/utils';
+import { CONFIRM_STEP } from '@/types/ConfirmStep';
+import { TxType } from '@/types/TxType';
+import { useWalletStore } from '@/stores/wallet';
+import { computed, inject, ref } from 'vue';
 
-const closeModal = inject('onModalClose', () => () => {
-})
+const step = ref(CONFIRM_STEP.CONFIRM);
+const walletStore = useWalletStore();
 
-const balances = computed(() => useStore().state.wallet.balances)
+const closeModal = inject('onModalClose', () => () => {});
+const balances = computed(() => walletStore.balances);
 
-const showConfirmScreen = ref(false)
+const showConfirmScreen = ref(false);
 const state = ref({
   currentBalance: balances.value,
   selectedCurrency: balances.value[0],
@@ -45,57 +43,56 @@ const state = ref({
   memo: '',
   receiverAddress: '',
   password: '',
-  onNextClick: () => onNextClick(),
+  onNextClick,
   receiverErrorMsg: '',
   amountErrorMsg: '',
-  txHash: ''
-} as SendComponentProps)
+  txHash: '',
+} as SendComponentProps);
 
-function onConfirmBackClick () {
-  showConfirmScreen.value = false
+function onConfirmBackClick() {
+  showConfirmScreen.value = false;
 }
 
-function onClickOkBtn () {
-  closeModal()
+function onClickOkBtn() {
+  closeModal();
 }
 
-function onNextClick () {
-  validateInputs()
+function onNextClick() {
+  validateInputs();
 
   if (!state.value.amountErrorMsg && !state.value.receiverErrorMsg) {
-    showConfirmScreen.value = true
+    showConfirmScreen.value = true;
   }
 }
 
-function validateInputs () {
+function validateInputs() {
   state.value.amountErrorMsg = validateAmount(
     state.value.amount,
     state.value.selectedCurrency.balance.denom,
     Number(state.value.selectedCurrency.balance.amount)
-  )
+  );
 
-  state.value.receiverErrorMsg = validateAddress(
-    state.value.receiverAddress
-  )
+  state.value.receiverErrorMsg = validateAddress(state.value.receiverAddress);
 }
 
-async function onSendClick () {
-  await walletOperation(transferAmount, state.value.password)
+async function onSendClick() {
+  try{
+    await walletOperation(transferAmount, state.value.password);
+  }catch(error: Error | any){
+    step.value = CONFIRM_STEP.ERROR;
+  }
 }
 
-async function transferAmount () {
-  step.value = CONFIRM_STEP.PENDING
-  const {
-    success,
-    txHash
-  } = await transferCurrency(
+async function transferAmount() {
+  step.value = CONFIRM_STEP.PENDING;
+  const { success, txHash } = await transferCurrency(
     state.value.selectedCurrency.balance.denom,
     state.value.amount,
     state.value.receiverAddress,
     state.value.memo
-  )
+  );
 
-  step.value = success ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR
-  state.value.txHash = txHash
+  step.value = success ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
+  state.value.txHash = txHash;
 }
 </script>

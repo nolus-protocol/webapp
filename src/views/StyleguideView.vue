@@ -9,31 +9,31 @@
             <div class="block">
               <SidebarElement
                 id="assets"
-                :icon="require('@/assets/icons/assets.svg')"
-                :iconHover="require('@/assets/icons/assets_active.svg')"
+                icon="@/assets/icons/assets.svg"
+                iconHover="@/assets/icons/assets_active.svg"
                 :isActive="true"
                 href="#typography_and_colors"
                 label="T&C"
-                v-on:click="pushToDashboard"
+                @click.stop=""
               >
               </SidebarElement>
             </div>
             <div class="block">
               <SidebarElement
                 id="lease"
-                :icon="require('@/assets/icons/lease.svg')"
-                :iconHover="require('@/assets/icons/lease_active.svg')"
+                icon="@/assets/icons/lease.svg"
+                iconHover="@/assets/icons/lease_active.svg"
                 href="#buttons"
                 label="Buttons"
-                v-on:click="pushToLease"
+                @click.stop=""
               >
               </SidebarElement>
             </div>
             <div class="block">
               <SidebarElement
                 id="trade"
-                :icon="require('@/assets/icons/trade.svg')"
-                :iconHover="require('@/assets/icons/trade_active.svg')"
+                icon="@/assets/icons/trade.svg"
+                iconHover="@/assets/icons/trade_active.svg"
                 href="#form-template"
                 label="Form"
               >
@@ -42,33 +42,33 @@
             <div class="block">
               <SidebarElement
                 id="earn"
-                :icon="require('@/assets/icons/earn.svg')"
-                :iconHover="require('@/assets/icons/earn_active.svg')"
+                icon="@/assets/icons/earn.svg"
+                iconHover="@/assets/icons/earn_active.svg"
                 href="#header"
                 label="Headers"
-                v-on:click="pushToEarn"
+                @click.stop=""
               >
               </SidebarElement>
             </div>
             <div class="block">
               <SidebarElement
                 id="history"
-                :icon="require('@/assets/icons/history.svg')"
-                :iconHover="require('@/assets/icons/history_active.svg')"
+                icon="@/assets/icons/history.svg"
+                iconHover="@/assets/icons/history_active.svg"
                 href="#icons"
                 label="Icons"
-                v-on:click="pushToHistory"
+                @click.stop=""
               >
               </SidebarElement>
             </div>
             <div class="block">
               <SidebarElement
                 id="history"
-                :icon="require('@/assets/icons/history.svg')"
-                :iconHover="require('@/assets/icons/history_active.svg')"
+                icon="@/assets/icons/history.svg"
+                iconHover="@/assets/icons/history_active.svg"
                 href="#snackbar"
                 label="S&T"
-                v-on:click="pushToHistory"
+                @click.stop=""
               >
               </SidebarElement>
             </div>
@@ -76,11 +76,11 @@
             <div class="block">
               <SidebarElement
                 id="history"
-                :icon="require('@/assets/icons/history.svg')"
-                :iconHover="require('@/assets/icons/history_active.svg')"
+                icon="@/assets/icons/history.svg"
+                iconHover="@/assets/icons/history_active.svg"
                 href="#modals"
                 label="Modals"
-                v-on:click="pushToHistory"
+                @click.stop=""
               >
               </SidebarElement>
             </div>
@@ -88,11 +88,11 @@
             <div class="block">
               <SidebarElement
                 id="history"
-                :icon="require('@/assets/icons/history.svg')"
-                :iconHover="require('@/assets/icons/history_active.svg')"
+                icon="@/assets/icons/history.svg"
+                iconHover="@/assets/icons/history_active.svg"
                 href="#history"
                 label="History"
-                v-on:click="pushToHistory"
+                @click.stop=""
               >
               </SidebarElement>
             </div>
@@ -103,31 +103,31 @@
             <SidebarSocialElement
               id="twitter"
               :href="TWITTER_ACCOUNT"
-              :icon="require('@/assets/icons/twitter.svg')"
+              icon="@/assets/icons/twitter.svg"
             >
             </SidebarSocialElement>
             <SidebarSocialElement
               id="telegram"
               :href="TELEGRAM_ACCOUNT"
-              :icon="require('@/assets/icons/telegram.svg')"
+              icon="@/assets/icons/telegram.svg"
             >
             </SidebarSocialElement>
             <SidebarSocialElement
               id="discord"
               :href="DISCORD_ACCOUNT"
-              :icon="require('@/assets/icons/discord.svg')"
+              icon="@/assets/icons/discord.svg"
             >
             </SidebarSocialElement>
             <SidebarSocialElement
               id="redit"
               :href="REDDIT_ACCOUNT"
-              :icon="require('@/assets/icons/reddit.svg')"
+              icon="@/assets/icons/reddit.svg"
             >
             </SidebarSocialElement>
             <SidebarSocialElement
               id="medium"
               :href="MEDIUM_ACCOUNT"
-              :icon="require('@/assets/icons/medium.svg')"
+              icon="@/assets/icons/medium.svg"
             >
             </SidebarSocialElement>
           </div>
@@ -145,7 +145,7 @@
     <div class="lg:col-span-9 pb-8">
       <div class="grid grid-cols-10 grid-child">
         <div class="sidebar-header">
-          <SidebarHeader/>
+          <SidebarHeader />
         </div>
 
         <!-- TYPOGRAPHY & COLORS -->
@@ -414,7 +414,7 @@
             <h2 class="text nls-20 nls-font-700 mt-6">Circle on background</h2>
             <div class="inline-flex mt-[25px] p-4 rounded-lg">
               <button class="btn btn-close">
-                <span class="icon-close circle"/>
+                <span class="icon-close circle"></span>
               </button>
             </div>
 
@@ -422,10 +422,10 @@
             <h2 class="text nls-20 nls-font-700 mt-6">Header buttons</h2>
             <div class="inline-flex mt-[25px] p-4 rounded-lg">
               <button class="btn btn-header mr-4">
-                <BellIcon class="icon w-4 h-4"/>
+                <BellIcon class="icon w-4 h-4" />
               </button>
               <button class="btn btn-header">
-                <BellIcon class="icon w-4 h-4"/>
+                <BellIcon class="icon w-4 h-4" />
                 <span class="counter">8</span>
               </button>
             </div>
@@ -454,7 +454,7 @@
                 >
                   <button
                     class="btn btn-secondary btn-large-secondary mr-4"
-                    v-on:click="showSendModal = true"
+                    @click="showSendModal = true"
                   >
                     Send / Receive
                   </button>
@@ -499,12 +499,11 @@
                           id="hide-small-balances"
                           v-model="hideLowerBalances"
                           aria-describedby="hide-small-balances"
-                          checked="checked"
                           name="hide-small-balances"
                           type="checkbox"
                         />
                         <label for="hide-small-balances"
-                        >Hide small balances</label
+                          >Hide small balances</label
                         >
                       </div>
                     </div>
@@ -542,7 +541,7 @@
                         >
                           <span
                             class="relative z-10 p-2 text-xs leading-none text-white whitespace-no-wrap bg-black shadow-lg"
-                          >A top aligned tooltip.</span
+                            >A top aligned tooltip.</span
                           >
                           <div
                             class="absolute w-3 h-3 -mt-2 rotate-45 bg-black"
@@ -566,7 +565,7 @@
                         >
                           <span
                             class="relative z-10 p-2 text-xs leading-none text-white whitespace-no-wrap bg-black shadow-lg"
-                          >A top aligned tooltip.</span
+                            >A top aligned tooltip.</span
                           >
                           <div
                             class="absolute w-3 h-3 -mt-2 rotate-45 bg-black"
@@ -592,7 +591,7 @@
                   >
                     <div class="flex mb-8">
                       <img
-                        :src="require('@/assets/icons/coins/btc.svg')"
+                        src="@/assets/icons/coins/btc.svg"
                         class="inline-block m-0 mr-3"
                         height="36"
                         width="36"
@@ -604,11 +603,11 @@
                           3.000000
                           <span
                             class="inline-block text-primary nls-16 nls-font-400 nls-14"
-                          >BTC</span
+                            >BTC</span
                           >
                         </h1>
                         <span class="nls-13 nls-font-400 text-dark-grey"
-                        >$111,824.94</span
+                          >$111,824.94</span
                         >
                       </div>
                     </div>
@@ -655,7 +654,7 @@
                 >
                   <button
                     class="btn btn-secondary btn-large-secondary"
-                    v-on:click="showRepayModal = true"
+                    @click="showRepayModal = true"
                   >
                     Repay
                   </button>
@@ -684,15 +683,15 @@
                     <div
                       :class="[
                         'grid gap-6 border-b border-t border-standart px-nolus-24 py-nolus-12  items-center justify-between',
-                        this.cols
-                          ? 'grid-cols-' + this.cols
+                        cols
+                          ? 'grid-cols-' + cols
                           : 'grid-cols-3 md:grid-cols-4',
                       ]"
                     >
                       <!-- Ticker -->
                       <div class="inline-flex items-center">
                         <img
-                          :src="require('@/assets/icons/coins/btc.svg')"
+                          src="@/assets/icons/coins/btc.svg"
                           class="inline-block m-0 mr-4"
                           height="32"
                           width="32"
@@ -726,15 +725,15 @@
                     <div
                       :class="[
                         'grid gap-6 border-b border-standart px-nolus-24 py-nolus-12  items-center justify-between',
-                        this.cols
-                          ? 'grid-cols-' + this.cols
+                        cols
+                          ? 'grid-cols-' + cols
                           : 'grid-cols-3 md:grid-cols-4',
                       ]"
                     >
                       <!-- Ticker -->
                       <div class="inline-flex items-center">
                         <img
-                          :src="require('@/assets/icons/coins/btc.svg')"
+                          src="@/assets/icons/coins/btc.svg"
                           class="inline-block m-0 mr-4"
                           height="32"
                           width="32"
@@ -768,15 +767,15 @@
                     <div
                       :class="[
                         'grid gap-6 border-b border-b border-standart  px-nolus-24 py-nolus-12 items-center justify-between',
-                        this.cols
-                          ? 'grid-cols-' + this.cols
+                        cols
+                          ? 'grid-cols-' + cols
                           : 'grid-cols-3 md:grid-cols-4',
                       ]"
                     >
                       <!-- Ticker -->
                       <div class="inline-flex items-center">
                         <img
-                          :src="require('@/assets/icons/coins/btc.svg')"
+                          src="@/assets/icons/coins/btc.svg"
                           class="inline-block m-0 mr-4"
                           height="32"
                           width="32"
@@ -847,15 +846,15 @@
                     <div
                       :class="[
                         'grid gap-6 row-actions border-b flex border-t border-standart px-nolus-24 py-nolus-12 items-center justify-between',
-                        this.cols
-                          ? 'grid-cols-' + this.cols
+                        cols
+                          ? 'grid-cols-' + cols
                           : 'grid-cols-3 md:grid-cols-4',
                       ]"
                     >
                       <!-- Ticker -->
                       <div class="inline-flex items-center">
                         <img
-                          :src="require('@/assets/icons/coins/btc.svg')"
+                          src="@/assets/icons/coins/btc.svg"
                           class="inline-block m-0 mr-4"
                           height="32"
                           width="32"
@@ -902,15 +901,15 @@
                     <div
                       :class="[
                         'grid gap-6  row-actions border-b border-standart px-nolus-24 py-nolus-12  items-center justify-between',
-                        this.cols
-                          ? 'grid-cols-' + this.cols
+                        cols
+                          ? 'grid-cols-' + cols
                           : 'grid-cols-3 md:grid-cols-4',
                       ]"
                     >
                       <!-- Ticker -->
                       <div class="inline-flex items-center">
                         <img
-                          :src="require('@/assets/icons/coins/nls.svg')"
+                          src="@/assets/icons/coins/nls.svg"
                           class="inline-block m-0 mr-4"
                           height="32"
                           width="32"
@@ -957,15 +956,15 @@
                     <div
                       :class="[
                         'grid gap-6  row-actions border-b border-b border-standart px-nolus-24 py-nolus-12  items-center justify-between',
-                        this.cols
-                          ? 'grid-cols-' + this.cols
+                        cols
+                          ? 'grid-cols-' + cols
                           : 'grid-cols-3 md:grid-cols-4',
                       ]"
                     >
                       <!-- Ticker -->
                       <div class="inline-flex items-center">
                         <img
-                          :src="require('@/assets/icons/coins/atom.svg')"
+                          src="@/assets/icons/coins/atom.svg"
                           class="inline-block m-0 mr-4"
                           height="32"
                           width="32"
@@ -1036,7 +1035,6 @@
                           id="hide-small-balances"
                           v-model="hideLowerBalances"
                           aria-describedby="hide-small-balances"
-                          checked="checked"
                           name="hide-small-balances"
                           type="checkbox"
                         />
@@ -1082,7 +1080,7 @@
                         >
                           <span
                             class="relative z-10 p-2 text-xs leading-none text-white whitespace-no-wrap bg-black shadow-lg"
-                          >A top aligned tooltip.</span
+                            >A top aligned tooltip.</span
                           >
                           <div
                             class="absolute w-3 h-3 -mt-2 rotate-45 bg-black"
@@ -1106,7 +1104,7 @@
                         >
                           <span
                             class="relative z-10 p-2 text-xs leading-none text-white whitespace-no-wrap bg-black shadow-lg"
-                          >A top aligned tooltip.</span
+                            >A top aligned tooltip.</span
                           >
                           <div
                             class="absolute w-3 h-3 -mt-2 rotate-45 bg-black"
@@ -1126,15 +1124,15 @@
                   <div
                     :class="[
                       'grid gap-6 border-b border-standart px-nolus-24 py-nolus-12  items-center justify-between',
-                      this.colstest
-                        ? 'grid-cols-' + this.colstest
+                      colstest
+                        ? 'grid-cols-' + colstest
                         : 'grid-cols-3 md:grid-cols-4',
                     ]"
                   >
                     <!-- Ticker -->
                     <div class="inline-flex items-center">
                       <img
-                        :src="require('@/assets/icons/coins/btc.svg')"
+                        src="@/assets/icons/coins/btc.svg"
                         class="inline-block m-0 mr-4"
                         height="32"
                         width="32"
@@ -1164,7 +1162,7 @@
                         class="flex items-center justify-end text-primary nls-13 nls-font-400 text-right m-0"
                       >
                         <img
-                          :src="require('@/assets/icons/change-positive.svg')"
+                          src="@/assets/icons/change-positive.svg"
                           class="inline-block m-0 mr-2"
                         />
                         <span class="inline-block"> 2% </span>
@@ -1199,15 +1197,15 @@
                   <div
                     :class="[
                       'grid gap-6 border-b border-standart px-nolus-24 py-nolus-12  items-center justify-between',
-                      this.cols5
-                        ? 'grid-cols-' + this.cols
+                      cols - 5
+                        ? 'grid-cols-' + cols
                         : 'grid-cols-3 md:grid-cols-4',
                     ]"
                   >
                     <!-- Ticker -->
                     <div class="inline-flex items-center">
                       <img
-                        :src="require('@/assets/icons/coins/nls.svg')"
+                        src="@/assets/icons/coins/nls.svg"
                         class="inline-block m-0 mr-4"
                         height="32"
                         width="32"
@@ -1237,7 +1235,7 @@
                         class="flex items-center justify-end text-primary nls-13 nls-font-400 text-right m-0"
                       >
                         <img
-                          :src="require('@/assets/icons/change-negative.svg')"
+                          src="@/assets/icons/change-negative.svg"
                           class="inline-block m-0 mr-2"
                         />
                         <span class="inline-block"> -1.19% </span>
@@ -1256,7 +1254,7 @@
                       >
                         <!-- {{
           convertminimalDenomToDenom(
-            this.assetBalance,
+            assetBalance,
             assetsInfo.coinMinimalDenom,
             assetsInfo.coinDenom,
             assetsInfo.coinDecimals
@@ -1283,7 +1281,7 @@
               <!-- CONNECT -->
               <div class="col-span-12 mt-nolus-41">
                 <div class="max-w-[515px] mr-auto ml-auto">
-                  <HomeView/>
+                  <AuthView />
                 </div>
               </div>
               <!-- /CONNECT -->
@@ -1302,173 +1300,173 @@
             <div
               class="flex flex-col col-span-2 justify-center justify-start mt-10"
             >
-              <span class="icon-assets"/>
+              <span class="icon-assets"></span>
               <p>.icon-assets</p>
             </div>
             <div
               class="flex flex-col col-span-2 justify-center justify-start mt-10"
             >
-              <span class="icon-wallet"/>
+              <span class="icon-wallet"></span>
               <p>.icon-wallet</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-arrow-long-down"/>
+              <span class="icon-arrow-long-down"></span>
               <p>.icon-arrow-long-down</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-arrow-long-up"/>
+              <span class="icon-arrow-long-up"></span>
               <p>.icon-arrow-long-up</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-arrow-short-down"/>
+              <span class="icon-arrow-short-down"></span>
               <p>.icon-arrow-short-down</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-arrow-short-left"/>
+              <span class="icon-arrow-short-left"></span>
               <p>.icon-arrow-short-left</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-arrow-short-right"/>
+              <span class="icon-arrow-short-right"></span>
               <p>.icon-arrow-short-right</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-arrow-short-up"/>
+              <span class="icon-arrow-short-up"></span>
               <p>.icon-arrow-short-up</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-bell"/>
+              <span class="icon-bell"></span>
               <p>.icon-bell</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-calendar"/>
+              <span class="icon-calendar"></span>
               <p>.icon-calendar</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-close"/>
+              <span class="icon-close"></span>
               <p>.icon-close</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-collapse"/>
+              <span class="icon-collapse"></span>
               <p>.icon-collapse</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-copy"/>
+              <span class="icon-copy"></span>
               <p>.icon-copy</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-discord"/>
+              <span class="icon-discord"></span>
               <p>.icon-discord</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-google"/>
+              <span class="icon-google"></span>
               <p>.icon-google</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-keplr"/>
+              <span class="icon-keplr"></span>
               <p>.icon-keplr</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-medium"/>
+              <span class="icon-medium"></span>
               <p>.icon-medium</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-earn"/>
+              <span class="icon-earn"></span>
               <p>.icon-earn</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-nav-governance"/>
+              <span class="icon-nav-governance"></span>
               <p>.icon-nav-governance</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-nav-history"/>
+              <span class="icon-nav-history"></span>
               <p>.icon-history</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-nav-lease"/>
+              <span class="icon-nav-lease"></span>
               <p>.icon-nav-lease</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-nav-more"/>
+              <span class="icon-nav-more"></span>
               <p>.icon-nav-more</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-nav-swap"/>
+              <span class="icon-nav-swap"></span>
               <p>.icon-nav-swap</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-person"/>
+              <span class="icon-person"></span>
               <p>.icon-person</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-picker"/>
+              <span class="icon-picker"></span>
               <p>.icon-picker</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-print"/>
+              <span class="icon-print"></span>
               <p>.icon-print</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-reddit"/>
+              <span class="icon-reddit"></span>
               <p>.icon-reddit</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-scan"/>
+              <span class="icon-scan"></span>
               <p>.icon-scan</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-star"/>
+              <span class="icon-star"></span>
               <p>.icon-star</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-success"/>
+              <span class="icon-success"></span>
               <p>.icon-success</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-telegram"/>
+              <span class="icon-telegram"></span>
               <p>.icon-telegram</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-tooltip"/>
+              <span class="icon-tooltip"></span>
               <p>.icon-tooltip</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-twitter"/>
+              <span class="icon-twitter"></span>
               <p>.icon-twitter</p>
             </div>
 
             <div class="flex flex-col col-span-2 justify-center justify-start">
-              <span class="icon-recover"/>
+              <span class="icon-recover"></span>
               <p>.icon-recover</p>
             </div>
           </div>
@@ -1515,7 +1513,7 @@
             >
               <span
                 class="relative z-10 p-2 text-xs leading-none text-white whitespace-no-wrap bg-black shadow-lg"
-              >A top aligned tooltip.</span
+                >A top aligned tooltip.</span
               >
               <div
                 class="absolute w-3 h-3 -mt-2 rotate-45 bg-black"
@@ -1538,7 +1536,7 @@
               <div class="flex mt-[25px]">
                 <button
                   class="btn btn-secondary btn-medium-secondary mr-4"
-                  v-on:click="showSendModal = true"
+                  @click="showSendModal = true"
                 >
                   Send / Receive
                 </button>
@@ -1573,9 +1571,13 @@
             </div>
           </div>
         </div>
-        <LeaseMainComponent v-show="showLeaseModal" @close-modal="showLeaseModal = false"/>
-        <RepayMainComponent v-show="showRepayModal" @close-modal="showRepayModal = false"/>
-
+        <LeaseMainComponent
+          v-show="showLeaseModal"
+          @close-modal="showLeaseModal = false"
+        />
+        <RepayMainComponent
+          v-show="showRepayModal"
+          @close-modal="showRepayModal = false"
         />
         <ConfirmEmailModal
           v-show="showConfirmEmailModal"
@@ -1590,7 +1592,7 @@
               <h1 class="text nls-font-700 nls-32">History</h1>
             </div>
             <div class="col-span-12 pt-8">
-              <HistoryView/>
+              <HistoryView />
             </div>
           </div>
         </div>
@@ -1600,61 +1602,47 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import { BellIcon } from '@heroicons/vue/solid'
-import LogoLink from '@/components/LogoLink.vue'
+<script setup lang="ts">
+import { BellIcon } from '@heroicons/vue/24/solid';
+import LogoLink from '@/components/LogoLink.vue';
 
-import SidebarElement from '@/components/SidebarElement.vue'
-import ConfirmEmailModal from '@/components/modals/ConfirmEmailModal.vue'
-import HistoryView from '@/views/HistoryView.vue'
-import HomeView from '@/views/HomeView.vue'
-import SidebarHeader from '@/components/Sideheader.vue'
-import SnackBar from '@/components/templates/utils/Snackbar.vue'
-import RepayMainComponent from '@/components/RepayComponents/RepayMainComponent.vue'
-import LeaseMainComponent from '@/components/LeaseComponents/LeaseMainComponent.vue'
+import SidebarElement from '@/components/SidebarElement.vue';
+import ConfirmEmailModal from '@/components/modals/ConfirmEmailModal.vue';
+import HistoryView from '@/views/HistoryView.vue';
+import AuthView from '@/views/AuthView.vue';
+import SidebarHeader from '@/components/Sideheader.vue';
+import SnackBar from '@/components/templates/utils/Snackbar.vue';
+import RepayMainComponent from '@/components/RepayComponents/RepayMainComponent.vue';
+import LeaseMainComponent from '@/components/LeaseComponents/LeaseMainComponent.vue';
+import { onMounted, ref } from 'vue';
+import {
+  DISCORD_ACCOUNT,
+  MEDIUM_ACCOUNT,
+  REDDIT_ACCOUNT,
+  TELEGRAM_ACCOUNT,
+  TWITTER_ACCOUNT,
+} from '@/constants/webapp';
 
-export default defineComponent({
-  name: 'StyleguideView',
-  components: {
-    BellIcon,
-    LogoLink,
-    SidebarElement,
-    SnackBar,
-    ConfirmEmailModal,
-    LeaseMainComponent,
-    RepayMainComponent,
-    HistoryView,
-    HomeView,
-    SidebarHeader
+const showSwapModal = ref(false as boolean);
+const showRepayModal = ref(false as boolean);
+const showLeaseModal = ref(false as boolean);
+const showSendModal = ref(false as boolean);
+const showSupplyWithdrawModal = ref(false as boolean);
+const showConfirmEmailModal = ref(false as boolean);
+const cols = ref(0 as number);
+const colstest = ref(0 as number);
+const hideLowerBalances = ref(false);
 
-  },
-  data () {
-    return {
-      hover: false as boolean,
-      showSwapModal: false as boolean,
-      showRepayModal: false as boolean,
-      showLeaseModal: false as boolean,
-      showSendModal: false as boolean,
-      showSupplyWithdrawModal: false as boolean,
-      showPendingModal: false,
-      showConfirmEmailModal: false as boolean,
-      cols: 0 as number,
-      colstest: 0 as number
-    }
-  },
-  mounted () {
-    this.colstest = 4
-    this.showSwapModal = false
-    this.showRepayModal = false
-    this.showLeaseModal = false
-    this.showSendModal = false
-    this.showConfirmEmailModal = false
-    this.showSupplyWithdrawModal = false
-    this.cols = 2
-  }
-
-})
+onMounted(() => {
+  colstest.value = 4;
+  showSwapModal.value = false;
+  showRepayModal.value = false;
+  showLeaseModal.value = false;
+  showSendModal.value = false;
+  showConfirmEmailModal.value = false;
+  showSupplyWithdrawModal.value = false;
+  cols.value = 2;
+});
 </script>
 
 <style scoped>

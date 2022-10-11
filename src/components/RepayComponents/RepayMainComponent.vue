@@ -1,207 +1,231 @@
 <template>
-  <ConfirmComponent v-if="showConfirmScreen"
-                    :selectedCurrency="currentComponent.props.selectedCurrency"
-                    :receiverAddress="currentComponent.props.receiverAddress"
-                    :password="currentComponent.props.password"
-                    :amount="currentComponent.props.amount"
-                    :txType="TX_TYPE.REPAY"
-                    :txHash="currentComponent.props.txHash"
-                    :step="step"
-                    :onSendClick="onSendClick"
-                    :onBackClick="onConfirmBackClick"
-                    :onOkClick="onClickOkBtn"
-                    @passwordUpdate="(value: string) => currentComponent.props.password = value"
+  <ConfirmComponent
+    v-if="showConfirmScreen"
+    :selectedCurrency="currentComponent.props.selectedCurrency"
+    :receiverAddress="currentComponent.props.receiverAddress"
+    :password="currentComponent.props.password"
+    :amount="currentComponent.props.amount"
+    :txType="TX_TYPE.REPAY"
+    :txHash="currentComponent.props.txHash"
+    :step="step"
+    :onSendClick="onSendClick"
+    :onBackClick="onConfirmBackClick"
+    :onOkClick="onClickOkBtn"
+    @passwordUpdate="(value: string) => currentComponent.props.password = value"
   />
   <!-- @TODO: Refactor to use <RepayFormComponent /> directly -->
-  <component v-else :is="currentComponent.is" v-model="currentComponent.props"/>
+  <component
+    v-else
+    :is="currentComponent.is"
+    v-model="currentComponent.props"
+  />
 </template>
 
 <!-- @TODO: Transition component to Composition API -->
-<script lang="ts">
-import { defineComponent, PropType } from 'vue'
-import { StarIcon } from '@heroicons/vue/solid'
-import { Lease } from '@nolus/nolusjs/build/contracts'
-import { CurrencyUtils, NolusClient } from '@nolus/nolusjs'
-import { Dec, Int } from '@keplr-wallet/unit'
+<script setup lang="ts">
+import type { LeaseData } from '@/types';
+import type { RepayComponentProps } from '@/types/component';
+import type { Coin } from '@cosmjs/proto-signing';
+import type { AssetBalance } from '@/stores/wallet/state';
 
-import { AssetBalance } from '@/store/modules/wallet/state'
-import RepayFormComponent from '@/components/RepayComponents/RepayFormComponent.vue'
-import { useStore } from '@/store'
-import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue'
-import { LeaseData } from '@/types/LeaseData'
-import { assetsInfo } from '@/config/assetsInfo'
-import { RepayComponentProps } from '@/types/component/RepayComponentProps'
-import { CONFIRM_STEP } from '@/types/ConfirmStep'
-import { TxType } from '@/types/TxType'
-import { defaultNolusWalletFee } from '@/config/wallet'
-import { Coin } from '@cosmjs/proto-signing'
-import { getMicroAmount, walletOperation } from '@/components/utils'
+import RepayFormComponent from '@/components/RepayComponents/RepayFormComponent.vue';
+import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue';
 
-enum ScreenState {
-  MAIN = 'RepayFormComponent',
-  CONFIRM = 'ConfirmComponent'
-}
+import { inject, onMounted, ref, watch, type PropType } from 'vue';
+import { Lease } from '@nolus/nolusjs/build/contracts';
+import { CurrencyUtils, NolusClient, NolusWallet } from '@nolus/nolusjs';
+import { Dec, Int } from '@keplr-wallet/unit';
+
+import { assetsInfo } from '@/config/assetsInfo';
+import { CONFIRM_STEP } from '@/types';
+import { TxType } from '@/types';
+import { defaultNolusWalletFee } from '@/config/wallet';
+import { getMicroAmount, walletOperation } from '@/components/utils';
+import { useWalletStore } from '@/stores/wallet';
+import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
 
 interface RepayMainComponentData {
-  is: string;
+  is: typeof RepayFormComponent | typeof ConfirmComponent;
   props: RepayComponentProps;
 }
 
-export default defineComponent({
-  name: 'RepayMainComponent',
-  components: {
-    StarIcon,
-    RepayFormComponent,
-    ConfirmComponent
-  },
-  props: {
-    leaseData: {
-      type: Object as PropType<LeaseData>,
-      required: true
-    }
-  },
-  inject: {
-    onModalClose: {
-      default: () => () => {
-      }
-    },
-    getLeases: {
-      default: () => () => {
-      }
-    }
-  },
-  async mounted () {
-    const balances = useStore().state.wallet.balances
-    this.currentComponent = {
-      is: 'RepayFormComponent',
-      props: this.initProps()
-    }
-    if (balances) {
-      this.currentComponent.props.selectedCurrency = balances[0]
-    }
-  },
-  emits: [],
-  data () {
-    return {
-      step: CONFIRM_STEP.CONFIRM,
-      showConfirmScreen: false,
-      TX_TYPE: TxType,
-      currentComponent: {} as RepayMainComponentData,
-      leaseContract: {} as Lease,
-      closeModal: this.onModalClose,
-      updateLeases: this.getLeases
-    }
-  },
-  watch: {
-    '$store.state.wallet.balances' (balances: AssetBalance[]) {
-      if (balances) {
-        this.currentComponent.props.currentBalance = balances
-        if (!this.currentComponent.props.selectedCurrency) {
-          this.currentComponent.props.selectedCurrency = balances[0]
-        }
-      }
-    },
-    async 'currentComponent.props.amount' () {
-      const amount = this.currentComponent.props.amount
-      if (amount) {
-        this.currentComponent.props.amount = new Dec(amount).truncate().toString()
-        this.isAmountValid()
-      }
-    }
-  },
-  methods: {
-    initProps () {
-      return {
-        outstandingLoanAmount: this.leaseData?.leaseStatus?.opened?.amount || '',
-        currentBalance: [] as AssetBalance[],
-        selectedCurrency: {} as AssetBalance,
-        receiverAddress: this.leaseData.leaseAddress || '',
-        amount: '',
-        password: '',
-        passwordErrorMsg: '',
-        amountErrorMsg: '',
-        txHash: '',
-        onNextClick: () => this.onNextClick()
-      } as RepayComponentProps
-    },
-    async onNextClick () {
-      if (this.isAmountValid()) {
-        this.showConfirmScreen = true
-      }
-    },
-    async onSendClick () {
-      await walletOperation(this.repayLease, this.currentComponent.props.password)
-    },
-    onConfirmBackClick () {
-      this.showConfirmScreen = false
-    },
-    onClickOkBtn () {
-      this.closeModal()
-    },
-    isAmountValid (): boolean {
-      let isValid = true
-      const decimals = assetsInfo[this.currentComponent.props.selectedCurrency.balance.denom].coinDecimals
-      const amount = this.currentComponent.props.amount
-      const microAmount = CurrencyUtils.convertDenomToMinimalDenom(amount, this.currentComponent.props.selectedCurrency.balance.denom, decimals).amount.toString()
-      const walletBalance = String(
-        this.currentComponent.props.selectedCurrency?.balance?.amount || 0
-      )
+const ScreenState = {
+  MAIN: RepayFormComponent,
+  CONFIRM: ConfirmComponent,
+};
 
-      if (microAmount || microAmount !== '') {
-        this.currentComponent.props.amountErrorMsg = ''
-        const isLowerThanOrEqualsToZero = new Int(microAmount).lt(new Int(1))
-        const isGreaterThenBalance = new Int(microAmount).gt(new Int(walletBalance || '0'))
+const walletStore = useWalletStore();
+const walletRef = storeToRefs(walletStore);
+const i18n = useI18n();
 
-        if (isLowerThanOrEqualsToZero) {
-          this.currentComponent.props.amountErrorMsg = 'balance is too low'
-          isValid = false
-        }
-        if (isGreaterThenBalance) {
-          this.currentComponent.props.amountErrorMsg = 'balance is too big'
-          isValid = false
-        }
-      } else {
-        this.currentComponent.props.amountErrorMsg = 'missing amount value'
-        isValid = false
+const onModalClose = inject('onModalClose', () => {});
+const getLeases = inject('getLeases', () => {});
+
+const step = ref(CONFIRM_STEP.CONFIRM);
+const showConfirmScreen = ref(false);
+const TX_TYPE = TxType;
+const currentComponent = ref({} as RepayMainComponentData);
+const leaseContract = {} as Lease;
+const closeModal = onModalClose;
+const updateLeases = getLeases;
+
+const props = defineProps({
+  leaseData: {
+    type: Object as PropType<LeaseData>,
+  },
+});
+
+onMounted(() => {
+  const balances = walletStore.balances;
+  currentComponent.value = {
+    is: RepayFormComponent,
+    props: initProps(),
+  };
+
+  if (balances) {
+    currentComponent.value.props.selectedCurrency = balances[0];
+  }
+});
+
+const initProps = () => {
+  return {
+    outstandingLoanAmount: props.leaseData?.leaseStatus?.opened?.amount || '',
+    currentBalance: [] as AssetBalance[],
+    selectedCurrency: {} as AssetBalance,
+    receiverAddress: props.leaseData?.leaseAddress || '',
+    amount: '',
+    password: '',
+    passwordErrorMsg: '',
+    amountErrorMsg: '',
+    txHash: '',
+    onNextClick: () => onNextClick(),
+  } as RepayComponentProps;
+};
+
+const onNextClick = async () => {
+  if (isAmountValid()) {
+    showConfirmScreen.value = true;
+  }
+};
+
+const onSendClick = async () => {
+  await walletOperation(repayLease, currentComponent.value.props.password);
+};
+
+const onConfirmBackClick = () => {
+  showConfirmScreen.value = false;
+};
+
+const onClickOkBtn = () => {
+  closeModal();
+};
+
+const isAmountValid = (): boolean => {
+  let isValid = true;
+  const decimals = assetsInfo[currentComponent.value.props.selectedCurrency.balance.denom].coinDecimals;
+  const amount = currentComponent.value.props.amount;
+  const microAmount = CurrencyUtils.convertDenomToMinimalDenom(
+    amount,
+    currentComponent.value.props.selectedCurrency.balance.denom,
+    decimals
+  ).amount.toString();
+  const walletBalance = String(
+    currentComponent.value.props.selectedCurrency?.balance?.amount || 0
+  );
+
+  if (microAmount || microAmount !== '') {
+    currentComponent.value.props.amountErrorMsg = '';
+    const isLowerThanOrEqualsToZero = new Int(microAmount).lt(new Int(1));
+    const isGreaterThenBalance = new Int(microAmount).gt(
+      new Int(walletBalance || '0')
+    );
+
+    if (isLowerThanOrEqualsToZero) {
+      currentComponent.value.props.amountErrorMsg = i18n.t('message.invalid-balance-low');
+      isValid = false;
+    }
+    if (isGreaterThenBalance) {
+      currentComponent.value.props.amountErrorMsg = i18n.t('message.invalid-balance-big');
+      isValid = false;
+    }
+  } else {
+    currentComponent.value.props.amountErrorMsg = i18n.t('message.missing-amount');
+    isValid = false;
+  }
+
+  return isValid;
+};
+
+const isPasswordValid = (): boolean => {
+  let isValid = true;
+  const passwordField = currentComponent.value.props.password;
+  currentComponent.value.props.passwordErrorMsg = '';
+
+  if (!passwordField) {
+    isValid = false;
+    currentComponent.value.props.passwordErrorMsg = i18n.t('message.empty-password');
+  }
+
+  return isValid;
+};
+
+const repayLease = async () => {
+  const wallet = walletStore.wallet as NolusWallet;
+  if (wallet && isAmountValid()) {
+    step.value = CONFIRM_STEP.PENDING;
+    try {
+      const microAmount = getMicroAmount(
+        currentComponent.value.props.selectedCurrency.balance.denom,
+        currentComponent.value.props.amount
+      );
+      const funds: Coin[] = [
+        {
+          denom: microAmount.coinMinimalDenom,
+          amount: microAmount.mAmount.amount.toString(),
+        },
+      ];
+      const cosmWasmClient =
+        await NolusClient.getInstance().getCosmWasmClient();
+      const leaseClient = new Lease(
+        cosmWasmClient,
+        currentComponent.value.props.receiverAddress
+      );
+      const result = await leaseClient.repayLease(
+        wallet,
+        defaultNolusWalletFee(),
+        funds
+      );
+
+      if (result) {
+        currentComponent.value.props.txHash = result.transactionHash || '';
+        step.value = CONFIRM_STEP.SUCCESS;
       }
-
-      return isValid
-    },
-    isPasswordValid (): boolean {
-      let isValid = true
-      const passwordField = this.currentComponent.props.password
-      this.currentComponent.props.passwordErrorMsg = ''
-
-      if (!passwordField) {
-        isValid = false
-        this.currentComponent.props.passwordErrorMsg = 'Please enter password'
-      }
-
-      return isValid
-    },
-    async repayLease () {
-      const wallet = useStore().getters.getNolusWallet
-      if (wallet && this.isAmountValid()) {
-        this.step = CONFIRM_STEP.PENDING
-        try {
-          const microAmount = getMicroAmount(this.currentComponent.props.selectedCurrency.balance.denom, this.currentComponent.props.amount)
-          const funds: Coin[] = [{
-            denom: microAmount.coinMinimalDenom,
-            amount: microAmount.mAmount.amount.toString()
-          }]
-          const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
-          const leaseClient = new Lease(cosmWasmClient, this.currentComponent.props.receiverAddress)
-          const result = await leaseClient.repayLease(wallet, defaultNolusWalletFee(), funds)
-
-          if (result) {
-            this.currentComponent.props.txHash = result.transactionHash || ''
-            this.step = CONFIRM_STEP.SUCCESS
-          }
-        } catch (e) {
-          this.step = CONFIRM_STEP.ERROR
-        }
-      }
+    } catch (e) {
+      step.value = CONFIRM_STEP.ERROR;
     }
   }
-})
+};
+
+watch(walletRef.balances, (balances: AssetBalance[]) => {
+  if (balances) {
+    currentComponent.value.props.currentBalance = balances;
+    if (!currentComponent.value.props.selectedCurrency) {
+      currentComponent.value.props.selectedCurrency = balances[0];
+    }
+  }
+});
+
+watch(
+  () => currentComponent.value.props?.amount,
+  () => {
+    const amount = currentComponent.value.props.amount;
+    if (amount) {
+      currentComponent.value.props.amount = new Dec(amount)
+        .truncate()
+        .toString();
+      isAmountValid();
+    }
+  }
+);
 </script>

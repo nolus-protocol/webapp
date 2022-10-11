@@ -10,7 +10,7 @@
     align-items: center;
     justify-content: flex-start;
     width: 100%;
-    height: calc(100vh - 60px);
+    height: calc(100vh - 55px);
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
 
@@ -122,10 +122,6 @@
       padding: 16px 24px;
       background-color: $white;
 
-      button {
-        margin-bottom: 40px;
-      }
-
       @extend .shadow-box;
 
       button:not(.btn-auto) {
@@ -152,6 +148,9 @@
   }
 }
 
+.modal-send-receive-actions{
+  padding-bottom: 35px;
+}
 .no-border {
 	border: none;
 }

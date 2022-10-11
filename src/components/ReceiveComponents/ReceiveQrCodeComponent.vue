@@ -2,15 +2,11 @@
   <!-- Header -->
   <div class="flex modal-send-receive-header no-border bg-whiteGrey">
     <div class="navigation-header">
-      <button
-        class="back-arrow"
-        type="button"
-        v-on:click="modelValue.onBackClick"
-      >
-        <ArrowLeftIcon aria-hidden="true" class="h-5 w-5"/>
+      <button class="back-arrow" type="button" @click="modelValue.onBackClick">
+        <ArrowLeftIcon aria-hidden="true" class="h-5 w-5" />
       </button>
       <h1 class="nls-font-700 text-28 md:text-32 text-center text-primary">
-        Receive QR code
+        {{ $t('message.qr-address-title') }}
       </h1>
     </div>
   </div>
@@ -19,12 +15,11 @@
   <div class="modal-send-receive-input-area pt-0 bg-whiteGrey">
     <div class="block text-left break-words">
       <div class="flex items-center">
-        <span class="text-14 text-primary nls-font-500 m-0 mr-2"
-        >Nolus token</span
+        <span class="text-14 text-primary nls-font-500 m-0 mr-2">
+          {{ $t('message.nolus-token') }}
+          </span
         >
-        <div
-          class="inline-flex items-center bg-light-grey radius-rounded text-14 text-primary nls-font-400 m-0 p-1"
-        >
+        <div class="inline-flex items-center bg-light-grey radius-rounded text-14 text-primary nls-font-400 m-0 p-1">
           <img
             class="inline-block w-4 h-4 mr-1 my-0"
             src="@/assets/icons/coins/nls.svg"
@@ -38,10 +33,10 @@
         </p>
         <button
           class="btn btn-secondary btn-medium-secondary btn-icon mt-2"
-          v-on:click="modelValue.onCopyClick"
+          @click="modelValue.onCopyClick"
         >
-          <DuplicateIcon class="icon w-4 h-4"/>
-          {{ $t('message.copy') }}
+          <DocumentDuplicateIcon class="icon w-4 h-4" />
+          {{ $t("message.copy") }}
         </button>
       </div>
     </div>
@@ -61,10 +56,10 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue'
-import { ArrowLeftIcon, DuplicateIcon } from '@heroicons/vue/solid'
-import QrcodeVue from 'qrcode.vue'
+<script setup lang="ts">
+import QrcodeVue from 'qrcode.vue';
+import type { PropType } from 'vue';
+import { ArrowLeftIcon, DocumentDuplicateIcon } from '@heroicons/vue/24/solid';
 
 export interface ReceiveQrCodeComponentProps {
   walletAddress: string;
@@ -72,17 +67,10 @@ export interface ReceiveQrCodeComponentProps {
   onCopyClick: () => void;
 }
 
-export default defineComponent({
-  name: 'ReceiveQrCodeComponent',
-  components: {
-    ArrowLeftIcon,
-    DuplicateIcon,
-    QrcodeVue
+defineProps({
+  modelValue: {
+    type: Object as PropType<ReceiveQrCodeComponentProps>,
+    required: true,
   },
-  props: {
-    modelValue: {
-      type: Object as PropType<ReceiveQrCodeComponentProps>
-    }
-  }
-})
+});
 </script>
