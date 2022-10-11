@@ -151,8 +151,8 @@ const isMobile = ref(false);
 const showSwapModal = ref(false);
 const applicaton = useApplicationStore();
 
-const version = (window as any).__APP_VERSION__;
-const hash = (window as any).__COMMIT_HASH__;
+const version = __APP_VERSION__;
+const hash = __COMMIT_HASH__;
 
 onMounted(() => {
   isMobile.value = screen?.width < 576;
