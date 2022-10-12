@@ -94,6 +94,8 @@ import negative from '@/assets/icons/change-negative.svg';
 
 import { assetsInfo } from '@/config/assetsInfo';
 import { DASHBOARD_ACTIONS } from '@/types';
+import { LPP_CONSTANTS } from '@/config/contracts';
+import { EnvNetworkUtils } from '@/utils';
 
 const props = defineProps({
   assetBalance: {
@@ -129,8 +131,13 @@ const props = defineProps({
 });
 
 // @TODO: Determine conditions
-const canLease = computed(() => Number(props.assetBalance) > 0);
-const canSupply = computed(() => Number(props.assetBalance) > 0);
+const canLease = computed(() => {
+  return Number(props.assetBalance) > 0 && LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][props.denom];
+});
+
+const canSupply = computed(() => {
+  return Number(props.assetBalance) > 0 && LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][props.denom];
+});
 
 const showActionButtons = computed(() => canLease.value || canSupply.value);
 

@@ -5,12 +5,7 @@ export const oracleDenoms: string[] = ['unls', 'uusdc'];
 
 export const supportedCurrencies: string[] = [
   ChainConstants.COIN_MINIMAL_DENOM,
-  'uusdc',
+  'ibc/fj29fj0fj',
 ];
 
-export const IbcAssets: IbcCurrency[] = [
-  {
-    sourceChannelId: 'channel-115',
-    coinMinimalDenom: 'ulum',
-  },
-];
+export const IbcAssets: IbcCurrency[] = [];

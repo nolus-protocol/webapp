@@ -12,14 +12,15 @@ export function useLeases(onError: (error: any) => void) {
   const leases = ref<LeaseData[]>([]);
 
   const getLeases = async () => {
+
     try {
       const newLeases = [];
-      const cosmWasmClient =
-        await NolusClient.getInstance().getCosmWasmClient();
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const leaserClient = new Leaser(
         cosmWasmClient,
         CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance
       );
+
       const openedLeases: string[] =
         await leaserClient.getCurrentOpenLeasesByOwner(
           WalletManager.getWalletAddress()

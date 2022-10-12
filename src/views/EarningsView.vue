@@ -139,6 +139,9 @@ import { Coin, Dec } from '@keplr-wallet/unit';
 import { storeToRefs } from 'pinia';
 import { useWalletStore } from '@/stores/wallet';
 
+const wallet = useWalletStore();
+const walletRef = storeToRefs(wallet);
+
 const cols = ref(2 as number);
 const showSupplyWithdrawDialog = ref(false);
 const availableCurrencies = ref([] as string[]);
@@ -151,12 +154,15 @@ const showClaimModal = ref(false);
 const showErrorDialog = ref(false);
 const errorMessage = ref('');
 
-const wallet = useWalletStore();
-const walletRef = storeToRefs(wallet);
 
 onMounted(async () => {
   try {
     await getAllRewards();
+
+    balances.value = wallet.balances.filter((asset) => {
+      return availableCurrencies.value.includes(asset.balance.denom);
+    });
+
   } catch (e: Error | any) {
     showErrorDialog.value = true;
     errorMessage.value = e?.message;
@@ -196,6 +202,7 @@ const getAllRewards = async () => {
     LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()]
   )) {
     const lppClient = new Lpp(cosmWasmClient, value.instance);
+
     claimContractData.value.push({
       contractAddress: value.instance,
       msg: claimRewardsMsg(),
@@ -213,9 +220,9 @@ const getAllRewards = async () => {
   }
 };
 
-watch(walletRef.balances, async (balances: AssetBalance[]) => {
+watch(walletRef.balances, async (balanceValue: AssetBalance[]) => {
   if (balances) {
-    balances = balances.filter((asset) => {
+    balances.value = balanceValue.filter((asset) => {
       return availableCurrencies.value.includes(asset.balance.denom);
     });
   }

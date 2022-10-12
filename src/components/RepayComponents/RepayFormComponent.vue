@@ -15,7 +15,7 @@
       :value="modelValue.amount"
       :step="'1'"
       @input="handleAmountChange($event)"
-      :currency-options="modelValue.currentBalance"
+      :currency-options="balances"
       :option="modelValue.selectedCurrency"
       @update-currency="(event) => (modelValue.selectedCurrency = event)"
       :error-msg="modelValue.amountErrorMsg"
@@ -61,12 +61,15 @@
 <script setup lang="ts">
 import CurrencyField from '@/components/CurrencyField.vue';
 import TooltipComponent from '@/components/TooltipComponent.vue';
+import type { PropType } from 'vue';
 
 import type { RepayComponentProps } from '@/types/component/RepayComponentProps';
-import { ref, type PropType } from 'vue';
 import { Coin, Int } from '@keplr-wallet/unit';
 import { CurrencyUtils } from '@nolus/nolusjs';
 import { useOracleStore } from '@/stores/oracle';
+import { computed } from '@vue/reactivity';
+import { LPP_CONSTANTS } from '@/config/contracts';
+import { EnvNetworkUtils } from '@/utils';
 
 const oracle = useOracleStore();
 
@@ -77,7 +80,12 @@ const props = defineProps({
   },
 });
 
-const disabledInputField = ref(true);
+const balances = computed(() => {
+  const balances = props.modelValue.currentBalance;
+  const lpp_coins = LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()];
+  return balances.filter((item) => lpp_coins[item.balance.denom] );
+});
+
 const calculateBalance = (tokenAmount: string, denom: string) => {
   const prices = oracle.prices;
 
@@ -87,7 +95,7 @@ const calculateBalance = (tokenAmount: string, denom: string) => {
     return CurrencyUtils.calculateBalance(coinPrice, coinAmount, 0).toString();
   }
 
-  return "0";
+  return '0';
 };
 
 const handleAmountChange = (event: Event) => {

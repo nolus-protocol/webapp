@@ -1,27 +1,24 @@
 <template>
   <ConfirmComponent
     v-if="showConfirmScreen"
-    :selectedCurrency="currentComponent.props.selectedCurrency"
-    :receiverAddress="currentComponent.props.receiverAddress"
-    :password="currentComponent.props.password"
-    :amount="currentComponent.props.amount"
+    :selectedCurrency="state.selectedCurrency"
+    :receiverAddress="state.receiverAddress"
+    :password="state.password"
+    :amount="state.amount"
     :txType="TX_TYPE.REPAY"
-    :txHash="currentComponent.props.txHash"
+    :txHash="state.txHash"
     :step="step"
     :onSendClick="onSendClick"
     :onBackClick="onConfirmBackClick"
     :onOkClick="onClickOkBtn"
-    @passwordUpdate="(value: string) => currentComponent.props.password = value"
+    @passwordUpdate="(value: string) => state.password = value"
   />
-  <!-- @TODO: Refactor to use <RepayFormComponent /> directly -->
-  <component
+  <RepayFormComponent
     v-else
-    :is="currentComponent.is"
-    v-model="currentComponent.props"
+    v-model="state"
   />
 </template>
 
-<!-- @TODO: Transition component to Composition API -->
 <script setup lang="ts">
 import type { LeaseData } from '@/types';
 import type { RepayComponentProps } from '@/types/component';
@@ -31,7 +28,7 @@ import type { AssetBalance } from '@/stores/wallet/state';
 import RepayFormComponent from '@/components/RepayComponents/RepayFormComponent.vue';
 import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue';
 
-import { inject, onMounted, ref, watch, type PropType } from 'vue';
+import { inject, onBeforeMount, onMounted, ref, watch, type PropType } from 'vue';
 import { Lease } from '@nolus/nolusjs/build/contracts';
 import { CurrencyUtils, NolusClient, NolusWallet } from '@nolus/nolusjs';
 import { Dec, Int } from '@keplr-wallet/unit';
@@ -45,30 +42,18 @@ import { useWalletStore } from '@/stores/wallet';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 
-interface RepayMainComponentData {
-  is: typeof RepayFormComponent | typeof ConfirmComponent;
-  props: RepayComponentProps;
-}
-
-const ScreenState = {
-  MAIN: RepayFormComponent,
-  CONFIRM: ConfirmComponent,
-};
 
 const walletStore = useWalletStore();
 const walletRef = storeToRefs(walletStore);
 const i18n = useI18n();
 
 const onModalClose = inject('onModalClose', () => {});
-const getLeases = inject('getLeases', () => {});
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const showConfirmScreen = ref(false);
 const TX_TYPE = TxType;
-const currentComponent = ref({} as RepayMainComponentData);
-const leaseContract = {} as Lease;
+
 const closeModal = onModalClose;
-const updateLeases = getLeases;
 
 const props = defineProps({
   leaseData: {
@@ -76,32 +61,29 @@ const props = defineProps({
   },
 });
 
-onMounted(() => {
+const state = ref({
+  outstandingLoanAmount: props.leaseData?.leaseStatus?.opened?.amount || '',
+  currentBalance: walletStore.balances as AssetBalance[],
+  selectedCurrency: {} as AssetBalance,
+  receiverAddress: props.leaseData?.leaseAddress || '',
+  amount: '',
+  password: '',
+  passwordErrorMsg: '',
+  amountErrorMsg: '',
+  txHash: '',
+  onNextClick: () => onNextClick(),
+} as RepayComponentProps)
+
+onBeforeMount(() => {
   const balances = walletStore.balances;
-  currentComponent.value = {
-    is: RepayFormComponent,
-    props: initProps(),
-  };
 
   if (balances) {
-    currentComponent.value.props.selectedCurrency = balances[0];
+    const lease = props.leaseData;
+    const item = balances.find((item) => item.balance.denom == lease?.leaseStatus?.opened?.amount?.symbol);
+    state.value.currentBalance = balances;
+    state.value.selectedCurrency = item as AssetBalance;
   }
 });
-
-const initProps = () => {
-  return {
-    outstandingLoanAmount: props.leaseData?.leaseStatus?.opened?.amount || '',
-    currentBalance: [] as AssetBalance[],
-    selectedCurrency: {} as AssetBalance,
-    receiverAddress: props.leaseData?.leaseAddress || '',
-    amount: '',
-    password: '',
-    passwordErrorMsg: '',
-    amountErrorMsg: '',
-    txHash: '',
-    onNextClick: () => onNextClick(),
-  } as RepayComponentProps;
-};
 
 const onNextClick = async () => {
   if (isAmountValid()) {
@@ -110,7 +92,7 @@ const onNextClick = async () => {
 };
 
 const onSendClick = async () => {
-  await walletOperation(repayLease, currentComponent.value.props.password);
+  await walletOperation(repayLease, state.value.password);
 };
 
 const onConfirmBackClick = () => {
@@ -123,48 +105,35 @@ const onClickOkBtn = () => {
 
 const isAmountValid = (): boolean => {
   let isValid = true;
-  const decimals = assetsInfo[currentComponent.value.props.selectedCurrency.balance.denom].coinDecimals;
-  const amount = currentComponent.value.props.amount;
+  const decimals = assetsInfo[state.value.selectedCurrency.balance.denom].coinDecimals;
+  const amount = state.value.amount;
   const microAmount = CurrencyUtils.convertDenomToMinimalDenom(
     amount,
-    currentComponent.value.props.selectedCurrency.balance.denom,
+    state.value.selectedCurrency.balance.denom,
     decimals
   ).amount.toString();
   const walletBalance = String(
-    currentComponent.value.props.selectedCurrency?.balance?.amount || 0
+    state.value.selectedCurrency?.balance?.amount || 0
   );
 
   if (microAmount || microAmount !== '') {
-    currentComponent.value.props.amountErrorMsg = '';
+    state.value.amountErrorMsg = '';
     const isLowerThanOrEqualsToZero = new Int(microAmount).lt(new Int(1));
     const isGreaterThenBalance = new Int(microAmount).gt(
       new Int(walletBalance || '0')
     );
 
     if (isLowerThanOrEqualsToZero) {
-      currentComponent.value.props.amountErrorMsg = i18n.t('message.invalid-balance-low');
+      state.value.amountErrorMsg = i18n.t('message.invalid-balance-low');
       isValid = false;
     }
     if (isGreaterThenBalance) {
-      currentComponent.value.props.amountErrorMsg = i18n.t('message.invalid-balance-big');
+      state.value.amountErrorMsg = i18n.t('message.invalid-balance-big');
       isValid = false;
     }
   } else {
-    currentComponent.value.props.amountErrorMsg = i18n.t('message.missing-amount');
+    state.value.amountErrorMsg = i18n.t('message.missing-amount');
     isValid = false;
-  }
-
-  return isValid;
-};
-
-const isPasswordValid = (): boolean => {
-  let isValid = true;
-  const passwordField = currentComponent.value.props.password;
-  currentComponent.value.props.passwordErrorMsg = '';
-
-  if (!passwordField) {
-    isValid = false;
-    currentComponent.value.props.passwordErrorMsg = i18n.t('message.empty-password');
   }
 
   return isValid;
@@ -176,8 +145,8 @@ const repayLease = async () => {
     step.value = CONFIRM_STEP.PENDING;
     try {
       const microAmount = getMicroAmount(
-        currentComponent.value.props.selectedCurrency.balance.denom,
-        currentComponent.value.props.amount
+        state.value.selectedCurrency.balance.denom,
+        state.value.amount
       );
       const funds: Coin[] = [
         {
@@ -185,11 +154,10 @@ const repayLease = async () => {
           amount: microAmount.mAmount.amount.toString(),
         },
       ];
-      const cosmWasmClient =
-        await NolusClient.getInstance().getCosmWasmClient();
+      const cosmWasmClient =  await NolusClient.getInstance().getCosmWasmClient();
       const leaseClient = new Lease(
         cosmWasmClient,
-        currentComponent.value.props.receiverAddress
+        state.value.receiverAddress
       );
       const result = await leaseClient.repayLease(
         wallet,
@@ -198,7 +166,7 @@ const repayLease = async () => {
       );
 
       if (result) {
-        currentComponent.value.props.txHash = result.transactionHash || '';
+        state.value.txHash = result.transactionHash || '';
         step.value = CONFIRM_STEP.SUCCESS;
       }
     } catch (e) {
@@ -209,19 +177,18 @@ const repayLease = async () => {
 
 watch(walletRef.balances, (balances: AssetBalance[]) => {
   if (balances) {
-    currentComponent.value.props.currentBalance = balances;
-    if (!currentComponent.value.props.selectedCurrency) {
-      currentComponent.value.props.selectedCurrency = balances[0];
+    if (!state.value.selectedCurrency) {
+      state.value.selectedCurrency = balances[0];
     }
   }
 });
 
 watch(
-  () => currentComponent.value.props?.amount,
+  () => state.value?.amount,
   () => {
-    const amount = currentComponent.value.props.amount;
+    const amount = state.value.amount;
     if (amount) {
-      currentComponent.value.props.amount = new Dec(amount)
+      state.value.amount = new Dec(amount)
         .truncate()
         .toString();
       isAmountValid();

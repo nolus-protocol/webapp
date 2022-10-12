@@ -13,8 +13,7 @@
     :onOkClick="onClickOkBtn"
     @passwordUpdate="(value) => (state.password = value)"
   />
-  <!-- @TODO: Refactor to use <SupplyFormComponent /> directly -->
-  <component v-else :is="SupplyFormComponent" v-model="state" />
+  <SupplyFormComponent v-else v-model="state"/>
   <Modal
     v-if="errorDialog.showDialog"
     @close-modal="errorDialog.showDialog = false"
@@ -56,11 +55,14 @@ const { selectedAsset } = defineProps({
 
 const i18n = useI18n();
 const walletStore = useWalletStore();
-const balances = computed(() => walletStore.balances);
+const balances = computed(() => {
+  const balances = walletStore.balances;
+  const lpp_coins = LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()];
+  return balances.filter((item) => lpp_coins[item.balance.denom] );
+});
+
 const selectedCurrency = computed(
-  () =>
-    balances.value.find((asset) => asset.balance.denom === selectedAsset) ||
-    balances.value[0]
+  () => balances.value.find((asset) => asset.balance.denom === selectedAsset) || balances.value[0]
 );
 
 const showConfirmScreen = ref(false);
@@ -93,6 +95,7 @@ function onNextClick() {
     errorDialog.value.errorMessage = i18n.t('message.missing-receiver');
     return;
   }
+
   validateInputs();
 
   if (!state.value.amountErrorMsg) {
@@ -129,8 +132,8 @@ async function transferAmount() {
         state.value.selectedCurrency.balance.denom,
         state.value.amount
       );
-      const cosmWasmClient =
-        await NolusClient.getInstance().getCosmWasmClient();
+
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const lppClient = new Lpp(
         cosmWasmClient,
         LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][

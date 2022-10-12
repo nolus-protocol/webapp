@@ -101,7 +101,7 @@ const handleFocusOut = () => {
 
 const onUpdateNetwork = (value: PickerOption) => {
   EnvNetworkUtils.saveCurrentNetwork(value.value);
-  applicaton[ApplicationActionTypes.CHANGE_NETWORK]();
+  applicaton[ApplicationActionTypes.CHANGE_NETWORK](true);
 };
 
 const onClickDisconnect = () => {

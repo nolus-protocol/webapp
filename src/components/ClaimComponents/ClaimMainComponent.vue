@@ -69,6 +69,7 @@ function onNextClick() {}
 
 function onConfirmBackClick() {
   showConfirmScreen.value = false;
+  closeModal();
 }
 
 function onClickOkBtn() {

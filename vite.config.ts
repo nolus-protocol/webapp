@@ -11,8 +11,6 @@ const commitHash = execSync('git rev-parse --short HEAD').toString();
 
 export default defineConfig({
   define: {
-    __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
-    __COMMIT_HASH__: JSON.stringify(commitHash),
     'process.env': {}
   },
   plugins: [

@@ -1,5 +1,5 @@
 <template>
-  <div :class="showMobileNav ? 'mobile-nav' : false" class="sidebar-container">
+  <div :class="showMobileNav ? 'mobile-nav' : false" class="sidebar-container" ref="sidebar">
     <div class="top">
       <LogoLink link="/" />
       <div
@@ -118,15 +118,14 @@
       </div>
 
       <p class="nls-font-500 text-12 text-secondary text-upper pl-2">
-        {{ applicaton.network.networkName }} # 4,987,868
+        {{ applicaton.network.networkName }} # <template v-if="block > 0">{{ block }}</template>
       </p>
 
-      <p class="nls-font-400 text-12 text-dark-grey pl-2">v{{ version }}-{{ hash }}</p>
+      <p class="nls-font-400 text-12 text-dark-grey pl-2">v{{version}}</p>
 
       <div class="block mt-3 text-12 nls-font-400 sub-nav-service"></div>
     </div>
-    <!-- TODO: when is opened hide all elements -->
-    <!-- <div class="backdrop"></div> -->
+
   </div>
 
   <Modal v-if="showSwapModal" @close-modal="showSwapModal = false">
@@ -141,22 +140,86 @@ import SidebarElement from '@/components/SidebarElement.vue';
 import Modal from '@/components/modals/templates/Modal.vue';
 import SwapDialog from '@/components/modals/SwapDialog.vue';
 
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import { RouteNames } from '@/router/RouterNames';
 import { DISCORD_ACCOUNT, REDDIT_ACCOUNT, TELEGRAM_ACCOUNT, TWITTER_ACCOUNT } from '@/constants/webapp';
 import { useApplicationStore } from '@/stores/application';
+import { NolusClient } from '@nolus/nolusjs';
+import { NETWORKS, UPDATE_BLOCK_INTERVAL } from '@/config/env';
+import { storeToRefs } from 'pinia';
+import { EnvNetworkUtils } from '@/utils';
 
 const showMobileNav = ref(false);
 const isMobile = ref(false);
 const showSwapModal = ref(false);
+const block = ref(0);
+const version = ref('');
 const applicaton = useApplicationStore();
+const applicationRef = storeToRefs(applicaton);
+const sidebar = ref(null as HTMLDivElement | null);
 
-const version = __APP_VERSION__;
-const hash = __COMMIT_HASH__;
+let blockInterval: NodeJS.Timeout | undefined;
 
 onMounted(() => {
+
   isMobile.value = screen?.width < 576;
+
+  if(isMobile.value){
+    document.addEventListener('click', onClick);
+  }
+
+  setBlock();
+  setVersion();
+  blockInterval = setInterval(() => {
+    setBlock();
+    blockInterval 
+  }, UPDATE_BLOCK_INTERVAL);
+  
 });
+
+onUnmounted(() => {
+  clearInterval(blockInterval);
+  if(isMobile.value){
+    document.removeEventListener('click', onClick);
+  }
+});
+
+watch(() => applicationRef.network.value?.networkAddresses, () => {
+  setBlock();
+  setVersion();
+});
+
+const onClick = (event: MouseEvent) => {
+  if(isMobile.value){
+      const isClickedOutside = sidebar.value?.contains(
+        event.target as Node
+      );
+      if (!isClickedOutside) {
+        showMobileNav.value = false;
+      }
+  }
+
+};
+
+async function setBlock(){
+  try{
+    const nolusClient = NolusClient.getInstance();
+    block.value = await nolusClient.getBlockHeight();
+  }catch(error: Error | any){
+    console.log(error)
+  }
+}
+
+async function setVersion(){
+  try{
+    const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].tendermintRpc;
+    const data = await fetch(`${url}/abci_info`);
+    const res = await data.json();
+    version.value = res?.result?.response.version;
+  }catch(error: Error | any){
+    console.log(error)
+  }
+}
 
 function openSwapModal() {
   showSwapModal.value = true;
@@ -164,6 +227,9 @@ function openSwapModal() {
 
 function pushTo(route: RouteNames) {
   router.push({ name: route });
+  if(showMobileNav.value){
+    showMobileNav.value = false;
+  }
 }
 
 function openExternal(url: string, target: string) {

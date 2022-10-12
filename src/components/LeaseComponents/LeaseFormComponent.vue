@@ -5,7 +5,7 @@
       <div class="block">
         <CurrencyField
           id="amount-investment"
-          :currency-options="modelValue.currentBalance"
+          :currency-options="balances"
           :error-msg="modelValue.downPaymentErrorMsg"
           :is-error="modelValue.downPaymentErrorMsg !== ''"
           :option="modelValue.selectedDownPaymentCurrency"
@@ -41,9 +41,7 @@
         v-if="modelValue.selectedCurrency?.balance?.denom"
         class="mb-3 mt-[25px] flex justify-end align-center"
       >
-        1
-        {{ formatAssetInfo(modelValue.selectedCurrency?.balance?.denom) }} price
-        in USD:
+        1 {{ formatAssetInfo(modelValue.selectedCurrency?.balance?.denom) }} price in USD:
         <span class="inline-block nls-font-700 ml-5">{{ pricePerToken }}</span>
       </p>
     </div>
@@ -102,15 +100,24 @@ import { CurrencyUtils } from '@nolus/nolusjs';
 import { Coin } from '@keplr-wallet/unit';
 import { useOracleStore } from '@/stores/oracle';
 import { computed } from 'vue';
+import { LPP_CONSTANTS } from '@/config/contracts';
+import { EnvNetworkUtils } from '@/utils';
 
 const oracle = useOracleStore();
 
 const handleDownPaymentChange = (event: Event) => {
   props.modelValue.downPayment = (event.target as HTMLInputElement).value;
 };
+
 const handleAmountChange = (event: Event) => {
   props.modelValue.amount = (event.target as HTMLInputElement).value;
 };
+
+const balances = computed(() => {
+  const balances = props.modelValue.currentBalance;
+  const lpp_coins = LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()];
+  return balances.filter((item) => lpp_coins[item.balance.denom] );
+});
 
 const props = defineProps({
   modelValue: {

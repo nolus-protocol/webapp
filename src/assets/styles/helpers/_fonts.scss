@@ -29,7 +29,7 @@
   url("./fonts/Garet-Regular.woff") format("woff");
   font-weight: normal;
   font-style: normal;
-  font-display: swap;
+  font-display: auto;
 }
 
 @font-face {
@@ -38,7 +38,7 @@
   url("./fonts/Garet-Medium.woff") format("woff");
   font-weight: 500;
   font-style: normal;
-  font-display: swap;
+  font-display: auto;
 }
 
 @font-face {
@@ -51,7 +51,7 @@
   url("./fonts/nolus.svg?26006009#nolus") format("svg");
   font-weight: normal;
   font-style: normal;
-  font-display: swap;
+  font-display: auto;
 }
 
 /* Chrome hack: SVG is rendered more smooth in Windozze. 100% magic, uncomment if you need it. */

@@ -13,8 +13,7 @@
     :onOkClick="onClickOkBtn"
     @passwordUpdate="(value) => (state.password = value)"
   />
-  <!-- @TODO: Refactor to use <WithdrawFormComponent /> directly -->
-  <component v-else :is="WithdrawFormComponent" v-model="state" />
+  <WithdrawFormComponent v-else v-model="state" />
   <Modal
     v-if="errorDialog.showDialog"
     @close-modal="errorDialog.showDialog = false"
@@ -47,6 +46,7 @@ import { getMicroAmount, validateAmount, walletOperation } from '@/components/ut
 import { defaultNolusWalletFee } from '@/config/wallet';
 import { useWalletStore } from '@/stores/wallet';
 import { computed, inject, onMounted, ref, watch } from 'vue';
+import { WalletManager } from '@/wallet/WalletManager';
 
 const { selectedAsset } = defineProps({
   selectedAsset: {
@@ -58,11 +58,14 @@ const { selectedAsset } = defineProps({
 const walletStore = useWalletStore();
 
 // @TODO: Fetch supplied balances instead of wallet balances
-const balances = computed(() => walletStore.balances);
+const balances = computed(() => {
+  const balances = walletStore.balances;
+  const lpp_coins = LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()];
+  return balances.filter((item) => lpp_coins[item.balance.denom] );
+});
+
 const selectedCurrency = computed(
-  () =>
-    balances.value.find((asset) => asset.balance.denom === selectedAsset) ||
-    balances.value[0]
+  () => balances.value.find((asset) => asset.balance.denom === selectedAsset) || balances.value[0]
 );
 
 const showConfirmScreen = ref(false);
@@ -92,7 +95,7 @@ const errorDialog = ref({
 
 const fetchDepositBalance = async () => {
   try {
-    const walletAddress = walletStore.wallet?.address;
+    const walletAddress = walletStore.wallet?.address ?? WalletManager.getWalletAddress();
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
     const lppClient = new Lpp(cosmWasmClient, state.value.receiverAddress);
     const depositBalance = await lppClient.getLenderDeposit(
@@ -108,7 +111,7 @@ const fetchDepositBalance = async () => {
   } catch (e: Error | any) {
     errorDialog.value.showDialog = true;
     errorDialog.value.errorMessage = e.message;
-    errorDialog.value.tryAgain = await fetchDepositBalance;
+    errorDialog.value.tryAgain = fetchDepositBalance;
   }
 };
 
@@ -187,8 +190,7 @@ async function transferAmount() {
         state.value.selectedCurrency.balance.denom,
         state.value.amount
       );
-      const cosmWasmClient =
-        await NolusClient.getInstance().getCosmWasmClient();
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const lppClient = new Lpp(
         cosmWasmClient,
         LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][
@@ -197,7 +199,7 @@ async function transferAmount() {
       );
       const result = await lppClient.burnDeposit(
         wallet,
-        state.value.amount,
+        microAmount.mAmount.amount.toString(),
         defaultNolusWalletFee(),
         [
           {

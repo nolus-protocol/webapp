@@ -14,7 +14,7 @@
             :value="value"
             class="nls-font-700 text-18 text-primary"
             type="number"
-            @input="$emit('update:value', handleInputChange($event))"
+            @input="$emit('update:modelValue', handleInputChange($event))"
           />
           <span class="block text-14 nls-font-400 text-light-blue">
             {{ calculateInputBalance() }}
@@ -49,7 +49,7 @@ import { CurrencyUtils } from '@nolus/nolusjs';
 import { assetsInfo } from '@/config/assetsInfo';
 import { useOracleStore } from '@/stores/oracle';
 
-const emit = defineEmits(['update-currency', 'update:value']);
+const emit = defineEmits(['update-currency', 'update:modelValue']);
 const oracle = useOracleStore();
 
 const props = defineProps({

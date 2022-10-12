@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { RouterView } from "vue-router";
 
 import Modal from '@/components/modals/templates/Modal.vue';
@@ -26,10 +26,17 @@ const errorMessage = ref('');
 const application = useApplicationStore();
 const wallet = useWalletStore();
 const oracle = useOracleStore();
+let balanceInterval: NodeJS.Timeout | undefined;
+let pricesInterval: NodeJS.Timeout | undefined;
 
 onMounted(async () => {
   await loadNetwork();
 });
+
+onUnmounted(() => {
+  clearInterval(balanceInterval);
+  clearInterval(pricesInterval);
+})
 
 const onClickTryAgain = async () => {
   await loadNetwork();
@@ -38,9 +45,13 @@ const onClickTryAgain = async () => {
 const loadNetwork = async () => {
   try {
     application[ApplicationActionTypes.CHANGE_NETWORK]();
-    await wallet[WalletActionTypes.UPDATE_BALANCES]();
+    //TODO: get prices
+    Promise.all([
+      wallet[WalletActionTypes.UPDATE_BALANCES](),
+      // oracle[OracleActionTypes.GET_PRICES]()
+    ]);
     checkBalances();
-    //TODO: get prices checkPrices();
+    // checkPrices();
   } catch (error: Error | any) {
     showErrorDialog.value = true;
     errorMessage.value = error?.message;
@@ -48,7 +59,7 @@ const loadNetwork = async () => {
 };
 
 const checkBalances = async () => {
-  setInterval(async () => {
+  balanceInterval =setInterval(async () => {
     try {
       if (WalletManager.getWalletAddress() !== '') {
         await wallet[WalletActionTypes.UPDATE_BALANCES]();
@@ -61,7 +72,7 @@ const checkBalances = async () => {
 };
 
 const checkPrices = async () => {
-  setInterval(async () => {
+   pricesInterval = setInterval(async () => {
     try {
       await oracle[OracleActionTypes.GET_PRICES]();
     } catch (error: Error | any) {
