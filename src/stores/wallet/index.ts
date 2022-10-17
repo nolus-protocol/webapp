@@ -104,12 +104,12 @@ const useWalletStore = defineStore('wallet', {
             payload.isBluetooth || isConnectedViaLedgerBluetooth
               ? await BluetoothTransport.create()
               : await TransportWebUSB.create();
-
+          //TODO: remove any
           ledgerWallet = await NolusWalletFactory.nolusLedgerWallet(
             new LedgerSigner(transport, {
               prefix: ChainConstants.BECH32_PREFIX_ACC_ADDR,
               hdPaths: paths,
-            })
+            }) as any
           );
 
           await ledgerWallet.useAccount();
