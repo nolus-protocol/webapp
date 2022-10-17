@@ -46,7 +46,7 @@ const loadNetwork = async () => {
   try {
     application[ApplicationActionTypes.CHANGE_NETWORK]();
     //TODO: get prices
-    Promise.all([
+    await Promise.all([
       wallet[WalletActionTypes.UPDATE_BALANCES](),
       // oracle[OracleActionTypes.GET_PRICES]()
     ]);

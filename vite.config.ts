@@ -1,13 +1,10 @@
 import { fileURLToPath, URL } from 'node:url';
 import { resolve, dirname } from 'node:path';
 import { defineConfig, splitVendorChunkPlugin } from 'vite';
-import { execSync } from 'node:child_process';
 
 import vue from '@vitejs/plugin-vue';
 import vueI18n from '@intlify/vite-plugin-vue-i18n';
 import inject from '@rollup/plugin-inject';
-
-const commitHash = execSync('git rev-parse --short HEAD').toString();
 
 export default defineConfig({
   define: {

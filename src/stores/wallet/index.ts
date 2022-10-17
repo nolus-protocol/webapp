@@ -94,6 +94,7 @@ const useWalletStore = defineStore('wallet', {
       const to = setTimeout(() => (breakLoop = true), 20000);
       const accountNumbers = [0];
       const paths = accountNumbers.map(makeCosmoshubPath);
+
       while (!ledgerWallet && !breakLoop) {
         try {
           const isConnectedViaLedgerBluetooth =
