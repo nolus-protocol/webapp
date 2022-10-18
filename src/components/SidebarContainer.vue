@@ -9,7 +9,7 @@
               ? 'z-index: 5;box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15); transform: translateY(0)'
               : ''
           "
-          class="lg:hidden "
+          class="lg:hidden nls-border mb-[-1px]"
         >
           <div class="nls-nav-link flex flex-start nls-md-flex-row mt-[22px]">
             <SidebarElement

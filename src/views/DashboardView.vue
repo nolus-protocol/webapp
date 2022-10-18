@@ -25,9 +25,7 @@
         <p class="nls-font-700 text-32 lg:text-40 text-primary">
           $123,423.00
         </p>
-
-
-      <div class="separator-line flex py-4 lg:hidden"></div>
+        <div class="separator-line flex py-4 lg:hidden"></div>
       </div>
 
 

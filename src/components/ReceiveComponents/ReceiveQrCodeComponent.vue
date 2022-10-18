@@ -7,9 +7,9 @@
         type="button"
         v-on:click="modelValue.onBackClick"
       >
-        <ArrowLeftIcon aria-hidden="true" class="h-5 w-5"/>
+        <ArrowLeftIcon aria-hidden="true" class="h-5 w-5  dark-text"/>
       </button>
-      <h1 class="nls-font-700 text-28 md:text-32 text-center text-primary">
+      <h1 class="nls-font-700 text-28 md:text-32 text-center dark-text">
         Receive QR code
       </h1>
     </div>
@@ -47,13 +47,11 @@
     </div>
 
     <div class="flex justify-center mt-7">
-      <div
-        class="inline-block w-[210px] h-[210px] p-4 background border border-standart radius-rounded"
-      >
+      <div class="inline-block w-[210px] h-[210px] p-4 background border border-standart radius-rounded">
         <qrcode-vue
           :size="180"
           :value="modelValue.walletAddress"
-          foreground="#072d63"
+          foreground="#142237"
           render-as="svg"
         />
       </div>

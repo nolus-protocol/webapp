@@ -38,7 +38,7 @@
           "
           class="inline-block m-0 mr-2"
         />
-        <span class="inline-block nls-font-400 text-12">
+        <span class="inline-block nls-font-400 text-12 dark-text-light-blue">
           {{ change }}%
         </span>
       </div>

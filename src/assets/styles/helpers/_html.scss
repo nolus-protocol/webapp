@@ -481,6 +481,10 @@ input[type="checkbox" i] {
 	color: $textMain !important;
 }
 
+.dark-text-light-blue  {
+	color: $dark !important;
+}
+
 .bg-light-grey {
 	background-color: $lightGrey;
 }
@@ -554,5 +558,8 @@ input[type="checkbox" i] {
 	.icon-ledger::before,
 	.icon-recover::before{
 		color: $lightGrey;
+	}
+	.dark-text-light-blue  {
+		color: $lightBlue !important;
 	}
 }

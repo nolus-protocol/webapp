@@ -39,10 +39,8 @@
     </div>
 
     <div class="flex justify-end mt-5 mr-5">
-      <p
-        v-if="modelValue.selectedCurrency?.balance?.denom"
-        class="mb-3 mt-[25px] flex justify-end align-center"
-      >
+      <p v-if="modelValue.selectedCurrency?.balance?.denom"
+        class="mb-3 mt-[25px] flex justify-end align-center dark-text nls-font-500 text-14">
         1
         {{ formatAssetInfo(modelValue.selectedCurrency?.balance?.denom) }} price
         in USD:
@@ -50,7 +48,7 @@
       </p>
     </div>
     <div class="flex justify-end">
-      <div class="grow-3 text-right nls-font-500 text-14">
+      <div class="grow-3 text-right nls-font-500 text-14 dark-text">
         <p class="mb-3 mt-[25px] mr-5">
           {{ $t('message.leased-amount') }}
         </p>
@@ -60,7 +58,7 @@
         </p>
       </div>
       <div class="text-right nls-font-700 text-14">
-        <p class="mb-3 mt-[25px] flex justify-end align-center">
+        <p class="mb-3 mt-[25px] flex justify-end align-center dark-text">
           {{ calculateLeaseAmount }}
           <TooltipComponent content="Content goes here"/>
         </p>
@@ -70,7 +68,7 @@
           <TooltipComponent content="Content goes here"/>
           </span>
         </p>
-        <p class="mb-3 mt-[25px] flex justify-end align-center">
+        <p class="mb-3 mt-[25px] flex justify-end align-center dark-text">
           $18,585.00
           <TooltipComponent content="Content goes here"/>
         </p>
