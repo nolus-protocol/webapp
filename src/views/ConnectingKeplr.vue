@@ -4,7 +4,7 @@
   >
     <h1 class="text-to-big-number text-primary text-center relative">
       <button
-        class="align-baseline absolute left-0 top-2/4 -mt-3 px-4"
+        class="align-baseline absolute left-0 top-2/4 -mt-3 px-4 md:px-10"
         type="button"
         @click="clickBack"
       >
