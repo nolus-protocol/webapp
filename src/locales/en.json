@@ -140,6 +140,7 @@
     "your-wallet": "Your Wallet",
     "precious": "My precious",
     "disconnect": "Disconnect",
-    "block": "Block"
+    "block": "Block",
+    "ledger-support-error": "Browser does not support connection with external devices."
   }
 }

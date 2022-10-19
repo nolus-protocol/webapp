@@ -80,11 +80,13 @@ import { ref } from 'vue';
 import { ArrowLeftIcon } from '@heroicons/vue/24/solid';
 import { WalletActionTypes, useWalletStore } from '@/stores/wallet';
 import { RouteNames } from '@/router/RouterNames';
+import { useI18n } from 'vue-i18n';
 
 const showError = ref(false);
 const isBluetoothConnection = ref(false);
 const errorMessage = ref('');
 const wallet = useWalletStore();
+const i18n = useI18n();
 
 const clickBack = () => {
   router.replace({ name: RouteNames.AUTH });
@@ -92,6 +94,11 @@ const clickBack = () => {
 
 const connectViaLedger = async () => {
   try {
+    if((navigator as any)?.usb == null){
+      showError.value = true;
+      errorMessage.value = i18n.t('message.ledger-support-error');
+      return false;
+    }
     await wallet[WalletActionTypes.CONNECT_LEDGER]({
       isFromAuth: true,
       isBluetooth: isBluetoothConnection.value,
