@@ -390,6 +390,10 @@ input[type="checkbox" i] {
 	}
 }
 
+.hidden {
+	display: none !important;
+}
+
 [v-cloak] {
 	background-color: red;
 }

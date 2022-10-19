@@ -12,13 +12,13 @@
 
       <div class="right md:mt-0 inline-flex justify-end">
         <button
-          class="btn btn-secondary btn-large-secondary mr-4"
+          class="btn btn-primary btn-large-primary"
           @click="openModal(DASHBOARD_ACTIONS.SEND)"
         >
           {{ $t("message.send-receive") }}
         </button>
 
-        <button class="btn btn-primary btn-large-primary">
+        <button class="btn btn-secondary btn-large-secondary hidden ml-4">
           {{ $t("message.buy-tokens") }}
         </button>
       </div>
