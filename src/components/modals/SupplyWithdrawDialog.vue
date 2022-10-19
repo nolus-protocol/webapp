@@ -1,5 +1,5 @@
 <template>
-  <DialogHeader :headerList="['Supply', 'Withdraw']">
+  <DialogHeader :headerList="['Supply', 'Withdraw']" :routes="['supply', 'withdraw']">
     <template #tab-1>
       <SupplyMainComponent :selectedAsset="selectedAsset" />
     </template>

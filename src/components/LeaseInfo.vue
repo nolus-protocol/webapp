@@ -127,7 +127,7 @@
     </div>
   </div>
 
-  <Modal v-if="showRepayModal" @close-modal="showRepayModal = false">
+  <Modal v-if="showRepayModal" @close-modal="showRepayModal = false" route="repay">
     <RepayDialog :lease-info="leaseInfo" />
   </Modal>
 </template>

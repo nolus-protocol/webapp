@@ -35,14 +35,19 @@
 
 <script lang="ts" setup>
 import { ref, provide, computed, type PropType } from 'vue';
+import router from '@/router';
 
 const activeTab = ref(1);
 const showHeader = ref(true);
 
-const { headerList } = defineProps({
+const { headerList, routes } = defineProps({
   headerList: {
     type: Array as PropType<string[]>,
     required: true,
+  },
+  routes: {
+    type: Array as PropType<string[]>,
+    default: [],
   },
 });
 
@@ -52,6 +57,18 @@ const isTabLayout = computed(() => {
 
 function switchTab(index: number) {
   activeTab.value = index;
+  const route = routes[index-1] ;
+  if(route != null){
+    setRoute(route);
+  }
+}
+
+function setRoute(route: string){
+  const path = router.currentRoute.value.path;
+  router.replace({
+    path,
+    hash: `#${route}`
+  })
 }
 
 function setShowDialogHeader(shouldShow: boolean) {

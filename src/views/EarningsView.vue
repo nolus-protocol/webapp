@@ -100,16 +100,17 @@
   <Modal
     v-if="showSupplyWithdrawDialog"
     @close-modal="showSupplyWithdrawDialog = false"
+    route="supply"
   >
     <SupplyWithdrawDialog :selectedAsset="selectedAsset" />
   </Modal>
-  <Modal v-if="showClaimModal" @close-modal="showClaimModal = false">
+  <Modal v-if="showClaimModal" @close-modal="showClaimModal = false" route="claim">
     <ClaimDialog
       :contract-data="claimContractData"
       :reward="totalNlsRewards()"
     />
   </Modal>
-  <Modal v-if="showErrorDialog" @close-modal="showErrorDialog = false">
+  <Modal v-if="showErrorDialog" @close-modal="showErrorDialog = false" route="alert">
     <ErrorDialog
       :title="$t('message.error-connecting')"
       :message="errorMessage"

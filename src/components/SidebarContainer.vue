@@ -128,7 +128,7 @@
 
   </div>
 
-  <Modal v-if="showSwapModal" @close-modal="showSwapModal = false">
+  <Modal v-if="showSwapModal" @close-modal="showSwapModal = false" route="swap">
     <SwapDialog />
   </Modal>
 </template>

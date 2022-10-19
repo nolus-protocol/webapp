@@ -29,7 +29,7 @@
     />
   </div>
 
-  <Modal v-if="showLeaseModal" @close-modal="showLeaseModal = false">
+  <Modal v-if="showLeaseModal" @close-modal="showLeaseModal = false" route="create">
     <LeaseDialog />
   </Modal>
   <Modal

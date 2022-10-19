@@ -27,7 +27,7 @@
       </div>
     </div>
   </div>
-  <Modal v-if="showErrorDialog" @close-modal="showErrorDialog = false">
+  <Modal v-if="showErrorDialog" @close-modal="showErrorDialog = false" route="alert">
     <ErrorDialog
       :title="$t('error-connecting')"
       :message="errorMessage"

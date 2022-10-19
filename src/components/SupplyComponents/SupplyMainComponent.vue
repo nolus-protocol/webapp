@@ -17,6 +17,7 @@
   <Modal
     v-if="errorDialog.showDialog"
     @close-modal="errorDialog.showDialog = false"
+    route="alert"
   >
     <ErrorDialog
       title="Error connecting"

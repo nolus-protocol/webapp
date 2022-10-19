@@ -166,7 +166,7 @@
     </div>
   </div>
 
-  <Modal v-if="state.showModal" @close-modal="state.showModal = false">
+  <Modal v-if="state.showModal" @close-modal="state.showModal = false" :route="state.modalAction">
     <component
       :is="modalOptions[state.modalAction]"
       :selectedAsset="state.selectedAsset"

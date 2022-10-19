@@ -62,7 +62,7 @@
       {{ $t('message.connect') }}
     </button>
   </div>
-  <Modal v-if="showError" @close-modal="showError = false">
+  <Modal v-if="showError" @close-modal="showError = false; goToAuth()" route="alert">
     <ErrorDialog
       :title="$t('message.error-connecting')"
       :message="errorMessage"
@@ -107,5 +107,9 @@ const clickTryAgain = async () => {
   errorMessage.value = '';
   await connectViaLedger();
 };
+
+const goToAuth = () => {
+  router.replace({ name: RouteNames.AUTH });
+}
 
 </script>

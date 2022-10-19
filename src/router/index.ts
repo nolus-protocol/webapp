@@ -12,6 +12,12 @@ const router = createRouter({
       path: '/',
       component: MainLayoutView,
       meta: { requiresAuth: true },
+      beforeEnter: (to, from, next) => {
+        if (to.hash.length > 0) {
+          return next(to.path);
+        }
+        next();
+      },
       children: [
         {
           path: '',
@@ -38,6 +44,12 @@ const router = createRouter({
     {
       path: '/auth',
       component: () => import('@/views/AuthView.vue'),
+      beforeEnter: (to, from, next) => {
+        if (to.hash.length > 0) {
+          return next(to.path);
+        }
+        next();
+      },
       children: [
         {
           path: '',
@@ -97,6 +109,7 @@ router.beforeEach((to) => {
       path: '/auth',
     };
   }
+
 });
 
 export default router;

@@ -14,14 +14,8 @@
       <div class="separator-line p-6 relative z-[2]"></div>
 
       <div class="px-4 md:px-10">
-        <TextFieldButtons 
-          class="relative z-[2]" 
-          name="mnemonicSeed" 
-          id="mnemonicSeed" 
-          :label="$t('message.seed')"
-          :value="mnemonic" 
-          :on-click-copy="onClickCopy" 
-          :on-click-print="onClickPrint">
+        <TextFieldButtons class="relative z-[2]" name="mnemonicSeed" id="mnemonicSeed" :label="$t('message.seed')"
+          :value="mnemonic" :on-click-copy="onClickCopy" :on-click-print="onClickPrint">
         </TextFieldButtons>
 
         <div class="flex rounded p-4 warning-box mt-8 md:mt-6 relative z-[2]">
@@ -69,23 +63,14 @@
 
       <div class="separator-line p-6"></div>
 
-      <SelectorTextField 
-        ref="selector" 
-        class="px-4 md:px-10" 
-        id="confirm-mnemonic" 
-        :on-click-confirm="confirmMnemonic"
-        :values="mnemonicWords" 
-        :label="$t('message.confirm-mnemonic')">
+      <SelectorTextField ref="selector" class="px-4 md:px-10" id="confirm-mnemonic" :on-click-confirm="confirmMnemonic"
+        :values="mnemonicWords" :label="$t('message.confirm-mnemonic')">
       </SelectorTextField>
     </div>
   </div>
 
-  <Modal v-if="showErrorModal" @close-modal="showErrorModal = false">
-    <ErrorDialog 
-      :title="$t('message.error-connecting')" 
-      :message="errorMessage" 
-      :try-button="clickTryAgain" 
-    />
+  <Modal v-if="showErrorModal" @close-modal="showErrorModal = false" route="alert">
+    <ErrorDialog :title="$t('message.error-connecting')" :message="errorMessage" :try-button="clickTryAgain" />
   </Modal>
 </template>
 
@@ -138,13 +123,15 @@ const onClickCopy = () => {
 };
 
 const onClickPrint = () => {
-  const printWindow = window.open();
-  printWindow?.document.open('text/plain');
-  printWindow?.document.write(mnemonic.value);
+  const printWindow = window.open(
+    document.location.origin,
+    "_blank",
+    "resizable,scrollbars"
+  );
+  printWindow?.document.write(`<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Nolus wallet</title></head><body>${mnemonic.value}</body>`);
   printWindow?.document.close();
   printWindow?.focus();
   printWindow?.print();
-  printWindow?.close();
 };
 
 const clickBack = () => {

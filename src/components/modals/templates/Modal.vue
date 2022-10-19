@@ -15,6 +15,13 @@
 import { onMounted, onUnmounted, provide } from 'vue';
 import router from '@/router';
 
+const props = defineProps({
+  route: {
+    type: String,
+    default: 'dialog'
+  }
+})
+
 const emit = defineEmits(['close-modal']);
 
 const onModalClose = () => {
@@ -43,7 +50,7 @@ onMounted(() => {
   const path = router.currentRoute.value.path;
   router.push({
     path,
-    hash: '#dialog',
+    hash: `#${props.route.toLowerCase()}`,
   });
   document.addEventListener('keyup', escapeClicked);
   window.addEventListener('popstate', backButtonClicked);

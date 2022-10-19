@@ -46,7 +46,7 @@
       {{ $t('message.connecting') }}
     </button>
   </div>
-  <Modal v-if="showError" @close-modal="showError = false">
+  <Modal v-if="showError" @close-modal="showError = false; goToAuth()" route="alert">
     <ErrorDialog
       :title="$t('message.error-connecting')"
       :message="errorMessage"
@@ -91,4 +91,8 @@ const clickTryAgain = async () => {
 onMounted(async () => {
   await connectKeplr();
 });
+
+const goToAuth = () => {
+  router.replace({ name: RouteNames.AUTH });
+}
 </script>
