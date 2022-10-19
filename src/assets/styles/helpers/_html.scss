@@ -203,6 +203,10 @@ input[type="checkbox" i] {
     &::before {
       margin: 0;
     }
+
+	&:hover {
+		color: $lightElectric;
+	}
   }
 
   &:hover {
