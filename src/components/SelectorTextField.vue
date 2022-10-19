@@ -26,6 +26,9 @@
         {{ word }}
       </button>
     </div>
+
+    <!-- TODO: add class disabled to the button using js -->
+
     <div class="mt-6 hidden md:block">
       <button
         :disabled="confirmMnemonicPhrase.length !== 24"
@@ -37,11 +40,11 @@
     </div>
 
     <div
-      class="bg-white h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"
+      class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"
     ></div>
 
     <div
-      class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto bg-white absolute inset-x-0 bottom-0 md:relative shadow-modal z-[100]"
+      class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal z-[100]"
     >
       <button
         :disabled="confirmMnemonicPhrase.length !== 24"

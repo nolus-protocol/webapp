@@ -3,9 +3,10 @@
     <div class="block input-field">
       <label
         :for="id"
-        class="block text-14 nls-font-500 mb-[5px] text-primary"
-        >{{ label }}</label
+        class="block text-14 nls-font-500 mb-[5px] text-primary dark-text"
       >
+      {{ label }}
+      </label>
       <div class="field-container text-field-buttons">
         <textarea
           :id="id"

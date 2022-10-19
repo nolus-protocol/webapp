@@ -1,7 +1,7 @@
 <template>
   <div
     v-cloak
-    class="lg:container w-full lg:grid lg:grid-cols-12 mx-auto grid-parent md-nls-px-25 sm-nls-0 body"
+    class="lg:container w-full lg:grid lg:grid-cols-12 mx-auto grid-parent md-nls-px-25 sm-nls-0 body background-dark"
   >
     <div class="lg:col-span-3">
       <SidebarContainer />

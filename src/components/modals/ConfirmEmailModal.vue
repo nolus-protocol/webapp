@@ -1,10 +1,10 @@
 <template>
   <div
-    class="fixed flex items-center top-0 bottom-0 left-0 right-0 justify-center bg-white/70 z-[99]"
+    class="fixed flex items-center top-0 bottom-0 left-0 right-0 justify-center background/70 z-[99]"
     @click="$emit('close-modal')"
   >
     <div
-      class="text-center bg-white w-full max-w-[552px] px-10 py-10 radius-modal mx-auto my-10 shadow-modal"
+      class="text-center background w-full max-w-[552px] px-10 py-10 radius-modal mx-auto my-10 shadow-modal"
       @click.stop
     >
       <div class="flex justify-end">

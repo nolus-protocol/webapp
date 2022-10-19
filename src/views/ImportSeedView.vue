@@ -1,6 +1,6 @@
 <template>
   <div
-    class="block rounded-2xl bg-white md:pb-10 pt-6 pb-[200px] -mt-8 md:mt-auto md:border border-standart shadow-box w-screen md:w-[516px]">
+    class="block rounded-2xl background md:pb-10 pt-6 pb-[200px] -mt-8 md:mt-auto md:border nls-border shadow-box w-screen md:w-[516px]">
     <h1 class="text-to-big-number text-primary text-center relative z-[2]">
       <button class="align-baseline absolute left-0 top-2/4 -mt-3 px-4 md:px-10" type="button" @click="clickBack">
         <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
@@ -29,10 +29,10 @@
       </div>
     </div>
 
-    <div class="bg-white h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
+    <div class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
 
     <div
-      class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto bg-white absolute inset-x-0 bottom-0 md:relative shadow-modal">
+      class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal">
       <button class="btn btn-primary btn-large-primary w-80" @click="clickImport">
         {{ $t("message.import") }}
       </button>

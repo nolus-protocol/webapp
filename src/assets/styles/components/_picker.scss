@@ -4,10 +4,9 @@
       list-style-type: square;
       padding: 12px 16px;
       background: $white;
-      border: 1px solid $borderColor !important;
+      border: 1px solid $borderColor;
       box-shadow: 0px 8px 48px $shadowModalColor !important;
       border-radius: $lightRounded !important;
-
       li {
         border-bottom: none !important;
         font-family: "Garet-Medium";
@@ -123,6 +122,10 @@
       height: 42px;
       transition: 0.3s;
       min-height: 36px;
+
+      @media (prefers-color-scheme: dark) {
+        border: solid 1px $dark-line;
+      }
 
       &[aria-expanded="true"] {
         border-color: $lightElectric;

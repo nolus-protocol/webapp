@@ -25,7 +25,7 @@
     </div>
     <!-- Wallet -->
     <div
-      class="flex balance-box items-center justify-start bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6"
+      class="flex balance-box items-center justify-start background mt-6 border-standart shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6"
     >
       <div class="left inline-block w-1/3">
         <p class="nls-font-500 text-16 text-primary">
@@ -34,7 +34,6 @@
         <p class="nls-font-700 text-32 lg:text-40 text-primary">
           {{ totalBalance }}
         </p>
-
         <div class="separator-line flex py-4 lg:hidden"></div>
       </div>
 
@@ -44,7 +43,7 @@
             {{ $t("message.available-assets") }}
           </p>
 
-          <p class="nls-font-500 text-20">
+          <p class="nls-font-500 text-20 dark-text">
             {{ availableAssets }}
           </p>
         </div>
@@ -54,7 +53,7 @@
             {{ $t("message.active-leases") }}
           </p>
 
-          <p class="nls-font-500 text-20">
+          <p class="nls-font-500 text-20 dark-text">
             {{ activeLeases }}
           </p>
         </div>
@@ -64,8 +63,7 @@
           <p class="nls-font-400 text-12 text-dark-grey">
             {{ $t("message.supplied-and-staked") }}
           </p>
-
-          <p class="nls-font-500 text-20">
+          <p class="nls-font-500 text-20 dark-text">
             {{ suppliedAndStaked }}
           </p>
         </div>
@@ -77,7 +75,7 @@
           {{ $t("message.supplied-and-staked") }}
         </p>
 
-        <p class="nls-font-500 text-20">
+        <p class="nls-font-500 text-20 dark-text">
           {{ suppliedAndStaked }}
         </p>
       </div>
@@ -85,7 +83,7 @@
 
     <!-- Existing Assets -->
     <div
-      class="block bg-white mt-6 border-standart shadow-box radius-medium radius-0-sm"
+      class="block background mt-6 border-standart shadow-box radius-medium radius-0-sm"
     >
       <!-- Top -->
       <div class="flex flex-wrap items-baseline justify-between px-4 pt-6">
@@ -94,7 +92,7 @@
           <div class="loader__element"></div>
         </div>
         <div class="left w-1/2">
-          <p class="text-16 nls-font-500">
+          <p class="text-16 nls-font-500 dark-text">
             {{ $t("message.available-assets") }}
           </p>
         </div>
@@ -108,7 +106,7 @@
                 name="show-small-balances"
                 type="checkbox"
               />
-              <label for="show-small-balances">{{
+              <label class="dark-text" for="show-small-balances">{{
                 $t("message.show-small-balances")
               }}</label>
             </div>

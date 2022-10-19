@@ -1,17 +1,15 @@
 <template>
   <div :class="showMobileNav ? 'mobile-nav' : false" class="sidebar-container" ref="sidebar">
-    <div class="top">
+    <div class="top pl-8">
       <LogoLink link="/" />
-      <div
-        class="sidebar-elements-container nls-nav-more flex flex-col mt-[55px]"
-      >
+      <div class="sidebar-elements-container nls-nav-more flex flex-col mt-[55px]">
         <div
           :style="
-            showMobileNav
-              ? 'z-index: 5; background-color: #fff;box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15); transform: translateY(-130px)'
-              : ''
+          showMobileNav
+            ? 'z-index: 5;box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15); transform: translateY(-130px)'
+            : ''
           "
-          class="lg:hidden"
+          class="lg:hidden nls-border mb-[-1px]"
         >
           <div class="nls-nav-link flex flex-start nls-md-flex-row mt-[22px]">
             <SidebarElement
@@ -33,6 +31,7 @@
           </div>
         </div>
 
+        <!-- DESKTOP -->
         <div class="md:flex md:justify-between sidebar-elements-block lg:block">
           <div class="block nls-nav-link icon">
             <SidebarElement
@@ -93,7 +92,7 @@
         </div>
       </div>
     </div>
-    <div class="lg:bot lg:pb-8">
+    <div class="lg:bot lg:pb-8 pl-8">
       <div class="flex items-center sub-nav-social">
         <SidebarElement
           id="twitter"
@@ -117,7 +116,7 @@
         />
       </div>
 
-      <p class="nls-font-500 text-12 text-secondary text-upper pl-2">
+      <p class="nls-font-500 text-12 text-dark-grey text-upper pl-2">
         {{ applicaton.network.networkName }} # <template v-if="block > 0">{{ block }}</template>
       </p>
 
@@ -125,7 +124,6 @@
 
       <div class="block mt-3 text-12 nls-font-400 sub-nav-service"></div>
     </div>
-
   </div>
 
   <Modal v-if="showSwapModal" @close-modal="showSwapModal = false" route="swap">

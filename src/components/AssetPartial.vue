@@ -23,7 +23,7 @@
         <p class="text-dark-grey text-12 nls-font-400 text-left capitalize m-0">
           <img
             :src="changeDirection ? positive : negative"
-            class="inline-block m-0"
+            class="inline-block m-0 mr-2"
           />
           {{ formatPrice(price) }}
         </p>
@@ -35,6 +35,7 @@
       <p class="text-primary nls-font-500 text-14 text-right m-0">
         {{ formatLeaseUpTo() }}
       </p>
+
     </div>
 
     <!-- Earnings -->

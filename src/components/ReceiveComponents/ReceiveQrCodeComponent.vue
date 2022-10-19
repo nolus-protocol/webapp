@@ -1,18 +1,18 @@
 <template>
   <!-- Header -->
-  <div class="flex modal-send-receive-header no-border bg-whiteGrey">
+  <div class="flex modal-send-receive-header no-border backgroundGrey">
     <div class="navigation-header">
       <button class="back-arrow" type="button" @click="modelValue.onBackClick">
         <ArrowLeftIcon aria-hidden="true" class="h-5 w-5" />
       </button>
-      <h1 class="nls-font-700 text-28 md:text-32 text-center text-primary">
+      <h1 class="nls-font-700 text-28 md:text-32 text-center dark-text">
         {{ $t('message.qr-address-title') }}
       </h1>
     </div>
   </div>
 
   <!-- Input Area -->
-  <div class="modal-send-receive-input-area pt-0 bg-whiteGrey">
+  <div class="modal-send-receive-input-area pt-0 backgroundGrey">
     <div class="block text-left break-words">
       <div class="flex items-center">
         <span class="text-14 text-primary nls-font-500 m-0 mr-2">
@@ -42,13 +42,11 @@
     </div>
 
     <div class="flex justify-center mt-7">
-      <div
-        class="inline-block w-[210px] h-[210px] p-4 bg-white border border-standart radius-rounded"
-      >
+      <div class="inline-block w-[210px] h-[210px] p-4 background border border-standart radius-rounded">
         <qrcode-vue
           :size="180"
           :value="modelValue.walletAddress"
-          foreground="#072d63"
+          foreground="#142237"
           render-as="svg"
         />
       </div>

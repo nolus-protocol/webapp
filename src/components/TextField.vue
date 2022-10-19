@@ -3,16 +3,18 @@
     <div class="block input-field">
       <label
         :for="id"
-        class="block text-14 nls-font-500 mb-[5px] text-primary"
-        >{{ label }}</label
+        class="block text-14 nls-font-500 mb-[5px] dark-text"
       >
+      {{ label }}
+      </label>
       <textarea
         :id="id"
         :class="isError === true ? 'error' : ''"
         :name="name"
         :value="value"
         @input="$emit('update:value', handleInputChange($event))"
-      ></textarea>
+      >
+      </textarea>
       <span :class="['msg error ', errorMsg.length > 0 ? '' : 'hidden']">
         {{ errorMsg.length > 0 ? errorMsg : "" }}
       </span>

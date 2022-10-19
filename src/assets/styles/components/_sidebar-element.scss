@@ -113,9 +113,17 @@
   }
 
   &:hover {
-    background-color: $borderColor;
-
     .icon {
+      color: $dark !important;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    color: $white;
+    &:hover {
+      .icon {
+        color: $lightBlue !important;
+      }
       color: $lightBlue !important;
     }
   }
@@ -143,19 +151,23 @@
     .icon {
       color: $brand-accent;
     }
-
-    @media (min-width: $lg) {
-      background-color: $borderColor;
-    }
   }
 
   &:active {
-    color: $orange !important;
-
-    @media (min-width: $lg) {
-      background-color: $background-scale-darker !important;
+    color: $orange !important;      
+    .icon {
+      color: $orange !important;
     }
   }
+
+  @media (prefers-color-scheme: dark) {
+    &:active {
+      .icon {
+        color: $orange !important;
+      }
+    }
+  }
+
 
   span {
     display: block;
@@ -213,6 +225,11 @@
   background-color: $white;
   border-bottom: 1px solid $borderColor;
   z-index: 1;
+  
+  @media (prefers-color-scheme: dark) {
+    background-color: $dark-background;
+    border-bottom: 1px solid $dark-line;
+  }
 
   .btn-header {
     [class^="icon-"]:before {
@@ -285,6 +302,9 @@
 			transform: translateY(150%);
 			transition: 0.4s ease-in-out;
 			background-color: $white;
+      @media (prefers-color-scheme: dark) {
+			  background-color: $dark-background;
+      }
 			width: 100vw;
 			border-top-left-radius: 12px;
 			border-top-right-radius: 12px;
@@ -337,6 +357,9 @@
     width: 100vw;
     left: 0;
     background: $lightGrey;
+    @media (prefers-color-scheme: dark) {
+      background: $dark-gray;
+    }
   }
 
   .active {
