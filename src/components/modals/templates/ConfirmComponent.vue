@@ -131,7 +131,7 @@ const isStepPending = computed(() => props.step === CONFIRM_STEP.PENDING);
 const isStepSuccess = computed(() => props.step === CONFIRM_STEP.SUCCESS);
 const isStepError = computed(() => props.step === CONFIRM_STEP.ERROR);
 const btnAction = computed(() => {
-  if(props.password.length == 0){
+  if(props.password.length == 0 && isMnemonicWallet()){
     errorMessage.value = i18n.t('message.empty-password');
     return;
   }

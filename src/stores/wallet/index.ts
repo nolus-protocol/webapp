@@ -32,7 +32,8 @@ const useWalletStore = defineStore('wallet', {
   actions: {
     async [WalletActionTypes.CONNECT_KEPLR](
       payload: { isFromAuth?: boolean } = {}
-    ) {
+    ) {      console.log('enter')
+
       await WalletUtils.getKeplr();
       const keplrWindow = window as KeplrWindow;
 
@@ -89,7 +90,6 @@ const useWalletStore = defineStore('wallet', {
     ) {
       let breakLoop = false;
       let ledgerWallet = null;
-
       // 20 sec timeout to let the user unlock his hardware
       const to = setTimeout(() => (breakLoop = true), 20000);
       const accountNumbers = [0];
@@ -104,8 +104,7 @@ const useWalletStore = defineStore('wallet', {
             payload.isBluetooth || isConnectedViaLedgerBluetooth
               ? await BluetoothTransport.create()
               : await TransportWebUSB.create();
-
-          //TODO remove any
+          //TODO: remove any
           ledgerWallet = await NolusWalletFactory.nolusLedgerWallet(
             new LedgerSigner(transport, {
               prefix: ChainConstants.BECH32_PREFIX_ACC_ADDR,
