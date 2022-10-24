@@ -395,7 +395,11 @@ input[type="checkbox" i] {
 }
 
 .hidden {
-	display: none !important;
+	display: none;
+}
+
+.md\:flex {
+	display: flex !important;
 }
 
 [v-cloak] {
