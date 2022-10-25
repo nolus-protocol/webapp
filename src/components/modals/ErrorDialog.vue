@@ -1,6 +1,6 @@
 <template>
   <div
-    class="block rounded-2xl bg-white md:pb-10 pt-6 pb-[210px] mt-[52px] md:border border-standart shadow-box w-screen md:w-[516px]"
+    class="block rounded-2xl background md:pb-10 pt-6 pb-[210px] mt-[52px] md:border border-standart shadow-box w-screen md:w-[516px]"
     @click.stop
   >
     <div class="flex flex-col items-center">
@@ -36,11 +36,11 @@
         >
           {{ $t("message.cancel") }}
         </button>
-        <div class="bg-white h-[600px] absolute inset-x-0 z-[0] md:hidden"></div>
+        <div class="background h-[600px] absolute inset-x-0 z-[0] md:hidden"></div>
       </div>
 
-      <div class="bg-white h-[430px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
-      <div class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto bg-white absolute inset-x-0 bottom-0 md:relative shadow-modal">
+      <div class="background h-[430px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
+      <div class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal">
         <button
           class="btn btn-primary btn-large-primary mr-4 w-40"
           @click="
