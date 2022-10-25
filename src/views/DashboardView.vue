@@ -1,9 +1,7 @@
 <template>
   <div class="col-span-12 lg:mr-[166px]">
     <!-- Header -->
-    <div
-      class="table-header flex mt-[25px] flex-wrap items-center justify-between lg:px-0"
-    >
+    <div class="table-header flex mt-[25px] flex-wrap items-center justify-between lg:px-0">
       <div class="left">
         <h1 class="text-20 nls-font-700 text-primary m-0 pb-3 lg:pb-0">
           {{ $t("message.assets") }}
@@ -12,13 +10,13 @@
 
       <div class="right md:mt-0 inline-flex justify-end">
         <button
-          class="btn btn-secondary btn-large-secondary mr-4"
+          class="btn btn-primary btn-large-primary"
           @click="openModal(DASHBOARD_ACTIONS.SEND)"
         >
           {{ $t("message.send-receive") }}
         </button>
 
-        <button class="btn btn-primary btn-large-primary">
+        <button class="btn btn-secondary btn-large-secondary hidden ml-4">
           {{ $t("message.buy-tokens") }}
         </button>
       </div>

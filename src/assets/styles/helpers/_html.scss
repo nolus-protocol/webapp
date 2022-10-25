@@ -206,6 +206,10 @@ input[type="checkbox" i] {
     &::before {
       margin: 0;
     }
+
+	&:hover {
+		color: $lightElectric;
+	}
   }
 
   &:hover {
@@ -242,8 +246,6 @@ input[type="checkbox" i] {
 		--background: $white;
 		--disabled: $lighestGrey;
 		--disabled-inner: $lightGrey;
-		-webkit-appearance: none;
-		-moz-appearance: none;
 		height: 21px !important;
 		outline: none;
 		display: inline-block;
@@ -393,6 +395,15 @@ input[type="checkbox" i] {
 			box-shadow: none;
 		}
 	}
+}
+
+
+.hidden {
+	display: none;
+}
+
+[v-cloak] {
+	background-color: red;
 }
 
 @media (min-width: $md) {
