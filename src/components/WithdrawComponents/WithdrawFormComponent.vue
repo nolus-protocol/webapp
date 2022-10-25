@@ -3,8 +3,8 @@
     <div
       class="flex py-3 px-4 bg-light-grey radius-light text-left text-14 nls-font-400 text-primary"
     >
-      <span class="text-14 nls-font-500"> Available to withdraw:</span>
-      <a class="text-secondary text-14 nls-font-700 underline ml-2" href="#">
+      <span class="text-14 nls-font-500"> {{ $t('message.available-withdraw') }}:</span>
+      <a class="text-secondary text-14 nls-font-700 underline ml-2 cursor-pointer" @click.stop="setAmount()">
         {{ formatCurrentBalance(modelValue.currentDepositBalance) }}
       </a>
     </div>
@@ -69,4 +69,15 @@ function formatCurrentBalance(selectedCurrency: AssetBalance) {
 const handleAmountChange = (event: Event) => {
   props.modelValue.amount = (event.target as HTMLInputElement).value;
 };
+
+const setAmount = () => {
+  const asset = assetsInfo[props.modelValue.currentDepositBalance.balance.denom];
+  const data = CurrencyUtils.convertMinimalDenomToDenom(
+    props.modelValue.currentDepositBalance.balance.amount.toString(),
+    props.modelValue.currentDepositBalance.balance.denom,
+      asset.coinDenom,
+      asset.coinDecimals
+    )
+  props.modelValue.amount = data.hideDenom(true).locale(false).toString();
+}
 </script>

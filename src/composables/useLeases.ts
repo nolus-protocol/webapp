@@ -21,10 +21,10 @@ export function useLeases(onError: (error: any) => void) {
         CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance
       );
 
-      const openedLeases: string[] =
-        await leaserClient.getCurrentOpenLeasesByOwner(
-          WalletManager.getWalletAddress()
-        );
+      const openedLeases: string[] = await leaserClient.getCurrentOpenLeasesByOwner(
+        WalletManager.getWalletAddress()
+      );
+      
       for (const leaseAddress of openedLeases) {
         const leaseClient = new Lease(cosmWasmClient, leaseAddress);
         const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus();

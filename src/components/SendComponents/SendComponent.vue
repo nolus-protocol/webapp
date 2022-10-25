@@ -3,7 +3,7 @@
   <div class="modal-send-receive-input-area">
     <div class="block py-3 px-4 modal-balance radius-light text-left text-14 nls-font-400 text-primary">
       {{$t('message.balance') }}:
-      <a class="text-secondary nls-font-700 underline ml-2" href="#">
+      <a class="text-secondary nls-font-700 underline ml-2 cursor-pointer" @click.stop="setAmount">
         {{ formatCurrentBalance(modelValue.selectedCurrency) }}
       </a>
     </div>
@@ -47,13 +47,6 @@
       <div class="block mt-[25px]">
         <InputField id="memo" :value="modelValue.memo" label="Memo (optional)" name="memo" type="text"
           @input="(event) => (modelValue.memo = event.target.value)"></InputField>
-
-        <div class="block mt-2">
-          <button class="btn btn-secondary btn-medium-secondary btn-icon ml-auto mr-0 flex items-center">
-            <StarIcon class="inline-block icon w-4 h-4 mr-1" />
-            {{ $t('message.save-contact') }}
-          </button>
-        </div>
       </div>
     </div>
   </div>
@@ -106,5 +99,16 @@ const formatCurrentBalance = (selectedCurrency: AssetBalance) => {
 const handleAmountChange = (event: Event) => {
   props.modelValue.amount = (event.target as HTMLInputElement).value;
 };
+
+const setAmount = () => {
+  const asset = assetsInfo[props.modelValue.selectedCurrency.balance.denom];
+  const data = CurrencyUtils.convertMinimalDenomToDenom(
+    props.modelValue.selectedCurrency.balance.amount.toString(),
+    props.modelValue.selectedCurrency.balance.denom,
+      asset.coinDenom,
+      asset.coinDecimals
+    )
+  props.modelValue.amount = data.hideDenom(true).locale(false).toString();
+}
 
 </script>

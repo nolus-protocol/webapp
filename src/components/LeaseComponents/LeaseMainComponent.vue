@@ -22,7 +22,7 @@ import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue
 import type { LeaseComponentProps } from '@/types/component/LeaseComponentProps';
 import type { AssetBalance } from '@/stores/wallet/state';
 
-import { inject, onMounted, ref, watch } from 'vue';
+import { inject, ref, watch, onMounted } from 'vue';
 import { Leaser, type LeaseApply } from '@nolus/nolusjs/build/contracts';
 import { CurrencyUtils, NolusClient, NolusWallet } from '@nolus/nolusjs';
 import { Coin, Dec, Int } from '@keplr-wallet/unit';
@@ -68,6 +68,7 @@ const state = ref({
   txHash: '',
   leaseApply: null,
 } as LeaseComponentProps);
+const getLease = inject('getLeases', () => {});
 
 onMounted(() => {
   const balances = walletStore.balances;
@@ -80,7 +81,6 @@ onMounted(() => {
 watch(walletRef.balances, async (balances: AssetBalance[]) => {
   if (balances) {
     state.value.currentBalance = balances;
-
     if (!state.value.selectedCurrency) {
       state.value.selectedCurrency = balances[0];
     }
@@ -148,19 +148,6 @@ const onConfirmBackClick = () => {
 
 const onClickOkBtn = () => {
   onModalClose();
-};
-
-const isPasswordValid = (): boolean => {
-  let isValid = true;
-  const passwordField = state.value.password;
-  state.value.passwordErrorMsg = '';
-
-  if (!passwordField) {
-    isValid = false;
-    state.value.passwordErrorMsg = i18n.t('message.empty-password');
-  }
-
-  return isValid;
 };
 
 const isDownPaymentAmountValid = (): boolean => {
@@ -234,7 +221,7 @@ const populateBorrow = (leaseApplyData: LeaseApply) => {
   }
   state.value.amount = leaseApplyData.borrow.amount;
   state.value.selectedCurrency = getCurrentBalanceByDenom(
-    leaseApplyData.borrow.symbol
+    (leaseApplyData.borrow as any).symbol
   );
 };
 
@@ -263,8 +250,7 @@ const openLease = async () => {
           amount: microAmount.mAmount.amount.toString(),
         },
       ];
-      const cosmWasmClient =
-        await NolusClient.getInstance().getCosmWasmClient();
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const leaserClient = new Leaser(
         cosmWasmClient,
         CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance
@@ -279,6 +265,7 @@ const openLease = async () => {
         state.value.txHash = result.transactionHash || '';
         step.value = CONFIRM_STEP.SUCCESS;
       }
+      getLease();
     } catch (e) {
       step.value = CONFIRM_STEP.ERROR;
     }

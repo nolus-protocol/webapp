@@ -104,6 +104,7 @@ import { LPP_CONSTANTS } from '@/config/contracts';
 import { EnvNetworkUtils } from '@/utils';
 
 const oracle = useOracleStore();
+const disabledInputField = ref(true);
 
 const handleDownPaymentChange = (event: Event) => {
   props.modelValue.downPayment = (event.target as HTMLInputElement).value;
@@ -125,15 +126,6 @@ const props = defineProps({
     required: true,
   },
 });
-
-watch(
-  () => props.modelValue.leaseApply,
-  () => {
-    disabledInputField.value = !props.modelValue?.leaseApply;
-  }
-);
-
-const disabledInputField = ref(true);
 
 const getPrice = (currencyDenom: string) => {
   const prices = oracle.prices;
@@ -168,6 +160,7 @@ const pricePerToken = computed(() => {
 const calculateLeaseAmount = computed(() => {
   if (props.modelValue?.amount) {
     const leaseCurrency = props.modelValue?.selectedCurrency;
+
     if (leaseCurrency) {
       return CurrencyUtils.calculateBalance(
         getPrice(leaseCurrency.balance.denom).amount,
@@ -182,4 +175,11 @@ const calculateLeaseAmount = computed(() => {
 
   return '0';
 });
+
+watch(
+  () => props.modelValue.leaseApply,
+  () => {
+    disabledInputField.value = !props.modelValue?.leaseApply;
+  }
+);
 </script>

@@ -141,6 +141,10 @@
     "precious": "My precious",
     "disconnect": "Disconnect",
     "block": "Block",
-    "ledger-support-error": "Browser does not support connection with external devices."
+    "ledger-support-error": "Browser does not support connection with external devices.",
+    "vested": "Vested",
+    "release": "Release Schedule",
+    "available-withdraw": "Available to withdraw",
+    "chart-tooltip-price": "Price"
   }
 }

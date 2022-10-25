@@ -17,6 +17,16 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   },
 };
 
+export const DEFAULT_CURRENCY = {
+  currency: 'usd',
+  symbol: '$',
+  locale: 'en-US',
+  minimumFractionDigits: 2
+}
+
 export const UPDATE_BLOCK_INTERVAL = 5 * 1000; // 5000 ms
 export const UPDATE_BALANCE_INTERVAL = 5 * 1000; // 5000 ms
 export const UPDATE_PRICES_INTERVAL = 10 * 1000; // 10000 ms
+
+export const DEFAULT_LEASE_UP_PERCENT = '150.00';
+export const LEASE_UP_COEFICIENT = 1.5;

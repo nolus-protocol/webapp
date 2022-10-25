@@ -19,6 +19,9 @@ import { WalletManager } from '@/wallet/WalletManager';
 import { RouteNames } from '@/router/RouterNames';
 import { IbcAssets, supportedCurrencies } from '@/config/currencies';
 import { LedgerSigner } from '@cosmjs/ledger-amino';
+import { decodeTxRaw, Registry, type DecodedTxRaw, } from '@cosmjs/proto-signing';
+import { defaultRegistryTypes as defaultStargateTypes } from "@cosmjs/stargate";
+import { NETWORKS } from '@/config/env';
 
 const useWalletStore = defineStore('wallet', {
   state: () => {
@@ -32,7 +35,7 @@ const useWalletStore = defineStore('wallet', {
   actions: {
     async [WalletActionTypes.CONNECT_KEPLR](
       payload: { isFromAuth?: boolean } = {}
-    ) {      console.log('enter')
+    ) {
 
       await WalletUtils.getKeplr();
       const keplrWindow = window as KeplrWindow;
@@ -90,8 +93,8 @@ const useWalletStore = defineStore('wallet', {
     ) {
       let breakLoop = false;
       let ledgerWallet = null;
-      // 20 sec timeout to let the user unlock his hardware
-      const to = setTimeout(() => (breakLoop = true), 20000);
+      // 30 sec timeout to let the user unlock his hardware
+      const to = setTimeout(() => (breakLoop = true), 30000);
       const accountNumbers = [0];
       const paths = accountNumbers.map(makeCosmoshubPath);
 
@@ -148,11 +151,11 @@ const useWalletStore = defineStore('wallet', {
         privateKey,
         ChainConstants.BECH32_PREFIX_ACC_ADDR
       );
-      const nolusWalletOfflineSigner =
-        await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
+      const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
       await nolusWalletOfflineSigner.useAccount();
       this.wallet = nolusWalletOfflineSigner;
       this.privateKey = toHex(privateKey);
+
     },
     [WalletActionTypes.STORE_PRIVATE_KEY](password: string) {
       const privateKey = this.privateKey ?? '';
@@ -239,6 +242,38 @@ const useWalletStore = defineStore('wallet', {
         WalletManager.getWalletAddress() || ''
       );
       return data;
+    },
+    async [WalletActionTypes.LOAD_VESTED_TOKENS](): Promise<{ delayed: boolean, endTime: string, toAddress: string, amount: { amount: string, denom: string } }[]> {
+      const client = await NolusClient.getInstance().getTendermintClient();
+
+      const data = await client.txSearch({ query: `message.action='/cosmos.vesting.v1beta1.MsgCreateVestingAccount' AND transfer.sender='${WalletManager.getWalletAddress()}'` });
+      const registry = new Registry(defaultStargateTypes);
+
+      let items = data.txs.map(async (tx) => {
+        const decodedTx: DecodedTxRaw = decodeTxRaw(tx.tx);
+        for (const message of decodedTx.body.messages) {
+          const decodedMsg = registry.decode(message);
+          const date = new Date(decodedMsg.endTime.toNumber() * 1000);
+          const block = await client.block(tx.height);
+          const blockDate = block.block.header.time;
+
+          const from = `${blockDate.toLocaleDateString('en-US', { day: '2-digit' })}/${blockDate.toLocaleDateString('en-US', { month: '2-digit' })}/${blockDate.toLocaleDateString('en-US', { year: 'numeric' })}`;
+          const to = `${date.toLocaleDateString('en-US', { day: '2-digit' })}/${date.toLocaleDateString('en-US', { month: '2-digit' })}/${date.toLocaleDateString('en-US', { year: 'numeric' })}`;
+
+          decodedMsg.endTime = `${from} - ${to}`;
+          decodedMsg.amount = decodedMsg.amount[0];
+
+          return decodedMsg;
+        }
+
+      });
+      return Promise.all(items);
+    },
+    async [WalletActionTypes.LOAD_STAKED_TOKENS]() {
+      const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
+      const data = await fetch(`${url}/cosmos/staking/v1beta1/delegations/${WalletManager.getWalletAddress()}`);
+      const json = await data.json();
+      return json;
     },
   },
 });

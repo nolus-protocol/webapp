@@ -7,7 +7,6 @@
       cols ? 'grid-cols-' + cols : 'grid-cols-3 md:grid-cols-4',
     ]"
   >
-    <!-- Ticker -->
     <div class="inline-flex items-center">
       <img
         v-if="assetInfo.coinIcon"
@@ -25,38 +24,63 @@
             :src="changeDirection ? positive : negative"
             class="inline-block m-0 mr-2"
           />
-          {{ formatPrice(price) }}
+          {{ CurrencyUtils.formatPrice(price) }}
         </p>
       </div>
     </div>
 
-    <!-- Lease up to -->
     <div class="block">
-      <p class="text-primary nls-font-500 text-14 text-right m-0">
-        {{ formatLeaseUpTo() }}
+      <p class="text-primary nls-font-500 text-16 text-right m-0">
+        <template v-if="balance > 0">
+          <CurrencyComponent
+            :type="CURRENCY_VIEW_TYPES.TOKEN"
+            :amount="leasUpTo"
+            :minimalDenom="assetInfo.coinMinimalDenom"
+            :denom="assetInfo.coinDenom"
+            :decimals="assetInfo.coinDecimals"
+          />
+        </template>
+        <template v-else>
+          <CurrencyComponent
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            :amount="DEFAULT_LEASE_UP_PERCENT"
+            :hasSpace="false"
+            :isDenomInfront="false"
+            denom="%"
+          />
+        </template>
       </p>
 
     </div>
 
-    <!-- Earnings -->
     <div v-if="earnings" class="hidden md:block">
       <div
-        class="flex items-center justify-end text-primary nls-font-400 text-small-copy text-right m-0"
+        class="text-primary nls-font-500 text-14 text-right m-0"
       >
-        {{ earnings }}%
+        <CurrencyComponent
+          :type="CURRENCY_VIEW_TYPES.CURRENCY"
+          :amount="earnings"
+          :hasSpace="false"
+          :isDenomInfront="false"
+          denom="%"
+        />
       </div>
     </div>
 
-    <!-- Balance -->
     <div class="block info-show">
       <p class="text-primary nls-font-500 text-16 text-right m-0">
-        {{ calculateBalance(price, assetBalance, denom) }}
+        <CurrencyComponent
+          :type="CURRENCY_VIEW_TYPES.CURRENCY"
+          :amount="calculateBalance(price, assetBalance, denom)"
+          :hasSpace="false"
+          :denom="DEFAULT_CURRENCY.symbol"
+        />
       </p>
       <div
         class="flex items-center justify-end text-dark-grey text-12 nls-font-400 text-right m-0"
       >
         {{
-          convertMinimalDenomToDenom(
+          CurrencyUtils.convertMinimalDenomToDenom(
             assetBalance,
             assetInfo.coinMinimalDenom,
             assetInfo.coinDenom,
@@ -92,11 +116,14 @@ import { Coin, Int } from '@keplr-wallet/unit';
 import { CurrencyUtils } from '@nolus/nolusjs';
 import positive from '@/assets/icons/change-positive.svg';
 import negative from '@/assets/icons/change-negative.svg';
+import CurrencyComponent from '@/components/CurrencyComponent.vue';
 
 import { assetsInfo } from '@/config/assetsInfo';
 import { DASHBOARD_ACTIONS } from '@/types';
 import { LPP_CONSTANTS } from '@/config/contracts';
 import { EnvNetworkUtils } from '@/utils';
+import { DEFAULT_CURRENCY, DEFAULT_LEASE_UP_PERCENT, LEASE_UP_COEFICIENT } from '@/config/env';
+import { CURRENCY_VIEW_TYPES } from '@/types/CurrencyViewType';
 
 const props = defineProps({
   assetBalance: {
@@ -136,46 +163,28 @@ const canLease = computed(() => {
   return Number(props.assetBalance) > 0 && LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][props.denom];
 });
 
+// @TODO: Determine conditions
 const canSupply = computed(() => {
   return Number(props.assetBalance) > 0 && LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][props.denom];
 });
 
 const showActionButtons = computed(() => canLease.value || canSupply.value);
 
-function formatPrice(price: string) {
-  return CurrencyUtils.formatPrice(price);
-}
+const balance = computed(() => {
+  return Number(props.assetBalance);
+});
 
-function formatLeaseUpTo() {
-  // @TODO: Add logic for leaseUpToAmount
-  const leaseUpToAmount = Number(props.assetBalance) * 1.5;
-  const formattedAmount = convertMinimalDenomToDenom(
-    String(leaseUpToAmount),
-    props.assetInfo.coinMinimalDenom,
-    props.assetInfo.coinDenom,
-    props.assetInfo.coinDecimals
-  );
+const leasUpTo = computed(() => {
+  const balance = Number(props.assetBalance);
+  const leaseUpToAmount = balance * LEASE_UP_COEFICIENT + balance;
+  return leaseUpToAmount.toString();
+});
 
-  return leaseUpToAmount ? formattedAmount : '150.00%';
-}
 
-function convertMinimalDenomToDenom(
-  tokenAmount: string,
-  minimalDenom: string,
-  denom: string,
-  decimals: number
-) {
-  return CurrencyUtils.convertMinimalDenomToDenom(
-    tokenAmount,
-    minimalDenom,
-    denom,
-    decimals
-  );
-}
-
-function calculateBalance(price: string, tokenAmount: string, denom: string) {
+const calculateBalance = (price: string, tokenAmount: string, denom: string) => {
   const tokenDecimals = assetsInfo[denom].coinDecimals;
   const coin = new Coin(denom, new Int(tokenAmount));
-  return CurrencyUtils.calculateBalance(price, coin, tokenDecimals);
+  const data = CurrencyUtils.calculateBalance(price, coin, tokenDecimals);
+  return data.toDec().toString(2)
 }
 </script>

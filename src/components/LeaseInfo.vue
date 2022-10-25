@@ -151,9 +151,10 @@ import { WalletUtils } from '@/utils/WalletUtils';
 import { AssetUtils } from '@/utils/AssetUtils';
 import { useWalletStore } from '@/stores/wallet';
 import { useOracleStore } from '@/stores/oracle';
+import { useI18n } from 'vue-i18n';
 
 interface Props {
-  leaseInfo: LeaseData;
+  leaseInfo: LeaseData | any; //TODO: update Asset in nolusjs
 }
 
 const { leaseInfo } = defineProps<Props>();
@@ -163,6 +164,7 @@ const chartData = ref({});
 const currentPrice = ref<string>();
 const walletStore = useWalletStore();
 const oracleStore = useOracleStore();
+const i18n = useI18n();
 
 watchEffect(async () => {
   const { days, interval } = chartTimeRange.value;
@@ -175,7 +177,7 @@ watchEffect(async () => {
   chartData.value = {
     datasets: [
       {
-        label: getAssetInfo('coinDenom'),
+        label: i18n.t('message.chart-tooltip-price'),
         borderColor: '#2868E1',
         data: pricesData,
         tension: 0.4,

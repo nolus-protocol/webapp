@@ -1,0 +1,72 @@
+<template>
+  <div
+    class="nolus-box grid gap-6 border-b border-standart py-3 px-6 items-center justify-between grid-cols-3 md:grid-cols-3"
+  >
+    <div class="inline-flex items-center">
+      <img
+        v-if="assetInfo.coinIcon"
+        :src="assetInfo.coinIcon"
+        class="inline-block m-0 mr-4"
+        height="32"
+        width="32"
+      />
+      <div class="inline-block">
+        <p class="text-primary nls-font-500 text-18 text-left uppercase m-0">
+          {{ assetInfo.coinAbbreviation.toUpperCase() }}
+        </p>
+      </div>
+    </div>
+
+    <div class="block">
+      <p class="text-primary nls-font-500 text-16 m-0">
+        {{ endTime }}
+      </p>
+
+    </div>
+
+    <div class="block">
+
+      <div
+        class="text-primary nls-font-500 text-16 text-right m-0"
+      >
+        <CurrencyComponent
+          :type="CURRENCY_VIEW_TYPES.TOKEN"
+          :amount="assetBalance"
+          :minimalDenom="assetInfo.coinMinimalDenom"
+          :denom="assetInfo.coinDenom"
+          :decimals="assetInfo.coinDecimals"
+        />
+      </div>
+    </div>
+
+  </div>
+</template>
+
+<script lang="ts" setup>
+import type { AssetInfo } from '@/types';
+import type { PropType } from 'vue';
+
+import { CURRENCY_VIEW_TYPES } from '@/types/CurrencyViewType';
+import CurrencyComponent from '@/components/CurrencyComponent.vue';
+
+
+defineProps({
+  assetBalance: {
+    type: String,
+    required: true,
+  },
+  assetInfo: {
+    type: Object as PropType<AssetInfo>,
+    required: true,
+  },
+  denom: {
+    type: String,
+    required: true,
+  },
+  endTime: {
+    type: String,
+    required: true,
+  },
+});
+
+</script>

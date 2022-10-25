@@ -161,6 +161,63 @@
           />
         </div>
       </div>
+      
+    </div>
+
+     <!-- Vested Assets -->
+    <div
+      v-if="vestedTokens.length > 0"
+      class="block background mt-6 border-standart shadow-box radius-medium radius-0-sm"
+    >
+      <!-- Top -->
+      <div class="flex flex-wrap items-baseline justify-between px-4 pt-6">
+        <!-- @TODO: Fix loading bar not working -->
+        <div v-show="state.showLoading" class="loader-boxed">
+          <div class="loader__element"></div>
+        </div>
+        <div class="left w-1/2">
+          <p class="text-16 nls-font-500 dark-text">
+            {{ $t("message.vested") }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Assets -->
+      <div class="block mt-6 md:mt-[25px]">
+        <!-- Assets Header -->
+        <div
+          class="grid grid-cols-3 md:grid-cols-3 gap-6 border-b border-standart pb-3 px-6"
+        >
+          <div class="nls-font-500 text-12 text-left text-dark-grey text-upper">
+            {{ $t("message.assets") }}
+          </div>
+
+          <div
+            class="inline-flex items-center nls-font-500 text-12 text-right text-dark-grey text-upper"
+          >
+            <span class="inline-block">{{ $t("message.release") }}</span>
+          </div>
+
+          <div
+            class="nls-font-500 text-dark-grey text-12 text-right text-upper"
+          >
+            {{ $t("message.balance") }}
+          </div>
+        </div>
+
+        <!-- Assets Container -->
+        <div class="block mb-10 lg:mb-0">
+          <VestedAssetPartial
+            v-for="(asset, index) in vestedTokens"
+            :key="`${asset.amount.amount}-${index}`"
+            :asset-info="getAssetInfo(asset.amount.denom)"
+            :asset-balance="asset.amount.amount.toString()"
+            :denom="asset.amount.denom"
+            :end-time="asset.endTime"
+          />
+        </div>
+      </div>
+      
     </div>
   </div>
 
@@ -179,15 +236,16 @@ import Modal from '@/components/modals/templates/Modal.vue';
 import SupplyWithdrawDialog from '@/components/modals/SupplyWithdrawDialog.vue';
 import SendReceiveDialog from '@/components/modals/SendReceiveDialog.vue';
 import LeaseDialog from '@/components/modals/LeaseDialog.vue';
+import VestedAssetPartial from '@/components/VestedAssetPartial.vue';
 
 import type { AssetBalance } from '@/stores/wallet/state';
 import { AssetUtils } from '@/utils/AssetUtils';
-import { computed, ref, provide } from 'vue';
+import { computed, ref, provide, onMounted } from 'vue';
 import { Coin, Dec, Int } from '@keplr-wallet/unit';
 import { CurrencyUtils } from '@nolus/nolusjs';
 import { DASHBOARD_ACTIONS } from '@/types/DashboardActions';
 import { useLeases } from '@/composables';
-import { useWalletStore } from '@/stores/wallet';
+import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
 import { useOracleStore } from '@/stores/oracle';
 
 const modalOptions = {
@@ -210,15 +268,21 @@ const state = ref({
   suppliedAndStaked: new Dec(0),
 });
 
+const vestedTokens = ref([] as { delayed: boolean, endTime: string, toAddress: string, amount: { amount: string, denom: string } }[]);
 const mainAssets = computed(() => wallet.balances);
 const manipulatedAssets = computed(() =>
-  state.value.showSmallBalances
-    ? mainAssets.value
-    : filterSmallBalances(mainAssets.value)
+  state.value.showSmallBalances ? mainAssets.value : filterSmallBalances(mainAssets.value)
 );
 
+onMounted(() => {
+  getVestedTokens();
+});
+
+const getVestedTokens = async () => {
+  vestedTokens.value = await wallet[WalletActionTypes.LOAD_VESTED_TOKENS]();
+};
+
 const totalBalance = computed(() => {
-  // // Better way to add Dec?
   let total = state.value.availableAssets;
   total = total.add(state.value.activeLeases as Dec);
   total = total.add(state.value.suppliedAndStaked as Dec);
@@ -232,18 +296,20 @@ provide('getLeases', getLeases);
 
 const activeLeases = computed(() => {
   let totalLeases = new Dec(0);
+
   leases.value.forEach((lease) => {
-    if (!lease.leaseStatus.opened) {
-      return;
+
+    if (lease.leaseStatus.opened) {
+      const denom = lease.leaseStatus.opened.amount.symbol;
+      const balance = CurrencyUtils.calculateBalance(
+        getMarketPrice(denom),
+        new Coin(denom, lease.leaseStatus.opened.amount.amount),
+        0
+      );
+
+      totalLeases = totalLeases.add(balance.toDec());
     }
 
-    const denom = lease.leaseStatus.opened.amount.symbol;
-    const balance = CurrencyUtils.calculateBalance(
-      getMarketPrice(denom),
-      new Coin(denom, lease.leaseStatus.opened.amount.amount),
-      0
-    );
-    totalLeases = totalLeases.add(balance.toDec());
   });
 
   state.value.activeLeases = totalLeases;
@@ -252,10 +318,13 @@ const activeLeases = computed(() => {
 
 const availableAssets = computed(() => {
   let totalAssets = new Dec(0);
+
   mainAssets.value.forEach((asset) => {
+
     const { coinDecimals, coinDenom } = AssetUtils.getAssetInfoByAbbr(
       asset.balance.denom
     );
+
     const assetBalance = CurrencyUtils.calculateBalance(
       getMarketPrice(asset.balance.denom),
       new Coin(coinDenom, asset.balance.amount.toString()),
@@ -278,21 +347,21 @@ const suppliedAndStaked = computed(() => {
   ).toString();
 });
 
-function filterSmallBalances(balances: AssetBalance[]) {
+const filterSmallBalances = (balances: AssetBalance[]) => {
   return balances.filter((asset) => asset.balance.amount.gt(new Int('1')));
 }
 
-function openModal(action: DASHBOARD_ACTIONS, denom = '') {
+const openModal = (action: DASHBOARD_ACTIONS, denom = '') => {
   state.value.selectedAsset = denom;
   state.value.modalAction = action;
   state.value.showModal = true;
 }
 
-function getAssetInfo(denom: string) {
+const getAssetInfo = (denom: string) => {
   return AssetUtils.getAssetInfoByAbbr(denom);
 }
 
-function getMarketPrice(denom: string) {
+const getMarketPrice = (denom: string) => {
   const prices = oracle.prices;
 
   if (prices) {
