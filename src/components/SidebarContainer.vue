@@ -50,7 +50,7 @@
               @click="pushTo(RouteNames.LEASE)"
             />
           </div>
-          <div class="block nls-nav-link icon">
+          <div class="block nls-nav-link icon hidden">
             <SidebarElement
               id="trade"
               href="#"
