@@ -1,5 +1,4 @@
 button {
-  display: flex;
   align-items: center;
 
   [class*="icon-"] {
@@ -55,7 +54,6 @@ button {
 
 .btn {
   position: relative;
-  display: flex;
   align-items: center;
   justify-content: center;
   background-color: $white;

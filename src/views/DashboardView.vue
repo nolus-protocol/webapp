@@ -16,7 +16,7 @@
           {{ $t("message.send-receive") }}
         </button>
 
-        <button class="btn btn-secondary btn-large-secondary hidden ml-4">
+        <button class="btn btn-secondary btn-large-secondary ml-4 hidden">
           {{ $t("message.buy-tokens") }}
         </button>
       </div>
