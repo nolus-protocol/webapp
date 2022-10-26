@@ -1,4 +1,4 @@
-# nolus-wallet
+# nolus-webapp
 
 ## Requirements
 
