@@ -22,10 +22,11 @@
         name="seed" 
       />
 
-      <div class="mt-6 hidden md:flex">
+      <div class="mt-6 md:flex">
         <button class="btn btn-primary btn-large-primary mr-4" @click="clickImport">
           {{ $t("message.import") }}
-        </button>
+        </button>        
+        <div class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"></div>
       </div>
     </div>
 

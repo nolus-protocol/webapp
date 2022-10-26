@@ -93,7 +93,7 @@
       </div>
     </div>
     <div class="lg:bot lg:pb-8 pl-8">
-      <div class="flex items-center sub-nav-social">
+      <div class="flex items-center sub-nav-social hidden">
         <SidebarElement
           id="twitter"
           icon="/src/assets/icons/twitter.svg"
@@ -115,15 +115,15 @@
           @click="openExternal(REDDIT_ACCOUNT, '_blank')"
         />
       </div>
-
-      <p class="nls-font-500 text-12 text-dark-grey text-upper pl-2">
-        {{ applicaton.network.networkName }} # <template v-if="block > 0">{{ block }}</template>
-      </p>
-
-      <p class="nls-font-400 text-12 text-dark-grey pl-2">v{{version}}</p>
-
       <div class="block mt-3 text-12 nls-font-400 sub-nav-service"></div>
     </div>
+  </div>
+
+  <div class="lg:col-span-3 absolute inset-x-0 bottom-0 mb-6 ml-8 hidden md:grid">
+    <p class="nls-font-500 text-12 text-dark-grey text-upper pl-2">
+      {{ applicaton.network.networkName }} # <template v-if="block > 0">{{ block }}</template>
+    </p>
+    <p class="nls-font-400 text-12 text-dark-grey pl-2">v{{version}}</p>
   </div>
 
   <Modal v-if="showSwapModal" @close-modal="showSwapModal = false" route="swap">

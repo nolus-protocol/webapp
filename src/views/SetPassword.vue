@@ -39,10 +39,11 @@
       type="password"
     ></InputField>
 
-    <div class="mt-6 px-4 md:px-10 hidden md:flex">
+    <div class="mt-6 px-4 md:px-10 md:flex">
       <button class="btn btn-primary btn-large-primary" @click="clickContinue">
         {{ $t("message.continue") }}
       </button>
+      <div class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"></div>
     </div>
 
     <div

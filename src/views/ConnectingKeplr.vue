@@ -23,12 +23,13 @@
       <p class="text-14 nls-font-400 text-primary relative z-[2]">
         {{ $t('message.approving-extension') }}
       </p>
-      <div class="md:flex mt-6 hidden">
+      <div class="md:flex mt-6">
         <button
           class="btn btn-primary btn-large-primary mr-4 js-loading -px-20"
         >
           {{ $t('message.connecting') }}
         </button>
+        <div class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"></div>
       </div>
     </div>
   </div>
