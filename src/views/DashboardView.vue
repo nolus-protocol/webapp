@@ -1,7 +1,7 @@
 <template>
   <div class="col-span-12">
     <!-- Header -->
-    <div class="table-header flex mt-[25px] flex-wrap items-center justify-between lg:px-0">
+    <div class="table-header block mt-[25px] flex-wrap items-center justify-between lg:px-0">
       <div class="left">
         <h1 class="text-20 nls-font-700 text-primary m-0 pb-3 lg:pb-0">
           {{ $t("message.assets") }}
