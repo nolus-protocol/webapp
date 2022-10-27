@@ -7,7 +7,7 @@
     <div ref="notifications">
       <button
         :class="showNotifications ? 'active' : false"
-        class="show-box-pop btn btn-header mr-2 c-navbar-qr__button"
+        class="show-box-pop btn-header mr-2 c-navbar-qr__button"
         @click="showNotifications = !showNotifications"
       >
         <span
@@ -23,7 +23,7 @@
   <div id="wallet-nls" ref="wallet">
     <button
       :class="showWallet ? 'active' : false"
-      class="show-box-wallet btn btn-header with-icon shadow-box rounded-r-none"
+      class="show-box-wallet btn-header with-icon shadow-box rounded-r-none"
       @click="showWallet = !showWallet"
     >
       <span
