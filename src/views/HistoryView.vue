@@ -12,7 +12,7 @@
     </div>
     <!-- History -->
     <div
-      class="block background mt-6 border-standart shadow-box radius-medium radius-0-sm overflow-hidden"
+      class="block background mt-6 shadow-box radius-medium radius-0-sm nls-border overflow-hidden"
     >
       <!-- Assets -->
       <div class="block md:mt-4">
