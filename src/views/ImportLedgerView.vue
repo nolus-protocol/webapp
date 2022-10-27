@@ -37,7 +37,7 @@
         </div>
       </div>
 
-      <div class="mt-6 hidden md:flex">
+      <div class="mt-6 md:flex">
         <button
           class="btn btn-primary btn-large-primary w-80"
           :class="{'js-loading': disabled}"
@@ -45,13 +45,12 @@
         >
           {{ $t('message.connect') }}
         </button>
+        <div class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"></div>
       </div>
     </div>
   </div>
 
-  <div
-    class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"
-  ></div>
+  <div class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
 
   <div
     class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal"

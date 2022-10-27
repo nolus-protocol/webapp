@@ -26,6 +26,8 @@
     </div>
   </div>
 
+  <div class="separator-line pb-6 relative z-[200000] w-[516px]"></div>
+
   <!-- Input Area -->
   <div class="modal-send-receive-input-area pt-0">
     <div

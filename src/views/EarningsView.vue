@@ -80,7 +80,7 @@
         >
           <div class="flex items-center justify-between px-6 pt-6">
             <h2 class="text-16 nls-font-500 text-left my-0">{{ $t('message.pending-rewards') }}</h2>
-            <button class="btn btn-label btn-large-label">{{ $t('message.claim-all') }}</button>
+            <button class="btn-label btn-large-label">{{ $t('message.claim-all') }}</button>
           </div>
           <!-- Assets -->
           <div class="block mt-4">

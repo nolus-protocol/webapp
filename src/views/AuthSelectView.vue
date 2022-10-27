@@ -55,15 +55,14 @@
       <div
         class="background h-[420px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
 
-      <div
-        class="hidden align-center justify-center pt-7 text-center mx-auto md:flex"
-      >
+      <div class="align-center justify-center pt-7 text-center mx-auto md:flex">
         <button
           class="btn btn-primary btn-large-primary w-80 mb-4 md:mb-10"
           @click="clickCreateAccount"
         >
           {{ $t("message.create-new-account") }}
         </button>
+        <div class="background h-[60px] relative md:hidden mt-[-62px] mx-[-2px]"></div>
       </div>
     </div>
 

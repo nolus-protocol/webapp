@@ -1,7 +1,7 @@
 <template>
-  <div class="col-span-12 lg:mr-[166px]">
+  <div class="col-span-12">
     <!-- Header -->
-    <div class="table-header flex mt-[25px] flex-wrap items-center justify-between lg:px-0">
+    <div class="table-header lg:flex block mt-[25px] flex-wrap items-center justify-between lg:px-0">
       <div class="left">
         <h1 class="text-20 nls-font-700 text-primary m-0 pb-3 lg:pb-0">
           {{ $t("message.assets") }}
@@ -16,14 +16,14 @@
           {{ $t("message.send-receive") }}
         </button>
 
-        <button class="btn btn-secondary btn-large-secondary hidden ml-4">
+        <button class="btn btn-secondary btn-large-secondary ml-4 hidden">
           {{ $t("message.buy-tokens") }}
         </button>
       </div>
     </div>
     <!-- Wallet -->
     <div
-      class="flex balance-box items-center justify-start background mt-6 border-standart shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6"
+      class="flex balance-box items-center justify-start background mt-6 nls-border shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6"
     >
       <div class="left inline-block w-1/3">
         <p class="nls-font-500 text-16 text-primary">
@@ -32,8 +32,11 @@
         <p class="nls-font-700 text-32 lg:text-40 text-primary">
           {{ totalBalance }}
         </p>
-        <div class="separator-line flex py-4 lg:hidden"></div>
+        <div class="separator-line flex py-4 lg:hidden ml-[-16px] mr-[-16px]"></div>
       </div>
+
+      <div class="border-right h-[80px] mt-[-48px] hidden md:flex"></div>
+      <div class="border-right h-[80px] mb-[-24px] ml-[-1px] hidden md:flex"></div>
 
       <div class="right flex w-2/3 -mt-8 lg:mt-0">
         <div class="pt-3 lg:pl-6">
@@ -165,7 +168,7 @@
      <!-- Vested Assets -->
     <div
       v-if="vestedTokens.length > 0"
-      class="block background mt-6 border-standart shadow-box radius-medium radius-0-sm"
+      class="block background mt-6 nls-border shadow-box radius-medium radius-0-sm"
     >
       <!-- Top -->
       <div class="flex flex-wrap items-baseline justify-between px-4 pt-6">

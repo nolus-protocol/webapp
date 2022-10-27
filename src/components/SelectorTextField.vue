@@ -29,7 +29,7 @@
 
     <!-- TODO: add class disabled to the button using js -->
 
-    <div class="mt-6 hidden md:block">
+    <div class="mt-6 md:block">
       <button
         :disabled="confirmMnemonicPhrase.length !== 24"
         class="btn btn-primary btn-large-primary"

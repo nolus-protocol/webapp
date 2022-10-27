@@ -672,7 +672,7 @@
                   <h2 class="nls-16 nls-font-500 text-left my-0">
                     Pending rewards
                   </h2>
-                  <button class="btn btn-label btn-large-label">
+                  <button class="btn-label btn-large-label">
                     Claim all
                   </button>
                 </div>
@@ -818,7 +818,7 @@
                   <h2 class="nls-16 nls-font-500 text-left my-0">
                     Your earning portfolio
                   </h2>
-                  <button class="btn btn-label btn-large-label">
+                  <button class="btn-label btn-large-label">
                     View all earning assets
                   </button>
                 </div>
