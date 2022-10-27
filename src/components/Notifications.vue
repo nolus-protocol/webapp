@@ -46,7 +46,7 @@
             <div
               class="flex items-center justify-end text-primary nls-font-700 text-12 text-right m-0"
             >
-              <button class="btn btn-outline btn-large-outline">Claim</button>
+              <button class="btn-outline btn-large-outline">Claim</button>
             </div>
           </div>
         </div>
@@ -76,7 +76,7 @@
             <div
               class="flex items-center justify-end text-primary nls-font-700 text-12 text-right m-0"
             >
-              <button class="btn btn-outline btn-large-outline">Claim</button>
+              <button class="btn-outline btn-large-outline">Claim</button>
             </div>
           </div>
         </div>
