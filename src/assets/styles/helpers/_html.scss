@@ -401,6 +401,10 @@ input[type="checkbox" i] {
 	border-right: 1px solid $borderColor;
 }
 
+.graditent-background {
+	background-image: linear-gradient(314deg, #EBEFF5 2.19%, #F7F9FC 100%);
+}
+
 [v-cloak] {
 	background-color: red;
 }
