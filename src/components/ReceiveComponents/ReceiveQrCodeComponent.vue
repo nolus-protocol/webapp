@@ -32,7 +32,7 @@
           {{ modelValue.walletAddress }}
         </p>
         <button
-          class="btn btn-secondary btn-medium-secondary btn-icon mt-2"
+          class="btn btn-secondary btn-medium-secondary flex btn-icon mt-2"
           @click="modelValue.onCopyClick"
         >
           <DocumentDuplicateIcon class="icon w-4 h-4" />
