@@ -25,15 +25,18 @@
     <div
       class="flex balance-box items-center justify-start background mt-6 border-standart shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6"
     >
-      <div class="left inline-block w-1/3 border-right">
+      <div class="left inline-block w-1/3">
         <p class="nls-font-500 text-16 text-primary">
           {{ $t("message.total") }}
         </p>
         <p class="nls-font-700 text-32 lg:text-40 text-primary">
           {{ totalBalance }}
         </p>
-        <div class="separator-line flex py-4 lg:hidden"></div>
+        <div class="separator-line flex py-4 lg:hidden ml-[-16px] mr-[-16px]"></div>
       </div>
+
+      <div class="border-right h-[100px] mt-[-50px] hidden md:flex"></div>
+      <div class="border-right h-[100px] mb-[-50px] ml-[-1px] hidden md:flex"></div>
 
       <div class="right flex w-2/3 -mt-8 lg:mt-0">
         <div class="pt-3 lg:pl-6">
