@@ -1,5 +1,5 @@
 export interface AssetInfo {
-  chainName: string;
+  ticker: string,
   coinDenom: string;
   coinMinimalDenom: string;
   coinDecimals: number;

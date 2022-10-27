@@ -25,11 +25,10 @@ import type { AssetBalance } from '@/stores/wallet/state';
 import { inject, ref, watch, onMounted } from 'vue';
 import { Leaser, type LeaseApply } from '@nolus/nolusjs/build/contracts';
 import { CurrencyUtils, NolusClient, NolusWallet } from '@nolus/nolusjs';
-import { Coin, Dec, Int } from '@keplr-wallet/unit';
+import { Dec, Int } from '@keplr-wallet/unit';
 
 import { CONTRACTS } from '@/config/contracts';
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils';
-import { assetsInfo } from '@/config/assetsInfo';
 import { CONFIRM_STEP } from '@/types/ConfirmStep';
 import { TxType } from '@/types/TxType';
 import { defaultNolusWalletFee } from '@/config/wallet';
@@ -37,11 +36,21 @@ import { getMicroAmount, walletOperation } from '@/components/utils';
 import { useWalletStore } from '@/stores/wallet';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
+import { computed } from '@vue/reactivity';
 
 const onModalClose = inject('onModalClose', () => { });
 const walletStore = useWalletStore();
 const walletRef = storeToRefs(walletStore);
 const i18n = useI18n();
+const leaseBalances = computed(() => {
+  return walletStore.balances;
+  // TODO: uncomemnt for production
+  // const balances = walletStore.balances;
+  // return balances.filter((item) => {
+  //   const currency = walletStore.currencies[item.balance.denom];
+  //   return currency.groups.includes(GROUPS.Lease);
+  // });
+});
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const TX_TYPE = ref(TxType);
@@ -49,12 +58,7 @@ const showConfirmScreen = ref(false);
 const state = ref({
   contractAddress: CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance,
   currentBalance: [] as AssetBalance[],
-  selectedDownPaymentCurrency: {
-    balance: new Coin(
-      assetsInfo['ibc/fj29fj0fj'].coinMinimalDenom,
-      0
-    ),
-  } as AssetBalance,
+  selectedDownPaymentCurrency: leaseBalances.value[1] as AssetBalance,
   selectedCurrency: {} as AssetBalance,
   downPayment: '',
   amount: '',
@@ -68,6 +72,7 @@ const state = ref({
   txHash: '',
   leaseApply: null,
 } as LeaseComponentProps);
+
 const getLease = inject('getLeases', () => {});
 
 onMounted(() => {
@@ -103,12 +108,15 @@ watch(
           cosmWasmClient,
           CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance
         );
+        const currency = walletStore.currencies[state.value.selectedDownPaymentCurrency.balance.denom];
+
         const makeLeaseApplyResp = await leaserClient.leaseQuote(
           state.value.downPayment,
-          state.value.selectedDownPaymentCurrency.balance.denom
+          currency.ticker
         );
 
         state.value.leaseApply = makeLeaseApplyResp;
+
         populateBorrow(makeLeaseApplyResp);
       }
     } else {
@@ -123,14 +131,11 @@ watch(
   async () => {
     const amount = state.value.amount;
     if (amount) {
-      state.value.amount = new Dec(amount)
-        .truncate()
-        .toString();
+      state.value.amount = new Dec(amount).truncate().toString();
       isAmountValid();
     }
   }
 );
-
 
 const onNextClick = async () => {
   if (isAmountValid() && isDownPaymentAmountValid()) {
@@ -154,10 +159,11 @@ const isDownPaymentAmountValid = (): boolean => {
   let isValid = true;
   const selectedDownPaymentDenom = state.value.selectedDownPaymentCurrency.balance.denom;
   const downPaymentAmount = state.value.downPayment;
+
   const currentBalance = getCurrentBalanceByDenom(selectedDownPaymentDenom);
 
   if (downPaymentAmount || downPaymentAmount !== '') {
-    const decimals = assetsInfo[currentBalance.balance.denom].coinDecimals;
+    const decimals = walletStore.getCurrencyInfo(currentBalance.balance.denom).coinDecimals;
     state.value.downPaymentErrorMsg = '';
     const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(downPaymentAmount, '', decimals);
     const isLowerThanOrEqualsToZero = new Dec(
@@ -219,20 +225,24 @@ const populateBorrow = (leaseApplyData: LeaseApply) => {
   if (!leaseApplyData) {
     return;
   }
+
   state.value.amount = leaseApplyData.borrow.amount;
-  state.value.selectedCurrency = getCurrentBalanceByDenom(
-    (leaseApplyData.borrow as any).symbol
-  );
 };
 
 const getCurrentBalanceByDenom = (denom: string) => {
-  let result: AssetBalance = {} as AssetBalance;
-  state.value.currentBalance.forEach((assetBalance) => {
-    if (assetBalance.balance.denom === denom) {
-      result = assetBalance as AssetBalance;
+  for(let currency of state.value.currentBalance){
+    if(currency.balance.denom == denom){
+      return currency
     }
-  });
-  return result;
+  }
+
+  return {
+      balance: {
+        amount: '0',
+        denom: '',
+    }
+  };
+
 };
 
 const openLease = async () => {
@@ -241,15 +251,17 @@ const openLease = async () => {
     step.value = CONFIRM_STEP.PENDING;
     try {
       const microAmount = getMicroAmount(
-        state.value.selectedCurrency.balance.denom,
+        state.value.selectedDownPaymentCurrency.balance.denom,
         state.value.amount
       );
+
       const funds = [
         {
           denom: microAmount.coinMinimalDenom,
           amount: microAmount.mAmount.amount.toString(),
         },
       ];
+
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const leaserClient = new Leaser(
         cosmWasmClient,
@@ -257,7 +269,7 @@ const openLease = async () => {
       );
       const result = await leaserClient.openLease(
         wallet as NolusWallet,
-        state.value.selectedCurrency.balance.denom,
+        walletStore.currencies[state.value.selectedDownPaymentCurrency.balance.denom].ticker,
         defaultNolusWalletFee(),
         funds
       );

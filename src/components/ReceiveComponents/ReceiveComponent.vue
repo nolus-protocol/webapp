@@ -55,9 +55,9 @@
 import type { PropType } from 'vue';
 import Picker from '@/components/Picker.vue';
 import WarningBox from '@/components/modals/templates/WarningBox.vue';
-import nlsIcon from '@/assets/icons/coins/nls.svg';
 
 import { DocumentDuplicateIcon, QrCodeIcon } from '@heroicons/vue/24/solid';
+import { DEFAULT_NETWORK, DEFAULT_ASSET } from '@/config/env';
 
 export interface ReceiveComponentProps {
   walletAddress: string;
@@ -65,20 +65,8 @@ export interface ReceiveComponentProps {
   onCopyClick: () => void;
 }
 
-const assets = [
-  {
-    value: 'NLS',
-    label: 'NLS',
-    icon: nlsIcon,
-  },
-];
-
-const networks = [
-  {
-    value: 'NLS',
-    label: 'NLS',
-  },
-];
+const networks = [DEFAULT_NETWORK];
+const assets = [DEFAULT_ASSET];
 
 defineProps({
   modelValue: {

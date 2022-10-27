@@ -17,12 +17,11 @@
         :is-error="modelValue.amountErrorMsg !== ''"
         :option="modelValue.selectedCurrency"
         :value="modelValue.amount"
-        label="Amount"
+        :label="$t('message.amount')"
         name="amountSupply"
         @input="handleAmountChange($event)"
         @update-currency="(event) => (modelValue.selectedCurrency = event)"
       />
-
       <WarningBox :isWarning="true" class="mt-[25px]">
         <template v-slot:icon>
           <img

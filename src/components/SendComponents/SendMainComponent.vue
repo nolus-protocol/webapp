@@ -49,23 +49,15 @@ const state = ref({
   txHash: '',
 } as SendComponentProps);
 
-function onConfirmBackClick() {
+const onConfirmBackClick = () => {
   showConfirmScreen.value = false;
 }
 
-function onClickOkBtn() {
+const onClickOkBtn = () => {
   closeModal();
 }
 
-function onNextClick() {
-  validateInputs();
-
-  if (!state.value.amountErrorMsg && !state.value.receiverErrorMsg) {
-    showConfirmScreen.value = true;
-  }
-}
-
-function validateInputs() {
+const validateInputs = () => {
   state.value.amountErrorMsg = validateAmount(
     state.value.amount,
     state.value.selectedCurrency.balance.denom,
@@ -75,7 +67,7 @@ function validateInputs() {
   state.value.receiverErrorMsg = validateAddress(state.value.receiverAddress);
 }
 
-async function onSendClick() {
+const onSendClick = async () => {
   try{
     await walletOperation(transferAmount, state.value.password);
   }catch(error: Error | any){
@@ -83,7 +75,7 @@ async function onSendClick() {
   }
 }
 
-async function transferAmount() {
+const transferAmount = async () => {
   step.value = CONFIRM_STEP.PENDING;
   const { success, txHash } = await transferCurrency(
     state.value.selectedCurrency.balance.denom,
@@ -94,5 +86,13 @@ async function transferAmount() {
 
   step.value = success ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
   state.value.txHash = txHash;
+}
+
+function onNextClick(){
+  validateInputs();
+
+  if (!state.value.amountErrorMsg && !state.value.receiverErrorMsg) {
+    showConfirmScreen.value = true;
+  }
 }
 </script>

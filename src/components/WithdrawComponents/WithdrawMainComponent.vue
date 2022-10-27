@@ -41,13 +41,14 @@ import { TxType } from '@/types/TxType';
 import { Coin, Int } from '@keplr-wallet/unit';
 import { NolusClient, NolusWallet } from '@nolus/nolusjs';
 import { Lpp } from '@nolus/nolusjs/build/contracts';
-import { LPP_CONSTANTS } from '@/config/contracts';
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils';
 import { getMicroAmount, validateAmount, walletOperation } from '@/components/utils';
 import { defaultNolusWalletFee } from '@/config/wallet';
 import { useWalletStore } from '@/stores/wallet';
 import { computed, inject, onMounted, ref, watch } from 'vue';
 import { WalletManager } from '@/wallet/WalletManager';
+import { CONTRACTS } from '@/config/contracts';
+import { GROUPS } from '@/config/env';
 
 const { selectedAsset } = defineProps({
   selectedAsset: {
@@ -61,8 +62,10 @@ const walletStore = useWalletStore();
 // @TODO: Fetch supplied balances instead of wallet balances
 const balances = computed(() => {
   const balances = walletStore.balances;
-  const lpp_coins = LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()];
-  return balances.filter((item) => lpp_coins[item.balance.denom] );
+  return balances.filter((item) => {
+    const currency = walletStore.currencies[item.balance.denom];
+    return currency.groups.includes(GROUPS.Lpn);
+  });
 });
 
 const selectedCurrency = computed(
@@ -74,10 +77,7 @@ const state = ref({
   currentDepositBalance: {} as any,
   currentBalance: balances.value,
   selectedCurrency: selectedCurrency.value,
-  receiverAddress:
-    LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][
-      selectedCurrency.value.balance.denom
-    ].instance,
+  receiverAddress: CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance,
   amount: '',
   password: '',
   amountErrorMsg: '',
@@ -132,10 +132,6 @@ watch(
   (currentValue, oldValue) => {
     validateInputs();
     fetchDepositBalance();
-    state.value.receiverAddress =
-      LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][
-        state.value.selectedCurrency.balance.denom
-      ]?.instance || '';
   }
 );
 
@@ -194,9 +190,7 @@ async function transferAmount() {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const lppClient = new Lpp(
         cosmWasmClient,
-        LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][
-          state.value.selectedCurrency.balance.denom
-        ].instance
+        CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance
       );
       const result = await lppClient.burnDeposit(
         wallet,

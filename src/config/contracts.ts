@@ -10,6 +10,10 @@ export const CONTRACTS: ContractConfig = {
       instance: 'nolus1wn625s4jcmvk0szpl85rj5azkfc6suyvf75q6vrddscjdphtve8s5gg42f',
       codeId: '',
     },
+    lpp: {
+      instance: 'nolus1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sqaa3c5',
+      codeId: '',
+    }
   },
   testnet: {
     oracle: {
@@ -20,6 +24,10 @@ export const CONTRACTS: ContractConfig = {
       instance: 'nolus1wn625s4jcmvk0szpl85rj5azkfc6suyvf75q6vrddscjdphtve8s5gg42f',
       codeId: '',
     },
+     lpp: {
+      instance: 'nolus1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sqaa3c5',
+      codeId: '',
+    }
   },
   localnet: {
     oracle: {
@@ -30,26 +38,9 @@ export const CONTRACTS: ContractConfig = {
       instance: 'nolus1wn625s4jcmvk0szpl85rj5azkfc6suyvf75q6vrddscjdphtve8s5gg42f',
       codeId: '',
     },
-  },
-};
-
-export const LPP_CONSTANTS: ContractConfig = {
-  devnet: {
-    'ibc/fj29fj0fj': {
+     lpp: {
       instance: 'nolus1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sqaa3c5',
       codeId: '',
-    },
-  },
-  testnet: {
-    'ibc/fj29fj0fj': {
-      instance: 'nolus1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sqaa3c5',
-      codeId: '',
-    },
-  },
-  localnet: {
-    'ibc/fj29fj0fj': {
-      instance: 'nolus1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sqaa3c5',
-      codeId: '',
-    },
+    }
   },
 };

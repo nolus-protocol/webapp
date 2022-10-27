@@ -38,9 +38,9 @@
         </p>
         <p class="mb-3 flex justify-end align-center mr-[5px]">
           {{
-            calculateBalance(
+            calculateBalanceByTicker(
               modelValue.outstandingLoanAmount.amount,
-              modelValue.outstandingLoanAmount.symbol
+              modelValue.outstandingLoanAmount.ticker
             )
           }}
           <TooltipComponent content="Content goes here" />
@@ -68,10 +68,10 @@ import { Coin, Int } from '@keplr-wallet/unit';
 import { CurrencyUtils } from '@nolus/nolusjs';
 import { useOracleStore } from '@/stores/oracle';
 import { computed } from '@vue/reactivity';
-import { LPP_CONSTANTS } from '@/config/contracts';
-import { EnvNetworkUtils } from '@/utils';
+import { useWalletStore } from '@/stores/wallet';
 
 const oracle = useOracleStore();
+const wallet = useWalletStore();
 
 const props = defineProps({
   modelValue: {
@@ -81,9 +81,8 @@ const props = defineProps({
 });
 
 const balances = computed(() => {
-  const balances = props.modelValue.currentBalance;
-  const lpp_coins = LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()];
-  return balances.filter((item) => lpp_coins[item.balance.denom] );
+  const balances = wallet.balances;
+  return balances;
 });
 
 const calculateBalance = (tokenAmount: string, denom: string) => {
@@ -92,6 +91,20 @@ const calculateBalance = (tokenAmount: string, denom: string) => {
   if (prices) {
     const coinPrice = prices[denom]?.amount || '0';
     const coinAmount = new Coin(denom, new Int(tokenAmount || '0'));
+    return CurrencyUtils.calculateBalance(coinPrice, coinAmount, 0).toString();
+  }
+
+  return '0';
+};
+
+const calculateBalanceByTicker = (tokenAmount: string, ticker: string) => {
+  const prices = oracle.prices;
+  const symbol = wallet.getCurrencyByTicker(ticker).symbol;
+  const denom = wallet.getIbcDenomBySymbol(symbol);
+  
+  if(denom){
+    const coinPrice = prices[denom]?.amount ?? '0';
+    const coinAmount = new Coin(denom, new Int(tokenAmount ?? '0'));
     return CurrencyUtils.calculateBalance(coinPrice, coinAmount, 0).toString();
   }
 

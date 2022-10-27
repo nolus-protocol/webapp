@@ -67,9 +67,9 @@ import Picker from '@/components/Picker.vue';
 import InputField from '@/components/InputField.vue';
 import CurrencyField from '@/components/CurrencyField.vue';
 
-import { assetsInfo } from '@/config/assetsInfo';
-import { StarIcon } from '@heroicons/vue/24/solid';
 import { CurrencyUtils } from '@nolus/nolusjs';
+import { DEFAULT_NETWORK } from '@/config/env';
+import { useWalletStore } from '@/stores/wallet';
 
 const props = defineProps({
   modelValue: {
@@ -78,15 +78,14 @@ const props = defineProps({
   }
 });
 
-const networks = [
-  { value: 'NLS', label: 'NLS' },
-];
+const networks = [DEFAULT_NETWORK];
+const wallet = useWalletStore();
 
 defineEmits(['update:modelValue.selectedCurrency']);
 
 const formatCurrentBalance = (selectedCurrency: AssetBalance) => {
   if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
-    const asset = assetsInfo[selectedCurrency.balance.denom];
+    const asset = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
     return CurrencyUtils.convertMinimalDenomToDenom(
       selectedCurrency.balance.amount.toString(),
       selectedCurrency.balance.denom,
@@ -101,13 +100,14 @@ const handleAmountChange = (event: Event) => {
 };
 
 const setAmount = () => {
-  const asset = assetsInfo[props.modelValue.selectedCurrency.balance.denom];
+  const asset = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
   const data = CurrencyUtils.convertMinimalDenomToDenom(
     props.modelValue.selectedCurrency.balance.amount.toString(),
     props.modelValue.selectedCurrency.balance.denom,
       asset.coinDenom,
       asset.coinDecimals
     )
+
   props.modelValue.amount = data.hideDenom(true).locale(false).toString();
 }
 

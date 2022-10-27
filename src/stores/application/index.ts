@@ -35,7 +35,6 @@ const useApplicationStore = defineStore('application', {
           await walletStore[WalletActionTypes.UPDATE_BALANCES]();
         }
 
-
       } catch (error: Error | any) {
         throw new Error(error);
       }

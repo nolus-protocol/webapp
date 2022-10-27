@@ -145,6 +145,7 @@
     "vested": "Vested",
     "release": "Release Schedule",
     "available-withdraw": "Available to withdraw",
-    "chart-tooltip-price": "Price"
+    "chart-tooltip-price": "Price",
+    "price-in-usd": "1 {symbol} price in USD:"
   }
 }

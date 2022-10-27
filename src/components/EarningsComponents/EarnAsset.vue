@@ -9,15 +9,15 @@
       <!-- Ticker -->
       <div class="inline-flex items-center">
         <img
-          v-if="getAssetIcon(asset.balance.denom)"
-          :src="getAssetIcon(asset.balance.denom)"
+          v-if="assetInfo.coinIcon"
+          :src="assetInfo.coinIcon"
           class="inline-block m-0 mr-4"
           height="32"
           width="32"
         />
         <div class="inline-block">
           <p class="text-primary nls-font-500 text-18 text-left uppercase m-0">
-            {{ getAssetName(asset.balance.denom) }}
+            {{ assetInfo.coinDenom }}
           </p>
           <p class="text-dark-grey text-12 nls-font-400 text-left capitalize m-0">
             {{ formatPrice(getMarketPrice(asset.balance.denom)) }}
@@ -64,10 +64,13 @@ import { Coin, Int } from '@keplr-wallet/unit';
 import { CurrencyUtils } from '@nolus/nolusjs';
 import { AssetUtils } from '@/utils/AssetUtils';
 import { useOracleStore } from '@/stores/oracle';
+import { computed } from '@vue/reactivity';
+import { useWalletStore } from '@/stores/wallet';
 
 const oracle = useOracleStore();
+const wallet = useWalletStore();
 
-defineProps({
+const props = defineProps({
   asset: {
     type: Object as PropType<AssetBalance>,
     required: true,
@@ -81,13 +84,10 @@ defineProps({
   },
 });
 
-const getAssetIcon = (denom: string) => {
-  return AssetUtils.getAssetInfoByAbbr(denom).coinIcon || '';
-};
-
-const getAssetName = (denom: string) => {
-  return AssetUtils.getAssetInfoByAbbr(denom).coinAbbreviation || '';
-};
+const assetInfo = computed(() => {
+  const assetInfo = wallet.getCurrencyInfo(props.asset.balance.denom);
+  return assetInfo;
+})
 
 const formatPrice = (price: string) => {
   return CurrencyUtils.formatPrice(price);

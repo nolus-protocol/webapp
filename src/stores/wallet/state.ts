@@ -10,4 +10,17 @@ export type State = {
   wallet: NolusWallet | null;
   privateKey: string | null;
   balances: AssetBalance[];
+  currencies:  {
+    [key: string]: {
+      ticker: string,
+      name: string,
+      decimal_digits: string,
+      symbol: string,
+      groups: string[],
+      swap_routes: Array<Array<{
+        pool_id: string,
+        pool_token: string
+      }>>
+    }
+  }
 };

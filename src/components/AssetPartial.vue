@@ -118,12 +118,12 @@ import positive from '@/assets/icons/change-positive.svg';
 import negative from '@/assets/icons/change-negative.svg';
 import CurrencyComponent from '@/components/CurrencyComponent.vue';
 
-import { assetsInfo } from '@/config/assetsInfo';
 import { DASHBOARD_ACTIONS } from '@/types';
-import { LPP_CONSTANTS } from '@/config/contracts';
-import { EnvNetworkUtils } from '@/utils';
-import { DEFAULT_CURRENCY, DEFAULT_LEASE_UP_PERCENT, LEASE_UP_COEFICIENT } from '@/config/env';
+import { DEFAULT_CURRENCY, DEFAULT_LEASE_UP_PERCENT, GROUPS, LEASE_UP_COEFICIENT } from '@/config/env';
 import { CURRENCY_VIEW_TYPES } from '@/types/CurrencyViewType';
+import { useWalletStore } from '@/stores/wallet';
+
+const walletStore = useWalletStore();
 
 const props = defineProps({
   assetBalance: {
@@ -158,14 +158,14 @@ const props = defineProps({
   },
 });
 
-// @TODO: Determine conditions
 const canLease = computed(() => {
-  return Number(props.assetBalance) > 0 && LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][props.denom];
+  const currency = walletStore.currencies[props.denom];
+  return Number(props.assetBalance) > 0 && currency.groups.includes(GROUPS.Lease);
 });
 
-// @TODO: Determine conditions
 const canSupply = computed(() => {
-  return Number(props.assetBalance) > 0 && LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][props.denom];
+  const curency = walletStore.currencies[props.denom];
+  return Number(props.assetBalance) > 0 && curency.groups.includes(GROUPS.Lpn);
 });
 
 const showActionButtons = computed(() => canLease.value || canSupply.value);
@@ -182,7 +182,7 @@ const leasUpTo = computed(() => {
 
 
 const calculateBalance = (price: string, tokenAmount: string, denom: string) => {
-  const tokenDecimals = assetsInfo[denom].coinDecimals;
+  const tokenDecimals = Number(walletStore.currencies[denom].decimal_digits);
   const coin = new Coin(denom, new Int(tokenAmount));
   const data = CurrencyUtils.calculateBalance(price, coin, tokenDecimals);
   return data.toDec().toString(2)

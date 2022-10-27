@@ -23,6 +23,7 @@ const ScreenState = {
 const currentComponent = shallowRef({} as ReceiveMainComponentData);
 const hideDialogHeader = () => setShowDialogHeader(false);
 const showDialogHeader = () => setShowDialogHeader(true);
+
 const setShowDialogHeader = inject(
   'setShowDialogHeader',
   (bool: Boolean) => {}

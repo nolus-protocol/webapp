@@ -5,14 +5,16 @@ import { defineStore } from 'pinia';
 import { OracleActionTypes } from '@/stores/oracle/action-types';
 import { EnvNetworkUtils } from '@/utils';
 import { NolusClient } from '@nolus/nolusjs';
-import { Oracle, type Price } from '@nolus/nolusjs/build/contracts';
+import { Oracle,  } from '@nolus/nolusjs/build/contracts';
 import { CONTRACTS } from '@/config/contracts';
-import { oracleDenoms } from '@/config/currencies';
+import { ASSETS } from '@/config/assetsInfo';
+
+import CURRENCIES from '@/config/currencies.json';
 
 const useOracleStore = defineStore('oracle', {
   state: () => {
     return {
-      prices: null,
+      prices: {},
     } as State;
   },
   actions: {
@@ -23,22 +25,33 @@ const useOracleStore = defineStore('oracle', {
           cosmWasmClient,
           CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].oracle.instance
         );
-        const oraclePrices: Price[] = await oracleContract.getPricesFor(
-          oracleDenoms
-        );
+
+        const promises = [];
         const pricesState: { [key: string]: StatePrice } = {};
 
-        oraclePrices.forEach((price) => {
-          const calculatedPrice = new Dec(price.amount.amount).quo(
-            new Dec(price.amount_quote.amount)
-          );
-          const tokenPrice = {
-            amount: calculatedPrice.toString(),
-            symbol: price.amount_quote.symbol,
-          };
-          pricesState[price.amount.symbol] = tokenPrice;
-        });
+        for (const key in CURRENCIES.currencies) {
+          const currency = CURRENCIES.currencies[key as keyof typeof CURRENCIES.currencies];
+          promises.push(oracleContract.getPriceFor(
+            currency.symbol
+          ).then((price) => {
+            const calculatedPrice = new Dec(price.amount.amount).quo(
+              new Dec(price.amount_quote.amount)
+            );
+            //TODO check ticker
+            const tokenPrice = {
+              amount: calculatedPrice.toString(),
+              symbol: price.amount_quote.ticker,
+            };
+            pricesState[currency.symbol] = tokenPrice;
+          }).catch((error) => {
+            pricesState[currency.symbol] = {
+              amount: ASSETS[key as keyof typeof ASSETS].defaultPrice,
+              symbol: currency.symbol
+            };
+          }));
+        }
 
+        await Promise.allSettled(promises);
         this.prices = pricesState;
       } catch (error: Error | any) {
         throw new Error(error);

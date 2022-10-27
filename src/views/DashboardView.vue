@@ -271,7 +271,7 @@ const state = ref({
 const vestedTokens = ref([] as { delayed: boolean, endTime: string, toAddress: string, amount: { amount: string, denom: string } }[]);
 const mainAssets = computed(() => wallet.balances);
 const manipulatedAssets = computed(() =>
-  state.value.showSmallBalances ? mainAssets.value : filterSmallBalances(mainAssets.value)
+  state.value.showSmallBalances ? mainAssets.value : filterSmallBalances(mainAssets.value as AssetBalance[])
 );
 
 onMounted(() => {
@@ -300,7 +300,7 @@ const activeLeases = computed(() => {
   leases.value.forEach((lease) => {
 
     if (lease.leaseStatus.opened) {
-      const denom = lease.leaseStatus.opened.amount.symbol;
+      const denom = lease.leaseStatus.opened.amount.ticker;
       const balance = CurrencyUtils.calculateBalance(
         getMarketPrice(denom),
         new Coin(denom, lease.leaseStatus.opened.amount.amount),
@@ -340,7 +340,7 @@ const availableAssets = computed(() => {
 
 const suppliedAndStaked = computed(() => {
   // // @TODO: get suppliedAndStaked
-  const totalSuppliedAndStaked = new Dec(235);
+  const totalSuppliedAndStaked = new Dec(0);
   state.value.suppliedAndStaked = totalSuppliedAndStaked;
   return CurrencyUtils.formatPrice(
     totalSuppliedAndStaked.toString()
@@ -358,16 +358,13 @@ const openModal = (action: DASHBOARD_ACTIONS, denom = '') => {
 }
 
 const getAssetInfo = (denom: string) => {
-  return AssetUtils.getAssetInfoByAbbr(denom);
+  return wallet.getCurrencyInfo(denom);
 }
 
 const getMarketPrice = (denom: string) => {
-  const prices = oracle.prices;
+  const item = wallet.currencies[denom];
+  const price = oracle.prices?.[item?.symbol]?.amount ?? '0';
 
-  if (prices) {
-    return prices[denom]?.amount || '0';
-  }
-
-  return '0';
+  return price;
 }
 </script>

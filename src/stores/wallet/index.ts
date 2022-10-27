@@ -2,26 +2,27 @@ import KeplrEmbedChainInfo from '@/config/keplr';
 import router from '@/router';
 import BluetoothTransport from '@ledgerhq/hw-transport-web-ble';
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
+import CURRENCIES from '@/config/currencies.json';
 
 import type { HdPath } from '@cosmjs/crypto';
-import type { AssetBalance, State } from '@/stores/wallet/state';
+import type { State } from '@/stores/wallet/state';
 import type { Window as KeplrWindow } from '@keplr-wallet/types/build/window';
 import { WalletConnectMechanism } from '@/types';
 import { defineStore } from 'pinia';
 import { WalletActionTypes } from '@/stores/wallet/action-types';
-import { EncryptionUtils, EnvNetworkUtils, KeyUtils as KeyUtilities, WalletUtils } from '@/utils';
+import { EncryptionUtils, EnvNetworkUtils, KeyUtils as KeyUtilities, WalletUtils, AssetUtils } from '@/utils';
 import { makeCosmoshubPath } from '@cosmjs/amino';
-import { AssetUtils, CurrencyUtils, KeyUtils, NolusClient, NolusWalletFactory } from '@nolus/nolusjs';
+import { CurrencyUtils, KeyUtils, NolusClient, NolusWalletFactory } from '@nolus/nolusjs';
 import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
 import { ChainConstants } from '@nolus/nolusjs/build/constants';
 import { fromHex, toHex } from '@cosmjs/encoding';
 import { WalletManager } from '@/wallet/WalletManager';
 import { RouteNames } from '@/router/RouterNames';
-import { IbcAssets, supportedCurrencies } from '@/config/currencies';
 import { LedgerSigner } from '@cosmjs/ledger-amino';
 import { decodeTxRaw, Registry, type DecodedTxRaw, } from '@cosmjs/proto-signing';
 import { defaultRegistryTypes as defaultStargateTypes } from "@cosmjs/stargate";
 import { NETWORKS } from '@/config/env';
+import { ASSETS } from '@/config/assetsInfo';
 
 const useWalletStore = defineStore('wallet', {
   state: () => {
@@ -30,6 +31,7 @@ const useWalletStore = defineStore('wallet', {
       wallet: null,
       privateKey: null,
       balances: [],
+      currencies: {}
     } as State;
   },
   actions: {
@@ -187,36 +189,31 @@ const useWalletStore = defineStore('wallet', {
         if (!WalletUtils.isAuth()) {
           WalletManager.eraseWalletInfo();
           await router.push({ name: RouteNames.AUTH });
-          return;
+          return false;
         }
 
-        const ibcBalances = [] as AssetBalance[];
-        for (const currency of supportedCurrencies) {
-          const balance = await NolusClient.getInstance().getBalance(
-            walletAddress,
-            currency
-          );
-          ibcBalances.push({
-            balance: CurrencyUtils.convertCosmosCoinToKeplCoin(balance),
-          });
-        }
+        const ibcBalances = [];
 
-        for (const ibcAsset of IbcAssets) {
-          const ibcDenom = AssetUtils.makeIBCMinimalDenom(
-            ibcAsset.sourceChannelId,
-            ibcAsset.coinMinimalDenom
-          );
-          const balance = await NolusClient.getInstance().getBalance(
+        for (const key in CURRENCIES.currencies) {
+          const currency = CURRENCIES.currencies[key as keyof typeof CURRENCIES.currencies];
+          const ibcDenom = AssetUtils.makeIBCMinimalDenom(currency.ibc_route, currency.symbol);
+          ibcBalances.push(NolusClient.getInstance().getBalance(
             walletAddress,
             ibcDenom
-          );
-
-          ibcBalances.push({
-            balance: CurrencyUtils.convertCosmosCoinToKeplCoin(balance),
-          });
+          ).then((item) => {
+            const data = {
+              ticker: key,
+              name: currency.name,
+              symbol: currency.symbol,
+              decimal_digits: currency.decimal_digits,
+              groups: currency.groups,
+              swap_routes: currency.swap_routes
+            };
+            this.currencies[ibcDenom] = data;
+            return { balance: CurrencyUtils.convertCosmosCoinToKeplCoin(item) };
+          }));
         }
-
-        this.balances = ibcBalances;
+        this.balances = await Promise.all(ibcBalances);
       } catch (e: Error | any) {
         throw new Error(e);
       }
@@ -238,12 +235,21 @@ const useWalletStore = defineStore('wallet', {
       }
     },
     async [WalletActionTypes.SEARCH_TX]() {
-      const data = await NolusClient.getInstance().searchTxByAddress(
-        WalletManager.getWalletAddress() || ''
-      );
-      return data;
+      const address = WalletManager.getWalletAddress();
+      if (address?.length > 0) {
+        const data = await NolusClient.getInstance().searchTxByAddress(
+          WalletManager.getWalletAddress() || ''
+        );
+        return data;
+      }
+      return [];
     },
-    async [WalletActionTypes.LOAD_VESTED_TOKENS](): Promise<{ delayed: boolean, endTime: string, toAddress: string, amount: { amount: string, denom: string } }[]> {
+    async [WalletActionTypes.LOAD_VESTED_TOKENS](): Promise<{
+      delayed: boolean,
+      endTime: string,
+      toAddress: string,
+      amount: { amount: string, denom: string }
+    }[]> {
       const client = await NolusClient.getInstance().getTendermintClient();
 
       const data = await client.txSearch({ query: `message.action='/cosmos.vesting.v1beta1.MsgCreateVestingAccount' AND transfer.sender='${WalletManager.getWalletAddress()}'` });
@@ -275,6 +281,37 @@ const useWalletStore = defineStore('wallet', {
       const json = await data.json();
       return json;
     },
+  },
+  getters: {
+    getCurrencyInfo: (state) => {
+      return (denom: string) => {
+        const currency = state.currencies[denom];
+        const key = currency.ticker as keyof typeof ASSETS;
+        return {
+          ticker: key,
+          coinDenom: ASSETS[key].abbreviation,
+          coinMinimalDenom: denom,
+          coinDecimals: Number(currency.decimal_digits),
+          coinAbbreviation: ASSETS[key].abbreviation,
+          coinGeckoId: ASSETS[key].coinGeckoId,
+          coinIcon: ASSETS[key].coinIcon
+        }
+      };
+    },
+    getCurrencyByTicker: (state) => {
+      return (ticker: string) => {
+        return CURRENCIES.currencies[ticker as keyof typeof CURRENCIES.currencies]
+      };
+    },
+    getIbcDenomBySymbol: (state) => {
+      return (symbol: string) => {
+        for(const key in state.currencies){
+          if(symbol == state.currencies[key].symbol){
+            return key;
+          }
+        }
+      };
+    }
   },
 });
 

@@ -1,7 +1,7 @@
 <template>
   <div
     :class="[
-      type !== null ? 'picker ' + type : 'picker ',
+      type !== null ? 'picker ' + type : 'picker',
       isError === true ? ' error' : '',
     ]"
   >
@@ -22,7 +22,7 @@
         >
           <span class="flex items-center">
             <img
-              :src="getAssetInfo(selected.value?.balance?.denom).coinIcon"
+              :src="getAssetInfo(selected.value?.balance?.denom)?.coinIcon"
               alt=""
               class="flex-shrink-0 h-6 w-6 rounded-full"
             />
@@ -108,15 +108,10 @@
 import type { AssetBalance } from '@/stores/wallet/state';
 import { type PropType, ref, onMounted } from 'vue';
 
-import {
-  Listbox,
-  ListboxButton,
-  ListboxLabel,
-  ListboxOption,
-  ListboxOptions,
-} from '@headlessui/vue';
+import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue';
 import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/24/solid';
-import { AssetUtils } from '@/utils';
+import { useWalletStore } from '@/stores/wallet';
+import { DEFAULT_ASSET } from '@/config/env';
 
 const props = defineProps({
   label: {
@@ -146,8 +141,10 @@ const props = defineProps({
   },
 });
 
+const wallet = useWalletStore();
+
 const getAssetInfo = (denom: string) => {
-  return AssetUtils.getAssetInfoByAbbr(denom);
+  return wallet.getCurrencyInfo(denom ?? DEFAULT_ASSET.denom);
 };
 
 const selected = ref({

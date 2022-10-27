@@ -29,7 +29,7 @@
     "@ledgerhq/hw-transport-webhid": "^6.27.1",
     "@ledgerhq/hw-transport-webusb": "^6.27.1",
     "@ledgerhq/logs": "^6.10.0",
-    "@nolus/nolusjs": "0.0.60",
+    "@nolus/nolusjs": "^0.0.69",
     "browserify-zlib": "^0.2.0",
     "chart.js": "^3.9.1",
     "chartjs-adapter-date-fns": "^2.0.0",

@@ -20,7 +20,6 @@ import { WalletManager } from '@/wallet/WalletManager';
 import { useApplicationStore, ApplicationActionTypes } from '@/stores/application';
 import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
 import { useOracleStore, OracleActionTypes } from '@/stores/oracle';
-import { NolusClient } from "@nolus/nolusjs";
 
 const showErrorDialog = ref(false);
 const errorMessage = ref('');
@@ -46,15 +45,12 @@ const onClickTryAgain = async () => {
 const loadNetwork = async () => {
   try {
     application[ApplicationActionTypes.CHANGE_NETWORK]();
-    //TODO: get prices
     await Promise.all([
       wallet[WalletActionTypes.UPDATE_BALANCES](),
-      // oracle[OracleActionTypes.GET_PRICES]()
+      oracle[OracleActionTypes.GET_PRICES]()
     ]);
     checkBalances();
-    // checkPrices();
-    const client = await NolusClient.getInstance().getTendermintClient();
-    client.tx
+    checkPrices();
   } catch (error: Error | any) {
     showErrorDialog.value = true;
     errorMessage.value = error?.message;

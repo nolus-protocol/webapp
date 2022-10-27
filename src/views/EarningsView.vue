@@ -132,7 +132,7 @@ import { onMounted, ref, watch } from 'vue';
 import { claimRewardsMsg, type ContractData, Lpp} from '@nolus/nolusjs/build/contracts';
 import { ChainConstants, NolusClient } from '@nolus/nolusjs';
 
-import { LPP_CONSTANTS } from '@/config/contracts';
+import { CONTRACTS } from '@/config/contracts';
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils';
 
 import { WalletManager } from '@/wallet/WalletManager';
@@ -155,11 +155,9 @@ const showClaimModal = ref(false);
 const showErrorDialog = ref(false);
 const errorMessage = ref('');
 
-
 onMounted(async () => {
   try {
     await getAllRewards();
-
     balances.value = wallet.balances.filter((asset) => {
       return availableCurrencies.value.includes(asset.balance.denom);
     });
@@ -199,26 +197,31 @@ const openSupplyWithdrawDialog = (denom: string) => {
 const getAllRewards = async () => {
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
 
-  for (const [_key, value] of Object.entries(
-    LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()]
-  )) {
-    const lppClient = new Lpp(cosmWasmClient, value.instance);
+
+  const contract = CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance;
+
+  const lppClient = new Lpp(cosmWasmClient, contract);
 
     claimContractData.value.push({
-      contractAddress: value.instance,
+      contractAddress: contract,
       msg: claimRewardsMsg(),
     });
 
     const lppConfig = await lppClient.getLppConfig();
-    availableCurrencies.value.push(lppConfig.lpn_symbol);
+    const lpnCoin = wallet.getCurrencyByTicker(lppConfig.lpn_ticker);
+    const lpnIbcDenom = wallet.getIbcDenomBySymbol(lpnCoin.symbol);
+
+    availableCurrencies.value.push(lpnIbcDenom as string);
 
     const lppRewards = await lppClient.getLenderRewards(
       WalletManager.getWalletAddress()
     );
+    const coin = wallet.getCurrencyByTicker(lppRewards.rewards.ticker);
+    const ibcDenom = wallet.getIbcDenomBySymbol(coin.symbol);
     rewards.value.push({
-      balance: new Coin(lppRewards.rewards.symbol, lppRewards.rewards.amount),
+      balance: new Coin(ibcDenom as string, lppRewards.rewards.amount),
     });
-  }
+  
 };
 
 watch(walletRef.balances, async (balanceValue: AssetBalance[]) => {

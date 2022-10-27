@@ -1,6 +1,7 @@
 import CryptoJS from 'crypto-js';
 
 export class EncryptionUtils {
+  
   public static encryptEncryptionKey(
     encryptionKey: string,
     password: string

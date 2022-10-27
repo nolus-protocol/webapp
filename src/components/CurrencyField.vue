@@ -46,11 +46,12 @@ import CurrencyPicker from '@/components/CurrencyPicker.vue';
 
 import { Coin, Int } from '@keplr-wallet/unit';
 import { CurrencyUtils } from '@nolus/nolusjs';
-import { assetsInfo } from '@/config/assetsInfo';
 import { useOracleStore } from '@/stores/oracle';
+import { useWalletStore } from '@/stores/wallet';
 
 const emit = defineEmits(['update-currency', 'update:modelValue']);
 const oracle = useOracleStore();
+const wallet = useWalletStore();
 
 const props = defineProps({
   name: {
@@ -102,7 +103,8 @@ const calculateInputBalance = () => {
   }
 
   const denom = props.option.balance.denom;
-  const { coinDecimals, coinMinimalDenom } = assetsInfo[denom];
+  const { coinDecimals, coinMinimalDenom } = wallet.getCurrencyInfo(denom);
+  const symbol = wallet.currencies[denom].symbol;
 
   const { amount } = CurrencyUtils.convertDenomToMinimalDenom(
     props.value,
@@ -110,7 +112,7 @@ const calculateInputBalance = () => {
     coinDecimals
   );
   const coin = new Coin(denom, new Int(String(amount)));
-  const tokenPrice = prices[denom]?.amount || '0';
+  const tokenPrice = prices[symbol]?.amount || '0';
 
   return CurrencyUtils.calculateBalance(tokenPrice, coin, coinDecimals);
 };

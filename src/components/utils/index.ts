@@ -4,10 +4,8 @@ import type { Coin } from '@cosmjs/proto-signing';
 import { Int } from '@keplr-wallet/unit';
 import { fromBech32 } from '@cosmjs/encoding';
 import { CurrencyUtils } from '@nolus/nolusjs';
-import { assetsInfo } from '@/config/assetsInfo';
 import { defaultNolusWalletFee } from '@/config/wallet';
 import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
-import { WalletUtils } from '@/utils';
 import { WalletManager } from '@/wallet/WalletManager';
 import { WalletConnectMechanism } from '@/types';
 
@@ -29,11 +27,13 @@ export const validateAmount = (
   denom: string,
   balance: number
 ) => {
+
   if (!amount) {
     return i18n.global.t('message.invalid-amount');
   }
 
-  const { coinMinimalDenom, coinDecimals } = assetsInfo[denom];
+  const walletStore = useWalletStore()
+  const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(denom);
   const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
     amount,
     coinMinimalDenom,
@@ -72,20 +72,20 @@ export const walletOperation = async (
 
   if (!wallet) {
 
-    switch(WalletManager.getWalletConnectMechanism()){
-      case(WalletConnectMechanism.MNEMONIC):{
+    switch (WalletManager.getWalletConnectMechanism()) {
+      case (WalletConnectMechanism.MNEMONIC): {
         await walletStore[WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN]({ password });
         break;
       }
-      case(WalletConnectMechanism.EXTENSION):{
+      case (WalletConnectMechanism.EXTENSION): {
         await walletStore[WalletActionTypes.CONNECT_KEPLR]();
         break;
       }
-      case(WalletConnectMechanism.LEDGER):{
+      case (WalletConnectMechanism.LEDGER): {
         await walletStore[WalletActionTypes.CONNECT_LEDGER]();
         break;
       }
-      case(WalletConnectMechanism.LEDGER_BLUETOOTH):{
+      case (WalletConnectMechanism.LEDGER_BLUETOOTH): {
         await walletStore[WalletActionTypes.CONNECT_LEDGER]();
         break;
       }
@@ -98,8 +98,9 @@ export const walletOperation = async (
   }
 };
 
-export const getMicroAmount = (minimalDenom: string, amount: string) => {
-  if (!minimalDenom) {
+export const getMicroAmount = (denom: string, amount: string) => {
+
+  if (!denom) {
     throw new Error(i18n.global.t('message.missing-denom'));
   }
 
@@ -107,7 +108,8 @@ export const getMicroAmount = (minimalDenom: string, amount: string) => {
     throw new Error(i18n.global.t('message.missing-amount'));
   }
 
-  const { coinMinimalDenom, coinDecimals } = assetsInfo[minimalDenom];
+  const walletStore = useWalletStore()
+  const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(denom);
   const mAmount = CurrencyUtils.convertDenomToMinimalDenom(
     amount,
     coinMinimalDenom,
@@ -134,7 +136,8 @@ export const transferCurrency = async (
     return result;
   }
 
-  const { coinMinimalDenom, coinDecimals } = assetsInfo[denom];
+  const walletStore = useWalletStore()
+  const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(denom);
   const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
     amount,
     coinMinimalDenom,

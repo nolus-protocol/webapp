@@ -22,9 +22,9 @@
         <div class="inline-flex items-center bg-light-grey radius-rounded text-14 text-primary nls-font-400 m-0 p-1">
           <img
             class="inline-block w-4 h-4 mr-1 my-0"
-            src="@/assets/icons/coins/nls.svg"
+            :src="DEFAULT_ASSET.icon"
           />
-          <span>NLS</span>
+          <span>{{ DEFAULT_ASSET.label }}</span>
         </div>
       </div>
       <div class="block mt-1">
@@ -58,6 +58,7 @@
 import QrcodeVue from 'qrcode.vue';
 import type { PropType } from 'vue';
 import { ArrowLeftIcon, DocumentDuplicateIcon } from '@heroicons/vue/24/solid';
+import { DEFAULT_ASSET } from '@/config/env';
 
 export interface ReceiveQrCodeComponentProps {
   walletAddress: string;

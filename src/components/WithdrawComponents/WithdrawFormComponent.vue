@@ -17,7 +17,7 @@
         :is-error="modelValue.amountErrorMsg !== ''"
         :option="modelValue.selectedCurrency"
         :value="modelValue.amount"
-        label="Amount"
+        :label="$t('message.amount')"
         name="amountSupply"
         @input="handleAmountChange($event)"
         @update-currency="(event) => (modelValue.selectedCurrency = event)"
@@ -43,7 +43,7 @@ import type { AssetBalance } from '@/stores/wallet/state';
 import type { WithdrawFormComponentProps } from '@/types/component/WithdrawFormComponentProps';
 import type { PropType } from 'vue';
 import { CurrencyUtils } from '@nolus/nolusjs';
-import { assetsInfo } from '@/config/assetsInfo';
+import { useWalletStore } from '@/stores/wallet';
 
 const props = defineProps({
   modelValue: {
@@ -52,11 +52,13 @@ const props = defineProps({
   },
 });
 
+const walletStore = useWalletStore();
+
 defineEmits(['update:modelValue.selectedCurrency']);
 
 function formatCurrentBalance(selectedCurrency: AssetBalance) {
   if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
-    const asset = assetsInfo[selectedCurrency.balance.denom];
+    const asset = walletStore.getCurrencyInfo(selectedCurrency?.balance?.denom);
     return CurrencyUtils.convertMinimalDenomToDenom(
       selectedCurrency.balance.amount.toString(),
       selectedCurrency.balance.denom,
@@ -71,7 +73,7 @@ const handleAmountChange = (event: Event) => {
 };
 
 const setAmount = () => {
-  const asset = assetsInfo[props.modelValue.currentDepositBalance.balance.denom];
+  const asset = walletStore.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
   const data = CurrencyUtils.convertMinimalDenomToDenom(
     props.modelValue.currentDepositBalance.balance.amount.toString(),
     props.modelValue.currentDepositBalance.balance.denom,

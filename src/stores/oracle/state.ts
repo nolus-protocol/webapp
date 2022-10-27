@@ -4,5 +4,5 @@ export interface Price {
 }
 
 export type State = {
-  prices: { [key: string]: Price } | null;
+  prices: { [key: string]: Price } ;
 };

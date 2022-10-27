@@ -40,12 +40,13 @@ import { CONFIRM_STEP } from '@/types/ConfirmStep';
 import { TxType } from '@/types/TxType';
 import { NolusClient, NolusWallet } from '@nolus/nolusjs';
 import { Lpp } from '@nolus/nolusjs/build/contracts';
-import { LPP_CONSTANTS } from '@/config/contracts';
+import { CONTRACTS } from '@/config/contracts';
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils';
 import { defaultNolusWalletFee } from '@/config/wallet';
 import { useWalletStore } from '@/stores/wallet';
 import { computed, inject, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { DEFAULT_APR, GROUPS } from '@/config/env';
 
 const { selectedAsset } = defineProps({
   selectedAsset: {
@@ -56,10 +57,13 @@ const { selectedAsset } = defineProps({
 
 const i18n = useI18n();
 const walletStore = useWalletStore();
+
 const balances = computed(() => {
   const balances = walletStore.balances;
-  const lpp_coins = LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()];
-  return balances.filter((item) => lpp_coins[item.balance.denom] );
+  return balances.filter((item) => {
+    const currency = walletStore.currencies[item.balance.denom];
+    return currency.groups.includes(GROUPS.Lpn);
+  });
 });
 
 const selectedCurrency = computed(
@@ -73,11 +77,8 @@ const state = ref({
   amount: '',
   password: '',
   amountErrorMsg: '',
-  currentAPR: '24.21%',
-  receiverAddress:
-    LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][
-      selectedCurrency.value.balance.denom
-    ]?.instance,
+  currentAPR: `${DEFAULT_APR}%`,
+  receiverAddress: CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance,
   txHash: '',
   onNextClick: () => onNextClick(),
 } as SupplyFormComponentProps);
@@ -126,7 +127,7 @@ async function onSupplyClick() {
 
 async function transferAmount() {
   const wallet = walletStore.wallet as NolusWallet;
-  if (wallet && state.value.amountErrorMsg === "") {
+  if (wallet && state.value.amountErrorMsg === '') {
     step.value = CONFIRM_STEP.PENDING;
     try {
       const microAmount = getMicroAmount(
@@ -137,9 +138,7 @@ async function transferAmount() {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const lppClient = new Lpp(
         cosmWasmClient,
-        LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][
-          state.value.selectedCurrency.balance.denom
-        ].instance
+        CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance
       );
       const result = await lppClient.deposit(wallet, defaultNolusWalletFee(), [
         {
@@ -148,7 +147,7 @@ async function transferAmount() {
         },
       ]);
       if (result) {
-        state.value.txHash = result.transactionHash || "";
+        state.value.txHash = result.transactionHash || '';
         step.value = CONFIRM_STEP.SUCCESS;
       }
     } catch (e) {
@@ -168,10 +167,6 @@ watch(
   () => [...state.value.selectedCurrency.balance.denom.toString()],
   (currentValue, oldValue) => {
     validateInputs();
-    state.value.receiverAddress =
-      LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()][
-        state.value.selectedCurrency.balance.denom
-      ]?.instance || "";
   }
 );
 </script>

@@ -46,11 +46,6 @@ const KeplrEmbedChainInfo = (
       coinGeckoId: ChainConstants.COIN_GECKO_ID,
     },
     coinType: ChainConstants.COIN_TYPE,
-    // gasPriceStep: {
-    //   low: 0.01,
-    //   average: 0.025,
-    //   high: 0.03
-    // },
     features: ['ibc-transfer'],
   };
 };

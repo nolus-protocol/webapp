@@ -1,4 +1,4 @@
-import type { AssetBalance } from "@/stores/wallet/state";
+import type { AssetBalance } from '@/stores/wallet/state';
 
 export interface WithdrawFormComponentProps {
   currentDepositBalance: AssetBalance;

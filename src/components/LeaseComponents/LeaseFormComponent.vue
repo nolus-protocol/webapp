@@ -41,7 +41,7 @@
         v-if="modelValue.selectedCurrency?.balance?.denom"
         class="mb-3 mt-[25px] flex justify-end align-center dark-text nls-font-500 text-14"
       >
-        1 {{ formatAssetInfo(modelValue.selectedCurrency?.balance?.denom) }} price in USD:
+        {{ $t('message.price-in-usd', { symbol: formatAssetInfo(modelValue.selectedCurrency?.balance?.denom) }) }}
         <span class="inline-block nls-font-700 ml-5">{{ pricePerToken }}</span>
       </p>
     </div>
@@ -69,7 +69,7 @@
           </span>
         </p>
         <p class="mb-3 mt-[25px] flex justify-end align-center dark-text">
-          $18,585.00
+          $0
           <TooltipComponent content="Content goes here" />
         </p>
       </div>
@@ -94,16 +94,15 @@ import TooltipComponent from '@/components/TooltipComponent.vue';
 import type { LeaseComponentProps } from '@/types/component/LeaseComponentProps';
 
 import { ref, watch, type PropType } from 'vue';
-import { StringUtils } from '@/utils/StringUtils';
-import { assetsInfo } from '@/config/assetsInfo';
 import { CurrencyUtils } from '@nolus/nolusjs';
 import { Coin } from '@keplr-wallet/unit';
 import { useOracleStore } from '@/stores/oracle';
 import { computed } from 'vue';
-import { LPP_CONSTANTS } from '@/config/contracts';
-import { EnvNetworkUtils } from '@/utils';
+import { useWalletStore } from '@/stores/wallet';
 
 const oracle = useOracleStore();
+const wallet = useWalletStore();
+
 const disabledInputField = ref(true);
 
 const handleDownPaymentChange = (event: Event) => {
@@ -115,9 +114,13 @@ const handleAmountChange = (event: Event) => {
 };
 
 const balances = computed(() => {
-  const balances = props.modelValue.currentBalance;
-  const lpp_coins = LPP_CONSTANTS[EnvNetworkUtils.getStoredNetworkName()];
-  return balances.filter((item) => lpp_coins[item.balance.denom] );
+  return wallet.balances;
+  // TODO: uncomemnt for production
+  // const balances = wallet.balances;
+  // return balances.filter((item) => {
+  //   const currency = wallet.currencies[item.balance.denom];
+  //   return currency.groups.includes(GROUPS.Lease);
+  // });
 });
 
 const props = defineProps({
@@ -129,7 +132,7 @@ const props = defineProps({
 
 const getPrice = (currencyDenom: string) => {
   const prices = oracle.prices;
-  const denom = StringUtils.getDenomFromMinimalDenom(currencyDenom);
+  const denom = wallet.currencies[currencyDenom].symbol;
   if (prices) {
     return prices[denom];
   }
@@ -140,10 +143,7 @@ const getPrice = (currencyDenom: string) => {
 };
 
 const formatAssetInfo = (currencyDenom: string) => {
-  if (currencyDenom) {
-    return assetsInfo[currencyDenom].coinAbbreviation;
-  }
-  return '';
+  return wallet.currencies[currencyDenom].ticker;
 };
 
 const annualInterestRate = computed(() => {

@@ -46,10 +46,9 @@
             "token_1": "OSMO"
         }
     ],
-    "currencies": [
-        {
+    "currencies": {
+        "NLS": {
             "name": "Nolus",
-            "ticker": "NLS",
             "symbol": "unls",
             "decimal_digits": "6",
             "ibc_route": [],
@@ -69,13 +68,12 @@
                 ]
             ]
         },
-        {
+        "USDC": {
             "name": "Usdc",
-            "ticker": "USDC",
             "symbol": "uusdc",
             "decimal_digits": "6",
             "ibc_route": [
-                "channel-Nls",
+                "channel-0",
                 "channel-208"
             ],
             "groups": [
@@ -83,13 +81,12 @@
             ],
             "swap_routes": []
         },
-        {
+        "ATOM": {
             "name": "Cosmos Hub ATOM",
-            "ticker": "ATOM",
             "symbol": "uatom",
             "decimal_digits": "6",
             "ibc_route": [
-                "channel-Nls",
+                "channel-0",
                 "channel-0"
             ],
             "groups": [
@@ -108,13 +105,12 @@
                 ]
             ]
         },
-        {
+        "OSMO": {
             "name": "Osmosis OSMO",
-            "ticker": "OSMO",
             "symbol": "uosmo",
             "decimal_digits": "6",
             "ibc_route": [
-                "channel-Nls"
+                "channel-0"
             ],
             "groups": [
                 "Lease"
@@ -128,13 +124,12 @@
                 ]
             ]
         },
-        {
+        "WETH": {
             "name": "Ethereum WETH",
-            "ticker": "WETH",
             "symbol": "weth-wei",
             "decimal_digits": "6",
             "ibc_route": [
-                "channel-Nls",
+                "channel-0",
                 "channel-208"
             ],
             "groups": [
@@ -153,13 +148,12 @@
                 ]
             ]
         },
-        {
+        "WBTC": {
             "name": "Bitcoin WBTC",
-            "ticker": "WBTC",
-            "symbol": "wbtc-wei",
+            "symbol": "wbtc-satoshi",
             "decimal_digits": "6",
             "ibc_route": [
-                "channel-Nls",
+                "channel-0",
                 "channel-208"
             ],
             "groups": [
@@ -178,13 +172,12 @@
                 ]
             ]
         },
-        {
+        "EVMOS": {
             "name": "Evmos",
-            "ticker": "EVMOS",
             "symbol": "aevmos",
             "decimal_digits": "18",
             "ibc_route": [
-                "channel-Nls",
+                "channel-0",
                 "channel-204"
             ],
             "groups": [
@@ -203,13 +196,12 @@
                 ]
             ]
         },
-        {
+        "JUNO": {
             "name": "Juno",
-            "ticker": "JUNO",
             "symbol": "ujuno",
             "decimal_digits": "6",
             "ibc_route": [
-                "channel-Nls",
+                "channel-0",
                 "channel-42"
             ],
             "groups": [
@@ -228,13 +220,12 @@
                 ]
             ]
         },
-        {
+        "STARS": {
             "name": "Stargaze",
-            "ticker": "STARS",
             "symbol": "ustars",
             "decimal_digits": "6",
             "ibc_route": [
-                "channel-Nls",
+                "channel-0",
                 "channel-75"
             ],
             "groups": [
@@ -253,13 +244,12 @@
                 ]
             ]
         },
-        {
+        "CRO": {
             "name": "Crypto.org CRO",
-            "ticker": "CRO",
             "symbol": "basecro",
             "decimal_digits": "8",
             "ibc_route": [
-                "channel-Nls",
+                "channel-0",
                 "channel-5"
             ],
             "groups": [
@@ -278,13 +268,12 @@
                 ]
             ]
         },
-        {
+        "SCRT": {
             "name": "Secret SCRT",
-            "ticker": "SCRT",
             "symbol": "uscrt",
             "decimal_digits": "6",
             "ibc_route": [
-                "channel-Nls",
+                "channel-0",
                 "channel-88"
             ],
             "groups": [
@@ -303,9 +292,11 @@
                 ]
             ]
         }
-    ],
+    },
     "definitions": [
         "Each currency is identified by its 'ticker'. A currency with ticker NLS is required.",
+        "The currencies map indexes the currencies by their ticker",
+        "",
         "The 'name' is a human readable description of the currency",
         "",
         "The 'symbol' is the base denomination of the currency at its native chain.",
@@ -317,11 +308,11 @@
         "",
         "The currency symbol at the network Nolus interoperates with, e.g. Osmosis, is either ",
         "'ibc/' + sha256('transfer' + '/' + channel-Osm + '/' + symbol) if 'ibc_route' == [], or ",
-        "symbol if 'ibc_route' == ['channel-Nls'], or ",
+        "symbol if 'ibc_route' == ['channel-0'], or ",
         "'ibc/' + sha256('transfer' + '/' + ibc_route[1] + '/' + ... + 'transfer' + '/' + ibc_route[n-1] + '/' + symbol) otherwise, ",
-        "where 'k' = length(ibc_route), ",
+        "where 'n' = length(ibc_route), ",
         "channel-0sm refers to the id of the channel between Osmosis and Nolus at the Osmosis endpoint, and ",
-        "channel-Nls refers to the id of the channel between Osmosis and Nolus at the Nolus endpoint",
+        "channel-0 should be the id of the channel between Osmosis and Nolus at the Nolus endpoint",
         "",
         "more info https://github.com/cosmos/ibc-go/blob/c86d27fc280cfb342a9e4689b381e5823441b694/modules/apps/transfer/types/trace.go#L19",
         "",

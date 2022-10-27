@@ -28,12 +28,11 @@ import type { AssetBalance } from '@/stores/wallet/state';
 import RepayFormComponent from '@/components/RepayComponents/RepayFormComponent.vue';
 import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue';
 
-import { inject, onBeforeMount, onMounted, ref, watch, type PropType } from 'vue';
+import { inject, onBeforeMount, ref, watch, type PropType } from 'vue';
 import { Lease } from '@nolus/nolusjs/build/contracts';
 import { CurrencyUtils, NolusClient, NolusWallet } from '@nolus/nolusjs';
 import { Dec, Int } from '@keplr-wallet/unit';
 
-import { assetsInfo } from '@/config/assetsInfo';
 import { CONFIRM_STEP } from '@/types';
 import { TxType } from '@/types';
 import { defaultNolusWalletFee } from '@/config/wallet';
@@ -79,7 +78,10 @@ onBeforeMount(() => {
 
   if (balances) {
     const lease = props.leaseData;
-    const item = balances.find((item) => item.balance.denom == lease?.leaseStatus?.opened?.amount?.symbol);
+    const item = balances.find((item) => {
+      const currency = walletStore.getCurrencyInfo(item.balance.denom);
+      return currency.ticker == lease?.leaseStatus?.opened?.amount?.ticker
+    });
     state.value.currentBalance = balances;
     state.value.selectedCurrency = item as AssetBalance;
   }
@@ -105,7 +107,7 @@ const onClickOkBtn = () => {
 
 const isAmountValid = (): boolean => {
   let isValid = true;
-  const decimals = assetsInfo[state.value.selectedCurrency.balance.denom].coinDecimals;
+  const decimals = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom).coinDecimals;
   const amount = state.value.amount;
   const microAmount = CurrencyUtils.convertDenomToMinimalDenom(
     amount,

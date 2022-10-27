@@ -80,7 +80,7 @@
             {{
               calculateBalance(
                 leaseInfo.leaseStatus?.opened?.amount?.amount,
-                leaseInfo.leaseStatus?.opened?.amount?.symbol
+                leaseInfo.leaseStatus?.opened?.amount?.ticker
               )
             }}
           </p>
@@ -103,7 +103,7 @@
             {{
               calculateBalance(
                 leaseInfo.leaseStatus?.opened?.current_interest_due?.amount,
-                leaseInfo.leaseStatus?.opened?.current_interest_due?.symbol
+                leaseInfo.leaseStatus?.opened?.current_interest_due?.ticker
               )
             }}
           </p>
@@ -224,8 +224,8 @@ async function onClickClaim(leaseAddress: string) {
 
 function getAssetInfo(key: keyof AssetInfo) {
   const denom =
-    leaseInfo.leaseStatus?.opened?.amount.symbol ||
-    leaseInfo.leaseStatus?.paid?.symbol;
+    leaseInfo.leaseStatus?.opened?.amount.ticker ||
+    leaseInfo.leaseStatus?.paid?.ticker;
 
   if (denom) {
     const assetInfo = assetsInfo[denom];
@@ -256,8 +256,8 @@ function calculateBalance(tokenAmount = '0', denom = '') {
 
 function getAssetIcon(): string {
   const denom =
-    leaseInfo.leaseStatus?.opened?.amount.symbol ||
-    leaseInfo.leaseStatus?.paid?.symbol ||
+    leaseInfo.leaseStatus?.opened?.amount.ticker ||
+    leaseInfo.leaseStatus?.paid?.ticker ||
     "";
   return AssetUtils.getAssetInfoByAbbr(denom).coinIcon;
 }

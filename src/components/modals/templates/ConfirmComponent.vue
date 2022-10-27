@@ -101,13 +101,14 @@ import { computed, inject, onMounted, ref } from 'vue';
 import { ArrowLeftIcon, CheckIcon, XMarkIcon } from '@heroicons/vue/24/solid';
 import { CurrencyUtils } from '@nolus/nolusjs';
 import { WalletUtils } from '@/utils';
-import { assetsInfo } from '@/config/assetsInfo';
 import { TxType, CONFIRM_STEP } from '@/types';
 import { useI18n } from 'vue-i18n';
 import { FEE } from '@/config/wallet';
+import { useWalletStore } from '@/stores/wallet';
 
 const errorMessage = ref('');
 const i18n = useI18n();
+const wallet = useWalletStore();
 
 interface Props {
   selectedCurrency: AssetBalance;
@@ -130,6 +131,7 @@ const isStepConfirm = computed(() => props.step === CONFIRM_STEP.CONFIRM);
 const isStepPending = computed(() => props.step === CONFIRM_STEP.PENDING);
 const isStepSuccess = computed(() => props.step === CONFIRM_STEP.SUCCESS);
 const isStepError = computed(() => props.step === CONFIRM_STEP.ERROR);
+
 const btnAction = computed(() => {
   if(props.password.length == 0 && isMnemonicWallet()){
     errorMessage.value = i18n.t('message.empty-password');
@@ -137,7 +139,6 @@ const btnAction = computed(() => {
   }
   return isStepConfirm.value ? props.onSendClick : props.onOkClick;
 });
-
 
 const setShowDialogHeader = inject('setShowDialogHeader', (n: boolean) => {});
 
@@ -157,8 +158,7 @@ function formatAmount(value: string) {
     return;
   }
 
-  const { coinDenom, coinMinimalDenom, coinDecimals } =
-    assetsInfo[selectedCurrency.balance.denom];
+  const { coinDenom, coinMinimalDenom, coinDecimals } = wallet.getCurrencyInfo(selectedCurrency.balance.denom);
 
   const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
     value,
