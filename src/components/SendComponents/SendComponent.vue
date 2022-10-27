@@ -1,6 +1,6 @@
 <template>
   <!-- Input Area -->
-  <div class="modal-send-receive-input-area">
+  <div class="modal-send-receive-input-area background">
     <div class="block py-3 px-4 modal-balance radius-light text-left text-14 nls-font-400 text-primary">
       {{$t('message.balance') }}:
       <a class="text-secondary nls-font-700 underline ml-2 cursor-pointer" @click.stop="setAmount">
@@ -51,7 +51,7 @@
     </div>
   </div>
   <!-- Actions -->
-  <div class="modal-send-receive-actions">
+  <div class="modal-send-receive-actions background">
     <button class="btn btn-primary btn-large-primary" @click="modelValue.onNextClick">
       {{ $t('message.next') }}
     </button>

@@ -6,7 +6,7 @@ import wethIcon from '@/assets/icons/coins/eth.svg';
 import wbtcIcon from '@/assets/icons/coins/btc.svg';
 import evmosIcon from '@/assets/icons/coins/evmos.svg';
 import junoIcon from '@/assets/icons/coins/juno.svg';
-import starsIcon from '@/assets/icons/coins/stars.png';
+import starsIcon from '@/assets/icons/coins/stars.svg';
 import croIcon from '@/assets/icons/coins/cro.svg';
 import scrtIcon from '@/assets/icons/coins/scrt.svg';
 

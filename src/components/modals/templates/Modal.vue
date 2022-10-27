@@ -45,6 +45,7 @@ const escapeClicked = (event: KeyboardEvent) => {
 
 const backButtonClicked = (event: Event) => {
   emit('close-modal');
+  document.body.style.overflowY = 'auto';
 };
 
 onMounted(() => {
