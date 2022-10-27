@@ -67,7 +67,7 @@ import router from '@/router';
 import InputField from '@/components/InputField.vue';
 import { ArrowLeftIcon } from '@heroicons/vue/24/solid';
 
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { RouteNames } from '@/router/RouterNames';
 import { useI18n } from 'vue-i18n';
 import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
@@ -124,28 +124,28 @@ const validatePassword = () => {
     return true;
   }
 
-  const hasNumber = /\d/.test(confirmPassword.value);
+  const hasNumber = /\d/.test(password.value);
 
   if(!hasNumber){
     errorMessage.value = i18n.t('message.password-number-error');
     return true;
   }
 
-  const hasUpper = /[A-Z]/.test(confirmPassword.value);
+  const hasUpper = /[A-Z]/.test(password.value);
 
   if(!hasUpper){
     errorMessage.value = i18n.t('message.password-upper-error');
     return true;
   }
 
-  const hasLower = /[a-z]/.test(confirmPassword.value);
+  const hasLower = /[a-z]/.test(password.value);
 
   if(!hasLower){
     errorMessage.value = i18n.t('message.password-lower-error');
     return true;
   }
 
-  const specialSymbol = /[-!$%^&*()_+|~=`{}\[\]:\/;<>?,.@#]/.test(confirmPassword.value);
+  const specialSymbol = /[-!$%^&*()_+|~=`{}\[\]:\/;<>?,.@#]/.test(password.value);
   if(!specialSymbol){
     errorMessage.value = i18n.t('message.password-special-symbol-error', { symbols: specialSymbols });
     return true;
@@ -166,5 +166,17 @@ const validateConfirmPassword = () => {
 
   return false;
 }
+
+watch(password, () => {
+  if(!validatePassword()){
+    errorMessage.value = '';
+  }
+});
+
+watch(confirmPassword, () => {
+  if(!validateConfirmPassword()){
+    confirmErrorMessage.value = '';
+  }
+});
 
 </script>

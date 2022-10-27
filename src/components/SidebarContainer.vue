@@ -24,9 +24,7 @@
               id="governance"
               label="Govern"
               target="_blank"
-              @click="
-                openExternal('https://wallet.keplr.app/#/dashboard', '_blank')
-              "
+              @click="openExternal(governUrl, '_blank')"
             />
           </div>
         </div>
@@ -77,9 +75,7 @@
             <SidebarElement
               id="governance"
               label="Govern"
-              @click="
-                openExternal('https://wallet.keplr.app/#/dashboard', '_blank')
-              "
+              @click="openExternal(governUrl, '_blank')"
             />
           </div>
           <div class="block nls-nav-link nls-md-show">
@@ -155,6 +151,7 @@ const version = ref('');
 const applicaton = useApplicationStore();
 const applicationRef = storeToRefs(applicaton);
 const sidebar = ref(null as HTMLDivElement | null);
+const governUrl = import.meta.env.VITE_GOVERN_BUTTON;
 
 let blockInterval: NodeJS.Timeout | undefined;
 

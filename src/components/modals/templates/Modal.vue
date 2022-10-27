@@ -27,6 +27,7 @@ const emit = defineEmits(['close-modal']);
 const onModalClose = () => {
   parseRoute();
   emit('close-modal');
+  document.body.style.overflowY = 'auto';
 };
 
 const parseRoute = () => {
@@ -54,6 +55,7 @@ onMounted(() => {
   });
   document.addEventListener('keyup', escapeClicked);
   window.addEventListener('popstate', backButtonClicked);
+  document.body.style.overflowY = 'hidden';
 });
 
 onUnmounted(() => {

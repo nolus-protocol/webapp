@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "serve": "vite --port 8080",
-    "build": "run-p type-check build-only",
+    "build:production": "npm run type-check && vite build --mode production",
+    "build:staging": "npm run type-check && vite build --mode staging",
+    "build": "npm run type-check && vite build --mode development",
     "preview": "vite preview --port 4173",
-    "build-only": "vite build",
     "type-check": "vue-tsc --noEmit",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },

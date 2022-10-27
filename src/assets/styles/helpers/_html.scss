@@ -9,8 +9,8 @@
 
 html,
 body {
-	background-color: $lighestGrey;
-	background: linear-gradient(314.47deg, $borderColor 2.19%, $lightGrey 100%);
+	background-color: #fafbfc;
+    background: linear-gradient(314.47deg, #EBEFF5 2.19%, #f7f9fc 100%);
     @media (prefers-color-scheme: dark) {
 		background: $dark-gray;
 	}
@@ -29,6 +29,11 @@ body {
 		"Segoe UI Symbol";
 	font-smoothing: always;
 	color: $dark;
+}
+
+div#app{
+	background-color: #fafbfc;
+    background: linear-gradient(314.47deg, #EBEFF5 2.19%, #f7f9fc 100%);
 }
 
 hr {

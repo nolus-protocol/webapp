@@ -65,7 +65,6 @@ export const defaultOptions = {
     tooltip: {
       enabled: false,
       position: 'nearest',
-      labelTextColor: 'red',
       callbacks: {
         label: (context) => {
           let label = context.dataset.label || '';
@@ -85,7 +84,6 @@ export const defaultOptions = {
         }
       },
       external: (context) => {
-
         const { chart, tooltip } = context;
         const tooltipEl = getOrCreateTooltip(chart);
 
@@ -145,11 +143,19 @@ export const defaultOptions = {
         }
 
         const { offsetLeft: positionX, offsetTop: positionY } = chart.canvas;
+        let moveLeft = positionX + tooltip.caretX;
+        const left = moveLeft + tooltipEl.offsetWidth / 2;
+        const bounding = context.chart.canvas.getBoundingClientRect();
+        const canvasPosition = bounding.width + bounding.left;
 
+        if (canvasPosition < left) {
+          const diff = left - canvasPosition;
+          moveLeft-=diff;
+        }
         // Display, position, and set styles for font
         tooltipEl.style.opacity = 1;
-        tooltipEl.style.left = positionX + tooltip.caretX + 'px';
-        tooltipEl.style.top = positionY + tooltip.caretY + 'px';
+        tooltipEl.style.left = moveLeft + 'px';
+        tooltipEl.style.top = positionY + tooltip.caretY + 10 + 'px';
       }
     }
   }
@@ -277,9 +283,8 @@ div.chart-tooltip {
   border: 1px solid #EBEFF5;
   box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.06);
   border-radius: 8px;
-
-  min-width: 195px;
   background: white;
+  z-index: 2;
 
   table {
     margin: 0;
@@ -300,6 +305,8 @@ div.chart-tooltip {
       tr {
         th {
           display: block;
+          white-space: pre;
+
           margin-bottom: 5px;
         }
       }
