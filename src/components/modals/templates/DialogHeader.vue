@@ -1,6 +1,7 @@
 <template>
   <div
-    :class="`text-center background w-full max-w-[516px] radius-modal mx-auto shadow-modal modal-send-receive nls-border ${showHeader ? '' : 'pt-[15px]'}'
+    :class="`text-center bg-white w-full max-w-[516px] radius-modal mx-auto shadow-modal modal-send-receive mt-[52px] ${
+      showHeader ? '' : 'pt-[15px]'
     }`"
     @click.stop
   >
