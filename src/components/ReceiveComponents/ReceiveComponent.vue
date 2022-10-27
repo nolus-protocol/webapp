@@ -27,11 +27,11 @@
           {{ modelValue?.walletAddress }}
         </p>
         <div class="flex items-center justify-start mt-2">
-          <button class="btn btn-secondary btn-medium-secondary btn-icon mr-2" @click="modelValue?.onCopyClick">
+          <button class="btn btn-secondary btn-medium-secondary btn-icon mr-2 flex" @click="modelValue?.onCopyClick">
             <DocumentDuplicateIcon class="icon w-4 h-4" />
             {{ $t("message.copy") }}
           </button>
-          <button class="btn btn-secondary btn-medium-secondary btn-icon" @click="modelValue?.onScanClick">
+          <button class="btn btn-secondary btn-medium-secondary btn-icon flex" @click="modelValue?.onScanClick">
             <QrCodeIcon class="icon w-4 h-4" />
             {{ $t("message.scan-code") }}
           </button>

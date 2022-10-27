@@ -397,6 +397,10 @@ input[type="checkbox" i] {
 	}
 }
 
+.border-right {
+	border-right: 1px solid $borderColor;
+}
+
 [v-cloak] {
 	background-color: red;
 }

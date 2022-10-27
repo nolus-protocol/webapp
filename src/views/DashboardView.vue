@@ -25,7 +25,7 @@
     <div
       class="flex balance-box items-center justify-start background mt-6 border-standart shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6"
     >
-      <div class="left inline-block w-1/3">
+      <div class="left inline-block w-1/3 border-right">
         <p class="nls-font-500 text-16 text-primary">
           {{ $t("message.total") }}
         </p>
