@@ -32,6 +32,7 @@ export const DEFAULT_NETWORK = {
 export const DEFAULT_ASSET = {
   ticker: 'NLS',
   label: 'NLS',
+  value: 'NLS',
   denom: 'unls',
   icon: nlsIcon,
 };

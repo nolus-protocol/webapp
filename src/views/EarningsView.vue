@@ -195,33 +195,36 @@ const openSupplyWithdrawDialog = (denom: string) => {
 };
 
 const getAllRewards = async () => {
-  const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+  try{
+    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+    const contract = CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance;
+    const lppClient = new Lpp(cosmWasmClient, contract);
 
+      claimContractData.value.push({
+        contractAddress: contract,
+        msg: claimRewardsMsg(),
+      });
 
-  const contract = CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance;
+      const lppConfig = await lppClient.getLppConfig();
+      const lpnCoin = wallet.getCurrencyByTicker(lppConfig.lpn_ticker);
+      const lpnIbcDenom = wallet.getIbcDenomBySymbol(lpnCoin.symbol);
 
-  const lppClient = new Lpp(cosmWasmClient, contract);
+      availableCurrencies.value.push(lpnIbcDenom as string);
 
-    claimContractData.value.push({
-      contractAddress: contract,
-      msg: claimRewardsMsg(),
-    });
+      const lppRewards = await lppClient.getLenderRewards(
+        WalletManager.getWalletAddress()
+      );
 
-    const lppConfig = await lppClient.getLppConfig();
-    const lpnCoin = wallet.getCurrencyByTicker(lppConfig.lpn_ticker);
-    const lpnIbcDenom = wallet.getIbcDenomBySymbol(lpnCoin.symbol);
+      const coin = wallet.getCurrencyByTicker(lppRewards.rewards.ticker);
+      const ibcDenom = wallet.getIbcDenomBySymbol(coin.symbol);
+      rewards.value.push({
+        balance: new Coin(ibcDenom as string, lppRewards.rewards.amount),
+      });
 
-    availableCurrencies.value.push(lpnIbcDenom as string);
+  }catch(error){
 
-    const lppRewards = await lppClient.getLenderRewards(
-      WalletManager.getWalletAddress()
-    );
-    const coin = wallet.getCurrencyByTicker(lppRewards.rewards.ticker);
-    const ibcDenom = wallet.getIbcDenomBySymbol(coin.symbol);
-    rewards.value.push({
-      balance: new Coin(ibcDenom as string, lppRewards.rewards.amount),
-    });
-  
+  }
+
 };
 
 watch(walletRef.balances, async (balanceValue: AssetBalance[]) => {
