@@ -103,8 +103,7 @@ const useWalletStore = defineStore('wallet', {
       while (!ledgerWallet && !breakLoop) {
         try {
           const isConnectedViaLedgerBluetooth =
-            WalletManager.getWalletConnectMechanism() ===
-            WalletConnectMechanism.LEDGER_BLUETOOTH;
+            WalletManager.getWalletConnectMechanism() === WalletConnectMechanism.LEDGER_BLUETOOTH;
           const transport =
             payload.isBluetooth || isConnectedViaLedgerBluetooth
               ? await BluetoothTransport.create()
@@ -157,7 +156,6 @@ const useWalletStore = defineStore('wallet', {
       await nolusWalletOfflineSigner.useAccount();
       this.wallet = nolusWalletOfflineSigner;
       this.privateKey = toHex(privateKey);
-
     },
     [WalletActionTypes.STORE_PRIVATE_KEY](password: string) {
       const privateKey = this.privateKey ?? '';

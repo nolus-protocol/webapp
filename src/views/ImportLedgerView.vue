@@ -39,7 +39,8 @@
 
       <div class="mt-6 hidden md:flex">
         <button
-          class="btn btn-primary btn-large-primary"
+          class="btn btn-primary btn-large-primary w-80"
+          :class="{'js-loading': disabled}"
           @click="connectViaLedger"
         >
           {{ $t('message.connect') }}
@@ -57,6 +58,7 @@
   >
     <button
       class="btn btn-primary btn-large-primary w-80"
+      :class="{'js-loading': disabled}"
       @click="connectViaLedger"
     >
       {{ $t('message.connect') }}
@@ -87,6 +89,7 @@ const isBluetoothConnection = ref(false);
 const errorMessage = ref('');
 const wallet = useWalletStore();
 const i18n = useI18n();
+const disabled = ref(false);
 
 const clickBack = () => {
   router.replace({ name: RouteNames.AUTH });
@@ -99,6 +102,7 @@ const connectViaLedger = async () => {
       errorMessage.value = i18n.t('message.ledger-support-error');
       return false;
     }
+    disabled.value = true;
     await wallet[WalletActionTypes.CONNECT_LEDGER]({
       isFromAuth: true,
       isBluetooth: isBluetoothConnection.value,
@@ -106,6 +110,8 @@ const connectViaLedger = async () => {
   } catch (e: Error | any) {
     showError.value = true;
     errorMessage.value = e?.message;
+  }finally{
+    disabled.value = false;
   }
 };
 
