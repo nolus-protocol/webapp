@@ -5,6 +5,7 @@ export class WalletManager {
   public static WALLET_SECURE_KEY = 'wallet-secure-key';
   public static WALLET_CONNECT_MECHANISM = 'wallet_connect_mechanism';
   public static WALLET_ADDRESS = 'wallet_address';
+  public static WALLET_NAME = 'wallet_name';
 
   public static saveWalletConnectMechanism(
     walletConnectMechanism: WalletConnectMechanism
@@ -14,6 +15,16 @@ export class WalletManager {
 
   public static getWalletConnectMechanism(): string | null {
     return localStorage.getItem(this.WALLET_CONNECT_MECHANISM);
+  }
+
+  public static setWalletName(
+    name: string
+  ) {
+    localStorage.setItem(this.WALLET_NAME, name);
+  }
+
+  public static getWalletName(): string | null {
+    return localStorage.getItem(this.WALLET_NAME);
   }
 
   public static removeWalletConnectMechanism() {
@@ -69,5 +80,6 @@ export class WalletManager {
     localStorage.removeItem(this.WALLET_SECURE_DATA);
     localStorage.removeItem(this.WALLET_SECURE_KEY);
     localStorage.removeItem(this.WALLET_CONNECT_MECHANISM);
+    localStorage.removeItem(this.WALLET_NAME);
   }
 }

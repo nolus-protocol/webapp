@@ -61,6 +61,7 @@ import { ref, watch } from 'vue';
 import { RouteNames } from '@/router/RouterNames';
 import { useI18n } from 'vue-i18n';
 import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
+import { WalletManager } from '@/wallet/WalletManager';
 
 const walletName = ref('');
 
@@ -77,9 +78,11 @@ const clickContinue = () => {
   if(validateWalletName()){
     return false;
   }
-
+  
+  WalletManager.setWalletName(walletName.value);
+  walletStore[WalletActionTypes.LOAD_WALLET_NAME]();
+  
   errorMessage.value = '';
-  // walletStore[WalletActionTypes.STORE_PRIVATE_KEY](password.value);
   checkBalances();
   router.push({ name: RouteNames.DASHBOARD });
 };

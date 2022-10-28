@@ -4,6 +4,8 @@ import { WalletUtils } from '@/utils';
 import { createRouter, createWebHistory, type NavigationGuardNext, type RouteLocationNormalized } from 'vue-router';
 import { RouteNames } from '@/router/RouterNames';
 import { useWalletStore } from '@/stores/wallet';
+import { WalletManager } from '@/wallet/WalletManager';
+import { WalletConnectMechanism } from '@/types';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -12,7 +14,7 @@ const router = createRouter({
       path: '/',
       component: MainLayoutView,
       meta: { requiresAuth: true },
-      beforeEnter: removeHash,
+      beforeEnter: [removeHash, checkWalletName],
       children: [
         {
           path: '',
@@ -66,7 +68,7 @@ const router = createRouter({
           path: 'set-wallet-name',
           name: RouteNames.SET_WALLET_NAME,
           component: () => import('@/views/SetWalletName.vue'),
-          beforeEnter: checkWallet,
+          beforeEnter: beforeWalletName,
         },
         {
           path: 'connecting-to-keplr',
@@ -93,13 +95,11 @@ const router = createRouter({
 
 router.beforeEach((to) => {
   const isAuth = WalletUtils.isAuth();
-
   if (to.meta.requiresAuth && !isAuth) {
     return {
       path: '/auth',
     };
   }
-
 });
 
 function checkWallet(to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) {
@@ -107,6 +107,40 @@ function checkWallet(to: RouteLocationNormalized, from: RouteLocationNormalized,
   if (!wallet.privateKey || !wallet.wallet) {
     return next('/auth');
   }
+  next();
+}
+
+function beforeWalletName(to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) {
+
+  switch (WalletManager.getWalletConnectMechanism()) {
+    case (WalletConnectMechanism.EXTENSION): {
+      break;
+    }
+    default: {
+      const isAuth = WalletUtils.isAuth();
+      if(!isAuth){
+        return next('/auth');
+      }
+    }
+  }
+
+  next();
+}
+
+function checkWalletName(to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) {
+
+  switch (WalletManager.getWalletConnectMechanism()) {
+    case (WalletConnectMechanism.EXTENSION): {
+      break;
+    }
+    default: {
+      const name = WalletManager.getWalletName() ?? '';
+      if(name.length == 0){
+        return next('/auth/set-wallet-name');
+      }
+    }
+  }
+
   next();
 }
 

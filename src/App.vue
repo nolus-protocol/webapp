@@ -45,6 +45,8 @@ const onClickTryAgain = async () => {
 const loadNetwork = async () => {
   try {
     application[ApplicationActionTypes.CHANGE_NETWORK]();
+    wallet[WalletActionTypes.LOAD_WALLET_NAME](),
+
     await Promise.all([
       wallet[WalletActionTypes.UPDATE_BALANCES](),
       oracle[OracleActionTypes.GET_PRICES]()

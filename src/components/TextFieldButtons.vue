@@ -20,7 +20,7 @@
           class="flex align-center justify-end p-3 bg-light-grey buttons-container"
         >
           <button
-            class="btn btn-secondary btn-medium-secondary btn-icon mr-4"
+            class="flex btn btn-secondary btn-medium-secondary btn-icon mr-4"
             @click="onClickCopy()"
           >
             <DocumentDuplicateIcon class="icon w-4 h-4" />
@@ -28,7 +28,7 @@
           </button>
 
           <button
-            class="btn btn-secondary btn-medium-secondary btn-icon"
+            class="flex btn btn-secondary btn-medium-secondary btn-icon"
             @click="onClickPrint()"
           >
             <PrinterIcon class="icon w-4 h-4" />

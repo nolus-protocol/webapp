@@ -80,7 +80,7 @@ const useWalletStore = defineStore('wallet', {
           WalletManager.saveWalletConnectMechanism(
             WalletConnectMechanism.EXTENSION
           );
-          
+
           WalletManager.storeWalletAddress(
             nolusWalletOfflineSigner.address || ''
           );
@@ -128,7 +128,7 @@ const useWalletStore = defineStore('wallet', {
           WalletManager.storeWalletAddress(ledgerWallet.address || '');
 
           if (payload?.isFromAuth) {
-            await router.push({ name: RouteNames.DASHBOARD });
+            await router.push({ name: RouteNames.SET_WALLET_NAME });
           }
         } catch (e: Error | any) {
           breakLoop = true;
@@ -281,16 +281,11 @@ const useWalletStore = defineStore('wallet', {
     },
     async [WalletActionTypes.LOAD_WALLET_NAME]() {
       switch (WalletManager.getWalletConnectMechanism()) {
-        case (WalletConnectMechanism.MNEMONIC): {
-          break;
-        }
         case (WalletConnectMechanism.EXTENSION): {
           break;
         }
-        case (WalletConnectMechanism.LEDGER): {
-          break;
-        }
-        case (WalletConnectMechanism.LEDGER_BLUETOOTH): {
+        default: {
+          this.walletName = WalletManager.getWalletName();
           break;
         }
       }
@@ -319,8 +314,8 @@ const useWalletStore = defineStore('wallet', {
     },
     getIbcDenomBySymbol: (state) => {
       return (symbol: string) => {
-        for(const key in state.currencies){
-          if(symbol == state.currencies[key].symbol){
+        for (const key in state.currencies) {
+          if (symbol == state.currencies[key].symbol) {
             return key;
           }
         }
