@@ -24,7 +24,7 @@ export const CONTRACTS: ContractConfig = {
       instance: 'nolus1wn625s4jcmvk0szpl85rj5azkfc6suyvf75q6vrddscjdphtve8s5gg42f',
       codeId: '',
     },
-     lpp: {
+    lpp: {
       instance: 'nolus1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sqaa3c5',
       codeId: '',
     }
@@ -38,7 +38,7 @@ export const CONTRACTS: ContractConfig = {
       instance: 'nolus1wn625s4jcmvk0szpl85rj5azkfc6suyvf75q6vrddscjdphtve8s5gg42f',
       codeId: '',
     },
-     lpp: {
+    lpp: {
       instance: 'nolus1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sqaa3c5',
       codeId: '',
     }

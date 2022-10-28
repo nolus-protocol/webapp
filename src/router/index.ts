@@ -1,7 +1,7 @@
 import MainLayoutView from '@/views/MainLayoutView.vue';
 import DashboardViewVue from '@/views/DashboardView.vue';
 import { WalletUtils } from '@/utils';
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, type NavigationGuardNext, type RouteLocationNormalized } from 'vue-router';
 import { RouteNames } from '@/router/RouterNames';
 import { useWalletStore } from '@/stores/wallet';
 
@@ -12,12 +12,7 @@ const router = createRouter({
       path: '/',
       component: MainLayoutView,
       meta: { requiresAuth: true },
-      beforeEnter: (to, from, next) => {
-        if (to.hash.length > 0) {
-          return next(to.path);
-        }
-        next();
-      },
+      beforeEnter: removeHash,
       children: [
         {
           path: '',
@@ -44,12 +39,7 @@ const router = createRouter({
     {
       path: '/auth',
       component: () => import('@/views/AuthView.vue'),
-      beforeEnter: (to, from, next) => {
-        if (to.hash.length > 0) {
-          return next(to.path);
-        }
-        next();
-      },
+      beforeEnter: removeHash,
       children: [
         {
           path: '',
@@ -70,13 +60,13 @@ const router = createRouter({
           path: 'set-password',
           name: RouteNames.SET_PASSWORD,
           component: () => import('@/views/SetPassword.vue'),
-          beforeEnter: (to, from, next) => {
-            const wallet = useWalletStore();
-            if (!wallet.privateKey || !wallet.wallet) {
-              return next('/auth/import-seed');
-            }
-            next();
-          },
+          beforeEnter: checkWallet,
+        },
+        {
+          path: 'set-wallet-name',
+          name: RouteNames.SET_WALLET_NAME,
+          component: () => import('@/views/SetWalletName.vue'),
+          beforeEnter: checkWallet,
         },
         {
           path: 'connecting-to-keplr',
@@ -111,5 +101,20 @@ router.beforeEach((to) => {
   }
 
 });
+
+function checkWallet(to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) {
+  const wallet = useWalletStore();
+  if (!wallet.privateKey || !wallet.wallet) {
+    return next('/auth');
+  }
+  next();
+}
+
+function removeHash(to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) {
+  if (to.hash.length > 0) {
+    return next(to.path);
+  }
+  next();
+}
 
 export default router;

@@ -10,6 +10,7 @@ export type State = {
   wallet: NolusWallet | null;
   privateKey: string | null;
   balances: AssetBalance[];
+  walletName: string | null;
   currencies:  {
     [key: string]: {
       ticker: string,

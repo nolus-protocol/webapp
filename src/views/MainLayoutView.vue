@@ -24,4 +24,5 @@
 <script lang="ts" setup>
 import SidebarContainer from '@/components/SidebarContainer.vue';
 import SidebarHeader from '@/components/Sideheader.vue';
+
 </script>

@@ -30,6 +30,7 @@ const useWalletStore = defineStore('wallet', {
       torusClient: null,
       wallet: null,
       privateKey: null,
+      walletName: null,
       balances: [],
       currencies: {}
     } as State;
@@ -70,16 +71,16 @@ const useWalletStore = defineStore('wallet', {
 
         if (keplrWindow.getOfflineSigner) {
           const offlineSigner = keplrWindow.getOfflineSigner(chainId);
-          const nolusWalletOfflineSigner =
-            await NolusWalletFactory.nolusOfflineSigner(offlineSigner);
+          const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(offlineSigner);
           await nolusWalletOfflineSigner.useAccount();
-
           this.wallet = nolusWalletOfflineSigner;
+          this.walletName = (await keplrWindow.keplr.getKey(chainId)).name;
           await this[WalletActionTypes.UPDATE_BALANCES]();
 
           WalletManager.saveWalletConnectMechanism(
             WalletConnectMechanism.EXTENSION
           );
+          
           WalletManager.storeWalletAddress(
             nolusWalletOfflineSigner.address || ''
           );
@@ -125,7 +126,6 @@ const useWalletStore = defineStore('wallet', {
               : WalletConnectMechanism.LEDGER
           );
           WalletManager.storeWalletAddress(ledgerWallet.address || '');
-          await this[WalletActionTypes.UPDATE_BALANCES]();
 
           if (payload?.isFromAuth) {
             await router.push({ name: RouteNames.DASHBOARD });
@@ -278,6 +278,22 @@ const useWalletStore = defineStore('wallet', {
       const data = await fetch(`${url}/cosmos/staking/v1beta1/delegations/${WalletManager.getWalletAddress()}`);
       const json = await data.json();
       return json;
+    },
+    async [WalletActionTypes.LOAD_WALLET_NAME]() {
+      switch (WalletManager.getWalletConnectMechanism()) {
+        case (WalletConnectMechanism.MNEMONIC): {
+          break;
+        }
+        case (WalletConnectMechanism.EXTENSION): {
+          break;
+        }
+        case (WalletConnectMechanism.LEDGER): {
+          break;
+        }
+        case (WalletConnectMechanism.LEDGER_BLUETOOTH): {
+          break;
+        }
+      }
     },
   },
   getters: {

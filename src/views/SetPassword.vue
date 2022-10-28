@@ -96,17 +96,8 @@ const clickContinue = () => {
   errorMessage.value = '';
   confirmErrorMessage.value = '';
   walletStore[WalletActionTypes.STORE_PRIVATE_KEY](password.value);
-  checkBalances();
-  router.push({ name: RouteNames.DASHBOARD });
+  router.push({ name: RouteNames.SET_WALLET_NAME });
 };
-
-const checkBalances = async () => {
-  try{
-    await walletStore[WalletActionTypes.UPDATE_BALANCES]();
-  }catch(error){
-    console.log(error);
-  }
-}
 
 const validate = () => {
   const password = validatePassword();

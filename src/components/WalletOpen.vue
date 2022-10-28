@@ -13,7 +13,7 @@
       </h2>
       <div class="flex grey-box items-center modal-balance mt-3 radius-rounded">
         <span class="icon-wallet"></span>
-        <span class="text-14 nls-font-400 dark-text">{{ $t('message.precious') }}</span>
+        <span class="text-14 nls-font-400 dark-text">{{ wallet.walletName }}</span>
       </div>
     </div>
 
@@ -35,7 +35,6 @@
           :disabled="true"
           :options="[
             { value: 'USD', label: 'USD' },
-            { value: 'EUR', label: 'EUR' },
           ]"
           label="Currency"
         />
@@ -69,15 +68,17 @@
 import Picker, { type PickerOption } from '@/components/Picker.vue';
 import router from '@/router';
 import { onMounted, ref } from 'vue';
-import { EnvNetworkUtils, StringUtils, WalletUtils } from '@/utils';
+import { EnvNetworkUtils, StringUtils } from '@/utils';
 import { RouteNames } from '@/router/RouterNames';
 import { WalletManager } from '@/wallet/WalletManager';
 import { ApplicationActionTypes, useApplicationStore } from '@/stores/application';
+import { useWalletStore } from '@/stores/wallet';
 
 const showWallet = ref(false);
 const networks = ref([] as PickerOption[]);
 const currentNetwork = ref({} as PickerOption);
 const applicaton = useApplicationStore();
+const wallet = useWalletStore();
 
 onMounted(() => {
   EnvNetworkUtils.getEnvNetworks().forEach((network) => {
@@ -92,10 +93,6 @@ onMounted(() => {
     value: EnvNetworkUtils.getStoredNetworkName() || '',
   };
 });
-
-const handleFocusOut = () => {
-  showWallet.value = false;
-};
 
 const onUpdateNetwork = (value: PickerOption) => {
   EnvNetworkUtils.saveCurrentNetwork(value.value);
