@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="180" height="180" viewBox="0 0 180 180">
+  <defs>
+    <clipPath id="clip-favicon_180x180">
+      <rect width="180" height="180"/>
+    </clipPath>
+  </defs>
+  <g id="favicon_180x180" clip-path="url(#clip-favicon_180x180)">
+    <rect id="Rectangle_265" data-name="Rectangle 265" width="180" height="180" rx="10" fill="none"/>
+    <g id="Group_664" data-name="Group 664" transform="translate(-1149.561 -729.145)">
+      <g id="Group_198" data-name="Group 198" transform="translate(1176.644 756.228)">
+        <path id="Path_19" data-name="Path 19" d="M1239.56,756.228a62.917,62.917,0,1,0,62.918,62.918A62.917,62.917,0,0,0,1239.56,756.228Zm22,94.377h-44a9.462,9.462,0,0,1-9.461-9.461v-44a9.461,9.461,0,0,1,9.461-9.462h44a9.461,9.461,0,0,1,9.461,9.462v44A9.462,9.462,0,0,1,1261.559,850.6Z" transform="translate(-1176.644 -756.228)" fill="#f50"/>
+      </g>
+    </g>
+  </g>
+</svg>

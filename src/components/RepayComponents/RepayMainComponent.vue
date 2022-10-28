@@ -78,6 +78,7 @@ onBeforeMount(() => {
 
   if (balances) {
     const lease = props.leaseData;
+    console.log(lease)
     const item = balances.find((item) => {
       const currency = walletStore.getCurrencyInfo(item.balance.denom);
       return currency.ticker == lease?.leaseStatus?.opened?.amount?.ticker

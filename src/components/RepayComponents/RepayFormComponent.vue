@@ -1,16 +1,16 @@
 <template>
   <div class="block text-left px-10 mt-10">
     <div
-      class="block nls-balance mb-[13px] bg-light-grey radius-light text-left text-primary"
+      class="block nls-balance mb-[13px] bg-light-grey radius-light text-left text-primary p-2"
     >
-      {{ $t('message.current-balance') }}:
-      <a class="text-secondary nls-font-700 underline ml-2" href="#">
+      {{ $t('message.outstanding-loan') }}:
+      <a class="text-primary nls-font-700 ml-2">
         $36,423.02
       </a>
     </div>
     <CurrencyField
       id="repayBalance"
-      label="Balance To Repay"
+      :label="$t('message.amount-repay')"
       name="repayBalance"
       :value="modelValue.amount"
       :step="'1'"
@@ -21,10 +21,11 @@
       :error-msg="modelValue.amountErrorMsg"
       :is-error="modelValue.amountErrorMsg !== ''"
     />
-    <div class="flex w-full">
+    <div class="flex justify-end">
       <div class="grow-3 text-right nls-font-500 text-14">
         <p class="mb-3 mt-[25px] mr-5">{{ $t('message.repayment-amount') }}:</p>
         <p class="mb-3 mr-5">{{ $t('message.outstanding-lease') }}:</p>
+        <p class="mb-3 mr-5">{{ $t('message.tx-fee') }}:</p>
       </div>
       <div class="text-right nls-font-700 text-14">
         <p class="mb-3 mt-[25px] flex justify-end align-center mr-[5px]">
@@ -34,7 +35,6 @@
               modelValue.selectedCurrency?.balance?.denom
             )
           }}
-          <TooltipComponent content="Content goes here " />
         </p>
         <p class="mb-3 flex justify-end align-center mr-[5px]">
           {{
@@ -43,7 +43,11 @@
               modelValue.outstandingLoanAmount.ticker
             )
           }}
-          <TooltipComponent content="Content goes here" />
+        </p>
+        <p class="mb-3 flex justify-end align-center mr-[5px]">
+          {{
+            calculateFee
+          }}
         </p>
       </div>
     </div>
@@ -60,7 +64,6 @@
 
 <script setup lang="ts">
 import CurrencyField from '@/components/CurrencyField.vue';
-import TooltipComponent from '@/components/TooltipComponent.vue';
 import type { PropType } from 'vue';
 
 import type { RepayComponentProps } from '@/types/component/RepayComponentProps';
@@ -69,6 +72,7 @@ import { CurrencyUtils } from '@nolus/nolusjs';
 import { useOracleStore } from '@/stores/oracle';
 import { computed } from '@vue/reactivity';
 import { useWalletStore } from '@/stores/wallet';
+import { defaultNolusWalletFee } from '@/config/wallet';
 
 const oracle = useOracleStore();
 const wallet = useWalletStore();
@@ -110,6 +114,11 @@ const calculateBalanceByTicker = (tokenAmount: string, ticker: string) => {
 
   return '0';
 };
+
+const calculateFee = computed(() => {
+  const fee= defaultNolusWalletFee();
+  return CurrencyUtils.convertUNolusToNolus(fee.amount[0].amount).toString();
+});
 
 const handleAmountChange = (event: Event) => {
   props.modelValue.amount = (event.target as HTMLInputElement).value;

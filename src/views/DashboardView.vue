@@ -25,18 +25,20 @@
     <div
       class="flex balance-box items-center justify-start background mt-6 nls-border shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6"
     >
-      <div class="left inline-block w-1/3">
-        <p class="nls-font-500 text-16 text-primary">
-          {{ $t("message.total") }}
-        </p>
-        <p class="nls-font-700 text-32 lg:text-40 text-primary">
-          {{ totalBalance }}
-        </p>
-        <div class="separator-line flex py-4 lg:hidden ml-[-16px] mr-[-16px]"></div>
-      </div>
+      <template  v-if="isTotalBalancePositive">>
+        <div class="left inline-block w-1/3">
+          <p class="nls-font-500 text-16 text-primary">
+            {{ $t("message.total") }}
+          </p>
+          <p class="nls-font-700 text-32 lg:text-40 text-primary">
+            {{ totalBalance }}
+          </p>
+          <div class="separator-line flex py-4 lg:hidden ml-[-16px] mr-[-16px]"></div>
+        </div>
 
-      <div class="border-right h-[80px] mt-[-48px] hidden md:flex"></div>
-      <div class="border-right h-[80px] mb-[-24px] ml-[-1px] hidden md:flex"></div>
+        <div class="border-right h-[80px] mt-[-48px] hidden md:flex"></div>
+        <div class="border-right h-[80px] mb-[-24px] ml-[-1px] hidden md:flex"></div>
+      </template>
 
       <div class="right flex w-2/3 -mt-8 lg:mt-0">
         <div class="pt-3 lg:pl-6">
@@ -85,13 +87,11 @@
     <!-- Existing Assets -->
     <div
       class="block background mt-6 border-standart shadow-box radius-medium radius-0-sm"
+      :class="{'async-loader': isAssetsLoading}"
     >
       <!-- Top -->
       <div class="flex flex-wrap items-baseline justify-between px-4 pt-6">
-        <!-- @TODO: Fix loading bar not working -->
-        <div v-show="state.showLoading" class="loader-boxed">
-          <div class="loader__element"></div>
-        </div>
+       
         <div class="left w-1/2">
           <p class="text-16 nls-font-500 dark-text">
             {{ $t("message.available-assets") }}
@@ -172,10 +172,6 @@
     >
       <!-- Top -->
       <div class="flex flex-wrap items-baseline justify-between px-4 pt-6">
-        <!-- @TODO: Fix loading bar not working -->
-        <div v-show="state.showLoading" class="loader-boxed">
-          <div class="loader__element"></div>
-        </div>
         <div class="left w-1/2">
           <p class="text-16 nls-font-500 dark-text">
             {{ $t("message.vested") }}
@@ -257,13 +253,13 @@ const modalOptions = {
 
 const wallet = useWalletStore();
 const oracle = useOracleStore();
+const isAssetsLoading = ref(wallet.balances.length == 0);
 
 const state = ref({
   showSmallBalances: true,
   showModal: false,
   modalAction: DASHBOARD_ACTIONS.SEND,
   selectedAsset: '',
-  showLoading: true,
   availableAssets: new Dec(0),
   activeLeases: new Dec(0),
   suppliedAndStaked: new Dec(0),
@@ -271,8 +267,9 @@ const state = ref({
 
 const vestedTokens = ref([] as { delayed: boolean, endTime: string, toAddress: string, amount: { amount: string, denom: string } }[]);
 const mainAssets = computed(() => wallet.balances);
-const manipulatedAssets = computed(() =>
-  state.value.showSmallBalances ? mainAssets.value : filterSmallBalances(mainAssets.value as AssetBalance[])
+const manipulatedAssets = computed(() => {
+    return state.value.showSmallBalances ? mainAssets.value : filterSmallBalances(mainAssets.value as AssetBalance[])
+  }
 );
 
 onMounted(() => {
@@ -289,6 +286,13 @@ const totalBalance = computed(() => {
   total = total.add(state.value.suppliedAndStaked as Dec);
 
   return CurrencyUtils.formatPrice(total.toString()).toString();
+});
+
+const isTotalBalancePositive = computed(() => {
+  let total = state.value.availableAssets;
+  total = total.add(state.value.activeLeases as Dec);
+  total = total.add(state.value.suppliedAndStaked as Dec);
+  return total.gt(new Dec(0));
 });
 
 const { leases, getLeases } = useLeases((error: Error | any) => {});

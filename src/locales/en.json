@@ -149,6 +149,7 @@
     "price-in-usd": "1 {symbol} price in USD:",
     "set-name": "Set Name",
     "wallet-name": "Wallet Name",
-    "done": "Done"
+    "done": "Done",
+    "amount-repay": "Amount"
   }
 }

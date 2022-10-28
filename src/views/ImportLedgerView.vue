@@ -39,7 +39,7 @@
 
       <div class="mt-6 md:flex">
         <button
-          class="btn btn-primary btn-large-primary w-80"
+          class="btn btn-primary btn-large-primary"
           :class="{'js-loading': disabled}"
           @click="connectViaLedger"
         >

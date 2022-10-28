@@ -65,8 +65,8 @@ export const ASSETS = {
     defaultPrice: '0'
   },
   WETH: {
-    key: 'NLS',
-    abbreviation: 'NLS',
+    key: 'WETH',
+    abbreviation: 'WETH',
     coinGeckoId: 'weth',
     coinIcon: wethIcon,
     defaultPrice: '0'
