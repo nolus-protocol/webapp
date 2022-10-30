@@ -93,7 +93,7 @@
       <div class="flex flex-wrap items-baseline justify-between px-4 pt-6">
        
         <div class="left w-1/2">
-          <p class="text-16 nls-font-500 dark-text">
+          <p class="text-16 nls-font-500 dark-text pl-2">
             {{ $t("message.available-assets") }}
           </p>
         </div>
