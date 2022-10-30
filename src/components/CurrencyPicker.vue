@@ -62,7 +62,7 @@
             >
               <li
                 :class="[
-                  'cursor-default select-none relative py-2 pl-3 pr-9 banan',
+                  'cursor-default select-none relative py-2 pl-3 pr-9 dropdown-elements',
                 ]"
               >
                 <div class="flex items-center">
