@@ -514,6 +514,17 @@ input[type="checkbox" i] {
 	background-color: $lightGrey;
 }
 
+.banan {
+	color: $textMain !important;
+	padding: 8px 24px 8px 4px;
+	&:li {
+		padding-left: 4px;
+	}
+	&:hover {
+		background-color: $borderColor !important;
+	}
+}
+
 @media (prefers-color-scheme: dark) {
 	.background {
 		background-color: $dark-background;
