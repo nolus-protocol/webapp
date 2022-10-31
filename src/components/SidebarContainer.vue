@@ -115,7 +115,7 @@
     </div>
   </div>
 
-  <div class="lg:col-span-3 absolute inset-x-0 bottom-0 mb-6 ml-8 hidden md:grid">
+  <div class="lg:col-span-3 absolute inset-x-0 bottom-0 mb-6 ml-8 hidden md:grid fixed">
     <p class="nls-font-500 text-12 text-dark-grey text-upper pl-2">
       {{ applicaton.network.networkName }} # <template v-if="block > 0">{{ block }}</template>
     </p>
@@ -151,7 +151,7 @@ const version = ref('');
 const applicaton = useApplicationStore();
 const applicationRef = storeToRefs(applicaton);
 const sidebar = ref(null as HTMLDivElement | null);
-const governUrl = import.meta.env.VITE_GOVERN_BUTTON;
+const governUrl = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].govern;
 
 let blockInterval: NodeJS.Timeout | undefined;
 

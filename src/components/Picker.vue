@@ -66,7 +66,7 @@
               <li
                 :class="[
                   active ? 'text-white bg-indigo-600' : 'text-gray-900',
-                  'cursor-default select-none relative py-2 pl-3 pr-9',
+                  'cursor-default select-none relative py-2 pl-3 pr-9 dropdown-elements',
                 ]"
               >
                 <div class="flex items-center">

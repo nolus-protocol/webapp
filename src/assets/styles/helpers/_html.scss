@@ -32,6 +32,7 @@ body {
 }
 
 div#app{
+	min-height: 100%;
 	background-color: #fafbfc;
     background: linear-gradient(314.47deg, #EBEFF5 2.19%, #f7f9fc 100%);
 }
@@ -512,6 +513,21 @@ input[type="checkbox" i] {
 
 .modal-balance {
 	background-color: $lightGrey;
+}
+
+.fixed {
+	position: fixed;
+}
+
+.dropdown-elements {
+	color: $textMain !important;
+	padding: 8px 24px 8px 4px;
+	&:li {
+		padding-left: 4px;
+	}
+	&:hover {
+		background-color: $borderColor !important;
+	}
 }
 
 @media (prefers-color-scheme: dark) {

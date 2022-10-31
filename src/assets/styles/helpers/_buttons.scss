@@ -518,6 +518,14 @@ button {
     width: 100%;
     padding: 22px 0;
 
+    &:hover {
+      background-color: $lighestGrey;
+    }
+
+    &:active {
+      background-color: $white;
+    }
+
     @media (min-width: $md) {
       border-radius: $circle;
       background-color: $white;
