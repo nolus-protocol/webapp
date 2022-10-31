@@ -20,7 +20,7 @@
           {{ $t("message.keplr") }}
         </button>
 
-        <button class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow">
+        <button class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow" @click="googleAuth()">
           <span class="icon icon-google"></span>
           {{ $t("message.google") }}
         </button>
@@ -82,6 +82,7 @@
 <script setup lang="ts">
 import router from '@/router';
 import { RouteNames } from '@/router/RouterNames';
+import { Web3AuthProvider } from '@/utils';
 
 const clickConnectToKeplr = () => {
   router.push({ name: RouteNames.CONNECT_KEPLR });
@@ -98,4 +99,13 @@ const clickImportSeed = () => {
 const clickCreateAccount = () => {
   router.push({ name: RouteNames.CREATE_ACCOUNT });
 };
+
+const googleAuth = async () => {
+  const test = await Web3AuthProvider.getInstance();
+  // await test.open();
+  // const privateKey = await test.web3auth.provider.request({
+  //       method: "private_key"
+  //   });
+  // console.log(privateKey)
+}
 </script>
