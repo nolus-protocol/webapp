@@ -89,6 +89,10 @@ export const walletOperation = async (
         await walletStore[WalletActionTypes.CONNECT_LEDGER]();
         break;
       }
+      case (WalletConnectMechanism.GOOGLE): {
+        await walletStore[WalletActionTypes.CONNECT_GOOGLE]();
+        break;
+      }
     }
 
     operation();

@@ -6,22 +6,58 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   localnet: {
     tendermintRpc: 'http://127.0.0.1:26612',
     api: 'http://127.0.0.1:26614',
-    govern: 'https://explorer-rila.nolus.io/nolus-rila/staking'
+    govern: 'https://explorer-rila.nolus.io/nolus-rila/staking',
+    web3auth: {
+      clientId: "BHPGnOodSp4t0ZDuuJ3suCZCtwVILYmfOTbDrzlUKK6ADFrNMWg563MAMj_CBW8sDVvg3BqJi8i284t6o-gv2Dc",
+      google: {
+        name: "Nolus",
+        verifier: "nolus",
+        typeOfLogin: "google",
+        clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
+      },
+    }
   },
   devnet: {
     tendermintRpc: 'https://net-dev.nolus.io:26612',
     api: 'https://net-dev.nolus.io:26614',
-    govern: 'https://explorer-rila.nolus.io/nolus-rila/staking'
+    govern: 'https://explorer-rila.nolus.io/nolus-rila/staking',
+    web3auth: {
+      clientId: "BHPGnOodSp4t0ZDuuJ3suCZCtwVILYmfOTbDrzlUKK6ADFrNMWg563MAMj_CBW8sDVvg3BqJi8i284t6o-gv2Dc",
+      google: {
+        name: "Nolus",
+        verifier: "nolus",
+        typeOfLogin: "google",
+        clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
+      },
+    }
   },
   testnet: {
     tendermintRpc: 'https://net-rila.nolus.io:26657',
     api: 'https://net-rila.nolus.io:1317',
-    govern: 'https://explorer-rila.nolus.io/nolus-rila/staking'
+    govern: 'https://explorer-rila.nolus.io/nolus-rila/staking',
+    web3auth: {
+      clientId: "BHPGnOodSp4t0ZDuuJ3suCZCtwVILYmfOTbDrzlUKK6ADFrNMWg563MAMj_CBW8sDVvg3BqJi8i284t6o-gv2Dc",
+      google: {
+        name: "Nolus",
+        verifier: "nolus",
+        typeOfLogin: "google",
+        clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
+      },
+    }
   },
   mainnet: {
     tendermintRpc: 'https://net-rila.nolus.io:26657',
     api: 'https://net-rila.nolus.io:1317',
-    govern: "https://explorer.nolus.io/nolus/staking"
+    govern: "https://explorer.nolus.io/nolus/staking",
+    web3auth: {
+      clientId: "BHPGnOodSp4t0ZDuuJ3suCZCtwVILYmfOTbDrzlUKK6ADFrNMWg563MAMj_CBW8sDVvg3BqJi8i284t6o-gv2Dc",
+      google: {
+        name: "Nolus",
+        verifier: "nolus",
+        typeOfLogin: "google",
+        clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
+      },
+    }
   },
 };
 

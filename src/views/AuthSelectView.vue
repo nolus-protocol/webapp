@@ -82,7 +82,9 @@
 <script setup lang="ts">
 import router from '@/router';
 import { RouteNames } from '@/router/RouterNames';
-import { Web3AuthProvider } from '@/utils';
+import { useWalletStore , WalletActionTypes} from '@/stores/wallet';
+
+const wallet = useWalletStore();
 
 const clickConnectToKeplr = () => {
   router.push({ name: RouteNames.CONNECT_KEPLR });
@@ -101,11 +103,17 @@ const clickCreateAccount = () => {
 };
 
 const googleAuth = async () => {
-  const test = await Web3AuthProvider.getInstance();
-  // await test.open();
-  // const privateKey = await test.web3auth.provider.request({
-  //       method: "private_key"
-  //   });
-  // console.log(privateKey)
+  try{
+    const auth = await wallet[WalletActionTypes.CONNECT_GOOGLE]();
+  }catch(error: Error | any){
+    console.log(error);
+  }
+  // const test = await Web3AuthProvider.getInstance();
+  // console.log(test.web3auth)
+  // await test.connect();
+  // // const privateKey = await test.web3auth.provider.request({
+  // //       method: "private_key"
+  // //   });
+  // // console.log(privateKey)
 }
 </script>

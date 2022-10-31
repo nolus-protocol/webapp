@@ -1,13 +1,17 @@
 import { Web3Auth } from "@web3auth/modal";
 import { CHAIN_NAMESPACES } from "@web3auth/base";
 import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
+import { NETWORKS } from "@/config/env";
+import { EnvNetworkUtils } from "./EnvNetworkUtils";
 
-const clientId = "BLHKuWj_YEP5D5I0HZoz1w6QmL6wHjY_DHlzntAx9_g6tp9RlOFUDwyIeqReRpmLBK2pJ4AfbgoMfAXmjnHtwRA"
+const configurations = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].web3auth;
+
+const clientId = configurations.clientId;
 
 export class Web3AuthProvider {
 
-  web3auth!: Web3Auth;
-  adapter!: OpenloginAdapter;
+  web3auth: Web3Auth;
+  adapter: OpenloginAdapter;
 
   static instance: Web3AuthProvider;
 
@@ -24,20 +28,16 @@ export class Web3AuthProvider {
         loginMethodsOrder: ["google"]
       }
     });
-    this.adapter = new OpenloginAdapter({ adapterSettings: {
-      network: "testnet",
-      clientId,
-      uxMode: "redirect", // other option: popup
-      loginConfig: {
-        google: {
-          name: "Nolus",
-          verifier: "nolus",
-          typeOfLogin: "google",
-          clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
-    
+    this.adapter = new OpenloginAdapter({
+      adapterSettings: {
+        network: "testnet",
+        clientId,
+        uxMode: "redirect",
+        loginConfig: {
+          google: configurations.google,
         },
-      },
-    }});
+      }
+    });
     this.web3auth.configureAdapter(this.adapter);
 
   }
@@ -50,8 +50,8 @@ export class Web3AuthProvider {
     return Web3AuthProvider.instance;
   }
 
-  public async open() {
-    await Web3AuthProvider.instance.web3auth.connectTo(this.adapter.name, {loginProvider: "google"});;
+  public async connect() {
+    await Web3AuthProvider.instance.web3auth.connectTo(this.adapter.name, { loginProvider: "google" });;
   }
 
 }

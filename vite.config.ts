@@ -27,7 +27,7 @@ export default defineConfig({
       process: 'process/browser',
       stream: 'stream-browserify',
       zlib: 'browserify-zlib',
-      util: 'util/',
+      util: 'util/'
     },
   },
   build: {
@@ -58,6 +58,11 @@ export default defineConfig({
             '@ledgerhq/hw-transport-webhid',
             '@ledgerhq/hw-transport-webusb',
             '@ledgerhq/logs'
+          ],
+          '@web3auth': [
+            '@web3auth/base',
+            '@web3auth/openlogin-adapter',
+            '@web3auth/modal'
           ]
         },
       },
