@@ -6,14 +6,22 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   localnet: {
     tendermintRpc: 'http://127.0.0.1:26612',
     api: 'http://127.0.0.1:26614',
+    govern: 'https://explorer-rila.nolus.io/nolus-rila/staking'
   },
   devnet: {
     tendermintRpc: 'https://net-dev.nolus.io:26612',
     api: 'https://net-dev.nolus.io:26614',
+    govern: 'https://explorer-rila.nolus.io/nolus-rila/staking'
   },
   testnet: {
     tendermintRpc: 'https://net-rila.nolus.io:26657',
     api: 'https://net-rila.nolus.io:1317',
+    govern: 'https://explorer-rila.nolus.io/nolus-rila/staking'
+  },
+  mainnet: {
+    tendermintRpc: 'https://net-rila.nolus.io:26657',
+    api: 'https://net-rila.nolus.io:1317',
+    govern: "https://explorer.nolus.io/nolus/staking"
   },
 };
 

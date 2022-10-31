@@ -151,7 +151,7 @@ const version = ref('');
 const applicaton = useApplicationStore();
 const applicationRef = storeToRefs(applicaton);
 const sidebar = ref(null as HTMLDivElement | null);
-const governUrl = import.meta.env.VITE_GOVERN_BUTTON;
+const governUrl = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].govern;
 
 let blockInterval: NodeJS.Timeout | undefined;
 
