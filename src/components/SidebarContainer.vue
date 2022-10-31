@@ -6,12 +6,12 @@
         <div
           :style="
           showMobileNav
-            ? 'z-index: 5;box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15); transform: translateY(-130px)'
+            ? 'z-index: 5;box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15); transform: translateY(-105px)'
             : ''
           "
           class="lg:hidden nls-border mb-[-1px]"
         >
-          <div class="nls-nav-link flex flex-start nls-md-flex-row mt-[22px]">
+          <div class="nls-nav-link flex flex-start nls-md-flex-row mt-[6px]">
             <SidebarElement
               id="history"
               href="/history"
@@ -19,7 +19,7 @@
               @click="pushTo(RouteNames.HISTORY)"
             />
           </div>
-          <div class="nls-nav-link flex flex-start nls-md-flex-row mb-[30px]">
+          <div class="nls-nav-link flex flex-start nls-md-flex-row mb-[112px]">
             <SidebarElement
               id="governance"
               label="Govern"

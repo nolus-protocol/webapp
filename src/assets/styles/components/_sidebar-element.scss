@@ -306,13 +306,13 @@
 			  background-color: $dark-background;
       }
 			width: 100vw;
-			border-top-left-radius: 12px;
-			border-top-right-radius: 12px;
-			border-bottom: 1px solid $borderColor;
+			border-top-left-radius: 16px;
+			border-top-right-radius: 16px;
       position: absolute;
 
 			& > div {
-				padding-left: 24px;
+				padding-left: 16px;
+        border-bottom: 1px solid $borderColor;
 			}
 
 			.sidebar-element {
@@ -382,6 +382,7 @@
 .sidebar-elements-block {
 	@media (max-width: $lg) {
 		display: flex;
+    padding: 0 24px;
 		justify-content: space-between;
 		.sidebar-element {
 			.icon {

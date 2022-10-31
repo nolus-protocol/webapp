@@ -5,7 +5,8 @@
     <div
       class="hidden col-span-2 lg:block nls-14 nls-font-400 text-primary text-left"
     >
-      {{ truncateString(transaction.id) }}
+    <a class="his-url" v-bind:href="applicaton.network.networkAddresses.exploler+'tx/'+ transaction.id" target="_blank">{{ truncateString(transaction.id) }} </a> 
+    <img src="src/assets/icons/urlicon.svg" class="float-right w-3 mt-1 his-img">
     </div>
     <div class="hidden col-span-2 md:block text-left">
       <span
@@ -26,14 +27,14 @@
     <div
       class="block col-span-2 items-center justify-start md:justify-endtext-primary"
     >
-      <span class="left-and-right nls-14 nls-font-400">
+      <span class="left-and-right nls-14 nls-font-400 his-gray">
         {{ convertFeeAmount(transaction.fee) }}
       </span>
     </div>
     <div
       class="block col-span-2 items-center justify-start md:justify-endtext-primary"
     >
-      <span class="left-and-right nls-14 nls-font-400">
+      <span class="left-and-right nls-14 nls-font-400 his-gray">
         {{ transaction.height }}
       </span>
     </div>
@@ -44,17 +45,20 @@
 import type { Coin } from '@cosmjs/proto-signing';
 import type { ITransaction } from '@/views/HistoryView.vue';
 
+import { useApplicationStore } from '@/stores/application';
+
 import { CurrencyUtils } from '@nolus/nolusjs';
 import { StringUtils } from '@/utils/StringUtils';
+
+const applicaton = useApplicationStore();
 
 interface Props {
   transaction: ITransaction;
 }
-
 defineProps<Props>();
 
 const truncateString = (text: string) => {
-  return StringUtils.truncateString(text, 10, 6);
+  return StringUtils.truncateString(text, 6, 6);
 };
 
 const capitalize = (value: string) => {
@@ -71,3 +75,16 @@ const convertFeeAmount = (fee: Coin[] | null) => {
   return feeAmount?.toString();
 };
 </script>
+<style scoped>
+.his-url{
+  color: #2868E1;
+}
+.his-gray{
+  color: #8396B1;
+}
+.his-img{
+  position: absolute;
+  display: inline;
+  margin-left: 5px;
+}
+</style>
