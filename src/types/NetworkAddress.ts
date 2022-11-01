@@ -4,6 +4,7 @@ export interface NetworkAddress {
   govern: string,
   web3auth: {
     clientId: string,
+    network: string | any,
     google: {
       name: string,
       verifier: string,

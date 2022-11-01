@@ -8,10 +8,11 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     api: 'http://127.0.0.1:26614',
     govern: 'https://explorer-rila.nolus.io/nolus-rila/staking',
     web3auth: {
-      clientId: "BHPGnOodSp4t0ZDuuJ3suCZCtwVILYmfOTbDrzlUKK6ADFrNMWg563MAMj_CBW8sDVvg3BqJi8i284t6o-gv2Dc",
+      clientId: "BHPGnOodSp4t0ZDuuJ3suCZCtwVILYmfOTbDrzlUKK6ADFrNMWg563MAMj_CBW8sDVvg3BqJi8i284t6o",
+      network: 'testnet',
       google: {
         name: "Nolus",
-        verifier: "nolus",
+        verifier: "nolusprotocol",
         typeOfLogin: "google",
         clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
       },
@@ -22,10 +23,11 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     api: 'https://net-dev.nolus.io:26614',
     govern: 'https://explorer-rila.nolus.io/nolus-rila/staking',
     web3auth: {
-      clientId: "BHPGnOodSp4t0ZDuuJ3suCZCtwVILYmfOTbDrzlUKK6ADFrNMWg563MAMj_CBW8sDVvg3BqJi8i284t6o-gv2Dc",
+      clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
+      network: 'cyan',
       google: {
         name: "Nolus",
-        verifier: "nolus",
+        verifier: "nolusprotocol",
         typeOfLogin: "google",
         clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
       },
@@ -36,10 +38,11 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     api: 'https://net-rila.nolus.io:1317',
     govern: 'https://explorer-rila.nolus.io/nolus-rila/staking',
     web3auth: {
-      clientId: "BHPGnOodSp4t0ZDuuJ3suCZCtwVILYmfOTbDrzlUKK6ADFrNMWg563MAMj_CBW8sDVvg3BqJi8i284t6o-gv2Dc",
+      clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
+      network: 'cyan',
       google: {
         name: "Nolus",
-        verifier: "nolus",
+        verifier: "nolusprotocol",
         typeOfLogin: "google",
         clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
       },
@@ -50,10 +53,11 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     api: 'https://net-rila.nolus.io:1317',
     govern: "https://explorer.nolus.io/nolus/staking",
     web3auth: {
-      clientId: "BHPGnOodSp4t0ZDuuJ3suCZCtwVILYmfOTbDrzlUKK6ADFrNMWg563MAMj_CBW8sDVvg3BqJi8i284t6o-gv2Dc",
+      clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
+      network: 'cyan',
       google: {
         name: "Nolus",
-        verifier: "nolus",
+        verifier: "nolusprotocol",
         typeOfLogin: "google",
         clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
       },
@@ -81,7 +85,7 @@ export const DEFAULT_ASSET = {
   icon: nlsIcon,
 };
 
-export enum GROUPS{
+export enum GROUPS {
   Lpn = 'Lpn',
   Lease = 'Lease',
   Payment = 'Payment'

@@ -4,12 +4,10 @@ import { defineConfig, splitVendorChunkPlugin } from 'vite';
 
 import vue from '@vitejs/plugin-vue';
 import vueI18n from '@intlify/vite-plugin-vue-i18n';
-import inject from '@rollup/plugin-inject';
+import NodeGlobalsPolyfillPlugin from "@esbuild-plugins/node-globals-polyfill";
+import rollupNodePolyFill from 'rollup-plugin-polyfill-node'
 
 export default defineConfig({
-  define: {
-    'process.env': {}
-  },
   plugins: [
     vue(),
     vueI18n({
@@ -24,16 +22,26 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      process: 'process/browser',
-      stream: 'stream-browserify',
-      zlib: 'browserify-zlib',
-      util: 'util/'
     },
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      sourcemap: false,
+      define: {
+        global: 'globalThis'
+      },
+      plugins: [
+        NodeGlobalsPolyfillPlugin({
+          process: true,
+          buffer: true
+        }),
+      ],
+    }
   },
   build: {
     rollupOptions: {
       plugins: [
-        inject({ Buffer: ['buffer', 'Buffer'], process: ['process', 'process'] }),
+        rollupNodePolyFill(),
       ],
       output: {
         manualChunks: {
