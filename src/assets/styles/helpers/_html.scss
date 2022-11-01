@@ -29,6 +29,10 @@ body {
 		"Segoe UI Symbol";
 	font-smoothing: always;
 	color: $dark;
+
+	@media (max-width: $lg) {
+	overflow: hidden;
+	}
 }
 
 div#app{

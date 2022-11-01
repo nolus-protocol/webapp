@@ -8,14 +8,16 @@
     </div>
     <div class="lg:col-span-9 pb-8">
       <div class="grid grid-cols-10 grid-child">
-        <div class="col-span-12 mt-[60px]">
+        <div class="col-span-12 mt-[65px]">
           <div class="col-span-12">
             <div class="sidebar-header">
               <SidebarHeader />
             </div>
           </div>
         </div>
-        <router-view />
+        <div class="col-span-12 mobile-scroll">
+          <router-view />
+        </div>
       </div>
     </div>
   </div>
