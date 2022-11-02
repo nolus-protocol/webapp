@@ -4,6 +4,9 @@
     style="linear-gradient(314.47 deg, #EBEFF5 2.19 %, #F7F9FC 100 %);"
     @keydown.esc="onModalClose"
   >
+    <button class="btn-close-modal" @click="onModalClose">
+      <img class="inline-block w-5 h-5 z-[5]" src="@/assets/icons/cross.svg" />
+    </button>
     <slot></slot>
   </div>
 </template>

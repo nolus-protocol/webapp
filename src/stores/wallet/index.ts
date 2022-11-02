@@ -280,13 +280,32 @@ const useWalletStore = defineStore('wallet', {
 
       if (instance.web3auth.status == ADAPTER_STATUS.CONNECTED) {
         const provider = instance.web3auth.provider;
+
         if (provider) {
-          const privateKey = await provider.request({
+
+          const privateKeyStr = await provider.request({
             method: "private_key"
           });
-          console.log(privateKey)
+
+          if (KeyUtilities.isPrivateKey(privateKeyStr as string)) {
+            
+            const privateKey = Buffer.from(privateKeyStr as string, 'hex');
+            const directSecrWallet = await DirectSecp256k1Wallet.fromKey(
+              privateKey,
+              ChainConstants.BECH32_PREFIX_ACC_ADDR
+            );
+
+            const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
+            await nolusWalletOfflineSigner.useAccount();
+            this.wallet = nolusWalletOfflineSigner;
+            this.privateKey = toHex(privateKey);
+            await Web3AuthProvider.logout();
+            return true;
+
+          }
+
         }
-        return true;
+
       }
 
       await instance.connect();

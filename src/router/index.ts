@@ -80,6 +80,11 @@ const router = createRouter({
           name: RouteNames.IMPORT_LEDGER,
           component: () => import('@/views/ImportLedgerView.vue'),
         },
+        {
+          path: 'google',
+          component: () => import('@/views/GoogleAuthView.vue'),
+          beforeEnter: removeHash,
+        },
       ],
     },
     {
@@ -118,7 +123,7 @@ function beforeWalletName(to: RouteLocationNormalized, from: RouteLocationNormal
     }
     default: {
       const isAuth = WalletUtils.isAuth();
-      if(!isAuth){
+      if (!isAuth) {
         return next('/auth');
       }
     }
@@ -135,7 +140,7 @@ function checkWalletName(to: RouteLocationNormalized, from: RouteLocationNormali
     }
     default: {
       const name = WalletManager.getWalletName() ?? '';
-      if(name.length == 0){
+      if (name.length == 0) {
         return next('/auth/set-wallet-name');
       }
     }

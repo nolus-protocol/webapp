@@ -10,4 +10,5 @@ export enum RouteNames {
   HISTORY = 'HISTORY',
   LEASE = 'LEASE',
   EARN = 'EARN',
+  GOOGLE_AUTH = 'GOOGLE_AUTH'
 }
