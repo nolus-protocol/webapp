@@ -20,7 +20,7 @@
           {{ $t("message.keplr") }}
         </button>
 
-        <button class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow">
+        <button class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow" @click="googleAuth()" :class="{disabled: loadingGoogle}">
           <span class="icon icon-google"></span>
           {{ $t("message.google") }}
         </button>
@@ -59,6 +59,7 @@
         <button
           class="btn btn-primary btn-large-primary w-80 mb-4 md:mb-10"
           @click="clickCreateAccount"
+          :class="{'js-loading': loadingGoogle}"
         >
           {{ $t("message.create-new-account") }}
         </button>
@@ -72,6 +73,7 @@
       <button
         class="btn btn-primary btn-large-primary w-80 mb-4 lg:mb-10"
         @click="clickCreateAccount"
+        :class="{'js-loading': loadingGoogle}"
       >
         {{ $t("message.create-new-account") }}
       </button>
@@ -82,6 +84,11 @@
 <script setup lang="ts">
 import router from '@/router';
 import { RouteNames } from '@/router/RouterNames';
+import { useWalletStore , WalletActionTypes} from '@/stores/wallet';
+import { ref } from 'vue';
+
+const wallet = useWalletStore();
+const loadingGoogle = ref(false);
 
 const clickConnectToKeplr = () => {
   router.push({ name: RouteNames.CONNECT_KEPLR });
@@ -98,4 +105,17 @@ const clickImportSeed = () => {
 const clickCreateAccount = () => {
   router.push({ name: RouteNames.CREATE_ACCOUNT });
 };
+
+const googleAuth = async () => {
+  try{
+    loadingGoogle.value = true;
+    const res = await wallet[WalletActionTypes.CONNECT_GOOGLE]();
+    if(res){
+      await router.push({ name: RouteNames.SET_PASSWORD });
+    }
+  }catch(error: Error | any){
+    loadingGoogle.value = false;
+  }
+}
+
 </script>

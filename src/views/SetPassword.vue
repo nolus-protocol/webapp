@@ -84,7 +84,10 @@ const minLength = 8;
 const specialSymbols = "-!$%^&*()_+|~=`{}\[\]:\/;<>?,.@#";
 
 const clickBack = () => {
-  router.replace({ name: RouteNames.IMPORT_SEED });
+  if(history.length > 2){
+    return router.back();
+  }
+  return router.push({ name: RouteNames.AUTH });
 };
 
 const clickContinue = () => {

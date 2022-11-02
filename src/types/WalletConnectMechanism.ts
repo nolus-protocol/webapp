@@ -3,5 +3,5 @@ export enum WalletConnectMechanism {
   LEDGER = 'ledger',
   LEDGER_BLUETOOTH = 'ledger_bluetooth',
   MNEMONIC = 'mnemonic',
-  TORUS = 'torus',
+  GOOGLE = 'google',
 }

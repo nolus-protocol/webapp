@@ -52,7 +52,7 @@
     </div>
 
     <!-- Wallet Actions -->
-    <div class="box-open-actions p-4 lg:pr-6 background">
+    <div class="box-open-actions p-8 lg:pr-8 background">
       <div class="flex justify-end">
         <button
           class="btn btn-secondary btn-large-secondary"
@@ -106,6 +106,9 @@ const onClickDisconnect = () => {
 </script>
 
 <style scoped>
+#wallet-nls{
+  overflow: hidden;
+}
 .icon-wallet {
   font-size: 2em !important;
   margin-right: 0 !important;

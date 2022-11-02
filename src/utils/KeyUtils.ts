@@ -1,3 +1,5 @@
+import { Buffer } from 'buffer';
+
 export class KeyUtils {
   // @TODO: Add to nolus.js > KeyUtils ?
   public static isPrivateKey(str: string): boolean {

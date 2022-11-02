@@ -31,8 +31,7 @@
         style="font-size: 1.5em !important; margin-right: 0"
       ></span>
 
-      <span class="text-12 nls-font-400 text-primary nls-md-hidden"
-        >My precious</span
+      <span class="text-12 nls-font-400 text-primary nls-md-hidden">{{ walletStore.walletName }}</span
       >
     </button>
 
@@ -46,11 +45,13 @@ import { onMounted, onUnmounted, ref, watch } from 'vue';
 import Notifications from '@/components/Notifications.vue';
 import WalletOpen from '@/components/WalletOpen.vue';
 import LogoLink from '@/components/LogoLink.vue';
+import { useWalletStore } from '@/stores/wallet';
 
 const showWallet = ref(false);
 const showNotifications = ref(false);
 const notifications = ref(null as HTMLDivElement | null);
 const wallet = ref(null as HTMLDivElement | null);
+const walletStore = useWalletStore();
 
 onMounted(() => {
   document.addEventListener('click', onClick);

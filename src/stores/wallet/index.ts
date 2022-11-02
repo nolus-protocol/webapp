@@ -10,7 +10,7 @@ import type { Window as KeplrWindow } from '@keplr-wallet/types/build/window';
 import { WalletConnectMechanism } from '@/types';
 import { defineStore } from 'pinia';
 import { WalletActionTypes } from '@/stores/wallet/action-types';
-import { EncryptionUtils, EnvNetworkUtils, KeyUtils as KeyUtilities, WalletUtils, AssetUtils } from '@/utils';
+import { EncryptionUtils, EnvNetworkUtils, KeyUtils as KeyUtilities, WalletUtils, AssetUtils, Web3AuthProvider } from '@/utils';
 import { makeCosmoshubPath } from '@cosmjs/amino';
 import { CurrencyUtils, KeyUtils, NolusClient, NolusWalletFactory } from '@nolus/nolusjs';
 import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
@@ -23,6 +23,8 @@ import { decodeTxRaw, Registry, type DecodedTxRaw, } from '@cosmjs/proto-signing
 import { defaultRegistryTypes as defaultStargateTypes } from "@cosmjs/stargate";
 import { NETWORKS } from '@/config/env';
 import { ASSETS } from '@/config/assetsInfo';
+import { ADAPTER_STATUS } from '@web3auth/base';
+import { Buffer } from 'buffer';
 
 const useWalletStore = defineStore('wallet', {
   state: () => {
@@ -272,6 +274,41 @@ const useWalletStore = defineStore('wallet', {
 
       });
       return Promise.all(items);
+    },
+    async [WalletActionTypes.CONNECT_GOOGLE]() {
+      const instance = await Web3AuthProvider.getInstance();
+
+      if (instance.web3auth.status == ADAPTER_STATUS.CONNECTED) {
+        const provider = instance.web3auth.provider;
+
+        if (provider) {
+
+          const privateKeyStr = await provider.request({
+            method: "private_key"
+          });
+
+          if (KeyUtilities.isPrivateKey(privateKeyStr as string)) {
+            
+            const privateKey = Buffer.from(privateKeyStr as string, 'hex');
+            const directSecrWallet = await DirectSecp256k1Wallet.fromKey(
+              privateKey,
+              ChainConstants.BECH32_PREFIX_ACC_ADDR
+            );
+
+            const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
+            await nolusWalletOfflineSigner.useAccount();
+            this.wallet = nolusWalletOfflineSigner;
+            this.privateKey = toHex(privateKey);
+            await Web3AuthProvider.logout();
+            return true;
+
+          }
+
+        }
+
+      }
+
+      await instance.connect();
     },
     async [WalletActionTypes.LOAD_STAKED_TOKENS]() {
       const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;

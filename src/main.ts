@@ -1,6 +1,5 @@
 import '@/index.css';
 import '@/assets/styles/global.scss';
-import '@/polyfills';
 
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
