@@ -1,5 +1,5 @@
 .box-open {
-  position: fixed;
+  position: absolute;
   top: $mobileHeaderHeight;
   right: 0;
   width: 100%;
@@ -53,6 +53,11 @@
     &.notify {
       max-width: 310px;
     }
+  }
+
+  @media (max-width: $lg) {
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
   }
 }
 

@@ -36,6 +36,10 @@ const props = defineProps({
   decimals: {
     type: Number
   },
+  maxDecimals: {
+    type: Number,
+    default: 0
+  },
   fontSize: {
     type: Number,
     default: 16
@@ -90,6 +94,15 @@ const amount = computed(() => {
       const denom = token.denom;
       const amount = token.hideDenom(true).toString();
       let [beforeDecimal, afterDecimal] = amount.split('.');
+
+      if(props.maxDecimals > 0 && afterDecimal.length > props.maxDecimals){
+        const pow = 10 ** props.maxDecimals;
+        const after = Number(`0.${afterDecimal}`);
+        const decimals = (Math.round(after * pow) / pow).toString() ;
+        const [_, afterParsed] = decimals.split('.');
+        afterDecimal = afterParsed;
+      }
+
       if(afterDecimal?.length > 0){
         afterDecimal = `.${afterDecimal}`;
       }

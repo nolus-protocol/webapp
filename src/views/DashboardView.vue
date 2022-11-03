@@ -119,14 +119,14 @@
       <div class="block mt-6 md:mt-[25px]">
         <!-- Assets Header -->
         <div
-          class="grid grid-cols-3 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6"
+          class="grid grid-cols-2 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6"
         >
           <div class="nls-font-500 text-12 text-left text-dark-grey text-upper">
             {{ $t("message.assets") }}
           </div>
 
           <div
-            class="inline-flex items-center justify-end nls-font-500 text-12 text-right text-dark-grey text-upper"
+            class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper"
           >
             <span class="inline-block">{{ $t("message.lease-up-to") }}</span>
             <TooltipComponent content="Content goes here" />
@@ -157,8 +157,7 @@
             :denom="asset.balance.denom"
             :price="getMarketPrice(asset.balance.denom)"
             :openModal="openModal"
-            change="4.19"
-            earnings="24.34"
+            :earnings="DEFAULT_APR"
           />
         </div>
       </div>
@@ -254,7 +253,7 @@ import { useLeases } from '@/composables';
 import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
 import { OracleActionTypes, useOracleStore } from '@/stores/oracle';
 import { WalletManager } from '@/wallet/WalletManager';
-import { UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL } from '@/config/env';
+import { DEFAULT_APR, UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL } from '@/config/env';
 
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,

@@ -1,10 +1,10 @@
 <template>
   <div
     :class="[
-      `nolus-box grid gap-6 ${
+      `asset-partial nolus-box grid gap-6 ${
         showActionButtons ? 'row-actions' : ''
-      } border-b border-standart py-3 px-6 items-center justify-between`,
-      cols ? 'grid-cols-' + cols : 'grid-cols-3 md:grid-cols-4',
+      } border-b border-standart py-3 px-4 items-center justify-between`,
+      cols ? 'grid-cols-' + cols : 'grid-cols-2 md:grid-cols-4',
     ]"
   >
     <div class="inline-flex items-center">
@@ -29,7 +29,8 @@
       </div>
     </div>
 
-    <div class="block">
+    
+    <div class="md:block hidden">
       <p class="text-primary nls-font-500 text-16 text-right m-0">
         <template v-if="balance > 0">
           <CurrencyComponent
@@ -90,6 +91,58 @@
       </div>
     </div>
 
+        
+    <div class="mobile-actions md:hidden col-span-2">
+      <div class="flex">
+        <button
+        class="btn btn-secondary btn-medium-secondary flex-1"
+         v-if="canLease"
+         @click="openModal(DASHBOARD_ACTIONS.LEASE, denom)"
+      >
+        {{ $t("message.lease-up-to") }}
+        <template v-if="balance > 0">
+          <CurrencyComponent
+            :fontSize="14"
+            :type="CURRENCY_VIEW_TYPES.TOKEN"
+            :amount="leasUpTo"
+            :minimalDenom="assetInfo.coinMinimalDenom"
+            :decimals="assetInfo.coinDecimals"
+            :maxDecimals="2"
+            denom=""
+          />
+        </template>
+        <template v-else>
+          <CurrencyComponent
+            :fontSize="14"
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            :amount="DEFAULT_LEASE_UP_PERCENT"
+            :hasSpace="false"
+            :isDenomInfront="false"
+            denom="%"
+          />
+        </template>
+      </button>
+      
+      <button
+        class="btn btn-secondary btn-medium-secondary flex-1"
+        v-if="canSupply"
+        @click="openModal(DASHBOARD_ACTIONS.SUPPLY, denom)"
+      >
+        {{ $t("message.earn") }}
+        <CurrencyComponent
+          :fontSize="14"
+          :type="CURRENCY_VIEW_TYPES.CURRENCY"
+          :amount="earnings"
+          :hasSpace="false"
+          :isDenomInfront="false"
+          denom="%"
+        />
+      </button>
+      </div>
+
+
+    </div>
+
     <div class="flex justify-end nls-btn-show">
       <button
         v-if="canLease"
@@ -148,6 +201,7 @@ const props = defineProps({
   },
   earnings: {
     type: String,
+    required: true
   },
   changeDirection: {
     type: Boolean,
@@ -188,3 +242,16 @@ const calculateBalance = (price: string, tokenAmount: string, denom: string) => 
   return data.toDec().toString(2)
 }
 </script>
+<style scoped lang="scss">
+div.mobile-actions{
+  button{
+    font-family: "Garet-Medium" !important;
+    &:first-child:not(&:last-child){
+      margin-right: 5px;
+    }
+    &:last-child:not(&:first-child){
+      margin-left: 5px;
+    }
+  }
+}
+</style>

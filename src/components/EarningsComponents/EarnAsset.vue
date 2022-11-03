@@ -3,7 +3,7 @@
     <div
       :class="[
         'grid gap-6 row-actions border-b flex border-t border-standart px-6 py-3 items-center justify-between',
-        cols ? 'grid-cols-' + cols : 'grid-cols-3 md:grid-cols-4',
+        cols ? 'grid-cols-' + cols : 'grid-cols-2 md:grid-cols-2',
       ]"
     >
       <!-- Ticker -->
@@ -44,15 +44,25 @@
           }}
         </div>
       </div>
+
       <div class="flex justify-end nls-btn-show">
         <button
           class="btn btn-secondary btn-medium-secondary"
-          data-v-37958d79=""
           @click="openSupplyWithdraw()"
         >
           {{ $t("message.supply-withdraw") }}
         </button>
       </div>
+
+      <div class="mobile-actions md:hidden col-span-2">
+        <button
+            class="btn btn-secondary btn-medium-secondary w-full"
+            @click="openSupplyWithdraw()"
+          >
+            {{ $t("message.supply-withdraw") }}
+        </button>
+      </div>
+
     </div>
   </div>
 </template>
