@@ -182,14 +182,14 @@
       <div class="block mt-6 md:mt-[25px]">
         <!-- Assets Header -->
         <div
-          class="grid grid-cols-3 md:grid-cols-3 gap-6 border-b border-standart pb-3 px-6"
+          class="grid grid-cols-2 md:grid-cols-3 gap-6 border-b border-standart pb-3 px-6"
         >
           <div class="nls-font-500 text-12 text-left text-dark-grey text-upper">
             {{ $t("message.assets") }}
           </div>
 
           <div
-            class="inline-flex items-center nls-font-500 text-12 text-right text-dark-grey text-upper"
+            class="hidden md:inline-flex items-center nls-font-500 text-12 text-right text-dark-grey text-upper"
           >
             <span class="inline-block">{{ $t("message.release") }}</span>
           </div>
@@ -197,7 +197,7 @@
           <div
             class="nls-font-500 text-dark-grey text-12 text-right text-upper"
           >
-            {{ $t("message.balance") }}
+            {{ $t("message.amount-repay") }}
           </div>
         </div>
 
@@ -245,15 +245,14 @@ import VestedAssetPartial from '@/components/VestedAssetPartial.vue';
 
 import type { AssetBalance } from '@/stores/wallet/state';
 import { AssetUtils } from '@/utils/AssetUtils';
-import { computed, ref, provide, onMounted, onUnmounted } from 'vue';
+import { computed, ref, provide, onMounted } from 'vue';
 import { Coin, Dec, Int } from '@keplr-wallet/unit';
 import { CurrencyUtils } from '@nolus/nolusjs';
 import { DASHBOARD_ACTIONS } from '@/types/DashboardActions';
 import { useLeases } from '@/composables';
 import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
-import { OracleActionTypes, useOracleStore } from '@/stores/oracle';
-import { WalletManager } from '@/wallet/WalletManager';
-import { DEFAULT_APR, UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL } from '@/config/env';
+import { useOracleStore } from '@/stores/oracle';
+import { DEFAULT_APR } from '@/config/env';
 
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
@@ -266,9 +265,6 @@ const oracle = useOracleStore();
 const isAssetsLoading = ref(wallet.balances.length == 0);
 const showErrorDialog = ref(false);
 const errorMessage = ref('');
-
-let balanceInterval: NodeJS.Timeout | undefined;
-let pricesInterval: NodeJS.Timeout | undefined;
 
 const state = ref({
   showSmallBalances: true,
@@ -287,56 +283,12 @@ const manipulatedAssets = computed(() => {
   }
 );
 
-onMounted(async () => {
+onMounted( () => {
   getVestedTokens();
-  await loadNetwork();
 });
 
-onUnmounted(() => {
-  clearInterval(balanceInterval);
-  clearInterval(pricesInterval);
-})
-
 const onClickTryAgain = async () => {
-  await loadNetwork();
-};
-
-const loadNetwork = async () => {
-  try {
-    await Promise.all([
-      wallet[WalletActionTypes.UPDATE_BALANCES](),
-      oracle[OracleActionTypes.GET_PRICES]()
-    ]);
-    checkBalances();
-    checkPrices();
-  } catch (error: Error | any) {
-    showErrorDialog.value = true;
-    errorMessage.value = error?.message;
-  }
-};
-
-const checkBalances = async () => {
-  balanceInterval = setInterval(async () => {
-    try {
-      if (WalletManager.getWalletAddress() !== '') {
-        await wallet[WalletActionTypes.UPDATE_BALANCES]();
-      }
-    } catch (error: Error | any) {
-      showErrorDialog.value = true;
-      errorMessage.value = error?.message;
-    }
-  }, UPDATE_BALANCE_INTERVAL);
-};
-
-const checkPrices = async () => {
-   pricesInterval = setInterval(async () => {
-    try {
-      await oracle[OracleActionTypes.GET_PRICES]();
-    } catch (error: Error | any) {
-      showErrorDialog.value = true;
-      errorMessage.value = error?.message;
-    }
-  }, UPDATE_PRICES_INTERVAL);
+  getVestedTokens();
 };
 
 const getVestedTokens = async () => {

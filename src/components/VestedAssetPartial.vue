@@ -1,6 +1,6 @@
 <template>
   <div
-    class="nolus-box grid gap-6 border-b border-standart py-3 px-6 items-center justify-between grid-cols-3 md:grid-cols-3"
+    class="nolus-box grid gap-6 border-b border-standart py-3 px-6 items-center justify-between grid-cols-2 md:grid-cols-3"
   >
     <div class="inline-flex items-center">
       <img
@@ -17,11 +17,10 @@
       </div>
     </div>
 
-    <div class="block">
+    <div class="hidden md:block">
       <p class="text-primary nls-font-500 text-16 m-0">
         {{ endTime }}
       </p>
-
     </div>
 
     <div class="block">
@@ -37,6 +36,12 @@
           :decimals="assetInfo.coinDecimals"
         />
       </div>
+    </div>
+
+    <div class="md:hidden col-span-2">
+      <p class="text-dark-grey nls-font-500 text-12 m-0 text-center">
+        {{ endTime }}
+      </p>
     </div>
 
   </div>
