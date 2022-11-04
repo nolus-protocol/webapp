@@ -92,7 +92,7 @@
     </div>
 
         
-    <div class="mobile-actions md:hidden col-span-2">
+    <div class="mobile-actions md:hidden col-span-2" v-if="canLease || canSupply">
       <div class="flex">
         <button
         class="btn btn-secondary btn-medium-secondary flex-1"

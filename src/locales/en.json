@@ -1,6 +1,6 @@
 {
   "message": {
-    "create-new-account": "Create new account",
+    "create-new-account": "Create New Wallet",
     "connect-wallet": "Connect Wallet",
     "sign-with-google": "Sign In With Google",
     "google": "Google",
@@ -28,6 +28,7 @@
     "supply": "Supply",
     "supply-withdraw": "Supply / Withdraw",
     "pending-rewards": " Pending rewards",
+    "rewards": "Rewards",
     "claim-all": "Claim all",
     "none": "None",
     "to": "to",
@@ -82,13 +83,13 @@
     "try-again": "Try again",
     "cancel": "Cancel",
     "print": "Print",
-    "create-wallet": "Create wallet",
+    "create-wallet": "Create Wallet",
     "backup-seed-bold": "Backup your mnemonic seed securely.",
     "backup-seed": "Never share it with others or enter it in unverified sites.",
     "continue": "Continue",
     "error-connecting": "Error connecting",
     "mnemonic-error": "The mnemonic phrase does not match!",
-    "set-password": "Set password",
+    "set-password": "Set Password",
     "confirm-seed": "Confirm Seed",
     "password-error": "Please set password",
     "confirm-password-error": "Please set confirm password",
@@ -144,12 +145,18 @@
     "ledger-support-error": "Browser does not support connection with external devices.",
     "vested": "Vested",
     "release": "Release Schedule",
-    "available-withdraw": "Available to withdraw",
+    "available-withdraw": "Available for withdraw",
     "chart-tooltip-price": "Price",
     "price-in-usd": "1 {symbol} price in USD:",
     "set-name": "Set Name",
     "wallet-name": "Wallet Name",
     "done": "Done",
-    "amount-repay": "Amount"
+    "amount-repay": "Amount",
+    "unlock": "Unlock",
+    "recipient": "Recipient",
+    "address": "Address",
+    "show-barcode": "Show Barcode",
+    "down-payment-uppercase": "Down Payment",
+    "apr": "APR"
   }
 }

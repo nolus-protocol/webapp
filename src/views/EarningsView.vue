@@ -30,7 +30,7 @@
                     aria-describedby="show-small-balances"
                     name="show-small-balances"
                     type="checkbox"
-                    disabled="true"
+                    disabled="true" 
                   />
                   <label for="show-small-balances">{{ $t('message.show-small-balances') }}</label>
                 </div>
@@ -41,12 +41,18 @@
           <div class="block mt-6 md:mt-[25px]">
             <!-- Assets Header -->
             <div
-              class="grid grid-cols-2 gap-6 border-b border-standart pb-3 px-6"
+              class="grid grid-cols-2 md:grid-cols-3 gap-6 border-b border-standart pb-3 px-6"
             >
               <div
                 class="nls-font-500 text-12 text-dark-grey text-left text-upper"
               >
                 {{ $t("message.asset") }}
+              </div>
+
+              <div
+                class="nls-font-500 text-12 text-dark-grey text-center text-upper"
+              >
+                {{ $t("message.apr") }}
               </div>
 
               <div
@@ -79,7 +85,7 @@
           class="nolus-box block order-2 md:order-1 background border-y border-standart radius-medium md:col-span-7 mt-6"
         >
           <div class="flex items-center justify-between px-6 pt-6">
-            <h2 class="text-16 nls-font-500 text-left my-0">{{ $t('message.pending-rewards') }}</h2>
+            <h2 class="text-16 nls-font-500 text-left my-0">{{ $t('message.rewards') }}</h2>
             <button class="btn-label btn-large-label">{{ $t('message.claim-all') }}</button>
           </div>
           <!-- Assets -->
@@ -143,7 +149,7 @@ import { useWalletStore } from '@/stores/wallet';
 const wallet = useWalletStore();
 const walletRef = storeToRefs(wallet);
 
-const cols = ref(2 as number);
+const cols = ref(3 as number);
 const showSupplyWithdrawDialog = ref(false);
 const availableCurrencies = ref([] as string[]);
 const balances = ref([] as AssetBalance[]);

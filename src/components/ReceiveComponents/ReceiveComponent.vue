@@ -19,9 +19,9 @@
           />
       </div>
 
-      <div class="block mt-[36px]">
-        <p class="text-14 nls-font-500 text-primary m-0">
-          {{ $t("message.wallet-address") }}
+      <div class="block mt-[18px]">
+        <p class="text-14 nls-font-500 text-primary m-0 mb-[6px]">
+          {{ $t("message.address") }}
         </p>
         <p class="text-14 text-primary nls-font-700 m-0">
           {{ modelValue?.walletAddress }}
@@ -33,7 +33,7 @@
           </button>
           <button class="btn btn-secondary btn-medium-secondary btn-icon flex" @click="modelValue?.onScanClick">
             <QrCodeIcon class="icon w-4 h-4" />
-            {{ $t("message.scan-code") }}
+            {{ $t("message.show-barcode") }}
           </button>
         </div>
       </div>

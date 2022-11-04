@@ -3,11 +3,11 @@
     <div
       :class="[
         'grid gap-6 border-b border-t border-standart px-6 py-3  items-center justify-between',
-        cols ? 'grid-cols-' + cols : 'grid-cols-3 md:grid-cols-4',
+        'grid-cols-3 md:grid-cols-3',
       ]"
     >
       <!-- Ticker -->
-      <div class="inline-flex items-center">
+      <div class="inline-flex items-center col-span-2">
         <img
           v-if="getAssetIcon(reward.balance.denom)"
           :src=" getAssetIcon(reward.balance.denom)"

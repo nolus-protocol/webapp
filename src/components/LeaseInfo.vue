@@ -58,7 +58,7 @@
               v-for="value in CHART_RANGES"
               :class="`ml-2 w-10 justify-center border rounded ${
                 value.label === chartTimeRange.label
-                  ? 'border-2 border-light-electric'
+                  ? 'border-1 border-light-electric bg-[#0ea5e9]/10'
                   : ''
               }`"
               @click="chartTimeRange = value"

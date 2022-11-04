@@ -3,7 +3,7 @@
     <div
       :class="[
         'grid gap-6 row-actions border-b flex border-t border-standart px-6 py-3 items-center justify-between',
-        cols ? 'grid-cols-' + cols : 'grid-cols-2 md:grid-cols-2',
+        cols ? 'md:grid-cols-' + cols : 'grid-cols-2 md:grid-cols-3'
       ]"
     >
       <!-- Ticker -->
@@ -25,7 +25,20 @@
         </div>
       </div>
 
-      <!-- Balance -->
+      <div class="hidden md:block">
+      <div
+        class="text-primary nls-font-500 text-14 text-center m-0"
+      >
+        <CurrencyComponent
+          :type="CURRENCY_VIEW_TYPES.CURRENCY"
+          :amount="DEFAULT_APR"
+          :hasSpace="false"
+          :isDenomInfront="false"
+          denom="%"
+        />
+      </div>
+    </div>
+
       <div class="block info-show">
         <p class="text-primary nls-font-500 text-16 nls-font-500 text-right m-0">
           {{
@@ -76,6 +89,9 @@ import { AssetUtils } from '@/utils/AssetUtils';
 import { useOracleStore } from '@/stores/oracle';
 import { computed } from '@vue/reactivity';
 import { useWalletStore } from '@/stores/wallet';
+import CurrencyComponent from '../CurrencyComponent.vue';
+import { CURRENCY_VIEW_TYPES } from '@/types/CurrencyViewType';
+import { DEFAULT_APR } from '@/config/env';
 
 const oracle = useOracleStore();
 const wallet = useWalletStore();
@@ -93,6 +109,8 @@ const props = defineProps({
     required: true,
   },
 });
+
+console.log(props.cols)
 
 const assetInfo = computed(() => {
   const assetInfo = wallet.getCurrencyInfo(props.asset.balance.denom);

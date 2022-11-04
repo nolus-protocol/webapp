@@ -24,7 +24,7 @@
 
       <div class="mt-6 md:flex">
         <button class="btn btn-primary btn-large-primary mr-4" @click="clickImport">
-          {{ $t("message.import") }}
+          {{ $t("message.unlock") }}
         </button>        
         <div class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"></div>
       </div>
@@ -35,7 +35,7 @@
     <div
       class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal">
       <button class="btn btn-primary btn-large-primary w-80" @click="clickImport">
-        {{ $t("message.import") }}
+        {{ $t("message.unlock") }}
       </button>
     </div>
   </div>

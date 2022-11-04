@@ -19,17 +19,9 @@
           :option="modelValue.selectedCurrency" 
           :value="modelValue.amount" 
           :name="$t('message.amount')"
-          label="Amount" 
+          :label="$t('message.amount-repay')" 
           @input="handleAmountChange($event)"
           @update-currency="(event) => (modelValue.selectedCurrency = event)" />
-      </div>
-
-      <div class="block mt-[25px]">
-        <Picker 
-        :default-option="networks[0]" 
-        :disabled="true" 
-        :options="networks" 
-        label="Network" />
       </div>
 
       <div class="block mt-[25px]">
@@ -37,11 +29,19 @@
           :error-msg="modelValue.receiverErrorMsg" 
           :is-error="modelValue.receiverErrorMsg !== ''"
           :value="modelValue.receiverAddress" 
-          :label="$t('message.send-to')" 
+          :label="$t('message.recipient')" 
           id="sendTo" 
           name="sendTo" 
           type="text"
           @input="(event) => (modelValue.receiverAddress = event.target.value)" />
+      </div>
+
+      <div class="block mt-[25px]">
+        <Picker 
+        :default-option="networks[0]" 
+        :disabled="true" 
+        :options="networks" 
+        :label="$t('message.network')" />
       </div>
 
       <div class="block mt-[25px]">
