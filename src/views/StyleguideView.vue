@@ -1468,7 +1468,7 @@
         <!-- SNACK BAR & TOOLTIPS -->
 
         <!-- /SNACK BAR-->
-
+<!-- 
         <div id="snackbar_tooltip" class="col-span-12">
           <div class="col-span-12 pt-8">
             <h1 class="text nls-font-700 nls-32">Snackbar &Tooltip</h1>
@@ -1480,7 +1480,7 @@
               :plainContent="'Transaction'"
             />
           </div>
-        </div>
+        </div> -->
 
         <!-- /SNACK BAR-->
 
