@@ -28,7 +28,6 @@ export function useLeases(onError: (error: any) => void) {
       for (const leaseAddress of openedLeases) {
         const leaseClient = new Lease(cosmWasmClient, leaseAddress);
         const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus();
-
         if (leaseInfo && !leaseInfo.closed) {
           newLeases.push({
             leaseAddress: leaseAddress,

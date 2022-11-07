@@ -10,10 +10,12 @@
 html,
 body {
 	background-color: #fafbfc;
-    background: linear-gradient(314.47deg, #EBEFF5 2.19%, #f7f9fc 100%);
-    @media (prefers-color-scheme: dark) {
+	background: linear-gradient(314.47deg, #EBEFF5 2.19%, #f7f9fc 100%);
+
+	@media (prefers-color-scheme: dark) {
 		background: $dark-gray;
 	}
+
 	position: relative;
 	margin: 0;
 	height: 100vh;
@@ -24,21 +26,25 @@ body {
 	-moz-osx-font-smoothing: grayscale;
 	scroll-behavior: smooth;
 
-	font-family: "Garet", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-		Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
-		"Segoe UI Symbol";
+	font-family: "Garet",
+	-apple-system,
+	BlinkMacSystemFont,
+	"Segoe UI",
+	Roboto,
+	Helvetica,
+	Arial,
+	sans-serif,
+	"Apple Color Emoji",
+	"Segoe UI Emoji",
+	"Segoe UI Symbol";
 	font-smoothing: always;
 	color: $dark;
-
-	@media (max-width: $lg) {
-	overflow: hidden;
-	}
 }
 
-div#app{
+div#app {
 	min-height: 100%;
 	background-color: #fafbfc;
-    background: linear-gradient(314.47deg, #EBEFF5 2.19%, #f7f9fc 100%);
+	background: linear-gradient(314.47deg, #EBEFF5 2.19%, #f7f9fc 100%);
 }
 
 hr {
@@ -206,31 +212,31 @@ input[type="checkbox" i] {
 }
 
 .group-tooltip {
-  font-size: 10px;
-  line-height: 14px;
+	font-size: 10px;
+	line-height: 14px;
 
-  .icon-tooltip {
-    color: $lightBlue;
-    margin: 0;
+	.icon-tooltip {
+		color: $lightBlue;
+		margin: 0;
 
-    &::before {
-      margin: 0;
-    }
+		&::before {
+			margin: 0;
+		}
+
+		&:hover {
+			color: $lightElectric;
+		}
+	}
 
 	&:hover {
-		color: $lightElectric;
+		.group-hover\:flex {
+			background-color: $lightElectric;
+			box-shadow: 0px 8px 48px $shadowModalColor;
+			border-radius: 4px;
+			border-radius: 6px;
+			min-width: 196px;
+		}
 	}
-  }
-
-  &:hover {
-    .group-hover\:flex {
-      background-color: $lightElectric;
-      box-shadow: 0px 8px 48px $shadowModalColor;
-      border-radius: 4px;
-      border-radius: 6px;
-      min-width: 196px;
-    }
-  }
 }
 
 .sm\:col-span-12 {
@@ -246,6 +252,7 @@ input[type="checkbox" i] {
 }
 
 :root {
+
 	input[type="checkbox"],
 	input[type="radio"] {
 		--active: $lightElectric;
@@ -295,7 +302,7 @@ input[type="checkbox" i] {
 				--bc: var(--border);
 			}
 
-			& + label {
+			&+label {
 				cursor: not-allowed;
 			}
 		}
@@ -324,7 +331,7 @@ input[type="checkbox" i] {
 			}
 		}
 
-		& + label {
+		&+label {
 			font-size: 14px;
 			line-height: 21px;
 			display: inline-block;
@@ -337,19 +344,15 @@ input[type="checkbox" i] {
 	input[type="checkbox"] {
 		&:not(.switch) {
 			&:after {
-				width: 5px;
-				height: 9px;
-				border: 2px solid var(--active-inner);
-				border-top: 0;
-				border-left: 0;
 				left: 7px;
-				top: 4px;
-				transform: rotate(var(--r, 20deg));
+				top: 3px;
+				width: 6px;
+				height: 11px;
+				border: solid white;
+				border-width: 0 3px 3px 0;
+				transform: rotate(45deg);
 			}
 
-			&:checked {
-				--r: 43deg;
-			}
 		}
 
 		&.switch {
@@ -410,6 +413,7 @@ input[type="checkbox" i] {
 .border-right {
 	width: 1px;
 	border-right: 1px solid $borderColor;
+
 	@media (prefers-color-scheme: dark) {
 		border-right: 1px solid $dark-line;
 	}
@@ -429,12 +433,15 @@ input[type="checkbox" i] {
 	.nls-md-show {
 		display: block;
 	}
+
 	.nls-md-hidden {
 		display: none;
 	}
+
 	.nls-md-flex-row {
 		flex-direction: row !important;
 	}
+
 	.btn-header {
 		background-color: transparent;
 		box-shadow: none;
@@ -446,17 +453,19 @@ input[type="checkbox" i] {
 }
 
 @media (max-width: $md) {
-  .table-header {
-    padding-right: 16px;
-    padding-left: 16px;
-  }
-  .nls-md-hidden {
-    display: none;
-  }
-  .nls-sm-title {
-    margin-top: 26px;
-    margin-bottom: 11.5px;
-  }
+	.table-header {
+		padding-right: 16px;
+		padding-left: 16px;
+	}
+
+	.nls-md-hidden {
+		display: none;
+	}
+
+	.nls-sm-title {
+		margin-top: 26px;
+		margin-bottom: 11.5px;
+	}
 }
 
 @media (max-width: $sm) {
@@ -464,23 +473,29 @@ input[type="checkbox" i] {
 		padding-right: 16px;
 		padding-left: 16px;
 		display: block;
-		& > div {
+
+		&>div {
 			width: 100%;
+
 			&:first-of-type {
 				margin-bottom: 27px;
 			}
 		}
 	}
+
 	.sidebar-elements-block {
 		border-top: 1px solid $borderColor;
+
 		@media (prefers-color-scheme: dark) {
 			border-top: 1px solid $dark-line;
 			background-color: $dark-background !important;
 		}
 	}
+
 	.nls-sm-hidden {
 		display: none;
 	}
+
 	.nls-sm-inline-flex-half {
 		display: inline-flex;
 		width: 50%;
@@ -507,7 +522,7 @@ input[type="checkbox" i] {
 	color: $textMain !important;
 }
 
-.dark-text-light-blue  {
+.dark-text-light-blue {
 	color: $dark !important;
 }
 
@@ -526,9 +541,11 @@ input[type="checkbox" i] {
 .dropdown-elements {
 	color: $textMain !important;
 	padding: 8px 24px 8px 4px;
+
 	&:li {
 		padding-left: 4px;
 	}
+
 	&:hover {
 		background-color: $borderColor !important;
 	}
@@ -538,42 +555,54 @@ input[type="checkbox" i] {
 	.background {
 		background-color: $dark-background;
 	}
+
 	.separator-line::after {
 		background-color: $dark-line;
 	}
+
 	.background-dark {
 		background-color: $dark-gray;
 	}
+
 	.nls-border {
 		border-color: $dark-line;
 	}
+
 	.dark-text {
 		color: $white !important;
 	}
+
 	.warning-box {
 		background-color: rgba(255, 215, 130, 0.4);
 	}
+
 	.bg-light-grey {
 		background-color: $mediumBlue;
 		border: none !important;
 	}
-	body, div#app {
+
+	body,
+	div#app {
 		background-color: $dark-gray;
 		background: unset;
 	}
+
 	.modal-balance {
 		background-color: $dark-line;
 	}
+
 	.show-box-pop,
 	.btn-header {
 		color: $lightBlue !important;
 		background-color: $dark-background !important;
 		border-color: $dark-line !important;
+
 		&:hover {
 			color: $white !important;
 			background-color: $dark-background;
 			border-color: $dark-line;
 		}
+
 		&:active {
 			color: $lightBlue !important;
 			background-color: $dark-background;
@@ -584,25 +613,29 @@ input[type="checkbox" i] {
 	.border-standart {
 		border-color: $dark-line !important;
 	}
-	
+
 	.picker-container ul {
 		background-color: $dark-background !important;
 		border-color: $dark-line !important;
+
 		& li {
 			color: $white !important;
+
 			&:hover {
 				background-color: $dark-line;
 				border-radius: $veryLightRounded;
 			}
 		}
 	}
+
 	.icon-keplr::before,
 	.icon-google::before,
 	.icon-ledger::before,
-	.icon-recover::before{
+	.icon-recover::before {
 		color: $lightGrey;
 	}
-	.dark-text-light-blue  {
+
+	.dark-text-light-blue {
 		color: $lightBlue !important;
 	}
 }

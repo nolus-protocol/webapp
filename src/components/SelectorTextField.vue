@@ -1,5 +1,5 @@
 <template>
-  <div class="block input-field pb-[50px] md:pb-0">
+  <div class="block input-field pb-[50px] md:pb-0 min-h-[680px] mobile">
     <label
       :for="id"
       class="block text-14 nls-font-500 mb-[5px] text-primary relative z-[2]"
@@ -29,7 +29,7 @@
 
     <!-- TODO: add class disabled to the button using js -->
 
-    <div class="mt-6 md:block">
+    <div class="mt-6 md:block hidden">
       <button
         :disabled="confirmMnemonicPhrase.length !== 24"
         class="btn btn-primary btn-large-primary"
@@ -101,3 +101,10 @@ defineExpose({
   onRefresh,
 });
 </script>
+<style scoped lang="scss">
+.mobile{
+  @media (max-height: 690px) {
+    position: relative;
+  }
+}
+</style>

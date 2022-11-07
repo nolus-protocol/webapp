@@ -172,6 +172,10 @@ label {
         }
       }
     }
+
+    &.error{
+      border: solid 1px $mediumRed !important;
+    }
   }
 
   .error {
@@ -185,6 +189,15 @@ label {
     }
   }
 }
+
+.input-field {
+  input {
+    &.error{
+      border: solid 1px $mediumRed !important;
+    }
+  }
+}
+
 
 .combo-field {
   position: relative;

@@ -11,6 +11,8 @@ export type State = {
   privateKey: string | null;
   balances: AssetBalance[];
   walletName: string | null;
+  stakingBalance: Coin | null,
+  suppliedBalance: string,
   currencies:  {
     [key: string]: {
       ticker: string,

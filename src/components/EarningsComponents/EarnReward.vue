@@ -2,7 +2,7 @@
   <div class="block">
     <div
       :class="[
-        'grid gap-6 border-b border-t border-standart px-6 py-3  items-center justify-between',
+        'grid gap-6 border-b border-t border-standart px-6 py-3  items-center justify-between earn-asset',
         'grid-cols-3 md:grid-cols-3',
       ]"
     >
@@ -52,11 +52,11 @@
 </template>
 
 <script lang="ts" setup>
-import { AssetUtils } from '@/utils/AssetUtils';
+import { type PropType, ref } from 'vue';
 import { CurrencyUtils } from '@nolus/nolusjs';
 import { Coin, Int } from '@keplr-wallet/unit';
 import { useOracleStore } from '@/stores/oracle';
-import { type PropType, ref } from 'vue';
+import { useWalletStore } from '@/stores/wallet';
 
 defineProps({
   cols: {
@@ -72,10 +72,11 @@ defineProps({
 });
 
 const oracle = useOracleStore();
+const wallet = useWalletStore();
 const loading = ref(false);
 
 const getAssetIcon = (denom: string) => {
-  return AssetUtils.getAssetInfoByAbbr(denom).coinIcon || '';
+  return wallet.getCurrencyInfo(denom).coinIcon || '';
 };
 
 const getMarketPrice = (denom: string) => {
@@ -90,7 +91,7 @@ const convertMinimalDenomToDenom = (
   tokenAmount: string,
   minimalDenom: string
 ) => {
-  const assetInfo = AssetUtils.getAssetInfoByAbbr(minimalDenom);
+  const assetInfo = wallet.getCurrencyInfo(minimalDenom);
   return CurrencyUtils.convertMinimalDenomToDenom(
     tokenAmount,
     minimalDenom,
@@ -101,7 +102,7 @@ const convertMinimalDenomToDenom = (
 
 const calculateBalance = (tokenAmount: string, denom: string) => {
   const price = getMarketPrice(denom);
-  const tokenDecimals = AssetUtils.getAssetInfoByAbbr(denom).coinDecimals;
+  const tokenDecimals = wallet.getCurrencyInfo(denom).coinDecimals;
   const coin = new Coin(denom, new Int(tokenAmount));
   return CurrencyUtils.calculateBalance(price, coin, tokenDecimals);
 };

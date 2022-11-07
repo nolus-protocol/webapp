@@ -1,90 +1,93 @@
 <template>
   <!-- Input Area -->
-  <div class="modal-send-receive-input-area">
-    <div class="block text-left">
-      <div class="block">
-        <CurrencyField
-          id="amount-investment"
-          :currency-options="balances"
-          :error-msg="modelValue.downPaymentErrorMsg"
-          :is-error="modelValue.downPaymentErrorMsg !== ''"
-          :option="modelValue.selectedDownPaymentCurrency"
-          :step="'1'"
-          :value="modelValue.downPayment"
-          :label="$t('message.down-payment-uppercase')"
-          name="amountInvestment"
-          @input="handleDownPaymentChange($event)"
-          @update-currency="(event) => (modelValue.selectedDownPaymentCurrency = event)"
-        />
+  <form @submit.prevent="modelValue.onNextClick" class="modal-form">
+
+    <div class="modal-send-receive-input-area">
+      <div class="block text-left">
+        <div class="block">
+          <CurrencyField
+            id="amount-investment"
+            :currency-options="balances"
+            :error-msg="modelValue.downPaymentErrorMsg"
+            :is-error="modelValue.downPaymentErrorMsg !== ''"
+            :option="modelValue.selectedDownPaymentCurrency"
+            :step="'1'"
+            :value="modelValue.downPayment"
+            :label="$t('message.down-payment-uppercase')"
+            name="amountInvestment"
+            @input="handleDownPaymentChange($event)"
+            @update-currency="(event) => (modelValue.selectedDownPaymentCurrency = event)"
+          />
+        </div>
+
+        <div class="block mt-[25px]">
+          <CurrencyField
+            id="amount-interest"
+            :currency-options="modelValue.currentBalance"
+            :disabled-currency-picker="true"
+            :disabled-input-field="disabledInputField"
+            :error-msg="modelValue.amountErrorMsg"
+            :is-error="modelValue.amountErrorMsg !== ''"
+            :option="modelValue.selectedCurrency"
+            :value="modelValue.amount"
+            :label="$t('message.lease-up-to')"
+            name="amountInterest"
+            @input="handleAmountChange($event)"
+            @update-currency="(event) => (modelValue.selectedCurrency = event)"
+          />
+        </div>
       </div>
 
-      <div class="block mt-[25px]">
-        <CurrencyField
-          id="amount-interest"
-          :currency-options="modelValue.currentBalance"
-          :disabled-currency-picker="true"
-          :disabled-input-field="disabledInputField"
-          :error-msg="modelValue.amountErrorMsg"
-          :is-error="modelValue.amountErrorMsg !== ''"
-          :option="modelValue.selectedCurrency"
-          :value="modelValue.amount"
-          :label="$t('message.lease-up-to')"
-          name="amountInterest"
-          @input="handleAmountChange($event)"
-          @update-currency="(event) => (modelValue.selectedCurrency = event)"
-        />
-      </div>
-    </div>
-
-    <div class="flex justify-end mt-5 mr-5">
-      <p
-        v-if="modelValue.selectedCurrency?.balance?.denom"
-        class="mb-3 mt-[25px] flex justify-end align-center dark-text nls-font-500 text-14"
-      >
-        {{ $t('message.price-in-usd', { symbol: formatAssetInfo(modelValue.selectedCurrency?.balance?.denom) }) }}
-        <span class="inline-block nls-font-700 ml-5">{{ pricePerToken }}</span>
-      </p>
-    </div>
-    <div class="flex justify-end">
-      <div class="grow-3 text-right nls-font-500 text-14 dark-text">
-        <p class="mb-3 mt-[25px] mr-5">
-          {{ $t("message.leased-amount") }}
-        </p>
-        <p v-if="annualInterestRate" class="mb-3 mr-5">
-          {{ $t("message.annual-interest") }}
-        </p>
-        <p class="mb-3 mt-[25px] mr-5">
-          {{ $t("message.liquidation-price") }}
+      <div class="flex justify-end mt-5 mr-5">
+        <p
+          v-if="modelValue.selectedCurrency?.balance?.denom"
+          class="mb-3 mt-[25px] flex justify-end align-center dark-text nls-font-500 text-14"
+        >
+          {{ $t('message.price-in-usd', { symbol: formatAssetInfo(modelValue.selectedCurrency?.balance?.denom) }) }}
+          <span class="inline-block nls-font-700 ml-5">{{ pricePerToken }}</span>
         </p>
       </div>
-      <div class="text-right nls-font-700 text-14">
-        <p class="mb-3 mt-[25px] flex justify-end align-center dark-text">
-          {{ calculateLeaseAmount }}
-          <TooltipComponent content="Content goes here" />
-        </p>
-        <p v-if="annualInterestRate" class="mb-3 flex justify-end align-center">
-          <span class="flex nls-font-700 ml-5">
-            {{ annualInterestRate }}
+      <div class="flex justify-end">
+        <div class="grow-3 text-right nls-font-500 text-14 dark-text">
+          <p class="mb-3 mt-[25px] mr-5">
+            {{ $t("message.leased-amount") }}
+          </p>
+          <p v-if="annualInterestRate" class="mb-3 mr-5">
+            {{ $t("message.annual-interest") }}
+          </p>
+          <p class="mb-3 mt-[25px] mr-5">
+            {{ $t("message.liquidation-price") }}
+          </p>
+        </div>
+        <div class="text-right nls-font-700 text-14">
+          <p class="mb-3 mt-[25px] flex justify-end align-center dark-text">
+            {{ calculateLeaseAmount }}
             <TooltipComponent content="Content goes here" />
-          </span>
-        </p>
-        <p class="mb-3 mt-[25px] flex justify-end align-center dark-text">
-          $0
-          <TooltipComponent content="Content goes here" />
-        </p>
+          </p>
+          <p v-if="annualInterestRate" class="mb-3 flex justify-end align-center">
+            <span class="flex nls-font-700 ml-5">
+              {{ annualInterestRate }}
+              <TooltipComponent content="Content goes here" />
+            </span>
+          </p>
+          <p class="mb-3 mt-[25px] flex justify-end align-center dark-text">
+            $0
+            <TooltipComponent content="Content goes here" />
+          </p>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Actions -->
-  <div class="modal-send-receive-actions">
-    <button
-      class="btn btn-primary btn-large-primary"
-      @click="modelValue.onNextClick"
-    >
-      {{ $t("message.lease") }}
-    </button>
-  </div>
+    <!-- Actions -->
+    <div class="modal-send-receive-actions">
+      <button
+        class="btn btn-primary btn-large-primary"
+      >
+        {{ $t("message.lease") }}
+      </button>
+    </div>
+
+  </form>
 </template>
 
 <script setup lang="ts">

@@ -22,7 +22,7 @@
           <div class="nls-nav-link flex flex-start nls-md-flex-row mb-[112px]">
             <SidebarElement
               id="governance"
-              label="Govern"
+              :label="$t('message.govern')"
               target="_blank"
               @click="openExternal(governUrl, '_blank')"
             />
@@ -74,7 +74,7 @@
           <div class="block nls-nav-link icon nls-md-hidden">
             <SidebarElement
               id="governance"
-              label="Govern"
+              :label="$t('message.govern')"
               @click="openExternal(governUrl, '_blank')"
             />
           </div>
@@ -136,7 +136,7 @@ import SwapDialog from '@/components/modals/SwapDialog.vue';
 
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 import { RouteNames } from '@/router/RouterNames';
-import { DISCORD_ACCOUNT, REDDIT_ACCOUNT, TELEGRAM_ACCOUNT, TWITTER_ACCOUNT } from '@/constants/webapp';
+import { DISCORD_ACCOUNT, REDDIT_ACCOUNT, TELEGRAM_ACCOUNT, TWITTER_ACCOUNT } from '@/config/globals';
 import { useApplicationStore } from '@/stores/application';
 import { NolusClient } from '@nolus/nolusjs';
 import { NETWORKS, UPDATE_BLOCK_INTERVAL } from '@/config/env';

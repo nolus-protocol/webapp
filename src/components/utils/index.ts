@@ -68,38 +68,32 @@ export const walletOperation = async (
   password: string
 ) => {
   const walletStore = useWalletStore()
-  const wallet = walletStore.wallet;
 
-  if (!wallet) {
-
-    switch (WalletManager.getWalletConnectMechanism()) {
-      case (WalletConnectMechanism.MNEMONIC): {
-        await walletStore[WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN]({ password });
-        break;
-      }
-      case (WalletConnectMechanism.EXTENSION): {
-        await walletStore[WalletActionTypes.CONNECT_KEPLR]();
-        break;
-      }
-      case (WalletConnectMechanism.LEDGER): {
-        await walletStore[WalletActionTypes.CONNECT_LEDGER]();
-        break;
-      }
-      case (WalletConnectMechanism.LEDGER_BLUETOOTH): {
-        await walletStore[WalletActionTypes.CONNECT_LEDGER]();
-        break;
-      }
-      case (WalletConnectMechanism.GOOGLE): {
-        await walletStore[WalletActionTypes.CONNECT_GOOGLE]();
-        break;
-      }
+  switch (WalletManager.getWalletConnectMechanism()) {
+    case (WalletConnectMechanism.MNEMONIC): {
+      await walletStore[WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN]({ password });
+      break;
     }
-
-    operation();
-
-  } else {
-    operation();
+    case (WalletConnectMechanism.EXTENSION): {
+      await walletStore[WalletActionTypes.CONNECT_KEPLR]();
+      break;
+    }
+    case (WalletConnectMechanism.LEDGER): {
+      await walletStore[WalletActionTypes.CONNECT_LEDGER]();
+      break;
+    }
+    case (WalletConnectMechanism.LEDGER_BLUETOOTH): {
+      await walletStore[WalletActionTypes.CONNECT_LEDGER]();
+      break;
+    }
+    case (WalletConnectMechanism.GOOGLE): {
+      await walletStore[WalletActionTypes.CONNECT_GOOGLE]();
+      break;
+    }
   }
+
+  operation();
+
 };
 
 export const getMicroAmount = (denom: string, amount: string) => {

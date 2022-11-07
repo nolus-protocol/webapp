@@ -1,5 +1,5 @@
 <template>
-  <div
+  <form @submit.prevent="connectViaLedger"
     class="block rounded-2xl background -mt-8 md:mt-auto pb-[300px] md:pb-10 pt-6 md:border nls-border shadow-box lg:w-[516px]"
   >
     <h1 class="text-to-big-number text-primary text-center relative">
@@ -41,28 +41,26 @@
         <button
           class="btn btn-primary btn-large-primary"
           :class="{'js-loading': disabled}"
-          @click="connectViaLedger"
         >
           {{ $t('message.connect') }}
         </button>
         <div class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"></div>
       </div>
     </div>
-  </div>
-
-  <div class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
-
-  <div
-    class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal"
-  >
-    <button
-      class="btn btn-primary btn-large-primary w-80"
-      :class="{'js-loading': disabled}"
-      @click="connectViaLedger"
+    <div class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
+  
+    <div
+      class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal"
     >
-      {{ $t('message.connect') }}
-    </button>
-  </div>
+      <button
+        class="btn btn-primary btn-large-primary w-80"
+        :class="{'js-loading': disabled}"
+      >
+        {{ $t('message.connect') }}
+      </button>
+    </div>
+  </form>
+
   <Modal v-if="showError" @close-modal="showError = false; goToAuth()" route="alert">
     <ErrorDialog
       :title="$t('message.error-connecting')"

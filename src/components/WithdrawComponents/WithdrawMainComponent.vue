@@ -48,7 +48,7 @@ import { useWalletStore } from '@/stores/wallet';
 import { computed, inject, onMounted, ref, watch } from 'vue';
 import { WalletManager } from '@/wallet/WalletManager';
 import { CONTRACTS } from '@/config/contracts';
-import { GROUPS } from '@/config/env';
+import { GROUPS, SNACKBAR } from '@/config/env';
 
 const { selectedAsset } = defineProps({
   selectedAsset: {
@@ -138,6 +138,7 @@ watch(
 const step = ref(CONFIRM_STEP.CONFIRM);
 
 const closeModal = inject('onModalClose', () => () => {});
+const showSnackbar = inject('showSnackbar', (type: string, transaction: string) => {});
 
 function onNextClick() {
   if (!state.value.receiverAddress) {
@@ -175,7 +176,11 @@ function validateInputs() {
 }
 
 async function onWithdrawClick() {
-  await walletOperation(transferAmount, state.value.password);
+  try{
+    await walletOperation(transferAmount, state.value.password);
+  }catch(error: Error | any){
+    step.value = CONFIRM_STEP.ERROR;
+  }
 }
 
 async function transferAmount() {
@@ -206,6 +211,7 @@ async function transferAmount() {
       if (result) {
         state.value.txHash = result.transactionHash || '';
         step.value = CONFIRM_STEP.SUCCESS;
+        showSnackbar(SNACKBAR.Success, state.value.txHash);
       }
     } catch (e) {
       step.value = CONFIRM_STEP.ERROR;

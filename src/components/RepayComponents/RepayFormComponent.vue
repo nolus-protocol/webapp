@@ -1,65 +1,68 @@
 <template>
-  <div class="block text-left px-10 mt-10">
-    <div
-      class="block nls-balance mb-[13px] bg-light-grey radius-light text-left text-primary p-2"
-    >
-      {{ $t('message.outstanding-loan') }}:
-      <a class="text-primary nls-font-700 ml-2">
-        $36,423.02
-      </a>
-    </div>
-    <CurrencyField
-      id="repayBalance"
-      :label="$t('message.amount-repay')"
-      name="repayBalance"
-      :value="modelValue.amount"
-      :step="'1'"
-      @input="handleAmountChange($event)"
-      :currency-options="balances"
-      :option="modelValue.selectedCurrency"
-      @update-currency="(event) => (modelValue.selectedCurrency = event)"
-      :error-msg="modelValue.amountErrorMsg"
-      :is-error="modelValue.amountErrorMsg !== ''"
-    />
-    <div class="flex justify-end">
-      <div class="grow-3 text-right nls-font-500 text-14">
-        <p class="mb-3 mt-[25px] mr-5">{{ $t('message.repayment-amount') }}:</p>
-        <p class="mb-3 mr-5">{{ $t('message.outstanding-lease') }}:</p>
-        <p class="mb-3 mr-5">{{ $t('message.tx-fee') }}:</p>
+  <form @submit.prevent="modelValue.onNextClick">
+
+    <div class="block text-left px-10 mt-10">
+      <div
+        class="block nls-balance mb-[13px] bg-light-grey radius-light text-left text-primary p-2"
+      >
+        {{ $t('message.outstanding-loan') }}:
+        <a class="text-primary nls-font-700 ml-2">
+          $36,423.02
+        </a>
       </div>
-      <div class="text-right nls-font-700 text-14">
-        <p class="mb-3 mt-[25px] flex justify-end align-center mr-[5px]">
-          {{
-            calculateBalance(
-              modelValue.amount,
-              modelValue.selectedCurrency?.balance?.denom
-            )
-          }}
-        </p>
-        <p class="mb-3 flex justify-end align-center mr-[5px]">
-          {{
-            calculateBalanceByTicker(
-              modelValue.outstandingLoanAmount.amount,
-              modelValue.outstandingLoanAmount.ticker
-            )
-          }}
-        </p>
-        <p class="mb-3 flex justify-end align-center mr-[5px]">
-          {{
-            calculateFee
-          }}
-        </p>
+      <CurrencyField
+        id="repayBalance"
+        :label="$t('message.amount-repay')"
+        name="repayBalance"
+        :value="modelValue.amount"
+        :step="'1'"
+        @input="handleAmountChange($event)"
+        :currency-options="balances"
+        :option="modelValue.selectedCurrency"
+        @update-currency="(event) => (modelValue.selectedCurrency = event)"
+        :error-msg="modelValue.amountErrorMsg"
+        :is-error="modelValue.amountErrorMsg !== ''"
+      />
+      <div class="flex justify-end">
+        <div class="grow-3 text-right nls-font-500 text-14">
+          <p class="mb-3 mt-[25px] mr-5">{{ $t('message.repayment-amount') }}:</p>
+          <p class="mb-3 mr-5">{{ $t('message.outstanding-lease') }}:</p>
+          <p class="mb-3 mr-5">{{ $t('message.tx-fee') }}:</p>
+        </div>
+        <div class="text-right nls-font-700 text-14">
+          <p class="mb-3 mt-[25px] flex justify-end align-center mr-[5px]">
+            {{
+              calculateBalance(
+                modelValue.amount,
+                modelValue.selectedCurrency?.balance?.denom
+              )
+            }}
+          </p>
+          <p class="mb-3 flex justify-end align-center mr-[5px]">
+            {{
+              calculateBalanceByTicker(
+                modelValue.outstandingLoanAmount.amount,
+                modelValue.outstandingLoanAmount.ticker
+              )
+            }}
+          </p>
+          <p class="mb-3 flex justify-end align-center mr-[5px]">
+            {{
+              calculateFee
+            }}
+          </p>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="modal-send-receive-actions mt-5">
-    <button
-      class="btn btn-primary btn-large-primary text-center"
-      @click="modelValue.onNextClick"
-    >
-      {{ $t('message.repay') }}
-    </button>
-  </div>
+    <div class="modal-send-receive-actions mt-5">
+      <button
+        class="btn btn-primary btn-large-primary text-center"
+      >
+        {{ $t('message.repay') }}
+      </button>
+    </div>
+
+  </form>
 </template>
 
 <script setup lang="ts">

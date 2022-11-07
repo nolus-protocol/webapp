@@ -27,11 +27,18 @@
     width: 100%;
   }
 
+  @media (max-width: $lg) {
+    bottom:  0;
+    top: unset;
+  }
+
   .sidebar-elements-container {
     z-index: 10;
+
     @media (min-width: $lg) {
       max-width: 132px;
     }
+
     @media (max-width: $lg) {
       display: flex;
       justify-content: space-between;
@@ -42,6 +49,7 @@
       border-radius: 16px;
       width: 100vw;
     }
+
     @media (max-width: $sm) {
       .sidebar-element {
         padding-left: 8px;
@@ -121,10 +129,12 @@
 
   @media (prefers-color-scheme: dark) {
     color: $white;
+
     &:hover {
       .icon {
         color: $lightBlue !important;
       }
+
       color: $lightBlue !important;
     }
   }
@@ -135,6 +145,7 @@
     flex-direction: row;
     justify-content: flex-start;
     font-family: "Garet-Medium";
+
     &:not(.icon) {
       line-height: 23px;
     }
@@ -155,7 +166,8 @@
   }
 
   &:active {
-    color: $orange !important;      
+    color: $orange !important;
+
     .icon {
       color: $orange !important;
     }
@@ -180,38 +192,38 @@
 }
 
 .sidebar-social-element {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 24px;
-	height: 24px;
-	margin-right: 16px;
-	font-family: "Garet-Medium";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-right: 16px;
+  font-family: "Garet-Medium";
 
-	&:last-of-type {
-		margin-right: 0 !important;
-	}
+  &:last-of-type {
+    margin-right: 0 !important;
+  }
 
-	img {
-		display: block;
-		width: 20px;
-		height: 16.24px;
+  img {
+    display: block;
+    width: 20px;
+    height: 16.24px;
 
-		margin: 0 auto;
-	}
+    margin: 0 auto;
+  }
 }
 
 .sidebar-link-element {
-	display: block;
-	text-align: left;
-	color: $shadowBoxColor;
+  display: block;
+  text-align: left;
+  color: $shadowBoxColor;
 
-	@extend .text-detail;
+  @extend .text-detail;
 
-	&:hover,
-	&:active {
-		color: $textMain;
-	}
+  &:hover,
+  &:active {
+    color: $textMain;
+  }
 }
 
 .sidebar-header {
@@ -226,7 +238,11 @@
   background-color: $white;
   border-bottom: 1px solid $borderColor;
   z-index: 1;
-  
+
+  @media (max-width: $lg) {
+    position: fixed;
+  }
+
   @media (prefers-color-scheme: dark) {
     background-color: $dark-background;
     border-bottom: 1px solid $dark-line;
@@ -260,6 +276,7 @@
         display: none;
       }
     }
+
     @media (max-width: $md) {
       &.active {
         background-color: $borderColor;
@@ -277,76 +294,86 @@
 }
 
 .sub-nav-service {
-	.sidebar-link-element {
-		font-size: 14px;
-		line-height: 20px;
-		font-family: "Garet";
-	}
+  .sidebar-link-element {
+    font-size: 14px;
+    line-height: 20px;
+    font-family: "Garet";
+  }
 }
 
 @keyframes slideUp {
-	0% {
-		height: 0;
-	}
-	50% {
-		height: 50%;
-	}
-	100% {
-		height: 100%;
-	}
+  0% {
+    height: 0;
+  }
+
+  50% {
+    height: 50%;
+  }
+
+  100% {
+    height: 100%;
+  }
 }
 
 @media (max-width: $lg) {
-	.nls-nav-more {
-		& > div:first-of-type {
-			z-index: 1;
-			transform: translateY(150%);
-			transition: 0.4s ease-in-out;
-			background-color: $white;
+  .nls-nav-more {
+    &>div:first-of-type {
+      z-index: 1;
+      transform: translateY(150%);
+      transition: 0.4s ease-in-out;
+      background-color: $white;
+
       @media (prefers-color-scheme: dark) {
-			  background-color: $dark-background;
+        background-color: $dark-background;
       }
-			width: 100vw;
-			border-top-left-radius: 16px;
-			border-top-right-radius: 16px;
+
+      width: 100vw;
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
       position: absolute;
 
-			& > div {
-				padding-left: 16px;
+      &>div {
+        padding-left: 16px;
         border-bottom: 1px solid $borderColor;
-			}
+      }
 
-			.sidebar-element {
-				display: flex;
-				flex-direction: row !important;
-			}
-		}
+      .sidebar-element {
+        display: flex;
+        flex-direction: row !important;
+        width: 100%;
+        justify-content: flex-start;
+      }
+    }
 
-		.sub-nav-social {
-			a {
-				span {
-					font-size: 42px;
-				}
-			}
-		}
+    .sub-nav-social {
+      a {
+        span {
+          font-size: 42px;
+        }
+      }
+    }
 
-		& > div:last-of-type {
-			z-index: 10;
-			background: $white;
-			width: 100vw;
-			/* Note: backdrop-filter has minimal browser support */
-			.nls-nav-link {
-				.sidebar-element {
-					flex-direction: column;
-					margin-bottom: 10px;
-				}
-			}
-		}
-	}
+    &>div:last-of-type {
+      z-index: 10;
+      background: $white;
+      width: 100vw;
+      @media (prefers-color-scheme: dark) {
+        background-color: $dark-background;
+      }
+
+      /* Note: backdrop-filter has minimal browser support */
+      .nls-nav-link {
+        .sidebar-element {
+          flex-direction: column;
+          margin-bottom: 10px;
+        }
+      }
+    }
+  }
 }
 
 .backdrop {
-	display: none;
+  display: none;
 }
 
 .mobile-nav {
@@ -358,6 +385,7 @@
     width: 100vw;
     left: 0;
     background: $lightGrey;
+
     @media (prefers-color-scheme: dark) {
       background: $dark-gray;
     }
@@ -381,30 +409,34 @@
 }
 
 .sidebar-elements-block {
-	@media (max-width: $lg) {
-		display: flex;
+  @media (max-width: $lg) {
+    display: flex;
     padding: 0 24px;
-		justify-content: space-between;
-		.sidebar-element {
-			.icon {
-				margin-right: 0;
-			}
-		}
-		#term-of-service {
-			display: none;
-		}
-		.sub-nav-social {
-			display: none;
-		}
-		.sidebar-element {
-			&:hover {
-				background-color: transparent;
-				color: $orange;
+    justify-content: space-between;
 
-				.icon {
-					color: $orange !important;
-				}
-			}
-		}
-	}
+    .sidebar-element {
+      .icon {
+        margin-right: 0;
+      }
+    }
+
+    #term-of-service {
+      display: none;
+    }
+
+    .sub-nav-social {
+      display: none;
+    }
+
+    .sidebar-element {
+      &:hover {
+        background-color: transparent;
+        color: $orange;
+
+        .icon {
+          color: $orange !important;
+        }
+      }
+    }
+  }
 }

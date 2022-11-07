@@ -1,5 +1,5 @@
 <template>
-  <div
+  <form @submit.prevent="clickImport"
     class="block rounded-2xl background md:pb-10 pt-6 pb-[200px] -mt-8 md:mt-auto md:border nls-border shadow-box w-screen md:w-[516px]">
     <h1 class="text-to-big-number text-primary text-center relative z-[2]">
       <button class="align-baseline absolute left-0 top-2/4 -mt-3 px-4 md:px-10" type="button" @click="clickBack">
@@ -23,7 +23,7 @@
       />
 
       <div class="mt-6 md:flex">
-        <button class="btn btn-primary btn-large-primary mr-4" @click="clickImport">
+        <button class="btn btn-primary btn-large-primary mr-4">
           {{ $t("message.unlock") }}
         </button>        
         <div class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"></div>
@@ -34,11 +34,11 @@
 
     <div
       class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal">
-      <button class="btn btn-primary btn-large-primary w-80" @click="clickImport">
+      <button class="btn btn-primary btn-large-primary w-80">
         {{ $t("message.unlock") }}
       </button>
     </div>
-  </div>
+  </form>
 
   <Modal v-if="showError" @close-modal="showError = false" route="alert">
     <ErrorDialog 

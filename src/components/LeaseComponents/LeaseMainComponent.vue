@@ -144,7 +144,11 @@ const onNextClick = async () => {
 };
 
 const onSendClick = async () => {
-  await walletOperation(openLease, state.value.password);
+  try{
+    await walletOperation(openLease, state.value.password);
+  }catch(error: Error | any){
+    step.value = CONFIRM_STEP.ERROR;
+  }
 };
 
 const onConfirmBackClick = () => {

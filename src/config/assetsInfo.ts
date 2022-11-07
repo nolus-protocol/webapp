@@ -10,30 +10,7 @@ import starsIcon from '@/assets/icons/coins/stars.svg';
 import croIcon from '@/assets/icons/coins/cro.svg';
 import scrtIcon from '@/assets/icons/coins/scrt.svg';
 
-import type { AssetInfo } from '@/types';
 import { ChainConstants } from '@nolus/nolusjs';
-
-//TODO to be deleted
-export const assetsInfo: { [key: string]: AssetInfo } = {
-  unls: {
-    ticker: 'NLS',
-    coinDenom: ChainConstants.COIN_DENOM,
-    coinMinimalDenom: ChainConstants.COIN_MINIMAL_DENOM,
-    coinDecimals: ChainConstants.COIN_DECIMALS,
-    coinGeckoId: ChainConstants.COIN_GECKO_ID,
-    coinAbbreviation: 'NLS',
-    coinIcon: nlsIcon,
-  },
-  'USDC': {
-    ticker: 'USDC',
-    coinDenom: 'usdc',
-    coinMinimalDenom: 'USDC',
-    coinDecimals: 6,
-    coinGeckoId: 'usd-coin',
-    coinAbbreviation: 'USDC',
-    coinIcon: usdcIcon,
-  }
-};
 
 export const ASSETS = {
   NLS: {
@@ -114,3 +91,6 @@ export const ASSETS = {
     defaultPrice: '0'
   }
 }
+
+export const LPN_CURRENCY = ASSETS.USDC;
+export const NATIVE_CURRENCY = ASSETS.NLS;

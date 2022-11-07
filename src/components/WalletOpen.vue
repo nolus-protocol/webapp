@@ -19,15 +19,6 @@
 
     <!-- Wallet Body -->
     <div class="box-open-body background p-4 lg:p-6 border-b border-standart text-left">
-      <!-- Language -->
-      <!-- <div class="block">
-        <Picker
-          :default-option="{ label: 'English', value: 'en' }"
-          :disabled="true"
-          :options="[{ value: 'en', label: 'English' }]"
-          label="Language"
-        />
-      </div> -->
 
       <div class="block">
         <Picker
@@ -36,7 +27,7 @@
           :options="[
             { value: 'USD', label: 'USD' },
           ]"
-          label="Currency"
+          :label="$t('message.currency')"
         />
       </div>
 
@@ -44,7 +35,7 @@
         <Picker
           :default-option="currentNetwork"
           :options="networks"
-          label="Network"
+          :label="$t('message.network')"
           @focus="showWallet = true"
           @update-selected="onUpdateNetwork"
         />

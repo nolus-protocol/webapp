@@ -4,7 +4,7 @@ export class StringUtils {
     front: number,
     back: number
   ): string {
-    return `${str.substr(0, front)}...${str.substr(
+    return `${str.substring(0, front)}...${str.substring(
       str.length - back,
       str.length
     )}`;

@@ -1,7 +1,7 @@
 <template>
   <div
     :class="[
-      `asset-partial nolus-box grid gap-6 ${
+      `asset-partial nolus-box grid gap-6 relative ${
         showActionButtons ? 'row-actions' : ''
       } border-b border-standart py-3 px-4 items-center justify-between`,
       cols ? 'grid-cols-' + cols : 'grid-cols-2 md:grid-cols-4',
@@ -29,7 +29,6 @@
       </div>
     </div>
 
-    
     <div class="md:block hidden">
       <p class="text-primary nls-font-500 text-16 text-right m-0">
         <template v-if="balance > 0">
@@ -92,54 +91,63 @@
     </div>
 
         
-    <div class="mobile-actions md:hidden col-span-2" v-if="canLease || canSupply">
+    <div class="mobile-actions md:hidden col-span-2" v-if="canLease || canSupply || canStake">
       <div class="flex">
         <button
-        class="btn btn-secondary btn-medium-secondary flex-1"
-         v-if="canLease"
-         @click="openModal(DASHBOARD_ACTIONS.LEASE, denom)"
-      >
-        {{ $t("message.lease-up-to") }}
-        <template v-if="balance > 0">
-          <CurrencyComponent
-            :fontSize="14"
-            :type="CURRENCY_VIEW_TYPES.TOKEN"
-            :amount="leasUpTo"
-            :minimalDenom="assetInfo.coinMinimalDenom"
-            :decimals="assetInfo.coinDecimals"
-            :maxDecimals="2"
-            denom=""
-          />
-        </template>
-        <template v-else>
+          class="btn btn-secondary btn-medium-secondary flex-1"
+          v-if="canLease"
+          @click="openModal(DASHBOARD_ACTIONS.LEASE, denom)"
+        >
+          {{ $t("message.lease-up-to") }}
+          <template v-if="balance > 0">
+            <CurrencyComponent
+              :fontSize="14"
+              :type="CURRENCY_VIEW_TYPES.TOKEN"
+              :amount="leasUpTo"
+              :minimalDenom="assetInfo.coinMinimalDenom"
+              :decimals="assetInfo.coinDecimals"
+              :maxDecimals="2"
+              denom=""
+            />
+          </template>
+          <template v-else>
+            <CurrencyComponent
+              :fontSize="14"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              :amount="DEFAULT_LEASE_UP_PERCENT"
+              :hasSpace="false"
+              :isDenomInfront="false"
+              denom="%"
+            />
+          </template>
+        </button>
+      
+        <button
+          class="btn btn-secondary btn-medium-secondary flex-1"
+          v-if="canSupply"
+          @click="openModal(DASHBOARD_ACTIONS.SUPPLY, denom)"
+        >
+          {{ $t("message.earn") }}
           <CurrencyComponent
             :fontSize="14"
             :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            :amount="DEFAULT_LEASE_UP_PERCENT"
+            :amount="earnings"
             :hasSpace="false"
             :isDenomInfront="false"
             denom="%"
           />
-        </template>
-      </button>
-      
-      <button
-        class="btn btn-secondary btn-medium-secondary flex-1"
-        v-if="canSupply"
-        @click="openModal(DASHBOARD_ACTIONS.SUPPLY, denom)"
-      >
-        {{ $t("message.earn") }}
-        <CurrencyComponent
-          :fontSize="14"
-          :type="CURRENCY_VIEW_TYPES.CURRENCY"
-          :amount="earnings"
-          :hasSpace="false"
-          :isDenomInfront="false"
-          denom="%"
-        />
-      </button>
-      </div>
+        </button>
 
+        <a
+        class="btn btn-secondary btn-medium-secondary flex-1"
+        v-if="canStake"
+        :href="governUrl"
+        target="_blank"
+        >
+          {{ $t("message.stake") }}
+        </a>
+
+      </div>
 
     </div>
 
@@ -158,6 +166,14 @@
       >
         {{ $t("message.supply") }}
       </button>
+      <a
+        v-if="canStake"
+        class="btn btn-secondary btn-medium-secondary"
+        :href="governUrl"
+        target="_blank"
+      >
+        {{ $t("message.stake") }}
+    </a>
     </div>
   </div>
 </template>
@@ -172,9 +188,12 @@ import negative from '@/assets/icons/change-negative.svg';
 import CurrencyComponent from '@/components/CurrencyComponent.vue';
 
 import { DASHBOARD_ACTIONS } from '@/types';
-import { DEFAULT_CURRENCY, DEFAULT_LEASE_UP_PERCENT, GROUPS, LEASE_UP_COEFICIENT } from '@/config/env';
+import { DEFAULT_CURRENCY, DEFAULT_LEASE_UP_PERCENT, GROUPS, LEASE_UP_COEFICIENT, NETWORKS } from '@/config/env';
 import { CURRENCY_VIEW_TYPES } from '@/types/CurrencyViewType';
 import { useWalletStore } from '@/stores/wallet';
+import { NATIVE_CURRENCY } from '@/config/assetsInfo';
+import { EnvNetworkUtils } from '@/utils';
+const governUrl = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].govern;
 
 const walletStore = useWalletStore();
 
@@ -222,7 +241,12 @@ const canSupply = computed(() => {
   return Number(props.assetBalance) > 0 && curency.groups.includes(GROUPS.Lpn);
 });
 
-const showActionButtons = computed(() => canLease.value || canSupply.value);
+const canStake = computed(() => {
+  const curency = walletStore.currencies[props.denom];
+  return NATIVE_CURRENCY.key == curency.ticker && Number(props.assetBalance) > 0;
+});
+
+const showActionButtons = computed(() => canLease.value || canSupply.value || canStake.value);
 
 const balance = computed(() => {
   return Number(props.assetBalance);
@@ -244,7 +268,7 @@ const calculateBalance = (price: string, tokenAmount: string, denom: string) => 
 </script>
 <style scoped lang="scss">
 div.mobile-actions{
-  button{
+  button, a{
     font-family: "Garet-Medium" !important;
     &:first-child:not(&:last-child){
       margin-right: 5px;
@@ -252,6 +276,10 @@ div.mobile-actions{
     &:last-child:not(&:first-child){
       margin-left: 5px;
     }
+  }
+  a{
+    justify-content: center;
+    display: flex;
   }
 }
 </style>

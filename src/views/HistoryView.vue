@@ -87,8 +87,6 @@ const prepareTransactions = (results: Readonly<IndexedTx[]>) => {
     results.forEach((tx) => {
       const rawTx = JSON.parse(tx.rawLog);
       const decodedTx: DecodedTxRaw = decodeTxRaw(tx.tx);
-      console.log(decodedTx, tx);
-
       const transactionResult: ITransaction = {
         id: tx.hash || '',
         height: `${tx.height}` || '',

@@ -23,7 +23,7 @@
             :options="swapFromOptions"
             :currencyOption="selectedOption"
             :disabled="false"
-            label="Asset"
+            :label="$t('message.asset')"
             @update-currency="(value: any) => $emit('updateCurrency', value)"
           />
         </div>
@@ -50,7 +50,7 @@
             :options="currencyOptions"
             :currencyOption="swapToOption"
             :disabled="false"
-            label="Asset"
+            :label="$t('message.asset')"
             @update-currency="(value: any) => $emit('updateSwapToCurrency', value)"
           />
         </div>
@@ -77,10 +77,11 @@ import { computed } from 'vue';
 import { ArrowDownIcon } from '@heroicons/vue/24/solid';
 import { CurrencyUtils } from '@nolus/nolusjs';
 import { Coin, Int } from '@keplr-wallet/unit';
-import { assetsInfo } from '@/config/assetsInfo';
 import { useOracleStore } from '@/stores/oracle';
+import { useWalletStore } from '@/stores/wallet';
 
 const oracle = useOracleStore();
+const wallet = useWalletStore();
 
 interface Props {
   amount: string;
@@ -118,7 +119,7 @@ function calculateInputBalance(amount: string, denom: string) {
     return '$0';
   }
 
-  const { coinDecimals, coinMinimalDenom } = assetsInfo[denom];
+  const { coinDecimals, coinMinimalDenom } = wallet.getCurrencyInfo(denom);
   const asset = CurrencyUtils.convertDenomToMinimalDenom(
     props.amount,
     coinMinimalDenom,

@@ -44,7 +44,7 @@
     "leased-amount": "Leased amount:",
     "annual-interest": "Annual interest:",
     "liquidation-price": "Liquidation price:",
-    "memo": "Memo:",
+    "memo": "Memo",
     "contract-address": "Contract address:",
     "confirm-sending": "Confirm sending",
     "sending-failed": "Sending failed",
@@ -157,6 +157,20 @@
     "address": "Address",
     "show-barcode": "Show Barcode",
     "down-payment-uppercase": "Down Payment",
-    "apr": "APR"
+    "apr": "APR",
+    "email": "Email",
+    "govern": "Govern",
+    "currency": "Currency",
+    "memo-only": "Memo (optional)",
+    "lease-up-to-tooltip": "The maxium amount a user can levergae based on the available wallet balance",
+    "earn-apr-tooltip": "Expected annualized percentage return on Supplied or Staked assets supported by the system",
+    "interest-fee-tooltip": "Estimated annualized interest fee, locked at contract creation, displayed on a yearly basis",
+    "interest-due-tooltip": "Accumulates each block and is added to the position. Interest is due for repayment in ~14 days",
+    "earn-view-apr-tooltip": "Annualized Percentage Return on Supplied or Staked Assets",
+    "net-worth": "Net Worth",
+    "error": "Error",
+    "queued": "Queued",
+    "success": "Success",
+    "stake": "Stake"
   }
 }

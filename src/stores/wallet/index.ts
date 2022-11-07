@@ -25,6 +25,8 @@ import { NETWORKS } from '@/config/env';
 import { ASSETS } from '@/config/assetsInfo';
 import { ADAPTER_STATUS } from '@web3auth/base';
 import { Buffer } from 'buffer';
+import { Lpp } from '@nolus/nolusjs/build/contracts';
+import { CONTRACTS } from '@/config/contracts';
 
 const useWalletStore = defineStore('wallet', {
   state: () => {
@@ -34,7 +36,9 @@ const useWalletStore = defineStore('wallet', {
       privateKey: null,
       walletName: null,
       balances: [],
-      currencies: {}
+      currencies: {},
+      stakingBalance: null,
+      suppliedBalance: '0'
     } as State;
   },
   actions: {
@@ -219,6 +223,7 @@ const useWalletStore = defineStore('wallet', {
       }
     },
     async [WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN](payload: { password: string }) {
+
       if (this.privateKey === null && payload.password !== '') {
         const encryptedPubKey = WalletManager.getEncryptedPubKey();
         const encryptedPk = WalletManager.getPrivateKey();
@@ -229,7 +234,7 @@ const useWalletStore = defineStore('wallet', {
         await nolusWalletOfflineSigner.useAccount();
 
         this.wallet = nolusWalletOfflineSigner;
-        this.privateKey = '';
+        this.privateKey = null;
         await this[WalletActionTypes.UPDATE_BALANCES]();
 
       }
@@ -314,7 +319,19 @@ const useWalletStore = defineStore('wallet', {
       const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
       const data = await fetch(`${url}/cosmos/staking/v1beta1/delegations/${WalletManager.getWalletAddress()}`);
       const json = await data.json();
-      return json;
+      const [item] = json.delegation_responses;
+      if(item){
+        this.stakingBalance = item.balance;
+      }
+    },
+    async [WalletActionTypes.LOAD_SUPPLIED_AMOUNT]() {
+      const walletAddress = this?.wallet?.address ?? WalletManager.getWalletAddress();
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+      const lppClient = new Lpp(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance);
+      const depositBalance = await lppClient.getLenderDeposit(
+        walletAddress as string
+      );
+      this.suppliedBalance = depositBalance.balance;
     },
     async [WalletActionTypes.LOAD_WALLET_NAME]() {
       switch (WalletManager.getWalletConnectMechanism()) {
@@ -332,7 +349,21 @@ const useWalletStore = defineStore('wallet', {
     getCurrencyInfo: (state) => {
       return (denom: string) => {
         const currency = state.currencies[denom];
+
+        if(!currency){
+          return {
+            ticker: 'NLS',
+            coinDenom: ASSETS.NLS.abbreviation,
+            coinMinimalDenom: denom,
+            coinDecimals: Number(CURRENCIES.currencies.NLS.decimal_digits),
+            coinAbbreviation: ASSETS.NLS.abbreviation,
+            coinGeckoId: ASSETS.NLS.coinGeckoId,
+            coinIcon: ASSETS.NLS.coinIcon
+          }
+        }
+
         const key = currency.ticker as keyof typeof ASSETS;
+
         return {
           ticker: key,
           coinDenom: ASSETS[key].abbreviation,

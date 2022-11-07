@@ -46,7 +46,7 @@ import { defaultNolusWalletFee } from '@/config/wallet';
 import { useWalletStore } from '@/stores/wallet';
 import { computed, inject, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { DEFAULT_APR, GROUPS } from '@/config/env';
+import { DEFAULT_APR, GROUPS, SNACKBAR } from '@/config/env';
 
 const { selectedAsset } = defineProps({
   selectedAsset: {
@@ -90,6 +90,7 @@ const errorDialog = ref({
 });
 
 const closeModal = inject('onModalClose', () => () => {});
+const showSnackbar = inject('showSnackbar', (type: string, transaction: string) => {});
 
 function onNextClick() {
   if (!state.value.receiverAddress) {
@@ -122,7 +123,11 @@ function validateInputs() {
 }
 
 async function onSupplyClick() {
-  await walletOperation(transferAmount, state.value.password);
+  try{
+    await walletOperation(transferAmount, state.value.password);
+   }catch(error: Error | any){
+    step.value = CONFIRM_STEP.ERROR;
+  }
 }
 
 async function transferAmount() {
@@ -149,6 +154,7 @@ async function transferAmount() {
       if (result) {
         state.value.txHash = result.transactionHash || '';
         step.value = CONFIRM_STEP.SUCCESS;
+        showSnackbar(SNACKBAR.Success, state.value.txHash);
       }
     } catch (e) {
       step.value = CONFIRM_STEP.ERROR;

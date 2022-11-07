@@ -1,11 +1,11 @@
 <template>
   <div
-    class="md:grid md:grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6 md:flex items-center"
+    class="md:grid md:grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6 md:flex items-center history-item"
   >
     <div
       class="hidden col-span-2 lg:block nls-14 nls-font-400 text-primary text-left"
     >
-    <a class="his-url" v-bind:href="applicaton.network.networkAddresses.exploler+'tx/'+ transaction.id" target="_blank">{{ truncateString(transaction.id) }} </a> 
+    <a class="his-url" :href="applicaton.network.networkAddresses.exploler+'tx/'+ transaction.id" target="_blank">{{ truncateString(transaction.id) }} </a> 
     <img src="@/assets/icons/urlicon.svg" class="float-right w-3 mt-1 his-img">
     </div>
     <div class="hidden col-span-2 md:block text-left">
@@ -21,8 +21,6 @@
         {{ $t("message.to") }}
         {{ truncateString(transaction.receiver) }}
       </span>
-      <!--                    <span class="text-bold">Stake</span> 797020...qtcrpy to <span-->
-      <!--                    class="text-bold">Pylon Governance</span>-->
     </div>
     <div
       class="block col-span-2 items-center justify-start md:justify-endtext-primary"

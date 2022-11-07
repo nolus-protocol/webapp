@@ -1,6 +1,6 @@
 <template>
   <div
-    class="nolus-box grid gap-6 border-b border-standart py-3 px-6 items-center justify-between grid-cols-2 md:grid-cols-3"
+    class="vested-partial nolus-box grid gap-6 border-b border-standart py-3 px-6 items-center justify-between grid-cols-2 md:grid-cols-3"
   >
     <div class="inline-flex items-center">
       <img

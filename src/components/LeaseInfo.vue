@@ -13,7 +13,7 @@
         </p>
         <div class="flex">
           <img
-            :src="getAssetIcon()"
+            :src="getAssetIcon"
             class="inline-block m-0 mr-3"
             height="36"
             width="36"
@@ -86,8 +86,9 @@
           </p>
         </div>
         <div class="block ml-8">
-          <p class="text-detail text-primary m-0">
+          <p class="text-detail text-primary m-0 flex items-center">
             {{ $t("message.interest-fee") }}
+            <TooltipComponent :content="$t('message.interest-fee-tooltip')" />
           </p>
           <p class="flex items-center text-primary text-20 nls-font-400 m-0 mt-1">
             {{
@@ -96,8 +97,9 @@
           </p>
         </div>
         <div class="block ml-8">
-          <p class="text-detail text-primary m-0">
+          <p class="text-detail text-primary m-0 flex items-center">
             {{ $t("message.interest-due") }}
+            <TooltipComponent :content="$t('message.interest-due-tooltip')" />
           </p>
           <p class="flex items-center text-primary text-20 nls-font-400 m-0 mt-1">
             {{
@@ -139,16 +141,15 @@ import type { LeaseData } from '@/types';
 import RepayDialog from '@/components/modals/RepayDialog.vue';
 import Modal from '@/components/modals/templates/Modal.vue';
 import PriceHistoryChart from '@/components/templates/utils/NolusChart.vue';
+import TooltipComponent from './TooltipComponent.vue';
 
-import { ref, watchEffect } from 'vue';
+import { computed, ref, watchEffect } from 'vue';
 import { Lease } from '@nolus/nolusjs/build/contracts';
 import { CurrencyUtils, NolusClient, NolusWallet } from '@nolus/nolusjs';
 import { ChainConstants } from '@nolus/nolusjs/build/constants';
 import { Coin, Dec, Int } from '@keplr-wallet/unit';
-import { assetsInfo } from '@/config/assetsInfo';
-import { CHART_RANGES } from '@/constants/webapp';
+import { CHART_RANGES } from '@/config/globals';
 import { WalletUtils } from '@/utils/WalletUtils';
-import { AssetUtils } from '@/utils/AssetUtils';
 import { useWalletStore } from '@/stores/wallet';
 import { useOracleStore } from '@/stores/oracle';
 import { useI18n } from 'vue-i18n';
@@ -223,13 +224,15 @@ async function onClickClaim(leaseAddress: string) {
 }
 
 function getAssetInfo(key: keyof AssetInfo) {
-  const denom =
+  const ticker =
     leaseInfo.leaseStatus?.opened?.amount.ticker ||
     leaseInfo.leaseStatus?.paid?.ticker;
 
-  if (denom) {
-    const assetInfo = assetsInfo[denom];
-    return assetInfo[key];
+  if (ticker) {
+    const item = walletStore.getCurrencyByTicker(ticker);
+    const ibcDenom = walletStore.getIbcDenomBySymbol(item.symbol);
+    const asset = walletStore.getCurrencyInfo(ibcDenom as string);
+    return asset[key];
   }
 
   return '';
@@ -254,11 +257,13 @@ function calculateBalance(tokenAmount = '0', denom = '') {
   ).toString();
 }
 
-function getAssetIcon(): string {
-  const denom =
+const getAssetIcon = computed((): string => {
+  const ticker =
     leaseInfo.leaseStatus?.opened?.amount.ticker ||
     leaseInfo.leaseStatus?.paid?.ticker ||
     "";
-  return AssetUtils.getAssetInfoByAbbr(denom).coinIcon;
-}
+    const item = walletStore.getCurrencyByTicker(ticker);
+    const ibcDenom = walletStore.getIbcDenomBySymbol(item.symbol);
+  return walletStore.getCurrencyInfo(ibcDenom as string).coinIcon;
+})
 </script>

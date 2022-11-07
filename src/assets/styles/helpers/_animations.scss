@@ -17,6 +17,8 @@
 .nls-btn-show {
   display: none;
   transition: 0.2s;
+  position: absolute;
+  right: 20px;
 }
 
 @media (min-width: $md) {
@@ -36,24 +38,22 @@
     animation-duration: 0.2s;
     animation-iteration-count: 1;
     animation-timing-function: ease-in;
-    transition: 0.2s;
+    transition: 0.2s opacity;
   }
 
   .row-actions:hover .info-show {
-    display: none;
+    opacity: 0;
   }
 
 }
 
 @keyframes show-anime {
   0% {
-    display: none;
     opacity: 0;
   }
 
   100% {
     opacity: 1;
-    display: flex;
   }
 }
 

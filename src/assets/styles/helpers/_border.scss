@@ -4,3 +4,9 @@
     border-color: $borderColor;
   }
 }
+
+div.asset-partial, div.vested-partial, div.earn-asset, div.history-item{
+  &:last-child{
+      border: none;
+  }
+}

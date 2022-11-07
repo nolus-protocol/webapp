@@ -4,9 +4,9 @@ import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
 import { NETWORKS } from '@/config/env';
 import { EnvNetworkUtils } from './EnvNetworkUtils';
 
-const configurations = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].web3auth;
+const configurations = NETWORKS[EnvNetworkUtils.getStoredNetworkName()]?.web3auth;
 
-const clientId = configurations.clientId;
+const clientId = configurations?.clientId;
 
 export class Web3AuthProvider {
 

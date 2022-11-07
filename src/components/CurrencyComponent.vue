@@ -1,13 +1,13 @@
 <template>
   <template v-if="type == CURRENCY_VIEW_TYPES.CURRENCY">
-    <span :class="'text-'+fontSize">
+    <span :class="[`text-${fontSize}`, $attrs.class]">
       <template v-if="isDenomInfront">{{ amount.denom }}<template v-if="hasSpace">&nbsp;</template></template>{{ amount.beforeDecimal }}
     </span>
-    <span :class="'text-'+smallFontSize">{{ amount.afterDecimal }}<template v-if="!isDenomInfront" ><template v-if="hasSpace">&nbsp;</template>{{ amount.denom }}</template> </span>
+    <span :class="[`text-${smallFontSize}`, $attrs.class]">{{ amount.afterDecimal }}<template v-if="!isDenomInfront" ><template v-if="hasSpace">&nbsp;</template>{{ amount.denom }}</template> </span>
   </template>
   <template v-if="type == CURRENCY_VIEW_TYPES.TOKEN">
-    <span :class="'text-'+fontSize">{{ amount.beforeDecimal }}</span>
-    <span :class="'text-'+smallFontSize">{{ amount.afterDecimal }}<template v-if="hasSpace">&nbsp;</template>{{ amount.denom }}</span>
+    <span :class="[`text-${fontSize}`, $attrs.class]">{{ amount.beforeDecimal }}</span>
+    <span :class="[`text-${smallFontSize}`, $attrs.class]">{{ amount.afterDecimal }}<template v-if="hasSpace">&nbsp;</template>{{ amount.denom }}</span>
   </template>
 </template>
 
@@ -63,10 +63,10 @@ const amount = computed(() => {
     case (CURRENCY_VIEW_TYPES.CURRENCY): {
 
       let numberAmount = Number(props.amount);
-
       let amount = new Intl.NumberFormat(DEFAULT_CURRENCY.locale, {
-        minimumFractionDigits: DEFAULT_CURRENCY.minimumFractionDigits 
-      }).format(Number(props.amount));
+        minimumFractionDigits: DEFAULT_CURRENCY.minimumFractionDigits,
+        maximumFractionDigits: DEFAULT_CURRENCY.maximumFractionDigits
+      }).format(numberAmount);
 
       let [beforeDecimal, afterDecimal] = amount.split('.');
 
@@ -119,5 +119,24 @@ const amount = computed(() => {
     afterDecimal: ''
   };
 });
-
 </script>
+<style scoped lang="scss">
+span{
+  &.text-40{
+    font-size: 40px;
+  }
+  &.text-38{
+    font-size: 34px;
+  }
+}
+@media (max-width:576px) {
+  span{
+    &.text-40{
+    font-size: 32px;
+  }
+  &.text-38{
+    font-size: 28px;
+  }
+  }
+}
+</style>

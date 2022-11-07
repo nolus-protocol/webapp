@@ -73,7 +73,8 @@ export const DEFAULT_CURRENCY = {
   currency: 'usd',
   symbol: '$',
   locale: 'en-US',
-  minimumFractionDigits: 2
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
 }
 
 export const DEFAULT_NETWORK = {
@@ -93,6 +94,12 @@ export enum GROUPS {
   Lpn = 'Lpn',
   Lease = 'Lease',
   Payment = 'Payment'
+}
+
+export enum SNACKBAR {
+  Queued = 'queued',
+  Success = 'success',
+  Error = 'error'
 }
 
 export const UPDATE_BLOCK_INTERVAL = 5 * 1000; // 5000 ms

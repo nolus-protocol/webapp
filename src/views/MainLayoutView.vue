@@ -20,25 +20,36 @@
         </div>
       </div>
     </div>
+    <Snackbar 
+      ref="snackbar"
+      :type="snackbarState.type"
+      :transaction="snackbarState.transaction">
+    </Snackbar>
   </div>
 </template>
 
 <script lang="ts" setup>
 import SidebarContainer from '@/components/SidebarContainer.vue';
 import SidebarHeader from '@/components/Sideheader.vue';
-import { UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL } from '@/config/env';
+import Snackbar from '@/components/templates/utils/Snackbar.vue';
+import { SNACKBAR, UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL } from '@/config/env';
 import { OracleActionTypes, useOracleStore } from '@/stores/oracle';
 import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
 import { WalletManager } from '@/wallet/WalletManager';
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, provide, ref, type Ref } from 'vue';
 
 let balanceInterval: NodeJS.Timeout | undefined;
 let pricesInterval: NodeJS.Timeout | undefined;
 const wallet = useWalletStore();
 const oracle = useOracleStore();
+const snackbar: Ref<typeof Snackbar> = ref(Snackbar);
 
 const showErrorDialog = ref(false);
 const errorMessage = ref('');
+const snackbarState = ref({
+  type: SNACKBAR.Queued,
+  transaction: 'transaction'
+});
 
 onMounted(async () => {
   await loadNetwork();
@@ -86,5 +97,14 @@ const checkPrices = async () => {
     }
   }, UPDATE_PRICES_INTERVAL);
 };
+
+const showSnackbar = (type: SNACKBAR, transaction: string) => {
+  snackbarState.value.type = type;
+  snackbarState.value.transaction = transaction;
+
+  snackbar.value.openSnackBar();
+}
+
+provide('showSnackbar', showSnackbar);
 
 </script>

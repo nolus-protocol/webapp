@@ -1,10 +1,10 @@
 @media (max-width: $lg) {
-.mobile-scroll {
+  .mobile-scroll {
     width: 100vw;
-    height: calc(var(--vh, 1vh) * 100 - 65px - 82px);
-    overflow: auto;
+    padding-bottom: 84px;
   }
-  .sidebar-container{
+
+  .sidebar-container {
     z-index: 1;
     width: 0 !important;
   }

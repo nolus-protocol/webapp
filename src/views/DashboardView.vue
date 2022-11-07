@@ -22,67 +22,92 @@
       </div>
     </div>
     <!-- Wallet -->
-    <div v-if="isTotalBalancePositive"
-    class="flex balance-box items-center justify-start background mt-6 nls-border shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6"
-    >
-      <template>
-        <div class="left inline-block w-1/3">
-          <p class="nls-font-500 text-16 text-primary">
-            {{ $t("message.total") }}
-          </p>
-          <p class="nls-font-700 text-32 lg:text-40 text-primary">
-            {{ totalBalance }}
-          </p>
-          <div class="separator-line flex py-4 lg:hidden ml-[-16px] mr-[-16px]"></div>
+    <Transition :name="animate">
+      <div v-if="isTotalBalancePositive"
+      class="flex balance-box items-center justify-start background mt-6 nls-border shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6"
+      >
+          <div class="left inline-block pr-2">
+            <p class="nls-font-500 text-16 text-primary">
+              {{ $t("message.net-worth") }}
+            </p>
+            <CurrencyComponent
+              :fontSize="40"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              :amount="totalBalance"
+              :denom="DEFAULT_CURRENCY.symbol"
+              :has-space="false"
+              class="nls-font-700 text-primary"
+            />
+          </div>
+
+          <div class="border-right h-[80px] mt-[-48px] hidden md:flex"></div>
+          <div class="border-right h-[80px] mb-[-24px] ml-[-1px] hidden md:flex"></div>
+
+        <div class="right flex w-2/3 -mt-8 lg:mt-0">
+          <div class="pt-3 lg:pl-6">
+            <p class="nls-font-400 text-12 text-dark-grey">
+              {{ $t("message.available-assets") }}
+            </p>
+
+            <CurrencyComponent
+              :fontSize="20"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              :amount="state.availableAssets.toString()"
+              :denom="DEFAULT_CURRENCY.symbol"
+              :has-space="false"
+              class="nls-font-500 text-primary"
+            />
+          </div>
+
+          <div class="pt-3 pl-12 lg:pl-8">
+            <p class="nls-font-400 text-12 text-dark-grey">
+              {{ $t("message.active-leases") }}
+            </p>
+
+            <CurrencyComponent
+              :fontSize="20"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              :amount="activeLeases"
+              :denom="DEFAULT_CURRENCY.symbol"
+              :has-space="false"
+              class="nls-font-500 text-primary"
+            />
+          </div>
+
+          <!-- HIDDEN ON MOBILE -->
+          <div class="pt-3 pl-12 lg:pl-8 hidden lg:block">
+            <p class="nls-font-400 text-12 text-dark-grey">
+              {{ $t("message.supplied-and-staked") }}
+            </p>
+
+            <CurrencyComponent
+              :fontSize="20"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              :amount="suppliedAndStaked.toString()"
+              :denom="DEFAULT_CURRENCY.symbol"
+              :has-space="false"
+              class="nls-font-500 text-primary"
+            />
+          </div>
+
+          <!-- HIDDEN ON DESKTOP -->
         </div>
-
-        <div class="border-right h-[80px] mt-[-48px] hidden md:flex"></div>
-        <div class="border-right h-[80px] mb-[-24px] ml-[-1px] hidden md:flex"></div>
-      </template>
-
-      <div class="right flex w-2/3 -mt-8 lg:mt-0">
-        <div class="pt-3 lg:pl-6">
-          <p class="nls-font-400 text-12 text-dark-grey">
-            {{ $t("message.available-assets") }}
-          </p>
-
-          <p class="nls-font-500 text-20 dark-text">
-            {{ availableAssets }}
-          </p>
-        </div>
-
-        <div class="pt-3 pl-12 lg:pl-8">
-          <p class="nls-font-400 text-12 text-dark-grey">
-            {{ $t("message.active-leases") }}
-          </p>
-
-          <p class="nls-font-500 text-20 dark-text">
-            {{ activeLeases }}
-          </p>
-        </div>
-
-        <!-- HIDDEN ON MOBILE -->
-        <div class="pt-3 pl-12 lg:pl-8 hidden lg:block">
+        <div class="pt-4 block lg:hidden">
           <p class="nls-font-400 text-12 text-dark-grey">
             {{ $t("message.supplied-and-staked") }}
           </p>
-          <p class="nls-font-500 text-20 dark-text">
-            {{ suppliedAndStaked }}
-          </p>
+
+          <CurrencyComponent
+            :fontSize="20"
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            :amount="suppliedAndStaked.toString()"
+            :denom="DEFAULT_CURRENCY.symbol"
+            :has-space="false"
+            class="nls-font-500 text-primary"
+          />
         </div>
-
-        <!-- HIDDEN ON DESKTOP -->
       </div>
-      <div class="pt-4 block lg:hidden">
-        <p class="nls-font-400 text-12 text-dark-grey">
-          {{ $t("message.supplied-and-staked") }}
-        </p>
-
-        <p class="nls-font-500 text-20 dark-text">
-          {{ suppliedAndStaked }}
-        </p>
-      </div>
-    </div>
+    </Transition>
 
     <!-- Existing Assets -->
     <div
@@ -129,14 +154,14 @@
             class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper"
           >
             <span class="inline-block">{{ $t("message.lease-up-to") }}</span>
-            <TooltipComponent content="Content goes here" />
+            <TooltipComponent :content="$t('message.lease-up-to-tooltip')" />
           </div>
 
           <div
             class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper"
           >
             <span class="inline-block">{{ $t("message.earn-apr") }}</span>
-            <TooltipComponent content="Content goes here" />
+            <TooltipComponent :content="$t('message.earn-apr-tooltip')" />
           </div>
 
           <div
@@ -149,7 +174,7 @@
         <!-- Assets Container -->
         <div class="block lg:mb-0">
           <AssetPartial
-            v-for="(asset, index) in manipulatedAssets"
+            v-for="(asset, index) in filteredAssets"
             :key="`${asset.balance.denom}-${index}`"
             :asset-info="getAssetInfo(asset.balance.denom)"
             :assetBalance="asset.balance.amount.toString()"
@@ -244,15 +269,18 @@ import LeaseDialog from '@/components/modals/LeaseDialog.vue';
 import VestedAssetPartial from '@/components/VestedAssetPartial.vue';
 
 import type { AssetBalance } from '@/stores/wallet/state';
-import { AssetUtils } from '@/utils/AssetUtils';
-import { computed, ref, provide, onMounted } from 'vue';
+import { computed, ref, provide, onMounted, watch } from 'vue';
 import { Coin, Dec, Int } from '@keplr-wallet/unit';
 import { CurrencyUtils } from '@nolus/nolusjs';
 import { DASHBOARD_ACTIONS } from '@/types/DashboardActions';
 import { useLeases } from '@/composables';
 import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
 import { useOracleStore } from '@/stores/oracle';
-import { DEFAULT_APR } from '@/config/env';
+import { DEFAULT_APR, DEFAULT_CURRENCY } from '@/config/env';
+import { storeToRefs } from 'pinia';
+import { LPN_CURRENCY } from '@/config/assetsInfo';
+import { CURRENCY_VIEW_TYPES } from '@/types/CurrencyViewType';
+import CurrencyComponent from '@/components/CurrencyComponent.vue';
 
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
@@ -262,8 +290,13 @@ const modalOptions = {
 
 const wallet = useWalletStore();
 const oracle = useOracleStore();
+const walletRef = storeToRefs(wallet);
+const oracleRef = storeToRefs(oracle);
+
 const isAssetsLoading = ref(wallet.balances.length == 0);
 const showErrorDialog = ref(false);
+const loaded = wallet.balances.length > 0 && Object.keys(oracle.prices).length > 0;
+const animate = ref(loaded ? '' : 'fade');
 const errorMessage = ref('');
 
 const state = ref({
@@ -277,14 +310,25 @@ const state = ref({
 });
 
 const vestedTokens = ref([] as { delayed: boolean, endTime: string, toAddress: string, amount: { amount: string, denom: string } }[]);
-const mainAssets = computed(() => wallet.balances);
-const manipulatedAssets = computed(() => {
-    return state.value.showSmallBalances ? mainAssets.value : filterSmallBalances(mainAssets.value as AssetBalance[])
+
+const filteredAssets = computed(() => {
+    return state.value.showSmallBalances ? wallet.balances : filterSmallBalances(wallet.balances as AssetBalance[])
   }
 );
 
-onMounted( () => {
+onMounted(() => {
   getVestedTokens();
+  availableAssets();
+  wallet[WalletActionTypes.LOAD_STAKED_TOKENS]();
+  wallet[WalletActionTypes.LOAD_SUPPLIED_AMOUNT]();
+});
+
+watch(walletRef.balances, () => {
+  availableAssets();
+});
+
+watch(oracleRef.prices, () => {
+  availableAssets();
 });
 
 const onClickTryAgain = async () => {
@@ -299,8 +343,7 @@ const totalBalance = computed(() => {
   let total = state.value.availableAssets;
   total = total.add(state.value.activeLeases as Dec);
   total = total.add(state.value.suppliedAndStaked as Dec);
-
-  return CurrencyUtils.formatPrice(total.toString()).toString();
+  return total.toString();
 });
 
 const isTotalBalancePositive = computed(() => {
@@ -320,11 +363,15 @@ const activeLeases = computed(() => {
   leases.value.forEach((lease) => {
 
     if (lease.leaseStatus.opened) {
-      const denom = lease.leaseStatus.opened.amount.ticker;
+      const ticker = lease.leaseStatus.opened.amount.ticker;
+      const currency = wallet.getCurrencyByTicker(ticker);
+      const ibcDenom = wallet.getIbcDenomBySymbol(currency.symbol) as string;
+      const data = wallet.getCurrencyInfo(ibcDenom as string);
+
       const balance = CurrencyUtils.calculateBalance(
-        getMarketPrice(denom),
-        new Coin(denom, lease.leaseStatus.opened.amount.amount),
-        0
+        getMarketPrice(ibcDenom),
+        new Coin(data.coinDenom, lease.leaseStatus.opened.amount.amount),
+        data.coinDecimals
       );
 
       totalLeases = totalLeases.add(balance.toDec());
@@ -333,15 +380,14 @@ const activeLeases = computed(() => {
   });
 
   state.value.activeLeases = totalLeases;
-  return CurrencyUtils.formatPrice(totalLeases.toString()).toString();
+  return totalLeases.toString();
 });
 
-const availableAssets = computed(() => {
+const availableAssets = () => {
   let totalAssets = new Dec(0);
+  wallet.balances.forEach((asset) => {
 
-  mainAssets.value.forEach((asset) => {
-
-    const { coinDecimals, coinDenom } = AssetUtils.getAssetInfoByAbbr(
+    const { coinDecimals, coinDenom } = wallet.getCurrencyInfo(
       asset.balance.denom
     );
 
@@ -355,16 +401,41 @@ const availableAssets = computed(() => {
   });
 
   state.value.availableAssets = totalAssets;
-  return CurrencyUtils.formatPrice(totalAssets.toString()).toString();
-});
+
+  if(animate.value.length > 0 && totalAssets.gt(new Dec(0))){
+    setTimeout(() => {
+      animate.value = '';
+    }, 400);
+  }
+};
 
 const suppliedAndStaked = computed(() => {
-  // // @TODO: get suppliedAndStaked
-  const totalSuppliedAndStaked = new Dec(0);
+  const staking = wallet.stakingBalance as Coin;
+  const supplied = wallet.suppliedBalance;
+  const suppliedSymbol = wallet.getCurrencyByTicker(LPN_CURRENCY.key);
+  const suppliedCoin = wallet.getIbcDenomBySymbol(suppliedSymbol.symbol) as string;
+  const suppliedInfo = wallet.getCurrencyInfo(suppliedCoin as string);
+  let totalSuppliedAndStaked = new Dec(0);
+
+  const suppliedBalance = CurrencyUtils.calculateBalance(
+    getMarketPrice(suppliedCoin),
+    new Coin(suppliedCoin, supplied),
+    suppliedInfo.coinDecimals
+  );
+  totalSuppliedAndStaked = totalSuppliedAndStaked.add(suppliedBalance.toDec());
+
+  if(staking){
+    const stakingInfo = wallet.getCurrencyInfo(staking.denom as string);
+    const stakingBalance = CurrencyUtils.calculateBalance(
+      getMarketPrice(staking.denom),
+      staking,
+      stakingInfo.coinDecimals
+    );
+    totalSuppliedAndStaked = totalSuppliedAndStaked.add(stakingBalance.toDec());
+  }
+
   state.value.suppliedAndStaked = totalSuppliedAndStaked;
-  return CurrencyUtils.formatPrice(
-    totalSuppliedAndStaked.toString()
-  ).toString();
+  return totalSuppliedAndStaked;
 });
 
 const filterSmallBalances = (balances: AssetBalance[]) => {
@@ -389,3 +460,14 @@ const getMarketPrice = (denom: string) => {
 }
 
 </script>
+<style scoped lang="scss">
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.4s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

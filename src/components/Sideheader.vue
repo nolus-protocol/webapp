@@ -41,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import Notifications from '@/components/Notifications.vue';
 import WalletOpen from '@/components/WalletOpen.vue';
 import LogoLink from '@/components/LogoLink.vue';
@@ -81,9 +81,7 @@ const onClick = (event: MouseEvent) => {
 <style scoped>
 @media (max-width: 768px) {
   .active {
-    /* background-neutral-medium */
     background-color: red;
-    /* background: #ebeff5;*/
   }
 }
 </style>

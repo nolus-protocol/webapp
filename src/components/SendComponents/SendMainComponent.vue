@@ -28,11 +28,13 @@ import { CONFIRM_STEP } from '@/types/ConfirmStep';
 import { TxType } from '@/types/TxType';
 import { useWalletStore } from '@/stores/wallet';
 import { computed, inject, ref } from 'vue';
+import { SNACKBAR } from '@/config/env';
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const walletStore = useWalletStore();
 
 const closeModal = inject('onModalClose', () => () => {});
+const showSnackbar = inject('showSnackbar', (type: string, transaction: string) => {});
 const balances = computed(() => walletStore.balances);
 
 const showConfirmScreen = ref(false);
@@ -86,6 +88,7 @@ const transferAmount = async () => {
 
   step.value = success ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
   state.value.txHash = txHash;
+  showSnackbar(SNACKBAR.Success, txHash);
 }
 
 function onNextClick(){

@@ -77,7 +77,11 @@ function onClickOkBtn() {
 }
 
 async function onClickClaim() {
-  await walletOperation(requestClaim, state.value.password);
+  try{
+    await walletOperation(requestClaim, state.value.password);
+  }catch(error: Error | any){
+    step.value = CONFIRM_STEP.ERROR;
+  }
 }
 
 async function requestClaim() {

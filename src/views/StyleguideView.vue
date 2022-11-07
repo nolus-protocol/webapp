@@ -1252,14 +1252,6 @@
                       <div
                         class="flex items-center justify-end text-dark-grey nls-13 nls-font-400 text-right m-0"
                       >
-                        <!-- {{
-          convertminimalDenomToDenom(
-            assetBalance,
-            assetsInfo.coinMinimalDenom,
-            assetsInfo.coinDenom,
-            assetsInfo.coinDecimals
-          )
-        }} -->200, 000 NLS
                       </div>
                     </div>
 
@@ -1575,13 +1567,9 @@
           v-show="showLeaseModal"
           @close-modal="showLeaseModal = false"
         />
-        <RepayMainComponent
+        <!-- <RepayMainComponent
           v-show="showRepayModal"
-          @close-modal="showRepayModal = false"
-        />
-        <ConfirmEmailModal
-          v-show="showConfirmEmailModal"
-          @close-modal="showConfirmEmailModal = false"
+          @close-modal="showRepayModal = false" -->
         />
         <!-- /MODALS -->
         <!-- HISTORY -->
@@ -1607,7 +1595,6 @@ import { BellIcon } from '@heroicons/vue/24/solid';
 import LogoLink from '@/components/LogoLink.vue';
 
 import SidebarElement from '@/components/SidebarElement.vue';
-import ConfirmEmailModal from '@/components/modals/ConfirmEmailModal.vue';
 import HistoryView from '@/views/HistoryView.vue';
 import AuthView from '@/views/AuthView.vue';
 import SidebarHeader from '@/components/Sideheader.vue';
@@ -1621,7 +1608,7 @@ import {
   REDDIT_ACCOUNT,
   TELEGRAM_ACCOUNT,
   TWITTER_ACCOUNT,
-} from '@/constants/webapp';
+} from '@/config/globals';
 
 const showSwapModal = ref(false as boolean);
 const showRepayModal = ref(false as boolean);

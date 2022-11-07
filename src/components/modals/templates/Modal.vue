@@ -70,6 +70,6 @@ provide('parseRoute', parseRoute);
 <style scoped>
 button.btn-close-modal{
   padding: 16px;
-  z-index: 99;
+  z-index: 999;
 }
 </style>

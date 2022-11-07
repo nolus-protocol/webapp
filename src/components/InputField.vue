@@ -10,6 +10,7 @@
         :name="name"
         :type="type"
         :value="value"
+        autocomplete="off"
         @input="$emit('update:value', handleInputChange($event))"
       />
       <span :class="['msg error ', errorMsg.length > 0 ? '' : 'hidden']">

@@ -56,8 +56,7 @@ import MultipleCurrencyField from '@/components/MultipleCurrencyField.vue';
 
 import { computed } from 'vue';
 import { CurrencyUtils } from '@nolus/nolusjs';
-import { assetsInfo } from '@/config/assetsInfo';
-import { AssetUtils } from '@/utils';
+import { useWalletStore } from '@/stores/wallet';
 
 interface Props {
   selectedCurrency: AssetBalance;
@@ -68,23 +67,24 @@ interface Props {
   errorMsg: string;
 }
 
+const wallet = useWalletStore();
 const props = defineProps<Props>();
 defineEmits(['updateSelected', 'updateAmount', 'updateSwapToSelected']);
 
 const coinAbbr = computed(() =>
-  AssetUtils.getAssetInfoByAbbr(
+  wallet.getCurrencyInfo(
     props.selectedCurrency.balance.denom
   ).coinAbbreviation.toUpperCase()
 );
 const swapToCoinAbbr = computed(() =>
-  AssetUtils.getAssetInfoByAbbr(
+  wallet.getCurrencyInfo(
     props.swapToSelectedCurrency.balance.denom
   ).coinAbbreviation.toUpperCase()
 );
 
 function formatCurrentBalance(selectedCurrency: AssetBalance) {
   if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
-    const asset = assetsInfo[selectedCurrency.balance.denom];
+    const asset = wallet.getCurrencyInfo(selectedCurrency.balance.denom);
     return CurrencyUtils.convertMinimalDenomToDenom(
       selectedCurrency.balance.amount.toString(),
       selectedCurrency.balance.denom,

@@ -1,5 +1,5 @@
 <template>
-  <div
+  <form  @submit.prepvent="clickContinue"
     class="block rounded-2xl background md:pb-10 pt-6 pb-[300px] -mt-8 md:mt-auto md:border nls-border shadow-box w-screen md:w-[516px]"
   >
     <h1 class="text-to-big-number text-primary text-center relative relative z-[2]">
@@ -29,8 +29,8 @@
     ></InputField>
 
     <div class="mt-6 px-4 md:px-10 md:flex">
-      <button class="btn btn-primary btn-large-primary" @click="clickContinue">
-        {{ $t("message.continue") }}
+      <button class="btn btn-primary btn-large-primary">
+        {{ $t("message.done") }}
       </button>
       <div class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"></div>
     </div>
@@ -44,12 +44,11 @@
     >
       <button
         class="btn btn-primary btn-large-primary w-80"
-        @click="clickContinue"
       >
         {{ $t("message.done") }}
       </button>
     </div>
-  </div>
+  </form>
 </template>
 
 <script setup lang="ts">

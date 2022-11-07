@@ -30,7 +30,6 @@
                     aria-describedby="show-small-balances"
                     name="show-small-balances"
                     type="checkbox"
-                    disabled="true" 
                   />
                   <label for="show-small-balances">{{ $t('message.show-small-balances') }}</label>
                 </div>
@@ -50,9 +49,10 @@
               </div>
 
               <div
-                class="nls-font-500 text-12 text-dark-grey text-center text-upper"
+                class="nls-font-500 text-12 text-dark-grey text-center text-upper md:flex hidden items-center justify-center"
               >
                 {{ $t("message.apr") }}
+                <TooltipComponent :content="$t('message.earn-view-apr-tooltip')" />
               </div>
 
               <div
@@ -66,7 +66,7 @@
 
             <!-- Assets Container -->
             <EarnAsset
-              v-for="(asset, index) in balances"
+              v-for="(asset, index) in filteredAssets"
               :key="`${asset.balance.denom}-${index}`"
               :asset="asset"
               :openSupplyWithdraw="
@@ -132,9 +132,10 @@ import SupplyWithdrawDialog from '@/components/modals/SupplyWithdrawDialog.vue';
 import Modal from '@/components/modals/templates/Modal.vue';
 import ClaimDialog from '@/components/modals/ClaimDialog.vue';
 import ErrorDialog from '@/components/modals/ErrorDialog.vue';
+import TooltipComponent from '@/components/TooltipComponent.vue';
 
 import type { AssetBalance } from '@/stores/wallet/state';
-import { onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { claimRewardsMsg, type ContractData, Lpp} from '@nolus/nolusjs/build/contracts';
 import { ChainConstants, NolusClient } from '@nolus/nolusjs';
 
@@ -142,7 +143,7 @@ import { CONTRACTS } from '@/config/contracts';
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils';
 
 import { WalletManager } from '@/wallet/WalletManager';
-import { Coin, Dec } from '@keplr-wallet/unit';
+import { Coin, Dec, Int } from '@keplr-wallet/unit';
 import { storeToRefs } from 'pinia';
 import { useWalletStore } from '@/stores/wallet';
 
@@ -156,7 +157,7 @@ const balances = ref([] as AssetBalance[]);
 const rewards = ref([] as AssetBalance[]);
 const claimContractData = ref([] as ContractData[]);
 const selectedAsset = ref('');
-const showSmallBalances = ref(false);
+const showSmallBalances = ref(true);
 const showClaimModal = ref(false);
 const showErrorDialog = ref(false);
 const errorMessage = ref('');
@@ -173,6 +174,15 @@ onMounted(async () => {
     errorMessage.value = e?.message;
   }
 });
+
+const filteredAssets = computed(() => {
+    return showSmallBalances.value ? balances.value : filterSmallBalances(balances.value as AssetBalance[])
+  }
+);
+
+const filterSmallBalances = (balances: AssetBalance[]) => {
+  return balances.filter((asset) => asset.balance.amount.gt(new Int('1')));
+}
 
 const onClickTryAgain = async () => {
   await getAllRewards();

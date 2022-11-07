@@ -1,8 +1,8 @@
 <template>
-  <div class="block">
+  <div class="block relative">
     <div
       :class="[
-        'grid gap-6 row-actions border-b flex border-t border-standart px-6 py-3 items-center justify-between',
+        'grid gap-6 row-actions border-b flex border-t border-standart px-6 py-3 items-center justify-between earn-asset',
         cols ? 'md:grid-cols-' + cols : 'grid-cols-2 md:grid-cols-3'
       ]"
     >
@@ -83,13 +83,12 @@
 <script setup lang="ts">
 import type { PropType } from 'vue';
 import type { AssetBalance } from '@/stores/wallet/state';
+import CurrencyComponent from '../CurrencyComponent.vue';
 import { Coin, Int } from '@keplr-wallet/unit';
 import { CurrencyUtils } from '@nolus/nolusjs';
-import { AssetUtils } from '@/utils/AssetUtils';
 import { useOracleStore } from '@/stores/oracle';
 import { computed } from '@vue/reactivity';
 import { useWalletStore } from '@/stores/wallet';
-import CurrencyComponent from '../CurrencyComponent.vue';
 import { CURRENCY_VIEW_TYPES } from '@/types/CurrencyViewType';
 import { DEFAULT_APR } from '@/config/env';
 
@@ -109,8 +108,6 @@ const props = defineProps({
     required: true,
   },
 });
-
-console.log(props.cols)
 
 const assetInfo = computed(() => {
   const assetInfo = wallet.getCurrencyInfo(props.asset.balance.denom);
@@ -133,7 +130,7 @@ const convertMinimalDenomToDenom = (
   tokenAmount: string,
   minimalDenom: string
 ) => {
-  const assetInfo = AssetUtils.getAssetInfoByAbbr(minimalDenom);
+  const assetInfo = wallet.getCurrencyInfo(minimalDenom);
   return CurrencyUtils.convertMinimalDenomToDenom(
     tokenAmount,
     minimalDenom,
@@ -144,7 +141,7 @@ const convertMinimalDenomToDenom = (
 
 const calculateBalance = (tokenAmount: string, denom: string) => {
   const price = getMarketPrice(denom);
-  const tokenDecimals = AssetUtils.getAssetInfoByAbbr(denom).coinDecimals;
+  const tokenDecimals = wallet.getCurrencyInfo(denom).coinDecimals;
   const coin = new Coin(denom, new Int(tokenAmount));
   return CurrencyUtils.calculateBalance(price, coin, tokenDecimals);
 };

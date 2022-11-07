@@ -9,6 +9,8 @@
       margin-right: 8px;
       vertical-align: middle;
       transition: 0.3s;
+      appearance: none;
+      -webkit-appearance: none;
 
       &:checked {
         background-color: $lightElectric !important;

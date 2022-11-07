@@ -3,9 +3,7 @@
     <LogoLink link="/"></LogoLink>
     <div class="container mx-auto">
       <div class="flex items-center justify-center pt-24">
-        <div class="">
-          <router-view />
-        </div>
+        <router-view />
       </div>
     </div>
   </div>
