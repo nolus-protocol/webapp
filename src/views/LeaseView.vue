@@ -2,7 +2,7 @@
   <div class="col-span-12 mb-sm-nolus-70">
     <!-- Header -->
     <div
-      class="flex flex-wrap items-center justify-between px-4 lg:px-0"
+      class="flex flex-wrap items-center justify-between px-4 lg:pt-[25px] lg:px-0"
     >
       <div class="left w-full md:w-1/2">
         <h1 class="text-20 nls-font-700 text-primary m-0 nls-sm-title">
@@ -10,7 +10,7 @@
         </h1>
       </div>
       <div
-        class="right w-full md:w-1/2 mt-[25px] md:mt-0 inline-flex justify-start md:justify-end"
+        class="right w-full md:w-1/2 md:mt-0 inline-flex justify-start md:justify-end"
       >
         <button
           class="btn btn-primary btn-large-primary w-full md:w-1/2"
