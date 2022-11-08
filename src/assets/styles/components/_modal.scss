@@ -9,7 +9,6 @@
   }
 
   &-send-receive {
-    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
@@ -51,7 +50,7 @@
         background-color: $lightGrey;
         color: $mediumBlue;
         width: 50%;
-        padding: 25px 0;
+        padding: 24px 0;
         font-size: 28px;
         font-family: "Garet Bolder";
         text-align: center;
@@ -119,7 +118,7 @@
     &-input-area {
       flex-grow: 1;
       width: 100%;
-      padding: 40px 24px 108px;
+      padding: 20px 24px 108px;
       -webkit-overflow-scrolling: touch;
 
       @media (min-width: $md) {
@@ -168,9 +167,12 @@
 }
 
 .modal-send-receive-actions{
-  padding-bottom: 30px;
-  @media (max-width:992px) {
+  @media (max-width:$md) {
     box-shadow: 0px 8px 48px $shadowModalColor !important;
+  }
+
+  @media (min-width:$md) {
+    padding-bottom: 30px;
   }
 }
 .no-border {

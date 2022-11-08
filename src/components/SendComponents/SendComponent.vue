@@ -10,7 +10,7 @@
       </div>
   
       <div class="block text-left">
-        <div class="block mt-[25px]">
+        <div class="block mt-[20px]">
           <CurrencyField 
             id="amount" 
             :currency-options="modelValue.currentBalance" 
@@ -25,7 +25,7 @@
             @update-currency="(event) => (modelValue.selectedCurrency = event)" />
         </div>
   
-        <div class="block mt-[25px]">
+        <div class="block mt-[20px]">
           <InputField 
             :error-msg="modelValue.receiverErrorMsg" 
             :is-error="modelValue.receiverErrorMsg !== ''"
@@ -37,7 +37,7 @@
             @input="(event) => (modelValue.receiverAddress = event.target.value)" />
         </div>
   
-        <div class="block mt-[25px]">
+        <div class="block mt-[20px]">
           <Picker 
           :default-option="networks[0]" 
           :disabled="true" 
@@ -45,7 +45,7 @@
           :label="$t('message.network')" />
         </div>
   
-        <div class="block mt-[25px]">
+        <div class="block mt-[20px]">
           <InputField id="memo" :value="modelValue.memo" :label="$t('message.memo-only')" name="memo" type="text"
             @input="(event) => (modelValue.memo = event.target.value)"></InputField>
         </div>
