@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vite --port 8080 --host",
+    "serve": "vite --port 8080",
     "build:production": "npm run type-check && vite build --mode production",
     "build:staging": "npm run type-check && vite build --mode staging",
     "build": "npm run type-check && vite build --mode development",
