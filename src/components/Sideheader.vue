@@ -78,10 +78,3 @@ const onClick = (event: MouseEvent) => {
   }
 };
 </script>
-<style scoped>
-@media (max-width: 768px) {
-  .active {
-    background-color: red;
-  }
-}
-</style>
