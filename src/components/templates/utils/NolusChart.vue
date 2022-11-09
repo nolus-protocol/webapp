@@ -330,16 +330,16 @@ div.chart-tooltip {
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  div.chart-tooltip {
-    background-color: #2B384B;
-    border-color: #5E7699;
+// @media (prefers-color-scheme: dark) {
+//   div.chart-tooltip {
+//     background-color: #2B384B;
+//     border-color: #5E7699;
 
-    table {
-      tbody {
-        color: white;
-      }
-    }
-  }
-}
+//     table {
+//       tbody {
+//         color: white;
+//       }
+//     }
+//   }
+// }
 </style>

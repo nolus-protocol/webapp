@@ -3,8 +3,8 @@
     <div class="nls-md-show">
       <LogoLink link="/"></LogoLink>
     </div>
-
-    <div ref="notifications">
+    <!--TODO: FOR FUTURE DEV -->
+    <!-- <div ref="notifications">
       <button
         :class="showNotifications ? 'active' : false"
         class="show-box-pop btn-header mr-2 c-navbar-qr__button"
@@ -18,7 +18,7 @@
       </button>
 
       <Notifications v-show="showNotifications" />
-    </div>
+    </div> -->
   </div>
   <div id="wallet-nls" ref="wallet">
     <button
@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
-import Notifications from '@/components/Notifications.vue';
+// import Notifications from '@/components/Notifications.vue';
 import WalletOpen from '@/components/WalletOpen.vue';
 import LogoLink from '@/components/LogoLink.vue';
 import { useWalletStore } from '@/stores/wallet';

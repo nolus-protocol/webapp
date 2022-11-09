@@ -141,7 +141,7 @@
         <a
         class="btn btn-secondary btn-medium-secondary flex-1"
         v-if="canStake"
-        :href="governUrl"
+        :href="stakingUrl"
         target="_blank"
         >
           {{ $t("message.stake") }}
@@ -169,7 +169,7 @@
       <a
         v-if="canStake"
         class="btn btn-secondary btn-medium-secondary"
-        :href="governUrl"
+        :href="stakingUrl"
         target="_blank"
       >
         {{ $t("message.stake") }}
@@ -193,7 +193,7 @@ import { CURRENCY_VIEW_TYPES } from '@/types/CurrencyViewType';
 import { useWalletStore } from '@/stores/wallet';
 import { NATIVE_CURRENCY } from '@/config/assetsInfo';
 import { EnvNetworkUtils } from '@/utils';
-const governUrl = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].govern;
+const stakingUrl = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].staking;
 
 const walletStore = useWalletStore();
 

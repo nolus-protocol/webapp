@@ -3,6 +3,7 @@ export interface NetworkAddress {
   api: string;
   exploler: string;
   govern: string,
+  staking: string,
   web3auth: {
     clientId: string,
     network: string | any,

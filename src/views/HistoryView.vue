@@ -1,5 +1,5 @@
 <template>
-  <div class="col-span-12 mb-sm-nolus-70p">
+  <div class="col-span-12 mb-sm-nolus-70p outline">
     <!-- Header -->
     <div
       class="table-header flex mt-[25px] flex-wrap items-center justify-between items-baseline lg:px-0"

@@ -7,7 +7,8 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     tendermintRpc: 'http://127.0.0.1:26612',
     api: 'http://127.0.0.1:26614',
     exploler : 'https://explorer-rila.nolus.io/',
-    govern: 'https://explorer-rila.nolus.io/nolus-rila/staking',
+    govern: 'https://explorer-rila.nolus.io/nolus-rila/gov',
+    staking: 'https://explorer-rila.nolus.io/nolus-rila/staking',
     web3auth: {
       clientId: "BHPGnOodSp4t0ZDuuJ3suCZCtwVILYmfOTbDrzlUKK6ADFrNMWg563MAMj_CBW8sDVvg3BqJi8i284t6o",
       network: 'testnet',
@@ -23,7 +24,8 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     tendermintRpc: 'https://net-dev.nolus.io:26612',
     api: 'https://net-dev.nolus.io:26614',
     exploler : 'https://explorer-rila.nolus.io/',
-    govern: 'https://explorer-rila.nolus.io/nolus-rila/staking',
+    govern: 'https://explorer-rila.nolus.io/nolus-rila/gov',
+    staking: 'https://explorer-rila.nolus.io/nolus-rila/staking',
     web3auth: {
       clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
       network: 'cyan',
@@ -39,7 +41,8 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     tendermintRpc: 'https://net-rila.nolus.io:26657',
     api: 'https://net-rila.nolus.io:1317',
     exploler : 'https://explorer-rila.nolus.io/',
-    govern: 'https://explorer-rila.nolus.io/nolus-rila/staking',
+    govern: 'https://explorer-rila.nolus.io/nolus-rila/gov',
+    staking: 'https://explorer-rila.nolus.io/nolus-rila/staking',
     web3auth: {
       clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
       network: 'cyan',
@@ -55,7 +58,8 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     tendermintRpc: 'https://net-rila.nolus.io:26657',
     api: 'https://net-rila.nolus.io:1317',
     exploler : 'https://explorer.nolus.io/nolus/',
-    govern: "https://explorer.nolus.io/nolus/staking",
+    govern: "https://explorer.nolus.io/nolus/gov",
+    staking: "https://explorer.nolus.io/nolus/staking",
     web3auth: {
       clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
       network: 'cyan',

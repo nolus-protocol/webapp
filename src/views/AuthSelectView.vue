@@ -1,7 +1,7 @@
 <template>
   <div v-cloak class="block w-screen md:w-[516px] -mt-8 md:mt-auto">
     <div
-      class="background rounded-2xl md:border nls-border shadow-box md:filter-none"
+      class="background rounded-2xl md:border nls-border shadow-box md:filter-none outline"
     >
       <h1
         class="text-28 md:text-32 nls-font-700 text-primary text-center pt-6 pb-5 relative z-[2]"

@@ -2,7 +2,7 @@
   <div
     v-cloak
     id="wallet-nls"
-    class="wallet-nls box-open bg-transparent shadow-modal c-navbar-wallet__container transition duration-3 ease-2 border nls-border"
+    class="wallet-nls box-open bg-transparent shadow-modal c-navbar-wallet__container transition duration-3 ease-2 border nls-border outline"
   >
     <!-- Wallet Header -->
     <div

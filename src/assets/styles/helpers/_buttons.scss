@@ -58,9 +58,9 @@ button {
   justify-content: center;
   background-color: $white;
   transition: 0.3s;
-  @media (prefers-color-scheme: dark) {
-    background-color: $dark-background;
-  }
+  // @media (prefers-color-scheme: dark) {
+  //   background-color: $dark-background;
+  // }
 
   &-icon {
     .icon {
@@ -142,12 +142,12 @@ button {
     align-items: center;
     justify-content: center;
 
-    @media (prefers-color-scheme: dark) {
-      color: $white;
-      &:active {
-        color: $lightElectric;
-      }
-    }
+    // @media (prefers-color-scheme: dark) {
+    //   color: $white;
+    //   &:active {
+    //     color: $lightElectric;
+    //   }
+    // }
 
     &-icon {
       display: inline-flex;
@@ -208,14 +208,14 @@ button {
 
     &:active {
       background-color: $darkBlue;
-      @media (prefers-color-scheme: dark) {
-        .icon-keplr::before,
-        .icon-google::before,
-        .icon-ledger::before,
-        .icon-recover::before{
-          color: $lightElectric;
-        }
-      }
+      // @media (prefers-color-scheme: dark) {
+      //   .icon-keplr::before,
+      //   .icon-google::before,
+      //   .icon-ledger::before,
+      //   .icon-recover::before{
+      //     color: $lightElectric;
+      //   }
+      // }
     }
 
     &:disabled,
@@ -256,20 +256,20 @@ button {
     font-family: "Garet Bolder" !important;
     padding: 8px 12px !important;
     border-radius: $lightRounded;
-    @media (prefers-color-scheme: dark) {
-      border: 1px solid $dark-line !important;
-      background-color: $dark-background !important;
-      color: $white;
-      &:hover {
-        color: $white !important;
-        background-color: $dark-background !important;
-        border: 1px solid $mediumBlue !important;
-      }
-      &:active {
-        background-color: red !important;
-        border-color: $lightElectric !important;
-      }
-    }
+    // @media (prefers-color-scheme: dark) {
+    //   border: 1px solid $dark-line !important;
+    //   background-color: $dark-background !important;
+    //   color: $white;
+    //   &:hover {
+    //     color: $white !important;
+    //     background-color: $dark-background !important;
+    //     border: 1px solid $mediumBlue !important;
+    //   }
+    //   &:active {
+    //     background-color: red !important;
+    //     border-color: $lightElectric !important;
+    //   }
+    // }
   }
 
   &-large-secondary {
@@ -570,52 +570,52 @@ button {
 }
 
 // Dark mode setthings
-@media (prefers-color-scheme: dark) {
-  // .btn-large-primary {
-  //   background-color: $dark-lightElectric;
-  // }
-  // .btn-large-primary:hover {
-  //   background-color: $dark-mediumElectric;
-  // }
-  // .btn-large-primary:active {
-  //   background-color: $dark-darkElectric;
-  // }
-  .btn-large-box {
-    background-color: $dark-background !important;
-    border-color: $dark-line;
-  }
+// @media (prefers-color-scheme: dark) {
+//   // .btn-large-primary {
+//   //   background-color: $dark-lightElectric;
+//   // }
+//   // .btn-large-primary:hover {
+//   //   background-color: $dark-mediumElectric;
+//   // }
+//   // .btn-large-primary:active {
+//   //   background-color: $dark-darkElectric;
+//   // }
+//   .btn-large-box {
+//     background-color: $dark-background !important;
+//     border-color: $dark-line;
+//   }
 
-  .btn-large-box:hover {
-    border-color: $mediumBlue !important;
-    background-color: $dark-background !important;
-  }
+//   .btn-large-box:hover {
+//     border-color: $mediumBlue !important;
+//     background-color: $dark-background !important;
+//   }
 
-  .btn-large-box:active {
-    border-color: $lightElectric !important;
-    background-color: $lightElectric10 !important;
-  }
+//   .btn-large-box:active {
+//     border-color: $lightElectric !important;
+//     background-color: $lightElectric10 !important;
+//   }
 
-  .js-loading {
-    background-color: transparent !important;
-  }
+//   .js-loading {
+//     background-color: transparent !important;
+//   }
 
-  .disabled {
-    background-color: $dark-background !important;
-    border: 1px $dark-line solid;
-  }
-  .btn-large-secondary {
-    background-color: $dark-background !important;
-    border-color: $dark-line;
-    color: $white;
-  }
-  .btn-large-secondary:hover {
-    background-color: $dark-background;
-    border-color: $mediumBlue;
-    color: $white;
-  }
-  .btn-large-secondary:active {
-    background-color: $lightElectric10;
-    border-color: $lightElectric;
-    color: $lightElectric;
-  }
-}
+//   .disabled {
+//     background-color: $dark-background !important;
+//     border: 1px $dark-line solid;
+//   }
+//   .btn-large-secondary {
+//     background-color: $dark-background !important;
+//     border-color: $dark-line;
+//     color: $white;
+//   }
+//   .btn-large-secondary:hover {
+//     background-color: $dark-background;
+//     border-color: $mediumBlue;
+//     color: $white;
+//   }
+//   .btn-large-secondary:active {
+//     background-color: $lightElectric10;
+//     border-color: $lightElectric;
+//     color: $lightElectric;
+//   }
+// }

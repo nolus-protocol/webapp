@@ -111,9 +111,9 @@
       transition: 0.3s;
       min-height: 36px;
 
-      @media (prefers-color-scheme: dark) {
-        border: solid 1px $dark-line;
-      }
+      // @media (prefers-color-scheme: dark) {
+      //   border: solid 1px $dark-line;
+      // }
 
       &[aria-expanded="true"] {
         border-color: $lightElectric;

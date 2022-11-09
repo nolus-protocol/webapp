@@ -1,7 +1,7 @@
 <template>
   <form
     @submit.prevent="clickContinue"
-    class="block rounded-2xl background md:pb-10 pt-6 pb-[300px] -mt-8 md:mt-auto md:border nls-border shadow-box w-screen md:w-[516px]"
+    class="block rounded-2xl background md:pb-10 pt-6 pb-[300px] -mt-8 md:mt-auto md:border nls-border shadow-box w-screen md:w-[516px] outline"
   >
     <h1 class="text-to-big-number text-primary text-center relative relative z-[2]">
       <button

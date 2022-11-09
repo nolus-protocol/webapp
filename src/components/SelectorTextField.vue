@@ -1,5 +1,5 @@
 <template>
-  <div class="block input-field pb-[50px] md:pb-0 min-h-[680px] mobile">
+  <div class="block input-field pb-[50px] mobile-box">
     <label
       :for="id"
       class="block text-14 nls-font-500 mb-[5px] text-primary relative z-[2]"
@@ -102,9 +102,10 @@ defineExpose({
 });
 </script>
 <style scoped lang="scss">
-.mobile{
-  @media (max-height: 690px) {
+.mobile-box{
+  @media (max-height: 700px) {
     position: relative;
+    padding-bottom: 100px;
   }
 }
 </style>

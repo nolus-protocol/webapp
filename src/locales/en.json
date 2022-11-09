@@ -171,6 +171,7 @@
     "error": "Error",
     "queued": "Queued",
     "success": "Success",
-    "stake": "Stake"
+    "stake": "Stake",
+    "vote": "Vote"
   }
 }

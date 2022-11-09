@@ -1,6 +1,6 @@
 <template>
   <div
-    class="block rounded-2xl background -mt-8 md:mt-auto pb-[300px] md:pb-10 pt-6 md:border nls-border shadow-box lg:w-[516px]"
+    class="block rounded-2xl background -mt-8 md:mt-auto pb-[300px] md:pb-10 pt-6 md:border nls-border shadow-box lg:w-[516px] outline"
   >
     <h1 class="text-to-big-number text-primary text-center relative">
       <button

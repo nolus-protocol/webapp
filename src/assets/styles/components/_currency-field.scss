@@ -125,17 +125,17 @@
 	}
 }
 
-@media (prefers-color-scheme: dark) {
-	.currency-field-container {
-		.currency-field {
-			background-color: $dark-background;
-			border: 1px solid $dark-line;
+// @media (prefers-color-scheme: dark) {
+// 	.currency-field-container {
+// 		.currency-field {
+// 			background-color: $dark-background;
+// 			border: 1px solid $dark-line;
 
-			.picker-container{
-				button {
-					border-color: $dark-line;
-				}
-			}
-		}
-	}
-}
+// 			.picker-container{
+// 				button {
+// 					border-color: $dark-line;
+// 				}
+// 			}
+// 		}
+// 	}
+// }

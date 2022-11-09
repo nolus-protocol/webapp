@@ -24,7 +24,7 @@
     <!-- Wallet -->
     <Transition :name="animate">
       <div v-if="isTotalBalancePositive"
-      class="flex balance-box items-center justify-start background mt-6 nls-border shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6"
+      class="flex balance-box items-center justify-start background mt-6 nls-border shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6 outline"
       >
           <div class="left inline-block pr-2">
             <p class="nls-font-500 text-16 text-primary">
@@ -111,7 +111,7 @@
 
     <!-- Existing Assets -->
     <div
-      class="block background mt-6 border-standart shadow-box radius-medium radius-0-sm"
+      class="block background mt-6 border-standart shadow-box radius-medium radius-0-sm outline"
       :class="{'async-loader': isAssetsLoading}"
     >
       <!-- Top -->
@@ -192,7 +192,7 @@
      <!-- Vested Assets -->
     <div
       v-if="vestedTokens.length > 0"
-      class="block background mt-6 nls-border shadow-box radius-medium radius-0-sm"
+      class="block background mt-6 nls-border shadow-box radius-medium radius-0-sm outline"
     >
       <!-- Top -->
       <div class="flex flex-wrap items-baseline justify-between px-4 pt-6">

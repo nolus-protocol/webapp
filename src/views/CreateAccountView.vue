@@ -1,6 +1,6 @@
 <template>
-  <div v-if="isCreateFormOpen" class="mobile min-h-[620px]">
-    <div class="block rounded-2xl background md:mt-auto pb-10 pt-6 border nls-border shadow-box md:max-w-[516px]">
+  <div v-if="isCreateFormOpen" class="mobile">
+    <div class="block rounded-2xl background md:mt-auto pb-10 pt-6 border nls-border shadow-box md:max-w-[516px] outline">
       <h1 class="text-to-big-number text-primary text-28 md:text-32 text-center relative">
         <button class="align-baseline absolute left-0 top-2/4 -mt-3 px-6 md:px-10" type="button" @click="clickBack">
           <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
@@ -172,8 +172,9 @@ const confirmMnemonic = async (value: string[]) => {
 </script>
 <style scoped lang="scss">
 .mobile{
-  @media (max-height: 690px) {
+  @media (max-height: 700px) {
     position: relative;
+    padding-bottom: 80px;
   }
 }
 </style>

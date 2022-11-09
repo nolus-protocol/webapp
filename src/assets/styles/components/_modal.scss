@@ -30,9 +30,9 @@
         align-items: flex-start;
         padding-top: 5vh;
       }
-      @media (prefers-color-scheme: dark) {
-        background: $dark-gray;
-      }
+      // @media (prefers-color-scheme: dark) {
+      //   background: $dark-gray;
+      // }
     }
 
     &-header {
@@ -41,9 +41,9 @@
       overflow: hidden;
       width: 100%;
       border-bottom: 1px solid $borderColor;
-      @media (prefers-color-scheme: dark) {
-        border-bottom: 1px solid $dark-line;
-      }
+      // @media (prefers-color-scheme: dark) {
+      //   border-bottom: 1px solid $dark-line;
+      // }
 
       & > button {
         display: inline-block;
@@ -54,24 +54,24 @@
         font-size: 28px;
         font-family: "Garet Bolder";
         text-align: center;
-        @media (prefers-color-scheme: dark) {
-          background-color: $dark-gray;
-        }
+        // @media (prefers-color-scheme: dark) {
+        //   background-color: $dark-gray;
+        // }
 
         &:first-of-type {
           border-right: 1px solid $borderColor;
-          @media (prefers-color-scheme: dark) {
-            border-right: 1px solid $dark-line;
-          }
+          // @media (prefers-color-scheme: dark) {
+          //   border-right: 1px solid $dark-line;
+          // }
         }
 
         &.active {
           background-color: $white;
           color: $textMain;
-          @media (prefers-color-scheme: dark) {
-            color: $white;
-            background-color: $dark-background;
-          }
+          // @media (prefers-color-scheme: dark) {
+          //   color: $white;
+          //   background-color: $dark-background;
+          // }
         }
       }
 

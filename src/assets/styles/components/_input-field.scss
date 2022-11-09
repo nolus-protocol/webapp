@@ -224,27 +224,27 @@ label {
 }
 
 
-@media (prefers-color-scheme: dark) {
-  .input-field,
-  .combo-field {
-    input,
-    textarea,
-    .editable-block {
-      background-color: $dark-background;
-      border: 1px solid $dark-line;
-      color: $white;
+// @media (prefers-color-scheme: dark) {
+//   .input-field,
+//   .combo-field {
+//     input,
+//     textarea,
+//     .editable-block {
+//       background-color: $dark-background;
+//       border: 1px solid $dark-line;
+//       color: $white;
 
-      & > div {
-        background-color: $lightElectric;
-    }
-  }
+//       & > div {
+//         background-color: $lightElectric;
+//     }
+//   }
 
-  .editable-block-options {
-    .editable-block-option {
-      background-color: $dark-background;
-      border: 1px solid $dark-line;
-      color: $white;
-      }
-    }
-  }
-}
+//   .editable-block-options {
+//     .editable-block-option {
+//       background-color: $dark-background;
+//       border: 1px solid $dark-line;
+//       color: $white;
+//       }
+//     }
+//   }
+// }

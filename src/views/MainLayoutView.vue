@@ -1,12 +1,12 @@
 <template>
   <div
     v-cloak
-    class="lg:container w-full lg:grid lg:grid-cols-12 grid-parent md-nls-px-25 sm-nls-0 body background-dark"
+    class="router-box lg:container w-full lg:grid lg:grid-cols-12 grid-parent md-nls-px-25 sm-nls-0 body background-dark"
   >
-    <div class="lg:col-span-3">
+    <div class="lg:col-span-3 sidebar">
       <SidebarContainer />
     </div>
-    <div class="lg:col-span-9 pb-8">
+    <div class="lg:col-span-9 pb-8 view">
       <div class="grid grid-cols-10 grid-child">
         <div class="col-span-12 mt-[65px]">
           <div class="col-span-12">
@@ -15,7 +15,7 @@
             </div>
           </div>
         </div>
-        <div class="col-span-12 mobile-scroll">
+        <div class="col-span-12 mobile-scroll container-view">
           <router-view />
         </div>
       </div>
@@ -108,3 +108,23 @@ const showSnackbar = (type: SNACKBAR, transaction: string) => {
 provide('showSnackbar', showSnackbar);
 
 </script>
+
+<style scoped lang="scss">
+@media (min-width: 1920px) {
+  div.router-box{
+    width: 100%;
+    max-width: 100%;
+    div.container-view{
+      width: 1280px;
+      margin: 0 auto;
+    }
+    div.sidebar{
+      grid-column: span 1 / span 1;
+    }
+    div.view{
+      grid-column: span 11 / span 11;
+    }
+  }
+  
+}
+</style>

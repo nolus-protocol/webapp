@@ -28,7 +28,7 @@
   }
 
   @media (max-width: $lg) {
-    bottom:  0;
+    bottom: 0;
     top: unset;
   }
 
@@ -119,6 +119,13 @@
     margin-right: 6.5px;
     color: $lightBlue;
     transition: 0.3s;
+
+    &.icon-lease {
+      &::before {
+        font-size: 26px;
+      }
+    }
+
   }
 
   &:hover {
@@ -127,17 +134,17 @@
     }
   }
 
-  @media (prefers-color-scheme: dark) {
-    color: $white;
+  // @media (prefers-color-scheme: dark) {
+  //   color: $white;
 
-    &:hover {
-      .icon {
-        color: $lightBlue !important;
-      }
+  //   &:hover {
+  //     .icon {
+  //       color: $lightBlue !important;
+  //     }
 
-      color: $lightBlue !important;
-    }
-  }
+  //     color: $lightBlue !important;
+  //   }
+  // }
 
   @media (min-width: $lg) {
     font-size: 16px;
@@ -173,13 +180,13 @@
     }
   }
 
-  @media (prefers-color-scheme: dark) {
-    &:active {
-      .icon {
-        color: $orange !important;
-      }
-    }
-  }
+  // @media (prefers-color-scheme: dark) {
+  //   &:active {
+  //     .icon {
+  //       color: $orange !important;
+  //     }
+  //   }
+  // }
 
 
   span {
@@ -243,10 +250,10 @@
     position: fixed;
   }
 
-  @media (prefers-color-scheme: dark) {
-    background-color: $dark-background;
-    border-bottom: 1px solid $dark-line;
-  }
+  // @media (prefers-color-scheme: dark) {
+  //   background-color: $dark-background;
+  //   border-bottom: 1px solid $dark-line;
+  // }
 
   .btn-header {
     [class^="icon-"]:before {
@@ -298,6 +305,7 @@
     font-size: 14px;
     line-height: 20px;
     font-family: "Garet";
+
   }
 }
 
@@ -323,9 +331,9 @@
       transition: 0.4s ease-in-out;
       background-color: $white;
 
-      @media (prefers-color-scheme: dark) {
-        background-color: $dark-background;
-      }
+      // @media (prefers-color-scheme: dark) {
+      //   background-color: $dark-background;
+      // }
 
       width: 100vw;
       border-top-left-radius: 16px;
@@ -357,15 +365,62 @@
       z-index: 10;
       background: $white;
       width: 100vw;
-      @media (prefers-color-scheme: dark) {
-        background-color: $dark-background;
-      }
+
+      // @media (prefers-color-scheme: dark) {
+      //   background-color: $dark-background;
+      // }
 
       /* Note: backdrop-filter has minimal browser support */
       .nls-nav-link {
         .sidebar-element {
           flex-direction: column;
           margin-bottom: 10px;
+        }
+      }
+    }
+  }
+
+  .task-bar {
+    .sidebar-element {
+      margin-bottom: 5px !important;
+
+      span.icon {
+        margin: 12px 0 2px 0;
+
+        &::before {
+          font-size: 26px;
+        }
+
+        &.icon-lease {
+          &::before {
+            font-size: 24px;
+          }
+        }
+
+        &.icon-earn {
+          &::before {
+            font-size: 28px;
+          }
+        }
+      }
+
+      span {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .mobile-transition-taskbar {
+    .sidebar-element {
+      span.icon {
+        &::before {
+          font-size: 26px;
+        }
+
+        &.icon-governance {
+          &::before {
+            font-size: 28px;
+          }
         }
       }
     }
@@ -386,9 +441,9 @@
     left: 0;
     background: $lightGrey;
 
-    @media (prefers-color-scheme: dark) {
-      background: $dark-gray;
-    }
+    // @media (prefers-color-scheme: dark) {
+    //   background: $dark-gray;
+    // }
   }
 
   .active {

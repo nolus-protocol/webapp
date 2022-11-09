@@ -94,12 +94,12 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  #snackbar{
-    background: $dark-background;
-    border-color: $dark-line;
-    span{
-      color: white;
-    }
-  }
-}
+// @media (prefers-color-scheme: dark) {
+//   #snackbar{
+//     background: $dark-background;
+//     border-color: $dark-line;
+//     span{
+//       color: white;
+//     }
+//   }
+// }

@@ -5,7 +5,7 @@
     <div
       class="hidden col-span-2 lg:block nls-14 nls-font-400 text-primary text-left"
     >
-    <a class="his-url" :href="applicaton.network.networkAddresses.exploler+'tx/'+ transaction.id" target="_blank">{{ truncateString(transaction.id) }} </a> 
+    <a class="his-url" :href="applicaton.network.networkAddresses.exploler+'nolus-rila/tx/'+ transaction.id" target="_blank">{{ truncateString(transaction.id) }} </a> 
     <img src="@/assets/icons/urlicon.svg" class="float-right w-3 mt-1 his-img">
     </div>
     <div class="hidden col-span-2 md:block text-left">

@@ -6,12 +6,20 @@
         <div
           :style="
           showMobileNav
-            ? 'z-index: 5;box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15); transform: translateY(-105px)'
+            ? 'z-index: 5;box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15); transform: translateY(-104px)'
             : ''
           "
-          class="lg:hidden nls-border mb-[-1px]"
+          class="lg:hidden nls-border mb-[-1px] mobile-transition-taskbar"
         >
           <div class="nls-nav-link flex flex-start nls-md-flex-row mt-[6px]">
+            <SidebarElement
+              id="governance"
+              :label="$t('message.vote')"
+              target="_blank"
+              @click="openExternal(governUrl, '_blank')"
+            />
+          </div>
+          <div class="nls-nav-link flex flex-start nls-md-flex-row mb-[112px]">
             <SidebarElement
               id="history"
               href="/history"
@@ -19,18 +27,10 @@
               @click="pushTo(RouteNames.HISTORY)"
             />
           </div>
-          <div class="nls-nav-link flex flex-start nls-md-flex-row mb-[112px]">
-            <SidebarElement
-              id="governance"
-              :label="$t('message.govern')"
-              target="_blank"
-              @click="openExternal(governUrl, '_blank')"
-            />
-          </div>
         </div>
 
         <!-- DESKTOP -->
-        <div class="md:flex md:justify-between sidebar-elements-block lg:block">
+        <div class="md:flex md:justify-between sidebar-elements-block lg:block task-bar">
           <div class="block nls-nav-link icon">
             <SidebarElement
               id="assets"
@@ -74,7 +74,7 @@
           <div class="block nls-nav-link icon nls-md-hidden">
             <SidebarElement
               id="governance"
-              :label="$t('message.govern')"
+              :label="$t('message.vote')"
               @click="openExternal(governUrl, '_blank')"
             />
           </div>
@@ -233,7 +233,7 @@ function openExternal(url: string, target: string) {
 </script>
 
 <style lang="scss" scoped>
-[target="_blank"]:after {
+#governance:after {
   content: "\e801";
   font-family: "nolus";
   margin-left: 7px;
