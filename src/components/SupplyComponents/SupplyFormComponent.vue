@@ -66,8 +66,8 @@ const props = defineProps({
   },
 });
 
-const handleAmountChange = (event: Event) => {
-  props.modelValue.amount = (event.target as HTMLInputElement).value;
+const handleAmountChange = (value: string) => {
+  props.modelValue.amount = value;
 };
 
 defineEmits(['update:modelValue.selectedCurrency']);

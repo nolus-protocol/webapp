@@ -123,7 +123,7 @@ const calculateFee = computed(() => {
   return CurrencyUtils.convertUNolusToNolus(fee.amount[0].amount).toString();
 });
 
-const handleAmountChange = (event: Event) => {
-  props.modelValue.amount = (event.target as HTMLInputElement).value;
+const handleAmountChange = (value: string) => {
+  props.modelValue.amount = value;
 };
 </script>

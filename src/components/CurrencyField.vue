@@ -9,16 +9,16 @@
           <input 
             :id="id" 
             :disabled="disabledInputField" 
-            :name="name" 
+            :name="name"  
             :step="step" 
-            autocomplete="off" class="nls-font-700 text-18 text-primary background" 
+            autocomplete="off" 
+            class="nls-font-700 text-18 text-primary background" 
             @keydown="inputValue"
             @keyup="setValue"
-            ref="textInputField"
+            @paste="onPaste"
             v-model="numberValue" />
-          <!-- <input type="number" ref="numberInputField" v-model="numberValue" /> -->
           <span class="block text-14 nls-font-400 text-light-blue">
-            <!-- {{ calculateInputBalance() }} -->
+            {{ calculateInputBalance() }}
           </span>
         </div>
         <div class="inline-block w-1/2">
@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 import type { AssetBalance } from '@/stores/wallet/state';
-import { computed, ref, type PropType } from 'vue';
+import { onMounted, ref, watch, type PropType } from 'vue';
 
 import CurrencyPicker from '@/components/CurrencyPicker.vue';
 
@@ -45,16 +45,15 @@ import { CurrencyUtils } from '@nolus/nolusjs';
 import { useOracleStore } from '@/stores/oracle';
 import { useWalletStore } from '@/stores/wallet';
 
-const emit = defineEmits(['update-currency', 'update:modelValue']);
+const emit = defineEmits(['update-currency', 'update:modelValue', 'input']);
 const oracle = useOracleStore();
 const wallet = useWalletStore();
-const textInputField = ref<HTMLInputElement>();
-// const numberInputField = ref<HTMLInputElement>();
 
 const dot = '.';
 const minus = '-';
 const comma = ',';
-const allowed = ['Delete', 'Backspace', 'ArrowLeft', 'ArrowRight', '-', '.', 'Enter', 'Tab', 'Control']
+const space = ' ';
+const allowed = ['Delete', 'Backspace', 'ArrowLeft', 'ArrowRight', '-', '.', 'Enter', 'Tab', 'Control', 'End', 'Home']
 const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 const props = defineProps({
@@ -100,11 +99,17 @@ const props = defineProps({
 });
 
 const numberValue = ref(props.value)
+let numberRealValue = Number(props.value);
 
-// const parseValue = computed(() => {
-//   let amount = commify(numberValue.value);
-//   return amount;
-// })
+onMounted(() => {
+  setValue();
+})
+
+watch(() => props.value, () => {
+  numberValue.value=props.value;
+  numberRealValue = Number(props.value);
+  setValue();
+});
 
 const onUpdateCurrency = (value: AssetBalance) => {
   emit('update-currency', value);
@@ -113,7 +118,7 @@ const onUpdateCurrency = (value: AssetBalance) => {
 const calculateInputBalance = () => {
   const prices = oracle.prices;
 
-  if (!props.value || !props.option || !prices) {
+  if (!numberRealValue || !props.option || !prices) {
     return '$0';
   }
 
@@ -122,7 +127,7 @@ const calculateInputBalance = () => {
   const symbol = wallet.currencies[denom].symbol;
 
   const { amount } = CurrencyUtils.convertDenomToMinimalDenom(
-    props.value,
+    numberRealValue.toString(),
     coinMinimalDenom,
     coinDecimals
   );
@@ -134,8 +139,7 @@ const calculateInputBalance = () => {
 
 const inputValue = (event: KeyboardEvent) => {
   const charCode = event.key;
-  const field = textInputField.value;
-  const value = field?.value ?? '';
+  const value = numberValue.value ?? '';
 
   if(event.ctrlKey){
     return true;
@@ -148,7 +152,7 @@ const inputValue = (event: KeyboardEvent) => {
     }
   }
 
-  if (charCode == minus && value.length > 0) {
+  if (charCode == minus && value.includes(minus)) {
     event.preventDefault()
     return false;
   }
@@ -158,12 +162,16 @@ const inputValue = (event: KeyboardEvent) => {
     return false;
   }
 
+  if(charCode == space){
+    event.preventDefault()
+    return false;
+  }
+
   if (allowed.includes(charCode)) {
     return true;
   }
 
   const num = Number(charCode);
-
   if (numbers.includes(num)) {
     return true;
   }
@@ -173,21 +181,35 @@ const inputValue = (event: KeyboardEvent) => {
 
 }
 
-const setValue = (event: KeyboardEvent) => {
-  const field = textInputField.value;
-  const value = field?.value ?? '';
-  numberValue.value = commify(value);
-  
+const onPaste = (event: ClipboardEvent) => {
+  const pastedText = event.clipboardData?.getData('text');
+  const num = Number(pastedText);
+  if(isNaN(num)){
+    event.preventDefault();
+  }
+
+}
+
+const setValue = () => {
+  let value = removeComma(numberValue.value ?? '');
+  let numValue = Number(value);
+  numberValue.value = commify(value.toString());
+  if(isNaN(numValue)){
+    return false;
+  }
+  numberRealValue = Number(value);
+  emit('input', value);
+  emit('update:modelValue', value)
 }
 
 const commify = (n: string) => {
-  const parts = removeComma(n).split('.');
+  const parts = n.split('.');
   const numberPart = parts[0];
   const decimalPart = parts[1];
-  const hasComma = n.includes(comma);
+  const hasDot = n.includes(dot);
   const thousands = /\B(?=(\d{3})+(?!\d))/g;
 
-  return numberPart.replace(thousands, comma) + (hasComma ? '.' + decimalPart : '');
+  return numberPart.replace(thousands, comma) + (hasDot ? `.${decimalPart}` : '');
 }
 
 const removeComma = (n: string) => {
@@ -195,5 +217,4 @@ const removeComma = (n: string) => {
   return n.replace(re, '');
 }
 
-const handleInputChange = (event: Event) => (event.target as HTMLInputElement).value;
 </script>

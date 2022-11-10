@@ -97,20 +97,10 @@ const formatCurrentBalance = (selectedCurrency: AssetBalance) => {
   }
 };
 
-const handleAmountChange = (event: Event) => {
-  props.modelValue.amount = (event.target as HTMLInputElement).value;
+const handleAmountChange = (value: string) => {
+  props.modelValue.amount = value;
 };
 
-const setAmount = () => {
-  const asset = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
-  const data = CurrencyUtils.convertMinimalDenomToDenom(
-    props.modelValue.selectedCurrency.balance.amount.toString(),
-    props.modelValue.selectedCurrency.balance.denom,
-      asset.coinDenom,
-      asset.coinDecimals
-    )
-
-  props.modelValue.amount = data.hideDenom(true).locale(false).toString();
-}
+const setAmount = () => {}
 
 </script>

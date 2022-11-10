@@ -108,12 +108,12 @@ const wallet = useWalletStore();
 
 const disabledInputField = ref(true);
 
-const handleDownPaymentChange = (event: Event) => {
-  props.modelValue.downPayment = (event.target as HTMLInputElement).value;
+const handleDownPaymentChange = (value: string) => {
+  props.modelValue.downPayment = value;
 };
 
-const handleAmountChange = (event: Event) => {
-  props.modelValue.amount = (event.target as HTMLInputElement).value;
+const handleAmountChange = (value: string) => {
+  props.modelValue.amount = value;
 };
 
 const balances = computed(() => {

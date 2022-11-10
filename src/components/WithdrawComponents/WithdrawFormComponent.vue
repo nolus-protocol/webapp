@@ -71,8 +71,8 @@ function formatCurrentBalance(selectedCurrency: AssetBalance) {
   }
 }
 
-const handleAmountChange = (event: Event) => {
-  props.modelValue.amount = (event.target as HTMLInputElement).value;
+const handleAmountChange = (value: string) => {
+  props.modelValue.amount = value;
 };
 
 const setAmount = () => {
@@ -83,6 +83,6 @@ const setAmount = () => {
       asset.coinDenom,
       asset.coinDecimals
     )
-  props.modelValue.amount = data.hideDenom(true).locale(false).toString();
+    props.modelValue.amount = Number(data.toDec().toString()).toString();
 }
 </script>
