@@ -1,14 +1,16 @@
 <template>
-  <div
-    class="fixed flex top-0 bottom-0 left-0 right-0 justify-center background/70 z-[999999999] modal-send-receive-parent"
-    style="linear-gradient(314.47 deg, #EBEFF5 2.19 %, #F7F9FC 100 %);"
-    @keydown.esc="onModalClose"
-  >
-    <button class="btn-close-modal" @click="onModalClose">
-      <img class="inline-block w-5 h-5 z-[5]" src="@/assets/icons/cross.svg" />
-    </button>
-    <slot></slot>
-  </div>
+  <Teleport to="body">
+    <div
+      class="fixed flex top-0 bottom-0 left-0 right-0 justify-center background/70 z-[999999999] modal-send-receive-parent"
+      style="linear-gradient(314.47 deg, #EBEFF5 2.19 %, #F7F9FC 100 %);"
+      @keydown.esc="onModalClose"
+    >
+      <button class="btn-close-modal" @click="onModalClose">
+        <img class="inline-block w-5 h-5 z-[5]" src="@/assets/icons/cross.svg" />
+      </button>
+      <slot></slot>
+    </div>
+  </Teleport>
 </template>
 
 <script lang="ts" setup>
