@@ -1,5 +1,6 @@
 .input-field,
 .combo-field {
+
   input,
   textarea,
   .editable-block {
@@ -9,11 +10,12 @@
     border: solid 1px $grey;
     border-radius: $lightRounded;
     box-shadow: none;
-    padding: 8px 32px 8px 16px;
+    padding: 2px 32px 2px 16px;
     min-width: 135px;
     transition: 0.3s;
     display: block;
     width: 100%;
+    height: 44px;
 
     border-radius: $lightRounded;
 
@@ -31,7 +33,7 @@
       border-color: $grey;
     }
 
-    & > div {
+    &>div {
       display: inline-block;
       border-radius: $lightRounded;
       background-color: $textMain;
@@ -51,10 +53,10 @@
 
   .msg {
     display: block;
-    font-size: 14px;
+    font-size: 12px;
     font-family: "Garet-Medium";
     line-height: 24px;
-    margin-top: 4px;
+    margin-top: 0px;
     color: $mediumRed;
 
     &.hidden {
@@ -123,7 +125,7 @@ label {
 
 .nolus-field {
   input {
-    & + button {
+    &+button {
       position: absolute;
       right: 0;
       top: 0;
@@ -133,7 +135,7 @@ label {
     }
 
     &.error {
-      & + button {
+      &+button {
         border-left: 1px solid $mediumRed;
 
         svg {
@@ -148,7 +150,7 @@ label {
   .input-field {
     input {
       &:focus {
-        & + button {
+        &+button {
           transition: 0.3s;
           border-left: 1px solid $lightElectric !important;
 
@@ -161,7 +163,7 @@ label {
       }
 
       &:hover {
-        & + button {
+        &+button {
           border-left: 1px solid $lightBlue !important;
 
           svg {
@@ -173,7 +175,7 @@ label {
       }
     }
 
-    &.error{
+    &.error {
       border: solid 1px $mediumRed !important;
     }
   }
@@ -192,7 +194,7 @@ label {
 
 .input-field {
   input {
-    &.error{
+    &.error {
       border: solid 1px $mediumRed !important;
     }
   }

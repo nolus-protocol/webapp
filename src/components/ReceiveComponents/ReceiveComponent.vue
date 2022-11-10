@@ -27,9 +27,9 @@
           {{ modelValue?.walletAddress }}
         </p>
         <div class="flex items-center justify-start mt-2">
-          <button class="btn btn-secondary btn-medium-secondary btn-icon mr-2 flex" @click="modelValue?.onCopyClick">
+          <button class="btn btn-secondary btn-medium-secondary btn-icon mr-2 flex" @click="modelValue?.onCopyClick();onCopy()">
             <DocumentDuplicateIcon class="icon w-4 h-4" />
-            {{ $t("message.copy") }}
+            {{ copyText }}
           </button>
           <button class="btn btn-secondary btn-medium-secondary btn-icon flex" @click="modelValue?.onScanClick">
             <QrCodeIcon class="icon w-4 h-4" />
@@ -52,12 +52,13 @@
 </template>
 
 <script setup lang="ts">
-import type { PropType } from 'vue';
+import { onUnmounted, ref, type PropType } from 'vue';
 import Picker from '@/components/Picker.vue';
 import WarningBox from '@/components/modals/templates/WarningBox.vue';
 
 import { DocumentDuplicateIcon, QrCodeIcon } from '@heroicons/vue/24/solid';
 import { DEFAULT_NETWORK, DEFAULT_ASSET } from '@/config/env';
+import { useI18n } from 'vue-i18n';
 
 export interface ReceiveComponentProps {
   walletAddress: string;
@@ -67,10 +68,27 @@ export interface ReceiveComponentProps {
 
 const networks = [DEFAULT_NETWORK];
 const assets = [DEFAULT_ASSET];
+let timeOut: NodeJS.Timeout;
+const i18n = useI18n();
+const copyText = ref(i18n.t('message.copy'));
 
 defineProps({
   modelValue: {
     type: Object as PropType<ReceiveComponentProps>,
   },
 });
+
+onUnmounted(() => {
+  clearTimeout(timeOut);
+});
+
+const onCopy = () => {
+  copyText.value = i18n.t('message.copied');
+  if(timeOut){
+    clearTimeout(timeOut);
+  }
+  timeOut = setTimeout(() => {
+    copyText.value = i18n.t('message.copy');
+  }, 2000);
+}
 </script>

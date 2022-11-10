@@ -105,11 +105,12 @@
       font-size: 14px;
       line-height: 24px;
       border: solid 1px $grey;
-      border-radius: $rounded;
+      border-radius: 6px;
       box-shadow: none !important;
-      height: 42px;
+      height: 44px;
       transition: 0.3s;
       min-height: 36px;
+      padding: 2px 32px 2px 16px;
 
       // @media (prefers-color-scheme: dark) {
       //   border: solid 1px $dark-line;
@@ -146,10 +147,10 @@
 
     .msg {
       display: block;
-      font-size: 14px;
+      font-size: 12px;
       font-family: "Garet-Medium";
       line-height: 24px;
-      margin-top: 4px;
+      margin-top: 0px;
       color: $mediumRed;
 
       &.hidden {

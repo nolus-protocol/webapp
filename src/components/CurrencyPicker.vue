@@ -26,7 +26,7 @@
               alt=""
               class="flex-shrink-0 h-6 w-6 rounded-full"
             />
-            <span class="ml-3 block truncate dark-text">
+            <span class="block truncate dark-text">
               {{
                 getAssetInfo(
                   selected.value?.balance?.denom
@@ -69,12 +69,12 @@
                   <img
                     :src="getAssetInfo(option.balance.denom).coinIcon"
                     alt=""
-                    class="flex-shrink-0 h-6 w-6 rounded-full"
+                    class="flex-shrink-0 h-6 w-6 rounded-full mr-3"
                   />
                   <span
                     :class="[
                       selected ? 'font-semibold' : 'font-normal',
-                      'ml-3 block truncate',
+                      'block truncate',
                     ]"
                   >
                     {{

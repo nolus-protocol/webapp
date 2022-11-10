@@ -172,6 +172,7 @@
     "queued": "Queued",
     "success": "Success",
     "stake": "Stake",
-    "vote": "Vote"
+    "vote": "Vote",
+    "copied": "Copied"
   }
 }

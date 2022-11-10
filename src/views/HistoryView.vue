@@ -1,5 +1,5 @@
 <template>
-  <div class="col-span-12 mb-sm-nolus-70p outline">
+  <div class="col-span-12 mb-sm-nolus-70p">
     <!-- Header -->
     <div
       class="table-header flex mt-[25px] flex-wrap items-center justify-between items-baseline lg:px-0"
@@ -12,7 +12,7 @@
     </div>
     <!-- History -->
     <div
-      class="block background mt-6 shadow-box radius-medium radius-0-sm nls-border overflow-hidden async-loader"
+      class="block background mt-6 shadow-box radius-medium radius-0-sm nls-border overflow-hidden async-loader outline"
     >
       <!-- Assets -->
       <div class="block md:mt-4">

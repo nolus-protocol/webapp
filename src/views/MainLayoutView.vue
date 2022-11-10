@@ -1,8 +1,6 @@
 <template>
-  <div
-    v-cloak
-    class="router-box lg:container w-full lg:grid lg:grid-cols-12 grid-parent md-nls-px-25 sm-nls-0 body background-dark"
-  >
+  <div v-cloak
+    class="router-box lg:container w-full lg:grid lg:grid-cols-12 grid-parent md-nls-px-25 sm-nls-0 body background-dark">
     <div class="lg:col-span-3 sidebar">
       <SidebarContainer />
     </div>
@@ -20,10 +18,7 @@
         </div>
       </div>
     </div>
-    <Snackbar 
-      ref="snackbar"
-      :type="snackbarState.type"
-      :transaction="snackbarState.transaction">
+    <Snackbar ref="snackbar" :type="snackbarState.type" :transaction="snackbarState.transaction">
     </Snackbar>
   </div>
 </template>
@@ -88,7 +83,7 @@ const checkBalances = async () => {
 };
 
 const checkPrices = async () => {
-   pricesInterval = setInterval(async () => {
+  pricesInterval = setInterval(async () => {
     try {
       await oracle[OracleActionTypes.GET_PRICES]();
     } catch (error: Error | any) {
@@ -110,21 +105,94 @@ provide('showSnackbar', showSnackbar);
 </script>
 
 <style scoped lang="scss">
-@media (min-width: 1920px) {
-  div.router-box{
-    width: 100%;
-    max-width: 100%;
-    div.container-view{
-      width: 1280px;
+div.router-box {
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (min-width: 1024px) {
+  div.router-box {
+    div.container-view {
+      width: 760px;
       margin: 0 auto;
     }
-    div.sidebar{
+
+    div.sidebar {
+      grid-column: span 2 / span 2;
+    }
+
+    div.view {
+      grid-column: span 10 / span 10;
+    }
+  }
+}
+
+@media (min-width: 1120px) {
+  div.router-box {
+    div.container-view {
+      width: 960px;
+      margin: 0;
+    }
+
+    div.sidebar {
+      grid-column: span 2 / span 2;
+    }
+
+    div.view {
+      grid-column: span 10 / span 10;
+    }
+  }
+}
+
+@media (min-width: 1320px) {
+  div.router-box {
+    div.container-view {
+      width: 1020px;
+      margin: 0;
+    }
+
+    div.sidebar {
+      grid-column: span 2 / span 2;
+    }
+
+    div.view {
+      grid-column: span 10 / span 10;
+    }
+  }
+}
+
+@media (min-width: 1520px) {
+  div.router-box {
+    div.container-view {
+      width: 1180px;
+      margin: 0 auto;
+    }
+
+    div.sidebar {
       grid-column: span 1 / span 1;
     }
-    div.view{
+
+    div.view {
       grid-column: span 11 / span 11;
     }
   }
-  
+}
+
+@media (min-width: 1920px) {
+  div.router-box {
+    div.container-view {
+      width: 1280px;
+      margin: 0 auto;
+    }
+
+    div.sidebar {
+      grid-column: span 1 / span 1;
+    }
+
+    div.view {
+      grid-column: span 11 / span 11;
+    }
+  }
+
 }
 </style>

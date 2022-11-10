@@ -25,9 +25,9 @@
               v-if="selected.icon"
               :src="selected.icon"
               alt=""
-              class="flex-shrink-0 h-6 w-6 rounded-full"
+              class="mr-3 flex-shrink-0 h-6 w-6 rounded-full"
             />
-            <span class="ml-3 block truncate dark-text">{{ selected.label }}</span>
+            <span class="block truncate dark-text">{{ selected.label }}</span>
           </span>
           <span
             class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
@@ -74,12 +74,12 @@
                     v-if="option.icon"
                     :src="option.icon"
                     alt=""
-                    class="flex-shrink-0 h-6 w-6 rounded-full"
+                    class="mr-3  flex-shrink-0 h-6 w-6 rounded-full"
                   />
                   <span
                     :class="[
                       selected ? 'font-semibold' : 'font-normal',
-                      'ml-3 block truncate',
+                      'block truncate',
                     ]"
                   >
                     {{ option.label }}

@@ -21,10 +21,10 @@
         >
           <button
             class="flex btn btn-secondary btn-medium-secondary btn-icon mr-4"
-            @click="onClickCopy()"
+            @click="onClickCopy();onCopy()"
           >
             <DocumentDuplicateIcon class="icon w-4 h-4" />
-            {{ $t("message.copy") }}
+            {{ copyText }}
           </button>
 
           <button
@@ -45,6 +45,12 @@
 
 <script setup lang="ts">
 import { DocumentDuplicateIcon, PrinterIcon } from '@heroicons/vue/24/solid';
+import { onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+let timeOut: NodeJS.Timeout;
+const i18n = useI18n();
+const copyText = ref(i18n.t('message.copy'));
 
 defineProps({
   name: {
@@ -77,6 +83,19 @@ defineProps({
   },
 });
 
-const handleInputChange = (event: Event) =>
-  (event.target as HTMLInputElement).value;
+const handleInputChange = (event: Event) => (event.target as HTMLInputElement).value;
+
+onUnmounted(() => {
+  clearTimeout(timeOut);
+});
+
+const onCopy = () => {
+  copyText.value = i18n.t('message.copied');
+  if(timeOut){
+    clearTimeout(timeOut);
+  }
+  timeOut = setTimeout(() => {
+    copyText.value = i18n.t('message.copy');
+  }, 2000);
+}
 </script>
