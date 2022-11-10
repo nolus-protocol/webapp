@@ -6,41 +6,37 @@
     <div :class="[isError === true ? 'error' : '', 'currency-field p-3.5']">
       <div class="flex items-center">
         <div class="inline-block w-1/2">
-          <input
-            :id="id"
-            :disabled="disabledInputField"
-            :name="name"
-            :step="step"
-            :value="value"
-            class="nls-font-700 text-18 text-primary background"
-            type="number"
-            @input="$emit('update:modelValue', handleInputChange($event))"
-          />
+          <input 
+            :id="id" 
+            :disabled="disabledInputField" 
+            :name="name" 
+            :step="step" 
+            autocomplete="off" class="nls-font-700 text-18 text-primary background" 
+            @keydown="inputValue"
+            @keyup="setValue"
+            ref="textInputField"
+            v-model="numberValue" />
+          <!-- <input type="number" ref="numberInputField" v-model="numberValue" /> -->
           <span class="block text-14 nls-font-400 text-light-blue">
-            {{ calculateInputBalance() }}
+            <!-- {{ calculateInputBalance() }} -->
           </span>
         </div>
         <div class="inline-block w-1/2">
-          <CurrencyPicker
-            :currency-option="option"
-            :disabled="disabledCurrencyPicker"
-            :options="currencyOptions"
-            type="small"
-            @update-currency="onUpdateCurrency"
-          />
+          <CurrencyPicker :currency-option="option" :disabled="disabledCurrencyPicker" :options="currencyOptions"
+            type="small" @update-currency="onUpdateCurrency" />
         </div>
       </div>
     </div>
 
     <span :class="['msg error ', errorMsg.length > 0 ? '' : 'hidden']">
-    {{ errorMsg.length > 0 ? errorMsg : "" }}
+      {{ errorMsg.length > 0 ? errorMsg : "" }}
     </span>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { AssetBalance } from '@/stores/wallet/state';
-import type { PropType } from 'vue';
+import { computed, ref, type PropType } from 'vue';
 
 import CurrencyPicker from '@/components/CurrencyPicker.vue';
 
@@ -52,6 +48,14 @@ import { useWalletStore } from '@/stores/wallet';
 const emit = defineEmits(['update-currency', 'update:modelValue']);
 const oracle = useOracleStore();
 const wallet = useWalletStore();
+const textInputField = ref<HTMLInputElement>();
+// const numberInputField = ref<HTMLInputElement>();
+
+const dot = '.';
+const minus = '-';
+const comma = ',';
+const allowed = ['Delete', 'Backspace', 'ArrowLeft', 'ArrowRight', '-', '.', 'Enter', 'Tab', 'Control']
+const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 const props = defineProps({
   name: {
@@ -89,7 +93,18 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  positive: {
+    type: Boolean,
+    default: false
+  }
 });
+
+const numberValue = ref(props.value)
+
+// const parseValue = computed(() => {
+//   let amount = commify(numberValue.value);
+//   return amount;
+// })
 
 const onUpdateCurrency = (value: AssetBalance) => {
   emit('update-currency', value);
@@ -116,6 +131,69 @@ const calculateInputBalance = () => {
 
   return CurrencyUtils.calculateBalance(tokenPrice, coin, coinDecimals);
 };
+
+const inputValue = (event: KeyboardEvent) => {
+  const charCode = event.key;
+  const field = textInputField.value;
+  const value = field?.value ?? '';
+
+  if(event.ctrlKey){
+    return true;
+  }
+
+  if (props.positive) {
+    if (event.key == minus) {
+      event.preventDefault()
+      return false;
+    }
+  }
+
+  if (charCode == minus && value.length > 0) {
+    event.preventDefault()
+    return false;
+  }
+
+  if (charCode == dot && value?.includes(dot)) {
+    event.preventDefault()
+    return false;
+  }
+
+  if (allowed.includes(charCode)) {
+    return true;
+  }
+
+  const num = Number(charCode);
+
+  if (numbers.includes(num)) {
+    return true;
+  }
+
+  event.preventDefault()
+  return false;
+
+}
+
+const setValue = (event: KeyboardEvent) => {
+  const field = textInputField.value;
+  const value = field?.value ?? '';
+  numberValue.value = commify(value);
+  
+}
+
+const commify = (n: string) => {
+  const parts = removeComma(n).split('.');
+  const numberPart = parts[0];
+  const decimalPart = parts[1];
+  const hasComma = n.includes(comma);
+  const thousands = /\B(?=(\d{3})+(?!\d))/g;
+
+  return numberPart.replace(thousands, comma) + (hasComma ? '.' + decimalPart : '');
+}
+
+const removeComma = (n: string) => {
+  const re = new RegExp(comma, "g");
+  return n.replace(re, '');
+}
 
 const handleInputChange = (event: Event) => (event.target as HTMLInputElement).value;
 </script>
