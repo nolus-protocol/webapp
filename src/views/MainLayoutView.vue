@@ -164,7 +164,7 @@ div.router-box {
 @media (min-width: 1520px) {
   div.router-box {
     div.container-view {
-      width: 1180px;
+      width: 1080px;
       margin: 0 auto;
     }
 
