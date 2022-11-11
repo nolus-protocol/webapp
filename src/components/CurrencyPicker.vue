@@ -10,6 +10,7 @@
       :disabled="disabled"
       as="div"
       @update:modelValue="$emit('update-currency', selected.value)"
+      v-slot="{open}"
     >
       <div v-if="label.length > 0">
         <ListboxLabel class="block text-14 nls-font-500 text-primary">
@@ -37,7 +38,8 @@
           <span
             class="ml-3 absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
           >
-            <ChevronDownIcon aria-hidden="true" class="h-5 w-5 text-gray-400" />
+          <ChevronUpIcon  v-if="open"  class="h-5 w-5 text-gray-400" aria-hidden="true" />
+          <ChevronDownIcon v-else class="h-5 w-5 text-gray-400" aria-hidden="true" />
           </span>
         </ListboxButton>
 
@@ -51,7 +53,7 @@
           leave-to-class="opacity-0"
         >
           <ListboxOptions
-            class="absolute z-10 mt-1 w-full background shadow-lg max-h-56 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm"
+            class="absolute z-10 mt-1 background shadow-lg max-h-56 w-[125px] rounded-md text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm top-[46px] scrollbar"
           >
             <ListboxOption
               v-for="option in options"
@@ -62,7 +64,8 @@
             >
               <li
                 :class="[
-                  'cursor-default select-none relative py-2 pl-3 pr-9 dropdown-elements',
+                  selected ? 'bg-[#EBEFF5]' : '',
+                  'cursor-default select-none relative py-2 pl-3 pr-9 dropdown-elements my-1',
                 ]"
               >
                 <div class="flex items-center">
@@ -73,8 +76,7 @@
                   />
                   <span
                     :class="[
-                      selected ? 'font-semibold' : 'font-normal',
-                      'block truncate',
+                      'block truncate font-normal',
                     ]"
                   >
                     {{
@@ -92,7 +94,6 @@
                     'absolute inset-y-0 right-0 flex items-center pr-4',
                   ]"
                 >
-                  <CheckIcon aria-hidden="true" class="h-5 w-5" />
                 </span>
               </li>
             </ListboxOption>
@@ -108,7 +109,7 @@ import type { AssetBalance } from '@/stores/wallet/state';
 import { type PropType, ref, onMounted } from 'vue';
 
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue';
-import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/24/solid';
+import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/vue/24/solid';
 import { useWalletStore } from '@/stores/wallet';
 import { DEFAULT_ASSET } from '@/config/env';
 
@@ -154,3 +155,25 @@ onMounted(() => {
   selected.value.value = props.currencyOption as AssetBalance;
 });
 </script>
+<style scoped lang="scss">
+.scrollbar{
+  scrollbar-width: thin;
+  scrollbar-color: #9c9c9c #f5f5f5;
+
+  &::-webkit-scrollbar-track {
+    background-color: white;
+  }
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 6px;
+    background-color: white;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: #EBEFF5;
+    border: solid 1px white;
+    border-radius: 5px;
+  }
+}
+</style>

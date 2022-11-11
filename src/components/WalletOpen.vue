@@ -66,19 +66,18 @@ import { ApplicationActionTypes, useApplicationStore } from '@/stores/applicatio
 import { useWalletStore } from '@/stores/wallet';
 
 const showWallet = ref(false);
-const networks = ref([] as PickerOption[]);
 const currentNetwork = ref({} as PickerOption);
 const applicaton = useApplicationStore();
 const wallet = useWalletStore();
 
-onMounted(() => {
-  EnvNetworkUtils.getEnvNetworks().forEach((network) => {
-    networks.value.push({
-      label: StringUtils.capitalize(network),
-      value: network,
-    });
-  });
+const networks = ref(EnvNetworkUtils.getEnvNetworks().map((network) => {
+  return {
+    label: StringUtils.capitalize(network),
+    value: network,
+  };
+}) as PickerOption[]);
 
+onMounted(() => {
   currentNetwork.value = {
     label: StringUtils.capitalize(EnvNetworkUtils.getStoredNetworkName() || ''),
     value: EnvNetworkUtils.getStoredNetworkName() || '',

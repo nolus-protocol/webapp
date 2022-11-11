@@ -42,11 +42,11 @@
 			justify-content: flex-end;
 			button {
 				border-color: $grey;
-				max-width: 104px;
+				max-width: 125px;
 				justify-content: space-between;
 				display: flex;
 				align-items: flex-start;
-				padding: 9px;
+				padding: 8px 12px;
 				img {
 					width: 16px;
 					& + span {

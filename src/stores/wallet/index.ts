@@ -27,6 +27,7 @@ import { ADAPTER_STATUS } from '@web3auth/base';
 import { Buffer } from 'buffer';
 import { Lpp } from '@nolus/nolusjs/build/contracts';
 import { CONTRACTS } from '@/config/contracts';
+import type { TxSearchParams, TxSearchResponse } from '@cosmjs/tendermint-rpc';
 
 const useWalletStore = defineStore('wallet', {
   state: () => {
@@ -239,15 +240,116 @@ const useWalletStore = defineStore('wallet', {
 
       }
     },
-    async [WalletActionTypes.SEARCH_TX]() {
+    async [WalletActionTypes.SEARCH_TX]({ sender_per_page = 10, sender_page = 1, load_sender = true, recipient_per_page = 10, recipient_page = 1, load_recipient = true } = {}) {
       const address = WalletManager.getWalletAddress();
+
       if (address?.length > 0) {
-        const data = await NolusClient.getInstance().searchTxByAddress(
-          WalletManager.getWalletAddress() || ''
-        );
-        return data;
+        const client = await NolusClient.getInstance().getTendermintClient();
+        const [sender, receiver] = await Promise.all([
+          load_sender ? client.txSearch({ query: `message.sender='${WalletManager.getWalletAddress()}'`, per_page: sender_per_page, page: sender_page, order_by: 'desc' }) : false,
+          load_recipient ? client.txSearch({ query: `transfer.recipient='${WalletManager.getWalletAddress()}'`, per_page: recipient_per_page, page: recipient_page, order_by: 'desc'  }) : false
+        ]);
+        const data = [];
+        let sender_total = 0;
+        let receiver_total = 0;
+
+        if (sender) {
+          sender_total = (sender as TxSearchResponse).totalCount;
+          for (const item of (sender as TxSearchResponse).txs) {
+            const decodedTx: DecodedTxRaw = decodeTxRaw(item.tx);
+            try {
+              const rawTx = JSON.parse(item.result.log as string);
+              const transactionResult = {
+                id: item.hash ? toHex(item.hash) : '',
+                height: item.height ?? '',
+                receiver: (rawTx[0].events[3].attributes[0].value ?? '') as string,
+                sender: (rawTx[0].events[3].attributes[1].value ?? '') as string,
+                action: (rawTx[0].events[3].type ?? '') as string,
+                msg: '',
+                blockDate: null,
+                memo: decodedTx.body.memo ?? '',
+                fee: decodedTx?.authInfo?.fee?.amount.filter(
+                    (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
+                  ) || null,
+              };
+              data.push(transactionResult);
+            } catch (error) {
+              const transactionResult = {
+                id: item.hash ? toHex(item.hash) : '',
+                height: item.height ?? '',
+                receiver: '',
+                sender: '',
+                action: 'Error',
+                msg: item.result.log as string,
+                blockDate: null,
+                memo: decodedTx.body.memo ?? '',
+                fee: decodedTx?.authInfo?.fee?.amount.filter(
+                    (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
+                  ) || null,
+              };
+              data.push(transactionResult);
+            }
+          }
+        }
+
+        if (receiver) {
+          receiver_total = (receiver as TxSearchResponse).totalCount;
+          for (const item of (receiver as TxSearchResponse).txs) {
+            const decodedTx: DecodedTxRaw = decodeTxRaw(item.tx);
+            try {
+              const rawTx = JSON.parse(item.result.log as string);
+              const transactionResult = {
+                id: item.hash ? toHex(item.hash) : '',
+                height: item.height ?? '',
+                receiver: (rawTx[0].events[3].attributes[0].value ?? '') as string,
+                sender: (rawTx[0].events[3].attributes[1].value ?? '') as string,
+                action: (rawTx[0].events[3].type ?? '') as string,
+                msg: '',
+                blockDate: null,
+                memo: decodedTx.body.memo ?? '',
+                fee: decodedTx?.authInfo?.fee?.amount.filter(
+                    (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
+                  ) || null,
+              };
+              data.push(transactionResult);
+            } catch (error) {
+              const transactionResult = {
+                id: item.hash ? toHex(item.hash) : '',
+                height: item.height ?? '',
+                receiver: '',
+                sender: '',
+                action: 'Error',
+                msg: item.result.log as string,
+                blockDate: null,
+                memo: decodedTx.body.memo ?? '',
+                fee: decodedTx?.authInfo?.fee?.amount.filter(
+                    (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
+                  ) || null,
+              };
+              data.push(transactionResult);
+            }
+          }
+        }
+
+        const promises = data.map(async (item) => {
+          const block = await client.block(item.height);
+          item.blockDate = block.block.header.time as any;
+          return item;
+        });
+
+        const items = await Promise.all(promises);
+
+        return {
+          data: items,
+          receiver_total,
+          sender_total
+        }
+
       }
-      return [];
+
+      return {
+        data: []
+      };
     },
     async [WalletActionTypes.LOAD_VESTED_TOKENS](): Promise<{
       delayed: boolean,
@@ -293,7 +395,7 @@ const useWalletStore = defineStore('wallet', {
           });
 
           if (KeyUtilities.isPrivateKey(privateKeyStr as string)) {
-            
+
             const privateKey = Buffer.from(privateKeyStr as string, 'hex');
             const directSecrWallet = await DirectSecp256k1Wallet.fromKey(
               privateKey,
@@ -320,7 +422,7 @@ const useWalletStore = defineStore('wallet', {
       const data = await fetch(`${url}/cosmos/staking/v1beta1/delegations/${WalletManager.getWalletAddress()}`);
       const json = await data.json();
       const [item] = json.delegation_responses;
-      if(item){
+      if (item) {
         this.stakingBalance = item.balance;
       }
     },
@@ -350,7 +452,7 @@ const useWalletStore = defineStore('wallet', {
       return (denom: string) => {
         const currency = state.currencies[denom];
 
-        if(!currency){
+        if (!currency) {
           return {
             ticker: 'NLS',
             coinDenom: ASSETS.NLS.abbreviation,

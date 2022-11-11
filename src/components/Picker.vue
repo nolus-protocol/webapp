@@ -12,6 +12,7 @@
       :disabled="disabled"
       as="div"
       @update:modelValue="$emit('update-selected', selected)"
+      v-slot="{open}"
     >
       <ListboxLabel class="block text-14 nls-font-500 text-primary">
         {{ label }}
@@ -32,7 +33,8 @@
           <span
             class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
           >
-            <ChevronDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
+          <ChevronUpIcon  v-if="open"  class="h-5 w-5 text-gray-400" aria-hidden="true" />
+          <ChevronDownIcon v-else class="h-5 w-5 text-gray-400" aria-hidden="true" />
           </span>
         </ListboxButton>
 
@@ -62,10 +64,11 @@
               v-slot="{ active, selected }"
               :value="option"
               as="template"
-            >
+            > 
               <li
                 :class="[
                   active ? 'text-white bg-indigo-600' : 'text-gray-900',
+                  selected ? 'bg-[#EBEFF5]' : '',
                   'cursor-default select-none relative py-2 pl-3 pr-9 dropdown-elements',
                 ]"
               >
@@ -78,8 +81,7 @@
                   />
                   <span
                     :class="[
-                      selected ? 'font-semibold' : 'font-normal',
-                      'block truncate',
+                      'block truncate font-normal',
                     ]"
                   >
                     {{ option.label }}
@@ -93,7 +95,6 @@
                     'absolute inset-y-0 right-0 flex items-center pr-4',
                   ]"
                 >
-                  <CheckIcon class="h-5 w-5" aria-hidden="true" />
                 </span>
               </li>
             </ListboxOption>
@@ -113,7 +114,7 @@ import {
   ListboxOption,
   ListboxOptions,
 } from '@headlessui/vue';
-import { CheckIcon, ChevronDownIcon } from '@heroicons/vue/24/solid';
+import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/vue/24/solid';
 
 export interface PickerOption {
   id?: string;
@@ -150,13 +151,22 @@ const props = defineProps({
 const selected = ref({} as PickerOption);
 
 onMounted(() => {
-  selected.value = props.defaultOption as PickerOption;
+  setValue(props.defaultOption);
 });
 
 watch(
   () => props.defaultOption,
   (value: PickerOption, b: PickerOption) => {
-    selected.value = props.defaultOption as PickerOption;
+    setValue(props.defaultOption);
   }
 );
+
+const setValue = (option: PickerOption) => {
+  for(const item of props.options ?? []){
+      if(item.value == option.value){
+        selected.value = item;
+        break;
+      }
+    }
+}
 </script>
