@@ -100,7 +100,7 @@
 import InputField from '@/components/InputField.vue';
 import type { AssetBalance } from '@/stores/wallet/state';
 
-import { computed, inject, onMounted, ref } from 'vue';
+import { computed, inject, onMounted, ref, watch } from 'vue';
 import { ArrowLeftIcon, CheckIcon, XMarkIcon } from '@heroicons/vue/24/solid';
 import { CurrencyUtils } from '@nolus/nolusjs';
 import { WalletUtils } from '@/utils';
@@ -113,6 +113,7 @@ import { NATIVE_CURRENCY } from '@/config/assetsInfo';
 const errorMessage = ref('');
 const i18n = useI18n();
 const wallet = useWalletStore();
+const setCollapseButton = inject('setCollapseButton', (bool: boolean) => {})
 
 interface Props {
   selectedCurrency: AssetBalance;
@@ -135,6 +136,14 @@ const isStepConfirm = computed(() => props.step === CONFIRM_STEP.CONFIRM);
 const isStepPending = computed(() => props.step === CONFIRM_STEP.PENDING);
 const isStepSuccess = computed(() => props.step === CONFIRM_STEP.SUCCESS);
 const isStepError = computed(() => props.step === CONFIRM_STEP.ERROR);
+
+watch(() => props.step, () => {
+  if(props.step == CONFIRM_STEP.PENDING){
+    setCollapseButton(true);
+  }else{
+    setCollapseButton(false);
+  }
+});
 
 const btnAction = computed(() => {
   if(props.password.length == 0 && isMnemonicWallet()){

@@ -173,6 +173,7 @@
     "success": "Success",
     "stake": "Stake",
     "vote": "Vote",
-    "copied": "Copied"
+    "copied": "Copied",
+    "loading": "Loading, please wait..."
   }
 }

@@ -14,8 +14,15 @@
         <span class="text text-16 nls-font-500 mr-1">
           {{ title }}
         </span>
-        <a class="url text text-14 nls-font-400"
-          :href="applicaton.network.networkAddresses.exploler + 'tx/' + transaction" target="_blank">
+        <a v-if="type == SNACKBAR.Queued"
+          class="url text text-12 nls-font-300">
+          {{ $t('message.loading') }}
+        </a>
+        <a 
+          v-else
+          class="url text text-14 nls-font-400"
+          :href="applicaton.network.networkAddresses.exploler + 'nolus-rila/tx/' + transaction" target="_blank"
+          >
           {{ truncateString(transaction) }}
           <img src="@/assets/icons/urlicon.svg" class="w-3 mt-[2px] ml-1 float-right">
         </a>
@@ -37,6 +44,7 @@ import { useI18n } from 'vue-i18n';
 const i18n = useI18n();
 let timeOut: NodeJS.Timeout;
 let closeTimeOut: NodeJS.Timeout;
+let visible = false;
 
 const props = defineProps({
   type: {
@@ -45,7 +53,7 @@ const props = defineProps({
   },
   transaction: {
     type: String,
-    required: true
+    default: ''
   },
 });
 
@@ -56,21 +64,25 @@ const title = computed(() => {
   return i18n.t(`message.${props.type}`);
 });
 
-const openSnackBar = () => {
+const openSnackBar = (type: SNACKBAR) => {
   const element = snackbar.value;
+  visible = true;
   if (element) {
     element.classList.add('show');
     if (timeOut) {
       clearTimeout(timeOut);
     }
-    timeOut = setTimeout(() => {
-      closeSnackBar();
-    }, 4000);
+    if(type != SNACKBAR.Queued){
+      timeOut = setTimeout(() => {
+        closeSnackBar();
+      }, 4000);
+    }
   }
 };
 
 const closeSnackBar = () => {
   const element = snackbar.value!;
+  visible = false;
   if (element) {
     if(closeTimeOut){
       clearTimeout(closeTimeOut);
@@ -90,15 +102,19 @@ const truncateString = (text: string) => {
   return StringUtils.truncateString(text, 6, 6);
 };
 
+const snackbarVisible = () => {
+  return visible;
+}
 
 defineExpose({
-  openSnackBar
+  openSnackBar,
+  snackbarVisible
 });
 
 </script>
 <style scoped>
 #snackbar {
-  z-index: 999999999;
+  z-index: 9999999999;
 }
 
 .url {

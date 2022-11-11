@@ -45,7 +45,7 @@ import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils';
 import { getMicroAmount, validateAmount, walletOperation } from '@/components/utils';
 import { defaultNolusWalletFee } from '@/config/wallet';
 import { useWalletStore } from '@/stores/wallet';
-import { computed, inject, onMounted, ref, watch } from 'vue';
+import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue';
 import { WalletManager } from '@/wallet/WalletManager';
 import { CONTRACTS } from '@/config/contracts';
 import { GROUPS, SNACKBAR } from '@/config/env';
@@ -139,6 +139,7 @@ const step = ref(CONFIRM_STEP.CONFIRM);
 
 const closeModal = inject('onModalClose', () => () => {});
 const showSnackbar = inject('showSnackbar', (type: string, transaction: string) => {});
+const snackbarVisible = inject('snackbarVisible', () => false);
 
 function onNextClick() {
   if (!state.value.receiverAddress) {
@@ -153,6 +154,12 @@ function onNextClick() {
     showConfirmScreen.value = true;
   }
 }
+
+onUnmounted(() => {
+  if(CONFIRM_STEP.PENDING == step.value){
+    showSnackbar(SNACKBAR.Queued, 'loading');
+  }
+});
 
 function hideErrorDialog() {
   errorDialog.value.showDialog = false;
@@ -211,7 +218,9 @@ async function transferAmount() {
       if (result) {
         state.value.txHash = result.transactionHash || '';
         step.value = CONFIRM_STEP.SUCCESS;
-        showSnackbar(SNACKBAR.Success, state.value.txHash);
+        if(snackbarVisible()){
+          showSnackbar(SNACKBAR.Success, state.value.txHash);
+        }
       }
     } catch (e) {
       step.value = CONFIRM_STEP.ERROR;

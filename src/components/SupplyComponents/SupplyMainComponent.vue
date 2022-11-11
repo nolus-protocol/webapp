@@ -44,7 +44,7 @@ import { CONTRACTS } from '@/config/contracts';
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils';
 import { defaultNolusWalletFee } from '@/config/wallet';
 import { useWalletStore } from '@/stores/wallet';
-import { computed, inject, ref, watch } from 'vue';
+import { computed, inject, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { DEFAULT_APR, GROUPS, SNACKBAR } from '@/config/env';
 
@@ -57,6 +57,7 @@ const { selectedAsset } = defineProps({
 
 const i18n = useI18n();
 const walletStore = useWalletStore();
+const snackbarVisible = inject('snackbarVisible', () => false);
 
 const balances = computed(() => {
   const balances = walletStore.balances;
@@ -154,13 +155,21 @@ async function transferAmount() {
       if (result) {
         state.value.txHash = result.transactionHash || '';
         step.value = CONFIRM_STEP.SUCCESS;
-        showSnackbar(SNACKBAR.Success, state.value.txHash);
+        if(snackbarVisible()){
+          showSnackbar(SNACKBAR.Success, state.value.txHash);
+        }
       }
     } catch (e) {
       step.value = CONFIRM_STEP.ERROR;
     }
   }
 }
+
+onUnmounted(() => {
+  if(CONFIRM_STEP.PENDING == step.value){
+    showSnackbar(SNACKBAR.Queued, 'loading');
+  }
+});
 
 watch(
   () => [...state.value.amount],

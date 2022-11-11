@@ -27,13 +27,15 @@ import { transferCurrency, validateAddress, validateAmount, walletOperation} fro
 import { CONFIRM_STEP } from '@/types/ConfirmStep';
 import { TxType } from '@/types/TxType';
 import { useWalletStore } from '@/stores/wallet';
-import { computed, inject, ref } from 'vue';
+import { computed, inject, onUnmounted, ref } from 'vue';
 import { SNACKBAR } from '@/config/env';
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const walletStore = useWalletStore();
 
 const closeModal = inject('onModalClose', () => () => {});
+const snackbarVisible = inject('snackbarVisible', () => false);
+
 const showSnackbar = inject('showSnackbar', (type: string, transaction: string) => {});
 const balances = computed(() => walletStore.balances);
 
@@ -58,6 +60,12 @@ const onConfirmBackClick = () => {
 const onClickOkBtn = () => {
   closeModal();
 }
+
+onUnmounted(() => {
+  if(CONFIRM_STEP.PENDING == step.value){
+    showSnackbar(SNACKBAR.Queued, 'loading');
+  }
+});
 
 const validateInputs = () => {
   state.value.amountErrorMsg = validateAmount(
@@ -88,7 +96,9 @@ const transferAmount = async () => {
 
   step.value = success ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
   state.value.txHash = txHash;
-  showSnackbar(SNACKBAR.Success, txHash);
+  if(snackbarVisible()){
+    showSnackbar(success ? SNACKBAR.Success: SNACKBAR.Error, txHash);
+  }
 }
 
 function onNextClick(){

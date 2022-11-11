@@ -28,7 +28,7 @@ import type { AssetBalance } from '@/stores/wallet/state';
 import RepayFormComponent from '@/components/RepayComponents/RepayFormComponent.vue';
 import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue';
 
-import { inject, onBeforeMount, ref, watch, type PropType } from 'vue';
+import { inject, onBeforeMount, onUnmounted, ref, watch, type PropType } from 'vue';
 import { Lease } from '@nolus/nolusjs/build/contracts';
 import { CurrencyUtils, NolusClient, NolusWallet } from '@nolus/nolusjs';
 import { Dec, Int } from '@keplr-wallet/unit';
@@ -42,13 +42,13 @@ import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 import { SNACKBAR } from '@/config/env';
 
-
 const walletStore = useWalletStore();
 const walletRef = storeToRefs(walletStore);
 const i18n = useI18n();
 
 const onModalClose = inject('onModalClose', () => {});
 const showSnackbar = inject('showSnackbar', (type: string, transaction: string) => {});
+const snackbarVisible = inject('snackbarVisible', () => false);
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const showConfirmScreen = ref(false);
@@ -86,6 +86,12 @@ onBeforeMount(() => {
     });
     state.value.currentBalance = balances;
     state.value.selectedCurrency = item as AssetBalance;
+  }
+});
+
+onUnmounted(() => {
+  if(CONFIRM_STEP.PENDING == step.value){
+    showSnackbar(SNACKBAR.Queued, 'loading');
   }
 });
 
@@ -176,7 +182,9 @@ const repayLease = async () => {
       if (result) {
         state.value.txHash = result.transactionHash || '';
         step.value = CONFIRM_STEP.SUCCESS;
-        showSnackbar(SNACKBAR.Success, state.value.txHash);
+        if(snackbarVisible()){
+          showSnackbar(SNACKBAR.Success, state.value.txHash);
+        }
       }
     } catch (e) {
       step.value = CONFIRM_STEP.ERROR;

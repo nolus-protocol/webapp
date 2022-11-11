@@ -5,7 +5,10 @@
       style="linear-gradient(314.47 deg, #EBEFF5 2.19 %, #F7F9FC 100 %);"
       @keydown.esc="onModalClose"
     >
-      <button class="btn-close-modal" @click="onModalClose">
+      <button v-if="collpase" class="btn-close-modal" @click="onModalClose">
+        <img class="inline-block w-6 h-6 z-[5] max-w-none" src="@/assets/icons/collapse.svg" />
+      </button>
+      <button v-else class="btn-close-modal" @click="onModalClose">
         <img class="inline-block w-5 h-5 z-[5]" src="@/assets/icons/cross.svg" />
       </button>
       <slot></slot>
@@ -14,8 +17,10 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, provide } from 'vue';
+import { onMounted, onUnmounted, provide, ref } from 'vue';
 import router from '@/router';
+
+const collpase = ref(false);
 
 const props = defineProps({
   route: {
@@ -25,6 +30,10 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close-modal']);
+
+const setCollapseButton = (bool: boolean) => {
+  collpase.value = bool;
+}
 
 const onModalClose = () => {
   parseRoute();
@@ -68,6 +77,7 @@ onUnmounted(() => {
 
 provide('onModalClose', onModalClose);
 provide('parseRoute', parseRoute);
+provide('setCollapseButton', setCollapseButton);
 </script>
 <style scoped>
 button.btn-close-modal{

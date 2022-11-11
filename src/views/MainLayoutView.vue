@@ -97,10 +97,15 @@ const showSnackbar = (type: SNACKBAR, transaction: string) => {
   snackbarState.value.type = type;
   snackbarState.value.transaction = transaction;
 
-  snackbar.value.openSnackBar();
+  snackbar.value.openSnackBar(type);
+}
+
+const snackbarVisible = () => {
+  return snackbar.value.snackbarVisible();
 }
 
 provide('showSnackbar', showSnackbar);
+provide('snackbarVisible', snackbarVisible);
 
 </script>
 

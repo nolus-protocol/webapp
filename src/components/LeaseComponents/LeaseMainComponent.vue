@@ -22,7 +22,7 @@ import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue
 import type { LeaseComponentProps } from '@/types/component/LeaseComponentProps';
 import type { AssetBalance } from '@/stores/wallet/state';
 
-import { inject, ref, watch, onMounted } from 'vue';
+import { inject, ref, watch, onMounted, onUnmounted } from 'vue';
 import { Leaser, type LeaseApply } from '@nolus/nolusjs/build/contracts';
 import { CurrencyUtils, NolusClient, NolusWallet } from '@nolus/nolusjs';
 import { Dec, Int } from '@keplr-wallet/unit';
@@ -37,6 +37,7 @@ import { useWalletStore } from '@/stores/wallet';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 import { computed } from '@vue/reactivity';
+import { SNACKBAR } from '@/config/env';
 
 const onModalClose = inject('onModalClose', () => { });
 const walletStore = useWalletStore();
@@ -74,12 +75,20 @@ const state = ref({
 } as LeaseComponentProps);
 
 const getLease = inject('getLeases', () => {});
+const snackbarVisible = inject('snackbarVisible', () => false);
+const showSnackbar = inject('showSnackbar', (type: string, transaction: string) => {});
 
 onMounted(() => {
   const balances = walletStore.balances;
   if (balances) {
     state.value.currentBalance = balances;
     state.value.selectedCurrency = balances[0];
+  }
+});
+
+onUnmounted(() => {
+  if(CONFIRM_STEP.PENDING == step.value){
+    showSnackbar(SNACKBAR.Queued, 'loading');
   }
 });
 
@@ -280,6 +289,9 @@ const openLease = async () => {
       if (result) {
         state.value.txHash = result.transactionHash || '';
         step.value = CONFIRM_STEP.SUCCESS;
+        if(snackbarVisible()){
+          showSnackbar(SNACKBAR.Success, state.value.txHash);
+        }
       }
       getLease();
     } catch (e) {
