@@ -104,27 +104,27 @@ button {
     border-radius: $rounded;
   }
 
-    &:hover,
-    &:focus {
-      background-color: $mediumElectric;
-    }
+  &:hover,
+  &:focus {
+    background-color: $mediumElectric;
+  }
 
-    &:active {
-      background-color: $darkElectric;
-    }
+  &:active {
+    background-color: $darkElectric;
+  }
 
-    &.js-disabled,
-    &.js-loading {
-      color: transparent;
-      background-color: $background-scale-darker;
-      cursor: default;
-    }
+  &.js-disabled,
+  &.js-loading {
+    color: transparent;
+    background-color: $background-scale-darker;
+    cursor: default;
+  }
 
-    &:disabled { 
-      color: $lightBlue;
-      background-color: $background-scale-darker;
-      cursor: default;
-    }
+  &:disabled {
+    color: $lightBlue;
+    background-color: $background-scale-darker;
+    cursor: default;
+  }
 
   &-large-box,
   &-medium-box,
@@ -423,7 +423,7 @@ button {
 
     &:hover,
     &:focus {
-    	background-color: $mediumElectric;
+      background-color: $mediumElectric;
     }
 
     &:active {
@@ -564,6 +564,7 @@ button {
   from {
     transform: rotate(0);
   }
+
   to {
     transform: rotate(360deg);
   }

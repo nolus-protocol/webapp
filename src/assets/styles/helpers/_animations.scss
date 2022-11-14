@@ -116,19 +116,9 @@
     var(--tw-ring-shadow, 0 0 $black), var(--tw-shadow);
 }
 
-.c-navbar-qr__container,
-.c-navbar-wallet__container {
-  //	display: none;
-}
-
 .show-box-pop {
   position: relative;
 }
-
-.c-navbar-wallet__container {
-  //	display: none;
-}
-
 .c-navbar-qr__container,
 .c-navbar-wallet__container {
   border-radius: $rounded;

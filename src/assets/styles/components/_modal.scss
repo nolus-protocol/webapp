@@ -1,4 +1,4 @@
-.modal-form{
+.modal-form {
   width: 100%;
 }
 
@@ -25,11 +25,13 @@
 
     &-parent {
       background: linear-gradient(314.47deg, $borderColor 2.19%, $lightGrey 100%);
+
       @media (min-width: $md) and (orientation: landscape) {
         -webkit-overflow-scrolling: touch;
         align-items: flex-start;
         padding-top: 5vh;
       }
+
       // @media (prefers-color-scheme: dark) {
       //   background: $dark-gray;
       // }
@@ -45,7 +47,7 @@
       //   border-bottom: 1px solid $dark-line;
       // }
 
-      & > button {
+      &>button {
         display: inline-block;
         background-color: $lightGrey;
         color: $mediumBlue;
@@ -166,7 +168,7 @@
   }
 }
 
-.modal-send-receive-actions{
+.modal-send-receive-actions {
   @media (max-width:$md) {
     box-shadow: 0px 8px 48px $shadowModalColor !important;
   }
@@ -175,6 +177,7 @@
     padding-bottom: 30px;
   }
 }
+
 .no-border {
-	border: none;
+  border: none;
 }

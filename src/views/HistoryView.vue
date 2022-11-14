@@ -12,7 +12,8 @@
     </div>
     <!-- History -->
     <div
-      class="block background mt-6 shadow-box radius-medium radius-0-sm nls-border overflow-hidden async-loader outline"
+      class="block background mt-6 shadow-box radius-medium radius-0-sm overflow-hidden async-loader"
+      :class="{'outline': hasOutline}"
     >
       <!-- Assets -->
       <div class="block md:mt-4">
@@ -92,6 +93,13 @@ const initialLoad = ref(false);
 
 onMounted(() => {
   getTransactions();
+});
+
+const hasOutline = computed(() => {
+  if(window.innerWidth > 576){
+    return true;
+  }
+  return transactions.value.length > 0;
 });
 
 const visible = computed(() => {

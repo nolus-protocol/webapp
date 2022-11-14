@@ -4,21 +4,27 @@
     margin-right: 10px;
     font-size: 1.4em;
   }
+
   &-warning {
     background-color: $bgYellow;
+
     .icon {
       color: $warnYellow;
     }
-    & > div:first-of-type {
+
+    &>div:first-of-type {
       min-width: 24px;
     }
   }
+
   &-error {
     background-color: $lightRed;
+
     .icon {
       color: $mediumRed
     }
-    & > div:first-of-type {
+
+    &>div:first-of-type {
       min-width: 24px;
     }
   }
