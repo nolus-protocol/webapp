@@ -552,7 +552,20 @@ input[type="checkbox" i] {
 }
 
 .outline {
-	outline: solid 1px #EBEFF5;
+	outline: none;
+	position: relative;
+	
+	&::after{
+		content: "";
+		position: absolute;
+		top: -1px;
+		right: -1px;
+		bottom: -1px;
+		left: -1px;
+		border: 2px solid #EBEFF5;
+		border-radius: 12px;
+		z-index: -1;
+	}
 }
 
 // @media (prefers-color-scheme: dark) {
