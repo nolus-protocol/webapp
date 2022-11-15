@@ -21,7 +21,6 @@ import { onMounted, onUnmounted, provide, ref } from 'vue';
 import router from '@/router';
 
 const collpase = ref(false);
-
 const props = defineProps({
   route: {
     type: String,

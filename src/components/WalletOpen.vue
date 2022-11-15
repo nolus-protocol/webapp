@@ -1,6 +1,5 @@
 <template>
   <div
-    v-cloak
     id="wallet-nls"
     class="wallet-nls box-open bg-transparent shadow-modal c-navbar-wallet__container transition duration-3 ease-2 border nls-border outline"
   >
@@ -8,7 +7,7 @@
     <div
       class="box-open-header background p-4 lg:p-6 border-b border-standart radius-top-left"
     >
-      <h2 v-cloak class="nls-font-700 text-18 text-primary text-left m-0">
+      <h2 class="nls-font-700 text-18 text-primary text-left m-0">
         {{ $t('message.your-wallet') }}
       </h2>
       <div class="flex grey-box items-center modal-balance mt-3 radius-rounded">
@@ -85,6 +84,7 @@ onMounted(() => {
 });
 
 const onUpdateNetwork = (value: PickerOption) => {
+  console.log(value)
   EnvNetworkUtils.saveCurrentNetwork(value.value);
   applicaton[ApplicationActionTypes.CHANGE_NETWORK](true);
 };

@@ -2,7 +2,11 @@
   <!-- Header -->
   <div class="flex modal-send-receive-header no-border backgroundGrey">
     <div class="navigation-header border-b border-standart">
-      <button class="back-arrow" type="button" @click="modelValue.onBackClick">
+      <button 
+        class="back-arrow" 
+        type="button" 
+        @click="modelValue.onBackClick"
+      >
         <ArrowLeftIcon aria-hidden="true" class="h-5 w-5" />
       </button>
       <h1 class="nls-font-700 text-28 md:text-32 text-center dark-text">
@@ -55,8 +59,8 @@
 </template>
 
 <script setup lang="ts">
-import { onUnmounted, ref, type PropType } from 'vue';
 import QrcodeVue from 'qrcode.vue';
+import { onUnmounted, ref, type PropType } from 'vue';
 import { ArrowLeftIcon, DocumentDuplicateIcon } from '@heroicons/vue/24/solid';
 import { DEFAULT_ASSET } from '@/config/env';
 import { useI18n } from 'vue-i18n';

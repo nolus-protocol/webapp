@@ -1,19 +1,25 @@
 <template>
   <fieldset>
     <div class="block input-field">
-      <label :for="id" class="block text-14 nls-font-500 text-primary">
+      <label 
+        :for="id" 
+        class="block text-14 nls-font-500 text-primary"
+      >
         {{ label }}
       </label>
       <input
+        autocomplete="off"
         :id="id"
         :class="isError === true ? 'error' : ''"
         :name="name"
         :type="type"
         :value="value"
-        autocomplete="off"
         @input="$emit('update:value', handleInputChange($event))"
       />
-      <span :class="['msg error ', errorMsg.length > 0 ? '' : 'hidden']">
+      <span 
+        class="msg error"
+        :class="[errorMsg.length > 0 ? '' : 'hidden']"
+      >
         {{ errorMsg.length > 0 ? errorMsg : "" }}
       </span>
     </div>
@@ -47,6 +53,5 @@ defineProps({
   },
 });
 
-const handleInputChange = (event: Event) =>
-  (event.target as HTMLInputElement).value;
+const handleInputChange = (event: Event) => (event.target as HTMLInputElement).value;
 </script>

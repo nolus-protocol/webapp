@@ -1,8 +1,12 @@
 <template>
   <div class="md:grid md:grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6 md:flex items-center history-item">
     <div class="col-span-2 lg:block nls-14 nls-font-400 text-primary text-left text-upper">
-      <a class="his-url" :href="applicaton.network.networkAddresses.exploler + 'nolus-rila/tx/' + transaction.id"
-        target="_blank">{{ truncateString(transaction.id) }} </a>
+      <a 
+      :href="`${applicaton.network.networkAddresses.exploler}nolus-rila/tx/${transaction.id}`"
+      class="his-url" 
+      target="_blank">
+        {{ truncateString(transaction.id) }} 
+      </a>
       <img src="@/assets/icons/urlicon.svg" class="float-right w-3 mt-1 his-img">
     </div>
     <div class="col-span-2 sm:block hidden text-left">
@@ -49,22 +53,38 @@ import { useApplicationStore } from '@/stores/application';
 
 import { CurrencyUtils } from '@nolus/nolusjs';
 import { StringUtils } from '@/utils/StringUtils';
+import { useI18n } from 'vue-i18n';
 
+const i18n = useI18n();
 const applicaton = useApplicationStore();
-const months = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'May', 'Jun.', 'Jul.', 'Aug.', 'Sep.', 'Oct.', 'Nov.', 'Dec.'];
+const months = [
+  i18n.t('message.jan'),
+  i18n.t('message.feb'),
+  i18n.t('message.mar'),
+  i18n.t('message.april'),
+  i18n.t('message.may'),
+  i18n.t('message.jun'),
+  i18n.t('message.jul'),
+  i18n.t('message.aug'),
+  i18n.t('message.sep'),
+  i18n.t('message.oct'),
+  i18n.t('message.nov'),
+  i18n.t('message.dec')
+];
+
 const sec = 1000;
 const min = 60 * 1000;
 const hour = 1000 * 60 * 60
 const day = 60 * 1000 * 60 * 24;
 
-const one_s = '1 second ago';
-const many_s = 'seconds ago';
+const one_s = i18n.t('message.one_s');
+const many_s = i18n.t('message.many_s');
 
-const one_m = '1 minute ago';
-const many_m = 'minutes ago';
+const one_m = i18n.t('message.one_m');
+const many_m = i18n.t('message.many_m');
 
-const one_h = '1 hour ago';
-const many_h = 'hours ago';
+const one_h = i18n.t('message.one_h');
+const many_h = i18n.t('message.many_h');
 
 
 interface Props {

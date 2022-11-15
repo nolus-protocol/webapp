@@ -7,7 +7,9 @@
       >
         <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
       </button>
-      <span class="inline-block align-baseline"> Confirm mnemonic </span>
+      <span class="inline-block align-baseline">
+        {{ $t('message.confirm-menomin-only')}}
+      </span>
     </h1>
 
     <div
@@ -15,7 +17,7 @@
     >
       <SelectorTextField
         id="confirm-mnemonic"
-        label="Confirm mnemonic seed"
+        :label="$t('message.confirm-mnemonic')"
         :onClickConfirm="onClick"
       ></SelectorTextField>
     </div>

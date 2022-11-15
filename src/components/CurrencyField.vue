@@ -3,7 +3,10 @@
     <label :for="id" class="block text-14 nls-font-500 text-primary">
       {{ label }}
     </label>
-    <div :class="[isError === true ? 'error' : '', 'currency-field p-3.5']">
+    <div 
+      class="currency-field p-3.5 currency-field p-3.5"
+      :class="{'error': isError}"
+      >
       <div class="flex items-center">
         <div class="inline-block w-1/2">
           <input 
@@ -11,24 +14,33 @@
             :disabled="disabledInputField" 
             :name="name"  
             :step="step" 
+            v-model="numberValue"
             autocomplete="off" 
             class="nls-font-700 text-18 text-primary background" 
             @keydown="inputValue"
             @keyup="setValue"
             @paste="onPaste"
-            v-model="numberValue" />
+          />
           <span class="block text-14 nls-font-400 text-light-blue">
             {{ calculateInputBalance() }}
           </span>
         </div>
         <div class="inline-block w-1/2">
-          <CurrencyPicker :currency-option="option" :disabled="disabledCurrencyPicker" :options="currencyOptions"
-            type="small" @update-currency="onUpdateCurrency" />
+          <CurrencyPicker 
+            :currency-option="option" 
+            :disabled="disabledCurrencyPicker" 
+            :options="currencyOptions"
+            @update-currency="onUpdateCurrency" 
+            type="small" 
+          />
         </div>
       </div>
     </div>
 
-    <span :class="['msg error ', errorMsg.length > 0 ? '' : 'hidden']">
+    <span 
+      class="msg error"
+      :class="[errorMsg.length > 0 ? '' : 'hidden']"
+      >
       {{ errorMsg.length > 0 ? errorMsg : "" }}
     </span>
   </div>

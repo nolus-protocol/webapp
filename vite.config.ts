@@ -71,7 +71,23 @@ export default defineConfig({
             '@web3auth/base',
             '@web3auth/openlogin-adapter',
             '@web3auth/modal'
-          ]
+          ],
+          'dashboard': [
+            './src/views/LeaseView.vue',
+            './src/views/EarningsView.vue',
+            './src/views/HistoryView.vue'
+          ],
+          'auth': [
+            './src/views/AuthView.vue',
+            './src/views/AuthSelectView.vue',
+            './src/views/ImportSeedView.vue',
+            './src/views/CreateAccountView.vue',
+            './src/views/SetPassword.vue',
+            './src/views/SetWalletName.vue',
+            './src/views/ConnectingKeplr.vue',
+            './src/views/ImportLedgerView.vue',
+            './src/views/GoogleAuthView.vue',
+          ],
         },
       },
     },

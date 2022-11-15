@@ -1,9 +1,8 @@
 <template>
   <div
+    class="asset-partial nolus-box grid gap-6 relative border-b border-standart py-3 px-4 items-center justify-between"
     :class="[
-      `asset-partial nolus-box grid gap-6 relative ${
-        showActionButtons ? 'row-actions' : ''
-      } border-b border-standart py-3 px-4 items-center justify-between`,
+      showActionButtons ? 'row-actions' : '',
       cols ? 'grid-cols-' + cols : 'grid-cols-2 md:grid-cols-4',
     ]"
   >
@@ -91,7 +90,10 @@
     </div>
 
         
-    <div class="mobile-actions md:hidden col-span-2" v-if="canLease || canSupply || canStake">
+    <div 
+      v-if="canLease || canSupply || canStake"
+      class="mobile-actions md:hidden col-span-2" 
+    >
       <div class="flex">
         <button
           class="btn btn-secondary btn-medium-secondary flex-1"

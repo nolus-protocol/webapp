@@ -1,10 +1,14 @@
 <template>
-  <form @submit.prevent="modelValue.onNextClick" class="modal-form">
+  <form 
+    @submit.prevent="modelValue.onNextClick" 
+    class="modal-form">
     <!-- Input Area -->
     <div class="modal-send-receive-input-area background">
       <div class="block py-3 px-4 modal-balance radius-light text-left text-14 nls-font-400 text-primary">
         {{$t('message.balance') }}:
-        <a class="text-secondary nls-font-700 underline ml-2 cursor-pointer" @click.stop="setAmount">
+        <a 
+          class="text-secondary nls-font-700 underline ml-2 cursor-pointer" 
+          @click.stop="setAmount">
           {{ formatCurrentBalance(modelValue.selectedCurrency) }}
         </a>
       </div>
@@ -46,8 +50,14 @@
         </div>
   
         <div class="block mt-[20px]">
-          <InputField id="memo" :value="modelValue.memo" :label="$t('message.memo-only')" name="memo" type="text"
-            @input="(event) => (modelValue.memo = event.target.value)"></InputField>
+          <InputField 
+            id="memo" 
+            name="memo" 
+            type="text"
+            :value="modelValue.memo" 
+            :label="$t('message.memo-only')" 
+            @input="(event) => (modelValue.memo = event.target.value)">
+          </InputField>
         </div>
       </div>
     </div>

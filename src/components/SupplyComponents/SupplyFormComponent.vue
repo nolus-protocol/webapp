@@ -1,5 +1,7 @@
 <template>
-  <form @submit.prevent="modelValue.onNextClick" class="modal-form">
+  <form 
+    @submit.prevent="modelValue.onNextClick" 
+    class="modal-form">
 
     <!-- Input Area -->
     <div class="modal-send-receive-input-area">

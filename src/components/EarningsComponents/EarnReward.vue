@@ -1,10 +1,7 @@
 <template>
   <div class="block">
     <div
-      :class="[
-        'grid gap-6 border-b border-t border-standart px-6 py-3  items-center justify-between earn-asset',
-        'grid-cols-3 md:grid-cols-3',
-      ]"
+      class="grid gap-6 border-b border-t border-standart px-6 py-3  items-center justify-between earn-asset grid-cols-3 md:grid-cols-3"
     >
       <!-- Ticker -->
       <div class="inline-flex items-center col-span-2">
@@ -41,7 +38,6 @@
           :class="`btn btn-secondary btn-medium-secondary ${
             loading ? 'js-loading' : 'btn-emphatized'
           }`"
-          data-v-37958d79=""
           @:click="onClickClaim"
         >
           {{ $t("message.claim") }}
@@ -106,4 +102,5 @@ const calculateBalance = (tokenAmount: string, denom: string) => {
   const coin = new Coin(denom, new Int(tokenAmount));
   return CurrencyUtils.calculateBalance(price, coin, tokenDecimals);
 };
+
 </script>

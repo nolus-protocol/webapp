@@ -1,5 +1,9 @@
 <template>
-  <div :class="showMobileNav ? 'mobile-nav' : false" class="sidebar-container" ref="sidebar">
+  <div 
+    :class="showMobileNav ? 'mobile-nav' : false" 
+    class="sidebar-container" 
+    ref="sidebar"
+  >
     <div class="top pl-8">
       <LogoLink link="/" />
       <div class="sidebar-elements-container nls-nav-more flex flex-col mt-[55px]">

@@ -22,17 +22,18 @@
   </div>
   <div id="wallet-nls" ref="wallet">
     <button
-      :class="showWallet ? 'active' : false"
       class="show-box-wallet btn-header with-icon shadow-box rounded-r-none"
+      :class="showWallet ? 'active' : false"
       @click="showWallet = !showWallet"
     >
       <span
         class="icon-wallet mr-0"
         style="font-size: 1.5em !important; margin-right: 0"
-      ></span>
-
-      <span class="text-12 nls-font-400 text-primary nls-md-hidden">{{ walletStore.walletName }}</span
       >
+      </span>
+      <span class="text-12 nls-font-400 text-primary nls-md-hidden">
+        {{ walletStore.walletName }}
+      </span>
     </button>
 
     <!-- <Notifications /> -->

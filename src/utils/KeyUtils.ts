@@ -1,7 +1,6 @@
 import { Buffer } from 'buffer';
 
 export class KeyUtils {
-  // @TODO: Add to nolus.js > KeyUtils ?
   public static isPrivateKey(str: string): boolean {
     if (str.startsWith("0x")) {
       return true;

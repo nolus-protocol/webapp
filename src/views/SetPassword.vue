@@ -27,7 +27,8 @@
       :label="$t('message.password')"
       name="password"
       type="password"
-    ></InputField>
+    >
+    </InputField>
 
     <InputField
       class="px-4 md:px-10 relative z-[2] mt-4"
@@ -38,7 +39,8 @@
       :label="$t('message.confirm-password')"
       name="confirmPassword"
       type="password"
-    ></InputField>
+    >
+    </InputField>
 
     <div class="mt-6 px-4 md:px-10 md:flex">
       <button class="btn btn-primary btn-large-primary" >
@@ -47,17 +49,10 @@
       <div class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"></div>
     </div>
 
-    <div
-      class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"
-    ></div>
+    <div class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
 
-    <div
-      class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal"
-    >
-      <button
-        class="btn btn-primary btn-large-primary w-80"
-        
-      >
+    <div class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal">
+      <button class="btn btn-primary btn-large-primary w-80">
         {{ $t("message.continue") }}
       </button>
     </div>

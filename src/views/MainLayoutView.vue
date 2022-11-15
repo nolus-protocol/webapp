@@ -1,6 +1,5 @@
 <template>
-  <div v-cloak
-    class="router-box lg:container w-full lg:grid lg:grid-cols-12 grid-parent md-nls-px-25 sm-nls-0 body background-dark">
+  <div class="router-box lg:container w-full lg:grid lg:grid-cols-12 grid-parent md-nls-px-25 sm-nls-0 body background-dark">
     <div class="lg:col-span-3 sidebar">
       <SidebarContainer />
     </div>
@@ -18,7 +17,10 @@
         </div>
       </div>
     </div>
-    <Snackbar ref="snackbar" :type="snackbarState.type" :transaction="snackbarState.transaction">
+    <Snackbar 
+      ref="snackbar" 
+      :type="snackbarState.type" 
+      :transaction="snackbarState.transaction">
     </Snackbar>
   </div>
 </template>

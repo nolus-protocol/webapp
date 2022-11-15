@@ -2,7 +2,11 @@
   <div v-if="isCreateFormOpen" class="mobile">
     <div class="block rounded-2xl background md:mt-auto pb-10 pt-6 border nls-border shadow-box md:max-w-[516px] outline">
       <h1 class="text-to-big-number text-primary text-28 md:text-32 text-center relative">
-        <button class="align-baseline absolute left-0 top-2/4 -mt-3 px-6 md:px-10" type="button" @click="clickBack">
+        <button 
+          class="align-baseline absolute left-0 top-2/4 -mt-3 px-6 md:px-10" 
+          type="button" 
+          @click="clickBack"  
+        >
           <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
         </button>
         <span class="inline-block align-baseline text-28 md:text-32 relative z-[2]">
@@ -13,8 +17,15 @@
       <div class="separator-line p-6 relative z-[2]"></div>
 
       <div class="px-4 md:px-10">
-        <TextFieldButtons class="relative z-[2]" name="mnemonicSeed" id="mnemonicSeed" :label="$t('message.seed')"
-          :value="mnemonic" :on-click-copy="onClickCopy" :on-click-print="onClickPrint">
+        <TextFieldButtons 
+          lass="relative z-[2]" 
+          name="mnemonicSeed" 
+          id="mnemonicSeed" 
+          :label="$t('message.seed')"
+          :value="mnemonic" 
+          :on-click-copy="onClickCopy" 
+          :on-click-print="onClickPrint"
+        >
         </TextFieldButtons>
 
         <div class="flex rounded p-4 warning-box mt-8 md:mt-6 relative z-[2]">
@@ -62,14 +73,28 @@
 
       <div class="separator-line p-6"></div>
 
-      <SelectorTextField ref="selector" class="px-4 md:px-10 text-dark" id="confirm-mnemonic"
-        :on-click-confirm="confirmMnemonic" :values="mnemonicWords" :label="$t('message.confirm-mnemonic')">
+      <SelectorTextField 
+        ref="selector" 
+        class="px-4 md:px-10 text-dark" 
+        id="confirm-mnemonic"
+        :on-click-confirm="confirmMnemonic" 
+        :values="mnemonicWords" 
+        :label="$t('message.confirm-mnemonic')"
+      >
       </SelectorTextField>
     </div>
   </div>
 
-  <Modal v-if="showErrorModal" @close-modal="showErrorModal = false" route="alert">
-    <ErrorDialog :title="$t('message.error-connecting')" :message="errorMessage" :try-button="clickTryAgain" />
+  <Modal 
+    v-if="showErrorModal" 
+    @close-modal="showErrorModal = false" 
+    route="alert"
+  >
+    <ErrorDialog 
+      :title="$t('message.error-connecting')" 
+      :message="errorMessage" 
+      :try-button="clickTryAgain" 
+    />
   </Modal>
 </template>
 

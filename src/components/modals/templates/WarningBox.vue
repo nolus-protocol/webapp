@@ -1,7 +1,7 @@
 <template>
   <div
     :class="isWarning ? 'box-warning' : 'box-error'"
-    class="flex items-center box radius-rounded p-4 mb-6 text-left break-words background "
+    class="flex items-center box radius-rounded p-4 mb-6 text-left break-words background"
   >
     <div class="inline-block mr-2">
       <slot v-if="isWarning" name="icon"></slot>

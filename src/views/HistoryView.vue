@@ -1,9 +1,7 @@
 <template>
   <div class="col-span-12 mb-sm-nolus-70p">
     <!-- Header -->
-    <div
-      class="table-header flex mt-[25px] flex-wrap items-center justify-between items-baseline lg:px-0"
-    >
+    <div class="table-header flex mt-[25px] flex-wrap items-center justify-between items-baseline lg:px-0">
       <div class="left">
         <h1 class="text-20 nls-font-700 text-primary m-0">
           {{ $t("message.history") }}
@@ -38,7 +36,9 @@
       </button>
     </div>
   </div>
-  <Modal v-if="showErrorDialog" @close-modal="showErrorDialog = false" route="alert">
+  <Modal 
+    v-if="showErrorDialog" 
+    @close-modal="showErrorDialog = false" route="alert">
     <ErrorDialog
       :title="$t('error-connecting')"
       :message="errorMessage"

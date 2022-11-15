@@ -1,5 +1,5 @@
 <template>
-  <RouterView v-cloak />
+  <RouterView />
   <Modal v-if="showErrorDialog" @close-modal="showErrorDialog = false" route="alert">
     <ErrorDialog
       :title="$t('message.error-connecting')"

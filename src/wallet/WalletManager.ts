@@ -7,9 +7,7 @@ export class WalletManager {
   public static WALLET_ADDRESS = 'wallet_address';
   public static WALLET_NAME = 'wallet_name';
 
-  public static saveWalletConnectMechanism(
-    walletConnectMechanism: WalletConnectMechanism
-  ) {
+  public static saveWalletConnectMechanism(walletConnectMechanism: WalletConnectMechanism) {
     localStorage.setItem(this.WALLET_CONNECT_MECHANISM, walletConnectMechanism);
   }
 
@@ -17,9 +15,7 @@ export class WalletManager {
     return localStorage.getItem(this.WALLET_CONNECT_MECHANISM);
   }
 
-  public static setWalletName(
-    name: string
-  ) {
+  public static setWalletName(name: string) {
     localStorage.setItem(this.WALLET_NAME, name);
   }
 

@@ -1,16 +1,16 @@
 <template>
   <div
     :class="[
-      type !== null ? 'picker ' + type : 'picker',
-      isError === true ? ' error' : '',
+      type.length > 0 ? 'picker ' + type : 'picker',
+      isError ? ' error' : '',
     ]"
   >
     <Listbox
       v-model="selected.value"
-      :disabled="disabled"
-      as="div"
-      @update:modelValue="$emit('update-currency', selected.value)"
       v-slot="{open}"
+      as="div"
+      :disabled="disabled"
+      @update:modelValue="$emit('update-currency', selected.value)"
     >
       <div v-if="label.length > 0">
         <ListboxLabel class="block text-14 nls-font-500 text-primary">
@@ -24,8 +24,8 @@
           <span class="flex items-center">
             <img
               :src="getAssetInfo(selected.value?.balance?.denom)?.coinIcon"
-              alt=""
               class="flex-shrink-0 h-6 w-6 rounded-full"
+              alt=""
             />
             <span class="block truncate dark-text">
               {{
@@ -43,9 +43,12 @@
           </span>
         </ListboxButton>
 
-        <span :class="['msg error ', errorMsg.length > 0 ? '' : 'hidden']">{{
-          errorMsg.length > 0 ? errorMsg : ""
-        }}</span>
+        <span
+          class="msg error" 
+          :class="[errorMsg.length > 0 ? '' : 'hidden']"
+        >
+          {{ errorMsg.length > 0 ? errorMsg : "" }}
+        </span>
 
         <transition
           leave-active-class="transition ease-in duration-100"
@@ -71,13 +74,11 @@
                 <div class="flex items-center">
                   <img
                     :src="getAssetInfo(option.balance.denom).coinIcon"
-                    alt=""
                     class="flex-shrink-0 h-6 w-6 rounded-full mr-3"
+                    alt=""
                   />
                   <span
-                    :class="[
-                      'block truncate font-normal',
-                    ]"
+                    class="block truncate font-normal"
                   >
                     {{
                       getAssetInfo(
@@ -89,9 +90,9 @@
 
                 <span
                   v-if="selected"
+                  class="absolute inset-y-0 right-0 flex items-center pr-4"
                   :class="[
-                    active ? 'text-white' : 'text-indigo-600',
-                    'absolute inset-y-0 right-0 flex items-center pr-4',
+                    active ? 'text-white' : 'text-indigo-600'
                   ]"
                 >
                 </span>
@@ -120,7 +121,7 @@ const props = defineProps({
   },
   type: {
     type: String,
-    default: null,
+    default: '',
   },
   options: {
     type: Array as PropType<AssetBalance[]>,

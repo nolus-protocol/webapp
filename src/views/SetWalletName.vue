@@ -1,5 +1,6 @@
 <template>
-  <form  @submit.prepvent="clickContinue"
+  <form  
+    @submit.prepvent="clickContinue"
     class="block rounded-2xl background md:pb-10 pt-6 pb-[300px] -mt-8 md:mt-auto md:border nls-border shadow-box w-screen md:w-[516px] outline"
   >
     <h1 class="text-to-big-number text-primary text-center relative relative z-[2]">
@@ -26,7 +27,8 @@
       :label="$t('message.wallet-name')"
       name="wallet-name"
       type="text"
-    ></InputField>
+    >
+    </InputField>
 
     <div class="mt-6 px-4 md:px-10 md:flex">
       <button class="btn btn-primary btn-large-primary">
@@ -35,16 +37,11 @@
       <div class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"></div>
     </div>
 
-    <div
-      class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"
-    ></div>
+    <div Class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden">
+    </div>
 
-    <div
-      class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal"
-    >
-      <button
-        class="btn btn-primary btn-large-primary w-80"
-      >
+    <div class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal">
+      <button class="btn btn-primary btn-large-primary w-80">
         {{ $t("message.done") }}
       </button>
     </div>

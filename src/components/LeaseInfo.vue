@@ -26,7 +26,9 @@
             }}
             <span
               class="inline-block ml-1 text-primary text-20 nls-font-400 uppercase"
-              >{{ getAssetInfo("coinDenom") }}</span
+            >
+              {{ getAssetInfo("coinDenom") }}
+            </span
             >
           </h1>
         </div>
@@ -35,10 +37,12 @@
           <span class="bg-[#ebeff5] rounded p-1 m-1">
             {{ $t('message.down-payment') }}: $20,000.00
           </span>
-          <span class="bg-[#ebeff5] rounded p-1 m-1">{{ $t('message.loan') }}: $60,000.00</span>
-          <span class="bg-[#ebeff5] rounded p-1 m-1"
-            >{{ `price per ${getAssetInfo("coinDenom")}:` }}$29,345.00</span
-          >
+          <span class="bg-[#ebeff5] rounded p-1 m-1">
+            {{ $t('message.loan') }}: $60,000.00
+          </span>
+          <span class="bg-[#ebeff5] rounded p-1 m-1">
+            {{ `price per ${getAssetInfo("coinDenom")}:` }}$29,345.00
+          </span>
           <span class="bg-[#ebeff5] rounded p-1 m-1">
             {{ $t('message.liq-trigger') }}: $10,000.00
           </span>
@@ -56,7 +60,8 @@
           <div class="flex text-10 h-6">
             <button
               v-for="value in CHART_RANGES"
-              :class="`ml-2 w-10 justify-center border rounded ${
+              class="ml-2 w-10 justify-center border rounded"
+              :class="`${
                 value.label === chartTimeRange.label
                   ? 'border-1 border-light-electric bg-[#0ea5e9]/10'
                   : ''

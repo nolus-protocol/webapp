@@ -1,6 +1,8 @@
 <template>
   <!-- Input Area -->
-  <form @submit.prevent="modelValue.onNextClick" class="modal-form">
+  <form 
+    @submit.prevent="modelValue.onNextClick" 
+    class="modal-form">
 
     <div class="modal-send-receive-input-area">
       <div class="block text-left">
@@ -185,4 +187,5 @@ watch(
     disabledInputField.value = !props.modelValue?.leaseApply;
   }
 );
+
 </script>

@@ -1,6 +1,13 @@
 <template>
-  <Line :chart-data="chartData" :chart-id="chartId" :chart-options="chartOptions" :css-classes="cssClasses"
-    :height="height" :plugins="plugins" :styles="styles" :width="width" />
+  <Line 
+    :chart-data="chartData" 
+    :chart-id="chartId" 
+    :chart-options="chartOptions" 
+    :css-classes="cssClasses"
+    :height="height" 
+    :plugins="plugins" 
+    :styles="styles" 
+    :width="width" />
 </template>
 
 <script lang="ts">

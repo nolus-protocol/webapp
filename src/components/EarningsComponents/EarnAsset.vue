@@ -1,10 +1,8 @@
 <template>
   <div class="block relative">
     <div
-      :class="[
-        'grid gap-6 row-actions border-b flex border-t border-standart px-6 py-3 items-center justify-between earn-asset',
-        cols ? 'md:grid-cols-' + cols : 'grid-cols-2 md:grid-cols-3'
-      ]"
+      class="grid gap-6 row-actions border-b flex border-t border-standart px-6 py-3 items-center justify-between earn-asset"
+      :class="[cols ? 'md:grid-cols-' + cols : 'grid-cols-2 md:grid-cols-3']"
     >
       <!-- Ticker -->
       <div class="inline-flex items-center">
@@ -26,18 +24,18 @@
       </div>
 
       <div class="hidden md:block">
-      <div
-        class="text-primary nls-font-500 text-14 text-center m-0"
-      >
-        <CurrencyComponent
-          :type="CURRENCY_VIEW_TYPES.CURRENCY"
-          :amount="DEFAULT_APR"
-          :hasSpace="false"
-          :isDenomInfront="false"
-          denom="%"
-        />
+        <div
+          class="text-primary nls-font-500 text-14 text-center m-0"
+        >
+          <CurrencyComponent
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            :amount="DEFAULT_APR"
+            :hasSpace="false"
+            :isDenomInfront="false"
+            denom="%"
+          />
+        </div>
       </div>
-    </div>
 
       <div class="block info-show">
         <p class="text-primary nls-font-500 text-16 nls-font-500 text-right m-0">
@@ -83,7 +81,9 @@
 <script setup lang="ts">
 import type { PropType } from 'vue';
 import type { AssetBalance } from '@/stores/wallet/state';
+
 import CurrencyComponent from '../CurrencyComponent.vue';
+
 import { Coin, Int } from '@keplr-wallet/unit';
 import { CurrencyUtils } from '@nolus/nolusjs';
 import { useOracleStore } from '@/stores/oracle';

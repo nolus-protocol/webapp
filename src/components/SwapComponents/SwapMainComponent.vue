@@ -21,10 +21,10 @@
     :currentBalance="state.currentBalance"
     :amount="state.amount"
     :errorMsg="state.errorMsg"
+    :onSwapClick="onSwapClick"
     @updateSelected="(value: AssetBalance) => state.selectedCurrency = value"
     @updateAmount="(value: string) => state.amount = value"
     @updateSwapToSelected="(value: AssetBalance) => state.swapToSelectedCurrency = value"
-    :onSwapClick="onSwapClick"
   />
 </template>
 

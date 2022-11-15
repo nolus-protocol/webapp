@@ -1,6 +1,7 @@
 <template>
-  <form @submit.prevent="modelValue.onNextClick" class="modal-form">
-
+  <form 
+    @submit.prevent="modelValue.onNextClick" 
+    class="modal-form">
     <div class="modal-send-receive-input-area">
       <div
         class="flex py-3 px-4 bg-light-grey radius-light text-left text-14 nls-font-400 text-primary"

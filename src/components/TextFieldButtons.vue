@@ -5,7 +5,7 @@
         :for="id"
         class="block text-14 nls-font-500 mb-[5px] text-primary dark-text"
       >
-      {{ label }}
+        {{ label }}
       </label>
       <div class="field-container text-field-buttons">
         <textarea
@@ -15,7 +15,8 @@
           :name="name"
           :value="value"
           @input="$emit('update:value', handleInputChange($event))"
-        ></textarea>
+        >
+        </textarea>
         <div
           class="flex align-center justify-end p-3 bg-light-grey buttons-container"
         >
@@ -36,7 +37,9 @@
           </button>
         </div>
       </div>
-      <span :class="['msg error ', errorMsg.length > 0 ? '' : 'hidden']">
+      <span
+        class="msg error" 
+        :class="[errorMsg.length > 0 ? '' : 'hidden']">
         {{ errorMsg }}
       </span>
     </div>

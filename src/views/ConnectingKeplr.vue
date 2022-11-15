@@ -34,20 +34,18 @@
     </div>
   </div>
 
-  <div
-    class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"
-  ></div>
+  <div class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
 
-  <div
-    class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal"
-  >
-    <button
-      class="btn btn-primary btn-large-primary mr-4 js-loading -px-20 w-80"
-    >
+  <div class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal">
+    <button class="btn btn-primary btn-large-primary mr-4 js-loading -px-20 w-80">
       {{ $t('message.connecting') }}
     </button>
   </div>
-  <Modal v-if="showError" @close-modal="showError = false; goToAuth()" route="alert">
+  <Modal 
+    v-if="showError" 
+    @close-modal="showError = false; goToAuth()" 
+    route="alert"
+  >
     <ErrorDialog
       :title="$t('message.error-connecting')"
       :message="errorMessage"
@@ -65,8 +63,8 @@ import { onMounted, ref } from 'vue';
 import { ArrowLeftIcon } from '@heroicons/vue/24/solid';
 import { WalletActionTypes, useWalletStore } from '@/stores/wallet';
 import { RouteNames } from '@/router/RouterNames';
-const wallet = useWalletStore();
 
+const wallet = useWalletStore();
 const showError = ref(false);
 const errorMessage = ref('');
 

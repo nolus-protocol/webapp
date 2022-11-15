@@ -1,6 +1,8 @@
 <template>
-  <form @submit.prevent="clickImport"
-    class="block rounded-2xl background md:pb-10 pt-6 pb-[200px] -mt-8 md:mt-auto md:border nls-border shadow-box w-screen md:w-[516px] outline">
+  <form 
+    class="block rounded-2xl background md:pb-10 pt-6 pb-[200px] -mt-8 md:mt-auto md:border nls-border shadow-box w-screen md:w-[516px] outline"
+    @submit.prevent="clickImport"
+  >
     <h1 class="text-to-big-number text-primary text-center relative z-[2]">
       <button class="align-baseline absolute left-0 top-2/4 -mt-3 px-4 md:px-10" type="button" @click="clickBack">
         <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
@@ -32,15 +34,18 @@
 
     <div class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
 
-    <div
-      class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal">
+    <div class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal">
       <button class="btn btn-primary btn-large-primary w-80">
         {{ $t("message.unlock") }}
       </button>
     </div>
   </form>
 
-  <Modal v-if="showError" @close-modal="showError = false" route="alert">
+  <Modal 
+    v-if="showError" 
+    route="alert"
+    @close-modal="showError = false" 
+  >
     <ErrorDialog 
       :title="$t('message.error-connecting')" 
       :message="modalErrorMessage" 

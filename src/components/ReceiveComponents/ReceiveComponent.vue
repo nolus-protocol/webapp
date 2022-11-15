@@ -27,11 +27,17 @@
           {{ modelValue?.walletAddress }}
         </p>
         <div class="flex items-center justify-start mt-2">
-          <button class="btn btn-secondary btn-medium-secondary btn-icon mr-2 flex" @click="modelValue?.onCopyClick();onCopy()">
+          <button 
+            class="btn btn-secondary btn-medium-secondary btn-icon mr-2 flex" 
+            @click="modelValue?.onCopyClick();onCopy()"
+          >
             <DocumentDuplicateIcon class="icon w-4 h-4" />
             {{ copyText }}
           </button>
-          <button class="btn btn-secondary btn-medium-secondary btn-icon flex" @click="modelValue?.onScanClick">
+          <button 
+            class="btn btn-secondary btn-medium-secondary btn-icon flex" 
+            @click="modelValue?.onScanClick"
+          >
             <QrCodeIcon class="icon w-4 h-4" />
             {{ $t("message.show-barcode") }}
           </button>
@@ -66,9 +72,9 @@ export interface ReceiveComponentProps {
   onCopyClick: () => void;
 }
 
+let timeOut: NodeJS.Timeout;
 const networks = [DEFAULT_NETWORK];
 const assets = [DEFAULT_ASSET];
-let timeOut: NodeJS.Timeout;
 const i18n = useI18n();
 const copyText = ref(i18n.t('message.copy'));
 

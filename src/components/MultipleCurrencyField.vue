@@ -1,10 +1,8 @@
 <template>
   <div class="block currency-field-container">
     <div
-      :class="[
-        typeof isError !== 'undefined' && isError === true ? 'error' : '',
-        'currency-field py-3.5',
-      ]"
+      class="currency-field py-3.5"
+      :class="[isError === true ? 'error' : '']"
     >
       <div class="flex items-center px-3.5">
         <div class="inline-block w-1/2">
@@ -58,14 +56,13 @@
     </div>
 
     <span
+      class="msg error"
       :class="[
-        'msg error ',
-        typeof errorMsg !== 'undefined' && errorMsg !== null ? '' : 'hidden',
+        errorMsg?.length > 0 ? '' : 'hidden',
       ]"
-      >{{
-        typeof errorMsg !== "undefined" && errorMsg !== null ? errorMsg : ""
-      }}</span
-    >
+      >
+      {{ errorMsg?.length > 0 ? errorMsg : "" }}
+    </span>
   </div>
 </template>
 

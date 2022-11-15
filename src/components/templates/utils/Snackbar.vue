@@ -1,5 +1,8 @@
 <template>
-  <div ref="snackbar" id="snackbar" class="background snackbar">
+  <div 
+    ref="snackbar" 
+    id="snackbar" 
+    class="background snackbar">
     <div>
       <template v-if="type == SNACKBAR.Queued">
         <span :class="type" class="icon text text-16 nls-font-500"></span>

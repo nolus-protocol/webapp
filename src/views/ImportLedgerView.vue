@@ -1,6 +1,7 @@
 <template>
-  <form @submit.prevent="connectViaLedger"
+  <form 
     class="block rounded-2xl background -mt-8 md:mt-auto pb-[300px] md:pb-10 pt-6 md:border nls-border shadow-box lg:w-[516px] outline"
+    @submit.prevent="connectViaLedger"
   >
     <h1 class="text-to-big-number text-primary text-center relative">
       <button
@@ -10,9 +11,7 @@
       >
         <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
       </button>
-      <span
-        class="inline-block align-baseline text-28 md:text-32 relative z-[2]"
-      >
+      <span class="inline-block align-baseline text-28 md:text-32 relative z-[2]">
         {{ $t('message.connect-ledger') }}
       </span>
     </h1>
@@ -49,9 +48,7 @@
     </div>
     <div class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
   
-    <div
-      class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal"
-    >
+    <div class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal">
       <button
         class="btn btn-primary btn-large-primary w-80"
         :class="{'js-loading': disabled}"
@@ -61,7 +58,11 @@
     </div>
   </form>
 
-  <Modal v-if="showError" @close-modal="showError = false; goToAuth()" route="alert">
+  <Modal 
+    v-if="showError" 
+    route="alert"
+    @close-modal="showError = false; goToAuth()" 
+  >
     <ErrorDialog
       :title="$t('message.error-connecting')"
       :message="errorMessage"

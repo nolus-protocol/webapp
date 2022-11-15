@@ -1,6 +1,5 @@
 <template>
   <form @submit.prevent="modelValue.onNextClick">
-
     <div class="block text-left px-10 mt-10">
       <div
         class="block nls-balance mb-[13px] bg-light-grey radius-light text-left text-primary p-2"
@@ -12,16 +11,16 @@
       </div>
       <CurrencyField
         id="repayBalance"
-        :label="$t('message.amount-repay')"
         name="repayBalance"
+        :label="$t('message.amount-repay')"
         :value="modelValue.amount"
         :step="'1'"
-        @input="handleAmountChange($event)"
         :currency-options="balances"
         :option="modelValue.selectedCurrency"
-        @update-currency="(event) => (modelValue.selectedCurrency = event)"
         :error-msg="modelValue.amountErrorMsg"
         :is-error="modelValue.amountErrorMsg !== ''"
+        @input="handleAmountChange($event)"
+        @update-currency="(event) => (modelValue.selectedCurrency = event)"
       />
       <div class="flex justify-end">
         <div class="grow-3 text-right nls-font-500 text-14">
@@ -68,8 +67,8 @@
 <script setup lang="ts">
 import CurrencyField from '@/components/CurrencyField.vue';
 import type { PropType } from 'vue';
-
 import type { RepayComponentProps } from '@/types/component/RepayComponentProps';
+
 import { Coin, Int } from '@keplr-wallet/unit';
 import { CurrencyUtils } from '@nolus/nolusjs';
 import { useOracleStore } from '@/stores/oracle';

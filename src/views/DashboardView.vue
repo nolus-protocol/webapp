@@ -23,25 +23,26 @@
     </div>
     <!-- Wallet -->
     <Transition :name="animate">
-      <div v-if="isTotalBalancePositive"
-      class="flex balance-box items-center justify-start background mt-6 nls-border shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6 outline"
+      <div 
+        v-if="isTotalBalancePositive"
+        class="flex balance-box items-center justify-start background mt-6 nls-border shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6 outline"
       >
-          <div class="left inline-block pr-2">
-            <p class="nls-font-500 text-16 text-primary">
-              {{ $t("message.net-worth") }}
-            </p>
-            <CurrencyComponent
-              :fontSize="40"
-              :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              :amount="totalBalance"
-              :denom="DEFAULT_CURRENCY.symbol"
-              :has-space="false"
-              class="nls-font-700 text-primary"
-            />
-          </div>
+        <div class="left inline-block pr-2">
+          <p class="nls-font-500 text-16 text-primary">
+            {{ $t("message.net-worth") }}
+          </p>
+          <CurrencyComponent
+            :fontSize="40"
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            :amount="totalBalance"
+            :denom="DEFAULT_CURRENCY.symbol"
+            :has-space="false"
+            class="nls-font-700 text-primary"
+          />
+        </div>
 
-          <div class="border-right h-[80px] mt-[-48px] hidden md:flex"></div>
-          <div class="border-right h-[80px] mb-[-24px] ml-[-1px] hidden md:flex"></div>
+        <div class="border-right h-[80px] mt-[-48px] hidden md:flex"></div>
+        <div class="border-right h-[80px] mb-[-24px] ml-[-1px] hidden md:flex"></div>
 
         <div class="right flex w-2/3 -mt-8 lg:mt-0">
           <div class="pt-3 lg:pl-6">
@@ -143,30 +144,22 @@
       <!-- Assets -->
       <div class="block mt-6 md:mt-[25px]">
         <!-- Assets Header -->
-        <div
-          class="grid grid-cols-2 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6"
-        >
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6">
           <div class="nls-font-500 text-12 text-left text-dark-grey text-upper">
             {{ $t("message.assets") }}
           </div>
 
-          <div
-            class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper"
-          >
+          <div class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
             <span class="inline-block">{{ $t("message.lease-up-to") }}</span>
             <TooltipComponent :content="$t('message.lease-up-to-tooltip')" />
           </div>
 
-          <div
-            class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper"
-          >
+          <div class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
             <span class="inline-block">{{ $t("message.earn-apr") }}</span>
             <TooltipComponent :content="$t('message.earn-apr-tooltip')" />
           </div>
 
-          <div
-            class="nls-font-500 text-dark-grey text-12 text-right text-upper"
-          >
+          <div class="nls-font-500 text-dark-grey text-12 text-right text-upper">
             {{ $t("message.balance") }}
           </div>
         </div>
@@ -206,22 +199,16 @@
       <!-- Assets -->
       <div class="block mt-6 md:mt-[25px]">
         <!-- Assets Header -->
-        <div
-          class="grid grid-cols-2 md:grid-cols-3 gap-6 border-b border-standart pb-3 px-6"
-        >
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-6 border-b border-standart pb-3 px-6">
           <div class="nls-font-500 text-12 text-left text-dark-grey text-upper">
             {{ $t("message.assets") }}
           </div>
 
-          <div
-            class="hidden md:inline-flex items-center nls-font-500 text-12 text-right text-dark-grey text-upper"
-          >
+          <div class="hidden md:inline-flex items-center nls-font-500 text-12 text-right text-dark-grey text-upper">
             <span class="inline-block">{{ $t("message.release") }}</span>
           </div>
 
-          <div
-            class="nls-font-500 text-dark-grey text-12 text-right text-upper"
-          >
+          <div class="nls-font-500 text-dark-grey text-12 text-right text-upper">
             {{ $t("message.amount-repay") }}
           </div>
         </div>
@@ -242,14 +229,22 @@
     </div>
   </div>
 
-  <Modal v-if="state.showModal" @close-modal="state.showModal = false" :route="state.modalAction">
+  <Modal 
+    v-if="state.showModal" 
+    :route="state.modalAction"
+    @close-modal="state.showModal = false" 
+  >
     <component
       :is="modalOptions[state.modalAction]"
       :selectedAsset="state.selectedAsset"
     />
   </Modal>
 
-  <Modal v-if="showErrorDialog" @close-modal="showErrorDialog = false" route="alert">
+  <Modal 
+    v-if="showErrorDialog" 
+    route="alert"
+    @close-modal="showErrorDialog = false" 
+  >
     <ErrorDialog
       :title="$t('message.error-connecting')"
       :message="errorMessage"

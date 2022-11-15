@@ -117,8 +117,7 @@
     </div>
   </div>
 </template>
-<script setup lang="ts"></script>
-<style scoped>
+<style scoped lang="scss">
 .icon-wallet {
   font-size: 2em !important;
   margin-right: 0 !important;

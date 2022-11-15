@@ -15,7 +15,10 @@
         @input="$emit('update:value', handleInputChange($event))"
       >
       </textarea>
-      <span :class="['msg error ', errorMsg.length > 0 ? '' : 'hidden']">
+      <span 
+        class="msg error"
+        :class="[errorMsg.length > 0 ? '' : 'hidden']"
+      >
         {{ errorMsg.length > 0 ? errorMsg : "" }}
       </span>
     </div>
@@ -46,6 +49,5 @@ defineProps({
   },
 });
 
-const handleInputChange = (event: Event) =>
-  (event.target as HTMLInputElement).value;
+const handleInputChange = (event: Event) => (event.target as HTMLInputElement).value;
 </script>
