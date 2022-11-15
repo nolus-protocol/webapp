@@ -18,7 +18,7 @@
 
       <div class="px-4 md:px-10">
         <TextFieldButtons 
-          lass="relative z-[2]" 
+          class="relative z-[2]" 
           name="mnemonicSeed" 
           id="mnemonicSeed" 
           :label="$t('message.seed')"
