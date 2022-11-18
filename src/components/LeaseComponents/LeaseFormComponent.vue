@@ -26,7 +26,6 @@
           <CurrencyField
             id="amount-interest"
             :currency-options="modelValue.currentBalance"
-            :disabled-currency-picker="true"
             :disabled-input-field="disabledInputField"
             :error-msg="modelValue.amountErrorMsg"
             :is-error="modelValue.amountErrorMsg !== ''"

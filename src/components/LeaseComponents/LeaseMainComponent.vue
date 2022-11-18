@@ -118,10 +118,12 @@ watch(
           CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance
         );
         const currency = walletStore.currencies[state.value.selectedDownPaymentCurrency.balance.denom];
+        const lease = walletStore.currencies[state.value.selectedCurrency.balance.denom];
 
         const makeLeaseApplyResp = await leaserClient.leaseQuote(
           state.value.downPayment,
-          currency.ticker
+          currency.ticker,
+          lease.ticker
         );
 
         state.value.leaseApply = makeLeaseApplyResp;
