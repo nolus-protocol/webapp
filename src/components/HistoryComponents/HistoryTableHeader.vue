@@ -1,6 +1,6 @@
 <template>
   <div
-    class="nls-sm-hidden md:grid grid-cols-12 flex items-center gap-6 border-b border-standart pb-3 px-6 lg:grid hidden"
+    class="nls-sm-hidden md:grid grid-cols-12 flex items-center gap-6 border-b border-standart pb-3 px-6 lg:grid hidden text-12"
   >
     <div
       class="col-span-2 block nls-font-500 nls-12 text-dark-grey text-left text-upper"

@@ -1,5 +1,5 @@
 <template>
-  <div class="md:grid md:grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6 md:flex items-center history-item">
+  <div class="md:grid md:grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6 md:flex items-center history-item text-12">
     <div class="col-span-2 lg:block nls-14 nls-font-400 text-primary text-left text-upper">
       <a 
       :href="`${applicaton.network.networkAddresses.exploler}nolus-rila/tx/${transaction.id}`"
