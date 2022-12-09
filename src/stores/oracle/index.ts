@@ -34,9 +34,11 @@ const useOracleStore = defineStore('oracle', {
           promises.push(oracleContract.getPriceFor(
             key
           ).then((price) => {
-            const calculatedPrice = new Dec(price.amount_quote.amount).quo(
+            const diff = Math.abs(Number(CURRENCIES.currencies[key as keyof typeof CURRENCIES.currencies].decimal_digits) - Number(CURRENCIES.currencies.USDC.decimal_digits));
+            let calculatedPrice = new Dec(price.amount_quote.amount).quo(
               new Dec(price.amount.amount)
             );
+            calculatedPrice = calculatedPrice.mul(new Dec(10 ** diff));
             const tokenPrice = {
               amount: calculatedPrice.toString(),
               symbol: price.amount_quote.ticker,
@@ -53,7 +55,6 @@ const useOracleStore = defineStore('oracle', {
         await Promise.allSettled(promises);
         this.prices = pricesState;
       } catch (error: Error | any) {
-        console.log(error)
         throw new Error(error);
       }
     },
