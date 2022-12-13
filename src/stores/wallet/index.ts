@@ -421,10 +421,13 @@ const useWalletStore = defineStore('wallet', {
       const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
       const data = await fetch(`${url}/cosmos/staking/v1beta1/delegations/${WalletManager.getWalletAddress()}`);
       const json = await data.json();
+
       const [item] = json.delegation_responses;
+
       if (item) {
         this.stakingBalance = item.balance;
       }
+      
     },
     async [WalletActionTypes.LOAD_SUPPLIED_AMOUNT]() {
       const walletAddress = this?.wallet?.address ?? WalletManager.getWalletAddress();

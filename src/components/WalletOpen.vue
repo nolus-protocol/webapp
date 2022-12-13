@@ -84,7 +84,6 @@ onMounted(() => {
 });
 
 const onUpdateNetwork = (value: PickerOption) => {
-  console.log(value)
   EnvNetworkUtils.saveCurrentNetwork(value.value);
   applicaton[ApplicationActionTypes.CHANGE_NETWORK](true);
 };

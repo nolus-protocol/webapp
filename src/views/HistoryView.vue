@@ -137,8 +137,9 @@ const getTransactions = async () => {
 const load = async () => {
   try {
     loading.value = true;
-    const loadSender = senderPage * senderPerPage < senderTotal;
-    const loadRecepient = recipientPage * recipientPerPage < recipientTotal;
+    const loadSender = ( senderPage - 1 ) * senderPerPage <= senderTotal;
+    const loadRecepient = ( recipientPage - 1 ) * recipientPerPage <= recipientTotal;
+
 
     const res = await wallet[WalletActionTypes.SEARCH_TX]({
       sender_per_page: senderPerPage, 
@@ -159,7 +160,10 @@ const load = async () => {
       recipientPage++;
     }
 
-    if(!loadSender && !loadRecepient){
+    const loadedSender = ( senderPage - 1 ) * senderPerPage <= senderTotal;
+    const loadedRecepient = ( recipientPage - 1 ) * recipientPerPage <= recipientTotal;
+
+    if(!loadedSender && !loadedRecepient){
       loaded.value = true;
     }
 

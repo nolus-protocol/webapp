@@ -15,7 +15,7 @@
 
 import 'chartjs-adapter-date-fns';
 import { defineComponent, h, type PropType } from 'vue';
-import { generateChart } from 'vue-chartjs';
+import { createTypedChart } from 'vue-chartjs';
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -202,7 +202,7 @@ class LineWithLineController extends LineController {
   }
 }
 
-const LineWithLine = generateChart(
+const LineWithLine = createTypedChart(
   'line-with-chart',
   'line',
   LineWithLineController

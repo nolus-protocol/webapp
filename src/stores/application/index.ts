@@ -6,6 +6,7 @@ import { EnvNetworkUtils, WalletUtils } from '@/utils';
 import { NolusClient } from '@nolus/nolusjs';
 import { DEFAULT_PRIMARY_NETWORK } from '@/config/env';
 import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
+import { useOracleStore, OracleActionTypes } from '../oracle';
 
 const useApplicationStore = defineStore('application', {
   state: () => {
@@ -24,6 +25,8 @@ const useApplicationStore = defineStore('application', {
 
         NolusClient.setInstance(loadedNetworkConfig.tendermintRpc);
         const walletStore = useWalletStore();
+        const oracle = useOracleStore();
+
         this.network.networkName = EnvNetworkUtils.getStoredNetworkName() || DEFAULT_PRIMARY_NETWORK;
         this.network.networkAddresses = loadedNetworkConfig;
         
@@ -32,7 +35,10 @@ const useApplicationStore = defineStore('application', {
         }
 
         if(loadBalance){
-          await walletStore[WalletActionTypes.UPDATE_BALANCES]();
+          await Promise.allSettled([
+            walletStore[WalletActionTypes.UPDATE_BALANCES](),
+            oracle[OracleActionTypes.GET_PRICES]()
+          ]);
         }
 
       } catch (error: Error | any) {
