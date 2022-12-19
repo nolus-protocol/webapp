@@ -6,7 +6,7 @@
     >
       {{ label }}
     </label>
-    <div class="block editable-block relative z-[2]">
+    <div class=" editable-block relative z-[2]">
       <div
         v-for="(word, index) in confirmMnemonicPhrase"
         :key="word"

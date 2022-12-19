@@ -10,12 +10,10 @@
     border: solid 1px $grey;
     border-radius: $lightRounded;
     box-shadow: none;
-    padding: 2px 32px 2px 16px;
     min-width: 135px;
     transition: 0.3s;
     display: block;
     width: 100%;
-    height: 44px;
 
     border-radius: $lightRounded;
 
@@ -39,8 +37,7 @@
       background-color: $textMain;
       color: $white;
       padding: 8px 12px;
-      margin-right: 8px;
-      margin-bottom: 8px;
+      margin: 4px;
       cursor: pointer;
       user-select: none;
     }
@@ -49,6 +46,19 @@
   textarea,
   .editable-block {
     min-height: 154px;
+  }
+
+  input{
+    height: 44px;
+    padding: 2px 32px 2px 16px;
+  }
+
+  textarea{
+    padding: 4px 8px;
+  }
+
+  .editable-block{
+    padding: 12px;
   }
 
   .msg {

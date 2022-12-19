@@ -1,8 +1,6 @@
 <template>
-  <div class="h-[100vh] absolute w-[100vw] top-0 right-0 z-[100] flex outline"
-  ></div>
   <div
-    class="block z-[101] rounded-2xl background md:pb-10 pt-6 pb-[210px] mt-[52px] md:border border-standart shadow-box w-screen md:w-[516px]"
+    class="block z-[101] rounded-2xl background md:pb-10 pt-6 pb-[210px] mt-[52px] md:border border-standart shadow-box w-screen md:w-[516px] outline"
     @click.stop
   >
     <div class="flex flex-col items-center">
