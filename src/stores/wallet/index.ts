@@ -27,7 +27,7 @@ import { ADAPTER_STATUS } from '@web3auth/base';
 import { Buffer } from 'buffer';
 import { Lpp } from '@nolus/nolusjs/build/contracts';
 import { CONTRACTS } from '@/config/contracts';
-import type { TxSearchParams, TxSearchResponse } from '@cosmjs/tendermint-rpc';
+import type { TxSearchResponse } from '@cosmjs/tendermint-rpc';
 
 const useWalletStore = defineStore('wallet', {
   state: () => {
@@ -247,7 +247,7 @@ const useWalletStore = defineStore('wallet', {
         const client = await NolusClient.getInstance().getTendermintClient();
         const [sender, receiver] = await Promise.all([
           load_sender ? client.txSearch({ query: `message.sender='${WalletManager.getWalletAddress()}'`, per_page: sender_per_page, page: sender_page, order_by: 'desc' }) : false,
-          load_recipient ? client.txSearch({ query: `transfer.recipient='${WalletManager.getWalletAddress()}'`, per_page: recipient_per_page, page: recipient_page, order_by: 'desc'  }) : false
+          load_recipient ? client.txSearch({ query: `transfer.recipient='${WalletManager.getWalletAddress()}'`, per_page: recipient_per_page, page: recipient_page, order_by: 'desc' }) : false
         ]);
         const data = [];
         let sender_total = 0;
@@ -269,8 +269,8 @@ const useWalletStore = defineStore('wallet', {
                 blockDate: null,
                 memo: decodedTx.body.memo ?? '',
                 fee: decodedTx?.authInfo?.fee?.amount.filter(
-                    (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
-                  ) || null,
+                  (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
+                ) || null,
               };
               data.push(transactionResult);
             } catch (error) {
@@ -284,8 +284,8 @@ const useWalletStore = defineStore('wallet', {
                 blockDate: null,
                 memo: decodedTx.body.memo ?? '',
                 fee: decodedTx?.authInfo?.fee?.amount.filter(
-                    (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
-                  ) || null,
+                  (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
+                ) || null,
               };
               data.push(transactionResult);
             }
@@ -308,8 +308,8 @@ const useWalletStore = defineStore('wallet', {
                 blockDate: null,
                 memo: decodedTx.body.memo ?? '',
                 fee: decodedTx?.authInfo?.fee?.amount.filter(
-                    (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
-                  ) || null,
+                  (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
+                ) || null,
               };
               data.push(transactionResult);
             } catch (error) {
@@ -323,8 +323,8 @@ const useWalletStore = defineStore('wallet', {
                 blockDate: null,
                 memo: decodedTx.body.memo ?? '',
                 fee: decodedTx?.authInfo?.fee?.amount.filter(
-                    (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
-                  ) || null,
+                  (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
+                ) || null,
               };
               data.push(transactionResult);
             }
@@ -352,35 +352,54 @@ const useWalletStore = defineStore('wallet', {
       };
     },
     async [WalletActionTypes.LOAD_VESTED_TOKENS](): Promise<{
-      delayed: boolean,
       endTime: string,
-      toAddress: string,
       amount: { amount: string, denom: string }
     }[]> {
-      const client = await NolusClient.getInstance().getTendermintClient();
+      // const client = await NolusClient.getInstance().getTendermintClient();
 
-      const data = await client.txSearch({ query: `message.action='/cosmos.vesting.v1beta1.MsgCreateVestingAccount' AND transfer.sender='${WalletManager.getWalletAddress()}'` });
-      const registry = new Registry(defaultStargateTypes);
+      // const data = await client.txSearch({ query: `message.action='/cosmos.auth.v1beta1.QueryAccount' AND transfer.sender='nolus17snxq7sdny468jc7kyxc2m4pzqvzpnv0uck0dl'` });
+      // const registry = new Registry(defaultStargateTypes);
+      // console.log(data)
+      // let items = data.txs.map(async (tx) => {
+      //   const decodedTx: DecodedTxRaw = decodeTxRaw(tx.tx);
+      //   for (const message of decodedTx.body.messages) {
+      //     const decodedMsg = registry.decode(message);
+      //     const date = new Date(decodedMsg.endTime.toNumber() * 1000);
+      //     const block = await client.block(tx.height);
+      //     const blockDate = block.block.header.time;
 
-      let items = data.txs.map(async (tx) => {
-        const decodedTx: DecodedTxRaw = decodeTxRaw(tx.tx);
-        for (const message of decodedTx.body.messages) {
-          const decodedMsg = registry.decode(message);
-          const date = new Date(decodedMsg.endTime.toNumber() * 1000);
-          const block = await client.block(tx.height);
-          const blockDate = block.block.header.time;
+      //     const from = `${blockDate.toLocaleDateString('en-US', { day: '2-digit' })}/${blockDate.toLocaleDateString('en-US', { month: '2-digit' })}/${blockDate.toLocaleDateString('en-US', { year: 'numeric' })}`;
+      //     const to = `${date.toLocaleDateString('en-US', { day: '2-digit' })}/${date.toLocaleDateString('en-US', { month: '2-digit' })}/${date.toLocaleDateString('en-US', { year: 'numeric' })}`;
 
-          const from = `${blockDate.toLocaleDateString('en-US', { day: '2-digit' })}/${blockDate.toLocaleDateString('en-US', { month: '2-digit' })}/${blockDate.toLocaleDateString('en-US', { year: 'numeric' })}`;
-          const to = `${date.toLocaleDateString('en-US', { day: '2-digit' })}/${date.toLocaleDateString('en-US', { month: '2-digit' })}/${date.toLocaleDateString('en-US', { year: 'numeric' })}`;
+      //     decodedMsg.endTime = `${from} - ${to}`;
+      //     decodedMsg.amount = decodedMsg.amount[0];
 
-          decodedMsg.endTime = `${from} - ${to}`;
-          decodedMsg.amount = decodedMsg.amount[0];
+      //     return decodedMsg;
+      //   }
 
-          return decodedMsg;
-        }
+      // });
 
-      });
-      return Promise.all(items);
+      const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
+      const data = await fetch(`${url}/cosmos/auth/v1beta1/accounts/${WalletManager.getWalletAddress()}`);
+      const json = await data.json();
+      const accData = json.account;
+      const vesting_account = accData?.base_vesting_account;
+      const items = [];
+
+      if (vesting_account) {
+        const start = new Date(accData.start_time * 1000);
+        const end = new Date(vesting_account.end_time * 1000);
+
+        const from = `${start.toLocaleDateString('en-US', { day: '2-digit' })}/${start.toLocaleDateString('en-US', { month: '2-digit' })}/${start.toLocaleDateString('en-US', { year: 'numeric' })}`;
+        const to = `${end.toLocaleDateString('en-US', { day: '2-digit' })}/${end.toLocaleDateString('en-US', { month: '2-digit' })}/${end.toLocaleDateString('en-US', { year: 'numeric' })}`;
+
+        items.push({
+          endTime: `${from} - ${to}`,
+          amount: vesting_account.original_vesting[0]
+        });
+      }
+
+      return items;
     },
     async [WalletActionTypes.CONNECT_GOOGLE]() {
       const instance = await Web3AuthProvider.getInstance();
@@ -427,7 +446,7 @@ const useWalletStore = defineStore('wallet', {
       if (item) {
         this.stakingBalance = item.balance;
       }
-      
+
     },
     async [WalletActionTypes.LOAD_SUPPLIED_AMOUNT]() {
       const walletAddress = this?.wallet?.address ?? WalletManager.getWalletAddress();

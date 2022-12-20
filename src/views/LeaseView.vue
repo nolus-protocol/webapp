@@ -9,7 +9,7 @@
       </div>
       <div class="right w-full md:w-1/2 md:mt-0 inline-flex justify-start md:justify-end">
         <button
-          class="btn btn-primary btn-large-primary w-full md:w-1/2"
+          class="btn btn-primary btn-large-primary w-full md:w-auto"
           @click="showLeaseModal = true"
         >
           {{ $t("message.lease-new") }}

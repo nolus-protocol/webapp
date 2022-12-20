@@ -40,7 +40,7 @@
     v-if="showErrorDialog" 
     @close-modal="showErrorDialog = false" route="alert">
     <ErrorDialog
-      :title="$t('error-connecting')"
+      :title="$t('message.error-connecting')"
       :message="errorMessage"
       :try-button="onClickTryAgain"
     />

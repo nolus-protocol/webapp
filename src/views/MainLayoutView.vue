@@ -23,12 +23,26 @@
       :transaction="snackbarState.transaction">
     </Snackbar>
   </div>
+    <Modal 
+      v-if="showErrorDialog" 
+      route="alert"
+      @close-modal="showErrorDialog = false" 
+    >
+      <ErrorDialog
+        :title="$t('message.error-connecting')"
+        :message="errorMessage"
+        :try-button="connect"
+      />
+    </Modal>
 </template>
 
 <script lang="ts" setup>
 import SidebarContainer from '@/components/SidebarContainer.vue';
 import SidebarHeader from '@/components/Sideheader.vue';
 import Snackbar from '@/components/templates/utils/Snackbar.vue';
+import Modal from '@/components/modals/templates/Modal.vue';
+import ErrorDialog from '@/components/modals/ErrorDialog.vue';
+
 import { SNACKBAR, UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL } from '@/config/env';
 import { OracleActionTypes, useOracleStore } from '@/stores/oracle';
 import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
@@ -56,6 +70,13 @@ onUnmounted(() => {
   clearInterval(balanceInterval);
   clearInterval(pricesInterval);
 })
+
+const connect = async () => {
+  console.log('alert')
+  clearInterval(balanceInterval);
+  clearInterval(pricesInterval);
+  await loadNetwork();
+}
 
 const loadNetwork = async () => {
   try {

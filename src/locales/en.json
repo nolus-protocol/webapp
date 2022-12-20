@@ -150,7 +150,7 @@
     "chart-tooltip-price": "Price",
     "price-in-usd": "1 {symbol} price in USD:",
     "set-name": "Set Name",
-    "wallet-name": "Wallet Name",
+    "wallet-name": "Choose a display name for your wallet",
     "done": "Done",
     "amount-repay": "Amount",
     "unlock": "Unlock",

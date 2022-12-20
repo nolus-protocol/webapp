@@ -38,8 +38,8 @@
     }
 
     &-header {
-      border-top-left-radius: 16px;
-      border-top-right-radius: 16px;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
       overflow: hidden;
       width: 100%;
       border-bottom: 1px solid $borderColor;
@@ -154,7 +154,7 @@
         bottom: initial;
         padding: 0 40px 0px;
         transform: translateZ(0);
-        border-radius: 16px;
+        border-radius: 12px;
       }
     }
   }

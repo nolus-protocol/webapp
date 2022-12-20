@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 import { RouterView } from "vue-router";
 
 import Modal from '@/components/modals/templates/Modal.vue';
@@ -22,17 +22,10 @@ const showErrorDialog = ref(false);
 const errorMessage = ref('');
 const application = useApplicationStore();
 const wallet = useWalletStore();
-let balanceInterval: NodeJS.Timeout | undefined;
-let pricesInterval: NodeJS.Timeout | undefined;
 
 onMounted(async () => {
   await loadNetwork();
 });
-
-onUnmounted(() => {
-  clearInterval(balanceInterval);
-  clearInterval(pricesInterval);
-})
 
 const onClickTryAgain = async () => {
   await loadNetwork();

@@ -304,7 +304,7 @@ const state = ref({
   suppliedAndStaked: new Dec(0),
 });
 
-const vestedTokens = ref([] as { delayed: boolean, endTime: string, toAddress: string, amount: { amount: string, denom: string } }[]);
+const vestedTokens = ref([] as { endTime: string, amount: { amount: string, denom: string } }[]);
 
 const filteredAssets = computed(() => {
     return state.value.showSmallBalances ? wallet.balances : filterSmallBalances(wallet.balances as AssetBalance[])

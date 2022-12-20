@@ -21,7 +21,7 @@ defineProps({
 
 <style scoped>
 .modal-send-receive-actions {
-  border-bottom-left-radius: 16px;
-  border-bottom-right-radius: 16px;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 </style>

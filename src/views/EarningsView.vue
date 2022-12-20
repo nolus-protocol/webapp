@@ -15,7 +15,7 @@
             <h2 class="text-16 nls-font-500 text-left my-0">
               {{ $t("message.earning-assets") }}
             </h2>
-            <div class="right w-full md:w-1/2 md:mt-0 inline-flex justify-start md:justify-end">
+            <!-- <div class="right w-full md:w-1/2 md:mt-0 inline-flex justify-start md:justify-end">
               <div class="relative block checkbox-container">
                 <div class="flex items-center w-full justify-end">
                   <input
@@ -28,7 +28,7 @@
                   <label for="show-small-balances">{{ $t('message.show-small-balances') }}</label>
                 </div>
               </div>
-            </div>
+            </div> -->
           </div>
           <!-- Assets -->
           <div class="block mt-6 md:mt-[25px]">
