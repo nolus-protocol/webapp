@@ -17,15 +17,34 @@
           <p class="text-primary nls-font-500 text-18 text-left uppercase m-0">
             {{ assetInfo.coinDenom }}
           </p>
-          <p class="text-dark-grey text-12 nls-font-400 text-left capitalize m-0">
+          <p class="text-dark-grey text-12 garet-medium text-left capitalize m-0">
             {{ formatPrice(getMarketPrice(asset.balance.denom)) }}
           </p>
         </div>
       </div>
 
-      <div class="hidden md:block">
+      <div class="block pl-[15px]">
+        <p class="text-primary nls-font-500 text-16 nls-font-500 m-0">
+          {{
+            calculateBalance(
+              asset.balance.amount.toString(),
+              asset.balance.denom
+            )
+          }}
+        </p>
+        <div class="flex items-center text-dark-grey text-12 garet-medium m-0">
+          {{
+            convertMinimalDenomToDenom(
+              asset.balance.amount,
+              asset.balance.denom
+            )
+          }}
+        </div>
+      </div>
+
+      <div class="hidden md:block info-show">
         <div
-          class="text-primary nls-font-500 text-14 text-center m-0"
+          class="text-primary nls-font-500 text-14 text-right m-0 justify-end"
         >
           <CurrencyComponent
             :type="CURRENCY_VIEW_TYPES.CURRENCY"
@@ -34,25 +53,6 @@
             :isDenomInfront="false"
             denom="%"
           />
-        </div>
-      </div>
-
-      <div class="block info-show">
-        <p class="text-primary nls-font-500 text-16 nls-font-500 text-right m-0">
-          {{
-            calculateBalance(
-              asset.balance.amount.toString(),
-              asset.balance.denom
-            )
-          }}
-        </p>
-        <div class="flex items-center justify-end text-dark-grey text-12 nls-font-400 text-right m-0">
-          {{
-            convertMinimalDenomToDenom(
-              asset.balance.amount,
-              asset.balance.denom
-            )
-          }}
         </div>
       </div>
 

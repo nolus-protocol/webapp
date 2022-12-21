@@ -149,9 +149,8 @@
             {{ $t("message.assets") }}
           </div>
 
-          <div class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
-            <span class="inline-block">{{ $t("message.lease-up-to") }}</span>
-            <TooltipComponent :content="$t('message.lease-up-to-tooltip')" />
+          <div class="nls-font-500 text-dark-grey text-12 text-right text-upper">
+            {{ $t("message.balance") }}
           </div>
 
           <div class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
@@ -159,9 +158,11 @@
             <TooltipComponent :content="$t('message.earn-apr-tooltip')" />
           </div>
 
-          <div class="nls-font-500 text-dark-grey text-12 text-right text-upper">
-            {{ $t("message.balance") }}
+          <div class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
+            <span class="inline-block">{{ $t("message.lease-up-to") }}</span>
+            <TooltipComponent :content="$t('message.lease-up-to-tooltip')" />
           </div>
+
         </div>
 
         <!-- Assets Container -->
@@ -262,6 +263,7 @@ import SupplyWithdrawDialog from '@/components/modals/SupplyWithdrawDialog.vue';
 import SendReceiveDialog from '@/components/modals/SendReceiveDialog.vue';
 import LeaseDialog from '@/components/modals/LeaseDialog.vue';
 import VestedAssetPartial from '@/components/VestedAssetPartial.vue';
+import CurrencyComponent from '@/components/CurrencyComponent.vue';
 
 import type { AssetBalance } from '@/stores/wallet/state';
 import { computed, ref, provide, onMounted, watch } from 'vue';
@@ -275,7 +277,6 @@ import { DEFAULT_APR, DEFAULT_CURRENCY } from '@/config/env';
 import { storeToRefs } from 'pinia';
 import { LPN_CURRENCY } from '@/config/assetsInfo';
 import { CURRENCY_VIEW_TYPES } from '@/types/CurrencyViewType';
-import CurrencyComponent from '@/components/CurrencyComponent.vue';
 
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,

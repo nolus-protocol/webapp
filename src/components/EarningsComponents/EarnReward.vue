@@ -21,7 +21,7 @@
               )
             }}
           </p>
-          <p class="text-dark-grey text-12 nls-font-400 text-left capitalize m-0" >
+          <p class="text-dark-grey text-12 garet-medium text-left capitalize m-0" >
             {{
               calculateBalance(
                 reward.balance?.amount.toString(),

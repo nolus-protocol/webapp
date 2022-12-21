@@ -38,16 +38,15 @@
                 {{ $t("message.asset") }}
               </div>
 
-              <div class="nls-font-500 text-12 text-dark-grey text-center text-upper md:flex hidden items-center justify-center">
+              <div class="inline-flex items-center nls-font-500 text-12 text-dark-grey text-center text-upper pl-[15px]">
+                <span class="inline-block">{{ $t("message.current-balance") }}</span>
+              </div>
+
+              <div class="nls-font-500 text-12 text-dark-grey text-right text-upper md:flex hidden items-center justify-end">
                 {{ $t("message.apr") }}
                 <TooltipComponent :content="$t('message.earn-view-apr-tooltip')" />
               </div>
 
-              <div class="inline-flex items-center justify-end nls-font-500 text-12 text-dark-grey text-right text-upper">
-                <span class="inline-block">{{
-                  $t("message.current-balance")
-                }}</span>
-              </div>
             </div>
 
             <!-- Assets Container -->

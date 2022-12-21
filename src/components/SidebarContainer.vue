@@ -115,7 +115,7 @@
           @click="openExternal(REDDIT_ACCOUNT, '_blank')"
         />
       </div>
-      <div class="block mt-3 text-12 nls-font-400 sub-nav-service"></div>
+      <div class="block mt-3 text-12 garet-medium sub-nav-service"></div>
     </div>
   </div>
 
@@ -123,7 +123,7 @@
     <p class="nls-font-500 text-12 text-dark-grey text-upper pl-2">
       {{ applicaton.network.networkName }} # <template v-if="block > 0">{{ block }}</template>
     </p>
-    <p class="nls-font-400 text-12 text-dark-grey pl-2">v{{version}}</p>
+    <p class="garet-medium text-12 text-dark-grey pl-2">v{{version}}</p>
   </div>
 
   <Modal v-if="showSwapModal" @close-modal="showSwapModal = false" route="swap">

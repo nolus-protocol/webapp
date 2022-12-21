@@ -18,17 +18,54 @@
         <p class="text-primary nls-font-500 text-18 text-left uppercase m-0">
           {{ assetInfo.coinAbbreviation.toUpperCase() }}
         </p>
-        <p class="text-dark-grey text-12 nls-font-400 text-left capitalize m-0">
-          <img
+        <p class="text-dark-grey text-12 text-left capitalize m-0 garet-medium">
+          <!-- <img
             :src="changeDirection ? positive : negative"
             class="inline-block m-0 mr-2"
-          />
+          /> -->
           {{ CurrencyUtils.formatPrice(price) }}
         </p>
       </div>
     </div>
 
-    <div class="md:block hidden">
+    <div class="block">
+      <p class="text-primary nls-font-500 text-16 text-right m-0">
+        <CurrencyComponent
+          :type="CURRENCY_VIEW_TYPES.CURRENCY"
+          :amount="calculateBalance(price, assetBalance, denom)"
+          :hasSpace="false"
+          :denom="DEFAULT_CURRENCY.symbol"
+        />
+      </p>
+      <div
+        class="flex items-center justify-end text-dark-grey text-12 garet-medium text-right m-0"
+      >
+        {{
+          CurrencyUtils.convertMinimalDenomToDenom(
+            assetBalance,
+            assetInfo.coinMinimalDenom,
+            assetInfo.coinDenom,
+            assetInfo.coinDecimals
+          )
+        }}
+      </div>
+    </div>
+
+    <div v-if="earnings" class="hidden md:block">
+      <div
+        class="text-primary nls-font-500 text-14 text-right m-0"
+      >
+        <CurrencyComponent
+          :type="CURRENCY_VIEW_TYPES.CURRENCY"
+          :amount="earnings"
+          :hasSpace="false"
+          :isDenomInfront="false"
+          denom="%"
+        />
+      </div>
+    </div>
+
+    <div class="md:block hidden info-show">
       <p class="text-primary nls-font-500 text-16 text-right m-0">
         <template v-if="balance > 0">
           <CurrencyComponent
@@ -52,44 +89,6 @@
 
     </div>
 
-    <div v-if="earnings" class="hidden md:block">
-      <div
-        class="text-primary nls-font-500 text-14 text-right m-0"
-      >
-        <CurrencyComponent
-          :type="CURRENCY_VIEW_TYPES.CURRENCY"
-          :amount="earnings"
-          :hasSpace="false"
-          :isDenomInfront="false"
-          denom="%"
-        />
-      </div>
-    </div>
-
-    <div class="block info-show">
-      <p class="text-primary nls-font-500 text-16 text-right m-0">
-        <CurrencyComponent
-          :type="CURRENCY_VIEW_TYPES.CURRENCY"
-          :amount="calculateBalance(price, assetBalance, denom)"
-          :hasSpace="false"
-          :denom="DEFAULT_CURRENCY.symbol"
-        />
-      </p>
-      <div
-        class="flex items-center justify-end text-dark-grey text-12 nls-font-400 text-right m-0"
-      >
-        {{
-          CurrencyUtils.convertMinimalDenomToDenom(
-            assetBalance,
-            assetInfo.coinMinimalDenom,
-            assetInfo.coinDenom,
-            assetInfo.coinDecimals
-          )
-        }}
-      </div>
-    </div>
-
-        
     <div 
       v-if="canLease || canSupply || canStake"
       class="mobile-actions md:hidden col-span-2" 
