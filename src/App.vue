@@ -1,11 +1,7 @@
 <template>
   <RouterView />
   <Modal v-if="showErrorDialog" @close-modal="showErrorDialog = false" route="alert">
-    <ErrorDialog
-      :title="$t('message.error-connecting')"
-      :message="errorMessage"
-      :try-button="onClickTryAgain"
-    />
+    <ErrorDialog :title="$t('message.error-connecting')" :message="errorMessage" :try-button="onClickTryAgain" />
   </Modal>
 </template>
 
@@ -17,7 +13,6 @@ import Modal from '@/components/modals/templates/Modal.vue';
 import ErrorDialog from '@/components/modals/ErrorDialog.vue';
 import { useApplicationStore, ApplicationActionTypes } from '@/stores/application';
 import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
-import { TestUtils } from "./utils/TestUtils";
 
 const showErrorDialog = ref(false);
 const errorMessage = ref('');
@@ -41,13 +36,5 @@ const loadNetwork = async () => {
     errorMessage.value = error?.message;
   }
 };
-
-const test = () => {
-  try{
-    const testUtils = new TestUtils();
-  }catch(error){
-    console.log(error);
-  }
-}
 
 </script>

@@ -39,7 +39,8 @@
               </div>
 
               <div class="inline-flex items-center nls-font-500 text-12 text-dark-grey text-center text-upper pl-[15px]">
-                <span class="inline-block">{{ $t("message.current-balance") }}</span>
+                <span class="inline-block">{{ $t("message.deposit") }}</span>
+                <TooltipComponent :content="$t('message.deposit-tooltip')" />
               </div>
 
               <div class="nls-font-500 text-12 text-dark-grey text-right text-upper md:flex hidden items-center justify-end">
@@ -57,6 +58,12 @@
               :openSupplyWithdraw="
                 () => openSupplyWithdrawDialog(asset.balance.denom)
               "
+              :cols="cols"
+            />
+
+            <EarnNativeAsset
+              v-if="nativeAsset"
+              :asset="nativeAsset"
               :cols="cols"
             />
           </div>
@@ -118,6 +125,8 @@
 
 <script setup lang="ts">
 import EarnAsset from '@/components/EarningsComponents/EarnAsset.vue';
+import EarnNativeAsset from '@/components/EarningsComponents/EarnNativeAsset.vue';
+
 import EarnReward from '@/components/EarningsComponents/EarnReward.vue';
 import SupplyWithdrawDialog from '@/components/modals/SupplyWithdrawDialog.vue';
 import Modal from '@/components/modals/templates/Modal.vue';
@@ -126,7 +135,7 @@ import ErrorDialog from '@/components/modals/ErrorDialog.vue';
 import TooltipComponent from '@/components/TooltipComponent.vue';
 
 import type { AssetBalance } from '@/stores/wallet/state';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { claimRewardsMsg, type ContractData, Lpp} from '@nolus/nolusjs/build/contracts';
 import { ChainConstants, NolusClient } from '@nolus/nolusjs';
 
@@ -135,16 +144,14 @@ import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils';
 
 import { WalletManager } from '@/wallet/WalletManager';
 import { Coin, Dec, Int } from '@keplr-wallet/unit';
-import { storeToRefs } from 'pinia';
-import { useWalletStore } from '@/stores/wallet';
+import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
+import CURRENCIES from '@/config/currencies.json';
 
 const wallet = useWalletStore();
-const walletRef = storeToRefs(wallet);
 
 const cols = ref(3 as number);
 const showSupplyWithdrawDialog = ref(false);
 const availableCurrencies = ref([] as string[]);
-const balances = ref([] as AssetBalance[]);
 const rewards = ref([] as AssetBalance[]);
 const claimContractData = ref([] as ContractData[]);
 const selectedAsset = ref('');
@@ -155,11 +162,9 @@ const errorMessage = ref('');
 
 onMounted(async () => {
   try {
+    await wallet[WalletActionTypes.UPDATE_BALANCES]();
     await getAllRewards();
-    balances.value = wallet.balances.filter((asset) => {
-      return availableCurrencies.value.includes(asset.balance.denom);
-    });
-
+    
   } catch (e: Error | any) {
     showErrorDialog.value = true;
     errorMessage.value = e?.message;
@@ -167,9 +172,20 @@ onMounted(async () => {
 });
 
 const filteredAssets = computed(() => {
-    return showSmallBalances.value ? balances.value : filterSmallBalances(balances.value as AssetBalance[])
+    const balances = wallet.balances.filter((asset) => {
+      return availableCurrencies.value.includes(asset.balance.denom);
+    });
+    return showSmallBalances.value ? balances : filterSmallBalances(balances as AssetBalance[])
   }
 );
+
+const nativeAsset = computed(() => {
+  const nativeDenom = wallet.getIbcDenomBySymbol(CURRENCIES.currencies.NLS.symbol);
+  const index = wallet.balances.findIndex((item) => {
+    return item.balance.denom == nativeDenom;
+  });
+  return wallet.balances[index];
+});
 
 const filterSmallBalances = (balances: AssetBalance[]) => {
   return balances.filter((asset) => asset.balance.amount.gt(new Int('1')));
@@ -214,7 +230,7 @@ const getAllRewards = async () => {
 
       const lppConfig = await lppClient.getLppConfig();
       const lpnCoin = wallet.getCurrencyByTicker(lppConfig.lpn_ticker);
-      const lpnIbcDenom = wallet.getIbcDenomBySymbol(lpnCoin.symbol);
+      const lpnIbcDenom = wallet.getIbcDenomBySymbol(lpnCoin?.symbol);
 
       availableCurrencies.value.push(lpnIbcDenom as string);
 
@@ -223,23 +239,15 @@ const getAllRewards = async () => {
       );
 
       const coin = wallet.getCurrencyByTicker(lppRewards.rewards.ticker);
-      const ibcDenom = wallet.getIbcDenomBySymbol(coin.symbol);
+      const ibcDenom = wallet.getIbcDenomBySymbol(coin?.symbol);
       rewards.value.push({
         balance: new Coin(ibcDenom as string, lppRewards.rewards.amount),
       });
 
   }catch(error){
-
+    console.log(error);
   }
 
 };
-
-watch(walletRef.balances, async (balanceValue: AssetBalance[]) => {
-  if (balances) {
-    balances.value = balanceValue.filter((asset) => {
-      return availableCurrencies.value.includes(asset.balance.denom);
-    });
-  }
-});
 
 </script>

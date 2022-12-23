@@ -111,6 +111,15 @@ const handleAmountChange = (value: string) => {
   props.modelValue.amount = value;
 };
 
-const setAmount = () => {}
+const setAmount = () => {
+  const asset = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
+  const data = CurrencyUtils.convertMinimalDenomToDenom(
+    props.modelValue.selectedCurrency.balance.amount.toString(),
+    props.modelValue.selectedCurrency.balance.denom,
+      asset.coinDenom,
+      asset.coinDecimals
+    )
+    props.modelValue.amount = Number(data.toDec().toString()).toString();
+}
 
 </script>

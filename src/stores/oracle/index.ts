@@ -5,7 +5,7 @@ import { defineStore } from 'pinia';
 import { OracleActionTypes } from '@/stores/oracle/action-types';
 import { EnvNetworkUtils } from '@/utils';
 import { NolusClient } from '@nolus/nolusjs';
-import { Oracle,  } from '@nolus/nolusjs/build/contracts';
+import { Oracle  } from '@nolus/nolusjs/build/contracts';
 import { CONTRACTS } from '@/config/contracts';
 import { ASSETS } from '@/config/assetsInfo';
 

@@ -16,14 +16,6 @@
 
 ## Project setup
 
-```sh
-npm config set //registry.npmjs.org/:_authToken ${NPM_TOKEN}
-yarn install
-```
-Contact admin in order to get a valid NPM_TOKEN.
-
-&nbsp;
-
 ### Compiles and hot-reloads for development
 
 ```sh

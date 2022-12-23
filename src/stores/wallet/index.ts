@@ -19,8 +19,7 @@ import { fromHex, toHex } from '@cosmjs/encoding';
 import { WalletManager } from '@/wallet/WalletManager';
 import { RouteNames } from '@/router/RouterNames';
 import { LedgerSigner } from '@cosmjs/ledger-amino';
-import { decodeTxRaw, Registry, type DecodedTxRaw, } from '@cosmjs/proto-signing';
-import { defaultRegistryTypes as defaultStargateTypes } from "@cosmjs/stargate";
+import { decodeTxRaw, type DecodedTxRaw, } from '@cosmjs/proto-signing';
 import { NETWORKS } from '@/config/env';
 import { ASSETS } from '@/config/assetsInfo';
 import { ADAPTER_STATUS } from '@web3auth/base';
@@ -355,29 +354,6 @@ const useWalletStore = defineStore('wallet', {
       endTime: string,
       amount: { amount: string, denom: string }
     }[]> {
-      // const client = await NolusClient.getInstance().getTendermintClient();
-
-      // const data = await client.txSearch({ query: `message.action='/cosmos.auth.v1beta1.QueryAccount' AND transfer.sender='nolus17snxq7sdny468jc7kyxc2m4pzqvzpnv0uck0dl'` });
-      // const registry = new Registry(defaultStargateTypes);
-      // console.log(data)
-      // let items = data.txs.map(async (tx) => {
-      //   const decodedTx: DecodedTxRaw = decodeTxRaw(tx.tx);
-      //   for (const message of decodedTx.body.messages) {
-      //     const decodedMsg = registry.decode(message);
-      //     const date = new Date(decodedMsg.endTime.toNumber() * 1000);
-      //     const block = await client.block(tx.height);
-      //     const blockDate = block.block.header.time;
-
-      //     const from = `${blockDate.toLocaleDateString('en-US', { day: '2-digit' })}/${blockDate.toLocaleDateString('en-US', { month: '2-digit' })}/${blockDate.toLocaleDateString('en-US', { year: 'numeric' })}`;
-      //     const to = `${date.toLocaleDateString('en-US', { day: '2-digit' })}/${date.toLocaleDateString('en-US', { month: '2-digit' })}/${date.toLocaleDateString('en-US', { year: 'numeric' })}`;
-
-      //     decodedMsg.endTime = `${from} - ${to}`;
-      //     decodedMsg.amount = decodedMsg.amount[0];
-
-      //     return decodedMsg;
-      //   }
-
-      // });
 
       const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
       const data = await fetch(`${url}/cosmos/auth/v1beta1/accounts/${WalletManager.getWalletAddress()}`);

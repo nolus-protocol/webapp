@@ -184,8 +184,6 @@ import type { AssetInfo } from '@/types';
 import { computed, type PropType } from 'vue';
 import { Coin, Int } from '@keplr-wallet/unit';
 import { CurrencyUtils } from '@nolus/nolusjs';
-import positive from '@/assets/icons/change-positive.svg';
-import negative from '@/assets/icons/change-negative.svg';
 import CurrencyComponent from '@/components/CurrencyComponent.vue';
 
 import { DASHBOARD_ACTIONS } from '@/types';

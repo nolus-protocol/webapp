@@ -232,15 +232,23 @@ input[type="checkbox" i] {
 		}
 	}
 
-	&:hover {
-		.group-hover\:flex {
-			background-color: $lightElectric;
-			box-shadow: 0px 8px 48px $shadowModalColor;
-			border-radius: 4px;
-			border-radius: 6px;
-			min-width: 196px;
-		}
-	}
+	// &:hover {
+	// 	.group-hover\:flex {
+	// 		background-color: $lightElectric;
+	// 		box-shadow: 0px 8px 48px $shadowModalColor;
+	// 		border-radius: 4px;
+	// 		border-radius: 6px;
+	// 		min-width: 196px;
+	// 	}
+	// }
+}
+
+.tooltip{
+	width: 196px;
+	display: flex;
+	visibility: hidden;
+	left: 0;
+	top: 0;
 }
 
 .sm\:col-span-12 {

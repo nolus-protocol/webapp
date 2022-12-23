@@ -195,6 +195,8 @@
     "many_m": "minutes ago",
     "one_h": "1 hour ago",
     "many_h": "hours ago",
-    "earn-title": "Earn"
+    "earn-title": "Earn",
+    "deposit": "Deposit",
+    "deposit-tooltip": "Total amount deposited and interest earned by the user"
   }
 }

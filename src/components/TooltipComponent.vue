@@ -2,28 +2,60 @@
   <!-- TOOLTIP -->
 
   <!-- Component Start -->
-  <div class="relative flex flex-col items-center group group-tooltip">
+  <div ref="target" class="relative flex flex-col items-center group group-tooltip" @mouseover="mouseover"
+    @mouseleave="mouseleave">
     <span class="icon icon-tooltip"></span>
-    <div class="absolute bottom-0 flex flex-col items-center hidden mb-7 group-hover:flex">
-      <span
-        class="relative z-10 p-2 text-normal text-left leading-none text-white whitespace-no-wrap bg-light-electric shadow-lg content">
-        {{ content }}
-      </span>
-      <div class="absolute w-3 h-3 -mt-2 rotate-45 bg-light-electric" style="bottom: -4px"></div>
-    </div>
   </div>
+  <Teleport to="body">
+    <div ref="tooltip" class="absolute flex flex-col items-center mb-7 group-hover:flex tooltip">
+      <div class="relative flex">
+        <span
+          class="relative z-10 p-2 text-normal text-left leading-none text-white whitespace-no-wrap bg-light-electric shadow-lg content">
+          {{ content }}
+        </span>
+        <div class="absolute w-3 h-3 -mt-2 bg-light-electric" style="bottom: -4px;left: 50%;transform: translateX(-50%) rotate(45deg);"></div>
+      </div>
+    </div>
+  </Teleport>
   <!-- Component End  -->
 
   <!-- /TOOLTIP -->
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
+
+const tooltip = ref(null as HTMLDivElement | null);
+const target = ref(null as HTMLDivElement | null);
+
 defineProps({
   content: {
     type: String,
     default: '',
   },
 });
+
+const mouseover = (event: MouseEvent) => {
+  const parent = target.value as HTMLDivElement;
+  const element = tooltip.value as HTMLDivElement;
+  if (target) {
+    const rect = parent.getBoundingClientRect();
+    const elementRect = element.getBoundingClientRect();
+
+    const left = rect.left + window.scrollX - elementRect.width / 2 + rect.width/2;
+    const top = rect.top + window.scrollY - elementRect.height - 15;
+
+    element.style.left = `${left}px`;
+    element.style.top = `${top}px`;
+  }
+
+  element.style.visibility = 'visible';
+}
+
+const mouseleave = () => {
+  const element = tooltip.value as HTMLDivElement;
+  element.style.visibility = 'hidden';
+}
 </script>
 <style scoped lang="scss">
 span.content {
