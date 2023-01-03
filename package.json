@@ -31,9 +31,9 @@
     "@ledgerhq/hw-transport-webusb": "^6.27.9",
     "@ledgerhq/logs": "^6.10.1",
     "@nolus/nolusjs": "^0.0.80",
-    "@web3auth/base": "^4.0.0",
-    "@web3auth/core": "^4.0.0",
-    "@web3auth/openlogin-adapter": "^4.0.0",
+    "@web3auth/base": "^3.3.0",
+    "@web3auth/core": "^3.3.0",
+    "@web3auth/openlogin-adapter": "^3.3.0",
     "browserify-zlib": "^0.2.0",
     "chart.js": "^4.1.1",
     "chartjs-adapter-date-fns": "^3.0.0",
@@ -70,7 +70,7 @@
     "sass": "^1.57.1",
     "tailwindcss": "^3.2.4",
     "typescript": "~4.9.4",
-    "vite": "^3.2.2",
+    "vite": "3.2.3",
     "vue-tsc": "^1.0.18"
   }
 }
