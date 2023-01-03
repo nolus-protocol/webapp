@@ -19,6 +19,10 @@
         display: flex;
         border-radius: 4px;
 
+        &.selected {
+            background-color: #EBEFF5;
+        }
+
         span.truncate {
           overflow: unset;
         }
@@ -112,10 +116,6 @@
       transition: 0.3s;
       min-height: 36px;
       padding: 2px 32px 2px 16px;
-
-      // @media (prefers-color-scheme: dark) {
-      //   border: solid 1px $dark-line;
-      // }
 
       &[aria-expanded="true"] {
         border-color: $lightElectric;
@@ -340,6 +340,42 @@
     span.icon {
       margin-right: 0;
       color: $lightBlue;
+    }
+  }
+}
+
+body.sync {
+  .picker {
+    &-container {
+      button {
+        @media (prefers-color-scheme: dark) {
+          border: solid 1px $dark-line;
+        }
+
+        ul {
+          li.selected, li:hover {
+            @media (prefers-color-scheme: dark) {
+              background-color: #2B384B !important;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+body.dark {
+  .picker {
+    &-container {
+      button {
+        border: solid 1px $dark-line;
+      }
+
+      ul {
+        li.selected, li:hover {
+          background-color: #2B384B !important;
+        }
+      }
     }
   }
 }

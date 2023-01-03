@@ -46,7 +46,7 @@ import ErrorDialog from '@/components/modals/ErrorDialog.vue';
 import { SNACKBAR, UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL } from '@/config/env';
 import { OracleActionTypes, useOracleStore } from '@/stores/oracle';
 import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
-import { WalletManager } from '@/wallet/WalletManager';
+import { WalletManager } from '@/utils';
 import { onMounted, onUnmounted, provide, ref, type Ref } from 'vue';
 
 let balanceInterval: NodeJS.Timeout | undefined;

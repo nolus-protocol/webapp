@@ -7,8 +7,7 @@ import ReceiveComponent, { type ReceiveComponentProps } from '@/components/Recei
 import ReceiveQrCodeComponent, { type ReceiveQrCodeComponentProps } from '@/components/ReceiveComponents/ReceiveQrCodeComponent.vue';
 
 import { inject, onMounted, shallowRef } from 'vue';
-import { StringUtils } from '@/utils/StringUtils';
-import { WalletManager } from '@/wallet/WalletManager';
+import { WalletManager, StringUtils } from '@/utils';
 
 interface ReceiveMainComponentData {
   is: typeof ReceiveComponent | typeof ReceiveQrCodeComponent;

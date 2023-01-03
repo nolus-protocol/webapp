@@ -48,16 +48,16 @@
     min-height: 154px;
   }
 
-  input{
+  input {
     height: 44px;
     padding: 2px 32px 2px 16px;
   }
 
-  textarea{
+  textarea {
     padding: 4px 8px;
   }
 
-  .editable-block{
+  .editable-block {
     padding: 12px;
   }
 
@@ -82,8 +82,8 @@
   }
 
   .buttons-container {
-    border-bottom-left-radius: $lightRounded;
-    border-bottom-right-radius: $lightRounded;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
     border: 1px solid $grey;
     border-top: none;
   }
@@ -235,28 +235,57 @@ label {
   }
 }
 
+body.sync {
+  @media (prefers-color-scheme: dark) {
 
-// @media (prefers-color-scheme: dark) {
-//   .input-field,
-//   .combo-field {
-//     input,
-//     textarea,
-//     .editable-block {
-//       background-color: $dark-background;
-//       border: 1px solid $dark-line;
-//       color: $white;
+    .input-field,
+    .combo-field {
 
-//       & > div {
-//         background-color: $lightElectric;
-//     }
-//   }
+      input,
+      textarea,
+      .editable-block {
+        background-color: $dark-background;
+        border: 1px solid $dark-line;
+        color: $white;
 
-//   .editable-block-options {
-//     .editable-block-option {
-//       background-color: $dark-background;
-//       border: 1px solid $dark-line;
-//       color: $white;
-//       }
-//     }
-//   }
-// }
+        &>div {
+          background-color: $lightElectric;
+        }
+      }
+
+      .editable-block-options {
+        .editable-block-option {
+          background-color: $dark-background;
+          border: 1px solid $dark-line;
+          color: $white;
+        }
+      }
+    }
+  }
+}
+
+body.dark {
+  .input-field,
+  .combo-field {
+
+    input,
+    textarea,
+    .editable-block {
+      background-color: $dark-background;
+      border: 1px solid $dark-line;
+      color: $white;
+
+      &>div {
+        background-color: $lightElectric;
+      }
+    }
+
+    .editable-block-options {
+      .editable-block-option {
+        background-color: $dark-background;
+        border: 1px solid $dark-line;
+        color: $white;
+      }
+    }
+  }
+}

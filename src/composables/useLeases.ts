@@ -5,8 +5,7 @@ import { NolusClient } from '@nolus/nolusjs';
 import { Lease, Leaser, type LeaseStatus } from '@nolus/nolusjs/build/contracts';
 
 import { CONTRACTS } from '@/config/contracts';
-import { WalletManager } from '@/wallet/WalletManager';
-import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils';
+import { WalletManager, EnvNetworkUtils } from '@/utils';
 
 export function useLeases(onError: (error: any) => void, showModal: () => void) {
   const leases = ref<LeaseData[]>([]);

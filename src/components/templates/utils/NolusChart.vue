@@ -1,13 +1,6 @@
 <template>
-  <Line 
-    :chart-data="chartData" 
-    :chart-id="chartId" 
-    :chart-options="chartOptions" 
-    :css-classes="cssClasses"
-    :height="height" 
-    :plugins="plugins" 
-    :styles="styles" 
-    :width="width" />
+  <Line :chart-data="chartData" :chart-id="chartId" :chart-options="chartOptions" :css-classes="cssClasses"
+    :height="height" :plugins="plugins" :styles="styles" :width="width" />
 </template>
 
 <script lang="ts">
@@ -157,7 +150,7 @@ export const defaultOptions = {
 
         if (canvasPosition < left) {
           const diff = left - canvasPosition;
-          moveLeft-=diff;
+          moveLeft -= diff;
         }
         // Display, position, and set styles for font
         tooltipEl.style.opacity = 1;
@@ -337,16 +330,31 @@ div.chart-tooltip {
   }
 }
 
-// @media (prefers-color-scheme: dark) {
-//   div.chart-tooltip {
-//     background-color: #2B384B;
-//     border-color: #5E7699;
+body.sync {
+  @media (prefers-color-scheme: dark) {
+    div.chart-tooltip {
+      background-color: #2B384B;
+      border-color: #5E7699;
 
-//     table {
-//       tbody {
-//         color: white;
-//       }
-//     }
-//   }
-// }
+      table {
+        tbody {
+          color: white;
+        }
+      }
+    }
+  }
+}
+
+body.dark {
+  div.chart-tooltip {
+    background-color: #2B384B;
+    border-color: #5E7699;
+
+    table {
+      tbody {
+        color: white;
+      }
+    }
+  }
+}
 </style>

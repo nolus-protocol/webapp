@@ -134,18 +134,6 @@
     }
   }
 
-  // @media (prefers-color-scheme: dark) {
-  //   color: $white;
-
-  //   &:hover {
-  //     .icon {
-  //       color: $lightBlue !important;
-  //     }
-
-  //     color: $lightBlue !important;
-  //   }
-  // }
-
   @media (min-width: $lg) {
     font-size: 16px;
 
@@ -179,15 +167,6 @@
       color: $orange !important;
     }
   }
-
-  // @media (prefers-color-scheme: dark) {
-  //   &:active {
-  //     .icon {
-  //       color: $orange !important;
-  //     }
-  //   }
-  // }
-
 
   span {
     display: block;
@@ -249,11 +228,6 @@
   @media (max-width: $lg) {
     position: fixed;
   }
-
-  // @media (prefers-color-scheme: dark) {
-  //   background-color: $dark-background;
-  //   border-bottom: 1px solid $dark-line;
-  // }
 
   .btn-header {
     [class^="icon-"]:before {
@@ -330,11 +304,6 @@
       transform: translateY(150%);
       transition: 0.4s ease-in-out;
       background-color: $white;
-
-      // @media (prefers-color-scheme: dark) {
-      //   background-color: $dark-background;
-      // }
-
       width: 100vw;
       border-top-left-radius: 16px;
       border-top-right-radius: 16px;
@@ -365,10 +334,6 @@
       z-index: 10;
       background: $white;
       width: 100vw;
-
-      // @media (prefers-color-scheme: dark) {
-      //   background-color: $dark-background;
-      // }
 
       /* Note: backdrop-filter has minimal browser support */
       .nls-nav-link {
@@ -440,10 +405,6 @@
     width: 100vw;
     left: 0;
     background: $lightGrey;
-
-    // @media (prefers-color-scheme: dark) {
-    //   background: $dark-gray;
-    // }
   }
 
   .active {
@@ -493,5 +454,121 @@
         }
       }
     }
+  }
+}
+
+body.sync {
+
+  .sidebar-element {
+    @media (prefers-color-scheme: dark) {
+      color: $white;
+
+      &:hover {
+        .icon {
+          color: $lightBlue !important;
+        }
+
+        color: $lightBlue !important;
+      }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      &:active {
+        .icon {
+          color: $orange !important;
+        }
+      }
+    }
+
+  }
+
+  .sidebar-header {
+
+    @media (prefers-color-scheme: dark) {
+      background-color: $dark-background;
+      border-bottom: 1px solid $dark-line;
+    }
+
+  }
+
+  @media (max-width: $lg) {
+    .nls-nav-more {
+      &>div:first-of-type {
+
+        @media (prefers-color-scheme: dark) {
+          background-color: $dark-background;
+        }
+
+      }
+
+      &>div:last-of-type {
+
+        @media (prefers-color-scheme: dark) {
+          background-color: $dark-background;
+        }
+
+      }
+    }
+
+  }
+
+  .mobile-nav {
+    .backdrop {
+
+      @media (prefers-color-scheme: dark) {
+        background: $dark-gray;
+      }
+
+    }
+
+  }
+}
+
+body.dark {
+
+  .sidebar-element {
+    color: $white;
+
+    &:hover {
+      .icon {
+        color: $lightBlue !important;
+      }
+
+      color: $lightBlue !important;
+    }
+
+    &:active {
+      .icon {
+        color: $orange !important;
+      }
+    }
+
+  }
+
+  .sidebar-header {
+
+    background-color: $dark-background;
+    border-bottom: 1px solid $dark-line;
+
+  }
+
+  @media (max-width: $lg) {
+    .nls-nav-more {
+      &>div:first-of-type {
+        background-color: $dark-background;
+      }
+
+      &>div:last-of-type {
+        background-color: $dark-background;
+      }
+    }
+
+  }
+
+  .mobile-nav {
+    .backdrop {
+      background: $dark-gray;
+    }
+
   }
 }

@@ -21,12 +21,10 @@
 
       <div class="block">
         <Picker
-          :default-option="{ label: 'USD', value: 'USD' }"
-          :disabled="true"
-          :options="[
-            { value: 'USD', label: 'USD' },
-          ]"
-          :label="$t('message.currency')"
+          :default-option="selectedAppearnce"
+          :options="appearance"
+          :label="$t('message.appearance')"
+          @update-selected="onUpdateTheme"
         />
       </div>
 
@@ -57,17 +55,35 @@
 <script setup lang="ts">
 import Picker, { type PickerOption } from '@/components/Picker.vue';
 import router from '@/router';
-import { onMounted, ref } from 'vue';
-import { EnvNetworkUtils, StringUtils } from '@/utils';
+import { onMounted, ref, computed } from 'vue';
+import { EnvNetworkUtils, StringUtils, ThemeManager, WalletManager } from '@/utils';
 import { RouteNames } from '@/router/RouterNames';
-import { WalletManager } from '@/wallet/WalletManager';
 import { ApplicationActionTypes, useApplicationStore } from '@/stores/application';
 import { useWalletStore } from '@/stores/wallet';
+import { APPEARANCE } from '@/config/env';
+import { useI18n } from 'vue-i18n';
 
 const showWallet = ref(false);
 const currentNetwork = ref({} as PickerOption);
 const applicaton = useApplicationStore();
 const wallet = useWalletStore();
+const i18n = useI18n();
+
+const appearance = computed(() => {
+  const items = [];
+  for(const key in APPEARANCE){
+    items.push(
+      { value: APPEARANCE[key as keyof typeof APPEARANCE], label: i18n.t(`message.${key}`) }
+    )
+  } 
+  return items;
+});
+
+const themeData = ThemeManager.getThemeData();
+
+const selectedAppearnce = {
+  label: i18n.t(`message.${themeData}`), value: themeData
+};
 
 const networks = ref(EnvNetworkUtils.getEnvNetworks().map((network) => {
   return {
@@ -88,10 +104,16 @@ const onUpdateNetwork = (value: PickerOption) => {
   applicaton[ApplicationActionTypes.CHANGE_NETWORK](true);
 };
 
+const onUpdateTheme = (item: PickerOption) => {
+  ThemeManager.saveThemeData(item.value);
+  applicaton[ApplicationActionTypes.SET_THEME](item.value);
+};
+
 const onClickDisconnect = () => {
   WalletManager.eraseWalletInfo();
   router.push({ name: RouteNames.AUTH });
 };
+
 </script>
 
 <style scoped>

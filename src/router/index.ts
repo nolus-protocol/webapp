@@ -1,10 +1,9 @@
 import MainLayoutView from '@/views/MainLayoutView.vue';
 import DashboardViewVue from '@/views/DashboardView.vue';
-import { WalletUtils } from '@/utils';
+import { WalletUtils, WalletManager } from '@/utils';
 import { createRouter, createWebHistory, type NavigationGuardNext, type RouteLocationNormalized } from 'vue-router';
 import { RouteNames } from '@/router/RouterNames';
 import { useWalletStore } from '@/stores/wallet';
-import { WalletManager } from '@/wallet/WalletManager';
 import { WalletConnectMechanism } from '@/types';
 
 const router = createRouter({

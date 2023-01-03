@@ -5,7 +5,7 @@ import { Int } from '@keplr-wallet/unit';
 import { fromBech32 } from '@cosmjs/encoding';
 import { CurrencyUtils } from '@nolus/nolusjs';
 import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
-import { WalletManager } from '@/wallet/WalletManager';
+import { WalletManager } from '@/utils';
 import { WalletConnectMechanism } from '@/types';
 import type { StdFee } from '@cosmjs/amino';
 

@@ -349,7 +349,7 @@ const isTotalBalancePositive = computed(() => {
   return total.gt(new Dec(0));
 });
 
-const { leases, getLeases } = useLeases((error: Error | any) => {});
+const { leases, getLeases } = useLeases((error: Error | any) => {}, () => {});
 
 provide('getLeases', getLeases);
 

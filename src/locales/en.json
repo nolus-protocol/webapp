@@ -197,6 +197,10 @@
     "many_h": "hours ago",
     "earn-title": "Earn",
     "deposit": "Deposit",
-    "deposit-tooltip": "Total amount deposited and interest earned by the user"
+    "deposit-tooltip": "Total amount deposited and interest earned by the user",
+    "appearance": "Appearance",
+    "light": "Light",
+    "dark": "Dark",
+    "sync": "Sync with OS"
   }
 }

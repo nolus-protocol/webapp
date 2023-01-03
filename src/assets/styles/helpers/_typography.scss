@@ -127,8 +127,16 @@
   }
 }
 
-// @media (prefers-color-scheme: dark) {
-//   .text-primary {
-//     color: $text-white;
-//   }
-// }
+body.sync {
+  @media (prefers-color-scheme: dark) {
+    .text-primary {
+      color: $text-white;
+    }
+  }
+}
+
+body.dark {
+  .text-primary {
+    color: $text-white;
+  }
+}

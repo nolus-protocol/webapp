@@ -48,8 +48,8 @@
   @media (min-width: $lg) {
     max-width: 450px;
     top: 46px;
-    border-top-left-radius: $rounded;
-    border-bottom-left-radius: $rounded;
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
 
     &.notify {
       max-width: 310px;

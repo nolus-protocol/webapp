@@ -8,6 +8,7 @@
     :txType="TX_TYPE.REPAY"
     :txHash="state.txHash"
     :step="step"
+    :fee="state.fee"
     :onSendClick="onSendClick"
     :onBackClick="onConfirmBackClick"
     :onOkClick="onClickOkBtn"
@@ -40,7 +41,8 @@ import { getMicroAmount, walletOperation } from '@/components/utils';
 import { useWalletStore } from '@/stores/wallet';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
-import { SNACKBAR } from '@/config/env';
+import { DEFAULT_ASSET, GAS_FEES, SNACKBAR } from '@/config/env';
+import { coin } from '@cosmjs/amino';
 
 const walletStore = useWalletStore();
 const walletRef = storeToRefs(walletStore);
@@ -72,6 +74,7 @@ const state = ref({
   passwordErrorMsg: '',
   amountErrorMsg: '',
   txHash: '',
+  fee: coin(GAS_FEES.repay_lease, DEFAULT_ASSET.denom),
   onNextClick: () => onNextClick(),
 } as RepayComponentProps)
 

@@ -2,7 +2,7 @@ import type { State } from '@/stores/application/state';
 
 import { defineStore } from 'pinia';
 import { ApplicationActionTypes } from '@/stores/application/action-types';
-import { EnvNetworkUtils, WalletUtils } from '@/utils';
+import { EnvNetworkUtils, ThemeManager, WalletUtils } from '@/utils';
 import { NolusClient } from '@nolus/nolusjs';
 import { DEFAULT_PRIMARY_NETWORK } from '@/config/env';
 import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
@@ -12,6 +12,7 @@ const useApplicationStore = defineStore('application', {
   state: () => {
     return {
       network: {},
+      theme: null
     } as State;
   },
   actions: {
@@ -41,6 +42,22 @@ const useApplicationStore = defineStore('application', {
           ]);
         }
 
+      } catch (error: Error | any) {
+        throw new Error(error);
+      }
+    },
+    [ApplicationActionTypes.SET_THEME](theme: string) {
+      try {
+        ThemeManager.saveThemeData(theme);
+        this.theme = theme;
+      } catch (error: Error | any) {
+        throw new Error(error);
+      }
+    },
+    [ApplicationActionTypes.LOAD_THEME]() {
+      try {
+        const theme = ThemeManager.getThemeData();
+        this.theme = theme;
       } catch (error: Error | any) {
         throw new Error(error);
       }

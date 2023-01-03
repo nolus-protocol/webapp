@@ -57,7 +57,7 @@ import { ref, watch } from 'vue';
 import { RouteNames } from '@/router/RouterNames';
 import { useI18n } from 'vue-i18n';
 import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
-import { WalletManager } from '@/wallet/WalletManager';
+import { WalletManager } from '@/utils';
 
 const walletName = ref('');
 

@@ -1,5 +1,6 @@
 import type { Asset } from '@nolus/nolusjs/build/contracts';
 import type { AssetBalance } from '@/stores/wallet/state';
+import type { Coin } from '@cosmjs/amino';
 
 export interface RepayComponentProps {
   outstandingLoanAmount: Asset;
@@ -11,5 +12,6 @@ export interface RepayComponentProps {
   receiverAddress: string;
   password: string;
   txHash: string;
+  fee: Coin;
   onNextClick: () => void;
 }

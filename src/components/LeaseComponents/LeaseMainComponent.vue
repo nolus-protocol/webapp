@@ -9,6 +9,7 @@
     :txType="TX_TYPE.LEASE" 
     :txHash="state.txHash" 
     :step="step" 
+    :fee="state.fee"
     :onSendClick="onSendClick"
     :onBackClick="onConfirmBackClick" 
     :onOkClick="onClickOkBtn"
@@ -37,7 +38,8 @@ import { useWalletStore } from '@/stores/wallet';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 import { computed } from '@vue/reactivity';
-import { SNACKBAR } from '@/config/env';
+import { DEFAULT_ASSET, GAS_FEES, SNACKBAR } from '@/config/env';
+import { coin } from '@cosmjs/amino';
 
 const onModalClose = inject('onModalClose', () => { });
 const walletStore = useWalletStore();
@@ -71,6 +73,7 @@ const state = ref({
   amountErrorMsg: '',
   downPaymentErrorMsg: '',
   txHash: '',
+  fee: coin(GAS_FEES.open_lease, DEFAULT_ASSET.denom),
   leaseApply: null,
 } as LeaseComponentProps);
 

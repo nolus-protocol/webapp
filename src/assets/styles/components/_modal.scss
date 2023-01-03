@@ -19,8 +19,8 @@
 
     @media (min-width: $md) {
       height: auto;
-      border-bottom-left-radius: $heavyRounded;
-      border-bottom-right-radius: $heavyRounded;
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
     }
 
     &-parent {
@@ -32,9 +32,6 @@
         padding-top: 5vh;
       }
 
-      // @media (prefers-color-scheme: dark) {
-      //   background: $dark-gray;
-      // }
     }
 
     &-header {
@@ -43,9 +40,6 @@
       overflow: hidden;
       width: 100%;
       border-bottom: 1px solid $borderColor;
-      // @media (prefers-color-scheme: dark) {
-      //   border-bottom: 1px solid $dark-line;
-      // }
 
       &>button {
         display: inline-block;
@@ -56,24 +50,14 @@
         font-size: 28px;
         font-family: "Garet Bolder";
         text-align: center;
-        // @media (prefers-color-scheme: dark) {
-        //   background-color: $dark-gray;
-        // }
 
         &:first-of-type {
           border-right: 1px solid $borderColor;
-          // @media (prefers-color-scheme: dark) {
-          //   border-right: 1px solid $dark-line;
-          // }
         }
 
         &.active {
           background-color: $white;
           color: $textMain;
-          // @media (prefers-color-scheme: dark) {
-          //   color: $white;
-          //   background-color: $dark-background;
-          // }
         }
       }
 
@@ -141,8 +125,6 @@
       justify-content: center;
       bottom: 0;
       padding: 16px 24px;
-      //background-color: $white;
-
 
       button:not(.btn-auto) {
         width: 100%;
@@ -180,4 +162,85 @@
 
 .no-border {
   border: none;
+}
+
+body.sync {
+
+  .modal {
+
+    &-send-receive {
+
+      &-parent {
+
+        @media (prefers-color-scheme: dark) {
+          background: $dark-gray;
+        }
+      }
+
+      &-header {
+        @media (prefers-color-scheme: dark) {
+          border-bottom: 1px solid $dark-line;
+        }
+
+        &>button {
+          @media (prefers-color-scheme: dark) {
+            background-color: $dark-gray;
+          }
+
+          &:first-of-type {
+            @media (prefers-color-scheme: dark) {
+              border-right: 1px solid $dark-line;
+            }
+          }
+
+          &.active {
+            @media (prefers-color-scheme: dark) {
+              color: $white;
+              background-color: $dark-background;
+            }
+          }
+
+        }
+
+      }
+
+    }
+
+  }
+
+}
+
+body.dark {
+
+  .modal {
+    
+    &-send-receive {
+
+      &-parent {
+          background: $dark-gray;
+      }
+
+      &-header {
+          border-bottom: 1px solid $dark-line;
+
+        &>button {
+            background-color: $dark-gray;
+
+          &:first-of-type {
+              border-right: 1px solid $dark-line;
+          }
+
+          &.active {
+              color: $white;
+              background-color: $dark-background;
+          }
+
+        }
+
+      }
+
+    }
+
+  }
+
 }

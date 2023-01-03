@@ -142,7 +142,7 @@ import { ChainConstants, NolusClient } from '@nolus/nolusjs';
 import { CONTRACTS } from '@/config/contracts';
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils';
 
-import { WalletManager } from '@/wallet/WalletManager';
+import { WalletManager } from '@/utils';
 import { Coin, Dec, Int } from '@keplr-wallet/unit';
 import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
 import CURRENCIES from '@/config/currencies.json';

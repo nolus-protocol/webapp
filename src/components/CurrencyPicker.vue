@@ -67,7 +67,7 @@
             >
               <li
                 :class="[
-                  selected ? 'bg-[#EBEFF5]' : '',
+                  selected ? 'selected' : '',
                   'cursor-default select-none relative py-2 pl-3 pr-9 dropdown-elements my-1',
                 ]"
               >

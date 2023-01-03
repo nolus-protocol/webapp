@@ -1,4 +1,5 @@
 import type { AssetBalance } from '@/stores/wallet/state';
+import type { Coin } from '@cosmjs/amino';
 import type { LeaseApply } from '@nolus/nolusjs/build/contracts';
 
 export interface LeaseComponentProps {
@@ -15,5 +16,6 @@ export interface LeaseComponentProps {
   passwordErrorMsg: string;
   txHash: string;
   leaseApply: LeaseApply | null;
+  fee: Coin;
   onNextClick: () => void;
 }

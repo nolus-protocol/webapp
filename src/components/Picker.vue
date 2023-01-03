@@ -64,7 +64,7 @@
                 class="cursor-default select-none relative py-2 pl-3 pr-9 dropdown-elements"
                 :class="[
                   active ? 'text-white bg-indigo-600' : 'text-gray-900',
-                  selected ? 'bg-[#EBEFF5]' : ''
+                  selected ? 'selected' : ''
                 ]"
               >
                 <div class="flex items-center">

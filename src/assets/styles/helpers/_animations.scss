@@ -57,39 +57,6 @@
   }
 }
 
-// @-moz-keyframes slide-fade-bottom {
-// 	0% {
-// 		opacity: 0;
-// 		transform: translateY(20px);
-// 	}
-// 	100% {
-// 		opacity: 1;
-// 		transform: none;
-// 	}
-// }
-
-// @-webkit-keyframes slide-fade-bottom {
-// 	0% {
-// 		opacity: 0;
-// 		transform: translateY(20px);
-// 	}
-// 	100% {
-// 		opacity: 1;
-// 		transform: none;
-// 	}
-// }
-
-// @-o-keyframes slide-fade-bottom {
-// 	0% {
-// 		opacity: 0;
-// 		transform: translateY(20px);
-// 	}
-// 	100% {
-// 		opacity: 1;
-// 		transform: none;
-// 	}
-// }
-
 .ease-2 {
   transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
 }
@@ -119,6 +86,7 @@
 .show-box-pop {
   position: relative;
 }
+
 .c-navbar-qr__container,
 .c-navbar-wallet__container {
   border-radius: $rounded;
@@ -148,41 +116,6 @@
   }
 }
 
-// .c-navbar-wallet__container. {
-// 	opacity: 1;
-// 	transition-duration: 0.3s;
-// 	transition-property: color, background-color, border-color,
-// 		text-decoration-color, fill, stroke, -webkit-text-decoration-color;
-// 	transition-timing-function: ease;
-// 	-webkit-animation-duration: 0.75s;
-// 	animation-duration: 0.75s;
-// 	-webkit-animation-fill-mode: backwards;
-// 	animation-fill-mode: backwards;
-// 	-webkit-animation-name: slide-fade-bottom;
-// 	animation-name: slide-fade-bottom;
-// 	-webkit-animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
-// 	animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
-// }
-// .c-navbar-qr__container {
-// 	transition-duration: 0.3s;
-// 	transition-property: color, background-color, border-color,
-// 		text-decoration-color, fill, stroke, -webkit-text-decoration-color;
-// 	transition-timing-function: ease;
-// 	-webkit-animation-duration: 0.75s;
-// 	animation-duration: 0.75s;
-// 	-webkit-animation-fill-mode: backwards;
-// 	animation-fill-mode: backwards;
-// 	-webkit-animation-name: slide-fade-bottom;
-// 	animation-name: slide-fade-bottom;
-// 	-webkit-animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
-// 	animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
-// }
-
-// .c-navbar-qr:not(:hover):not(:focus-within) .c-navbar-qr__container {
-// 	opacity: 0;
-// 	pointer-events: none;
-// 	transform: translateY(1rem);
-// }
 .top-full {
   top: 100%;
 }

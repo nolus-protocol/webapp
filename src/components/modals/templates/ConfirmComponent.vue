@@ -26,7 +26,7 @@
       </div>
     </div>
   
-    <div class="separator-line pb-6 relative z-[200000] w-[516px]"></div>
+    <!-- <div class="separator-line pb-6 relative z-[200000] w-[516px]"></div> -->
     <form @submit.prevent="btnAction" class="modal-form">
 
       <!-- Input Area -->
