@@ -8,7 +8,7 @@ import { CONTRACTS } from '@/config/contracts';
 import { WalletManager } from '@/wallet/WalletManager';
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils';
 
-export function useLeases(onError: (error: any) => void) {
+export function useLeases(onError: (error: any) => void, showModal: () => void) {
   const leases = ref<LeaseData[]>([]);
 
   const getLeases = async () => {
@@ -37,13 +37,18 @@ export function useLeases(onError: (error: any) => void) {
       }
 
       leases.value = newLeases;
+
+      if(newLeases.length == 0){
+        showModal();
+      }
+
     } catch (e: Error | any) {
       onError(e);
     }
   };
 
-  onMounted(() => {
-    getLeases();
+  onMounted(async () => {
+    await getLeases();
   });
 
   return { leases, getLeases };

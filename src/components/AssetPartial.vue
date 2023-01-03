@@ -23,7 +23,7 @@
             :src="changeDirection ? positive : negative"
             class="inline-block m-0 mr-2"
           /> -->
-          {{ CurrencyUtils.formatPrice(price) }}
+          {{ CurrencyUtils.formatPrice(price).maxDecimals(6) }}
         </p>
       </div>
     </div>
@@ -31,23 +31,18 @@
     <div class="block">
       <p class="text-primary nls-font-500 text-16 text-right m-0">
         <CurrencyComponent
-          :type="CURRENCY_VIEW_TYPES.CURRENCY"
-          :amount="calculateBalance(price, assetBalance, denom)"
-          :hasSpace="false"
-          :denom="DEFAULT_CURRENCY.symbol"
-        />
+            :type="CURRENCY_VIEW_TYPES.TOKEN"
+            :amount="assetBalance"
+            :minimalDenom="assetInfo.coinMinimalDenom"
+            :denom="assetInfo.coinDenom"
+            :decimals="assetInfo.coinDecimals"
+            :maxDecimals="6"
+          />
       </p>
       <div
         class="flex items-center justify-end text-dark-grey text-12 garet-medium text-right m-0"
       >
-        {{
-          CurrencyUtils.convertMinimalDenomToDenom(
-            assetBalance,
-            assetInfo.coinMinimalDenom,
-            assetInfo.coinDenom,
-            assetInfo.coinDecimals
-          )
-        }}
+      {{ DEFAULT_CURRENCY.symbol }}{{ calculateBalance(price, assetBalance, denom) }}
       </div>
     </div>
 
@@ -74,6 +69,7 @@
             :minimalDenom="assetInfo.coinMinimalDenom"
             :denom="assetInfo.coinDenom"
             :decimals="assetInfo.coinDecimals"
+            :maxDecimals="6"
           />
         </template>
         <template v-else>

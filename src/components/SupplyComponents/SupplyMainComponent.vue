@@ -8,6 +8,7 @@
     :txType="TxType.SUPPLY"
     :txHash="state.txHash"
     :step="step"
+    :fee="state.fee"
     :onSendClick="onSupplyClick"
     :onBackClick="onConfirmBackClick"
     :onOkClick="onClickOkBtn"
@@ -42,11 +43,11 @@ import { NolusClient, NolusWallet } from '@nolus/nolusjs';
 import { Lpp } from '@nolus/nolusjs/build/contracts';
 import { CONTRACTS } from '@/config/contracts';
 import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils';
-import { defaultNolusWalletFee } from '@/config/wallet';
 import { useWalletStore } from '@/stores/wallet';
 import { computed, inject, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { DEFAULT_APR, GROUPS, SNACKBAR } from '@/config/env';
+import { DEFAULT_APR, DEFAULT_ASSET, GAS_FEES, GROUPS, SNACKBAR } from '@/config/env';
+import { coin } from '@cosmjs/amino';
 
 const { selectedAsset } = defineProps({
   selectedAsset: {
@@ -81,6 +82,7 @@ const state = ref({
   currentAPR: `${DEFAULT_APR}%`,
   receiverAddress: CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance,
   txHash: '',
+  fee: coin(GAS_FEES.lender_deposit, DEFAULT_ASSET.denom),
   onNextClick: () => onNextClick(),
 } as SupplyFormComponentProps);
 
@@ -136,6 +138,7 @@ async function transferAmount() {
   if (wallet && state.value.amountErrorMsg === '') {
     step.value = CONFIRM_STEP.PENDING;
     try {
+
       const microAmount = getMicroAmount(
         state.value.selectedCurrency.balance.denom,
         state.value.amount
@@ -146,19 +149,27 @@ async function transferAmount() {
         cosmWasmClient,
         CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance
       );
-      const result = await lppClient.deposit(wallet, defaultNolusWalletFee(), [
+
+      const { txHash, txBytes, usedFee } = await lppClient.simulateDepositTx(wallet, [
         {
           denom: microAmount.coinMinimalDenom,
           amount: microAmount.mAmount.amount.toString(),
         },
       ]);
-      if (result) {
-        state.value.txHash = result.transactionHash || '';
-        step.value = CONFIRM_STEP.SUCCESS;
-        if(snackbarVisible()){
-          showSnackbar(SNACKBAR.Success, state.value.txHash);
-        }
+
+      state.value.txHash = txHash;
+
+      if(usedFee?.amount?.[0]){
+        state.value.fee = usedFee.amount[0];
       }
+
+      const tx = await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
+      const isSuccessful = tx?.code === 0;
+      step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
+      if(snackbarVisible()){
+        showSnackbar(isSuccessful ? SNACKBAR.Success: SNACKBAR.Error, txHash);
+      }
+
     } catch (e) {
       step.value = CONFIRM_STEP.ERROR;
     }
@@ -167,7 +178,7 @@ async function transferAmount() {
 
 onUnmounted(() => {
   if(CONFIRM_STEP.PENDING == step.value){
-    showSnackbar(SNACKBAR.Queued, 'loading');
+    showSnackbar(SNACKBAR.Queued, state.value.txHash);
   }
 });
 

@@ -63,7 +63,7 @@ button {
 	font-smooth: always;
 }
 
-.garet-medium{
+.garet-medium {
 	font-family: "Garet-Medium";
 }
 
@@ -243,12 +243,13 @@ input[type="checkbox" i] {
 	// }
 }
 
-.tooltip{
+.tooltip {
 	width: 196px;
 	display: flex;
 	visibility: hidden;
 	left: 0;
 	top: 0;
+	z-index: 1111111111;
 }
 
 .sm\:col-span-12 {
@@ -435,15 +436,20 @@ input[type="checkbox" i] {
 	background-image: linear-gradient(314deg, #EBEFF5 2.19%, #F7F9FC 100%);
 }
 
+.his-url {
+	color: #2868E1;
+}
+
 @media (min-width: $md) {
 	.nls-md-show {
 		display: none;
 	}
+
 	.outline {
 		outline: none;
 		position: relative;
-		
-		&::after{
+
+		&::after {
 			content: "";
 			position: absolute;
 			top: -1px;
@@ -478,7 +484,7 @@ input[type="checkbox" i] {
 			box-shadow: none;
 		}
 	}
-	
+
 }
 
 @media (max-width: $md) {
@@ -582,7 +588,7 @@ input[type="checkbox" i] {
 	}
 }
 
-.outline{
+.outline {
 	outline: none;
 }
 

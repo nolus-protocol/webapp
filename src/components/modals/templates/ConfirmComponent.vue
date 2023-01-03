@@ -57,11 +57,21 @@
     
           <div v-if="txHash" class="block mt-3">
             <p class="text-14 nls-font-400 text-primary m-0">{{ $t('message.tx-hash') }}:</p>
-            <p class="text-14 text-primary nls-font-700 m-0">{{ txHash }}</p>
+            <a 
+              :href="`${applicaton.network.networkAddresses.exploler}nolus-rila/tx/${txHash}`"
+              class="text-14 m-0 his-url" 
+              target="_blank">
+                {{ StringUtils.truncateString(txHash, 6, 6)  }} 
+            </a>
           </div>
-          <div v-else class="block mt-3">
+          <div v-if="fee" class="block mt-3">
             <p class="text-14 nls-font-400 text-primary m-0">{{ $t('message.tx-and-fee') }}:</p>
-            <p class="text-14 text-primary nls-font-700 m-0">{{ FEE }} {{ NATIVE_CURRENCY.abbreviation }}</p>
+            <p class="text-14 text-primary nls-font-700 m-0">
+              {{  
+                calculateFee(fee)
+              }}
+              <!-- {{ formatAmount(props.fee?.amount[0]) }} {{ NATIVE_CURRENCY.abbreviation }} -->
+            </p>
           </div>
         </div>
     
@@ -103,17 +113,18 @@ import type { AssetBalance } from '@/stores/wallet/state';
 import { computed, inject, onMounted, ref, watch } from 'vue';
 import { ArrowLeftIcon, CheckIcon, XMarkIcon } from '@heroicons/vue/24/solid';
 import { CurrencyUtils } from '@nolus/nolusjs';
-import { WalletUtils } from '@/utils';
+import { StringUtils, WalletUtils } from '@/utils';
 import { TxType, CONFIRM_STEP } from '@/types';
 import { useI18n } from 'vue-i18n';
-import { FEE } from '@/config/wallet';
 import { useWalletStore } from '@/stores/wallet';
-import { NATIVE_CURRENCY } from '@/config/assetsInfo';
+import type { Coin } from '@cosmjs/amino';
+import { useApplicationStore } from '@/stores/application';
 
 const errorMessage = ref('');
 const i18n = useI18n();
 const wallet = useWalletStore();
 const setCollapseButton = inject('setCollapseButton', (bool: boolean) => {})
+const applicaton = useApplicationStore();
 
 interface Props {
   selectedCurrency: AssetBalance;
@@ -124,6 +135,7 @@ interface Props {
   txType: TxType;
   txHash: string;
   step: CONFIRM_STEP;
+  fee: Coin;
   onSendClick: () => void;
   onBackClick: () => void;
   onOkClick: () => void;
@@ -180,6 +192,17 @@ function formatAmount(value: string) {
   );
   return CurrencyUtils.convertMinimalDenomToDenom(
     minimalDenom.amount.toString(),
+    coinMinimalDenom,
+    coinDenom,
+    coinDecimals
+  );
+}
+
+function calculateFee(coin: Coin){
+  const { coinDenom, coinMinimalDenom, coinDecimals } = wallet.getCurrencyInfo(coin.denom);
+
+  return CurrencyUtils.convertMinimalDenomToDenom(
+    coin.amount.toString(),
     coinMinimalDenom,
     coinDenom,
     coinDecimals

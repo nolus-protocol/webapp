@@ -63,6 +63,7 @@ const amount = computed(() => {
     case (CURRENCY_VIEW_TYPES.CURRENCY): {
 
       let numberAmount = Number(props.amount);
+
       let amount = new Intl.NumberFormat(DEFAULT_CURRENCY.locale, {
         minimumFractionDigits: DEFAULT_CURRENCY.minimumFractionDigits,
         maximumFractionDigits: DEFAULT_CURRENCY.maximumFractionDigits
@@ -99,13 +100,20 @@ const amount = computed(() => {
         const pow = 10 ** props.maxDecimals;
         const after = Number(`0.${afterDecimal}`);
         const decimals = (Math.round(after * pow) / pow).toString() ;
-        const [_, afterParsed] = decimals.split('.');
+
+        let [_, afterParsed] = decimals.split('.');
+        
+        if(afterParsed == null){
+          afterParsed = '0'.repeat(props.maxDecimals);
+        }
+
         afterDecimal = afterParsed;
       }
 
       if(afterDecimal?.length > 0){
         afterDecimal = `.${afterDecimal}`;
       }
+
       return {
         denom,
         beforeDecimal,

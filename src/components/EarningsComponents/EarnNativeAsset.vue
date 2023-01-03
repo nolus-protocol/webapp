@@ -2,7 +2,7 @@
   <div class="block relative">
     <div
       class="grid gap-6 row-actions border-b flex border-t border-standart px-6 py-3 items-center justify-between earn-asset"
-      :class="[cols ? 'md:grid-cols-' + cols : 'grid-cols-2 md:grid-cols-3']"
+      :class="[cols ? 'md:grid-cols-' + cols : 'grid-cols-2 md:grid-cols-4']"
     >
       <!-- Ticker -->
       <div class="inline-flex items-center">
@@ -23,19 +23,19 @@
         </div>
       </div>
 
-      <div class="block pl-[15px]">
+      <div class="block pl-[15px] md:col-span-2 ml-4">
         <p class="text-primary nls-font-500 text-16 nls-font-500 m-0">
           {{
-            calculateBalance(
-              asset.balance.amount.toString(),
+            convertMinimalDenomToDenom(
+              asset.balance.amount,
               asset.balance.denom
             )
           }}
         </p>
         <div class="flex items-center text-dark-grey text-12 garet-medium m-0">
-          {{
-            convertMinimalDenomToDenom(
-              asset.balance.amount,
+          {{ DEFAULT_CURRENCY.symbol }}{{
+            calculateBalance(
+              asset.balance.amount.toString(),
               asset.balance.denom
             )
           }}
@@ -68,7 +68,7 @@
 
       <div class="mobile-actions md:hidden col-span-2">
         <a
-            class="btn btn-secondary btn-medium-secondary w-full"
+            class="btn btn-secondary btn-medium-secondary w-full flex"
             :href="stakingUrl"
             target="_blank"
           >
@@ -92,7 +92,7 @@ import { useOracleStore } from '@/stores/oracle';
 import { computed } from '@vue/reactivity';
 import { useWalletStore } from '@/stores/wallet';
 import { CURRENCY_VIEW_TYPES } from '@/types/CurrencyViewType';
-import { DEFAULT_APR, NETWORKS } from '@/config/env';
+import { DEFAULT_APR, DEFAULT_CURRENCY, NETWORKS } from '@/config/env';
 import { EnvNetworkUtils } from '@/utils';
 const stakingUrl = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].staking;
 
@@ -140,14 +140,12 @@ const convertMinimalDenomToDenom = (
 };
 
 const calculateBalance = (tokenAmount: string, denom: string) => {
-  const price = getMarketPrice(denom);
+  const currency = wallet.getCurrencyInfo(denom);
+  const data = wallet.getCurrencyByTicker(currency.ticker);
+  const price = getMarketPrice(data.symbol);
+
   const tokenDecimals = wallet.getCurrencyInfo(denom).coinDecimals;
   const coin = new Coin(denom, new Int(tokenAmount));
-  return CurrencyUtils.calculateBalance(price, coin, tokenDecimals);
+  return CurrencyUtils.calculateBalance(price, coin, tokenDecimals).toDec().toString(2);
 };
-
-const stake = () => {
-
-}
-
 </script>

@@ -33,12 +33,12 @@
           <!-- Assets -->
           <div class="block mt-6 md:mt-[25px]">
             <!-- Assets Header -->
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-6 border-b border-standart pb-3 px-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6">
               <div class="nls-font-500 text-12 text-dark-grey text-left text-upper">
                 {{ $t("message.asset") }}
               </div>
 
-              <div class="inline-flex items-center nls-font-500 text-12 text-dark-grey text-center text-upper pl-[15px]">
+              <div class="inline-flex items-center nls-font-500 text-12 text-dark-grey text-center text-upper pl-[15px] md:col-span-2 ml-4 justify-end md:justify-start">
                 <span class="inline-block">{{ $t("message.deposit") }}</span>
                 <TooltipComponent :content="$t('message.deposit-tooltip')" />
               </div>
@@ -149,7 +149,7 @@ import CURRENCIES from '@/config/currencies.json';
 
 const wallet = useWalletStore();
 
-const cols = ref(3 as number);
+const cols = ref(4 as number);
 const showSupplyWithdrawDialog = ref(false);
 const availableCurrencies = ref([] as string[]);
 const rewards = ref([] as AssetBalance[]);

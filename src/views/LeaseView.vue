@@ -54,7 +54,7 @@ import { ref, provide } from 'vue';
 import { useLeases } from '@/composables/useLeases';
 
 const showLeaseModal = ref(false);
-const { leases, getLeases } = useLeases(onLeaseError);
+const { leases, getLeases } = useLeases(onLeaseError, showModal);
 
 const errorDialog = ref({
   showDialog: false,
@@ -68,7 +68,11 @@ function onLeaseError(e: Error | any) {
   errorDialog.value.tryAgain = onTryAgain;
 }
 
-function onTryAgain() {
+function showModal(){
+  showLeaseModal.value = true;
+}
+
+async function onTryAgain() {
   errorDialog.value.showDialog = false;
   errorDialog.value.errorMessage = '';
   getLeases();

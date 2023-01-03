@@ -4,10 +4,10 @@ import type { Coin } from '@cosmjs/proto-signing';
 import { Int } from '@keplr-wallet/unit';
 import { fromBech32 } from '@cosmjs/encoding';
 import { CurrencyUtils } from '@nolus/nolusjs';
-import { defaultNolusWalletFee } from '@/config/wallet';
 import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
 import { WalletManager } from '@/wallet/WalletManager';
 import { WalletConnectMechanism } from '@/types';
+import type { StdFee } from '@cosmjs/amino';
 
 export const validateAddress = (address: string) => {
   if (!address || address.trim() == '') {
@@ -125,9 +125,16 @@ export const transferCurrency = async (
 ) => {
   const wallet = useWalletStore().wallet;
 
-  const result = {
+  const result: {
+    success: boolean,
+    txHash: string,
+    txBytes: Uint8Array | null,
+    usedFee: StdFee |null
+  } = {
     success: false,
     txHash: '',
+    txBytes: null,
+    usedFee: null
   };
 
   if (!wallet) {
@@ -150,17 +157,17 @@ export const transferCurrency = async (
       },
     ];
 
-    const txResponse = await wallet.transferAmount(
+    const { txBytes, txHash, usedFee } = await wallet.simulateBankTransferTx(
       receiverAddress,
       funds,
-      defaultNolusWalletFee(),
       memo
     );
 
-    if (txResponse) {
-      result.success = txResponse.code === 0;
-      result.txHash = txResponse.transactionHash;
-    }
+    result.txHash = txHash;
+    result.txBytes = txBytes;
+    result.usedFee = usedFee;
+    result.success = true;
+    
   } catch (e) {
     console.error('Transaction failed. ', e);
   }

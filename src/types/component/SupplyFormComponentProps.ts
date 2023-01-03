@@ -1,4 +1,5 @@
 import type { AssetBalance } from '@/stores/wallet/state';
+import type { Coin } from '@cosmjs/amino';
 
 export interface SupplyFormComponentProps {
   amountErrorMsg: string;
@@ -9,5 +10,6 @@ export interface SupplyFormComponentProps {
   currentAPR: string;
   password: string;
   txHash: string;
+  fee: Coin;
   onNextClick: () => void;
 }

@@ -72,7 +72,6 @@ onUnmounted(() => {
 })
 
 const connect = async () => {
-  console.log('alert')
   clearInterval(balanceInterval);
   clearInterval(pricesInterval);
   await loadNetwork();

@@ -6,7 +6,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   localnet: {
     tendermintRpc: 'http://127.0.0.1:26612',
     api: 'http://127.0.0.1:26614',
-    exploler : 'https://explorer-rila.nolus.io/',
+    exploler: 'https://explorer-rila.nolus.io/',
     govern: 'https://explorer-rila.nolus.io/nolus-rila/gov',
     staking: 'https://explorer-rila.nolus.io/nolus-rila/staking',
     web3auth: {
@@ -23,7 +23,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   devnet: {
     tendermintRpc: 'https://net-dev.nolus.io:26612',
     api: 'https://net-dev.nolus.io:26614',
-    exploler : 'https://explorer-rila.nolus.io/',
+    exploler: 'https://explorer-rila.nolus.io/',
     govern: 'https://explorer-rila.nolus.io/nolus-rila/gov',
     staking: 'https://explorer-rila.nolus.io/nolus-rila/staking',
     web3auth: {
@@ -40,7 +40,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   testnet: {
     tendermintRpc: 'https://net-rila.nolus.io:26657',
     api: 'https://net-rila.nolus.io:1317',
-    exploler : 'https://explorer-rila.nolus.io/',
+    exploler: 'https://explorer-rila.nolus.io/',
     govern: 'https://explorer-rila.nolus.io/nolus-rila/gov',
     staking: 'https://explorer-rila.nolus.io/nolus-rila/staking',
     web3auth: {
@@ -57,7 +57,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   mainnet: {
     tendermintRpc: 'https://net-rila.nolus.io:26657',
     api: 'https://net-rila.nolus.io:1317',
-    exploler : 'https://explorer.nolus.io/nolus/',
+    exploler: 'https://explorer.nolus.io/nolus/',
     govern: "https://explorer.nolus.io/nolus/gov",
     staking: "https://explorer.nolus.io/nolus/staking",
     web3auth: {
@@ -104,6 +104,17 @@ export enum SNACKBAR {
   Queued = 'queued',
   Success = 'success',
   Error = 'error'
+}
+
+export const GAS_FEES = {
+  create_vesting_account: 100000,
+  delegation: 150000,
+  undelegation: 200000,
+  withdraw_delegator_reward: 150000,
+  lender_deposit: 1000,
+  lender_burn_deposit: 1200,
+  lender_claim_rewards: 170000,
+  transfer_amount: 500
 }
 
 export const UPDATE_BLOCK_INTERVAL = 5 * 1000; // 5000 ms

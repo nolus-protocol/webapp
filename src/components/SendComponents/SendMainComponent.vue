@@ -9,6 +9,7 @@
     :txType="TxType.SEND"
     :txHash="state.txHash"
     :step="step"
+    :fee="state.fee"
     :onSendClick="onSendClick"
     :onBackClick="onConfirmBackClick"
     :onOkClick="onClickOkBtn"
@@ -28,7 +29,8 @@ import { CONFIRM_STEP } from '@/types/ConfirmStep';
 import { TxType } from '@/types/TxType';
 import { useWalletStore } from '@/stores/wallet';
 import { computed, inject, onUnmounted, ref } from 'vue';
-import { SNACKBAR } from '@/config/env';
+import { DEFAULT_ASSET, GAS_FEES, SNACKBAR } from '@/config/env';
+import { coin } from '@cosmjs/amino';
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const walletStore = useWalletStore();
@@ -50,6 +52,7 @@ const state = ref({
   onNextClick,
   receiverErrorMsg: '',
   amountErrorMsg: '',
+  fee: coin(GAS_FEES.transfer_amount, DEFAULT_ASSET.denom),
   txHash: '',
 } as SendComponentProps);
 
@@ -63,7 +66,7 @@ const onClickOkBtn = () => {
 
 onUnmounted(() => {
   if(CONFIRM_STEP.PENDING == step.value){
-    showSnackbar(SNACKBAR.Queued, 'loading');
+    showSnackbar(SNACKBAR.Queued, state.value.txHash);
   }
 });
 
@@ -87,18 +90,35 @@ const onSendClick = async () => {
 
 const transferAmount = async () => {
   step.value = CONFIRM_STEP.PENDING;
-  const { success, txHash } = await transferCurrency(
+  const { success, txHash, txBytes, usedFee } = await transferCurrency(
     state.value.selectedCurrency.balance.denom,
     state.value.amount,
     state.value.receiverAddress,
     state.value.memo
   );
 
-  step.value = success ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
-  state.value.txHash = txHash;
-  if(snackbarVisible()){
-    showSnackbar(success ? SNACKBAR.Success: SNACKBAR.Error, txHash);
+  if(success){
+    state.value.txHash = txHash;
+
+    if(usedFee?.amount?.[0]){
+      state.value.fee = usedFee.amount[0];
+    }
+
+    try{
+      const tx = await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
+      const isSuccessful = tx?.code === 0;
+      step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
+      if(snackbarVisible()){
+        showSnackbar(isSuccessful ? SNACKBAR.Success: SNACKBAR.Error, txHash);
+      }
+    }catch(error){
+      step.value = CONFIRM_STEP.ERROR;
+    }
+
+  }else{
+    step.value  = CONFIRM_STEP.ERROR;
   }
+
 }
 
 function onNextClick(){

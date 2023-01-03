@@ -156,7 +156,7 @@ const annualInterestRate = computed(() => {
 
 const pricePerToken = computed(() => {
   if (props.modelValue?.selectedCurrency?.balance.denom) {
-    return getPrice(props.modelValue?.selectedCurrency?.balance.denom).amount;
+    return getPrice(props.modelValue?.selectedCurrency?.balance.denom)?.amount;
   }
   return '0';
 });

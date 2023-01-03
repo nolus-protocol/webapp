@@ -49,7 +49,7 @@ const useWalletStore = defineStore('wallet', {
       await WalletUtils.getKeplr();
       const keplrWindow = window as KeplrWindow;
 
-      if (!keplrWindow.getOfflineSigner || !keplrWindow.keplr) {
+      if (!keplrWindow.getOfflineSignerOnlyAmino || !keplrWindow.keplr) {
         throw new Error('Keplr wallet is not installed.');
       } else if (!keplrWindow.keplr.experimentalSuggestChain) {
         throw new Error(
@@ -75,9 +75,10 @@ const useWalletStore = defineStore('wallet', {
 
         await keplrWindow.keplr?.enable(chainId);
 
-        if (keplrWindow.getOfflineSigner) {
-          const offlineSigner = keplrWindow.getOfflineSigner(chainId);
-          const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(offlineSigner);
+        if (keplrWindow.getOfflineSignerOnlyAmino) {
+          const offlineSigner = keplrWindow.getOfflineSignerOnlyAmino(chainId);
+
+          const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(offlineSigner as any);
           await nolusWalletOfflineSigner.useAccount();
           this.wallet = nolusWalletOfflineSigner;
           this.walletName = (await keplrWindow.keplr.getKey(chainId)).name;

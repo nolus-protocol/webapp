@@ -8,6 +8,7 @@
     :txType="TxType.WITHDRAW"
     :txHash="state.txHash"
     :step="step"
+    :fee="state.fee"
     :onSendClick="onWithdrawClick"
     :onBackClick="onConfirmBackClick"
     :onOkClick="onClickOkBtn"
@@ -48,7 +49,8 @@ import { useWalletStore } from '@/stores/wallet';
 import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue';
 import { WalletManager } from '@/wallet/WalletManager';
 import { CONTRACTS } from '@/config/contracts';
-import { GROUPS, SNACKBAR } from '@/config/env';
+import { DEFAULT_ASSET, GAS_FEES, GROUPS, SNACKBAR } from '@/config/env';
+import { coin } from '@cosmjs/amino';
 
 const { selectedAsset } = defineProps({
   selectedAsset: {
@@ -82,6 +84,7 @@ const state = ref({
   password: '',
   amountErrorMsg: '',
   txHash: '',
+  fee: coin(GAS_FEES.lender_burn_deposit, DEFAULT_ASSET.denom),
   onNextClick: () => onNextClick(),
   onSendClick: () => onWithdrawClick(),
   onConfirmBackClick: () => onConfirmBackClick(),
@@ -157,7 +160,7 @@ function onNextClick() {
 
 onUnmounted(() => {
   if(CONFIRM_STEP.PENDING == step.value){
-    showSnackbar(SNACKBAR.Queued, 'loading');
+    showSnackbar(SNACKBAR.Queued, state.value.txHash);
   }
 });
 
@@ -204,10 +207,10 @@ async function transferAmount() {
         cosmWasmClient,
         CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance
       );
-      const result = await lppClient.burnDeposit(
+
+      const { txHash, txBytes, usedFee } = await lppClient.simulateBurnDepositTx(
         wallet,
         microAmount.mAmount.amount.toString(),
-        defaultNolusWalletFee(),
         [
           {
             denom: microAmount.coinMinimalDenom,
@@ -215,13 +218,20 @@ async function transferAmount() {
           },
         ]
       );
-      if (result) {
-        state.value.txHash = result.transactionHash || '';
-        step.value = CONFIRM_STEP.SUCCESS;
-        if(snackbarVisible()){
-          showSnackbar(SNACKBAR.Success, state.value.txHash);
-        }
+
+      state.value.txHash = txHash;
+
+      if(usedFee?.amount?.[0]){
+        state.value.fee = usedFee.amount[0];
       }
+
+      const tx = await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
+      const isSuccessful = tx?.code === 0;
+      step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
+      if(snackbarVisible()){
+        showSnackbar(isSuccessful ? SNACKBAR.Success: SNACKBAR.Error, txHash);
+      }
+
     } catch (e) {
       step.value = CONFIRM_STEP.ERROR;
     }

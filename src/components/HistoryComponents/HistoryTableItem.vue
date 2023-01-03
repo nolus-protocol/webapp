@@ -164,10 +164,6 @@ const getCraetedAtForHuman = (createdAt: Date | null) => {
 
 </script>
 <style scoped>
-.his-url {
-  color: #2868E1;
-}
-
 .his-gray {
   color: #8396B1;
   font-family: "Garet-Medium";
