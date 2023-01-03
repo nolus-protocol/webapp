@@ -33,7 +33,6 @@
     "@nolus/nolusjs": "^0.0.80",
     "@web3auth/base": "^4.0.0",
     "@web3auth/core": "^4.0.0",
-    "@web3auth/modal": "^4.0.0",
     "@web3auth/openlogin-adapter": "^4.0.0",
     "browserify-zlib": "^0.2.0",
     "chart.js": "^4.1.1",
