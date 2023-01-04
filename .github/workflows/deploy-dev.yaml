@@ -1,0 +1,62 @@
+name: Deploy dev
+
+on:
+  push:
+    branches:
+      - main
+
+env: 
+  BUCKET_NAME: app-dev.nolus.io
+  CLOUDFRONT_ID: E2LBZO2KACZIF
+  AWS_REGION: eu-west-1
+
+jobs:
+  build:
+    name: Build static files
+    runs-on: ubuntu-latest
+    container: node:18.12.1
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build
+        run: |
+          yarn install
+          yarn run build
+      
+      - name: Archive src
+        uses: actions/upload-artifact@v3
+        with:
+          name: src
+          path: dist/
+  
+
+  deploy:
+    name: Deploy to AWS
+    runs-on: ubuntu-latest
+    container: amazon/aws-cli
+    environment: development
+    needs: build
+
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Download src
+        uses: actions/download-artifact@v3
+        with:
+          name: src
+          path: dist/
+
+      - name: Sync bucket
+        run: |
+          aws s3 sync dist/ s3://${BUCKET_NAME}
+
+      - name: Invalidate cloudfront cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${CLOUDFRONT_ID} --paths "/*" --output table
+          echo "Cache invalidation usually takes a couple of minutes"
