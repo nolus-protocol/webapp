@@ -19,6 +19,7 @@ jobs:
         with:
           node-version: 18
 
-      - run: |
+      - name: Run eslint
+        run: |
           yarn install
           yarn lint
