@@ -17,7 +17,6 @@ coverage
 /cypress/videos/
 /cypress/screenshots/
 
-# Editor directories and files
 .vscode
 .idea
 *.suo
@@ -26,6 +25,5 @@ coverage
 *.sln
 *.sw?
 
-# local env files
 .env.local
 .env.*.local
