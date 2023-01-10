@@ -7,7 +7,7 @@
 defineProps({
   link: {
     type: String,
-    default: '/',
+    default: "/",
   },
 });
 </script>

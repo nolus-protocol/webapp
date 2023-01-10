@@ -70,19 +70,19 @@
 </template>
 
 <script setup lang="ts">
-import router from '@/router';
-import ErrorDialog from '@/components/modals/ErrorDialog.vue';
-import Modal from '@/components/modals/templates/Modal.vue';
+import router from "@/router";
+import ErrorDialog from "@/components/modals/ErrorDialog.vue";
+import Modal from "@/components/modals/templates/Modal.vue";
 
-import { ref } from 'vue';
-import { ArrowLeftIcon } from '@heroicons/vue/24/solid';
-import { WalletActionTypes, useWalletStore } from '@/stores/wallet';
-import { RouteNames } from '@/router/RouterNames';
-import { useI18n } from 'vue-i18n';
+import { ref } from "vue";
+import { ArrowLeftIcon } from "@heroicons/vue/24/solid";
+import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
+import { RouteNames } from "@/router/RouterNames";
+import { useI18n } from "vue-i18n";
 
 const showError = ref(false);
 const isBluetoothConnection = ref(false);
-const errorMessage = ref('');
+const errorMessage = ref("");
 const wallet = useWalletStore();
 const i18n = useI18n();
 const disabled = ref(false);
@@ -95,7 +95,7 @@ const connectViaLedger = async () => {
   try {
     if((navigator as any)?.usb == null){
       showError.value = true;
-      errorMessage.value = i18n.t('message.ledger-support-error');
+      errorMessage.value = i18n.t("message.ledger-support-error");
       return false;
     }
     disabled.value = true;
@@ -113,7 +113,7 @@ const connectViaLedger = async () => {
 
 const clickTryAgain = async () => {
   showError.value = false;
-  errorMessage.value = '';
+  errorMessage.value = "";
   await connectViaLedger();
 };
 

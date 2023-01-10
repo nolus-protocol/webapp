@@ -1,20 +1,20 @@
-import nlsIcon from '@/assets/icons/coins/nls.svg';
-import osmoIcon from '@/assets/icons/coins/osmosis.svg';
+import nlsIcon from "@/assets/icons/coins/nls.svg";
+import osmoIcon from "@/assets/icons/coins/osmosis.svg";
 
-import type { NetworkAddress } from '@/types';
+import type { NetworkAddress } from "@/types";
 
-export const DEFAULT_PRIMARY_NETWORK = 'devnet';
+export const DEFAULT_PRIMARY_NETWORK = "devnet";
 
 export const NETWORKS: { [key: string]: NetworkAddress } = {
   localnet: {
-    tendermintRpc: 'http://127.0.0.1:26612',
-    api: 'http://127.0.0.1:26614',
-    exploler: 'https://explorer-rila.nolus.io/',
-    govern: 'https://explorer-rila.nolus.io/nolus-rila/gov',
-    staking: 'https://explorer-rila.nolus.io/nolus-rila/staking',
+    tendermintRpc: "http://127.0.0.1:26612",
+    api: "http://127.0.0.1:26614",
+    exploler: "https://explorer-rila.nolus.io/",
+    govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
+    staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
     web3auth: {
       clientId: "BHPGnOodSp4t0ZDuuJ3suCZCtwVILYmfOTbDrzlUKK6ADFrNMWg563MAMj_CBW8sDVvg3BqJi8i284t6o",
-      network: 'testnet',
+      network: "testnet",
       google: {
         name: "Nolus",
         verifier: "nolusprotocol",
@@ -24,14 +24,14 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     }
   },
   devnet: {
-    tendermintRpc: 'https://net-dev.nolus.io:26612',
-    api: 'https://net-dev.nolus.io:26614',
-    exploler: 'https://explorer-rila.nolus.io/',
-    govern: 'https://explorer-rila.nolus.io/nolus-rila/gov',
-    staking: 'https://explorer-rila.nolus.io/nolus-rila/staking',
+    tendermintRpc: "https://net-dev.nolus.io:26612",
+    api: "https://net-dev.nolus.io:26614",
+    exploler: "https://explorer-rila.nolus.io/",
+    govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
+    staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
     web3auth: {
       clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
-      network: 'cyan',
+      network: "cyan",
       google: {
         name: "Nolus",
         verifier: "nolusprotocol",
@@ -41,14 +41,14 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     }
   },
   testnet: {
-    tendermintRpc: 'https://net-rila.nolus.io:26657',
-    api: 'https://net-rila.nolus.io:1317',
-    exploler: 'https://explorer-rila.nolus.io/',
-    govern: 'https://explorer-rila.nolus.io/nolus-rila/gov',
-    staking: 'https://explorer-rila.nolus.io/nolus-rila/staking',
+    tendermintRpc: "https://net-rila.nolus.io:26657",
+    api: "https://net-rila.nolus.io:1317",
+    exploler: "https://explorer-rila.nolus.io/",
+    govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
+    staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
     web3auth: {
       clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
-      network: 'cyan',
+      network: "cyan",
       google: {
         name: "Nolus",
         verifier: "nolusprotocol",
@@ -58,14 +58,14 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     }
   },
   mainnet: {
-    tendermintRpc: 'https://net-rila.nolus.io:26657',
-    api: 'https://net-rila.nolus.io:1317',
-    exploler: 'https://explorer.nolus.io/nolus/',
+    tendermintRpc: "https://net-rila.nolus.io:26657",
+    api: "https://net-rila.nolus.io:1317",
+    exploler: "https://explorer.nolus.io/nolus/",
     govern: "https://explorer.nolus.io/nolus/gov",
     staking: "https://explorer.nolus.io/nolus/staking",
     web3auth: {
       clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
-      network: 'cyan',
+      network: "cyan",
       google: {
         name: "Nolus",
         verifier: "nolusprotocol",
@@ -77,56 +77,56 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
 };
 
 export const DEFAULT_CURRENCY = {
-  currency: 'usd',
-  symbol: '$',
-  locale: 'en-US',
+  currency: "usd",
+  symbol: "$",
+  locale: "en-US",
   minimumFractionDigits: 2,
   maximumFractionDigits: 2
 }
 
 export const DEFAULT_NETWORK = {
-  prefix: 'nolus',
-  value: 'nls',
-  label: 'Nolus',
+  prefix: "nolus",
+  value: "nls",
+  label: "Nolus",
   icon: nlsIcon,
   native: true,
   estimation: 6,
-  sourcePort: '',
-  sourceChannel: '',
+  sourcePort: "",
+  sourceChannel: "",
 };
 
 export const SUPPORTED_NETWORKS = [
   DEFAULT_NETWORK,
   {
-    prefix: 'osmo',
-    value: 'osmo',
-    label: 'Osmosis',
+    prefix: "osmo",
+    value: "osmo",
+    label: "Osmosis",
     icon: osmoIcon,
     native: false,
     estimation: 20,
-    sourcePort: 'transfer',
-    sourceChannel: 'channel-0',
+    sourcePort: "transfer",
+    sourceChannel: "channel-0",
   }
 ]
 
 export const DEFAULT_ASSET = {
-  ticker: 'NLS',
-  label: 'NLS',
-  value: 'NLS',
-  denom: 'unls',
+  ticker: "NLS",
+  label: "NLS",
+  value: "NLS",
+  denom: "unls",
   icon: nlsIcon,
 };
 
 export enum GROUPS {
-  Lpn = 'Lpn',
-  Lease = 'Lease',
-  Payment = 'Payment'
+  Lpn = "Lpn",
+  Lease = "Lease",
+  Payment = "Payment"
 }
 
 export enum SNACKBAR {
-  Queued = 'queued',
-  Success = 'success',
-  Error = 'error'
+  Queued = "queued",
+  Success = "success",
+  Error = "error"
 }
 
 export const GAS_FEES = {
@@ -144,15 +144,15 @@ export const GAS_FEES = {
 }
 
 export enum APPEARANCE {
-  light = 'light',
-  dark = 'dark',
-  sync = 'sync'
+  light = "light",
+  dark = "dark",
+  sync = "sync"
 }
 
 export const UPDATE_BLOCK_INTERVAL = 5 * 1000; // 5000 ms
 export const UPDATE_BALANCE_INTERVAL = 5 * 1000; // 5000 ms
 export const UPDATE_PRICES_INTERVAL = 10 * 1000; // 10000 ms
 
-export const DEFAULT_LEASE_UP_PERCENT = '150.00';
+export const DEFAULT_LEASE_UP_PERCENT = "150.00";
 export const LEASE_UP_COEFICIENT = 1.5;
-export const DEFAULT_APR = '24.34';
+export const DEFAULT_APR = "24.34";

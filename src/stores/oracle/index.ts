@@ -1,17 +1,17 @@
-import type { State, Price as StatePrice } from '@/stores/oracle/state';
-import { Dec } from '@keplr-wallet/unit';
+import type { State, Price as StatePrice } from "@/stores/oracle/state";
+import { Dec } from "@keplr-wallet/unit";
 
-import { defineStore } from 'pinia';
-import { OracleActionTypes } from '@/stores/oracle/action-types';
-import { EnvNetworkUtils } from '@/utils';
-import { NolusClient } from '@nolus/nolusjs';
-import { Oracle  } from '@nolus/nolusjs/build/contracts';
-import { CONTRACTS } from '@/config/contracts';
-import { ASSETS } from '@/config/assetsInfo';
+import { defineStore } from "pinia";
+import { OracleActionTypes } from "@/stores/oracle/action-types";
+import { EnvNetworkUtils } from "@/utils";
+import { NolusClient } from "@nolus/nolusjs";
+import { Oracle  } from "@nolus/nolusjs/build/contracts";
+import { CONTRACTS } from "@/config/contracts";
+import { ASSETS } from "@/config/assetsInfo";
 
-import CURRENCIES from '@/config/currencies.json';
+import CURRENCIES from "@/config/currencies.json";
 
-const useOracleStore = defineStore('oracle', {
+const useOracleStore = defineStore("oracle", {
   state: () => {
     return {
       prices: {},

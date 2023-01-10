@@ -45,20 +45,20 @@
 </template>
 
 <script lang="ts" setup>
-import LeaseDialog from '@/components/modals/LeaseDialog.vue';
-import Modal from '@/components/modals/templates/Modal.vue';
-import ErrorDialog from '@/components/modals/ErrorDialog.vue';
-import LeaseInfo from '@/components/LeaseInfo.vue';
+import LeaseDialog from "@/components/modals/LeaseDialog.vue";
+import Modal from "@/components/modals/templates/Modal.vue";
+import ErrorDialog from "@/components/modals/ErrorDialog.vue";
+import LeaseInfo from "@/components/LeaseInfo.vue";
 
-import { ref, provide } from 'vue';
-import { useLeases } from '@/composables/useLeases';
+import { ref, provide } from "vue";
+import { useLeases } from "@/composables/useLeases";
 
 const showLeaseModal = ref(false);
 const { leases, getLeases } = useLeases(onLeaseError, showModal);
 
 const errorDialog = ref({
   showDialog: false,
-  errorMessage: '',
+  errorMessage: "",
   tryAgain: (): void => {},
 });
 
@@ -74,7 +74,7 @@ function showModal(){
 
 async function onTryAgain() {
   errorDialog.value.showDialog = false;
-  errorDialog.value.errorMessage = '';
+  errorDialog.value.errorMessage = "";
   getLeases();
 }
 

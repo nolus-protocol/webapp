@@ -132,26 +132,26 @@
 </template>
 
 <script lang="ts" setup>
-import router from '@/router';
-import LogoLink from '@/components/LogoLink.vue';
-import SidebarElement from '@/components/SidebarElement.vue';
-import Modal from '@/components/modals/templates/Modal.vue';
-import SwapDialog from '@/components/modals/SwapDialog.vue';
+import router from "@/router";
+import LogoLink from "@/components/LogoLink.vue";
+import SidebarElement from "@/components/SidebarElement.vue";
+import Modal from "@/components/modals/templates/Modal.vue";
+import SwapDialog from "@/components/modals/SwapDialog.vue";
 
-import { onMounted, onUnmounted, ref, watch } from 'vue';
-import { RouteNames } from '@/router/RouterNames';
-import { DISCORD_ACCOUNT, REDDIT_ACCOUNT, TELEGRAM_ACCOUNT, TWITTER_ACCOUNT } from '@/config/globals';
-import { useApplicationStore } from '@/stores/application';
-import { NolusClient } from '@nolus/nolusjs';
-import { NETWORKS, UPDATE_BLOCK_INTERVAL } from '@/config/env';
-import { storeToRefs } from 'pinia';
-import { EnvNetworkUtils } from '@/utils';
+import { onMounted, onUnmounted, ref, watch } from "vue";
+import { RouteNames } from "@/router/RouterNames";
+import { DISCORD_ACCOUNT, REDDIT_ACCOUNT, TELEGRAM_ACCOUNT, TWITTER_ACCOUNT } from "@/config/globals";
+import { useApplicationStore } from "@/stores/application";
+import { NolusClient } from "@nolus/nolusjs";
+import { NETWORKS, UPDATE_BLOCK_INTERVAL } from "@/config/env";
+import { storeToRefs } from "pinia";
+import { EnvNetworkUtils } from "@/utils";
 
 const showMobileNav = ref(false);
 const isMobile = ref(false);
 const showSwapModal = ref(false);
 const block = ref(0);
-const version = ref('');
+const version = ref("");
 const applicaton = useApplicationStore();
 const applicationRef = storeToRefs(applicaton);
 const sidebar = ref(null as HTMLDivElement | null);
@@ -164,7 +164,7 @@ onMounted(() => {
   isMobile.value = screen?.width < 576;
 
   if(isMobile.value){
-    document.addEventListener('click', onClick);
+    document.addEventListener("click", onClick);
   }
 
   setBlock();
@@ -179,7 +179,7 @@ onMounted(() => {
 onUnmounted(() => {
   clearInterval(blockInterval);
   if(isMobile.value){
-    document.removeEventListener('click', onClick);
+    document.removeEventListener("click", onClick);
   }
 });
 

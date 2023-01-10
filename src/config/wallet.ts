@@ -1,9 +1,9 @@
-import type { StdFee } from '@cosmjs/stargate';
-import { Dec, Int } from '@keplr-wallet/unit';
-import { ChainConstants } from '@nolus/nolusjs/build/constants';
-import { WalletUtils } from '@/utils';
+import type { StdFee } from "@cosmjs/stargate";
+import { Dec, Int } from "@keplr-wallet/unit";
+import { ChainConstants } from "@nolus/nolusjs/build/constants";
+import { WalletUtils } from "@/utils";
 
-export const FEE = '0.25';
+export const FEE = "0.25";
 
 export const defaultNolusWalletFee = (): StdFee => {
   const coinDecimals = new Int(10).pow(
@@ -17,6 +17,6 @@ export const defaultNolusWalletFee = (): StdFee => {
         amount: WalletUtils.isConnectedViaExtension() ? FEE : feeAmount.truncate().toString(),
       },
     ],
-    gas: '2000000',
+    gas: "2000000",
   };
 };

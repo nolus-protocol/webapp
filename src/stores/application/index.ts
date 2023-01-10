@@ -1,14 +1,14 @@
-import type { State } from '@/stores/application/state';
+import type { State } from "@/stores/application/state";
 
-import { defineStore } from 'pinia';
-import { ApplicationActionTypes } from '@/stores/application/action-types';
-import { EnvNetworkUtils, ThemeManager, WalletUtils } from '@/utils';
-import { NolusClient } from '@nolus/nolusjs';
-import { DEFAULT_PRIMARY_NETWORK } from '@/config/env';
-import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
-import { useOracleStore, OracleActionTypes } from '../oracle';
+import { defineStore } from "pinia";
+import { ApplicationActionTypes } from "@/stores/application/action-types";
+import { EnvNetworkUtils, ThemeManager, WalletUtils } from "@/utils";
+import { NolusClient } from "@nolus/nolusjs";
+import { DEFAULT_PRIMARY_NETWORK } from "@/config/env";
+import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
+import { useOracleStore, OracleActionTypes } from "../oracle";
 
-const useApplicationStore = defineStore('application', {
+const useApplicationStore = defineStore("application", {
   state: () => {
     return {
       network: {},
@@ -21,7 +21,7 @@ const useApplicationStore = defineStore('application', {
         const loadedNetworkConfig = EnvNetworkUtils.loadNetworkConfig();
         
         if (!loadedNetworkConfig) {
-          throw new Error('Please select different network');
+          throw new Error("Please select different network");
         }
 
         NolusClient.setInstance(loadedNetworkConfig.tendermintRpc);

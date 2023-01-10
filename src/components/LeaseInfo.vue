@@ -140,24 +140,24 @@
 </template>
 
 <script lang="ts" setup>
-import type { AssetInfo } from '@/types';
-import type { LeaseData } from '@/types';
+import type { AssetInfo } from "@/types";
+import type { LeaseData } from "@/types";
 
-import RepayDialog from '@/components/modals/RepayDialog.vue';
-import Modal from '@/components/modals/templates/Modal.vue';
-import PriceHistoryChart from '@/components/templates/utils/NolusChart.vue';
-import TooltipComponent from './TooltipComponent.vue';
+import RepayDialog from "@/components/modals/RepayDialog.vue";
+import Modal from "@/components/modals/templates/Modal.vue";
+import PriceHistoryChart from "@/components/templates/utils/NolusChart.vue";
+import TooltipComponent from "./TooltipComponent.vue";
 
-import { computed, ref, watchEffect } from 'vue';
-import { Lease } from '@nolus/nolusjs/build/contracts';
-import { CurrencyUtils, NolusClient, NolusWallet } from '@nolus/nolusjs';
-import { ChainConstants } from '@nolus/nolusjs/build/constants';
-import { Coin, Dec, Int } from '@keplr-wallet/unit';
-import { CHART_RANGES } from '@/config/globals';
-import { WalletUtils } from '@/utils/WalletUtils';
-import { useWalletStore } from '@/stores/wallet';
-import { useOracleStore } from '@/stores/oracle';
-import { useI18n } from 'vue-i18n';
+import { computed, ref, watchEffect } from "vue";
+import { Lease } from "@nolus/nolusjs/build/contracts";
+import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
+import { ChainConstants } from "@nolus/nolusjs/build/constants";
+import { Coin, Dec, Int } from "@keplr-wallet/unit";
+import { CHART_RANGES } from "@/config/globals";
+import { WalletUtils } from "@/utils/WalletUtils";
+import { useWalletStore } from "@/stores/wallet";
+import { useOracleStore } from "@/stores/oracle";
+import { useI18n } from "vue-i18n";
 
 interface Props {
   leaseInfo: LeaseData | any; //TODO: update Asset in nolusjs
@@ -165,7 +165,7 @@ interface Props {
 
 const { leaseInfo } = defineProps<Props>();
 const showRepayModal = ref(false);
-const chartTimeRange = ref(CHART_RANGES['1']);
+const chartTimeRange = ref(CHART_RANGES["1"]);
 const chartData = ref({});
 const currentPrice = ref<string>();
 const walletStore = useWalletStore();
@@ -176,15 +176,15 @@ watchEffect(async () => {
   const { days, interval } = chartTimeRange.value;
   const pricesData = await fetchChartData(days, interval);
 
-  if (days === '1') {
+  if (days === "1") {
     currentPrice.value = `$${pricesData[pricesData.length - 1][1].toFixed(2)}`;
   }
 
   chartData.value = {
     datasets: [
       {
-        label: i18n.t('message.chart-tooltip-price'),
-        borderColor: '#2868E1',
+        label: i18n.t("message.chart-tooltip-price"),
+        borderColor: "#2868E1",
         data: pricesData,
         tension: 0.4,
         pointRadius: 0,
@@ -197,7 +197,7 @@ async function fetchChartData(days: string, interval: string) {
   // @TODO: Cache bigger time ranges
   const res = await fetch(
     `https://api.coingecko.com/api/v3/coins/${getAssetInfo(
-      'coinGeckoId'
+      "coinGeckoId"
     )}/market_chart?vs_currency=usd&days=${days}&interval=${interval}`
   );
   const { prices } = await res.json();
@@ -208,17 +208,17 @@ async function onClickClaim(leaseAddress: string) {
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
   const leaseClient = new Lease(cosmWasmClient, leaseAddress);
   const coinDecimals = new Int(10).pow(new Int(6).absUInt());
-  const feeAmount = new Dec('0.25').mul(new Dec(coinDecimals));
+  const feeAmount = new Dec("0.25").mul(new Dec(coinDecimals));
   const DEFAULT_FEE = {
     amount: [
       {
         denom: ChainConstants.COIN_MINIMAL_DENOM,
         amount: WalletUtils.isConnectedViaExtension()
-          ? '0.25'
+          ? "0.25"
           : feeAmount.truncate().toString(),
       },
     ],
-    gas: '2000000',
+    gas: "2000000",
   };
 
   const wallet = walletStore.wallet as NolusWallet;
@@ -240,17 +240,17 @@ function getAssetInfo(key: keyof AssetInfo) {
     return asset[key];
   }
 
-  return '';
+  return "";
 }
 
 function formatInterestRate(interestRatePromile = 0) {
-  return new Dec(interestRatePromile).quo(new Dec(10)).toString(1) + '%';
+  return new Dec(interestRatePromile).quo(new Dec(10)).toString(1) + "%";
 }
 
-function calculateBalance(tokenAmount = '0', denom = '') {
+function calculateBalance(tokenAmount = "0", denom = "") {
   const prices = oracleStore.prices;
   if (prices) {
-    const coinPrice = prices[denom]?.amount || '0';
+    const coinPrice = prices[denom]?.amount || "0";
     const coinAmount = new Coin(denom, new Int(tokenAmount));
     return CurrencyUtils.calculateBalance(coinPrice, coinAmount, 0).toString();
   }

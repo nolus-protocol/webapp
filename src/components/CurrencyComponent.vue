@@ -12,10 +12,10 @@
 </template>
 
 <script setup lang="ts">
-import { DEFAULT_CURRENCY } from '@/config/env';
-import { CURRENCY_VIEW_TYPES } from '@/types/CurrencyViewType';
-import { CurrencyUtils } from '@nolus/nolusjs';
-import { computed } from '@vue/reactivity';
+import { DEFAULT_CURRENCY } from "@/config/env";
+import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { computed } from "@vue/reactivity";
 
 const props = defineProps({
   type: {
@@ -69,10 +69,10 @@ const amount = computed(() => {
         maximumFractionDigits: DEFAULT_CURRENCY.maximumFractionDigits
       }).format(numberAmount);
 
-      let [beforeDecimal, afterDecimal] = amount.split('.');
+      let [beforeDecimal, afterDecimal] = amount.split(".");
 
       if(numberAmount == 0){
-        afterDecimal = '';
+        afterDecimal = "";
       }
 
       if(afterDecimal?.length > 0){
@@ -94,17 +94,17 @@ const amount = computed(() => {
       );
       const denom = token.denom;
       const amount = token.hideDenom(true).toString();
-      let [beforeDecimal, afterDecimal] = amount.split('.');
+      let [beforeDecimal, afterDecimal] = amount.split(".");
 
       if(props.maxDecimals > 0 && afterDecimal.length > props.maxDecimals){
         const pow = 10 ** props.maxDecimals;
         const after = Number(`0.${afterDecimal}`);
         const decimals = (Math.round(after * pow) / pow).toString() ;
 
-        let [_, afterParsed] = decimals.split('.');
+        let [_, afterParsed] = decimals.split(".");
         
         if(afterParsed == null){
-          afterParsed = '0'.repeat(props.maxDecimals);
+          afterParsed = "0".repeat(props.maxDecimals);
         }
 
         afterDecimal = afterParsed;
@@ -122,9 +122,9 @@ const amount = computed(() => {
     }
   }
   return {
-    denom: '',
-    beforeDecimal: '0',
-    afterDecimal: ''
+    denom: "",
+    beforeDecimal: "0",
+    afterDecimal: ""
   };
 });
 </script>

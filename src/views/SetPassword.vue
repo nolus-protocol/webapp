@@ -60,20 +60,20 @@
 </template>
 
 <script setup lang="ts">
-import router from '@/router';
-import InputField from '@/components/InputField.vue';
-import { ArrowLeftIcon } from '@heroicons/vue/24/solid';
+import router from "@/router";
+import InputField from "@/components/InputField.vue";
+import { ArrowLeftIcon } from "@heroicons/vue/24/solid";
 
-import { ref, watch } from 'vue';
-import { RouteNames } from '@/router/RouterNames';
-import { useI18n } from 'vue-i18n';
-import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
+import { ref, watch } from "vue";
+import { RouteNames } from "@/router/RouterNames";
+import { useI18n } from "vue-i18n";
+import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 
-const password = ref('');
-const confirmPassword = ref('');
+const password = ref("");
+const confirmPassword = ref("");
 
-const errorMessage = ref('');
-const confirmErrorMessage = ref('');
+const errorMessage = ref("");
+const confirmErrorMessage = ref("");
 const i18n = useI18n();
 const walletStore = useWalletStore();
 const minLength = 8;
@@ -92,8 +92,8 @@ const clickContinue = () => {
     return false;
   }
 
-  errorMessage.value = '';
-  confirmErrorMessage.value = '';
+  errorMessage.value = "";
+  confirmErrorMessage.value = "";
   walletStore[WalletActionTypes.STORE_PRIVATE_KEY](password.value);
   router.push({ name: RouteNames.SET_WALLET_NAME });
 };
@@ -105,40 +105,40 @@ const validate = () => {
 }
 
 const validatePassword = () => {
-  if (password.value === '') {
-    errorMessage.value = i18n.t('message.password-error');
+  if (password.value === "") {
+    errorMessage.value = i18n.t("message.password-error");
     return true;
   }
 
   if (password.value.length < minLength) {
-    errorMessage.value = i18n.t('message.password-length-error', {length: minLength});
+    errorMessage.value = i18n.t("message.password-length-error", {length: minLength});
     return true;
   }
 
   const hasNumber = /\d/.test(password.value);
 
   if(!hasNumber){
-    errorMessage.value = i18n.t('message.password-number-error');
+    errorMessage.value = i18n.t("message.password-number-error");
     return true;
   }
 
   const hasUpper = /[A-Z]/.test(password.value);
 
   if(!hasUpper){
-    errorMessage.value = i18n.t('message.password-upper-error');
+    errorMessage.value = i18n.t("message.password-upper-error");
     return true;
   }
 
   const hasLower = /[a-z]/.test(password.value);
 
   if(!hasLower){
-    errorMessage.value = i18n.t('message.password-lower-error');
+    errorMessage.value = i18n.t("message.password-lower-error");
     return true;
   }
 
   const specialSymbol = /[-!$%^&*()_+|~=`{}\[\]:\/;<>?,.@#]/.test(password.value);
   if(!specialSymbol){
-    errorMessage.value = i18n.t('message.password-special-symbol-error', { symbols: specialSymbols });
+    errorMessage.value = i18n.t("message.password-special-symbol-error", { symbols: specialSymbols });
     return true;
   }
 
@@ -146,12 +146,12 @@ const validatePassword = () => {
 }
 
 const validateConfirmPassword = () => {
-  if (confirmPassword.value === '') {
-    confirmErrorMessage.value = i18n.t('message.confirm-password-error');
+  if (confirmPassword.value === "") {
+    confirmErrorMessage.value = i18n.t("message.confirm-password-error");
     return true;
   }
   if (confirmPassword.value != password.value) {
-    confirmErrorMessage.value = i18n.t('message.password-mismatch-error');
+    confirmErrorMessage.value = i18n.t("message.password-mismatch-error");
     return true;
   }
 
@@ -160,13 +160,13 @@ const validateConfirmPassword = () => {
 
 watch(password, () => {
   if(!validatePassword()){
-    errorMessage.value = '';
+    errorMessage.value = "";
   }
 });
 
 watch(confirmPassword, () => {
   if(!validateConfirmPassword()){
-    confirmErrorMessage.value = '';
+    confirmErrorMessage.value = "";
   }
 });
 

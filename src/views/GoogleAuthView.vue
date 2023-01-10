@@ -63,12 +63,12 @@
 </template>
 
 <script setup lang="ts">
-import router from '@/router';
-import { RouteNames } from '@/router/RouterNames';
-import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
-import { Web3AuthProvider } from '@/utils';
-import { ADAPTER_EVENTS, type CONNECTED_EVENT_DATA } from '@web3auth/base';
-import { onMounted, onUnmounted, ref } from 'vue';
+import router from "@/router";
+import { RouteNames } from "@/router/RouterNames";
+import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
+import { Web3AuthProvider } from "@/utils";
+import { ADAPTER_EVENTS, type CONNECTED_EVENT_DATA } from "@web3auth/base";
+import { onMounted, onUnmounted, ref } from "vue";
 
 const wallet = useWalletStore();
 const loadingGoogle = ref(true);

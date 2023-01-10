@@ -1,5 +1,5 @@
-import type { ChainInfo } from '@keplr-wallet/types';
-import { ChainConstants } from '@nolus/nolusjs';
+import type { ChainInfo } from "@keplr-wallet/types";
+import { ChainConstants } from "@nolus/nolusjs";
 
 const KeplrEmbedChainInfo = (
   networkName: string,
@@ -9,7 +9,7 @@ const KeplrEmbedChainInfo = (
 ): ChainInfo => {
   return {
     chainId: chainId,
-    chainName: ChainConstants.CHAIN_NAME + '-' + networkName,
+    chainName: ChainConstants.CHAIN_NAME + "-" + networkName,
     rpc: tendermintRpc,
     rest: rest,
     bip44: {
@@ -46,7 +46,7 @@ const KeplrEmbedChainInfo = (
       coinGeckoId: ChainConstants.COIN_GECKO_ID,
     },
     coinType: ChainConstants.COIN_TYPE,
-    features: ['ibc-transfer'],
+    features: ["ibc-transfer"],
   };
 };
 

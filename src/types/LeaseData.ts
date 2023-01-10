@@ -1,4 +1,4 @@
-import type { LeaseStatus } from '@nolus/nolusjs/build/contracts';
+import type { LeaseStatus } from "@nolus/nolusjs/build/contracts";
 
 export interface LeaseData {
   leaseAddress: string;

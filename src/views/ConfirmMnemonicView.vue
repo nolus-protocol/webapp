@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import SelectorTextField from '@/components/SelectorTextField.vue';
-import { ArrowLeftIcon } from '@heroicons/vue/24/solid';
+import SelectorTextField from "@/components/SelectorTextField.vue";
+import { ArrowLeftIcon } from "@heroicons/vue/24/solid";
 const onClick = () => {};
 </script>

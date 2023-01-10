@@ -47,25 +47,25 @@
 </template>
 
 <script setup lang="ts">
-import type { AssetBalance } from '@/stores/wallet/state';
-import { onMounted, ref, watch, type PropType } from 'vue';
+import type { AssetBalance } from "@/stores/wallet/state";
+import { onMounted, ref, watch, type PropType } from "vue";
 
-import CurrencyPicker from '@/components/CurrencyPicker.vue';
+import CurrencyPicker from "@/components/CurrencyPicker.vue";
 
-import { Coin, Int } from '@keplr-wallet/unit';
-import { CurrencyUtils } from '@nolus/nolusjs';
-import { useOracleStore } from '@/stores/oracle';
-import { useWalletStore } from '@/stores/wallet';
+import { Coin, Int } from "@keplr-wallet/unit";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { useOracleStore } from "@/stores/oracle";
+import { useWalletStore } from "@/stores/wallet";
 
-const emit = defineEmits(['update-currency', 'update:modelValue', 'input']);
+const emit = defineEmits(["update-currency", "update:modelValue", "input"]);
 const oracle = useOracleStore();
 const wallet = useWalletStore();
 
-const dot = '.';
-const minus = '-';
-const comma = ',';
-const space = ' ';
-const allowed = ['Delete', 'Backspace', 'ArrowLeft', 'ArrowRight', '-', '.', 'Enter', 'Tab', 'Control', 'End', 'Home']
+const dot = ".";
+const minus = "-";
+const comma = ",";
+const space = " ";
+const allowed = ["Delete", "Backspace", "ArrowLeft", "ArrowRight", "-", ".", "Enter", "Tab", "Control", "End", "Home"]
 const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 const props = defineProps({
@@ -102,7 +102,7 @@ const props = defineProps({
   },
   errorMsg: {
     type: String,
-    default: '',
+    default: "",
   },
   positive: {
     type: Boolean,
@@ -124,14 +124,14 @@ watch(() => props.value, () => {
 });
 
 const onUpdateCurrency = (value: AssetBalance) => {
-  emit('update-currency', value);
+  emit("update-currency", value);
 };
 
 const calculateInputBalance = () => {
   const prices = oracle.prices;
 
   if (!numberRealValue || !props.option || !prices) {
-    return '$0';
+    return "$0";
   }
 
   const denom = props.option.balance.denom;
@@ -144,14 +144,14 @@ const calculateInputBalance = () => {
     coinDecimals
   );
   const coin = new Coin(denom, new Int(String(amount)));
-  const tokenPrice = prices[symbol]?.amount || '0';
+  const tokenPrice = prices[symbol]?.amount || "0";
 
   return CurrencyUtils.calculateBalance(tokenPrice, coin, coinDecimals);
 };
 
 const inputValue = (event: KeyboardEvent) => {
   const charCode = event.key;
-  const value = numberValue.value ?? '';
+  const value = numberValue.value ?? "";
 
   if(event.ctrlKey){
     return true;
@@ -194,7 +194,7 @@ const inputValue = (event: KeyboardEvent) => {
 }
 
 const onPaste = (event: ClipboardEvent) => {
-  const pastedText = event.clipboardData?.getData('text');
+  const pastedText = event.clipboardData?.getData("text");
   const num = Number(pastedText);
   if(isNaN(num)){
     event.preventDefault();
@@ -203,30 +203,30 @@ const onPaste = (event: ClipboardEvent) => {
 }
 
 const setValue = () => {
-  let value = removeComma(numberValue.value ?? '');
+  let value = removeComma(numberValue.value ?? "");
   let numValue = Number(value);
   numberValue.value = commify(value.toString());
   if(isNaN(numValue)){
     return false;
   }
   numberRealValue = Number(value);
-  emit('input', value);
-  emit('update:modelValue', value)
+  emit("input", value);
+  emit("update:modelValue", value)
 }
 
 const commify = (n: string) => {
-  const parts = n.split('.');
+  const parts = n.split(".");
   const numberPart = parts[0];
   const decimalPart = parts[1];
   const hasDot = n.includes(dot);
   const thousands = /\B(?=(\d{3})+(?!\d))/g;
 
-  return numberPart.replace(thousands, comma) + (hasDot ? `.${decimalPart}` : '');
+  return numberPart.replace(thousands, comma) + (hasDot ? `.${decimalPart}` : "");
 }
 
 const removeComma = (n: string) => {
   const re = new RegExp(comma, "g");
-  return n.replace(re, '');
+  return n.replace(re, "");
 }
 
 </script>

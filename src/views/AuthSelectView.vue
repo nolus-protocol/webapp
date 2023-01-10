@@ -90,10 +90,10 @@
 </template>
 
 <script setup lang="ts">
-import router from '@/router';
-import { RouteNames } from '@/router/RouterNames';
-import { useWalletStore , WalletActionTypes} from '@/stores/wallet';
-import { ref } from 'vue';
+import router from "@/router";
+import { RouteNames } from "@/router/RouterNames";
+import { useWalletStore , WalletActionTypes} from "@/stores/wallet";
+import { ref } from "vue";
 
 const wallet = useWalletStore();
 const loadingGoogle = ref(false);

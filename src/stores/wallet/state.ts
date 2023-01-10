@@ -1,5 +1,5 @@
-import type { Coin } from '@keplr-wallet/unit';
-import type { NolusWallet } from '@nolus/nolusjs';
+import type { Coin } from "@keplr-wallet/unit";
+import type { NolusWallet } from "@nolus/nolusjs";
 
 export interface AssetBalance {
   balance: Coin | any;

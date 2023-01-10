@@ -124,28 +124,28 @@
 </template>
 
 <script setup lang="ts">
-import EarnAsset from '@/components/EarningsComponents/EarnAsset.vue';
-import EarnNativeAsset from '@/components/EarningsComponents/EarnNativeAsset.vue';
+import EarnAsset from "@/components/EarningsComponents/EarnAsset.vue";
+import EarnNativeAsset from "@/components/EarningsComponents/EarnNativeAsset.vue";
 
-import EarnReward from '@/components/EarningsComponents/EarnReward.vue';
-import SupplyWithdrawDialog from '@/components/modals/SupplyWithdrawDialog.vue';
-import Modal from '@/components/modals/templates/Modal.vue';
-import ClaimDialog from '@/components/modals/ClaimDialog.vue';
-import ErrorDialog from '@/components/modals/ErrorDialog.vue';
-import TooltipComponent from '@/components/TooltipComponent.vue';
+import EarnReward from "@/components/EarningsComponents/EarnReward.vue";
+import SupplyWithdrawDialog from "@/components/modals/SupplyWithdrawDialog.vue";
+import Modal from "@/components/modals/templates/Modal.vue";
+import ClaimDialog from "@/components/modals/ClaimDialog.vue";
+import ErrorDialog from "@/components/modals/ErrorDialog.vue";
+import TooltipComponent from "@/components/TooltipComponent.vue";
 
-import type { AssetBalance } from '@/stores/wallet/state';
-import { computed, onMounted, ref } from 'vue';
-import { claimRewardsMsg, type ContractData, Lpp} from '@nolus/nolusjs/build/contracts';
-import { ChainConstants, NolusClient } from '@nolus/nolusjs';
+import type { AssetBalance } from "@/stores/wallet/state";
+import { computed, onMounted, ref } from "vue";
+import { claimRewardsMsg, type ContractData, Lpp} from "@nolus/nolusjs/build/contracts";
+import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 
-import { CONTRACTS } from '@/config/contracts';
-import { EnvNetworkUtils } from '@/utils/EnvNetworkUtils';
+import { CONTRACTS } from "@/config/contracts";
+import { EnvNetworkUtils } from "@/utils/EnvNetworkUtils";
 
-import { WalletManager } from '@/utils';
-import { Coin, Dec, Int } from '@keplr-wallet/unit';
-import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
-import CURRENCIES from '@/config/currencies.json';
+import { WalletManager } from "@/utils";
+import { Coin, Dec, Int } from "@keplr-wallet/unit";
+import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
+import CURRENCIES from "@/config/currencies.json";
 
 const wallet = useWalletStore();
 

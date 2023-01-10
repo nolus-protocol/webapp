@@ -1,9 +1,9 @@
-import type { Keplr } from '@keplr-wallet/types';
-import type { Window as KeplrWindow } from '@keplr-wallet/types/build/window';
-import { KeyUtils } from '@nolus/nolusjs';
-import { WalletConnectMechanism } from '@/types';
-import { WalletManager } from '@/utils';
-import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
+import type { Keplr } from "@keplr-wallet/types";
+import type { Window as KeplrWindow } from "@keplr-wallet/types/build/window";
+import { KeyUtils } from "@nolus/nolusjs";
+import { WalletConnectMechanism } from "@/types";
+import { WalletManager } from "@/utils";
+import { encodeSecp256k1Pubkey, pubkeyToAddress } from "@cosmjs/amino";
 
 export class WalletUtils {
   public static async getKeplr(): Promise<Keplr | undefined> {
@@ -13,21 +13,21 @@ export class WalletUtils {
       return keplrWindow.keplr;
     }
 
-    if (document.readyState === 'complete') {
+    if (document.readyState === "complete") {
       return keplrWindow.keplr;
     }
 
     return new Promise((resolve) => {
       const documentStateChange = (event: Event) => {
         if (
-          event.target && (event.target as Document).readyState === 'complete'
+          event.target && (event.target as Document).readyState === "complete"
         ) {
           resolve(keplrWindow.keplr);
-          document.removeEventListener('readystatechange', documentStateChange);
+          document.removeEventListener("readystatechange", documentStateChange);
         }
       };
 
-      document.addEventListener('readystatechange', documentStateChange);
+      document.addEventListener("readystatechange", documentStateChange);
     });
   }
 

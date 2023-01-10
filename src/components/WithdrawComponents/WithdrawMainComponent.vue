@@ -29,26 +29,26 @@
 </template>
 
 <script lang="ts" setup>
-import type { AssetBalance } from '@/stores/wallet/state';
-import type { WithdrawFormComponentProps } from '@/types/component/WithdrawFormComponentProps';
+import type { AssetBalance } from "@/stores/wallet/state";
+import type { WithdrawFormComponentProps } from "@/types/component/WithdrawFormComponentProps";
 
-import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue';
-import WithdrawFormComponent from '@/components/WithdrawComponents/WithdrawFormComponent.vue';
-import ErrorDialog from '@/components/modals/ErrorDialog.vue';
-import Modal from '@/components/modals/templates/Modal.vue';
+import ConfirmComponent from "@/components/modals/templates/ConfirmComponent.vue";
+import WithdrawFormComponent from "@/components/WithdrawComponents/WithdrawFormComponent.vue";
+import ErrorDialog from "@/components/modals/ErrorDialog.vue";
+import Modal from "@/components/modals/templates/Modal.vue";
 
-import { CONFIRM_STEP } from '@/types/ConfirmStep';
-import { TxType } from '@/types/TxType';
-import { Coin, Int } from '@keplr-wallet/unit';
-import { NolusClient, NolusWallet } from '@nolus/nolusjs';
-import { Lpp } from '@nolus/nolusjs/build/contracts';
-import { EnvNetworkUtils, WalletManager } from '@/utils';
-import { getMicroAmount, validateAmount, walletOperation } from '@/components/utils';
-import { useWalletStore } from '@/stores/wallet';
-import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue';
-import { CONTRACTS } from '@/config/contracts';
-import { DEFAULT_ASSET, GAS_FEES, GROUPS, SNACKBAR } from '@/config/env';
-import { coin } from '@cosmjs/amino';
+import { CONFIRM_STEP } from "@/types/ConfirmStep";
+import { TxType } from "@/types/TxType";
+import { Coin, Int } from "@keplr-wallet/unit";
+import { NolusClient, NolusWallet } from "@nolus/nolusjs";
+import { Lpp } from "@nolus/nolusjs/build/contracts";
+import { EnvNetworkUtils, WalletManager } from "@/utils";
+import { getMicroAmount, validateAmount, walletOperation } from "@/components/utils";
+import { useWalletStore } from "@/stores/wallet";
+import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
+import { CONTRACTS } from "@/config/contracts";
+import { DEFAULT_ASSET, GAS_FEES, GROUPS, SNACKBAR } from "@/config/env";
+import { coin } from "@cosmjs/amino";
 
 const { selectedAsset } = defineProps({
   selectedAsset: {
@@ -78,10 +78,10 @@ const state = ref({
   currentBalance: balances.value,
   selectedCurrency: selectedCurrency.value,
   receiverAddress: CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance,
-  amount: '',
-  password: '',
-  amountErrorMsg: '',
-  txHash: '',
+  amount: "",
+  password: "",
+  amountErrorMsg: "",
+  txHash: "",
   fee: coin(GAS_FEES.lender_burn_deposit, DEFAULT_ASSET.denom),
   onNextClick: () => onNextClick(),
   onSendClick: () => onWithdrawClick(),
@@ -91,7 +91,7 @@ const state = ref({
 
 const errorDialog = ref({
   showDialog: false,
-  errorMessage: '',
+  errorMessage: "",
   tryAgain: (): void => {},
 });
 
@@ -138,14 +138,14 @@ watch(
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 
-const closeModal = inject('onModalClose', () => () => {});
-const showSnackbar = inject('showSnackbar', (type: string, transaction: string) => {});
-const snackbarVisible = inject('snackbarVisible', () => false);
+const closeModal = inject("onModalClose", () => () => {});
+const showSnackbar = inject("showSnackbar", (type: string, transaction: string) => {});
+const snackbarVisible = inject("snackbarVisible", () => false);
 
 function onNextClick() {
   if (!state.value.receiverAddress) {
     errorDialog.value.showDialog = true;
-    errorDialog.value.errorMessage = 'Missing receiver address!';
+    errorDialog.value.errorMessage = "Missing receiver address!";
     errorDialog.value.tryAgain = hideErrorDialog;
     return;
   }

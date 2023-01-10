@@ -49,19 +49,19 @@
 </template>
 
 <script setup lang="ts">
-import router from '@/router';
-import InputField from '@/components/InputField.vue';
-import { ArrowLeftIcon } from '@heroicons/vue/24/solid';
+import router from "@/router";
+import InputField from "@/components/InputField.vue";
+import { ArrowLeftIcon } from "@heroicons/vue/24/solid";
 
-import { ref, watch } from 'vue';
-import { RouteNames } from '@/router/RouterNames';
-import { useI18n } from 'vue-i18n';
-import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
-import { WalletManager } from '@/utils';
+import { ref, watch } from "vue";
+import { RouteNames } from "@/router/RouterNames";
+import { useI18n } from "vue-i18n";
+import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
+import { WalletManager } from "@/utils";
 
-const walletName = ref('');
+const walletName = ref("");
 
-const errorMessage = ref('');
+const errorMessage = ref("");
 const i18n = useI18n();
 const walletStore = useWalletStore();
 
@@ -78,7 +78,7 @@ const clickContinue = () => {
   WalletManager.setWalletName(walletName.value);
   walletStore[WalletActionTypes.LOAD_WALLET_NAME]();
   
-  errorMessage.value = '';
+  errorMessage.value = "";
   checkBalances();
   router.push({ name: RouteNames.DASHBOARD });
 };
@@ -92,8 +92,8 @@ const checkBalances = async () => {
 }
 
 const validateWalletName = () => {
-  if (walletName.value === '') {
-    errorMessage.value = i18n.t('message.password-error');
+  if (walletName.value === "") {
+    errorMessage.value = i18n.t("message.password-error");
     return true;
   }
 
@@ -102,7 +102,7 @@ const validateWalletName = () => {
 
 watch(walletName, () => {
   if(!validateWalletName()){
-    errorMessage.value = '';
+    errorMessage.value = "";
   }
 });
 

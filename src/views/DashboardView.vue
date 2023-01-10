@@ -255,28 +255,28 @@
 </template>
 
 <script lang="ts" setup>
-import AssetPartial from '@/components/AssetPartial.vue';
-import TooltipComponent from '@/components/TooltipComponent.vue';
-import Modal from '@/components/modals/templates/Modal.vue';
-import ErrorDialog from '@/components/modals/ErrorDialog.vue';
-import SupplyWithdrawDialog from '@/components/modals/SupplyWithdrawDialog.vue';
-import SendReceiveDialog from '@/components/modals/SendReceiveDialog.vue';
-import LeaseDialog from '@/components/modals/LeaseDialog.vue';
-import VestedAssetPartial from '@/components/VestedAssetPartial.vue';
-import CurrencyComponent from '@/components/CurrencyComponent.vue';
+import AssetPartial from "@/components/AssetPartial.vue";
+import TooltipComponent from "@/components/TooltipComponent.vue";
+import Modal from "@/components/modals/templates/Modal.vue";
+import ErrorDialog from "@/components/modals/ErrorDialog.vue";
+import SupplyWithdrawDialog from "@/components/modals/SupplyWithdrawDialog.vue";
+import SendReceiveDialog from "@/components/modals/SendReceiveDialog.vue";
+import LeaseDialog from "@/components/modals/LeaseDialog.vue";
+import VestedAssetPartial from "@/components/VestedAssetPartial.vue";
+import CurrencyComponent from "@/components/CurrencyComponent.vue";
 
-import type { AssetBalance } from '@/stores/wallet/state';
-import { computed, ref, provide, onMounted, watch } from 'vue';
-import { Coin, Dec, Int } from '@keplr-wallet/unit';
-import { CurrencyUtils } from '@nolus/nolusjs';
-import { DASHBOARD_ACTIONS } from '@/types/DashboardActions';
-import { useLeases } from '@/composables';
-import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
-import { useOracleStore } from '@/stores/oracle';
-import { DEFAULT_APR, DEFAULT_CURRENCY } from '@/config/env';
-import { storeToRefs } from 'pinia';
-import { LPN_CURRENCY } from '@/config/assetsInfo';
-import { CURRENCY_VIEW_TYPES } from '@/types/CurrencyViewType';
+import type { AssetBalance } from "@/stores/wallet/state";
+import { computed, ref, provide, onMounted, watch } from "vue";
+import { Coin, Dec, Int } from "@keplr-wallet/unit";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { DASHBOARD_ACTIONS } from "@/types/DashboardActions";
+import { useLeases } from "@/composables";
+import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
+import { useOracleStore } from "@/stores/oracle";
+import { DEFAULT_APR, DEFAULT_CURRENCY } from "@/config/env";
+import { storeToRefs } from "pinia";
+import { LPN_CURRENCY } from "@/config/assetsInfo";
+import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
@@ -292,14 +292,14 @@ const oracleRef = storeToRefs(oracle);
 const isAssetsLoading = ref(wallet.balances.length == 0);
 const showErrorDialog = ref(false);
 const loaded = wallet.balances.length > 0 && Object.keys(oracle.prices).length > 0;
-const animate = ref(loaded ? '' : 'fade');
-const errorMessage = ref('');
+const animate = ref(loaded ? "" : "fade");
+const errorMessage = ref("");
 
 const state = ref({
   showSmallBalances: true,
   showModal: false,
   modalAction: DASHBOARD_ACTIONS.SEND,
-  selectedAsset: '',
+  selectedAsset: "",
   availableAssets: new Dec(0),
   activeLeases: new Dec(0),
   suppliedAndStaked: new Dec(0),
@@ -317,16 +317,6 @@ onMounted(() => {
   availableAssets();
   wallet[WalletActionTypes.LOAD_STAKED_TOKENS]();
   wallet[WalletActionTypes.LOAD_SUPPLIED_AMOUNT]();
-  // await walletOperation(async () => {
-  //   const test = await wallet.wallet?.simulateSendIbcTokensTx({
-  //     toAddress: 'osmo1vp9j3x49j02w4qex8rguwmg3x4u4lqt2wdccha',
-  //       amount: coin(1, 'unls'),
-  //       sourcePort: 'transfer',
-  //       sourceChannel: 'channel-0',
-  //       memo: ''
-  //   });
-  //   console.log(test);
-  // }, '');
 });
 
 watch(walletRef.balances, () => {
@@ -361,7 +351,7 @@ const isTotalBalancePositive = computed(() => {
 
 const { leases, getLeases } = useLeases((error: Error | any) => {}, () => {});
 
-provide('getLeases', getLeases);
+provide("getLeases", getLeases);
 
 const activeLeases = computed(() => {
   let totalLeases = new Dec(0);
@@ -410,7 +400,7 @@ const availableAssets = () => {
 
   if(animate.value.length > 0 && totalAssets.gt(new Dec(0))){
     setTimeout(() => {
-      animate.value = '';
+      animate.value = "";
     }, 400);
   }
 };
@@ -445,10 +435,10 @@ const suppliedAndStaked = computed(() => {
 });
 
 const filterSmallBalances = (balances: AssetBalance[]) => {
-  return balances.filter((asset) => asset.balance.amount.gt(new Int('1')));
+  return balances.filter((asset) => asset.balance.amount.gt(new Int("1")));
 }
 
-const openModal = (action: DASHBOARD_ACTIONS, denom = '') => {
+const openModal = (action: DASHBOARD_ACTIONS, denom = "") => {
   state.value.selectedAsset = denom;
   state.value.modalAction = action;
   state.value.showModal = true;
@@ -460,7 +450,7 @@ const getAssetInfo = (denom: string) => {
 
 const getMarketPrice = (denom: string) => {
   const item = wallet.currencies[denom];
-  const price = oracle.prices?.[item?.symbol]?.amount ?? '0';
+  const price = oracle.prices?.[item?.symbol]?.amount ?? "0";
 
   return price;
 }

@@ -56,15 +56,15 @@
   </div>
 </template>
 <script setup lang="ts">
-import Picker, { type PickerOption } from '@/components/Picker.vue';
-import router from '@/router';
-import { onMounted, ref, computed, onUnmounted } from 'vue';
-import { EnvNetworkUtils, StringUtils, ThemeManager, WalletManager } from '@/utils';
-import { RouteNames } from '@/router/RouterNames';
-import { ApplicationActionTypes, useApplicationStore } from '@/stores/application';
-import { useWalletStore } from '@/stores/wallet';
-import { APPEARANCE } from '@/config/env';
-import { useI18n } from 'vue-i18n';
+import Picker, { type PickerOption } from "@/components/Picker.vue";
+import router from "@/router";
+import { onMounted, ref, computed, onUnmounted } from "vue";
+import { EnvNetworkUtils, StringUtils, ThemeManager, WalletManager } from "@/utils";
+import { RouteNames } from "@/router/RouterNames";
+import { ApplicationActionTypes, useApplicationStore } from "@/stores/application";
+import { useWalletStore } from "@/stores/wallet";
+import { APPEARANCE } from "@/config/env";
+import { useI18n } from "vue-i18n";
 
 const showWallet = ref(false);
 const currentNetwork = ref({} as PickerOption);

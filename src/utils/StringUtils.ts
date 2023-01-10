@@ -22,11 +22,11 @@ export class StringUtils {
   }
 
   public static capitalize(value: string): string {
-    if (typeof value !== 'string') return '';
+    if (typeof value !== "string") return "";
     return value.charAt(0).toUpperCase() + value.slice(1);
   }
 
   public static getDenomFromMinimalDenom(minimalDenom: string) {
-    return minimalDenom?.replace(minimalDenom[0], '');
+    return minimalDenom?.replace(minimalDenom[0], "");
   }
 }

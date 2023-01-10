@@ -1,5 +1,5 @@
-import { Buffer } from 'buffer';
-import { Hash } from '@keplr-wallet/crypto';
+import { Buffer } from "buffer";
+import { Hash } from "@keplr-wallet/crypto";
 export class AssetUtils {
 
   //Todo add to nolus.js
@@ -11,13 +11,13 @@ export class AssetUtils {
     let path = sourceChannelId.reduce((a, b) => {
       a += `transfer/${b}/`;
       return a;
-    }, '');
+    }, "");
     path+=`${coinMinimalDenom}`;
 
     return (
-      'ibc/' +
+      "ibc/" +
       Buffer.from(Hash.sha256(Buffer.from(path)))
-        .toString('hex')
+        .toString("hex")
         .toUpperCase()
     );
   }

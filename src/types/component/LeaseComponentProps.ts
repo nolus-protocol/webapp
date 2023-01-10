@@ -1,6 +1,6 @@
-import type { AssetBalance } from '@/stores/wallet/state';
-import type { Coin } from '@cosmjs/amino';
-import type { LeaseApply } from '@nolus/nolusjs/build/contracts';
+import type { AssetBalance } from "@/stores/wallet/state";
+import type { Coin } from "@cosmjs/amino";
+import type { LeaseApply } from "@nolus/nolusjs/build/contracts";
 
 export interface LeaseComponentProps {
   contractAddress: string;

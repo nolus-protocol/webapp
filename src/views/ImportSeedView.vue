@@ -55,28 +55,28 @@
 </template>
 
 <script setup lang="ts">
-import TextField from '@/components/TextField.vue';
-import router from '@/router';
-import ErrorDialog from '@/components/modals/ErrorDialog.vue';
-import Modal from '@/components/modals/templates/Modal.vue';
+import TextField from "@/components/TextField.vue";
+import router from "@/router";
+import ErrorDialog from "@/components/modals/ErrorDialog.vue";
+import Modal from "@/components/modals/templates/Modal.vue";
 
-import { ref } from 'vue';
-import { ArrowLeftIcon } from '@heroicons/vue/24/solid';
-import { useI18n } from 'vue-i18n';
-import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
-import { RouteNames } from '@/router/RouterNames';
+import { ref } from "vue";
+import { ArrowLeftIcon } from "@heroicons/vue/24/solid";
+import { useI18n } from "vue-i18n";
+import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
+import { RouteNames } from "@/router/RouterNames";
 
 const showError = ref(false);
-const modalErrorMessage = ref('');
-const importStr = ref('');
-const seedErrorMessage = ref('');
+const modalErrorMessage = ref("");
+const importStr = ref("");
+const seedErrorMessage = ref("");
 const i18n = useI18n();
 const wallet = useWalletStore();
 
 const clickTryAgain = async () => {
   showError.value = false;
-  modalErrorMessage.value = '';
-  importStr.value = '';
+  modalErrorMessage.value = "";
+  importStr.value = "";
 };
 
 const clickBack = () => {
@@ -85,14 +85,14 @@ const clickBack = () => {
 
 const clickImport = async () => {
   if (importStr.value.length == 0) {
-    seedErrorMessage.value = i18n.t('message.text-field-error');
+    seedErrorMessage.value = i18n.t("message.text-field-error");
     return;
   }
 
   try {
     await wallet[WalletActionTypes.CONNECT_VIA_MNEMONIC](importStr.value);
-    importStr.value = '';
-    seedErrorMessage.value = '';
+    importStr.value = "";
+    seedErrorMessage.value = "";
     await router.push({ name: RouteNames.SET_PASSWORD });
   } catch (e: Error | any) {
     showError.value = true;

@@ -42,11 +42,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
-// import Notifications from '@/components/Notifications.vue';
-import WalletOpen from '@/components/WalletOpen.vue';
-import LogoLink from '@/components/LogoLink.vue';
-import { useWalletStore } from '@/stores/wallet';
+import { onMounted, onUnmounted, ref } from "vue";
+// import Notifications from "@/components/Notifications.vue";
+import WalletOpen from "@/components/WalletOpen.vue";
+import LogoLink from "@/components/LogoLink.vue";
+import { useWalletStore } from "@/stores/wallet";
 
 const showWallet = ref(false);
 const showNotifications = ref(false);
@@ -55,11 +55,11 @@ const wallet = ref(null as HTMLDivElement | null);
 const walletStore = useWalletStore();
 
 onMounted(() => {
-  document.addEventListener('click', onClick);
+  document.addEventListener("click", onClick);
 });
 
 onUnmounted(() => {
-  document.removeEventListener('click', onClick);
+  document.removeEventListener("click", onClick);
 });
 
 const onClick = (event: MouseEvent) => {

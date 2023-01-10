@@ -1,11 +1,11 @@
-import type { LeaseData } from '@/types/LeaseData';
-import { ref, onMounted } from 'vue';
+import type { LeaseData } from "@/types/LeaseData";
+import { ref, onMounted } from "vue";
 
-import { NolusClient } from '@nolus/nolusjs';
-import { Lease, Leaser, type LeaseStatus } from '@nolus/nolusjs/build/contracts';
+import { NolusClient } from "@nolus/nolusjs";
+import { Lease, Leaser, type LeaseStatus } from "@nolus/nolusjs/build/contracts";
 
-import { CONTRACTS } from '@/config/contracts';
-import { WalletManager, EnvNetworkUtils } from '@/utils';
+import { CONTRACTS } from "@/config/contracts";
+import { WalletManager, EnvNetworkUtils } from "@/utils";
 
 export function useLeases(onError: (error: any) => void, showModal: () => void) {
   const leases = ref<LeaseData[]>([]);

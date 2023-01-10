@@ -106,22 +106,22 @@
 </template>
 
 <script setup lang="ts">
-import type { AssetBalance } from '@/stores/wallet/state';
-import { type PropType, ref, onMounted } from 'vue';
+import type { AssetBalance } from "@/stores/wallet/state";
+import { type PropType, ref, onMounted } from "vue";
 
-import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue';
-import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/vue/24/solid';
-import { useWalletStore } from '@/stores/wallet';
-import { DEFAULT_ASSET } from '@/config/env';
+import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from "@headlessui/vue";
+import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
+import { useWalletStore } from "@/stores/wallet";
+import { DEFAULT_ASSET } from "@/config/env";
 
 const props = defineProps({
   label: {
     type: String,
-    default: '',
+    default: "",
   },
   type: {
     type: String,
-    default: '',
+    default: "",
   },
   options: {
     type: Array as PropType<AssetBalance[]>,
@@ -138,7 +138,7 @@ const props = defineProps({
   },
   errorMsg: {
     type: String,
-    default: '',
+    default: "",
   },
 });
 

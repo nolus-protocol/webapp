@@ -48,11 +48,11 @@
 </template>
 
 <script lang="ts" setup>
-import type { AssetInfo } from '@/types';
-import type { PropType } from 'vue';
+import type { AssetInfo } from "@/types";
+import type { PropType } from "vue";
 
-import { CURRENCY_VIEW_TYPES } from '@/types/CurrencyViewType';
-import CurrencyComponent from '@/components/CurrencyComponent.vue';
+import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
+import CurrencyComponent from "@/components/CurrencyComponent.vue";
 
 
 defineProps({

@@ -1,8 +1,8 @@
-import { Web3AuthCore } from '@web3auth/core';
-import { CHAIN_NAMESPACES } from '@web3auth/base';
-import { OpenloginAdapter } from '@web3auth/openlogin-adapter';
-import { NETWORKS } from '@/config/env';
-import { EnvNetworkUtils } from './EnvNetworkUtils';
+import { Web3AuthCore } from "@web3auth/core";
+import { CHAIN_NAMESPACES } from "@web3auth/base";
+import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
+import { NETWORKS } from "@/config/env";
+import { EnvNetworkUtils } from "./EnvNetworkUtils";
 
 const configurations = NETWORKS[EnvNetworkUtils.getStoredNetworkName()]?.web3auth;
 
@@ -20,16 +20,16 @@ export class Web3AuthProvider {
       clientId,
       chainConfig: {
         chainNamespace: CHAIN_NAMESPACES.OTHER,
-        displayName: 'Nolus',
-        ticker: 'NLS',
-        tickerName: 'NOLUS',
+        displayName: "Nolus",
+        ticker: "NLS",
+        tickerName: "NOLUS",
       }
     });
     this.adapter = new OpenloginAdapter({
       adapterSettings: {
         network: configurations.network,
         clientId,
-        uxMode: 'redirect',
+        uxMode: "redirect",
         redirectUrl: `${window.location.origin}/auth/google`,
         loginConfig: {
           google: configurations.google,
@@ -51,7 +51,7 @@ export class Web3AuthProvider {
   }
 
   public async connect() {
-    await Web3AuthProvider.instance?.web3auth.connectTo(this.adapter.name, { loginProvider: 'google' });;
+    await Web3AuthProvider.instance?.web3auth.connectTo(this.adapter.name, { loginProvider: "google" });;
   }
 
   public static async logout() {

@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref } from "vue";
 
 const tooltip = ref(null as HTMLDivElement | null);
 const target = ref(null as HTMLDivElement | null);
@@ -31,7 +31,7 @@ const target = ref(null as HTMLDivElement | null);
 defineProps({
   content: {
     type: String,
-    default: '',
+    default: "",
   },
 });
 
@@ -49,12 +49,12 @@ const mouseover = (event: MouseEvent) => {
     element.style.top = `${top}px`;
   }
 
-  element.style.visibility = 'visible';
+  element.style.visibility = "visible";
 }
 
 const mouseleave = () => {
   const element = tooltip.value as HTMLDivElement;
-  element.style.visibility = 'hidden';
+  element.style.visibility = "hidden";
 }
 </script>
 <style scoped lang="scss">

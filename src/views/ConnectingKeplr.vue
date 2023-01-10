@@ -53,18 +53,18 @@
 </template>
 
 <script setup lang="ts">
-import router from '@/router';
-import Modal from '@/components/modals/templates/Modal.vue';
-import ErrorDialog from '@/components/modals/ErrorDialog.vue';
+import router from "@/router";
+import Modal from "@/components/modals/templates/Modal.vue";
+import ErrorDialog from "@/components/modals/ErrorDialog.vue";
 
-import { onMounted, ref } from 'vue';
-import { ArrowLeftIcon } from '@heroicons/vue/24/solid';
-import { WalletActionTypes, useWalletStore } from '@/stores/wallet';
-import { RouteNames } from '@/router/RouterNames';
+import { onMounted, ref } from "vue";
+import { ArrowLeftIcon } from "@heroicons/vue/24/solid";
+import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
+import { RouteNames } from "@/router/RouterNames";
 
 const wallet = useWalletStore();
 const showError = ref(false);
-const errorMessage = ref('');
+const errorMessage = ref("");
 
 const clickBack = () => {
   router.replace({ name: RouteNames.AUTH });
@@ -81,7 +81,7 @@ const connectKeplr = async () => {
 
 const clickTryAgain = async () => {
   showError.value = false;
-  errorMessage.value = '';
+  errorMessage.value = "";
   await connectKeplr();
 };
 

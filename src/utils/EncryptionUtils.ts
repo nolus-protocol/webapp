@@ -1,5 +1,5 @@
-import CryptoJS from 'crypto-js';
-import { Buffer } from 'buffer';
+import CryptoJS from "crypto-js";
+import { Buffer } from "buffer";
 
 export class EncryptionUtils {
   
@@ -9,7 +9,7 @@ export class EncryptionUtils {
   ): string {
     const passwordHash = Buffer.from(
       CryptoJS.SHA512(password).toString(),
-      'hex'
+      "hex"
     );
     const key = passwordHash.slice(0, 32);
     const iv = passwordHash.slice(32, 48);
@@ -25,7 +25,7 @@ export class EncryptionUtils {
   ): string {
     const passwordHash = Buffer.from(
       CryptoJS.SHA512(password).toString(),
-      'hex'
+      "hex"
     );
     const key = passwordHash.slice(0, 32);
     const iv = passwordHash.slice(32, 48);
@@ -43,7 +43,7 @@ export class EncryptionUtils {
     const passwordHash = CryptoJS.SHA512(password).toString();
     const doubleHash = Buffer.from(
       CryptoJS.SHA512(CryptoJS.SHA512(pubKey).toString()).toString(),
-      'hex'
+      "hex"
     );
 
     const iv = doubleHash.slice(0, 16);
@@ -61,7 +61,7 @@ export class EncryptionUtils {
     const passwordHash = CryptoJS.SHA512(password).toString();
     const doubleHash = Buffer.from(
       CryptoJS.SHA512(CryptoJS.SHA512(pubKey).toString()).toString(),
-      'hex'
+      "hex"
     );
     const iv = doubleHash.slice(0, 16);
     const decryptedData = CryptoJS.AES.decrypt(encPrivateKey, passwordHash, {

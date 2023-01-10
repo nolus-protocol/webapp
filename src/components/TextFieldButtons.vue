@@ -47,13 +47,13 @@
 </template>
 
 <script setup lang="ts">
-import { DocumentDuplicateIcon, PrinterIcon } from '@heroicons/vue/24/solid';
-import { onUnmounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { DocumentDuplicateIcon, PrinterIcon } from "@heroicons/vue/24/solid";
+import { onUnmounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 let timeOut: NodeJS.Timeout;
 const i18n = useI18n();
-const copyText = ref(i18n.t('message.copy'));
+const copyText = ref(i18n.t("message.copy"));
 
 defineProps({
   name: {
@@ -74,7 +74,7 @@ defineProps({
   },
   errorMsg: {
     type: String,
-    default: '',
+    default: "",
   },
   onClickCopy: {
     type: Function,
@@ -93,12 +93,12 @@ onUnmounted(() => {
 });
 
 const onCopy = () => {
-  copyText.value = i18n.t('message.copied');
+  copyText.value = i18n.t("message.copied");
   if(timeOut){
     clearTimeout(timeOut);
   }
   timeOut = setTimeout(() => {
-    copyText.value = i18n.t('message.copy');
+    copyText.value = i18n.t("message.copy");
   }, 2000);
 }
 </script>

@@ -48,18 +48,18 @@
 </template>
 
 <script setup lang="ts">
-import type { Coin } from '@cosmjs/proto-signing';
+import type { Coin } from "@cosmjs/proto-signing";
 
-import HistoryTableHeader from '@/components/HistoryComponents/HistoryTableHeader.vue';
-import HistoryTableItem from '@/components/HistoryComponents/HistoryTableItem.vue';
-import Modal from '@/components/modals/templates/Modal.vue';
-import ErrorDialog from '@/components/modals/ErrorDialog.vue';
+import HistoryTableHeader from "@/components/HistoryComponents/HistoryTableHeader.vue";
+import HistoryTableItem from "@/components/HistoryComponents/HistoryTableItem.vue";
+import Modal from "@/components/modals/templates/Modal.vue";
+import ErrorDialog from "@/components/modals/ErrorDialog.vue";
 
-import { WalletActionTypes } from '@/stores/wallet/action-types';
-import { onMounted, ref, watch } from 'vue';
-import { useWalletStore } from '@/stores/wallet';
-import { storeToRefs } from 'pinia';
-import { computed } from '@vue/reactivity';
+import { WalletActionTypes } from "@/stores/wallet/action-types";
+import { onMounted, ref, watch } from "vue";
+import { useWalletStore } from "@/stores/wallet";
+import { storeToRefs } from "pinia";
+import { computed } from "@vue/reactivity";
 
 export interface ITransaction {
   id: string;

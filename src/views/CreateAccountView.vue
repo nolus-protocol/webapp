@@ -99,32 +99,32 @@
 </template>
 
 <script setup lang="ts">
-import TextFieldButtons from '@/components/TextFieldButtons.vue';
-import SelectorTextField from '@/components/SelectorTextField.vue';
-import router from '@/router';
-import ErrorDialog from '@/components/modals/ErrorDialog.vue';
-import Modal from '@/components/modals/templates/Modal.vue';
+import TextFieldButtons from "@/components/TextFieldButtons.vue";
+import SelectorTextField from "@/components/SelectorTextField.vue";
+import router from "@/router";
+import ErrorDialog from "@/components/modals/ErrorDialog.vue";
+import Modal from "@/components/modals/templates/Modal.vue";
 
-import { onMounted, ref, type Ref } from 'vue';
-import { ArrowLeftIcon } from '@heroicons/vue/24/solid';
-import { KeyUtils } from '@nolus/nolusjs';
-import { StringUtils } from '@/utils';
-import { useI18n } from 'vue-i18n';
-import { RouteNames } from '@/router/RouterNames';
-import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
+import { onMounted, ref, type Ref } from "vue";
+import { ArrowLeftIcon } from "@heroicons/vue/24/solid";
+import { KeyUtils } from "@nolus/nolusjs";
+import { StringUtils } from "@/utils";
+import { useI18n } from "vue-i18n";
+import { RouteNames } from "@/router/RouterNames";
+import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 
 const isCreateFormOpen = ref(true);
-const mnemonic = ref('');
+const mnemonic = ref("");
 const mnemonicWords = ref([] as string[]);
 const showErrorModal = ref(false);
-const errorMessage = ref('');
+const errorMessage = ref("");
 const i18n = useI18n();
 const selector: Ref<typeof SelectorTextField> = ref(SelectorTextField);
 const wallet = useWalletStore();
 
 onMounted(() => {
   mnemonic.value = KeyUtils.generateMnemonic();
-  const words = mnemonic.value.split(' ');
+  const words = mnemonic.value.split(" ");
   for (let i = 0; i < words.length; i++) {
     words[i] = words[i].trim();
   }
@@ -168,25 +168,25 @@ const clickBack = () => {
 
 const clickTryAgain = () => {
   showErrorModal.value = false;
-  errorMessage.value = '';
+  errorMessage.value = "";
   selector?.value?.onRefresh();
 };
 
 const confirmMnemonic = async (value: string[]) => {
-  let confirmMnemonic = '';
+  let confirmMnemonic = "";
   value.forEach((word) => {
-    confirmMnemonic += ' ' + word;
+    confirmMnemonic += " " + word;
   });
 
   if (mnemonic.value.trim() !== confirmMnemonic.trim()) {
     showErrorModal.value = true;
-    errorMessage.value = i18n.t('message.mnemonic-error');
+    errorMessage.value = i18n.t("message.mnemonic-error");
     return;
   }
 
   try {
     await wallet[WalletActionTypes.CONNECT_VIA_MNEMONIC](mnemonic.value);
-    mnemonic.value = '';
+    mnemonic.value = "";
     await router.push({ name: RouteNames.SET_PASSWORD });
   } catch (e: Error | any) {
     showErrorModal.value = true;

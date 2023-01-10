@@ -97,15 +97,15 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch, type PropType } from 'vue';
+import { onMounted, ref, watch, type PropType } from "vue";
 import {
   Listbox,
   ListboxButton,
   ListboxLabel,
   ListboxOption,
   ListboxOptions,
-} from '@headlessui/vue';
-import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/vue/24/solid';
+} from "@headlessui/vue";
+import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
 
 export interface PickerOption {
   id?: string;
@@ -120,7 +120,7 @@ const props = defineProps({
   },
   type: {
     type: String,
-    default: ''
+    default: ""
   },
   defaultOption: {
     type: Object as PropType<PickerOption>,

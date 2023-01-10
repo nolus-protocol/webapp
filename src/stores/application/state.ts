@@ -1,4 +1,4 @@
-import type { NetworkConfig } from '@/types/NetworkConfig';
+import type { NetworkConfig } from "@/types/NetworkConfig";
 
 export type State = {
   network: NetworkConfig;

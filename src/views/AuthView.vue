@@ -10,5 +10,5 @@
 </template>
 
 <script setup lang="ts">
-import LogoLink from '@/components/LogoLink.vue';
+import LogoLink from "@/components/LogoLink.vue";
 </script>

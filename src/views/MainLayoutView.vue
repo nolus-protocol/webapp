@@ -37,17 +37,17 @@
 </template>
 
 <script lang="ts" setup>
-import SidebarContainer from '@/components/SidebarContainer.vue';
-import SidebarHeader from '@/components/Sideheader.vue';
-import Snackbar from '@/components/templates/utils/Snackbar.vue';
-import Modal from '@/components/modals/templates/Modal.vue';
-import ErrorDialog from '@/components/modals/ErrorDialog.vue';
+import SidebarContainer from "@/components/SidebarContainer.vue";
+import SidebarHeader from "@/components/Sideheader.vue";
+import Snackbar from "@/components/templates/utils/Snackbar.vue";
+import Modal from "@/components/modals/templates/Modal.vue";
+import ErrorDialog from "@/components/modals/ErrorDialog.vue";
 
-import { SNACKBAR, UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL } from '@/config/env';
-import { OracleActionTypes, useOracleStore } from '@/stores/oracle';
-import { useWalletStore, WalletActionTypes } from '@/stores/wallet';
-import { WalletManager } from '@/utils';
-import { onMounted, onUnmounted, provide, ref, type Ref } from 'vue';
+import { SNACKBAR, UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL } from "@/config/env";
+import { OracleActionTypes, useOracleStore } from "@/stores/oracle";
+import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
+import { WalletManager } from "@/utils";
+import { onMounted, onUnmounted, provide, ref, type Ref } from "vue";
 
 let balanceInterval: NodeJS.Timeout | undefined;
 let pricesInterval: NodeJS.Timeout | undefined;
@@ -56,10 +56,10 @@ const oracle = useOracleStore();
 const snackbar: Ref<typeof Snackbar> = ref(Snackbar);
 
 const showErrorDialog = ref(false);
-const errorMessage = ref('');
+const errorMessage = ref("");
 const snackbarState = ref({
   type: SNACKBAR.Queued,
-  transaction: 'transaction'
+  transaction: "transaction"
 });
 
 onMounted(async () => {
@@ -94,7 +94,7 @@ const loadNetwork = async () => {
 const checkBalances = async () => {
   balanceInterval = setInterval(async () => {
     try {
-      if (WalletManager.getWalletAddress() !== '') {
+      if (WalletManager.getWalletAddress() !== "") {
         await wallet[WalletActionTypes.UPDATE_BALANCES]();
       }
     } catch (error: Error | any) {
@@ -126,8 +126,8 @@ const snackbarVisible = () => {
   return snackbar.value.snackbarVisible();
 }
 
-provide('showSnackbar', showSnackbar);
-provide('snackbarVisible', snackbarVisible);
+provide("showSnackbar", showSnackbar);
+provide("snackbarVisible", snackbarVisible);
 
 </script>
 

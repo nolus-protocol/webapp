@@ -176,18 +176,18 @@
 </template>
 
 <script lang="ts" setup>
-import type { AssetInfo } from '@/types';
-import { computed, type PropType } from 'vue';
-import { Coin, Int } from '@keplr-wallet/unit';
-import { CurrencyUtils } from '@nolus/nolusjs';
-import CurrencyComponent from '@/components/CurrencyComponent.vue';
+import type { AssetInfo } from "@/types";
+import { computed, type PropType } from "vue";
+import { Coin, Int } from "@keplr-wallet/unit";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import CurrencyComponent from "@/components/CurrencyComponent.vue";
 
-import { DASHBOARD_ACTIONS } from '@/types';
-import { DEFAULT_CURRENCY, DEFAULT_LEASE_UP_PERCENT, GROUPS, LEASE_UP_COEFICIENT, NETWORKS } from '@/config/env';
-import { CURRENCY_VIEW_TYPES } from '@/types/CurrencyViewType';
-import { useWalletStore } from '@/stores/wallet';
-import { NATIVE_CURRENCY } from '@/config/assetsInfo';
-import { EnvNetworkUtils } from '@/utils';
+import { DASHBOARD_ACTIONS } from "@/types";
+import { DEFAULT_CURRENCY, DEFAULT_LEASE_UP_PERCENT, GROUPS, LEASE_UP_COEFICIENT, NETWORKS } from "@/config/env";
+import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
+import { useWalletStore } from "@/stores/wallet";
+import { NATIVE_CURRENCY } from "@/config/assetsInfo";
+import { EnvNetworkUtils } from "@/utils";
 const stakingUrl = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].staking;
 
 const walletStore = useWalletStore();

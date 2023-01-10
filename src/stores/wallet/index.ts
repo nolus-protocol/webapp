@@ -1,34 +1,34 @@
-import KeplrEmbedChainInfo from '@/config/keplr';
-import router from '@/router';
-import BluetoothTransport from '@ledgerhq/hw-transport-web-ble';
-import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
-import CURRENCIES from '@/config/currencies.json';
+import KeplrEmbedChainInfo from "@/config/keplr";
+import router from "@/router";
+import BluetoothTransport from "@ledgerhq/hw-transport-web-ble";
+import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
+import CURRENCIES from "@/config/currencies.json";
 
-import type { HdPath } from '@cosmjs/crypto';
-import type { State } from '@/stores/wallet/state';
-import type { Window as KeplrWindow } from '@keplr-wallet/types/build/window';
-import type { TxSearchResponse } from '@cosmjs/tendermint-rpc';
+import type { HdPath } from "@cosmjs/crypto";
+import type { State } from "@/stores/wallet/state";
+import type { Window as KeplrWindow } from "@keplr-wallet/types/build/window";
+import type { TxSearchResponse } from "@cosmjs/tendermint-rpc";
 
-import { WalletConnectMechanism } from '@/types';
-import { defineStore } from 'pinia';
-import { WalletActionTypes } from '@/stores/wallet/action-types';
-import { EncryptionUtils, EnvNetworkUtils, KeyUtils as KeyUtilities, WalletUtils, AssetUtils, Web3AuthProvider, WalletManager } from '@/utils';
-import { makeCosmoshubPath } from '@cosmjs/amino';
-import { CurrencyUtils, KeyUtils, NolusClient, NolusWalletFactory } from '@nolus/nolusjs';
-import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
-import { ChainConstants } from '@nolus/nolusjs/build/constants';
-import { fromHex, toHex } from '@cosmjs/encoding';
-import { RouteNames } from '@/router/RouterNames';
-import { LedgerSigner } from '@cosmjs/ledger-amino';
-import { decodeTxRaw, type DecodedTxRaw, } from '@cosmjs/proto-signing';
-import { NETWORKS } from '@/config/env';
-import { ASSETS } from '@/config/assetsInfo';
-import { ADAPTER_STATUS } from '@web3auth/base';
-import { Buffer } from 'buffer';
-import { Lpp } from '@nolus/nolusjs/build/contracts';
-import { CONTRACTS } from '@/config/contracts';
+import { WalletConnectMechanism } from "@/types";
+import { defineStore } from "pinia";
+import { WalletActionTypes } from "@/stores/wallet/action-types";
+import { EncryptionUtils, EnvNetworkUtils, KeyUtils as KeyUtilities, WalletUtils, AssetUtils, Web3AuthProvider, WalletManager } from "@/utils";
+import { makeCosmoshubPath } from "@cosmjs/amino";
+import { CurrencyUtils, KeyUtils, NolusClient, NolusWalletFactory } from "@nolus/nolusjs";
+import { DirectSecp256k1Wallet } from "@cosmjs/proto-signing";
+import { ChainConstants } from "@nolus/nolusjs/build/constants";
+import { fromHex, toHex } from "@cosmjs/encoding";
+import { RouteNames } from "@/router/RouterNames";
+import { LedgerSigner } from "@cosmjs/ledger-amino";
+import { decodeTxRaw, type DecodedTxRaw, } from "@cosmjs/proto-signing";
+import { NETWORKS } from "@/config/env";
+import { ASSETS } from "@/config/assetsInfo";
+import { ADAPTER_STATUS } from "@web3auth/base";
+import { Buffer } from "buffer";
+import { Lpp } from "@nolus/nolusjs/build/contracts";
+import { CONTRACTS } from "@/config/contracts";
 
-const useWalletStore = defineStore('wallet', {
+const useWalletStore = defineStore("wallet", {
   state: () => {
     return {
       torusClient: null,
@@ -38,7 +38,7 @@ const useWalletStore = defineStore('wallet', {
       balances: [],
       currencies: {},
       stakingBalance: null,
-      suppliedBalance: '0'
+      suppliedBalance: "0"
     } as State;
   },
   actions: {
@@ -50,13 +50,13 @@ const useWalletStore = defineStore('wallet', {
       const keplrWindow = window as KeplrWindow;
 
       if (!keplrWindow.getOfflineSignerAuto || !keplrWindow.keplr) {
-        throw new Error('Keplr wallet is not installed.');
+        throw new Error("Keplr wallet is not installed.");
       } else if (!keplrWindow.keplr.experimentalSuggestChain) {
         throw new Error(
-          'Keplr version is not latest. Please upgrade your Keplr wallet'
+          "Keplr version is not latest. Please upgrade your Keplr wallet"
         );
       } else {
-        let chainId = '';
+        let chainId = "";
 
         try {
           chainId = await NolusClient.getInstance().getChainId();
@@ -70,7 +70,7 @@ const useWalletStore = defineStore('wallet', {
             )
           );
         } catch (e) {
-          throw new Error('Failed to fetch suggest chain.');
+          throw new Error("Failed to fetch suggest chain.");
         }
 
         await keplrWindow.keplr?.enable(chainId);
@@ -89,7 +89,7 @@ const useWalletStore = defineStore('wallet', {
           );
 
           WalletManager.storeWalletAddress(
-            nolusWalletOfflineSigner.address || ''
+            nolusWalletOfflineSigner.address || ""
           );
 
           if (payload?.isFromAuth) {
@@ -132,7 +132,7 @@ const useWalletStore = defineStore('wallet', {
               ? WalletConnectMechanism.LEDGER_BLUETOOTH
               : WalletConnectMechanism.LEDGER
           );
-          WalletManager.storeWalletAddress(ledgerWallet.address || '');
+          WalletManager.storeWalletAddress(ledgerWallet.address || "");
 
           if (payload?.isFromAuth) {
             await router.push({ name: RouteNames.SET_WALLET_NAME });
@@ -148,7 +148,7 @@ const useWalletStore = defineStore('wallet', {
       let privateKey: Uint8Array;
 
       if (KeyUtilities.isPrivateKey(mnemonic)) {
-        privateKey = Buffer.from(mnemonic.trim().replace('0x', ''), 'hex');
+        privateKey = Buffer.from(mnemonic.trim().replace("0x", ""), "hex");
       } else {
         const accountNumbers = [0];
         const path: HdPath | any = accountNumbers.map(makeCosmoshubPath)[0];
@@ -165,7 +165,7 @@ const useWalletStore = defineStore('wallet', {
       this.privateKey = toHex(privateKey);
     },
     [WalletActionTypes.STORE_PRIVATE_KEY](password: string) {
-      const privateKey = this.privateKey ?? '';
+      const privateKey = this.privateKey ?? "";
       if (privateKey.length > 0 && password?.length > 0) {
         const pubKey = toHex(this.wallet?.pubKey || new Uint8Array(0));
         const encryptedPbKey = EncryptionUtils.encryptEncryptionKey(
@@ -181,7 +181,7 @@ const useWalletStore = defineStore('wallet', {
         WalletManager.saveWalletConnectMechanism(
           WalletConnectMechanism.MNEMONIC
         );
-        WalletManager.storeWalletAddress(this.wallet?.address ?? '');
+        WalletManager.storeWalletAddress(this.wallet?.address ?? "");
         WalletManager.storeEncryptedPubKey(encryptedPbKey);
         WalletManager.storeEncryptedPk(encryptedPk);
         this.privateKey = null;
@@ -189,7 +189,7 @@ const useWalletStore = defineStore('wallet', {
     },
     async [WalletActionTypes.UPDATE_BALANCES]() {
       try {
-        const walletAddress = WalletManager.getWalletAddress() || '';
+        const walletAddress = WalletManager.getWalletAddress() || "";
 
         if (!WalletUtils.isAuth()) {
           WalletManager.eraseWalletInfo();
@@ -225,7 +225,7 @@ const useWalletStore = defineStore('wallet', {
     },
     async [WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN](payload: { password: string }) {
 
-      if (this.privateKey === null && payload.password !== '') {
+      if (this.privateKey === null && payload.password !== "") {
         const encryptedPubKey = WalletManager.getEncryptedPubKey();
         const encryptedPk = WalletManager.getPrivateKey();
         const decryptedPubKey = EncryptionUtils.decryptEncryptionKey(encryptedPubKey, payload.password);
@@ -246,8 +246,8 @@ const useWalletStore = defineStore('wallet', {
       if (address?.length > 0) {
         const client = await NolusClient.getInstance().getTendermintClient();
         const [sender, receiver] = await Promise.all([
-          load_sender ? client.txSearch({ query: `message.sender='${WalletManager.getWalletAddress()}'`, per_page: sender_per_page, page: sender_page, order_by: 'desc' }) : false,
-          load_recipient ? client.txSearch({ query: `transfer.recipient='${WalletManager.getWalletAddress()}'`, per_page: recipient_per_page, page: recipient_page, order_by: 'desc' }) : false
+          load_sender ? client.txSearch({ query: `message.sender="${WalletManager.getWalletAddress()}"`, per_page: sender_per_page, page: sender_page, order_by: "desc" }) : false,
+          load_recipient ? client.txSearch({ query: `transfer.recipient="${WalletManager.getWalletAddress()}"`, per_page: recipient_per_page, page: recipient_page, order_by: "desc" }) : false
         ]);
         const data = [];
         let sender_total = 0;
@@ -260,14 +260,14 @@ const useWalletStore = defineStore('wallet', {
             try {
               const rawTx = JSON.parse(item.result.log as string);
               const transactionResult = {
-                id: item.hash ? toHex(item.hash) : '',
-                height: item.height ?? '',
-                receiver: (rawTx[0].events[3].attributes[0].value ?? '') as string,
-                sender: (rawTx[0].events[3].attributes[1].value ?? '') as string,
-                action: (rawTx[0].events[3].type ?? '') as string,
-                msg: '',
+                id: item.hash ? toHex(item.hash) : "",
+                height: item.height ?? "",
+                receiver: (rawTx[0].events[3].attributes[0].value ?? "") as string,
+                sender: (rawTx[0].events[3].attributes[1].value ?? "") as string,
+                action: (rawTx[0].events[3].type ?? "") as string,
+                msg: "",
                 blockDate: null,
-                memo: decodedTx.body.memo ?? '',
+                memo: decodedTx.body.memo ?? "",
                 fee: decodedTx?.authInfo?.fee?.amount.filter(
                   (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
                 ) || null,
@@ -275,14 +275,14 @@ const useWalletStore = defineStore('wallet', {
               data.push(transactionResult);
             } catch (error) {
               const transactionResult = {
-                id: item.hash ? toHex(item.hash) : '',
-                height: item.height ?? '',
-                receiver: '',
-                sender: '',
-                action: 'Error',
+                id: item.hash ? toHex(item.hash) : "",
+                height: item.height ?? "",
+                receiver: "",
+                sender: "",
+                action: "Error",
                 msg: item.result.log as string,
                 blockDate: null,
-                memo: decodedTx.body.memo ?? '',
+                memo: decodedTx.body.memo ?? "",
                 fee: decodedTx?.authInfo?.fee?.amount.filter(
                   (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
                 ) || null,
@@ -299,14 +299,14 @@ const useWalletStore = defineStore('wallet', {
             try {
               const rawTx = JSON.parse(item.result.log as string);
               const transactionResult = {
-                id: item.hash ? toHex(item.hash) : '',
-                height: item.height ?? '',
-                receiver: (rawTx[0].events[3].attributes[0].value ?? '') as string,
-                sender: (rawTx[0].events[3].attributes[1].value ?? '') as string,
-                action: (rawTx[0].events[3].type ?? '') as string,
-                msg: '',
+                id: item.hash ? toHex(item.hash) : "",
+                height: item.height ?? "",
+                receiver: (rawTx[0].events[3].attributes[0].value ?? "") as string,
+                sender: (rawTx[0].events[3].attributes[1].value ?? "") as string,
+                action: (rawTx[0].events[3].type ?? "") as string,
+                msg: "",
                 blockDate: null,
-                memo: decodedTx.body.memo ?? '',
+                memo: decodedTx.body.memo ?? "",
                 fee: decodedTx?.authInfo?.fee?.amount.filter(
                   (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
                 ) || null,
@@ -314,14 +314,14 @@ const useWalletStore = defineStore('wallet', {
               data.push(transactionResult);
             } catch (error) {
               const transactionResult = {
-                id: item.hash ? toHex(item.hash) : '',
-                height: item.height ?? '',
-                receiver: '',
-                sender: '',
-                action: 'Error',
+                id: item.hash ? toHex(item.hash) : "",
+                height: item.height ?? "",
+                receiver: "",
+                sender: "",
+                action: "Error",
                 msg: item.result.log as string,
                 blockDate: null,
-                memo: decodedTx.body.memo ?? '',
+                memo: decodedTx.body.memo ?? "",
                 fee: decodedTx?.authInfo?.fee?.amount.filter(
                   (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
                 ) || null,
@@ -367,8 +367,8 @@ const useWalletStore = defineStore('wallet', {
         const start = new Date(accData.start_time * 1000);
         const end = new Date(vesting_account.end_time * 1000);
 
-        const from = `${start.toLocaleDateString('en-US', { day: '2-digit' })}/${start.toLocaleDateString('en-US', { month: '2-digit' })}/${start.toLocaleDateString('en-US', { year: 'numeric' })}`;
-        const to = `${end.toLocaleDateString('en-US', { day: '2-digit' })}/${end.toLocaleDateString('en-US', { month: '2-digit' })}/${end.toLocaleDateString('en-US', { year: 'numeric' })}`;
+        const from = `${start.toLocaleDateString("en-US", { day: "2-digit" })}/${start.toLocaleDateString("en-US", { month: "2-digit" })}/${start.toLocaleDateString("en-US", { year: "numeric" })}`;
+        const to = `${end.toLocaleDateString("en-US", { day: "2-digit" })}/${end.toLocaleDateString("en-US", { month: "2-digit" })}/${end.toLocaleDateString("en-US", { year: "numeric" })}`;
 
         items.push({
           endTime: `${from} - ${to}`,
@@ -392,7 +392,7 @@ const useWalletStore = defineStore('wallet', {
 
           if (KeyUtilities.isPrivateKey(privateKeyStr as string)) {
 
-            const privateKey = Buffer.from(privateKeyStr as string, 'hex');
+            const privateKey = Buffer.from(privateKeyStr as string, "hex");
             const directSecrWallet = await DirectSecp256k1Wallet.fromKey(
               privateKey,
               ChainConstants.BECH32_PREFIX_ACC_ADDR
@@ -453,7 +453,7 @@ const useWalletStore = defineStore('wallet', {
 
         if (!currency) {
           return {
-            ticker: 'NLS',
+            ticker: "NLS",
             coinDenom: ASSETS.NLS.abbreviation,
             coinMinimalDenom: denom,
             coinDecimals: Number(CURRENCIES.currencies.NLS.decimal_digits),

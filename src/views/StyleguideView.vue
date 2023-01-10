@@ -1591,24 +1591,22 @@
 </template>
 
 <script setup lang="ts">
-import { BellIcon } from '@heroicons/vue/24/solid';
-import LogoLink from '@/components/LogoLink.vue';
+import { BellIcon } from "@heroicons/vue/24/solid";
+import LogoLink from "@/components/LogoLink.vue";
 
-import SidebarElement from '@/components/SidebarElement.vue';
-import HistoryView from '@/views/HistoryView.vue';
-import AuthView from '@/views/AuthView.vue';
-import SidebarHeader from '@/components/Sideheader.vue';
-import SnackBar from '@/components/templates/utils/Snackbar.vue';
-import RepayMainComponent from '@/components/RepayComponents/RepayMainComponent.vue';
-import LeaseMainComponent from '@/components/LeaseComponents/LeaseMainComponent.vue';
-import { onMounted, ref } from 'vue';
+import SidebarElement from "@/components/SidebarElement.vue";
+import HistoryView from "@/views/HistoryView.vue";
+import AuthView from "@/views/AuthView.vue";
+import SidebarHeader from "@/components/Sideheader.vue";
+import LeaseMainComponent from "@/components/LeaseComponents/LeaseMainComponent.vue";
+import { onMounted, ref } from "vue";
 import {
   DISCORD_ACCOUNT,
   MEDIUM_ACCOUNT,
   REDDIT_ACCOUNT,
   TELEGRAM_ACCOUNT,
   TWITTER_ACCOUNT,
-} from '@/config/globals';
+} from "@/config/globals";
 
 const showSwapModal = ref(false as boolean);
 const showRepayModal = ref(false as boolean);

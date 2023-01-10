@@ -1,4 +1,4 @@
-import { Buffer } from 'buffer';
+import { Buffer } from "buffer";
 
 export class KeyUtils {
   public static isPrivateKey(str: string): boolean {
