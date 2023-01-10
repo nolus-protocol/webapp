@@ -68,7 +68,6 @@ const onClickOkBtn = () => {
 
 onUnmounted(() => {
   if(CONFIRM_STEP.PENDING == step.value){
-    console.log(state.value)
     showSnackbar(SNACKBAR.Queued, state.value.txHash);
   }
 });
