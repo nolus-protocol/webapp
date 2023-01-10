@@ -1,5 +1,8 @@
 import nlsIcon from '@/assets/icons/coins/nls.svg';
+import osmoIcon from '@/assets/icons/coins/osmosis.svg';
+
 import type { NetworkAddress } from '@/types';
+
 export const DEFAULT_PRIMARY_NETWORK = 'devnet';
 
 export const NETWORKS: { [key: string]: NetworkAddress } = {
@@ -82,9 +85,29 @@ export const DEFAULT_CURRENCY = {
 }
 
 export const DEFAULT_NETWORK = {
-  value: 'NLS',
-  label: 'NLS',
+  prefix: 'nolus',
+  value: 'nls',
+  label: 'Nolus',
+  icon: nlsIcon,
+  native: true,
+  estimation: 6,
+  sourcePort: '',
+  sourceChannel: '',
 };
+
+export const SUPPORTED_NETWORKS = [
+  DEFAULT_NETWORK,
+  {
+    prefix: 'osmo',
+    value: 'osmo',
+    label: 'Osmosis',
+    icon: osmoIcon,
+    native: false,
+    estimation: 20,
+    sourcePort: 'transfer',
+    sourceChannel: 'channel-0',
+  }
+]
 
 export const DEFAULT_ASSET = {
   ticker: 'NLS',

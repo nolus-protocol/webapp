@@ -29,8 +29,9 @@ import { CONFIRM_STEP } from '@/types/ConfirmStep';
 import { TxType } from '@/types/TxType';
 import { useWalletStore } from '@/stores/wallet';
 import { computed, inject, onUnmounted, ref } from 'vue';
-import { DEFAULT_ASSET, GAS_FEES, SNACKBAR } from '@/config/env';
-import { coin } from '@cosmjs/amino';
+import { DEFAULT_ASSET, GAS_FEES, SNACKBAR, SUPPORTED_NETWORKS } from '@/config/env';
+import { coin, type Coin } from '@cosmjs/amino';
+import { CurrencyUtils } from '@nolus/nolusjs';
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const walletStore = useWalletStore();
@@ -47,6 +48,7 @@ const state = ref({
   selectedCurrency: balances.value[0],
   amount: '',
   memo: '',
+  network: SUPPORTED_NETWORKS[0],
   receiverAddress: '',
   password: '',
   onNextClick,
@@ -66,6 +68,7 @@ const onClickOkBtn = () => {
 
 onUnmounted(() => {
   if(CONFIRM_STEP.PENDING == step.value){
+    console.log(state.value)
     showSnackbar(SNACKBAR.Queued, state.value.txHash);
   }
 });
@@ -81,8 +84,8 @@ const validateInputs = () => {
 }
 
 const onSendClick = async () => {
-  try{
-    await walletOperation(transferAmount, state.value.password);
+  try{  
+    await walletOperation(state.value.network.native ? transferAmount : ibcTransfer, state.value.password);
   }catch(error: Error | any){
     step.value = CONFIRM_STEP.ERROR;
   }
@@ -90,6 +93,7 @@ const onSendClick = async () => {
 
 const transferAmount = async () => {
   step.value = CONFIRM_STEP.PENDING;
+
   const { success, txHash, txBytes, usedFee } = await transferCurrency(
     state.value.selectedCurrency.balance.denom,
     state.value.amount,
@@ -116,6 +120,51 @@ const transferAmount = async () => {
     }
 
   }else{
+    step.value  = CONFIRM_STEP.ERROR;
+  }
+
+}
+
+const ibcTransfer = async () => {
+  try{
+    const wallet = walletStore.wallet;
+    const denom = state.value.selectedCurrency.balance.denom;
+    if(wallet){
+      step.value = CONFIRM_STEP.PENDING;
+      const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom);
+      const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
+        state.value.amount,
+        coinMinimalDenom,
+        coinDecimals
+      );
+      const funds: Coin = {
+        amount: minimalDenom.amount.toString(),
+        denom,
+      };
+      
+      const { txHash, txBytes, usedFee }  = await wallet.simulateSendIbcTokensTx({
+        toAddress: state.value.receiverAddress,
+          amount: funds,
+          sourcePort: state.value.network.sourcePort,
+          sourceChannel: state.value.network.sourceChannel,
+          memo: ''
+      });
+
+      state.value.txHash = txHash;
+
+      if(usedFee?.amount?.[0]){
+        state.value.fee = usedFee.amount[0];
+      }
+
+      const tx = await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
+      const isSuccessful = tx?.code === 0;
+      step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
+      if(snackbarVisible()){
+        showSnackbar(isSuccessful ? SNACKBAR.Success: SNACKBAR.Error, txHash);
+      }
+      
+    }
+  }catch(error){
     step.value  = CONFIRM_STEP.ERROR;
   }
 

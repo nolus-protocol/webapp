@@ -1,6 +1,6 @@
 <template>
   <div
-    class="block rounded-2xl background -mt-8 md:mt-auto pb-[300px] md:pb-10 pt-6 md:border nls-border shadow-box lg:w-[516px] outline"
+    class="block md:rounded-2xl rounded-t-2xl background md:mt-auto pb-[300px] md:pb-10 pt-6 md:border nls-border shadow-box lg:w-[516px] outline h-full md:h-auto"
   >
     <h1 class="text-to-big-number text-primary text-center relative">
       <button
@@ -23,7 +23,7 @@
       <p class="text-14 nls-font-400 text-primary relative z-[2]">
         {{ $t('message.approving-extension') }}
       </p>
-      <div class="md:flex mt-6">
+      <div class="mt-6 md:flex hidden">
         <button
           class="btn btn-primary btn-large-primary mr-4 js-loading -px-20"
         >
@@ -32,15 +32,13 @@
         <div class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"></div>
       </div>
     </div>
+    <div class="md:hidden flex align-center justify-center px-4 pt-8 text-center mx-auto background inset-x-0 bottom-0 md:relative">
+      <button class="btn btn-primary btn-large-primary js-loading w-full">
+        {{ $t('message.connecting') }}
+      </button>
+    </div>
   </div>
 
-  <div class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
-
-  <div class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal">
-    <button class="btn btn-primary btn-large-primary mr-4 js-loading -px-20 w-80">
-      {{ $t('message.connecting') }}
-    </button>
-  </div>
   <Modal 
     v-if="showError" 
     @close-modal="showError = false; goToAuth()" 

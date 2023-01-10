@@ -37,7 +37,7 @@
         </p>
         <button
           class="btn btn-secondary btn-medium-secondary flex btn-icon mt-2"
-          @click="modelValue.onCopyClick;onCopy()"
+          @click="modelValue.onCopyClick();onCopy()"
         >
           <DocumentDuplicateIcon class="icon w-4 h-4" />
           {{ copyText }}
@@ -68,7 +68,7 @@ import { useI18n } from 'vue-i18n';
 export interface ReceiveQrCodeComponentProps {
   walletAddress: string;
   onBackClick: () => void;
-  onCopyClick: () => void;
+  onCopyClick: (wallet?: string) => void;
 }
 
 let timeOut: NodeJS.Timeout;

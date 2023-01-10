@@ -1,8 +1,8 @@
 <template>
   <div class="page-container home background-dark">
     <LogoLink link="/"></LogoLink>
-    <div class="container mx-auto">
-      <div class="flex items-center justify-center pt-24">
+    <div class="container mx-auto h-full">
+      <div class="flex items-center justify-center pt-[64px] h-full md:h-auto">
         <router-view />
       </div>
     </div>

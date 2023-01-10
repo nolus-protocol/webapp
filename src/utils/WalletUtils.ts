@@ -3,6 +3,7 @@ import type { Window as KeplrWindow } from '@keplr-wallet/types/build/window';
 import { KeyUtils } from '@nolus/nolusjs';
 import { WalletConnectMechanism } from '@/types';
 import { WalletManager } from '@/utils';
+import { encodeSecp256k1Pubkey, pubkeyToAddress } from '@cosmjs/amino';
 
 export class WalletUtils {
   public static async getKeplr(): Promise<Keplr | undefined> {
@@ -47,4 +48,10 @@ export class WalletUtils {
       WalletManager.getWalletConnectMechanism() === WalletConnectMechanism.EXTENSION
     );
   }
+
+  public static transformWallet(pubKey: Uint8Array, prefix: string) {
+    const pubkey = encodeSecp256k1Pubkey(pubKey);
+    return pubkeyToAddress(pubkey, prefix);
+  }
+  
 }

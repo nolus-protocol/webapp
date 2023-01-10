@@ -5,6 +5,7 @@ export type { IbcCurrency } from '@/types/IbcCurrency';
 export type { NetworkAddress } from '@/types/NetworkAddress';
 export type { NetworkConfig } from '@/types/NetworkConfig';
 export type { LeaseData } from '@/types/LeaseData';
+export type { Network } from '@/types/Network';
 
 export { WalletConnectMechanism } from '@/types/WalletConnectMechanism';
 export { DASHBOARD_ACTIONS } from '@/types/DashboardActions';

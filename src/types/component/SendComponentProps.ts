@@ -1,5 +1,6 @@
 import type { AssetBalance } from '@/stores/wallet/state';
 import type { Coin } from '@cosmjs/amino';
+import type { Network } from '@/types';
 
 export interface SendComponentProps {
   receiverErrorMsg: string;
@@ -12,5 +13,6 @@ export interface SendComponentProps {
   password: string;
   txHash: string;
   fee: Coin;
+  network: Network;
   onNextClick: () => void;
 }

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="block z-[101] rounded-2xl background md:pb-10 pt-6 pb-[210px] mt-[52px] md:border border-standart shadow-box w-screen md:w-[516px] outline"
+    class="block z-[101] md:rounded-2xl rounded-t-2xl background md:pb-10 pt-6 pb-[210px] mt-[52px] md:border border-standart shadow-box w-screen md:w-[516px] outline h-full md:h-auto"
     @click.stop
   >
     <div class="flex flex-col items-center">
@@ -19,7 +19,7 @@
         {{ message }}
       </p>
 
-      <div class="gap-2 mt-6 flex">
+      <div class="gap-2 mt-6 md:flex hidden">
         <button
           class="btn btn-primary btn-large-primary"
           @click="
@@ -36,11 +36,9 @@
         >
           {{ $t("message.cancel") }}
         </button>
-        <div class="background h-[600px] absolute inset-x-0 z-[0] md:hidden"></div>
       </div>
 
-      <div class="background h-[430px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
-      <div class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal">
+      <div class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background inset-x-0 bottom-0 md:relative">
         <button
           class="btn btn-primary btn-large-primary mr-4 w-40"
           @click="

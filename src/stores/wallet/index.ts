@@ -7,6 +7,8 @@ import CURRENCIES from '@/config/currencies.json';
 import type { HdPath } from '@cosmjs/crypto';
 import type { State } from '@/stores/wallet/state';
 import type { Window as KeplrWindow } from '@keplr-wallet/types/build/window';
+import type { TxSearchResponse } from '@cosmjs/tendermint-rpc';
+
 import { WalletConnectMechanism } from '@/types';
 import { defineStore } from 'pinia';
 import { WalletActionTypes } from '@/stores/wallet/action-types';
@@ -25,7 +27,6 @@ import { ADAPTER_STATUS } from '@web3auth/base';
 import { Buffer } from 'buffer';
 import { Lpp } from '@nolus/nolusjs/build/contracts';
 import { CONTRACTS } from '@/config/contracts';
-import type { TxSearchResponse } from '@cosmjs/tendermint-rpc';
 
 const useWalletStore = defineStore('wallet', {
   state: () => {
@@ -48,7 +49,7 @@ const useWalletStore = defineStore('wallet', {
       await WalletUtils.getKeplr();
       const keplrWindow = window as KeplrWindow;
 
-      if (!keplrWindow.getOfflineSignerOnlyAmino || !keplrWindow.keplr) {
+      if (!keplrWindow.getOfflineSignerAuto || !keplrWindow.keplr) {
         throw new Error('Keplr wallet is not installed.');
       } else if (!keplrWindow.keplr.experimentalSuggestChain) {
         throw new Error(
@@ -74,8 +75,8 @@ const useWalletStore = defineStore('wallet', {
 
         await keplrWindow.keplr?.enable(chainId);
 
-        if (keplrWindow.getOfflineSignerOnlyAmino) {
-          const offlineSigner = keplrWindow.getOfflineSignerOnlyAmino(chainId);
+        if (keplrWindow.getOfflineSignerAuto) {
+          const offlineSigner = await keplrWindow.getOfflineSignerAuto(chainId);
 
           const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(offlineSigner as any);
           await nolusWalletOfflineSigner.useAccount();

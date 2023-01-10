@@ -1,6 +1,6 @@
 <template>
   <form 
-    class="block rounded-2xl background -mt-8 md:mt-auto pb-[300px] md:pb-10 pt-6 md:border nls-border shadow-box lg:w-[516px] outline"
+    class="block md:rounded-2xl rounded-t-2xl background md:mt-auto pb-[300px] md:pb-10 pt-6 md:border nls-border shadow-box lg:w-[516px] outline h-full md:h-auto"
     @submit.prevent="connectViaLedger"
   >
     <h1 class="text-to-big-number text-primary text-center relative">
@@ -36,21 +36,19 @@
         </div>
       </div>
 
-      <div class="mt-6 md:flex">
+      <div class="mt-6 md:flex hidden">
         <button
           class="btn btn-primary btn-large-primary"
           :class="{'js-loading': disabled}"
         >
           {{ $t('message.connect') }}
         </button>
-        <div class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"></div>
       </div>
     </div>
-    <div class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
-  
-    <div class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal">
+
+    <div class="md:hidden flex align-center justify-center px-4 pt-8 text-center mx-auto background inset-x-0 bottom-0 md:relative">
       <button
-        class="btn btn-primary btn-large-primary w-80"
+        class="btn btn-primary btn-large-primary w-full"
         :class="{'js-loading': disabled}"
       >
         {{ $t('message.connect') }}

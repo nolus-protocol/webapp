@@ -317,6 +317,16 @@ onMounted(() => {
   availableAssets();
   wallet[WalletActionTypes.LOAD_STAKED_TOKENS]();
   wallet[WalletActionTypes.LOAD_SUPPLIED_AMOUNT]();
+  // await walletOperation(async () => {
+  //   const test = await wallet.wallet?.simulateSendIbcTokensTx({
+  //     toAddress: 'osmo1vp9j3x49j02w4qex8rguwmg3x4u4lqt2wdccha',
+  //       amount: coin(1, 'unls'),
+  //       sourcePort: 'transfer',
+  //       sourceChannel: 'channel-0',
+  //       memo: ''
+  //   });
+  //   console.log(test);
+  // }, '');
 });
 
 watch(walletRef.balances, () => {

@@ -201,6 +201,8 @@
     "appearance": "Appearance",
     "light": "Light",
     "dark": "Dark",
-    "sync": "Sync with OS"
+    "sync": "Sync with OS",
+    "estimate-time": "Estimated time",
+    "sec": "sec"
   }
 }
