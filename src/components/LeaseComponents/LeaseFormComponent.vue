@@ -1,9 +1,6 @@
 <template>
   <!-- Input Area -->
-  <form 
-    @submit.prevent="modelValue.onNextClick" 
-    class="modal-form">
-
+  <form @submit.prevent="modelValue.onNextClick" class="modal-form">
     <div class="modal-send-receive-input-area">
       <div class="block text-left">
         <div class="block">
@@ -18,7 +15,9 @@
             :label="$t('message.down-payment-uppercase')"
             name="amountInvestment"
             @input="handleDownPaymentChange($event)"
-            @update-currency="(event) => (modelValue.selectedDownPaymentCurrency = event)"
+            @update-currency="
+              (event) => (modelValue.selectedDownPaymentCurrency = event)
+            "
           />
         </div>
 
@@ -44,8 +43,16 @@
           v-if="modelValue.selectedCurrency?.balance?.denom"
           class="mb-3 mt-[25px] flex justify-end align-center dark-text nls-font-500 text-14"
         >
-          {{ $t('message.price-in-usd', { symbol: formatAssetInfo(modelValue.selectedCurrency?.balance?.denom) }) }}
-          <span class="inline-block nls-font-700 ml-5">{{ pricePerToken }}</span>
+          {{
+            $t("message.price-in-usd", {
+              symbol: formatAssetInfo(
+                modelValue.selectedCurrency?.balance?.denom
+              ),
+            })
+          }}
+          <span class="inline-block nls-font-700 ml-5">{{
+            pricePerToken
+          }}</span>
         </p>
       </div>
       <div class="flex justify-end">
@@ -65,7 +72,10 @@
             {{ calculateLeaseAmount }}
             <TooltipComponent content="Content goes here" />
           </p>
-          <p v-if="annualInterestRate" class="mb-3 flex justify-end align-center">
+          <p
+            v-if="annualInterestRate"
+            class="mb-3 flex justify-end align-center"
+          >
             <span class="flex nls-font-700 ml-5">
               {{ annualInterestRate }}
               <TooltipComponent content="Content goes here" />
@@ -81,28 +91,25 @@
 
     <!-- Actions -->
     <div class="modal-send-receive-actions">
-      <button
-        class="btn btn-primary btn-large-primary"
-      >
+      <button class="btn btn-primary btn-large-primary">
         {{ $t("message.lease") }}
       </button>
     </div>
-
   </form>
 </template>
 
 <script setup lang="ts">
-import CurrencyField from '@/components/CurrencyField.vue';
-import TooltipComponent from '@/components/TooltipComponent.vue';
+import CurrencyField from "@/components/CurrencyField.vue";
+import TooltipComponent from "@/components/TooltipComponent.vue";
 
-import type { LeaseComponentProps } from '@/types/component/LeaseComponentProps';
+import type { LeaseComponentProps } from "@/types/component/LeaseComponentProps";
 
-import { ref, watch, type PropType } from 'vue';
-import { CurrencyUtils } from '@nolus/nolusjs';
-import { Coin } from '@keplr-wallet/unit';
-import { useOracleStore } from '@/stores/oracle';
-import { computed } from 'vue';
-import { useWalletStore } from '@/stores/wallet';
+import { ref, watch, type PropType } from "vue";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { Coin } from "@keplr-wallet/unit";
+import { useOracleStore } from "@/stores/oracle";
+import { computed } from "vue";
+import { useWalletStore } from "@/stores/wallet";
 
 const oracle = useOracleStore();
 const wallet = useWalletStore();
@@ -141,8 +148,8 @@ const getPrice = (currencyDenom: string) => {
     return prices[denom];
   }
   return {
-    amount: '0',
-    symbol: '',
+    amount: "0",
+    symbol: "",
   };
 };
 
@@ -151,14 +158,14 @@ const formatAssetInfo = (currencyDenom: string) => {
 };
 
 const annualInterestRate = computed(() => {
-  return props.modelValue?.leaseApply?.annual_interest_rate || '';
+  return props.modelValue?.leaseApply?.annual_interest_rate || "";
 });
 
 const pricePerToken = computed(() => {
   if (props.modelValue?.selectedCurrency?.balance.denom) {
     return getPrice(props.modelValue?.selectedCurrency?.balance.denom)?.amount;
   }
-  return '0';
+  return "0";
 });
 
 const calculateLeaseAmount = computed(() => {
@@ -177,7 +184,7 @@ const calculateLeaseAmount = computed(() => {
     }
   }
 
-  return '0';
+  return "0";
 });
 
 watch(
@@ -186,5 +193,4 @@ watch(
     disabledInputField.value = !props.modelValue?.leaseApply;
   }
 );
-
 </script>

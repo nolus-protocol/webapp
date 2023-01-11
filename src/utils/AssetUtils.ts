@@ -1,10 +1,12 @@
 import { Buffer } from "buffer";
 import { Hash } from "@keplr-wallet/crypto";
 export class AssetUtils {
-
   //Todo add to nolus.js
-  public static makeIBCMinimalDenom(sourceChannelId: string[], coinMinimalDenom: string): string {
-    if(sourceChannelId.length == 0){
+  public static makeIBCMinimalDenom(
+    sourceChannelId: string[],
+    coinMinimalDenom: string
+  ): string {
+    if (sourceChannelId.length == 0) {
       return coinMinimalDenom;
     }
 
@@ -12,7 +14,7 @@ export class AssetUtils {
       a += `transfer/${b}/`;
       return a;
     }, "");
-    path+=`${coinMinimalDenom}`;
+    path += `${coinMinimalDenom}`;
 
     return (
       "ibc/" +

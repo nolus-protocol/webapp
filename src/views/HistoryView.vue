@@ -1,7 +1,9 @@
 <template>
   <div class="col-span-12 mb-sm-nolus-70p">
     <!-- Header -->
-    <div class="table-header flex mt-[25px] flex-wrap items-center justify-between items-baseline lg:px-0">
+    <div
+      class="table-header flex mt-[25px] flex-wrap items-center justify-between items-baseline lg:px-0"
+    >
       <div class="left">
         <h1 class="text-20 nls-font-700 text-primary m-0">
           {{ $t("message.history") }}
@@ -11,7 +13,7 @@
     <!-- History -->
     <div
       class="block background mt-6 shadow-box radius-medium radius-0-sm overflow-hidden async-loader"
-      :class="{'outline': hasOutline}"
+      :class="{ outline: hasOutline }"
     >
       <!-- Assets -->
       <div class="block md:mt-4">
@@ -26,19 +28,21 @@
       </div>
     </div>
     <div class="my-4 flex justify-center">
-      <button 
+      <button
         v-if="visible"
         class="btn btn-secondary btn-medium-secondary mx-auto"
-        :class="{'js-loading': loading}" 
+        :class="{ 'js-loading': loading }"
         @click="load"
       >
         {{ $t("message.load-more") }}
       </button>
     </div>
   </div>
-  <Modal 
-    v-if="showErrorDialog" 
-    @close-modal="showErrorDialog = false" route="alert">
+  <Modal
+    v-if="showErrorDialog"
+    @close-modal="showErrorDialog = false"
+    route="alert"
+  >
     <ErrorDialog
       :title="$t('message.error-connecting')"
       :message="errorMessage"
@@ -59,11 +63,11 @@ import { WalletActionTypes } from "@/stores/wallet/action-types";
 import { onMounted, ref, watch } from "vue";
 import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
-import { computed } from "@vue/reactivity";
+import { computed } from "vue";
 
 export interface ITransaction {
   id: string;
-  height: number,
+  height: number;
   receiver: string;
   sender: string;
   action: string;
@@ -74,7 +78,7 @@ export interface ITransaction {
 }
 
 const showErrorDialog = ref(false);
-const errorMessage = ref('');
+const errorMessage = ref("");
 const transactions = ref([] as ITransaction[]);
 const wallet = useWalletStore();
 const walletRef = storeToRefs(wallet);
@@ -96,7 +100,7 @@ onMounted(() => {
 });
 
 const hasOutline = computed(() => {
-  if(window.innerWidth > 576){
+  if (window.innerWidth > 576) {
     return true;
   }
   return transactions.value.length > 0;
@@ -108,9 +112,13 @@ const visible = computed(() => {
 
 const getTransactions = async () => {
   try {
+    const res = await wallet[WalletActionTypes.SEARCH_TX]({
+      sender_per_page: senderPerPage,
+      sender_page: senderPage,
+      recipient_per_page: recipientPerPage,
+      recipient_page: recipientPage,
+    });
 
-    const res = await wallet[WalletActionTypes.SEARCH_TX]({sender_per_page: senderPerPage, sender_page: senderPage, recipient_per_page: recipientPerPage, recipient_page: recipientPage});
-   
     senderPage++;
     recipientPage++;
 
@@ -119,15 +127,15 @@ const getTransactions = async () => {
 
     transactions.value = res.data as ITransaction[];
 
-    const loadedSender = ( senderPage -1 ) * senderPerPage >= senderTotal;
-    const loadedRecepient = ( recipientPage - 1) * recipientPerPage >= recipientTotal;
+    const loadedSender = (senderPage - 1) * senderPerPage >= senderTotal;
+    const loadedRecepient =
+      (recipientPage - 1) * recipientPerPage >= recipientTotal;
 
-    if(loadedSender && loadedRecepient){
+    if (loadedSender && loadedRecepient) {
       loaded.value = true;
     }
 
     initialLoad.value = true;
-    
   } catch (e: Error | any) {
     showErrorDialog.value = true;
     errorMessage.value = e?.message;
@@ -137,33 +145,34 @@ const getTransactions = async () => {
 const load = async () => {
   try {
     loading.value = true;
-    const loadSender = ( senderPage - 1 ) * senderPerPage <= senderTotal;
-    const loadRecepient = ( recipientPage - 1 ) * recipientPerPage <= recipientTotal;
-
+    const loadSender = (senderPage - 1) * senderPerPage <= senderTotal;
+    const loadRecepient =
+      (recipientPage - 1) * recipientPerPage <= recipientTotal;
 
     const res = await wallet[WalletActionTypes.SEARCH_TX]({
-      sender_per_page: senderPerPage, 
-      sender_page: senderPage, 
-      load_sender: loadSender, 
-      recipient_per_page: recipientPerPage, 
-      recipient_page: recipientPage, 
-      load_recipient: loadRecepient
+      sender_per_page: senderPerPage,
+      sender_page: senderPage,
+      load_sender: loadSender,
+      recipient_per_page: recipientPerPage,
+      recipient_page: recipientPage,
+      load_recipient: loadRecepient,
     });
 
     transactions.value = [...transactions.value, ...res.data];
 
-    if(loadSender){
+    if (loadSender) {
       senderPage++;
     }
 
-    if(loadRecepient){
+    if (loadRecepient) {
       recipientPage++;
     }
 
-    const loadedSender = ( senderPage - 1 ) * senderPerPage <= senderTotal;
-    const loadedRecepient = ( recipientPage - 1 ) * recipientPerPage <= recipientTotal;
+    const loadedSender = (senderPage - 1) * senderPerPage <= senderTotal;
+    const loadedRecepient =
+      (recipientPage - 1) * recipientPerPage <= recipientTotal;
 
-    if(!loadedSender && !loadedRecepient){
+    if (!loadedSender && !loadedRecepient) {
       loaded.value = true;
     }
 
@@ -172,12 +181,12 @@ const load = async () => {
   } catch (e: Error | any) {
     showErrorDialog.value = true;
     errorMessage.value = e?.message;
-  }finally{
+  } finally {
     setTimeout(() => {
       loading.value = false;
     }, 500);
   }
-}
+};
 
 const onClickTryAgain = async () => {
   await getTransactions();

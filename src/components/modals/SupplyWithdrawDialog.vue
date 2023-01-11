@@ -1,5 +1,8 @@
 <template>
-  <DialogHeader :headerList="['Supply', 'Withdraw']" :routes="['supply', 'withdraw']">
+  <DialogHeader
+    :headerList="['Supply', 'Withdraw']"
+    :routes="['supply', 'withdraw']"
+  >
     <template #tab-1>
       <SupplyMainComponent :selectedAsset="selectedAsset" />
     </template>
@@ -10,9 +13,9 @@
 </template>
 
 <script lang="ts" setup>
-import SupplyMainComponent from '@/components/SupplyComponents/SupplyMainComponent.vue';
-import WithdrawMainComponent from '@/components/WithdrawComponents/WithdrawMainComponent.vue';
-import DialogHeader from './templates/DialogHeader.vue';
+import SupplyMainComponent from "@/components/SupplyComponents/SupplyMainComponent.vue";
+import WithdrawMainComponent from "@/components/WithdrawComponents/WithdrawMainComponent.vue";
+import DialogHeader from "./templates/DialogHeader.vue";
 
 defineProps({
   selectedAsset: {

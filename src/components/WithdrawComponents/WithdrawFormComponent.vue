@@ -1,13 +1,16 @@
 <template>
-  <form 
-    @submit.prevent="modelValue.onNextClick" 
-    class="modal-form">
+  <form @submit.prevent="modelValue.onNextClick" class="modal-form">
     <div class="modal-send-receive-input-area">
       <div
         class="flex py-3 px-4 bg-light-grey radius-light text-left text-14 nls-font-400 text-primary"
       >
-        <span class="text-14 nls-font-500"> {{ $t('message.available-withdraw') }}:</span>
-        <a class="text-secondary text-14 nls-font-700 underline ml-2 cursor-pointer" @click.stop="setAmount()">
+        <span class="text-14 nls-font-500">
+          {{ $t("message.available-withdraw") }}:</span
+        >
+        <a
+          class="text-secondary text-14 nls-font-700 underline ml-2 cursor-pointer"
+          @click.stop="setAmount()"
+        >
           {{ formatCurrentBalance(modelValue.currentDepositBalance) }}
         </a>
       </div>
@@ -30,24 +33,21 @@
 
     <!-- Actions -->
     <div class="modal-send-receive-actions">
-      <button
-        class="btn btn-primary btn-large-primary text-center"
-      >
-        {{ $t('message.withdraw') }}
+      <button class="btn btn-primary btn-large-primary text-center">
+        {{ $t("message.withdraw") }}
       </button>
     </div>
-
   </form>
 </template>
 
 <script lang="ts" setup>
-import CurrencyField from '@/components/CurrencyField.vue';
+import CurrencyField from "@/components/CurrencyField.vue";
 
-import type { AssetBalance } from '@/stores/wallet/state';
-import type { WithdrawFormComponentProps } from '@/types/component/WithdrawFormComponentProps';
-import type { PropType } from 'vue';
-import { CurrencyUtils } from '@nolus/nolusjs';
-import { useWalletStore } from '@/stores/wallet';
+import type { AssetBalance } from "@/stores/wallet/state";
+import type { WithdrawFormComponentProps } from "@/types/component/WithdrawFormComponentProps";
+import type { PropType } from "vue";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { useWalletStore } from "@/stores/wallet";
 
 const props = defineProps({
   modelValue: {
@@ -58,7 +58,7 @@ const props = defineProps({
 
 const walletStore = useWalletStore();
 
-defineEmits(['update:modelValue.selectedCurrency']);
+defineEmits(["update:modelValue.selectedCurrency"]);
 
 function formatCurrentBalance(selectedCurrency: AssetBalance) {
   if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
@@ -77,13 +77,15 @@ const handleAmountChange = (value: string) => {
 };
 
 const setAmount = () => {
-  const asset = walletStore.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
+  const asset = walletStore.getCurrencyInfo(
+    props.modelValue.selectedCurrency.balance.denom
+  );
   const data = CurrencyUtils.convertMinimalDenomToDenom(
     props.modelValue.currentDepositBalance.balance.amount.toString(),
     props.modelValue.currentDepositBalance.balance.denom,
-      asset.coinDenom,
-      asset.coinDecimals
-    )
-    props.modelValue.amount = Number(data.toDec().toString()).toString();
-}
+    asset.coinDenom,
+    asset.coinDecimals
+  );
+  props.modelValue.amount = Number(data.toDec().toString()).toString();
+};
 </script>

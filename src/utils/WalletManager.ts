@@ -6,13 +6,24 @@ export class WalletManager {
   public static WALLET_CONNECT_MECHANISM = "wallet_connect_mechanism";
   public static WALLET_ADDRESS = "wallet_address";
   public static WALLET_NAME = "wallet_name";
+  public static WALLET_PUBKEY = "wallet_pubkey";
 
-  public static saveWalletConnectMechanism(walletConnectMechanism: WalletConnectMechanism) {
+  public static saveWalletConnectMechanism(
+    walletConnectMechanism: WalletConnectMechanism
+  ) {
     localStorage.setItem(this.WALLET_CONNECT_MECHANISM, walletConnectMechanism);
   }
 
   public static getWalletConnectMechanism(): string | null {
     return localStorage.getItem(this.WALLET_CONNECT_MECHANISM);
+  }
+
+  public static setPubKey(pubkey: string) {
+    localStorage.setItem(this.WALLET_PUBKEY, pubkey);
+  }
+
+  public static getPubKey(): string | null {
+    return localStorage.getItem(this.WALLET_PUBKEY);
   }
 
   public static setWalletName(name: string) {
@@ -77,5 +88,6 @@ export class WalletManager {
     localStorage.removeItem(this.WALLET_SECURE_KEY);
     localStorage.removeItem(this.WALLET_CONNECT_MECHANISM);
     localStorage.removeItem(this.WALLET_NAME);
+    localStorage.removeItem(this.WALLET_PUBKEY);
   }
 }

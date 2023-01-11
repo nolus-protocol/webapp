@@ -30,25 +30,25 @@
 </template>
 
 <script lang="ts" setup>
-import type { AssetBalance } from '@/stores/wallet/state';
+import type { AssetBalance } from "@/stores/wallet/state";
 
-import SwapFormComponent from './SwapFormComponent.vue';
-import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue';
+import SwapFormComponent from "./SwapFormComponent.vue";
+import ConfirmComponent from "@/components/modals/templates/ConfirmComponent.vue";
 
-import { computed, inject, ref, watch } from 'vue';
-import { validateAmount, walletOperation } from '@/components/utils';
-import { CONFIRM_STEP } from '@/types/ConfirmStep';
-import { TxType } from '@/types/TxType';
-import { useWalletStore } from '@/stores/wallet';
-import { useI18n } from 'vue-i18n';
-import { coin } from '@cosmjs/amino';
-import { DEFAULT_ASSET, GAS_FEES } from '@/config/env';
+import { computed, inject, ref, watch } from "vue";
+import { validateAmount, walletOperation } from "@/components/utils";
+import { CONFIRM_STEP } from "@/types/ConfirmStep";
+import { TxType } from "@/types/TxType";
+import { useWalletStore } from "@/stores/wallet";
+import { useI18n } from "vue-i18n";
+import { coin } from "@cosmjs/amino";
+import { DEFAULT_ASSET, GAS_FEES } from "@/config/env";
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const wallet = useWalletStore();
 const i18n = useI18n();
 
-const closeModal = inject('onModalClose', () => () => {});
+const closeModal = inject("onModalClose", () => () => {});
 const balances = computed(() => wallet.balances);
 
 const showConfirmScreen = ref(false);
@@ -56,13 +56,13 @@ const state = ref({
   currentBalance: balances.value,
   selectedCurrency: balances.value[0],
   swapToSelectedCurrency: balances.value[0],
-  amount: '',
-  memo: '',
-  receiverAddress: '',
-  password: '',
-  receiverErrorMsg: '',
-  errorMsg: '',
-  txHash: '',
+  amount: "",
+  memo: "",
+  receiverAddress: "",
+  password: "",
+  receiverErrorMsg: "",
+  errorMsg: "",
+  txHash: "",
   fee: coin(GAS_FEES.swap_amount, DEFAULT_ASSET.denom),
 });
 
@@ -93,7 +93,7 @@ function validateInputs() {
     state.value.selectedCurrency.balance.denom ===
     state.value.swapToSelectedCurrency.balance.denom
   ) {
-    state.value.errorMsg = i18n.t('message.swap-same-error');
+    state.value.errorMsg = i18n.t("message.swap-same-error");
   }
 }
 
@@ -121,6 +121,6 @@ async function transferAmount() {
   step.value = mockedResponseSuccess
     ? CONFIRM_STEP.SUCCESS
     : CONFIRM_STEP.ERROR;
-  state.value.txHash = 'test hash';
+  state.value.txHash = "test hash";
 }
 </script>

@@ -24,7 +24,7 @@
         <div
           class="flex read border-b border-t nls-border py-4 px-4 items-center justify-between"
         >
-        <div class="inline-flex items-center">
+          <div class="inline-flex items-center">
             <img
               src="/src/assets/icons/coins/btc.svg"
               class="inline-block m-0 mr-4"

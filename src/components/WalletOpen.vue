@@ -8,20 +8,30 @@
       class="box-open-header background p-4 lg:p-6 border-b border-standart radius-top-left"
     >
       <h2 class="nls-font-700 text-18 text-primary text-left m-0">
-        {{ $t('message.your-wallet') }}
+        {{ $t("message.your-wallet") }}
       </h2>
-      <div 
-      class="flex grey-box items-center modal-balance mt-3 radius-rounded justify-between px-2 copy-button"
-      @click="onCopy()">
+      <div
+        class="flex grey-box items-center modal-balance mt-3 radius-rounded justify-between px-2 copy-button"
+        @click="onCopy()"
+      >
         <span class="text-14 nls-font-400 dark-text ml-2">{{ getWallet }}</span>
-        <span class="copy-text" v-if="showText">{{ $t('message.copied') }}</span>
-        <img class="copy-icon" v-else src="@/assets/icons/copy-gray.svg" width="21" height="21" />
+        <span class="copy-text" v-if="showText">{{
+          $t("message.copied")
+        }}</span>
+        <img
+          class="copy-icon"
+          v-else
+          src="@/assets/icons/copy-gray.svg"
+          width="21"
+          height="21"
+        />
       </div>
     </div>
 
     <!-- Wallet Body -->
-    <div class="box-open-body background p-4 lg:p-6 border-b border-standart text-left">
-
+    <div
+      class="box-open-body background p-4 lg:p-6 border-b border-standart text-left"
+    >
       <div class="block">
         <Picker
           :default-option="selectedAppearnce"
@@ -49,7 +59,7 @@
           class="btn btn-secondary btn-large-secondary"
           @click="onClickDisconnect"
         >
-          {{ $t('message.disconnect') }}
+          {{ $t("message.disconnect") }}
         </button>
       </div>
     </div>
@@ -59,9 +69,17 @@
 import Picker, { type PickerOption } from "@/components/Picker.vue";
 import router from "@/router";
 import { onMounted, ref, computed, onUnmounted } from "vue";
-import { EnvNetworkUtils, StringUtils, ThemeManager, WalletManager } from "@/utils";
+import {
+  EnvNetworkUtils,
+  StringUtils,
+  ThemeManager,
+  WalletManager,
+} from "@/utils";
 import { RouteNames } from "@/router/RouterNames";
-import { ApplicationActionTypes, useApplicationStore } from "@/stores/application";
+import {
+  ApplicationActionTypes,
+  useApplicationStore,
+} from "@/stores/application";
 import { useWalletStore } from "@/stores/wallet";
 import { APPEARANCE } from "@/config/env";
 import { useI18n } from "vue-i18n";
@@ -76,35 +94,39 @@ const showText = ref(false);
 
 const appearance = computed(() => {
   const items = [];
-  for(const key in APPEARANCE){
-    items.push(
-      { value: APPEARANCE[key as keyof typeof APPEARANCE], label: i18n.t(`message.${key}`) }
-    )
-  } 
+  for (const key in APPEARANCE) {
+    items.push({
+      value: APPEARANCE[key as keyof typeof APPEARANCE],
+      label: i18n.t(`message.${key}`),
+    });
+  }
   return items;
 });
 
 const getWallet = computed(() => {
- return  StringUtils.truncateString(WalletManager.getWalletAddress(), 12, 8) 
+  return StringUtils.truncateString(WalletManager.getWalletAddress(), 12, 8);
 });
 
 const themeData = ThemeManager.getThemeData();
 
 const selectedAppearnce = {
-  label: i18n.t(`message.${themeData}`), value: themeData
+  label: i18n.t(`message.${themeData}`),
+  value: themeData,
 };
 
-const networks = ref(EnvNetworkUtils.getEnvNetworks().map((network) => {
-  return {
-    label: StringUtils.capitalize(network),
-    value: network,
-  };
-}) as PickerOption[]);
+const networks = ref(
+  EnvNetworkUtils.getEnvNetworks().map((network) => {
+    return {
+      label: StringUtils.capitalize(network),
+      value: network,
+    };
+  }) as PickerOption[]
+);
 
 onMounted(() => {
   currentNetwork.value = {
-    label: StringUtils.capitalize(EnvNetworkUtils.getStoredNetworkName() || ''),
-    value: EnvNetworkUtils.getStoredNetworkName() || '',
+    label: StringUtils.capitalize(EnvNetworkUtils.getStoredNetworkName() || ""),
+    value: EnvNetworkUtils.getStoredNetworkName() || "",
   };
 });
 
@@ -127,27 +149,26 @@ const onClickDisconnect = () => {
   router.push({ name: RouteNames.AUTH });
 };
 
-
 const onCopy = () => {
   showText.value = true;
-  StringUtils.copyToClipboard(wallet?.wallet?.address ?? '');
-  if(timeOut){
+  StringUtils.copyToClipboard(wallet?.wallet?.address ?? "");
+  if (timeOut) {
     clearTimeout(timeOut);
   }
   timeOut = setTimeout(() => {
     showText.value = false;
   }, 2000);
-}
+};
 </script>
 
 <style scoped>
-#wallet-nls{
+#wallet-nls {
   overflow: hidden;
 }
 .icon-wallet {
   font-size: 2em !important;
   margin-right: 0 !important;
-  color: #8396B1;
+  color: #8396b1;
 }
 
 .bg-light-grey {
@@ -155,26 +176,26 @@ const onCopy = () => {
   margin-top: 11px;
 }
 
-.gray-color{
-  color: #8396B1;
+.gray-color {
+  color: #8396b1;
 }
 
 .justify-content {
   justify-content: space-between !important;
 }
 
-img.copy-icon{
+img.copy-icon {
   pointer-events: none;
   margin-right: 4px;
 }
 
-span.copy-text{
+span.copy-text {
   font-size: 13px !important;
   margin-right: 4px;
-  color: #8396B1;
+  color: #8396b1;
 }
 
-div.copy-button{
+div.copy-button {
   cursor: pointer;
   user-select: none;
   height: 32px;

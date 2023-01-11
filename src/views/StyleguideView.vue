@@ -672,9 +672,7 @@
                   <h2 class="nls-16 nls-font-500 text-left my-0">
                     Pending rewards
                   </h2>
-                  <button class="btn-label btn-large-label">
-                    Claim all
-                  </button>
+                  <button class="btn-label btn-large-label">Claim all</button>
                 </div>
                 <!-- Assets -->
                 <div class="block mt-nolus-16">
@@ -1251,8 +1249,7 @@
                       </p>
                       <div
                         class="flex items-center justify-end text-dark-grey nls-13 nls-font-400 text-right m-0"
-                      >
-                      </div>
+                      ></div>
                     </div>
 
                     <!-- Earnings -->
@@ -1468,7 +1465,7 @@
         <!-- SNACK BAR & TOOLTIPS -->
 
         <!-- /SNACK BAR-->
-<!-- 
+        <!-- 
         <div id="snackbar_tooltip" class="col-span-12">
           <div class="col-span-12 pt-8">
             <h1 class="text nls-font-700 nls-32">Snackbar &Tooltip</h1>

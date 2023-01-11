@@ -1,7 +1,9 @@
 <template>
   <div class="col-span-12">
     <!-- Header -->
-    <div class="table-header lg:flex block mt-[25px] flex-wrap items-center justify-between lg:px-0">
+    <div
+      class="table-header lg:flex block mt-[25px] flex-wrap items-center justify-between lg:px-0"
+    >
       <div class="left">
         <h1 class="text-20 nls-font-700 text-primary m-0 pb-3 lg:pb-0">
           {{ $t("message.assets") }}
@@ -23,7 +25,7 @@
     </div>
     <!-- Wallet -->
     <Transition :name="animate">
-      <div 
+      <div
         v-if="isTotalBalancePositive"
         class="flex balance-box items-center justify-start background mt-6 nls-border shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6 outline"
       >
@@ -42,7 +44,9 @@
         </div>
 
         <div class="border-right h-[80px] mt-[-48px] hidden md:flex"></div>
-        <div class="border-right h-[80px] mb-[-24px] ml-[-1px] hidden md:flex"></div>
+        <div
+          class="border-right h-[80px] mb-[-24px] ml-[-1px] hidden md:flex"
+        ></div>
 
         <div class="right flex w-2/3 -mt-8 lg:mt-0">
           <div class="pt-3 lg:pl-6">
@@ -68,7 +72,7 @@
             <CurrencyComponent
               :fontSize="20"
               :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              :amount="activeLeases"
+              :amount="activeLeases.toString()"
               :denom="DEFAULT_CURRENCY.symbol"
               :has-space="false"
               class="nls-font-500 text-primary"
@@ -113,11 +117,10 @@
     <!-- Existing Assets -->
     <div
       class="block background mt-6 border-standart shadow-box radius-medium radius-0-sm outline"
-      :class="{'async-loader': isAssetsLoading}"
+      :class="{ 'async-loader': isAssetsLoading }"
     >
       <!-- Top -->
       <div class="flex flex-wrap items-baseline justify-between px-4 pt-6">
-       
         <div class="left w-1/2">
           <p class="text-16 nls-font-500 dark-text pl-2">
             {{ $t("message.available-assets") }}
@@ -144,25 +147,32 @@
       <!-- Assets -->
       <div class="block mt-6 md:mt-[25px]">
         <!-- Assets Header -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6">
+        <div
+          class="grid grid-cols-2 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6"
+        >
           <div class="nls-font-500 text-12 text-left text-dark-grey text-upper">
             {{ $t("message.assets") }}
           </div>
 
-          <div class="nls-font-500 text-dark-grey text-12 text-right text-upper">
+          <div
+            class="nls-font-500 text-dark-grey text-12 text-right text-upper"
+          >
             {{ $t("message.balance") }}
           </div>
 
-          <div class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
+          <div
+            class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper"
+          >
             <span class="inline-block">{{ $t("message.earn-apr") }}</span>
             <TooltipComponent :content="$t('message.earn-apr-tooltip')" />
           </div>
 
-          <div class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
+          <div
+            class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper"
+          >
             <span class="inline-block">{{ $t("message.lease-up-to") }}</span>
             <TooltipComponent :content="$t('message.lease-up-to-tooltip')" />
           </div>
-
         </div>
 
         <!-- Assets Container -->
@@ -180,10 +190,9 @@
           />
         </div>
       </div>
-      
     </div>
 
-     <!-- Vested Assets -->
+    <!-- Vested Assets -->
     <div
       v-if="vestedTokens.length > 0"
       class="block background mt-6 nls-border shadow-box radius-medium radius-0-sm outline"
@@ -200,16 +209,22 @@
       <!-- Assets -->
       <div class="block mt-6 md:mt-[25px]">
         <!-- Assets Header -->
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-6 border-b border-standart pb-3 px-6">
+        <div
+          class="grid grid-cols-2 md:grid-cols-3 gap-6 border-b border-standart pb-3 px-6"
+        >
           <div class="nls-font-500 text-12 text-left text-dark-grey text-upper">
             {{ $t("message.assets") }}
           </div>
 
-          <div class="hidden md:inline-flex items-center nls-font-500 text-12 text-right text-dark-grey text-upper">
+          <div
+            class="hidden md:inline-flex items-center nls-font-500 text-12 text-right text-dark-grey text-upper"
+          >
             <span class="inline-block">{{ $t("message.release") }}</span>
           </div>
 
-          <div class="nls-font-500 text-dark-grey text-12 text-right text-upper">
+          <div
+            class="nls-font-500 text-dark-grey text-12 text-right text-upper"
+          >
             {{ $t("message.amount-repay") }}
           </div>
         </div>
@@ -226,14 +241,13 @@
           />
         </div>
       </div>
-      
     </div>
   </div>
 
-  <Modal 
-    v-if="state.showModal" 
+  <Modal
+    v-if="state.showModal"
     :route="state.modalAction"
-    @close-modal="state.showModal = false" 
+    @close-modal="state.showModal = false"
   >
     <component
       :is="modalOptions[state.modalAction]"
@@ -241,10 +255,10 @@
     />
   </Modal>
 
-  <Modal 
-    v-if="showErrorDialog" 
+  <Modal
+    v-if="showErrorDialog"
     route="alert"
-    @close-modal="showErrorDialog = false" 
+    @close-modal="showErrorDialog = false"
   >
     <ErrorDialog
       :title="$t('message.error-connecting')"
@@ -281,7 +295,7 @@ import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
   [DASHBOARD_ACTIONS.SUPPLY]: SupplyWithdrawDialog,
-  [DASHBOARD_ACTIONS.LEASE]: LeaseDialog
+  [DASHBOARD_ACTIONS.LEASE]: LeaseDialog,
 };
 
 const wallet = useWalletStore();
@@ -291,7 +305,8 @@ const oracleRef = storeToRefs(oracle);
 
 const isAssetsLoading = ref(wallet.balances.length == 0);
 const showErrorDialog = ref(false);
-const loaded = wallet.balances.length > 0 && Object.keys(oracle.prices).length > 0;
+const loaded =
+  wallet.balances.length > 0 && Object.keys(oracle.prices).length > 0;
 const animate = ref(loaded ? "" : "fade");
 const errorMessage = ref("");
 
@@ -301,16 +316,17 @@ const state = ref({
   modalAction: DASHBOARD_ACTIONS.SEND,
   selectedAsset: "",
   availableAssets: new Dec(0),
-  activeLeases: new Dec(0),
-  suppliedAndStaked: new Dec(0),
 });
 
-const vestedTokens = ref([] as { endTime: string, amount: { amount: string, denom: string } }[]);
+const vestedTokens = ref(
+  [] as { endTime: string; amount: { amount: string; denom: string } }[]
+);
 
 const filteredAssets = computed(() => {
-    return state.value.showSmallBalances ? wallet.balances : filterSmallBalances(wallet.balances as AssetBalance[])
-  }
-);
+  return state.value.showSmallBalances
+    ? wallet.balances
+    : filterSmallBalances(wallet.balances as AssetBalance[]);
+});
 
 onMounted(() => {
   getVestedTokens();
@@ -337,19 +353,22 @@ const getVestedTokens = async () => {
 
 const totalBalance = computed(() => {
   let total = state.value.availableAssets;
-  total = total.add(state.value.activeLeases as Dec);
-  total = total.add(state.value.suppliedAndStaked as Dec);
+  total = total.add(activeLeases.value as Dec);
+  total = total.add(suppliedAndStaked.value);
   return total.toString();
 });
 
 const isTotalBalancePositive = computed(() => {
   let total = state.value.availableAssets;
-  total = total.add(state.value.activeLeases as Dec);
-  total = total.add(state.value.suppliedAndStaked as Dec);
+  total = total.add(activeLeases.value);
+  total = total.add(suppliedAndStaked.value);
   return total.gt(new Dec(0));
 });
 
-const { leases, getLeases } = useLeases((error: Error | any) => {}, () => {});
+const { leases, getLeases } = useLeases(
+  (error: Error | any) => {},
+  () => {}
+);
 
 provide("getLeases", getLeases);
 
@@ -357,7 +376,6 @@ const activeLeases = computed(() => {
   let totalLeases = new Dec(0);
 
   leases.value.forEach((lease) => {
-
     if (lease.leaseStatus.opened) {
       const ticker = lease.leaseStatus.opened.amount.ticker;
       const currency = wallet.getCurrencyByTicker(ticker);
@@ -372,17 +390,14 @@ const activeLeases = computed(() => {
 
       totalLeases = totalLeases.add(balance.toDec());
     }
-
   });
 
-  state.value.activeLeases = totalLeases;
-  return totalLeases.toString();
+  return totalLeases;
 });
 
 const availableAssets = () => {
   let totalAssets = new Dec(0);
   wallet.balances.forEach((asset) => {
-
     const { coinDecimals, coinDenom } = wallet.getCurrencyInfo(
       asset.balance.denom
     );
@@ -398,7 +413,7 @@ const availableAssets = () => {
 
   state.value.availableAssets = totalAssets;
 
-  if(animate.value.length > 0 && totalAssets.gt(new Dec(0))){
+  if (animate.value.length > 0 && totalAssets.gt(new Dec(0))) {
     setTimeout(() => {
       animate.value = "";
     }, 400);
@@ -409,7 +424,9 @@ const suppliedAndStaked = computed(() => {
   const staking = wallet.stakingBalance as Coin;
   const supplied = wallet.suppliedBalance;
   const suppliedSymbol = wallet.getCurrencyByTicker(LPN_CURRENCY.key);
-  const suppliedCoin = wallet.getIbcDenomBySymbol(suppliedSymbol.symbol) as string;
+  const suppliedCoin = wallet.getIbcDenomBySymbol(
+    suppliedSymbol.symbol
+  ) as string;
   const suppliedInfo = wallet.getCurrencyInfo(suppliedCoin as string);
   let totalSuppliedAndStaked = new Dec(0);
 
@@ -420,7 +437,7 @@ const suppliedAndStaked = computed(() => {
   );
   totalSuppliedAndStaked = totalSuppliedAndStaked.add(suppliedBalance.toDec());
 
-  if(staking){
+  if (staking) {
     const stakingInfo = wallet.getCurrencyInfo(staking.denom as string);
     const stakingBalance = CurrencyUtils.calculateBalance(
       getMarketPrice(staking.denom),
@@ -430,31 +447,29 @@ const suppliedAndStaked = computed(() => {
     totalSuppliedAndStaked = totalSuppliedAndStaked.add(stakingBalance.toDec());
   }
 
-  state.value.suppliedAndStaked = totalSuppliedAndStaked;
   return totalSuppliedAndStaked;
 });
 
 const filterSmallBalances = (balances: AssetBalance[]) => {
   return balances.filter((asset) => asset.balance.amount.gt(new Int("1")));
-}
+};
 
 const openModal = (action: DASHBOARD_ACTIONS, denom = "") => {
   state.value.selectedAsset = denom;
   state.value.modalAction = action;
   state.value.showModal = true;
-}
+};
 
 const getAssetInfo = (denom: string) => {
   return wallet.getCurrencyInfo(denom);
-}
+};
 
 const getMarketPrice = (denom: string) => {
   const item = wallet.currencies[denom];
   const price = oracle.prices?.[item?.symbol]?.amount ?? "0";
 
   return price;
-}
-
+};
 </script>
 <style scoped lang="scss">
 .fade-enter-active,

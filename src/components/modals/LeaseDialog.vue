@@ -5,6 +5,6 @@
 </template>
 
 <script lang="ts" setup>
-import DialogHeader from '@/components/modals/templates/DialogHeader.vue';
-import LeaseMainComponent from '@/components/LeaseComponents/LeaseMainComponent.vue';
+import DialogHeader from "@/components/modals/templates/DialogHeader.vue";
+import LeaseMainComponent from "@/components/LeaseComponents/LeaseMainComponent.vue";
 </script>

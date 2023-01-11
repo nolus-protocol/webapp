@@ -1,13 +1,17 @@
 <template>
   <div class="col-span-12 mb-sm-nolus-70">
     <!-- Header -->
-    <div class="flex flex-wrap items-center justify-between px-4 lg:pt-[25px] lg:px-0">
+    <div
+      class="flex flex-wrap items-center justify-between px-4 lg:pt-[25px] lg:px-0"
+    >
       <div class="left w-full md:w-1/2">
         <h1 class="text-20 nls-font-700 text-primary m-0 nls-sm-title">
           {{ $t("message.leases") }}
         </h1>
       </div>
-      <div class="right w-full md:w-1/2 md:mt-0 inline-flex justify-start md:justify-end">
+      <div
+        class="right w-full md:w-1/2 md:mt-0 inline-flex justify-start md:justify-end"
+      >
         <button
           class="btn btn-primary btn-large-primary w-full md:w-auto"
           @click="showLeaseModal = true"
@@ -25,9 +29,9 @@
     />
   </div>
 
-  <Modal 
-    v-if="showLeaseModal" 
-    @close-modal="showLeaseModal = false" 
+  <Modal
+    v-if="showLeaseModal"
+    @close-modal="showLeaseModal = false"
     route="create"
   >
     <LeaseDialog />
@@ -68,7 +72,7 @@ function onLeaseError(e: Error | any) {
   errorDialog.value.tryAgain = onTryAgain;
 }
 
-function showModal(){
+function showModal() {
   showLeaseModal.value = true;
 }
 

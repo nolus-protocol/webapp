@@ -13,7 +13,7 @@
       <span
         class="inline-block align-baseline text-28 md:text-32 relative z-[2]"
       >
-        {{ $t('message.connecting-kepler') }}
+        {{ $t("message.connecting-kepler") }}
       </span>
     </h1>
 
@@ -21,27 +21,34 @@
 
     <div class="px-4 md:px-10">
       <p class="text-14 nls-font-400 text-primary relative z-[2]">
-        {{ $t('message.approving-extension') }}
+        {{ $t("message.approving-extension") }}
       </p>
       <div class="mt-6 md:flex hidden">
         <button
           class="btn btn-primary btn-large-primary mr-4 js-loading -px-20"
         >
-          {{ $t('message.connecting') }}
+          {{ $t("message.connecting") }}
         </button>
-        <div class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"></div>
+        <div
+          class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"
+        ></div>
       </div>
     </div>
-    <div class="md:hidden flex align-center justify-center px-4 pt-8 text-center mx-auto background inset-x-0 bottom-0 md:relative">
+    <div
+      class="md:hidden flex align-center justify-center px-4 pt-8 text-center mx-auto background inset-x-0 bottom-0 md:relative"
+    >
       <button class="btn btn-primary btn-large-primary js-loading w-full">
-        {{ $t('message.connecting') }}
+        {{ $t("message.connecting") }}
       </button>
     </div>
   </div>
 
-  <Modal 
-    v-if="showError" 
-    @close-modal="showError = false; goToAuth()" 
+  <Modal
+    v-if="showError"
+    @close-modal="
+      showError = false;
+      goToAuth();
+    "
     route="alert"
   >
     <ErrorDialog
@@ -91,5 +98,5 @@ onMounted(async () => {
 
 const goToAuth = () => {
   router.replace({ name: RouteNames.AUTH });
-}
+};
 </script>

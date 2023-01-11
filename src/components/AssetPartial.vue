@@ -31,25 +31,24 @@
     <div class="block">
       <p class="text-primary nls-font-500 text-16 text-right m-0">
         <CurrencyComponent
-            :type="CURRENCY_VIEW_TYPES.TOKEN"
-            :amount="assetBalance"
-            :minimalDenom="assetInfo.coinMinimalDenom"
-            :denom="assetInfo.coinDenom"
-            :decimals="assetInfo.coinDecimals"
-            :maxDecimals="6"
-          />
+          :type="CURRENCY_VIEW_TYPES.TOKEN"
+          :amount="assetBalance"
+          :minimalDenom="assetInfo.coinMinimalDenom"
+          :denom="assetInfo.coinDenom"
+          :decimals="assetInfo.coinDecimals"
+          :maxDecimals="6"
+        />
       </p>
       <div
         class="flex items-center justify-end text-dark-grey text-12 garet-medium text-right m-0"
       >
-      {{ DEFAULT_CURRENCY.symbol }}{{ calculateBalance(price, assetBalance, denom) }}
+        {{ DEFAULT_CURRENCY.symbol }}
+        {{ calculateBalance(price, assetBalance, denom) }}
       </div>
     </div>
 
     <div v-if="earnings" class="hidden md:block">
-      <div
-        class="text-primary nls-font-500 text-14 text-right m-0"
-      >
+      <div class="text-primary nls-font-500 text-14 text-right m-0">
         <CurrencyComponent
           :type="CURRENCY_VIEW_TYPES.CURRENCY"
           :amount="earnings"
@@ -82,12 +81,11 @@
           />
         </template>
       </p>
-
     </div>
 
-    <div 
+    <div
       v-if="canLease || canSupply || canStake"
-      class="mobile-actions md:hidden col-span-2" 
+      class="mobile-actions md:hidden col-span-2"
     >
       <div class="flex">
         <button
@@ -118,7 +116,7 @@
             />
           </template>
         </button>
-      
+
         <button
           class="btn btn-secondary btn-medium-secondary flex-1"
           v-if="canSupply"
@@ -136,16 +134,14 @@
         </button>
 
         <a
-        class="btn btn-secondary btn-medium-secondary flex-1"
-        v-if="canStake"
-        :href="stakingUrl"
-        target="_blank"
+          class="btn btn-secondary btn-medium-secondary flex-1"
+          v-if="canStake"
+          :href="stakingUrl"
+          target="_blank"
         >
           {{ $t("message.stake") }}
         </a>
-
       </div>
-
     </div>
 
     <div class="flex justify-end nls-btn-show">
@@ -170,7 +166,7 @@
         target="_blank"
       >
         {{ $t("message.stake") }}
-    </a>
+      </a>
     </div>
   </div>
 </template>
@@ -183,7 +179,13 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import CurrencyComponent from "@/components/CurrencyComponent.vue";
 
 import { DASHBOARD_ACTIONS } from "@/types";
-import { DEFAULT_CURRENCY, DEFAULT_LEASE_UP_PERCENT, GROUPS, LEASE_UP_COEFICIENT, NETWORKS } from "@/config/env";
+import {
+  DEFAULT_CURRENCY,
+  DEFAULT_LEASE_UP_PERCENT,
+  GROUPS,
+  LEASE_UP_COEFICIENT,
+  NETWORKS,
+} from "@/config/env";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { useWalletStore } from "@/stores/wallet";
 import { NATIVE_CURRENCY } from "@/config/assetsInfo";
@@ -215,7 +217,7 @@ const props = defineProps({
   },
   earnings: {
     type: String,
-    required: true
+    required: true,
   },
   changeDirection: {
     type: Boolean,
@@ -228,7 +230,9 @@ const props = defineProps({
 
 const canLease = computed(() => {
   const currency = walletStore.currencies[props.denom];
-  return Number(props.assetBalance) > 0 && currency.groups.includes(GROUPS.Lease);
+  return (
+    Number(props.assetBalance) > 0 && currency.groups.includes(GROUPS.Lease)
+  );
 });
 
 const canSupply = computed(() => {
@@ -238,10 +242,14 @@ const canSupply = computed(() => {
 
 const canStake = computed(() => {
   const curency = walletStore.currencies[props.denom];
-  return NATIVE_CURRENCY.key == curency.ticker && Number(props.assetBalance) > 0;
+  return (
+    NATIVE_CURRENCY.key == curency.ticker && Number(props.assetBalance) > 0
+  );
 });
 
-const showActionButtons = computed(() => canLease.value || canSupply.value || canStake.value);
+const showActionButtons = computed(
+  () => canLease.value || canSupply.value || canStake.value
+);
 
 const balance = computed(() => {
   return Number(props.assetBalance);
@@ -253,26 +261,30 @@ const leasUpTo = computed(() => {
   return leaseUpToAmount.toString();
 });
 
-
-const calculateBalance = (price: string, tokenAmount: string, denom: string) => {
+const calculateBalance = (
+  price: string,
+  tokenAmount: string,
+  denom: string
+) => {
   const tokenDecimals = Number(walletStore.currencies[denom].decimal_digits);
   const coin = new Coin(denom, new Int(tokenAmount));
   const data = CurrencyUtils.calculateBalance(price, coin, tokenDecimals);
-  return data.toDec().toString(2)
-}
+  return data.toDec().toString(2);
+};
 </script>
 <style scoped lang="scss">
-div.mobile-actions{
-  button, a{
+div.mobile-actions {
+  button,
+  a {
     font-family: "Garet-Medium" !important;
-    &:first-child:not(&:last-child){
+    &:first-child:not(&:last-child) {
       margin-right: 5px;
     }
-    &:last-child:not(&:first-child){
+    &:last-child:not(&:first-child) {
       margin-left: 5px;
     }
   }
-  a{
+  a {
     justify-content: center;
     display: flex;
   }

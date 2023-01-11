@@ -12,21 +12,35 @@ import type { TxSearchResponse } from "@cosmjs/tendermint-rpc";
 import { WalletConnectMechanism } from "@/types";
 import { defineStore } from "pinia";
 import { WalletActionTypes } from "@/stores/wallet/action-types";
-import { EncryptionUtils, EnvNetworkUtils, KeyUtils as KeyUtilities, WalletUtils, AssetUtils, Web3AuthProvider, WalletManager } from "@/utils";
-import { makeCosmoshubPath } from "@cosmjs/amino";
-import { CurrencyUtils, KeyUtils, NolusClient, NolusWalletFactory } from "@nolus/nolusjs";
+import {
+  EncryptionUtils,
+  EnvNetworkUtils,
+  KeyUtils as KeyUtilities,
+  WalletUtils,
+  AssetUtils,
+  Web3AuthProvider,
+  WalletManager,
+} from "@/utils";
+import { coin, makeCosmoshubPath } from "@cosmjs/amino";
+import {
+  CurrencyUtils,
+  KeyUtils,
+  NolusClient,
+  NolusWalletFactory,
+} from "@nolus/nolusjs";
 import { DirectSecp256k1Wallet } from "@cosmjs/proto-signing";
 import { ChainConstants } from "@nolus/nolusjs/build/constants";
 import { fromHex, toHex } from "@cosmjs/encoding";
 import { RouteNames } from "@/router/RouterNames";
 import { LedgerSigner } from "@cosmjs/ledger-amino";
-import { decodeTxRaw, type DecodedTxRaw, } from "@cosmjs/proto-signing";
-import { NETWORKS } from "@/config/env";
+import { decodeTxRaw, type DecodedTxRaw } from "@cosmjs/proto-signing";
+import { NETWORKS, DEFAULT_ASSET } from "@/config/env";
 import { ASSETS } from "@/config/assetsInfo";
 import { ADAPTER_STATUS } from "@web3auth/base";
 import { Buffer } from "buffer";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { CONTRACTS } from "@/config/contracts";
+import { Coin, Int } from "@keplr-wallet/unit";
 
 const useWalletStore = defineStore("wallet", {
   state: () => {
@@ -38,18 +52,17 @@ const useWalletStore = defineStore("wallet", {
       balances: [],
       currencies: {},
       stakingBalance: null,
-      suppliedBalance: "0"
+      suppliedBalance: "0",
     } as State;
   },
   actions: {
     async [WalletActionTypes.CONNECT_KEPLR](
       payload: { isFromAuth?: boolean } = {}
     ) {
-
       await WalletUtils.getKeplr();
       const keplrWindow = window as KeplrWindow;
 
-      if (!keplrWindow.getOfflineSignerAuto || !keplrWindow.keplr) {
+      if (!keplrWindow.getOfflineSignerOnlyAmino || !keplrWindow.keplr) {
         throw new Error("Keplr wallet is not installed.");
       } else if (!keplrWindow.keplr.experimentalSuggestChain) {
         throw new Error(
@@ -75,10 +88,12 @@ const useWalletStore = defineStore("wallet", {
 
         await keplrWindow.keplr?.enable(chainId);
 
-        if (keplrWindow.getOfflineSignerAuto) {
-          const offlineSigner = await keplrWindow.getOfflineSignerAuto(chainId);
-
-          const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(offlineSigner as any);
+        if (keplrWindow.getOfflineSignerOnlyAmino) {
+          const offlineSigner = await keplrWindow.getOfflineSignerOnlyAmino(
+            chainId
+          );
+          const nolusWalletOfflineSigner =
+            await NolusWalletFactory.nolusOfflineSigner(offlineSigner as any);
           await nolusWalletOfflineSigner.useAccount();
           this.wallet = nolusWalletOfflineSigner;
           this.walletName = (await keplrWindow.keplr.getKey(chainId)).name;
@@ -90,6 +105,9 @@ const useWalletStore = defineStore("wallet", {
 
           WalletManager.storeWalletAddress(
             nolusWalletOfflineSigner.address || ""
+          );
+          WalletManager.setPubKey(
+            Buffer.from(this.wallet?.pubKey ?? "").toString("hex")
           );
 
           if (payload?.isFromAuth) {
@@ -111,7 +129,8 @@ const useWalletStore = defineStore("wallet", {
       while (!ledgerWallet && !breakLoop) {
         try {
           const isConnectedViaLedgerBluetooth =
-            WalletManager.getWalletConnectMechanism() === WalletConnectMechanism.LEDGER_BLUETOOTH;
+            WalletManager.getWalletConnectMechanism() ===
+            WalletConnectMechanism.LEDGER_BLUETOOTH;
           const transport =
             payload.isBluetooth || isConnectedViaLedgerBluetooth
               ? await BluetoothTransport.create()
@@ -133,6 +152,9 @@ const useWalletStore = defineStore("wallet", {
               : WalletConnectMechanism.LEDGER
           );
           WalletManager.storeWalletAddress(ledgerWallet.address || "");
+          WalletManager.setPubKey(
+            Buffer.from(this.wallet?.pubKey ?? "").toString("hex")
+          );
 
           if (payload?.isFromAuth) {
             await router.push({ name: RouteNames.SET_WALLET_NAME });
@@ -159,7 +181,8 @@ const useWalletStore = defineStore("wallet", {
         privateKey,
         ChainConstants.BECH32_PREFIX_ACC_ADDR
       );
-      const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
+      const nolusWalletOfflineSigner =
+        await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
       await nolusWalletOfflineSigner.useAccount();
       this.wallet = nolusWalletOfflineSigner;
       this.privateKey = toHex(privateKey);
@@ -182,6 +205,9 @@ const useWalletStore = defineStore("wallet", {
           WalletConnectMechanism.MNEMONIC
         );
         WalletManager.storeWalletAddress(this.wallet?.address ?? "");
+        WalletManager.setPubKey(
+          Buffer.from(this.wallet?.pubKey ?? "").toString("hex")
+        );
         WalletManager.storeEncryptedPubKey(encryptedPbKey);
         WalletManager.storeEncryptedPk(encryptedPk);
         this.privateKey = null;
@@ -200,54 +226,93 @@ const useWalletStore = defineStore("wallet", {
         const ibcBalances = [];
 
         for (const key in CURRENCIES.currencies) {
-          const currency = CURRENCIES.currencies[key as keyof typeof CURRENCIES.currencies];
-          const ibcDenom = AssetUtils.makeIBCMinimalDenom(currency.ibc_route, currency.symbol);
-          ibcBalances.push(NolusClient.getInstance().getBalance(
-            walletAddress,
-            ibcDenom
-          ).then((item) => {
-            const data = {
-              ticker: key,
-              name: currency.name,
-              symbol: currency.symbol,
-              decimal_digits: currency.decimal_digits,
-              groups: currency.groups,
-              swap_routes: currency.swap_routes
-            };
-            this.currencies[ibcDenom] = data;
-            return { balance: CurrencyUtils.convertCosmosCoinToKeplCoin(item) };
-          }));
+          const currency =
+            CURRENCIES.currencies[key as keyof typeof CURRENCIES.currencies];
+          const ibcDenom = AssetUtils.makeIBCMinimalDenom(
+            currency.ibc_route,
+            currency.symbol
+          );
+          ibcBalances.push(
+            NolusClient.getInstance()
+              .getBalance(walletAddress, ibcDenom)
+              .then((item) => {
+                const data = {
+                  ticker: key,
+                  name: currency.name,
+                  symbol: currency.symbol,
+                  decimal_digits: currency.decimal_digits,
+                  groups: currency.groups,
+                  swap_routes: currency.swap_routes,
+                };
+                this.currencies[ibcDenom] = data;
+                return {
+                  balance: CurrencyUtils.convertCosmosCoinToKeplCoin(item),
+                };
+              })
+          );
         }
         this.balances = await Promise.all(ibcBalances);
       } catch (e: Error | any) {
         throw new Error(e);
       }
     },
-    async [WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN](payload: { password: string }) {
-
+    async [WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN](payload: {
+      password: string;
+    }) {
       if (this.privateKey === null && payload.password !== "") {
         const encryptedPubKey = WalletManager.getEncryptedPubKey();
         const encryptedPk = WalletManager.getPrivateKey();
-        const decryptedPubKey = EncryptionUtils.decryptEncryptionKey(encryptedPubKey, payload.password);
-        const decryptedPrivateKey = EncryptionUtils.decryptPrivateKey(encryptedPk, decryptedPubKey, payload.password);
-        const directSecrWallet = await DirectSecp256k1Wallet.fromKey(fromHex(decryptedPrivateKey), ChainConstants.BECH32_PREFIX_ACC_ADDR);
-        const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
+        const decryptedPubKey = EncryptionUtils.decryptEncryptionKey(
+          encryptedPubKey,
+          payload.password
+        );
+        const decryptedPrivateKey = EncryptionUtils.decryptPrivateKey(
+          encryptedPk,
+          decryptedPubKey,
+          payload.password
+        );
+        const directSecrWallet = await DirectSecp256k1Wallet.fromKey(
+          fromHex(decryptedPrivateKey),
+          ChainConstants.BECH32_PREFIX_ACC_ADDR
+        );
+        const nolusWalletOfflineSigner =
+          await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
         await nolusWalletOfflineSigner.useAccount();
 
         this.wallet = nolusWalletOfflineSigner;
         this.privateKey = null;
         await this[WalletActionTypes.UPDATE_BALANCES]();
-
       }
     },
-    async [WalletActionTypes.SEARCH_TX]({ sender_per_page = 10, sender_page = 1, load_sender = true, recipient_per_page = 10, recipient_page = 1, load_recipient = true } = {}) {
+    async [WalletActionTypes.SEARCH_TX]({
+      sender_per_page = 10,
+      sender_page = 1,
+      load_sender = true,
+      recipient_per_page = 10,
+      recipient_page = 1,
+      load_recipient = true,
+    } = {}) {
       const address = WalletManager.getWalletAddress();
 
       if (address?.length > 0) {
         const client = await NolusClient.getInstance().getTendermintClient();
         const [sender, receiver] = await Promise.all([
-          load_sender ? client.txSearch({ query: `message.sender="${WalletManager.getWalletAddress()}"`, per_page: sender_per_page, page: sender_page, order_by: "desc" }) : false,
-          load_recipient ? client.txSearch({ query: `transfer.recipient="${WalletManager.getWalletAddress()}"`, per_page: recipient_per_page, page: recipient_page, order_by: "desc" }) : false
+          load_sender
+            ? client.txSearch({
+                query: `message.sender='${WalletManager.getWalletAddress()}'`,
+                per_page: sender_per_page,
+                page: sender_page,
+                order_by: "desc",
+              })
+            : false,
+          load_recipient
+            ? client.txSearch({
+                query: `transfer.recipient='${WalletManager.getWalletAddress()}'`,
+                per_page: recipient_per_page,
+                page: recipient_page,
+                order_by: "desc",
+              })
+            : false,
         ]);
         const data = [];
         let sender_total = 0;
@@ -262,15 +327,18 @@ const useWalletStore = defineStore("wallet", {
               const transactionResult = {
                 id: item.hash ? toHex(item.hash) : "",
                 height: item.height ?? "",
-                receiver: (rawTx[0].events[3].attributes[0].value ?? "") as string,
-                sender: (rawTx[0].events[3].attributes[1].value ?? "") as string,
+                receiver: (rawTx[0].events[3].attributes[0].value ??
+                  "") as string,
+                sender: (rawTx[0].events[3].attributes[1].value ??
+                  "") as string,
                 action: (rawTx[0].events[3].type ?? "") as string,
                 msg: "",
                 blockDate: null,
                 memo: decodedTx.body.memo ?? "",
-                fee: decodedTx?.authInfo?.fee?.amount.filter(
-                  (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
-                ) || null,
+                fee:
+                  decodedTx?.authInfo?.fee?.amount.filter(
+                    (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
+                  ) || null,
               };
               data.push(transactionResult);
             } catch (error) {
@@ -283,9 +351,10 @@ const useWalletStore = defineStore("wallet", {
                 msg: item.result.log as string,
                 blockDate: null,
                 memo: decodedTx.body.memo ?? "",
-                fee: decodedTx?.authInfo?.fee?.amount.filter(
-                  (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
-                ) || null,
+                fee:
+                  decodedTx?.authInfo?.fee?.amount.filter(
+                    (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
+                  ) || null,
               };
               data.push(transactionResult);
             }
@@ -301,15 +370,18 @@ const useWalletStore = defineStore("wallet", {
               const transactionResult = {
                 id: item.hash ? toHex(item.hash) : "",
                 height: item.height ?? "",
-                receiver: (rawTx[0].events[3].attributes[0].value ?? "") as string,
-                sender: (rawTx[0].events[3].attributes[1].value ?? "") as string,
+                receiver: (rawTx[0].events[3].attributes[0].value ??
+                  "") as string,
+                sender: (rawTx[0].events[3].attributes[1].value ??
+                  "") as string,
                 action: (rawTx[0].events[3].type ?? "") as string,
                 msg: "",
                 blockDate: null,
                 memo: decodedTx.body.memo ?? "",
-                fee: decodedTx?.authInfo?.fee?.amount.filter(
-                  (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
-                ) || null,
+                fee:
+                  decodedTx?.authInfo?.fee?.amount.filter(
+                    (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
+                  ) || null,
               };
               data.push(transactionResult);
             } catch (error) {
@@ -322,9 +394,10 @@ const useWalletStore = defineStore("wallet", {
                 msg: item.result.log as string,
                 blockDate: null,
                 memo: decodedTx.body.memo ?? "",
-                fee: decodedTx?.authInfo?.fee?.amount.filter(
-                  (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
-                ) || null,
+                fee:
+                  decodedTx?.authInfo?.fee?.amount.filter(
+                    (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
+                  ) || null,
               };
               data.push(transactionResult);
             }
@@ -342,22 +415,24 @@ const useWalletStore = defineStore("wallet", {
         return {
           data: items,
           receiver_total,
-          sender_total
-        }
-
+          sender_total,
+        };
       }
 
       return {
-        data: []
+        data: [],
       };
     },
-    async [WalletActionTypes.LOAD_VESTED_TOKENS](): Promise<{
-      endTime: string,
-      amount: { amount: string, denom: string }
-    }[]> {
-
+    async [WalletActionTypes.LOAD_VESTED_TOKENS](): Promise<
+      {
+        endTime: string;
+        amount: { amount: string; denom: string };
+      }[]
+    > {
       const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
-      const data = await fetch(`${url}/cosmos/auth/v1beta1/accounts/${WalletManager.getWalletAddress()}`);
+      const data = await fetch(
+        `${url}/cosmos/auth/v1beta1/accounts/${WalletManager.getWalletAddress()}`
+      );
       const json = await data.json();
       const accData = json.account;
       const vesting_account = accData?.base_vesting_account;
@@ -367,12 +442,20 @@ const useWalletStore = defineStore("wallet", {
         const start = new Date(accData.start_time * 1000);
         const end = new Date(vesting_account.end_time * 1000);
 
-        const from = `${start.toLocaleDateString("en-US", { day: "2-digit" })}/${start.toLocaleDateString("en-US", { month: "2-digit" })}/${start.toLocaleDateString("en-US", { year: "numeric" })}`;
-        const to = `${end.toLocaleDateString("en-US", { day: "2-digit" })}/${end.toLocaleDateString("en-US", { month: "2-digit" })}/${end.toLocaleDateString("en-US", { year: "numeric" })}`;
+        const from = `${start.toLocaleDateString("en-US", {
+          day: "2-digit",
+        })}/${start.toLocaleDateString("en-US", {
+          month: "2-digit",
+        })}/${start.toLocaleDateString("en-US", { year: "numeric" })}`;
+        const to = `${end.toLocaleDateString("en-US", {
+          day: "2-digit",
+        })}/${end.toLocaleDateString("en-US", {
+          month: "2-digit",
+        })}/${end.toLocaleDateString("en-US", { year: "numeric" })}`;
 
         items.push({
           endTime: `${from} - ${to}`,
-          amount: vesting_account.original_vesting[0]
+          amount: vesting_account.original_vesting[0],
         });
       }
 
@@ -385,50 +468,54 @@ const useWalletStore = defineStore("wallet", {
         const provider = instance.web3auth.provider;
 
         if (provider) {
-
           const privateKeyStr = await provider.request({
-            method: "private_key"
+            method: "private_key",
           });
 
           if (KeyUtilities.isPrivateKey(privateKeyStr as string)) {
-
             const privateKey = Buffer.from(privateKeyStr as string, "hex");
             const directSecrWallet = await DirectSecp256k1Wallet.fromKey(
               privateKey,
               ChainConstants.BECH32_PREFIX_ACC_ADDR
             );
 
-            const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
+            const nolusWalletOfflineSigner =
+              await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
             await nolusWalletOfflineSigner.useAccount();
             this.wallet = nolusWalletOfflineSigner;
             this.privateKey = toHex(privateKey);
             await Web3AuthProvider.logout();
             return true;
-
           }
-
         }
-
       }
 
       await instance.connect();
     },
     async [WalletActionTypes.LOAD_STAKED_TOKENS]() {
-      const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
-      const data = await fetch(`${url}/cosmos/staking/v1beta1/delegations/${WalletManager.getWalletAddress()}`);
-      const json = await data.json();
-
-      const [item] = json.delegation_responses;
-
-      if (item) {
-        this.stakingBalance = item.balance;
+      try {
+        const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
+        const data = await fetch(
+          `${url}/cosmos/staking/v1beta1/delegations/${WalletManager.getWalletAddress()}`
+        );
+        const json = await data.json();
+        const [item] = json.delegation_responses;
+        if (item) {
+          this.stakingBalance = item.balance;
+        }
+      } catch (e) {
+        this.stakingBalance = new Coin(DEFAULT_ASSET.denom, new Int(0));
       }
-
     },
     async [WalletActionTypes.LOAD_SUPPLIED_AMOUNT]() {
-      const walletAddress = this?.wallet?.address ?? WalletManager.getWalletAddress();
-      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const lppClient = new Lpp(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance);
+      const walletAddress =
+        this?.wallet?.address ?? WalletManager.getWalletAddress();
+      const cosmWasmClient =
+        await NolusClient.getInstance().getCosmWasmClient();
+      const lppClient = new Lpp(
+        cosmWasmClient,
+        CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance
+      );
       const depositBalance = await lppClient.getLenderDeposit(
         walletAddress as string
       );
@@ -436,7 +523,7 @@ const useWalletStore = defineStore("wallet", {
     },
     async [WalletActionTypes.LOAD_WALLET_NAME]() {
       switch (WalletManager.getWalletConnectMechanism()) {
-        case (WalletConnectMechanism.EXTENSION): {
+        case WalletConnectMechanism.EXTENSION: {
           break;
         }
         default: {
@@ -459,8 +546,8 @@ const useWalletStore = defineStore("wallet", {
             coinDecimals: Number(CURRENCIES.currencies.NLS.decimal_digits),
             coinAbbreviation: ASSETS.NLS.abbreviation,
             coinGeckoId: ASSETS.NLS.coinGeckoId,
-            coinIcon: ASSETS.NLS.coinIcon
-          }
+            coinIcon: ASSETS.NLS.coinIcon,
+          };
         }
 
         const key = currency.ticker as keyof typeof ASSETS;
@@ -472,13 +559,15 @@ const useWalletStore = defineStore("wallet", {
           coinDecimals: Number(currency.decimal_digits),
           coinAbbreviation: ASSETS[key].abbreviation,
           coinGeckoId: ASSETS[key].coinGeckoId,
-          coinIcon: ASSETS[key].coinIcon
-        }
+          coinIcon: ASSETS[key].coinIcon,
+        };
       };
     },
     getCurrencyByTicker: (state) => {
       return (ticker: string) => {
-        return CURRENCIES.currencies[ticker as keyof typeof CURRENCIES.currencies]
+        return CURRENCIES.currencies[
+          ticker as keyof typeof CURRENCIES.currencies
+        ];
       };
     },
     getIbcDenomBySymbol: (state) => {
@@ -489,7 +578,7 @@ const useWalletStore = defineStore("wallet", {
           }
         }
       };
-    }
+    },
   },
 });
 

@@ -1,12 +1,13 @@
 <template>
-  <form 
-    @submit.prevent="modelValue.onNextClick" 
-    class="modal-form">
-
+  <form @submit.prevent="modelValue.onNextClick" class="modal-form">
     <!-- Input Area -->
     <div class="modal-send-receive-input-area">
-      <div class="flex py-3 px-4 bg-light-grey radius-light text-left text-14 nls-font-400 text-primary">
-        <span class="text-14 nls-font-500">{{ $t('message.current-apr') }}:</span>
+      <div
+        class="flex py-3 px-4 bg-light-grey radius-light text-left text-14 nls-font-400 text-primary"
+      >
+        <span class="text-14 nls-font-500"
+          >{{ $t("message.current-apr") }}:</span
+        >
         <span class="text-14 nls-font-700 ml-2">
           {{ modelValue.currentAPR }}
         </span>
@@ -35,7 +36,7 @@
           </template>
           <template v-slot:content>
             <span>
-              {{ $t('message.rewards-compount') }}
+              {{ $t("message.rewards-compount") }}
             </span>
           </template>
         </WarningBox>
@@ -44,22 +45,19 @@
 
     <!-- Actions -->
     <div class="modal-send-receive-actions">
-      <button
-        class="btn btn-primary btn-large-primary text-center"
-      >
-        {{ $t('message.supply') }}
+      <button class="btn btn-primary btn-large-primary text-center">
+        {{ $t("message.supply") }}
       </button>
     </div>
-
   </form>
 </template>
 
 <script lang="ts" setup>
-import type { SupplyFormComponentProps } from '@/types/component/SupplyFormComponentProps';
-import type { PropType } from 'vue';
+import type { SupplyFormComponentProps } from "@/types/component/SupplyFormComponentProps";
+import type { PropType } from "vue";
 
-import CurrencyField from '@/components/CurrencyField.vue';
-import WarningBox from '@/components/modals/templates/WarningBox.vue';
+import CurrencyField from "@/components/CurrencyField.vue";
+import WarningBox from "@/components/modals/templates/WarningBox.vue";
 
 const props = defineProps({
   modelValue: {
@@ -72,5 +70,5 @@ const handleAmountChange = (value: string) => {
   props.modelValue.amount = value;
 };
 
-defineEmits(['update:modelValue.selectedCurrency']);
+defineEmits(["update:modelValue.selectedCurrency"]);
 </script>

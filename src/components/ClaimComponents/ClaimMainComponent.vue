@@ -1,8 +1,8 @@
 <template>
   <ConfirmComponent
-    v-if='showConfirmScreen'
-    :selectedCurrency='state.selectedCurrency'
-    receiver-address=''
+    v-if="showConfirmScreen"
+    :selectedCurrency="state.selectedCurrency"
+    receiver-address=""
     :password="state.password"
     :amount="state.amount"
     :txType="TxType.CLAIM"
@@ -17,18 +17,18 @@
 </template>
 
 <script lang="ts" setup>
-import ConfirmComponent from '@/components/modals/templates/ConfirmComponent.vue';
-import type { ClaimComponentProps } from '@/types/component/ClaimComponentProps';
-import type { ContractData } from '@nolus/nolusjs/build/contracts';
+import ConfirmComponent from "@/components/modals/templates/ConfirmComponent.vue";
+import type { ClaimComponentProps } from "@/types/component/ClaimComponentProps";
+import type { ContractData } from "@nolus/nolusjs/build/contracts";
 
-import { CONFIRM_STEP } from '@/types/ConfirmStep';
-import { TxType } from '@/types/TxType';
-import { defaultNolusWalletFee } from '@/config/wallet';
-import { walletOperation } from '@/components/utils';
-import { computed, inject, type PropType, ref } from 'vue';
-import { useWalletStore } from '@/stores/wallet';
-import { DEFAULT_ASSET, GAS_FEES } from '@/config/env';
-import { coin } from '@cosmjs/amino';
+import { CONFIRM_STEP } from "@/types/ConfirmStep";
+import { TxType } from "@/types/TxType";
+import { defaultNolusWalletFee } from "@/config/wallet";
+import { walletOperation } from "@/components/utils";
+import { computed, inject, type PropType, ref } from "vue";
+import { useWalletStore } from "@/stores/wallet";
+import { DEFAULT_ASSET, GAS_FEES } from "@/config/env";
+import { coin } from "@cosmjs/amino";
 
 const walletStore = useWalletStore();
 
@@ -57,8 +57,8 @@ const state = ref({
   currentBalance: balances.value,
   selectedCurrency: selectedCurrency.value,
   amount: props.reward.balance.amount.toString(),
-  password: '',
-  txHash: '',
+  password: "",
+  txHash: "",
   fee: coin(GAS_FEES.lender_claim_rewards, DEFAULT_ASSET.denom),
   onNextClick: () => onNextClick(),
   onSendClick: () => onClickClaim(),
@@ -67,7 +67,7 @@ const state = ref({
 } as ClaimComponentProps);
 
 const step = ref(CONFIRM_STEP.CONFIRM);
-const closeModal = inject('onModalClose', () => () => {});
+const closeModal = inject("onModalClose", () => () => {});
 
 function onNextClick() {}
 
@@ -81,9 +81,9 @@ function onClickOkBtn() {
 }
 
 async function onClickClaim() {
-  try{
+  try {
     await walletOperation(requestClaim, state.value.password);
-  }catch(error: Error | any){
+  } catch (error: Error | any) {
     step.value = CONFIRM_STEP.ERROR;
   }
 }
@@ -104,7 +104,7 @@ async function requestClaim() {
       );
 
       if (result) {
-        state.value.txHash = result.transactionHash || '';
+        state.value.txHash = result.transactionHash || "";
         step.value = CONFIRM_STEP.SUCCESS;
       } else {
         step.value = CONFIRM_STEP.ERROR;

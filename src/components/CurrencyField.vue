@@ -3,20 +3,20 @@
     <label :for="id" class="block text-14 nls-font-500 text-primary">
       {{ label }}
     </label>
-    <div 
+    <div
       class="currency-field p-3.5 currency-field p-3.5"
-      :class="{'error': isError}"
-      >
+      :class="{ error: isError }"
+    >
       <div class="flex items-center">
         <div class="inline-block w-1/2">
-          <input 
-            :id="id" 
-            :disabled="disabledInputField" 
-            :name="name"  
-            :step="step" 
+          <input
+            :id="id"
+            :disabled="disabledInputField"
+            :name="name"
+            :step="step"
             v-model="numberValue"
-            autocomplete="off" 
-            class="nls-font-700 text-18 text-primary background" 
+            autocomplete="off"
+            class="nls-font-700 text-18 text-primary background"
             @keydown="inputValue"
             @keyup="setValue"
             @paste="onPaste"
@@ -26,21 +26,18 @@
           </span>
         </div>
         <div class="inline-block w-1/2">
-          <CurrencyPicker 
-            :currency-option="option" 
-            :disabled="disabledCurrencyPicker" 
+          <CurrencyPicker
+            :currency-option="option"
+            :disabled="disabledCurrencyPicker"
             :options="currencyOptions"
-            @update-currency="onUpdateCurrency" 
-            type="small" 
+            @update-currency="onUpdateCurrency"
+            type="small"
           />
         </div>
       </div>
     </div>
 
-    <span 
-      class="msg error"
-      :class="[errorMsg.length > 0 ? '' : 'hidden']"
-      >
+    <span class="msg error" :class="[errorMsg.length > 0 ? '' : 'hidden']">
       {{ errorMsg.length > 0 ? errorMsg : "" }}
     </span>
   </div>
@@ -65,7 +62,19 @@ const dot = ".";
 const minus = "-";
 const comma = ",";
 const space = " ";
-const allowed = ["Delete", "Backspace", "ArrowLeft", "ArrowRight", "-", ".", "Enter", "Tab", "Control", "End", "Home"]
+const allowed = [
+  "Delete",
+  "Backspace",
+  "ArrowLeft",
+  "ArrowRight",
+  "-",
+  ".",
+  "Enter",
+  "Tab",
+  "Control",
+  "End",
+  "Home",
+];
 const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 const props = defineProps({
@@ -106,22 +115,25 @@ const props = defineProps({
   },
   positive: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 });
 
-const numberValue = ref(props.value)
+const numberValue = ref(props.value);
 let numberRealValue = Number(props.value);
 
 onMounted(() => {
   setValue();
-})
-
-watch(() => props.value, () => {
-  numberValue.value=props.value;
-  numberRealValue = Number(props.value);
-  setValue();
 });
+
+watch(
+  () => props.value,
+  () => {
+    numberValue.value = props.value;
+    numberRealValue = Number(props.value);
+    setValue();
+  }
+);
 
 const onUpdateCurrency = (value: AssetBalance) => {
   emit("update-currency", value);
@@ -153,29 +165,29 @@ const inputValue = (event: KeyboardEvent) => {
   const charCode = event.key;
   const value = numberValue.value ?? "";
 
-  if(event.ctrlKey){
+  if (event.ctrlKey) {
     return true;
   }
 
   if (props.positive) {
     if (event.key == minus) {
-      event.preventDefault()
+      event.preventDefault();
       return false;
     }
   }
 
   if (charCode == minus && value.includes(minus)) {
-    event.preventDefault()
+    event.preventDefault();
     return false;
   }
 
   if (charCode == dot && value?.includes(dot)) {
-    event.preventDefault()
+    event.preventDefault();
     return false;
   }
 
-  if(charCode == space){
-    event.preventDefault()
+  if (charCode == space) {
+    event.preventDefault();
     return false;
   }
 
@@ -188,31 +200,29 @@ const inputValue = (event: KeyboardEvent) => {
     return true;
   }
 
-  event.preventDefault()
+  event.preventDefault();
   return false;
-
-}
+};
 
 const onPaste = (event: ClipboardEvent) => {
   const pastedText = event.clipboardData?.getData("text");
   const num = Number(pastedText);
-  if(isNaN(num)){
+  if (isNaN(num)) {
     event.preventDefault();
   }
-
-}
+};
 
 const setValue = () => {
   let value = removeComma(numberValue.value ?? "");
   let numValue = Number(value);
   numberValue.value = commify(value.toString());
-  if(isNaN(numValue)){
+  if (isNaN(numValue)) {
     return false;
   }
   numberRealValue = Number(value);
   emit("input", value);
-  emit("update:modelValue", value)
-}
+  emit("update:modelValue", value);
+};
 
 const commify = (n: string) => {
   const parts = n.split(".");
@@ -221,12 +231,13 @@ const commify = (n: string) => {
   const hasDot = n.includes(dot);
   const thousands = /\B(?=(\d{3})+(?!\d))/g;
 
-  return numberPart.replace(thousands, comma) + (hasDot ? `.${decimalPart}` : "");
-}
+  return (
+    numberPart.replace(thousands, comma) + (hasDot ? `.${decimalPart}` : "")
+  );
+};
 
 const removeComma = (n: string) => {
   const re = new RegExp(comma, "g");
   return n.replace(re, "");
-}
-
+};
 </script>

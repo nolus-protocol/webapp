@@ -6,10 +6,16 @@
       @keydown.esc="onModalClose"
     >
       <button v-if="collpase" class="btn-close-modal" @click="onModalClose">
-        <img class="inline-block w-6 h-6 z-[5] max-w-none" src="@/assets/icons/collapse.svg" />
+        <img
+          class="inline-block w-6 h-6 z-[5] max-w-none"
+          src="@/assets/icons/collapse.svg"
+        />
       </button>
       <button v-else class="btn-close-modal" @click="onModalClose">
-        <img class="inline-block w-5 h-5 z-[5]" src="@/assets/icons/cross.svg" />
+        <img
+          class="inline-block w-5 h-5 z-[5]"
+          src="@/assets/icons/cross.svg"
+        />
       </button>
       <slot></slot>
     </div>
@@ -17,27 +23,27 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, provide, ref } from 'vue';
-import router from '@/router';
+import { onMounted, onUnmounted, provide, ref } from "vue";
+import router from "@/router";
 
 const collpase = ref(false);
 const props = defineProps({
   route: {
     type: String,
-    default: 'dialog'
-  }
-})
+    default: "dialog",
+  },
+});
 
-const emit = defineEmits(['close-modal']);
+const emit = defineEmits(["close-modal"]);
 
 const setCollapseButton = (bool: boolean) => {
   collpase.value = bool;
-}
+};
 
 const onModalClose = () => {
   parseRoute();
-  emit('close-modal');
-  document.body.style.overflowY = 'auto';
+  emit("close-modal");
+  document.body.style.overflowY = "auto";
 };
 
 const parseRoute = () => {
@@ -48,14 +54,14 @@ const parseRoute = () => {
 };
 
 const escapeClicked = (event: KeyboardEvent) => {
-  if (event.key == 'Escape') {
+  if (event.key == "Escape") {
     onModalClose();
   }
 };
 
 const backButtonClicked = (event: Event) => {
-  emit('close-modal');
-  document.body.style.overflowY = 'auto';
+  emit("close-modal");
+  document.body.style.overflowY = "auto";
 };
 
 onMounted(() => {
@@ -64,22 +70,22 @@ onMounted(() => {
     path,
     hash: `#${props.route.toLowerCase()}`,
   });
-  document.addEventListener('keyup', escapeClicked);
-  window.addEventListener('popstate', backButtonClicked);
-  document.body.style.overflowY = 'hidden';
+  document.addEventListener("keyup", escapeClicked);
+  window.addEventListener("popstate", backButtonClicked);
+  document.body.style.overflowY = "hidden";
 });
 
 onUnmounted(() => {
-  document.removeEventListener('keyup', escapeClicked);
-  window.removeEventListener('popstate', backButtonClicked);
+  document.removeEventListener("keyup", escapeClicked);
+  window.removeEventListener("popstate", backButtonClicked);
 });
 
-provide('onModalClose', onModalClose);
-provide('parseRoute', parseRoute);
-provide('setCollapseButton', setCollapseButton);
+provide("onModalClose", onModalClose);
+provide("parseRoute", parseRoute);
+provide("setCollapseButton", setCollapseButton);
 </script>
 <style scoped>
-button.btn-close-modal{
+button.btn-close-modal {
   padding: 16px;
   z-index: 999;
 }

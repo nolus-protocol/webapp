@@ -22,7 +22,10 @@
         >
           <button
             class="flex btn btn-secondary btn-medium-secondary btn-icon mr-4"
-            @click="onClickCopy();onCopy()"
+            @click="
+              onClickCopy();
+              onCopy();
+            "
           >
             <DocumentDuplicateIcon class="icon w-4 h-4" />
             {{ copyText }}
@@ -37,9 +40,7 @@
           </button>
         </div>
       </div>
-      <span
-        class="msg error" 
-        :class="[errorMsg.length > 0 ? '' : 'hidden']">
+      <span class="msg error" :class="[errorMsg.length > 0 ? '' : 'hidden']">
         {{ errorMsg }}
       </span>
     </div>
@@ -86,7 +87,8 @@ defineProps({
   },
 });
 
-const handleInputChange = (event: Event) => (event.target as HTMLInputElement).value;
+const handleInputChange = (event: Event) =>
+  (event.target as HTMLInputElement).value;
 
 onUnmounted(() => {
   clearTimeout(timeOut);
@@ -94,11 +96,11 @@ onUnmounted(() => {
 
 const onCopy = () => {
   copyText.value = i18n.t("message.copied");
-  if(timeOut){
+  if (timeOut) {
     clearTimeout(timeOut);
   }
   timeOut = setTimeout(() => {
     copyText.value = i18n.t("message.copy");
   }, 2000);
-}
+};
 </script>

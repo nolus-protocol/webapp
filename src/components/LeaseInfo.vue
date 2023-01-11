@@ -28,23 +28,22 @@
               class="inline-block ml-1 text-primary text-20 nls-font-400 uppercase"
             >
               {{ getAssetInfo("coinDenom") }}
-            </span
-            >
+            </span>
           </h1>
         </div>
         <div class="flex flex-wrap text-10 uppercase whitespace-nowrap">
           <!-- @TODO: Fetch this data -->
           <span class="bg-[#ebeff5] rounded p-1 m-1">
-            {{ $t('message.down-payment') }}: $20,000.00
+            {{ $t("message.down-payment") }}: $20,000.00
           </span>
           <span class="bg-[#ebeff5] rounded p-1 m-1">
-            {{ $t('message.loan') }}: $60,000.00
+            {{ $t("message.loan") }}: $60,000.00
           </span>
           <span class="bg-[#ebeff5] rounded p-1 m-1">
             {{ `price per ${getAssetInfo("coinDenom")}:` }}$29,345.00
           </span>
           <span class="bg-[#ebeff5] rounded p-1 m-1">
-            {{ $t('message.liq-trigger') }}: $10,000.00
+            {{ $t("message.liq-trigger") }}: $10,000.00
           </span>
         </div>
       </div>
@@ -52,15 +51,16 @@
         <!-- Graph -->
         <div class="flex justify-between">
           <div>
-            {{ $t('message.current-price') }}
+            {{ $t("message.current-price") }}
             <p>
               <b>{{ currentPrice }}</b>
             </p>
           </div>
           <div class="flex text-10 h-6">
             <button
-              v-for="value in CHART_RANGES"
+              v-for="(value, index) in CHART_RANGES"
               class="ml-2 w-10 justify-center border rounded"
+              :key="index"
               :class="`${
                 value.label === chartTimeRange.label
                   ? 'border-1 border-light-electric bg-[#0ea5e9]/10'
@@ -75,7 +75,9 @@
         <PriceHistoryChart :chartData="chartData" />
       </div>
     </div>
-    <div class="flex items-center justify-between border-t border-standart pt-4 px-6">
+    <div
+      class="flex items-center justify-between border-t border-standart pt-4 px-6"
+    >
       <div class="flex">
         <div class="block">
           <p class="text-detail text-primary m-0">
@@ -95,7 +97,9 @@
             {{ $t("message.interest-fee") }}
             <TooltipComponent :content="$t('message.interest-fee-tooltip')" />
           </p>
-          <p class="flex items-center text-primary text-20 nls-font-400 m-0 mt-1">
+          <p
+            class="flex items-center text-primary text-20 nls-font-400 m-0 mt-1"
+          >
             {{
               formatInterestRate(leaseInfo.leaseStatus?.opened?.interest_rate)
             }}
@@ -106,7 +110,9 @@
             {{ $t("message.interest-due") }}
             <TooltipComponent :content="$t('message.interest-due-tooltip')" />
           </p>
-          <p class="flex items-center text-primary text-20 nls-font-400 m-0 mt-1">
+          <p
+            class="flex items-center text-primary text-20 nls-font-400 m-0 mt-1"
+          >
             {{
               calculateBalance(
                 leaseInfo.leaseStatus?.opened?.current_interest_due?.amount,
@@ -134,7 +140,11 @@
     </div>
   </div>
 
-  <Modal v-if="showRepayModal" @close-modal="showRepayModal = false" route="repay">
+  <Modal
+    v-if="showRepayModal"
+    @close-modal="showRepayModal = false"
+    route="repay"
+  >
     <RepayDialog :lease-info="leaseInfo" />
   </Modal>
 </template>
@@ -160,17 +170,18 @@ import { useOracleStore } from "@/stores/oracle";
 import { useI18n } from "vue-i18n";
 
 interface Props {
-  leaseInfo: LeaseData | any; //TODO: update Asset in nolusjs
+  leaseInfo: LeaseData;
 }
 
-const { leaseInfo } = defineProps<Props>();
+const props = defineProps<Props>();
 const showRepayModal = ref(false);
 const chartTimeRange = ref(CHART_RANGES["1"]);
-const chartData = ref({});
+const i18n = useI18n();
+
+const chartData = ref();
 const currentPrice = ref<string>();
 const walletStore = useWalletStore();
 const oracleStore = useOracleStore();
-const i18n = useI18n();
 
 watchEffect(async () => {
   const { days, interval } = chartTimeRange.value;
@@ -224,14 +235,14 @@ async function onClickClaim(leaseAddress: string) {
   const wallet = walletStore.wallet as NolusWallet;
 
   if (wallet) {
-    const result = await leaseClient.closeLease(wallet, DEFAULT_FEE, undefined);
+    await leaseClient.closeLease(wallet, DEFAULT_FEE, undefined);
   }
 }
 
 function getAssetInfo(key: keyof AssetInfo) {
   const ticker =
-    leaseInfo.leaseStatus?.opened?.amount.ticker ||
-    leaseInfo.leaseStatus?.paid?.ticker;
+    props.leaseInfo.leaseStatus?.opened?.amount.ticker ||
+    props.leaseInfo.leaseStatus?.paid?.ticker;
 
   if (ticker) {
     const item = walletStore.getCurrencyByTicker(ticker);
@@ -264,11 +275,11 @@ function calculateBalance(tokenAmount = "0", denom = "") {
 
 const getAssetIcon = computed((): string => {
   const ticker =
-    leaseInfo.leaseStatus?.opened?.amount.ticker ||
-    leaseInfo.leaseStatus?.paid?.ticker ||
+    props.leaseInfo.leaseStatus?.opened?.amount.ticker ||
+    props.leaseInfo.leaseStatus?.paid?.ticker ||
     "";
-    const item = walletStore.getCurrencyByTicker(ticker);
-    const ibcDenom = walletStore.getIbcDenomBySymbol(item.symbol);
+  const item = walletStore.getCurrencyByTicker(ticker);
+  const ibcDenom = walletStore.getIbcDenomBySymbol(item.symbol);
   return walletStore.getCurrencyInfo(ibcDenom as string).coinIcon;
-})
+});
 </script>

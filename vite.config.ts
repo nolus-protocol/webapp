@@ -5,7 +5,7 @@ import { defineConfig, splitVendorChunkPlugin } from "vite";
 import vue from "@vitejs/plugin-vue";
 import vueI18n from "@intlify/unplugin-vue-i18n/vite";
 import NodeGlobalsPolyfillPlugin from "@esbuild-plugins/node-globals-polyfill";
-import rollupNodePolyFill from "rollup-plugin-polyfill-node"
+import rollupNodePolyFill from "rollup-plugin-polyfill-node";
 
 export default defineConfig({
   plugins: [
@@ -17,7 +17,7 @@ export default defineConfig({
         "./src/locales/**"
       ),
     }),
-    splitVendorChunkPlugin()
+    splitVendorChunkPlugin(),
   ],
   resolve: {
     alias: {
@@ -28,21 +28,19 @@ export default defineConfig({
     esbuildOptions: {
       sourcemap: false,
       define: {
-        global: "globalThis"
+        global: "globalThis",
       },
       plugins: [
         NodeGlobalsPolyfillPlugin({
           process: true,
-          buffer: true
+          buffer: true,
         }),
       ],
-    }
+    },
   },
   build: {
     rollupOptions: {
-      plugins: [
-        rollupNodePolyFill(),
-      ],
+      plugins: [rollupNodePolyFill()],
       output: {
         manualChunks: {
           "@cosmjs": [
@@ -53,31 +51,31 @@ export default defineConfig({
             "@cosmjs/ledger-amino",
             "@cosmjs/proto-signing",
             "@cosmjs/stargate",
-            "@cosmjs/tendermint-rpc"
+            "@cosmjs/tendermint-rpc",
           ],
           "@keplr-wallet": [
             "@keplr-wallet/crypto",
             "@keplr-wallet/types",
-            "@keplr-wallet/unit"
+            "@keplr-wallet/unit",
           ],
           "@ledgerhq": [
             "@ledgerhq/hw-app-cosmos",
             "@ledgerhq/hw-transport-web-ble",
             "@ledgerhq/hw-transport-webhid",
             "@ledgerhq/hw-transport-webusb",
-            "@ledgerhq/logs"
+            "@ledgerhq/logs",
           ],
           "@web3auth": [
             "@web3auth/base",
             "@web3auth/openlogin-adapter",
-            "@web3auth/core"
+            "@web3auth/core",
           ],
-          "dashboard": [
+          dashboard: [
             "./src/views/LeaseView.vue",
             "./src/views/EarningsView.vue",
-            "./src/views/HistoryView.vue"
+            "./src/views/HistoryView.vue",
           ],
-          "auth": [
+          auth: [
             "./src/views/AuthView.vue",
             "./src/views/AuthSelectView.vue",
             "./src/views/ImportSeedView.vue",

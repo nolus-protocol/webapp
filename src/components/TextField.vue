@@ -1,11 +1,8 @@
 <template>
   <fieldset>
     <div class="block input-field">
-      <label
-        :for="id"
-        class="block text-14 nls-font-500 mb-[5px] dark-text"
-      >
-      {{ label }}
+      <label :for="id" class="block text-14 nls-font-500 mb-[5px] dark-text">
+        {{ label }}
       </label>
       <textarea
         :id="id"
@@ -15,10 +12,7 @@
         @input="$emit('update:value', handleInputChange($event))"
       >
       </textarea>
-      <span 
-        class="msg error"
-        :class="[errorMsg.length > 0 ? '' : 'hidden']"
-      >
+      <span class="msg error" :class="[errorMsg.length > 0 ? '' : 'hidden']">
         {{ errorMsg.length > 0 ? errorMsg : "" }}
       </span>
     </div>
@@ -49,5 +43,6 @@ defineProps({
   },
 });
 
-const handleInputChange = (event: Event) => (event.target as HTMLInputElement).value;
+const handleInputChange = (event: Event) =>
+  (event.target as HTMLInputElement).value;
 </script>

@@ -13,15 +13,17 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
     staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
     web3auth: {
-      clientId: "BHPGnOodSp4t0ZDuuJ3suCZCtwVILYmfOTbDrzlUKK6ADFrNMWg563MAMj_CBW8sDVvg3BqJi8i284t6o",
+      clientId:
+        "BHPGnOodSp4t0ZDuuJ3suCZCtwVILYmfOTbDrzlUKK6ADFrNMWg563MAMj_CBW8sDVvg3BqJi8i284t6o",
       network: "testnet",
       google: {
         name: "Nolus",
         verifier: "nolusprotocol",
         typeOfLogin: "google",
-        clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
+        clientId:
+          "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
       },
-    }
+    },
   },
   devnet: {
     tendermintRpc: "https://net-dev.nolus.io:26612",
@@ -30,15 +32,17 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
     staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
     web3auth: {
-      clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
+      clientId:
+        "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
       network: "cyan",
       google: {
         name: "Nolus",
         verifier: "nolusprotocol",
         typeOfLogin: "google",
-        clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
+        clientId:
+          "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
       },
-    }
+    },
   },
   testnet: {
     tendermintRpc: "https://net-rila.nolus.io:26657",
@@ -47,15 +51,17 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
     staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
     web3auth: {
-      clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
+      clientId:
+        "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
       network: "cyan",
       google: {
         name: "Nolus",
         verifier: "nolusprotocol",
         typeOfLogin: "google",
-        clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
+        clientId:
+          "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
       },
-    }
+    },
   },
   mainnet: {
     tendermintRpc: "https://net-rila.nolus.io:26657",
@@ -64,15 +70,17 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     govern: "https://explorer.nolus.io/nolus/gov",
     staking: "https://explorer.nolus.io/nolus/staking",
     web3auth: {
-      clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
+      clientId:
+        "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
       network: "cyan",
       google: {
         name: "Nolus",
         verifier: "nolusprotocol",
         typeOfLogin: "google",
-        clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
+        clientId:
+          "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
       },
-    }
+    },
   },
 };
 
@@ -81,8 +89,8 @@ export const DEFAULT_CURRENCY = {
   symbol: "$",
   locale: "en-US",
   minimumFractionDigits: 2,
-  maximumFractionDigits: 2
-}
+  maximumFractionDigits: 2,
+};
 
 export const DEFAULT_NETWORK = {
   prefix: "nolus",
@@ -106,8 +114,8 @@ export const SUPPORTED_NETWORKS = [
     estimation: 20,
     sourcePort: "transfer",
     sourceChannel: "channel-0",
-  }
-]
+  },
+];
 
 export const DEFAULT_ASSET = {
   ticker: "NLS",
@@ -120,13 +128,13 @@ export const DEFAULT_ASSET = {
 export enum GROUPS {
   Lpn = "Lpn",
   Lease = "Lease",
-  Payment = "Payment"
+  Payment = "Payment",
 }
 
 export enum SNACKBAR {
   Queued = "queued",
   Success = "success",
-  Error = "error"
+  Error = "error",
 }
 
 export const GAS_FEES = {
@@ -140,13 +148,13 @@ export const GAS_FEES = {
   transfer_amount: 500,
   open_lease: 1500,
   repay_lease: 1500,
-  swap_amount: 1500
-}
+  swap_amount: 1500,
+};
 
 export enum APPEARANCE {
   light = "light",
   dark = "dark",
-  sync = "sync"
+  sync = "sync",
 }
 
 export const UPDATE_BLOCK_INTERVAL = 5 * 1000; // 5000 ms

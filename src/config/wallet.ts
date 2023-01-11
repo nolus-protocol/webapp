@@ -14,7 +14,9 @@ export const defaultNolusWalletFee = (): StdFee => {
     amount: [
       {
         denom: ChainConstants.COIN_MINIMAL_DENOM,
-        amount: WalletUtils.isConnectedViaExtension() ? FEE : feeAmount.truncate().toString(),
+        amount: WalletUtils.isConnectedViaExtension()
+          ? FEE
+          : feeAmount.truncate().toString(),
       },
     ],
     gas: "2000000",

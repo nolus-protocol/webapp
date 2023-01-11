@@ -4,10 +4,8 @@
       <div
         class="block nls-balance mb-[13px] bg-light-grey radius-light text-left text-primary p-2"
       >
-        {{ $t('message.outstanding-loan') }}:
-        <a class="text-primary nls-font-700 ml-2">
-          $36,423.02
-        </a>
+        {{ $t("message.outstanding-loan") }}:
+        <a class="text-primary nls-font-700 ml-2"> $36,423.02 </a>
       </div>
       <CurrencyField
         id="repayBalance"
@@ -24,9 +22,11 @@
       />
       <div class="flex justify-end">
         <div class="grow-3 text-right nls-font-500 text-14">
-          <p class="mb-3 mt-[25px] mr-5">{{ $t('message.repayment-amount') }}:</p>
-          <p class="mb-3 mr-5">{{ $t('message.outstanding-lease') }}:</p>
-          <p class="mb-3 mr-5">{{ $t('message.tx-fee') }}:</p>
+          <p class="mb-3 mt-[25px] mr-5">
+            {{ $t("message.repayment-amount") }}:
+          </p>
+          <p class="mb-3 mr-5">{{ $t("message.outstanding-lease") }}:</p>
+          <p class="mb-3 mr-5">{{ $t("message.tx-fee") }}:</p>
         </div>
         <div class="text-right nls-font-700 text-14">
           <p class="mb-3 mt-[25px] flex justify-end align-center mr-[5px]">
@@ -46,35 +46,30 @@
             }}
           </p>
           <p class="mb-3 flex justify-end align-center mr-[5px]">
-            {{
-              calculateFee
-            }}
+            {{ calculateFee }}
           </p>
         </div>
       </div>
     </div>
     <div class="modal-send-receive-actions mt-5">
-      <button
-        class="btn btn-primary btn-large-primary text-center"
-      >
-        {{ $t('message.repay') }}
+      <button class="btn btn-primary btn-large-primary text-center">
+        {{ $t("message.repay") }}
       </button>
     </div>
-
   </form>
 </template>
 
 <script setup lang="ts">
-import CurrencyField from '@/components/CurrencyField.vue';
-import type { PropType } from 'vue';
-import type { RepayComponentProps } from '@/types/component/RepayComponentProps';
+import CurrencyField from "@/components/CurrencyField.vue";
+import type { PropType } from "vue";
+import type { RepayComponentProps } from "@/types/component/RepayComponentProps";
 
-import { Coin, Int } from '@keplr-wallet/unit';
-import { CurrencyUtils } from '@nolus/nolusjs';
-import { useOracleStore } from '@/stores/oracle';
-import { computed } from '@vue/reactivity';
-import { useWalletStore } from '@/stores/wallet';
-import { defaultNolusWalletFee } from '@/config/wallet';
+import { Coin, Int } from "@keplr-wallet/unit";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { useOracleStore } from "@/stores/oracle";
+import { computed } from "vue";
+import { useWalletStore } from "@/stores/wallet";
+import { defaultNolusWalletFee } from "@/config/wallet";
 
 const oracle = useOracleStore();
 const wallet = useWalletStore();
@@ -95,30 +90,30 @@ const calculateBalance = (tokenAmount: string, denom: string) => {
   const prices = oracle.prices;
 
   if (prices) {
-    const coinPrice = prices[denom]?.amount || '0';
-    const coinAmount = new Coin(denom, new Int(tokenAmount || '0'));
+    const coinPrice = prices[denom]?.amount || "0";
+    const coinAmount = new Coin(denom, new Int(tokenAmount || "0"));
     return CurrencyUtils.calculateBalance(coinPrice, coinAmount, 0).toString();
   }
 
-  return '0';
+  return "0";
 };
 
 const calculateBalanceByTicker = (tokenAmount: string, ticker: string) => {
   const prices = oracle.prices;
   const symbol = wallet.getCurrencyByTicker(ticker).symbol;
   const denom = wallet.getIbcDenomBySymbol(symbol);
-  
-  if(denom){
-    const coinPrice = prices[denom]?.amount ?? '0';
-    const coinAmount = new Coin(denom, new Int(tokenAmount ?? '0'));
+
+  if (denom) {
+    const coinPrice = prices[denom]?.amount ?? "0";
+    const coinAmount = new Coin(denom, new Int(tokenAmount ?? "0"));
     return CurrencyUtils.calculateBalance(coinPrice, coinAmount, 0).toString();
   }
 
-  return '0';
+  return "0";
 };
 
 const calculateFee = computed(() => {
-  const fee= defaultNolusWalletFee();
+  const fee = defaultNolusWalletFee();
   return CurrencyUtils.convertUNolusToNolus(fee.amount[0].amount).toString();
 });
 

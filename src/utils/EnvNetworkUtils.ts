@@ -20,7 +20,10 @@ export class EnvNetworkUtils {
   }
 
   public static loadNetworkConfig(): NetworkAddress | null {
-    if (!this.getStoredNetworkName() || !NETWORKS[this.getStoredNetworkName() as string]) {
+    if (
+      !this.getStoredNetworkName() ||
+      !NETWORKS[this.getStoredNetworkName() as string]
+    ) {
       EnvNetworkUtils.saveCurrentNetwork(DEFAULT_PRIMARY_NETWORK);
       return NETWORKS[DEFAULT_PRIMARY_NETWORK];
     }

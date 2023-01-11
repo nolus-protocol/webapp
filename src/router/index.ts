@@ -1,7 +1,12 @@
 import MainLayoutView from "@/views/MainLayoutView.vue";
 import DashboardViewVue from "@/views/DashboardView.vue";
 import { WalletUtils, WalletManager } from "@/utils";
-import { createRouter, createWebHistory, type NavigationGuardNext, type RouteLocationNormalized } from "vue-router";
+import {
+  createRouter,
+  createWebHistory,
+  type NavigationGuardNext,
+  type RouteLocationNormalized,
+} from "vue-router";
 import { RouteNames } from "@/router/RouterNames";
 import { useWalletStore } from "@/stores/wallet";
 import { WalletConnectMechanism } from "@/types";
@@ -106,7 +111,11 @@ router.beforeEach((to) => {
   }
 });
 
-function checkWallet(to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) {
+function checkWallet(
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized,
+  next: NavigationGuardNext
+) {
   const wallet = useWalletStore();
   if (!wallet.privateKey || !wallet.wallet) {
     return next("/auth");
@@ -114,10 +123,13 @@ function checkWallet(to: RouteLocationNormalized, from: RouteLocationNormalized,
   next();
 }
 
-function beforeWalletName(to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) {
-
+function beforeWalletName(
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized,
+  next: NavigationGuardNext
+) {
   switch (WalletManager.getWalletConnectMechanism()) {
-    case (WalletConnectMechanism.EXTENSION): {
+    case WalletConnectMechanism.EXTENSION: {
       break;
     }
     default: {
@@ -131,10 +143,13 @@ function beforeWalletName(to: RouteLocationNormalized, from: RouteLocationNormal
   next();
 }
 
-function checkWalletName(to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) {
-
+function checkWalletName(
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized,
+  next: NavigationGuardNext
+) {
   switch (WalletManager.getWalletConnectMechanism()) {
-    case (WalletConnectMechanism.EXTENSION): {
+    case WalletConnectMechanism.EXTENSION: {
       break;
     }
     default: {
@@ -148,7 +163,11 @@ function checkWalletName(to: RouteLocationNormalized, from: RouteLocationNormali
   next();
 }
 
-function removeHash(to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) {
+function removeHash(
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized,
+  next: NavigationGuardNext
+) {
   if (to.hash.length > 0) {
     return next(to.path);
   }

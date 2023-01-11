@@ -8,7 +8,7 @@
         <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
       </button>
       <span class="inline-block align-baseline">
-        {{ $t('message.confirm-menomin-only')}}
+        {{ $t("message.confirm-menomin-only") }}
       </span>
     </h1>
 

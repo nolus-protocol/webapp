@@ -2,7 +2,6 @@ import CryptoJS from "crypto-js";
 import { Buffer } from "buffer";
 
 export class EncryptionUtils {
-  
   public static encryptEncryptionKey(
     encryptionKey: string,
     password: string

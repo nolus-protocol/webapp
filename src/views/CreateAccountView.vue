@@ -1,15 +1,21 @@
 <template>
   <div v-if="isCreateFormOpen" class="mobile">
-    <div class="block rounded-2xl background md:mt-auto pb-10 pt-6 border nls-border shadow-box md:max-w-[516px] outline">
-      <h1 class="text-to-big-number text-primary text-28 md:text-32 text-center relative">
-        <button 
-          class="align-baseline absolute left-0 top-2/4 -mt-3 px-6 md:px-10" 
-          type="button" 
-          @click="clickBack"  
+    <div
+      class="block rounded-2xl background md:mt-auto pb-10 pt-6 border nls-border shadow-box md:max-w-[516px] outline"
+    >
+      <h1
+        class="text-to-big-number text-primary text-28 md:text-32 text-center relative"
+      >
+        <button
+          class="align-baseline absolute left-0 top-2/4 -mt-3 px-6 md:px-10"
+          type="button"
+          @click="clickBack"
         >
           <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
         </button>
-        <span class="inline-block align-baseline text-28 md:text-32 relative z-[2]">
+        <span
+          class="inline-block align-baseline text-28 md:text-32 relative z-[2]"
+        >
           {{ $t("message.create-wallet") }}
         </span>
       </h1>
@@ -17,13 +23,13 @@
       <div class="separator-line p-6 relative z-[2]"></div>
 
       <div class="px-4 md:px-10">
-        <TextFieldButtons 
-          class="relative z-[2]" 
-          name="mnemonicSeed" 
-          id="mnemonicSeed" 
+        <TextFieldButtons
+          class="relative z-[2]"
+          name="mnemonicSeed"
+          id="mnemonicSeed"
           :label="$t('message.seed')"
-          :value="mnemonic" 
-          :on-click-copy="onClickCopy" 
+          :value="mnemonic"
+          :on-click-copy="onClickCopy"
           :on-click-print="onClickPrint"
         >
         </TextFieldButtons>
@@ -43,17 +49,25 @@
         </div>
 
         <div class="md:block hidden mt-6 sm:color-white">
-          <button class="btn btn-primary btn-large-primary" @click="btnContinueToConfirm">
+          <button
+            class="btn btn-primary btn-large-primary"
+            @click="btnContinueToConfirm"
+          >
             {{ $t("message.continue") }}
           </button>
         </div>
 
-        <div class="background h-[420px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
-
+        <div
+          class="background h-[420px] absolute inset-x-0 bottom-0 z-[0] md:hidden"
+        ></div>
       </div>
       <div
-        class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal">
-        <button class="btn btn-primary btn-large-primary w-80" @click="btnContinueToConfirm">
+        class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal"
+      >
+        <button
+          class="btn btn-primary btn-large-primary w-80"
+          @click="btnContinueToConfirm"
+        >
           {{ $t("message.continue") }}
         </button>
       </div>
@@ -61,9 +75,17 @@
   </div>
 
   <div v-else class="md:max-w-[516px]">
-    <div class="block rounded-2xl background -mt-8 md:mt-auto pt-6 border nls-border shadow-box">
-      <h1 class="text-to-big-number text-primary text-center relative md:max-w-[516px]">
-        <button class="align-baseline absolute left-0 top-2/4 -mt-3 px-4 md:px-10" type="button" @click="clickBack">
+    <div
+      class="block rounded-2xl background -mt-8 md:mt-auto pt-6 border nls-border shadow-box"
+    >
+      <h1
+        class="text-to-big-number text-primary text-center relative md:max-w-[516px]"
+      >
+        <button
+          class="align-baseline absolute left-0 top-2/4 -mt-3 px-4 md:px-10"
+          type="button"
+          @click="clickBack"
+        >
           <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
         </button>
         <span class="inline-block align-baseline text-28 md:text-32">
@@ -73,27 +95,27 @@
 
       <div class="separator-line p-6"></div>
 
-      <SelectorTextField 
-        ref="selector" 
-        class="px-4 md:px-10 text-dark" 
+      <SelectorTextField
+        ref="selector"
+        class="px-4 md:px-10 text-dark"
         id="confirm-mnemonic"
-        :on-click-confirm="confirmMnemonic" 
-        :values="mnemonicWords" 
+        :on-click-confirm="confirmMnemonic"
+        :values="mnemonicWords"
         :label="$t('message.confirm-mnemonic')"
       >
       </SelectorTextField>
     </div>
   </div>
 
-  <Modal 
-    v-if="showErrorModal" 
-    @close-modal="showErrorModal = false" 
+  <Modal
+    v-if="showErrorModal"
+    @close-modal="showErrorModal = false"
     route="alert"
   >
-    <ErrorDialog 
-      :title="$t('message.error-connecting')" 
-      :message="errorMessage" 
-      :try-button="clickTryAgain" 
+    <ErrorDialog
+      :title="$t('message.error-connecting')"
+      :message="errorMessage"
+      :try-button="clickTryAgain"
     />
   </Modal>
 </template>
@@ -152,7 +174,9 @@ const onClickPrint = () => {
     "_blank",
     "resizable,scrollbars"
   );
-  printWindow?.document.write(`<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Nolus wallet</title></head><body>${mnemonic.value}</body>`);
+  printWindow?.document.write(
+    `<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Nolus wallet</title></head><body>${mnemonic.value}</body>`
+  );
   printWindow?.document.close();
   printWindow?.focus();
   printWindow?.print();
@@ -192,11 +216,10 @@ const confirmMnemonic = async (value: string[]) => {
     showErrorModal.value = true;
     errorMessage.value = e?.message;
   }
-
 };
 </script>
 <style scoped lang="scss">
-.mobile{
+.mobile {
   @media (max-height: 700px) {
     position: relative;
     padding-bottom: 80px;

@@ -1,14 +1,20 @@
 <template>
-  <Line :chart-data="chartData" :chart-id="chartId" :chart-options="chartOptions" :css-classes="cssClasses"
-    :height="height" :plugins="plugins" :styles="styles" :width="width" />
+  <Line
+    :chart-data="chartData"
+    :chart-id="chartId"
+    :chart-options="chartOptions"
+    :css-classes="cssClasses"
+    :height="height"
+    :plugins="plugins"
+    :styles="styles"
+    :width="width"
+  />
 </template>
 
 <script lang="ts">
-// @ts-nocheck
-
-import 'chartjs-adapter-date-fns';
-import { defineComponent, h, type PropType } from 'vue';
-import { createTypedChart } from 'vue-chartjs';
+import "chartjs-adapter-date-fns";
+import { defineComponent, h, type PropType } from "vue";
+import { createTypedChart } from "vue-chartjs";
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -21,19 +27,19 @@ import {
   Title,
   Tooltip,
   type Plugin,
-} from 'chart.js';
-import { DEFAULT_CURRENCY } from '@/config/env';
+} from "chart.js";
+import { DEFAULT_CURRENCY } from "@/config/env";
 
 export const defaultOptions = {
   responsive: true,
   maintainAspectRatio: false,
   tooltips: {
-    intersect: false
+    intersect: false,
   },
   scales: {
     x: {
       parsing: false,
-      type: 'time',
+      type: "time",
       ticks: {
         autoSkip: true,
         maxTicksLimit: 6,
@@ -64,26 +70,32 @@ export const defaultOptions = {
     },
     tooltip: {
       enabled: false,
-      position: 'nearest',
+      position: "nearest",
       callbacks: {
-        label: (context) => {
-          let label = context.dataset.label || '';
-          let value = '';
+        label: (context: {
+          dataset: { label: string };
+          parsed: { y: number | bigint | null };
+        }) => {
+          let label = context.dataset.label || "";
+          let value = "";
           if (label) {
             label = `${label}: `;
           }
 
           if (context.parsed.y !== null) {
-            value = new Intl.NumberFormat(DEFAULT_CURRENCY.locale, { style: 'currency', currency: DEFAULT_CURRENCY.currency }).format(context.parsed.y);
+            value = new Intl.NumberFormat(DEFAULT_CURRENCY.locale, {
+              style: "currency",
+              currency: DEFAULT_CURRENCY.currency,
+            }).format(context.parsed.y);
           }
 
           return {
             label,
-            value
+            value,
           };
-        }
+        },
       },
-      external: (context) => {
+      external: (context: { chart: any; tooltip?: any }) => {
         const { chart, tooltip } = context;
         const tooltipEl = getOrCreateTooltip(chart);
 
@@ -94,14 +106,14 @@ export const defaultOptions = {
 
         if (tooltip.body) {
           const titleLines = tooltip.title || [];
-          const bodyLines = tooltip.body.map(b => b.lines);
+          const bodyLines = tooltip.body.map((b: { lines: any }) => b.lines);
 
-          const tableHead = document.createElement('thead');
+          const tableHead = document.createElement("thead");
 
-          titleLines.forEach(title => {
-            const tr = document.createElement('tr');
+          titleLines.forEach((title: string) => {
+            const tr = document.createElement("tr");
 
-            const th = document.createElement('th');
+            const th = document.createElement("th");
             const text = document.createTextNode(title);
 
             th.appendChild(text);
@@ -109,14 +121,14 @@ export const defaultOptions = {
             tableHead.appendChild(tr);
           });
 
-          const tableBody = document.createElement('tbody');
-          bodyLines.forEach((body, i) => {
-            const tr = document.createElement('tr');
+          const tableBody = document.createElement("tbody");
+          bodyLines.forEach((body: any[], i: any) => {
+            const tr = document.createElement("tr");
 
-            body.forEach((item) => {
+            body.forEach((item: { label: any; value: any }) => {
               const { label, value } = item;
-              const td = document.createElement('td');
-              const span = document.createElement('span');
+              const td = document.createElement("td");
+              const span = document.createElement("span");
 
               const labelText = document.createTextNode(label);
               const valueText = document.createTextNode(value);
@@ -124,13 +136,12 @@ export const defaultOptions = {
               span.appendChild(labelText);
               td.appendChild(span);
               td.appendChild(valueText);
-              tr.appendChild(td)
+              tr.appendChild(td);
             });
-            ;
             tableBody.appendChild(tr);
           });
 
-          const tableRoot = tooltipEl.querySelector('table');
+          const tableRoot = tooltipEl.querySelector("table");
 
           // Remove old children
           while (tableRoot.firstChild) {
@@ -154,11 +165,11 @@ export const defaultOptions = {
         }
         // Display, position, and set styles for font
         tooltipEl.style.opacity = 1;
-        tooltipEl.style.left = moveLeft + 'px';
-        tooltipEl.style.top = positionY + tooltip.caretY + 10 + 'px';
-      }
-    }
-  }
+        tooltipEl.style.left = moveLeft + "px";
+        tooltipEl.style.top = positionY + tooltip.caretY + 10 + "px";
+      },
+    },
+  },
 };
 
 ChartJS.register(
@@ -179,8 +190,8 @@ class LineWithLineController extends LineController {
     if (this.chart?.tooltip?.active) {
       const ctx = this.chart.ctx;
       const x = this.chart.tooltip.x;
-      const topY = this.chart.scales['y-axis-0'].top;
-      const bottomY = this.chart.scales['y-axis-0'].bottom;
+      const topY = this.chart.scales["y-axis-0"].top;
+      const bottomY = this.chart.scales["y-axis-0"].bottom;
 
       // draw line
       ctx.save();
@@ -188,32 +199,25 @@ class LineWithLineController extends LineController {
       ctx.moveTo(x, topY);
       ctx.lineTo(x, bottomY);
       ctx.lineWidth = 2;
-      ctx.strokeStyle = '#07C';
+      ctx.strokeStyle = "#07C";
       ctx.stroke();
       ctx.restore();
     }
   }
 }
 
-const LineWithLine = createTypedChart(
-  'line-with-chart',
-  'line',
-  LineWithLineController
-);
+const LineWithLine = createTypedChart("line", LineWithLineController);
 
 export default defineComponent({
-  name: 'CustomChart',
-  components: {
-    LineWithLine,
-  },
+  name: "CustomChart",
   props: {
     chartId: {
       type: String,
-      default: 'line-chart',
+      default: "line-chart",
     },
     chartData: {
-      type: Object,
-      default: {},
+      type: Function,
+      default: () => {},
     },
     chartOptions: {
       type: Object,
@@ -227,21 +231,21 @@ export default defineComponent({
       default: 150,
     },
     cssClasses: {
-      default: '',
+      default: "",
       type: String,
     },
     styles: {
       type: Object as PropType<Partial<CSSStyleDeclaration>>,
-      default: () => { },
+      default: () => {},
     },
     plugins: {
-      type: Array as PropType<Plugin<'line'>[]>,
+      type: Array as PropType<Plugin<"line">[]>,
       default: () => [],
     },
   },
   setup(props) {
     return () =>
-      h(LineWithLine, {
+      h(LineWithLine as any, {
         chartData: props.chartData,
         chartOptions: props.chartOptions,
         chartId: props.chartId,
@@ -250,19 +254,25 @@ export default defineComponent({
         cssClasses: props.cssClasses,
         styles: props.styles,
         plugins: props.plugins,
-
       });
   },
 });
 
-const getOrCreateTooltip = (chart) => {
-  let tooltipEl = chart.canvas.parentNode.querySelector('div');
+const getOrCreateTooltip = (chart: {
+  canvas: {
+    parentNode: {
+      querySelector: (arg0: string) => any;
+      appendChild: (arg0: any) => void;
+    };
+  };
+}) => {
+  let tooltipEl = chart.canvas.parentNode.querySelector("div");
 
   if (!tooltipEl) {
-    tooltipEl = document.createElement('div');
-    tooltipEl.classList.add('chart-tooltip');
+    tooltipEl = document.createElement("div");
+    tooltipEl.classList.add("chart-tooltip");
 
-    const table = document.createElement('table');
+    const table = document.createElement("table");
 
     tooltipEl.appendChild(table);
     chart.canvas.parentNode.appendChild(tooltipEl);
@@ -270,7 +280,6 @@ const getOrCreateTooltip = (chart) => {
 
   return tooltipEl;
 };
-
 </script>
 
 <style lang="scss">
@@ -279,8 +288,8 @@ div.chart-tooltip {
   pointer-events: none;
   position: absolute;
   transform: translate(-50%, 0);
-  transition: all .1s ease;
-  border: 1px solid #EBEFF5;
+  transition: all 0.1s ease;
+  border: 1px solid #ebeff5;
   box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.06);
   border-radius: 8px;
   background: white;
@@ -295,10 +304,10 @@ div.chart-tooltip {
     }
 
     thead {
-      color: #2868E1;
+      color: #2868e1;
       font-size: 12px;
       text-transform: uppercase;
-      font-family: 'Garet';
+      font-family: "Garet";
       font-style: normal;
       font-weight: 500;
 
@@ -313,16 +322,16 @@ div.chart-tooltip {
     }
 
     tbody {
-      font-family: 'Garet';
+      font-family: "Garet";
       font-style: normal;
       font-weight: 600;
       font-size: 14px;
-      color: #082D63;
+      color: #082d63;
 
       tr {
         td {
           span {
-            color: #8396B1;
+            color: #8396b1;
           }
         }
       }
@@ -333,8 +342,8 @@ div.chart-tooltip {
 body.sync {
   @media (prefers-color-scheme: dark) {
     div.chart-tooltip {
-      background-color: #2B384B;
-      border-color: #5E7699;
+      background-color: #2b384b;
+      border-color: #5e7699;
 
       table {
         tbody {
@@ -347,8 +356,8 @@ body.sync {
 
 body.dark {
   div.chart-tooltip {
-    background-color: #2B384B;
-    border-color: #5E7699;
+    background-color: #2b384b;
+    border-color: #5e7699;
 
     table {
       tbody {

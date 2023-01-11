@@ -51,12 +51,12 @@
 </template>
 
 <script lang="ts" setup>
-import type { AssetBalance } from '@/stores/wallet/state';
-import MultipleCurrencyField from '@/components/MultipleCurrencyField.vue';
+import type { AssetBalance } from "@/stores/wallet/state";
+import MultipleCurrencyField from "@/components/MultipleCurrencyField.vue";
 
-import { computed } from 'vue';
-import { CurrencyUtils } from '@nolus/nolusjs';
-import { useWalletStore } from '@/stores/wallet';
+import { computed } from "vue";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { useWalletStore } from "@/stores/wallet";
 
 interface Props {
   selectedCurrency: AssetBalance;
@@ -69,17 +69,17 @@ interface Props {
 
 const wallet = useWalletStore();
 const props = defineProps<Props>();
-defineEmits(['updateSelected', 'updateAmount', 'updateSwapToSelected']);
+defineEmits(["updateSelected", "updateAmount", "updateSwapToSelected"]);
 
 const coinAbbr = computed(() =>
-  wallet.getCurrencyInfo(
-    props.selectedCurrency.balance.denom
-  ).coinAbbreviation.toUpperCase()
+  wallet
+    .getCurrencyInfo(props.selectedCurrency.balance.denom)
+    .coinAbbreviation.toUpperCase()
 );
 const swapToCoinAbbr = computed(() =>
-  wallet.getCurrencyInfo(
-    props.swapToSelectedCurrency.balance.denom
-  ).coinAbbreviation.toUpperCase()
+  wallet
+    .getCurrencyInfo(props.swapToSelectedCurrency.balance.denom)
+    .coinAbbreviation.toUpperCase()
 );
 
 function formatCurrentBalance(selectedCurrency: AssetBalance) {

@@ -29,9 +29,9 @@
           {{ $t("message.google") }}
         </button> -->
 
-        <button 
-          class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow" 
-          @click="clickImportLedger" 
+        <button
+          class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow"
+          @click="clickImportLedger"
         >
           <span class="icon icon-ledger"></span>
           {{ $t("message.ledger") }}
@@ -92,7 +92,7 @@
 <script setup lang="ts">
 import router from "@/router";
 import { RouteNames } from "@/router/RouterNames";
-import { useWalletStore , WalletActionTypes} from "@/stores/wallet";
+import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { ref } from "vue";
 
 const wallet = useWalletStore();
@@ -115,15 +115,14 @@ const clickCreateAccount = () => {
 };
 
 const googleAuth = async () => {
-  try{
+  try {
     loadingGoogle.value = true;
     const res = await wallet[WalletActionTypes.CONNECT_GOOGLE]();
-    if(res){
+    if (res) {
       await router.push({ name: RouteNames.SET_PASSWORD });
     }
-  }catch(error: Error | any){
+  } catch (error: Error | any) {
     loadingGoogle.value = false;
   }
-}
-
+};
 </script>

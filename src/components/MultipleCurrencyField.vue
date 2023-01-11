@@ -55,12 +55,7 @@
       </div>
     </div>
 
-    <span
-      class="msg error"
-      :class="[
-        errorMsg?.length > 0 ? '' : 'hidden',
-      ]"
-      >
+    <span class="msg error" :class="[errorMsg?.length > 0 ? '' : 'hidden']">
       {{ errorMsg?.length > 0 ? errorMsg : "" }}
     </span>
   </div>
@@ -106,6 +101,7 @@ const swapAmount = computed(() => {
   if (swapBalance.value !== "$0") {
     return calculateSwapAmount(Number(swapBalance.value.toDec().toString(1)));
   }
+  return "0";
 });
 
 // @TODO: Extract function to utils - used also in CurrencyField.

@@ -1,13 +1,13 @@
 <template>
   <div class="block">
     <div
-      class="grid gap-6 border-b border-t border-standart px-6 py-3  items-center justify-between earn-asset grid-cols-3 md:grid-cols-3"
+      class="grid gap-6 border-b border-t border-standart px-6 py-3 items-center justify-between earn-asset grid-cols-3 md:grid-cols-3"
     >
       <!-- Ticker -->
       <div class="inline-flex items-center col-span-2">
         <img
           v-if="getAssetIcon(reward.balance.denom)"
-          :src=" getAssetIcon(reward.balance.denom)"
+          :src="getAssetIcon(reward.balance.denom)"
           class="inline-block m-0 mr-4"
           height="32"
           width="32"
@@ -21,7 +21,9 @@
               )
             }}
           </p>
-          <p class="text-dark-grey text-12 garet-medium text-left capitalize m-0" >
+          <p
+            class="text-dark-grey text-12 garet-medium text-left capitalize m-0"
+          >
             {{
               calculateBalance(
                 reward.balance?.amount.toString(),
@@ -48,11 +50,11 @@
 </template>
 
 <script lang="ts" setup>
-import { type PropType, ref } from 'vue';
-import { CurrencyUtils } from '@nolus/nolusjs';
-import { Coin, Int } from '@keplr-wallet/unit';
-import { useOracleStore } from '@/stores/oracle';
-import { useWalletStore } from '@/stores/wallet';
+import { type PropType, ref } from "vue";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { Coin, Int } from "@keplr-wallet/unit";
+import { useOracleStore } from "@/stores/oracle";
+import { useWalletStore } from "@/stores/wallet";
 
 defineProps({
   cols: {
@@ -72,15 +74,15 @@ const wallet = useWalletStore();
 const loading = ref(false);
 
 const getAssetIcon = (denom: string) => {
-  return wallet.getCurrencyInfo(denom).coinIcon || '';
+  return wallet.getCurrencyInfo(denom).coinIcon || "";
 };
 
 const getMarketPrice = (denom: string) => {
   const prices = oracle.prices;
   if (prices) {
-    return prices[denom]?.amount || '0';
+    return prices[denom]?.amount || "0";
   }
-  return '0';
+  return "0";
 };
 
 const convertMinimalDenomToDenom = (
@@ -102,5 +104,4 @@ const calculateBalance = (tokenAmount: string, denom: string) => {
   const coin = new Coin(denom, new Int(tokenAmount));
   return CurrencyUtils.calculateBalance(price, coin, tokenDecimals);
 };
-
 </script>

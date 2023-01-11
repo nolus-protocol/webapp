@@ -11,19 +11,21 @@ export type State = {
   privateKey: string | null;
   balances: AssetBalance[];
   walletName: string | null;
-  stakingBalance: Coin | null,
-  suppliedBalance: string,
-  currencies:  {
+  stakingBalance: Coin | null;
+  suppliedBalance: string;
+  currencies: {
     [key: string]: {
-      ticker: string,
-      name: string,
-      decimal_digits: string,
-      symbol: string,
-      groups: string[],
-      swap_routes: Array<Array<{
-        pool_id: string,
-        pool_token: string
-      }>>
-    }
-  }
+      ticker: string;
+      name: string;
+      decimal_digits: string;
+      symbol: string;
+      groups: string[];
+      swap_routes: Array<
+        Array<{
+          pool_id: string;
+          pool_token: string;
+        }>
+      >;
+    };
+  };
 };

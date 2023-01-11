@@ -10,10 +10,9 @@ export class ThemeManager {
   public static getThemeData(): string {
     const theme = localStorage.getItem(this.THEME_DATA);
     const items = Object.keys(APPEARANCE);
-    if(items.includes(theme as string)){
+    if (items.includes(theme as string)) {
       return APPEARANCE[theme as keyof typeof APPEARANCE];
     }
     return APPEARANCE.light;
   }
-
 }

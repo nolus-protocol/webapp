@@ -11,7 +11,7 @@ import type { ContractData } from "@nolus/nolusjs/build/contracts";
 import type { PropType } from "vue";
 import type { AssetBalance } from "@/stores/wallet/state";
 
-const { reward, contractData } = defineProps({
+defineProps({
   reward: {
     type: Object as PropType<AssetBalance>,
     required: true,

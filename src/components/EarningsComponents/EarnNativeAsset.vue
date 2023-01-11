@@ -17,7 +17,9 @@
           <p class="text-primary nls-font-500 text-18 text-left uppercase m-0">
             {{ assetInfo.coinDenom }}
           </p>
-          <p class="text-dark-grey text-12 garet-medium text-left capitalize m-0">
+          <p
+            class="text-dark-grey text-12 garet-medium text-left capitalize m-0"
+          >
             {{ formatPrice(getMarketPrice(asset.balance.denom)) }}
           </p>
         </div>
@@ -33,7 +35,8 @@
           }}
         </p>
         <div class="flex items-center text-dark-grey text-12 garet-medium m-0">
-          {{ DEFAULT_CURRENCY.symbol }}{{
+          {{ DEFAULT_CURRENCY.symbol
+          }}{{
             calculateBalance(
               asset.balance.amount.toString(),
               asset.balance.denom
@@ -68,32 +71,31 @@
 
       <div class="mobile-actions md:hidden col-span-2">
         <a
-            class="btn btn-secondary btn-medium-secondary w-full flex"
-            :href="stakingUrl"
-            target="_blank"
-          >
-            {{ $t("message.stake") }}
+          class="btn btn-secondary btn-medium-secondary w-full flex"
+          :href="stakingUrl"
+          target="_blank"
+        >
+          {{ $t("message.stake") }}
         </a>
       </div>
-
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { PropType } from 'vue';
-import type { AssetBalance } from '@/stores/wallet/state';
+import type { PropType } from "vue";
+import type { AssetBalance } from "@/stores/wallet/state";
 
-import CurrencyComponent from '../CurrencyComponent.vue';
+import CurrencyComponent from "../CurrencyComponent.vue";
 
-import { Coin, Int } from '@keplr-wallet/unit';
-import { CurrencyUtils } from '@nolus/nolusjs';
-import { useOracleStore } from '@/stores/oracle';
-import { computed } from '@vue/reactivity';
-import { useWalletStore } from '@/stores/wallet';
-import { CURRENCY_VIEW_TYPES } from '@/types/CurrencyViewType';
-import { DEFAULT_APR, DEFAULT_CURRENCY, NETWORKS } from '@/config/env';
-import { EnvNetworkUtils } from '@/utils';
+import { Coin, Int } from "@keplr-wallet/unit";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { useOracleStore } from "@/stores/oracle";
+import { computed } from "vue";
+import { useWalletStore } from "@/stores/wallet";
+import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
+import { DEFAULT_APR, DEFAULT_CURRENCY, NETWORKS } from "@/config/env";
+import { EnvNetworkUtils } from "@/utils";
 const stakingUrl = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].staking;
 
 const oracle = useOracleStore();
@@ -112,7 +114,7 @@ const props = defineProps({
 const assetInfo = computed(() => {
   const assetInfo = wallet.getCurrencyInfo(props.asset.balance.denom);
   return assetInfo;
-})
+});
 
 const formatPrice = (price: string) => {
   return CurrencyUtils.formatPrice(price);
@@ -121,9 +123,9 @@ const formatPrice = (price: string) => {
 const getMarketPrice = (denom: string) => {
   const prices = oracle.prices;
   if (prices) {
-    return prices[denom]?.amount || '0';
+    return prices[denom]?.amount || "0";
   }
-  return '0';
+  return "0";
 };
 
 const convertMinimalDenomToDenom = (
@@ -146,6 +148,8 @@ const calculateBalance = (tokenAmount: string, denom: string) => {
 
   const tokenDecimals = wallet.getCurrencyInfo(denom).coinDecimals;
   const coin = new Coin(denom, new Int(tokenAmount));
-  return CurrencyUtils.calculateBalance(price, coin, tokenDecimals).toDec().toString(2);
+  return CurrencyUtils.calculateBalance(price, coin, tokenDecimals)
+    .toDec()
+    .toString(2);
 };
 </script>

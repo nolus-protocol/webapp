@@ -1,5 +1,5 @@
 <template>
-  <form 
+  <form
     class="block md:rounded-2xl rounded-t-2xl background md:mt-auto pb-[300px] md:pb-10 pt-6 md:border nls-border shadow-box lg:w-[516px] outline h-full md:h-auto"
     @submit.prevent="connectViaLedger"
   >
@@ -11,18 +11,20 @@
       >
         <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
       </button>
-      <span class="inline-block align-baseline text-28 md:text-32 relative z-[2]">
-        {{ $t('message.connect-ledger') }}
+      <span
+        class="inline-block align-baseline text-28 md:text-32 relative z-[2]"
+      >
+        {{ $t("message.connect-ledger") }}
       </span>
     </h1>
 
     <div class="separator-line py-6 relative z-[2]"></div>
 
     <div class="px-4 md:px-10">
-      <p 
+      <p
         class="text-14 nls-font-400 text-primary relative z-[2]"
-        v-html="$t('message.ledger-dongle')">
-      </p>
+        v-html="$t('message.ledger-dongle')"
+      ></p>
 
       <div class="relative block checkbox-container z-[2]">
         <div class="flex items-center w-full pt-6">
@@ -32,34 +34,39 @@
             type="checkbox"
             v-model="isBluetoothConnection"
           />
-          <label for="use-bluethooth">{{ $t('message.use-bluethooth') }}</label>
+          <label for="use-bluethooth">{{ $t("message.use-bluethooth") }}</label>
         </div>
       </div>
 
       <div class="mt-6 md:flex hidden">
         <button
           class="btn btn-primary btn-large-primary"
-          :class="{'js-loading': disabled}"
+          :class="{ 'js-loading': disabled }"
         >
-          {{ $t('message.connect') }}
+          {{ $t("message.connect") }}
         </button>
       </div>
     </div>
 
-    <div class="md:hidden flex align-center justify-center px-4 pt-8 text-center mx-auto background inset-x-0 bottom-0 md:relative">
+    <div
+      class="md:hidden flex align-center justify-center px-4 pt-8 text-center mx-auto background inset-x-0 bottom-0 md:relative"
+    >
       <button
         class="btn btn-primary btn-large-primary w-full"
-        :class="{'js-loading': disabled}"
+        :class="{ 'js-loading': disabled }"
       >
-        {{ $t('message.connect') }}
+        {{ $t("message.connect") }}
       </button>
     </div>
   </form>
 
-  <Modal 
-    v-if="showError" 
+  <Modal
+    v-if="showError"
     route="alert"
-    @close-modal="showError = false; goToAuth()" 
+    @close-modal="
+      showError = false;
+      goToAuth();
+    "
   >
     <ErrorDialog
       :title="$t('message.error-connecting')"
@@ -93,7 +100,7 @@ const clickBack = () => {
 
 const connectViaLedger = async () => {
   try {
-    if((navigator as any)?.usb == null){
+    if ((navigator as any)?.usb == null) {
       showError.value = true;
       errorMessage.value = i18n.t("message.ledger-support-error");
       return false;
@@ -106,7 +113,7 @@ const connectViaLedger = async () => {
   } catch (e: Error | any) {
     showError.value = true;
     errorMessage.value = e?.message;
-  }finally{
+  } finally {
     disabled.value = false;
   }
 };
@@ -119,6 +126,5 @@ const clickTryAgain = async () => {
 
 const goToAuth = () => {
   router.replace({ name: RouteNames.AUTH });
-}
-
+};
 </script>

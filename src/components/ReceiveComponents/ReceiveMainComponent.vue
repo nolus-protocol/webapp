@@ -3,12 +3,16 @@
 </template>
 
 <script setup lang="ts">
-import ReceiveComponent, { type ReceiveComponentProps } from '@/components/ReceiveComponents/ReceiveComponent.vue';
-import ReceiveQrCodeComponent, { type ReceiveQrCodeComponentProps } from '@/components/ReceiveComponents/ReceiveQrCodeComponent.vue';
+import ReceiveComponent, {
+  type ReceiveComponentProps,
+} from "@/components/ReceiveComponents/ReceiveComponent.vue";
+import ReceiveQrCodeComponent, {
+  type ReceiveQrCodeComponentProps,
+} from "@/components/ReceiveComponents/ReceiveQrCodeComponent.vue";
 
-import { inject, onMounted, shallowRef, computed } from 'vue';
-import { StringUtils, WalletManager } from '@/utils';
-import { useWalletStore } from '@/stores/wallet';
+import { inject, onMounted, shallowRef, computed } from "vue";
+import { StringUtils, WalletManager } from "@/utils";
+import { useWalletStore } from "@/stores/wallet";
 
 interface ReceiveMainComponentData {
   is: typeof ReceiveComponent | typeof ReceiveQrCodeComponent;
@@ -27,8 +31,8 @@ const showDialogHeader = () => setShowDialogHeader(true);
 const balances = computed(() => walletStore.balances);
 
 const setShowDialogHeader = inject(
-  'setShowDialogHeader',
-  (bool: Boolean) => { }
+  "setShowDialogHeader",
+  (bool: Boolean) => {}
 );
 
 onMounted(() => {
@@ -37,7 +41,7 @@ onMounted(() => {
     props: {
       currentBalance: balances.value,
       selectedCurrency: balances.value[0],
-      amount: '',
+      amount: "",
       onScanClick: () => onScanClick(),
       onCopyClick: (wallet) => onCopyClick(wallet),
     },
@@ -63,8 +67,8 @@ const onBackClick = () => {
     props: {
       currentBalance: balances.value,
       selectedCurrency: balances.value[0],
-      amount: '',
-      walletAddress: WalletManager.getWalletAddress() || '',
+      amount: "",
+      walletAddress: WalletManager.getWalletAddress() || "",
       onScanClick: () => onScanClick(),
       onCopyClick: (wallet) => onCopyClick(wallet),
     },

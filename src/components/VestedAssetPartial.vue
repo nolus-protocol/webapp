@@ -24,10 +24,7 @@
     </div>
 
     <div class="block">
-
-      <div
-        class="text-primary nls-font-500 text-16 text-right m-0"
-      >
+      <div class="text-primary nls-font-500 text-16 text-right m-0">
         <CurrencyComponent
           :type="CURRENCY_VIEW_TYPES.TOKEN"
           :amount="assetBalance"
@@ -43,7 +40,6 @@
         {{ endTime }}
       </p>
     </div>
-
   </div>
 </template>
 
@@ -53,7 +49,6 @@ import type { PropType } from "vue";
 
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import CurrencyComponent from "@/components/CurrencyComponent.vue";
-
 
 defineProps({
   assetBalance: {
@@ -73,5 +68,4 @@ defineProps({
     required: true,
   },
 });
-
 </script>

@@ -7,7 +7,7 @@
   >
     <Listbox
       v-model="selected.value"
-      v-slot="{open}"
+      v-slot="{ open }"
       as="div"
       :disabled="disabled"
       @update:modelValue="$emit('update-currency', selected.value)"
@@ -38,15 +38,20 @@
           <span
             class="ml-3 absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
           >
-          <ChevronUpIcon  v-if="open"  class="h-5 w-5 text-gray-400" aria-hidden="true" />
-          <ChevronDownIcon v-else class="h-5 w-5 text-gray-400" aria-hidden="true" />
+            <ChevronUpIcon
+              v-if="open"
+              class="h-5 w-5 text-gray-400"
+              aria-hidden="true"
+            />
+            <ChevronDownIcon
+              v-else
+              class="h-5 w-5 text-gray-400"
+              aria-hidden="true"
+            />
           </span>
         </ListboxButton>
 
-        <span
-          class="msg error" 
-          :class="[errorMsg.length > 0 ? '' : 'hidden']"
-        >
+        <span class="msg error" :class="[errorMsg.length > 0 ? '' : 'hidden']">
           {{ errorMsg.length > 0 ? errorMsg : "" }}
         </span>
 
@@ -77,9 +82,7 @@
                     class="flex-shrink-0 h-6 w-6 rounded-full mr-3"
                     alt=""
                   />
-                  <span
-                    class="block truncate font-normal"
-                  >
+                  <span class="block truncate font-normal">
                     {{
                       getAssetInfo(
                         option.balance.denom
@@ -91,9 +94,7 @@
                 <span
                   v-if="selected"
                   class="absolute inset-y-0 right-0 flex items-center pr-4"
-                  :class="[
-                    active ? 'text-white' : 'text-indigo-600'
-                  ]"
+                  :class="[active ? 'text-white' : 'text-indigo-600']"
                 >
                 </span>
               </li>
@@ -109,7 +110,13 @@
 import type { AssetBalance } from "@/stores/wallet/state";
 import { type PropType, ref, onMounted } from "vue";
 
-import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from "@headlessui/vue";
+import {
+  Listbox,
+  ListboxButton,
+  ListboxLabel,
+  ListboxOption,
+  ListboxOptions,
+} from "@headlessui/vue";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
 import { useWalletStore } from "@/stores/wallet";
 import { DEFAULT_ASSET } from "@/config/env";
@@ -157,7 +164,7 @@ onMounted(() => {
 });
 </script>
 <style scoped lang="scss">
-.scrollbar{
+.scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #9c9c9c #f5f5f5;
 
@@ -172,7 +179,7 @@ onMounted(() => {
   }
 
   &::-webkit-scrollbar-thumb {
-    background-color: #EBEFF5;
+    background-color: #ebeff5;
     border: solid 1px white;
     border-radius: 5px;
   }

@@ -2,18 +2,33 @@
   <!-- TOOLTIP -->
 
   <!-- Component Start -->
-  <div ref="target" class="relative flex flex-col items-center group group-tooltip" @mouseover="mouseover"
-    @mouseleave="mouseleave">
+  <div
+    ref="target"
+    class="relative flex flex-col items-center group group-tooltip"
+    @mouseover="mouseover"
+    @mouseleave="mouseleave"
+  >
     <span class="icon icon-tooltip"></span>
   </div>
   <Teleport to="body">
-    <div ref="tooltip" class="absolute flex flex-col items-center mb-7 group-hover:flex tooltip">
+    <div
+      ref="tooltip"
+      class="absolute flex flex-col items-center mb-7 group-hover:flex tooltip"
+    >
       <div class="relative flex">
         <span
-          class="relative z-10 p-2 text-normal text-left leading-none text-white whitespace-no-wrap bg-light-electric shadow-lg content">
+          class="relative z-10 p-2 text-normal text-left leading-none text-white whitespace-no-wrap bg-light-electric shadow-lg content"
+        >
           {{ content }}
         </span>
-        <div class="absolute w-3 h-3 -mt-2 bg-light-electric" style="bottom: -4px;left: 50%;transform: translateX(-50%) rotate(45deg);"></div>
+        <div
+          class="absolute w-3 h-3 -mt-2 bg-light-electric"
+          style="
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%) rotate(45deg);
+          "
+        ></div>
       </div>
     </div>
   </Teleport>
@@ -38,11 +53,12 @@ defineProps({
 const mouseover = (event: MouseEvent) => {
   const parent = target.value as HTMLDivElement;
   const element = tooltip.value as HTMLDivElement;
-  if (target) {
+  if (target.value) {
     const rect = parent.getBoundingClientRect();
     const elementRect = element.getBoundingClientRect();
 
-    const left = rect.left + window.scrollX - elementRect.width / 2 + rect.width/2;
+    const left =
+      rect.left + window.scrollX - elementRect.width / 2 + rect.width / 2;
     const top = rect.top + window.scrollY - elementRect.height - 15;
 
     element.style.left = `${left}px`;
@@ -50,12 +66,12 @@ const mouseover = (event: MouseEvent) => {
   }
 
   element.style.visibility = "visible";
-}
+};
 
 const mouseleave = () => {
   const element = tooltip.value as HTMLDivElement;
   element.style.visibility = "hidden";
-}
+};
 </script>
 <style scoped lang="scss">
 span.content {
@@ -63,8 +79,7 @@ span.content {
   box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15);
   font-size: 10px;
   line-height: 14px;
-  font-family: 'Garet-Medium';
+  font-family: "Garet-Medium";
   text-transform: normal !important;
 }
 </style>
-

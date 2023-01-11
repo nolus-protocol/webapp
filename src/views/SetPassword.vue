@@ -3,7 +3,9 @@
     @submit.prevent="clickContinue"
     class="block rounded-2xl background md:pb-10 pt-6 pb-[300px] -mt-8 md:mt-auto md:border nls-border shadow-box w-screen md:w-[516px] outline"
   >
-    <h1 class="text-to-big-number text-primary text-center relative relative z-[2]">
+    <h1
+      class="text-to-big-number text-primary text-center relative relative z-[2]"
+    >
       <button
         class="align-baseline absolute left-0 top-2/4 -mt-3 px-4 md:px-10"
         type="button"
@@ -43,15 +45,21 @@
     </InputField>
 
     <div class="mt-6 px-4 md:px-10 md:flex">
-      <button class="btn btn-primary btn-large-primary" >
+      <button class="btn btn-primary btn-large-primary">
         {{ $t("message.continue") }}
       </button>
-      <div class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"></div>
+      <div
+        class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"
+      ></div>
     </div>
 
-    <div class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
+    <div
+      class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"
+    ></div>
 
-    <div class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal">
+    <div
+      class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal"
+    >
       <button class="btn btn-primary btn-large-primary w-80">
         {{ $t("message.continue") }}
       </button>
@@ -77,18 +85,17 @@ const confirmErrorMessage = ref("");
 const i18n = useI18n();
 const walletStore = useWalletStore();
 const minLength = 8;
-const specialSymbols = "-!$%^&*()_+|~=`{}\[\]:\/;<>?,.@#";
+const specialSymbols = "-!$%^&*()_+|~=`{}[]:/;<>?,.@#";
 
 const clickBack = () => {
-  if(history.length > 2){
+  if (history.length > 2) {
     return router.back();
   }
   return router.push({ name: RouteNames.AUTH });
 };
 
 const clickContinue = () => {
-
-  if(validate()){
+  if (validate()) {
     return false;
   }
 
@@ -102,7 +109,7 @@ const validate = () => {
   const password = validatePassword();
   const confirm = validateConfirmPassword();
   return password || confirm;
-}
+};
 
 const validatePassword = () => {
   if (password.value === "") {
@@ -111,39 +118,46 @@ const validatePassword = () => {
   }
 
   if (password.value.length < minLength) {
-    errorMessage.value = i18n.t("message.password-length-error", {length: minLength});
+    errorMessage.value = i18n.t("message.password-length-error", {
+      length: minLength,
+    });
     return true;
   }
 
   const hasNumber = /\d/.test(password.value);
 
-  if(!hasNumber){
+  if (!hasNumber) {
     errorMessage.value = i18n.t("message.password-number-error");
     return true;
   }
 
   const hasUpper = /[A-Z]/.test(password.value);
 
-  if(!hasUpper){
+  if (!hasUpper) {
     errorMessage.value = i18n.t("message.password-upper-error");
     return true;
   }
 
   const hasLower = /[a-z]/.test(password.value);
 
-  if(!hasLower){
+  if (!hasLower) {
     errorMessage.value = i18n.t("message.password-lower-error");
     return true;
   }
 
-  const specialSymbol = /[-!$%^&*()_+|~=`{}\[\]:\/;<>?,.@#]/.test(password.value);
-  if(!specialSymbol){
-    errorMessage.value = i18n.t("message.password-special-symbol-error", { symbols: specialSymbols });
+  const specialSymbol = /[-!$%^&*()_+|~=`{}\[\]:\/;<>?,.@#]/.test(
+    password.value
+  );
+
+  if (!specialSymbol) {
+    errorMessage.value = i18n.t("message.password-special-symbol-error", {
+      symbols: specialSymbols,
+    });
     return true;
   }
 
   return false;
-}
+};
 
 const validateConfirmPassword = () => {
   if (confirmPassword.value === "") {
@@ -156,18 +170,17 @@ const validateConfirmPassword = () => {
   }
 
   return false;
-}
+};
 
 watch(password, () => {
-  if(!validatePassword()){
+  if (!validatePassword()) {
     errorMessage.value = "";
   }
 });
 
 watch(confirmPassword, () => {
-  if(!validateConfirmPassword()){
+  if (!validateConfirmPassword()) {
     confirmErrorMessage.value = "";
   }
 });
-
 </script>

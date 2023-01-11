@@ -12,14 +12,14 @@ const useApplicationStore = defineStore("application", {
   state: () => {
     return {
       network: {},
-      theme: null
+      theme: null,
     } as State;
   },
   actions: {
     async [ApplicationActionTypes.CHANGE_NETWORK](loadBalance = false) {
       try {
         const loadedNetworkConfig = EnvNetworkUtils.loadNetworkConfig();
-        
+
         if (!loadedNetworkConfig) {
           throw new Error("Please select different network");
         }
@@ -28,20 +28,20 @@ const useApplicationStore = defineStore("application", {
         const walletStore = useWalletStore();
         const oracle = useOracleStore();
 
-        this.network.networkName = EnvNetworkUtils.getStoredNetworkName() || DEFAULT_PRIMARY_NETWORK;
+        this.network.networkName =
+          EnvNetworkUtils.getStoredNetworkName() || DEFAULT_PRIMARY_NETWORK;
         this.network.networkAddresses = loadedNetworkConfig;
-        
+
         if (WalletUtils.isConnectedViaExtension()) {
           walletStore[WalletActionTypes.CONNECT_KEPLR]();
         }
 
-        if(loadBalance){
+        if (loadBalance) {
           await Promise.allSettled([
             walletStore[WalletActionTypes.UPDATE_BALANCES](),
-            oracle[OracleActionTypes.GET_PRICES]()
+            oracle[OracleActionTypes.GET_PRICES](),
           ]);
         }
-
       } catch (error: Error | any) {
         throw new Error(error);
       }

@@ -1,9 +1,11 @@
 <template>
-  <form  
-    @submit.prepvent="clickContinue"
+  <form
+    @submit.prevent="clickContinue"
     class="block rounded-2xl background md:pb-10 pt-6 pb-[300px] -mt-8 md:mt-auto md:border nls-border shadow-box w-screen md:w-[516px] outline"
   >
-    <h1 class="text-to-big-number text-primary text-center relative relative z-[2]">
+    <h1
+      class="text-to-big-number text-primary text-center relative relative z-[2]"
+    >
       <button
         class="align-baseline absolute left-0 top-2/4 -mt-3 px-4 md:px-10"
         type="button"
@@ -34,13 +36,18 @@
       <button class="btn btn-primary btn-large-primary">
         {{ $t("message.done") }}
       </button>
-      <div class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"></div>
+      <div
+        class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"
+      ></div>
     </div>
 
-    <div Class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden">
-    </div>
+    <div
+      Class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"
+    ></div>
 
-    <div class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal">
+    <div
+      class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal"
+    >
       <button class="btn btn-primary btn-large-primary w-80">
         {{ $t("message.done") }}
       </button>
@@ -70,26 +77,25 @@ const clickBack = () => {
 };
 
 const clickContinue = () => {
-
-  if(validateWalletName()){
+  if (validateWalletName()) {
     return false;
   }
-  
+
   WalletManager.setWalletName(walletName.value);
   walletStore[WalletActionTypes.LOAD_WALLET_NAME]();
-  
+
   errorMessage.value = "";
   checkBalances();
   router.push({ name: RouteNames.DASHBOARD });
 };
 
 const checkBalances = async () => {
-  try{
+  try {
     await walletStore[WalletActionTypes.UPDATE_BALANCES]();
-  }catch(error){
+  } catch (error) {
     console.log(error);
   }
-}
+};
 
 const validateWalletName = () => {
   if (walletName.value === "") {
@@ -98,12 +104,11 @@ const validateWalletName = () => {
   }
 
   return false;
-}
+};
 
 watch(walletName, () => {
-  if(!validateWalletName()){
+  if (!validateWalletName()) {
     errorMessage.value = "";
   }
 });
-
 </script>
