@@ -1,7 +1,7 @@
+import { sha256 } from "@cosmjs/crypto";
 import { Buffer } from "buffer";
-import { Hash } from "@keplr-wallet/crypto";
+
 export class AssetUtils {
-  //Todo add to nolus.js
   public static makeIBCMinimalDenom(
     sourceChannelId: string[],
     coinMinimalDenom: string
@@ -18,7 +18,7 @@ export class AssetUtils {
 
     return (
       "ibc/" +
-      Buffer.from(Hash.sha256(Buffer.from(path)))
+      Buffer.from(sha256(Buffer.from(path)))
         .toString("hex")
         .toUpperCase()
     );

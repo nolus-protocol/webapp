@@ -24,24 +24,27 @@ import type { SendComponentProps } from "@/types/component/SendComponentProps";
 import SendComponent from "@/components/SendComponents/SendComponent.vue";
 import ConfirmComponent from "@/components/modals/templates/ConfirmComponent.vue";
 
+import { CONFIRM_STEP } from "@/types/ConfirmStep";
+import { TxType } from "@/types/TxType";
+import { useWalletStore } from "@/stores/wallet";
+import { computed, inject, onUnmounted, ref } from "vue";
+import { coin, type Coin } from "@cosmjs/amino";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { SUPPORTED_NETWORKS } from "@/networks/config";
+
+import {
+  NATIVE_ASSET,
+  GAS_FEES,
+  SNACKBAR,
+SOURCE_PORTS,
+} from "@/config/env";
+
 import {
   transferCurrency,
   validateAddress,
   validateAmount,
   walletOperation,
 } from "@/components/utils";
-import { CONFIRM_STEP } from "@/types/ConfirmStep";
-import { TxType } from "@/types/TxType";
-import { useWalletStore } from "@/stores/wallet";
-import { computed, inject, onUnmounted, ref } from "vue";
-import {
-  DEFAULT_ASSET,
-  GAS_FEES,
-  SNACKBAR,
-  SUPPORTED_NETWORKS,
-} from "@/config/env";
-import { coin, type Coin } from "@cosmjs/amino";
-import { CurrencyUtils } from "@nolus/nolusjs";
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const walletStore = useWalletStore();
@@ -67,7 +70,7 @@ const state = ref({
   onNextClick,
   receiverErrorMsg: "",
   amountErrorMsg: "",
-  fee: coin(GAS_FEES.transfer_amount, DEFAULT_ASSET.denom),
+  fee: coin(GAS_FEES.transfer_amount, NATIVE_ASSET.denom),
   txHash: "",
 } as SendComponentProps);
 
@@ -161,7 +164,7 @@ const ibcTransfer = async () => {
         {
           toAddress: state.value.receiverAddress,
           amount: funds,
-          sourcePort: state.value.network.sourcePort,
+          sourcePort: SOURCE_PORTS.TRANSFER,
           sourceChannel: state.value.network.sourceChannel,
           memo: "",
         }

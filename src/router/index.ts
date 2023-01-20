@@ -1,15 +1,16 @@
 import MainLayoutView from "@/views/MainLayoutView.vue";
 import DashboardViewVue from "@/views/DashboardView.vue";
 import { WalletUtils, WalletManager } from "@/utils";
+import { RouteNames } from "@/router/RouterNames";
+import { useWalletStore } from "@/stores/wallet";
+import { WalletConnectMechanism } from "@/types";
+
 import {
   createRouter,
   createWebHistory,
   type NavigationGuardNext,
   type RouteLocationNormalized,
 } from "vue-router";
-import { RouteNames } from "@/router/RouterNames";
-import { useWalletStore } from "@/stores/wallet";
-import { WalletConnectMechanism } from "@/types";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

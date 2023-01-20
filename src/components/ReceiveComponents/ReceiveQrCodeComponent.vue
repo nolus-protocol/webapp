@@ -23,9 +23,9 @@
         >
           <img
             class="inline-block w-4 h-4 mr-1 my-0"
-            :src="DEFAULT_ASSET.icon"
+            :src="NATIVE_ASSET.icon"
           />
-          <span>{{ DEFAULT_ASSET.label }}</span>
+          <span>{{ NATIVE_ASSET.label }}</span>
         </div>
       </div>
       <div class="block mt-1">
@@ -64,7 +64,7 @@
 import QrcodeVue from "qrcode.vue";
 import { onUnmounted, ref, type PropType } from "vue";
 import { ArrowLeftIcon, DocumentDuplicateIcon } from "@heroicons/vue/24/solid";
-import { DEFAULT_ASSET } from "@/config/env";
+import { NATIVE_ASSET } from "@/config/env";
 import { useI18n } from "vue-i18n";
 
 export interface ReceiveQrCodeComponentProps {

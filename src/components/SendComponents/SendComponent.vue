@@ -98,10 +98,10 @@ import InputField from "@/components/InputField.vue";
 import CurrencyField from "@/components/CurrencyField.vue";
 
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { SUPPORTED_NETWORKS } from "@/config/env";
 import { useWalletStore } from "@/stores/wallet";
 import { WalletUtils } from "@/utils";
 import { computed } from "vue";
+import { SUPPORTED_NETWORKS } from "@/networks/config";
 
 const props = defineProps({
   modelValue: {

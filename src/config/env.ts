@@ -1,6 +1,4 @@
 import nlsIcon from "@/assets/icons/coins/nls.svg";
-import osmoIcon from "@/assets/icons/coins/osmosis.svg";
-
 import type { NetworkAddress } from "@/types";
 
 export const DEFAULT_PRIMARY_NETWORK = "devnet";
@@ -13,17 +11,15 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
     staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
     web3auth: {
-      clientId:
-        "BHPGnOodSp4t0ZDuuJ3suCZCtwVILYmfOTbDrzlUKK6ADFrNMWg563MAMj_CBW8sDVvg3BqJi8i284t6o",
+      clientId: "BHPGnOodSp4t0ZDuuJ3suCZCtwVILYmfOTbDrzlUKK6ADFrNMWg563MAMj_CBW8sDVvg3BqJi8i284t6o",
       network: "testnet",
       google: {
         name: "Nolus",
         verifier: "nolusprotocol",
         typeOfLogin: "google",
-        clientId:
-          "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
+        clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
       },
-    },
+    }
   },
   devnet: {
     tendermintRpc: "https://net-dev.nolus.io:26612",
@@ -32,17 +28,15 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
     staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
     web3auth: {
-      clientId:
-        "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
+      clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
       network: "cyan",
       google: {
         name: "Nolus",
         verifier: "nolusprotocol",
         typeOfLogin: "google",
-        clientId:
-          "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
+        clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
       },
-    },
+    }
   },
   testnet: {
     tendermintRpc: "https://net-rila.nolus.io:26657",
@@ -51,17 +45,15 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
     staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
     web3auth: {
-      clientId:
-        "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
+      clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
       network: "cyan",
       google: {
         name: "Nolus",
         verifier: "nolusprotocol",
         typeOfLogin: "google",
-        clientId:
-          "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
+        clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
       },
-    },
+    }
   },
   mainnet: {
     tendermintRpc: "https://net-rila.nolus.io:26657",
@@ -70,21 +62,19 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     govern: "https://explorer.nolus.io/nolus/gov",
     staking: "https://explorer.nolus.io/nolus/staking",
     web3auth: {
-      clientId:
-        "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
+      clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
       network: "cyan",
       google: {
         name: "Nolus",
         verifier: "nolusprotocol",
         typeOfLogin: "google",
-        clientId:
-          "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
+        clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
       },
     },
   },
 };
 
-export const DEFAULT_CURRENCY = {
+export const NATIVE_CURRENCY = {
   currency: "usd",
   symbol: "$",
   locale: "en-US",
@@ -92,38 +82,28 @@ export const DEFAULT_CURRENCY = {
   maximumFractionDigits: 2,
 };
 
-export const DEFAULT_NETWORK = {
-  prefix: "nolus",
-  value: "nls",
-  label: "Nolus",
-  icon: nlsIcon,
-  native: true,
-  estimation: 6,
-  sourcePort: "",
-  sourceChannel: "",
-};
-
-export const SUPPORTED_NETWORKS = [
-  DEFAULT_NETWORK,
-  {
-    prefix: "osmo",
-    value: "osmo",
-    label: "Osmosis",
-    icon: osmoIcon,
-    native: false,
-    estimation: 20,
-    sourcePort: "transfer",
-    sourceChannel: "channel-0",
-  },
-];
-
-export const DEFAULT_ASSET = {
+export const NATIVE_ASSET = {
   ticker: "NLS",
   label: "NLS",
   value: "NLS",
   denom: "unls",
   icon: nlsIcon,
 };
+
+export const NATIVE_NETWORK = {
+  prefix: "nolus",
+  value: "nls",
+  label: "Nolus",
+  icon: nlsIcon,
+  native: true,
+  estimation: 6,
+  sourceChannel: "",
+  key: "NLS"
+};
+
+export enum SOURCE_PORTS {
+  TRANSFER = "transfer"
+}
 
 export enum GROUPS {
   Lpn = "Lpn",

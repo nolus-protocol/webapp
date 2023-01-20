@@ -99,6 +99,8 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch, type PropType } from "vue";
+import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
+
 import {
   Listbox,
   ListboxButton,
@@ -106,7 +108,6 @@ import {
   ListboxOption,
   ListboxOptions,
 } from "@headlessui/vue";
-import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
 
 export interface PickerOption {
   id?: string;

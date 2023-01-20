@@ -154,23 +154,23 @@ import Modal from "@/components/modals/templates/Modal.vue";
 import ClaimDialog from "@/components/modals/ClaimDialog.vue";
 import ErrorDialog from "@/components/modals/ErrorDialog.vue";
 import TooltipComponent from "@/components/TooltipComponent.vue";
+import CURRENCIES from "@/config/currencies.json";
 
 import type { AssetBalance } from "@/stores/wallet/state";
+
 import { computed, onMounted, ref } from "vue";
+import { ChainConstants, NolusClient } from "@nolus/nolusjs";
+import { CONTRACTS } from "@/config/contracts";
+import { EnvNetworkUtils } from "@/utils/EnvNetworkUtils";
+import { WalletManager } from "@/utils";
+import { Coin, Dec, Int } from "@keplr-wallet/unit";
+import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
+
 import {
   claimRewardsMsg,
   type ContractData,
   Lpp,
 } from "@nolus/nolusjs/build/contracts";
-import { ChainConstants, NolusClient } from "@nolus/nolusjs";
-
-import { CONTRACTS } from "@/config/contracts";
-import { EnvNetworkUtils } from "@/utils/EnvNetworkUtils";
-
-import { WalletManager } from "@/utils";
-import { Coin, Dec, Int } from "@keplr-wallet/unit";
-import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
-import CURRENCIES from "@/config/currencies.json";
 
 const wallet = useWalletStore();
 

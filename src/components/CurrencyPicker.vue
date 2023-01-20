@@ -23,16 +23,19 @@
         >
           <span class="flex items-center">
             <img
-              :src="getAssetInfo(selected.value?.balance?.denom)?.coinIcon"
+              :src="selected.value?.icon ?? getAssetInfo(selected.value?.balance?.denom)?.coinIcon"
               class="flex-shrink-0 h-6 w-6 rounded-full"
               alt=""
             />
             <span class="block truncate dark-text">
               {{
-                getAssetInfo(
+                selected.value?.name ?? getAssetInfo(
                   selected.value?.balance?.denom
                 ).coinAbbreviation.toUpperCase()
               }}
+            </span>
+            <span v-if="isLoading" class="loading">
+
             </span>
           </span>
           <span
@@ -78,13 +81,13 @@
               >
                 <div class="flex items-center">
                   <img
-                    :src="getAssetInfo(option.balance.denom).coinIcon"
+                    :src="option.icon ?? getAssetInfo(option.balance.denom).coinIcon"
                     class="flex-shrink-0 h-6 w-6 rounded-full mr-3"
                     alt=""
                   />
                   <span class="block truncate font-normal">
                     {{
-                      getAssetInfo(
+                      option.name ?? getAssetInfo(
                         option.balance.denom
                       ).coinAbbreviation.toUpperCase()
                     }}
@@ -108,7 +111,10 @@
 
 <script setup lang="ts">
 import type { AssetBalance } from "@/stores/wallet/state";
-import { type PropType, ref, onMounted } from "vue";
+import { type PropType, ref, onMounted, watch } from "vue";
+import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
+import { useWalletStore } from "@/stores/wallet";
+import { NATIVE_ASSET } from "@/config/env";
 
 import {
   Listbox,
@@ -117,9 +123,7 @@ import {
   ListboxOption,
   ListboxOptions,
 } from "@headlessui/vue";
-import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
-import { useWalletStore } from "@/stores/wallet";
-import { DEFAULT_ASSET } from "@/config/env";
+
 
 const props = defineProps({
   label: {
@@ -143,6 +147,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  isLoading: {
+    type: Boolean,
+    default: false,
+  },
   errorMsg: {
     type: String,
     default: "",
@@ -152,7 +160,7 @@ const props = defineProps({
 const wallet = useWalletStore();
 
 const getAssetInfo = (denom: string) => {
-  return wallet.getCurrencyInfo(denom ?? DEFAULT_ASSET.denom);
+  return wallet.getCurrencyInfo(denom ?? NATIVE_ASSET.denom);
 };
 
 const selected = ref({
@@ -162,6 +170,10 @@ const selected = ref({
 onMounted(() => {
   selected.value.value = props.currencyOption as AssetBalance;
 });
+
+watch(() => props.currencyOption, () => {
+  selected.value.value = props.currencyOption as AssetBalance
+})
 </script>
 <style scoped lang="scss">
 .scrollbar {
@@ -184,4 +196,5 @@ onMounted(() => {
     border-radius: 5px;
   }
 }
+
 </style>

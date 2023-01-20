@@ -51,7 +51,7 @@ import {
 import { useWalletStore } from "@/stores/wallet";
 import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { CONTRACTS } from "@/config/contracts";
-import { DEFAULT_ASSET, GAS_FEES, GROUPS, SNACKBAR } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, GROUPS, SNACKBAR } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 
 const props = defineProps({
@@ -84,13 +84,12 @@ const state = ref({
   currentDepositBalance: {} as any,
   currentBalance: balances.value,
   selectedCurrency: selectedCurrency.value,
-  receiverAddress:
-    CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance,
+  receiverAddress: CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance,
   amount: "",
   password: "",
   amountErrorMsg: "",
   txHash: "",
-  fee: coin(GAS_FEES.lender_burn_deposit, DEFAULT_ASSET.denom),
+  fee: coin(GAS_FEES.lender_burn_deposit, NATIVE_ASSET.denom),
   onNextClick: () => onNextClick(),
   onSendClick: () => onWithdrawClick(),
   onConfirmBackClick: () => onConfirmBackClick(),
@@ -105,8 +104,7 @@ const errorDialog = ref({
 
 const fetchDepositBalance = async () => {
   try {
-    const walletAddress =
-      walletStore.wallet?.address ?? WalletManager.getWalletAddress();
+    const walletAddress = walletStore.wallet?.address ?? WalletManager.getWalletAddress();
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
     const lppClient = new Lpp(cosmWasmClient, state.value.receiverAddress);
     const depositBalance = await lppClient.getLenderDeposit(

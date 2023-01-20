@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { DEFAULT_CURRENCY } from "@/config/env";
+import { NATIVE_CURRENCY } from "@/config/env";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { computed } from "vue";
@@ -75,9 +75,9 @@ const amount = computed(() => {
     case CURRENCY_VIEW_TYPES.CURRENCY: {
       let numberAmount = Number(props.amount);
 
-      let amount = new Intl.NumberFormat(DEFAULT_CURRENCY.locale, {
-        minimumFractionDigits: DEFAULT_CURRENCY.minimumFractionDigits,
-        maximumFractionDigits: DEFAULT_CURRENCY.maximumFractionDigits,
+      let amount = new Intl.NumberFormat(NATIVE_CURRENCY.locale, {
+        minimumFractionDigits: NATIVE_CURRENCY.minimumFractionDigits,
+        maximumFractionDigits: NATIVE_CURRENCY.maximumFractionDigits,
       }).format(numberAmount);
 
       let [beforeDecimal, afterDecimal] = amount.split(".");

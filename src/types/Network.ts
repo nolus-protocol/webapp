@@ -3,8 +3,27 @@ export interface Network {
   value: string;
   label: string;
   icon: string;
+  ticker: string;
   native: boolean;
-  estimation: number;
+  estimation: number; 
   sourcePort: string;
   sourceChannel: string;
+  key: string;
+}
+
+export interface NetworkData{
+  prefix: string,
+  tendermintRpc: string,
+  api: string,
+  sourceChannel: string,
+  gasMuplttiplier: number,
+  bip44Path: string,
+  ibcTransferTimeout: number,
+  ticker: string,
+  name: string,
+  gasPrice: string,
+  explorer: string,
+  fees: {
+      transfer_amount: number
+  }
 }

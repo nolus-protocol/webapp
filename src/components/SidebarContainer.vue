@@ -127,8 +127,7 @@
     class="lg:col-span-3 absolute inset-x-0 bottom-0 mb-6 ml-8 hidden md:grid fixed"
   >
     <p class="nls-font-500 text-12 text-dark-grey text-upper pl-2">
-      {{ applicaton.network.networkName }} #
-      <template v-if="block > 0">{{ block }}</template>
+      {{ applicaton.network.networkName }} #<template v-if="block > 0">{{ block }}</template>
     </p>
     <p class="garet-medium text-12 text-dark-grey pl-2">v{{ version }}</p>
   </div>
@@ -147,17 +146,19 @@ import SwapDialog from "@/components/modals/SwapDialog.vue";
 
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import { RouteNames } from "@/router/RouterNames";
+
+import { useApplicationStore } from "@/stores/application";
+import { NolusClient } from "@nolus/nolusjs";
+import { NETWORKS, UPDATE_BLOCK_INTERVAL } from "@/config/env";
+import { storeToRefs } from "pinia";
+import { EnvNetworkUtils } from "@/utils";
+
 import {
   DISCORD_ACCOUNT,
   REDDIT_ACCOUNT,
   TELEGRAM_ACCOUNT,
   TWITTER_ACCOUNT,
 } from "@/config/globals";
-import { useApplicationStore } from "@/stores/application";
-import { NolusClient } from "@nolus/nolusjs";
-import { NETWORKS, UPDATE_BLOCK_INTERVAL } from "@/config/env";
-import { storeToRefs } from "pinia";
-import { EnvNetworkUtils } from "@/utils";
 
 const showMobileNav = ref(false);
 const isMobile = ref(false);

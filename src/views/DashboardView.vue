@@ -37,7 +37,7 @@
             :fontSize="40"
             :type="CURRENCY_VIEW_TYPES.CURRENCY"
             :amount="totalBalance"
-            :denom="DEFAULT_CURRENCY.symbol"
+            :denom="NATIVE_CURRENCY.symbol"
             :has-space="false"
             class="nls-font-700 text-primary"
           />
@@ -58,7 +58,7 @@
               :fontSize="20"
               :type="CURRENCY_VIEW_TYPES.CURRENCY"
               :amount="state.availableAssets.toString()"
-              :denom="DEFAULT_CURRENCY.symbol"
+              :denom="NATIVE_CURRENCY.symbol"
               :has-space="false"
               class="nls-font-500 text-primary"
             />
@@ -73,7 +73,7 @@
               :fontSize="20"
               :type="CURRENCY_VIEW_TYPES.CURRENCY"
               :amount="activeLeases.toString()"
-              :denom="DEFAULT_CURRENCY.symbol"
+              :denom="NATIVE_CURRENCY.symbol"
               :has-space="false"
               class="nls-font-500 text-primary"
             />
@@ -89,7 +89,7 @@
               :fontSize="20"
               :type="CURRENCY_VIEW_TYPES.CURRENCY"
               :amount="suppliedAndStaked.toString()"
-              :denom="DEFAULT_CURRENCY.symbol"
+              :denom="NATIVE_CURRENCY.symbol"
               :has-space="false"
               class="nls-font-500 text-primary"
             />
@@ -106,7 +106,7 @@
             :fontSize="20"
             :type="CURRENCY_VIEW_TYPES.CURRENCY"
             :amount="suppliedAndStaked.toString()"
-            :denom="DEFAULT_CURRENCY.symbol"
+            :denom="NATIVE_CURRENCY.symbol"
             :has-space="false"
             class="nls-font-500 text-primary"
           />
@@ -287,7 +287,7 @@ import { DASHBOARD_ACTIONS } from "@/types/DashboardActions";
 import { useLeases } from "@/composables";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { useOracleStore } from "@/stores/oracle";
-import { DEFAULT_APR, DEFAULT_CURRENCY } from "@/config/env";
+import { DEFAULT_APR, NATIVE_CURRENCY } from "@/config/env";
 import { storeToRefs } from "pinia";
 import { LPN_CURRENCY } from "@/config/assetsInfo";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";

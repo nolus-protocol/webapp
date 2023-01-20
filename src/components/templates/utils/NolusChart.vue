@@ -28,7 +28,7 @@ import {
   Tooltip,
   type Plugin,
 } from "chart.js";
-import { DEFAULT_CURRENCY } from "@/config/env";
+import { NATIVE_CURRENCY } from "@/config/env";
 
 export const defaultOptions = {
   responsive: true,
@@ -83,9 +83,9 @@ export const defaultOptions = {
           }
 
           if (context.parsed.y !== null) {
-            value = new Intl.NumberFormat(DEFAULT_CURRENCY.locale, {
+            value = new Intl.NumberFormat(NATIVE_CURRENCY.locale, {
               style: "currency",
-              currency: DEFAULT_CURRENCY.currency,
+              currency: NATIVE_CURRENCY.currency,
             }).format(context.parsed.y);
           }
 

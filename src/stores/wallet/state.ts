@@ -3,6 +3,13 @@ import type { NolusWallet } from "@nolus/nolusjs";
 
 export interface AssetBalance {
   balance: Coin | any;
+  icon?: string,
+  name?: string,
+  ticker?: string,
+  ibc_route?: string[],
+  decimals?: number,
+  symbol?: string,
+  native?: boolean
 }
 
 export type State = {

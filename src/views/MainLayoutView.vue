@@ -46,15 +46,16 @@ import Snackbar from "@/components/templates/utils/Snackbar.vue";
 import Modal from "@/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/components/modals/ErrorDialog.vue";
 
+import { OracleActionTypes, useOracleStore } from "@/stores/oracle";
+import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
+import { WalletManager } from "@/utils";
+import { onMounted, onUnmounted, provide, ref, type Ref } from "vue";
+
 import {
   SNACKBAR,
   UPDATE_BALANCE_INTERVAL,
   UPDATE_PRICES_INTERVAL,
 } from "@/config/env";
-import { OracleActionTypes, useOracleStore } from "@/stores/oracle";
-import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
-import { WalletManager } from "@/utils";
-import { onMounted, onUnmounted, provide, ref, type Ref } from "vue";
 
 let balanceInterval: NodeJS.Timeout | undefined;
 let pricesInterval: NodeJS.Timeout | undefined;

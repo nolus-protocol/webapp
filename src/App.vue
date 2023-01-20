@@ -19,13 +19,14 @@ import { RouterView } from "vue-router";
 
 import Modal from "@/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/components/modals/ErrorDialog.vue";
+import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
+import { storeToRefs } from "pinia";
+import { APPEARANCE } from "./config/env";
+
 import {
   useApplicationStore,
   ApplicationActionTypes,
 } from "@/stores/application";
-import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
-import { storeToRefs } from "pinia";
-import { APPEARANCE } from "./config/env";
 
 const showErrorDialog = ref(false);
 const errorMessage = ref("");

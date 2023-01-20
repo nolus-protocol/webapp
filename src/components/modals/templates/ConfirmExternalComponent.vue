@@ -63,7 +63,7 @@
             {{ $t("message.tx-hash") }}:
           </p>
           <a
-            :href="`${applicaton.network.networkAddresses.exploler}nolus-rila/tx/${txHash}`"
+            :href="`${networkData.explorer}/${txHash}`"
             class="text-14 m-0 his-url"
             target="_blank"
           >
@@ -76,7 +76,6 @@
           </p>
           <p class="text-14 text-primary nls-font-700 m-0">
             {{ calculateFee(fee) }}
-            <!-- {{ formatAmount(props.fee?.amount[0]) }} {{ NATIVE_CURRENCY.abbreviation }} -->
           </p>
         </div>
       </div>
@@ -115,21 +114,19 @@
 <script lang="ts" setup>
 import InputField from "@/components/InputField.vue";
 import type { AssetBalance } from "@/stores/wallet/state";
+import type { Coin } from "@cosmjs/amino";
 
 import { computed, inject, onMounted, ref, watch } from "vue";
 import { ArrowLeftIcon, CheckIcon, XMarkIcon } from "@heroicons/vue/24/solid";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { StringUtils, WalletUtils } from "@/utils";
+import { AssetUtils, EnvNetworkUtils, StringUtils, WalletUtils } from "@/utils";
 import { TxType, CONFIRM_STEP } from "@/types";
 import { useI18n } from "vue-i18n";
-import { useWalletStore } from "@/stores/wallet";
-import type { Coin } from "@cosmjs/amino";
 import { useApplicationStore } from "@/stores/application";
+import { NETWORKS_DATA } from "@/networks";
 
 const errorMessage = ref("");
 const i18n = useI18n();
-const wallet = useWalletStore();
-const setCollapseButton = inject("setCollapseButton", (bool: boolean) => {});
 const applicaton = useApplicationStore();
 
 interface Props {
@@ -137,11 +134,22 @@ interface Props {
   receiverAddress: string;
   password: string;
   amount: string;
+  networkKey: string;
   memo?: string;
   txType: TxType;
   txHash: string;
   step: CONFIRM_STEP;
   fee?: Coin;
+  networkCurrencies: {
+    [key: string]: {
+        name: string;
+        symbol: string;
+        decimal_digits: string;
+        ibc_route: string[];
+        ticker: string;
+        icon: string;
+    }
+  },
   onSendClick: () => void;
   onBackClick: () => void;
   onOkClick: () => void;
@@ -155,16 +163,9 @@ const isStepPending = computed(() => props.step === CONFIRM_STEP.PENDING);
 const isStepSuccess = computed(() => props.step === CONFIRM_STEP.SUCCESS);
 const isStepError = computed(() => props.step === CONFIRM_STEP.ERROR);
 
-watch(
-  () => props.step,
-  () => {
-    if (props.step == CONFIRM_STEP.PENDING) {
-      setCollapseButton(true);
-    } else {
-      setCollapseButton(false);
-    }
-  }
-);
+const networkData = computed(() => {
+  return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].supportedNetworks[props.networkKey];
+})
 
 const btnAction = computed(() => {
   if (!checkValidation()) {
@@ -187,45 +188,42 @@ onMounted(() => {
   setShowDialogHeader(false);
 });
 
-function onBackButtonClick() {
+const onBackButtonClick = () => {
   setShowDialogHeader(true);
   props.onBackClick();
 }
 
-function formatAmount(value: string) {
+const formatAmount = (value: string) => {
   const selectedCurrency = props.selectedCurrency;
 
   if (!selectedCurrency) {
     return;
   }
 
-  const { coinDenom, coinMinimalDenom, coinDecimals } = wallet.getCurrencyInfo(
-    selectedCurrency.balance.denom
-  );
+  const coinMinimalDenom = AssetUtils.makeIBCMinimalDenom(selectedCurrency.ibc_route!, selectedCurrency.symbol!);
 
   const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
     value,
     coinMinimalDenom,
-    coinDecimals
+    selectedCurrency.decimals!
   );
+
   return CurrencyUtils.convertMinimalDenomToDenom(
     minimalDenom.amount.toString(),
     coinMinimalDenom,
-    coinDenom,
-    coinDecimals
+    selectedCurrency.ticker!,
+    selectedCurrency.decimals!
   );
 }
 
-function calculateFee(coin: Coin) {
-  const { coinDenom, coinMinimalDenom, coinDecimals } = wallet.getCurrencyInfo(
-    coin.denom
-  );
-
+const calculateFee = (coin: Coin) => {
+  const currency = props.networkCurrencies[networkData.value.ticker];
+  
   return CurrencyUtils.convertMinimalDenomToDenom(
     coin.amount.toString(),
-    coinMinimalDenom,
-    coinDenom,
-    coinDecimals
+    AssetUtils.makeIBCMinimalDenom(currency.ibc_route ,currency.symbol),
+    currency.ticker,
+    Number(currency.decimal_digits)
   );
 }
 

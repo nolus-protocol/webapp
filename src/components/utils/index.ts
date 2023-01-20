@@ -1,13 +1,15 @@
 import i18n from "@/locales";
 import type { Coin } from "@cosmjs/proto-signing";
+import type { StdFee } from "@cosmjs/amino";
+import type { BaseWallet, Wallet } from "@/networks";
 
 import { Int } from "@keplr-wallet/unit";
 import { fromBech32 } from "@cosmjs/encoding";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { WalletManager } from "@/utils";
-import { WalletConnectMechanism } from "@/types";
-import type { StdFee } from "@cosmjs/amino";
+import { WalletConnectMechanism, type NetworkData } from "@/types";
+import { authenticateKeplr, authenticateLedger, authenticateDecrypt } from "@/networks";
 
 export const validateAddress = (address: string) => {
   if (!address || address.trim() == "") {
@@ -94,6 +96,33 @@ export const walletOperation = async (
   }
 
   operation();
+};
+
+export const externalWalletOperation = async (
+  operation: (wallet: BaseWallet) => void,
+  wallet: Wallet,
+  networkData: NetworkData,
+  password: string
+) => {
+
+  switch (WalletManager.getWalletConnectMechanism()) {
+    case WalletConnectMechanism.MNEMONIC: {
+      return operation(await authenticateDecrypt(wallet, networkData, password));
+    }
+    case WalletConnectMechanism.EXTENSION: {
+      return operation(await authenticateKeplr(wallet, networkData));
+    }
+    case WalletConnectMechanism.LEDGER: {
+      return operation(await authenticateLedger(wallet, networkData));
+    }
+    case WalletConnectMechanism.LEDGER_BLUETOOTH: {
+      return operation(await authenticateLedger(wallet, networkData));
+    }
+    case WalletConnectMechanism.GOOGLE: {
+      return operation(await authenticateDecrypt(wallet, networkData, password));
+    }
+  }
+
 };
 
 export const getMicroAmount = (denom: string, amount: string) => {

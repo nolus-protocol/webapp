@@ -12,6 +12,21 @@ import type { TxSearchResponse } from "@cosmjs/tendermint-rpc";
 import { WalletConnectMechanism } from "@/types";
 import { defineStore } from "pinia";
 import { WalletActionTypes } from "@/stores/wallet/action-types";
+import { DirectSecp256k1Wallet } from "@cosmjs/proto-signing";
+import { ChainConstants } from "@nolus/nolusjs/build/constants";
+import { fromHex, toHex } from "@cosmjs/encoding";
+import { RouteNames } from "@/router/RouterNames";
+import { LedgerSigner } from "@cosmjs/ledger-amino";
+import { decodeTxRaw, type DecodedTxRaw } from "@cosmjs/proto-signing";
+import { NETWORKS, NATIVE_ASSET } from "@/config/env";
+import { ASSETS } from "@/config/assetsInfo";
+import { ADAPTER_STATUS } from "@web3auth/base";
+import { Buffer } from "buffer";
+import { Lpp } from "@nolus/nolusjs/build/contracts";
+import { CONTRACTS } from "@/config/contracts";
+import { Coin, Int } from "@keplr-wallet/unit";
+import { makeCosmoshubPath } from "@cosmjs/amino";
+
 import {
   EncryptionUtils,
   EnvNetworkUtils,
@@ -21,26 +36,13 @@ import {
   Web3AuthProvider,
   WalletManager,
 } from "@/utils";
-import { coin, makeCosmoshubPath } from "@cosmjs/amino";
+
 import {
   CurrencyUtils,
   KeyUtils,
   NolusClient,
   NolusWalletFactory,
-} from "@nolus/nolusjs";
-import { DirectSecp256k1Wallet } from "@cosmjs/proto-signing";
-import { ChainConstants } from "@nolus/nolusjs/build/constants";
-import { fromHex, toHex } from "@cosmjs/encoding";
-import { RouteNames } from "@/router/RouterNames";
-import { LedgerSigner } from "@cosmjs/ledger-amino";
-import { decodeTxRaw, type DecodedTxRaw } from "@cosmjs/proto-signing";
-import { NETWORKS, DEFAULT_ASSET } from "@/config/env";
-import { ASSETS } from "@/config/assetsInfo";
-import { ADAPTER_STATUS } from "@web3auth/base";
-import { Buffer } from "buffer";
-import { Lpp } from "@nolus/nolusjs/build/contracts";
-import { CONTRACTS } from "@/config/contracts";
-import { Coin, Int } from "@keplr-wallet/unit";
+} from "@nolus/nolusjs"; 
 
 const useWalletStore = defineStore("wallet", {
   state: () => {
@@ -89,11 +91,10 @@ const useWalletStore = defineStore("wallet", {
         await keplrWindow.keplr?.enable(chainId);
 
         if (keplrWindow.getOfflineSignerOnlyAmino) {
-          const offlineSigner = await keplrWindow.getOfflineSignerOnlyAmino(
+          const offlineSigner = keplrWindow.getOfflineSignerOnlyAmino(
             chainId
           );
-          const nolusWalletOfflineSigner =
-            await NolusWalletFactory.nolusOfflineSigner(offlineSigner as any);
+          const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(offlineSigner as any);
           await nolusWalletOfflineSigner.useAccount();
           this.wallet = nolusWalletOfflineSigner;
           this.walletName = (await keplrWindow.keplr.getKey(chainId)).name;
@@ -125,7 +126,6 @@ const useWalletStore = defineStore("wallet", {
       const to = setTimeout(() => (breakLoop = true), 30000);
       const accountNumbers = [0];
       const paths = accountNumbers.map(makeCosmoshubPath);
-
       while (!ledgerWallet && !breakLoop) {
         try {
           const isConnectedViaLedgerBluetooth =
@@ -135,12 +135,12 @@ const useWalletStore = defineStore("wallet", {
             payload.isBluetooth || isConnectedViaLedgerBluetooth
               ? await BluetoothTransport.create()
               : await TransportWebUSB.create();
-          //TODO: remove any
+
           ledgerWallet = await NolusWalletFactory.nolusLedgerWallet(
             new LedgerSigner(transport, {
               prefix: ChainConstants.BECH32_PREFIX_ACC_ADDR,
               hdPaths: paths,
-            }) as any
+            })
           );
 
           await ledgerWallet.useAccount();
@@ -181,8 +181,7 @@ const useWalletStore = defineStore("wallet", {
         privateKey,
         ChainConstants.BECH32_PREFIX_ACC_ADDR
       );
-      const nolusWalletOfflineSigner =
-        await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
+      const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
       await nolusWalletOfflineSigner.useAccount();
       this.wallet = nolusWalletOfflineSigner;
       this.privateKey = toHex(privateKey);
@@ -226,8 +225,7 @@ const useWalletStore = defineStore("wallet", {
         const ibcBalances = [];
 
         for (const key in CURRENCIES.currencies) {
-          const currency =
-            CURRENCIES.currencies[key as keyof typeof CURRENCIES.currencies];
+          const currency = CURRENCIES.currencies[key as keyof typeof CURRENCIES.currencies];
           const ibcDenom = AssetUtils.makeIBCMinimalDenom(
             currency.ibc_route,
             currency.symbol
@@ -275,8 +273,7 @@ const useWalletStore = defineStore("wallet", {
           fromHex(decryptedPrivateKey),
           ChainConstants.BECH32_PREFIX_ACC_ADDR
         );
-        const nolusWalletOfflineSigner =
-          await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
+        const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
         await nolusWalletOfflineSigner.useAccount();
 
         this.wallet = nolusWalletOfflineSigner;
@@ -479,8 +476,7 @@ const useWalletStore = defineStore("wallet", {
               ChainConstants.BECH32_PREFIX_ACC_ADDR
             );
 
-            const nolusWalletOfflineSigner =
-              await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
+            const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
             await nolusWalletOfflineSigner.useAccount();
             this.wallet = nolusWalletOfflineSigner;
             this.privateKey = toHex(privateKey);
@@ -504,14 +500,12 @@ const useWalletStore = defineStore("wallet", {
           this.stakingBalance = item.balance;
         }
       } catch (e) {
-        this.stakingBalance = new Coin(DEFAULT_ASSET.denom, new Int(0));
+        this.stakingBalance = new Coin(NATIVE_ASSET.denom, new Int(0));
       }
     },
     async [WalletActionTypes.LOAD_SUPPLIED_AMOUNT]() {
-      const walletAddress =
-        this?.wallet?.address ?? WalletManager.getWalletAddress();
-      const cosmWasmClient =
-        await NolusClient.getInstance().getCosmWasmClient();
+      const walletAddress = this?.wallet?.address ?? WalletManager.getWalletAddress();
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const lppClient = new Lpp(
         cosmWasmClient,
         CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance
@@ -537,7 +531,7 @@ const useWalletStore = defineStore("wallet", {
     getCurrencyInfo: (state) => {
       return (denom: string) => {
         const currency = state.currencies[denom];
-
+        
         if (!currency) {
           return {
             ticker: "NLS",

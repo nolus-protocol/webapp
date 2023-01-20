@@ -31,6 +31,7 @@
             :disabled="disabledCurrencyPicker"
             :options="currencyOptions"
             @update-currency="onUpdateCurrency"
+            :isLoading="isLoadingPicker"
             type="small"
           />
         </div>
@@ -53,6 +54,7 @@ import { Coin, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
+import { AssetUtils } from "@/utils";
 
 const emit = defineEmits(["update-currency", "update:modelValue", "input"]);
 const oracle = useOracleStore();
@@ -105,6 +107,10 @@ const props = defineProps({
   disabledCurrencyPicker: {
     type: Boolean,
   },
+  isLoadingPicker: {
+    type: Boolean,
+    default: false
+  },
   isError: {
     type: Boolean,
     default: false,
@@ -146,16 +152,31 @@ const calculateInputBalance = () => {
     return "$0";
   }
 
-  const denom = props.option.balance.denom;
-  const { coinDecimals, coinMinimalDenom } = wallet.getCurrencyInfo(denom);
-  const symbol = wallet.currencies[denom].symbol;
+  const ticker = props.option.ticker;
+
+  let coinDecimals = null;
+  let coinMinimalDenom = null;
+  let symbol = null;
+
+  if(ticker){
+    const { decimals, symbol: currencySymbol, ibc_route   } = props.option;
+    coinDecimals = decimals as number;
+    coinMinimalDenom = AssetUtils.makeIBCMinimalDenom(ibc_route as string[], currencySymbol as string);
+    symbol = currencySymbol as string;
+  }else{
+    const denom = props.option.balance.denom;
+    const { coinDecimals: decimals, coinMinimalDenom: minimalDenom } = wallet.getCurrencyInfo(denom);
+    symbol = wallet.currencies[denom].symbol;
+    coinDecimals = decimals;
+    coinMinimalDenom = minimalDenom;
+  }
 
   const { amount } = CurrencyUtils.convertDenomToMinimalDenom(
     numberRealValue.toString(),
-    coinMinimalDenom,
+    coinMinimalDenom as string,
     coinDecimals
   );
-  const coin = new Coin(denom, new Int(String(amount)));
+  const coin = new Coin(coinMinimalDenom as string, new Int(String(amount)));
   const tokenPrice = prices[symbol]?.amount || "0";
 
   return CurrencyUtils.calculateBalance(tokenPrice, coin, coinDecimals);

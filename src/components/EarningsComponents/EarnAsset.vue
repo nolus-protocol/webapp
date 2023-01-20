@@ -35,7 +35,7 @@
           }}
         </p>
         <div class="flex items-center text-dark-grey text-12 garet-medium m-0">
-          {{ DEFAULT_CURRENCY.symbol
+          {{ NATIVE_CURRENCY.symbol
           }}{{
             calculateBalance(
               asset.balance.amount.toString(),
@@ -92,7 +92,7 @@ import { useOracleStore } from "@/stores/oracle";
 import { computed } from "vue";
 import { useWalletStore } from "@/stores/wallet";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
-import { DEFAULT_APR, DEFAULT_CURRENCY } from "@/config/env";
+import { DEFAULT_APR, NATIVE_CURRENCY } from "@/config/env";
 
 const oracle = useOracleStore();
 const wallet = useWalletStore();

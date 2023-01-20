@@ -36,11 +36,6 @@ import SupplyFormComponent from "@/components/SupplyComponents/SupplyFormCompone
 import ErrorDialog from "@/components/modals/ErrorDialog.vue";
 import Modal from "@/components/modals/templates/Modal.vue";
 
-import {
-  getMicroAmount,
-  validateAmount,
-  walletOperation,
-} from "@/components/utils";
 import { CONFIRM_STEP } from "@/types/ConfirmStep";
 import { TxType } from "@/types/TxType";
 import { NolusClient, NolusWallet } from "@nolus/nolusjs";
@@ -50,14 +45,21 @@ import { EnvNetworkUtils } from "@/utils/EnvNetworkUtils";
 import { useWalletStore } from "@/stores/wallet";
 import { computed, inject, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { coin } from "@cosmjs/amino";
+
+import {
+  getMicroAmount,
+  validateAmount,
+  walletOperation,
+} from "@/components/utils";
+
 import {
   DEFAULT_APR,
-  DEFAULT_ASSET,
+  NATIVE_ASSET,
   GAS_FEES,
   GROUPS,
   SNACKBAR,
 } from "@/config/env";
-import { coin } from "@cosmjs/amino";
 
 const props = defineProps({
   selectedAsset: {
@@ -96,7 +98,7 @@ const state = ref({
   receiverAddress:
     CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance,
   txHash: "",
-  fee: coin(GAS_FEES.lender_deposit, DEFAULT_ASSET.denom),
+  fee: coin(GAS_FEES.lender_deposit, NATIVE_ASSET.denom),
   onNextClick: () => onNextClick(),
 } as SupplyFormComponentProps);
 
@@ -160,8 +162,7 @@ async function transferAmount() {
         state.value.amount
       );
 
-      const cosmWasmClient =
-        await NolusClient.getInstance().getCosmWasmClient();
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const lppClient = new Lpp(
         cosmWasmClient,
         CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance

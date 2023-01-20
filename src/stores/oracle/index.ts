@@ -20,8 +20,7 @@ const useOracleStore = defineStore("oracle", {
   actions: {
     async [OracleActionTypes.GET_PRICES]() {
       try {
-        const cosmWasmClient =
-          await NolusClient.getInstance().getCosmWasmClient();
+        const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
         const oracleContract = new Oracle(
           cosmWasmClient,
           CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].oracle.instance
@@ -31,8 +30,7 @@ const useOracleStore = defineStore("oracle", {
         const pricesState: { [key: string]: StatePrice } = {};
 
         for (const key in CURRENCIES.currencies) {
-          const currency =
-            CURRENCIES.currencies[key as keyof typeof CURRENCIES.currencies];
+          const currency = CURRENCIES.currencies[key as keyof typeof CURRENCIES.currencies];
           promises.push(
             oracleContract
               .getPriceFor(key)

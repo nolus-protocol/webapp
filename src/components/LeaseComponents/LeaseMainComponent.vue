@@ -39,7 +39,7 @@ import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import { computed } from "vue";
-import { DEFAULT_ASSET, GAS_FEES, SNACKBAR } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 
 const onModalClose = inject("onModalClose", () => {});
@@ -75,7 +75,7 @@ const state = ref({
   amountErrorMsg: "",
   downPaymentErrorMsg: "",
   txHash: "",
-  fee: coin(GAS_FEES.open_lease, DEFAULT_ASSET.denom),
+  fee: coin(GAS_FEES.open_lease, NATIVE_ASSET.denom),
   leaseApply: null,
 } as LeaseComponentProps);
 
@@ -119,14 +119,12 @@ watch(
         .toString();
 
       if (isDownPaymentAmountValid()) {
-        const cosmWasmClient =
-          await NolusClient.getInstance().getCosmWasmClient();
+        const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
         const leaserClient = new Leaser(
           cosmWasmClient,
           CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance
         );
-        const currency =
-          walletStore.currencies[
+        const currency = walletStore.currencies[
             state.value.selectedDownPaymentCurrency.balance.denom
           ];
         const lease =
@@ -195,8 +193,7 @@ const isDownPaymentAmountValid = (): boolean => {
       currentBalance.balance.denom
     ).coinDecimals;
     state.value.downPaymentErrorMsg = "";
-    const downPaymentAmountInMinimalDenom =
-      CurrencyUtils.convertDenomToMinimalDenom(downPaymentAmount, "", decimals);
+    const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(downPaymentAmount, "", decimals);
     const isLowerThanOrEqualsToZero = new Dec(
       downPaymentAmountInMinimalDenom.amount || "0"
     ).lte(new Dec(0));

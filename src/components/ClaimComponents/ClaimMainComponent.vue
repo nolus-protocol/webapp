@@ -27,7 +27,7 @@ import { defaultNolusWalletFee } from "@/config/wallet";
 import { walletOperation } from "@/components/utils";
 import { computed, inject, type PropType, ref } from "vue";
 import { useWalletStore } from "@/stores/wallet";
-import { DEFAULT_ASSET, GAS_FEES } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 
 const walletStore = useWalletStore();
@@ -59,7 +59,7 @@ const state = ref({
   amount: props.reward.balance.amount.toString(),
   password: "",
   txHash: "",
-  fee: coin(GAS_FEES.lender_claim_rewards, DEFAULT_ASSET.denom),
+  fee: coin(GAS_FEES.lender_claim_rewards, NATIVE_ASSET.denom),
   onNextClick: () => onNextClick(),
   onSendClick: () => onClickClaim(),
   onConfirmBackClick: () => onConfirmBackClick(),

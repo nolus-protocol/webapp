@@ -42,7 +42,7 @@ import { TxType } from "@/types/TxType";
 import { useWalletStore } from "@/stores/wallet";
 import { useI18n } from "vue-i18n";
 import { coin } from "@cosmjs/amino";
-import { DEFAULT_ASSET, GAS_FEES } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES } from "@/config/env";
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const wallet = useWalletStore();
@@ -63,7 +63,7 @@ const state = ref({
   receiverErrorMsg: "",
   errorMsg: "",
   txHash: "",
-  fee: coin(GAS_FEES.swap_amount, DEFAULT_ASSET.denom),
+  fee: coin(GAS_FEES.swap_amount, NATIVE_ASSET.denom),
 });
 
 function onConfirmBackClick() {

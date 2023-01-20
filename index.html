@@ -3,13 +3,15 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="mobile-web-app-capable" content="yes"> 
+  <meta name="viewport"
+    content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="mobile-web-app-capable" content="yes">
   <title>Nolus App Dashboard</title>
   <link rel="icon" href="/favicon.svg" />
   <link rel="mask-icon" href="/mask-icon.svg" color="#082D63" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-  <meta name="description" content="Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space"/>
+  <meta name="description"
+    content="Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space" />
 </head>
 <script type="text/javascript">
   const vh = window.innerHeight * 0.01;
@@ -19,6 +21,12 @@
     const vh = window.innerHeight * 0.01;
     document.documentElement.style.setProperty('--vh', `${vh}px`);
   });
+</script>
+<script type="module">
+  import { Buffer } from "buffer";
+  import Process from "process";
+  globalThis.Buffer = Buffer;
+  globalThis.process = Process;
 </script>
 
 <body>

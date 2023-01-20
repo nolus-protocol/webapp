@@ -45,7 +45,7 @@ import { getMicroAmount, walletOperation } from "@/components/utils";
 import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { DEFAULT_ASSET, GAS_FEES, SNACKBAR } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 
 const walletStore = useWalletStore();
@@ -81,7 +81,7 @@ const state = ref({
   passwordErrorMsg: "",
   amountErrorMsg: "",
   txHash: "",
-  fee: coin(GAS_FEES.repay_lease, DEFAULT_ASSET.denom),
+  fee: coin(GAS_FEES.repay_lease, NATIVE_ASSET.denom),
   onNextClick: () => onNextClick(),
 } as RepayComponentProps);
 
@@ -180,8 +180,7 @@ const repayLease = async () => {
           amount: microAmount.mAmount.amount.toString(),
         },
       ];
-      const cosmWasmClient =
-        await NolusClient.getInstance().getCosmWasmClient();
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const leaseClient = new Lease(
         cosmWasmClient,
         state.value.receiverAddress
