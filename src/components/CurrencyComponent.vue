@@ -76,8 +76,8 @@ const amount = computed(() => {
       let numberAmount = Number(props.amount);
 
       let amount = new Intl.NumberFormat(NATIVE_CURRENCY.locale, {
-        minimumFractionDigits: NATIVE_CURRENCY.minimumFractionDigits,
-        maximumFractionDigits: NATIVE_CURRENCY.maximumFractionDigits,
+        minimumFractionDigits: props.decimals ?? NATIVE_CURRENCY.minimumFractionDigits,
+        maximumFractionDigits: props.decimals ?? NATIVE_CURRENCY.maximumFractionDigits,
       }).format(numberAmount);
 
       let [beforeDecimal, afterDecimal] = amount.split(".");

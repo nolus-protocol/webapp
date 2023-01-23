@@ -25,11 +25,11 @@
     </div>
     <!-- Wallet -->
     <Transition :name="animate">
+      <!-- v-if="isTotalBalancePositive" -->
       <div
-        v-if="isTotalBalancePositive"
         class="flex balance-box items-center justify-start background mt-6 nls-border shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6 outline"
       >
-        <div class="left inline-block pr-2">
+        <div class="left inline-block pr-6">
           <p class="nls-font-500 text-16 text-primary">
             {{ $t("message.net-worth") }}
           </p>
@@ -39,18 +39,14 @@
             :amount="totalBalance"
             :denom="NATIVE_CURRENCY.symbol"
             :has-space="false"
+            :decimals="4"
             class="nls-font-700 text-primary"
           />
         </div>
 
-        <div class="border-right h-[80px] mt-[-48px] hidden md:flex"></div>
-        <div
-          class="border-right h-[80px] mb-[-24px] ml-[-1px] hidden md:flex"
-        ></div>
-
         <div class="right flex w-2/3 -mt-8 lg:mt-0">
           <div class="pt-3 lg:pl-6">
-            <p class="nls-font-400 text-12 text-dark-grey">
+            <p class="nls-font-500 text-12 text-dark-grey">
               {{ $t("message.available-assets") }}
             </p>
 
@@ -65,7 +61,7 @@
           </div>
 
           <div class="pt-3 pl-12 lg:pl-8">
-            <p class="nls-font-400 text-12 text-dark-grey">
+            <p class="nls-font-500 text-12 text-dark-grey">
               {{ $t("message.active-leases") }}
             </p>
 
@@ -81,7 +77,7 @@
 
           <!-- HIDDEN ON MOBILE -->
           <div class="pt-3 pl-12 lg:pl-8 hidden lg:block">
-            <p class="nls-font-400 text-12 text-dark-grey">
+            <p class="nls-font-500 text-12 text-dark-grey">
               {{ $t("message.supplied-and-staked") }}
             </p>
 
@@ -98,7 +94,7 @@
           <!-- HIDDEN ON DESKTOP -->
         </div>
         <div class="pt-4 block lg:hidden">
-          <p class="nls-font-400 text-12 text-dark-grey">
+          <p class="nls-font-500 text-12 text-dark-grey">
             {{ $t("message.supplied-and-staked") }}
           </p>
 
@@ -230,7 +226,7 @@
         </div>
 
         <!-- Assets Container -->
-        <div class="block mb-10 lg:mb-0">
+        <div class="block mb-6 lg:mb-0">
           <VestedAssetPartial
             v-for="(asset, index) in vestedTokens"
             :key="`${asset.amount.amount}-${index}`"

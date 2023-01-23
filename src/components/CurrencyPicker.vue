@@ -27,7 +27,7 @@
               class="flex-shrink-0 h-6 w-6 rounded-full"
               alt=""
             />
-            <span class="block truncate dark-text">
+            <span class="block truncate dark-text nls-font-500">
               {{
                 selected.value?.name ?? getAssetInfo(
                   selected.value?.balance?.denom

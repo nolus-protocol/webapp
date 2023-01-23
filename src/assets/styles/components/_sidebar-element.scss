@@ -12,6 +12,14 @@
   transform: translateZ(0);
   position: fixed;
 
+  a.logo-float {
+    background-image: url("@/assets/icons/logo.svg");
+    background-repeat: no-repeat;
+    background-position: left bottom;
+    background-size: 125px 32px;
+    ;
+  }
+
   .top {
     display: block;
   }
@@ -147,7 +155,7 @@
   }
 
   &.active {
-    color: $orange;
+    color: $orange !important;
 
     &:hover {
       .icon {
@@ -224,6 +232,7 @@
   background-color: $white;
   border-bottom: 1px solid $borderColor;
   z-index: 1;
+
 
   @media (max-width: $lg) {
     position: fixed;
@@ -459,6 +468,13 @@
 
 body.sync {
 
+
+  @media (prefers-color-scheme: dark) {
+    a.logo-float {
+      background-image: url("@/assets/icons/logo-white.svg");
+    }
+  }
+
   .sidebar-element {
     @media (prefers-color-scheme: dark) {
       color: $white;
@@ -525,6 +541,10 @@ body.sync {
 }
 
 body.dark {
+
+  a.logo-float {
+    background-image: url("@/assets/icons/logo-white.svg") !important;
+  }
 
   .sidebar-element {
     color: $white;

@@ -18,7 +18,7 @@
           class="nolus-box block order-2 order-1 background border-y border-standart radius-medium md:col-span-7 md:mt-6 async-loader outline"
         >
           <div class="lg:flex block items-center justify-between px-6 pt-6">
-            <h2 class="text-16 nls-font-500 text-left my-0">
+            <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
               {{ $t("message.earning-assets") }}
             </h2>
             <!-- <div class="right w-full md:w-1/2 md:mt-0 inline-flex justify-start md:justify-end">
@@ -94,7 +94,7 @@
           <div
             class="flex items-center justify-between px-6 pt-6 border-b border-standart pb-4"
           >
-            <h2 class="text-16 nls-font-500 text-left my-0">
+            <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
               {{ $t("message.rewards") }}
             </h2>
             <!-- <button class="btn-label btn-large-label">{{ $t('message.claim-all') }}</button> -->

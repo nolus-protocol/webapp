@@ -7,13 +7,13 @@
     >
       {{ $t("message.tx-hash") }}
     </div>
-    <div
+    <!-- <div
       class="col-span-2 block nls-font-500 nls-12 text-dark-grey text-left text-upper md:ml-4"
     >
       {{ $t("message.type") }}
-    </div>
+    </div> -->
     <div
-      class="flex items-center col-span-4 col-span-2 justify-start nls-font-500 nls-12 text-dark-grey lg:text-left text-upper"
+      class="flex items-center col-span-6 justify-start nls-font-500 nls-12 text-dark-grey lg:text-left text-upper"
     >
       <span class="inline-block">{{ $t("message.action") }}</span>
     </div>

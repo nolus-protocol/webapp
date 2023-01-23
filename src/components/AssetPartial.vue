@@ -133,14 +133,13 @@
           />
         </button>
 
-        <a
+        <button
           class="btn btn-secondary btn-medium-secondary flex-1"
           v-if="canStake"
-          :href="stakingUrl"
-          target="_blank"
+          @click="openModal(DASHBOARD_ACTIONS.LEASE, denom)"
         >
-          {{ $t("message.stake") }}
-        </a>
+          {{ $t("message.lease") }}
+        </button>
       </div>
     </div>
 
@@ -159,14 +158,13 @@
       >
         {{ $t("message.supply") }}
       </button>
-      <a
+      <button
         v-if="canStake"
         class="btn btn-secondary btn-medium-secondary"
-        :href="stakingUrl"
-        target="_blank"
+        @click="openModal(DASHBOARD_ACTIONS.LEASE, denom)"
       >
-        {{ $t("message.stake") }}
-      </a>
+        {{ $t("message.lease") }}
+      </button>
     </div>
   </div>
 </template>

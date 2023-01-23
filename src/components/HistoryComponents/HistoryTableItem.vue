@@ -14,18 +14,18 @@
       </a>
       <img
         src="@/assets/icons/urlicon.svg"
-        class="float-right w-3 mt-1 his-img"
+        class="float-right w-3 his-img mt-[0.15rem]"
       />
     </div>
-    <div class="col-span-2 sm:block hidden text-left">
+    <!-- <div class="col-span-2 sm:block hidden text-left">
       <span
         class="inline-block py-1 px-2 text-patch nls-font-500 nls-12 text-primary radius-pill md:ml-4"
       >
         {{ capitalize(transaction.action) }}
       </span>
-    </div>
+    </div> -->
     <div
-      class="block col-span-4 nls-14 nls-font-400 text-primary text-left sm:my-1 text-14"
+      class="block col-span-6 nls-14 nls-font-400 text-primary text-left sm:my-1 text-14"
     >
       <span v-if="transaction.msg.length > 0" class="nls-12 nls-font-700">
         {{ parseLength(transaction.msg) }}

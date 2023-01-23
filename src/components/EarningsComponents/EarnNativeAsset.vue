@@ -1,5 +1,5 @@
 <template>
-  <div class="block relative">
+  <div class="block relative border-t-[1px] border-standart">
     <div
       class="grid gap-6 row-actions border-b flex border-t border-standart px-6 py-3 items-center justify-between earn-asset"
       :class="[cols ? 'md:grid-cols-' + cols : 'grid-cols-2 md:grid-cols-4']"
@@ -35,8 +35,10 @@
           }}
         </p>
         <div class="flex items-center text-dark-grey text-12 garet-medium m-0">
-          {{ NATIVE_CURRENCY.symbol
-          }}{{
+          {{ 
+            NATIVE_CURRENCY.symbol
+          }}
+          {{
             calculateBalance(
               asset.balance.amount.toString(),
               asset.balance.denom

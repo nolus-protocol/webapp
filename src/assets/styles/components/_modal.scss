@@ -3,6 +3,7 @@
 }
 
 .modal {
+  
   &-header {
     padding: 23px 20px 19px 40px;
     border-bottom: 1px solid $borderColor;
@@ -146,6 +147,7 @@
       color: $brand-accent;
     }
   }
+
 }
 
 .modal-send-receive-actions {
@@ -202,6 +204,10 @@ body.sync {
 
   }
 
+  .back-arrow {
+    color: white;
+  }
+
 }
 
 body.dark {
@@ -235,6 +241,10 @@ body.dark {
 
     }
 
+    
   }
-
+  
+  .back-arrow {
+    color: white;
+  }
 }
