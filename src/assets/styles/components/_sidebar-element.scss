@@ -17,7 +17,6 @@
     background-repeat: no-repeat;
     background-position: left bottom;
     background-size: 125px 32px;
-    ;
   }
 
   .top {
@@ -236,6 +235,16 @@
 
   @media (max-width: $lg) {
     position: fixed;
+
+    a.logo-float {
+      background-image: url("@/assets/icons/logo.svg");
+      background-repeat: no-repeat;
+      background-position: left center;
+      background-size: 125px 32px;
+      width: 125px;
+      height: 100%;
+      margin-left: 12px;
+    }
   }
 
   .btn-header {
@@ -470,8 +479,21 @@ body.sync {
 
 
   @media (prefers-color-scheme: dark) {
-    a.logo-float {
-      background-image: url("@/assets/icons/logo-white.svg");
+    .sidebar-container {
+      a.logo-float {
+        background-image: url("@/assets/icons/logo-white.svg") !important;
+      }
+    }
+  }
+
+
+  .sidebar-header {
+    @media (prefers-color-scheme: dark) {
+      @media (max-width: $lg) {
+        a.logo-float {
+          background-image: url("@/assets/icons/logo-white.svg") !important;
+        }
+      }
     }
   }
 
@@ -542,8 +564,19 @@ body.sync {
 
 body.dark {
 
-  a.logo-float {
-    background-image: url("@/assets/icons/logo-white.svg") !important;
+
+  .sidebar-container {
+    a.logo-float {
+      background-image: url("@/assets/icons/logo-white.svg") !important;
+    }
+  }
+
+  .sidebar-header {
+    @media (max-width: $lg) {
+      a.logo-float {
+        background-image: url("@/assets/icons/logo-white.svg") !important;
+      }
+    }
   }
 
   .sidebar-element {

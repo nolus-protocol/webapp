@@ -3,7 +3,7 @@
 }
 
 .modal {
-  
+
   &-header {
     padding: 23px 20px 19px 40px;
     border-bottom: 1px solid $borderColor;
@@ -204,8 +204,11 @@ body.sync {
 
   }
 
-  .back-arrow {
-    color: white;
+  @media (prefers-color-scheme: dark) {
+
+    .back-arrow {
+      color: white;
+    }
   }
 
 }
@@ -213,26 +216,26 @@ body.sync {
 body.dark {
 
   .modal {
-    
+
     &-send-receive {
 
       &-parent {
-          background: $dark-gray;
+        background: $dark-gray;
       }
 
       &-header {
-          border-bottom: 1px solid $dark-line;
+        border-bottom: 1px solid $dark-line;
 
         &>button {
-            background-color: $dark-gray;
+          background-color: $dark-gray;
 
           &:first-of-type {
-              border-right: 1px solid $dark-line;
+            border-right: 1px solid $dark-line;
           }
 
           &.active {
-              color: $white;
-              background-color: $dark-background;
+            color: $white;
+            background-color: $dark-background;
           }
 
         }
@@ -241,9 +244,9 @@ body.dark {
 
     }
 
-    
+
   }
-  
+
   .back-arrow {
     color: white;
   }

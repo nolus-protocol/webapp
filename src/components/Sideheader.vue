@@ -1,4 +1,5 @@
 <template>
+  <LogoLink link="/"></LogoLink>
   <div id="notifications-nls">
     <div class="nls-md-show">
       <LogoLink link="/"></LogoLink>

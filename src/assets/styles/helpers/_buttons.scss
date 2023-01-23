@@ -615,13 +615,15 @@ body.sync {
     }
 
 
-    &-close-modal {
-      @media (min-width: $md) {
-        background-color: $dark-background;
-        border-color: $dark-background;
-      }
+    @media (prefers-color-scheme: dark) {
+      &-close-modal {
+        @media (min-width: $md) {
+          background-color: $dark-background;
+          border-color: $dark-background;
+        }
 
-      color: white;
+        color: white;
+      }
     }
 
     &-medium-secondary,
@@ -714,6 +716,7 @@ body.dark {
         background-color: $dark-background;
         border-color: $dark-background;
       }
+
       color: white;
     }
 
