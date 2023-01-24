@@ -122,7 +122,7 @@
         <!-- Actions -->
         <div class="modal-send-receive-actions background flex-col">
           <button class="btn btn-primary btn-large-primary" :class="{ 'js-loading': isLoading }">
-            {{ $t("message.send") }}
+            {{ $t("message.receive") }}
           </button>
           <div class="flex justify-between w-full text-light-blue text-[14px] my-2">
             <p>{{ $t("message.estimate-time") }}:</p>
