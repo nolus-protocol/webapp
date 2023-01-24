@@ -173,6 +173,12 @@ body.sync {
         }
       }
 
+      @media (prefers-color-scheme: dark) {
+        .bg-light-grey {
+          background-color: $dark-line;
+        }
+      }
+
       &-header {
         @media (prefers-color-scheme: dark) {
           border-bottom: 1px solid $dark-line;
@@ -221,6 +227,10 @@ body.dark {
 
       &-parent {
         background: $dark-gray;
+      }
+
+      .bg-light-grey {
+        background-color: $dark-line;
       }
 
       &-header {

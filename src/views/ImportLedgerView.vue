@@ -34,7 +34,7 @@
             type="checkbox"
             v-model="isBluetoothConnection"
           />
-          <label for="use-bluethooth">{{ $t("message.use-bluethooth") }}</label>
+          <label class="text-primary" for="use-bluethooth">{{ $t("message.use-bluethooth") }}</label>
         </div>
       </div>
 

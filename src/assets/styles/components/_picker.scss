@@ -389,14 +389,22 @@ body.sync {
         @media (prefers-color-scheme: dark) {
           border: solid 1px $dark-line;
         }
+      }
 
-        ul {
+      ul {
 
-          li.selected,
-          li:hover {
-            @media (prefers-color-scheme: dark) {
-              background-color: #2B384B !important;
-            }
+        li.selected,
+        li:hover {
+          @media (prefers-color-scheme: dark) {
+            background-color: #2B384B !important;
+          }
+        }
+      }
+
+      @media (prefers-color-scheme: dark) {
+        button[id^="headlessui-listbox-button-"] {
+          span.absolute {
+            color: $lightBlue;
           }
         }
       }
@@ -409,6 +417,12 @@ body.dark {
     &-container {
       button {
         border: solid 1px $dark-line;
+      }
+
+      button[id^="headlessui-listbox-button-"] {
+        span.absolute {
+          color: $lightBlue;
+        }
       }
 
       ul {
