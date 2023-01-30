@@ -19,16 +19,27 @@
   />
   <template v-else>
     <div class="modal-send-receive-input-area" v-if="selectedNetwork.native">
+      <div class="block py-3 px-4 modal-balance radius-light text-left text-14 nls-font-400 text-primary">
+        {{$t('message.balance') }}:
+        <a 
+          class="text-secondary nls-font-700 underline ml-2 cursor-pointer" 
+          @click.stop="setAmount">
+          {{ formatCurrentBalance(selectedCurrency) }}
+        </a>
+      </div>
       <div class="block text-left">
         <div class="block mt-[20px]">
           <CurrencyField
             id="amount"
             :currency-options="modelValue?.currentBalance"
             :disabled-currency-picker="false"
-            :option="modelValue?.selectedCurrency"
-            :value="modelValue?.amount"
+            :error-msg="amountErrorMsg"
+            :is-error="amountErrorMsg !== ''"
+            :option="selectedCurrency"
+            :value="amount"
             :name="$t('message.amount')"
             :label="$t('message.amount-repay')"
+            @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
           />
         </div>
 
@@ -75,10 +86,19 @@
         </div>
       </div>
     </div>
-    <div v-else>
+    <template v-else>
       <form @submit.prevent="receive" class="modal-form">
       <!-- Input Area -->
         <div class="modal-send-receive-input-area background">
+
+          <div class="block py-3 px-4 modal-balance radius-light text-left text-14 nls-font-400 text-primary">
+            {{$t('message.balance') }}:
+            <a 
+              class="text-secondary nls-font-700 underline ml-2 cursor-pointer" 
+              @click.stop="setAmount">
+              {{ formatCurrentBalance(selectedCurrency) }}
+            </a>
+          </div>
 
           <div class="block text-left">
             <div class="block mt-[20px]">
@@ -130,7 +150,7 @@
           </div>
         </div>
       </form>
-    </div>
+    </template>
   </template>
 
 </template>
@@ -154,6 +174,7 @@ import { coin, type Coin } from "@cosmjs/amino";
 import { Decimal } from "@cosmjs/math";
 import { externalWalletOperation } from "../utils";
 import { CurrencyUtils } from "@nolus/nolusjs";
+import { useWalletStore } from "@/stores/wallet";
 
 export interface ReceiveComponentProps {
   currentBalance: AssetBalance[];
@@ -170,9 +191,10 @@ const networks = SUPPORTED_NETWORKS;
 const i18n = useI18n();
 const copyText = ref(i18n.t("message.copy"));
 const selectedNetwork = ref(SUPPORTED_NETWORKS[0]);
+const walletStore = useWalletStore();
 
 const networkCurrencies = ref<AssetBalance[]>([]);
-const selectedCurrency = ref<AssetBalance>();
+const selectedCurrency = ref<AssetBalance>(walletStore.balances[0]);
 const amount = ref("");
 const amountErrorMsg = ref("");
 const disablePicker = ref(false);
@@ -213,21 +235,36 @@ const onUpdateNetwork = async (event: Network) => {
     client = await Wallet.getInstance(
       NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].supportedNetworks[event.key].tendermintRpc
     );
+
     const assets = await NETWORKS_CURRENCIES[event.prefix as keyof typeof NETWORKS_CURRENCIES]();
+    const currenciesPromise = [];
+
     networkCurrenciesObject.value = assets;
-    const items = [];
+
     for(const key in assets){
-      items.push({
-        balance: coin(0, AssetUtils.makeIBCMinimalDenom(assets[key].ibc_route, assets[key].symbol)),
-        name: assets[key].ticker,
-        icon: assets[key].icon,
-        ticker: assets[key].ticker,
-        ibc_route: assets[key].ibc_route,
-        decimals: Number(assets[key].decimal_digits),
-        symbol: assets[key].symbol,
-        native: assets[key].native
-      });
+
+      const fn = async () => {
+        const ibc_route  = AssetUtils.makeIBCMinimalDenom(assets[key].ibc_route, assets[key].symbol);
+        const balance = await client.getBalance(WalletUtils.transformWallet(event.prefix), ibc_route);
+
+        return {
+          balance,
+          name: assets[key].ticker,
+          icon: assets[key].icon,
+          ticker: assets[key].ticker,
+          ibc_route: assets[key].ibc_route,
+          decimals: Number(assets[key].decimal_digits),
+          symbol: assets[key].symbol,
+          native: assets[key].native
+        };
+      }
+
+      currenciesPromise.push(fn());
+
     }
+
+    const items = await Promise.all(currenciesPromise);
+    console.log(items)
     selectedCurrency.value =  items?.[0]
     networkCurrencies.value = items;
     disablePicker.value = false;
@@ -387,4 +424,48 @@ const onConfirmBackClick = () => {
 const onClickOkBtn = () => {
   closeModal();
 };
+
+const formatCurrentBalance = (selectedCurrency: AssetBalance | undefined) => {
+
+  if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
+
+    if(selectedNetwork.value.native){
+      const asset = walletStore.getCurrencyInfo(
+        selectedCurrency.balance.denom
+      );
+      return CurrencyUtils.convertMinimalDenomToDenom(
+        selectedCurrency.balance.amount.toString(),
+        selectedCurrency.balance.denom,
+        asset.coinDenom,
+        asset.coinDecimals
+      ).toString();
+    }else{
+
+      if(selectedCurrency.decimals != null && selectedCurrency.name != null){
+
+        return CurrencyUtils.convertMinimalDenomToDenom(
+          selectedCurrency.balance.amount.toString(),
+          selectedCurrency.balance.denom,
+          selectedCurrency.name as string,
+          selectedCurrency.decimals as number
+        ).toString();
+      }
+      
+    }
+
+  }
+};
+
+const setAmount = () => {
+  const asset = walletStore.getCurrencyInfo(
+    selectedCurrency.value.balance.denom
+  );
+  const data = CurrencyUtils.convertMinimalDenomToDenom(
+    selectedCurrency.value.balance.amount.toString(),
+    selectedCurrency.value.balance.denom,
+    asset.coinDenom,
+    asset.coinDecimals
+  );
+  amount.value = Number(data.toDec().toString()).toString();
+}
 </script>

@@ -2,14 +2,14 @@
   <form @submit.prevent="modelValue.onNextClick" class="modal-form">
     <!-- Input Area -->
     <div class="modal-send-receive-input-area background">
-      <!-- <div class="block py-3 px-4 modal-balance radius-light text-left text-14 nls-font-400 text-primary">
+      <div class="block py-3 px-4 modal-balance radius-light text-left text-14 nls-font-400 text-primary">
         {{$t('message.balance') }}:
         <a 
           class="text-secondary nls-font-700 underline ml-2 cursor-pointer" 
           @click.stop="setAmount">
           {{ formatCurrentBalance(modelValue.selectedCurrency) }}
         </a>
-      </div> -->
+      </div>
 
       <div class="block text-left">
         <div class="block mt-[20px]">
