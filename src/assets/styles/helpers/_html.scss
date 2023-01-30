@@ -799,7 +799,7 @@ body.sync {
 		@media (min-width: $md) {
 			.outline {
 				&::after {
-					border: 2px solid $dark-line;
+					border: 2px solid $dark-line !important;
 				}
 			}
 		}

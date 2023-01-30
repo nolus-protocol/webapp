@@ -27,18 +27,18 @@
 
       <div class="block pl-[15px] md:col-span-2 ml-4">
         <p class="text-primary nls-font-500 text-16 nls-font-500 m-0">
-          {{
-            convertMinimalDenomToDenom(
-              asset.balance.amount,
-              asset.balance.denom
-            )
-          }}
+          <CurrencyComponent
+            :type="CURRENCY_VIEW_TYPES.TOKEN"
+            :amount="asset.balance.amount.toString()"
+            :minimalDenom="assetInfo.coinMinimalDenom"
+            :denom="assetInfo.coinDenom"
+            :decimals="assetInfo.coinDecimals"
+            :maxDecimals="6"
+            :fontSizeSmall="12"
+          />
         </p>
         <div class="flex items-center text-dark-grey text-12 garet-medium m-0">
-          {{ 
-            NATIVE_CURRENCY.symbol
-          }}
-          {{
+          {{ NATIVE_CURRENCY.symbol }}{{
             calculateBalance(
               asset.balance.amount.toString(),
               asset.balance.denom

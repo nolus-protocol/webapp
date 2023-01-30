@@ -56,6 +56,9 @@ const props = defineProps({
     type: Number,
     default: 16,
   },
+  fontSizeSmall: {
+    type: Number
+  },
   hasSpace: {
     type: Boolean,
     default: true,
@@ -67,6 +70,9 @@ const props = defineProps({
 });
 
 const smallFontSize = computed(() => {
+  if(props.fontSizeSmall){
+    return props.fontSizeSmall;
+  }
   return props.fontSize - 2;
 });
 

@@ -242,7 +242,7 @@ async function onClickClaim(leaseAddress: string) {
 function getAssetInfo(key: keyof AssetInfo) {
   const ticker =
     props.leaseInfo.leaseStatus?.opened?.amount.ticker ||
-    props.leaseInfo.leaseStatus?.paid?.ticker;
+    props.leaseInfo.leaseStatus?.paid?.amount.ticker;
 
   if (ticker) {
     const item = walletStore.getCurrencyByTicker(ticker);
@@ -276,7 +276,7 @@ function calculateBalance(tokenAmount = "0", denom = "") {
 const getAssetIcon = computed((): string => {
   const ticker =
     props.leaseInfo.leaseStatus?.opened?.amount.ticker ||
-    props.leaseInfo.leaseStatus?.paid?.ticker ||
+    props.leaseInfo.leaseStatus?.paid?.amount.ticker ||
     "";
   const item = walletStore.getCurrencyByTicker(ticker);
   const ibcDenom = walletStore.getIbcDenomBySymbol(item.symbol);

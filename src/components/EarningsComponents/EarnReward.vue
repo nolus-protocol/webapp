@@ -6,20 +6,23 @@
       <!-- Ticker -->
       <div class="inline-flex items-center col-span-2">
         <img
-          v-if="getAssetIcon(reward.balance.denom)"
-          :src="getAssetIcon(reward.balance.denom)"
+          v-if="assetInfo.coinIcon"
+          :src="assetInfo.coinIcon"
           class="inline-block m-0 mr-4"
           height="32"
           width="32"
         />
         <div class="inline-block">
           <p class="text-primary nls-font-500 text-18 text-left uppercase m-0">
-            {{
-              convertMinimalDenomToDenom(
-                reward.balance?.amount.toString(),
-                reward.balance?.denom
-              )
-            }}
+            <CurrencyComponent
+              :type="CURRENCY_VIEW_TYPES.TOKEN"
+              :amount="reward.balance.amount.toString()"
+              :minimalDenom="assetInfo.coinMinimalDenom"
+              :denom="assetInfo.coinDenom"
+              :decimals="assetInfo.coinDecimals"
+              :maxDecimals="6"
+              :fontSizeSmall="12"
+            />
           </p>
           <p
             class="text-dark-grey text-12 garet-medium text-left capitalize m-0"
@@ -50,18 +53,21 @@
 </template>
 
 <script lang="ts" setup>
-import { type PropType, ref } from "vue";
+import { type PropType, ref, computed } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { Coin, Int } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
+import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
+import type { AssetBalance } from "@/stores/wallet/state";
+import CurrencyComponent from "@/components/CurrencyComponent.vue";
 
-defineProps({
+const props = defineProps({
   cols: {
     type: Number,
   },
   reward: {
-    type: Object as PropType<any>,
+    type: Object as PropType<AssetBalance>,
     required: true,
   },
   onClickClaim: {
@@ -73,9 +79,10 @@ const oracle = useOracleStore();
 const wallet = useWalletStore();
 const loading = ref(false);
 
-const getAssetIcon = (denom: string) => {
-  return wallet.getCurrencyInfo(denom).coinIcon || "";
-};
+const assetInfo = computed(() => {
+  const assetInfo = wallet.getCurrencyInfo(props.reward.balance.denom);
+  return assetInfo;
+});
 
 const getMarketPrice = (denom: string) => {
   const prices = oracle.prices;
