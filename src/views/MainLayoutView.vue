@@ -89,6 +89,7 @@ const loadNetwork = async () => {
   try {
     await Promise.all([
       wallet[WalletActionTypes.UPDATE_BALANCES](),
+      wallet[WalletActionTypes.LOAD_APR](),
       oracle[OracleActionTypes.GET_PRICES](),
     ]);
     checkBalances();

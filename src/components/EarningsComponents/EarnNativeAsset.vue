@@ -53,7 +53,7 @@
         >
           <CurrencyComponent
             :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            :amount="DEFAULT_APR"
+            :amount="wallet.apr.toString()"
             :hasSpace="false"
             :isDenomInfront="false"
             denom="%"
@@ -96,7 +96,7 @@ import { useOracleStore } from "@/stores/oracle";
 import { computed } from "vue";
 import { useWalletStore } from "@/stores/wallet";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
-import { DEFAULT_APR, NATIVE_CURRENCY, NETWORKS } from "@/config/env";
+import { NATIVE_CURRENCY, NETWORKS } from "@/config/env";
 import { EnvNetworkUtils } from "@/utils";
 const stakingUrl = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].staking;
 

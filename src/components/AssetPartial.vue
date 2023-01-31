@@ -49,13 +49,22 @@
 
     <div v-if="earnings" class="hidden md:block">
       <div class="text-primary nls-font-500 text-14 text-right m-0">
-        <CurrencyComponent
+        <CurrencyComponent v-if="NATIVE_CURRENCY.key == assetInfo.ticker"
           :type="CURRENCY_VIEW_TYPES.CURRENCY"
-          :amount="earnings"
+          :amount="walletStore.apr.toString()"
           :hasSpace="false"
           :isDenomInfront="false"
           denom="%"
         />
+        <template v-else>
+          <CurrencyComponent
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            :amount="earnings"
+            :hasSpace="false"
+            :isDenomInfront="false"
+            denom="%"
+          />
+        </template>
       </div>
     </div>
 

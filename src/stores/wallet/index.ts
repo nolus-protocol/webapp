@@ -42,7 +42,7 @@ import {
   KeyUtils,
   NolusClient,
   NolusWalletFactory,
-} from "@nolus/nolusjs"; 
+} from "@nolus/nolusjs";
 
 const useWalletStore = defineStore("wallet", {
   state: () => {
@@ -55,6 +55,7 @@ const useWalletStore = defineStore("wallet", {
       currencies: {},
       stakingBalance: null,
       suppliedBalance: "0",
+      apr: 0
     } as State;
   },
   actions: {
@@ -296,19 +297,19 @@ const useWalletStore = defineStore("wallet", {
         const [sender, receiver] = await Promise.all([
           load_sender
             ? client.txSearch({
-                query: `message.sender='${WalletManager.getWalletAddress()}'`,
-                per_page: sender_per_page,
-                page: sender_page,
-                order_by: "desc",
-              })
+              query: `message.sender='${WalletManager.getWalletAddress()}'`,
+              per_page: sender_per_page,
+              page: sender_page,
+              order_by: "desc",
+            })
             : false,
           load_recipient
             ? client.txSearch({
-                query: `transfer.recipient='${WalletManager.getWalletAddress()}'`,
-                per_page: recipient_per_page,
-                page: recipient_page,
-                order_by: "desc",
-              })
+              query: `transfer.recipient='${WalletManager.getWalletAddress()}'`,
+              per_page: recipient_per_page,
+              page: recipient_page,
+              order_by: "desc",
+            })
             : false,
         ]);
         const data = [];
@@ -526,12 +527,31 @@ const useWalletStore = defineStore("wallet", {
         }
       }
     },
+    async [WalletActionTypes.LOAD_APR]() {
+
+      try {
+        const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
+        const [stakingBalance, infolation_data] = await Promise.all([
+          fetch(
+            `${url}/cosmos/staking/v1beta1/pool`
+          ).then((data) => data.json()),
+          fetch(
+            `${url}/nolus/mint/v1beta1/annual_inflation`
+          ).then((data) => data.json())
+        ]);
+        const bonded = Number(stakingBalance.pool.bonded_tokens);
+        const inflation = Number(infolation_data.annual_inflation ?? 0);
+        this.apr = (inflation / bonded) * 100;
+      } catch (error) {
+        this.apr = 0;
+      }
+    },
   },
   getters: {
     getCurrencyInfo: (state) => {
       return (denom: string) => {
         const currency = state.currencies[denom];
-        
+
         if (!currency) {
           return {
             ticker: "NLS",

@@ -20,6 +20,7 @@ export type State = {
   walletName: string | null;
   stakingBalance: Coin | null;
   suppliedBalance: string;
+  apr: number;
   currencies: {
     [key: string]: {
       ticker: string;
