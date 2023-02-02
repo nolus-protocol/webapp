@@ -1,7 +1,7 @@
 import nlsIcon from "@/assets/icons/coins/nls.svg";
 import type { NetworkAddress } from "@/types";
 
-export const DEFAULT_PRIMARY_NETWORK = "devnet";
+export const DEFAULT_PRIMARY_NETWORK = "testnet";
 
 export const NETWORKS: { [key: string]: NetworkAddress } = {
   localnet: {
