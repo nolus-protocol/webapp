@@ -204,6 +204,8 @@
     "sync": "Sync with OS",
     "estimate-time": "Estimated time",
     "sec": "sec",
-    "unexpected-error": "Unexpected error"
+    "unexpected-error": "Unexpected error",
+    "delegate": "Delegate",
+    "undelegate": "Undelegate"
   }
 }

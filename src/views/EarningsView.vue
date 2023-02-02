@@ -70,9 +70,7 @@
               v-for="(asset, index) in filteredAssets"
               :key="`${asset.balance.denom}-${index}`"
               :asset="asset"
-              :openSupplyWithdraw="
-                () => openSupplyWithdrawDialog(asset.balance.denom)
-              "
+              :openSupplyWithdraw="() => openSupplyWithdrawDialog(asset.balance.denom)"
               :cols="cols"
             />
 
@@ -80,6 +78,7 @@
               v-if="nativeAsset"
               :asset="nativeAsset"
               :cols="cols"
+              :openDelegateUndelegate="() => openDelegateUndelegateDialog()"
             />
           </div>
         </div>
@@ -121,6 +120,15 @@
   >
     <SupplyWithdrawDialog :selectedAsset="selectedAsset" />
   </Modal>
+
+  <Modal
+    v-if="showDelegateUndelegateDialog"
+    route="delegate"
+    @close-modal="showDelegateUndelegateDialog = false"
+  >
+    <DelegateUndelegateDialog :selectedAsset="selectedAsset" />
+  </Modal>
+
   <Modal
     v-if="showClaimModal"
     route="claim"
@@ -131,6 +139,7 @@
       :reward="totalNlsRewards()"
     />
   </Modal>
+  
   <Modal
     v-if="showErrorDialog"
     route="alert"
@@ -150,6 +159,8 @@ import EarnNativeAsset from "@/components/EarningsComponents/EarnNativeAsset.vue
 
 import EarnReward from "@/components/EarningsComponents/EarnReward.vue";
 import SupplyWithdrawDialog from "@/components/modals/SupplyWithdrawDialog.vue";
+import DelegateUndelegateDialog from "@/components/modals/DelegateUndelegateDialog.vue";
+
 import Modal from "@/components/modals/templates/Modal.vue";
 import ClaimDialog from "@/components/modals/ClaimDialog.vue";
 import ErrorDialog from "@/components/modals/ErrorDialog.vue";
@@ -176,6 +187,8 @@ const wallet = useWalletStore();
 
 const cols = ref(4 as number);
 const showSupplyWithdrawDialog = ref(false);
+const showDelegateUndelegateDialog = ref(false);
+
 const availableCurrencies = ref([] as string[]);
 const rewards = ref([] as AssetBalance[]);
 const claimContractData = ref([] as ContractData[]);
@@ -275,4 +288,8 @@ const getAllRewards = async () => {
     console.log(error);
   }
 };
+
+const openDelegateUndelegateDialog = () => {
+  showDelegateUndelegateDialog.value = true;
+}
 </script>

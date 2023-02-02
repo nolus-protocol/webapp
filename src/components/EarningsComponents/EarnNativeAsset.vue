@@ -62,23 +62,21 @@
       </div>
 
       <div class="flex justify-end nls-btn-show">
-        <a
+        <button
           class="btn btn-secondary btn-medium-secondary"
-          :href="stakingUrl"
-          target="_blank"
+          @click="openDelegateUndelegate()"
         >
-          {{ $t("message.stake") }}
-        </a>
+          {{ $t("message.delegate") }}
+        </button>
       </div>
 
       <div class="mobile-actions md:hidden col-span-2">
-        <a
+        <button
           class="btn btn-secondary btn-medium-secondary w-full flex"
-          :href="stakingUrl"
-          target="_blank"
+          @click="openDelegateUndelegate()"
         >
-          {{ $t("message.stake") }}
-        </a>
+          {{ $t("message.delegate") }}
+        </button>
       </div>
     </div>
   </div>
@@ -96,9 +94,7 @@ import { useOracleStore } from "@/stores/oracle";
 import { computed } from "vue";
 import { useWalletStore } from "@/stores/wallet";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
-import { NATIVE_CURRENCY, NETWORKS } from "@/config/env";
-import { EnvNetworkUtils } from "@/utils";
-const stakingUrl = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].staking;
+import { NATIVE_CURRENCY } from "@/config/env";
 
 const oracle = useOracleStore();
 const wallet = useWalletStore();
@@ -110,6 +106,10 @@ const props = defineProps({
   },
   cols: {
     type: Number,
+  },
+  openDelegateUndelegate: {
+    type: Function,
+    required: true,
   },
 });
 
