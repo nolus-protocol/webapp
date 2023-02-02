@@ -31,7 +31,7 @@
           <template v-slot:icon>
             <img
               class="block mx-auto my-0 w-10 h-10"
-              src="@/assets/icons/diamond-o.svg"
+              src="@/assets/icons/information-circle.svg"
             />
           </template>
           <template v-slot:content>

@@ -144,3 +144,4 @@ export const UPDATE_PRICES_INTERVAL = 10 * 1000; // 10000 ms
 export const DEFAULT_LEASE_UP_PERCENT = "150.00";
 export const LEASE_UP_COEFICIENT = 1.5;
 export const DEFAULT_APR = "24.34";
+export const STAKING_VALIDATORS_NUMBER = 2;

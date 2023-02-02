@@ -48,7 +48,7 @@
 
 			button {
 				border-color: $grey;
-				max-width: 125px;
+				max-width: 110px;
 				justify-content: space-between;
 				display: flex;
 				align-items: flex-start;
@@ -126,6 +126,13 @@
 	button[id^="headlessui-listbox-button-"] {
 		span.absolute {
 			color: $lightBlue;
+		}
+
+		&:disabled {
+			background-color: #EBEFF5;
+			img{
+				filter: grayscale(100%);
+			}
 		}
 	}
 

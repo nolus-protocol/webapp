@@ -182,6 +182,7 @@ import {
   type ContractData,
   Lpp,
 } from "@nolus/nolusjs/build/contracts";
+import { NATIVE_ASSET } from "@/config/env";
 
 const wallet = useWalletStore();
 
@@ -260,8 +261,7 @@ const openSupplyWithdrawDialog = (denom: string) => {
 const getAllRewards = async () => {
   try {
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-    const contract =
-      CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance;
+    const contract = CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance;
     const lppClient = new Lpp(cosmWasmClient, contract);
 
     claimContractData.value.push({
@@ -290,6 +290,7 @@ const getAllRewards = async () => {
 };
 
 const openDelegateUndelegateDialog = () => {
+  selectedAsset.value = NATIVE_ASSET.denom;
   showDelegateUndelegateDialog.value = true;
 }
 </script>

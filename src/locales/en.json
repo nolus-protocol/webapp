@@ -206,6 +206,9 @@
     "sec": "sec",
     "unexpected-error": "Unexpected error",
     "delegate": "Delegate",
-    "undelegate": "Undelegate"
+    "undelegate": "Undelegate",
+    "available-balance": "Available balance",
+    "delegate-description": "You will delegate to validators outside the top third by voting power and charge 5% commission or less. Undelegating your assets will take 21 days.",
+    "manual-delegation": "Manually choose the validators to delegate with"
   }
 }

@@ -545,6 +545,36 @@ const useWalletStore = defineStore("wallet", {
       } catch (error) {
         this.apr = 0;
       }
+
+    },
+    async [WalletActionTypes.LOAD_VALIDATORS]() {
+      const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
+      let limit = 100;
+      let offset = 0;
+      const address = this.wallet?.address;
+
+      return await loadValidators(url, [], address, offset, limit);
+
+    },
+    async [WalletActionTypes.LOAD_DELEGATOR]() {
+      const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
+      return await fetch(
+        `${url}/cosmos/distribution/v1beta1/delegators/${this.wallet?.address}/rewards`
+      ).then((data) => data.json());
+    },
+    async [WalletActionTypes.LOAD_VALIDATOR](validatorAddress: string) {
+      const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
+      return await fetch(
+        `${url}/cosmos/staking/v1beta1/validators/${validatorAddress}`
+      ).then((data) => data.json());
+    },
+    async [WalletActionTypes.LOAD_DELEGATOR_VALIDATORS]() {
+      const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
+      let limit = 100;
+      let offset = 0;
+      const address = this.wallet?.address;
+
+      return await loadDelegatorValidators(url, [], address, offset, limit);
     },
   },
   getters: {
@@ -595,5 +625,26 @@ const useWalletStore = defineStore("wallet", {
     },
   },
 });
+
+const loadValidators: any = async (url: string, validators: any[], address: string, offset: number, limit: number) => {
+  const data = await fetch(`${url}/cosmos/staking/v1beta1/validators?pagination.limit=${limit}&pagination.offset=${offset}&status=BOND_STATUS_BONDED`).then((data) => data.json());
+  validators = [...validators, ...data.validators];
+  offset+=limit;
+  if(data.pagination.next_key){
+    return await loadValidators(url, validators, address, offset, limit);
+  }
+  return validators;
+}
+
+const loadDelegatorValidators: any = async (url: string, validators: any[], address: string, offset: number, limit: number) => {
+  const data = await fetch(`${url}/cosmos/staking/v1beta1/delegators/${address}/validators?pagination.limit=${limit}&pagination.offset=${offset}`).then((data) => data.json());
+  validators = [...validators, ...data.validators];
+  offset+=limit;
+  if(data.pagination.next_key){
+    return await loadDelegatorValidators(url, validators, address, offset, limit);
+  }
+  return validators;
+}
+
 
 export { useWalletStore, WalletActionTypes };

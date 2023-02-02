@@ -5,7 +5,8 @@
         class="flex py-3 px-4 bg-light-grey radius-light text-left text-14 nls-font-400 text-primary"
       >
         <span class="text-14 nls-font-500">
-          {{ $t("message.available-withdraw") }}:</span
+          {{ $t("message.available-withdraw") }}:
+        </span
         >
         <a
           class="text-secondary text-14 nls-font-700 underline ml-2 cursor-pointer"
