@@ -13,7 +13,7 @@
 </template>
 
 <script lang="ts" setup>
-import DelegateMainComponent from "@/components/DelegateComponents/DeleateMainComponent.vue";
+import DelegateMainComponent from "@/components/DelegateComponents/DelegateMainComponent.vue";
 import UndelegateMainComponent from "@/components/UndelegateComponents/UndelegateMainComponent.vue";
 import DialogHeader from "./templates/DialogHeader.vue";
 

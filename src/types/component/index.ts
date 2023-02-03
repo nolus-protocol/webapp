@@ -4,3 +4,5 @@ export type { RepayComponentProps } from "@/types/component/RepayComponentProps"
 export type { SendComponentProps } from "@/types/component/SendComponentProps";
 export type { SupplyFormComponentProps } from "@/types/component/SupplyFormComponentProps";
 export type { WithdrawFormComponentProps } from "@/types/component/WithdrawFormComponentProps";
+export type { DelegateFormComponentProps } from "@/types/component/DelegateFormComponentProps";
+export type { WithdrawRewardsComponentProps } from "@/types/component/WithdrawRewardsComponentProps";

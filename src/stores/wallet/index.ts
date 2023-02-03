@@ -550,15 +550,17 @@ const useWalletStore = defineStore("wallet", {
       const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
       let limit = 100;
       let offset = 0;
-      const address = this.wallet?.address;
+      const walletAddress = WalletManager.getWalletAddress() || "";
 
-      return await loadValidators(url, [], address, offset, limit);
+      return await loadValidators(url, [], walletAddress, offset, limit);
 
     },
     async [WalletActionTypes.LOAD_DELEGATOR]() {
       const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
+      const walletAddress = WalletManager.getWalletAddress() || "";
+
       return await fetch(
-        `${url}/cosmos/distribution/v1beta1/delegators/${this.wallet?.address}/rewards`
+        `${url}/cosmos/distribution/v1beta1/delegators/${walletAddress}/rewards`
       ).then((data) => data.json());
     },
     async [WalletActionTypes.LOAD_VALIDATOR](validatorAddress: string) {
@@ -571,9 +573,9 @@ const useWalletStore = defineStore("wallet", {
       const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
       let limit = 100;
       let offset = 0;
-      const address = this.wallet?.address;
+      const walletAddress = WalletManager.getWalletAddress() || "";
 
-      return await loadDelegatorValidators(url, [], address, offset, limit);
+      return await loadDelegatorValidators(url, [], walletAddress, offset, limit);
     },
   },
   getters: {
@@ -628,8 +630,8 @@ const useWalletStore = defineStore("wallet", {
 const loadValidators: any = async (url: string, validators: any[], address: string, offset: number, limit: number) => {
   const data = await fetch(`${url}/cosmos/staking/v1beta1/validators?pagination.limit=${limit}&pagination.offset=${offset}&status=BOND_STATUS_BONDED`).then((data) => data.json());
   validators = [...validators, ...data.validators];
-  offset+=limit;
-  if(data.pagination.next_key){
+  offset += limit;
+  if (data.pagination.next_key) {
     return await loadValidators(url, validators, address, offset, limit);
   }
   return validators;
@@ -638,8 +640,8 @@ const loadValidators: any = async (url: string, validators: any[], address: stri
 const loadDelegatorValidators: any = async (url: string, validators: any[], address: string, offset: number, limit: number) => {
   const data = await fetch(`${url}/cosmos/staking/v1beta1/delegators/${address}/validators?pagination.limit=${limit}&pagination.offset=${offset}`).then((data) => data.json());
   validators = [...validators, ...data.validators];
-  offset+=limit;
-  if(data.pagination.next_key){
+  offset += limit;
+  if (data.pagination.next_key) {
     return await loadDelegatorValidators(url, validators, address, offset, limit);
   }
   return validators;

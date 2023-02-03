@@ -71,7 +71,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { SupplyFormComponentProps } from "@/types/component/SupplyFormComponentProps";
+import type { DelegateFormComponentProps } from "@/types/component";
 import type { PropType } from "vue";
 
 import CurrencyField from "@/components/CurrencyField.vue";
@@ -80,11 +80,12 @@ import { useWalletStore } from "@/stores/wallet";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { EnvNetworkUtils } from "@/utils";
 import { NETWORKS } from "@/config/env";
+
 const stakingUrl = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].staking;
 
 const props = defineProps({
   modelValue: {
-    type: Object as PropType<SupplyFormComponentProps>,
+    type: Object as PropType<DelegateFormComponentProps>,
     required: true,
   },
 });

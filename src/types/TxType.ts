@@ -7,7 +7,7 @@ export enum TxType {
   WITHDRAW = "Withdraw from:",
   IBC_TRANSFER = "IBC Transfer to:",
   STAKE = "Stake to:",
-  GET_REWARD = "Get Rewards from:",
+  GET_REWARD = "Rewards from:",
   UNDELEGATE = "Undelegate from:",
   GRANT = "Grant to:",
   CLAIM = "Claim from:",

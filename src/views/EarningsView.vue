@@ -103,7 +103,7 @@
             <!-- Assets Container -->
             <EarnReward
               :reward="reward"
-              :onClickClaim="onClickClaim"
+              :onClickClaim="onClickWithdrawRewards"
               :cols="cols"
             />
             <!-- Assets Container -->
@@ -139,6 +139,14 @@
       :reward="totalNlsRewards()"
     />
   </Modal>
+
+  <Modal
+    v-if="showWithrawRewardsDialog"
+    route="withdraw-rewards"
+    @close-modal="showWithrawRewardsDialog = false"
+  >
+    <WithdrawRewardsDialog :amount="reward" />
+  </Modal>
   
   <Modal
     v-if="showErrorDialog"
@@ -160,6 +168,7 @@ import EarnNativeAsset from "@/components/EarningsComponents/EarnNativeAsset.vue
 import EarnReward from "@/components/EarningsComponents/EarnReward.vue";
 import SupplyWithdrawDialog from "@/components/modals/SupplyWithdrawDialog.vue";
 import DelegateUndelegateDialog from "@/components/modals/DelegateUndelegateDialog.vue";
+import WithdrawRewardsDialog from "@/components/modals/WithdrawRewardsDialog.vue";
 
 import Modal from "@/components/modals/templates/Modal.vue";
 import ClaimDialog from "@/components/modals/ClaimDialog.vue";
@@ -169,8 +178,8 @@ import CURRENCIES from "@/config/currencies.json";
 
 import type { AssetBalance } from "@/stores/wallet/state";
 
-import { computed, onMounted, ref } from "vue";
-import { ChainConstants, CurrencyUtils, NolusClient } from "@nolus/nolusjs";
+import { computed, onMounted, onUnmounted, ref } from "vue";
+import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 import { CONTRACTS } from "@/config/contracts";
 import { EnvNetworkUtils } from "@/utils/EnvNetworkUtils";
 import { WalletManager } from "@/utils";
@@ -182,14 +191,16 @@ import {
   type ContractData,
   Lpp,
 } from "@nolus/nolusjs/build/contracts";
-import { NATIVE_ASSET } from "@/config/env";
+import { NATIVE_ASSET, UPDATE_REWARDS_INTERVAL } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 
 const wallet = useWalletStore();
 
+let rewardsInterval: NodeJS.Timeout | undefined;
 const cols = ref(4 as number);
 const showSupplyWithdrawDialog = ref(false);
 const showDelegateUndelegateDialog = ref(false);
+const showWithrawRewardsDialog = ref(false);
 
 const availableCurrencies = ref([] as string[]);
 const rewards = ref([] as AssetBalance[]);
@@ -205,12 +216,22 @@ const errorMessage = ref("");
 
 onMounted(async () => {
   try {
-    await wallet[WalletActionTypes.UPDATE_BALANCES]();
-    await loadRewards();
+    await Promise.all([
+      wallet[WalletActionTypes.UPDATE_BALANCES](),
+      loadRewards(),
+      loadLPNCurrency()
+    ]);
+    rewardsInterval = setInterval(async () => {
+      await loadRewards();
+    }, UPDATE_REWARDS_INTERVAL);
   } catch (e: Error | any) {
     showErrorDialog.value = true;
     errorMessage.value = e?.message;
   }
+});
+
+onUnmounted(() => {
+  clearInterval(rewardsInterval);
 });
 
 const filteredAssets = computed(() => {
@@ -237,11 +258,18 @@ const filterSmallBalances = (balances: AssetBalance[]) => {
 };
 
 const onClickTryAgain = async () => {
-  await loadRewards();
+  await Promise.all([
+    loadRewards(),
+    loadLPNCurrency()
+  ]);
 };
 
 const onClickClaim = () => {
   showClaimModal.value = true;
+};
+
+const onClickWithdrawRewards = () => {
+  showWithrawRewardsDialog.value = true;
 };
 
 const totalNlsRewards = (): AssetBalance => {
@@ -267,12 +295,27 @@ const loadRewards = async () => {
   const total = rewards?.total?.[0];
 
   if(total){
-    const token = CurrencyUtils.convertNolusToUNolus(
-      total.amount as string
-    );
-    rewards.value = token;
+    const value = new Dec(total.amount).truncate().toString();
+    reward.value = { balance: coin(value, NATIVE_ASSET.denom) };
   }
 
+}
+
+const loadLPNCurrency = async () => {
+  const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+  const contract = CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance;
+  const lppClient = new Lpp(cosmWasmClient, contract);
+
+  claimContractData.value.push({
+    contractAddress: contract,
+    msg: claimRewardsMsg(),
+  });
+
+  const lppConfig = await lppClient.getLppConfig();
+  const lpnCoin = wallet.getCurrencyByTicker(lppConfig.lpn_ticker);
+  const lpnIbcDenom = wallet.getIbcDenomBySymbol(lpnCoin?.symbol);
+
+  availableCurrencies.value.push(lpnIbcDenom as string);
 }
 
 const getAllRewards = async () => {

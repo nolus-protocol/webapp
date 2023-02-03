@@ -29,12 +29,12 @@
 </template>
 
 <script lang="ts" setup>
-import type { SupplyFormComponentProps } from "@/types/component/SupplyFormComponentProps";
 
 import ConfirmComponent from "@/components/modals/templates/ConfirmComponent.vue";
 import DelegateFormComponent from "@/components/DelegateComponents/DelegateFormComponent.vue";
 import ErrorDialog from "@/components/modals/ErrorDialog.vue";
 import Modal from "@/components/modals/templates/Modal.vue";
+import type { DelegateFormComponentProps } from "@/types/component";
 
 import { CONFIRM_STEP } from "@/types/ConfirmStep";
 import { TxType } from "@/types/TxType";
@@ -89,7 +89,7 @@ const state = ref({
   txHash: "",
   fee: coin(GAS_FEES.delegation, NATIVE_ASSET.denom),
   onNextClick: () => onNextClick(),
-} as SupplyFormComponentProps);
+} as DelegateFormComponentProps);
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const errorDialog = ref({
@@ -191,7 +191,7 @@ async function delegate() {
         }
       });
   
-      const { txHash, txBytes, usedFee } = await walletStore.wallet?.simulateDelegate(delegations);
+      const { txHash, txBytes, usedFee } = await walletStore.wallet?.simulateDelegateTx(delegations);
       state.value.txHash = txHash;
   
       if (usedFee?.amount?.[0]) {

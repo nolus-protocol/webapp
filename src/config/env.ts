@@ -120,7 +120,7 @@ export enum SNACKBAR {
 export const GAS_FEES = {
   create_vesting_account: 10000,
   delegation: 15000,
-  undelegation: 200000,
+  undelegation: 20000,
   withdraw_delegator_reward: 15000,
   lender_deposit: 1000,
   lender_burn_deposit: 1200,
@@ -140,6 +140,7 @@ export enum APPEARANCE {
 export const UPDATE_BLOCK_INTERVAL = 5 * 1000; // 5000 ms
 export const UPDATE_BALANCE_INTERVAL = 5 * 1000; // 5000 ms
 export const UPDATE_PRICES_INTERVAL = 10 * 1000; // 10000 ms
+export const UPDATE_REWARDS_INTERVAL = 5 * 1000;
 
 export const DEFAULT_LEASE_UP_PERCENT = "150.00";
 export const LEASE_UP_COEFICIENT = 1.5;
