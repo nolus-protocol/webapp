@@ -44,7 +44,7 @@ import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { computed, inject, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { coin } from "@cosmjs/amino";
-import { STAKING_VALIDATORS_NUMBER } from "@/config/env";
+import { STAKING } from "@/config/env";
 
 import {
   validateAmount,
@@ -87,7 +87,7 @@ const state = ref({
   currentAPR: `${DEFAULT_APR}%`,
   receiverAddress: CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance,
   txHash: "",
-  fee: coin(GAS_FEES.lender_deposit, NATIVE_ASSET.denom),
+  fee: coin(GAS_FEES.delegation, NATIVE_ASSET.denom),
   onNextClick: () => onNextClick(),
 } as SupplyFormComponentProps);
 
@@ -137,38 +137,123 @@ async function onDelegateClick() {
   try {
     await walletOperation(delegate, state.value.password);
   } catch (error: Error | any) {
+    console.log(error)
     step.value = CONFIRM_STEP.ERROR;
   }
 }
 
 async function delegate() {
-  // try{
-    const delegator = await walletStore[WalletActionTypes.LOAD_DELEGATOR_VALIDATORS]();
-  //   let division = STAKING_VALIDATORS_NUMBER;
+  try{
 
-  //   if(delegator?.rewards?.length > 0){
-  //     division = delegator?.rewards?.length;
-  //   }
+    if(walletStore.wallet && state.value.amountErrorMsg === ""){
+      step.value = CONFIRM_STEP.PENDING;
 
-  //   const denom = state.value.selectedCurrency.balance.denom;
-  //   const asset = walletStore.getCurrencyInfo(
-  //     denom
-  //   );
-  //   const data = CurrencyUtils.convertDenomToMinimalDenom(
-  //     state.value.amount,
-  //     asset.coinDenom,
-  //     asset.coinDecimals
-  //   );
-  //   const amount = Number(data.amount.toString());
-  //   const quotient = Math.floor(amount / division);
-  //   const remainder = amount % division;
-  // }catch(error){
-  //   step.value = CONFIRM_STEP.ERROR;
-  // }
-
+      let validators = await getValidators();
+      let division = STAKING.VALIDATORS_NUMBER;
   
- console.log(await walletStore[WalletActionTypes.LOAD_DELEGATOR_VALIDATORS]());
-  // console.log(await walletStore[WalletActionTypes.LOAD_VALIDATOR]("nolusvaloper1hmchunh8kpxgyddmcj6au4fttytg7qccmgx99n"));
+      if(validators?.length > 0){
+        division = validators?.length;
+      }
+  
+      const denom = state.value.selectedCurrency.balance.denom;
+      const asset = walletStore.getCurrencyInfo(
+        denom
+      );
+  
+      const data = CurrencyUtils.convertDenomToMinimalDenom(
+        state.value.amount,
+        asset.coinDenom,
+        asset.coinDecimals
+      );
+  
+      const amount = Number(data.amount.toString());
+      const quotient = Math.floor(amount / division);
+      const remainder = amount % division;
+      const amounts = [];
+  
+      validators = validators.sort((a: any, b: any) => {
+        return Number(b.commission.commission_rates.rate) - Number(a.commission.commission_rates.rate);
+      });
+  
+      for(const v of validators){
+        amounts.push({
+          value: quotient,
+          validator: v.operator_address
+        });
+      }
+  
+      amounts[0].value+=remainder;
+  
+      const delegations = amounts.map((item) => {
+        return {
+          validator: item.validator,
+          amount: coin(item.value, denom)
+        }
+      });
+  
+      const { txHash, txBytes, usedFee } = await walletStore.wallet?.simulateDelegate(delegations);
+      state.value.txHash = txHash;
+  
+      if (usedFee?.amount?.[0]) {
+        state.value.fee = usedFee.amount[0];
+      }
+  
+      const tx = await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
+      const isSuccessful = tx?.code === 0;
+      step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
+      if (snackbarVisible()) {
+        showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
+      }
+
+    }
+
+  }catch(error){
+    console.log(error)
+    step.value = CONFIRM_STEP.ERROR;
+  }
+}
+
+const getValidators: () => any = async () => {
+  const delegatorValidators = await walletStore[WalletActionTypes.LOAD_DELEGATOR_VALIDATORS]();
+  
+  if(delegatorValidators.length > 0){
+    return delegatorValidators;
+  }
+
+  let validators = await walletStore[WalletActionTypes.LOAD_VALIDATORS]();
+  let loadedValidators = [];
+
+  if(validators.length > STAKING.SLICE){
+    validators = validators.slice(STAKING.SLICE).filter((item: any) => {
+      const date = new Date(item.unbonding_time);
+      const time = Date.now() - date.getTime();
+      if(time > STAKING.SLASHED_DAYS){
+        return true;
+      }
+      return false;
+    }).filter((item: any) => {
+      const commission = Number(item.commission.commission_rates.rate);
+      if(commission <= STAKING.PERCENT){
+        return true;
+      }
+      return false;
+    });
+  }
+
+  for(let i = 0; i < STAKING.VALIDATORS_NUMBER; i++){
+    const index = getRandomInt(0, validators.length);
+    loadedValidators.push(validators[index]);
+    validators.splice(index, 1);
+  }
+
+  return loadedValidators;
+
+}
+
+const getRandomInt = (min: number, max: number) => {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min) + min);
 }
 
 onUnmounted(() => {

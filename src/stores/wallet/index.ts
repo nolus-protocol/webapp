@@ -7,7 +7,7 @@ import CURRENCIES from "@/config/currencies.json";
 import type { HdPath } from "@cosmjs/crypto";
 import type { State } from "@/stores/wallet/state";
 import type { Window as KeplrWindow } from "@keplr-wallet/types/build/window";
-import type { TxSearchResponse } from "@cosmjs/tendermint-rpc";
+import type { ReadonlyDateWithNanoseconds, TxSearchResponse } from "@cosmjs/tendermint-rpc";
 
 import { WalletConnectMechanism } from "@/types";
 import { defineStore } from "pinia";
@@ -174,7 +174,7 @@ const useWalletStore = defineStore("wallet", {
         privateKey = Buffer.from(mnemonic.trim().replace("0x", ""), "hex");
       } else {
         const accountNumbers = [0];
-        const path: HdPath | any = accountNumbers.map(makeCosmoshubPath)[0];
+        const path: HdPath = accountNumbers.map(makeCosmoshubPath)[0];
         privateKey = await KeyUtils.getPrivateKeyFromMnemonic(mnemonic, path);
       }
 
@@ -368,8 +368,7 @@ const useWalletStore = defineStore("wallet", {
               const transactionResult = {
                 id: item.hash ? toHex(item.hash) : "",
                 height: item.height ?? "",
-                receiver: (rawTx[0].events[3].attributes[0].value ??
-                  "") as string,
+                receiver: (rawTx[0].events[3].attributes[0].value ?? "") as string,
                 sender: (rawTx[0].events[3].attributes[1].value ??
                   "") as string,
                 action: (rawTx[0].events[3].type ?? "") as string,
@@ -390,7 +389,7 @@ const useWalletStore = defineStore("wallet", {
                 sender: "",
                 action: "Error",
                 msg: item.result.log as string,
-                blockDate: null,
+                blockDate: null as ReadonlyDateWithNanoseconds | null,
                 memo: decodedTx.body.memo ?? "",
                 fee:
                   decodedTx?.authInfo?.fee?.amount.filter(
@@ -404,7 +403,7 @@ const useWalletStore = defineStore("wallet", {
 
         const promises = data.map(async (item) => {
           const block = await client.block(item.height);
-          item.blockDate = block.block.header.time as any;
+          item.blockDate = block.block.header.time;
           return item;
         });
 

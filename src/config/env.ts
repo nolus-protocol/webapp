@@ -118,13 +118,13 @@ export enum SNACKBAR {
 }
 
 export const GAS_FEES = {
-  create_vesting_account: 100000,
-  delegation: 150000,
+  create_vesting_account: 10000,
+  delegation: 15000,
   undelegation: 200000,
-  withdraw_delegator_reward: 150000,
+  withdraw_delegator_reward: 15000,
   lender_deposit: 1000,
   lender_burn_deposit: 1200,
-  lender_claim_rewards: 170000,
+  lender_claim_rewards: 17000,
   transfer_amount: 500,
   open_lease: 1500,
   repay_lease: 1500,
@@ -144,4 +144,9 @@ export const UPDATE_PRICES_INTERVAL = 10 * 1000; // 10000 ms
 export const DEFAULT_LEASE_UP_PERCENT = "150.00";
 export const LEASE_UP_COEFICIENT = 1.5;
 export const DEFAULT_APR = "24.34";
-export const STAKING_VALIDATORS_NUMBER = 2;
+export const STAKING = {
+  VALIDATORS_NUMBER: 2,
+  SLASHED_DAYS: 30 * 24 * 60 * 60 * 1000,
+  PERCENT: 0.05,
+  SLICE: 3
+};

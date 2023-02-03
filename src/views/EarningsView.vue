@@ -102,7 +102,7 @@
           <div class="block mt-4">
             <!-- Assets Container -->
             <EarnReward
-              :reward="totalNlsRewards()"
+              :reward="reward"
               :onClickClaim="onClickClaim"
               :cols="cols"
             />
@@ -170,7 +170,7 @@ import CURRENCIES from "@/config/currencies.json";
 import type { AssetBalance } from "@/stores/wallet/state";
 
 import { computed, onMounted, ref } from "vue";
-import { ChainConstants, NolusClient } from "@nolus/nolusjs";
+import { ChainConstants, CurrencyUtils, NolusClient } from "@nolus/nolusjs";
 import { CONTRACTS } from "@/config/contracts";
 import { EnvNetworkUtils } from "@/utils/EnvNetworkUtils";
 import { WalletManager } from "@/utils";
@@ -183,6 +183,7 @@ import {
   Lpp,
 } from "@nolus/nolusjs/build/contracts";
 import { NATIVE_ASSET } from "@/config/env";
+import { coin } from "@cosmjs/amino";
 
 const wallet = useWalletStore();
 
@@ -192,6 +193,9 @@ const showDelegateUndelegateDialog = ref(false);
 
 const availableCurrencies = ref([] as string[]);
 const rewards = ref([] as AssetBalance[]);
+const reward = ref({
+  balance: coin(0, ChainConstants.COIN_MINIMAL_DENOM)
+} as AssetBalance);
 const claimContractData = ref([] as ContractData[]);
 const selectedAsset = ref("");
 const showSmallBalances = ref(true);
@@ -202,7 +206,7 @@ const errorMessage = ref("");
 onMounted(async () => {
   try {
     await wallet[WalletActionTypes.UPDATE_BALANCES]();
-    await getAllRewards();
+    await loadRewards();
   } catch (e: Error | any) {
     showErrorDialog.value = true;
     errorMessage.value = e?.message;
@@ -233,7 +237,7 @@ const filterSmallBalances = (balances: AssetBalance[]) => {
 };
 
 const onClickTryAgain = async () => {
-  await getAllRewards();
+  await loadRewards();
 };
 
 const onClickClaim = () => {
@@ -257,6 +261,19 @@ const openSupplyWithdrawDialog = (denom: string) => {
   selectedAsset.value = denom;
   showSupplyWithdrawDialog.value = true;
 };
+
+const loadRewards = async () => {
+  const rewards = await wallet[WalletActionTypes.LOAD_DELEGATOR]();
+  const total = rewards?.total?.[0];
+
+  if(total){
+    const token = CurrencyUtils.convertNolusToUNolus(
+      total.amount as string
+    );
+    rewards.value = token;
+  }
+
+}
 
 const getAllRewards = async () => {
   try {
