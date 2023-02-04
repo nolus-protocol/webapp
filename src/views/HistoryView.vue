@@ -79,7 +79,7 @@ export interface ITransaction {
 
 const showErrorDialog = ref(false);
 const errorMessage = ref("");
-const transactions = ref([] as ITransaction[]);
+const transactions = ref([] as ITransaction[] | any[]);
 const wallet = useWalletStore();
 const walletRef = storeToRefs(wallet);
 

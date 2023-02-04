@@ -488,21 +488,6 @@ const useWalletStore = defineStore("wallet", {
 
       await instance.connect();
     },
-    async [WalletActionTypes.LOAD_STAKED_TOKENS]() {
-      try {
-        const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
-        const data = await fetch(
-          `${url}/cosmos/staking/v1beta1/delegations/${WalletManager.getWalletAddress()}`
-        );
-        const json = await data.json();
-        const [item] = json.delegation_responses;
-        if (item) {
-          this.stakingBalance = item.balance;
-        }
-      } catch (e) {
-        this.stakingBalance = new Coin(NATIVE_ASSET.denom, new Int(0));
-      }
-    },
     async [WalletActionTypes.LOAD_SUPPLIED_AMOUNT]() {
       const walletAddress = this?.wallet?.address ?? WalletManager.getWalletAddress();
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
@@ -524,6 +509,21 @@ const useWalletStore = defineStore("wallet", {
           this.walletName = WalletManager.getWalletName();
           break;
         }
+      }
+    },
+    async [WalletActionTypes.LOAD_STAKED_TOKENS]() {
+      try {
+        const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
+        const data = await fetch(
+          `${url}/cosmos/staking/v1beta1/delegations/${WalletManager.getWalletAddress()}`
+        );
+        const json = await data.json();
+        const [item] = json.delegation_responses;
+        if (item) {
+          this.stakingBalance = item.balance;
+        }
+      } catch (e) {
+        this.stakingBalance = new Coin(NATIVE_ASSET.denom, new Int(0));
       }
     },
     async [WalletActionTypes.LOAD_APR]() {
@@ -548,8 +548,8 @@ const useWalletStore = defineStore("wallet", {
     },
     async [WalletActionTypes.LOAD_VALIDATORS]() {
       const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
-      let limit = 100;
-      let offset = 0;
+      const limit = 100;
+      const offset = 0;
       const walletAddress = WalletManager.getWalletAddress() || "";
 
       return await loadValidators(url, [], walletAddress, offset, limit);
@@ -571,11 +571,27 @@ const useWalletStore = defineStore("wallet", {
     },
     async [WalletActionTypes.LOAD_DELEGATOR_VALIDATORS]() {
       const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
-      let limit = 100;
-      let offset = 0;
+      const limit = 100;
+      const offset = 0;
       const walletAddress = WalletManager.getWalletAddress() || "";
 
       return await loadDelegatorValidators(url, [], walletAddress, offset, limit);
+    },
+    async [WalletActionTypes.LOAD_UNBONDING_DELEGATIONS]() {
+      const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
+      const limit = 100;
+      const offset = 0;
+      const walletAddress = WalletManager.getWalletAddress() || "";
+
+      return await loadUnbondingDelegatoins(url, [], walletAddress, offset, limit);
+    },
+    async [WalletActionTypes.LOAD_DELEGATIONS]() {
+        const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
+        const limit = 100;
+        const offset = 0;
+        const walletAddress = WalletManager.getWalletAddress() || "";
+  
+        return await loadDelegatoins(url, [], walletAddress, offset, limit);
     },
   },
   getters: {
@@ -647,5 +663,24 @@ const loadDelegatorValidators: any = async (url: string, validators: any[], addr
   return validators;
 }
 
+const loadDelegatoins: any = async (url: string, delegations: any[], address: string, offset: number, limit: number) => {
+  const data = await fetch(`${url}/cosmos/staking/v1beta1/delegations/${address}?pagination.limit=${limit}&pagination.offset=${offset}`).then((data) => data.json());
+  delegations = [...delegations, ...data.delegation_responses];
+  offset += limit;
+  if (data.pagination.next_key) {
+    return await loadDelegatoins(url, delegations, address, offset, limit);
+  }
+  return delegations;
+}
+
+const loadUnbondingDelegatoins: any = async (url: string, unbondingDelegations: any[], address: string, offset: number, limit: number) => {
+  const data = await fetch(`${url}/cosmos/staking/v1beta1/delegators/${address}/unbonding_delegations?pagination.limit=${limit}&pagination.offset=${offset}`).then((data) => data.json());
+  unbondingDelegations = [...unbondingDelegations, ...data.unbonding_responses];
+  offset += limit;
+  if (data.pagination.next_key) {
+    return await loadUnbondingDelegatoins(url, unbondingDelegations, address, offset, limit);
+  }
+  return unbondingDelegations;
+}
 
 export { useWalletStore, WalletActionTypes };

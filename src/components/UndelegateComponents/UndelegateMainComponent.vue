@@ -1,15 +1,15 @@
 <template>
   <ConfirmComponent
     v-if="showConfirmScreen"
+    :receiverAddress="WalletManager.getWalletAddress()"
     :selectedCurrency="state.selectedCurrency"
-    :receiverAddress="state.receiverAddress"
     :password="state.password"
     :amount="state.amount"
-    :txType="TxType.WITHDRAW"
+    :txType="TxType.UNDELEGATE"
     :txHash="state.txHash"
     :step="step"
     :fee="state.fee"
-    :onSendClick="onWithdrawClick"
+    :onSendClick="onUndelegateClick"
     :onBackClick="onConfirmBackClick"
     :onOkClick="onClickOkBtn"
     @passwordUpdate="(value) => (state.password = value)"
@@ -29,8 +29,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { AssetBalance } from "@/stores/wallet/state";
-import type { WithdrawFormComponentProps } from "@/types/component/WithdrawFormComponentProps";
+import type { UndelegateFormComponentProps } from "@/types/component";
 
 import ConfirmComponent from "@/components/modals/templates/ConfirmComponent.vue";
 import UndelegateFormComponent from "@/components/UndelegateComponents/UndelegateFormComponent.vue";
@@ -39,22 +38,17 @@ import Modal from "@/components/modals/templates/Modal.vue";
 
 import { CONFIRM_STEP } from "@/types/ConfirmStep";
 import { TxType } from "@/types/TxType";
-import { Coin, Int } from "@keplr-wallet/unit";
-import { NolusClient, NolusWallet } from "@nolus/nolusjs";
-import { Lpp } from "@nolus/nolusjs/build/contracts";
-import { EnvNetworkUtils, WalletManager } from "@/utils";
-import {
-  getMicroAmount,
-  validateAmount,
-  walletOperation,
-} from "@/components/utils";
-import { useWalletStore } from "@/stores/wallet";
-import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
-import { CONTRACTS } from "@/config/contracts";
-import { NATIVE_ASSET, GAS_FEES, GROUPS, SNACKBAR } from "@/config/env";
+import { Dec } from "@keplr-wallet/unit";
+import { walletOperation } from "@/components/utils";
+import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
+import { inject, onMounted, onUnmounted, ref, watch } from "vue";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR } from "@/config/env";
 import { coin } from "@cosmjs/amino";
+import { useI18n } from "vue-i18n";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { WalletManager } from "@/utils";
 
-const props = defineProps({
+defineProps({
   selectedAsset: {
     type: String,
     required: true,
@@ -62,70 +56,48 @@ const props = defineProps({
 });
 
 const walletStore = useWalletStore();
-
-// @TODO: Fetch supplied balances instead of wallet balances
-const balances = computed(() => {
-  const balances = walletStore.balances;
-  return balances.filter((item) => {
-    const currency = walletStore.currencies[item.balance.denom];
-    return currency.groups.includes(GROUPS.Lpn);
-  });
-});
-
-const selectedCurrency = computed(
-  () =>
-    balances.value.find(
-      (asset) => asset.balance.denom === props.selectedAsset
-    ) || balances.value[0]
-);
-
 const showConfirmScreen = ref(false);
 const state = ref({
-  currentDepositBalance: {} as any,
-  currentBalance: balances.value,
-  selectedCurrency: selectedCurrency.value,
-  receiverAddress: CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance,
+  currentBalance: walletStore.balances,
+  selectedCurrency: walletStore.balances[0],
   amount: "",
   password: "",
   amountErrorMsg: "",
   txHash: "",
-  fee: coin(GAS_FEES.lender_burn_deposit, NATIVE_ASSET.denom),
+  fee: coin(GAS_FEES.undelegation, NATIVE_ASSET.denom),
+  delegated: null,
+  undelegations: [],
+  delegatedData: [],
   onNextClick: () => onNextClick(),
-  onSendClick: () => onWithdrawClick(),
-  onConfirmBackClick: () => onConfirmBackClick(),
-  onClickOkBtn: () => onClickOkBtn(),
-} as WithdrawFormComponentProps);
+} as UndelegateFormComponentProps);
+let delegatedData: any = [];
+let decimalDelegated = new Dec(0);
 
+const i18n = useI18n();
+const step = ref(CONFIRM_STEP.CONFIRM);
 const errorDialog = ref({
   showDialog: false,
   errorMessage: "",
   tryAgain: (): void => {},
 });
 
-const fetchDepositBalance = async () => {
-  try {
-    const walletAddress = walletStore.wallet?.address ?? WalletManager.getWalletAddress();
-    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-    const lppClient = new Lpp(cosmWasmClient, state.value.receiverAddress);
-    const depositBalance = await lppClient.getLenderDeposit(
-      walletAddress as string
-    );
-
-    state.value.currentDepositBalance = {
-      balance: new Coin(
-        state.value.selectedCurrency.balance.denom,
-        new Int(depositBalance.balance)
-      ),
-    } as AssetBalance;
-  } catch (e: Error | any) {
-    errorDialog.value.showDialog = true;
-    errorDialog.value.errorMessage = e.message;
-    errorDialog.value.tryAgain = fetchDepositBalance;
-  }
-};
-
 onMounted(async () => {
-  fetchDepositBalance();
+
+  const [delegated, undelegations] = await Promise.all([
+    walletStore[WalletActionTypes.LOAD_DELEGATIONS](),
+    walletStore[WalletActionTypes.LOAD_UNBONDING_DELEGATIONS]()
+  ]);
+
+  delegatedData = delegated;
+  state.value.undelegations = undelegations;
+
+  for(const item of delegatedData){
+    const d = new Dec(item.balance.amount);
+    decimalDelegated = decimalDelegated.add(d);
+  }
+
+  state.value.delegated = coin(decimalDelegated.truncate().toString(), NATIVE_ASSET.denom);
+
 });
 
 watch(
@@ -139,26 +111,19 @@ watch(
   () => [...state.value.selectedCurrency.balance.denom.toString()],
   (currentValue, oldValue) => {
     validateInputs();
-    fetchDepositBalance();
   }
 );
 
-const step = ref(CONFIRM_STEP.CONFIRM);
-
 const closeModal = inject("onModalClose", () => () => {});
+
 const showSnackbar = inject(
   "showSnackbar",
   (type: string, transaction: string) => {}
 );
+
 const snackbarVisible = inject("snackbarVisible", () => false);
 
 function onNextClick() {
-  if (!state.value.receiverAddress) {
-    errorDialog.value.showDialog = true;
-    errorDialog.value.errorMessage = "Missing receiver address!";
-    errorDialog.value.tryAgain = hideErrorDialog;
-    return;
-  }
   validateInputs();
 
   if (!state.value.amountErrorMsg) {
@@ -172,11 +137,6 @@ onUnmounted(() => {
   }
 });
 
-function hideErrorDialog() {
-  errorDialog.value.showDialog = false;
-  errorDialog.value.errorMessage = "";
-}
-
 function onConfirmBackClick() {
   showConfirmScreen.value = false;
 }
@@ -186,51 +146,95 @@ function onClickOkBtn() {
 }
 
 function validateInputs() {
-  state.value.amountErrorMsg = validateAmount(
-    state.value.amount,
-    state.value.selectedCurrency.balance.denom,
-    Number(state.value.currentDepositBalance.balance.amount)
+  const amount = state.value.amount;
+  state.value.amountErrorMsg = '';
+
+  if (!amount) {
+    state.value.amountErrorMsg = i18n.t("message.invalid-amount");
+    return false
+  }
+
+  const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(NATIVE_ASSET.denom);
+
+  const zero = CurrencyUtils.convertDenomToMinimalDenom(
+    "0",
+    coinMinimalDenom,
+    coinDecimals
+  ).amount.toDec();
+  
+  const amountToTransfer = CurrencyUtils.convertDenomToMinimalDenom(
+    amount,
+    coinMinimalDenom,
+    coinDecimals
   );
+
+  const isLowerThanOrEqualsToZero = amountToTransfer.amount.toDec().lte(zero);
+
+  if (isLowerThanOrEqualsToZero) {
+    state.value.amountErrorMsg = i18n.t("message.invalid-balance-low");
+    return false;
+  }
+
+  const isGreaterThanWalletBalance = amountToTransfer.amount.toDec().gt(decimalDelegated);
+
+  if (isGreaterThanWalletBalance) {
+    state.value.amountErrorMsg = i18n.t("message.invalid-balance-big");
+    return false;
+  }
+
+  return true;
 }
 
-async function onWithdrawClick() {
+async function onUndelegateClick() {
   try {
-    await walletOperation(transferAmount, state.value.password);
+    await walletOperation(undelegate, state.value.password);
   } catch (error: Error | any) {
     step.value = CONFIRM_STEP.ERROR;
   }
 }
 
-async function transferAmount() {
-  const wallet = walletStore.wallet as NolusWallet;
-  if (wallet && state.value.amountErrorMsg === "") {
-    step.value = CONFIRM_STEP.PENDING;
-    try {
-      const microAmount = getMicroAmount(
-        state.value.selectedCurrency.balance.denom,
-        state.value.amount
+async function undelegate() {
+  if(walletStore.wallet){
+    try{
+      const amount = state.value.amount;
+      const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(NATIVE_ASSET.denom);
+      const amountToTransfer = CurrencyUtils.convertDenomToMinimalDenom(
+        amount,
+        coinMinimalDenom,
+        coinDecimals
       );
-      const cosmWasmClient =
-        await NolusClient.getInstance().getCosmWasmClient();
-      const lppClient = new Lpp(
-        cosmWasmClient,
-        CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance
-      );
+  
+      let amountToTransferDecimal = amountToTransfer.amount.toDec();
+      const transactions = [];
+      step.value = CONFIRM_STEP.PENDING;
 
-      const { txHash, txBytes, usedFee } =
-        await lppClient.simulateBurnDepositTx(
-          wallet,
-          microAmount.mAmount.amount.toString(),
-          [
-            {
-              denom: microAmount.coinMinimalDenom,
-              amount: microAmount.mAmount.amount.toString(),
-            },
-          ]
-        );
+      for(const item of delegatedData){
+        const amount = new Dec(item.balance.amount);
+  
+        const rest = amountToTransferDecimal.sub(amount);
+  
+        if(rest.isNegative() || rest.isZero()){
+          const transfer = new Dec(amountToTransferDecimal.toString());
+          transactions.push({
+            validator: item.delegation.validator_address,
+            amount: coin(transfer.truncate().toString(), coinMinimalDenom)
+          });
+          break;
+        }else{
+          const transfer = new Dec(amount.toString());
+          transactions.push({
+            validator: item.delegation.validator_address,
+            amount: coin(transfer.truncate().toString(), coinMinimalDenom)
+          });
+        }
+  
+        amountToTransferDecimal = rest;
+   
+      }
 
+      const { txHash, txBytes, usedFee } = await walletStore.wallet.simulateUndelegateTx(transactions);
       state.value.txHash = txHash;
-
+  
       if (usedFee?.amount?.[0]) {
         state.value.fee = usedFee.amount[0];
       }
@@ -241,7 +245,9 @@ async function transferAmount() {
       if (snackbarVisible()) {
         showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
       }
-    } catch (e) {
+        
+    }catch(error){
+      console.log(error)
       step.value = CONFIRM_STEP.ERROR;
     }
   }

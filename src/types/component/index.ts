@@ -6,3 +6,4 @@ export type { SupplyFormComponentProps } from "@/types/component/SupplyFormCompo
 export type { WithdrawFormComponentProps } from "@/types/component/WithdrawFormComponentProps";
 export type { DelegateFormComponentProps } from "@/types/component/DelegateFormComponentProps";
 export type { WithdrawRewardsComponentProps } from "@/types/component/WithdrawRewardsComponentProps";
+export type { UndelegateFormComponentProps } from "@/types/component/UndelegateFormComponentProps";

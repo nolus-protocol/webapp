@@ -1,8 +1,8 @@
 <template>
   <ConfirmComponent
     v-if="showConfirmScreen"
+    :receiverAddress="WalletManager.getWalletAddress()"
     :selectedCurrency="state.selectedCurrency"
-    :receiverAddress="state.receiverAddress"
     :password="state.password"
     :amount="state.amount"
     :txType="TxType.SUPPLY"
@@ -38,11 +38,8 @@ import type { DelegateFormComponentProps } from "@/types/component";
 
 import { CONFIRM_STEP } from "@/types/ConfirmStep";
 import { TxType } from "@/types/TxType";
-import { CONTRACTS } from "@/config/contracts";
-import { EnvNetworkUtils } from "@/utils/EnvNetworkUtils";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
-import { computed, inject, onUnmounted, ref, watch } from "vue";
-import { useI18n } from "vue-i18n";
+import { inject, onUnmounted, ref, watch } from "vue";
 import { coin } from "@cosmjs/amino";
 import { STAKING } from "@/config/env";
 
@@ -58,34 +55,26 @@ import {
   SNACKBAR,
 } from "@/config/env";
 import { CurrencyUtils } from "@nolus/nolusjs";
+import { WalletManager } from "@/utils";
 
-const props = defineProps({
+defineProps({
   selectedAsset: {
     type: String,
     required: true,
   },
 });
 
-const i18n = useI18n();
 const walletStore = useWalletStore();
 const snackbarVisible = inject("snackbarVisible", () => false);
-
-const selectedCurrency = computed(
-  () =>
-    walletStore.balances.find(
-      (asset) => asset.balance.denom === props.selectedAsset
-    ) || walletStore.balances[0]
-);
 
 const showConfirmScreen = ref(false);
 const state = ref({
   currentBalance: walletStore.balances,
-  selectedCurrency: selectedCurrency.value,
+  selectedCurrency: walletStore.balances[0],
   amount: "",
   password: "",
   amountErrorMsg: "",
   currentAPR: `${DEFAULT_APR}%`,
-  receiverAddress: CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance,
   txHash: "",
   fee: coin(GAS_FEES.delegation, NATIVE_ASSET.denom),
   onNextClick: () => onNextClick(),
@@ -104,12 +93,6 @@ const showSnackbar = inject(
 );
 
 function onNextClick() {
-  if (!state.value.receiverAddress) {
-    errorDialog.value.showDialog = true;
-    errorDialog.value.errorMessage = i18n.t("message.missing-receiver");
-    return;
-  }
-
   validateInputs();
 
   if (!state.value.amountErrorMsg) {
@@ -191,7 +174,7 @@ async function delegate() {
         }
       });
   
-      const { txHash, txBytes, usedFee } = await walletStore.wallet?.simulateDelegateTx(delegations);
+      const { txHash, txBytes, usedFee } = await walletStore.wallet.simulateDelegateTx(delegations);
       state.value.txHash = txHash;
   
       if (usedFee?.amount?.[0]) {
@@ -208,7 +191,6 @@ async function delegate() {
     }
 
   }catch(error){
-    console.log(error)
     step.value = CONFIRM_STEP.ERROR;
   }
 }

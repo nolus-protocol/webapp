@@ -209,6 +209,10 @@
     "undelegate": "Undelegate",
     "available-balance": "Available balance",
     "delegate-description": "You will delegate to validators outside the top third by voting power and charge 5% commission or less. Undelegating your assets will take 21 days.",
-    "manual-delegation": "Manually choose the validators to delegate with"
+    "manual-delegation": "Manually choose the validators to delegate with",
+    "delegated": "Delegated",
+    "undelegated": "Undelegated",
+    "undelegating": "Undelegating",
+    "undelegate-description": "Once the undelegation begins, you will stop receiving rewards and not be able to cancel it."
   }
 }

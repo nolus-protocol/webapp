@@ -101,7 +101,7 @@ const requestClaim = async () => {
         }
       });
 
-      const { txHash, txBytes, usedFee } = await walletStore.wallet?.simulateWithdrawRewardTx(data);
+      const { txHash, txBytes, usedFee } = await walletStore.wallet.simulateWithdrawRewardTx(data);
       state.value.txHash = txHash;
 
       if (usedFee?.amount?.[0]) {
