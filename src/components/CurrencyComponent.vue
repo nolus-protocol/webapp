@@ -67,6 +67,9 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  defaultZeroValue: {
+    type: String
+  }
 });
 
 const smallFontSize = computed(() => {
@@ -80,6 +83,14 @@ const amount = computed(() => {
   switch (props.type) {
     case CURRENCY_VIEW_TYPES.CURRENCY: {
       let numberAmount = Number(props.amount);
+
+      if(numberAmount == 0 && props.defaultZeroValue){
+        return {
+        denom: props.defaultZeroValue,
+          beforeDecimal: '',
+          afterDecimal: '',
+        };
+      }
 
       let amount = new Intl.NumberFormat(NATIVE_CURRENCY.locale, {
         minimumFractionDigits: props.decimals ?? NATIVE_CURRENCY.minimumFractionDigits,

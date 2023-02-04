@@ -42,8 +42,7 @@
       <div
         class="flex items-center justify-end text-dark-grey text-12 garet-medium text-right m-0"
       >
-        {{ DEFAULT_CURRENCY.symbol }}
-        {{ calculateBalance(price, assetBalance, denom) }}
+        {{ DEFAULT_CURRENCY.symbol }}{{ calculateBalance(price, assetBalance, denom) }}
       </div>
     </div>
 
@@ -54,6 +53,7 @@
           :amount="walletStore.apr.toString()"
           :hasSpace="false"
           :isDenomInfront="false"
+          :defaultZeroValue="'-'"
           denom="%"
         />
         <template v-else>

@@ -19,6 +19,10 @@
     const vh = window.innerHeight * 0.01;
     document.documentElement.style.setProperty('--vh', `${vh}px`);
   });
+
+  window.addEventListener("keplr_keystorechange", () => {
+    location.reload();
+  })
 </script>
 <script type="module">
   import { Buffer } from "buffer";

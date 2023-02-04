@@ -56,6 +56,7 @@
             :amount="wallet.apr.toString()"
             :hasSpace="false"
             :isDenomInfront="false"
+            defaultZeroValue="-"
             denom="%"
           />
         </div>
