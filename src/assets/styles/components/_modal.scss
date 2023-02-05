@@ -25,6 +25,11 @@
 
     &-parent {
       background: linear-gradient(314.47deg, $borderColor 2.19%, $lightGrey 100%);
+      backdrop-filter: blur(8px);
+
+      @media (min-width: $md) {
+        background: linear-gradient(0deg, rgba(43, 56, 75, 0.5), rgba(43, 56, 75, 0.5)), rgba(40, 104, 225, 0.1);
+      }
 
       @media (min-width: $md) and (orientation: landscape) {
         -webkit-overflow-scrolling: touch;
@@ -169,7 +174,13 @@ body.sync {
       &-parent {
 
         @media (prefers-color-scheme: dark) {
+
           background: $dark-gray;
+  
+          @media (min-width: $md) {
+            background: linear-gradient(0deg, rgba(43, 56, 75, 0.5), rgba(43, 56, 75, 0.5)), rgba(40, 104, 225, 0.1);
+          }
+
         }
       }
 
@@ -226,7 +237,13 @@ body.dark {
     &-send-receive {
 
       &-parent {
+
         background: $dark-gray;
+  
+        @media (min-width: $md) {
+          background: linear-gradient(0deg, rgba(43, 56, 75, 0.5), rgba(43, 56, 75, 0.5)), rgba(40, 104, 225, 0.1);
+        }
+
       }
 
       .bg-light-grey {
