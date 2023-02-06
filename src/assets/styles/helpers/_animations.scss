@@ -1,3 +1,13 @@
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 200ms ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
 @keyframes slide-fade-bottom {
   0% {
     opacity: 1;
