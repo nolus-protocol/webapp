@@ -581,12 +581,12 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@headlessui/vue@^1.7.7":
+"@headlessui/vue@^1.7.9":
   version "1.7.9"
   resolved "https://registry.npmjs.org/@headlessui/vue/-/vue-1.7.9.tgz"
   integrity sha512-vgLBKszj+m2ozaPOnjWMGnspoLJcU/06vygdEAyAS4nDjp72yA7AYbOIEgdaspUhaMs585ApyiSm3jPTuIxAzg==
 
-"@heroicons/vue@^2.0.13":
+"@heroicons/vue@^2.0.14":
   version "2.0.14"
   resolved "https://registry.npmjs.org/@heroicons/vue/-/vue-2.0.14.tgz"
   integrity sha512-pA1MLZPX0pyZdaQ5OHD/ILE8V/JCXyWvY2BQig7ZnYO7ZFap9sp969Qasn+1VWxnzB5BLWWcYu80OJPCboWo+g==
@@ -1545,7 +1545,7 @@
     eth-rpc-errors "^4.0.3"
     json-rpc-random-id "^1.0.1"
 
-"@web3auth/base@^4.3.0", "@web3auth/base@^4.3.2":
+"@web3auth/base@^4.3.2":
   version "4.3.2"
   resolved "https://registry.npmjs.org/@web3auth/base/-/base-4.3.2.tgz"
   integrity sha512-sRW8ReIT19LzdrnoZvtq/IuNlyzNLwegR5felViZakUYxbTCFroG1baSuMHQtihwTJ9Lm4vqb0udDONjL85mOg==
@@ -1557,7 +1557,7 @@
     loglevel "^1.8.1"
     ts-custom-error "^3.3.1"
 
-"@web3auth/core@^4.3.0":
+"@web3auth/core@^4.3.2":
   version "4.3.2"
   resolved "https://registry.npmjs.org/@web3auth/core/-/core-4.3.2.tgz"
   integrity sha512-NirrLi6aovRARyFuvEjktMZWuWeEZfR2u7Om2SN37rdDMNEDjLbOOzLT6/z80C2+9lQ1xDClU12T9NHjJnrmaA==
@@ -1588,7 +1588,7 @@
     eth-rpc-errors "^4.0.3"
     jsonschema "^1.4.1"
 
-"@web3auth/openlogin-adapter@^4.3.0":
+"@web3auth/openlogin-adapter@^4.3.2":
   version "4.3.2"
   resolved "https://registry.npmjs.org/@web3auth/openlogin-adapter/-/openlogin-adapter-4.3.2.tgz"
   integrity sha512-OFn6VgIITdT4cKcFet+a4/2OeiqfwaJqcH9eT5KhRo/pSdhajHl+l5LOjWzR/dVwTkWxvBQqBiLoR5KS/mNz5g==
@@ -3679,7 +3679,7 @@ pify@^2.3.0:
   resolved "https://registry.npmjs.org/pify/-/pify-2.3.0.tgz"
   integrity sha512-udgsAY+fTnvv7kI7aaxbqwWNb0AHiB0qBO89PZKPkoTmGOgdbrHDKD+0B2X4uTfJ/FT1R09r9gTsjUjNJotuog==
 
-pinia@^2.0.29:
+pinia@^2.0.30:
   version "2.0.30"
   resolved "https://registry.npmjs.org/pinia/-/pinia-2.0.30.tgz"
   integrity sha512-q6DUmxWwe/mQgg+55QQjykpKC+aGeGdaJV3niminl19V08dE+LRTvSEuqi6/NLSGCKHI49KGL6tMNEOssFiMyA==
@@ -4443,7 +4443,7 @@ vue-tsc@^1.0.24:
     "@volar/vue-language-core" "1.0.24"
     "@volar/vue-typescript" "1.0.24"
 
-"vue@^2.6.14 || ^3.2.0", vue@^3.0.0, "vue@^3.0.0-0 || ^2.6.0", "vue@^3.0.0-0 || ^2.7.0", vue@^3.2.0, vue@^3.2.25, vue@^3.2.45, "vue@>= 3", vue@3.2.47:
+"vue@^2.6.14 || ^3.2.0", vue@^3.0.0, "vue@^3.0.0-0 || ^2.6.0", "vue@^3.0.0-0 || ^2.7.0", vue@^3.2.0, vue@^3.2.25, vue@^3.2.47, "vue@>= 3", vue@3.2.47:
   version "3.2.47"
   resolved "https://registry.npmjs.org/vue/-/vue-3.2.47.tgz"
   integrity sha512-60188y/9Dc9WVrAZeUVSDxRQOZ+z+y5nO2ts9jWXSTkMvayiWxCWOWtBQoYjLeccfXkiiPZWAHcV+WTPhkqJHQ==

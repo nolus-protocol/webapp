@@ -13,7 +13,7 @@
   <Teleport to="body">
     <div
       ref="tooltip"
-      class="absolute flex flex-col items-center mb-7 group-hover:flex tooltip"
+      class="absolute flex flex-col items-center mb-7 group-hover:flex tooltip tooltip-animations"
     >
       <div class="relative flex">
         <span
@@ -66,11 +66,15 @@ const mouseover = (event: MouseEvent) => {
   }
 
   element.style.visibility = "visible";
+  element.style.opacity = "1";
 };
 
 const mouseleave = () => {
   const element = tooltip.value as HTMLDivElement;
-  element.style.visibility = "hidden";
+  element.style.opacity = "0";
+  setTimeout(() => {
+    element.style.visibility = "hidden";
+  }, 200);
 };
 </script>
 <style scoped lang="scss">
