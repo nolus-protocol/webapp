@@ -1,7 +1,7 @@
 <template>
   <div
     id="wallet-nls"
-    class="wallet-nls box-open bg-transparent shadow-modal c-navbar-wallet__container transition duration-3 ease-2 border nls-border outline"
+    class="wallet-nls box-open bg-transparent shadow-modal c-navbar-wallet__container transition duration-3 ease-2 outline"
   >
     <!-- Wallet Header -->
     <div
