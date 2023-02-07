@@ -16,7 +16,7 @@
         </div>
         <div class="col-span-12 mobile-scroll container-view">
           <router-view v-slot="{ Component, route }">
-            <transition name="fade" mode="out-in">
+            <transition name="fade" mode="out-in" appear>
               <div :key="route.name!">  
                 <component :is="Component"></component>
               </div>

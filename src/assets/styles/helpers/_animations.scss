@@ -8,6 +8,17 @@
   opacity: 0;
 }
 
+.fade-long-enter-active,
+.fade-long-leave-active {
+  transition: opacity 400ms ease;
+}
+
+.fade-long-enter-from,
+.fade-long-leave-to {
+  opacity: 0;
+}
+
+
 .tooltip-animations{
   transition: opacity 150ms ease;
   opacity: 0;

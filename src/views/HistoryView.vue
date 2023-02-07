@@ -19,11 +19,13 @@
       <div class="block md:mt-4">
         <HistoryTableHeader />
         <div class="block">
-          <HistoryTableItem
-            v-for="transaction of transactions"
-            :key="transaction.id"
-            :transaction="transaction"
-          />
+          <TransitionGroup name="fade-long" appear tag="div">
+            <HistoryTableItem
+              v-for="transaction of transactions"
+              :key="transaction.id"
+              :transaction="transaction"
+            />
+          </TransitionGroup>
         </div>
       </div>
     </div>

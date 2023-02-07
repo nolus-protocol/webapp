@@ -40,19 +40,22 @@
           <div class="block mt-6 md:mt-[25px]">
             <!-- Assets Header -->
             <div
-              class="grid grid-cols-2 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6"
+              class="grid grid-cols-2 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-4"
             >
               <div
-                class="nls-font-500 text-12 text-dark-grey text-left text-upper"
+                class="nls-font-500 text-12 text-dark-grey text-left text-upper pl-2"
               >
                 {{ $t("message.asset") }}
               </div>
 
               <div
-                class="inline-flex items-center nls-font-500 text-12 text-dark-grey text-center text-upper pl-[15px] md:col-span-2 ml-4 justify-end md:justify-start"
+                class="inline-flex items-center nls-font-500 text-12 text-dark-grey text-center text-upper md:col-span-1 justify-end"
               >
                 <span class="inline-block">{{ $t("message.deposit") }}</span>
                 <TooltipComponent :content="$t('message.deposit-tooltip')" />
+              </div>
+
+              <div class="md:col-span-1">
               </div>
 
               <div
@@ -65,21 +68,40 @@
               </div>
             </div>
 
-            <!-- Assets Container -->
-            <EarnAsset
-              v-for="(asset, index) in filteredAssets"
-              :key="`${asset.balance.denom}-${index}`"
-              :asset="asset"
-              :openSupplyWithdraw="() => openSupplyWithdrawDialog(asset.balance.denom)"
-              :cols="cols"
-            />
+            <div role="status" class="block lg:mb-0" :class="{'animate-pulse': loading }">
+              <template v-if="loading">
+                <div v-for="index in 2" :key="index" class="h-[67px] flex items-center justify-between asset-partial nolus-box relative border-b border-standart py-3 px-4 items-center justify-between">
+                    <div class="w-[50%] md:w-auto grow-[1]">
+                      <div class="w-32 h-1.5 bg-grey rounded-full mb-2.5"></div>
+                      <div class="h-1.5 bg-grey rounded-full w-24"></div>
+                    </div>
+                    <div class="flex flex-col w-[50%] md:w-auto grow-[4] md:items-start items-end">
+                      <div class="w-32 h-1.5 bg-grey rounded-full mb-2.5"></div>
+                      <div class="h-1.5 bg-grey rounded-full w-24 ml-8"></div>
+                    </div>
+                    <div class="h-1.5 bg-grey rounded-full w-12 hidden md:flex"></div>
+                </div>
+              </template>
+              <template v-else>
+                <TransitionGroup name="fade" appear tag="div">
+                  <EarnAsset
+                    v-for="(asset, index) in filteredAssets"
+                    :key="`${asset.balance.denom}-${index}`"
+                    :asset="asset"
+                    :openSupplyWithdraw="() => openSupplyWithdrawDialog(asset.balance.denom)"
+                    :cols="cols"
+                  />
 
-            <EarnNativeAsset
-              v-if="nativeAsset"
-              :asset="nativeAsset"
-              :cols="cols"
-              :openDelegateUndelegate="() => openDelegateUndelegateDialog()"
-            />
+                  <EarnNativeAsset
+                    v-if="nativeAsset"
+                    :asset="nativeAsset"
+                    :cols="cols"
+                    :openDelegateUndelegate="() => openDelegateUndelegateDialog()"
+                  />
+                </TransitionGroup>
+              </template>
+            </div>
+
           </div>
         </div>
         <!-- Portfolio -->
@@ -213,6 +235,7 @@ const showSmallBalances = ref(true);
 const showClaimModal = ref(false);
 const showErrorDialog = ref(false);
 const errorMessage = ref("");
+const loading = ref(true);
 
 onMounted(async () => {
   try {
@@ -224,6 +247,7 @@ onMounted(async () => {
     rewardsInterval = setInterval(async () => {
       await loadRewards();
     }, UPDATE_REWARDS_INTERVAL);
+    loading.value = false;
   } catch (e: Error | any) {
     showErrorDialog.value = true;
     errorMessage.value = e?.message;

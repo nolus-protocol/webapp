@@ -173,22 +173,22 @@
 
         <!-- Assets Container -->
         <div role="status" class="block lg:mb-0" :class="{'animate-pulse': loading }">
-          <TransitionGroup name="fade" tag="div">
-            <template v-if="loading">
-              <div v-for="index in 11" :key="index" class="h-[67px] flex items-center justify-between asset-partial nolus-box relative border-b border-standart py-3 px-4 items-center justify-between">
-                  <div class="w-[50%] md:w-auto">
-                    <div class="w-32 h-1.5 bg-grey rounded-full mb-2.5"></div>
-                    <div class="h-1.5 bg-grey rounded-full w-24"></div>
-                  </div>
-                  <div class="flex flex-col items-end w-[50%] md:w-auto ml-8">
-                    <div class="w-32 h-1.5 bg-grey rounded-full mb-2.5"></div>
-                    <div class="h-1.5 bg-grey rounded-full w-24"></div>
-                  </div>
-                  <div class="h-1.5 bg-grey rounded-full w-12 hidden md:flex"></div>
-                  <div class="h-1.5 bg-grey rounded-full w-12 hidden md:flex"></div>
-              </div>
-            </template>
-            <template v-else>
+          <template v-if="loading">
+            <div v-for="index in getCurrenciesSize()" :key="index" class="h-[67px] flex items-center justify-between asset-partial nolus-box relative border-b border-standart py-3 px-4 items-center justify-between">
+                <div class="w-[50%] md:w-auto">
+                  <div class="w-32 h-1.5 bg-grey rounded-full mb-2.5"></div>
+                  <div class="h-1.5 bg-grey rounded-full w-24"></div>
+                </div>
+                <div class="flex flex-col items-end w-[50%] md:w-auto ml-8">
+                  <div class="w-32 h-1.5 bg-grey rounded-full mb-2.5"></div>
+                  <div class="h-1.5 bg-grey rounded-full w-24"></div>
+                </div>
+                <div class="h-1.5 bg-grey rounded-full w-12 hidden md:flex"></div>
+                <div class="h-1.5 bg-grey rounded-full w-12 hidden md:flex"></div>
+            </div>
+          </template>
+          <template v-else>
+            <TransitionGroup name="fade" appear tag="div">
               <AssetPartial
                 v-for="(asset, index) in filteredAssets"
                 :key="`${asset.balance.denom}-${index}`"
@@ -200,8 +200,8 @@
                 :openModal="openModal"
                 :earnings="DEFAULT_APR"
               />
-            </template>
-          </TransitionGroup>
+            </TransitionGroup>
+          </template>
         </div>
       </div>
     </div>
@@ -292,6 +292,7 @@ import SendReceiveDialog from "@/components/modals/SendReceiveDialog.vue";
 import LeaseDialog from "@/components/modals/LeaseDialog.vue";
 import VestedAssetPartial from "@/components/VestedAssetPartial.vue";
 import CurrencyComponent from "@/components/CurrencyComponent.vue";
+import CURRENCIES from "@/config/currencies.json";
 
 import type { AssetBalance } from "@/stores/wallet/state";
 import { computed, ref, provide, onMounted, watch, onUnmounted, Transition } from "vue";
@@ -345,6 +346,8 @@ const filteredAssets = computed(() => {
 });
 
 const loading = computed(() => showSkeleton.value || wallet.balances.length == 0);
+
+const getCurrenciesSize = () => Object.keys(CURRENCIES.currencies).length
 
 onMounted(() => {
   getVestedTokens();

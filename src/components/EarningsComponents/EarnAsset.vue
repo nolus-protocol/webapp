@@ -25,7 +25,7 @@
         </div>
       </div>
 
-      <div class="block pl-[15px] md:col-span-2 ml-4">
+      <div class="flex flex-col md:col-span-1 items-end">
         <p class="text-primary nls-font-500 text-16 nls-font-500 m-0">
           <CurrencyComponent
             :type="CURRENCY_VIEW_TYPES.TOKEN"
@@ -45,6 +45,10 @@
             )
           }}
         </div>
+      </div>
+
+      <div class="block md:col-span-1">
+        
       </div>
 
       <div class="hidden md:block info-show">
