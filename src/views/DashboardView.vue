@@ -27,7 +27,7 @@
     <Transition :name="animate">
       <!-- v-if="isTotalBalancePositive" -->
       <div
-        class="flex balance-box items-center justify-start background mt-6 nls-border shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6 outline"
+        class="flex balance-box items-center justify-start background mt-6 shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6 outline"
       >
         <div class="left inline-block pr-6">
           <p class="nls-font-500 text-16 text-primary">
@@ -144,7 +144,7 @@
       <div class="block mt-6 md:mt-[25px]">
         <!-- Assets Header -->
         <div
-          class="grid grid-cols-2 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-6"
+          class="grid grid-cols-2 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-5"
         >
           <div class="nls-font-500 text-12 text-left text-dark-grey text-upper">
             {{ $t("message.assets") }}
@@ -172,18 +172,36 @@
         </div>
 
         <!-- Assets Container -->
-        <div class="block lg:mb-0">
-          <AssetPartial
-            v-for="(asset, index) in filteredAssets"
-            :key="`${asset.balance.denom}-${index}`"
-            :asset-info="getAssetInfo(asset.balance.denom)"
-            :assetBalance="asset.balance.amount.toString()"
-            :changeDirection="index % 2 === 0"
-            :denom="asset.balance.denom"
-            :price="getMarketPrice(asset.balance.denom)"
-            :openModal="openModal"
-            :earnings="DEFAULT_APR"
-          />
+        <div role="status" class="block lg:mb-0" :class="{'animate-pulse': loading }">
+          <TransitionGroup name="fade" tag="div">
+            <template v-if="loading">
+              <div v-for="index in 11" :key="index" class="h-[67px] flex items-center justify-between asset-partial nolus-box relative border-b border-standart py-3 px-4 items-center justify-between">
+                  <div class="w-[50%] md:w-auto">
+                    <div class="w-32 h-1.5 bg-grey rounded-full mb-2.5"></div>
+                    <div class="h-1.5 bg-grey rounded-full w-24"></div>
+                  </div>
+                  <div class="flex flex-col items-end w-[50%] md:w-auto ml-8">
+                    <div class="w-32 h-1.5 bg-grey rounded-full mb-2.5"></div>
+                    <div class="h-1.5 bg-grey rounded-full w-24"></div>
+                  </div>
+                  <div class="h-1.5 bg-grey rounded-full w-12 hidden md:flex"></div>
+                  <div class="h-1.5 bg-grey rounded-full w-12 hidden md:flex"></div>
+              </div>
+            </template>
+            <template v-else>
+              <AssetPartial
+                v-for="(asset, index) in filteredAssets"
+                :key="`${asset.balance.denom}-${index}`"
+                :asset-info="getAssetInfo(asset.balance.denom)"
+                :assetBalance="asset.balance.amount.toString()"
+                :changeDirection="index % 2 === 0"
+                :denom="asset.balance.denom"
+                :price="getMarketPrice(asset.balance.denom)"
+                :openModal="openModal"
+                :earnings="DEFAULT_APR"
+              />
+            </template>
+          </TransitionGroup>
         </div>
       </div>
     </div>
@@ -276,7 +294,7 @@ import VestedAssetPartial from "@/components/VestedAssetPartial.vue";
 import CurrencyComponent from "@/components/CurrencyComponent.vue";
 
 import type { AssetBalance } from "@/stores/wallet/state";
-import { computed, ref, provide, onMounted, watch } from "vue";
+import { computed, ref, provide, onMounted, watch, onUnmounted, Transition } from "vue";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { DASHBOARD_ACTIONS } from "@/types/DashboardActions";
@@ -300,11 +318,13 @@ const walletRef = storeToRefs(wallet);
 const oracleRef = storeToRefs(oracle);
 
 const isAssetsLoading = ref(wallet.balances.length == 0);
+const showSkeleton = ref(wallet.balances.length == 0);
+
 const showErrorDialog = ref(false);
-const loaded =
-  wallet.balances.length > 0 && Object.keys(oracle.prices).length > 0;
+const loaded = wallet.balances.length > 0 && Object.keys(oracle.prices).length > 0;
 const animate = ref(loaded ? "" : "fade");
 const errorMessage = ref("");
+let timeout: NodeJS.Timeout;
 
 const state = ref({
   showSmallBalances: true,
@@ -324,12 +344,25 @@ const filteredAssets = computed(() => {
     : filterSmallBalances(wallet.balances as AssetBalance[]);
 });
 
+const loading = computed(() => showSkeleton.value || wallet.balances.length == 0);
+
 onMounted(() => {
   getVestedTokens();
   availableAssets();
   wallet[WalletActionTypes.LOAD_STAKED_TOKENS]();
   wallet[WalletActionTypes.LOAD_SUPPLIED_AMOUNT]();
+  if(showSkeleton.value){
+    timeout = setTimeout(() => {
+      showSkeleton.value = false;
+    }, 400);
+  }
 });
+
+onUnmounted(() => {
+  if(timeout){
+    clearTimeout(timeout);
+  }
+})
 
 watch(walletRef.balances, () => {
   availableAssets();

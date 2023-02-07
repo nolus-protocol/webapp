@@ -24,24 +24,6 @@
             :key="transaction.id"
             :transaction="transaction"
           />
-
-          <div role="status" class="max-w animate-pulse">
-            <div class="py-4 px-6 flex border-b border-standart">
-              <div class="w-[15%]">
-                <div class="h-1.5 rounded-full bg-grey my-2"></div>
-              </div>
-              <div class="w-[55%]">
-                <div class="h-1.5 rounded-full bg-grey my-2"></div>
-              </div>
-              <div class="w-[15%]">
-                <div class="h-1.5 rounded-full bg-grey my-2"></div>
-              </div>
-              <div class="w-[15%]">
-                <div class="h-1.5 rounded-full bg-grey my-2"></div>
-              </div>
-            </div>
-          </div>
-
         </div>
       </div>
     </div>
