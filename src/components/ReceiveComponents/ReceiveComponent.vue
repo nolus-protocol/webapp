@@ -82,7 +82,7 @@
 
         <div class="flex justify-between w-full text-light-blue text-[14px] mt-4">
           <p>{{ $t("message.estimate-time") }}:</p>
-          <p>-{{ selectedNetwork.estimation }} {{ $t("message.sec") }}</p>
+          <p>~{{ selectedNetwork.estimation }} {{ $t("message.sec") }}</p>
         </div>
       </div>
     </div>
@@ -146,7 +146,7 @@
           </button>
           <div class="flex justify-between w-full text-light-blue text-[14px] my-2">
             <p>{{ $t("message.estimate-time") }}:</p>
-            <p>-{{ selectedNetwork.estimation }} {{ $t("message.sec") }}</p>
+            <p>~{{ selectedNetwork.estimation }} {{ $t("message.sec") }}</p>
           </div>
         </div>
       </form>

@@ -53,7 +53,16 @@
         </div>
       </div>
 
-      <RangeComponent class="my-8"></RangeComponent>
+      <div class="flex mt-6 justify-between">
+        <p class="pb-0">
+          Margin
+          </p>
+          <p>
+            1.3 BTC
+          </p>
+      </div>
+
+      <RangeComponent class="py-6"></RangeComponent>
 
       <!-- <div class="flex justify-end mt-5 mr-5">
         <p
@@ -115,7 +124,7 @@
       </button>
       <div class="flex justify-between w-full text-light-blue text-[14px] my-2">
         <p>{{ $t("message.estimate-time") }}:</p>
-        <p>-{{ NATIVE_NETWORK.longOperationsEstimation }} {{ $t("message.sec") }}</p>
+        <p>~{{ NATIVE_NETWORK.longOperationsEstimation }} {{ $t("message.sec") }}</p>
       </div>
     </div>
   </form>

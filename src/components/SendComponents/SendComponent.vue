@@ -81,7 +81,7 @@
       </button>
       <div class="flex justify-between w-full text-light-blue text-[14px] my-2">
         <p>{{ $t("message.estimate-time") }}:</p>
-        <p>-{{ modelValue.network.estimation }} {{ $t("message.sec") }}</p>
+        <p>~{{ modelValue.network.estimation }} {{ $t("message.sec") }}</p>
       </div>
     </div>
   </form>

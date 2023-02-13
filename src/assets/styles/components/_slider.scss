@@ -1,5 +1,6 @@
 div.slider-box {
     position: relative;
+    cursor: pointer;
 
     div.slider {
         width: 100%;
@@ -9,7 +10,7 @@ div.slider-box {
         overflow: hidden;
         position: relative;
 
-        &::after {
+        div.background-box {
             content: '';
             position: absolute;
             left: 0;
@@ -46,5 +47,6 @@ div.slider-box {
         left: 15%;
         top: 50%;
         transform: translate(0, -50%);
+        z-index: 2;
     }
 }
