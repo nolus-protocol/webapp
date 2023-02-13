@@ -1,7 +1,8 @@
 <template>
   <div class="block currency-field-container">
-    <label :for="id" class="block text-14 nls-font-500 text-primary">
+    <label :for="id" class="flex text-14 nls-font-500 text-primary">
       {{ label }}
+      <TooltipComponent v-if="tooltip.length > 0" :content="tooltip" />
     </label>
     <div
       class="currency-field p-3.5 currency-field p-3.5"
@@ -13,7 +14,6 @@
             :id="id"
             :disabled="disabledInputField"
             :name="name"
-            :step="step"
             v-model="numberValue"
             autocomplete="off"
             class="nls-font-700 text-18 text-primary background"
@@ -49,6 +49,7 @@ import type { AssetBalance } from "@/stores/wallet/state";
 import { onMounted, ref, watch, type PropType } from "vue";
 
 import CurrencyPicker from "@/components/CurrencyPicker.vue";
+import TooltipComponent from "./TooltipComponent.vue";
 
 import { Coin, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
@@ -89,8 +90,9 @@ const props = defineProps({
   currencyOptions: {
     type: Array as PropType<AssetBalance[]>,
   },
-  step: {
+  tooltip: {
     type: String,
+    default: ''
   },
   option: {
     type: Object as PropType<AssetBalance>,

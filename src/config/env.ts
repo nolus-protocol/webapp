@@ -97,6 +97,7 @@ export const NATIVE_NETWORK = {
   icon: nlsIcon,
   native: true,
   estimation: 6,
+  longOperationsEstimation: 20,
   sourceChannel: "",
   key: "NLS"
 };

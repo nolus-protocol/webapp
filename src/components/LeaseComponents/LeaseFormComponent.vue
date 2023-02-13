@@ -2,6 +2,16 @@
   <!-- Input Area -->
   <form @submit.prevent="modelValue.onNextClick" class="modal-form">
     <div class="modal-send-receive-input-area">
+
+      <div class="block py-3 px-4 modal-balance radius-light text-left text-14 nls-font-400 text-primary mb-4">
+        {{$t('message.balance') }}:
+        <a 
+          class="text-secondary nls-font-700 underline ml-2 cursor-pointer" 
+          @click.stop="setAmount">
+          {{ formatCurrentBalance(modelValue.selectedDownPaymentCurrency) }}
+        </a>
+      </div>
+
       <div class="block text-left">
         <div class="block">
           <CurrencyField
@@ -10,19 +20,17 @@
             :error-msg="modelValue.downPaymentErrorMsg"
             :is-error="modelValue.downPaymentErrorMsg !== ''"
             :option="modelValue.selectedDownPaymentCurrency"
-            :step="'1'"
             :value="modelValue.downPayment"
             :label="$t('message.down-payment-uppercase')"
             name="amountInvestment"
+            :tooltip="$t('message.down-payment-tooltip')"
             @input="handleDownPaymentChange($event)"
-            @update-currency="
-              (event) => (modelValue.selectedDownPaymentCurrency = event)
-            "
+            @update-currency="(event) => (modelValue.selectedDownPaymentCurrency = event)"
           />
         </div>
 
         <div class="block mt-[25px]">
-          <CurrencyField
+          <!-- <CurrencyField
             id="amount-interest"
             :currency-options="modelValue.currentBalance"
             :disabled-input-field="disabledInputField"
@@ -30,15 +38,24 @@
             :is-error="modelValue.amountErrorMsg !== ''"
             :option="modelValue.selectedCurrency"
             :value="modelValue.amount"
-            :label="$t('message.lease-up-to')"
+            :label="$t('message.asset-to-lease')"
             name="amountInterest"
             @input="handleAmountChange($event)"
             @update-currency="(event) => (modelValue.selectedCurrency = event)"
+          /> -->
+          <Picker
+            class="scrollbar"
+            :default-option="coinList[0]"
+            :options="coinList"
+            :label="$t('message.asset-to-lease')"
+            @update-selected="(event) => (modelValue.selectedCurrency = event)"
           />
         </div>
       </div>
 
-      <div class="flex justify-end mt-5 mr-5">
+      <RangeComponent class="my-8"></RangeComponent>
+
+      <!-- <div class="flex justify-end mt-5 mr-5">
         <p
           v-if="modelValue.selectedCurrency?.balance?.denom"
           class="mb-3 mt-[25px] flex justify-end align-center dark-text nls-font-500 text-14"
@@ -54,46 +71,52 @@
             pricePerToken
           }}</span>
         </p>
-      </div>
+      </div> -->
       <div class="flex justify-end">
         <div class="grow-3 text-right nls-font-500 text-14 dark-text">
-          <p class="mb-3 mt-[25px] mr-5">
-            {{ $t("message.leased-amount") }}
+          <p class="mb-2 mt-[14px] mr-5">
+            {{ $t("message.borrowed") }}
           </p>
-          <p v-if="annualInterestRate" class="mb-3 mr-5">
-            {{ $t("message.annual-interest") }}
+          <p class="mb-2 mt-[14px] mr-5">
+            {{ $t("message.interest") }}
           </p>
-          <p class="mb-3 mt-[25px] mr-5">
+          <p class="mb-2 mt-[14px] mr-5">
             {{ $t("message.liquidation-price") }}
+          </p>
+          <p class="mb-2 mt-[14px] mr-5">
+            {{ $t("message.gas-service-fees") }}
           </p>
         </div>
         <div class="text-right nls-font-700 text-14">
-          <p class="mb-3 mt-[25px] flex justify-end align-center dark-text">
-            {{ calculateLeaseAmount }}
-            <TooltipComponent content="Content goes here" />
+          <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
+            ${{ calculateLeaseAmount }}
+            <TooltipComponent :content="$t('message.borrowed-tooltip')" />
           </p>
-          <p
-            v-if="annualInterestRate"
-            class="mb-3 flex justify-end align-center"
-          >
-            <span class="flex nls-font-700 ml-5">
-              {{ annualInterestRate }}
-              <TooltipComponent content="Content goes here" />
-            </span>
+          <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
+            {{ annualInterestRate ?? 0 }}%
+            <TooltipComponent :content="$t('message.interest-tooltip')" />
           </p>
-          <p class="mb-3 mt-[25px] flex justify-end align-center dark-text">
+          <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             $0
-            <TooltipComponent content="Content goes here" />
+            <TooltipComponent :content="$t('message.liquidation-price-tooltip')" />
+          </p>
+          <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
+            0 NLS
+            <TooltipComponent :content="$t('message.liquidation-price-tooltip')" />
           </p>
         </div>
       </div>
     </div>
 
     <!-- Actions -->
-    <div class="modal-send-receive-actions">
+    <div class="modal-send-receive-actions flex flex-col">
       <button class="btn btn-primary btn-large-primary">
         {{ $t("message.lease") }}
       </button>
+      <div class="flex justify-between w-full text-light-blue text-[14px] my-2">
+        <p>{{ $t("message.estimate-time") }}:</p>
+        <p>-{{ NATIVE_NETWORK.longOperationsEstimation }} {{ $t("message.sec") }}</p>
+      </div>
     </div>
   </form>
 </template>
@@ -101,8 +124,10 @@
 <script setup lang="ts">
 import CurrencyField from "@/components/CurrencyField.vue";
 import TooltipComponent from "@/components/TooltipComponent.vue";
+import Picker from "../Picker.vue";
 
 import type { LeaseComponentProps } from "@/types/component/LeaseComponentProps";
+import type { AssetBalance } from "@/stores/wallet/state";
 
 import { ref, watch, type PropType } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
@@ -110,6 +135,8 @@ import { Coin } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
 import { computed } from "vue";
 import { useWalletStore } from "@/stores/wallet";
+import { NATIVE_NETWORK } from "@/config/env";
+import RangeComponent from "../RangeComponent.vue";
 
 const oracle = useOracleStore();
 const wallet = useWalletStore();
@@ -141,6 +168,16 @@ const props = defineProps({
   },
 });
 
+const coinList =  props.modelValue.currentBalance.map((item) => {
+    const asset = wallet.getCurrencyInfo(item.balance.denom);
+    return {
+      label: asset.coinAbbreviation,
+      value: asset.coinMinimalDenom,
+      icon: asset.coinIcon
+    }
+});
+
+
 const getPrice = (currencyDenom: string) => {
   const prices = oracle.prices;
   const denom = wallet.currencies[currencyDenom].symbol;
@@ -158,7 +195,7 @@ const formatAssetInfo = (currencyDenom: string) => {
 };
 
 const annualInterestRate = computed(() => {
-  return props.modelValue?.leaseApply?.annual_interest_rate || "";
+  return props.modelValue?.leaseApply?.annual_interest_rate;
 });
 
 const pricePerToken = computed(() => {
@@ -193,4 +230,33 @@ watch(
     disabledInputField.value = !props.modelValue?.leaseApply;
   }
 );
+
+const setAmount = () => {
+  const asset = wallet.getCurrencyInfo(
+    props.modelValue.selectedDownPaymentCurrency.balance.denom
+  );
+  const data = CurrencyUtils.convertMinimalDenomToDenom(
+    props.modelValue.selectedDownPaymentCurrency.balance.amount.toString(),
+    props.modelValue.selectedDownPaymentCurrency.balance.denom,
+    asset.coinDenom,
+    asset.coinDecimals
+  );
+  props.modelValue.downPayment = Number(data.toDec().toString()).toString();
+
+};
+
+const formatCurrentBalance = (selectedCurrency: AssetBalance) => {
+  if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
+    const asset = wallet.getCurrencyInfo(
+      props.modelValue.selectedDownPaymentCurrency.balance.denom
+    );
+    return CurrencyUtils.convertMinimalDenomToDenom(
+      selectedCurrency.balance.amount.toString(),
+      selectedCurrency.balance.denom,
+      asset.coinDenom,
+      asset.coinDecimals
+    ).toString();
+  }
+};
+
 </script>

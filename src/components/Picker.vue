@@ -54,7 +54,7 @@
           leave-to-class="opacity-0"
         >
           <ListboxOptions
-            class="absolute z-10 mt-1 w-full background shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm"
+            class="absolute z-10 mt-1 w-full background shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm scrollbar"
           >
             <ListboxOption
               v-for="option in options"

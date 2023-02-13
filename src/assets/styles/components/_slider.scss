@@ -1,0 +1,50 @@
+div.slider-box {
+    position: relative;
+
+    div.slider {
+        width: 100%;
+        background-color: #EBEFF5;
+        height: 10px;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+
+        &::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 15%;
+            background-color: #2868E1;
+            z-index: 1;
+            height: 10px;
+        }
+
+        div.box {
+            display: flex;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        span.big {
+            flex: 4;
+            border-right: solid 4px white;
+        }
+
+        span.small {
+            flex: 1;
+
+            &:not(:last-child) {
+                border-right: solid 4px white;
+            }
+        }
+    }
+
+    button {
+        position: absolute;
+        left: 15%;
+        top: 50%;
+        transform: translate(0, -50%);
+    }
+}

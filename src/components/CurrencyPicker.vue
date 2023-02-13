@@ -175,26 +175,3 @@ watch(() => props.currencyOption, () => {
   selected.value.value = props.currencyOption as AssetBalance
 })
 </script>
-<style scoped lang="scss">
-.scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: #9c9c9c #f5f5f5;
-
-  &::-webkit-scrollbar-track {
-    background-color: white;
-  }
-
-  &::-webkit-scrollbar {
-    width: 8px;
-    height: 6px;
-    background-color: white;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-color: #ebeff5;
-    border: solid 1px white;
-    border-radius: 5px;
-  }
-}
-
-</style>

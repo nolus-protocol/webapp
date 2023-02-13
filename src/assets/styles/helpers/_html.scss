@@ -83,6 +83,27 @@ div#app {
 	background: linear-gradient(314.47deg, #EBEFF5 2.19%, #f7f9fc 100%);
 }
 
+.scrollbar {
+	scrollbar-width: thin;
+	scrollbar-color: #9c9c9c #f5f5f5;
+  
+	&::-webkit-scrollbar-track {
+	  background-color: white;
+	}
+  
+	&::-webkit-scrollbar {
+	  width: 8px;
+	  height: 6px;
+	  background-color: white;
+	}
+  
+	&::-webkit-scrollbar-thumb {
+	  background-color: #ebeff5;
+	  border: solid 1px white;
+	  border-radius: 5px;
+	}
+  }
+
 hr {
 	background-color: $borderColor;
 	border: none;

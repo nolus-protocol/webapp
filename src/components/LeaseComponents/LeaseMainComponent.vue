@@ -62,7 +62,7 @@ const showConfirmScreen = ref(false);
 const state = ref({
   contractAddress:
     CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance,
-  currentBalance: [] as AssetBalance[],
+  currentBalance: walletStore.balances as AssetBalance[],
   selectedDownPaymentCurrency: leaseBalances.value[1] as AssetBalance,
   selectedCurrency: {} as AssetBalance,
   downPayment: "",
@@ -112,38 +112,38 @@ watch(walletRef.balances, async (balances: AssetBalance[]) => {
 watch(
   () => state.value.downPayment,
   async () => {
-    const downPaymentAmount = state.value.downPayment;
-    if (downPaymentAmount) {
-      state.value.downPayment = new Dec(downPaymentAmount)
-        .truncate()
-        .toString();
+    // const downPaymentAmount = state.value.downPayment;
+    // if (downPaymentAmount) {
+    //   state.value.downPayment = new Dec(downPaymentAmount)
+    //     .truncate()
+    //     .toString();
 
-      if (isDownPaymentAmountValid()) {
-        const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-        const leaserClient = new Leaser(
-          cosmWasmClient,
-          CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance
-        );
-        const currency = walletStore.currencies[
-            state.value.selectedDownPaymentCurrency.balance.denom
-          ];
-        const lease =
-          walletStore.currencies[state.value.selectedCurrency.balance.denom];
+    //   if (isDownPaymentAmountValid()) {
+    //     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+    //     const leaserClient = new Leaser(
+    //       cosmWasmClient,
+    //       CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance
+    //     );
+    //     const currency = walletStore.currencies[
+    //         state.value.selectedDownPaymentCurrency.balance.denom
+    //       ];
+    //     const lease =
+    //       walletStore.currencies[state.value.selectedCurrency.balance.denom];
 
-        const makeLeaseApplyResp = await leaserClient.leaseQuote(
-          state.value.downPayment,
-          currency.ticker,
-          lease.ticker
-        );
+    //     const makeLeaseApplyResp = await leaserClient.leaseQuote(
+    //       state.value.downPayment,
+    //       currency.ticker,
+    //       lease.ticker
+    //     );
 
-        state.value.leaseApply = makeLeaseApplyResp;
+    //     state.value.leaseApply = makeLeaseApplyResp;
 
-        populateBorrow(makeLeaseApplyResp);
-      }
-    } else {
-      state.value.amount = "";
-      state.value.leaseApply = null;
-    }
+    //     populateBorrow(makeLeaseApplyResp);
+    //   }
+    // } else {
+    //   state.value.amount = "";
+    //   state.value.leaseApply = null;
+    // }
   }
 );
 

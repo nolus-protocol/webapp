@@ -43,7 +43,7 @@
     "get-up-to": "Get up to:",
     "leased-amount": "Leased amount:",
     "annual-interest": "Annual interest:",
-    "liquidation-price": "Liquidation price:",
+    "liquidation-price": "Liquidation price",
     "memo": "Memo",
     "contract-address": "Contract address:",
     "confirm-sending": "Confirm sending",
@@ -213,6 +213,15 @@
     "delegated": "Delegated",
     "undelegated": "Undelegated",
     "undelegating": "Undelegating",
-    "undelegate-description": "Once the undelegation begins, you will stop receiving rewards and not be able to cancel it."
+    "undelegate-description": "Once the undelegation begins, you will stop receiving rewards and not be able to cancel it.",
+    "down-payment-tooltip": "Amount of tokens to be deposited as collateral and their USD value",
+    "asset-to-lease": "Asset to Lease",
+    "borrowed": "Borrowed",
+    "borrowed-tooltip": "Amount of USD in stablecoin that will be borrowed for the lease position",
+    "interest": "Interest",
+    "interest-tooltip": "The annualized percent that your debt will increase each year.",
+    "liquidation-price-tooltip": "The collateral price which will trigger partial liquidation",
+    "gas-service-fees": "Gas & Service Fees",
+    "gas-service-fees-tooltip": "Transaction fees charged by the Nolus providers integrated with Nolus"
   }
 }
