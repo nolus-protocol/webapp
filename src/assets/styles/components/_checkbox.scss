@@ -23,7 +23,12 @@
       font-size: 13px !important;
       font-family: "Garet";
 
+      margin-left: 0px !important;
       line-height: 19px !important;
+
+      &.flex{
+        display: flex !important;
+      }
     }
 
     &:hover {

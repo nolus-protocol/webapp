@@ -48,5 +48,26 @@ div.slider-box {
         top: 50%;
         transform: translate(0, -50%);
         z-index: 2;
+        width: 36px;
+        height: 36px;
+        background-image: url("@/assets/icons/slider.svg");
+    }
+}
+
+body.dark {
+
+    span.big,
+    span.small {
+        border-color: $dark-line !important;
+    }
+}
+
+body.sync {
+    @media (prefers-color-scheme: dark) {
+
+        span.big,
+        span.small {
+            border-color: $dark-line !important;
+        }
     }
 }

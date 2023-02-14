@@ -48,21 +48,35 @@
             :default-option="coinList[0]"
             :options="coinList"
             :label="$t('message.asset-to-lease')"
-            @update-selected="(event) => (modelValue.selectedCurrency = event)"
+            @update-selected="updateSelected"
           />
         </div>
       </div>
 
-      <div class="flex mt-6 justify-between">
+      <div class="flex mt-6 justify-between text-primary">
         <p class="pb-0">
-          Margin
+          {{  $t('message.margin')  }}
           </p>
           <p>
             1.3 BTC
           </p>
       </div>
 
-      <RangeComponent class="py-6"></RangeComponent>
+      <RangeComponent class="py-4 my-2" @on-drag="onDrag"></RangeComponent>
+
+      <div v-if="liqudStakeShow" class="flex items-center w-full checkbox-container">
+        <input
+          id="liquid-stake"
+          v-model="liqudStake"
+          aria-describedby="liquid-stake"
+          name="liquid-stake"
+          type="checkbox"
+        />
+        <label class="dark-text flex" for="liquid-stake">
+          {{ $t("message.liquid-stake") }}
+          <TooltipComponent content="content" />
+        </label>
+      </div>
 
       <!-- <div class="flex justify-end mt-5 mr-5">
         <p
@@ -133,7 +147,8 @@
 <script setup lang="ts">
 import CurrencyField from "@/components/CurrencyField.vue";
 import TooltipComponent from "@/components/TooltipComponent.vue";
-import Picker from "../Picker.vue";
+import Picker, { type PickerOption } from "../Picker.vue";
+import RangeComponent from "../RangeComponent.vue";
 
 import type { LeaseComponentProps } from "@/types/component/LeaseComponentProps";
 import type { AssetBalance } from "@/stores/wallet/state";
@@ -145,12 +160,23 @@ import { useOracleStore } from "@/stores/oracle";
 import { computed } from "vue";
 import { useWalletStore } from "@/stores/wallet";
 import { NATIVE_NETWORK } from "@/config/env";
-import RangeComponent from "../RangeComponent.vue";
+import { coin } from "@cosmjs/amino";
 
 const oracle = useOracleStore();
 const wallet = useWalletStore();
 
 const disabledInputField = ref(true);
+const liqudStake = ref(false);
+const liqudStakeShow = ref(false);
+
+const liquiStakeTokens = {
+  OSMO: {
+    key: 'stOsmo'
+  },
+  ATOM: {
+    key: 'stAtom'
+  }
+}
 
 const handleDownPaymentChange = (value: string) => {
   props.modelValue.downPayment = value;
@@ -267,5 +293,24 @@ const formatCurrentBalance = (selectedCurrency: AssetBalance) => {
     ).toString();
   }
 };
+
+const onDrag = (event: number) => {
+
+}
+
+const updateSelected = (event: PickerOption) => {
+  props.modelValue.selectedCurrency = {
+    balance: coin(0, event.value)
+  };
+  const asset = wallet.getCurrencyInfo(event.value);
+  
+  if(liquiStakeTokens[asset.coinAbbreviation as keyof typeof liquiStakeTokens]){
+    liqudStakeShow.value = true;
+  }else{
+    liqudStakeShow.value = false;
+    liqudStake.value = false;
+  }
+
+}
 
 </script>

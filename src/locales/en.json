@@ -222,6 +222,8 @@
     "interest-tooltip": "The annualized percent that your debt will increase each year.",
     "liquidation-price-tooltip": "The collateral price which will trigger partial liquidation",
     "gas-service-fees": "Gas & Service Fees",
-    "gas-service-fees-tooltip": "Transaction fees charged by the Nolus providers integrated with Nolus"
+    "gas-service-fees-tooltip": "Transaction fees charged by the Nolus providers integrated with Nolus",
+    "liquid-stake": "Liquid stake my position",
+    "margin": "Margin"
   }
 }

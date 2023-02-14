@@ -3,7 +3,7 @@
 }
 
 .modal {
-
+  
   &-header {
     padding: 23px 20px 19px 40px;
     border-bottom: 1px solid $borderColor;
@@ -16,6 +16,8 @@
     width: 100%;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
+    overflow: auto;
+
 
     @media (min-width: $md) {
       height: auto;
@@ -34,7 +36,7 @@
       @media (min-width: $md) and (orientation: landscape) {
         -webkit-overflow-scrolling: touch;
         align-items: flex-start;
-        padding-top: 5vh;
+        padding-top: 2vh;
       }
 
     }
