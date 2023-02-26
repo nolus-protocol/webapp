@@ -1,9 +1,7 @@
 <template>
   <div class="col-span-12">
     <!-- Header -->
-    <div
-      class="table-header lg:flex block mt-[25px] flex-wrap items-center justify-between lg:px-0"
-    >
+    <div class="table-header lg:flex block mt-[25px] flex-wrap items-center justify-between lg:px-0">
       <div class="left">
         <h1 class="text-20 nls-font-700 text-primary m-0 pb-3 lg:pb-0">
           {{ $t("message.assets") }}
@@ -132,7 +130,10 @@
                 name="show-small-balances"
                 type="checkbox"
               />
-              <label class="dark-text" for="show-small-balances">{{
+              <label
+                class="dark-text"
+                for="show-small-balances"
+              >{{
                 $t("message.show-small-balances")
               }}</label>
             </div>
@@ -143,16 +144,12 @@
       <!-- Assets -->
       <div class="block mt-6 md:mt-[25px]">
         <!-- Assets Header -->
-        <div
-          class="grid grid-cols-2 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-5"
-        >
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-5">
           <div class="nls-font-500 text-12 text-left text-dark-grey text-upper">
             {{ $t("message.assets") }}
           </div>
 
-          <div
-            class="nls-font-500 text-dark-grey text-12 text-right text-upper"
-          >
+          <div class="nls-font-500 text-dark-grey text-12 text-right text-upper">
             {{ $t("message.balance") }}
           </div>
 
@@ -172,23 +169,35 @@
         </div>
 
         <!-- Assets Container -->
-        <div role="status" class="block lg:mb-0" :class="{'animate-pulse': loading }">
+        <div
+          role="status"
+          class="block lg:mb-0"
+          :class="{ 'animate-pulse': loading }"
+        >
           <template v-if="loading">
-            <div v-for="index in getCurrenciesSize()" :key="index" class="h-[67px] flex items-center justify-between asset-partial nolus-box relative border-b border-standart py-3 px-4 items-center justify-between">
-                <div class="w-[50%] md:w-auto">
-                  <div class="w-32 h-1.5 bg-grey rounded-full mb-2.5"></div>
-                  <div class="h-1.5 bg-grey rounded-full w-24"></div>
-                </div>
-                <div class="flex flex-col items-end w-[50%] md:w-auto ml-8">
-                  <div class="w-32 h-1.5 bg-grey rounded-full mb-2.5"></div>
-                  <div class="h-1.5 bg-grey rounded-full w-24"></div>
-                </div>
-                <div class="h-1.5 bg-grey rounded-full w-12 hidden md:flex"></div>
-                <div class="h-1.5 bg-grey rounded-full w-12 hidden md:flex"></div>
+            <div
+              v-for="index in getCurrenciesSize()"
+              :key="index"
+              class="h-[67px] flex items-center justify-between asset-partial nolus-box relative border-b border-standart py-3 px-4 items-center justify-between"
+            >
+              <div class="w-[50%] md:w-auto">
+                <div class="w-32 h-1.5 bg-grey rounded-full mb-2.5"></div>
+                <div class="h-1.5 bg-grey rounded-full w-24"></div>
+              </div>
+              <div class="flex flex-col items-end w-[50%] md:w-auto ml-8">
+                <div class="w-32 h-1.5 bg-grey rounded-full mb-2.5"></div>
+                <div class="h-1.5 bg-grey rounded-full w-24"></div>
+              </div>
+              <div class="h-1.5 bg-grey rounded-full w-12 hidden md:flex"></div>
+              <div class="h-1.5 bg-grey rounded-full w-12 hidden md:flex"></div>
             </div>
           </template>
           <template v-else>
-            <TransitionGroup name="fade" appear tag="div">
+            <TransitionGroup
+              name="fade"
+              appear
+              tag="div"
+            >
               <AssetPartial
                 v-for="(asset, index) in filteredAssets"
                 :key="`${asset.balance.denom}-${index}`"
@@ -223,22 +232,16 @@
       <!-- Assets -->
       <div class="block mt-6 md:mt-[25px]">
         <!-- Assets Header -->
-        <div
-          class="grid grid-cols-2 md:grid-cols-3 gap-6 border-b border-standart pb-3 px-6"
-        >
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-6 border-b border-standart pb-3 px-6">
           <div class="nls-font-500 text-12 text-left text-dark-grey text-upper">
             {{ $t("message.assets") }}
           </div>
 
-          <div
-            class="hidden md:inline-flex items-center nls-font-500 text-12 text-right text-dark-grey text-upper"
-          >
+          <div class="hidden md:inline-flex items-center nls-font-500 text-12 text-right text-dark-grey text-upper">
             <span class="inline-block">{{ $t("message.release") }}</span>
           </div>
 
-          <div
-            class="nls-font-500 text-dark-grey text-12 text-right text-upper"
-          >
+          <div class="nls-font-500 text-dark-grey text-12 text-right text-upper">
             {{ $t("message.amount-repay") }}
           </div>
         </div>
@@ -354,7 +357,7 @@ onMounted(() => {
   availableAssets();
   wallet[WalletActionTypes.LOAD_STAKED_TOKENS]();
   wallet[WalletActionTypes.LOAD_SUPPLIED_AMOUNT]();
-  if(showSkeleton.value){
+  if (showSkeleton.value) {
     timeout = setTimeout(() => {
       showSkeleton.value = false;
     }, 400);
@@ -362,7 +365,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  if(timeout){
+  if (timeout) {
     clearTimeout(timeout);
   }
 })
@@ -398,8 +401,8 @@ const isTotalBalancePositive = computed(() => {
 });
 
 const { leases, getLeases } = useLeases(
-  (error: Error | any) => {},
-  () => {}
+  (error: Error | any) => { },
+  () => { }
 );
 
 provide("getLeases", getLeases);
@@ -512,5 +515,4 @@ const getMarketPrice = (denom: string) => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}
-</style>
+}</style>

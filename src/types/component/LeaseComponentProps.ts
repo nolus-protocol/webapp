@@ -4,13 +4,12 @@ import type { LeaseApply } from "@nolus/nolusjs/build/contracts";
 
 export interface LeaseComponentProps {
   contractAddress: string;
-  amountErrorMsg: string;
   downPaymentErrorMsg: string;
   currentBalance: AssetBalance[];
   selectedDownPaymentCurrency: AssetBalance;
   selectedCurrency: AssetBalance;
+  dialogSelectedCurrency: null | string;
   downPayment: string;
-  amount: string;
   memo: string;
   password: string;
   passwordErrorMsg: string;

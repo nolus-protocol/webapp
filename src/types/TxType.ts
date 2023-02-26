@@ -11,4 +11,5 @@ export enum TxType {
   UNDELEGATE = "Undelegate from:",
   GRANT = "Grant to:",
   CLAIM = "Claim from:",
+  TRANSFER = "Transfer",
 }

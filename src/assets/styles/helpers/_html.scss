@@ -12,9 +12,39 @@ body {
 	background-color: #fafbfc;
 	background: linear-gradient(314.47deg, #EBEFF5 2.19%, #f7f9fc 100%);
 
+	@media (min-width: 830px) {
+		.custom-scroll {
+			& {
+				scrollbar-width: thin;
+				scrollbar-color: #9c9c9c #f5f5f5;
+			}
+
+			&::-webkit-scrollbar-track {
+				background-color: #f5f5f5;
+			}
+
+			&::-webkit-scrollbar {
+				width: 6px;
+				height: 6px;
+				background-color: #f5f5f5;
+			}
+
+			&::-webkit-scrollbar-thumb {
+				background-color: #2B384B;
+				border: solid 0px white;
+				border-radius: 0px;
+			}
+
+		}
+	}
+
 	&.sync {
 		@media (prefers-color-scheme: dark) {
 			background: $dark-gray;
+
+			button.chart-dates {
+				color: white;
+			}
 		}
 
 		.border-right {
@@ -37,6 +67,10 @@ body {
 
 	&.dark {
 		background: $dark-gray;
+
+		button.chart-dates {
+			color: white;
+		}
 
 		.border-right {
 			border-right: 1px solid $dark-line;
@@ -86,23 +120,23 @@ div#app {
 .scrollbar {
 	scrollbar-width: thin;
 	scrollbar-color: #9c9c9c #f5f5f5;
-  
+
 	&::-webkit-scrollbar-track {
-	  background-color: white;
+		background-color: white;
 	}
-  
+
 	&::-webkit-scrollbar {
-	  width: 8px;
-	  height: 6px;
-	  background-color: white;
+		width: 8px;
+		height: 6px;
+		background-color: white;
 	}
-  
+
 	&::-webkit-scrollbar-thumb {
-	  background-color: #ebeff5;
-	  border: solid 1px white;
-	  border-radius: 5px;
+		background-color: #ebeff5;
+		border: solid 1px white;
+		border-radius: 5px;
 	}
-  }
+}
 
 hr {
 	background-color: $borderColor;

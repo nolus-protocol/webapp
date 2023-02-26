@@ -76,7 +76,6 @@
           </p>
           <p class="text-14 text-primary nls-font-700 m-0">
             {{ calculateFee(fee) }}
-            <!-- {{ formatAmount(props.fee?.amount[0]) }} {{ NATIVE_CURRENCY.abbreviation }} -->
           </p>
         </div>
       </div>

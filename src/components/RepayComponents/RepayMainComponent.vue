@@ -14,7 +14,10 @@
     :onOkClick="onClickOkBtn"
     @passwordUpdate="(value: string) => state.password = value"
   />
-  <RepayFormComponent v-else v-model="state" />
+  <RepayFormComponent
+    v-else
+    v-model="state"
+  />
 </template>
 
 <script setup lang="ts">
@@ -26,38 +29,31 @@ import type { AssetBalance } from "@/stores/wallet/state";
 import RepayFormComponent from "@/components/RepayComponents/RepayFormComponent.vue";
 import ConfirmComponent from "@/components/modals/templates/ConfirmComponent.vue";
 
-import {
-  inject,
-  onBeforeMount,
-  onUnmounted,
-  ref,
-  watch,
-  type PropType,
-} from "vue";
+import { computed, inject, onUnmounted, ref, watch, type PropType } from "vue";
 import { Lease } from "@nolus/nolusjs/build/contracts";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { Dec, Int } from "@keplr-wallet/unit";
 
 import { CONFIRM_STEP } from "@/types";
 import { TxType } from "@/types";
-import { defaultNolusWalletFee } from "@/config/wallet";
 import { getMicroAmount, walletOperation } from "@/components/utils";
 import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, GROUPS, TIP, LEASE_MAX_AMOUNT, LEASE_MIN_AMOUNT } from "@/config/env";
 import { coin } from "@cosmjs/amino";
+import { useOracleStore } from "@/stores/oracle";
 
 const walletStore = useWalletStore();
+const oracle = useOracleStore();
+
 const walletRef = storeToRefs(walletStore);
 const i18n = useI18n();
 
-const onModalClose = inject("onModalClose", () => {});
-const showSnackbar = inject(
-  "showSnackbar",
-  (type: string, transaction: string) => {}
-);
+const onModalClose = inject("onModalClose", () => { });
+const showSnackbar = inject("showSnackbar", (type: string, transaction: string) => { });
 const snackbarVisible = inject("snackbarVisible", () => false);
+const getLeases = inject("getLeases", () => { });
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const showConfirmScreen = ref(false);
@@ -71,33 +67,27 @@ const props = defineProps({
   },
 });
 
+const balances = computed(() => {
+  const balances = walletStore.balances;
+  return balances.filter((item) => {
+    const currency = walletStore.currencies[item.balance.denom];
+    return currency.groups.includes(GROUPS.Lease) || currency.groups.includes(GROUPS.Lpn);
+  });
+});
+
 const state = ref({
-  outstandingLoanAmount: props.leaseData?.leaseStatus?.opened?.amount || "",
-  currentBalance: walletStore.balances as AssetBalance[],
-  selectedCurrency: {} as AssetBalance,
+  leaseInfo: props.leaseData?.leaseStatus?.opened,
+  currentBalance: balances.value as AssetBalance[],
+  selectedCurrency: balances.value[0] as AssetBalance,
   receiverAddress: props.leaseData?.leaseAddress || "",
   amount: "",
   password: "",
   passwordErrorMsg: "",
   amountErrorMsg: "",
   txHash: "",
-  fee: coin(GAS_FEES.repay_lease, NATIVE_ASSET.denom),
+  fee: coin(GAS_FEES.repay_lease + TIP.amount, NATIVE_ASSET.denom),
   onNextClick: () => onNextClick(),
 } as RepayComponentProps);
-
-onBeforeMount(() => {
-  const balances = walletStore.balances;
-
-  if (balances) {
-    const lease = props.leaseData;
-    const item = balances.find((item) => {
-      const currency = walletStore.getCurrencyInfo(item.balance.denom);
-      return currency.ticker == lease?.leaseStatus?.opened?.amount?.ticker;
-    });
-    state.value.currentBalance = balances;
-    state.value.selectedCurrency = item as AssetBalance;
-  }
-});
 
 onUnmounted(() => {
   if (CONFIRM_STEP.PENDING == step.value) {
@@ -129,37 +119,66 @@ const onClickOkBtn = () => {
 
 const isAmountValid = (): boolean => {
   let isValid = true;
-  const decimals = walletStore.getCurrencyInfo(
-    state.value.selectedCurrency.balance.denom
-  ).coinDecimals;
+  state.value.amountErrorMsg = "";
+
+  const selectedPaymentDenom = state.value.selectedCurrency.balance.denom;
   const amount = state.value.amount;
-  const microAmount = CurrencyUtils.convertDenomToMinimalDenom(
-    amount,
-    state.value.selectedCurrency.balance.denom,
-    decimals
-  ).amount.toString();
-  const walletBalance = String(
-    state.value.selectedCurrency?.balance?.amount || 0
-  );
+  const currentBalance = getCurrentBalanceByDenom(selectedPaymentDenom);
 
-  if (microAmount || microAmount !== "") {
-    state.value.amountErrorMsg = "";
-    const isLowerThanOrEqualsToZero = new Int(microAmount).lt(new Int(1));
-    const isGreaterThenBalance = new Int(microAmount).gt(
-      new Int(walletBalance || "0")
-    );
+  if (currentBalance) {
 
-    if (isLowerThanOrEqualsToZero) {
-      state.value.amountErrorMsg = i18n.t("message.invalid-balance-low");
+    if (amount || amount !== "") {
+
+      const coinData = walletStore.getCurrencyInfo(
+        currentBalance?.balance?.denom
+      );
+      const asset = walletStore.getCurrencyByTicker(coinData.ticker);
+      const price = oracle.prices[asset.symbol];
+
+      const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, "", coinData.coinDecimals);
+      const balance = CurrencyUtils.calculateBalance(price.amount, amountInMinimalDenom, coinData.coinDecimals).toDec();
+
+      const leaseMax = new Dec(LEASE_MAX_AMOUNT);
+      const leaseMin = new Dec(LEASE_MIN_AMOUNT);
+
+      const isLowerThanOrEqualsToZero = new Dec(
+        amountInMinimalDenom.amount || "0"
+      ).lte(new Dec(0));
+
+      const isGreaterThanWalletBalance = new Int(
+        amountInMinimalDenom.amount.toString() || "0"
+      ).gt(currentBalance?.balance?.amount);
+
+      if (isLowerThanOrEqualsToZero) {
+        state.value.amountErrorMsg = i18n.t("message.invalid-balance-low");
+        isValid = false;
+      }
+
+      if (isGreaterThanWalletBalance) {
+        state.value.amountErrorMsg = i18n.t("message.invalid-balance-big");
+        isValid = false;
+      }
+
+      if (balance.lt(leaseMin)) {
+        state.value.amountErrorMsg = i18n.t("message.lease-min-error", {
+          amount: Math.ceil(LEASE_MIN_AMOUNT / Number(price.amount) * 1000) / 1000,
+          symbol: coinData.coinAbbreviation
+        });
+        isValid = false;
+      }
+
+      if (balance.gt(leaseMax)) {
+        state.value.amountErrorMsg = i18n.t("message.lease-max-error", {
+          amount: Math.ceil(LEASE_MAX_AMOUNT / Number(price.amount) * 1000) / 1000,
+          symbol: coinData.coinAbbreviation
+        });
+        isValid = false;
+      }
+
+    } else {
+      state.value.amountErrorMsg = i18n.t("message.missing-amount");
       isValid = false;
     }
-    if (isGreaterThenBalance) {
-      state.value.amountErrorMsg = i18n.t("message.invalid-balance-big");
-      isValid = false;
-    }
-  } else {
-    state.value.amountErrorMsg = i18n.t("message.missing-amount");
-    isValid = false;
   }
 
   return isValid;
@@ -170,44 +189,68 @@ const repayLease = async () => {
   if (wallet && isAmountValid()) {
     step.value = CONFIRM_STEP.PENDING;
     try {
+
       const microAmount = getMicroAmount(
         state.value.selectedCurrency.balance.denom,
         state.value.amount
       );
+
       const funds: Coin[] = [
         {
           denom: microAmount.coinMinimalDenom,
           amount: microAmount.mAmount.amount.toString(),
         },
+        {
+          denom: TIP.denom,
+          amount: TIP.amount.toString()
+        }
       ];
+
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const leaseClient = new Lease(
         cosmWasmClient,
         state.value.receiverAddress
       );
-      const result = await leaseClient.repayLease(
+
+      const { txHash, txBytes, usedFee } = await leaseClient.simulateRepayLeaseTx(
         wallet,
-        defaultNolusWalletFee(),
         funds
       );
 
-      if (result) {
-        state.value.txHash = result.transactionHash || "";
-        step.value = CONFIRM_STEP.SUCCESS;
-        if (snackbarVisible()) {
-          showSnackbar(SNACKBAR.Success, state.value.txHash);
-        }
+      state.value.txHash = txHash;
+
+      if (usedFee?.amount?.[0]) {
+        state.value.fee = usedFee.amount[0];
       }
+
+      const tx = await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
+      const isSuccessful = tx?.code === 0;
+      step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
+
+      if (snackbarVisible()) {
+        showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
+      }
+
+      getLeases();
     } catch (e) {
+      console.log(e)
       step.value = CONFIRM_STEP.ERROR;
     }
   }
 };
 
-watch(walletRef.balances, (balances: AssetBalance[]) => {
-  if (balances) {
+const getCurrentBalanceByDenom = (denom: string) => {
+  for (let currency of state.value.currentBalance) {
+    if (currency.balance.denom == denom) {
+      return currency;
+    }
+  }
+};
+
+watch(walletRef.balances, (b: AssetBalance[]) => {
+  if (b) {
     if (!state.value.selectedCurrency) {
-      state.value.selectedCurrency = balances[0];
+      state.value.selectedCurrency = balances.value[0];
     }
   }
 });
@@ -215,11 +258,7 @@ watch(walletRef.balances, (balances: AssetBalance[]) => {
 watch(
   () => state.value?.amount,
   () => {
-    const amount = state.value.amount;
-    if (amount) {
-      state.value.amount = new Dec(amount).truncate().toString();
-      isAmountValid();
-    }
+    isAmountValid();
   }
 );
 </script>

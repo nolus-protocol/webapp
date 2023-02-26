@@ -23,7 +23,7 @@
         <span class="small"></span>
       </div>
     </div>
-    <button ref="button" draggable="true">
+    <button ref="button" draggable="true" type="button">
 
     </button>
   </div>
@@ -36,6 +36,10 @@ const props = defineProps({
     type: String,
     default: "",
   },
+  disabled: {
+    type: Boolean,
+    default: false
+  }
 });
 
 const emits = defineEmits(['onDrag'])
@@ -56,6 +60,10 @@ const onMouseLeave = (event: MouseEvent | TouchEvent) => {
 
 const onMouseDown = (event: MouseEvent | TouchEvent) => {
   event.preventDefault();
+
+  if(props.disabled){
+    return false;
+  }
 
   const draggable = button.value!;
   const parentRect = container.value?.getBoundingClientRect();

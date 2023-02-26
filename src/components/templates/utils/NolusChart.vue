@@ -1,8 +1,9 @@
 <template>
-  <Line
-    :chart-data="chartData"
-    :chart-id="chartId"
-    :chart-options="chartOptions"
+  <LineWithLine
+    class="max-h-[150px]"
+    :data="chartData"
+    :id="chartId"
+    :options="defaultOptions"
     :css-classes="cssClasses"
     :height="height"
     :plugins="plugins"
@@ -11,9 +12,8 @@
   />
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import "chartjs-adapter-date-fns";
-import { defineComponent, h, type PropType } from "vue";
 import { createTypedChart } from "vue-chartjs";
 import {
   CategoryScale,
@@ -27,150 +27,12 @@ import {
   Title,
   Tooltip,
   type Plugin,
+  type ChartData,
 } from "chart.js";
-import { NATIVE_CURRENCY } from "@/config/env";
 
-export const defaultOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  tooltips: {
-    intersect: false,
-  },
-  scales: {
-    x: {
-      parsing: false,
-      type: "time",
-      ticks: {
-        autoSkip: true,
-        maxTicksLimit: 6,
-        maxRotation: 0,
-      },
-      grid: {
-        display: false,
-        drawBorder: false,
-        drawOnChartArea: false,
-        drawTicks: false,
-      },
-    },
-    y: {
-      ticks: {
-        display: false,
-      },
-      grid: {
-        display: false,
-        drawBorder: false,
-        drawOnChartArea: false,
-        drawTicks: false,
-      },
-    },
-  },
-  plugins: {
-    legend: {
-      display: false,
-    },
-    tooltip: {
-      enabled: false,
-      position: "nearest",
-      callbacks: {
-        label: (context: {
-          dataset: { label: string };
-          parsed: { y: number | bigint | null };
-        }) => {
-          let label = context.dataset.label || "";
-          let value = "";
-          if (label) {
-            label = `${label}: `;
-          }
-
-          if (context.parsed.y !== null) {
-            value = new Intl.NumberFormat(NATIVE_CURRENCY.locale, {
-              style: "currency",
-              currency: NATIVE_CURRENCY.currency,
-            }).format(context.parsed.y);
-          }
-
-          return {
-            label,
-            value,
-          };
-        },
-      },
-      external: (context: { chart: any; tooltip?: any }) => {
-        const { chart, tooltip } = context;
-        const tooltipEl = getOrCreateTooltip(chart);
-
-        if (tooltip.opacity === 0) {
-          tooltipEl.style.opacity = 0;
-          return;
-        }
-
-        if (tooltip.body) {
-          const titleLines = tooltip.title || [];
-          const bodyLines = tooltip.body.map((b: { lines: any }) => b.lines);
-
-          const tableHead = document.createElement("thead");
-
-          titleLines.forEach((title: string) => {
-            const tr = document.createElement("tr");
-
-            const th = document.createElement("th");
-            const text = document.createTextNode(title);
-
-            th.appendChild(text);
-            tr.appendChild(th);
-            tableHead.appendChild(tr);
-          });
-
-          const tableBody = document.createElement("tbody");
-          bodyLines.forEach((body: any[], i: any) => {
-            const tr = document.createElement("tr");
-
-            body.forEach((item: { label: any; value: any }) => {
-              const { label, value } = item;
-              const td = document.createElement("td");
-              const span = document.createElement("span");
-
-              const labelText = document.createTextNode(label);
-              const valueText = document.createTextNode(value);
-
-              span.appendChild(labelText);
-              td.appendChild(span);
-              td.appendChild(valueText);
-              tr.appendChild(td);
-            });
-            tableBody.appendChild(tr);
-          });
-
-          const tableRoot = tooltipEl.querySelector("table");
-
-          // Remove old children
-          while (tableRoot.firstChild) {
-            tableRoot.firstChild.remove();
-          }
-
-          // Add new children
-          tableRoot.appendChild(tableHead);
-          tableRoot.appendChild(tableBody);
-        }
-
-        const { offsetLeft: positionX, offsetTop: positionY } = chart.canvas;
-        let moveLeft = positionX + tooltip.caretX;
-        const left = moveLeft + tooltipEl.offsetWidth / 2;
-        const bounding = context.chart.canvas.getBoundingClientRect();
-        const canvasPosition = bounding.width + bounding.left;
-
-        if (canvasPosition < left) {
-          const diff = left - canvasPosition;
-          moveLeft -= diff;
-        }
-        // Display, position, and set styles for font
-        tooltipEl.style.opacity = 1;
-        tooltipEl.style.left = moveLeft + "px";
-        tooltipEl.style.top = positionY + tooltip.caretY + 10 + "px";
-      },
-    },
-  },
-};
+import { defaultOptions } from "@/components/templates/utils/chartOptions";
+import type { PropType } from "vue";
+import type { Point } from "chart.js/dist/helpers/helpers.canvas";
 
 ChartJS.register(
   Title,
@@ -186,7 +48,6 @@ ChartJS.register(
 class LineWithLineController extends LineController {
   public override draw() {
     super.draw();
-
     if (this.chart?.tooltip?.active) {
       const ctx = this.chart.ctx;
       const x = this.chart.tooltip.x;
@@ -208,78 +69,41 @@ class LineWithLineController extends LineController {
 
 const LineWithLine = createTypedChart("line", LineWithLineController);
 
-export default defineComponent({
-  name: "CustomChart",
-  props: {
-    chartId: {
-      type: String,
-      default: "line-chart",
-    },
-    chartData: {
-      type: Function,
-      default: () => {},
-    },
-    chartOptions: {
-      type: Object,
-      default: defaultOptions,
-    },
-    width: {
-      type: Number,
-    },
-    height: {
-      type: Number,
-      default: 150,
-    },
-    cssClasses: {
-      default: "",
-      type: String,
-    },
-    styles: {
-      type: Object as PropType<Partial<CSSStyleDeclaration>>,
-      default: () => {},
-    },
-    plugins: {
-      type: Array as PropType<Plugin<"line">[]>,
-      default: () => [],
-    },
+defineProps({
+  chartId: {
+    type: String,
+    default: "line-chart",
   },
-  setup(props) {
-    return () =>
-      h(LineWithLine as any, {
-        chartData: props.chartData,
-        chartOptions: props.chartOptions,
-        chartId: props.chartId,
-        width: props.width,
-        height: props.height,
-        cssClasses: props.cssClasses,
-        styles: props.styles,
-        plugins: props.plugins,
-      });
+  chartData: {
+    type: Object as PropType<ChartData<"line", (number | Point | null)[], unknown>>,
+    default: () => {
+      return {
+        labels: [],
+        datasets: []
+      }
+    }
+  },
+  width: {
+    type: Number,
+  },
+  height: {
+    type: Number,
+    default: 150,
+  },
+  cssClasses: {
+    default: "",
+    type: String,
+  },
+  styles: {
+    type: Object as PropType<Partial<CSSStyleDeclaration>>,
+    default: () => { },
+  },
+  plugins: {
+    type: Array as PropType<Plugin<"line">[]>,
+    default: () => [],
   },
 });
 
-const getOrCreateTooltip = (chart: {
-  canvas: {
-    parentNode: {
-      querySelector: (arg0: string) => any;
-      appendChild: (arg0: any) => void;
-    };
-  };
-}) => {
-  let tooltipEl = chart.canvas.parentNode.querySelector("div");
-
-  if (!tooltipEl) {
-    tooltipEl = document.createElement("div");
-    tooltipEl.classList.add("chart-tooltip");
-
-    const table = document.createElement("table");
-
-    tooltipEl.appendChild(table);
-    chart.canvas.parentNode.appendChild(tooltipEl);
-  }
-
-  return tooltipEl;
-};
 </script>
 
 <style lang="scss">

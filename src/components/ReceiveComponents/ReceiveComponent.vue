@@ -264,7 +264,6 @@ const onUpdateNetwork = async (event: Network) => {
     }
 
     const items = await Promise.all(currenciesPromise);
-    console.log(items)
     selectedCurrency.value =  items?.[0]
     networkCurrencies.value = items;
     disablePicker.value = false;

@@ -10,7 +10,7 @@ import WithdrawRewardsComponents from "@/components/WithdrawRewardsComponents/Wi
 import type { AssetBalance } from "@/stores/wallet/state";
 import type { PropType } from "vue";
 
-const props = defineProps({
+defineProps({
   amount: {
     type: Object as PropType<AssetBalance>,
     required: true,

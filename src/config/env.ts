@@ -127,9 +127,10 @@ export const GAS_FEES = {
   lender_burn_deposit: 1200,
   lender_claim_rewards: 17000,
   transfer_amount: 500,
-  open_lease: 1500,
-  repay_lease: 1500,
-  swap_amount: 1500,
+  open_lease: 5000,
+  close_lease: 5000,
+  repay_lease: 5000,
+  swap_amount: 5000,
 };
 
 export enum APPEARANCE {
@@ -152,3 +153,17 @@ export const STAKING = {
   PERCENT: 0.05,
   SLICE: 3
 };
+
+export const TIP = {
+  amount: 10,
+  denom: NATIVE_ASSET.denom
+}
+
+export const LEASE_MIN_AMOUNT = 0.00005;
+export const LEASE_MAX_AMOUNT = 25000;
+export const WASM_EVENTS = {
+  "wasm-ls-request-loan": {
+    key: "wasm-ls-request-loan",
+    index: 0
+  }
+}
