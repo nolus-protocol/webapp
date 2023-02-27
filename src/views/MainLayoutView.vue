@@ -78,12 +78,24 @@ const snackbarState = ref({
 
 onMounted(async () => {
   await loadNetwork();
+  window.addEventListener("keplr_keystorechange", updateKeplr);
 });
 
 onUnmounted(() => {
   clearInterval(balanceInterval);
   clearInterval(pricesInterval);
+  window.removeEventListener("keplr_keystorechange", updateKeplr);
 });
+
+const updateKeplr = async () => {
+  try {
+  await wallet[WalletActionTypes.CONNECT_KEPLR]({ isFromAuth: true });
+  await loadNetwork();
+} catch (error: Error | any) {
+    showErrorDialog.value = true;
+    errorMessage.value = error?.message
+  }
+}
 
 const connect = async () => {
   clearInterval(balanceInterval);
