@@ -2,7 +2,7 @@ export const NETWORK = {
     prefix: "osmo",
     tendermintRpc: "https://rpc-test.osmosis.zone:443",
     api: "https://lcd-test.osmosis.zone",
-    sourceChannel: "channel-2556",
+    sourceChannel: "channel-2406",
     gasMuplttiplier: 2,
     bip44Path: "44'/118'/0'/0/0",
     ibcTransferTimeout: 60,
