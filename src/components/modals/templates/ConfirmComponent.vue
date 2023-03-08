@@ -2,14 +2,14 @@
   <!-- Header -->
   <div class="flex modal-send-receive-header no-border">
     <div class="navigation-header">
-      <button
+      <!-- <button
         v-if="isStepConfirm"
         class="back-arrow"
         type="button"
         @click="onBackButtonClick"
       >
         <ArrowLeftIcon aria-hidden="true" class="h-5 w-5" />
-      </button>
+      </button> -->
       <div class="flex flex-col justify-center items-center">
         <CheckIcon
           v-if="isStepSuccess"

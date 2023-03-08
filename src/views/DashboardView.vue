@@ -242,7 +242,7 @@
           </div>
 
           <div class="nls-font-500 text-dark-grey text-12 text-right text-upper">
-            {{ $t("message.amount-repay") }}
+            {{ $t("message.balance") }}
           </div>
         </div>
 

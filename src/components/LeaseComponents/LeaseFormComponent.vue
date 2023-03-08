@@ -59,7 +59,7 @@
         @on-drag="onDrag"
       ></RangeComponent>
 
-      <div
+      <!-- <div
         v-if="liqudStakeShow"
         class="flex items-center w-full checkbox-container"
       >
@@ -77,7 +77,7 @@
           {{ $t("message.liquid-stake") }}
           <TooltipComponent content="content" />
         </label>
-      </div>
+      </div> -->
 
       <div class="flex justify-end">
         <div class="grow-3 text-right nls-font-500 text-14 dark-text">

@@ -40,8 +40,12 @@
       <!-- Balance -->
       <div class="flex justify-end">
         <button
+          :disabled="!isEnabled"
           :class="`btn btn-secondary btn-medium-secondary ${
             loading ? 'js-loading' : 'btn-emphatized'
+          }
+          ${
+            isEnabled ? '' : 'disabled'
           }`"
           @:click="onClickClaim"
         >
@@ -55,7 +59,7 @@
 <script lang="ts" setup>
 import { type PropType, ref, computed } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { Coin, Int } from "@keplr-wallet/unit";
+import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
@@ -111,4 +115,14 @@ const calculateBalance = (tokenAmount: string, denom: string) => {
   const coin = new Coin(denom, new Int(tokenAmount));
   return CurrencyUtils.calculateBalance(price, coin, tokenDecimals);
 };
+
+const isEnabled = computed(() => {
+  const asset = CurrencyUtils.convertCoinUNolusToNolus(props.reward.balance)?.toDec();
+
+  if(asset?.gt(new Dec(0))){
+    return true;
+  }
+
+  return false;
+});
 </script>

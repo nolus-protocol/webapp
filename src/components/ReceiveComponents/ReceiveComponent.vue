@@ -268,6 +268,8 @@ const onUpdateNetwork = async (event: Network) => {
     networkCurrencies.value = items;
     disablePicker.value = false;
 
+  }else{
+    selectedCurrency.value = walletStore.balances[0];
   }
 };
 

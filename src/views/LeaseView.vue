@@ -35,7 +35,7 @@
 
   <Modal
     v-if="showLeaseModal"
-    @close-modal="showLeaseModal = false"
+    @close-modal="onCloseLease"
     route="create"
   >
     <LeaseDialog />
@@ -60,6 +60,7 @@ import LeaseInfo from "@/components/LeaseInfo.vue";
 
 import { ref, provide, onMounted, onUnmounted } from "vue";
 import { useLeases } from "@/composables/useLeases";
+import router from "@/router";
 
 const showLeaseModal = ref(false);
 const { leases, getLeases } = useLeases(onLeaseError, showModal);
@@ -81,6 +82,13 @@ onMounted(() => {
 onUnmounted(() => {
   clearInterval(timeOut);
 })
+
+const onCloseLease = () => {
+  showLeaseModal.value = false;
+  if(leases.value.length == 0){
+    router.push({ path: '/'})
+  }
+}
 
 function onLeaseError(e: Error | any) {
   errorDialog.value.showDialog = true;

@@ -15,9 +15,9 @@
           </a>
         </span
         >
-        <span class="text-14 nls-font-500 text-dark-grey">
+        <!-- <span class="text-14 nls-font-500 text-dark-grey">
           {{ $t("message.apr") }} {{ modelValue.currentAPR }}
-        </span>
+        </span> -->
       </div>
 
       <div class="block text-left mt-[25px]">
