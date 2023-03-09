@@ -3,7 +3,13 @@
     <LogoLink link="/"></LogoLink>
     <div class="container mx-auto h-full">
       <div class="flex items-center justify-center pt-[64px] h-full md:h-auto">
-        <router-view />
+        <router-view v-slot="{ Component, route }">
+            <transition name="fade" mode="out-in" appear>
+              <div :key="route.name!">  
+                <component :is="Component"></component>
+              </div>
+            </transition>
+          </router-view>
       </div>
     </div>
   </div>

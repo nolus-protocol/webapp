@@ -24,6 +24,16 @@
   opacity: 0;
 }
 
+@keyframes fadeInAnimation {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes fadeOutAnimation {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 @keyframes slide-fade-bottom {
   0% {
     opacity: 1;

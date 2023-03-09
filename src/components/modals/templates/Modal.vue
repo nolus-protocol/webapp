@@ -2,8 +2,8 @@
   <Teleport to="body">
     <div
       class="fixed flex top-0 bottom-0 left-0 right-0 justify-center background/70 z-[999999999] modal-send-receive-parent"
-      style="linear-gradient(314.47 deg, #EBEFF5 2.19 %, #F7F9FC 100 %);"
       @keydown.esc="onModalClose"
+      ref="dialog"
     >
       <button
         v-if="collpase"
@@ -50,6 +50,7 @@ import { XMarkIcon } from "@heroicons/vue/24/solid";
 import router from "@/router";
 
 const collpase = ref(false);
+const dialog = ref<HTMLDivElement>();
 const props = defineProps({
   route: {
     type: String,
@@ -65,8 +66,7 @@ const setCollapseButton = (bool: boolean) => {
 
 const onModalClose = () => {
   parseRoute();
-  emit("close-modal");
-  document.body.style.overflowY = "auto";
+  close();
 };
 
 const parseRoute = () => {
@@ -83,11 +83,17 @@ const escapeClicked = (event: KeyboardEvent) => {
 };
 
 const backButtonClicked = (event: Event) => {
-  emit("close-modal");
-  document.body.style.overflowY = "auto";
+  close();
 };
 
 onMounted(() => {
+  document.body.style.overflowY = "hidden";
+
+  const element = dialog.value;
+  if (element) {
+    element.style.animation = 'fadeInAnimation 200ms';
+  }
+
   const path = router.currentRoute.value.path;
   router.push({
     path,
@@ -95,13 +101,24 @@ onMounted(() => {
   });
   document.addEventListener("keyup", escapeClicked);
   window.addEventListener("popstate", backButtonClicked);
-  document.body.style.overflowY = "hidden";
+
 });
 
 onUnmounted(() => {
   document.removeEventListener("keyup", escapeClicked);
   window.removeEventListener("popstate", backButtonClicked);
 });
+
+const close = () => {
+  const element = dialog.value;
+  if (element) {
+    element.style.animation = 'fadeOutAnimation 200ms';
+  }
+  setTimeout(() => {
+    emit("close-modal");
+    document.body.style.overflowY = "auto";
+  }, 200);
+}
 
 provide("onModalClose", onModalClose);
 provide("parseRoute", parseRoute);
