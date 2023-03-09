@@ -2,6 +2,7 @@
   <DialogHeader
     :headerList="['Delegate', 'Undelegate']"
     :routes="['delegate', 'undelegate']"
+    :active-tab="isDelegated ? 2 : 1"
   >
     <template #tab-1>
       <DelegateMainComponent :selectedAsset="selectedAsset" />
@@ -20,6 +21,10 @@ import DialogHeader from "./templates/DialogHeader.vue";
 defineProps({
   selectedAsset: {
     type: String,
+    required: true,
+  },
+  isDelegated: {
+    type: Boolean,
     required: true,
   },
 });

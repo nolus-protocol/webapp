@@ -71,7 +71,7 @@
           class="btn btn-secondary btn-medium-secondary"
           @click="openDelegateUndelegate()"
         >
-          {{ $t("message.delegate") }}
+        {{ isDelegated ? $t("message.undelegate") : $t("message.delegate") }}
         </button>
       </div>
 
@@ -80,7 +80,7 @@
           class="btn btn-secondary btn-medium-secondary w-full flex"
           @click="openDelegateUndelegate()"
         >
-          {{ $t("message.delegate") }}
+          {{ isDelegated ? $t("message.undelegate") : $t("message.delegate") }}
         </button>
       </div>
     </div>
@@ -116,7 +116,13 @@ const props = defineProps({
     type: Function,
     required: true,
   },
+  isDelegated: {
+    type: Boolean,
+    required: true,
+  }
 });
+
+console.log(props)
 
 const assetInfo = computed(() => {
   const assetInfo = wallet.getCurrencyInfo(props.asset.balance.denom);

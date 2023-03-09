@@ -146,7 +146,7 @@
     "ledger-support-error": "Browser does not support connection with external devices.",
     "vested": "Vested",
     "release": "Release Schedule",
-    "available-withdraw": "Available for withdraw",
+    "available-withdraw": "Supplied",
     "chart-tooltip-price": "Price",
     "price-in-usd": "1 {symbol} price in USD:",
     "set-name": "Set Name",

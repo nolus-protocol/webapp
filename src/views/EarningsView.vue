@@ -1,9 +1,7 @@
 <template>
   <div class="col-span-12 mb-sm-nolus-70">
     <!-- Header -->
-    <div
-      class="flex flex-wrap items-center justify-between px-4 lg:pt-[25px] lg:px-0"
-    >
+    <div class="flex flex-wrap items-center justify-between px-4 lg:pt-[25px] lg:px-0">
       <div class="left w-full md:w-1/2">
         <h1 class="text-20 nls-font-700 text-primary m-0 nls-sm-title">
           {{ $t("message.earn-title") }}
@@ -14,9 +12,7 @@
     <div class="md:grid md:grid-cols-12 md:gap-4">
       <div class="md:col-span-7 lg:col-span-7">
         <!-- Portfolio -->
-        <div
-          class="nolus-box block order-2 order-1 background radius-medium md:col-span-7 md:mt-6 async-loader outline"
-        >
+        <div class="nolus-box block order-2 order-1 background radius-medium md:col-span-7 md:mt-6 async-loader outline">
           <div class="lg:flex block items-center justify-between px-6 pt-6">
             <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
               {{ $t("message.earning-assets") }}
@@ -39,12 +35,8 @@
           <!-- Assets -->
           <div class="block mt-6 md:mt-[25px]">
             <!-- Assets Header -->
-            <div
-              class="grid grid-cols-2 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-4"
-            >
-              <div
-                class="nls-font-500 text-12 text-dark-grey text-left text-upper pl-2"
-              >
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-4">
+              <div class="nls-font-500 text-12 text-dark-grey text-left text-upper pl-2">
                 {{ $t("message.asset") }}
               </div>
 
@@ -62,28 +54,38 @@
                 class="nls-font-500 text-12 text-dark-grey text-right text-upper md:flex hidden items-center justify-end"
               >
                 {{ $t("message.apr") }}
-                <TooltipComponent
-                  :content="$t('message.earn-view-apr-tooltip')"
-                />
+                <TooltipComponent :content="$t('message.earn-view-apr-tooltip')" />
               </div>
             </div>
 
-            <div role="status" class="block lg:mb-0" :class="{'animate-pulse': loading }">
+            <div
+              role="status"
+              class="block lg:mb-0"
+              :class="{ 'animate-pulse': loading }"
+            >
               <template v-if="loading">
-                <div v-for="index in 2" :key="index" class="h-[67px] flex items-center justify-between asset-partial nolus-box relative border-b border-standart py-3 px-4 items-center justify-between">
-                    <div class="w-[50%] md:w-auto grow-[1]">
-                      <div class="w-32 h-1.5 bg-grey rounded-full mb-2.5"></div>
-                      <div class="h-1.5 bg-grey rounded-full w-24"></div>
-                    </div>
-                    <div class="flex flex-col w-[50%] md:w-auto grow-[4] md:items-start items-end">
-                      <div class="w-32 h-1.5 bg-grey rounded-full mb-2.5"></div>
-                      <div class="h-1.5 bg-grey rounded-full w-24 ml-8"></div>
-                    </div>
-                    <div class="h-1.5 bg-grey rounded-full w-12 hidden md:flex"></div>
+                <div
+                  v-for="index in 2"
+                  :key="index"
+                  class="h-[67px] flex items-center justify-between asset-partial nolus-box relative border-b border-standart py-3 px-4 items-center justify-between"
+                >
+                  <div class="w-[50%] md:w-auto grow-[1]">
+                    <div class="w-32 h-1.5 bg-grey rounded-full mb-2.5"></div>
+                    <div class="h-1.5 bg-grey rounded-full w-24"></div>
+                  </div>
+                  <div class="flex flex-col w-[50%] md:w-auto grow-[4] md:items-start items-end">
+                    <div class="w-32 h-1.5 bg-grey rounded-full mb-2.5"></div>
+                    <div class="h-1.5 bg-grey rounded-full w-24 ml-8"></div>
+                  </div>
+                  <div class="h-1.5 bg-grey rounded-full w-12 hidden md:flex"></div>
                 </div>
               </template>
               <template v-else>
-                <TransitionGroup name="fade" appear tag="div">
+                <TransitionGroup
+                  name="fade"
+                  appear
+                  tag="div"
+                >
                   <EarnAsset
                     v-for="(asset, index) in filteredAssets"
                     :key="`${asset.balance.denom}-${index}`"
@@ -97,6 +99,7 @@
                     :asset="nativeAsset"
                     :cols="cols"
                     :openDelegateUndelegate="() => openDelegateUndelegateDialog()"
+                    :isDelegated="isDelegated"
                   />
                 </TransitionGroup>
               </template>
@@ -109,12 +112,8 @@
 
       <div class="md:col-span-5 lg:co-span-5">
         <!-- Rewards -->
-        <div
-          class="nolus-box block order-2 md:order-1 background radius-medium md:col-span-7 mt-6 outline"
-        >
-          <div
-            class="flex items-center justify-between px-6 pt-6 border-b border-standart pb-4"
-          >
+        <div class="nolus-box block order-2 md:order-1 background radius-medium md:col-span-7 mt-6 outline">
+          <div class="flex items-center justify-between px-6 pt-6 border-b border-standart pb-4">
             <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
               {{ $t("message.rewards") }}
             </h2>
@@ -145,10 +144,13 @@
 
   <Modal
     v-if="showDelegateUndelegateDialog"
-    route="delegate"
+    :route="isDelegated ? 'undelegate' : 'delegate'"
     @close-modal="showDelegateUndelegateDialog = false"
   >
-    <DelegateUndelegateDialog :selectedAsset="selectedAsset" />
+    <DelegateUndelegateDialog
+      :selectedAsset="selectedAsset"
+      :isDelegated="isDelegated"
+    />
   </Modal>
 
   <Modal
@@ -169,7 +171,7 @@
   >
     <WithdrawRewardsDialog :amount="reward" />
   </Modal>
-  
+
   <Modal
     v-if="showErrorDialog"
     route="alert"
@@ -236,18 +238,31 @@ const showClaimModal = ref(false);
 const showErrorDialog = ref(false);
 const errorMessage = ref("");
 const loading = ref(true);
+const isDelegated = ref(false);
 
 onMounted(async () => {
   try {
-    await Promise.all([
+    const [delegations] = await Promise.all([
+      wallet[WalletActionTypes.LOAD_DELEGATIONS](),
       wallet[WalletActionTypes.UPDATE_BALANCES](),
       loadRewards(),
       loadLPNCurrency()
     ]);
+
+    if (delegations.length > 0) {
+      isDelegated.value = true;
+    }
+
     rewardsInterval = setInterval(async () => {
-      await loadRewards();
+      const [delegations] = await Promise.all([
+        wallet[WalletActionTypes.LOAD_DELEGATIONS](),
+        loadRewards()
+      ]);
     }, UPDATE_REWARDS_INTERVAL);
+
     loading.value = false;
+    isDelegated.value = delegations.length > 0 ? true : false;
+
   } catch (e: Error | any) {
     showErrorDialog.value = true;
     errorMessage.value = e?.message;
@@ -318,7 +333,7 @@ const loadRewards = async () => {
   const rewards = await wallet[WalletActionTypes.LOAD_DELEGATOR]();
   const total = rewards?.total?.[0];
 
-  if(total){
+  if (total) {
     const value = new Dec(total.amount).truncate().toString();
     reward.value = { balance: coin(value, NATIVE_ASSET.denom) };
   }
