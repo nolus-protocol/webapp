@@ -43,13 +43,14 @@
 import { ref, provide, computed, type PropType } from "vue";
 import router from "@/router";
 
-const activeTab = ref(1);
-const showHeader = ref(true);
-
 const props = defineProps({
   headerList: {
     type: Array as PropType<string[]>,
     required: true,
+  },
+  activeTab: {
+    type: Number,
+    default: 1,
   },
   routes: {
     type: Array as PropType<string[]>,
@@ -58,6 +59,9 @@ const props = defineProps({
     },
   },
 });
+
+const activeTab = ref(props.activeTab);
+const showHeader = ref(true);
 
 const isTabLayout = computed(() => {
   return props.headerList.length > 1;

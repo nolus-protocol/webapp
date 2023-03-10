@@ -37,7 +37,7 @@
             :amount="totalBalance"
             :denom="NATIVE_CURRENCY.symbol"
             :has-space="false"
-            :decimals="4"
+            :decimals="2"
             class="nls-font-700 text-primary"
           />
         </div>
