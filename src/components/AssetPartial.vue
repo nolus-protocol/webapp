@@ -58,12 +58,16 @@
         />
         <template v-else>
           <CurrencyComponent
+            v-if="assetInfo.isEarn"
             :type="CURRENCY_VIEW_TYPES.CURRENCY"
             :amount="earnings"
             :hasSpace="false"
             :isDenomInfront="false"
             denom="%"
           />
+          <template v-else>
+            –
+          </template>
         </template>
       </div>
     </div>
@@ -187,7 +191,6 @@ import CurrencyComponent from "@/components/CurrencyComponent.vue";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { useWalletStore } from "@/stores/wallet";
 import { NATIVE_CURRENCY } from "@/config/assetsInfo";
-import { EnvNetworkUtils } from "@/utils";
 import { DASHBOARD_ACTIONS } from "@/types";
 
 import {
@@ -197,8 +200,6 @@ import {
   LEASE_UP_COEFICIENT,
   NETWORKS,
 } from "@/config/env";
-
-const stakingUrl = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].staking;
 
 const walletStore = useWalletStore();
 
