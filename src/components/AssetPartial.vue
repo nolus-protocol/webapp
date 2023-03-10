@@ -39,16 +39,18 @@
           :maxDecimals="6"
         />
       </p>
-      <div
-        class="flex items-center justify-end text-dark-grey text-12 garet-medium text-right m-0"
-      >
+      <div class="flex items-center justify-end text-dark-grey text-12 garet-medium text-right m-0">
         {{ DEFAULT_CURRENCY.symbol }}{{ calculateBalance(price, assetBalance, denom) }}
       </div>
     </div>
 
-    <div v-if="earnings" class="hidden md:block">
+    <div
+      v-if="earnings"
+      class="hidden md:block"
+    >
       <div class="text-primary nls-font-500 text-14 text-right m-0">
-        <CurrencyComponent v-if="NATIVE_CURRENCY.key == assetInfo.ticker"
+        <CurrencyComponent
+          v-if="NATIVE_CURRENCY.key == assetInfo.ticker"
           :type="CURRENCY_VIEW_TYPES.CURRENCY"
           :amount="walletStore.apr.toString()"
           :hasSpace="false"
@@ -74,30 +76,35 @@
 
     <div class="md:block hidden info-show">
       <p class="text-primary nls-font-500 text-16 text-right m-0">
-        <template v-if="balance > 0">
-          <CurrencyComponent
-            :type="CURRENCY_VIEW_TYPES.TOKEN"
-            :amount="leasUpTo"
-            :minimalDenom="assetInfo.coinMinimalDenom"
-            :denom="assetInfo.coinDenom"
-            :decimals="assetInfo.coinDecimals"
-            :maxDecimals="6"
-          />
+        <template v-if="assetInfo.canLease">
+          <template v-if="balance > 0">
+            <CurrencyComponent
+              :type="CURRENCY_VIEW_TYPES.TOKEN"
+              :amount="leasUpTo"
+              :minimalDenom="assetInfo.coinMinimalDenom"
+              :denom="assetInfo.coinDenom"
+              :decimals="assetInfo.coinDecimals"
+              :maxDecimals="6"
+            />
+          </template>
+          <template v-else>
+            <CurrencyComponent
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              :amount="DEFAULT_LEASE_UP_PERCENT"
+              :hasSpace="false"
+              :isDenomInfront="false"
+              denom="%"
+            />
+          </template>
         </template>
         <template v-else>
-          <CurrencyComponent
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            :amount="DEFAULT_LEASE_UP_PERCENT"
-            :hasSpace="false"
-            :isDenomInfront="false"
-            denom="%"
-          />
+          –
         </template>
       </p>
     </div>
 
     <div
-      v-if="canLease || canSupply || canStake"
+      v-if="canLease || canSupply"
       class="mobile-actions md:hidden col-span-2"
     >
       <div class="flex">
@@ -146,13 +153,13 @@
           />
         </button>
 
-        <button
+        <!-- <button
           class="btn btn-secondary btn-medium-secondary flex-1"
           v-if="canStake"
           @click="openModal(DASHBOARD_ACTIONS.LEASE, denom)"
         >
           {{ $t("message.lease") }}
-        </button>
+        </button> -->
       </div>
     </div>
 
@@ -171,23 +178,23 @@
       >
         {{ $t("message.supply") }}
       </button>
-      <button
+      <!-- <button
         v-if="canStake"
         class="btn btn-secondary btn-medium-secondary"
         @click="openModal(DASHBOARD_ACTIONS.LEASE, denom)"
       >
         {{ $t("message.lease") }}
-      </button>
+      </button> -->
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import type { AssetInfo } from "@/types";
+import CurrencyComponent from "@/components/CurrencyComponent.vue";
 import { computed, type PropType } from "vue";
 import { Coin, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import CurrencyComponent from "@/components/CurrencyComponent.vue";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { useWalletStore } from "@/stores/wallet";
 import { NATIVE_CURRENCY } from "@/config/assetsInfo";
@@ -257,7 +264,7 @@ const canStake = computed(() => {
 });
 
 const showActionButtons = computed(
-  () => canLease.value || canSupply.value || canStake.value
+  () => canLease.value || canSupply.value
 );
 
 const balance = computed(() => {
@@ -283,19 +290,22 @@ const calculateBalance = (
 </script>
 <style scoped lang="scss">
 div.mobile-actions {
+
   button,
   a {
     font-family: "Garet-Medium" !important;
+
     &:first-child:not(&:last-child) {
       margin-right: 5px;
     }
+
     &:last-child:not(&:first-child) {
       margin-left: 5px;
     }
   }
+
   a {
     justify-content: center;
     display: flex;
   }
-}
-</style>
+}</style>

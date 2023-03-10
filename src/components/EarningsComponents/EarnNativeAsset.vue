@@ -17,44 +17,45 @@
           <p class="text-primary nls-font-500 text-18 text-left uppercase m-0">
             {{ assetInfo.coinDenom }}
           </p>
-          <p
-            class="text-dark-grey text-12 garet-medium text-left capitalize m-0"
-          >
+          <p class="text-dark-grey text-12 garet-medium text-left capitalize m-0">
             {{ formatPrice(getMarketPrice(asset.balance.denom)) }}
           </p>
         </div>
       </div>
 
       <div class="flex flex-col md:col-span-1 items-end">
-        <p class="text-primary nls-font-500 text-16 nls-font-500 m-0">
-          <CurrencyComponent
-            :type="CURRENCY_VIEW_TYPES.TOKEN"
-            :amount="asset.balance.amount.toString()"
-            :minimalDenom="assetInfo.coinMinimalDenom"
-            :denom="assetInfo.coinDenom"
-            :decimals="assetInfo.coinDecimals"
-            :maxDecimals="6"
-            :fontSizeSmall="12"
-          />
-        </p>
-        <div class="flex items-center text-dark-grey text-12 garet-medium m-0">
-          {{ NATIVE_CURRENCY.symbol }}{{
-            calculateBalance(
-              asset.balance.amount.toString(),
-              asset.balance.denom
-            )
-          }}
-        </div>
+        <template v-if="showBalance">
+          <p class="text-primary nls-font-500 text-16 nls-font-500 m-0">
+            <CurrencyComponent
+              :type="CURRENCY_VIEW_TYPES.TOKEN"
+              :amount="asset.balance.amount.toString()"
+              :minimalDenom="assetInfo.coinMinimalDenom"
+              :denom="assetInfo.coinDenom"
+              :decimals="assetInfo.coinDecimals"
+              :maxDecimals="6"
+              :fontSizeSmall="12"
+            />
+          </p>
+          <div class="flex items-center text-dark-grey text-12 garet-medium m-0">
+            {{ NATIVE_CURRENCY.symbol }}{{
+              calculateBalance(
+                asset.balance.amount.toString(),
+                asset.balance.denom
+              )
+            }}
+          </div>
+        </template>
+        <template v-else>
+          –
+        </template>
       </div>
 
       <div class="block md:col-span-1">
-        
+
       </div>
 
       <div class="hidden md:block info-show">
-        <div
-          class="text-primary nls-font-500 text-14 text-right m-0 justify-end"
-        >
+        <div class="text-primary nls-font-500 text-14 text-right m-0 justify-end">
           <CurrencyComponent
             :type="CURRENCY_VIEW_TYPES.CURRENCY"
             :amount="wallet.apr.toString()"
@@ -71,7 +72,7 @@
           class="btn btn-secondary btn-medium-secondary"
           @click="openDelegateUndelegate()"
         >
-        {{ isDelegated ? $t("message.undelegate") : $t("message.delegate") }}
+          {{ isDelegated ? $t("message.undelegate") : $t("message.delegate") }}
         </button>
       </div>
 
@@ -93,7 +94,7 @@ import type { AssetBalance } from "@/stores/wallet/state";
 
 import CurrencyComponent from "../CurrencyComponent.vue";
 
-import { Coin, Int } from "@keplr-wallet/unit";
+import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { computed } from "vue";
@@ -151,6 +152,11 @@ const convertMinimalDenomToDenom = (
     assetInfo.coinDecimals
   );
 };
+
+const showBalance = computed(() => {
+  const data = new Dec(props.asset.balance.amount);
+  return data.isPositive();
+});
 
 const calculateBalance = (tokenAmount: string, denom: string) => {
   const currency = wallet.getCurrencyInfo(denom);

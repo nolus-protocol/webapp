@@ -67,7 +67,7 @@
             class="absolute z-10 mt-1 background shadow-lg max-h-56 w-[125px] rounded-md text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm top-[46px] scrollbar"
           >
             <ListboxOption
-              v-for="option in options"
+              v-for="option in optionsValue"
               :key="option.balance.denom"
               :value="option"
               v-slot="{ active, selected }"
@@ -111,7 +111,7 @@
 
 <script setup lang="ts">
 import type { AssetBalance } from "@/stores/wallet/state";
-import { type PropType, ref, onMounted, watch } from "vue";
+import { type PropType, ref, onMounted, watch, computed } from "vue";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
 import { useWalletStore } from "@/stores/wallet";
 import { NATIVE_ASSET } from "@/config/env";
@@ -165,6 +165,16 @@ const getAssetInfo = (denom: string) => {
 
 const selected = ref({
   value: {} as AssetBalance,
+});
+
+const optionsValue = computed(() => {
+  return (props.options ?? [])?.filter((item) => {
+    if(item.balance.denom == props.currencyOption?.balance.denom){
+      return false;
+    }
+    return true;
+  });
+  
 });
 
 onMounted(() => {

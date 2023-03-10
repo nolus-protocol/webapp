@@ -16,18 +16,42 @@
       <!-- Assets -->
       <div class="block md:mt-4">
         <HistoryTableHeader />
-        <div class="block">
-          <TransitionGroup
-            name="fade-long"
-            appear
-            tag="div"
-          >
-            <HistoryTableItem
-              v-for="transaction of transactions"
-              :key="transaction.id"
-              :transaction="transaction"
-            />
-          </TransitionGroup>
+        <div
+          class="block"
+          :class="{ 'animate-pulse': !initialLoad }"
+        >
+          <template v-if="initialLoad">
+            <TransitionGroup
+              name="fade-long"
+              appear
+              tag="div"
+            >
+              <HistoryTableItem
+                v-for="transaction of transactions"
+                :key="transaction.id"
+                :transaction="transaction"
+              />
+            </TransitionGroup>
+          </template>
+          <template v-else>
+            <div
+              v-for="index in 10"
+              :key="index"
+              class="md:h-[53px] h-[82px] flex md:flex-row flex-col asset-partial nolus-box relative border-b border-standart py-3 px-4 items-stretch md:items-center justify-between"
+            >
+              <div class="flex flex-1 md:flex-[9]">
+                <div class="flex max-w-[60%] md:flex-row flex-col justify-between">
+                  <div class="w-[9rem] h-1.5 bg-grey rounded-full"></div>
+                  <div class="w-[15rem] h-1.5 bg-grey rounded-full md:ml-10"></div>
+
+                </div>
+              </div>
+              <div class="flex flex-1 md:flex-[3] justify-between items-center">
+                <div class="h-1.5 bg-grey rounded-full w-24 md:flex"></div>
+                <div class="h-1.5 bg-grey rounded-full w-24 md:flex"></div>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
     </div>
@@ -87,11 +111,11 @@ const transactions = ref([] as ITransaction[] | any[]);
 const wallet = useWalletStore();
 const walletRef = storeToRefs(wallet);
 
-const senderPerPage = 10;
+const senderPerPage = 5;
 let senderPage = 1;
 let senderTotal = 0;
 
-const recipientPerPage = 10;
+const recipientPerPage = 5;
 let recipientPage = 1;
 let recipientTotal = 0;
 

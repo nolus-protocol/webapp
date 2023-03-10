@@ -608,7 +608,8 @@ const useWalletStore = defineStore("wallet", {
             coinAbbreviation: ASSETS.NLS.abbreviation,
             coinGeckoId: ASSETS.NLS.coinGeckoId,
             coinIcon: ASSETS.NLS.coinIcon,
-            isEarn: ASSETS.NLS.isEarn
+            isEarn: ASSETS.NLS.isEarn,
+            canLease: ASSETS.NLS.canLease
           };
         }
 
@@ -622,7 +623,8 @@ const useWalletStore = defineStore("wallet", {
           coinAbbreviation: ASSETS[key].abbreviation,
           coinGeckoId: ASSETS[key].coinGeckoId,
           coinIcon: ASSETS[key].coinIcon,
-          isEarn: ASSETS[key].isEarn
+          isEarn: ASSETS[key].isEarn,
+          canLease: ASSETS[key].canLease
         };
       };
     },

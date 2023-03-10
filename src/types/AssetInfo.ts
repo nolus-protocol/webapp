@@ -7,4 +7,5 @@ export interface AssetInfo {
   coinAbbreviation: string;
   coinIcon: string;
   isEarn: boolean;
+  canLease: boolean;
 }

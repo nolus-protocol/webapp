@@ -19,7 +19,8 @@ export const ASSETS = {
     coinGeckoId: ChainConstants.COIN_GECKO_ID,
     coinIcon: nlsIcon,
     defaultPrice: "0",
-    isEarn: true
+    isEarn: true,
+    canLease: false
   },
   USDC: {
     key: "USDC",
@@ -27,7 +28,8 @@ export const ASSETS = {
     coinGeckoId: "usd-coin",
     coinIcon: usdcIcon,
     defaultPrice: "0",
-    isEarn: true
+    isEarn: true,
+    canLease: false
   },
   ATOM: {
     key: "ATOM",
@@ -35,7 +37,8 @@ export const ASSETS = {
     coinGeckoId: "cosmos",
     coinIcon: atomIcon,
     defaultPrice: "0",
-    isEarn: false
+    isEarn: false,
+    canLease: true
   },
   OSMO: {
     key: "OSMO",
@@ -43,7 +46,8 @@ export const ASSETS = {
     coinGeckoId: "osmosis",
     coinIcon: osmosisIcon,
     defaultPrice: "0",
-    isEarn: false
+    isEarn: false,
+    canLease: true
   },
   WETH: {
     key: "WETH",
@@ -51,7 +55,8 @@ export const ASSETS = {
     coinGeckoId: "weth",
     coinIcon: wethIcon,
     defaultPrice: "0",
-    isEarn: false
+    isEarn: false,
+    canLease: true
   },
   WBTC: {
     key: "WBTC",
@@ -59,7 +64,8 @@ export const ASSETS = {
     coinGeckoId: "wrapped-bitcoin",
     coinIcon: wbtcIcon,
     defaultPrice: "0",
-    isEarn: false
+    isEarn: false,
+    canLease: true
   },
   EVMOS: {
     key: "EVMOS",
@@ -67,7 +73,8 @@ export const ASSETS = {
     coinGeckoId: "evmos",
     coinIcon: evmosIcon,
     defaultPrice: "0",
-    isEarn: false
+    isEarn: false,
+    canLease: true
   },
   JUNO: {
     key: "JUNO",
@@ -75,7 +82,8 @@ export const ASSETS = {
     coinGeckoId: "juno-network",
     coinIcon: junoIcon,
     defaultPrice: "0",
-    isEarn: false
+    isEarn: false,
+    canLease: true
   },
   STARS: {
     key: "STARS",
@@ -83,7 +91,8 @@ export const ASSETS = {
     coinGeckoId: "stargaze",
     coinIcon: starsIcon,
     defaultPrice: "0",
-    isEarn: false
+    isEarn: false,
+    canLease: true
   },
   CRO: {
     key: "CRO",
@@ -91,7 +100,8 @@ export const ASSETS = {
     coinGeckoId: "crypto-com-chain",
     coinIcon: croIcon,
     defaultPrice: "0",
-    isEarn: false
+    isEarn: false,
+    canLease: true
   },
   SCRT: {
     key: "SCRT",
@@ -99,7 +109,8 @@ export const ASSETS = {
     coinGeckoId: "secret",
     coinIcon: scrtIcon,
     defaultPrice: "0",
-    isEarn: false
+    isEarn: false,
+    canLease: true
   },
 };
 
