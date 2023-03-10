@@ -24,7 +24,7 @@ import type { AssetBalance } from "@/stores/wallet/state";
 import { CONFIRM_STEP } from "@/types/ConfirmStep";
 import { TxType } from "@/types/TxType";
 import { walletOperation } from "@/components/utils";
-import { inject, onUnmounted, ref, type PropType,  } from "vue";
+import { inject, onUnmounted, ref, type PropType, computed  } from "vue";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { NATIVE_ASSET, GAS_FEES } from "@/config/env";
 import { WalletManager } from "@/utils";
@@ -44,10 +44,20 @@ const props = defineProps({
   },
 });
 
+const parsedAmount = computed(() => {
+  const balance = CurrencyUtils.convertCoinUNolusToNolus(props.amount.balance);
+  if(balance){
+    const data = walletStore.getCurrencyInfo(balance.denom);
+    const b = balance.toDec().toString(data.coinDecimals, false);
+    return b;
+  }
+  return '0'
+})
+
 const state = ref({
   currentBalance: walletStore.balances,
   selectedCurrency: selectedCurrency,
-  amount: CurrencyUtils.convertCoinUNolusToNolus(props.amount.balance)?.hideDenom(true).toString(),
+  amount: parsedAmount.value,
   password: "",
   txHash: "",
   fee: coin(GAS_FEES.withdraw_delegator_reward, NATIVE_ASSET.denom),
@@ -68,6 +78,8 @@ onUnmounted(() => {
     showSnackbar(SNACKBAR.Queued, state.value.txHash);
   }
 });
+
+
 
 const onConfirmBackClick = () => {
   showConfirmScreen.value = false;
