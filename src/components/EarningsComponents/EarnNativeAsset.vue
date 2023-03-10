@@ -122,8 +122,6 @@ const props = defineProps({
   }
 });
 
-console.log(props)
-
 const assetInfo = computed(() => {
   const assetInfo = wallet.getCurrencyInfo(props.asset.balance.denom);
   return assetInfo;
