@@ -36,6 +36,7 @@ const walletStore = useWalletStore();
 const selectedCurrency = walletStore.balances[0]
 const showConfirmScreen = ref(true);
 const address = WalletManager.getWalletAddress();
+const loadRewards = inject("loadRewards", async () => {});
 
 const props = defineProps({
   amount: {
@@ -79,8 +80,6 @@ onUnmounted(() => {
   }
 });
 
-
-
 const onConfirmBackClick = () => {
   showConfirmScreen.value = false;
   closeModal();
@@ -123,6 +122,7 @@ const requestClaim = async () => {
       const tx = await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
       const isSuccessful = tx?.code === 0;
       step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
+      loadRewards();
       if (snackbarVisible()) {
         showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
       }

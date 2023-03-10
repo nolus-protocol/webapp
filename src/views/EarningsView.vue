@@ -202,7 +202,7 @@ import CURRENCIES from "@/config/currencies.json";
 
 import type { AssetBalance } from "@/stores/wallet/state";
 
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, provide, ref } from "vue";
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 import { CONTRACTS } from "@/config/contracts";
 import { EnvNetworkUtils } from "@/utils/EnvNetworkUtils";
@@ -336,6 +336,9 @@ const loadRewards = async () => {
   if (total) {
     const value = new Dec(total.amount).truncate().toString();
     reward.value = { balance: coin(value, NATIVE_ASSET.denom) };
+  }else{
+    const value = new Dec('0').truncate().toString();
+    reward.value = { balance: coin(value, NATIVE_ASSET.denom) };
   }
 
 }
@@ -392,4 +395,6 @@ const openDelegateUndelegateDialog = () => {
   selectedAsset.value = NATIVE_ASSET.denom;
   showDelegateUndelegateDialog.value = true;
 }
+
+provide("loadRewards", loadRewards);
 </script>
