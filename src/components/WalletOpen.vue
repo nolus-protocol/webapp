@@ -1,69 +1,69 @@
 <template>
-  <div
-    id="wallet-nls"
-    class="wallet-nls box-open bg-transparent shadow-modal c-navbar-wallet__container transition duration-3 ease-2 outline"
-  >
-    <!-- Wallet Header -->
     <div
-      class="box-open-header background p-4 lg:p-6 border-b border-standart radius-top-left"
+      id="wallet-nls"
+      class="wallet-nls box-open bg-transparent shadow-modal c-navbar-wallet__container outline"
     >
-      <h2 class="nls-font-700 text-18 text-primary text-left m-0">
-        {{ $t("message.your-wallet") }}
-      </h2>
+      <!-- Wallet Header -->
       <div
-        class="flex grey-box items-center modal-balance mt-3 radius-rounded justify-between px-2 copy-button"
-        @click="onCopy()"
+        class="box-open-header background p-4 lg:p-6 border-b border-standart radius-top-left"
       >
-        <span class="text-14 nls-font-400 dark-text ml-2">{{ getWallet }}</span>
-        <span class="copy-text" v-if="showText">{{
-          $t("message.copied")
-        }}</span>
-        <img
-          class="copy-icon"
-          v-else
-          src="@/assets/icons/copy-gray.svg"
-          width="21"
-          height="21"
-        />
-      </div>
-    </div>
-
-    <!-- Wallet Body -->
-    <div
-      class="box-open-body background p-4 lg:p-6 border-b border-standart text-left"
-    >
-      <div class="block">
-        <Picker
-          :default-option="selectedAppearnce"
-          :options="appearance"
-          :label="$t('message.appearance')"
-          @update-selected="onUpdateTheme"
-        />
-      </div>
-
-      <div class="block mt-3">
-        <Picker
-          :default-option="currentNetwork"
-          :options="networks"
-          :label="$t('message.network')"
-          @focus="showWallet = true"
-          @update-selected="onUpdateNetwork"
-        />
-      </div>
-    </div>
-
-    <!-- Wallet Actions -->
-    <div class="box-open-actions p-8 lg:pr-8 background">
-      <div class="flex justify-end">
-        <button
-          class="btn btn-secondary btn-large-secondary"
-          @click="onClickDisconnect"
+        <h2 class="nls-font-700 text-18 text-primary text-left m-0">
+          {{ $t("message.your-wallet") }}
+        </h2>
+        <div
+          class="flex grey-box items-center modal-balance mt-3 radius-rounded justify-between px-2 copy-button"
+          @click="onCopy()"
         >
-          {{ $t("message.disconnect") }}
-        </button>
+          <span class="text-14 nls-font-400 dark-text ml-2">{{ getWallet }}</span>
+          <span class="copy-text" v-if="showText">{{
+            $t("message.copied")
+          }}</span>
+          <img
+            class="copy-icon"
+            v-else
+            src="@/assets/icons/copy-gray.svg"
+            width="21"
+            height="21"
+          />
+        </div>
+      </div>
+
+      <!-- Wallet Body -->
+      <div
+        class="box-open-body background p-4 lg:p-6 border-b border-standart text-left"
+      >
+        <div class="block">
+          <Picker
+            :default-option="selectedAppearnce"
+            :options="appearance"
+            :label="$t('message.appearance')"
+            @update-selected="onUpdateTheme"
+          />
+        </div>
+
+        <div class="block mt-3">
+          <Picker
+            :default-option="currentNetwork"
+            :options="networks"
+            :label="$t('message.network')"
+            @focus="showWallet = true"
+            @update-selected="onUpdateNetwork"
+          />
+        </div>
+      </div>
+
+      <!-- Wallet Actions -->
+      <div class="box-open-actions p-8 lg:pr-8 background">
+        <div class="flex justify-end">
+          <button
+            class="btn btn-secondary btn-large-secondary"
+            @click="onClickDisconnect"
+          >
+            {{ $t("message.disconnect") }}
+          </button>
+        </div>
       </div>
     </div>
-  </div>
 </template>
 <script setup lang="ts">
 import Picker, { type PickerOption } from "@/components/Picker.vue";

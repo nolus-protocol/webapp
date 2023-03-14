@@ -49,9 +49,8 @@
         </span>
 
         <transition
-          leave-active-class="transition ease-in duration-100"
-          leave-from-class="opacity-100"
-          leave-to-class="opacity-0"
+          name="collapse"
+          appear
         >
           <ListboxOptions
             class="absolute z-10 mt-1 w-full background shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm scrollbar"

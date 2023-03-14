@@ -51,7 +51,9 @@
           </div>
         </template>
         <template v-else>
-          –
+          <p class="text-primary">
+            –
+          </p>
         </template>
       </div>
 

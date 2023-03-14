@@ -18,6 +18,23 @@
   opacity: 0;
 }
 
+.collapse-enter-active,
+.collapse-leave-active {
+  transition: 250ms ease;
+}
+
+.collapse-enter-from{
+  transform: rotateX(-30deg) translateZ(0px);
+}
+
+.collapse-leave-to{
+  transform: none;
+}
+
+.collapse-enter-from,
+.collapse-leave-to {
+  opacity: 0;
+}
 
 .tooltip-animations{
   transition: opacity 150ms ease;
@@ -135,8 +152,8 @@
   animation-duration: 0.75s;
   -webkit-animation-fill-mode: backwards;
   animation-fill-mode: backwards;
-  -webkit-animation-name: slide-fade-bottom;
-  animation-name: slide-fade-bottom;
+  // -webkit-animation-name: slide-fade-bottom;
+  // animation-name: slide-fade-bottom;
   -webkit-animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
   animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
 }
