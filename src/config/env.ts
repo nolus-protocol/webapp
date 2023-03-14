@@ -167,3 +167,7 @@ export const WASM_EVENTS = {
     index: 0
   }
 }
+export const LIQUIDATION = 0.9;
+export const calculateLiquidation = (unit: number, price: number) => {
+  return price / LIQUIDATION / unit;
+}
