@@ -23,11 +23,11 @@
   transition: 250ms ease;
 }
 
-.collapse-enter-from{
+.collapse-enter-from {
   transform: rotateX(-30deg) translateZ(0px);
 }
 
-.collapse-leave-to{
+.collapse-leave-to {
   transform: none;
 }
 
@@ -36,19 +36,29 @@
   opacity: 0;
 }
 
-.tooltip-animations{
+.tooltip-animations {
   transition: opacity 150ms ease;
   opacity: 0;
 }
 
 @keyframes fadeInAnimation {
-  0%   { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 @keyframes fadeOutAnimation {
-  0%   { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
 }
 
 @keyframes slide-fade-bottom {
@@ -140,8 +150,7 @@
   position: relative;
 }
 
-.c-navbar-qr__container,
-.c-navbar-wallet__container {
+.c-navbar-qr__container {
   border-radius: $rounded;
   display: block;
   transition-duration: 0.3s;
@@ -152,10 +161,15 @@
   animation-duration: 0.75s;
   -webkit-animation-fill-mode: backwards;
   animation-fill-mode: backwards;
-  // -webkit-animation-name: slide-fade-bottom;
-  // animation-name: slide-fade-bottom;
+  -webkit-animation-name: slide-fade-bottom;
+  animation-name: slide-fade-bottom;
   -webkit-animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
   animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.c-navbar-wallet__container{
+  border-radius: 12px;
+  display: block;
 }
 
 .show-box-wallet:hover,

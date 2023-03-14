@@ -21,7 +21,10 @@
       <Notifications v-show="showNotifications" />
     </div> -->
   </div>
-  <div id="wallet-nls" ref="wallet">
+  <div
+    id="wallet-nls"
+    ref="wallet"
+  >
     <button
       class="show-box-wallet btn-header with-icon shadow-box rounded-r-none"
       :class="showWallet ? 'active' : false"
@@ -38,7 +41,9 @@
     </button>
 
     <!-- <Notifications /> -->
-    <WalletOpen v-show="showWallet" />
+    <Transition name="collapse" appear>
+      <WalletOpen v-show="showWallet" />
+    </Transition>
   </div>
 </template>
 
