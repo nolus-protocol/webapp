@@ -1,5 +1,6 @@
 import nlsIcon from "@/assets/icons/coins/nls.svg";
 import type { NetworkAddress } from "@/types";
+import { Dec } from "@keplr-wallet/unit";
 
 export const DEFAULT_PRIMARY_NETWORK = "testnet";
 
@@ -167,7 +168,7 @@ export const WASM_EVENTS = {
     index: 0
   }
 }
-export const LIQUIDATION = 0.9;
-export const calculateLiquidation = (unit: number, price: number) => {
-  return price / LIQUIDATION / unit;
+export const LIQUIDATION = new Dec(0.9);
+export const calculateLiquidation = (unit: Dec, price: Dec) => {
+  return unit.quo(price).quo(LIQUIDATION);
 }

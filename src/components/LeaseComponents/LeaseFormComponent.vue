@@ -104,7 +104,7 @@
             <TooltipComponent :content="$t('message.interest-tooltip')" />
           </p>
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
-            $0
+            {{ calculateLique }}
             <TooltipComponent :content="$t('message.liquidation-price-tooltip')" />
           </p>
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
@@ -141,7 +141,7 @@ import { onMounted, ref, type PropType } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { computed } from "vue";
 import { useWalletStore } from "@/stores/wallet";
-import { GROUPS, NATIVE_NETWORK } from "@/config/env";
+import { GROUPS, NATIVE_NETWORK, calculateLiquidation } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { Dec } from "@keplr-wallet/unit";
 
@@ -327,6 +327,20 @@ const calculateFee = () => {
     coinDecimals
   );
 }
+
+const calculateLique = computed(() => {
+  const lease = props.modelValue.leaseApply;
+  if(lease){
+    console.log(lease)
+    const unitAssetInfo = wallet.getCurrencyByTicker(lease.borrow.ticker);
+    const stableAssetInfo = wallet.getCurrencyByTicker(lease.total.ticker);
+    const unitAsset = new Dec(lease.borrow.amount, Number(unitAssetInfo.decimal_digits));
+    const stableAsset = new Dec(lease.total.amount, Number(stableAssetInfo.decimal_digits));
+    const data = calculateLiquidation(unitAsset, stableAsset);
+    return `$${data.toString(2)}`;
+  }
+  return '$0';
+});
 
 const onDrag = (event: number) => {
 
