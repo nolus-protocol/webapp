@@ -161,6 +161,7 @@ export const TIP = {
 
 export const LEASE_MIN_AMOUNT = 0.00005;
 export const LEASE_MAX_AMOUNT = 25000;
+export const INTEREST_DECIMALS = 2;
 export const WASM_EVENTS = {
   "wasm-ls-request-loan": {
     key: "wasm-ls-request-loan",

@@ -1,5 +1,6 @@
 import type { Coin } from "@keplr-wallet/unit";
 import type { NolusWallet } from "@nolus/nolusjs";
+import type { LeaserConfig } from "@nolus/nolusjs/build/contracts";
 
 export interface AssetBalance {
   balance: Coin | any;
@@ -20,6 +21,7 @@ export type State = {
   walletName: string | null;
   stakingBalance: Coin | null;
   suppliedBalance: string;
+  leaserConfig: LeaserConfig | null,
   apr: number;
   currencies: {
     [key: string]: {

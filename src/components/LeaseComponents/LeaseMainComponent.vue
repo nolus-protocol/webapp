@@ -38,11 +38,11 @@ import { EnvNetworkUtils } from "@/utils/EnvNetworkUtils";
 import { CONFIRM_STEP } from "@/types/ConfirmStep";
 import { TxType } from "@/types/TxType";
 import { getMicroAmount, walletOperation } from "@/components/utils";
-import { useWalletStore } from "@/stores/wallet";
+import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import { computed } from "vue";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, GROUPS, LEASE_MIN_AMOUNT, LEASE_MAX_AMOUNT, TIP, WASM_EVENTS } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, GROUPS, LEASE_MIN_AMOUNT, LEASE_MAX_AMOUNT, TIP, WASM_EVENTS, INTEREST_DECIMALS } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/stores/oracle";
 
@@ -108,7 +108,7 @@ const getLeases = inject("getLeases", () => { });
 const snackbarVisible = inject("snackbarVisible", () => false);
 const showSnackbar = inject("showSnackbar", (_type: string, _transaction: string) => { });
 
-onMounted(() => {
+onMounted(async () => {
   const balances = walletStore.balances;
   if (balances) {
     state.value.currentBalance = balances;
@@ -165,9 +165,8 @@ const calculate = async () => {
           currency.ticker,
           lease.ticker
         );
-
+        makeLeaseApplyResp.annual_interest_rate = makeLeaseApplyResp.annual_interest_rate / Math.pow(10, INTEREST_DECIMALS);
         state.value.leaseApply = makeLeaseApplyResp;
-
       }
     } else {
       state.value.leaseApply = null;

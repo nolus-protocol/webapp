@@ -22,7 +22,7 @@ const aminoTypes = {
 const MsgTransferAmino = new AminoTypes(aminoTypes);
 
 const createWallet = async (wallet: Wallet, offlineDirectSigner: OfflineDirectSigner | OfflineAminoSigner | LedgerSigner, prefix: string): Promise<BaseWallet> => {
-    const baseWallet = new BaseWallet(wallet.getTendermintClient(), offlineDirectSigner, { prefix, aminoTypes: MsgTransferAmino });
+    const baseWallet = new BaseWallet(wallet.getTendermintClient(), offlineDirectSigner, { aminoTypes: MsgTransferAmino });
     await baseWallet.useAccount();
     return baseWallet;
 };
