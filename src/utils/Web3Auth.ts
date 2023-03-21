@@ -1,4 +1,4 @@
-import { Web3AuthCore } from "@web3auth/core";
+import { Web3AuthNoModal } from "@web3auth/no-modal";
 import { CHAIN_NAMESPACES } from "@web3auth/base";
 import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { NETWORKS } from "@/config/env";
@@ -10,13 +10,13 @@ const configurations =
 const clientId = configurations?.clientId;
 
 export class Web3AuthProvider {
-  web3auth: Web3AuthCore;
+  web3auth: Web3AuthNoModal;
   adapter: OpenloginAdapter;
 
   private static instance: Web3AuthProvider | null;
 
   private constructor() {
-    this.web3auth = new Web3AuthCore({
+    this.web3auth = new Web3AuthNoModal({
       clientId,
       chainConfig: {
         chainNamespace: CHAIN_NAMESPACES.OTHER,

@@ -44,7 +44,7 @@
         </div>
       </div>
 
-      <div class="flex mt-6 justify-between text-primary">
+      <div class="flex mt-6 justify-between text-primary text-[14px] garet-medium">
         <p class="pb-0">
           {{ $t('message.margin') }}
         </p>

@@ -17,6 +17,7 @@ const useApplicationStore = defineStore("application", {
   },
   actions: {
     async [ApplicationActionTypes.CHANGE_NETWORK](loadBalance = false) {
+      console.log('enter')
       try {
         const loadedNetworkConfig = EnvNetworkUtils.loadNetworkConfig();
 

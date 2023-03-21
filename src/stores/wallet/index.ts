@@ -22,7 +22,7 @@ import { NETWORKS, NATIVE_ASSET } from "@/config/env";
 import { ASSETS } from "@/config/assetsInfo";
 import { ADAPTER_STATUS } from "@web3auth/base";
 import { Buffer } from "buffer";
-import { Lpp } from "@nolus/nolusjs/build/contracts";
+import { Lpp, Leaser } from "@nolus/nolusjs/build/contracts";
 import { CONTRACTS } from "@/config/contracts";
 import { Coin, Int } from "@keplr-wallet/unit";
 import { makeCosmoshubPath } from "@cosmjs/amino";
@@ -54,6 +54,7 @@ const useWalletStore = defineStore("wallet", {
       balances: [],
       currencies: {},
       stakingBalance: null,
+      leaserConfig: null,
       suppliedBalance: "0",
       apr: 0
     } as State;
@@ -499,6 +500,17 @@ const useWalletStore = defineStore("wallet", {
         walletAddress as string
       );
       this.suppliedBalance = depositBalance.balance;
+    },
+    async [WalletActionTypes.LOAD_LEASER_CONFIG]() {
+      if(!this.leaserConfig){
+        const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+        const leaserClient = new Leaser(
+          cosmWasmClient,
+          CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance
+        );
+        this.leaserConfig = await leaserClient.getLeaserConfig();
+      }
+      return this.leaserConfig;
     },
     async [WalletActionTypes.LOAD_WALLET_NAME]() {
       switch (WalletManager.getWalletConnectMechanism()) {

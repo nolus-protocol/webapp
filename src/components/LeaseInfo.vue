@@ -109,6 +109,7 @@
           </p>
           <p class="text-primary text-20 nls-font-400 m-0 mt-1">
             <CurrencyComponent
+              class="garet-medium"
               :type="CURRENCY_VIEW_TYPES.CURRENCY"
               :amount="debt"
               :hasSpace="false"
@@ -118,7 +119,7 @@
               :decimals="4"
               denom="$"
             />
-            
+
           </p>
         </div>
         <div class="block ml-8">
@@ -128,6 +129,7 @@
           </p>
           <p class="flex items-center text-primary text-20 nls-font-400 m-0 mt-1">
             <CurrencyComponent
+              class="garet-medium"
               :type="CURRENCY_VIEW_TYPES.CURRENCY"
               :amount="interest"
               :hasSpace="false"
@@ -146,6 +148,7 @@
           </p>
           <p class="flex items-center text-primary text-20 nls-font-400 m-0 mt-1">
             <CurrencyComponent
+              class="garet-medium"
               :type="CURRENCY_VIEW_TYPES.CURRENCY"
               :amount="interestDue"
               :hasSpace="false"
