@@ -112,6 +112,7 @@ onMounted(async () => {
   const balances = walletStore.balances;
   if (balances) {
     state.value.currentBalance = balances;
+    console.log(await walletStore[WalletActionTypes.LOAD_LEASER_CONFIG]())
   }
 });
 
@@ -308,6 +309,7 @@ const openLease = async () => {
         walletStore.currencies[
           state.value.selectedCurrency.balance.denom
         ].ticker,
+        Number(state.value.leaseApply!.borrow.amount),
         funds
       );
 

@@ -44,7 +44,7 @@
             {{ `price per ${asset.coinDenom}:` }} {{ price }}
           </span>
           <span class="bg-[#ebeff5] rounded p-1 m-1">
-            {{ $t("message.liq-trigger") }}: $0
+            {{ $t("message.liq-trigger") }}: {{ liquidation }}
           </span>
         </div>
       </div>
@@ -86,13 +86,13 @@
           </div>
         </div>
         <div class="flex relaltive">
-          <div class="flex-1 pnl-container">
-            <div class="pnl success text-12 nls-font-500 whitespace-pre	mr-2">
-              PnL +$20,824.00
+          <div class="flex-1 pnl-container" v-if="leaseData">
+            <div class="pnl text-12 nls-font-500 whitespace-pre	mr-2" :class="[pnl.status ? 'success' : 'alert']">
+              {{ $t('message.pnl') }} {{ pnl.status ? '+' : '-' }}{{ pnl.amount }}
             </div>
           </div>
           <div class="relative w-full">
-            <div class="dash-pnl success">
+            <div  v-if="leaseData" class="dash-pnl" :class="[pnl.status ? 'success' : 'alert']">
 
             </div>
             <PriceHistoryChart :chartData="chartData" />
@@ -284,9 +284,9 @@ import CurrencyComponent from "./CurrencyComponent.vue";
 import ConfirmComponent from "./modals/templates/ConfirmComponent.vue";
 import DialogHeader from "./modals/templates/DialogHeader.vue";
 
-import { computed, inject, onUnmounted, ref } from "vue";
+import { computed, inject, onUnmounted, ref, onBeforeMount } from "vue";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
-import { Coin } from "@keplr-wallet/unit";
+import { Coin, Dec } from "@keplr-wallet/unit";
 import { CHART_RANGES } from "@/config/globals";
 import { useWalletStore } from "@/stores/wallet";
 import { useOracleStore } from "@/stores/oracle";
@@ -295,7 +295,7 @@ import { onMounted } from "vue";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { TxType } from "@/types";
 import { WalletManager } from "@/utils";
-import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR } from "@/config/env";
+import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { walletOperation } from "@/components/utils";
 
@@ -343,8 +343,7 @@ const state = ref({
   fee: coin(GAS_FEES.close_lease + TIP.amount, NATIVE_ASSET.denom),
 });
 
-onMounted(() => {
-  loadCharts();
+onBeforeMount(() => {
   try {
     const data = localStorage.getItem(props.leaseInfo.leaseAddress);
     if (data) {
@@ -353,7 +352,11 @@ onMounted(() => {
   } catch (error) {
     console.log(error);
   }
-})
+});
+
+onMounted(() => {
+  loadCharts();
+});
 
 onUnmounted(() => {
   if (CONFIRM_STEP.PENDING == step.value) {
@@ -447,7 +450,7 @@ const price = computed(() => {
     const asset = walletStore.getCurrencyByTicker(data.amount.ticker);
     const price = oracleStore.prices[asset.symbol];
 
-    return CurrencyUtils.formatPrice(price.amount.toString());;
+    return CurrencyUtils.formatPrice(price.amount.toString());
 
   }
 
@@ -589,7 +592,6 @@ const onClaim = async () => {
       getLeases();
 
     } catch (e) {
-      console.log(e)
       step.value = CONFIRM_STEP.ERROR;
     }
   }
@@ -611,4 +613,45 @@ const onClickOkBtn = () => {
   showClaimDialog.value = false;
   step.value = CONFIRM_STEP.CONFIRM
 }
+
+const liquidation = computed(() => {
+  const lease = props.leaseInfo.leaseStatus.opened;
+  if(lease){
+    const unitAssetInfo = walletStore.getCurrencyByTicker(lease.amount.ticker);
+    const stableAssetInfo = walletStore.getCurrencyByTicker(lease.principal_due.ticker);
+    const unitAsset = new Dec(lease.amount.amount, Number(unitAssetInfo.decimal_digits));
+    const stableAsset = new Dec(lease.principal_due.amount, Number(stableAssetInfo.decimal_digits));
+    const data = calculateLiquidation(stableAsset, unitAsset);
+    return `$${data.toString(2)}`;
+  }
+  return '$0';
+});
+
+const pnl = computed(() => {
+  const lease = props.leaseInfo.leaseStatus.opened;
+
+  if(lease){
+    const price = new Dec(Number(leaseData?.price ?? 0));
+    
+    const unitAssetInfo = walletStore.getCurrencyByTicker(lease.amount.ticker);
+    const currentPrice = new Dec(oracleStore.prices?.[unitAssetInfo.symbol]?.amount ?? "0");
+    const unitAsset = new Dec(lease.amount.amount, Number(unitAssetInfo.decimal_digits));
+
+
+    const prevAmount = unitAsset.mul(price);
+    const currentAmount = unitAsset.mul(currentPrice);
+
+    return {
+      amount: CurrencyUtils.formatPrice(currentAmount.toString()),
+      status: currentAmount.gte(prevAmount),
+    }
+  }
+
+  return {
+    amount: '0',
+    status: false
+  }
+
+});
+
 </script>

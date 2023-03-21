@@ -233,6 +233,7 @@
     "transfer": "Transfer to Wallet",
     "close-lease": "Close lease",
     "outstanding-debt-tooltip": "Current outstanding debt for an active DeFi Lease position",
-    "compounding": "Compounding"
+    "compounding": "Compounding",
+    "pnl": "PnL"
   }
 }

@@ -7,7 +7,7 @@
     </div>
     <div class="lg:col-span-9 pb-8 view">
       <div class="grid grid-cols-10 grid-child">
-        <div class="col-span-12 mt-[65px]">
+        <div class="col-span-12 mt-[65px] z-[3]">
           <div class="col-span-12">
             <div class="sidebar-header">
               <SidebarHeader />

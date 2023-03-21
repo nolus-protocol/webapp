@@ -50,7 +50,7 @@ export default defineConfig({
           '@web3auth': [
             '@web3auth/base',
             '@web3auth/openlogin-adapter',
-            '@web3auth/core'
+            '@web3auth/no-modal'
           ],
           'dashboard': [
             './src/views/LeaseView.vue',

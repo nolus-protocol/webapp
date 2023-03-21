@@ -331,7 +331,6 @@ const calculateFee = () => {
 const calculateLique = computed(() => {
   const lease = props.modelValue.leaseApply;
   if(lease){
-    console.log(lease)
     const unitAssetInfo = wallet.getCurrencyByTicker(lease.borrow.ticker);
     const stableAssetInfo = wallet.getCurrencyByTicker(lease.total.ticker);
     const unitAsset = new Dec(lease.borrow.amount, Number(unitAssetInfo.decimal_digits));
