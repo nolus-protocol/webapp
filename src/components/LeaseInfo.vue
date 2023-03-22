@@ -35,7 +35,7 @@
             class="bg-[#ebeff5] rounded p-1 m-1"
             v-if="leaseData"
           >
-            {{ $t("message.down-payment") }}: {{ getDownPayment() }}
+            {{ $t("message.down-payment") }}: {{ downPayment }}
           </span>
           <span class="bg-[#ebeff5] rounded p-1 m-1">
             {{ $t("message.borrowed") }}: {{ loan }}
@@ -418,11 +418,11 @@ const getAssetIcon = computed((): string => {
   return walletStore.getCurrencyInfo(ibcDenom as string).coinIcon;
 });
 
-const getDownPayment = () => {
+const downPayment = computed(() => {
   const amount = Number(leaseData?.downPayment ?? '0');
   const round = Math.round(amount * 100000) / 100000;
   return CurrencyUtils.formatPrice(round.toString());
-}
+});
 
 const loan = computed(() => {
   const data = props.leaseInfo.leaseStatus.opened;

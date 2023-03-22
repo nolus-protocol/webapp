@@ -49,7 +49,7 @@
           {{ $t('message.margin') }}
         </p>
         <p>
-          {{ calculateMarginAmount }}
+          ~{{ calculateMarginAmount }}
         </p>
       </div>
 

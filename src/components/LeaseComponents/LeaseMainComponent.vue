@@ -136,6 +136,10 @@ watch(() => state.value.selectedDownPaymentCurrency, () => {
   calculate();
 });
 
+watch(() => state.value.selectedCurrency, () => {
+  calculate();
+});
+
 const calculate = async () => {
   try {
     const downPaymentAmount = state.value.downPayment;
