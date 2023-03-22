@@ -88,7 +88,7 @@
         <div class="flex relaltive">
           <div class="flex-1 pnl-container" v-if="leaseData">
             <div class="pnl text-12 nls-font-500 whitespace-pre	mr-2" :class="[pnl.status ? 'success' : 'alert']">
-              {{ $t('message.pnl') }} {{ pnl.status ? '+' : '-' }}{{ pnl.amount }}
+              {{ $t('message.pnl') }} {{ pnl.status ? '+' : '' }}{{ pnl.amount }}
             </div>
           </div>
           <div class="relative w-full">
@@ -136,7 +136,7 @@
               :isDenomInfront="false"
               :font-size="20"
               :font-size-small="14"
-              :decimals="0"
+              :decimals="2"
               denom="%"
             />
           </p>
@@ -295,7 +295,7 @@ import { onMounted } from "vue";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { TxType } from "@/types";
 import { WalletManager } from "@/utils";
-import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation } from "@/config/env";
+import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation, INTEREST_DECIMALS } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { walletOperation } from "@/components/utils";
 
@@ -505,7 +505,7 @@ const interest = computed(() => {
   const data = props.leaseInfo.leaseStatus?.opened;
 
   if (data) {
-    return data.loan_interest_rate.toString();
+    return (data.loan_interest_rate / Math.pow(10, INTEREST_DECIMALS)).toString();
   }
 
   return '0'
@@ -640,9 +640,10 @@ const pnl = computed(() => {
 
     const prevAmount = unitAsset.mul(price);
     const currentAmount = unitAsset.mul(currentPrice);
+    const amount = currentAmount.sub(prevAmount);
 
     return {
-      amount: CurrencyUtils.formatPrice(currentAmount.toString()),
+      amount: CurrencyUtils.formatPrice(amount.toString()),
       status: currentAmount.gte(prevAmount),
     }
   }
