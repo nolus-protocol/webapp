@@ -49,17 +49,13 @@ const props = defineProps({
   disabled: {
     type: Boolean,
     default: false
-  },
-  position: {
-    type: Number,
-    default: 100
   }
 });
 
 const emits = defineEmits(['onDrag'])
+const defaultPosition = 100;
 
-
-let position = props.position;
+let position = defaultPosition;
 let dragStart = false
 let percent = 0;
 
@@ -79,9 +75,9 @@ const setDefault = () => {
     element.style.width = '100%';
   }
   if (btnElement) {
-    btnElement.style.left = `calc( ${props.position}% - 18px )`;
+    btnElement.style.left = `calc( ${defaultPosition}% - 18px )`;
   }
-  position = props.position;
+  position = defaultPosition;
 }
 
 const onMouseLeave = (event: MouseEvent | TouchEvent) => {
