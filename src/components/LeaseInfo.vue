@@ -37,7 +37,10 @@
           >
             {{ $t("message.down-payment") }}: {{ downPayment }}
           </span>
-          <span class="bg-[#ebeff5] rounded p-1 m-1">
+          <span
+            class="bg-[#ebeff5] rounded p-1 m-1"
+            v-if="leaseData"
+          >
             {{ $t("message.borrowed") }}: {{ loan }}
           </span>
           <span class="bg-[#ebeff5] rounded p-1 m-1">
@@ -86,13 +89,23 @@
           </div>
         </div>
         <div class="flex relaltive">
-          <div class="flex-1 pnl-container" v-if="leaseData">
-            <div class="pnl text-12 nls-font-500 whitespace-pre	mr-2" :class="[pnl.status ? 'success' : 'alert']">
+          <div
+            class="flex-1 pnl-container"
+            v-if="leaseData"
+          >
+            <div
+              class="pnl text-12 nls-font-500 whitespace-pre	mr-2"
+              :class="[pnl.status ? 'success' : 'alert']"
+            >
               {{ $t('message.pnl') }} {{ pnl.status ? '+' : '' }}{{ pnl.amount }}
             </div>
           </div>
           <div class="relative w-full">
-            <div  v-if="leaseData" class="dash-pnl" :class="[pnl.status ? 'success' : 'alert']">
+            <div
+              v-if="leaseData"
+              class="dash-pnl"
+              :class="[pnl.status ? 'success' : 'alert']"
+            >
 
             </div>
             <PriceHistoryChart :chartData="chartData" />
@@ -317,7 +330,6 @@ const i18n = useI18n();
 
 const chartData = ref();
 const showClaimDialog = ref(false);
-const currentPrice = ref<string>('0');
 const walletStore = useWalletStore();
 const oracleStore = useOracleStore();
 const snackbarVisible = inject("snackbarVisible", () => false);
@@ -368,10 +380,6 @@ const loadCharts = async () => {
   const { days, interval } = chartTimeRange.value;
   const pricesData = await fetchChartData(days, interval);
 
-  if (days === "1") {
-    currentPrice.value = `${pricesData[pricesData.length - 1][1]}`;
-  }
-
   chartData.value = {
     datasets: [
       {
@@ -384,6 +392,17 @@ const loadCharts = async () => {
     ],
   };
 }
+
+const currentPrice = computed(() => {
+
+  const ticker =
+    props.leaseInfo.leaseStatus?.opened?.amount.ticker ||
+    props.leaseInfo.leaseStatus?.opening?.downpayment.ticker ||
+    props.leaseInfo.leaseStatus?.paid?.amount.ticker;
+
+  const item = walletStore.getCurrencyByTicker(ticker as string);
+  return oracleStore.prices[item.symbol].amount;
+});
 
 const fetchChartData = async (days: string, interval: string) => {
   const res = await fetch(
@@ -427,16 +446,18 @@ const downPayment = computed(() => {
 const loan = computed(() => {
   const data = props.leaseInfo.leaseStatus.opened;
 
-  if (data) {
+  if (data && leaseData) {
     const amount = data.amount.amount;
     const asset = walletStore.getCurrencyByTicker(data.amount.ticker);
     const ibcDenom = walletStore.getIbcDenomBySymbol(asset.symbol) as string;
+    const assetInfo = walletStore.getCurrencyInfo(ibcDenom);
+    const loanInAsset = CurrencyUtils.convertMinimalDenomToDenom(amount, assetInfo.coinMinimalDenom, assetInfo.coinDenom, assetInfo.coinDecimals).toDec();
 
-    const price = oracleStore.prices[asset.symbol];
-    const coinData = new Coin(ibcDenom, amount);
+    const price = new Dec(leaseData.price);
+    const downPaymentAmount = new Dec(leaseData.downPayment);
+    const loan = loanInAsset.mul(price);
 
-    const balance = CurrencyUtils.calculateBalance(price.amount, coinData, Number(asset.decimal_digits)).toString();
-    return balance;
+    return CurrencyUtils.formatPrice(loan.sub(downPaymentAmount).toString());
 
   }
 
@@ -616,7 +637,7 @@ const onClickOkBtn = () => {
 
 const liquidation = computed(() => {
   const lease = props.leaseInfo.leaseStatus.opened;
-  if(lease){
+  if (lease) {
     const unitAssetInfo = walletStore.getCurrencyByTicker(lease.amount.ticker);
     const stableAssetInfo = walletStore.getCurrencyByTicker(lease.principal_due.ticker);
     const unitAsset = new Dec(lease.amount.amount, Number(unitAssetInfo.decimal_digits));
@@ -630,9 +651,9 @@ const liquidation = computed(() => {
 const pnl = computed(() => {
   const lease = props.leaseInfo.leaseStatus.opened;
 
-  if(lease){
+  if (lease) {
     const price = new Dec(Number(leaseData?.price ?? 0));
-    
+
     const unitAssetInfo = walletStore.getCurrencyByTicker(lease.amount.ticker);
     const currentPrice = new Dec(oracleStore.prices?.[unitAssetInfo.symbol]?.amount ?? "0");
     const unitAsset = new Dec(lease.amount.amount, Number(unitAssetInfo.decimal_digits));

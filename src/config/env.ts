@@ -156,20 +156,32 @@ export const STAKING = {
 };
 
 export const TIP = {
-  amount: 10,
+  amount: 100,
   denom: NATIVE_ASSET.denom
 }
 
 export const LEASE_MIN_AMOUNT = 0.00005;
 export const LEASE_MAX_AMOUNT = 25000;
+
 export const INTEREST_DECIMALS = 1;
+export const PERMILLE = 1000;
+
 export const WASM_EVENTS = {
   "wasm-ls-request-loan": {
     key: "wasm-ls-request-loan",
     index: 0
   }
 }
+
 export const LIQUIDATION = new Dec(0.9);
 export const calculateLiquidation = (unit: Dec, price: Dec) => {
   return unit.quo(price).quo(LIQUIDATION);
+}
+
+export const MAX_POSITION = 150;
+export const MIN_POSITION = 65;
+export const DEFAULT_LTV = 60;
+
+export const calculateBaseQuote = (amount: Dec) => {
+  return amount.quo(new Dec((1 + MAX_POSITION / 100)));
 }

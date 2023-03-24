@@ -38,11 +38,11 @@ import { EnvNetworkUtils } from "@/utils/EnvNetworkUtils";
 import { CONFIRM_STEP } from "@/types/ConfirmStep";
 import { TxType } from "@/types/TxType";
 import { getMicroAmount, walletOperation } from "@/components/utils";
-import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
+import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import { computed } from "vue";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, GROUPS, LEASE_MIN_AMOUNT, LEASE_MAX_AMOUNT, TIP, WASM_EVENTS, INTEREST_DECIMALS } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, GROUPS, LEASE_MIN_AMOUNT, LEASE_MAX_AMOUNT, TIP, WASM_EVENTS, INTEREST_DECIMALS, MAX_POSITION, DEFAULT_LTV } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/stores/oracle";
 
@@ -102,6 +102,8 @@ const state = ref({
   txHash: "",
   fee: coin(GAS_FEES.open_lease + TIP.amount, NATIVE_ASSET.denom),
   leaseApply: null,
+  maxPosition: MAX_POSITION,
+  ltv: DEFAULT_LTV
 } as LeaseComponentProps);
 
 const getLeases = inject("getLeases", () => { });
@@ -112,7 +114,6 @@ onMounted(async () => {
   const balances = walletStore.balances;
   if (balances) {
     state.value.currentBalance = balances;
-    console.log(await walletStore[WalletActionTypes.LOAD_LEASER_CONFIG]())
   }
 });
 
@@ -313,7 +314,7 @@ const openLease = async () => {
         walletStore.currencies[
           state.value.selectedCurrency.balance.denom
         ].ticker,
-        Number(state.value.leaseApply!.borrow.amount),
+        state.value.ltv,
         funds
       );
 
@@ -366,4 +367,8 @@ const openLease = async () => {
     }
   }
 };
+
+const getMaxLTV = () => {
+  
+}
 </script>
