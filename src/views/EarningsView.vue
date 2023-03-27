@@ -53,7 +53,7 @@
               <div
                 class="nls-font-500 text-12 text-dark-grey text-right text-upper md:flex hidden items-center justify-end"
               >
-                {{ $t("message.apr") }}
+                {{ $t("message.yield") }}
                 <TooltipComponent :content="$t('message.earn-view-apr-tooltip')" />
               </div>
             </div>
@@ -86,17 +86,25 @@
                   appear
                   tag="div"
                 >
-                  <EarnAsset
+                  <!-- <EarnAsset
                     v-for="(asset, index) in filteredAssets"
                     :key="`${asset.balance.denom}-${index}`"
                     :asset="asset"
                     :openSupplyWithdraw="() => openSupplyWithdrawDialog(asset.balance.denom)"
                     :cols="cols"
+                  /> -->  
+
+                  <EarnLpnAsset
+                    v-if="lpnAsset"
+                    key="`lpnAsset"
+                    :asset="lpnAsset"
+                    :openSupplyWithdraw="() => openSupplyWithdrawDialog(lpnAsset?.balance.denom)"
+                    :cols="cols"
                   />
 
                   <EarnNativeAsset
-                    v-if="nativeAsset"
-                    :asset="nativeAsset"
+                    key="nativeAsset"
+                    :asset="reward"
                     :cols="cols"
                     :openDelegateUndelegate="() => openDelegateUndelegateDialog()"
                     :isDelegated="isDelegated"
@@ -186,7 +194,6 @@
 </template>
 
 <script setup lang="ts">
-import EarnAsset from "@/components/EarningsComponents/EarnAsset.vue";
 import EarnNativeAsset from "@/components/EarningsComponents/EarnNativeAsset.vue";
 
 import EarnReward from "@/components/EarningsComponents/EarnReward.vue";
@@ -217,6 +224,7 @@ import {
 } from "@nolus/nolusjs/build/contracts";
 import { NATIVE_ASSET, UPDATE_REWARDS_INTERVAL } from "@/config/env";
 import { coin } from "@cosmjs/amino";
+import EarnLpnAsset from "@/components/EarningsComponents/EarnLpnAsset.vue";
 
 const wallet = useWalletStore();
 
@@ -226,7 +234,6 @@ const showSupplyWithdrawDialog = ref(false);
 const showDelegateUndelegateDialog = ref(false);
 const showWithrawRewardsDialog = ref(false);
 
-const availableCurrencies = ref([] as string[]);
 const rewards = ref([] as AssetBalance[]);
 const reward = ref({
   balance: coin(0, ChainConstants.COIN_MINIMAL_DENOM)
@@ -239,6 +246,7 @@ const showErrorDialog = ref(false);
 const errorMessage = ref("");
 const loading = ref(true);
 const isDelegated = ref(false);
+const lpnAsset = ref<AssetBalance | null>()
 
 onMounted(async () => {
   try {
@@ -273,14 +281,14 @@ onUnmounted(() => {
   clearInterval(rewardsInterval);
 });
 
-const filteredAssets = computed(() => {
-  const balances = wallet.balances.filter((asset) => {
-    return availableCurrencies.value.includes(asset.balance.denom);
-  });
-  return showSmallBalances.value
-    ? balances
-    : filterSmallBalances(balances as AssetBalance[]);
-});
+// const filteredAssets = computed(() => {
+//   const balances = wallet.balances.filter((asset) => {
+//     return availableCurrencies.value.includes(asset.balance.denom);
+//   });
+//   return showSmallBalances.value
+//     ? balances
+//     : filterSmallBalances(balances as AssetBalance[]);
+// });
 
 const nativeAsset = computed(() => {
   const nativeDenom = wallet.getIbcDenomBySymbol(
@@ -336,7 +344,7 @@ const loadRewards = async () => {
   if (total) {
     const value = new Dec(total.amount).truncate().toString();
     reward.value = { balance: coin(value, NATIVE_ASSET.denom) };
-  }else{
+  } else {
     const value = new Dec('0').truncate().toString();
     reward.value = { balance: coin(value, NATIVE_ASSET.denom) };
   }
@@ -357,7 +365,28 @@ const loadLPNCurrency = async () => {
   const lpnCoin = wallet.getCurrencyByTicker(lppConfig.lpn_ticker);
   const lpnIbcDenom = wallet.getIbcDenomBySymbol(lpnCoin?.symbol);
 
-  availableCurrencies.value.push(lpnIbcDenom as string);
+  const index = wallet.balances.findIndex((item) => item.balance.denom == lpnIbcDenom);
+
+  if(index > -1){
+
+    const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
+    const [depositBalance, price] = await Promise.all([
+      lppClient.getLenderDeposit(
+        walletAddress as string
+      ),
+      lppClient.getPrice()
+    ]);
+    console.log(price)
+    const calculatedPrice = new Dec(price.amount_quote.amount).quo(
+      new Dec(price.amount.amount)
+    );
+    const amount = new Dec(depositBalance.balance).mul(calculatedPrice).truncate();
+
+    lpnAsset.value = wallet.balances[index];
+    lpnAsset.value.balance.amount = amount;
+  }
+
+  // availableCurrencies.value.push(lpnIbcDenom as string);
 }
 
 const getAllRewards = async () => {
@@ -375,7 +404,7 @@ const getAllRewards = async () => {
     const lpnCoin = wallet.getCurrencyByTicker(lppConfig.lpn_ticker);
     const lpnIbcDenom = wallet.getIbcDenomBySymbol(lpnCoin?.symbol);
 
-    availableCurrencies.value.push(lpnIbcDenom as string);
+    // availableCurrencies.value.push(lpnIbcDenom as string);
 
     const lppRewards = await lppClient.getLenderRewards(
       WalletManager.getWalletAddress()

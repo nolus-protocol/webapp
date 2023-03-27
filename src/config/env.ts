@@ -179,7 +179,7 @@ export const calculateLiquidation = (unit: Dec, price: Dec) => {
 }
 
 export const MAX_POSITION = 150;
-export const MIN_POSITION = 65;
+export const MIN_POSITION = 20;
 export const DEFAULT_LTV = 60;
 
 export const calculateBaseQuote = (amount: Dec) => {

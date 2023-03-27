@@ -14,7 +14,10 @@
     :onOkClick="onClickOkBtn"
     @passwordUpdate="(value) => (state.password = value)"
   />
-  <WithdrawFormComponent v-else v-model="state" />
+  <WithdrawFormComponent
+    v-else
+    v-model="state"
+  />
   <Modal
     v-if="errorDialog.showDialog"
     @close-modal="errorDialog.showDialog = false"
@@ -39,7 +42,7 @@ import Modal from "@/components/modals/templates/Modal.vue";
 
 import { CONFIRM_STEP } from "@/types/ConfirmStep";
 import { TxType } from "@/types/TxType";
-import { Coin, Int } from "@keplr-wallet/unit";
+import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { EnvNetworkUtils, WalletManager } from "@/utils";
@@ -99,7 +102,7 @@ const state = ref({
 const errorDialog = ref({
   showDialog: false,
   errorMessage: "",
-  tryAgain: (): void => {},
+  tryAgain: (): void => { },
 });
 
 const fetchDepositBalance = async () => {
@@ -107,14 +110,22 @@ const fetchDepositBalance = async () => {
     const walletAddress = walletStore.wallet?.address ?? WalletManager.getWalletAddress();
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
     const lppClient = new Lpp(cosmWasmClient, state.value.receiverAddress);
-    const depositBalance = await lppClient.getLenderDeposit(
-      walletAddress as string
+    const [depositBalance, price] = await Promise.all([
+      lppClient.getLenderDeposit(
+        walletAddress as string
+      ),
+      lppClient.getPrice()
+    ]);
+
+    const calculatedPrice = new Dec(price.amount_quote.amount).quo(
+      new Dec(price.amount.amount)
     );
+    const amount = new Dec(depositBalance.balance).mul(calculatedPrice);
 
     state.value.currentDepositBalance = {
       balance: new Coin(
         state.value.selectedCurrency.balance.denom,
-        new Int(depositBalance.balance)
+        amount.truncate().toString()
       ),
     } as AssetBalance;
   } catch (e: Error | any) {
@@ -145,10 +156,10 @@ watch(
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 
-const closeModal = inject("onModalClose", () => () => {});
+const closeModal = inject("onModalClose", () => () => { });
 const showSnackbar = inject(
   "showSnackbar",
-  (type: string, transaction: string) => {}
+  (type: string, transaction: string) => { }
 );
 const snackbarVisible = inject("snackbarVisible", () => false);
 
@@ -206,17 +217,21 @@ async function transferAmount() {
   if (wallet && state.value.amountErrorMsg === "") {
     step.value = CONFIRM_STEP.PENDING;
     try {
+
       const microAmount = getMicroAmount(
         state.value.selectedCurrency.balance.denom,
         state.value.amount
       );
-      const cosmWasmClient =
-        await NolusClient.getInstance().getCosmWasmClient();
-      const lppClient = new Lpp(
-        cosmWasmClient,
-        CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance
-      );
 
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+      const lppClient = new Lpp(cosmWasmClient, state.value.receiverAddress);
+      const price = await lppClient.getPrice()
+
+      const calculatedPrice = new Dec(price.amount_quote.amount).quo(
+        new Dec(price.amount.amount)
+      );
+      microAmount.mAmount.amount = new Dec(microAmount.mAmount.amount).quo(calculatedPrice).truncate();
+      
       const { txHash, txBytes, usedFee } =
         await lppClient.simulateBurnDepositTx(
           wallet,
@@ -242,6 +257,7 @@ async function transferAmount() {
         showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
       }
     } catch (e) {
+      console.log(e)
       step.value = CONFIRM_STEP.ERROR;
     }
   }

@@ -234,6 +234,7 @@
     "close-lease": "Close lease",
     "outstanding-debt-tooltip": "Current outstanding debt for an active DeFi Lease position",
     "compounding": "Compounding",
-    "pnl": "PnL"
+    "pnl": "PnL",
+    "yield": "Yield"
   }
 }

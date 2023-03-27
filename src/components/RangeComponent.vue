@@ -2,10 +2,7 @@
   <div
     ref="container"
     class="slider-box"
-    @mousemove="onMouseMove"
     @mousedown="onMouseDown"
-    @mouseup="onMouseLeave"
-    @mouseleave="onMouseLeave"
     @touchstart="onMouseDown"
     @touchmove="onMouseMove"
     @touchend="onMouseLeave"
@@ -39,7 +36,7 @@
 
 <script setup lang="ts">
 import { MAX_POSITION, MIN_POSITION } from '@/config/env';
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 
 const props = defineProps({
   label: {
@@ -66,7 +63,14 @@ const background = ref<HTMLDivElement>();
 
 onMounted(() => {
   setDefault();
+  window.addEventListener("mousemove", onMouseMove);
+  window.addEventListener("mouseup", onMouseLeave);
 });
+
+onUnmounted(() => {
+  window.removeEventListener("mousemove", onMouseMove);
+  window.removeEventListener("mouseup", onMouseLeave);
+})
 
 const setDefault = () => {
   const element = background.value;
