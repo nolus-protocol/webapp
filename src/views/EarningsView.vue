@@ -372,7 +372,9 @@ const getRewards = async () => {
     lpnReward.value = new Dec(lenderRewards.rewards.amount);
     return new Dec(lenderRewards.rewards.amount);
 
-  } catch (e) { }
+  } catch (e) { 
+    // console.log(e)
+  }
 
   return new Dec(0);
 }
