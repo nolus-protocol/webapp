@@ -35,7 +35,6 @@
 </template>
 
 <script setup lang="ts">
-import { MAX_POSITION, MIN_POSITION } from '@/config/env';
 import { onMounted, onUnmounted, ref } from 'vue';
 
 const props = defineProps({
@@ -56,7 +55,6 @@ let position = defaultPosition;
 let dragStart = false
 let percent = 0;
 
-const minValue = MIN_POSITION * 100 / MAX_POSITION;
 const button = ref<HTMLButtonElement>();
 const container = ref<HTMLDivElement>();
 const background = ref<HTMLDivElement>();
@@ -170,9 +168,6 @@ const setPercent = (draggable: HTMLButtonElement, xPos: number, parentRect: DOMR
 
   if (x > -widthDragable && x < parentRect.width - widthDragable) {
     const prc = ((x + draggableRect.width / 2) / parentRect.width) * 100;
-    if (prc < minValue) {
-      return false;
-    }
     draggable.style.left = `${x}px`;
     percent = Math.round(((x + draggableRect.width / 2) / parentRect.width) * 100);
     emits('onDrag', percent)

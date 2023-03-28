@@ -140,7 +140,7 @@ import { onMounted, ref, type PropType } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { computed, watch } from "vue";
 import { useWalletStore } from "@/stores/wallet";
-import { GROUPS, NATIVE_NETWORK, calculateLiquidation, MAX_POSITION, calculateBaseQuote, PERMILLE } from "@/config/env";
+import { GROUPS, NATIVE_NETWORK, calculateLiquidation, MAX_POSITION, calculateBaseQuote, PERMILLE, MIN_POSITION } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
@@ -336,7 +336,8 @@ const calculateLique = computed(() => {
 });
 
 const onDrag = (event: number) => {
-  props.modelValue.maxPosition = event * MAX_POSITION / 100;
+  const coeficient = (MAX_POSITION - MIN_POSITION) / 100;
+  props.modelValue.maxPosition = event * coeficient + MIN_POSITION;
   percent.value = event;
 }
 
