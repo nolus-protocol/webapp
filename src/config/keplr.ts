@@ -9,7 +9,7 @@ const KeplrEmbedChainInfo = (
 ): ChainInfo => {
   return {
     chainId: chainId,
-    chainName: ChainConstants.CHAIN_NAME + "-" + networkName,
+    chainName: ChainConstants.CHAIN_NAME + " " + networkName,
     rpc: tendermintRpc,
     rest: rest,
     bip44: {
