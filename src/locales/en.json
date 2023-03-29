@@ -130,7 +130,7 @@
     "withdraw": "Withdraw",
     "down-payment": "down payment",
     "loan": "loan",
-    "liq-trigger": "liq. trigger",
+    "liq-trigger": "Liquidation Trigger",
     "current-price": "Current Price",
     "connecting-kepler": "Connecting Keplr",
     "approving-extension": "Continue by approving the connection in the extension",

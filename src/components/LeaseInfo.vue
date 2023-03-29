@@ -37,12 +37,12 @@
           >
             {{ $t("message.down-payment") }}: {{ downPayment }}
           </span>
-          <span
+          <!-- <span
             class="bg-[#ebeff5] rounded p-1 m-1"
             v-if="leaseData"
           >
             {{ $t("message.borrowed") }}: {{ loan }}
-          </span>
+          </span> -->
           <span class="bg-[#ebeff5] rounded p-1 m-1">
             {{ `price per ${asset.coinDenom}:` }} {{ price }}
           </span>
@@ -299,7 +299,7 @@ import DialogHeader from "./modals/templates/DialogHeader.vue";
 
 import { computed, inject, onUnmounted, ref, onBeforeMount } from "vue";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
-import { Coin, Dec } from "@keplr-wallet/unit";
+import { Dec } from "@keplr-wallet/unit";
 import { CHART_RANGES } from "@/config/globals";
 import { useWalletStore } from "@/stores/wallet";
 import { useOracleStore } from "@/stores/oracle";
@@ -653,7 +653,7 @@ const pnl = computed(() => {
 
   if (lease) {
     const price = new Dec(Number(leaseData?.price ?? 0));
-
+    console.log(price)
     const unitAssetInfo = walletStore.getCurrencyByTicker(lease.amount.ticker);
     const currentPrice = new Dec(oracleStore.prices?.[unitAssetInfo.symbol]?.amount ?? "0");
     const unitAsset = new Dec(lease.amount.amount, Number(unitAssetInfo.decimal_digits));

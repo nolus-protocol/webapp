@@ -147,7 +147,7 @@ import { onMounted, ref, type PropType } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { computed, watch } from "vue";
 import { useWalletStore } from "@/stores/wallet";
-import { GROUPS, NATIVE_NETWORK, calculateLiquidation, MAX_POSITION, calculateBaseQuote, PERMILLE, MIN_POSITION } from "@/config/env";
+import { GROUPS, NATIVE_NETWORK, calculateLiquidation, PERMILLE, DEFAULT_LTV } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
@@ -197,7 +197,6 @@ const props = defineProps({
 
 const borrowValue = ref(props.modelValue.leaseApply?.borrow);
 const tottalValue = ref(props.modelValue.leaseApply?.total);
-const percent = ref(100);
 
 watch(() => props.modelValue.leaseApply, (value) => {
   if (value) {
@@ -241,10 +240,9 @@ const calculateMarginAmount = computed(() => {
     const asset = wallet.getCurrencyByTicker(total.ticker);
     const ibcDenom = wallet.getIbcDenomBySymbol(asset.symbol);
     const info = wallet.getCurrencyInfo(ibcDenom as string);
-    const totalValue = getTotalAmount();
 
     const token = CurrencyUtils.convertMinimalDenomToDenom(
-      totalValue.toString(),
+      total.amount,
       info.coinMinimalDenom as string,
       info.coinDenom as string,
       info.coinDecimals
@@ -336,6 +334,7 @@ const calculateLique = computed(() => {
     const stableAssetInfo = wallet.getCurrencyByTicker(lease.total.ticker);
 
     const unitAsset = new Dec(getBorrowedAmount(), Number(unitAssetInfo.decimal_digits));
+
     const stableAsset = new Dec(getTotalAmount(), Number(stableAssetInfo.decimal_digits));
     const data = calculateLiquidation(unitAsset, stableAsset);
     return `$${data.toString(2)}`;
@@ -344,23 +343,20 @@ const calculateLique = computed(() => {
 });
 
 const onDrag = (event: number) => {
-  const coeficient = (MAX_POSITION - MIN_POSITION) / 100;
-  props.modelValue.maxPosition = event * coeficient + MIN_POSITION;
-  percent.value = event;
+  props.modelValue.position = event;
+  props.modelValue.ltv = Number(calculateTVL().mul(new Dec(PERMILLE)).truncate().toString())
 }
 
 const borrowed = computed(() => {
   const borrow = props.modelValue.leaseApply?.borrow;
 
   if (borrow) {
-    const borrowAmount = getBorrowedAmount();
-
     const asset = wallet.getCurrencyByTicker(borrow.ticker);
     const ibcDenom = wallet.getIbcDenomBySymbol(asset.symbol);
     const info = wallet.getCurrencyInfo(ibcDenom as string);
 
     const token = CurrencyUtils.convertMinimalDenomToDenom(
-      borrowAmount.toString(),
+      borrow.amount,
       info.coinMinimalDenom as string,
       info.coinDenom as string,
       info.coinDecimals
@@ -376,7 +372,7 @@ const getBorrowedAmount = () => {
   const borrow = props.modelValue.leaseApply?.borrow;
 
   if (borrow) {
-    const amount = new Dec(borrow.amount).mul(new Dec(percent.value)).quo(new Dec(100)).truncate();
+    const amount = new Dec(borrow.amount).truncate();
     return amount;
   }
 
@@ -385,15 +381,35 @@ const getBorrowedAmount = () => {
 
 const getTotalAmount = () => {
   const total = props.modelValue.leaseApply?.total;
+  return new Dec(total?.amount ?? 0).truncate();
+}
 
-  if (total) {
-    const amount = calculateBaseQuote(new Dec(total.amount))
-    const borrowed = amount.mul(new Dec(props.modelValue.maxPosition)).quo(new Dec(100));
-    const totalValue = amount.add(borrowed).truncate();
-    return totalValue;
+const calculateTVL = () => {
+
+  const lease = props.modelValue.leaseApply;
+
+  if (lease) {
+    const downPayment = props.modelValue.downPayment;
+    const downPaymentAsset = props.modelValue.selectedDownPaymentCurrency;
+    const downPaymentInfo = wallet.getCurrencyInfo(downPaymentAsset.balance.denom);
+    const asset = wallet.getCurrencyByTicker(downPaymentInfo.ticker);
+    const price = oracle.prices[asset.symbol];
+
+    const mAmount = CurrencyUtils.convertDenomToMinimalDenom(
+      downPayment,
+      downPaymentInfo.coinMinimalDenom,
+      downPaymentInfo.coinDecimals
+    );
+
+    const balance = CurrencyUtils.calculateBalance(price.amount, mAmount, downPaymentInfo.coinDecimals).toDec();
+    const pos = new Dec(props.modelValue.position / 100);
+    const loan = balance.mul(pos);
+    const total = loan.add(balance);
+    return loan.quo(total);
   }
 
-  return new Dec(0).truncate();
+  return new Dec(DEFAULT_LTV);
+
 }
 
 const selectedAssetDenom = computed(() => {
@@ -401,31 +417,20 @@ const selectedAssetDenom = computed(() => {
   return asset.coinAbbreviation;
 });
 
-const selectedAssetPrice= computed(() => {
+const selectedAssetPrice = computed(() => {
   const asset = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
   const currecy = wallet.getCurrencyByTicker(asset.ticker);
 
   const price = oracle.prices[currecy.symbol];
 
-  return CurrencyUtils.formatPrice(price.amount).maxDecimals(2);
+  return CurrencyUtils.formatPrice(price.amount);
 });
 
 const submit = () => {
   const lease = props.modelValue.leaseApply;
 
   if (lease) {
-    const unitAssetInfo = wallet.getCurrencyByTicker(lease.total.ticker);
-    const stableAssetInfo = wallet.getCurrencyByTicker(lease.borrow.ticker);
-
-    const unitAsset = new Dec(getTotalAmount(), Number(unitAssetInfo.decimal_digits));
-    const stableAsset = new Dec(getBorrowedAmount(), Number(stableAssetInfo.decimal_digits));
-    const priceAsset = oracle.prices[unitAssetInfo.symbol];
-    const price = new Dec(priceAsset.amount);
-    const ltv = stableAsset.quo(unitAsset).quo(price).mul(new Dec(PERMILLE));
-
-    props.modelValue.ltv = Number(ltv.truncate().toString());
-
-    props.modelValue.onNextClick();
+    props.modelValue.onNextClick(selectedAssetPrice.value.toDec().toString());
   }
 
 }
