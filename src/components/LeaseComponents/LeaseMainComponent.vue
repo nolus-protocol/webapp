@@ -83,7 +83,7 @@ const props = defineProps({
   selectedAsset: {
     type: String
   }
-})
+});
 
 const state = ref({
   contractAddress: CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance,

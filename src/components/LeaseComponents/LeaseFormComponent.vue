@@ -85,6 +85,9 @@
             {{ $t("message.borrowed") }}
           </p>
           <p class="mb-2 mt-[14px] mr-5">
+            {{ $t("message.price-per") }} {{ selectedAssetDenom }}
+          </p>
+          <p class="mb-2 mt-[14px] mr-5">
             {{ $t("message.interest") }}
           </p>
           <p class="mb-2 mt-[14px] mr-5">
@@ -98,6 +101,10 @@
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             ${{ borrowed }}
             <TooltipComponent :content="$t('message.borrowed-tooltip')" />
+          </p>
+          <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
+            ~{{ selectedAssetPrice }}
+            <TooltipComponent content="content" />
           </p>
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             {{ annualInterestRate ?? 0 }}%
@@ -186,6 +193,7 @@ const props = defineProps({
     required: true,
   },
 });
+
 
 const borrowValue = ref(props.modelValue.leaseApply?.borrow);
 const tottalValue = ref(props.modelValue.leaseApply?.total);
@@ -387,6 +395,20 @@ const getTotalAmount = () => {
 
   return new Dec(0).truncate();
 }
+
+const selectedAssetDenom = computed(() => {
+  const asset = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
+  return asset.coinAbbreviation;
+});
+
+const selectedAssetPrice= computed(() => {
+  const asset = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
+  const currecy = wallet.getCurrencyByTicker(asset.ticker);
+
+  const price = oracle.prices[currecy.symbol];
+
+  return CurrencyUtils.formatPrice(price.amount).maxDecimals(2);
+});
 
 const submit = () => {
   const lease = props.modelValue.leaseApply;

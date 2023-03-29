@@ -372,7 +372,7 @@ const getRewards = async () => {
     lpnReward.value = new Dec(lenderRewards.rewards.amount);
     return new Dec(lenderRewards.rewards.amount);
 
-  } catch (e) { 
+  } catch (e) {
     // console.log(e)
   }
 
@@ -421,7 +421,6 @@ const loadLPNCurrency = async () => {
       ),
       lppClient.getPrice()
     ]);
-
     const calculatedPrice = new Dec(price.amount_quote.amount).quo(
       new Dec(price.amount.amount)
     );

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="outline text-center background w-full max-w-[516px] rounded-[12px] mx-auto shadow-modal modal-send-receive mt-[52px]"
+    class="text-center background w-full max-w-[516px] rounded-[12px] mx-auto shadow-modal modal-send-receive mt-[52px]"
     :class="{
       'pt-[15px]': !showHeader,
     }"
