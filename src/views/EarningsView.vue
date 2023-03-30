@@ -369,6 +369,7 @@ const getRewards = async () => {
     const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
 
     const lenderRewards = await lppClient.getLenderRewards(walletAddress);
+
     lpnReward.value = new Dec(lenderRewards.rewards.amount);
     return new Dec(lenderRewards.rewards.amount);
 

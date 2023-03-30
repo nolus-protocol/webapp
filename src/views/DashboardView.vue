@@ -156,7 +156,7 @@
           <div
             class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper"
           >
-            <span class="inline-block">{{ $t("message.earn-apr") }}</span>
+            <span class="inline-block">{{ $t("message.yield") }}</span>
             <TooltipComponent :content="$t('message.earn-apr-tooltip')" />
           </div>
 

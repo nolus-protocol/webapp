@@ -16,7 +16,7 @@
     width: 100%;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
-    overflow: auto;
+    overflow: hidden;
     max-height: calc( 100% - 80px);
 
 
@@ -45,7 +45,6 @@
     &-header {
       border-top-left-radius: 12px;
       border-top-right-radius: 12px;
-      overflow: hidden;
       width: 100%;
       border-bottom: 1px solid $borderColor;
 

@@ -18,7 +18,7 @@
       @passwordUpdate="(value) => (password = value)"
   />
   <template v-else>
-    <div class="modal-send-receive-input-area" v-if="selectedNetwork.native">
+    <div class="modal-send-receive-input-area overflow-auto" v-if="selectedNetwork.native">
       <div class="block py-3 px-4 modal-balance radius-light text-left text-14 nls-font-400 text-primary">
         {{$t('message.balance') }}:
         <a 
@@ -87,7 +87,7 @@
       </div>
     </div>
     <template v-else>
-      <form @submit.prevent="receive" class="modal-form">
+      <form @submit.prevent="receive" class="modal-form overflow-auto">
       <!-- Input Area -->
         <div class="modal-send-receive-input-area background">
 

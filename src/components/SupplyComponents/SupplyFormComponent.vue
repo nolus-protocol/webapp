@@ -15,7 +15,7 @@
         <CurrencyField
           id="amountSupply"
           :currency-options="modelValue.currentBalance"
-          :disabled-currency-picker="false"
+          :disabled-currency-picker="true"
           :error-msg="modelValue.amountErrorMsg"
           :is-error="modelValue.amountErrorMsg !== ''"
           :option="modelValue.selectedCurrency"
@@ -25,19 +25,6 @@
           @input="handleAmountChange($event)"
           @update-currency="(event) => (modelValue.selectedCurrency = event)"
         />
-        <WarningBox :isWarning="true" class="mt-[25px]">
-          <template v-slot:icon>
-            <img
-              class="block mx-auto my-0 w-10 h-10"
-              src="@/assets/icons/information-circle.svg"
-            />
-          </template>
-          <template v-slot:content>
-            <span>
-              {{ $t("message.rewards-compount") }}
-            </span>
-          </template>
-        </WarningBox>
       </div>
     </div>
 

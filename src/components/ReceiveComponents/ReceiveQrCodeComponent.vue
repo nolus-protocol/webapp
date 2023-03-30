@@ -1,4 +1,4 @@
-<template>
+<template >
   <!-- Header -->
   <div class="flex modal-send-receive-header no-border backgroundGrey">
     <div class="navigation-header border-b border-standart">
@@ -12,7 +12,7 @@
   </div>
 
   <!-- Input Area -->
-  <div class="modal-send-receive-input-area pt-1 backgroundGrey">
+  <div class="modal-send-receive-input-area pt-1 backgroundGrey overflow-auto">
     <div class="block text-left break-words">
       <div class="flex items-center">
         <span class="text-14 text-primary nls-font-500 m-0 mr-2">

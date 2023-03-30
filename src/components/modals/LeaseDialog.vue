@@ -1,6 +1,6 @@
 <template>
   <DialogHeader :headerList="[$t('message.lease')]">
-    <LeaseMainComponent :selectedAsset="selectedAsset" />
+    <LeaseMainComponent :selectedAsset="selectedAsset" class="overflow-auto" />
   </DialogHeader>
 </template>
 

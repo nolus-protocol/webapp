@@ -485,13 +485,17 @@ const amount = computed(() => {
 
 const debt = computed(() => {
   const data = props.leaseInfo.leaseStatus?.opened;
-
   if (data) {
     const item = walletStore.getCurrencyByTicker(data.principal_due.ticker);
     const ibcDenom = walletStore.getIbcDenomBySymbol(item.symbol) as string;
+    const amount = new Dec(data.principal_due.amount)
+      .add(new Dec(data.previous_margin_due.amount))
+      .add(new Dec(data.previous_interest_due.amount))
+      .add(new Dec(data.current_margin_due.amount))
+      .add(new Dec(data.current_interest_due.amount))
 
     const token = CurrencyUtils.convertMinimalDenomToDenom(
-      data.principal_due.amount,
+      amount.truncate().toString(),
       ibcDenom,
       item.symbol,
       Number(item.decimal_digits)

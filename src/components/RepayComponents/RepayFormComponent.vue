@@ -1,5 +1,5 @@
 <template>
-  <form @submit.prevent="modelValue.onNextClick">
+  <form @submit.prevent="modelValue.onNextClick" class="w-full">
     <div class="block text-left px-10 mt-10">
       <div class="block py-3 px-4 modal-balance radius-light text-left text-14 nls-font-400 text-primary mb-4">
         {{ $t('message.balance') }}:
@@ -75,14 +75,13 @@ import TooltipComponent from "../TooltipComponent.vue";
 
 import type { RepayComponentProps } from "@/types/component/RepayComponentProps";
 import type { AssetBalance } from "@/stores/wallet/state";
+import { type PropType, computed } from "vue";
 
-import { Coin, Dec, Int } from "@keplr-wallet/unit";
+import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
 import { NATIVE_NETWORK } from "@/config/env";
-import { type PropType, computed } from "vue";
-import { coin } from "@cosmjs/amino";
 
 const oracle = useOracleStore();
 const wallet = useWalletStore();
@@ -95,15 +94,21 @@ const props = defineProps({
 });
 
 const calculateOutstandingDebt = () => {
-  const debt = props.modelValue.leaseInfo.principal_due;
-  const currency = wallet.getCurrencyByTicker(debt.ticker);
+  const data = props.modelValue.leaseInfo;
+  const currency = wallet.getCurrencyByTicker(data.principal_due.ticker);
   const denom = wallet.getIbcDenomBySymbol(currency.symbol);
   const info = wallet.getCurrencyInfo(denom as string);
+
+  const debt = new Dec(data.principal_due.amount)
+    .add(new Dec(data.previous_margin_due.amount))
+    .add(new Dec(data.previous_interest_due.amount))
+    .add(new Dec(data.current_margin_due.amount))
+    .add(new Dec(data.current_interest_due.amount))
 
   if (denom) {
 
     const token = CurrencyUtils.convertMinimalDenomToDenom(
-      debt.amount,
+      debt.truncate().toString(),
       info.coinMinimalDenom as string,
       info.coinDenom as string,
       info.coinDecimals
@@ -117,12 +122,12 @@ const calculateOutstandingDebt = () => {
 
 const calucateAfterRepayment = computed(() => {
 
-  if(props.modelValue.amount && props.modelValue.amount != ""){
+  if (props.modelValue.amount && props.modelValue.amount != "") {
     const debt = props.modelValue.leaseInfo.principal_due;
     const currencyDebt = wallet.getCurrencyByTicker(debt.ticker);
     const debtDenom = wallet.getIbcDenomBySymbol(currencyDebt.symbol);
     const info = wallet.getCurrencyInfo(debtDenom as string);
-  
+
     const debtCoin = CurrencyUtils.convertMinimalDenomToDenom(
       debt.amount,
       info.coinMinimalDenom as string,
@@ -130,18 +135,18 @@ const calucateAfterRepayment = computed(() => {
       info.coinDecimals
     ).toDec();
 
-    const amountDenom  = props.modelValue.selectedCurrency.balance.denom;
+    const amountDenom = props.modelValue.selectedCurrency.balance.denom;
     const amountCurrency = wallet.getCurrencyInfo(amountDenom);
     const asset = wallet.getCurrencyByTicker(amountCurrency.ticker);
     const price = oracle.prices[asset.symbol];
     const amountDecimals = Number(asset.decimal_digits);
     const balaceAmount = CurrencyUtils.convertDenomToMinimalDenom(props.modelValue.amount, amountDenom, amountDecimals);
-  
+
     const amountInUSD = CurrencyUtils.calculateBalance(price.amount, balaceAmount, Number(asset.decimal_digits)).toDec();
 
     const amount = debtCoin.sub(amountInUSD);
 
-    if(amount.isNegative()){
+    if (amount.isNegative()) {
       return "0";
     }
 
