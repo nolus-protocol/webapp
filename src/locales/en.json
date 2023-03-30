@@ -130,7 +130,7 @@
     "withdraw": "Withdraw",
     "down-payment": "down payment",
     "loan": "loan",
-    "liq-trigger": "liq. trigger",
+    "liq-trigger": "Liquidation Trigger",
     "current-price": "Current Price",
     "connecting-kepler": "Connecting Keplr",
     "approving-extension": "Continue by approving the connection in the extension",
@@ -235,6 +235,9 @@
     "outstanding-debt-tooltip": "Current outstanding debt for an active DeFi Lease position",
     "compounding": "Compounding",
     "pnl": "PnL",
-    "yield": "Yield"
+    "yield": "Yield",
+    "amount-send": "Amount to Send",
+    "amount-receive": "Amount to Receive",
+    "price-per": "Price per"
   }
 }

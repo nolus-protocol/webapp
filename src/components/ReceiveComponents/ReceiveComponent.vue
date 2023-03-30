@@ -38,7 +38,7 @@
             :option="selectedCurrency"
             :value="amount"
             :name="$t('message.amount')"
-            :label="$t('message.amount-repay')"
+            :label="$t('message.amount-receive')"
             @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
           />
         </div>

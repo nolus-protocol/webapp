@@ -1,6 +1,6 @@
 <template>
   <div
-    class="block z-[101] md:rounded-2xl rounded-t-2xl background md:pb-10 pt-6 pb-[210px] mt-[52px] md:border border-standart shadow-box w-screen md:w-[516px] outline h-full md:h-auto"
+    class="block z-[101] md:rounded-2xl rounded-t-2xl background md:pb-10 pt-6 pb-[210px] mt-[52px] md:border border-standart shadow-box w-screen md:w-[516px] h-full md:h-auto"
     @click.stop
   >
     <div class="flex flex-col items-center">

@@ -92,7 +92,7 @@
                     :asset="asset"
                     :openSupplyWithdraw="() => openSupplyWithdrawDialog(asset.balance.denom)"
                     :cols="cols"
-                  /> -->  
+                  /> -->
 
                   <EarnLpnAsset
                     v-if="lpnAsset"
@@ -104,7 +104,7 @@
 
                   <EarnNativeAsset
                     key="nativeAsset"
-                    :asset="reward"
+                    :asset="delegated"
                     :cols="cols"
                     :openDelegateUndelegate="() => openDelegateUndelegateDialog()"
                     :isDelegated="isDelegated"
@@ -238,6 +238,11 @@ const rewards = ref([] as AssetBalance[]);
 const reward = ref({
   balance: coin(0, ChainConstants.COIN_MINIMAL_DENOM)
 } as AssetBalance);
+
+const delegated = ref({
+  balance: coin(0, ChainConstants.COIN_MINIMAL_DENOM)
+} as AssetBalance);
+
 const claimContractData = ref([] as ContractData[]);
 const selectedAsset = ref("");
 const showSmallBalances = ref(true);
@@ -247,6 +252,7 @@ const errorMessage = ref("");
 const loading = ref(true);
 const isDelegated = ref(false);
 const lpnAsset = ref<AssetBalance | null>()
+const lpnReward = ref(new Dec(0))
 
 onMounted(async () => {
   try {
@@ -254,22 +260,20 @@ onMounted(async () => {
       wallet[WalletActionTypes.LOAD_DELEGATIONS](),
       wallet[WalletActionTypes.UPDATE_BALANCES](),
       loadRewards(),
-      loadLPNCurrency()
+      loadLPNCurrency(),
+      loadDelegated()
     ]);
-
-    if (delegations.length > 0) {
-      isDelegated.value = true;
-    }
 
     rewardsInterval = setInterval(async () => {
       const [delegations] = await Promise.all([
         wallet[WalletActionTypes.LOAD_DELEGATIONS](),
-        loadRewards()
+        loadRewards(),
+        loadLPNCurrency(),
+        loadDelegated()
       ]);
     }, UPDATE_REWARDS_INTERVAL);
 
     loading.value = false;
-    isDelegated.value = delegations.length > 0 ? true : false;
 
   } catch (e: Error | any) {
     showErrorDialog.value = true;
@@ -324,6 +328,7 @@ const totalNlsRewards = (): AssetBalance => {
   rewards.value.forEach((reward) => {
     totalBalance = totalBalance.add(reward.balance.amount.toDec());
   });
+  totalBalance = totalBalance.add(lpnReward.value as Dec);
   return {
     balance: new Coin(
       ChainConstants.COIN_MINIMAL_DENOM,
@@ -338,17 +343,57 @@ const openSupplyWithdrawDialog = (denom: string) => {
 };
 
 const loadRewards = async () => {
-  const rewards = await wallet[WalletActionTypes.LOAD_DELEGATOR]();
+
+  const [rewards, lpnRewards] = await Promise.all([
+    wallet[WalletActionTypes.LOAD_DELEGATOR](),
+    getRewards()
+  ]);
+
   const total = rewards?.total?.[0];
+  let value = new Dec('0').add(lpnRewards);
 
   if (total) {
-    const value = new Dec(total.amount).truncate().toString();
-    reward.value = { balance: coin(value, NATIVE_ASSET.denom) };
-  } else {
-    const value = new Dec('0').truncate().toString();
-    reward.value = { balance: coin(value, NATIVE_ASSET.denom) };
+    value = new Dec(total.amount).add(value)
   }
 
+  reward.value = { balance: coin(value.truncate().toString(), NATIVE_ASSET.denom) };
+
+}
+
+const getRewards = async () => {
+  try {
+
+    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+    const contract = CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance;
+    const lppClient = new Lpp(cosmWasmClient, contract);
+    const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
+
+    const lenderRewards = await lppClient.getLenderRewards(walletAddress);
+    lpnReward.value = new Dec(lenderRewards.rewards.amount);
+    return new Dec(lenderRewards.rewards.amount);
+
+  } catch (e) {
+    // console.log(e)
+  }
+
+  return new Dec(0);
+}
+
+const loadDelegated = async () => {
+
+  const delegations = await wallet[WalletActionTypes.LOAD_DELEGATIONS]();
+  let decimalDelegated = new Dec(0);
+
+  for (const item of delegations) {
+    const d = new Dec(item.balance.amount);
+    decimalDelegated = decimalDelegated.add(d);
+  }
+
+  if (decimalDelegated.isPositive()) {
+    isDelegated.value = true;
+  }
+
+  delegated.value = { balance: coin(decimalDelegated.truncate().toString(), NATIVE_ASSET.denom) };
 }
 
 const loadLPNCurrency = async () => {
@@ -367,7 +412,7 @@ const loadLPNCurrency = async () => {
 
   const index = wallet.balances.findIndex((item) => item.balance.denom == lpnIbcDenom);
 
-  if(index > -1){
+  if (index > -1) {
 
     const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
     const [depositBalance, price] = await Promise.all([
@@ -376,13 +421,12 @@ const loadLPNCurrency = async () => {
       ),
       lppClient.getPrice()
     ]);
-    console.log(price)
     const calculatedPrice = new Dec(price.amount_quote.amount).quo(
       new Dec(price.amount.amount)
     );
     const amount = new Dec(depositBalance.balance).mul(calculatedPrice).truncate();
-
-    lpnAsset.value = wallet.balances[index];
+    const asset = { ...wallet.balances[index].balance }
+    lpnAsset.value = { ...wallet.balances[index], balance: asset };
     lpnAsset.value.balance.amount = amount;
   }
 
@@ -426,4 +470,6 @@ const openDelegateUndelegateDialog = () => {
 }
 
 provide("loadRewards", loadRewards);
+provide("loadLPNCurrency", loadLPNCurrency);
+
 </script>

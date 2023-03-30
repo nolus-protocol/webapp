@@ -83,7 +83,7 @@ const props = defineProps({
   selectedAsset: {
     type: String
   }
-})
+});
 
 const state = ref({
   contractAddress: CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance,
@@ -97,18 +97,19 @@ const state = ref({
   memo: "",
   password: "",
   passwordErrorMsg: "",
-  onNextClick: () => onNextClick(),
+  onNextClick: (price) => onNextClick(price),
   downPaymentErrorMsg: "",
   txHash: "",
   fee: coin(GAS_FEES.open_lease + TIP.amount, NATIVE_ASSET.denom),
   leaseApply: null,
-  maxPosition: MAX_POSITION,
+  position: MAX_POSITION,
   ltv: DEFAULT_LTV
 } as LeaseComponentProps);
 
 const getLeases = inject("getLeases", () => { });
 const snackbarVisible = inject("snackbarVisible", () => false);
 const showSnackbar = inject("showSnackbar", (_type: string, _transaction: string) => { });
+let leaseAssetPrice: string | null;
 
 onMounted(async () => {
   const balances = walletStore.balances;
@@ -141,6 +142,10 @@ watch(() => state.value.selectedCurrency, () => {
   calculate();
 });
 
+watch(() => state.value.ltv, () => {
+  calculate();
+});
+
 const calculate = async () => {
   try {
     const downPaymentAmount = state.value.downPayment;
@@ -169,8 +174,10 @@ const calculate = async () => {
         const makeLeaseApplyResp = await leaserClient.leaseQuote(
           microAmount.mAmount.amount.toString(),
           currency.ticker,
-          lease.ticker
+          lease.ticker,
+          state.value.ltv
         );
+
         makeLeaseApplyResp.annual_interest_rate = makeLeaseApplyResp.annual_interest_rate / Math.pow(10, INTEREST_DECIMALS);
         state.value.leaseApply = makeLeaseApplyResp;
       }
@@ -183,7 +190,8 @@ const calculate = async () => {
 
 }
 
-const onNextClick = async () => {
+const onNextClick = async (price: string) => {
+  leaseAssetPrice = price;
   if (isDownPaymentAmountValid()) {
     showConfirmScreen.value = true;
   }
@@ -334,17 +342,11 @@ const openLease = async () => {
 
       const data = item?.attributes[WASM_EVENTS["wasm-ls-request-loan"].index];
 
-      if (data) {
-
-        const leaseAsset = walletStore.getCurrencyByTicker(walletStore.currencies[
-          state.value.selectedCurrency.balance.denom
-        ].ticker);
+      if (data && leaseAssetPrice) {
 
         const downPaymentAsset = walletStore.getCurrencyByTicker(walletStore.currencies[
           state.value.selectedDownPaymentCurrency.balance.denom
         ].ticker);
-
-        const price = oracle.prices[leaseAsset.symbol];
 
         const downPaymentPrice = oracle.prices[downPaymentAsset.symbol];
         const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(state.value.downPayment, "", Number(downPaymentAsset.decimal_digits));
@@ -352,7 +354,7 @@ const openLease = async () => {
 
         localStorage.setItem(data.value, JSON.stringify({
           downPayment: balance,
-          price: price.amount
+          price: leaseAssetPrice
         }));
       }
 

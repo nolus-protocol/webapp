@@ -17,6 +17,7 @@
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     overflow: auto;
+    max-height: calc( 100% - 80px);
 
 
     @media (min-width: $md) {

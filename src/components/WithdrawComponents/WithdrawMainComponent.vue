@@ -162,6 +162,7 @@ const showSnackbar = inject(
   (type: string, transaction: string) => { }
 );
 const snackbarVisible = inject("snackbarVisible", () => false);
+const loadLPNCurrency = inject("loadLPNCurrency", () => false);
 
 function onNextClick() {
   if (!state.value.receiverAddress) {
@@ -230,18 +231,21 @@ async function transferAmount() {
       const calculatedPrice = new Dec(price.amount_quote.amount).quo(
         new Dec(price.amount.amount)
       );
-      microAmount.mAmount.amount = new Dec(microAmount.mAmount.amount).quo(calculatedPrice).truncate();
-      
+
+      if (microAmount.mAmount.amount.equals(state.value.currentDepositBalance.balance.amount)) {
+        const walletAddress = walletStore.wallet?.address ?? WalletManager.getWalletAddress();
+        const amount = await lppClient.getLenderDeposit(
+          walletAddress as string
+        );
+        microAmount.mAmount.amount = new Dec(amount.balance).truncate();
+      } else {
+        microAmount.mAmount.amount = new Dec(microAmount.mAmount.amount).quo(calculatedPrice).truncate();
+      }
+
       const { txHash, txBytes, usedFee } =
         await lppClient.simulateBurnDepositTx(
           wallet,
-          microAmount.mAmount.amount.toString(),
-          [
-            {
-              denom: microAmount.coinMinimalDenom,
-              amount: microAmount.mAmount.amount.toString(),
-            },
-          ]
+          microAmount.mAmount.amount.toString()
         );
 
       state.value.txHash = txHash;
@@ -253,6 +257,7 @@ async function transferAmount() {
       const tx = await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
       const isSuccessful = tx?.code === 0;
       step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
+      loadLPNCurrency();
       if (snackbarVisible()) {
         showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
       }

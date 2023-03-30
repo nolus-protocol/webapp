@@ -15,8 +15,14 @@
 
       </div>
       <div class="box">
-        <span class="big"></span>
-        <span class="big"></span>
+        <span class="small"></span>
+        <span class="small"></span>
+        <span class="small"></span>
+        <span class="small"></span>
+        <span class="small"></span>
+        <span class="small"></span>
+        <span class="small"></span>
+        <span class="small"></span>
         <span class="small"></span>
         <span class="small"></span>
         <span class="small"></span>
@@ -51,12 +57,14 @@ const props = defineProps({
 
 const emits = defineEmits(['onDrag'])
 const defaultPosition = 100;
+const positions = ((MAX_POSITION - MIN_POSITION) / 10);
+const percentPosition = 100 / positions;
+
 
 let position = defaultPosition;
 let dragStart = false
-let percent = 0;
+let scalePercent = 150;
 
-const minValue = MIN_POSITION * 100 / MAX_POSITION;
 const button = ref<HTMLButtonElement>();
 const container = ref<HTMLDivElement>();
 const background = ref<HTMLDivElement>();
@@ -70,7 +78,7 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener("mousemove", onMouseMove);
   window.removeEventListener("mouseup", onMouseLeave);
-})
+});
 
 const setDefault = () => {
   const element = background.value;
@@ -86,11 +94,16 @@ const setDefault = () => {
 
 const onMouseLeave = (event: MouseEvent | TouchEvent) => {
   event.preventDefault();
+  if(dragStart){
+    release();
+  }
   dragStart = false;
 }
 
 const onMouseDown = (event: MouseEvent | TouchEvent) => {
   event.preventDefault();
+
+  removeAnimations();
 
   if (props.disabled) {
     return false;
@@ -170,15 +183,43 @@ const setPercent = (draggable: HTMLButtonElement, xPos: number, parentRect: DOMR
 
   if (x > -widthDragable && x < parentRect.width - widthDragable) {
     const prc = ((x + draggableRect.width / 2) / parentRect.width) * 100;
-    if (prc < minValue) {
-      return false;
-    }
+    const percent = ((x + draggableRect.width / 2) / parentRect.width) * 100;
+    
+    const scale = Math.round(percent / percentPosition);
+    const leasePercent = scale * 10 + 20
+
+    scalePercent = Math.round(scale * percentPosition);
     draggable.style.left = `${x}px`;
-    percent = Math.round(((x + draggableRect.width / 2) / parentRect.width) * 100);
-    emits('onDrag', percent)
+
+    emits('onDrag', leasePercent);
+
     if (background.value) {
       background.value.style.width = `${prc}%`;
     }
+  }
+}
+
+const release = () => {
+  const element = background.value;
+  const btnElement = button.value;
+  if (element) {
+    element.style.width = `${scalePercent}%`;
+    element.style.transition = "ease 200ms";
+  }
+  if (btnElement) {
+    btnElement.style.left = `calc( ${scalePercent}% - 18px )`;
+    btnElement.style.transition = "ease 200ms";
+  }
+}
+
+const removeAnimations = () => {
+  const element = background.value;
+  const btnElement = button.value;
+  if (element) {
+    element.style.transition = "none";
+  }
+  if (btnElement) {
+    btnElement.style.transition = "none";
   }
 }
 

@@ -19,10 +19,6 @@ defineProps({
   contractData: {
     type: Array as PropType<ContractData[]>,
   },
-  // leaseInfo: {
-  //   type: Object as PropType<LeaseData>,
-  //   required: true
-  // }
 });
 </script>
 

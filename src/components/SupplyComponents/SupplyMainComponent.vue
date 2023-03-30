@@ -71,22 +71,25 @@ const props = defineProps({
 const i18n = useI18n();
 const walletStore = useWalletStore();
 const snackbarVisible = inject("snackbarVisible", () => false);
+const loadLPNCurrency = inject("loadLPNCurrency", () => false);
 
 const balances = computed(() => {
-  const balances = walletStore.balances;
-  return balances.filter((item) => {
+  const b = walletStore.balances;
+  return b.filter((item) => {
     const currency = walletStore.currencies[item.balance.denom];
     return currency.groups.includes(GROUPS.Lpn);
   });
 });
 
 const selectedCurrency = computed(
-  () =>
-    balances.value.find(
+  () => {
+    const b =  balances.value.find(
       (asset) => asset.balance.denom === props.selectedAsset
-    ) || balances.value[0]
+    );
+    return b;
+  }
+   
 );
-
 const showConfirmScreen = ref(false);
 const state = ref({
   currentBalance: balances.value,
@@ -187,6 +190,7 @@ async function transferAmount() {
       const tx = await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
       const isSuccessful = tx?.code === 0;
       step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
+      loadLPNCurrency();
       if (snackbarVisible()) {
         showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
       }
