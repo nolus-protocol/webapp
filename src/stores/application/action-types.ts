@@ -3,4 +3,5 @@ export enum ApplicationActionTypes {
   LOAD_NETWORK = "LOAD_NETWORK",
   SET_THEME = "SET_THEME",
   LOAD_THEME = "LOAD_THEME",
+  LOAD_APR = "LOAD_APR"
 }

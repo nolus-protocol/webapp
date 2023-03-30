@@ -653,7 +653,6 @@ const pnl = computed(() => {
 
   if (lease) {
     const price = new Dec(Number(leaseData?.price ?? 0));
-    console.log(price)
     const unitAssetInfo = walletStore.getCurrencyByTicker(lease.amount.ticker);
     const currentPrice = new Dec(oracleStore.prices?.[unitAssetInfo.symbol]?.amount ?? "0");
     const unitAsset = new Dec(lease.amount.amount, Number(unitAssetInfo.decimal_digits));

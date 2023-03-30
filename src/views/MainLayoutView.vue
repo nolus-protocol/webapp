@@ -62,11 +62,14 @@ import {
   UPDATE_BALANCE_INTERVAL,
   UPDATE_PRICES_INTERVAL,
 } from "@/config/env";
+import { ApplicationActionTypes, useApplicationStore } from "@/stores/application";
 
 let balanceInterval: NodeJS.Timeout | undefined;
 let pricesInterval: NodeJS.Timeout | undefined;
 const wallet = useWalletStore();
 const oracle = useOracleStore();
+const app = useApplicationStore();
+
 const snackbar: Ref<typeof Snackbar> = ref(Snackbar);
 
 const showErrorDialog = ref(false);
@@ -109,6 +112,7 @@ const loadNetwork = async () => {
       wallet[WalletActionTypes.UPDATE_BALANCES](),
       wallet[WalletActionTypes.LOAD_APR](),
       oracle[OracleActionTypes.GET_PRICES](),
+      app[ApplicationActionTypes.LOAD_APR](),
     ]);
     checkBalances();
     checkPrices();

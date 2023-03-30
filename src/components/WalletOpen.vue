@@ -139,6 +139,7 @@ onUnmounted(() => {
 const onUpdateNetwork = (value: PickerOption) => {
   EnvNetworkUtils.saveCurrentNetwork(value.value);
   applicaton[ApplicationActionTypes.CHANGE_NETWORK](true);
+  applicaton[ApplicationActionTypes.LOAD_APR]();
   router.push({ name: RouteNames.DASHBOARD });
 };
 

@@ -62,7 +62,7 @@
           <CurrencyComponent
             v-if="assetInfo.isEarn"
             :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            :amount="earnings"
+            :amount="app.apr?.toString() ?? '0'"
             :hasSpace="false"
             :isDenomInfront="false"
             denom="%"
@@ -146,7 +146,7 @@
           <CurrencyComponent
             :fontSize="14"
             :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            :amount="earnings"
+            :amount="app.apr?.toString() ?? '0'"
             :hasSpace="false"
             :isDenomInfront="false"
             denom="%"
@@ -205,10 +205,11 @@ import {
   DEFAULT_LEASE_UP_PERCENT,
   GROUPS,
   LEASE_UP_COEFICIENT,
-  NETWORKS,
 } from "@/config/env";
+import { useApplicationStore } from "@/stores/application";
 
 const walletStore = useWalletStore();
+const app = useApplicationStore();
 
 const props = defineProps({
   assetBalance: {
@@ -273,7 +274,7 @@ const balance = computed(() => {
 
 const leasUpTo = computed(() => {
   const balance = Number(props.assetBalance);
-  const leaseUpToAmount = balance * LEASE_UP_COEFICIENT + balance;
+  const leaseUpToAmount = balance * LEASE_UP_COEFICIENT;
   return leaseUpToAmount.toString();
 });
 
