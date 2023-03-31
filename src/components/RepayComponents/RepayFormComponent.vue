@@ -100,10 +100,10 @@ const calculateOutstandingDebt = () => {
   const info = wallet.getCurrencyInfo(denom as string);
 
   const debt = new Dec(data.principal_due.amount)
-    .add(new Dec(data.previous_margin_due.amount))
-    .add(new Dec(data.previous_interest_due.amount))
-    .add(new Dec(data.current_margin_due.amount))
-    .add(new Dec(data.current_interest_due.amount))
+    .add(new Dec(data.previous_margin_due.amount ?? 0))
+    .add(new Dec(data.previous_interest_due.amount ?? 0))
+    .add(new Dec(data.current_margin_due.amount ?? 0))
+    .add(new Dec(data.current_interest_due.amount ?? 0))
 
   if (denom) {
 

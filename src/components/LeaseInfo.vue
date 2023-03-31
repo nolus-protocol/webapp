@@ -489,10 +489,10 @@ const debt = computed(() => {
     const item = walletStore.getCurrencyByTicker(data.principal_due.ticker);
     const ibcDenom = walletStore.getIbcDenomBySymbol(item.symbol) as string;
     const amount = new Dec(data.principal_due.amount)
-      .add(new Dec(data.previous_margin_due.amount))
-      .add(new Dec(data.previous_interest_due.amount))
-      .add(new Dec(data.current_margin_due.amount))
-      .add(new Dec(data.current_interest_due.amount))
+      .add(new Dec(data.previous_margin_due.amount ?? 0))
+      .add(new Dec(data.previous_interest_due.amount ?? 0))
+      .add(new Dec(data.current_margin_due.amount ?? 0))
+      .add(new Dec(data.current_interest_due.amount ?? 0))
 
     const token = CurrencyUtils.convertMinimalDenomToDenom(
       amount.truncate().toString(),
