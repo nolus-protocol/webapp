@@ -10,6 +10,19 @@ button {
   }
 }
 
+button{
+  &.chart-dates{
+    border-color: $grey;
+    transition: ease 200ms;
+    &:hover{
+      border-color: $lightBlue;
+    }
+    &.border-light-electric{
+      border-color: rgb(40 104 225 / var(--tw-border-opacity)) !important;
+    }
+  }
+}
+
 .js-loading {
   color: transparent;
   background-color: $borderColor;
@@ -101,8 +114,7 @@ button {
     border-radius: $rounded;
   }
 
-  &:hover,
-  &:focus {
+  &:hover {
     background-color: $mediumElectric;
   }
 
@@ -315,8 +327,7 @@ button {
     border: 1px solid $grey;
     transition: 0.3s;
 
-    &:not(.btn-emphatized):hover,
-    &:not(.btn-emphatized):focus {
+    &:not(.btn-emphatized):hover {
       background: $lightGrey;
       border: 1px solid $lightBlue;
       box-shadow: 0px 12px 32px $shadowBoxColor;

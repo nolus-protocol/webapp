@@ -140,7 +140,7 @@
             {{ $t("message.interest-fee") }}
             <TooltipComponent :content="$t('message.interest-fee-tooltip')" />
           </p>
-          <p class="flex items-center text-primary text-20 nls-font-400 m-0 mt-1">
+          <p class="text-primary text-20 nls-font-400 m-0 mt-1">
             <CurrencyComponent
               class="garet-medium"
               :type="CURRENCY_VIEW_TYPES.CURRENCY"
@@ -159,7 +159,7 @@
             {{ $t("message.interest-due") }}
             <TooltipComponent :content="$t('message.interest-due-tooltip')" />
           </p>
-          <p class="flex items-center text-primary text-20 nls-font-400 m-0 mt-1">
+          <p class="text-primary text-20 nls-font-400 m-0 mt-1">
             <CurrencyComponent
               class="garet-medium"
               :type="CURRENCY_VIEW_TYPES.CURRENCY"

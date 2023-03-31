@@ -35,20 +35,20 @@
           <!-- Assets -->
           <div class="block mt-6 md:mt-[25px]">
             <!-- Assets Header -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-4">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-6 border-b border-standart pb-3 px-4">
               <div class="nls-font-500 text-12 text-dark-grey text-left text-upper pl-2">
                 {{ $t("message.asset") }}
               </div>
 
               <div
-                class="inline-flex items-center nls-font-500 text-12 text-dark-grey text-center text-upper md:col-span-1 justify-end"
+                class="inline-flex items-center nls-font-500 text-12 text-dark-grey text-center text-upper md:col-span-1 justify-end md:m-r[10px]"
               >
                 <span class="inline-block">{{ $t("message.deposit") }}</span>
                 <TooltipComponent :content="$t('message.deposit-tooltip')" />
               </div>
 
-              <div class="md:col-span-1">
-              </div>
+              <!-- <div class="md:col-span-1">
+              </div> -->
 
               <div
                 class="nls-font-500 text-12 text-dark-grey text-right text-upper md:flex hidden items-center justify-end"
@@ -229,7 +229,7 @@ import EarnLpnAsset from "@/components/EarningsComponents/EarnLpnAsset.vue";
 const wallet = useWalletStore();
 
 let rewardsInterval: NodeJS.Timeout | undefined;
-const cols = ref(4 as number);
+const cols = ref(3 as number);
 const showSupplyWithdrawDialog = ref(false);
 const showDelegateUndelegateDialog = ref(false);
 const showWithrawRewardsDialog = ref(false);

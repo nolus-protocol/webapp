@@ -2,7 +2,7 @@
   <div class="block relative border-t-[1px] border-standart">
     <div
       class="grid gap-6 row-actions border-b flex border-t border-standart px-6 py-3 items-center justify-between earn-asset"
-      :class="[cols ? 'md:grid-cols-' + cols : 'grid-cols-2 md:grid-cols-4']"
+      :class="[cols ? 'md:grid-cols-' + cols : 'grid-cols-2 md:grid-cols-3']"
     >
       <!-- Ticker -->
       <div class="inline-flex items-center">
@@ -50,9 +50,9 @@
         </template>
       </div>
 
-      <div class="block md:col-span-1">
+      <!-- <div class="block md:col-span-1">
 
-      </div>
+      </div> -->
 
       <div class="hidden md:block info-show">
         <div class="text-primary nls-font-500 text-14 text-right m-0 justify-end">
