@@ -18,7 +18,7 @@
       @passwordUpdate="(value) => (password = value)"
   />
   <template v-else>
-    <div class="modal-send-receive-input-area overflow-auto" v-if="selectedNetwork.native">
+    <div class="modal-send-receive-input-area overflow-auto custom-scroll" v-if="selectedNetwork.native">
       <div class="block py-3 px-4 modal-balance radius-light text-left text-14 nls-font-400 text-primary">
         {{$t('message.balance') }}:
         <a 
@@ -112,7 +112,7 @@
                 :option="selectedCurrency"
                 :value="amount"
                 :name="$t('message.amount')"
-                :label="$t('message.amount-repay')"
+                :label="$t('message.amount-receive')"
                 @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
                 @input="handleAmountChange($event)"
               />

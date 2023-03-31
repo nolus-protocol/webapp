@@ -6,7 +6,7 @@
   >
     <div class="grid grid-cols-1 lg:grid-cols-3">
       <div class="lg:col-span-1 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5">
-        <p class="text-20 nls-font-500 mb-4 text-primary">
+        <p class="text-20 nls-font-500 mb-4 text-primary select-none" @dblclick="copy">
           {{ $t("message.lease-position") }}
         </p>
         <div class="flex">
@@ -32,21 +32,21 @@
         </div>
         <div class="flex flex-wrap text-10 uppercase whitespace-nowrap">
           <span
-            class="bg-[#ebeff5] rounded p-1 m-1"
+            class="bg-[#ebeff5] rounded p-1 m-1 garet-medium"
             v-if="leaseData"
           >
             {{ $t("message.down-payment") }}: {{ downPayment }}
           </span>
           <!-- <span
-            class="bg-[#ebeff5] rounded p-1 m-1"
+            class="bg-[#ebeff5] rounded p-1 m-1 garet-medium"
             v-if="leaseData"
           >
             {{ $t("message.borrowed") }}: {{ loan }}
           </span> -->
-          <span class="bg-[#ebeff5] rounded p-1 m-1">
+          <span class="bg-[#ebeff5] rounded p-1 m-1 garet-medium">
             {{ `price per ${asset.coinDenom}:` }} {{ price }}
           </span>
-          <span class="bg-[#ebeff5] rounded p-1 m-1">
+          <span class="bg-[#ebeff5] rounded p-1 m-1 garet-medium">
             {{ $t("message.liq-trigger") }}: {{ liquidation }}
           </span>
         </div>
@@ -307,7 +307,7 @@ import { useI18n } from "vue-i18n";
 import { onMounted } from "vue";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { TxType } from "@/types";
-import { WalletManager } from "@/utils";
+import { StringUtils, WalletManager } from "@/utils";
 import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation, INTEREST_DECIMALS } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { walletOperation } from "@/components/utils";
@@ -489,10 +489,10 @@ const debt = computed(() => {
     const item = walletStore.getCurrencyByTicker(data.principal_due.ticker);
     const ibcDenom = walletStore.getIbcDenomBySymbol(item.symbol) as string;
     const amount = new Dec(data.principal_due.amount)
-      .add(new Dec(data.previous_margin_due.amount ?? 0))
-      .add(new Dec(data.previous_interest_due.amount ?? 0))
-      .add(new Dec(data.current_margin_due.amount ?? 0))
-      .add(new Dec(data.current_interest_due.amount ?? 0))
+      .add(new Dec(data.previous_margin_due.amount))
+      .add(new Dec(data.previous_interest_due.amount))
+      .add(new Dec(data.current_margin_due.amount))
+      .add(new Dec(data.current_interest_due.amount))
 
     const token = CurrencyUtils.convertMinimalDenomToDenom(
       amount.truncate().toString(),
@@ -500,7 +500,7 @@ const debt = computed(() => {
       item.symbol,
       Number(item.decimal_digits)
     );
-    return token.hideDenom(true).toString();
+    return token.toDec().toString();
   }
 
   return '0'
@@ -512,14 +512,18 @@ const interestDue = computed(() => {
   if (data) {
     const item = walletStore.getCurrencyByTicker(data.current_interest_due.ticker);
     const ibcDenom = walletStore.getIbcDenomBySymbol(item.symbol) as string;
+    const amount = new Dec(data.previous_margin_due.amount)
+      .add(new Dec(data.previous_interest_due.amount))
+      .add(new Dec(data.current_margin_due.amount))
+      .add(new Dec(data.current_interest_due.amount))
 
     const token = CurrencyUtils.convertMinimalDenomToDenom(
-      data.current_interest_due.amount,
+      amount.truncate().toString(),
       ibcDenom,
       item.symbol,
       Number(item.decimal_digits)
     );
-    return token.hideDenom(true).toString();
+    return token.toDec().toString();
   }
 
   return '0'
@@ -678,5 +682,9 @@ const pnl = computed(() => {
   }
 
 });
+
+const copy = () => {
+  StringUtils.copyToClipboard(props.leaseInfo.leaseAddress);
+}
 
 </script>

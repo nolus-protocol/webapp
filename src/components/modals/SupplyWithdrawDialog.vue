@@ -4,10 +4,10 @@
     :routes="['supply', 'withdraw']"
   >
     <template #tab-1>
-      <SupplyMainComponent :selectedAsset="selectedAsset" class="overflow-auto"/>
+      <SupplyMainComponent :selectedAsset="selectedAsset"/>
     </template>
     <template #tab-2>
-      <WithdrawMainComponent :selectedAsset="selectedAsset" class="overflow-auto"/>
+      <WithdrawMainComponent :selectedAsset="selectedAsset"/>
     </template>
   </DialogHeader>
 </template>

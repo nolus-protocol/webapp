@@ -17,6 +17,7 @@
   <RepayFormComponent
     v-else
     v-model="state"
+    class="overflow-auto custom-scroll"
   />
 </template>
 

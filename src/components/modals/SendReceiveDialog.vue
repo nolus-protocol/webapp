@@ -4,7 +4,7 @@
     :routes="['send', 'receive']"
   >
     <template #tab-1>
-      <SendMainComponent class="overflow-auto"/>
+      <SendMainComponent/>
     </template>
     <template #tab-2>
       <ReceiveMainComponent/>

@@ -1,6 +1,6 @@
 <template>
   <DialogHeader :headerList="[$t('message.repay')]">
-    <RepayMainComponent :leaseData="leaseInfo" class="overflow-auto"/>
+    <RepayMainComponent :leaseData="leaseInfo"/>
   </DialogHeader>
 </template>
 

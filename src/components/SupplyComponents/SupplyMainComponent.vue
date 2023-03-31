@@ -14,7 +14,7 @@
     :onOkClick="onClickOkBtn"
     @passwordUpdate="(value) => (state.password = value)"
   />
-  <SupplyFormComponent v-else v-model="state" />
+  <SupplyFormComponent v-else v-model="state" class="overflow-auto custom-scroll" />
   <Modal
     v-if="errorDialog.showDialog"
     @close-modal="errorDialog.showDialog = false"

@@ -18,6 +18,7 @@
   <LeaseFormComponent
     v-else
     v-model="state"
+    class="overflow-auto custom-scroll" 
   />
 </template>
 
@@ -257,7 +258,8 @@ const isDownPaymentAmountValid = (): boolean => {
 
       if (balance.lt(leaseMin)) {
         state.value.downPaymentErrorMsg = i18n.t("message.lease-min-error", {
-          amount: Math.ceil(LEASE_MIN_AMOUNT / Number(price.amount) * 1000) / 1000,
+          minAmount: Math.ceil(LEASE_MIN_AMOUNT / Number(price.amount) * 1000) / 1000,
+          maxAmount: Math.ceil(LEASE_MAX_AMOUNT / Number(price.amount) * 1000) / 1000,
           symbol: coinData.coinAbbreviation
         });
         isValid = false;
@@ -265,7 +267,8 @@ const isDownPaymentAmountValid = (): boolean => {
 
       if (balance.gt(leaseMax)) {
         state.value.downPaymentErrorMsg = i18n.t("message.lease-max-error", {
-          amount: Math.ceil(LEASE_MAX_AMOUNT / Number(price.amount) * 1000) / 1000,
+          minAmount: Math.ceil(LEASE_MIN_AMOUNT / Number(price.amount) * 1000) / 1000,
+          maxAmount: Math.ceil(LEASE_MAX_AMOUNT / Number(price.amount) * 1000) / 1000,
           symbol: coinData.coinAbbreviation
         });
         isValid = false;

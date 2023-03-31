@@ -15,7 +15,7 @@
     :onOkClick="onClickOkBtn"
     @passwordUpdate="(value) => (state.password = value)"
   />
-  <SendComponent v-else v-model="state" />
+  <SendComponent v-else v-model="state" class="overflow-auto custom-scroll" />
 </template>
 
 <script lang="ts" setup>

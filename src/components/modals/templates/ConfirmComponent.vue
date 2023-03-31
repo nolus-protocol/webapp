@@ -75,7 +75,7 @@
             {{ $t("message.tx-and-fee") }}:
           </p>
           <p class="text-14 text-primary nls-font-700 m-0">
-            {{ calculateFee(fee) }}
+            ~{{ calculateFee(fee) }}
           </p>
         </div>
       </div>
@@ -116,7 +116,7 @@ import InputField from "@/components/InputField.vue";
 import type { AssetBalance } from "@/stores/wallet/state";
 
 import { computed, inject, onMounted, ref, watch } from "vue";
-import { ArrowLeftIcon, CheckIcon, XMarkIcon } from "@heroicons/vue/24/solid";
+import { CheckIcon, XMarkIcon } from "@heroicons/vue/24/solid";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { StringUtils, WalletUtils } from "@/utils";
 import { TxType, CONFIRM_STEP } from "@/types";

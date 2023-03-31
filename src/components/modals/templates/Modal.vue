@@ -111,13 +111,13 @@ onUnmounted(() => {
 
 const close = () => {
   const element = dialog.value;
-  setTimeout(() => {
-    emit("close-modal");
-    document.body.style.overflowY = "auto";
-  }, 200);
   if (element) {
     element.style.animation = 'fadeOutAnimation 200ms';
   }
+  setTimeout(() => {
+    emit("close-modal");
+    document.body.style.overflowY = "auto";
+  }, 100);
 }
 
 provide("onModalClose", onModalClose);

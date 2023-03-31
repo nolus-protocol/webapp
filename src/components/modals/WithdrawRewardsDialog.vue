@@ -1,6 +1,6 @@
 <template>
   <DialogHeader :headerList="[$t('message.confirm')]">
-    <WithdrawRewardsComponents :amount="amount" class="overflow-auto"/>
+    <WithdrawRewardsComponents :amount="amount"/>
   </DialogHeader>
 </template>
 

@@ -23,7 +23,7 @@
             {{ formatPrice(getMarketPrice(asset.balance.denom)) }}
           </p> -->
           <p class="text-medium-blue bg-[#EBEFF5] text-[10px] uppercase m-0 garet-medium py-[2px] px-[4px] rounded-md">
-          {{ $t("message.compounding") }}
+          {{ $t("message.deposit-interest") }}
         </p>
         </div>
       </div>

@@ -17,6 +17,7 @@
   <WithdrawFormComponent
     v-else
     v-model="state"
+    class="overflow-auto custom-scroll"
   />
   <Modal
     v-if="errorDialog.showDialog"

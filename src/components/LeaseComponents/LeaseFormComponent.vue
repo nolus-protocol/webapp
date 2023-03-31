@@ -104,7 +104,6 @@
           </p>
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             ~{{ selectedAssetPrice }}
-            <TooltipComponent content="content" />
           </p>
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             {{ annualInterestRate ?? 0 }}%
@@ -116,7 +115,6 @@
           </p>
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             {{ calculateFee() }}
-            <TooltipComponent :content="$t('message.liquidation-price-tooltip')" />
           </p>
         </div>
       </div>
@@ -124,7 +122,7 @@
     <!-- Actions -->
     <div class="modal-send-receive-actions flex flex-col">
       <button class="btn btn-primary btn-large-primary">
-        {{ $t("message.lease") }}
+        {{ $t("message.open-position") }}
       </button>
       <div class="flex justify-between w-full text-light-blue text-[14px] my-2">
         <p>{{ $t("message.estimate-time") }}:</p>
