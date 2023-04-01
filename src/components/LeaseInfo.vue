@@ -118,7 +118,7 @@
         <div class="block">
           <p class="text-detail text-primary m-0 flex items-center">
             {{ $t("message.outstanding-loan") }}
-            <TooltipComponent :content="$t('message.interest-fee-tooltip')" />
+            <TooltipComponent :content="$t('message.outstanding-debt-tooltip')" />
           </p>
           <p class="text-primary text-20 nls-font-400 m-0 mt-1">
             <CurrencyComponent

@@ -162,7 +162,8 @@ const isAmountValid = (): boolean => {
 
       if (balance.lt(leaseMin)) {
         state.value.amountErrorMsg = i18n.t("message.lease-min-error", {
-          amount: Math.ceil(LEASE_MIN_AMOUNT / Number(price.amount) * 1000) / 1000,
+          minAmount:(Math.ceil(LEASE_MIN_AMOUNT / Number(price.amount) * 1000) / 1000).toLocaleString('en-EN'),
+          maxAmount:(Math.ceil(LEASE_MAX_AMOUNT / Number(price.amount) * 1000) / 1000).toLocaleString('en-EN'),
           symbol: coinData.coinAbbreviation
         });
         isValid = false;
@@ -170,7 +171,8 @@ const isAmountValid = (): boolean => {
 
       if (balance.gt(leaseMax)) {
         state.value.amountErrorMsg = i18n.t("message.lease-max-error", {
-          amount: Math.ceil(LEASE_MAX_AMOUNT / Number(price.amount) * 1000) / 1000,
+          minAmount:(Math.ceil(LEASE_MIN_AMOUNT / Number(price.amount) * 1000) / 1000).toLocaleString('en-EN'),
+          maxAmount:(Math.ceil(LEASE_MAX_AMOUNT / Number(price.amount) * 1000) / 1000).toLocaleString('en-EN'),
           symbol: coinData.coinAbbreviation
         });
         isValid = false;

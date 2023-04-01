@@ -232,7 +232,7 @@
     "opening": "Opening",
     "transfer": "Transfer to Wallet",
     "close-lease": "Close lease",
-    "outstanding-debt-tooltip": "Current outstanding debt for an active DeFi Lease position",
+    "outstanding-debt-tooltip": "Principal and the accumulated interest comprise the outstanding debt",
     "compounding": "Compounding",
     "deposit-interest": "DEPOSIT & INTEREST",
     "pnl": "PnL",
