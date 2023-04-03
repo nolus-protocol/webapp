@@ -217,7 +217,7 @@
     "down-payment-tooltip": "The initial deposit required to leverage a desired asset",
     "asset-to-lease": "Asset to Lease",
     "borrowed": "Borrowed",
-    "borrowed-tooltip": "The percentage interest rate by which the debt will increase each year",
+    "borrowed-tooltip": "Amount of USD in stablecoins that will be borrowed for the DeFi Lease position",
     "interest": "Interest",
     "interest-tooltip": "The percentage interest rate by which the debt will increase each year",
     "liquidation-price-tooltip": "The collateral price which will trigger partial liquidation",

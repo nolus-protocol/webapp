@@ -186,6 +186,7 @@ const calculate = async () => {
       state.value.leaseApply = null;
     }
   } catch (error) {
+    console.log(error)
     state.value.leaseApply = null;
   }
 

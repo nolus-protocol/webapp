@@ -3,32 +3,20 @@
     <div class="block text-left px-10 mt-10">
       <div class="block py-3 px-4 modal-balance radius-light text-left text-14 nls-font-400 text-primary mb-4">
         {{ $t('message.balance') }}:
-        <a
-          class="text-secondary nls-font-700 underline ml-2 cursor-pointer"
-          @click.stop="setAmount"
-        >
+        <a class="text-secondary nls-font-700 underline ml-2 cursor-pointer" @click.stop="setAmount">
           {{ formatCurrentBalance(modelValue.selectedCurrency) }}
         </a>
       </div>
-      <CurrencyField
-        id="repayBalance"
-        name="repayBalance"
-        :label="$t('message.amount-repay')"
-        :value="modelValue.amount"
-        :currency-options="modelValue.currentBalance"
-        :option="modelValue.selectedCurrency"
-        :error-msg="modelValue.amountErrorMsg"
-        :is-error="modelValue.amountErrorMsg !== ''"
-        @input="handleAmountChange($event)"
-        @update-currency="(event) => (modelValue.selectedCurrency = event)"
-      />
+      <CurrencyField id="repayBalance" name="repayBalance" :label="$t('message.amount-repay')" :value="modelValue.amount"
+        :currency-options="modelValue.currentBalance" :option="modelValue.selectedCurrency"
+        :error-msg="modelValue.amountErrorMsg" :is-error="modelValue.amountErrorMsg !== ''"
+        @input="handleAmountChange($event)" @update-currency="(event) => (modelValue.selectedCurrency = event)" />
       <div class="flex justify-end">
         <div class="grow-3 text-right nls-font-500 text-14 dark-text">
           <p class="mb-2 mt-[14px] mr-5">
             {{ $t("message.repayment-amount") }}:
           </p>
           <p class="mb-2 mt-[14px] mr-5">{{ $t("message.outstanding-lease") }}:</p>
-          <p class="mb-2 mt-[14px] mr-5">{{ $t("message.gas-service-fees") }}:</p>
         </div>
         <div class="text-right nls-font-700 text-14">
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
@@ -49,10 +37,6 @@
                 modelValue.outstandingLoanAmount.ticker
               )
             }} -->
-          </p>
-          <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
-            {{ calculateFee() }}
-            <TooltipComponent :content="$t('message.gas-service-fees-tooltip')" />
           </p>
         </div>
       </div>
@@ -123,13 +107,19 @@ const calculateOutstandingDebt = () => {
 const calucateAfterRepayment = computed(() => {
 
   if (props.modelValue.amount && props.modelValue.amount != "") {
-    const debt = props.modelValue.leaseInfo.principal_due;
-    const currencyDebt = wallet.getCurrencyByTicker(debt.ticker);
+    const data = props.modelValue.leaseInfo;
+    const currencyDebt = wallet.getCurrencyByTicker(data.principal_due.ticker);
     const debtDenom = wallet.getIbcDenomBySymbol(currencyDebt.symbol);
     const info = wallet.getCurrencyInfo(debtDenom as string);
 
+    const debt = new Dec(data.principal_due.amount)
+      .add(new Dec(data.previous_margin_due.amount))
+      .add(new Dec(data.previous_interest_due.amount))
+      .add(new Dec(data.current_margin_due.amount))
+      .add(new Dec(data.current_interest_due.amount))
+
     const debtCoin = CurrencyUtils.convertMinimalDenomToDenom(
-      debt.amount,
+      debt.toString(),
       info.coinMinimalDenom as string,
       info.coinDenom as string,
       info.coinDecimals

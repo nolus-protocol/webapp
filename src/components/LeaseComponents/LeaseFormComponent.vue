@@ -93,9 +93,6 @@
           <p class="mb-2 mt-[14px] mr-5">
             {{ $t("message.liquidation-price") }}
           </p>
-          <p class="mb-2 mt-[14px] mr-5">
-            {{ $t("message.gas-service-fees") }}
-          </p>
         </div>
         <div class="text-right nls-font-700 text-14">
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
@@ -112,9 +109,6 @@
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             {{ calculateLique }}
             <TooltipComponent :content="$t('message.liquidation-price-tooltip')" />
-          </p>
-          <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
-            {{ calculateFee() }}
           </p>
         </div>
       </div>
