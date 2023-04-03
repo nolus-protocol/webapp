@@ -181,6 +181,8 @@ export const calculateLiquidation = (unit: Dec, price: Dec) => {
 export const MAX_POSITION = 150;
 export const MIN_POSITION = 20;
 export const DEFAULT_LTV = 600;
+export const WASM_LP_DEPOSIT = "wasm-lp-deposit"
+export const WASM_LP_OPEN = "wasm-ls-open";
 
 export const calculateBaseQuote = (amount: Dec) => {
   return amount.quo(new Dec((1 + MAX_POSITION / 100)));

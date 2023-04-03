@@ -93,6 +93,7 @@
           <p class="mb-2 mt-[14px] mr-5">
             {{ $t("message.liquidation-price") }}
           </p>
+
         </div>
         <div class="text-right nls-font-700 text-14">
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
