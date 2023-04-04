@@ -416,7 +416,7 @@ const selectedAssetPrice = computed(() => {
 
   const price = oracle.prices[currecy.symbol];
 
-  return CurrencyUtils.formatPrice(price.amount);
+  return CurrencyUtils.formatPrice(price?.amount ?? 0);
 });
 
 const submit = () => {

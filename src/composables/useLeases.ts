@@ -50,7 +50,6 @@ export function useLeases(
         leaseAddress: string,
         leaseStatus: LeaseStatus,
       }[];
-
       if (items.length == 0) {
         showModal();
       }

@@ -17,6 +17,11 @@ div.pnl {
     &.alert {
         background-color: #E42929;
     }
+
+    &.grey {
+        color: $darkGrey;
+        background-color: #ebeff5;
+    }
 }
 
 div.dash-pnl {
@@ -43,6 +48,14 @@ div.dash-pnl {
                 transparent 10px,
                 #E42929 10px,
                 #E42929 20px);
+    }
+
+    &.grey {
+        background: repeating-linear-gradient(to right,
+                transparent,
+                transparent 10px,
+                $darkGrey 10px,
+                $darkGrey 20px);
     }
 
 }

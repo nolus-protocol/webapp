@@ -67,7 +67,7 @@
         >
           <CurrencyComponent
             :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            :amount="app.apr!.toString()"
+            :amount="app.apr?.toString() ?? '0'"
             :hasSpace="false"
             :isDenomInfront="false"
             denom="%"

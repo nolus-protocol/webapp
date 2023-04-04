@@ -1,0 +1,33 @@
+div.state {
+    .current {
+        fill: #2868E1;
+    }
+
+    .ready {
+        fill: #1AB171;
+    }
+
+    div.state-status {
+        position: absolute;
+        border-radius: 4px;
+        color: #2868E1;
+        background: white;
+        border: solid 1px #8396B1;
+        font-size: 10px;
+        top: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 0 4px;
+        display: none;
+        height: 22px;
+        align-items: center;
+        white-space: pre;
+        z-index: 1;
+    }
+
+    div.status:hover {
+        div.state-status {
+            display: flex;
+        }
+    }
+}

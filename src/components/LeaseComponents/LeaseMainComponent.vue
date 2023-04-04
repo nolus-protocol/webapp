@@ -18,7 +18,7 @@
   <LeaseFormComponent
     v-else
     v-model="state"
-    class="overflow-auto custom-scroll" 
+    class="overflow-auto custom-scroll"
   />
 </template>
 
@@ -259,8 +259,8 @@ const isDownPaymentAmountValid = (): boolean => {
 
       if (balance.lt(leaseMin)) {
         state.value.downPaymentErrorMsg = i18n.t("message.lease-min-error", {
-          minAmount:(Math.ceil(LEASE_MIN_AMOUNT / Number(price.amount) * 1000) / 1000).toLocaleString('en-EN'),
-          maxAmount:(Math.ceil(LEASE_MAX_AMOUNT / Number(price.amount) * 1000) / 1000).toLocaleString('en-EN'),
+          minAmount: (Math.ceil(LEASE_MIN_AMOUNT / Number(price.amount) * 1000) / 1000).toLocaleString('en-EN'),
+          maxAmount: (Math.ceil(LEASE_MAX_AMOUNT / Number(price.amount) * 1000) / 1000).toLocaleString('en-EN'),
           symbol: coinData.coinAbbreviation
         });
         isValid = false;
@@ -268,8 +268,8 @@ const isDownPaymentAmountValid = (): boolean => {
 
       if (balance.gt(leaseMax)) {
         state.value.downPaymentErrorMsg = i18n.t("message.lease-max-error", {
-          minAmount:(Math.ceil(LEASE_MIN_AMOUNT / Number(price.amount) * 1000) / 1000).toLocaleString('en-EN'),
-          maxAmount:(Math.ceil(LEASE_MAX_AMOUNT / Number(price.amount) * 1000) / 1000).toLocaleString('en-EN'),
+          minAmount: (Math.ceil(LEASE_MIN_AMOUNT / Number(price.amount) * 1000) / 1000).toLocaleString('en-EN'),
+          maxAmount: (Math.ceil(LEASE_MAX_AMOUNT / Number(price.amount) * 1000) / 1000).toLocaleString('en-EN'),
           symbol: coinData.coinAbbreviation
         });
         isValid = false;
@@ -320,12 +320,13 @@ const openLease = async () => {
         cosmWasmClient,
         CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance
       );
+      const ticker = walletStore.currencies[
+        state.value.selectedCurrency.balance.denom
+      ].ticker;
 
       const { txHash, txBytes, usedFee } = await leaserClient.simulateOpenLeaseTx(
         wallet,
-        walletStore.currencies[
-          state.value.selectedCurrency.balance.denom
-        ].ticker,
+        ticker,
         state.value.ltv,
         funds
       );
@@ -358,7 +359,8 @@ const openLease = async () => {
 
         localStorage.setItem(data.value, JSON.stringify({
           downPayment: balance,
-          price: leaseAssetPrice
+          price: leaseAssetPrice,
+          leasePositionTicker: ticker 
         }));
       }
 
@@ -369,12 +371,13 @@ const openLease = async () => {
       getLeases();
 
     } catch (e) {
+      console.log(e)
       step.value = CONFIRM_STEP.ERROR;
     }
   }
 };
 
 const getMaxLTV = () => {
-  
+
 }
 </script>

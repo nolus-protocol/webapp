@@ -42,6 +42,7 @@ import { ref } from "vue";
 
 const tooltip = ref(null as HTMLDivElement | null);
 const target = ref(null as HTMLDivElement | null);
+let timeout: NodeJS.Timeout;
 
 defineProps({
   content: {
@@ -51,6 +52,11 @@ defineProps({
 });
 
 const mouseover = (event: MouseEvent) => {
+
+  if(timeout){
+    clearTimeout(timeout);
+  }
+
   const parent = target.value as HTMLDivElement;
   const element = tooltip.value as HTMLDivElement;
   if (target.value) {
@@ -72,7 +78,7 @@ const mouseover = (event: MouseEvent) => {
 const mouseleave = () => {
   const element = tooltip.value as HTMLDivElement;
   element.style.opacity = "0";
-  setTimeout(() => {
+  timeout = setTimeout(() => {
     element.style.visibility = "hidden";
   }, 200);
 };

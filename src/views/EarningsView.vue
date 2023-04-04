@@ -349,7 +349,6 @@ const loadRewards = async () => {
     getRewards()
   ]);
 
-
   const total = rewards?.total?.[0];
   let value = new Dec('0').add(lpnRewards);
 

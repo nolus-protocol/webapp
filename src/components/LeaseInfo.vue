@@ -38,7 +38,7 @@
             class="bg-[#ebeff5] rounded p-1 m-1 garet-medium"
             v-if="leaseData"
           >
-            {{ $t("message.down-payment") }}: {{ downPayment }}
+            {{ $t("message.down-payment") }}: ${{ downPayment }}
           </span>
           <!-- <span
             class="bg-[#ebeff5] rounded p-1 m-1 garet-medium"
@@ -190,68 +190,244 @@
 
   <div
     v-if="TEMPLATES.opening == status"
-    class="background mt-6 border-standart shadow-box radius-medium radius-0-sm outline flex md:flex-row flex-col"
+    class="background mt-6 border-standart shadow-box radius-medium radius-0-sm outline"
   >
-    <div class="lg:col-span-1 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5 flex-1">
-      <div class="flex">
-        <img
-          :src="getAssetIcon"
-          class="inline-block m-0 mr-3"
-          height="36"
-          width="36"
-        />
-        <h1 class="text-primary nls-font-700 text-28 md:text-28">
-          <CurrencyComponent
-            :type="CURRENCY_VIEW_TYPES.TOKEN"
-            :amount="amount"
-            :font-size="22"
-            :minimalDenom="asset.coinMinimalDenom"
-            :denom="asset.coinDenom"
-            :decimals="asset?.coinDecimals"
-            :maxDecimals="6"
+    <div class="grid grid-cols-1 lg:grid-cols-3">
+      <div
+        class="lg:col-span-1 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5 flex flex-col justify-between	"
+      >
+        <p
+          class="text-20 nls-font-500 mb-4 text-primary select-none"
+          @dblclick="copy"
+        >
+          {{ $t("message.lease-position") }}
+        </p>
+        <div class="flex">
+          <img
+            :src="getAssetIcon"
+            class="inline-block m-0 mr-3"
+            height="36"
+            width="36"
           />
-        </h1>
+          <h1 class="text-primary nls-font-700 text-28 md:text-28">
+            {{ $t('message.opening') }}
+          </h1>
+        </div>
+        <div class="relative">
+          <div class="flex flex-wrap text-10 uppercase whitespace-nowrap">
+            <span
+              class="bg-[#ebeff5] rounded p-1 m-1 px-[10px] mb-2 garet-medium"
+              v-if="leaseData"
+            >
+              {{ $t("message.down-payment") }}: ${{ downPayment }}
+            </span>
+          </div>
+          <div class="state flex">
+            <div class="status relative">
+              <div class="state-status garet-medium">
+                {{ $t("message.opening-channel") }}
+              </div>
+              <OpenChannel
+                class="cursor-pointer"
+                :class="openingSubState?.channel"
+              />
+            </div>
+            <div class="status relative">
+              <div class="state-status garet-medium">
+                {{ $t("message.transferring-assets") }}
+              </div>
+              <Transfer
+                class="cursor-pointer	mx-4"
+                :class="openingSubState?.transfer"
+              />
+            </div>
+            <div class="status relative">
+              <div class="state-status garet-medium">
+                {{ $t("message.swapping-assets") }}
+              </div>
+              <Swap
+                class="cursor-pointer"
+                :class="openingSubState?.swap"
+              />
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="flex justify-end items-center flex-[2.2] md:pr-6 px-4 my-4 md:my-0">
-      <button class="btn btn-primary btn-large-primary w-full md:w-auto">
-        {{ $t('message.opening') }}
-      </button>
+      <div class="lg:col-span-2 md:px-6 px-2 pt-5 relative pb-5">
+        <!-- Graph -->
+        <div class="flex justify-between">
+          <div>
+            <span class="text-dark-grey">
+              {{ asset.coinDenom }} {{ $t("message.price") }}
+            </span>
+            <p class="text-primary">
+              <b>
+                <CurrencyComponent
+                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                  :amount="currentPrice"
+                  :hasSpace="false"
+                  :isDenomInfront="true"
+                  :font-size="20"
+                  :font-size-small="14"
+                  denom="$"
+                />
+              </b>
+            </p>
+
+          </div>
+          <div class="flex text-10 h-6">
+            <button
+              v-for="(value, index) in CHART_RANGES"
+              class="ml-2 w-10 justify-center border rounded chart-dates"
+              :key="index"
+              :class="`${value.label === chartTimeRange.label
+                ? 'border-1 border-light-electric bg-[#0ea5e9]/10'
+                : ''
+                }`"
+              @click="chartTimeRange = value; loadCharts()"
+            >
+              {{ value.label }}
+            </button>
+          </div>
+        </div>
+        <div class="flex relaltive">
+          <div
+            class="flex-1 pnl-container"
+            v-if="leaseData"
+          >
+            <div class="pnl text-12 nls-font-500 whitespace-pre	mr-2 grey">
+              {{ $t('message.pnl') }} $0.00
+            </div>
+          </div>
+          <div class="relative w-full">
+            <div
+              v-if="leaseData"
+              class="dash-pnl grey"
+            >
+
+            </div>
+            <PriceHistoryChart :chartData="chartData" />
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <div
     v-if="TEMPLATES.paid == status"
-    class="background mt-6 border-standart shadow-box radius-medium radius-0-sm outline flex md:flex-row flex-col"
+    class="background mt-6 border-standart shadow-box radius-medium radius-0-sm pb-5 outline"
   >
-    <div class="lg:col-span-1 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5 flex-1">
-      <div class="flex">
-        <img
-          :src="getAssetIcon"
-          class="inline-block m-0 mr-3"
-          height="36"
-          width="36"
-        />
-        <h1 class="text-primary nls-font-700 text-28 md:text-28">
-          <CurrencyComponent
-            :type="CURRENCY_VIEW_TYPES.TOKEN"
-            :amount="amount"
-            :font-size="22"
-            :minimalDenom="asset.coinMinimalDenom"
-            :denom="asset.coinDenom"
-            :decimals="asset?.coinDecimals"
-            :maxDecimals="6"
+    <div class="grid grid-cols-1 lg:grid-cols-3">
+      <div class="lg:col-span-1 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5">
+        <p
+          class="text-20 nls-font-500 mb-4 text-primary select-none"
+          @dblclick="copy"
+        >
+          {{ $t("message.lease-position") }}
+        </p>
+        <div class="flex">
+          <img
+            :src="getAssetIcon"
+            class="inline-block m-0 mr-3"
+            height="36"
+            width="36"
           />
-        </h1>
+          <h1 class="text-primary nls-font-700 text-28 md:text-28">
+            <CurrencyComponent
+              :type="CURRENCY_VIEW_TYPES.TOKEN"
+              :amount="amount"
+              :font-size="22"
+              :minimalDenom="asset.coinMinimalDenom"
+              :denom="asset.coinDenom"
+              :decimals="asset?.coinDecimals"
+              :maxDecimals="6"
+            />
+            <span class="inline-block ml-1 text-primary text-20 nls-font-400 uppercase">
+            </span>
+          </h1>
+        </div>
+        <div
+          v-if="leaseData"
+          class="flex flex-wrap text-10 uppercase whitespace-nowrap mt-4"
+        >
+          <span class="bg-[#ebeff5] rounded p-1 m-1 garet-medium">
+            {{ `price per ${asset.coinDenom}:` }} {{ price }}
+          </span>
+        </div>
+      </div>
+      <div class="lg:col-span-2 md:px-6 px-2 pt-5 relative">
+        <!-- Graph -->
+        <div class="flex justify-between">
+          <div>
+            <span class="text-dark-grey">
+              {{ asset.coinDenom }} {{ $t("message.price") }}
+            </span>
+            <p class="text-primary">
+              <b>
+                <CurrencyComponent
+                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                  :amount="currentPrice"
+                  :hasSpace="false"
+                  :isDenomInfront="true"
+                  :font-size="20"
+                  :font-size-small="14"
+                  denom="$"
+                />
+              </b>
+            </p>
+
+          </div>
+          <div class="flex text-10 h-6">
+            <button
+              v-for="(value, index) in CHART_RANGES"
+              class="ml-2 w-10 justify-center border rounded chart-dates"
+              :key="index"
+              :class="`${value.label === chartTimeRange.label
+                ? 'border-1 border-light-electric bg-[#0ea5e9]/10'
+                : ''
+                }`"
+              @click="chartTimeRange = value; loadCharts()"
+            >
+              {{ value.label }}
+            </button>
+          </div>
+        </div>
+        <div class="flex relaltive">
+          <div
+            class="flex-1 pnl-container"
+            v-if="leaseData"
+          >
+            <div
+              class="pnl text-12 nls-font-500 whitespace-pre	mr-2"
+              :class="[pnl.status ? 'success' : 'alert']"
+            >
+              {{ $t('message.pnl') }} {{ pnl.status ? '+' : '' }}{{ pnl.amount }}
+            </div>
+          </div>
+          <div class="relative w-full">
+            <div
+              v-if="leaseData"
+              class="dash-pnl"
+              :class="[pnl.status ? 'success' : 'alert']"
+            >
+
+            </div>
+            <PriceHistoryChart :chartData="chartData" />
+          </div>
+        </div>
       </div>
     </div>
-    <div class="flex justify-end items-center flex-[2.25] md:pr-6 px-4 my-4 md:my-0">
+    <div class="flex items-center justify-between border-t border-standart pt-4 md:px-6 px-2 flex-col md:flex-row">
+      <div class="flex">
+      </div>
       <button
-        class="btn btn-primary btn-large-primary w-full md:w-auto"
+        class="btn btn-secondary btn-large-secondary md:w-auto w-full md:mt-0 mt-4"
+        :class="{ 'js-loading': leaseInfo.leaseStatus?.paid?.in_progress }"
         @click="onShowClaimDialog"
       >
-        {{ $t('message.transfer') }}
+        {{ $t("message.collect") }}
       </button>
+
     </div>
   </div>
 
@@ -290,7 +466,7 @@
 <script lang="ts" setup>
 import { CONFIRM_STEP } from "@/types";
 import type { LeaseData } from "@/types";
-import { Lease, type PaidLeaseInfo } from "@nolus/nolusjs/build/contracts";
+import { Lease, type BuyAssetOngoingState, type PaidLeaseInfo, type TransferOutOngoingState } from "@nolus/nolusjs/build/contracts";
 
 import RepayDialog from "@/components/modals/RepayDialog.vue";
 import Modal from "@/components/modals/templates/Modal.vue";
@@ -299,6 +475,9 @@ import TooltipComponent from "./TooltipComponent.vue";
 import CurrencyComponent from "./CurrencyComponent.vue";
 import ConfirmComponent from "./modals/templates/ConfirmComponent.vue";
 import DialogHeader from "./modals/templates/DialogHeader.vue";
+import OpenChannel from "./icons/OpenChannel.vue";
+import Transfer from "./icons/Transfer.vue";
+import Swap from "./icons/Swap.vue";
 
 import { computed, inject, onUnmounted, ref, onBeforeMount } from "vue";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
@@ -326,6 +505,7 @@ enum TEMPLATES {
   'closed'
 }
 
+const OPENING_CHANNEL = 'open_ica_account';
 const props = defineProps<Props>();
 const showRepayModal = ref(false);
 const chartTimeRange = ref(CHART_RANGES["1"]);
@@ -342,6 +522,7 @@ const getLeases = inject("getLeases", () => { });
 let leaseData: {
   downPayment: string,
   price: string,
+  leasePositionTicker: string
 } | null = null;
 
 const step = ref(CONFIRM_STEP.CONFIRM);
@@ -398,6 +579,11 @@ const loadCharts = async () => {
 
 const currentPrice = computed(() => {
 
+  if (props.leaseInfo.leaseStatus?.opening && leaseData) {
+    const item = walletStore.getCurrencyByTicker(leaseData.leasePositionTicker as string);
+    return oracleStore.prices[item.symbol].amount;
+  }
+
   const ticker =
     props.leaseInfo.leaseStatus?.opened?.amount.ticker ||
     props.leaseInfo.leaseStatus?.opening?.downpayment.ticker ||
@@ -416,6 +602,14 @@ const fetchChartData = async (days: string, interval: string) => {
 }
 
 const asset = computed(() => {
+
+  if (props.leaseInfo.leaseStatus?.opening && leaseData) {
+    const item = walletStore.getCurrencyByTicker(leaseData.leasePositionTicker as string);
+    const ibcDenom = walletStore.getIbcDenomBySymbol(item.symbol);
+    const asset = walletStore.getCurrencyInfo(ibcDenom as string);
+    return asset;
+  }
+
   const ticker =
     props.leaseInfo.leaseStatus?.opened?.amount.ticker ||
     props.leaseInfo.leaseStatus?.opening?.downpayment.ticker ||
@@ -429,6 +623,13 @@ const asset = computed(() => {
 });
 
 const getAssetIcon = computed((): string => {
+
+  if (props.leaseInfo.leaseStatus?.opening && leaseData) {
+    const item = walletStore.getCurrencyByTicker(leaseData.leasePositionTicker);
+    const ibcDenom = walletStore.getIbcDenomBySymbol(item.symbol);
+    return walletStore.getCurrencyInfo(ibcDenom as string).coinIcon;
+  }
+
   const ticker =
     props.leaseInfo.leaseStatus?.opened?.amount.ticker ||
     props.leaseInfo.leaseStatus?.opening?.downpayment.ticker ||
@@ -441,9 +642,8 @@ const getAssetIcon = computed((): string => {
 });
 
 const downPayment = computed(() => {
-  const amount = Number(leaseData?.downPayment ?? '0');
-  const round = Math.round(amount * 100000) / 100000;
-  return CurrencyUtils.formatPrice(round.toString());
+  const amount = new Dec((leaseData?.downPayment ?? '0'));
+  return amount.toString(2);
 });
 
 const loan = computed(() => {
@@ -651,7 +851,7 @@ const liquidation = computed(() => {
 });
 
 const pnl = computed(() => {
-  const lease = props.leaseInfo.leaseStatus.opened;
+  const lease = props.leaseInfo.leaseStatus.opened ?? props.leaseInfo.leaseStatus.paid;
 
   if (lease) {
     const price = getPrice();
@@ -678,30 +878,77 @@ const pnl = computed(() => {
 });
 
 const getPrice = () => {
-  const data = props.leaseInfo.leaseStatus.opened;
 
-if (data && leaseData) {
-  const item = walletStore.getCurrencyByTicker(data.principal_due.ticker);
-  
-  const amount = new Dec(data.principal_due.amount, Number(item.decimal_digits))
-    .add(new Dec(data.previous_margin_due.amount, Number(item.decimal_digits)))
-    .add(new Dec(data.previous_interest_due.amount, Number(item.decimal_digits)))
-    .add(new Dec(data.current_margin_due.amount, Number(item.decimal_digits)))
-    .add(new Dec(data.current_interest_due.amount, Number(item.decimal_digits)))
+  const paidLease = props.leaseInfo.leaseStatus.paid;
 
-  const totalAmount = new Dec(leaseData.downPayment).add(amount);
-  const assetData = walletStore.getCurrencyByTicker(data.amount.ticker);
-  const assetAmount = new Dec(data.amount.amount, Number(assetData.decimal_digits))
-  const p = totalAmount.quo(assetAmount);
+  if (paidLease && leaseData) {
+    const totalAmount = new Dec(leaseData.downPayment);
+    const assetData = walletStore.getCurrencyByTicker(paidLease.amount.ticker);
+    const assetAmount = new Dec(paidLease.amount.amount, Number(assetData.decimal_digits))
+    const p = totalAmount.quo(assetAmount);
 
-  return p;
-}
+    return p;
+  }
 
-return new Dec(0);
+  const openedLease = props.leaseInfo.leaseStatus.opened;
+
+  if (openedLease && leaseData) {
+    const item = walletStore.getCurrencyByTicker(openedLease.principal_due.ticker);
+
+    const amount = new Dec(openedLease.principal_due.amount, Number(item.decimal_digits))
+      .add(new Dec(openedLease.previous_margin_due.amount, Number(item.decimal_digits)))
+      .add(new Dec(openedLease.previous_interest_due.amount, Number(item.decimal_digits)))
+      .add(new Dec(openedLease.current_margin_due.amount, Number(item.decimal_digits)))
+      .add(new Dec(openedLease.current_interest_due.amount, Number(item.decimal_digits)))
+
+    const totalAmount = new Dec(leaseData.downPayment).add(amount);
+    const assetData = walletStore.getCurrencyByTicker(openedLease.amount.ticker);
+    const assetAmount = new Dec(openedLease.amount.amount, Number(assetData.decimal_digits))
+    const p = totalAmount.quo(assetAmount);
+
+    return p;
+  }
+
+  return new Dec(0);
 }
 
 const copy = () => {
   StringUtils.copyToClipboard(props.leaseInfo.leaseAddress);
 }
+
+const openingSubState = computed(() => {
+  const data = props.leaseInfo.leaseStatus.opening;
+  if (OPENING_CHANNEL == data?.in_progress) {
+    return {
+      channel: ['current'],
+      transfer: [],
+      swap: []
+    }
+  }
+
+  const state = data?.in_progress as TransferOutOngoingState | BuyAssetOngoingState;
+
+  if ((state as TransferOutOngoingState).transfer_out) {
+    return {
+      channel: ['ready'],
+      transfer: ['current'],
+      swap: []
+    }
+  }
+
+  if ((state as BuyAssetOngoingState).buy_asset) {
+    return {
+      channel: ['ready'],
+      transfer: ['ready'],
+      swap: ['current']
+    }
+  }
+
+  return {
+    channel: [],
+    transfer: [],
+    swap: []
+  }
+});
 
 </script>
