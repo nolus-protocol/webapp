@@ -6,7 +6,10 @@
   >
     <div class="grid grid-cols-1 lg:grid-cols-3">
       <div class="lg:col-span-1 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5">
-        <p class="text-20 nls-font-500 mb-4 text-primary select-none" @dblclick="copy">
+        <p
+          class="text-20 nls-font-500 mb-4 text-primary select-none"
+          @dblclick="copy"
+        >
           {{ $t("message.lease-position") }}
         </p>
         <div class="flex">
@@ -465,17 +468,8 @@ const loan = computed(() => {
 });
 
 const price = computed(() => {
-  const data = props.leaseInfo.leaseStatus.opened;
+  return CurrencyUtils.formatPrice(getPrice().toString());
 
-  if (data) {
-    const asset = walletStore.getCurrencyByTicker(data.amount.ticker);
-    const price = oracleStore.prices[asset.symbol];
-
-    return CurrencyUtils.formatPrice(price.amount.toString());
-
-  }
-
-  return '$0';
 });
 
 const amount = computed(() => {
@@ -660,7 +654,7 @@ const pnl = computed(() => {
   const lease = props.leaseInfo.leaseStatus.opened;
 
   if (lease) {
-    const price = new Dec(Number(leaseData?.price ?? 0));
+    const price = getPrice();
     const unitAssetInfo = walletStore.getCurrencyByTicker(lease.amount.ticker);
     const currentPrice = new Dec(oracleStore.prices?.[unitAssetInfo.symbol]?.amount ?? "0");
     const unitAsset = new Dec(lease.amount.amount, Number(unitAssetInfo.decimal_digits));
@@ -682,6 +676,29 @@ const pnl = computed(() => {
   }
 
 });
+
+const getPrice = () => {
+  const data = props.leaseInfo.leaseStatus.opened;
+
+if (data && leaseData) {
+  const item = walletStore.getCurrencyByTicker(data.principal_due.ticker);
+  
+  const amount = new Dec(data.principal_due.amount, Number(item.decimal_digits))
+    .add(new Dec(data.previous_margin_due.amount, Number(item.decimal_digits)))
+    .add(new Dec(data.previous_interest_due.amount, Number(item.decimal_digits)))
+    .add(new Dec(data.current_margin_due.amount, Number(item.decimal_digits)))
+    .add(new Dec(data.current_interest_due.amount, Number(item.decimal_digits)))
+
+  const totalAmount = new Dec(leaseData.downPayment).add(amount);
+  const assetData = walletStore.getCurrencyByTicker(data.amount.ticker);
+  const assetAmount = new Dec(data.amount.amount, Number(assetData.decimal_digits))
+  const p = totalAmount.quo(assetAmount);
+
+  return p;
+}
+
+return new Dec(0);
+}
 
 const copy = () => {
   StringUtils.copyToClipboard(props.leaseInfo.leaseAddress);

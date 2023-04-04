@@ -167,7 +167,7 @@
     "earn-apr-tooltip": "Annualized percentage return on supplied or delegated assets ",
     "interest-fee-tooltip": "The percentage interest rate by which the debt will increase each year",
     "interest-due-tooltip": "Accumulates each block and is added to the outstanding debt. Interest is due every 7 days",
-    "earn-view-apr-tooltip": "Annualized Percentage Return on Supplied or Staked Assets",
+    "earn-view-apr-tooltip": "Annualized percentage return on supplied or delegated assets",
     "net-worth": "Net Worth",
     "error": "Error",
     "queued": "Queued",
@@ -241,6 +241,7 @@
     "amount-receive": "Amount to Receive",
     "price-per": "Price per",
     "price-pert-tooltip": " Amount of USD in stablecoins that will be borrowed for the DeFi Lease position",
-    "open-position": "Open Position"
+    "open-position": "Open Position",
+    "delegate-undelegate": "Delegate / Undelegate"
   }
 }
