@@ -72,7 +72,7 @@
           class="btn btn-secondary btn-medium-secondary"
           @click="openDelegateUndelegate()"
         >
-          {{ isDelegated ? $t("message.undelegate") : $t("message.delegate") }}
+          {{ $t("message.delegate-undelegate") }}
         </button>
       </div>
 
@@ -81,7 +81,7 @@
           class="btn btn-secondary btn-medium-secondary w-full flex"
           @click="openDelegateUndelegate()"
         >
-          {{ isDelegated ? $t("message.undelegate") : $t("message.delegate") }}
+        {{ $t("message.delegate-undelegate") }}
         </button>
       </div>
     </div>

@@ -152,12 +152,11 @@
 
   <Modal
     v-if="showDelegateUndelegateDialog"
-    :route="isDelegated ? 'undelegate' : 'delegate'"
+    route="delegate"
     @close-modal="showDelegateUndelegateDialog = false"
   >
     <DelegateUndelegateDialog
       :selectedAsset="selectedAsset"
-      :isDelegated="isDelegated"
     />
   </Modal>
 

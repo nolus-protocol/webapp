@@ -129,6 +129,7 @@
                 aria-describedby="show-small-balances"
                 name="show-small-balances"
                 type="checkbox"
+                @change="setSmallBalancesState(state.showSmallBalances)"
               />
               <label
                 class="dark-text"
@@ -315,6 +316,7 @@ const modalOptions = {
   [DASHBOARD_ACTIONS.SUPPLY]: SupplyWithdrawDialog,
   [DASHBOARD_ACTIONS.LEASE]: LeaseDialog,
 };
+const smallBalancesStateKey = 'smallBalancesState';
 
 const wallet = useWalletStore();
 const oracle = useOracleStore();
@@ -331,7 +333,7 @@ const errorMessage = ref("");
 let timeout: NodeJS.Timeout;
 
 const state = ref({
-  showSmallBalances: true,
+  showSmallBalances: localStorage.getItem(smallBalancesStateKey) ? false : true,
   showModal: false,
   modalAction: DASHBOARD_ACTIONS.SEND,
   selectedAsset: "",
@@ -505,6 +507,14 @@ const getMarketPrice = (denom: string) => {
 
   return price;
 };
+
+const setSmallBalancesState = (event: boolean) => {
+  if(!event){
+    localStorage.setItem(smallBalancesStateKey, 'false');
+  }else{
+    localStorage.removeItem(smallBalancesStateKey);
+  }
+}
 </script>
 <style scoped lang="scss">
 .fade-enter-active,
