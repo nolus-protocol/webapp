@@ -253,7 +253,6 @@ const canLease = computed(() => {
 });
 
 const canSupply = computed(() => {
-  return false;
   const curency = walletStore.currencies[props.denom];
   return Number(props.assetBalance) > 0 && curency.groups.includes(GROUPS.Lpn);
 });
@@ -266,7 +265,7 @@ const canStake = computed(() => {
 });
 
 const showActionButtons = computed(
-  () => canLease.value || canSupply.value
+  () => canLease.value
 );
 
 const balance = computed(() => {
