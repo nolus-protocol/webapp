@@ -246,6 +246,7 @@
     "collect": "Collect",
     "opening-channel": "OPENING CHANNEL",
     "transferring-assets": "TRANSFERRING ASSETS",
-    "swapping-assets": "SWAPPING ASSETS"
+    "swapping-assets": "SWAPPING ASSETS",
+    "min": "min"
   }
 }

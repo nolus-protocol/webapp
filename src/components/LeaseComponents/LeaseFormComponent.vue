@@ -121,7 +121,7 @@
       </button>
       <div class="flex justify-between w-full text-light-blue text-[14px] my-2">
         <p>{{ $t("message.estimate-time") }}:</p>
-        <p>~{{ NATIVE_NETWORK.longOperationsEstimation }} {{ $t("message.sec") }}</p>
+        <p>~{{ NATIVE_NETWORK.leaseOpenEstimation }} {{ $t("message.min") }}</p>
       </div>
     </div>
   </form>

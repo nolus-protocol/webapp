@@ -124,17 +124,24 @@
             <TooltipComponent :content="$t('message.outstanding-debt-tooltip')" />
           </p>
           <p class="text-primary text-20 nls-font-400 m-0 mt-1">
-            <CurrencyComponent
-              class="garet-medium"
-              :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              :amount="debt"
-              :hasSpace="false"
-              :isDenomInfront="true"
-              :font-size="20"
-              :font-size-small="14"
-              :decimals="4"
-              denom="$"
-            />
+          <div
+            v-if="openedSubState"
+            class="state-loading"
+          >
+
+          </div>
+          <CurrencyComponent
+            v-else
+            class="garet-medium"
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            :amount="debt"
+            :hasSpace="false"
+            :isDenomInfront="true"
+            :font-size="20"
+            :font-size-small="14"
+            :decimals="4"
+            denom="$"
+          />
 
           </p>
         </div>
@@ -163,17 +170,24 @@
             <TooltipComponent :content="$t('message.interest-due-tooltip')" />
           </p>
           <p class="text-primary text-20 nls-font-400 m-0 mt-1">
-            <CurrencyComponent
-              class="garet-medium"
-              :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              :amount="interestDue"
-              :hasSpace="false"
-              :isDenomInfront="true"
-              :font-size="20"
-              :font-size-small="14"
-              :decimals="4"
-              denom="$"
-            />
+          <div
+            v-if="openedSubState"
+            class="state-loading"
+          >
+
+          </div>
+          <CurrencyComponent
+            v-else
+            class="garet-medium"
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            :amount="interestDue"
+            :hasSpace="false"
+            :isDenomInfront="true"
+            :font-size="20"
+            :font-size-small="14"
+            :decimals="4"
+            denom="$"
+          />
           </p>
         </div>
       </div>
@@ -202,51 +216,48 @@
         >
           {{ $t("message.lease-position") }}
         </p>
-        <div class="flex">
-          <img
-            :src="getAssetIcon"
-            class="inline-block m-0 mr-3"
-            height="36"
-            width="36"
-          />
+        <div class="flex flex-col">
           <h1 class="text-primary nls-font-700 text-28 md:text-28">
             {{ $t('message.opening') }}
           </h1>
         </div>
+        <div class="flex flex-wrap text-10 uppercase whitespace-nowrap">
+          <span
+            class="bg-[#ebeff5] rounded p-1 px-[10px] mb-2 garet-medium"
+            v-if="leaseData"
+          >
+            {{ $t("message.down-payment") }}: ${{ downPayment }}
+          </span>
+        </div>
         <div class="relative">
-          <div class="flex flex-wrap text-10 uppercase whitespace-nowrap">
-            <span
-              class="bg-[#ebeff5] rounded p-1 m-1 px-[10px] mb-2 garet-medium"
-              v-if="leaseData"
-            >
-              {{ $t("message.down-payment") }}: ${{ downPayment }}
-            </span>
-          </div>
           <div class="state flex">
-            <div class="status relative">
+            <div class="status relative cursor-pointer">
               <div class="state-status garet-medium">
                 {{ $t("message.opening-channel") }}
               </div>
               <OpenChannel
-                class="cursor-pointer"
+                :width="16"
+                :height="16"
                 :class="openingSubState?.channel"
               />
             </div>
-            <div class="status relative">
+            <div class="status relative mx-4 cursor-pointer">
               <div class="state-status garet-medium">
                 {{ $t("message.transferring-assets") }}
               </div>
               <Transfer
-                class="cursor-pointer	mx-4"
+                :width="16"
+                :height="16"
                 :class="openingSubState?.transfer"
               />
             </div>
-            <div class="status relative">
+            <div class="status relative cursor-pointer">
               <div class="state-status garet-medium">
                 {{ $t("message.swapping-assets") }}
               </div>
               <Swap
-                class="cursor-pointer"
+                :width="16"
+                :height="16"
                 :class="openingSubState?.swap"
               />
             </div>
@@ -435,6 +446,7 @@
     v-if="showClaimDialog"
     @close-modal="showClaimDialog = false"
     route="claim"
+    ref="claimDialog"
   >
     <DialogHeader :headerList="[$t('message.close-lease')]">
       <ConfirmComponent
@@ -518,6 +530,7 @@ const oracleStore = useOracleStore();
 const snackbarVisible = inject("snackbarVisible", () => false);
 const showSnackbar = inject("showSnackbar", (_type: string, _transaction: string) => { });
 const getLeases = inject("getLeases", () => { });
+const claimDialog = ref()
 
 let leaseData: {
   downPayment: string,
@@ -829,12 +842,20 @@ const onSendClick = async () => {
 }
 
 const onConfirmBackClick = () => {
+  const close = claimDialog.value?.onModalClose;
+  if (close) {
+    close();
+  }
   showClaimDialog.value = false;
 }
 
 const onClickOkBtn = () => {
+  const close = claimDialog.value?.onModalClose;
+  if (close) {
+    close();
+  }
   showClaimDialog.value = false;
-  step.value = CONFIRM_STEP.CONFIRM
+  step.value = CONFIRM_STEP.CONFIRM;
 }
 
 const liquidation = computed(() => {
@@ -949,6 +970,16 @@ const openingSubState = computed(() => {
     transfer: [],
     swap: []
   }
+});
+
+const openedSubState = computed(() => {
+  const data = props.leaseInfo.leaseStatus.opened;
+
+  if (data?.in_progress != null) {
+    return true
+  }
+
+  return false;
 });
 
 </script>

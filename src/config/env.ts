@@ -99,6 +99,7 @@ export const NATIVE_NETWORK = {
   native: true,
   estimation: 6,
   longOperationsEstimation: 20,
+  leaseOpenEstimation: 2,
   sourceChannel: "",
   key: "NLS"
 };

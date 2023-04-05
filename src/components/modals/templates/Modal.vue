@@ -123,4 +123,6 @@ const close = () => {
 provide("onModalClose", onModalClose);
 provide("parseRoute", parseRoute);
 provide("setCollapseButton", setCollapseButton);
+
+defineExpose({ onModalClose })
 </script>

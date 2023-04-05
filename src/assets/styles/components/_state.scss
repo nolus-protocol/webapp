@@ -1,6 +1,7 @@
 div.state {
     .current {
         fill: #2868E1;
+        animation: fadeIn 1s infinite alternate;
     }
 
     .ready {
@@ -25,9 +26,55 @@ div.state {
         z-index: 1;
     }
 
+    div.status {
+        background-color: #EBEFF5;
+        padding: 6px;
+        border-radius: 50%;
+    }
+
     div.status:hover {
         div.state-status {
             display: flex;
         }
+    }
+}
+
+.state-loading {
+    position: relative;
+    width: 1em;
+    height: 1em;
+
+    &::after {
+        content: "";
+        display: block;
+        width: 1em;
+        height: 1em;
+        position: absolute;
+        left: 5px;
+        top: 0;
+        border: 2px solid $borderColor;
+        border-right-color: #2868E1;
+        border-radius: 50%;
+        animation: loading-animation 0.7s linear infinite;
+        opacity: 1;
+    }
+
+    &::before {
+        content: "";
+        display: block;
+        width: 1em;
+        height: 1em;
+        position: absolute;
+        left: 5px;
+        top: 0;
+        border: 2px solid $borderColor;
+        border-radius: 50%;
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0.4;
     }
 }

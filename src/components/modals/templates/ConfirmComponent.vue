@@ -114,6 +114,7 @@
 <script lang="ts" setup>
 import InputField from "@/components/InputField.vue";
 import type { AssetBalance } from "@/stores/wallet/state";
+import type { Coin } from "@cosmjs/amino";
 
 import { computed, inject, onMounted, ref, watch } from "vue";
 import { CheckIcon, XMarkIcon } from "@heroicons/vue/24/solid";
@@ -122,7 +123,6 @@ import { StringUtils, WalletUtils } from "@/utils";
 import { TxType, CONFIRM_STEP } from "@/types";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/wallet";
-import type { Coin } from "@cosmjs/amino";
 import { useApplicationStore } from "@/stores/application";
 
 const errorMessage = ref("");
