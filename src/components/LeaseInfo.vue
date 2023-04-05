@@ -124,24 +124,24 @@
             <TooltipComponent :content="$t('message.outstanding-debt-tooltip')" />
           </p>
           <p class="text-primary text-20 nls-font-400 m-0 mt-1">
-          <div
-            v-if="openedSubState"
-            class="state-loading"
-          >
+            <span
+              v-if="openedSubState"
+              class="state-loading"
+            >
 
-          </div>
-          <CurrencyComponent
-            v-else
-            class="garet-medium"
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            :amount="debt"
-            :hasSpace="false"
-            :isDenomInfront="true"
-            :font-size="20"
-            :font-size-small="14"
-            :decimals="4"
-            denom="$"
-          />
+            </span>
+            <CurrencyComponent
+              v-else
+              class="garet-medium"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              :amount="debt"
+              :hasSpace="false"
+              :isDenomInfront="true"
+              :font-size="20"
+              :font-size-small="14"
+              :decimals="4"
+              denom="$"
+            />
 
           </p>
         </div>
@@ -170,24 +170,24 @@
             <TooltipComponent :content="$t('message.interest-due-tooltip')" />
           </p>
           <p class="text-primary text-20 nls-font-400 m-0 mt-1">
-          <div
-            v-if="openedSubState"
-            class="state-loading"
-          >
+            <span
+              v-if="openedSubState"
+              class="state-loading"
+            >
 
-          </div>
-          <CurrencyComponent
-            v-else
-            class="garet-medium"
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            :amount="interestDue"
-            :hasSpace="false"
-            :isDenomInfront="true"
-            :font-size="20"
-            :font-size-small="14"
-            :decimals="4"
-            denom="$"
-          />
+            </span>
+            <CurrencyComponent
+              v-else
+              class="garet-medium"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              :amount="interestDue"
+              :hasSpace="false"
+              :isDenomInfront="true"
+              :font-size="20"
+              :font-size-small="14"
+              :decimals="4"
+              denom="$"
+            />
           </p>
         </div>
       </div>
