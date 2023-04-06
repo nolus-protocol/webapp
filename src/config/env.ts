@@ -188,3 +188,5 @@ export const WASM_LP_OPEN = "wasm-ls-open";
 export const calculateBaseQuote = (amount: Dec) => {
   return amount.quo(new Dec((1 + MAX_POSITION / 100)));
 }
+
+export const REPAYMENT_VALUES = [25, 50, 75, 100];

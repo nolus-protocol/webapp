@@ -3,7 +3,7 @@
 }
 
 .modal {
-  
+
   &-header {
     padding: 23px 20px 19px 40px;
     border-bottom: 1px solid $borderColor;
@@ -17,7 +17,7 @@
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     overflow: hidden;
-    max-height: calc( 100% - 80px);
+    max-height: calc(100% - 80px);
 
 
     @media (min-width: $md) {
@@ -167,6 +167,24 @@
   border: none;
 }
 
+div.repayment {
+  display: flex;
+  margin-top: 4px;
+  justify-content: flex-end;
+
+  button {
+    font-family: 'Garet';
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    color: #2868E1;
+
+    &:not(:last-child) {
+      margin-right: 10px;
+    }
+  }
+}
+
 body.sync {
 
   .modal {
@@ -178,7 +196,7 @@ body.sync {
         @media (prefers-color-scheme: dark) {
 
           background: $dark-gray;
-  
+
           @media (min-width: $md) {
             background: linear-gradient(0deg, rgba(43, 56, 75, 0.5), rgba(43, 56, 75, 0.5)), rgba(40, 104, 225, 0.1);
           }
@@ -241,7 +259,7 @@ body.dark {
       &-parent {
 
         background: $dark-gray;
-  
+
         @media (min-width: $md) {
           background: linear-gradient(0deg, rgba(43, 56, 75, 0.5), rgba(43, 56, 75, 0.5)), rgba(40, 104, 225, 0.1);
         }
