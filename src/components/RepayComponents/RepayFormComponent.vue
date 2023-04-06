@@ -1,32 +1,29 @@
 <template>
-  <form
-    @submit.prevent="modelValue.onNextClick"
-    class="w-full"
-  >
+  <form @submit.prevent="modelValue.onNextClick"
+        class="w-full">
     <div class="block text-left px-10 mt-10">
       <div class="block py-3 px-4 modal-balance radius-light text-left text-14 nls-font-400 text-primary mb-4">
         {{ $t('message.balance') }}:
-        <a
-          class="text-secondary nls-font-700 underline ml-2 cursor-pointer"
-          @click.stop="setAmount"
-        >
+        <a class="text-secondary nls-font-700 underline ml-2 cursor-pointer"
+           @click.stop="setAmount">
           {{ formatCurrentBalance(modelValue.selectedCurrency) }}
         </a>
       </div>
-      <CurrencyField
-        id="repayBalance"
-        name="repayBalance"
-        :label="$t('message.amount-repay')"
-        :value="modelValue.amount"
-        :currency-options="modelValue.currentBalance"
-        :option="modelValue.selectedCurrency"
-        :error-msg="modelValue.amountErrorMsg"
-        :is-error="modelValue.amountErrorMsg !== ''"
-        @input="handleAmountChange($event)"
-        @update-currency="(event) => (modelValue.selectedCurrency = event)"
-      />
+      <CurrencyField id="repayBalance"
+                     name="repayBalance"
+                     :label="$t('message.amount-repay')"
+                     :value="modelValue.amount"
+                     :currency-options="modelValue.currentBalance"
+                     :option="modelValue.selectedCurrency"
+                     :error-msg="modelValue.amountErrorMsg"
+                     :is-error="modelValue.amountErrorMsg !== ''"
+                     @input="handleAmountChange($event)"
+                     @update-currency="(event) => (modelValue.selectedCurrency = event)" />
       <div class="repayment">
-        <button v-for="value in REPAYMENT_VALUES" type="button" :key="value">
+        <button v-for="value in REPAYMENT_VALUES"
+                type="button"
+                :key="value"
+                @click="setRepayment(value)">
           {{ value }}%
         </button>
       </div>
@@ -101,12 +98,7 @@ const calculateOutstandingDebt = () => {
   const currency = wallet.getCurrencyByTicker(data.principal_due.ticker);
   const denom = wallet.getIbcDenomBySymbol(currency.symbol);
   const info = wallet.getCurrencyInfo(denom as string);
-
-  const debt = new Dec(data.principal_due.amount)
-    .add(new Dec(data.previous_margin_due.amount))
-    .add(new Dec(data.previous_interest_due.amount))
-    .add(new Dec(data.current_margin_due.amount))
-    .add(new Dec(data.current_interest_due.amount))
+  const debt = outStandingDebt();
 
   if (denom) {
 
@@ -121,6 +113,17 @@ const calculateOutstandingDebt = () => {
   }
 
   return "0";
+}
+
+const outStandingDebt = () => {
+  const data = props.modelValue.leaseInfo;
+  const debt = new Dec(data.principal_due.amount)
+    .add(new Dec(data.previous_margin_due.amount))
+    .add(new Dec(data.previous_interest_due.amount))
+    .add(new Dec(data.current_margin_due.amount))
+    .add(new Dec(data.current_interest_due.amount))
+
+  return debt;
 }
 
 const calucateAfterRepayment = computed(() => {
@@ -214,4 +217,24 @@ const setAmount = () => {
   props.modelValue.amount = Number(data.toDec().toString()).toString();
 
 };
+
+const setRepayment = (p: number) => {
+  const amount = outStandingDebt();
+  const currency = wallet.getCurrencyByTicker(props.modelValue.leaseInfo.principal_due.ticker);
+  const denom = wallet.getIbcDenomBySymbol(currency.symbol);
+  const info = wallet.getCurrencyInfo(denom as string);
+  const amountToRepay = CurrencyUtils.convertMinimalDenomToDenom(amount.toString(), info.coinMinimalDenom, info.coinDenom, info.coinDecimals).toDec();
+  const percent = new Dec(p).quo(new Dec(100));
+  const repaymentInStable = amountToRepay.mul(percent);
+
+  const selectedCurrencyInfo = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom as string);
+  const selectedCurrency = wallet.getCurrencyByTicker(selectedCurrencyInfo.ticker);
+  const price = new Dec(oracle.prices[selectedCurrency.symbol].amount);
+  const repayment = repaymentInStable.quo(price);
+
+  console.log(repayment)
+
+  props.modelValue.amount = repayment.toString(selectedCurrencyInfo.coinDecimals);
+
+}
 </script>

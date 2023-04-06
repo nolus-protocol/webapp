@@ -522,7 +522,7 @@ const props = defineProps<Props>();
 const showRepayModal = ref(false);
 const chartTimeRange = ref(CHART_RANGES["1"]);
 const i18n = useI18n();
-
+console.log(props)
 const chartData = ref();
 const showClaimDialog = ref(false);
 const walletStore = useWalletStore();
@@ -981,5 +981,4 @@ const openedSubState = computed(() => {
 
   return false;
 });
-
 </script>

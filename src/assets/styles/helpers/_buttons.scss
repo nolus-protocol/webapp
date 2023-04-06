@@ -572,6 +572,7 @@ body.sync {
     .js-loading {
       background-color: transparent !important;
       border: 1px $dark-line solid !important;
+      color: transparent !important;
       &::before {
         border-color: $dark-line;
       }
@@ -677,6 +678,7 @@ body.dark {
   .js-loading {
     background-color: transparent !important;
     border: 1px $dark-line solid !important;
+    color: transparent !important;
 
     &::before {
       border-color: $dark-line;
