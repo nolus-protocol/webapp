@@ -1,5 +1,9 @@
 import { sha256 } from "@cosmjs/crypto";
 import { Buffer } from "buffer";
+import { useWalletStore } from "@/stores/wallet";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { Dec } from "@keplr-wallet/unit";
+import { useOracleStore } from "@/stores/oracle";
 
 export class AssetUtils {
   public static makeIBCMinimalDenom(
@@ -21,5 +25,17 @@ export class AssetUtils {
         .toString("hex")
         .toUpperCase()
     );
+  }
+
+  public static getPrice(amount: number | string, ticker: string) {
+    const wallet = useWalletStore();
+    const oracle = useOracleStore();
+    const currency = wallet.getCurrencyByTicker(ticker);
+    const denom = wallet.getIbcDenomBySymbol(currency.symbol);
+    const info = wallet.getCurrencyInfo(denom as string);
+
+    const price = new Dec(oracle.prices[currency.symbol].amount);
+    const assetAmount = new Dec(amount, info.coinDecimals);
+    return assetAmount.quo(price);
   }
 }

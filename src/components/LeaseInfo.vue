@@ -195,6 +195,7 @@
         class="btn btn-secondary btn-large-secondary md:w-auto w-full md:mt-0 mt-4"
         v-if="leaseInfo.leaseStatus.opened"
         @click="showRepayModal = true"
+        :disabled="openedSubState"
       >
         {{ $t("message.repay") }}
       </button>
@@ -522,7 +523,6 @@ const props = defineProps<Props>();
 const showRepayModal = ref(false);
 const chartTimeRange = ref(CHART_RANGES["1"]);
 const i18n = useI18n();
-console.log(props)
 const chartData = ref();
 const showClaimDialog = ref(false);
 const walletStore = useWalletStore();
