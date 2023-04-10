@@ -22,7 +22,7 @@
           >
             {{ formatPrice(getMarketPrice(asset.balance.denom)) }}
           </p> -->
-          <p class="text-medium-blue bg-[#EBEFF5] text-[10px] uppercase m-0 garet-medium py-[2px] px-[4px] rounded-md">
+          <p class="tag bg-[#EBEFF5] text-[10px] uppercase m-0 garet-medium py-[2px] px-[4px] rounded-md">
           {{ $t("message.deposit-interest") }}
         </p>
         </div>
@@ -176,3 +176,8 @@ const calculateBalance = (tokenAmount: string, denom: string) => {
     .toString(2);
 };
 </script>
+<style lang="scss" scoped>
+.tag{
+  color: #5E7699;
+}
+</style>
