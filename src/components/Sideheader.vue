@@ -41,7 +41,10 @@
     </button>
 
     <!-- <Notifications /> -->
-    <Transition name="collapse" appear>
+    <Transition
+      name="collapse"
+      appear
+    >
       <WalletOpen v-show="showWallet" />
     </Transition>
   </div>
@@ -49,10 +52,10 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue";
-// import Notifications from "@/components/Notifications.vue";
+import { useWalletStore } from "@/stores/wallet";
+
 import WalletOpen from "@/components/WalletOpen.vue";
 import LogoLink from "@/components/LogoLink.vue";
-import { useWalletStore } from "@/stores/wallet";
 
 const showWallet = ref(false);
 const showNotifications = ref(false);

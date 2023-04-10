@@ -1,5 +1,6 @@
 import type { Keplr } from "@keplr-wallet/types";
 import type { Window as KeplrWindow } from "@keplr-wallet/types/build/window";
+
 import { KeyUtils } from "@nolus/nolusjs";
 import { WalletConnectMechanism } from "@/types";
 import { WalletManager } from "@/utils";

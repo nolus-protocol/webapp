@@ -41,9 +41,10 @@ import { getMicroAmount, walletOperation } from "@/components/utils";
 import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, GROUPS, TIP, LEASE_MAX_AMOUNT, LEASE_MIN_AMOUNT } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, GROUPS, TIP, LEASE_MAX_AMOUNT } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/stores/oracle";
+import { AssetUtils } from "@/utils";
 
 const walletStore = useWalletStore();
 const oracle = useOracleStore();
@@ -72,7 +73,7 @@ const balances = computed(() => {
   const balances = walletStore.balances;
   return balances.filter((item) => {
     const currency = walletStore.currencies[item.balance.denom];
-    return currency.groups.includes(GROUPS.Lease) || currency.groups.includes(GROUPS.Lpn);
+    return currency.groups.includes(GROUPS.Lpn); //currency.groups.includes(GROUPS.Lease) || currency.groups.includes(GROUPS.Lpn);
   });
 });
 
@@ -139,8 +140,11 @@ const isAmountValid = (): boolean => {
       const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, "", coinData.coinDecimals);
       const balance = CurrencyUtils.calculateBalance(price.amount, amountInMinimalDenom, coinData.coinDecimals).toDec();
 
-      const leaseMax = new Dec(LEASE_MAX_AMOUNT);
-      const leaseMin = new Dec(LEASE_MIN_AMOUNT);
+      const leaseMax = new Dec(LEASE_MAX_AMOUNT.amount);
+      const debt = outStandingDebt();
+      const priceDec = new Dec(price.amount);
+      const amountDec = leaseMax.quo(priceDec);
+      const leaseMaxInStable = amountDec.gt(debt) ? debt : amountDec;
 
       const isLowerThanOrEqualsToZero = new Dec(
         amountInMinimalDenom.amount || "0"
@@ -160,19 +164,9 @@ const isAmountValid = (): boolean => {
         isValid = false;
       }
 
-      if (balance.lt(leaseMin)) {
-        state.value.amountErrorMsg = i18n.t("message.lease-min-error", {
-          minAmount:(Math.ceil(LEASE_MIN_AMOUNT / Number(price.amount) * 1000) / 1000).toLocaleString('en-EN'),
-          maxAmount:(Math.ceil(LEASE_MAX_AMOUNT / Number(price.amount) * 1000) / 1000).toLocaleString('en-EN'),
-          symbol: coinData.coinAbbreviation
-        });
-        isValid = false;
-      }
-
-      if (balance.gt(leaseMax)) {
-        state.value.amountErrorMsg = i18n.t("message.lease-max-error", {
-          minAmount:(Math.ceil(LEASE_MIN_AMOUNT / Number(price.amount) * 1000) / 1000).toLocaleString('en-EN'),
-          maxAmount:(Math.ceil(LEASE_MAX_AMOUNT / Number(price.amount) * 1000) / 1000).toLocaleString('en-EN'),
+      if (balance.gt(leaseMaxInStable)) {
+        state.value.amountErrorMsg = i18n.t("message.lease-only-max-error", {
+          maxAmount: Number(leaseMaxInStable.toString()),
           symbol: coinData.coinAbbreviation
         });
         isValid = false;
@@ -250,6 +244,19 @@ const getCurrentBalanceByDenom = (denom: string) => {
   }
 };
 
+const outStandingDebt = () => {
+  const data = state.value.leaseInfo;
+  const info = AssetUtils.getAssetInfo(data.principal_due.ticker);
+  const debt = new Dec(data.principal_due.amount, info.coinDecimals)
+    .add(new Dec(data.previous_margin_due.amount, info.coinDecimals))
+    .add(new Dec(data.previous_interest_due.amount, info.coinDecimals))
+    .add(new Dec(data.current_margin_due.amount, info.coinDecimals))
+    .add(new Dec(data.current_interest_due.amount, info.coinDecimals))
+
+  return debt;
+}
+
+
 watch(walletRef.balances, (b: AssetBalance[]) => {
   if (b) {
     if (!state.value.selectedCurrency) {
@@ -260,6 +267,13 @@ watch(walletRef.balances, (b: AssetBalance[]) => {
 
 watch(
   () => state.value?.amount,
+  () => {
+    isAmountValid();
+  }
+);
+
+watch(
+  () => state.value?.selectedCurrency,
   () => {
     isAmountValid();
   }

@@ -57,7 +57,8 @@
         class="py-4 my-2"
         :disabled="false"
         @on-drag="onDrag"
-      ></RangeComponent>
+      >
+      </RangeComponent>
 
       <!-- <div
         v-if="liqudStakeShow"
@@ -144,6 +145,7 @@ import { GROUPS, NATIVE_NETWORK, calculateLiquidation, PERMILLE, DEFAULT_LTV } f
 import { coin } from "@cosmjs/amino";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
+import { AssetUtils } from "@/utils";
 
 const wallet = useWalletStore();
 
@@ -303,22 +305,6 @@ const updateSelected = (event: PickerOption) => {
 
 }
 
-const calculateFee = () => {
-  const fee = props.modelValue.fee;
-  const amount = new Dec(fee.amount).toString();
-
-  const { coinDenom, coinMinimalDenom, coinDecimals } = wallet.getCurrencyInfo(
-    fee.denom
-  );
-
-  return CurrencyUtils.convertMinimalDenomToDenom(
-    amount,
-    coinMinimalDenom,
-    coinDenom,
-    coinDecimals
-  );
-}
-
 const calculateLique = computed(() => {
   const lease = props.modelValue.leaseApply;
   if (lease) {
@@ -344,9 +330,7 @@ const borrowed = computed(() => {
   const borrow = props.modelValue.leaseApply?.borrow;
 
   if (borrow) {
-    const asset = wallet.getCurrencyByTicker(borrow.ticker);
-    const ibcDenom = wallet.getIbcDenomBySymbol(asset.symbol);
-    const info = wallet.getCurrencyInfo(ibcDenom as string);
+    const info = AssetUtils.getAssetInfo(borrow.ticker);
 
     const token = CurrencyUtils.convertMinimalDenomToDenom(
       borrow.amount,

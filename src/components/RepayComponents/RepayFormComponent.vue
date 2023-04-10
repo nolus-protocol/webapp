@@ -1,7 +1,7 @@
 <template>
   <form @submit.prevent="modelValue.onNextClick"
         class="w-full">
-    <div class="block text-left px-10 mt-10">
+    <div class="block text-left px-10 mt-10 py-[5px]">
       <div class="block py-3 px-4 modal-balance radius-light text-left text-14 nls-font-400 text-primary mb-4">
         {{ $t('message.balance') }}:
         <a class="text-secondary nls-font-700 underline ml-2 cursor-pointer"
@@ -170,22 +170,6 @@ const calucateAfterRepayment = computed(() => {
 
 });
 
-const calculateFee = () => {
-  const fee = props.modelValue.fee;
-  const amount = new Dec(fee.amount).toString();
-
-  const { coinDenom, coinMinimalDenom, coinDecimals } = wallet.getCurrencyInfo(
-    fee.denom
-  );
-
-  return CurrencyUtils.convertMinimalDenomToDenom(
-    amount,
-    coinMinimalDenom,
-    coinDenom,
-    coinDecimals
-  );
-}
-
 const handleAmountChange = (value: string) => {
   props.modelValue.amount = value;
 };
@@ -231,8 +215,6 @@ const setRepayment = (p: number) => {
   const selectedCurrency = wallet.getCurrencyByTicker(selectedCurrencyInfo.ticker);
   const price = new Dec(oracle.prices[selectedCurrency.symbol].amount);
   const repayment = repaymentInStable.quo(price);
-
-  console.log(repayment)
 
   props.modelValue.amount = repayment.toString(selectedCurrencyInfo.coinDecimals);
 

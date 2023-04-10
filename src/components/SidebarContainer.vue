@@ -1,14 +1,12 @@
 <template>
   <div
-    :class="showMobileNav ? 'mobile-nav' : false"
+    :class="{ 'mobile-nav': showMobileNav }"
     class="sidebar-container"
     ref="sidebar"
   >
     <div class="top pl-8">
       <LogoLink link="/" />
-      <div
-        class="sidebar-elements-container nls-nav-more flex flex-col mt-[55px]"
-      >
+      <div class="sidebar-elements-container nls-nav-more flex flex-col mt-[55px]">
         <div
           :style="
             showMobileNav
@@ -36,9 +34,7 @@
         </div>
 
         <!-- DESKTOP -->
-        <div
-          class="md:flex md:justify-between sidebar-elements-block lg:block task-bar"
-        >
+        <div class="md:flex md:justify-between sidebar-elements-block lg:block task-bar">
           <div class="block nls-nav-link icon">
             <SidebarElement
               id="assets"
@@ -123,16 +119,18 @@
     </div>
   </div>
 
-  <div
-    class="lg:col-span-3 absolute inset-x-0 bottom-0 mb-6 ml-8 hidden md:grid fixed"
-  >
+  <div class="lg:col-span-3 absolute inset-x-0 bottom-0 mb-6 ml-8 hidden md:grid fixed">
     <p class="nls-font-500 text-12 text-dark-grey text-upper pl-2">
       {{ applicaton.network.networkName }} #<template v-if="block > 0">{{ block }}</template>
     </p>
     <p class="garet-medium text-12 text-dark-grey pl-2">v{{ version }}</p>
   </div>
 
-  <Modal v-if="showSwapModal" @close-modal="showSwapModal = false" route="swap">
+  <Modal
+    v-if="showSwapModal"
+    @close-modal="showSwapModal = false"
+    route="swap"
+  >
     <SwapDialog />
   </Modal>
 </template>
@@ -152,13 +150,7 @@ import { NolusClient } from "@nolus/nolusjs";
 import { NETWORKS, UPDATE_BLOCK_INTERVAL } from "@/config/env";
 import { storeToRefs } from "pinia";
 import { EnvNetworkUtils } from "@/utils";
-
-import {
-  DISCORD_ACCOUNT,
-  REDDIT_ACCOUNT,
-  TELEGRAM_ACCOUNT,
-  TWITTER_ACCOUNT,
-} from "@/config/globals";
+import { DISCORD_ACCOUNT, REDDIT_ACCOUNT, TELEGRAM_ACCOUNT, TWITTER_ACCOUNT } from "@/config/globals";
 
 const showMobileNav = ref(false);
 const isMobile = ref(false);
@@ -211,7 +203,7 @@ const onClick = (event: MouseEvent) => {
   }
 };
 
-async function setBlock() {
+const setBlock = async () => {
   try {
     const nolusClient = NolusClient.getInstance();
     block.value = await nolusClient.getBlockHeight();
@@ -220,7 +212,7 @@ async function setBlock() {
   }
 }
 
-async function setVersion() {
+const setVersion = async () => {
   try {
     const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].tendermintRpc;
     const data = await fetch(`${url}/abci_info`);
@@ -231,18 +223,18 @@ async function setVersion() {
   }
 }
 
-function openSwapModal() {
+const openSwapModal = () => {
   showSwapModal.value = true;
 }
 
-function pushTo(route: RouteNames) {
+const pushTo = (route: RouteNames) => {
   router.push({ name: route });
   if (showMobileNav.value) {
     showMobileNav.value = false;
   }
 }
 
-function openExternal(url: string, target: string) {
+const openExternal = (url: string, target: string) => {
   window.open(url, target);
 }
 </script>
@@ -253,6 +245,7 @@ function openExternal(url: string, target: string) {
   font-family: "nolus";
   margin-left: 7px;
 }
+
 div.nls-nav-link {
   span.icon {
     width: 32px;

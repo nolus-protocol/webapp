@@ -13,6 +13,7 @@ export default defineConfig({
     vue(),
     vueI18n({
       compositionOnly: true,
+      strictMessage: false,
       include: resolve(
         dirname(fileURLToPath(import.meta.url)),
         './src/locales/**'

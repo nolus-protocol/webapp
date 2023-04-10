@@ -124,6 +124,7 @@ const useWalletStore = defineStore("wallet", {
     ) {
       let breakLoop = false;
       let ledgerWallet = null;
+
       // 30 sec timeout to let the user unlock his hardware
       const to = setTimeout(() => (breakLoop = true), 30000);
       const accountNumbers = [0];
@@ -161,9 +162,9 @@ const useWalletStore = defineStore("wallet", {
           if (payload?.isFromAuth) {
             await router.push({ name: RouteNames.SET_WALLET_NAME });
           }
-        } catch (e: Error | any) {
+        } catch (e) {
           breakLoop = true;
-          throw new Error(e);
+          throw new Error(e as string);
         }
       }
       clearTimeout(to);
@@ -252,8 +253,8 @@ const useWalletStore = defineStore("wallet", {
           );
         }
         this.balances = await Promise.all(ibcBalances);
-      } catch (e: Error | any) {
-        throw new Error(e);
+      } catch (e) {
+        throw new Error(e as string);
       }
     },
     async [WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN](payload: {

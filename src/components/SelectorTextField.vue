@@ -37,9 +37,7 @@
       </button>
     </div>
 
-    <div
-      class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"
-    ></div>
+    <div class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
 
     <div
       class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal z-[100]"

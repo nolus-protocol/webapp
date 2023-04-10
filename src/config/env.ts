@@ -1,5 +1,5 @@
-import nlsIcon from "@/assets/icons/coins/nls.svg";
 import type { NetworkAddress } from "@/types";
+import nlsIcon from "@/assets/icons/coins/nls.svg";
 import { Dec } from "@keplr-wallet/unit";
 
 export const DEFAULT_PRIMARY_NETWORK = "testnet";
@@ -141,9 +141,9 @@ export enum APPEARANCE {
   sync = "sync",
 }
 
-export const UPDATE_BLOCK_INTERVAL = 5 * 1000; // 5000 ms
-export const UPDATE_BALANCE_INTERVAL = 5 * 1000; // 5000 ms
-export const UPDATE_PRICES_INTERVAL = 10 * 1000; // 10000 ms
+export const UPDATE_BLOCK_INTERVAL = 5 * 1000;
+export const UPDATE_BALANCE_INTERVAL = 5 * 1000;
+export const UPDATE_PRICES_INTERVAL = 10 * 1000;
 export const UPDATE_REWARDS_INTERVAL = 5 * 1000;
 
 export const DEFAULT_LEASE_UP_PERCENT = "150.00";
@@ -161,8 +161,8 @@ export const TIP = {
   denom: NATIVE_ASSET.denom
 }
 
-export const LEASE_MIN_AMOUNT = 0.00005;
-export const LEASE_MAX_AMOUNT = 25000;
+export const LEASE_MIN_AMOUNT = { amount: 40, ticker: 'USDC' };
+export const LEASE_MAX_AMOUNT = { amount: 200, ticker: 'USDC' };;
 
 export const INTEREST_DECIMALS = 1;
 export const PERMILLE = 1000;

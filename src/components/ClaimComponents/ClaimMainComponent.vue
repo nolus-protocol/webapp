@@ -42,13 +42,11 @@ const props = defineProps({
   },
 });
 
-// @TODO: Fetch supplied balances instead of wallet balances
 const balances = computed(() => walletStore.balances);
 const selectedCurrency = computed(
   () =>
     balances.value.find(
-      (asset) => asset.balance.denom === props.reward.balance.denom
-    ) || balances.value[0]
+      (asset) => asset.balance.denom === props.reward.balance.denom) || balances.value[0]
 );
 const showConfirmScreen = ref(true);
 
@@ -67,9 +65,9 @@ const state = ref({
 } as ClaimComponentProps);
 
 const step = ref(CONFIRM_STEP.CONFIRM);
-const closeModal = inject("onModalClose", () => () => {});
+const closeModal = inject("onModalClose", () => () => { });
 
-function onNextClick() {}
+function onNextClick() { }
 
 function onConfirmBackClick() {
   showConfirmScreen.value = false;
@@ -90,9 +88,11 @@ async function onClickClaim() {
 
 async function requestClaim() {
   const wallet = walletStore.wallet;
+  
   if (!props.contractData) {
     // TODO show error
   }
+
   if (wallet) {
     step.value = CONFIRM_STEP.PENDING;
     try {

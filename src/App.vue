@@ -14,19 +14,15 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onBeforeMount, ref, watch } from "vue";
-import { RouterView } from "vue-router";
-
 import Modal from "@/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/components/modals/ErrorDialog.vue";
+
+import { onMounted, onBeforeMount, ref, watch } from "vue";
+import { RouterView } from "vue-router";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { APPEARANCE } from "./config/env";
-
-import {
-  useApplicationStore,
-  ApplicationActionTypes,
-} from "@/stores/application";
+import { useApplicationStore, ApplicationActionTypes } from "@/stores/application";
 
 const showErrorDialog = ref(false);
 const errorMessage = ref("");

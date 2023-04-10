@@ -1,7 +1,7 @@
-import i18n from "@/locales";
 import type { Coin } from "@cosmjs/proto-signing";
 import type { StdFee } from "@cosmjs/amino";
 import type { BaseWallet, Wallet } from "@/networks";
+import { i18n } from "@/main";
 
 import { Int } from "@keplr-wallet/unit";
 import { fromBech32 } from "@cosmjs/encoding";

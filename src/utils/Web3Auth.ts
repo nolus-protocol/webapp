@@ -41,7 +41,6 @@ export class Web3AuthProvider {
   }
 
   public static async getInstance() {
-    const instance = Web3AuthProvider.instance;
     if (!Web3AuthProvider.instance) {
       Web3AuthProvider.instance = new Web3AuthProvider();
       await Web3AuthProvider.instance.web3auth.init();

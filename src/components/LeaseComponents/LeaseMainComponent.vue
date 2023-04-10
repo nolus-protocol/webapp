@@ -186,7 +186,6 @@ const calculate = async () => {
       state.value.leaseApply = null;
     }
   } catch (error) {
-    console.log(error)
     state.value.leaseApply = null;
   }
 
@@ -236,8 +235,8 @@ const isDownPaymentAmountValid = (): boolean => {
       const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(downPaymentAmount, "", coinData.coinDecimals);
       const balance = CurrencyUtils.calculateBalance(price.amount, downPaymentAmountInMinimalDenom, coinData.coinDecimals).toDec();
 
-      const leaseMax = new Dec(LEASE_MAX_AMOUNT);
-      const leaseMin = new Dec(LEASE_MIN_AMOUNT);
+      const leaseMax = new Dec(LEASE_MAX_AMOUNT.amount);
+      const leaseMin = new Dec(LEASE_MIN_AMOUNT.amount);
 
       const isLowerThanOrEqualsToZero = new Dec(
         downPaymentAmountInMinimalDenom.amount || "0"
@@ -259,8 +258,8 @@ const isDownPaymentAmountValid = (): boolean => {
 
       if (balance.lt(leaseMin)) {
         state.value.downPaymentErrorMsg = i18n.t("message.lease-min-error", {
-          minAmount: (Math.ceil(LEASE_MIN_AMOUNT / Number(price.amount) * 1000) / 1000).toLocaleString('en-EN'),
-          maxAmount: (Math.ceil(LEASE_MAX_AMOUNT / Number(price.amount) * 1000) / 1000).toLocaleString('en-EN'),
+          minAmount: (Math.ceil(LEASE_MIN_AMOUNT.amount / Number(price.amount) * 1000) / 1000),
+          maxAmount: (Math.ceil(LEASE_MAX_AMOUNT.amount / Number(price.amount) * 1000) / 1000),
           symbol: coinData.coinAbbreviation
         });
         isValid = false;
@@ -268,8 +267,8 @@ const isDownPaymentAmountValid = (): boolean => {
 
       if (balance.gt(leaseMax)) {
         state.value.downPaymentErrorMsg = i18n.t("message.lease-max-error", {
-          minAmount: (Math.ceil(LEASE_MIN_AMOUNT / Number(price.amount) * 1000) / 1000).toLocaleString('en-EN'),
-          maxAmount: (Math.ceil(LEASE_MAX_AMOUNT / Number(price.amount) * 1000) / 1000).toLocaleString('en-EN'),
+          minAmount: (Math.ceil(LEASE_MIN_AMOUNT.amount / Number(price.amount) * 1000) / 1000),
+          maxAmount: (Math.ceil(LEASE_MAX_AMOUNT.amount / Number(price.amount) * 1000) / 1000),
           symbol: coinData.coinAbbreviation
         });
         isValid = false;
@@ -360,7 +359,7 @@ const openLease = async () => {
         localStorage.setItem(data.value, JSON.stringify({
           downPayment: balance,
           price: leaseAssetPrice,
-          leasePositionTicker: ticker 
+          leasePositionTicker: ticker
         }));
       }
 
@@ -376,8 +375,4 @@ const openLease = async () => {
     }
   }
 };
-
-const getMaxLTV = () => {
-
-}
 </script>

@@ -57,10 +57,10 @@ import LeaseDialog from "@/components/modals/LeaseDialog.vue";
 import Modal from "@/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/components/modals/ErrorDialog.vue";
 import LeaseInfo from "@/components/LeaseInfo.vue";
+import router from "@/router";
 
 import { ref, provide, onMounted, onUnmounted } from "vue";
 import { useLeases } from "@/composables/useLeases";
-import router from "@/router";
 
 const showLeaseModal = ref(false);
 const { leases, getLeases } = useLeases(onLeaseError, showModal);
@@ -85,8 +85,8 @@ onUnmounted(() => {
 
 const onCloseLease = () => {
   showLeaseModal.value = false;
-  if(leases.value.length == 0){
-    router.push({ path: '/'})
+  if (leases.value.length == 0) {
+    router.push({ path: '/' })
   }
 }
 
@@ -100,7 +100,7 @@ function showModal() {
   showLeaseModal.value = true;
 }
 
-async function onTryAgain() {
+const onTryAgain = async () => {
   errorDialog.value.showDialog = false;
   errorDialog.value.errorMessage = "";
   getLeases();

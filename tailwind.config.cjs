@@ -1,12 +1,12 @@
 module.exports = {
   content: ["./index.html", "./src/**/*.{vue,js,ts,jsx,tsx}"],
-  darkMode: "media", // or 'class'
+  darkMode: "media",
   theme: {
     colors: {
       white: "#fff",
       "text-main": "#082D63",
       "light-grey": "#f7f9fc",
-      grey: "#ebeff5",
+      "grey": "#ebeff5",
       "light-blue": "#8396B1",
       "medium-blue": "#5e7699",
       "dark-blue": "#082d63",
@@ -22,10 +22,9 @@ module.exports = {
       "light-yellow": "#ffd782",
       "medium-yellow": "#ffc74f",
       "dark-yellow": "#ffb922",
-      orange: "#ff562e",
-      dark: "#082D63",
+      "orange": "#ff562e",
+      "dark": "#082D63",
     },
-
     fontSize: {
       10: ["10px", "14px"],
       12: ["12px", "17px"],
@@ -38,7 +37,6 @@ module.exports = {
       40: ["40px", "58px"],
       48: ["48px", "70px"],
     },
-
     extend: {},
   },
   variants: {

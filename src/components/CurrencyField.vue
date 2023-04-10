@@ -1,8 +1,14 @@
 <template>
   <div class="block currency-field-container">
-    <label :for="id" class="flex text-14 nls-font-500 text-primary">
+    <label
+      :for="id"
+      class="flex text-14 nls-font-500 text-primary"
+    >
       {{ label }}
-      <TooltipComponent v-if="tooltip.length > 0" :content="tooltip" />
+      <TooltipComponent
+        v-if="tooltip.length > 0"
+        :content="tooltip"
+      />
     </label>
     <div
       class="currency-field p-3.5 currency-field p-3.5"
@@ -38,8 +44,11 @@
       </div>
     </div>
 
-    <span class="msg error" :class="[errorMsg.length > 0 ? '' : 'hidden']">
-      {{ errorMsg.length > 0 ? errorMsg : "" }}
+    <span
+      class="msg error"
+      :class="{'hidden': !errorMsg.length}"
+    >
+      {{ errorMsg }}
     </span>
   </div>
 </template>
@@ -160,12 +169,12 @@ const calculateInputBalance = () => {
   let coinMinimalDenom = null;
   let symbol = null;
 
-  if(ticker){
-    const { decimals, symbol: currencySymbol, ibc_route   } = props.option;
+  if (ticker) {
+    const { decimals, symbol: currencySymbol, ibc_route } = props.option;
     coinDecimals = decimals as number;
     coinMinimalDenom = AssetUtils.makeIBCMinimalDenom(ibc_route as string[], currencySymbol as string);
     symbol = currencySymbol as string;
-  }else{
+  } else {
     const denom = props.option.balance.denom;
     const { coinDecimals: decimals, coinMinimalDenom: minimalDenom } = wallet.getCurrencyInfo(denom);
     symbol = wallet.currencies[denom].symbol;

@@ -1,10 +1,8 @@
 <template>
-  <div
-    :class="[
-      type.length > 0 ? 'picker ' + type : 'picker ',
-      isError ? ' error' : '',
-    ]"
-  >
+  <div :class="[
+    type.length > 0 ? 'picker ' + type : 'picker ',
+    isError ? ' error' : '',
+  ]">
     <Listbox
       v-model="selected"
       v-slot="{ open }"
@@ -17,7 +15,7 @@
       </ListboxLabel>
       <div class="mt-1 relative picker-container">
         <ListboxButton
-        class="relative w-full background border border-gray-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          class="relative w-full background border border-gray-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         >
           <span class="flex items-center">
             <img
@@ -28,9 +26,7 @@
             />
             <span class="block truncate dark-text">{{ selected.label }}</span>
           </span>
-          <span
-            class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
-          >
+          <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
             <ChevronUpIcon
               v-if="open"
               class="h-5 w-5 text-gray-400"
@@ -44,8 +40,11 @@
           </span>
         </ListboxButton>
 
-        <span class="msg error" :class="[errorMsg.length > 0 ? '' : 'hidden']">
-          {{ errorMsg.length > 0 ? errorMsg : "" }}
+        <span
+          class="msg error"
+          :class="{ hidden: !errorMsg.length }"
+        >
+          {{ errorMsg }}
         </span>
 
         <transition
@@ -99,14 +98,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch, type PropType } from "vue";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
-
-import {
-  Listbox,
-  ListboxButton,
-  ListboxLabel,
-  ListboxOption,
-  ListboxOptions,
-} from "@headlessui/vue";
+import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from "@headlessui/vue";
 
 export interface PickerOption {
   id?: string;

@@ -17,15 +17,10 @@
           @input="$emit('update:value', handleInputChange($event))"
         >
         </textarea>
-        <div
-          class="flex align-center justify-end p-3 bg-light-grey buttons-container"
-        >
+        <div class="flex align-center justify-end p-3 bg-light-grey buttons-container">
           <button
             class="flex btn btn-secondary btn-medium-secondary btn-icon mr-4"
-            @click="
-              onClickCopy();
-              onCopy();
-            "
+            @click="onClickCopy(); onCopy();"
           >
             <DocumentDuplicateIcon class="icon w-4 h-4" />
             {{ copyText }}
@@ -40,7 +35,10 @@
           </button>
         </div>
       </div>
-      <span class="msg error" :class="[errorMsg.length > 0 ? '' : 'hidden']">
+      <span
+        class="msg error"
+        :class="{ hidden: !errorMsg.length }"
+      >
         {{ errorMsg }}
       </span>
     </div>

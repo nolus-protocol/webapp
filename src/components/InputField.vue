@@ -1,20 +1,26 @@
 <template>
   <fieldset>
     <div class="block input-field">
-      <label :for="id" class="block text-14 nls-font-500 text-primary">
+      <label
+        :for="id"
+        class="block text-14 nls-font-500 text-primary"
+      >
         {{ label }}
       </label>
       <input
         autocomplete="off"
         :id="id"
-        :class="isError === true ? 'error' : ''"
+        :class="{ error: isError }"
         :name="name"
         :type="type"
         :value="value"
         @input="$emit('update:value', handleInputChange($event))"
       />
-      <span class="msg error" :class="[errorMsg.length > 0 ? '' : 'hidden']">
-        {{ errorMsg.length > 0 ? errorMsg : "" }}
+      <span
+        class="msg error"
+        :class="{ 'hidden': !errorMsg.length }"
+      >
+        {{ errorMsg }}
       </span>
     </div>
   </fieldset>

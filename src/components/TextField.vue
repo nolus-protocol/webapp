@@ -1,19 +1,25 @@
 <template>
   <fieldset>
     <div class="block input-field">
-      <label :for="id" class="block text-14 nls-font-500 mb-[5px] dark-text">
+      <label
+        :for="id"
+        class="block text-14 nls-font-500 mb-[5px] dark-text"
+      >
         {{ label }}
       </label>
       <textarea
         :id="id"
-        :class="isError === true ? 'error' : ''"
+        :class="{ error: isError }"
         :name="name"
         :value="value"
         @input="$emit('update:value', handleInputChange($event))"
       >
       </textarea>
-      <span class="msg error" :class="[errorMsg.length > 0 ? '' : 'hidden']">
-        {{ errorMsg.length > 0 ? errorMsg : "" }}
+      <span
+        class="msg error"
+        :class="{ hidden: !errorMsg.length }"
+      >
+        {{ errorMsg }}
       </span>
     </div>
   </fieldset>

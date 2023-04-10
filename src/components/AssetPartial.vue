@@ -19,10 +19,6 @@
           {{ assetInfo.coinAbbreviation.toUpperCase() }}
         </p>
         <p class="text-dark-grey text-12 text-left capitalize m-0 garet-medium">
-          <!-- <img
-            :src="changeDirection ? positive : negative"
-            class="inline-block m-0 mr-2"
-          /> -->
           {{ CurrencyUtils.formatPrice(price).maxDecimals(6) }}
         </p>
       </div>
@@ -199,13 +195,7 @@ import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { useWalletStore } from "@/stores/wallet";
 import { NATIVE_CURRENCY } from "@/config/assetsInfo";
 import { DASHBOARD_ACTIONS } from "@/types";
-
-import {
-  NATIVE_CURRENCY as DEFAULT_CURRENCY,
-  DEFAULT_LEASE_UP_PERCENT,
-  GROUPS,
-  LEASE_UP_COEFICIENT,
-} from "@/config/env";
+import { NATIVE_CURRENCY as DEFAULT_CURRENCY, DEFAULT_LEASE_UP_PERCENT, GROUPS, LEASE_UP_COEFICIENT } from "@/config/env";
 import { useApplicationStore } from "@/stores/application";
 
 const walletStore = useWalletStore();
@@ -309,4 +299,5 @@ div.mobile-actions {
     justify-content: center;
     display: flex;
   }
-}</style>
+}
+</style>

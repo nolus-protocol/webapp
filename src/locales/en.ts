@@ -1,4 +1,4 @@
-{
+export default {
   "message": {
     "create-new-account": "Create New Wallet",
     "connect-wallet": "Connect Wallet",
@@ -228,6 +228,7 @@
     "terms": "Terms of Service",
     "lease-min-error": "Amount must be between {minAmount} {symbol} and {maxAmount} {symbol}",
     "lease-max-error": "Amount must be between {minAmount} {symbol} and {maxAmount} {symbol}",
+    "lease-only-max-error": "Amount must be lower than {maxAmount} {symbol}",
     "price": "Price",
     "opening": "Opening",
     "transfer": "Transfer to Wallet",

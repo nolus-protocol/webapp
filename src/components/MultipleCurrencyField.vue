@@ -22,7 +22,7 @@
             :currencyOption="selectedOption"
             :disabled="false"
             :label="$t('message.asset')"
-            @update-currency="(value: any) => $emit('updateCurrency', value)"
+            @update-currency="(value) => $emit('updateCurrency', value)"
           />
         </div>
       </div>
@@ -55,8 +55,11 @@
       </div>
     </div>
 
-    <span class="msg error" :class="[errorMsg?.length > 0 ? '' : 'hidden']">
-      {{ errorMsg?.length > 0 ? errorMsg : "" }}
+    <span
+      class="msg error"
+      :class="{ hidden: !errorMsg?.length }"
+    >
+      {{ errorMsg }}
     </span>
   </div>
 </template>

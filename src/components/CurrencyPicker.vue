@@ -1,10 +1,8 @@
 <template>
-  <div
-    :class="[
-      type.length > 0 ? 'picker ' + type : 'picker',
-      isError ? ' error' : '',
-    ]"
-  >
+  <div :class="[
+    type.length > 0 ? 'picker ' + type : 'picker',
+    isError ? ' error' : '',
+  ]">
     <Listbox
       v-model="selected.value"
       v-slot="{ open }"
@@ -34,13 +32,14 @@
                 ).coinAbbreviation.toUpperCase()
               }}
             </span>
-            <span v-if="isLoading" class="loading">
+            <span
+              v-if="isLoading"
+              class="loading"
+            >
 
             </span>
           </span>
-          <span
-            class="ml-3 absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none"
-          >
+          <span class="ml-3 absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
             <ChevronUpIcon
               v-if="open"
               class="h-5 w-5 text-gray-400"
@@ -54,8 +53,11 @@
           </span>
         </ListboxButton>
 
-        <span class="msg error" :class="[errorMsg.length > 0 ? '' : 'hidden']">
-          {{ errorMsg.length > 0 ? errorMsg : "" }}
+        <span
+          class="msg error"
+          :class="{ hidden: !errorMsg.length }"
+        >
+          {{ errorMsg }}
         </span>
 
         <transition
@@ -73,10 +75,8 @@
               as="template"
             >
               <li
-                :class="[
-                  selected ? 'selected' : '',
-                  'cursor-default select-none relative py-2 pl-3 pr-9 dropdown-elements my-1',
-                ]"
+                class="cursor-default select-none relative py-2 pl-3 pr-9 dropdown-elements my-1"
+                :class="{ selected: selected }"
               >
                 <div class="flex items-center">
                   <img
@@ -114,14 +114,7 @@ import { type PropType, ref, onMounted, watch, computed } from "vue";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
 import { useWalletStore } from "@/stores/wallet";
 import { NATIVE_ASSET } from "@/config/env";
-
-import {
-  Listbox,
-  ListboxButton,
-  ListboxLabel,
-  ListboxOption,
-  ListboxOptions,
-} from "@headlessui/vue";
+import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from "@headlessui/vue";
 
 
 const props = defineProps({
@@ -168,12 +161,12 @@ const selected = ref({
 
 const optionsValue = computed(() => {
   return (props.options ?? [])?.filter((item) => {
-    if(item.balance.denom == props.currencyOption?.balance.denom){
+    if (item.balance.denom == props.currencyOption?.balance.denom) {
       return false;
     }
     return true;
   });
-  
+
 });
 
 onMounted(() => {
@@ -182,5 +175,5 @@ onMounted(() => {
 
 watch(() => props.currencyOption, () => {
   selected.value.value = props.currencyOption as AssetBalance
-})
+});
 </script>

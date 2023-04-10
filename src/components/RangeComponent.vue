@@ -15,7 +15,7 @@
 
       </div>
       <div class="box">
-        <!-- <span class="small"></span>
+        <!-- 
         <span class="small"></span>
         <span class="small"></span>
         <span class="small"></span>
@@ -27,7 +27,9 @@
         <span class="small"></span>
         <span class="small"></span>
         <span class="small"></span>
-        <span class="small"></span> -->
+        <span class="small"></span>
+        <span class="small"></span> 
+        -->
       </div>
     </div>
     <button

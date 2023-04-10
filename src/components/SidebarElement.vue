@@ -1,13 +1,14 @@
 <template>
   <a
+    class="sidebar-element cursor-pointer"
     :id="id"
-    :class="[
-      'sidebar-element cursor-pointer',
-      $route.path == href ? 'active' : false,
-    ]"
+    :class="{ active: $route.path == href }"
     :target="target || '_self'"
   >
-    <span :class="['icon', `icon-${id}`]"></span>
+    <span
+      class="icon"
+      :class="[`icon-${id}`]"
+    ></span>
     <span> {{ label }} </span>
   </a>
 </template>
@@ -58,6 +59,4 @@ defineProps({
   font-size: 30px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* text-shadow: 1px 1px 1px rgb(127 127 127 / 30%); */
-}
-</style>
+}</style>
