@@ -190,3 +190,4 @@ export const calculateBaseQuote = (amount: Dec) => {
 }
 
 export const REPAYMENT_VALUES = [25, 50, 75, 100];
+export const ADDITIONAL_OUTSTANDING_DEBT = 0.001;

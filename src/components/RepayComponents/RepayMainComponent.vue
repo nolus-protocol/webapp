@@ -41,7 +41,7 @@ import { getMicroAmount, walletOperation } from "@/components/utils";
 import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, GROUPS, TIP, LEASE_MAX_AMOUNT } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, GROUPS, TIP, LEASE_MAX_AMOUNT, ADDITIONAL_OUTSTANDING_DEBT } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/stores/oracle";
 import { AssetUtils } from "@/utils";
@@ -140,11 +140,8 @@ const isAmountValid = (): boolean => {
       const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, "", coinData.coinDecimals);
       const balance = CurrencyUtils.calculateBalance(price.amount, amountInMinimalDenom, coinData.coinDecimals).toDec();
 
-      const leaseMax = new Dec(LEASE_MAX_AMOUNT.amount);
       const debt = outStandingDebt();
-      const priceDec = new Dec(price.amount);
-      const amountDec = leaseMax.quo(priceDec);
-      const leaseMaxInStable = amountDec.gt(debt) ? debt : amountDec;
+      console.log(debt.toString())
 
       const isLowerThanOrEqualsToZero = new Dec(
         amountInMinimalDenom.amount || "0"
@@ -164,9 +161,12 @@ const isAmountValid = (): boolean => {
         isValid = false;
       }
 
-      if (balance.gt(leaseMaxInStable)) {
+      if (balance.gt(debt)) {
+        const data = state.value.leaseInfo;
+        const stableAsset = walletStore.getCurrencyByTicker(data.principal_due.ticker);
+
         state.value.amountErrorMsg = i18n.t("message.lease-only-max-error", {
-          maxAmount: Number(leaseMaxInStable.toString()),
+          maxAmount: Number(debt.toString(Number(stableAsset.decimal_digits))),
           symbol: coinData.coinAbbreviation
         });
         isValid = false;
@@ -252,10 +252,28 @@ const outStandingDebt = () => {
     .add(new Dec(data.previous_interest_due.amount, info.coinDecimals))
     .add(new Dec(data.current_margin_due.amount, info.coinDecimals))
     .add(new Dec(data.current_interest_due.amount, info.coinDecimals))
+    .add(additionalInterest())
 
   return debt;
 }
 
+const additionalInterest = () => {
+  const data = state.value.leaseInfo;
+  if (data) {
+    const info = AssetUtils.getAssetInfo(data.principal_due.ticker);
+
+    const amount = new Dec(data.principal_due.amount, info.coinDecimals)
+      .add(new Dec(data.previous_margin_due.amount, info.coinDecimals))
+      .add(new Dec(data.previous_interest_due.amount, info.coinDecimals))
+      .add(new Dec(data.current_margin_due.amount, info.coinDecimals))
+      .add(new Dec(data.current_interest_due.amount, info.coinDecimals))
+
+    const percent = new Dec(ADDITIONAL_OUTSTANDING_DEBT);
+    return amount.mul(percent);
+  }
+
+  return new Dec(0)
+}
 
 watch(walletRef.balances, (b: AssetBalance[]) => {
   if (b) {

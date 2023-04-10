@@ -405,25 +405,7 @@
           </div>
         </div>
         <div class="flex relaltive">
-          <div
-            class="flex-1 pnl-container"
-            v-if="leaseData"
-          >
-            <div
-              class="pnl text-12 nls-font-500 whitespace-pre	mr-2"
-              :class="[pnl.status ? 'success' : 'alert']"
-            >
-              {{ $t('message.pnl') }} {{ pnl.status ? '+' : '' }}{{ pnl.amount }}
-            </div>
-          </div>
           <div class="relative w-full">
-            <div
-              v-if="leaseData"
-              class="dash-pnl"
-              :class="[pnl.status ? 'success' : 'alert']"
-            >
-
-            </div>
             <PriceHistoryChart :chartData="chartData" />
           </div>
         </div>
@@ -503,7 +485,7 @@ import { onMounted } from "vue";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { TxType } from "@/types";
 import { StringUtils, WalletManager } from "@/utils";
-import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation, INTEREST_DECIMALS } from "@/config/env";
+import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation, INTEREST_DECIMALS, ADDITIONAL_OUTSTANDING_DEBT } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { walletOperation } from "@/components/utils";
 
@@ -700,6 +682,7 @@ const debt = computed(() => {
       .add(new Dec(data.previous_interest_due.amount))
       .add(new Dec(data.current_margin_due.amount))
       .add(new Dec(data.current_interest_due.amount))
+      .add(additionalInterest())
 
     const token = CurrencyUtils.convertMinimalDenomToDenom(
       amount.truncate().toString(),
@@ -713,6 +696,23 @@ const debt = computed(() => {
   return '0'
 });
 
+const additionalInterest = () => {
+  const data = props.leaseInfo.leaseStatus?.opened;
+  if (data) {
+
+    const amount = new Dec(data.principal_due.amount)
+      .add(new Dec(data.previous_margin_due.amount))
+      .add(new Dec(data.previous_interest_due.amount))
+      .add(new Dec(data.current_margin_due.amount))
+      .add(new Dec(data.current_interest_due.amount))
+
+    const percent = new Dec(ADDITIONAL_OUTSTANDING_DEBT);
+    return amount.mul(percent);
+  }
+
+  return new Dec(0)
+}
+
 const interestDue = computed(() => {
   const data = props.leaseInfo.leaseStatus?.opened;
 
@@ -723,6 +723,7 @@ const interestDue = computed(() => {
       .add(new Dec(data.previous_interest_due.amount))
       .add(new Dec(data.current_margin_due.amount))
       .add(new Dec(data.current_interest_due.amount))
+      .add(additionalInterest())
 
     const token = CurrencyUtils.convertMinimalDenomToDenom(
       amount.truncate().toString(),

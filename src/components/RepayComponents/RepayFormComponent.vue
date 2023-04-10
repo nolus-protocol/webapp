@@ -81,7 +81,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
-import { NATIVE_NETWORK, REPAYMENT_VALUES } from "@/config/env";
+import { ADDITIONAL_OUTSTANDING_DEBT, NATIVE_NETWORK, REPAYMENT_VALUES } from "@/config/env";
 
 const oracle = useOracleStore();
 const wallet = useWalletStore();
@@ -115,6 +115,23 @@ const calculateOutstandingDebt = () => {
   return "0";
 }
 
+const additionalInterest = () => {
+  const data = props.modelValue.leaseInfo;
+  if (data) {
+    const amount = new Dec(data.principal_due.amount)
+      .add(new Dec(data.previous_margin_due.amount))
+      .add(new Dec(data.previous_interest_due.amount))
+      .add(new Dec(data.current_margin_due.amount))
+      .add(new Dec(data.current_interest_due.amount))
+
+    const percent = new Dec(ADDITIONAL_OUTSTANDING_DEBT);
+    return amount.mul(percent);
+  }
+
+  return new Dec(0)
+}
+
+
 const outStandingDebt = () => {
   const data = props.modelValue.leaseInfo;
   const debt = new Dec(data.principal_due.amount)
@@ -122,6 +139,7 @@ const outStandingDebt = () => {
     .add(new Dec(data.previous_interest_due.amount))
     .add(new Dec(data.current_margin_due.amount))
     .add(new Dec(data.current_interest_due.amount))
+    .add(additionalInterest())
 
   return debt;
 }
@@ -139,6 +157,7 @@ const calucateAfterRepayment = computed(() => {
       .add(new Dec(data.previous_interest_due.amount))
       .add(new Dec(data.current_margin_due.amount))
       .add(new Dec(data.current_interest_due.amount))
+      .add(additionalInterest())
 
     const debtCoin = CurrencyUtils.convertMinimalDenomToDenom(
       debt.toString(),
