@@ -141,7 +141,6 @@ const isAmountValid = (): boolean => {
       const balance = CurrencyUtils.calculateBalance(price.amount, amountInMinimalDenom, coinData.coinDecimals).toDec();
 
       const debt = outStandingDebt();
-      console.log(debt.toString())
 
       const isLowerThanOrEqualsToZero = new Dec(
         amountInMinimalDenom.amount || "0"

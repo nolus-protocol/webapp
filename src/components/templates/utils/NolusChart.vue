@@ -48,22 +48,23 @@ ChartJS.register(
 class LineWithLineController extends LineController {
   public override draw() {
     super.draw();
-    if (this.chart?.tooltip?.active) {
-      const ctx = this.chart.ctx;
-      const x = this.chart.tooltip.x;
-      const topY = this.chart.scales["y-axis-0"].top;
-      const bottomY = this.chart.scales["y-axis-0"].bottom;
+    // if (this.chart?.tooltip?.active) {
+    //   const ctx = this.chart.ctx;
+    //   const x = this.chart.tooltip.x;
+    //   const topY = this.chart.scales["y-axis-0"].top;
+    //   const bottomY = this.chart.scales["y-axis-0"].bottom;
 
-      // draw line
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(x, topY);
-      ctx.lineTo(x, bottomY);
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "#07C";
-      ctx.stroke();
-      ctx.restore();
-    }
+    //   console.log(this.chart.scales['x-axis-0']);
+    //   // draw line
+    //   ctx.save();
+    //   ctx.beginPath();
+    //   ctx.moveTo(x, topY);
+    //   ctx.lineTo(x, bottomY);
+    //   ctx.lineWidth = 2;
+    //   ctx.strokeStyle = "#07C";
+    //   ctx.stroke();
+    //   ctx.restore();
+    // }
   }
 }
 

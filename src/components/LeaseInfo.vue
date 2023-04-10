@@ -35,21 +35,21 @@
         </div>
         <div class="flex flex-wrap text-10 uppercase whitespace-nowrap">
           <span
-            class="bg-[#ebeff5] rounded p-1 m-1 garet-medium"
+            class="text-medium-blue bg-[#ebeff5] rounded p-1 m-1 garet-medium"
             v-if="leaseData"
           >
             {{ $t("message.down-payment") }}: ${{ downPayment }}
           </span>
           <!-- <span
-            class="bg-[#ebeff5] rounded p-1 m-1 garet-medium"
+            class="text-medium-blue bg-[#ebeff5] rounded p-1 m-1 garet-medium"
             v-if="leaseData"
           >
             {{ $t("message.borrowed") }}: {{ loan }}
           </span> -->
-          <span class="bg-[#ebeff5] rounded p-1 m-1 garet-medium">
+          <span class="text-medium-blue bg-[#ebeff5] rounded p-1 m-1 garet-medium">
             {{ `price per ${asset.coinDenom}:` }} {{ price }}
           </span>
-          <span class="bg-[#ebeff5] rounded p-1 m-1 garet-medium">
+          <span class="text-medium-blue bg-[#ebeff5] rounded p-1 m-1 garet-medium">
             {{ $t("message.liq-trigger") }}: {{ liquidation }}
           </span>
         </div>
@@ -362,7 +362,7 @@
           v-if="leaseData"
           class="flex flex-wrap text-10 uppercase whitespace-nowrap mt-4"
         >
-          <span class="bg-[#ebeff5] rounded p-1 m-1 garet-medium">
+          <span class="text-medium-blue bg-[#ebeff5] rounded p-1 m-1 garet-medium">
             {{ `price per ${asset.coinDenom}:` }} {{ price }}
           </span>
         </div>

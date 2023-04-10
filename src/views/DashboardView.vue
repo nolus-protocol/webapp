@@ -1,4 +1,4 @@
-<template>
+-<template>
   <div class="col-span-12">
     <!-- Header -->
     <div class="table-header lg:flex block mt-[25px] flex-wrap items-center justify-between lg:px-0">
