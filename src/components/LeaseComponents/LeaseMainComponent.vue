@@ -43,7 +43,7 @@ import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import { computed } from "vue";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, GROUPS, LEASE_MIN_AMOUNT, LEASE_MAX_AMOUNT, TIP, WASM_EVENTS, INTEREST_DECIMALS, MAX_POSITION, DEFAULT_LTV } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, GROUPS, LEASE_MIN_AMOUNT, LEASE_MAX_AMOUNT, TIP, WASM_EVENTS, INTEREST_DECIMALS, MAX_POSITION, DEFAULT_LTV, PERMILLE } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/stores/oracle";
 
@@ -104,7 +104,7 @@ const state = ref({
   fee: coin(GAS_FEES.open_lease + TIP.amount, NATIVE_ASSET.denom),
   leaseApply: null,
   position: MAX_POSITION,
-  ltv: DEFAULT_LTV
+  ltv: DEFAULT_LTV * PERMILLE
 } as LeaseComponentProps);
 
 const getLeases = inject("getLeases", () => { });
