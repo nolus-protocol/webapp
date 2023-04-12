@@ -191,6 +191,7 @@ async function delegate() {
     }
 
   }catch(error){
+    console.log(error)
     step.value = CONFIRM_STEP.ERROR;
   }
 }

@@ -141,10 +141,10 @@ export enum APPEARANCE {
   sync = "sync",
 }
 
-export const UPDATE_BLOCK_INTERVAL = 10 * 1000;
-export const UPDATE_BALANCE_INTERVAL = 10 * 1000;
+export const UPDATE_BLOCK_INTERVAL = 5 * 1000;
+export const UPDATE_BALANCE_INTERVAL = 5 * 1000;
 export const UPDATE_PRICES_INTERVAL = 10 * 1000;
-export const UPDATE_REWARDS_INTERVAL = 10 * 1000;
+export const UPDATE_REWARDS_INTERVAL = 5 * 1000;
 
 export const DEFAULT_LEASE_UP_PERCENT = "150.00";
 export const LEASE_UP_COEFICIENT = 1.5;

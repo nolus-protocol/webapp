@@ -89,19 +89,6 @@ const getMarketPrice = (denom: string) => {
   return "0";
 };
 
-const convertMinimalDenomToDenom = (
-  tokenAmount: string,
-  minimalDenom: string
-) => {
-  const assetInfo = wallet.getCurrencyInfo(minimalDenom);
-  return CurrencyUtils.convertMinimalDenomToDenom(
-    tokenAmount,
-    minimalDenom,
-    assetInfo.coinDenom,
-    assetInfo.coinDecimals
-  );
-};
-
 const calculateBalance = (tokenAmount: string, denom: string) => {
   const price = getMarketPrice(denom);
   const tokenDecimals = wallet.getCurrencyInfo(denom).coinDecimals;
