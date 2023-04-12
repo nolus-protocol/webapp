@@ -1,7 +1,7 @@
 import type { Coin } from "@cosmjs/proto-signing";
 import type { StdFee } from "@cosmjs/amino";
 import type { BaseWallet, Wallet } from "@/networks";
-import { i18n } from "@/main";
+import { i18n } from "@/i18n";
 
 import { Int } from "@keplr-wallet/unit";
 import { fromBech32 } from "@cosmjs/encoding";
@@ -127,11 +127,11 @@ export const externalWalletOperation = async (
 
 export const getMicroAmount = (denom: string, amount: string) => {
   if (!denom) {
-    throw new Error(i18n.global.t("message.missing-denom"));
+    // throw new Error(i18n.global.t("message.missing-denom"));
   }
 
   if (!amount) {
-    throw new Error(i18n.global.t("message.missing-amount"));
+    // throw new Error(i18n.global.t("message.missing-amount"));
   }
 
   const walletStore = useWalletStore();

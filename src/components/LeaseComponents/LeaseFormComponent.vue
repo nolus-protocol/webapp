@@ -324,6 +324,7 @@ const calculateLique = computed(() => {
 const onDrag = (event: number) => {
   props.modelValue.position = event;
   props.modelValue.ltv = Number(calculateTVL().mul(new Dec(PERMILLE)).truncate().toString())
+  
 }
 
 const borrowed = computed(() => {
@@ -362,30 +363,12 @@ const getTotalAmount = () => {
 }
 
 const calculateTVL = () => {
-
-  const lease = props.modelValue.leaseApply;
-
-  if (lease) {
-    const downPayment = props.modelValue.downPayment;
-    const downPaymentAsset = props.modelValue.selectedDownPaymentCurrency;
-    const downPaymentInfo = wallet.getCurrencyInfo(downPaymentAsset.balance.denom);
-    const asset = wallet.getCurrencyByTicker(downPaymentInfo.ticker);
-    const price = oracle.prices[asset.symbol];
-
-    const mAmount = CurrencyUtils.convertDenomToMinimalDenom(
-      downPayment,
-      downPaymentInfo.coinMinimalDenom,
-      downPaymentInfo.coinDecimals
-    );
-
-    const balance = CurrencyUtils.calculateBalance(price.amount, mAmount, downPaymentInfo.coinDecimals).toDec();
-    const pos = new Dec(props.modelValue.position / 100);
-    const loan = balance.mul(pos);
-    const total = loan.add(balance);
-    return loan.quo(total);
-  }
-
-  return new Dec(DEFAULT_LTV);
+  const pos = new Dec(props.modelValue.position / 100);
+  const amount = new Dec(1);
+  const loan = amount.mul(pos);
+  const total = loan.add(amount);
+  const ltv = loan.quo(total);
+  return ltv;
 
 }
 
