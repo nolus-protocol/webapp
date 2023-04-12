@@ -23,7 +23,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     }
   },
   devnet: {
-    tendermintRpc: ":https://net-dev-26612.nolus.io",
+    tendermintRpc: "https://net-dev-26612.nolus.io",
     api: "https://net-dev.nolus.io:26614",
     exploler: "https://explorer-rila.nolus.io/",
     govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
