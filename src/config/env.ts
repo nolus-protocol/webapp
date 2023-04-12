@@ -23,8 +23,8 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     }
   },
   devnet: {
-    tendermintRpc: "https://net-dev.nolus.io:26612",
-    api: "https://net-dev.nolus.io:26614",
+    tendermintRpc: "https://net-dev-26617.nolus.io",
+    api: "https://net-dev-26614.nolus.io",
     exploler: "https://explorer-rila.nolus.io/",
     govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
     staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
@@ -141,10 +141,10 @@ export enum APPEARANCE {
   sync = "sync",
 }
 
-export const UPDATE_BLOCK_INTERVAL = 5 * 1000;
-export const UPDATE_BALANCE_INTERVAL = 5 * 1000;
+export const UPDATE_BLOCK_INTERVAL = 10 * 1000;
+export const UPDATE_BALANCE_INTERVAL = 10 * 1000;
 export const UPDATE_PRICES_INTERVAL = 10 * 1000;
-export const UPDATE_REWARDS_INTERVAL = 5 * 1000;
+export const UPDATE_REWARDS_INTERVAL = 10 * 1000;
 
 export const DEFAULT_LEASE_UP_PERCENT = "150.00";
 export const LEASE_UP_COEFICIENT = 1.5;
