@@ -215,7 +215,7 @@ const useWalletStore = defineStore("wallet", {
         this.privateKey = null;
       }
     },
-    async [WalletActionTypes.UPDATE_BALANCES]() {
+    async [WalletActionTypes.UPDATE_BALANCES](assets?: string[]) {
       try {
         const walletAddress = WalletManager.getWalletAddress() || "";
 
@@ -226,8 +226,19 @@ const useWalletStore = defineStore("wallet", {
         }
 
         const ibcBalances = [];
+        let currencies = CURRENCIES.currencies;
 
-        for (const key in CURRENCIES.currencies) {
+        if(assets){
+          const c: any  = {};
+          for(const key in CURRENCIES.currencies){
+            if(assets.includes(key)){
+              c[key as keyof typeof c] = CURRENCIES.currencies[key as keyof typeof CURRENCIES.currencies];
+            }
+          }
+          currencies = c;
+        }
+
+        for (const key in currencies) {
           const currency = CURRENCIES.currencies[key as keyof typeof CURRENCIES.currencies];
           const ibcDenom = AssetUtils.makeIBCMinimalDenom(
             currency.ibc_route,
@@ -404,9 +415,17 @@ const useWalletStore = defineStore("wallet", {
         }
 
         const promises = data.map(async (item) => {
-          const block = await client.block(item.height);
-          item.blockDate = block.block.header.time;
-          return item;
+          try{
+            const block = await client.block(item.height);
+            item.blockDate = block.block.header.time;
+            return item;
+          }catch(error){
+            console.log(error)
+            // const block = await client.block(item.height);
+            item.blockDate = new Date(0);
+            return item;
+          }
+      
         });
 
         const items = await Promise.all(promises);

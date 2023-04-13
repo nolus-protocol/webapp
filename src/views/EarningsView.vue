@@ -254,6 +254,7 @@ const lpnAsset = ref<AssetBalance | null>()
 const lpnReward = ref(new Dec(0))
 
 onMounted(async () => {
+
   try {
     const [delegations] = await Promise.all([
       wallet[WalletActionTypes.LOAD_DELEGATIONS](),
