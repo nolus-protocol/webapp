@@ -24,19 +24,20 @@ import type { AssetBalance } from "@/stores/wallet/state";
 import { CONFIRM_STEP } from "@/types/ConfirmStep";
 import { TxType } from "@/types/TxType";
 import { walletOperation } from "@/components/utils";
-import { inject, onUnmounted, ref, type PropType, computed  } from "vue";
+import { inject, onUnmounted, ref, type PropType, computed } from "vue";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { NATIVE_ASSET, GAS_FEES } from "@/config/env";
-import { WalletManager } from "@/utils";
+import { EnvNetworkUtils, WalletManager } from "@/utils";
 import { coin } from "@cosmjs/amino";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { SNACKBAR } from "@/config/env";
+import { CONTRACTS } from "@/config/contracts";
 
 const walletStore = useWalletStore();
 const selectedCurrency = walletStore.balances[0]
 const showConfirmScreen = ref(true);
 const address = WalletManager.getWalletAddress();
-const loadRewards = inject("loadRewards", async () => {});
+const loadRewards = inject("loadRewards", async () => { });
 
 const props = defineProps({
   amount: {
@@ -47,7 +48,7 @@ const props = defineProps({
 
 const parsedAmount = computed(() => {
   const balance = CurrencyUtils.convertCoinUNolusToNolus(props.amount.balance);
-  if(balance){
+  if (balance) {
     const data = walletStore.getCurrencyInfo(balance.denom);
     const b = balance.toDec().toString(data.coinDecimals, false);
     return b;
@@ -69,10 +70,10 @@ const state = ref({
 } as WithdrawRewardsComponentProps);
 
 const step = ref(CONFIRM_STEP.CONFIRM);
-const closeModal = inject("onModalClose", () => () => {});
-const onNextClick = () => {}
+const closeModal = inject("onModalClose", () => () => { });
+const onNextClick = () => { }
 const snackbarVisible = inject("snackbarVisible", () => false);
-const showSnackbar = inject("showSnackbar",(type: string, transaction: string) => {});
+const showSnackbar = inject("showSnackbar", (type: string, transaction: string) => { });
 
 onUnmounted(() => {
   if (CONFIRM_STEP.PENDING == step.value) {
@@ -98,9 +99,9 @@ const onWithdrawRewards = async () => {
 }
 
 const requestClaim = async () => {
-  try{
+  try {
 
-    if(walletStore.wallet){
+    if (walletStore.wallet) {
       step.value = CONFIRM_STEP.PENDING;
 
       const delegator = await walletStore[WalletActionTypes.LOAD_DELEGATOR]();
@@ -112,7 +113,7 @@ const requestClaim = async () => {
         }
       });
 
-      const { txHash, txBytes, usedFee } = await walletStore.wallet.simulateWithdrawRewardTx(data);
+      const { txHash, txBytes, usedFee }  = await walletStore.wallet.simulateClaimRewards(data, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance);
       state.value.txHash = txHash;
 
       if (usedFee?.amount?.[0]) {
@@ -129,7 +130,7 @@ const requestClaim = async () => {
 
     }
 
-  }catch(error){
+  } catch (error) {
     console.log(error)
     step.value = CONFIRM_STEP.ERROR;
   }

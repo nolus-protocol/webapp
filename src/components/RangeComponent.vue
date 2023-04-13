@@ -15,12 +15,12 @@
 
       </div>
       <div class="box">
-        <!-- 
         <span class="small"></span>
         <span class="small"></span>
         <span class="small"></span>
         <span class="small"></span>
         <span class="small"></span>
+        <!--
         <span class="small"></span>
         <span class="small"></span>
         <span class="small"></span>
@@ -43,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { MAX_POSITION, MIN_POSITION } from '@/config/env';
+import { MIN_POSITION, POSITIONS } from '@/config/env';
 import { onMounted, onUnmounted, ref } from 'vue';
 
 const props = defineProps({
@@ -59,7 +59,7 @@ const props = defineProps({
 
 const emits = defineEmits(['onDrag'])
 const defaultPosition = 100;
-const positions = ((MAX_POSITION - MIN_POSITION) / 10);
+const positions = POSITIONS;
 const percentPosition = 100 / positions;
 
 
@@ -186,13 +186,11 @@ const setPercent = (draggable: HTMLButtonElement, xPos: number, parentRect: DOMR
   if (x > -widthDragable && x < parentRect.width - widthDragable) {
     const prc = ((x + draggableRect.width / 2) / parentRect.width) * 100;
     const percent = ((x + draggableRect.width / 2) / parentRect.width) * 100;
-    
     const scale = Math.round(percent / percentPosition);
-    const leasePercent = scale * 10 + 20
+    const leasePercent = scale * MIN_POSITION + MIN_POSITION;
 
     scalePercent = Math.round(scale * percentPosition);
     draggable.style.left = `${x}px`;
-
     emits('onDrag', leasePercent);
 
     if (background.value) {

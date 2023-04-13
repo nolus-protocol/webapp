@@ -630,7 +630,7 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@keplr-wallet/crypto@^0.11.48", "@keplr-wallet/crypto@^0.11.56":
+"@keplr-wallet/crypto@^0.11.56":
   version "0.11.56"
   resolved "https://registry.npmjs.org/@keplr-wallet/crypto/-/crypto-0.11.56.tgz"
   integrity sha512-ITP0S4B9k/GcjjZk5X6gOShqwQ3+jkgwWZD7E0HBUjl5zo9M83HbYuxwbxt4nnd4l3KLV8lUtsuggKwexrpECA==
@@ -652,7 +652,7 @@
     axios "^0.27.2"
     long "^4.0.0"
 
-"@keplr-wallet/unit@^0.11.48", "@keplr-wallet/unit@^0.11.56":
+"@keplr-wallet/unit@^0.11.56":
   version "0.11.56"
   resolved "https://registry.npmjs.org/@keplr-wallet/unit/-/unit-0.11.56.tgz"
   integrity sha512-eOK5UfhmTtRvdx6+umqnEROVubzfnfJg85NL00HQFrmxuhBbmqcddzPyXDCdffmCMWdv/bpocd+YfIYTuaY4EA==
@@ -696,7 +696,7 @@
   resolved "https://registry.npmjs.org/@ledgerhq/errors/-/errors-6.12.4.tgz"
   integrity sha512-qi5poMrcIuFuivdzRjjQsNp7rRwUA5v3eo6D4yEy+l+w8wT4d4JtQ5u1TbrlGfFHfgLq7Lv6dsvh2ooLyWTyfg==
 
-"@ledgerhq/hw-app-cosmos@^6.27.12", "@ledgerhq/hw-app-cosmos@^6.27.13":
+"@ledgerhq/hw-app-cosmos@^6.27.13":
   version "6.27.13"
   resolved "https://registry.npmjs.org/@ledgerhq/hw-app-cosmos/-/hw-app-cosmos-6.27.13.tgz"
   integrity sha512-vLCDqPaejS/8ZcZd2YD+HA6DWyFUsy/PsFcDYY98Zgo3oevEyHM1bKfr4w0oOz3icVrN6fyT0gyZRRBj1uo+Gg==
@@ -716,7 +716,7 @@
     "@ledgerhq/logs" "^6.10.1"
     rxjs "6"
 
-"@ledgerhq/hw-transport-webhid@^6.27.12", "@ledgerhq/hw-transport-webhid@^6.27.13":
+"@ledgerhq/hw-transport-webhid@^6.27.13":
   version "6.27.13"
   resolved "https://registry.npmjs.org/@ledgerhq/hw-transport-webhid/-/hw-transport-webhid-6.27.13.tgz"
   integrity sha512-VDQ8i08Atc7QQJ1+JE+EtuKoxBNL+ySyxMnzVAABMzhy6LGCwxzfNKP7Pb9vZNruWyRYVNCN3RiNPCMmiCDd1g==
@@ -726,7 +726,7 @@
     "@ledgerhq/hw-transport" "^6.28.2"
     "@ledgerhq/logs" "^6.10.1"
 
-"@ledgerhq/hw-transport-webusb@^6.27.12", "@ledgerhq/hw-transport-webusb@^6.27.13":
+"@ledgerhq/hw-transport-webusb@^6.27.13":
   version "6.27.13"
   resolved "https://registry.npmjs.org/@ledgerhq/hw-transport-webusb/-/hw-transport-webusb-6.27.13.tgz"
   integrity sha512-1X7xMdcEE/XVD0k5yO8DygR/gik3M9jDHynu8WxpIFDxAULWN5nyM2vWeXXGYl/MM75jV+OehWJ4oFhYGsn3rw==
@@ -822,10 +822,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@nolus/nolusjs@^0.0.98":
-  version "0.0.98"
-  resolved "https://registry.npmjs.org/@nolus/nolusjs/-/nolusjs-0.0.98.tgz"
-  integrity sha512-pUoNZc7DHLSxcMV4ZZdu27dWJKyVTgGuMmhgD2/XKhrVtnDzn+ftp32C0hcW3xnihRA9J3pneR8DANmHLw05QA==
+"@nolus/nolusjs@^0.0.99":
+  version "0.0.99"
+  resolved "https://registry.npmjs.org/@nolus/nolusjs/-/nolusjs-0.0.99.tgz"
+  integrity sha512-k0GdjVkN9CwDZL0+hnbQntXSdsrjRY13eefqjMSHMSfYIP7vDCHGpJIw86vDSNeISNASSp6aSQTHZ+SQsJZlQg==
   dependencies:
     "@cosmjs/cosmwasm-stargate" "0.30.1"
     "@cosmjs/crypto" "0.30.1"
@@ -834,11 +834,11 @@
     "@cosmjs/proto-signing" "0.30.1"
     "@cosmjs/stargate" "0.30.1"
     "@cosmjs/tendermint-rpc" "0.30.1"
-    "@keplr-wallet/crypto" "^0.11.48"
-    "@keplr-wallet/unit" "^0.11.48"
-    "@ledgerhq/hw-app-cosmos" "^6.27.12"
-    "@ledgerhq/hw-transport-webhid" "^6.27.12"
-    "@ledgerhq/hw-transport-webusb" "^6.27.12"
+    "@keplr-wallet/crypto" "^0.11.56"
+    "@keplr-wallet/unit" "^0.11.56"
+    "@ledgerhq/hw-app-cosmos" "^6.27.13"
+    "@ledgerhq/hw-transport-webhid" "^6.27.13"
+    "@ledgerhq/hw-transport-webusb" "^6.27.13"
     "@types/crypto-js" "^4.1.1"
     "@types/elliptic" "^6.4.14"
     "@types/ledgerhq__hw-transport" "^4.21.4"

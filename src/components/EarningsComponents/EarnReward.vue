@@ -24,9 +24,7 @@
               :fontSizeSmall="12"
             />
           </p>
-          <p
-            class="text-dark-grey text-12 garet-medium text-left capitalize m-0"
-          >
+          <p class="text-dark-grey text-12 garet-medium text-left capitalize m-0">
             {{
               calculateBalance(
                 reward.balance?.amount.toString(),
@@ -41,12 +39,7 @@
       <div class="flex justify-end">
         <button
           :disabled="!isEnabled"
-          :class="`btn btn-secondary btn-medium-secondary ${
-            loading ? 'js-loading' : 'btn-emphatized'
-          }
-          ${
-            isEnabled ? '' : 'disabled'
-          }`"
+          :class="`btn btn-secondary btn-medium-secondary ${loading ? 'js-loading' : ''} ${isEnabled ? '' : 'disabled'}`"
           @:click="onClickClaim"
         >
           {{ $t("message.claim") }}
@@ -96,19 +89,6 @@ const getMarketPrice = (denom: string) => {
   return "0";
 };
 
-const convertMinimalDenomToDenom = (
-  tokenAmount: string,
-  minimalDenom: string
-) => {
-  const assetInfo = wallet.getCurrencyInfo(minimalDenom);
-  return CurrencyUtils.convertMinimalDenomToDenom(
-    tokenAmount,
-    minimalDenom,
-    assetInfo.coinDenom,
-    assetInfo.coinDecimals
-  );
-};
-
 const calculateBalance = (tokenAmount: string, denom: string) => {
   const price = getMarketPrice(denom);
   const tokenDecimals = wallet.getCurrencyInfo(denom).coinDecimals;
@@ -119,7 +99,7 @@ const calculateBalance = (tokenAmount: string, denom: string) => {
 const isEnabled = computed(() => {
   const asset = CurrencyUtils.convertCoinUNolusToNolus(props.reward.balance)?.toDec();
 
-  if(asset?.gt(new Dec(0))){
+  if (asset?.gt(new Dec(0))) {
     return true;
   }
 
