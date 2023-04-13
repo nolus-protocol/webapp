@@ -88,9 +88,8 @@ import Modal from "@/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/components/modals/ErrorDialog.vue";
 
 import { WalletActionTypes } from "@/stores/wallet/action-types";
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref } from "vue";
 import { useWalletStore } from "@/stores/wallet";
-import { storeToRefs } from "pinia";
 import { computed } from "vue";
 
 export interface ITransaction {
@@ -109,7 +108,6 @@ const showErrorDialog = ref(false);
 const errorMessage = ref("");
 const transactions = ref([] as ITransaction[] | any[]);
 const wallet = useWalletStore();
-const walletRef = storeToRefs(wallet);
 
 const senderPerPage = 5;
 let senderPage = 1;
@@ -220,7 +218,4 @@ const onClickTryAgain = async () => {
   await getTransactions();
 };
 
-watch(walletRef.wallet, async () => {
-  await getTransactions();
-});
 </script>

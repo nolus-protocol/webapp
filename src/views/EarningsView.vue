@@ -155,9 +155,7 @@
     route="delegate"
     @close-modal="showDelegateUndelegateDialog = false"
   >
-    <DelegateUndelegateDialog
-      :selectedAsset="selectedAsset"
-    />
+    <DelegateUndelegateDialog :selectedAsset="selectedAsset" />
   </Modal>
 
   <Modal
@@ -216,11 +214,7 @@ import { WalletManager } from "@/utils";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 
-import {
-  claimRewardsMsg,
-  type ContractData,
-  Lpp,
-} from "@nolus/nolusjs/build/contracts";
+import { claimRewardsMsg, type ContractData, Lpp } from "@nolus/nolusjs/build/contracts";
 import { NATIVE_ASSET, UPDATE_REWARDS_INTERVAL } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import EarnLpnAsset from "@/components/EarningsComponents/EarnLpnAsset.vue";
@@ -244,7 +238,6 @@ const delegated = ref({
 
 const claimContractData = ref([] as ContractData[]);
 const selectedAsset = ref("");
-const showSmallBalances = ref(true);
 const showClaimModal = ref(false);
 const showErrorDialog = ref(false);
 const errorMessage = ref("");
@@ -258,7 +251,6 @@ onMounted(async () => {
   try {
     const [delegations] = await Promise.all([
       wallet[WalletActionTypes.LOAD_DELEGATIONS](),
-      wallet[WalletActionTypes.UPDATE_BALANCES](),
       loadRewards(),
       loadLPNCurrency(),
       loadDelegated()
@@ -369,7 +361,7 @@ const getRewards = async () => {
     const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
 
     const lenderRewards = await lppClient.getLenderRewards(walletAddress);
-    
+
     lpnReward.value = new Dec(lenderRewards.rewards.amount);
     return new Dec(lenderRewards.rewards.amount);
 

@@ -47,7 +47,12 @@
       class="sm:block hidden col-span-2 items-center justify-start md:justify-endtext-primary"
     >
       <span class="left-and-right nls-14 nls-font-400 his-gray">
-        {{ getCraetedAtForHuman(transaction.blockDate) }}
+        <template v-if="transaction.blockDate">
+          {{ getCraetedAtForHuman(transaction.blockDate) }}
+        </template>
+        <template v-else>
+          -
+        </template>
       </span>
     </div>
     <div class="flex col-span-12 justify-between sm:hidden">
@@ -55,7 +60,12 @@
         {{ convertFeeAmount(transaction.fee) }}
       </span>
       <span class="left-and-right nls-14 nls-font-400 his-gray">
-        {{ getCraetedAtForHuman(transaction.blockDate) }}
+        <template v-if="transaction.blockDate">
+          {{ getCraetedAtForHuman(transaction.blockDate) }}
+        </template>
+        <template v-else>
+          -
+        </template>
       </span>
     </div>
   </div>

@@ -413,16 +413,12 @@ const useWalletStore = defineStore("wallet", {
             }
           }
         }
-
         const promises = data.map(async (item) => {
           try{
             const block = await client.block(item.height);
             item.blockDate = block.block.header.time;
             return item;
           }catch(error){
-            console.log(error)
-            // const block = await client.block(item.height);
-            item.blockDate = new Date(0);
             return item;
           }
       
