@@ -189,3 +189,4 @@ export const WASM_LP_OPEN = "wasm-ls-open";
 
 export const REPAYMENT_VALUES = [25, 50, 75, 100];
 export const ADDITIONAL_OUTSTANDING_DEBT = 0.001;
+export const LPN_CURRENCIES = ['USDC'];

@@ -33,8 +33,7 @@ const useApplicationStore = defineStore("application", {
         const walletStore = useWalletStore();
         const oracle = useOracleStore();
 
-        this.network.networkName =
-          EnvNetworkUtils.getStoredNetworkName() || DEFAULT_PRIMARY_NETWORK;
+        this.network.networkName = EnvNetworkUtils.getStoredNetworkName() || DEFAULT_PRIMARY_NETWORK;
         this.network.networkAddresses = loadedNetworkConfig;
 
         if (WalletUtils.isConnectedViaExtension()) {

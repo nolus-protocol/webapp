@@ -27,7 +27,7 @@ export const ASSETS = {
     abbreviation: "USDC",
     coinGeckoId: "usd-coin",
     coinIcon: usdcIcon,
-    defaultPrice: "0",
+    defaultPrice: "1",
     isEarn: true,
     canLease: false
   },
