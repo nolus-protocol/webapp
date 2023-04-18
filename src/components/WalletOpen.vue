@@ -91,7 +91,6 @@ const selectedAppearnce = {
   value: themeData,
 };
 
-
 const appearance = computed(() => {
   const items = [];
   for (const key in APPEARANCE) {
@@ -127,24 +126,24 @@ onUnmounted(() => {
   clearTimeout(timeOut);
 });
 
-const onUpdateNetwork = (value: PickerOption) => {
+function onUpdateNetwork(value: PickerOption) {
   EnvNetworkUtils.saveCurrentNetwork(value.value);
   applicaton[ApplicationActionTypes.CHANGE_NETWORK](true);
   applicaton[ApplicationActionTypes.LOAD_APR]();
   router.push({ name: RouteNames.DASHBOARD });
 };
 
-const onUpdateTheme = (item: PickerOption) => {
+function onUpdateTheme(item: PickerOption) {
   ThemeManager.saveThemeData(item.value);
   applicaton[ApplicationActionTypes.SET_THEME](item.value);
 };
 
-const onClickDisconnect = () => {
+function onClickDisconnect() {
   WalletManager.eraseWalletInfo();
   router.push({ name: RouteNames.AUTH });
 };
 
-const onCopy = () => {
+function onCopy() {
   showText.value = true;
   StringUtils.copyToClipboard(wallet?.wallet?.address ?? "");
   if (timeOut) {

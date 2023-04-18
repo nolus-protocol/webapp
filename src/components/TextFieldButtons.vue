@@ -15,8 +15,7 @@
           :name="name"
           :value="value"
           @input="$emit('update:value', handleInputChange($event))"
-        >
-        </textarea>
+        ></textarea>
         <div class="flex align-center justify-end p-3 bg-light-grey buttons-container">
           <button
             class="flex btn btn-secondary btn-medium-secondary btn-icon mr-4"
@@ -85,14 +84,13 @@ defineProps({
   },
 });
 
-const handleInputChange = (event: Event) =>
-  (event.target as HTMLInputElement).value;
-
 onUnmounted(() => {
   clearTimeout(timeOut);
 });
 
-const onCopy = () => {
+function handleInputChange(event: Event) { (event.target as HTMLInputElement).value };
+
+function onCopy() {
   copyText.value = i18n.t("message.copied");
   if (timeOut) {
     clearTimeout(timeOut);

@@ -228,10 +228,10 @@ const useWalletStore = defineStore("wallet", {
         const ibcBalances = [];
         let currencies = CURRENCIES.currencies;
 
-        if(assets){
-          const c: any  = {};
-          for(const key in CURRENCIES.currencies){
-            if(assets.includes(key)){
+        if (assets) {
+          const c: any = {};
+          for (const key in CURRENCIES.currencies) {
+            if (assets.includes(key)) {
               c[key as keyof typeof c] = CURRENCIES.currencies[key as keyof typeof CURRENCIES.currencies];
             }
           }
@@ -346,10 +346,9 @@ const useWalletStore = defineStore("wallet", {
                 msg: "",
                 blockDate: null,
                 memo: decodedTx.body.memo ?? "",
-                fee:
-                  decodedTx?.authInfo?.fee?.amount.filter(
-                    (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
-                  ) || null,
+                fee: decodedTx?.authInfo?.fee?.amount.filter(
+                  (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
+                ) || null,
               };
               data.push(transactionResult);
             } catch (error) {
@@ -362,10 +361,9 @@ const useWalletStore = defineStore("wallet", {
                 msg: item.result.log as string,
                 blockDate: null,
                 memo: decodedTx.body.memo ?? "",
-                fee:
-                  decodedTx?.authInfo?.fee?.amount.filter(
-                    (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
-                  ) || null,
+                fee: decodedTx?.authInfo?.fee?.amount.filter(
+                  (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
+                ) || null,
               };
               data.push(transactionResult);
             }
@@ -414,18 +412,17 @@ const useWalletStore = defineStore("wallet", {
           }
         }
         const promises = data.map(async (item) => {
-          try{
+          try {
             const block = await client.block(item.height);
             item.blockDate = block.block.header.time;
             return item;
-          }catch(error){
+          } catch (error) {
             return item;
           }
-      
+
         });
 
         const items = await Promise.all(promises);
-
         return {
           data: items,
           receiver_total,
@@ -518,7 +515,7 @@ const useWalletStore = defineStore("wallet", {
       this.suppliedBalance = depositBalance.balance;
     },
     async [WalletActionTypes.LOAD_LEASER_CONFIG]() {
-      if(!this.leaserConfig){
+      if (!this.leaserConfig) {
         const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
         const leaserClient = new Leaser(
           cosmWasmClient,
@@ -614,12 +611,12 @@ const useWalletStore = defineStore("wallet", {
       return await loadUnbondingDelegatoins(url, [], walletAddress, offset, limit);
     },
     async [WalletActionTypes.LOAD_DELEGATIONS]() {
-        const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
-        const limit = 100;
-        const offset = 0;
-        const walletAddress = WalletManager.getWalletAddress() || "";
-  
-        return await loadDelegatoins(url, [], walletAddress, offset, limit);
+      const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
+      const limit = 100;
+      const offset = 0;
+      const walletAddress = WalletManager.getWalletAddress() || "";
+
+      return await loadDelegatoins(url, [], walletAddress, offset, limit);
     },
   },
   getters: {

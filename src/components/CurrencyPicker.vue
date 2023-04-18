@@ -116,7 +116,6 @@ import { useWalletStore } from "@/stores/wallet";
 import { NATIVE_ASSET } from "@/config/env";
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from "@headlessui/vue";
 
-
 const props = defineProps({
   label: {
     type: String,
@@ -151,7 +150,7 @@ const props = defineProps({
 
 const wallet = useWalletStore();
 
-const getAssetInfo = (denom: string) => {
+function getAssetInfo(denom: string) {
   return wallet.getCurrencyInfo(denom ?? NATIVE_ASSET.denom);
 };
 

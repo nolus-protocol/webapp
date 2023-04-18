@@ -71,7 +71,7 @@ onUnmounted(() => {
   document.removeEventListener("click", onClick);
 });
 
-const onClick = (event: MouseEvent) => {
+function onClick(event: MouseEvent) {
   if (wallet.value) {
     const isClickedOutside = wallet.value?.contains(event.target as Node);
     if (!isClickedOutside) {

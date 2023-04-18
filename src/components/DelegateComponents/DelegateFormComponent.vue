@@ -1,23 +1,25 @@
 <template>
-  <form @submit.prevent="modelValue.onNextClick" class="modal-form">
+  <form
+    @submit.prevent="modelValue.onNextClick"
+    class="modal-form"
+  >
     <!-- Input Area -->
     <div class="modal-send-receive-input-area">
-      <div
-        class="flex py-3 px-4 bg-light-grey radius-light text-left text-14 nls-font-400 text-primary justify-between"
-      >
+      <div class="flex py-3 px-4 bg-light-grey radius-light text-left text-14 nls-font-400 text-primary justify-between">
         <span class="text-14 nls-font-500">
           {{ $t("message.available-balance") }}:
           <a
             class="text-secondary text-14 nls-font-700 underline cursor-pointer"
             @click.stop="setAmount()"
           >
-            {{ formatCurrentBalance() }}
+            {{
+              AssetUtils.formatCurrentBalance(
+                modelValue.selectedCurrency.balance.denom,
+                modelValue.selectedCurrency.balance.amount.toString()
+              )
+            }}
           </a>
-        </span
-        >
-        <!-- <span class="text-14 nls-font-500 text-dark-grey">
-          {{ $t("message.apr") }} {{ modelValue.currentAPR }}
-        </span> -->
+        </span>
       </div>
 
       <div class="block text-left mt-[25px]">
@@ -34,7 +36,10 @@
           @input="handleAmountChange($event)"
           @update-currency="(event) => (modelValue.selectedCurrency = event)"
         />
-        <WarningBox :isWarning="true" class="mt-[25px]">
+        <WarningBox
+          :isWarning="true"
+          class="mt-[25px]"
+        >
           <template v-slot:icon>
             <img
               class="block mx-auto my-0 w-10 h-7"
@@ -76,9 +81,8 @@ import type { PropType } from "vue";
 
 import CurrencyField from "@/components/CurrencyField.vue";
 import WarningBox from "@/components/modals/templates/WarningBox.vue";
-import { useWalletStore } from "@/stores/wallet";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import { EnvNetworkUtils } from "@/utils";
+
+import { AssetUtils, EnvNetworkUtils } from "@/utils";
 import { NETWORKS } from "@/config/env";
 
 const stakingUrl = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].staking;
@@ -90,32 +94,16 @@ const props = defineProps({
   },
 });
 
-const walletStore = useWalletStore();
-
-const handleAmountChange = (value: string) => {
+function handleAmountChange(value: string) {
   props.modelValue.amount = value;
 };
 
-function formatCurrentBalance() {
-    const asset = walletStore.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
-    return CurrencyUtils.convertMinimalDenomToDenom(
-      props.modelValue.selectedCurrency.balance.amount.toString(),
-      props.modelValue.selectedCurrency.balance.denom,
-      asset.coinDenom,
-      asset.coinDecimals
-    ).toString();
-}
 
-const setAmount = () => {
-  const asset = walletStore.getCurrencyInfo(
-    props.modelValue.selectedCurrency.balance.denom
-  );
-  const data = CurrencyUtils.convertMinimalDenomToDenom(
-    props.modelValue.selectedCurrency.balance.amount.toString(),
+function setAmount() {
+  const data = AssetUtils.formatCurrentBalance(
     props.modelValue.selectedCurrency.balance.denom,
-    asset.coinDenom,
-    asset.coinDecimals
-  );
+    props.modelValue.selectedCurrency.balance.amount.toString()
+  )
   props.modelValue.amount = Number(data.toDec().toString()).toString();
 };
 

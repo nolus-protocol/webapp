@@ -8,7 +8,8 @@
     <span
       class="icon"
       :class="[`icon-${id}`]"
-    ></span>
+    >
+    </span>
     <span> {{ label }} </span>
   </a>
 </template>
@@ -59,4 +60,5 @@ defineProps({
   font-size: 30px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}</style>
+}
+</style>

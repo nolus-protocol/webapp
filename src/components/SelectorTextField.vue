@@ -78,7 +78,7 @@ const props = defineProps({
 const confirmMnemonicPhrase = ref([] as string[]);
 const mnemonicPhrase = ref([...props.values!]);
 
-const onWordClick = (value: string, index: number, isRandomWord: boolean) => {
+function onWordClick(value: string, index: number, isRandomWord: boolean) {
   if (isRandomWord) {
     confirmMnemonicPhrase.value.push(value);
     mnemonicPhrase.value.splice(index, 1);
@@ -88,7 +88,7 @@ const onWordClick = (value: string, index: number, isRandomWord: boolean) => {
   }
 };
 
-const onRefresh = () => {
+function onRefresh() {
   confirmMnemonicPhrase.value = [];
   mnemonicPhrase.value = [...props.values!];
 };
