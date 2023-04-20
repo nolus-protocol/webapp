@@ -11,7 +11,7 @@
       </div>
       <CurrencyField id="repayBalance"
                      name="repayBalance"
-                     :label="$t('message.amount-repay')"
+                     :label="$t('message.amount')"
                      :value="modelValue.amount"
                      :currency-options="modelValue.currentBalance"
                      :option="modelValue.selectedCurrency"
