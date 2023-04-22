@@ -28,20 +28,6 @@
         </a>
       </div>
       <div class="block text-left">
-        <div class="block mt-[20px]">
-          <CurrencyField
-            id="amount"
-            :currency-options="modelValue?.currentBalance"
-            :disabled-currency-picker="false"
-            :error-msg="amountErrorMsg"
-            :is-error="amountErrorMsg !== ''"
-            :option="selectedCurrency"
-            :value="amount"
-            :name="$t('message.amount')"
-            :label="$t('message.amount-receive')"
-            @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
-          />
-        </div>
 
         <div class="block mt-[25px]">
           <Picker

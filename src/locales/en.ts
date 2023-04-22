@@ -248,6 +248,7 @@ export default {
     "opening-channel": "OPENING CHANNEL",
     "transferring-assets": "TRANSFERRING ASSETS",
     "swapping-assets": "SWAPPING ASSETS",
-    "min": "min"
+    "min": "min",
+    "amount-field": "Amount",
   }
 }

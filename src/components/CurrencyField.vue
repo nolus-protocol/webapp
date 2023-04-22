@@ -11,26 +11,10 @@
       />
     </label>
     <div
-      class="currency-field p-3.5 currency-field p-3.5"
+      class="currency-field p-2.5 currency-field p-3.5"
       :class="{ error: isError }"
     >
       <div class="flex items-center">
-        <div class="inline-block w-1/2">
-          <input
-            :id="id"
-            :disabled="disabledInputField"
-            :name="name"
-            v-model="numberValue"
-            autocomplete="off"
-            class="nls-font-700 text-18 text-primary background"
-            @keydown="inputValue"
-            @keyup="setValue"
-            @paste="onPaste"
-          />
-          <span class="block text-14 nls-font-400 text-light-blue">
-            {{ calculateInputBalance() }}
-          </span>
-        </div>
         <div class="inline-block w-1/2">
           <CurrencyPicker
             :currency-option="option"
@@ -41,12 +25,28 @@
             type="small"
           />
         </div>
+        <div class="inline-block w-1/2">
+          <input
+            :id="id"
+            :disabled="disabledInputField"
+            :name="name"
+            v-model="numberValue"
+            autocomplete="off"
+            class="nls-font-700 text-18 text-primary background text-right"
+            @keydown="inputValue"
+            @keyup="setValue"
+            @paste="onPaste"
+          />
+          <span class="block text-14 nls-font-400 text-light-blue text-right">
+            {{ calculateInputBalance() }}
+          </span>
+        </div>
       </div>
     </div>
 
     <span
       class="msg error"
-      :class="{'hidden': !errorMsg.length}"
+      :class="{ 'hidden': !errorMsg.length }"
     >
       {{ errorMsg }}
     </span>

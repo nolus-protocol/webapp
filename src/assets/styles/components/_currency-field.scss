@@ -6,7 +6,7 @@
 		position: relative;
 		border: 1px solid $grey;
 		border-radius: $rounded;
-		margin-top: 8px;
+		margin-top: 4px;
 		transition: 0.3s;
 		background-color: $white;
 
@@ -44,7 +44,7 @@
 
 		.picker-container {
 			display: flex;
-			justify-content: flex-end;
+			justify-content: flex-start;
 
 			button {
 				border-color: $grey;

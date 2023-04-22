@@ -13,7 +13,7 @@
       <ListboxLabel class="block text-14 nls-font-500 text-primary">
         {{ label }}
       </ListboxLabel>
-      <div class="mt-1 relative picker-container">
+      <div class="mt-[4px] relative picker-container">
         <ListboxButton
           class="relative w-full background border border-gray-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         >

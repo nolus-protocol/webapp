@@ -22,7 +22,7 @@
             :option="modelValue.selectedCurrency"
             :value="modelValue.amount"
             :name="$t('message.amount')"
-            :label="$t('message.amount-send')"
+            :label="$t('message.amount-field')"
             @input="handleAmountChange($event)"
             @update-currency="(event) => (modelValue.selectedCurrency = event)"
           />

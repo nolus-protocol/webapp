@@ -198,7 +198,7 @@ async function delegate() {
 
 const getValidators: () => any = async () => {
   const delegatorValidators = await walletStore[WalletActionTypes.LOAD_DELEGATOR_VALIDATORS]();
-  
+
   if(delegatorValidators.length > 0){
     return delegatorValidators;
   }
@@ -210,7 +210,7 @@ const getValidators: () => any = async () => {
     validators = validators.slice(STAKING.SLICE).filter((item: any) => {
       const date = new Date(item.unbonding_time);
       const time = Date.now() - date.getTime();
-      if(time > STAKING.SLASHED_DAYS){
+      if(time > STAKING.SLASHED_DAYS && !item.jailed){
         return true;
       }
       return false;

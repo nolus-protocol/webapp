@@ -15,6 +15,7 @@
         :type="type"
         :value="value"
         @input="$emit('update:value', handleInputChange($event))"
+        class="mt-[4px]"
       />
       <span
         class="msg error"
