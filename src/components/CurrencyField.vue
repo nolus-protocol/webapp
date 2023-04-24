@@ -32,7 +32,6 @@
             @update-currency="onUpdateCurrency"
             :isLoading="isLoadingPicker"
             type="small"
-            class=""
           />
         </div>
         <div class="inline-block flex-1">
@@ -60,6 +59,7 @@
         v-for="value in INPUT_VALUES"
         type="button"
         @click="setInputValue(value)"
+        :key="value"
       >
         {{ value }}%
       </button>
