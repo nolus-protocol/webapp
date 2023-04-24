@@ -22,8 +22,7 @@
       <div class="block py-3 px-4 modal-balance radius-light text-left text-14 nls-font-400 text-primary">
         {{$t('message.balance') }}:
         <a 
-          class="text-secondary nls-font-700 underline ml-2 cursor-pointer" 
-          @click.stop="setAmount">
+          class="text-secondary nls-font-700 underline ml-2 cursor-pointer">
           {{ formatCurrentBalance(selectedCurrency) }}
         </a>
       </div>
@@ -77,15 +76,6 @@
       <!-- Input Area -->
         <div class="modal-send-receive-input-area background">
 
-          <div class="block py-3 px-4 modal-balance radius-light text-left text-14 nls-font-400 text-primary">
-            {{$t('message.balance') }}:
-            <a 
-              class="text-secondary nls-font-700 underline ml-2 cursor-pointer" 
-              @click.stop="setAmount">
-              {{ formatCurrentBalance(selectedCurrency) }}
-            </a>
-          </div>
-
           <div class="block text-left">
             <div class="block mt-[20px]">
               <CurrencyField
@@ -99,8 +89,10 @@
                 :value="amount"
                 :name="$t('message.amount')"
                 :label="$t('message.amount-receive')"
+                :set-input-value="setAmount"
                 @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
                 @input="handleAmountChange($event)"
+                :balance="formatCurrentBalance(selectedCurrency)"
               />
             </div>
 
@@ -161,6 +153,7 @@ import { Decimal } from "@cosmjs/math";
 import { externalWalletOperation } from "../utils";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore } from "@/stores/wallet";
+import { Dec } from "@keplr-wallet/unit";
 
 export interface ReceiveComponentProps {
   currentBalance: AssetBalance[];
@@ -443,16 +436,26 @@ const formatCurrentBalance = (selectedCurrency: AssetBalance | undefined) => {
   }
 };
 
-const setAmount = () => {
+// const setAmount = () => {
+//   const asset = walletStore.getCurrencyInfo(
+//     selectedCurrency.value.balance.denom
+//   );
+//   const data = CurrencyUtils.convertMinimalDenomToDenom(
+//     selectedCurrency.value.balance.amount.toString(),
+//     selectedCurrency.value.balance.denom,
+//     asset.coinDenom,
+//     asset.coinDecimals
+//   );
+//   amount.value = Number(data.toDec().toString()).toString();
+// }
+
+const setAmount = (p: number) => {
   const asset = walletStore.getCurrencyInfo(
     selectedCurrency.value.balance.denom
   );
-  const data = CurrencyUtils.convertMinimalDenomToDenom(
-    selectedCurrency.value.balance.amount.toString(),
-    selectedCurrency.value.balance.denom,
-    asset.coinDenom,
-    asset.coinDecimals
-  );
-  amount.value = Number(data.toDec().toString()).toString();
-}
+  const percent = new Dec(p).quo(new Dec(100));
+  const data = CurrencyUtils.convertMinimalDenomToDenom(selectedCurrency.value.balance.amount, asset.coinMinimalDenom, asset.coinDenom, asset.coinDecimals).toDec();
+  const value = data.mul(percent);
+  amount.value = value.toString(asset.coinDecimals);
+};
 </script>

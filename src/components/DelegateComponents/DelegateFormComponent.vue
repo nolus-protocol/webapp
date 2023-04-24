@@ -2,23 +2,6 @@
   <form @submit.prevent="modelValue.onNextClick" class="modal-form">
     <!-- Input Area -->
     <div class="modal-send-receive-input-area">
-      <div
-        class="flex py-3 px-4 bg-light-grey radius-light text-left text-14 nls-font-400 text-primary justify-between"
-      >
-        <span class="text-14 nls-font-500">
-          {{ $t("message.available-balance") }}:
-          <a
-            class="text-secondary text-14 nls-font-700 underline cursor-pointer"
-            @click.stop="setAmount()"
-          >
-            {{ formatCurrentBalance() }}
-          </a>
-        </span
-        >
-        <!-- <span class="text-14 nls-font-500 text-dark-grey">
-          {{ $t("message.apr") }} {{ modelValue.currentAPR }}
-        </span> -->
-      </div>
 
       <div class="block text-left mt-[25px]">
         <CurrencyField
@@ -30,6 +13,8 @@
           :option="modelValue.selectedCurrency"
           :value="modelValue.amount"
           :label="$t('message.amount')"
+          :balance="formatCurrentBalance()"
+          :set-input-value="setAmount"
           name="amountSupply"
           @input="handleAmountChange($event)"
           @update-currency="(event) => (modelValue.selectedCurrency = event)"
@@ -80,6 +65,7 @@ import { useWalletStore } from "@/stores/wallet";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { EnvNetworkUtils } from "@/utils";
 import { NETWORKS } from "@/config/env";
+import { Dec } from "@keplr-wallet/unit";
 
 const stakingUrl = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].staking;
 
@@ -106,17 +92,14 @@ function formatCurrentBalance() {
     ).toString();
 }
 
-const setAmount = () => {
+const setAmount = (p: number) => {
   const asset = walletStore.getCurrencyInfo(
     props.modelValue.selectedCurrency.balance.denom
   );
-  const data = CurrencyUtils.convertMinimalDenomToDenom(
-    props.modelValue.selectedCurrency.balance.amount.toString(),
-    props.modelValue.selectedCurrency.balance.denom,
-    asset.coinDenom,
-    asset.coinDecimals
-  );
-  props.modelValue.amount = Number(data.toDec().toString()).toString();
+  const percent = new Dec(p).quo(new Dec(100));
+  const amount = CurrencyUtils.convertMinimalDenomToDenom(props.modelValue.selectedCurrency.balance.amount, asset.coinMinimalDenom, asset.coinDenom, asset.coinDecimals).toDec();
+  const value = amount.mul(percent);
+  props.modelValue.amount = value.toString(asset.coinDecimals);
 };
 
 defineEmits(["update:modelValue.selectedCurrency"]);

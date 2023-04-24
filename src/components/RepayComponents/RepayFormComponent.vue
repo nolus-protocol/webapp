@@ -1,32 +1,23 @@
 <template>
-  <form @submit.prevent="modelValue.onNextClick"
-        class="w-full">
+  <form
+    @submit.prevent="modelValue.onNextClick"
+    class="w-full"
+  >
     <div class="block text-left px-10 mt-10 py-[5px]">
-      <div class="block py-3 px-4 modal-balance radius-light text-left text-14 nls-font-400 text-primary mb-4">
-        {{ $t('message.balance') }}:
-        <a class="text-secondary nls-font-700 underline ml-2 cursor-pointer"
-           @click.stop="setAmount">
-          {{ formatCurrentBalance(modelValue.selectedCurrency) }}
-        </a>
-      </div>
-      <CurrencyField id="repayBalance"
-                     name="repayBalance"
-                     :label="$t('message.amount-field')"
-                     :value="modelValue.amount"
-                     :currency-options="modelValue.currentBalance"
-                     :option="modelValue.selectedCurrency"
-                     :error-msg="modelValue.amountErrorMsg"
-                     :is-error="modelValue.amountErrorMsg !== ''"
-                     @input="handleAmountChange($event)"
-                     @update-currency="(event) => (modelValue.selectedCurrency = event)" />
-      <div class="repayment">
-        <button v-for="value in REPAYMENT_VALUES"
-                type="button"
-                :key="value"
-                @click="setRepayment(value)">
-          {{ value }}%
-        </button>
-      </div>
+      <CurrencyField
+        id="repayBalance"
+        name="repayBalance"
+        :label="$t('message.amount-field')"
+        :value="modelValue.amount"
+        :currency-options="modelValue.currentBalance"
+        :option="modelValue.selectedCurrency"
+        :error-msg="modelValue.amountErrorMsg"
+        :is-error="modelValue.amountErrorMsg !== ''"
+        :balance="formatCurrentBalance(modelValue.selectedCurrency)"
+        :set-input-value="setRepayment"
+        @input="handleAmountChange($event)"
+        @update-currency="(event) => (modelValue.selectedCurrency = event)"
+      />
       <div class="flex justify-end">
         <div class="grow-3 text-right nls-font-500 text-14 dark-text">
           <p class="mb-2 mt-[14px] mr-5">
@@ -81,7 +72,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
-import { ADDITIONAL_OUTSTANDING_DEBT, NATIVE_NETWORK, REPAYMENT_VALUES } from "@/config/env";
+import { ADDITIONAL_OUTSTANDING_DEBT, NATIVE_NETWORK } from "@/config/env";
 
 const oracle = useOracleStore();
 const wallet = useWalletStore();

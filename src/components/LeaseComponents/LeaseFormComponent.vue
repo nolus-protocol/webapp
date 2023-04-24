@@ -6,16 +6,6 @@
   >
     <div class="modal-send-receive-input-area">
 
-      <div class="block py-3 px-4 modal-balance radius-light text-left text-14 nls-font-400 text-primary mb-4">
-        {{ $t('message.balance') }}:
-        <a
-          class="text-secondary nls-font-700 underline ml-2 cursor-pointer"
-          @click.stop="setAmount"
-        >
-          {{ formatCurrentBalance(modelValue.selectedDownPaymentCurrency) }}
-        </a>
-      </div>
-
       <div class="block text-left">
         <div class="block">
           <CurrencyField
@@ -28,6 +18,8 @@
             :label="$t('message.down-payment-uppercase')"
             name="amountInvestment"
             :tooltip="$t('message.down-payment-tooltip')"
+            :balance="formatCurrentBalance(modelValue.selectedDownPaymentCurrency)"
+            :set-input-value="setAmount"
             @input="handleDownPaymentChange($event)"
             @update-currency="(event) => (modelValue.selectedDownPaymentCurrency = event)"
           />
@@ -260,17 +252,14 @@ const calculateMarginAmount = computed(() => {
 });
 
 
-const setAmount = () => {
+const setAmount = (p: number) => {
   const asset = wallet.getCurrencyInfo(
     props.modelValue.selectedDownPaymentCurrency.balance.denom
   );
-  const data = CurrencyUtils.convertMinimalDenomToDenom(
-    props.modelValue.selectedDownPaymentCurrency.balance.amount.toString(),
-    props.modelValue.selectedDownPaymentCurrency.balance.denom,
-    asset.coinDenom,
-    asset.coinDecimals
-  );
-  props.modelValue.downPayment = Number(data.toDec().toString()).toString();
+  const percent = new Dec(p).quo(new Dec(100));
+  const amount = CurrencyUtils.convertMinimalDenomToDenom(props.modelValue.selectedDownPaymentCurrency.balance.amount, asset.coinMinimalDenom, asset.coinDenom, asset.coinDecimals).toDec();
+  const value = amount.mul(percent);
+  props.modelValue.downPayment = value.toString(asset.coinDecimals);
 
 };
 
@@ -324,7 +313,7 @@ const calculateLique = computed(() => {
 const onDrag = (event: number) => {
   props.modelValue.position = event;
   props.modelValue.ltv = Number(calculateTVL().mul(new Dec(PERMILLE)).truncate().toString())
-  
+
 }
 
 const borrowed = computed(() => {

@@ -1,6 +1,13 @@
 .currency-field-container {
 	position: relative;
 
+	div.balance {
+		color: $lightBlue;
+		font-family: "Garet-Medium";
+		font-weight: 500;
+		font-size: 13px;
+	}
+
 	.currency-field {
 		display: block;
 		position: relative;
@@ -40,7 +47,8 @@
 
 		input {
 			width: 100%;
-			&::placeholder{
+
+			&::placeholder {
 				color: $grey;
 			}
 		}
@@ -132,7 +140,8 @@
 
 		&:disabled {
 			background-color: #EBEFF5;
-			img{
+
+			img {
 				filter: grayscale(100%);
 			}
 		}

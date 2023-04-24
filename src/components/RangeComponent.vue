@@ -3,8 +3,8 @@
     ref="container"
     class="slider-box"
     @mousedown="onMouseDown"
-    @touchstart="onMouseDown"
-    @touchmove="onMouseMove"
+    @touchstart.passive="onMouseDown"
+    @touchmove.passive="onMouseMove"
     @touchend="onMouseLeave"
   >
     <div class="slider flex">

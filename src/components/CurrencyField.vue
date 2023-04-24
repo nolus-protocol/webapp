@@ -11,11 +11,14 @@
           :content="tooltip"
         />
       </label>
-      <div>
-        text
+      <div
+        v-if="balance"
+        class="balance"
+      >
+        {{ $t('message.balance') }} {{ balance }}
       </div>
     </div>
-    
+
     <div
       class="currency-field p-2.5 currency-field p-3.5"
       :class="{ error: isError }"
@@ -52,6 +55,16 @@
       </div>
     </div>
 
+    <div class="repayment">
+      <button
+        v-for="value in INPUT_VALUES"
+        type="button"
+        @click="setInputValue(value)"
+      >
+        {{ value }}%
+      </button>
+    </div>
+
     <span
       class="msg error"
       :class="{ 'hidden': !errorMsg.length }"
@@ -73,6 +86,7 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
 import { AssetUtils } from "@/utils";
+import { INPUT_VALUES } from "@/config/env";
 
 const emit = defineEmits(["update-currency", "update:modelValue", "input"]);
 const oracle = useOracleStore();
@@ -140,7 +154,14 @@ const props = defineProps({
   },
   placeholder: {
     type: String,
-    default: 0
+    default: "0"
+  },
+  balance: {
+    type: String
+  },
+  setInputValue: {
+    type: Function,
+    required: true
   },
   positive: {
     type: Boolean,

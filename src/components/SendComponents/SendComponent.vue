@@ -2,14 +2,6 @@
   <form @submit.prevent="modelValue.onNextClick" class="modal-form">
     <!-- Input Area -->
     <div class="modal-send-receive-input-area background">
-      <div class="block py-3 px-4 modal-balance radius-light text-left text-14 nls-font-400 text-primary">
-        {{$t('message.balance') }}:
-        <a 
-          class="text-secondary nls-font-700 underline ml-2 cursor-pointer" 
-          @click.stop="setAmount">
-          {{ formatCurrentBalance(modelValue.selectedCurrency) }}
-        </a>
-      </div>
 
       <div class="block text-left">
         <div class="block mt-[20px]">
@@ -23,8 +15,10 @@
             :value="modelValue.amount"
             :name="$t('message.amount')"
             :label="$t('message.amount-field')"
+            :set-input-value="setAmount"
             @input="handleAmountChange($event)"
             @update-currency="(event) => (modelValue.selectedCurrency = event)"
+            :balance="formatCurrentBalance(modelValue.selectedCurrency)"
           />
         </div>
 
@@ -102,6 +96,7 @@ import { useWalletStore } from "@/stores/wallet";
 import { WalletUtils } from "@/utils";
 import { computed } from "vue";
 import { SUPPORTED_NETWORKS } from "@/networks/config";
+import { Dec } from "@keplr-wallet/unit";
 
 const props = defineProps({
   modelValue: {
@@ -146,16 +141,13 @@ const onUpdateCurrency = (event: Network) => {
   }
 };
 
-const setAmount = () => {
+const setAmount = (p: number) => {
   const asset = wallet.getCurrencyInfo(
     props.modelValue.selectedCurrency.balance.denom
   );
-  const data = CurrencyUtils.convertMinimalDenomToDenom(
-    props.modelValue.selectedCurrency.balance.amount.toString(),
-    props.modelValue.selectedCurrency.balance.denom,
-    asset.coinDenom,
-    asset.coinDecimals
-  );
-  props.modelValue.amount = Number(data.toDec().toString()).toString();
+  const percent = new Dec(p).quo(new Dec(100));
+  const amount = CurrencyUtils.convertMinimalDenomToDenom(props.modelValue.selectedCurrency.balance.amount, asset.coinMinimalDenom, asset.coinDenom, asset.coinDecimals).toDec();
+  const value = amount.mul(percent);
+  props.modelValue.amount = value.toString(asset.coinDecimals);
 };
 </script>
