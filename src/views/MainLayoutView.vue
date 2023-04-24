@@ -164,6 +164,7 @@ provide("snackbarVisible", snackbarVisible);
 <style scoped lang="scss">
 div.router-box {
   width: 100%;
+  height: 100%;
   max-width: 100%;
 }
 

@@ -29,7 +29,7 @@
       >
         <div class="left inline-block pr-6">
           <p class="nls-font-500 text-16 text-primary">
-            {{ $t("message.net-worth") }}
+            {{ $t("message.portfolio-value") }}
           </p>
           <CurrencyComponent
             :fontSize="40"

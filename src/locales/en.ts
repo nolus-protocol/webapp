@@ -250,5 +250,6 @@ export default {
     "swapping-assets": "SWAPPING ASSETS",
     "min": "min",
     "amount-field": "Amount",
+    "portfolio-value": "Portfolio Value"
   }
 }
