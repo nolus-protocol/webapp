@@ -506,7 +506,7 @@ const loadCharts = async () => {
 }
 
 const currentPrice = computed(() => {
-
+  
   if (props.leaseInfo.leaseStatus?.opening && leaseData) {
     const item = walletStore.getCurrencyByTicker(leaseData.leasePositionTicker as string);
     return oracleStore.prices[item.symbol].amount;
@@ -518,7 +518,7 @@ const currentPrice = computed(() => {
     props.leaseInfo.leaseStatus?.paid?.amount.ticker;
 
   const item = walletStore.getCurrencyByTicker(ticker as string);
-  return oracleStore.prices[item.symbol].amount;
+  return oracleStore.prices[item.symbol]?.amount ?? 0;
 });
 
 const fetchChartData = async (days: string, interval: string) => {
