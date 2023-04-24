@@ -39,7 +39,7 @@
 
             </span>
           </span>
-          <span class="ml-3 absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+          <span class="ml-[2px] mt-[2px] inset-y-0 right-0 flex items-center pointer-events-none">
             <ChevronUpIcon
               v-if="open"
               class="h-5 w-5 text-gray-400"

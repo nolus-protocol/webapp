@@ -40,6 +40,9 @@
 
 		input {
 			width: 100%;
+			&::placeholder{
+				color: $grey;
+			}
 		}
 
 		.picker-container {
@@ -48,7 +51,6 @@
 
 			button {
 				border-color: $grey;
-				max-width: 110px;
 				justify-content: space-between;
 				display: flex;
 				align-items: flex-start;

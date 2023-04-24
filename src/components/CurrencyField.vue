@@ -1,21 +1,27 @@
 <template>
   <div class="block currency-field-container">
-    <label
-      :for="id"
-      class="flex text-14 nls-font-500 text-primary"
-    >
-      {{ label }}
-      <TooltipComponent
-        v-if="tooltip.length > 0"
-        :content="tooltip"
-      />
-    </label>
+    <div class="flex justify-between items-center">
+      <label
+        :for="id"
+        class="flex text-14 nls-font-500 text-primary"
+      >
+        {{ label }}
+        <TooltipComponent
+          v-if="tooltip.length > 0"
+          :content="tooltip"
+        />
+      </label>
+      <div>
+        text
+      </div>
+    </div>
+    
     <div
       class="currency-field p-2.5 currency-field p-3.5"
       :class="{ error: isError }"
     >
       <div class="flex items-center">
-        <div class="inline-block w-1/2">
+        <div class="inline-block">
           <CurrencyPicker
             :currency-option="option"
             :disabled="disabledCurrencyPicker"
@@ -23,9 +29,10 @@
             @update-currency="onUpdateCurrency"
             :isLoading="isLoadingPicker"
             type="small"
+            class=""
           />
         </div>
-        <div class="inline-block w-1/2">
+        <div class="inline-block flex-1">
           <input
             :id="id"
             :disabled="disabledInputField"
@@ -36,6 +43,7 @@
             @keydown="inputValue"
             @keyup="setValue"
             @paste="onPaste"
+            :placeholder="placeholder"
           />
           <span class="block text-14 nls-font-400 text-light-blue text-right">
             {{ calculateInputBalance() }}
@@ -129,6 +137,10 @@ const props = defineProps({
   errorMsg: {
     type: String,
     default: "",
+  },
+  placeholder: {
+    type: String,
+    default: 0
   },
   positive: {
     type: Boolean,
