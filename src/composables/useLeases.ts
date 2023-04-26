@@ -8,8 +8,7 @@ import { CONTRACTS } from "@/config/contracts";
 import { WalletManager, EnvNetworkUtils } from "@/utils";
 
 export function useLeases(
-  onError: (error: unknown) => void,
-  showModal: () => void
+  onError: (error: unknown) => void
 ) {
   const leases = ref<LeaseData[]>([]);
 
@@ -50,9 +49,6 @@ export function useLeases(
         leaseAddress: string,
         leaseStatus: LeaseStatus,
       }[];
-      if (items.length == 0) {
-        showModal();
-      }
 
     } catch (e) {
       onError(e);

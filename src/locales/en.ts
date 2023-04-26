@@ -250,6 +250,9 @@ export default {
     "swapping-assets": "SWAPPING ASSETS",
     "min": "min",
     "amount-field": "Amount",
-    "portfolio-value": "Portfolio Value"
+    "portfolio-value": "Portfolio Value",
+    "no-results": "No results found",
+    "empty-lease": "You might be missing on upside potential value gains!",
+    "lease-now": "Lease now"
   }
 }

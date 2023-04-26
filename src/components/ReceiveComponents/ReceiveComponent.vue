@@ -19,13 +19,6 @@
   />
   <template v-else>
     <div class="modal-send-receive-input-area overflow-auto custom-scroll" v-if="selectedNetwork.native">
-      <div class="block py-3 px-4 modal-balance radius-light text-left text-14 nls-font-400 text-primary">
-        {{$t('message.balance') }}:
-        <a 
-          class="text-secondary nls-font-700 underline ml-2 cursor-pointer">
-          {{ formatCurrentBalance(selectedCurrency) }}
-        </a>
-      </div>
       <div class="block text-left">
 
         <div class="block mt-[25px]">
@@ -77,6 +70,17 @@
         <div class="modal-send-receive-input-area background">
 
           <div class="block text-left">
+
+            <div class="block mt-[20px]">
+              <Picker
+                :default-option="selectedNetwork"
+                :options="networks"
+                :label="$t('message.network')"
+                :value="selectedNetwork"
+                @update-selected="onUpdateNetwork"
+              />
+            </div>
+            
             <div class="block mt-[20px]">
               <CurrencyField
                 id="amount"
@@ -93,16 +97,6 @@
                 @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
                 @input="handleAmountChange($event)"
                 :balance="formatCurrentBalance(selectedCurrency)"
-              />
-            </div>
-
-            <div class="block mt-[20px]">
-              <Picker
-                :default-option="selectedNetwork"
-                :options="networks"
-                :label="$t('message.network')"
-                :value="selectedNetwork"
-                @update-selected="onUpdateNetwork"
               />
             </div>
 

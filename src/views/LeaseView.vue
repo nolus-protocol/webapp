@@ -30,6 +30,23 @@
       >
         <LeaseInfo :lease-info="lease" />
       </div>
+      <div
+        v-if="leases.length == 0"
+        class="background mt-12 border-standart shadow-box radius-medium radius-0-sm outline h-[220px]"
+      >
+        <div class="flex nls-12 text-dark-grey justify-center items-center flex-col h-full">
+          <img
+            src="/src/assets/icons/empty_lease.svg"
+            class="inline-block m-4"
+            height="32"
+            width="32"
+          >
+          {{ $t("message.empty-lease") }}
+          <a @click="showLeaseModal = true" class="text-[#2868E1] mt-2 cursor-pointer">
+            {{ $t("message.lease-now") }}
+          </a>
+        </div>
+      </div>
     </TransitionGroup>
   </div>
 
@@ -57,13 +74,12 @@ import LeaseDialog from "@/components/modals/LeaseDialog.vue";
 import Modal from "@/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/components/modals/ErrorDialog.vue";
 import LeaseInfo from "@/components/LeaseInfo.vue";
-import router from "@/router";
 
 import { ref, provide, onMounted, onUnmounted } from "vue";
 import { useLeases } from "@/composables/useLeases";
 
 const showLeaseModal = ref(false);
-const { leases, getLeases } = useLeases(onLeaseError, showModal);
+const { leases, getLeases } = useLeases(onLeaseError);
 const CHECK_TIME = 15000;
 let timeOut: NodeJS.Timeout;
 
@@ -85,19 +101,12 @@ onUnmounted(() => {
 
 const onCloseLease = () => {
   showLeaseModal.value = false;
-  if (leases.value.length == 0) {
-    router.push({ path: '/' })
-  }
 }
 
 function onLeaseError(e: Error | any) {
   errorDialog.value.showDialog = true;
   errorDialog.value.errorMessage = e.message;
   errorDialog.value.tryAgain = onTryAgain;
-}
-
-function showModal() {
-  showLeaseModal.value = true;
 }
 
 const onTryAgain = async () => {

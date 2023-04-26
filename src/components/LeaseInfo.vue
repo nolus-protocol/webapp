@@ -518,7 +518,7 @@ const currentPrice = computed(() => {
     props.leaseInfo.leaseStatus?.paid?.amount.ticker;
 
   const item = walletStore.getCurrencyByTicker(ticker as string);
-  return oracleStore.prices[item.symbol]?.amount ?? 0;
+  return oracleStore.prices[item.symbol]?.amount ?? '0';
 });
 
 const fetchChartData = async (days: string, interval: string) => {

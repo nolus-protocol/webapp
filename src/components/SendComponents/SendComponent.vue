@@ -4,6 +4,17 @@
     <div class="modal-send-receive-input-area background">
 
       <div class="block text-left">
+
+        <div class="block mt-[20px]">
+          <Picker
+            :default-option="networks[0]"
+            :options="networks"
+            :label="$t('message.network')"
+            :value="modelValue.network"
+            @update-selected="onUpdateCurrency"
+          />
+        </div>
+
         <div class="block mt-[20px]">
           <CurrencyField
             id="amount"
@@ -19,16 +30,6 @@
             @input="handleAmountChange($event)"
             @update-currency="(event) => (modelValue.selectedCurrency = event)"
             :balance="formatCurrentBalance(modelValue.selectedCurrency)"
-          />
-        </div>
-
-        <div class="block mt-[20px]">
-          <Picker
-            :default-option="networks[0]"
-            :options="networks"
-            :label="$t('message.network')"
-            :value="modelValue.network"
-            @update-selected="onUpdateCurrency"
           />
         </div>
 

@@ -24,7 +24,7 @@ import { ADAPTER_STATUS } from "@web3auth/base";
 import { Buffer } from "buffer";
 import { Lpp, Leaser } from "@nolus/nolusjs/build/contracts";
 import { CONTRACTS } from "@/config/contracts";
-import { Coin, Int } from "@keplr-wallet/unit";
+import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { makeCosmoshubPath } from "@cosmjs/amino";
 
 import {
@@ -56,7 +56,8 @@ const useWalletStore = defineStore("wallet", {
       stakingBalance: null,
       leaserConfig: null,
       suppliedBalance: "0",
-      apr: 0
+      apr: 0,
+      lppPrice: new Dec(0)
     } as State;
   },
   actions: {
@@ -228,10 +229,10 @@ const useWalletStore = defineStore("wallet", {
         const ibcBalances = [];
         let currencies = CURRENCIES.currencies;
 
-        if(assets){
-          const c: any  = {};
-          for(const key in CURRENCIES.currencies){
-            if(assets.includes(key)){
+        if (assets) {
+          const c: any = {};
+          for (const key in CURRENCIES.currencies) {
+            if (assets.includes(key)) {
               c[key as keyof typeof c] = CURRENCIES.currencies[key as keyof typeof CURRENCIES.currencies];
             }
           }
@@ -414,14 +415,14 @@ const useWalletStore = defineStore("wallet", {
           }
         }
         const promises = data.map(async (item) => {
-          try{
+          try {
             const block = await client.block(item.height);
             item.blockDate = block.block.header.time;
             return item;
-          }catch(error){
+          } catch (error) {
             return item;
           }
-      
+
         });
 
         const items = await Promise.all(promises);
@@ -512,13 +513,18 @@ const useWalletStore = defineStore("wallet", {
         cosmWasmClient,
         CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance
       );
-      const depositBalance = await lppClient.getLenderDeposit(
-        walletAddress as string
-      );
+      const [depositBalance, lppPrice] = await Promise.all([
+        lppClient.getLenderDeposit(
+          walletAddress as string
+        ),
+        lppClient.getPrice()
+      ]);
+      const p = new Dec(lppPrice.amount_quote.amount).quo(new Dec(lppPrice.amount.amount));
       this.suppliedBalance = depositBalance.balance;
+      this.lppPrice = p;
     },
     async [WalletActionTypes.LOAD_LEASER_CONFIG]() {
-      if(!this.leaserConfig){
+      if (!this.leaserConfig) {
         const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
         const leaserClient = new Leaser(
           cosmWasmClient,
@@ -614,12 +620,12 @@ const useWalletStore = defineStore("wallet", {
       return await loadUnbondingDelegatoins(url, [], walletAddress, offset, limit);
     },
     async [WalletActionTypes.LOAD_DELEGATIONS]() {
-        const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
-        const limit = 100;
-        const offset = 0;
-        const walletAddress = WalletManager.getWalletAddress() || "";
-  
-        return await loadDelegatoins(url, [], walletAddress, offset, limit);
+      const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
+      const limit = 100;
+      const offset = 0;
+      const walletAddress = WalletManager.getWalletAddress() || "";
+
+      return await loadDelegatoins(url, [], walletAddress, offset, limit);
     },
   },
   getters: {

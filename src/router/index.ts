@@ -1,5 +1,4 @@
 import MainLayoutView from "@/views/MainLayoutView.vue";
-import DashboardViewVue from "@/views/DashboardView.vue";
 import { WalletUtils, WalletManager } from "@/utils";
 import { RouteNames } from "@/router/RouterNames";
 import { useWalletStore } from "@/stores/wallet";
@@ -24,7 +23,7 @@ const router = createRouter({
         {
           path: "",
           name: RouteNames.DASHBOARD,
-          component: DashboardViewVue,
+          component: () => import("@/views/DashboardView.vue"),
         },
         {
           path: "/lease",

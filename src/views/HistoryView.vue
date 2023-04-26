@@ -20,7 +20,7 @@
           class="block"
           :class="{ 'animate-pulse': !initialLoad }"
         >
-          <template v-if="initialLoad">
+          <template v-if="initialLoad && !showSkeleton">
             <TransitionGroup
               name="fade-long"
               appear
@@ -31,6 +31,20 @@
                 :key="transaction.id"
                 :transaction="transaction"
               />
+              <div
+                v-if="transactions.length == 0"
+                class="h-[180px]"
+              >
+                <div class="flex nls-12 text-dark-grey justify-center items-center flex-col h-full">
+                  <img
+                    src="/src/assets/icons/empty_history.svg"
+                    class="inline-block m-4"
+                    height="32"
+                    width="32"
+                  >
+                  {{ $t("message.no-results") }}
+                </div>
+              </div>
             </TransitionGroup>
           </template>
           <template v-else>
@@ -88,7 +102,7 @@ import Modal from "@/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/components/modals/ErrorDialog.vue";
 
 import { WalletActionTypes } from "@/stores/wallet/action-types";
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { useWalletStore } from "@/stores/wallet";
 import { computed } from "vue";
 
@@ -120,10 +134,22 @@ let recipientTotal = 0;
 const loading = ref(false);
 const loaded = ref(false);
 const initialLoad = ref(false);
+const showSkeleton = ref(true);
+let timeout: NodeJS.Timeout;
 
 onMounted(() => {
   getTransactions();
+  timeout = setTimeout(() => {
+      showSkeleton.value = false;
+    }, 400);
 });
+
+onUnmounted(() => {
+  if (timeout) {
+    clearTimeout(timeout);
+  }
+})
+
 
 const hasOutline = computed(() => {
   if (window.innerWidth > 576) {

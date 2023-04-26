@@ -1,4 +1,4 @@
--<template>
+<template>
   <div class="col-span-12">
     <!-- Header -->
     <div class="table-header lg:flex block mt-[25px] flex-wrap items-center justify-between lg:px-0">
@@ -404,7 +404,6 @@ const isTotalBalancePositive = computed(() => {
 
 const { leases, getLeases } = useLeases(
   (error: Error | any) => { },
-  () => { }
 );
 
 provide("getLeases", getLeases);
@@ -460,6 +459,7 @@ const availableAssets = () => {
 const suppliedAndStaked = computed(() => {
   const staking = wallet.stakingBalance as Coin;
   const supplied = wallet.suppliedBalance;
+  const lppPrice = wallet.lppPrice;
   const suppliedSymbol = wallet.getCurrencyByTicker(LPN_CURRENCY.key);
   const suppliedCoin = wallet.getIbcDenomBySymbol(
     suppliedSymbol.symbol
@@ -471,8 +471,9 @@ const suppliedAndStaked = computed(() => {
     getMarketPrice(suppliedCoin),
     new Coin(suppliedCoin, supplied),
     suppliedInfo.coinDecimals
-  );
-  totalSuppliedAndStaked = totalSuppliedAndStaked.add(suppliedBalance.toDec());
+  ).toDec();
+  const s = lppPrice.mul(suppliedBalance);
+  totalSuppliedAndStaked = totalSuppliedAndStaked.add(s);
 
   if (staking) {
     const stakingInfo = wallet.getCurrencyInfo(staking.denom as string);
@@ -509,9 +510,9 @@ const getMarketPrice = (denom: string) => {
 };
 
 const setSmallBalancesState = (event: boolean) => {
-  if(!event){
+  if (!event) {
     localStorage.setItem(smallBalancesStateKey, 'false');
-  }else{
+  } else {
     localStorage.removeItem(smallBalancesStateKey);
   }
 }
@@ -525,4 +526,5 @@ const setSmallBalancesState = (event: boolean) => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}</style>
+}
+</style>
