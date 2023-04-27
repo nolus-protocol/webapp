@@ -11,6 +11,7 @@ export function useLeases(
   onError: (error: unknown) => void
 ) {
   const leases = ref<LeaseData[]>([]);
+  const leaseLoaded = ref(false);
 
   const getLeases = async () => {
     try {
@@ -52,6 +53,8 @@ export function useLeases(
 
     } catch (e) {
       onError(e);
+    }finally{
+      leaseLoaded.value = true;
     }
   };
 
@@ -59,5 +62,5 @@ export function useLeases(
     await getLeases();
   });
 
-  return { leases, getLeases };
+  return { leases, leaseLoaded, getLeases };
 }

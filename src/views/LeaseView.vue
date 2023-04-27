@@ -31,7 +31,7 @@
         <LeaseInfo :lease-info="lease" />
       </div>
       <div
-        v-if="leases.length == 0"
+        v-if="leaseLoaded && leases.length == 0"
         class="background mt-12 border-standart shadow-box radius-medium radius-0-sm outline h-[220px]"
       >
         <div class="flex nls-12 text-dark-grey justify-center items-center flex-col h-full">
@@ -79,7 +79,7 @@ import { ref, provide, onMounted, onUnmounted } from "vue";
 import { useLeases } from "@/composables/useLeases";
 
 const showLeaseModal = ref(false);
-const { leases, getLeases } = useLeases(onLeaseError);
+const { leases, leaseLoaded, getLeases } = useLeases(onLeaseError);
 const CHECK_TIME = 15000;
 let timeOut: NodeJS.Timeout;
 
