@@ -336,6 +336,7 @@ const useWalletStore = defineStore("wallet", {
             const decodedTx: DecodedTxRaw = decodeTxRaw(item.tx);
             try {
               const rawTx = JSON.parse(item.result.log as string);
+              console.log(rawTx)
               const transactionResult = {
                 id: item.hash ? toHex(item.hash) : "",
                 height: item.height ?? "",
@@ -426,7 +427,7 @@ const useWalletStore = defineStore("wallet", {
         });
 
         const items = await Promise.all(promises);
-
+        console.log(items)
         return {
           data: items,
           receiver_total,

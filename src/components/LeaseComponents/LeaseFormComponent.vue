@@ -109,7 +109,7 @@
     </div>
     <!-- Actions -->
     <div class="modal-send-receive-actions flex flex-col">
-      <button class="btn btn-primary btn-large-primary">
+      <button class="btn btn-primary btn-large-primary plausible-event-name=open-position">
         {{ $t("message.open-position") }}
       </button>
       <div class="flex justify-between w-full text-light-blue text-[14px] my-2">
@@ -133,7 +133,7 @@ import { onMounted, ref, type PropType } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { computed, watch } from "vue";
 import { useWalletStore } from "@/stores/wallet";
-import { GROUPS, NATIVE_NETWORK, calculateLiquidation, PERMILLE, DEFAULT_LTV } from "@/config/env";
+import { GROUPS, NATIVE_NETWORK, calculateLiquidation, PERMILLE } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";

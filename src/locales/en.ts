@@ -253,6 +253,7 @@ export default {
     "portfolio-value": "Portfolio Value",
     "no-results": "No results found",
     "empty-lease": "You might be missing on upside potential value gains!",
-    "lease-now": "Lease now"
+    "lease-now": "Lease now",
+    "send-action": "Send {amount} {denom} to {address}"
   }
 }

@@ -71,7 +71,7 @@
     </div>
     <!-- Actions -->
     <div class="modal-send-receive-actions background flex-col">
-      <button class="btn btn-primary btn-large-primary">
+      <button class="btn btn-primary btn-large-primary plausible-event-name=send">
         {{ $t("message.send") }}
       </button>
       <div class="flex justify-between w-full text-light-blue text-[14px] my-2">

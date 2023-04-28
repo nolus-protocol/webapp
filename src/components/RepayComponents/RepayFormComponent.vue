@@ -49,7 +49,7 @@
       </div>
     </div>
     <div class="modal-send-receive-actions flex flex-col">
-      <button class="btn btn-primary btn-large-primary text-center">
+      <button class="btn btn-primary btn-large-primary text-center plausible-event-name=repay">
         {{ $t("message.repay") }}
       </button>
       <div class="flex justify-between w-full text-light-blue text-[14px] my-2">

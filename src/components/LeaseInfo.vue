@@ -353,7 +353,7 @@
     <div class="flex items-center justify-between border-t border-standart pt-4 md:px-6 px-2 flex-col md:flex-row">
       <div class="flex">
       </div>
-      <button class="btn btn-secondary btn-large-secondary md:w-auto w-full md:mt-0 mt-4"
+      <button class="btn btn-secondary btn-large-secondary md:w-auto w-full md:mt-0 mt-4 plausible-event-name=collect"
               :class="{ 'js-loading': leaseInfo.leaseStatus?.paid?.in_progress }"
               @click="onShowClaimDialog">
         {{ $t("message.collect") }}

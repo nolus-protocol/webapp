@@ -2,9 +2,7 @@
   <div
     class="md:grid md:grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6 md:flex items-center history-item text-12"
   >
-    <div
-      class="col-span-2 lg:block nls-14 nls-font-400 text-primary text-left text-upper text-14"
-    >
+    <div class="col-span-2 lg:block nls-14 nls-font-400 text-primary text-left text-upper text-14">
       <a
         :href="`${applicaton.network.networkAddresses.exploler}nolus-rila/tx/${transaction.id}`"
         class="his-url"
@@ -24,9 +22,12 @@
         {{ capitalize(transaction.action) }}
       </span>
     </div> -->
-    <div
-      class="block col-span-6 nls-14 nls-font-400 text-primary text-left sm:my-1 text-14"
-    >
+    <div class="block col-span-6 nls-14 nls-font-400 text-primary text-left sm:my-1 text-14">
+      <span class="nls-12 nls-font-700">
+        {{ message }}
+      </span>
+
+      <!-- 
       <span v-if="transaction.msg.length > 0" class="nls-12 nls-font-700">
         {{ parseLength(transaction.msg) }}
       </span>
@@ -34,18 +35,14 @@
         {{ truncateString(transaction.sender) }}
         {{ $t("message.to") }}
         {{ truncateString(transaction.receiver) }}
-      </span>
+      </span> -->
     </div>
-    <div
-      class="sm:block hidden col-span-2 items-center justify-start md:justify-endtext-primary"
-    >
+    <div class="sm:block hidden col-span-2 items-center justify-start md:justify-endtext-primary">
       <span class="left-and-right nls-14 nls-font-400 his-gray">
         {{ convertFeeAmount(transaction.fee) }}
       </span>
     </div>
-    <div
-      class="sm:block hidden col-span-2 items-center justify-start md:justify-endtext-primary"
-    >
+    <div class="sm:block hidden col-span-2 items-center justify-start md:justify-endtext-primary">
       <span class="left-and-right nls-14 nls-font-400 his-gray">
         <template v-if="transaction.blockDate">
           {{ getCraetedAtForHuman(transaction.blockDate) }}
@@ -80,6 +77,11 @@ import { useApplicationStore } from "@/stores/application";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { StringUtils } from "@/utils/StringUtils";
 import { useI18n } from "vue-i18n";
+import { computed } from "vue";
+
+enum Messages {
+  transfer = 'transfer'
+}
 
 const i18n = useI18n();
 const applicaton = useApplicationStore();
@@ -119,10 +121,6 @@ const props = defineProps<Props>();
 
 const truncateString = (text: string) => {
   return StringUtils.truncateString(text, 6, 6);
-};
-
-const capitalize = (value: string) => {
-  return StringUtils.capitalize(value);
 };
 
 const convertFeeAmount = (fee: Coin[] | null) => {
@@ -183,6 +181,20 @@ const getCraetedAtForHuman = (createdAt: Date | null) => {
 
   return `${m} ${date}, ${year}`;
 };
+
+const message = computed(() => {
+  switch (props.transaction.action) {
+    case (Messages.transfer): {
+      console.log(props)
+      return i18n.t('message.send-action', {
+        address: truncateString(props.transaction.receiver)
+      })
+    }
+    default: {
+      return '';
+    }
+  }
+});
 </script>
 <style scoped>
 .his-gray {
