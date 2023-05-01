@@ -109,13 +109,11 @@ import { computed } from "vue";
 export interface ITransaction {
   id: string;
   height: number;
-  receiver: string;
-  sender: string;
-  action: string;
-  msg: string;
+  msgs: any[];
   memo: string;
   blockDate: Date | null;
   fee: Coin[] | null;
+  type: 'sender' | 'receiver'
 }
 
 const showErrorDialog = ref(false);

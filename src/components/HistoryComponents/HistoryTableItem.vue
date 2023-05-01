@@ -1,69 +1,73 @@
 <template>
-  <div
-    class="md:grid md:grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6 md:flex items-center history-item text-12"
-  >
-    <div class="col-span-2 lg:block nls-14 nls-font-400 text-primary text-left text-upper text-14">
-      <a
-        :href="`${applicaton.network.networkAddresses.exploler}nolus-rila/tx/${transaction.id}`"
-        class="his-url"
-        target="_blank"
-      >
-        {{ truncateString(transaction.id) }}
-      </a>
-      <img
-        src="@/assets/icons/urlicon.svg"
-        class="float-right w-3 his-img mt-[0.15rem]"
-      />
-    </div>
-    <!-- <div class="col-span-2 sm:block hidden text-left">
-      <span
-        class="inline-block py-1 px-2 text-patch nls-font-500 nls-12 text-primary radius-pill md:ml-4"
-      >
-        {{ capitalize(transaction.action) }}
-      </span>
-    </div> -->
-    <div class="block col-span-6 nls-14 nls-font-400 text-primary text-left sm:my-1 text-14">
-      <span class="nls-12 nls-font-700">
-        {{ message }}
-      </span>
+  <div class="history-item">
+    <div
+      v-for="(msg, index) in transaction.msgs"
+      :key="index"
+      class="md:grid md:grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6 md:flex items-center text-12"
+    >
+      <div class="col-span-2 lg:block nls-14 nls-font-400 text-primary text-left text-upper text-14">
+        <a
+          :href="`${applicaton.network.networkAddresses.exploler}nolus-rila/tx/${transaction.id}`"
+          class="his-url"
+          target="_blank"
+        >
+          {{ truncateString(transaction.id) }}
+        </a>
+        <img
+          src="@/assets/icons/urlicon.svg"
+          class="float-right w-3 his-img mt-[0.15rem]"
+        />
+      </div>
+      <!-- <div class="col-span-2 sm:block hidden text-left">
+        <span
+          class="inline-block py-1 px-2 text-patch nls-font-500 nls-12 text-primary radius-pill md:ml-4"
+        >
+          {{ capitalize(transaction.action) }}
+        </span>
+      </div> -->
+      <div class="block col-span-6 nls-14 nls-font-400 text-primary text-left sm:my-1 text-14">
+        <span class="nls-12 nls-font-700">
+          {{ message(msg) }}
+        </span>
 
-      <!-- 
-      <span v-if="transaction.msg.length > 0" class="nls-12 nls-font-700">
-        {{ parseLength(transaction.msg) }}
-      </span>
-      <span v-else class="nls-12 nls-font-700">
-        {{ truncateString(transaction.sender) }}
-        {{ $t("message.to") }}
-        {{ truncateString(transaction.receiver) }}
-      </span> -->
-    </div>
-    <div class="sm:block hidden col-span-2 items-center justify-start md:justify-endtext-primary">
-      <span class="left-and-right nls-14 nls-font-400 his-gray">
-        {{ convertFeeAmount(transaction.fee) }}
-      </span>
-    </div>
-    <div class="sm:block hidden col-span-2 items-center justify-start md:justify-endtext-primary">
-      <span class="left-and-right nls-14 nls-font-400 his-gray">
-        <template v-if="transaction.blockDate">
-          {{ getCraetedAtForHuman(transaction.blockDate) }}
-        </template>
-        <template v-else>
-          -
-        </template>
-      </span>
-    </div>
-    <div class="flex col-span-12 justify-between sm:hidden">
-      <span class="left-and-right nls-14 nls-font-400 his-gray">
-        {{ convertFeeAmount(transaction.fee) }}
-      </span>
-      <span class="left-and-right nls-14 nls-font-400 his-gray">
-        <template v-if="transaction.blockDate">
-          {{ getCraetedAtForHuman(transaction.blockDate) }}
-        </template>
-        <template v-else>
-          -
-        </template>
-      </span>
+        <!-- 
+        <span v-if="transaction.msg.length > 0" class="nls-12 nls-font-700">
+          {{ parseLength(transaction.msg) }}
+        </span>
+        <span v-else class="nls-12 nls-font-700">
+          {{ truncateString(transaction.sender) }}
+          {{ $t("message.to") }}
+          {{ truncateString(transaction.receiver) }}
+        </span> -->
+      </div>
+      <div class="sm:block hidden col-span-2 items-center justify-start md:justify-endtext-primary">
+        <span class="left-and-right nls-14 nls-font-400 his-gray">
+          {{ convertFeeAmount(transaction.fee) }}
+        </span>
+      </div>
+      <div class="sm:block hidden col-span-2 items-center justify-start md:justify-endtext-primary">
+        <span class="left-and-right nls-14 nls-font-400 his-gray">
+          <template v-if="transaction.blockDate">
+            {{ getCraetedAtForHuman(transaction.blockDate) }}
+          </template>
+          <template v-else>
+            -
+          </template>
+        </span>
+      </div>
+      <div class="flex col-span-12 justify-between sm:hidden">
+        <span class="left-and-right nls-14 nls-font-400 his-gray">
+          {{ convertFeeAmount(transaction.fee) }}
+        </span>
+        <span class="left-and-right nls-14 nls-font-400 his-gray">
+          <template v-if="transaction.blockDate">
+            {{ getCraetedAtForHuman(transaction.blockDate) }}
+          </template>
+          <template v-else>
+            -
+          </template>
+        </span>
+      </div>
     </div>
   </div>
 </template>
@@ -77,10 +81,9 @@ import { useApplicationStore } from "@/stores/application";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { StringUtils } from "@/utils/StringUtils";
 import { useI18n } from "vue-i18n";
-import { computed } from "vue";
 
 enum Messages {
-  transfer = 'transfer'
+  "/cosmos.bank.v1beta1.MsgSend" = "/cosmos.bank.v1beta1.MsgSend"
 }
 
 const i18n = useI18n();
@@ -182,19 +185,26 @@ const getCraetedAtForHuman = (createdAt: Date | null) => {
   return `${m} ${date}, ${year}`;
 };
 
-const message = computed(() => {
-  switch (props.transaction.action) {
-    case (Messages.transfer): {
-      console.log(props)
-      return i18n.t('message.send-action', {
-        address: truncateString(props.transaction.receiver)
-      })
+const message = (msg: Object | any) => {
+  switch (msg.typeUrl) {
+    case (Messages["/cosmos.bank.v1beta1.MsgSend"]): {
+      if (props.transaction.type == 'sender') {
+        return i18n.t('message.send-action', {
+          address: truncateString(msg.data.toAddress)
+        });
+      }
+
+      if (props.transaction.type == 'receiver') {
+        return i18n.t('message.receive-action', {
+          address: truncateString(msg.data.fromAddress)
+        });
+      }
     }
     default: {
       return '';
     }
   }
-});
+};
 </script>
 <style scoped>
 .his-gray {

@@ -26,23 +26,8 @@ import { Lpp, Leaser } from "@nolus/nolusjs/build/contracts";
 import { CONTRACTS } from "@/config/contracts";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { makeCosmoshubPath } from "@cosmjs/amino";
-
-import {
-  EncryptionUtils,
-  EnvNetworkUtils,
-  KeyUtils as KeyUtilities,
-  WalletUtils,
-  AssetUtils,
-  Web3AuthProvider,
-  WalletManager,
-} from "@/utils";
-
-import {
-  CurrencyUtils,
-  KeyUtils,
-  NolusClient,
-  NolusWalletFactory,
-} from "@nolus/nolusjs";
+import { EncryptionUtils, EnvNetworkUtils, KeyUtils as KeyUtilities, WalletUtils, AssetUtils, Web3AuthProvider, WalletManager } from "@/utils";
+import { CurrencyUtils, KeyUtils, NolusClient, NolusWalletFactory } from "@nolus/nolusjs";
 
 const useWalletStore = defineStore("wallet", {
   state: () => {
@@ -297,10 +282,10 @@ const useWalletStore = defineStore("wallet", {
       }
     },
     async [WalletActionTypes.SEARCH_TX]({
-      sender_per_page = 10,
+      sender_per_page = 5,
       sender_page = 1,
       load_sender = true,
-      recipient_per_page = 10,
+      recipient_per_page = 5,
       recipient_page = 1,
       load_recipient = true,
     } = {}) {
@@ -335,41 +320,30 @@ const useWalletStore = defineStore("wallet", {
           for (const item of (sender as TxSearchResponse).txs) {
             const decodedTx: DecodedTxRaw = decodeTxRaw(item.tx);
             try {
-              const rawTx = JSON.parse(item.result.log as string);
-              console.log(rawTx)
+
+              const msgs = [] 
+              for (const m of decodedTx.body.messages) { 
+                msgs.push({ 
+                  typeUrl: m.typeUrl,
+                  data: this.wallet?.registry.decode(m)
+                });
+              }
+
               const transactionResult = {
                 id: item.hash ? toHex(item.hash) : "",
                 height: item.height ?? "",
-                receiver: (rawTx[0].events[3].attributes[0].value ??
-                  "") as string,
-                sender: (rawTx[0].events[3].attributes[1].value ??
-                  "") as string,
-                action: (rawTx[0].events[3].type ?? "") as string,
-                msg: "",
-                blockDate: null,
+                msgs,
+                type: "sender",
+                blockDate: null as null | ReadonlyDateWithNanoseconds,
                 memo: decodedTx.body.memo ?? "",
-                fee:
-                  decodedTx?.authInfo?.fee?.amount.filter(
-                    (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
-                  ) || null,
+                fee: decodedTx?.authInfo?.fee?.amount.filter(
+                  (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
+                ) ?? null,
               };
+
               data.push(transactionResult);
             } catch (error) {
-              const transactionResult = {
-                id: item.hash ? toHex(item.hash) : "",
-                height: item.height ?? "",
-                receiver: "",
-                sender: "",
-                action: "Error",
-                msg: item.result.log as string,
-                blockDate: null,
-                memo: decodedTx.body.memo ?? "",
-                fee:
-                  decodedTx?.authInfo?.fee?.amount.filter(
-                    (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
-                  ) || null,
-              };
-              data.push(transactionResult);
+              console.log(error);
             }
           }
         }
@@ -379,45 +353,37 @@ const useWalletStore = defineStore("wallet", {
           for (const item of (receiver as TxSearchResponse).txs) {
             const decodedTx: DecodedTxRaw = decodeTxRaw(item.tx);
             try {
-              const rawTx = JSON.parse(item.result.log as string);
+
+              const msgs = [] 
+              for (const m of decodedTx.body.messages) { 
+                msgs.push({ 
+                  typeUrl: m.typeUrl,
+                  data: this.wallet?.registry.decode(m)
+                });
+              }
+
               const transactionResult = {
                 id: item.hash ? toHex(item.hash) : "",
                 height: item.height ?? "",
-                receiver: (rawTx[0].events[3].attributes[0].value ?? "") as string,
-                sender: (rawTx[0].events[3].attributes[1].value ??
-                  "") as string,
-                action: (rawTx[0].events[3].type ?? "") as string,
-                msg: "",
-                blockDate: null,
+                msgs,
+                type: "receiver",
+                blockDate: null as null | ReadonlyDateWithNanoseconds,
                 memo: decodedTx.body.memo ?? "",
-                fee:
-                  decodedTx?.authInfo?.fee?.amount.filter(
-                    (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
-                  ) || null,
+                fee: decodedTx?.authInfo?.fee?.amount.filter(
+                  (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
+                ) ?? null,
               };
+
               data.push(transactionResult);
             } catch (error) {
-              const transactionResult = {
-                id: item.hash ? toHex(item.hash) : "",
-                height: item.height ?? "",
-                receiver: "",
-                sender: "",
-                action: "Error",
-                msg: item.result.log as string,
-                blockDate: null as ReadonlyDateWithNanoseconds | null,
-                memo: decodedTx.body.memo ?? "",
-                fee:
-                  decodedTx?.authInfo?.fee?.amount.filter(
-                    (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
-                  ) || null,
-              };
-              data.push(transactionResult);
+              console.log(error);
             }
           }
         }
         const promises = data.map(async (item) => {
           try {
             const block = await client.block(item.height);
+            // console.log(block)
             item.blockDate = block.block.header.time;
             return item;
           } catch (error) {
@@ -427,7 +393,7 @@ const useWalletStore = defineStore("wallet", {
         });
 
         const items = await Promise.all(promises);
-        console.log(items)
+        // console.log(items)
         return {
           data: items,
           receiver_total,

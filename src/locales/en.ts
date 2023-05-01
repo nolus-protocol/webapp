@@ -254,6 +254,7 @@ export default {
     "no-results": "No results found",
     "empty-lease": "You might be missing on upside potential value gains!",
     "lease-now": "Lease now",
-    "send-action": "Send {amount} {denom} to {address}"
+    "send-action": "Send {amount} to {address}",
+    "receive-action": "Receive {amount} from {address}"
   }
 }
