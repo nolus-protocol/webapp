@@ -14,7 +14,10 @@
     :onOkClick="onClickOkBtn"
     @passwordUpdate="(value) => (state.password = value)"
   />
-  <DelegateFormComponent v-else v-model="state" />
+  <DelegateFormComponent
+    v-else
+    v-model="state"
+  />
   <Modal
     v-if="errorDialog.showDialog"
     @close-modal="errorDialog.showDialog = false"
@@ -42,20 +45,11 @@ import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { inject, onUnmounted, ref, watch } from "vue";
 import { coin } from "@cosmjs/amino";
 import { STAKING } from "@/config/env";
-
-import {
-  validateAmount,
-  walletOperation,
-} from "@/components/utils";
-
-import {
-  DEFAULT_APR,
-  NATIVE_ASSET,
-  GAS_FEES,
-  SNACKBAR,
-} from "@/config/env";
+import { validateAmount, walletOperation } from "@/components/utils";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, } from "@/config/env";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { WalletManager } from "@/utils";
+import { Utils } from "@/utils/Utils";
 
 defineProps({
   selectedAsset: {
@@ -74,7 +68,6 @@ const state = ref({
   amount: "",
   password: "",
   amountErrorMsg: "",
-  currentAPR: `${DEFAULT_APR}%`,
   txHash: "",
   fee: coin(GAS_FEES.delegation, NATIVE_ASSET.denom),
   onNextClick: () => onNextClick(),
@@ -86,10 +79,10 @@ const errorDialog = ref({
   errorMessage: "",
 });
 
-const closeModal = inject("onModalClose", () => () => {});
+const closeModal = inject("onModalClose", () => () => { });
 const showSnackbar = inject(
   "showSnackbar",
-  (type: string, transaction: string) => {}
+  (type: string, transaction: string) => { }
 );
 
 function onNextClick() {
@@ -126,61 +119,61 @@ async function onDelegateClick() {
 }
 
 async function delegate() {
-  try{
+  try {
 
-    if(walletStore.wallet && state.value.amountErrorMsg === ""){
+    if (walletStore.wallet && state.value.amountErrorMsg === "") {
       step.value = CONFIRM_STEP.PENDING;
 
       let validators = await getValidators();
       let division = STAKING.VALIDATORS_NUMBER;
-  
-      if(validators?.length > 0){
+
+      if (validators?.length > 0) {
         division = validators?.length;
       }
-  
+
       const denom = state.value.selectedCurrency.balance.denom;
       const asset = walletStore.getCurrencyInfo(
         denom
       );
-  
+
       const data = CurrencyUtils.convertDenomToMinimalDenom(
         state.value.amount,
         asset.coinDenom,
         asset.coinDecimals
       );
-  
+
       const amount = Number(data.amount.toString());
       const quotient = Math.floor(amount / division);
       const remainder = amount % division;
       const amounts = [];
-  
+
       validators = validators.sort((a: any, b: any) => {
         return Number(b.commission.commission_rates.rate) - Number(a.commission.commission_rates.rate);
       });
-  
-      for(const v of validators){
+
+      for (const v of validators) {
         amounts.push({
           value: quotient,
           validator: v.operator_address
         });
       }
-  
-      amounts[0].value+=remainder;
-  
+
+      amounts[0].value += remainder;
+
       const delegations = amounts.map((item) => {
         return {
           validator: item.validator,
           amount: coin(item.value, denom)
         }
       });
-  
+
       const { txHash, txBytes, usedFee } = await walletStore.wallet.simulateDelegateTx(delegations);
       state.value.txHash = txHash;
-  
+
       if (usedFee?.amount?.[0]) {
         state.value.fee = usedFee.amount[0];
       }
-  
+
       const tx = await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
       const isSuccessful = tx?.code === 0;
       step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
@@ -190,53 +183,49 @@ async function delegate() {
 
     }
 
-  }catch(error){
+  } catch (error) {
     console.log(error)
     step.value = CONFIRM_STEP.ERROR;
   }
 }
 
-const getValidators: () => any = async () => {
+async function getValidators() {
   const delegatorValidators = await walletStore[WalletActionTypes.LOAD_DELEGATOR_VALIDATORS]();
 
-  if(delegatorValidators.length > 0){
+  if (delegatorValidators.length > 0) {
     return delegatorValidators;
   }
 
   let validators = await walletStore[WalletActionTypes.LOAD_VALIDATORS]();
   let loadedValidators = [];
 
-  if(validators.length > STAKING.SLICE){
+  if (validators.length > STAKING.SLICE) {
     validators = validators.slice(STAKING.SLICE).filter((item: any) => {
       const date = new Date(item.unbonding_time);
       const time = Date.now() - date.getTime();
-      if(time > STAKING.SLASHED_DAYS && !item.jailed){
+
+      if (time > STAKING.SLASHED_DAYS && !item.jailed) {
         return true;
       }
+
       return false;
     }).filter((item: any) => {
       const commission = Number(item.commission.commission_rates.rate);
-      if(commission <= STAKING.PERCENT){
+      if (commission <= STAKING.PERCENT) {
         return true;
       }
       return false;
     });
   }
 
-  for(let i = 0; i < STAKING.VALIDATORS_NUMBER; i++){
-    const index = getRandomInt(0, validators.length);
+  for (let i = 0; i < STAKING.VALIDATORS_NUMBER; i++) {
+    const index = Utils.getRandomInt(0, validators.length);
     loadedValidators.push(validators[index]);
     validators.splice(index, 1);
   }
 
   return loadedValidators;
 
-}
-
-const getRandomInt = (min: number, max: number) => {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min) + min);
 }
 
 onUnmounted(() => {
@@ -247,14 +236,14 @@ onUnmounted(() => {
 
 watch(
   () => [...state.value.amount],
-  (currentValue, oldValue) => {
+  (_currentValue, _oldValue) => {
     validateInputs();
   }
 );
 
 watch(
   () => [...state.value.selectedCurrency.balance.denom.toString()],
-  (currentValue, oldValue) => {
+  (_currentValue, _oldValue) => {
     validateInputs();
   }
 );

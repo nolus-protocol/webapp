@@ -6,7 +6,6 @@ export interface DelegateFormComponentProps {
   currentBalance: AssetBalance[];
   selectedCurrency: AssetBalance;
   amount: string;
-  currentAPR: string;
   password: string;
   txHash: string;
   fee: Coin;

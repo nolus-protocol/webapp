@@ -24,10 +24,10 @@
         <div
           class="absolute w-3 h-3 -mt-2 bg-light-electric"
           style="
-            bottom: -4px;
-            left: 50%;
-            transform: translateX(-50%) rotate(45deg);
-          "
+                  bottom: -4px;
+                  left: 50%;
+                  transform: translateX(-50%) rotate(45deg);
+                "
         ></div>
       </div>
     </div>
@@ -51,9 +51,9 @@ defineProps({
   },
 });
 
-const mouseover = (event: MouseEvent) => {
+function mouseover(event: MouseEvent) {
 
-  if(timeout){
+  if (timeout) {
     clearTimeout(timeout);
   }
 
@@ -63,8 +63,7 @@ const mouseover = (event: MouseEvent) => {
     const rect = parent.getBoundingClientRect();
     const elementRect = element.getBoundingClientRect();
 
-    const left =
-      rect.left + window.scrollX - elementRect.width / 2 + rect.width / 2;
+    const left = rect.left + window.scrollX - elementRect.width / 2 + rect.width / 2;
     const top = rect.top + window.scrollY - elementRect.height - 15;
 
     element.style.left = `${left}px`;
@@ -75,12 +74,14 @@ const mouseover = (event: MouseEvent) => {
   element.style.opacity = "1";
 };
 
-const mouseleave = () => {
+function mouseleave() {
   const element = tooltip.value as HTMLDivElement;
-  element.style.opacity = "0";
-  timeout = setTimeout(() => {
-    element.style.visibility = "hidden";
-  }, 200);
+  if (element) {
+    element.style.opacity = "0";
+    timeout = setTimeout(() => {
+      element.style.visibility = "hidden";
+    }, 200);
+  }
 };
 </script>
 <style scoped lang="scss">

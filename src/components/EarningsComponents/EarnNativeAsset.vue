@@ -81,7 +81,7 @@
           class="btn btn-secondary btn-medium-secondary w-full flex"
           @click="openDelegateUndelegate()"
         >
-        {{ $t("message.delegate-undelegate") }}
+          {{ $t("message.delegate-undelegate") }}
         </button>
       </div>
     </div>
@@ -94,13 +94,14 @@ import type { AssetBalance } from "@/stores/wallet/state";
 
 import CurrencyComponent from "../CurrencyComponent.vue";
 
-import { Coin, Dec, Int } from "@keplr-wallet/unit";
+import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { computed } from "vue";
 import { useWalletStore } from "@/stores/wallet";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { NATIVE_CURRENCY } from "@/config/env";
+import { AssetUtils } from "@/utils";
 
 const oracle = useOracleStore();
 const wallet = useWalletStore();
@@ -128,11 +129,11 @@ const assetInfo = computed(() => {
   return assetInfo;
 });
 
-const formatPrice = (price: string) => {
+function formatPrice(price: string) {
   return CurrencyUtils.formatPrice(price);
 };
 
-const getMarketPrice = (denom: string) => {
+function getMarketPrice(denom: string) {
   const prices = oracle.prices;
   if (prices) {
     return prices[denom]?.amount || "0";
@@ -145,15 +146,7 @@ const showBalance = computed(() => {
   return data.isPositive();
 });
 
-const calculateBalance = (tokenAmount: string, denom: string) => {
-  const currency = wallet.getCurrencyInfo(denom);
-  const data = wallet.getCurrencyByTicker(currency.ticker);
-  const price = getMarketPrice(data.symbol);
-
-  const tokenDecimals = wallet.getCurrencyInfo(denom).coinDecimals;
-  const coin = new Coin(denom, new Int(tokenAmount));
-  return CurrencyUtils.calculateBalance(price, coin, tokenDecimals)
-    .toDec()
-    .toString(2);
+function calculateBalance(tokenAmount: string, denom: string) {
+  return AssetUtils.getPriceByDenom(tokenAmount, denom).toString(2);
 };
 </script>

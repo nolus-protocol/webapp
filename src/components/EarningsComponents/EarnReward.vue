@@ -51,13 +51,14 @@
 
 <script lang="ts" setup>
 import { type PropType, ref, computed } from "vue";
+import type { AssetBalance } from "@/stores/wallet/state";
+
+import CurrencyComponent from "@/components/CurrencyComponent.vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { Coin, Dec, Int } from "@keplr-wallet/unit";
-import { useOracleStore } from "@/stores/oracle";
+import { Dec } from "@keplr-wallet/unit";
 import { useWalletStore } from "@/stores/wallet";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
-import type { AssetBalance } from "@/stores/wallet/state";
-import CurrencyComponent from "@/components/CurrencyComponent.vue";
+import { AssetUtils } from "@/utils";
 
 const props = defineProps({
   cols: {
@@ -72,7 +73,6 @@ const props = defineProps({
   },
 });
 
-const oracle = useOracleStore();
 const wallet = useWalletStore();
 const loading = ref(false);
 
@@ -81,19 +81,8 @@ const assetInfo = computed(() => {
   return assetInfo;
 });
 
-const getMarketPrice = (denom: string) => {
-  const prices = oracle.prices;
-  if (prices) {
-    return prices[denom]?.amount || "0";
-  }
-  return "0";
-};
-
-const calculateBalance = (tokenAmount: string, denom: string) => {
-  const price = getMarketPrice(denom);
-  const tokenDecimals = wallet.getCurrencyInfo(denom).coinDecimals;
-  const coin = new Coin(denom, new Int(tokenAmount));
-  return CurrencyUtils.calculateBalance(price, coin, tokenDecimals);
+function calculateBalance(tokenAmount: string, denom: string) {
+  return AssetUtils.getPriceByDenom(tokenAmount, denom).toString(2);
 };
 
 const isEnabled = computed(() => {

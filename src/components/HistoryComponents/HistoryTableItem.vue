@@ -18,27 +18,12 @@
           class="float-right w-3 his-img mt-[0.15rem]"
         />
       </div>
-      <!-- <div class="col-span-2 sm:block hidden text-left">
-        <span
-          class="inline-block py-1 px-2 text-patch nls-font-500 nls-12 text-primary radius-pill md:ml-4"
-        >
-          {{ capitalize(transaction.action) }}
-        </span>
-      </div> -->
+
       <div class="block col-span-6 nls-14 nls-font-400 text-primary text-left sm:my-1 text-14">
         <span class="nls-12 nls-font-700">
           {{ message(msg) }}
         </span>
 
-        <!-- 
-        <span v-if="transaction.msg.length > 0" class="nls-12 nls-font-700">
-          {{ parseLength(transaction.msg) }}
-        </span>
-        <span v-else class="nls-12 nls-font-700">
-          {{ truncateString(transaction.sender) }}
-          {{ $t("message.to") }}
-          {{ truncateString(transaction.receiver) }}
-        </span> -->
       </div>
       <div class="sm:block hidden col-span-2 items-center justify-start md:justify-endtext-primary">
         <span class="left-and-right nls-14 nls-font-400 his-gray">
@@ -48,7 +33,7 @@
       <div class="sm:block hidden col-span-2 items-center justify-start md:justify-endtext-primary">
         <span class="left-and-right nls-14 nls-font-400 his-gray">
           <template v-if="transaction.blockDate">
-            {{ getCraetedAtForHuman(transaction.blockDate) }}
+            {{ getCreatedAtForHuman(transaction.blockDate) }}
           </template>
           <template v-else>
             -
@@ -61,7 +46,7 @@
         </span>
         <span class="left-and-right nls-14 nls-font-400 his-gray">
           <template v-if="transaction.blockDate">
-            {{ getCraetedAtForHuman(transaction.blockDate) }}
+            {{ getCreatedAtForHuman(transaction.blockDate) }}
           </template>
           <template v-else>
             -
@@ -131,7 +116,7 @@ interface Props {
 }
 const props = defineProps<Props>();
 
-const truncateString = (text: string) => {
+function truncateString(text: string) {
   return StringUtils.truncateString(text, 6, 6);
 };
 
@@ -145,14 +130,7 @@ const convertFeeAmount = (fee: Coin[] | null) => {
   return feeAmount?.toString();
 };
 
-const parseLength = (value: string) => {
-  if (value.length > 62) {
-    return `${value.slice(0, 62)}...`;
-  }
-  return value;
-};
-
-const getCraetedAtForHuman = (createdAt: Date | null) => {
+function getCreatedAtForHuman(createdAt: Date | null) {
   if (createdAt == null) {
     return props.transaction.height;
   }

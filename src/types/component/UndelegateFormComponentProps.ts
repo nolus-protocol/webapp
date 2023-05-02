@@ -10,6 +10,11 @@ export interface UndelegateFormComponentProps {
   txHash: string;
   fee: Coin;
   delegated: Coin | null;
-  undelegations: any[],
+  undelegations: {
+    entries: {
+      balance: string,
+      completion_time: string
+    }[]
+  }[],
   onNextClick: () => void;
 }

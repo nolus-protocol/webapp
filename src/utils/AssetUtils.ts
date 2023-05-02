@@ -3,6 +3,7 @@ import { Buffer } from "buffer";
 import { useWalletStore } from "@/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
+import { CurrencyUtils } from "@nolus/nolusjs";
 
 export class AssetUtils {
   public static makeIBCMinimalDenom(
@@ -26,14 +27,35 @@ export class AssetUtils {
     );
   }
 
-  public static getPrice(amount: number | string, ticker: string) {
+  public static getPriceByTicker(amount: number | string, ticker: string) {
     const wallet = useWalletStore();
     const oracle = useOracleStore();
     const currency = wallet.getCurrencyByTicker(ticker);
     const denom = wallet.getIbcDenomBySymbol(currency.symbol);
     const info = wallet.getCurrencyInfo(denom as string);
+    const p = oracle.prices[currency.symbol]?.amount;
 
-    const price = new Dec(oracle.prices[currency.symbol].amount);
+    if (!p) {
+      return new Dec(0);
+    }
+
+    const price = new Dec(p);
+    const assetAmount = new Dec(amount, info.coinDecimals);
+    return assetAmount.quo(price);
+  }
+
+  public static getPriceByDenom(amount: number | string, denom: string) {
+    const wallet = useWalletStore();
+    const oracle = useOracleStore();
+    const info = wallet.getCurrencyInfo(denom as string);
+    const currency = wallet.getCurrencyByTicker(info.ticker);
+    const p = oracle.prices[currency.symbol]?.amount;
+
+    if (!p) {
+      return new Dec(0);
+    }
+
+    const price = new Dec(p);
     const assetAmount = new Dec(amount, info.coinDecimals);
     return assetAmount.quo(price);
   }
@@ -44,5 +66,16 @@ export class AssetUtils {
     const ibcDenom = wallet.getIbcDenomBySymbol(item.symbol);
     const asset = wallet.getCurrencyInfo(ibcDenom as string);
     return asset;
+  }
+
+  public static formatCurrentBalance(denom: string, amount: string) {
+    const wallet = useWalletStore();
+    const asset = wallet.getCurrencyInfo(denom);
+    return CurrencyUtils.convertMinimalDenomToDenom(
+      amount,
+      denom,
+      asset.coinDenom,
+      asset.coinDecimals
+    );
   }
 }

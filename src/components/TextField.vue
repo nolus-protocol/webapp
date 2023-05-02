@@ -13,8 +13,7 @@
         :name="name"
         :value="value"
         @input="$emit('update:value', handleInputChange($event))"
-      >
-      </textarea>
+      ></textarea>
       <span
         class="msg error"
         :class="{ hidden: !errorMsg.length }"
@@ -49,6 +48,5 @@ defineProps({
   },
 });
 
-const handleInputChange = (event: Event) =>
-  (event.target as HTMLInputElement).value;
+function handleInputChange(event: Event) { (event.target as HTMLInputElement).value; }
 </script>

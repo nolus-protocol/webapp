@@ -17,14 +17,9 @@
           <p class="text-primary nls-font-500 text-18 text-left uppercase m-0">
             {{ assetInfo.coinDenom }}
           </p>
-          <!-- <p
-            class="text-dark-grey text-12 garet-medium text-left capitalize m-0"
-          >
-            {{ formatPrice(getMarketPrice(asset.balance.denom)) }}
-          </p> -->
           <p class="text-medium-blue bg-[#EBEFF5] text-[10px] uppercase m-0 garet-medium py-[2px] px-[4px] rounded-md">
-          {{ $t("message.compounding") }}
-        </p>
+            {{ $t("message.compounding") }}
+          </p>
         </div>
       </div>
 
@@ -58,13 +53,11 @@
       </div>
 
       <div class="block md:col-span-1">
-        
+
       </div>
 
       <div class="hidden md:block info-show">
-        <div
-          class="text-primary nls-font-500 text-14 text-right m-0 justify-end"
-        >
+        <div class="text-primary nls-font-500 text-14 text-right m-0 justify-end">
           <CurrencyComponent
             :type="CURRENCY_VIEW_TYPES.CURRENCY"
             :amount="DEFAULT_APR"
@@ -102,15 +95,13 @@ import type { AssetBalance } from "@/stores/wallet/state";
 
 import CurrencyComponent from "../CurrencyComponent.vue";
 
-import { Coin, Dec, Int } from "@keplr-wallet/unit";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import { useOracleStore } from "@/stores/oracle";
+import { Dec } from "@keplr-wallet/unit";
 import { computed } from "vue";
 import { useWalletStore } from "@/stores/wallet";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { DEFAULT_APR, NATIVE_CURRENCY } from "@/config/env";
+import { AssetUtils } from "@/utils";
 
-const oracle = useOracleStore();
 const wallet = useWalletStore();
 
 const props = defineProps({
@@ -132,45 +123,12 @@ const assetInfo = computed(() => {
   return assetInfo;
 });
 
-const formatPrice = (price: string) => {
-  return CurrencyUtils.formatPrice(price);
-};
-
-const getMarketPrice = (denom: string) => {
-  const prices = oracle.prices;
-  if (prices) {
-    return prices[denom]?.amount || "0";
-  }
-  return "0";
-};
-
-const convertMinimalDenomToDenom = (
-  tokenAmount: string,
-  minimalDenom: string
-) => {
-  const assetInfo = wallet.getCurrencyInfo(minimalDenom);
-  return CurrencyUtils.convertMinimalDenomToDenom(
-    tokenAmount,
-    minimalDenom,
-    assetInfo.coinDenom,
-    assetInfo.coinDecimals
-  ).maxDecimals(6);
-};
-
 const showBalance = computed(() => {
   const data = new Dec(props.asset.balance.amount);
   return data.isPositive();
 });
 
-const calculateBalance = (tokenAmount: string, denom: string) => {
-  const currency = wallet.getCurrencyInfo(denom);
-  const data = wallet.getCurrencyByTicker(currency.ticker);
-  const price = getMarketPrice(data.symbol);
-
-  const tokenDecimals = wallet.getCurrencyInfo(denom).coinDecimals;
-  const coin = new Coin(denom, new Int(tokenAmount));
-  return CurrencyUtils.calculateBalance(price, coin, tokenDecimals)
-    .toDec()
-    .toString(2);
+function calculateBalance(tokenAmount: string, denom: string) {
+  return AssetUtils.getPriceByDenom(tokenAmount, denom).toString(2);
 };
 </script>

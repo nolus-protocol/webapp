@@ -86,7 +86,7 @@
             <SidebarElement
               id="more"
               @click="showMobileNav = !showMobileNav"
-              :label="isMobile ? 'More' : 'Settings'"
+              :label="isMobile ? $t('message.more') : $t('message.settings')"
             />
           </div>
         </div>
@@ -194,7 +194,7 @@ watch(
   }
 );
 
-const onClick = (event: MouseEvent) => {
+function onClick(event: MouseEvent) {
   if (isMobile.value) {
     const isClickedOutside = sidebar.value?.contains(event.target as Node);
     if (!isClickedOutside) {
@@ -203,7 +203,7 @@ const onClick = (event: MouseEvent) => {
   }
 };
 
-const setBlock = async () => {
+async function setBlock () {
   try {
     const nolusClient = NolusClient.getInstance();
     block.value = await nolusClient.getBlockHeight();
@@ -212,7 +212,7 @@ const setBlock = async () => {
   }
 }
 
-const setVersion = async () => {
+async function setVersion () {
   try {
     const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].tendermintRpc;
     const data = await fetch(`${url}/abci_info`);
@@ -223,18 +223,18 @@ const setVersion = async () => {
   }
 }
 
-const openSwapModal = () => {
+function openSwapModal() {
   showSwapModal.value = true;
 }
 
-const pushTo = (route: RouteNames) => {
+function pushTo(route: RouteNames) {
   router.push({ name: route });
   if (showMobileNav.value) {
     showMobileNav.value = false;
   }
 }
 
-const openExternal = (url: string, target: string) => {
+function openExternal(url: string, target: string) {
   window.open(url, target);
 }
 </script>

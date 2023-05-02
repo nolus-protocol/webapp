@@ -321,9 +321,9 @@ const useWalletStore = defineStore("wallet", {
             const decodedTx: DecodedTxRaw = decodeTxRaw(item.tx);
             try {
 
-              const msgs = [] 
-              for (const m of decodedTx.body.messages) { 
-                msgs.push({ 
+              const msgs = []
+              for (const m of decodedTx.body.messages) {
+                msgs.push({
                   typeUrl: m.typeUrl,
                   data: this.wallet?.registry.decode(m)
                 });
@@ -344,7 +344,7 @@ const useWalletStore = defineStore("wallet", {
 
               data.push(transactionResult);
             } catch (error) {
-              console.log(error);
+              console.error(error);
             }
           }
         }
@@ -355,9 +355,9 @@ const useWalletStore = defineStore("wallet", {
             const decodedTx: DecodedTxRaw = decodeTxRaw(item.tx);
             try {
 
-              const msgs = [] 
-              for (const m of decodedTx.body.messages) { 
-                msgs.push({ 
+              const msgs = []
+              for (const m of decodedTx.body.messages) {
+                msgs.push({
                   typeUrl: m.typeUrl,
                   data: this.wallet?.registry.decode(m)
                 });
@@ -378,7 +378,7 @@ const useWalletStore = defineStore("wallet", {
 
               data.push(transactionResult);
             } catch (error) {
-              console.log(error);
+              console.error(error);
             }
           }
         }
@@ -394,7 +394,6 @@ const useWalletStore = defineStore("wallet", {
         });
 
         const items = await Promise.all(promises);
-
         return {
           data: items,
           receiver_total,

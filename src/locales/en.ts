@@ -266,6 +266,7 @@ export default {
     "delegate-position-action": "Delegate {amount} to {validator}",
     "undelegate-position-action": "Undelegate {amount} to {validator}",
     "supply-position-action": "Supply {amount} to liquidity pool",
-    "withdraw-position-action": "Withdraw {amount}  from liquidity pool"
+    "withdraw-position-action": "Withdraw {amount}  from liquidity pool",
+    "settings": "Settings"
   }
 }

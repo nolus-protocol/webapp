@@ -1,21 +1,20 @@
 <template>
-  <component :is="currentComponent.is" v-model="currentComponent.props" />
+  <component
+    :is="currentComponent.is"
+    v-model="currentComponent.props"
+  />
 </template>
 
 <script setup lang="ts">
-import ReceiveComponent, {
-  type ReceiveComponentProps,
-} from "@/components/ReceiveComponents/ReceiveComponent.vue";
-import ReceiveQrCodeComponent, {
-  type ReceiveQrCodeComponentProps,
-} from "@/components/ReceiveComponents/ReceiveQrCodeComponent.vue";
+import ReceiveComponent, { type ReceiveComponentProps } from "@/components/ReceiveComponents/ReceiveComponent.vue";
+import ReceiveQrCodeComponent, { type ReceiveQrCodeComponentProps } from "@/components/ReceiveComponents/ReceiveQrCodeComponent.vue";
 
 import { inject, onMounted, shallowRef, computed } from "vue";
 import { StringUtils, WalletManager } from "@/utils";
 import { useWalletStore } from "@/stores/wallet";
 
 interface ReceiveMainComponentData {
-  is: typeof ReceiveComponent | typeof ReceiveQrCodeComponent;
+  is: typeof ReceiveComponent | typeof ReceiveQrCodeComponent | any;
   props: ReceiveComponentProps | ReceiveQrCodeComponentProps;
 }
 
@@ -32,7 +31,7 @@ const balances = computed(() => walletStore.balances);
 
 const setShowDialogHeader = inject(
   "setShowDialogHeader",
-  (bool: Boolean) => {}
+  (bool: Boolean) => { }
 );
 
 onMounted(() => {
