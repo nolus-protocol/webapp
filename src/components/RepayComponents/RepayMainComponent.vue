@@ -73,7 +73,7 @@ const balances = computed(() => {
   const balances = walletStore.balances;
   return balances.filter((item) => {
     const currency = walletStore.currencies[item.balance.denom];
-    return currency.groups.includes(GROUPS.Lpn); //currency.groups.includes(GROUPS.Lease) || currency.groups.includes(GROUPS.Lpn);
+    return currency.groups.includes(GROUPS.Lease) || currency.groups.includes(GROUPS.Lpn);
   });
 });
 

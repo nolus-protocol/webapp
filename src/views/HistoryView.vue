@@ -113,6 +113,7 @@ export interface ITransaction {
   memo: string;
   blockDate: Date | null;
   fee: Coin[] | null;
+  log: string | null;
   type: 'sender' | 'receiver'
 }
 

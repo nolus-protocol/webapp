@@ -296,7 +296,7 @@ const useWalletStore = defineStore("wallet", {
         const [sender, receiver] = await Promise.all([
           load_sender
             ? client.txSearch({
-              query: `message.sender='${WalletManager.getWalletAddress()}'`,
+              query: `message.sender='${address}'`,
               per_page: sender_per_page,
               page: sender_page,
               order_by: "desc",
@@ -304,7 +304,7 @@ const useWalletStore = defineStore("wallet", {
             : false,
           load_recipient
             ? client.txSearch({
-              query: `transfer.recipient='${WalletManager.getWalletAddress()}'`,
+              query: `transfer.recipient='${address}'`,
               per_page: recipient_per_page,
               page: recipient_page,
               order_by: "desc",
@@ -336,6 +336,7 @@ const useWalletStore = defineStore("wallet", {
                 type: "sender",
                 blockDate: null as null | ReadonlyDateWithNanoseconds,
                 memo: decodedTx.body.memo ?? "",
+                log: item.result.log,
                 fee: decodedTx?.authInfo?.fee?.amount.filter(
                   (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
                 ) ?? null,
@@ -369,6 +370,7 @@ const useWalletStore = defineStore("wallet", {
                 type: "receiver",
                 blockDate: null as null | ReadonlyDateWithNanoseconds,
                 memo: decodedTx.body.memo ?? "",
+                log: item.result.log,
                 fee: decodedTx?.authInfo?.fee?.amount.filter(
                   (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
                 ) ?? null,
@@ -383,7 +385,6 @@ const useWalletStore = defineStore("wallet", {
         const promises = data.map(async (item) => {
           try {
             const block = await client.block(item.height);
-            // console.log(block)
             item.blockDate = block.block.header.time;
             return item;
           } catch (error) {
@@ -393,7 +394,7 @@ const useWalletStore = defineStore("wallet", {
         });
 
         const items = await Promise.all(promises);
-        // console.log(items)
+
         return {
           data: items,
           receiver_total,

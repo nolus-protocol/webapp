@@ -73,7 +73,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { Coin } from "@cosmjs/proto-signing";
+import { parseCoins, type Coin } from "@cosmjs/proto-signing";
 import type { ITransaction } from "@/views/HistoryView.vue";
 
 import { useApplicationStore } from "@/stores/application";
@@ -81,13 +81,21 @@ import { useApplicationStore } from "@/stores/application";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { StringUtils } from "@/utils/StringUtils";
 import { useI18n } from "vue-i18n";
+import { useWalletStore } from "@/stores/wallet";
+import { Buffer } from "buffer";
 
 enum Messages {
-  "/cosmos.bank.v1beta1.MsgSend" = "/cosmos.bank.v1beta1.MsgSend"
+  "/cosmos.bank.v1beta1.MsgSend" = "/cosmos.bank.v1beta1.MsgSend",
+  "/ibc.applications.transfer.v1.MsgTransfer" = "/ibc.applications.transfer.v1.MsgTransfer",
+  "/cosmwasm.wasm.v1.MsgExecuteContract" = "/cosmwasm.wasm.v1.MsgExecuteContract",
+  "/cosmos.gov.v1beta1.MsgVote" = "/cosmos.gov.v1beta1.MsgVote",
+  "/cosmos.staking.v1beta1.MsgDelegate" = "/cosmos.staking.v1beta1.MsgDelegate",
+  "/cosmos.staking.v1beta1.MsgUndelegate" = "/cosmos.staking.v1beta1.MsgUndelegate"
 }
 
 const i18n = useI18n();
 const applicaton = useApplicationStore();
+const wallet = useWalletStore();
 const months = [
   i18n.t("message.jan"),
   i18n.t("message.feb"),
@@ -186,25 +194,145 @@ const getCraetedAtForHuman = (createdAt: Date | null) => {
 };
 
 const message = (msg: Object | any) => {
+
   switch (msg.typeUrl) {
     case (Messages["/cosmos.bank.v1beta1.MsgSend"]): {
       if (props.transaction.type == 'sender') {
+        const token = getCurrency(msg.data.amount?.[0]);
         return i18n.t('message.send-action', {
-          address: truncateString(msg.data.toAddress)
+          address: truncateString(msg.data.toAddress),
+          amount: token.toString()
         });
       }
 
       if (props.transaction.type == 'receiver') {
+        const token = getCurrency(msg.data.amount[0]);
         return i18n.t('message.receive-action', {
-          address: truncateString(msg.data.fromAddress)
+          address: truncateString(msg.data.fromAddress),
+          amount: token.toString()
         });
       }
+
+      return msg.typeUrl;
+    }
+    case (Messages["/ibc.applications.transfer.v1.MsgTransfer"]): {
+      if (props.transaction.type == 'sender') {
+        const token = getCurrency(msg.data.token);
+        return i18n.t('message.send-action', {
+          address: truncateString(msg.data.receiver),
+          amount: token.toString()
+        });
+      }
+
+      if (props.transaction.type == 'receiver') {
+        const token = getCurrency(msg.data.token);
+        return i18n.t('message.receive-action', {
+          address: truncateString(msg.data.sender),
+          amount: token.toString()
+        });
+      }
+
+      return msg.typeUrl;
+    }
+    case (Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]): {
+      try {
+        const data = JSON.parse(Buffer.from(msg.data.msg).toString());
+
+        if (data.open_lease) {
+          const token = getCurrency(msg.data.funds[0]);
+          return i18n.t('message.open-position-action', {
+            ticker: data.open_lease.currency,
+            amount: token.toString()
+          });
+        }
+
+        if (data.repay) {
+          const token = getCurrency(msg.data.funds[0]);
+          return i18n.t('message.repay-position-action', {
+            contract: truncateString(msg.data.contract),
+            amount: token.toString()
+          });
+        }
+
+        if (data.close) {
+          return i18n.t('message.close-position-action', {
+            contract: truncateString(msg.data.contract),
+          });
+        }
+
+        if (data.claim_rewards) {
+          const log = JSON.parse(props.transaction.log as string);
+          const amount = log[0].events[0].attributes[1];
+          const coin = parseCoins(amount.value)[0];
+          const token = getCurrency(coin);
+          return i18n.t('message.claim-position-action', {
+            amount: token.toString(),
+          });
+        }
+
+        if (data.deposit) {
+          const token = getCurrency(msg.data.funds[0]);
+          return i18n.t('message.supply-position-action', {
+            amount: token.toString()
+          });
+        }
+
+        if (data.burn) {
+          const log = JSON.parse(props.transaction.log as string);
+          const amount = log[0].events[0].attributes[1];
+          const coin = parseCoins(amount.value)[0];
+          const token = getCurrency(coin);
+          return i18n.t('message.withdraw-position-action', {
+            amount: token.toString(),
+          });
+        }
+
+      } catch (error) {
+        return msg.typeUrl
+      }
+      
+
+      return msg.typeUrl;
+    }
+    case (Messages["/cosmos.gov.v1beta1.MsgVote"]): {
+      console.log(msg, '123123')
+      return i18n.t('message.vote-position-action', {
+        vote: msg.data.option ? i18n.t('message.yes') : i18n.t('message.no'),
+        propose: msg.data.proposalId?.toString()
+      });
+    }
+    case (Messages["/cosmos.staking.v1beta1.MsgDelegate"]): {
+      const token = getCurrency(msg.data.amount);
+      return i18n.t('message.delegate-position-action', {
+        validator: truncateString(msg.data.validatorAddress),
+        amount: token.toString()
+      });
+    }
+    case (Messages["/cosmos.staking.v1beta1.MsgUndelegate"]): {
+      const token = getCurrency(msg.data.amount);
+      return i18n.t('message.undelegate-position-action', {
+        validator: truncateString(msg.data.validatorAddress),
+        amount: token.toString()
+      });
     }
     default: {
-      return '';
+      return msg.typeUrl;
     }
   }
 };
+
+const getCurrency = (amount: Coin) => {
+  const currency = amount;
+  const info = wallet.getCurrencyInfo(currency.denom);
+  const token = CurrencyUtils.convertMinimalDenomToDenom(
+    currency.amount,
+    info.coinMinimalDenom,
+    info.coinDenom,
+    info.coinDecimals
+  );
+
+  return token;
+}
 </script>
 <style scoped>
 .his-gray {

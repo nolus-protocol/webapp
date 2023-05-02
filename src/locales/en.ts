@@ -255,6 +255,17 @@ export default {
     "empty-lease": "You might be missing on upside potential value gains!",
     "lease-now": "Lease now",
     "send-action": "Send {amount} to {address}",
-    "receive-action": "Receive {amount} from {address}"
+    "receive-action": "Receive {amount} from {address}",
+    "open-position-action": "Open {ticker} position with {amount}",
+    "repay-position-action": "Repay {amount} for {contract} position",
+    "close-position-action": "Collect position {contract}",
+    "claim-position-action": "Claim {amount} rewards",
+    "vote-position-action": "Vote {vote} on proposal #{propose}",
+    "yes": "Yes",
+    "no": "No",
+    "delegate-position-action": "Delegate {amount} to {validator}",
+    "undelegate-position-action": "Undelegate {amount} to {validator}",
+    "supply-position-action": "Supply {amount} to liquidity pool",
+    "withdraw-position-action": "Withdraw {amount}  from liquidity pool"
   }
 }
