@@ -89,7 +89,6 @@ body {
 	position: relative;
 	margin: 0;
 	min-height: 100vh;
-	min-height: calc(var(--vh, 1vh) * 100);
 
 	box-sizing: border-box;
 	-webkit-font-smoothing: antialiased;
@@ -109,6 +108,15 @@ body {
 	"Segoe UI Symbol";
 	font-smooth: always;
 	color: $dark;
+}
+
+@media (max-width: $sm) {
+
+	html,
+	body {
+		min-height: calc(var(--vh, 1vh) * 100);
+
+	}
 }
 
 div#app {

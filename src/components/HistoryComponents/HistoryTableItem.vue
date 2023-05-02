@@ -90,7 +90,8 @@ enum Messages {
   "/cosmwasm.wasm.v1.MsgExecuteContract" = "/cosmwasm.wasm.v1.MsgExecuteContract",
   "/cosmos.gov.v1beta1.MsgVote" = "/cosmos.gov.v1beta1.MsgVote",
   "/cosmos.staking.v1beta1.MsgDelegate" = "/cosmos.staking.v1beta1.MsgDelegate",
-  "/cosmos.staking.v1beta1.MsgUndelegate" = "/cosmos.staking.v1beta1.MsgUndelegate"
+  "/cosmos.staking.v1beta1.MsgUndelegate" = "/cosmos.staking.v1beta1.MsgUndelegate",
+  "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward" = "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"
 }
 
 const i18n = useI18n();
@@ -290,12 +291,11 @@ const message = (msg: Object | any) => {
       } catch (error) {
         return msg.typeUrl
       }
-      
+
 
       return msg.typeUrl;
     }
     case (Messages["/cosmos.gov.v1beta1.MsgVote"]): {
-      console.log(msg, '123123')
       return i18n.t('message.vote-position-action', {
         vote: msg.data.option ? i18n.t('message.yes') : i18n.t('message.no'),
         propose: msg.data.proposalId?.toString()
@@ -313,6 +313,15 @@ const message = (msg: Object | any) => {
       return i18n.t('message.undelegate-position-action', {
         validator: truncateString(msg.data.validatorAddress),
         amount: token.toString()
+      });
+    }
+    case (Messages["/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"]): {
+      const log = JSON.parse(props.transaction.log as string);
+      const amount = log[0].events[0].attributes[1];
+      const coin = parseCoins(amount.value)[0];
+      const token = getCurrency(coin);
+      return i18n.t('message.claim-position-action', {
+        amount: token.toString(),
       });
     }
     default: {
