@@ -68,6 +68,13 @@ export class AssetUtils {
     return asset;
   }
 
+  public static getAssetInfoByDenom(denom: string) {
+    const wallet = useWalletStore();
+    const ibcDenom = wallet.getIbcDenomBySymbol(denom);
+    const asset = wallet.getCurrencyInfo(ibcDenom as string);
+    return asset;
+  }
+
   public static formatCurrentBalance(denom: string, amount: string) {
     const wallet = useWalletStore();
     const asset = wallet.getCurrencyInfo(denom);

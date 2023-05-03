@@ -102,6 +102,9 @@
           </p>
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             {{ calculateLique }}
+            <span class="text-[#8396B1]">
+              &nbsp;|&nbsp; {{ percentLique }}
+            </span>
             <TooltipComponent :content="$t('message.liquidation-price-tooltip')" />
           </p>
         </div>
@@ -295,6 +298,11 @@ const updateSelected = (event: PickerOption) => {
 }
 
 const calculateLique = computed(() => {
+  const d = getLquidation();
+  return `$${d.toString(2)}`;
+});
+
+const getLquidation = () => {
   const lease = props.modelValue.leaseApply;
   if (lease) {
 
@@ -304,10 +312,27 @@ const calculateLique = computed(() => {
     const unitAsset = new Dec(getBorrowedAmount(), Number(unitAssetInfo.decimal_digits));
 
     const stableAsset = new Dec(getTotalAmount(), Number(stableAssetInfo.decimal_digits));
-    const data = calculateLiquidation(unitAsset, stableAsset);
-    return `$${data.toString(2)}`;
+    return calculateLiquidation(unitAsset, stableAsset);
   }
-  return '$0';
+
+  return new Dec(0);
+}
+
+const percentLique = computed(() => {
+
+  const asset = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
+  const currecy = wallet.getCurrencyByTicker(asset.ticker);
+
+  const price = new Dec(oracle.prices[currecy.symbol].amount, asset.coinDecimals);
+  const lprice = getLquidation();
+
+  if (lprice.isZero() || price.isZero()) {
+    return `0%`
+  }
+
+  return `-${lprice.quo(price).mul(new Dec(100)).toString(0)}%`
+
+
 });
 
 const onDrag = (event: number) => {
