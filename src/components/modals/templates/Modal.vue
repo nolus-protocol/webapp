@@ -52,6 +52,9 @@ import router from "@/router";
 const collpase = ref(false);
 const dialog = ref<HTMLDivElement>();
 const props = defineProps({
+  disableClose: {
+    type: Boolean
+  },
   route: {
     type: String,
     default: "dialog",
@@ -65,8 +68,12 @@ const setCollapseButton = (bool: boolean) => {
 };
 
 const onModalClose = () => {
-  parseRoute();
-  close();
+  if(!props.disableClose){
+    parseRoute();
+    close();
+  }else{
+    emit("close-modal");
+  }
 };
 
 const parseRoute = () => {

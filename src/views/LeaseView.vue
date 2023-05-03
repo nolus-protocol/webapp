@@ -75,12 +75,17 @@ import Modal from "@/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/components/modals/ErrorDialog.vue";
 import LeaseInfo from "@/components/LeaseInfo.vue";
 
-import { ref, provide, onMounted, onUnmounted } from "vue";
+import { ref, provide, onMounted, onUnmounted, watch } from "vue";
 import { useLeases } from "@/composables/useLeases";
+import { useApplicationStore } from "@/stores/application";
+import { storeToRefs } from "pinia";
 
 const showLeaseModal = ref(false);
 const { leases, leaseLoaded, getLeases } = useLeases(onLeaseError);
 const CHECK_TIME = 15000;
+const applicaton = useApplicationStore();
+const applicationRef = storeToRefs(applicaton);
+
 let timeOut: NodeJS.Timeout;
 
 const errorDialog = ref({
@@ -98,6 +103,15 @@ onMounted(() => {
 onUnmounted(() => {
   clearInterval(timeOut);
 })
+
+watch(
+  () => applicationRef.sessionExpired.value,
+  (value) => {
+    if(value){
+      clearInterval(timeOut);
+    }
+  }
+);
 
 const onCloseLease = () => {
   showLeaseModal.value = false;

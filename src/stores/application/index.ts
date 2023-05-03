@@ -7,7 +7,7 @@ import { NolusClient } from "@nolus/nolusjs";
 import { DEFAULT_PRIMARY_NETWORK, NETWORKS, WASM_LP_DEPOSIT } from "@/config/env";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { useOracleStore, OracleActionTypes } from "../oracle";
-import { Lpp } from "@nolus/nolusjs/build/contracts";
+import { Disparcher, Lpp } from "@nolus/nolusjs/build/contracts";
 import { CONTRACTS } from "@/config/contracts";
 import { Buffer } from "buffer";
 import { Dec } from "@keplr-wallet/unit";
@@ -17,7 +17,9 @@ const useApplicationStore = defineStore("application", {
     return {
       network: {},
       theme: null,
-      apr: null
+      apr: null,
+      dispatcherRewards: null,
+      sessionExpired: false
     } as State;
   },
   actions: {
@@ -66,24 +68,28 @@ const useApplicationStore = defineStore("application", {
         throw new Error(error);
       }
     },
-    async [ApplicationActionTypes.LOAD_APR]() {
+    async [ApplicationActionTypes.LOAD_APR_REWARDS]() {
 
       try {
         const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].tendermintRpc;
         const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
         const instance = CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance;
         const lppClient = new Lpp(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance);
+        const dispatcherClient = new Disparcher(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].dispatcher.instance);
 
-        const [contract, status, price] = await Promise.all([
+        const [contract, status, price, dispatcherRewards] = await Promise.all([
           fetch(
             `${url}/tx_search?query="execute._contract_address='${instance}'"&prove=true&limit=1&page=1`
           ).then((data) => data.json()),
           fetch(
             `${url}/status`
           ).then((data) => data.json()),
-          lppClient.getPrice()
+          lppClient.getPrice(),
+          dispatcherClient.calculateRewards().catch(() => 0)
         ]);
+
         const data = contract.result.txs?.[0];
+        this.dispatcherRewards = dispatcherRewards;
 
         if (data) {
           const tx_result = data.tx_result.events;
@@ -96,7 +102,7 @@ const useApplicationStore = defineStore("application", {
                 const dateInSeconds = Number(Buffer.from(e.value, "base64").toString()) / 1_000_000;
                 const startDate = new Date(dateInSeconds);
 
-                const currentDate  =  new Date(status.result.sync_info.latest_block_time);
+                const currentDate = new Date(status.result.sync_info.latest_block_time);
                 const time = currentDate.getTime() - startDate.getTime();
                 const timeInDays = new Dec(Math.round(time / 24 / 60 / 60 / 1000));
                 const p = new Dec(price.amount_quote.amount).quo(new Dec((price.amount.amount))).quo(new Dec(1)).sub(new Dec(1)).quo(timeInDays).mul(new Dec(365));

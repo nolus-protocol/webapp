@@ -330,7 +330,9 @@ const percentLique = computed(() => {
     return `0%`
   }
 
-  return `-${lprice.quo(price).mul(new Dec(100)).toString(0)}%`
+  const p = price.sub(lprice).quo(price);
+
+  return `-${p.mul(new Dec(100)).toString(0)}%`
 
 
 });

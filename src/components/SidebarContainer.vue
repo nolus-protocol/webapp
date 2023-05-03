@@ -194,6 +194,15 @@ watch(
   }
 );
 
+watch(
+  () => applicationRef.sessionExpired.value,
+  (value) => {
+    if(value){
+      clearInterval(blockInterval);
+    }
+  }
+);
+
 function onClick(event: MouseEvent) {
   if (isMobile.value) {
     const isClickedOutside = sidebar.value?.contains(event.target as Node);

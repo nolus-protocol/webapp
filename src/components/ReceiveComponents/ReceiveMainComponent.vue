@@ -9,9 +9,10 @@
 import ReceiveComponent, { type ReceiveComponentProps } from "@/components/ReceiveComponents/ReceiveComponent.vue";
 import ReceiveQrCodeComponent, { type ReceiveQrCodeComponentProps } from "@/components/ReceiveComponents/ReceiveQrCodeComponent.vue";
 
-import { inject, onMounted, shallowRef, computed } from "vue";
+import { inject, onMounted, shallowRef, computed, watch } from "vue";
 import { StringUtils, WalletManager } from "@/utils";
 import { useWalletStore } from "@/stores/wallet";
+import { storeToRefs } from "pinia";
 
 interface ReceiveMainComponentData {
   is: typeof ReceiveComponent | typeof ReceiveQrCodeComponent | any;
@@ -28,38 +29,43 @@ const currentComponent = shallowRef({} as ReceiveMainComponentData);
 const hideDialogHeader = () => setShowDialogHeader(false);
 const showDialogHeader = () => setShowDialogHeader(true);
 const balances = computed(() => walletStore.balances);
+const walletRef = storeToRefs(walletStore);
 
 const setShowDialogHeader = inject(
   "setShowDialogHeader",
   (bool: Boolean) => { }
 );
 
-onMounted(() => {
-  currentComponent.value = {
-    is: ScreenState.MAIN,
-    props: {
-      currentBalance: balances.value,
-      selectedCurrency: balances.value[0],
-      amount: "",
-      onScanClick: () => onScanClick(),
-      onCopyClick: (wallet) => onCopyClick(wallet),
-    },
-  };
+watch(() => walletRef.wallet.value?.address, () => {
+  switch (currentComponent.value.is) {
+    case (ScreenState.MAIN): {
+      setMainComponent();
+      break;
+    }
+    case (ScreenState.SCAN): {
+      setScanComponent();
+      break;
+    }
+  }
 });
 
-const onScanClick = () => {
+onMounted(() => {
+  setMainComponent();
+});
+
+function setScanComponent() {
   hideDialogHeader();
   currentComponent.value = {
     is: ScreenState.SCAN,
     props: {
-      walletAddress: WalletManager.getWalletAddress(),
+      walletAddress: walletStore.wallet?.address ?? WalletManager.getWalletAddress(),
       onBackClick: () => onBackClick(),
       onCopyClick: (wallet) => onCopyClick(wallet),
     },
   };
-};
+}
 
-const onBackClick = () => {
+function setMainComponent() {
   showDialogHeader();
   currentComponent.value = {
     is: ScreenState.MAIN,
@@ -67,14 +73,21 @@ const onBackClick = () => {
       currentBalance: balances.value,
       selectedCurrency: balances.value[0],
       amount: "",
-      walletAddress: WalletManager.getWalletAddress() || "",
       onScanClick: () => onScanClick(),
       onCopyClick: (wallet) => onCopyClick(wallet),
     },
   };
+}
+
+function onScanClick() {
+  setScanComponent();
 };
 
-const onCopyClick = (wallet?: string) => {
+function onBackClick() {
+  setMainComponent();
+};
+
+function onCopyClick(wallet?: string) {
   StringUtils.copyToClipboard(wallet ?? WalletManager.getWalletAddress());
 };
 </script>

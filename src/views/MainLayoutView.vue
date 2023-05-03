@@ -16,8 +16,12 @@
         </div>
         <div class="col-span-12 mobile-scroll container-view">
           <router-view v-slot="{ Component, route }">
-            <transition name="fade" mode="out-in" appear>
-              <div :key="route.name!">  
+            <transition
+              name="fade"
+              mode="out-in"
+              appear
+            >
+              <div :key="route.name!">
                 <component :is="Component"></component>
               </div>
             </transition>
@@ -43,6 +47,14 @@
       :try-button="connect"
     />
   </Modal>
+  <Modal
+    v-if="app.sessionExpired"
+    route="alert"
+    :disable-close="true"
+    @close-modal="refresh()"
+  >
+    <SessionExpireDialog :close="refresh" />
+  </Modal>
 </template>
 
 <script lang="ts" setup>
@@ -51,21 +63,20 @@ import SidebarHeader from "@/components/Sideheader.vue";
 import Snackbar from "@/components/templates/utils/Snackbar.vue";
 import Modal from "@/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/components/modals/ErrorDialog.vue";
+import SessionExpireDialog from "@/components/modals/SessionExpireDialog.vue";
 
 import { OracleActionTypes, useOracleStore } from "@/stores/oracle";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { WalletManager } from "@/utils";
 import { onMounted, onUnmounted, provide, ref, type Ref } from "vue";
 
-import {
-  SNACKBAR,
-  UPDATE_BALANCE_INTERVAL,
-  UPDATE_PRICES_INTERVAL,
-} from "@/config/env";
+import { SESSION_TIME, SNACKBAR, UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL, } from "@/config/env";
 import { ApplicationActionTypes, useApplicationStore } from "@/stores/application";
 
 let balanceInterval: NodeJS.Timeout | undefined;
 let pricesInterval: NodeJS.Timeout | undefined;
+let sessionTimeOut: NodeJS.Timeout | undefined;
+
 const wallet = useWalletStore();
 const oracle = useOracleStore();
 const app = useApplicationStore();
@@ -82,37 +93,42 @@ const snackbarState = ref({
 onMounted(async () => {
   await loadNetwork();
   window.addEventListener("keplr_keystorechange", updateKeplr);
+  window.addEventListener('focus', stopTimer);
+  window.addEventListener('blur', startTimer);
 });
 
 onUnmounted(() => {
   clearInterval(balanceInterval);
-  clearInterval(pricesInterval);
+  clearInterval(pricesInterval)
+  clearInterval(sessionTimeOut);
   window.removeEventListener("keplr_keystorechange", updateKeplr);
+  window.removeEventListener('focus', stopTimer);
+  window.removeEventListener('blur', startTimer);
 });
 
-const updateKeplr = async () => {
+async function updateKeplr() {
   try {
-  await wallet[WalletActionTypes.CONNECT_KEPLR]({ isFromAuth: true });
-  await loadNetwork();
-} catch (error: Error | any) {
+    await wallet[WalletActionTypes.CONNECT_KEPLR]({ isFromAuth: true });
+    await loadNetwork();
+  } catch (error: Error | any) {
     showErrorDialog.value = true;
     errorMessage.value = error?.message
   }
 }
 
-const connect = async () => {
+async function connect() {
   clearInterval(balanceInterval);
   clearInterval(pricesInterval);
   await loadNetwork();
 };
 
-const loadNetwork = async () => {
+async function loadNetwork() {
   try {
     await Promise.all([
       wallet[WalletActionTypes.UPDATE_BALANCES](),
       wallet[WalletActionTypes.LOAD_APR](),
       oracle[OracleActionTypes.GET_PRICES](),
-      app[ApplicationActionTypes.LOAD_APR](),
+      app[ApplicationActionTypes.LOAD_APR_REWARDS](),
     ]);
     checkBalances();
     checkPrices();
@@ -122,7 +138,7 @@ const loadNetwork = async () => {
   }
 };
 
-const checkBalances = async () => {
+async function checkBalances() {
   balanceInterval = setInterval(async () => {
     try {
       if (WalletManager.getWalletAddress() !== "") {
@@ -135,7 +151,7 @@ const checkBalances = async () => {
   }, UPDATE_BALANCE_INTERVAL);
 };
 
-const checkPrices = async () => {
+async function checkPrices() {
   pricesInterval = setInterval(async () => {
     try {
       await oracle[OracleActionTypes.GET_PRICES]();
@@ -146,16 +162,37 @@ const checkPrices = async () => {
   }, UPDATE_PRICES_INTERVAL);
 };
 
-const showSnackbar = (type: SNACKBAR, transaction: string) => {
+function showSnackbar(type: SNACKBAR, transaction: string) {
   snackbarState.value.type = type;
   snackbarState.value.transaction = transaction;
 
   snackbar.value.openSnackBar(type);
 };
 
-const snackbarVisible = () => {
+function snackbarVisible() {
   return snackbar.value.snackbarVisible();
 };
+
+function startTimer() {
+  if (sessionTimeOut) {
+    clearInterval(sessionTimeOut)
+  }
+  sessionTimeOut = setTimeout(() => {
+    app.sessionExpired = true;
+    clearInterval(balanceInterval);
+    clearInterval(pricesInterval);
+  }, SESSION_TIME);
+}
+
+function stopTimer() {
+  if (sessionTimeOut) {
+    clearInterval(sessionTimeOut)
+  }
+}
+
+function refresh() {
+  window.location.reload();
+}
 
 provide("showSnackbar", showSnackbar);
 provide("snackbarVisible", snackbarVisible);

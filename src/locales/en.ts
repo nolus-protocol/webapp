@@ -256,17 +256,20 @@ export default {
     "lease-now": "Lease now",
     "send-action": "Send {amount} to {address}",
     "receive-action": "Receive {amount} from {address}",
-    "open-position-action": "Open {ticker} position with {amount}",
-    "repay-position-action": "Repay {amount} for {contract} position",
-    "close-position-action": "Collect position {contract}",
+    "open-position-action": "Open lease position in {ticker} with {amount}",
+    "repay-position-action": "Repay {amount} for lease position {contract}",
+    "close-position-action": "Collect tokens from lease position {contract}",
     "claim-position-action": "Claim {amount} rewards",
     "vote-position-action": "Vote {vote} on proposal #{propose}",
     "yes": "Yes",
     "no": "No",
     "delegate-position-action": "Delegate {amount} to {validator}",
-    "undelegate-position-action": "Undelegate {amount} to {validator}",
+    "undelegate-position-action": "Undelegate {amount} from {validator}",
     "supply-position-action": "Supply {amount} to liquidity pool",
     "withdraw-position-action": "Withdraw {amount}  from liquidity pool",
-    "settings": "Settings"
+    "settings": "Settings",
+    "refresh": "Refresh",
+    "session-timeout": "Session Timeout",
+    "session-timeout-message": "Your session has expired. Refresh to continue"
   }
 }

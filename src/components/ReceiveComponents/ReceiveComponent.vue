@@ -135,7 +135,7 @@ import ConfirmExternalComponent from "@/components/modals/templates/ConfirmExter
 import type { AssetBalance } from "@/stores/wallet/state";
 import { CONFIRM_STEP, TxType, type Network } from "@/types";
 
-import { onUnmounted, ref, type PropType, computed, inject } from "vue";
+import { onUnmounted, ref, type PropType, computed, inject, watch } from "vue";
 import { DocumentDuplicateIcon, QrCodeIcon } from "@heroicons/vue/24/solid";
 import { NATIVE_NETWORK, SOURCE_PORTS } from "@/config/env";
 import { useI18n } from "vue-i18n";
@@ -148,6 +148,7 @@ import { externalWalletOperation } from "../utils";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore } from "@/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
+import { storeToRefs } from "pinia";
 
 export interface ReceiveComponentProps {
   currentBalance: AssetBalance[];
@@ -180,6 +181,8 @@ const fee = ref<Coin>()
 const isLoading = ref(false);
 const closeModal = inject("onModalClose", () => () => {});
 const networkCurrenciesObject = ref();
+const walletRef = storeToRefs(walletStore);
+const wallet =  ref(WalletUtils.transformWallet(NATIVE_NETWORK.prefix));
 
 defineProps({
   modelValue: {
@@ -192,6 +195,11 @@ onUnmounted(() => {
   if(client){
     client.destroy();
   }
+});
+
+
+watch(() => walletRef.wallet.value?.address, () => {
+  wallet.value =  WalletUtils.transformWallet(NATIVE_NETWORK.prefix);
 });
 
 const onUpdateNetwork = async (event: Network) => {
@@ -245,10 +253,6 @@ const onUpdateNetwork = async (event: Network) => {
     selectedCurrency.value = walletStore.balances[0];
   }
 };
-
-const wallet = computed(() => {
-  return WalletUtils.transformWallet(NATIVE_NETWORK.prefix);
-});
 
 const onCopy = () => {
   copyText.value = i18n.t("message.copied");

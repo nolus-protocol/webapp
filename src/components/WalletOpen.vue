@@ -103,7 +103,7 @@ const appearance = computed(() => {
 });
 
 const getWallet = computed(() => {
-  return StringUtils.truncateString(WalletManager.getWalletAddress(), 12, 8);
+  return StringUtils.truncateString(wallet.wallet?.address ?? WalletManager.getWalletAddress(), 12, 8);
 });
 
 const networks = ref(
@@ -129,7 +129,7 @@ onUnmounted(() => {
 function onUpdateNetwork(value: PickerOption) {
   EnvNetworkUtils.saveCurrentNetwork(value.value);
   applicaton[ApplicationActionTypes.CHANGE_NETWORK](true);
-  applicaton[ApplicationActionTypes.LOAD_APR]();
+  applicaton[ApplicationActionTypes.LOAD_APR_REWARDS]();
   router.push({ name: RouteNames.DASHBOARD });
 };
 

@@ -55,14 +55,18 @@
           denom="%"
         />
         <template v-else>
-          <CurrencyComponent
-            v-if="assetInfo.isEarn"
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            :amount="app.apr?.toString() ?? '0'"
-            :hasSpace="false"
-            :isDenomInfront="false"
-            denom="%"
-          />
+          <div v-if="assetInfo.isEarn">
+            <CurrencyComponent
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              :amount="app.apr?.toString() ?? '0'"
+              :hasSpace="false"
+              :isDenomInfront="false"
+              denom="%"
+            />
+            <p class="text-[#1AB171] text-[12px]">
+              +{{ rewards }}% {{ NATIVE_ASSET.label }}
+            </p>
+          </div>
           <template v-else>
             –
           </template>
@@ -195,7 +199,7 @@ import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { useWalletStore } from "@/stores/wallet";
 import { NATIVE_CURRENCY } from "@/config/assetsInfo";
 import { DASHBOARD_ACTIONS } from "@/types";
-import { NATIVE_CURRENCY as DEFAULT_CURRENCY, DEFAULT_LEASE_UP_PERCENT, GROUPS, LEASE_UP_COEFICIENT } from "@/config/env";
+import { NATIVE_CURRENCY as DEFAULT_CURRENCY, DEFAULT_LEASE_UP_PERCENT, GROUPS, INTEREST_DECIMALS, LEASE_UP_COEFICIENT, NATIVE_ASSET } from "@/config/env";
 import { useApplicationStore } from "@/stores/application";
 
 const walletStore = useWalletStore();
@@ -266,6 +270,10 @@ const leasUpTo = computed(() => {
   const balance = Number(props.assetBalance);
   const leaseUpToAmount = balance * LEASE_UP_COEFICIENT;
   return leaseUpToAmount.toString();
+});
+
+const rewards = computed(() => {
+  return (app.dispatcherRewards ?? 0 / Math.pow(10, INTEREST_DECIMALS)).toFixed(2);
 });
 
 const calculateBalance = (

@@ -57,7 +57,7 @@
       </div> -->
 
       <div class="hidden md:block info-show">
-        <div class="text-primary nls-font-500 text-14 text-right m-0 justify-end">
+        <div class="text-primary text-14 text-right m-0 justify-end nls-font-500">
           <CurrencyComponent
             :type="CURRENCY_VIEW_TYPES.CURRENCY"
             :amount="app.apr?.toString() ?? '0'"
@@ -65,6 +65,9 @@
             :isDenomInfront="false"
             denom="%"
           />
+          <p class="text-[#1AB171] text-[12px]">
+            +{{ rewards }}% {{ NATIVE_ASSET.label }}
+          </p>
         </div>
       </div>
 
@@ -99,7 +102,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { computed } from "vue";
 import { useWalletStore } from "@/stores/wallet";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
-import { NATIVE_CURRENCY } from "@/config/env";
+import { INTEREST_DECIMALS, NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/env";
 import { useApplicationStore } from "@/stores/application";
 import { AssetUtils } from "@/utils";
 
@@ -128,6 +131,10 @@ const assetInfo = computed(() => {
 const showBalance = computed(() => {
   const data = new Dec(props.asset.balance.amount);
   return data.isPositive();
+});
+
+const rewards = computed(() => {
+  return (app.dispatcherRewards ?? 0 / Math.pow(10, INTEREST_DECIMALS)).toFixed(2);
 });
 
 function calculateBalance(tokenAmount: string, denom: string) {

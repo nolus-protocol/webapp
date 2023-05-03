@@ -84,9 +84,6 @@ const useWalletStore = defineStore("wallet", {
           );
           const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(offlineSigner as any);
           await nolusWalletOfflineSigner.useAccount();
-          this.wallet = nolusWalletOfflineSigner;
-          this.walletName = (await keplrWindow.keplr.getKey(chainId)).name;
-          await this[WalletActionTypes.UPDATE_BALANCES]();
 
           WalletManager.saveWalletConnectMechanism(
             WalletConnectMechanism.EXTENSION
@@ -95,9 +92,15 @@ const useWalletStore = defineStore("wallet", {
           WalletManager.storeWalletAddress(
             nolusWalletOfflineSigner.address || ""
           );
+
           WalletManager.setPubKey(
-            Buffer.from(this.wallet?.pubKey ?? "").toString("hex")
+            Buffer.from(nolusWalletOfflineSigner?.pubKey ?? "").toString("hex")
           );
+
+          this.wallet = nolusWalletOfflineSigner;
+          this.walletName = (await keplrWindow.keplr.getKey(chainId)).name;
+
+          await this[WalletActionTypes.UPDATE_BALANCES]();
 
           if (payload?.isFromAuth) {
             await router.push({ name: RouteNames.DASHBOARD });

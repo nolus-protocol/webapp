@@ -167,7 +167,7 @@ import Modal from "@/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/components/modals/ErrorDialog.vue";
 import TooltipComponent from "@/components/TooltipComponent.vue";
 
-import { onMounted, onUnmounted, provide, ref } from "vue";
+import { onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 import { CONTRACTS } from "@/config/contracts";
 import { EnvNetworkUtils } from "@/utils/EnvNetworkUtils";
@@ -179,6 +179,8 @@ import { claimRewardsMsg, type ContractData, Lpp } from "@nolus/nolusjs/build/co
 import { NATIVE_ASSET, UPDATE_REWARDS_INTERVAL } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import EarnLpnAsset from "@/components/EarningsComponents/EarnLpnAsset.vue";
+import { useApplicationStore } from "@/stores/application";
+import { storeToRefs } from "pinia";
 
 const wallet = useWalletStore();
 
@@ -204,6 +206,8 @@ const loading = ref(true);
 const isDelegated = ref(false);
 const lpnAsset = ref<AssetBalance | null>()
 const lpnReward = ref(new Dec(0))
+const applicaton = useApplicationStore();
+const applicationRef = storeToRefs(applicaton);
 
 onMounted(async () => {
 
@@ -235,6 +239,15 @@ onMounted(async () => {
 onUnmounted(() => {
   clearInterval(rewardsInterval);
 });
+
+watch(
+  () => applicationRef.sessionExpired.value,
+  (value) => {
+    if(value){
+      clearInterval(rewardsInterval);
+    }
+  }
+);
 
 const onClickTryAgain = async () => {
   await Promise.all([

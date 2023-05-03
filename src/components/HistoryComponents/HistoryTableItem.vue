@@ -1,7 +1,7 @@
 <template>
   <div class="history-item">
     <div
-      v-for="(msg, index) in transaction.msgs"
+      v-for="(msg, index) in messages"
       :key="index"
       class="md:grid md:grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6 md:flex items-center text-12"
     >
@@ -68,6 +68,7 @@ import { StringUtils } from "@/utils/StringUtils";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/wallet";
 import { Buffer } from "buffer";
+import { computed } from "vue";
 
 enum Messages {
   "/cosmos.bank.v1beta1.MsgSend" = "/cosmos.bank.v1beta1.MsgSend",
@@ -76,8 +77,20 @@ enum Messages {
   "/cosmos.gov.v1beta1.MsgVote" = "/cosmos.gov.v1beta1.MsgVote",
   "/cosmos.staking.v1beta1.MsgDelegate" = "/cosmos.staking.v1beta1.MsgDelegate",
   "/cosmos.staking.v1beta1.MsgUndelegate" = "/cosmos.staking.v1beta1.MsgUndelegate",
-  "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward" = "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"
+  "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward" = "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
+  "/ibc.core.client.v1.MsgUpdateClient" = "/ibc.core.client.v1.MsgUpdateClient"
 }
+
+const ignoreMessages = [
+  {
+    type: '/ibc.core.client.v1.MsgUpdateClient',
+    msg: null
+  },
+  {
+    type: '/cosmwasm.wasm.v1.MsgExecuteContract',
+    msg: 'dispatch_alarms'
+  }
+]
 
 const i18n = useI18n();
 const applicaton = useApplicationStore();
@@ -177,7 +190,7 @@ const message = (msg: Object | any) => {
   switch (msg.typeUrl) {
     case (Messages["/cosmos.bank.v1beta1.MsgSend"]): {
       if (props.transaction.type == 'sender') {
-        const token = getCurrency(msg.data.amount?.[0]);
+        const token = getCurrency(msg.data?.amount?.[0]);
         return i18n.t('message.send-action', {
           address: truncateString(msg.data.toAddress),
           amount: token.toString()
@@ -320,6 +333,33 @@ const getCurrency = (amount: Coin) => {
 
   return token;
 }
+
+const messages = computed(() => {
+  return props.transaction.msgs.filter((item) => {
+    const i = ignoreMessages.find((e) => e.type == item.typeUrl);
+
+    switch (i?.type) {
+      case (Messages["/ibc.core.client.v1.MsgUpdateClient"]): {
+        return false;
+      }
+      case (Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]): {
+
+        try {
+          const data = JSON.parse(Buffer.from(item.data.msg).toString());
+          if (data.dispatch_alarms) {
+            return false;
+          }
+        } catch (e) {
+          return false;
+        }
+
+        return true;
+      }
+    }
+
+    return true;
+  });
+})
 </script>
 <style scoped>
 .his-gray {
