@@ -181,7 +181,7 @@ export default {
     "feb": "Feb.",
     "mar": "Mar.",
     "april": "Apr.",
-    "may": "May'",
+    "may": "May.",
     "jun": "Jun.",
     "jul": "Jul.",
     "aug": "Aug.",

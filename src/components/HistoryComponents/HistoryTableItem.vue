@@ -1,7 +1,7 @@
 <template>
   <div class="history-item">
     <div
-      v-for="(msg, index) in messages"
+      v-for="(msg, index) in messages()"
       :key="index"
       class="md:grid md:grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6 md:flex items-center text-12"
     >
@@ -68,7 +68,7 @@ import { StringUtils } from "@/utils/StringUtils";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/wallet";
 import { Buffer } from "buffer";
-import { computed } from "vue";
+import { WalletManager } from "@/utils";
 
 enum Messages {
   "/cosmos.bank.v1beta1.MsgSend" = "/cosmos.bank.v1beta1.MsgSend",
@@ -78,19 +78,10 @@ enum Messages {
   "/cosmos.staking.v1beta1.MsgDelegate" = "/cosmos.staking.v1beta1.MsgDelegate",
   "/cosmos.staking.v1beta1.MsgUndelegate" = "/cosmos.staking.v1beta1.MsgUndelegate",
   "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward" = "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
-  "/ibc.core.client.v1.MsgUpdateClient" = "/ibc.core.client.v1.MsgUpdateClient"
+  "/ibc.core.client.v1.MsgUpdateClient" = "/ibc.core.client.v1.MsgUpdateClient",
+  "/ibc.core.channel.v1.MsgAcknowledgement" = "/ibc.core.channel.v1.MsgAcknowledgement",
+  "/ibc.core.channel.v1.MsgRecvPacket" = "/ibc.core.channel.v1.MsgRecvPacket"
 }
-
-const ignoreMessages = [
-  {
-    type: '/ibc.core.client.v1.MsgUpdateClient',
-    msg: null
-  },
-  {
-    type: '/cosmwasm.wasm.v1.MsgExecuteContract',
-    msg: 'dispatch_alarms'
-  }
-]
 
 const i18n = useI18n();
 const applicaton = useApplicationStore();
@@ -192,7 +183,7 @@ const message = (msg: Object | any) => {
       if (props.transaction.type == 'sender') {
         const token = getCurrency(msg.data?.amount?.[0]);
         return i18n.t('message.send-action', {
-          address: truncateString(msg.data.toAddress),
+          address: truncateString(msg.data?.toAddress),
           amount: token.toString()
         });
       }
@@ -225,6 +216,26 @@ const message = (msg: Object | any) => {
       }
 
       return msg.typeUrl;
+    }
+    case (Messages["/ibc.core.channel.v1.MsgRecvPacket"]): {
+
+      try {
+
+        const buf = JSON.parse(Buffer.from(msg.data.packet.data).toString());
+        const data = JSON.parse(props.transaction.log as string);
+        const amount = data[1].events[0].attributes[3];
+        const coin = parseCoins(amount.value)[0];
+        const token = getCurrency(coin);
+
+        return i18n.t('message.receive-action', {
+          address: truncateString(buf.sender),
+          amount: token.toString()
+        });
+
+      } catch (e) {
+        return msg.typeUrl;
+      }
+
     }
     case (Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]): {
       try {
@@ -323,9 +334,9 @@ const message = (msg: Object | any) => {
 
 const getCurrency = (amount: Coin) => {
   const currency = amount;
-  const info = wallet.getCurrencyInfo(currency.denom);
+  const info = wallet.getCurrencyInfo(currency?.denom);
   const token = CurrencyUtils.convertMinimalDenomToDenom(
-    currency.amount,
+    currency?.amount,
     info.coinMinimalDenom,
     info.coinDenom,
     info.coinDecimals
@@ -334,23 +345,91 @@ const getCurrency = (amount: Coin) => {
   return token;
 }
 
-const messages = computed(() => {
+const messages = () => {
   return props.transaction.msgs.filter((item) => {
-    const i = ignoreMessages.find((e) => e.type == item.typeUrl);
+    switch (item.typeUrl) {
 
-    switch (i?.type) {
+      case (Messages["/cosmos.bank.v1beta1.MsgSend"]): {
+        if (props.transaction.type == 'receiver' && item.data.toAddress != (wallet.wallet?.address ?? WalletManager.getWalletAddress())) {
+          return false
+        }
+
+        return true;
+      }
+
+      case (Messages["/ibc.applications.transfer.v1.MsgTransfer"]): {
+
+        if (props.transaction.type == 'receiver' && item.data.toAddress != (wallet.wallet?.address ?? WalletManager.getWalletAddress())) {
+          return false
+        }
+
+        return true;
+      }
+
+      case (Messages["/ibc.core.channel.v1.MsgRecvPacket"]): {
+        try {
+          const data = JSON.parse(props.transaction.log as string);
+          const receiver = data?.[1]?.events?.[0]?.attributes?.[2];
+
+          if (receiver?.value != (wallet.wallet?.address ?? WalletManager.getWalletAddress())) {
+            return false
+          }
+
+        } catch (e) {
+          return false
+        }
+        return true;
+      }
+      case (Messages["/cosmos.gov.v1beta1.MsgVote"]): {
+        if (item.data.voter != (wallet.wallet?.address ?? WalletManager.getWalletAddress())) {
+          return false
+        }
+        return true;
+      }
+
+      case (Messages["/cosmos.staking.v1beta1.MsgDelegate"]): {
+        if (item.data.delegatorAddress != (wallet.wallet?.address ?? WalletManager.getWalletAddress())) {
+          return false
+        }
+        return true;
+      }
+
+      case (Messages["/cosmos.staking.v1beta1.MsgUndelegate"]): {
+        if (item.data.delegatorAddress != (wallet.wallet?.address ?? WalletManager.getWalletAddress())) {
+          return false
+        }
+
+        return true;
+      }
+
+      case (Messages["/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"]): {
+        if (item.data.delegatorAddress != (wallet.wallet?.address ?? WalletManager.getWalletAddress())) {
+          return false
+        }
+        return true;
+      }
+
       case (Messages["/ibc.core.client.v1.MsgUpdateClient"]): {
+        return false;
+      }
+      case (Messages["/ibc.core.channel.v1.MsgAcknowledgement"]): {
         return false;
       }
       case (Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]): {
 
         try {
           const data = JSON.parse(Buffer.from(item.data.msg).toString());
+
+          if (item.data.sender != (wallet.wallet?.address ?? WalletManager.getWalletAddress())) {
+            return false
+          }
+
           if (data.dispatch_alarms) {
             return false;
           }
+
         } catch (e) {
-          return false;
+          return false
         }
 
         return true;
@@ -359,7 +438,7 @@ const messages = computed(() => {
 
     return true;
   });
-})
+}
 </script>
 <style scoped>
 .his-gray {
