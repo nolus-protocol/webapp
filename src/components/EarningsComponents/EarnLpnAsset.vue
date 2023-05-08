@@ -32,7 +32,7 @@
               :minimalDenom="assetInfo.coinMinimalDenom"
               :denom="assetInfo.coinDenom"
               :decimals="assetInfo.coinDecimals"
-              :maxDecimals="6"
+              :maxDecimals="maxCoinDecimals"
               :fontSizeSmall="12"
             />
           </p>
@@ -140,6 +140,10 @@ const rewards = computed(() => {
 function calculateBalance(tokenAmount: string, denom: string) {
   return AssetUtils.getPriceByDenom(tokenAmount, denom).toString(2);
 };
+
+const maxCoinDecimals = computed(() => {
+  return AssetUtils.formatDecimals(props.asset.balance.denom, props.asset.balance.amount);
+});
 </script>
 <style lang="scss" scoped>
 .tag {

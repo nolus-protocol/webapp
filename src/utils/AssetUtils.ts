@@ -4,6 +4,7 @@ import { useWalletStore } from "@/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
 import { CurrencyUtils } from "@nolus/nolusjs";
+import { DECIMALS_AMOUNT, MAX_DECIMALS, ZERO_DECIMALS } from "@/config/env";
 
 export class AssetUtils {
   public static makeIBCMinimalDenom(
@@ -50,7 +51,6 @@ export class AssetUtils {
     const info = wallet.getCurrencyInfo(denom as string);
     const currency = wallet.getCurrencyByTicker(info.ticker);
     const p = oracle.prices[currency.symbol]?.amount;
-
     if (!p) {
       return new Dec(0);
     }
@@ -84,5 +84,38 @@ export class AssetUtils {
       asset.coinDenom,
       asset.coinDecimals
     );
+  }
+
+  public static formatDecimals(denom: string, amount: string) {
+    const a = AssetUtils.getPriceByDenom(amount, denom);
+    const info = AssetUtils.getAssetInfoByDenom(denom);
+    const parsedAmount  = Number(amount);
+
+    if(a.isZero() && parsedAmount == 0){
+      return ZERO_DECIMALS;
+    }
+
+    const decimals = AssetUtils.getDecimals(a);
+
+    if(decimals < 0){
+
+      if(info.coinDecimals > MAX_DECIMALS){
+        return MAX_DECIMALS;
+      }
+
+      return info.coinDecimals;
+    }
+
+    return decimals
+  }
+
+  public static getDecimals(amount: Dec) {
+
+    for (const item of DECIMALS_AMOUNT) {
+      if (amount.gte(new Dec(item.amount))) {
+        return item.decimals;
+      }
+    }
+    return -1;
   }
 }

@@ -191,3 +191,21 @@ export const INPUT_VALUES = [25, 50, 75, 100];
 export const ADDITIONAL_OUTSTANDING_DEBT = 0.001;
 export const LPN_CURRENCIES = ['USDC'];
 export const SESSION_TIME = 15 * 60 * 1000;
+
+export const DECIMALS_AMOUNT = [
+  {
+    decimals: 2,
+    amount: 10000
+  },
+  {
+    decimals: 4,
+    amount: 1000
+  },
+  {
+    decimals: 6,
+    amount: 100
+  }
+];
+
+export const ZERO_DECIMALS = 2;
+export const MAX_DECIMALS = 8;

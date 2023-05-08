@@ -6,7 +6,7 @@
       cols ? 'grid-cols-' + cols : 'grid-cols-2 md:grid-cols-4',
     ]"
   >
-    <div class="inline-flex items-center">
+  <div class="inline-flex items-center">
       <img
         v-if="assetInfo.coinIcon"
         :src="assetInfo.coinIcon"
@@ -32,7 +32,7 @@
           :minimalDenom="assetInfo.coinMinimalDenom"
           :denom="assetInfo.coinDenom"
           :decimals="assetInfo.coinDecimals"
-          :maxDecimals="6"
+          :maxDecimals="maxCoinDecimals"
         />
       </p>
       <div class="flex items-center justify-end text-dark-grey text-12 garet-medium text-right m-0">
@@ -84,7 +84,7 @@
               :minimalDenom="assetInfo.coinMinimalDenom"
               :denom="assetInfo.coinDenom"
               :decimals="assetInfo.coinDecimals"
-              :maxDecimals="6"
+              :maxDecimals="maxLeaseUpToCoinDecimals"
             />
           </template>
           <template v-else>
@@ -201,6 +201,7 @@ import { NATIVE_CURRENCY } from "@/config/assetsInfo";
 import { DASHBOARD_ACTIONS } from "@/types";
 import { NATIVE_CURRENCY as DEFAULT_CURRENCY, DEFAULT_LEASE_UP_PERCENT, GROUPS, INTEREST_DECIMALS, LEASE_UP_COEFICIENT, NATIVE_ASSET } from "@/config/env";
 import { useApplicationStore } from "@/stores/application";
+import { AssetUtils as WebAppAssetUtils } from "@/utils/AssetUtils";
 
 const walletStore = useWalletStore();
 const app = useApplicationStore();
@@ -269,7 +270,7 @@ const balance = computed(() => {
 const leasUpTo = computed(() => {
   const balance = Number(props.assetBalance);
   const leaseUpToAmount = balance * LEASE_UP_COEFICIENT;
-  return leaseUpToAmount.toString();
+  return Math.round(leaseUpToAmount).toString();
 });
 
 const rewards = computed(() => {
@@ -286,6 +287,14 @@ const calculateBalance = (
   const data = CurrencyUtils.calculateBalance(price, coin, tokenDecimals);
   return data.toDec().toString(2);
 };
+
+const maxCoinDecimals = computed(() => {
+  return WebAppAssetUtils.formatDecimals(props.denom, props.assetBalance);
+});
+
+const maxLeaseUpToCoinDecimals = computed(() => {
+  return WebAppAssetUtils.formatDecimals(props.denom, leasUpTo.value);
+});
 </script>
 <style scoped lang="scss">
 div.mobile-actions {
