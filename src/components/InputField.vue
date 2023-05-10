@@ -54,5 +54,5 @@ defineProps({
   },
 });
 
-function handleInputChange(event: Event) { (event.target as HTMLInputElement).value; }
+function handleInputChange(event: Event) { return (event.target as HTMLInputElement).value; }
 </script>

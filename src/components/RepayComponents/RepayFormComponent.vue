@@ -138,41 +138,24 @@ const outStandingDebt = () => {
 const calucateAfterRepayment = computed(() => {
 
   if (props.modelValue.amount && props.modelValue.amount != "") {
-    const data = props.modelValue.leaseInfo;
-    const currencyDebt = wallet.getCurrencyByTicker(data.principal_due.ticker);
-    const debtDenom = wallet.getIbcDenomBySymbol(currencyDebt.symbol);
-    const info = wallet.getCurrencyInfo(debtDenom as string);
+    const amount = outStandingDebt();
+    const currency = wallet.getCurrencyByTicker(props.modelValue.leaseInfo.principal_due.ticker);
+    const denom = wallet.getIbcDenomBySymbol(currency.symbol);
+    const info = wallet.getCurrencyInfo(denom as string);
+    const amountToRepay = CurrencyUtils.convertMinimalDenomToDenom(amount.toString(), info.coinMinimalDenom, info.coinDenom, info.coinDecimals).toDec();
 
-    const debt = new Dec(data.principal_due.amount)
-      .add(new Dec(data.previous_margin_due.amount))
-      .add(new Dec(data.previous_interest_due.amount))
-      .add(new Dec(data.current_margin_due.amount))
-      .add(new Dec(data.current_interest_due.amount))
-      .add(additionalInterest())
+    const selectedCurrencyInfo = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom as string);
+    const selectedCurrency = wallet.getCurrencyByTicker(selectedCurrencyInfo.ticker);
+    const price = new Dec(oracle.prices[selectedCurrency.symbol].amount);
 
-    const debtCoin = CurrencyUtils.convertMinimalDenomToDenom(
-      debt.toString(),
-      info.coinMinimalDenom as string,
-      info.coinDenom as string,
-      info.coinDecimals
-    ).toDec();
-
-    const amountDenom = props.modelValue.selectedCurrency.balance.denom;
-    const amountCurrency = wallet.getCurrencyInfo(amountDenom);
-    const asset = wallet.getCurrencyByTicker(amountCurrency.ticker);
-    const price = oracle.prices[asset.symbol];
-    const amountDecimals = Number(asset.decimal_digits);
-    const balaceAmount = CurrencyUtils.convertDenomToMinimalDenom(props.modelValue.amount, amountDenom, amountDecimals);
-
-    const amountInUSD = CurrencyUtils.calculateBalance(price.amount, balaceAmount, Number(asset.decimal_digits)).toDec();
-
-    const amount = debtCoin.sub(amountInUSD);
-
-    if (amount.isNegative()) {
+    const repayment = new Dec(props.modelValue.amount).mul(price);
+    const diff = amountToRepay.sub(repayment);
+    
+    if (diff.isNegative()) {
       return "0";
     }
 
-    return amount.toString(amountDecimals);
+    return diff.toString(info.coinDecimals);
 
   }
 
@@ -198,26 +181,13 @@ const formatCurrentBalance = (selectedCurrency: AssetBalance) => {
   }
 };
 
-const setAmount = () => {
-  const asset = wallet.getCurrencyInfo(
-    props.modelValue.selectedCurrency.balance.denom
-  );
-  const data = CurrencyUtils.convertMinimalDenomToDenom(
-    props.modelValue.selectedCurrency.balance.amount.toString(),
-    props.modelValue.selectedCurrency.balance.denom,
-    asset.coinDenom,
-    asset.coinDecimals
-  );
-  props.modelValue.amount = Number(data.toDec().toString()).toString();
-
-};
-
 const setRepayment = (p: number) => {
   const amount = outStandingDebt();
   const currency = wallet.getCurrencyByTicker(props.modelValue.leaseInfo.principal_due.ticker);
   const denom = wallet.getIbcDenomBySymbol(currency.symbol);
   const info = wallet.getCurrencyInfo(denom as string);
   const amountToRepay = CurrencyUtils.convertMinimalDenomToDenom(amount.toString(), info.coinMinimalDenom, info.coinDenom, info.coinDecimals).toDec();
+
   const percent = new Dec(p).quo(new Dec(100));
   const repaymentInStable = amountToRepay.mul(percent);
 
@@ -226,7 +196,7 @@ const setRepayment = (p: number) => {
   const price = new Dec(oracle.prices[selectedCurrency.symbol].amount);
   const repayment = repaymentInStable.quo(price);
 
-  props.modelValue.amount = repayment.toString(selectedCurrencyInfo.coinDecimals);
+  props.modelValue.amount = repayment.toString(selectedCurrencyInfo.coinDecimals + 1);
 
 }
 </script>

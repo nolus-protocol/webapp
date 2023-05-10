@@ -88,7 +88,7 @@ onUnmounted(() => {
   clearTimeout(timeOut);
 });
 
-function handleInputChange(event: Event) { (event.target as HTMLInputElement).value };
+function handleInputChange(event: Event) { return (event.target as HTMLInputElement).value };
 
 function onCopy() {
   copyText.value = i18n.t("message.copied");
