@@ -23,8 +23,8 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     }
   },
   devnet: {
-    tendermintRpc: "https://net-dev.nolus.io:26612",
-    api: "https://net-dev.nolus.io:26614",
+    tendermintRpc: "https://dev-net.nolus.io:26612",
+    api: "https://dev-net.nolus.io:26614",
     exploler: "https://explorer-rila.nolus.io/",
     govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
     staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
@@ -188,7 +188,7 @@ export const WASM_LP_DEPOSIT = "wasm-lp-deposit"
 export const WASM_LP_OPEN = "wasm-ls-open";
 
 export const INPUT_VALUES = [25, 50, 75, 100];
-export const ADDITIONAL_OUTSTANDING_DEBT = 0.001;
+export const ADDITIONAL_OUTSTANDING_DEBT = 0.005;
 export const LPN_CURRENCIES = ['USDC'];
 export const SESSION_TIME = 15 * 60 * 1000;
 
