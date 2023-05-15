@@ -418,7 +418,7 @@ import { onMounted } from "vue";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { TxType } from "@/types";
 import { StringUtils, WalletManager } from "@/utils";
-import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation, INTEREST_DECIMALS, ADDITIONAL_OUTSTANDING_DEBT } from "@/config/env";
+import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation, INTEREST_DECIMALS, PERMILLE, PERCENT, calculateAditionalDebt } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { walletOperation } from "@/components/utils";
 
@@ -632,19 +632,16 @@ const debt = computed(() => {
 const additionalInterest = () => {
   const data = props.leaseInfo.leaseStatus?.opened;
   if (data) {
+    const principal_due = new Dec(data.principal_due.amount)
+    const loanInterest = new Dec(data.loan_interest_rate / PERMILLE).add(new Dec(data.margin_interest_rate / PERCENT));
+    const debt = calculateAditionalDebt(principal_due, loanInterest);
 
-    const amount = new Dec(data.principal_due.amount)
-      .add(new Dec(data.previous_margin_due.amount))
-      .add(new Dec(data.previous_interest_due.amount))
-      .add(new Dec(data.current_margin_due.amount))
-      .add(new Dec(data.current_interest_due.amount))
-
-    const percent = new Dec(ADDITIONAL_OUTSTANDING_DEBT);
-    return amount.mul(percent);
+    return debt;
   }
 
   return new Dec(0)
 }
+
 
 const interestDue = computed(() => {
   const data = props.leaseInfo.leaseStatus?.opened;

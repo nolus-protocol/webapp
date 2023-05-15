@@ -372,6 +372,10 @@ onUnmounted(() => {
   }
 })
 
+watch(walletRef.wallet, () => {
+  getLeases();
+});
+
 watch(walletRef.balances, () => {
   availableAssets();
 });
@@ -393,13 +397,6 @@ const totalBalance = computed(() => {
   total = total.add(activeLeases.value as Dec);
   total = total.add(suppliedAndStaked.value);
   return total.toString();
-});
-
-const isTotalBalancePositive = computed(() => {
-  let total = state.value.availableAssets;
-  total = total.add(activeLeases.value);
-  total = total.add(suppliedAndStaked.value);
-  return total.gt(new Dec(0));
 });
 
 const { leases, getLeases } = useLeases(

@@ -28,22 +28,10 @@
         <div class="text-right nls-font-700 text-14">
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             ${{ calculateOutstandingDebt() }}
-            <!-- {{
-              calculateBalance(
-                modelValue.amount,
-                modelValue.selectedCurrency?.balance?.denom
-              )
-            }} -->
             <TooltipComponent :content="$t('message.outstanding-debt-tooltip')" />
           </p>
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             ${{ calucateAfterRepayment }}
-            <!-- {{
-              calculateBalanceByTicker(
-                modelValue.outstandingLoanAmount.amount,
-                modelValue.outstandingLoanAmount.ticker
-              )
-            }} -->
           </p>
         </div>
       </div>
@@ -72,7 +60,8 @@ import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
-import { ADDITIONAL_OUTSTANDING_DEBT, NATIVE_NETWORK } from "@/config/env";
+import { NATIVE_NETWORK, PERMILLE, PERCENT } from "@/config/env";
+import { calculateAditionalDebt } from "@/config/env";
 
 const oracle = useOracleStore();
 const wallet = useWalletStore();
@@ -109,14 +98,11 @@ const calculateOutstandingDebt = () => {
 const additionalInterest = () => {
   const data = props.modelValue.leaseInfo;
   if (data) {
-    const amount = new Dec(data.principal_due.amount)
-      .add(new Dec(data.previous_margin_due.amount))
-      .add(new Dec(data.previous_interest_due.amount))
-      .add(new Dec(data.current_margin_due.amount))
-      .add(new Dec(data.current_interest_due.amount))
+    const principal_due = new Dec(data.principal_due.amount)
+    const loanInterest = new Dec(data.loan_interest_rate / PERMILLE).add(new Dec(data.margin_interest_rate / PERCENT));
+    const debt = calculateAditionalDebt(principal_due, loanInterest);
 
-    const percent = new Dec(ADDITIONAL_OUTSTANDING_DEBT);
-    return amount.mul(percent);
+    return debt;
   }
 
   return new Dec(0)

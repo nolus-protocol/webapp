@@ -166,6 +166,7 @@ export const LEASE_MAX_AMOUNT = { amount: 200, ticker: 'USDC' };;
 
 export const INTEREST_DECIMALS = 1;
 export const PERMILLE = 1000;
+export const PERCENT = 100;
 
 export const WASM_EVENTS = {
   "wasm-ls-request-loan": {
@@ -188,7 +189,6 @@ export const WASM_LP_DEPOSIT = "wasm-lp-deposit"
 export const WASM_LP_OPEN = "wasm-ls-open";
 
 export const INPUT_VALUES = [25, 50, 75, 100];
-export const ADDITIONAL_OUTSTANDING_DEBT = 0.001;
 export const LPN_CURRENCIES = ['USDC'];
 export const SESSION_TIME = 15 * 60 * 1000;
 
@@ -206,6 +206,14 @@ export const DECIMALS_AMOUNT = [
     amount: 100
   }
 ];
+
+export const calculateAditionalDebt = (principal: Dec, percent: Dec) => {
+  const annualAmount = principal.mul(percent);
+  const secondsAmount = annualAmount.quo(new Dec(31536000));
+  const amountForTwoMinuts = secondsAmount.mul(new Dec(120));
+  return amountForTwoMinuts;
+}
+
 
 export const ZERO_DECIMALS = 2;
 export const MAX_DECIMALS = 8;

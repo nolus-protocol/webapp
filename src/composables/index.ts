@@ -1,1 +1,1 @@
-export { useLeases } from "@/composables/useLeases";
+export { useLeases, useLease } from "@/composables/useLeases";

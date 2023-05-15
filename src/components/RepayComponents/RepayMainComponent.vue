@@ -41,7 +41,7 @@ import { getMicroAmount, walletOperation } from "@/components/utils";
 import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, GROUPS, TIP, LEASE_MAX_AMOUNT, ADDITIONAL_OUTSTANDING_DEBT } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, GROUPS, TIP, PERMILLE, PERCENT, calculateAditionalDebt } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/stores/oracle";
 import { AssetUtils } from "@/utils";
@@ -259,16 +259,11 @@ const outStandingDebt = () => {
 const additionalInterest = () => {
   const data = state.value.leaseInfo;
   if (data) {
-    const info = AssetUtils.getAssetInfo(data.principal_due.ticker);
+    const principal_due = new Dec(data.principal_due.amount)
+    const loanInterest = new Dec(data.loan_interest_rate / PERMILLE).add(new Dec(data.margin_interest_rate / PERCENT));
+    const debt = calculateAditionalDebt(principal_due, loanInterest);
 
-    const amount = new Dec(data.principal_due.amount, info.coinDecimals)
-      .add(new Dec(data.previous_margin_due.amount, info.coinDecimals))
-      .add(new Dec(data.previous_interest_due.amount, info.coinDecimals))
-      .add(new Dec(data.current_margin_due.amount, info.coinDecimals))
-      .add(new Dec(data.current_interest_due.amount, info.coinDecimals))
-
-    const percent = new Dec(ADDITIONAL_OUTSTANDING_DEBT);
-    return amount.mul(percent);
+    return debt;
   }
 
   return new Dec(0)

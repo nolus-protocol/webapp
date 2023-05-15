@@ -53,7 +53,7 @@ export function useLeases(
 
     } catch (e) {
       onError(e);
-    }finally{
+    } finally {
       leaseLoaded.value = true;
     }
   };
@@ -63,4 +63,36 @@ export function useLeases(
   });
 
   return { leases, leaseLoaded, getLeases };
+}
+
+export function useLease(
+  leaseAddress: string,
+  onError: (error: unknown) => void
+) {
+
+  const getLease = async () => {
+    try {
+
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+      const leaseClient = new Lease(cosmWasmClient, leaseAddress);
+      const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus();
+
+      return {
+        leaseAddress,
+        leaseStatus: leaseInfo
+      } as {
+        leaseAddress: string,
+        leaseStatus: LeaseStatus,
+      };
+
+    } catch (e) {
+      onError(e);
+    }
+  };
+
+  onMounted(async () => {
+    await getLease();
+  });
+
+  return { getLease };
 }

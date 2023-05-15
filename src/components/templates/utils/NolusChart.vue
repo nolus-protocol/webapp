@@ -15,24 +15,10 @@
 <script lang="ts" setup>
 import "chartjs-adapter-date-fns";
 import { createTypedChart } from "vue-chartjs";
-import {
-  CategoryScale,
-  Chart as ChartJS,
-  Legend,
-  LinearScale,
-  TimeScale,
-  LineController,
-  LineElement,
-  PointElement,
-  Title,
-  Tooltip,
-  type Plugin,
-  type ChartData,
-} from "chart.js";
+import { CategoryScale, Chart as ChartJS, Legend, LinearScale, TimeScale, LineController, LineElement, PointElement, Title, Tooltip, type Plugin, type ChartData, type Point } from "chart.js";
 
 import { defaultOptions } from "@/components/templates/utils/chartOptions";
 import type { PropType } from "vue";
-import type { Point } from "chart.js/dist/helpers/helpers.canvas";
 
 ChartJS.register(
   Title,
@@ -48,23 +34,6 @@ ChartJS.register(
 class LineWithLineController extends LineController {
   public override draw() {
     super.draw();
-    // if (this.chart?.tooltip?.active) {
-    //   const ctx = this.chart.ctx;
-    //   const x = this.chart.tooltip.x;
-    //   const topY = this.chart.scales["y-axis-0"].top;
-    //   const bottomY = this.chart.scales["y-axis-0"].bottom;
-
-    //   console.log(this.chart.scales['x-axis-0']);
-    //   // draw line
-    //   ctx.save();
-    //   ctx.beginPath();
-    //   ctx.moveTo(x, topY);
-    //   ctx.lineTo(x, bottomY);
-    //   ctx.lineWidth = 2;
-    //   ctx.strokeStyle = "#07C";
-    //   ctx.stroke();
-    //   ctx.restore();
-    // }
   }
 }
 
