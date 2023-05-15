@@ -142,10 +142,10 @@ const onMouseDown = (event: MouseEvent | TouchEvent) => {
 }
 
 const onMouseMove = (event: MouseEvent | TouchEvent) => {
-  event.preventDefault();
   const draggableRect = button.value?.getBoundingClientRect();
 
   if (dragStart && draggableRect && container.value && button.value) {
+    event.preventDefault();
     const parentRect = container.value?.getBoundingClientRect();
     const draggable = button.value;
     let xPos = 0;

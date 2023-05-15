@@ -23,8 +23,8 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     }
   },
   devnet: {
-    tendermintRpc: "https://net-dev.nolus.io:26612",
-    api: "https://net-dev.nolus.io:26614",
+    tendermintRpc: "https://dev-net.nolus.io:26612",
+    api: "https://dev-net.nolus.io:26614",
     exploler: "https://explorer-rila.nolus.io/",
     govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
     staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
