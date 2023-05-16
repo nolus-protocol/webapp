@@ -27,11 +27,12 @@ import { walletOperation } from "@/components/utils";
 import { inject, onUnmounted, ref, type PropType, computed } from "vue";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { NATIVE_ASSET, GAS_FEES } from "@/config/env";
-import { EnvNetworkUtils, WalletManager } from "@/utils";
+import { AssetUtils, EnvNetworkUtils, WalletManager } from "@/utils";
 import { coin } from "@cosmjs/amino";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { SNACKBAR } from "@/config/env";
 import { CONTRACTS } from "@/config/contracts";
+import { Dec } from "@keplr-wallet/unit";
 
 const walletStore = useWalletStore();
 const selectedCurrency = walletStore.balances[0]
@@ -106,7 +107,20 @@ const requestClaim = async () => {
 
       const delegator = await walletStore[WalletActionTypes.LOAD_DELEGATOR]();
 
-      const data = delegator.rewards.map((item: any) => {
+      const data = delegator.rewards.filter((item: any) => {
+        const coin = item?.reward?.[0];
+
+        if(coin){
+          const asset = AssetUtils.getAssetInfoByDenom(coin.denom);
+          const amount = new Dec(coin.amount, asset.coinDecimals);
+
+          if(amount.isPositive()){
+            return true;
+          }
+        }
+
+        return false;
+      }).map((item: any) => {
         return {
           validator: item.validator_address,
           delegator: walletStore.wallet?.address
