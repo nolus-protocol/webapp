@@ -41,7 +41,7 @@ import { getMicroAmount, walletOperation } from "@/components/utils";
 import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, GROUPS, TIP, PERMILLE, PERCENT, calculateAditionalDebt } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, GROUPS, TIP, PERMILLE, PERCENT, calculateAditionalDebt, SWAP_FEE } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/stores/oracle";
 import { AssetUtils } from "@/utils";
@@ -251,9 +251,9 @@ const outStandingDebt = () => {
     .add(new Dec(data.previous_interest_due.amount, info.coinDecimals))
     .add(new Dec(data.current_margin_due.amount, info.coinDecimals))
     .add(new Dec(data.current_interest_due.amount, info.coinDecimals))
-    .add(additionalInterest())
+    .add(additionalInterest().roundUpDec())
 
-  return debt;
+    return debt.add(debt.mul(new Dec(SWAP_FEE)));
 }
 
 const additionalInterest = () => {

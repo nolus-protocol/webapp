@@ -214,6 +214,6 @@ export const calculateAditionalDebt = (principal: Dec, percent: Dec) => {
   return amountForTwoMinuts;
 }
 
-
+export const SWAP_FEE = 0.007;
 export const ZERO_DECIMALS = 2;
 export const MAX_DECIMALS = 8;

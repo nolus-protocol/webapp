@@ -60,7 +60,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
-import { NATIVE_NETWORK, PERMILLE, PERCENT } from "@/config/env";
+import { NATIVE_NETWORK, PERMILLE, PERCENT, SWAP_FEE } from "@/config/env";
 import { calculateAditionalDebt } from "@/config/env";
 
 const oracle = useOracleStore();
@@ -111,14 +111,15 @@ const additionalInterest = () => {
 
 const outStandingDebt = () => {
   const data = props.modelValue.leaseInfo;
+
   const debt = new Dec(data.principal_due.amount)
     .add(new Dec(data.previous_margin_due.amount))
     .add(new Dec(data.previous_interest_due.amount))
     .add(new Dec(data.current_margin_due.amount))
     .add(new Dec(data.current_interest_due.amount))
-    .add(additionalInterest())
+    .add(additionalInterest().roundUpDec())
 
-  return debt;
+  return debt.add(debt.mul(new Dec(SWAP_FEE)));
 }
 
 const calucateAfterRepayment = computed(() => {
