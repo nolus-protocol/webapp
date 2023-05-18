@@ -16,7 +16,6 @@ export interface LeaseComponentProps {
   txHash: string;
   leaseApply: LeaseApply | null;
   fee: Coin;
-  position: number,
-  ltv: number
+  ltd: number
   onNextClick: (price: string) => void;
 }

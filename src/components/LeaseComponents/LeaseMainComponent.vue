@@ -43,7 +43,7 @@ import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import { computed } from "vue";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, GROUPS, LEASE_MIN_AMOUNT, LEASE_MAX_AMOUNT, TIP, WASM_EVENTS, INTEREST_DECIMALS, MAX_POSITION, DEFAULT_LTV, PERMILLE } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, GROUPS, LEASE_MIN_AMOUNT, LEASE_MAX_AMOUNT, TIP, WASM_EVENTS, INTEREST_DECIMALS, MAX_POSITION, DEFAULT_LTD, PERMILLE } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/stores/oracle";
 
@@ -103,8 +103,7 @@ const state = ref({
   txHash: "",
   fee: coin(GAS_FEES.open_lease + TIP.amount, NATIVE_ASSET.denom),
   leaseApply: null,
-  position: MAX_POSITION,
-  ltv: DEFAULT_LTV * PERMILLE
+  ltd: DEFAULT_LTD * PERMILLE
 } as LeaseComponentProps);
 
 const getLeases = inject("getLeases", () => { });
@@ -143,7 +142,7 @@ watch(() => state.value.selectedCurrency, () => {
   calculate();
 });
 
-watch(() => state.value.ltv, () => {
+watch(() => state.value.ltd, () => {
   calculate();
 });
 
@@ -176,7 +175,7 @@ const calculate = async () => {
           microAmount.mAmount.amount.toString(),
           currency.ticker,
           lease.ticker,
-          state.value.ltv
+          state.value.ltd
         );
 
         makeLeaseApplyResp.annual_interest_rate = makeLeaseApplyResp.annual_interest_rate / Math.pow(10, INTEREST_DECIMALS);
@@ -326,7 +325,7 @@ const openLease = async () => {
       const { txHash, txBytes, usedFee } = await leaserClient.simulateOpenLeaseTx(
         wallet,
         ticker,
-        state.value.ltv,
+        state.value.ltd,
         funds
       );
 
