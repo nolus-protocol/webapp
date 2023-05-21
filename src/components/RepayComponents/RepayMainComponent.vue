@@ -41,7 +41,7 @@ import { getMicroAmount, walletOperation } from "@/components/utils";
 import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, GROUPS, TIP, PERMILLE, PERCENT, calculateAditionalDebt, SWAP_FEE } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, GROUPS, TIP, PERMILLE, PERCENT, calculateAditionalDebt, LPN_CURRENCIES, SWAP_FEE } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/stores/oracle";
 import { AssetUtils } from "@/utils";
@@ -140,7 +140,15 @@ const isAmountValid = (): boolean => {
       const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, "", coinData.coinDecimals);
       const balance = CurrencyUtils.calculateBalance(price.amount, amountInMinimalDenom, coinData.coinDecimals).toDec();
 
-      const debt = outStandingDebt();
+      let debt = outStandingDebt();
+      const swap = hasSwapFee();
+
+      if (swap) {
+        debt = debt.add(debt.mul(new Dec(SWAP_FEE)));
+      }
+
+      const debtInCurrencies = debt.quo(new Dec(price.amount));
+
 
       const isLowerThanOrEqualsToZero = new Dec(
         amountInMinimalDenom.amount || "0"
@@ -161,11 +169,8 @@ const isAmountValid = (): boolean => {
       }
 
       if (balance.gt(debt)) {
-        const data = state.value.leaseInfo;
-        const stableAsset = walletStore.getCurrencyByTicker(data.principal_due.ticker);
-
         state.value.amountErrorMsg = i18n.t("message.lease-only-max-error", {
-          maxAmount: Number(debt.toString(Number(stableAsset.decimal_digits))),
+          maxAmount: Number(debtInCurrencies.toString(Number(coinData.coinDecimals))),
           symbol: coinData.coinAbbreviation
         });
         isValid = false;
@@ -246,14 +251,14 @@ const getCurrentBalanceByDenom = (denom: string) => {
 const outStandingDebt = () => {
   const data = state.value.leaseInfo;
   const info = AssetUtils.getAssetInfo(data.principal_due.ticker);
+  const additional = new Dec(additionalInterest().roundUp(), info.coinDecimals);
   const debt = new Dec(data.principal_due.amount, info.coinDecimals)
     .add(new Dec(data.previous_margin_due.amount, info.coinDecimals))
     .add(new Dec(data.previous_interest_due.amount, info.coinDecimals))
     .add(new Dec(data.current_margin_due.amount, info.coinDecimals))
     .add(new Dec(data.current_interest_due.amount, info.coinDecimals))
-    .add(additionalInterest().roundUpDec())
-
-    return debt.add(debt.mul(new Dec(SWAP_FEE)));
+    .add(additional)
+  return debt;
 }
 
 const additionalInterest = () => {
@@ -268,6 +273,16 @@ const additionalInterest = () => {
 
   return new Dec(0)
 }
+
+const hasSwapFee = () => {
+  const selectedCurrencyInfo = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom as string);
+  const isLpn = LPN_CURRENCIES.includes(selectedCurrencyInfo.ticker);
+  if (isLpn) {
+    return false;
+  }
+  return true;
+}
+
 
 watch(walletRef.balances, (b: AssetBalance[]) => {
   if (b) {

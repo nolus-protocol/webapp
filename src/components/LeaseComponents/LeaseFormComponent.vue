@@ -323,7 +323,7 @@ const percentLique = computed(() => {
   const asset = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
   const currecy = wallet.getCurrencyByTicker(asset.ticker);
 
-  const price = new Dec(oracle.prices[currecy.symbol].amount, asset.coinDecimals);
+  const price = new Dec(oracle.prices[currecy.symbol]?.amount ?? '0', asset.coinDecimals);
   const lprice = getLquidation();
 
   if (lprice.isZero() || price.isZero()) {

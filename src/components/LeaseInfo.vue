@@ -418,7 +418,7 @@ import { onMounted } from "vue";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { TxType } from "@/types";
 import { StringUtils, WalletManager } from "@/utils";
-import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation, INTEREST_DECIMALS, PERMILLE, PERCENT, calculateAditionalDebt, SWAP_FEE } from "@/config/env";
+import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation, INTEREST_DECIMALS, PERMILLE, PERCENT, calculateAditionalDebt } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { walletOperation } from "@/components/utils";
 
@@ -509,7 +509,7 @@ const currentPrice = computed(() => {
   
   if (props.leaseInfo.leaseStatus?.opening && leaseData) {
     const item = walletStore.getCurrencyByTicker(leaseData.leasePositionTicker as string);
-    return oracleStore.prices[item.symbol].amount;
+    return oracleStore.prices[item.symbol]?.amount ?? '0';
   }
 
   const ticker =
@@ -636,7 +636,7 @@ const additionalInterest = () => {
     const loanInterest = new Dec(data.loan_interest_rate / PERMILLE).add(new Dec(data.margin_interest_rate / PERCENT));
     const debt = calculateAditionalDebt(principal_due, loanInterest);
 
-    return debt.add(debt.mul(new Dec(SWAP_FEE)));
+    return debt;
   }
 
   return new Dec(0)

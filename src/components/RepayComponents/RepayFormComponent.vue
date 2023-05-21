@@ -23,12 +23,18 @@
           <p class="mb-2 mt-[14px] mr-5">
             {{ $t("message.repayment-amount") }}:
           </p>
+          <p class="mb-2 mt-[14px] mr-5">
+            {{ $t("message.swap-fee") }}:
+          </p>
           <p class="mb-2 mt-[14px] mr-5">{{ $t("message.outstanding-lease") }}:</p>
         </div>
         <div class="text-right nls-font-700 text-14">
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             ${{ calculateOutstandingDebt() }}
             <TooltipComponent :content="$t('message.outstanding-debt-tooltip')" />
+          </p>
+          <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
+            {{ hasSwapFee ? (SWAP_FEE * 100).toFixed(1) : 0 }}%
           </p>
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             ${{ calucateAfterRepayment }}
@@ -60,7 +66,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
-import { NATIVE_NETWORK, PERMILLE, PERCENT, SWAP_FEE } from "@/config/env";
+import { NATIVE_NETWORK, PERMILLE, PERCENT, LPN_CURRENCIES, SWAP_FEE } from "@/config/env";
 import { calculateAditionalDebt } from "@/config/env";
 
 const oracle = useOracleStore();
@@ -119,7 +125,7 @@ const outStandingDebt = () => {
     .add(new Dec(data.current_interest_due.amount))
     .add(additionalInterest().roundUpDec())
 
-  return debt.add(debt.mul(new Dec(SWAP_FEE)));
+  return debt;
 }
 
 const calucateAfterRepayment = computed(() => {
@@ -133,11 +139,11 @@ const calucateAfterRepayment = computed(() => {
 
     const selectedCurrencyInfo = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom as string);
     const selectedCurrency = wallet.getCurrencyByTicker(selectedCurrencyInfo.ticker);
-    const price = new Dec(oracle.prices[selectedCurrency.symbol].amount);
+    const price = new Dec(oracle.prices[selectedCurrency.symbol]?.amount ?? 0);
 
     const repayment = new Dec(props.modelValue.amount).mul(price);
     const diff = amountToRepay.sub(repayment);
-    
+
     if (diff.isNegative()) {
       return "0";
     }
@@ -181,9 +187,25 @@ const setRepayment = (p: number) => {
   const selectedCurrencyInfo = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom as string);
   const selectedCurrency = wallet.getCurrencyByTicker(selectedCurrencyInfo.ticker);
   const price = new Dec(oracle.prices[selectedCurrency.symbol].amount);
-  const repayment = repaymentInStable.quo(price);
+  const swap = hasSwapFee.value;
+  let repayment = repaymentInStable.quo(price);
+
+  if(swap){
+    repayment = repayment.add(repayment.mul(new Dec(SWAP_FEE)));
+  }
 
   props.modelValue.amount = repayment.toString(selectedCurrencyInfo.coinDecimals + 1);
 
 }
+
+const hasSwapFee = computed(() => {
+  const selectedCurrencyInfo = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom as string);
+  const isLpn = LPN_CURRENCIES.includes(selectedCurrencyInfo.ticker);
+  if (isLpn) {
+    return false;
+  }
+  return true;
+})
+
+
 </script>

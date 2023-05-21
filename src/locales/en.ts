@@ -270,6 +270,7 @@ export default {
     "settings": "Settings",
     "refresh": "Refresh",
     "session-timeout": "Session Timeout",
-    "session-timeout-message": "Your session has expired. Refresh to continue"
+    "session-timeout-message": "Your session has expired. Refresh to continue",
+    "swap-fee": 'Swap fee'
   }
 }
