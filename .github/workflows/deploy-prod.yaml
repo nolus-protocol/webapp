@@ -7,7 +7,7 @@ on:
     tags:
       - v*.*.*
 env:
-  BUCKET_NAME:  app-staging.nolus.io
+  BUCKET_NAME: app-staging.nolus.io
   CLOUDFRONT_ID: E2CRLUCGAPADWN
   AWS_REGION: eu-west-1
 
