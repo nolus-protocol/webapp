@@ -184,7 +184,7 @@ export const POSITIONS = 5;
 export const MIN_POSITION = 25;
 export const MAX_POSITION = 150;
 
-export const DEFAULT_LTV = 0.6;
+export const DEFAULT_LTD = 1.5;
 export const WASM_LP_DEPOSIT = "wasm-lp-deposit"
 export const WASM_LP_OPEN = "wasm-ls-open";
 

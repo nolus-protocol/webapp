@@ -80,7 +80,6 @@ const clickContinue = () => {
   if (validateWalletName()) {
     return false;
   }
-  console.log(walletName)
   WalletManager.setWalletName(walletName.value);
   walletStore[WalletActionTypes.LOAD_WALLET_NAME]();
 
@@ -98,7 +97,6 @@ const checkBalances = async () => {
 };
 
 const validateWalletName = () => {
-  console.log(walletName.value)
   if (walletName.value === "") {
     errorMessage.value = i18n.t("message.password-error");
     return true;

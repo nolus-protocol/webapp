@@ -338,9 +338,8 @@ const percentLique = computed(() => {
 });
 
 const onDrag = (event: number) => {
-  props.modelValue.position = event;
-  props.modelValue.ltv = Number(calculateTVL().mul(new Dec(PERMILLE)).truncate().toString())
-
+  const pos = new Dec(event / 100);
+  props.modelValue.ltd = Number(pos.mul(new Dec(PERMILLE)).truncate().toString())
 }
 
 const borrowed = computed(() => {
@@ -376,16 +375,6 @@ const getBorrowedAmount = () => {
 const getTotalAmount = () => {
   const total = props.modelValue.leaseApply?.total;
   return new Dec(total?.amount ?? 0).truncate();
-}
-
-const calculateTVL = () => {
-  const pos = new Dec(props.modelValue.position / 100);
-  const amount = new Dec(1);
-  const loan = amount.mul(pos);
-  const total = loan.add(amount);
-  const ltv = loan.quo(total);
-  return ltv;
-
 }
 
 const selectedAssetDenom = computed(() => {
