@@ -34,7 +34,11 @@
             <TooltipComponent :content="$t('message.outstanding-debt-tooltip')" />
           </p>
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
-            {{ hasSwapFee ? (SWAP_FEE * 100).toFixed(1) : 0 }}%
+            <!-- {{ hasSwapFee ? (SWAP_FEE * 100).toFixed(1) : 0 }} -->
+            ${{ calculateSwapFee }}
+            <TooltipComponent
+              :content="$t('message.swap-fee-tooltip', { fee: hasSwapFee ? (SWAP_FEE * 100).toFixed(1) : 0 })"
+            />
           </p>
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             ${{ calucateAfterRepayment }}
@@ -190,7 +194,7 @@ const setRepayment = (p: number) => {
   const swap = hasSwapFee.value;
   let repayment = repaymentInStable.quo(price);
 
-  if(swap){
+  if (swap) {
     repayment = repayment.add(repayment.mul(new Dec(SWAP_FEE)));
   }
 
@@ -205,7 +209,25 @@ const hasSwapFee = computed(() => {
     return false;
   }
   return true;
-})
+});
+
+const calculateSwapFee = computed(() => {
+  if (props.modelValue.amount && props.modelValue.amount != "") {
+    const amount = outStandingDebt();
+    const currency = wallet.getCurrencyByTicker(props.modelValue.leaseInfo.principal_due.ticker);
+    const denom = wallet.getIbcDenomBySymbol(currency.symbol);
+    const info = wallet.getCurrencyInfo(denom as string);
+    let amountToRepay = CurrencyUtils.convertMinimalDenomToDenom(amount.toString(), info.coinMinimalDenom, info.coinDenom, info.coinDecimals).toDec();
+
+    const swap = hasSwapFee.value;
+
+    if (swap) {
+       return amountToRepay.mul(new Dec(SWAP_FEE)).toString(Number(currency.decimal_digits));
+    }
+
+  }
+  return "0.00";
+});
 
 
 </script>
