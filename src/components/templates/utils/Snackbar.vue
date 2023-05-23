@@ -22,7 +22,6 @@
           class="url text text-14 nls-font-400"
           :href="
             applicaton.network.networkAddresses.explorer +
-            'nolus-rila/tx/' +
             transaction
           "
           target="_blank"

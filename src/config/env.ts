@@ -42,7 +42,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   testnet: {
     tendermintRpc: "https://net-rila.nolus.io:26657",
     api: "https://net-rila.nolus.io:1317",
-    explorer: "https://explorer-rila.nolus.io/",
+    explorer: "https://explorer-rila.nolus.io/nolus-rila/tx",
     govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
     staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
     web3auth: {
@@ -58,10 +58,10 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   },
   mainnet: {
     tendermintRpc: "https://pirin-cl.nolus.network:26657",
-    api: "https://pirin-cl.nolus.network:1317",
-    explorer: "https://explorer.nolus.io/nolus/",
-    govern: "https://explorer.nolus.io/nolus/gov",
-    staking: "https://explorer.nolus.io/nolus/staking",
+    api: "https://pirin-cl.nolus.network:1317pirin-1 (mainnet)/",
+    explorer: "https://explorer.nolus.io/pirin-1 (mainnet)/",
+    govern: "https://explorer.nolus.io/pirin-1 (mainnet)/gov",
+    staking: "https://explorer.nolus.io/pirin-1 (mainnet)/staking",
     web3auth: {
       clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
       network: "cyan",

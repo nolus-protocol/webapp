@@ -7,7 +7,7 @@
     >
       <div class="col-span-2 lg:block nls-14 nls-font-400 text-primary text-left text-upper text-14">
         <a
-          :href="`${applicaton.network.networkAddresses.explorer}nolus-rila/tx/${transaction.id}`"
+          :href="`${applicaton.network.networkAddresses.explorer}/${transaction.id}`"
           class="his-url"
           target="_blank"
         >
