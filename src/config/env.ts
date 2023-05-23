@@ -57,8 +57,8 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     }
   },
   mainnet: {
-    tendermintRpc: "https://net-rila.nolus.io:26657",
-    api: "https://net-rila.nolus.io:1317",
+    tendermintRpc: "https://pirin-cl.nolus.network:26657",
+    api: "https://pirin-cl.nolus.network:1317",
     exploler: "https://explorer.nolus.io/nolus/",
     govern: "https://explorer.nolus.io/nolus/gov",
     staking: "https://explorer.nolus.io/nolus/staking",
