@@ -63,7 +63,7 @@
             {{ $t("message.tx-hash") }}:
           </p>
           <a
-            :href="`${applicaton.network.networkAddresses.exploler}nolus-rila/tx/${txHash}`"
+            :href="`${applicaton.network.networkAddresses.explorer}nolus-rila/tx/${txHash}`"
             class="text-14 m-0 his-url"
             target="_blank"
           >

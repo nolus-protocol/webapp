@@ -8,7 +8,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   localnet: {
     tendermintRpc: "http://127.0.0.1:26612",
     api: "http://127.0.0.1:26614",
-    exploler: "https://explorer-rila.nolus.io/",
+    explorer: "https://explorer-rila.nolus.io/",
     govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
     staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
     web3auth: {
@@ -25,7 +25,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   devnet: {
     tendermintRpc: "https://dev-cl.nolus.network:26657",
     api: "https://dev-cl.nolus.network:1317",
-    exploler: "https://explorer-rila.nolus.io/",
+    explorer: "https://explorer-rila.nolus.io/",
     govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
     staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
     web3auth: {
@@ -42,7 +42,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   testnet: {
     tendermintRpc: "https://net-rila.nolus.io:26657",
     api: "https://net-rila.nolus.io:1317",
-    exploler: "https://explorer-rila.nolus.io/",
+    explorer: "https://explorer-rila.nolus.io/",
     govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
     staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
     web3auth: {
@@ -59,7 +59,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   mainnet: {
     tendermintRpc: "https://pirin-cl.nolus.network:26657",
     api: "https://pirin-cl.nolus.network:1317",
-    exploler: "https://explorer.nolus.io/nolus/",
+    explorer: "https://explorer.nolus.io/nolus/",
     govern: "https://explorer.nolus.io/nolus/gov",
     staking: "https://explorer.nolus.io/nolus/staking",
     web3auth: {
