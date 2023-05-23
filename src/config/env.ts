@@ -2,7 +2,7 @@ import type { NetworkAddress } from "@/types";
 import nlsIcon from "@/assets/icons/coins/nls.svg";
 import { Dec } from "@keplr-wallet/unit";
 
-export const DEFAULT_PRIMARY_NETWORK = "testnet";
+export const DEFAULT_PRIMARY_NETWORK = "mainnet";
 
 export const NETWORKS: { [key: string]: NetworkAddress } = {
   localnet: {
