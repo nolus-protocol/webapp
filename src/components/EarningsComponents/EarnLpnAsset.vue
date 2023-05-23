@@ -65,7 +65,7 @@
             :isDenomInfront="false"
             denom="%"
           />
-          <p class="text-[#1AB171] text-[12px]">
+          <p v-if="ApptUtils.isDev()" class="text-[#1AB171] text-[12px]">
             +{{ rewards }}% {{ NATIVE_ASSET.label }}
           </p>
         </div>
@@ -105,6 +105,7 @@ import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { INTEREST_DECIMALS, NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/env";
 import { useApplicationStore } from "@/stores/application";
 import { AssetUtils } from "@/utils";
+import { ApptUtils } from "@/utils/AppUtils";
 
 const wallet = useWalletStore();
 const app = useApplicationStore();
@@ -134,7 +135,7 @@ const showBalance = computed(() => {
 });
 
 const rewards = computed(() => {
-  return (app.dispatcherRewards ?? 0 / Math.pow(10, INTEREST_DECIMALS)).toFixed(2);
+  return ((app.dispatcherRewards ?? 0) / Math.pow(10, INTEREST_DECIMALS)).toFixed(2);
 });
 
 function calculateBalance(tokenAmount: string, denom: string) {

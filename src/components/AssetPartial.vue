@@ -6,7 +6,7 @@
       cols ? 'grid-cols-' + cols : 'grid-cols-2 md:grid-cols-4',
     ]"
   >
-  <div class="inline-flex items-center">
+    <div class="inline-flex items-center">
       <img
         v-if="assetInfo.coinIcon"
         :src="assetInfo.coinIcon"
@@ -63,7 +63,7 @@
               :isDenomInfront="false"
               denom="%"
             />
-            <p class="text-[#1AB171] text-[12px]">
+            <p v-if="ApptUtils.isDev()" class="text-[#1AB171] text-[12px]">
               +{{ rewards }}% {{ NATIVE_ASSET.label }}
             </p>
           </div>
@@ -202,6 +202,7 @@ import { DASHBOARD_ACTIONS } from "@/types";
 import { NATIVE_CURRENCY as DEFAULT_CURRENCY, DEFAULT_LEASE_UP_PERCENT, GROUPS, INTEREST_DECIMALS, LEASE_UP_COEFICIENT, NATIVE_ASSET } from "@/config/env";
 import { useApplicationStore } from "@/stores/application";
 import { AssetUtils as WebAppAssetUtils } from "@/utils/AssetUtils";
+import { ApptUtils } from "@/utils/AppUtils";
 
 const walletStore = useWalletStore();
 const app = useApplicationStore();
@@ -274,7 +275,7 @@ const leasUpTo = computed(() => {
 });
 
 const rewards = computed(() => {
-  return (app.dispatcherRewards ?? 0 / Math.pow(10, INTEREST_DECIMALS)).toFixed(2);
+  return ((app.dispatcherRewards ?? 0) / Math.pow(10, INTEREST_DECIMALS)).toFixed(2);
 });
 
 const calculateBalance = (

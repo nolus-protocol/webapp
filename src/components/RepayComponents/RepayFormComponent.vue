@@ -72,6 +72,7 @@ import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
 import { NATIVE_NETWORK, PERMILLE, PERCENT, LPN_CURRENCIES, SWAP_FEE } from "@/config/env";
 import { calculateAditionalDebt } from "@/config/env";
+import { AssetUtils } from "@/utils";
 
 const oracle = useOracleStore();
 const wallet = useWalletStore();
@@ -212,21 +213,25 @@ const hasSwapFee = computed(() => {
 });
 
 const calculateSwapFee = computed(() => {
-  if (props.modelValue.amount && props.modelValue.amount != "") {
-    const amount = outStandingDebt();
+  const swap = hasSwapFee.value;
+
+  if (swap && props.modelValue.amount && props.modelValue.amount != "") {
+    const info = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
+    const selectedCurrency = wallet.getCurrencyByTicker(info.ticker);
+
+    const amount = new Dec(props.modelValue.amount);
+    const price = new Dec(oracle.prices[selectedCurrency.symbol]?.amount ?? 0);
+    const total = amount.mul(price);
+    const fee = new Dec(1 + SWAP_FEE);
+    const totalFee = total.sub(total.quo(fee));
     const currency = wallet.getCurrencyByTicker(props.modelValue.leaseInfo.principal_due.ticker);
-    const denom = wallet.getIbcDenomBySymbol(currency.symbol);
-    const info = wallet.getCurrencyInfo(denom as string);
-    let amountToRepay = CurrencyUtils.convertMinimalDenomToDenom(amount.toString(), info.coinMinimalDenom, info.coinDenom, info.coinDecimals).toDec();
-
-    const swap = hasSwapFee.value;
-
-    if (swap) {
-       return amountToRepay.mul(new Dec(SWAP_FEE)).toString(Number(currency.decimal_digits));
-    }
+    
+    return totalFee.toString(Number(currency.decimal_digits));
 
   }
+
   return "0.00";
+
 });
 
 

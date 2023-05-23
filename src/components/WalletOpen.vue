@@ -32,7 +32,7 @@
     </div>
 
     <!-- Wallet Body -->
-    <div class="box-open-body background p-4 lg:p-6 border-b border-standart text-left">
+    <div v-if="ApptUtils.isDev()" class="box-open-body background p-4 lg:p-6 border-b border-standart text-left">
       <div class="block">
         <Picker
           :default-option="selectedAppearnce"
@@ -76,6 +76,7 @@ import { APPEARANCE } from "@/config/env";
 import { useI18n } from "vue-i18n";
 import { ApplicationActionTypes, useApplicationStore } from "@/stores/application";
 import { EnvNetworkUtils, StringUtils, ThemeManager, WalletManager } from "@/utils";
+import { ApptUtils } from "@/utils/AppUtils";
 
 let timeOut: NodeJS.Timeout;
 const showWallet = ref(false);
