@@ -10,6 +10,7 @@ import {
   type NavigationGuardNext,
   type RouteLocationNormalized,
 } from "vue-router";
+import { ApplicationActionTypes, useApplicationStore } from "@/stores/application";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -18,7 +19,7 @@ const router = createRouter({
       path: "/",
       component: MainLayoutView,
       meta: { requiresAuth: true },
-      beforeEnter: [removeHash, checkWalletName],
+      beforeEnter: [removeHash, checkWalletName, loadData],
       children: [
         {
           path: "",
@@ -172,6 +173,11 @@ function removeHash(
     return next(to.path);
   }
   next();
+}
+
+async function loadData(){
+  const app = useApplicationStore();
+  await app[ApplicationActionTypes.LOAD_CURRENCIES]();
 }
 
 export default router;

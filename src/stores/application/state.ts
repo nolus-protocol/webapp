@@ -1,3 +1,4 @@
+import type { CurreciesType } from "@/types";
 import type { NetworkConfig } from "@/types/NetworkConfig";
 
 export type State = {
@@ -5,5 +6,6 @@ export type State = {
   theme: string | null;
   apr: number | null,
   dispatcherRewards: number | null,
-  sessionExpired:  boolean
+  sessionExpired:  boolean,
+  currenciesData: CurreciesType | null,
 };

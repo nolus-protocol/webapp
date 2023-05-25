@@ -19,10 +19,15 @@ const useApplicationStore = defineStore("application", {
       theme: null,
       apr: null,
       dispatcherRewards: null,
+      currenciesData: null,
       sessionExpired: false
     } as State;
   },
   actions: {
+    async [ApplicationActionTypes.LOAD_CURRENCIES]() {
+      const network = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
+      this.currenciesData = await network.currencies();
+    },
     async [ApplicationActionTypes.CHANGE_NETWORK](loadBalance = false) {
       try {
         const loadedNetworkConfig = EnvNetworkUtils.loadNetworkConfig();

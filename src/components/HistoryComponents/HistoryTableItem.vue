@@ -80,7 +80,8 @@ enum Messages {
   "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward" = "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
   "/ibc.core.client.v1.MsgUpdateClient" = "/ibc.core.client.v1.MsgUpdateClient",
   "/ibc.core.channel.v1.MsgAcknowledgement" = "/ibc.core.channel.v1.MsgAcknowledgement",
-  "/ibc.core.channel.v1.MsgRecvPacket" = "/ibc.core.channel.v1.MsgRecvPacket"
+  "/ibc.core.channel.v1.MsgRecvPacket" = "/ibc.core.channel.v1.MsgRecvPacket",
+  "/cosmos.staking.v1beta1.MsgBeginRedelegate" = "/cosmos.staking.v1beta1.MsgBeginRedelegate"
 }
 
 const i18n = useI18n();
@@ -324,6 +325,14 @@ const message = (msg: Object | any) => {
       const token = getCurrency(coin);
       return i18n.t('message.claim-position-action', {
         amount: token.toString(),
+        address: truncateString(msg.data.validatorAddress)
+      });
+    }
+    case(Messages['/cosmos.staking.v1beta1.MsgBeginRedelegate']): {
+      const token = getCurrency(msg.data?.amount);
+      return i18n.t('message.redelegate-action', {
+        amount: token.toString(),
+        address: truncateString(msg.data.validatorDstAddress)
       });
     }
     default: {
@@ -432,6 +441,13 @@ const messages = () => {
           return false
         }
 
+        return true;
+      }
+
+      case(Messages['/cosmos.staking.v1beta1.MsgBeginRedelegate']): {
+        if (props.transaction.type == 'receiver'){
+          return false;
+        }
         return true;
       }
     }

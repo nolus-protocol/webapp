@@ -67,7 +67,7 @@ import SessionExpireDialog from "@/components/modals/SessionExpireDialog.vue";
 
 import { OracleActionTypes, useOracleStore } from "@/stores/oracle";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
-import { WalletManager } from "@/utils";
+import { WalletManager, WalletUtils } from "@/utils";
 import { onMounted, onUnmounted, provide, ref, type Ref } from "vue";
 
 import { SESSION_TIME, SNACKBAR, UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL, } from "@/config/env";
@@ -125,7 +125,7 @@ async function connect() {
 async function loadNetwork() {
   try {
     await Promise.all([
-      wallet[WalletActionTypes.UPDATE_BALANCES](),
+      WalletUtils.isConnectedViaExtension() ? null : wallet[WalletActionTypes.UPDATE_BALANCES](),
       wallet[WalletActionTypes.LOAD_APR](),
       oracle[OracleActionTypes.GET_PRICES](),
       app[ApplicationActionTypes.LOAD_APR_REWARDS](),

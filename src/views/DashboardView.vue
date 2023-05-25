@@ -177,7 +177,7 @@
         >
           <template v-if="loading">
             <div
-              v-for="index in getCurrenciesSize()"
+              v-for="index in currenciesSize"
               :key="index"
               class="h-[67px] flex items-center justify-between asset-partial nolus-box relative border-b border-standart py-3 px-4 items-center justify-between"
             >
@@ -296,7 +296,6 @@ import SendReceiveDialog from "@/components/modals/SendReceiveDialog.vue";
 import LeaseDialog from "@/components/modals/LeaseDialog.vue";
 import VestedAssetPartial from "@/components/VestedAssetPartial.vue";
 import CurrencyComponent from "@/components/CurrencyComponent.vue";
-import CURRENCIES from "@/config/currencies.json";
 
 import type { AssetBalance } from "@/stores/wallet/state";
 import { computed, ref, provide, onMounted, watch, onUnmounted, Transition } from "vue";
@@ -306,6 +305,8 @@ import { DASHBOARD_ACTIONS } from "@/types/DashboardActions";
 import { useLeases } from "@/composables";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { useOracleStore } from "@/stores/oracle";
+import { useApplicationStore } from "@/stores/application";
+
 import { DEFAULT_APR, NATIVE_CURRENCY } from "@/config/env";
 import { storeToRefs } from "pinia";
 import { LPN_CURRENCY } from "@/config/assetsInfo";
@@ -320,6 +321,8 @@ const smallBalancesStateKey = 'smallBalancesState';
 
 const wallet = useWalletStore();
 const oracle = useOracleStore();
+const app = useApplicationStore();
+
 const walletRef = storeToRefs(wallet);
 const oracleRef = storeToRefs(oracle);
 
@@ -352,7 +355,7 @@ const filteredAssets = computed(() => {
 
 const loading = computed(() => showSkeleton.value || wallet.balances.length == 0);
 
-const getCurrenciesSize = () => Object.keys(CURRENCIES.currencies).length
+const currenciesSize = computed(() => Object.keys(app.currenciesData!.currencies).length)
 
 onMounted(() => {
   getVestedTokens();

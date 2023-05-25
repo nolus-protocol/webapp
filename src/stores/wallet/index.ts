@@ -2,7 +2,7 @@ import KeplrEmbedChainInfo from "@/config/keplr";
 import router from "@/router";
 import BluetoothTransport from "@ledgerhq/hw-transport-web-ble";
 import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
-import CURRENCIES from "@/config/currencies.json";
+// import CURRENCIES from "@/config/currencies.json";
 
 import type { HdPath } from "@cosmjs/crypto";
 import type { State } from "@/stores/wallet/state";
@@ -28,6 +28,7 @@ import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { makeCosmoshubPath } from "@cosmjs/amino";
 import { EncryptionUtils, EnvNetworkUtils, KeyUtils as KeyUtilities, WalletUtils, AssetUtils, Web3AuthProvider, WalletManager } from "@/utils";
 import { CurrencyUtils, KeyUtils, NolusClient, NolusWalletFactory } from "@nolus/nolusjs";
+import { useApplicationStore } from "../application";
 
 const useWalletStore = defineStore("wallet", {
   state: () => {
@@ -204,7 +205,7 @@ const useWalletStore = defineStore("wallet", {
         this.privateKey = null;
       }
     },
-    async [WalletActionTypes.UPDATE_BALANCES](assets?: string[]) {
+    async [WalletActionTypes.UPDATE_BALANCES]() {
       try {
         const walletAddress = WalletManager.getWalletAddress() || "";
 
@@ -215,20 +216,11 @@ const useWalletStore = defineStore("wallet", {
         }
 
         const ibcBalances = [];
-        let currencies = CURRENCIES.currencies;
-
-        if (assets) {
-          const c: any = {};
-          for (const key in CURRENCIES.currencies) {
-            if (assets.includes(key)) {
-              c[key as keyof typeof c] = CURRENCIES.currencies[key as keyof typeof CURRENCIES.currencies];
-            }
-          }
-          currencies = c;
-        }
+        const app = useApplicationStore();
+        let currencies = app.currenciesData?.currencies;
 
         for (const key in currencies) {
-          const currency = CURRENCIES.currencies[key as keyof typeof CURRENCIES.currencies];
+          const currency = app.currenciesData!.currencies[key];
           const ibcDenom = AssetUtils.makeIBCMinimalDenom(
             currency.ibc_route,
             currency.symbol
@@ -608,7 +600,7 @@ const useWalletStore = defineStore("wallet", {
             ticker: "NLS",
             coinDenom: ASSETS.NLS.abbreviation,
             coinMinimalDenom: denom,
-            coinDecimals: Number(CURRENCIES.currencies.NLS.decimal_digits),
+            coinDecimals: Number(0),
             coinAbbreviation: ASSETS.NLS.abbreviation,
             coinGeckoId: ASSETS.NLS.coinGeckoId,
             coinIcon: ASSETS.NLS.coinIcon,
@@ -633,9 +625,10 @@ const useWalletStore = defineStore("wallet", {
       };
     },
     getCurrencyByTicker: (state) => {
+      const app = useApplicationStore();
       return (ticker: string) => {
-        return CURRENCIES.currencies[
-          ticker as keyof typeof CURRENCIES.currencies
+        return app.currenciesData!.currencies[
+          ticker
         ];
       };
     },

@@ -31,6 +31,7 @@
           :minimalDenom="assetInfo.coinMinimalDenom"
           :denom="assetInfo.coinDenom"
           :decimals="assetInfo.coinDecimals"
+          :maxDecimals="maxCoinDecimals"
         />
       </div>
     </div>
@@ -45,12 +46,13 @@
 
 <script lang="ts" setup>
 import type { AssetInfo } from "@/types";
-import type { PropType } from "vue";
+import { computed, type PropType } from "vue";
 
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import CurrencyComponent from "@/components/CurrencyComponent.vue";
+import { AssetUtils as WebAppAssetUtils } from "@/utils/AssetUtils";
 
-defineProps({
+const props = defineProps({
   assetBalance: {
     type: String,
     required: true,
@@ -67,5 +69,9 @@ defineProps({
     type: String,
     required: true,
   },
+});
+
+const maxCoinDecimals = computed(() => {
+  return WebAppAssetUtils.formatDecimals(props.denom, props.assetBalance);
 });
 </script>

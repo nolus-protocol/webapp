@@ -127,7 +127,8 @@ onUnmounted(() => {
   clearTimeout(timeOut);
 });
 
-function onUpdateNetwork(value: PickerOption) {
+async function onUpdateNetwork(value: PickerOption) {
+  
   EnvNetworkUtils.saveCurrentNetwork(value.value);
   applicaton[ApplicationActionTypes.CHANGE_NETWORK](true);
   applicaton[ApplicationActionTypes.LOAD_APR_REWARDS]();

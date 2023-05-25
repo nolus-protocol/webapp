@@ -6,6 +6,7 @@ export type { NetworkAddress } from "@/types/NetworkAddress";
 export type { NetworkConfig } from "@/types/NetworkConfig";
 export type { LeaseData } from "@/types/LeaseData";
 export type { Network, NetworkData } from "@/types/Network";
+export type { CurreciesType } from "@/types/CurreciesType";
 
 export { WalletConnectMechanism } from "@/types/WalletConnectMechanism";
 export { DASHBOARD_ACTIONS } from "@/types/DashboardActions";
