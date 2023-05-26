@@ -50,7 +50,7 @@ export class AssetUtils {
     const oracle = useOracleStore();
     const info = wallet.getCurrencyInfo(denom as string);
     const currency = wallet.getCurrencyByTicker(info.ticker);
-    const p = oracle.prices[currency.symbol]?.amount;
+    const p = oracle.prices[currency?.symbol]?.amount;
     if (!p) {
       return new Dec(0);
     }

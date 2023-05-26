@@ -124,7 +124,7 @@ const amount = computed(() => {
       const amount = token.hideDenom(true).toString();
       let [beforeDecimal, afterDecimal] = amount.split(".");
 
-      if (props.maxDecimals > 0 && afterDecimal.length > props.maxDecimals) {
+      if (props.maxDecimals > 0 && afterDecimal?.length > props.maxDecimals) {
         const pow = 10 ** props.maxDecimals;
         const after = Number(`0.${afterDecimal}`);
         const decimals = (Math.round(after * pow) / pow).toString();

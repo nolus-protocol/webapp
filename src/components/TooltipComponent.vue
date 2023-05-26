@@ -59,6 +59,11 @@ function mouseover(event: MouseEvent) {
 
   const parent = target.value as HTMLDivElement;
   const element = tooltip.value as HTMLDivElement;
+
+  if(!element){
+    return false;
+  }
+
   if (target.value) {
     const rect = parent.getBoundingClientRect();
     const elementRect = element.getBoundingClientRect();

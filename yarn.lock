@@ -713,7 +713,7 @@
 
 "@nolus/nolusjs@^0.0.103":
   version "0.0.103"
-  resolved "https://registry.yarnpkg.com/@nolus/nolusjs/-/nolusjs-0.0.103.tgz#325d884aaf5ad3f3e6d9d8adc635d612cd74901a"
+  resolved "https://registry.npmjs.org/@nolus/nolusjs/-/nolusjs-0.0.103.tgz"
   integrity sha512-+0asWBrILNye8EAcWACOjX2uuGXag7/bPLsK/wRycPN4Xuh/rVCuCq3pvnx18SeKgJhscOzdgexZpoP19KiY9A==
   dependencies:
     "@cosmjs/cosmwasm-stargate" "0.30.1"

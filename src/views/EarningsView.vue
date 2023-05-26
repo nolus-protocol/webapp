@@ -212,7 +212,7 @@ const applicationRef = storeToRefs(applicaton);
 onMounted(async () => {
 
   try {
-    const [_delegations] = await Promise.all([
+    const [_delegations] = await Promise.allSettled([
       wallet[WalletActionTypes.LOAD_DELEGATIONS](),
       loadRewards(),
       loadLPNCurrency(),
@@ -220,7 +220,7 @@ onMounted(async () => {
     ]);
 
     rewardsInterval = setInterval(async () => {
-      const [_delegations] = await Promise.all([
+      const [_delegations] = await Promise.allSettled([
         wallet[WalletActionTypes.LOAD_DELEGATIONS](),
         loadRewards(),
         loadLPNCurrency(),

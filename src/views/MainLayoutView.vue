@@ -125,7 +125,7 @@ async function connect() {
 async function loadNetwork() {
   try {
     await Promise.all([
-      WalletUtils.isConnectedViaExtension() ? null : wallet[WalletActionTypes.UPDATE_BALANCES](),
+      wallet[WalletActionTypes.UPDATE_BALANCES](),
       wallet[WalletActionTypes.LOAD_APR](),
       oracle[OracleActionTypes.GET_PRICES](),
       app[ApplicationActionTypes.LOAD_APR_REWARDS](),
