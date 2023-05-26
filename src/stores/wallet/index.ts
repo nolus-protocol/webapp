@@ -217,7 +217,7 @@ const useWalletStore = defineStore("wallet", {
 
         const ibcBalances = [];
         const app = useApplicationStore();
-        let currencies = app.currenciesData?.currencies;
+        const currencies = app.currenciesData?.currencies;
 
         for (const key in currencies) {
           const currency = app.currenciesData!.currencies[key];
