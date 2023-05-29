@@ -3,7 +3,7 @@
     <div class="block input-field">
       <label
         :for="id"
-        class="block text-14 nls-font-500 text-primary"
+        class="block text-14 nls-font-500 text-primary data-text"
       >
         {{ label }}
       </label>

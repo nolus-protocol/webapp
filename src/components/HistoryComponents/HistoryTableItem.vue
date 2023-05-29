@@ -314,7 +314,7 @@ const message = (msg: Object | any) => {
     case (Messages["/cosmos.staking.v1beta1.MsgUndelegate"]): {
       const token = getCurrency(msg.data.amount);
       return i18n.t('message.undelegate-position-action', {
-        validator: truncateString(msg.data.validatorAddress),
+        validator: truncateString(msg.data?.validatorAddress),
         amount: token.toString()
       });
     }
@@ -325,14 +325,14 @@ const message = (msg: Object | any) => {
       const token = getCurrency(coin);
       return i18n.t('message.claim-position-action', {
         amount: token.toString(),
-        address: truncateString(msg.data.validatorAddress)
+        address: truncateString(msg.data?.validatorAddress)
       });
     }
     case(Messages['/cosmos.staking.v1beta1.MsgBeginRedelegate']): {
       const token = getCurrency(msg.data?.amount);
       return i18n.t('message.redelegate-action', {
         amount: token.toString(),
-        address: truncateString(msg.data.validatorDstAddress)
+        address: truncateString(msg.data?.validatorDstAddress)
       });
     }
     default: {

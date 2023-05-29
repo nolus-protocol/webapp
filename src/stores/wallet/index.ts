@@ -288,7 +288,7 @@ const useWalletStore = defineStore("wallet", {
 
       if (address?.length > 0) {
         const client = await NolusClient.getInstance().getTendermintClient();
-        const [sender, receiver] = await Promise.all([
+        const [sender, receiver]: any = await Promise.allSettled([
           load_sender
             ? client.txSearch({
               query: `message.sender='${address}'`,
@@ -310,9 +310,9 @@ const useWalletStore = defineStore("wallet", {
         let sender_total = 0;
         let receiver_total = 0;
 
-        if (sender) {
-          sender_total = (sender as TxSearchResponse).totalCount;
-          for (const item of (sender as TxSearchResponse).txs) {
+        if (sender.value) {
+          sender_total = (sender.value as TxSearchResponse).totalCount;
+          for (const item of (sender.value as TxSearchResponse).txs) {
             const decodedTx: DecodedTxRaw = decodeTxRaw(item.tx);
             try {
 
@@ -344,9 +344,9 @@ const useWalletStore = defineStore("wallet", {
           }
         }
 
-        if (receiver) {
-          receiver_total = (receiver as TxSearchResponse).totalCount;
-          for (const item of (receiver as TxSearchResponse).txs) {
+        if (receiver.value) {
+          receiver_total = (receiver.value as TxSearchResponse).totalCount;
+          for (const item of (receiver.value as TxSearchResponse).txs) {
             const decodedTx: DecodedTxRaw = decodeTxRaw(item.tx);
             try {
 
@@ -377,6 +377,7 @@ const useWalletStore = defineStore("wallet", {
             }
           }
         }
+        
         const promises = data.map(async (item) => {
           try {
             const block = await client.block(item.height);
@@ -389,6 +390,11 @@ const useWalletStore = defineStore("wallet", {
         });
 
         const items = await Promise.all(promises);
+        console.log({
+          data: items,
+          receiver_total,
+          sender_total,
+        })
         return {
           data: items,
           receiver_total,
