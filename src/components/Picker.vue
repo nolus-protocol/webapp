@@ -10,7 +10,7 @@
       :disabled="disabled"
       @update:modelValue="$emit('update-selected', selected)"
     >
-      <ListboxLabel class="block text-14 text-primary">
+      <ListboxLabel class="block text-14 data-text">
         {{ label }}
       </ListboxLabel>
       <div class="mt-[4px] relative picker-container">

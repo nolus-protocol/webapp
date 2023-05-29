@@ -187,7 +187,14 @@ div.repayment {
 
 body.sync {
 
+  @media (prefers-color-scheme: dark) {
+    button.btn-close-modal {
+      border: 1px solid #2B384B;
+    }
+  }
+
   .modal {
+
 
     &-send-receive {
 
@@ -200,6 +207,7 @@ body.sync {
           @media (min-width: $md) {
             background: linear-gradient(0deg, rgba(43, 56, 75, 0.5), rgba(43, 56, 75, 0.5)), rgba(40, 104, 225, 0.1);
           }
+
 
         }
       }
@@ -251,6 +259,10 @@ body.sync {
 }
 
 body.dark {
+
+  button.btn-close-modal {
+    border: 1px solid #2B384B !important;
+  }
 
   .modal {
 

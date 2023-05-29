@@ -1,24 +1,27 @@
 <template>
-    <ConfirmExternalComponent
-      v-if="showConfirmScreen"
-      :selectedCurrency="selectedCurrency!"
-      :receiverAddress="wallet"
-      :password="password"
-      :amount="amount"
-      :memo="memo"
-      :txType="TxType.SEND"
-      :txHash="txHash"
-      :step="step"
-      :fee="fee"
-      :networkCurrencies="networkCurrenciesObject"
-      :networkKey="selectedNetwork.key"
-      :onSendClick="onSendClick"
-      :onBackClick="onConfirmBackClick"
-      :onOkClick="onClickOkBtn"
-      @passwordUpdate="(value) => (password = value)"
+  <ConfirmExternalComponent
+    v-if="showConfirmScreen"
+    :selectedCurrency="selectedCurrency!"
+    :receiverAddress="wallet"
+    :password="password"
+    :amount="amount"
+    :memo="memo"
+    :txType="TxType.SEND"
+    :txHash="txHash"
+    :step="step"
+    :fee="fee"
+    :networkCurrencies="networkCurrenciesObject"
+    :networkKey="selectedNetwork.key"
+    :onSendClick="onSendClick"
+    :onBackClick="onConfirmBackClick"
+    :onOkClick="onClickOkBtn"
+    @passwordUpdate="(value) => (password = value)"
   />
   <template v-else>
-    <div class="modal-send-receive-input-area overflow-auto custom-scroll" v-if="selectedNetwork.native">
+    <div
+      class="modal-send-receive-input-area overflow-auto custom-scroll"
+      v-if="selectedNetwork.native"
+    >
       <div class="block text-left">
 
         <div class="block mt-[25px]">
@@ -42,7 +45,7 @@
               class="btn btn-secondary btn-medium-secondary btn-icon mr-2 flex"
               @click="
                 modelValue?.onCopyClick(wallet);
-                onCopy();
+              onCopy();
               "
             >
               <DocumentDuplicateIcon class="icon w-4 h-4" />
@@ -65,8 +68,11 @@
       </div>
     </div>
     <template v-else>
-      <form @submit.prevent="receive" class="modal-form overflow-auto">
-      <!-- Input Area -->
+      <form
+        @submit.prevent="receive"
+        class="modal-form overflow-auto"
+      >
+        <!-- Input Area -->
         <div class="modal-send-receive-input-area background">
 
           <div class="block text-left">
@@ -80,7 +86,7 @@
                 @update-selected="onUpdateNetwork"
               />
             </div>
-            
+
             <div class="block mt-[20px]">
               <CurrencyField
                 id="amount"
@@ -113,7 +119,10 @@
         </div>
         <!-- Actions -->
         <div class="modal-send-receive-actions background flex-col">
-          <button class="btn btn-primary btn-large-primary plausible-event-name=receive" :class="{ 'js-loading': isLoading }">
+          <button
+            class="btn btn-primary btn-large-primary plausible-event-name=receive"
+            :class="{ 'js-loading': isLoading }"
+          >
             {{ $t("message.receive") }}
           </button>
           <div class="flex justify-between w-full text-light-blue text-[14px] my-2">
@@ -124,7 +133,6 @@
       </form>
     </template>
   </template>
-
 </template>
 
 <script setup lang="ts">
@@ -179,10 +187,10 @@ const memo = ref('');
 const txHash = ref('');
 const fee = ref<Coin>()
 const isLoading = ref(false);
-const closeModal = inject("onModalClose", () => () => {});
+const closeModal = inject("onModalClose", () => () => { });
 const networkCurrenciesObject = ref();
 const walletRef = storeToRefs(walletStore);
-const wallet =  ref(WalletUtils.transformWallet(NATIVE_NETWORK.prefix));
+const wallet = ref(WalletUtils.transformWallet(NATIVE_NETWORK.prefix));
 
 defineProps({
   modelValue: {
@@ -192,27 +200,27 @@ defineProps({
 
 onUnmounted(() => {
   clearTimeout(timeOut);
-  if(client){
+  if (client) {
     client.destroy();
   }
 });
 
 
 watch(() => walletRef.wallet.value?.address, () => {
-  wallet.value =  WalletUtils.transformWallet(NATIVE_NETWORK.prefix);
+  wallet.value = WalletUtils.transformWallet(NATIVE_NETWORK.prefix);
 });
 
 const onUpdateNetwork = async (event: Network) => {
   selectedNetwork.value = event;
   networkCurrencies.value = [];
-  if(!event.native){
+  if (!event.native) {
 
-    if(client){
+    if (client) {
       client.destroy();
     }
 
     disablePicker.value = true;
-    
+
     client = await Wallet.getInstance(
       NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].supportedNetworks[event.key].tendermintRpc
     );
@@ -222,10 +230,10 @@ const onUpdateNetwork = async (event: Network) => {
 
     networkCurrenciesObject.value = assets;
 
-    for(const key in assets){
+    for (const key in assets) {
 
       const fn = async () => {
-        const ibc_route  = AssetUtils.makeIBCMinimalDenom(assets[key].ibc_route, assets[key].symbol);
+        const ibc_route = AssetUtils.makeIBCMinimalDenom(assets[key].ibc_route, assets[key].symbol);
         const balance = await client.getBalance(WalletUtils.transformWallet(event.prefix), ibc_route);
 
         return {
@@ -245,11 +253,11 @@ const onUpdateNetwork = async (event: Network) => {
     }
 
     const items = await Promise.all(currenciesPromise);
-    selectedCurrency.value =  items?.[0]
+    selectedCurrency.value = items?.[0]
     networkCurrencies.value = items;
     disablePicker.value = false;
 
-  }else{
+  } else {
     selectedCurrency.value = walletStore.balances[0];
   }
 };
@@ -273,25 +281,25 @@ const handleAmountChange = (event: string) => {
 }
 
 const validateInputs = async () => {
-  
-  try{
+
+  try {
     isLoading.value = true;
     const isValid = await validateAmount();
-    if(isValid){
+    if (isValid) {
       const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[selectedNetwork.value.key];
       const ibc_route = selectedCurrency.value?.ibc_route;
       const symbol = selectedCurrency.value?.symbol;
 
-      if(ibc_route && symbol){
+      if (ibc_route && symbol) {
         fee.value = coin(network.fees.transfer_amount, AssetUtils.makeIBCMinimalDenom(ibc_route, symbol))
         showConfirmScreen.value = true;
       }
 
     }
-  }catch(error){
+  } catch (error) {
     step.value = CONFIRM_STEP.ERROR;
     showConfirmScreen.value = true;
-  }finally{
+  } finally {
     isLoading.value = false;
   }
 
@@ -311,7 +319,7 @@ const validateAmount = async () => {
   const symbol = selectedCurrency.value?.symbol;
   const decimals = selectedCurrency.value?.decimals;
 
-  if(prefix && ibc_route && symbol && decimals){
+  if (prefix && ibc_route && symbol && decimals) {
     const balance = await client.getBalance(WalletUtils.transformWallet(prefix), AssetUtils.makeIBCMinimalDenom(ibc_route, symbol));
     const walletBalance = Decimal.fromAtomics(balance.amount, decimals);
     const transferAmount = Decimal.fromUserInput(
@@ -321,13 +329,13 @@ const validateAmount = async () => {
 
     const isGreaterThanWalletBalance = transferAmount.isGreaterThan(walletBalance);
 
-    if(isGreaterThanWalletBalance){
-      amountErrorMsg.value = i18n.t("message.invalid-balance-big"); 
+    if (isGreaterThanWalletBalance) {
+      amountErrorMsg.value = i18n.t("message.invalid-balance-big");
       return false;
     }
 
 
-  }else{
+  } else {
     amountErrorMsg.value = i18n.t("message.unexpected-error");
     return false;
   }
@@ -360,7 +368,7 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
 
     const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
       amount.value,
-      denom, 
+      denom,
       selectedCurrency.value?.decimals!
     );
 
@@ -407,7 +415,7 @@ const formatCurrentBalance = (selectedCurrency: AssetBalance | undefined) => {
 
   if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
 
-    if(selectedNetwork.value.native){
+    if (selectedNetwork.value.native) {
       const asset = walletStore.getCurrencyInfo(
         selectedCurrency.balance.denom
       );
@@ -417,9 +425,9 @@ const formatCurrentBalance = (selectedCurrency: AssetBalance | undefined) => {
         asset.coinDenom,
         asset.coinDecimals
       ).toString();
-    }else{
+    } else {
 
-      if(selectedCurrency.decimals != null && selectedCurrency.name != null){
+      if (selectedCurrency.decimals != null && selectedCurrency.name != null) {
 
         return CurrencyUtils.convertMinimalDenomToDenom(
           selectedCurrency.balance.amount.toString(),
@@ -428,28 +436,15 @@ const formatCurrentBalance = (selectedCurrency: AssetBalance | undefined) => {
           selectedCurrency.decimals as number
         ).toString();
       }
-      
+
     }
 
   }
 };
 
-// const setAmount = () => {
-//   const asset = walletStore.getCurrencyInfo(
-//     selectedCurrency.value.balance.denom
-//   );
-//   const data = CurrencyUtils.convertMinimalDenomToDenom(
-//     selectedCurrency.value.balance.amount.toString(),
-//     selectedCurrency.value.balance.denom,
-//     asset.coinDenom,
-//     asset.coinDecimals
-//   );
-//   amount.value = Number(data.toDec().toString()).toString();
-// }
-
 const setAmount = (p: number) => {
-  const asset = walletStore.getCurrencyInfo(
-    selectedCurrency.value.balance.denom
+  const asset = AssetUtils.getAssetInfo(
+    selectedCurrency.value.ticker as string
   );
   const percent = new Dec(p).quo(new Dec(100));
   const data = CurrencyUtils.convertMinimalDenomToDenom(selectedCurrency.value.balance.amount, asset.coinMinimalDenom, asset.coinDenom, asset.coinDecimals).toDec();

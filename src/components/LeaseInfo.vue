@@ -26,20 +26,20 @@
           </h1>
         </div>
         <div class="flex flex-wrap text-10 uppercase whitespace-nowrap">
-          <span class="text-medium-blue bg-[#ebeff5] rounded p-1 m-1 garet-medium"
+          <span class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium"
                 v-if="leaseData">
             {{ $t("message.down-payment") }}: ${{ downPayment }}
           </span>
           <!-- <span
-            class="text-medium-blue bg-[#ebeff5] rounded p-1 m-1 garet-medium"
+            class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium"
             v-if="leaseData"
           >
             {{ $t("message.borrowed") }}: {{ loan }}
           </span> -->
-          <span class="text-medium-blue bg-[#ebeff5] rounded p-1 m-1 garet-medium">
+          <span class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium">
             {{ `price per ${asset.coinDenom}:` }} {{ price }}
           </span>
-          <span class="text-medium-blue bg-[#ebeff5] rounded p-1 m-1 garet-medium">
+          <span class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium">
             {{ $t("message.liq-trigger") }}: {{ liquidation }}
           </span>
         </div>
@@ -105,7 +105,7 @@
     <div class="flex items-center justify-between border-t border-standart pt-4 md:px-6 px-2 flex-col md:flex-row">
       <div class="flex">
         <div class="block">
-          <p class="text-detail text-primary m-0 flex items-center">
+          <p class="text-detail text-primary m-0 flex items-center data-text">
             {{ $t("message.outstanding-loan") }}
             <TooltipComponent :content="$t('message.outstanding-debt-tooltip')" />
           </p>
@@ -128,7 +128,7 @@
           </p>
         </div>
         <div class="block ml-8">
-          <p class="text-detail text-primary m-0 flex items-center">
+          <p class="text-detail text-primary m-0 flex items-center data-text">
             {{ $t("message.interest-fee") }}
             <TooltipComponent :content="$t('message.interest-fee-tooltip')" />
           </p>
@@ -145,7 +145,7 @@
           </p>
         </div>
         <div class="block ml-8">
-          <p class="text-detail text-primary m-0 flex items-center">
+          <p class="text-detail text-primary m-0 flex items-center data-text">
             {{ $t("message.interest-due") }}
             <TooltipComponent :content="$t('message.interest-due-tooltip')" />
           </p>
@@ -192,14 +192,14 @@
           </h1>
         </div>
         <div class="flex flex-wrap text-10 uppercase whitespace-nowrap">
-          <span class="bg-[#ebeff5] rounded p-1 px-[10px] mb-2 garet-medium"
+          <span class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium"
                 v-if="leaseData">
             {{ $t("message.down-payment") }}: ${{ downPayment }}
           </span>
         </div>
         <div class="relative">
           <div class="state flex">
-            <div class="status relative cursor-pointer">
+            <div class="status relative cursor-pointer state-background">
               <div class="state-status garet-medium">
                 {{ $t("message.opening-channel") }}
               </div>
@@ -305,7 +305,7 @@
         </div>
         <div v-if="leaseData"
              class="flex flex-wrap text-10 uppercase whitespace-nowrap mt-4">
-          <span class="text-medium-blue bg-[#ebeff5] rounded p-1 m-1 garet-medium">
+          <span class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium">
             {{ `price per ${asset.coinDenom}:` }} {{ price }}
           </span>
         </div>

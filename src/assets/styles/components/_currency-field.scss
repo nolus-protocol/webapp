@@ -139,7 +139,7 @@
 		}
 
 		&:disabled {
-			background-color: #EBEFF5;
+			// background-color: #EBEFF5;
 
 			img {
 				filter: grayscale(100%);
@@ -171,6 +171,7 @@ body.sync {
 					button {
 						border-color: $dark-line;
 					}
+					color: white;
 				}
 			}
 		}
@@ -187,6 +188,7 @@ body.dark {
 				button {
 					border-color: $dark-line;
 				}
+				color: white;
 			}
 		}
 	}

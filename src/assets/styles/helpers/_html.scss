@@ -38,12 +38,17 @@ body {
 		}
 	}
 
+	.data-label-info {
+		background-color: #ebeff5;
+	}
+
 	&.sync {
 		@media (prefers-color-scheme: dark) {
 			background: $dark-gray;
 
 			button.chart-dates {
 				color: white;
+				border-color: #2B384B;
 			}
 		}
 
@@ -63,6 +68,18 @@ body {
 			}
 
 		}
+
+		@media (prefers-color-scheme: dark) {
+			.data-label-info {
+				background-color: #2B384B;
+			}
+
+
+			.data-text {
+				color: #8396B1;
+			}
+
+		}
 	}
 
 	&.dark {
@@ -70,6 +87,7 @@ body {
 
 		button.chart-dates {
 			color: white;
+			border-color: #2B384B;
 		}
 
 		.border-right {
@@ -83,6 +101,14 @@ body {
 				background-color: $dark-background !important;
 			}
 
+		}
+
+		.data-label-info {
+			background-color: #2B384B;
+		}
+
+		.data-text {
+			color: #8396B1;
 		}
 	}
 

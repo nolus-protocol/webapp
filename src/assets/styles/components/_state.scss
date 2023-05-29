@@ -39,6 +39,20 @@ div.state {
     }
 }
 
+body.sync {
+    @media (prefers-color-scheme: dark) {
+        div.status {
+            background-color: #2B384B;
+        }
+    }
+}
+
+body.dark {
+    div.status {
+        background-color: #2B384B;
+    }
+}
+
 .state-loading {
     position: relative;
     width: 1em;

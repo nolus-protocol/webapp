@@ -3,7 +3,7 @@
     <div class="flex justify-between items-center">
       <label
         :for="id"
-        class="flex text-14 nls-font-500 text-primary"
+        class="flex text-14 nls-font-500 data-text"
       >
         {{ label }}
         <TooltipComponent

@@ -17,7 +17,7 @@
           <p class="text-primary nls-font-500 text-18 text-left uppercase m-0">
             {{ assetInfo.coinDenom }}
           </p>
-          <p class="tag bg-[#EBEFF5] text-[10px] uppercase m-0 garet-medium py-[2px] px-[4px] rounded-md">
+          <p class="tag data-label-info text-[10px] uppercase m-0 garet-medium py-[2px] px-[4px] rounded-md">
             {{ $t("message.deposit-interest") }}
           </p>
         </div>
