@@ -111,6 +111,68 @@ const useWalletStore = defineStore("wallet", {
         }
       }
     },
+    async [WalletActionTypes.CONNECT_LEAP](
+      payload: { isFromAuth?: boolean } = {}
+    ) {
+      await WalletUtils.getLeap();
+      const leapWindow = window as any;
+
+      if (!leapWindow.leap.getOfflineSignerOnlyAmino || !leapWindow.leap) {
+        throw new Error("Leap wallet is not installed.");
+      } else if (!leapWindow.leap.experimentalSuggestChain) {
+        throw new Error(
+          "Leap version is not latest. Please upgrade your Leap wallet"
+        );
+      } else {
+        let chainId = "";
+
+        try {
+          chainId = await NolusClient.getInstance().getChainId();
+          const networkConfig = EnvNetworkUtils.loadNetworkConfig();
+          await leapWindow.leap?.experimentalSuggestChain(
+            KeplrEmbedChainInfo(
+              EnvNetworkUtils.getStoredNetworkName(),
+              chainId,
+              networkConfig?.tendermintRpc as string,
+              networkConfig?.api as string
+            )
+          );
+        } catch (e) {
+          throw new Error("Failed to fetch suggest chain.");
+        }
+
+        await leapWindow.leap?.enable(chainId);
+
+        if (leapWindow.leap.getOfflineSignerOnlyAmino) {
+          const offlineSigner = leapWindow.leap.getOfflineSignerOnlyAmino(
+            chainId
+          );
+          const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(offlineSigner as any);
+          await nolusWalletOfflineSigner.useAccount();
+
+          WalletManager.saveWalletConnectMechanism(
+            WalletConnectMechanism.LEAP
+          );
+
+          WalletManager.storeWalletAddress(
+            nolusWalletOfflineSigner.address || ""
+          );
+
+          WalletManager.setPubKey(
+            Buffer.from(nolusWalletOfflineSigner?.pubKey ?? "").toString("hex")
+          );
+
+          this.wallet = nolusWalletOfflineSigner;
+          this.walletName = (await leapWindow.leap.getKey(chainId)).name;
+
+          await this[WalletActionTypes.UPDATE_BALANCES]();
+
+          if (payload?.isFromAuth) {
+            await router.push({ name: RouteNames.DASHBOARD });
+          }
+        }
+      }
+    },
     async [WalletActionTypes.CONNECT_LEDGER](
       payload: { isFromAuth?: boolean; isBluetooth?: boolean } = {}
     ) {
@@ -507,6 +569,9 @@ const useWalletStore = defineStore("wallet", {
     async [WalletActionTypes.LOAD_WALLET_NAME]() {
       switch (WalletManager.getWalletConnectMechanism()) {
         case WalletConnectMechanism.EXTENSION: {
+          break;
+        }
+        case WalletConnectMechanism.LEAP: {
           break;
         }
         default: {

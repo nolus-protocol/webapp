@@ -115,6 +115,7 @@ watch(
 );
 
 const closeModal = inject("onModalClose", () => () => {});
+const loadDelegated = inject("loadDelegated", () => false);
 
 const showSnackbar = inject(
   "showSnackbar",
@@ -242,6 +243,7 @@ async function undelegate() {
       const tx = await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
       const isSuccessful = tx?.code === 0;
       step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
+      loadDelegated();
       if (snackbarVisible()) {
         showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
       }

@@ -26,7 +26,7 @@ import ConfirmComponent from "@/components/modals/templates/ConfirmComponent.vue
 
 import { CONFIRM_STEP } from "@/types/ConfirmStep";
 import { TxType } from "@/types/TxType";
-import { useWalletStore } from "@/stores/wallet";
+import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
 import { computed, inject, onUnmounted, ref } from "vue";
 import { coin, type Coin } from "@cosmjs/amino";
 import { CurrencyUtils } from "@nolus/nolusjs";
@@ -133,6 +133,8 @@ const transferAmount = async () => {
       if (snackbarVisible()) {
         showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
       }
+      await walletStore[WalletActionTypes.UPDATE_BALANCES]();
+      
     } catch (error) {
       step.value = CONFIRM_STEP.ERROR;
     }
@@ -183,6 +185,7 @@ const ibcTransfer = async () => {
         showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
       }
     }
+    await walletStore[WalletActionTypes.UPDATE_BALANCES]();
   } catch (error) {
     console.log(error);
     step.value = CONFIRM_STEP.ERROR;

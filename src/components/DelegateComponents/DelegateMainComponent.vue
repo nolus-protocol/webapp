@@ -60,6 +60,7 @@ defineProps({
 
 const walletStore = useWalletStore();
 const snackbarVisible = inject("snackbarVisible", () => false);
+const loadDelegated = inject("loadDelegated", () => false);
 
 const showConfirmScreen = ref(false);
 const state = ref({
@@ -177,6 +178,7 @@ async function delegate() {
       const tx = await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
       const isSuccessful = tx?.code === 0;
       step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
+      loadDelegated();
       if (snackbarVisible()) {
         showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
       }

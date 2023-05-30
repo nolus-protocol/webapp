@@ -34,6 +34,32 @@ export class WalletUtils {
     });
   }
 
+  public static async getLeap(): Promise<Keplr | undefined> {
+    const leapWindow = window as any;
+
+    if (leapWindow.leap) {
+      return leapWindow.leap;
+    }
+
+    if (document.readyState === "complete") {
+      return leapWindow.leap;
+    }
+
+    return new Promise((resolve) => {
+      const documentStateChange = (event: Event) => {
+        if (
+          event.target &&
+          (event.target as Document).readyState === "complete"
+        ) {
+          resolve(leapWindow.leap);
+          document.removeEventListener("readystatechange", documentStateChange);
+        }
+      };
+
+      document.addEventListener("readystatechange", documentStateChange);
+    });
+  }
+
   public static isAuth(): boolean {
     return (
       KeyUtils.isAddressValid(WalletManager.getWalletAddress()) &&
@@ -52,6 +78,13 @@ export class WalletUtils {
     return (
       WalletManager.getWalletConnectMechanism() ===
       WalletConnectMechanism.EXTENSION
+    );
+  }
+
+  public static isConnectedViaLeap(): boolean {
+    return (
+      WalletManager.getWalletConnectMechanism() ===
+      WalletConnectMechanism.LEAP
     );
   }
 

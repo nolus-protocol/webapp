@@ -93,6 +93,7 @@ const snackbarState = ref({
 onMounted(async () => {
   await loadNetwork();
   window.addEventListener("keplr_keystorechange", updateKeplr);
+  window.addEventListener("leap_keystorechange", updateLeap);
   window.addEventListener('focus', stopTimer);
   window.addEventListener('blur', startTimer);
 });
@@ -102,6 +103,7 @@ onUnmounted(() => {
   clearInterval(pricesInterval)
   clearInterval(sessionTimeOut);
   window.removeEventListener("keplr_keystorechange", updateKeplr);
+  window.addEventListener("leap_keystorechange", updateLeap);
   window.removeEventListener('focus', stopTimer);
   window.removeEventListener('blur', startTimer);
 });
@@ -109,6 +111,16 @@ onUnmounted(() => {
 async function updateKeplr() {
   try {
     await wallet[WalletActionTypes.CONNECT_KEPLR]({ isFromAuth: true });
+    await loadNetwork();
+  } catch (error: Error | any) {
+    showErrorDialog.value = true;
+    errorMessage.value = error?.message
+  }
+}
+
+async function updateLeap() {
+  try {
+    await wallet[WalletActionTypes.CONNECT_LEAP]({ isFromAuth: true });
     await loadNetwork();
   } catch (error: Error | any) {
     showErrorDialog.value = true;

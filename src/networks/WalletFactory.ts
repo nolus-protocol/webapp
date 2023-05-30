@@ -70,6 +70,49 @@ const authenticateKeplr = async (wallet: Wallet, network: NetworkData) => {
 
 }
 
+const authenticateLeap = async (wallet: Wallet, network: NetworkData) => {
+    await WalletUtils.getLeap();
+    const leapWindow = window as any;
+
+    if (!leapWindow.leap.getOfflineSignerOnlyAmino || !leapWindow.leap) {
+        throw new Error("Keplr wallet is not installed.");
+    } else if (!leapWindow.leap.experimentalSuggestChain) {
+        throw new Error(
+            "Keplr version is not latest. Please upgrade your Keplr wallet"
+        );
+    } else {
+        let chainId = "";
+
+        try {
+            chainId = await wallet.getChainId();
+            await leapWindow.leap?.experimentalSuggestChain(
+                KeplrEmbedChainInfo(
+                    network.name,
+                    chainId,
+                    network.tendermintRpc as string,
+                    network.api as string
+                )
+            );
+        } catch (e) {
+            throw new Error("Failed to fetch suggest chain.");
+        }
+
+        await leapWindow.leap?.enable(chainId);
+
+        if (leapWindow.leap.getOfflineSignerOnlyAmino) {
+            const offlineSigner = leapWindow.leap.getOfflineSignerOnlyAmino(
+                chainId
+            );
+
+            return await createWallet(wallet, offlineSigner, network.prefix);
+
+        }
+    }
+
+    throw new Error("Failed to fetch wallet.");
+
+}
+
 const authenticateLedger = async (wallet: Wallet, network: NetworkData) => {
     const transport = await getLedgerTransport();
     const accountNumbers = [0];
@@ -118,4 +161,4 @@ const authenticateDecrypt = async (wallet: Wallet, network: NetworkData, passwor
     return await createWallet(wallet, directSecrWallet, network.prefix);
 }
 
-export { aminoTypes, authenticateLedger, authenticateKeplr, authenticateDecrypt, createWallet };
+export { aminoTypes, authenticateLedger, authenticateKeplr, authenticateLeap, authenticateDecrypt, createWallet };

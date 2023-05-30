@@ -81,6 +81,11 @@ const router = createRouter({
           component: () => import("@/views/ConnectingKeplr.vue"),
         },
         {
+          path: "connecting-to-leap",
+          name: RouteNames.CONNECT_LEAP,
+          component: () => import("@/views/ConnectingLeap.vue"),
+        },
+        {
           path: "import-ledger",
           name: RouteNames.IMPORT_LEDGER,
           component: () => import("@/views/ImportLedgerView.vue"),
@@ -133,6 +138,9 @@ function beforeWalletName(
     case WalletConnectMechanism.EXTENSION: {
       break;
     }
+    case WalletConnectMechanism.LEAP: {
+      break;
+    }
     default: {
       const isAuth = WalletUtils.isAuth();
       if (!isAuth) {
@@ -151,6 +159,9 @@ function checkWalletName(
 ) {
   switch (WalletManager.getWalletConnectMechanism()) {
     case WalletConnectMechanism.EXTENSION: {
+      break;
+    }
+    case WalletConnectMechanism.LEAP: {
       break;
     }
     default: {

@@ -8,7 +8,10 @@
       <div class="separator-line z-[100]"></div>
 
       <div class="flex px-4 md:px-10 pt-10 pb-6 relative z-[2] lg:pt-6">
-        <button class="btn btn-box btn-large-box basis-0 grow" @click="clickConnectToKeplr">
+        <button
+          class="btn btn-box btn-large-box basis-0 grow"
+          @click="clickConnectToKeplr"
+        >
           <span class="icon icon-keplr ml-1"></span>
           {{ $t("message.keplr") }}
         </button>
@@ -22,10 +25,24 @@
               {{ $t("message.google") }}
             </button> -->
 
-        <button class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow" @click="clickImportLedger">
+        <button
+          class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow"
+          @click="clickImportLedger"
+        >
           <span class="icon icon-ledger"></span>
           {{ $t("message.ledger") }}
         </button>
+      </div>
+
+      <div class="flex px-4 md:px-10 pt-10 pb-6 relative z-[2] lg:pt-6">
+        <button
+          class="btn btn-box btn-large-box basis-0 grow"
+          @click="clickConnectToLeap"
+        >
+          <span class="icon icon-leap ml-1"></span>
+          {{ $t("message.leap") }}
+        </button>
+        <div class="btn-large-box ml-5 md:ml-4 basis-0 grow fake-button"></div>
       </div>
 
       <!-- <div class="flex mt-6 md:mt-5 px-4 md:px-10 relative z-[2]">
@@ -67,7 +84,10 @@
           </div> -->
       <div class="px-4 md:px-10 pb-6 relative z-[2] text-dark-grey text-[13px]">
         By connecting a wallet, you acknowledge that you have read, agree and accept Nolus Protocol’s
-        <button class="text-[#2868E1]" @click="onShowTermsModal">Terms of Service</button>
+        <button
+          class="text-[#2868E1]"
+          @click="onShowTermsModal"
+        >Terms of Service</button>
       </div>
     </div>
 
@@ -106,6 +126,10 @@ const clickConnectToKeplr = () => {
   router.push({ name: RouteNames.CONNECT_KEPLR });
 };
 
+const clickConnectToLeap = () => {
+  router.push({ name: RouteNames.CONNECT_LEAP });
+}
+
 const clickImportLedger = () => {
   router.push({ name: RouteNames.IMPORT_LEDGER });
 };
@@ -134,3 +158,15 @@ const googleAuth = async () => {
   }
 };
 </script>
+<style scoped lang="scss">
+.fake-button {
+  border-width: 0;
+
+  &:active,
+  &:focus,
+  &:hover {
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+}
+</style>

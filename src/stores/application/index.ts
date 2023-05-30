@@ -47,6 +47,10 @@ const useApplicationStore = defineStore("application", {
           walletStore[WalletActionTypes.CONNECT_KEPLR]();
         }
 
+        if (WalletUtils.isConnectedViaLeap()) {
+          walletStore[WalletActionTypes.CONNECT_LEAP]();
+        }
+
         if (loadBalance) {
           await Promise.allSettled([
             walletStore[WalletActionTypes.UPDATE_BALANCES](),

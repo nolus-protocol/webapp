@@ -399,6 +399,7 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
     step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
     baseWallet.disconnect();
   } catch (error) {
+    console.log(error)
     step.value = CONFIRM_STEP.ERROR;
   }
 }

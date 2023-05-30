@@ -133,6 +133,7 @@ export default {
     "liq-trigger": "Liquidation Trigger",
     "current-price": "Current Price",
     "connecting-kepler": "Connecting Keplr",
+    "connecting-leap": "Connecting Leap",
     "approving-extension": "Continue by approving the connection in the extension",
     "connecting": "Connecting",
     "connect-ledger": "Connect Ledger",
@@ -273,6 +274,7 @@ export default {
     "session-timeout": "Session Timeout",
     "session-timeout-message": "Your session has expired. Refresh to continue",
     "swap-fee": "Swap fee",
-    "swap-fee-tooltip": "Swap fee {fee}%"
+    "swap-fee-tooltip": "Swap fee {fee}%",
+    "leap": "Leap"
   }
 }

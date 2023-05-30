@@ -63,7 +63,7 @@ export const NETWORKS_DATA: {
                 ...OSMO_NETWORK,
                 tendermintRpc: "https://osmo-cl.nolus.network:26657",
                 api: "https://osmo-cl.nolus.network:1317",
-                sourceChannel: "channel-1837",
+                sourceChannel: "channel-783",
                 explorer: 'https://mintscan.io/osmosis/txs',
             }
         }

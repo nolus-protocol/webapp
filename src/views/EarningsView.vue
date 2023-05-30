@@ -363,5 +363,6 @@ const openDelegateUndelegateDialog = () => {
 
 provide("loadRewards", loadRewards);
 provide("loadLPNCurrency", loadLPNCurrency);
+provide("loadDelegated", loadDelegated);
 
 </script>
