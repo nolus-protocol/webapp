@@ -17,7 +17,7 @@ import { ChainConstants } from "@nolus/nolusjs/build/constants";
 import { fromHex, toHex } from "@cosmjs/encoding";
 import { RouteNames } from "@/router/RouterNames";
 import { LedgerSigner } from "@cosmjs/ledger-amino";
-import { decodeTxRaw, type DecodedTxRaw } from "@cosmjs/proto-signing";
+import { decodeTxRaw, type DecodedTxRaw, Registry } from "@cosmjs/proto-signing";
 import { NETWORKS, NATIVE_ASSET } from "@/config/env";
 import { ASSETS } from "@/config/assetsInfo";
 import { ADAPTER_STATUS } from "@web3auth/base";
@@ -29,6 +29,8 @@ import { makeCosmoshubPath } from "@cosmjs/amino";
 import { EncryptionUtils, EnvNetworkUtils, KeyUtils as KeyUtilities, WalletUtils, AssetUtils, Web3AuthProvider, WalletManager } from "@/utils";
 import { CurrencyUtils, KeyUtils, NolusClient, NolusWalletFactory } from "@nolus/nolusjs";
 import { useApplicationStore } from "../application";
+import { defaultRegistryTypes,  } from "@cosmjs/stargate";
+import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 
 const useWalletStore = defineStore("wallet", {
   state: () => {
@@ -285,6 +287,8 @@ const useWalletStore = defineStore("wallet", {
       load_recipient = true,
     } = {}) {
       const address = WalletManager.getWalletAddress();
+      const registry = new Registry(defaultRegistryTypes);
+      registry.register("/cosmwasm.wasm.v1.MsgExecuteContract", MsgExecuteContract);
 
       if (address?.length > 0) {
         const client = await NolusClient.getInstance().getTendermintClient();
@@ -320,7 +324,7 @@ const useWalletStore = defineStore("wallet", {
               for (const m of decodedTx.body.messages) {
                 msgs.push({
                   typeUrl: m.typeUrl,
-                  data: this.wallet?.registry.decode(m)
+                  data: registry.decode(m)
                 });
               }
 
@@ -354,7 +358,7 @@ const useWalletStore = defineStore("wallet", {
               for (const m of decodedTx.body.messages) {
                 msgs.push({
                   typeUrl: m.typeUrl,
-                  data: this.wallet?.registry.decode(m)
+                  data: registry.decode(m)
                 });
               }
 
@@ -390,11 +394,7 @@ const useWalletStore = defineStore("wallet", {
         });
 
         const items = await Promise.all(promises);
-        console.log({
-          data: items,
-          receiver_total,
-          sender_total,
-        })
+
         return {
           data: items,
           receiver_total,
@@ -404,6 +404,8 @@ const useWalletStore = defineStore("wallet", {
 
       return {
         data: [],
+        receiver_total: 0,
+        sender_total: 0,
       };
     },
     async [WalletActionTypes.LOAD_VESTED_TOKENS](): Promise<

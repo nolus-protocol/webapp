@@ -178,7 +178,6 @@ function getCreatedAtForHuman(createdAt: Date | null) {
 };
 
 const message = (msg: Object | any) => {
-
   switch (msg.typeUrl) {
     case (Messages["/cosmos.bank.v1beta1.MsgSend"]): {
       if (props.transaction.type == 'sender') {
