@@ -50,8 +50,8 @@ export const NETWORKS_DATA: {
         supportedNetworks: {
             OSMO: {
                 ...OSMO_NETWORK,
-                tendermintRpc: "https://rpc-test.osmosis.zone:443",
-                api: "https://lcd-test.osmosis.zone",
+                tendermintRpc: "https://osmo-test-cl.nolus.network:26657",
+                api: "https://osmo-test-cl.nolus.network:1317",
                 sourceChannel: "channel-1837",
                 explorer: 'https://testnet.mintscan.io/osmosis-testnet/txs',
             }

@@ -199,7 +199,7 @@ import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { useWalletStore } from "@/stores/wallet";
 import { NATIVE_CURRENCY } from "@/config/assetsInfo";
 import { DASHBOARD_ACTIONS } from "@/types";
-import { NATIVE_CURRENCY as DEFAULT_CURRENCY, DEFAULT_LEASE_UP_PERCENT, GROUPS, INTEREST_DECIMALS, LEASE_UP_COEFICIENT, NATIVE_ASSET } from "@/config/env";
+import { NATIVE_CURRENCY as DEFAULT_CURRENCY, DEFAULT_LEASE_UP_PERCENT, GROUPS, LEASE_UP_COEFICIENT, NATIVE_ASSET } from "@/config/env";
 import { useApplicationStore } from "@/stores/application";
 import { AssetUtils as WebAppAssetUtils } from "@/utils/AssetUtils";
 import { ApptUtils } from "@/utils/AppUtils";
@@ -275,7 +275,7 @@ const leasUpTo = computed(() => {
 });
 
 const rewards = computed(() => {
-  return ((app.dispatcherRewards ?? 0) / Math.pow(10, INTEREST_DECIMALS)).toFixed(2);
+  return (app.dispatcherRewards ?? 0).toFixed(2);
 });
 
 const calculateBalance = (

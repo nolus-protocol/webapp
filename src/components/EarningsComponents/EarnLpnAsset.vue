@@ -102,7 +102,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { computed } from "vue";
 import { useWalletStore } from "@/stores/wallet";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
-import { INTEREST_DECIMALS, NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/env";
+import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/env";
 import { useApplicationStore } from "@/stores/application";
 import { AssetUtils } from "@/utils";
 import { ApptUtils } from "@/utils/AppUtils";
@@ -135,7 +135,7 @@ const showBalance = computed(() => {
 });
 
 const rewards = computed(() => {
-  return ((app.dispatcherRewards ?? 0) / Math.pow(10, INTEREST_DECIMALS)).toFixed(2);
+  return (app.dispatcherRewards ?? 0).toFixed(2);
 });
 
 function calculateBalance(tokenAmount: string, denom: string) {

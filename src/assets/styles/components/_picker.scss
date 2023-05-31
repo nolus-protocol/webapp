@@ -163,12 +163,12 @@
       }
 
       &:hover {
-        border-color: $mediumBlue;
+        border-color: $mediumBlue !important;
       }
 
       &:active,
       &:focus {
-        border-color: $lightElectric;
+        border-color: $lightElectric !important;
       }
 
       span {

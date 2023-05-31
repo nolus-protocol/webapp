@@ -54,23 +54,25 @@
       </div>
     </div>
 
-    <div class="repayment">
-      <button
-        v-for="value in INPUT_VALUES"
-        type="button"
-        @click="setInputValue(value)"
-        :key="value"
+    <div class="repayment items-start justify-between">
+      <span
+        class="msg error"
       >
-        {{ value }}%
-      </button>
+        {{ errorMsg }}
+      </span>
+      <div class="min-w-[156px]">
+        <button
+          v-for="value in INPUT_VALUES"
+          type="button"
+          @click="setInputValue(value)"
+          :key="value"
+        >
+          {{ value }}%
+        </button>
+      </div>
     </div>
 
-    <span
-      class="msg error"
-      :class="{ 'hidden': !errorMsg.length }"
-    >
-      {{ errorMsg }}
-    </span>
+
   </div>
 </template>
 

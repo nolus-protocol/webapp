@@ -18,7 +18,7 @@
 		background-color: $white;
 
 		&:hover {
-			border-color: $mediumBlue;
+			border-color: $mediumBlue !important;
 
 			.picker-container button {
 				border-color: $mediumBlue;
@@ -27,8 +27,8 @@
 
 		&:active,
 		&:focus-within {
-			border-color: $lightElectric;
-			border: 1px solid $lightElectric;
+			border-color: $lightElectric !important;
+			border: 1px solid $lightElectric !important;
 			box-shadow: 0px 12px 32px $shadowBoxColor !important;
 			border-radius: 6px;
 
@@ -38,7 +38,7 @@
 		}
 
 		&.error {
-			border-color: $mediumRed;
+			border-color: $mediumRed !important;
 		}
 
 		label {
@@ -149,9 +149,6 @@
 
 	.error {
 		.picker-container {
-			button {
-				border-color: $grey !important;
-			}
 
 			.error {
 				display: none;

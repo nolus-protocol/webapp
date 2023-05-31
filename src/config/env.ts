@@ -44,8 +44,8 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   testnet: {
     currencies: () => import('@nolus/nolusjs/build/utils/currencies_testnet.json'),
     chainName: "Nolus Testnet",
-    tendermintRpc: "https://net-rila.nolus.io:26657",
-    api: "https://net-rila.nolus.io:1317",
+    tendermintRpc: "https://rila-cl.nolus.network:26657",
+    api: "https://rila-cl.nolus.network:1317",
     explorer: "https://explorer-rila.nolus.io/nolus-rila/tx",
     govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
     staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
@@ -168,7 +168,7 @@ export const TIP = {
 }
 
 export const LEASE_MIN_AMOUNT = { amount: 40, ticker: 'USDC' };
-export const LEASE_MAX_AMOUNT = { amount: 200, ticker: 'USDC' };;
+export const LEASE_MAX_AMOUNT = { amount: 10000, ticker: 'USDC' };;
 
 export const INTEREST_DECIMALS = 1;
 export const PERMILLE = 1000;

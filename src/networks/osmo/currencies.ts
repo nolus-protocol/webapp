@@ -51,81 +51,81 @@ export const CURRENCIES = {
         icon: osmosisIcon,
         native: true
     },
-    WETH: {
-        name: "Ethereum WETH",
-        symbol: "eth-wei",
-        decimal_digits: "18",
-        ibc_route: [
-            "channel-144"
-        ],
-        ticker: "WETH",
-        icon: wethIcon,
-        native: false
-    },
-    WBTC: {
-        name: "Bitcoin WBTC",
-        symbol: "btc-satoshi",
-        decimal_digits: "8",
-        ibc_route: [
-            "channel-208"
-        ],
-        ticker: "WBTC",
-        icon: wbtcIcon,
-        native: false
-    },
-    EVMOS: {
-        name: "Evmos",
-        symbol: "atevmos",
-        decimal_digits: "18",
-        ibc_route: [
-            "channel-204"
-        ],
-        ticker: "EVMOS",
-        icon: evmosIcon,
-        native: false
-    },
-    JUNO: {
-        name: "Juno",
-        symbol: "ujuno",
-        decimal_digits: "6",
-        ibc_route: [
-            "channel-169"
-        ],
-        ticker: "JUNO",
-        icon: junoIcon,
-        native: false
-    },
-    STARS: {
-        name: "Stargaze",
-        symbol: "ustars",
-        decimal_digits: "6",
-        ibc_route: [
-            "channel-75"
-        ],
-        ticker: "STARS",
-        icon: starsIcon,
-        native: false
-    },
-    CRO: {
-        name: "Crypto.org CRO",
-        symbol: "basecro",
-        decimal_digits: "8",
-        ibc_route: [
-            "channel-5"
-        ],
-        ticker: "CRO",
-        icon: croIcon,
-        native: false
-    },
-    SCRT: {
-        name: "Secret SCRT",
-        symbol: "uscrt",
-        decimal_digits: "6",
-        ibc_route: [
-            "channel-88"
-        ],
-        ticker: "SCRT",
-        icon: scrtIcon,
-        native: false
-    },
+    // WETH: {
+    //     name: "Ethereum WETH",
+    //     symbol: "eth-wei",
+    //     decimal_digits: "18",
+    //     ibc_route: [
+    //         "channel-144"
+    //     ],
+    //     ticker: "WETH",
+    //     icon: wethIcon,
+    //     native: false
+    // },
+    // WBTC: {
+    //     name: "Bitcoin WBTC",
+    //     symbol: "btc-satoshi",
+    //     decimal_digits: "8",
+    //     ibc_route: [
+    //         "channel-208"
+    //     ],
+    //     ticker: "WBTC",
+    //     icon: wbtcIcon,
+    //     native: false
+    // },
+    // EVMOS: {
+    //     name: "Evmos",
+    //     symbol: "atevmos",
+    //     decimal_digits: "18",
+    //     ibc_route: [
+    //         "channel-204"
+    //     ],
+    //     ticker: "EVMOS",
+    //     icon: evmosIcon,
+    //     native: false
+    // },
+    // JUNO: {
+    //     name: "Juno",
+    //     symbol: "ujuno",
+    //     decimal_digits: "6",
+    //     ibc_route: [
+    //         "channel-169"
+    //     ],
+    //     ticker: "JUNO",
+    //     icon: junoIcon,
+    //     native: false
+    // },
+    // STARS: {
+    //     name: "Stargaze",
+    //     symbol: "ustars",
+    //     decimal_digits: "6",
+    //     ibc_route: [
+    //         "channel-75"
+    //     ],
+    //     ticker: "STARS",
+    //     icon: starsIcon,
+    //     native: false
+    // },
+    // CRO: {
+    //     name: "Crypto.org CRO",
+    //     symbol: "basecro",
+    //     decimal_digits: "8",
+    //     ibc_route: [
+    //         "channel-5"
+    //     ],
+    //     ticker: "CRO",
+    //     icon: croIcon,
+    //     native: false
+    // },
+    // SCRT: {
+    //     name: "Secret SCRT",
+    //     symbol: "uscrt",
+    //     decimal_digits: "6",
+    //     ibc_route: [
+    //         "channel-88"
+    //     ],
+    //     ticker: "SCRT",
+    //     icon: scrtIcon,
+    //     native: false
+    // },
 }
