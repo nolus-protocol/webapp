@@ -30,7 +30,7 @@ export const NETWORKS_DATA: {
                 ...OSMO_NETWORK,
                 tendermintRpc: "https://rpc-test.osmosis.zone:443",
                 api: "https://lcd-test.osmosis.zone",
-                sourceChannel: "channel-2406",
+                sourceChannel: "channel-109",
                 explorer: 'https://testnet.mintscan.io/osmosis-testnet/txs',
             }
         }
@@ -41,7 +41,7 @@ export const NETWORKS_DATA: {
                 ...OSMO_NETWORK,
                 tendermintRpc: "https://rpc-test.osmosis.zone:443",
                 api: "https://lcd-test.osmosis.zone",
-                sourceChannel: "channel-2406",
+                sourceChannel: "channel-109",
                 explorer: 'https://testnet.mintscan.io/osmosis-testnet/txs',
             }
         }
@@ -52,7 +52,7 @@ export const NETWORKS_DATA: {
                 ...OSMO_NETWORK,
                 tendermintRpc: "https://osmo-test-cl.nolus.network:26657",
                 api: "https://osmo-test-cl.nolus.network:1317",
-                sourceChannel: "channel-1837",
+                sourceChannel: "channel-110",
                 explorer: 'https://testnet.mintscan.io/osmosis-testnet/txs',
             }
         }

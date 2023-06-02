@@ -15,17 +15,17 @@ export const CURRENCIES = {
         name: "Nolus",
         symbol: "unls",
         decimal_digits: "6",
-        ibc_route: ["channel-1837"],
+        ibc_route: ["channel-783"],
         ticker: "NLS",
         icon: nlsIcon,
         native: false
     },
     USDC: {
         name: "Usdc",
-        symbol: "uausdc",
+        symbol: "uusdc",
         decimal_digits: "6",
         ibc_route: [
-            "channel-1946"
+            "channel-208"
         ],
         ticker: "USDC",
         icon: usdcIcon,

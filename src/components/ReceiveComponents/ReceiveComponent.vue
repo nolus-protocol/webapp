@@ -154,7 +154,7 @@ import { coin, type Coin } from "@cosmjs/amino";
 import { Decimal } from "@cosmjs/math";
 import { externalWalletOperation } from "../utils";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { useWalletStore } from "@/stores/wallet";
+import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { storeToRefs } from "pinia";
 
@@ -234,7 +234,7 @@ const onUpdateNetwork = async (event: Network) => {
 
       const fn = async () => {
         const ibc_route = AssetUtils.makeIBCMinimalDenom(assets[key].ibc_route, assets[key].symbol);
-        const balance = await client.getBalance(WalletUtils.transformWallet(event.prefix), ibc_route);
+        const balance = await client.getBalance('osmo17snxq7sdny468jc7kyxc2m4pzqvzpnv0zn4qeg', ibc_route);
 
         return {
           balance,
@@ -398,6 +398,11 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
     const isSuccessful = tx?.code === 0;
     step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
     baseWallet.disconnect();
+
+    setTimeout(async () => {
+      await walletStore[WalletActionTypes.UPDATE_BALANCES]();
+    }, 6000);
+
   } catch (error) {
     console.log(error)
     step.value = CONFIRM_STEP.ERROR;
