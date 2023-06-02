@@ -50,7 +50,6 @@
 import QrcodeVue from "qrcode.vue";
 import { onUnmounted, ref, type PropType } from "vue";
 import { ArrowLeftIcon, DocumentDuplicateIcon } from "@heroicons/vue/24/solid";
-import { NATIVE_ASSET } from "@/config/env";
 import { useI18n } from "vue-i18n";
 
 export interface ReceiveQrCodeComponentProps {

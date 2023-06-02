@@ -20,3 +20,15 @@ export interface CurreciesType {
     }
   }
 }
+
+export interface ExternalCurrenciesType {
+     [key: string]: {
+      "name": string,
+      "symbol": string,
+      "decimal_digits": string,
+      "ibc_route": string[],
+      "ticker": string,
+      "icon": string,
+      "native": boolean
+    }
+}

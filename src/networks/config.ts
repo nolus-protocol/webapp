@@ -32,6 +32,7 @@ export const NETWORKS_DATA: {
                 api: "https://lcd-test.osmosis.zone",
                 sourceChannel: "channel-109",
                 explorer: 'https://testnet.mintscan.io/osmosis-testnet/txs',
+                currencies: () => import('./osmo/currencies.dev').then(m => m.CURRENCIES),
             }
         }
     },
@@ -43,6 +44,7 @@ export const NETWORKS_DATA: {
                 api: "https://lcd-test.osmosis.zone",
                 sourceChannel: "channel-109",
                 explorer: 'https://testnet.mintscan.io/osmosis-testnet/txs',
+                currencies: () => import('./osmo/currencies.dev').then(m => m.CURRENCIES),
             }
         }
     },
@@ -54,6 +56,7 @@ export const NETWORKS_DATA: {
                 api: "https://osmo-test-cl.nolus.network:1317",
                 sourceChannel: "channel-110",
                 explorer: 'https://testnet.mintscan.io/osmosis-testnet/txs',
+                currencies: () => import('./osmo/currencies.dev').then(m => m.CURRENCIES),
             }
         }
     },
@@ -65,6 +68,7 @@ export const NETWORKS_DATA: {
                 api: "https://osmo-cl.nolus.network:1317",
                 sourceChannel: "channel-783",
                 explorer: 'https://mintscan.io/osmosis/txs',
+                currencies: () => import('./osmo/currencies.prod').then(m => m.CURRENCIES),
             }
         }
     },

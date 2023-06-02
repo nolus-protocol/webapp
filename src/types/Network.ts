@@ -1,3 +1,5 @@
+import type { ExternalCurrenciesType } from "./CurreciesType";
+
 export interface Network {
   prefix: string;
   value: string;
@@ -23,6 +25,7 @@ export interface NetworkData{
   name: string,
   gasPrice: string,
   explorer: string,
+  currencies: () => Promise<ExternalCurrenciesType>,
   fees: {
       transfer_amount: number
   }

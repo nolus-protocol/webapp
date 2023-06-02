@@ -149,7 +149,7 @@ import { NATIVE_NETWORK, SOURCE_PORTS } from "@/config/env";
 import { useI18n } from "vue-i18n";
 import { AssetUtils, EnvNetworkUtils, WalletUtils } from "@/utils";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS } from "@/networks/config";
-import { NETWORKS_CURRENCIES, Wallet, BaseWallet } from "@/networks";
+import { Wallet, BaseWallet } from "@/networks";
 import { coin, type Coin } from "@cosmjs/amino";
 import { Decimal } from "@cosmjs/math";
 import { externalWalletOperation } from "../utils";
@@ -219,13 +219,14 @@ const onUpdateNetwork = async (event: Network) => {
       client.destroy();
     }
 
+    const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
     disablePicker.value = true;
 
     client = await Wallet.getInstance(
-      NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].supportedNetworks[event.key].tendermintRpc
+      network.supportedNetworks[event.key].tendermintRpc
     );
 
-    const assets = await NETWORKS_CURRENCIES[event.prefix as keyof typeof NETWORKS_CURRENCIES]();
+    const assets = await network.supportedNetworks[event.key].currencies();
     const currenciesPromise = [];
 
     networkCurrenciesObject.value = assets;
@@ -234,7 +235,7 @@ const onUpdateNetwork = async (event: Network) => {
 
       const fn = async () => {
         const ibc_route = AssetUtils.makeIBCMinimalDenom(assets[key].ibc_route, assets[key].symbol);
-        const balance = await client.getBalance('osmo17snxq7sdny468jc7kyxc2m4pzqvzpnv0zn4qeg', ibc_route);
+        const balance = await client.getBalance(WalletUtils.transformWallet(event.prefix), ibc_route);
 
         return {
           balance,
