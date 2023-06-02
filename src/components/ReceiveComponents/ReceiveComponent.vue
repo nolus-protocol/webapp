@@ -402,10 +402,9 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
 
     setTimeout(async () => {
       await walletStore[WalletActionTypes.UPDATE_BALANCES]();
-    }, 6000);
+    }, 10000);
 
   } catch (error) {
-    console.log(error)
     step.value = CONFIRM_STEP.ERROR;
   }
 }

@@ -26,6 +26,7 @@ export interface NetworkData{
   gasPrice: string,
   explorer: string,
   currencies: () => Promise<ExternalCurrenciesType>,
+  embedChainInfo: Function,
   fees: {
       transfer_amount: number
   }

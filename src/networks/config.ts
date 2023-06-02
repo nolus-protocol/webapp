@@ -2,6 +2,7 @@ import osmoIcon from "@/assets/icons/coins/osmosis.svg";
 import type { NetworkData } from "@/types/Network";
 import { NATIVE_NETWORK } from "@/config/env";
 import { NETWORK as OSMO_NETWORK } from './osmo/network';
+import { embedChainInfo } from './osmo/contants';
 
 export const SUPPORTED_NETWORKS = [
     NATIVE_NETWORK,
@@ -28,11 +29,12 @@ export const NETWORKS_DATA: {
         supportedNetworks: {
             OSMO: {
                 ...OSMO_NETWORK,
-                tendermintRpc: "https://rpc-test.osmosis.zone:443",
-                api: "https://lcd-test.osmosis.zone",
+                tendermintRpc: "https://osmo-test-cl.nolus.network:26657",
+                api: "https://osmo-test-cl.nolus.network:1317",
                 sourceChannel: "channel-109",
                 explorer: 'https://testnet.mintscan.io/osmosis-testnet/txs',
                 currencies: () => import('./osmo/currencies.dev').then(m => m.CURRENCIES),
+                embedChainInfo
             }
         }
     },
@@ -40,11 +42,12 @@ export const NETWORKS_DATA: {
         supportedNetworks: {
             OSMO: {
                 ...OSMO_NETWORK,
-                tendermintRpc: "https://rpc-test.osmosis.zone:443",
-                api: "https://lcd-test.osmosis.zone",
+                tendermintRpc: "https://osmo-test-cl.nolus.network:26657",
+                api: "https://osmo-test-cl.nolus.network:1317",
                 sourceChannel: "channel-109",
                 explorer: 'https://testnet.mintscan.io/osmosis-testnet/txs',
                 currencies: () => import('./osmo/currencies.dev').then(m => m.CURRENCIES),
+                embedChainInfo
             }
         }
     },
@@ -57,6 +60,7 @@ export const NETWORKS_DATA: {
                 sourceChannel: "channel-110",
                 explorer: 'https://testnet.mintscan.io/osmosis-testnet/txs',
                 currencies: () => import('./osmo/currencies.dev').then(m => m.CURRENCIES),
+                embedChainInfo
             }
         }
     },
@@ -69,6 +73,7 @@ export const NETWORKS_DATA: {
                 sourceChannel: "channel-783",
                 explorer: 'https://mintscan.io/osmosis/txs',
                 currencies: () => import('./osmo/currencies.prod').then(m => m.CURRENCIES),
+                embedChainInfo
             }
         }
     },

@@ -5,7 +5,6 @@ import type { Window as KeplrWindow } from "@keplr-wallet/types/build/window";
 import { WalletConnectMechanism, type NetworkData } from "@/types";
 import { makeCosmoshubPath, type OfflineAminoSigner } from "@cosmjs/amino";
 
-import KeplrEmbedChainInfo from "@/config/keplr";
 import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
 import { createIbcAminoConverters, createBankAminoConverters } from "@cosmjs/stargate";
 import { AminoTypes } from "@cosmjs/stargate";
@@ -43,12 +42,7 @@ const authenticateKeplr = async (wallet: Wallet, network: NetworkData) => {
         try {
             chainId = await wallet.getChainId();
             await keplrWindow.keplr?.experimentalSuggestChain(
-                KeplrEmbedChainInfo(
-                    network.name,
-                    chainId,
-                    network.tendermintRpc as string,
-                    network.api as string
-                )
+                network.embedChainInfo(chainId, network.tendermintRpc, network.api)
             );
         } catch (e) {
             throw new Error("Failed to fetch suggest chain.");
@@ -75,10 +69,10 @@ const authenticateLeap = async (wallet: Wallet, network: NetworkData) => {
     const leapWindow = window as any;
 
     if (!leapWindow.leap.getOfflineSignerOnlyAmino || !leapWindow.leap) {
-        throw new Error("Keplr wallet is not installed.");
+        throw new Error("Leap wallet is not installed.");
     } else if (!leapWindow.leap.experimentalSuggestChain) {
         throw new Error(
-            "Keplr version is not latest. Please upgrade your Keplr wallet"
+            "Leap version is not latest. Please upgrade your Leap wallet"
         );
     } else {
         let chainId = "";
@@ -86,14 +80,10 @@ const authenticateLeap = async (wallet: Wallet, network: NetworkData) => {
         try {
             chainId = await wallet.getChainId();
             await leapWindow.leap?.experimentalSuggestChain(
-                KeplrEmbedChainInfo(
-                    network.name,
-                    chainId,
-                    network.tendermintRpc as string,
-                    network.api as string
-                )
+                network.embedChainInfo(chainId, network.tendermintRpc, network.api)
             );
         } catch (e) {
+            console.log(e)
             throw new Error("Failed to fetch suggest chain.");
         }
 

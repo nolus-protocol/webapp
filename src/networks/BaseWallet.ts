@@ -54,7 +54,6 @@ export class BaseWallet extends SigningCosmWasmClient {
         if (accounts.length === 0) {
             throw new Error('Missing account');
         }
-
         this.address = accounts[0].address;
         this.pubKey = accounts[0].pubkey;
         this.algo = accounts[0].algo;
@@ -115,10 +114,11 @@ export class BaseWallet extends SigningCosmWasmClient {
     }
 
     private async sequence() {
-        try {
+        try {  
             const { sequence } = await this.getSequence(this.address as string);
             return sequence;
         } catch (error) {
+            console.log(error)
             throw new Error('Insufficient amount');
         }
     }

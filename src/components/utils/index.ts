@@ -1,6 +1,6 @@
 import type { Coin } from "@cosmjs/proto-signing";
 import type { StdFee } from "@cosmjs/amino";
-import { authenticateLeap, type BaseWallet, type Wallet } from "@/networks";
+import { type BaseWallet, type Wallet } from "@/networks";
 import { i18n } from "@/i18n";
 
 import { Int } from "@keplr-wallet/unit";
@@ -9,7 +9,7 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { WalletManager } from "@/utils";
 import { WalletConnectMechanism, type NetworkData } from "@/types";
-import { authenticateKeplr, authenticateLedger, authenticateDecrypt } from "@/networks";
+import { authenticateKeplr, authenticateLeap, authenticateLedger, authenticateDecrypt } from "@/networks";
 
 export const validateAddress = (address: string) => {
   if (!address || address.trim() == "") {
