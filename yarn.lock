@@ -606,10 +606,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@nolus/nolusjs@^0.0.103":
-  version "0.0.103"
-  resolved "https://registry.npmjs.org/@nolus/nolusjs/-/nolusjs-0.0.103.tgz"
-  integrity sha512-+0asWBrILNye8EAcWACOjX2uuGXag7/bPLsK/wRycPN4Xuh/rVCuCq3pvnx18SeKgJhscOzdgexZpoP19KiY9A==
+"@nolus/nolusjs@^0.0.105":
+  version "0.0.105"
+  resolved "https://registry.npmjs.org/@nolus/nolusjs/-/nolusjs-0.0.105.tgz"
+  integrity sha512-KCi8/sWSFV7DI5CbFiaLqI/nyz0bTmf1kq3ZA1QdjaH11pwrXBDV9zdEUEyExqRcZ4T7zUvykr1ECxbCsa8jkQ==
   dependencies:
     "@cosmjs/cosmwasm-stargate" "0.30.1"
     "@cosmjs/crypto" "0.30.1"
@@ -4371,7 +4371,7 @@ uuid@^8.3.2:
   resolved "https://registry.npmjs.org/uuid/-/uuid-8.3.2.tgz"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
 
-vite@^4.0.0, vite@^4.3.5:
+vite@^4.0.0, vite@^4.3.8:
   version "4.3.8"
   resolved "https://registry.npmjs.org/vite/-/vite-4.3.8.tgz"
   integrity sha512-uYB8PwN7hbMrf4j1xzGDk/lqjsZvCDbt/JC5dyfxc19Pg8kRm14LinK/uq+HSLNswZEoKmweGdtpbnxRtrAXiQ==
