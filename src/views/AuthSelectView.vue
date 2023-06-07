@@ -7,7 +7,7 @@
 
       <div class="separator-line z-[100]"></div>
 
-      <div class="flex px-4 md:px-10 pt-10 pb-6 relative z-[2] lg:pt-6">
+      <div class="flex px-4 md:px-10 pt-10 pb-2 relative z-[2] lg:pt-6">
         <button
           class="btn btn-box btn-large-box basis-0 grow"
           @click="clickConnectToKeplr"
@@ -34,7 +34,7 @@
         </button>
       </div>
 
-      <div class="flex px-4 md:px-10 pt-10 pb-6 relative z-[2] lg:pt-6">
+      <div class="flex px-4 md:px-10 pt-10 pb-6 relative z-[2] lg:pt-2">
         <button
           class="btn btn-box btn-large-box basis-0 grow"
           @click="clickConnectToLeap"
