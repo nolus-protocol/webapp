@@ -3,6 +3,8 @@ import type { NetworkData } from "@/types/Network";
 import { NATIVE_NETWORK } from "@/config/env";
 import { NETWORK as OSMO_NETWORK } from './osmo/network';
 import { embedChainInfo } from './osmo/contants';
+import { useApplicationStore } from "@/stores/application";
+import type { ExternalCurrenciesType } from "@/types/CurreciesType";
 
 export const SUPPORTED_NETWORKS = [
     NATIVE_NETWORK,
@@ -13,7 +15,6 @@ export const SUPPORTED_NETWORKS = [
         icon: osmoIcon,
         native: false,
         estimation: 20,
-        sourceChannel: "channel-0",
         key: "OSMO"
     },
 ];
@@ -31,9 +32,11 @@ export const NETWORKS_DATA: {
                 ...OSMO_NETWORK,
                 tendermintRpc: "https://osmo-test-cl.nolus.network:26657",
                 api: "https://osmo-test-cl.nolus.network:1317",
-                sourceChannel: "channel-109",
                 explorer: 'https://testnet.mintscan.io/osmosis-testnet/txs',
-                currencies: () => import('./osmo/currencies.dev').then(m => m.CURRENCIES),
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[OSMO_NETWORK.key] as ExternalCurrenciesType;
+                },
                 embedChainInfo
             }
         }
@@ -44,9 +47,11 @@ export const NETWORKS_DATA: {
                 ...OSMO_NETWORK,
                 tendermintRpc: "https://osmo-test-cl.nolus.network:26657",
                 api: "https://osmo-test-cl.nolus.network:1317",
-                sourceChannel: "channel-109",
                 explorer: 'https://testnet.mintscan.io/osmosis-testnet/txs',
-                currencies: () => import('./osmo/currencies.dev').then(m => m.CURRENCIES),
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[OSMO_NETWORK.key] as ExternalCurrenciesType;
+                },
                 embedChainInfo
             }
         }
@@ -57,9 +62,11 @@ export const NETWORKS_DATA: {
                 ...OSMO_NETWORK,
                 tendermintRpc: "https://osmo-test-cl.nolus.network:26657",
                 api: "https://osmo-test-cl.nolus.network:1317",
-                sourceChannel: "channel-110",
                 explorer: 'https://testnet.mintscan.io/osmosis-testnet/txs',
-                currencies: () => import('./osmo/currencies.dev').then(m => m.CURRENCIES),
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[OSMO_NETWORK.key] as ExternalCurrenciesType;
+                },
                 embedChainInfo
             }
         }
@@ -70,9 +77,11 @@ export const NETWORKS_DATA: {
                 ...OSMO_NETWORK,
                 tendermintRpc: "https://osmo-cl.nolus.network:26657",
                 api: "https://osmo-cl.nolus.network:1317",
-                sourceChannel: "channel-783",
                 explorer: 'https://mintscan.io/osmosis/txs',
-                currencies: () => import('./osmo/currencies.prod').then(m => m.CURRENCIES),
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[OSMO_NETWORK.key] as ExternalCurrenciesType;
+                },
                 embedChainInfo
             }
         }

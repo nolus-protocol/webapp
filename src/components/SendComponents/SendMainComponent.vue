@@ -37,6 +37,7 @@ import {
   GAS_FEES,
   SNACKBAR,
 SOURCE_PORTS,
+NATIVE_NETWORK,
 } from "@/config/env";
 
 import {
@@ -45,9 +46,13 @@ import {
   validateAmount,
   walletOperation,
 } from "@/components/utils";
+import { AssetUtils } from "@/utils";
+import { useApplicationStore } from "@/stores/application";
+import { NETWORK as OSMO_NETWORK } from '@/networks/osmo/network';
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const walletStore = useWalletStore();
+const app = useApplicationStore();
 
 const closeModal = inject("onModalClose", () => () => {});
 const snackbarVisible = inject("snackbarVisible", () => false);
@@ -161,13 +166,13 @@ const ibcTransfer = async () => {
         amount: minimalDenom.amount.toString(),
         denom,
       };
-
+      const sourceChannel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, OSMO_NETWORK.key, NATIVE_NETWORK.symbol)
       const { txHash, txBytes, usedFee } = await wallet.simulateSendIbcTokensTx(
         {
           toAddress: state.value.receiverAddress,
           amount: funds,
           sourcePort: SOURCE_PORTS.TRANSFER,
-          sourceChannel: state.value.network.sourceChannel,
+          sourceChannel: sourceChannel as string,
           memo: "",
         }
       );

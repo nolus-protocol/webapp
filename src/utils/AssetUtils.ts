@@ -232,7 +232,7 @@ export class AssetUtils {
   }
 
   public static getNative(ntwrks: Networks) {
-    const native = Object.keys(ntwrks.lease.Native)[0];
+    const native = ntwrks.lease.Native.id;
     return AssetUtils.getAsset(ntwrks, native as string, NATIVE_NETWORK.symbol as string);
   }
 

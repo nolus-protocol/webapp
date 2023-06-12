@@ -16,6 +16,7 @@ const useApplicationStore = defineStore("application", {
   state: () => {
     return {
       networks: null,
+      networksData: null,
       assetIcons: null,
       network: {},
       theme: null,
@@ -35,6 +36,7 @@ const useApplicationStore = defineStore("application", {
       const data = AssetUtils.parseNetworks(currenciesData);
       this.assetIcons = data.assetIcons;
       this.networks = data.networks;
+      this.networksData = currenciesData;
 
       const native = AssetUtils.getNative(currenciesData).key
       const lpn = AssetUtils.getLpn(currenciesData).key;
@@ -43,7 +45,6 @@ const useApplicationStore = defineStore("application", {
       this.currenciesData = data.networks[NATIVE_NETWORK.symbol];
 
       this.lease = AssetUtils.getLease(currenciesData);
-      this.lease.push(this.lpn.ticker);
     },
     async [ApplicationActionTypes.CHANGE_NETWORK](loadBalance = false) {
       try {

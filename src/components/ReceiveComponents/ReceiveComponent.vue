@@ -157,6 +157,8 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { storeToRefs } from "pinia";
+import { NETWORK as OSMO_NETWORK } from '@/networks/osmo/network';
+import { useApplicationStore } from "@/stores/application";
 
 export interface ReceiveComponentProps {
   currentBalance: AssetBalance[];
@@ -174,6 +176,7 @@ const i18n = useI18n();
 const copyText = ref(i18n.t("message.copy"));
 const selectedNetwork = ref(SUPPORTED_NETWORKS[0]);
 const walletStore = useWalletStore();
+const app = useApplicationStore();
 
 const networkCurrencies = ref<AssetBalance[]>([]);
 const selectedCurrency = ref<AssetBalance>(walletStore.balances[0]);
@@ -226,7 +229,7 @@ const onUpdateNetwork = async (event: Network) => {
       network.supportedNetworks[event.key].tendermintRpc
     );
 
-    const assets = await network.supportedNetworks[event.key].currencies();
+    const assets = network.supportedNetworks[event.key].currencies();
     const currenciesPromise = [];
 
     networkCurrenciesObject.value = assets;
@@ -236,11 +239,11 @@ const onUpdateNetwork = async (event: Network) => {
       const fn = async () => {
         const ibc_route = AssetUtils.makeIBCMinimalDenom(assets[key].ibc_route, assets[key].symbol);
         const balance = await client.getBalance(WalletUtils.transformWallet(event.prefix), ibc_route);
-
+        const icon = app.assetIcons?.[assets[key].ticker] as string;
         return {
           balance,
           name: assets[key].ticker,
-          icon: assets[key].icon,
+          icon: icon,
           ticker: assets[key].ticker,
           ibc_route: assets[key].ibc_route,
           decimals: Number(assets[key].decimal_digits),
@@ -377,14 +380,15 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
       amount: minimalDenom.amount.toString(),
       denom,
     };
+    const sourceChannel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, NATIVE_NETWORK.symbol, OSMO_NETWORK.key)
 
     const { txHash: txHashData, txBytes, usedFee } = await baseWallet.simulateSendIbcTokensTx({
       toAddress: wallet.value,
       amount: funds,
       sourcePort: SOURCE_PORTS.TRANSFER,
-      sourceChannel: networkData.sourceChannel,
       gasMuplttiplier: networkData.gasMuplttiplier,
       gasPrice: networkData.gasPrice,
+      sourceChannel: sourceChannel as string,
       timeOut: networkData.ibcTransferTimeout,
       memo: memo.value,
     });

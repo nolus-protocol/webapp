@@ -1,10 +1,11 @@
 import type { CurreciesType } from "@/types";
 import type { ExternalCurrenciesType, ExternalCurrencyType } from "@/types/CurreciesType";
 import type { NetworkConfig } from "@/types/NetworkConfig";
-import type { NetworksInfo } from "@/types/Networks";
+import type { Networks, NetworksInfo } from "@/types/Networks";
 
 export type State = {
   networks: NetworksInfo | null;
+  networksData: Networks | null;
   assetIcons: {
     [key: string]: string
   } | null;

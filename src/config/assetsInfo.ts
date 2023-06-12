@@ -12,6 +12,18 @@ export const ASSETS = {
   },
   OSMO: {
     coinGeckoId: "osmosis",
+  },
+  ST_OSMO: {
+    coinGeckoId: "osmosis",
+  },
+  ST_ATOM: {
+    coinGeckoId: "cosmos"
+  },
+  WETH: {
+    coinGeckoId: "wrapped-bitcoin",
+  },
+  WBTC: {
+    coinGeckoId: "weth",
   }
 };
 

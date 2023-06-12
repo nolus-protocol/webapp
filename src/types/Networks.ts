@@ -35,14 +35,13 @@ export interface Networks {
             }
         },
         Native: {
-            [key: string]: {
-                swap_routes: Array<
-                    {
-                        pool_id: string,
-                        pool_token: string
-                    }[]
-                >
-            }
+            id: string,
+            swap_routes: Array<
+                {
+                    pool_id: string,
+                    pool_token: string
+                }[]
+            >
         }
     },
     definitions: string[]

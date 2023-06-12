@@ -9,7 +9,6 @@ export interface Network {
   native: boolean;
   estimation: number; 
   sourcePort: string;
-  sourceChannel: string;
   key: string;
 }
 
@@ -17,7 +16,6 @@ export interface NetworkData{
   prefix: string,
   tendermintRpc: string,
   api: string,
-  sourceChannel: string,
   gasMuplttiplier: number,
   bip44Path: string,
   ibcTransferTimeout: number,
@@ -25,7 +23,7 @@ export interface NetworkData{
   name: string,
   gasPrice: string,
   explorer: string,
-  currencies: () => Promise<ExternalCurrenciesType>,
+  currencies: () => ExternalCurrenciesType,
   embedChainInfo: Function,
   fees: {
       transfer_amount: number
