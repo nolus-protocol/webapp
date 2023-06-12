@@ -6,6 +6,4 @@ export interface AssetInfo {
   coinGeckoId: string;
   coinAbbreviation: string;
   coinIcon: string;
-  isEarn: boolean;
-  canLease: boolean;
 }

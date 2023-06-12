@@ -673,9 +673,9 @@ const useWalletStore = defineStore("wallet", {
             coinDenom: app.native?.symbol as string,
             coinMinimalDenom: app.native?.symbol as string,
             coinDecimals: Number(0),
-            coinAbbreviation: app.native?.name,
+            coinAbbreviation: app.native?.name as  string,
             coinGeckoId: ASSETS.NLS.coinGeckoId,
-            coinIcon: app.assetIcons?.NLS,
+            coinIcon: app.assetIcons?.NLS as string,
           };
         }
 

@@ -55,7 +55,7 @@
           denom="%"
         />
         <template v-else>
-          <div v-if="assetInfo.isEarn">
+          <div v-if="isEarn">
             <CurrencyComponent
               :type="CURRENCY_VIEW_TYPES.CURRENCY"
               :amount="app.apr?.toString() ?? '0'"
@@ -79,7 +79,7 @@
 
     <div class="md:block hidden info-show">
       <p class="text-primary nls-font-500 text-16 text-right m-0">
-        <template v-if="assetInfo.canLease">
+        <template v-if="canLease">
           <template v-if="balance > 0">
             <CurrencyComponent
               :type="CURRENCY_VIEW_TYPES.TOKEN"
@@ -260,6 +260,13 @@ const canStake = computed(() => {
   const curency = walletStore.currencies[props.denom];
   return (
     app.native?.ticker == curency.ticker && Number(props.assetBalance) > 0
+  );
+});
+
+const isEarn = computed(() => {
+  const curency = walletStore.currencies[props.denom];
+  return (
+    app.lpn?.ticker == curency.ticker
   );
 });
 
