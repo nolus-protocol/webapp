@@ -57,9 +57,9 @@ import {
   DEFAULT_APR,
   NATIVE_ASSET,
   GAS_FEES,
-  GROUPS,
   SNACKBAR,
 } from "@/config/env";
+import { useApplicationStore } from "@/stores/application";
 
 const props = defineProps({
   selectedAsset: {
@@ -70,6 +70,8 @@ const props = defineProps({
 
 const i18n = useI18n();
 const walletStore = useWalletStore();
+const app = useApplicationStore();
+
 const snackbarVisible = inject("snackbarVisible", () => false);
 const loadLPNCurrency = inject("loadLPNCurrency", () => false);
 
@@ -77,7 +79,7 @@ const balances = computed(() => {
   const b = walletStore.balances;
   return b.filter((item) => {
     const currency = walletStore.currencies[item.balance.denom];
-    return currency.groups.includes(GROUPS.Lpn);
+    return currency.ticker == app.lpn?.ticker;
   });
 });
 

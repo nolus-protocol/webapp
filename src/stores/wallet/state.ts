@@ -30,13 +30,6 @@ export type State = {
       name: string;
       decimal_digits: string;
       symbol: string;
-      groups: string[];
-      swap_routes: Array<
-        Array<{
-          pool_id: string;
-          pool_token: string;
-        }>
-      >;
     };
   };
 };

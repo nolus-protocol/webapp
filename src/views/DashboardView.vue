@@ -309,7 +309,6 @@ import { useApplicationStore } from "@/stores/application";
 
 import { DEFAULT_APR, NATIVE_CURRENCY } from "@/config/env";
 import { storeToRefs } from "pinia";
-import { LPN_CURRENCY } from "@/config/assetsInfo";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 
 const modalOptions = {
@@ -355,7 +354,7 @@ const filteredAssets = computed(() => {
 
 const loading = computed(() => showSkeleton.value || wallet.balances.length == 0);
 
-const currenciesSize = computed(() => Object.keys(app.currenciesData!.currencies).length)
+const currenciesSize = computed(() => Object.keys(app.currenciesData!).length)
 
 onMounted(() => {
   getVestedTokens();
@@ -460,7 +459,7 @@ const suppliedAndStaked = computed(() => {
   const staking = wallet.stakingBalance as Coin;
   const supplied = wallet.suppliedBalance;
   const lppPrice = wallet.lppPrice;
-  const suppliedSymbol = wallet.getCurrencyByTicker(LPN_CURRENCY.key);
+  const suppliedSymbol = wallet.getCurrencyByTicker(app.lpn?.ticker as string);
   const suppliedCoin = wallet.getIbcDenomBySymbol(
     suppliedSymbol.symbol
   ) as string;

@@ -136,13 +136,15 @@ import { onMounted, ref, type PropType } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { computed, watch } from "vue";
 import { useWalletStore } from "@/stores/wallet";
-import { GROUPS, NATIVE_NETWORK, calculateLiquidation, PERMILLE } from "@/config/env";
+import { NATIVE_NETWORK, calculateLiquidation, PERMILLE } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
 import { AssetUtils } from "@/utils";
+import { useApplicationStore } from "@/stores/application";
 
 const wallet = useWalletStore();
+const app = useApplicationStore();
 
 const liqudStake = ref(false);
 const liqudStakeShow = ref(false);
@@ -203,20 +205,20 @@ const balances = computed(() => {
   const balances = wallet.balances;
   return balances.filter((item) => {
     const currency = wallet.currencies[item.balance.denom];
-    return currency.groups.includes(GROUPS.Lease) || currency.groups.includes(GROUPS.Lpn);
+    return app.lpn?.ticker ==  currency.ticker || app.lease.includes(currency.ticker);
   });
 });
 
 const coinList = props.modelValue.currentBalance.filter((item) => {
   const currency = wallet.currencies[item.balance.denom];
-  return currency.groups.includes(GROUPS.Lease);
+  return app.lease.includes(currency.ticker);
 }).map((item) => {
   const asset = wallet.getCurrencyInfo(item.balance.denom);
   return {
     ticker: asset.ticker,
-    label: asset.coinAbbreviation,
+    label: asset.coinAbbreviation as string,
     value: asset.coinMinimalDenom,
-    icon: asset.coinIcon
+    icon: asset.coinIcon as string
   }
 });
 

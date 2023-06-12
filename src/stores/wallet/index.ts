@@ -2,7 +2,6 @@ import KeplrEmbedChainInfo from "@/config/keplr";
 import router from "@/router";
 import BluetoothTransport from "@ledgerhq/hw-transport-web-ble";
 import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
-// import CURRENCIES from "@/config/currencies.json";
 
 import type { HdPath } from "@cosmjs/crypto";
 import type { State } from "@/stores/wallet/state";
@@ -281,10 +280,10 @@ const useWalletStore = defineStore("wallet", {
 
         const ibcBalances = [];
         const app = useApplicationStore();
-        const currencies = app.currenciesData?.currencies;
+        const currencies = app.currenciesData;
 
         for (const key in currencies) {
-          const currency = app.currenciesData!.currencies[key];
+          const currency = app.currenciesData![key];
           const ibcDenom = AssetUtils.makeIBCMinimalDenom(
             currency.ibc_route,
             currency.symbol
@@ -297,9 +296,7 @@ const useWalletStore = defineStore("wallet", {
                   ticker: key,
                   name: currency.name,
                   symbol: currency.symbol,
-                  decimal_digits: currency.decimal_digits,
-                  groups: currency.groups,
-                  swap_routes: currency.swap_routes,
+                  decimal_digits: currency.decimal_digits
                 };
                 this.currencies[ibcDenom] = data;
                 return {
@@ -666,41 +663,39 @@ const useWalletStore = defineStore("wallet", {
   getters: {
     getCurrencyInfo: (state) => {
       return (denom: string) => {
-        const currency = state.currencies[denom];
+        const currency = state.currencies[denom]; 
+        const app = useApplicationStore();
+        const assetIcons = app.assetIcons!;
 
         if (!currency) {
           return {
-            ticker: "NLS",
-            coinDenom: ASSETS.NLS.abbreviation,
-            coinMinimalDenom: denom,
+            ticker: app.native?.ticker as string,
+            coinDenom: app.native?.symbol as string,
+            coinMinimalDenom: app.native?.symbol as string,
             coinDecimals: Number(0),
-            coinAbbreviation: ASSETS.NLS.abbreviation,
+            coinAbbreviation: app.native?.name,
             coinGeckoId: ASSETS.NLS.coinGeckoId,
-            coinIcon: ASSETS.NLS.coinIcon,
-            isEarn: ASSETS.NLS.isEarn,
-            canLease: ASSETS.NLS.canLease
+            coinIcon: app.assetIcons?.NLS,
           };
         }
 
-        const key = currency.ticker as keyof typeof ASSETS;
+        const key = currency?.ticker as keyof typeof ASSETS;
 
         return {
           ticker: key,
-          coinDenom: ASSETS[key].abbreviation,
+          coinDenom: currency.name,
           coinMinimalDenom: denom,
           coinDecimals: Number(currency.decimal_digits),
-          coinAbbreviation: ASSETS[key].abbreviation,
+          coinAbbreviation: currency.name,
           coinGeckoId: ASSETS[key].coinGeckoId,
-          coinIcon: ASSETS[key].coinIcon,
-          isEarn: ASSETS[key].isEarn,
-          canLease: ASSETS[key].canLease
+          coinIcon: assetIcons[key]
         };
       };
     },
     getCurrencyByTicker: (state) => {
       const app = useApplicationStore();
       return (ticker: string) => {
-        return app.currenciesData!.currencies[
+        return app.currenciesData![
           ticker
         ];
       };

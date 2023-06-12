@@ -70,12 +70,13 @@ import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
-import { NATIVE_NETWORK, PERMILLE, PERCENT, LPN_CURRENCIES, SWAP_FEE } from "@/config/env";
+import { NATIVE_NETWORK, PERMILLE, PERCENT, SWAP_FEE } from "@/config/env";
 import { calculateAditionalDebt } from "@/config/env";
-import { AssetUtils } from "@/utils";
+import { useApplicationStore } from "@/stores/application";
 
 const oracle = useOracleStore();
 const wallet = useWalletStore();
+const app = useApplicationStore();
 
 const props = defineProps({
   modelValue: {
@@ -205,7 +206,7 @@ const setRepayment = (p: number) => {
 
 const hasSwapFee = computed(() => {
   const selectedCurrencyInfo = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom as string);
-  const isLpn = LPN_CURRENCIES.includes(selectedCurrencyInfo.ticker);
+  const isLpn = app.lpn?.ticker == selectedCurrencyInfo.ticker;
   if (isLpn) {
     return false;
   }

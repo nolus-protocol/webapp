@@ -421,6 +421,7 @@ import { StringUtils, WalletManager } from "@/utils";
 import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation, INTEREST_DECIMALS, PERMILLE, PERCENT, calculateAditionalDebt } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { walletOperation } from "@/components/utils";
+import { useApplicationStore } from "@/stores/application";
 
 interface Props {
   leaseInfo: LeaseData;
@@ -442,6 +443,8 @@ const chartData = ref();
 const showClaimDialog = ref(false);
 const walletStore = useWalletStore();
 const oracleStore = useOracleStore();
+const app = useApplicationStore();
+
 const snackbarVisible = inject("snackbarVisible", () => false);
 const showSnackbar = inject("showSnackbar", (_type: string, _transaction: string) => { });
 const getLeases = inject("getLeases", () => { });
@@ -554,8 +557,7 @@ const getAssetIcon = computed((): string => {
 
   if (props.leaseInfo.leaseStatus?.opening && leaseData) {
     const item = walletStore.getCurrencyByTicker(leaseData.leasePositionTicker);
-    const ibcDenom = walletStore.getIbcDenomBySymbol(item.symbol);
-    return walletStore.getCurrencyInfo(ibcDenom as string).coinIcon;
+    return app.assetIcons?.[item.ticker] as string;
   }
 
   const ticker =
@@ -565,8 +567,7 @@ const getAssetIcon = computed((): string => {
     "";
 
   const item = walletStore.getCurrencyByTicker(ticker);
-  const ibcDenom = walletStore.getIbcDenomBySymbol(item.symbol);
-  return walletStore.getCurrencyInfo(ibcDenom as string).coinIcon;
+  return app.assetIcons?.[item.ticker] as string;
 });
 
 const downPayment = computed(() => {

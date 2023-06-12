@@ -74,12 +74,12 @@ defineEmits(["updateSelected", "updateAmount", "updateSwapToSelected"]);
 const coinAbbr = computed(() =>
   wallet
     .getCurrencyInfo(props.selectedCurrency.balance.denom)
-    .coinAbbreviation.toUpperCase()
+    .ticker.toUpperCase()
 );
 const swapToCoinAbbr = computed(() =>
   wallet
     .getCurrencyInfo(props.swapToSelectedCurrency.balance.denom)
-    .coinAbbreviation.toUpperCase()
+    .ticker.toUpperCase()
 );
 
 function formatCurrentBalance(selectedCurrency: AssetBalance) {

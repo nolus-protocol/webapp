@@ -27,9 +27,9 @@
             />
             <span class="block truncate dark-text">
               {{
-                selected.value?.name ?? getAssetInfo(
+                selected.value?.ticker ?? getAssetInfo(
                   selected.value?.balance?.denom
-                ).coinAbbreviation.toUpperCase()
+                ).ticker.toUpperCase()
               }}
             </span>
             <span
@@ -88,7 +88,7 @@
                     {{
                       option.name ?? getAssetInfo(
                         option.balance.denom
-                      ).coinAbbreviation.toUpperCase()
+                      ).ticker.toUpperCase()
                     }}
                   </span>
                 </div>

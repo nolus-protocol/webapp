@@ -6,7 +6,7 @@ export const DEFAULT_PRIMARY_NETWORK = "mainnet";
 
 export const NETWORKS: { [key: string]: NetworkAddress } = {
   localnet: {
-    currencies: () => import('@nolus/nolusjs/build/utils/currencies_testnet.json'),
+    currencies: () => import('@/currencies.json'),
     tendermintRpc: "http://127.0.0.1:26612",
     api: "http://127.0.0.1:26614",
     explorer: "https://explorer-rila.nolus.io/",
@@ -24,7 +24,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     }
   },
   devnet: {
-    currencies: () => import('@nolus/nolusjs/build/utils/currencies_testnet.json'),
+    currencies: () => import('@/currencies.json'),
     tendermintRpc: "https://dev-cl.nolus.network:26657",
     api: "https://dev-cl.nolus.network:1317",
     explorer: "https://explorer-rila.nolus.io/",
@@ -42,7 +42,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     }
   },
   testnet: {
-    currencies: () => import('@nolus/nolusjs/build/utils/currencies_testnet.json'),
+    currencies: () => import('@/currencies.json'),
     chainName: "Nolus Testnet",
     tendermintRpc: "https://rila-cl.nolus.network:26657",
     api: "https://rila-cl.nolus.network:1317",
@@ -61,7 +61,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     }
   },
   mainnet: {
-    currencies: () => import('@nolus/nolusjs/build/utils/currencies_mainnet.json'),
+    currencies: () => import('@/currencies.json'),
     chainName: "Nolus",
     tendermintRpc: "https://pirin-cl.nolus.network:26657",
     api: "https://pirin-cl.nolus.network:1317",
@@ -98,6 +98,7 @@ export const NATIVE_ASSET = {
 };
 
 export const NATIVE_NETWORK = {
+  symbol: "NOLUS",
   prefix: "nolus",
   value: "nls",
   label: "Nolus",
@@ -112,12 +113,6 @@ export const NATIVE_NETWORK = {
 
 export enum SOURCE_PORTS {
   TRANSFER = "transfer"
-}
-
-export enum GROUPS {
-  Lpn = "Lpn",
-  Lease = "Lease",
-  Payment = "Payment",
 }
 
 export enum SNACKBAR {
@@ -195,7 +190,7 @@ export const WASM_LP_DEPOSIT = "wasm-lp-deposit"
 export const WASM_LP_OPEN = "wasm-ls-open";
 
 export const INPUT_VALUES = [25, 50, 75, 100];
-export const LPN_CURRENCIES = ['USDC'];
+export const LPN_PRICE = 1;
 export const SESSION_TIME = 15 * 60 * 1000;
 
 export const DECIMALS_AMOUNT = [
@@ -219,6 +214,8 @@ export const calculateAditionalDebt = (principal: Dec, percent: Dec) => {
   const amountForTwoMinuts = secondsAmount.mul(new Dec(120));
   return amountForTwoMinuts;
 }
+
+export const SUPPORTED_NETWORKS = ['NOLUS', 'OSMOSIS'];
 
 export const SWAP_FEE = 0.007;
 export const ZERO_DECIMALS = 2;

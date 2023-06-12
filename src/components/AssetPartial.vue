@@ -30,7 +30,7 @@
           :type="CURRENCY_VIEW_TYPES.TOKEN"
           :amount="assetBalance"
           :minimalDenom="assetInfo.coinMinimalDenom"
-          :denom="assetInfo.coinDenom"
+          :denom="assetInfo.ticker"
           :decimals="assetInfo.coinDecimals"
           :maxDecimals="maxCoinDecimals"
         />
@@ -46,7 +46,7 @@
     >
       <div class="text-primary nls-font-500 text-14 text-right m-0">
         <CurrencyComponent
-          v-if="NATIVE_CURRENCY.key == assetInfo.ticker"
+          v-if="app.native?.ticker == assetInfo.ticker"
           :type="CURRENCY_VIEW_TYPES.CURRENCY"
           :amount="walletStore.apr.toString()"
           :hasSpace="false"
@@ -63,7 +63,10 @@
               :isDenomInfront="false"
               denom="%"
             />
-            <p v-if="ApptUtils.isDev()" class="text-[#1AB171] text-[12px]">
+            <p
+              v-if="ApptUtils.isDev()"
+              class="text-[#1AB171] text-[12px]"
+            >
               +{{ rewards }}% {{ NATIVE_ASSET.label }}
             </p>
           </div>
@@ -82,7 +85,7 @@
               :type="CURRENCY_VIEW_TYPES.TOKEN"
               :amount="leasUpTo"
               :minimalDenom="assetInfo.coinMinimalDenom"
-              :denom="assetInfo.coinDenom"
+              :denom="assetInfo.ticker"
               :decimals="assetInfo.coinDecimals"
               :maxDecimals="maxLeaseUpToCoinDecimals"
             />
@@ -197,9 +200,8 @@ import { Coin, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { useWalletStore } from "@/stores/wallet";
-import { NATIVE_CURRENCY } from "@/config/assetsInfo";
 import { DASHBOARD_ACTIONS } from "@/types";
-import { NATIVE_CURRENCY as DEFAULT_CURRENCY, DEFAULT_LEASE_UP_PERCENT, GROUPS, LEASE_UP_COEFICIENT, NATIVE_ASSET } from "@/config/env";
+import { NATIVE_CURRENCY as DEFAULT_CURRENCY, DEFAULT_LEASE_UP_PERCENT, LEASE_UP_COEFICIENT, NATIVE_ASSET } from "@/config/env";
 import { useApplicationStore } from "@/stores/application";
 import { AssetUtils as WebAppAssetUtils } from "@/utils/AssetUtils";
 import { ApptUtils } from "@/utils/AppUtils";
@@ -242,21 +244,22 @@ const props = defineProps({
 });
 
 const canLease = computed(() => {
-  const currency = walletStore.currencies[props.denom];
+  const curency = walletStore.currencies[props.denom];
+
   return (
-    Number(props.assetBalance) > 0 && currency.groups.includes(GROUPS.Lease)
+    Number(props.assetBalance) > 0 && app.lease.includes(curency.ticker)
   );
 });
 
 const canSupply = computed(() => {
   const curency = walletStore.currencies[props.denom];
-  return Number(props.assetBalance) > 0 && curency.groups.includes(GROUPS.Lpn);
+  return Number(props.assetBalance) > 0 && app.lpn?.ticker == curency.ticker;
 });
 
 const canStake = computed(() => {
   const curency = walletStore.currencies[props.denom];
   return (
-    NATIVE_CURRENCY.key == curency.ticker && Number(props.assetBalance) > 0
+    app.native?.ticker == curency.ticker && Number(props.assetBalance) > 0
   );
 });
 
@@ -317,5 +320,4 @@ div.mobile-actions {
     justify-content: center;
     display: flex;
   }
-}
-</style>
+}</style>

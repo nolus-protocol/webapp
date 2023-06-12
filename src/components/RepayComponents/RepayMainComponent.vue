@@ -41,13 +41,15 @@ import { getMicroAmount, walletOperation } from "@/components/utils";
 import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, GROUPS, TIP, PERMILLE, PERCENT, calculateAditionalDebt, LPN_CURRENCIES, SWAP_FEE } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, TIP, PERMILLE, PERCENT, calculateAditionalDebt, SWAP_FEE } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/stores/oracle";
 import { AssetUtils } from "@/utils";
+import { useApplicationStore } from "@/stores/application";
 
 const walletStore = useWalletStore();
 const oracle = useOracleStore();
+const app = useApplicationStore();
 
 const walletRef = storeToRefs(walletStore);
 const i18n = useI18n();
@@ -73,7 +75,7 @@ const balances = computed(() => {
   const balances = walletStore.balances;
   return balances.filter((item) => {
     const currency = walletStore.currencies[item.balance.denom];
-    return currency.groups.includes(GROUPS.Lease) || currency.groups.includes(GROUPS.Lpn);
+    return app.lease.includes(currency.ticker) || currency.ticker == app.lpn?.ticker;
   });
 });
 
@@ -276,7 +278,7 @@ const additionalInterest = () => {
 
 const hasSwapFee = () => {
   const selectedCurrencyInfo = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom as string);
-  const isLpn = LPN_CURRENCIES.includes(selectedCurrencyInfo.ticker);
+  const isLpn = app.lpn?.ticker == selectedCurrencyInfo.ticker;
   if (isLpn) {
     return false;
   }

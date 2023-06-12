@@ -1,4 +1,4 @@
-import type { State, Price as StatePrice } from "@/stores/oracle/state";
+import type { State } from "@/stores/oracle/state";
 import { Dec } from "@keplr-wallet/unit";
 
 import { defineStore } from "pinia";
@@ -7,9 +7,8 @@ import { EnvNetworkUtils } from "@/utils";
 import { NolusClient } from "@nolus/nolusjs";
 import { Oracle } from "@nolus/nolusjs/build/contracts";
 import { CONTRACTS } from "@/config/contracts";
-import { ASSETS } from "@/config/assetsInfo";
 
-import { LPN_CURRENCIES } from "@/config/env";
+import { LPN_PRICE } from "@/config/env";
 import { useApplicationStore } from "../application";
 
 const useOracleStore = defineStore("oracle", {
@@ -40,13 +39,14 @@ const useOracleStore = defineStore("oracle", {
             }
           }[]
         } = await oracleContract.getPricesFor([]) as any;
+
         for (const price of data.prices) {
           const key = price.amount.ticker;
-          const currency = app.currenciesData!.currencies[key];
+          const currency = app.currenciesData![key];
           const diff = Math.abs(
             Number(
-              app.currenciesData!.currencies[key].decimal_digits
-            ) - Number(app.currenciesData!.currencies.USDC.decimal_digits)
+              app.currenciesData![key].decimal_digits
+            ) - Number(app.currenciesData!.USDC.decimal_digits)
           );
           let calculatedPrice = new Dec(price.amount_quote.amount).quo(
             new Dec(price.amount.amount)
@@ -59,10 +59,8 @@ const useOracleStore = defineStore("oracle", {
           this.prices[currency.symbol] = tokenPrice;
         }
 
-        for (const currency of LPN_CURRENCIES) {
-          const c = app.currenciesData!.currencies[currency];
-          this.prices[c.symbol] = { symbol: currency, amount: ASSETS[currency as keyof typeof ASSETS].defaultPrice };
-        }
+        const c = app.currenciesData![app.lpn?.ticker as string];
+        this.prices[c.symbol] = { symbol: app.lpn?.ticker as string, amount: `${LPN_PRICE}` };
 
       } catch (error: Error | any) {
         throw new Error(error);

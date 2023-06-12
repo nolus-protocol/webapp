@@ -145,6 +145,7 @@ async function loadNetwork() {
     checkBalances();
     checkPrices();
   } catch (error: Error | any) {
+    console.log(error)
     showErrorDialog.value = true;
     errorMessage.value = error?.message;
   }

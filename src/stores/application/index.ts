@@ -2,9 +2,9 @@ import type { State } from "@/stores/application/state";
 
 import { defineStore } from "pinia";
 import { ApplicationActionTypes } from "@/stores/application/action-types";
-import { EnvNetworkUtils, ThemeManager, WalletUtils } from "@/utils";
+import { AssetUtils, EnvNetworkUtils, ThemeManager, WalletUtils } from "@/utils";
 import { NolusClient } from "@nolus/nolusjs";
-import { DEFAULT_PRIMARY_NETWORK, NETWORKS, WASM_LP_DEPOSIT } from "@/config/env";
+import { DEFAULT_PRIMARY_NETWORK, NATIVE_NETWORK, NETWORKS, WASM_LP_DEPOSIT } from "@/config/env";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { useOracleStore, OracleActionTypes } from "../oracle";
 import { Disparcher, Lpp } from "@nolus/nolusjs/build/contracts";
@@ -15,18 +15,35 @@ import { Dec } from "@keplr-wallet/unit";
 const useApplicationStore = defineStore("application", {
   state: () => {
     return {
+      networks: null,
+      assetIcons: null,
       network: {},
       theme: null,
       apr: null,
       dispatcherRewards: null,
+      lpn: null,
+      native: null,
+      lease: [] as string[],
       currenciesData: null,
-      sessionExpired: false
+      sessionExpired: false,
     } as State;
   },
   actions: {
     async [ApplicationActionTypes.LOAD_CURRENCIES]() {
       const network = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
-      this.currenciesData = await network.currencies();
+      const currenciesData = await network.currencies();
+      const data = AssetUtils.parseNetworks(currenciesData);
+      this.assetIcons = data.assetIcons;
+      this.networks = data.networks;
+
+      const native = AssetUtils.getNative(currenciesData).key
+      const lpn = AssetUtils.getLpn(currenciesData).key;
+      this.native = data.networks[NATIVE_NETWORK.symbol][native];
+      this.lpn = data.networks[NATIVE_NETWORK.symbol][lpn];
+      this.currenciesData = data.networks[NATIVE_NETWORK.symbol];
+
+      this.lease = AssetUtils.getLease(currenciesData);
+      this.lease.push(this.lpn.ticker);
     },
     async [ApplicationActionTypes.CHANGE_NETWORK](loadBalance = false) {
       try {

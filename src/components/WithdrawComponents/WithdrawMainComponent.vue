@@ -55,8 +55,9 @@ import {
 import { useWalletStore } from "@/stores/wallet";
 import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { CONTRACTS } from "@/config/contracts";
-import { NATIVE_ASSET, GAS_FEES, GROUPS, SNACKBAR } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR } from "@/config/env";
 import { coin } from "@cosmjs/amino";
+import { useApplicationStore } from "@/stores/application";
 
 const props = defineProps({
   selectedAsset: {
@@ -66,13 +67,13 @@ const props = defineProps({
 });
 
 const walletStore = useWalletStore();
+const app = useApplicationStore();
 
-// @TODO: Fetch supplied balances instead of wallet balances
 const balances = computed(() => {
   const balances = walletStore.balances;
   return balances.filter((item) => {
     const currency = walletStore.currencies[item.balance.denom];
-    return currency.groups.includes(GROUPS.Lpn);
+    return currency.ticker == app.lpn?.ticker;
   });
 });
 

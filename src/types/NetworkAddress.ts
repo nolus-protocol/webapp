@@ -1,4 +1,4 @@
-import type { CurreciesType } from "@/types";
+import type { Networks } from "./Networks";
 
 export interface NetworkAddress {
   chainName?: string,
@@ -7,7 +7,7 @@ export interface NetworkAddress {
   explorer: string;
   govern: string;
   staking: string;
-  currencies: () => Promise<CurreciesType>,
+  currencies: () => Promise<Networks>, //CurreciesType
   web3auth: {
     clientId: string;
     network: string | any;
