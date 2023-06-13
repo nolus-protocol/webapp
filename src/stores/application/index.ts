@@ -11,8 +11,6 @@ import { Disparcher, Lpp } from "@nolus/nolusjs/build/contracts";
 import { CONTRACTS } from "@/config/contracts";
 import { Buffer } from "buffer";
 import { Dec } from "@keplr-wallet/unit";
-import { AssetUtils as utils } from '@nolus/nolusjs/build/utils/AssetUtils'
-import { GROUPS } from "@nolus/nolusjs/build/types/Networks";
 
 const useApplicationStore = defineStore("application", {
   state: () => {
@@ -46,8 +44,6 @@ const useApplicationStore = defineStore("application", {
       this.lpn = data.networks[NATIVE_NETWORK.symbol][lpn];
       this.currenciesData = data.networks[NATIVE_NETWORK.symbol];
       this.lease = AssetUtils.getLease(currenciesData);
-      let k = utils.getCurrenciesByGroupDevnet(GROUPS.Native)
-      console.log(k)
     },
     async [ApplicationActionTypes.CHANGE_NETWORK](loadBalance = false) {
       try {
