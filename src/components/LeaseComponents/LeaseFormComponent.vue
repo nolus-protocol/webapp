@@ -216,7 +216,7 @@ const coinList = props.modelValue.currentBalance.filter((item) => {
   const asset = wallet.getCurrencyInfo(item.balance.denom);
   return {
     ticker: asset.ticker,
-    label: asset.coinAbbreviation as string,
+    label: asset.shortName as string,
     value: asset.coinMinimalDenom,
     icon: asset.coinIcon as string
   }
@@ -236,7 +236,7 @@ const calculateMarginAmount = computed(() => {
     const token = CurrencyUtils.convertMinimalDenomToDenom(
       total.amount,
       info.coinMinimalDenom as string,
-      info.coinDenom as string,
+      info.shortName as string,
       info.coinDecimals
     );
 
@@ -249,7 +249,7 @@ const calculateMarginAmount = computed(() => {
   const token = CurrencyUtils.convertMinimalDenomToDenom(
     '0',
     info.coinMinimalDenom as string,
-    info.coinDenom as string,
+    info.shortName as string,
     info.coinDecimals
   );
 
@@ -276,7 +276,7 @@ const formatCurrentBalance = (selectedCurrency: AssetBalance) => {
     return CurrencyUtils.convertMinimalDenomToDenom(
       selectedCurrency.balance.amount.toString(),
       selectedCurrency.balance.denom,
-      asset.coinDenom,
+      asset.shortName,
       asset.coinDecimals
     ).toString();
   }
@@ -381,7 +381,7 @@ const getTotalAmount = () => {
 
 const selectedAssetDenom = computed(() => {
   const asset = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
-  return asset.coinAbbreviation;
+  return asset.shortName;
 });
 
 const selectedAssetPrice = computed(() => {

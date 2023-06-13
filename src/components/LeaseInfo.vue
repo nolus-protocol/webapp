@@ -18,7 +18,7 @@
                                :amount="amount"
                                :font-size="22"
                                :minimalDenom="asset.coinMinimalDenom"
-                               :denom="asset.coinDenom"
+                               :denom="asset.shortName"
                                :decimals="asset?.coinDecimals"
                                :maxDecimals="6" />
             <span class="inline-block ml-1 text-primary text-20 nls-font-400 uppercase">
@@ -37,7 +37,7 @@
             {{ $t("message.borrowed") }}: {{ loan }}
           </span> -->
           <span class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium">
-            {{ `price per ${asset.coinDenom}:` }} {{ price }}
+            {{ `price per ${asset.shortName}:` }} {{ price }}
           </span>
           <span class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium">
             {{ $t("message.liq-trigger") }}: {{ liquidation }}
@@ -49,7 +49,7 @@
         <div class="flex justify-between">
           <div>
             <span class="text-dark-grey">
-              {{ asset.coinDenom }} {{ $t("message.price") }}
+              {{ asset.shortName }} {{ $t("message.price") }}
             </span>
             <p class="text-primary">
               <b>
@@ -231,7 +231,7 @@
         <div class="flex justify-between">
           <div>
             <span class="text-dark-grey">
-              {{ asset.coinDenom }} {{ $t("message.price") }}
+              {{ asset.shortName }} {{ $t("message.price") }}
             </span>
             <p class="text-primary">
               <b>
@@ -296,7 +296,7 @@
                                :amount="amount"
                                :font-size="22"
                                :minimalDenom="asset.coinMinimalDenom"
-                               :denom="asset.coinDenom"
+                               :denom="asset.shortName"
                                :decimals="asset?.coinDecimals"
                                :maxDecimals="6" />
             <span class="inline-block ml-1 text-primary text-20 nls-font-400 uppercase">
@@ -306,7 +306,7 @@
         <div v-if="leaseData"
              class="flex flex-wrap text-10 uppercase whitespace-nowrap mt-4">
           <span class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium">
-            {{ `price per ${asset.coinDenom}:` }} {{ price }}
+            {{ `price per ${asset.shortName}:` }} {{ price }}
           </span>
         </div>
       </div>
@@ -315,7 +315,7 @@
         <div class="flex justify-between">
           <div>
             <span class="text-dark-grey">
-              {{ asset.coinDenom }} {{ $t("message.price") }}
+              {{ asset.shortName }} {{ $t("message.price") }}
             </span>
             <p class="text-primary">
               <b>

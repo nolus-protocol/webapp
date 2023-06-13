@@ -145,6 +145,7 @@ export class AssetUtils {
           if (currency.native) {
             networks[k][ck] = {
               ...currency.native,
+              shortName: currency.native?.ticker,
               ticker: ck,
               native: true,
               ibc_route: []
@@ -155,14 +156,14 @@ export class AssetUtils {
             const n = ntwrks.networks.list[currency.ibc.network];
             const ibc_route = [];
 
-            const channel = getChannel(ntwrks.networks.channels, currency.ibc, k);
+            const channel = AssetUtils.getChannel(ntwrks.networks.channels, currency.ibc, k);
             ibc_route.push(channel?.ch as string);
 
             let c = n.currencies[currency.ibc.currency];
 
             if (c.ibc) {
               const n = ntwrks.networks.list[c.ibc.network];
-              const channel2 = getChannel(ntwrks.networks.channels, c.ibc, currency.ibc.network);
+              const channel2 = AssetUtils.getChannel(ntwrks.networks.channels, c.ibc, currency.ibc.network);
               c = n.currencies[c.ibc.currency];
               ibc_route.push(channel2?.ch as string);
             }
@@ -171,6 +172,7 @@ export class AssetUtils {
 
             networks[k][ticker] = {
               ...c.native!,
+              shortName: c.native?.ticker as string,
               ticker: ticker,
               native: false,
               ibc_route
@@ -216,6 +218,20 @@ export class AssetUtils {
     }
   }
 
+  public static getChannels(ntwrks: Networks, key: string, network: string, routes: string[]): string[]{
+    const asset = ntwrks.networks.list[network].currencies[key];
+
+    if (asset.ibc) {
+
+      const channel = AssetUtils.getChannel(ntwrks.networks.channels, asset.ibc, network);
+      routes.push(channel?.ch as string);
+
+      return AssetUtils.getChannels(ntwrks, asset.ibc?.currency as string, asset.ibc?.network as string, routes);
+    }
+
+    return routes;
+  }
+
   public static getLpn(ntwrks: Networks) {
     const lpn = Object.keys(ntwrks.lease.Lpn)[0];
     return AssetUtils.getAsset(ntwrks, lpn as string, NATIVE_NETWORK.symbol as string);
@@ -243,37 +259,38 @@ export class AssetUtils {
       return asset.key;
     });
   }
-}
 
-const getChannel = (
-  channels: {
-    a: {
-      network: string,
-      ch: string
-    },
-    b: {
-      network: string,
-      ch: string
-    }
-  }[], ibc: {
-    network: string;
-    currency: string;
-  }, network: string) => {
-  const channel = channels.find(
-    (item) => {
-      return (item.a.network == network && item.b.network == ibc?.network) || (item.a.network == ibc?.network && item.b.network == network)
-    }
-  );
+  public static getChannel(
+    channels: {
+      a: {
+        network: string,
+        ch: string
+      },
+      b: {
+        network: string,
+        ch: string
+      }
+    }[], ibc: {
+      network: string;
+      currency: string;
+    }, network: string) {
+    const channel = channels.find(
+      (item) => {
+        return (item.a.network == network && item.b.network == ibc?.network) || (item.a.network == ibc?.network && item.b.network == network)
+      }
+    );
 
-  if (channel) {
-    const { a, b } = channel;
-    if (a.network == network) {
-      return a;
-    }
+    if (channel) {
+      const { a, b } = channel;
+      if (a.network == network) {
+        return a;
+      }
 
-    if (b.network == network) {
-      return b;
+      if (b.network == network) {
+        return b;
+      }
     }
   }
+
 }
 

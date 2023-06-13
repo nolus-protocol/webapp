@@ -7,11 +7,12 @@
                         "native": {
                             "name": "Nolus",
                             "symbol": "unls",
+                            "ticker": "NLS",
                             "decimal_digits": "6"
                         },
                         "icon": "https://nolus.io/currencies/osmosis-nls.svg"
                     },
-                    "USDC_AXELAR": {
+                    "USDC": {
                         "ibc": {
                             "network": "OSMOSIS",
                             "currency": "USDC_AXELAR"
@@ -40,6 +41,7 @@
                         "native": {
                             "name": "Osmosis OSMO",
                             "symbol": "uosmo",
+                            "ticker": "OSMO",
                             "decimal_digits": "6"
                         }
                     },
@@ -86,6 +88,7 @@
                         "native": {
                             "name": "Usdc",
                             "symbol": "uausdc",
+                            "ticker": "USDC",
                             "decimal_digits": "6"
                         }
                     }
@@ -97,6 +100,7 @@
                         "native": {
                             "name": "Cosmos Hub ATOM",
                             "symbol": "uatom",
+                            "ticker": "ATOM",
                             "decimal_digits": "6"
                         }
                     }
@@ -138,7 +142,7 @@
     },
     "lease": {
         "Lpn": {
-            "USDC_AXELAR": {}
+            "USDC": {}
         },
         "Lease": {
             "ATOM": {
@@ -150,7 +154,7 @@
                         },
                         {
                             "pool_id": "5",
-                            "pool_token": "USDC_AXELAR"
+                            "pool_token": "USDC"
                         }
                     ]
                 ]
@@ -160,7 +164,7 @@
                     [
                         {
                             "pool_id": "5",
-                            "pool_token": "USDC_AXELAR"
+                            "pool_token": "USDC"
                         }
                     ]
                 ]
@@ -172,7 +176,7 @@
                 [
                     {
                         "pool_id": "41",
-                        "pool_token": "USDC_AXELAR"
+                        "pool_token": "USDC"
                     }
                 ]
             ]

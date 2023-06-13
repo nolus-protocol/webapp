@@ -15,8 +15,8 @@
         width="32"
       />
       <div class="inline-block">
-        <p class="text-primary nls-font-500 text-18 text-left uppercase m-0">
-          {{ assetInfo.coinAbbreviation.toUpperCase() }}
+        <p class="text-primary nls-font-500 text-18 text-left m-0">
+          {{ assetInfo.shortName }}
         </p>
         <p class="text-dark-grey text-12 text-left capitalize m-0 garet-medium">
           {{ CurrencyUtils.formatPrice(price).maxDecimals(6) }}
@@ -30,7 +30,7 @@
           :type="CURRENCY_VIEW_TYPES.TOKEN"
           :amount="assetBalance"
           :minimalDenom="assetInfo.coinMinimalDenom"
-          :denom="assetInfo.ticker"
+          :denom="assetInfo.shortName"
           :decimals="assetInfo.coinDecimals"
           :maxDecimals="maxCoinDecimals"
         />
@@ -85,7 +85,7 @@
               :type="CURRENCY_VIEW_TYPES.TOKEN"
               :amount="leasUpTo"
               :minimalDenom="assetInfo.coinMinimalDenom"
-              :denom="assetInfo.ticker"
+              :denom="assetInfo.shortName"
               :decimals="assetInfo.coinDecimals"
               :maxDecimals="maxLeaseUpToCoinDecimals"
             />

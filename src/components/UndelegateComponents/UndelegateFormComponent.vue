@@ -90,7 +90,7 @@ function formatCurrentBalance() {
     return CurrencyUtils.convertMinimalDenomToDenom(
       props.modelValue.delegated.amount.toString(),
       props.modelValue.delegated.denom,
-      asset.coinDenom,
+      asset.shortName,
       asset.coinDecimals
     ).toString();
   }

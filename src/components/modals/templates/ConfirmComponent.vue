@@ -198,7 +198,7 @@ function formatAmount(value: string) {
     return;
   }
 
-  const { coinDenom, coinMinimalDenom, coinDecimals } = wallet.getCurrencyInfo(
+  const { shortName, coinMinimalDenom, coinDecimals } = wallet.getCurrencyInfo(
     selectedCurrency.balance.denom
   );
 
@@ -210,20 +210,20 @@ function formatAmount(value: string) {
   return CurrencyUtils.convertMinimalDenomToDenom(
     minimalDenom.amount.toString(),
     coinMinimalDenom,
-    coinDenom,
+    shortName,
     coinDecimals
   );
 }
 
 function calculateFee(coin: Coin) {
-  const { coinDenom, coinMinimalDenom, coinDecimals } = wallet.getCurrencyInfo(
+  const { shortName, coinMinimalDenom, coinDecimals } = wallet.getCurrencyInfo(
     coin.denom
   );
 
   return CurrencyUtils.convertMinimalDenomToDenom(
     coin.amount.toString(),
     coinMinimalDenom,
-    coinDenom,
+    shortName,
     coinDecimals
   );
 }

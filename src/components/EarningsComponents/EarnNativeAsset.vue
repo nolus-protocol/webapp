@@ -15,7 +15,7 @@
         />
         <div class="inline-block">
           <p class="text-primary nls-font-500 text-18 text-left uppercase m-0">
-            {{ assetInfo.coinDenom }}
+            {{ assetInfo.shortName }}
           </p>
           <p class="text-dark-grey text-12 garet-medium text-left capitalize m-0">
             {{ formatPrice(getMarketPrice(asset.balance.denom)) }}
@@ -30,7 +30,7 @@
               :type="CURRENCY_VIEW_TYPES.TOKEN"
               :amount="asset.balance.amount.toString()"
               :minimalDenom="assetInfo.coinMinimalDenom"
-              :denom="assetInfo.coinDenom"
+              :denom="assetInfo.shortName"
               :decimals="assetInfo.coinDecimals"
               :maxDecimals="maxCoinDecimals"
               :fontSizeSmall="12"

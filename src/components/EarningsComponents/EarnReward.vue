@@ -18,7 +18,7 @@
               :type="CURRENCY_VIEW_TYPES.TOKEN"
               :amount="reward.balance.amount.toString()"
               :minimalDenom="assetInfo.coinMinimalDenom"
-              :denom="assetInfo.coinDenom"
+              :denom="assetInfo.shortName"
               :decimals="assetInfo.coinDecimals"
               :maxDecimals="6"
               :fontSizeSmall="12"

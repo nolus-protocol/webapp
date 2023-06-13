@@ -294,6 +294,7 @@ const useWalletStore = defineStore("wallet", {
               .then((item) => {
                 const data = {
                   ticker: key,
+                  shortName: currency.shortName,
                   name: currency.name,
                   symbol: currency.symbol,
                   decimal_digits: currency.decimal_digits
@@ -670,6 +671,7 @@ const useWalletStore = defineStore("wallet", {
         if (!currency) {
           return {
             ticker: app.native?.ticker as string,
+            shortName: app.native?.shortName as string,
             coinDenom: app.native?.symbol as string,
             coinMinimalDenom: app.native?.symbol as string,
             coinDecimals: Number(0),
@@ -680,9 +682,9 @@ const useWalletStore = defineStore("wallet", {
         }
 
         const key = currency?.ticker as keyof typeof ASSETS;
-
         return {
           ticker: key,
+          shortName: currency.shortName,
           coinDenom: currency.name,
           coinMinimalDenom: denom,
           coinDecimals: Number(currency.decimal_digits),

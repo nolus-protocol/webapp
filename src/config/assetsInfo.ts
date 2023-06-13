@@ -26,6 +26,3 @@ export const ASSETS = {
     coinGeckoId: "weth",
   }
 };
-
-// export const LPN_CURRENCY = ASSETS.USDC;
-// export const NATIVE_CURRENCY = ASSETS.NLS;

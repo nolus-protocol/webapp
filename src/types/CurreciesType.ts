@@ -27,6 +27,7 @@ export interface ExternalCurrenciesType {
 
 export interface ExternalCurrencyType {
   "name": string,
+  "shortName": string,
   "symbol": string,
   "decimal_digits": string,
   "ibc_route": string[],

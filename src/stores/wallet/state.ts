@@ -26,6 +26,7 @@ export type State = {
   apr: number;
   currencies: {
     [key: string]: {
+      shortName: string,
       ticker: string;
       name: string;
       decimal_digits: string;

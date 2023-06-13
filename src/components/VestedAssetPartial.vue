@@ -12,7 +12,7 @@
       />
       <div class="inline-block">
         <p class="text-primary nls-font-500 text-18 text-left uppercase m-0">
-          {{ assetInfo.coinAbbreviation.toUpperCase() }}
+          {{ assetInfo.shortName }}
         </p>
       </div>
     </div>
@@ -29,7 +29,7 @@
           :type="CURRENCY_VIEW_TYPES.TOKEN"
           :amount="assetBalance"
           :minimalDenom="assetInfo.coinMinimalDenom"
-          :denom="assetInfo.coinDenom"
+          :denom="assetInfo.shortName"
           :decimals="assetInfo.coinDecimals"
           :maxDecimals="maxCoinDecimals"
         />

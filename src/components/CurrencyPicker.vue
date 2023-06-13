@@ -29,7 +29,7 @@
               {{
                 selected.value?.ticker ?? getAssetInfo(
                   selected.value?.balance?.denom
-                ).ticker.toUpperCase()
+                ).shortName
               }}
             </span>
             <span
@@ -88,7 +88,7 @@
                     {{
                       option.name ?? getAssetInfo(
                         option.balance.denom
-                      ).ticker.toUpperCase()
+                      ).shortName
                     }}
                   </span>
                 </div>

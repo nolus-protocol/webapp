@@ -56,6 +56,7 @@ export interface NetworksInfo {
 export interface Currency {
     native?: {
         name: string,
+        ticker: string,
         symbol: string,
         decimal_digits: string
     },

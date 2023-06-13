@@ -242,7 +242,7 @@ const onUpdateNetwork = async (event: Network) => {
         const icon = app.assetIcons?.[assets[key].ticker] as string;
         return {
           balance,
-          name: assets[key].ticker,
+          name: assets[key].shortName,
           icon: icon,
           ticker: assets[key].ticker,
           ibc_route: assets[key].ibc_route,

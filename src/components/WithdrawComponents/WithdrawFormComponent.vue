@@ -57,7 +57,7 @@ function formatCurrentBalance(selectedCurrency: AssetBalance) {
     return CurrencyUtils.convertMinimalDenomToDenom(
       selectedCurrency.balance.amount.toString(),
       selectedCurrency.balance.denom,
-      asset.coinDenom,
+      asset.shortName,
       asset.coinDecimals
     ).toString();
   }
