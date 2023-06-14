@@ -6,7 +6,7 @@ export const DEFAULT_PRIMARY_NETWORK = "mainnet";
 
 export const NETWORKS: { [key: string]: NetworkAddress } = {
   localnet: {
-    currencies: () => import('@/currencies.dev.json'),
+    currencies: () => import('@nolus/nolusjs/build/utils/currencies_devnet.json'),
     tendermintRpc: "http://127.0.0.1:26612",
     api: "http://127.0.0.1:26614",
     explorer: "https://explorer-rila.nolus.io/",
@@ -24,7 +24,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     }
   },
   devnet: {
-    currencies: () => import('@/currencies.dev.json'),
+    currencies: () => import('@nolus/nolusjs/build/utils/currencies_devnet.json'),
     tendermintRpc: "https://dev-cl.nolus.network:26657",
     api: "https://dev-cl.nolus.network:1317",
     explorer: "https://explorer-rila.nolus.io/",
@@ -42,7 +42,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     }
   },
   testnet: {
-    currencies: () => import('@/currencies.test.json'),
+    currencies: () => import('@nolus/nolusjs/build/utils/currencies_testnet.json'),
     chainName: "Nolus Testnet",
     tendermintRpc: "https://rila-cl.nolus.network:26657",
     api: "https://rila-cl.nolus.network:1317",
@@ -61,7 +61,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     }
   },
   mainnet: {
-    currencies: () => import('@/currencies.main.json'),
+    currencies: () => import('@nolus/nolusjs/build/utils/currencies_mainnet.json'),
     chainName: "Nolus",
     tendermintRpc: "https://pirin-cl.nolus.network:26657",
     api: "https://pirin-cl.nolus.network:1317",
