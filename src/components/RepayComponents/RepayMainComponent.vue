@@ -173,7 +173,7 @@ const isAmountValid = (): boolean => {
       if (balance.gt(debt)) {
         state.value.amountErrorMsg = i18n.t("message.lease-only-max-error", {
           maxAmount: Number(debtInCurrencies.toString(Number(coinData.coinDecimals))),
-          symbol: coinData.coinAbbreviation
+          symbol: coinData.shortName
         });
         isValid = false;
       }

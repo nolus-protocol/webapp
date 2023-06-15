@@ -27,7 +27,7 @@
             />
             <span class="block truncate dark-text">
               {{
-                selected.value?.ticker ?? getAssetInfo(
+                selected.value?.shortName ?? getAssetInfo(
                   selected.value?.balance?.denom
                 ).shortName
               }}

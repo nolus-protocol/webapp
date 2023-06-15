@@ -46,9 +46,9 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     chainName: "Nolus Testnet",
     tendermintRpc: "https://rila-cl.nolus.network:26657",
     api: "https://rila-cl.nolus.network:1317",
-    explorer: "https://explorer-rila.nolus.io/nolus-rila/tx",
-    govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
-    staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
+    explorer: "https://explorer-rila.nolus.io/rila-1/tx",
+    govern: "https://explorer-rila.nolus.io/rila-1/gov",
+    staking: "https://explorer-rila.nolus.io/rila-1/staking",
     web3auth: {
       clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
       network: "cyan",
@@ -162,7 +162,7 @@ export const TIP = {
 }
 
 export const LEASE_MIN_AMOUNT = { amount: 40, ticker: 'USDC' };
-export const LEASE_MAX_AMOUNT = { amount: 10000, ticker: 'USDC' };;
+export const LEASE_MAX_AMOUNT = { amount: 20000, ticker: 'USDC' };;
 
 export const INTEREST_DECIMALS = 1;
 export const PERMILLE = 1000;

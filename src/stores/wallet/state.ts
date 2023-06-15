@@ -7,6 +7,7 @@ export interface AssetBalance {
   icon?: string,
   name?: string,
   ticker?: string,
+  shortName?: string,
   ibc_route?: string[],
   decimals?: number,
   symbol?: string,

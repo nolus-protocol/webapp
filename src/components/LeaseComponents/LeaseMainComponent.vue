@@ -262,7 +262,7 @@ const isDownPaymentAmountValid = (): boolean => {
         state.value.downPaymentErrorMsg = i18n.t("message.lease-min-error", {
           minAmount: (Math.ceil(LEASE_MIN_AMOUNT.amount / Number(price.amount) * 1000) / 1000),
           maxAmount: (Math.ceil(LEASE_MAX_AMOUNT.amount / Number(price.amount) * 1000) / 1000),
-          symbol: coinData.coinAbbreviation
+          symbol: coinData.shortName
         });
         isValid = false;
       }
@@ -271,7 +271,7 @@ const isDownPaymentAmountValid = (): boolean => {
         state.value.downPaymentErrorMsg = i18n.t("message.lease-max-error", {
           minAmount: (Math.ceil(LEASE_MIN_AMOUNT.amount / Number(price.amount) * 1000) / 1000),
           maxAmount: (Math.ceil(LEASE_MAX_AMOUNT.amount / Number(price.amount) * 1000) / 1000),
-          symbol: coinData.coinAbbreviation
+          symbol: coinData.shortName
         });
         isValid = false;
       }

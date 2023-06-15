@@ -88,6 +88,7 @@
             </div>
 
             <div class="block mt-[20px]">
+              
               <CurrencyField
                 id="amount"
                 :currency-options="networkCurrencies"
@@ -243,6 +244,7 @@ const onUpdateNetwork = async (event: Network) => {
         return {
           balance,
           name: assets[key].shortName,
+          shortName: assets[key].shortName,
           icon: icon,
           ticker: assets[key].ticker,
           ibc_route: assets[key].ibc_route,

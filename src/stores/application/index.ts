@@ -4,7 +4,7 @@ import { defineStore } from "pinia";
 import { ApplicationActionTypes } from "@/stores/application/action-types";
 import { AssetUtils, EnvNetworkUtils, ThemeManager, WalletUtils } from "@/utils";
 import { NolusClient } from "@nolus/nolusjs";
-import { DEFAULT_PRIMARY_NETWORK, NATIVE_NETWORK, NETWORKS, WASM_LP_DEPOSIT } from "@/config/env";
+import { DEFAULT_PRIMARY_NETWORK, INTEREST_DECIMALS, NATIVE_NETWORK, NETWORKS, WASM_LP_DEPOSIT } from "@/config/env";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { useOracleStore, OracleActionTypes } from "../oracle";
 import { Disparcher, Lpp } from "@nolus/nolusjs/build/contracts";
@@ -115,7 +115,7 @@ const useApplicationStore = defineStore("application", {
         ]);
 
         const data = contract.result.txs?.[0];
-        this.dispatcherRewards = dispatcherRewards;
+        this.dispatcherRewards = dispatcherRewards / Math.pow(10, INTEREST_DECIMALS);
 
         if (data) {
           const tx_result = data.tx_result.events;
