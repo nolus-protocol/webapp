@@ -274,7 +274,7 @@ export default {
     "session-timeout": "Session Timeout",
     "session-timeout-message": "Your session has expired. Refresh to continue",
     "swap-fee": "Swap fee",
-    "swap-fee-tooltip": "A fixed {fee}% swap fee is deducted from repayments done with non-stable assets. If the actual swap fee is less, the difference will cover some of the outstanding debt or be transferred back to your wallet in USDC",
+    "swap-fee-tooltip": "A fixed 0.7% swap fee is deducted from repayments done with non-stable assets. If the actual swap fee is less, the difference will cover some of the outstanding debt or be transferred back to your wallet in USDC",
     "leap": "Leap"
   }
 }
