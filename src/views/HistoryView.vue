@@ -27,7 +27,7 @@
               tag="div"
             >
               <HistoryTableItem
-                v-for="transaction of transactions.sort((a, b) => b.blockDate.getTime() - a.blockDate.getTime())"
+                v-for="transaction of transactions"
                 :key="transaction.id"
                 :transaction="transaction"
               />
