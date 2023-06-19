@@ -27,7 +27,7 @@
               tag="div"
             >
               <HistoryTableItem
-                v-for="transaction of transactions"
+                v-for="transaction of items"
                 :key="transaction.id"
                 :transaction="transaction"
               />
@@ -139,8 +139,8 @@ let timeout: NodeJS.Timeout;
 onMounted(() => {
   getTransactions();
   timeout = setTimeout(() => {
-      showSkeleton.value = false;
-    }, 400);
+    showSkeleton.value = false;
+  }, 400);
 });
 
 onUnmounted(() => {
@@ -148,7 +148,6 @@ onUnmounted(() => {
     clearTimeout(timeout);
   }
 })
-
 
 const hasOutline = computed(() => {
   if (window.innerWidth > 576) {
@@ -238,6 +237,10 @@ const load = async () => {
     }, 500);
   }
 };
+
+const items = computed(() => {
+  return transactions.value.sort((a, b) => b.blockDate.getTime() - a.blockDate.getTime());
+});
 
 const onClickTryAgain = async () => {
   await getTransactions();

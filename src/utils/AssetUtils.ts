@@ -56,10 +56,9 @@ export class AssetUtils {
     if (!p) {
       return new Dec(0);
     }
-
     const price = new Dec(p);
     const assetAmount = new Dec(amount, info.coinDecimals);
-    return assetAmount.quo(price);
+    return assetAmount.mul(price);
   }
 
   public static getAssetInfo(ticker: string) {

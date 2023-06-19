@@ -319,7 +319,7 @@ const message = (msg: Object | any) => {
     }
     case (Messages["/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"]): {
       const log = JSON.parse(props.transaction.log as string);
-      const amount = log[0].events[0].attributes[1];
+      const amount = log[0].events[1].attributes[0];
       const coin = parseCoins(amount.value)[0];
       const token = getCurrency(coin);
       return i18n.t('message.claim-position-action', {
@@ -346,7 +346,7 @@ const getCurrency = (amount: Coin) => {
   const token = CurrencyUtils.convertMinimalDenomToDenom(
     currency?.amount,
     info.coinMinimalDenom,
-    info.coinDenom,
+    info.shortName,
     info.coinDecimals
   );
 
