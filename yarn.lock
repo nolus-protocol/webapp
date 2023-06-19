@@ -713,8 +713,8 @@
 
 "@nolus/nolusjs@^0.0.108":
   version "0.0.108"
-  resolved "file:../nolus.js/build/nolus-nolusjs-0.0.108.tgz"
-  integrity sha512-6tMidtUbLYYyx0YZHZtrJ8NbuU+CDQE+QYONDmAR0Qr9lXVAQI9oPp6mD1O2m0Jndm/vanFPTaMbMGbCDuQmRQ==
+  resolved "https://registry.yarnpkg.com/@nolus/nolusjs/-/nolusjs-0.0.108.tgz#ee1482ecfc4c8426524d018e9fee2911e90c1ca3"
+  integrity sha512-gd/FLlaao68XDEezmrdINdG4ZJe3ZldSkW4+m0Y2Y98KytRjB+lmLTucj7qkf8zQkPFU72Tg46DaySaDmRoRiA==
   dependencies:
     "@cosmjs/cosmwasm-stargate" "0.30.1"
     "@cosmjs/crypto" "0.30.1"
