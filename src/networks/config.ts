@@ -75,8 +75,8 @@ export const NETWORKS_DATA: {
         supportedNetworks: {
             OSMO: {
                 ...OSMO_NETWORK,
-                tendermintRpc: "https://osmo-cl.nolus.network:26657",
-                api: "https://osmo-cl.nolus.network:1317",
+                tendermintRpc: "https://rpc.osmosis.zone:443",
+                api: "https://lcd.osmosis.zone",
                 explorer: 'https://mintscan.io/osmosis/txs',
                 currencies: () => {
                     const app = useApplicationStore();
