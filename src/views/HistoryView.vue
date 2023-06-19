@@ -27,7 +27,7 @@
               tag="div"
             >
               <HistoryTableItem
-                v-for="transaction of items"
+                v-for="transaction of transactions.sort((a, b) => b.blockDate.getTime() - a.blockDate.getTime())"
                 :key="transaction.id"
                 :transaction="transaction"
               />
@@ -237,10 +237,6 @@ const load = async () => {
     }, 500);
   }
 };
-
-const items = computed(() => {
-  return transactions.value.sort((a, b) => b.blockDate.getTime() - a.blockDate.getTime());
-});
 
 const onClickTryAgain = async () => {
   await getTransactions();
