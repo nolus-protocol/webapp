@@ -319,7 +319,7 @@ const message = (msg: Object | any) => {
     }
     case (Messages["/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"]): {
       const log = JSON.parse(props.transaction.log as string);
-      const amount = log[0].events[1].attributes[0];
+      const amount = getAmount(log);
       const coin = parseCoins(amount.value)[0];
       const token = getCurrency(coin);
       return i18n.t('message.claim-position-action', {
@@ -327,7 +327,7 @@ const message = (msg: Object | any) => {
         address: truncateString(msg.data?.validatorAddress)
       });
     }
-    case(Messages['/cosmos.staking.v1beta1.MsgBeginRedelegate']): {
+    case (Messages['/cosmos.staking.v1beta1.MsgBeginRedelegate']): {
       const token = getCurrency(msg.data?.amount);
       return i18n.t('message.redelegate-action', {
         amount: token.toString(),
@@ -339,6 +339,16 @@ const message = (msg: Object | any) => {
     }
   }
 };
+
+const getAmount = (log: any) => {
+  for(const l of log[0].events){
+    for(const v of l.attributes){
+      if(v.key == 'amount'){
+        return v
+      }
+    }
+  }
+}
 
 const getCurrency = (amount: Coin) => {
   const currency = amount;
@@ -443,8 +453,8 @@ const messages = () => {
         return true;
       }
 
-      case(Messages['/cosmos.staking.v1beta1.MsgBeginRedelegate']): {
-        if (props.transaction.type == 'receiver'){
+      case (Messages['/cosmos.staking.v1beta1.MsgBeginRedelegate']): {
+        if (props.transaction.type == 'receiver') {
           return false;
         }
         return true;
