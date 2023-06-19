@@ -241,6 +241,18 @@ onUnmounted(() => {
 });
 
 watch(
+  () => wallet.balances,
+  async (value) => {
+    const [_delegations] = await Promise.allSettled([
+      wallet[WalletActionTypes.LOAD_DELEGATIONS](),
+      loadRewards(),
+      loadLPNCurrency(),
+      loadDelegated()
+    ]);
+  }
+);
+
+watch(
   () => applicationRef.sessionExpired.value,
   (value) => {
     if(value){
