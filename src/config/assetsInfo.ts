@@ -20,9 +20,9 @@ export const ASSETS = {
     coinGeckoId: "cosmos"
   },
   WETH: {
-    coinGeckoId: "wrapped-bitcoin",
+    coinGeckoId: "weth",
   },
   WBTC: {
-    coinGeckoId: "weth",
+    coinGeckoId: "wrapped-bitcoin",
   }
 };
