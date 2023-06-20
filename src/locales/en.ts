@@ -111,7 +111,7 @@ export default {
     "save-contact": "Save as contact",
     "next": "Next",
     "tx-hash": "Tx Hash",
-    "tx-and-fee": "Tax & Fee",
+    "tx-and-fee": "Fee",
     "invalid-address": "Invalid address",
     "invalid-amount": "Invalid amount",
     "invalid-balance-low": "Invalid amount",
@@ -260,9 +260,9 @@ export default {
     "open-position-action": "Open lease position in {ticker} with {amount}",
     "repay-position-action": "Repay {amount} for lease position {contract}",
     "close-position-action": "Collect tokens from lease position {contract}",
-    "claim-position-action": " Claim {amount} NLS rewards from {address}",
+    "claim-position-action": " Claim {amount} rewards from {address}",
     "vote-position-action": "Vote {vote} on proposal #{propose}",
-    "redelegate-action": "Redelegate {amount} NLS to {address}",
+    "redelegate-action": "Redelegate {amount} to {address}",
     "yes": "Yes",
     "no": "No",
     "delegate-position-action": "Delegate {amount} to {validator}",
@@ -275,6 +275,7 @@ export default {
     "session-timeout-message": "Your session has expired. Refresh to continue",
     "swap-fee": "Swap fee",
     "swap-fee-tooltip": "A fixed 0.7% swap fee is deducted from repayments done with non-stable assets. If the actual swap fee is less, the difference will cover some of the outstanding debt or be transferred back to your wallet in USDC",
-    "leap": "Leap"
+    "leap": "Leap",
+    "amount-warning": "Leave small amount of NLS tokens to pay for subsequent transactions"
   }
 }
