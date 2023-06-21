@@ -3,7 +3,7 @@ import type { State } from "@/stores/application/state";
 import { defineStore } from "pinia";
 import { ApplicationActionTypes } from "@/stores/application/action-types";
 import { AssetUtils, EnvNetworkUtils, ThemeManager, WalletUtils } from "@/utils";
-import { NolusClient } from "@nolus/nolusjs";
+import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 import { DEFAULT_PRIMARY_NETWORK, INTEREST_DECIMALS, NATIVE_NETWORK, NETWORKS, WASM_LP_DEPOSIT } from "@/config/env";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { useOracleStore, OracleActionTypes } from "../oracle";
@@ -11,6 +11,7 @@ import { Disparcher, Lpp } from "@nolus/nolusjs/build/contracts";
 import { CONTRACTS } from "@/config/contracts";
 import { Buffer } from "buffer";
 import { Dec } from "@keplr-wallet/unit";
+import { ApptUtils } from "@/utils/AppUtils";
 
 const useApplicationStore = defineStore("application", {
   state: () => {
@@ -47,18 +48,16 @@ const useApplicationStore = defineStore("application", {
     },
     async [ApplicationActionTypes.CHANGE_NETWORK](loadBalance = false) {
       try {
-        const loadedNetworkConfig = EnvNetworkUtils.loadNetworkConfig();
+        const rpc = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
 
-        if (!loadedNetworkConfig) {
-          throw new Error("Please select different network");
-        }
-
-        NolusClient.setInstance(loadedNetworkConfig.tendermintRpc);
+        NolusClient.setInstance(rpc);
         const walletStore = useWalletStore();
         const oracle = useOracleStore();
 
         this.network.networkName = EnvNetworkUtils.getStoredNetworkName() || DEFAULT_PRIMARY_NETWORK;
-        this.network.networkAddresses = loadedNetworkConfig;
+        this.network.networkAddresses = {
+          ...NETWORKS[this.network.networkName]
+        };
 
         if (WalletUtils.isConnectedViaExtension()) {
           walletStore[WalletActionTypes.CONNECT_KEPLR]();
@@ -97,7 +96,7 @@ const useApplicationStore = defineStore("application", {
     async [ApplicationActionTypes.LOAD_APR_REWARDS]() {
 
       try {
-        const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].tendermintRpc;
+        const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
         const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
         const instance = CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance;
         const lppClient = new Lpp(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance);

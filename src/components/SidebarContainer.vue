@@ -146,11 +146,12 @@ import { onMounted, onUnmounted, ref, watch } from "vue";
 import { RouteNames } from "@/router/RouterNames";
 
 import { useApplicationStore } from "@/stores/application";
-import { NolusClient } from "@nolus/nolusjs";
+import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 import { NETWORKS, UPDATE_BLOCK_INTERVAL } from "@/config/env";
 import { storeToRefs } from "pinia";
 import { EnvNetworkUtils } from "@/utils";
 import { DISCORD_ACCOUNT, REDDIT_ACCOUNT, TELEGRAM_ACCOUNT, TWITTER_ACCOUNT } from "@/config/globals";
+import { ApptUtils } from "@/utils/AppUtils";
 
 const showMobileNav = ref(false);
 const isMobile = ref(false);
@@ -223,7 +224,8 @@ async function setBlock () {
 
 async function setVersion () {
   try {
-    const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].tendermintRpc;
+    const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
+
     const data = await fetch(`${url}/abci_info`);
     const res = await data.json();
     version.value = res?.result?.response.version;

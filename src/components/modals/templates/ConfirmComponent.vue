@@ -109,6 +109,7 @@
     </div>
 
     <WarningBox
+      v-if="isStepConfirm"
       :isWarning="true"
       class="mb-[20px] mx-[38px]"
     >

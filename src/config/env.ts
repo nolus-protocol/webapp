@@ -7,8 +7,7 @@ export const DEFAULT_PRIMARY_NETWORK = "mainnet";
 export const NETWORKS: { [key: string]: NetworkAddress } = {
   localnet: {
     currencies: () => import('@nolus/nolusjs/build/utils/currencies_devnet.json'),
-    tendermintRpc: "http://127.0.0.1:26612",
-    api: "http://127.0.0.1:26614",
+    endpoints: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/vitosha-endpoints.json",
     explorer: "https://explorer-rila.nolus.io/",
     govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
     staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
@@ -25,8 +24,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   },
   devnet: {
     currencies: () => import('@nolus/nolusjs/build/utils/currencies_devnet.json'),
-    tendermintRpc: "https://dev-cl.nolus.network:26657",
-    api: "https://dev-cl.nolus.network:1317",
+    endpoints: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/vitosha-endpoints.json",
     explorer: "https://explorer-rila.nolus.io/",
     govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
     staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
@@ -43,9 +41,8 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   },
   testnet: {
     currencies: () => import('@nolus/nolusjs/build/utils/currencies_testnet.json'),
+    endpoints: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/rila-endpoints.json",
     chainName: "Nolus Testnet",
-    tendermintRpc: "https://rila-cl.nolus.network:26657",
-    api: "https://rila-cl.nolus.network:1317",
     explorer: "https://explorer-rila.nolus.io/rila-1/tx",
     govern: "https://explorer-rila.nolus.io/rila-1/gov",
     staking: "https://explorer-rila.nolus.io/rila-1/staking",
@@ -62,9 +59,8 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   },
   mainnet: {
     currencies: () => import('@nolus/nolusjs/build/utils/currencies_mainnet.json'),
+    endpoints: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/pirin-endpoints.json",
     chainName: "Nolus",
-    tendermintRpc: "https://pirin-cl.nolus.network:26657",
-    api: "https://pirin-cl.nolus.network:1317",
     explorer: "https://explorer.nolus.io/pirin-1/tx",
     govern: "https://explorer.nolus.io/pirin-1/gov",
     staking: "https://explorer.nolus.io/pirin-1/staking",
