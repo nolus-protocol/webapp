@@ -464,6 +464,8 @@ const suppliedAndStaked = computed(() => {
     suppliedSymbol.symbol
   ) as string;
   const suppliedInfo = wallet.getCurrencyInfo(suppliedCoin as string);
+
+
   let totalSuppliedAndStaked = new Dec(0);
 
   const suppliedBalance = CurrencyUtils.calculateBalance(
