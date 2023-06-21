@@ -132,9 +132,9 @@ onUnmounted(() => {
 
 async function onUpdateNetwork(value: PickerOption) {
   EnvNetworkUtils.saveCurrentNetwork(value.value);
+  await applicaton[ApplicationActionTypes.CHANGE_NETWORK](true);
   await Promise.all([
     applicaton[ApplicationActionTypes.LOAD_CURRENCIES](),
-    applicaton[ApplicationActionTypes.CHANGE_NETWORK](true),
     applicaton[ApplicationActionTypes.LOAD_APR_REWARDS](),
   ])
   router.push({ name: RouteNames.DASHBOARD });
@@ -202,4 +202,5 @@ div.copy-button {
   user-select: none;
   height: 32px;
   align-items: center;
-}</style>
+}
+</style>
