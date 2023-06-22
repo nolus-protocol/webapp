@@ -216,8 +216,7 @@ onMounted(async () => {
       wallet[WalletActionTypes.LOAD_DELEGATIONS](),
       loadRewards(),
       loadLPNCurrency(),
-      loadDelegated(),
-      wallet[WalletActionTypes.LOAD_STAKED_TOKENS]()
+      loadDelegated()
     ]);
 
     rewardsInterval = setInterval(async () => {

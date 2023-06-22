@@ -58,7 +58,6 @@ import {
   NATIVE_ASSET,
   GAS_FEES,
   SNACKBAR,
-ErrorCodes,
 } from "@/config/env";
 import { useApplicationStore } from "@/stores/application";
 
@@ -197,17 +196,8 @@ async function transferAmount() {
       if (snackbarVisible()) {
         showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
       }
-    } catch (error: Error | any) {
-      switch(error.code){
-        case(ErrorCodes.GasError): {
-          step.value = CONFIRM_STEP.GasError;
-          break;
-        }
-        default: {
-          step.value = CONFIRM_STEP.ERROR;
-          break;
-        }
-      }
+    } catch (e) {
+      step.value = CONFIRM_STEP.ERROR;
     }
   }
 }

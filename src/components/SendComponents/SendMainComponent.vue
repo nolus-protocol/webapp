@@ -15,11 +15,7 @@
     :onOkClick="onClickOkBtn"
     @passwordUpdate="(value) => (state.password = value)"
   />
-  <SendComponent
-    v-else
-    v-model="state"
-    class="overflow-auto custom-scroll"
-  />
+  <SendComponent v-else v-model="state" class="overflow-auto custom-scroll" />
 </template>
 
 <script lang="ts" setup>
@@ -40,9 +36,8 @@ import {
   NATIVE_ASSET,
   GAS_FEES,
   SNACKBAR,
-  SOURCE_PORTS,
-  NATIVE_NETWORK,
-  ErrorCodes
+SOURCE_PORTS,
+NATIVE_NETWORK,
 } from "@/config/env";
 
 import {
@@ -59,12 +54,12 @@ const step = ref(CONFIRM_STEP.CONFIRM);
 const walletStore = useWalletStore();
 const app = useApplicationStore();
 
-const closeModal = inject("onModalClose", () => () => { });
+const closeModal = inject("onModalClose", () => () => {});
 const snackbarVisible = inject("snackbarVisible", () => false);
 
 const showSnackbar = inject(
   "showSnackbar",
-  (type: string, transaction: string) => { }
+  (type: string, transaction: string) => {}
 );
 const balances = computed(() => walletStore.balances);
 
@@ -144,18 +139,9 @@ const transferAmount = async () => {
         showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
       }
       await walletStore[WalletActionTypes.UPDATE_BALANCES]();
-
-    } catch (error: Error | any) {
-      switch (error.code) {
-        case (ErrorCodes.GasError): {
-          step.value = CONFIRM_STEP.GasError;
-          break;
-        }
-        default: {
-          step.value = CONFIRM_STEP.ERROR;
-          break;
-        }
-      }
+      
+    } catch (error) {
+      step.value = CONFIRM_STEP.ERROR;
     }
   } else {
     step.value = CONFIRM_STEP.ERROR;
@@ -205,19 +191,11 @@ const ibcTransfer = async () => {
       }
     }
     await walletStore[WalletActionTypes.UPDATE_BALANCES]();
-  } catch (error: Error | any) {
-    switch (error.code) {
-      case (ErrorCodes.GasError): {
-        step.value = CONFIRM_STEP.GasError;
-        break;
-      }
-      default: {
-        step.value = CONFIRM_STEP.ERROR;
-        break;
-      }
-    }
-  };
-}
+  } catch (error) {
+    console.log(error);
+    step.value = CONFIRM_STEP.ERROR;
+  }
+};
 
 function onNextClick() {
   validateInputs();

@@ -52,10 +52,10 @@ import {
   validateAmount,
   walletOperation,
 } from "@/components/utils";
-import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
+import { useWalletStore } from "@/stores/wallet";
 import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { CONTRACTS } from "@/config/contracts";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, ErrorCodes } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useApplicationStore } from "@/stores/application";
 
@@ -263,19 +263,9 @@ async function transferAmount() {
       if (snackbarVisible()) {
         showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
       }
-      await walletStore[WalletActionTypes.UPDATE_BALANCES]();
-
-    } catch (error: Error | any) {
-      switch(error.code){
-        case(ErrorCodes.GasError): {
-          step.value = CONFIRM_STEP.GasError;
-          break;
-        }
-        default: {
-          step.value = CONFIRM_STEP.ERROR;
-          break;
-        }
-      }
+    } catch (e) {
+      console.log(e)
+      step.value = CONFIRM_STEP.ERROR;
     }
   }
 }

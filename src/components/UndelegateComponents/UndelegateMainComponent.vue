@@ -42,7 +42,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { walletOperation } from "@/components/utils";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { inject, onMounted, onUnmounted, ref, watch } from "vue";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, ErrorCodes } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useI18n } from "vue-i18n";
 import { CurrencyUtils } from "@nolus/nolusjs";
@@ -248,17 +248,9 @@ async function undelegate() {
         showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
       }
         
-    }catch(error: Error | any){
-      switch(error.code){
-        case(ErrorCodes.GasError): {
-          step.value = CONFIRM_STEP.GasError;
-          break;
-        }
-        default: {
-          step.value = CONFIRM_STEP.ERROR;
-          break;
-        }
-      }
+    }catch(error){
+      console.log(error)
+      step.value = CONFIRM_STEP.ERROR;
     }
   }
 }

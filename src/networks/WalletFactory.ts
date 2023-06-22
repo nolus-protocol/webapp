@@ -12,7 +12,6 @@ import { EncryptionUtils, WalletManager, WalletUtils } from "@/utils";
 import { BaseWallet } from "./BaseWallet";
 import BluetoothTransport from "@ledgerhq/hw-transport-web-ble";
 import { fromHex } from "@cosmjs/encoding";
-import { ApptUtils } from "@/utils/AppUtils";
 
 const aminoTypes = {
     ...createIbcAminoConverters(),
@@ -42,10 +41,8 @@ const authenticateKeplr = async (wallet: Wallet, network: NetworkData) => {
 
         try {
             chainId = await wallet.getChainId();
-            const node = await ApptUtils.fetchEndpoints(network.ticker);
-
             await keplrWindow.keplr?.experimentalSuggestChain(
-                network.embedChainInfo(chainId, node.rpc, node.api)
+                network.embedChainInfo(chainId, network.tendermintRpc, network.api)
             );
         } catch (e) {
             throw new Error("Failed to fetch suggest chain.");
@@ -82,10 +79,8 @@ const authenticateLeap = async (wallet: Wallet, network: NetworkData) => {
 
         try {
             chainId = await wallet.getChainId();
-            const node = await ApptUtils.fetchEndpoints(network.ticker);
-
             await leapWindow.leap?.experimentalSuggestChain(
-                network.embedChainInfo(chainId, node.rpc, node.api)
+                network.embedChainInfo(chainId, network.tendermintRpc, network.api)
             );
         } catch (e) {
             console.log(e)

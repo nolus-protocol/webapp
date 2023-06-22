@@ -1,43 +1,33 @@
 <template>
   <!-- Leases -->
-  <div
-    v-if="TEMPLATES.opened == status"
-    class="background mt-6 border-standart shadow-box radius-medium radius-0-sm pb-5 outline"
-  >
+  <div v-if="TEMPLATES.opened == status"
+       class="background mt-6 border-standart shadow-box radius-medium radius-0-sm pb-5 outline">
     <div class="grid grid-cols-1 lg:grid-cols-3">
       <div class="lg:col-span-1 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5">
-        <p
-          class="text-20 nls-font-500 mb-4 text-primary select-none"
-          @dblclick="copy"
-        >
+        <p class="text-20 nls-font-500 mb-4 text-primary select-none"
+           @dblclick="copy">
           {{ $t("message.lease-position") }}
         </p>
         <div class="flex">
-          <img
-            :src="getAssetIcon"
-            class="inline-block m-0 mr-3"
-            height="36"
-            width="36"
-          />
+          <img :src="getAssetIcon"
+               class="inline-block m-0 mr-3"
+               height="36"
+               width="36" />
           <h1 class="text-primary nls-font-700 text-28 md:text-28">
-            <CurrencyComponent
-              :type="CURRENCY_VIEW_TYPES.TOKEN"
-              :amount="amount"
-              :font-size="22"
-              :minimalDenom="asset.coinMinimalDenom"
-              :denom="asset.shortName"
-              :decimals="asset?.coinDecimals"
-              :maxDecimals="6"
-            />
+            <CurrencyComponent :type="CURRENCY_VIEW_TYPES.TOKEN"
+                               :amount="amount"
+                               :font-size="22"
+                               :minimalDenom="asset.coinMinimalDenom"
+                               :denom="asset.shortName"
+                               :decimals="asset?.coinDecimals"
+                               :maxDecimals="6" />
             <span class="inline-block ml-1 text-primary text-20 nls-font-400 uppercase">
             </span>
           </h1>
         </div>
         <div class="flex flex-wrap text-10 uppercase whitespace-nowrap">
-          <span
-            class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium"
-            v-if="leaseData"
-          >
+          <span class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium"
+                v-if="leaseData">
             {{ $t("message.down-payment") }}: ${{ downPayment }}
           </span>
           <!-- <span
@@ -63,43 +53,35 @@
             </span>
             <p class="text-primary">
               <b>
-                <CurrencyComponent
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  :amount="currentPrice"
-                  :hasSpace="false"
-                  :isDenomInfront="true"
-                  :font-size="20"
-                  :font-size-small="14"
-                  denom="$"
-                />
+                <CurrencyComponent :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                                   :amount="currentPrice"
+                                   :hasSpace="false"
+                                   :isDenomInfront="true"
+                                   :font-size="20"
+                                   :font-size-small="14"
+                                   denom="$" />
               </b>
             </p>
 
           </div>
           <div class="flex text-10 h-6">
-            <button
-              v-for="(value, index) in CHART_RANGES"
-              class="ml-2 w-10 justify-center border rounded chart-dates"
-              :key="index"
-              :class="`${value.label === chartTimeRange.label
-                ? 'border-1 border-light-electric bg-[#0ea5e9]/10'
-                : ''
-                }`"
-              @click="chartTimeRange = value; loadCharts()"
-            >
+            <button v-for="(value, index) in CHART_RANGES"
+                    class="ml-2 w-10 justify-center border rounded chart-dates"
+                    :key="index"
+                    :class="`${value.label === chartTimeRange.label
+                      ? 'border-1 border-light-electric bg-[#0ea5e9]/10'
+                      : ''
+                      }`"
+                    @click="chartTimeRange = value; loadCharts()">
               {{ value.label }}
             </button>
           </div>
         </div>
         <div class="flex relaltive">
-          <div
-            class="flex-1 pnl-container"
-            v-if="leaseData"
-          >
-            <div
-              class="pnl text-12 nls-font-500 whitespace-pre	mr-2 flex items-center"
-              :class="[pnl.status ? 'success' : 'alert']"
-            >
+          <div class="flex-1 pnl-container"
+               v-if="leaseData">
+            <div class="pnl text-12 nls-font-500 whitespace-pre	mr-2 flex items-center"
+                 :class="[pnl.status ? 'success' : 'alert']">
               <template v-if="pnl.status">
                 <ArrowUp />
               </template>
@@ -110,11 +92,9 @@
             </div>
           </div>
           <div class="relative w-full">
-            <div
-              v-if="leaseData"
-              class="dash-pnl"
-              :class="[pnl.status ? 'success' : 'alert']"
-            >
+            <div v-if="leaseData"
+                 class="dash-pnl"
+                 :class="[pnl.status ? 'success' : 'alert']">
 
             </div>
             <PriceHistoryChart :chartData="chartData" />
@@ -130,24 +110,20 @@
             <TooltipComponent :content="$t('message.outstanding-debt-tooltip')" />
           </p>
           <p class="text-primary text-20 nls-font-400 m-0 mt-1">
-            <span
-              v-if="openedSubState"
-              class="state-loading"
-            >
+            <span v-if="openedSubState"
+                  class="state-loading">
 
             </span>
-            <CurrencyComponent
-              v-else
-              class="garet-medium"
-              :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              :amount="debt"
-              :hasSpace="false"
-              :isDenomInfront="true"
-              :font-size="20"
-              :font-size-small="14"
-              :decimals="4"
-              denom="$"
-            />
+            <CurrencyComponent v-else
+                               class="garet-medium"
+                               :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                               :amount="debt"
+                               :hasSpace="false"
+                               :isDenomInfront="true"
+                               :font-size="20"
+                               :font-size-small="14"
+                               :decimals="4"
+                               denom="$" />
 
           </p>
         </div>
@@ -157,17 +133,15 @@
             <TooltipComponent :content="$t('message.interest-fee-tooltip')" />
           </p>
           <p class="text-primary text-20 nls-font-400 m-0 mt-1">
-            <CurrencyComponent
-              class="garet-medium"
-              :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              :amount="interest"
-              :hasSpace="false"
-              :isDenomInfront="false"
-              :font-size="20"
-              :font-size-small="14"
-              :decimals="2"
-              denom="%"
-            />
+            <CurrencyComponent class="garet-medium"
+                               :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                               :amount="interest"
+                               :hasSpace="false"
+                               :isDenomInfront="false"
+                               :font-size="20"
+                               :font-size-small="14"
+                               :decimals="2"
+                               denom="%" />
           </p>
         </div>
         <div class="block ml-8">
@@ -175,59 +149,41 @@
             {{ $t("message.interest-due") }}
             <TooltipComponent :content="$t('message.interest-due-tooltip')" />
           </p>
-          <p class="text-primary text-20 nls-font-400 m-0 mt-1 flex items-center">
-            <span
-              v-if="openedSubState"
-              class="state-loading"
-            >
+          <p class="text-primary text-20 nls-font-400 m-0 mt-1">
+            <span v-if="openedSubState"
+                  class="state-loading">
 
             </span>
-            <CurrencyComponent
-              v-else
-              class="garet-medium"
-              :class="{ 'text-yellow': !interestDueStatus }"
-              :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              :amount="interestDue"
-              :hasSpace="false"
-              :isDenomInfront="true"
-              :font-size="20"
-              :font-size-small="14"
-              :decimals="4"
-              denom="$"
-            />
-            <TooltipComponent
-              v-if="!interestDueStatus"
-              class="text-yellow"
-              :content="$t('message.repay-interest')"
-            />
-
+            <CurrencyComponent v-else
+                               class="garet-medium"
+                               :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                               :amount="interestDue"
+                               :hasSpace="false"
+                               :isDenomInfront="true"
+                               :font-size="20"
+                               :font-size-small="14"
+                               :decimals="4"
+                               denom="$" />
           </p>
         </div>
       </div>
-      <button
-        class="btn btn-secondary btn-large-secondary md:w-auto w-full md:mt-0 mt-4"
-        v-if="leaseInfo.leaseStatus.opened"
-        @click="showRepayModal = true"
-        :disabled="openedSubState"
-      >
+      <button class="btn btn-secondary btn-large-secondary md:w-auto w-full md:mt-0 mt-4"
+              v-if="leaseInfo.leaseStatus.opened"
+              @click="showRepayModal = true"
+              :disabled="openedSubState">
         {{ $t("message.repay") }}
       </button>
 
     </div>
   </div>
 
-  <div
-    v-if="TEMPLATES.opening == status"
-    class="background mt-6 border-standart shadow-box radius-medium radius-0-sm outline"
-  >
+  <div v-if="TEMPLATES.opening == status"
+       class="background mt-6 border-standart shadow-box radius-medium radius-0-sm outline">
     <div class="grid grid-cols-1 lg:grid-cols-3">
       <div
-        class="lg:col-span-1 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5 flex flex-col justify-between	"
-      >
-        <p
-          class="text-20 nls-font-500 mb-4 text-primary select-none"
-          @dblclick="copy"
-        >
+           class="lg:col-span-1 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5 flex flex-col justify-between	">
+        <p class="text-20 nls-font-500 mb-4 text-primary select-none"
+           @dblclick="copy">
           {{ $t("message.lease-position") }}
         </p>
         <div class="flex flex-col">
@@ -236,10 +192,8 @@
           </h1>
         </div>
         <div class="flex flex-wrap text-10 uppercase whitespace-nowrap">
-          <span
-            class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium"
-            v-if="leaseData"
-          >
+          <span class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium"
+                v-if="leaseData">
             {{ $t("message.down-payment") }}: ${{ downPayment }}
           </span>
         </div>
@@ -249,31 +203,25 @@
               <div class="state-status garet-medium">
                 {{ $t("message.opening-channel") }}
               </div>
-              <OpenChannel
-                :width="16"
-                :height="16"
-                :class="openingSubState?.channel"
-              />
+              <OpenChannel :width="16"
+                           :height="16"
+                           :class="openingSubState?.channel" />
             </div>
             <div class="status relative mx-4 cursor-pointer">
               <div class="state-status garet-medium">
                 {{ $t("message.transferring-assets") }}
               </div>
-              <Transfer
-                :width="16"
-                :height="16"
-                :class="openingSubState?.transfer"
-              />
+              <Transfer :width="16"
+                        :height="16"
+                        :class="openingSubState?.transfer" />
             </div>
             <div class="status relative cursor-pointer">
               <div class="state-status garet-medium">
                 {{ $t("message.swapping-assets") }}
               </div>
-              <Swap
-                :width="16"
-                :height="16"
-                :class="openingSubState?.swap"
-              />
+              <Swap :width="16"
+                    :height="16"
+                    :class="openingSubState?.swap" />
             </div>
           </div>
         </div>
@@ -287,48 +235,40 @@
             </span>
             <p class="text-primary">
               <b>
-                <CurrencyComponent
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  :amount="currentPrice"
-                  :hasSpace="false"
-                  :isDenomInfront="true"
-                  :font-size="20"
-                  :font-size-small="14"
-                  denom="$"
-                />
+                <CurrencyComponent :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                                   :amount="currentPrice"
+                                   :hasSpace="false"
+                                   :isDenomInfront="true"
+                                   :font-size="20"
+                                   :font-size-small="14"
+                                   denom="$" />
               </b>
             </p>
 
           </div>
           <div class="flex text-10 h-6">
-            <button
-              v-for="(value, index) in CHART_RANGES"
-              class="ml-2 w-10 justify-center border rounded chart-dates"
-              :key="index"
-              :class="`${value.label === chartTimeRange.label
-                ? 'border-1 border-light-electric bg-[#0ea5e9]/10'
-                : ''
-                }`"
-              @click="chartTimeRange = value; loadCharts()"
-            >
+            <button v-for="(value, index) in CHART_RANGES"
+                    class="ml-2 w-10 justify-center border rounded chart-dates"
+                    :key="index"
+                    :class="`${value.label === chartTimeRange.label
+                      ? 'border-1 border-light-electric bg-[#0ea5e9]/10'
+                      : ''
+                      }`"
+                    @click="chartTimeRange = value; loadCharts()">
               {{ value.label }}
             </button>
           </div>
         </div>
         <div class="flex relaltive">
-          <div
-            class="flex-1 pnl-container"
-            v-if="leaseData"
-          >
+          <div class="flex-1 pnl-container"
+               v-if="leaseData">
             <div class="pnl text-12 nls-font-500 whitespace-pre	mr-2 grey">
               {{ $t('message.pnl') }} $0.00
             </div>
           </div>
           <div class="relative w-full">
-            <div
-              v-if="leaseData"
-              class="dash-pnl grey"
-            >
+            <div v-if="leaseData"
+                 class="dash-pnl grey">
 
             </div>
             <PriceHistoryChart :chartData="chartData" />
@@ -338,43 +278,33 @@
     </div>
   </div>
 
-  <div
-    v-if="TEMPLATES.paid == status"
-    class="background mt-6 border-standart shadow-box radius-medium radius-0-sm pb-5 outline"
-  >
+  <div v-if="TEMPLATES.paid == status"
+       class="background mt-6 border-standart shadow-box radius-medium radius-0-sm pb-5 outline">
     <div class="grid grid-cols-1 lg:grid-cols-3">
       <div class="lg:col-span-1 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5">
-        <p
-          class="text-20 nls-font-500 mb-4 text-primary select-none"
-          @dblclick="copy"
-        >
+        <p class="text-20 nls-font-500 mb-4 text-primary select-none"
+           @dblclick="copy">
           {{ $t("message.lease-position") }}
         </p>
         <div class="flex">
-          <img
-            :src="getAssetIcon"
-            class="inline-block m-0 mr-3"
-            height="36"
-            width="36"
-          />
+          <img :src="getAssetIcon"
+               class="inline-block m-0 mr-3"
+               height="36"
+               width="36" />
           <h1 class="text-primary nls-font-700 text-28 md:text-28">
-            <CurrencyComponent
-              :type="CURRENCY_VIEW_TYPES.TOKEN"
-              :amount="amount"
-              :font-size="22"
-              :minimalDenom="asset.coinMinimalDenom"
-              :denom="asset.shortName"
-              :decimals="asset?.coinDecimals"
-              :maxDecimals="6"
-            />
+            <CurrencyComponent :type="CURRENCY_VIEW_TYPES.TOKEN"
+                               :amount="amount"
+                               :font-size="22"
+                               :minimalDenom="asset.coinMinimalDenom"
+                               :denom="asset.shortName"
+                               :decimals="asset?.coinDecimals"
+                               :maxDecimals="6" />
             <span class="inline-block ml-1 text-primary text-20 nls-font-400 uppercase">
             </span>
           </h1>
         </div>
-        <div
-          v-if="leaseData"
-          class="flex flex-wrap text-10 uppercase whitespace-nowrap mt-4"
-        >
+        <div v-if="leaseData"
+             class="flex flex-wrap text-10 uppercase whitespace-nowrap mt-4">
           <span class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium">
             {{ `price per ${asset.shortName}:` }} {{ price }}
           </span>
@@ -389,30 +319,26 @@
             </span>
             <p class="text-primary">
               <b>
-                <CurrencyComponent
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  :amount="currentPrice"
-                  :hasSpace="false"
-                  :isDenomInfront="true"
-                  :font-size="20"
-                  :font-size-small="14"
-                  denom="$"
-                />
+                <CurrencyComponent :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                                   :amount="currentPrice"
+                                   :hasSpace="false"
+                                   :isDenomInfront="true"
+                                   :font-size="20"
+                                   :font-size-small="14"
+                                   denom="$" />
               </b>
             </p>
 
           </div>
           <div class="flex text-10 h-6">
-            <button
-              v-for="(value, index) in CHART_RANGES"
-              class="ml-2 w-10 justify-center border rounded chart-dates"
-              :key="index"
-              :class="`${value.label === chartTimeRange.label
-                ? 'border-1 border-light-electric bg-[#0ea5e9]/10'
-                : ''
-                }`"
-              @click="chartTimeRange = value; loadCharts()"
-            >
+            <button v-for="(value, index) in CHART_RANGES"
+                    class="ml-2 w-10 justify-center border rounded chart-dates"
+                    :key="index"
+                    :class="`${value.label === chartTimeRange.label
+                      ? 'border-1 border-light-electric bg-[#0ea5e9]/10'
+                      : ''
+                      }`"
+                    @click="chartTimeRange = value; loadCharts()">
               {{ value.label }}
             </button>
           </div>
@@ -427,46 +353,38 @@
     <div class="flex items-center justify-between border-t border-standart pt-4 md:px-6 px-2 flex-col md:flex-row">
       <div class="flex">
       </div>
-      <button
-        class="btn btn-secondary btn-large-secondary md:w-auto w-full md:mt-0 mt-4 plausible-event-name=collect"
-        :class="{ 'js-loading': leaseInfo.leaseStatus?.paid?.in_progress }"
-        @click="onShowClaimDialog"
-      >
+      <button class="btn btn-secondary btn-large-secondary md:w-auto w-full md:mt-0 mt-4 plausible-event-name=collect"
+              :class="{ 'js-loading': leaseInfo.leaseStatus?.paid?.in_progress }"
+              @click="onShowClaimDialog">
         {{ $t("message.collect") }}
       </button>
 
     </div>
   </div>
 
-  <Modal
-    v-if="showClaimDialog"
-    @close-modal="showClaimDialog = false"
-    route="claim"
-    ref="claimDialog"
-  >
+  <Modal v-if="showClaimDialog"
+         @close-modal="showClaimDialog = false"
+         route="claim"
+         ref="claimDialog">
     <DialogHeader :headerList="[$t('message.close-lease')]">
-      <ConfirmComponent
-        :selectedCurrency="state.selectedCurrency"
-        :receiverAddress="state.receiverAddress"
-        :password="state.password"
-        :amount="state.amount"
-        :txType="TxType.TRANSFER"
-        :txHash="state.txHash"
-        :step="step"
-        :fee="state.fee"
-        :onSendClick="onSendClick"
-        :onBackClick="onConfirmBackClick"
-        :onOkClick="onClickOkBtn"
-        @passwordUpdate="(value: string) => state.password = value"
-      />
+      <ConfirmComponent :selectedCurrency="state.selectedCurrency"
+                        :receiverAddress="state.receiverAddress"
+                        :password="state.password"
+                        :amount="state.amount"
+                        :txType="TxType.TRANSFER"
+                        :txHash="state.txHash"
+                        :step="step"
+                        :fee="state.fee"
+                        :onSendClick="onSendClick"
+                        :onBackClick="onConfirmBackClick"
+                        :onOkClick="onClickOkBtn"
+                        @passwordUpdate="(value: string) => state.password = value" />
     </DialogHeader>
   </Modal>
 
-  <Modal
-    v-if="showRepayModal"
-    @close-modal="showRepayModal = false"
-    route="repay"
-  >
+  <Modal v-if="showRepayModal"
+         @close-modal="showRepayModal = false"
+         route="repay">
     <RepayDialog :lease-info="leaseInfo" />
   </Modal>
 </template>
@@ -591,7 +509,7 @@ const loadCharts = async () => {
 }
 
 const currentPrice = computed(() => {
-
+  
   if (props.leaseInfo.leaseStatus?.opening && leaseData) {
     const item = walletStore.getCurrencyByTicker(leaseData.leasePositionTicker as string);
     return oracleStore.prices[item.symbol]?.amount ?? '0';
@@ -993,18 +911,6 @@ const openedSubState = computed(() => {
     return true
   }
 
-  return false;
-});
-
-const interestDueStatus = computed(() => {
-  const lease = props.leaseInfo.leaseStatus?.opened;
-  if (lease) {
-    const amount = Number(lease.previous_margin_due.amount) + Number(lease.previous_interest_due.amount);
-    if (amount > 0) {
-      return true;
-    }
-    return false;
-  }
   return false;
 });
 </script>

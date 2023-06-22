@@ -14,6 +14,8 @@ export interface Network {
 
 export interface NetworkData{
   prefix: string,
+  tendermintRpc: string,
+  api: string,
   gasMuplttiplier: number,
   bip44Path: string,
   ibcTransferTimeout: number,
@@ -21,7 +23,6 @@ export interface NetworkData{
   name: string,
   gasPrice: string,
   explorer: string,
-  key: string,
   currencies: () => ExternalCurrenciesType,
   embedChainInfo: Function,
   fees: {

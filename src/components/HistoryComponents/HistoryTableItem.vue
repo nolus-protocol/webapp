@@ -68,7 +68,7 @@ import { StringUtils } from "@/utils/StringUtils";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/wallet";
 import { Buffer } from "buffer";
-import { AssetUtils, WalletManager } from "@/utils";
+import { WalletManager } from "@/utils";
 
 enum Messages {
   "/cosmos.bank.v1beta1.MsgSend" = "/cosmos.bank.v1beta1.MsgSend",
@@ -322,7 +322,6 @@ const message = (msg: Object | any) => {
       const amount = getAmount(log);
       const coin = parseCoins(amount.value)[0];
       const token = getCurrency(coin);
-
       return i18n.t('message.claim-position-action', {
         amount: token.toString(),
         address: truncateString(msg.data?.validatorAddress)
@@ -353,8 +352,7 @@ const getAmount = (log: any) => {
 
 const getCurrency = (amount: Coin) => {
   const currency = amount;
-  const info = AssetUtils.getAssetInfoByDenom(amount.denom);
-
+  const info = wallet.getCurrencyInfo(currency?.denom);
   const token = CurrencyUtils.convertMinimalDenomToDenom(
     currency?.amount,
     info.coinMinimalDenom,

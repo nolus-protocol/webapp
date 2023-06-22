@@ -67,7 +67,7 @@ import SessionExpireDialog from "@/components/modals/SessionExpireDialog.vue";
 
 import { OracleActionTypes, useOracleStore } from "@/stores/oracle";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
-import { WalletManager } from "@/utils";
+import { WalletManager, WalletUtils } from "@/utils";
 import { onMounted, onUnmounted, provide, ref, type Ref } from "vue";
 
 import { SESSION_TIME, SNACKBAR, UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL, } from "@/config/env";
