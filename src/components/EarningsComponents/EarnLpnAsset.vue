@@ -65,7 +65,7 @@
             :isDenomInfront="false"
             denom="%"
           />
-          <p v-if="ApptUtils.isDev()" class="text-[#1AB171] text-[12px]">
+          <p class="text-[#1AB171] text-[12px]">
             +{{ rewards }}% {{ NATIVE_ASSET.label }}
           </p>
         </div>
