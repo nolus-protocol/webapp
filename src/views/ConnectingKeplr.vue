@@ -81,6 +81,7 @@ const connectKeplr = async () => {
   try {
     await wallet[WalletActionTypes.CONNECT_KEPLR]({ isFromAuth: true });
   } catch (e: Error | any) {
+    console.log(e)
     showError.value = true;
     errorMessage.value = e?.message;
   }

@@ -41,7 +41,7 @@ import { getMicroAmount, walletOperation } from "@/components/utils";
 import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, TIP, PERMILLE, PERCENT, calculateAditionalDebt, SWAP_FEE } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, TIP, PERMILLE, PERCENT, calculateAditionalDebt, SWAP_FEE, ErrorCodes } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/stores/oracle";
 import { AssetUtils } from "@/utils";
@@ -235,9 +235,17 @@ const repayLease = async () => {
       }
 
       getLeases();
-    } catch (e) {
-      console.log(e)
-      step.value = CONFIRM_STEP.ERROR;
+    } catch (error: Error | any) {
+      switch(error.code){
+        case(ErrorCodes.GasError): {
+          step.value = CONFIRM_STEP.GasError;
+          break;
+        }
+        default: {
+          step.value = CONFIRM_STEP.ERROR;
+          break;
+        }
+      }
     }
   }
 };

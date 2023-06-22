@@ -8,7 +8,10 @@
     @mouseover="mouseover"
     @mouseleave="mouseleave"
   >
-    <span class="icon icon-tooltip"></span>
+    <span
+      class="icon icon-tooltip"
+      :class="[$attrs.class]"
+    ></span>
   </div>
   <Teleport to="body">
     <div
@@ -60,7 +63,7 @@ function mouseover(event: MouseEvent) {
   const parent = target.value as HTMLDivElement;
   const element = tooltip.value as HTMLDivElement;
 
-  if(!element){
+  if (!element) {
     return false;
   }
 
