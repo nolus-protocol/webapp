@@ -188,7 +188,6 @@ function removeHash(
 
 async function loadData(){
   const app = useApplicationStore();
-  await app[ApplicationActionTypes.CHANGE_NETWORK](false);
   await app[ApplicationActionTypes.LOAD_CURRENCIES]();
 }
 

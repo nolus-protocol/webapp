@@ -3,5 +3,4 @@ export enum CONFIRM_STEP {
   PENDING = "Pending",
   SUCCESS = "Success",
   ERROR = "Error",
-  GasError = "GasError",
 }

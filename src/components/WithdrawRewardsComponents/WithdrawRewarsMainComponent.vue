@@ -26,7 +26,7 @@ import { TxType } from "@/types/TxType";
 import { walletOperation } from "@/components/utils";
 import { inject, onUnmounted, ref, type PropType, computed } from "vue";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
-import { NATIVE_ASSET, GAS_FEES, ErrorCodes } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES } from "@/config/env";
 import { AssetUtils, EnvNetworkUtils, WalletManager } from "@/utils";
 import { coin } from "@cosmjs/amino";
 import { CurrencyUtils } from "@nolus/nolusjs";
@@ -143,19 +143,10 @@ const requestClaim = async () => {
       }
 
     }
-    await walletStore[WalletActionTypes.UPDATE_BALANCES]();
 
-  } catch (error: Error | any) {
-    switch(error.code){
-        case(ErrorCodes.GasError): {
-          step.value = CONFIRM_STEP.GasError;
-          break;
-        }
-        default: {
-          step.value = CONFIRM_STEP.ERROR;
-          break;
-        }
-      }
+  } catch (error) {
+    console.log(error)
+    step.value = CONFIRM_STEP.ERROR;
   }
 }
 </script>

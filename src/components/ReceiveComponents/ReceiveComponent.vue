@@ -88,7 +88,7 @@
             </div>
 
             <div class="block mt-[20px]">
-
+              
               <CurrencyField
                 id="amount"
                 :currency-options="networkCurrencies"
@@ -160,7 +160,6 @@ import { Dec } from "@keplr-wallet/unit";
 import { storeToRefs } from "pinia";
 import { NETWORK as OSMO_NETWORK } from '@/networks/osmo/network';
 import { useApplicationStore } from "@/stores/application";
-import { ApptUtils } from "@/utils/AppUtils";
 
 export interface ReceiveComponentProps {
   currentBalance: AssetBalance[];
@@ -225,11 +224,10 @@ const onUpdateNetwork = async (event: Network) => {
     }
 
     const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
-    const node = await ApptUtils.fetchEndpoints(network.supportedNetworks[event.key].key);
     disablePicker.value = true;
 
     client = await Wallet.getInstance(
-      node.rpc
+      network.supportedNetworks[event.key].tendermintRpc
     );
 
     const assets = network.supportedNetworks[event.key].currencies();

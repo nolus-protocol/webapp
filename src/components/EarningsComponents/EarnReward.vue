@@ -25,7 +25,7 @@
             />
           </p>
           <p class="text-dark-grey text-12 garet-medium text-left capitalize m-0">
-            ${{
+            {{
               calculateBalance(
                 reward.balance?.amount.toString(),
                 reward.balance?.denom

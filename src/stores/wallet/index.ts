@@ -28,9 +28,8 @@ import { makeCosmoshubPath } from "@cosmjs/amino";
 import { EncryptionUtils, EnvNetworkUtils, KeyUtils as KeyUtilities, WalletUtils, AssetUtils, Web3AuthProvider, WalletManager } from "@/utils";
 import { CurrencyUtils, KeyUtils, NolusClient, NolusWalletFactory } from "@nolus/nolusjs";
 import { useApplicationStore } from "../application";
-import { defaultRegistryTypes, } from "@cosmjs/stargate";
+import { defaultRegistryTypes,  } from "@cosmjs/stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
-import { ApptUtils } from "@/utils/AppUtils";
 
 const useWalletStore = defineStore("wallet", {
   state: () => {
@@ -65,21 +64,17 @@ const useWalletStore = defineStore("wallet", {
         let chainId = "";
 
         try {
-          const networkConfig = await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
-          NolusClient.setInstance(networkConfig.rpc);
-
           chainId = await NolusClient.getInstance().getChainId();
+          const networkConfig = EnvNetworkUtils.loadNetworkConfig();
           await keplrWindow.keplr?.experimentalSuggestChain(
             KeplrEmbedChainInfo(
               EnvNetworkUtils.getStoredNetworkName(),
               chainId,
-              networkConfig.rpc as string,
-              networkConfig.api as string
+              networkConfig?.tendermintRpc as string,
+              networkConfig?.api as string
             )
           );
         } catch (e) {
-          console.log(e)
-
           throw new Error("Failed to fetch suggest chain.");
         }
 
@@ -131,17 +126,14 @@ const useWalletStore = defineStore("wallet", {
         let chainId = "";
 
         try {
-
-          const networkConfig = await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
-          NolusClient.setInstance(networkConfig.rpc);
-
           chainId = await NolusClient.getInstance().getChainId();
+          const networkConfig = EnvNetworkUtils.loadNetworkConfig();
           await leapWindow.leap?.experimentalSuggestChain(
             KeplrEmbedChainInfo(
               EnvNetworkUtils.getStoredNetworkName(),
               chainId,
-              networkConfig.rpc as string,
-              networkConfig.api as string
+              networkConfig?.tendermintRpc as string,
+              networkConfig?.api as string
             )
           );
         } catch (e) {
@@ -449,7 +441,7 @@ const useWalletStore = defineStore("wallet", {
             }
           }
         }
-
+        
         const promises = data.map(async (item) => {
           try {
             const block = await client.block(item.height);
@@ -482,11 +474,10 @@ const useWalletStore = defineStore("wallet", {
         amount: { amount: string; denom: string };
       }[]
     > {
-      const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+      const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
       const data = await fetch(
         `${url}/cosmos/auth/v1beta1/accounts/${WalletManager.getWalletAddress()}`
       );
-
       const json = await data.json();
       const accData = json.account;
       const vesting_account = accData?.base_vesting_account;
@@ -589,7 +580,7 @@ const useWalletStore = defineStore("wallet", {
     },
     async [WalletActionTypes.LOAD_STAKED_TOKENS]() {
       try {
-        const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+        const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
         const data = await fetch(
           `${url}/cosmos/staking/v1beta1/delegations/${WalletManager.getWalletAddress()}`
         );
@@ -597,8 +588,6 @@ const useWalletStore = defineStore("wallet", {
         const [item] = json.delegation_responses;
         if (item) {
           this.stakingBalance = item.balance;
-        }else{
-          this.stakingBalance = new Coin(NATIVE_ASSET.denom, new Int(0));;
         }
       } catch (e) {
         this.stakingBalance = new Coin(NATIVE_ASSET.denom, new Int(0));
@@ -607,7 +596,7 @@ const useWalletStore = defineStore("wallet", {
     async [WalletActionTypes.LOAD_APR]() {
 
       try {
-        const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+        const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
         const [stakingBalance, infolation_data] = await Promise.all([
           fetch(
             `${url}/cosmos/staking/v1beta1/pool`
@@ -625,7 +614,7 @@ const useWalletStore = defineStore("wallet", {
 
     },
     async [WalletActionTypes.LOAD_VALIDATORS]() {
-      const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+      const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
       const limit = 100;
       const offset = 0;
       const walletAddress = WalletManager.getWalletAddress() || "";
@@ -634,7 +623,7 @@ const useWalletStore = defineStore("wallet", {
 
     },
     async [WalletActionTypes.LOAD_DELEGATOR]() {
-      const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+      const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
       const walletAddress = WalletManager.getWalletAddress() || "";
 
       return await fetch(
@@ -642,13 +631,13 @@ const useWalletStore = defineStore("wallet", {
       ).then((data) => data.json());
     },
     async [WalletActionTypes.LOAD_VALIDATOR](validatorAddress: string) {
-      const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+      const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
       return await fetch(
         `${url}/cosmos/staking/v1beta1/validators/${validatorAddress}`
       ).then((data) => data.json());
     },
     async [WalletActionTypes.LOAD_DELEGATOR_VALIDATORS]() {
-      const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+      const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
       const limit = 100;
       const offset = 0;
       const walletAddress = WalletManager.getWalletAddress() || "";
@@ -656,7 +645,7 @@ const useWalletStore = defineStore("wallet", {
       return await loadDelegatorValidators(url, [], walletAddress, offset, limit);
     },
     async [WalletActionTypes.LOAD_UNBONDING_DELEGATIONS]() {
-      const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+      const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
       const limit = 100;
       const offset = 0;
       const walletAddress = WalletManager.getWalletAddress() || "";
@@ -664,7 +653,7 @@ const useWalletStore = defineStore("wallet", {
       return await loadUnbondingDelegatoins(url, [], walletAddress, offset, limit);
     },
     async [WalletActionTypes.LOAD_DELEGATIONS]() {
-      const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+      const url = NETWORKS[EnvNetworkUtils.getStoredNetworkName()].api;
       const limit = 100;
       const offset = 0;
       const walletAddress = WalletManager.getWalletAddress() || "";
@@ -675,7 +664,7 @@ const useWalletStore = defineStore("wallet", {
   getters: {
     getCurrencyInfo: (state) => {
       return (denom: string) => {
-        const currency = state.currencies[denom];
+        const currency = state.currencies[denom]; 
         const app = useApplicationStore();
         const assetIcons = app.assetIcons!;
 
@@ -686,7 +675,7 @@ const useWalletStore = defineStore("wallet", {
             coinDenom: app.native?.symbol as string,
             coinMinimalDenom: app.native?.symbol as string,
             coinDecimals: Number(0),
-            coinAbbreviation: app.native?.name as string,
+            coinAbbreviation: app.native?.name as  string,
             coinGeckoId: ASSETS.NLS.coinGeckoId,
             coinIcon: app.assetIcons?.NLS as string,
           };

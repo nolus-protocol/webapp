@@ -30,6 +30,8 @@ export const NETWORKS_DATA: {
         supportedNetworks: {
             OSMO: {
                 ...OSMO_NETWORK,
+                tendermintRpc: "https://osmo-test-cl.nolus.network:26657",
+                api: "https://osmo-test-cl.nolus.network:1317",
                 explorer: 'https://testnet.mintscan.io/osmosis-testnet/txs',
                 currencies: () => {
                     const app = useApplicationStore();
@@ -43,6 +45,8 @@ export const NETWORKS_DATA: {
         supportedNetworks: {
             OSMO: {
                 ...OSMO_NETWORK,
+                tendermintRpc: "https://osmo-test-cl.nolus.network:26657",
+                api: "https://osmo-test-cl.nolus.network:1317",
                 explorer: 'https://testnet.mintscan.io/osmosis-testnet/txs',
                 currencies: () => {
                     const app = useApplicationStore();
@@ -56,6 +60,8 @@ export const NETWORKS_DATA: {
         supportedNetworks: {
             OSMO: {
                 ...OSMO_NETWORK,
+                tendermintRpc: "https://osmo-test-cl.nolus.network:26657",
+                api: "https://osmo-test-cl.nolus.network:1317",
                 explorer: 'https://testnet.mintscan.io/osmosis-testnet/txs',
                 currencies: () => {
                     const app = useApplicationStore();
@@ -69,6 +75,8 @@ export const NETWORKS_DATA: {
         supportedNetworks: {
             OSMO: {
                 ...OSMO_NETWORK,
+                tendermintRpc: "https://osmo-cl.nolus.network:26657",
+                api: "https://osmo-cl.nolus.network:1317",
                 explorer: 'https://mintscan.io/osmosis/txs',
                 currencies: () => {
                     const app = useApplicationStore();

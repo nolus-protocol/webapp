@@ -32,10 +32,7 @@
     </div>
 
     <!-- Wallet Body -->
-    <div
-      v-if="ApptUtils.isDev()"
-      class="box-open-body background p-4 lg:p-6 border-b border-standart text-left"
-    >
+    <div v-if="ApptUtils.isDev()" class="box-open-body background p-4 lg:p-6 border-b border-standart text-left">
       <div class="block">
         <Picker
           :default-option="selectedAppearnce"
@@ -132,11 +129,9 @@ onUnmounted(() => {
 
 async function onUpdateNetwork(value: PickerOption) {
   EnvNetworkUtils.saveCurrentNetwork(value.value);
-  await applicaton[ApplicationActionTypes.CHANGE_NETWORK](true);
-  await Promise.all([
-    applicaton[ApplicationActionTypes.LOAD_CURRENCIES](),
-    applicaton[ApplicationActionTypes.LOAD_APR_REWARDS](),
-  ])
+  await applicaton[ApplicationActionTypes.LOAD_CURRENCIES]();
+  applicaton[ApplicationActionTypes.CHANGE_NETWORK](true);
+  applicaton[ApplicationActionTypes.LOAD_APR_REWARDS]();
   router.push({ name: RouteNames.DASHBOARD });
 };
 

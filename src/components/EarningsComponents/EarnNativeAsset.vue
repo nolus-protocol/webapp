@@ -37,8 +37,11 @@
             />
           </p>
           <div class="flex items-center text-dark-grey text-12 garet-medium m-0">
-            {{
-              stakedBalance
+            {{ NATIVE_CURRENCY.symbol }}{{
+              calculateBalance(
+                asset.balance.amount.toString(),
+                asset.balance.denom
+              )
             }}
           </div>
         </template>
@@ -93,7 +96,7 @@ import type { AssetBalance } from "@/stores/wallet/state";
 
 import CurrencyComponent from "../CurrencyComponent.vue";
 
-import { Coin, Dec } from "@keplr-wallet/unit";
+import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { computed } from "vue";
@@ -126,23 +129,6 @@ const props = defineProps({
 const assetInfo = computed(() => {
   const assetInfo = wallet.getCurrencyInfo(props.asset.balance.denom);
   return assetInfo;
-});
-
-const stakedBalance = computed(() => {
-  const staking = wallet.stakingBalance as Coin;
-
-  if(staking){
-    const stakingInfo = wallet.getCurrencyInfo(staking.denom as string);
-    const stakingBalance = CurrencyUtils.calculateBalance(
-      getMarketPrice(staking.denom),
-      staking,
-      stakingInfo.coinDecimals
-    );
-    return stakingBalance;
-  }
-
-  return '$0';
-
 });
 
 function formatPrice(price: string) {

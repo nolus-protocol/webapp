@@ -56,7 +56,8 @@ const onClickTryAgain = async () => {
 
 const loadNetwork = async () => {
   try {
-    await wallet[WalletActionTypes.LOAD_WALLET_NAME]();
+    application[ApplicationActionTypes.CHANGE_NETWORK](false);
+    wallet[WalletActionTypes.LOAD_WALLET_NAME]();
   } catch (error: Error | any) {
     showErrorDialog.value = true;
     errorMessage.value = error?.message;
