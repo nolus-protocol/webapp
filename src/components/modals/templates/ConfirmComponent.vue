@@ -1,6 +1,6 @@
 <template>
   <!-- Header -->
-  <div class="flex modal-send-receive-header no-border">
+  <div class="flex modal-send-receive-header" :class="{ 'no-border': !isStepCustomError }">
     <div class="navigation-header">
       <!-- <button
         v-if="isStepConfirm"
@@ -16,23 +16,38 @@
           class="h-14 w-14 radius-circle p-2 success-icon mb-2"
         />
         <XMarkIcon
-          v-if="isStepError"
+          v-if="isStepError || isStepCustomError"
           class="h-14 w-14 radius-circle p-2 error-icon mb-2"
         />
         <h1 class="nls-font-700 text-28 md:text-32 text-center text-primary">
-          {{ step }}
+          {{ $t(`message.${step}`) }}
         </h1>
       </div>
     </div>
   </div>
 
   <!-- <div class="separator-line pb-6 relative z-[200000] w-[516px]"></div> -->
-  <form @submit.prevent="btnAction" class="modal-form">
+  <div
+    class="modal-form"
+    v-if="isStepCustomError"
+  >
+    <div class="py-[28px]">
+      {{ $t('message.gassErrorMsg') }}
+    </div>
+    <div class="px-[12px] pb-[28px]">
+      <button class="btn btn-primary btn-large-primary w-auto" @click="btnAction">
+        {{  $t("message.close") }}
+      </button>
+    </div>
+  </div>
+  <form
+    @submit.prevent="btnAction"
+    class="modal-form"
+    v-else
+  >
     <!-- Input Area -->
     <div class="modal-send-receive-input-area pt-0">
-      <div
-        class="block bg-light-grey radius-rounded p-4 text-left break-words mt-[25px]"
-      >
+      <div class="block bg-light-grey radius-rounded p-4 text-left break-words mt-[25px]">
         <div class="block">
           <p class="text-14 nls-font-400 text-primary m-0">{{ txType }}</p>
           <p class="text-14 text-primary nls-font-700 m-0">
@@ -40,7 +55,10 @@
           </p>
         </div>
 
-        <div v-if="memo" class="block mt-3">
+        <div
+          v-if="memo"
+          class="block mt-3"
+        >
           <p class="text-14 nls-font-400 text-primary m-0">
             {{ $t("message.memo") }}:
           </p>
@@ -58,7 +76,10 @@
           </p>
         </div>
 
-        <div v-if="txHash" class="block mt-3">
+        <div
+          v-if="txHash"
+          class="block mt-3"
+        >
           <p class="text-14 nls-font-400 text-primary m-0">
             {{ $t("message.tx-hash") }}:
           </p>
@@ -70,7 +91,10 @@
             {{ StringUtils.truncateString(txHash, 6, 6) }}
           </a>
         </div>
-        <div v-if="fee" class="block mt-3">
+        <div
+          v-if="fee"
+          class="block mt-3"
+        >
           <p class="text-14 nls-font-400 text-primary m-0">
             {{ $t("message.tx-and-fee") }}:
           </p>
@@ -98,13 +122,28 @@
       </div>
     </div>
 
+    <WarningBox
+      v-if="isStepConfirm"
+      :isWarning="true"
+      class="mb-[20px] mx-[38px]"
+    >
+      <template v-slot:icon>
+        <img
+          class="block mx-auto my-0 w-10 h-7"
+          src="@/assets/icons/information-circle.svg"
+        />
+      </template>
+      <template v-slot:content>
+        <span>
+          {{ $t("message.amount-warning") }}
+        </span>
+      </template>
+    </WarningBox>
+
     <!-- Actions -->
     <div class="modal-send-receive-actions">
-      <button
-        :class="`btn btn-primary btn-large-primary ${
-          isStepPending ? 'js-loading' : ''
-        }`"
-      >
+      <button :class="`btn btn-primary btn-large-primary ${isStepPending ? 'js-loading' : ''
+        }`">
         {{ isStepConfirm ? $t("message.confirm") : $t("message.ok") }}
       </button>
     </div>
@@ -124,11 +163,12 @@ import { TxType, CONFIRM_STEP } from "@/types";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/wallet";
 import { useApplicationStore } from "@/stores/application";
+import WarningBox from "./WarningBox.vue";
 
 const errorMessage = ref("");
 const i18n = useI18n();
 const wallet = useWalletStore();
-const setCollapseButton = inject("setCollapseButton", (bool: boolean) => {});
+const setCollapseButton = inject("setCollapseButton", (bool: boolean) => { });
 const applicaton = useApplicationStore();
 
 interface Props {
@@ -153,6 +193,7 @@ const isStepConfirm = computed(() => props.step === CONFIRM_STEP.CONFIRM);
 const isStepPending = computed(() => props.step === CONFIRM_STEP.PENDING);
 const isStepSuccess = computed(() => props.step === CONFIRM_STEP.SUCCESS);
 const isStepError = computed(() => props.step === CONFIRM_STEP.ERROR);
+const isStepCustomError = computed(() => props.step === CONFIRM_STEP.GasError);
 
 watch(
   () => props.step,
@@ -167,7 +208,7 @@ watch(
 
 const btnAction = computed(() => {
   if (!checkValidation()) {
-    return () => {};
+    return () => { };
   }
   return isStepConfirm.value ? props.onSendClick : props.onOkClick;
 });
@@ -180,7 +221,7 @@ const checkValidation = () => {
   return true;
 };
 
-const setShowDialogHeader = inject("setShowDialogHeader", (n: boolean) => {});
+const setShowDialogHeader = inject("setShowDialogHeader", (n: boolean) => { });
 
 onMounted(() => {
   setShowDialogHeader(false);

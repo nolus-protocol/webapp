@@ -7,8 +7,8 @@
         },
         "fallback": [
             {
-                "rpc": "https://nolus.rpc.liveraven.net",
-                "api": "https://nolus.api.liveraven.net"
+                "rpc": "https://nolus.rpc.kjnodes.com",
+                "api": "https://nolus.api.kjnodes.com"
             }
         ]
     },

@@ -43,7 +43,7 @@ import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import { computed } from "vue";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, LEASE_MIN_AMOUNT, LEASE_MAX_AMOUNT, TIP, WASM_EVENTS, INTEREST_DECIMALS, DEFAULT_LTD, PERMILLE } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, LEASE_MIN_AMOUNT, LEASE_MAX_AMOUNT, TIP, WASM_EVENTS, INTEREST_DECIMALS, DEFAULT_LTD, PERMILLE, ErrorCodes } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/stores/oracle";
 import { useApplicationStore } from "@/stores/application";
@@ -371,9 +371,17 @@ const openLease = async () => {
 
       getLeases();
 
-    } catch (e) {
-      console.log(e)
-      step.value = CONFIRM_STEP.ERROR;
+    } catch (error: Error | any) {
+      switch(error.code){
+        case(ErrorCodes.GasError): {
+          step.value = CONFIRM_STEP.GasError;
+          break;
+        }
+        default: {
+          step.value = CONFIRM_STEP.ERROR;
+          break;
+        }
+      }
     }
   }
 };

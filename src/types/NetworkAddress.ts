@@ -2,11 +2,10 @@ import type { Networks } from "./Networks";
 
 export interface NetworkAddress {
   chainName?: string,
-  tendermintRpc: string;
-  api: string;
   explorer: string;
   govern: string;
   staking: string;
+  endpoints: string;
   currencies: () => Promise<Networks>, //CurreciesType
   web3auth: {
     clientId: string;

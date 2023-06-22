@@ -122,12 +122,10 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { AssetUtils, EnvNetworkUtils, StringUtils, WalletUtils } from "@/utils";
 import { TxType, CONFIRM_STEP } from "@/types";
 import { useI18n } from "vue-i18n";
-import { useApplicationStore } from "@/stores/application";
 import { NETWORKS_DATA } from "@/networks";
 
 const errorMessage = ref("");
 const i18n = useI18n();
-const applicaton = useApplicationStore();
 
 interface Props {
   selectedCurrency: AssetBalance;

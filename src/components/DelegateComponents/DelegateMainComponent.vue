@@ -44,7 +44,7 @@ import { TxType } from "@/types/TxType";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { inject, onUnmounted, ref, watch } from "vue";
 import { coin } from "@cosmjs/amino";
-import { STAKING } from "@/config/env";
+import { ErrorCodes, STAKING } from "@/config/env";
 import { validateAmount, walletOperation } from "@/components/utils";
 import { NATIVE_ASSET, GAS_FEES, SNACKBAR, } from "@/config/env";
 import { CurrencyUtils } from "@nolus/nolusjs";
@@ -185,9 +185,17 @@ async function delegate() {
 
     }
 
-  } catch (error) {
-    console.log(error)
-    step.value = CONFIRM_STEP.ERROR;
+  } catch (error: Error | any) {
+    switch(error.code){
+        case(ErrorCodes.GasError): {
+          step.value = CONFIRM_STEP.GasError;
+          break;
+        }
+        default: {
+          step.value = CONFIRM_STEP.ERROR;
+          break;
+        }
+      }
   }
 }
 
