@@ -362,6 +362,7 @@ const onSendClick = async () => {
       password.value
     );
   } catch (error: Error | any) {
+    console.log(error)
     step.value = CONFIRM_STEP.ERROR;
   }
 };

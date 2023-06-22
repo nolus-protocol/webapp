@@ -42,8 +42,7 @@ const authenticateKeplr = async (wallet: Wallet, network: NetworkData) => {
 
         try {
             chainId = await wallet.getChainId();
-            const node = await ApptUtils.fetchEndpoints(network.ticker);
-
+            const node = await ApptUtils.fetchEndpoints(network.key);
             await keplrWindow.keplr?.experimentalSuggestChain(
                 network.embedChainInfo(chainId, node.rpc, node.api)
             );
