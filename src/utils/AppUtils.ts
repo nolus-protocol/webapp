@@ -70,14 +70,23 @@ export class ApptUtils {
     }
 
     private static async fetchStatus(rpc: string, dtime: number) {
-        const items = await fetch(`${rpc}/status`);
-        const status = await items.json() as Status;
-        const date = new Date(status.result.sync_info.latest_block_time);
-        const now = new Date().getTime();
-        const downtime = dtime * 1000;
+        try{
+            const items = await fetch(`${rpc}/status`);
 
-        if ((now - date.getTime()) <= downtime) {
-            return true;
+            if(!items.ok){
+                return false;
+            }
+    
+            const status = await items.json() as Status;
+            const date = new Date(status.result.sync_info.latest_block_time);
+            const now = new Date().getTime();
+            const downtime = dtime * 1000;
+    
+            if ((now - date.getTime()) <= downtime) {
+                return true;
+            }
+        }catch(error){
+            return false
         }
 
         return false;

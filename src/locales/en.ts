@@ -276,6 +276,14 @@ export default {
     "swap-fee": "Swap fee",
     "swap-fee-tooltip": "A fixed 0.7% swap fee is deducted from repayments done with non-stable assets. If the actual swap fee is less, the difference will cover some of the outstanding debt or be transferred back to your wallet in USDC",
     "leap": "Leap",
-    "amount-warning": "Leave small amount of NLS tokens to pay for subsequent transactions"
+    "amount-warning": "Leave small amount of NLS tokens to pay for subsequent transactions",
+    "Confirm": "Confirm",
+    "Pending": "Pending",
+    "Success": "Success",
+    "Error": "Error",
+    "GasError": "Insufficient NLS",
+    "gassErrorMsg": "Insufficient NLS for gas fees",
+    "close": "Close",
+    "repay-interest": "Repay the interest, or it will be deducted automatically from the position"
   }
 }

@@ -1,6 +1,6 @@
 <template>
   <!-- Header -->
-  <div class="flex modal-send-receive-header no-border">
+  <div class="flex modal-send-receive-header" :class="{ 'no-border': !isStepCustomError }">
     <div class="navigation-header">
       <!-- <button
         v-if="isStepConfirm"
@@ -16,20 +16,34 @@
           class="h-14 w-14 radius-circle p-2 success-icon mb-2"
         />
         <XMarkIcon
-          v-if="isStepError"
+          v-if="isStepError || isStepCustomError"
           class="h-14 w-14 radius-circle p-2 error-icon mb-2"
         />
         <h1 class="nls-font-700 text-28 md:text-32 text-center text-primary">
-          {{ step }}
+          {{ $t(`message.${step}`) }}
         </h1>
       </div>
     </div>
   </div>
 
   <!-- <div class="separator-line pb-6 relative z-[200000] w-[516px]"></div> -->
+  <div
+    class="modal-form"
+    v-if="isStepCustomError"
+  >
+    <div class="py-[28px]">
+      {{ $t('message.gassErrorMsg') }}
+    </div>
+    <div class="px-[12px] pb-[28px]">
+      <button class="btn btn-primary btn-large-primary w-auto" @click="btnAction">
+        {{  $t("message.close") }}
+      </button>
+    </div>
+  </div>
   <form
     @submit.prevent="btnAction"
     class="modal-form"
+    v-else
   >
     <!-- Input Area -->
     <div class="modal-send-receive-input-area pt-0">
@@ -179,6 +193,7 @@ const isStepConfirm = computed(() => props.step === CONFIRM_STEP.CONFIRM);
 const isStepPending = computed(() => props.step === CONFIRM_STEP.PENDING);
 const isStepSuccess = computed(() => props.step === CONFIRM_STEP.SUCCESS);
 const isStepError = computed(() => props.step === CONFIRM_STEP.ERROR);
+const isStepCustomError = computed(() => props.step === CONFIRM_STEP.GasError);
 
 watch(
   () => props.step,

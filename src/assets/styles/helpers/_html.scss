@@ -310,6 +310,10 @@ button {
 	line-height: 1.2;
 }
 
+.text-yellow{
+	color: #FFB922 !important;
+}
+
 .text-patch {
 	color: $mediumBlue;
 	background-color: $borderColor;
@@ -355,7 +359,7 @@ input[type="checkbox" i] {
 		}
 
 		&:hover {
-			color: $lightElectric;
+			color: $lightElectric !important;
 		}
 	}
 
