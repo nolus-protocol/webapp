@@ -65,8 +65,10 @@ const useWalletStore = defineStore("wallet", {
         let chainId = "";
 
         try {
-          chainId = await NolusClient.getInstance().getChainId();
           const networkConfig = await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
+          NolusClient.setInstance(networkConfig.rpc);
+
+          chainId = await NolusClient.getInstance().getChainId();
           await keplrWindow.keplr?.experimentalSuggestChain(
             KeplrEmbedChainInfo(
               EnvNetworkUtils.getStoredNetworkName(),
@@ -76,6 +78,8 @@ const useWalletStore = defineStore("wallet", {
             )
           );
         } catch (e) {
+          console.log(e)
+
           throw new Error("Failed to fetch suggest chain.");
         }
 
@@ -127,8 +131,11 @@ const useWalletStore = defineStore("wallet", {
         let chainId = "";
 
         try {
-          chainId = await NolusClient.getInstance().getChainId();
+
           const networkConfig = await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
+          NolusClient.setInstance(networkConfig.rpc);
+
+          chainId = await NolusClient.getInstance().getChainId();
           await leapWindow.leap?.experimentalSuggestChain(
             KeplrEmbedChainInfo(
               EnvNetworkUtils.getStoredNetworkName(),
@@ -590,6 +597,8 @@ const useWalletStore = defineStore("wallet", {
         const [item] = json.delegation_responses;
         if (item) {
           this.stakingBalance = item.balance;
+        }else{
+          this.stakingBalance = new Coin(NATIVE_ASSET.denom, new Int(0));;
         }
       } catch (e) {
         this.stakingBalance = new Coin(NATIVE_ASSET.denom, new Int(0));
