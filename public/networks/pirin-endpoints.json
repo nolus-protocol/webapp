@@ -1,0 +1,27 @@
+{
+    "downtime": 30,
+    "NOLUS": {
+        "primary": {
+            "rpc": "https://pirin-cl.nolus.network:26657",
+            "api": "https://pirin-cl.nolus.network:1317"
+        },
+        "fallback": [
+            {
+                "rpc": "https://nolus.rpc.kjnodes.com",
+                "api": "https://nolus.api.kjnodes.com"
+            }
+        ]
+    },
+    "OSMOSIS": {
+        "primary": {
+            "rpc": "https://osmo-cl.nolus.network:26657",
+            "api": "https://osmo-cl.nolus.network:1317"
+        },
+        "fallback": [
+            {
+                "rpc": "https://rpc.osmosis.zone:443",
+                "api": "https://lcd.osmosis.zone"
+            }
+        ]
+    }
+}

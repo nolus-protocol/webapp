@@ -81,7 +81,7 @@ const authenticateLeap = async (wallet: Wallet, network: NetworkData) => {
 
         try {
             chainId = await wallet.getChainId();
-            const node = await ApptUtils.fetchEndpoints(network.ticker);
+            const node = await ApptUtils.fetchEndpoints(network.key);
 
             await leapWindow.leap?.experimentalSuggestChain(
                 network.embedChainInfo(chainId, node.rpc, node.api)
