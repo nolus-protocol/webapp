@@ -196,7 +196,7 @@
               denom="$"
             />
             <TooltipComponent
-              v-if="interestDueStatus"
+              v-if="interestDueStatus && !openedSubState"
               class="text-yellow"
               :content="$t('message.repay-interest')"
             />
@@ -999,8 +999,9 @@ const openedSubState = computed(() => {
 const interestDueStatus = computed(() => {
   const lease = props.leaseInfo.leaseStatus?.opened;
   if (lease) {
-    const amount = Number(lease.previous_margin_due.amount) + Number(lease.previous_interest_due.amount);
-    if (amount > 0) {
+    const g = new Dec(10);
+    const amount = new Dec(lease.previous_margin_due.amount).add(new Dec(lease.previous_interest_due.amount));
+    if (amount.gt(g)) {
       return true;
     }
     return false;
