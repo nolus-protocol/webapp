@@ -185,7 +185,7 @@
             <CurrencyComponent
               v-else
               class="garet-medium"
-              :class="{ 'text-yellow': !interestDueStatus }"
+              :class="{ 'text-yellow': interestDueStatus }"
               :type="CURRENCY_VIEW_TYPES.CURRENCY"
               :amount="interestDue"
               :hasSpace="false"
@@ -196,7 +196,7 @@
               denom="$"
             />
             <TooltipComponent
-              v-if="!interestDueStatus"
+              v-if="interestDueStatus"
               class="text-yellow"
               :content="$t('message.repay-interest')"
             />
