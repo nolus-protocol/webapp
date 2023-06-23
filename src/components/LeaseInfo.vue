@@ -175,7 +175,7 @@
             {{ $t("message.interest-due") }}
             <TooltipComponent :content="$t('message.interest-due-tooltip')" />
           </p>
-          <p class="text-primary text-20 nls-font-400 m-0 mt-1 flex items-center">
+          <p class="text-primary text-20 nls-font-400 m-0 mt-1 flex items-baseline">
             <span
               v-if="openedSubState"
               class="state-loading"
