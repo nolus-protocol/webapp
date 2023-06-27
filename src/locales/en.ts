@@ -284,6 +284,7 @@ export default {
     "GasError": "Insufficient NLS",
     "gassErrorMsg": "Insufficient NLS for gas fees",
     "close": "Close",
-    "repay-interest": "Repay the interest, or it will be deducted automatically from the position"
+    "repay-interest": "Repay the interest, or it will be deducted automatically from the position",
+    "supply-limit-reached": "Supply Limit Reached"
   }
 }

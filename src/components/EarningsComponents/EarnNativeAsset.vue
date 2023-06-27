@@ -37,7 +37,7 @@
             />
           </p>
           <div class="flex items-center text-dark-grey text-12 garet-medium m-0">
-            {{
+            ${{
               stakedBalance
             }}
           </div>
@@ -99,7 +99,6 @@ import { useOracleStore } from "@/stores/oracle";
 import { computed } from "vue";
 import { useWalletStore } from "@/stores/wallet";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
-import { NATIVE_CURRENCY } from "@/config/env";
 import { AssetUtils } from "@/utils";
 
 const oracle = useOracleStore();
@@ -129,20 +128,7 @@ const assetInfo = computed(() => {
 });
 
 const stakedBalance = computed(() => {
-  const staking = wallet.stakingBalance as Coin;
-
-  if(staking){
-    const stakingInfo = wallet.getCurrencyInfo(staking.denom as string);
-    const stakingBalance = CurrencyUtils.calculateBalance(
-      getMarketPrice(staking.denom),
-      staking,
-      stakingInfo.coinDecimals
-    );
-    return stakingBalance;
-  }
-
-  return '$0';
-
+  return AssetUtils.getPriceByDenom(props.asset.balance.amount, props.asset.balance.denom).toString(2);
 });
 
 function formatPrice(price: string) {

@@ -73,19 +73,19 @@
 
       <div class="flex justify-end nls-btn-show">
         <button
+          disabled
           class="btn btn-secondary btn-medium-secondary"
-          @click="openSupplyWithdraw()"
         >
-          {{ $t("message.supply-withdraw") }}
+          {{ $t("message.supply-limit-reached") }}
         </button>
       </div>
 
       <div class="mobile-actions md:hidden col-span-2">
         <button
+          disabled
           class="btn btn-secondary btn-medium-secondary w-full"
-          @click="openSupplyWithdraw()"
         >
-          {{ $t("message.supply-withdraw") }}
+          {{ $t("message.supply-limit-reached") }}
         </button>
       </div>
     </div>
@@ -149,5 +149,10 @@ const maxCoinDecimals = computed(() => {
 <style lang="scss" scoped>
 .tag {
   color: #5E7699;
+}
+button.btn-medium-secondary, button.btn-medium-secondary:hover{
+  border-color: #EBEFF5 !important;
+  color: #8396B1 !important;
+  cursor: pointer;
 }
 </style>

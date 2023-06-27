@@ -4,15 +4,26 @@
     v-if="TEMPLATES.opened == status"
     class="background mt-6 border-standart shadow-box radius-medium radius-0-sm pb-5 outline"
   >
-    <div class="grid grid-cols-1 lg:grid-cols-3">
-      <div class="lg:col-span-1 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5">
-        <p
-          class="text-20 nls-font-500 mb-4 text-primary select-none"
-          @dblclick="copy"
+    <div class="grid grid-cols-1 lg:grid-cols-8">
+      <div class="lg:col-span-3 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5">
+        <div
+          class="flex-1 pnl-container"
+          v-if="leaseData"
         >
-          {{ $t("message.lease-position") }}
-        </p>
-        <div class="flex">
+          <div
+            class="pnl text-12 nls-font-500 whitespace-pre	mr-2 flex items-center"
+            :class="[pnl.status ? 'success' : 'alert']"
+          >
+            <template v-if="pnl.status">
+              <ArrowUp />
+            </template>
+            <template v-else>
+              <ArrowDown />
+            </template>
+            {{ pnl.status ? '+' : '' }}{{ pnl.amount }}
+          </div>
+        </div>
+        <div class="flex my-4">
           <img
             :src="getAssetIcon"
             class="inline-block m-0 mr-3"
@@ -36,7 +47,7 @@
         <div class="flex flex-wrap text-10 uppercase whitespace-nowrap">
           <span
             class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium"
-            v-if="leaseData"
+            v-if="leaseData?.downPayment"
           >
             {{ $t("message.down-payment") }}: ${{ downPayment }}
           </span>
@@ -54,7 +65,7 @@
           </span>
         </div>
       </div>
-      <div class="lg:col-span-2 md:px-6 px-2 pt-5 relative">
+      <div class="lg:col-span-5 md:px-6 px-2 pt-5 relative">
         <!-- Graph -->
         <div class="flex justify-between">
           <div>
@@ -92,30 +103,8 @@
           </div>
         </div>
         <div class="flex relaltive">
-          <div
-            class="flex-1 pnl-container"
-            v-if="leaseData"
-          >
-            <div
-              class="pnl text-12 nls-font-500 whitespace-pre	mr-2 flex items-center"
-              :class="[pnl.status ? 'success' : 'alert']"
-            >
-              <template v-if="pnl.status">
-                <ArrowUp />
-              </template>
-              <template v-else>
-                <ArrowDown />
-              </template>
-              {{ pnl.status ? '+' : '' }}{{ pnl.amount }}
-            </div>
-          </div>
-          <div class="relative w-full">
-            <div
-              v-if="leaseData"
-              class="dash-pnl"
-              :class="[pnl.status ? 'success' : 'alert']"
-            >
-
+          <div class="relative w-full md:block hidden">
+            <div v-if="leaseData">
             </div>
             <PriceHistoryChart :chartData="chartData" />
           </div>
@@ -220,16 +209,24 @@
     v-if="TEMPLATES.opening == status"
     class="background mt-6 border-standart shadow-box radius-medium radius-0-sm outline"
   >
-    <div class="grid grid-cols-1 lg:grid-cols-3">
+    <div class="grid grid-cols-1 lg:grid-cols-8">
       <div
-        class="lg:col-span-1 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5 flex flex-col justify-between	"
+        class="lg:col-span-3 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5 flex flex-col justify-between	"
       >
-        <p
+        <!-- <p
           class="text-20 nls-font-500 mb-4 text-primary select-none"
           @dblclick="copy"
         >
           {{ $t("message.lease-position") }}
-        </p>
+        </p> -->
+        <div
+          class="pnl-container"
+          v-if="leaseData"
+        >
+          <div class="pnl text-12 nls-font-500 whitespace-pre	mr-2 grey">
+            {{ $t('message.pnl') }} $0.00
+          </div>
+        </div>
         <div class="flex flex-col">
           <h1 class="text-primary nls-font-700 text-28 md:text-28">
             {{ $t('message.opening') }}
@@ -238,7 +235,7 @@
         <div class="flex flex-wrap text-10 uppercase whitespace-nowrap">
           <span
             class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium"
-            v-if="leaseData"
+            v-if="leaseData?.downPayment"
           >
             {{ $t("message.down-payment") }}: ${{ downPayment }}
           </span>
@@ -278,8 +275,9 @@
           </div>
         </div>
       </div>
-      <div class="lg:col-span-2 md:px-6 px-2 pt-5 relative pb-5">
+      <div class="lg:col-span-5 md:px-6 px-2 pt-5 relative pb-5">
         <!-- Graph -->
+
         <div class="flex justify-between">
           <div>
             <span class="text-dark-grey">
@@ -316,21 +314,7 @@
           </div>
         </div>
         <div class="flex relaltive">
-          <div
-            class="flex-1 pnl-container"
-            v-if="leaseData"
-          >
-            <div class="pnl text-12 nls-font-500 whitespace-pre	mr-2 grey">
-              {{ $t('message.pnl') }} $0.00
-            </div>
-          </div>
-          <div class="relative w-full">
-            <div
-              v-if="leaseData"
-              class="dash-pnl grey"
-            >
-
-            </div>
+          <div class="relative w-full md:block hidden">
             <PriceHistoryChart :chartData="chartData" />
           </div>
         </div>
@@ -342,15 +326,32 @@
     v-if="TEMPLATES.paid == status"
     class="background mt-6 border-standart shadow-box radius-medium radius-0-sm pb-5 outline"
   >
-    <div class="grid grid-cols-1 lg:grid-cols-3">
-      <div class="lg:col-span-1 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5">
-        <p
+    <div class="grid grid-cols-1 lg:grid-cols-8">
+      <div class="lg:col-span-3 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5">
+        <!-- <p
           class="text-20 nls-font-500 mb-4 text-primary select-none"
           @dblclick="copy"
         >
           {{ $t("message.lease-position") }}
-        </p>
-        <div class="flex">
+        </p> -->
+        <div
+          class="pnl-container"
+          v-if="leaseData"
+        >
+          <div
+            class="pnl text-12 nls-font-500 whitespace-pre	mr-2 flex items-center"
+            :class="[pnl.status ? 'success' : 'alert']"
+          >
+            <template v-if="pnl.status">
+              <ArrowUp />
+            </template>
+            <template v-else>
+              <ArrowDown />
+            </template>
+            {{ pnl.status ? '+' : '' }}{{ pnl.amount }}
+          </div>
+        </div>
+        <div class="flex my-4">
           <img
             :src="getAssetIcon"
             class="inline-block m-0 mr-3"
@@ -380,7 +381,7 @@
           </span>
         </div>
       </div>
-      <div class="lg:col-span-2 md:px-6 px-2 pt-5 relative">
+      <div class="lg:col-span-5 md:px-6 px-2 pt-5 relative">
         <!-- Graph -->
         <div class="flex justify-between">
           <div>
@@ -418,7 +419,7 @@
           </div>
         </div>
         <div class="flex relaltive">
-          <div class="relative w-full">
+          <div class="relative w-full md:block hidden">
             <PriceHistoryChart :chartData="chartData" />
           </div>
         </div>
@@ -490,7 +491,7 @@ import ArrowUp from "./icons/ArrowUp.vue";
 import ArrowDown from "./icons/ArrowDown.vue";
 
 import { computed, inject, onUnmounted, ref, onBeforeMount } from "vue";
-import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
+import { ChainConstants, CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { Dec } from "@keplr-wallet/unit";
 import { CHART_RANGES } from "@/config/globals";
 import { useWalletStore } from "@/stores/wallet";
@@ -500,10 +501,12 @@ import { onMounted } from "vue";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { TxType } from "@/types";
 import { StringUtils, WalletManager } from "@/utils";
-import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation, INTEREST_DECIMALS, PERMILLE, PERCENT, calculateAditionalDebt } from "@/config/env";
+import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation, INTEREST_DECIMALS, PERMILLE, PERCENT, calculateAditionalDebt, CoinGecko } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { walletOperation } from "@/components/utils";
 import { useApplicationStore } from "@/stores/application";
+import { ApptUtils } from "@/utils/AppUtils";
+import { ASSETS } from "@/config/assetsInfo";
 
 interface Props {
   leaseInfo: LeaseData;
@@ -532,11 +535,11 @@ const showSnackbar = inject("showSnackbar", (_type: string, _transaction: string
 const getLeases = inject("getLeases", () => { });
 const claimDialog = ref()
 
-let leaseData: {
-  downPayment: string,
+let leaseData = ref<{
+  downPayment: string | null,
   price: string,
   leasePositionTicker: string
-} | null = null;
+} | null>(null);
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const state = ref({
@@ -556,10 +559,13 @@ onBeforeMount(() => {
   try {
     const data = localStorage.getItem(props.leaseInfo.leaseAddress);
     if (data) {
-      leaseData = JSON.parse(data);
+      leaseData.value = JSON.parse(data);
+    } else {
+      checkPrice();
     }
   } catch (error) {
     console.log(error);
+    checkPrice();
   }
 });
 
@@ -593,7 +599,7 @@ const loadCharts = async () => {
 const currentPrice = computed(() => {
 
   if (props.leaseInfo.leaseStatus?.opening && leaseData) {
-    const item = walletStore.getCurrencyByTicker(leaseData.leasePositionTicker as string);
+    const item = walletStore.getCurrencyByTicker(leaseData?.value?.leasePositionTicker as string);
     return oracleStore.prices[item.symbol]?.amount ?? '0';
   }
 
@@ -608,7 +614,7 @@ const currentPrice = computed(() => {
 
 const fetchChartData = async (days: string, interval: string) => {
   const res = await fetch(
-    `https://api.coingecko.com/api/v3/coins/${asset.value.coinGeckoId}/market_chart?vs_currency=usd&days=${days}&interval=${interval}`
+    `${CoinGecko.url}/coins/${asset.value.coinGeckoId}/market_chart?vs_currency=usd&days=${days}&interval=${interval}&x_cg_pro_api_key=${CoinGecko.key}`
   );
   const { prices } = await res.json();
   return prices;
@@ -617,7 +623,7 @@ const fetchChartData = async (days: string, interval: string) => {
 const asset = computed(() => {
 
   if (props.leaseInfo.leaseStatus?.opening && leaseData) {
-    const item = walletStore.getCurrencyByTicker(leaseData.leasePositionTicker as string);
+    const item = walletStore.getCurrencyByTicker(leaseData.value?.leasePositionTicker as string);
     const ibcDenom = walletStore.getIbcDenomBySymbol(item.symbol);
     const asset = walletStore.getCurrencyInfo(ibcDenom as string);
     return asset;
@@ -638,7 +644,7 @@ const asset = computed(() => {
 const getAssetIcon = computed((): string => {
 
   if (props.leaseInfo.leaseStatus?.opening && leaseData) {
-    const item = walletStore.getCurrencyByTicker(leaseData.leasePositionTicker);
+    const item = walletStore.getCurrencyByTicker(leaseData.value?.leasePositionTicker as string);
     return app.assetIcons?.[item.ticker] as string;
   }
 
@@ -653,7 +659,7 @@ const getAssetIcon = computed((): string => {
 });
 
 const downPayment = computed(() => {
-  const amount = new Dec((leaseData?.downPayment ?? '0'));
+  const amount = new Dec((leaseData.value?.downPayment ?? '0'));
   return amount.toString(2);
 });
 
@@ -667,8 +673,8 @@ const loan = computed(() => {
     const assetInfo = walletStore.getCurrencyInfo(ibcDenom);
     const loanInAsset = CurrencyUtils.convertMinimalDenomToDenom(amount, assetInfo.coinMinimalDenom, assetInfo.coinDenom, assetInfo.coinDecimals).toDec();
 
-    const price = new Dec(leaseData.price);
-    const downPaymentAmount = new Dec(leaseData.downPayment);
+    const price = new Dec(leaseData.value?.price as string);
+    const downPaymentAmount = new Dec(leaseData.value?.downPayment as string);
     const loan = loanInAsset.mul(price);
 
     return CurrencyUtils.formatPrice(loan.sub(downPaymentAmount).toString());
@@ -917,7 +923,7 @@ const getPrice = () => {
   const paidLease = props.leaseInfo.leaseStatus.paid;
 
   if (paidLease && leaseData) {
-    const totalAmount = new Dec(leaseData.downPayment);
+    const totalAmount = new Dec(leaseData.value?.downPayment ?? '0' as string);
     const assetData = walletStore.getCurrencyByTicker(paidLease.amount.ticker);
     const assetAmount = new Dec(paidLease.amount.amount, Number(assetData.decimal_digits))
     const p = totalAmount.quo(assetAmount);
@@ -936,7 +942,7 @@ const getPrice = () => {
       .add(new Dec(openedLease.current_margin_due.amount, Number(item.decimal_digits)))
       .add(new Dec(openedLease.current_interest_due.amount, Number(item.decimal_digits)))
 
-    const totalAmount = new Dec(leaseData.downPayment).add(amount);
+    const totalAmount = new Dec(leaseData.value?.downPayment as string ?? '0').add(amount);
     const assetData = walletStore.getCurrencyByTicker(openedLease.amount.ticker);
     const assetAmount = new Dec(openedLease.amount.amount, Number(assetData.decimal_digits))
     const p = totalAmount.quo(assetAmount);
@@ -1008,4 +1014,66 @@ const interestDueStatus = computed(() => {
   }
   return false;
 });
+
+const checkPrice = async () => {
+  try {
+    const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
+
+    const req = await fetch(`${url}/tx_search?query="wasm.lease_address='${props.leaseInfo.leaseAddress}'"&prove=true`);
+    const data = await req.json();
+    const item = data.result?.txs?.[0];
+    if (item) {
+      getBlock(item.height)
+    }
+
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+const getBlock = async (block: string) => {
+  try {
+    const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
+    const req = await fetch(`${url}/block?height=${block}`);
+    const data = await req.json();
+    const item = data.result?.block?.header?.time;
+
+    if (item) {
+      const date = new Date(item);
+      fetchPrice(date);
+    }
+
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+const fetchPrice = async (time: Date) => {
+  try {
+
+    const ticker = props?.leaseInfo?.leaseStatus?.opened?.amount?.ticker;
+    if (ticker) {
+      const asset = ASSETS[ticker as keyof typeof ASSETS];
+
+      const date = `${time.getDate()}-${time.getMonth() + 1}-${time.getFullYear()}`;
+      const req = await fetch(`${CoinGecko.url}/coins/${asset.coinGeckoId}/history?date=${date}&vs_currency=usd&localization=false&x_cg_pro_api_key=${CoinGecko.key}`);
+      const data = await req.json();
+      const price = data.market_data.current_price.usd;
+
+      localStorage.setItem(props.leaseInfo.leaseAddress, JSON.stringify({
+        price: price,
+        leasePositionTicker: ticker
+      }));
+
+      leaseData.value = {
+        downPayment: null,
+        price,
+        leasePositionTicker: ticker
+
+      }
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
 </script>

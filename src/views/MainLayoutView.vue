@@ -218,6 +218,13 @@ div.router-box {
   max-width: 100%;
 }
 
+@media (max-width: 880px) {
+  div.container-view {
+    padding: 0 1rem;
+    margin-bottom: 64px;
+  }
+}
+
 @media (min-width: 1024px) {
   div.router-box {
     div.container-view {

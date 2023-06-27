@@ -1,7 +1,7 @@
 <template>
   <div class="col-span-12 mb-sm-nolus-70">
     <!-- Header -->
-    <div class="flex flex-wrap items-center justify-between px-4 lg:pt-[25px] lg:px-0">
+    <div class="flex flex-wrap items-center justify-between md:px-4 lg:pt-[25px] lg:px-0">
       <div class="left w-full md:w-1/2">
         <h1 class="text-20 nls-font-700 text-primary m-0 nls-sm-title">
           {{ $t("message.leases") }}
@@ -41,7 +41,9 @@
             height="32"
             width="32"
           >
-          {{ $t("message.empty-lease") }}
+          <p class="text-center">
+            {{ $t("message.empty-lease") }}
+          </p>
           <a @click="showLeaseModal = true" class="text-[#2868E1] mt-2 cursor-pointer">
             {{ $t("message.lease-now") }}
           </a>

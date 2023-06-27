@@ -1,7 +1,7 @@
 <template>
   <div
     id="wallet-nls"
-    class="wallet-nls box-open bg-transparent shadow-modal c-navbar-wallet__container outline"
+    class="wallet-nls box-open bg-transparent c-navbar-wallet__container outline"
   >
     <!-- Wallet Header -->
     <div class="box-open-header background p-4 lg:p-6 border-b border-standart radius-top-left">
@@ -165,6 +165,7 @@ function onCopy() {
 <style scoped>
 #wallet-nls {
   overflow: hidden;
+  box-shadow: 0 16px 16px 4px rgba(7, 45, 99, 0.06);
 }
 
 .icon-wallet {

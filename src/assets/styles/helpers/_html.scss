@@ -606,10 +606,10 @@ input[type="checkbox" i] {
 }
 
 @media (max-width: $md) {
-	.table-header {
-		padding-right: 16px;
-		padding-left: 16px;
-	}
+	// .table-header {
+	// 	padding-right: 16px;
+	// 	padding-left: 16px;
+	// }
 
 	.nls-md-hidden {
 		display: none;
@@ -702,7 +702,7 @@ input[type="checkbox" i] {
 }
 
 .outline {
-	outline: none;
+	outline: solid 1px #EBEFF5;
 }
 
 body.dark {
