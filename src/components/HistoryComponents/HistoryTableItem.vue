@@ -353,7 +353,7 @@ const getAmount = (log: any) => {
 
 const getCurrency = (amount: Coin) => {
   const currency = amount;
-  const info = AssetUtils.getAssetInfoByDenom(amount.denom);
+  const info = wallet.getCurrencyInfo(amount.denom);
 
   const token = CurrencyUtils.convertMinimalDenomToDenom(
     currency?.amount,
