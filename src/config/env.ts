@@ -214,8 +214,32 @@ export const calculateAditionalDebt = (principal: Dec, percent: Dec) => {
   return amountForTwoMinuts;
 }
 
+export const CoinGecko = {
+  url: 'https://pro-api.coingecko.com/api/v3',
+  label: 'Nolus App',
+  key: 'CG-QQSfXqT6EJWXG9UjjfhfoJVk'
+}
+
 export const SUPPORTED_NETWORKS = ['NOLUS', 'OSMOSIS'];
+export const languages = {
+  en: {
+    key: 'en',
+    label: 'English',
+    url: '/locales/en.json'
+  },
+  ru: {
+    key: 'ru',
+    label: 'Русский',
+    url: '/locales/ru.json'
+  },
+  ch: {
+    key: 'cn',
+    label: '中文',
+    url: '/locales/cn.json'
+  },
+}
 
 export const SWAP_FEE = 0.007;
 export const ZERO_DECIMALS = 2;
 export const MAX_DECIMALS = 8;
+export const LedgerName = "Ledger";

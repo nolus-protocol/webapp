@@ -201,7 +201,6 @@ import { DASHBOARD_ACTIONS } from "@/types";
 import { NATIVE_CURRENCY as DEFAULT_CURRENCY, DEFAULT_LEASE_UP_PERCENT, LEASE_UP_COEFICIENT, NATIVE_ASSET } from "@/config/env";
 import { useApplicationStore } from "@/stores/application";
 import { AssetUtils as WebAppAssetUtils } from "@/utils/AssetUtils";
-import { ApptUtils } from "@/utils/AppUtils";
 
 const walletStore = useWalletStore();
 const app = useApplicationStore();

@@ -4,13 +4,10 @@ import { RouteNames } from "@/router/RouterNames";
 import { useWalletStore } from "@/stores/wallet";
 import { WalletConnectMechanism } from "@/types";
 
-import {
-  createRouter,
-  createWebHistory,
-  type NavigationGuardNext,
-  type RouteLocationNormalized,
-} from "vue-router";
+import { createRouter, createWebHistory, type NavigationGuardNext, type RouteLocationNormalized } from "vue-router";
 import { ApplicationActionTypes, useApplicationStore } from "@/stores/application";
+import { setLang } from "@/i18n";
+import { ApptUtils } from "@/utils/AppUtils";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -19,7 +16,7 @@ const router = createRouter({
       path: "/",
       component: MainLayoutView,
       meta: { requiresAuth: true },
-      beforeEnter: [removeHash, checkWalletName, loadData],
+      beforeEnter: [loadLanguage, removeHash, checkWalletName, loadData],
       children: [
         {
           path: "",
@@ -46,7 +43,7 @@ const router = createRouter({
     {
       path: "/auth",
       component: () => import("@/views/AuthView.vue"),
-      beforeEnter: removeHash,
+      beforeEnter: [loadLanguage, removeHash],
       children: [
         {
           path: "",
@@ -108,6 +105,16 @@ const router = createRouter({
   ],
 });
 
+async function loadLanguage(
+  to: RouteLocationNormalized,
+  from: RouteLocationNormalized,
+  next: NavigationGuardNext) {
+
+  await setLang(ApptUtils.getLang().key);
+  return next();
+  
+}
+
 router.beforeEach((to) => {
   const isAuth = WalletUtils.isAuth();
   if (to.meta.requiresAuth && !isAuth) {
@@ -164,6 +171,12 @@ function checkWalletName(
     case WalletConnectMechanism.LEAP: {
       break;
     }
+    case WalletConnectMechanism.LEDGER: {
+      break;
+    }
+    case WalletConnectMechanism.LEDGER_BLUETOOTH: {
+      break;
+    }
     default: {
       const name = WalletManager.getWalletName() ?? "";
       if (name.length == 0) {
@@ -186,7 +199,7 @@ function removeHash(
   next();
 }
 
-async function loadData(){
+async function loadData() {
   const app = useApplicationStore();
   await app[ApplicationActionTypes.CHANGE_NETWORK](false);
   await app[ApplicationActionTypes.LOAD_CURRENCIES]();

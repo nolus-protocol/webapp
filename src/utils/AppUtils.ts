@@ -1,4 +1,4 @@
-import { NETWORKS } from "@/config/env";
+import { NETWORKS, languages } from "@/config/env";
 import { EnvNetworkUtils } from ".";
 import type { Endpoint, Status, Node, API } from "@/types/NetworkConfig";
 
@@ -8,6 +8,8 @@ enum Mode {
 }
 
 export class ApptUtils {
+
+    public static LANGUAGE = "language";
 
     static rpc: {
         [key: string]: {
@@ -19,6 +21,19 @@ export class ApptUtils {
         return import.meta.env.VITE_MODE == Mode.dev;
     }
 
+    public static setLang(lang: string) {
+        localStorage.setItem(this.LANGUAGE, lang);
+    }
+
+    static getLang() {
+        const theme = localStorage.getItem(this.LANGUAGE);
+        const items = Object.keys(languages);
+        if (items.includes(theme as string)) {
+            return languages[theme as keyof typeof languages];
+        }
+        return languages.en;
+    }
+
     static async fetchEndpoints(network: string) {
         const net = ApptUtils.rpc?.[EnvNetworkUtils.getStoredNetworkName()]?.[network];
 
@@ -26,7 +41,7 @@ export class ApptUtils {
             return net;
         }
 
-        if(!ApptUtils.rpc[EnvNetworkUtils.getStoredNetworkName()]){
+        if (!ApptUtils.rpc[EnvNetworkUtils.getStoredNetworkName()]) {
             ApptUtils.rpc[EnvNetworkUtils.getStoredNetworkName()] = {};
         }
 
@@ -70,22 +85,22 @@ export class ApptUtils {
     }
 
     private static async fetchStatus(rpc: string, dtime: number) {
-        try{
+        try {
             const items = await fetch(`${rpc}/status`);
 
-            if(!items.ok){
+            if (!items.ok) {
                 return false;
             }
-    
+
             const status = await items.json() as Status;
             const date = new Date(status.result.sync_info.latest_block_time);
             const now = new Date().getTime();
             const downtime = dtime * 1000;
-    
+
             if ((now - date.getTime()) <= downtime) {
                 return true;
             }
-        }catch(error){
+        } catch (error) {
             return false
         }
 

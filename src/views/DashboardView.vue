@@ -28,7 +28,7 @@
         class="flex balance-box items-center justify-start background mt-6 shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6 outline"
       >
         <div class="left inline-block pr-6">
-          <p class="nls-font-500 text-16 text-primary">
+          <p class="nls-font-500 text-16 text-primary line">
             {{ $t("message.portfolio-value") }}
           </p>
           <CurrencyComponent
@@ -527,5 +527,21 @@ const setSmallBalancesState = (event: boolean) => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.line {
+  position: relative;
+
+  @media (max-width: 880px) {
+    &::after {
+      content: "";
+      position: absolute;
+      width: calc(100vw - 32px);
+      height: 1px;
+      background-color: #EBEFF5;
+      left: -16px;
+      bottom: -5px;
+    }
+  }
 }
 </style>

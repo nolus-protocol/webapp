@@ -12,7 +12,7 @@
     <div class="md:grid md:grid-cols-12 md:gap-4">
       <div class="md:col-span-7 lg:col-span-7">
         <!-- Portfolio -->
-        <div class="nolus-box block order-2 order-1 background radius-medium md:col-span-7 md:mt-6 async-loader outline">
+        <div class="block order-2 order-1 background md:col-span-7 md:mt-6 async-loader outline border-standart shadow-box radius-medium radius-0-sm">
           <div class="lg:flex block items-center justify-between px-6 pt-6">
             <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
               {{ $t("message.earning-assets") }}
@@ -96,7 +96,7 @@
 
       <div class="md:col-span-5 lg:co-span-5">
         <!-- Rewards -->
-        <div class="nolus-box block order-2 md:order-1 background radius-medium md:col-span-7 mt-6 outline">
+        <div class="block order-2 md:order-1 background md:col-span-7 mt-6 outline border-standart shadow-box radius-medium radius-0-sm">
           <div class="flex items-center justify-between px-6 pt-6 border-b border-standart pb-4">
             <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
               {{ $t("message.rewards") }}

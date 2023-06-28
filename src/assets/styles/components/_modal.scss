@@ -17,13 +17,12 @@
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     overflow: hidden;
-    max-height: calc(100% - 80px);
-
 
     @media (min-width: $md) {
       height: auto;
       border-bottom-left-radius: 12px;
       border-bottom-right-radius: 12px;
+      max-height: calc(100% - 80px);
     }
 
     &-parent {
