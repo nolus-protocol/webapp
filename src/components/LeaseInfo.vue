@@ -29,6 +29,7 @@
             class="inline-block m-0 mr-3"
             height="36"
             width="36"
+            @dblclick="copy"
           />
           <h1 class="text-primary nls-font-700 text-28 md:text-28">
             <CurrencyComponent
@@ -65,7 +66,7 @@
           </span>
         </div>
       </div>
-      <div class="lg:col-span-5 md:px-6 px-2 pt-5 relative">
+      <div class="lg:col-span-5 md:px-6 px-2 pt-3 md:pt-5 pb-3 md:pb-0 relative">
         <!-- Graph -->
         <div class="flex justify-between">
           <div>
@@ -275,7 +276,7 @@
           </div>
         </div>
       </div>
-      <div class="lg:col-span-5 md:px-6 px-2 pt-5 relative pb-5">
+      <div class="lg:col-span-5 md:px-6 px-2 pt-3 md:pt-5 pb-3 md:pb-5 relative">  
         <!-- Graph -->
 
         <div class="flex justify-between">
@@ -357,6 +358,7 @@
             class="inline-block m-0 mr-3"
             height="36"
             width="36"
+            @dblclick="copy"
           />
           <h1 class="text-primary nls-font-700 text-28 md:text-28">
             <CurrencyComponent
@@ -381,7 +383,7 @@
           </span>
         </div>
       </div>
-      <div class="lg:col-span-5 md:px-6 px-2 pt-5 relative">
+      <div class="lg:col-span-5 md:px-6 px-2 pt-3 md:pt-5 pb-3 md:pb-0  relative">
         <!-- Graph -->
         <div class="flex justify-between">
           <div>
@@ -492,7 +494,7 @@ import ArrowDown from "./icons/ArrowDown.vue";
 
 import { computed, inject, onUnmounted, ref, onBeforeMount } from "vue";
 import { ChainConstants, CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
-import { Dec } from "@keplr-wallet/unit";
+import { Dec, Coin, Int } from "@keplr-wallet/unit";
 import { CHART_RANGES } from "@/config/globals";
 import { useWalletStore } from "@/stores/wallet";
 import { useOracleStore } from "@/stores/oracle";
@@ -500,7 +502,7 @@ import { useI18n } from "vue-i18n";
 import { onMounted } from "vue";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { TxType } from "@/types";
-import { StringUtils, WalletManager } from "@/utils";
+import { AssetUtils, StringUtils, WalletManager } from "@/utils";
 import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation, INTEREST_DECIMALS, PERMILLE, PERCENT, calculateAditionalDebt, CoinGecko } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { walletOperation } from "@/components/utils";
@@ -1037,10 +1039,29 @@ const getBlock = async (block: string) => {
     const req = await fetch(`${url}/block?height=${block}`);
     const data = await req.json();
     const item = data.result?.block?.header?.time;
+    const ticker = props?.leaseInfo?.leaseStatus?.opened?.amount?.ticker ?? props?.leaseInfo?.leaseStatus?.paid?.amount?.ticker
 
-    if (item) {
+    if (item && ticker) {
       const date = new Date(item);
-      fetchPrice(date);
+      const [priceData, downpayment] = await Promise.all([
+        fetchPrice(date, ticker),
+        fetchDownPayment(Number(block)),
+      ]);
+
+      const downpaymentPrice = await fetchDownPaymentPrice(date, downpayment.opening.downpayment.ticker);
+
+      const asset = AssetUtils.getAssetInfo(downpayment.opening.downpayment.ticker);
+      const coin = new Coin(asset.coinMinimalDenom, new Int(downpayment.opening.downpayment.amount));
+      const dprice = CurrencyUtils.calculateBalance(downpaymentPrice, coin, asset.coinDecimals);
+      const res = {
+        price: priceData.price,
+        leasePositionTicker: ticker,
+        downPayment: dprice.toDec().toString()
+      };
+
+
+      localStorage.setItem(props.leaseInfo.leaseAddress, JSON.stringify(res));
+      leaseData.value = res;
     }
 
   } catch (error) {
@@ -1048,32 +1069,50 @@ const getBlock = async (block: string) => {
   }
 }
 
-const fetchPrice = async (time: Date) => {
-  try {
+const fetchPrice = async (time: Date, ticker: string) => {
 
-    const ticker = props?.leaseInfo?.leaseStatus?.opened?.amount?.ticker;
-    if (ticker) {
-      const asset = ASSETS[ticker as keyof typeof ASSETS];
+  const asset = ASSETS[ticker as keyof typeof ASSETS];
 
-      const date = `${time.getDate()}-${time.getMonth() + 1}-${time.getFullYear()}`;
-      const req = await fetch(`${CoinGecko.url}/coins/${asset.coinGeckoId}/history?date=${date}&vs_currency=usd&localization=false&x_cg_pro_api_key=${CoinGecko.key}`);
-      const data = await req.json();
-      const price = data.market_data.current_price.usd;
+  const date = `${time.getDate()}-${time.getMonth() + 1}-${time.getFullYear()}`;
+  const req = await fetch(`${CoinGecko.url}/coins/${asset.coinGeckoId}/history?date=${date}&vs_currency=usd&localization=false&x_cg_pro_api_key=${CoinGecko.key}`);
+  const data = await req.json();
+  const price = data.market_data.current_price.usd;
 
-      localStorage.setItem(props.leaseInfo.leaseAddress, JSON.stringify({
-        price: price,
-        leasePositionTicker: ticker
-      }));
-
-      leaseData.value = {
-        downPayment: null,
-        price,
-        leasePositionTicker: ticker
-
-      }
-    }
-  } catch (error) {
-    console.log(error);
+  return {
+    price: price,
+    leasePositionTicker: ticker
   }
+
+}
+
+const fetchDownPaymentPrice = async (time: Date, ticker: string) => {
+
+  const asset = ASSETS[ticker as keyof typeof ASSETS];
+
+  const date = `${time.getDate()}-${time.getMonth() + 1}-${time.getFullYear()}`;
+  const req = await fetch(`${CoinGecko.url}/coins/${asset.coinGeckoId}/history?date=${date}&vs_currency=usd&localization=false&x_cg_pro_api_key=${CoinGecko.key}`);
+  const data = await req.json();
+  const price = data.market_data.current_price.usd;
+
+  return price;
+
+}
+
+const fetchDownPayment = async (block: number) => {
+  const client = walletStore.wallet;
+  if (client) {
+
+    const res = await client.querySmartContract(
+      props.leaseInfo.leaseAddress,
+      {
+        status_query: {},
+      },
+      block
+    );
+
+    return JSON.parse(res.address);
+  }
+
+  throw 'Downpayment fetch unsuccessfully'
 }
 </script>

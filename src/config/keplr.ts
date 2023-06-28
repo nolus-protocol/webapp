@@ -48,7 +48,6 @@ const KeplrEmbedChainInfo = (
       coinDecimals: ChainConstants.COIN_DECIMALS,
       coinGeckoId: ChainConstants.COIN_GECKO_ID,
     },
-    coinType: ChainConstants.COIN_TYPE,
     features: ["ibc-transfer"],
   };
 };

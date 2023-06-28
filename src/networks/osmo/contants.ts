@@ -43,7 +43,6 @@ const embedChainInfo = (
       coinDecimals: 6,
       coinGeckoId: 'osmosis',
     },
-    coinType: 118,
     features: ["ibc-transfer"],
   };
 };
