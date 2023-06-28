@@ -1,4 +1,4 @@
-export default {
+{
   "message": {
     "create-new-account": "Create New Wallet",
     "connect-wallet": "Connect Wallet",
@@ -285,6 +285,7 @@ export default {
     "gassErrorMsg": "Insufficient NLS for gas fees",
     "close": "Close",
     "repay-interest": "Repay the interest, or it will be deducted automatically from the position",
-    "supply-limit-reached": "Supply Limit Reached"
+    "supply-limit-reached": "Supply Limit Reached",
+    "language": "Language"
   }
 }

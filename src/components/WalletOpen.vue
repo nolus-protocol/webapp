@@ -36,7 +36,17 @@
       v-if="ApptUtils.isDev()"
       class="box-open-body background p-4 lg:p-6 border-b border-standart text-left"
     >
+
       <div class="block">
+        <Picker
+          :default-option="selectedLang"
+          :options="langs"
+          :label="$t('message.language')"
+          @update-selected="setLanguage"
+        />
+      </div>
+
+      <div class="block mt-3">
         <Picker
           :default-option="selectedAppearnce"
           :options="appearance"
@@ -75,11 +85,12 @@ import router from "@/router";
 import { onMounted, ref, computed, onUnmounted } from "vue";
 import { RouteNames } from "@/router/RouterNames";
 import { useWalletStore } from "@/stores/wallet";
-import { APPEARANCE } from "@/config/env";
+import { APPEARANCE, languages } from "@/config/env";
 import { useI18n } from "vue-i18n";
 import { ApplicationActionTypes, useApplicationStore } from "@/stores/application";
 import { EnvNetworkUtils, StringUtils, ThemeManager, WalletManager } from "@/utils";
 import { ApptUtils } from "@/utils/AppUtils";
+import { setLang } from "@/i18n";
 
 let timeOut: NodeJS.Timeout;
 const showWallet = ref(false);
@@ -89,22 +100,31 @@ const wallet = useWalletStore();
 const i18n = useI18n();
 const showText = ref(false);
 const themeData = ThemeManager.getThemeData();
+const lang = ApptUtils.getLang();
 
-const selectedAppearnce = {
+const selectedAppearnce = ref({
   label: i18n.t(`message.${themeData}`),
   value: themeData,
+});
+
+const selectedLang = {
+  label: lang.label,
+  value: lang.key,
 };
 
-const appearance = computed(() => {
-  const items = [];
-  for (const key in APPEARANCE) {
-    items.push({
-      value: APPEARANCE[key as keyof typeof APPEARANCE],
-      label: i18n.t(`message.${key}`),
-    });
+const appearance = ref(Object.keys(APPEARANCE).map((key) => {
+  return {
+    value: APPEARANCE[key as keyof typeof APPEARANCE],
+    label: i18n.t(`message.${key}`),
   }
-  return items;
-});
+}));
+
+const langs = ref(Object.keys(languages).map((key) => {
+  return {
+    value: languages[key as keyof typeof languages].key,
+    label: languages[key as keyof typeof languages].label,
+  }
+}));
 
 const getWallet = computed(() => {
   return StringUtils.truncateString(wallet.wallet?.address ?? WalletManager.getWalletAddress(), 12, 8);
@@ -149,6 +169,21 @@ function onClickDisconnect() {
   WalletManager.eraseWalletInfo();
   router.push({ name: RouteNames.AUTH });
 };
+
+async function setLanguage(item: PickerOption) {
+  ApptUtils.setLang(item.value);
+  await setLang(item.value);
+  appearance.value = Object.keys(APPEARANCE).map((key) => {
+    return {
+      value: APPEARANCE[key as keyof typeof APPEARANCE],
+      label: i18n.t(`message.${key}`),
+    }
+  });
+  selectedAppearnce.value = {
+    label: i18n.t(`message.${themeData}`),
+    value: themeData,
+  };
+}
 
 function onCopy() {
   showText.value = true;

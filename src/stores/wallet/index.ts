@@ -17,7 +17,7 @@ import { fromHex, toHex } from "@cosmjs/encoding";
 import { RouteNames } from "@/router/RouterNames";
 import { LedgerSigner } from "@cosmjs/ledger-amino";
 import { decodeTxRaw, type DecodedTxRaw, Registry } from "@cosmjs/proto-signing";
-import { NETWORKS, NATIVE_ASSET } from "@/config/env";
+import { NETWORKS, NATIVE_ASSET, LedgerName } from "@/config/env";
 import { ASSETS } from "@/config/assetsInfo";
 import { ADAPTER_STATUS } from "@web3auth/base";
 import { Buffer } from "buffer";
@@ -144,8 +144,8 @@ const useWalletStore = defineStore("wallet", {
               networkConfig.api as string
             )
           );
-        } catch (e) {
-          throw new Error("Failed to fetch suggest chain.");
+        } catch (e: Error | any) {
+          throw new Error(e.message);
         }
 
         await leapWindow.leap?.enable(chainId);
@@ -190,6 +190,10 @@ const useWalletStore = defineStore("wallet", {
       const to = setTimeout(() => (breakLoop = true), 30000);
       const accountNumbers = [0];
       const paths = accountNumbers.map(makeCosmoshubPath);
+      const networkConfig = await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
+      
+      NolusClient.setInstance(networkConfig.rpc);
+
       while (!ledgerWallet && !breakLoop) {
         try {
           const isConnectedViaLedgerBluetooth =
@@ -221,7 +225,7 @@ const useWalletStore = defineStore("wallet", {
           );
 
           if (payload?.isFromAuth) {
-            await router.push({ name: RouteNames.SET_WALLET_NAME });
+            await router.push({ name: RouteNames.DASHBOARD });
           }
         } catch (e) {
           breakLoop = true;
@@ -581,6 +585,14 @@ const useWalletStore = defineStore("wallet", {
         case WalletConnectMechanism.LEAP: {
           break;
         }
+        case WalletConnectMechanism.LEDGER: {
+          this.walletName = LedgerName;
+          break;
+        }
+        case WalletConnectMechanism.LEDGER_BLUETOOTH: {
+          this.walletName = LedgerName;
+          break;
+        }
         default: {
           this.walletName = WalletManager.getWalletName();
           break;
@@ -597,7 +609,7 @@ const useWalletStore = defineStore("wallet", {
         const [item] = json.delegation_responses;
         if (item) {
           this.stakingBalance = item.balance;
-        }else{
+        } else {
           this.stakingBalance = new Coin(NATIVE_ASSET.denom, new Int(0));;
         }
       } catch (e) {
