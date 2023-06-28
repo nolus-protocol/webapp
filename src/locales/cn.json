@@ -277,6 +277,15 @@
     "swap-fee-tooltip": "使用非稳定币资产还款,将扣除0.7%的固定交换费用。如果实际交换费用低于该值, 则差额部分将用于支付部分未偿还债务或以USDC转回到您的钱包中",
     "leap": "Leap",
     "amount-warning": "请留下少量 NLS 代币用于支付后续交易",
+    "Confirm": "Confirm",
+    "Pending": "Pending",
+    "Success": "Success",
+    "Error": "Error",
+    "GasError": "Insufficient NLS",
+    "gassErrorMsg": "Insufficient NLS for gas fees",
+    "close": "Close",
+    "repay-interest": "Repay the interest, or it will be deducted automatically from the position",
+    "supply-limit-reached": "Supply Limit Reached",
     "language": "語言"
   }
 }
