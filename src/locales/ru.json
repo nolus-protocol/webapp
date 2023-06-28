@@ -277,6 +277,15 @@
     "swap-fee-tooltip": "Фиксированная комиссия за обмен в размере 0,7% вычитается из выплат, производимых не стабильными активами. Если фактическая комиссия за обмен меньше, разница покрывает часть непогашенного долга или переводится обратно на ваш кошелек в USDC",
     "leap": "Leap",
     "amount-warning": "Оставьте небольшое количество токенов NLS для оплаты последующих транзакций",
+    "Confirm": "Confirm",
+    "Pending": "Pending",
+    "Success": "Success",
+    "Error": "Error",
+    "GasError": "Insufficient NLS",
+    "gassErrorMsg": "Insufficient NLS for gas fees",
+    "close": "Close",
+    "repay-interest": "Repay the interest, or it will be deducted automatically from the position",
+    "supply-limit-reached": "Supply Limit Reached",
     "language": "Язык"
   }
 }
