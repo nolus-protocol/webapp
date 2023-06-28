@@ -5,7 +5,7 @@
     class="background mt-6 border-standart shadow-box radius-medium radius-0-sm pb-5 outline"
   >
     <div class="grid grid-cols-1 lg:grid-cols-8">
-      <div class="lg:col-span-3 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5">
+      <div class="lg:col-span-3 px-3 md:px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5">
         <div
           class="flex-1 pnl-container"
           v-if="leaseData"
@@ -211,7 +211,7 @@
   >
     <div class="grid grid-cols-1 lg:grid-cols-8">
       <div
-        class="lg:col-span-3 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5 flex flex-col justify-between	"
+        class="lg:col-span-3 px-3 md:px-6 md:px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5 flex flex-col justify-between	"
       >
         <!-- <p
           class="text-20 nls-font-500 mb-4 text-primary select-none"

@@ -1,7 +1,7 @@
 <template>
   <div class="col-span-12">
     <!-- Header -->
-    <div class="table-header lg:flex block mt-[25px] flex-wrap items-center justify-between lg:px-0">
+    <div class="table-header lg:flex block mt-[25px] flex-wrap items-center justify-between lg:px-0 px-2">
       <div class="left">
         <h1 class="text-20 nls-font-700 text-primary m-0 pb-3 lg:pb-0">
           {{ $t("message.assets") }}
@@ -114,13 +114,13 @@
       :class="{ 'async-loader': isAssetsLoading }"
     >
       <!-- Top -->
-      <div class="flex flex-wrap items-baseline justify-between px-4 pt-6">
-        <div class="left w-1/2">
-          <p class="text-16 nls-font-500 dark-text pl-2">
+      <div class="flex flex-wrap items-baseline justify-between px-3 md:px-4 pt-6">
+        <div class="left w-1/3">
+          <p class="text-16 nls-font-500 dark-text pl-0 md:pl-2">
             {{ $t("message.available-assets") }}
           </p>
         </div>
-        <div class="right w-1/2 mt-0 inline-flex justify-end">
+        <div class="right w-2/3 mt-0 inline-flex justify-end">
           <div class="relative block checkbox-container">
             <div class="flex items-center w-full justify-end">
               <input
@@ -145,7 +145,7 @@
       <!-- Assets -->
       <div class="block mt-6 md:mt-[25px]">
         <!-- Assets Header -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-5">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 border-b border-standart pb-3 px-3 md:px-4">
           <div class="nls-font-500 text-12 text-left text-dark-grey text-upper">
             {{ $t("message.assets") }}
           </div>

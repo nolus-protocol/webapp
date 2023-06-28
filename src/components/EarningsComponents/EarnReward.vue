@@ -1,7 +1,7 @@
 <template>
   <div class="block">
     <div
-      class="grid gap-6 border-b border-t border-standart px-6 py-3 items-center justify-between earn-asset grid-cols-3 md:grid-cols-3"
+      class="grid gap-6 border-b border-t border-standart px-3 md:px-6 py-3 items-center justify-between earn-asset grid-cols-3 md:grid-cols-3"
     >
       <!-- Ticker -->
       <div class="inline-flex items-center col-span-2">

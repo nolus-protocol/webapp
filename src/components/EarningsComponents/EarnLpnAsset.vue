@@ -1,7 +1,7 @@
 <template>
   <div class="block relative">
     <div
-      class="grid gap-6 row-actions border-b flex border-t border-standart px-6 py-3 items-center justify-between earn-asset"
+      class="grid gap-6 row-actions border-b flex border-t border-standart px-3 md:px-6 py-3 items-center justify-between earn-asset"
       :class="[cols ? 'md:grid-cols-' + cols : 'grid-cols-2 md:grid-cols-3']"
     >
       <!-- Ticker -->
@@ -105,7 +105,6 @@ import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/env";
 import { useApplicationStore } from "@/stores/application";
 import { AssetUtils } from "@/utils";
-import { ApptUtils } from "@/utils/AppUtils";
 
 const wallet = useWalletStore();
 const app = useApplicationStore();

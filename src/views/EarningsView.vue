@@ -1,7 +1,7 @@
 <template>
   <div class="col-span-12 mb-sm-nolus-70">
     <!-- Header -->
-    <div class="flex flex-wrap items-center justify-between px-4 lg:pt-[25px] lg:px-0">
+    <div class="flex flex-wrap items-center justify-between px-2 lg:pt-[25px] lg:px-0">
       <div class="left w-full md:w-1/2">
         <h1 class="text-20 nls-font-700 text-primary m-0 nls-sm-title">
           {{ $t("message.earn-title") }}
@@ -13,7 +13,7 @@
       <div class="md:col-span-7 lg:col-span-7">
         <!-- Portfolio -->
         <div class="block order-2 order-1 background md:col-span-7 md:mt-6 async-loader outline border-standart shadow-box radius-medium radius-0-sm">
-          <div class="lg:flex block items-center justify-between px-6 pt-6">
+          <div class="lg:flex block items-center justify-between px-3 md:px-6 pt-6">
             <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
               {{ $t("message.earning-assets") }}
             </h2>
@@ -21,8 +21,8 @@
           <!-- Assets -->
           <div class="block mt-6 md:mt-[25px]">
             <!-- Assets Header -->
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-6 border-b border-standart pb-3 px-4">
-              <div class="nls-font-500 text-12 text-dark-grey text-left text-upper pl-2">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-6 border-b border-standart pb-3 px-3 md:px-4">
+              <div class="nls-font-500 text-12 text-dark-grey text-left text-upper pl-0 md:pl-2">
                 {{ $t("message.asset") }}
               </div>
 

@@ -10,14 +10,20 @@ button {
   }
 }
 
-button{
-  &.chart-dates{
+button {
+  &.chart-dates {
+    @media (max-width: $md) {
+      display: none;
+    }
+
     border-color: $grey;
     transition: ease 200ms;
-    &:hover{
+
+    &:hover {
       border-color: $lightBlue;
     }
-    &.border-light-electric{
+
+    &.border-light-electric {
       border-color: rgb(40 104 225 / var(--tw-border-opacity)) !important;
     }
   }
@@ -573,6 +579,7 @@ body.sync {
       background-color: transparent !important;
       border: 1px $dark-line solid !important;
       color: transparent !important;
+
       &::before {
         border-color: $dark-line;
       }

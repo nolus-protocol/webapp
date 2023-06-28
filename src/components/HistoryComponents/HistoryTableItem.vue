@@ -3,7 +3,7 @@
     <div
       v-for="(msg, index) in messages()"
       :key="index"
-      class="md:grid md:grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-6 md:flex items-center text-12"
+      class="md:grid md:grid-cols-12 pt-3 gap-6 border-b border-standart pb-3 px-3 md:px-6 md:flex items-center text-12"
     >
       <div class="col-span-2 lg:block nls-14 nls-font-400 text-primary text-left text-upper text-14">
         <a
