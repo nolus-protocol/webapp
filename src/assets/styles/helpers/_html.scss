@@ -706,6 +706,11 @@ input[type="checkbox" i] {
 }
 
 body.dark {
+
+	.outline {
+		outline: none;
+	}
+
 	.background {
 		background-color: $dark-background;
 	}
@@ -805,6 +810,11 @@ body.dark {
 
 body.sync {
 	@media (prefers-color-scheme: dark) {
+
+		.outline {
+			outline: none;
+		}
+		
 		.background {
 			background-color: $dark-background;
 		}
