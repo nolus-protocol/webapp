@@ -136,6 +136,23 @@ body {
 	color: $dark;
 }
 
+
+.line-mobile {
+	position: relative;
+
+	@media (max-width: 880px) {
+		&::after {
+			content: "";
+			position: absolute;
+			width: 100vw;
+			height: 1px;
+			background-color: $borderColor;
+			left: -16px;
+			bottom: -5px;
+		}
+	}
+}
+
 @media (max-width: $sm) {
 
 	html,
@@ -310,7 +327,7 @@ button {
 	line-height: 1.2;
 }
 
-.text-yellow{
+.text-yellow {
 	color: #FFB922 !important;
 }
 
@@ -707,6 +724,12 @@ input[type="checkbox" i] {
 
 body.dark {
 
+	.line-mobile {
+		&::after {
+			background-color: $dark-line;
+		}
+	}
+
 	.outline {
 		outline: none;
 	}
@@ -811,10 +834,16 @@ body.dark {
 body.sync {
 	@media (prefers-color-scheme: dark) {
 
+		.line-mobile {
+			&::after {
+				background-color: $dark-line;
+			}
+		}
+
 		.outline {
 			outline: none;
 		}
-		
+
 		.background {
 			background-color: $dark-background;
 		}
