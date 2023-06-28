@@ -225,17 +225,17 @@ export const languages = {
   en: {
     key: 'en',
     label: 'English',
-    url: '/locales/en.json'
+    url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/en.json'
   },
   ru: {
     key: 'ru',
     label: 'Русский',
-    url: '/locales/ru.json'
+    url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/ru.json'
   },
-  ch: {
+  cn: {
     key: 'cn',
     label: '中文',
-    url: '/locales/cn.json'
+    url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/cn.json'
   },
 }
 

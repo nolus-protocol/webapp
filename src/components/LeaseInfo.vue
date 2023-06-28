@@ -58,7 +58,7 @@
             {{ $t("message.borrowed") }}: {{ loan }}
           </span> -->
           <span class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium">
-            {{ `price per ${asset.shortName}:` }} {{ price }}
+            {{ `${$t("message.price-per")} ${asset.shortName}:` }} {{ price }}
           </span>
           <span class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium">
             {{ $t("message.liq-trigger") }}: {{ liquidation }}

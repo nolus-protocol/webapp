@@ -21,7 +21,8 @@ export function setI18nLanguage(locale: string) {
 }
 
 export async function loadLocaleMessages(locale: string) {
-    const data = await fetch(`/locales/${locale}.json`);
+    const lang = languages[locale as keyof typeof languages] ?? languages.en;
+    const data = await fetch(lang.url);
     const messages = await data.json();
     i18n.global.setLocaleMessage(locale, messages)
     return nextTick()
