@@ -5,7 +5,7 @@
       <div class="flex items-center justify-center pt-[64px] h-full md:h-auto">
         <router-view v-slot="{ Component, route }">
             <transition name="fade" mode="out-in" appear>
-              <div :key="route.name!">  
+              <div :key="route.name!"  class="h-full">  
                 <component :is="Component"></component>
               </div>
             </transition>
