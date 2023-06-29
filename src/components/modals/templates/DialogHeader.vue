@@ -6,7 +6,10 @@
     }"
     @click.stop
   >
-    <div v-if="showHeader" class="flex modal-send-receive-header">
+    <div
+      v-if="showHeader"
+      class="flex modal-send-receive-header"
+    >
       <template v-if="isTabLayout">
         <button
           v-for="(tab, index) of headerList"
@@ -16,10 +19,11 @@
           @click="switchTab(index + 1)"
         ></button>
       </template>
-      <div v-else class="navigation-header">
-        <h1
-          class="block w-full nls-font-700 text-28 md:text-32 text-primary text-center"
-        >
+      <div
+        v-else
+        class="navigation-header"
+      >
+        <h1 class="block w-full nls-font-700 text-28 md:text-32 text-primary text-center">
           {{ headerList[0] }}
         </h1>
       </div>
@@ -52,6 +56,10 @@ const props = defineProps({
     type: Number,
     default: 1,
   },
+  disabled: {
+    type: Array<Number>,
+    default: [],
+  },
   routes: {
     type: Array as PropType<string[]>,
     default: () => {
@@ -68,6 +76,9 @@ const isTabLayout = computed(() => {
 });
 
 function switchTab(index: number) {
+  if (props.disabled.includes(index)) {
+    return false;
+  }
   activeTab.value = index;
   const route = props.routes[index - 1];
   if (route != null) {
