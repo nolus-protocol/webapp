@@ -27,8 +27,8 @@
       <div
         class="flex balance-box items-center justify-start background mt-6 shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6 outline"
       >
-        <div class="left inline-block pr-6">
-          <p class="nls-font-500 text-16 text-primary line-mobile">
+        <div class="left inline-block pr-6 line-mobile pb-4 md:pb-0">
+          <p class="nls-font-500 text-16 text-primary">
             {{ $t("message.portfolio-value") }}
           </p>
           <CurrencyComponent

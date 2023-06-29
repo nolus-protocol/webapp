@@ -220,7 +220,7 @@ div.router-box {
 
 @media (max-width: 880px) {
   div.container-view {
-    margin-bottom: 64px;
+    margin-bottom:16px;
   }
 }
 

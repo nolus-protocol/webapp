@@ -133,9 +133,3 @@ provide("setCollapseButton", setCollapseButton);
 
 defineExpose({ onModalClose })
 </script>
-<style scoped>
-.modal-send-receive-parent{
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
-</style>

@@ -185,11 +185,11 @@ div.repayment {
 
 body.sync {
 
-  @media (prefers-color-scheme: dark) {
-    button.btn-close-modal {
-      border: 1px solid #2B384B;
-    }
-  }
+  // @media (prefers-color-scheme: dark) {
+  //   button.btn-close-modal {
+  //     border: 1px solid #2B384B;
+  //   }
+  // }
 
   .modal {
 
@@ -258,9 +258,9 @@ body.sync {
 
 body.dark {
 
-  button.btn-close-modal {
-    border: 1px solid #2B384B !important;
-  }
+  // button.btn-close-modal {
+  //   border: 1px solid #2B384B !important;
+  // }
 
   .modal {
 

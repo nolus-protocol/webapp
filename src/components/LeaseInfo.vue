@@ -66,7 +66,7 @@
           </span>
         </div>
       </div>
-      <div class="lg:col-span-5 md:px-6 px-2 pt-3 md:pt-5 pb-3 md:pb-0 relative">
+      <div class="lg:col-span-5 md:px-6 px-2 pt-3 md:pt-5 pb-3 md:pb-0 relative hidden md:block">
         <!-- Graph -->
         <div class="flex justify-between">
           <div>
@@ -112,7 +112,7 @@
         </div>
       </div>
     </div>
-    <div class="flex items-center justify-between border-t border-standart pt-4 md:px-6 px-2 flex-col md:flex-row">
+    <div class="flex items-center justify-between border-t-[0px] md:border-t-[1px] border-standart pt-4 md:px-6 px-2 flex-col md:flex-row">
       <div class="flex">
         <div class="block">
           <p class="text-detail text-primary m-0 flex items-center data-text">
@@ -242,7 +242,7 @@
           </span>
         </div>
         <div class="relative">
-          <div class="state flex">
+          <div class="state flex pt-4 md:pt-0">
             <div class="status relative cursor-pointer state-background">
               <div class="state-status garet-medium">
                 {{ $t("message.opening-channel") }}
@@ -276,7 +276,7 @@
           </div>
         </div>
       </div>
-      <div class="lg:col-span-5 md:px-6 px-2 pt-3 md:pt-5 pb-3 md:pb-5 relative">  
+      <div class="lg:col-span-5 md:px-6 px-2 pt-3 md:pt-5 pb-3 md:pb-5 relative hidden md:block">  
         <!-- Graph -->
 
         <div class="flex justify-between">
@@ -383,7 +383,7 @@
           </span>
         </div>
       </div>
-      <div class="lg:col-span-5 md:px-6 px-2 pt-3 md:pt-5 pb-3 md:pb-0  relative">
+      <div class="lg:col-span-5 md:px-6 px-2 pt-3 md:pt-5 pb-3 md:pb-0  relative hidden md:block">
         <!-- Graph -->
         <div class="flex justify-between">
           <div>
@@ -427,7 +427,7 @@
         </div>
       </div>
     </div>
-    <div class="flex items-center justify-between border-t border-standart pt-4 md:px-6 px-2 flex-col md:flex-row">
+    <div class="flex items-center justify-between border-t-[0px] md:border-t-[1px] border-standart pt-4 md:px-6 px-2 flex-col md:flex-row">
       <div class="flex">
       </div>
       <button
