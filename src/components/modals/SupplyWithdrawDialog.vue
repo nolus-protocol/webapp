@@ -3,7 +3,6 @@
     :headerList="['Supply', 'Withdraw']"
     :routes="['supply', 'withdraw']"
     :active-tab="2"
-    :disabled="[1]"
   >
     <template #tab-1>
       <SupplyMainComponent :selectedAsset="selectedAsset"/>

@@ -76,7 +76,7 @@
           @click="props.openSupplyWithdraw"
           class="btn btn-secondary btn-medium-secondary"
         >
-          {{ $t("message.supply-limit-reached") }}
+          {{ $t("message.supply-withdraw") }}
         </button>
       </div>
 
@@ -85,7 +85,7 @@
           @click="props.openSupplyWithdraw"
           class="btn btn-secondary btn-medium-secondary w-full"
         >
-          {{ $t("message.supply-limit-reached") }}
+          {{ $t("message.supply-withdraw") }}
         </button>
       </div>
     </div>

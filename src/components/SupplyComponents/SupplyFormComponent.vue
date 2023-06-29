@@ -1,5 +1,5 @@
 <template>
-  <form @submit.prevent="modelValue.onNextClick" class="modal-form">
+  <form class="modal-form">
     <!-- Input Area -->
     <div class="modal-send-receive-input-area">
 
@@ -24,7 +24,7 @@
 
     <!-- Actions -->
     <div class="modal-send-receive-actions">
-      <button class="btn btn-primary btn-large-primary text-center plausible-event-name=supply">
+      <button class="btn btn-primary btn-large-primary text-center plausible-event-name=supply" disabled>
         {{ $t("message.supply") }}
       </button>
     </div>
