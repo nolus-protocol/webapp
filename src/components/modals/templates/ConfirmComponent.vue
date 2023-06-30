@@ -177,7 +177,7 @@ interface Props {
   password: string;
   amount: string;
   memo?: string;
-  txType: TxType;
+  txType: string;
   txHash: string;
   step: CONFIRM_STEP;
   fee?: Coin;

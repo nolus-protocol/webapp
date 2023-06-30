@@ -13,7 +13,6 @@
     "earn": "Earn",
     "assets": "Assets",
     "asset": "Asset",
-    "swap": "Swap",
     "more": "More",
     "type": "Type",
     "action": "Action",
@@ -107,7 +106,6 @@
     "tx-fee": "TX fee",
     "for": "for",
     "id": "ID",
-    "send-to": "Send to",
     "save-contact": "Save as contact",
     "next": "Next",
     "tx-hash": "Tx Hash",
@@ -286,6 +284,19 @@
     "close": "Close",
     "repay-interest": "Repay the interest, or it will be deducted automatically from the position",
     "supply-limit-reached": "Supply Limit Reached",
-    "language": "Language"
+    "language": "Language",
+    "rewards-from": "Rewards from",
+    "repay-to": "Repay to",
+    "supply-to": "Supply to",
+    "send-to": "Send to",
+    "swap": "Swap",
+    "lease-from": "Lease from",
+    "withdraw-from": "Withdraw from",
+    "ibc-transfer-to": "IBC Transfer to",
+    "stake-to": "Stake to",
+    "undelegate-from": "Undelegate from",
+    "grant-to": "Grant to",
+    "claim-from": "Claim from",
+    "transfer-dialog": "Transfer"
   }
 }

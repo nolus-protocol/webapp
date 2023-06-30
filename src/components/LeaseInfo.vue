@@ -453,7 +453,7 @@
         :receiverAddress="state.receiverAddress"
         :password="state.password"
         :amount="state.amount"
-        :txType="TxType.TRANSFER"
+        :txType="`message.${TxType.TRANSFER}`"
         :txHash="state.txHash"
         :step="step"
         :fee="state.fee"

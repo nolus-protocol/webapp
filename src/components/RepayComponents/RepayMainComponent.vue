@@ -5,7 +5,7 @@
     :receiverAddress="state.receiverAddress"
     :password="state.password"
     :amount="state.amount"
-    :txType="TX_TYPE.REPAY"
+    :txType="$t(`message.${TxType.REPAY}`)+':'"
     :txHash="state.txHash"
     :step="step"
     :fee="state.fee"

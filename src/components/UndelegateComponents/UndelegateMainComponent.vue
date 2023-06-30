@@ -5,7 +5,7 @@
     :selectedCurrency="state.selectedCurrency"
     :password="state.password"
     :amount="state.amount"
-    :txType="TxType.UNDELEGATE"
+    :txType="$t(`message.${TxType.UNDELEGATE}`)+':'"
     :txHash="state.txHash"
     :step="step"
     :fee="state.fee"

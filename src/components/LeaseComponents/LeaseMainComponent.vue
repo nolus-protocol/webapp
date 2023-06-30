@@ -6,7 +6,7 @@
     :password="state.password"
     :amount="state.downPayment"
     :memo="state.memo"
-    :txType="TX_TYPE.LEASE"
+    :txType="$t(`message.${TX_TYPE.LEASE}`)+':'"
     :txHash="state.txHash"
     :step="step"
     :fee="state.fee"

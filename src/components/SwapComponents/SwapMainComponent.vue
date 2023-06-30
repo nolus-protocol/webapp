@@ -6,7 +6,7 @@
     :password="state.password"
     :amount="state.amount"
     :memo="state.memo"
-    :txType="TxType.SWAP"
+    :txType="$t(`message.${TxType.SWAP}`)"
     :txHash="state.txHash"
     :step="step"
     :fee="state.fee"

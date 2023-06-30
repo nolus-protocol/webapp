@@ -134,7 +134,7 @@ interface Props {
   amount: string;
   networkKey: string;
   memo?: string;
-  txType: TxType;
+  txType: string;
   txHash: string;
   step: CONFIRM_STEP;
   fee?: Coin;
