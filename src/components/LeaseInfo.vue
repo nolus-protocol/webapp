@@ -1007,9 +1007,8 @@ const openedSubState = computed(() => {
 const interestDueStatus = computed(() => {
   const lease = props.leaseInfo.leaseStatus?.opened;
   if (lease) {
-    const g = new Dec(10);
-    const amount = new Dec(lease.previous_margin_due.amount).add(new Dec(lease.previous_interest_due.amount));
-    if (amount.gt(g)) {
+    const amount = new Dec(lease.previous_margin_due.amount);
+    if (amount.isPositive()) {
       return true;
     }
     return false;
