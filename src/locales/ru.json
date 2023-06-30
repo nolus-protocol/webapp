@@ -71,7 +71,7 @@
     "text-field-error": "Текстовое поле не должно быть пустым!",
     "buy-tokens": "Купить токены",
     "total": "Всего",
-    "available-assets": "Активы",
+    "available-assets": "",
     "active-leases": "Аренды",
     "supplied-and-staked": "Заработок",
     "show-small-balances": "Показывать небольшие остатки",

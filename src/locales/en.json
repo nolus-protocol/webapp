@@ -71,7 +71,7 @@
     "text-field-error": "Text field must not be empty!",
     "buy-tokens": "Buy Tokens",
     "total": "Total",
-    "available-assets": "Available Assets",
+    "available-assets": "",
     "active-leases": "Leases",
     "supplied-and-staked": "Earning",
     "show-small-balances": "Show small balances",
