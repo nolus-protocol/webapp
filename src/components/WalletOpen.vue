@@ -32,12 +32,12 @@
     </div>
 
     <!-- Wallet Body -->
-    <div
-      v-if="ApptUtils.isDev()"
-      class="box-open-body background p-4 lg:p-6 border-b border-standart text-left"
-    >
+    <div class="box-open-body background p-4 lg:p-6 border-b border-standart text-left">
 
-      <div class="block">
+      <div
+        class="block"
+        v-if="ApptUtils.isDev()"
+      >
         <Picker
           :default-option="selectedLang"
           :options="langs"
@@ -55,7 +55,10 @@
         />
       </div>
 
-      <div class="block mt-3">
+      <div
+        class="block mt-3"
+        v-if="ApptUtils.isDev()"
+      >
         <Picker
           :default-option="currentNetwork"
           :options="networks"
