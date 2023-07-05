@@ -82,7 +82,7 @@
             <CurrencyComponent
               :fontSize="20"
               :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              :amount="suppliedAndStaked.toString()"
+              :amount="earnings.toString()"
               :denom="NATIVE_CURRENCY.symbol"
               :has-space="false"
               class="nls-font-500 text-primary"
@@ -300,16 +300,19 @@ import CurrencyComponent from "@/components/CurrencyComponent.vue";
 import type { AssetBalance } from "@/stores/wallet/state";
 import { computed, ref, provide, onMounted, watch, onUnmounted, Transition } from "vue";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
-import { CurrencyUtils } from "@nolus/nolusjs";
+import { CurrencyUtils, NolusClient } from "@nolus/nolusjs";
 import { DASHBOARD_ACTIONS } from "@/types/DashboardActions";
 import { useLeases } from "@/composables";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { useOracleStore } from "@/stores/oracle";
 import { useApplicationStore } from "@/stores/application";
 
-import { DEFAULT_APR, NATIVE_CURRENCY } from "@/config/env";
+import { DEFAULT_APR, NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/env";
 import { storeToRefs } from "pinia";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
+import { CONTRACTS } from "@/config/contracts";
+import { AssetUtils, EnvNetworkUtils, WalletManager } from "@/utils";
+import { Lpp } from "@nolus/nolusjs/build/contracts";
 
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
@@ -332,6 +335,7 @@ const showErrorDialog = ref(false);
 const loaded = wallet.balances.length > 0 && Object.keys(oracle.prices).length > 0;
 const animate = ref(loaded ? "" : "fade");
 const errorMessage = ref("");
+const earnings = ref(new Dec(0));
 let timeout: NodeJS.Timeout;
 
 const state = ref({
@@ -359,6 +363,7 @@ const currenciesSize = computed(() => Object.keys(app.currenciesData!).length)
 onMounted(() => {
   getVestedTokens();
   availableAssets();
+  loadSuppliedAndStaked();
   wallet[WalletActionTypes.LOAD_STAKED_TOKENS]();
   wallet[WalletActionTypes.LOAD_SUPPLIED_AMOUNT]();
   if (showSkeleton.value) {
@@ -380,10 +385,12 @@ watch(walletRef.wallet, () => {
 
 watch(walletRef.balances, () => {
   availableAssets();
+  loadSuppliedAndStaked();
 });
 
 watch(oracleRef.prices, () => {
   availableAssets();
+  loadSuppliedAndStaked();
 });
 
 const onClickTryAgain = async () => {
@@ -488,6 +495,55 @@ const suppliedAndStaked = computed(() => {
 
   return totalSuppliedAndStaked;
 });
+
+const loadSuppliedAndStaked = async () => {
+
+  earnings.value = new Dec(0);
+
+  const supplied = async () => {
+    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+    const contract = CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance;
+    const lppClient = new Lpp(cosmWasmClient, contract);
+
+    const lppConfig = await lppClient.getLppConfig();
+    const lpnCoin = wallet.getCurrencyByTicker(lppConfig.lpn_ticker);
+    const lpnIbcDenom = wallet.getIbcDenomBySymbol(lpnCoin?.symbol);
+    const asset = AssetUtils.getAssetInfo(lppConfig.lpn_ticker);
+
+    const index = wallet.balances.findIndex((item) => item.balance.denom == lpnIbcDenom);
+
+    if (index > -1) {
+
+      const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
+      const [depositBalance, price] = await Promise.all([
+        lppClient.getLenderDeposit(
+          walletAddress as string
+        ),
+        lppClient.getPrice()
+      ]);
+
+      const calculatedPrice = new Dec(price.amount_quote.amount).quo(
+        new Dec(price.amount.amount)
+      );
+      const amount = new Dec(depositBalance.balance, asset.coinDecimals).mul(calculatedPrice);
+      earnings.value = earnings.value.add(amount);
+
+    }
+  }
+
+  const delegated = async () => {
+    const delegations = await wallet[WalletActionTypes.LOAD_DELEGATIONS]();
+    const nativeAsset = AssetUtils.getAssetInfo(NATIVE_ASSET.ticker);
+
+    for (const item of delegations) {
+      const p = AssetUtils.getPriceByDenom(item.balance.amount, nativeAsset.coinMinimalDenom);
+      earnings.value = earnings.value.add(p);
+    }
+  }
+
+  Promise.all([supplied(), delegated()]);
+
+};
 
 const filterSmallBalances = (balances: AssetBalance[]) => {
   return balances.filter((asset) => asset.balance.amount.gt(new Int("1")));
