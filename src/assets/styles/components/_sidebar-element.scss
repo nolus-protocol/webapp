@@ -479,6 +479,10 @@ body.sync {
 
 
   @media (prefers-color-scheme: dark) {
+    .nls-nav-link {
+      border-color: #2B384B !important;
+    }
+
     .sidebar-container {
       a.logo-float {
         background-image: url("@/assets/icons/logo-white.svg") !important;
@@ -564,6 +568,10 @@ body.sync {
 
 body.dark {
 
+  .nls-nav-link {
+    border-color: #2B384B !important;
+
+  }
 
   .sidebar-container {
     a.logo-float {

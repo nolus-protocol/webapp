@@ -25,6 +25,7 @@
           {{ content }}
         </span>
         <div
+          ref="triangle"
           class="absolute w-3 h-3 -mt-2 bg-light-electric"
           style="
                   bottom: -4px;
@@ -45,6 +46,8 @@ import { ref } from "vue";
 
 const tooltip = ref(null as HTMLDivElement | null);
 const target = ref(null as HTMLDivElement | null);
+const triangle = ref(null as HTMLDivElement | null);
+
 let timeout: NodeJS.Timeout;
 
 defineProps({
@@ -62,8 +65,13 @@ function mouseover(event: MouseEvent) {
 
   const parent = target.value as HTMLDivElement;
   const element = tooltip.value as HTMLDivElement;
+  const triangleElement = triangle.value as HTMLDivElement;
 
   if (!element) {
+    return false;
+  }
+
+  if(!triangleElement){
     return false;
   }
 
@@ -74,8 +82,20 @@ function mouseover(event: MouseEvent) {
     const left = rect.left + window.scrollX - elementRect.width / 2 + rect.width / 2;
     const top = rect.top + window.scrollY - elementRect.height - 15;
 
+    const maxWidth = window.innerWidth;
+
     element.style.left = `${left}px`;
     element.style.top = `${top}px`;
+
+    if (left + elementRect.width > maxWidth) {
+      element.style.left = `${window.innerWidth - elementRect.width - 10}px`;
+      triangleElement.style.left = `85%`;
+    }
+
+    if (left < 0) {
+      element.style.left = `10px`;
+      triangleElement.style.left = `15%`;
+    }
   }
 
   element.style.visibility = "visible";

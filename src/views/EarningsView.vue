@@ -23,6 +23,7 @@
           <!-- Assets -->
           <div class="block mt-6 md:mt-[25px]">
             <!-- Assets Header -->
+
             <div class="grid grid-cols-2 md:grid-cols-3 gap-6 border-b border-standart pb-3 px-3 md:px-4">
               <div class="nls-font-500 text-12 text-dark-grey text-left text-upper pl-0 md:pl-2">
                 {{ $t("message.asset") }}

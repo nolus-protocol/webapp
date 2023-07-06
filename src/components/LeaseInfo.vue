@@ -5,7 +5,7 @@
     class="background mt-6 border-standart shadow-box radius-medium radius-0-sm pb-5 outline"
   >
     <div class="grid grid-cols-1 lg:grid-cols-8">
-      <div class="lg:col-span-3 px-3 md:px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5">
+      <div class="lg:col-span-3 px-2 md:px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5">
         <div
           class="flex-1 pnl-container"
           v-if="leaseData"
@@ -47,21 +47,21 @@
         </div>
         <div class="flex flex-wrap text-10 uppercase whitespace-nowrap">
           <span
-            class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium"
+            class="text-medium-blue data-label-info rounded p-1 ml-0 mb-0 m-1.5 garet-medium"
             v-if="leaseData?.downPayment"
           >
             {{ $t("message.down-payment") }}: ${{ downPayment }}
           </span>
           <!-- <span
-            class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium"
+            class="text-medium-blue data-label-info rounded p-1 ml-0 mb-0 m-1.5 garet-medium"
             v-if="leaseData"
           >
             {{ $t("message.borrowed") }}: {{ loan }}
           </span> -->
-          <span class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium">
+          <span class="text-medium-blue data-label-info rounded p-1 ml-0 mb-0 m-1.5 garet-medium">
             {{ `${$t("message.price-per")} ${asset.shortName}:` }} {{ price }}
           </span>
-          <span class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium">
+          <span class="text-medium-blue data-label-info rounded p-1 ml-0 mb-0 m-1.5 garet-medium">
             {{ $t("message.liq-trigger") }}: {{ liquidation }}
           </span>
         </div>
@@ -212,7 +212,7 @@
   >
     <div class="grid grid-cols-1 lg:grid-cols-8">
       <div
-        class="lg:col-span-3 px-3 md:px-6 md:px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5 flex flex-col justify-between	"
+        class="lg:col-span-3 px-2 md:px-6 md:px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5 flex flex-col justify-between	"
       >
         <!-- <p
           class="text-20 nls-font-500 mb-4 text-primary select-none"
@@ -235,7 +235,7 @@
         </div>
         <div class="flex flex-wrap text-10 uppercase whitespace-nowrap">
           <span
-            class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium"
+            class="text-medium-blue data-label-info rounded p-1 ml-0 mb-0 m-1.5 garet-medium"
             v-if="leaseData?.downPayment"
           >
             {{ $t("message.down-payment") }}: ${{ downPayment }}
@@ -378,7 +378,7 @@
           v-if="leaseData"
           class="flex flex-wrap text-10 uppercase whitespace-nowrap mt-4"
         >
-          <span class="text-medium-blue data-label-info rounded p-1 m-1 garet-medium">
+          <span class="text-medium-blue data-label-info rounded p-1 ml-0 mb-0 m-1.5 garet-medium">
             {{ `price per ${asset.shortName}:` }} {{ price }}
           </span>
         </div>

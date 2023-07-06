@@ -219,7 +219,7 @@
     <!-- Vested Assets -->
     <div
       v-if="vestedTokens.length > 0"
-      class="block background mt-6 nls-border shadow-box radius-medium radius-0-sm outline"
+      class="block background mt-6 shadow-box radius-medium radius-0-sm outline"
     >
       <!-- Top -->
       <div class="flex flex-wrap items-baseline justify-between px-4 pt-6">
@@ -380,12 +380,17 @@ onUnmounted(() => {
 })
 
 watch(walletRef.wallet, () => {
-  getLeases();
+  getVestedTokens();
+  availableAssets();
+  loadSuppliedAndStaked();
+  wallet[WalletActionTypes.LOAD_STAKED_TOKENS]();
+  wallet[WalletActionTypes.LOAD_SUPPLIED_AMOUNT]();
 });
 
 watch(walletRef.balances, () => {
   availableAssets();
   loadSuppliedAndStaked();
+  getVestedTokens();
 });
 
 watch(oracleRef.prices, () => {
