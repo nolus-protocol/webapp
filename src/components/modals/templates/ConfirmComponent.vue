@@ -159,7 +159,7 @@ import { computed, inject, onMounted, ref, watch } from "vue";
 import { CheckIcon, XMarkIcon } from "@heroicons/vue/24/solid";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { StringUtils, WalletUtils } from "@/utils";
-import { TxType, CONFIRM_STEP } from "@/types";
+import { CONFIRM_STEP } from "@/types";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/wallet";
 import { useApplicationStore } from "@/stores/application";

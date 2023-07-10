@@ -86,6 +86,14 @@ const showSnackbar = inject(
   (type: string, transaction: string) => { }
 );
 
+watch(() => [state.value.selectedCurrency, state.value.amount], () => {
+  state.value.amountErrorMsg = validateAmount(
+    state.value.amount,
+    state.value.selectedCurrency.balance.denom,
+    Number(state.value.selectedCurrency.balance.amount)
+  );
+})
+
 function onNextClick() {
   validateInputs();
 

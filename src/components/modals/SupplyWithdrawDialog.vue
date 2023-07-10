@@ -1,6 +1,6 @@
 <template>
   <DialogHeader
-    :headerList="['Supply', 'Withdraw']"
+    :headerList="[$t('message.supply-title'), $t('message.withdraw-title')]"
     :routes="['supply', 'withdraw']"
     :active-tab="2"
   >

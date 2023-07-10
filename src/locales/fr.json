@@ -297,6 +297,10 @@
     "undelegate-from": "Retirer la délégation à",
     "grant-to": "Subventionner à",
     "claim-from": "Réclamer de",
-    "message.transfer-dialog": "Transférer"
+    "transfer-dialog": "Transférer",
+    "supply-title": "Supply",
+    "withdraw-title": "Withdraw",
+    "delegate-title": "Delegate",
+    "undelegate-title": "Undelegate"
   }
 }

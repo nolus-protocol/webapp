@@ -81,6 +81,10 @@ const errorDialog = ref({
   tryAgain: (): void => {},
 });
 
+watch(() => [state.value.selectedCurrency, state.value.amount], () => {
+  validateInputs();
+})
+
 onMounted(async () => {
 
   const [delegated, undelegations] = await Promise.all([

@@ -215,6 +215,12 @@ watch(() => walletRef.wallet.value?.address, () => {
   wallet.value = WalletUtils.transformWallet(NATIVE_NETWORK.prefix);
 });
 
+watch(() => [selectedCurrency.value, amount.value], () => {
+  if(amount.value.length > 0){
+    validateAmount()
+  }
+});
+
 const onUpdateNetwork = async (event: Network) => {
   selectedNetwork.value = event;
   networkCurrencies.value = [];

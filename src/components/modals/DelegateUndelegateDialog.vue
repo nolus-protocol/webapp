@@ -1,6 +1,6 @@
 <template>
   <DialogHeader
-    :headerList="['Delegate', 'Undelegate']"
+    :headerList="[$t('message.delegate-title'), $t('message.undelegate-title')]"
     :routes="['delegate', 'undelegate']"
     :active-tab="isDelegated ? 2 : 1"
   >

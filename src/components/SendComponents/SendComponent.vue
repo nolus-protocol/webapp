@@ -57,16 +57,6 @@
           </p>
         </div>
 
-        <!-- <div class="block mt-[20px]">
-          <InputField 
-            id="memo" 
-            name="memo" 
-            type="text"
-            :value="modelValue.memo" 
-            :label="$t('message.memo-only')" 
-            @input="(event) => (modelValue.memo = event.target.value)">
-          </InputField>
-        </div> -->
       </div>
     </div>
     <!-- Actions -->

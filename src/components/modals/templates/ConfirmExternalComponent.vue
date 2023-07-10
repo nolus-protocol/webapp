@@ -20,7 +20,7 @@
           class="h-14 w-14 radius-circle p-2 error-icon mb-2"
         />
         <h1 class="nls-font-700 text-28 md:text-32 text-center text-primary">
-          {{ step }}
+          {{ $t(`message.${step}`) }}
         </h1>
       </div>
     </div>
@@ -116,11 +116,11 @@ import InputField from "@/components/InputField.vue";
 import type { AssetBalance } from "@/stores/wallet/state";
 import type { Coin } from "@cosmjs/amino";
 
-import { computed, inject, onMounted, ref, watch } from "vue";
+import { computed, inject, onMounted, ref } from "vue";
 import { ArrowLeftIcon, CheckIcon, XMarkIcon } from "@heroicons/vue/24/solid";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { AssetUtils, EnvNetworkUtils, StringUtils, WalletUtils } from "@/utils";
-import { TxType, CONFIRM_STEP } from "@/types";
+import { CONFIRM_STEP } from "@/types";
 import { useI18n } from "vue-i18n";
 import { NETWORKS_DATA } from "@/networks";
 

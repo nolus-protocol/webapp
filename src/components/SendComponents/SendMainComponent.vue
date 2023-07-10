@@ -6,7 +6,7 @@
     :password="state.password"
     :amount="state.amount"
     :memo="state.memo"
-    :txType="$t(`message.${TxType.SEND}`)+':'"
+    :txType="$t(`message.${TxType.SEND}`) + ':'"
     :txHash="state.txHash"
     :step="step"
     :fee="state.fee"
@@ -31,7 +31,7 @@ import ConfirmComponent from "@/components/modals/templates/ConfirmComponent.vue
 import { CONFIRM_STEP } from "@/types/ConfirmStep";
 import { TxType } from "@/types/TxType";
 import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
-import { computed, inject, onUnmounted, ref } from "vue";
+import { computed, inject, onUnmounted, ref, watch } from "vue";
 import { coin, type Coin } from "@cosmjs/amino";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { SUPPORTED_NETWORKS } from "@/networks/config";
@@ -97,6 +97,18 @@ onUnmounted(() => {
     showSnackbar(SNACKBAR.Queued, state.value.txHash);
   }
 });
+
+watch(() => [state.value.selectedCurrency, state.value.amount], () => {
+  state.value.amountErrorMsg = validateAmount(
+    state.value.amount,
+    state.value.selectedCurrency.balance.denom,
+    Number(state.value.selectedCurrency.balance.amount)
+  );
+})
+
+watch(() => state.value.receiverAddress, () => {
+  state.value.receiverErrorMsg = validateAddress(state.value.receiverAddress);
+})
 
 const validateInputs = () => {
   state.value.amountErrorMsg = validateAmount(

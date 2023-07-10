@@ -297,6 +297,10 @@
     "undelegate-from": "Отменить делегирование от",
     "grant-to": "Делегейт в",
     "claim-from": "Получить",
-    "message.transfer-dialog": "Перевод"
+    "transfer-dialog": "Перевод",
+    "supply-title": "Supply",
+    "withdraw-title": "Withdraw",
+    "delegate-title": "Delegate",
+    "undelegate-title": "Undelegate"
   }
 }

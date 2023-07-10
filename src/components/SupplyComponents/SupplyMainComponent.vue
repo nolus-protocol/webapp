@@ -120,6 +120,14 @@ const showSnackbar = inject(
   (type: string, transaction: string) => {}
 );
 
+watch(() => [state.value.selectedCurrency, state.value.amount], () => {
+  state.value.amountErrorMsg = validateAmount(
+    state.value.amount,
+    state.value.selectedCurrency.balance.denom,
+    Number(state.value.selectedCurrency.balance.amount)
+  );
+})
+
 function onNextClick() {
   if (!state.value.receiverAddress) {
     errorDialog.value.showDialog = true;
