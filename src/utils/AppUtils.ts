@@ -1,11 +1,6 @@
-import { NETWORKS, languages } from "@/config/env";
+import { NETWORKS, isDev, languages } from "@/config/env";
 import { EnvNetworkUtils } from ".";
 import type { Endpoint, Status, Node, API } from "@/types/NetworkConfig";
-
-enum Mode {
-    dev = 'dev',
-    prod = 'prod'
-}
 
 export class ApptUtils {
 
@@ -18,7 +13,7 @@ export class ApptUtils {
     } = {};
 
     static isDev() {
-        return import.meta.env.VITE_MODE == Mode.dev;
+        return isDev();
     }
 
     public static setLang(lang: string) {

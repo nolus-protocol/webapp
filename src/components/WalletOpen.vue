@@ -36,7 +36,6 @@
 
       <div
         class="block"
-        v-if="ApptUtils.isDev()"
       >
         <Picker
           :default-option="selectedLang"

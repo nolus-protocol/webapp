@@ -1,7 +1,6 @@
 import type { NetworkAddress } from "@/types";
 import nlsIcon from "@/assets/icons/coins/nls.svg";
 import { Dec } from "@keplr-wallet/unit";
-
 export const DEFAULT_PRIMARY_NETWORK = "mainnet";
 
 export const NETWORKS: { [key: string]: NetworkAddress } = {
@@ -116,6 +115,11 @@ export enum SNACKBAR {
   Error = "error",
 }
 
+export enum Mode {
+  dev = 'dev',
+  prod = 'prod'
+}
+
 export const GAS_FEES = {
   create_vesting_account: 10000,
   delegation: 15000,
@@ -214,31 +218,62 @@ export const calculateAditionalDebt = (principal: Dec, percent: Dec) => {
   return amountForTwoMinuts;
 }
 
+export const isDev = () => {
+  return import.meta.env.VITE_MODE == Mode.dev;
+}
+
 export const CoinGecko = {
   url: 'https://pro-api.coingecko.com/api/v3',
   label: 'Nolus App',
   key: 'CG-QQSfXqT6EJWXG9UjjfhfoJVk'
 }
 
-export const SUPPORTED_NETWORKS = ['NOLUS', 'OSMOSIS'];
-export const languages = {
+let l: {
+  [key: string]: {
+      key: string;
+      label: string;
+      url: string;
+  }
+} = {
   en: {
-    key: 'en',
-    label: 'English',
-    url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/en.json'
+      key: 'en',
+      label: 'English',
+      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/en.json'
   },
   ru: {
-    key: 'ru',
-    label: 'Русский',
-    url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/ru.json'
+      key: 'ru',
+      label: 'Русский',
+      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/ru.json'
   },
   cn: {
-    key: 'cn',
-    label: '中文',
-    url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/cn.json'
+      key: 'cn',
+      label: '中文',
+      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/cn.json'
+  },
+  fr: {
+      key: 'fr',
+      label: 'Français',
+      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/fr.json'
   },
 }
 
+if (!isDev()) {
+  l = {
+      en: {
+          key: 'en',
+          label: 'English',
+          url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/en.json'
+      },
+      ru: {
+          key: 'ru',
+          label: 'Русский',
+          url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/ru.json'
+      },
+  }
+}
+
+export const languages = l;
+export const SUPPORTED_NETWORKS = ['NOLUS', 'OSMOSIS'];
 export const SWAP_FEE = 0.007;
 export const ZERO_DECIMALS = 2;
 export const MAX_DECIMALS = 8;
