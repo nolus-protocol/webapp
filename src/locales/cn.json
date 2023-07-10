@@ -297,6 +297,6 @@
     "undelegate-from": "解除委托自",
     "grant-to": "授予给",
     "claim-from": "索取自",
-    "transfer-dialog": "转账"
+    "message.transfer-dialog": "转账"
   }
 }
