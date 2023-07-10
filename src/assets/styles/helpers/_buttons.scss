@@ -765,3 +765,16 @@ body.dark {
   }
 
 }
+
+button.auth{
+  display: flex;
+  flex-direction: row;
+  padding: 1rem;
+  justify-content: flex-start;
+  span{
+    margin: 0 12px 0 0 !important;
+  }
+  span.icon-ledger{
+    margin-bottom: 5px !important;
+  }
+}

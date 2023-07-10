@@ -14,10 +14,10 @@ export const ASSETS = {
     coinGeckoId: "osmosis",
   },
   ST_OSMO: {
-    coinGeckoId: "osmosis",
+    coinGeckoId: "stride-staked-osmo",
   },
   ST_ATOM: {
-    coinGeckoId: "cosmos"
+    coinGeckoId: "stride-staked-atom"
   },
   WETH: {
     coinGeckoId: "weth",

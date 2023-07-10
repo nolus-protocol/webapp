@@ -11,8 +11,9 @@
           v-if="leaseData"
         >
           <div
-            class="pnl text-12 nls-font-500 whitespace-pre	mr-2 flex items-center"
+            class="pnl text-12 nls-font-500 whitespace-pre	mr-2 flex items-center cursor-pointer"
             :class="[pnl.status ? 'success' : 'alert']"
+            @click="pnlType = !pnlType"
           >
             <template v-if="pnl.status">
               <ArrowUp />
@@ -20,7 +21,7 @@
             <template v-else>
               <ArrowDown />
             </template>
-            {{ pnl.status ? '+' : '' }}{{ pnl.amount }}
+            &nbsp;{{ pnl.status ? '+' : '' }}<template v-if="!pnlType">{{ pnl.amount }}</template><template v-else>{{ pnl.status ? '+' : '' }}{{ pnl.percent }}%</template>
           </div>
         </div>
         <div class="flex my-4">
@@ -340,8 +341,9 @@
           v-if="leaseData"
         >
           <div
-            class="pnl text-12 nls-font-500 whitespace-pre	mr-2 flex items-center"
+            class="pnl text-12 nls-font-500 whitespace-pre	mr-2 flex items-center cursor-pointer"
             :class="[pnl.status ? 'success' : 'alert']"
+            @click="pnlType = !pnlType"
           >
             <template v-if="pnl.status">
               <ArrowUp />
@@ -349,7 +351,7 @@
             <template v-else>
               <ArrowDown />
             </template>
-            {{ pnl.status ? '+' : '' }}{{ pnl.amount }}
+            &nbsp;{{ pnl.status ? '+' : '' }}<template v-if="!pnlType">{{ pnl.amount }}</template><template v-else>{{ pnl.status ? '+' : '' }}{{ pnl.percent }}%</template>
           </div>
         </div>
         <div class="flex my-4">
@@ -535,7 +537,8 @@ const app = useApplicationStore();
 const snackbarVisible = inject("snackbarVisible", () => false);
 const showSnackbar = inject("showSnackbar", (_type: string, _transaction: string) => { });
 const getLeases = inject("getLeases", () => { });
-const claimDialog = ref()
+const claimDialog = ref();
+const pnlType = ref(false);
 
 let leaseData = ref<{
   downPayment: string | null,
@@ -906,16 +909,19 @@ const pnl = computed(() => {
     const prevAmount = unitAsset.mul(price);
     const currentAmount = unitAsset.mul(currentPrice);
     const amount = currentAmount.sub(prevAmount);
+    const percent = amount.quo(prevAmount).mul(new Dec(100)).toString(2);
 
     return {
+      percent,
       amount: CurrencyUtils.formatPrice(amount.toString()),
       status: currentAmount.gte(prevAmount),
     }
   }
 
   return {
+    percent: '0',
     amount: '0',
-    status: false
+    status: false,
   }
 
 });

@@ -9,7 +9,7 @@
 
       <div class="flex px-4 md:px-10 pt-10 pb-2 relative z-[2] lg:pt-6">
         <button
-          class="btn btn-box btn-large-box basis-0 grow"
+          class="btn btn-box btn-large-box basis-0 grow auth"
           @click="clickConnectToKeplr"
         >
           <span class="icon icon-keplr ml-1"></span>
@@ -26,17 +26,17 @@
             </button> -->
 
         <button
-          class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow"
+          class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow auth"
           @click="clickImportLedger"
         >
-          <span class="icon icon-ledger"></span>
+          <span class="icon icon-ledger mb-[4px]"></span>
           {{ $t("message.ledger") }}
         </button>
       </div>
 
       <div class="flex px-4 md:px-10 pt-10 pb-6 relative z-[2] lg:pt-2">
         <button
-          class="btn btn-box btn-large-box basis-0 grow"
+          class="btn btn-box btn-large-box basis-0 grow auth"
           @click="clickConnectToLeap"
         >
           <span class="icon icon-leap ml-1"></span>
