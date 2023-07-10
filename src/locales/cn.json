@@ -273,11 +273,11 @@
     "session-timeout-message": "当前会话进程超时, 请刷新后继续",
     "swap-fee": "交换费率",
     "swap-fee-tooltip": "使用非稳定币资产还款,将扣除0.7%的固定交换费用。如果实际交换费用低于该值, 则差额部分将用于支付部分未偿还债务或以USDC转回到您的钱包中",
-    "leap": "Leap",
+    "leap": "Legitap",
     "amount-warning": "请留下少量 NLS 代币用于支付后续交易",
-    "Confirm": "Confirm",
-    "Pending": "Pending",
-    "Success": "Success",
+    "Confirm": "确认",
+    "Pending": "待处理",
+    "Success": "成功",
     "Error": "Error",
     "GasError": "Insufficient NLS",
     "gassErrorMsg": "Insufficient NLS for gas fees",
@@ -298,9 +298,9 @@
     "grant-to": "授予给",
     "claim-from": "索取自",
     "transfer-dialog": "转账",
-    "supply-title": "Supply",
-    "withdraw-title": "Withdraw",
-    "delegate-title": "Delegate",
-    "undelegate-title": "Undelegate"
+    "supply-title": "供应/存款",
+    "withdraw-title": "提取",
+    "delegate-title": "委托",
+    "undelegate-title": "解除委托"
   }
 }
