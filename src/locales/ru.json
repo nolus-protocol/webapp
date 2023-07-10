@@ -298,9 +298,9 @@
     "grant-to": "Делегейт в",
     "claim-from": "Получить",
     "transfer-dialog": "Перевод",
-    "supply-title": "Supply",
-    "withdraw-title": "Withdraw",
-    "delegate-title": "Delegate",
-    "undelegate-title": "Undelegate"
+    "supply-title": "Внесение",
+    "withdraw-title": "Вывод",
+    "delegate-title": "Делегировать",
+    "undelegate-title": "Разделегировать"
   }
 }
