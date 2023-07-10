@@ -297,6 +297,6 @@
     "undelegate-from": "Отменить делегирование от",
     "grant-to": "Делегейт в",
     "claim-from": "Получить",
-    "transfer-dialog": "Перевод"
+    "message.transfer-dialog": "Перевод"
   }
 }
