@@ -21,7 +21,7 @@
             <template v-else>
               <ArrowDown />
             </template>
-            &nbsp;{{ pnl.status ? '+' : '' }}<template v-if="!pnlType">{{ pnl.amount }}</template><template v-else>{{ pnl.status ? '+' : '' }}{{ pnl.percent }}%</template>
+            &nbsp;{{ pnl.status ? '+' : '' }}<template v-if="!pnlType">{{ pnl.amount }}</template><template v-else>{{ pnl.percent }}%</template>
           </div>
         </div>
         <div class="flex my-4">
@@ -351,7 +351,7 @@
             <template v-else>
               <ArrowDown />
             </template>
-            &nbsp;{{ pnl.status ? '+' : '' }}<template v-if="!pnlType">{{ pnl.amount }}</template><template v-else>{{ pnl.status ? '+' : '' }}{{ pnl.percent }}%</template>
+            &nbsp;{{ pnl.status ? '+' : '' }}<template v-if="!pnlType">{{ pnl.amount }}</template><template v-else>{{ pnl.percent }}%</template>
           </div>
         </div>
         <div class="flex my-4">
