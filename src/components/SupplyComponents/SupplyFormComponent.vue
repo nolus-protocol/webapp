@@ -24,7 +24,7 @@
 
     <!-- Actions -->
     <div class="modal-send-receive-actions">
-      <button class="btn btn-primary btn-large-primary text-center plausible-event-name=supply" @click="props.modelValue.onNextClick">
+      <button class="btn btn-primary btn-large-primary text-center plausible-event-name=supply" disabled>
         {{ $t("message.supply") }}
       </button>
     </div>
