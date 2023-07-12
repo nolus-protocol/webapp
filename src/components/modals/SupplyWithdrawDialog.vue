@@ -2,7 +2,7 @@
   <DialogHeader
     :headerList="[$t('message.supply-title'), $t('message.withdraw-title')]"
     :routes="['supply', 'withdraw']"
-    :active-tab="2"
+    :active-tab="1"
   >
     <template #tab-1>
       <SupplyMainComponent :selectedAsset="selectedAsset"/>
