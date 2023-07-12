@@ -242,7 +242,7 @@
     "price-per": "Price per",
     "price-pert-tooltip": " Amount of USD in stablecoins that will be borrowed for the DeFi Lease position",
     "open-position": "Open Position",
-    "delegate-undelegate": "Delegate / Undelegate",
+    "delegate-undelegate": "Delegate / Withdraw",
     "collect": "Collect",
     "opening-channel": "OPENING CHANNEL",
     "transferring-assets": "TRANSFERRING ASSETS",
