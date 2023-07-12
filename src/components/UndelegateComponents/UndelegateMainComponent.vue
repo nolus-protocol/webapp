@@ -251,6 +251,8 @@ async function undelegate() {
       if (snackbarVisible()) {
         showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
       }
+
+      await walletStore[WalletActionTypes.UPDATE_BALANCES]();
         
     }catch(error: Error | any){
       switch(error.code){

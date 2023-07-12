@@ -1,4 +1,4 @@
-import type { State } from "@/stores/oracle/state";
+import type { Price, State } from "@/stores/oracle/state";
 import { Dec } from "@keplr-wallet/unit";
 
 import { defineStore } from "pinia";
@@ -26,6 +26,9 @@ const useOracleStore = defineStore("oracle", {
           CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].oracle.instance
         );
         const app = useApplicationStore()
+        const pr: {
+          [key: string]: Price
+        } = {};
 
         const data: {
           prices: {
@@ -56,11 +59,12 @@ const useOracleStore = defineStore("oracle", {
             amount: calculatedPrice.toString(),
             symbol: price.amount_quote.ticker,
           };
-          this.prices[currency.symbol] = tokenPrice;
+          pr[currency.symbol] = tokenPrice;
         }
 
         const c = app.currenciesData![app.lpn?.ticker as string];
-        this.prices[c.symbol] = { symbol: app.lpn?.ticker as string, amount: `${LPN_PRICE}` };
+        pr[c.symbol] = { symbol: app.lpn?.ticker as string, amount: `${LPN_PRICE}` };
+        this.prices = pr;
 
       } catch (error: Error | any) {
         throw new Error(error);

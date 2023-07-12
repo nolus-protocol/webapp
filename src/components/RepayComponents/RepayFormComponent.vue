@@ -3,7 +3,7 @@
     @submit.prevent="modelValue.onNextClick"
     class="w-full"
   >
-    <div class="block text-left px-5 mt-10 py-[5px]">
+    <div class="block text-left px-5 lg:px-10 mt-10 py-[5px]">
       <CurrencyField
         id="repayBalance"
         name="repayBalance"

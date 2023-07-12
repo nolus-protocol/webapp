@@ -99,7 +99,7 @@
           <CurrencyComponent
             :fontSize="20"
             :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            :amount="suppliedAndStaked.toString()"
+            :amount="earnings.toString()"
             :denom="NATIVE_CURRENCY.symbol"
             :has-space="false"
             class="nls-font-500 text-primary"
@@ -443,6 +443,11 @@ const activeLeases = computed(() => {
 });
 
 const availableAssets = () => {
+
+  if (Object.keys(oracle.prices).length == 0) {
+    return false;
+  }
+
   let totalAssets = new Dec(0);
   wallet.balances.forEach((asset) => {
     const { coinDecimals, coinDenom } = wallet.getCurrencyInfo(
@@ -468,6 +473,7 @@ const availableAssets = () => {
 };
 
 const suppliedAndStaked = computed(() => {
+  
   const staking = wallet.stakingBalance as Coin;
   const supplied = wallet.suppliedBalance;
   const lppPrice = wallet.lppPrice;
@@ -502,9 +508,10 @@ const suppliedAndStaked = computed(() => {
 });
 
 const loadSuppliedAndStaked = async () => {
-
-  earnings.value = new Dec(0);
-
+  if (Object.keys(oracle.prices).length == 0) {
+    return false;
+  }
+  
   const supplied = async () => {
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
     const contract = CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance;
@@ -531,22 +538,31 @@ const loadSuppliedAndStaked = async () => {
         new Dec(price.amount.amount)
       );
       const amount = new Dec(depositBalance.balance, asset.coinDecimals).mul(calculatedPrice);
-      earnings.value = earnings.value.add(amount);
+      return amount;
 
     }
+
+    return new Dec(0);
   }
 
   const delegated = async () => {
     const delegations = await wallet[WalletActionTypes.LOAD_DELEGATIONS]();
     const nativeAsset = AssetUtils.getAssetInfo(NATIVE_ASSET.ticker);
+    let v = new Dec(0)
 
     for (const item of delegations) {
       const p = AssetUtils.getPriceByDenom(item.balance.amount, nativeAsset.coinMinimalDenom);
-      earnings.value = earnings.value.add(p);
+      v = v.add(p);
     }
+
+    return v;
   }
 
-  Promise.all([supplied(), delegated()]);
+  await Promise.all([supplied(), delegated()]).then(([a, b]) => {
+    earnings.value = new Dec(0);
+    earnings.value = earnings.value.add(a);
+    earnings.value = earnings.value.add(b);
+  }).catch((e) => console.log(e));
 
 };
 

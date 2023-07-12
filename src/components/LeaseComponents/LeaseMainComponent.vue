@@ -160,8 +160,6 @@ const calculate = async () => {
         state.value.downPayment
       );
 
-      if (isDownPaymentAmountValid()) {
-
         const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
 
         const leaserClient = new Leaser(
@@ -183,8 +181,8 @@ const calculate = async () => {
 
         makeLeaseApplyResp.annual_interest_rate = makeLeaseApplyResp.annual_interest_rate / Math.pow(10, INTEREST_DECIMALS);
         state.value.leaseApply = makeLeaseApplyResp;
-      }
-    } else {
+
+      } else {
       state.value.leaseApply = null;
     }
   } catch (error) {

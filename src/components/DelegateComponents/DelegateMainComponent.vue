@@ -193,6 +193,8 @@ async function delegate() {
 
     }
 
+    await walletStore[WalletActionTypes.UPDATE_BALANCES]();
+
   } catch (error: Error | any) {
     switch(error.code){
         case(ErrorCodes.GasError): {

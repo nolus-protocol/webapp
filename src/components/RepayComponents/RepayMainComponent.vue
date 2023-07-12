@@ -302,17 +302,4 @@ watch(walletRef.balances, (b: AssetBalance[]) => {
   }
 });
 
-watch(
-  () => state.value?.amount,
-  () => {
-    isAmountValid();
-  }
-);
-
-watch(
-  () => state.value?.selectedCurrency,
-  () => {
-    isAmountValid();
-  }
-);
 </script>
