@@ -409,7 +409,7 @@ const getVestedTokens = async () => {
 const totalBalance = computed(() => {
   let total = state.value.availableAssets;
   total = total.add(activeLeases.value as Dec);
-  total = total.add(suppliedAndStaked.value);
+  total = total.add(earnings.value as Dec);
   return total.toString();
 });
 
