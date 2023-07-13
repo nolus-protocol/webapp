@@ -301,6 +301,7 @@
     "supply-title": "Внесение",
     "withdraw-title": "Вывод",
     "delegate-title": "Делегировать",
-    "undelegate-title": "Получить"
+    "undelegate-title": "Получить",
+    "connect-wallet-label": "connect wallet to continue"
   }
 }

@@ -546,7 +546,7 @@ const loadSuppliedAndStaked = async () => {
   }
 
   const delegated = async () => {
-    const delegations = await wallet[WalletActionTypes.LOAD_DELEGATIONS]();
+    const delegations = (await wallet[WalletActionTypes.LOAD_DELEGATIONS]());
     const nativeAsset = AssetUtils.getAssetInfo(NATIVE_ASSET.ticker);
     let v = new Dec(0)
 

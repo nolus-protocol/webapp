@@ -107,7 +107,6 @@ const swapAmount = computed(() => {
   return "0";
 });
 
-// @TODO: Extract function to utils - used also in CurrencyField.
 function calculateInputBalance(amount: string, denom: string) {
   const prices = oracle.prices;
 

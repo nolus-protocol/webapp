@@ -24,7 +24,7 @@ import { Buffer } from "buffer";
 import { Lpp, Leaser } from "@nolus/nolusjs/build/contracts";
 import { CONTRACTS } from "@/config/contracts";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
-import { makeCosmoshubPath } from "@cosmjs/amino";
+import { coin, makeCosmoshubPath } from "@cosmjs/amino";
 import { EncryptionUtils, EnvNetworkUtils, KeyUtils as KeyUtilities, WalletUtils, AssetUtils, Web3AuthProvider, WalletManager } from "@/utils";
 import { CurrencyUtils, KeyUtils, NolusClient, NolusWalletFactory } from "@nolus/nolusjs";
 import { useApplicationStore } from "../application";
@@ -191,7 +191,7 @@ const useWalletStore = defineStore("wallet", {
       const accountNumbers = [0];
       const paths = accountNumbers.map(makeCosmoshubPath);
       const networkConfig = await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
-      
+
       NolusClient.setInstance(networkConfig.rpc);
 
       while (!ledgerWallet && !breakLoop) {
@@ -283,16 +283,41 @@ const useWalletStore = defineStore("wallet", {
     async [WalletActionTypes.UPDATE_BALANCES]() {
       try {
         const walletAddress = WalletManager.getWalletAddress() || "";
-
-        if (!WalletUtils.isAuth()) {
-          // WalletManager.eraseWalletInfo();
-          // await router.push({ name: RouteNames.AUTH });
-          return false;
-        }
-
         const ibcBalances = [];
         const app = useApplicationStore();
         const currencies = app.currenciesData;
+
+        if (!WalletUtils.isAuth()) {
+
+          for (const key in currencies) {
+            const currency = app.currenciesData![key];
+            const ibcDenom = AssetUtils.makeIBCMinimalDenom(
+              currency.ibc_route,
+              currency.symbol
+            );
+
+            const data = {
+              ticker: key,
+              shortName: currency.shortName,
+              name: currency.name,
+              symbol: currency.symbol,
+              decimal_digits: currency.decimal_digits
+            };
+            this.currencies[ibcDenom] = data;
+
+            const item = {
+              balance: CurrencyUtils.convertCosmosCoinToKeplCoin(coin('0', ibcDenom)),
+            };
+
+            ibcBalances.push(
+              item
+            );
+          }
+
+          this.balances = ibcBalances;
+
+          return false;
+        }
 
         for (const key in currencies) {
           const currency = app.currenciesData![key];
@@ -313,6 +338,7 @@ const useWalletStore = defineStore("wallet", {
                   decimal_digits: currency.decimal_digits
                 };
                 this.currencies[ibcDenom] = data;
+
                 return {
                   balance: CurrencyUtils.convertCosmosCoinToKeplCoin(item),
                 };
@@ -320,6 +346,7 @@ const useWalletStore = defineStore("wallet", {
           );
         }
         this.balances = await Promise.all(ibcBalances);
+
       } catch (e) {
         throw new Error(e as string);
       }
@@ -487,6 +514,11 @@ const useWalletStore = defineStore("wallet", {
         amount: { amount: string; denom: string };
       }[]
     > {
+
+      if (!WalletUtils.isAuth()) {
+        return [];
+      }
+
       const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
       const data = await fetch(
         `${url}/cosmos/auth/v1beta1/accounts/${WalletManager.getWalletAddress()}`
@@ -601,6 +633,11 @@ const useWalletStore = defineStore("wallet", {
       }
     },
     async [WalletActionTypes.LOAD_STAKED_TOKENS]() {
+
+      if (!WalletUtils.isAuth()) {
+        return false;
+      }
+
       try {
         const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
         const data = await fetch(
@@ -647,6 +684,11 @@ const useWalletStore = defineStore("wallet", {
 
     },
     async [WalletActionTypes.LOAD_DELEGATOR]() {
+
+      if (!WalletUtils.isAuth()) {
+        return [];
+      }
+      
       const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
       const walletAddress = WalletManager.getWalletAddress() || "";
 
@@ -669,6 +711,11 @@ const useWalletStore = defineStore("wallet", {
       return await loadDelegatorValidators(url, [], walletAddress, offset, limit);
     },
     async [WalletActionTypes.LOAD_UNBONDING_DELEGATIONS]() {
+
+      if (!WalletUtils.isAuth()) {
+        return [];
+      }
+
       const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
       const limit = 100;
       const offset = 0;
@@ -677,6 +724,11 @@ const useWalletStore = defineStore("wallet", {
       return await loadUnbondingDelegatoins(url, [], walletAddress, offset, limit);
     },
     async [WalletActionTypes.LOAD_DELEGATIONS]() {
+
+      if (!WalletUtils.isAuth()) {
+        return [];
+      }
+
       const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
       const limit = 100;
       const offset = 0;

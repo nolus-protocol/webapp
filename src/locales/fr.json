@@ -301,6 +301,7 @@
     "supply-title": "Supply",
     "withdraw-title": "Withdraw",
     "delegate-title": "Delegate",
-    "undelegate-title": "Undelegate"
+    "undelegate-title": "Undelegate",
+    "connect-wallet-label": "connect wallet to continue"
   }
 }
