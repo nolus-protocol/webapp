@@ -6,7 +6,7 @@
     :password="state.password"
     :amount="state.downPayment"
     :memo="state.memo"
-    :txType="$t(`message.${TX_TYPE.LEASE}`)+':'"
+    :txType="$t(`message.${TX_TYPE.LEASE}`) + ':'"
     :txHash="state.txHash"
     :step="step"
     :fee="state.fee"
@@ -60,7 +60,7 @@ const paymentBalances = computed(() => {
   const balances = walletStore.balances;
   return balances.filter((item) => {
     const currency = walletStore.currencies[item.balance.denom];
-    return app.lpn?.ticker ==  currency.ticker || app.lease.includes(currency.ticker);
+    return app.lpn?.ticker == currency.ticker || app.lease.includes(currency.ticker);
   });
 });
 
@@ -134,11 +134,17 @@ watch(walletRef.balances, async (balances: AssetBalance[]) => {
 });
 
 watch(() => state.value.downPayment, () => {
-  calculate();
+  state.value.downPaymentErrorMsg = "";
+  if(validateMinMaxValues()){
+    calculate();
+  }
 });
 
 watch(() => state.value.selectedDownPaymentCurrency, () => {
-  calculate();
+  state.value.downPaymentErrorMsg = "";
+  if(validateMinMaxValues()){
+    calculate();
+  }
 });
 
 watch(() => state.value.selectedCurrency, () => {
@@ -160,29 +166,29 @@ const calculate = async () => {
         state.value.downPayment
       );
 
-        const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
 
-        const leaserClient = new Leaser(
-          cosmWasmClient,
-          CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance
-        );
+      const leaserClient = new Leaser(
+        cosmWasmClient,
+        CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance
+      );
 
-        const currency = walletStore.currencies[
-          state.value.selectedDownPaymentCurrency.balance.denom
-        ];
+      const currency = walletStore.currencies[
+        state.value.selectedDownPaymentCurrency.balance.denom
+      ];
 
-        const lease = walletStore.currencies[state.value.selectedCurrency.balance.denom];
-        const makeLeaseApplyResp = await leaserClient.leaseQuote(
-          microAmount.mAmount.amount.toString(),
-          currency.ticker,
-          lease.ticker,
-          state.value.ltd
-        );
+      const lease = walletStore.currencies[state.value.selectedCurrency.balance.denom];
+      const makeLeaseApplyResp = await leaserClient.leaseQuote(
+        microAmount.mAmount.amount.toString(),
+        currency.ticker,
+        lease.ticker,
+        state.value.ltd
+      );
 
-        makeLeaseApplyResp.annual_interest_rate = makeLeaseApplyResp.annual_interest_rate / Math.pow(10, INTEREST_DECIMALS);
-        state.value.leaseApply = makeLeaseApplyResp;
+      makeLeaseApplyResp.annual_interest_rate = makeLeaseApplyResp.annual_interest_rate / Math.pow(10, INTEREST_DECIMALS);
+      state.value.leaseApply = makeLeaseApplyResp;
 
-      } else {
+    } else {
       state.value.leaseApply = null;
     }
   } catch (error) {
@@ -229,14 +235,7 @@ const isDownPaymentAmountValid = (): boolean => {
       const coinData = walletStore.getCurrencyInfo(
         currentBalance?.balance?.denom
       );
-      const asset = walletStore.getCurrencyByTicker(coinData.ticker);
-      const price = oracle.prices[asset.symbol];
-
       const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(downPaymentAmount, "", coinData.coinDecimals);
-      const balance = CurrencyUtils.calculateBalance(price.amount, downPaymentAmountInMinimalDenom, coinData.coinDecimals).toDec();
-
-      const leaseMax = new Dec(LEASE_MAX_AMOUNT.amount);
-      const leaseMin = new Dec(LEASE_MIN_AMOUNT.amount);
 
       const isLowerThanOrEqualsToZero = new Dec(
         downPaymentAmountInMinimalDenom.amount || "0"
@@ -256,6 +255,41 @@ const isDownPaymentAmountValid = (): boolean => {
         isValid = false;
       }
 
+      if (!validateMinMaxValues()) {
+        isValid = false;
+      }
+
+    } else {
+      state.value.downPaymentErrorMsg = i18n.t("message.missing-amount");
+      isValid = false;
+    }
+  }
+
+  return isValid;
+};
+
+const validateMinMaxValues = (): boolean => {
+  let isValid = true;
+  const selectedDownPaymentDenom = state.value.selectedDownPaymentCurrency.balance.denom;
+  const downPaymentAmount = state.value.downPayment;
+  const currentBalance = getCurrentBalanceByDenom(selectedDownPaymentDenom);
+
+  if (currentBalance) {
+
+    if (downPaymentAmount || downPaymentAmount !== "") {
+
+      const leaseMax = new Dec(LEASE_MAX_AMOUNT.amount);
+      const leaseMin = new Dec(LEASE_MIN_AMOUNT.amount);
+
+      const coinData = walletStore.getCurrencyInfo(
+        currentBalance?.balance?.denom
+      )
+      const asset = walletStore.getCurrencyByTicker(coinData.ticker);
+      const price = oracle.prices[asset.symbol];
+
+      const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(downPaymentAmount, "", coinData.coinDecimals);
+      const balance = CurrencyUtils.calculateBalance(price.amount, downPaymentAmountInMinimalDenom, coinData.coinDecimals).toDec();
+
       if (balance.lt(leaseMin)) {
         state.value.downPaymentErrorMsg = i18n.t("message.lease-min-error", {
           minAmount: (Math.ceil(LEASE_MIN_AMOUNT.amount / Number(price.amount) * 1000) / 1000),
@@ -274,14 +308,12 @@ const isDownPaymentAmountValid = (): boolean => {
         isValid = false;
       }
 
-    } else {
-      state.value.downPaymentErrorMsg = i18n.t("message.missing-amount");
-      isValid = false;
     }
   }
 
   return isValid;
-};
+
+}
 
 const getCurrentBalanceByDenom = (denom: string) => {
   for (let currency of state.value.currentBalance) {
@@ -370,8 +402,8 @@ const openLease = async () => {
       getLeases();
 
     } catch (error: Error | any) {
-      switch(error.code){
-        case(ErrorCodes.GasError): {
+      switch (error.code) {
+        case (ErrorCodes.GasError): {
           step.value = CONFIRM_STEP.GasError;
           break;
         }
