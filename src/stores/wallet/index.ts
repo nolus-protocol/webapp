@@ -285,8 +285,8 @@ const useWalletStore = defineStore("wallet", {
         const walletAddress = WalletManager.getWalletAddress() || "";
 
         if (!WalletUtils.isAuth()) {
-          WalletManager.eraseWalletInfo();
-          await router.push({ name: RouteNames.AUTH });
+          // WalletManager.eraseWalletInfo();
+          // await router.push({ name: RouteNames.AUTH });
           return false;
         }
 

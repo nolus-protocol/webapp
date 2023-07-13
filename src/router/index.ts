@@ -15,7 +15,7 @@ const router = createRouter({
     {
       path: "/",
       component: MainLayoutView,
-      meta: { requiresAuth: true },
+      // meta: { requiresAuth: true },
       beforeEnter: [loadLanguage, removeHash, checkWalletName, loadData],
       children: [
         {
@@ -116,12 +116,12 @@ async function loadLanguage(
 }
 
 router.beforeEach((to) => {
-  const isAuth = WalletUtils.isAuth();
-  if (to.meta.requiresAuth && !isAuth) {
-    return {
-      path: "/auth",
-    };
-  }
+  // const isAuth = WalletUtils.isAuth();
+  // if (to.meta.requiresAuth && !isAuth) {
+  //   return {
+  //     path: "/auth",
+  //   };
+  // }
 });
 
 function checkWallet(
@@ -129,10 +129,10 @@ function checkWallet(
   from: RouteLocationNormalized,
   next: NavigationGuardNext
 ) {
-  const wallet = useWalletStore();
-  if (!wallet.privateKey || !wallet.wallet) {
-    return next("/auth");
-  }
+  // const wallet = useWalletStore();
+  // if (!wallet.privateKey || !wallet.wallet) {
+  //   return next("/auth");
+  // }
   next();
 }
 
@@ -149,10 +149,10 @@ function beforeWalletName(
       break;
     }
     default: {
-      const isAuth = WalletUtils.isAuth();
-      if (!isAuth) {
-        return next("/auth");
-      }
+      // const isAuth = WalletUtils.isAuth();
+      // if (!isAuth) {
+      //   return next("/auth");
+      // }
     }
   }
 
@@ -180,7 +180,7 @@ function checkWalletName(
     default: {
       const name = WalletManager.getWalletName() ?? "";
       if (name.length == 0) {
-        return next("/auth/set-wallet-name");
+        // return next("/auth/set-wallet-name");
       }
     }
   }
