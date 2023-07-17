@@ -255,6 +255,11 @@ let l: {
       label: 'Français',
       url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/fr.json'
   },
+  es: {
+    key: 'es',
+    label: 'Español',
+    url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/es.json'
+},
 }
 
 if (!isDev()) {
@@ -269,6 +274,11 @@ if (!isDev()) {
           label: 'Русский',
           url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/ru.json'
       },
+      cn: {
+        key: 'cn',
+        label: '中文',
+        url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/cn.json'
+    }
   }
 }
 
