@@ -210,7 +210,6 @@ onUnmounted(() => {
   }
 });
 
-
 watch(() => walletRef.wallet.value?.address, () => {
   if(!WalletUtils.isAuth()){
     wallet.value = i18n.t('message.connect-wallet-label');

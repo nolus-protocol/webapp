@@ -75,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, provide, ref } from "vue";
 import { useWalletStore } from "@/stores/wallet";
 
 import WalletOpen from "@/components/WalletOpen.vue";
@@ -114,4 +114,8 @@ function onClick(event: MouseEvent) {
     }
   }
 };
+
+provide('toggle', () => {
+  showWallet.value = !showWallet.value;
+})
 </script>

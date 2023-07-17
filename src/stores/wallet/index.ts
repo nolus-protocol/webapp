@@ -49,6 +49,11 @@ const useWalletStore = defineStore("wallet", {
     } as State;
   },
   actions: {
+    [WalletActionTypes.DISCONNECT](){
+      this.wallet = null;
+      this.walletName = null;
+      this.privateKey = null;
+    },
     async [WalletActionTypes.CONNECT_KEPLR](
       payload: { isFromAuth?: boolean } = {}
     ) {
