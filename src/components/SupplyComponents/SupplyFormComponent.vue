@@ -1,30 +1,29 @@
 <template>
-  <form class="modal-form">
+  <form @submit.prevent="modelValue.onNextClick"
+        class="modal-form">
     <!-- Input Area -->
     <div class="modal-send-receive-input-area">
 
       <div class="block text-left mt-[25px]">
-        <CurrencyField
-          id="amountSupply"
-          :currency-options="modelValue.currentBalance"
-          :disabled-currency-picker="true"
-          :error-msg="modelValue.amountErrorMsg"
-          :is-error="modelValue.amountErrorMsg !== ''"
-          :option="modelValue.selectedCurrency"
-          :value="modelValue.amount"
-          :label="$t('message.amount')"
-          :balance="formatCurrentBalance(modelValue.selectedCurrency)"
-          :set-input-value="setAmount"
-          name="amountSupply"
-          @input="handleAmountChange($event)"
-          @update-currency="(event) => (modelValue.selectedCurrency = event)"
-        />
+        <CurrencyField id="amountSupply"
+                       :currency-options="modelValue.currentBalance"
+                       :disabled-currency-picker="true"
+                       :error-msg="modelValue.amountErrorMsg"
+                       :is-error="modelValue.amountErrorMsg !== ''"
+                       :option="modelValue.selectedCurrency"
+                       :value="modelValue.amount"
+                       :label="$t('message.amount')"
+                       :balance="formatCurrentBalance(modelValue.selectedCurrency)"
+                       :set-input-value="setAmount"
+                       name="amountSupply"
+                       @input="handleAmountChange($event)"
+                       @update-currency="(event) => (modelValue.selectedCurrency = event)" />
       </div>
     </div>
 
     <!-- Actions -->
     <div class="modal-send-receive-actions">
-      <button class="btn btn-primary btn-large-primary text-center plausible-event-name=supply" @click="props.modelValue.onNextClick">
+      <button class="btn btn-primary btn-large-primary text-center plausible-event-name=supply">
         {{ $t("message.supply") }}
       </button>
     </div>
