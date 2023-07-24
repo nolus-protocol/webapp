@@ -169,6 +169,7 @@ function onUpdateTheme(item: PickerOption) {
 };
 
 async function onClickDisconnect() {
+  router.push({ name: RouteNames.DASHBOARD });
   toggle();
   WalletManager.eraseWalletInfo();
   wallet[WalletActionTypes.DISCONNECT]();
@@ -176,7 +177,7 @@ async function onClickDisconnect() {
   await Promise.all([
     applicaton[ApplicationActionTypes.LOAD_CURRENCIES](),
     applicaton[ApplicationActionTypes.LOAD_APR_REWARDS](),
-  ])
+  ]);
 };
 
 async function setLanguage(item: PickerOption) {
