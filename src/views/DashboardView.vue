@@ -203,7 +203,7 @@
                 v-for="(asset, index) in filteredAssets"
                 :key="`${asset.balance.denom}-${index}`"
                 :asset-info="getAssetInfo(asset.balance.denom)"
-                :assetBalance="asset.balance.amount.toString()"
+                :assetBalance="asset.balance.denom == wallet.available.denom ? wallet.available.amount.toString() : asset.balance.amount.toString()"
                 :changeDirection="index % 2 === 0"
                 :denom="asset.balance.denom"
                 :price="getMarketPrice(asset.balance.denom)"
@@ -379,12 +379,19 @@ onUnmounted(() => {
   }
 })
 
-watch(walletRef.wallet, () => {
-  getVestedTokens();
-  availableAssets();
-  loadSuppliedAndStaked();
-  wallet[WalletActionTypes.LOAD_STAKED_TOKENS]();
-  wallet[WalletActionTypes.LOAD_SUPPLIED_AMOUNT]();
+watch(walletRef.wallet, async () => {
+  try {
+    await Promise.all([
+      getLeases(),
+      getVestedTokens(),
+      availableAssets(),
+      loadSuppliedAndStaked(),
+      wallet[WalletActionTypes.LOAD_STAKED_TOKENS](),
+      wallet[WalletActionTypes.LOAD_SUPPLIED_AMOUNT](),
+    ])
+  } catch (e) {
+    console.log(e)
+  }
 });
 
 watch(walletRef.balances, () => {
@@ -473,7 +480,7 @@ const availableAssets = () => {
 };
 
 const suppliedAndStaked = computed(() => {
-  
+
   const staking = wallet.stakingBalance as Coin;
   const supplied = wallet.suppliedBalance;
   const lppPrice = wallet.lppPrice;
@@ -511,7 +518,7 @@ const loadSuppliedAndStaked = async () => {
   if (Object.keys(oracle.prices).length == 0) {
     return false;
   }
-  
+
   const supplied = async () => {
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
     const contract = CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance;
