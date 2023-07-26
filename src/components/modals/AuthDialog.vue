@@ -62,7 +62,7 @@ const title = computed(() => {
 
 });
 
-const backButton = computed(() => {
+const backButton = computed<Function | undefined>(() => {
 
   switch (view.value) {
     case (WalletActionTypes.CONNECT_KEPLR): {
@@ -75,6 +75,8 @@ const backButton = computed(() => {
       return back;
     }
   }
+
+  return undefined;
 
 });
 
