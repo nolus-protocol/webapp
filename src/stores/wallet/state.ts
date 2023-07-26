@@ -21,6 +21,18 @@ export type State = {
   balances: AssetBalance[];
   walletName: string | null;
   stakingBalance: Coin | null;
+  delegated_vesting: {
+    denom: string,
+    amount: string
+  } | null,
+  vest: {
+    start: Date,
+    end: Date,
+    amount: {
+      denom: string,
+      amount: string
+    }
+  }[];
   suppliedBalance: string;
   lppPrice: Dec;
   leaserConfig: LeaserConfig | null,

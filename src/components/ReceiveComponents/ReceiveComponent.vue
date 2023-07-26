@@ -195,7 +195,7 @@ const isLoading = ref(false);
 const closeModal = inject("onModalClose", () => () => { });
 const networkCurrenciesObject = ref();
 const walletRef = storeToRefs(walletStore);
-const wallet = ref(WalletUtils.transformWallet(NATIVE_NETWORK.prefix));
+const wallet = ref(WalletUtils.isAuth() ? WalletUtils.transformWallet(NATIVE_NETWORK.prefix) : i18n.t('message.connect-wallet-label'));
 
 defineProps({
   modelValue: {
@@ -210,8 +210,11 @@ onUnmounted(() => {
   }
 });
 
-
 watch(() => walletRef.wallet.value?.address, () => {
+  if(!WalletUtils.isAuth()){
+    wallet.value = i18n.t('message.connect-wallet-label');
+    return;
+  }
   wallet.value = WalletUtils.transformWallet(NATIVE_NETWORK.prefix);
 });
 
@@ -247,7 +250,7 @@ const onUpdateNetwork = async (event: Network) => {
 
       const fn = async () => {
         const ibc_route = AssetUtils.makeIBCMinimalDenom(assets[key].ibc_route, assets[key].symbol);
-        const balance = await client.getBalance(WalletUtils.transformWallet(event.prefix), ibc_route);
+        const balance = WalletUtils.isAuth() ? await client.getBalance(WalletUtils.transformWallet(event.prefix), ibc_route) : coin(0, ibc_route);
         const icon = app.assetIcons?.[assets[key].ticker] as string;
         return {
           balance,
@@ -322,6 +325,10 @@ const validateInputs = async () => {
 const validateAmount = async () => {
 
   amountErrorMsg.value = '';
+
+  if(!WalletUtils.isAuth()){
+    return false;
+  }
 
   if (!amount.value) {
     amountErrorMsg.value = i18n.t("message.invalid-amount");

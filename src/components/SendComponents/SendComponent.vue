@@ -88,6 +88,8 @@ import { WalletUtils } from "@/utils";
 import { computed } from "vue";
 import { SUPPORTED_NETWORKS } from "@/networks/config";
 import { Dec } from "@keplr-wallet/unit";
+import { useI18n } from "vue-i18n";
+const i18n = useI18n();
 
 const props = defineProps({
   modelValue: {
@@ -120,6 +122,9 @@ const handleAmountChange = (value: string) => {
 };
 
 const address = computed(() => {
+  if(!WalletUtils.isAuth()){
+    return i18n.t('message.connect-wallet-label');
+  }
   return WalletUtils.transformWallet(props.modelValue.network.prefix);
 });
 

@@ -17,14 +17,14 @@ import { fromHex, toHex } from "@cosmjs/encoding";
 import { RouteNames } from "@/router/RouterNames";
 import { LedgerSigner } from "@cosmjs/ledger-amino";
 import { decodeTxRaw, type DecodedTxRaw, Registry } from "@cosmjs/proto-signing";
-import { NETWORKS, NATIVE_ASSET, LedgerName } from "@/config/env";
+import { NATIVE_ASSET, LedgerName } from "@/config/env";
 import { ASSETS } from "@/config/assetsInfo";
 import { ADAPTER_STATUS } from "@web3auth/base";
 import { Buffer } from "buffer";
 import { Lpp, Leaser } from "@nolus/nolusjs/build/contracts";
 import { CONTRACTS } from "@/config/contracts";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
-import { makeCosmoshubPath } from "@cosmjs/amino";
+import { coin, makeCosmoshubPath } from "@cosmjs/amino";
 import { EncryptionUtils, EnvNetworkUtils, KeyUtils as KeyUtilities, WalletUtils, AssetUtils, Web3AuthProvider, WalletManager } from "@/utils";
 import { CurrencyUtils, KeyUtils, NolusClient, NolusWalletFactory } from "@nolus/nolusjs";
 import { useApplicationStore } from "../application";
@@ -42,13 +42,20 @@ const useWalletStore = defineStore("wallet", {
       balances: [],
       currencies: {},
       stakingBalance: null,
+      delegated_vesting: null,
       leaserConfig: null,
       suppliedBalance: "0",
       apr: 0,
+      vest: [],
       lppPrice: new Dec(0)
     } as State;
   },
   actions: {
+    [WalletActionTypes.DISCONNECT]() {
+      this.wallet = null;
+      this.walletName = null;
+      this.privateKey = null;
+    },
     async [WalletActionTypes.CONNECT_KEPLR](
       payload: { isFromAuth?: boolean } = {}
     ) {
@@ -191,7 +198,7 @@ const useWalletStore = defineStore("wallet", {
       const accountNumbers = [0];
       const paths = accountNumbers.map(makeCosmoshubPath);
       const networkConfig = await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
-      
+
       NolusClient.setInstance(networkConfig.rpc);
 
       while (!ledgerWallet && !breakLoop) {
@@ -283,16 +290,41 @@ const useWalletStore = defineStore("wallet", {
     async [WalletActionTypes.UPDATE_BALANCES]() {
       try {
         const walletAddress = WalletManager.getWalletAddress() || "";
-
-        if (!WalletUtils.isAuth()) {
-          WalletManager.eraseWalletInfo();
-          await router.push({ name: RouteNames.AUTH });
-          return false;
-        }
-
         const ibcBalances = [];
         const app = useApplicationStore();
         const currencies = app.currenciesData;
+
+        if (!WalletUtils.isAuth()) {
+
+          for (const key in currencies) {
+            const currency = app.currenciesData![key];
+            const ibcDenom = AssetUtils.makeIBCMinimalDenom(
+              currency.ibc_route,
+              currency.symbol
+            );
+
+            const data = {
+              ticker: key,
+              shortName: currency.shortName,
+              name: currency.name,
+              symbol: currency.symbol,
+              decimal_digits: currency.decimal_digits
+            };
+            this.currencies[ibcDenom] = data;
+
+            const item = {
+              balance: CurrencyUtils.convertCosmosCoinToKeplCoin(coin('0', ibcDenom)),
+            };
+
+            ibcBalances.push(
+              item
+            );
+          }
+
+          this.balances = ibcBalances;
+
+          return false;
+        }
 
         for (const key in currencies) {
           const currency = app.currenciesData![key];
@@ -313,6 +345,7 @@ const useWalletStore = defineStore("wallet", {
                   decimal_digits: currency.decimal_digits
                 };
                 this.currencies[ibcDenom] = data;
+
                 return {
                   balance: CurrencyUtils.convertCosmosCoinToKeplCoin(item),
                 };
@@ -320,6 +353,7 @@ const useWalletStore = defineStore("wallet", {
           );
         }
         this.balances = await Promise.all(ibcBalances);
+
       } catch (e) {
         throw new Error(e as string);
       }
@@ -487,6 +521,11 @@ const useWalletStore = defineStore("wallet", {
         amount: { amount: string; denom: string };
       }[]
     > {
+
+      if (!WalletUtils.isAuth()) {
+        return [];
+      }
+
       const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
       const data = await fetch(
         `${url}/cosmos/auth/v1beta1/accounts/${WalletManager.getWalletAddress()}`
@@ -496,7 +535,8 @@ const useWalletStore = defineStore("wallet", {
       const accData = json.account;
       const vesting_account = accData?.base_vesting_account;
       const items = [];
-
+      const vest = [];
+      
       if (vesting_account) {
         const start = new Date(accData.start_time * 1000);
         const end = new Date(vesting_account.end_time * 1000);
@@ -516,6 +556,19 @@ const useWalletStore = defineStore("wallet", {
           endTime: `${from} - ${to}`,
           amount: vesting_account.original_vesting[0],
         });
+
+        vest.push({
+          start,
+          end,
+          amount: vesting_account.original_vesting[0],
+        });
+        
+
+        this.vest = vest;
+        this.delegated_vesting = vesting_account.delegated_vesting[0];
+      }else{
+        this.vest = [];
+        this.delegated_vesting = null;
       }
 
       return items;
@@ -601,15 +654,26 @@ const useWalletStore = defineStore("wallet", {
       }
     },
     async [WalletActionTypes.LOAD_STAKED_TOKENS]() {
+
+      if (!WalletUtils.isAuth()) {
+        return false;
+      }
+
       try {
         const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
         const data = await fetch(
           `${url}/cosmos/staking/v1beta1/delegations/${WalletManager.getWalletAddress()}`
         );
         const json = await data.json();
-        const [item] = json.delegation_responses;
-        if (item) {
-          this.stakingBalance = item.balance;
+
+        if (json.delegation_responses) {
+          const s = new Coin(NATIVE_ASSET.denom, new Int(0));
+          let am = new Int(0);
+          for (const item of json.delegation_responses) {
+            am = am.add(new Int(item.balance.amount));
+          }
+          s.amount = am;
+          this.stakingBalance = s;
         } else {
           this.stakingBalance = new Coin(NATIVE_ASSET.denom, new Int(0));;
         }
@@ -647,6 +711,11 @@ const useWalletStore = defineStore("wallet", {
 
     },
     async [WalletActionTypes.LOAD_DELEGATOR]() {
+
+      if (!WalletUtils.isAuth()) {
+        return [];
+      }
+
       const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
       const walletAddress = WalletManager.getWalletAddress() || "";
 
@@ -669,6 +738,11 @@ const useWalletStore = defineStore("wallet", {
       return await loadDelegatorValidators(url, [], walletAddress, offset, limit);
     },
     async [WalletActionTypes.LOAD_UNBONDING_DELEGATIONS]() {
+
+      if (!WalletUtils.isAuth()) {
+        return [];
+      }
+
       const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
       const limit = 100;
       const offset = 0;
@@ -677,6 +751,11 @@ const useWalletStore = defineStore("wallet", {
       return await loadUnbondingDelegatoins(url, [], walletAddress, offset, limit);
     },
     async [WalletActionTypes.LOAD_DELEGATIONS]() {
+
+      if (!WalletUtils.isAuth()) {
+        return [];
+      }
+
       const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
       const limit = 100;
       const offset = 0;
@@ -686,6 +765,39 @@ const useWalletStore = defineStore("wallet", {
     },
   },
   getters: {
+    available: (state) => {
+      let balance = new Dec(0, ChainConstants.COIN_DECIMALS);
+      for (const b of state.balances) {
+        if (b.balance.denom == ChainConstants.COIN_MINIMAL_DENOM) {
+          balance = balance.add(new Dec(b.balance.amount, ChainConstants.COIN_DECIMALS));
+          break;
+        }
+      }
+      for (const b of state.vest) {
+        const date = new Date();
+        const diff = b.end.getTime() - b.start.getTime();
+        const diffNow = date.getTime() - b.start.getTime();
+        let q = diffNow / diff;
+
+        if (q > 1) {
+          q = 1;
+        }
+
+        const amount = new Dec(b.amount.amount, ChainConstants.COIN_DECIMALS);
+        const notAvailable = amount.sub(amount.mul(new Dec(q)));
+        balance = balance.sub(notAvailable);
+
+      }
+
+      if (state.delegated_vesting) {
+        const amount = new Dec(state.delegated_vesting?.amount?.toString() ?? '0', ChainConstants.COIN_DECIMALS);
+        balance = balance.add(amount);
+      }
+      
+      const int = new Int(balance.mul(new Dec(10).pow(new Int(ChainConstants.COIN_DECIMALS))).toString(0));
+      
+      return { amount: int, denom: ChainConstants.COIN_MINIMAL_DENOM };
+    },
     getCurrencyInfo: (state) => {
       return (denom: string) => {
         const currency = state.currencies[denom];

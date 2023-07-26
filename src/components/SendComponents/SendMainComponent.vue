@@ -66,7 +66,13 @@ const showSnackbar = inject(
   "showSnackbar",
   (type: string, transaction: string) => { }
 );
-const balances = computed(() => walletStore.balances);
+const balances = computed(() => walletStore.balances.map((item) => {
+  const e = { ...item }
+  if (e.balance) {
+    e.balance = { ...walletStore.available }
+  }
+  return e;
+}));
 
 const showConfirmScreen = ref(false);
 const state = ref({

@@ -23,6 +23,17 @@
         v-else
         class="navigation-header"
       >
+        <button
+          v-if="back"
+          class="align-baseline absolute left-0 top-2/4 -mt-3 px-4 md:px-10"
+          type="button"
+          @click="backClick"
+        >
+          <ArrowLeftIcon
+            aria-hidden="true"
+            class="h-6 w-6 text-primary"
+          />
+        </button>
         <h1 class="block w-full nls-font-700 text-28 md:text-32 text-primary text-center">
           {{ headerList[0] }}
         </h1>
@@ -46,6 +57,7 @@
 <script lang="ts" setup>
 import { ref, provide, computed, type PropType } from "vue";
 import router from "@/router";
+import { ArrowLeftIcon } from "@heroicons/vue/24/solid";
 
 const props = defineProps({
   headerList: {
@@ -60,6 +72,10 @@ const props = defineProps({
     type: Array<Number>,
     default: [],
   },
+  back: {
+    type: Function,
+    required: false
+  },
   routes: {
     type: Array as PropType<string[]>,
     default: () => {
@@ -70,6 +86,12 @@ const props = defineProps({
 
 const activeTab = ref(props.activeTab);
 const showHeader = ref(true);
+
+const backClick = () => {
+  if(props.back){
+    props.back();
+  }
+}
 
 const isTabLayout = computed(() => {
   return props.headerList.length > 1;

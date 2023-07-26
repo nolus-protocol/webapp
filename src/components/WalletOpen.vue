@@ -84,9 +84,9 @@
 <script setup lang="ts">
 import Picker, { type PickerOption } from "@/components/Picker.vue";
 import router from "@/router";
-import { onMounted, ref, computed, onUnmounted } from "vue";
+import { onMounted, ref, computed, onUnmounted, inject } from "vue";
 import { RouteNames } from "@/router/RouterNames";
-import { useWalletStore } from "@/stores/wallet";
+import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
 import { APPEARANCE, languages } from "@/config/env";
 import { useI18n } from "vue-i18n";
 import { ApplicationActionTypes, useApplicationStore } from "@/stores/application";
@@ -103,6 +103,7 @@ const i18n = useI18n();
 const showText = ref(false);
 const themeData = ThemeManager.getThemeData();
 const lang = ApptUtils.getLang();
+const toggle = inject('toggle', () => {});
 
 const selectedAppearnce = ref({
   label: i18n.t(`message.${themeData}`),
@@ -167,9 +168,16 @@ function onUpdateTheme(item: PickerOption) {
   applicaton[ApplicationActionTypes.SET_THEME](item.value);
 };
 
-function onClickDisconnect() {
+async function onClickDisconnect() {
+  router.push({ name: RouteNames.DASHBOARD });
+  toggle();
   WalletManager.eraseWalletInfo();
-  router.push({ name: RouteNames.AUTH });
+  wallet[WalletActionTypes.DISCONNECT]();
+  await applicaton[ApplicationActionTypes.CHANGE_NETWORK](true);
+  await Promise.all([
+    applicaton[ApplicationActionTypes.LOAD_CURRENCIES](),
+    applicaton[ApplicationActionTypes.LOAD_APR_REWARDS](),
+  ]);
 };
 
 async function setLanguage(item: PickerOption) {

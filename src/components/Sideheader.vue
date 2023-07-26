@@ -26,6 +26,7 @@
     ref="wallet"
   >
     <button
+      v-if="walletStore.wallet"
       class="show-box-wallet btn-header with-icon shadow-box rounded-r-none"
       :class="showWallet ? 'active' : false"
       @click="showWallet = !showWallet"
@@ -40,6 +41,21 @@
       </span>
     </button>
 
+    <button
+      v-else
+      class="show-box-wallet btn-header with-icon shadow-box rounded-r-none"
+      @click="showAuthDialog = !showAuthDialog"
+    >
+      <span
+        class="icon-wallet mr-0"
+        style="font-size: 1.5em !important; margin-right: 0"
+      >
+      </span>
+      <span class="text-12 nls-font-400 text-primary nls-md-hidden">
+        {{ $t('message.connect-wallet') }}
+      </span>
+    </button>
+
     <!-- <Notifications /> -->
     <Transition
       name="collapse"
@@ -48,20 +64,31 @@
       <WalletOpen v-show="showWallet" />
     </Transition>
   </div>
+
+  <Modal
+    v-if="showAuthDialog"
+    route="authenticate"
+    @close-modal="showAuthDialog = false"
+  >
+    <AuthDialog />
+  </Modal>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, provide, ref } from "vue";
 import { useWalletStore } from "@/stores/wallet";
 
 import WalletOpen from "@/components/WalletOpen.vue";
 import LogoLink from "@/components/LogoLink.vue";
+import Modal from "./modals/templates/Modal.vue";
+import AuthDialog from "./modals/AuthDialog.vue";
 
 const showWallet = ref(false);
 const showNotifications = ref(false);
 const notifications = ref(null as HTMLDivElement | null);
 const wallet = ref(null as HTMLDivElement | null);
 const walletStore = useWalletStore();
+const showAuthDialog = ref(false);
 
 onMounted(() => {
   document.addEventListener("click", onClick);
@@ -87,4 +114,8 @@ function onClick(event: MouseEvent) {
     }
   }
 };
+
+provide('toggle', () => {
+  showWallet.value = !showWallet.value;
+})
 </script>

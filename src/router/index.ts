@@ -1,5 +1,5 @@
 import MainLayoutView from "@/views/MainLayoutView.vue";
-import { WalletUtils, WalletManager } from "@/utils";
+import { WalletManager, WalletUtils } from "@/utils";
 import { RouteNames } from "@/router/RouterNames";
 import { useWalletStore } from "@/stores/wallet";
 import { WalletConnectMechanism } from "@/types";
@@ -15,7 +15,6 @@ const router = createRouter({
     {
       path: "/",
       component: MainLayoutView,
-      meta: { requiresAuth: true },
       beforeEnter: [loadLanguage, removeHash, checkWalletName, loadData],
       children: [
         {
@@ -112,17 +111,17 @@ async function loadLanguage(
 
   await setLang(ApptUtils.getLang().key);
   return next();
-  
+
 }
 
-router.beforeEach((to) => {
-  const isAuth = WalletUtils.isAuth();
-  if (to.meta.requiresAuth && !isAuth) {
-    return {
-      path: "/auth",
-    };
-  }
-});
+// router.beforeEach((to) => {
+//   const isAuth = WalletUtils.isAuth();
+//   if (to.meta.requiresAuth && !isAuth) {
+//     return {
+//       path: "/auth",
+//     };
+//   }
+// });
 
 function checkWallet(
   to: RouteLocationNormalized,
@@ -177,11 +176,19 @@ function checkWalletName(
     case WalletConnectMechanism.LEDGER_BLUETOOTH: {
       break;
     }
-    default: {
+    case WalletConnectMechanism.MNEMONIC: {
       const name = WalletManager.getWalletName() ?? "";
       if (name.length == 0) {
         return next("/auth/set-wallet-name");
       }
+      break;
+    }
+    case WalletConnectMechanism.GOOGLE: {
+      const name = WalletManager.getWalletName() ?? "";
+      if (name.length == 0) {
+        return next("/auth/set-wallet-name");
+      }
+      break;
     }
   }
 

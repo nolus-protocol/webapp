@@ -162,6 +162,7 @@ const googleAuth = async () => {
 <style scoped lang="scss">
 .fake-button {
   border-width: 0;
+  padding: 1rem;
 
   &:active,
   &:focus,
