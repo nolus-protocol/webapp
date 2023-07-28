@@ -43,6 +43,7 @@ const useWalletStore = defineStore("wallet", {
       currencies: {},
       stakingBalance: null,
       delegated_vesting: null,
+      delegated_free: null, 
       leaserConfig: null,
       suppliedBalance: "0",
       apr: 0,
@@ -230,6 +231,7 @@ const useWalletStore = defineStore("wallet", {
           WalletManager.setPubKey(
             Buffer.from(this.wallet?.pubKey ?? "").toString("hex")
           );
+          this.walletName = LedgerName;
 
           if (payload?.isFromAuth) {
             await router.push({ name: RouteNames.DASHBOARD });
@@ -523,6 +525,9 @@ const useWalletStore = defineStore("wallet", {
     > {
 
       if (!WalletUtils.isAuth()) {
+        this.vest = [];
+        this.delegated_vesting = null;
+        this.delegated_free = null;
         return [];
       }
 
@@ -536,7 +541,7 @@ const useWalletStore = defineStore("wallet", {
       const vesting_account = accData?.base_vesting_account;
       const items = [];
       const vest = [];
-      
+
       if (vesting_account) {
         const start = new Date(accData.start_time * 1000);
         const end = new Date(vesting_account.end_time * 1000);
@@ -562,13 +567,15 @@ const useWalletStore = defineStore("wallet", {
           end,
           amount: vesting_account.original_vesting[0],
         });
-        
 
         this.vest = vest;
         this.delegated_vesting = vesting_account.delegated_vesting[0];
-      }else{
+        this.delegated_free = vesting_account.delegated_free[0];;
+
+      } else {
         this.vest = [];
         this.delegated_vesting = null;
+        this.delegated_free = null;
       }
 
       return items;
@@ -773,6 +780,7 @@ const useWalletStore = defineStore("wallet", {
           break;
         }
       }
+
       for (const b of state.vest) {
         const date = new Date();
         const diff = b.end.getTime() - b.start.getTime();
@@ -783,19 +791,50 @@ const useWalletStore = defineStore("wallet", {
           q = 1;
         }
 
+        if(q < 0){
+          q = 0;
+        }
+
         const amount = new Dec(b.amount.amount, ChainConstants.COIN_DECIMALS);
         const notAvailable = amount.sub(amount.mul(new Dec(q)));
         balance = balance.sub(notAvailable);
-
       }
+
 
       if (state.delegated_vesting) {
         const amount = new Dec(state.delegated_vesting?.amount?.toString() ?? '0', ChainConstants.COIN_DECIMALS);
         balance = balance.add(amount);
       }
-      
+
       const int = new Int(balance.mul(new Dec(10).pow(new Int(ChainConstants.COIN_DECIMALS))).toString(0));
-      
+
+      return { amount: int, denom: ChainConstants.COIN_MINIMAL_DENOM };
+    },
+    vestTokens: (state) => {
+      let balance = new Dec(0, ChainConstants.COIN_DECIMALS);
+
+      for (const b of state.vest) {
+        const date = new Date();
+        const diff = b.end.getTime() - b.start.getTime();
+        const diffNow = date.getTime() - b.start.getTime();
+        let q = diffNow / diff;
+
+        if (q > 1) {
+          q = 1;
+        }
+
+        if(q < 0){
+          q = 0;
+        }
+
+        const amount = new Dec(b.amount.amount, ChainConstants.COIN_DECIMALS);
+        const notAvailable = amount.sub(amount.mul(new Dec(q)));
+        balance = balance.add(notAvailable);
+      }
+
+
+      const int = new Int(balance.mul(new Dec(10).pow(new Int(ChainConstants.COIN_DECIMALS))).toString(0));
+
       return { amount: int, denom: ChainConstants.COIN_MINIMAL_DENOM };
     },
     getCurrencyInfo: (state) => {

@@ -2,7 +2,7 @@ import type { State } from "@/stores/application/state";
 
 import { defineStore } from "pinia";
 import { ApplicationActionTypes } from "@/stores/application/action-types";
-import { AssetUtils, EnvNetworkUtils, ThemeManager, WalletUtils } from "@/utils";
+import { AssetUtils, EnvNetworkUtils, ThemeManager, WalletManager, WalletUtils } from "@/utils";
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 import { DEFAULT_PRIMARY_NETWORK, INTEREST_DECIMALS, NATIVE_NETWORK, NETWORKS, WASM_LP_DEPOSIT } from "@/config/env";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
@@ -12,6 +12,7 @@ import { CONTRACTS } from "@/config/contracts";
 import { Buffer } from "buffer";
 import { Dec } from "@keplr-wallet/unit";
 import { ApptUtils } from "@/utils/AppUtils";
+import { WalletConnectMechanism } from "@/types";
 
 const useApplicationStore = defineStore("application", {
   state: () => {
@@ -49,7 +50,6 @@ const useApplicationStore = defineStore("application", {
     async [ApplicationActionTypes.CHANGE_NETWORK](loadBalance = false) {
       try {
         const rpc = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
-
         NolusClient.setInstance(rpc);
         const walletStore = useWalletStore();
         const oracle = useOracleStore();
@@ -59,13 +59,29 @@ const useApplicationStore = defineStore("application", {
           ...NETWORKS[this.network.networkName]
         };
 
-        if (WalletUtils.isConnectedViaExtension()) {
-          walletStore[WalletActionTypes.CONNECT_KEPLR]();
+
+        switch (WalletManager.getWalletConnectMechanism()) {
+          case WalletConnectMechanism.EXTENSION: {
+            walletStore[WalletActionTypes.CONNECT_KEPLR]();
+            break;
+          }
+          case WalletConnectMechanism.LEAP: {
+            walletStore[WalletActionTypes.CONNECT_LEAP]();
+            break;
+          }
+          case WalletConnectMechanism.LEDGER: {
+            walletStore[WalletActionTypes.CONNECT_LEDGER]();
+            break;
+          }
+          case WalletConnectMechanism.LEDGER_BLUETOOTH: {
+            walletStore[WalletActionTypes.CONNECT_LEDGER]();
+            break;
+          }
+          default: {
+            break;
+          }
         }
 
-        if (WalletUtils.isConnectedViaLeap()) {
-          walletStore[WalletActionTypes.CONNECT_LEAP]();
-        }
 
         if (loadBalance) {
           await Promise.allSettled([

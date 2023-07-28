@@ -253,7 +253,7 @@
             v-for="(asset, index) in vestedTokens"
             :key="`${asset.amount.amount}-${index}`"
             :asset-info="getAssetInfo(asset.amount.denom)"
-            :asset-balance="asset.amount.amount.toString()"
+            :asset-balance="wallet.vestTokens.amount.toString()"
             :denom="asset.amount.denom"
             :end-time="asset.endTime"
           />

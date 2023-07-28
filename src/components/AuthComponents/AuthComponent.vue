@@ -25,7 +25,7 @@
       <span class="icon icon-leap ml-1"></span>
       {{ $t("message.leap") }}
     </button>
-    <div class="btn-large-box ml-5 md:ml-4 basis-0 grow fake-button"></div>
+    <div class="ml-5 md:ml-4 basis-0 grow fake-button"></div>
   </div>
 
   <div class="pb-2 relative z-[2] text-dark-grey text-[13px]">
@@ -77,14 +77,11 @@ const onShowTermsModal = () => {
 </script>
 <style scoped lang="scss">
 .fake-button {
-  border-width: 0;
-  padding: 1rem;
-
-  &:active,
-  &:focus,
-  &:hover {
-    background-color: transparent !important;
-    box-shadow: none !important;
-  }
+  font-size: 14px;
+  padding: 19px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 </style>

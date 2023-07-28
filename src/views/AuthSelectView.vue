@@ -42,7 +42,7 @@
           <span class="icon icon-leap ml-1"></span>
           {{ $t("message.leap") }}
         </button>
-        <div class="btn-large-box ml-5 md:ml-4 basis-0 grow fake-button"></div>
+        <div class="ml-5 md:ml-4 basis-0 grow fake-button"></div>
       </div>
 
       <!-- <div class="flex mt-6 md:mt-5 px-4 md:px-10 relative z-[2]">
@@ -116,7 +116,6 @@ import TermsDialog from "@/components/modals/TermsDialog.vue";
 import router from "@/router";
 import { RouteNames } from "@/router/RouterNames";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
-import { ApptUtils } from "@/utils/AppUtils";
 import { ref } from "vue";
 
 const wallet = useWalletStore();
@@ -161,14 +160,11 @@ const googleAuth = async () => {
 </script>
 <style scoped lang="scss">
 .fake-button {
-  border-width: 0;
-  padding: 1rem;
-
-  &:active,
-  &:focus,
-  &:hover {
-    background-color: transparent !important;
-    box-shadow: none !important;
-  }
+  font-size: 14px;
+  padding: 19px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 </style>

@@ -25,6 +25,10 @@ export type State = {
     denom: string,
     amount: string
   } | null,
+  delegated_free: {
+    denom: string,
+    amount: string
+  } | null;
   vest: {
     start: Date,
     end: Date,
