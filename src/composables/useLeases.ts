@@ -46,10 +46,10 @@ export function useLeases(
           const item = data.result?.txs?.[0];
 
           if (leaseInfo && !leaseInfo.closed) {
-            leaseInfo.height = item.height;
             return {
               leaseAddress: leaseAddress,
               leaseStatus: leaseInfo,
+              height: item.height
             }
           }
         }

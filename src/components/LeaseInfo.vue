@@ -772,7 +772,7 @@ const interest = computed(() => {
   const data = props.leaseInfo.leaseStatus?.opened;
   if (data) {
     const config = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
-    if (Number(props.leaseInfo.leaseStatus?.height) > config.leaseBlockUpdate) {
+    if (Number(props.leaseInfo?.height) > config.leaseBlockUpdate) {
       const amount = Number(data.loan_interest_rate) + Number(data.margin_interest_rate)
       return (amount / Math.pow(10, INTEREST_DECIMALS)).toString();
     }
