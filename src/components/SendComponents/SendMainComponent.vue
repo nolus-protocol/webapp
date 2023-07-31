@@ -68,12 +68,11 @@ const showSnackbar = inject(
 );
 const balances = computed(() => walletStore.balances.map((item) => {
   const e = { ...item }
-  if (e.balance) {
+  if (e.balance.denom == walletStore.available.denom) {
     e.balance = { ...walletStore.available }
   }
   return e;
 }));
-
 const showConfirmScreen = ref(false);
 const state = ref({
   currentBalance: balances.value,
