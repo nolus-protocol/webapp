@@ -21,7 +21,8 @@
             <template v-else>
               <ArrowDown />
             </template>
-            &nbsp;{{ pnl.status ? '+' : '' }}<template v-if="!pnlType">{{ pnl.amount }}</template><template v-else>{{ pnl.percent }}%</template>
+            &nbsp;{{ pnl.status ? '+' : '' }}<template v-if="!pnlType">{{ pnl.amount }}</template><template v-else>{{
+              pnl.percent }}%</template>
           </div>
         </div>
         <div class="flex my-4">
@@ -113,7 +114,9 @@
         </div>
       </div>
     </div>
-    <div class="flex items-center justify-between border-t-[0px] md:border-t-[1px] border-standart pt-4 md:px-6 px-2 flex-col md:flex-row">
+    <div
+      class="flex items-center justify-between border-t-[0px] md:border-t-[1px] border-standart pt-4 md:px-6 px-2 flex-col md:flex-row"
+    >
       <div class="flex">
         <div class="block">
           <p class="text-detail text-primary m-0 flex items-center data-text">
@@ -277,7 +280,7 @@
           </div>
         </div>
       </div>
-      <div class="lg:col-span-5 md:px-6 px-2 pt-3 md:pt-5 pb-3 md:pb-5 relative hidden md:block">  
+      <div class="lg:col-span-5 md:px-6 px-2 pt-3 md:pt-5 pb-3 md:pb-5 relative hidden md:block">
         <!-- Graph -->
 
         <div class="flex justify-between">
@@ -351,7 +354,8 @@
             <template v-else>
               <ArrowDown />
             </template>
-            &nbsp;{{ pnl.status ? '+' : '' }}<template v-if="!pnlType">{{ pnl.amount }}</template><template v-else>{{ pnl.percent }}%</template>
+            &nbsp;{{ pnl.status ? '+' : '' }}<template v-if="!pnlType">{{ pnl.amount }}</template><template v-else>{{
+              pnl.percent }}%</template>
           </div>
         </div>
         <div class="flex my-4">
@@ -429,7 +433,9 @@
         </div>
       </div>
     </div>
-    <div class="flex items-center justify-between border-t-[0px] md:border-t-[1px] border-standart pt-4 md:px-6 px-2 flex-col md:flex-row">
+    <div
+      class="flex items-center justify-between border-t-[0px] md:border-t-[1px] border-standart pt-4 md:px-6 px-2 flex-col md:flex-row"
+    >
       <div class="flex">
       </div>
       <button
@@ -504,8 +510,8 @@ import { useI18n } from "vue-i18n";
 import { onMounted } from "vue";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { TxType } from "@/types";
-import { AssetUtils, StringUtils, WalletManager } from "@/utils";
-import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation, INTEREST_DECIMALS, PERMILLE, PERCENT, calculateAditionalDebt, CoinGecko } from "@/config/env";
+import { AssetUtils, EnvNetworkUtils, StringUtils, WalletManager } from "@/utils";
+import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation, INTEREST_DECIMALS, PERMILLE, PERCENT, calculateAditionalDebt, CoinGecko, NETWORKS } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { walletOperation } from "@/components/utils";
 import { useApplicationStore } from "@/stores/application";
@@ -764,8 +770,12 @@ const interestDue = computed(() => {
 
 const interest = computed(() => {
   const data = props.leaseInfo.leaseStatus?.opened;
-
   if (data) {
+    const config = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
+    if (Number(props.leaseInfo.leaseStatus?.height) > config.leaseBlockUpdate) {
+      const amount = Number(data.loan_interest_rate) + Number(data.margin_interest_rate)
+      return (amount / Math.pow(10, INTEREST_DECIMALS)).toString();
+    }
     return (data.loan_interest_rate / Math.pow(10, INTEREST_DECIMALS)).toString();
   }
 

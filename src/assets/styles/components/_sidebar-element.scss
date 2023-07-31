@@ -19,6 +19,12 @@
     background-size: 125px 32px;
   }
 
+  @media (max-width: $lg) {
+    a.logo-float {
+      display: none;
+    }
+  }
+
   .top {
     display: block;
   }

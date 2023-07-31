@@ -1,11 +1,12 @@
 import type { LeaseData } from "@/types/LeaseData";
 import { ref, onMounted } from "vue";
 
-import { NolusClient } from "@nolus/nolusjs";
+import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 import { Lease, Leaser, type LeaseStatus } from "@nolus/nolusjs/build/contracts";
 
 import { CONTRACTS } from "@/config/contracts";
 import { WalletManager, EnvNetworkUtils } from "@/utils";
+import { ApptUtils } from "@/utils/AppUtils";
 
 export function useLeases(
   onError: (error: unknown) => void
@@ -34,8 +35,18 @@ export function useLeases(
       for (const leaseAddress of openedLeases) {
         const fn = async () => {
           const leaseClient = new Lease(cosmWasmClient, leaseAddress);
-          const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus();
+          const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
+
+          const [req, leaseInfo] = await Promise.all([
+            fetch(`${url}/tx_search?query="wasm.lease_address='${leaseAddress}'"&prove=true`),
+            leaseClient.getLeaseStatus()
+          ]);
+
+          const data = await req.json();
+          const item = data.result?.txs?.[0];
+
           if (leaseInfo && !leaseInfo.closed) {
+            leaseInfo.height = item.height;
             return {
               leaseAddress: leaseAddress,
               leaseStatus: leaseInfo,

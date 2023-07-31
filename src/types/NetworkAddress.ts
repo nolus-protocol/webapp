@@ -7,6 +7,7 @@ export interface NetworkAddress {
   staking: string;
   endpoints: string;
   currencies: () => Promise<Networks>, //CurreciesType
+  leaseBlockUpdate: number,
   web3auth: {
     clientId: string;
     network: string | any;
