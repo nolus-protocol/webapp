@@ -241,6 +241,7 @@ const useWalletStore = defineStore("wallet", {
           throw new Error(e as string);
         }
       }
+      await this[WalletActionTypes.UPDATE_BALANCES]();
       clearTimeout(to);
     },
     async [WalletActionTypes.CONNECT_VIA_MNEMONIC](mnemonic: string) {
