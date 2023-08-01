@@ -223,7 +223,7 @@ const coinList = props.modelValue.currentBalance.filter((item) => {
 });
 
 const annualInterestRate = computed(() => {
-  return props.modelValue?.leaseApply?.annual_interest_rate;
+  return (props.modelValue?.leaseApply?.annual_interest_rate ?? 0) + (props.modelValue?.leaseApply?.annual_interest_rate_margin ?? 0);
 });
 
 const calculateMarginAmount = computed(() => {

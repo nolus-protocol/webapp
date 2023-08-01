@@ -186,6 +186,8 @@ const calculate = async () => {
       );
 
       makeLeaseApplyResp.annual_interest_rate = makeLeaseApplyResp.annual_interest_rate / Math.pow(10, INTEREST_DECIMALS);
+      makeLeaseApplyResp.annual_interest_rate_margin = makeLeaseApplyResp.annual_interest_rate_margin / Math.pow(10, INTEREST_DECIMALS);
+
       state.value.leaseApply = makeLeaseApplyResp;
 
     } else {
