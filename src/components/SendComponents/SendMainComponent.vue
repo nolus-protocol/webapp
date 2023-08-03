@@ -34,7 +34,7 @@ import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
 import { computed, inject, onUnmounted, ref, watch } from "vue";
 import { coin, type Coin } from "@cosmjs/amino";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { SUPPORTED_NETWORKS } from "@/networks/config";
+import { NETWORKS_DATA, SUPPORTED_NETWORKS } from "@/networks/config";
 
 import {
   NATIVE_ASSET,
@@ -51,7 +51,7 @@ import {
   validateAmount,
   walletOperation,
 } from "@/components/utils";
-import { AssetUtils } from "@/utils";
+import { AssetUtils, EnvNetworkUtils, WalletUtils } from "@/utils";
 import { useApplicationStore } from "@/stores/application";
 import { NETWORK as OSMO_NETWORK } from '@/networks/osmo/network';
 
@@ -122,6 +122,13 @@ const validateInputs = () => {
     Number(state.value.selectedCurrency.balance.amount)
   );
 
+  if (state.value.network.forwardKey) {
+    const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
+    const proxyAddress = WalletUtils.transformWallet(network.supportedNetworks[state.value.network.forwardKey].prefix);
+    state.value.receiverErrorMsg = validateAddress(proxyAddress);
+    return;
+  }
+
   state.value.receiverErrorMsg = validateAddress(state.value.receiverAddress);
 };
 
@@ -188,25 +195,54 @@ const ibcTransfer = async () => {
       const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(
         state.value.selectedCurrency.balance.denom
       );
+
       const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
         state.value.amount,
         coinMinimalDenom,
         coinDecimals
       );
+
       const funds: Coin = {
         amount: minimalDenom.amount.toString(),
         denom,
       };
-      const sourceChannel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, OSMO_NETWORK.key, NATIVE_NETWORK.symbol)
-      const { txHash, txBytes, usedFee } = await wallet.simulateSendIbcTokensTx(
-        {
-          toAddress: state.value.receiverAddress,
-          amount: funds,
-          sourcePort: SOURCE_PORTS.TRANSFER,
-          sourceChannel: sourceChannel as string,
-          memo: "",
-        }
-      );
+
+      const sourceChannel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, state.value.network.forwardKey ?? state.value.network.key, NATIVE_NETWORK.symbol);
+
+      const rawTx: {
+        toAddress: string,
+        amount: Coin,
+        sourcePort: string,
+        sourceChannel: string,
+        memo?: string
+      } = {
+        toAddress: "",
+        amount: funds,
+        sourcePort: SOURCE_PORTS.TRANSFER,
+        sourceChannel: sourceChannel as string,
+      };
+
+
+      if (state.value.network.forwardKey) {
+        const networkData = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
+        const network = networkData.supportedNetworks[state.value.network.key];
+        const proxyAddress = WalletUtils.transformWallet(networkData.supportedNetworks[state.value.network.forwardKey].prefix);
+        const channel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, state.value.network.key, state.value.network.forwardKey!, true);
+
+        rawTx.toAddress = proxyAddress;
+        rawTx.memo = JSON.stringify({
+          "forward": {
+            "receiver": state.value.receiverAddress,
+            "port": SOURCE_PORTS.TRANSFER,
+            "channel": channel
+          }
+        });
+
+      } else {
+        rawTx.toAddress = state.value.receiverAddress;
+      }
+
+      const { txHash, txBytes, usedFee } = await wallet.simulateSendIbcTokensTx(rawTx);
 
       state.value.txHash = txHash;
 

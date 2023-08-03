@@ -15,8 +15,7 @@ export default defineConfig({
       compositionOnly: true,
       strictMessage: false,
       runtimeOnly: false
-    }),
-    splitVendorChunkPlugin()
+    })
   ],
   resolve: {
     alias: {

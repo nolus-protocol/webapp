@@ -6,13 +6,14 @@ import { WalletConnectMechanism, type NetworkData } from "@/types";
 import { makeCosmoshubPath, type OfflineAminoSigner } from "@cosmjs/amino";
 
 import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
-import { createIbcAminoConverters, createBankAminoConverters } from "@cosmjs/stargate";
+import { createBankAminoConverters } from "@cosmjs/stargate";
 import { AminoTypes } from "@cosmjs/stargate";
 import { EncryptionUtils, WalletManager, WalletUtils } from "@/utils";
 import { BaseWallet } from "./BaseWallet";
 import BluetoothTransport from "@ledgerhq/hw-transport-web-ble";
 import { fromHex } from "@cosmjs/encoding";
 import { ApptUtils } from "@/utils/AppUtils";
+import { createIbcAminoConverters } from "./aminomessages";
 
 const aminoTypes = {
     ...createIbcAminoConverters(),

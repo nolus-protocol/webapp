@@ -6,7 +6,7 @@
     :password="password"
     :amount="amount"
     :memo="memo"
-    :txType="$t(`message.${TxType.SEND}`)+':'"
+    :txType="$t(`message.${TxType.SEND}`) + ':'"
     :txHash="txHash"
     :step="step"
     :fee="fee"
@@ -211,7 +211,7 @@ onUnmounted(() => {
 });
 
 watch(() => walletRef.wallet.value?.address, () => {
-  if(!WalletUtils.isAuth()){
+  if (!WalletUtils.isAuth()) {
     wallet.value = i18n.t('message.connect-wallet-label');
     return;
   }
@@ -219,7 +219,7 @@ watch(() => walletRef.wallet.value?.address, () => {
 });
 
 watch(() => [selectedCurrency.value, amount.value], () => {
-  if(amount.value.length > 0){
+  if (amount.value.length > 0) {
     validateAmount()
   }
 });
@@ -326,7 +326,7 @@ const validateAmount = async () => {
 
   amountErrorMsg.value = '';
 
-  if(!WalletUtils.isAuth()){
+  if (!WalletUtils.isAuth()) {
     return false;
   }
 
@@ -408,7 +408,15 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
       gasPrice: networkData.gasPrice,
       sourceChannel: sourceChannel as string,
       timeOut: networkData.ibcTransferTimeout,
-      memo: memo.value,
+      memo: JSON.stringify({
+        "forward": {
+          "receiver": "cosmos1vp9j3x49j02w4qex8rguwmg3x4u4lqt2xktgp0",
+          "port": "transfer",
+          "channel": "channel-1084",
+          "timeout": "10m",
+          "retries": 3
+        }
+      }),
     });
 
     txHash.value = txHashData;
@@ -427,6 +435,7 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
     }, 10000);
 
   } catch (error) {
+    console.log(error)
     step.value = CONFIRM_STEP.ERROR;
   }
 }

@@ -23,5 +23,17 @@
                 "api": "https://lcd.osmotest5.osmosis.zone"
             }
         ]
+    },
+    "COSMOS_HUB": {
+        "primary": {
+            "rpc": "https://rpc-theta.osmotest5.osmosis.zone",
+            "api": "https://lcd-theta.osmotest5.osmosis.zone"
+        },
+        "fallback": [
+            {
+                "rpc": "https://rpc.sentry-01.theta-testnet.polypore.xyz",
+                "api": "https://rest.sentry-01.theta-testnet.polypore.xyz"
+            }
+        ]
     }
 }

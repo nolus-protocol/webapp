@@ -24,5 +24,8 @@ export const ASSETS = {
   },
   WBTC: {
     coinGeckoId: "wrapped-bitcoin",
+  },
+  AKT: {
+    coinGeckoId: "akash-network",
   }
 };

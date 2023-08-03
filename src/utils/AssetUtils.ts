@@ -21,7 +21,7 @@ export class AssetUtils {
       return a;
     }, "");
     path += `${coinMinimalDenom}`;
-
+    console.log(path)
     return (
       "ibc/" +
       Buffer.from(sha256(Buffer.from(path)))
@@ -198,7 +198,18 @@ export class AssetUtils {
         network: string,
         ch: string
       }
-    }[], a: string, source: string) {
+    }[], a: string, source: string, fixed?: boolean) {
+
+    if (fixed) {
+      const channel = channels.find(
+        (item) => {
+          return (item.a.network == a && item.b.network == source)
+        }
+      );
+      if(channel){
+        return channel.b.ch;
+      }
+    }
 
     const channel = channels.find(
       (item) => {
@@ -217,7 +228,7 @@ export class AssetUtils {
     }
   }
 
-  public static getChannels(ntwrks: Networks, key: string, network: string, routes: string[]): string[]{
+  public static getChannels(ntwrks: Networks, key: string, network: string, routes: string[]): string[] {
     const asset = ntwrks.networks.list[network].currencies[key];
 
     if (asset.ibc) {
