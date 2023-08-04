@@ -813,6 +813,10 @@ const useWalletStore = defineStore("wallet", {
         balance = balance.sub(notAvailable);
       }
 
+      if(balance.isNegative()){
+        balance = new Dec(0);
+      }
+
       const int = new Int(balance.mul(new Dec(10).pow(new Int(ChainConstants.COIN_DECIMALS))).toString(0));
 
       return { amount: int, denom: ChainConstants.COIN_MINIMAL_DENOM };
