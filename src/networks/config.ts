@@ -59,7 +59,7 @@ export const NETWORKS_DATA: {
                 explorer: 'https://testnet.mintscan.io/cosmoshub-testnet/txs',
                 currencies: () => {
                     const app = useApplicationStore();
-                    return app?.networks?.[OSMO_NETWORK.key] as ExternalCurrenciesType;
+                    return app?.networks?.[ATOM_NETWORK.key] as ExternalCurrenciesType;
                 },
                 embedChainInfo: atomChainInfo,
             }
@@ -81,7 +81,7 @@ export const NETWORKS_DATA: {
                 explorer: 'https://testnet.mintscan.io/cosmoshub-testnet/txs',
                 currencies: () => {
                     const app = useApplicationStore();
-                    return app?.networks?.[OSMO_NETWORK.key] as ExternalCurrenciesType;
+                    return app?.networks?.[ATOM_NETWORK.key] as ExternalCurrenciesType;
                 },
                 embedChainInfo: atomChainInfo,
             }
@@ -103,7 +103,7 @@ export const NETWORKS_DATA: {
                 explorer: 'https://testnet.mintscan.io/cosmoshub-testnet/txs',
                 currencies: () => {
                     const app = useApplicationStore();
-                    return app?.networks?.[OSMO_NETWORK.key] as ExternalCurrenciesType;
+                    return app?.networks?.[ATOM_NETWORK.key] as ExternalCurrenciesType;
                 },
                 embedChainInfo: atomChainInfo,
             }
@@ -125,7 +125,7 @@ export const NETWORKS_DATA: {
                 explorer: 'https://mintscan.io/cosmoshub/transactions',
                 currencies: () => {
                     const app = useApplicationStore();
-                    return app?.networks?.[OSMO_NETWORK.key] as ExternalCurrenciesType;
+                    return app?.networks?.[ATOM_NETWORK.key] as ExternalCurrenciesType;
                 },
                 embedChainInfo: atomChainInfo,
             }

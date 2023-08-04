@@ -121,6 +121,12 @@
                             "ticker": "ATOM",
                             "decimal_digits": "6"
                         }
+                    },
+                    "NLS": {
+                        "ibc": {
+                            "network": "NOLUS",
+                            "currency": "NLS"
+                        }
                     }
                 }
             },

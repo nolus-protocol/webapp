@@ -95,7 +95,7 @@ export class BaseWallet extends SigningCosmWasmClient {
         timeOut: number,
         gasMuplttiplier: number, 
         gasPrice: string,
-        memo: string,
+        memo?: string,
     }) {
         const timeOutData = Math.floor(Date.now() / 1000) + timeOut;
         const longTimeOut = Long.fromNumber(timeOutData).multiply(1_000_000_000)

@@ -243,6 +243,7 @@ const onUpdateNetwork = async (event: Network) => {
 
     const assets = network.supportedNetworks[event.key].currencies();
     const currenciesPromise = [];
+    console.log(assets)
 
     networkCurrenciesObject.value = assets;
 
@@ -407,16 +408,7 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
       gasMuplttiplier: networkData.gasMuplttiplier,
       gasPrice: networkData.gasPrice,
       sourceChannel: sourceChannel as string,
-      timeOut: networkData.ibcTransferTimeout,
-      memo: JSON.stringify({
-        "forward": {
-          "receiver": "cosmos1vp9j3x49j02w4qex8rguwmg3x4u4lqt2xktgp0",
-          "port": "transfer",
-          "channel": "channel-1084",
-          "timeout": "10m",
-          "retries": 3
-        }
-      }),
+      timeOut: networkData.ibcTransferTimeout
     });
 
     txHash.value = txHashData;
