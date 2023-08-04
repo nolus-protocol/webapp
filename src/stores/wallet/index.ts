@@ -775,6 +775,8 @@ const useWalletStore = defineStore("wallet", {
   getters: {
     available: (state) => {
       let balance = new Dec(0, ChainConstants.COIN_DECIMALS);
+      let notAvailable = new Dec(0, ChainConstants.COIN_DECIMALS);
+
       for (const b of state.balances) {
         if (b.balance.denom == ChainConstants.COIN_MINIMAL_DENOM) {
           balance = balance.add(new Dec(b.balance.amount, ChainConstants.COIN_DECIMALS));
@@ -797,14 +799,18 @@ const useWalletStore = defineStore("wallet", {
         }
 
         const amount = new Dec(b.amount.amount, ChainConstants.COIN_DECIMALS);
-        const notAvailable = amount.sub(amount.mul(new Dec(q)));
-        balance = balance.sub(notAvailable);
+        const navbl = amount.mul(new Dec(1-q));
+        notAvailable = notAvailable.add(navbl);
       }
 
 
       if (state.delegated_vesting) {
         const amount = new Dec(state.delegated_vesting?.amount?.toString() ?? '0', ChainConstants.COIN_DECIMALS);
-        balance = balance.add(amount);
+        if(amount.lt(notAvailable)){
+          balance = balance.add(amount);
+        }
+      }else{
+        balance = balance.sub(notAvailable);
       }
 
       const int = new Int(balance.mul(new Dec(10).pow(new Int(ChainConstants.COIN_DECIMALS))).toString(0));
