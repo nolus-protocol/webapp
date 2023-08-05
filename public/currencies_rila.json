@@ -113,6 +113,7 @@
                 }
             },
             "COSMOS_HUB": {
+                "forward": "OSMOSIS",
                 "currencies": {
                     "ATOM": {
                         "native": {
@@ -124,8 +125,27 @@
                     },
                     "NLS": {
                         "ibc": {
-                            "network": "NOLUS",
+                            "network": "OSMOSIS",
                             "currency": "NLS"
+                        }
+                    },
+                    "USDC": {
+                        "ibc": {
+                            "network": "OSMOSIS",
+                            "currency": "USDC_AXELAR"
+                        }
+                    },
+
+                    "OSMO": {
+                        "ibc": {
+                            "network": "OSMOSIS",
+                            "currency": "OSMO"
+                        }
+                    },
+                    "AKT": {
+                        "ibc": {
+                            "network": "OSMOSIS",
+                            "currency": "AKT"
                         }
                     }
                 }

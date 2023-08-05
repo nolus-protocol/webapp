@@ -10,7 +10,6 @@ export interface Network {
   estimation: number; 
   sourcePort: string;
   key: string;
-  forwardKey?: string
 }
 
 export interface NetworkData{

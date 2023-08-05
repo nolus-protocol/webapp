@@ -21,7 +21,6 @@ export class AssetUtils {
       return a;
     }, "");
     path += `${coinMinimalDenom}`;
-    console.log(path)
     return (
       "ibc/" +
       Buffer.from(sha256(Buffer.from(path)))
@@ -155,8 +154,9 @@ export class AssetUtils {
             const n = ntwrks.networks.list[currency.ibc.network];
             const ibc_route = [];
 
-            const channel = AssetUtils.getChannel(ntwrks.networks.channels, currency.ibc, k);
-            ibc_route.push(channel?.ch as string);
+            const channel = AssetUtils.getSourceChannel(ntwrks.networks.channels, k, currency.ibc.network, k);
+   
+            ibc_route.push(channel as string);
 
             let c = n.currencies[currency.ibc.currency];
 
@@ -198,31 +198,37 @@ export class AssetUtils {
         network: string,
         ch: string
       }
-    }[], a: string, source: string, fixed?: boolean) {
-
-    if (fixed) {
+    }[], a: string, b: string, source?: string) {
+    if (source) {
       const channel = channels.find(
         (item) => {
-          return (item.a.network == a && item.b.network == source)
+          return (item.a.network == a && item.b.network == b)
         }
       );
-      if(channel){
-        return channel.b.ch;
+
+      if (channel) {
+        if (channel.a.network == source) {
+          return channel.a.ch;
+        }
+  
+        if (channel.b.network == source) {
+          return channel.b.ch;
+        }
       }
     }
 
     const channel = channels.find(
       (item) => {
-        return (item.a.network == a && item.b.network == source) || (item.a.network == source && item.b.network == a)
+        return (item.a.network == a && item.b.network == b) || (item.a.network == b && item.b.network == a)
       }
     );
 
     if (channel) {
-      if (channel.a.network == source) {
+      if (channel.a.network == (source ?? b)) {
         return channel.a.ch;
       }
 
-      if (channel.b.network == source) {
+      if (channel.b.network == (source ?? b)) {
         return channel.b.ch;
       }
     }

@@ -3,7 +3,7 @@ export const NETWORK = {
     key: "COSMOS_HUB",
     gasMuplttiplier: 2,
     bip44Path: "44'/118'/0'/0/0",
-    ibcTransferTimeout: 60,
+    ibcTransferTimeout: 600,
     ticker: "ATOM",
     name: "Cosmos Hub",
     gasPrice:'0.003uatom',

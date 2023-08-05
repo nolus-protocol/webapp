@@ -53,7 +53,6 @@ import {
 } from "@/components/utils";
 import { AssetUtils, EnvNetworkUtils, WalletUtils } from "@/utils";
 import { useApplicationStore } from "@/stores/application";
-import { NETWORK as OSMO_NETWORK } from '@/networks/osmo/network';
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const walletStore = useWalletStore();
@@ -121,10 +120,10 @@ const validateInputs = () => {
     state.value.selectedCurrency.balance.denom,
     Number(state.value.selectedCurrency.balance.amount)
   );
-
-  if (state.value.network.forwardKey) {
+  const networkInfo = app.networksData!.networks.list[state.value.network.key];
+  if (networkInfo.forward) {
     const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
-    const proxyAddress = WalletUtils.transformWallet(network.supportedNetworks[state.value.network.forwardKey].prefix);
+    const proxyAddress = WalletUtils.transformWallet(network.supportedNetworks[networkInfo.forward].prefix);
     state.value.receiverErrorMsg = validateAddress(proxyAddress);
     return;
   }
@@ -207,7 +206,9 @@ const ibcTransfer = async () => {
         denom,
       };
 
-      const sourceChannel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, state.value.network.forwardKey ?? state.value.network.key, NATIVE_NETWORK.symbol);
+
+      const networkInfo = app.networksData!.networks.list[state.value.network.key];
+      const sourceChannel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, networkInfo.forward ?? state.value.network.key, NATIVE_NETWORK.symbol);
 
       const rawTx: {
         toAddress: string,
@@ -222,12 +223,10 @@ const ibcTransfer = async () => {
         sourceChannel: sourceChannel as string,
       };
 
-
-      if (state.value.network.forwardKey) {
+      if (networkInfo.forward) {
         const networkData = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
-        const network = networkData.supportedNetworks[state.value.network.key];
-        const proxyAddress = WalletUtils.transformWallet(networkData.supportedNetworks[state.value.network.forwardKey].prefix);
-        const channel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, state.value.network.key, state.value.network.forwardKey!, true);
+        const proxyAddress = WalletUtils.transformWallet(networkData.supportedNetworks[networkInfo.forward].prefix);
+        const channel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, state.value.network.key, networkInfo.forward!, networkInfo.forward!);
 
         rawTx.toAddress = proxyAddress;
         rawTx.memo = JSON.stringify({

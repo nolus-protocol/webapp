@@ -32,7 +32,6 @@ export const SUPPORTED_NETWORKS = [
         native: false,
         estimation: 20,
         key: "COSMOS_HUB",
-        forwardKey: "OSMOSIS"
     },
 ];
 

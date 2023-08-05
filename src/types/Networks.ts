@@ -4,6 +4,7 @@ export interface Networks {
     networks: {
         list: {
             [key: string]: {
+                forward?: string,
                 currencies: {
                     [key: string]: Currency
                 }

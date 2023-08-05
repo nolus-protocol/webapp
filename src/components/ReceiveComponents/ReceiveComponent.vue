@@ -243,7 +243,6 @@ const onUpdateNetwork = async (event: Network) => {
 
     const assets = network.supportedNetworks[event.key].currencies();
     const currenciesPromise = [];
-    console.log(assets)
 
     networkCurrenciesObject.value = assets;
 
@@ -342,20 +341,22 @@ const validateAmount = async () => {
   const decimals = selectedCurrency.value?.decimals;
 
   if (prefix && ibc_route && symbol && decimals) {
-    const balance = await client.getBalance(WalletUtils.transformWallet(prefix), AssetUtils.makeIBCMinimalDenom(ibc_route, symbol));
-    const walletBalance = Decimal.fromAtomics(balance.amount, decimals);
-    const transferAmount = Decimal.fromUserInput(
-      amount.value,
-      decimals
-    );
 
-    const isGreaterThanWalletBalance = transferAmount.isGreaterThan(walletBalance);
+    try {
+      const balance = await client.getBalance(WalletUtils.transformWallet(prefix), AssetUtils.makeIBCMinimalDenom(ibc_route, symbol));
+      const walletBalance = Decimal.fromAtomics(balance.amount, decimals);
+      const transferAmount = Decimal.fromUserInput(
+        amount.value,
+        decimals
+      );
+      const isGreaterThanWalletBalance = transferAmount.isGreaterThan(walletBalance);
 
-    if (isGreaterThanWalletBalance) {
-      amountErrorMsg.value = i18n.t("message.invalid-balance-big");
-      return false;
-    }
+      if (isGreaterThanWalletBalance) {
+        amountErrorMsg.value = i18n.t("message.invalid-balance-big");
+        return false;
+      }
 
+    } catch (e) { }
 
   } else {
     amountErrorMsg.value = i18n.t("message.unexpected-error");
@@ -381,6 +382,16 @@ const onSendClick = async () => {
   }
 };
 
+const getSourceChannel = () => {
+  const networkInfo = app.networksData!.networks.list[selectedNetwork.value.key];
+
+  if (networkInfo.forward) {
+    return AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, selectedNetwork.value.key, networkInfo.forward, selectedNetwork.value.key);
+  } else {
+    return AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, selectedNetwork.value.key, NATIVE_NETWORK.symbol, selectedNetwork.value.key);
+  }
+}
+
 const ibcTransfer = async (baseWallet: BaseWallet) => {
   try {
 
@@ -399,17 +410,45 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
       amount: minimalDenom.amount.toString(),
       denom,
     };
-    const sourceChannel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, NATIVE_NETWORK.symbol, OSMO_NETWORK.key)
 
-    const { txHash: txHashData, txBytes, usedFee } = await baseWallet.simulateSendIbcTokensTx({
+    const sourceChannel = getSourceChannel();
+    const networkInfo = app.networksData!.networks.list[selectedNetwork.value.key];
+
+    const rawTx: {
+      toAddress: string,
+      amount: Coin,
+      sourcePort: string,
+      sourceChannel: string,
+      gasMuplttiplier: number,
+      gasPrice: string,
+      timeOut: number
+      memo?: string,
+    } = {
       toAddress: wallet.value,
       amount: funds,
       sourcePort: SOURCE_PORTS.TRANSFER,
+      sourceChannel: sourceChannel as string,
       gasMuplttiplier: networkData.gasMuplttiplier,
       gasPrice: networkData.gasPrice,
-      sourceChannel: sourceChannel as string,
       timeOut: networkData.ibcTransferTimeout
-    });
+    };
+
+    if (networkInfo.forward) {
+      const networkData = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
+      const proxyAddress = WalletUtils.transformWallet(networkData.supportedNetworks[networkInfo.forward].prefix);
+      const channel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, NATIVE_NETWORK.symbol, networkInfo.forward, networkInfo.forward);
+      rawTx.toAddress = proxyAddress;
+
+      rawTx.memo = JSON.stringify({
+        "forward": {
+          "receiver": wallet.value,
+          "port": SOURCE_PORTS.TRANSFER,
+          "channel": channel
+        }
+      });
+    }
+
+    const { txHash: txHashData, txBytes, usedFee } = await baseWallet.simulateSendIbcTokensTx(rawTx);
 
     txHash.value = txHashData;
 
