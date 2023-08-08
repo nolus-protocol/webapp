@@ -355,7 +355,9 @@ const validateAmount = async () => {
         return false;
       }
 
-    } catch (e) { }
+    } catch (e) {
+      console.log(e)
+     }
 
   } else {
     amountErrorMsg.value = i18n.t("message.unexpected-error");

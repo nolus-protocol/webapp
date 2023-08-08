@@ -35,5 +35,17 @@
                 "api": "https://rest-cosmoshub.architectnodes.com"
             }
         ]
+    },
+    "AXELAR": {
+        "primary": {
+            "rpc": "https://rpc-axelar-ia.cosmosia.notional.ventures",
+            "api": "https://api-axelar-ia.cosmosia.notional.ventures"
+        },
+        "fallback": [
+            {
+                "rpc": "https://rpc-axelar.imperator.co:443",
+                "api": "https://lcd-axelar.imperator.co:443"
+            }
+        ]
     }
 }

@@ -41,8 +41,8 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     }
   },
   testnet: {
-    currencies: () => import('../../public/currencies_rila.json'),
-    endpoints: "http://localhost:8080/rila-endpoints.json",
+    currencies: () => import('@nolus/nolusjs/build/utils/currencies_testnet.json'),
+    endpoints: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/rila-endpoints.json",
     chainName: "Nolus Testnet",
     explorer: "https://explorer-rila.nolus.io/rila-1/tx",
     govern: "https://explorer-rila.nolus.io/rila-1/gov",
