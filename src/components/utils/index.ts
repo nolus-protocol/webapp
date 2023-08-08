@@ -17,7 +17,7 @@ export const validateAddress = (address: string) => {
   }
 
   try {
-    fromBech32(address, 44);
+    fromBech32(address);
     return "";
   } catch (e) {
     return i18n.global.t("message.invalid-address");

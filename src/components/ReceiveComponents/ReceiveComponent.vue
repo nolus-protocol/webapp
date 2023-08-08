@@ -6,7 +6,7 @@
     :password="password"
     :amount="amount"
     :memo="memo"
-    :txType="$t(`message.${TxType.SEND}`)+':'"
+    :txType="$t(`message.${TxType.SEND}`) + ':'"
     :txHash="txHash"
     :step="step"
     :fee="fee"
@@ -144,7 +144,7 @@ import ConfirmExternalComponent from "@/components/modals/templates/ConfirmExter
 import type { AssetBalance } from "@/stores/wallet/state";
 import { CONFIRM_STEP, TxType, type Network } from "@/types";
 
-import { onUnmounted, ref, type PropType, computed, inject, watch } from "vue";
+import { onUnmounted, ref, type PropType, inject, watch } from "vue";
 import { DocumentDuplicateIcon, QrCodeIcon } from "@heroicons/vue/24/solid";
 import { NATIVE_NETWORK, SOURCE_PORTS } from "@/config/env";
 import { useI18n } from "vue-i18n";
@@ -158,7 +158,6 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { storeToRefs } from "pinia";
-import { NETWORK as OSMO_NETWORK } from '@/networks/osmo/network';
 import { useApplicationStore } from "@/stores/application";
 import { ApptUtils } from "@/utils/AppUtils";
 
@@ -211,7 +210,7 @@ onUnmounted(() => {
 });
 
 watch(() => walletRef.wallet.value?.address, () => {
-  if(!WalletUtils.isAuth()){
+  if (!WalletUtils.isAuth()) {
     wallet.value = i18n.t('message.connect-wallet-label');
     return;
   }
@@ -219,7 +218,7 @@ watch(() => walletRef.wallet.value?.address, () => {
 });
 
 watch(() => [selectedCurrency.value, amount.value], () => {
-  if(amount.value.length > 0){
+  if (amount.value.length > 0) {
     validateAmount()
   }
 });
@@ -245,7 +244,7 @@ const onUpdateNetwork = async (event: Network) => {
     const currenciesPromise = [];
 
     networkCurrenciesObject.value = assets;
-
+    console.log(assets)
     for (const key in assets) {
 
       const fn = async () => {
@@ -326,7 +325,7 @@ const validateAmount = async () => {
 
   amountErrorMsg.value = '';
 
-  if(!WalletUtils.isAuth()){
+  if (!WalletUtils.isAuth()) {
     return false;
   }
 
@@ -341,20 +340,24 @@ const validateAmount = async () => {
   const decimals = selectedCurrency.value?.decimals;
 
   if (prefix && ibc_route && symbol && decimals) {
-    const balance = await client.getBalance(WalletUtils.transformWallet(prefix), AssetUtils.makeIBCMinimalDenom(ibc_route, symbol));
-    const walletBalance = Decimal.fromAtomics(balance.amount, decimals);
-    const transferAmount = Decimal.fromUserInput(
-      amount.value,
-      decimals
-    );
 
-    const isGreaterThanWalletBalance = transferAmount.isGreaterThan(walletBalance);
+    try {
+      const balance = await client.getBalance(WalletUtils.transformWallet(prefix), AssetUtils.makeIBCMinimalDenom(ibc_route, symbol));
+      const walletBalance = Decimal.fromAtomics(balance.amount, decimals);
+      const transferAmount = Decimal.fromUserInput(
+        amount.value,
+        decimals
+      );
+      const isGreaterThanWalletBalance = transferAmount.isGreaterThan(walletBalance);
 
-    if (isGreaterThanWalletBalance) {
-      amountErrorMsg.value = i18n.t("message.invalid-balance-big");
-      return false;
-    }
+      if (isGreaterThanWalletBalance) {
+        amountErrorMsg.value = i18n.t("message.invalid-balance-big");
+        return false;
+      }
 
+    } catch (e) {
+      console.log(e)
+     }
 
   } else {
     amountErrorMsg.value = i18n.t("message.unexpected-error");
@@ -380,6 +383,16 @@ const onSendClick = async () => {
   }
 };
 
+const getSourceChannel = () => {
+  const networkInfo = app.networksData!.networks.list[selectedNetwork.value.key];
+
+  if (networkInfo.forward) {
+    return AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, selectedNetwork.value.key, networkInfo.forward, selectedNetwork.value.key);
+  } else {
+    return AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, selectedNetwork.value.key, NATIVE_NETWORK.key, selectedNetwork.value.key);
+  }
+}
+
 const ibcTransfer = async (baseWallet: BaseWallet) => {
   try {
 
@@ -398,18 +411,45 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
       amount: minimalDenom.amount.toString(),
       denom,
     };
-    const sourceChannel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, NATIVE_NETWORK.symbol, OSMO_NETWORK.key)
 
-    const { txHash: txHashData, txBytes, usedFee } = await baseWallet.simulateSendIbcTokensTx({
+    const sourceChannel = getSourceChannel();
+    const networkInfo = app.networksData!.networks.list[selectedNetwork.value.key];
+
+    const rawTx: {
+      toAddress: string,
+      amount: Coin,
+      sourcePort: string,
+      sourceChannel: string,
+      gasMuplttiplier: number,
+      gasPrice: string,
+      timeOut: number
+      memo?: string,
+    } = {
       toAddress: wallet.value,
       amount: funds,
       sourcePort: SOURCE_PORTS.TRANSFER,
+      sourceChannel: sourceChannel as string,
       gasMuplttiplier: networkData.gasMuplttiplier,
       gasPrice: networkData.gasPrice,
-      sourceChannel: sourceChannel as string,
-      timeOut: networkData.ibcTransferTimeout,
-      memo: memo.value,
-    });
+      timeOut: networkData.ibcTransferTimeout
+    };
+
+    if (networkInfo.forward) {
+      const networkData = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
+      const proxyAddress = WalletUtils.transformWallet(networkData.supportedNetworks[networkInfo.forward].prefix);
+      const channel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, NATIVE_NETWORK.key, networkInfo.forward, networkInfo.forward);
+      rawTx.toAddress = proxyAddress;
+
+      rawTx.memo = JSON.stringify({
+        "forward": {
+          "receiver": wallet.value,
+          "port": SOURCE_PORTS.TRANSFER,
+          "channel": channel
+        }
+      });
+    }
+
+    const { txHash: txHashData, txBytes, usedFee } = await baseWallet.simulateSendIbcTokensTx(rawTx);
 
     txHash.value = txHashData;
 
@@ -427,6 +467,7 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
     }, 10000);
 
   } catch (error) {
+    console.log(error)
     step.value = CONFIRM_STEP.ERROR;
   }
 }

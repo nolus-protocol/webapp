@@ -23,5 +23,29 @@
                 "api": "https://lcd.osmosis.zone"
             }
         ]
+    },
+    "COSMOS_HUB": {
+        "primary": {
+            "rpc": "https://rpc-cosmoshub-ia.cosmosia.notional.ventures",
+            "api": "https://api-cosmoshub-ia.cosmosia.notional.ventures"
+        },
+        "fallback": [
+            {
+                "rpc": "https://rpc-cosmoshub.architectnodes.com",
+                "api": "https://rest-cosmoshub.architectnodes.com"
+            }
+        ]
+    },
+    "AXELAR": {
+        "primary": {
+            "rpc": "https://rpc-axelar-ia.cosmosia.notional.ventures",
+            "api": "https://api-axelar-ia.cosmosia.notional.ventures"
+        },
+        "fallback": [
+            {
+                "rpc": "https://rpc-axelar.imperator.co:443",
+                "api": "https://lcd-axelar.imperator.co:443"
+            }
+        ]
     }
 }

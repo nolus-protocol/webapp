@@ -21,7 +21,6 @@ export class AssetUtils {
       return a;
     }, "");
     path += `${coinMinimalDenom}`;
-
     return (
       "ibc/" +
       Buffer.from(sha256(Buffer.from(path)))
@@ -140,10 +139,10 @@ export class AssetUtils {
             const a = AssetUtils.getAsset(ntwrks, ck, k);
             assetIcons[a.key] = currency.icon;
           }
-
           if (currency.native) {
             networks[k][ck] = {
               ...currency.native,
+              forward: currency.forward,
               shortName: currency.native?.ticker,
               ticker: ck,
               native: true,
@@ -155,8 +154,9 @@ export class AssetUtils {
             const n = ntwrks.networks.list[currency.ibc.network];
             const ibc_route = [];
 
-            const channel = AssetUtils.getChannel(ntwrks.networks.channels, currency.ibc, k);
-            ibc_route.push(channel?.ch as string);
+            const channel = AssetUtils.getSourceChannel(ntwrks.networks.channels, k, currency.ibc.network, k);
+   
+            ibc_route.push(channel as string);
 
             let c = n.currencies[currency.ibc.currency];
 
@@ -171,6 +171,7 @@ export class AssetUtils {
 
             networks[k][ticker] = {
               ...c.native!,
+              forward: currency.forward,
               shortName: c.native?.ticker as string,
               ticker: ticker,
               native: false,
@@ -198,26 +199,43 @@ export class AssetUtils {
         network: string,
         ch: string
       }
-    }[], a: string, source: string) {
+    }[], a: string, b: string, source?: string) {
+    if (source) {
+      const channel = channels.find(
+        (item) => {
+          return (item.a.network == a && item.b.network == b)
+        }
+      );
+
+      if (channel) {
+        if (channel.a.network == source) {
+          return channel.a.ch;
+        }
+  
+        if (channel.b.network == source) {
+          return channel.b.ch;
+        }
+      }
+    }
 
     const channel = channels.find(
       (item) => {
-        return (item.a.network == a && item.b.network == source) || (item.a.network == source && item.b.network == a)
+        return (item.a.network == a && item.b.network == b) || (item.a.network == b && item.b.network == a)
       }
     );
 
     if (channel) {
-      if (channel.a.network == source) {
+      if (channel.a.network == (source ?? b)) {
         return channel.a.ch;
       }
 
-      if (channel.b.network == source) {
+      if (channel.b.network == (source ?? b)) {
         return channel.b.ch;
       }
     }
   }
 
-  public static getChannels(ntwrks: Networks, key: string, network: string, routes: string[]): string[]{
+  public static getChannels(ntwrks: Networks, key: string, network: string, routes: string[]): string[] {
     const asset = ntwrks.networks.list[network].currencies[key];
 
     if (asset.ibc) {
@@ -233,7 +251,7 @@ export class AssetUtils {
 
   public static getLpn(ntwrks: Networks) {
     const lpn = Object.keys(ntwrks.lease.Lpn)[0];
-    return AssetUtils.getAsset(ntwrks, lpn as string, NATIVE_NETWORK.symbol as string);
+    return AssetUtils.getAsset(ntwrks, lpn as string, NATIVE_NETWORK.key as string);
   }
 
   public static getAsset(ntwrks: Networks, key: string, network: string): { asset: Currency, key: string } {
@@ -248,13 +266,13 @@ export class AssetUtils {
 
   public static getNative(ntwrks: Networks) {
     const native = ntwrks.lease.Native.id;
-    return AssetUtils.getAsset(ntwrks, native as string, NATIVE_NETWORK.symbol as string);
+    return AssetUtils.getAsset(ntwrks, native as string, NATIVE_NETWORK.key as string);
   }
 
   public static getLease(ntwrks: Networks) {
     const lease = Object.keys(ntwrks.lease.Lease);
     return lease.map((c) => {
-      const asset = AssetUtils.getAsset(ntwrks, c as string, NATIVE_NETWORK.symbol as string);
+      const asset = AssetUtils.getAsset(ntwrks, c as string, NATIVE_NETWORK.key as string);
       return asset.key;
     });
   }

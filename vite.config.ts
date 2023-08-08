@@ -1,7 +1,6 @@
 
 import { fileURLToPath, URL } from 'node:url';
-import { resolve, dirname } from 'node:path';
-import { defineConfig, splitVendorChunkPlugin } from 'vite';
+import { defineConfig } from 'vite';
 
 import vue from '@vitejs/plugin-vue';
 import vueI18n from '@intlify/unplugin-vue-i18n/vite';
@@ -15,8 +14,7 @@ export default defineConfig({
       compositionOnly: true,
       strictMessage: false,
       runtimeOnly: false
-    }),
-    splitVendorChunkPlugin()
+    })
   ],
   resolve: {
     alias: {

@@ -95,7 +95,7 @@ export class BaseWallet extends SigningCosmWasmClient {
         timeOut: number,
         gasMuplttiplier: number, 
         gasPrice: string,
-        memo: string,
+        memo?: string,
     }) {
         const timeOutData = Math.floor(Date.now() / 1000) + timeOut;
         const longTimeOut = Long.fromNumber(timeOutData).multiply(1_000_000_000)
@@ -107,10 +107,11 @@ export class BaseWallet extends SigningCosmWasmClient {
             receiver: toAddress,
             token: amount,
             timeoutHeight: undefined,
-            timeoutTimestamp: longTimeOut
+            timeoutTimestamp: longTimeOut,
+            memo
         });
 
-        return await this.simulateTx(msg, '/ibc.applications.transfer.v1.MsgTransfer', gasMuplttiplier, gasPrice);
+        return await this.simulateTx(msg, '/ibc.applications.transfer.v1.MsgTransfer', gasMuplttiplier, gasPrice, "");
     }
 
     private async sequence() {

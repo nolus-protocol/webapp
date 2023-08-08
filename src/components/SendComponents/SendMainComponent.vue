@@ -31,10 +31,10 @@ import ConfirmComponent from "@/components/modals/templates/ConfirmComponent.vue
 import { CONFIRM_STEP } from "@/types/ConfirmStep";
 import { TxType } from "@/types/TxType";
 import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
-import { computed, inject, onUnmounted, ref, watch } from "vue";
+import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { coin, type Coin } from "@cosmjs/amino";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { SUPPORTED_NETWORKS } from "@/networks/config";
+import { NETWORKS_DATA, SUPPORTED_NETWORKS } from "@/networks/config";
 
 import {
   NATIVE_ASSET,
@@ -51,9 +51,9 @@ import {
   validateAmount,
   walletOperation,
 } from "@/components/utils";
-import { AssetUtils } from "@/utils";
+import { AssetUtils, EnvNetworkUtils, WalletUtils } from "@/utils";
 import { useApplicationStore } from "@/stores/application";
-import { NETWORK as OSMO_NETWORK } from '@/networks/osmo/network';
+import type { AssetBalance } from "@/stores/wallet/state";
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const walletStore = useWalletStore();
@@ -66,13 +66,15 @@ const showSnackbar = inject(
   "showSnackbar",
   (type: string, transaction: string) => { }
 );
-const balances = computed(() => walletStore.balances.map((item) => {
+const balances = ref<AssetBalance[]>(walletStore.balances.map((item) => {
   const e = { ...item }
   if (e.balance.denom == walletStore.available.denom) {
     e.balance = { ...walletStore.available }
   }
   return e;
 }));
+
+
 const showConfirmScreen = ref(false);
 const state = ref({
   currentBalance: balances.value,
@@ -115,12 +117,65 @@ watch(() => state.value.receiverAddress, () => {
   state.value.receiverErrorMsg = validateAddress(state.value.receiverAddress);
 })
 
+watch(() => state.value.network, () => {
+  const network = app.networksData!.networks.list[state.value.network.key];
+
+  if (network?.forward) {
+    const native = app.networks![NATIVE_NETWORK.key];
+    const items: string[] = [];
+
+    for (const i in native) {
+      const c = native[i];
+      if (c.forward?.includes(state.value.network.key)) {
+        const ibc = AssetUtils.makeIBCMinimalDenom(c.ibc_route, c.symbol);
+        items.push(ibc);
+      }
+    }
+    state.value.currentBalance = walletStore.balances.filter((item) => {
+      if (items.includes(item.balance.denom)) {
+        return true;
+      }
+      return false;
+    }).map((item) => {
+      const e = { ...item }
+      if (e.balance.denom == walletStore.available.denom) {
+        e.balance = { ...walletStore.available }
+      }
+      return e;
+    });
+
+  } else {
+    state.value.currentBalance = walletStore.balances.map((item) => {
+      const e = { ...item }
+      if (e.balance.denom == walletStore.available.denom) {
+        e.balance = { ...walletStore.available }
+      }
+      return e;
+    });
+  }
+
+  state.value.selectedCurrency = state.value.currentBalance[0];
+
+  nextTick(() => {
+    state.value.receiverErrorMsg = '';
+    state.value.amountErrorMsg = '';
+  });
+
+})
+
 const validateInputs = () => {
   state.value.amountErrorMsg = validateAmount(
     state.value.amount,
     state.value.selectedCurrency.balance.denom,
     Number(state.value.selectedCurrency.balance.amount)
   );
+  const networkInfo = app.networksData!.networks.list[state.value.network.key];
+  if (networkInfo.forward) {
+    const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
+    const proxyAddress = WalletUtils.transformWallet(network.supportedNetworks[networkInfo.forward].prefix);
+    state.value.receiverErrorMsg = validateAddress(proxyAddress);
+    return;
+  }
 
   state.value.receiverErrorMsg = validateAddress(state.value.receiverAddress);
 };
@@ -188,25 +243,54 @@ const ibcTransfer = async () => {
       const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(
         state.value.selectedCurrency.balance.denom
       );
+
       const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
         state.value.amount,
         coinMinimalDenom,
         coinDecimals
       );
+
       const funds: Coin = {
         amount: minimalDenom.amount.toString(),
         denom,
       };
-      const sourceChannel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, OSMO_NETWORK.key, NATIVE_NETWORK.symbol)
-      const { txHash, txBytes, usedFee } = await wallet.simulateSendIbcTokensTx(
-        {
-          toAddress: state.value.receiverAddress,
-          amount: funds,
-          sourcePort: SOURCE_PORTS.TRANSFER,
-          sourceChannel: sourceChannel as string,
-          memo: "",
-        }
-      );
+
+
+      const networkInfo = app.networksData!.networks.list[state.value.network.key];
+      const sourceChannel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, networkInfo.forward ?? state.value.network.key, NATIVE_NETWORK.key);
+
+      const rawTx: {
+        toAddress: string,
+        amount: Coin,
+        sourcePort: string,
+        sourceChannel: string,
+        memo?: string
+      } = {
+        toAddress: "",
+        amount: funds,
+        sourcePort: SOURCE_PORTS.TRANSFER,
+        sourceChannel: sourceChannel as string,
+      };
+
+      if (networkInfo.forward) {
+        const networkData = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
+        const proxyAddress = WalletUtils.transformWallet(networkData.supportedNetworks[networkInfo.forward].prefix);
+        const channel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, state.value.network.key, networkInfo.forward!, networkInfo.forward!);
+
+        rawTx.toAddress = proxyAddress;
+        rawTx.memo = JSON.stringify({
+          "forward": {
+            "receiver": state.value.receiverAddress,
+            "port": SOURCE_PORTS.TRANSFER,
+            "channel": channel
+          }
+        });
+
+      } else {
+        rawTx.toAddress = state.value.receiverAddress;
+      }
+
+      const { txHash, txBytes, usedFee } = await wallet.simulateSendIbcTokensTx(rawTx);
 
       state.value.txHash = txHash;
 

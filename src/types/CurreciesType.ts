@@ -32,5 +32,6 @@ export interface ExternalCurrencyType {
   "decimal_digits": string,
   "ibc_route": string[],
   "ticker": string,
-  "native": boolean
+  "native": boolean,
+  "forward"?: string[]
 }

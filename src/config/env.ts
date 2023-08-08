@@ -97,16 +97,14 @@ export const NATIVE_ASSET = {
 };
 
 export const NATIVE_NETWORK = {
-  symbol: "NOLUS",
   prefix: "nolus",
   value: "nls",
   label: "Nolus",
-  icon: nlsIcon,
   native: true,
   estimation: 6,
   longOperationsEstimation: 20,
   leaseOpenEstimation: 2,
-  key: "NLS"
+  key: "NOLUS"
 };
 
 export enum SOURCE_PORTS {
@@ -287,7 +285,7 @@ if (!isDev()) {
 }
 
 export const languages = l;
-export const SUPPORTED_NETWORKS = ['NOLUS', 'OSMOSIS'];
+export const SUPPORTED_NETWORKS = ['NOLUS', 'OSMOSIS', 'COSMOS_HUB', 'AXELAR'];
 export const SWAP_FEE = 0.007;
 export const ZERO_DECIMALS = 2;
 export const MAX_DECIMALS = 8;

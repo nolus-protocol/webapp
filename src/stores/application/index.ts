@@ -42,9 +42,9 @@ const useApplicationStore = defineStore("application", {
 
       const native = AssetUtils.getNative(currenciesData).key
       const lpn = AssetUtils.getLpn(currenciesData).key;
-      this.native = data.networks[NATIVE_NETWORK.symbol][native];
-      this.lpn = data.networks[NATIVE_NETWORK.symbol][lpn];
-      this.currenciesData = data.networks[NATIVE_NETWORK.symbol];
+      this.native = data.networks[NATIVE_NETWORK.key][native];
+      this.lpn = data.networks[NATIVE_NETWORK.key][lpn];
+      this.currenciesData = data.networks[NATIVE_NETWORK.key];
       this.lease = AssetUtils.getLease(currenciesData);
     },
     async [ApplicationActionTypes.CHANGE_NETWORK](loadBalance = false) {
