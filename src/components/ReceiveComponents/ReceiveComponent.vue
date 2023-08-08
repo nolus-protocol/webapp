@@ -144,7 +144,7 @@ import ConfirmExternalComponent from "@/components/modals/templates/ConfirmExter
 import type { AssetBalance } from "@/stores/wallet/state";
 import { CONFIRM_STEP, TxType, type Network } from "@/types";
 
-import { onUnmounted, ref, type PropType, computed, inject, watch } from "vue";
+import { onUnmounted, ref, type PropType, inject, watch } from "vue";
 import { DocumentDuplicateIcon, QrCodeIcon } from "@heroicons/vue/24/solid";
 import { NATIVE_NETWORK, SOURCE_PORTS } from "@/config/env";
 import { useI18n } from "vue-i18n";
@@ -158,7 +158,6 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { storeToRefs } from "pinia";
-import { NETWORK as OSMO_NETWORK } from '@/networks/osmo/network';
 import { useApplicationStore } from "@/stores/application";
 import { ApptUtils } from "@/utils/AppUtils";
 
@@ -245,7 +244,7 @@ const onUpdateNetwork = async (event: Network) => {
     const currenciesPromise = [];
 
     networkCurrenciesObject.value = assets;
-
+    console.log(assets)
     for (const key in assets) {
 
       const fn = async () => {
@@ -388,7 +387,7 @@ const getSourceChannel = () => {
   if (networkInfo.forward) {
     return AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, selectedNetwork.value.key, networkInfo.forward, selectedNetwork.value.key);
   } else {
-    return AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, selectedNetwork.value.key, NATIVE_NETWORK.symbol, selectedNetwork.value.key);
+    return AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, selectedNetwork.value.key, NATIVE_NETWORK.key, selectedNetwork.value.key);
   }
 }
 
@@ -436,7 +435,7 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
     if (networkInfo.forward) {
       const networkData = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
       const proxyAddress = WalletUtils.transformWallet(networkData.supportedNetworks[networkInfo.forward].prefix);
-      const channel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, NATIVE_NETWORK.symbol, networkInfo.forward, networkInfo.forward);
+      const channel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, NATIVE_NETWORK.key, networkInfo.forward, networkInfo.forward);
       rawTx.toAddress = proxyAddress;
 
       rawTx.memo = JSON.stringify({

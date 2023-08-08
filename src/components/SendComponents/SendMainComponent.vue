@@ -31,7 +31,7 @@ import ConfirmComponent from "@/components/modals/templates/ConfirmComponent.vue
 import { CONFIRM_STEP } from "@/types/ConfirmStep";
 import { TxType } from "@/types/TxType";
 import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
-import { computed, inject, onUnmounted, ref, watch } from "vue";
+import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { coin, type Coin } from "@cosmjs/amino";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS } from "@/networks/config";
@@ -53,6 +53,7 @@ import {
 } from "@/components/utils";
 import { AssetUtils, EnvNetworkUtils, WalletUtils } from "@/utils";
 import { useApplicationStore } from "@/stores/application";
+import type { AssetBalance } from "@/stores/wallet/state";
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const walletStore = useWalletStore();
@@ -65,13 +66,15 @@ const showSnackbar = inject(
   "showSnackbar",
   (type: string, transaction: string) => { }
 );
-const balances = computed(() => walletStore.balances.map((item) => {
+const balances = ref<AssetBalance[]>(walletStore.balances.map((item) => {
   const e = { ...item }
   if (e.balance.denom == walletStore.available.denom) {
     e.balance = { ...walletStore.available }
   }
   return e;
 }));
+
+
 const showConfirmScreen = ref(false);
 const state = ref({
   currentBalance: balances.value,
@@ -112,6 +115,52 @@ watch(() => [state.value.selectedCurrency, state.value.amount], () => {
 
 watch(() => state.value.receiverAddress, () => {
   state.value.receiverErrorMsg = validateAddress(state.value.receiverAddress);
+})
+
+watch(() => state.value.network, () => {
+  const network = app.networksData!.networks.list[state.value.network.key];
+
+  if (network?.forward) {
+    const native = app.networks![NATIVE_NETWORK.key];
+    const items: string[] = [];
+
+    for (const i in native) {
+      const c = native[i];
+      if (c.forward?.includes(state.value.network.key)) {
+        const ibc = AssetUtils.makeIBCMinimalDenom(c.ibc_route, c.symbol);
+        items.push(ibc);
+      }
+    }
+    state.value.currentBalance = walletStore.balances.filter((item) => {
+      if (items.includes(item.balance.denom)) {
+        return true;
+      }
+      return false;
+    }).map((item) => {
+      const e = { ...item }
+      if (e.balance.denom == walletStore.available.denom) {
+        e.balance = { ...walletStore.available }
+      }
+      return e;
+    });
+
+  } else {
+    state.value.currentBalance = walletStore.balances.map((item) => {
+      const e = { ...item }
+      if (e.balance.denom == walletStore.available.denom) {
+        e.balance = { ...walletStore.available }
+      }
+      return e;
+    });
+  }
+
+  state.value.selectedCurrency = state.value.currentBalance[0];
+
+  nextTick(() => {
+    state.value.receiverErrorMsg = '';
+    state.value.amountErrorMsg = '';
+  });
+
 })
 
 const validateInputs = () => {
@@ -208,7 +257,7 @@ const ibcTransfer = async () => {
 
 
       const networkInfo = app.networksData!.networks.list[state.value.network.key];
-      const sourceChannel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, networkInfo.forward ?? state.value.network.key, NATIVE_NETWORK.symbol);
+      const sourceChannel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, networkInfo.forward ?? state.value.network.key, NATIVE_NETWORK.key);
 
       const rawTx: {
         toAddress: string,

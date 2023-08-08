@@ -65,5 +65,6 @@ export interface Currency {
         network: string,
         currency: string
     },
-    icon?: string
+    icon?: string,
+    forward?: string[]
 }

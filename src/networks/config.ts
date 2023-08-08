@@ -1,6 +1,3 @@
-import osmoIcon from "@/assets/icons/coins/osmosis.svg";
-import atomIcon from "@/assets/icons/coins/atom.svg";
-
 import type { NetworkData } from "@/types/Network";
 
 import { NATIVE_NETWORK } from "@/config/env";
@@ -9,6 +6,9 @@ import { embedChainInfo as osmoChainInfo } from './osmo/contants';
 
 import { NETWORK as ATOM_NETWORK } from './cosmos/network';
 import { embedChainInfo as atomChainInfo } from './cosmos/contants';
+
+import { NETWORK as AXELAR_NETWORK } from './axelar/network';
+import { embedChainInfo as alexarChainInfo } from './axelar/contants';
 
 import { useApplicationStore } from "@/stores/application";
 import type { ExternalCurrenciesType } from "@/types/CurreciesType";
@@ -19,7 +19,6 @@ export const SUPPORTED_NETWORKS = [
         prefix: "osmo",
         value: "osmo",
         label: "Osmosis",
-        icon: osmoIcon,
         native: false,
         estimation: 20,
         key: "OSMOSIS"
@@ -28,10 +27,17 @@ export const SUPPORTED_NETWORKS = [
         prefix: "cosmos",
         value: "cosmos",
         label: "Cosmos Hub",
-        icon: atomIcon,
         native: false,
         estimation: 20,
         key: "COSMOS_HUB",
+    },
+    {
+        prefix: "axelar",
+        value: "axelar",
+        label: "Axelar network",
+        native: false,
+        estimation: 20,
+        key: "AXELAR",
     },
 ];
 
@@ -61,6 +67,15 @@ export const NETWORKS_DATA: {
                     return app?.networks?.[ATOM_NETWORK.key] as ExternalCurrenciesType;
                 },
                 embedChainInfo: atomChainInfo,
+            },
+            AXELAR: {
+                ...AXELAR_NETWORK,
+                explorer: 'https://testnet.mintscan.io/axelar-testnet/txs',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[AXELAR_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: alexarChainInfo,
             }
         }
     },
@@ -83,6 +98,15 @@ export const NETWORKS_DATA: {
                     return app?.networks?.[ATOM_NETWORK.key] as ExternalCurrenciesType;
                 },
                 embedChainInfo: atomChainInfo,
+            },
+            AXELAR: {
+                ...AXELAR_NETWORK,
+                explorer: 'https://testnet.mintscan.io/axelar-testnet/txs',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[AXELAR_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: alexarChainInfo,
             }
         }
     },
@@ -105,6 +129,15 @@ export const NETWORKS_DATA: {
                     return app?.networks?.[ATOM_NETWORK.key] as ExternalCurrenciesType;
                 },
                 embedChainInfo: atomChainInfo,
+            },
+            AXELAR: {
+                ...AXELAR_NETWORK,
+                explorer: 'https://testnet.mintscan.io/axelar-testnet/txs',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[AXELAR_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: alexarChainInfo,
             }
         }
     },
@@ -127,6 +160,15 @@ export const NETWORKS_DATA: {
                     return app?.networks?.[ATOM_NETWORK.key] as ExternalCurrenciesType;
                 },
                 embedChainInfo: atomChainInfo,
+            },
+            AXELAR: {
+                ...AXELAR_NETWORK,
+                explorer: 'https://mintscan.io/axelar/transactions',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[AXELAR_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: alexarChainInfo,
             }
         }
     },

@@ -66,6 +66,7 @@
         >
           <ListboxOptions
             class="absolute z-10 mt-1 background shadow-lg max-h-56 w-[125px] rounded-md text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm top-[46px] scrollbar"
+            v-if="optionsValue.length > 0"
           >
             <ListboxOption
               v-for="option in optionsValue"

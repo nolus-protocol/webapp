@@ -13,6 +13,7 @@
                         "icon": "https://nolus.io/currencies/osmosis-nls.svg"
                     },
                     "USDC": {
+                        "forward": ["AXELAR"],
                         "ibc": {
                             "network": "OSMOSIS",
                             "currency": "USDC_AXELAR"
@@ -20,6 +21,7 @@
                         "icon": "https://nolus.io/currencies/osmosis-usdc.svg"
                     },
                     "ATOM": {
+                        "forward": ["COSMOS_HUB"],
                         "ibc": {
                             "network": "OSMOSIS",
                             "currency": "ATOM"
@@ -101,6 +103,7 @@
                 ]
             },
             "AXELAR": {
+                "forward": "OSMOSIS",
                 "currencies": {
                     "USDC": {
                         "native": {
@@ -121,31 +124,6 @@
                             "symbol": "uatom",
                             "ticker": "ATOM",
                             "decimal_digits": "6"
-                        }
-                    },
-                    "NLS": {
-                        "ibc": {
-                            "network": "OSMOSIS",
-                            "currency": "NLS"
-                        }
-                    },
-                    "USDC": {
-                        "ibc": {
-                            "network": "OSMOSIS",
-                            "currency": "USDC_AXELAR"
-                        }
-                    },
-
-                    "OSMO": {
-                        "ibc": {
-                            "network": "OSMOSIS",
-                            "currency": "OSMO"
-                        }
-                    },
-                    "AKT": {
-                        "ibc": {
-                            "network": "OSMOSIS",
-                            "currency": "AKT"
                         }
                     }
                 }

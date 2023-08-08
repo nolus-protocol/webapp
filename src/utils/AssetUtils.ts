@@ -139,10 +139,10 @@ export class AssetUtils {
             const a = AssetUtils.getAsset(ntwrks, ck, k);
             assetIcons[a.key] = currency.icon;
           }
-
           if (currency.native) {
             networks[k][ck] = {
               ...currency.native,
+              forward: currency.forward,
               shortName: currency.native?.ticker,
               ticker: ck,
               native: true,
@@ -171,6 +171,7 @@ export class AssetUtils {
 
             networks[k][ticker] = {
               ...c.native!,
+              forward: currency.forward,
               shortName: c.native?.ticker as string,
               ticker: ticker,
               native: false,
@@ -250,7 +251,7 @@ export class AssetUtils {
 
   public static getLpn(ntwrks: Networks) {
     const lpn = Object.keys(ntwrks.lease.Lpn)[0];
-    return AssetUtils.getAsset(ntwrks, lpn as string, NATIVE_NETWORK.symbol as string);
+    return AssetUtils.getAsset(ntwrks, lpn as string, NATIVE_NETWORK.key as string);
   }
 
   public static getAsset(ntwrks: Networks, key: string, network: string): { asset: Currency, key: string } {
@@ -265,13 +266,13 @@ export class AssetUtils {
 
   public static getNative(ntwrks: Networks) {
     const native = ntwrks.lease.Native.id;
-    return AssetUtils.getAsset(ntwrks, native as string, NATIVE_NETWORK.symbol as string);
+    return AssetUtils.getAsset(ntwrks, native as string, NATIVE_NETWORK.key as string);
   }
 
   public static getLease(ntwrks: Networks) {
     const lease = Object.keys(ntwrks.lease.Lease);
     return lease.map((c) => {
-      const asset = AssetUtils.getAsset(ntwrks, c as string, NATIVE_NETWORK.symbol as string);
+      const asset = AssetUtils.getAsset(ntwrks, c as string, NATIVE_NETWORK.key as string);
       return asset.key;
     });
   }
