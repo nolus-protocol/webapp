@@ -302,6 +302,8 @@
     "withdraw-title": "Withdraw",
     "delegate-title": "Delegate",
     "undelegate-title": "Withdraw",
-    "connect-wallet-label": "connect wallet to continue"
+    "connect-wallet-label": "connect wallet to continue",
+    "GasErrorExternal": "Insufficient gas",
+    "gassErrorExternalMsg": "Insufficient gas fees"
   }
 }

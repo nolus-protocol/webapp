@@ -301,6 +301,8 @@
     "supply-title": "Supply",
     "withdraw-title": "Retirer",
     "delegate-title": "Déléguer",
-    "undelegate-title": "Retirer"
+    "undelegate-title": "Retirer",
+    "GasErrorExternal": "Insufficient gas",
+    "gassErrorExternalMsg": "Insufficient gas fees"
   }
 }

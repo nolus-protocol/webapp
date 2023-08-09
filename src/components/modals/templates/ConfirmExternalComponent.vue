@@ -1,6 +1,9 @@
 <template>
   <!-- Header -->
-  <div class="flex modal-send-receive-header no-border">
+  <div
+    class="flex modal-send-receive-header"
+    :class="{ 'no-border': !isStepCustomError }"
+  >
     <div class="navigation-header">
       <button
         v-if="isStepConfirm"
@@ -8,7 +11,10 @@
         type="button"
         @click="onBackButtonClick"
       >
-        <ArrowLeftIcon aria-hidden="true" class="h-5 w-5" />
+        <ArrowLeftIcon
+          aria-hidden="true"
+          class="h-5 w-5"
+        />
       </button>
       <div class="flex flex-col justify-center items-center">
         <CheckIcon
@@ -16,7 +22,7 @@
           class="h-14 w-14 radius-circle p-2 success-icon mb-2"
         />
         <XMarkIcon
-          v-if="isStepError"
+          v-if="isStepError || isStepCustomError"
           class="h-14 w-14 radius-circle p-2 error-icon mb-2"
         />
         <h1 class="nls-font-700 text-28 md:text-32 text-center text-primary">
@@ -26,13 +32,32 @@
     </div>
   </div>
 
+  <div
+    class="modal-form"
+    v-if="isStepCustomError"
+  >
+    <div class="py-[28px]">
+      {{ $t('message.gassErrorExternalMsg') }}
+    </div>
+    <div class="px-[12px] pb-[28px]">
+      <button
+        class="btn btn-primary btn-large-primary w-auto"
+        @click="btnAction"
+      >
+        {{ $t("message.close") }}
+      </button>
+    </div>
+  </div>
+
   <!-- <div class="separator-line pb-6 relative z-[200000] w-[516px]"></div> -->
-  <form @submit.prevent="btnAction" class="modal-form">
+  <form
+    @submit.prevent="btnAction"
+    class="modal-form"
+    v-else
+  >
     <!-- Input Area -->
     <div class="modal-send-receive-input-area pt-0">
-      <div
-        class="block bg-light-grey radius-rounded p-4 text-left break-words mt-[25px]"
-      >
+      <div class="block bg-light-grey radius-rounded p-4 text-left break-words mt-[25px]">
         <div class="block">
           <p class="text-14 nls-font-400 text-primary m-0">{{ txType }}</p>
           <p class="text-14 text-primary nls-font-700 m-0">
@@ -40,7 +65,10 @@
           </p>
         </div>
 
-        <div v-if="memo" class="block mt-3">
+        <div
+          v-if="memo"
+          class="block mt-3"
+        >
           <p class="text-14 nls-font-400 text-primary m-0">
             {{ $t("message.memo") }}:
           </p>
@@ -58,7 +86,10 @@
           </p>
         </div>
 
-        <div v-if="txHash" class="block mt-3">
+        <div
+          v-if="txHash"
+          class="block mt-3"
+        >
           <p class="text-14 nls-font-400 text-primary m-0">
             {{ $t("message.tx-hash") }}:
           </p>
@@ -70,7 +101,10 @@
             {{ StringUtils.truncateString(txHash, 6, 6) }}
           </a>
         </div>
-        <div v-if="fee" class="block mt-3">
+        <div
+          v-if="fee"
+          class="block mt-3"
+        >
           <p class="text-14 nls-font-400 text-primary m-0">
             {{ $t("message.tx-and-fee") }}:
           </p>
@@ -100,11 +134,8 @@
 
     <!-- Actions -->
     <div class="modal-send-receive-actions">
-      <button
-        :class="`btn btn-primary btn-large-primary ${
-          isStepPending ? 'js-loading' : ''
-        }`"
-      >
+      <button :class="`btn btn-primary btn-large-primary ${isStepPending ? 'js-loading' : ''
+        }`">
         {{ isStepConfirm ? $t("message.confirm") : $t("message.ok") }}
       </button>
     </div>
@@ -140,12 +171,12 @@ interface Props {
   fee?: Coin;
   networkCurrencies: {
     [key: string]: {
-        name: string;
-        symbol: string;
-        decimal_digits: string;
-        ibc_route: string[];
-        ticker: string;
-        icon: string;
+      name: string;
+      symbol: string;
+      decimal_digits: string;
+      ibc_route: string[];
+      ticker: string;
+      icon: string;
     }
   },
   onSendClick: () => void;
@@ -160,6 +191,7 @@ const isStepConfirm = computed(() => props.step === CONFIRM_STEP.CONFIRM);
 const isStepPending = computed(() => props.step === CONFIRM_STEP.PENDING);
 const isStepSuccess = computed(() => props.step === CONFIRM_STEP.SUCCESS);
 const isStepError = computed(() => props.step === CONFIRM_STEP.ERROR);
+const isStepCustomError = computed(() => props.step === CONFIRM_STEP.GasErrorExternal);
 
 const networkData = computed(() => {
   return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].supportedNetworks[props.networkKey];
@@ -167,7 +199,7 @@ const networkData = computed(() => {
 
 const btnAction = computed(() => {
   if (!checkValidation()) {
-    return () => {};
+    return () => { };
   }
   return isStepConfirm.value ? props.onSendClick : props.onOkClick;
 });
@@ -180,7 +212,7 @@ const checkValidation = () => {
   return true;
 };
 
-const setShowDialogHeader = inject("setShowDialogHeader", (n: boolean) => {});
+const setShowDialogHeader = inject("setShowDialogHeader", (n: boolean) => { });
 
 onMounted(() => {
   setShowDialogHeader(false);
@@ -216,10 +248,10 @@ const formatAmount = (value: string) => {
 
 const calculateFee = (coin: Coin) => {
   const currency = props.networkCurrencies[networkData.value.ticker];
-  
+
   return CurrencyUtils.convertMinimalDenomToDenom(
     coin.amount.toString(),
-    AssetUtils.makeIBCMinimalDenom(currency.ibc_route ,currency.symbol),
+    AssetUtils.makeIBCMinimalDenom(currency.ibc_route, currency.symbol),
     currency.ticker,
     Number(currency.decimal_digits)
   );

@@ -302,6 +302,8 @@
     "withdraw-title": "提取",
     "delegate-title": "委托",
     "undelegate-title": "解除委托",
-    "connect-wallet-label": "connect wallet to continue"
+    "connect-wallet-label": "connect wallet to continue",
+    "GasErrorExternal": "Insufficient gas",
+    "gassErrorExternalMsg": "Insufficient gas fees"
   }
 }

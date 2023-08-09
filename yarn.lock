@@ -183,10 +183,10 @@
   resolved "https://registry.npmjs.org/@esbuild-plugins/node-globals-polyfill/-/node-globals-polyfill-0.2.3.tgz"
   integrity sha512-r3MIryXDeXDOZh7ih1l/yE9ZLORCd5e8vWg02azWRGj5SPTuoh69A2AIyn0Z31V/kHBfZ4HgWJ+OK3GTTwLmnw==
 
-"@esbuild/darwin-arm64@0.18.10":
+"@esbuild/linux-x64@0.18.10":
   version "0.18.10"
-  resolved "https://registry.npmjs.org/@esbuild/darwin-arm64/-/darwin-arm64-0.18.10.tgz"
-  integrity sha512-k2OJQ7ZxE6sVc91+MQeZH9gFeDAH2uIYALPAwTjTCvcPy9Dzrf7V7gFUQPYkn09zloWhQ+nvxWHia2x2ZLR0sQ==
+  resolved "https://registry.npmjs.org/@esbuild/linux-x64/-/linux-x64-0.18.10.tgz"
+  integrity sha512-wj2KRsCsFusli+6yFgNO/zmmLslislAWryJnodteRmGej7ZzinIbMdsyp13rVGde88zxJd5vercNYK9kuvlZaQ==
 
 "@eslint-community/eslint-utils@^4.2.0", "@eslint-community/eslint-utils@^4.3.0":
   version "4.4.0"
@@ -627,10 +627,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@nolus/nolusjs@^0.0.111":
-  version "0.0.111"
-  resolved "https://registry.npmjs.org/@nolus/nolusjs/-/nolusjs-0.0.111.tgz"
-  integrity sha512-RPO4QN3VDDszqSgsQ7aju1GuHe4Ue1gJ9o6F+HZrH4SHZ1PsO5PtoO00QBQuMmHw9Qh59IczUYrcYTJluT7IDA==
+"@nolus/nolusjs@^0.0.112":
+  version "0.0.112"
+  resolved "https://registry.npmjs.org/@nolus/nolusjs/-/nolusjs-0.0.112.tgz"
+  integrity sha512-Czu7Zg/XS6oSemZ0yMMeCLuYWimkVjPw5AwkQ0+PCmQaWsJCOrihbDUIWqTCnwCV171NtHw4AJsezCoPk30ciA==
   dependencies:
     "@cosmjs/cosmwasm-stargate" "0.31.0"
     "@cosmjs/crypto" "0.31.0"
@@ -2366,11 +2366,6 @@ fs.realpath@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/fs.realpath/-/fs.realpath-1.0.0.tgz"
   integrity sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==
-
-fsevents@~2.3.2:
-  version "2.3.2"
-  resolved "https://registry.npmjs.org/fsevents/-/fsevents-2.3.2.tgz"
-  integrity sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==
 
 function-bind@^1.1.1:
   version "1.1.1"

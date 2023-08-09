@@ -146,7 +146,7 @@ import { CONFIRM_STEP, TxType, type Network } from "@/types";
 
 import { onUnmounted, ref, type PropType, inject, watch } from "vue";
 import { DocumentDuplicateIcon, QrCodeIcon } from "@heroicons/vue/24/solid";
-import { NATIVE_NETWORK, SOURCE_PORTS } from "@/config/env";
+import { ErrorCodes, NATIVE_NETWORK, SOURCE_PORTS } from "@/config/env";
 import { useI18n } from "vue-i18n";
 import { AssetUtils, EnvNetworkUtils, WalletUtils } from "@/utils";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS } from "@/networks/config";
@@ -244,7 +244,7 @@ const onUpdateNetwork = async (event: Network) => {
     const currenciesPromise = [];
 
     networkCurrenciesObject.value = assets;
-    console.log(assets)
+
     for (const key in assets) {
 
       const fn = async () => {
@@ -378,7 +378,6 @@ const onSendClick = async () => {
       password.value
     );
   } catch (error: Error | any) {
-    console.log(error)
     step.value = CONFIRM_STEP.ERROR;
   }
 };
@@ -450,7 +449,6 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
     }
 
     const { txHash: txHashData, txBytes, usedFee } = await baseWallet.simulateSendIbcTokensTx(rawTx);
-
     txHash.value = txHashData;
 
     if (usedFee?.amount?.[0]) {
@@ -466,9 +464,18 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
       await walletStore[WalletActionTypes.UPDATE_BALANCES]();
     }, 10000);
 
-  } catch (error) {
+  } catch (error: Error | any) {
     console.log(error)
-    step.value = CONFIRM_STEP.ERROR;
+    switch (error.code) {
+        case (ErrorCodes.GasError): {
+          step.value = CONFIRM_STEP.GasErrorExternal;
+          break;
+        }
+        default: {
+          step.value = CONFIRM_STEP.ERROR;
+          break;
+        }
+      }
   }
 }
 
