@@ -84,11 +84,11 @@ import CurrencyField from "@/components/CurrencyField.vue";
 
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore } from "@/stores/wallet";
-import { WalletUtils } from "@/utils";
+import { EnvNetworkUtils, WalletUtils } from "@/utils";
 import { computed } from "vue";
-import { SUPPORTED_NETWORKS } from "@/networks/config";
 import { Dec } from "@keplr-wallet/unit";
 import { useI18n } from "vue-i18n";
+import { NETWORKS_DATA } from "@/networks";
 const i18n = useI18n();
 
 const props = defineProps({
@@ -98,7 +98,10 @@ const props = defineProps({
   },
 });
 
-const networks = SUPPORTED_NETWORKS;
+const networks = computed(() => {
+  return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list;
+});
+
 const wallet = useWalletStore();
 
 defineEmits(["update:modelValue.selectedCurrency"]);

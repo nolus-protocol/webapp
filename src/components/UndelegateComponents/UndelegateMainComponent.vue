@@ -5,7 +5,7 @@
     :selectedCurrency="state.selectedCurrency"
     :password="state.password"
     :amount="state.amount"
-    :txType="$t(`message.${TxType.UNDELEGATE}`)+':'"
+    :txType="$t(`message.${TxType.UNDELEGATE}`) + ':'"
     :txHash="state.txHash"
     :step="step"
     :fee="state.fee"
@@ -14,7 +14,10 @@
     :onOkClick="onClickOkBtn"
     @passwordUpdate="(value) => (state.password = value)"
   />
-  <UndelegateFormComponent v-else v-model="state" />
+  <UndelegateFormComponent
+    v-else
+    v-model="state"
+  />
   <Modal
     v-if="errorDialog.showDialog"
     @close-modal="errorDialog.showDialog = false"
@@ -58,7 +61,12 @@ defineProps({
 const walletStore = useWalletStore();
 const showConfirmScreen = ref(false);
 const state = ref({
-  currentBalance: walletStore.balances,
+  currentBalance: walletStore.balances.filter((item) => {
+    if (item.balance.denom == NATIVE_ASSET.denom) {
+      return true;
+    }
+    return false;
+  }),
   selectedCurrency: walletStore.balances[0],
   amount: "",
   password: "",
@@ -78,7 +86,7 @@ const step = ref(CONFIRM_STEP.CONFIRM);
 const errorDialog = ref({
   showDialog: false,
   errorMessage: "",
-  tryAgain: (): void => {},
+  tryAgain: (): void => { },
 });
 
 watch(() => [state.value.selectedCurrency, state.value.amount], () => {
@@ -95,7 +103,7 @@ onMounted(async () => {
   delegatedData = delegated;
   state.value.undelegations = undelegations;
 
-  for(const item of delegatedData){
+  for (const item of delegatedData) {
     const d = new Dec(item.balance.amount);
     decimalDelegated = decimalDelegated.add(d);
   }
@@ -118,12 +126,12 @@ watch(
   }
 );
 
-const closeModal = inject("onModalClose", () => () => {});
+const closeModal = inject("onModalClose", () => () => { });
 const loadDelegated = inject("loadDelegated", () => false);
 
 const showSnackbar = inject(
   "showSnackbar",
-  (type: string, transaction: string) => {}
+  (type: string, transaction: string) => { }
 );
 
 const snackbarVisible = inject("snackbarVisible", () => false);
@@ -166,7 +174,7 @@ function validateInputs() {
     coinMinimalDenom,
     coinDecimals
   ).amount.toDec();
-  
+
   const amountToTransfer = CurrencyUtils.convertDenomToMinimalDenom(
     amount,
     coinMinimalDenom,
@@ -199,8 +207,8 @@ async function onUndelegateClick() {
 }
 
 async function undelegate() {
-  if(walletStore.wallet){
-    try{
+  if (walletStore.wallet) {
+    try {
       const amount = state.value.amount;
       const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(NATIVE_ASSET.denom);
       const amountToTransfer = CurrencyUtils.convertDenomToMinimalDenom(
@@ -208,38 +216,38 @@ async function undelegate() {
         coinMinimalDenom,
         coinDecimals
       );
-  
+
       let amountToTransferDecimal = amountToTransfer.amount.toDec();
       const transactions = [];
       step.value = CONFIRM_STEP.PENDING;
 
-      for(const item of delegatedData){
+      for (const item of delegatedData) {
         const amount = new Dec(item.balance.amount);
-  
+
         const rest = amountToTransferDecimal.sub(amount);
-  
-        if(rest.isNegative() || rest.isZero()){
+
+        if (rest.isNegative() || rest.isZero()) {
           const transfer = new Dec(amountToTransferDecimal.toString());
           transactions.push({
             validator: item.delegation.validator_address,
             amount: coin(transfer.truncate().toString(), coinMinimalDenom)
           });
           break;
-        }else{
+        } else {
           const transfer = new Dec(amount.toString());
           transactions.push({
             validator: item.delegation.validator_address,
             amount: coin(transfer.truncate().toString(), coinMinimalDenom)
           });
         }
-  
+
         amountToTransferDecimal = rest;
-   
+
       }
 
       const { txHash, txBytes, usedFee } = await walletStore.wallet.simulateUndelegateTx(transactions);
       state.value.txHash = txHash;
-  
+
       if (usedFee?.amount?.[0]) {
         state.value.fee = usedFee.amount[0];
       }
@@ -253,10 +261,10 @@ async function undelegate() {
       }
 
       await walletStore[WalletActionTypes.UPDATE_BALANCES]();
-        
-    }catch(error: Error | any){
-      switch(error.code){
-        case(ErrorCodes.GasError): {
+
+    } catch (error: Error | any) {
+      switch (error.code) {
+        case (ErrorCodes.GasError): {
           step.value = CONFIRM_STEP.GasError;
           break;
         }

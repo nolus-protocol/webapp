@@ -10,12 +10,18 @@ import { embedChainInfo as atomChainInfo } from './cosmos/contants';
 import { NETWORK as AXELAR_NETWORK } from './axelar/network';
 import { embedChainInfo as alexarChainInfo } from './axelar/contants';
 
+import { NETWORK as AKASH_NETWORK } from './akash/network';
+import { embedChainInfo as akashChainInfo } from './akash/contants';
+
+import { NETWORK as STRIDE_NETWORK } from './stride/network';
+import { embedChainInfo as strideChainInfo } from './stride/contants';
+
 import { useApplicationStore } from "@/stores/application";
 import type { ExternalCurrenciesType } from "@/types/CurreciesType";
 
-export const SUPPORTED_NETWORKS = [
-    NATIVE_NETWORK,
-    {
+export const SUPPORTED_NETWORKS_DATA = {
+    NOLUS: NATIVE_NETWORK,
+    OSMOSIS: {
         prefix: "osmo",
         value: "osmo",
         label: "Osmosis",
@@ -24,7 +30,7 @@ export const SUPPORTED_NETWORKS = [
         key: "OSMOSIS",
         symbol: "OSMO"
     },
-    {
+    COSMOS_HUB: {
         prefix: "cosmos",
         value: "cosmos",
         label: "Cosmos Hub",
@@ -33,25 +39,58 @@ export const SUPPORTED_NETWORKS = [
         key: "COSMOS_HUB",
         symbol: "ATOM"
     },
-    {
+    AXELAR: {
         prefix: "axelar",
         value: "axelar",
-        label: "Axelar network",
+        label: "Axelar",
         native: false,
         estimation: 20,
         key: "AXELAR",
         symbol: "AXL"
     },
-];
+    AKASH: {
+        prefix: "akash",
+        value: "akash",
+        label: "Akash",
+        native: false,
+        estimation: 20,
+        key: "AKASH",
+        symbol: "AKT"
+    },
+    STRIDE: {
+        prefix: "stride",
+        value: "stride",
+        label: "Stride",
+        native: false,
+        estimation: 20,
+        key: "STRIDE",
+        symbol: "STRD"
+    }
+}
 
 export const NETWORKS_DATA: {
     [key: string]: {
+        list: {
+            prefix: string,
+            value: string,
+            label: string,
+            native: boolean,
+            estimation: number,
+            key: string,
+            symbol: string,
+        }[],
         supportedNetworks: {
             [key: string]: NetworkData
         }
     }
 } = {
     localnet: {
+        list: [
+            SUPPORTED_NETWORKS_DATA.NOLUS,
+            SUPPORTED_NETWORKS_DATA.OSMOSIS,
+            SUPPORTED_NETWORKS_DATA.COSMOS_HUB,
+            SUPPORTED_NETWORKS_DATA.AXELAR,
+        ],
         supportedNetworks: {
             OSMOSIS: {
                 ...OSMO_NETWORK,
@@ -83,6 +122,12 @@ export const NETWORKS_DATA: {
         }
     },
     devnet: {
+        list: [
+            SUPPORTED_NETWORKS_DATA.NOLUS,
+            SUPPORTED_NETWORKS_DATA.OSMOSIS,
+            SUPPORTED_NETWORKS_DATA.COSMOS_HUB,
+            SUPPORTED_NETWORKS_DATA.AXELAR,
+        ],
         supportedNetworks: {
             OSMOSIS: {
                 ...OSMO_NETWORK,
@@ -114,6 +159,12 @@ export const NETWORKS_DATA: {
         }
     },
     testnet: {
+        list: [
+            SUPPORTED_NETWORKS_DATA.NOLUS,
+            SUPPORTED_NETWORKS_DATA.OSMOSIS,
+            SUPPORTED_NETWORKS_DATA.COSMOS_HUB,
+            SUPPORTED_NETWORKS_DATA.AXELAR,
+        ],
         supportedNetworks: {
             OSMOSIS: {
                 ...OSMO_NETWORK,
@@ -145,6 +196,14 @@ export const NETWORKS_DATA: {
         }
     },
     mainnet: {
+        list: [
+            SUPPORTED_NETWORKS_DATA.NOLUS,
+            SUPPORTED_NETWORKS_DATA.OSMOSIS,
+            SUPPORTED_NETWORKS_DATA.COSMOS_HUB,
+            SUPPORTED_NETWORKS_DATA.AXELAR,
+            SUPPORTED_NETWORKS_DATA.AKASH,
+            SUPPORTED_NETWORKS_DATA.STRIDE
+        ],
         supportedNetworks: {
             OSMOSIS: {
                 ...OSMO_NETWORK,
@@ -172,6 +231,24 @@ export const NETWORKS_DATA: {
                     return app?.networks?.[AXELAR_NETWORK.key] as ExternalCurrenciesType;
                 },
                 embedChainInfo: alexarChainInfo,
+            },
+            AKASH: {
+                ...AKASH_NETWORK,
+                explorer: 'https://mintscan.io/akash/transactions',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[AKASH_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: akashChainInfo,
+            },
+            STRIDE: {
+                ...STRIDE_NETWORK,
+                explorer: 'https://mintscan.io/akash/transactions',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[STRIDE_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: strideChainInfo,
             }
         }
     },

@@ -286,7 +286,7 @@ if (!isDev()) {
 }
 
 export const languages = l;
-export const SUPPORTED_NETWORKS = ['NOLUS', 'OSMOSIS', 'COSMOS_HUB', 'AXELAR'];
+export const SUPPORTED_NETWORKS = ['NOLUS', 'OSMOSIS', 'COSMOS_HUB', 'AXELAR', 'AKASH', 'STRIDE'];
 export const SWAP_FEE = 0.007;
 export const ZERO_DECIMALS = 2;
 export const MAX_DECIMALS = 8;

@@ -6,7 +6,6 @@
         <CurrencyField
           id="amountSupply"
           :currency-options="modelValue.currentBalance"
-          :disabled-currency-picker="true"
           :error-msg="modelValue.amountErrorMsg"
           :is-error="modelValue.amountErrorMsg !== ''"
           :option="modelValue.selectedCurrency"

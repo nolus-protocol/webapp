@@ -31,10 +31,10 @@ import ConfirmComponent from "@/components/modals/templates/ConfirmComponent.vue
 import { CONFIRM_STEP } from "@/types/ConfirmStep";
 import { TxType } from "@/types/TxType";
 import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
-import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, inject, nextTick, onUnmounted, ref, watch } from "vue";
 import { coin, type Coin } from "@cosmjs/amino";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { NETWORKS_DATA, SUPPORTED_NETWORKS } from "@/networks/config";
+import { NETWORKS_DATA } from "@/networks/config";
 
 import {
   NATIVE_ASSET,
@@ -74,6 +74,9 @@ const balances = ref<AssetBalance[]>(walletStore.balances.map((item) => {
   return e;
 }));
 
+const networks = computed(() => {
+  return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list;
+});
 
 const showConfirmScreen = ref(false);
 const state = ref({
@@ -81,7 +84,7 @@ const state = ref({
   selectedCurrency: balances.value[0],
   amount: "",
   memo: "",
-  network: SUPPORTED_NETWORKS[0],
+  network: networks.value[0],
   receiverAddress: "",
   password: "",
   onNextClick,

@@ -145,12 +145,12 @@ import ConfirmExternalComponent from "@/components/modals/templates/ConfirmExter
 import type { AssetBalance } from "@/stores/wallet/state";
 import { CONFIRM_STEP, TxType, type Network } from "@/types";
 
-import { onUnmounted, ref, type PropType, inject, watch } from "vue";
+import { onUnmounted, ref, type PropType, inject, watch, computed } from "vue";
 import { DocumentDuplicateIcon, QrCodeIcon } from "@heroicons/vue/24/solid";
 import { ErrorCodes, NATIVE_NETWORK, SOURCE_PORTS } from "@/config/env";
 import { useI18n } from "vue-i18n";
 import { AssetUtils, EnvNetworkUtils, WalletUtils } from "@/utils";
-import { NETWORKS_DATA, SUPPORTED_NETWORKS } from "@/networks/config";
+import { NETWORKS_DATA } from "@/networks/config";
 import { Wallet, BaseWallet } from "@/networks";
 import { coin, type Coin } from "@cosmjs/amino";
 import { Decimal } from "@cosmjs/math";
@@ -173,10 +173,13 @@ export interface ReceiveComponentProps {
 let timeOut: NodeJS.Timeout;
 let client: Wallet;
 
-const networks = SUPPORTED_NETWORKS;
+const networks = computed(() => {
+  return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list;
+});
+
 const i18n = useI18n();
 const copyText = ref(i18n.t("message.copy"));
-const selectedNetwork = ref(SUPPORTED_NETWORKS[0]);
+const selectedNetwork = ref(networks.value[0]);
 const walletStore = useWalletStore();
 const app = useApplicationStore();
 

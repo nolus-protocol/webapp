@@ -64,7 +64,12 @@ const loadDelegated = inject("loadDelegated", () => false);
 
 const showConfirmScreen = ref(false);
 const state = ref({
-  currentBalance: walletStore.balances,
+  currentBalance: walletStore.balances.filter((item) => {
+    if(item.balance.denom == NATIVE_ASSET.denom){
+      return true;
+    }
+    return false;
+  }),
   selectedCurrency: walletStore.balances[0],
   amount: "",
   password: "",

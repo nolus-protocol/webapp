@@ -7,7 +7,7 @@ const embedChainInfo = (
 ): ChainInfo => {
   return {
     chainId: chainId,
-    chainName: 'Akash Network',
+    chainName: 'Akash',
     rpc: tendermintRpc,
     rest: rest,
     bip44: {
