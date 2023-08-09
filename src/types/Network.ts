@@ -10,6 +10,7 @@ export interface Network {
   estimation: number; 
   sourcePort: string;
   key: string;
+  symbol: string;
 }
 
 export interface NetworkData{

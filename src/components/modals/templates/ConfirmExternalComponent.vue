@@ -29,7 +29,7 @@
           v-if="isStepCustomError"
           class="nls-font-700 text-28 md:text-32 text-center text-primary"
         >
-        {{ $t(`message.${step}`, {symbol: 'test'}) }}
+        {{ $t(`message.${step}`, {symbol: networkSymbol}) }}
         </h1>
         <h1
           v-else
@@ -46,7 +46,7 @@
     v-if="isStepCustomError"
   >
     <div class="py-[28px]">
-      {{ $t('message.gassErrorExternalMsg', {symbol: 'test'}) }}
+      {{ $t('message.gassErrorExternalMsg', {symbol: networkSymbol}) }}
     </div>
     <div class="px-[12px] pb-[28px]">
       <button
@@ -178,6 +178,7 @@ interface Props {
   txHash: string;
   step: CONFIRM_STEP;
   fee?: Coin;
+  networkSymbol?: string;
   networkCurrencies: {
     [key: string]: {
       name: string;

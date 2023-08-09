@@ -104,7 +104,8 @@ export const NATIVE_NETWORK = {
   estimation: 6,
   longOperationsEstimation: 20,
   leaseOpenEstimation: 2,
-  key: "NOLUS"
+  key: "NOLUS",
+  symbol: "NLS"
 };
 
 export enum SOURCE_PORTS {

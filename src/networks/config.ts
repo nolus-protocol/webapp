@@ -21,7 +21,8 @@ export const SUPPORTED_NETWORKS = [
         label: "Osmosis",
         native: false,
         estimation: 20,
-        key: "OSMOSIS"
+        key: "OSMOSIS",
+        symbol: "OSMO"
     },
     {
         prefix: "cosmos",
@@ -30,6 +31,7 @@ export const SUPPORTED_NETWORKS = [
         native: false,
         estimation: 20,
         key: "COSMOS_HUB",
+        symbol: "ATOM"
     },
     {
         prefix: "axelar",
@@ -38,6 +40,7 @@ export const SUPPORTED_NETWORKS = [
         native: false,
         estimation: 20,
         key: "AXELAR",
+        symbol: "AXL"
     },
 ];
 

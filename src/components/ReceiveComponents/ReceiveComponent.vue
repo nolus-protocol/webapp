@@ -12,6 +12,7 @@
     :fee="fee"
     :networkCurrencies="networkCurrenciesObject"
     :networkKey="selectedNetwork.key"
+    :networkSymbol="selectedNetwork.symbol"
     :onSendClick="onSendClick"
     :onBackClick="onConfirmBackClick"
     :onOkClick="onClickOkBtn"
