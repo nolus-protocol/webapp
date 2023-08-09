@@ -25,7 +25,16 @@
           v-if="isStepError || isStepCustomError"
           class="h-14 w-14 radius-circle p-2 error-icon mb-2"
         />
-        <h1 class="nls-font-700 text-28 md:text-32 text-center text-primary">
+        <h1
+          v-if="isStepCustomError"
+          class="nls-font-700 text-28 md:text-32 text-center text-primary"
+        >
+        {{ $t(`message.${step}`, {symbol: 'test'}) }}
+        </h1>
+        <h1
+          v-else
+          class="nls-font-700 text-28 md:text-32 text-center text-primary"
+        >
           {{ $t(`message.${step}`) }}
         </h1>
       </div>
@@ -37,7 +46,7 @@
     v-if="isStepCustomError"
   >
     <div class="py-[28px]">
-      {{ $t('message.gassErrorExternalMsg') }}
+      {{ $t('message.gassErrorExternalMsg', {symbol: 'test'}) }}
     </div>
     <div class="px-[12px] pb-[28px]">
       <button

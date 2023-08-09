@@ -302,7 +302,7 @@
     "withdraw-title": "Retirer",
     "delegate-title": "Déléguer",
     "undelegate-title": "Retirer",
-    "GasErrorExternal": "Insufficient gas",
-    "gassErrorExternalMsg": "Insufficient gas fees"
+    "GasErrorExternal": "Insufficient {symbol}",
+    "gassErrorExternalMsg": "Insufficient {symbol} for gas fees"
   }
 }

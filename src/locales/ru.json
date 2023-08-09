@@ -303,7 +303,7 @@
     "delegate-title": "Делегировать",
     "undelegate-title": "Получить",
     "connect-wallet-label": "connect wallet to continue",
-    "GasErrorExternal": "Insufficient gas",
-    "gassErrorExternalMsg": "Insufficient gas fees"
+    "GasErrorExternal": "Insufficient {symbol}",
+    "gassErrorExternalMsg": "Insufficient {symbol} for gas fees"
   }
 }

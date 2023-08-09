@@ -303,7 +303,7 @@
     "delegate-title": "Delegate",
     "undelegate-title": "Withdraw",
     "connect-wallet-label": "connect wallet to continue",
-    "GasErrorExternal": "Insufficient gas",
-    "gassErrorExternalMsg": "Insufficient gas fees"
+    "GasErrorExternal": "Insufficient {symbol}",
+    "gassErrorExternalMsg": "Insufficient {symbol} for gas fees"
   }
 }

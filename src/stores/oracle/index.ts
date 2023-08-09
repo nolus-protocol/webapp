@@ -42,29 +42,32 @@ const useOracleStore = defineStore("oracle", {
             }
           }[]
         } = await oracleContract.getPricesFor([]) as any;
-
         for (const price of data.prices) {
           const key = price.amount.ticker;
           const currency = app.currenciesData![key];
-          const diff = Math.abs(
-            Number(
-              app.currenciesData![key].decimal_digits
-            ) - Number(app.currenciesData!.USDC.decimal_digits)
-          );
-          let calculatedPrice = new Dec(price.amount_quote.amount).quo(
-            new Dec(price.amount.amount)
-          );
-          calculatedPrice = calculatedPrice.mul(new Dec(10 ** diff));
-          const tokenPrice = {
-            amount: calculatedPrice.toString(),
-            symbol: price.amount_quote.ticker,
-          };
-          pr[currency.symbol] = tokenPrice;
-        }
 
-        const c = app.currenciesData![app.lpn?.ticker as string];
-        pr[c.symbol] = { symbol: app.lpn?.ticker as string, amount: `${LPN_PRICE}` };
-        this.prices = pr;
+          if(currency){
+            const diff = Math.abs(
+              Number(
+                app.currenciesData![key].decimal_digits
+              ) - Number(app.currenciesData!.USDC.decimal_digits)
+            );
+            let calculatedPrice = new Dec(price.amount_quote.amount).quo(
+              new Dec(price.amount.amount)
+            );
+            calculatedPrice = calculatedPrice.mul(new Dec(10 ** diff));
+            const tokenPrice = {
+              amount: calculatedPrice.toString(),
+              symbol: price.amount_quote.ticker,
+            };
+            pr[currency.symbol] = tokenPrice;
+          }
+  
+          const c = app.currenciesData![app.lpn?.ticker as string];
+          pr[c.symbol] = { symbol: app.lpn?.ticker as string, amount: `${LPN_PRICE}` };
+          this.prices = pr;
+          }
+
 
       } catch (error: Error | any) {
         throw new Error(error);
