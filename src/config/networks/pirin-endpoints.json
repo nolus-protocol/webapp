@@ -47,5 +47,29 @@
                 "api": "https://lcd-axelar.imperator.co:443"
             }
         ]
+    },
+    "AKASH": {
+        "primary": {
+            "rpc": "https://rpc-akash-ia.cosmosia.notional.ventures:443",
+            "api": "https://api-akash-ia.cosmosia.notional.ventures"
+        },
+        "fallback": [
+            {
+                "rpc": "https://akash-rpc.w3coins.io",
+                "api": "https://akash-api.w3coins.io"
+            }
+        ]
+    },
+    "STRIDE": {
+        "primary": {
+            "rpc": "https://rpc-stride.architectnodes.com",
+            "api": "https://rest-stride.architectnodes.com"
+        },
+        "fallback": [
+            {
+                "rpc": "https://stride-rpc.w3coins.io",
+                "api": "https://stride-api.w3coins.io"
+            }
+        ]
     }
 }
