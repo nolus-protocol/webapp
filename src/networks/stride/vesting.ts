@@ -1,9 +1,11 @@
+//@ts-nocheck
+
 /**
  * BaseVestingAccount implements the VestingAccount interface. It contains all
  * the necessary fields needed for any vesting account implementation.
  */
 
-import { DeepPartial } from "cosmjs-types";
+import type { DeepPartial } from "cosmjs-types";
 import { BaseAccount } from "cosmjs-types/cosmos/auth/v1beta1/auth";
 import { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import Long from "long";
