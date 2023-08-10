@@ -5,10 +5,12 @@ import { decodePubkey } from '@cosmjs/proto-signing';
 import { assert } from '@cosmjs/utils';
 import { BaseAccount, ModuleAccount } from 'cosmjs-types/cosmos/auth/v1beta1/auth';
 import { BaseVestingAccount, ContinuousVestingAccount, DelayedVestingAccount, PeriodicVestingAccount } from 'cosmjs-types/cosmos/vesting/v1beta1/vesting';
+import { StridePeriodicVestingAccount } from './stride/vesting';
 
 function uint64FromProto(input) {
     return Uint64.fromString(input.toString());
 }
+
 function accountFromBaseAccount(input) {
     const { address, pubKey, accountNumber, sequence } = input;
     const pubkey = pubKey ? (0, decodePubkey)(pubKey) : null;
@@ -19,6 +21,7 @@ function accountFromBaseAccount(input) {
         sequence: uint64FromProto(sequence).toNumber(),
     };
 }
+
 export function accountFromAny(input) {
     const { typeUrl, value } = input;
     switch (typeUrl) {
@@ -52,7 +55,7 @@ export function accountFromAny(input) {
             return accountFromBaseAccount(baseAccount);
         }
         case "/stride.vesting.StridePeriodicVestingAccount": {
-            const baseAccount = PeriodicVestingAccount.decode(value)?.baseVestingAccount?.baseAccount;
+            const baseAccount = StridePeriodicVestingAccount.decode(value)?.baseVestingAccount?.baseAccount;
             (0, assert)(baseAccount);
             return accountFromBaseAccount(baseAccount);
         }
