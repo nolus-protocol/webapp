@@ -10,9 +10,6 @@ import { embedChainInfo as atomChainInfo } from './cosmos/contants';
 import { NETWORK as AXELAR_NETWORK } from './axelar/network';
 import { embedChainInfo as alexarChainInfo } from './axelar/contants';
 
-import { NETWORK as AKASH_NETWORK } from './akash/network';
-import { embedChainInfo as akashChainInfo } from './akash/contants';
-
 import { NETWORK as STRIDE_NETWORK } from './stride/network';
 import { embedChainInfo as strideChainInfo } from './stride/contants';
 
@@ -47,15 +44,6 @@ export const SUPPORTED_NETWORKS_DATA = {
         estimation: 20,
         key: "AXELAR",
         symbol: "AXL"
-    },
-    AKASH: {
-        prefix: "akash",
-        value: "akash",
-        label: "Akash",
-        native: false,
-        estimation: 20,
-        key: "AKASH",
-        symbol: "AKT"
     },
     STRIDE: {
         prefix: "stride",
@@ -201,7 +189,6 @@ export const NETWORKS_DATA: {
             SUPPORTED_NETWORKS_DATA.OSMOSIS,
             SUPPORTED_NETWORKS_DATA.COSMOS_HUB,
             SUPPORTED_NETWORKS_DATA.AXELAR,
-            SUPPORTED_NETWORKS_DATA.AKASH,
             SUPPORTED_NETWORKS_DATA.STRIDE
         ],
         supportedNetworks: {
@@ -232,18 +219,9 @@ export const NETWORKS_DATA: {
                 },
                 embedChainInfo: alexarChainInfo,
             },
-            AKASH: {
-                ...AKASH_NETWORK,
-                explorer: 'https://mintscan.io/akash/transactions',
-                currencies: () => {
-                    const app = useApplicationStore();
-                    return app?.networks?.[AKASH_NETWORK.key] as ExternalCurrenciesType;
-                },
-                embedChainInfo: akashChainInfo,
-            },
             STRIDE: {
                 ...STRIDE_NETWORK,
-                explorer: 'https://mintscan.io/akash/transactions',
+                explorer: 'https://mintscan.io/stride/transactions',
                 currencies: () => {
                     const app = useApplicationStore();
                     return app?.networks?.[STRIDE_NETWORK.key] as ExternalCurrenciesType;

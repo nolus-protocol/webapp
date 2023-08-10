@@ -361,7 +361,7 @@ const validateAmount = async () => {
 
     } catch (e) {
       console.log(e)
-     }
+    }
 
   } else {
     amountErrorMsg.value = i18n.t("message.unexpected-error");
@@ -469,17 +469,22 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
     }, 10000);
 
   } catch (error: Error | any) {
-    console.log(error)
+    if (error.message.includes('Length must be a multiple of 4')) {
+      //temporary fix for old tendermint
+      step.value = CONFIRM_STEP.SUCCESS;
+      return;
+    }
+
     switch (error.code) {
-        case (ErrorCodes.GasError): {
-          step.value = CONFIRM_STEP.GasErrorExternal;
-          break;
-        }
-        default: {
-          step.value = CONFIRM_STEP.ERROR;
-          break;
-        }
+      case (ErrorCodes.GasError): {
+        step.value = CONFIRM_STEP.GasErrorExternal;
+        break;
       }
+      default: {
+        step.value = CONFIRM_STEP.ERROR;
+        break;
+      }
+    }
   }
 }
 

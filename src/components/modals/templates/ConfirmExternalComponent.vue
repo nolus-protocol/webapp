@@ -29,7 +29,7 @@
           v-if="isStepCustomError"
           class="nls-font-700 text-28 md:text-32 text-center text-primary"
         >
-        {{ $t(`message.${step}`, {symbol: networkSymbol}) }}
+          {{ $t(`message.${step}`, { symbol: networkSymbol }) }}
         </h1>
         <h1
           v-else
@@ -46,7 +46,7 @@
     v-if="isStepCustomError"
   >
     <div class="py-[28px]">
-      {{ $t('message.gassErrorExternalMsg', {symbol: networkSymbol}) }}
+      {{ $t('message.gassErrorExternalMsg', { symbol: networkSymbol }) }}
     </div>
     <div class="px-[12px] pb-[28px]">
       <button
@@ -207,6 +207,11 @@ const networkData = computed(() => {
   return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].supportedNetworks[props.networkKey];
 })
 
+const networkSymbol = computed(() => {
+  console.log(AssetUtils.getAssetInfo(props.networkSymbol as string))
+  return AssetUtils.getAssetInfo(props.networkSymbol as string);
+})
+
 const btnAction = computed(() => {
   if (!checkValidation()) {
     return () => { };
@@ -241,7 +246,7 @@ const formatAmount = (value: string) => {
   }
 
   const coinMinimalDenom = AssetUtils.makeIBCMinimalDenom(selectedCurrency.ibc_route!, selectedCurrency.symbol!);
-
+  
   const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
     value,
     coinMinimalDenom,
@@ -251,18 +256,17 @@ const formatAmount = (value: string) => {
   return CurrencyUtils.convertMinimalDenomToDenom(
     minimalDenom.amount.toString(),
     coinMinimalDenom,
-    selectedCurrency.ticker!,
+    selectedCurrency.shortName!,
     selectedCurrency.decimals!
   );
 }
 
 const calculateFee = (coin: Coin) => {
   const currency = props.networkCurrencies[networkData.value.ticker];
-
   return CurrencyUtils.convertMinimalDenomToDenom(
     coin.amount.toString(),
     AssetUtils.makeIBCMinimalDenom(currency.ibc_route, currency.symbol),
-    currency.ticker,
+    (currency as any).shortName,
     Number(currency.decimal_digits)
   );
 }
