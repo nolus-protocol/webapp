@@ -7,7 +7,7 @@ export class Wallet {
     protected stargateClient: StargateClient | undefined;
     protected tendermintClient: Tendermint34Client | undefined;
 
-    private constructor() {}
+    private constructor() { }
 
     static async getInstance(tendermintRpc: string) {
         const wallet = new Wallet();
@@ -16,21 +16,19 @@ export class Wallet {
     }
 
     private async setInstance(tendermintRpc: string) {
-        const [stargateClient, tendermintClient] = await Promise.all([
-            StargateClient.connect(tendermintRpc, {
-                accountParser: accountFromAny
-            }),
-            Tendermint34Client.connect(tendermintRpc)
-        ]);
+        const tendermintClient = await Tendermint34Client.connect(tendermintRpc);
+        const stargateClient = await StargateClient.create(tendermintClient, {
+            accountParser: accountFromAny
+        });
         this.stargateClient = stargateClient;
         this.tendermintClient = tendermintClient;
     }
 
-    destroy(){
-        if(this.stargateClient){
+    destroy() {
+        if (this.stargateClient) {
             this.stargateClient?.disconnect();
         }
-        if(this.tendermintClient){
+        if (this.tendermintClient) {
             this.tendermintClient?.disconnect();
         }
     }
@@ -62,11 +60,11 @@ export class Wallet {
         return block?.header.height;
     }
 
-    public getTendermintClient(){
+    public getTendermintClient() {
         return this.tendermintClient;
     }
 
-    public getStargateClient(){
+    public getStargateClient() {
         return this.stargateClient;
     }
 }

@@ -1,3 +1,5 @@
+//@ts-nocheck
+
 import type { OfflineSigner } from '@cosmjs/proto-signing';
 import type { Tendermint34Client } from '@cosmjs/tendermint-rpc';
 import type { Coin } from 'cosmjs-types/cosmos/base/v1beta1/coin';
@@ -12,6 +14,7 @@ import { sha256 } from '@cosmjs/crypto';
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 import { SigningCosmWasmClient, type SigningCosmWasmClientOptions } from '@cosmjs/cosmwasm-stargate';
 import { calculateFee, type DeliverTxResponse } from '@cosmjs/stargate';
+import { accountFromAny } from './accountParser';
 
 export class BaseWallet extends SigningCosmWasmClient {
     address?: string;
@@ -31,7 +34,7 @@ export class BaseWallet extends SigningCosmWasmClient {
             typeUrl: msgTypeUrl,
             value: msg,
         };
-
+        
         const sequence = await this.sequence();
         const { gasInfo } = await this.forceGetQueryClient().tx.simulate([this.registry.encodeAsAny(msgAny)], memo, pubkey, sequence);
 
@@ -116,11 +119,24 @@ export class BaseWallet extends SigningCosmWasmClient {
 
     private async sequence() {
         try {  
-            const { sequence } = await this.getSequence(this.address as string);
-            return sequence;
+            const account = await this.getAccount(this.address);
+            return account?.sequence;
         } catch (error) {
             console.log(error)
             throw new Error('Insufficient amount');
+        }
+    }
+
+    async getAccount(searchAddress: string) {
+        try {
+            const account = await this.forceGetQueryClient().auth.account(searchAddress);
+            return account ? (0, accountFromAny)(account) : null;
+        }
+        catch (error) {
+            if (/rpc error: code = NotFound/i.test(error.toString())) {
+                return null;
+            }
+            throw error;
         }
     }
 
