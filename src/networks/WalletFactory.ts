@@ -29,6 +29,7 @@ const createWallet = async (wallet: Wallet, offlineDirectSigner: OfflineDirectSi
 };
 
 const authenticateKeplr = async (wallet: Wallet, network: NetworkData) => {
+
     await WalletUtils.getKeplr();
     const keplrWindow = window as KeplrWindow;
 
