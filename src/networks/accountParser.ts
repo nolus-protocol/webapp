@@ -21,7 +21,6 @@ function accountFromBaseAccount(input) {
 }
 export function accountFromAny(input) {
     const { typeUrl, value } = input;
-    console.log(value)
     switch (typeUrl) {
         // auth
         case "/cosmos.auth.v1beta1.BaseAccount":
@@ -52,7 +51,7 @@ export function accountFromAny(input) {
             (0, assert)(baseAccount);
             return accountFromBaseAccount(baseAccount);
         }
-        case "/stride.vesting.v1beta1.StridePeriodicVestingAccount": {
+        case "/stride.vesting.StridePeriodicVestingAccount": {
             const baseAccount = PeriodicVestingAccount.decode(value)?.baseVestingAccount?.baseAccount;
             (0, assert)(baseAccount);
             return accountFromBaseAccount(baseAccount);
