@@ -1,4 +1,3 @@
-
 /**
  * BaseVestingAccount implements the VestingAccount interface. It contains all
  * the necessary fields needed for any vesting account implementation.
@@ -74,7 +73,7 @@ export const BaseVestingAccount = {
 
   decode(input: _m0.Reader | Uint8Array, length?: number): BaseVestingAccount {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
+    const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseBaseVestingAccount();
 
     while (reader.pos < end) {
@@ -154,7 +153,7 @@ export const Period = {
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Period {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
+    const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBasePeriod();
 
     while (reader.pos < end) {
@@ -219,7 +218,7 @@ export const StridePeriodicVestingAccount = {
 
   decode(input: _m0.Reader | Uint8Array, length?: number): StridePeriodicVestingAccount {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
+    const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseStridePeriodicVestingAccount();
 
     while (reader.pos < end) {
