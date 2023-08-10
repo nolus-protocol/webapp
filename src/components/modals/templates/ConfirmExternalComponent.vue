@@ -208,7 +208,6 @@ const networkData = computed(() => {
 })
 
 const networkSymbol = computed(() => {
-  console.log(AssetUtils.getAssetInfo(props.networkSymbol as string))
   return AssetUtils.getAssetInfo(props.networkSymbol as string);
 })
 
@@ -266,7 +265,7 @@ const calculateFee = (coin: Coin) => {
   return CurrencyUtils.convertMinimalDenomToDenom(
     coin.amount.toString(),
     AssetUtils.makeIBCMinimalDenom(currency.ibc_route, currency.symbol),
-    (currency as any).shortName,
+    props.networkSymbol as string,
     Number(currency.decimal_digits)
   );
 }
