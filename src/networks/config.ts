@@ -1,4 +1,4 @@
-import type { NetworkData } from "@/types/Network";
+import type { Network, NetworkData } from "@/types/Network";
 
 import { NATIVE_NETWORK } from "@/config/env";
 import { NETWORK as OSMO_NETWORK } from './osmo/network';
@@ -16,7 +16,18 @@ import { embedChainInfo as strideChainInfo } from './stride/contants';
 import { useApplicationStore } from "@/stores/application";
 import type { ExternalCurrenciesType } from "@/types/CurreciesType";
 
-export const SUPPORTED_NETWORKS_DATA = {
+export const SUPPORTED_NETWORKS_DATA: {
+    [key: string]: {
+        prefix: string,
+        value: string,
+        label: string,
+        native: boolean,
+        estimation: number,
+        key: string,
+        symbol: string,
+        forward?: boolean
+    }
+} = {
     NOLUS: NATIVE_NETWORK,
     OSMOSIS: {
         prefix: "osmo",
@@ -34,7 +45,8 @@ export const SUPPORTED_NETWORKS_DATA = {
         native: false,
         estimation: 20,
         key: "COSMOS_HUB",
-        symbol: "ATOM"
+        symbol: "ATOM",
+        forward: true
     },
     AXELAR: {
         prefix: "axelar",
@@ -43,7 +55,8 @@ export const SUPPORTED_NETWORKS_DATA = {
         native: false,
         estimation: 20,
         key: "AXELAR",
-        symbol: "AXL"
+        symbol: "AXL",
+        forward: true
     },
     STRIDE: {
         prefix: "stride",
@@ -52,7 +65,8 @@ export const SUPPORTED_NETWORKS_DATA = {
         native: false,
         estimation: 20,
         key: "STRIDE",
-        symbol: "STRD"
+        symbol: "STRD",
+        forward: true
     }
 }
 

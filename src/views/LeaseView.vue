@@ -87,7 +87,6 @@ const { leases, leaseLoaded, getLeases } = useLeases(onLeaseError);
 const CHECK_TIME = 15000;
 const applicaton = useApplicationStore();
 const applicationRef = storeToRefs(applicaton);
-
 let timeOut: NodeJS.Timeout;
 
 const errorDialog = ref({

@@ -150,7 +150,7 @@ import { DocumentDuplicateIcon, QrCodeIcon } from "@heroicons/vue/24/solid";
 import { ErrorCodes, NATIVE_NETWORK, SOURCE_PORTS } from "@/config/env";
 import { useI18n } from "vue-i18n";
 import { AssetUtils, EnvNetworkUtils, WalletUtils } from "@/utils";
-import { NETWORKS_DATA } from "@/networks/config";
+import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { Wallet, BaseWallet } from "@/networks";
 import { coin, type Coin } from "@cosmjs/amino";
 import { Decimal } from "@cosmjs/math";
@@ -387,10 +387,10 @@ const onSendClick = async () => {
 };
 
 const getSourceChannel = () => {
-  const networkInfo = app.networksData!.networks.list[selectedNetwork.value.key];
+  const networkInfo = SUPPORTED_NETWORKS_DATA[selectedNetwork.value.key as keyof typeof SUPPORTED_NETWORKS_DATA];
 
   if (networkInfo.forward) {
-    return AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, selectedNetwork.value.key, networkInfo.forward, selectedNetwork.value.key);
+    return AssetUtils.getChannelData(app.networksData?.networks?.channels!, selectedNetwork.value.key)!.b.ch;
   } else {
     return AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, selectedNetwork.value.key, NATIVE_NETWORK.key, selectedNetwork.value.key);
   }
@@ -416,7 +416,7 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
     };
 
     const sourceChannel = getSourceChannel();
-    const networkInfo = app.networksData!.networks.list[selectedNetwork.value.key];
+    const networkInfo = SUPPORTED_NETWORKS_DATA[selectedNetwork.value.key as keyof typeof SUPPORTED_NETWORKS_DATA];
 
     const rawTx: {
       toAddress: string,
@@ -438,9 +438,11 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
     };
 
     if (networkInfo.forward) {
+      const ch = AssetUtils.getChannelData(app.networksData?.networks?.channels!, networkInfo.key);
+    
       const networkData = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
-      const proxyAddress = WalletUtils.transformWallet(networkData.supportedNetworks[networkInfo.forward].prefix);
-      const channel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, NATIVE_NETWORK.key, networkInfo.forward, networkInfo.forward);
+      const proxyAddress = WalletUtils.transformWallet(networkData.supportedNetworks[ch!.a.network].prefix);
+      const channel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, NATIVE_NETWORK.key, ch!.a.network, ch!.a.network);
       rawTx.toAddress = proxyAddress;
 
       rawTx.memo = JSON.stringify({
@@ -470,7 +472,7 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
 
   } catch (error: Error | any) {
     if (error.message.includes('Length must be a multiple of 4')) {
-      //temporary fix for old tendermint
+      //todo: temporary fix for old tendermint
       step.value = CONFIRM_STEP.SUCCESS;
       return;
     }

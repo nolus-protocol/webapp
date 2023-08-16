@@ -4,7 +4,6 @@ export interface Networks {
     networks: {
         list: {
             [key: string]: {
-                forward?: string,
                 currencies: {
                     [key: string]: Currency
                 }
@@ -24,7 +23,7 @@ export interface Networks {
     lease: {
         Lpn: {
             [key: string]: {}
-        }
+        } | string[]
         Lease: {
             [key: string]: {
                 swap_routes: Array<

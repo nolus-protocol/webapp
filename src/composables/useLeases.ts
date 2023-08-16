@@ -44,8 +44,7 @@ export function useLeases(
 
           const data = await req.json();
           const item = data.result?.txs?.[0];
-
-          if (leaseInfo && !leaseInfo.closed) {
+          if (leaseInfo && !leaseInfo.closed && !leaseInfo.liquidated) {
             return {
               leaseAddress: leaseAddress,
               leaseStatus: leaseInfo,
@@ -56,7 +55,13 @@ export function useLeases(
         promises.push(fn())
       }
 
-      const items = (await Promise.all(promises)).filter((item) => item);
+      const items = (await Promise.all(promises)).filter((item) => {
+        if(!item){
+          return false;
+        }
+        return true;
+      })
+
       leases.value = items as {
         leaseAddress: string,
         leaseStatus: LeaseStatus,

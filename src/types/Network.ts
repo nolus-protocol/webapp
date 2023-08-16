@@ -11,6 +11,7 @@ export interface Network {
   sourcePort: string;
   key: string;
   symbol: string;
+  forward?: boolean
 }
 
 export interface NetworkData{

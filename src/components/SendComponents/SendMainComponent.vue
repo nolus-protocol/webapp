@@ -1,25 +1,21 @@
 <template>
-  <ConfirmComponent
-    v-if="showConfirmScreen"
-    :selectedCurrency="state.selectedCurrency"
-    :receiverAddress="state.receiverAddress"
-    :password="state.password"
-    :amount="state.amount"
-    :memo="state.memo"
-    :txType="$t(`message.${TxType.SEND}`) + ':'"
-    :txHash="state.txHash"
-    :step="step"
-    :fee="state.fee"
-    :onSendClick="onSendClick"
-    :onBackClick="onConfirmBackClick"
-    :onOkClick="onClickOkBtn"
-    @passwordUpdate="(value) => (state.password = value)"
-  />
-  <SendComponent
-    v-else
-    v-model="state"
-    class="overflow-auto custom-scroll"
-  />
+  <ConfirmComponent v-if="showConfirmScreen"
+                    :selectedCurrency="state.selectedCurrency"
+                    :receiverAddress="state.receiverAddress"
+                    :password="state.password"
+                    :amount="state.amount"
+                    :memo="state.memo"
+                    :txType="$t(`message.${TxType.SEND}`) + ':'"
+                    :txHash="state.txHash"
+                    :step="step"
+                    :fee="state.fee"
+                    :onSendClick="onSendClick"
+                    :onBackClick="onConfirmBackClick"
+                    :onOkClick="onClickOkBtn"
+                    @passwordUpdate="(value) => (state.password = value)" />
+  <SendComponent v-else
+                 v-model="state"
+                 class="overflow-auto custom-scroll" />
 </template>
 
 <script lang="ts" setup>
@@ -34,7 +30,7 @@ import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
 import { computed, inject, nextTick, onUnmounted, ref, watch } from "vue";
 import { coin, type Coin } from "@cosmjs/amino";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { NETWORKS_DATA } from "@/networks/config";
+import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 
 import {
   NATIVE_ASSET,
@@ -122,40 +118,31 @@ watch(() => state.value.receiverAddress, () => {
 
 watch(() => state.value.network, () => {
   const network = app.networksData!.networks.list[state.value.network.key];
+  const currencies = Object.keys(app.networks?.[state.value.network.key] ?? {});
 
-  if (network?.forward) {
-    const native = app.networks![NATIVE_NETWORK.key];
-    const items: string[] = [];
+  const native = app.networks![NATIVE_NETWORK.key];
+  const items: string[] = [];
 
-    for (const i in native) {
-      const c = native[i];
-      if (c.forward?.includes(state.value.network.key)) {
-        const ibc = AssetUtils.makeIBCMinimalDenom(c.ibc_route, c.symbol);
-        items.push(ibc);
-      }
+  for (const i in native) {
+    const c = native[i];
+    if (currencies.includes(c.ticker)) {
+      const ibc = AssetUtils.makeIBCMinimalDenom(c.ibc_route, c.symbol);
+      items.push(ibc);
     }
-    state.value.currentBalance = walletStore.balances.filter((item) => {
-      if (items.includes(item.balance.denom)) {
-        return true;
-      }
-      return false;
-    }).map((item) => {
-      const e = { ...item }
-      if (e.balance.denom == walletStore.available.denom) {
-        e.balance = { ...walletStore.available }
-      }
-      return e;
-    });
-
-  } else {
-    state.value.currentBalance = walletStore.balances.map((item) => {
-      const e = { ...item }
-      if (e.balance.denom == walletStore.available.denom) {
-        e.balance = { ...walletStore.available }
-      }
-      return e;
-    });
   }
+
+  state.value.currentBalance = walletStore.balances.filter((item) => {
+    if (items.includes(item.balance.denom)) {
+      return true;
+    }
+    return false;
+  }).map((item) => {
+    const e = { ...item }
+    if (e.balance.denom == walletStore.available.denom) {
+      e.balance = { ...walletStore.available }
+    }
+    return e;
+  });
 
   state.value.selectedCurrency = state.value.currentBalance[0];
 
@@ -172,10 +159,11 @@ const validateInputs = () => {
     state.value.selectedCurrency.balance.denom,
     Number(state.value.selectedCurrency.balance.amount)
   );
-  const networkInfo = app.networksData!.networks.list[state.value.network.key];
+  const networkInfo = SUPPORTED_NETWORKS_DATA[state.value.network.key as keyof typeof SUPPORTED_NETWORKS_DATA];
   if (networkInfo.forward) {
-    const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
-    const proxyAddress = WalletUtils.transformWallet(network.supportedNetworks[networkInfo.forward].prefix);
+    const channel = AssetUtils.getChannelData(app.networksData?.networks?.channels!, networkInfo.key);
+    const network = SUPPORTED_NETWORKS_DATA[channel!.a.network as keyof typeof SUPPORTED_NETWORKS_DATA];
+    const proxyAddress = WalletUtils.transformWallet(network.prefix);
     state.value.receiverErrorMsg = validateAddress(proxyAddress);
     return;
   }
@@ -258,9 +246,8 @@ const ibcTransfer = async () => {
         denom,
       };
 
-
-      const networkInfo = app.networksData!.networks.list[state.value.network.key];
-      const sourceChannel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, networkInfo.forward ?? state.value.network.key, NATIVE_NETWORK.key);
+      const networkInfo = SUPPORTED_NETWORKS_DATA[state.value.network.key as keyof typeof SUPPORTED_NETWORKS_DATA];
+      const sourceChannel = networkInfo.forward ? AssetUtils.getSourceChannelData(app.networksData?.networks?.channels!, networkInfo.key)!.a.ch : AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, state.value.network.key, NATIVE_NETWORK.key);
 
       const rawTx: {
         toAddress: string,
@@ -276,16 +263,17 @@ const ibcTransfer = async () => {
       };
 
       if (networkInfo.forward) {
-        const networkData = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
-        const proxyAddress = WalletUtils.transformWallet(networkData.supportedNetworks[networkInfo.forward].prefix);
-        const channel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, state.value.network.key, networkInfo.forward!, networkInfo.forward!);
+        const channel = AssetUtils.getChannelData(app.networksData?.networks?.channels!, state.value.network.key);
+        const forward = SUPPORTED_NETWORKS_DATA[channel!.a.network];
+
+        const proxyAddress = WalletUtils.transformWallet(forward.prefix);
 
         rawTx.toAddress = proxyAddress;
         rawTx.memo = JSON.stringify({
           "forward": {
             "receiver": state.value.receiverAddress,
             "port": SOURCE_PORTS.TRANSFER,
-            "channel": channel
+            "channel": channel!.a.ch
           }
         });
 

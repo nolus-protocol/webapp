@@ -27,5 +27,8 @@ export const ASSETS = {
   },
   AKT: {
     coinGeckoId: "akash-network",
+  },
+  JUNO: {
+    coinGeckoId: "juno-network",
   }
 };
