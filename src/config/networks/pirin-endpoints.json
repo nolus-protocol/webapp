@@ -62,8 +62,8 @@
     },
     "STRIDE": {
         "primary": {
-            "rpc": "https://stride-rpc.w3coins.io",
-            "api": "https://stride-api.w3coins.io"
+            "rpc": "https://stride-rpc.polkachu.com",
+            "api": "https://stride-api.polkachu.com"
         },
         "fallback": [
             {
