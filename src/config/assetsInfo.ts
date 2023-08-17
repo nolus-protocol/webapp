@@ -30,5 +30,8 @@ export const ASSETS = {
   },
   JUNO: {
     coinGeckoId: "juno-network",
+  },
+  AXL: {
+    coinGeckoId: "axelar",
   }
 };
