@@ -1,4 +1,4 @@
-import type { Network, NetworkData } from "@/types/Network";
+import type { NetworkData } from "@/types/Network";
 
 import { NATIVE_NETWORK } from "@/config/env";
 import { NETWORK as OSMO_NETWORK } from './osmo/network';
@@ -12,6 +12,9 @@ import { embedChainInfo as alexarChainInfo } from './axelar/contants';
 
 import { NETWORK as STRIDE_NETWORK } from './stride/network';
 import { embedChainInfo as strideChainInfo } from './stride/contants';
+
+import { NETWORK as JUNO_NETWORK } from './juno/network';
+import { embedChainInfo as junoChainInfo } from './juno/contants';
 
 import { useApplicationStore } from "@/stores/application";
 import type { ExternalCurrenciesType } from "@/types/CurreciesType";
@@ -66,6 +69,16 @@ export const SUPPORTED_NETWORKS_DATA: {
         estimation: 20,
         key: "STRIDE",
         symbol: "STRD",
+        forward: true
+    },
+    JUNO: {
+        prefix: "juno",
+        value: "juno",
+        label: "Juno",
+        native: false,
+        estimation: 20,
+        key: "JUNO",
+        symbol: "JUNO",
         forward: true
     }
 }
@@ -166,6 +179,7 @@ export const NETWORKS_DATA: {
             SUPPORTED_NETWORKS_DATA.OSMOSIS,
             SUPPORTED_NETWORKS_DATA.COSMOS_HUB,
             SUPPORTED_NETWORKS_DATA.AXELAR,
+            SUPPORTED_NETWORKS_DATA.JUNO
         ],
         supportedNetworks: {
             OSMOSIS: {
@@ -194,6 +208,15 @@ export const NETWORKS_DATA: {
                     return app?.networks?.[AXELAR_NETWORK.key] as ExternalCurrenciesType;
                 },
                 embedChainInfo: alexarChainInfo,
+            },
+            JUNO: {
+                ...JUNO_NETWORK,
+                explorer: 'https://testnet.mintscan.io/juno-testnet/txs',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[JUNO_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: junoChainInfo,
             }
         }
     },
@@ -203,7 +226,8 @@ export const NETWORKS_DATA: {
             SUPPORTED_NETWORKS_DATA.OSMOSIS,
             SUPPORTED_NETWORKS_DATA.COSMOS_HUB,
             SUPPORTED_NETWORKS_DATA.AXELAR,
-            SUPPORTED_NETWORKS_DATA.STRIDE
+            SUPPORTED_NETWORKS_DATA.STRIDE,
+            SUPPORTED_NETWORKS_DATA.JUNO
         ],
         supportedNetworks: {
             OSMOSIS: {
@@ -241,6 +265,15 @@ export const NETWORKS_DATA: {
                     return app?.networks?.[STRIDE_NETWORK.key] as ExternalCurrenciesType;
                 },
                 embedChainInfo: strideChainInfo,
+            },
+            JUNO: {
+                ...JUNO_NETWORK,
+                explorer: 'https://mintscan.io/juno/transactions',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[JUNO_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: junoChainInfo,
             }
         }
     },

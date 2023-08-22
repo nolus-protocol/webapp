@@ -47,5 +47,17 @@
                 "api": "https://axelartest-lcd.quickapi.com"
             }
         ]
+    },
+    "JUNO": {
+        "primary": {
+            "rpc": "https://rpc.uni.junonetwork.io",
+            "api": "https://api.uni.junonetwork.io"
+        },
+        "fallback": [
+            {
+                "rpc": "https://juno-testnet-rpc.polkachu.com",
+                "api": "https://juno-testnet-api.polkachu.com"
+            }
+        ]
     }
 }
