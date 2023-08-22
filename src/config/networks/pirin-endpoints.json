@@ -74,13 +74,13 @@
     },
     "JUNO": {
         "primary": {
-            "rpc": "https://rpc-juno.itastakers.com",
-            "api": "https://lcd-juno.itastakers.com"
+            "rpc": "https://juno-rpc.polkachu.com",
+            "api": "https://juno-api.polkachu.com"
         },
         "fallback": [
             {
-                "rpc": "https://juno-rpc.polkachu.com",
-                "api": "https://juno-api.polkachu.com"
+                "rpc": "https://rpc-juno.architectnodes.com",
+                "api": "https://rest-juno.architectnodes.com"
             }
         ]
     }
