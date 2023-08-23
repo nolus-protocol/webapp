@@ -112,7 +112,7 @@
     </div>
     <!-- Actions -->
     <div class="modal-send-receive-actions flex flex-col">
-      <button class="btn btn-primary btn-large-primary plausible-event-name=open-position">
+      <button class="btn btn-primary btn-large-primary">
         {{ $t("message.open-position") }}
       </button>
       <div class="flex justify-between w-full text-light-blue text-[14px] my-2">

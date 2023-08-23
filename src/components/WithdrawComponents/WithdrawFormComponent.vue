@@ -22,7 +22,7 @@
 
     <!-- Actions -->
     <div class="modal-send-receive-actions">
-      <button class="btn btn-primary btn-large-primary text-center plausible-event-name=withdraw">
+      <button class="btn btn-primary btn-large-primary text-center">
         {{ $t("message.withdraw") }}
       </button>
     </div>

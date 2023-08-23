@@ -439,7 +439,7 @@
       <div class="flex">
       </div>
       <button
-        class="btn btn-secondary btn-large-secondary md:w-auto w-full md:mt-0 mt-4 plausible-event-name=collect"
+        class="btn btn-secondary btn-large-secondary md:w-auto w-full md:mt-0 mt-4"
         :class="{ 'js-loading': leaseInfo.leaseStatus?.paid?.in_progress }"
         @click="onShowClaimDialog"
       >

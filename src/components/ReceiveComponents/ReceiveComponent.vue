@@ -122,7 +122,7 @@
         <!-- Actions -->
         <div class="modal-send-receive-actions background flex-col">
           <button
-            class="btn btn-primary btn-large-primary plausible-event-name=receive"
+            class="btn btn-primary btn-large-primary"
             :class="{ 'js-loading': isLoading }"
           >
             {{ $t("message.receive") }}

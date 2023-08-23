@@ -39,7 +39,7 @@
       <div class="flex justify-end">
         <button
           :disabled="!isEnabled"
-          :class="`btn btn-secondary btn-medium-secondary plausible-event-name=claim ${loading ? 'js-loading' : ''} ${isEnabled ? '' : 'disabled'}`"
+          :class="`btn btn-secondary btn-medium-secondary ${loading ? 'js-loading' : ''} ${isEnabled ? '' : 'disabled'}`"
           @:click="onClickClaim"
         >
           {{ $t("message.claim") }}
