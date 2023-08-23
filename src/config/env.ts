@@ -217,7 +217,7 @@ export enum ErrorCodes {
 export const calculateAditionalDebt = (principal: Dec, percent: Dec) => {
   const annualAmount = principal.mul(percent);
   const secondsAmount = annualAmount.quo(new Dec(31536000));
-  const amountForTwoMinuts = secondsAmount.mul(new Dec(120));
+  const amountForTwoMinuts = secondsAmount.mul(new Dec(180));
   return amountForTwoMinuts;
 }
 
