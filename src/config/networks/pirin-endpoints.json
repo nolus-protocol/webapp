@@ -83,5 +83,17 @@
                 "api": "https://rest-juno.architectnodes.com"
             }
         ]
+    },
+    "EVMOS": {
+        "primary": {
+            "rpc": "https://rpc-evmos-ia.cosmosia.notional.ventures:443",
+            "api": "https://api-evmos-ia.cosmosia.notional.ventures/"
+        },
+        "fallback": [
+            {
+                "rpc": "https://evmos-rpc.polkachu.com",
+                "api": "https://evmos-api.polkachu.com"
+            }
+        ]
     }
 }

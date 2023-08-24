@@ -59,5 +59,18 @@
                 "api": "https://juno-testnet-api.polkachu.com"
             }
         ]
+    },
+    "EVMOS": {
+        "primary": {
+            "rpc": "https://evmos-testnet-rpc.polkachu.com",
+            "api": "https://evmos-testnet-api.polkachu.com"
+        },
+        "fallback": [
+            {
+                "rpc": "https://evmos.test.rpc.coldyvalidator.net",
+                "api": "https://evmos.test.api.coldyvalidator.net"
+            }
+        ]
     }
+    
 }
