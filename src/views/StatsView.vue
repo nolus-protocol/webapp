@@ -1,5 +1,5 @@
 <template>
-  <div class="col-span-12 mb-sm-nolus-70 max-w-[800px]">
+  <div class="col-span-12 mb-sm-nolus-70 max-w-[880px]">
     <!-- Header -->
     <div class="flex flex-wrap items-center justify-between px-2 lg:pt-[25px] lg:px-0">
       <div class="left w-full md:w-1/2">
@@ -253,13 +253,230 @@
 
     </div>
 
+    <div class="background mt-6 shadow-box radius-medium radius-0-sm outline flex">
+      <div class="pt-6 pl-6 pb-6">
+        <p class="nls-font-500 text-16 text-primary">
+          Leased Assets (Total)
+        </p>
+        <div class="flex">
+          <div class="stats flex">
+            <StatChart />
+          </div>
+          <div class="flex flex-wrap my-4">
+            <div class="lg:pl-6 self-center">
+              <p class="nls-font-500 text-12 text-dark-grey flex">
+                BTC
+              </p>
+
+              <CurrencyComponent
+                :fontSize="20"
+                :fontSizeSmall="16"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                amount="4.22"
+                denom="%"
+                :isDenomInfront="false"
+                :has-space="false"
+                class="nls-font-500 text-primary"
+              />
+            </div>
+            <div class="lg:pl-6 self-center">
+              <p class="nls-font-500 text-12 text-dark-grey flex">
+                BTC
+              </p>
+
+              <CurrencyComponent
+                :fontSize="20"
+                :fontSizeSmall="16"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                amount="4.22"
+                denom="%"
+                :isDenomInfront="false"
+                :has-space="false"
+                class="nls-font-500 text-primary"
+              />
+            </div>
+            <div class="lg:pl-6 self-center">
+              <p class="nls-font-500 text-12 text-dark-grey flex">
+                BTC
+              </p>
+
+              <CurrencyComponent
+                :fontSize="20"
+                :fontSizeSmall="16"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                amount="4.22"
+                denom="%"
+                :isDenomInfront="false"
+                :has-space="false"
+                class="nls-font-500 text-primary"
+              />
+            </div>
+            <div class="lg:pl-6 self-center">
+              <p class="nls-font-500 text-12 text-dark-grey flex">
+                BTC
+              </p>
+
+              <CurrencyComponent
+                :fontSize="20"
+                :fontSizeSmall="16"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                amount="4.22"
+                denom="%"
+                :isDenomInfront="false"
+                :has-space="false"
+                class="nls-font-500 text-primary"
+              />
+            </div>
+            <div class="lg:pl-6 self-center">
+              <p class="nls-font-500 text-12 text-dark-grey flex">
+                BTC
+              </p>
+
+              <CurrencyComponent
+                :fontSize="20"
+                :fontSizeSmall="16"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                amount="4.22"
+                denom="%"
+                :isDenomInfront="false"
+                :has-space="false"
+                class="nls-font-500 text-primary"
+              />
+            </div>
+            <div class="lg:pl-6 self-center">
+              <p class="nls-font-500 text-12 text-dark-grey flex">
+                BTC
+              </p>
+
+              <CurrencyComponent
+                :fontSize="20"
+                :fontSizeSmall="16"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                amount="4.22"
+                denom="%"
+                :isDenomInfront="false"
+                :has-space="false"
+                class="nls-font-500 text-primary"
+              />
+            </div>
+            <div class="lg:pl-6 self-center">
+              <p class="nls-font-500 text-12 text-dark-grey flex">
+                BTC
+              </p>
+
+              <CurrencyComponent
+                :fontSize="20"
+                :fontSizeSmall="16"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                amount="4.22"
+                denom="%"
+                :isDenomInfront="false"
+                :has-space="false"
+                class="nls-font-500 text-primary"
+              />
+            </div>
+            <div class="lg:pl-6 self-center">
+              <p class="nls-font-500 text-12 text-dark-grey flex">
+                BTC
+              </p>
+
+              <CurrencyComponent
+                :fontSize="20"
+                :fontSizeSmall="16"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                amount="4.22"
+                denom="%"
+                :isDenomInfront="false"
+                :has-space="false"
+                class="nls-font-500 text-primary"
+              />
+            </div>
+            <div class="lg:pl-6 self-center">
+              <p class="nls-font-500 text-12 text-dark-grey flex">
+                BTC
+              </p>
+
+              <CurrencyComponent
+                :fontSize="20"
+                :fontSizeSmall="16"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                amount="4.22"
+                denom="%"
+                :isDenomInfront="false"
+                :has-space="false"
+                class="nls-font-500 text-primary"
+              />
+            </div>
+            <div class="lg:pl-6 self-center">
+              <p class="nls-font-500 text-12 text-dark-grey flex">
+                BTC
+              </p>
+
+              <CurrencyComponent
+                :fontSize="20"
+                :fontSizeSmall="16"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                amount="4.22"
+                denom="%"
+                :isDenomInfront="false"
+                :has-space="false"
+                class="nls-font-500 text-primary"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-standart border-l lg:border-b-0 px-14 flex items-start justify-center flex-col mr-6">
+        <div class="pt-3">
+          <p class="nls-font-500 text-12 text-dark-grey flex">
+            Supplied
+          </p>
+
+          <CurrencyComponent
+            :fontSize="20"
+            :fontSizeSmall="16"
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            amount="220234"
+            denom="$"
+            :has-space="false"
+            class="nls-font-500 text-primary"
+          />
+        </div>
+        <div class="pt-3">
+          <p class="nls-font-500 text-12 text-dark-grey flex">
+            Borrowed
+          </p>
+
+          <CurrencyComponent
+            :fontSize="20"
+            :fontSizeSmall="16"
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            amount="14"
+            denom="$"
+            :has-space="false"
+            class="nls-font-500 text-primary"
+          />
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
+
+<style lang="scss">
+div.stats {
+  width: 160px;
+  height: 160px;
+  margin-top: 12px;
+}
+</style>
 
 <script setup lang="ts">
 import CurrencyComponent from '@/components/CurrencyComponent.vue';
 import TooltipComponent from '@/components/TooltipComponent.vue';
 import PriceHistoryChart from "@/components/templates/utils/NolusChart.vue";
+import StatChart from '@/components/StatChart.vue';
 
 import { CURRENCY_VIEW_TYPES } from '@/types/CurrencyViewType';
 
