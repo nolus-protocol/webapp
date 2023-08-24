@@ -304,6 +304,7 @@
     "undelegate-title": "解除委托",
     "connect-wallet-label": "connect wallet to continue",
     "GasErrorExternal": "Insufficient {symbol}",
-    "gassErrorExternalMsg": "Insufficient {symbol} for gas fees"
+    "gassErrorExternalMsg": "Insufficient {symbol} for gas fees",
+    "stats": "Stats"
   }
 }

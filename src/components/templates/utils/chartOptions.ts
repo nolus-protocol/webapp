@@ -14,7 +14,8 @@ export const defaultOptions: ChartOptions<any> = {
       type: "time",
       ticks: {
         autoSkip: true,
-        maxTicksLimit: 6,
+        maxTicksLimit: 8,
+        align: 'inner',
         maxRotation: 0,
         color: '#8396B1',
         font: {

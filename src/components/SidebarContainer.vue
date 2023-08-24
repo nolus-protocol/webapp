@@ -8,11 +8,10 @@
       <LogoLink link="/" />
       <div class="sidebar-elements-container nls-nav-more flex flex-col mt-[55px]">
         <div
-          :style="
-            showMobileNav
+          :style="showMobileNav
               ? 'z-index: 5;box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15); transform: translateY(-104px)'
               : ''
-          "
+            "
           class="lg:hidden nls-border mb-[-1px] mobile-transition-taskbar"
         >
           <div class="nls-nav-link flex flex-start nls-md-flex-row mt-[6px]">
@@ -120,6 +119,14 @@
   </div>
 
   <div class="lg:col-span-3 absolute inset-x-0 bottom-0 mb-6 ml-8 hidden md:grid fixed">
+    <div class="flex">
+      <img src="@/assets/icons/hat.svg" />
+      <img
+        class="cursor-pointer select-none"
+        @click="pushTo(RouteNames.STATS)"
+        src="@/assets/icons/stats.svg"
+      />
+    </div>
     <p class="nls-font-500 text-12 text-dark-grey text-upper pl-2">
       {{ applicaton.network.networkName }} #<template v-if="block > 0">{{ block }}</template>
     </p>
@@ -198,7 +205,7 @@ watch(
 watch(
   () => applicationRef.sessionExpired.value,
   (value) => {
-    if(value){
+    if (value) {
       clearInterval(blockInterval);
     }
   }
@@ -213,7 +220,7 @@ function onClick(event: MouseEvent) {
   }
 };
 
-async function setBlock () {
+async function setBlock() {
   try {
     const nolusClient = NolusClient.getInstance();
     block.value = await nolusClient.getBlockHeight();
@@ -222,7 +229,7 @@ async function setBlock () {
   }
 }
 
-async function setVersion () {
+async function setVersion() {
   try {
     const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
 
@@ -262,5 +269,4 @@ div.nls-nav-link {
     width: 32px;
     height: 24px;
   }
-}
-</style>
+}</style>

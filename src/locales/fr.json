@@ -303,6 +303,7 @@
     "delegate-title": "Déléguer",
     "undelegate-title": "Retirer",
     "GasErrorExternal": "Insufficient {symbol}",
-    "gassErrorExternalMsg": "Insufficient {symbol} for gas fees"
+    "gassErrorExternalMsg": "Insufficient {symbol} for gas fees",
+    "stats": "Stats"
   }
 }
