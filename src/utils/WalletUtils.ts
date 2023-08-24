@@ -93,7 +93,6 @@ export class WalletUtils {
     const pubKey = encodeSecp256k1Pubkey(
       Uint8Array.from(Buffer.from(hex, "hex"))
     );
-
     return pubkeyToAddress(pubKey, prefix);
   }
 }

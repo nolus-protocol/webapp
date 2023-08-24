@@ -46,6 +46,7 @@ export const validateAmount = (
     coinDecimals
   ).amount.toDec();
 
+  
   const walletBalance = String(balance || 0);
   const isLowerThanOrEqualsToZero = minimalDenom.amount.toDec().lte(zero);
 

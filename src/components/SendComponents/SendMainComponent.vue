@@ -108,7 +108,7 @@ watch(() => [state.value.selectedCurrency, state.value.amount], () => {
   state.value.amountErrorMsg = validateAmount(
     state.value.amount,
     state.value.selectedCurrency.balance.denom,
-    Number(state.value.selectedCurrency.balance.amount)
+    state.value.selectedCurrency.balance.amount
   );
 })
 
@@ -117,7 +117,6 @@ watch(() => state.value.receiverAddress, () => {
 })
 
 watch(() => state.value.network, () => {
-  const network = app.networksData!.networks.list[state.value.network.key];
   const currencies = Object.keys(app.networks?.[state.value.network.key] ?? {});
 
   const native = app.networks![NATIVE_NETWORK.key];
@@ -157,7 +156,7 @@ const validateInputs = () => {
   state.value.amountErrorMsg = validateAmount(
     state.value.amount,
     state.value.selectedCurrency.balance.denom,
-    Number(state.value.selectedCurrency.balance.amount)
+    state.value.selectedCurrency.balance.amount
   );
   const networkInfo = SUPPORTED_NETWORKS_DATA[state.value.network.key as keyof typeof SUPPORTED_NETWORKS_DATA];
   if (networkInfo.forward) {

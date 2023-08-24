@@ -2,7 +2,7 @@ export const NETWORK = {
     prefix: "evmos",
     key: "EVMOS",
     gasMuplttiplier: 2,
-    bip44Path: "44'/118'/0'/0/0",
+    bip44Path: "44'/60'/0'/0/0",
     ibcTransferTimeout: 600,
     ticker: "EVMOS",
     name: "Evmos",

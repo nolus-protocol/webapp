@@ -11,7 +11,7 @@ const embedChainInfo = (
     rpc: tendermintRpc,
     rest: rest,
     bip44: {
-      coinType: 118,
+      coinType: 60,
     },
     bech32Config: {
       bech32PrefixAccAddr: 'evmos',

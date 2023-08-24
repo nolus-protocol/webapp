@@ -327,14 +327,13 @@ const useWalletStore = defineStore("wallet", {
 
           return false;
         }
-
+        
         for (const key in currencies) {
           const currency = app.currenciesData![key];
           const ibcDenom = AssetUtils.makeIBCMinimalDenom(
             currency.ibc_route,
             currency.symbol
           );
-          console.log(key, ibcDenom)
 
           ibcBalances.push(
             NolusClient.getInstance()
