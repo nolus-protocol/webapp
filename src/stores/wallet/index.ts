@@ -298,7 +298,6 @@ const useWalletStore = defineStore("wallet", {
         const currencies = app.currenciesData;
 
         if (!WalletUtils.isAuth()) {
-
           for (const key in currencies) {
             const currency = app.currenciesData![key];
             const ibcDenom = AssetUtils.makeIBCMinimalDenom(
@@ -335,6 +334,8 @@ const useWalletStore = defineStore("wallet", {
             currency.ibc_route,
             currency.symbol
           );
+          console.log(key, ibcDenom)
+
           ibcBalances.push(
             NolusClient.getInstance()
               .getBalance(walletAddress, ibcDenom)

@@ -33,5 +33,8 @@ export const ASSETS = {
   },
   AXL: {
     coinGeckoId: "axelar",
+  },
+  EVMOS: {
+    coinGeckoId: "evmos",
   }
 };

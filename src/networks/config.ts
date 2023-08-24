@@ -16,6 +16,9 @@ import { embedChainInfo as strideChainInfo } from './stride/contants';
 import { NETWORK as JUNO_NETWORK } from './juno/network';
 import { embedChainInfo as junoChainInfo } from './juno/contants';
 
+import { NETWORK as EVMOS_NETWORK } from './evmos/network';
+import { embedChainInfo as evmosChainInfo } from './evmos/contants';
+
 import { useApplicationStore } from "@/stores/application";
 import type { ExternalCurrenciesType } from "@/types/CurreciesType";
 
@@ -79,6 +82,16 @@ export const SUPPORTED_NETWORKS_DATA: {
         estimation: 20,
         key: "JUNO",
         symbol: "JUNO",
+        forward: true
+    },
+    EVMOS: {
+        prefix: "evmos",
+        value: "evmos",
+        label: "Evmos",
+        native: false,
+        estimation: 20,
+        key: "EVMOS",
+        symbol: "EVMOS",
         forward: true
     }
 }
@@ -227,7 +240,8 @@ export const NETWORKS_DATA: {
             SUPPORTED_NETWORKS_DATA.COSMOS_HUB,
             SUPPORTED_NETWORKS_DATA.AXELAR,
             SUPPORTED_NETWORKS_DATA.STRIDE,
-            SUPPORTED_NETWORKS_DATA.JUNO
+            SUPPORTED_NETWORKS_DATA.JUNO,
+            SUPPORTED_NETWORKS_DATA.EVMOS
         ],
         supportedNetworks: {
             OSMOSIS: {
@@ -274,6 +288,15 @@ export const NETWORKS_DATA: {
                     return app?.networks?.[JUNO_NETWORK.key] as ExternalCurrenciesType;
                 },
                 embedChainInfo: junoChainInfo,
+            },
+            EVMOS: {
+                ...EVMOS_NETWORK,
+                explorer: 'https://mintscan.io/evmos/transactions',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[EVMOS_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: evmosChainInfo,
             }
         }
     },
