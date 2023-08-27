@@ -62,13 +62,13 @@
     },
     "STRIDE": {
         "primary": {
-            "rpc": "https://stride-rpc.polkachu.com",
-            "api": "https://stride-api.polkachu.com"
+            "rpc": "https://rpc-stride.architectnodes.com",
+            "api": "https://rest-stride.architectnodes.com"
         },
         "fallback": [
             {
-                "rpc": "https://rpc-stride.architectnodes.com",
-                "api": "https://rest-stride.architectnodes.com"
+                "rpc": "https://stride-rpc.polkachu.com",
+                "api": "https://stride-api.polkachu.com"
             }
         ]
     },
