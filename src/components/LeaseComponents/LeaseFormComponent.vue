@@ -136,7 +136,7 @@ import { onMounted, ref, type PropType } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { computed, watch } from "vue";
 import { useWalletStore } from "@/stores/wallet";
-import { NATIVE_NETWORK, calculateLiquidation, PERMILLE } from "@/config/env";
+import { NATIVE_NETWORK, calculateLiquidation, PERMILLE, IGNORE_ASSETS } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
@@ -205,12 +205,18 @@ const balances = computed(() => {
   const balances = wallet.balances;
   return balances.filter((item) => {
     const currency = wallet.currencies[item.balance.denom];
-    return app.lpn?.ticker ==  currency.ticker || app.lease.includes(currency.ticker);
+    if (IGNORE_ASSETS.includes(currency.ticker)) {
+      return false;
+    }
+    return app.lpn?.ticker == currency.ticker || app.lease.includes(currency.ticker);
   });
 });
 
 const coinList = props.modelValue.currentBalance.filter((item) => {
   const currency = wallet.currencies[item.balance.denom];
+  if (IGNORE_ASSETS.includes(currency.ticker)) {
+    return false;
+  }
   return app.lease.includes(currency.ticker);
 }).map((item) => {
   const asset = wallet.getCurrencyInfo(item.balance.denom);
