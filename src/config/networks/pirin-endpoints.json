@@ -67,8 +67,8 @@
         },
         "fallback": [
             {
-                "rpc": "https://stride-rpc.polkachu.com",
-                "api": "https://stride-api.polkachu.com"
+                "rpc": "https://stride.rpc.kjnodes.com",
+                "api": "https://stride.api.kjnodes.com"
             }
         ]
     },
