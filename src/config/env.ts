@@ -291,4 +291,5 @@ export const SWAP_FEE = 0.007;
 export const ZERO_DECIMALS = 2;
 export const MAX_DECIMALS = 8;
 export const LedgerName = "Ledger";
-export const IGNORE_ASSETS = ['JUNO']
+export const IGNORE_LEASE_ASSETS = ['JUNO', 'EVMOS'];
+export const IGNORE_TRANSFER_ASSETS = ['EVMOS'];

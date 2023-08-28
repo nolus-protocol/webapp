@@ -147,7 +147,7 @@ import { CONFIRM_STEP, TxType, type Network } from "@/types";
 
 import { onUnmounted, ref, type PropType, inject, watch, computed } from "vue";
 import { DocumentDuplicateIcon, QrCodeIcon } from "@heroicons/vue/24/solid";
-import { ErrorCodes, NATIVE_NETWORK, SOURCE_PORTS } from "@/config/env";
+import { ErrorCodes, IGNORE_TRANSFER_ASSETS, NATIVE_NETWORK, SOURCE_PORTS } from "@/config/env";
 import { useI18n } from "vue-i18n";
 import { AssetUtils, EnvNetworkUtils, WalletUtils } from "@/utils";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
@@ -161,6 +161,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { storeToRefs } from "pinia";
 import { useApplicationStore } from "@/stores/application";
 import { ApptUtils } from "@/utils/AppUtils";
+import type { ExternalCurrencyType } from "@/types/CurreciesType";
 
 export interface ReceiveComponentProps {
   currentBalance: AssetBalance[];
@@ -246,10 +247,17 @@ const onUpdateNetwork = async (event: Network) => {
 
     const assets = network.supportedNetworks[event.key].currencies();
     const currenciesPromise = [];
+    const filteredAssets: { [key: string]: ExternalCurrencyType }= {};
 
-    networkCurrenciesObject.value = assets;
+    for(const key in assets){
+      if(!IGNORE_TRANSFER_ASSETS.includes(key)){
+        filteredAssets[key] = assets[key];
+      }
+    }
 
-    for (const key in assets) {
+    networkCurrenciesObject.value = filteredAssets;
+
+    for (const key in filteredAssets) {
 
       const fn = async () => {
         const ibc_route = AssetUtils.makeIBCMinimalDenom(assets[key].ibc_route, assets[key].symbol);

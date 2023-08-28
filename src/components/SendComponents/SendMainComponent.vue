@@ -1,21 +1,25 @@
 <template>
-  <ConfirmComponent v-if="showConfirmScreen"
-                    :selectedCurrency="state.selectedCurrency"
-                    :receiverAddress="state.receiverAddress"
-                    :password="state.password"
-                    :amount="state.amount"
-                    :memo="state.memo"
-                    :txType="$t(`message.${TxType.SEND}`) + ':'"
-                    :txHash="state.txHash"
-                    :step="step"
-                    :fee="state.fee"
-                    :onSendClick="onSendClick"
-                    :onBackClick="onConfirmBackClick"
-                    :onOkClick="onClickOkBtn"
-                    @passwordUpdate="(value) => (state.password = value)" />
-  <SendComponent v-else
-                 v-model="state"
-                 class="overflow-auto custom-scroll" />
+  <ConfirmComponent
+    v-if="showConfirmScreen"
+    :selectedCurrency="state.selectedCurrency"
+    :receiverAddress="state.receiverAddress"
+    :password="state.password"
+    :amount="state.amount"
+    :memo="state.memo"
+    :txType="$t(`message.${TxType.SEND}`) + ':'"
+    :txHash="state.txHash"
+    :step="step"
+    :fee="state.fee"
+    :onSendClick="onSendClick"
+    :onBackClick="onConfirmBackClick"
+    :onOkClick="onClickOkBtn"
+    @passwordUpdate="(value) => (state.password = value)"
+  />
+  <SendComponent
+    v-else
+    v-model="state"
+    class="overflow-auto custom-scroll"
+  />
 </template>
 
 <script lang="ts" setup>
@@ -38,7 +42,8 @@ import {
   SNACKBAR,
   SOURCE_PORTS,
   NATIVE_NETWORK,
-  ErrorCodes
+  ErrorCodes,
+  IGNORE_TRANSFER_ASSETS
 } from "@/config/env";
 
 import {
@@ -62,7 +67,13 @@ const showSnackbar = inject(
   "showSnackbar",
   (type: string, transaction: string) => { }
 );
-const balances = ref<AssetBalance[]>(walletStore.balances.map((item) => {
+const balances = ref<AssetBalance[]>(walletStore.balances.filter((item) => {
+  const currency = walletStore.getCurrencyInfo(item.balance.denom);
+  if (IGNORE_TRANSFER_ASSETS.includes(currency.ticker as string)) {
+    return false;
+  }
+  return true;
+}).map((item) => {
   const e = { ...item }
   if (e.balance.denom == walletStore.available.denom) {
     e.balance = { ...walletStore.available }
@@ -131,6 +142,12 @@ watch(() => state.value.network, () => {
   }
 
   state.value.currentBalance = walletStore.balances.filter((item) => {
+    const currency = walletStore.getCurrencyInfo(item.balance.denom);
+
+    if (IGNORE_TRANSFER_ASSETS.includes(currency.ticker as string)) {
+      return false;
+    }
+
     if (items.includes(item.balance.denom)) {
       return true;
     }
