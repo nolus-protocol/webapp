@@ -20,7 +20,7 @@
       </div>
 
       <div class="block col-span-6 nls-14 nls-font-400 text-primary text-left sm:my-1 text-14">
-        <span class="nls-12 nls-font-700">
+        <span class="nls-12 nls-font-600">
           {{ message(msg) }}
         </span>
 
@@ -68,7 +68,7 @@ import { StringUtils } from "@/utils/StringUtils";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/wallet";
 import { Buffer } from "buffer";
-import { AssetUtils, WalletManager } from "@/utils";
+import { WalletManager } from "@/utils";
 
 enum Messages {
   "/cosmos.bank.v1beta1.MsgSend" = "/cosmos.bank.v1beta1.MsgSend",
@@ -270,6 +270,7 @@ const message = (msg: Object | any) => {
           const token = getCurrency(coin);
           return i18n.t('message.claim-position-action', {
             amount: token.toString(),
+            address:truncateString(msg.data.contract),
           });
         }
 
@@ -322,7 +323,6 @@ const message = (msg: Object | any) => {
       const amount = getAmount(log);
       const coin = parseCoins(amount.value)[0];
       const token = getCurrency(coin);
-
       return i18n.t('message.claim-position-action', {
         amount: token.toString(),
         address: truncateString(msg.data?.validatorAddress)

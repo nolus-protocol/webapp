@@ -1,14 +1,15 @@
 <template>
   <DialogHeader
-    :headerList="[$t('message.send'), $t('message.receive')]"
-    :routes="['send', 'receive']"
+    :headerList="[$t('message.receive'), $t('message.send')]"
+    :routes="['receive', 'send']"
   >
     <template #tab-1>
-      <SendMainComponent/>
+      <ReceiveMainComponent />
     </template>
     <template #tab-2>
-      <ReceiveMainComponent/>
+      <SendMainComponent />
     </template>
+
   </DialogHeader>
 </template>
 

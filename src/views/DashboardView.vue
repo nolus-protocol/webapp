@@ -351,9 +351,12 @@ const vestedTokens = ref(
 );
 
 const filteredAssets = computed(() => {
-  return state.value.showSmallBalances
+  const balances = state.value.showSmallBalances
     ? wallet.balances
     : filterSmallBalances(wallet.balances as AssetBalance[]);
+  return balances.sort((a, b) => {
+    return b.balance.amount.sub(a.balance.amount);
+  });
 });
 
 const loading = computed(() => showSkeleton.value || wallet.balances.length == 0);

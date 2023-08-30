@@ -233,54 +233,59 @@ export const CoinGecko = {
 
 let l: {
   [key: string]: {
-      key: string;
-      label: string;
-      url: string;
+    key: string;
+    label: string;
+    url: string;
   }
 } = {
   en: {
-      key: 'en',
-      label: 'English',
-      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/en.json'
+    key: 'en',
+    label: 'English',
+    url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/en.json'
   },
   ru: {
-      key: 'ru',
-      label: 'Русский',
-      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/ru.json'
+    key: 'ru',
+    label: 'Русский',
+    url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/ru.json'
   },
   cn: {
-      key: 'cn',
-      label: '中文',
-      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/cn.json'
+    key: 'cn',
+    label: '中文',
+    url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/cn.json'
   },
   fr: {
-      key: 'fr',
-      label: 'Français',
-      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/fr.json'
+    key: 'fr',
+    label: 'Français',
+    url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/fr.json'
   },
   es: {
     key: 'es',
     label: 'Español',
     url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/es.json'
-},
+  },
+  gr: {
+    key: 'gr',
+    label: 'Ελληνικά',
+    url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/gr.json'
+  },
 }
 
 if (!isDev()) {
   l = {
-      en: {
-          key: 'en',
-          label: 'English',
-          url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/en.json'
-      },
-      ru: {
-          key: 'ru',
-          label: 'Русский',
-          url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/ru.json'
-      },
-      cn: {
-        key: 'cn',
-        label: '中文',
-        url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/cn.json'
+    en: {
+      key: 'en',
+      label: 'English',
+      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/en.json'
+    },
+    ru: {
+      key: 'ru',
+      label: 'Русский',
+      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/ru.json'
+    },
+    cn: {
+      key: 'cn',
+      label: '中文',
+      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/cn.json'
     }
   }
 }
