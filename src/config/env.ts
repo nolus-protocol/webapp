@@ -268,6 +268,11 @@ let l: {
     label: 'Ελληνικά',
     url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/gr.json'
   },
+  tr: {
+    key: 'tr',
+    label: 'Türkçe',
+    url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/tr.json'
+  },
 }
 
 if (!isDev()) {
@@ -298,3 +303,4 @@ export const MAX_DECIMALS = 8;
 export const LedgerName = "Ledger";
 export const IGNORE_LEASE_ASSETS = ['JUNO', 'EVMOS'];
 export const IGNORE_TRANSFER_ASSETS = ['EVMOS'];
+export const ETL_API = "https://etl-cl.nolus.network:8080/api"

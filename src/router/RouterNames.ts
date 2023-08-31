@@ -11,5 +11,6 @@ export enum RouteNames {
   LEASE = "LEASE",
   EARN = "EARN",
   GOOGLE_AUTH = "GOOGLE_AUTH",
-  CONNECT_LEAP = "CONNECT_LEAP"
+  CONNECT_LEAP = "CONNECT_LEAP",
+  STATS = "STATS"
 }

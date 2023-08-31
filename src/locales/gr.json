@@ -304,6 +304,21 @@
     "undelegate-title": "Αποδέσμευση",
     "connect-wallet-label": "συνδέστε το πορτοφόλι για να συνεχίσετε",
     "GasErrorExternal": "Ανεπαρκές {symbol}",
-    "gassErrorExternalMsg": "Ανεπαρκές {symbol} για τέλη δικτύου"
+    "gassErrorExternalMsg": "Ανεπαρκές {symbol} για τέλη δικτύου",
+    "stats": "Stats",
+    "total-value-locked": "Total value locked",
+    "yield-tooltip": "Annualized percentage rate on supplied stablecoins",
+    "borrow-apr": "Borrow APR",
+    "supplied": "Supplied",
+    "utilization-level": "Utilization level",
+    "optimal": "Optimal",
+    "optimal-tooltip": "The threshold at which the maximum lease interest is reached",
+    "deposit-suspension": "Deposit Suspension",
+    "deposit-suspension-tooltip": "The threshold under which new stablecoin deposits get suspended",
+    "buyback-total": "Buyback (Total)",
+    "incentives-pool": "Incentives Pool",
+    "distributed": "Distributed",
+    "leased-assets-total": "Leased Assets (Total)",
+    "protocol-revenue": "Protocol revenue"
   }
 }

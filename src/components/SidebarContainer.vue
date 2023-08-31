@@ -8,11 +8,10 @@
       <LogoLink link="/" />
       <div class="sidebar-elements-container nls-nav-more flex flex-col mt-[55px]">
         <div
-          :style="
-            showMobileNav
-              ? 'z-index: 5;box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15); transform: translateY(-104px)'
-              : ''
-          "
+          :style="showMobileNav
+            ? 'z-index: 5;box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15); transform: translateY(-104px)'
+            : ''
+            "
           class="lg:hidden nls-border mb-[-1px] mobile-transition-taskbar"
         >
           <div class="nls-nav-link flex flex-start nls-md-flex-row mt-[6px]">
@@ -120,6 +119,12 @@
   </div>
 
   <div class="lg:col-span-3 absolute inset-x-0 bottom-0 mb-6 ml-8 hidden md:grid fixed">
+    <div class="flex items-center">
+      <img src="@/assets/icons/hat.svg" />
+      <a @click="pushTo(RouteNames.STATS)" class="cursor-pointer select-none">
+        <Stats :class="{ active: $route.name ==  RouteNames.STATS }"/>
+      </a>
+    </div>
     <p class="nls-font-500 text-12 text-dark-grey text-upper pl-2">
       {{ applicaton.network.networkName }} #<template v-if="block > 0">{{ block }}</template>
     </p>
@@ -141,6 +146,7 @@ import LogoLink from "@/components/LogoLink.vue";
 import SidebarElement from "@/components/SidebarElement.vue";
 import Modal from "@/components/modals/templates/Modal.vue";
 import SwapDialog from "@/components/modals/SwapDialog.vue";
+import Stats from "./icons/Stats.vue";
 
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import { RouteNames } from "@/router/RouterNames";
@@ -198,7 +204,7 @@ watch(
 watch(
   () => applicationRef.sessionExpired.value,
   (value) => {
-    if(value){
+    if (value) {
       clearInterval(blockInterval);
     }
   }
@@ -213,7 +219,7 @@ function onClick(event: MouseEvent) {
   }
 };
 
-async function setBlock () {
+async function setBlock() {
   try {
     const nolusClient = NolusClient.getInstance();
     block.value = await nolusClient.getBlockHeight();
@@ -222,7 +228,7 @@ async function setBlock () {
   }
 }
 
-async function setVersion () {
+async function setVersion() {
   try {
     const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
 
