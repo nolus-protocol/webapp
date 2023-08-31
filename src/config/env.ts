@@ -291,3 +291,4 @@ export const SWAP_FEE = 0.007;
 export const ZERO_DECIMALS = 2;
 export const MAX_DECIMALS = 8;
 export const LedgerName = "Ledger";
+export const ETL_API = "https://etl-cl.nolus.network:8080/api"

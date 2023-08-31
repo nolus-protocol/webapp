@@ -41,8 +41,12 @@ export const tooltipConfig = (callback?: Function) => {
                 if (label) {
                     label = `${label}: `;
                 }
-
-                if (context.parsed.y !== null) {
+                if (typeof context.parsed == 'number') {
+                    value = new Intl.NumberFormat(NATIVE_CURRENCY.locale, {
+                        style: "currency",
+                        currency: NATIVE_CURRENCY.currency,
+                    }).format(context.parsed as any);
+                } else if (context.parsed.y !== null) {
                     value = new Intl.NumberFormat(NATIVE_CURRENCY.locale, {
                         style: "currency",
                         currency: NATIVE_CURRENCY.currency,

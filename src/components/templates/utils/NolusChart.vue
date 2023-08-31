@@ -9,6 +9,7 @@
     :plugins="plugins"
     :styles="styles"
     :width="width"
+    ref="chartElement"
   />
 </template>
 
@@ -18,7 +19,7 @@ import { createTypedChart } from "vue-chartjs";
 import { CategoryScale, Chart as ChartJS, Legend, LinearScale, TimeScale, LineController, LineElement, PointElement, Title, Tooltip, type Plugin, type ChartData, type Point } from "chart.js";
 
 import { defaultOptions } from "@/components/templates/utils/chartOptions";
-import type { PropType } from "vue";
+import { ref, type PropType } from "vue";
 
 ChartJS.register(
   Title,
@@ -38,6 +39,7 @@ class LineWithLineController extends LineController {
 }
 
 const LineWithLine = createTypedChart("line", LineWithLineController);
+const chartElement = ref<typeof LineWithLine>()
 
 defineProps({
   chartId: {
@@ -74,6 +76,20 @@ defineProps({
   },
 });
 
+function updateChart(supplied: any, borrowed: any){
+  const [s, b] = chartElement.value!.chart.data.datasets;
+  for(const e of supplied){
+    s.data.push(e);
+  }
+  for(const e of borrowed){
+    b.data.push(e);
+  }
+  chartElement.value?.chart.update();
+}
+
+defineExpose({
+  updateChart,
+});
 </script>
 
 <style lang="scss">
