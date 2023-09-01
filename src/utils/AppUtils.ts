@@ -1,11 +1,16 @@
-import { NETWORKS, isDev, languages } from "@/config/env";
+import { DOWNPAYMENT_RANGE_URL, NETWORKS, isDev, languages } from "@/config/env";
 import { EnvNetworkUtils } from ".";
 import type { Endpoint, Status, Node, API } from "@/types/NetworkConfig";
 
 export class ApptUtils {
 
     public static LANGUAGE = "language";
-
+    static downpaymentRange: Promise<{
+        [key: string]: {
+            min: number,
+            max: number
+        }
+    }>;
     static rpc: {
         [key: string]: {
             [key: string]: Promise<API>
@@ -101,6 +106,31 @@ export class ApptUtils {
 
         return false;
 
+    }
+
+    static async getDownpaymentRange() {
+        const downpaymentRange = ApptUtils.downpaymentRange;
+
+        if (downpaymentRange) {
+            return downpaymentRange;
+        }
+
+
+        ApptUtils.downpaymentRange = ApptUtils.fetchDownpaymentRange();
+        return ApptUtils.downpaymentRange;
+
+    }
+
+    private static async fetchDownpaymentRange(){
+        const data = await fetch(DOWNPAYMENT_RANGE_URL);
+        const json = await data.json() as {
+            [key: string]: {
+                min: number,
+                max: number
+            }
+        };
+        
+        return json;
     }
 
 }

@@ -11,83 +11,98 @@
 
     <div class="background mt-6 shadow-box radius-medium radius-0-sm pt-6 pb-3 outline">
       <div class="balance-box flex px-6 items-center justify-start">
+
         <div class="left inline-block line-mobile pb-4 md:pb-0">
           <p class="nls-font-500 text-16 text-primary">
             {{ $t('message.total-value-locked') }}
           </p>
-          <CurrencyComponent :fontSize="40"
-                             :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                             :amount="totalValueLocked"
-                             denom="$"
-                             :has-space="false"
-                             :decimals="2"
-                             class="nls-font-700 text-primary" />
+          <CurrencyComponent
+            :fontSize="40"
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            :amount="totalValueLocked"
+            denom="$"
+            :has-space="false"
+            :decimals="2"
+            class="nls-font-700 text-primary"
+          />
         </div>
 
-        <div class="pt-3 lg:pl-6">
-          <p class="nls-font-500 text-12 text-dark-grey flex">
-            {{ $t('message.yield') }}
-            <TooltipComponent :content="$t('message.yield-tooltip')" />
-          </p>
+        <div class="flex">
+          <div class="pt-3 lg:pl-6">
+            <p class="nls-font-500 text-12 text-dark-grey flex">
+              {{ $t('message.yield') }}
+              <TooltipComponent :content="$t('message.yield-tooltip')" />
+            </p>
 
-          <CurrencyComponent :fontSize="20"
-                             :fontSizeSmall="16"
-                             :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                             :amount="yieldValue"
-                             denom="%"
-                             :isDenomInfront="false"
-                             :has-space="false"
-                             class="nls-font-500 text-primary" />
+            <CurrencyComponent
+              :fontSize="20"
+              :fontSizeSmall="16"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              :amount="yieldValue"
+              denom="%"
+              :isDenomInfront="false"
+              :has-space="false"
+              class="nls-font-500 text-primary"
+            />
+          </div>
+          <div class="pt-3 lg:pl-6 lg:ml-0 ml-6">
+            <p class="nls-font-500 text-12 text-dark-grey flex">
+              {{ $t('message.borrow-apr') }}
+            </p>
+
+            <CurrencyComponent
+              :fontSize="20"
+              :fontSizeSmall="16"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              :amount="borrowApr"
+              denom="%"
+              :isDenomInfront="false"
+              :has-space="false"
+              class="nls-font-500 text-primary"
+            />
+          </div>
         </div>
 
-        <div class="pt-3 lg:pl-6">
-          <p class="nls-font-500 text-12 text-dark-grey flex">
-            {{ $t('message.borrow-apr') }}
-          </p>
-
-          <CurrencyComponent :fontSize="20"
-                             :fontSizeSmall="16"
-                             :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                             :amount="borrowApr"
-                             denom="%"
-                             :isDenomInfront="false"
-                             :has-space="false"
-                             class="nls-font-500 text-primary" />
-        </div>
       </div>
 
-      <div class="border-standart border-t lg:border-b-0 px-6 my-2 pt-4 flex">
+      <div class="border-standart lg:border-t lg:border-b-0 lg:px-6 px-3 my-2 lg:pt-4 pt-2 flex">
         <div class="pt-3">
           <p class="nls-font-500 text-12 text-dark-grey flex">
             {{ $t('message.supplied') }}
           </p>
 
-          <CurrencyComponent :fontSize="20"
-                             :fontSizeSmall="16"
-                             :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                             :amount="supplied"
-                             denom="$"
-                             :has-space="false"
-                             class="nls-font-500 text-primary" />
+          <CurrencyComponent
+            :fontSize="20"
+            :fontSizeSmall="16"
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            :amount="supplied"
+            denom="$"
+            :has-space="false"
+            class="nls-font-500 text-primary"
+          />
         </div>
-        <div class="pt-3 lg:pl-6">
+        <div class="pt-3 lg:pl-6 lg:ml-0 ml-6">
           <p class="nls-font-500 text-12 text-dark-grey flex">
             {{ $t('message.borrowed') }}
           </p>
 
-          <CurrencyComponent :fontSize="20"
-                             :fontSizeSmall="16"
-                             :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                             :amount="borrowed"
-                             denom="$"
-                             :has-space="false"
-                             class="nls-font-500 text-primary" />
+          <CurrencyComponent
+            :fontSize="20"
+            :fontSizeSmall="16"
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            :amount="borrowed"
+            denom="$"
+            :has-space="false"
+            class="nls-font-500 text-primary"
+          />
         </div>
       </div>
 
-      <div class="flex relaltive p-6">
-        <PriceHistoryChart ref="chartElement"
-                           :chart-data="chartData" />
+      <div class="flex relaltive p-6 lg:block hidden">
+        <PriceHistoryChart
+          ref="chartElement"
+          :chart-data="chartData"
+        />
       </div>
 
     </div>
@@ -96,7 +111,8 @@
       <div class="md:col-span-6 lg:co-span-6">
         <!-- Rewards -->
         <div
-             class="block order-2 md:order-1 background md:col-span-7 mt-6 outline border-standart shadow-box radius-medium radius-0-sm">
+          class="block order-2 md:order-1 background md:col-span-7 mt-6 outline border-standart shadow-box radius-medium radius-0-sm"
+        >
           <div class="flex items-center justify-between px-6 pt-6 pb-0">
             <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
               {{ $t('message.utilization-level') }}
@@ -106,17 +122,19 @@
           <div class="block border-b border-standart">
             <div class="grid gap-6px-3 md:px-6 py-2 items-center justify-between earn-asset grid-cols-3 md:grid-cols-3">
               <!-- Ticker -->
-              <div class="inline-flex items-center col-span-2">
+              <div class="inline-flex items-center col-span-2 lg:ml-0 ml-6">
                 <div class="inline-block">
                   <p class="text-primary nls-font-500 text-18 text-left uppercase m-0">
-                    <CurrencyComponent :fontSize="28"
-                                       :fontSizeSmall="18"
-                                       :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                                       :amount="utilizationLevel"
-                                       denom="%"
-                                       :isDenomInfront="false"
-                                       :has-space="false"
-                                       class="nls-font-700 text-primary" />
+                    <CurrencyComponent
+                      :fontSize="28"
+                      :fontSizeSmall="18"
+                      :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                      :amount="utilizationLevel"
+                      denom="%"
+                      :isDenomInfront="false"
+                      :has-space="false"
+                      class="nls-font-700 text-primary"
+                    />
                   </p>
                 </div>
               </div>
@@ -124,37 +142,41 @@
             </div>
             <!-- Assets Container -->
           </div>
-          <div class="flex items-center justify-start py-4">
+          <div class="flex items-center justify-start py-4 px-6 lg:px-0">
             <div class="pt-3 lg:pl-6">
               <p class="nls-font-500 text-12 text-dark-grey flex">
                 {{ $t('message.optimal') }}
                 <TooltipComponent :content="$t('message.optimal-tooltip')" />
               </p>
 
-              <CurrencyComponent :fontSize="20"
-                                 :fontSizeSmall="16"
-                                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                                 :amount="optimal"
-                                 denom="%"
-                                 :isDenomInfront="false"
-                                 :has-space="false"
-                                 class="nls-font-500 text-primary" />
+              <CurrencyComponent
+                :fontSize="20"
+                :fontSizeSmall="16"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                :amount="optimal"
+                denom="%"
+                :isDenomInfront="false"
+                :has-space="false"
+                class="nls-font-500 text-primary"
+              />
             </div>
 
-            <div class="pt-3 lg:pl-6">
+            <div class="pt-3 pl-6">
               <p class="nls-font-500 text-12 text-dark-grey flex">
                 {{ $t('message.deposit-suspension') }}
                 <TooltipComponent :content="$t('message.deposit-suspension-tooltip')" />
               </p>
 
-              <CurrencyComponent :fontSize="20"
-                                 :fontSizeSmall="16"
-                                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                                 :amount="depositSuspension"
-                                 denom="%"
-                                 :isDenomInfront="false"
-                                 :has-space="false"
-                                 class="nls-font-500 text-primary" />
+              <CurrencyComponent
+                :fontSize="20"
+                :fontSizeSmall="16"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                :amount="depositSuspension"
+                denom="%"
+                :isDenomInfront="false"
+                :has-space="false"
+                class="nls-font-500 text-primary"
+              />
             </div>
           </div>
         </div>
@@ -163,7 +185,8 @@
       <div class="md:col-span-6 lg:co-span-6">
         <!-- Rewards -->
         <div
-             class="block order-2 md:order-1 background md:col-span-7 mt-6 outline border-standart shadow-box radius-medium radius-0-sm">
+          class="block order-2 md:order-1 background md:col-span-7 mt-6 outline border-standart shadow-box radius-medium radius-0-sm"
+        >
           <div class="flex items-center justify-between px-6 pt-6 pb-0">
             <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
               {{ $t('message.buyback-total') }}
@@ -173,18 +196,20 @@
           <div class="block border-b border-standart">
             <div class="grid gap-6px-3 md:px-6 py-2 items-center justify-between earn-asset grid-cols-3 md:grid-cols-3">
               <!-- Ticker -->
-              <div class="inline-flex items-center col-span-2">
+              <div class="inline-flex items-center col-span-2 lg:ml-0 ml-6">
                 <div class="inline-block">
                   <p class="text-primary nls-font-500 text-18 text-left uppercase m-0">
-                    <CurrencyComponent :fontSize="28"
-                                       :fontSizeSmall="18"
-                                       :type="CURRENCY_VIEW_TYPES.TOKEN"
-                                       amount="777777777777"
-                                       minimalDenom="unls"
-                                       denom="NLS"
-                                       :decimals="6"
-                                       :maxDecimals="2"
-                                       class="nls-font-700 text-primary" />
+                    <CurrencyComponent
+                      :fontSize="28"
+                      :fontSizeSmall="18"
+                      :type="CURRENCY_VIEW_TYPES.TOKEN"
+                      amount="777777777777"
+                      minimalDenom="unls"
+                      denom="NLS"
+                      :decimals="6"
+                      :maxDecimals="2"
+                      class="nls-font-700 text-primary"
+                    />
                   </p>
                 </div>
               </div>
@@ -192,33 +217,37 @@
             </div>
             <!-- Assets Container -->
           </div>
-          <div class="flex items-center justify-start py-4">
+          <div class="flex items-center justify-start py-4 px-6 lg:px-0">
             <div class="pt-3 lg:pl-6">
               <p class="nls-font-500 text-12 text-dark-grey flex">
                 {{ $t('message.incentives-pool') }}
               </p>
 
-              <CurrencyComponent :fontSize="20"
-                                 :fontSizeSmall="16"
-                                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                                 amount="7777"
-                                 denom="$"
-                                 :has-space="false"
-                                 class="nls-font-500 text-primary" />
+              <CurrencyComponent
+                :fontSize="20"
+                :fontSizeSmall="16"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                amount="7777"
+                denom="$"
+                :has-space="false"
+                class="nls-font-500 text-primary"
+              />
             </div>
 
-            <div class="pt-3 lg:pl-6">
+            <div class="pt-3 pl-6">
               <p class="nls-font-500 text-12 text-dark-grey flex">
                 {{ $t('message.distributed') }}
               </p>
 
-              <CurrencyComponent :fontSize="20"
-                                 :fontSizeSmall="16"
-                                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                                 :amount="distributed"
-                                 denom="$"
-                                 :has-space="false"
-                                 class="nls-font-500 text-primary" />
+              <CurrencyComponent
+                :fontSize="20"
+                :fontSizeSmall="16"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                :amount="distributed"
+                denom="$"
+                :has-space="false"
+                class="nls-font-500 text-primary"
+              />
             </div>
           </div>
         </div>
@@ -226,65 +255,75 @@
 
     </div>
 
-    <div class="background mt-6 shadow-box radius-medium radius-0-sm outline flex">
-      <div class="pt-6 pl-6 pb-6">
+    <div class="background mt-6 shadow-box radius-medium radius-0-sm outline flex flex-col lg:flex-row">
+      <div class="pt-6 px-6 lg:pb-6 pb-2">
         <p class="nls-font-500 text-16 text-primary">
           {{ $t('message.leased-assets-total') }}
         </p>
-        <div class="flex">
+        <div class="flex flex-col lg:flex-row items-center">
           <div class="stats flex">
-            <StatChart ref="statChart"
-                       @in-focus="inFocus" />
+            <StatChart
+              ref="statChart"
+              @in-focus="inFocus"
+            />
           </div>
           <div class="flex flex-wrap my-4">
 
-            <div v-for="item in loans"
-                 class="lg:pl-6 self-center">
+            <div
+              v-for="item in loans"
+              class="lg:pl-6 self-center lg:pt-0 pt-4 px-2"
+            >
               <p class="nls-font-500 text-12 text-dark-grey flex">
                 {{ item.name }}
               </p>
 
-              <CurrencyComponent :fontSize="20"
-                                 :fontSizeSmall="16"
-                                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                                 :amount="item.loan.toString()"
-                                 denom="%"
-                                 :isDenomInfront="false"
-                                 :has-space="false"
-                                 class="nls-font-500 text-primary"
-                                 :class="{ 'loan-active': focus.includes(item.name) }" />
+              <CurrencyComponent
+                :fontSize="20"
+                :fontSizeSmall="16"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                :amount="item.loan.toString()"
+                denom="%"
+                :isDenomInfront="false"
+                :has-space="false"
+                class="nls-font-500 text-primary"
+                :class="{ 'loan-active': focus.includes(item.name) }"
+              />
             </div>
 
           </div>
         </div>
       </div>
 
-      <div class="border-standart border-l lg:border-b-0 px-14 flex items-start justify-center flex-col mr-6">
+      <div class="border-standart lg:border-l lg:border-b-0 lg:px-14 flex lg:items-start lg:justify-center lg:flex-col lg:mr-6 px-8 lg:py-0 py-4 border-t">
         <div class="pt-3">
           <p class="nls-font-500 text-12 text-dark-grey flex">
             {{ $t('message.borrowed') }}
           </p>
 
-          <CurrencyComponent :fontSize="20"
-                             :fontSizeSmall="16"
-                             :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                             :amount="totalBorrowed"
-                             denom="$"
-                             :has-space="false"
-                             class="nls-font-500 text-primary" />
+          <CurrencyComponent
+            :fontSize="20"
+            :fontSizeSmall="16"
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            :amount="totalBorrowed"
+            denom="$"
+            :has-space="false"
+            class="nls-font-500 text-primary"
+          />
         </div>
-        <div class="pt-3">
+        <div class="pt-3 lg:ml-0 ml-6">
           <p class="nls-font-500 text-12 text-dark-grey flex">
             {{ $t('message.protocol-revenue') }}
           </p>
 
-          <CurrencyComponent :fontSize="20"
-                             :fontSizeSmall="16"
-                             :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                             :amount="protocolRevenue"
-                             denom="$"
-                             :has-space="false"
-                             class="nls-font-500 text-primary" />
+          <CurrencyComponent
+            :fontSize="20"
+            :fontSizeSmall="16"
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            :amount="protocolRevenue"
+            denom="$"
+            :has-space="false"
+            class="nls-font-500 text-primary"
+          />
         </div>
       </div>
     </div>
@@ -294,9 +333,23 @@
 
 <style lang="scss">
 div.stats {
-  width: 160px;
-  height: 160px;
+  width: 190px;
+  height: 190px;
   margin-top: 12px;
+}
+
+@media (max-width: 680px) {
+  div.stats {
+    margin-top: 24px;
+    width: 320px !important;
+    height: 320px !important;
+  }
+}
+
+.balance-box {
+  div:first-of-type {
+    margin-bottom: 0px !important;
+  }
 }
 </style>
 

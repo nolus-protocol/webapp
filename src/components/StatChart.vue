@@ -21,15 +21,17 @@ const chartData = {
         label: i18n.t('message.total'),
         data: [],
         backgroundColor: [],
-        hoverOffset: 4
+        hoverOffset: 12
     }]
 };
 
 const defaultOptions: any = {
     responsive: true,
+    radius: '90%',
     maintainAspectRatio: true,
+    borderWidth: 0,
     aspectRatio: true,
-    cutout: 50,
+    cutout: window.innerWidth > 680 ? 60 : 95,
     tooltips: {
         intersect: false,
     },
