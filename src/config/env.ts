@@ -304,4 +304,4 @@ export const LedgerName = "Ledger";
 export const IGNORE_LEASE_ASSETS = ['JUNO', 'EVMOS'];
 export const IGNORE_TRANSFER_ASSETS = ['EVMOS'];
 export const ETL_API = "https://etl-cl.nolus.network:8080/api"
-export const DOWNPAYMENT_RANGE_URL = 'http://localhost:8080/downpayment-range.json';
+export const DOWNPAYMENT_RANGE_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/downpayment-range.json';

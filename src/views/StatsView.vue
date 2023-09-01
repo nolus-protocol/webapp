@@ -270,8 +270,9 @@
           <div class="flex flex-wrap my-4">
 
             <div
-              v-for="item in loans"
-              class="lg:pl-6 self-center lg:pt-0 pt-4 px-2"
+              v-for="(item, index) in loans"
+              :key="index"
+              class="lg:pl-6 self-center lg:pt-2 pt-4 px-2 basis-1/4"
             >
               <p class="nls-font-500 text-12 text-dark-grey flex">
                 {{ item.name }}
@@ -336,6 +337,8 @@ div.stats {
   width: 190px;
   height: 190px;
   margin-top: 12px;
+  position: relative;
+  z-index: 0;
 }
 
 @media (max-width: 680px) {
@@ -534,15 +537,15 @@ async function setStats() {
 }
 
 function strToColor(str: string) {
-  var hash = 0;
+  let hash = 0;
   if (str.length === 0) return hash;
-  for (var i = 0; i < str.length; i++) {
+  for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
     hash = hash & hash;
   }
-  var rgb = [0, 0, 0];
-  for (var i = 0; i < 3; i++) {
-    var value = (hash >> (i * 8)) & 255;
+  let rgb = [0, 0, 0];
+  for (let i = 0; i < 3; i++) {
+    let value = (hash >> (i * 8)) & 255;
     rgb[i] = value;
   }
   return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;

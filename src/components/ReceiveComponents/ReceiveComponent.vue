@@ -479,11 +479,6 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
     }, 10000);
 
   } catch (error: Error | any) {
-    if (error.message.includes('Length must be a multiple of 4')) {
-      //todo: temporary fix for old tendermint
-      step.value = CONFIRM_STEP.SUCCESS;
-      return;
-    }
 
     switch (error.code) {
       case (ErrorCodes.GasError): {
@@ -494,6 +489,11 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
         step.value = CONFIRM_STEP.ERROR;
         break;
       }
+    }
+
+    if (error.message.includes('Length must be a multiple of 4')) {
+      step.value = CONFIRM_STEP.SUCCESS;
+      return;
     }
   }
 }
