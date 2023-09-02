@@ -59,5 +59,17 @@
                 "api": "https://evmos.test.api.coldyvalidator.net"
             }
         ]
+    },
+    "PERSISTENCE": {
+        "primary": {
+            "rpc": "https://rpc.testnet2.persistence.one/",
+            "api": "https://rest.testnet2.persistence.one/"
+        },
+        "fallback": [
+            {
+                "rpc": "https://persistence-testnet-rpc.polkachu.com/",
+                "api": "https://persistence-testnet-api.polkachu.com/"
+            }
+        ]
     }
 }

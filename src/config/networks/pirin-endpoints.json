@@ -95,5 +95,17 @@
                 "api": "https://evmos-api.polkachu.com"
             }
         ]
+    },
+    "PERSISTENCE": {
+        "primary": {
+            "rpc": "https://rpc.core.persistence.one",
+            "api": "https://rest.core.persistence.one"
+        },
+        "fallback": [
+            {
+                "rpc": "https://rpc-persistent-ia.cosmosia.notional.ventures/",
+                "api": "https://api-persistent-ia.cosmosia.notional.ventures/"
+            }
+        ]
     }
 }
