@@ -19,6 +19,9 @@ import { embedChainInfo as junoChainInfo } from './juno/contants';
 import { NETWORK as EVMOS_NETWORK } from './evmos/network';
 import { embedChainInfo as evmosChainInfo } from './evmos/contants';
 
+import { NETWORK as PERSISTENCE_NETWORK } from './persistence/network';
+import { embedChainInfo as persistenceChainInfo } from './persistence/contants';
+
 import { useApplicationStore } from "@/stores/application";
 import type { ExternalCurrenciesType } from "@/types/CurreciesType";
 
@@ -93,7 +96,17 @@ export const SUPPORTED_NETWORKS_DATA: {
         key: "EVMOS",
         symbol: "EVMOS",
         forward: true
-    }
+    },
+    PERSISTENCE: {
+        prefix: "persistence",
+        value: "persistence",
+        label: "Persistence",
+        native: false,
+        estimation: 20,
+        key: "PERSISTENCE",
+        symbol: "XPRT",
+        forward: true
+    },
 }
 
 export const NETWORKS_DATA: {
@@ -241,6 +254,7 @@ export const NETWORKS_DATA: {
             SUPPORTED_NETWORKS_DATA.AXELAR,
             SUPPORTED_NETWORKS_DATA.STRIDE,
             SUPPORTED_NETWORKS_DATA.JUNO,
+            SUPPORTED_NETWORKS_DATA.PERSISTENCE
         ],
         supportedNetworks: {
             OSMOSIS: {
@@ -296,6 +310,15 @@ export const NETWORKS_DATA: {
                     return app?.networks?.[EVMOS_NETWORK.key] as ExternalCurrenciesType;
                 },
                 embedChainInfo: evmosChainInfo,
+            },
+            PERSISTENCE: {
+                ...PERSISTENCE_NETWORK,
+                explorer: 'https://mintscan.io/persistence/transactions',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[PERSISTENCE_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: persistenceChainInfo,
             }
         }
     },

@@ -36,5 +36,8 @@ export const ASSETS = {
   },
   EVMOS: {
     coinGeckoId: "evmos",
+  },
+  STK_ATOM: {
+    coinGeckoId: "stkatom",
   }
 };
