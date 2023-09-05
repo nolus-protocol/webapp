@@ -20,7 +20,6 @@
     "@cosmjs/proto-signing": "0.31.1",
     "@cosmjs/stargate": "0.31.1",
     "@cosmjs/tendermint-rpc": "0.31.1",
-    "@evmos/address-converter": "^0.1.9",
     "@headlessui/vue": "^1.7.12",
     "@heroicons/vue": "^2.0.17",
     "@keplr-wallet/crypto": "0.12.12",
