@@ -202,12 +202,10 @@
                     <CurrencyComponent
                       :fontSize="28"
                       :fontSizeSmall="18"
-                      :type="CURRENCY_VIEW_TYPES.TOKEN"
-                      amount="777777777777"
-                      minimalDenom="unls"
+                      :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                      :amount="buybackTotal"
+                      :isDenomInfront="false"
                       denom="NLS"
-                      :decimals="6"
-                      :maxDecimals="2"
                       class="nls-font-700 text-primary"
                     />
                   </p>
@@ -227,7 +225,7 @@
                 :fontSize="20"
                 :fontSizeSmall="16"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                amount="7777"
+                :amount="incentivesPool"
                 denom="$"
                 :has-space="false"
                 class="nls-font-500 text-primary"
@@ -380,6 +378,8 @@ const depositSuspension = ref('50');
 const distributed = ref('0');
 const totalBorrowed = ref('0');
 const protocolRevenue = ref('0');
+const buybackTotal = ref('0');
+const incentivesPool = ref('0');
 
 const chartElement = ref<typeof PriceHistoryChart>();
 const statChart = ref<typeof StatChart>();
@@ -421,8 +421,10 @@ onMounted(async () => {
     setDistributed(),
     setTotalBorrowed(),
     setProtocolRevenue(),
-    setStats()
-  ])
+    setStats(),
+    setBuyBackTotal(),
+    setIncentivesPool()
+  ]).catch(() => {})
 });
 
 function inFocus(data: string[]) {
@@ -551,4 +553,15 @@ function strToColor(str: string) {
   return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
 }
 
+async function setBuyBackTotal() {
+  const data = await fetch(`${ETL_API}/buyback-total`);
+  const item = await data.json();
+  buybackTotal.value = item.buyback_total;
+}
+
+async function setIncentivesPool() {
+  const data = await fetch(`${ETL_API}/incentives-pool`);
+  const item = await data.json();
+  incentivesPool.value = item.incentives_pool;
+}
 </script>

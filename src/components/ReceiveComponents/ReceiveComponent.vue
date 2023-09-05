@@ -491,6 +491,11 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
       }
     }
 
+    if (error.message.includes('You might want to check later')) {
+      step.value = CONFIRM_STEP.SUCCESS;
+      return;
+    }
+
     if (error.message.includes('Length must be a multiple of 4')) {
       step.value = CONFIRM_STEP.SUCCESS;
       return;

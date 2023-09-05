@@ -46,7 +46,13 @@ watch(applicationRef.theme, () => {
         document.body.classList.remove(item);
       }
     });
+    document.documentElement.classList.forEach((item) => {
+      if (themes.includes(item)) {
+        document.documentElement.classList.remove(item);
+      }
+    });
     document.body.classList.add(application.theme);
+    document.documentElement.classList.add(application.theme);
   }
 });
 
