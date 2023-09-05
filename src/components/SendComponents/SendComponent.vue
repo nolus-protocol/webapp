@@ -53,7 +53,7 @@
             {{ $t("message.recipient") }}
           </p>
           <p class="text-14 text-primary nls-font-700 m-0 break-all">
-            {{ address }}
+            {{ WalletUtils.isAuth() ? modelValue.wallet : $t('message.connect-wallet-label') }}
           </p>
         </div>
 
@@ -87,9 +87,7 @@ import { useWalletStore } from "@/stores/wallet";
 import { EnvNetworkUtils, WalletUtils } from "@/utils";
 import { computed } from "vue";
 import { Dec } from "@keplr-wallet/unit";
-import { useI18n } from "vue-i18n";
 import { NETWORKS_DATA } from "@/networks";
-const i18n = useI18n();
 
 const props = defineProps({
   modelValue: {
@@ -124,17 +122,10 @@ const handleAmountChange = (value: string) => {
   props.modelValue.amount = value;
 };
 
-const address = computed(() => {
-  if(!WalletUtils.isAuth()){
-    return i18n.t('message.connect-wallet-label');
-  }
-  return WalletUtils.transformWallet(props.modelValue.network.prefix);
-});
-
 const onUpdateCurrency = (event: Network) => {
   props.modelValue.network = event;
   if (!event.native) {
-    props.modelValue.receiverAddress = address.value;
+    props.modelValue.receiverAddress = props.modelValue.wallet as string;
   } else {
     props.modelValue.receiverAddress = "";
   }

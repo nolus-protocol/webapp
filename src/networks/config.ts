@@ -241,6 +241,7 @@ export const NETWORKS_DATA: {
             SUPPORTED_NETWORKS_DATA.AXELAR,
             SUPPORTED_NETWORKS_DATA.STRIDE,
             SUPPORTED_NETWORKS_DATA.JUNO,
+            SUPPORTED_NETWORKS_DATA.EVMOS
         ],
         supportedNetworks: {
             OSMOSIS: {

@@ -164,9 +164,6 @@ export const TIP = {
   denom: NATIVE_ASSET.denom
 }
 
-export const LEASE_MIN_AMOUNT = { amount: 40, ticker: 'USDC' };
-export const LEASE_MAX_AMOUNT = { amount: 20000, ticker: 'USDC' };;
-
 export const INTEREST_DECIMALS = 1;
 export const PERMILLE = 1000;
 export const PERCENT = 100;
@@ -301,7 +298,7 @@ export const SWAP_FEE = 0.007;
 export const ZERO_DECIMALS = 2;
 export const MAX_DECIMALS = 8;
 export const LedgerName = "Ledger";
-export const IGNORE_LEASE_ASSETS = ['JUNO', 'EVMOS'];
-export const IGNORE_TRANSFER_ASSETS = ['EVMOS'];
+export const IGNORE_LEASE_ASSETS = ['JUNO'];
+export const IGNORE_TRANSFER_ASSETS: string[] = [];
 export const ETL_API = "https://etl-cl.nolus.network:8080/api"
 export const DOWNPAYMENT_RANGE_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/downpayment-range.json';

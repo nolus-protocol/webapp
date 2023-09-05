@@ -46,7 +46,7 @@ export const validateAmount = (
     coinDecimals
   ).amount.toDec();
 
-  
+
   const walletBalance = String(balance || 0);
   const isLowerThanOrEqualsToZero = minimalDenom.amount.toDec().lte(zero);
 
@@ -109,7 +109,7 @@ export const externalWalletOperation = async (
   networkData: NetworkData,
   password: string
 ) => {
-  
+
   switch (WalletManager.getWalletConnectMechanism()) {
     case WalletConnectMechanism.MNEMONIC: {
       return operation(await authenticateDecrypt(wallet, networkData, password));
@@ -128,6 +128,35 @@ export const externalWalletOperation = async (
     }
     case WalletConnectMechanism.GOOGLE: {
       return operation(await authenticateDecrypt(wallet, networkData, password));
+    }
+  }
+
+};
+
+export const externalWallet = async (
+  wallet: Wallet,
+  networkData: NetworkData,
+  password: string
+) => {
+
+  switch (WalletManager.getWalletConnectMechanism()) {
+    case WalletConnectMechanism.MNEMONIC: {
+      return await authenticateDecrypt(wallet, networkData, password);
+    }
+    case WalletConnectMechanism.EXTENSION: {
+      return await authenticateKeplr(wallet, networkData);
+    }
+    case WalletConnectMechanism.LEAP: {
+      return await authenticateLeap(wallet, networkData);
+    }
+    case WalletConnectMechanism.LEDGER: {
+      return await authenticateLedger(wallet, networkData);
+    }
+    case WalletConnectMechanism.LEDGER_BLUETOOTH: {
+      return await authenticateLedger(wallet, networkData);
+    }
+    case WalletConnectMechanism.GOOGLE: {
+      return await authenticateDecrypt(wallet, networkData, password);
     }
   }
 

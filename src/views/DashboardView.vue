@@ -11,7 +11,7 @@
       <div class="right md:mt-0 inline-flex justify-end">
         <button
           class="btn btn-primary btn-large-primary"
-          @click="openModal(DASHBOARD_ACTIONS.SEND)"
+          @click="openModal(DASHBOARD_ACTIONS.RECEIVE)"
         >
           {{ $t("message.send-receive") }}
         </button>
@@ -316,8 +316,10 @@ import { Lpp } from "@nolus/nolusjs/build/contracts";
 
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
+  [DASHBOARD_ACTIONS.RECEIVE]: SendReceiveDialog,
   [DASHBOARD_ACTIONS.SUPPLY]: SupplyWithdrawDialog,
   [DASHBOARD_ACTIONS.LEASE]: LeaseDialog,
+  
 };
 const smallBalancesStateKey = 'smallBalancesState';
 
