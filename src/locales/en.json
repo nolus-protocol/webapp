@@ -306,11 +306,11 @@
     "GasErrorExternal": "Insufficient {symbol}",
     "gassErrorExternalMsg": "Insufficient {symbol} for gas fees",
     "stats": "Stats",
-    "total-value-locked": "Total value locked",
+    "total-value-locked": "Total Value Locked",
     "yield-tooltip": "Annualized percentage rate on supplied stablecoins",
     "borrow-apr": "Borrow APR",
     "supplied": "Supplied",
-    "utilization-level": "Utilization level",
+    "utilization-level": "Utilization Level",
     "optimal": "Optimal",
     "optimal-tooltip": "The threshold at which the maximum lease interest is reached",
     "deposit-suspension": "Deposit Suspension",
@@ -318,7 +318,7 @@
     "buyback-total": "Buyback (Total)",
     "incentives-pool": "Incentives Pool",
     "distributed": "Distributed",
-    "leased-assets-total": "Leased Assets (Total)",
-    "protocol-revenue": "Protocol revenue"
+    "leased-assets-total": "Loans Granted (Historical)",
+    "protocol-revenue": "Protocol Revenue"
   }
 }
