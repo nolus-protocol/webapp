@@ -119,8 +119,10 @@
   </div>
 
   <div class="lg:col-span-3 absolute inset-x-0 bottom-0 mb-6 ml-8 hidden md:grid fixed">
-    <div class="flex items-center">
-      <img src="@/assets/icons/hat.svg" />
+    <div v-if="ApptUtils.isDev()" class="flex items-center">
+      <a target="_blank" href="https://hub.nolus.io">
+        <img src="@/assets/icons/hat.svg" />
+      </a>
       <a @click="pushTo(RouteNames.STATS)" class="cursor-pointer select-none">
         <Stats :class="{ active: $route.name ==  RouteNames.STATS }"/>
       </a>

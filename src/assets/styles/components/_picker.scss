@@ -183,7 +183,7 @@
     .msg {
       display: block;
       font-size: 12px;
-      font-family: "Garet-Medium";
+      font-family: "Garet-Medium", sans-serif;
       line-height: 24px;
       margin-top: 0px;
       color: $mediumRed;
@@ -306,7 +306,7 @@
       margin-bottom: 27.75px;
       font-size: 12px;
       line-height: 17px;
-      font-family: "Garet-Medium";
+      font-family: "Garet-Medium", sans-serif;
     }
   }
 }

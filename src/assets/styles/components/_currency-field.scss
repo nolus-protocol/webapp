@@ -3,7 +3,7 @@
 
 	div.balance {
 		color: $lightBlue;
-		font-family: "Garet-Medium";
+		font-family: "Garet-Medium", sans-serif;
 		font-weight: 500;
 		font-size: 13px;
 	}
@@ -74,7 +74,7 @@
 				}
 
 				span: {
-					font-family: "Garet";
+					font-family: "Garet", sans-serif;
 					font-size: 13;
 					line-height: 19px;
 				}
@@ -123,7 +123,7 @@
 	.msg {
 		display: block;
 		font-size: 12px;
-		font-family: "Garet-Medium";
+		font-family: "Garet-Medium", sans-serif;
 		line-height: 24px;
 		margin-top: 0px;
 		color: $mediumRed;

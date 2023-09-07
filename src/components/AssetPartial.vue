@@ -45,6 +45,7 @@
       class="hidden md:block"
     >
       <div class="text-primary nls-font-500 text-14 text-right m-0">
+        
         <CurrencyComponent
           v-if="app.native?.ticker == assetInfo.ticker"
           :type="CURRENCY_VIEW_TYPES.CURRENCY"
@@ -308,7 +309,7 @@ div.mobile-actions {
 
   button,
   a {
-    font-family: "Garet-Medium" !important;
+    font-family: "Garet-Medium", sans-serif !important;
 
     &:first-child:not(&:last-child) {
       margin-right: 5px;

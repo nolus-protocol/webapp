@@ -30,7 +30,7 @@
             />
           </template>
           <template v-slot:content>
-            <span>
+            <span class="text-primary">
               {{ $t("message.undelegate-description") }}
             </span>
           </template>

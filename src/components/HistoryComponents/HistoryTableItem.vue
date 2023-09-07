@@ -470,7 +470,7 @@ const messages = () => {
 <style scoped>
 .his-gray {
   color: #8396b1;
-  font-family: "Garet-Medium";
+  font-family: "Garet-Medium", sans-serif;
 }
 
 .his-img {

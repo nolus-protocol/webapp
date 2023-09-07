@@ -3,31 +3,36 @@
   // Text Sizes
   &-big-number {
     font-size: 48px;
-    font-family: "Garet Bolder";
+    font-family: "Garet Bolder", sans-serif;
+    font-weight: 600;
     line-height: 1.1;
   }
 
   &-to-big-number {
     font-size: 40px;
-    font-family: "Garet Bolder";
+    font-family: "Garet Bolder", sans-serif;
+    font-weight: 600;
     line-height: 1.1;
   }
 
   &-large-heading {
     font-size: 32px;
-    font-family: "Garet Bolder";
+    font-family: "Garet Bolder", sans-serif;
+    font-weight: 600;
     line-height: 1.1;
   }
 
   &-default-heading {
     font-size: 20px;
-    font-family: "Garet Bolder";
+    font-family: "Garet Bolder", sans-serif;
+    font-weight: 600;
     line-height: 1.2;
   }
 
   &-small-heading {
     font-size: 18px;
-    font-family: "Garet Bolder";
+    font-family: "Garet Bolder", sans-serif;
+    font-weight: 600;
     line-height: 1.2;
   }
 
@@ -85,15 +90,15 @@
 
   // Text Weigths
   &-bold {
-    font-family: "Garet Bolder";
+    font-family: "Garet Bolder", sans-serif;
   }
 
   &-medium {
-    font-family: "Gared Regular";
+    font-family: "Gared Regular", sans-serif;
   }
 
   &-regular {
-    font-family: "Garet";
+    font-family: "Garet", sans-serif;
   }
 
   // Text Allignment

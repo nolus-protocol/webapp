@@ -26,7 +26,7 @@
             />
           </template>
           <template v-slot:content>
-            <span>
+            <span class="text-primary">
               {{ $t("message.delegate-description") }}
             </span>
           </template>

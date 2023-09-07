@@ -122,7 +122,7 @@
   position: relative;
   font-size: 16px;
   line-height: 23px;
-  font-family: "Garet-Medium";
+  font-family: "Garet-Medium", sans-serif;
   transition: 0.3s;
 
   .icon {
@@ -152,7 +152,7 @@
 
     flex-direction: row;
     justify-content: flex-start;
-    font-family: "Garet-Medium";
+    font-family: "Garet-Medium", sans-serif;
 
     &:not(.icon) {
       line-height: 23px;
@@ -197,7 +197,7 @@
   width: 24px;
   height: 24px;
   margin-right: 16px;
-  font-family: "Garet-Medium";
+  font-family: "Garet-Medium", sans-serif;
 
   &:last-of-type {
     margin-right: 0 !important;
@@ -302,7 +302,7 @@
   .sidebar-link-element {
     font-size: 14px;
     line-height: 20px;
-    font-family: "Garet";
+    font-family: "Garet", sans-serif;
 
   }
 }

@@ -145,7 +145,8 @@ const useApplicationStore = defineStore("application", {
 
                 const currentDate = new Date(status.result.sync_info.latest_block_time);
                 const time = currentDate.getTime() - startDate.getTime();
-                const timeInDays = new Dec(Math.round(time / 24 / 60 / 60 / 1000));
+                const timeInDays = new Dec(Math.round(time / 24 / 60 / 60 / 1000)).sub(new Dec(1));
+
                 const p = new Dec(price.amount_quote.amount).quo(new Dec((price.amount.amount))).quo(new Dec(1)).sub(new Dec(1)).quo(timeInDays).mul(new Dec(365));
                 this.apr = Number(p.toString()) * 100;
 

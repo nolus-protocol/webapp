@@ -97,7 +97,7 @@ button {
   &-large-label {
     font-size: 14px;
     line-height: $line-height-20;
-    font-family: "Garet";
+    font-family: "Garet", sans-serif;
     color: $lightElectric;
     background-color: transparent;
     padding: 12px 0;
@@ -105,7 +105,8 @@ button {
 
   &-outline {
     color: $lightElectric;
-    font-family: "Garet Bolder";
+    font-family: "Garet Bolder", sans-serif;
+    font-weight: 600;
     font-size: 12px;
     line-height: 17px;
   }
@@ -113,7 +114,8 @@ button {
   &-large-primary {
     font-size: 14px;
     line-height: $line-height-20;
-    font-family: "Garet Bolder";
+    font-family: "Garet Bolder", sans-serif;
+    font-weight: 600;
     color: $white;
     background-color: $lightElectric;
     padding: 12px 24px;
@@ -145,7 +147,7 @@ button {
   &-medium-box,
   &-small-secondary {
     font-size: 14px;
-    font-family: "Garet";
+    font-family: "Garet", sans-serif;
     color: $dark;
     line-height: $line-height-20;
     background-color: $white;
@@ -229,7 +231,7 @@ button {
 
   &-large-box {
     background-color: $white;
-    font-family: "Garet";
+    font-family: "Garet", sans-serif;
 
     img {
       display: block;
@@ -253,7 +255,8 @@ button {
   &-medium-secondary,
   &-medium-box {
     font-size: 14px;
-    font-family: "Garet Bolder" !important;
+    font-family: "Garet Bolder", sans-serif !important;
+    font-weight: 600;
     padding: 8px 12px !important;
     border-radius: $lightRounded;
   }
@@ -264,7 +267,8 @@ button {
     background: $white;
     border: 1px solid $grey;
     border-radius: $rounded;
-    font-family: "Garet Bolder";
+    font-family: "Garet Bolder", sans-serif;
+    font-weight: 600;
     font-size: 14px;
     line-height: $line-height-20;
 
@@ -326,7 +330,7 @@ button {
   }
 
   &-medium-secondary {
-    font-family: "Garet-Medium";
+    font-family: "Garet-Medium", sans-serif, sans-serif;
     font-size: 14px;
     line-height: $line-height-20;
     padding: 8px 12px;
@@ -348,7 +352,7 @@ button {
 
   &-small-secondary {
     font-size: 12px;
-    font-family: "Garet";
+    font-family: "Garet", sans-serif, sans-serif;
     padding: 8px 12px;
     line-height: $line-height-20;
     border: 1px solid $grey;
@@ -386,7 +390,7 @@ button {
     background-color: $lightElectric;
     border-color: $lightElectric;
     color: $white;
-    font-family: "Garet-Medium";
+    font-family: "Garet-Medium", sans-serif, sans-serif;
 
     .icon {
       color: $white !important;
@@ -487,10 +491,11 @@ button {
       font-size: 10px;
       color: $white;
       background-color: $orange;
-      font-family: "Garet Bolder";
+      font-family: "Garet Bolder", sans-serif;
       transform: translate(5%, -100%);
       padding: 1px 5px 0;
       border-radius: $circle;
+      font-weight: 600;
     }
   }
 
@@ -766,15 +771,17 @@ body.dark {
 
 }
 
-button.auth{
+button.auth {
   display: flex;
   flex-direction: row;
   padding: 1rem;
   justify-content: flex-start;
-  span{
+
+  span {
     margin: 0 12px 0 0 !important;
   }
-  span.icon-ledger{
+
+  span.icon-ledger {
     margin-bottom: 5px !important;
   }
 }

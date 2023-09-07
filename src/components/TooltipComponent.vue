@@ -118,7 +118,7 @@ span.content {
   box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15);
   font-size: 10px;
   line-height: 14px;
-  font-family: "Garet-Medium";
+  font-family: "Garet-Medium", sans-serif;
   text-transform: normal !important;
 }
 </style>

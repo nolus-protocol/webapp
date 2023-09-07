@@ -1,5 +1,5 @@
 <template>
-  <div class="col-span-12 mb-sm-nolus-70 max-w-[880px]">
+  <div class="col-span-12 mb-sm-nolus-70">
     <!-- Header -->
     <div class="flex flex-wrap items-center justify-between px-2 lg:pt-[25px] lg:px-0">
       <div class="left w-full md:w-1/2">
@@ -226,8 +226,8 @@
                 :fontSizeSmall="16"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
                 :amount="incentivesPool"
-                denom="$"
-                :has-space="false"
+                denom="NLS"
+                :isDenomInfront="false"
                 class="nls-font-500 text-primary"
               />
             </div>
@@ -242,8 +242,8 @@
                 :fontSizeSmall="16"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
                 :amount="distributed"
-                denom="$"
-                :has-space="false"
+                denom="NLS"
+                :isDenomInfront="false"
                 class="nls-font-500 text-primary"
               />
             </div>

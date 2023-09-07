@@ -117,7 +117,7 @@ div.chart-tooltip {
       color: #2868e1;
       font-size: 12px;
       text-transform: uppercase;
-      font-family: "Garet";
+      font-family: "Garet", sans-serif;
       font-style: normal;
       font-weight: 500;
 
@@ -132,7 +132,7 @@ div.chart-tooltip {
     }
 
     tbody {
-      font-family: "Garet";
+      font-family: "Garet", sans-serif;
       font-style: normal;
       font-weight: 600;
       font-size: 14px;
