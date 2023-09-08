@@ -61,7 +61,7 @@ export const tooltipConfig = (callback?: Function, enable = true) => {
         },
         external: (context: { chart: any; tooltip?: any }) => {
             const { chart, tooltip } = context;
-            let tooltipEl;
+            let tooltipEl: HTMLElement;
 
             if (enable) {
                 tooltipEl = tooltipHover(chart);
