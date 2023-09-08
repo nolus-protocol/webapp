@@ -2,12 +2,12 @@
     "downtime": 30,
     "NOLUS": {
         "primary": {
-            "rpc": "https://rpc-nolus.architectnodes.com",
+            "rpc": "https://pirin-cl.nolus.network:26657",
             "api": "https://pirin-cl.nolus.network:1317"
         },
         "fallback": [
             {
-                "rpc": "https://pirin-cl.nolus.network:26657",
+                "rpc": "https://rpc-nolus.architectnodes.com",
                 "api": "https://pirin-cl-arc.nolus.network:1317"
             }
         ]
