@@ -8,7 +8,7 @@
         "fallback": [
             {
                 "rpc": "https://rpc-nolus.architectnodes.com",
-                "api": "https://pirin-cl-arc.nolus.network:1317"
+                "api": "https://rest-nolus.architectnodes.com"
             }
         ]
     },
