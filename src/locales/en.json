@@ -52,7 +52,7 @@
     "tx-id": "Transaction ID:",
     "ok": "Ok",
     "send": "Send",
-    "send-receive": "Send / Receive",
+    "send-receive": "Receive / Send",
     "password": "Password",
     "confirm-password": "Confirm password",
     "amount": "Amount:",
