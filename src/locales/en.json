@@ -311,7 +311,7 @@
     "borrow-apr": "Borrow APR",
     "supplied": "Supplied",
     "utilization-level": "Utilization Level",
-    "optimal": "OPTIMAL",
+    "optimal": "Optimal",
     "optimal-tooltip": "The threshold at which the maximum lease interest is reached",
     "deposit-suspension": "Deposit Suspension",
     "deposit-suspension-tooltip": "The threshold under which new stablecoin deposits get suspended",
