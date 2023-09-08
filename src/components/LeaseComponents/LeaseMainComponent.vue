@@ -43,7 +43,7 @@ import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import { computed } from "vue";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, LEASE_MIN_AMOUNT, LEASE_MAX_AMOUNT, TIP, WASM_EVENTS, INTEREST_DECIMALS, DEFAULT_LTD, PERMILLE, ErrorCodes } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, TIP, WASM_EVENTS, INTEREST_DECIMALS, DEFAULT_LTD, PERMILLE, ErrorCodes } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/stores/oracle";
 import { useApplicationStore } from "@/stores/application";
@@ -143,7 +143,7 @@ watch(() => state.value.downPayment, () => {
   }
 });
 
-watch(() => state.value.selectedDownPaymentCurrency, () => {
+watch(() => [state.value.selectedDownPaymentCurrency, state.value.selectedCurrency], () => {
   state.value.downPaymentErrorMsg = "";
   if (validateMinMaxValues()) {
     calculate();
@@ -279,31 +279,38 @@ const validateMinMaxValues = (): boolean => {
   const downPaymentAmount = state.value.downPayment;
   const currentBalance = getCurrentBalanceByDenom(selectedDownPaymentDenom);
 
-  const currency = walletStore.getCurrencyInfo(state.value.selectedDownPaymentCurrency.balance.denom);
+  const currency = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom);
   const range = downPaymentRange[currency.ticker];
 
   if (currentBalance) {
 
     if (downPaymentAmount || downPaymentAmount !== "") {
 
-      const leaseMax = CurrencyUtils.convertDenomToMinimalDenom(range.max.toString(), currency.coinMinimalDenom, currency.coinDecimals);
-      const leaseMin = CurrencyUtils.convertDenomToMinimalDenom(range.min.toString(), currency.coinMinimalDenom, currency.coinDecimals);
-      const balance = CurrencyUtils.convertDenomToMinimalDenom(downPaymentAmount, currency.coinMinimalDenom, currency.coinDecimals);
+      const leaseMax = new Dec(range.max);
+      const leaseMin = new Dec(range.min);
+      const coinData = walletStore.getCurrencyInfo(
+        currentBalance?.balance?.denom
+      );
+      const asset = walletStore.getCurrencyByTicker(coinData.ticker);
+      const price = oracle.prices[asset.symbol];
 
-      if (balance.amount.lt(leaseMin.amount)) {
+      const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(downPaymentAmount, coinData.coinDenom, coinData.coinDecimals);
+      const balance = CurrencyUtils.calculateBalance(price.amount, downPaymentAmountInMinimalDenom, coinData.coinDecimals).toDec();
+
+      if (balance.lt(leaseMin)) {
         state.value.downPaymentErrorMsg = i18n.t("message.lease-min-error", {
-          minAmount: range.min.toFixed(3),
-          maxAmount: range.max.toFixed(3),
-          symbol: currency.shortName
+          minAmount: (Math.ceil(range.min / Number(price.amount) * 1000) / 1000),
+          maxAmount: (Math.ceil(range.max / Number(price.amount) * 1000) / 1000),
+          symbol: coinData.shortName
         });
         isValid = false;
       }
 
-      if (balance.amount.gt(leaseMax.amount)) {
+      if (balance.gt(leaseMax)) {
         state.value.downPaymentErrorMsg = i18n.t("message.lease-max-error", {
-          minAmount: range.min.toFixed(3),
-          maxAmount: range.max.toFixed(3),
-          symbol: currency.shortName
+          minAmount: (Math.ceil(range.min / Number(price.amount) * 1000) / 1000),
+          maxAmount: (Math.ceil(range.max / Number(price.amount) * 1000) / 1000),
+          symbol: coinData.shortName
         });
         isValid = false;
       }

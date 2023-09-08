@@ -319,6 +319,7 @@
     "incentives-pool": "Incentives Pool",
     "distributed": "Distributed",
     "leased-assets-total": "Loans Granted (Historical)",
-    "protocol-revenue": "Protocol Revenue"
+    "protocol-revenue": "Protocol Revenue",
+    "support": "Support"
   }
 }

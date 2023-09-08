@@ -318,6 +318,7 @@
     "incentives-pool": "Incentives Pool",
     "distributed": "Distributed",
     "leased-assets-total": "Leased Assets (Total)",
-    "protocol-revenue": "Protocol revenue"
+    "protocol-revenue": "Protocol revenue",
+    "support": "Support"
   }
 }

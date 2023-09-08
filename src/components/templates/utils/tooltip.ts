@@ -26,7 +26,7 @@ const tooltipHover = (chart: {
     return nextSibling;
 };
 
-export const tooltipConfig = (callback?: Function) => {
+export const tooltipConfig = (callback?: Function, enable = true) => {
     return {
         enabled: false,
         intersect: false,
@@ -61,12 +61,18 @@ export const tooltipConfig = (callback?: Function) => {
         },
         external: (context: { chart: any; tooltip?: any }) => {
             const { chart, tooltip } = context;
-            const tooltipEl = tooltipHover(chart);
+            let tooltipEl;
+
+            if (enable) {
+                tooltipEl = tooltipHover(chart);
+            }
 
             if (tooltip.opacity === 0) {
-                tooltipEl.style.opacity = '0';
+                if (enable) {
+                    tooltipEl!.style.opacity = '0';
+                }
                 if (callback) {
-                    callback([]);
+                    callback([], -1);
                 }
                 return;
             }
@@ -77,7 +83,10 @@ export const tooltipConfig = (callback?: Function) => {
                 const tableHead = document.createElement("thead");
 
                 if (callback) {
-                    callback(titleLines);
+                    callback(titleLines, context.tooltip.dataPoints[0].dataIndex);
+                    if (!enable) {
+                        return;
+                    }
                 }
 
                 titleLines.forEach((title: string) => {
@@ -111,7 +120,7 @@ export const tooltipConfig = (callback?: Function) => {
                     tableBody.appendChild(tr);
                 });
 
-                const tableRoot = tooltipEl.querySelector("table");
+                const tableRoot = tooltipEl!.querySelector("table");
                 // Remove old children
                 while (tableRoot?.firstChild) {
                     tableRoot.firstChild.remove();
@@ -124,7 +133,7 @@ export const tooltipConfig = (callback?: Function) => {
 
             const { offsetLeft: positionX, offsetTop: positionY } = chart.canvas;
             let moveLeft = positionX + tooltip.caretX;
-            const left = moveLeft + tooltipEl.offsetWidth / 2;
+            const left = moveLeft + tooltipEl!.offsetWidth / 2;
             const bounding = context.chart.canvas.getBoundingClientRect();
             const canvasPosition = bounding.width + bounding.left;
 
@@ -133,9 +142,9 @@ export const tooltipConfig = (callback?: Function) => {
                 moveLeft -= diff;
             }
             // Display, position, and set styles for font
-            tooltipEl.style.opacity = '1';
-            tooltipEl.style.left = moveLeft + "px";
-            tooltipEl.style.top = positionY + tooltip.caretY + 10 + "px";
+            tooltipEl!.style.opacity = '1';
+            tooltipEl!.style.left = moveLeft + "px";
+            tooltipEl!.style.top = positionY + tooltip.caretY + 10 + "px";
         },
     }
 }

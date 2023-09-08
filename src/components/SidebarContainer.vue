@@ -9,11 +9,27 @@
       <div class="sidebar-elements-container nls-nav-more flex flex-col mt-[55px]">
         <div
           :style="showMobileNav
-            ? 'z-index: 5;box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15); transform: translateY(-104px)'
+            ? 'z-index: 5;box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15); transform: translateY(-206px)'
             : ''
             "
           class="lg:hidden nls-border mb-[-1px] mobile-transition-taskbar"
         >
+          <div class="nls-nav-link flex flex-start nls-md-flex-row mb-[6px]">
+            <SidebarElement
+              id="stats"
+              href="/stats"
+              :label="$t('message.stats')"
+              @click="pushTo(RouteNames.STATS)"
+            />
+          </div>
+          <div class="nls-nav-link flex flex-start nls-md-flex-row mb-[6px]">
+            <SidebarElement
+              id="hub"
+              target="_blank"
+              :label="$t('message.support')"
+              @click="openExternal(SUPPORT_URL, '_blank')"
+            />
+          </div>
           <div class="nls-nav-link flex flex-start nls-md-flex-row mt-[6px]">
             <SidebarElement
               id="governance"
@@ -119,12 +135,21 @@
   </div>
 
   <div class="lg:col-span-3 absolute inset-x-0 bottom-0 mb-6 ml-8 hidden md:grid fixed">
-    <div v-if="ApptUtils.isDev()" class="flex items-center">
-      <a target="_blank" href="https://hub.nolus.io">
+    <div
+      v-if="ApptUtils.isDev()"
+      class="flex items-center"
+    >
+      <a
+        target="_blank"
+        href="https://hub.nolus.io"
+      >
         <img src="@/assets/icons/hat.svg" />
       </a>
-      <a @click="pushTo(RouteNames.STATS)" class="cursor-pointer select-none">
-        <Stats :class="{ active: $route.name ==  RouteNames.STATS }"/>
+      <a
+        @click="pushTo(RouteNames.STATS)"
+        class="cursor-pointer select-none"
+      >
+        <Stats :class="{ active: $route.name == RouteNames.STATS }" />
       </a>
     </div>
     <p class="nls-font-500 text-12 text-dark-grey text-upper pl-2">
@@ -155,7 +180,7 @@ import { RouteNames } from "@/router/RouterNames";
 
 import { useApplicationStore } from "@/stores/application";
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
-import { NETWORKS, UPDATE_BLOCK_INTERVAL } from "@/config/env";
+import { NETWORKS, SUPPORT_URL, UPDATE_BLOCK_INTERVAL } from "@/config/env";
 import { storeToRefs } from "pinia";
 import { EnvNetworkUtils } from "@/utils";
 import { DISCORD_ACCOUNT, REDDIT_ACCOUNT, TELEGRAM_ACCOUNT, TWITTER_ACCOUNT } from "@/config/globals";
@@ -259,7 +284,7 @@ function openExternal(url: string, target: string) {
 </script>
 
 <style lang="scss" scoped>
-#governance:after {
+#governance:after, #hub::after {
   content: "\e801";
   font-family: "nolus";
   margin-left: 7px;

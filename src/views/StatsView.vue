@@ -29,7 +29,7 @@
 
         <div class="flex">
           <div class="pt-3 lg:pl-6">
-            <p class="nls-font-500 text-12 text-dark-grey flex">
+            <p class="nls-font-500 text-12 text-dark-grey flex items-center">
               {{ $t('message.yield') }}
               <TooltipComponent :content="$t('message.yield-tooltip')" />
             </p>
@@ -38,7 +38,7 @@
               :fontSize="20"
               :fontSizeSmall="16"
               :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              :amount="yieldValue"
+              :amount="(app.apr ?? 0).toString()"
               denom="%"
               :isDenomInfront="false"
               :has-space="false"
@@ -46,7 +46,7 @@
             />
           </div>
           <div class="pt-3 lg:pl-6 lg:ml-0 ml-6">
-            <p class="nls-font-500 text-12 text-dark-grey flex">
+            <p class="nls-font-500 text-12 text-dark-grey flex items-center">
               {{ $t('message.borrow-apr') }}
             </p>
 
@@ -75,7 +75,7 @@
             :fontSize="20"
             :fontSizeSmall="16"
             :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            :amount="supplied"
+            :amount="suppliedBorrowed.supplied"
             denom="$"
             :has-space="false"
             class="nls-font-500 text-primary"
@@ -90,7 +90,7 @@
             :fontSize="20"
             :fontSizeSmall="16"
             :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            :amount="borrowed"
+            :amount="suppliedBorrowed.borrowed"
             denom="$"
             :has-space="false"
             class="nls-font-500 text-primary"
@@ -99,9 +99,10 @@
       </div>
 
       <div class="flex relaltive p-6 lg:block hidden">
-        <PriceHistoryChart
+        <StatLineChart
           ref="chartElement"
           :chart-data="chartData"
+          @in-focus="inStatLineFocus"
         />
       </div>
 
@@ -260,7 +261,7 @@
         </p>
         <div class="flex flex-col lg:flex-row items-center">
           <div class="stats flex">
-            <StatChart
+            <StatDaughnutChart
               ref="statChart"
               @in-focus="inFocus"
             />
@@ -293,7 +294,9 @@
         </div>
       </div>
 
-      <div class="border-standart lg:border-l lg:border-b-0 lg:px-14 flex lg:items-start lg:justify-center lg:flex-col lg:mr-6 px-8 lg:py-0 py-4 border-t">
+      <div
+        class="border-standart lg:border-l lg:border-b-0 lg:px-14 flex lg:items-start lg:justify-center lg:flex-col lg:mr-6 px-8 lg:py-0 py-4 border-t"
+      >
         <div class="pt-3">
           <p class="nls-font-500 text-12 text-dark-grey flex">
             {{ $t('message.borrowed') }}
@@ -357,21 +360,19 @@ div.stats {
 <script setup lang="ts">
 import CurrencyComponent from '@/components/CurrencyComponent.vue';
 import TooltipComponent from '@/components/TooltipComponent.vue';
-import PriceHistoryChart from "@/components/templates/utils/NolusChart.vue";
-import StatChart from '@/components/StatChart.vue';
+import StatLineChart from "@/components/StatLineChart.vue";
+import StatDaughnutChart from '@/components/StatDaughnutChart.vue';
 
 import { CURRENCY_VIEW_TYPES } from '@/types/CurrencyViewType';
 import { onMounted, ref } from 'vue';
 import { ETL_API } from '@/config/env';
 import { useI18n } from 'vue-i18n';
 import { useWalletStore } from '@/stores/wallet';
+import { useApplicationStore } from '@/stores/application';
 
 const i18n = useI18n();
 const totalValueLocked = ref('0');
-const yieldValue = ref('0');
 const borrowApr = ref('0');
-const supplied = ref('0');
-const borrowed = ref('0');
 const utilizationLevel = ref('0');
 const optimal = ref('70');
 const depositSuspension = ref('50');
@@ -381,10 +382,15 @@ const protocolRevenue = ref('0');
 const buybackTotal = ref('0');
 const incentivesPool = ref('0');
 
-const chartElement = ref<typeof PriceHistoryChart>();
-const statChart = ref<typeof StatChart>();
-const loans = ref<{ loan: number, name: string }[]>()
+const chartElement = ref<typeof StatLineChart>();
+const statChart = ref<typeof StatDaughnutChart>();
+const loans = ref<{ loan: number, name: string }[]>();
+const app = useApplicationStore();
 const focus = ref<string[]>([])
+const suppliedBorrowed = ref({
+  supplied: '0',
+  borrowed: '0'
+})
 
 const wallet = useWalletStore();
 
@@ -414,7 +420,6 @@ const chartData = {
 onMounted(async () => {
   await Promise.all([
     setTotalValueLocked(),
-    setYield(),
     setBorrowApr(),
     setTimeSeries(),
     setUtilization(),
@@ -424,23 +429,39 @@ onMounted(async () => {
     setStats(),
     setBuyBackTotal(),
     setIncentivesPool()
-  ]).catch(() => {})
+  ]).catch(() => { })
 });
 
 function inFocus(data: string[]) {
   focus.value = data;
 }
 
+function inStatLineFocus(data: string[], index: number) {
+
+  if (index < 0) {
+    return setLastIndex();
+  }
+
+  const [s, b] = chartElement.value!.getChartData().datasets;
+  const [_s, svalue] = s.data[index];
+  const [_b, bvalue] = b.data[index];
+  suppliedBorrowed.value.supplied = svalue;
+  suppliedBorrowed.value.borrowed = bvalue;
+
+}
+
+function setLastIndex() {
+  const [s, b] = chartElement.value!.getChartData().datasets;
+  const [_s, svalue] = s.data[s.data.length - 1];
+  const [_b, bvalue] = b.data[b.data.length - 1];
+  suppliedBorrowed.value.supplied = svalue;
+  suppliedBorrowed.value.borrowed = bvalue;
+}
+
 async function setTotalValueLocked() {
   const data = await fetch(`${ETL_API}/total-value-locked`);
   const item = await data.json();
   totalValueLocked.value = item.total_value_locked;
-}
-
-async function setYield() {
-  const data = await fetch(`${ETL_API}/yield`);
-  const item = await data.json();
-  yieldValue.value = item.yield;
 }
 
 async function setBorrowApr() {
@@ -452,15 +473,11 @@ async function setBorrowApr() {
 async function setTimeSeries() {
   const data = await fetch(`${ETL_API}/time-series`);
   const items = await data.json();
-  let borrowedValue = 0;
-  let suppliedValue = 0;
 
   let dataBorrowed = [];
   let dataSupplied = [];
 
   for (const item of items) {
-    borrowedValue += Number(item.borrowed);
-    suppliedValue += Number(item.supplied);
 
     dataSupplied.push([
       new Date(item.lp_pool_timestamp).getTime(),
@@ -474,10 +491,8 @@ async function setTimeSeries() {
 
   }
 
-  supplied.value = suppliedValue.toString();
-  borrowed.value = borrowedValue.toString();
-
   chartElement.value?.updateChart(dataSupplied, dataBorrowed);
+  setLastIndex();
 
 }
 
