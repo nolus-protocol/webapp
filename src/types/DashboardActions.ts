@@ -1,5 +1,6 @@
 export enum DASHBOARD_ACTIONS {
   SEND = "SEND",
+  RECEIVE = "RECEIVE",
   SUPPLY = "SUPPLY",
   LEASE = "LEASE",
 }

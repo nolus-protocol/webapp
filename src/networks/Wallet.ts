@@ -6,12 +6,17 @@ import { accountFromAny } from './accountParser';
 export class Wallet {
     protected stargateClient: StargateClient | undefined;
     protected tendermintClient: Tendermint34Client | undefined;
+    rpc: string;
+    api: string;
 
-    private constructor() { }
+    private constructor(rpc: string, api: string) { 
+        this.rpc = rpc;
+        this.api = api;
+    }
 
-    static async getInstance(tendermintRpc: string) {
-        const wallet = new Wallet();
-        await wallet.setInstance(tendermintRpc);
+    static async getInstance(rpc: string, api: string) {
+        const wallet = new Wallet(rpc, api);
+        await wallet.setInstance(rpc);
         return wallet;
     }
 

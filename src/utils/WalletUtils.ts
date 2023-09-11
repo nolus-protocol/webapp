@@ -3,9 +3,9 @@ import type { Window as KeplrWindow } from "@keplr-wallet/types/build/window";
 
 import { KeyUtils } from "@nolus/nolusjs";
 import { WalletConnectMechanism } from "@/types";
-import { WalletManager } from "@/utils";
-import { pubkeyToAddress, encodeSecp256k1Pubkey } from "@cosmjs/amino";
-import { Buffer } from "buffer";
+import { EnvNetworkUtils, WalletManager } from "@/utils";
+import { Wallet, NETWORKS_DATA } from "@/networks";
+import { ApptUtils } from "./AppUtils";
 
 export class WalletUtils {
   public static async getKeplr(): Promise<Keplr | undefined> {
@@ -88,11 +88,14 @@ export class WalletUtils {
     );
   }
 
-  public static transformWallet(prefix: string) {
-    const hex = WalletManager.getPubKey() ?? "";
-    const pubKey = encodeSecp256k1Pubkey(
-      Uint8Array.from(Buffer.from(hex, "hex"))
+  public static async getWallet(key: string): Promise<Wallet> {
+    const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
+    const node = await ApptUtils.fetchEndpoints(network.supportedNetworks[key].key);
+    const client = await Wallet.getInstance(
+      node.rpc,
+      node.api
     );
-    return pubkeyToAddress(pubKey, prefix);
+    return client;
+
   }
 }

@@ -2,7 +2,7 @@
   <ConfirmExternalComponent
     v-if="showConfirmScreen"
     :selectedCurrency="selectedCurrency!"
-    :receiverAddress="wallet"
+    :receiverAddress="(walletStore.wallet?.address as string)"
     :password="password"
     :amount="amount"
     :memo="memo"
@@ -39,7 +39,7 @@
             {{ $t("message.address") }}
           </p>
           <p class="text-14 text-primary nls-font-700 m-0 break-all">
-            {{ wallet }}
+            {{ WalletUtils.isAuth() ? walletStore.wallet?.address : $t('message.connect-wallet-label') }}
           </p>
           <div class="flex items-center justify-start mt-2">
             <button
@@ -113,7 +113,7 @@
                 {{ $t("message.recipient") }}
               </p>
               <p class="text-14 text-primary nls-font-700 m-0 break-all">
-                {{ wallet }}
+                {{ WalletUtils.isAuth() ? walletStore.wallet?.address : $t('message.connect-wallet-label') }}
               </p>
             </div>
 
@@ -154,13 +154,11 @@ import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { Wallet, BaseWallet } from "@/networks";
 import { coin, type Coin } from "@cosmjs/amino";
 import { Decimal } from "@cosmjs/math";
-import { externalWalletOperation } from "../utils";
+import { externalWalletOperation, externalWallet } from "../utils";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
-import { storeToRefs } from "pinia";
 import { useApplicationStore } from "@/stores/application";
-import { ApptUtils } from "@/utils/AppUtils";
 import type { ExternalCurrencyType } from "@/types/CurreciesType";
 
 export interface ReceiveComponentProps {
@@ -198,8 +196,7 @@ const fee = ref<Coin>()
 const isLoading = ref(false);
 const closeModal = inject("onModalClose", () => () => { });
 const networkCurrenciesObject = ref();
-const walletRef = storeToRefs(walletStore);
-const wallet = ref(WalletUtils.isAuth() ? WalletUtils.transformWallet(NATIVE_NETWORK.prefix) : i18n.t('message.connect-wallet-label'));
+let wallet = ref(walletStore.wallet?.address);
 
 defineProps({
   modelValue: {
@@ -212,14 +209,6 @@ onUnmounted(() => {
   if (client) {
     client.destroy();
   }
-});
-
-watch(() => walletRef.wallet.value?.address, () => {
-  if (!WalletUtils.isAuth()) {
-    wallet.value = i18n.t('message.connect-wallet-label');
-    return;
-  }
-  wallet.value = WalletUtils.transformWallet(NATIVE_NETWORK.prefix);
 });
 
 watch(() => [selectedCurrency.value, amount.value], () => {
@@ -237,20 +226,22 @@ const onUpdateNetwork = async (event: Network) => {
       client.destroy();
     }
 
-    const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
-    const node = await ApptUtils.fetchEndpoints(network.supportedNetworks[event.key].key);
     disablePicker.value = true;
 
-    client = await Wallet.getInstance(
-      node.rpc
+    client = await WalletUtils.getWallet(
+      event.key
     );
 
+    const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
     const assets = network.supportedNetworks[event.key].currencies();
     const currenciesPromise = [];
-    const filteredAssets: { [key: string]: ExternalCurrencyType }= {};
+    const filteredAssets: { [key: string]: ExternalCurrencyType } = {};
+    const networkData = network?.supportedNetworks[selectedNetwork.value.key];
+    const baseWallet = await externalWallet(client, networkData, password.value) as BaseWallet;
+    wallet.value = baseWallet?.address as string;
 
-    for(const key in assets){
-      if(!IGNORE_TRANSFER_ASSETS.includes(key)){
+    for (const key in assets) {
+      if (!IGNORE_TRANSFER_ASSETS.includes(key)) {
         filteredAssets[key] = assets[key];
       }
     }
@@ -261,7 +252,7 @@ const onUpdateNetwork = async (event: Network) => {
 
       const fn = async () => {
         const ibc_route = AssetUtils.makeIBCMinimalDenom(assets[key].ibc_route, assets[key].symbol);
-        const balance = WalletUtils.isAuth() ? await client.getBalance(WalletUtils.transformWallet(event.prefix), ibc_route) : coin(0, ibc_route);
+        const balance = WalletUtils.isAuth() ? await client.getBalance(wallet.value as string, ibc_route) : coin(0, ibc_route);
         const icon = app.assetIcons?.[assets[key].ticker] as string;
         return {
           balance,
@@ -287,6 +278,7 @@ const onUpdateNetwork = async (event: Network) => {
 
   } else {
     selectedCurrency.value = walletStore.balances[0];
+    wallet.value = walletStore.wallet?.address;
   }
 };
 
@@ -354,7 +346,7 @@ const validateAmount = async () => {
   if (prefix && ibc_route && symbol && decimals) {
 
     try {
-      const balance = await client.getBalance(WalletUtils.transformWallet(prefix), AssetUtils.makeIBCMinimalDenom(ibc_route, symbol));
+      const balance = await client.getBalance(wallet.value as string, AssetUtils.makeIBCMinimalDenom(ibc_route, symbol));
       const walletBalance = Decimal.fromAtomics(balance.amount, decimals);
       const transferAmount = Decimal.fromUserInput(
         amount.value,
@@ -436,7 +428,7 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
       timeOut: number
       memo?: string,
     } = {
-      toAddress: wallet.value,
+      toAddress: walletStore.wallet?.address as string,
       amount: funds,
       sourcePort: SOURCE_PORTS.TRANSFER,
       sourceChannel: sourceChannel as string,
@@ -447,15 +439,13 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
 
     if (networkInfo.forward) {
       const ch = AssetUtils.getChannelData(app.networksData?.networks?.channels!, networkInfo.key);
-    
-      const networkData = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
-      const proxyAddress = WalletUtils.transformWallet(networkData.supportedNetworks[ch!.a.network].prefix);
+      const proxyAddress = wallet.value as string;
       const channel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, NATIVE_NETWORK.key, ch!.a.network, ch!.a.network);
       rawTx.toAddress = proxyAddress;
 
       rawTx.memo = JSON.stringify({
         "forward": {
-          "receiver": wallet.value,
+          "receiver": walletStore.wallet!.address,
           "port": SOURCE_PORTS.TRANSFER,
           "channel": channel
         }
@@ -479,7 +469,7 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
     }, 10000);
 
   } catch (error: Error | any) {
-
+    console.log(error)
     switch (error.code) {
       case (ErrorCodes.GasError): {
         step.value = CONFIRM_STEP.GasErrorExternal;

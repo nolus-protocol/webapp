@@ -6,6 +6,7 @@ import { assert } from '@cosmjs/utils';
 import { BaseAccount, ModuleAccount } from 'cosmjs-types/cosmos/auth/v1beta1/auth';
 import { BaseVestingAccount, ContinuousVestingAccount, DelayedVestingAccount, PeriodicVestingAccount } from 'cosmjs-types/cosmos/vesting/v1beta1/vesting';
 import { StridePeriodicVestingAccount } from './stride/vesting';
+import { EthermintAccount } from './evmos/etherming';
 
 function uint64FromProto(input) {
     return Uint64.fromString(input.toString());
@@ -56,6 +57,11 @@ export function accountFromAny(input) {
         }
         case "/stride.vesting.StridePeriodicVestingAccount": {
             const baseAccount = StridePeriodicVestingAccount.decode(value)?.baseVestingAccount?.baseAccount;
+            (0, assert)(baseAccount);
+            return accountFromBaseAccount(baseAccount);
+        }
+        case "/ethermint.types.v1.EthAccount": {
+            const baseAccount = EthermintAccount.decode(value).baseAccount;
             (0, assert)(baseAccount);
             return accountFromBaseAccount(baseAccount);
         }

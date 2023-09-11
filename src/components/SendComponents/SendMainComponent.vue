@@ -47,6 +47,7 @@ import {
 } from "@/config/env";
 
 import {
+  externalWallet,
   transferCurrency,
   validateAddress,
   validateAmount,
@@ -55,10 +56,12 @@ import {
 import { AssetUtils, EnvNetworkUtils, WalletUtils } from "@/utils";
 import { useApplicationStore } from "@/stores/application";
 import type { AssetBalance } from "@/stores/wallet/state";
+import type { BaseWallet, Wallet } from "@/networks";
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const walletStore = useWalletStore();
 const app = useApplicationStore();
+let client: Wallet;
 
 const closeModal = inject("onModalClose", () => () => { });
 const snackbarVisible = inject("snackbarVisible", () => false);
@@ -113,6 +116,9 @@ onUnmounted(() => {
   if (CONFIRM_STEP.PENDING == step.value) {
     showSnackbar(SNACKBAR.Queued, state.value.txHash);
   }
+  if (client) {
+    client.destroy();
+  }
 });
 
 watch(() => [state.value.selectedCurrency, state.value.amount], () => {
@@ -127,7 +133,7 @@ watch(() => state.value.receiverAddress, () => {
   state.value.receiverErrorMsg = validateAddress(state.value.receiverAddress);
 })
 
-watch(() => state.value.network, () => {
+watch(() => state.value.network, async () => {
   const currencies = Object.keys(app.networks?.[state.value.network.key] ?? {});
 
   const native = app.networks![NATIVE_NETWORK.key];
@@ -161,6 +167,7 @@ watch(() => state.value.network, () => {
   });
 
   state.value.selectedCurrency = state.value.currentBalance[0];
+  setWallet();
 
   nextTick(() => {
     state.value.receiverErrorMsg = '';
@@ -168,6 +175,22 @@ watch(() => state.value.network, () => {
   });
 
 })
+
+const setWallet = async () => {
+  if(!state.value.network.native){
+    client = await WalletUtils.getWallet(
+      state.value.network.key
+    );
+    const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
+    const networkData = network?.supportedNetworks[state.value.network.key];
+    const baseWallet = await externalWallet(client, networkData, '') as BaseWallet;
+    state.value.wallet = baseWallet.address;
+    state.value.receiverAddress = baseWallet.address as string;
+  }else{
+    state.value.wallet = undefined;
+    state.value.receiverAddress = "";
+  }
+}
 
 const validateInputs = () => {
   state.value.amountErrorMsg = validateAmount(
@@ -177,9 +200,7 @@ const validateInputs = () => {
   );
   const networkInfo = SUPPORTED_NETWORKS_DATA[state.value.network.key as keyof typeof SUPPORTED_NETWORKS_DATA];
   if (networkInfo.forward) {
-    const channel = AssetUtils.getChannelData(app.networksData?.networks?.channels!, networkInfo.key);
-    const network = SUPPORTED_NETWORKS_DATA[channel!.a.network as keyof typeof SUPPORTED_NETWORKS_DATA];
-    const proxyAddress = WalletUtils.transformWallet(network.prefix);
+    const proxyAddress = state.value.wallet as string;
     state.value.receiverErrorMsg = validateAddress(proxyAddress);
     return;
   }
@@ -280,9 +301,8 @@ const ibcTransfer = async () => {
 
       if (networkInfo.forward) {
         const channel = AssetUtils.getChannelData(app.networksData?.networks?.channels!, state.value.network.key);
-        const forward = SUPPORTED_NETWORKS_DATA[channel!.a.network];
 
-        const proxyAddress = WalletUtils.transformWallet(forward.prefix);
+        const proxyAddress = walletStore.wallet?.address as string;
 
         rawTx.toAddress = proxyAddress;
         rawTx.memo = JSON.stringify({

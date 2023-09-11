@@ -3,6 +3,7 @@ import type { Coin } from "@cosmjs/amino";
 import type { Network } from "@/types";
 
 export interface SendComponentProps {
+  wallet?: string;
   receiverErrorMsg: string;
   amountErrorMsg: string;
   currentBalance: AssetBalance[];

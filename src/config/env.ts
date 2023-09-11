@@ -164,9 +164,6 @@ export const TIP = {
   denom: NATIVE_ASSET.denom
 }
 
-export const LEASE_MIN_AMOUNT = { amount: 40, ticker: 'USDC' };
-export const LEASE_MAX_AMOUNT = { amount: 20000, ticker: 'USDC' };;
-
 export const INTEREST_DECIMALS = 1;
 export const PERMILLE = 1000;
 export const PERCENT = 100;

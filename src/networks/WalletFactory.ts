@@ -1,16 +1,18 @@
 import { DirectSecp256k1Wallet, type OfflineDirectSigner } from "@cosmjs/proto-signing";
-import { LedgerSigner } from "@cosmjs/ledger-amino";
 import type { Wallet } from ".";
 import type { Window as KeplrWindow } from "@keplr-wallet/types/build/window";
+
+import BluetoothTransport from "@ledgerhq/hw-transport-web-ble";
+import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
+
+import { LedgerSigner } from "@cosmjs/ledger-amino";
 import { WalletConnectMechanism, type NetworkData } from "@/types";
 import { makeCosmoshubPath, type OfflineAminoSigner } from "@cosmjs/amino";
 
-import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
 import { createBankAminoConverters } from "@cosmjs/stargate";
 import { AminoTypes } from "@cosmjs/stargate";
 import { EncryptionUtils, WalletManager, WalletUtils } from "@/utils";
 import { BaseWallet } from "./BaseWallet";
-import BluetoothTransport from "@ledgerhq/hw-transport-web-ble";
 import { fromHex } from "@cosmjs/encoding";
 import { ApptUtils } from "@/utils/AppUtils";
 import { createIbcAminoConverters } from "./aminomessages";
@@ -23,7 +25,7 @@ const aminoTypes = {
 const MsgTransferAmino = new AminoTypes(aminoTypes);
 
 const createWallet = async (wallet: Wallet, offlineDirectSigner: OfflineDirectSigner | OfflineAminoSigner | LedgerSigner, prefix: string): Promise<BaseWallet> => {
-    const baseWallet = new BaseWallet(wallet.getTendermintClient(), offlineDirectSigner, { aminoTypes: MsgTransferAmino });
+    const baseWallet = new BaseWallet(wallet.getTendermintClient(), offlineDirectSigner, { aminoTypes: MsgTransferAmino }, wallet.rpc, wallet.api, prefix);
     await baseWallet.useAccount();
     return baseWallet;
 };
