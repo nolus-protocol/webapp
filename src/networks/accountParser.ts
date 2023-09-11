@@ -1,12 +1,12 @@
 //@ts-nocheck
 
 import { Uint64 } from '@cosmjs/math';
-import { decodePubkey } from '@cosmjs/proto-signing';
 import { assert } from '@cosmjs/utils';
 import { BaseAccount, ModuleAccount } from 'cosmjs-types/cosmos/auth/v1beta1/auth';
 import { BaseVestingAccount, ContinuousVestingAccount, DelayedVestingAccount, PeriodicVestingAccount } from 'cosmjs-types/cosmos/vesting/v1beta1/vesting';
 import { StridePeriodicVestingAccount } from './stride/vesting';
 import { EthermintAccount } from './evmos/etherming';
+import { decodePubkey } from './encode';
 
 function uint64FromProto(input) {
     return Uint64.fromString(input.toString());

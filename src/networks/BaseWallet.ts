@@ -30,7 +30,7 @@ import { Int53 } from "@cosmjs/math";
 import { assert } from "@cosmjs/utils";
 import {
     type SignerData,
-  } from "@cosmjs/stargate";
+} from "@cosmjs/stargate";
 import { SignMode } from 'cosmjs-types/cosmos/tx/signing/v1beta1/signing';
 
 export class BaseWallet extends SigningCosmWasmClient {
@@ -40,6 +40,7 @@ export class BaseWallet extends SigningCosmWasmClient {
     rpc: string;
     api: string;
     prefix: string;
+    queryClient: QueryClient;
 
     protected offlineSigner: OfflineSigner;
 
@@ -68,8 +69,7 @@ export class BaseWallet extends SigningCosmWasmClient {
         };
 
         const sequence = await this.sequence();
-        const { gasInfo } = await this.forceGetQueryClient().tx.simulate([this.registry.encodeAsAny(msgAny)], memo, pubkey, sequence);
-
+        const { gasInfo } = await this.queryClient.tx.simulate([this.registry.encodeAsAny(msgAny)], memo, pubkey, sequence);
         const gas = Math.round((gasInfo?.gasUsed.toNumber() as number) * gasMuplttiplier);
         const usedFee = calculateFee(gas, gasPrice);
         const txRaw = await this.sign(this.address as string, [msgAny], usedFee, memo);
@@ -100,7 +100,6 @@ export class BaseWallet extends SigningCosmWasmClient {
         if (accounts.length === 0) {
             throw new Error('Missing account');
         }
-
         this.address = accounts[0].address;
         this.pubKey = accounts[0].pubkey;
         this.algo = accounts[0].algo;
@@ -174,7 +173,8 @@ export class BaseWallet extends SigningCosmWasmClient {
 
     async getAccount(searchAddress: string) {
         try {
-            const account = await this.forceGetQueryClient().auth.account(searchAddress);
+            const account = await this.queryClient.auth.account(searchAddress);
+
             return account ? (0, accountFromAny)(account) : null;
         }
         catch (error) {

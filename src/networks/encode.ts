@@ -1,7 +1,9 @@
-import type { Pubkey, SinglePubkey } from "@cosmjs/amino";
+import type { MultisigThresholdPubkey, Pubkey, SinglePubkey } from "@cosmjs/amino";
 import { toBase64 } from "@cosmjs/encoding";
 
 import {
+    encodeEd25519Pubkey,
+    encodeSecp256k1Pubkey,
     isEd25519Pubkey,
     isMultisigThresholdPubkey,
     isSecp256k1Pubkey,
@@ -81,4 +83,47 @@ export function encodePubkey(pubkey: Pubkey): Any {
 
 export function isEthSecp256k1Pubkey(pubkey: Pubkey): pubkey is EthSecp256k1Pubkey {
     return (pubkey as EthSecp256k1Pubkey).type === "tendermint/PubKeyEthSecp256k1";
+}
+
+export function decodePubkey(pubkey?: Any | null): Pubkey | null {
+    if (!pubkey || !pubkey.value) {
+        return null;
+    }
+
+    switch (pubkey.typeUrl) {
+        case "/ethermint.crypto.v1.ethsecp256k1.PubKey":
+        case "/cosmos.crypto.secp256k1.PubKey":
+        case "/cosmos.crypto.ed25519.PubKey": {
+            return anyToSinglePubkey(pubkey);
+        }
+        case "/cosmos.crypto.multisig.LegacyAminoPubKey": {
+            const { threshold, publicKeys } = LegacyAminoPubKey.decode(pubkey.value);
+            const out: MultisigThresholdPubkey = {
+                type: "tendermint/PubKeyMultisigThreshold",
+                value: {
+                    threshold: threshold.toString(),
+                    pubkeys: publicKeys.map(anyToSinglePubkey),
+                },
+            };
+            return out;
+        }
+        default:
+            throw new Error(`Pubkey type_url ${pubkey.typeUrl} not recognized`);
+    }
+}
+
+export function anyToSinglePubkey(pubkey: Any): SinglePubkey {
+    switch (pubkey.typeUrl) {
+        case "/cosmos.crypto.ed25519.PubKey": {
+            const { key } = CosmosCryptoEd25519Pubkey.decode(pubkey.value);
+            return encodeEd25519Pubkey(key);
+        }
+        case "/ethermint.crypto.v1.ethsecp256k1.PubKey":
+        case "/cosmos.crypto.secp256k1.PubKey": {
+            const { key } = CosmosCryptoSecp256k1Pubkey.decode(pubkey.value);
+            return encodeSecp256k1Pubkey(key);
+        }
+        default:
+            throw new Error(`Pubkey type_url ${pubkey.typeUrl} not recognized as single public key type`);
+    }
 }
