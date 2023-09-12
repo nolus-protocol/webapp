@@ -136,7 +136,6 @@
 
   <div class="lg:col-span-3 absolute inset-x-0 bottom-0 mb-6 ml-8 hidden md:grid fixed">
     <div
-      v-if="ApptUtils.isDev()"
       class="flex items-center"
     >
       <a
