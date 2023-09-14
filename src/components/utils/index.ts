@@ -1,6 +1,6 @@
 import type { Coin } from "@cosmjs/proto-signing";
 import type { StdFee } from "@cosmjs/amino";
-import { type BaseWallet, type Wallet } from "@/networks";
+import { authenticateMetamask, type BaseWallet, type Wallet } from "@/networks";
 import { i18n } from "@/i18n";
 
 import { Int } from "@keplr-wallet/unit";
@@ -86,6 +86,10 @@ export const walletOperation = async (
       await walletStore[WalletActionTypes.CONNECT_LEAP]();
       break;
     }
+    case WalletConnectMechanism.METAMASK: {
+      await walletStore[WalletActionTypes.CONNECT_METAMASK]();
+      break;
+    }
     case WalletConnectMechanism.LEDGER: {
       await walletStore[WalletActionTypes.CONNECT_LEDGER]();
       break;
@@ -120,6 +124,9 @@ export const externalWalletOperation = async (
     case WalletConnectMechanism.LEAP: {
       return operation(await authenticateLeap(wallet, networkData));
     }
+    case WalletConnectMechanism.METAMASK: {
+      return operation(await authenticateMetamask(wallet, networkData));
+    }
     case WalletConnectMechanism.LEDGER: {
       return operation(await authenticateLedger(wallet, networkData));
     }
@@ -148,6 +155,9 @@ export const externalWallet = async (
     }
     case WalletConnectMechanism.LEAP: {
       return await authenticateLeap(wallet, networkData);
+    }
+    case WalletConnectMechanism.METAMASK: {
+      return await authenticateMetamask(wallet, networkData);
     }
     case WalletConnectMechanism.LEDGER: {
       return await authenticateLedger(wallet, networkData);

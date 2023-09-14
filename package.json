@@ -25,6 +25,7 @@
     "@keplr-wallet/crypto": "0.12.12",
     "@keplr-wallet/types": "0.12.12",
     "@keplr-wallet/unit": "0.12.12",
+    "@leapwallet/cosmos-snap-provider": "^0.1.20",
     "@ledgerhq/hw-app-cosmos": "^6.28.0",
     "@ledgerhq/hw-transport-web-ble": "^6.27.16",
     "@ledgerhq/hw-transport-webhid": "^6.27.16",

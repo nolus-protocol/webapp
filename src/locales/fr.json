@@ -319,6 +319,8 @@
     "distributed": "Distributed",
     "leased-assets-total": "Leased Assets (Total)",
     "protocol-revenue": "Protocol revenue",
-    "support": "Support"
+    "support": "Support",
+    "metamask": "Metamask",
+    "connect-metamask": "Connect metamask"
   }
 }

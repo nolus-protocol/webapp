@@ -320,6 +320,8 @@
     "distributed": "Κατανεμημένα",
     "leased-assets-total": "Χορηγηθέντα δάνεια (Σύνολο)",
     "protocol-revenue": "Έσοδα Πρωτοκόλλου",
-    "support": "Κέντρο Γνώσης"
+    "support": "Κέντρο Γνώσης",
+    "metamask": "Metamask",
+    "connect-metamask": "Connect metamask"
   }
 }

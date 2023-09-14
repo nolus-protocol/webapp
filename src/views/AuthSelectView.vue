@@ -42,7 +42,13 @@
           <span class="icon icon-leap ml-1"></span>
           {{ $t("message.leap") }}
         </button>
-        <div class="ml-5 md:ml-4 basis-0 grow fake-button"></div>
+        <button
+          class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow auth"
+          @click="clickConnectToMetamask"
+        >
+          <span class="icon mb-[4px]"></span>
+          {{ $t("message.metamask") }}
+        </button>
       </div>
 
       <!-- <div class="flex mt-6 md:mt-5 px-4 md:px-10 relative z-[2]">
@@ -128,6 +134,10 @@ const clickConnectToKeplr = () => {
 
 const clickConnectToLeap = () => {
   router.push({ name: RouteNames.CONNECT_LEAP });
+}
+
+const clickConnectToMetamask = () => {
+  router.push({ name: RouteNames.CONNECT_METAMASK });
 }
 
 const clickImportLedger = () => {

@@ -25,7 +25,13 @@
       <span class="icon icon-leap ml-1"></span>
       {{ $t("message.leap") }}
     </button>
-    <div class="ml-5 md:ml-4 basis-0 grow fake-button"></div>
+    <button
+      class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow auth"
+      @click="clickImportMetamask"
+    >
+      <span class="icon mb-[4px]"></span>
+      {{ $t("message.metamask") }}
+    </button>
   </div>
 
   <div class="pb-2 relative z-[2] text-dark-grey text-[13px]">
@@ -68,6 +74,10 @@ const clickConnectToLeap = () => {
 
 const clickImportLedger = () => {
   props.switchView(WalletActionTypes.CONNECT_LEDGER);
+};
+
+const clickImportMetamask = () => {
+  props.switchView(WalletActionTypes.CONNECT_METAMASK);
 };
 
 const onShowTermsModal = () => {

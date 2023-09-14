@@ -5,4 +5,5 @@ export enum WalletConnectMechanism {
   MNEMONIC = "mnemonic",
   GOOGLE = "google",
   LEAP = "leap",
+  METAMASK = "metamask"
 }

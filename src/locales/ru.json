@@ -320,6 +320,8 @@
     "distributed": "Выплачено",
     "leased-assets-total": "Сданные в заём активы (Все)",
     "protocol-revenue": "Доход протокола",
-    "support": "Саппорт"
+    "support": "Саппорт",
+    "metamask": "Metamask",
+    "connect-metamask": "Connect metamask"
     }
 }

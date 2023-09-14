@@ -69,6 +69,10 @@ const useApplicationStore = defineStore("application", {
             walletStore[WalletActionTypes.CONNECT_LEAP]();
             break;
           }
+          case WalletConnectMechanism.METAMASK: {
+            walletStore[WalletActionTypes.CONNECT_METAMASK]();
+            break;
+          }
           case WalletConnectMechanism.LEDGER: {
             walletStore[WalletActionTypes.CONNECT_LEDGER]();
             break;
