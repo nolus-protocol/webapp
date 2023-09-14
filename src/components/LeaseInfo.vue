@@ -24,6 +24,8 @@
             &nbsp;{{ pnl.status ? '+' : '' }}<template v-if="!pnlType">{{ pnl.amount }}</template><template v-else>{{
               pnl.percent }}%</template>
           </div>
+          <button class="btn btn-secondary btn-medium-secondary btn-icon flex icon-share text-primary share" @click="onShare">
+          </button>
         </div>
         <div class="flex my-4">
           <img
@@ -1130,4 +1132,22 @@ const fetchDownPayment = async (block: number) => {
 
   throw 'Downpayment fetch unsuccessfully'
 }
+
+const onShare = async () => {
+  try {
+    const shareData = {
+      title: "MDN",
+      text: "Learn web development on MDN!",
+      url: "https://developer.mozilla.org",
+    };
+    await navigator.share(shareData);
+  } catch (error) {
+    console.error(error);
+  }
+}
 </script>
+<style lang="scss">
+button.share {
+  padding: 6px 6px 6px 4px !important;
+}
+</style>
