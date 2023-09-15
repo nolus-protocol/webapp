@@ -20,7 +20,6 @@
         />
       </span>
       {{ $t("message.metamask") }}
-      Metamask
     </button>
 
   </div>
