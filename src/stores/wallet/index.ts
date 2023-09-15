@@ -31,6 +31,7 @@ import { useApplicationStore } from "../application";
 import { defaultRegistryTypes, } from "@cosmjs/stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { ApptUtils } from "@/utils/AppUtils";
+import { getOfflineSigner, connectSnap, getSnap, experimentalSuggestChain } from "@leapwallet/cosmos-snap-provider";
 
 const useWalletStore = defineStore("wallet", {
   state: () => {
@@ -43,7 +44,7 @@ const useWalletStore = defineStore("wallet", {
       currencies: {},
       stakingBalance: null,
       delegated_vesting: null,
-      delegated_free: null, 
+      delegated_free: null,
       leaserConfig: null,
       suppliedBalance: "0",
       apr: 0,
@@ -188,6 +189,67 @@ const useWalletStore = defineStore("wallet", {
         }
       }
     },
+    async [WalletActionTypes.CONNECT_METAMASK](
+      payload: { isFromAuth?: boolean } = {}
+    ) {
+
+      try {
+
+        const snapInstalled = await getSnap();
+
+        if (!snapInstalled) {
+          await connectSnap(); // Initiates installation if not already present
+        }
+
+        let chainId = "";
+
+        const networkConfig = await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
+        NolusClient.setInstance(networkConfig.rpc);
+
+        chainId = await NolusClient.getInstance().getChainId();
+        await experimentalSuggestChain(
+          KeplrEmbedChainInfo(
+            EnvNetworkUtils.getStoredNetworkName(),
+            chainId,
+            networkConfig.rpc as string,
+            networkConfig.api as string
+          )
+        );
+
+        const offlineSigner = getOfflineSigner(
+          chainId
+        );
+
+        const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(offlineSigner as any);
+        await nolusWalletOfflineSigner.useAccount();
+
+        WalletManager.saveWalletConnectMechanism(
+          WalletConnectMechanism.METAMASK
+        );
+
+        WalletManager.storeWalletAddress(
+          nolusWalletOfflineSigner.address || ""
+        );
+
+        WalletManager.setPubKey(
+          Buffer.from(nolusWalletOfflineSigner?.pubKey ?? "").toString("hex")
+        );
+
+        this.wallet = nolusWalletOfflineSigner;
+        this.walletName = WalletConnectMechanism.METAMASK;
+
+        await this[WalletActionTypes.UPDATE_BALANCES]();
+
+        if (payload?.isFromAuth) {
+          await router.push({ name: RouteNames.DASHBOARD });
+        }
+
+      } catch (e: Error | any) {
+        console.log(e)
+        throw new Error(e.message);
+      }
+
+    },
     async [WalletActionTypes.CONNECT_LEDGER](
       payload: { isFromAuth?: boolean; isBluetooth?: boolean } = {}
     ) {
@@ -327,7 +389,7 @@ const useWalletStore = defineStore("wallet", {
 
           return false;
         }
-        
+
         for (const key in currencies) {
           const currency = app.currenciesData![key];
           const ibcDenom = AssetUtils.makeIBCMinimalDenom(
@@ -793,26 +855,26 @@ const useWalletStore = defineStore("wallet", {
           q = 1;
         }
 
-        if(q < 0){
+        if (q < 0) {
           q = 0;
         }
 
         const amount = new Dec(b.amount.amount, ChainConstants.COIN_DECIMALS);
-        const navbl = amount.mul(new Dec(1-q));
+        const navbl = amount.mul(new Dec(1 - q));
         notAvailable = notAvailable.add(navbl);
       }
 
 
       if (state.delegated_vesting) {
         const amount = new Dec(state.delegated_vesting?.amount?.toString() ?? '0', ChainConstants.COIN_DECIMALS);
-        if(amount.lt(notAvailable)){
+        if (amount.lt(notAvailable)) {
           balance = balance.add(amount);
         }
-      }else{
+      } else {
         balance = balance.sub(notAvailable);
       }
 
-      if(balance.isNegative()){
+      if (balance.isNegative()) {
         balance = new Dec(0);
       }
 
@@ -833,7 +895,7 @@ const useWalletStore = defineStore("wallet", {
           q = 1;
         }
 
-        if(q < 0){
+        if (q < 0) {
           q = 0;
         }
 

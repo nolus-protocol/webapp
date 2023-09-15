@@ -320,6 +320,8 @@
     "distributed": "Dağıtılan",
     "leased-assets-total": "Kiralanan Varlıklar (Toplam)",
     "protocol-revenue": "Protokol geliri",
-    "support": "Destek"
+    "support": "Destek",
+    "metamask": "Metamask",
+    "connect-metamask": "Connect metamask"
   }
 }    

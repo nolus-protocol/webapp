@@ -16,6 +16,21 @@
           {{ $t("message.keplr") }}
         </button>
 
+        <button
+          class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow auth"
+          @click="clickConnectToMetamask"
+        >
+          <span class="icon mb-[4px] w-[36px] h-[36px]">
+            <img
+              width="36"
+              height="36"
+              src="@/assets/icons/metamask.svg"
+            />
+          </span>
+          {{ $t("message.metamask") }}
+          Metamask
+        </button>
+
         <!-- <button 
               class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow" 
               :class="{disabled: loadingGoogle}"
@@ -25,24 +40,23 @@
               {{ $t("message.google") }}
             </button> -->
 
+      </div>
+
+      <div class="flex px-4 md:px-10 pt-2 pb-6 relative z-[2] lg:pt-2">
         <button
-          class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow auth"
+          class="btn btn-box btn-large-box basis-0 grow auth"
           @click="clickImportLedger"
         >
           <span class="icon icon-ledger mb-[4px]"></span>
           {{ $t("message.ledger") }}
         </button>
-      </div>
-
-      <div class="flex px-4 md:px-10 pt-10 pb-6 relative z-[2] lg:pt-2">
         <button
-          class="btn btn-box btn-large-box basis-0 grow auth"
+          class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow auth"
           @click="clickConnectToLeap"
         >
           <span class="icon icon-leap ml-1"></span>
           {{ $t("message.leap") }}
         </button>
-        <div class="ml-5 md:ml-4 basis-0 grow fake-button"></div>
       </div>
 
       <!-- <div class="flex mt-6 md:mt-5 px-4 md:px-10 relative z-[2]">
@@ -128,6 +142,10 @@ const clickConnectToKeplr = () => {
 
 const clickConnectToLeap = () => {
   router.push({ name: RouteNames.CONNECT_LEAP });
+}
+
+const clickConnectToMetamask = () => {
+  router.push({ name: RouteNames.CONNECT_METAMASK });
 }
 
 const clickImportLedger = () => {

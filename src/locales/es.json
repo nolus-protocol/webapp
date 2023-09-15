@@ -320,6 +320,8 @@
     "distributed": "Repartido",
     "leased-assets-total": "Activos arrendados (Total)",
     "protocol-revenue": "Ingresos del protocolo",
-    "support": "Soporte"
+    "support": "Soporte",
+    "metamask": "Metamask",
+    "connect-metamask": "Connect metamask"
   }
 }

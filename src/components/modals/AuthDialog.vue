@@ -19,6 +19,11 @@
           :close="close"
           v-if="view == WalletActionTypes.CONNECT_LEAP"
         />
+        <MetamaskComponent
+          :back="backButton"
+          :close="close"
+          v-if="view == WalletActionTypes.CONNECT_METAMASK"
+        />
         <LedgerComponent
           :back="backButton"
           :close="close"
@@ -32,9 +37,10 @@
 <script lang="ts" setup>
 import DialogHeader from "@/components/modals/templates/DialogHeader.vue";
 import AuthComponent from "@/components/AuthComponents/AuthComponent.vue";
-import KeplrComponent from "../AuthComponents/KeplrComponent.vue";
-import LeapComponent from "../AuthComponents/LeapComponent.vue";
-import LedgerComponent from "../AuthComponents/LedgerComponent.vue";
+import KeplrComponent from "@/components/AuthComponents/KeplrComponent.vue";
+import LeapComponent from "@/components/AuthComponents/LeapComponent.vue";
+import LedgerComponent from "@/components/AuthComponents/LedgerComponent.vue";
+import MetamaskComponent from "@/components/AuthComponents/MetamaskComponent.vue";
 
 import { WalletActionTypes } from "@/stores/wallet";
 import { computed, inject, ref } from "vue";
@@ -56,6 +62,9 @@ const title = computed(() => {
     case (WalletActionTypes.CONNECT_LEDGER): {
       return i18n.t('message.connect-ledger');
     }
+    case (WalletActionTypes.CONNECT_METAMASK): {
+      return i18n.t('message.connect-metamask');
+    }
   }
 
   return i18n.t('message.connect-wallet');
@@ -72,6 +81,9 @@ const backButton = computed<Function | undefined>(() => {
       return back;
     }
     case (WalletActionTypes.CONNECT_LEDGER): {
+      return back;
+    }
+    case (WalletActionTypes.CONNECT_METAMASK): {
       return back;
     }
   }
