@@ -288,6 +288,11 @@ if (!isDev()) {
       key: 'cn',
       label: '中文',
       url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/cn.json'
+    },
+    es: {
+      key: 'es',
+      label: 'Español',
+      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/es.json'
     }
   }
 }

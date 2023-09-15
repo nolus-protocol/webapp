@@ -9,6 +9,7 @@
     </button>
 
     <button
+      v-if="ApptUtils.isDev()"
       class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow auth"
       @click="clickImportMetamask"
     >
@@ -20,6 +21,15 @@
         />
       </span>
       {{ $t("message.metamask") }}
+    </button>
+
+    <button
+      v-else
+      class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow auth"
+      @click="clickConnectToLeap"
+    >
+      <span class="icon icon-leap ml-1"></span>
+      {{ $t("message.leap") }}
     </button>
 
   </div>
@@ -34,12 +44,17 @@
     </button>
 
     <button
+      v-if="ApptUtils.isDev()"
       class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow auth"
       @click="clickConnectToLeap"
     >
       <span class="icon icon-leap ml-1"></span>
       {{ $t("message.leap") }}
     </button>
+    <div
+      v-else
+      class="ml-5 md:ml-4 basis-0 grow fake-button"
+    ></div>
 
   </div>
 
@@ -63,6 +78,7 @@
 import Modal from "@/components/modals/templates/Modal.vue";
 import TermsDialog from "@/components/modals/TermsDialog.vue";
 import { WalletActionTypes } from "@/stores/wallet";
+import { ApptUtils } from "@/utils/AppUtils";
 import { ref } from "vue";
 
 const showTermsModal = ref(false);

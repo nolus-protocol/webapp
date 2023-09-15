@@ -17,6 +17,7 @@
         </button>
 
         <button
+          v-if="ApptUtils.isDev()"
           class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow auth"
           @click="clickConnectToMetamask"
         >
@@ -28,6 +29,15 @@
             />
           </span>
           {{ $t("message.metamask") }}
+        </button>
+
+        <button
+          v-else
+          class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow auth"
+          @click="clickConnectToLeap"
+        >
+          <span class="icon icon-leap ml-1"></span>
+          {{ $t("message.leap") }}
         </button>
 
         <!-- <button 
@@ -50,12 +60,18 @@
           {{ $t("message.ledger") }}
         </button>
         <button
+          v-if="ApptUtils.isDev()"
           class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow auth"
           @click="clickConnectToLeap"
         >
           <span class="icon icon-leap ml-1"></span>
           {{ $t("message.leap") }}
         </button>
+        <div
+          v-else
+          class="ml-5 md:ml-4 basis-0 grow fake-button"
+        ></div>
+
       </div>
 
       <!-- <div class="flex mt-6 md:mt-5 px-4 md:px-10 relative z-[2]">
@@ -129,6 +145,7 @@ import TermsDialog from "@/components/modals/TermsDialog.vue";
 import router from "@/router";
 import { RouteNames } from "@/router/RouterNames";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
+import { ApptUtils } from "@/utils/AppUtils";
 import { ref } from "vue";
 
 const wallet = useWalletStore();
@@ -183,5 +200,4 @@ const googleAuth = async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-}
-</style>
+}</style>
