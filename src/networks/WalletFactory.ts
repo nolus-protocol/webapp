@@ -120,7 +120,7 @@ const authenticateMetamask = async (wallet: Wallet, network: NetworkData) => {
             await connectSnap(); // Initiates installation if not already present
         }
 
-        let chainId =  await wallet.getChainId();
+        const chainId =  await wallet.getChainId();
         const node = await ApptUtils.fetchEndpoints(network.key);
 
         await experimentalSuggestChain(
