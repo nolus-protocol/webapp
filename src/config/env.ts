@@ -293,6 +293,11 @@ if (!isDev()) {
       key: 'es',
       label: 'Español',
       url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/es.json'
+    },
+    gr: {
+      key: 'gr',
+      label: 'Ελληνικά',
+      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/gr.json'
     }
   }
 }

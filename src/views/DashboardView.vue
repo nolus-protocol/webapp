@@ -357,7 +357,22 @@ const filteredAssets = computed(() => {
     ? wallet.balances
     : filterSmallBalances(wallet.balances as AssetBalance[]);
   return balances.sort((a, b) => {
-    return b.balance.amount.sub(a.balance.amount);
+
+    const aInfo = wallet.getCurrencyInfo(a.balance.denom)
+    const aAssetBalance = CurrencyUtils.calculateBalance(
+      getMarketPrice(a.balance.denom),
+      new Coin(a.balance.denom, a.balance.amount.toString()),
+      aInfo.coinDecimals as number
+    ).toDec();
+
+    const bInfo = wallet.getCurrencyInfo(b.balance.denom)
+    const bAssetBalance = CurrencyUtils.calculateBalance(
+      getMarketPrice(b.balance.denom),
+      new Coin(b.balance.denom, b.balance.amount.toString()),
+      bInfo.coinDecimals as number
+    ).toDec();
+
+    return Number(bAssetBalance.sub(aAssetBalance).toString(8));
   });
 });
 
