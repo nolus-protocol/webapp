@@ -8,7 +8,7 @@
     "keplr": "Keplr",
     "recover": "Восстановить",
     "history": "История",
-    "lease": "Взять займ",
+    "lease": "Заём",
     "leases": "За́ймы",
     "earn": "Заработать",
     "assets": "Активы",
@@ -322,6 +322,6 @@
     "protocol-revenue": "Доход протокола",
     "support": "Саппорт",
     "metamask": "Metamask",
-    "connect-metamask": "Connect metamask"
+    "connect-metamask": "Подключить Metamask"
     }
 }
