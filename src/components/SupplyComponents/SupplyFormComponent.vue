@@ -1,8 +1,7 @@
 <template>
   <!-- @submit.prevent="modelValue.onNextClick" -->
   <form 
-        class="modal-form"
-        @submit.prevent="modelValue.onNextClick" >
+        class="modal-form" >
     <!-- Input Area -->
     <div class="modal-send-receive-input-area">
 
@@ -24,8 +23,8 @@
 
     <!-- Actions -->
     <div class="modal-send-receive-actions">
-      <button class="btn btn-primary btn-large-primary text-center">
-        {{ $t("message.supply") }}
+      <button class="btn btn-primary btn-large-primary text-center" disabled>
+        {{ $t("message.supply-limit-reached") }}
       </button>
     </div>
   </form>
