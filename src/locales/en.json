@@ -239,7 +239,7 @@
     "yield": "Yield",
     "amount-send": "Amount to Send",
     "amount-receive": "Amount to Receive",
-    "price-per": "Price per",
+    "-symbol": "Price per",
     "price-pert-tooltip": " Amount of USD in stablecoins that will be borrowed for the DeFi Lease position",
     "open-position": "Open Position",
     "delegate-undelegate": "Delegate / Withdraw",
@@ -322,6 +322,11 @@
     "protocol-revenue": "Protocol Revenue",
     "support": "Knowledge Hub",
     "metamask": "Metamask",
-    "connect-metamask": "Connect metamask"
+    "connect-metamask": "Connect metamask",
+    "share": "Share",
+    "buy-position": "BUY POSITION",
+    "download": "Download",
+    "timestamp": "TIMESTAMP",
+    "price-per-symbol": "Price per {symbol}"
   }
 }

@@ -321,6 +321,11 @@
     "protocol-revenue": "Protocol revenue",
     "support": "Support",
     "metamask": "Metamask",
-    "connect-metamask": "Connect metamask"
+    "connect-metamask": "Connect metamask",
+    "share": "Share",
+    "buy-position": "BUY POSITION",
+    "download": "Download",
+    "timestamp": "TIMESTAMP",
+    "price-per-symbol": "Price per {symbol}"
   }
 }
