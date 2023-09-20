@@ -4,6 +4,7 @@
       <canvas ref="canvas"></canvas>
       <div class="flex mt-[24px] gap-[12px]">
         <button
+          v-if="supportShare()"
           @click="share()"
           class="btn btn-primary btn-large-primary flex-1"
         >{{ $t('message.share') }}</button>
@@ -56,6 +57,10 @@ const props = defineProps({
 onMounted(() => {
   generateCanvas()
 })
+
+const supportShare = () => {
+  return !!navigator.share;
+}
 
 const generateCanvas = async () => {
   try {

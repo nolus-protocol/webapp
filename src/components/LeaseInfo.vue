@@ -25,7 +25,7 @@
               pnl.percent }}%</template>
           </div>
           <button
-            class="btn btn-secondary btn-medium-secondary btn-icon flex icon-share text-primary share"
+            class="btn btn-secondary btn-medium-secondary btn-icon flex icon-share text-primary share "
             @click="onShare"
           >
           </button>
@@ -1154,5 +1154,6 @@ const onShare = async () => {
 <style lang="scss">
 button.share {
   padding: 6px 6px 6px 4px !important;
+  font-size: 1.1rem !important;
 }
 </style>
