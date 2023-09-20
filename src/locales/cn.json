@@ -320,6 +320,9 @@
     "distributed": "已分布",
     "leased-assets-total": "租赁资产（总计）",
     "protocol-revenue": "协议利润",
-    "support": "支持"
+    "support": "支持",
+    "share": "Share",
+    "buy-position": "BUY POSITION",
+    "download": "Download"
   }
 }

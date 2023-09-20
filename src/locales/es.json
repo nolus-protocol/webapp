@@ -320,6 +320,9 @@
     "distributed": "Repartido",
     "leased-assets-total": "Activos arrendados (Total)",
     "protocol-revenue": "Ingresos del protocolo",
-    "support": "Soporte"
+    "support": "Soporte",
+    "share": "Share",
+    "buy-position": "BUY POSITION",
+    "download": "Download"
   }
 }

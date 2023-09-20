@@ -320,6 +320,9 @@
     "distributed": "Distributed",
     "leased-assets-total": "Loans Provided (Total)",
     "protocol-revenue": "Protocol Revenue",
-    "support": "Knowledge Hub"
+    "support": "Knowledge Hub",
+    "share": "Share",
+    "buy-position": "BUY POSITION",
+    "download": "Download"
   }
 }

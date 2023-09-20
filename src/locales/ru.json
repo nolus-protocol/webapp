@@ -320,6 +320,9 @@
     "distributed": "Выплачено",
     "leased-assets-total": "Сданные в заём активы (Все)",
     "protocol-revenue": "Доход протокола",
-    "support": "Саппорт"
+    "support": "Саппорт",
+    "share": "Share",
+    "buy-position": "BUY POSITION",
+    "download": "Download"
     }
 }

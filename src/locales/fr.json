@@ -319,6 +319,9 @@
     "distributed": "Distributed",
     "leased-assets-total": "Leased Assets (Total)",
     "protocol-revenue": "Protocol revenue",
-    "support": "Support"
+    "support": "Support",
+    "share": "Share",
+    "buy-position": "BUY POSITION",
+    "download": "Download"
   }
 }

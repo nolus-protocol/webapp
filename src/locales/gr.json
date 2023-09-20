@@ -320,6 +320,9 @@
     "distributed": "Κατανεμημένα",
     "leased-assets-total": "Χορηγηθέντα δάνεια (Σύνολο)",
     "protocol-revenue": "Έσοδα Πρωτοκόλλου",
-    "support": "Κέντρο Γνώσης"
+    "support": "Κέντρο Γνώσης",
+    "share": "Share",
+    "buy-position": "BUY POSITION",
+    "download": "Download"
   }
 }

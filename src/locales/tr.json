@@ -320,6 +320,9 @@
     "distributed": "Dağıtılan",
     "leased-assets-total": "Kiralanan Varlıklar (Toplam)",
     "protocol-revenue": "Protokol geliri",
-    "support": "Destek"
+    "support": "Destek",
+    "share": "Share",
+    "buy-position": "BUY POSITION",
+    "download": "Download"
   }
 }    
