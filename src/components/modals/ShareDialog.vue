@@ -4,7 +4,7 @@
       <canvas ref="canvas"></canvas>
       <div class="flex mt-[24px] gap-[12px]">
         <button
-          @click="download()"
+          @click="share()"
           class="btn btn-primary btn-large-primary flex-1"
         >{{ $t('message.share') }}</button>
         <button
@@ -245,9 +245,43 @@ function download() {
   anchor.click();
   anchor.remove();
 }
+
+function share() {
+  if (navigator.share == null) {
+    return download();
+  }
+
+  const canvasElement = canvas.value as HTMLCanvasElement;
+  canvasElement.toBlob(async (blob) => {
+    try {
+      const filesArray = [
+        new File(
+          [blob as Blob],
+          'position.png',
+          {
+            type: blob?.type,
+            lastModified: new Date().getTime()
+          }
+        )
+      ];
+      const shareData = {
+        files: filesArray,
+      };
+
+      await navigator.share(shareData);
+    } catch (error) {
+      console.error(error);
+    }
+
+  }, 'image/png');
+
+
+}
 </script>
-<style lang="scss">canvas {
+<style lang="scss">
+canvas {
   height: auto;
   width: 100%;
   border-radius: 12px;
-}</style>
+}
+</style>
