@@ -90,6 +90,7 @@ const generateCanvas = async () => {
 
   async function setBackground(ctx: CanvasRenderingContext2D) {
     const image = new Image();
+    image.crossOrigin = "anonymous";
 
     return new Promise<void>((resolve) => {
       image.onload = async () => {
@@ -142,6 +143,8 @@ const generateCanvas = async () => {
 
   async function setArrow(ctx: CanvasRenderingContext2D) {
     const image = new Image();
+    image.crossOrigin = "anonymous";
+
     const num = Number(props.position);
 
     image.onload = async () => {
@@ -168,6 +171,7 @@ const generateCanvas = async () => {
 
   async function setAsset(ctx: CanvasRenderingContext2D) {
     const image = new Image();
+    image.crossOrigin = "anonymous";
 
     image.onload = async () => {
       const rect = 60;
