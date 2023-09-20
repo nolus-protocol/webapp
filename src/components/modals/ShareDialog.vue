@@ -2,9 +2,15 @@
   <DialogHeader :headerList="[$t('message.share')]">
     <div class="container p-8">
       <canvas ref="canvas"></canvas>
-      <div class="flex">
-        <button class="btn btn-primary btn-large-primary flex-1">{{ $t('message.share') }}</button>
-        <button class="btn btn-secondary btn-large-secondary flex-1">{{ $t('message.download') }}</button>
+      <div class="flex mt-[24px] gap-[12px]">
+        <button
+          @click="download()"
+          class="btn btn-primary btn-large-primary flex-1"
+        >{{ $t('message.share') }}</button>
+        <button
+          @click="download()"
+          class="btn btn-secondary btn-large-secondary flex-1"
+        >{{ $t('message.download') }}</button>
       </div>
     </div>
   </DialogHeader>
@@ -12,7 +18,19 @@
 
 <script lang="ts" setup>
 import DialogHeader from "@/components/modals/templates/DialogHeader.vue";
+import arrowup from '@/assets/icons/arrowup.svg'
+import arrowdown from '@/assets/icons/arrowdown.svg'
+import shareImage from '@/assets/icons/share_image.svg'
+
 import { onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
+
+
+const i18n = useI18n();
+const colors = {
+  red: '#E42929',
+  green: '#1AB171'
+}
 
 const canvas = ref<HTMLCanvasElement>()
 
@@ -36,6 +54,7 @@ const props = defineProps({
 })
 
 onMounted(() => {
+  console.log(props)
   generateCanvas()
 })
 
@@ -50,12 +69,12 @@ const generateCanvas = async () => {
 
 
     await setBackground(context);
+    const metric = await getBuyTextWidth(context);
     roundedRect(context, {
       radius: 20,
-      color: '#1AB171',
       x: 90,
       y: 230,
-      width: 300,
+      width: metric + 100,
       height: 60
     });
     setArrow(context);
@@ -78,21 +97,28 @@ const generateCanvas = async () => {
         return resolve();
       };
 
-      image.src = '/share_image.svg';
+      image.src = shareImage;
     });
 
   }
 
   function roundedRect(ctx: CanvasRenderingContext2D, options: {
-    color: string,
     radius: number,
     x: number,
     y: number,
     width: number,
     height: number
   }) {
-    ctx.strokeStyle = options.color;
-    ctx.fillStyle = options.color;
+    const num = Number(props.position);
+
+    if (num < 0) {
+      ctx.strokeStyle = colors.red;
+      ctx.fillStyle = colors.red;
+    } else {
+      ctx.strokeStyle = colors.green;
+      ctx.fillStyle = colors.green;
+    }
+
     ctx.lineJoin = "round";
     ctx.lineWidth = options.radius;
 
@@ -116,18 +142,28 @@ const generateCanvas = async () => {
 
   async function setArrow(ctx: CanvasRenderingContext2D) {
     const image = new Image();
+    const num = Number(props.position);
 
     image.onload = async () => {
-      ctx.drawImage(image, 100, 240, 36, 33);
+      ctx.drawImage(image, 110, 247, 28, 26);
     };
 
-    image.src = '/arrowup.svg';
+    if (num < 0) {
+      image.src = arrowdown;
+    } else {
+      image.src = arrowup;
+    }
+  }
+
+  async function getBuyTextWidth(ctx: CanvasRenderingContext2D) {
+    ctx.font = "bold 30px 'Garet Bolder'";
+    return ctx.measureText(i18n.t('message.buy-position')).width;
   }
 
   async function setBuyText(ctx: CanvasRenderingContext2D) {
     ctx.font = "bold 30px 'Garet Bolder'";
     ctx.fillStyle = 'white';
-    ctx.fillText("BUY POSITION", 150, 270);
+    ctx.fillText(i18n.t('message.buy-position'), 150, 270);
   }
 
   async function setAsset(ctx: CanvasRenderingContext2D) {
@@ -141,7 +177,7 @@ const generateCanvas = async () => {
 
       ctx.font = "500 42px 'Garet-Medium'";
       ctx.fillStyle = '#082D63';
-      ctx.fillText("ATOM", 115 + width, 350);
+      ctx.fillText(props.asset, 115 + width, 350);
 
     };
 
@@ -151,33 +187,64 @@ const generateCanvas = async () => {
   function setPricePerAtom(ctx: CanvasRenderingContext2D) {
     ctx.font = "500 32px 'Garet-Medium'";
     ctx.fillStyle = '#5E7699';
-    ctx.fillText("Price per АТОМ: $29,345.00", 100, 405);
+    ctx.fillText(`${i18n.t('message.price-per-symbol', {
+      symbol: props.asset
+    })}: ${props.price}`, 100, 405);
   }
 
   function setPosition(ctx: CanvasRenderingContext2D) {
-    ctx.font = "700 84px 'Garet Bolder'";
-    ctx.fillStyle = '#1AB171';
-    ctx.fillText("+1,131", 90, 535);
+    const pos = Number(props.position);
+    const symbol = pos < 0 ? '-' : '+';
+    let [a, d] = Math.abs(pos).toFixed(2).split('.');
 
-    const w = ctx.measureText("+1,131").width;
+    if (pos < 0) {
+      ctx.fillStyle = colors.red;
+    } else {
+      ctx.fillStyle = colors.green;
+    }
 
-    ctx.font = "700 64px 'Garet Bolder'";
-    ctx.fillStyle = '#1AB171';
-    ctx.fillText(".13%", 90 + w, 535);
+    const amount = `${symbol}${new Intl.NumberFormat().format(Number(a))}`
+
+    ctx.font = "700 72px 'Garet Bolder'";
+    ctx.fillText(amount, 90, 545);
+
+    const w = ctx.measureText(amount).width;
+
+    ctx.font = "700 58px 'Garet Bolder'";
+    ctx.fillText(`.${d}%`, 90 + w, 545);
   }
 
   function setTimeStamp(ctx: CanvasRenderingContext2D) {
+
+    const timestamp = new Date();
+    const m = timestamp.getMonth() + 1;
+    const d = timestamp.getDate();
+    const h = timestamp.getHours();
+    const min = timestamp.getMinutes();
+
+    const year = timestamp.getFullYear();
+    const month = m.toString().length == 1 ? `0${m}` : m;
+    const day = d.toString().length == 1 ? `0${d}` : d;
+    const hours = h.toString().length == 1 ? `0${h}` : h;
+    const minutes = min.toString().length == 1 ? `0${min}` : min;
+
     ctx.font = "500 32px 'Garet-Medium'";
     ctx.fillStyle = '#5E7699';
-    ctx.fillText("TIMESTAMP:  2023-07-03 12:34", 90, 655);
+    ctx.fillText(`${i18n.t('message.timestamp')}:  ${year}-${month}-${day} ${hours}:${minutes}`, 90, 655);
   }
 
 }
+
+function download() {
+  const anchor = document.createElement("a");
+  anchor.href = canvas.value!.toDataURL("image/png");
+  anchor.download = "position.png";
+  anchor.click();
+  anchor.remove();
+}
 </script>
-<style lang="scss">
-canvas {
+<style lang="scss">canvas {
   height: auto;
   width: 100%;
   border-radius: 12px;
-}
-</style>
+}</style>
