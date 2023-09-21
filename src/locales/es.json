@@ -165,7 +165,7 @@
     "lease-up-to-tooltip": "La cantidad máxima que se puede apalancar en función del saldo de la billetera",
     "earn-apr-tooltip": "Rendimiento porcentual anualizado de los activos suministrados o delegados",
     "interest-fee-tooltip": "La tasa de interés porcentual por la cual la deuda aumentará cada año.",
-    "interest-due-tooltip": "Acumula cada bloque y se suma a la deuda pendiente. Los intereses se pagan cada 7 días",
+    "interest-due-tooltip": "Acumula cada bloque y se suma a la deuda pendiente. Los intereses se pagan cada 16 días",
     "earn-view-apr-tooltip": "Rendimiento porcentual anualizado de los activos suministrados o delegados",
     "net-worth": "Valor neto",
     "error": "Error",
