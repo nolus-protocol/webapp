@@ -26,7 +26,6 @@ import shareImage from '@/assets/icons/share_image.svg'
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-
 const i18n = useI18n();
 const colors = {
   red: '#E42929',
@@ -94,7 +93,8 @@ const generateCanvas = async () => {
 
   async function setBackground(ctx: CanvasRenderingContext2D) {
     const image = new Image();
-    image.crossOrigin = "anonymous";
+    const data = await fetch(shareImage);
+    const blob = await data.blob();
 
     return new Promise<void>((resolve) => {
       image.onload = async () => {
@@ -102,7 +102,7 @@ const generateCanvas = async () => {
         return resolve();
       };
 
-      image.src = shareImage;
+      image.src = window.URL.createObjectURL(blob);
     });
 
   }
@@ -147,19 +147,16 @@ const generateCanvas = async () => {
 
   async function setArrow(ctx: CanvasRenderingContext2D) {
     const image = new Image();
-    image.crossOrigin = "anonymous";
-
     const num = Number(props.position);
+
+    const data = await fetch(num < 0 ? arrowdown : arrowup);
+    const blob = await data.blob();
 
     image.onload = async () => {
       ctx.drawImage(image, 110, 247, 28, 26);
     };
 
-    if (num < 0) {
-      image.src = arrowdown;
-    } else {
-      image.src = arrowup;
-    }
+    image.src = window.URL.createObjectURL(blob);
   }
 
   async function getBuyTextWidth(ctx: CanvasRenderingContext2D) {
@@ -175,7 +172,8 @@ const generateCanvas = async () => {
 
   async function setAsset(ctx: CanvasRenderingContext2D) {
     const image = new Image();
-    image.crossOrigin = "anonymous";
+    const data = await fetch(props.icon);
+    const blob = await data.blob();
 
     image.onload = async () => {
       const rect = 60;
@@ -189,7 +187,8 @@ const generateCanvas = async () => {
 
     };
 
-    image.src = props.icon;
+    image.src = window.URL.createObjectURL(blob);
+
   }
 
   function setPricePerAtom(ctx: CanvasRenderingContext2D) {
