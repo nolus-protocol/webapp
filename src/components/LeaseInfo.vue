@@ -25,6 +25,7 @@
               pnl.percent }}%</template>
           </div>
           <button
+          v-if="ApptUtils.isDev()"
             class="btn btn-secondary btn-medium-secondary btn-icon flex icon-share text-primary share "
             @click="onShare"
           >
