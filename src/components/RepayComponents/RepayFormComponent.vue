@@ -41,7 +41,7 @@
             v-if="hasSwapFee"
           >
             ${{ calculateSwapFee }}
-            <TooltipComponent :content="$t('message.swap-fee-tooltip', { fee: (modelValue.swapFee * 100).toFixed(2) })" />
+            <TooltipComponent :content="$t('message.swap-fee-tooltip', { swapFee: (modelValue.swapFee * 100).toFixed(2) })" />
           </p>
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             ${{ calucateAfterRepayment }}
@@ -198,7 +198,7 @@ const setRepayment = (p: number) => {
   const price = new Dec(oracle.prices[selectedCurrency.symbol].amount);
   const swap = hasSwapFee.value;
   let repayment = repaymentInStable.quo(price);
-
+  
   if (swap) {
     repayment = repayment.add(repayment.mul(new Dec(props.modelValue.swapFee)));
   }
@@ -226,8 +226,8 @@ const calculateSwapFee = computed(() => {
     const amount = new Dec(props.modelValue.amount);
     const price = new Dec(oracle.prices[selectedCurrency.symbol]?.amount ?? 0);
     const total = amount.mul(price);
-    const fee = new Dec(1 + props.modelValue.swapFee);
-    const totalFee = total.sub(total.quo(fee));
+    const fee = new Dec(props.modelValue.swapFee);
+    const totalFee = total.mul(fee);
     const currency = wallet.getCurrencyByTicker(props.modelValue.leaseInfo.principal_due.ticker);
 
     return totalFee.toString(Number(currency.decimal_digits));
