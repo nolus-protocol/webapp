@@ -293,6 +293,11 @@ if (!isDev()) {
       key: 'es',
       label: 'Español',
       url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/es.json'
+    },
+    gr: {
+      key: 'gr',
+      label: 'Ελληνικά',
+      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/gr.json'
     }
   }
 }
@@ -308,3 +313,4 @@ export const IGNORE_TRANSFER_ASSETS: string[] = [];
 export const SUPPORT_URL = 'https://hub.nolus.io';
 export const ETL_API = "https://etl-cl.nolus.network:8080/api"
 export const DOWNPAYMENT_RANGE_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/downpayment-range.json';
+export const SWAP_FEE_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/swap-fee.json';

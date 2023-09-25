@@ -165,7 +165,7 @@
     "lease-up-to-tooltip": "La cantidad máxima que se puede apalancar en función del saldo de la billetera",
     "earn-apr-tooltip": "Rendimiento porcentual anualizado de los activos suministrados o delegados",
     "interest-fee-tooltip": "La tasa de interés porcentual por la cual la deuda aumentará cada año.",
-    "interest-due-tooltip": "Acumula cada bloque y se suma a la deuda pendiente. Los intereses se pagan cada 7 días",
+    "interest-due-tooltip": "Acumula cada bloque y se suma a la deuda pendiente. Los intereses se pagan cada 16 días",
     "earn-view-apr-tooltip": "Rendimiento porcentual anualizado de los activos suministrados o delegados",
     "net-worth": "Valor neto",
     "error": "Error",
@@ -272,7 +272,7 @@
     "session-timeout": "Sesión expirada",
     "session-timeout-message": "Su sesión ha caducado. Actualizar para continuar",
     "swap-fee": "Tarifa de intercambio",
-    "swap-fee-tooltip": "Se deduce una comisión de swap fija del 0,7 % de los reembolsos realizados con activos no estables. Si la tarifa de intercambio real es menor, la diferencia cubrirá parte de la deuda pendiente o se transferirá nuevamente a su billetera en USDC",
+    "swap-fee-tooltip": "Se deduce una comisión de swap fija del {swapFee} % de los reembolsos realizados con activos no estables. Si la tarifa de intercambio real es menor, la diferencia cubrirá parte de la deuda pendiente o se transferirá nuevamente a su billetera en USDC",
     "leap": "Salto",
     "amount-warning": "Deje una pequeña cantidad de tokens NLS para pagar las transacciones posteriores",
     "Confirm": "Confirmar",
@@ -322,6 +322,11 @@
     "protocol-revenue": "Ingresos del protocolo",
     "support": "Soporte",
     "metamask": "Metamask",
-    "connect-metamask": "Connect metamask"
+    "connect-metamask": "Connect metamask",
+    "share": "Share",
+    "buy-position": "BUY POSITION",
+    "download": "Download",
+    "timestamp": "TIMESTAMP",
+    "price-per-symbol": "Price per {symbol}"
   }
 }

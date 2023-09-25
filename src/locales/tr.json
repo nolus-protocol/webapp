@@ -165,7 +165,7 @@
     "lease-up-to-tooltip": "Cüzdan bakiyesine dayalı olarak kaldıraç yapılabilen maksimum miktar",
     "earn-apr-tooltip": "Tedarik edilen veya delege edilen varlıkların yıllık bileşik getirisi",
     "interest-fee-tooltip": "Borcun her yıl artacağı yüzde faiz oranı",
-    "interest-due-tooltip": "Her blokta biriken ve açık borca eklenen faiz. Faiz her 7 günde bir tahsil edilir",
+    "interest-due-tooltip": "Her blokta biriken ve açık borca eklenen faiz. Faiz her 16 günde bir tahsil edilir",
     "earn-view-apr-tooltip": "Tedarik edilen veya delege edilen varlıklar üzerinde yıllık bileşik faiz getirisi",
     "net-worth": "Net Değer",
     "error": "Hata",
@@ -272,7 +272,7 @@
     "session-timeout": "Oturum Zaman Aşımı",
     "session-timeout-message": "Oturumunuzun süresi doldu. Devam etmek için yenileyin",
     "swap-fee": "Takas Ücreti",
-    "swap-fee-tooltip": "Stabil olmayan varlıklarla yapılan ödemelerden sabit %0.7 takas ücreti kesilir. Gerçek değişim ücreti daha düşükse, fark açık borcun bir kısmını kapatacak veya USDC cinsinden cüzdanınıza aktarılacaktır",
+    "swap-fee-tooltip": "Stabil olmayan varlıklarla yapılan ödemelerden sabit %{swapFee} takas ücreti kesilir. Gerçek değişim ücreti daha düşükse, fark açık borcun bir kısmını kapatacak veya USDC cinsinden cüzdanınıza aktarılacaktır",
     "leap": "Leap",
     "amount-warning": "Sonraki işlemlerde ödeme yapabilmek için cüzdanda bir miktar NLS token bırakın",
     "Confirm": "Onayla",
@@ -322,6 +322,11 @@
     "protocol-revenue": "Protokol geliri",
     "support": "Destek",
     "metamask": "Metamask",
-    "connect-metamask": "Connect metamask"
+    "connect-metamask": "Connect metamask",
+    "share": "Share",
+    "buy-position": "BUY POSITION",
+    "download": "Download",
+    "timestamp": "TIMESTAMP",
+    "price-per-symbol": "Price per {symbol}"
   }
 }    

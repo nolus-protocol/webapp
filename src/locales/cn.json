@@ -165,7 +165,7 @@
     "lease-up-to-tooltip": "基于钱包余额可进行的最大杠杆使用量",
     "earn-apr-tooltip": "供应或委托资产的年化百分比收益率 ",
     "interest-fee-tooltip": "债务每年预计增加的百分比利率",
-    "interest-due-tooltip": "每个区块累积,并添加到未偿还债务中。利息每7天到期",
+    "interest-due-tooltip": "每个区块累积,并添加到未偿还债务中。利息每16天到期",
     "earn-view-apr-tooltip": "供应或委托资产的年化百分比收益率",
     "net-worth": "净值",
     "error": "错误",
@@ -272,7 +272,7 @@
     "session-timeout": "会话进程超时",
     "session-timeout-message": "当前会话进程超时, 请刷新后继续",
     "swap-fee": "交换费率",
-    "swap-fee-tooltip": "使用非稳定币资产还款,将扣除0.7%的固定交换费用。如果实际交换费用低于该值, 则差额部分将用于支付部分未偿还债务或以USDC转回到您的钱包中",
+    "swap-fee-tooltip": "使用非稳定币资产还款,将扣除{swapFee}%的固定交换费用。如果实际交换费用低于该值, 则差额部分将用于支付部分未偿还债务或以USDC转回到您的钱包中",
     "leap": "Legitap",
     "amount-warning": "请留下少量 NLS 代币用于支付后续交易",
     "Confirm": "确认",
@@ -323,5 +323,10 @@
     "support": "支持",
     "metamask": "Metamask",
     "connect-metamask": "连接 metamask 吧"
+    "share": "Share",
+    "buy-position": "BUY POSITION",
+    "download": "Download",
+    "timestamp": "TIMESTAMP",
+    "price-per-symbol": "Price per {symbol}"
   }
 }

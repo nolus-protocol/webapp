@@ -24,6 +24,12 @@
             &nbsp;{{ pnl.status ? '+' : '' }}<template v-if="!pnlType">{{ pnl.amount }}</template><template v-else>{{
               pnl.percent }}%</template>
           </div>
+          <button
+          v-if="ApptUtils.isDev()"
+            class="btn btn-secondary btn-medium-secondary btn-icon flex icon-share text-primary share "
+            @click="onShare"
+          >
+          </button>
         </div>
         <div class="flex my-4">
           <img
@@ -448,7 +454,6 @@
 
     </div>
   </div>
-
   <Modal
     v-if="showClaimDialog"
     @close-modal="showClaimDialog = false"
@@ -480,6 +485,14 @@
   >
     <RepayDialog :lease-info="leaseInfo" />
   </Modal>
+
+  <Modal
+    v-if="showShareDialog"
+    @close-modal="showShareDialog = false"
+    route="share"
+  >
+    <ShareDialog :icon="getAssetIcon"  :asset="asset.shortName" :price="price.toString()" :position="pnl.percent" />
+  </Modal>
 </template>
 
 <script lang="ts" setup>
@@ -494,6 +507,8 @@ import TooltipComponent from "./TooltipComponent.vue";
 import CurrencyComponent from "./CurrencyComponent.vue";
 import ConfirmComponent from "./modals/templates/ConfirmComponent.vue";
 import DialogHeader from "./modals/templates/DialogHeader.vue";
+import ShareDialog from "./modals/ShareDialog.vue";
+
 import OpenChannel from "./icons/OpenChannel.vue";
 import Transfer from "./icons/Transfer.vue";
 import Swap from "./icons/Swap.vue";
@@ -545,6 +560,7 @@ const showSnackbar = inject("showSnackbar", (_type: string, _transaction: string
 const getLeases = inject("getLeases", () => { });
 const claimDialog = ref();
 const pnlType = ref(false);
+const showShareDialog = ref(false);
 
 let leaseData = ref<{
   downPayment: string | null,
@@ -1130,4 +1146,15 @@ const fetchDownPayment = async (block: number) => {
 
   throw 'Downpayment fetch unsuccessfully'
 }
+
+const onShare = async () => {
+  showShareDialog.value = true;
+}
+
 </script>
+<style lang="scss">
+button.share {
+  padding: 6px 6px 6px 4px !important;
+  font-size: 1.1rem !important;
+}
+</style>

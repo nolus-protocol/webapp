@@ -1,30 +1,36 @@
 <template>
   <!-- @submit.prevent="modelValue.onNextClick" -->
-  <form 
-        class="modal-form"
-        @submit.prevent="modelValue.onNextClick" >
+  <form
+    class="modal-form"
+    @submit.prevent="modelValue.onNextClick"
+  >
+
     <!-- Input Area -->
     <div class="modal-send-receive-input-area">
 
       <div class="block text-left mt-[25px]">
-        <CurrencyField id="amountSupply"
-                       :currency-options="modelValue.currentBalance"
-                       :error-msg="modelValue.amountErrorMsg"
-                       :is-error="modelValue.amountErrorMsg !== ''"
-                       :option="modelValue.selectedCurrency"
-                       :value="modelValue.amount"
-                       :label="$t('message.amount')"
-                       :balance="formatCurrentBalance(modelValue.selectedCurrency)"
-                       :set-input-value="setAmount"
-                       name="amountSupply"
-                       @input="handleAmountChange($event)"
-                       @update-currency="(event) => (modelValue.selectedCurrency = event)" />
+        <CurrencyField
+          id="amountSupply"
+          :currency-options="modelValue.currentBalance"
+          :error-msg="modelValue.amountErrorMsg"
+          :is-error="modelValue.amountErrorMsg !== ''"
+          :option="modelValue.selectedCurrency"
+          :value="modelValue.amount"
+          :label="$t('message.amount')"
+          :balance="formatCurrentBalance(modelValue.selectedCurrency)"
+          :set-input-value="setAmount"
+          name="amountSupply"
+          @input="handleAmountChange($event)"
+          @update-currency="(event) => (modelValue.selectedCurrency = event)"
+        />
       </div>
     </div>
 
     <!-- Actions -->
     <div class="modal-send-receive-actions">
-      <button class="btn btn-primary btn-large-primary text-center">
+      <button
+        class="btn btn-primary btn-large-primary text-center"
+      >
         {{ $t("message.supply") }}
       </button>
     </div>
