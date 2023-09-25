@@ -11,6 +11,7 @@
           v-if="leaseData"
         >
           <div
+            v-if="ApptUtils.isDev()"
             class="pnl text-12 nls-font-500 whitespace-pre	mr-2 flex items-center cursor-pointer"
             :class="[pnl.status ? 'success' : 'alert']"
             @click="pnlType = !pnlType"
@@ -25,11 +26,21 @@
               pnl.percent }}%</template>
           </div>
           <button
-          v-if="ApptUtils.isDev()"
+            v-if="ApptUtils.isDev()"
             class="btn btn-secondary btn-medium-secondary btn-icon flex icon-share text-primary share "
             @click="onShare"
           >
           </button>
+          <div
+            v-if="isFreeInterest"
+            class="interest-free text-12 nls-font-500 whitespace-pre	mr-2 flex items-center cursor-pointer"
+          >
+            {{ $t('message.free-interest') }}
+            <TooltipComponent
+              :content="$t('message.free-interest')"
+              class="!text-[#2868E1]"
+            />
+          </div>
         </div>
         <div class="flex my-4">
           <img
@@ -350,6 +361,7 @@
           v-if="leaseData"
         >
           <div
+            v-if="ApptUtils.isDev()"
             class="pnl text-12 nls-font-500 whitespace-pre	mr-2 flex items-center cursor-pointer"
             :class="[pnl.status ? 'success' : 'alert']"
             @click="pnlType = !pnlType"
@@ -362,6 +374,16 @@
             </template>
             &nbsp;{{ pnl.status ? '+' : '' }}<template v-if="!pnlType">{{ pnl.amount }}</template><template v-else>{{
               pnl.percent }}%</template>
+          </div>
+          <div
+            v-if="isFreeInterest"
+            class="interest-free text-12 nls-font-500 whitespace-pre	mr-2 flex items-center cursor-pointer"
+          >
+            {{ $t('message.free-interest') }}
+            <TooltipComponent
+              :content="$t('message.free-interest')"
+              class="!text-[#2868E1]"
+            />
           </div>
         </div>
         <div class="flex my-4">
@@ -491,7 +513,12 @@
     @close-modal="showShareDialog = false"
     route="share"
   >
-    <ShareDialog :icon="getAssetIcon"  :asset="asset.shortName" :price="price.toString()" :position="pnl.percent" />
+    <ShareDialog
+      :icon="getAssetIcon"
+      :asset="asset.shortName"
+      :price="price.toString()"
+      :position="pnl.percent"
+    />
   </Modal>
 </template>
 
@@ -561,6 +588,7 @@ const getLeases = inject("getLeases", () => { });
 const claimDialog = ref();
 const pnlType = ref(false);
 const showShareDialog = ref(false);
+const isFreeInterest = ref(false);
 
 let leaseData = ref<{
   downPayment: string | null,
@@ -598,6 +626,7 @@ onBeforeMount(() => {
 
 onMounted(() => {
   loadCharts();
+  setFreeInterest();
 });
 
 onUnmounted(() => {
@@ -605,6 +634,16 @@ onUnmounted(() => {
     showSnackbar(SNACKBAR.Queued, "loading");
   }
 });
+
+const setFreeInterest = async () => {
+  const data = await ApptUtils.getFreeInterestAddress();
+  for (const item of data.interest_paid_to) {
+    if (item[props.leaseInfo.leaseAddress]) {
+      isFreeInterest.value = true;
+      break;
+    }
+  }
+}
 
 const loadCharts = async () => {
   const { days, interval } = chartTimeRange.value;
@@ -1156,5 +1195,14 @@ const onShare = async () => {
 button.share {
   padding: 6px 6px 6px 4px !important;
   font-size: 1.1rem !important;
+}
+
+div.interest-free {
+  background-color: rgb(255, 185, 34);
+  color: white;
+  margin-left: 8px;
+  display: flex;
+  padding: 6px;
+  border-radius: 4px;
 }
 </style>
