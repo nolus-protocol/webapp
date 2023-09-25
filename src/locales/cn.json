@@ -272,7 +272,7 @@
     "session-timeout": "会话进程超时",
     "session-timeout-message": "当前会话进程超时, 请刷新后继续",
     "swap-fee": "交换费率",
-    "swap-fee-tooltip": "使用非稳定币资产还款,将扣除0.7%的固定交换费用。如果实际交换费用低于该值, 则差额部分将用于支付部分未偿还债务或以USDC转回到您的钱包中",
+    "swap-fee-tooltip": "使用非稳定币资产还款,将扣除{swapFee}%的固定交换费用。如果实际交换费用低于该值, 则差额部分将用于支付部分未偿还债务或以USDC转回到您的钱包中",
     "leap": "Legitap",
     "amount-warning": "请留下少量 NLS 代币用于支付后续交易",
     "Confirm": "确认",

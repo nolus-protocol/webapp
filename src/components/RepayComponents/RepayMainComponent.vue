@@ -30,7 +30,7 @@ import type { AssetBalance } from "@/stores/wallet/state";
 import RepayFormComponent from "@/components/RepayComponents/RepayFormComponent.vue";
 import ConfirmComponent from "@/components/modals/templates/ConfirmComponent.vue";
 
-import { computed, inject, onUnmounted, ref, watch, type PropType } from "vue";
+import { computed, inject, onUnmounted, ref, watch, type PropType, onMounted } from "vue";
 import { Lease } from "@nolus/nolusjs/build/contracts";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { Dec, Int } from "@keplr-wallet/unit";
@@ -41,11 +41,12 @@ import { getMicroAmount, walletOperation } from "@/components/utils";
 import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, TIP, PERMILLE, PERCENT, calculateAditionalDebt, SWAP_FEE, ErrorCodes, IGNORE_LEASE_ASSETS } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, TIP, PERMILLE, PERCENT, calculateAditionalDebt, ErrorCodes, IGNORE_LEASE_ASSETS } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/stores/oracle";
 import { AssetUtils } from "@/utils";
 import { useApplicationStore } from "@/stores/application";
+import { ApptUtils } from "@/utils/AppUtils";
 
 const walletStore = useWalletStore();
 const oracle = useOracleStore();
@@ -61,7 +62,6 @@ const getLeases = inject("getLeases", () => { });
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const showConfirmScreen = ref(false);
-const TX_TYPE = TxType;
 
 const closeModal = onModalClose;
 
@@ -93,9 +93,23 @@ const state = ref({
   amountErrorMsg: "",
   txHash: "",
   fee: coin(GAS_FEES.repay_lease + TIP.amount, NATIVE_ASSET.denom),
+  swapFee: 0,
   onNextClick: () => onNextClick(),
 } as RepayComponentProps);
 
+onMounted(async () => {
+  setSwapFee();
+})
+
+watch(() => state.value.selectedCurrency, () => {
+  setSwapFee();
+})
+
+const setSwapFee = async () => {
+  const asset = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom);
+  state.value.swapFee = (await ApptUtils.getSwapFee())[asset.ticker] ?? 0;
+
+}
 onUnmounted(() => {
   if (CONFIRM_STEP.PENDING == step.value) {
     showSnackbar(SNACKBAR.Queued, "loading");
@@ -149,7 +163,7 @@ const isAmountValid = (): boolean => {
       const swap = hasSwapFee();
 
       if (swap) {
-        debt = debt.add(debt.mul(new Dec(SWAP_FEE)));
+        debt = debt.add(debt.mul(new Dec(state.value.swapFee)));
       }
 
       const debtInCurrencies = debt.quo(new Dec(price.amount));

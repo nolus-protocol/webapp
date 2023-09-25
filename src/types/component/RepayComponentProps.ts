@@ -13,5 +13,6 @@ export interface RepayComponentProps {
   password: string;
   txHash: string;
   fee: Coin;
+  swapFee: number,
   onNextClick: () => void;
 }

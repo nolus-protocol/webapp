@@ -272,7 +272,7 @@
     "session-timeout": "Sesión expirada",
     "session-timeout-message": "Su sesión ha caducado. Actualizar para continuar",
     "swap-fee": "Tarifa de intercambio",
-    "swap-fee-tooltip": "Se deduce una comisión de swap fija del 0,7 % de los reembolsos realizados con activos no estables. Si la tarifa de intercambio real es menor, la diferencia cubrirá parte de la deuda pendiente o se transferirá nuevamente a su billetera en USDC",
+    "swap-fee-tooltip": "Se deduce una comisión de swap fija del {swapFee} % de los reembolsos realizados con activos no estables. Si la tarifa de intercambio real es menor, la diferencia cubrirá parte de la deuda pendiente o se transferirá nuevamente a su billetera en USDC",
     "leap": "Salto",
     "amount-warning": "Deje una pequeña cantidad de tokens NLS para pagar las transacciones posteriores",
     "Confirm": "Confirmar",

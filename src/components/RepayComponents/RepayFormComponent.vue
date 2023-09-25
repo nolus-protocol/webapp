@@ -23,7 +23,10 @@
           <p class="mb-2 mt-[14px] mr-5">
             {{ $t("message.repayment-amount") }}:
           </p>
-          <p class="mb-2 mt-[14px] mr-5">
+          <p
+            class="mb-2 mt-[14px] mr-5"
+            v-if="hasSwapFee"
+          >
             {{ $t("message.swap-fee") }}:
           </p>
           <p class="mb-2 mt-[14px] mr-5">{{ $t("message.outstanding-lease") }}:</p>
@@ -33,12 +36,12 @@
             ${{ calculateOutstandingDebt() }}
             <TooltipComponent :content="$t('message.outstanding-debt-tooltip')" />
           </p>
-          <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
-            <!-- {{ hasSwapFee ? (SWAP_FEE * 100).toFixed(1) : 0 }} -->
+          <p
+            class="mb-2 mt-[14px] flex justify-end align-center dark-text"
+            v-if="hasSwapFee"
+          >
             ${{ calculateSwapFee }}
-            <TooltipComponent
-              :content="$t('message.swap-fee-tooltip', { fee: hasSwapFee ? (SWAP_FEE * 100).toFixed(1) : 0 })"
-            />
+            <TooltipComponent :content="$t('message.swap-fee-tooltip', { fee: (modelValue.swapFee * 100).toFixed(2) })" />
           </p>
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             ${{ calucateAfterRepayment }}
@@ -70,7 +73,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
-import { NATIVE_NETWORK, PERMILLE, PERCENT, SWAP_FEE } from "@/config/env";
+import { NATIVE_NETWORK, PERMILLE, PERCENT } from "@/config/env";
 import { calculateAditionalDebt } from "@/config/env";
 import { useApplicationStore } from "@/stores/application";
 
@@ -197,7 +200,7 @@ const setRepayment = (p: number) => {
   let repayment = repaymentInStable.quo(price);
 
   if (swap) {
-    repayment = repayment.add(repayment.mul(new Dec(SWAP_FEE)));
+    repayment = repayment.add(repayment.mul(new Dec(props.modelValue.swapFee)));
   }
 
   props.modelValue.amount = repayment.toString(selectedCurrencyInfo.coinDecimals + 1);
@@ -223,10 +226,10 @@ const calculateSwapFee = computed(() => {
     const amount = new Dec(props.modelValue.amount);
     const price = new Dec(oracle.prices[selectedCurrency.symbol]?.amount ?? 0);
     const total = amount.mul(price);
-    const fee = new Dec(1 + SWAP_FEE);
+    const fee = new Dec(1 + props.modelValue.swapFee);
     const totalFee = total.sub(total.quo(fee));
     const currency = wallet.getCurrencyByTicker(props.modelValue.leaseInfo.principal_due.ticker);
-    
+
     return totalFee.toString(Number(currency.decimal_digits));
 
   }

@@ -1,16 +1,22 @@
-import { DOWNPAYMENT_RANGE_URL, NETWORKS, isDev, languages } from "@/config/env";
+import { DOWNPAYMENT_RANGE_URL, NETWORKS, SWAP_FEE_URL, isDev, languages } from "@/config/env";
 import { EnvNetworkUtils } from ".";
 import type { Endpoint, Status, Node, API } from "@/types/NetworkConfig";
 
 export class ApptUtils {
 
     public static LANGUAGE = "language";
+
     static downpaymentRange: Promise<{
         [key: string]: {
             min: number,
             max: number
         }
     }>;
+
+    static swapFee: Promise<{
+        [key: string]: number
+    }>;
+
     static rpc: {
         [key: string]: {
             [key: string]: Promise<API>
@@ -121,7 +127,7 @@ export class ApptUtils {
 
     }
 
-    private static async fetchDownpaymentRange(){
+    private static async fetchDownpaymentRange() {
         const data = await fetch(DOWNPAYMENT_RANGE_URL);
         const json = await data.json() as {
             [key: string]: {
@@ -129,7 +135,28 @@ export class ApptUtils {
                 max: number
             }
         };
-        
+
+        return json;
+    }
+
+    static async getSwapFee() {
+        const swapFee = ApptUtils.swapFee;
+
+        if (swapFee) {
+            return swapFee;
+        }
+
+        ApptUtils.swapFee = ApptUtils.fetchSwapFee();
+        return ApptUtils.swapFee;
+
+    }
+
+    private static async fetchSwapFee() {
+        const data = await fetch(SWAP_FEE_URL);
+        const json = await data.json() as {
+            [key: string]: number
+        };
+
         return json;
     }
 

@@ -313,3 +313,4 @@ export const IGNORE_TRANSFER_ASSETS: string[] = [];
 export const SUPPORT_URL = 'https://hub.nolus.io';
 export const ETL_API = "https://etl-cl.nolus.network:8080/api"
 export const DOWNPAYMENT_RANGE_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/downpayment-range.json';
+export const SWAP_FEE_URL = 'http://localhost:8080/swap-fee.json';

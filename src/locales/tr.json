@@ -272,7 +272,7 @@
     "session-timeout": "Oturum Zaman Aşımı",
     "session-timeout-message": "Oturumunuzun süresi doldu. Devam etmek için yenileyin",
     "swap-fee": "Takas Ücreti",
-    "swap-fee-tooltip": "Stabil olmayan varlıklarla yapılan ödemelerden sabit %0.7 takas ücreti kesilir. Gerçek değişim ücreti daha düşükse, fark açık borcun bir kısmını kapatacak veya USDC cinsinden cüzdanınıza aktarılacaktır",
+    "swap-fee-tooltip": "Stabil olmayan varlıklarla yapılan ödemelerden sabit %{swapFee} takas ücreti kesilir. Gerçek değişim ücreti daha düşükse, fark açık borcun bir kısmını kapatacak veya USDC cinsinden cüzdanınıza aktarılacaktır",
     "leap": "Leap",
     "amount-warning": "Sonraki işlemlerde ödeme yapabilmek için cüzdanda bir miktar NLS token bırakın",
     "Confirm": "Onayla",

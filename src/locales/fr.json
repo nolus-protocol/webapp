@@ -274,7 +274,7 @@
     "session-timeout": "Expiration de la session",
     "session-timeout-message": "Votre session a expiré. Rafraîchissez pour continuer",
     "swap-fee": "Echanger les frais",
-    "swap-fee-tooltip": "Une commission sur les frais d'échange de 0,7 % est déduite des remboursements effectués avec des actifs non stables. Si la commission d'échange réelle est inférieure, la différence couvrira une partie de la dette en cours ou sera transférée dans votre portefeuille en USDC.",
+    "swap-fee-tooltip": "Une commission sur les frais d'échange de {swapFee} % est déduite des remboursements effectués avec des actifs non stables. Si la commission d'échange réelle est inférieure, la différence couvrira une partie de la dette en cours ou sera transférée dans votre portefeuille en USDC.",
     "leap": "Leap",
     "amount-warning": "Laisser un petit montant de jetons NLS pour payer les transactions ultérieures",
     "Confirm": "Confimer",
