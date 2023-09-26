@@ -37,7 +37,9 @@
           >
             {{ $t('message.free-interest') }}
             <TooltipComponent
-              :content="$t('message.free-interest')"
+              :content="$t('message.free-interest-tooltip', {
+                dateTime: freeInteresParams?.time
+              })"
               class="!text-[#2868E1]"
             />
           </div>
@@ -381,7 +383,9 @@
           >
             {{ $t('message.free-interest') }}
             <TooltipComponent
-              :content="$t('message.free-interest')"
+              :content="$t('message.free-interest-tooltip', {
+                dateTime: freeInteresParams?.time
+              })"
               class="!text-[#2868E1]"
             />
           </div>
@@ -589,6 +593,10 @@ const claimDialog = ref();
 const pnlType = ref(false);
 const showShareDialog = ref(false);
 const isFreeInterest = ref(false);
+const freeInteresParams = ref<{
+  amount: string,
+  time: string
+} | null>(null)
 
 let leaseData = ref<{
   downPayment: string | null,
