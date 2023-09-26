@@ -326,6 +326,8 @@
     "buy-position": "POSITION ACHAT",
     "download": "Télécharger",
     "timestamp": "TIMESTAMP",
-    "price-per-symbol": "Prix par {symbol}"
+    "price-per-symbol": "Prix par {symbol}",
+    "free-interest": "0% Interest",
+    "free-interest-tooltip": "Interest is repaid by Nolus on an hourly basis. This promo is valid until {dateTime}"
   }
 }

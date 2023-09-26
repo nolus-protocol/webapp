@@ -1,4 +1,4 @@
-import { DOWNPAYMENT_RANGE_URL, NETWORKS, SWAP_FEE_URL, isDev, languages } from "@/config/env";
+import { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL, NETWORKS, SWAP_FEE_URL, isDev, languages } from "@/config/env";
 import { EnvNetworkUtils } from ".";
 import type { Endpoint, Status, Node, API } from "@/types/NetworkConfig";
 
@@ -11,6 +11,15 @@ export class ApptUtils {
             min: number,
             max: number
         }
+    }>;
+
+    static freeInterestAdress: Promise<{
+        interest_paid_to: {
+            [key: string]: {
+                amount: string,
+                time: string
+            }
+        }[]
     }>;
 
     static swapFee: Promise<{
@@ -155,6 +164,32 @@ export class ApptUtils {
         const data = await fetch(SWAP_FEE_URL);
         const json = await data.json() as {
             [key: string]: number
+        };
+
+        return json;
+    }
+
+    static async getFreeInterestAddress() {
+        const freeInterestAdress = ApptUtils.freeInterestAdress;
+
+        if (freeInterestAdress) {
+            return freeInterestAdress;
+        }
+
+        ApptUtils.freeInterestAdress = ApptUtils.fetchFreeInterestAddress();
+        return ApptUtils.freeInterestAdress;
+
+    }
+
+    private static async fetchFreeInterestAddress() {
+        const data = await fetch(FREE_INTEREST_ADDRESS_URL);
+        const json = await data.json() as {
+            interest_paid_to: {
+                [key: string]: {
+                    amount: string,
+                    time: string
+                }
+            }[]
         };
 
         return json;

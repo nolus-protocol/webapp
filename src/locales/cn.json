@@ -322,11 +322,13 @@
     "protocol-revenue": "协议利润",
     "support": "支持",
     "metamask": "Metamask",
-    "connect-metamask": "连接 metamask 吧"
+    "connect-metamask": "连接 metamask 吧",
     "share": "Share",
     "buy-position": "BUY POSITION",
     "download": "Download",
     "timestamp": "TIMESTAMP",
-    "price-per-symbol": "Price per {symbol}"
+    "price-per-symbol": "Price per {symbol}",
+    "free-interest": "0% Interest",
+    "free-interest-tooltip": "Interest is repaid by Nolus on an hourly basis. This promo is valid until {dateTime}"
   }
 }
