@@ -23,29 +23,30 @@
           <p class="mb-2 mt-[14px] mr-5">
             {{ $t("message.repayment-amount") }}:
           </p>
-          <p
+          <!-- <p
             class="mb-2 mt-[14px] mr-5"
             v-if="hasSwapFee"
           >
             {{ $t("message.swap-fee") }}:
-          </p>
-          <p class="mb-2 mt-[14px] mr-5">{{ $t("message.outstanding-lease") }}:</p>
+          </p> -->
         </div>
         <div class="text-right nls-font-700 text-14">
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
-            ${{ calculateOutstandingDebt() }}
-            <TooltipComponent :content="$t('message.outstanding-debt-tooltip')" />
+            <!-- ${{ calculateOutstandingDebt() }} -->
+            {{ amount }}
+            <TooltipComponent
+              :content="$t('message.outstanding-debt-tooltip', { fee: (modelValue.swapFee * 100).toFixed(2) })"
+            />
           </p>
-          <p
+          <!-- <p
             class="mb-2 mt-[14px] flex justify-end align-center dark-text"
             v-if="hasSwapFee"
           >
             ${{ calculateSwapFee }}
-            <TooltipComponent :content="$t('message.swap-fee-tooltip', { swapFee: (modelValue.swapFee * 100).toFixed(2) })" />
-          </p>
-          <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
-            ${{ calucateAfterRepayment }}
-          </p>
+            <TooltipComponent
+              :content="$t('message.swap-fee-tooltip', { swapFee: (modelValue.swapFee * 100).toFixed(2) })"
+            />
+          </p> -->
         </div>
       </div>
     </div>
@@ -69,7 +70,7 @@ import type { RepayComponentProps } from "@/types/component/RepayComponentProps"
 import type { AssetBalance } from "@/stores/wallet/state";
 import { type PropType, computed } from "vue";
 
-import { Dec } from "@keplr-wallet/unit";
+import { CoinPretty, CoinUtils, Dec, PricePretty } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
@@ -198,7 +199,7 @@ const setRepayment = (p: number) => {
   const price = new Dec(oracle.prices[selectedCurrency.symbol].amount);
   const swap = hasSwapFee.value;
   let repayment = repaymentInStable.quo(price);
-  
+
   if (swap) {
     repayment = repayment.add(repayment.mul(new Dec(props.modelValue.swapFee)));
   }
@@ -235,6 +236,29 @@ const calculateSwapFee = computed(() => {
   }
 
   return "0.00";
+
+});
+
+const amount = computed(() => {
+  const swap = hasSwapFee.value;
+  const info = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
+  const selectedCurrency = wallet.getCurrencyByTicker(info.ticker);
+  const lpn = app.currenciesData!.USDC;
+
+  let amount = new Dec(props.modelValue.amount == '' ? 0 : props.modelValue.amount);
+  const price = new Dec(oracle.prices[selectedCurrency.symbol]?.amount ?? 0);
+
+  if (swap && props.modelValue.amount && props.modelValue.amount != "") {
+    const fee = new Dec(props.modelValue.swapFee);
+    amount = amount.add(amount.mul(fee));
+  }
+
+  const amountInStable = amount.mul(price);
+
+  return {
+    amountInStable: CurrencyUtils.formatPrice(amountInStable.toString(Number(lpn.decimal_digits))),
+    amount: CurrencyUtils.formatPrice(amount.toString(info.coinDecimals))
+  }
 
 });
 

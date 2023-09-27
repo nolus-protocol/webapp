@@ -232,7 +232,6 @@
     "opening": "Открытие",
     "transfer": "Перевод на кошелек",
     "close-lease": "Закрыть займ",
-    "outstanding-debt-tooltip": "Основная сумма долга и накопленные проценты составляют непогашенную задолженность",
     "compounding": "Компаундинг",
     "deposit-interest": "ДЕПОЗИТ И ПРОЦЕНТЫ",
     "pnl": "PnL",
@@ -329,6 +328,7 @@
     "timestamp": "TIMESTAMP",
     "price-per-symbol": "Price per {symbol}",
     "free-interest": "0% Interest",
-    "free-interest-tooltip": "Interest is repaid by Nolus on an hourly basis. This promo is valid until {dateTime}"
+    "free-interest-tooltip": "Interest is repaid by Nolus on an hourly basis. This promo is valid until {dateTime}",
+    "outstanding-debt-tooltip": "This amount represents the sum of the due principal, the accumulated interest, and a swap fee of {fee}%"
     }
 }

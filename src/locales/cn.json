@@ -232,7 +232,6 @@
     "opening": "开盘中",
     "transfer": "转到钱包",
     "close-lease": "关闭租约",
-    "outstanding-debt-tooltip": "本金和累积利息构成未偿还债务",
     "compounding": "复利",
     "deposit-interest": "存款 & 利息",
     "pnl": "盈亏(PnL)",
@@ -329,6 +328,7 @@
     "timestamp": "TIMESTAMP",
     "price-per-symbol": "Price per {symbol}",
     "free-interest": "0% Interest",
-    "free-interest-tooltip": "Interest is repaid by Nolus on an hourly basis. This promo is valid until {dateTime}"
+    "free-interest-tooltip": "Interest is repaid by Nolus on an hourly basis. This promo is valid until {dateTime}",
+    "outstanding-debt-tooltip": "This amount represents the sum of the due principal, the accumulated interest, and a swap fee of {fee}%"
   }
 }

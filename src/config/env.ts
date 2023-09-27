@@ -238,37 +238,37 @@ let l: {
   en: {
     key: 'en',
     label: 'English',
-    url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/en.json'
+    url: '/en.json'
   },
   ru: {
     key: 'ru',
     label: 'Русский',
-    url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/ru.json'
+    url: '/ru.json'
   },
   cn: {
     key: 'cn',
     label: '中文',
-    url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/cn.json'
+    url: '/cn.json'
   },
   fr: {
     key: 'fr',
     label: 'Français',
-    url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/fr.json'
+    url: '/fr.json'
   },
   es: {
     key: 'es',
     label: 'Español',
-    url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/es.json'
+    url: '/es.json'
   },
   gr: {
     key: 'gr',
     label: 'Ελληνικά',
-    url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/gr.json'
+    url: '/gr.json'
   },
   tr: {
     key: 'tr',
     label: 'Türkçe',
-    url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/tr.json'
+    url: '/tr.json'
   },
 }
 

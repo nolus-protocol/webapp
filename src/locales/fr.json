@@ -234,7 +234,6 @@
     "opening": "Ouverture",
     "transfer": "Transférer au portefeuille",
     "close-lease": "Fermer l’emprunt",
-    "outstanding-debt-tooltip": "Le capital et les intérêts accumulés constituent la dette en cours.",
     "compounding": "Composer",
     "deposit-interest": "DEPOT & INTERET",
     "pnl": "PnL",
@@ -328,6 +327,7 @@
     "timestamp": "TIMESTAMP",
     "price-per-symbol": "Prix par {symbol}",
     "free-interest": "0% Interest",
-    "free-interest-tooltip": "Interest is repaid by Nolus on an hourly basis. This promo is valid until {dateTime}"
+    "free-interest-tooltip": "Interest is repaid by Nolus on an hourly basis. This promo is valid until {dateTime}",
+    "outstanding-debt-tooltip": "This amount represents the sum of the due principal, the accumulated interest, and a swap fee of {fee}%"
   }
 }
