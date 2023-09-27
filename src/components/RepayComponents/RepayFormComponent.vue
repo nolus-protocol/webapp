@@ -33,7 +33,10 @@
         <div class="text-right nls-font-700 text-14">
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             <!-- ${{ calculateOutstandingDebt() }} -->
-            {{ amount }}
+            {{ amount.amount }} 
+            <span class="text-light-blue text-[13px] nls-font-400 ml-[6px]">
+              (${{ amount.amountInStable }})
+            </span>
             <TooltipComponent
               :content="$t('message.outstanding-debt-tooltip', { fee: (modelValue.swapFee * 100).toFixed(2) })"
             />
@@ -70,7 +73,7 @@ import type { RepayComponentProps } from "@/types/component/RepayComponentProps"
 import type { AssetBalance } from "@/stores/wallet/state";
 import { type PropType, computed } from "vue";
 
-import { CoinPretty, CoinUtils, Dec, PricePretty } from "@keplr-wallet/unit";
+import { CoinPretty, Dec, Int,  } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
@@ -253,11 +256,26 @@ const amount = computed(() => {
     amount = amount.add(amount.mul(fee));
   }
 
-  const amountInStable = amount.mul(price);
-
+  const amountInStableInt = amount.mul(price).mul(new Dec(10).pow(new Int(lpn.decimal_digits))).truncate();
+  const amountInt = amount.mul(new Dec(10).pow(new Int(info.coinDecimals))).truncate();
+  console.log(info)
   return {
-    amountInStable: CurrencyUtils.formatPrice(amountInStable.toString(Number(lpn.decimal_digits))),
-    amount: CurrencyUtils.formatPrice(amount.toString(info.coinDecimals))
+    amountInStable: new CoinPretty(
+      {
+        coinDenom: lpn.shortName,
+        coinMinimalDenom: lpn.symbol,
+        coinDecimals: Number(lpn.decimal_digits),
+      },
+      amountInStableInt
+    ).trim(true).hideDenom(true),
+    amount: new CoinPretty(
+      {
+        coinDenom: info.shortName,
+        coinMinimalDenom: info.coinMinimalDenom,
+        coinDecimals: info.coinDecimals,
+      },
+      amountInt
+    )
   }
 
 });

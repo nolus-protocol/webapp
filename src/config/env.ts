@@ -2,6 +2,7 @@ import type { NetworkAddress } from "@/types";
 import nlsIcon from "@/assets/icons/coins/nls.svg";
 import { Dec } from "@keplr-wallet/unit";
 export const DEFAULT_PRIMARY_NETWORK = "mainnet";
+// import('../locales/en.json?url').then((d) => console.log(d))
 
 export const NETWORKS: { [key: string]: NetworkAddress } = {
   localnet: {
@@ -232,43 +233,43 @@ let l: {
   [key: string]: {
     key: string;
     label: string;
-    url: string;
+    url: string | Promise<string>;
   }
 } = {
   en: {
     key: 'en',
     label: 'English',
-    url: '/en.json'
+    url: import('../locales/en.json?url').then((t) => t.default)
   },
   ru: {
     key: 'ru',
     label: 'Русский',
-    url: '/ru.json'
+    url: import('../locales/ru.json?url').then((t) => t.default)
   },
   cn: {
     key: 'cn',
     label: '中文',
-    url: '/cn.json'
+    url: import('../locales/cn.json?url').then((t) => t.default)
   },
   fr: {
     key: 'fr',
     label: 'Français',
-    url: '/fr.json'
+    url: import('../locales/fr.json?url').then((t) => t.default)
   },
   es: {
     key: 'es',
     label: 'Español',
-    url: '/es.json'
+    url: import('../locales/es.json?url').then((t) => t.default)
   },
   gr: {
     key: 'gr',
     label: 'Ελληνικά',
-    url: '/gr.json'
+    url: import('../locales/gr.json?url').then((t) => t.default)
   },
   tr: {
     key: 'tr',
     label: 'Türkçe',
-    url: '/tr.json'
+    url: import('../locales/tr.json?url').then((t) => t.default)
   },
 }
 

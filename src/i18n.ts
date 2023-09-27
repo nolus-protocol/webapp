@@ -1,4 +1,4 @@
-import { createI18n, type I18n } from "vue-i18n";
+import { createI18n } from "vue-i18n";
 import { nextTick } from 'vue'
 import { languages } from "./config/env";
 
@@ -22,10 +22,26 @@ export function setI18nLanguage(locale: string) {
 
 export async function loadLocaleMessages(locale: string) {
     const lang = languages[locale as keyof typeof languages] ?? languages.en;
-    const data = await fetch(lang.url);
+    const url = await getUrl(lang);
+    const data = await fetch(url);
     const messages = await data.json();
     i18n.global.setLocaleMessage(locale, messages)
     return nextTick()
+}
+
+export async function getUrl(lang: {
+    key: string;
+    label: string;
+    url: string | Promise<string>;
+}) {
+    switch (lang.url.constructor) {
+        case (Promise): {
+            return lang.url
+        }
+        default: {
+            return lang.url;
+        }
+    }
 }
 
 export async function setLang(lang: string = languages.en.key) {
