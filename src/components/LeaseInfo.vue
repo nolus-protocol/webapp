@@ -11,7 +11,6 @@
           v-if="leaseData"
         >
           <div
-            v-if="ApptUtils.isDev()"
             class="pnl text-12 nls-font-500 whitespace-pre	mr-2 flex items-center cursor-pointer"
             :class="[pnl.status ? 'success' : 'alert']"
             @click="pnlType = !pnlType"
@@ -26,7 +25,6 @@
               pnl.percent }}%</template>
           </div>
           <button
-            v-if="ApptUtils.isDev()"
             class="btn btn-secondary btn-medium-secondary btn-icon flex icon-share text-primary share "
             @click="onShare"
           >
@@ -363,7 +361,6 @@
           v-if="leaseData"
         >
           <div
-            v-if="ApptUtils.isDev()"
             class="pnl text-12 nls-font-500 whitespace-pre	mr-2 flex items-center cursor-pointer"
             :class="[pnl.status ? 'success' : 'alert']"
             @click="pnlType = !pnlType"

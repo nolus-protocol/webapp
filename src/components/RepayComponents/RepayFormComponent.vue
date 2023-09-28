@@ -18,22 +18,18 @@
         @input="handleAmountChange($event)"
         @update-currency="(event) => (modelValue.selectedCurrency = event)"
       />
-      <div class="flex justify-end">
+      <div
+        v-if="ApptUtils.isDev()"
+        class="flex justify-end"
+      >
         <div class="grow-3 text-right nls-font-500 text-14 dark-text">
           <p class="mb-2 mt-[14px] mr-5">
             {{ $t("message.repayment-amount") }}:
           </p>
-          <!-- <p
-            class="mb-2 mt-[14px] mr-5"
-            v-if="hasSwapFee"
-          >
-            {{ $t("message.swap-fee") }}:
-          </p> -->
         </div>
         <div class="text-right nls-font-700 text-14">
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
-            <!-- ${{ calculateOutstandingDebt() }} -->
-            {{ amount.amount }} 
+            {{ amount.amount }}
             <span class="text-light-blue text-[13px] nls-font-400 ml-[6px]">
               (${{ amount.amountInStable }})
             </span>
@@ -41,17 +37,42 @@
               :content="$t('message.outstanding-debt-tooltip', { fee: (modelValue.swapFee * 100).toFixed(2) })"
             />
           </p>
-          <!-- <p
-            class="mb-2 mt-[14px] flex justify-end align-center dark-text"
-            v-if="hasSwapFee"
-          >
-            ${{ calculateSwapFee }}
-            <TooltipComponent
-              :content="$t('message.swap-fee-tooltip', { swapFee: (modelValue.swapFee * 100).toFixed(2) })"
-            />
-          </p> -->
         </div>
       </div>
+      <template v-else>
+        <div class="flex justify-end">
+          <div class="grow-3 text-right nls-font-500 text-14 dark-text">
+            <p class="mb-2 mt-[14px] mr-5">
+              {{ $t("message.repayment-amount") }}:
+            </p>
+            <p
+              class="mb-2 mt-[14px] mr-5"
+              v-if="hasSwapFee"
+            >
+              {{ $t("message.swap-fee") }}:
+            </p>
+            <p class="mb-2 mt-[14px] mr-5">{{ $t("message.outstanding-lease") }}:</p>
+          </div>
+          <div class="text-right nls-font-700 text-14">
+            <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
+              ${{ calculateOutstandingDebt() }}
+              <TooltipComponent :content="$t('message.outstanding-debt-tooltip')" />
+            </p>
+            <p
+              class="mb-2 mt-[14px] flex justify-end align-center dark-text"
+              v-if="hasSwapFee"
+            >
+              ${{ calculateSwapFee }}
+              <TooltipComponent
+                :content="$t('message.swap-fee-tooltip', { swapFee: (modelValue.swapFee * 100).toFixed(2) })"
+              />
+            </p>
+            <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
+              ${{ calucateAfterRepayment }}
+            </p>
+          </div>
+        </div>
+      </template>
     </div>
     <div class="modal-send-receive-actions flex flex-col">
       <button class="btn btn-primary btn-large-primary text-center">
@@ -73,13 +94,14 @@ import type { RepayComponentProps } from "@/types/component/RepayComponentProps"
 import type { AssetBalance } from "@/stores/wallet/state";
 import { type PropType, computed } from "vue";
 
-import { CoinPretty, Dec, Int,  } from "@keplr-wallet/unit";
+import { CoinPretty, Dec, Int, } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
 import { NATIVE_NETWORK, PERMILLE, PERCENT } from "@/config/env";
 import { calculateAditionalDebt } from "@/config/env";
 import { useApplicationStore } from "@/stores/application";
+import { ApptUtils } from "@/utils/AppUtils";
 
 const oracle = useOracleStore();
 const wallet = useWalletStore();
