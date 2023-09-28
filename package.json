@@ -31,7 +31,7 @@
     "@ledgerhq/hw-transport-webhid": "^6.27.16",
     "@ledgerhq/hw-transport-webusb": "^6.27.16",
     "@ledgerhq/logs": "^6.10.1",
-    "@nolus/nolusjs": "^0.0.122",
+    "@nolus/nolusjs": "^0.0.124",
     "@web3auth/base": "^6.1.1",
     "@web3auth/no-modal": "^6.1.1",
     "@web3auth/openlogin-adapter": "^6.1.1",

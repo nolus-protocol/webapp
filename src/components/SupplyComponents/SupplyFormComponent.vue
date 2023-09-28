@@ -1,8 +1,6 @@
 <template>
   <!-- @submit.prevent="modelValue.onNextClick" -->
-  <form
-    class="modal-form"
-  >
+  <form class="modal-form">
 
     <!-- Input Area -->
     <div class="modal-send-receive-input-area">
@@ -39,13 +37,16 @@
 
 <script lang="ts" setup>
 import type { SupplyFormComponentProps } from "@/types/component/SupplyFormComponentProps";
-import type { PropType } from "vue";
+import { onMounted, type PropType } from "vue";
 import type { AssetBalance } from "@/stores/wallet/state";
 
 import CurrencyField from "@/components/CurrencyField.vue";
-import { CurrencyUtils } from "@nolus/nolusjs";
+import { CurrencyUtils, NolusClient } from "@nolus/nolusjs";
 import { useWalletStore } from "@/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
+import { Lpp } from "@nolus/nolusjs/build/contracts";
+import { EnvNetworkUtils } from "@/utils";
+import { CONTRACTS } from "@/config/contracts";
 
 const props = defineProps({
   modelValue: {
@@ -55,6 +56,19 @@ const props = defineProps({
 });
 
 const wallet = useWalletStore();
+
+onMounted(async () => {
+
+});
+
+const setIsAvailable = async () => {
+  const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+  const lppClient = new Lpp(
+    cosmWasmClient,
+    CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance
+  );
+  const isAvailable = await lppClient.getDepositCapacity();
+}
 
 const handleAmountChange = (value: string) => {
   props.modelValue.amount = value;
