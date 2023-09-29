@@ -5,6 +5,7 @@ import type { Endpoint, Status, Node, API } from "@/types/NetworkConfig";
 export class ApptUtils {
 
     public static LANGUAGE = "language";
+    public static BANNER = "banner";
 
     static downpaymentRange: Promise<{
         [key: string]: {
@@ -47,6 +48,14 @@ export class ApptUtils {
             return languages[theme as keyof typeof languages];
         }
         return languages.en;
+    }
+
+    public static setBannerInvisible() {
+        localStorage.setItem(this.BANNER, '1');
+    }
+
+    static getBanner() {
+        return !Number(localStorage.getItem(this.BANNER));
     }
 
     static async fetchEndpoints(network: string) {

@@ -167,7 +167,10 @@
             {{ $t("message.interest-fee") }}
             <TooltipComponent :content="$t('message.interest-fee-tooltip')" />
           </p>
-          <p class="text-primary text-20 nls-font-400 m-0 mt-1">
+          <p
+            class="text-primary text-20 nls-font-400 m-0 mt-1"
+            :class="{ 'line-throught': isFreeInterest }"
+          >
             <CurrencyComponent
               class="garet-medium"
               :type="CURRENCY_VIEW_TYPES.CURRENCY"
@@ -645,6 +648,7 @@ const setFreeInterest = async () => {
   for (const item of data.interest_paid_to) {
     if (item[props.leaseInfo.leaseAddress]) {
       isFreeInterest.value = true;
+      freeInteresParams.value = item[props.leaseInfo.leaseAddress];
       break;
     }
   }

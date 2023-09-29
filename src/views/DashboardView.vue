@@ -1,4 +1,36 @@
 <template>
+  <div
+    v-if="ApptUtils.isDev() && isBannerVisible"
+    class="col-span-12 banner flex"
+  >
+    <img
+      height="145"
+      width="114"
+      src="/src/assets/icons/interest.png"
+    />
+    <div class="flex flex-col	items-start	justify-between">
+      <div>
+        <h3>
+          {{ $t('message.zero-banner-title') }}
+        </h3>
+        <p class="max-w-[500px]">
+          {{ $t('message.zero-banner-description') }}
+        </p>
+      </div>
+      <button
+        class="btn-primary btn-large-primary"
+        @click="openModal(DASHBOARD_ACTIONS.LEASE)"
+      >
+        {{ $t('message.lease-now') }}
+      </button>
+      <button
+        class="close"
+        @click="hideBanner"
+      >
+        <XMarkIcon />
+      </button>
+    </div>
+  </div>
   <div class="col-span-12">
     <!-- Header -->
     <div class="table-header lg:flex block mt-[25px] flex-wrap items-center justify-between lg:px-0 px-2">
@@ -313,13 +345,15 @@ import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { CONTRACTS } from "@/config/contracts";
 import { AssetUtils, EnvNetworkUtils, WalletManager } from "@/utils";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
+import { ApptUtils } from "@/utils/AppUtils";
+import { XMarkIcon } from "@heroicons/vue/24/solid";
 
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
   [DASHBOARD_ACTIONS.RECEIVE]: SendReceiveDialog,
   [DASHBOARD_ACTIONS.SUPPLY]: SupplyWithdrawDialog,
   [DASHBOARD_ACTIONS.LEASE]: LeaseDialog,
-  
+
 };
 const smallBalancesStateKey = 'smallBalancesState';
 
@@ -332,6 +366,7 @@ const oracleRef = storeToRefs(oracle);
 
 const isAssetsLoading = ref(wallet.balances.length == 0);
 const showSkeleton = ref(wallet.balances.length == 0);
+const isBannerVisible = ref(true);
 
 const showErrorDialog = ref(false);
 const loaded = wallet.balances.length > 0 && Object.keys(oracle.prices).length > 0;
@@ -384,6 +419,7 @@ onMounted(() => {
   getVestedTokens();
   availableAssets();
   loadSuppliedAndStaked();
+  isBannerVisible.value = ApptUtils.getBanner();
   wallet[WalletActionTypes.LOAD_STAKED_TOKENS]();
   wallet[WalletActionTypes.LOAD_SUPPLIED_AMOUNT]();
   if (showSkeleton.value) {
@@ -620,6 +656,11 @@ const setSmallBalancesState = (event: boolean) => {
   } else {
     localStorage.removeItem(smallBalancesStateKey);
   }
+}
+
+const hideBanner = () => {
+  ApptUtils.setBannerInvisible();
+  isBannerVisible.value = false;
 }
 </script>
 <style scoped lang="scss">

@@ -97,7 +97,10 @@
             ~{{ selectedAssetPrice }}
           </p>
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
-            {{ annualInterestRate ?? 0 }}%
+            <span v-if="annualInterestRate" class="text-[#8396B1] line-throught-gray">
+              {{ annualInterestRate ?? 0 }}%
+            </span>
+            <span class="dark-text">0%</span>
             <TooltipComponent :content="$t('message.interest-tooltip')" />
           </p>
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
