@@ -52,7 +52,7 @@
           appear
         >
           <ListboxOptions
-            class="absolute z-10 mt-1 w-full background shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm scrollbar max-h-[200px]"
+            class="absolute z-10 mt-1 w-full background shadow-lg max-h-60 rounded-md py-1 text-base overflow-auto focus:outline-none sm:text-sm scrollbar max-h-[160px]"
           >
             <ListboxOption
               v-for="option in options"

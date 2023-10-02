@@ -20,7 +20,7 @@
       />
       <div
         v-if="ApptUtils.isDev()"
-        class="flex justify-end"
+        class="flex justify-end mt-[32px]"
       >
         <div class="grow-3 text-right nls-font-500 text-14 dark-text">
           <p class="mb-2 mt-[14px] mr-5">
@@ -40,7 +40,7 @@
         </div>
       </div>
       <template v-else>
-        <div class="flex justify-end">
+        <div class="flex justify-end mt-[16px]">
           <div class="grow-3 text-right nls-font-500 text-14 dark-text">
             <p class="mb-2 mt-[14px] mr-5">
               {{ $t("message.repayment-amount") }}:
