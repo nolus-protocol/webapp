@@ -10,7 +10,7 @@
     />
     <div class="flex flex-col	items-start	justify-between">
       <div>
-        <h3>
+        <h3 class="nls-font-700">
           {{ $t('message.zero-banner-title') }}
         </h3>
         <p class="max-w-[500px]">
