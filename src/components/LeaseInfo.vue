@@ -318,10 +318,11 @@
           <div v-if="isFreeInterest"
                class="interest-free text-12 nls-font-500 whitespace-pre	mr-2 flex items-center cursor-pointer">
             {{ $t('message.free-interest') }}
-            <TooltipComponent :content="$t('message.free-interest-tooltip', {
+            <TooltipComponent 
+            :content="$t('message.free-interest-tooltip', {
               dateTime: freeInteresParams?.time
             })"
-                              class="!text-[#2868E1]" />
+            class="!text-[#fff]" />
           </div>
         </div>
         <div class="flex my-4">

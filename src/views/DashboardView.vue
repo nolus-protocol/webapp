@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="ApptUtils.isDev() && isBannerVisible"
+    v-if="isBannerVisible"
     class="col-span-12 banner flex"
   >
     <img

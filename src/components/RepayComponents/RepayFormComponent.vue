@@ -1,27 +1,20 @@
 <template>
-  <form
-    @submit.prevent="modelValue.onNextClick"
-    class="w-full"
-  >
+  <form @submit.prevent="modelValue.onNextClick"
+        class="w-full">
     <div class="block text-left px-5 lg:px-10 mt-10 py-[5px]">
-      <CurrencyField
-        id="repayBalance"
-        name="repayBalance"
-        :label="$t('message.amount-field')"
-        :value="modelValue.amount"
-        :currency-options="modelValue.currentBalance"
-        :option="modelValue.selectedCurrency"
-        :error-msg="modelValue.amountErrorMsg"
-        :is-error="modelValue.amountErrorMsg !== ''"
-        :balance="formatCurrentBalance(modelValue.selectedCurrency)"
-        :set-input-value="setRepayment"
-        @input="handleAmountChange($event)"
-        @update-currency="(event) => (modelValue.selectedCurrency = event)"
-      />
-      <div
-        v-if="ApptUtils.isDev()"
-        class="flex justify-end mt-[32px]"
-      >
+      <CurrencyField id="repayBalance"
+                     name="repayBalance"
+                     :label="$t('message.amount-field')"
+                     :value="modelValue.amount"
+                     :currency-options="modelValue.currentBalance"
+                     :option="modelValue.selectedCurrency"
+                     :error-msg="modelValue.amountErrorMsg"
+                     :is-error="modelValue.amountErrorMsg !== ''"
+                     :balance="formatCurrentBalance(modelValue.selectedCurrency)"
+                     :set-input-value="setRepayment"
+                     @input="handleAmountChange($event)"
+                     @update-currency="(event) => (modelValue.selectedCurrency = event)" />
+      <div class="flex justify-end mt-[32px]">
         <div class="grow-3 text-right nls-font-500 text-14 dark-text">
           <p class="mb-2 mt-[14px] mr-5">
             {{ $t("message.repayment-amount") }}:
@@ -34,45 +27,10 @@
               (${{ amount.amountInStable }})
             </span>
             <TooltipComponent
-              :content="$t('message.outstanding-debt-tooltip', { fee: (modelValue.swapFee * 100).toFixed(2) })"
-            />
+                              :content="$t('message.outstanding-debt-tooltip', { fee: (modelValue.swapFee * 100).toFixed(2) })" />
           </p>
         </div>
       </div>
-      <template v-else>
-        <div class="flex justify-end mt-[16px]">
-          <div class="grow-3 text-right nls-font-500 text-14 dark-text">
-            <p class="mb-2 mt-[14px] mr-5">
-              {{ $t("message.repayment-amount") }}:
-            </p>
-            <p
-              class="mb-2 mt-[14px] mr-5"
-              v-if="hasSwapFee"
-            >
-              {{ $t("message.swap-fee") }}:
-            </p>
-            <p class="mb-2 mt-[14px] mr-5">{{ $t("message.outstanding-lease") }}:</p>
-          </div>
-          <div class="text-right nls-font-700 text-14">
-            <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
-              ${{ calculateOutstandingDebt() }}
-              <TooltipComponent :content="$t('message.outstanding-debt-tooltip')" />
-            </p>
-            <p
-              class="mb-2 mt-[14px] flex justify-end align-center dark-text"
-              v-if="hasSwapFee"
-            >
-              ${{ calculateSwapFee }}
-              <TooltipComponent
-                :content="$t('message.swap-fee-tooltip', { swapFee: (modelValue.swapFee * 100).toFixed(2) })"
-              />
-            </p>
-            <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
-              ${{ calucateAfterRepayment }}
-            </p>
-          </div>
-        </div>
-      </template>
     </div>
     <div class="modal-send-receive-actions flex flex-col">
       <button class="btn btn-primary btn-large-primary text-center">
@@ -293,11 +251,11 @@ const amount = computed(() => {
   let vStable = repaymentInStableInt.sub(amountInStableInt);
   let v = repaymentInt.sub(amountInt);
 
-  if(vStable.isNegative()){
+  if (vStable.isNegative()) {
     vStable = new Int(0);
   }
 
-  if(v.isNegative()){
+  if (v.isNegative()) {
     v = new Int(0);
   }
 
