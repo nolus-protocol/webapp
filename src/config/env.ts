@@ -304,6 +304,11 @@ if (!isDev()) {
       key: 'tr',
       label: 'Türkçe',
       url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/tr.json'
+    },
+    fr: {
+      key: 'fr',
+      label: 'Français',
+      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/fr.json'
     }
   }
 }
