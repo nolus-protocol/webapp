@@ -16,7 +16,6 @@ import { BaseWallet } from "./BaseWallet";
 import { fromHex } from "@cosmjs/encoding";
 import { ApptUtils } from "@/utils/AppUtils";
 import { createIbcAminoConverters } from "./aminomessages";
-import { connectSnap, experimentalSuggestChain, getOfflineSigner, getSnap } from "@leapwallet/cosmos-snap-provider";
 
 const aminoTypes = {
     ...createIbcAminoConverters(),
@@ -112,35 +111,6 @@ const authenticateLeap = async (wallet: Wallet, network: NetworkData) => {
 
 }
 
-const authenticateMetamask = async (wallet: Wallet, network: NetworkData) => {
-    try {
-        const snapInstalled = await getSnap();
-
-        if (!snapInstalled) {
-            await connectSnap(); // Initiates installation if not already present
-        }
-
-        const chainId =  await wallet.getChainId();
-        const node = await ApptUtils.fetchEndpoints(network.key);
-
-        await experimentalSuggestChain(
-            network.embedChainInfo(chainId, node.rpc, node.api)
-        );
-
-        const offlineSigner = getOfflineSigner(
-            chainId
-        );
-
-        return await createWallet(wallet, offlineSigner, network.prefix);
-
-
-    } catch (e) {
-        throw new Error("Failed to fetch suggest chain.");
-    }
-
-
-}
-
 const authenticateLedger = async (wallet: Wallet, network: NetworkData) => {
     const transport = await getLedgerTransport();
     const accountNumbers = [0];
@@ -189,4 +159,4 @@ const authenticateDecrypt = async (wallet: Wallet, network: NetworkData, passwor
     return await createWallet(wallet, directSecrWallet, network.prefix);
 }
 
-export { aminoTypes, authenticateLedger, authenticateKeplr, authenticateLeap, authenticateDecrypt, authenticateMetamask, createWallet };
+export { aminoTypes, authenticateLedger, authenticateKeplr, authenticateLeap, authenticateDecrypt, createWallet };

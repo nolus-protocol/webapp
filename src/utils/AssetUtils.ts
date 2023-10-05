@@ -22,6 +22,7 @@ export class AssetUtils {
       return a;
     }, "");
     path += `${coinMinimalDenom}`;
+    console.log(path)
     return (
       "ibc/" +
       Buffer.from(sha256(Buffer.from(path)))

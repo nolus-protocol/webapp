@@ -17,22 +17,6 @@
         </button>
 
         <button
-          v-if="ApptUtils.isDev()"
-          class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow auth"
-          @click="clickConnectToMetamask"
-        >
-          <span class="icon mb-[4px] w-[36px] h-[36px]">
-            <img
-              width="36"
-              height="36"
-              src="@/assets/icons/metamask.svg"
-            />
-          </span>
-          {{ $t("message.metamask") }}
-        </button>
-
-        <button
-          v-else
           class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow auth"
           @click="clickConnectToLeap"
         >
@@ -59,18 +43,7 @@
           <span class="icon icon-ledger mb-[4px]"></span>
           {{ $t("message.ledger") }}
         </button>
-        <button
-          v-if="ApptUtils.isDev()"
-          class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow auth"
-          @click="clickConnectToLeap"
-        >
-          <span class="icon icon-leap ml-1"></span>
-          {{ $t("message.leap") }}
-        </button>
-        <div
-          v-else
-          class="ml-5 md:ml-4 basis-0 grow fake-button"
-        ></div>
+        <div class="ml-5 md:ml-4 basis-0 grow fake-button"></div>
 
       </div>
 
@@ -145,7 +118,6 @@ import TermsDialog from "@/components/modals/TermsDialog.vue";
 import router from "@/router";
 import { RouteNames } from "@/router/RouterNames";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
-import { ApptUtils } from "@/utils/AppUtils";
 import { ref } from "vue";
 
 const wallet = useWalletStore();
@@ -158,10 +130,6 @@ const clickConnectToKeplr = () => {
 
 const clickConnectToLeap = () => {
   router.push({ name: RouteNames.CONNECT_LEAP });
-}
-
-const clickConnectToMetamask = () => {
-  router.push({ name: RouteNames.CONNECT_METAMASK });
 }
 
 const clickImportLedger = () => {
@@ -200,4 +168,5 @@ const googleAuth = async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-}</style>
+}
+</style>

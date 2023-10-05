@@ -87,11 +87,6 @@ const router = createRouter({
           component: () => import("@/views/ConnectingLeap.vue"),
         },
         {
-          path: "connecting-to-metamask",
-          name: RouteNames.CONNECT_METAMASK,
-          component: () => import("@/views/ConnectingMetamask.vue"),
-        },
-        {
           path: "import-ledger",
           name: RouteNames.IMPORT_LEDGER,
           component: () => import("@/views/ImportLedgerView.vue"),

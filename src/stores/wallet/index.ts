@@ -31,7 +31,6 @@ import { useApplicationStore } from "../application";
 import { defaultRegistryTypes, } from "@cosmjs/stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { ApptUtils } from "@/utils/AppUtils";
-import { getOfflineSigner, connectSnap, getSnap, experimentalSuggestChain } from "@leapwallet/cosmos-snap-provider";
 
 const useWalletStore = defineStore("wallet", {
   state: () => {
@@ -189,67 +188,6 @@ const useWalletStore = defineStore("wallet", {
         }
       }
     },
-    async [WalletActionTypes.CONNECT_METAMASK](
-      payload: { isFromAuth?: boolean } = {}
-    ) {
-
-      try {
-
-        const snapInstalled = await getSnap();
-
-        if (!snapInstalled) {
-          await connectSnap(); // Initiates installation if not already present
-        }
-
-        let chainId = "";
-
-        const networkConfig = await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
-        NolusClient.setInstance(networkConfig.rpc);
-
-        chainId = await NolusClient.getInstance().getChainId();
-        await experimentalSuggestChain(
-          KeplrEmbedChainInfo(
-            EnvNetworkUtils.getStoredNetworkName(),
-            chainId,
-            networkConfig.rpc as string,
-            networkConfig.api as string
-          )
-        );
-
-        const offlineSigner = getOfflineSigner(
-          chainId
-        );
-
-        const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(offlineSigner as any);
-        await nolusWalletOfflineSigner.useAccount();
-
-        WalletManager.saveWalletConnectMechanism(
-          WalletConnectMechanism.METAMASK
-        );
-
-        WalletManager.storeWalletAddress(
-          nolusWalletOfflineSigner.address || ""
-        );
-
-        WalletManager.setPubKey(
-          Buffer.from(nolusWalletOfflineSigner?.pubKey ?? "").toString("hex")
-        );
-
-        this.wallet = nolusWalletOfflineSigner;
-        this.walletName = WalletConnectMechanism.METAMASK;
-
-        await this[WalletActionTypes.UPDATE_BALANCES]();
-
-        if (payload?.isFromAuth) {
-          await router.push({ name: RouteNames.DASHBOARD });
-        }
-
-      } catch (e: Error | any) {
-        console.log(e)
-        throw new Error(e.message);
-      }
-
-    },
     async [WalletActionTypes.CONNECT_LEDGER](
       payload: { isFromAuth?: boolean; isBluetooth?: boolean } = {}
     ) {
@@ -396,7 +334,7 @@ const useWalletStore = defineStore("wallet", {
             currency.ibc_route,
             currency.symbol
           );
-
+          console.log(key, ibcDenom)
           ibcBalances.push(
             NolusClient.getInstance()
               .getBalance(walletAddress, ibcDenom)

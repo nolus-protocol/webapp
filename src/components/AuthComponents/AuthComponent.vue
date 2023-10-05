@@ -9,22 +9,6 @@
     </button>
 
     <button
-      v-if="ApptUtils.isDev()"
-      class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow auth"
-      @click="clickImportMetamask"
-    >
-      <span class="icon mb-[4px] w-[36px] h-[36px]">
-        <img
-          width="36"
-          height="36"
-          src="@/assets/icons/metamask.svg"
-        />
-      </span>
-      {{ $t("message.metamask") }}
-    </button>
-
-    <button
-      v-else
       class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow auth"
       @click="clickConnectToLeap"
     >
@@ -43,18 +27,7 @@
       {{ $t("message.ledger") }}
     </button>
 
-    <button
-      v-if="ApptUtils.isDev()"
-      class="btn btn-box btn-large-box ml-5 md:ml-4 basis-0 grow auth"
-      @click="clickConnectToLeap"
-    >
-      <span class="icon icon-leap ml-1"></span>
-      {{ $t("message.leap") }}
-    </button>
-    <div
-      v-else
-      class="ml-5 md:ml-4 basis-0 grow fake-button"
-    ></div>
+    <div class="ml-5 md:ml-4 basis-0 grow fake-button"></div>
 
   </div>
 
@@ -101,10 +74,6 @@ const clickImportLedger = () => {
   props.switchView(WalletActionTypes.CONNECT_LEDGER);
 };
 
-const clickImportMetamask = () => {
-  props.switchView(WalletActionTypes.CONNECT_METAMASK);
-};
-
 const onShowTermsModal = () => {
   showTermsModal.value = true;
 }
@@ -118,4 +87,5 @@ const onShowTermsModal = () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-}</style>
+}
+</style>
