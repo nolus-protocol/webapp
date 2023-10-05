@@ -66,8 +66,9 @@
               @click="pushTo(RouteNames.LEASE)"
             />
           </div>
-          <div class="block nls-nav-link icon hidden">
+          <div class="block nls-nav-link icon">
             <SidebarElement
+              v-if="ApptUtils.isDev()"
               id="trade"
               href="#"
               :label="$t('message.swap')"
@@ -135,9 +136,7 @@
   </div>
 
   <div class="lg:col-span-3 absolute inset-x-0 bottom-0 mb-6 ml-8 hidden md:grid fixed">
-    <div
-      class="flex items-center"
-    >
+    <div class="flex items-center">
       <a
         target="_blank"
         href="https://hub.nolus.io"
@@ -283,7 +282,8 @@ function openExternal(url: string, target: string) {
 </script>
 
 <style lang="scss" scoped>
-#governance:after, #hub::after {
+#governance:after,
+#hub::after {
   content: "\e801";
   font-family: "nolus";
   margin-left: 7px;
