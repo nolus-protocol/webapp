@@ -2,7 +2,6 @@ import type { NetworkAddress } from "@/types";
 import nlsIcon from "@/assets/icons/coins/nls.svg";
 import { Dec } from "@keplr-wallet/unit";
 export const DEFAULT_PRIMARY_NETWORK = "mainnet";
-// import('../locales/en.json?url').then((d) => console.log(d))
 
 export const NETWORKS: { [key: string]: NetworkAddress } = {
   localnet: {
