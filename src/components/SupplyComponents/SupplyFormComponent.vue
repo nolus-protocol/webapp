@@ -24,15 +24,15 @@
         />
       </div>
     </div>
-
+    {{ props.modelValue.supply }}
     <!-- Actions -->
     <div class="modal-send-receive-actions">
       <button
         class="btn btn-primary btn-large-primary text-center min-h-[44px]"
-        :class="{ 'js-loading': loading }"
-        :disabled="!supply"
+        :class="{ 'js-loading': props.modelValue.loading }"
+        :disabled="!props.modelValue.supply"
       >
-        {{ loading ? '' : supply ? $t("message.supply") : $t("message.supply-limit-reached") }}
+        {{ props.modelValue.loading ? '' : props.modelValue.supply ? $t("message.supply") : $t("message.supply-limit-reached") }}
       </button>
     </div>
   </form>
@@ -40,16 +40,13 @@
 
 <script lang="ts" setup>
 import type { SupplyFormComponentProps } from "@/types/component/SupplyFormComponentProps";
-import { onMounted, ref, type PropType } from "vue";
+import { type PropType } from "vue";
 import type { AssetBalance } from "@/stores/wallet/state";
 
 import CurrencyField from "@/components/CurrencyField.vue";
-import { CurrencyUtils, NolusClient } from "@nolus/nolusjs";
+import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore } from "@/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
-import { Lpp } from "@nolus/nolusjs/build/contracts";
-import { EnvNetworkUtils } from "@/utils";
-import { CONTRACTS } from "@/config/contracts";
 
 const props = defineProps({
   modelValue: {
@@ -59,30 +56,11 @@ const props = defineProps({
 });
 
 const wallet = useWalletStore();
-const supply = ref(true);
-const loading = ref(true);
-
-onMounted(() => {
-  Promise.all([checkSupply()]).catch((e) => console.error(e));
-});
 
 const submit = () => {
-  if (supply.value) {
+  if (props.modelValue.supply) {
     props.modelValue.onNextClick();
   }
-}
-
-const checkSupply = async () => {
-  const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-  const lpp = new Lpp(
-    cosmWasmClient,
-    CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance
-  );
-  const data = await lpp.getDepositCapacity();
-  if (Number(data?.amount) == 0) {
-    supply.value = false;
-  }
-  loading.value = false;
 }
 
 const handleAmountChange = (value: string) => {

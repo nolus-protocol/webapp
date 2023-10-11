@@ -1,30 +1,26 @@
 <template>
-  <ConfirmComponent
-    v-if="showConfirmScreen"
-    :selectedCurrency="state.selectedCurrency"
-    :receiverAddress="state.receiverAddress"
-    :password="state.password"
-    :amount="state.amount"
-    :txType="$t(`message.${TxType.SUPPLY}`)+':'"
-    :txHash="state.txHash"
-    :step="step"
-    :fee="state.fee"
-    :onSendClick="onSupplyClick"
-    :onBackClick="onConfirmBackClick"
-    :onOkClick="onClickOkBtn"
-    @passwordUpdate="(value) => (state.password = value)"
-  />
-  <SupplyFormComponent v-else v-model="state" class="overflow-auto custom-scroll" />
-  <Modal
-    v-if="errorDialog.showDialog"
-    @close-modal="errorDialog.showDialog = false"
-    route="alert"
-  >
-    <ErrorDialog
-      title="Error connecting"
-      :message="errorDialog.errorMessage"
-      :try-button="closeModal"
-    />
+  <ConfirmComponent v-if="showConfirmScreen"
+                    :selectedCurrency="state.selectedCurrency"
+                    :receiverAddress="state.receiverAddress"
+                    :password="state.password"
+                    :amount="state.amount"
+                    :txType="$t(`message.${TxType.SUPPLY}`) + ':'"
+                    :txHash="state.txHash"
+                    :step="step"
+                    :fee="state.fee"
+                    :onSendClick="onSupplyClick"
+                    :onBackClick="onConfirmBackClick"
+                    :onOkClick="onClickOkBtn"
+                    @passwordUpdate="(value) => (state.password = value)" />
+  <SupplyFormComponent v-else
+                       v-model="state"
+                       class="overflow-auto custom-scroll" />
+  <Modal v-if="errorDialog.showDialog"
+         @close-modal="errorDialog.showDialog = false"
+         route="alert">
+    <ErrorDialog title="Error connecting"
+                 :message="errorDialog.errorMessage"
+                 :try-button="closeModal" />
   </Modal>
 </template>
 
@@ -38,12 +34,12 @@ import Modal from "@/components/modals/templates/Modal.vue";
 
 import { CONFIRM_STEP } from "@/types/ConfirmStep";
 import { TxType } from "@/types/TxType";
-import { NolusClient, NolusWallet } from "@nolus/nolusjs";
+import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { CONTRACTS } from "@/config/contracts";
 import { EnvNetworkUtils } from "@/utils/EnvNetworkUtils";
 import { useWalletStore } from "@/stores/wallet";
-import { computed, inject, onUnmounted, ref, watch } from "vue";
+import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { coin } from "@cosmjs/amino";
 
@@ -58,9 +54,10 @@ import {
   NATIVE_ASSET,
   GAS_FEES,
   SNACKBAR,
-ErrorCodes,
+  ErrorCodes,
 } from "@/config/env";
 import { useApplicationStore } from "@/stores/application";
+import { Int } from "@keplr-wallet/unit";
 
 const props = defineProps({
   selectedAsset: {
@@ -76,6 +73,25 @@ const app = useApplicationStore();
 const snackbarVisible = inject("snackbarVisible", () => false);
 const loadLPNCurrency = inject("loadLPNCurrency", () => false);
 
+onMounted(() => {
+  Promise.all([checkSupply()]).catch((e) => console.error(e));
+});
+
+const checkSupply = async () => {
+  const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+  const lpp = new Lpp(
+    cosmWasmClient,
+    CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance
+  );
+  const data = await lpp.getDepositCapacity();
+  if (Number(data?.amount) == 0) {
+    state.value.supply = false;
+  } else {
+    state.value.maxSupply = new Int(data?.amount ?? 0);
+  }
+  state.value.loading = false;
+}
+
 const balances = computed(() => {
   const b = walletStore.balances;
   return b.filter((item) => {
@@ -86,12 +102,12 @@ const balances = computed(() => {
 
 const selectedCurrency = computed(
   () => {
-    const b =  balances.value.find(
+    const b = balances.value.find(
       (asset) => asset.balance.denom === props.selectedAsset
     );
     return b;
   }
-   
+
 );
 const showConfirmScreen = ref(false);
 const state = ref({
@@ -101,10 +117,12 @@ const state = ref({
   password: "",
   amountErrorMsg: "",
   currentAPR: `${DEFAULT_APR}%`,
-  receiverAddress:
-    CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance,
+  receiverAddress: CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance,
   txHash: "",
   fee: coin(GAS_FEES.lender_deposit, NATIVE_ASSET.denom),
+  supply: true,
+  loading: true,
+  maxSupply: new Int(0),
   onNextClick: () => onNextClick(),
 } as SupplyFormComponentProps);
 
@@ -114,19 +132,35 @@ const errorDialog = ref({
   errorMessage: "",
 });
 
-const closeModal = inject("onModalClose", () => () => {});
+const closeModal = inject("onModalClose", () => () => { });
 const showSnackbar = inject(
   "showSnackbar",
-  (type: string, transaction: string) => {}
+  (type: string, transaction: string) => { }
 );
 
-watch(() => [state.value.selectedCurrency, state.value.amount], () => {
-  state.value.amountErrorMsg = validateAmount(
+const validateSupply = () => {
+  const { coinMinimalDenom, coinDecimals, ticker } = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom);
+
+  const amount = CurrencyUtils.convertDenomToMinimalDenom(
     state.value.amount,
-    state.value.selectedCurrency.balance.denom,
-    Number(state.value.selectedCurrency.balance.amount)
+    coinMinimalDenom,
+    coinDecimals
   );
-})
+
+  if (amount.amount.gt(state.value.maxSupply)) {
+    const max = CurrencyUtils.convertMinimalDenomToDenom(
+      state.value.maxSupply,
+      coinMinimalDenom,
+      ticker,
+      coinDecimals
+    );
+    //supply-limit-error
+    return i18n.t('message.supply-limit-error', { amount: max })
+  }
+
+  return "";
+}
+
 
 function onNextClick() {
   if (!state.value.receiverAddress) {
@@ -151,11 +185,22 @@ function onClickOkBtn() {
 }
 
 function validateInputs() {
-  state.value.amountErrorMsg = validateAmount(
+  state.value.amountErrorMsg = "";
+
+  const err = validateAmount(
     state.value.amount,
     state.value.selectedCurrency.balance.denom,
     Number(state.value.selectedCurrency.balance.amount)
   );
+  if (err.length > 0) {
+    state.value.amountErrorMsg = err;
+  }
+
+  const verr = validateSupply();
+
+  if (verr.length > 0) {
+    state.value.amountErrorMsg = verr;
+  }
 }
 
 async function onSupplyClick() {
@@ -206,8 +251,8 @@ async function transferAmount() {
         showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
       }
     } catch (error: Error | any) {
-      switch(error.code){
-        case(ErrorCodes.GasError): {
+      switch (error.code) {
+        case (ErrorCodes.GasError): {
           step.value = CONFIRM_STEP.GasError;
           break;
         }
