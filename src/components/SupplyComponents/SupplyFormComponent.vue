@@ -24,7 +24,6 @@
         />
       </div>
     </div>
-    {{ props.modelValue.supply }}
     <!-- Actions -->
     <div class="modal-send-receive-actions">
       <button
