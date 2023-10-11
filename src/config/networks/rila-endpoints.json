@@ -14,13 +14,13 @@
     },
     "OSMOSIS": {
         "primary": {
-            "rpc": "https://osmo-test-cl.nolus.network:26657",
-            "api": "https://osmo-test-cl.nolus.network:1317"
+            "rpc": "https://rpc.osmotest5.osmosis.zone",
+            "api": "https://lcd.osmotest5.osmosis.zone"
         },
         "fallback": [
             {
-                "rpc": "https://rpc.osmotest5.osmosis.zone",
-                "api": "https://lcd.osmotest5.osmosis.zone"
+                "rpc": "https://r-osmosis-testnet--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com/",
+                "api": "https://a-osmosis-testnet--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com/"
             }
         ]
     },
