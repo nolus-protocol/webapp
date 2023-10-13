@@ -84,12 +84,19 @@ const checkSupply = async () => {
     CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance
   );
   const data = await lpp.getDepositCapacity();
+  state.value.loading = false;
+
+  if(data == null){
+    state.value.supply = true;
+    state.value.maxSupply = new Int(-1);
+    return false;
+  }
+
   if (Number(data?.amount) == 0) {
     state.value.supply = false;
   } else {
     state.value.maxSupply = new Int(data?.amount ?? 0);
   }
-  state.value.loading = false;
 }
 
 const balances = computed(() => {
@@ -139,6 +146,11 @@ const showSnackbar = inject(
 );
 
 const validateSupply = () => {
+
+  if(state.value.maxSupply.isNegative()){
+    return "";
+  }
+
   const { coinMinimalDenom, coinDecimals, ticker } = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom);
 
   const amount = CurrencyUtils.convertDenomToMinimalDenom(
@@ -154,7 +166,6 @@ const validateSupply = () => {
       ticker,
       coinDecimals
     );
-    //supply-limit-error
     return i18n.t('message.supply-limit-error', { amount: max })
   }
 
