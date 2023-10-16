@@ -58,7 +58,7 @@
 </template>
 
 <script lang="ts" setup>
-import { parseCoins, type Coin } from "@cosmjs/proto-signing";
+import { parseCoins, type Coin, coin } from "@cosmjs/proto-signing";
 import type { ITransaction } from "@/views/HistoryView.vue";
 
 import { useApplicationStore } from "@/stores/application";
@@ -68,7 +68,7 @@ import { StringUtils } from "@/utils/StringUtils";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/wallet";
 import { Buffer } from "buffer";
-import { WalletManager } from "@/utils";
+import { AssetUtils, WalletManager } from "@/utils";
 
 enum Messages {
   "/cosmos.bank.v1beta1.MsgSend" = "/cosmos.bank.v1beta1.MsgSend",
@@ -270,7 +270,7 @@ const message = (msg: Object | any) => {
           const token = getCurrency(coin);
           return i18n.t('message.claim-position-action', {
             amount: token.toString(),
-            address:truncateString(msg.data.contract),
+            address: truncateString(msg.data.contract),
           });
         }
 
@@ -290,6 +290,25 @@ const message = (msg: Object | any) => {
             amount: token.toString(),
           });
         }
+
+        if (data.close_position?.full_close) {
+          return i18n.t('message.partial-close-action', {
+            contract: truncateString(msg.data.contract),
+          });
+        }
+
+        if (data.close_position?.partial_close) {
+          const currency = wallet.getCurrencyByTicker(data.close_position?.partial_close.amount.ticker);
+          const denom = AssetUtils.makeIBCMinimalDenom(currency.ibc_route, currency.symbol);
+          const c = coin(data.close_position?.partial_close.amount.amount, denom);
+          const token = getCurrency(c);
+          return i18n.t('message.partial-close-action', {
+            ticker: data.close_position.currency,
+            amount: token.toString(),
+            contract: truncateString(msg.data.contract),
+          });
+        }
+
 
       } catch (error) {
         return msg.typeUrl
@@ -342,9 +361,9 @@ const message = (msg: Object | any) => {
 };
 
 const getAmount = (log: any) => {
-  for(const l of log[0].events){
-    for(const v of l.attributes){
-      if(v.key == 'amount'){
+  for (const l of log[0].events) {
+    for (const v of l.attributes) {
+      if (v.key == 'amount') {
         return v
       }
     }

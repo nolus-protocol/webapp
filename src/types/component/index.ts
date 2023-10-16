@@ -7,3 +7,4 @@ export type { WithdrawFormComponentProps } from "@/types/component/WithdrawFormC
 export type { DelegateFormComponentProps } from "@/types/component/DelegateFormComponentProps";
 export type { WithdrawRewardsComponentProps } from "@/types/component/WithdrawRewardsComponentProps";
 export type { UndelegateFormComponentProps } from "@/types/component/UndelegateFormComponentProps";
+export type { MarketCloseComponentProps } from "@/types/component/MarketCloseComponentProps";

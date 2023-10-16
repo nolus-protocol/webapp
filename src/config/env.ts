@@ -104,6 +104,7 @@ export const NATIVE_NETWORK = {
   estimation: 6,
   longOperationsEstimation: 20,
   leaseOpenEstimation: 2,
+  leaseRepayEstimation: 1,
   key: "NOLUS",
   symbol: "NLS"
 };
@@ -135,6 +136,7 @@ export const GAS_FEES = {
   open_lease: 5000,
   close_lease: 5000,
   repay_lease: 5000,
+  market_close_lease: 5000,
   swap_amount: 5000,
 };
 

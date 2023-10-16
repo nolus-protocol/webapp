@@ -3,6 +3,7 @@ export enum TxType {
   SWAP = "swap",
   LEASE = "lease-from",
   REPAY = "repay-to",
+  MARKET_CLOSE = "market-close-to",
   SUPPLY = "supply-to",
   WITHDRAW = "withdraw-from",
   IBC_TRANSFER = "ibc-transfer-to",

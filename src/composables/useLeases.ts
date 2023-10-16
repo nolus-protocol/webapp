@@ -2,7 +2,7 @@ import type { LeaseData } from "@/types/LeaseData";
 import { ref, onMounted } from "vue";
 
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
-import { Lease, Leaser, type LeaseStatus } from "@nolus/nolusjs/build/contracts";
+import { Lease, Leaser, type LeaserConfig, type LeaseStatus } from "@nolus/nolusjs/build/contracts";
 
 import { CONTRACTS } from "@/config/contracts";
 import { WalletManager, EnvNetworkUtils } from "@/utils";
@@ -56,7 +56,7 @@ export function useLeases(
       }
 
       const items = (await Promise.all(promises)).filter((item) => {
-        if(!item){
+        if (!item) {
           return false;
         }
         return true;
@@ -111,4 +111,31 @@ export function useLease(
   });
 
   return { getLease };
+}
+
+export function useLeaseConfig(
+  onError: (error: unknown) => void
+) {
+  const config = ref<LeaserConfig>();
+
+  const getLeaseConfig = async () => {
+    try {
+
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+      const leaserClient = new Leaser(
+        cosmWasmClient,
+        CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance
+      );
+      config.value = await leaserClient.getLeaserConfig();
+
+    } catch (e) {
+      onError(e);
+    }
+  };
+
+  onMounted(async () => {
+    await getLeaseConfig();
+  });
+
+  return { getLeaseConfig, config };
 }
