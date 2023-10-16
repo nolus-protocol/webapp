@@ -27,7 +27,7 @@ export function useLeases(
       const openedLeases: string[] = (await leaserClient.getCurrentOpenLeasesByOwner(
         WalletManager.getWalletAddress()
       )).filter((item) => {
-        return IGNORE_LEASES.includes(item);
+        return !IGNORE_LEASES.includes(item);
       });
 
       const promises: Promise<{
