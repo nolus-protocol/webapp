@@ -322,6 +322,8 @@ export const MAX_DECIMALS = 8;
 export const LedgerName = "Ledger";
 export const IGNORE_LEASE_ASSETS: string[] = [];
 export const IGNORE_TRANSFER_ASSETS: string[] = [];
+export const IGNORE_LEASES: string[] = ["nolus1suz0vsqe8c8anckaer98awhqs8r4hu7wsm8a49acdl39x6ylfypsqywxwh"];
+
 export const SUPPORT_URL = 'https://hub.nolus.io';
 export const ETL_API = "https://etl-cl.nolus.network:8080/api"
 export const DOWNPAYMENT_RANGE_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/downpayment-range.json';

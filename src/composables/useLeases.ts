@@ -7,6 +7,7 @@ import { Lease, Leaser, type LeaserConfig, type LeaseStatus } from "@nolus/nolus
 import { CONTRACTS } from "@/config/contracts";
 import { WalletManager, EnvNetworkUtils } from "@/utils";
 import { ApptUtils } from "@/utils/AppUtils";
+import { IGNORE_LEASES } from "@/config/env";
 
 export function useLeases(
   onError: (error: unknown) => void
@@ -23,9 +24,11 @@ export function useLeases(
         CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance
       );
 
-      const openedLeases: string[] = await leaserClient.getCurrentOpenLeasesByOwner(
+      const openedLeases: string[] = (await leaserClient.getCurrentOpenLeasesByOwner(
         WalletManager.getWalletAddress()
-      );
+      )).filter((item) => {
+        return !IGNORE_LEASES.includes(item);
+      });
 
       const promises: Promise<{
         leaseAddress: string,
