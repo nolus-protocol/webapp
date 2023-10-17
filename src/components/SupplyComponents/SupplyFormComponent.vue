@@ -1,8 +1,7 @@
 <template>
-  <form
-    class="modal-form"
-    @submit.prevent="submit"
-  >
+  <!-- @submit.prevent="submit" -->
+
+  <form class="modal-form">
 
     <!-- Input Area -->
     <div class="modal-send-receive-input-area">
@@ -28,10 +27,12 @@
     <div class="modal-send-receive-actions">
       <button
         class="btn btn-primary btn-large-primary text-center min-h-[44px]"
-        :class="{ 'js-loading': props.modelValue.loading }"
-        :disabled="!props.modelValue.supply"
-      >
-        {{ props.modelValue.loading ? '' : props.modelValue.supply ? $t("message.supply") : $t("message.supply-limit-reached") }}
+        disabled
+        >
+        <!-- :class="{ 'js-loading': props.modelValue.loading }" -->
+        <!-- :disabled="!props.modelValue.supply" -->
+        {{ $t("message.supply-limit-reached") }}
+        <!-- {{ props.modelValue.loading ? '' : props.modelValue.supply ? $t("message.supply") : $t("message.supply-limit-reached") }} -->
       </button>
     </div>
   </form>

@@ -74,7 +74,7 @@ const snackbarVisible = inject("snackbarVisible", () => false);
 const loadLPNCurrency = inject("loadLPNCurrency", () => false);
 
 onMounted(() => {
-  Promise.all([checkSupply()]).catch((e) => console.error(e));
+  // Promise.all([checkSupply()]).catch((e) => console.error(e));
 });
 
 const checkSupply = async () => {

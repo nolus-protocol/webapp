@@ -145,118 +145,119 @@ const onClickOkBtn = () => {
 };
 
 const isAmountValid = (): boolean => {
-  let isValid = true;
-  state.value.amountErrorMsg = "";
+  // let isValid = true;
+  // state.value.amountErrorMsg = "";
 
-  const amount = state.value.amount;
-  const currency = walletStore.getCurrencyByTicker(state.value.leaseInfo.amount.ticker);
-  const debt = new Dec(state.value.leaseInfo.amount.amount, Number(currency.decimal_digits));
-  const minAmountCurrency = walletStore.getCurrencyByTicker(config.value?.config.lease_position_spec.min_asset.ticker as string);
-  const minAmont = new Dec(config.value?.config.lease_position_spec.min_asset.amount ?? 0, Number(minAmountCurrency.decimal_digits));
-  const price = new Dec(oracle.prices[currency.symbol].amount);
+  // const amount = state.value.amount;
+  // const currency = walletStore.getCurrencyByTicker(state.value.leaseInfo.amount.ticker);
+  // const debt = new Dec(state.value.leaseInfo.amount.amount, Number(currency.decimal_digits));
+  // const minAmountCurrency = walletStore.getCurrencyByTicker(config.value?.config.lease_position_spec.min_asset.ticker as string);
+  // const minAmont = new Dec(config.value?.config.lease_position_spec.min_asset.amount ?? 0, Number(minAmountCurrency.decimal_digits));
+  // const price = new Dec(oracle.prices[currency.symbol].amount);
 
-  if (amount || amount !== "") {
+  // if (amount || amount !== "") {
 
-    const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, "", Number(currency.decimal_digits));
-    const value = new Dec(amountInMinimalDenom.amount, Number(currency.decimal_digits));
+  //   const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, "", Number(currency.decimal_digits));
+  //   const value = new Dec(amountInMinimalDenom.amount, Number(currency.decimal_digits));
 
-    const isLowerThanOrEqualsToZero = new Dec(
-      amountInMinimalDenom.amount || "0"
-    ).lte(new Dec(0));
+  //   const isLowerThanOrEqualsToZero = new Dec(
+  //     amountInMinimalDenom.amount || "0"
+  //   ).lte(new Dec(0));
 
 
-    if (isLowerThanOrEqualsToZero) {
-      state.value.amountErrorMsg = i18n.t("message.invalid-balance-low");
-      isValid = false;
-    }
+  //   if (isLowerThanOrEqualsToZero) {
+  //     state.value.amountErrorMsg = i18n.t("message.invalid-balance-low");
+  //     isValid = false;
+  //   }
 
-    if (value.gt(debt)) {
-      state.value.amountErrorMsg = i18n.t("message.lease-only-max-error", {
-        maxAmount: Number(debt.toString(Number(currency.decimal_digits))),
-        symbol: currency.shortName
-      });
-      isValid = false;
-    }else if (!value.equals(debt) && debt.sub(value).mul(price).lte(minAmont)) {
-      state.value.amountErrorMsg = i18n.t("message.lease-min-amount", {
-        amount: Number(minAmont.quo(price).toString(Number(currency.decimal_digits))),
-        symbol: currency.shortName
-      });
-      isValid = false;
-    }
+  //   if (value.gt(debt)) {
+  //     state.value.amountErrorMsg = i18n.t("message.lease-only-max-error", {
+  //       maxAmount: Number(debt.toString(Number(currency.decimal_digits))),
+  //       symbol: currency.shortName
+  //     });
+  //     isValid = false;
+  //   }else if (!value.equals(debt) && debt.sub(value).mul(price).lte(minAmont)) {
+  //     state.value.amountErrorMsg = i18n.t("message.lease-min-amount", {
+  //       amount: Number(minAmont.quo(price).toString(Number(currency.decimal_digits))),
+  //       symbol: currency.shortName
+  //     });
+  //     isValid = false;
+  //   }
 
-  } else {
-    state.value.amountErrorMsg = i18n.t("message.missing-amount");
-    isValid = false;
-  }
+  // } else {
+  //   state.value.amountErrorMsg = i18n.t("message.missing-amount");
+  //   isValid = false;
+  // }
 
-  return isValid;
+  // return isValid;
+  return true;
 };
 
 const marketCloseLease = async () => {
-  const wallet = walletStore.wallet as NolusWallet;
-  if (wallet && isAmountValid()) {
-    step.value = CONFIRM_STEP.PENDING;
-    try {
+  // const wallet = walletStore.wallet as NolusWallet;
+  // if (wallet && isAmountValid()) {
+  //   step.value = CONFIRM_STEP.PENDING;
+  //   try {
 
-      const microAmount = getMicroAmount(
-        state.value.selectedCurrency.balance.denom,
-        state.value.amount
-      );
+  //     const microAmount = getMicroAmount(
+  //       state.value.selectedCurrency.balance.denom,
+  //       state.value.amount
+  //     );
 
-      const currency = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom);
-      const amount = new Int(state.value.leaseInfo.amount.amount);
+  //     const currency = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom);
+  //     const amount = new Int(state.value.leaseInfo.amount.amount);
 
-      const funds: Coin[] = [
-        {
-          denom: TIP.denom,
-          amount: TIP.amount.toString()
-        }
-      ];
+  //     const funds: Coin[] = [
+  //       {
+  //         denom: TIP.denom,
+  //         amount: TIP.amount.toString()
+  //       }
+  //     ];
 
-      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const leaseClient = new Lease(
-        cosmWasmClient,
-        state.value.receiverAddress
-      );
+  //     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+  //     const leaseClient = new Lease(
+  //       cosmWasmClient,
+  //       state.value.receiverAddress
+  //     );
 
-      const { txHash, txBytes, usedFee } = await leaseClient.simulateClosePositionLeaseTx(
-        wallet,
-        amount.equals(microAmount.mAmount.amount) ? undefined : {
-          ticker: currency.ticker,
-          amount: microAmount.mAmount.amount.toString(),
-        },
-        funds
-      );
+  //     const { txHash, txBytes, usedFee } = await leaseClient.simulateClosePositionLeaseTx(
+  //       wallet,
+  //       amount.equals(microAmount.mAmount.amount) ? undefined : {
+  //         ticker: currency.ticker,
+  //         amount: microAmount.mAmount.amount.toString(),
+  //       },
+  //       funds
+  //     );
 
-      state.value.txHash = txHash;
+  //     state.value.txHash = txHash;
 
-      if (usedFee?.amount?.[0]) {
-        state.value.fee = usedFee.amount[0];
-      }
+  //     if (usedFee?.amount?.[0]) {
+  //       state.value.fee = usedFee.amount[0];
+  //     }
 
-      const tx = await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
-      const isSuccessful = tx?.code === 0;
-      step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
+  //     const tx = await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
+  //     const isSuccessful = tx?.code === 0;
+  //     step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
 
-      if (snackbarVisible()) {
-        showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
-      }
+  //     if (snackbarVisible()) {
+  //       showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
+  //     }
 
-      getLeases();
-    } catch (error: Error | any) {
-      console.log(error.message);
-      switch (error.code) {
-        case (ErrorCodes.GasError): {
-          step.value = CONFIRM_STEP.GasError;
-          break;
-        }
-        default: {
-          step.value = CONFIRM_STEP.ERROR;
-          break;
-        }
-      }
-    }
-  }
+  //     getLeases();
+  //   } catch (error: Error | any) {
+  //     console.log(error.message);
+  //     switch (error.code) {
+  //       case (ErrorCodes.GasError): {
+  //         step.value = CONFIRM_STEP.GasError;
+  //         break;
+  //       }
+  //       default: {
+  //         step.value = CONFIRM_STEP.ERROR;
+  //         break;
+  //       }
+  //     }
+  //   }
+  // }
 };
 
 watch(walletRef.balances, (b: AssetBalance[]) => {
