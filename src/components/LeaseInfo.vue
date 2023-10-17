@@ -642,7 +642,7 @@ const state = ref({
   txHash: "",
   fee: coin(GAS_FEES.close_lease + TIP.amount, NATIVE_ASSET.denom),
 });
-console.log(props)
+
 onBeforeMount(() => {
   try {
     const data = localStorage.getItem(props.leaseInfo.leaseAddress);
@@ -724,7 +724,7 @@ const asset = computed(() => {
 
   if (props.leaseInfo.leaseStatus?.opening && leaseData) {
     const item = walletStore.getCurrencyByTicker(leaseData.value?.leasePositionTicker as string);
-    const ibcDenom = walletStore.getIbcDenomBySymbol(item.symbol);
+    const ibcDenom = walletStore.getIbcDenomBySymbol(item?.symbol);
     const asset = walletStore.getCurrencyInfo(ibcDenom as string);
     return asset;
   }
@@ -1110,8 +1110,8 @@ const openedSubState = computed(() => {
 
 const loadingRepay = computed(() => {
   const data = props.leaseInfo.leaseStatus.opened;
-
-  if (data?.in_progress?.hasOwnProperty('repayment')) {
+  
+  if (Object.prototype.hasOwnProperty.call(data?.in_progress ?? {}, 'repayment')) {
     return true
   }
 
@@ -1121,7 +1121,7 @@ const loadingRepay = computed(() => {
 const loadingClose = computed(() => {
   const data = props.leaseInfo.leaseStatus.opened;
 
-  if (data?.in_progress?.hasOwnProperty('close')) {
+  if (Object.prototype.hasOwnProperty.call(data?.in_progress ?? {}, 'close')) {
     return true
   }
 

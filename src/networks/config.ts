@@ -22,6 +22,9 @@ import { embedChainInfo as evmosChainInfo } from './evmos/contants';
 import { NETWORK as PERSISTENCE_NETWORK } from './persistence/network';
 import { embedChainInfo as persistenceChainInfo } from './persistence/contants';
 
+import { NETWORK as SECRET_NETWORK } from './secret/network';
+import { embedChainInfo as secretChainInfo } from './secret/contants';
+
 import { useApplicationStore } from "@/stores/application";
 import type { ExternalCurrenciesType } from "@/types/CurreciesType";
 
@@ -105,6 +108,16 @@ export const SUPPORTED_NETWORKS_DATA: {
         estimation: 20,
         key: "PERSISTENCE",
         symbol: "XPRT",
+        forward: true
+    },
+    SECRET: {
+        prefix: "secret",
+        value: "secret",
+        label: "Secret",
+        native: false,
+        estimation: 20,
+        key: "SECRET",
+        symbol: "SCRT",
         forward: true
     },
 }
@@ -255,6 +268,7 @@ export const NETWORKS_DATA: {
             SUPPORTED_NETWORKS_DATA.STRIDE,
             SUPPORTED_NETWORKS_DATA.JUNO,
             SUPPORTED_NETWORKS_DATA.PERSISTENCE,
+            SUPPORTED_NETWORKS_DATA.SECRET,
             // SUPPORTED_NETWORKS_DATA.EVMOS
         ],
         supportedNetworks: {
@@ -320,6 +334,15 @@ export const NETWORKS_DATA: {
                     return app?.networks?.[PERSISTENCE_NETWORK.key] as ExternalCurrenciesType;
                 },
                 embedChainInfo: persistenceChainInfo,
+            },
+            SECRET: {
+                ...SECRET_NETWORK,
+                explorer: 'https://mintscan.io/secret/transactions',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[SECRET_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: secretChainInfo,
             }
         }
     },

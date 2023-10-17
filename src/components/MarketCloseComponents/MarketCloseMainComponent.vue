@@ -176,9 +176,7 @@ const isAmountValid = (): boolean => {
         symbol: currency.shortName
       });
       isValid = false;
-    }
-
-    if (!value.equals(debt) && debt.sub(value).mul(price).lte(minAmont)) {
+    }else if (!value.equals(debt) && debt.sub(value).mul(price).lte(minAmont)) {
       state.value.amountErrorMsg = i18n.t("message.lease-min-amount", {
         amount: Number(minAmont.quo(price).toString(Number(currency.decimal_digits))),
         symbol: currency.shortName

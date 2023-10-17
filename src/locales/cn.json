@@ -334,6 +334,10 @@
     "market-close": "Market Close",
     "market-close-to": "Market close to",
     "lease-min-amount": "The position past this close should worth at least {amount} {symbol}",
-    "partial_close-action": "Close {amount} {ticker} from lease position {contract}"
+    "partial-close-action": "Close {amount} {ticker} from lease position {contract}",
+    "close-lease-position-action": "Close lease position {contract}",
+    "position-left": "Remaining",
+    "usdc-payout": "USDC Payout",
+    "usdc-payout-tooltip": "Estimated USDC amount to be received after deducting Outstanding Debt"
   }
 }

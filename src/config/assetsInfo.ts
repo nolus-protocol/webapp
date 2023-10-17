@@ -39,5 +39,8 @@ export const ASSETS = {
   },
   STK_ATOM: {
     coinGeckoId: "stkatom",
+  },
+  SCRT: {
+    coinGeckoId: "secret",
   }
 };

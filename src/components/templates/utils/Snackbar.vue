@@ -14,11 +14,11 @@
         <span class="text text-16 nls-font-500 mr-1">
           {{ title }}
         </span>
-        <!-- <a v-if="type == SNACKBAR.Queued"
+        <a v-if="type == SNACKBAR.Queued"
           class="url text text-12 nls-font-300">
           {{ $t('message.loading') }}
-        </a> -->
-        <a
+        </a>
+        <a v-else
           class="url text text-14 nls-font-400"
           :href="
             applicaton.network.networkAddresses?.explorer +
