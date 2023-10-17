@@ -107,5 +107,17 @@
                 "api": "https://api-persistent-ia.cosmosia.notional.ventures/"
             }
         ]
+    },
+    "SECRET": {
+        "primary": {
+            "rpc": "https://rpc.secret.express",
+            "api": "https://lcd.secret.express"
+        },
+        "fallback": [
+            {
+                "rpc": "https://secret-rpc.bharvest.io",
+                "api": "https://secret-api.bharvest.io"
+            }
+        ]
     }
 }
