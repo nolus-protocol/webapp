@@ -41,7 +41,7 @@ const useOracleStore = defineStore("oracle", {
               ticker: string
             }
           }[]
-        } = await oracleContract.getPricesFor([]) as any; // oracleContract.getPrices() as any;
+        } = await oracleContract.getPrices() as any;
         for (const price of data.prices) {
           const key = price.amount.ticker;
           const currency = app.currenciesData![key];
