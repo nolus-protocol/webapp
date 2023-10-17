@@ -71,5 +71,18 @@
                 "api": "https://persistence-testnet-api.polkachu.com/"
             }
         ]
-    }
+    },
+"SECRET": {
+    "primary": {
+        "rpc": "https://rpc.testnet.secretsaturn.net",
+        "api": "https://lcd.testnet.secretsaturn.net"
+    },
+    "fallback": [
+        {
+            "rpc": "https://rpc.pulsar.scrttestnet.com",
+            "api": "https://api.pulsar.scrttestnet.com"
+        }
+    ]
+}
+
 }
