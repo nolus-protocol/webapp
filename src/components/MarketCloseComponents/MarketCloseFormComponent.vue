@@ -167,7 +167,7 @@ const hasSwapFee = computed(() => {
 const payout = computed(() => {
   const currency = wallet.getCurrencyByTicker(props.modelValue.leaseInfo.amount.ticker);
   const price = new Dec(oracle.prices[currency.symbol]?.amount ?? 0);
-  const value = new Dec(props.modelValue.amount.length == 0 ? 0 : props.modelValue.amount, Number(currency.decimal_digits)).mul(price);;
+  const value = new Dec(props.modelValue.amount.length == 0 ? 0 : props.modelValue.amount).mul(price);;
 
   const outStanding = amount.value.amountInStable.toDec();
   const payOutValue = value.sub(outStanding);
@@ -183,7 +183,7 @@ const payout = computed(() => {
 const positionLeft = computed(() => {
   const currency = wallet.getCurrencyByTicker(props.modelValue.leaseInfo.amount.ticker);
   const amount = new Dec(props.modelValue.leaseInfo.amount.amount, Number(currency.decimal_digits));
-  const value = new Dec(props.modelValue.amount.length == 0 ? 0 : props.modelValue.amount, Number(currency.decimal_digits));
+  const value = new Dec(props.modelValue.amount.length == 0 ? 0 : props.modelValue.amount);
   const left = amount.sub(value);
 
   if(left.isNegative()){
