@@ -326,7 +326,7 @@
     "timestamp": "TIMESTAMP",
     "price-per-symbol": "Price per {symbol}",
     "free-interest": "0% Interest",
-    "free-interest-tooltip": "Nolus offsets your interest every half hour! Offer lasts until November 30, 2023",
+    "free-interest-tooltip": "Nolus offsets the interest every three hours. Offer lasts until November 30, 2023",
     "outstanding-debt-tooltip": "This amount includes both the outstanding debt and a swap fee of {fee}%",
     "zero-banner-title": "Zero In With 0% Interest!",
     "zero-banner-description": "Open a DeFi Lease from Oct 2 to Nov 30 and enjoy up to 60 days without any interest. Make your move!",
