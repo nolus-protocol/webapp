@@ -207,7 +207,7 @@
     "delegate": "Delegate",
     "undelegate": "Withdraw",
     "available-balance": "Available balance",
-    "delegate-description": "You will delegate to validators beyond the top three in terms of voting power and impose a commission of 5% or lower. It will take 21 days to undelegate your assets",
+    "delegate-description": "You will delegate to validators beyond the top three in terms of voting power and impose a commission of 5% or lower. It will take 21 days to withdraw your assets",
     "manual-delegation": "Manually choose the validators to delegate with",
     "delegated": "Delegated",
     "undelegated": "Withdraw",
