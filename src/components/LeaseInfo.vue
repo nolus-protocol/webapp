@@ -434,6 +434,7 @@
           <div
             class="flex mt-[12px]"
             v-for="b of balances()"
+            :key="b.coinMinimalDenom"
           >
             <img
               :src="b.icon"
