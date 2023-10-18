@@ -39,19 +39,25 @@ export function useLeases(
         const fn = async () => {
           const leaseClient = new Lease(cosmWasmClient, leaseAddress);
           const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
+          const api = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
 
-          const [req, leaseInfo] = await Promise.all([
+          const [statusReq, leaseInfo, balancesReq] = await Promise.all([
             fetch(`${url}/tx_search?query="wasm.lease_address='${leaseAddress}'"&prove=true`),
-            leaseClient.getLeaseStatus()
+            leaseClient.getLeaseStatus(),
+            fetch(`${api}/cosmos/bank/v1beta1/balances/${leaseAddress}`),
+          ]);
+          const [data, balances] = await Promise.all([
+            statusReq.json(),
+            balancesReq.json()
           ]);
 
-          const data = await req.json();
           const item = data.result?.txs?.[0];
           if (leaseInfo && !leaseInfo.closed && !leaseInfo.liquidated) {
             return {
               leaseAddress: leaseAddress,
               leaseStatus: leaseInfo,
-              height: item.height
+              height: item.height,
+              balances: balances.balances
             }
           }
         }
@@ -65,10 +71,7 @@ export function useLeases(
         return true;
       })
 
-      leases.value = items as {
-        leaseAddress: string,
-        leaseStatus: LeaseStatus,
-      }[];
+      leases.value = items as LeaseData[];
 
     } catch (e) {
       onError(e);

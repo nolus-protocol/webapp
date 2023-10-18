@@ -224,16 +224,16 @@
           v-if="leaseInfo.leaseStatus.opened"
           @click="showRepayModal = true"
           :disabled="openedSubState"
-          :class="{'js-loading': loadingRepay }"
+          :class="{ 'js-loading': loadingRepay }"
         >
           {{ $t("message.repay") }}
         </button>
         <button
           class="btn btn-primary btn-large-primary md:w-auto w-full md:mt-0 mt-4 ml-[12px]"
-          v-if="leaseInfo.leaseStatus.opened && ApptUtils.isDev()"
+          v-if="leaseInfo.leaseStatus.opened"
           @click="showCloseModal = true"
           :disabled="openedSubState"
-          :class="{'js-loading': loadingClose }"
+          :class="{ 'js-loading': loadingClose }"
         >
           {{ $t("message.close") }}
         </button>
@@ -389,6 +389,11 @@
             &nbsp;{{ pnl.status ? '+' : '' }}<template v-if="!pnlType">{{ pnl.amount }}</template><template v-else>{{
               pnl.percent }}%</template>
           </div>
+          <button
+            class="btn btn-secondary btn-medium-secondary btn-icon flex icon-share text-primary share "
+            @click="onShare"
+          >
+          </button>
           <div
             v-if="isFreeInterest"
             class="interest-free text-12 nls-font-500 whitespace-pre	mr-2 flex items-center cursor-pointer"
@@ -402,36 +407,63 @@
             />
           </div>
         </div>
-        <div class="flex my-4">
-          <img
-            :src="getAssetIcon"
-            class="inline-block m-0 mr-3"
-            height="36"
-            width="36"
-            @dblclick="copy"
-          />
-          <h1 class="text-primary nls-font-700 text-28 md:text-28">
-            <CurrencyComponent
-              :type="CURRENCY_VIEW_TYPES.TOKEN"
-              :amount="amount"
-              :font-size="22"
-              :minimalDenom="asset.coinMinimalDenom"
-              :denom="asset.shortName"
-              :decimals="asset?.coinDecimals"
-              :maxDecimals="6"
+
+        <div class="flex my-4 flex-col">
+          <div class="flex">
+            <img
+              :src="getAssetIcon"
+              class="inline-block m-0 mr-3"
+              height="36"
+              width="36"
+              @dblclick="copy"
             />
-            <span class="inline-block ml-1 text-primary text-20 nls-font-400 uppercase">
-            </span>
-          </h1>
+            <h1 class="text-primary nls-font-700 text-28 md:text-28">
+              <CurrencyComponent
+                :type="CURRENCY_VIEW_TYPES.TOKEN"
+                :amount="amount"
+                :font-size="22"
+                :minimalDenom="asset.coinMinimalDenom"
+                :denom="asset.shortName"
+                :decimals="asset?.coinDecimals"
+                :maxDecimals="6"
+              />
+              <span class="inline-block ml-1 text-primary text-20 nls-font-400 uppercase">
+              </span>
+            </h1>
+          </div>
+          <div
+            class="flex mt-[12px]"
+            v-for="b of balances()"
+          >
+            <img
+              :src="b.icon"
+              class="inline-block m-0 mr-3"
+              height="36"
+              width="36"
+            />
+            <h1 class="text-primary nls-font-700 text-28 md:text-28">
+              <CurrencyComponent
+                :type="CURRENCY_VIEW_TYPES.TOKEN"
+                :amount="b.amount"
+                :font-size="22"
+                :minimalDenom="b.coinMinimalDenom"
+                :denom="b.shortName"
+                :decimals="b.decimals"
+                :maxDecimals="6"
+              />
+              <span class="inline-block ml-1 text-primary text-20 nls-font-400 uppercase">
+              </span>
+            </h1>
+          </div>
         </div>
-        <div
+        <!-- <div
           v-if="leaseData"
           class="flex flex-wrap text-10 uppercase whitespace-nowrap mt-4"
         >
           <span class="text-medium-blue data-label-info rounded p-1 ml-0 mb-0 m-1.5 garet-medium">
             {{ `price per ${asset.shortName}:` }} {{ price }}
           </span>
-        </div>
+        </div> -->
       </div>
       <div class="lg:col-span-5 md:px-6 px-2 pt-3 md:pt-5 pb-3 md:pb-0  relative hidden md:block">
         <!-- Graph -->
@@ -1109,7 +1141,7 @@ const openedSubState = computed(() => {
 
 const loadingRepay = computed(() => {
   const data = props.leaseInfo.leaseStatus.opened;
-  
+
   if (Object.prototype.hasOwnProperty.call(data?.in_progress ?? {}, 'repayment')) {
     return true
   }
@@ -1242,6 +1274,26 @@ const onShare = async () => {
   showShareDialog.value = true;
 }
 
+const balances = () => {
+  return props.leaseInfo.balances?.filter((item) => {
+    if (item.denom != NATIVE_ASSET.denom) {
+      return true;
+    }
+    return false;
+  }).map((item) => {
+    const currency = walletStore.getCurrencyInfo(item.denom);
+
+    return {
+      amount: item.amount,
+      icon: app.assetIcons?.[currency.ticker] as string,
+      decimals: currency.coinDecimals,
+      shortName: currency.shortName,
+      coinMinimalDenom: currency.coinMinimalDenom
+    }
+
+  })
+}
+
 </script>
 <style lang="scss">
 button.share {
@@ -1256,5 +1308,4 @@ div.interest-free {
   display: flex;
   padding: 6px;
   border-radius: 4px;
-}
-</style>
+}</style>

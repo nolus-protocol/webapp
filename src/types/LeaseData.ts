@@ -4,4 +4,8 @@ export interface LeaseData {
   leaseAddress: string;
   leaseStatus: LeaseStatus;
   height?: string;
+  balances?: {
+    amount: string,
+    denom: string
+  }[]
 }
