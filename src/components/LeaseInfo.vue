@@ -230,7 +230,7 @@
         </button>
         <button
           class="btn btn-primary btn-large-primary md:w-auto w-full md:mt-0 mt-4 ml-[12px]"
-          v-if="leaseInfo.leaseStatus.opened"
+          v-if="leaseInfo.leaseStatus.opened && ApptUtils.isDev()"
           @click="showCloseModal = true"
           :disabled="openedSubState"
           :class="{ 'js-loading': loadingClose }"
