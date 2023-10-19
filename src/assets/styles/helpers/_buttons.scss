@@ -139,9 +139,9 @@ button {
   }
 
   &:disabled {
-    color: $lightBlue;
-    background-color: $background-scale-darker;
-    cursor: default;
+    color: $lightBlue !important;
+    background-color: $background-scale-darker !important;
+    cursor: default !important;
   }
 
   &-large-box,
@@ -602,13 +602,13 @@ body.sync {
       color: $white;
     }
 
-    .btn-large-secondary:hover {
+    .btn-large-secondary:hover:not(:disabled) {
       background-color: $dark-background;
       border-color: $mediumBlue;
       color: $white;
     }
 
-    .btn-large-secondary:active {
+    .btn-large-secondary:active:not(:disabled) {
       background-color: $lightElectric10;
       border-color: $lightElectric;
       color: $lightElectric;
@@ -710,13 +710,13 @@ body.dark {
     color: $white;
   }
 
-  .btn-large-secondary:hover {
+  .btn-large-secondary:hover:not(:disabled) {
     background-color: $dark-background;
     border-color: $mediumBlue;
     color: $white;
   }
 
-  .btn-large-secondary:active {
+  .btn-large-secondary:active:not(:disabled) {
     background-color: $lightElectric10;
     border-color: $lightElectric;
     color: $lightElectric;

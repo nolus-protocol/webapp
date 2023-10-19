@@ -31,7 +31,10 @@
           </p>
         </div>
         <div class="text-right nls-font-700 text-14">
-          <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
+          <p
+            class="mb-2 mt-[14px] flex justify-end align-center dark-text cursor-pointer select-none"
+            @click="setValue"
+          >
             {{ amount.amount }}
             <span class="text-light-blue text-[13px] nls-font-400 ml-[6px]">
               (${{ amount.amountInStable }})
@@ -42,9 +45,7 @@
           </p>
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             {{ payout }} {{ app.currenciesData?.USDC.shortName }}
-            <TooltipComponent
-              :content="$t('message.usdc-payout-tooltip')"
-            />
+            <TooltipComponent :content="$t('message.usdc-payout-tooltip')" />
           </p>
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             {{ positionLeft }}
@@ -142,6 +143,13 @@ const setAmount = (p: number) => {
 
 }
 
+const setValue = () => {
+  const a = amount.value.amount.toDec();
+  const currency = wallet.getCurrencyByTicker(props.modelValue.leaseInfo.amount.ticker);
+
+  props.modelValue.amount = a.toString(Number(currency.decimal_digits));
+}
+
 const getAmount = (p: number) => {
 
   const currency = wallet.getCurrencyByTicker(props.modelValue.leaseInfo.amount.ticker);
@@ -169,10 +177,10 @@ const payout = computed(() => {
   const price = new Dec(oracle.prices[currency.symbol]?.amount ?? 0);
   const value = new Dec(props.modelValue.amount.length == 0 ? 0 : props.modelValue.amount).mul(price);;
 
-  const outStanding = amount.value.amountInStable.toDec();
+  const outStanding = getAmountValue('0').amountInStable.toDec();
   const payOutValue = value.sub(outStanding);
 
-  if(payOutValue.isNegative()){
+  if (payOutValue.isNegative()) {
     return '0.00'
   }
 
@@ -186,7 +194,7 @@ const positionLeft = computed(() => {
   const value = new Dec(props.modelValue.amount.length == 0 ? 0 : props.modelValue.amount);
   const left = amount.sub(value);
 
-  if(left.isNegative()){
+  if (left.isNegative()) {
     return '0.00'
   }
 
@@ -195,11 +203,15 @@ const positionLeft = computed(() => {
 });
 
 const amount = computed(() => {
+  return getAmountValue(props.modelValue.amount == '' ? '0' : props.modelValue.amount)
+});
+
+const getAmountValue = (a: string) => {
   const info = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
   const selectedCurrency = wallet.getCurrencyByTicker(info.ticker);
   const lpn = app.currenciesData!.USDC;
 
-  let amount = new Dec(0);
+  let amount = new Dec(a);
   const price = new Dec(oracle.prices[selectedCurrency.symbol]?.amount ?? 0);
   const { repayment, repaymentInStable } = getRepayment(100);
 
@@ -238,8 +250,7 @@ const amount = computed(() => {
       v
     )
   }
-
-});
+}
 
 const getRepayment = (p: number) => {
   const amount = outStandingDebt();

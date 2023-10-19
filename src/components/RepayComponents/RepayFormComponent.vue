@@ -59,7 +59,6 @@ import { useWalletStore } from "@/stores/wallet";
 import { NATIVE_NETWORK, PERMILLE, PERCENT } from "@/config/env";
 import { calculateAditionalDebt } from "@/config/env";
 import { useApplicationStore } from "@/stores/application";
-import { ApptUtils } from "@/utils/AppUtils";
 
 const oracle = useOracleStore();
 const wallet = useWalletStore();
