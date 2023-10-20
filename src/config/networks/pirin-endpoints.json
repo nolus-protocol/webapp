@@ -14,8 +14,8 @@
     },
     "OSMOSIS": {
         "primary": {
-            "rpc": "https://rpc-osmosis-ia.cosmosia.notional.ventures",
-            "api": "https://api-osmosis-ia.cosmosia.notional.ventures"
+            "rpc": "https://osmosis-rpc.polkachu.com",
+            "api": "https://osmosis-api.polkachu.com"
         },
         "fallback": [
             {
