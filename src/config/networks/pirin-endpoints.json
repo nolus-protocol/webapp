@@ -3,7 +3,7 @@
     "NOLUS": {
         "primary": {
             "rpc": "https://pirin-cl.nolus.network:26657",
-            "api": "https://pirin-cl-arc.nolus.network:1317"
+            "api": "https://pirin-cl.nolus.network:1317"
         },
         "fallback": [
             {
