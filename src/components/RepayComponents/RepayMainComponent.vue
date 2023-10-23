@@ -197,7 +197,7 @@ const isAmountValid = (): boolean => {
       if (amountInStable.lt(minAmount)) {
         state.value.amountErrorMsg = i18n.t("message.min-amount-allowed", { amount: minAmount.quo(p).toString(Number(asset.decimal_digits)), currency: asset.shortName });
         isValid = false;
-      } else if (balance.gt(debt)) {
+      } else if (balance.gt(debt) && !isValid) {
         state.value.amountErrorMsg = i18n.t("message.lease-only-max-error", {
           maxAmount: Number(debtInCurrencies.toString(Number(coinData.coinDecimals))),
           symbol: coinData.shortName
