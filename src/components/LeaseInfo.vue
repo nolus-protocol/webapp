@@ -1174,9 +1174,8 @@ const interestDueStatus = computed(() => {
 
 const checkPrice = async () => {
   try {
-    const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
-
-    const req = await fetch(`${url}/tx_search?query="wasm.lease_address='${props.leaseInfo.leaseAddress}'"&prove=true`);
+    const node = (await ApptUtils.getArchiveNodes());
+    const req = await fetch(`${node.archive_node_rpc}/tx_search?query="wasm.lease_address='${props.leaseInfo.leaseAddress}'"&prove=true`);
     const data = await req.json();
     const item = data.result?.txs?.[0];
     if (item) {

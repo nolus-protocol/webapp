@@ -1,6 +1,6 @@
 import { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL, NETWORKS, SWAP_FEE_URL, isDev, languages } from "@/config/env";
 import { EnvNetworkUtils } from ".";
-import type { Endpoint, Status, Node, API } from "@/types/NetworkConfig";
+import type { Endpoint, Status, Node, API, ARCHIVE_NODE } from "@/types/NetworkConfig";
 
 export class ApptUtils {
 
@@ -33,6 +33,11 @@ export class ApptUtils {
         }
     } = {};
 
+
+    static archive_node: {
+        [key: string]: Promise<ARCHIVE_NODE>
+    } = {};
+
     static isDev() {
         return isDev();
     }
@@ -60,7 +65,7 @@ export class ApptUtils {
 
     static async fetchEndpoints(network: string) {
         const net = ApptUtils.rpc?.[EnvNetworkUtils.getStoredNetworkName()]?.[network];
-
+        
         if (net) {
             return net;
         }
@@ -75,23 +80,34 @@ export class ApptUtils {
 
     }
 
-    static async fetchArchiveNodes(network: string) {
-        const net = ApptUtils.rpc?.[EnvNetworkUtils.getStoredNetworkName()];
-        console.log( net)
-        if (net) {
-            return net;
-        }
+    static async getArchiveNodes() {
+        const node = ApptUtils.archive_node?.[EnvNetworkUtils.getStoredNetworkName()];
 
-        if (!ApptUtils.rpc[EnvNetworkUtils.getStoredNetworkName()]) {
-            ApptUtils.rpc[EnvNetworkUtils.getStoredNetworkName()] = {};
-        }
+        if (node) {
+            return node;
+        }        
+        const archive = ApptUtils.fetchArchiveNodes();
+        ApptUtils.archive_node[EnvNetworkUtils.getStoredNetworkName()] = archive;
 
-        const networkData = ApptUtils.fetch(network);
-        ApptUtils.rpc[EnvNetworkUtils.getStoredNetworkName()][network] = networkData;
-        console.log(networkData)
-        return networkData;
+        return archive;
 
     }
+
+    private static async fetchArchiveNodes(): Promise<ARCHIVE_NODE> {
+ 
+        const config = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
+        const data = await fetch(config.endpoints);
+        const json = await data.json() as Endpoint;
+
+       const archive = {
+            archive_node_rpc: json.archive_node_rpc,
+            archive_node_api: json.archive_node_api
+        };
+
+        return archive;
+
+    }
+    
 
     private static async fetch(network: string) {
         const config = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];

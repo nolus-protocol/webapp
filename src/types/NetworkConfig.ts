@@ -22,6 +22,11 @@ export interface API {
   api: string;
 }
 
+export interface ARCHIVE_NODE {
+  archive_node_rpc: string;
+  archive_node_api: string;
+}
+
 export interface Status {
   result: {
     sync_info: {
