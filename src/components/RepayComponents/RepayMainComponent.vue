@@ -1,24 +1,20 @@
 <template>
-  <ConfirmComponent
-    v-if="showConfirmScreen"
-    :selectedCurrency="state.selectedCurrency"
-    :receiverAddress="state.receiverAddress"
-    :password="state.password"
-    :amount="state.amount"
-    :txType="$t(`message.${TxType.REPAY}`)+':'"
-    :txHash="state.txHash"
-    :step="step"
-    :fee="state.fee"
-    :onSendClick="onSendClick"
-    :onBackClick="onConfirmBackClick"
-    :onOkClick="onClickOkBtn"
-    @passwordUpdate="(value: string) => state.password = value"
-  />
-  <RepayFormComponent
-    v-else
-    v-model="state"
-    class="overflow-auto custom-scroll"
-  />
+  <ConfirmComponent v-if="showConfirmScreen"
+                    :selectedCurrency="state.selectedCurrency"
+                    :receiverAddress="state.receiverAddress"
+                    :password="state.password"
+                    :amount="state.amount"
+                    :txType="$t(`message.${TxType.REPAY}`) + ':'"
+                    :txHash="state.txHash"
+                    :step="step"
+                    :fee="state.fee"
+                    :onSendClick="onSendClick"
+                    :onBackClick="onConfirmBackClick"
+                    :onOkClick="onClickOkBtn"
+                    @passwordUpdate="(value: string) => state.password = value" />
+  <RepayFormComponent v-else
+                      v-model="state"
+                      class="overflow-auto custom-scroll" />
 </template>
 
 <script setup lang="ts">
@@ -41,7 +37,7 @@ import { getMicroAmount, walletOperation } from "@/components/utils";
 import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, TIP, PERMILLE, PERCENT, calculateAditionalDebt, ErrorCodes, IGNORE_LEASE_ASSETS } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, TIP, PERMILLE, PERCENT, calculateAditionalDebt, ErrorCodes, IGNORE_LEASE_ASSETS, minimumLeaseAmount } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/stores/oracle";
 import { AssetUtils } from "@/utils";
@@ -75,7 +71,7 @@ const balances = computed(() => {
   const balances = walletStore.balances;
   return balances.filter((item) => {
     const currency = walletStore.currencies[item.balance.denom];
-    if(IGNORE_LEASE_ASSETS.includes(currency.ticker)){
+    if (IGNORE_LEASE_ASSETS.includes(currency.ticker)) {
       return false;
     }
     return app.lease.includes(currency.ticker) || currency.ticker == app.lpn?.ticker;
@@ -103,7 +99,15 @@ onMounted(async () => {
 
 watch(() => state.value.selectedCurrency, () => {
   setSwapFee();
+  isAmountValid();
 })
+
+watch(
+  () => [...state.value.amount],
+  (currentValue, oldValue) => {
+    isAmountValid();
+  }
+);
 
 const setSwapFee = async () => {
   const asset = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom);
@@ -158,6 +162,9 @@ const isAmountValid = (): boolean => {
 
       const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, "", coinData.coinDecimals);
       const balance = CurrencyUtils.calculateBalance(price.amount, amountInMinimalDenom, coinData.coinDecimals).toDec();
+      const minAmount = new Dec(minimumLeaseAmount);
+      const p = new Dec(price.amount);
+      const amountInStable = new Dec(amount.length == 0 ? '0' : amount).mul(p);
 
       let debt = outStandingDebt();
       const swap = hasSwapFee();
@@ -187,7 +194,10 @@ const isAmountValid = (): boolean => {
         isValid = false;
       }
 
-      if (balance.gt(debt)) {
+      if (amountInStable.lt(minAmount)) {
+        state.value.amountErrorMsg = i18n.t("message.min-amount-allowed", { amount: minAmount.quo(p).toString(Number(asset.decimal_digits)), currency: asset.shortName });
+        isValid = false;
+      } else if (balance.gt(debt)) {
         state.value.amountErrorMsg = i18n.t("message.lease-only-max-error", {
           maxAmount: Number(debtInCurrencies.toString(Number(coinData.coinDecimals))),
           symbol: coinData.shortName
@@ -253,8 +263,8 @@ const repayLease = async () => {
 
       getLeases();
     } catch (error: Error | any) {
-      switch(error.code){
-        case(ErrorCodes.GasError): {
+      switch (error.code) {
+        case (ErrorCodes.GasError): {
           step.value = CONFIRM_STEP.GasError;
           break;
         }

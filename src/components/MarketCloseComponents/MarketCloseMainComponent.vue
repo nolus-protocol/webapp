@@ -1,24 +1,20 @@
 <template>
-  <ConfirmComponent
-    v-if="showConfirmScreen"
-    :selectedCurrency="state.selectedCurrency"
-    :receiverAddress="state.receiverAddress"
-    :password="state.password"
-    :amount="state.amount"
-    :txType="$t(`message.${TxType.MARKET_CLOSE}`) + ':'"
-    :txHash="state.txHash"
-    :step="step"
-    :fee="state.fee"
-    :onSendClick="onSendClick"
-    :onBackClick="onConfirmBackClick"
-    :onOkClick="onClickOkBtn"
-    @passwordUpdate="(value: string) => state.password = value"
-  />
-  <MarketCloseFormComponent
-    v-else
-    v-model="state"
-    class="overflow-auto custom-scroll"
-  />
+  <ConfirmComponent v-if="showConfirmScreen"
+                    :selectedCurrency="state.selectedCurrency"
+                    :receiverAddress="state.receiverAddress"
+                    :password="state.password"
+                    :amount="state.amount"
+                    :txType="$t(`message.${TxType.MARKET_CLOSE}`) + ':'"
+                    :txHash="state.txHash"
+                    :step="step"
+                    :fee="state.fee"
+                    :onSendClick="onSendClick"
+                    :onBackClick="onConfirmBackClick"
+                    :onOkClick="onClickOkBtn"
+                    @passwordUpdate="(value: string) => state.password = value" />
+  <MarketCloseFormComponent v-else
+                            v-model="state"
+                            class="overflow-auto custom-scroll" />
 </template>
 
 <script setup lang="ts">
@@ -41,7 +37,7 @@ import { getMicroAmount, walletOperation } from "@/components/utils";
 import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, TIP, ErrorCodes } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, TIP, ErrorCodes, minimumLeaseAmount } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { ApptUtils } from "@/utils/AppUtils";
 import { useLeaseConfig } from "@/composables";
@@ -155,6 +151,9 @@ const isAmountValid = (): boolean => {
   const minAmont = new Dec(config.value?.config.lease_position_spec.min_asset.amount ?? 0, Number(minAmountCurrency.decimal_digits));
   const price = new Dec(oracle.prices[currency.symbol].amount);
 
+  const minAmountTemp = new Dec(minimumLeaseAmount);
+  const amountInStable = new Dec(amount.length == 0 ? '0' : amount).mul(price);
+
   if (amount || amount !== "") {
 
     const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, "", Number(currency.decimal_digits));
@@ -170,13 +169,16 @@ const isAmountValid = (): boolean => {
       isValid = false;
     }
 
-    if (value.gt(debt)) {
+    if (amountInStable.lt(minAmountTemp)) {
+      state.value.amountErrorMsg = i18n.t("message.min-amount-allowed", { amount: minAmountTemp.quo(price).toString(Number(currency.decimal_digits)), currency: currency.shortName });
+      isValid = false;
+    } else if (value.gt(debt)) {
       state.value.amountErrorMsg = i18n.t("message.lease-only-max-error", {
         maxAmount: Number(debt.toString(Number(currency.decimal_digits))),
         symbol: currency.shortName
       });
       isValid = false;
-    }else if (!value.equals(debt) && debt.sub(value).mul(price).lte(minAmont)) {
+    } else if (!value.equals(debt) && debt.sub(value).mul(price).lte(minAmont)) {
       state.value.amountErrorMsg = i18n.t("message.lease-min-amount", {
         amount: Number(minAmont.quo(price).toString(Number(currency.decimal_digits))),
         symbol: currency.shortName

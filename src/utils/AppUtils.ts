@@ -75,6 +75,24 @@ export class ApptUtils {
 
     }
 
+    static async fetchArchiveNodes(network: string) {
+        const net = ApptUtils.rpc?.[EnvNetworkUtils.getStoredNetworkName()];
+        console.log( net)
+        if (net) {
+            return net;
+        }
+
+        if (!ApptUtils.rpc[EnvNetworkUtils.getStoredNetworkName()]) {
+            ApptUtils.rpc[EnvNetworkUtils.getStoredNetworkName()] = {};
+        }
+
+        const networkData = ApptUtils.fetch(network);
+        ApptUtils.rpc[EnvNetworkUtils.getStoredNetworkName()][network] = networkData;
+        console.log(networkData)
+        return networkData;
+
+    }
+
     private static async fetch(network: string) {
         const config = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
         const data = await fetch(config.endpoints);
@@ -86,7 +104,6 @@ export class ApptUtils {
         }
 
         const networkData = ApptUtils.fetchFallback(json[network] as Node, json.downtime);
-
         return networkData;
 
     }

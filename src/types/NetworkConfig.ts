@@ -6,8 +6,10 @@ export interface NetworkConfig {
 }
 
 export interface Endpoint {
-  [index: string]: Node | number;
+  [index: string]: Node | number | string;
   downtime: number;
+  archive_node_rpc: string;
+  archive_node_api: string;
 }
 
 export interface Node {

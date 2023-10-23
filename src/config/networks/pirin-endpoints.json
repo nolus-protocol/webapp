@@ -1,5 +1,7 @@
 {
     "downtime": 30,
+    "archive_node_rpc": "https://pirin-cl.nolus.network:26657",
+    "archive_node_api": "https://pirin-cl.nolus.network:26657",
     "NOLUS": {
         "primary": {
             "rpc": "https://pirin-cl.nolus.network:26657",

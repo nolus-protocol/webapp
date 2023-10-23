@@ -337,6 +337,7 @@
     "close-lease-position-action": "Close lease position {contract}",
     "position-left": "Remaining",
     "usdc-payout": "USDC Payout",
-    "usdc-payout-tooltip": "Estimated USDC amount to be received after deducting Outstanding Debt"
+    "usdc-payout-tooltip": "Estimated USDC amount to be received after deducting Outstanding Debt",
+    "min-amount-allowed": "The minimum allowed {currency} amount is {amount}"
   }
 }

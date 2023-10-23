@@ -314,6 +314,7 @@ if (!isDev()) {
   }
 }
 
+export const minimumLeaseAmount = 1;
 export const languages = l;
 export const SUPPORTED_NETWORKS = ['NOLUS', 'OSMOSIS', 'COSMOS_HUB', 'AXELAR', 'STRIDE', 'JUNO', 'EVMOS', 'PERSISTENCE', 'SECRET'];
 export const SWAP_FEE = 0.007;

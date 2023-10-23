@@ -1,5 +1,7 @@
 {
     "downtime": 30,
+    "archive_node_rpc": "https://dev-cl.nolus.network:26657",
+    "archive_node_api": "https://dev-cl.nolus.network:1317",
     "NOLUS": {
         "primary": {
             "rpc": "https://dev-cl.nolus.network:26657",
