@@ -174,7 +174,7 @@ const isAmountValid = (): boolean => {
       }
 
       const debtInCurrencies = debt.quo(new Dec(price.amount));
-
+      const minAmountCurrency = minAmount.quo(p);
 
       const isLowerThanOrEqualsToZero = new Dec(
         amountInMinimalDenom.amount || "0"
@@ -195,9 +195,11 @@ const isAmountValid = (): boolean => {
       }
 
       if (amountInStable.lt(minAmount)) {
-        state.value.amountErrorMsg = i18n.t("message.min-amount-allowed", { amount: minAmount.quo(p).toString(Number(asset.decimal_digits)), currency: asset.shortName });
+        state.value.amountErrorMsg = i18n.t("message.min-amount-allowed", { amount: minAmountCurrency.toString(Number(asset.decimal_digits)), currency: asset.shortName });
         isValid = false;
-      } else if (balance.gt(debt) && !isValid) {
+      }
+      
+      if (balance.gt(debt) && debt.gt(minAmountCurrency)) {
         state.value.amountErrorMsg = i18n.t("message.lease-only-max-error", {
           maxAmount: Number(debtInCurrencies.toString(Number(coinData.coinDecimals))),
           symbol: coinData.shortName

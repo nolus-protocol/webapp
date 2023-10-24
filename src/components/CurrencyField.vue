@@ -1,52 +1,40 @@
 <template>
   <div class="block currency-field-container">
     <div class="flex justify-between items-center">
-      <label
-        :for="id"
-        class="flex text-14 nls-font-500 data-text"
-      >
+      <label :for="id"
+             class="flex text-14 nls-font-500 data-text">
         {{ label }}
-        <TooltipComponent
-          v-if="tooltip.length > 0"
-          :content="tooltip"
-        />
+        <TooltipComponent v-if="tooltip.length > 0"
+                          :content="tooltip" />
       </label>
-      <div
-        v-if="balance"
-        class="balance"
-      >
+      <div v-if="balance"
+           class="balance">
         {{ $t('message.balance') }} {{ balance }}
       </div>
     </div>
 
-    <div
-      class="currency-field p-2.5 currency-field p-3.5"
-      :class="{ error: isError }"
-    >
+    <div class="currency-field p-2.5 currency-field p-3.5"
+         :class="{ error: isError }">
       <div class="flex items-center">
         <div class="inline-block">
-          <CurrencyPicker
-            :currency-option="option"
-            :disabled="disabledCurrencyPicker"
-            :options="currencyOptions"
-            @update-currency="onUpdateCurrency"
-            :isLoading="isLoadingPicker"
-            type="small"
-          />
+          <CurrencyPicker :currency-option="option"
+                          :disabled="disabledCurrencyPicker"
+                          :options="currencyOptions"
+                          @update-currency="onUpdateCurrency"
+                          :isLoading="isLoadingPicker"
+                          type="small" />
         </div>
         <div class="inline-block flex-1">
-          <input
-            :id="id"
-            :disabled="disabledInputField"
-            :name="name"
-            v-model="numberValue"
-            autocomplete="off"
-            class="nls-font-700 text-18 text-primary background text-right"
-            @keydown="inputValue"
-            @keyup="setValue"
-            @paste="onPaste"
-            :placeholder="placeholder"
-          />
+          <input :id="id"
+                 :disabled="disabledInputField"
+                 :name="name"
+                 v-model="numberValue"
+                 autocomplete="off"
+                 class="nls-font-700 text-18 text-primary background text-right"
+                 @keydown="inputValue"
+                 @keyup="setValue"
+                 @paste="onPaste"
+                 :placeholder="placeholder" />
           <span class="block text-14 nls-font-400 text-light-blue text-right">
             {{ calculateInputBalance() }}
           </span>
@@ -55,18 +43,14 @@
     </div>
 
     <div class="repayment items-start justify-between">
-      <span
-        class="msg error"
-      >
+      <span class="msg error">
         {{ errorMsg }}
       </span>
       <div class="min-w-[156px]">
-        <button
-          v-for="value in INPUT_VALUES"
-          type="button"
-          @click="setInputValue(value)"
-          :key="value"
-        >
+        <button v-for="value in INPUT_VALUES"
+                type="button"
+                @click="setInputValue(value)"
+                :key="value">
           {{ value }}%
         </button>
       </div>
@@ -109,7 +93,7 @@ const allowed = [
   "Tab",
   "Control",
   "End",
-  "Home",
+  "Home"
 ];
 const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
@@ -232,7 +216,7 @@ const inputValue = (event: KeyboardEvent) => {
   const charCode = event.key;
   const value = numberValue.value ?? "";
 
-  if (event.ctrlKey) {
+  if (event.ctrlKey || event.metaKey) {
     return true;
   }
 
