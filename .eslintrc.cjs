@@ -20,6 +20,7 @@ module.exports = {
   },
   rules: {
     "vue/multi-word-component-names": "off",
+    "vue/require-toggle-inside-transition": "off",
     "no-unused-vars": "off",
     "no-unused-expressions": "off",
     "no-useless-escape": "off",
