@@ -32,8 +32,9 @@
                  autocomplete="off"
                  class="nls-font-700 text-18 text-primary background text-right"
                  @keydown="inputValue"
-                 @keyup="setValue"
+                 @keypress.space.prevent
                  @paste="onPaste"
+                 @keyup="setValue"
                  :placeholder="placeholder" />
           <span class="block text-14 nls-font-400 text-light-blue text-right">
             {{ calculateInputBalance() }}
@@ -81,7 +82,6 @@ const wallet = useWalletStore();
 const dot = ".";
 const minus = "-";
 const comma = ",";
-const space = " ";
 const allowed = [
   "Delete",
   "Backspace",
@@ -233,11 +233,6 @@ const inputValue = (event: KeyboardEvent) => {
   }
 
   if (charCode == dot && value?.includes(dot)) {
-    event.preventDefault();
-    return false;
-  }
-
-  if (charCode == space) {
     event.preventDefault();
     return false;
   }
