@@ -11,6 +11,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
     staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
     leaseBlockUpdate: 977014,
+    lppCreatedAt: 0,
     web3auth: {
       clientId: "BHPGnOodSp4t0ZDuuJ3suCZCtwVILYmfOTbDrzlUKK6ADFrNMWg563MAMj_CBW8sDVvg3BqJi8i284t6o",
       network: "testnet",
@@ -29,6 +30,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
     staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
     leaseBlockUpdate: 1072220,
+    lppCreatedAt: 1696843049941,
     web3auth: {
       clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
       network: "cyan",
@@ -48,6 +50,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     govern: "https://explorer-rila.nolus.io/rila-1/gov",
     staking: "https://explorer-rila.nolus.io/rila-1/staking",
     leaseBlockUpdate: 977014,
+    lppCreatedAt: 1686573237831,
     web3auth: {
       clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
       network: "cyan",
@@ -67,6 +70,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     govern: "https://explorer.nolus.io/pirin-1/gov",
     staking: "https://explorer.nolus.io/pirin-1/staking",
     leaseBlockUpdate: 1029833,
+    lppCreatedAt: 1686845698269,
     web3auth: {
       clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
       network: "cyan",

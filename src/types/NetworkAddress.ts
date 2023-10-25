@@ -8,6 +8,7 @@ export interface NetworkAddress {
   endpoints: string;
   currencies: () => Promise<Networks>, //CurreciesType
   leaseBlockUpdate: number,
+  lppCreatedAt: number,
   web3auth: {
     clientId: string;
     network: string | any;

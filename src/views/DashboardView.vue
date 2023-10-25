@@ -489,7 +489,7 @@ const activeLeases = computed(() => {
     if (lease.leaseStatus.opened) {
       const ticker = lease.leaseStatus.opened.amount.ticker;
       const currency = wallet.getCurrencyByTicker(ticker);
-      const ibcDenom = wallet.getIbcDenomBySymbol(currency.symbol) as string;
+      const ibcDenom = wallet.getIbcDenomBySymbol(currency?.symbol) as string;
       const data = wallet.getCurrencyInfo(ibcDenom as string);
 
       const balance = CurrencyUtils.calculateBalance(

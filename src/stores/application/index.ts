@@ -117,11 +117,9 @@ const useApplicationStore = defineStore("application", {
         const instance = CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance;
         const lppClient = new Lpp(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance);
         const dispatcherClient = new Disparcher(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].dispatcher.instance);
+        const network = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
 
-        const [contract, status, price, dispatcherRewards] = await Promise.all([
-          fetch(
-            `${url}/tx_search?query="execute._contract_address='${instance}'"&prove=true&limit=1&page=1`
-          ).then((data) => data.json()),
+        const [status, price, dispatcherRewards] = await Promise.all([
           fetch(
             `${url}/status`
           ).then((data) => data.json()),
@@ -129,31 +127,18 @@ const useApplicationStore = defineStore("application", {
           dispatcherClient.calculateRewards().catch(() => 0)
         ]);
 
-        const data = contract.result.txs?.[0];
         this.dispatcherRewards = dispatcherRewards / Math.pow(10, INTEREST_DECIMALS);
 
-        if (data) {
-          const tx_result = data.tx_result.events;
-          const item = tx_result.find((item: any) => item.type == WASM_LP_DEPOSIT);
+        const dateInSeconds = network.lppCreatedAt;
+        const startDate = new Date(dateInSeconds);
 
-          if (item) {
-            for (const e of item.attributes) {
-              const key = Buffer.from(e.key, "base64").toString();
-              if (key == 'at') {
-                const dateInSeconds = Number(Buffer.from(e.value, "base64").toString()) / 1_000_000;
-                const startDate = new Date(dateInSeconds);
+        const currentDate = new Date(status.result.sync_info.latest_block_time);
+        const time = currentDate.getTime() - startDate.getTime();
+        const timeInDays = new Dec(Math.round(time / 24 / 60 / 60 / 1000)).sub(new Dec(1));
 
-                const currentDate = new Date(status.result.sync_info.latest_block_time);
-                const time = currentDate.getTime() - startDate.getTime();
-                const timeInDays = new Dec(Math.round(time / 24 / 60 / 60 / 1000)).sub(new Dec(1));
+        const p = new Dec(price.amount_quote.amount).quo(new Dec((price.amount.amount))).quo(new Dec(1)).sub(new Dec(1)).quo(timeInDays).mul(new Dec(365));
+        this.apr = Number(p.toString()) * 100;
 
-                const p = new Dec(price.amount_quote.amount).quo(new Dec((price.amount.amount))).quo(new Dec(1)).sub(new Dec(1)).quo(timeInDays).mul(new Dec(365));
-                this.apr = Number(p.toString()) * 100;
-
-              }
-            }
-          }
-        }
 
       } catch (error) {
         this.apr = 0;
