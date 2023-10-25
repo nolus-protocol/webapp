@@ -618,6 +618,9 @@ import { walletOperation } from "@/components/utils";
 import { useApplicationStore } from "@/stores/application";
 import { ApptUtils } from "@/utils/AppUtils";
 import { ASSETS } from "@/config/assetsInfo";
+import { QuerySmartContractStateRequest } from "cosmjs-types/cosmwasm/wasm/v1/query";
+import { toUtf8 } from "@cosmjs/encoding";
+import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 
 interface Props {
   leaseInfo: LeaseData;
@@ -1177,6 +1180,7 @@ const checkPrice = async () => {
     const node = (await ApptUtils.getArchiveNodes());
     const req = await fetch(`${node.archive_node_rpc}/tx_search?query="wasm.lease_address='${props.leaseInfo.leaseAddress}'"&prove=true`);
     const data = await req.json();
+    console.log
     const item = data.result?.txs?.[0];
     if (item) {
       getBlock(item.height)
@@ -1203,7 +1207,6 @@ const getBlock = async (block: string) => {
       ]);
 
       const downpaymentPrice = await fetchDownPaymentPrice(date, downpayment.opening.downpayment.ticker);
-
       const asset = AssetUtils.getAssetInfo(downpayment.opening.downpayment.ticker);
       const coin = new Coin(asset.coinMinimalDenom, new Int(downpayment.opening.downpayment.amount));
       const dprice = CurrencyUtils.calculateBalance(downpaymentPrice, coin, asset.coinDecimals);
@@ -1253,21 +1256,24 @@ const fetchDownPaymentPrice = async (time: Date, ticker: string) => {
 }
 
 const fetchDownPayment = async (block: number) => {
-  const client = walletStore.wallet;
-  if (client) {
+  const node = (await ApptUtils.getArchiveNodes());
+  const client = await Tendermint34Client.connect(node.archive_node_rpc);
 
-    const res = await client.querySmartContract(
-      props.leaseInfo.leaseAddress,
-      {
-        status_query: {},
-      },
-      block
-    );
+  const data = QuerySmartContractStateRequest.encode({
+    address: props.leaseInfo.leaseAddress,
+    queryData: toUtf8(JSON.stringify({})),
+  }).finish();
 
-    return JSON.parse(res.address);
-  }
+  const query = {
+    path: '/cosmwasm.wasm.v1.Query/SmartContractState',
+    data,
+    prove: true,
+    height: block
+  };
 
-  throw 'Downpayment fetch unsuccessfully'
+  const response = await client.abciQuery(query);
+  const res = QuerySmartContractStateRequest.decode(response.value);
+  return JSON.parse(res.address);
 }
 
 const onShare = async () => {
@@ -1308,4 +1314,5 @@ div.interest-free {
   display: flex;
   padding: 6px;
   border-radius: 4px;
-}</style>
+}
+</style>
