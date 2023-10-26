@@ -1273,11 +1273,18 @@ const onShare = async () => {
 }
 
 const balances = () => {
+  const disable = [NATIVE_ASSET.denom];
+  const ticker = props.leaseInfo.leaseStatus?.paid?.amount.ticker;
+  if(ticker){
+    const asset = walletStore.getCurrencyByTicker(ticker);
+    const ibc = AssetUtils.makeIBCMinimalDenom(asset.ibc_route, asset.symbol);
+    disable.push(ibc);
+  }
   return props.leaseInfo.balances?.filter((item) => {
-    if (item.denom != NATIVE_ASSET.denom) {
-      return true;
+    if (disable.includes(item.denom)) {
+      return false;
     }
-    return false;
+    return true;
   }).map((item) => {
     const currency = walletStore.getCurrencyInfo(item.denom);
 
