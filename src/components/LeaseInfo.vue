@@ -228,7 +228,7 @@
         </button>
         <button
           class="btn btn-primary btn-large-primary md:w-auto w-full md:mt-0 mt-4 ml-[12px]"
-          v-if="leaseInfo.leaseStatus.opened && ApptUtils.isDev()"
+          v-if="leaseInfo.leaseStatus.opened"
           @click="showCloseModal = true"
           :disabled="openedSubState"
           :class="{ 'js-loading': loadingClose }"
@@ -978,6 +978,7 @@ const onClaim = async () => {
       getLeases();
 
     } catch (e) {
+      console.log(e)
       step.value = CONFIRM_STEP.ERROR;
     }
   }

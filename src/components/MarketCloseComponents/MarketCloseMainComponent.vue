@@ -246,7 +246,7 @@ const marketCloseLease = async () => {
 
       getLeases();
     } catch (error: Error | any) {
-      console.log(error.message);
+      console.log(error);
       switch (error.code) {
         case (ErrorCodes.GasError): {
           step.value = CONFIRM_STEP.GasError;
