@@ -112,8 +112,8 @@ watch(
 const setSwapFee = async () => {
   const asset = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom);
   state.value.swapFee = (await ApptUtils.getSwapFee())[asset.ticker] ?? 0;
-
 }
+
 onUnmounted(() => {
   if (CONFIRM_STEP.PENDING == step.value) {
     showSnackbar(SNACKBAR.Queued, "loading");

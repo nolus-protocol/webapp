@@ -18,7 +18,7 @@
             {{ assetInfo.shortName }}
           </p>
           <p class="text-dark-grey text-12 garet-medium text-left capitalize m-0">
-            {{ formatPrice(getMarketPrice(asset.balance.denom)) }}
+            <!-- {{ formatPrice(getMarketPrice(asset.balance.denom)) }} -->
           </p>
         </div>
       </div>
@@ -30,10 +30,10 @@
               :type="CURRENCY_VIEW_TYPES.TOKEN"
               :amount="asset.balance.amount.toString()"
               :minimalDenom="assetInfo.coinMinimalDenom"
-              :denom="assetInfo.shortName"
               :decimals="assetInfo.coinDecimals"
               :maxDecimals="maxCoinDecimals"
               :fontSizeSmall="12"
+              denom=""
             />
           </p>
           <div class="flex items-center text-dark-grey text-12 garet-medium m-0">

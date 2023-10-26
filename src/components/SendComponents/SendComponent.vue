@@ -30,6 +30,7 @@
             @input="handleAmountChange($event)"
             @update-currency="(event) => (modelValue.selectedCurrency = event)"
             :balance="formatCurrentBalance(modelValue.selectedCurrency)"
+            :total="modelValue.selectedCurrency.balance"
           />
         </div>
 
@@ -95,7 +96,7 @@ const props = defineProps({
     default: {} as object,
   },
 });
-
+console.log(props)
 const networks = computed(() => {
   return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list;
 });

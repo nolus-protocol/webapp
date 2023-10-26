@@ -36,9 +36,7 @@
             {{ $t('message.free-interest') }}
             <TooltipComponent
               class="!text-[#fff]"
-              :content="$t('message.free-interest-tooltip', {
-                dateTime: freeInteresParams?.time
-              })"
+              :content="$t('message.free-interest-tooltip')"
             />
           </div>
         </div>
@@ -90,7 +88,7 @@
         <div class="flex justify-between">
           <div>
             <span class="text-dark-grey">
-              {{ asset.shortName }} {{ $t("message.price") }}
+              {{ $t("message.price") }}
             </span>
             <p class="text-primary">
               <b>
@@ -318,7 +316,7 @@
         <div class="flex justify-between">
           <div>
             <span class="text-dark-grey">
-              {{ asset.shortName }} {{ $t("message.price") }}
+              {{ $t("message.price") }}
             </span>
             <p class="text-primary">
               <b>
@@ -400,9 +398,7 @@
           >
             {{ $t('message.free-interest') }}
             <TooltipComponent
-              :content="$t('message.free-interest-tooltip', {
-                dateTime: freeInteresParams?.time
-              })"
+              :content="$t('message.free-interest-tooltip')"
               class="!text-[#fff]"
             />
           </div>
@@ -471,7 +467,7 @@
         <div class="flex justify-between">
           <div>
             <span class="text-dark-grey">
-              {{ asset.shortName }} {{ $t("message.price") }}
+              {{ $t("message.price") }}
             </span>
             <p class="text-primary">
               <b>
@@ -654,10 +650,6 @@ const claimDialog = ref();
 const pnlType = ref(false);
 const showShareDialog = ref(false);
 const isFreeInterest = ref(false);
-const freeInteresParams = ref<{
-  amount: string,
-  time: string
-} | null>(null)
 
 let leaseData = ref<{
   downPayment: string | null,
@@ -707,9 +699,8 @@ onUnmounted(() => {
 const setFreeInterest = async () => {
   const data = await ApptUtils.getFreeInterestAddress();
   for (const item of data.interest_paid_to) {
-    if (item[props.leaseInfo.leaseAddress]) {
+    if (item == props.leaseInfo.leaseAddress) {
       isFreeInterest.value = true;
-      freeInteresParams.value = item[props.leaseInfo.leaseAddress];
       break;
     }
   }

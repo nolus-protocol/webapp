@@ -15,12 +15,7 @@ export class ApptUtils {
     }>;
 
     static freeInterestAdress: Promise<{
-        interest_paid_to: {
-            [key: string]: {
-                amount: string,
-                time: string
-            }
-        }[]
+        interest_paid_to: string[]
     }>;
 
     static swapFee: Promise<{
@@ -226,12 +221,7 @@ export class ApptUtils {
     private static async fetchFreeInterestAddress() {
         const data = await fetch(FREE_INTEREST_ADDRESS_URL);
         const json = await data.json() as {
-            interest_paid_to: {
-                [key: string]: {
-                    amount: string,
-                    time: string
-                }
-            }[]
+            interest_paid_to: string[]
         };
 
         return json;

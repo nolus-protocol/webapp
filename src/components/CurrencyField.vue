@@ -8,7 +8,8 @@
                           :content="tooltip" />
       </label>
       <div v-if="balance"
-           class="balance">
+           class="balance select-none cursor-pointer"
+           @click="setBalance">
         {{ $t('message.balance') }} {{ balance }}
       </div>
     </div>
@@ -68,7 +69,7 @@ import { onMounted, ref, watch, type PropType } from "vue";
 import CurrencyPicker from "@/components/CurrencyPicker.vue";
 import TooltipComponent from "./TooltipComponent.vue";
 
-import { Coin, Int } from "@keplr-wallet/unit";
+import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
@@ -144,6 +145,9 @@ const props = defineProps({
   },
   balance: {
     type: String
+  },
+  total: {
+    type: Object,
   },
   setInputValue: {
     type: Function,
@@ -269,6 +273,15 @@ const setValue = () => {
   emit("input", value);
   emit("update:modelValue", value);
 };
+
+const setBalance = () => {
+  if(props.total){
+    const asset = wallet.getCurrencyInfo(props.total.denom);
+    const value = new Dec(props.total.amount, asset.coinDecimals)
+    emit("input", value.toString(asset.coinDecimals));
+    emit("update:modelValue", value.toString(asset.coinDecimals));
+  }
+}
 
 const commify = (n: string) => {
   const parts = n.split(".");

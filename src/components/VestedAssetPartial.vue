@@ -29,9 +29,9 @@
           :type="CURRENCY_VIEW_TYPES.TOKEN"
           :amount="assetBalance"
           :minimalDenom="assetInfo.coinMinimalDenom"
-          :denom="assetInfo.shortName"
           :decimals="assetInfo.coinDecimals"
           :maxDecimals="maxCoinDecimals"
+          denom=""
         />
       </div>
     </div>

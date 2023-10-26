@@ -30,9 +30,9 @@
           :type="CURRENCY_VIEW_TYPES.TOKEN"
           :amount="assetBalance"
           :minimalDenom="assetInfo.coinMinimalDenom"
-          :denom="assetInfo.shortName"
           :decimals="assetInfo.coinDecimals"
           :maxDecimals="maxCoinDecimals"
+          denom=""
         />
       </p>
       <div class="flex items-center justify-end text-dark-grey text-12 garet-medium text-right m-0">
@@ -45,7 +45,7 @@
       class="hidden md:block"
     >
       <div class="text-primary nls-font-500 text-14 text-right m-0">
-        
+
         <CurrencyComponent
           v-if="app.native?.ticker == assetInfo.ticker"
           :type="CURRENCY_VIEW_TYPES.CURRENCY"
@@ -83,9 +83,9 @@
               :type="CURRENCY_VIEW_TYPES.TOKEN"
               :amount="leasUpTo"
               :minimalDenom="assetInfo.coinMinimalDenom"
-              :denom="assetInfo.shortName"
               :decimals="assetInfo.coinDecimals"
               :maxDecimals="maxLeaseUpToCoinDecimals"
+              denom=""
             />
           </template>
           <template v-else>

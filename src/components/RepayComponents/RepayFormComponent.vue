@@ -11,6 +11,7 @@
                      :error-msg="modelValue.amountErrorMsg"
                      :is-error="modelValue.amountErrorMsg !== ''"
                      :balance="formatCurrentBalance(modelValue.selectedCurrency)"
+                     :total="modelValue.selectedCurrency.balance"
                      :set-input-value="setRepayment"
                      @input="handleAmountChange($event)"
                      @update-currency="(event) => (modelValue.selectedCurrency = event)" />

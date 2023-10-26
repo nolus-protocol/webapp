@@ -14,6 +14,7 @@
         :error-msg="modelValue.amountErrorMsg"
         :is-error="modelValue.amountErrorMsg !== ''"
         :balance="formatLeasePosition()"
+        :total="total"
         :set-input-value="setAmount"
         @input="handleAmountChange($event)"
         @update-currency="(event) => (modelValue.selectedCurrency = event)"
@@ -72,7 +73,7 @@ import TooltipComponent from "../TooltipComponent.vue";
 import type { MarketCloseComponentProps } from "@/types/component/MarketCloseComponentProps";
 import { type PropType, computed } from "vue";
 
-import { CoinPretty, Dec, Int, } from "@keplr-wallet/unit";
+import { CoinPretty, Dec, Int, Coin } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
@@ -134,6 +135,14 @@ const formatLeasePosition = () => {
     Number(asset.decimal_digits)
   ).toString();
 };
+
+const total = computed(() => {
+  const asset = wallet.getCurrencyByTicker(
+    props.modelValue.leaseInfo.amount.ticker
+  );
+  const ibc = AssetUtils.makeIBCMinimalDenom(asset.ibc_route, asset.symbol);
+  return new Coin(ibc, props.modelValue.leaseInfo.amount.amount);
+})
 
 const setAmount = (p: number) => {
   const { amount } = getAmount(p);

@@ -19,6 +19,7 @@
             name="amountInvestment"
             :tooltip="$t('message.down-payment-tooltip')"
             :balance="formatCurrentBalance(modelValue.selectedDownPaymentCurrency)"
+            :total="modelValue.selectedDownPaymentCurrency.balance"
             :set-input-value="setAmount"
             @input="handleDownPaymentChange($event)"
             @update-currency="(event) => (modelValue.selectedDownPaymentCurrency = event)"
@@ -40,8 +41,9 @@
         <p class="pb-0">
           {{ $t('message.margin') }}
         </p>
-        <p>
+        <p class="flex">
           ~{{ calculateMarginAmount }}
+          <TooltipComponent :content="$t('message.lease-swap-fee-tooltip', {swap_fee: swapFee * 100})" />
         </p>
       </div>
 
@@ -77,9 +79,9 @@
           <p class="mb-2 mt-[14px] mr-5">
             {{ $t("message.borrowed") }}
           </p>
-          <p class="mb-2 mt-[14px] mr-5">
+          <!-- <p class="mb-2 mt-[14px] mr-5">
             {{ $t("message.price-per") }} {{ selectedAssetDenom }}
-          </p>
+          </p> -->
           <p class="mb-2 mt-[14px] mr-5">
             {{ $t("message.interest") }}
           </p>
@@ -93,9 +95,9 @@
             ${{ borrowed }}
             <TooltipComponent :content="$t('message.borrowed-tooltip')" />
           </p>
-          <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
+          <!-- <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             ~{{ selectedAssetPrice }}
-          </p>
+          </p> -->
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             <span v-if="annualInterestRate" class="text-[#8396B1] line-throught-gray">
               {{ annualInterestRate ?? 0 }}%
@@ -145,6 +147,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
 import { AssetUtils } from "@/utils";
 import { useApplicationStore } from "@/stores/application";
+import { ApptUtils } from "@/utils/AppUtils";
 
 const wallet = useWalletStore();
 const app = useApplicationStore();
@@ -153,6 +156,7 @@ const liqudStake = ref(false);
 const liqudStakeShow = ref(false);
 const selectedIndex = ref(0);
 const oracle = useOracleStore();
+const swapFee = ref(0);
 
 const liquiStakeTokens = {
   OSMO: {
@@ -180,7 +184,9 @@ onMounted(() => {
   if (liquiStakeTokens[coinList[selectedIndex.value].ticker as keyof typeof liquiStakeTokens]) {
     liqudStakeShow.value = true;
   }
-})
+
+  setSwapFee();
+});
 
 const props = defineProps({
   modelValue: {
@@ -199,6 +205,15 @@ watch(() => props.modelValue.leaseApply, (value) => {
     tottalValue.value = value.total;
   }
 });
+
+watch(() => props.modelValue.selectedCurrency, (value) => {
+  setSwapFee();
+});
+
+const setSwapFee = async () => {
+  const asset = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
+  swapFee.value = (await ApptUtils.getSwapFee())[asset.ticker] ?? 0;
+}
 
 const handleDownPaymentChange = (value: string) => {
   props.modelValue.downPayment = value;
@@ -242,8 +257,10 @@ const calculateMarginAmount = computed(() => {
     const ibcDenom = wallet.getIbcDenomBySymbol(asset.symbol);
     const info = wallet.getCurrencyInfo(ibcDenom as string);
 
+    const t = new Dec(total.amount).mul(new Dec(1).sub(new Dec(swapFee.value)));
+
     const token = CurrencyUtils.convertMinimalDenomToDenom(
-      total.amount,
+      t.truncate().toString(),
       info.coinMinimalDenom as string,
       info.shortName as string,
       info.coinDecimals

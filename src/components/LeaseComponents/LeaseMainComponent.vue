@@ -280,7 +280,7 @@ const validateMinMaxValues = (): boolean => {
   const currentBalance = getCurrentBalanceByDenom(selectedDownPaymentDenom);
 
   const currency = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom);
-  const range = downPaymentRange[currency.ticker];
+  const range = downPaymentRange?.[currency.ticker];
 
   if (currentBalance) {
 

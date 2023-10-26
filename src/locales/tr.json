@@ -326,7 +326,7 @@
     "timestamp": "TIMESTAMP",
     "price-per-symbol": "Price per {symbol}",
     "free-interest": "0% Interest",
-    "free-interest-tooltip": "Interest is repaid by Nolus on an hourly basis. This promo is valid until {dateTime}",
+    "free-interest-tooltip": "Interest is repaid by Nolus on an hourly basis.",
     "outstanding-debt-tooltip": "This amount represents the sum of the due principal, the accumulated interest, and a swap fee of {fee}%",
     "zero-banner-title": "Zero In With 0% Interest!",
     "zero-banner-description": "Open a DeFi Lease from Oct 1 to Nov 30 and enjoy up to 60 days without any interest. Make your move!",
@@ -339,6 +339,7 @@
     "position-left": "Remaining",
     "usdc-payout": "USDC Payout",
     "usdc-payout-tooltip": "Estimated USDC amount to be received after deducting Outstanding Debt",
-    "min-amount-allowed": "The minimum allowed {currency} amount is {amount}"
+    "min-amount-allowed": "The minimum allowed {currency} amount is {amount}",
+    "lease-swap-fee-tooltip": "Estimated position size after deducting a {swap_fee}% charged by the DEX"
   }
 }    

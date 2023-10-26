@@ -1,25 +1,19 @@
 <template>
   <template v-if="type == CURRENCY_VIEW_TYPES.CURRENCY">
     <span :class="[`text-${fontSize}`, $attrs.class]">
-      <template v-if="isDenomInfront"
-        >{{ amount.denom }}<template v-if="hasSpace">&nbsp;</template></template
-      >{{ amount.beforeDecimal }}
+      <template v-if="isDenomInfront">{{ amount.denom }}<template v-if="hasSpace">&nbsp;</template></template>{{
+        amount.beforeDecimal }}
     </span>
-    <span :class="[`text-${smallFontSize}`, $attrs.class]"
-      >{{ amount.afterDecimal
-      }}<template v-if="!isDenomInfront"
-        ><template v-if="hasSpace">&nbsp;</template>{{ amount.denom }}</template
-      >
+    <span :class="[`text-${smallFontSize}`, $attrs.class]">{{ amount.afterDecimal
+    }}<template v-if="!isDenomInfront"><template v-if="hasSpace">&nbsp;</template>{{ amount.denom }}</template>
     </span>
   </template>
   <template v-if="type == CURRENCY_VIEW_TYPES.TOKEN">
     <span :class="[`text-${fontSize}`, $attrs.class]">{{
       amount.beforeDecimal
     }}</span>
-    <span :class="[`text-${smallFontSize}`, $attrs.class]"
-      >{{ amount.afterDecimal }}<template v-if="hasSpace">&nbsp;</template
-      >{{ amount.denom }}</span
-    >
+    <span :class="[`text-${smallFontSize}`, $attrs.class]">{{ amount.afterDecimal }}<template
+        v-if="hasSpace">&nbsp;</template>{{ amount.denom }}</span>
   </template>
 </template>
 
@@ -73,7 +67,7 @@ const props = defineProps({
 });
 
 const smallFontSize = computed(() => {
-  if(props.fontSizeSmall){
+  if (props.fontSizeSmall) {
     return props.fontSizeSmall;
   }
   return props.fontSize - 2;
@@ -84,9 +78,9 @@ const amount = computed(() => {
     case CURRENCY_VIEW_TYPES.CURRENCY: {
       let numberAmount = Number(props.amount);
 
-      if(numberAmount == 0 && props.defaultZeroValue){
+      if (numberAmount == 0 && props.defaultZeroValue) {
         return {
-        denom: props.defaultZeroValue,
+          denom: props.defaultZeroValue,
           beforeDecimal: '',
           afterDecimal: '',
         };
@@ -123,19 +117,24 @@ const amount = computed(() => {
       const denom = token.denom;
       const amount = token.hideDenom(true).toString();
       let [beforeDecimal, afterDecimal] = amount.split(".");
-
       if (props.maxDecimals > 0 && afterDecimal?.length > props.maxDecimals) {
         const pow = 10 ** props.maxDecimals;
         const after = Number(`0.${afterDecimal}`);
         const decimals = (Math.round(after * pow) / pow).toString();
-
         let [_value, afterParsed] = decimals.split(".");
+
 
         if (afterParsed == null) {
           afterParsed = "0".repeat(props.maxDecimals);
         }
 
         afterDecimal = afterParsed;
+
+        if (afterDecimal.length < props.maxDecimals) {
+          const d = "0".repeat(props.maxDecimals - afterDecimal.length);
+          afterDecimal = `${afterDecimal}${d}`;
+        }
+
       }
 
       if (afterDecimal?.length > 0) {
@@ -161,15 +160,18 @@ span {
   &.text-40 {
     font-size: 40px;
   }
+
   &.text-38 {
     font-size: 34px;
   }
 }
+
 @media (max-width: 576px) {
   span {
     &.text-40 {
       font-size: 32px;
     }
+
     &.text-38 {
       font-size: 28px;
     }

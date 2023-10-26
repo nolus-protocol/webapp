@@ -105,6 +105,7 @@
                 @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
                 @input="handleAmountChange($event)"
                 :balance="formatCurrentBalance(selectedCurrency)"
+                :total="total"
               />
             </div>
 
@@ -157,7 +158,7 @@ import { Decimal } from "@cosmjs/math";
 import { externalWalletOperation, externalWallet } from "../utils";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
-import { Dec } from "@keplr-wallet/unit";
+import { Dec, Coin as KeplrCoin } from "@keplr-wallet/unit";
 import { useApplicationStore } from "@/stores/application";
 import type { ExternalCurrencyType } from "@/types/CurreciesType";
 
@@ -541,4 +542,16 @@ const setAmount = (p: number) => {
   const value = data.mul(percent);
   amount.value = value.toString(asset.coinDecimals);
 };
+
+const total = computed(() => {
+  if(selectedCurrency.value){
+    const asset = walletStore.getCurrencyByTicker(
+      selectedCurrency.value.ticker!
+    );
+    if(asset){
+      const ibc = AssetUtils.makeIBCMinimalDenom(asset.ibc_route, asset.symbol);
+      return new KeplrCoin(ibc, selectedCurrency.value.balance.amount);
+    }
+  }
+})
 </script>

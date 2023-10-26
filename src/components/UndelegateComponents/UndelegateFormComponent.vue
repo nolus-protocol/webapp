@@ -15,6 +15,7 @@
           :label="$t('message.amount')"
           :balance="formatCurrentBalance()"
           :set-input-value="setAmount"
+          :total="props.modelValue.delegated!"
           name="amountSupply"
           @input="handleAmountChange($event)"
           @update-currency="(event) => (modelValue.selectedCurrency = event)"
@@ -116,7 +117,7 @@ const setAmount = (p: number) => {
       props.modelValue.selectedCurrency.balance.denom
     );
     const percent = new Dec(p).quo(new Dec(100));
-    const amount = CurrencyUtils.convertMinimalDenomToDenom(props.modelValue.delegated.amount, asset.coinMinimalDenom, asset.coinDenom, asset.coinDecimals).toDec();
+    const amount = CurrencyUtils.convertMinimalDenomToDenom(props.modelValue.delegated.amount.toString(), asset.coinMinimalDenom, asset.coinDenom, asset.coinDecimals).toDec();
     const value = amount.mul(percent);
     props.modelValue.amount = value.toString(asset.coinDecimals);
   }

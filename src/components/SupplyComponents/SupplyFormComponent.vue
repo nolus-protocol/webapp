@@ -17,6 +17,7 @@
           :value="modelValue.amount"
           :label="$t('message.amount')"
           :balance="formatCurrentBalance(modelValue.selectedCurrency)"
+          :total="modelValue.selectedCurrency.balance"
           :set-input-value="setAmount"
           name="amountSupply"
           @input="handleAmountChange($event)"

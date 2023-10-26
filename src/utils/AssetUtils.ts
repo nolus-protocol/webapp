@@ -71,8 +71,7 @@ export class AssetUtils {
 
   public static getAssetInfoByDenom(denom: string) {
     const wallet = useWalletStore();
-    const ibcDenom = wallet.getIbcDenomBySymbol(denom);
-    const asset = wallet.getCurrencyInfo(ibcDenom as string);
+    const asset = wallet.getCurrencyInfo(denom as string);
     return asset;
   }
 
@@ -97,7 +96,6 @@ export class AssetUtils {
     }
 
     const decimals = AssetUtils.getDecimals(a);
-
     if (decimals < 0) {
 
       if (info.coinDecimals > MAX_DECIMALS) {
@@ -106,6 +104,7 @@ export class AssetUtils {
 
       return info.coinDecimals;
     }
+
 
     return decimals
   }
