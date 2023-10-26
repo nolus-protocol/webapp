@@ -1,5 +1,5 @@
 import type { AssetBalance } from "@/stores/wallet/state";
-import type { Coin } from "@keplr-wallet/unit";
+import type { Coin } from "@cosmjs/amino";
 
 export interface UndelegateFormComponentProps {
   amountErrorMsg: string;

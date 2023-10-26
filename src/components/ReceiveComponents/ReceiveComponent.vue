@@ -544,14 +544,15 @@ const setAmount = (p: number) => {
 };
 
 const total = computed(() => {
-  if(selectedCurrency.value){
+  if (selectedCurrency.value) {
     const asset = walletStore.getCurrencyByTicker(
       selectedCurrency.value.ticker!
     );
-    if(asset){
+    if (asset) {
       const ibc = AssetUtils.makeIBCMinimalDenom(asset.ibc_route, asset.symbol);
       return new KeplrCoin(ibc, selectedCurrency.value.balance.amount);
     }
   }
+  return undefined;
 })
 </script>
