@@ -326,7 +326,7 @@
     "timestamp": "TIMESTAMP",
     "price-per-symbol": "Price per {symbol}",
     "free-interest": "0% Interest",
-    "free-interest-tooltip": "Interest is repaid by Nolus on an hourly basis.",
+    "free-interest-tooltip": "Interest is offset every 3 hours ",
     "outstanding-debt-tooltip": "This amount includes both the outstanding debt and a swap fee of {fee}%",
     "zero-banner-title": "Zero In With 0% Interest!",
     "zero-banner-description": "Open a DeFi Lease until January 31st and take advantage of up to 98 interest-free days. Milk it!",
