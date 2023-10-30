@@ -12,6 +12,8 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --ignore-path .gitignore"
   },
   "dependencies": {
+    "@0xsquid/sdk": "^1.14.4",
+    "@0xsquid/squid-types": "^0.1.30",
     "@cosmjs/amino": "0.31.1",
     "@cosmjs/cosmwasm-stargate": "0.31.1",
     "@cosmjs/crypto": "0.31.1",
@@ -40,7 +42,9 @@
     "cosmjs-types": "^0.8.0",
     "crypto-js": "^4.1.1",
     "date-fns": "^2.30.0",
+    "ethers": "^6.8.0",
     "events": "^3.3.0",
+    "npm": "^10.2.1",
     "pinia": "^2.1.3",
     "process": "^0.11.10",
     "qrcode.vue": "^3.4.0",

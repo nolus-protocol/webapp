@@ -318,6 +318,11 @@ if (!isDev()) {
   }
 }
 
+export const SquidRouter = {
+  integratorId: 'nolus-sdk',
+  baseUrl: "https://v2.api.squidrouter.com",
+}
+
 export const minimumLeaseAmount = 1;
 export const languages = l;
 export const SUPPORTED_NETWORKS = ['NOLUS', 'OSMOSIS', 'COSMOS_HUB', 'AXELAR', 'STRIDE', 'JUNO', 'EVMOS', 'PERSISTENCE', 'SECRET'];
