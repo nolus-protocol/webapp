@@ -1,0 +1,22 @@
+{
+    "name": "Nolus Protocol",
+    "short_name": "Nolus",
+    "description": "Maximize your assets without amplifying risk – unleash the full potential of your leveraged holdings",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#EBEFF5",
+    "theme_color": "#082D63",
+    "lang": "en-US",
+    "categories": ["finance"],
+    "dir": "ltr",
+    "icons": [
+      {
+        "src": "https://nolus.io/other/pwa_nolus_logo_element.svg",
+        "type": "image/svg+xml"
+      },
+      {
+        "src": "https://nolus.io/other/pwa_nolus_logo_element.svg",
+        "type": "image/svg+xml"
+      }
+    ]
+  }

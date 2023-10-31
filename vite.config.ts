@@ -1,7 +1,6 @@
 
 import { fileURLToPath, URL } from 'node:url';
 import { defineConfig } from 'vite';
-import { VitePWA } from 'vite-plugin-pwa';
 
 import vue from '@vitejs/plugin-vue';
 import vueI18n from '@intlify/unplugin-vue-i18n/vite';
@@ -15,30 +14,6 @@ export default defineConfig({
       compositionOnly: true,
       strictMessage: false,
       runtimeOnly: false
-    }),
-    VitePWA({
-      injectRegister: false,
-      manifest: {
-        "name": "Nolus Protocol",
-        "short_name": "Nolus",
-        "description": "Maximize your assets without amplifying risk – unleash the full potential of your leveraged holdings",
-        "start_url": "/",
-        "display": "standalone",
-        "background_color": "#EBEFF5",
-        "theme_color": "#082D63",
-        "lang": "en-US",
-        "categories": ["finance"],
-        "icons": [
-          {
-            "src": "https://nolus.io/other/pwa_nolus_logo_element.svg",
-            "type": "image/svg+xml"
-          },
-          {
-            "src": "https://nolus.io/other/pwa_nolus_logo_element.svg",
-            "type": "image/svg+xml"
-          }
-        ]
-      },
     })
   ],
   resolve: {
