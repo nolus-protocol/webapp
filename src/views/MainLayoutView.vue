@@ -69,7 +69,7 @@ import { OracleActionTypes, useOracleStore } from "@/stores/oracle";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { WalletManager } from "@/utils";
 import { onMounted, onUnmounted, provide, ref, type Ref } from "vue";
-// import { Squid, } from "@0xsquid/sdk";
+import { Squid, } from "@0xsquid/sdk";
 
 import { SESSION_TIME, SNACKBAR, SquidRouter, UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL, } from "@/config/env";
 import { ApplicationActionTypes, useApplicationStore } from "@/stores/application";
@@ -98,7 +98,7 @@ onMounted(async () => {
   window.addEventListener('focus', stopTimer);
   window.addEventListener('blur', startTimer);
 
-  // test();
+  test();
 });
 
 onUnmounted(() => {
@@ -210,41 +210,41 @@ function refresh() {
   window.location.reload();
 }
 
-// async function test() {
-//   try {
-//     const squid = new Squid(SquidRouter);
-//     await squid.init();
-//     console.log(squid)
+async function test() {
+  try {
+    const squid = new Squid(SquidRouter);
+    await squid.init();
+    console.log(squid)
 
-//     const arbitrumChainId = "42161"; // Arbitrum
-//     const baseChainId = "8453"; // Base
-//     const nativeToken = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
-//     const baseUsdc = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+    const arbitrumChainId = "42161"; // Arbitrum
+    const baseChainId = "8453"; // Base
+    const nativeToken = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
+    const baseUsdc = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 
-//     // Define amount to be sent
-//     const amount = "10000000000000000";
+    // Define amount to be sent
+    const amount = "10000000000000000";
 
-//     const params = {
-//       fromAddress: '0xf5eeD07FeF19987A9f575C01F18e90F649eddB4A',
-//       fromChain: arbitrumChainId,
-//       fromToken: nativeToken,
-//       fromAmount: amount,
-//       toChain: baseChainId,
-//       toToken: baseUsdc,
-//       toAddress: '0xf5eeD07FeF19987A9f575C01F18e90F649eddB4A',
-//       slippage: 1,
-//       slippageConfig: {
-//         autoMode: 1,
-//       },
-//       quoteOnly: false,
-//     };
-//     const { route, requestId } = await squid.getRoute(params);
-//     console.log(route, requestId)
-//   } catch (e) {
-//     console.log(e)
-//   }
+    const params = {
+      fromAddress: '0xf5eeD07FeF19987A9f575C01F18e90F649eddB4A',
+      fromChain: arbitrumChainId,
+      fromToken: nativeToken,
+      fromAmount: amount,
+      toChain: baseChainId,
+      toToken: baseUsdc,
+      toAddress: '0xf5eeD07FeF19987A9f575C01F18e90F649eddB4A',
+      slippage: 1,
+      slippageConfig: {
+        autoMode: 1,
+      },
+      quoteOnly: false,
+    };
+    const { route, requestId } = await squid.getRoute(params);
+    console.log(route, requestId)
+  } catch (e) {
+    console.log(e)
+  }
 
-// }
+}
 
 provide("showSnackbar", showSnackbar);
 provide("snackbarVisible", snackbarVisible);
