@@ -35,7 +35,7 @@
     "@web3auth/no-modal": "^7.0.4",
     "@web3auth/openlogin-adapter": "^7.0.4",
     "browserify-zlib": "^0.2.0",
-    "chart.js": "^4.3.0",
+    "chart.js": "4.3.0",
     "chartjs-adapter-date-fns": "^3.0.0",
     "cosmjs-types": "^0.8.0",
     "crypto-js": "^4.1.1",
