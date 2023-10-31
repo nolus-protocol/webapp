@@ -96,7 +96,7 @@ const props = defineProps({
     default: {} as object,
   },
 });
-console.log(props)
+
 const networks = computed(() => {
   return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list;
 });

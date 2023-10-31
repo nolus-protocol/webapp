@@ -1172,7 +1172,6 @@ const checkPrice = async () => {
     const node = (await ApptUtils.getArchiveNodes());
     const req = await fetch(`${node.archive_node_rpc}/tx_search?query="wasm.lease_address='${props.leaseInfo.leaseAddress}'"&prove=true`);
     const data = await req.json();
-    console.log
     const item = data.result?.txs?.[0];
     if (item) {
       getBlock(item.height)
