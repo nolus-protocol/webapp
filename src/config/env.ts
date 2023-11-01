@@ -320,7 +320,7 @@ if (!isDev()) {
 
 export const SquidRouter = {
   integratorId: 'nolus-sdk',
-  baseUrl: "https://v2.api.squidrouter.com",
+  baseUrl: "https://api.squidrouter.com"
 }
 
 export const minimumLeaseAmount = 1;
