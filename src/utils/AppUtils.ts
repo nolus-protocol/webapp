@@ -1,4 +1,4 @@
-import { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL, NETWORKS, SWAP_FEE_URL, isDev, languages } from "@/config/env";
+import { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL, NETWORKS, OPEAN_LEASE_FEE_URL, SWAP_FEE_URL, isDev, languages } from "@/config/env";
 import { EnvNetworkUtils } from ".";
 import type { Endpoint, Status, Node, API, ARCHIVE_NODE } from "@/types/NetworkConfig";
 
@@ -19,6 +19,10 @@ export class ApptUtils {
     }>;
 
     static swapFee: Promise<{
+        [key: string]: number
+    }>;
+
+    static openLeaseFee: Promise<{
         [key: string]: number
     }>;
 
@@ -199,6 +203,27 @@ export class ApptUtils {
 
     private static async fetchSwapFee() {
         const data = await fetch(SWAP_FEE_URL);
+        const json = await data.json() as {
+            [key: string]: number
+        };
+
+        return json;
+    }
+
+    static async getOpenLeaseFee() {
+        const openLeaseFee = ApptUtils.openLeaseFee;
+
+        if (openLeaseFee) {
+            return openLeaseFee;
+        }
+
+        ApptUtils.openLeaseFee = ApptUtils.fetchOpenLeaseFee();
+        return ApptUtils.openLeaseFee;
+
+    }
+
+    private static async fetchOpenLeaseFee() {
+        const data = await fetch(OPEAN_LEASE_FEE_URL);
         const json = await data.json() as {
             [key: string]: number
         };

@@ -601,7 +601,7 @@ onUnmounted(() => {
 });
 
 async function setDownPaymentAssetFee() {
-  const fee = (await ApptUtils.getSwapFee())[leaseData.value?.downpaymentTicker as string] ?? 0;
+  const fee = (await ApptUtils.getOpenLeaseFee())[leaseData.value?.downpaymentTicker as string] ?? 0;
   downPaymentFee.value = new Dec(fee).mul(new Dec(leaseData.value?.downPayment ?? 0));
 }
 
