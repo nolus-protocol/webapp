@@ -125,7 +125,7 @@
             {{ selectedAssetPrice }}
           </p>
           <p class="text-[12px] mt-[5px] flex justify-end align-center dark-text">
-            ${{ downPaymentSwapFeeStable }}
+            -${{ downPaymentSwapFeeStable }}
           </p>
         </div>
       </div>
@@ -203,6 +203,7 @@ onMounted(() => {
   }
 
   setSwapFee();
+  setDownPaymentSwapFee();
 });
 
 const props = defineProps({
@@ -232,7 +233,7 @@ watch(() => [props.modelValue.selectedDownPaymentCurrency, props.modelValue.down
 
 const setSwapFee = async () => {
   const asset = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
-  swapFee.value = (await ApptUtils.getSwapFee())[asset.ticker] ?? 0;
+  swapFee.value = (await ApptUtils.getOpenLeaseFee())[asset.ticker] ?? 0;
 }
 
 const setDownPaymentSwapFee = async () => {
