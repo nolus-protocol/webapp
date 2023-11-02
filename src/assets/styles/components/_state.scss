@@ -39,10 +39,40 @@ div.state {
     }
 }
 
+.state-loading {
+    position: relative;
+    height: 1em;
+    background-color: #ebeff5;
+    display: block;
+    border-radius: 4px;
+    width: 100%;
+    margin-top: 10px;
+    overflow: hidden;
+
+    &::before {
+        content: "";
+        border-radius: 4px;
+        position: absolute;
+        height: 100%;
+        width: 40px;
+        animation: skeleton 800ms infinite;
+        background: rgb(201 201 201 / 15%);
+        filter: blur(8px);
+    }
+}
+
 body.sync {
     @media (prefers-color-scheme: dark) {
         div.status {
             background-color: #2B384B;
+        }
+
+        .state-loading {
+            background-color: #2B384B;
+
+            &::before {
+                background: #c9c9c917;
+            }
         }
     }
 }
@@ -51,39 +81,23 @@ body.dark {
     div.status {
         background-color: #2B384B;
     }
+
+    .state-loading {
+        background-color: #2B384B;
+
+        &::before {
+            background: #c9c9c917;
+        }
+    }
 }
 
-.state-loading {
-    position: relative;
-    width: 1em;
-    height: 1em;
-
-    &::after {
-        content: "";
-        display: block;
-        width: 1em;
-        height: 1em;
-        position: absolute;
-        left: 5px;
-        top: 0;
-        border: 2px solid $borderColor;
-        border-right-color: #2868E1;
-        border-radius: 50%;
-        animation: loading-animation 0.7s linear infinite;
-        opacity: 1;
+@keyframes skeleton {
+    0% {
+        left: 0;
     }
 
-    &::before {
-        content: "";
-        display: block;
-        width: 1em;
-        height: 1em;
-        position: absolute;
-        left: 5px;
-        top: 0;
-        border: 2px solid $borderColor;
-        border-radius: 50%;
-        opacity: 1;
+    100% {
+        left: calc(100% - 20px);
     }
 }
 

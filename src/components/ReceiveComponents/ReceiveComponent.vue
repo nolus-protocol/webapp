@@ -52,13 +52,13 @@
               <DocumentDuplicateIcon class="icon w-4 h-4" />
               {{ copyText }}
             </button>
-            <button
+            <!-- <button
               class="btn btn-secondary btn-medium-secondary btn-icon flex"
               @click="modelValue?.onScanClick"
             >
               <QrCodeIcon class="icon w-4 h-4" />
               {{ $t("message.show-barcode") }}
-            </button>
+            </button> -->
           </div>
         </div>
 

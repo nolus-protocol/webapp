@@ -397,6 +397,7 @@ const openLease = async () => {
 
         localStorage.setItem(data.value, JSON.stringify({
           downPayment: balance,
+          downpaymentTicker: downPaymentAsset.ticker,
           price: leaseAssetPrice,
           leasePositionTicker: ticker
         }));

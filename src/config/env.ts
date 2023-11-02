@@ -328,6 +328,7 @@ export const languages = l;
 export const SUPPORTED_NETWORKS = ['NOLUS', 'OSMOSIS', 'COSMOS_HUB', 'AXELAR', 'STRIDE', 'JUNO', 'EVMOS', 'PERSISTENCE', 'SECRET'];
 export const SWAP_FEE = 0.007;
 export const ZERO_DECIMALS = 6;
+export const USD_DECIMALS = 6;
 export const MAX_DECIMALS = 8;
 export const LedgerName = "Ledger";
 export const IGNORE_LEASE_ASSETS: string[] = [];
