@@ -577,7 +577,7 @@ const state = ref({
 onBeforeMount(() => {
   try {
     const data = JSON.parse(localStorage.getItem(props.leaseInfo.leaseAddress) ?? '{}');
-    if (data.downPayment && data.downpaymentTicker && data.price && data.leasePositionTicker) {
+    if (data.downPayment && data.downpaymentTicker && data.price && data.leasePositionTicker && !ApptUtils.isDev()) {
       leaseData.value = data
       setDownPaymentAssetFee();
     } else {
@@ -720,7 +720,7 @@ const loan = computed(() => {
 });
 
 const price = computed(() => {
-  return CurrencyUtils.formatPrice(getPrice().toString());
+  return CurrencyUtils.formatPrice(getPrice.value.toString());
 
 });
 
@@ -935,7 +935,7 @@ const pnl = computed(() => {
   const lease = props.leaseInfo.leaseStatus.opened ?? props.leaseInfo.leaseStatus.paid;
 
   if (lease) {
-    const price = getPrice();
+    const price = getPrice.value;
     const unitAssetInfo = walletStore.getCurrencyByTicker(lease.amount.ticker);
     const currentPrice = new Dec(oracleStore.prices?.[unitAssetInfo.symbol]?.amount ?? "0");
     const unitAsset = new Dec(lease.amount.amount, Number(unitAssetInfo.decimal_digits));
@@ -961,7 +961,7 @@ const pnl = computed(() => {
 
 });
 
-const getPrice = () => {
+const getPrice = computed(() => {
 
   const paidLease = props.leaseInfo.leaseStatus.paid;
 
@@ -994,7 +994,7 @@ const getPrice = () => {
   }
 
   return new Dec(0);
-}
+});
 
 const copy = () => {
   StringUtils.copyToClipboard(props.leaseInfo.leaseAddress);
@@ -1107,13 +1107,15 @@ const getBlock = async (block: string) => {
       ]);
       const downpaymentPrice = await fetchDownPaymentPrice(date, downpayment.opening.downpayment.ticker);
       const asset = AssetUtils.getAssetInfo(downpayment.opening.downpayment.ticker);
-      const coin = new Coin(asset.coinMinimalDenom, new Int(downpayment.opening.downpayment.amount));
-      const dprice = CurrencyUtils.calculateBalance(downpaymentPrice, coin, asset.coinDecimals);
+      const p = new Dec(downpaymentPrice);
+      const d = new Dec(downpayment.opening.downpayment.amount, asset.coinDecimals)
+
+      const dprice = d.mul(p);
       const res = {
         downpaymentTicker: downpayment.opening.downpayment.ticker,
         price: priceData.price,
         leasePositionTicker: ticker,
-        downPayment: dprice.toDec().toString()
+        downPayment: dprice.toString()
       };
 
       localStorage.setItem(props.leaseInfo.leaseAddress, JSON.stringify(res));
@@ -1135,7 +1137,6 @@ const fetchPrice = async (time: Date, ticker: string) => {
   const req = await fetch(`${CoinGecko.url}/coins/${asset.coinGeckoId}/history?date=${date}&vs_currency=usd&localization=false&x_cg_pro_api_key=${CoinGecko.key}`);
   const data = await req.json();
   const price = data.market_data.current_price.usd;
-
   return {
     price: price,
     leasePositionTicker: ticker

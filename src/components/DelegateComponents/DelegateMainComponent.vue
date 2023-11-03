@@ -216,14 +216,12 @@ async function delegate() {
 
 async function getValidators() {
   const delegatorValidators = await walletStore[WalletActionTypes.LOAD_DELEGATOR_VALIDATORS]();
-
   if (delegatorValidators.length > 0) {
     return delegatorValidators;
   }
 
   let validators = await walletStore[WalletActionTypes.LOAD_VALIDATORS]();
   let loadedValidators = [];
-
   if (validators.length > STAKING.SLICE) {
     validators = validators.slice(STAKING.SLICE).filter((item: any) => {
       const date = new Date(item.unbonding_time);
