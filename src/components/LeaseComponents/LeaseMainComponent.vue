@@ -168,7 +168,6 @@ const calculate = async () => {
         state.value.selectedDownPaymentCurrency.balance.denom,
         state.value.downPayment
       );
-
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
 
       const leaserClient = new Leaser(
@@ -187,7 +186,7 @@ const calculate = async () => {
         lease.ticker,
         state.value.ltd
       );
-
+      console.log(makeLeaseApplyResp)
       makeLeaseApplyResp.annual_interest_rate = makeLeaseApplyResp.annual_interest_rate / Math.pow(10, INTEREST_DECIMALS);
       makeLeaseApplyResp.annual_interest_rate_margin = makeLeaseApplyResp.annual_interest_rate_margin / Math.pow(10, INTEREST_DECIMALS);
 

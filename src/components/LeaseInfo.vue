@@ -577,7 +577,7 @@ const state = ref({
 onBeforeMount(() => {
   try {
     const data = JSON.parse(localStorage.getItem(props.leaseInfo.leaseAddress) ?? '{}');
-    if (data.downPayment && data.downpaymentTicker && data.price && data.leasePositionTicker && !ApptUtils.isDev()) {
+    if (data.downPayment && data.downpaymentTicker && data.price && data.leasePositionTicker) {
       leaseData.value = data
       setDownPaymentAssetFee();
     } else {
@@ -1083,7 +1083,7 @@ const checkPrice = async () => {
     const data = await req.json();
     const item = data.result?.txs?.[0];
     if (item) {
-      getBlock(item.height)
+      getBlock(item?.height)
     }
 
   } catch (error) {
