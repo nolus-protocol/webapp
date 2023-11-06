@@ -221,7 +221,6 @@ async function getValidators() {
   }
 
   let validators = await walletStore[WalletActionTypes.LOAD_VALIDATORS]();
-  console.log
   let loadedValidators = [];
   if (validators.length > STAKING.SLICE) {
     validators = validators.slice(STAKING.SLICE).filter((item: any) => {

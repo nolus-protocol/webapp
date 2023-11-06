@@ -336,7 +336,7 @@ export const IGNORE_TRANSFER_ASSETS: string[] = [];
 export const IGNORE_LEASES: string[] = ["nolus1suz0vsqe8c8anckaer98awhqs8r4hu7wsm8a49acdl39x6ylfypsqywxwh", "nolus1q2ekwjj87jglqsszwy6ah5t08h0k8kq67ed0l899sku2qt0dztpsnwt6sw"];
 
 export const SUPPORT_URL = 'https://hub.nolus.io';
-export const ETL_API = "http://localhost:8081/api"
+export const ETL_API = "https://etl-cl.nolus.network:8080/api"
 export const DOWNPAYMENT_RANGE_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/downpayment-range.json';
 export const SWAP_FEE_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/swap-fee.json';
 export const OPEAN_LEASE_FEE_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/open-lease-fee.json';
