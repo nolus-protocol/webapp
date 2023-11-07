@@ -45,8 +45,8 @@
         },
         "fallback": [
             {
-                "rpc": "https://rpc-axelar.imperator.co:443",
-                "api": "https://lcd-axelar.imperator.co:443"
+                "rpc": "https://axelar-rpc.qubelabs.io:443",
+                "api": "https://axelar-lcd.qubelabs.io:443"
             }
         ]
     },
