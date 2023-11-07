@@ -318,7 +318,7 @@ if (!isDev()) {
   }
 }
 
-let filament =  {
+const filament =  {
   token: '1328330b-c9aa-46bd-aaf0-3330337f5400',
   url: "https://auxo.staging.numia.xyz/track"
 }
