@@ -115,7 +115,13 @@ const useWalletStore = defineStore("wallet", {
           this.wallet = nolusWalletOfflineSigner;
           this.walletName = (await keplrWindow.keplr.getKey(chainId)).name;
 
-          await this[WalletActionTypes.UPDATE_BALANCES]();
+          await Promise.all([
+            this[WalletActionTypes.UPDATE_BALANCES](),
+            // ApptUtils.event({
+            //   address: this.wallet.address as string,
+            //   name: "wallet_connected"
+            // })
+          ]);
 
           if (payload?.isFromAuth) {
             await router.push({ name: RouteNames.DASHBOARD });

@@ -1159,6 +1159,7 @@ const fetchDownPaymentPrice = async (time: Date, ticker: string) => {
 
 const fetchDownPayment = async (block: number) => {
   const node = (await ApptUtils.getArchiveNodes());
+  console.log(node.archive_node_rpc)
   const client = await Tendermint34Client.connect(node.archive_node_rpc);
 
   const data = QuerySmartContractStateRequest.encode({

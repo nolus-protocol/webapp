@@ -1,6 +1,7 @@
-import { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL, NETWORKS, OPEAN_LEASE_FEE_URL, SWAP_FEE_URL, isDev, languages } from "@/config/env";
+import { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL, Filament, NETWORKS, OPEAN_LEASE_FEE_URL, SWAP_FEE_URL, isDev, languages } from "@/config/env";
 import { EnvNetworkUtils } from ".";
 import type { Endpoint, Status, Node, API, ARCHIVE_NODE } from "@/types/NetworkConfig";
+import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 
 export class ApptUtils {
 
@@ -64,7 +65,7 @@ export class ApptUtils {
 
     static async fetchEndpoints(network: string) {
         const net = ApptUtils.rpc?.[EnvNetworkUtils.getStoredNetworkName()]?.[network];
-        
+
         if (net) {
             return net;
         }
@@ -84,7 +85,7 @@ export class ApptUtils {
 
         if (node) {
             return node;
-        }        
+        }
         const archive = ApptUtils.fetchArchiveNodes();
         ApptUtils.archive_node[EnvNetworkUtils.getStoredNetworkName()] = archive;
 
@@ -93,12 +94,12 @@ export class ApptUtils {
     }
 
     private static async fetchArchiveNodes(): Promise<ARCHIVE_NODE> {
- 
+
         const config = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
         const data = await fetch(config.endpoints);
         const json = await data.json() as Endpoint;
 
-       const archive = {
+        const archive = {
             archive_node_rpc: json.archive_node_rpc,
             archive_node_api: json.archive_node_api
         };
@@ -106,7 +107,7 @@ export class ApptUtils {
         return archive;
 
     }
-    
+
 
     private static async fetch(network: string) {
         const config = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
@@ -142,18 +143,14 @@ export class ApptUtils {
 
     private static async fetchStatus(rpc: string, dtime: number) {
         try {
-            const items = await fetch(`${rpc}/status`);
-
-            if (!items.ok) {
-                return false;
-            }
-
-            const status = await items.json() as Status;
-            const date = new Date(status.result.sync_info.latest_block_time);
+            const client = await Tendermint34Client.connect(rpc);
+            const status = await client.status();
+            const date = status.syncInfo.latestBlockTime;
             const now = new Date().getTime();
             const downtime = dtime * 1000;
 
             if ((now - date.getTime()) <= downtime) {
+                client.disconnect();
                 return true;
             }
         } catch (error) {
@@ -250,6 +247,43 @@ export class ApptUtils {
         };
 
         return json;
+    }
+
+    static async event(ev: {
+        address: string,
+        name: string,
+        data?: {
+            [key: string]: any
+        }
+    }) {
+        try {
+            const body = ev.data ?? {};
+            const data = await fetch(Filament.url, {
+
+                method: "POST",
+                headers: {
+                    "Accept": "application/json",
+                    "Authorization": `Bearer ${Filament.token}`,
+                },
+                body: JSON.stringify({
+                    name: ev.name,
+                    identity: {
+                        type: "address",
+                        id: ev.address
+                    },
+                    attributes: {
+                        ...body
+                    },
+                    timestamp: Date.now()
+                })
+            });
+  
+            const json = await data.json();
+        } catch (error) {
+            console.log(error)
+        }
+
+
     }
 
 }
