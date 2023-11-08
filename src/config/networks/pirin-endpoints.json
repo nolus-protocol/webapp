@@ -28,25 +28,25 @@
     },
     "COSMOS_HUB": {
         "primary": {
-            "rpc": "https://rpc-cosmoshub-ia.cosmosia.notional.ventures",
-            "api": "https://api-cosmoshub-ia.cosmosia.notional.ventures"
+            "rpc": "https://rpc.cosmoshub.strange.love",
+            "api": "https://rest-cosmoshub.architectnodes.com"
         },
         "fallback": [
             {
-                "rpc": "https://rpc-cosmoshub.architectnodes.com",
-                "api": "https://rest-cosmoshub.architectnodes.com"
+                "rpc": "https://cosmoshub-rpc.lavenderfive.com:443",
+                "api": "https://cosmoshub-api.lavenderfive.com:443"
             }
         ]
     },
     "AXELAR": {
         "primary": {
-            "rpc": "https://rpc-axelar-ia.cosmosia.notional.ventures",
-            "api": "https://api-axelar-ia.cosmosia.notional.ventures"
+            "rpc": "https://rpc-axelar.imperator.co:443",
+            "api": "https://lcd-axelar.imperator.co:443"
         },
         "fallback": [
             {
-                "rpc": "https://axelar-rpc.qubelabs.io:443",
-                "api": "https://axelar-lcd.qubelabs.io:443"
+                "rpc": "https://axelar-rpc.polkachu.com",
+                "api": "https://axelar-api.polkachu.com"
             }
         ]
     },
