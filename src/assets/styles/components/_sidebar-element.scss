@@ -1,7 +1,8 @@
 .stats-color {
   color: #082D63;
   fill: #082D63;
-  &.active{
+
+  &.active {
     color: #FF562E !important;
     fill: #FF562E !important;
   }
@@ -496,7 +497,7 @@ body.sync {
   @media (prefers-color-scheme: dark) {
 
     .stats-color {
-      color: #8396B1;
+      color: white;
       fill: #8396B1;
     }
 
@@ -590,7 +591,7 @@ body.sync {
 body.dark {
 
   .stats-color {
-    color: #8396B1;
+    color: white;
     fill: #8396B1;
   }
 
