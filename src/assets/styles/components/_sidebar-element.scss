@@ -1,6 +1,7 @@
 .stats-color {
   color: #082D63;
   fill: #082D63;
+  transition: ease 200ms;
 
   &.active {
     color: #FF562E !important;
@@ -501,6 +502,12 @@ body.sync {
       fill: #8396B1;
     }
 
+    .stats-link:hover {
+      p {
+        color: #8396B1;
+      }
+    }
+
     .nls-nav-link {
       border-color: #2B384B !important;
     }
@@ -593,6 +600,12 @@ body.dark {
   .stats-color {
     color: white;
     fill: #8396B1;
+  }
+
+  .stats-link:hover {
+    p {
+      color: #8396B1;
+    }
   }
 
   .nls-nav-link {

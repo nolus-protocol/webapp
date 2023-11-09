@@ -104,13 +104,13 @@
   <div class="lg:col-span-3 absolute inset-x-0 bottom-0 mb-6 ml-8 hidden md:grid fixed">
     <div class="flex flex-col mb-[6px] ml-[4px]">
       <a target="_blank"
-         class="flex items-center mb-[4px]"
+         class="flex items-center mb-[4px] stats-link"
          href="https://hub.nolus.io">
         <Hat class="stats-color" />
         <p class="text-12 nls-font-500 stats-color">{{ $t('message.support') }}</p>
       </a>
       <a @click="pushTo(RouteNames.STATS)"
-         class="cursor-pointer select-none flex items-center ml-[4px] mb-[4px]">
+         class="cursor-pointer select-none flex items-center ml-[4px] mb-[4px] stats-link">
         <Stats :class="{ active: $route.name == RouteNames.STATS }"
                class="stats-color" />
         <p :class="{ active: $route.name == RouteNames.STATS }"
