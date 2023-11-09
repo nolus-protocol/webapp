@@ -1,3 +1,12 @@
+.stats-color {
+  color: #082D63;
+  fill: #082D63;
+  &.active{
+    color: #FF562E !important;
+    fill: #FF562E !important;
+  }
+}
+
 .sidebar-container {
   display: inline-flex;
   flex-direction: column;
@@ -485,6 +494,12 @@ body.sync {
 
 
   @media (prefers-color-scheme: dark) {
+
+    .stats-color {
+      color: #8396B1;
+      fill: #8396B1;
+    }
+
     .nls-nav-link {
       border-color: #2B384B !important;
     }
@@ -573,6 +588,11 @@ body.sync {
 }
 
 body.dark {
+
+  .stats-color {
+    color: #8396B1;
+    fill: #8396B1;
+  }
 
   .nls-nav-link {
     border-color: #2B384B !important;

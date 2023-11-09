@@ -319,7 +319,6 @@ const useWalletStore = defineStore("wallet", {
               decimal_digits: currency.decimal_digits
             };
             this.currencies[ibcDenom] = data;
-
             const item = {
               balance: CurrencyUtils.convertCosmosCoinToKeplCoin(coin('0', ibcDenom)),
             };
@@ -340,6 +339,7 @@ const useWalletStore = defineStore("wallet", {
             currency.ibc_route,
             currency.symbol
           );
+          console.log(key, ibcDenom)
 
           ibcBalances.push(
             NolusClient.getInstance()
