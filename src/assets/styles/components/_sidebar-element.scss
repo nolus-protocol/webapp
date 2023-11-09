@@ -1,6 +1,6 @@
 .stats-color {
-  color: #082D63;
-  fill: #082D63;
+  color: $dark;
+  fill: $dark;
   transition: ease 200ms;
 
   &.active {
@@ -118,6 +118,16 @@
 
   @media (max-width: $lg) {
     position: fixed;
+
+    .sidebar-element {
+      &.active {
+
+        .icon,
+        span {
+          color: $orange !important;
+        }
+      }
+    }
   }
 }
 
@@ -141,7 +151,7 @@
     margin-top: 12.62px;
     margin-bottom: 11.62px;
     margin-right: 6.5px;
-    color: $lightBlue;
+    color: $dark;
     transition: 0.3s;
 
     &.icon-lease {
@@ -152,11 +162,11 @@
 
   }
 
-  &:hover {
-    .icon {
-      color: $dark !important;
-    }
-  }
+  // &:hover {
+  //   // .icon {
+  //   //   color: $dark !important;
+  //   // }
+  // }
 
   @media (min-width: $lg) {
     font-size: 16px;
@@ -173,23 +183,23 @@
   &.active {
     color: $orange !important;
 
-    &:hover {
-      .icon {
-        color: $brand-accent !important;
-      }
-    }
+    // &:hover {
+    //   .icon {
+    //     color: $brand-accent !important;
+    //   }
+    // }
 
-    .icon {
-      color: $brand-accent;
-    }
+    // .icon {
+    //   color: $brand-accent;
+    // }
   }
 
   &:active {
     color: $orange !important;
 
-    .icon {
-      color: $orange !important;
-    }
+    // .icon {
+    //   color: $orange !important;
+    // }
   }
 
   span {
@@ -197,6 +207,7 @@
 
     @media (min-width: $lg) {
       display: inline-block;
+
     }
   }
 }
@@ -482,11 +493,11 @@
     .sidebar-element {
       &:hover {
         background-color: transparent;
-        color: $orange;
+        // color: $orange;
 
-        .icon {
-          color: $orange !important;
-        }
+        // .icon {
+        //   color: $orange !important;
+        // }
       }
     }
   }
@@ -530,24 +541,28 @@ body.sync {
     }
   }
 
+
   .sidebar-element {
     @media (prefers-color-scheme: dark) {
       color: $white;
 
-      &:hover {
-        .icon {
-          color: $lightBlue !important;
-        }
+      .icon {
+        color: $lightBlue;
+      }
 
-        color: $lightBlue !important;
+
+      &:hover {
+        // .icon {
+        //   color: $lightBlue !important;
+        // }
+
+        color: $lightBlue;
       }
     }
 
     @media (prefers-color-scheme: dark) {
       &:active {
-        .icon {
-          color: $orange !important;
-        }
+        color: $orange !important;
       }
     }
 
@@ -630,12 +645,16 @@ body.dark {
   .sidebar-element {
     color: $white;
 
-    &:hover {
-      .icon {
-        color: $lightBlue !important;
+    .icon {
+      color: $lightBlue;
+    }
+
+    @media (min-width: $lg) {
+
+      &:hover {
+        color: $lightBlue ;
       }
 
-      color: $lightBlue !important;
     }
 
     &:active {

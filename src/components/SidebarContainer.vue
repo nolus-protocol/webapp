@@ -23,13 +23,13 @@
                             @click="openExternal(SUPPORT_URL, '_blank')" />
           </div>
           <div class="nls-nav-link flex flex-start nls-md-flex-row mt-[6px]">
-            <SidebarElement id="governance"
+            <SidebarElement id="vote-v2"
                             :label="$t('message.vote')"
                             target="_blank"
                             @click="openExternal(governUrl, '_blank')" />
           </div>
           <div class="nls-nav-link flex flex-start nls-md-flex-row mb-[112px]">
-            <SidebarElement id="history"
+            <SidebarElement id="history-v2"
                             href="/history"
                             :label="$t('message.history')"
                             @click="pushTo(RouteNames.HISTORY)" />
@@ -39,38 +39,38 @@
         <!-- DESKTOP -->
         <div class="md:flex md:justify-between sidebar-elements-block lg:block task-bar">
           <div class="block nls-nav-link icon">
-            <SidebarElement id="assets"
+            <SidebarElement id="asset-v2"
                             href="/"
                             :label="$t('message.assets')"
                             @click="pushTo(RouteNames.DASHBOARD)" />
           </div>
           <div class="block nls-nav-link icon">
-            <SidebarElement id="lease"
+            <SidebarElement id="lease-v2"
                             href="/lease"
                             :label="$t('message.lease')"
                             @click="pushTo(RouteNames.LEASE)" />
           </div>
           <div class="block nls-nav-link icon">
             <SidebarElement v-if="ApptUtils.isDev()"
-                            id="trade"
+                            id="swap-v2"
                             href="#"
                             :label="$t('message.swap')"
                             @click="openSwapModal" />
           </div>
           <div class="block nls-nav-link icon">
-            <SidebarElement id="earn"
+            <SidebarElement id="earn-v2"
                             href="/earn"
                             :label="$t('message.earn')"
                             @click="pushTo(RouteNames.EARN)" />
           </div>
           <div class="block nls-nav-link icon nls-md-hidden">
-            <SidebarElement id="history"
+            <SidebarElement id="history-v2"
                             href="/history"
                             :label="$t('message.history')"
                             @click="pushTo(RouteNames.HISTORY)" />
           </div>
           <div class="block nls-nav-link icon nls-md-hidden">
-            <SidebarElement id="governance"
+            <SidebarElement id="vote-v2"
                             :label="$t('message.vote')"
                             @click="openExternal(governUrl, '_blank')" />
           </div>
