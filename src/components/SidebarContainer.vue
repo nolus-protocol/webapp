@@ -118,9 +118,8 @@
       </a>
     </div>
     <p class="nls-font-500 text-12 text-dark-grey text-upper pl-2">
-      {{ applicaton.network.networkName }} #<template v-if="block > 0">{{ block }}</template>
+      #<template v-if="block > 0">{{ block }} v{{ version }}</template>
     </p>
-    <p class="garet-medium text-12 text-dark-grey pl-2">v{{ version }}</p>
   </div>
 
   <Modal v-if="showSwapModal"
