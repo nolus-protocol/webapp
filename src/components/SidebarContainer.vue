@@ -101,7 +101,7 @@
     </div>
   </div>
 
-  <div class="lg:col-span-3 absolute inset-x-0 bottom-0 mb-6 ml-8 hidden md:grid fixed">
+  <div class="lg:col-span-3 inset-x-0 bottom-0 mb-6 ml-8 hidden md:grid fixed max-w-[190px]">
     <div class="flex flex-col mb-[6px] ml-[4px]">
       <a target="_blank"
          class="flex items-center mb-[4px] stats-link"
