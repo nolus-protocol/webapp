@@ -150,7 +150,7 @@
     font-size: 1.8em;
     margin-top: 12.62px;
     margin-bottom: 11.62px;
-    margin-right: 6.5px;
+    margin-right: 8.5px;
     color: $dark;
     transition: 0.3s;
 
@@ -191,17 +191,17 @@
     //   }
     // }
 
-    // .icon {
-    //   color: $brand-accent;
-    // }
+    .icon {
+      color: $orange;
+    }
   }
 
   &:active {
     color: $orange !important;
 
-    // .icon {
-    //   color: $orange !important;
-    // }
+    .icon {
+      color: $orange !important;
+    }
   }
 
   span {
@@ -563,8 +563,11 @@ body.sync {
     }
 
     @media (prefers-color-scheme: dark) {
-      &:active {
+      &:active, &.active {
         color: $orange !important;
+        .icon{
+          color: $orange !important;
+        }
       }
     }
 
@@ -659,7 +662,7 @@ body.dark {
 
     }
 
-    &:active {
+    &:active, &.active {
       .icon {
         color: $orange !important;
       }
