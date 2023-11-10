@@ -142,7 +142,7 @@
   border-radius: 12px;
   position: relative;
   font-size: 16px;
-  line-height: 23px;
+  line-height: 18px;
   font-family: "Garet-Medium", sans-serif;
   transition: 0.3s;
 
@@ -154,10 +154,12 @@
     color: $dark;
     transition: 0.3s;
 
-    &.icon-lease {
+    @media (min-width: $lg) {
+
       &::before {
-        font-size: 26px;
+        font-size: 22px !important;
       }
+
     }
 
   }
@@ -176,7 +178,7 @@
     font-family: "Garet-Medium", sans-serif;
 
     &:not(.icon) {
-      line-height: 23px;
+      line-height: 14 px;
     }
   }
 
