@@ -1,39 +1,33 @@
 <template>
   <!-- Input Area -->
-  <form
-    @submit.prevent="submit"
-    class="modal-form"
-  >
+  <form @submit.prevent="submit"
+        class="modal-form">
     <div class="modal-send-receive-input-area">
 
       <div class="block text-left">
         <div class="block">
-          <CurrencyField
-            id="amount-investment"
-            :currency-options="balances"
-            :error-msg="modelValue.downPaymentErrorMsg"
-            :is-error="modelValue.downPaymentErrorMsg !== ''"
-            :option="modelValue.selectedDownPaymentCurrency"
-            :value="modelValue.downPayment"
-            :label="$t('message.down-payment-uppercase')"
-            name="amountInvestment"
-            :tooltip="$t('message.down-payment-tooltip')"
-            :balance="formatCurrentBalance(modelValue.selectedDownPaymentCurrency)"
-            :total="modelValue.selectedDownPaymentCurrency.balance"
-            :set-input-value="setAmount"
-            @input="handleDownPaymentChange($event)"
-            @update-currency="(event) => (modelValue.selectedDownPaymentCurrency = event)"
-          />
+          <CurrencyField id="amount-investment"
+                         :currency-options="balances"
+                         :error-msg="modelValue.downPaymentErrorMsg"
+                         :is-error="modelValue.downPaymentErrorMsg !== ''"
+                         :option="modelValue.selectedDownPaymentCurrency"
+                         :value="modelValue.downPayment"
+                         :label="$t('message.down-payment-uppercase')"
+                         name="amountInvestment"
+                         :tooltip="$t('message.down-payment-tooltip')"
+                         :balance="formatCurrentBalance(modelValue.selectedDownPaymentCurrency)"
+                         :total="modelValue.selectedDownPaymentCurrency.balance"
+                         :set-input-value="setAmount"
+                         @input="handleDownPaymentChange($event)"
+                         @update-currency="(event) => (modelValue.selectedDownPaymentCurrency = event)" />
         </div>
 
         <div class="block mt-[25px]">
-          <Picker
-            class="scrollbar"
-            :default-option="coinList[selectedIndex]"
-            :options="coinList"
-            :label="$t('message.asset-to-lease')"
-            @update-selected="updateSelected"
-          />
+          <Picker class="scrollbar"
+                  :default-option="coinList[selectedIndex]"
+                  :options="coinList"
+                  :label="$t('message.asset-to-lease')"
+                  @update-selected="updateSelected" />
         </div>
       </div>
 
@@ -43,15 +37,13 @@
         </p>
         <p class="flex">
           ~{{ calculateMarginAmount }}
-          <TooltipComponent :content="$t('message.lease-swap-fee-tooltip', {swap_fee: swapFee * 100})" />
+          <TooltipComponent :content="$t('message.lease-swap-fee-tooltip', { swap_fee: swapFee * 100 })" />
         </p>
       </div>
 
-      <RangeComponent
-        class="py-4 my-2"
-        :disabled="false"
-        @on-drag="onDrag"
-      >
+      <RangeComponent class="py-4 my-2"
+                      :disabled="false"
+                      @on-drag="onDrag">
       </RangeComponent>
 
       <!-- <div
@@ -99,7 +91,8 @@
             ~{{ selectedAssetPrice }}
           </p> -->
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
-            <span v-if="annualInterestRate" class="text-[#8396B1] line-throught-gray">
+            <span v-if="annualInterestRate"
+                  class="text-[#8396B1] line-throught-gray">
               {{ annualInterestRate ?? 0 }}%
             </span>
             <span class="dark-text">0%</span>
@@ -111,6 +104,28 @@
               &nbsp;|&nbsp; {{ percentLique }}
             </span>
             <TooltipComponent :content="$t('message.liquidation-price-tooltip')" />
+          </p>
+        </div>
+      </div>
+
+      <div class="flex justify-end border-standart border-t pt-2">
+        <div class="grow-3 text-right nls-font-500 text-14 dark-text">
+          <p class="text-[12px] mt-2  mr-5">
+            {{ $t("message.price-per") }} {{ selectedAssetDenom }}
+          </p>
+          <p class="text-[12px] mt-2  mr-5">
+            {{ $t("message.swap-fee") }}
+            <span class="text-[#8396B1] nls-font-400">
+              ({{ downPaymentSwapFee * 100 }}%)
+            </span>
+          </p>
+        </div>
+        <div class="text-right nls-font-700 text-14">
+          <p class="text-[12px] mt-[5px] flex justify-end align-center dark-text">
+            {{ selectedAssetPrice }}
+          </p>
+          <p class="text-[12px] mt-[5px] flex justify-end align-center dark-text">
+            -${{ downPaymentSwapFeeStable }}
           </p>
         </div>
       </div>
@@ -141,7 +156,7 @@ import { onMounted, ref, type PropType } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { computed, watch } from "vue";
 import { useWalletStore } from "@/stores/wallet";
-import { NATIVE_NETWORK, calculateLiquidation, PERMILLE, IGNORE_LEASE_ASSETS } from "@/config/env";
+import { NATIVE_NETWORK, calculateLiquidation, PERMILLE, IGNORE_LEASE_ASSETS, USD_DECIMALS } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
@@ -157,6 +172,8 @@ const liqudStakeShow = ref(false);
 const selectedIndex = ref(0);
 const oracle = useOracleStore();
 const swapFee = ref(0);
+const downPaymentSwapFee = ref(0);
+const downPaymentSwapFeeStable = ref('0');
 
 const liquiStakeTokens = {
   OSMO: {
@@ -186,6 +203,7 @@ onMounted(() => {
   }
 
   setSwapFee();
+  setDownPaymentSwapFee();
 });
 
 const props = defineProps({
@@ -194,7 +212,6 @@ const props = defineProps({
     required: true,
   },
 });
-
 
 const borrowValue = ref(props.modelValue.leaseApply?.borrow);
 const tottalValue = ref(props.modelValue.leaseApply?.total);
@@ -210,9 +227,27 @@ watch(() => props.modelValue.selectedCurrency, (value) => {
   setSwapFee();
 });
 
+watch(() => [props.modelValue.selectedDownPaymentCurrency, props.modelValue.downPayment], (value) => {
+  setDownPaymentSwapFee();
+});
+
 const setSwapFee = async () => {
   const asset = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
-  swapFee.value = (await ApptUtils.getSwapFee())[asset.ticker] ?? 0;
+  swapFee.value = (await ApptUtils.getOpenLeaseFee())[asset.ticker] ?? 0;
+}
+
+const setDownPaymentSwapFee = async () => {
+  const asset = wallet.getCurrencyInfo(props.modelValue.selectedDownPaymentCurrency.balance.denom);
+  const currecy = wallet.getCurrencyByTicker(asset.ticker);
+
+  const price = oracle.prices[currecy.symbol];
+  const fee = (await ApptUtils.getOpenLeaseFee())[asset.ticker] ?? 0;
+
+  const value = new Dec(props.modelValue.downPayment.length == 0 ? 0 : props.modelValue.downPayment).mul(new Dec(price.amount)).mul(new Dec(fee));
+
+  downPaymentSwapFeeStable.value = value.toString(USD_DECIMALS);
+  downPaymentSwapFee.value = fee;
+  
 }
 
 const handleDownPaymentChange = (value: string) => {

@@ -168,7 +168,6 @@ const calculate = async () => {
         state.value.selectedDownPaymentCurrency.balance.denom,
         state.value.downPayment
       );
-
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
 
       const leaserClient = new Leaser(
@@ -397,6 +396,7 @@ const openLease = async () => {
 
         localStorage.setItem(data.value, JSON.stringify({
           downPayment: balance,
+          downpaymentTicker: downPaymentAsset.ticker,
           price: leaseAssetPrice,
           leasePositionTicker: ticker
         }));

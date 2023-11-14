@@ -1,3 +1,14 @@
+.stats-color {
+  color: $dark;
+  fill: $dark;
+  transition: ease 200ms;
+
+  &.active {
+    color: #FF562E !important;
+    fill: #FF562E !important;
+  }
+}
+
 .sidebar-container {
   display: inline-flex;
   flex-direction: column;
@@ -107,6 +118,16 @@
 
   @media (max-width: $lg) {
     position: fixed;
+
+    .sidebar-element {
+      &.active {
+
+        .icon,
+        span {
+          color: $orange !important;
+        }
+      }
+    }
   }
 }
 
@@ -121,7 +142,7 @@
   border-radius: 12px;
   position: relative;
   font-size: 16px;
-  line-height: 23px;
+  line-height: 18px;
   font-family: "Garet-Medium", sans-serif;
   transition: 0.3s;
 
@@ -129,23 +150,25 @@
     font-size: 1.8em;
     margin-top: 12.62px;
     margin-bottom: 11.62px;
-    margin-right: 6.5px;
-    color: $lightBlue;
+    margin-right: 8.5px;
+    color: $dark;
     transition: 0.3s;
 
-    &.icon-lease {
+    @media (min-width: $lg) {
+
       &::before {
-        font-size: 26px;
+        font-size: 22px !important;
       }
+
     }
 
   }
 
-  &:hover {
-    .icon {
-      color: $dark !important;
-    }
-  }
+  // &:hover {
+  //   // .icon {
+  //   //   color: $dark !important;
+  //   // }
+  // }
 
   @media (min-width: $lg) {
     font-size: 16px;
@@ -155,21 +178,21 @@
     font-family: "Garet-Medium", sans-serif;
 
     &:not(.icon) {
-      line-height: 23px;
+      line-height: 14 px;
     }
   }
 
   &.active {
     color: $orange !important;
 
-    &:hover {
-      .icon {
-        color: $brand-accent !important;
-      }
-    }
+    // &:hover {
+    //   .icon {
+    //     color: $brand-accent !important;
+    //   }
+    // }
 
     .icon {
-      color: $brand-accent;
+      color: $orange;
     }
   }
 
@@ -186,6 +209,7 @@
 
     @media (min-width: $lg) {
       display: inline-block;
+
     }
   }
 }
@@ -471,11 +495,11 @@
     .sidebar-element {
       &:hover {
         background-color: transparent;
-        color: $orange;
+        // color: $orange;
 
-        .icon {
-          color: $orange !important;
-        }
+        // .icon {
+        //   color: $orange !important;
+        // }
       }
     }
   }
@@ -485,6 +509,18 @@ body.sync {
 
 
   @media (prefers-color-scheme: dark) {
+
+    .stats-color {
+      color: white;
+      fill: #8396B1;
+    }
+
+    .stats-link:hover {
+      p {
+        color: #8396B1;
+      }
+    }
+
     .nls-nav-link {
       border-color: #2B384B !important;
     }
@@ -507,22 +543,29 @@ body.sync {
     }
   }
 
+
   .sidebar-element {
     @media (prefers-color-scheme: dark) {
       color: $white;
 
-      &:hover {
-        .icon {
-          color: $lightBlue !important;
-        }
+      .icon {
+        color: $lightBlue;
+      }
 
-        color: $lightBlue !important;
+
+      &:hover {
+        // .icon {
+        //   color: $lightBlue !important;
+        // }
+
+        color: $lightBlue;
       }
     }
 
     @media (prefers-color-scheme: dark) {
-      &:active {
-        .icon {
+      &:active, &.active {
+        color: $orange !important;
+        .icon{
           color: $orange !important;
         }
       }
@@ -574,6 +617,17 @@ body.sync {
 
 body.dark {
 
+  .stats-color {
+    color: white;
+    fill: #8396B1;
+  }
+
+  .stats-link:hover {
+    p {
+      color: #8396B1;
+    }
+  }
+
   .nls-nav-link {
     border-color: #2B384B !important;
 
@@ -596,15 +650,19 @@ body.dark {
   .sidebar-element {
     color: $white;
 
-    &:hover {
-      .icon {
-        color: $lightBlue !important;
-      }
-
-      color: $lightBlue !important;
+    .icon {
+      color: $lightBlue;
     }
 
-    &:active {
+    @media (min-width: $lg) {
+
+      &:hover {
+        color: $lightBlue ;
+      }
+
+    }
+
+    &:active, &.active {
       .icon {
         color: $orange !important;
       }

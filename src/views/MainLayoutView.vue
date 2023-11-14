@@ -99,6 +99,7 @@ onMounted(async () => {
   window.addEventListener("leap_keystorechange", updateLeap);
   window.addEventListener('focus', stopTimer);
   window.addEventListener('blur', startTimer);
+  // test()
 });
 
 onUnmounted(() => {
@@ -216,6 +217,7 @@ async function test() {
 
       const squid = new Squid(SquidRouter);
       await squid.init();
+      console.log(wallet.wallet)
       const offlineSigner = wallet.wallet!.getOfflineSigner();
       console.log(squid)
       const signerAddress = (await offlineSigner.getAccounts())[0].address;

@@ -318,6 +318,11 @@ if (!isDev()) {
   }
 }
 
+const filament =  {
+  token: '1328330b-c9aa-46bd-aaf0-3330337f5400',
+  url: "https://auxo.staging.numia.xyz/track"
+}
+
 export const SquidRouter = {
   integratorId: 'nolus-sdk',
   baseUrl: "https://api.squidrouter.com"
@@ -328,6 +333,7 @@ export const languages = l;
 export const SUPPORTED_NETWORKS = ['NOLUS', 'OSMOSIS', 'COSMOS_HUB', 'AXELAR', 'STRIDE', 'JUNO', 'EVMOS', 'PERSISTENCE', 'SECRET'];
 export const SWAP_FEE = 0.007;
 export const ZERO_DECIMALS = 6;
+export const USD_DECIMALS = 6;
 export const MAX_DECIMALS = 8;
 export const LedgerName = "Ledger";
 export const IGNORE_LEASE_ASSETS: string[] = [];
@@ -338,4 +344,6 @@ export const SUPPORT_URL = 'https://hub.nolus.io';
 export const ETL_API = "https://etl-cl.nolus.network:8080/api"
 export const DOWNPAYMENT_RANGE_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/downpayment-range.json';
 export const SWAP_FEE_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/swap-fee.json';
+export const OPEAN_LEASE_FEE_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/open-lease-fee.json';
 export const FREE_INTEREST_ADDRESS_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/zero/0interest-payments.json';
+export const Filament = filament;

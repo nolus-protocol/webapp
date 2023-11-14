@@ -13,10 +13,9 @@ import { encodeSecp256k1Pubkey, type StdFee } from '@cosmjs/amino';
 import { sha256 } from '@cosmjs/crypto';
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 import { SigningCosmWasmClient, type SigningCosmWasmClientOptions } from '@cosmjs/cosmwasm-stargate';
-import { calculateFee, type DeliverTxResponse, QueryClient, setupAuthExtension, setupBankExtension, setupStakingExtension } from '@cosmjs/stargate';
+import { calculateFee, type DeliverTxResponse, QueryClient, setupAuthExtension, setupBankExtension, setupStakingExtension, setupTxExtension } from '@cosmjs/stargate';
 import { accountFromAny } from './accountParser';
 import { encodeEthSecp256k1Pubkey, encodePubkey } from './encode';
-import { setupTxExtension } from './queries';
 import { SUPPORTED_NETWORKS_DATA } from './config';
 
 import {

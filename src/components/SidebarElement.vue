@@ -57,7 +57,7 @@ defineProps({
   text-transform: none;
   line-height: unset;
   margin-left: 0;
-  font-size: 30px;
+  font-size: 26px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

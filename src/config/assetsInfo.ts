@@ -42,5 +42,8 @@ export const ASSETS = {
   },
   SCRT: {
     coinGeckoId: "secret",
+  },
+  CRO: {
+    coinGeckoId: 'crypto-com-chain'
   }
 };

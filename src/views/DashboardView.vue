@@ -294,6 +294,10 @@
     </div>
   </div>
 
+  <button v-if="ApptUtils.isDev()" @click="openModal(DASHBOARD_ACTIONS.RECEIVEV2)">
+    Send/Receive
+  </button>
+
   <Modal
     v-if="state.showModal"
     :route="state.modalAction"
@@ -325,6 +329,8 @@ import Modal from "@/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/components/modals/ErrorDialog.vue";
 import SupplyWithdrawDialog from "@/components/modals/SupplyWithdrawDialog.vue";
 import SendReceiveDialog from "@/components/modals/SendReceiveDialog.vue";
+import SendReceiveV2Dialog from "@/components/modals/SendReceiveV2Dialog.vue";
+
 import LeaseDialog from "@/components/modals/LeaseDialog.vue";
 import VestedAssetPartial from "@/components/VestedAssetPartial.vue";
 import CurrencyComponent from "@/components/CurrencyComponent.vue";
@@ -353,8 +359,10 @@ const modalOptions = {
   [DASHBOARD_ACTIONS.RECEIVE]: SendReceiveDialog,
   [DASHBOARD_ACTIONS.SUPPLY]: SupplyWithdrawDialog,
   [DASHBOARD_ACTIONS.LEASE]: LeaseDialog,
-
+  [DASHBOARD_ACTIONS.SENDV2]: SendReceiveV2Dialog,
+  [DASHBOARD_ACTIONS.RECEIVEV2]: SendReceiveV2Dialog,
 };
+
 const smallBalancesStateKey = 'smallBalancesState';
 
 const wallet = useWalletStore();
