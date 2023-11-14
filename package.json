@@ -12,8 +12,8 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --ignore-path .gitignore"
   },
   "dependencies": {
-    "@0xsquid/sdk": "^1.14.4",
-    "@0xsquid/squid-types": "^0.1.30",
+    "@0xsquid/sdk": "1.14.4",
+    "@0xsquid/squid-types": "0.1.30",
     "@cosmjs/amino": "0.31.1",
     "@cosmjs/cosmwasm-stargate": "0.31.1",
     "@cosmjs/crypto": "0.31.1",
