@@ -9,7 +9,6 @@ import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { useOracleStore, OracleActionTypes } from "../oracle";
 import { Disparcher, Lpp } from "@nolus/nolusjs/build/contracts";
 import { CONTRACTS } from "@/config/contracts";
-import { Buffer } from "buffer";
 import { Dec } from "@keplr-wallet/unit";
 import { ApptUtils } from "@/utils/AppUtils";
 import { WalletConnectMechanism } from "@/types";

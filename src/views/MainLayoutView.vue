@@ -69,12 +69,9 @@ import { OracleActionTypes, useOracleStore } from "@/stores/oracle";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { WalletManager } from "@/utils";
 import { onMounted, onUnmounted, provide, ref, type Ref } from "vue";
-import { Squid, } from "@0xsquid/sdk";
 
-import { SESSION_TIME, SNACKBAR, SquidRouter, UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL, } from "@/config/env";
+import { SESSION_TIME, SNACKBAR, UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL, } from "@/config/env";
 import { ApplicationActionTypes, useApplicationStore } from "@/stores/application";
-import { SigningStargateClient } from "@cosmjs/stargate";
-import { walletOperation } from "@/components/utils";
 
 let balanceInterval: NodeJS.Timeout | undefined;
 let pricesInterval: NodeJS.Timeout | undefined;
@@ -209,55 +206,6 @@ function stopTimer() {
 
 function refresh() {
   window.location.reload();
-}
-
-async function test() {
-  walletOperation(async () => {
-    try {
-
-      const squid = new Squid(SquidRouter);
-      await squid.init();
-      console.log(wallet.wallet)
-      const offlineSigner = wallet.wallet!.getOfflineSigner();
-      console.log(squid)
-      const signerAddress = (await offlineSigner.getAccounts())[0].address;
-      const nolusIndex = squid.chains.findIndex((item) => (item as any).chainName == 'nolus');
-      const osmosisIndex = squid.chains.findIndex((item) => (item as any).chainName == 'osmosis');
-
-      const nolus = squid.chains[nolusIndex];
-      const osmosis = squid.chains[osmosisIndex];
-
-      const signer: any = await SigningStargateClient.connectWithSigner(
-        nolus.rpc,
-        offlineSigner
-      );
-
-      const params = {
-        fromAddress: signerAddress,
-        fromChain: nolus.chainId,
-        fromToken: nolus.currencies[0].coinMinimalDenom,
-        fromAmount: 10000000,
-        toChain: osmosis.chainId,
-        toToken: osmosis.currencies[0].coinMinimalDenom,
-        toAddress: 'osmo1vp9j3x49j02w4qex8rguwmg3x4u4lqt2wdccha',
-        slippage: 1.00,
-        quoteOnly: false,
-      };
-      const { route } = await squid.getRoute(params);
-      console.log(params, route)
-      const cosmosTx = (await squid.executeRoute({
-        signer,
-        signerAddress,
-        route,
-      }))
-
-
-    } catch (e) {
-      console.log(e)
-    }
-  }, '')
-
-
 }
 
 provide("showSnackbar", showSnackbar);

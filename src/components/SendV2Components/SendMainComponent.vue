@@ -25,7 +25,7 @@
 <script lang="ts" setup>
 import type { SendComponentProps } from "@/types/component/SendComponentProps";
 
-import SendComponent from "@/components/SendV2Components/SendComponent.vue";
+import SendComponent from "@/components/SendComponents/SendComponent.vue";
 import ConfirmComponent from "@/components/modals/templates/ConfirmComponent.vue";
 
 import { CONFIRM_STEP } from "@/types/ConfirmStep";

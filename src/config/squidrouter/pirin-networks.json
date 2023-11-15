@@ -1,0 +1,38 @@
+{
+    "NOLUS": {
+        "chainId": "pirin-1"
+    },
+    "OSMOSIS": {
+        "chainId": "osmosis-1"
+    },
+    "AXELAR": {
+        "chainId": "axelar-dojo-1"
+    },
+    "COSMOS_HUB": {
+        "chainId": "cosmoshub-4"
+    },
+    "AKASH": {
+        "chainId": "akashnet-2"
+    },
+    "JUNO": {
+        "chainId": "juno-1"
+    },
+    "ETHEREUM": {
+        "chainId": 1
+    },
+    "ARBITRUM": {
+        "chainId": 42161
+    },
+    "BASE": {
+        "chainId": 8453
+    },
+    "AVALANCHE": {
+        "chainId": 43114
+    },
+    "POLYGON": {
+        "chainId": 137
+    },
+    "BINANCE": {
+        "chainId": 56
+    }
+}
