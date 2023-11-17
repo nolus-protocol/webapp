@@ -276,6 +276,11 @@ let l: {
     label: 'Türkçe',
     url: import('../locales/tr.json?url').then((t) => t.default)
   },
+  id: {
+    key: 'id',
+    label: 'Bahasa Indo',
+    url: import('../locales/id.json?url').then((t) => t.default)
+  },
 }
 
 if (!isDev()) {
