@@ -126,9 +126,9 @@ const senderPerPage = 10;
 let senderPage = 1;
 let senderTotal = 0;
 
-const recipientPerPage = 0;
-let recipientPage = 0;
-let recipientTotal = 0;
+// const recipientPerPage = 0;
+// let recipientPage = 0;
+// let recipientTotal = 0;
 
 const loading = ref(false);
 const loaded = ref(false);
@@ -164,24 +164,18 @@ const getTransactions = async () => {
   try {
     const res = await wallet[WalletActionTypes.SEARCH_TX]({
       sender_per_page: senderPerPage,
-      sender_page: senderPage,
-      recipient_per_page: recipientPerPage,
-      recipient_page: recipientPage,
+      sender_page: senderPage
     });
 
     senderPage++;
-    recipientPage++;
 
     senderTotal = res.sender_total as number;
-    recipientTotal = res.receiver_total as number;
 
     transactions.value = res.data as ITransaction[];
 
     const loadedSender = (senderPage - 1) * senderPerPage >= senderTotal;
-    const loadedRecepient =
-      (recipientPage - 1) * recipientPerPage >= recipientTotal;
 
-    if (loadedSender && loadedRecepient) {
+    if (loadedSender) {
       loaded.value = true;
     }
 
@@ -196,16 +190,11 @@ const load = async () => {
   try {
     loading.value = true;
     const loadSender = (senderPage - 1) * senderPerPage <= senderTotal;
-    const loadRecepient =
-      (recipientPage - 1) * recipientPerPage <= recipientTotal;
 
     const res = await wallet[WalletActionTypes.SEARCH_TX]({
       sender_per_page: senderPerPage,
       sender_page: senderPage,
-      load_sender: loadSender,
-      recipient_per_page: recipientPerPage,
-      recipient_page: recipientPage,
-      load_recipient: loadRecepient,
+      load_sender: loadSender
     });
 
     transactions.value = [...transactions.value, ...res.data];
@@ -214,20 +203,13 @@ const load = async () => {
       senderPage++;
     }
 
-    if (loadRecepient) {
-      recipientPage++;
-    }
-
     const loadedSender = (senderPage - 1) * senderPerPage <= senderTotal;
-    const loadedRecepient =
-      (recipientPage - 1) * recipientPerPage <= recipientTotal;
 
-    if (!loadedSender && !loadedRecepient) {
+    if (!loadedSender) {
       loaded.value = true;
     }
 
     senderTotal = res.sender_total as number;
-    recipientTotal = res.receiver_total as number;
   } catch (e: Error | any) {
     showErrorDialog.value = true;
     errorMessage.value = e?.message;

@@ -395,10 +395,7 @@ const useWalletStore = defineStore("wallet", {
     async [WalletActionTypes.SEARCH_TX]({
       sender_per_page = 5,
       sender_page = 1,
-      load_sender = true,
-      recipient_per_page = 5,
-      recipient_page = 1,
-      load_recipient = true,
+      load_sender = true
     } = {}) {
       const address = WalletManager.getWalletAddress();
       const registry = new Registry(defaultRegistryTypes);
@@ -406,7 +403,7 @@ const useWalletStore = defineStore("wallet", {
 
       if (address?.length > 0) {
         const client = await NolusClient.getInstance().getTendermintClient();
-        const [sender, receiver]: any = await Promise.allSettled([
+        const [sender]: any = await Promise.allSettled([
           load_sender
             ? client.txSearch({
               query: `message.sender='${address}'`,
@@ -415,18 +412,9 @@ const useWalletStore = defineStore("wallet", {
               order_by: "desc",
             })
             : false,
-          load_recipient
-            ? client.txSearch({
-              query: `transfer.recipient='${address}'`,
-              per_page: recipient_per_page,
-              page: recipient_page,
-              order_by: "desc",
-            })
-            : false,
         ]);
         const data = [];
         let sender_total = 0;
-        let receiver_total = 0;
 
         if (sender.value) {
           sender_total = (sender.value as TxSearchResponse).totalCount;
@@ -462,40 +450,6 @@ const useWalletStore = defineStore("wallet", {
           }
         }
 
-        if (receiver.value) {
-          receiver_total = (receiver.value as TxSearchResponse).totalCount;
-          for (const item of (receiver.value as TxSearchResponse).txs) {
-            const decodedTx: DecodedTxRaw = decodeTxRaw(item.tx);
-            try {
-
-              const msgs = []
-              for (const m of decodedTx.body.messages) {
-                msgs.push({
-                  typeUrl: m.typeUrl,
-                  data: registry.decode(m)
-                });
-              }
-
-              const transactionResult = {
-                id: item.hash ? toHex(item.hash) : "",
-                height: item.height ?? "",
-                msgs,
-                type: "receiver",
-                blockDate: null as null | ReadonlyDateWithNanoseconds,
-                memo: decodedTx.body.memo ?? "",
-                log: item.result.log,
-                fee: decodedTx?.authInfo?.fee?.amount.filter(
-                  (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
-                ) ?? null,
-              };
-
-              data.push(transactionResult);
-            } catch (error) {
-              console.error(error);
-            }
-          }
-        }
-
         const promises = data.map(async (item) => {
           try {
             const block = await client.block(item.height);
@@ -511,14 +465,12 @@ const useWalletStore = defineStore("wallet", {
 
         return {
           data: items,
-          receiver_total,
           sender_total,
         };
       }
 
       return {
         data: [],
-        receiver_total: 0,
         sender_total: 0,
       };
     },
