@@ -122,12 +122,12 @@ const errorMessage = ref("");
 const transactions = ref([] as ITransaction[] | any[]);
 const wallet = useWalletStore();
 
-const senderPerPage = 5;
+const senderPerPage = 10;
 let senderPage = 1;
 let senderTotal = 0;
 
-const recipientPerPage = 5;
-let recipientPage = 1;
+const recipientPerPage = 0;
+let recipientPage = 0;
 let recipientTotal = 0;
 
 const loading = ref(false);

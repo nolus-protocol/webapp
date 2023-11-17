@@ -279,14 +279,19 @@ const validateMinMaxValues = (): boolean => {
   const currentBalance = getCurrentBalanceByDenom(selectedDownPaymentDenom);
 
   const currency = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom);
+  const downPaymentCurrency = walletStore.getCurrencyInfo(state.value.selectedDownPaymentCurrency.balance.denom);
+
   const range = downPaymentRange?.[currency.ticker];
+  const rangedownPaymentCurrency = downPaymentRange?.[downPaymentCurrency.ticker];
+  const max = Math.min(range.max, rangedownPaymentCurrency.max);
 
   if (currentBalance) {
 
     if (downPaymentAmount || downPaymentAmount !== "") {
 
-      const leaseMax = new Dec(range.max);
+      const leaseMax = new Dec(max);
       const leaseMin = new Dec(range.min);
+
       const coinData = walletStore.getCurrencyInfo(
         currentBalance?.balance?.denom
       );
@@ -299,7 +304,7 @@ const validateMinMaxValues = (): boolean => {
       if (balance.lt(leaseMin)) {
         state.value.downPaymentErrorMsg = i18n.t("message.lease-min-error", {
           minAmount: (Math.ceil(range.min / Number(price.amount) * 1000) / 1000),
-          maxAmount: (Math.ceil(range.max / Number(price.amount) * 1000) / 1000),
+          maxAmount: (Math.ceil(max / Number(price.amount) * 1000) / 1000),
           symbol: coinData.shortName
         });
         isValid = false;
@@ -308,7 +313,7 @@ const validateMinMaxValues = (): boolean => {
       if (balance.gt(leaseMax)) {
         state.value.downPaymentErrorMsg = i18n.t("message.lease-max-error", {
           minAmount: (Math.ceil(range.min / Number(price.amount) * 1000) / 1000),
-          maxAmount: (Math.ceil(range.max / Number(price.amount) * 1000) / 1000),
+          maxAmount: (Math.ceil(max / Number(price.amount) * 1000) / 1000),
           symbol: coinData.shortName
         });
         isValid = false;
