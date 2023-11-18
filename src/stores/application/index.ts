@@ -113,10 +113,17 @@ const useApplicationStore = defineStore("application", {
 
       try {
 
-        const data = await fetch(`${ETL_API}/earn-apr`);
-        const json = await data.json();
-        this.apr = Number(json.earn_apr);
 
+        const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+        const dispatcherClient = new Disparcher(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].dispatcher.instance);
+
+        const [data, dispatcherRewards] = await Promise.all([
+          fetch(`${ETL_API}/earn-apr`).then((data) => data.json()),
+          dispatcherClient.calculateRewards().catch(() => 0)
+        ]);
+
+        this.apr = Number(data.earn_apr);
+        this.dispatcherRewards = dispatcherRewards / Math.pow(10, INTEREST_DECIMALS);
 
       } catch (error) {
         this.apr = 0;
