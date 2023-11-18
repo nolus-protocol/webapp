@@ -283,7 +283,18 @@ const validateMinMaxValues = (): boolean => {
 
   const range = downPaymentRange?.[currency.ticker];
   const rangedownPaymentCurrency = downPaymentRange?.[downPaymentCurrency.ticker];
-  const max = Math.min(range.max, rangedownPaymentCurrency.max);
+  const values: number[] = [];
+
+  if(!!range?.max){
+    values.push(range.max);
+  }
+
+  if(!!rangedownPaymentCurrency?.max){
+    values.push(rangedownPaymentCurrency.max);
+  }
+
+
+  const max = Math.min(...values);
 
   if (currentBalance) {
 
