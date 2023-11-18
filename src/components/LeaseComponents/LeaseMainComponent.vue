@@ -289,7 +289,7 @@ const validateMinMaxValues = (): boolean => {
     values.push(range.max);
   }
 
-  if(!!rangedownPaymentCurrency?.max != null){
+  if(rangedownPaymentCurrency?.max != null){
     values.push(rangedownPaymentCurrency.max);
   }
 
