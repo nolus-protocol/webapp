@@ -25,7 +25,7 @@ const embedChainInfo = (
       {
         coinDenom: 'tia',
         coinMinimalDenom: 'utia',
-        coinDecimals: 8,
+        coinDecimals: 6,
         coinGeckoId: 'celestia',
       },
     ],
@@ -33,14 +33,14 @@ const embedChainInfo = (
       {
         coinDenom: 'tia',
         coinMinimalDenom: 'utia',
-        coinDecimals: 8,
+        coinDecimals: 6,
         coinGeckoId: 'celestia',
       },
     ],
     stakeCurrency: {
       coinDenom: 'tia',
       coinMinimalDenom: 'utia',
-      coinDecimals: 8,
+      coinDecimals: 6,
       coinGeckoId: 'celestia',
     },
     features: ["ibc-transfer"],
