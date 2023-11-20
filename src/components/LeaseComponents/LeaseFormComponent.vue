@@ -46,34 +46,11 @@
                       @on-drag="onDrag">
       </RangeComponent>
 
-      <!-- <div
-        v-if="liqudStakeShow"
-        class="flex items-center w-full checkbox-container"
-      >
-        <input
-          id="liquid-stake"
-          v-model="liqudStake"
-          aria-describedby="liquid-stake"
-          name="liquid-stake"
-          type="checkbox"
-        />
-        <label
-          class="dark-text flex select-none"
-          for="liquid-stake"
-        >
-          {{ $t("message.liquid-stake") }}
-          <TooltipComponent content="content" />
-        </label>
-      </div> -->
-
       <div class="flex justify-end">
         <div class="grow-3 text-right nls-font-500 text-14 dark-text">
           <p class="mb-2 mt-[14px] mr-5">
             {{ $t("message.borrowed") }}
           </p>
-          <!-- <p class="mb-2 mt-[14px] mr-5">
-            {{ $t("message.price-per") }} {{ selectedAssetDenom }}
-          </p> -->
           <p class="mb-2 mt-[14px] mr-5">
             {{ $t("message.interest") }}
           </p>
@@ -87,9 +64,6 @@
             ${{ borrowed }}
             <TooltipComponent :content="$t('message.borrowed-tooltip')" />
           </p>
-          <!-- <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
-            ~{{ selectedAssetPrice }}
-          </p> -->
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
             <span v-if="annualInterestRate"
                   class="text-[#8396B1] line-throught-gray">

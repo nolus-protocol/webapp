@@ -18,7 +18,7 @@
             {{ assetInfo.shortName }}
           </p>
           <p class="text-dark-grey text-12 garet-medium text-left capitalize m-0">
-            <!-- {{ formatPrice(getMarketPrice(asset.balance.denom)) }} -->
+
           </p>
         </div>
       </div>
@@ -48,10 +48,6 @@
           </p>
         </template>
       </div>
-
-      <!-- <div class="block md:col-span-1">
-
-      </div> -->
 
       <div class="hidden md:block info-show">
         <div class="text-primary nls-font-500 text-14 text-right m-0 justify-end">
@@ -93,8 +89,7 @@ import type { AssetBalance } from "@/stores/wallet/state";
 
 import CurrencyComponent from "../CurrencyComponent.vue";
 
-import { Coin, Dec } from "@keplr-wallet/unit";
-import { CurrencyUtils } from "@nolus/nolusjs";
+import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
 import { computed } from "vue";
 import { useWalletStore } from "@/stores/wallet";
@@ -131,26 +126,10 @@ const stakedBalance = computed(() => {
   return AssetUtils.getPriceByDenom(props.asset.balance.amount, props.asset.balance.denom).toString(2);
 });
 
-function formatPrice(price: string) {
-  return CurrencyUtils.formatPrice(price);
-};
-
-function getMarketPrice(denom: string) {
-  const prices = oracle.prices;
-  if (prices) {
-    return prices[denom]?.amount || "0";
-  }
-  return "0";
-};
-
 const showBalance = computed(() => {
   const data = new Dec(props.asset.balance.amount);
   return data.isPositive();
 });
-
-function calculateBalance(tokenAmount: string, denom: string) {
-  return AssetUtils.getPriceByDenom(tokenAmount, denom).toString(2);
-};
 
 const maxCoinDecimals = computed(() => {
   return AssetUtils.formatDecimals(props.asset.balance.denom, props.asset.balance.amount);

@@ -1,4 +1,7 @@
 <template>
+    <button v-if="ApptUtils.isDev()" @click="openModal(DASHBOARD_ACTIONS.RECEIVEV2)">
+    Send v2 / Receive v2
+  </button>
   <div
     v-if="isBannerVisible"
     class="col-span-12 banner flex"
@@ -293,10 +296,6 @@
       </div>
     </div>
   </div>
-
-  <button v-if="ApptUtils.isDev()" @click="openModal(DASHBOARD_ACTIONS.RECEIVEV2)">
-    Send/Receive
-  </button>
 
   <Modal
     v-if="state.showModal"

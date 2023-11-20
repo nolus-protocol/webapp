@@ -153,14 +153,6 @@
             denom="%"
           />
         </button>
-
-        <!-- <button
-          class="btn btn-secondary btn-medium-secondary flex-1"
-          v-if="canStake"
-          @click="openModal(DASHBOARD_ACTIONS.LEASE, denom)"
-        >
-          {{ $t("message.lease") }}
-        </button> -->
       </div>
     </div>
 
@@ -179,13 +171,6 @@
       >
         {{ $t("message.supply") }}
       </button>
-      <!-- <button
-        v-if="canStake"
-        class="btn btn-secondary btn-medium-secondary"
-        @click="openModal(DASHBOARD_ACTIONS.LEASE, denom)"
-      >
-        {{ $t("message.lease") }}
-      </button> -->
     </div>
   </div>
 </template>

@@ -51,12 +51,7 @@
                 v-if="leaseData?.downPayment">
             {{ $t("message.down-payment") }}: ${{ downPayment }}
           </span>
-          <!-- <span
-            class="text-medium-blue data-label-info rounded p-1 ml-0 mb-0 m-1.5 garet-medium"
-            v-if="leaseData"
-          >
-            {{ $t("message.borrowed") }}: {{ loan }}
-          </span> -->
+
           <span class="text-medium-blue data-label-info rounded p-1 ml-0 mb-0 m-1.5 garet-medium">
             {{ `${$t("message.price-per")} ${asset.shortName}:` }} {{ price }}
           </span>
@@ -204,12 +199,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-8">
       <div
            class="lg:col-span-3 px-2 md:px-6 md:px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5 flex flex-col justify-between	">
-        <!-- <p
-          class="text-20 nls-font-500 mb-4 text-primary select-none"
-          @dblclick="copy"
-        >
-          {{ $t("message.lease-position") }}
-        </p> -->
+
         <div class="pnl-container"
              v-if="leaseData">
           <div class="pnl text-12 nls-font-500 whitespace-pre	mr-2 grey">
@@ -303,12 +293,6 @@
        class="background mt-6 border-standart shadow-box radius-medium radius-0-sm pb-5 outline">
     <div class="grid grid-cols-1 lg:grid-cols-8">
       <div class="lg:col-span-3 px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5">
-        <!-- <p
-          class="text-20 nls-font-500 mb-4 text-primary select-none"
-          @dblclick="copy"
-        >
-          {{ $t("message.lease-position") }}
-        </p> -->
         <div class="pnl-container"
              v-if="leaseData">
           <div class="pnl text-12 nls-font-500 whitespace-pre	mr-2 flex items-center cursor-pointer"
@@ -373,14 +357,7 @@
             </h1>
           </div>
         </div>
-        <!-- <div
-          v-if="leaseData"
-          class="flex flex-wrap text-10 uppercase whitespace-nowrap mt-4"
-        >
-          <span class="text-medium-blue data-label-info rounded p-1 ml-0 mb-0 m-1.5 garet-medium">
-            {{ `price per ${asset.shortName}:` }} {{ price }}
-          </span>
-        </div> -->
+
       </div>
       <div class="lg:col-span-5 md:px-6 px-2 pt-3 md:pt-5 pb-3 md:pb-0  relative hidden md:block">
         <!-- Graph -->

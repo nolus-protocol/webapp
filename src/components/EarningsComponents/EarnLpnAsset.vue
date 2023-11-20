@@ -52,10 +52,6 @@
         </template>
       </div>
 
-      <!-- <div class="block md:col-span-1">
-        
-      </div> -->
-
       <div class="hidden md:block info-show">
         <div class="text-primary text-14 text-right m-0 justify-end nls-font-500">
           <CurrencyComponent
@@ -149,11 +145,4 @@ const maxCoinDecimals = computed(() => {
 .tag {
   color: #5E7699;
 }
-
-// button.btn-medium-secondary,
-// button.btn-medium-secondary:hover {
-//   border-color: #EBEFF5 !important;
-//   color: #8396B1 !important;
-//   cursor: pointer;
-// }
 </style>

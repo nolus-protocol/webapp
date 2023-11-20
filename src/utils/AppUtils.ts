@@ -1,6 +1,6 @@
-import { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL, Filament, NETWORKS, OPEAN_LEASE_FEE_URL, SWAP_FEE_URL, isDev, languages } from "@/config/env";
+import type { Endpoint, Node, API, ARCHIVE_NODE, SquiRouterNetwork } from "@/types/NetworkConfig";
+import { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL, Filament, NETWORKS, OPEAN_LEASE_FEE_URL, SWAP_FEE_URL, SquidRouter, isDev, languages } from "@/config/env";
 import { EnvNetworkUtils } from ".";
-import type { Endpoint, Status, Node, API, ARCHIVE_NODE } from "@/types/NetworkConfig";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 
 export class ApptUtils {
@@ -36,6 +36,10 @@ export class ApptUtils {
 
     static archive_node: {
         [key: string]: Promise<ARCHIVE_NODE>
+    } = {};
+
+    static squidrouter: {
+        [key: string]: Promise<SquiRouterNetwork[]>
     } = {};
 
     static isDev() {
@@ -107,7 +111,6 @@ export class ApptUtils {
         return archive;
 
     }
-
 
     private static async fetch(network: string) {
         const config = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
@@ -282,8 +285,39 @@ export class ApptUtils {
         } catch (error) {
             console.log(error)
         }
+    }
 
+    static async getSquitRouteNetworks() {
+        const net = ApptUtils.squidrouter?.[EnvNetworkUtils.getStoredNetworkName()];
+
+        if (net) {
+            return net;
+        }
+
+        const networkData = ApptUtils.fetchSquitRouteNetworks();
+        ApptUtils.squidrouter[EnvNetworkUtils.getStoredNetworkName()] = networkData;
+        return networkData;
 
     }
 
+    private static async fetchSquitRouteNetworks() {
+        const url = await SquidRouter.networks[EnvNetworkUtils.getStoredNetworkName() as keyof typeof SquidRouter.networks] as string;
+        const data = await fetch(url);
+        const json = await data.json() as SquiRouterNetwork[];
+
+        return json;
+    }
+
+
+    static async getUrl(url: string | Promise<string>) {
+        switch (url.constructor) {
+            case (Promise): {
+                return url;
+            }
+            default: {
+                return url;
+            }
+        }
+    }
+    
 }

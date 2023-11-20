@@ -1,38 +1,167 @@
-{
-    "NOLUS": {
-        "chainId": "pirin-1"
+[
+    {
+        "key": "NOLUS",
+        "label": "Nolus",
+        "chainId": "pirin-1",
+        "symbol": "NLS",
+        "native": true,
+        "estimation": {
+            "duration": 6,
+            "type": "sec"
+        }
     },
-    "OSMOSIS": {
-        "chainId": "osmosis-1"
+    {
+        "key": "OSMOSIS",
+        "label": "Osmosis",
+        "chainId": "osmosis-1",
+        "symbol": "OSMO",
+        "native": false,
+        "estimation": {
+            "duration": 20,
+            "type": "sec"
+        }
     },
-    "AXELAR": {
-        "chainId": "axelar-dojo-1"
+    {
+        "key": "COSMOS_HUB",
+        "label": "Cosmos Hub",
+        "chainId": "cosmoshub-4",
+        "symbol": "ATOM",
+        "native": false,
+        "estimation": {
+            "duration": 20,
+            "type": "sec"
+        }
     },
-    "COSMOS_HUB": {
-        "chainId": "cosmoshub-4"
+    {
+        "key": "AXELAR",
+        "label": "Axelar",
+        "chainId": "axelar-dojo-1",
+        "symbol": "AXL",
+        "native": false,
+        "estimation": {
+            "duration": 20,
+            "type": "sec"
+        }
     },
-    "AKASH": {
-        "chainId": "akashnet-2"
+    {
+        "key": "STRIDE",
+        "label": "Stride",
+        "chainId": "stride-1",
+        "symbol": "STRD",
+        "native": false,
+        "estimation": {
+            "duration": 20,
+            "type": "sec"
+        }
     },
-    "JUNO": {
-        "chainId": "juno-1"
+    {
+        "key": "JUNO",
+        "label": "Juno",
+        "chainId": "juno-1",
+        "symbol": "JUNO",
+        "native": false,
+        "estimation": {
+            "duration": 20,
+            "type": "sec"
+        }
     },
-    "ETHEREUM": {
-        "chainId": 1
+    {
+        "key": "PERSISTENCE",
+        "label": "Persistence",
+        "chainId": "core-1",
+        "symbol": "JUNO",
+        "native": false,
+        "estimation": {
+            "duration": 20,
+            "type": "sec"
+        }
     },
-    "ARBITRUM": {
-        "chainId": 42161
+    {
+        "key": "SECRET",
+        "label": "Secret",
+        "chainId": "secret-4",
+        "symbol": "SCRT",
+        "native": false,
+        "estimation": {
+            "duration": 20,
+            "type": "sec"
+        }
     },
-    "BASE": {
-        "chainId": 8453
+    {
+        "key": "EVMOS",
+        "label": "Evmos",
+        "chainId": "evmos_9001-2",
+        "symbol": "EVMOS",
+        "native": false,
+        "estimation": {
+            "duration": 20,
+            "type": "sec"
+        }
     },
-    "AVALANCHE": {
-        "chainId": 43114
+    {
+        "key": "ETHEREUM",
+        "label": "Ethereum",
+        "chainId": 1,
+        "symbol": "ETH",
+        "native": false,
+        "estimation": {
+            "duration": 2,
+            "type": "min"
+        }
     },
-    "POLYGON": {
-        "chainId": 137
+    {
+        "key": "ARBITRUM",
+        "label": "Arbitrum",
+        "chainId": 42161,
+        "symbol": "ETH",
+        "native": false,
+        "estimation": {
+            "duration": 2,
+            "type": "min"
+        }
     },
-    "BINANCE": {
-        "chainId": 56
+    {
+        "key": "BASE",
+        "label": "Base",
+        "chainId": 8453,
+        "symbol": "ETH",
+        "native": false,
+        "estimation": {
+            "duration": 2,
+            "type": "min"
+        }
+    },
+    {
+        "key": "AVALANCHE",
+        "label": "Avalanche",
+        "chainId": 43114,
+        "symbol": "AVAX",
+        "native": false,
+        "estimation": {
+            "duration": 2,
+            "type": "min"
+        }
+    },
+    {
+        "key": "POLYGON",
+        "label": "Polygon",
+        "chainId": 137,
+        "symbol": "MATIC",
+        "native": false,
+        "estimation": {
+            "duration": 2,
+            "type": "min"
+        }
+    },
+    {
+        "key": "BINANCE",
+        "label": "Binance",
+        "chainId": 56,
+        "symbol": "BNB",
+        "native": false,
+        "estimation": {
+            "duration": 2,
+            "type": "min"
+        }
     }
-}
+]

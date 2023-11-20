@@ -2,14 +2,6 @@
   <!-- Header -->
   <div class="flex modal-send-receive-header" :class="{ 'no-border': !isStepCustomError }">
     <div class="navigation-header">
-      <!-- <button
-        v-if="isStepConfirm"
-        class="back-arrow"
-        type="button"
-        @click="onBackButtonClick"
-      >
-        <ArrowLeftIcon aria-hidden="true" class="h-5 w-5" />
-      </button> -->
       <div class="flex flex-col justify-center items-center">
         <CheckIcon
           v-if="isStepSuccess"
@@ -26,7 +18,6 @@
     </div>
   </div>
 
-  <!-- <div class="separator-line pb-6 relative z-[200000] w-[516px]"></div> -->
   <div
     class="modal-form"
     v-if="isStepCustomError"
@@ -226,11 +217,6 @@ const setShowDialogHeader = inject("setShowDialogHeader", (n: boolean) => { });
 onMounted(() => {
   setShowDialogHeader(false);
 });
-
-function onBackButtonClick() {
-  setShowDialogHeader(true);
-  props.onBackClick();
-}
 
 function formatAmount(value: string) {
   const selectedCurrency = props.selectedCurrency;

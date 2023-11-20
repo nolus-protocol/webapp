@@ -35,3 +35,24 @@ export interface Status {
     };
   }
 }
+
+export interface SquiRouterNetwork {
+  key: string,
+  label: string
+  chainId: string
+  symbol: string
+  native: boolean,
+  estimation: {
+    duration: number,
+    type: string
+  }
+}
+
+export interface SquiRouterNetworkProp  extends SquiRouterNetwork{
+  value: string
+}
+
+export enum NetworkTypes{
+  cosmos = 'cosmos',
+  emv = 'emv'
+}

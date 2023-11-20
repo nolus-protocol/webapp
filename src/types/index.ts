@@ -3,9 +3,9 @@ export type { ContractConfig } from "@/types/ContractConfig";
 export type { ContractInfo } from "@/types/ContractInfo";
 export type { IbcCurrency } from "@/types/IbcCurrency";
 export type { NetworkAddress } from "@/types/NetworkAddress";
-export type { NetworkConfig } from "@/types/NetworkConfig";
+export type { NetworkConfig, NetworkTypes } from "@/types/NetworkConfig";
 export type { LeaseData } from "@/types/LeaseData";
-export type { Network, NetworkData } from "@/types/Network";
+export type { Network, NetworkData, NetworkDataV2 } from "@/types/Network";
 export type { CurreciesType } from "@/types/CurreciesType";
 
 export { WalletConnectMechanism } from "@/types/WalletConnectMechanism";

@@ -318,14 +318,20 @@ if (!isDev()) {
   }
 }
 
-const filament =  {
+const filament = {
   token: '1328330b-c9aa-46bd-aaf0-3330337f5400',
   url: "https://auxo.staging.numia.xyz/track"
 }
 
 export const SquidRouter = {
   integratorId: 'nolus-sdk',
-  baseUrl: "https://api.squidrouter.com"
+  baseUrl: "https://api.squidrouter.com",
+  networks: {
+    localnet: import('./squidrouter/vitosha-networks.json?url').then((t) => t.default),
+    devnet: import('./squidrouter/vitosha-networks.json?url').then((t) => t.default),
+    testnet: import('./squidrouter/rila-networks.json?url').then((t) => t.default),
+    mainnet: import('./squidrouter/pirin-networks.json?url').then((t) => t.default),
+  }
 }
 
 export const minimumLeaseAmount = 1;

@@ -1,3 +1,4 @@
+import type { Currency, Networks, NetworksInfo } from "@/types/Networks";
 import { sha256 } from "@cosmjs/crypto";
 import { Buffer } from "buffer";
 import { useWalletStore } from "@/stores/wallet";
@@ -5,7 +6,6 @@ import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { DECIMALS_AMOUNT, MAX_DECIMALS, ZERO_DECIMALS, SUPPORTED_NETWORKS, NATIVE_NETWORK } from "@/config/env";
-import type { Currency, Networks, NetworksInfo } from "@/types/Networks";
 import { SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 
 export class AssetUtils {

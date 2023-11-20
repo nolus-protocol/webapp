@@ -52,13 +52,6 @@
               <DocumentDuplicateIcon class="icon w-4 h-4" />
               {{ copyText }}
             </button>
-            <!-- <button
-              class="btn btn-secondary btn-medium-secondary btn-icon flex"
-              @click="modelValue?.onScanClick"
-            >
-              <QrCodeIcon class="icon w-4 h-4" />
-              {{ $t("message.show-barcode") }}
-            </button> -->
           </div>
         </div>
 
@@ -147,7 +140,7 @@ import type { AssetBalance } from "@/stores/wallet/state";
 import { CONFIRM_STEP, TxType, type Network } from "@/types";
 
 import { onUnmounted, ref, type PropType, inject, watch, computed } from "vue";
-import { DocumentDuplicateIcon, QrCodeIcon } from "@heroicons/vue/24/solid";
+import { DocumentDuplicateIcon } from "@heroicons/vue/24/solid";
 import { ErrorCodes, IGNORE_TRANSFER_ASSETS, NATIVE_NETWORK, SOURCE_PORTS } from "@/config/env";
 import { useI18n } from "vue-i18n";
 import { AssetUtils, EnvNetworkUtils, WalletUtils } from "@/utils";

@@ -72,28 +72,6 @@ const props = defineProps({
   },
 });
 
-const calculateOutstandingDebt = () => {
-  const data = props.modelValue.leaseInfo;
-  const currency = wallet.getCurrencyByTicker(data.principal_due.ticker);
-  const denom = wallet.getIbcDenomBySymbol(currency.symbol);
-  const info = wallet.getCurrencyInfo(denom as string);
-  const debt = outStandingDebt();
-
-  if (denom) {
-
-    const token = CurrencyUtils.convertMinimalDenomToDenom(
-      debt.truncate().toString(),
-      info.coinMinimalDenom as string,
-      info.coinDenom as string,
-      info.coinDecimals
-    );
-
-    return token.hideDenom(true).toString();
-  }
-
-  return "0";
-}
-
 const additionalInterest = () => {
   const data = props.modelValue.leaseInfo;
   if (data) {
@@ -211,28 +189,6 @@ const hasSwapFee = computed(() => {
   return true;
 });
 
-const calculateSwapFee = computed(() => {
-  const swap = hasSwapFee.value;
-
-  if (swap && props.modelValue.amount && props.modelValue.amount != "") {
-    const info = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
-    const selectedCurrency = wallet.getCurrencyByTicker(info.ticker);
-
-    const amount = new Dec(props.modelValue.amount);
-    const price = new Dec(oracle.prices[selectedCurrency.symbol]?.amount ?? 0);
-    const total = amount.mul(price);
-    const fee = new Dec(props.modelValue.swapFee);
-    const totalFee = total.mul(fee);
-    const currency = wallet.getCurrencyByTicker(props.modelValue.leaseInfo.principal_due.ticker);
-
-    return totalFee.toString(Number(currency.decimal_digits));
-
-  }
-
-  return "0.00";
-
-});
-
 const amount = computed(() => {
   const info = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
   const selectedCurrency = wallet.getCurrencyByTicker(info.ticker);
@@ -279,6 +235,5 @@ const amount = computed(() => {
   }
 
 });
-
 
 </script>

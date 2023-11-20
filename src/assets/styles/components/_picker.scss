@@ -1,37 +1,4 @@
 .picker {
-  span.loading {
-    position: relative;
-    width: 1.2em;
-    height: 1.2em;
-
-    &::after {
-      content: "";
-      display: block;
-      width: 1.2em;
-      height: 1.2em;
-      position: absolute;
-      left: 5px;
-      top: 0;
-      border: 2px solid $borderColor;
-      border-right-color: $dark;
-      border-radius: 50%;
-      animation: loading-animation 0.7s linear infinite;
-      opacity: 1;
-    }
-
-    &::before {
-      content: "";
-      display: block;
-      width: 1.2em;
-      height: 1.2em;
-      position: absolute;
-      left: 5px;
-      top: 0;
-      border: 2px solid $borderColor;
-      border-radius: 50%;
-      opacity: 1;
-    }
-  }
 
   &-container {
     ul {

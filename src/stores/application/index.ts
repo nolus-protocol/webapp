@@ -113,7 +113,6 @@ const useApplicationStore = defineStore("application", {
       try {
         const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
         const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-        const instance = CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance;
         const lppClient = new Lpp(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance);
         const dispatcherClient = new Disparcher(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].dispatcher.instance);
         const network = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];

@@ -1,6 +1,8 @@
 import type { Coin } from "@cosmjs/proto-signing";
 import type { StdFee } from "@cosmjs/amino";
 import { type BaseWallet, type Wallet } from "@/networks";
+import { type BaseWallet as BaseWalletV2, type Wallet as WalletV2 } from "@/wallet";
+
 import { i18n } from "@/i18n";
 
 import { Int } from "@keplr-wallet/unit";
@@ -8,8 +10,9 @@ import { fromBech32 } from "@cosmjs/encoding";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { WalletManager } from "@/utils";
-import { WalletConnectMechanism, type NetworkData } from "@/types";
+import { WalletConnectMechanism, type NetworkData, type NetworkDataV2 } from "@/types";
 import { authenticateKeplr, authenticateLeap, authenticateLedger, authenticateDecrypt } from "@/networks";
+import { authenticateKeplr as authenticateKeplrV2, authenticateLeap as authenticateLeapV2, authenticateLedger as authenticateLedgerV2, authenticateDecrypt as authenticateDecryptV2 } from "@/wallet";
 
 export const validateAddress = (address: string) => {
   if (!address || address.trim() == "") {
@@ -162,15 +165,66 @@ export const externalWallet = async (
 
 };
 
+export const externalWalletV2 = async (
+  wallet: WalletV2,
+  networkData: NetworkDataV2,
+  password: string
+) => {
+
+  switch (WalletManager.getWalletConnectMechanism()) {
+    case WalletConnectMechanism.MNEMONIC: {
+      return await authenticateDecryptV2(wallet, networkData, password);
+    }
+    case WalletConnectMechanism.EXTENSION: {
+      return await authenticateKeplrV2(wallet, networkData);
+    }
+    case WalletConnectMechanism.LEAP: {
+      return await authenticateLeapV2(wallet, networkData);
+    }
+    case WalletConnectMechanism.LEDGER: {
+      return await authenticateLedgerV2(wallet, networkData);
+    }
+    case WalletConnectMechanism.LEDGER_BLUETOOTH: {
+      return await authenticateLedgerV2(wallet, networkData);
+    }
+    case WalletConnectMechanism.GOOGLE: {
+      return await authenticateDecryptV2(wallet, networkData, password);
+    }
+  }
+
+};
+
+export const externalWalletOperationV2 = async (
+  operation: (wallet: BaseWalletV2) => void,
+  wallet: WalletV2,
+  networkData: NetworkDataV2,
+  password: string
+) => {
+
+  switch (WalletManager.getWalletConnectMechanism()) {
+    case WalletConnectMechanism.MNEMONIC: {
+      return operation(await authenticateDecryptV2(wallet, networkData, password));
+    }
+    case WalletConnectMechanism.EXTENSION: {
+      return operation(await authenticateKeplrV2(wallet, networkData));
+    }
+    case WalletConnectMechanism.LEAP: {
+      return operation(await authenticateLeapV2(wallet, networkData));
+    }
+    case WalletConnectMechanism.LEDGER: {
+      return operation(await authenticateLedgerV2(wallet, networkData));
+    }
+    case WalletConnectMechanism.LEDGER_BLUETOOTH: {
+      return operation(await authenticateLedgerV2(wallet, networkData));
+    }
+    case WalletConnectMechanism.GOOGLE: {
+      return operation(await authenticateDecryptV2(wallet, networkData, password));
+    }
+  }
+
+};
+
 export const getMicroAmount = (denom: string, amount: string) => {
-  if (!denom) {
-    // throw new Error(i18n.global.t("message.missing-denom"));
-  }
-
-  if (!amount) {
-    // throw new Error(i18n.global.t("message.missing-amount"));
-  }
-
   const walletStore = useWalletStore();
   const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(denom);
   const mAmount = CurrencyUtils.convertDenomToMinimalDenom(
