@@ -45,5 +45,8 @@ export const ASSETS = {
   },
   CRO: {
     coinGeckoId: 'crypto-com-chain'
+  },
+  TIA: {
+    coinGeckoId: 'celestia'
   }
 };
