@@ -53,7 +53,7 @@
           </span>
 
           <span class="text-medium-blue data-label-info rounded p-1 ml-0 mb-0 m-1.5 garet-medium">
-            {{ `${$t("message.price-per")} ${asset.shortName}:` }} {{ price }}
+            {{ `${$t("message.price-per")} ${asset.shortName}:` }} ${{ Number(leaseData?.price ?? 0).toFixed(4) }}
           </span>
           <span class="text-medium-blue data-label-info rounded p-1 ml-0 mb-0 m-1.5 garet-medium">
             {{ $t("message.liq-trigger") }}: {{ liquidation }}
