@@ -25,6 +25,9 @@ import { embedChainInfo as persistenceChainInfo } from './persistence/contants';
 import { NETWORK as SECRET_NETWORK } from './secret/network';
 import { embedChainInfo as secretChainInfo } from './secret/contants';
 
+import { NETWORK as CELESTIA_NETWORK } from './celestia/network';
+import { embedChainInfo as celestiaChainInfo } from './celestia/contants';
+
 import { useApplicationStore } from "@/stores/application";
 import type { ExternalCurrenciesType } from "@/types/CurreciesType";
 
@@ -118,6 +121,16 @@ export const SUPPORTED_NETWORKS_DATA: {
         estimation: 20,
         key: "SECRET",
         symbol: "SCRT",
+        forward: true
+    },
+    CELESTIA: {
+        prefix: "celestia",
+        value: "celestia",
+        label: "Celestia",
+        native: false,
+        estimation: 20,
+        key: "CELESTIA",
+        symbol: "TIA",
         forward: true
     },
 }
@@ -269,6 +282,7 @@ export const NETWORKS_DATA: {
             SUPPORTED_NETWORKS_DATA.JUNO,
             SUPPORTED_NETWORKS_DATA.PERSISTENCE,
             SUPPORTED_NETWORKS_DATA.SECRET,
+            SUPPORTED_NETWORKS_DATA.CELESTIA,
             // SUPPORTED_NETWORKS_DATA.EVMOS
         ],
         supportedNetworks: {
@@ -343,7 +357,16 @@ export const NETWORKS_DATA: {
                     return app?.networks?.[SECRET_NETWORK.key] as ExternalCurrenciesType;
                 },
                 embedChainInfo: secretChainInfo,
-            }
+            },
+            CELESTIA: {
+                ...CELESTIA_NETWORK,
+                explorer: 'https://mintscan.io/celestia/transactions',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[CELESTIA_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: celestiaChainInfo,
+            },
         }
     },
 };
