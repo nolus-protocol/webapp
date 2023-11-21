@@ -48,5 +48,8 @@ export const ASSETS = {
   },
   TIA: {
     coinGeckoId: 'celestia'
-  }
+  },
+STARS: {
+  coinGeckoId: 'stargaze'
+}
 };

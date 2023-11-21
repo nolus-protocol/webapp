@@ -133,5 +133,17 @@
                 "api": "https://celestia-api.lavenderfive.com:443"
             }
         ]
+    },
+    "STARGAZE": {
+        "primary": {
+            "rpc": "https://rpc.stargaze-apis.com",
+            "api": "https://rest.stargaze-apis.com"
+        },
+        "fallback": [
+            {
+                "rpc": "https://stargaze-rpc.polkachu.com",
+                "api": "https://stargaze-api.polkachu.com"
+            }
+        ]
     }
 }
