@@ -129,8 +129,20 @@
         },
         "fallback": [
             {
-                "rpc": "https://celestia-mainnet-rpc.autostake.com:443",
-                "api": "https://celestia-mainnet-lcd.autostake.com:443"
+                "rpc": "https://celestia-rpc.lavenderfive.com:443",
+                "api": "https://celestia-api.lavenderfive.com:443"
+            }
+        ]
+    },
+    "STARGAZE": {
+        "primary": {
+            "rpc": "https://rpc.stargaze-apis.com",
+            "api": "https://rest.stargaze-apis.com"
+        },
+        "fallback": [
+            {
+                "rpc": "https://stargaze-rpc.polkachu.com",
+                "api": "https://stargaze-api.polkachu.com"
             }
         ]
     }
