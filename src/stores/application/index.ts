@@ -2,14 +2,13 @@ import type { State } from "@/stores/application/state";
 
 import { defineStore } from "pinia";
 import { ApplicationActionTypes } from "@/stores/application/action-types";
-import { AssetUtils, EnvNetworkUtils, ThemeManager, WalletManager, WalletUtils } from "@/utils";
+import { AssetUtils, EnvNetworkUtils, ThemeManager, WalletManager } from "@/utils";
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
-import { DEFAULT_PRIMARY_NETWORK, INTEREST_DECIMALS, NATIVE_NETWORK, NETWORKS, WASM_LP_DEPOSIT } from "@/config/env";
+import { DEFAULT_PRIMARY_NETWORK, ETL_API, INTEREST_DECIMALS, NATIVE_NETWORK, NETWORKS } from "@/config/env";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { useOracleStore, OracleActionTypes } from "../oracle";
-import { Disparcher, Lpp } from "@nolus/nolusjs/build/contracts";
+import { Disparcher } from "@nolus/nolusjs/build/contracts";
 import { CONTRACTS } from "@/config/contracts";
-import { Dec } from "@keplr-wallet/unit";
 import { ApptUtils } from "@/utils/AppUtils";
 import { WalletConnectMechanism } from "@/types";
 
@@ -111,32 +110,17 @@ const useApplicationStore = defineStore("application", {
     async [ApplicationActionTypes.LOAD_APR_REWARDS]() {
 
       try {
-        const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
-        const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-        const lppClient = new Lpp(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance);
-        const dispatcherClient = new Disparcher(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].dispatcher.instance);
-        const network = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
 
-        const [status, price, dispatcherRewards] = await Promise.all([
-          fetch(
-            `${url}/status`
-          ).then((data) => data.json()),
-          lppClient.getPrice(),
+        const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+        const dispatcherClient = new Disparcher(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].dispatcher.instance);
+
+        const [data, dispatcherRewards] = await Promise.all([
+          fetch(`${ETL_API}/earn-apr`).then((data) => data.json()),
           dispatcherClient.calculateRewards().catch(() => 0)
         ]);
 
+        this.apr = Number(data.earn_apr);
         this.dispatcherRewards = dispatcherRewards / Math.pow(10, INTEREST_DECIMALS);
-
-        const dateInSeconds = network.lppCreatedAt;
-        const startDate = new Date(dateInSeconds);
-
-        const currentDate = new Date(status.result.sync_info.latest_block_time);
-        const time = currentDate.getTime() - startDate.getTime();
-        const timeInDays = new Dec(Math.round(time / 24 / 60 / 60 / 1000)).sub(new Dec(1));
-
-        const p = new Dec(price.amount_quote.amount).quo(new Dec((price.amount.amount))).quo(new Dec(1)).sub(new Dec(1)).quo(timeInDays).mul(new Dec(365));
-        this.apr = Number(p.toString()) * 100;
-
 
       } catch (error) {
         this.apr = 0;

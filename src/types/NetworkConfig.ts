@@ -36,6 +36,10 @@ export interface Status {
   }
 }
 
+export interface SquiRouterNetworks {
+  [key: string]: SquiRouterNetwork
+}
+
 export interface SquiRouterNetwork {
   key: string,
   label: string
@@ -45,14 +49,17 @@ export interface SquiRouterNetwork {
   estimation: {
     duration: number,
     type: string
+  },
+  fees: {
+    transfer: number
   }
 }
 
-export interface SquiRouterNetworkProp  extends SquiRouterNetwork{
+export interface SquiRouterNetworkProp extends SquiRouterNetwork {
   value: string
 }
 
-export enum NetworkTypes{
+export enum NetworkTypes {
   cosmos = 'cosmos',
   emv = 'emv'
 }

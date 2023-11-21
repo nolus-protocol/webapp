@@ -1,4 +1,4 @@
-import type { Endpoint, Node, API, ARCHIVE_NODE, SquiRouterNetwork } from "@/types/NetworkConfig";
+import type { Endpoint, Node, API, ARCHIVE_NODE, SquiRouterNetwork, SquiRouterNetworks } from "@/types/NetworkConfig";
 import { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL, Filament, NETWORKS, OPEAN_LEASE_FEE_URL, SWAP_FEE_URL, SquidRouter, isDev, languages } from "@/config/env";
 import { EnvNetworkUtils } from ".";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
@@ -39,7 +39,7 @@ export class ApptUtils {
     } = {};
 
     static squidrouter: {
-        [key: string]: Promise<SquiRouterNetwork[]>
+        [key: string]: Promise<SquiRouterNetworks>
     } = {};
 
     static isDev() {
@@ -303,7 +303,7 @@ export class ApptUtils {
     private static async fetchSquitRouteNetworks() {
         const url = await SquidRouter.networks[EnvNetworkUtils.getStoredNetworkName() as keyof typeof SquidRouter.networks] as string;
         const data = await fetch(url);
-        const json = await data.json() as SquiRouterNetwork[];
+        const json = await data.json() as SquiRouterNetworks;
 
         return json;
     }

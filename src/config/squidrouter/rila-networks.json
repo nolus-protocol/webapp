@@ -1,5 +1,5 @@
-[
-    {
+{
+    "NOLUS": {
         "key": "NOLUS",
         "label": "Nolus",
         "chainId": "pirin-1",
@@ -8,9 +8,12 @@
         "estimation": {
             "duration": 6,
             "type": "sec"
+        },
+        "fees": {
+            "transfer": 30000
         }
     },
-    {
+    "OSMOSIS": {
         "key": "OSMOSIS",
         "label": "Osmosis",
         "chainId": "osmosis-1",
@@ -19,9 +22,12 @@
         "estimation": {
             "duration": 20,
             "type": "sec"
+        },
+        "fees": {
+            "transfer": 30000
         }
     },
-    {
+    "COSMOS_HUB": {
         "key": "COSMOS_HUB",
         "label": "Cosmos Hub",
         "chainId": "cosmoshub-4",
@@ -30,9 +36,12 @@
         "estimation": {
             "duration": 20,
             "type": "sec"
+        },
+        "fees": {
+            "transfer": 30000
         }
     },
-    {
+    "AXELAR": {
         "key": "AXELAR",
         "label": "Axelar",
         "chainId": "axelar-dojo-1",
@@ -41,9 +50,12 @@
         "estimation": {
             "duration": 20,
             "type": "sec"
+        },
+        "fees": {
+            "transfer": 30000
         }
     },
-    {
+    "STRIDE": {
         "key": "STRIDE",
         "label": "Stride",
         "chainId": "stride-1",
@@ -52,9 +64,12 @@
         "estimation": {
             "duration": 20,
             "type": "sec"
+        },
+        "fees": {
+            "transfer": 30000
         }
     },
-    {
+    "JUNO": {
         "key": "JUNO",
         "label": "Juno",
         "chainId": "juno-1",
@@ -63,9 +78,12 @@
         "estimation": {
             "duration": 20,
             "type": "sec"
+        },
+        "fees": {
+            "transfer": 30000
         }
     },
-    {
+    "PERSISTENCE": {
         "key": "PERSISTENCE",
         "label": "Persistence",
         "chainId": "core-1",
@@ -74,9 +92,12 @@
         "estimation": {
             "duration": 20,
             "type": "sec"
+        },
+        "fees": {
+            "transfer": 30000
         }
     },
-    {
+    "SECRET": {
         "key": "SECRET",
         "label": "Secret",
         "chainId": "secret-4",
@@ -85,9 +106,12 @@
         "estimation": {
             "duration": 20,
             "type": "sec"
+        },
+        "fees": {
+            "transfer": 30000
         }
     },
-    {
+    "EVMOS": {
         "key": "EVMOS",
         "label": "Evmos",
         "chainId": "evmos_9001-2",
@@ -96,9 +120,26 @@
         "estimation": {
             "duration": 20,
             "type": "sec"
+        },
+        "fees": {
+            "transfer": 30000
         }
     },
-    {
+    "CELESTIA": {
+        "key": "CELESTIA",
+        "label": "Celestia",
+        "chainId": "celestia",
+        "symbol": "TIA",
+        "native": false,
+        "estimation": {
+            "duration": 20,
+            "type": "sec"
+        },
+        "fees": {
+            "transfer": 30000
+        }
+    },
+    "ETHEREUM": {
         "key": "ETHEREUM",
         "label": "Ethereum",
         "chainId": 1,
@@ -107,9 +148,12 @@
         "estimation": {
             "duration": 2,
             "type": "min"
+        },
+        "fees": {
+            "transfer": 30000
         }
     },
-    {
+    "ARBITRUM": {
         "key": "ARBITRUM",
         "label": "Arbitrum",
         "chainId": 42161,
@@ -118,9 +162,12 @@
         "estimation": {
             "duration": 2,
             "type": "min"
+        },
+        "fees": {
+            "transfer": 30000
         }
     },
-    {
+    "BASE": {
         "key": "BASE",
         "label": "Base",
         "chainId": 8453,
@@ -129,9 +176,12 @@
         "estimation": {
             "duration": 2,
             "type": "min"
+        },
+        "fees": {
+            "transfer": 30000
         }
     },
-    {
+    "AVALANCHE": {
         "key": "AVALANCHE",
         "label": "Avalanche",
         "chainId": 43114,
@@ -140,9 +190,12 @@
         "estimation": {
             "duration": 2,
             "type": "min"
+        },
+        "fees": {
+            "transfer": 30000
         }
     },
-    {
+    "POLYGON": {
         "key": "POLYGON",
         "label": "Polygon",
         "chainId": 137,
@@ -151,9 +204,12 @@
         "estimation": {
             "duration": 2,
             "type": "min"
+        },
+        "fees": {
+            "transfer": 30000
         }
     },
-    {
+    "BINANCE": {
         "key": "BINANCE",
         "label": "Binance",
         "chainId": 56,
@@ -162,6 +218,9 @@
         "estimation": {
             "duration": 2,
             "type": "min"
+        },
+        "fees": {
+            "transfer": 30000
         }
     }
-]
+}

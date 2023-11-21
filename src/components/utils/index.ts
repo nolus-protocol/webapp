@@ -170,7 +170,6 @@ export const externalWalletV2 = async (
   networkData: NetworkDataV2,
   password: string
 ) => {
-
   switch (WalletManager.getWalletConnectMechanism()) {
     case WalletConnectMechanism.MNEMONIC: {
       return await authenticateDecryptV2(wallet, networkData, password);
@@ -191,7 +190,6 @@ export const externalWalletV2 = async (
       return await authenticateDecryptV2(wallet, networkData, password);
     }
   }
-
 };
 
 export const externalWalletOperationV2 = async (

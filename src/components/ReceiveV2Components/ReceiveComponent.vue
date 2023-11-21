@@ -103,25 +103,9 @@
               <p class="text-14 nls-font-500 text-primary m-0 mb-[6px] mt-4">
                 {{ $t("message.recipient") }}
               </p>
-              <p
-                v-if="WalletUtils.isAuth()"
-                class="text-14 text-primary nls-font-700 m-0 break-all"
-              >
-                <span
-                  v-if="loading"
-                  class="loading pb-[20px] block"
-                >
-                </span>
-                <template v-else>
-                  {{ receiveWallet }}
-                </template>
-                <!-- {{ loading ? $t('message.loading-wallet') : receiveWallet }} -->
+              <p class="text-14 text-primary nls-font-700 m-0 break-all">
+                {{ WalletUtils.isAuth() ? walletStore.wallet?.address : $t('message.connect-wallet-label') }}
               </p>
-              <template v-else>
-                <p class="text-14 text-primary nls-font-700 m-0 break-all">
-                  {{ $t('message.connect-wallet-label') }}
-                </p>
-              </template>
             </div>
 
           </div>
@@ -157,28 +141,32 @@ import type { ExternalCurrencyType } from "@/types/CurreciesType";
 import { Wallet, type BaseWallet } from "@/wallet";
 import { NetworkTypes } from "@/types/NetworkConfig";
 
-import { CONFIRM_STEP, TxType } from "@/types";
+import { CONFIRM_STEP, TxType, type NetworkDataV2 } from "@/types";
 import { ref, type PropType, inject, computed, onUnmounted, watch } from "vue";
 import { DocumentDuplicateIcon } from "@heroicons/vue/24/solid";
-import { IGNORE_TRANSFER_ASSETS, SquidRouter } from "@/config/env";
+import { ErrorCodes, IGNORE_TRANSFER_ASSETS, SquidRouter } from "@/config/env";
 import { useI18n } from "vue-i18n";
-import { AssetUtils, EnvNetworkUtils, StringUtils, WalletManager, WalletUtils } from "@/utils";
-import { NETWORKS_DATA } from "@/networks/config";
+import { AssetUtils, StringUtils, WalletManager, WalletUtils } from "@/utils";
 import { coin, type Coin } from "@cosmjs/amino";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore } from "@/stores/wallet";
 import { Dec, Coin as KeplrCoin } from "@keplr-wallet/unit";
-import { externalWalletV2 } from "../utils";
+import { externalWalletOperationV2, externalWalletV2 } from "../utils";
 import { Squid } from "@0xsquid/sdk";
 import { useApplicationStore } from "@/stores/application";
 import { Decimal } from "@cosmjs/math";
+import { ApptUtils } from "@/utils/AppUtils";
+import { SigningStargateClient } from "@cosmjs/stargate";
+import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { toHex } from "@cosmjs/encoding";
+import { sha256 } from "@cosmjs/crypto";
 
 const i18n = useI18n();
 const copyText = ref(i18n.t("message.copy"));
 const walletStore = useWalletStore();
 const networkCurrencies = ref<AssetBalance[]>([]);
 const selectedCurrency = ref<AssetBalance>(walletStore.balances[0]);
-const receiveWallet = ref<string>();
+const sendWallet = ref<string>();
 
 const amount = ref("");
 const amountErrorMsg = ref("");
@@ -191,7 +179,6 @@ const txHash = ref('');
 const fee = ref<Coin>()
 const isLoading = ref(false);
 const networkCurrenciesObject = ref();
-const loading = ref(false);
 const app = useApplicationStore();
 
 const closeModal = inject("onModalClose", () => () => { });
@@ -199,6 +186,7 @@ const closeModal = inject("onModalClose", () => () => { });
 let squidRouteRef: Squid;
 let timeOut: NodeJS.Timeout;
 let client: Wallet;
+let toChainData: NetworkDataV2;
 
 const props = defineProps({
   networks: {
@@ -208,7 +196,6 @@ const props = defineProps({
 });
 
 const selectedNetwork = ref<SquiRouterNetworkProp>(props.networks[0]);
-
 const squidRouter = async () => {
 
   if (squidRouteRef) {
@@ -223,7 +210,8 @@ const squidRouter = async () => {
 
 const onUpdateNetwork = async (event: SquiRouterNetworkProp) => {
   selectedNetwork.value = event;
-  loading.value = true;
+  networkCurrencies.value = [];
+  disablePicker.value = true;
 
   const sr = await squidRouter();
 
@@ -242,13 +230,16 @@ const onUpdateNetwork = async (event: SquiRouterNetworkProp) => {
 }
 
 const cosmosNetworkParse = async (toChain: CosmosChain) => {
-  const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
-  const assets = network.supportedNetworks[selectedNetwork.value.key].currencies();
+
+  const assets = app?.networks?.[selectedNetwork.value.key];
+
+  if (!assets) {
+    return;
+  }
+
   if (client) {
     client.destroy();
   }
-
-  disablePicker.value = true;
 
   client = await Wallet.getInstance(toChain.rpc, toChain.rest);
 
@@ -256,7 +247,7 @@ const cosmosNetworkParse = async (toChain: CosmosChain) => {
     const filteredAssets: { [key: string]: ExternalCurrencyType } = {};
     const currenciesPromise = [];
 
-    const baseWallet = await externalWalletV2(client, {
+    toChainData = {
       prefix: toChain.bech32Config.bech32PrefixAccAddr,
       rpc: toChain.rpc,
       rest: toChain.rest,
@@ -275,9 +266,10 @@ const cosmosNetworkParse = async (toChain: CosmosChain) => {
           features: toChain.features,
         }
       }
-    }, password.value) as BaseWallet;
+    };
 
-    receiveWallet.value = baseWallet.address;
+    const baseWallet = await externalWalletV2(client, toChainData, password.value) as BaseWallet;
+    sendWallet.value = baseWallet?.address;
 
 
     for (const key in assets) {
@@ -285,6 +277,8 @@ const cosmosNetworkParse = async (toChain: CosmosChain) => {
         filteredAssets[key] = assets[key];
       }
     }
+
+    networkCurrenciesObject.value = filteredAssets;
 
     for (const key in filteredAssets) {
 
@@ -310,7 +304,6 @@ const cosmosNetworkParse = async (toChain: CosmosChain) => {
     }
 
     const items = await Promise.all(currenciesPromise);
-    console.log(items)
     selectedCurrency.value = items?.[0]
     networkCurrencies.value = items;
     disablePicker.value = false;
@@ -318,60 +311,78 @@ const cosmosNetworkParse = async (toChain: CosmosChain) => {
     selectedCurrency.value = walletStore.balances[0];
   }
 
-  loading.value = false;
-  console.log('enter')
 }
 
-async function testTransfer() {
-  // // const data = await ApptUtils.getSquitRouteNetworks();
-  // // console.log(data)
-  // walletOperation(async () => {
-  //   try {
+async function sendTX() {
 
-  //     // const squid = new Squid(SquidRouter);
-  //     // await squid.init();
-  //     // console.log(walletStore.wallet)
-  //     // const offlineSigner = walletStore.wallet!.getOfflineSigner();
-  //     // console.log(squid)
+  step.value = CONFIRM_STEP.PENDING;
 
-  //     // const signerAddress = (await offlineSigner.getAccounts())[0].address;
-  //     // const nolusIndex = squid.chains.findIndex((item) => (item as any).chainName == 'nolus');
-  //     // const osmosisIndex = squid.chains.findIndex((item) => (item as any).chainName == 'osmosis');
+  const squid = await squidRouter();
+  const chains = await ApptUtils.getSquitRouteNetworks();
+  const denom = AssetUtils.makeIBCMinimalDenom(selectedCurrency.value?.ibc_route!, selectedCurrency.value?.symbol!);
+  const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
+    amount.value,
+    denom,
+    selectedCurrency.value?.decimals!
+  );
+  const asset = AssetUtils.getAssetInfo(selectedCurrency.value.ticker as string);
 
-  //     // const nolus = squid.chains[nolusIndex];
-  //     // const osmosis = squid.chains[osmosisIndex];
+  const params = {
+    fromAddress: sendWallet.value as string,
+    fromChain: selectedNetwork.value.chainId,
+    fromToken: minimalDenom.denom,
+    fromAmount: minimalDenom.amount.toString(),
+    toChain: chains.NOLUS.chainId,
+    toToken: asset.coinMinimalDenom,
+    toAddress: walletStore.wallet!.address as string,
+    slippage: 1.00,
+    quoteOnly: false,
+  };
 
-  //     // const signer: any = await SigningStargateClient.connectWithSigner(
-  //     //   nolus.rpc,
-  //     //   offlineSigner
-  //     // );
-
-  //     // const params = {
-  //     //   fromAddress: signerAddress,
-  //     //   fromChain: nolus.chainId,
-  //     //   fromToken: nolus.currencies[0].coinMinimalDenom,
-  //     //   fromAmount: 10000000,
-  //     //   toChain: osmosis.chainId,
-  //     //   toToken: osmosis.currencies[0].coinMinimalDenom,
-  //     //   toAddress: 'osmo1vp9j3x49j02w4qex8rguwmg3x4u4lqt2wdccha',
-  //     //   slippage: 1.00,
-  //     //   quoteOnly: false,
-  //     // };
-  //     // const { route } = await squid.getRoute(params);
-  //     // console.log(params, route)
-  //     // const cosmosTx = (await squid.executeRoute({
-  //     //   signer,
-  //     //   signerAddress,
-  //     //   route,
-  //     // }))
+  const data = await squid.getRoute(params);
+  console.log(data);
 
 
-  //   } catch (e) {
-  //     console.log(e)
-  //   }
-  // }, '')
+  externalWalletOperationV2(
+    async () => {
+      try {
+        const baseWallet = await externalWalletV2(client, toChainData, password.value) as BaseWallet;
+        const offlineSigner = baseWallet.getOfflineSigner();
+        const signer = await SigningStargateClient.connectWithSigner(
+          toChainData.rpc,
+          offlineSigner
+        );
 
+        const cosmosTx = await squid.executeRoute({
+          signer,
+          signerAddress: baseWallet.address,
+          route: data.route,
+        }) as TxRaw;
 
+        const txBytes = Uint8Array.from(TxRaw.encode(cosmosTx).finish());
+        const tx = toHex(sha256(txBytes));
+
+        step.value = CONFIRM_STEP.SUCCESS;
+        txHash.value = tx;
+
+      } catch (error: Error | any) {
+        switch (error.code) {
+          case (ErrorCodes.GasError): {
+            step.value = CONFIRM_STEP.GasErrorExternal;
+            break;
+          }
+          default: {
+            step.value = CONFIRM_STEP.ERROR;
+            break;
+          }
+        }
+      }
+
+    },
+    client,
+    toChainData,
+    password.value
+  );
 }
 
 onUnmounted(() => {
@@ -386,71 +397,6 @@ watch(() => [selectedCurrency.value, amount.value], () => {
     validateAmount()
   }
 });
-
-// const onUpdateNetwork = async (event: Network) => {
-//   selectedNetwork.value = event;
-//   networkCurrencies.value = [];
-//   if (!event.native) {
-
-//     if (client) {
-//       client.destroy();
-//     }
-
-//     disablePicker.value = true;
-
-//     client = await WalletUtils.getWallet(
-//       event.key
-//     );
-
-//     const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
-//     const assets = network.supportedNetworks[event.key].currencies();
-//     const currenciesPromise = [];
-//     const filteredAssets: { [key: string]: ExternalCurrencyType } = {};
-//     const networkData = network?.supportedNetworks[selectedNetwork.value.key];
-//     const baseWallet = await externalWallet(client, networkData, password.value) as BaseWallet;
-//     wallet.value = baseWallet?.address as string;
-
-//     for (const key in assets) {
-//       if (!IGNORE_TRANSFER_ASSETS.includes(key)) {
-//         filteredAssets[key] = assets[key];
-//       }
-//     }
-
-//     networkCurrenciesObject.value = filteredAssets;
-
-//     for (const key in filteredAssets) {
-
-//       const fn = async () => {
-//         const ibc_route = AssetUtils.makeIBCMinimalDenom(assets[key].ibc_route, assets[key].symbol);
-//         const balance = WalletUtils.isAuth() ? await client.getBalance(wallet.value as string, ibc_route) : coin(0, ibc_route);
-//         const icon = app.assetIcons?.[assets[key].ticker] as string;
-//         return {
-//           balance,
-//           name: assets[key].shortName,
-//           shortName: assets[key].shortName,
-//           icon: icon,
-//           ticker: assets[key].ticker,
-//           ibc_route: assets[key].ibc_route,
-//           decimals: Number(assets[key].decimal_digits),
-//           symbol: assets[key].symbol,
-//           native: assets[key].native
-//         };
-//       }
-
-//       currenciesPromise.push(fn());
-
-//     }
-
-//     const items = await Promise.all(currenciesPromise);
-//     selectedCurrency.value = items?.[0]
-//     networkCurrencies.value = items;
-//     disablePicker.value = false;
-
-//   } else {
-//     selectedCurrency.value = walletStore.balances[0];
-//     wallet.value = walletStore.wallet?.address;
-//   }
-// };
 
 const onCopy = (wallet: string) => {
   copyText.value = i18n.t("message.copied");
@@ -473,21 +419,28 @@ const handleAmountChange = (event: string) => {
 
 const validateInputs = async () => {
 
+  if (!WalletUtils.isAuth()) {
+    return false;
+  }
+
   try {
     isLoading.value = true;
     const isValid = await validateAmount();
     if (isValid) {
-      const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[selectedNetwork.value.key];
+
+      const chains = await ApptUtils.getSquitRouteNetworks();
+
+      const network = chains[selectedNetwork.value.key];
       const ibc_route = selectedCurrency.value?.ibc_route;
       const symbol = selectedCurrency.value?.symbol;
-
       if (ibc_route && symbol) {
-        fee.value = coin(network.fees.transfer_amount, AssetUtils.makeIBCMinimalDenom(ibc_route, symbol))
+        fee.value = coin(network.fees.transfer, AssetUtils.makeIBCMinimalDenom(ibc_route, symbol))
         showConfirmScreen.value = true;
       }
 
     }
   } catch (error) {
+    console.log(error)
     step.value = CONFIRM_STEP.ERROR;
     showConfirmScreen.value = true;
   } finally {
@@ -509,7 +462,7 @@ const validateAmount = async () => {
     return false;
   }
 
-  const prefix = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[selectedNetwork.value.key]?.prefix;
+  const prefix = toChainData.prefix;
   const ibc_route = selectedCurrency.value?.ibc_route;
   const symbol = selectedCurrency.value?.symbol;
   const decimals = selectedCurrency.value?.decimals;
@@ -517,7 +470,7 @@ const validateAmount = async () => {
   if (prefix && ibc_route && symbol && decimals) {
 
     try {
-      const balance = await client.getBalance(receiveWallet.value as string, AssetUtils.makeIBCMinimalDenom(ibc_route, symbol));
+      const balance = await client.getBalance(sendWallet.value as string, AssetUtils.makeIBCMinimalDenom(ibc_route, symbol));
       const walletBalance = Decimal.fromAtomics(balance.amount, decimals);
       const transferAmount = Decimal.fromUserInput(
         amount.value,
@@ -542,127 +495,9 @@ const validateAmount = async () => {
   return true;
 };
 
-
 const onSendClick = async () => {
-  // try {
-  //   const networkData = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[selectedNetwork.value.key];
-  //   await externalWalletOperation(
-  //     ibcTransfer,
-  //     client,
-  //     networkData,
-  //     password.value
-  //   );
-  // } catch (error: Error | any) {
-  //   step.value = CONFIRM_STEP.ERROR;
-  // }
+  sendTX();
 };
-
-// const getSourceChannel = () => {
-//   const networkInfo = SUPPORTED_NETWORKS_DATA[selectedNetwork.value.key as keyof typeof SUPPORTED_NETWORKS_DATA];
-
-//   if (networkInfo.forward) {
-//     return AssetUtils.getChannelData(app.networksData?.networks?.channels!, selectedNetwork.value.key)!.b.ch;
-//   } else {
-//     return AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, selectedNetwork.value.key, NATIVE_NETWORK.key, selectedNetwork.value.key);
-//   }
-// }
-
-// const ibcTransfer = async (baseWallet: BaseWallet) => {
-//   try {
-
-//     step.value = CONFIRM_STEP.PENDING;
-
-//     const networkData = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[selectedNetwork.value.key];
-//     const denom = AssetUtils.makeIBCMinimalDenom(selectedCurrency.value?.ibc_route!, selectedCurrency.value?.symbol!);
-
-//     const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
-//       amount.value,
-//       denom,
-//       selectedCurrency.value?.decimals!
-//     );
-
-//     const funds: Coin = {
-//       amount: minimalDenom.amount.toString(),
-//       denom,
-//     };
-
-//     const sourceChannel = getSourceChannel();
-//     const networkInfo = SUPPORTED_NETWORKS_DATA[selectedNetwork.value.key as keyof typeof SUPPORTED_NETWORKS_DATA];
-
-//     const rawTx: {
-//       toAddress: string,
-//       amount: Coin,
-//       sourcePort: string,
-//       sourceChannel: string,
-//       gasMuplttiplier: number,
-//       gasPrice: string,
-//       timeOut: number
-//       memo?: string,
-//     } = {
-//       toAddress: walletStore.wallet?.address as string,
-//       amount: funds,
-//       sourcePort: SOURCE_PORTS.TRANSFER,
-//       sourceChannel: sourceChannel as string,
-//       gasMuplttiplier: networkData.gasMuplttiplier,
-//       gasPrice: networkData.gasPrice,
-//       timeOut: networkData.ibcTransferTimeout
-//     };
-
-//     if (networkInfo.forward) {
-//       const ch = AssetUtils.getChannelData(app.networksData?.networks?.channels!, networkInfo.key);
-//       const proxyAddress = wallet.value as string;
-//       const channel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, NATIVE_NETWORK.key, ch!.a.network, ch!.a.network);
-//       rawTx.toAddress = proxyAddress;
-
-//       rawTx.memo = JSON.stringify({
-//         "forward": {
-//           "receiver": walletStore.wallet!.address,
-//           "port": SOURCE_PORTS.TRANSFER,
-//           "channel": channel
-//         }
-//       });
-//     }
-
-//     const { txHash: txHashData, txBytes, usedFee } = await baseWallet.simulateSendIbcTokensTx(rawTx);
-//     txHash.value = txHashData;
-
-//     if (usedFee?.amount?.[0]) {
-//       fee.value = usedFee.amount[0];
-//     }
-
-//     const tx = await baseWallet.broadcastTx(txBytes as Uint8Array);
-//     const isSuccessful = tx?.code === 0;
-//     step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
-//     baseWallet.disconnect();
-
-//     setTimeout(async () => {
-//       await walletStore[WalletActionTypes.UPDATE_BALANCES]();
-//     }, 10000);
-
-//   } catch (error: Error | any) {
-//     console.log(error)
-//     switch (error.code) {
-//       case (ErrorCodes.GasError): {
-//         step.value = CONFIRM_STEP.GasErrorExternal;
-//         break;
-//       }
-//       default: {
-//         step.value = CONFIRM_STEP.ERROR;
-//         break;
-//       }
-//     }
-
-//     if (error.message.includes('You might want to check later')) {
-//       step.value = CONFIRM_STEP.SUCCESS;
-//       return;
-//     }
-
-//     if (error.message.includes('Length must be a multiple of 4')) {
-//       step.value = CONFIRM_STEP.SUCCESS;
-//       return;
-//     }
-//   }
-// }
 
 const onConfirmBackClick = () => {
   showConfirmScreen.value = false;
@@ -673,9 +508,9 @@ const onClickOkBtn = () => {
 };
 
 const formatCurrentBalance = (selectedCurrency: AssetBalance) => {
-  console.log(selectedCurrency?.balance)
-  if(!selectedCurrency?.balance){
-    return '0.00';
+
+  if (!selectedCurrency.balance) {
+    return;
   }
 
   if (selectedNetwork.value.native) {
@@ -688,16 +523,18 @@ const formatCurrentBalance = (selectedCurrency: AssetBalance) => {
       asset.coinDenom,
       asset.coinDecimals
     ).toString();
-  } else {
-
-    return CurrencyUtils.convertMinimalDenomToDenom(
-      selectedCurrency.balance.amount.toString(),
-      selectedCurrency.balance.denom,
-      selectedCurrency.name as string,
-      selectedCurrency.decimals as number
-    ).toString();
-
   }
+
+  if (!selectedCurrency.decimals || !selectedCurrency.name) {
+    return;
+  }
+
+  return CurrencyUtils.convertMinimalDenomToDenom(
+    selectedCurrency.balance.amount.toString(),
+    selectedCurrency.balance.denom,
+    selectedCurrency.name as string,
+    selectedCurrency.decimals as number
+  ).toString();
 
 };
 

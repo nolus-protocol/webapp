@@ -20,9 +20,13 @@ onMounted(() => {
 
 const onLoadSquidRouteConfig = async () => {
   const data = await ApptUtils.getSquitRouteNetworks();
-  networks.value = data.map((item) => {
-    return { ...item, value: item.key };
-  });
+  const n = [];
+
+  for(const key in data){
+    n.push({ ...data[key], value: key });
+  }
+
+  networks.value = n;
   loaded.value = true;
 }
 </script>

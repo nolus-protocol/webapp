@@ -121,5 +121,17 @@
                 "api": "https://secret-api.bharvest.io"
             }
         ]
+    },
+    "CELESTIA": {
+        "primary": {
+            "rpc": "https://public-celestia-rpc.numia.xyz",
+            "api": "https://public-celestia-lcd.numia.xyz"
+        },
+        "fallback": [
+            {
+                "rpc": "https://celestia-rpc.lavenderfive.com:443",
+                "api": "https://celestia-api.lavenderfive.com:443"
+            }
+        ]
     }
 }

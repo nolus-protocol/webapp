@@ -21,6 +21,10 @@ export class BaseWallet extends SigningCosmWasmClient {
         this.prefix = prefix;
     }
 
+    getOfflineSigner(){
+        return this.offlineSigner;
+    }
+
     public async useAccount(): Promise<boolean> {
         const accounts = await this.offlineSigner.getAccounts();
         if (accounts.length === 0) {
