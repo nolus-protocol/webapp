@@ -335,14 +335,14 @@ export const SquidRouter = {
 
 export const minimumLeaseAmount = 1;
 export const languages = l;
-export const SUPPORTED_NETWORKS = ['NOLUS', 'OSMOSIS', 'COSMOS_HUB', 'AXELAR', 'STRIDE', 'JUNO', 'EVMOS', 'PERSISTENCE', 'SECRET', 'CELESTIA'];
+export const SUPPORTED_NETWORKS = ['NOLUS', 'OSMOSIS', 'COSMOS_HUB', 'AXELAR', 'STRIDE', 'JUNO', 'EVMOS', 'PERSISTENCE', 'SECRET', 'STARGAZE'];
 export const SWAP_FEE = 0.007;
 export const ZERO_DECIMALS = 6;
 export const USD_DECIMALS = 6;
 export const MAX_DECIMALS = 8;
 export const LedgerName = "Ledger";
-export const IGNORE_LEASE_ASSETS: string[] = [];
-export const IGNORE_TRANSFER_ASSETS: string[] = [];
+export const IGNORE_LEASE_ASSETS: string[] = ['TIA'];
+export const IGNORE_TRANSFER_ASSETS: string[] = ['TIA'];
 export const IGNORE_LEASES: string[] = ["nolus1suz0vsqe8c8anckaer98awhqs8r4hu7wsm8a49acdl39x6ylfypsqywxwh", "nolus1q2ekwjj87jglqsszwy6ah5t08h0k8kq67ed0l899sku2qt0dztpsnwt6sw"];
 
 export const SUPPORT_URL = 'https://hub.nolus.io';
