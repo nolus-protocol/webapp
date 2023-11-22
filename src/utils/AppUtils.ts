@@ -3,7 +3,7 @@ import { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL, Filament, NETWORKS, O
 import { EnvNetworkUtils } from ".";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 
-export class ApptUtils {
+export class AppUtils {
 
     public static LANGUAGE = "language";
     public static BANNER = "banner";
@@ -68,30 +68,30 @@ export class ApptUtils {
     }
 
     static async fetchEndpoints(network: string) {
-        const net = ApptUtils.rpc?.[EnvNetworkUtils.getStoredNetworkName()]?.[network];
+        const net = AppUtils.rpc?.[EnvNetworkUtils.getStoredNetworkName()]?.[network];
 
         if (net) {
             return net;
         }
 
-        if (!ApptUtils.rpc[EnvNetworkUtils.getStoredNetworkName()]) {
-            ApptUtils.rpc[EnvNetworkUtils.getStoredNetworkName()] = {};
+        if (!AppUtils.rpc[EnvNetworkUtils.getStoredNetworkName()]) {
+            AppUtils.rpc[EnvNetworkUtils.getStoredNetworkName()] = {};
         }
 
-        const networkData = ApptUtils.fetch(network);
-        ApptUtils.rpc[EnvNetworkUtils.getStoredNetworkName()][network] = networkData;
+        const networkData = AppUtils.fetch(network);
+        AppUtils.rpc[EnvNetworkUtils.getStoredNetworkName()][network] = networkData;
         return networkData;
 
     }
 
     static async getArchiveNodes() {
-        const node = ApptUtils.archive_node?.[EnvNetworkUtils.getStoredNetworkName()];
+        const node = AppUtils.archive_node?.[EnvNetworkUtils.getStoredNetworkName()];
 
         if (node) {
             return node;
         }
-        const archive = ApptUtils.fetchArchiveNodes();
-        ApptUtils.archive_node[EnvNetworkUtils.getStoredNetworkName()] = archive;
+        const archive = AppUtils.fetchArchiveNodes();
+        AppUtils.archive_node[EnvNetworkUtils.getStoredNetworkName()] = archive;
 
         return archive;
 
@@ -116,13 +116,13 @@ export class ApptUtils {
         const config = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
         const data = await fetch(config.endpoints);
         const json = await data.json() as Endpoint;
-        const status = await ApptUtils.fetchStatus((json[network] as Node).primary.rpc, json.downtime);
+        const status = await AppUtils.fetchStatus((json[network] as Node).primary.rpc, json.downtime);
 
         if (status) {
             return (json[network] as Node).primary;
         }
 
-        const networkData = ApptUtils.fetchFallback(json[network] as Node, json.downtime);
+        const networkData = AppUtils.fetchFallback(json[network] as Node, json.downtime);
         return networkData;
 
     }
@@ -134,13 +134,13 @@ export class ApptUtils {
             return node.primary;
         }
 
-        const status = await ApptUtils.fetchStatus(item.rpc, downtime);
+        const status = await AppUtils.fetchStatus(item.rpc, downtime);
 
         if (status) {
             return item;
         }
 
-        return ApptUtils.fetchFallback(node as Node, downtime);
+        return AppUtils.fetchFallback(node as Node, downtime);
 
     }
 
@@ -165,15 +165,15 @@ export class ApptUtils {
     }
 
     static async getDownpaymentRange() {
-        const downpaymentRange = ApptUtils.downpaymentRange;
+        const downpaymentRange = AppUtils.downpaymentRange;
 
         if (downpaymentRange) {
             return downpaymentRange;
         }
 
 
-        ApptUtils.downpaymentRange = ApptUtils.fetchDownpaymentRange();
-        return ApptUtils.downpaymentRange;
+        AppUtils.downpaymentRange = AppUtils.fetchDownpaymentRange();
+        return AppUtils.downpaymentRange;
 
     }
 
@@ -190,14 +190,14 @@ export class ApptUtils {
     }
 
     static async getSwapFee() {
-        const swapFee = ApptUtils.swapFee;
+        const swapFee = AppUtils.swapFee;
 
         if (swapFee) {
             return swapFee;
         }
 
-        ApptUtils.swapFee = ApptUtils.fetchSwapFee();
-        return ApptUtils.swapFee;
+        AppUtils.swapFee = AppUtils.fetchSwapFee();
+        return AppUtils.swapFee;
 
     }
 
@@ -211,14 +211,14 @@ export class ApptUtils {
     }
 
     static async getOpenLeaseFee() {
-        const openLeaseFee = ApptUtils.openLeaseFee;
+        const openLeaseFee = AppUtils.openLeaseFee;
 
         if (openLeaseFee) {
             return openLeaseFee;
         }
 
-        ApptUtils.openLeaseFee = ApptUtils.fetchOpenLeaseFee();
-        return ApptUtils.openLeaseFee;
+        AppUtils.openLeaseFee = AppUtils.fetchOpenLeaseFee();
+        return AppUtils.openLeaseFee;
 
     }
 
@@ -232,14 +232,14 @@ export class ApptUtils {
     }
 
     static async getFreeInterestAddress() {
-        const freeInterestAdress = ApptUtils.freeInterestAdress;
+        const freeInterestAdress = AppUtils.freeInterestAdress;
 
         if (freeInterestAdress) {
             return freeInterestAdress;
         }
 
-        ApptUtils.freeInterestAdress = ApptUtils.fetchFreeInterestAddress();
-        return ApptUtils.freeInterestAdress;
+        AppUtils.freeInterestAdress = AppUtils.fetchFreeInterestAddress();
+        return AppUtils.freeInterestAdress;
 
     }
 
@@ -288,14 +288,14 @@ export class ApptUtils {
     }
 
     static async getSquitRouteNetworks() {
-        const net = ApptUtils.squidrouter?.[EnvNetworkUtils.getStoredNetworkName()];
+        const net = AppUtils.squidrouter?.[EnvNetworkUtils.getStoredNetworkName()];
 
         if (net) {
             return net;
         }
 
-        const networkData = ApptUtils.fetchSquitRouteNetworks();
-        ApptUtils.squidrouter[EnvNetworkUtils.getStoredNetworkName()] = networkData;
+        const networkData = AppUtils.fetchSquitRouteNetworks();
+        AppUtils.squidrouter[EnvNetworkUtils.getStoredNetworkName()] = networkData;
         return networkData;
 
     }

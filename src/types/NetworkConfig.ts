@@ -52,7 +52,11 @@ export interface SquiRouterNetwork {
   },
   fees: {
     transfer: number
-  }
+  },
+  currencies?: {
+    from: string,
+    to: string
+  }[]
 }
 
 export interface SquiRouterNetworkProp extends SquiRouterNetwork {
@@ -61,5 +65,5 @@ export interface SquiRouterNetworkProp extends SquiRouterNetwork {
 
 export enum NetworkTypes {
   cosmos = 'cosmos',
-  emv = 'emv'
+  evm = 'evm'
 }

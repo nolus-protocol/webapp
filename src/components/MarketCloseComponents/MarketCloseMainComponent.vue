@@ -39,7 +39,7 @@ import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import { NATIVE_ASSET, GAS_FEES, SNACKBAR, TIP, ErrorCodes, minimumLeaseAmount } from "@/config/env";
 import { coin } from "@cosmjs/amino";
-import { ApptUtils } from "@/utils/AppUtils";
+import { AppUtils } from "@/utils/AppUtils";
 import { useLeaseConfig } from "@/composables";
 import { useOracleStore } from "@/stores/oracle";
 
@@ -109,7 +109,7 @@ watch(
 
 const setSwapFee = async () => {
   const asset = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom);
-  state.value.swapFee = (await ApptUtils.getSwapFee())[asset.ticker] ?? 0;
+  state.value.swapFee = (await AppUtils.getSwapFee())[asset.ticker] ?? 0;
 }
 
 onUnmounted(() => {

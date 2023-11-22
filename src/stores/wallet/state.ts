@@ -11,7 +11,8 @@ export interface AssetBalance {
   ibc_route?: string[],
   decimals?: number,
   symbol?: string,
-  native?: boolean
+  native?: boolean,
+  price?: number
 }
 
 export type State = {

@@ -47,7 +47,7 @@ import { NATIVE_ASSET, GAS_FEES, SNACKBAR, TIP, WASM_EVENTS, INTEREST_DECIMALS, 
 import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/stores/oracle";
 import { useApplicationStore } from "@/stores/application";
-import { ApptUtils } from "@/utils/AppUtils";
+import { AppUtils } from "@/utils/AppUtils";
 
 const onModalClose = inject("onModalClose", () => { });
 const walletStore = useWalletStore();
@@ -118,7 +118,7 @@ let downPaymentRange: { [key: string]: { min: number, max: number } };
 
 onMounted(async () => {
   const balances = walletStore.balances;
-  downPaymentRange = await ApptUtils.getDownpaymentRange();
+  downPaymentRange = await AppUtils.getDownpaymentRange();
   if (balances) {
     state.value.currentBalance = balances;
   }

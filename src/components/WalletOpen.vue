@@ -56,7 +56,7 @@
 
       <div
         class="block mt-3"
-        v-if="ApptUtils.isDev()"
+        v-if="AppUtils.isDev()"
       >
         <Picker
           :default-option="currentNetwork"
@@ -91,7 +91,7 @@ import { APPEARANCE, languages } from "@/config/env";
 import { useI18n } from "vue-i18n";
 import { ApplicationActionTypes, useApplicationStore } from "@/stores/application";
 import { EnvNetworkUtils, StringUtils, ThemeManager, WalletManager } from "@/utils";
-import { ApptUtils } from "@/utils/AppUtils";
+import { AppUtils } from "@/utils/AppUtils";
 import { setLang } from "@/i18n";
 
 let timeOut: NodeJS.Timeout;
@@ -102,7 +102,7 @@ const wallet = useWalletStore();
 const i18n = useI18n();
 const showText = ref(false);
 const themeData = ThemeManager.getThemeData();
-const lang = ApptUtils.getLang();
+const lang = AppUtils.getLang();
 const toggle = inject('toggle', () => {});
 
 const selectedAppearnce = ref({
@@ -181,7 +181,7 @@ async function onClickDisconnect() {
 };
 
 async function setLanguage(item: PickerOption) {
-  ApptUtils.setLang(item.value);
+  AppUtils.setLang(item.value);
   await setLang(item.value);
   appearance.value = Object.keys(APPEARANCE).map((key) => {
     return {

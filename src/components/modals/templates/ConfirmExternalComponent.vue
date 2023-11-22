@@ -117,7 +117,7 @@
             {{ $t("message.tx-and-fee") }}:
           </p>
           <p class="text-14 text-primary nls-font-700 m-0">
-            {{ calculateFee(fee) }}
+            {{ calculateFee() }}
           </p>
         </div>
       </div>
@@ -159,7 +159,7 @@ import { computed, inject, onMounted, ref } from "vue";
 import { ArrowLeftIcon, CheckIcon, XMarkIcon } from "@heroicons/vue/24/solid";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { AssetUtils, EnvNetworkUtils, StringUtils, WalletUtils } from "@/utils";
-import { CONFIRM_STEP } from "@/types";
+import { CONFIRM_STEP, NetworkTypes } from "@/types";
 import { useI18n } from "vue-i18n";
 import { NETWORKS_DATA } from "@/networks";
 
@@ -178,7 +178,8 @@ interface Props {
   step: CONFIRM_STEP;
   fee?: Coin;
   networkSymbol?: string;
-  networkCurrencies: {
+  networkType: NetworkTypes,
+  networkCurrencies?: {
     [key: string]: {
       name: string;
       symbol: string;
@@ -243,8 +244,7 @@ const formatAmount = (value: string) => {
     return;
   }
 
-  const coinMinimalDenom = AssetUtils.makeIBCMinimalDenom(selectedCurrency.ibc_route!, selectedCurrency.symbol!);
-  
+  const coinMinimalDenom = getMinimalDenom();
   const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
     value,
     coinMinimalDenom,
@@ -259,14 +259,50 @@ const formatAmount = (value: string) => {
   );
 }
 
-const calculateFee = (coin: Coin) => {
-  const currency = props.networkCurrencies[networkData.value.ticker];
+const calculateFee = () => {
+  const selectedCurrency = props.selectedCurrency;
+
+  switch (props.networkType) {
+    case (NetworkTypes.cosmos): {
+      return calculateFeeCosmos();
+    }
+    case (NetworkTypes.evm): {
+      return calculateFeeEvm();
+    }
+  }
+}
+
+const calculateFeeCosmos = () => {
+  const currency = props.networkCurrencies?.[networkData.value.ticker]!;
   return CurrencyUtils.convertMinimalDenomToDenom(
-    coin.amount.toString(),
+    props.fee!.amount.toString(),
     AssetUtils.makeIBCMinimalDenom(currency.ibc_route, currency.symbol),
     props.networkSymbol as string,
     Number(currency.decimal_digits)
   );
+}
+
+const calculateFeeEvm = () => {
+  return CurrencyUtils.convertMinimalDenomToDenom(
+    props.fee!.amount.toString(),
+    props.fee!.denom,
+    props.networkSymbol as string,
+    props.selectedCurrency.decimals!
+  );
+}
+
+const getMinimalDenom = () => {
+  const selectedCurrency = props.selectedCurrency;
+
+  switch (props.networkType) {
+    case (NetworkTypes.cosmos): {
+      const coinMinimalDenom = AssetUtils.makeIBCMinimalDenom(selectedCurrency.ibc_route!, selectedCurrency.symbol!);
+      return coinMinimalDenom;
+    }
+    case (NetworkTypes.evm): {
+      return selectedCurrency.balance.denom;
+    }
+  }
 }
 
 function isMnemonicWallet() {

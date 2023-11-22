@@ -51,7 +51,7 @@
 import Modal from "@/components/modals/templates/Modal.vue";
 import TermsDialog from "@/components/modals/TermsDialog.vue";
 import { WalletActionTypes } from "@/stores/wallet";
-import { ApptUtils } from "@/utils/AppUtils";
+import { AppUtils } from "@/utils/AppUtils";
 import { ref } from "vue";
 
 const showTermsModal = ref(false);

@@ -7,7 +7,7 @@ import { WalletConnectMechanism } from "@/types";
 import { createRouter, createWebHistory, type NavigationGuardNext, type RouteLocationNormalized } from "vue-router";
 import { ApplicationActionTypes, useApplicationStore } from "@/stores/application";
 import { setLang } from "@/i18n";
-import { ApptUtils } from "@/utils/AppUtils";
+import { AppUtils } from "@/utils/AppUtils";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -170,7 +170,7 @@ async function loadLanguage(
   from: RouteLocationNormalized,
   next: NavigationGuardNext) {
 
-  await setLang(ApptUtils.getLang().key);
+  await setLang(AppUtils.getLang().key);
   return next();
 
 }

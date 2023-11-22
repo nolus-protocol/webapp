@@ -42,7 +42,7 @@ import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/stores/oracle";
 import { AssetUtils } from "@/utils";
 import { useApplicationStore } from "@/stores/application";
-import { ApptUtils } from "@/utils/AppUtils";
+import { AppUtils } from "@/utils/AppUtils";
 
 const walletStore = useWalletStore();
 const oracle = useOracleStore();
@@ -111,7 +111,7 @@ watch(
 
 const setSwapFee = async () => {
   const asset = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom);
-  state.value.swapFee = (await ApptUtils.getSwapFee())[asset.ticker] ?? 0;
+  state.value.swapFee = (await AppUtils.getSwapFee())[asset.ticker] ?? 0;
 }
 
 onUnmounted(() => {

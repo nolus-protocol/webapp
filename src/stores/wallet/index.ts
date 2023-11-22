@@ -30,7 +30,7 @@ import { CurrencyUtils, KeyUtils, NolusClient, NolusWalletFactory } from "@nolus
 import { useApplicationStore } from "../application";
 import { defaultRegistryTypes, } from "@cosmjs/stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
-import { ApptUtils } from "@/utils/AppUtils";
+import { AppUtils } from "@/utils/AppUtils";
 
 const useWalletStore = defineStore("wallet", {
   state: () => {
@@ -73,7 +73,7 @@ const useWalletStore = defineStore("wallet", {
         let chainId = "";
 
         try {
-          const networkConfig = await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
+          const networkConfig = await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
           NolusClient.setInstance(networkConfig.rpc);
 
           chainId = await NolusClient.getInstance().getChainId();
@@ -117,7 +117,7 @@ const useWalletStore = defineStore("wallet", {
 
           await Promise.all([
             this[WalletActionTypes.UPDATE_BALANCES](),
-            // ApptUtils.event({
+            // AppUtils.event({
             //   address: this.wallet.address as string,
             //   name: "wallet_connected"
             // })
@@ -146,7 +146,7 @@ const useWalletStore = defineStore("wallet", {
 
         try {
 
-          const networkConfig = await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
+          const networkConfig = await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
           NolusClient.setInstance(networkConfig.rpc);
 
           chainId = await NolusClient.getInstance().getChainId();
@@ -204,7 +204,7 @@ const useWalletStore = defineStore("wallet", {
       const to = setTimeout(() => (breakLoop = true), 30000);
       const accountNumbers = [0];
       const paths = accountNumbers.map(makeCosmoshubPath);
-      const networkConfig = await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
+      const networkConfig = await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
 
       NolusClient.setInstance(networkConfig.rpc);
 
@@ -488,7 +488,7 @@ const useWalletStore = defineStore("wallet", {
         return [];
       }
 
-      const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+      const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
       const data = await fetch(
         `${url}/cosmos/auth/v1beta1/accounts/${WalletManager.getWalletAddress()}`
       );
@@ -624,7 +624,7 @@ const useWalletStore = defineStore("wallet", {
       }
 
       try {
-        const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+        const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
         const data = await fetch(
           `${url}/cosmos/staking/v1beta1/delegations/${WalletManager.getWalletAddress()}`
         );
@@ -648,7 +648,7 @@ const useWalletStore = defineStore("wallet", {
     async [WalletActionTypes.LOAD_APR]() {
 
       try {
-        const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+        const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
         const [stakingBalance, infolation_data] = await Promise.all([
           fetch(
             `${url}/cosmos/staking/v1beta1/pool`
@@ -666,7 +666,7 @@ const useWalletStore = defineStore("wallet", {
 
     },
     async [WalletActionTypes.LOAD_VALIDATORS]() {
-      const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+      const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
       const limit = 100;
       const offset = 0;
       const walletAddress = WalletManager.getWalletAddress() || "";
@@ -680,7 +680,7 @@ const useWalletStore = defineStore("wallet", {
         return [];
       }
 
-      const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+      const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
       const walletAddress = WalletManager.getWalletAddress() || "";
 
       return await fetch(
@@ -688,13 +688,13 @@ const useWalletStore = defineStore("wallet", {
       ).then((data) => data.json());
     },
     async [WalletActionTypes.LOAD_VALIDATOR](validatorAddress: string) {
-      const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+      const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
       return await fetch(
         `${url}/cosmos/staking/v1beta1/validators/${validatorAddress}`
       ).then((data) => data.json());
     },
     async [WalletActionTypes.LOAD_DELEGATOR_VALIDATORS]() {
-      const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+      const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
       const limit = 100;
       const offset = 0;
       const walletAddress = WalletManager.getWalletAddress() || "";
@@ -707,7 +707,7 @@ const useWalletStore = defineStore("wallet", {
         return [];
       }
 
-      const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+      const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
       const limit = 100;
       const offset = 0;
       const walletAddress = WalletManager.getWalletAddress() || "";
@@ -720,7 +720,7 @@ const useWalletStore = defineStore("wallet", {
         return [];
       }
 
-      const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+      const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
       const limit = 100;
       const offset = 0;
       const walletAddress = WalletManager.getWalletAddress() || "";

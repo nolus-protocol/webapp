@@ -6,7 +6,7 @@ import { Lease, Leaser, type LeaserConfig, type LeaseStatus } from "@nolus/nolus
 
 import { CONTRACTS } from "@/config/contracts";
 import { WalletManager, EnvNetworkUtils } from "@/utils";
-import { ApptUtils } from "@/utils/AppUtils";
+import { AppUtils } from "@/utils/AppUtils";
 import { IGNORE_LEASES } from "@/config/env";
 
 export function useLeases(
@@ -38,8 +38,8 @@ export function useLeases(
       for (const leaseAddress of openedLeases) {
         const fn = async () => {
           const leaseClient = new Lease(cosmWasmClient, leaseAddress);
-          const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
-          const api = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+          const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
+          const api = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
 
           const [statusReq, leaseInfo, balancesReq] = await Promise.all([
             fetch(`${url}/tx_search?query="wasm.lease_address='${leaseAddress}'"&prove=true`),

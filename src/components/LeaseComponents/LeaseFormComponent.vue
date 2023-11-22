@@ -136,7 +136,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
 import { AssetUtils } from "@/utils";
 import { useApplicationStore } from "@/stores/application";
-import { ApptUtils } from "@/utils/AppUtils";
+import { AppUtils } from "@/utils/AppUtils";
 
 const wallet = useWalletStore();
 const app = useApplicationStore();
@@ -207,7 +207,7 @@ watch(() => [props.modelValue.selectedDownPaymentCurrency, props.modelValue.down
 
 const setSwapFee = async () => {
   const asset = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
-  swapFee.value = (await ApptUtils.getOpenLeaseFee())[asset.ticker] ?? 0;
+  swapFee.value = (await AppUtils.getOpenLeaseFee())[asset.ticker] ?? 0;
 }
 
 const setDownPaymentSwapFee = async () => {
@@ -215,7 +215,7 @@ const setDownPaymentSwapFee = async () => {
   const currecy = wallet.getCurrencyByTicker(asset.ticker);
 
   const price = oracle.prices[currecy.symbol];
-  const fee = (await ApptUtils.getOpenLeaseFee())[asset.ticker] ?? 0;
+  const fee = (await AppUtils.getOpenLeaseFee())[asset.ticker] ?? 0;
 
   const value = new Dec(props.modelValue.downPayment.length == 0 ? 0 : props.modelValue.downPayment).mul(new Dec(price.amount)).mul(new Dec(fee));
 

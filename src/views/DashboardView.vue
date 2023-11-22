@@ -1,5 +1,5 @@
 <template>
-    <button v-if="ApptUtils.isDev()" @click="openModal(DASHBOARD_ACTIONS.RECEIVEV2)">
+    <button class="text-primary" v-if="AppUtils.isDev()" @click="openModal(DASHBOARD_ACTIONS.RECEIVEV2)">
     Send v2 / Receive v2
   </button>
   <div
@@ -350,7 +350,7 @@ import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { CONTRACTS } from "@/config/contracts";
 import { AssetUtils, EnvNetworkUtils, WalletManager } from "@/utils";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
-import { ApptUtils } from "@/utils/AppUtils";
+import { AppUtils } from "@/utils/AppUtils";
 import { XMarkIcon } from "@heroicons/vue/24/solid";
 
 const modalOptions = {
@@ -426,7 +426,7 @@ onMounted(() => {
   getVestedTokens();
   availableAssets();
   loadSuppliedAndStaked();
-  isBannerVisible.value = ApptUtils.getBanner();
+  isBannerVisible.value = AppUtils.getBanner();
   wallet[WalletActionTypes.LOAD_STAKED_TOKENS]();
   wallet[WalletActionTypes.LOAD_SUPPLIED_AMOUNT]();
   if (showSkeleton.value) {
@@ -666,7 +666,7 @@ const setSmallBalancesState = (event: boolean) => {
 }
 
 const hideBanner = () => {
-  ApptUtils.setBannerInvisible();
+  AppUtils.setBannerInvisible();
   isBannerVisible.value = false;
 }
 </script>

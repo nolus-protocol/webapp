@@ -339,6 +339,10 @@ export const SquidRouter = {
   }
 }
 
+export const getPrice = async (token: string) => {
+  return fetch(`https://pro-api.coingecko.com/api/v3/simple/price?ids=${token}&vs_currencies=usd&x_cg_pro_api_key=CG-QQSfXqT6EJWXG9UjjfhfoJVk`).then((res) => res.json())
+}
+
 export const minimumLeaseAmount = 1;
 export const languages = l;
 export const SUPPORTED_NETWORKS = ['NOLUS', 'OSMOSIS', 'COSMOS_HUB', 'AXELAR', 'STRIDE', 'JUNO', 'EVMOS', 'PERSISTENCE', 'SECRET', 'CELESTIA'];

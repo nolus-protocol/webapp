@@ -5,7 +5,7 @@ import { KeyUtils } from "@nolus/nolusjs";
 import { WalletConnectMechanism } from "@/types";
 import { EnvNetworkUtils, WalletManager } from "@/utils";
 import { Wallet, NETWORKS_DATA } from "@/networks";
-import { ApptUtils } from "./AppUtils";
+import { AppUtils } from "./AppUtils";
 
 export class WalletUtils {
   public static async getKeplr(): Promise<Keplr | undefined> {
@@ -90,7 +90,7 @@ export class WalletUtils {
 
   public static async getWallet(key: string): Promise<Wallet> {
     const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
-    const node = await ApptUtils.fetchEndpoints(network.supportedNetworks[key].key);
+    const node = await AppUtils.fetchEndpoints(network.supportedNetworks[key].key);
     const client = await Wallet.getInstance(
       node.rpc,
       node.api

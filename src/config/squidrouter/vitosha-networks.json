@@ -151,7 +151,17 @@
         },
         "fees": {
             "transfer": 30000
-        }
+        },
+        "currencies": [
+            {
+                "from": "ETH",
+                "to": "OSMO"
+            },
+            {
+                "from": "USDC",
+                "to": "OSMO"
+            }
+        ]
     },
     "ARBITRUM": {
         "key": "ARBITRUM",
@@ -165,7 +175,17 @@
         },
         "fees": {
             "transfer": 30000
-        }
+        },
+        "currencies": [
+            {
+                "from": "ETH",
+                "to": "OSMO"
+            },
+            {
+                "from": "axlUSDC",
+                "to": "OSMO"
+            }
+        ]
     },
     "BASE": {
         "key": "BASE",
@@ -179,7 +199,17 @@
         },
         "fees": {
             "transfer": 30000
-        }
+        },
+        "currencies": [
+            {
+                "from": "ETH",
+                "to": "OSMO"
+            },
+            {
+                "from": "axlUSDC",
+                "to": "OSMO"
+            }
+        ]
     },
     "AVALANCHE": {
         "key": "AVALANCHE",
@@ -193,7 +223,17 @@
         },
         "fees": {
             "transfer": 30000
-        }
+        },
+        "currencies": [
+            {
+                "from": "AVAX",
+                "to": "OSMO"
+            },
+            {
+                "from": "axlUSDC",
+                "to": "OSMO"
+            }
+        ]
     },
     "POLYGON": {
         "key": "POLYGON",
@@ -207,7 +247,17 @@
         },
         "fees": {
             "transfer": 30000
-        }
+        },
+        "currencies": [
+            {
+                "from": "MATIC",
+                "to": "OSMO"
+            },
+            {
+                "from": "axlUSDC",
+                "to": "OSMO"
+            }
+        ]
     },
     "BINANCE": {
         "key": "BINANCE",
@@ -221,6 +271,14 @@
         },
         "fees": {
             "transfer": 30000
-        }
+        },
+        "currencies": [{
+            "from": "BNB",
+            "to": "OSMO"
+        },
+        {
+            "from": "axlUSDC",
+            "to": "OSMO"
+        }]
     }
 }

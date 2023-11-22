@@ -8,7 +8,7 @@
 <script setup lang="ts">
 import type { SquiRouterNetworkProp } from "@/types/NetworkConfig";
 import ReceiveComponent from "@/components/ReceiveV2Components/ReceiveComponent.vue";
-import { ApptUtils } from "@/utils/AppUtils";
+import { AppUtils } from "@/utils/AppUtils";
 import { onMounted, ref } from "vue";
 
 const networks = ref<SquiRouterNetworkProp[]>()
@@ -19,7 +19,7 @@ onMounted(() => {
 });
 
 const onLoadSquidRouteConfig = async () => {
-  const data = await ApptUtils.getSquitRouteNetworks();
+  const data = await AppUtils.getSquitRouteNetworks();
   const n = [];
 
   for(const key in data){

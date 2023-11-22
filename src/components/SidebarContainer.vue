@@ -51,7 +51,7 @@
                             @click="pushTo(RouteNames.LEASE)" />
           </div>
           <div class="block nls-nav-link icon">
-            <SidebarElement v-if="ApptUtils.isDev()"
+            <SidebarElement v-if="AppUtils.isDev()"
                             id="swap-v2"
                             href="#"
                             :label="$t('message.swap')"
@@ -147,7 +147,7 @@ import { NETWORKS, SUPPORT_URL, UPDATE_BLOCK_INTERVAL } from "@/config/env";
 import { storeToRefs } from "pinia";
 import { EnvNetworkUtils } from "@/utils";
 import { DISCORD_ACCOUNT, REDDIT_ACCOUNT, TELEGRAM_ACCOUNT, TWITTER_ACCOUNT } from "@/config/globals";
-import { ApptUtils } from "@/utils/AppUtils";
+import { AppUtils } from "@/utils/AppUtils";
 import type HatVue from "./icons/Hat.vue";
 
 const showMobileNav = ref(false);
@@ -221,7 +221,7 @@ async function setBlock() {
 
 async function setVersion() {
   try {
-    const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
+    const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
 
     const data = await fetch(`${url}/abci_info`);
     const res = await data.json();

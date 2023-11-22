@@ -16,6 +16,7 @@
     :onSendClick="onSendClick"
     :onBackClick="onConfirmBackClick"
     :onOkClick="onClickOkBtn"
+    :networkType="networkType"
     @passwordUpdate="(value) => (password = value)"
   />
   <template v-else>
@@ -78,6 +79,18 @@
               />
             </div>
 
+            <div class="flex justify-end mt-[8px]">
+              <button
+                v-if="networkType == NetworkTypes.evm"
+                type="button"
+                class="btn btn-medium-secondary flex !px-[8px] !py-[4px] !text-[13px]"
+                @click="connectMetamask()"
+              >
+                <img src="@/assets/icons/metamask.svg" />
+                <span class="ml-[6px]">{{ metamaskAddress ?? $t('message.connect') }}</span>
+              </button>
+            </div>
+
             <div class="block mt-[20px]">
 
               <CurrencyField
@@ -96,6 +109,7 @@
                 @input="handleAmountChange($event)"
                 :balance="formatCurrentBalance(selectedCurrency)"
                 :total="total"
+                :price="selectedCurrency.price"
               />
             </div>
 
@@ -144,22 +158,23 @@ import { NetworkTypes } from "@/types/NetworkConfig";
 import { CONFIRM_STEP, TxType, type NetworkDataV2 } from "@/types";
 import { ref, type PropType, inject, computed, onUnmounted, watch } from "vue";
 import { DocumentDuplicateIcon } from "@heroicons/vue/24/solid";
-import { ErrorCodes, IGNORE_TRANSFER_ASSETS, SquidRouter } from "@/config/env";
+import { ErrorCodes, IGNORE_TRANSFER_ASSETS, SquidRouter, getPrice } from "@/config/env";
 import { useI18n } from "vue-i18n";
 import { AssetUtils, StringUtils, WalletManager, WalletUtils } from "@/utils";
 import { coin, type Coin } from "@cosmjs/amino";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore } from "@/stores/wallet";
-import { Dec, Coin as KeplrCoin } from "@keplr-wallet/unit";
+import { Dec, Int, Coin as KeplrCoin } from "@keplr-wallet/unit";
 import { externalWalletOperationV2, externalWalletV2 } from "../utils";
 import { Squid } from "@0xsquid/sdk";
 import { useApplicationStore } from "@/stores/application";
 import { Decimal } from "@cosmjs/math";
-import { ApptUtils } from "@/utils/AppUtils";
+import { AppUtils } from "@/utils/AppUtils";
 import { SigningStargateClient } from "@cosmjs/stargate";
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { toHex } from "@cosmjs/encoding";
 import { sha256 } from "@cosmjs/crypto";
+import { MetaMaskWallet } from "@/wallet/metamask";
 
 const i18n = useI18n();
 const copyText = ref(i18n.t("message.copy"));
@@ -180,13 +195,16 @@ const fee = ref<Coin>()
 const isLoading = ref(false);
 const networkCurrenciesObject = ref();
 const app = useApplicationStore();
+const networkType = ref(NetworkTypes.cosmos);
+const metamaskAddress = ref<string | null>();
 
 const closeModal = inject("onModalClose", () => () => { });
 
 let squidRouteRef: Squid;
 let timeOut: NodeJS.Timeout;
 let client: Wallet;
-let toChainData: NetworkDataV2;
+let fromChainData: NetworkDataV2 | EvmChain;
+let metamask: MetaMaskWallet;
 
 const props = defineProps({
   networks: {
@@ -214,22 +232,25 @@ const onUpdateNetwork = async (event: SquiRouterNetworkProp) => {
   disablePicker.value = true;
 
   const sr = await squidRouter();
-
-  const toChain = sr.chains.find(
+  const fromChain = sr.chains.find(
     (c) => c.chainId === selectedNetwork.value.chainId
   ) as CosmosChain | EvmChain | undefined;
 
-  const type = toChain?.chainType as NetworkTypes | undefined;
-
+  const type = fromChain?.chainType as NetworkTypes | undefined;
   switch (type) {
     case (NetworkTypes.cosmos): {
-      return cosmosNetworkParse(toChain as CosmosChain);
+      networkType.value = NetworkTypes.cosmos;
+      return cosmosNetworkParse(fromChain as CosmosChain);
+    }
+    case (NetworkTypes.evm): {
+      networkType.value = NetworkTypes.evm;
+      return evmNetworkParse(fromChain as EvmChain);
     }
   }
 
 }
 
-const cosmosNetworkParse = async (toChain: CosmosChain) => {
+const cosmosNetworkParse = async (fromChain: CosmosChain) => {
 
   const assets = app?.networks?.[selectedNetwork.value.key];
 
@@ -241,34 +262,34 @@ const cosmosNetworkParse = async (toChain: CosmosChain) => {
     client.destroy();
   }
 
-  client = await Wallet.getInstance(toChain.rpc, toChain.rest);
+  client = await Wallet.getInstance(fromChain.rpc, fromChain.rest);
 
   if (!selectedNetwork.value.native) {
     const filteredAssets: { [key: string]: ExternalCurrencyType } = {};
     const currenciesPromise = [];
 
-    toChainData = {
-      prefix: toChain.bech32Config.bech32PrefixAccAddr,
-      rpc: toChain.rpc,
-      rest: toChain.rest,
-      chainId: toChain.chainId,
+    fromChainData = {
+      prefix: fromChain.bech32Config.bech32PrefixAccAddr,
+      rpc: fromChain.rpc,
+      rest: fromChain.rest,
+      chainId: fromChain.chainId,
       embedChainInfo: () => {
         return {
-          chainId: toChain.chainId,
+          chainId: fromChain.chainId,
           chainName: 'Cosmos Hub',
-          rpc: toChain.rpc,
-          rest: toChain.rest,
-          bip44: toChain.bip44,
-          bech32Config: toChain.bech32Config,
-          currencies: toChain.currencies,
-          feeCurrencies: toChain.feeCurrencies,
-          stakeCurrency: toChain.stakeCurrency,
-          features: toChain.features,
+          rpc: fromChain.rpc,
+          rest: fromChain.rest,
+          bip44: fromChain.bip44,
+          bech32Config: fromChain.bech32Config,
+          currencies: fromChain.currencies,
+          feeCurrencies: fromChain.feeCurrencies,
+          stakeCurrency: fromChain.stakeCurrency,
+          features: fromChain.features,
         }
       }
     };
 
-    const baseWallet = await externalWalletV2(client, toChainData, password.value) as BaseWallet;
+    const baseWallet = await externalWalletV2(client, fromChainData, password.value) as BaseWallet;
     sendWallet.value = baseWallet?.address;
 
 
@@ -313,12 +334,86 @@ const cosmosNetworkParse = async (toChain: CosmosChain) => {
 
 }
 
-async function sendTX() {
+const evmNetworkParse = async (fromChain: EvmChain) => {
+  fromChainData = fromChain;
+
+  if (metamaskAddress.value) {
+    await connectMetamask();
+  } else {
+    await checkEvmBalances();
+  }
+
+}
+
+const checkEvmBalances = async () => {
+  const chains = await AppUtils.getSquitRouteNetworks();
+  const chain = chains[selectedNetwork.value.key];
+  const sr = await squidRouter();
+  const cr: AssetBalance[] = [];
+  const pr = [];
+
+  const currencies = sr.tokens.filter((token) => {
+    if (token.chainId == chain.chainId && chain.currencies?.find((item) => item.from == token.symbol)) {
+      return true;
+    }
+    return false;
+  });
+
+  for (const item of currencies) {
+    const c: AssetBalance = {
+      balance: coin(0, item.address),
+      name: item.symbol,
+      shortName: item.symbol,
+      icon: item.logoURI,
+      decimals: item.decimals,
+      symbol: item.symbol,
+    };
+
+    pr.push(
+      getPrice(item.coingeckoId).then((price) => {
+        c.price = price[item.coingeckoId].usd;
+      })
+    );
+
+    if (metamask) {
+      const fn = async () => {
+        const balance = await metamask.getContractBalance(item.address);
+        c.balance = coin(balance.toString(), item.address);
+      }
+      pr.push(fn());
+    }
+
+    cr.push(c);
+  }
+
+  await Promise.all(pr);
+
+  selectedCurrency.value = cr?.[0]
+  networkCurrencies.value = cr;
+  disablePicker.value = false;
+}
+
+const connectMetamask = async () => {
+  metamask = new MetaMaskWallet();
+  const chainId = Number((fromChainData as EvmChain).chainId);
+  await metamask.connect({
+    chainId: `0x${chainId.toString(16)}`,
+    chainName: (fromChainData as EvmChain).networkName,
+    nativeCurrency: (fromChainData as EvmChain).nativeCurrency,
+    rpcUrls: [(fromChainData as EvmChain).rpc],
+    blockExplorerUrls: (fromChainData as EvmChain).blockExplorerUrls
+  }, (fromChainData as EvmChain).rpc);
+
+  metamaskAddress.value = metamask.shortAddress;
+  await checkEvmBalances();
+}
+
+async function sendTXCosmos() {
 
   step.value = CONFIRM_STEP.PENDING;
 
   const squid = await squidRouter();
-  const chains = await ApptUtils.getSquitRouteNetworks();
+  const chains = await AppUtils.getSquitRouteNetworks();
   const denom = AssetUtils.makeIBCMinimalDenom(selectedCurrency.value?.ibc_route!, selectedCurrency.value?.symbol!);
   const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
     amount.value,
@@ -340,16 +435,14 @@ async function sendTX() {
   };
 
   const data = await squid.getRoute(params);
-  console.log(data);
-
 
   externalWalletOperationV2(
     async () => {
       try {
-        const baseWallet = await externalWalletV2(client, toChainData, password.value) as BaseWallet;
+        const baseWallet = await externalWalletV2(client, fromChainData as NetworkDataV2, password.value) as BaseWallet;
         const offlineSigner = baseWallet.getOfflineSigner();
         const signer = await SigningStargateClient.connectWithSigner(
-          toChainData.rpc,
+          fromChainData.rpc,
           offlineSigner
         );
 
@@ -380,9 +473,57 @@ async function sendTX() {
 
     },
     client,
-    toChainData,
+    fromChainData as NetworkDataV2,
     password.value
   );
+}
+
+async function sendTXEvm() {
+
+  try {
+    step.value = CONFIRM_STEP.PENDING;
+    const signer = await metamask.getSigner();
+
+    const squid = await squidRouter();
+    const chains = await AppUtils.getSquitRouteNetworks();
+    const chain = chains[selectedNetwork.value.key];
+
+    const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
+      amount.value,
+      selectedCurrency.value.balance.denom,
+      selectedCurrency.value?.decimals!
+    );
+
+    const token = chain.currencies?.find((item) => item.from == selectedCurrency.value.symbol);
+    const asset = AssetUtils.getAssetInfo(token?.to as string);
+
+    const params = {
+      fromAddress: metamask.address as string,
+      fromChain: selectedNetwork.value.chainId,
+      fromToken: selectedCurrency.value.balance.denom,
+      fromAmount: minimalDenom.amount.toString(),
+      toChain: chains.NOLUS.chainId,
+      toToken: asset.coinMinimalDenom,
+      toAddress: walletStore.wallet!.address as string,
+      slippage: 1.00,
+      quoteOnly: false,
+    };
+
+    const data = await squid.getRoute(params);
+    console.log(data)
+    const tx = await squid.executeRoute({
+      signer,
+      signerAddress: metamask.address,
+      route: data.route,
+    });
+
+    // console.log(tx);
+    
+  } catch (error) {
+    console.log(error)
+    step.value = CONFIRM_STEP.ERROR;
+  }
+
 }
 
 onUnmounted(() => {
@@ -423,12 +564,24 @@ const validateInputs = async () => {
     return false;
   }
 
+  switch (networkType.value) {
+    case (NetworkTypes.cosmos): {
+      return validateInputsCosmos();
+    }
+    case (NetworkTypes.evm): {
+      return validateInputsEvm();
+    }
+  }
+
+}
+
+const validateInputsCosmos = async () => {
   try {
     isLoading.value = true;
     const isValid = await validateAmount();
     if (isValid) {
 
-      const chains = await ApptUtils.getSquitRouteNetworks();
+      const chains = await AppUtils.getSquitRouteNetworks();
 
       const network = chains[selectedNetwork.value.key];
       const ibc_route = selectedCurrency.value?.ibc_route;
@@ -440,13 +593,38 @@ const validateInputs = async () => {
 
     }
   } catch (error) {
-    console.log(error)
     step.value = CONFIRM_STEP.ERROR;
     showConfirmScreen.value = true;
   } finally {
     isLoading.value = false;
   }
+}
 
+const validateInputsEvm = async () => {
+
+  if (!metamask) {
+    return false;
+  }
+
+  try {
+    isLoading.value = true;
+    const isValid = await validateAmount();
+    if (isValid) {
+
+      const chains = await AppUtils.getSquitRouteNetworks();
+
+      const network = chains[selectedNetwork.value.key];
+      const denom = selectedCurrency.value.balance.denom;
+      fee.value = coin(network.fees.transfer, denom)
+      showConfirmScreen.value = true;
+
+    }
+  } catch (error) {
+    step.value = CONFIRM_STEP.ERROR;
+    showConfirmScreen.value = true;
+  } finally {
+    isLoading.value = false;
+  }
 }
 
 const validateAmount = async () => {
@@ -462,7 +640,19 @@ const validateAmount = async () => {
     return false;
   }
 
-  const prefix = toChainData.prefix;
+  switch (networkType.value) {
+    case (NetworkTypes.cosmos): {
+      return validateCosmos();
+    }
+    case (NetworkTypes.evm): {
+      return validateEvm();
+    }
+  }
+
+};
+
+const validateCosmos = async () => {
+  const prefix = (fromChainData as NetworkDataV2).prefix;
   const ibc_route = selectedCurrency.value?.ibc_route;
   const symbol = selectedCurrency.value?.symbol;
   const decimals = selectedCurrency.value?.decimals;
@@ -484,7 +674,7 @@ const validateAmount = async () => {
       }
 
     } catch (e) {
-      console.log(e)
+      return false;
     }
 
   } else {
@@ -493,10 +683,43 @@ const validateAmount = async () => {
   }
 
   return true;
-};
+}
+
+const validateEvm = async () => {
+
+
+  try {
+    const decimals = selectedCurrency.value.decimals!;
+    const walletBalance = Decimal.fromAtomics(selectedCurrency.value.balance.amount, selectedCurrency.value.decimals!);
+    const transferAmount = Decimal.fromUserInput(
+      amount.value,
+      decimals
+    );
+    const isGreaterThanWalletBalance = transferAmount.isGreaterThan(walletBalance);
+
+    if (isGreaterThanWalletBalance) {
+      amountErrorMsg.value = i18n.t("message.invalid-balance-big");
+      return false;
+    }
+
+  } catch (e) {
+    amountErrorMsg.value = i18n.t("message.unexpected-error");
+    return false;
+  }
+
+  return true;
+}
 
 const onSendClick = async () => {
-  sendTX();
+
+  switch (networkType.value) {
+    case (NetworkTypes.cosmos): {
+      return sendTXCosmos();
+    }
+    case (NetworkTypes.evm): {
+      return sendTXEvm();
+    }
+  }
 };
 
 const onConfirmBackClick = () => {
@@ -509,7 +732,7 @@ const onClickOkBtn = () => {
 
 const formatCurrentBalance = (selectedCurrency: AssetBalance) => {
 
-  if (!selectedCurrency.balance) {
+  if (!selectedCurrency?.balance) {
     return;
   }
 
@@ -539,13 +762,26 @@ const formatCurrentBalance = (selectedCurrency: AssetBalance) => {
 };
 
 const setAmount = (p: number) => {
-  const asset = AssetUtils.getAssetInfo(
-    selectedCurrency.value.ticker as string
-  );
-  const percent = new Dec(p).quo(new Dec(100));
-  const data = CurrencyUtils.convertMinimalDenomToDenom(selectedCurrency.value.balance.amount, asset.coinMinimalDenom, asset.coinDenom, asset.coinDecimals).toDec();
-  const value = data.mul(percent);
-  amount.value = value.toString(asset.coinDecimals);
+  switch (networkType.value) {
+    case (NetworkTypes.cosmos): {
+      const asset = AssetUtils.getAssetInfo(
+        selectedCurrency.value.ticker as string
+      );
+      const percent = new Dec(p).quo(new Dec(100));
+      const data = CurrencyUtils.convertMinimalDenomToDenom(selectedCurrency.value.balance.amount, asset.coinMinimalDenom, asset.coinDenom, asset.coinDecimals).toDec();
+      const value = data.mul(percent);
+      amount.value = value.toString(asset.coinDecimals);
+      break;
+    }
+    case (NetworkTypes.evm): {
+      const percent = new Dec(p).quo(new Dec(100));
+      const decimals = new Dec(10).pow(new Int(selectedCurrency.value.decimals!));
+      const value = new Dec(selectedCurrency.value.balance.amount).quo(decimals).mul(percent);
+      amount.value = value.toString(selectedCurrency.value.decimals!);
+      break;
+    }
+  }
+
 };
 
 const total = computed(() => {

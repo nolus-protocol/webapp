@@ -14,7 +14,7 @@ import { AminoTypes } from "@cosmjs/stargate";
 import { EncryptionUtils, WalletManager, WalletUtils } from "@/utils";
 import { BaseWallet } from "./BaseWallet";
 import { fromHex } from "@cosmjs/encoding";
-import { ApptUtils } from "@/utils/AppUtils";
+import { AppUtils } from "@/utils/AppUtils";
 
 const aminoTypes = {
     ...createIbcAminoConverters(),
@@ -45,7 +45,7 @@ const authenticateKeplr = async (wallet: Wallet, network: NetworkData) => {
 
         try {
             chainId = await wallet.getChainId();
-            const node = await ApptUtils.fetchEndpoints(network.key);
+            const node = await AppUtils.fetchEndpoints(network.key);
             await keplrWindow.keplr?.experimentalSuggestChain(
                 network.embedChainInfo(chainId, node.rpc, node.api)
             );
@@ -84,7 +84,7 @@ const authenticateLeap = async (wallet: Wallet, network: NetworkData) => {
 
         try {
             chainId = await wallet.getChainId();
-            const node = await ApptUtils.fetchEndpoints(network.key);
+            const node = await AppUtils.fetchEndpoints(network.key);
 
             await leapWindow.leap?.experimentalSuggestChain(
                 network.embedChainInfo(chainId, node.rpc, node.api)

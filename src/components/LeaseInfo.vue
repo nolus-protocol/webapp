@@ -490,7 +490,7 @@ import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation, INTEREST_D
 import { coin } from "@cosmjs/amino";
 import { walletOperation } from "@/components/utils";
 import { useApplicationStore } from "@/stores/application";
-import { ApptUtils } from "@/utils/AppUtils";
+import { AppUtils } from "@/utils/AppUtils";
 import { ASSETS } from "@/config/assetsInfo";
 import { QuerySmartContractStateRequest } from "cosmjs-types/cosmwasm/wasm/v1/query";
 import { toUtf8 } from "@cosmjs/encoding";
@@ -578,12 +578,12 @@ onUnmounted(() => {
 });
 
 async function setDownPaymentAssetFee() {
-  const fee = (await ApptUtils.getOpenLeaseFee())[leaseData.value?.downpaymentTicker as string] ?? 0;
+  const fee = (await AppUtils.getOpenLeaseFee())[leaseData.value?.downpaymentTicker as string] ?? 0;
   downPaymentFee.value = new Dec(fee).mul(new Dec(leaseData.value?.downPayment ?? 0));
 }
 
 const setFreeInterest = async () => {
-  const data = await ApptUtils.getFreeInterestAddress();
+  const data = await AppUtils.getFreeInterestAddress();
   for (const item of data.interest_paid_to) {
     if (item == props.leaseInfo.leaseAddress) {
       isFreeInterest.value = true;
@@ -1055,7 +1055,7 @@ const interestDueStatus = computed(() => {
 
 const checkPrice = async () => {
   try {
-    const node = (await ApptUtils.getArchiveNodes());
+    const node = (await AppUtils.getArchiveNodes());
     const req = await fetch(`${node.archive_node_rpc}/tx_search?query="wasm.lease_address='${props.leaseInfo.leaseAddress}'"&prove=true`);
     const data = await req.json();
     const item = data.result?.txs?.[0];
@@ -1070,7 +1070,7 @@ const checkPrice = async () => {
 
 const getBlock = async (block: string) => {
   try {
-    const url = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
+    const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
     const req = await fetch(`${url}/block?height=${block}`);
     const data = await req.json();
     const item = data.result?.block?.header?.time;
@@ -1135,7 +1135,7 @@ const fetchDownPaymentPrice = async (time: Date, ticker: string) => {
 }
 
 const fetchDownPayment = async (block: number) => {
-  const node = (await ApptUtils.getArchiveNodes());
+  const node = (await AppUtils.getArchiveNodes());
   console.log(node.archive_node_rpc)
   const client = await Tendermint34Client.connect(node.archive_node_rpc);
 

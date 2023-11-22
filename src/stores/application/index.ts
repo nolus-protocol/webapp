@@ -9,7 +9,7 @@ import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { useOracleStore, OracleActionTypes } from "../oracle";
 import { Disparcher } from "@nolus/nolusjs/build/contracts";
 import { CONTRACTS } from "@/config/contracts";
-import { ApptUtils } from "@/utils/AppUtils";
+import { AppUtils } from "@/utils/AppUtils";
 import { WalletConnectMechanism } from "@/types";
 
 const useApplicationStore = defineStore("application", {
@@ -47,7 +47,7 @@ const useApplicationStore = defineStore("application", {
     },
     async [ApplicationActionTypes.CHANGE_NETWORK](loadBalance = false) {
       try {
-        const rpc = (await ApptUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
+        const rpc = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
         NolusClient.setInstance(rpc);
         const walletStore = useWalletStore();
         const oracle = useOracleStore();
