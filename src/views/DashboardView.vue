@@ -344,7 +344,7 @@ import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { useOracleStore } from "@/stores/oracle";
 import { useApplicationStore } from "@/stores/application";
 
-import { DEFAULT_APR, NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/env";
+import { DEFAULT_APR, IGNORE_TRANSFER_ASSETS, NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/env";
 import { storeToRefs } from "pinia";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { CONTRACTS } from "@/config/contracts";
@@ -395,9 +395,17 @@ const vestedTokens = ref(
 );
 
 const filteredAssets = computed(() => {
+  const b = wallet.balances.filter((currency) => {
+    const c = wallet.getCurrencyInfo(currency.balance.denom)
+    if (IGNORE_TRANSFER_ASSETS.includes(c.ticker as string)) {
+      return false;
+    }
+    return true;
+  });
+
   const balances = state.value.showSmallBalances
-    ? wallet.balances
-    : filterSmallBalances(wallet.balances as AssetBalance[]);
+    ? b
+    : filterSmallBalances(b as AssetBalance[]);
   return balances.sort((a, b) => {
 
     const aInfo = wallet.getCurrencyInfo(a.balance.denom)

@@ -28,6 +28,9 @@ import { embedChainInfo as secretChainInfo } from './secret/contants';
 import { NETWORK as CELESTIA_NETWORK } from './celestia/network';
 import { embedChainInfo as celestiaChainInfo } from './celestia/contants';
 
+import { NETWORK as STARGAZE_NETWORK } from './stargaze/network';
+import { embedChainInfo as stargazeChainInfo } from './stargaze/contants';
+
 import { useApplicationStore } from "@/stores/application";
 import type { ExternalCurrenciesType } from "@/types/CurreciesType";
 
@@ -131,6 +134,16 @@ export const SUPPORTED_NETWORKS_DATA: {
         estimation: 20,
         key: "CELESTIA",
         symbol: "TIA",
+        forward: true
+    },
+    STARGAZE: {
+        prefix: "stars",
+        value: "stars",
+        label: "Stargaze",
+        native: false,
+        estimation: 20,
+        key: "STARGAZE",
+        symbol: "STARS",
         forward: true
     },
 }
@@ -282,7 +295,8 @@ export const NETWORKS_DATA: {
             SUPPORTED_NETWORKS_DATA.JUNO,
             SUPPORTED_NETWORKS_DATA.PERSISTENCE,
             SUPPORTED_NETWORKS_DATA.SECRET,
-            SUPPORTED_NETWORKS_DATA.CELESTIA,
+            SUPPORTED_NETWORKS_DATA.STARGAZE,
+            // SUPPORTED_NETWORKS_DATA.CELESTIA,
             // SUPPORTED_NETWORKS_DATA.EVMOS
         ],
         supportedNetworks: {
@@ -358,15 +372,24 @@ export const NETWORKS_DATA: {
                 },
                 embedChainInfo: secretChainInfo,
             },
-            CELESTIA: {
-                ...CELESTIA_NETWORK,
-                explorer: 'https://mintscan.io/celestia/transactions',
+            STARGAZE: {
+                ...STARGAZE_NETWORK,
+                explorer: 'https://mintscan.io/stargaze/transactions',
                 currencies: () => {
                     const app = useApplicationStore();
-                    return app?.networks?.[CELESTIA_NETWORK.key] as ExternalCurrenciesType;
+                    return app?.networks?.[STARGAZE_NETWORK.key] as ExternalCurrenciesType;
                 },
-                embedChainInfo: celestiaChainInfo,
+                embedChainInfo: stargazeChainInfo,
             },
+            // CELESTIA: {
+            //     ...CELESTIA_NETWORK,
+            //     explorer: 'https://mintscan.io/celestia/transactions',
+            //     currencies: () => {
+            //         const app = useApplicationStore();
+            //         return app?.networks?.[CELESTIA_NETWORK.key] as ExternalCurrenciesType;
+            //     },
+            //     embedChainInfo: celestiaChainInfo,
+            // },
         }
     },
 };

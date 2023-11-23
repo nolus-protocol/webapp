@@ -163,7 +163,7 @@
     "currency": "Currency",
     "memo-only": "Memo (optional)",
     "lease-up-to-tooltip": "The maximum amount that can be leveraged based on the wallet balance",
-    "earn-apr-tooltip": "Annualized percentage return on supplied or delegated assets ",
+    "earn-apr-tooltip": "Annualized percentage return on supplied or delegated assets",
     "interest-fee-tooltip": "The percentage interest rate by which the debt will increase each year",
     "interest-due-tooltip": "Accumulates each block and is added to the outstanding debt. Interest is due every 16 days",
     "earn-view-apr-tooltip": "Annualized percentage return on supplied or delegated assets",
