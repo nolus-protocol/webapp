@@ -296,7 +296,7 @@ export const NETWORKS_DATA: {
             SUPPORTED_NETWORKS_DATA.PERSISTENCE,
             SUPPORTED_NETWORKS_DATA.SECRET,
             SUPPORTED_NETWORKS_DATA.STARGAZE,
-            // SUPPORTED_NETWORKS_DATA.CELESTIA,
+            SUPPORTED_NETWORKS_DATA.CELESTIA,
             // SUPPORTED_NETWORKS_DATA.EVMOS
         ],
         supportedNetworks: {
@@ -381,15 +381,15 @@ export const NETWORKS_DATA: {
                 },
                 embedChainInfo: stargazeChainInfo,
             },
-            // CELESTIA: {
-            //     ...CELESTIA_NETWORK,
-            //     explorer: 'https://mintscan.io/celestia/transactions',
-            //     currencies: () => {
-            //         const app = useApplicationStore();
-            //         return app?.networks?.[CELESTIA_NETWORK.key] as ExternalCurrenciesType;
-            //     },
-            //     embedChainInfo: celestiaChainInfo,
-            // },
+            CELESTIA: {
+                ...CELESTIA_NETWORK,
+                explorer: 'https://mintscan.io/celestia/transactions',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[CELESTIA_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: celestiaChainInfo,
+            },
         }
     },
 };

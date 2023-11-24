@@ -903,7 +903,7 @@ const liquidation = computed(() => {
     const unitAsset = new Dec(lease.amount.amount, Number(unitAssetInfo.decimal_digits));
     const stableAsset = new Dec(lease.principal_due.amount, Number(stableAssetInfo.decimal_digits));
     const data = calculateLiquidation(stableAsset, unitAsset);
-    return `$${data.toString(2)}`;
+    return `$${data.toString(4)}`;
   }
   return '$0';
 });
