@@ -1,6 +1,10 @@
 <template>
-    <button class="text-primary" v-if="AppUtils.isDev()" @click="openModal(DASHBOARD_ACTIONS.RECEIVEV2)">
-    Send v2 / Receive v2
+  <button
+    class="text-primary"
+    v-if="AppUtils.isDev()"
+    @click="openModal(DASHBOARD_ACTIONS.RECEIVEV2)"
+  >
+    Receive v2 / Send v2
   </button>
   <div
     v-if="isBannerVisible"
@@ -687,5 +691,4 @@ const hideBanner = () => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}
-</style>
+}</style>

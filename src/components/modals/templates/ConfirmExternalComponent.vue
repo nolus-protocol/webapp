@@ -184,6 +184,7 @@ interface Props {
       name: string;
       symbol: string;
       decimal_digits: string;
+      decimals: number;
       ibc_route: string[];
       ticker: string;
       icon: string;
@@ -278,7 +279,7 @@ const calculateFeeCosmos = () => {
     props.fee!.amount.toString(),
     AssetUtils.makeIBCMinimalDenom(currency.ibc_route, currency.symbol),
     props.networkSymbol as string,
-    Number(currency.decimal_digits)
+    Number(currency.decimal_digits ?? currency.decimals)
   );
 }
 

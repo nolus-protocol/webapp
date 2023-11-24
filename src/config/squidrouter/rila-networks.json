@@ -139,6 +139,20 @@
             "transfer": 30000
         }
     },
+    "STARGAZE": {
+        "key": "STARGAZE",
+        "label": "Stargaze",
+        "chainId": "stargaze-1",
+        "symbol": "STARS",
+        "native": false,
+        "estimation": {
+            "duration": 20,
+            "type": "sec"
+        },
+        "fees": {
+            "transfer": 30000
+        }
+    },
     "ETHEREUM": {
         "key": "ETHEREUM",
         "label": "Ethereum",
@@ -159,7 +173,7 @@
             },
             {
                 "from": "USDC",
-                "to": "OSMO"
+                "to": "NLS"
             }
         ]
     },
@@ -183,7 +197,7 @@
             },
             {
                 "from": "axlUSDC",
-                "to": "OSMO"
+                "to": "NLS"
             }
         ]
     },
@@ -207,7 +221,7 @@
             },
             {
                 "from": "axlUSDC",
-                "to": "OSMO"
+                "to": "NLS"
             }
         ]
     },
@@ -231,7 +245,7 @@
             },
             {
                 "from": "axlUSDC",
-                "to": "OSMO"
+                "to": "NLS"
             }
         ]
     },
@@ -255,7 +269,7 @@
             },
             {
                 "from": "axlUSDC",
-                "to": "OSMO"
+                "to": "NLS"
             }
         ]
     },
@@ -278,7 +292,7 @@
         },
         {
             "from": "axlUSDC",
-            "to": "OSMO"
+            "to": "NLS"
         }]
     }
 }

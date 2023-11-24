@@ -173,7 +173,7 @@
             },
             {
                 "from": "USDC",
-                "to": "OSMO"
+                "to": "NLS"
             }
         ]
     },
@@ -197,7 +197,7 @@
             },
             {
                 "from": "axlUSDC",
-                "to": "OSMO"
+                "to": "NLS"
             }
         ]
     },
@@ -221,7 +221,7 @@
             },
             {
                 "from": "axlUSDC",
-                "to": "OSMO"
+                "to": "NLS"
             }
         ]
     },
@@ -245,7 +245,7 @@
             },
             {
                 "from": "axlUSDC",
-                "to": "OSMO"
+                "to": "NLS"
             }
         ]
     },
@@ -269,7 +269,7 @@
             },
             {
                 "from": "axlUSDC",
-                "to": "OSMO"
+                "to": "NLS"
             }
         ]
     },
@@ -292,7 +292,7 @@
         },
         {
             "from": "axlUSDC",
-            "to": "OSMO"
+            "to": "NLS"
         }]
     }
 }

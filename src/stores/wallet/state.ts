@@ -12,7 +12,8 @@ export interface AssetBalance {
   decimals?: number,
   symbol?: string,
   native?: boolean,
-  price?: number
+  price?: number,
+  from?: string
 }
 
 export type State = {

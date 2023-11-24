@@ -1,6 +1,6 @@
 import ABI from './erc20.abi.json';
 import type { Window as MetamaskWindow } from './window';
-import { Contract, ethers } from 'ethers';
+import { Contract, ethers, utils } from 'ethers';
 
 const NATIVE_ASSET = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
@@ -31,7 +31,7 @@ export class MetaMaskWallet {
 
     }
 
-    getSigner(){
+    getSigner() {
         return this.web3.getSigner();
     }
 
@@ -51,5 +51,9 @@ export class MetaMaskWallet {
 
         return '0';
 
+    }
+
+    static isValidAddress(address: string) {
+        return utils.isAddress(address);
     }
 }

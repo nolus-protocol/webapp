@@ -1,6 +1,7 @@
 <template>
   <ConfirmExternalComponent
     v-if="showConfirmScreen"
+    :network-type="NetworkTypes.cosmos"
     :selectedCurrency="selectedCurrency!"
     :receiverAddress="(walletStore.wallet?.address as string)"
     :password="password"
@@ -137,7 +138,7 @@ import CurrencyField from "@/components/CurrencyField.vue";
 import ConfirmExternalComponent from "@/components/modals/templates/ConfirmExternalComponent.vue";
 
 import type { AssetBalance } from "@/stores/wallet/state";
-import { CONFIRM_STEP, TxType, type Network } from "@/types";
+import { CONFIRM_STEP, TxType, type Network, NetworkTypes } from "@/types";
 
 import { onUnmounted, ref, type PropType, inject, watch, computed } from "vue";
 import { DocumentDuplicateIcon } from "@heroicons/vue/24/solid";

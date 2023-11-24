@@ -2,7 +2,7 @@ import { ChainConstants } from "@nolus/nolusjs";
 
 export const ASSETS = {
   NLS: {
-    coinGeckoId: ChainConstants.COIN_GECKO_ID
+    coinGeckoId: "nolus"
   },
   USDC: {
     coinGeckoId: "usd-coin"

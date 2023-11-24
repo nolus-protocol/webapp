@@ -1,6 +1,7 @@
 <template>
   <ConfirmExternalComponent
     v-if="showConfirmScreen"
+    :networkType="networkType"
     :selectedCurrency="selectedCurrency!"
     :receiverAddress="(walletStore.wallet?.address as string)"
     :password="password"
@@ -16,7 +17,6 @@
     :onSendClick="onSendClick"
     :onBackClick="onConfirmBackClick"
     :onOkClick="onClickOkBtn"
-    :networkType="networkType"
     @passwordUpdate="(value) => (password = value)"
   />
   <template v-else>
@@ -195,7 +195,7 @@ const fee = ref<Coin>()
 const isLoading = ref(false);
 const networkCurrenciesObject = ref();
 const app = useApplicationStore();
-const networkType = ref(NetworkTypes.cosmos);
+const networkType = ref<NetworkTypes>(NetworkTypes.cosmos);
 const metamaskAddress = ref<string | null>();
 
 const closeModal = inject("onModalClose", () => () => { });
@@ -245,6 +245,10 @@ const onUpdateNetwork = async (event: SquiRouterNetworkProp) => {
     case (NetworkTypes.evm): {
       networkType.value = NetworkTypes.evm;
       return evmNetworkParse(fromChain as EvmChain);
+    }
+    default: {
+      networkType.value = NetworkTypes.cosmos;
+      break;
     }
   }
 
@@ -410,79 +414,94 @@ const connectMetamask = async () => {
 
 async function sendTXCosmos() {
 
-  step.value = CONFIRM_STEP.PENDING;
+  try {
 
-  const squid = await squidRouter();
-  const chains = await AppUtils.getSquitRouteNetworks();
-  const denom = AssetUtils.makeIBCMinimalDenom(selectedCurrency.value?.ibc_route!, selectedCurrency.value?.symbol!);
-  const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
-    amount.value,
-    denom,
-    selectedCurrency.value?.decimals!
-  );
-  const asset = AssetUtils.getAssetInfo(selectedCurrency.value.ticker as string);
+    step.value = CONFIRM_STEP.PENDING;
 
-  const params = {
-    fromAddress: sendWallet.value as string,
-    fromChain: selectedNetwork.value.chainId,
-    fromToken: minimalDenom.denom,
-    fromAmount: minimalDenom.amount.toString(),
-    toChain: chains.NOLUS.chainId,
-    toToken: asset.coinMinimalDenom,
-    toAddress: walletStore.wallet!.address as string,
-    slippage: 1.00,
-    quoteOnly: false,
-  };
+    const squid = await squidRouter();
+    const chains = await AppUtils.getSquitRouteNetworks();
+    const denom = AssetUtils.makeIBCMinimalDenom(selectedCurrency.value?.ibc_route!, selectedCurrency.value?.symbol!);
+    const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
+      amount.value,
+      denom,
+      selectedCurrency.value?.decimals!
+    );
+    const asset = AssetUtils.getAssetInfo(selectedCurrency.value.ticker as string);
 
-  const data = await squid.getRoute(params);
+    const params = {
+      fromAddress: sendWallet.value as string,
+      fromChain: selectedNetwork.value.chainId,
+      fromToken: minimalDenom.denom,
+      fromAmount: minimalDenom.amount.toString(),
+      toChain: chains.NOLUS.chainId,
+      toToken: asset.coinMinimalDenom,
+      toAddress: walletStore.wallet!.address as string,
+      slippage: 1.00,
+      quoteOnly: false,
+    };
 
-  externalWalletOperationV2(
-    async () => {
-      try {
-        const baseWallet = await externalWalletV2(client, fromChainData as NetworkDataV2, password.value) as BaseWallet;
-        const offlineSigner = baseWallet.getOfflineSigner();
-        const signer = await SigningStargateClient.connectWithSigner(
-          fromChainData.rpc,
-          offlineSigner
-        );
+    const data = await squid.getRoute(params);
 
-        const cosmosTx = await squid.executeRoute({
-          signer,
-          signerAddress: baseWallet.address,
-          route: data.route,
-        }) as TxRaw;
+    externalWalletOperationV2(
+      async () => {
+        try {
+          const baseWallet = await externalWalletV2(client, fromChainData as NetworkDataV2, password.value) as BaseWallet;
+          const offlineSigner = baseWallet.getOfflineSigner();
+          const signer = await SigningStargateClient.connectWithSigner(
+            fromChainData.rpc,
+            offlineSigner
+          );
 
-        const txBytes = Uint8Array.from(TxRaw.encode(cosmosTx).finish());
-        const tx = toHex(sha256(txBytes));
+          const cosmosTx = await squid.executeRoute({
+            signer,
+            signerAddress: baseWallet.address,
+            route: data.route,
+          }) as TxRaw;
 
-        step.value = CONFIRM_STEP.SUCCESS;
-        txHash.value = tx;
+          const txBytes = Uint8Array.from(TxRaw.encode(cosmosTx).finish());
+          const tx = toHex(sha256(txBytes));
 
-      } catch (error: Error | any) {
-        switch (error.code) {
-          case (ErrorCodes.GasError): {
-            step.value = CONFIRM_STEP.GasErrorExternal;
-            break;
-          }
-          default: {
-            step.value = CONFIRM_STEP.ERROR;
-            break;
+          step.value = CONFIRM_STEP.SUCCESS;
+          txHash.value = tx;
+
+        } catch (error: Error | any) {
+          switch (error.code) {
+            case (ErrorCodes.GasError): {
+              step.value = CONFIRM_STEP.GasErrorExternal;
+              break;
+            }
+            default: {
+              step.value = CONFIRM_STEP.ERROR;
+              break;
+            }
           }
         }
-      }
 
-    },
-    client,
-    fromChainData as NetworkDataV2,
-    password.value
-  );
+      },
+      client,
+      fromChainData as NetworkDataV2,
+      password.value
+    );
+  } catch (error: Error | any) {
+    if(error?.errors){
+      let err = '';
+      for(const e of error.errors){
+        err += e.message as string;
+      }
+      amountErrorMsg.value = err;
+      onConfirmBackClick();
+      step.value = CONFIRM_STEP.CONFIRM;
+    }else{
+      step.value = CONFIRM_STEP.ERROR;
+    }
+  }
 }
 
 async function sendTXEvm() {
 
   try {
     step.value = CONFIRM_STEP.PENDING;
-    const signer = await metamask.getSigner();
+    const signer = metamask.getSigner();
 
     const squid = await squidRouter();
     const chains = await AppUtils.getSquitRouteNetworks();
@@ -510,18 +529,26 @@ async function sendTXEvm() {
     };
 
     const data = await squid.getRoute(params);
-    console.log(data)
     const tx = await squid.executeRoute({
       signer,
       signerAddress: metamask.address,
       route: data.route,
     });
 
-    // console.log(tx);
-    
-  } catch (error) {
-    console.log(error)
-    step.value = CONFIRM_STEP.ERROR;
+    console.log(tx);
+
+  } catch (error: Error | any) {
+    if(error?.errors){
+      let err = '';
+      for(const e of error.errors){
+        err += e.message as string;
+      }
+      amountErrorMsg.value = err;
+      onConfirmBackClick();
+      step.value = CONFIRM_STEP.CONFIRM;
+    }else{
+      step.value = CONFIRM_STEP.ERROR;
+    }
   }
 
 }
@@ -658,8 +685,15 @@ const validateCosmos = async () => {
   const decimals = selectedCurrency.value?.decimals;
 
   if (prefix && ibc_route && symbol && decimals) {
-
     try {
+
+      const isLowerThanOrEqualsToZero = new Dec(amount.value).lte(new Dec(0));
+
+      if (isLowerThanOrEqualsToZero) {
+        amountErrorMsg.value = i18n.t("message.invalid-balance-low");
+        return false;
+      }
+
       const balance = await client.getBalance(sendWallet.value as string, AssetUtils.makeIBCMinimalDenom(ibc_route, symbol));
       const walletBalance = Decimal.fromAtomics(balance.amount, decimals);
       const transferAmount = Decimal.fromUserInput(
@@ -668,12 +702,15 @@ const validateCosmos = async () => {
       );
       const isGreaterThanWalletBalance = transferAmount.isGreaterThan(walletBalance);
 
+
       if (isGreaterThanWalletBalance) {
         amountErrorMsg.value = i18n.t("message.invalid-balance-big");
         return false;
       }
 
     } catch (e) {
+      console.log(e)
+      amountErrorMsg.value = i18n.t("message.unexpected-error");
       return false;
     }
 
@@ -689,6 +726,14 @@ const validateEvm = async () => {
 
 
   try {
+
+    const isLowerThanOrEqualsToZero = new Dec(amount.value).lte(new Dec(0));
+
+    if (isLowerThanOrEqualsToZero) {
+      amountErrorMsg.value = i18n.t("message.invalid-balance-low");
+      return false;
+    }
+
     const decimals = selectedCurrency.value.decimals!;
     const walletBalance = Decimal.fromAtomics(selectedCurrency.value.balance.amount, selectedCurrency.value.decimals!);
     const transferAmount = Decimal.fromUserInput(
@@ -794,5 +839,6 @@ const total = computed(() => {
       return new KeplrCoin(ibc, selectedCurrency.value.balance.amount);
     }
   }
+  return undefined;
 })
 </script>
