@@ -15,10 +15,10 @@
     ethereum-multicall "2.21.0"
     ethers "^5.7.1"
 
-"@0xsquid/squid-types@0.1.36":
-  version "0.1.36"
-  resolved "https://registry.yarnpkg.com/@0xsquid/squid-types/-/squid-types-0.1.36.tgz#965bdc3ef63bfb38763cae6bcf88a33ba2385d02"
-  integrity sha512-T2FATAFfRee9AT6NMJaSFWJwuhKHR2T6QPEK0iw8tnyINFTFHCjnC1chG7/Si5E6AQtjkKYkyMvZ5t2+pipmzQ==
+"@0xsquid/squid-types@0.1.37":
+  version "0.1.37"
+  resolved "https://registry.yarnpkg.com/@0xsquid/squid-types/-/squid-types-0.1.37.tgz#5401d367f297fb8c6631b51194c6222a1e1fdc89"
+  integrity sha512-6mfICI9Z3X/Pa4/M0U68Esf48Zg5zoXvYQ33Uz7yrP3O5r4SMJf4rOLK02nXKIstuUwYz7+3RyeVjRWhJg/tNQ==
 
 "@aashutoshrathi/word-wrap@^1.2.3":
   version "1.2.6"
@@ -1040,9 +1040,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@nolus/nolusjs@file:../nolus.js/build/nolus-nolusjs-v1.0.7.tgz":
-  version "1.0.7"
-  resolved "file:../nolus.js/build/nolus-nolusjs-v1.0.7.tgz#7b19960fea91f2ecd2aa36f6edc8dc4efbdd63a7"
+"@nolus/nolusjs@1.0.8":
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/@nolus/nolusjs/-/nolusjs-1.0.8.tgz#fcee6c78fa48a6e5f64926b3bee7733a5af1e25e"
+  integrity sha512-ZkV8sH0eR2VIKCUxEbf6u9KJgOq0CYmjqqIS+IY2Qcy8wkGYmKKU4cgjcfmIKLJxRR5KwNTqrSRwHJVZq8Mw1w==
   dependencies:
     "@cosmjs/cosmwasm-stargate" "0.31.3"
     "@cosmjs/crypto" "0.31.3"

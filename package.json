@@ -1,6 +1,6 @@
 {
   "name": "nolus-wallet",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "serve": "vite --port 8080",
@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@0xsquid/sdk": "1.14.8",
-    "@0xsquid/squid-types": "0.1.36",
+    "@0xsquid/squid-types": "0.1.37",
     "@cosmjs/cosmwasm-stargate": "0.31.3",
     "@cosmjs/crypto": "0.31.3",
     "@cosmjs/encoding": "0.31.3",
