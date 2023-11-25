@@ -16,12 +16,12 @@
     },
     "OSMOSIS": {
         "primary": {
-            "rpc": "https://osmosis-rpc.polkachu.com",
-            "api": "https://osmosis-api.polkachu.com"
+            "rpc": "https://r-osmosis--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com/",
+            "api": "https://a-osmosis--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com/"
         },
         "fallback": [
             {
-                "rpc": "https://rpc.osmosis.zone:443",
+                "rpc": "https://rpc.osmosis.zone",
                 "api": "https://lcd.osmosis.zone"
             }
         ]
