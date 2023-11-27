@@ -30,6 +30,7 @@ export function useLeases(
         return !IGNORE_LEASES.includes(item);
       });
 
+      openedLeases.push('nolus1mw2nvm2w3mgcrh3k60wp8l89ah8rz8vesyqu7ruvvg0mnfwmns7qa3yt2x')
       const promises: Promise<{
         leaseAddress: string,
         leaseStatus: LeaseStatus,
@@ -46,6 +47,7 @@ export function useLeases(
             leaseClient.getLeaseStatus(),
             fetch(`${api}/cosmos/bank/v1beta1/balances/${leaseAddress}`),
           ]);
+          console.log(leaseInfo)
           const [data, balances] = await Promise.all([
             statusReq.json(),
             balancesReq.json()
@@ -63,14 +65,14 @@ export function useLeases(
         }
         promises.push(fn())
       }
-
+      
       const items = (await Promise.all(promises)).filter((item) => {
         if (!item) {
           return false;
         }
         return true;
       })
-
+      
       leases.value = items as LeaseData[];
 
     } catch (e) {

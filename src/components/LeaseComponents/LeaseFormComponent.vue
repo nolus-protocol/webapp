@@ -336,7 +336,10 @@ const updateSelected = (event: PickerOption) => {
 
 const calculateLique = computed(() => {
   const d = getLquidation();
-  return `$${d.toString(2)}`;
+  if(d.isZero()){
+    return `$${d.toString(2)}`
+  }
+  return `$${d.toString(4)}`;
 });
 
 const getLquidation = () => {
