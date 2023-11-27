@@ -16,13 +16,13 @@
     },
     "OSMOSIS": {
         "primary": {
-            "rpc": "https://r-osmosis--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com/",
-            "api": "https://a-osmosis--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com/"
+            "rpc": "https://rpc.osmosis.zone",
+            "api": "https://lcd.osmosis.zone"
         },
         "fallback": [
             {
-                "rpc": "https://rpc.osmosis.zone",
-                "api": "https://lcd.osmosis.zone"
+                "rpc": "https://r-osmosis--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com/",
+                "api": "https://a-osmosis--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com/"
             }
         ]
     },
