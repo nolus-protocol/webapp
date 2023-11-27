@@ -45,11 +45,13 @@ export const tooltipConfig = (callback?: Function, enable = true) => {
                     value = new Intl.NumberFormat(NATIVE_CURRENCY.locale, {
                         style: "currency",
                         currency: NATIVE_CURRENCY.currency,
+                        minimumFractionDigits: 4
                     }).format(context.parsed as any);
                 } else if (context.parsed.y !== null) {
                     value = new Intl.NumberFormat(NATIVE_CURRENCY.locale, {
                         style: "currency",
                         currency: NATIVE_CURRENCY.currency,
+                        minimumFractionDigits: 4
                     }).format(context.parsed.y);
                 }
 
