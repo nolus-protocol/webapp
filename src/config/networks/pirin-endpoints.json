@@ -145,5 +145,17 @@
                 "api": "https://stargaze-api.polkachu.com"
             }
         ]
+    },
+    "QUICKSILVER": {
+        "primary": {
+            "rpc": "https://rpc-quicksilver-ia.cosmosia.notional.ventures:443",
+            "api": "https://api-quicksilver-ia.cosmosia.notional.ventures:443"
+        },
+        "fallback": [
+            {
+                "rpc": "https://rpc.quicksilver.zone:443",
+                "api": "https://api-quicksilver.takeshi.team:443"
+            }
+        ]
     }
 }

@@ -51,5 +51,8 @@ export const ASSETS = {
   },
   STARS: {
     coinGeckoId: 'stargaze'
+  },
+  Q_ATOM: {
+    coinGeckoId: 'cosmos'
   }
 };
