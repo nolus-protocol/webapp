@@ -31,6 +31,9 @@ import { embedChainInfo as celestiaChainInfo } from './celestia/contants';
 import { NETWORK as STARGAZE_NETWORK } from './stargaze/network';
 import { embedChainInfo as stargazeChainInfo } from './stargaze/contants';
 
+import { NETWORK as QUICKSILVER_NETWORK } from './quicksilver/network';
+import { embedChainInfo as quicksilverChainInfo } from './quicksilver/contants';
+
 import { useApplicationStore } from "@/stores/application";
 import type { ExternalCurrenciesType } from "@/types/CurreciesType";
 
@@ -144,6 +147,16 @@ export const SUPPORTED_NETWORKS_DATA: {
         estimation: 20,
         key: "STARGAZE",
         symbol: "STARS",
+        forward: true
+    },
+    QUICKSILVER: {
+        prefix: "quick",
+        value: "quick",
+        label: "Quicksilver",
+        native: false,
+        estimation: 20,
+        key: "QUICKSILVER",
+        symbol: "QCK",
         forward: true
     },
 }
@@ -297,6 +310,7 @@ export const NETWORKS_DATA: {
             SUPPORTED_NETWORKS_DATA.SECRET,
             SUPPORTED_NETWORKS_DATA.STARGAZE,
             SUPPORTED_NETWORKS_DATA.CELESTIA,
+            SUPPORTED_NETWORKS_DATA.QUICKSILVER
             // SUPPORTED_NETWORKS_DATA.EVMOS
         ],
         supportedNetworks: {
@@ -389,6 +403,15 @@ export const NETWORKS_DATA: {
                     return app?.networks?.[CELESTIA_NETWORK.key] as ExternalCurrenciesType;
                 },
                 embedChainInfo: celestiaChainInfo,
+            },
+            QUICKSILVER: {
+                ...QUICKSILVER_NETWORK,
+                explorer: 'https://mintscan.io/quicksilver/transactions',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[QUICKSILVER_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: quicksilverChainInfo,
             },
         }
     },
