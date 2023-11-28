@@ -354,6 +354,7 @@ export const LedgerName = "Ledger";
 export const IGNORE_LEASE_ASSETS: string[] = [];
 export const IGNORE_TRANSFER_ASSETS: string[] = [];
 export const IGNORE_LEASES: string[] = ["nolus1suz0vsqe8c8anckaer98awhqs8r4hu7wsm8a49acdl39x6ylfypsqywxwh", "nolus1q2ekwjj87jglqsszwy6ah5t08h0k8kq67ed0l899sku2qt0dztpsnwt6sw"];
+export const NEWS_URL = import('./news.json?url').then((t) => t.default);
 
 export const SUPPORT_URL = 'https://hub.nolus.io';
 export const ETL_API = "https://etl-cl.nolus.network:8080/api"

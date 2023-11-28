@@ -6,36 +6,37 @@
   >
     Receive v2 / Send v2
   </button>
-  <div
-    v-if="isBannerVisible"
-    class="col-span-12 banner flex"
-  >
-    <img
-      height="145"
-      width="114"
-      src="/src/assets/icons/interest.png"
-    />
-    <div class="flex flex-col	items-start	justify-between">
-      <div>
-        <h3 class="nls-font-700">
-          {{ $t('message.zero-banner-title') }}
-        </h3>
-        <p class="max-w-[500px]">
-          {{ $t('message.zero-banner-description') }}
-        </p>
+  <div class="banner-box">
+    <div
+      v-for="n in  news "
+      class="banner flex"
+    >
+      <div class="flex flex-col	items-start	justify-between">
+        <div>
+          <h3 class="nls-font-700">
+            {{ $t(`message.${n.title}`) }}
+          </h3>
+          <p>
+            {{ $t(`message.${n["sub-title"]}`) }}
+          </p>
+          <p>
+            {{ $t(`message.${n.description}`) }}
+          </p>
+        </div>
       </div>
-      <button
-        class="btn-primary btn-large-primary"
-        @click="openModal(DASHBOARD_ACTIONS.LEASE)"
-      >
-        {{ $t('message.lease-now') }}
-      </button>
-      <button
-        class="close"
-        @click="hideBanner"
-      >
-        <XMarkIcon />
-      </button>
+      <div class="image">
+        <button
+          class="close"
+          @click="hideBanner"
+        >
+          <XMarkIcon />
+        </button>
+        <img
+          height="145"
+          width="114"
+          src="/src/assets/icons/interest.png"
+        />
+      </div>
     </div>
   </div>
   <div class="col-span-12">
@@ -216,7 +217,7 @@
         >
           <template v-if="loading">
             <div
-              v-for="index in currenciesSize"
+              v-for=" index  in  currenciesSize "
               :key="index"
               class="h-[67px] flex items-center justify-between asset-partial nolus-box relative border-b border-standart py-3 px-4 items-center justify-between"
             >
@@ -239,7 +240,7 @@
               tag="div"
             >
               <AssetPartial
-                v-for="(asset, index) in filteredAssets"
+                v-for="( asset, index ) in  filteredAssets "
                 :key="`${asset.balance.denom}-${index}`"
                 :asset-info="getAssetInfo(asset.balance.denom)"
                 :assetBalance="asset.balance.denom == wallet.available.denom ? wallet.available.amount.toString() : asset.balance.amount.toString()"
@@ -289,7 +290,7 @@
         <!-- Assets Container -->
         <div class="block mb-6 lg:mb-0">
           <VestedAssetPartial
-            v-for="(asset, index) in vestedTokens"
+            v-for="( asset, index ) in  vestedTokens "
             :key="`${asset.amount.amount}-${index}`"
             :asset-info="getAssetInfo(asset.amount.denom)"
             :asset-balance="wallet.vestTokens.amount.toString()"
@@ -356,6 +357,7 @@ import { AssetUtils, EnvNetworkUtils, WalletManager } from "@/utils";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { AppUtils } from "@/utils/AppUtils";
 import { XMarkIcon } from "@heroicons/vue/24/solid";
+import type { News } from "@/types/News";
 
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
@@ -374,10 +376,10 @@ const app = useApplicationStore();
 
 const walletRef = storeToRefs(wallet);
 const oracleRef = storeToRefs(oracle);
+const news = ref<News>();
 
 const isAssetsLoading = ref(wallet.balances.length == 0);
 const showSkeleton = ref(wallet.balances.length == 0);
-const isBannerVisible = ref(true);
 
 const showErrorDialog = ref(false);
 const loaded = wallet.balances.length > 0 && Object.keys(oracle.prices).length > 0;
@@ -438,7 +440,7 @@ onMounted(() => {
   getVestedTokens();
   availableAssets();
   loadSuppliedAndStaked();
-  isBannerVisible.value = AppUtils.getBanner();
+  loadNews();
   wallet[WalletActionTypes.LOAD_STAKED_TOKENS]();
   wallet[WalletActionTypes.LOAD_SUPPLIED_AMOUNT]();
   if (showSkeleton.value) {
@@ -677,9 +679,11 @@ const setSmallBalancesState = (event: boolean) => {
   }
 }
 
+const loadNews = async () => {
+  news.value = await AppUtils.getNews();
+}
 const hideBanner = () => {
-  AppUtils.setBannerInvisible();
-  isBannerVisible.value = false;
+
 }
 </script>
 <style scoped lang="scss">
@@ -691,4 +695,5 @@ const hideBanner = () => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}</style>
+}
+</style>

@@ -1,0 +1,72 @@
+div.banner-box {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: scroll;
+
+    div.banner {
+        flex: 0 0 auto;
+        width: calc(50% * 0.8);
+        cursor: pointer;
+        background-color: $lightGrey;
+        border-radius: 12px;
+        border: 1px solid #EBEFF5;
+        padding: 24px;
+        position: relative;
+        &:not(:last-child) {
+            margin-right: 24px;
+        }
+    }
+}
+
+.banner {
+
+
+    img {
+        object-fit: scale-down;
+    }
+
+    button.close {
+        color: white;
+        border: solid 1px $borderColor;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        padding: 4px;
+        transition: ease 200ms;
+
+        &:hover {
+            background-color: #042555;
+        }
+    }
+
+    >div {
+        padding: 0 0 0 24px;
+
+        button.btn-primary {
+            background: #FF562E;
+            transition: ease 200ms;
+
+            &:hover {
+                background-color: #DF4C29;
+            }
+
+            &:active {
+                background-color: #B94428;
+            }
+        }
+    }
+
+    h3 {
+        color: white;
+        font-size: 32px;
+        font-weight: 700;
+    }
+
+    p {
+        color: #8396B1;
+        font-family: Garet;
+        font-size: 14px;
+        font-weight: 500;
+    }
+}
+
