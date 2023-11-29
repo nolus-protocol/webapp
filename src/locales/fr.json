@@ -308,7 +308,7 @@
     "yield-tooltip": "Taux de pourcentage annualisé sur les stablecoins fournis",
     "borrow-apr": "Taeg",
     "supplied": "Fournis",
-    "utilization-level": "Niveau d'utilisation",
+    "utilization-level": "Protocol Utilization",
     "optimal": "Optimum",
     "optimal-tooltip": "Le seuil à partir duquel le montant maximum du taux d'intérêt est atteint",
     "deposit-suspension": "Dépôts suspendus",
@@ -341,6 +341,9 @@
     "usdc-payout": "USDC Payout",
     "usdc-payout-tooltip": "Estimated USDC amount to be received after deducting Outstanding Debt",
     "min-amount-allowed": "The minimum allowed {currency} amount is {amount}",
-    "lease-swap-fee-tooltip": "Estimated position size after deducting a {swap_fee}% charged by the DEX"
+    "lease-swap-fee-tooltip": "Estimated position size after deducting a {swap_fee}% charged by the DEX",
+    "buyback": "Buyback",
+    "osmosis": "Osmosis",
+    "neutron": "Neutron"
   }
 }
