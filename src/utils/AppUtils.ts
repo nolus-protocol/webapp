@@ -1,7 +1,8 @@
-import type { Endpoint, Node, API, ARCHIVE_NODE, SquiRouterNetwork, SquiRouterNetworks } from "@/types/NetworkConfig";
-import { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL, Filament, NETWORKS, OPEAN_LEASE_FEE_URL, SWAP_FEE_URL, SquidRouter, isDev, languages } from "@/config/env";
+import type { Endpoint, Node, API, ARCHIVE_NODE, SquiRouterNetworks } from "@/types/NetworkConfig";
+import { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL, Filament, NETWORKS, NEWS_URL, OPEAN_LEASE_FEE_URL, SWAP_FEE_URL, SquidRouter, isDev, languages } from "@/config/env";
 import { EnvNetworkUtils } from ".";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
+import type { News } from "@/types/News";
 
 export class AppUtils {
 
@@ -18,6 +19,8 @@ export class AppUtils {
     static freeInterestAdress: Promise<{
         interest_paid_to: string[]
     }>;
+
+    static news: Promise<News>;
 
     static swapFee: Promise<{
         [key: string]: number
@@ -59,12 +62,12 @@ export class AppUtils {
         return languages.en;
     }
 
-    public static setBannerInvisible() {
-        localStorage.setItem(this.BANNER, '1');
+    public static setBannerInvisible(key: string) {
+        localStorage.setItem(`${this.BANNER}-${key}`, '1');
     }
 
-    static getBanner() {
-        return !Number(localStorage.getItem(this.BANNER));
+    static getBanner(key: string) {
+        return !Number(localStorage.getItem(`${this.BANNER}-${key}`));
     }
 
     static async fetchEndpoints(network: string) {
@@ -308,6 +311,32 @@ export class AppUtils {
         return json;
     }
 
+    static async getNews() {
+
+        if (this.news) {
+            return this.news;
+        }
+
+        const news = AppUtils.fetctNews();
+        this.news = news;
+        return news;
+
+    }
+
+    private static async fetctNews() {
+        const url = await NEWS_URL;
+        const data = await fetch(url);
+        const json = await data.json() as News;
+        const n: News = {};
+        
+        for(const k in json){
+            if(AppUtils.getBanner(k)){
+                n[k] = json[k];
+            }
+        }
+
+        return n;
+    }
 
     static async getUrl(url: string | Promise<string>) {
         switch (url.constructor) {

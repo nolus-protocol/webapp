@@ -10,7 +10,7 @@
 html,
 body {
 	background-color: #fafbfc;
-	background: linear-gradient(314.47deg, #EBEFF5 2.19%, #f7f9fc 100%);
+	background: var(--nolus-color-pallet-background-gradient, linear-gradient(314deg, #EBEFF5 2.19%, #F0F4F7 100%));
 
 	@media (min-width: 830px) {
 		.custom-scroll {
@@ -178,7 +178,7 @@ div#app {
 	min-height: 100%;
 	display: inline;
 	background-color: #fafbfc;
-	background: linear-gradient(314.47deg, #EBEFF5 2.19%, #f7f9fc 100%);
+	background: var(--nolus-color-pallet-background-gradient, linear-gradient(314deg, #EBEFF5 2.19%, #F0F4F7 100%));
 }
 
 .scrollbar {
@@ -1000,88 +1000,5 @@ body.sync {
 		background-color: rgb(131 150 177 / var(--tw-text-opacity));
 		left: 0;
 		bottom: 50%;
-	}
-}
-
-.banner {
-	background-color: $dark;
-	border-radius: 12px;
-	border: 1px solid #2B384B;
-	padding: 24px;
-	position: relative;
-
-	img {
-		object-fit: scale-down;
-	}
-
-	button.close {
-		color: white;
-		border: solid 1px rgba(131, 150, 177, 1);
-		border-radius: 50%;
-		width: 32px;
-		height: 32px;
-		padding: 4px;
-		position: absolute;
-		right: 18px;
-		top: 18px;
-		transition: ease 200ms;
-
-		&:hover {
-			background-color: #042555;
-		}
-	}
-
-	>div {
-		padding: 0 0 0 24px;
-
-		button.btn-primary {
-			background: #FF562E;
-			transition: ease 200ms;
-
-			&:hover {
-				background-color: #DF4C29;
-			}
-
-			&:active {
-				background-color: #B94428;
-			}
-		}
-	}
-
-	h3 {
-		color: white;
-		font-size: 32px;
-		font-weight: 700;
-	}
-
-	p {
-		color: #8396B1;
-		font-family: Garet;
-		font-size: 14px;
-		font-weight: 500;
-	}
-}
-
-@media (max-width: $md) {
-	.banner {
-		flex-direction: column;
-		align-items: center;
-		margin: 32px 12px 0 12px;
-		position: relative;
-
-		>div {
-			margin-top: 12px;
-			padding: 0 !important;
-		}
-
-		button.btn-primary {
-			width: 100%;
-			margin-top: 12px;
-		}
-
-		h3 {
-			font-size: 26px;
-			margin: 12px 0;
-		}
 	}
 }
