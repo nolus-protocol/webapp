@@ -10,7 +10,7 @@
 html,
 body {
 	background-color: #fafbfc;
-	background: linear-gradient(314.47deg, #EBEFF5 2.19%, #f7f9fc 100%);
+	background: var(--nolus-color-pallet-background-gradient, linear-gradient(314deg, #EBEFF5 2.19%, #F0F4F7 100%));
 
 	@media (min-width: 830px) {
 		.custom-scroll {
@@ -178,7 +178,7 @@ div#app {
 	min-height: 100%;
 	display: inline;
 	background-color: #fafbfc;
-	background: linear-gradient(314.47deg, #EBEFF5 2.19%, #f7f9fc 100%);
+	background: var(--nolus-color-pallet-background-gradient, linear-gradient(314deg, #EBEFF5 2.19%, #F0F4F7 100%));
 }
 
 .scrollbar {

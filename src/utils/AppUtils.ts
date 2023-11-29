@@ -62,12 +62,12 @@ export class AppUtils {
         return languages.en;
     }
 
-    public static setBannerInvisible() {
-        localStorage.setItem(this.BANNER, '1');
+    public static setBannerInvisible(key: string) {
+        localStorage.setItem(`${this.BANNER}-${key}`, '1');
     }
 
-    static getBanner() {
-        return !Number(localStorage.getItem(this.BANNER));
+    static getBanner(key: string) {
+        return !Number(localStorage.getItem(`${this.BANNER}-${key}`));
     }
 
     static async fetchEndpoints(network: string) {
@@ -327,8 +327,15 @@ export class AppUtils {
         const url = await NEWS_URL;
         const data = await fetch(url);
         const json = await data.json() as News;
+        const n: News = {};
+        
+        for(const k in json){
+            if(AppUtils.getBanner(k)){
+                n[k] = json[k];
+            }
+        }
 
-        return json;
+        return n;
     }
 
     static async getUrl(url: string | Promise<string>) {

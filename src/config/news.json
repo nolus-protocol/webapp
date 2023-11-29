@@ -3,35 +3,35 @@
         "title-icon": "/lease-icon.svg",
         "image": "/lease.png",
         "title": "zero-banner-title",
-        "sub-title": "zero-banner-sub-title",
+        "subtitle": "zero-banner-subtitle",
         "description": "zero-banner-description"
     },
     "zero-interest-2": {
         "title-icon": "/lease-icon.svg",
         "image": "/lease.png",
         "title": "zero-banner-title",
-        "sub-title": "zero-banner-sub-title",
+        "subtitle": "zero-banner-subtitle",
         "description": "zero-banner-description"
     },
     "zero-interest-3": {
         "title-icon": "/lease-icon.svg",
         "image": "/lease.png",
         "title": "zero-banner-title",
-        "sub-title": "zero-banner-sub-title",
+        "subtitle": "zero-banner-subtitle",
         "description": "zero-banner-description"
     },
     "zero-interest-4": {
         "title-icon": "/lease-icon.svg",
         "image": "/lease.png",
         "title": "zero-banner-title",
-        "sub-title": "zero-banner-sub-title",
+        "subtitle": "zero-banner-subtitle",
         "description": "zero-banner-description"
     },
     "zero-interest-5": {
         "title-icon": "/lease-icon.svg",
         "image": "/lease.png",
         "title": "zero-banner-title",
-        "sub-title": "zero-banner-sub-title",
+        "subtitle": "zero-banner-subtitle",
         "description": "zero-banner-description"
     }
 }

@@ -6,6 +6,6 @@ export interface New {
     "title-icon": string,
     "image": string,
     "title": string,
-    "sub-title": string,
+    "subtitle": string,
     "description": string,
 }
