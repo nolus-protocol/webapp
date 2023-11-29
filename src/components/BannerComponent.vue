@@ -23,6 +23,7 @@
       <div
         v-for="(n, key) in  news "
         class="banner flex"
+        :key="key"
       >
         <div class="flex flex-col	items-start">
           <p class="title flex nls-font-500">
