@@ -19,7 +19,7 @@
           <CurrencyField
             id="amount"
             :currency-options="modelValue.currentBalance"
-            :disabled-currency-picker="false"
+            :disabled-currency-picker="disablePickerDialog"
             :error-msg="modelValue.amountErrorMsg"
             :is-error="modelValue.amountErrorMsg !== ''"
             :option="modelValue.selectedCurrency"
@@ -86,9 +86,10 @@ import CurrencyField from "@/components/CurrencyField.vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore } from "@/stores/wallet";
 import { EnvNetworkUtils, WalletUtils } from "@/utils";
-import { computed } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { Dec } from "@keplr-wallet/unit";
 import { NETWORKS_DATA } from "@/networks";
+import { useApplicationStore } from "@/stores/application";
 
 const props = defineProps({
   modelValue: {
@@ -96,14 +97,32 @@ const props = defineProps({
     default: {} as object,
   },
 });
+const app = useApplicationStore();
+const disablePickerDialog = ref(false);
 
 const networks = computed(() => {
+  const n: string[] = [];
+  if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
+    for (const key in app.networks ?? {}) {
+      const c = app.networks?.[key]?.[props.modelValue?.dialogSelectedCurrency as string];
+      if (c) {
+        n.push(key);
+      }
+    }
+    return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list.filter((item) => n.includes(item.key));
+  }
   return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list;
 });
 
 const wallet = useWalletStore();
 
 defineEmits(["update:modelValue.selectedCurrency"]);
+
+onMounted(() => {
+  if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
+    disablePickerDialog.value = true;
+  }
+})
 
 const formatCurrentBalance = (selectedCurrency: AssetBalance) => {
   if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {

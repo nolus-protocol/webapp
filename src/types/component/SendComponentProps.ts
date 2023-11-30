@@ -15,5 +15,6 @@ export interface SendComponentProps {
   txHash: string;
   fee: Coin;
   network: Network;
+  dialogSelectedCurrency: string;
   onNextClick: () => void;
 }

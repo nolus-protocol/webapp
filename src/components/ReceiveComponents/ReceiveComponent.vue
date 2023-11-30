@@ -1,38 +1,32 @@
 <template>
-  <ConfirmExternalComponent
-    v-if="showConfirmScreen"
-    :network-type="NetworkTypes.cosmos"
-    :selectedCurrency="selectedCurrency!"
-    :receiverAddress="(walletStore.wallet?.address as string)"
-    :password="password"
-    :amount="amount"
-    :memo="memo"
-    :txType="$t(`message.${TxType.SEND}`) + ':'"
-    :txHash="txHash"
-    :step="step"
-    :fee="fee"
-    :networkCurrencies="networkCurrenciesObject"
-    :networkKey="selectedNetwork.key"
-    :networkSymbol="selectedNetwork.symbol"
-    :onSendClick="onSendClick"
-    :onBackClick="onConfirmBackClick"
-    :onOkClick="onClickOkBtn"
-    @passwordUpdate="(value) => (password = value)"
-  />
+  <ConfirmExternalComponent v-if="showConfirmScreen"
+                            :network-type="NetworkTypes.cosmos"
+                            :selectedCurrency="selectedCurrency!"
+                            :receiverAddress="(walletStore.wallet?.address as string)"
+                            :password="password"
+                            :amount="amount"
+                            :memo="memo"
+                            :txType="$t(`message.${TxType.SEND}`) + ':'"
+                            :txHash="txHash"
+                            :step="step"
+                            :fee="fee"
+                            :networkCurrencies="networkCurrenciesObject"
+                            :networkKey="selectedNetwork.key"
+                            :networkSymbol="selectedNetwork.symbol"
+                            :onSendClick="onSendClick"
+                            :onBackClick="onConfirmBackClick"
+                            :onOkClick="onClickOkBtn"
+                            @passwordUpdate="(value) => (password = value)" />
   <template v-else>
-    <div
-      class="modal-send-receive-input-area overflow-auto custom-scroll"
-      v-if="selectedNetwork.native"
-    >
+    <div class="modal-send-receive-input-area overflow-auto custom-scroll"
+         v-if="selectedNetwork.native">
       <div class="block text-left">
 
         <div class="block mt-[25px]">
-          <Picker
-            :default-option="networks[0]"
-            :options="networks"
-            :label="$t('message.network')"
-            @update-selected="onUpdateNetwork"
-          />
+          <Picker :default-option="networks[0]"
+                  :options="networks"
+                  :label="$t('message.network')"
+                  @update-selected="onUpdateNetwork" />
         </div>
 
         <div class="block mt-[18px]">
@@ -43,13 +37,11 @@
             {{ WalletUtils.isAuth() ? walletStore.wallet?.address : $t('message.connect-wallet-label') }}
           </p>
           <div class="flex items-center justify-start mt-2">
-            <button
-              class="btn btn-secondary btn-medium-secondary btn-icon mr-2 flex"
-              @click="
-                modelValue?.onCopyClick(wallet);
-              onCopy();
-              "
-            >
+            <button class="btn btn-secondary btn-medium-secondary btn-icon mr-2 flex"
+                    @click="
+                      modelValue?.onCopyClick(wallet);
+                    onCopy();
+                    ">
               <DocumentDuplicateIcon class="icon w-4 h-4" />
               {{ copyText }}
             </button>
@@ -63,44 +55,38 @@
       </div>
     </div>
     <template v-else>
-      <form
-        @submit.prevent="receive"
-        class="modal-form overflow-auto"
-      >
+      <form @submit.prevent="receive"
+            class="modal-form overflow-auto">
         <!-- Input Area -->
         <div class="modal-send-receive-input-area background">
 
           <div class="block text-left">
 
             <div class="block mt-[20px]">
-              <Picker
-                :default-option="selectedNetwork"
-                :options="networks"
-                :label="$t('message.network')"
-                :value="selectedNetwork"
-                @update-selected="onUpdateNetwork"
-              />
+              <Picker :default-option="selectedNetwork"
+                      :options="networks"
+                      :label="$t('message.network')"
+                      :value="selectedNetwork"
+                      @update-selected="onUpdateNetwork" />
             </div>
 
             <div class="block mt-[20px]">
 
-              <CurrencyField
-                id="amount"
-                :currency-options="networkCurrencies"
-                :disabled-currency-picker="disablePicker"
-                :is-loading-picker="disablePicker"
-                :error-msg="amountErrorMsg"
-                :is-error="amountErrorMsg !== ''"
-                :option="selectedCurrency"
-                :value="amount"
-                :name="$t('message.amount')"
-                :label="$t('message.amount-receive')"
-                :set-input-value="setAmount"
-                @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
-                @input="handleAmountChange($event)"
-                :balance="formatCurrentBalance(selectedCurrency)"
-                :total="total"
-              />
+              <CurrencyField id="amount"
+                             :currency-options="networkCurrencies"
+                             :disabled-currency-picker="disablePicker || disablePickerDialog"
+                             :is-loading-picker="disablePicker"
+                             :error-msg="amountErrorMsg"
+                             :is-error="amountErrorMsg !== ''"
+                             :option="selectedCurrency"
+                             :value="amount"
+                             :name="$t('message.amount')"
+                             :label="$t('message.amount-receive')"
+                             :set-input-value="setAmount"
+                             @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
+                             @input="handleAmountChange($event)"
+                             :balance="formatCurrentBalance(selectedCurrency)"
+                             :total="total" />
             </div>
 
             <div>
@@ -116,10 +102,8 @@
         </div>
         <!-- Actions -->
         <div class="modal-send-receive-actions background flex-col">
-          <button
-            class="btn btn-primary btn-large-primary"
-            :class="{ 'js-loading': isLoading }"
-          >
+          <button class="btn btn-primary btn-large-primary"
+                  :class="{ 'js-loading': isLoading }">
             {{ $t("message.receive") }}
           </button>
           <div class="flex justify-between w-full text-light-blue text-[14px] my-2">
@@ -138,6 +122,7 @@ import CurrencyField from "@/components/CurrencyField.vue";
 import ConfirmExternalComponent from "@/components/modals/templates/ConfirmExternalComponent.vue";
 
 import type { AssetBalance } from "@/stores/wallet/state";
+import type { ExternalCurrencyType } from "@/types/CurreciesType";
 import { CONFIRM_STEP, TxType, type Network, NetworkTypes } from "@/types";
 
 import { onUnmounted, ref, type PropType, inject, watch, computed } from "vue";
@@ -154,34 +139,53 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
 import { Dec, Coin as KeplrCoin } from "@keplr-wallet/unit";
 import { useApplicationStore } from "@/stores/application";
-import type { ExternalCurrencyType } from "@/types/CurreciesType";
+import { onMounted } from "vue";
 
 export interface ReceiveComponentProps {
   currentBalance: AssetBalance[];
   selectedCurrency: AssetBalance;
   amount: string;
+  dialogSelectedCurrency: string,
   onScanClick: () => void;
   onCopyClick: (wallet?: string) => void;
 }
 
 let timeOut: NodeJS.Timeout;
 let client: Wallet;
+const props = defineProps({
+  modelValue: {
+    type: Object as PropType<ReceiveComponentProps>,
+  },
+});
+
+const walletStore = useWalletStore();
+const app = useApplicationStore();
 
 const networks = computed(() => {
+  const n: string[] = [];
+  if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
+    for (const key in app.networks ?? {}) {
+      const c = app.networks?.[key]?.[props.modelValue?.dialogSelectedCurrency as string];
+      if (c) {
+        n.push(key);
+      }
+    }
+    return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list.filter((item) => n.includes(item.key));
+  }
   return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list;
 });
 
 const i18n = useI18n();
 const copyText = ref(i18n.t("message.copy"));
 const selectedNetwork = ref(networks.value[0]);
-const walletStore = useWalletStore();
-const app = useApplicationStore();
 
 const networkCurrencies = ref<AssetBalance[]>([]);
 const selectedCurrency = ref<AssetBalance>(walletStore.balances[0]);
 const amount = ref("");
 const amountErrorMsg = ref("");
 const disablePicker = ref(false);
+const disablePickerDialog = ref(false);
+
 const showConfirmScreen = ref(false);
 const step = ref(CONFIRM_STEP.CONFIRM);
 const password = ref('');
@@ -193,11 +197,11 @@ const closeModal = inject("onModalClose", () => () => { });
 const networkCurrenciesObject = ref();
 let wallet = ref(walletStore.wallet?.address);
 
-defineProps({
-  modelValue: {
-    type: Object as PropType<ReceiveComponentProps>,
-  },
-});
+onMounted(() => {
+  if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
+    disablePickerDialog.value = true;
+  }
+})
 
 onUnmounted(() => {
   clearTimeout(timeOut);
@@ -267,7 +271,12 @@ const onUpdateNetwork = async (event: Network) => {
     }
 
     const items = await Promise.all(currenciesPromise);
-    selectedCurrency.value = items?.[0]
+
+    if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
+      selectedCurrency.value = items.find((e) => e.ticker == props.modelValue?.dialogSelectedCurrency)!;
+    } else {
+      selectedCurrency.value = items?.[0]
+    }
     networkCurrencies.value = items;
     disablePicker.value = false;
 

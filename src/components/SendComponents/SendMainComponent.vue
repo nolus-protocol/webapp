@@ -1,25 +1,21 @@
 <template>
-  <ConfirmComponent
-    v-if="showConfirmScreen"
-    :selectedCurrency="state.selectedCurrency"
-    :receiverAddress="state.receiverAddress"
-    :password="state.password"
-    :amount="state.amount"
-    :memo="state.memo"
-    :txType="$t(`message.${TxType.SEND}`) + ':'"
-    :txHash="state.txHash"
-    :step="step"
-    :fee="state.fee"
-    :onSendClick="onSendClick"
-    :onBackClick="onConfirmBackClick"
-    :onOkClick="onClickOkBtn"
-    @passwordUpdate="(value) => (state.password = value)"
-  />
-  <SendComponent
-    v-else
-    v-model="state"
-    class="overflow-auto custom-scroll"
-  />
+  <ConfirmComponent v-if="showConfirmScreen"
+                    :selectedCurrency="state.selectedCurrency"
+                    :receiverAddress="state.receiverAddress"
+                    :password="state.password"
+                    :amount="state.amount"
+                    :memo="state.memo"
+                    :txType="$t(`message.${TxType.SEND}`) + ':'"
+                    :txHash="state.txHash"
+                    :step="step"
+                    :fee="state.fee"
+                    :onSendClick="onSendClick"
+                    :onBackClick="onConfirmBackClick"
+                    :onOkClick="onClickOkBtn"
+                    @passwordUpdate="(value) => (state.password = value)" />
+  <SendComponent v-else
+                 v-model="state"
+                 class="overflow-auto custom-scroll" />
 </template>
 
 <script lang="ts" setup>
@@ -31,7 +27,7 @@ import ConfirmComponent from "@/components/modals/templates/ConfirmComponent.vue
 import { CONFIRM_STEP } from "@/types/ConfirmStep";
 import { TxType } from "@/types/TxType";
 import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
-import { computed, inject, nextTick, onUnmounted, ref, watch } from "vue";
+import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { coin, type Coin } from "@cosmjs/amino";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
@@ -70,6 +66,14 @@ const showSnackbar = inject(
   "showSnackbar",
   (type: string, transaction: string) => { }
 );
+
+const props = defineProps({
+  dialogSelectedCurrency: {
+    type: String,
+    default: ''
+  }
+});
+
 const balances = ref<AssetBalance[]>(walletStore.balances.filter((item) => {
   const currency = walletStore.getCurrencyInfo(item.balance.denom);
   if (IGNORE_TRANSFER_ASSETS.includes(currency.ticker as string)) {
@@ -92,6 +96,7 @@ const showConfirmScreen = ref(false);
 const state = ref({
   currentBalance: balances.value,
   selectedCurrency: balances.value[0],
+  dialogSelectedCurrency: props.dialogSelectedCurrency,
   amount: "",
   memo: "",
   network: networks.value[0],
@@ -111,6 +116,19 @@ const onConfirmBackClick = () => {
 const onClickOkBtn = () => {
   closeModal();
 };
+
+onMounted(() => {
+  if (state.value.dialogSelectedCurrency.length as number > 0) {
+    const currency = balances.value.find((e) => {
+      const asset = AssetUtils.getAssetInfoByDenom(e.balance.denom);
+      return asset.ticker == props.dialogSelectedCurrency
+    })!;
+    state.value.selectedCurrency = currency;
+    nextTick(() => {
+      state.value.amountErrorMsg = '';
+    })
+  }
+});
 
 onUnmounted(() => {
   if (CONFIRM_STEP.PENDING == step.value) {
@@ -166,7 +184,10 @@ watch(() => state.value.network, async () => {
     return e;
   });
 
-  state.value.selectedCurrency = state.value.currentBalance[0];
+  if (props.dialogSelectedCurrency.length as number == 0) {
+    state.value.selectedCurrency = state.value.currentBalance[0];
+  }
+
   setWallet();
 
   nextTick(() => {
@@ -177,7 +198,7 @@ watch(() => state.value.network, async () => {
 })
 
 const setWallet = async () => {
-  if(!state.value.network.native){
+  if (!state.value.network.native) {
     client = await WalletUtils.getWallet(
       state.value.network.key
     );
@@ -186,7 +207,7 @@ const setWallet = async () => {
     const baseWallet = await externalWallet(client, networkData, '') as BaseWallet;
     state.value.wallet = baseWallet.address;
     state.value.receiverAddress = baseWallet.address as string;
-  }else{
+  } else {
     state.value.wallet = undefined;
     state.value.receiverAddress = "";
   }

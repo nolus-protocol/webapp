@@ -31,7 +31,7 @@ button.navigation {
 
     &:hover {
         .navigation-color {
-            fill: $lightElectric;
+            fill: $lightElectric !important;
         }
     }
 
@@ -131,25 +131,61 @@ div.banner-box {
 body {
     &.sync {
         @media (prefers-color-scheme: dark) {
-            p.substitle {
-                color: white;
+            button.navigation {
+                background-color: $dark-background;
+                border-color: $dark-line;
+
+                .navigation-color {
+                    fill: white;
+                }
             }
 
             div.banner {
-                background-color: $dark;
+                p.substitle {
+                    color: white;
+                }
+
+                background-color: $dark-background;
                 border-color: $dark-line;
+            }
+
+            button.close {
+                background-color: $dark-background !important;
+                border-color: $dark-line !important;
+
+                .close-color {
+                    fill: white;
+                }
             }
         }
     }
 
     &.dark {
+        button.navigation {
+            background-color: $dark-background;
+            border-color: $dark-line;
+
+            .navigation-color {
+                fill: white;
+            }
+        }
+
         div.banner {
             p.substitle {
                 color: white;
             }
 
-            background-color: $dark;
+            background-color: $dark-background;
             border-color: $dark-line;
+        }
+
+        button.close {
+            background-color: $dark-background !important;
+            border-color: $dark-line !important;
+
+            .close-color {
+                fill: white;
+            }
         }
     }
 }

@@ -30,6 +30,12 @@ const hideDialogHeader = () => setShowDialogHeader(false);
 const showDialogHeader = () => setShowDialogHeader(true);
 const balances = computed(() => walletStore.balances);
 const walletRef = storeToRefs(walletStore);
+const props = defineProps({
+  dialogSelectedCurrency: {
+    type: String,
+    default: ''
+  }
+});
 
 const setShowDialogHeader = inject(
   "setShowDialogHeader",
@@ -58,6 +64,7 @@ function setScanComponent() {
   currentComponent.value = {
     is: ScreenState.SCAN,
     props: {
+      dialogSelectedCurrency: props.dialogSelectedCurrency,
       walletAddress: walletStore.wallet?.address ?? WalletManager.getWalletAddress(),
       onBackClick: () => onBackClick(),
       onCopyClick: (wallet) => onCopyClick(wallet),
@@ -70,6 +77,7 @@ function setMainComponent() {
   currentComponent.value = {
     is: ScreenState.MAIN,
     props: {
+      dialogSelectedCurrency: props.dialogSelectedCurrency,
       currentBalance: balances.value,
       selectedCurrency: balances.value[0],
       amount: "",

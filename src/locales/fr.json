@@ -341,6 +341,7 @@
     "usdc-payout": "USDC Payout",
     "usdc-payout-tooltip": "Estimated USDC amount to be received after deducting Outstanding Debt",
     "min-amount-allowed": "The minimum allowed {currency} amount is {amount}",
-    "lease-swap-fee-tooltip": "Estimated position size after deducting a {swap_fee}% charged by the DEX"
+    "lease-swap-fee-tooltip": "Estimated position size after deducting a {swap_fee}% charged by the DEX",
+    "receive/send": "Receive/Send"
   }
 }
