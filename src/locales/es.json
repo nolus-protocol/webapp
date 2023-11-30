@@ -343,6 +343,7 @@
     "usdc-payout-tooltip": "Cantidad estimada de USDC a recibir tras deducir la Deuda Pendiente",
     "min-amount-allowed": "El importe mínimo {currency} permitido es {amount}",
     "lease-swap-fee-tooltip": "Tamaño estimado de la posición tras deducir un {swap_fee}% cobrado por el DEX",
-    "receive/send": "Receive/Send"
+    "receive/send": "Receive/Send",
+    "hide-small-balances": "Hide Small Balance"
   }
 }

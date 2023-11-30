@@ -343,6 +343,7 @@
     "usdc-payout-tooltip": "Ödenmemiş Borç düşüldükten sonra alınacak tahmini USDC tutarı",
     "min-amount-allowed": "İzin verilen minimum {currency} tutarı {amount} adettir",
     "lease-swap-fee-tooltip": "DEX tarafından tahsil edilen %{swap_fee} düşüldükten sonra tahmini pozisyon boyutu",
-    "receive/send": "Receive/Send"
+    "receive/send": "Receive/Send",
+    "hide-small-balances": "Hide Small Balance"
   }
 }    

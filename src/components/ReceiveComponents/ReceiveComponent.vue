@@ -200,6 +200,7 @@ let wallet = ref(walletStore.wallet?.address);
 onMounted(() => {
   if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
     disablePickerDialog.value = true;
+    onUpdateNetwork(SUPPORTED_NETWORKS_DATA.OSMOSIS as Network);
   }
 })
 

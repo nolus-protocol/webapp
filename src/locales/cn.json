@@ -343,6 +343,7 @@
     "usdc-payout-tooltip": "扣除未偿还债务后,预计将收到的USDC金额",
     "min-amount-allowed": "最小允许{currency}金额为 {amount}",
     "lease-swap-fee-tooltip": "扣除交易所交换所收取的{swap_fee}%费用后的预计仓位",
-    "receive/send": "Receive/Send"
+    "receive/send": "Receive/Send",
+    "hide-small-balances": "Hide Small Balance"
   }
 }

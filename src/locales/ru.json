@@ -343,6 +343,7 @@
     "usdc-payout-tooltip": "Расчетная сумма USDC к получению после вычета непогашенной задолженности",
     "min-amount-allowed": "Минимально разрешенная сумма в {currency} валюте составляет {amount}",
     "lease-swap-fee-tooltip": "Расчетный размер позиции после вычета {swap_fee}% взимаемого DEX",
-    "receive/send": "Receive/Send"
+    "receive/send": "Receive/Send",
+    "hide-small-balances": "Hide Small Balance"
     }
 }
