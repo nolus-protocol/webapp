@@ -28,7 +28,7 @@
         </div>
 
         <div class="flex">
-          <div class="pt-3 lg:pl-6">
+          <div class="pt-3 lg:pl-6 md:flex-none flex-1">
             <p class="nls-font-500 text-12 text-dark-grey flex items-center">
               {{ $t('message.buyback') }}
             </p>
@@ -43,7 +43,7 @@
               class="nls-font-500 text-primary"
             />
           </div>
-          <div class="pt-3 lg:pl-6 lg:ml-0 ml-6">
+          <div class="pt-3 lg:pl-6 lg:ml-0 md:flex-none flex-1">
             <p class="nls-font-500 text-12 text-dark-grey flex items-center">
               <!-- {{ $t('message.borrow-apr') }} -->
               {{ $t('message.incentives-pool') }}
@@ -64,7 +64,7 @@
       </div>
 
       <div class="border-standart lg:border-t lg:border-b-0 lg:px-6 px-3 my-2 lg:pt-4 pt-2 flex">
-        <div class="pt-3">
+        <div class="pt-3 md:flex-none flex-1">
           <p class="nls-font-500 text-12 text-dark-grey flex">
             {{ $t('message.supplied') }}
           </p>
@@ -82,7 +82,7 @@
             class="nls-font-500 text-primary"
           />
         </div>
-        <div class="pt-3 lg:pl-6 lg:ml-0 ml-6">
+        <div class="pt-3 lg:pl-6 lg:ml-0 md:flex-none flex-1">
           <p class="nls-font-500 text-12 text-dark-grey flex">
             {{ $t('message.borrowed') }}
           </p>
@@ -111,11 +111,11 @@
 
     </div>
 
-    <div class="flex background outline border-standart shadow-box radius-medium radius-0-sm mt-6">
+    <div class="flex background outline border-standart shadow-box radius-medium radius-0-sm mt-6 md:max-w-[50%] max-w-[100%]">
       <!-- <div class="md:col-span-6 lg:co-span-6"> -->
       <!-- Rewards -->
       <div class="block flex-1 p-[12px]">
-        <div class="flex items-center justify-between px-4 pt-2 pb-0">
+        <div class="flex items-center justify-between px-0 md:px-4 pt-2 pb-0">
           <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
             {{ $t('message.utilization-level') }}
           </h2>
@@ -124,7 +124,7 @@
         <div class="block border-b border-standart">
           <div class="grid gap-6px-3 md:px-4 py-2 items-center justify-between earn-asset grid-cols-3 md:grid-cols-3">
             <!-- Ticker -->
-            <div class="inline-flex items-center col-span-2 lg:ml-0 ml-6">
+            <div class="inline-flex items-center col-span-2 lg:ml-0 ml-2">
               <div class="inline-block">
 
                 <div class="pt-3">
@@ -151,9 +151,9 @@
           <!-- Assets Container -->
         </div>
 
-        <div class="flex items-center justify-start py-4 px-6 lg:px-0">
+        <div class="flex items-center justify-start py-4 px- md:px-6 lg:px-0">
 
-          <div class="pt-3 lg:pl-4">
+          <div class="pt-3 pl-2 md:pl-4">
             <p class="nls-font-500 text-12 text-dark-grey flex">
               {{ $t('message.yield') }}
               <TooltipComponent :content="$t('message.yield-tooltip')" />
@@ -178,7 +178,7 @@
 
           </div>
 
-          <div class="pt-3 lg:pl-6">
+          <div class="pt-3 pl-6">
             <p class="nls-font-500 text-12 text-dark-grey flex">
               {{ $t('message.optimal') }}
               <TooltipComponent :content="$t('message.optimal-tooltip')" />
@@ -215,20 +215,15 @@
           </div>
         </div>
       </div>
-      <!-- </div> -->
 
-      <!-- <div class="md:col-span-6 lg:co-span-6"> -->
-      <!-- Rewards -->
-      <div class="block flex-1 p-[12px]">
+      <!-- <div class="block flex-1 p-[12px]">
         <div class="flex items-center justify-between px-4 pt-2 pb-0">
           <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
             &nbsp;
           </h2>
         </div>
-        <!-- Assets Container -->
         <div class="block border-b border-standart">
           <div class="grid gap-6px-3 md:px-4 py-2 items-center justify-between earn-asset grid-cols-3 md:grid-cols-3">
-            <!-- Ticker -->
             <div class="inline-flex items-center col-span-2 lg:ml-0 ml-6">
               <div class="inline-block">
 
@@ -253,7 +248,6 @@
             </div>
 
           </div>
-          <!-- Assets Container -->
         </div>
         <div class="flex items-center justify-start py-4 px-6 lg:px-0">
 
@@ -318,9 +312,7 @@
             />
           </div>
         </div>
-      </div>
-      <!-- </div> -->
-
+      </div> -->
     </div>
 
     <div class="background mt-6 shadow-box radius-medium radius-0-sm outline flex flex-col lg:flex-row">
