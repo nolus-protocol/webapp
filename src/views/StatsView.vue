@@ -28,49 +28,50 @@
         </div>
 
         <div class="flex">
-          <div class="pt-3 lg:pl-6">
+          <div class="pt-3 lg:pl-6 md:flex-none flex-1">
             <p class="nls-font-500 text-12 text-dark-grey flex items-center">
-              {{ $t('message.yield') }}
-              <TooltipComponent :content="$t('message.yield-tooltip')" />
+              {{ $t('message.buyback') }}
             </p>
 
             <CurrencyComponent
               :fontSize="20"
               :fontSizeSmall="16"
               :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              :amount="(app.apr ?? 0).toString()"
-              denom="%"
+              :amount="buybackTotal"
               :isDenomInfront="false"
-              :has-space="false"
+              denom="NLS"
               class="nls-font-500 text-primary"
             />
           </div>
-          <div class="pt-3 lg:pl-6 lg:ml-0 ml-6">
+          <div class="pt-3 lg:pl-6 lg:ml-0 md:flex-none flex-1">
             <p class="nls-font-500 text-12 text-dark-grey flex items-center">
-              {{ $t('message.borrow-apr') }}
+              <!-- {{ $t('message.borrow-apr') }} -->
+              {{ $t('message.incentives-pool') }}
             </p>
-
             <CurrencyComponent
               :fontSize="20"
               :fontSizeSmall="16"
               :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              :amount="borrowApr"
-              denom="%"
+              :amount="incentivesPool"
+              denom="NLS"
               :isDenomInfront="false"
-              :has-space="false"
               class="nls-font-500 text-primary"
             />
+
           </div>
         </div>
 
       </div>
 
       <div class="border-standart lg:border-t lg:border-b-0 lg:px-6 px-3 my-2 lg:pt-4 pt-2 flex">
-        <div class="pt-3">
+        <div class="pt-3 md:flex-none flex-1">
           <p class="nls-font-500 text-12 text-dark-grey flex">
             {{ $t('message.supplied') }}
           </p>
 
+          <span class="w-[6px] h-[6px] inline-flex rounded-full mb-[4px] mr-[4px] bg-[#FF562E]">
+
+          </span>
           <CurrencyComponent
             :fontSize="20"
             :fontSizeSmall="16"
@@ -81,11 +82,13 @@
             class="nls-font-500 text-primary"
           />
         </div>
-        <div class="pt-3 lg:pl-6 lg:ml-0 ml-6">
+        <div class="pt-3 lg:pl-6 lg:ml-0 md:flex-none flex-1">
           <p class="nls-font-500 text-12 text-dark-grey flex">
             {{ $t('message.borrowed') }}
           </p>
+          <span class="w-[6px] h-[6px] inline-flex rounded-full mb-[4px] mr-[4px] bg-[#2868E1]">
 
+          </span>
           <CurrencyComponent
             :fontSize="20"
             :fontSizeSmall="16"
@@ -108,53 +111,64 @@
 
     </div>
 
-    <div class="md:grid md:grid-cols-12 md:gap-4">
-      <div class="md:col-span-6 lg:co-span-6">
-        <!-- Rewards -->
-        <div
-          class="block order-2 md:order-1 background md:col-span-7 mt-6 outline border-standart shadow-box radius-medium radius-0-sm"
-        >
-          <div class="flex items-center justify-between px-6 pt-6 pb-0">
-            <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
-              {{ $t('message.utilization-level') }}
-            </h2>
+    <div class="flex background outline border-standart shadow-box radius-medium radius-0-sm mt-6 md:max-w-[50%] max-w-[100%]">
+      <!-- <div class="md:col-span-6 lg:co-span-6"> -->
+      <!-- Rewards -->
+      <div class="block flex-1 p-[12px]">
+        <div class="flex items-center justify-between px-0 md:px-4 pt-2 pb-0">
+          <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
+            {{ $t('message.utilization-level') }}
+          </h2>
+        </div>
+        <!-- Assets Container -->
+        <div class="block border-b border-standart">
+          <div class="grid gap-6px-3 md:px-4 py-2 items-center justify-between earn-asset grid-cols-3 md:grid-cols-3">
+            <!-- Ticker -->
+            <div class="inline-flex items-center col-span-2 lg:ml-0 ml-2">
+              <div class="inline-block">
+
+                <div class="pt-3">
+                  <p class="nls-font-500 text-12 text-dark-grey flex">
+                    {{ $t('message.osmosis') }}
+                  </p>
+
+                  <CurrencyComponent
+                    :fontSize="28"
+                    :fontSizeSmall="22"
+                    :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                    :amount="'48.88'"
+                    denom="%"
+                    :isDenomInfront="false"
+                    :has-space="false"
+                    class="nls-font-500 text-primary"
+                  />
+                </div>
+
+              </div>
+            </div>
+
           </div>
           <!-- Assets Container -->
-          <div class="block border-b border-standart">
-            <div class="grid gap-6px-3 md:px-6 py-2 items-center justify-between earn-asset grid-cols-3 md:grid-cols-3">
-              <!-- Ticker -->
-              <div class="inline-flex items-center col-span-2 lg:ml-0 ml-6">
-                <div class="inline-block">
-                  <p class="text-primary nls-font-500 text-18 text-left uppercase m-0">
-                    <CurrencyComponent
-                      :fontSize="28"
-                      :fontSizeSmall="18"
-                      :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                      :amount="utilizationLevel"
-                      denom="%"
-                      :isDenomInfront="false"
-                      :has-space="false"
-                      class="nls-font-700 text-primary"
-                    />
-                  </p>
-                </div>
-              </div>
+        </div>
 
-            </div>
-            <!-- Assets Container -->
-          </div>
-          <div class="flex items-center justify-start py-4 px-6 lg:px-0">
-            <div class="pt-3 lg:pl-6">
-              <p class="nls-font-500 text-12 text-dark-grey flex">
-                {{ $t('message.optimal') }}
-                <TooltipComponent :content="$t('message.optimal-tooltip')" />
-              </p>
+        <div class="flex items-center justify-start py-4 px- md:px-6 lg:px-0">
 
+          <div class="pt-3 pl-2 md:pl-4">
+            <p class="nls-font-500 text-12 text-dark-grey flex">
+              {{ $t('message.yield') }}
+              <TooltipComponent :content="$t('message.yield-tooltip')" />
+            </p>
+
+            <div class="flex items-center">
+              <img
+                src="@/assets/icons/osmosis-usdc.svg"
+                class="mr-[6px]"
+              />
               <CurrencyComponent
                 :fontSize="20"
                 :fontSizeSmall="16"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                :amount="optimal"
+                :amount="(app.apr ?? 0).toString()"
                 denom="%"
                 :isDenomInfront="false"
                 :has-space="false"
@@ -162,96 +176,143 @@
               />
             </div>
 
-            <div class="pt-3 pl-6">
-              <p class="nls-font-500 text-12 text-dark-grey flex">
-                {{ $t('message.deposit-suspension') }}
-                <TooltipComponent :content="$t('message.deposit-suspension-tooltip')" />
-              </p>
+          </div>
 
+          <div class="pt-3 pl-6">
+            <p class="nls-font-500 text-12 text-dark-grey flex">
+              {{ $t('message.optimal') }}
+              <TooltipComponent :content="$t('message.optimal-tooltip')" />
+            </p>
+
+            <CurrencyComponent
+              :fontSize="20"
+              :fontSizeSmall="16"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              :amount="optimal"
+              denom="%"
+              :isDenomInfront="false"
+              :has-space="false"
+              class="nls-font-500 text-primary"
+            />
+          </div>
+
+          <div class="pt-3 pl-8">
+            <p class="nls-font-500 text-12 text-dark-grey flex">
+              {{ $t('message.deposit-suspension') }}
+              <TooltipComponent :content="$t('message.deposit-suspension-tooltip')" />
+            </p>
+
+            <CurrencyComponent
+              :fontSize="20"
+              :fontSizeSmall="16"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              :amount="depositSuspension"
+              denom="%"
+              :isDenomInfront="false"
+              :has-space="false"
+              class="nls-font-500 text-primary"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- <div class="block flex-1 p-[12px]">
+        <div class="flex items-center justify-between px-4 pt-2 pb-0">
+          <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
+            &nbsp;
+          </h2>
+        </div>
+        <div class="block border-b border-standart">
+          <div class="grid gap-6px-3 md:px-4 py-2 items-center justify-between earn-asset grid-cols-3 md:grid-cols-3">
+            <div class="inline-flex items-center col-span-2 lg:ml-0 ml-6">
+              <div class="inline-block">
+
+                <div class="pt-3">
+                  <p class="nls-font-500 text-12 text-dark-grey flex">
+                    {{ $t('message.neutron') }}
+                  </p>
+
+                  <CurrencyComponent
+                    :fontSize="28"
+                    :fontSizeSmall="22"
+                    :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                    :amount="'0.00'"
+                    denom="%"
+                    :isDenomInfront="false"
+                    :has-space="false"
+                    class="nls-font-500 text-primary"
+                  />
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div class="flex items-center justify-start py-4 px-6 lg:px-0">
+
+          <div class="pt-3 lg:pl-4">
+            <p class="nls-font-500 text-12 text-dark-grey flex">
+              {{ $t('message.yield') }}
+              <TooltipComponent :content="$t('message.yield-tooltip')" />
+            </p>
+
+            <div class="flex items-center">
+              <img
+                src="@/assets/icons/neutron-usdc.svg"
+                class="mr-[6px]"
+              />
               <CurrencyComponent
                 :fontSize="20"
                 :fontSizeSmall="16"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                :amount="depositSuspension"
+                :amount="'0'"
                 denom="%"
                 :isDenomInfront="false"
                 :has-space="false"
                 class="nls-font-500 text-primary"
               />
             </div>
+
+          </div>
+
+          <div class="pt-3 lg:pl-6">
+            <p class="nls-font-500 text-12 text-dark-grey flex">
+              {{ $t('message.optimal') }}
+              <TooltipComponent :content="$t('message.optimal-tooltip')" />
+            </p>
+
+            <CurrencyComponent
+              :fontSize="20"
+              :fontSizeSmall="16"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              :amount="'0'"
+              denom="%"
+              :isDenomInfront="false"
+              :has-space="false"
+              class="nls-font-500 text-primary"
+            />
+          </div>
+
+          <div class="pt-3 pl-8">
+            <p class="nls-font-500 text-12 text-dark-grey flex">
+              {{ $t('message.deposit-suspension') }}
+              <TooltipComponent :content="$t('message.deposit-suspension-tooltip')" />
+            </p>
+
+            <CurrencyComponent
+              :fontSize="20"
+              :fontSizeSmall="16"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              :amount="'0'"
+              denom="%"
+              :isDenomInfront="false"
+              :has-space="false"
+              class="nls-font-500 text-primary"
+            />
           </div>
         </div>
-      </div>
-
-      <div class="md:col-span-6 lg:co-span-6">
-        <!-- Rewards -->
-        <div
-          class="block order-2 md:order-1 background md:col-span-7 mt-6 outline border-standart shadow-box radius-medium radius-0-sm"
-        >
-          <div class="flex items-center justify-between px-6 pt-6 pb-0">
-            <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
-              {{ $t('message.buyback-total') }}
-            </h2>
-          </div>
-          <!-- Assets Container -->
-          <div class="block border-b border-standart">
-            <div class="grid gap-6px-3 md:px-6 py-2 items-center justify-between earn-asset grid-cols-3 md:grid-cols-3">
-              <!-- Ticker -->
-              <div class="inline-flex items-center col-span-2 lg:ml-0 ml-6">
-                <div class="inline-block">
-                  <p class="text-primary nls-font-500 text-18 text-left uppercase m-0">
-                    <CurrencyComponent
-                      :fontSize="28"
-                      :fontSizeSmall="18"
-                      :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                      :amount="buybackTotal"
-                      :isDenomInfront="false"
-                      denom="NLS"
-                      class="nls-font-700 text-primary"
-                    />
-                  </p>
-                </div>
-              </div>
-
-            </div>
-            <!-- Assets Container -->
-          </div>
-          <div class="flex items-center justify-start py-4 px-6 lg:px-0">
-            <div class="pt-3 lg:pl-6">
-              <p class="nls-font-500 text-12 text-dark-grey flex">
-                {{ $t('message.incentives-pool') }}
-              </p>
-
-              <CurrencyComponent
-                :fontSize="20"
-                :fontSizeSmall="16"
-                :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                :amount="incentivesPool"
-                denom="NLS"
-                :isDenomInfront="false"
-                class="nls-font-500 text-primary"
-              />
-            </div>
-
-            <div class="pt-3 pl-6">
-              <p class="nls-font-500 text-12 text-dark-grey flex">
-                {{ $t('message.distributed') }}
-              </p>
-
-              <CurrencyComponent
-                :fontSize="20"
-                :fontSizeSmall="16"
-                :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                :amount="distributed"
-                denom="NLS"
-                :isDenomInfront="false"
-                class="nls-font-500 text-primary"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
+      </div> -->
     </div>
 
     <div class="background mt-6 shadow-box radius-medium radius-0-sm outline flex flex-col lg:flex-row">

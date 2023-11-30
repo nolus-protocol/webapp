@@ -310,10 +310,10 @@
     "yield-tooltip": "Persentase tingkat tahunan pada stablecoin yang dipasok",
     "borrow-apr": "Borrow APR",
     "supplied": "Dipasok",
-    "utilization-level": "Tingkat Pemanfaatan",
+    "utilization-level": "Protocol Utilization",
     "optimal": "Optimal",
     "optimal-tooltip": "Ambang batas di mana bunga sewa maksimum tercapai",
-    "deposit-suspension": "Penangguhan Deposit",
+    "deposit-suspension": "Deposit Cap",
     "deposit-suspension-tooltip": "Ambang batas di bawah mana deposit stablecoin baru ditangguhkan",
     "buyback-total": "Pembelian Kembali (Total)",
     "incentives-pool": "Kolam Insentif",
@@ -344,6 +344,9 @@
     "min-amount-allowed": "The minimum allowed {currency} amount is {amount}",
     "lease-swap-fee-tooltip": "Estimated position size after deducting a swap fee charged by the DEX",
     "receive/send": "Receive/Send",
-    "hide-small-balances": "Hide Small Balance"
+    "hide-small-balances": "Hide Small Balance",
+    "buyback": "Buyback",
+    "osmosis": "Osmosis",
+    "neutron": "Neutron"
   }
 }

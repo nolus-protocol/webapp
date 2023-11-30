@@ -309,10 +309,10 @@
     "yield-tooltip": "Ετήσιο επιτόκιο επί των παρεχόμενων stablecoins",
     "borrow-apr": "Επιτόκιο δανεισμού",
     "supplied": "Παρεχόμενο",
-    "utilization-level": "Επίπεδο χρήσης",
+    "utilization-level": "Protocol Utilization",
     "optimal": "Όριο",
     "optimal-tooltip": "Το όριο στο οποίο επιτυγχάνεται το μέγιστο ποσοστό μισθώσεων",
-    "deposit-suspension": "Αναστολή καταθέσεων",
+    "deposit-suspension": "Deposit Cap",
     "deposit-suspension-tooltip": "Το όριο κάτω από το οποίο οι νέες καταθέσεις stablecoin αναστέλλονται",
     "buyback-total": "Επαναγορές (Σύνολο)",
     "incentives-pool": "Πισίνα κινήτρων",
@@ -344,6 +344,9 @@
     "min-amount-allowed": "The minimum allowed {currency} amount is {amount}",
     "lease-swap-fee-tooltip": "Estimated position size after deducting a {swap_fee}% charged by the DEX",
     "receive/send": "Receive/Send",
-    "hide-small-balances": "Hide Small Balance"
+    "hide-small-balances": "Hide Small Balance",
+    "buyback": "Buyback",
+    "osmosis": "Osmosis",
+    "neutron": "Neutron"
   }
 }

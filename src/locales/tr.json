@@ -309,10 +309,10 @@
     "yield-tooltip": "Yatırılan stabilkoin'lerin yıllık yüzde oranı",
     "borrow-apr": "Ödünç Alma APR'si",
     "supplied": "Yatırılan",
-    "utilization-level": "Kullanım seviyesi",
+    "utilization-level": "Protocol Utilization",
     "optimal": "İdeal",
     "optimal-tooltip": "Azami kira faizine ulaşılan eşik",
-    "deposit-suspension": "Yatırma Sınırı",
+    "deposit-suspension": "Deposit Cap",
     "deposit-suspension-tooltip": "Yeni stabilkoin mevduatlarının askıya alındığı eşik",
     "buyback-total": "Geri Alım (Toplam)",
     "incentives-pool": "Teşvik Havuzu",
@@ -344,6 +344,9 @@
     "min-amount-allowed": "İzin verilen minimum {currency} tutarı {amount} adettir",
     "lease-swap-fee-tooltip": "DEX tarafından tahsil edilen %{swap_fee} düşüldükten sonra tahmini pozisyon boyutu",
     "receive/send": "Receive/Send",
-    "hide-small-balances": "Hide Small Balance"
+    "hide-small-balances": "Hide Small Balance",
+    "buyback": "Buyback",
+    "osmosis": "Osmosis",
+    "neutron": "Neutron"
   }
 }    
