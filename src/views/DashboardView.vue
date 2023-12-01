@@ -11,7 +11,7 @@
     <BannerComponent v-if="AppUtils.isDev()" />
     <div class="col-span-12">
       <!-- Header -->
-      <div class="table-header lg:flex block flex-wrap items-center justify-between lg:px-0 px-2">
+      <!-- <div class="table-header lg:flex block flex-wrap items-center justify-between lg:px-0 px-2">
         <div class="left">
           <h1 class="text-20 nls-font-700 text-primary m-0 pb-3 lg:pb-0">
             {{ $t("message.assets") }}
@@ -30,7 +30,7 @@
             {{ $t("message.buy-tokens") }}
           </button>
         </div>
-      </div>
+      </div> -->
       <!-- Wallet -->
       <Transition :name="animate">
         <!-- v-if="isTotalBalancePositive" -->
@@ -230,7 +230,7 @@
             </template>
           </div>
 
-          <div class="flex justify-center mt-[8px] mb-[18px]">
+          <div class="flex justify-center pt-[8px] pb-[18px]">
             <button
               class="btn transfer btn-medium-secondary"
               @click="setCurrency()"

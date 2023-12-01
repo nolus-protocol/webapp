@@ -39,7 +39,7 @@
 
             </span>
           </span>
-          <span class="ml-[2px] mt-[2px] inset-y-0 right-0 flex items-center pointer-events-none" v-if="optionsValue.length > 0">
+          <span class="ml-[2px] mt-[2px] inset-y-0 right-0 flex items-center pointer-events-none" v-if="optionsValue.length > 0 && !disabled">
             <ChevronUpIcon
               v-if="open"
               class="h-5 w-5 text-gray-400"
