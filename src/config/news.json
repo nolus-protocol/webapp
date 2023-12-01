@@ -14,8 +14,8 @@
         "description": "knowledgehub-banner-description"
     },
     "stats": {
-        "title-icon": "",
-        "image": "https://nolus.io/banner/stats.svg",
+        "title-icon": "https://nolus.io/banner/stats.svg",
+        "image": "",
         "title": "stats-banner-title",
         "subtitle": "stats-banner-subtitle",
         "description": "stats-banner-description"
