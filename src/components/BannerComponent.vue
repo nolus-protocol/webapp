@@ -72,6 +72,7 @@ const rightButton = ref<HTMLElement>();
 const transformX = ref(0);
 const hideLeft = ref(true);
 const hideRight = ref(true);
+import router from "@/router";
 
 let padding = 0;
 
@@ -184,7 +185,12 @@ const moveDefault = () => {
 
 const open = (n: New) => {
   if(n.target.length > 0){
-    window.open(n.target, '_blank');
+    const e = n.target[0];
+    if(e == '/'){
+      router.push(n.target);
+    }else{ 
+      window.open(n.target, '_blank');
+    }
   }
 }
 </script>
