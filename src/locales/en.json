@@ -332,6 +332,11 @@
     "zero-banner-title": "Lease",
     "zero-banner-subtitle": "Zero In With 0% Interest!",
     "zero-banner-description": "Take advantage of interest-free leases to maximize your gains by January 31st. Milk it!",
+
+    "knowledgehub-banner-title": "Knowledge Hub",
+    "knowledgehub-banner-subtitle": "Understanding the Nolus Protocol",
+    "knowledgehub-banner-description": "A user-friendly guide to mastering all functionalities of the Nolus Protocol",
+
     "supply-limit-error": "The current deposit limit is {amount}",
     "market-close": "Market Close",
     "market-close-to": "Market close to",
