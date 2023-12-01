@@ -1,6 +1,6 @@
 {
     "zero-interest": {
-        "title-icon": "/lease-icon.svg",
+        "title-icon": "https://nolus.io/banner/lease.svg",
         "image": "/lease.png",
         "title": "zero-banner-title",
         "subtitle": "zero-banner-subtitle",
@@ -13,25 +13,11 @@
         "subtitle": "knowledgehub-banner-subtitle",
         "description": "knowledgehub-banner-description"
     },
-    "zero-interest-3": {
-        "title-icon": "/lease-icon.svg",
-        "image": "/lease.png",
-        "title": "zero-banner-title",
-        "subtitle": "zero-banner-subtitle",
-        "description": "zero-banner-description"
-    },
-    "zero-interest-4": {
-        "title-icon": "/lease-icon.svg",
-        "image": "/lease.png",
-        "title": "zero-banner-title",
-        "subtitle": "zero-banner-subtitle",
-        "description": "zero-banner-description"
-    },
-    "zero-interest-5": {
-        "title-icon": "/lease-icon.svg",
-        "image": "/lease.png",
-        "title": "zero-banner-title",
-        "subtitle": "zero-banner-subtitle",
-        "description": "zero-banner-description"
+    "stats": {
+        "title-icon": "https://nolus.io/banner/stats.svg",
+        "image": "",
+        "title": "stats-banner-title",
+        "subtitle": "stats-banner-subtitle",
+        "description": "stats-banner-description"
     }
 }
