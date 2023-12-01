@@ -341,7 +341,7 @@
     "min-amount-allowed": "The minimum allowed {currency} amount is {amount}",
     "lease-swap-fee-tooltip": "Estimated position size after deducting a swap fee charged by the DEX",
     "receive/send": "Receive/Send",
-    "hide-small-balances": "Hide Small Balance",
+    "hide-small-balances": "Hide small balances",
     "buyback": "Buyback",
     "osmosis": "Osmosis",
     "neutron": "Neutron",
