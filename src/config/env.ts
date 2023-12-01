@@ -343,6 +343,12 @@ export const getPrice = async (token: string) => {
   return fetch(`${CoinGecko.url}/simple/price?ids=${token}&vs_currencies=usd&x_cg_pro_api_key=${CoinGecko.key}`).then((res) => res.json())
 }
 
+let news: string | Promise<string> = import('./news.json?url').then((t) => t.default);
+
+if (!isDev()) {
+  news = "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news.json";
+}
+
 export const minimumLeaseAmount = 1;
 export const languages = l;
 export const SUPPORTED_NETWORKS = ['NOLUS', 'OSMOSIS', 'COSMOS_HUB', 'AXELAR', 'STRIDE', 'JUNO', 'EVMOS', 'PERSISTENCE', 'SECRET', 'STARGAZE', 'CELESTIA', 'QUICKSILVER'];
@@ -354,7 +360,7 @@ export const LedgerName = "Ledger";
 export const IGNORE_LEASE_ASSETS: string[] = [];
 export const IGNORE_TRANSFER_ASSETS: string[] = [];
 export const IGNORE_LEASES: string[] = ["nolus1suz0vsqe8c8anckaer98awhqs8r4hu7wsm8a49acdl39x6ylfypsqywxwh", "nolus1q2ekwjj87jglqsszwy6ah5t08h0k8kq67ed0l899sku2qt0dztpsnwt6sw"];
-export const NEWS_URL = import('./news.json?url').then((t) => t.default);
+export const NEWS_URL = news;
 
 export const SUPPORT_URL = 'https://hub.nolus.io';
 export const ETL_API = "https://etl-cl.nolus.network:8080/api"

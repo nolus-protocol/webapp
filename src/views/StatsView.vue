@@ -136,7 +136,7 @@
                     :fontSize="28"
                     :fontSizeSmall="22"
                     :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                    :amount="'48.88'"
+                    :amount="utilizationLevel"
                     denom="%"
                     :isDenomInfront="false"
                     :has-space="false"

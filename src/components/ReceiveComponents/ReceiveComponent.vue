@@ -228,24 +228,43 @@ const onUpdateNetwork = async (event: Network) => {
 
     disablePicker.value = true;
 
-    client = await WalletUtils.getWallet(
-      event.key
-    );
+
 
     const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
     const assets = network.supportedNetworks[event.key].currencies();
     const currenciesPromise = [];
     const filteredAssets: { [key: string]: ExternalCurrencyType } = {};
     const networkData = network?.supportedNetworks[selectedNetwork.value.key];
-    const baseWallet = await externalWallet(client, networkData, password.value) as BaseWallet;
-    wallet.value = baseWallet?.address as string;
 
     for (const key in assets) {
       if (!IGNORE_TRANSFER_ASSETS.includes(key)) {
         filteredAssets[key] = assets[key];
       }
     }
+   
+    if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
+      const item = AssetUtils.getAssetInfo(props.modelValue?.dialogSelectedCurrency as string);
+      const currency = filteredAssets[props.modelValue?.dialogSelectedCurrency as string];
+      const asset = {
+        balance: coin(0, item.coinMinimalDenom),
+          name: item.shortName,
+          shortName: item.shortName,
+          icon: item.coinIcon,
+          ticker:item.ticker,
+          ibc_route: currency.ibc_route,
+          decimals: item.coinDecimals,
+          symbol: currency.symbol,
+          native: currency.native
+        } as AssetBalance;
+      selectedCurrency.value = asset;
+    }
 
+    client = await WalletUtils.getWallet(
+      event.key
+    );
+
+    const baseWallet = await externalWallet(client, networkData, password.value) as BaseWallet;
+    wallet.value = baseWallet?.address as string;
     networkCurrenciesObject.value = filteredAssets;
 
     for (const key in filteredAssets) {

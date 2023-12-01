@@ -88,9 +88,9 @@
           </template>
         </p>
       </div>
-      <div class="flex justify-end nls-btn-show">
+      <div class="flex justify-end nls-btn-show  !right-0">
         <button v-if="canLease"
-                class="btn btn-secondary btn-medium-secondary mr-1"
+                class="btn btn-secondary btn-medium-secondary"
                 @click="openModal(DASHBOARD_ACTIONS.LEASE, denom)">
           {{ $t("message.lease") }}
         </button>
