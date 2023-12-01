@@ -341,18 +341,18 @@
     "min-amount-allowed": "The minimum allowed {currency} amount is {amount}",
     "lease-swap-fee-tooltip": "Estimated position size after deducting a swap fee charged by the DEX",
     "receive/send": "Receive/Send",
-    "hide-small-balances": "Hide Small Balance",
+    "hide-small-balances": "Hide small balances",
     "buyback": "Buyback",
     "osmosis": "Osmosis",
     "neutron": "Neutron",
     "zero-banner-title": "Lease",
     "zero-banner-subtitle": "Zero In With 0% Interest!",
-    "zero-banner-description": "Take advantage of interest-free leases to maximize your gains by January 31st. Milk it!",
+    "zero-banner-description": "Take advantage of interest-free leases to maximize your gains by January 31st",
     "knowledgehub-banner-title": "Knowledge Hub",
     "knowledgehub-banner-subtitle": "Understanding the Nolus Protocol",
     "knowledgehub-banner-description": "A user-friendly guide to mastering all functionalities of the Nolus Protocol",
     "stats-banner-title": "Protocol Stats",
     "stats-banner-subtitle": "Staying Current with the Latest Stats",
-    "stats-banner-description": "Keep track of crucial protocol indicators like TVL, funds usage, buybacks, loan details and more"
+    "stats-banner-description": "Track crucial protocol indicators like TVL, funds usage, buybacks, loan details and more"
   }
 }
