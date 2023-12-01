@@ -8,4 +8,5 @@ export interface New {
     "title": string,
     "subtitle": string,
     "description": string,
+    "target": string
 }

@@ -24,11 +24,12 @@
         v-for="(n, key) in  news "
         class="banner flex"
         :key="key"
+        @click="open(n)"
       >
         <div class="flex flex-col	items-start">
-          <p class="title flex nls-font-500">
+          <p class="title flex nls-font-500 items-center">
             <img :src="n['title-icon']" />
-            {{ $t(`message.${n.title}`) }} {{ key }}
+            {{ $t(`message.${n.title}`) }}
           </p>
           <p class="nls-font-700 substitle">
             {{ $t(`message.${n["subtitle"]}`) }}
@@ -40,7 +41,7 @@
         <div class="image">
           <button
             class="close"
-            @click="hideBanner(key as string)"
+            @click="hideBanner($event, key as string)"
           >
             <Close
               :width="12"
@@ -60,7 +61,7 @@ import Close from '@/components/icons/Close.vue';
 import LeftArrow from '@/components/icons/LeftArrow.vue';
 import RightArrow from '@/components/icons/RightArrow.vue';
 
-import type { News } from "@/types/News";
+import type { New, News } from "@/types/News";
 import { AppUtils } from "@/utils/AppUtils";
 import { onMounted, ref, nextTick } from "vue";
 
@@ -85,7 +86,9 @@ const loadNews = async () => {
     checkVisibility();
   });
 }
-const hideBanner = (key: string) => {
+const hideBanner = (event: MouseEvent,key: string) => {
+  event.preventDefault();
+  event.stopPropagation();
   AppUtils.setBannerInvisible(key);
   const n: News = {};
 
@@ -177,5 +180,11 @@ const moveDefault = () => {
   const box = bannerContainer.value!;
   transformX.value = 0;
   box.style.transform = `translateX(${transformX.value}px)`;
+}
+
+const open = (n: New) => {
+  if(n.target.length > 0){
+    window.open(n.target, '_blank');
+  }
 }
 </script>
