@@ -347,6 +347,15 @@
     "hide-small-balances": "Hide Small Balance",
     "buyback": "Buyback",
     "osmosis": "Osmosis",
-    "neutron": "Neutron"
+    "neutron": "Neutron",
+    "zero-banner-title": "Lease",
+    "zero-banner-subtitle": "Zero In With 0% Interest!",
+    "zero-banner-description": "Take advantage of interest-free leases to maximize your gains by January 31st. Milk it!",
+    "knowledgehub-banner-title": "Knowledge Hub",
+    "knowledgehub-banner-subtitle": "Understanding the Nolus Protocol",
+    "knowledgehub-banner-description": "A user-friendly guide to mastering all functionalities of the Nolus Protocol",
+    "stats-banner-title": "Protocol Stats",
+    "stats-banner-subtitle": "Staying Current with the Latest Stats",
+    "stats-banner-description": "Keep track of crucial protocol indicators like TVL, funds usage, buybacks, loan details and more"
     }
 }
