@@ -7,7 +7,7 @@
         "description": "zero-banner-description"
     },
     "knowledgehub": {
-        "title-icon": "",
+        "title-icon": "https://nolus.io/banner/knowledge_hub.svg",
         "image": "",
         "title": "knowledgehub-banner-title",
         "subtitle": "knowledgehub-banner-subtitle",
