@@ -159,7 +159,7 @@
               <TooltipComponent :content="$t('message.yield-tooltip')" />
             </p>
 
-            <div class="flex items-center">
+            <div class="flex items-end">
               <img
                 src="@/assets/icons/osmosis-usdc.svg"
                 class="mr-[6px]"
