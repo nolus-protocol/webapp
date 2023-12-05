@@ -6,7 +6,7 @@
             @click="openModal(DASHBOARD_ACTIONS.RECEIVEV2)">
       Receive v2 / Send v2
     </button>
-    <BannerComponent v-if="AppUtils.isDev()" />
+    <BannerComponent />
     <div class="col-span-12">
       <!-- Header -->
       <!-- <div class="table-header lg:flex block flex-wrap items-center justify-between lg:px-0 px-2">
