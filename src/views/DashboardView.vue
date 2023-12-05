@@ -35,18 +35,35 @@
         <div
              class="flex flex-col balance-box items-center justify-start background mt-6 shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6 outline">
 
-          <div class="left inline-block pr-6 lg:pb-4 pb-0 w-full border-standart border-b lg:mb-4 mb-2">
-            <p class="nls-font-500 text-16 text-primary">
-              {{ $t("message.portfolio-value") }}
-            </p>
-            <CurrencyComponent :fontSize="40"
-                               :prettyZeros="true"
-                               :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                               :amount="totalBalance"
-                               :denom="NATIVE_CURRENCY.symbol"
-                               :has-space="false"
-                               :decimals="2"
-                               class="nls-font-700 text-primary" />
+          <div class="left pr-6 lg:pb-4 pb-0 w-full border-standart border-b lg:mb-4 mb-2 flex-col flex lg:flex-row">
+            <div>
+              <p class="nls-font-500 text-16 text-primary">
+                {{ $t("message.portfolio-value") }}
+              </p>
+              <CurrencyComponent :fontSize="40"
+                                 :prettyZeros="true"
+                                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                                 :amount="totalBalance.toString()"
+                                 :denom="NATIVE_CURRENCY.symbol"
+                                 :has-space="false"
+                                 :decimals="2"
+                                 class="nls-font-700 text-primary" />
+            </div>
+
+            <div class="mb-4 lg:mb-0 lg:self-end lg:ml-[24px] lg:mb-[12px]">
+              <p class="nls-font-500 text-12 text-dark-grey">
+                {{ $t("message.total-equity") }}
+              </p>
+
+              <CurrencyComponent :fontSize="20"
+                                 :fontSizeSmall="14"
+                                 :prettyZeros="true"
+                                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                                 :amount="totalEquity.toString()"
+                                 :denom="NATIVE_CURRENCY.symbol"
+                                 :has-space="false"
+                                 class="nls-font-500 text-primary" />
+            </div>
           </div>
 
           <div class="right flex w-full lg:mt-0 pb-2 flex-col md:flex-row">
@@ -56,7 +73,7 @@
                 <p class="nls-font-500 text-12 text-dark-grey">
                   {{ $t("message.active-leases") }}
                 </p>
-  
+
                 <CurrencyComponent :fontSize="20"
                                    :fontSizeSmall="14"
                                    :prettyZeros="true"
@@ -66,12 +83,12 @@
                                    :has-space="false"
                                    class="nls-font-500 text-primary" />
               </div>
-  
+
               <div class="pt-3 lg:pl-5">
                 <p class="nls-font-500 text-12 text-dark-grey">
                   {{ $t("message.outstanding-loan") }}
                 </p>
-  
+
                 <CurrencyComponent :fontSize="20"
                                    :fontSizeSmall="14"
                                    :prettyZeros="true"
@@ -83,7 +100,8 @@
               </div>
             </div>
 
-            <div class="pt-3 lg:pl-5 lg:pr-6 border-standart border-b lg:border-b-0 lg:border-r pb-3 mb-2 lg:pb-0 lg:mb-0">
+            <div
+                 class="pt-3 lg:pl-5 lg:pr-6 border-standart border-b lg:border-b-0 lg:border-r pb-3 mb-2 lg:pb-0 lg:mb-0">
               <p class="nls-font-500 text-12 text-dark-grey">
                 {{ $t("message.positions-pnL") }}
               </p>
@@ -114,12 +132,12 @@
                                  class="nls-font-500 text-primary" />
             </div> -->
 
-            <div class="flex">  
+            <div class="flex">
               <div class="pt-3 pl-0 lg:pl-6 pr-6 lg:pr-0">
                 <p class="nls-font-500 text-12 text-dark-grey">
                   {{ $t("message.supplied-and-staked") }}
                 </p>
-  
+
                 <CurrencyComponent :fontSize="20"
                                    :fontSizeSmall="14"
                                    :prettyZeros="true"
@@ -129,7 +147,7 @@
                                    :has-space="false"
                                    class="nls-font-500 text-primary" />
               </div>
-  
+
               <div class="pt-3 lg:pl-5">
                 <p class="nls-font-500 text-12 text-dark-grey">
                   {{ $t("message.rewards") }}
@@ -417,6 +435,10 @@ const vestedTokens = ref(
   [] as { endTime: string; amount: { amount: string; denom: string } }[]
 );
 
+const totalEquity = computed(() => {
+  return totalBalance.value.sub(debt.value as Dec);
+})
+
 const filteredAssets = computed(() => {
   const b = wallet.balances.filter((currency) => {
     const c = wallet.getCurrencyInfo(currency.balance.denom)
@@ -493,7 +515,7 @@ watch(walletRef.wallet, async () => {
 watch(() => [walletRef.wallet, oracle.prices], (next, prev) => {
   const [w, pr]: any = next;
 
-  if(w?.value?.address as string){
+  if (w?.value?.address as string) {
     loadRewards();
   }
 
@@ -532,7 +554,7 @@ const totalBalance = computed(() => {
   let total = state.value.availableAssets;
   total = total.add(activeLeases.value as Dec);
   total = total.add(earnings.value as Dec);
-  return total.toString();
+  return total;
 });
 
 
@@ -938,7 +960,7 @@ const additionalInterest = (leaseInfo: LeaseData) => {
   return new Dec(0)
 }
 
-async function loadRewards(){ 
+async function loadRewards() {
   const [r, lpnRewards] = await Promise.all([
     wallet[WalletActionTypes.LOAD_DELEGATOR](),
     getRewards()
