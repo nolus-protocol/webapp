@@ -329,9 +329,6 @@
     "free-interest": "0% Нулевая процентная ставка",
     "free-interest-tooltip": "Процентная ставка погашается Nolus каждый час.",
     "outstanding-debt-tooltip": "Эта сумма представляет собой сумму основного долга, накопленных процентов и комиссии за своп в размере {fee}%",
-    "zero-banner-title": "Lease",
-    "zero-banner-subtitle": "Нулевая процентная ставка %0!",
-    "zero-banner-description": "Откройте DeFi займ с 1 октября по 30 ноября и пользуйтесь 60 днями без процентов. Сделайте первый шаг!",
     "supply-limit-error": "Текущий размер депозита {amount}",
     "market-close": "Маркет закрыт",
     "market-close-to": "Маркет закрыт до",
@@ -356,6 +353,7 @@
     "knowledgehub-banner-description": "A user-friendly guide to mastering all functionalities of the Nolus Protocol",
     "stats-banner-title": "Protocol Stats",
     "stats-banner-subtitle": "Staying Current with the Latest Stats",
-    "stats-banner-description": "Keep track of crucial protocol indicators like TVL, funds usage, buybacks, loan details and more"
+    "stats-banner-description": "Keep track of crucial protocol indicators like TVL, funds usage, buybacks, loan details and more",
+    "positions-pnL": "Positions PnL"
     }
 }

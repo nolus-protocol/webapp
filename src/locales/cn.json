@@ -329,9 +329,6 @@
     "free-interest": "0% 利率",
     "free-interest-tooltip": "利息由Nolus每小时偿还",
     "outstanding-debt-tooltip": "该金额代表应付本金、累积利息和交换费的总和，交换费率为{fee}%",
-    "zero-banner-title": "Lease",
-    "zero-banner-subtitle": "零利息, 尽情畅享0% !",
-    "zero-banner-description": "从10月1日到11月30日开设DeFi租赁,可享受长达60天的零利息期。抓住机会!",
     "supply-limit-error": "当前存款限额为{amount}",
     "market-close": "市场关闭",
     "market-close-to": "市场关闭至",
@@ -356,6 +353,7 @@
     "knowledgehub-banner-description": "A user-friendly guide to mastering all functionalities of the Nolus Protocol",
     "stats-banner-title": "Protocol Stats",
     "stats-banner-subtitle": "Staying Current with the Latest Stats",
-    "stats-banner-description": "Keep track of crucial protocol indicators like TVL, funds usage, buybacks, loan details and more"
+    "stats-banner-description": "Keep track of crucial protocol indicators like TVL, funds usage, buybacks, loan details and more",
+    "positions-pnL": "Positions PnL"
   }
 }

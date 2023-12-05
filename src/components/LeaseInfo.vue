@@ -775,26 +775,26 @@ const downPayment = computed(() => {
   return amount.toString(2);
 });
 
-const loan = computed(() => {
-  const data = props.leaseInfo.leaseStatus.opened;
+// const loan = computed(() => {
+//   const data = props.leaseInfo.leaseStatus.opened;
 
-  if (data && leaseData) {
-    const amount = data.amount.amount;
-    const asset = walletStore.getCurrencyByTicker(data.amount.ticker);
-    const ibcDenom = walletStore.getIbcDenomBySymbol(asset.symbol) as string;
-    const assetInfo = walletStore.getCurrencyInfo(ibcDenom);
-    const loanInAsset = CurrencyUtils.convertMinimalDenomToDenom(amount, assetInfo.coinMinimalDenom, assetInfo.coinDenom, assetInfo.coinDecimals).toDec();
+//   if (data && leaseData) {
+//     const amount = data.amount.amount;
+//     const asset = walletStore.getCurrencyByTicker(data.amount.ticker);
+//     const ibcDenom = walletStore.getIbcDenomBySymbol(asset.symbol) as string;
+//     const assetInfo = walletStore.getCurrencyInfo(ibcDenom);
+//     const loanInAsset = CurrencyUtils.convertMinimalDenomToDenom(amount, assetInfo.coinMinimalDenom, assetInfo.coinDenom, assetInfo.coinDecimals).toDec();
 
-    const price = new Dec(leaseData.value?.price as string);
-    const downPaymentAmount = new Dec(leaseData.value?.downPayment as string);
-    const loan = loanInAsset.mul(price);
+//     const price = new Dec(leaseData.value?.price as string);
+//     const downPaymentAmount = new Dec(leaseData.value?.downPayment as string);
+//     const loan = loanInAsset.mul(price);
 
-    return CurrencyUtils.formatPrice(loan.sub(downPaymentAmount).toString());
+//     return CurrencyUtils.formatPrice(loan.sub(downPaymentAmount).toString());
 
-  }
+//   }
 
-  return '$0';
-});
+//   return '$0';
+// });
 
 const price = computed(() => {
   return CurrencyUtils.formatPrice(getPrice.value.toString());

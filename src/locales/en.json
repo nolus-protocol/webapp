@@ -353,6 +353,7 @@
     "knowledgehub-banner-description": "A user-friendly guide to mastering all functionalities of the Nolus Protocol",
     "stats-banner-title": "Protocol Stats",
     "stats-banner-subtitle": "Staying Current with the Latest Stats",
-    "stats-banner-description": "Track crucial protocol indicators like TVL, funds usage, buybacks, loan details and more"
+    "stats-banner-description": "Track crucial protocol indicators like TVL, funds usage, buybacks, loan details and more",
+    "positions-pnL": "Positions PnL"
   }
 }

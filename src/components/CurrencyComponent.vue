@@ -63,6 +63,10 @@ const props = defineProps({
   },
   defaultZeroValue: {
     type: String
+  },
+  prettyZeros: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -77,7 +81,6 @@ const amount = computed(() => {
   switch (props.type) {
     case CURRENCY_VIEW_TYPES.CURRENCY: {
       let numberAmount = Number(props.amount);
-
       if (numberAmount == 0 && props.defaultZeroValue) {
         return {
           denom: props.defaultZeroValue,
@@ -93,7 +96,7 @@ const amount = computed(() => {
 
       let [beforeDecimal, afterDecimal] = amount.split(".");
 
-      if (numberAmount == 0) {
+      if (numberAmount == 0 && !props.prettyZeros) {
         afterDecimal = "";
       }
 

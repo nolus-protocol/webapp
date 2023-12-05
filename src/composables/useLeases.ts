@@ -17,7 +17,6 @@ export function useLeases(
 
   const getLeases = async () => {
     try {
-
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const leaserClient = new Leaser(
         cosmWasmClient,

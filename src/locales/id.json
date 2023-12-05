@@ -329,9 +329,6 @@
     "price-per-symbol": "Harga per {symbol}",
     "free-interest": "0% Bunga",
     "free-interest-tooltip": "Interest is offset every 3 hours ",
-    "zero-banner-title": "Lease",
-    "zero-banner-subtitle": "Zero In With 0% Interest!",
-    "zero-banner-description": "Open a DeFi Lease until January 31st and take advantage of up to 98 interest-free days. Milk it!",
     "supply-limit-error": "The current deposit limit is {amount}",
     "market-close": "Market Close",
     "market-close-to": "Market close to",
@@ -356,6 +353,7 @@
     "knowledgehub-banner-description": "A user-friendly guide to mastering all functionalities of the Nolus Protocol",
     "stats-banner-title": "Protocol Stats",
     "stats-banner-subtitle": "Staying Current with the Latest Stats",
-    "stats-banner-description": "Keep track of crucial protocol indicators like TVL, funds usage, buybacks, loan details and more"
+    "stats-banner-description": "Keep track of crucial protocol indicators like TVL, funds usage, buybacks, loan details and more",
+    "positions-pnL": "Positions PnL"
   }
 }

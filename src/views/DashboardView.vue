@@ -1,11 +1,9 @@
 <template>
   <div class="mt-[25px]">
 
-    <button
-      class="text-primary"
-      v-if="AppUtils.isDev()"
-      @click="openModal(DASHBOARD_ACTIONS.RECEIVEV2)"
-    >
+    <button class="text-primary"
+            v-if="AppUtils.isDev()"
+            @click="openModal(DASHBOARD_ACTIONS.RECEIVEV2)">
       Receive v2 / Send v2
     </button>
     <BannerComponent v-if="AppUtils.isDev()" />
@@ -35,94 +33,140 @@
       <Transition :name="animate">
         <!-- v-if="isTotalBalancePositive" -->
         <div
-          class="flex balance-box items-center justify-start background mt-6 shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6 outline"
-        >
-          <div class="left inline-block pr-6 line-mobile pb-4 md:pb-0">
+             class="flex flex-col balance-box items-center justify-start background mt-6 shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6 outline">
+
+          <div class="left inline-block pr-6 lg:pb-4 pb-0 w-full border-standart border-b lg:mb-4 mb-2">
             <p class="nls-font-500 text-16 text-primary">
               {{ $t("message.portfolio-value") }}
             </p>
-            <CurrencyComponent
-              :fontSize="40"
-              :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              :amount="totalBalance"
-              :denom="NATIVE_CURRENCY.symbol"
-              :has-space="false"
-              :decimals="2"
-              class="nls-font-700 text-primary"
-            />
+            <CurrencyComponent :fontSize="40"
+                               :prettyZeros="true"
+                               :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                               :amount="totalBalance"
+                               :denom="NATIVE_CURRENCY.symbol"
+                               :has-space="false"
+                               :decimals="2"
+                               class="nls-font-700 text-primary" />
           </div>
 
-          <div class="right flex w-2/3 -mt-8 lg:mt-0">
-            <div class="pt-3 lg:pl-6">
+          <div class="right flex w-full lg:mt-0 pb-2 flex-col md:flex-row">
+
+            <div class="flex">
+              <div class="pt-3 pr-6 lg:pr-0">
+                <p class="nls-font-500 text-12 text-dark-grey">
+                  {{ $t("message.active-leases") }}
+                </p>
+  
+                <CurrencyComponent :fontSize="20"
+                                   :fontSizeSmall="14"
+                                   :prettyZeros="true"
+                                   :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                                   :amount="activeLeases.toString()"
+                                   :denom="NATIVE_CURRENCY.symbol"
+                                   :has-space="false"
+                                   class="nls-font-500 text-primary" />
+              </div>
+  
+              <div class="pt-3 lg:pl-5">
+                <p class="nls-font-500 text-12 text-dark-grey">
+                  {{ $t("message.outstanding-loan") }}
+                </p>
+  
+                <CurrencyComponent :fontSize="20"
+                                   :fontSizeSmall="14"
+                                   :prettyZeros="true"
+                                   :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                                   :amount="debt.toString()"
+                                   :denom="NATIVE_CURRENCY.symbol"
+                                   :has-space="false"
+                                   class="nls-font-500 text-primary" />
+              </div>
+            </div>
+
+            <div class="pt-3 lg:pl-5 lg:pr-6 border-standart border-b lg:border-b-0 lg:border-r pb-3 mb-2 lg:pb-0 lg:mb-0">
+              <p class="nls-font-500 text-12 text-dark-grey">
+                {{ $t("message.positions-pnL") }}
+              </p>
+
+              <CurrencyComponent :class="pnl.isZero() ? 'text-primary' : (pnl.isPositive() ? '!text-[#1AB171]' : 'text-[#E42929]')"
+                                 :fontSize="20"
+                                 :fontSizeSmall="14"
+                                 :prettyZeros="true"
+                                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                                 :amount="pnl.abs().toString()"
+                                 :denom="`${pnl.isZero() ? '' : (pnl.isPositive() ? '+' : '-')}${NATIVE_CURRENCY.symbol}`"
+                                 :has-space="false"
+                                 class="nls-font-500" />
+            </div>
+
+
+
+            <!-- <div class="pt-3 lg:pl-6">
               <p class="nls-font-500 text-12 text-dark-grey">
                 {{ $t("message.available-assets") }}
               </p>
 
-              <CurrencyComponent
-                :fontSize="20"
-                :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                :amount="state.availableAssets.toString()"
-                :denom="NATIVE_CURRENCY.symbol"
-                :has-space="false"
-                class="nls-font-500 text-primary"
-              />
-            </div>
+              <CurrencyComponent :fontSize="20"
+                                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                                 :amount="state.availableAssets.toString()"
+                                 :denom="NATIVE_CURRENCY.symbol"
+                                 :has-space="false"
+                                 class="nls-font-500 text-primary" />
+            </div> -->
 
-            <div class="pt-3 pl-12 lg:pl-8">
-              <p class="nls-font-500 text-12 text-dark-grey">
-                {{ $t("message.active-leases") }}
-              </p>
-
-              <CurrencyComponent
-                :fontSize="20"
-                :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                :amount="activeLeases.toString()"
-                :denom="NATIVE_CURRENCY.symbol"
-                :has-space="false"
-                class="nls-font-500 text-primary"
-              />
-            </div>
-
-            <!-- HIDDEN ON MOBILE -->
-            <div class="pt-3 pl-12 lg:pl-8 hidden lg:block">
-              <p class="nls-font-500 text-12 text-dark-grey">
-                {{ $t("message.supplied-and-staked") }}
-              </p>
-
-              <CurrencyComponent
-                :fontSize="20"
-                :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                :amount="earnings.toString()"
-                :denom="NATIVE_CURRENCY.symbol"
-                :has-space="false"
-                class="nls-font-500 text-primary"
-              />
+            <div class="flex">  
+              <div class="pt-3 pl-0 lg:pl-6 pr-6 lg:pr-0">
+                <p class="nls-font-500 text-12 text-dark-grey">
+                  {{ $t("message.supplied-and-staked") }}
+                </p>
+  
+                <CurrencyComponent :fontSize="20"
+                                   :fontSizeSmall="14"
+                                   :prettyZeros="true"
+                                   :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                                   :amount="earnings.toString()"
+                                   :denom="NATIVE_CURRENCY.symbol"
+                                   :has-space="false"
+                                   class="nls-font-500 text-primary" />
+              </div>
+  
+              <div class="pt-3 lg:pl-5">
+                <p class="nls-font-500 text-12 text-dark-grey">
+                  {{ $t("message.rewards") }}
+                </p>
+                <CurrencyComponent :class="rewards.isZero() ? 'text-primary' : (rewards.isPositive() ? '!text-[#1AB171]' : 'text-[#E42929]')"
+                                   :fontSize="20"
+                                   :fontSizeSmall="14"
+                                   :prettyZeros="true"
+                                   :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                                   :amount="rewards.abs().toString()"
+                                   :denom="`${rewards.isZero() ? '' : (rewards.isPositive() ? '+' : '-')}${NATIVE_CURRENCY.symbol}`"
+                                   :has-space="false"
+                                   class="nls-font-500" />
+              </div>
             </div>
 
             <!-- HIDDEN ON DESKTOP -->
           </div>
-          <div class="pt-4 block lg:hidden">
+          <!-- <div class="pt-4 block lg:hidden">
             <p class="nls-font-500 text-12 text-dark-grey">
               {{ $t("message.supplied-and-staked") }}
             </p>
 
-            <CurrencyComponent
-              :fontSize="20"
-              :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              :amount="earnings.toString()"
-              :denom="NATIVE_CURRENCY.symbol"
-              :has-space="false"
-              class="nls-font-500 text-primary"
-            />
-          </div>
+            <CurrencyComponent :fontSize="20"
+                               :prettyZeros="true"
+                               :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                               :amount="earnings.toString()"
+                               :denom="NATIVE_CURRENCY.symbol"
+                               :has-space="false"
+                               class="nls-font-500 text-primary" />
+          </div> -->
         </div>
       </Transition>
 
       <!-- Existing Assets -->
-      <div
-        class="block background mt-6 border-standart shadow-box radius-medium radius-0-sm outline"
-        :class="{ 'async-loader': isAssetsLoading }"
-      >
+      <div class="block background mt-6 border-standart shadow-box radius-medium radius-0-sm outline"
+           :class="{ 'async-loader': isAssetsLoading }">
         <!-- Top -->
         <div class="flex flex-wrap items-baseline justify-between px-3 md:px-4 pt-6">
           <div class="left w-1/3">
@@ -165,37 +209,31 @@
             </div>
 
             <div
-              class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper"
-            >
+                 class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
               <span class="inline-block">{{ $t("message.yield") }}</span>
               <TooltipComponent :content="$t('message.earn-apr-tooltip')" />
             </div>
 
             <div
-              class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper"
-            >
+                 class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
               <span class="inline-block">{{ $t("message.lease-up-to") }}</span>
               <TooltipComponent :content="$t('message.lease-up-to-tooltip')" />
             </div>
 
             <div
-              class="md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
+                 class="md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
               <span class="inline-block">{{ $t("message.receive/send") }}</span>
             </div>
           </div>
 
           <!-- Assets Container -->
-          <div
-            role="status"
-            class="block lg:mb-0"
-            :class="{ 'animate-pulse': loading }"
-          >
+          <div role="status"
+               class="block lg:mb-0"
+               :class="{ 'animate-pulse': loading }">
             <template v-if="loading">
-              <div
-                v-for=" index  in  currenciesSize "
-                :key="index"
-                class="h-[67px] flex items-center justify-between asset-partial nolus-box relative border-b border-standart py-3 px-4 items-center justify-between"
-              >
+              <div v-for=" index  in  currenciesSize "
+                   :key="index"
+                   class="h-[67px] flex items-center justify-between asset-partial nolus-box relative border-b border-standart py-3 px-4 items-center justify-between">
                 <div class="w-[50%] md:w-auto">
                   <div class="w-32 h-1.5 bg-grey rounded-full mb-2.5"></div>
                   <div class="h-1.5 bg-grey rounded-full w-24"></div>
@@ -209,32 +247,26 @@
               </div>
             </template>
             <template v-else>
-              <TransitionGroup
-                name="fade"
-                appear
-                tag="div"
-              >
-                <AssetPartial
-                  v-for="( asset, index ) in  filteredAssets "
-                  :key="`${asset.balance.denom}-${index}`"
-                  :asset-info="getAssetInfo(asset.balance.denom)"
-                  :assetBalance="asset.balance.denom == wallet.available.denom ? wallet.available.amount.toString() : asset.balance.amount.toString()"
-                  :changeDirection="index % 2 === 0"
-                  :denom="asset.balance.denom"
-                  :price="getMarketPrice(asset.balance.denom)"
-                  :openModal="openModal"
-                  :sendReceiveOpen="sendReceiveOpen"
-                  :earnings="DEFAULT_APR"
-                />
+              <TransitionGroup name="fade"
+                               appear
+                               tag="div">
+                <AssetPartial v-for="( asset, index ) in  filteredAssets "
+                              :key="`${asset.balance.denom}-${index}`"
+                              :asset-info="getAssetInfo(asset.balance.denom)"
+                              :assetBalance="asset.balance.denom == wallet.available.denom ? wallet.available.amount.toString() : asset.balance.amount.toString()"
+                              :changeDirection="index % 2 === 0"
+                              :denom="asset.balance.denom"
+                              :price="getMarketPrice(asset.balance.denom)"
+                              :openModal="openModal"
+                              :sendReceiveOpen="sendReceiveOpen"
+                              :earnings="DEFAULT_APR" />
               </TransitionGroup>
             </template>
           </div>
 
           <div class="flex justify-center pt-[8px] pb-[18px]">
-            <button
-              class="btn transfer btn-medium-secondary"
-              @click="setCurrency()"
-            >
+            <button class="btn transfer btn-medium-secondary"
+                    @click="setCurrency()">
               {{ state.showSmallBalances ? $t("message.hide-small-balances") : $t("message.show-small-balances") }}
             </button>
           </div>
@@ -243,10 +275,8 @@
       </div>
 
       <!-- Vested Assets -->
-      <div
-        v-if="vestedTokens.length > 0"
-        class="block background mt-6 shadow-box radius-medium radius-0-sm outline"
-      >
+      <div v-if="vestedTokens.length > 0"
+           class="block background mt-6 shadow-box radius-medium radius-0-sm outline">
         <!-- Top -->
         <div class="flex flex-wrap items-baseline justify-between px-4 pt-6">
           <div class="left w-1/2">
@@ -275,42 +305,32 @@
 
           <!-- Assets Container -->
           <div class="block mb-6 lg:mb-0">
-            <VestedAssetPartial
-              v-for="( asset, index ) in  vestedTokens "
-              :key="`${asset.amount.amount}-${index}`"
-              :asset-info="getAssetInfo(asset.amount.denom)"
-              :asset-balance="wallet.vestTokens.amount.toString()"
-              :denom="asset.amount.denom"
-              :end-time="asset.endTime"
-            />
+            <VestedAssetPartial v-for="( asset, index ) in  vestedTokens "
+                                :key="`${asset.amount.amount}-${index}`"
+                                :asset-info="getAssetInfo(asset.amount.denom)"
+                                :asset-balance="wallet.vestTokens.amount.toString()"
+                                :denom="asset.amount.denom"
+                                :end-time="asset.endTime" />
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <Modal
-    v-if="state.showModal"
-    :route="state.modalAction"
-    @close-modal="state.showModal = false"
-  >
-    <component
-      :is="modalOptions[state.modalAction]"
-      :selectedAsset="state.selectedAsset"
-      :dialogSelectedCurrency="state.dialogSelectedCurrency"
-    />
+  <Modal v-if="state.showModal"
+         :route="state.modalAction"
+         @close-modal="state.showModal = false">
+    <component :is="modalOptions[state.modalAction]"
+               :selectedAsset="state.selectedAsset"
+               :dialogSelectedCurrency="state.dialogSelectedCurrency" />
   </Modal>
 
-  <Modal
-    v-if="showErrorDialog"
-    route="alert"
-    @close-modal="showErrorDialog = false"
-  >
-    <ErrorDialog
-      :title="$t('message.error-connecting')"
-      :message="errorMessage"
-      :try-button="onClickTryAgain"
-    />
+  <Modal v-if="showErrorDialog"
+         route="alert"
+         @close-modal="showErrorDialog = false">
+    <ErrorDialog :title="$t('message.error-connecting')"
+                 :message="errorMessage"
+                 :try-button="onClickTryAgain" />
   </Modal>
 </template>
 
@@ -328,23 +348,28 @@ import VestedAssetPartial from "@/components/VestedAssetPartial.vue";
 import CurrencyComponent from "@/components/CurrencyComponent.vue";
 import BannerComponent from "@/components/BannerComponent.vue";
 
+import type { LeaseData } from "@/types";
 import type { AssetBalance } from "@/stores/wallet/state";
 import { computed, ref, provide, onMounted, watch, onUnmounted, Transition } from "vue";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
-import { CurrencyUtils, NolusClient } from "@nolus/nolusjs";
+import { ChainConstants, CurrencyUtils, NolusClient } from "@nolus/nolusjs";
 import { DASHBOARD_ACTIONS } from "@/types/DashboardActions";
 import { useLeases } from "@/composables";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { useOracleStore } from "@/stores/oracle";
 import { useApplicationStore } from "@/stores/application";
 
-import { DEFAULT_APR, IGNORE_TRANSFER_ASSETS, NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/env";
+import { CoinGecko, DEFAULT_APR, IGNORE_TRANSFER_ASSETS, NATIVE_ASSET, NATIVE_CURRENCY, PERCENT, PERMILLE, calculateAditionalDebt } from "@/config/env";
 import { storeToRefs } from "pinia";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { CONTRACTS } from "@/config/contracts";
 import { AssetUtils, EnvNetworkUtils, WalletManager } from "@/utils";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { AppUtils } from "@/utils/AppUtils";
+import { ASSETS } from "@/config/assetsInfo";
+import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
+import { toUtf8 } from "@cosmjs/encoding";
+import { QuerySmartContractStateRequest } from "cosmjs-types/cosmwasm/wasm/v1/query";
 
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
@@ -372,6 +397,11 @@ const loaded = wallet.balances.length > 0 && Object.keys(oracle.prices).length >
 const animate = ref(loaded ? "" : "fade");
 const errorMessage = ref("");
 const earnings = ref(new Dec(0));
+const debt = ref(new Dec(0));
+const activeLeases = ref(new Dec(0));
+const pnl = ref(new Dec(0));
+const rewards = ref(new Dec(0));
+
 let timeout: NodeJS.Timeout;
 
 const state = ref({
@@ -420,8 +450,12 @@ const filteredAssets = computed(() => {
 });
 
 const loading = computed(() => showSkeleton.value || wallet.balances.length == 0);
+const currenciesSize = computed(() => Object.keys(app.currenciesData!).length);
+const { leases, getLeases } = useLeases(
+  (error: Error | any) => { },
+);
 
-const currenciesSize = computed(() => Object.keys(app.currenciesData!).length)
+provide("getLeases", getLeases);
 
 onMounted(() => {
   getVestedTokens();
@@ -440,22 +474,40 @@ onUnmounted(() => {
   if (timeout) {
     clearTimeout(timeout);
   }
-})
+});
 
 watch(walletRef.wallet, async () => {
   try {
     await Promise.all([
-      getLeases(),
       getVestedTokens(),
       availableAssets(),
       loadSuppliedAndStaked(),
       wallet[WalletActionTypes.LOAD_STAKED_TOKENS](),
       wallet[WalletActionTypes.LOAD_SUPPLIED_AMOUNT](),
-    ])
+    ]);
   } catch (e) {
     console.log(e)
   }
 });
+
+watch(() => [walletRef.wallet, oracle.prices], (next, prev) => {
+  const [w, pr]: any = next;
+
+  if(w?.value?.address as string){
+    loadRewards();
+  }
+
+}, { immediate: true })
+
+watch(() => wallet.wallet, (next, prev) => {
+  if (prev?.address != null) {
+    getLeases();
+  }
+})
+
+watch(() => leases.value, () => {
+  loadLeases();
+})
 
 watch(walletRef.balances, () => {
   availableAssets();
@@ -483,34 +535,30 @@ const totalBalance = computed(() => {
   return total.toString();
 });
 
-const { leases, getLeases } = useLeases(
-  (error: Error | any) => { },
-);
 
-provide("getLeases", getLeases);
 
-const activeLeases = computed(() => {
-  let totalLeases = new Dec(0);
+// const activeLeases = computed(() => {
+//   let totalLeases = new Dec(0);
 
-  leases.value.forEach((lease) => {
-    if (lease.leaseStatus.opened) {
-      const ticker = lease.leaseStatus.opened.amount.ticker;
-      const currency = wallet.getCurrencyByTicker(ticker);
-      const ibcDenom = wallet.getIbcDenomBySymbol(currency?.symbol) as string;
-      const data = wallet.getCurrencyInfo(ibcDenom as string);
+//   leases.value.forEach((lease) => {
+//     if (lease.leaseStatus.opened) {
+//       const ticker = lease.leaseStatus.opened.amount.ticker;
+//       const currency = wallet.getCurrencyByTicker(ticker);
+//       const ibcDenom = wallet.getIbcDenomBySymbol(currency?.symbol) as string;
+//       const data = wallet.getCurrencyInfo(ibcDenom as string);
 
-      const balance = CurrencyUtils.calculateBalance(
-        getMarketPrice(ibcDenom),
-        new Coin(data.coinDenom, lease.leaseStatus.opened.amount.amount),
-        data.coinDecimals
-      );
+//       const balance = CurrencyUtils.calculateBalance(
+//         getMarketPrice(ibcDenom),
+//         new Coin(data.coinDenom, lease.leaseStatus.opened.amount.amount),
+//         data.coinDecimals
+//       );
 
-      totalLeases = totalLeases.add(balance.toDec());
-    }
-  });
+//       totalLeases = totalLeases.add(balance.toDec());
+//     }
+//   });
 
-  return totalLeases;
-});
+//   return totalLeases;
+// });
 
 const availableAssets = () => {
 
@@ -542,40 +590,40 @@ const availableAssets = () => {
   }
 };
 
-const suppliedAndStaked = computed(() => {
+// const suppliedAndStaked = computed(() => {
 
-  const staking = wallet.stakingBalance as Coin;
-  const supplied = wallet.suppliedBalance;
-  const lppPrice = wallet.lppPrice;
-  const suppliedSymbol = wallet.getCurrencyByTicker(app.lpn?.ticker as string);
-  const suppliedCoin = wallet.getIbcDenomBySymbol(
-    suppliedSymbol.symbol
-  ) as string;
-  const suppliedInfo = wallet.getCurrencyInfo(suppliedCoin as string);
+//   const staking = wallet.stakingBalance as Coin;
+//   const supplied = wallet.suppliedBalance;
+//   const lppPrice = wallet.lppPrice;
+//   const suppliedSymbol = wallet.getCurrencyByTicker(app.lpn?.ticker as string);
+//   const suppliedCoin = wallet.getIbcDenomBySymbol(
+//     suppliedSymbol.symbol
+//   ) as string;
+//   const suppliedInfo = wallet.getCurrencyInfo(suppliedCoin as string);
 
 
-  let totalSuppliedAndStaked = new Dec(0);
+//   let totalSuppliedAndStaked = new Dec(0);
 
-  const suppliedBalance = CurrencyUtils.calculateBalance(
-    getMarketPrice(suppliedCoin),
-    new Coin(suppliedCoin, supplied),
-    suppliedInfo.coinDecimals
-  ).toDec();
-  const s = lppPrice.mul(suppliedBalance);
-  totalSuppliedAndStaked = totalSuppliedAndStaked.add(s);
+//   const suppliedBalance = CurrencyUtils.calculateBalance(
+//     getMarketPrice(suppliedCoin),
+//     new Coin(suppliedCoin, supplied),
+//     suppliedInfo.coinDecimals
+//   ).toDec();
+//   const s = lppPrice.mul(suppliedBalance);
+//   totalSuppliedAndStaked = totalSuppliedAndStaked.add(s);
 
-  if (staking) {
-    const stakingInfo = wallet.getCurrencyInfo(staking.denom as string);
-    const stakingBalance = CurrencyUtils.calculateBalance(
-      getMarketPrice(staking.denom),
-      staking,
-      stakingInfo.coinDecimals
-    );
-    totalSuppliedAndStaked = totalSuppliedAndStaked.add(stakingBalance.toDec());
-  }
+//   if (staking) {
+//     const stakingInfo = wallet.getCurrencyInfo(staking.denom as string);
+//     const stakingBalance = CurrencyUtils.calculateBalance(
+//       getMarketPrice(staking.denom),
+//       staking,
+//       stakingInfo.coinDecimals
+//     );
+//     totalSuppliedAndStaked = totalSuppliedAndStaked.add(stakingBalance.toDec());
+//   }
 
-  return totalSuppliedAndStaked;
-});
+//   return totalSuppliedAndStaked;
+// });
 
 const loadSuppliedAndStaked = async () => {
   if (Object.keys(oracle.prices).length == 0) {
@@ -676,6 +724,255 @@ const sendReceiveOpen = (currency: string) => {
   state.value.dialogSelectedCurrency = currency;
   state.value.modalAction = DASHBOARD_ACTIONS.RECEIVE;
   state.value.showModal = true;
+}
+
+const loadLeases = async () => {
+  try {
+    const promises: Promise<void>[] = [];
+    let db = new Dec(0);
+    let ls = new Dec(0);
+    let pl = new Dec(0);
+
+    for (const lease of leases.value) {
+      if (lease.leaseStatus.opened) {
+        const fn = async () => {
+          const data = JSON.parse(localStorage.getItem(lease.leaseAddress) ?? '{}');
+          if (data.downPayment && data.downpaymentTicker && data.price && data.leasePositionTicker) {
+            return Promise.all([
+              data,
+              AppUtils.getOpenLeaseFee(),
+            ])
+          } else {
+            return Promise.all([
+              checkData(lease),
+              AppUtils.getOpenLeaseFee()
+            ])
+          }
+        }
+
+        promises.push(fn().then(([leaseData, downpaymentFee]) => {
+          const data = lease.leaseStatus?.opened;
+
+          if (data) {
+            const lpn = wallet.getCurrencyByTicker(data.principal_due.ticker);
+            const lpnIbcDenom = wallet.getIbcDenomBySymbol(lpn.symbol) as string;
+            const lpnDecimal = Number(lpn.decimal_digits);
+
+            const dasset = wallet.getCurrencyByTicker(data.amount.ticker);
+            const dIbcDenom = wallet.getIbcDenomBySymbol(dasset.symbol) as string;
+            const dDecimal = Number(dasset.decimal_digits);
+
+            const l = CurrencyUtils.calculateBalance(
+              getMarketPrice(dIbcDenom),
+              new Coin(dIbcDenom, data.amount.amount),
+              dDecimal
+            ).toDec();
+
+            ls = ls.add(l);
+
+            const d = new Dec(data.principal_due.amount)
+              .add(new Dec(data.previous_margin_due.amount))
+              .add(new Dec(data.previous_interest_due.amount))
+              .add(new Dec(data.current_margin_due.amount))
+              .add(new Dec(data.current_interest_due.amount))
+              .add(additionalInterest(lease).roundUpDec())
+
+
+            db = db.add(CurrencyUtils.convertMinimalDenomToDenom(
+              d.truncate().toString(),
+              lpnIbcDenom,
+              lpn.symbol,
+              lpnDecimal
+            ).toDec());
+
+            //pnl
+
+            const amount = new Dec(data.principal_due.amount, lpnDecimal)
+              .add(new Dec(data.previous_margin_due.amount, lpnDecimal))
+              .add(new Dec(data.previous_interest_due.amount, lpnDecimal))
+              .add(new Dec(data.current_margin_due.amount, lpnDecimal))
+              .add(new Dec(data.current_interest_due.amount, lpnDecimal))
+
+            const totalAmount = new Dec(leaseData.downPayment as string ?? '0').add(amount);
+            const assetData = wallet.getCurrencyByTicker(data.amount.ticker);
+            const assetAmount = new Dec(data.amount.amount, Number(assetData.decimal_digits))
+            const prevPrice = totalAmount.quo(assetAmount);
+
+            const unitAsset = new Dec(data.amount.amount, Number(dDecimal));
+            const currentPrice = new Dec(oracle.prices?.[dasset.symbol]?.amount ?? "0");
+            const prevAmount = unitAsset.mul(prevPrice);
+            const currentAmount = unitAsset.mul(currentPrice);
+            const dfee = new Dec(downpaymentFee[leaseData.downpaymentTicker]).mul(new Dec(leaseData.downPayment ?? 0));
+            const a = currentAmount.sub(prevAmount).add(dfee);
+            pl = pl.add(a);
+
+          }
+
+        }));
+      }
+    }
+
+    await Promise.all(promises);
+    activeLeases.value = ls;
+    debt.value = db;
+    pnl.value = pl;
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+const checkData = async (lease: LeaseData) => {
+
+  const node = (await AppUtils.getArchiveNodes());
+  const req = await fetch(`${node.archive_node_rpc}/tx_search?query="wasm.lease_address='${lease.leaseAddress}'"&prove=true`);
+  const data = await req.json();
+  const item = data.result?.txs?.[0];
+
+  if (item) {
+    return getBlock(item?.height, lease)
+  }
+
+}
+
+const getBlock = async (block: string, leaseInfo: LeaseData) => {
+  try {
+    const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
+    const req = await fetch(`${url}/block?height=${block}`);
+    const data = await req.json();
+    const item = data.result?.block?.header?.time;
+    const ticker = leaseInfo?.leaseStatus?.opened?.amount?.ticker ?? leaseInfo?.leaseStatus?.paid?.amount?.ticker
+
+    if (item && ticker) {
+      const date = new Date(item);
+      const [priceData, downpayment] = await Promise.all([
+        fetchPrice(date, ticker),
+        fetchDownPayment(Number(block), leaseInfo),
+      ]);
+      const downpaymentPrice = await fetchDownPaymentPrice(date, downpayment.opening.downpayment.ticker);
+      const asset = AssetUtils.getAssetInfo(downpayment.opening.downpayment.ticker);
+
+      if (asset.coinDecimals == 0) {
+        return false;
+      }
+
+      const p = new Dec(downpaymentPrice);
+      const d = new Dec(downpayment.opening.downpayment.amount, asset.coinDecimals)
+
+      const dprice = d.mul(p);
+      const res = {
+        downpaymentTicker: downpayment.opening.downpayment.ticker,
+        price: priceData.price,
+        leasePositionTicker: ticker,
+        downPayment: dprice.toString()
+      };
+
+      localStorage.setItem(leaseInfo.leaseAddress, JSON.stringify(res));
+      return res;
+
+    }
+
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+const fetchPrice = async (time: Date, ticker: string) => {
+
+  const asset = ASSETS[ticker as keyof typeof ASSETS];
+
+  const date = `${time.getDate()}-${time.getMonth() + 1}-${time.getFullYear()}`;
+  const req = await fetch(`${CoinGecko.url}/coins/${asset.coinGeckoId}/history?date=${date}&vs_currency=usd&localization=false&x_cg_pro_api_key=${CoinGecko.key}`);
+  const data = await req.json();
+  const price = data.market_data.current_price.usd;
+  return {
+    price: price,
+    leasePositionTicker: ticker
+  }
+
+}
+
+const fetchDownPaymentPrice = async (time: Date, ticker: string) => {
+
+  const asset = ASSETS[ticker as keyof typeof ASSETS];
+
+  const date = `${time.getDate()}-${time.getMonth() + 1}-${time.getFullYear()}`;
+  const req = await fetch(`${CoinGecko.url}/coins/${asset.coinGeckoId}/history?date=${date}&vs_currency=usd&localization=false&x_cg_pro_api_key=${CoinGecko.key}`);
+  const data = await req.json();
+  const price = data.market_data.current_price.usd;
+
+  return price;
+
+}
+
+const fetchDownPayment = async (block: number, leaseInfo: LeaseData) => {
+  const node = (await AppUtils.getArchiveNodes());
+  const client = await Tendermint34Client.connect(node.archive_node_rpc);
+
+  const data = QuerySmartContractStateRequest.encode({
+    address: leaseInfo.leaseAddress,
+    queryData: toUtf8(JSON.stringify({})),
+  }).finish();
+
+  const query = {
+    path: '/cosmwasm.wasm.v1.Query/SmartContractState',
+    data,
+    prove: true,
+    height: block
+  };
+
+  const response = await client.abciQuery(query);
+  const res = QuerySmartContractStateRequest.decode(response.value);
+  return JSON.parse(res.address);
+}
+
+const additionalInterest = (leaseInfo: LeaseData) => {
+  const data = leaseInfo.leaseStatus?.opened;
+  if (data) {
+    const principal_due = new Dec(data.principal_due.amount)
+    const loanInterest = new Dec(data.loan_interest_rate / PERMILLE).add(new Dec(data.margin_interest_rate / PERCENT));
+    const debt = calculateAditionalDebt(principal_due, loanInterest);
+
+    return debt;
+  }
+
+  return new Dec(0)
+}
+
+async function loadRewards(){ 
+  const [r, lpnRewards] = await Promise.all([
+    wallet[WalletActionTypes.LOAD_DELEGATOR](),
+    getRewards()
+  ]);
+
+  const total = r?.total?.[0];
+  let value = new Dec('0').add(lpnRewards);
+
+  if (total) {
+    value = new Dec(total.amount).add(value);
+  }
+
+  value = AssetUtils.getPriceByDenom(value.truncate().toString(), NATIVE_ASSET.denom);
+  rewards.value = value;
+
+}
+
+async function getRewards() {
+  try {
+
+    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+    const contract = CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance;
+    const lppClient = new Lpp(cosmWasmClient, contract);
+    const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
+
+    const lenderRewards = await lppClient.getLenderRewards(walletAddress);
+
+    return new Dec(lenderRewards.rewards.amount);
+
+  } catch (e) {
+    // console.log(e)
+  }
+
+  return new Dec(0);
 }
 </script>
 <style scoped lang="scss">
