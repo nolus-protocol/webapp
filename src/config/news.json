@@ -5,7 +5,7 @@
         "title": "zero-banner-title",
         "subtitle": "zero-banner-subtitle",
         "description": "zero-banner-description",
-        "target": ""
+        "target": "/lease#create"
     },
     "knowledgehub": {
         "title-icon": "https://nolus.io/banner/knowledge_hub.svg",
