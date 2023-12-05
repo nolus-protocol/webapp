@@ -69,7 +69,7 @@
             {{ $t('message.supplied') }}
           </p>
 
-          <span class="w-[6px] h-[6px] inline-flex rounded-full mb-[4px] mr-[4px] bg-[#FF562E]">
+          <span class="w-[6px] h-[6px] inline-flex rounded-full mb-[4px] mr-[4px] bg-[#2868E1]">
 
           </span>
           <CurrencyComponent
@@ -86,7 +86,7 @@
           <p class="nls-font-500 text-12 text-dark-grey flex">
             {{ $t('message.borrowed') }}
           </p>
-          <span class="w-[6px] h-[6px] inline-flex rounded-full mb-[4px] mr-[4px] bg-[#2868E1]">
+          <span class="w-[6px] h-[6px] inline-flex rounded-full mb-[4px] mr-[4px] bg-[#FF562E]">
 
           </span>
           <CurrencyComponent
