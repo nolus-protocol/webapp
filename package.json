@@ -1,6 +1,6 @@
 {
   "name": "nolus-wallet",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "scripts": {
     "serve": "vite --port 8080",
