@@ -61,8 +61,7 @@ import { useApplicationStore } from "@/stores/application";
 
 const props = defineProps({
   selectedAsset: {
-    type: String,
-    required: true,
+    type: String
   },
 });
 

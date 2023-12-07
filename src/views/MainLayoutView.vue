@@ -55,6 +55,14 @@
   >
     <SessionExpireDialog :close="refresh" />
   </Modal>
+
+  <Modal
+    v-if="showModal"
+    :route="modalOptions[modalAction].route"
+    @close-modal="showModal = false"
+  >
+    <component :is="modalOptions[modalAction].dialog" :route="modalOptions[modalAction].route" />
+  </Modal>
 </template>
 
 <script lang="ts" setup>
@@ -64,11 +72,15 @@ import Snackbar from "@/components/templates/utils/Snackbar.vue";
 import Modal from "@/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/components/modals/ErrorDialog.vue";
 import SessionExpireDialog from "@/components/modals/SessionExpireDialog.vue";
+import LeaseDialog from "@/components/modals/LeaseDialog.vue";
+import SendReceiveDialog from "@/components/modals/SendReceiveDialog.vue";
+import SupplyWithdrawDialog from "@/components/modals/SupplyWithdrawDialog.vue";
+import DelegateUndelegateDialog from "@/components/modals/DelegateUndelegateDialog.vue";
 
 import { OracleActionTypes, useOracleStore } from "@/stores/oracle";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { WalletManager } from "@/utils";
-import { onMounted, onUnmounted, provide, ref, type Ref } from "vue";
+import { onMounted, onUnmounted, provide, ref, type Ref, type Component } from "vue";
 
 import { SESSION_TIME, SNACKBAR, UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL, } from "@/config/env";
 import { ApplicationActionTypes, useApplicationStore } from "@/stores/application";
@@ -76,6 +88,42 @@ import { ApplicationActionTypes, useApplicationStore } from "@/stores/applicatio
 let balanceInterval: NodeJS.Timeout | undefined;
 let pricesInterval: NodeJS.Timeout | undefined;
 let sessionTimeOut: NodeJS.Timeout | undefined;
+
+const modalOptions: {
+  [key: string]: {
+    route: string,
+    dialog: Component
+  }
+} = {
+  "/lease#create": {
+    dialog: LeaseDialog,
+    route: 'create'
+  },
+  "/#receive": {
+    dialog: SendReceiveDialog,
+    route: 'receive'
+  },
+  "/#send": {
+    dialog: SendReceiveDialog,
+    route: 'send'
+  },
+  "/earn#supply": {
+    dialog: SupplyWithdrawDialog,
+    route: 'supply'
+  },
+  "/earn#withdraw": {
+    dialog: SupplyWithdrawDialog,
+    route: 'withdraw'
+  },
+  "/earn#delegate": {
+    dialog: DelegateUndelegateDialog,
+    route: 'supply'
+  },
+  "/earn#undelegate": {
+    dialog: DelegateUndelegateDialog,
+    route: 'undelegate'
+  },
+};
 
 const wallet = useWalletStore();
 const oracle = useOracleStore();
@@ -85,10 +133,13 @@ const snackbar: Ref<typeof Snackbar> = ref(Snackbar);
 
 const showErrorDialog = ref(false);
 const errorMessage = ref("");
+const modalAction = ref<string>("");
+const showModal = ref(false)
 const snackbarState = ref({
   type: SNACKBAR.Queued,
   transaction: "transaction",
 });
+provide('openDialog', openDialog);
 
 onMounted(async () => {
   await loadNetwork();
@@ -96,7 +147,7 @@ onMounted(async () => {
   window.addEventListener("leap_keystorechange", updateLeap);
   window.addEventListener('focus', stopTimer);
   window.addEventListener('blur', startTimer);
-  // test()
+  openDialog();
 });
 
 onUnmounted(() => {
@@ -206,6 +257,17 @@ function stopTimer() {
 
 function refresh() {
   window.location.reload();
+}
+
+function openDialog() {
+  if (window.location.hash) {
+    const action = `${window.location.pathname}${window.location.hash}`;
+    const modal = modalOptions[action];
+    if (modal) {
+      modalAction.value = action;
+      showModal.value = true;
+    }
+  }
 }
 
 provide("showSnackbar", showSnackbar);

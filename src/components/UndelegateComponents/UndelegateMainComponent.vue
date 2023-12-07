@@ -53,8 +53,7 @@ import { WalletManager } from "@/utils";
 
 defineProps({
   selectedAsset: {
-    type: String,
-    required: true,
+    type: String
   },
 });
 

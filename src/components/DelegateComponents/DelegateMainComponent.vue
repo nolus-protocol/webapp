@@ -53,8 +53,7 @@ import { Utils } from "@/utils/Utils";
 
 defineProps({
   selectedAsset: {
-    type: String,
-    required: true,
+    type: String
   },
 });
 

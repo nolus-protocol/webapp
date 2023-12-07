@@ -1,26 +1,34 @@
 <template>
-  <ConfirmComponent v-if="showConfirmScreen"
-                    :selectedCurrency="state.selectedCurrency"
-                    :receiverAddress="state.receiverAddress"
-                    :password="state.password"
-                    :amount="state.amount"
-                    :txType="$t(`message.${TxType.SUPPLY}`) + ':'"
-                    :txHash="state.txHash"
-                    :step="step"
-                    :fee="state.fee"
-                    :onSendClick="onSupplyClick"
-                    :onBackClick="onConfirmBackClick"
-                    :onOkClick="onClickOkBtn"
-                    @passwordUpdate="(value) => (state.password = value)" />
-  <SupplyFormComponent v-else
-                       v-model="state"
-                       class="overflow-auto custom-scroll" />
-  <Modal v-if="errorDialog.showDialog"
-         @close-modal="errorDialog.showDialog = false"
-         route="alert">
-    <ErrorDialog title="Error connecting"
-                 :message="errorDialog.errorMessage"
-                 :try-button="closeModal" />
+  <ConfirmComponent
+    v-if="showConfirmScreen"
+    :selectedCurrency="state.selectedCurrency"
+    :receiverAddress="state.receiverAddress"
+    :password="state.password"
+    :amount="state.amount"
+    :txType="$t(`message.${TxType.SUPPLY}`) + ':'"
+    :txHash="state.txHash"
+    :step="step"
+    :fee="state.fee"
+    :onSendClick="onSupplyClick"
+    :onBackClick="onConfirmBackClick"
+    :onOkClick="onClickOkBtn"
+    @passwordUpdate="(value) => (state.password = value)"
+  />
+  <SupplyFormComponent
+    v-else
+    v-model="state"
+    class="overflow-auto custom-scroll"
+  />
+  <Modal
+    v-if="errorDialog.showDialog"
+    @close-modal="errorDialog.showDialog = false"
+    route="alert"
+  >
+    <ErrorDialog
+      title="Error connecting"
+      :message="errorDialog.errorMessage"
+      :try-button="closeModal"
+    />
   </Modal>
 </template>
 
@@ -59,10 +67,9 @@ import {
 import { useApplicationStore } from "@/stores/application";
 import { Int } from "@keplr-wallet/unit";
 
-const props = defineProps({
+defineProps({
   selectedAsset: {
-    type: String,
-    required: true,
+    type: String
   },
 });
 
@@ -86,7 +93,7 @@ const checkSupply = async () => {
   const data = await lpp.getDepositCapacity();
   state.value.loading = false;
 
-  if(data == null){
+  if (data == null) {
     state.value.supply = true;
     state.value.maxSupply = new Int(-1);
     return false;
@@ -109,13 +116,10 @@ const balances = computed(() => {
 
 const selectedCurrency = computed(
   () => {
-    const b = balances.value.find(
-      (asset) => asset.balance.denom === props.selectedAsset
-    );
-    return b;
+    return balances.value[0];
   }
-
 );
+
 const showConfirmScreen = ref(false);
 const state = ref({
   currentBalance: balances.value,
@@ -147,7 +151,7 @@ const showSnackbar = inject(
 
 const validateSupply = () => {
 
-  if(state.value.maxSupply.isNegative()){
+  if (state.value.maxSupply.isNegative()) {
     return "";
   }
 
@@ -290,7 +294,7 @@ watch(
 );
 
 watch(
-  () => [...state.value.selectedCurrency.balance.denom.toString()],
+  () => [...state.value.selectedCurrency?.balance.denom.toString() ?? []],
   (currentValue, oldValue) => {
     validateInputs();
   }

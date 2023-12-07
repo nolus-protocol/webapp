@@ -64,6 +64,8 @@ import RightArrow from '@/components/icons/RightArrow.vue';
 import type { New, News } from "@/types/News";
 import { AppUtils } from "@/utils/AppUtils";
 import { onMounted, ref, nextTick } from "vue";
+import router from "@/router";
+import { inject } from 'vue';
 
 const news = ref<News>();
 const bannerContainer = ref<HTMLElement>();
@@ -72,7 +74,7 @@ const rightButton = ref<HTMLElement>();
 const transformX = ref(0);
 const hideLeft = ref(true);
 const hideRight = ref(true);
-import router from "@/router";
+const openDialog = inject('openDialog', () => {})
 
 let padding = 0;
 
@@ -183,11 +185,14 @@ const moveDefault = () => {
   box.style.transform = `translateX(${transformX.value}px)`;
 }
 
-const open = (n: New) => {
+const open = async (n: New) => {
   if(n.target.length > 0){
     const e = n.target[0];
     if(e == '/'){
-      router.push(n.target);
+      await router.push(n.target);
+      if(n.target.includes('#')){
+        openDialog();
+      }
     }else{ 
       window.open(n.target, '_blank');
     }

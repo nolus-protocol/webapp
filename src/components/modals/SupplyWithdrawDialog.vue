@@ -1,8 +1,8 @@
 <template>
   <DialogHeader
     :headerList="[$t('message.supply-title'), $t('message.withdraw-title')]"
-    :routes="['supply', 'withdraw']"
-    :active-tab="1"
+    :routes="routes"
+    :active-tab="activeTab()"
   >
     <template #tab-1>
       <SupplyMainComponent :selectedAsset="selectedAsset"/>
@@ -18,10 +18,25 @@ import SupplyMainComponent from "@/components/SupplyComponents/SupplyMainCompone
 import WithdrawMainComponent from "@/components/WithdrawComponents/WithdrawMainComponent.vue";
 import DialogHeader from "./templates/DialogHeader.vue";
 
-defineProps({
+const routes = ['supply', 'withdraw'];
+
+const props = defineProps({
   selectedAsset: {
     type: String,
-    required: true,
+  },
+  route: {
+    type: String,
   },
 });
+
+const activeTab = () => {
+  const index = routes.indexOf(props.route as string);
+
+  if(index < 0){
+    return 1;
+  }
+
+  return index+1;
+}
+
 </script>

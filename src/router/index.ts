@@ -15,7 +15,7 @@ const router = createRouter({
     {
       path: "/",
       component: MainLayoutView,
-      beforeEnter: [loadLanguage, removeHash, checkWalletName, loadData],
+      beforeEnter: [loadLanguage, checkWalletName, loadData],
       children: [
         {
           path: "",
@@ -67,7 +67,7 @@ const router = createRouter({
     {
       path: "/auth",
       component: () => import("@/views/AuthView.vue"),
-      beforeEnter: [loadLanguage, removeHash],
+      beforeEnter: [loadLanguage],
       children: [
         {
           path: "",
@@ -150,7 +150,6 @@ const router = createRouter({
             title: 'Nolus Protocol',
             description: 'Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space'
           },
-          beforeEnter: removeHash,
         },
       ],
     },
@@ -244,17 +243,6 @@ function checkWalletName(
     }
   }
 
-  next();
-}
-
-function removeHash(
-  to: RouteLocationNormalized,
-  from: RouteLocationNormalized,
-  next: NavigationGuardNext
-) {
-  if (to.hash.length > 0) {
-    return next(to.path);
-  }
   next();
 }
 
