@@ -1,5 +1,4 @@
 //@ts-nocheck
-
 import { Uint64 } from '@cosmjs/math';
 import { assert } from '@cosmjs/utils';
 import { BaseAccount, ModuleAccount } from 'cosmjs-types/cosmos/auth/v1beta1/auth';
