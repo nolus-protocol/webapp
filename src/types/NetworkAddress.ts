@@ -6,7 +6,7 @@ export interface NetworkAddress {
   govern: string;
   staking: string;
   endpoints: string;
-  currencies: () => Promise<Networks>, //CurreciesType
+  currencies: () => Promise<Networks | any>, //CurreciesType //TODO: fix any
   leaseBlockUpdate: number,
   lppCreatedAt: number,
   web3auth: {

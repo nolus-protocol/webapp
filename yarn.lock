@@ -1246,9 +1246,9 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@nolus/nolusjs@file:../nolus.js/build/nolus-nolusjs-v1.0.9.tgz":
-  version "1.0.9"
-  resolved "file:../nolus.js/build/nolus-nolusjs-v1.0.9.tgz#38daa03040744c5a70507a3149792874429f21fd"
+"@nolus/nolusjs@file:../nolus.js/build/nolus-nolusjs-v2.0.0.tgz":
+  version "2.0.0"
+  resolved "file:../nolus.js/build/nolus-nolusjs-v2.0.0.tgz#eff02198d72a284e363e3faa861370e401996b84"
   dependencies:
     "@cosmjs/cosmwasm-stargate" "0.32.1"
     "@cosmjs/crypto" "0.32.1"

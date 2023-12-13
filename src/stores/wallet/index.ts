@@ -339,7 +339,7 @@ const useWalletStore = defineStore("wallet", {
             currency.ibc_route,
             currency.symbol
           );
-          
+          console.log(currency)
           ibcBalances.push(
             NolusClient.getInstance()
               .getBalance(walletAddress, ibcDenom)

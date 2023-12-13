@@ -68,7 +68,6 @@ export class BaseWallet extends SigningCosmWasmClient {
 
         const sequence = await this.sequence();
         const { gasInfo } = await this.queryClient.tx.simulate([this.registry.encodeAsAny(msgAny)], memo, pubkey, sequence);
-        console.log(gasInfo?.gasUsed)
         const gas = Math.round(Number(gasInfo?.gasUsed) * gasMuplttiplier);
         const usedFee = calculateFee(gas, gasPrice);
         const txRaw = await this.sign(this.address as string, [msgAny], usedFee, memo);
