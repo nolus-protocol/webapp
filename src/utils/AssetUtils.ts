@@ -61,7 +61,7 @@ export class AssetUtils {
     return assetAmount.mul(price);
   }
 
-  public static getAssetInfo(ticker: string) {
+  public static getAssetInfo(ticker: string | undefined) {
     const wallet = useWalletStore();
     const item = wallet.getCurrencyByTicker(ticker);
     const ibcDenom = wallet.getIbcDenomBySymbol(item?.symbol);

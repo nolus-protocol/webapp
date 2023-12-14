@@ -276,8 +276,7 @@ export const transferCurrency = async (
 
     const { txBytes, txHash, usedFee } = await wallet.simulateBankTransferTx(
       receiverAddress,
-      funds,
-      memo
+      funds
     );
 
     result.txHash = txHash;

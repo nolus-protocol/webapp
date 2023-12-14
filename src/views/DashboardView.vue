@@ -515,7 +515,7 @@ const filteredAssets = computed(() => {
 });
 
 const loading = computed(() => showSkeleton.value || wallet.balances.length == 0);
-const currenciesSize = computed(() => Object.keys(app.currenciesData!).length);
+const currenciesSize = computed(() => Object.keys(app.currenciesData ?? {}).length);
 const { leases, getLeases } = useLeases(
   (error: Error | any) => { },
 );

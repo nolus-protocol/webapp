@@ -17,7 +17,7 @@ import { fromHex, toHex } from "@cosmjs/encoding";
 import { RouteNames } from "@/router/RouterNames";
 import { LedgerSigner } from "@cosmjs/ledger-amino";
 import { decodeTxRaw, type DecodedTxRaw, Registry } from "@cosmjs/proto-signing";
-import { NATIVE_ASSET, LedgerName } from "@/config/env";
+import { NATIVE_ASSET, LedgerName, defaultUsdcName, defaultUsdcTicker } from "@/config/env";
 import { ASSETS } from "@/config/assetsInfo";
 import { ADAPTER_STATUS } from "@web3auth/base";
 import { Buffer } from "buffer";
@@ -309,8 +309,11 @@ const useWalletStore = defineStore("wallet", {
           for (const key in currencies) {
             const currency = app.currenciesData![key];
             let ticker = currency.ticker;
+            let shortName = currency.shortName;
+
             if(ticker == 'USDC'){ //TODO: fix stable
-              ticker = 'USDC_AXELAR';
+              ticker = defaultUsdcTicker;
+              shortName = defaultUsdcName
             }
             const ibcDenom = NolusAssetUtils.makeIBCMinimalDenom(
               ticker,
@@ -340,11 +343,14 @@ const useWalletStore = defineStore("wallet", {
 
           return false;
         }
-        for (let key in currencies) {
+        for (const key in currencies) {
           const currency = app.currenciesData![key];
           let ticker = currency.ticker;
+          let shortName = currency.shortName;
+
           if(ticker == 'USDC'){ //TODO: fix stable
-            ticker = 'USDC_AXELAR';
+            ticker = defaultUsdcTicker;
+            shortName = defaultUsdcName
           }
           const ibcDenom = NolusAssetUtils.makeIBCMinimalDenom(
             ticker,
@@ -358,7 +364,7 @@ const useWalletStore = defineStore("wallet", {
               .then((item) => {
                 const data = {
                   ticker: key,
-                  shortName: currency.shortName,
+                  shortName: shortName,
                   name: currency.name,
                   symbol: currency.symbol,
                   decimal_digits: currency.decimal_digits
@@ -850,9 +856,9 @@ const useWalletStore = defineStore("wallet", {
     },
     getCurrencyByTicker: (state) => {
       const app = useApplicationStore();
-      return (ticker: string) => {
+      return (ticker: string | undefined) => {
         return app.currenciesData![
-          ticker
+          ticker!
         ];
       };
     },
