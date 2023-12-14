@@ -228,19 +228,19 @@ import { ref, type PropType, inject, computed, onUnmounted, watch } from "vue";
 import { ErrorCodes, GAS_FEES, IGNORE_TRANSFER_ASSETS, NATIVE_ASSET, SquidRouter } from "@/config/env";
 import { useI18n } from "vue-i18n";
 import { AssetUtils, WalletUtils } from "@/utils";
-import { coin, type Coin } from "@cosmjs/amino";
+import { coin, type Coin } from "@0xsquid/sdk/node_modules/@cosmjs/amino";
 import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
 import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
 import { Dec, Int, Coin as KeplrCoin } from "@keplr-wallet/unit";
 import { externalWalletV2, transferCurrency, validateAddress, validateAmount as validateAmountUtil, walletOperation } from "../utils";
 import { Squid } from "@0xsquid/sdk";
 import { useApplicationStore } from "@/stores/application";
-import { Decimal } from "@cosmjs/math";
+import { Decimal } from "@0xsquid/sdk/node_modules/@cosmjs/math";
 import { AppUtils } from "@/utils/AppUtils";
-import { SigningStargateClient } from "@cosmjs/stargate";
-import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
-import { toHex } from "@cosmjs/encoding";
-import { sha256 } from "@cosmjs/crypto";
+import { SigningStargateClient } from "@0xsquid/sdk/node_modules/@cosmjs/stargate";
+import { TxRaw } from '@0xsquid/sdk/node_modules/cosmjs-types/cosmos/tx/v1beta1/tx';
+import { toHex } from "@0xsquid/sdk/node_modules/@cosmjs/encoding";
+import { sha256 } from "@0xsquid/sdk/node_modules/@cosmjs/crypto";
 import { MetaMaskWallet } from "@/wallet/metamask";
 import { ASSETS } from "@/config/assetsInfo";
 import { onMounted } from "vue";
@@ -511,7 +511,7 @@ async function sendTXCosmos() {
     walletOperation(
       async () => {
         try {
-          const offlineSigner = walletStore.wallet?.getOfflineSigner();
+          const offlineSigner = walletStore.wallet?.getOfflineSigner() as any;
           const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
 
           const signer = await SigningStargateClient.connectWithSigner(
@@ -606,7 +606,7 @@ async function sendTXEvm() {
     walletOperation(
       async () => {
         try {
-          const offlineSigner = walletStore.wallet?.getOfflineSigner();
+          const offlineSigner = walletStore.wallet?.getOfflineSigner() as any;
           const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
 
           const signer = await SigningStargateClient.connectWithSigner(
@@ -861,7 +861,7 @@ const onSendClick = async () => {
 
   switch (networkType.value) {
     case (NetworkTypes.cosmos): {
-      if(selectedNetwork.value.native){
+      if (selectedNetwork.value.native) {
         return transferAmount();
       }
       return sendTXCosmos();

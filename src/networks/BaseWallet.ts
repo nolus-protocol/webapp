@@ -5,7 +5,6 @@ import type { Tendermint34Client } from '@cosmjs/tendermint-rpc';
 import type { Coin } from 'cosmjs-types/cosmos/base/v1beta1/coin';
 import type { MsgExecuteContract } from 'cosmjs-types/cosmwasm/wasm/v1/tx';
 
-import Long from 'long';
 import { toHex } from '@cosmjs/encoding';
 import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
@@ -69,7 +68,7 @@ export class BaseWallet extends SigningCosmWasmClient {
 
         const sequence = await this.sequence();
         const { gasInfo } = await this.queryClient.tx.simulate([this.registry.encodeAsAny(msgAny)], memo, pubkey, sequence);
-        const gas = Math.round((gasInfo?.gasUsed.toNumber() as number) * gasMuplttiplier);
+        const gas = Math.round(Number(gasInfo?.gasUsed) * gasMuplttiplier);
         const usedFee = calculateFee(gas, gasPrice);
         const txRaw = await this.sign(this.address as string, [msgAny], usedFee, memo);
 
@@ -143,7 +142,7 @@ export class BaseWallet extends SigningCosmWasmClient {
         memo?: string,
     }) {
         const timeOutData = Math.floor(Date.now() / 1000) + timeOut;
-        const longTimeOut = Long.fromNumber(timeOutData).multiply(1_000_000_000)
+        const longTimeOut = BigInt(timeOutData) * 1_000_000_000n
 
         const msg = MsgTransfer.fromPartial({
             sourcePort,

@@ -31,19 +31,25 @@ const useApplicationStore = defineStore("application", {
   },
   actions: {
     async [ApplicationActionTypes.LOAD_CURRENCIES]() {
-      const network = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
-      const currenciesData = await network.currencies();
-      const data = AssetUtils.parseNetworks(currenciesData);
-      this.assetIcons = data.assetIcons;
-      this.networks = data.networks;
-      this.networksData = currenciesData;
+    
+      try{
+        const network = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
+        const currenciesData = await network.currencies();
+        const data = AssetUtils.parseNetworks(currenciesData);
+        this.assetIcons = data.assetIcons;
+        this.networks = data.networks;
+        this.networksData = currenciesData;
+        
+        const native = AssetUtils.getNative(currenciesData).key
+        const lpn = AssetUtils.getLpn(currenciesData)!;
+        this.native = data.networks[NATIVE_NETWORK.key][native];
+        this.lpn = data.networks[NATIVE_NETWORK.key]['USDC'];
+        this.currenciesData = data.networks[NATIVE_NETWORK.key];
+        this.lease = AssetUtils.getLease(currenciesData);
+      }catch(e){
+        console.log(e)
+      }
 
-      const native = AssetUtils.getNative(currenciesData).key
-      const lpn = AssetUtils.getLpn(currenciesData)!.key;
-      this.native = data.networks[NATIVE_NETWORK.key][native];
-      this.lpn = data.networks[NATIVE_NETWORK.key][lpn];
-      this.currenciesData = data.networks[NATIVE_NETWORK.key];
-      this.lease = AssetUtils.getLease(currenciesData);
     },
     async [ApplicationActionTypes.CHANGE_NETWORK](loadBalance = false) {
       try {

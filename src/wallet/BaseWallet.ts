@@ -1,7 +1,7 @@
-import type { OfflineSigner } from '@cosmjs/proto-signing';
-import type { Tendermint34Client } from '@cosmjs/tendermint-rpc';
+import type { OfflineSigner } from '@0xsquid/sdk/node_modules/@cosmjs/proto-signing';
+import type { Tendermint34Client } from '@0xsquid/sdk/node_modules/@cosmjs/tendermint-rpc';
 
-import { SigningCosmWasmClient, type SigningCosmWasmClientOptions } from '@cosmjs/cosmwasm-stargate';
+import { SigningCosmWasmClient, type SigningCosmWasmClientOptions } from '@0xsquid/sdk/node_modules/@cosmjs/cosmwasm-stargate';
 
 export class BaseWallet extends SigningCosmWasmClient {
     address?: string;

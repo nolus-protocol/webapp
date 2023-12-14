@@ -5,7 +5,7 @@ import { defineStore } from "pinia";
 import { OracleActionTypes } from "@/stores/oracle/action-types";
 import { EnvNetworkUtils } from "@/utils";
 import { NolusClient } from "@nolus/nolusjs";
-import { Oracle } from "@nolus/nolusjs/build/contracts";
+import { Oracle } from "@nolus/nolusjs/build/contracts/clients/Oracle";
 import { CONTRACTS } from "@/config/contracts";
 
 import { LPN_PRICE } from "@/config/env";
@@ -45,7 +45,6 @@ const useOracleStore = defineStore("oracle", {
         for (const price of data.prices) {
           const key = price.amount.ticker;
           const currency = app.currenciesData![key];
-
           if (currency) {
             const diff = Math.abs(
               Number(
@@ -62,7 +61,6 @@ const useOracleStore = defineStore("oracle", {
             };
             pr[currency.symbol] = tokenPrice;
           }
-
           const c = app.currenciesData![app.lpn?.ticker as string];
           pr[c.symbol] = { symbol: app.lpn?.ticker as string, amount: `${LPN_PRICE}` };
         }
@@ -70,6 +68,7 @@ const useOracleStore = defineStore("oracle", {
         this.prices = pr;
 
       } catch (error: Error | any) {
+        console.log(error)
         throw new Error(error);
       }
     },

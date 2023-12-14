@@ -4,8 +4,8 @@ import { Buffer } from "buffer";
 import { useWalletStore } from "@/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import { DECIMALS_AMOUNT, MAX_DECIMALS, ZERO_DECIMALS, SUPPORTED_NETWORKS, NATIVE_NETWORK } from "@/config/env";
+import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
+import { DECIMALS_AMOUNT, MAX_DECIMALS, ZERO_DECIMALS, SUPPORTED_NETWORKS, NATIVE_NETWORK, defaultProtocol } from "@/config/env";
 import { SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 
 export class AssetUtils {
@@ -61,7 +61,7 @@ export class AssetUtils {
     return assetAmount.mul(price);
   }
 
-  public static getAssetInfo(ticker: string) {
+  public static getAssetInfo(ticker: string | undefined) {
     const wallet = useWalletStore();
     const item = wallet.getCurrencyByTicker(ticker);
     const ibcDenom = wallet.getIbcDenomBySymbol(item?.symbol);
@@ -132,13 +132,20 @@ export class AssetUtils {
           networks[k] = {};
         }
 
-        for (const ck in ntwrks.networks.list[k].currencies) {
-          const currency = ntwrks.networks.list[k].currencies[ck];
+        let assets = ntwrks.networks.list[k].currencies;
+        //TODO: fix native
+        if(k == NATIVE_NETWORK.key){
+          assets = ntwrks.networks.list[defaultProtocol].currencies
+        }
+
+        for (const ck in assets) {
+          const currency = assets[ck];
 
           if (currency.icon) {
             const a = AssetUtils.getAsset(ntwrks, ck, k);
             assetIcons[a.key] = currency.icon;
           }
+
           if (currency.native) {
             networks[k][ck] = {
               ...currency.native,
@@ -169,7 +176,7 @@ export class AssetUtils {
 
             const ticker = n.currencies[currency?.ibc?.currency]?.ibc?.currency ?? currency?.ibc?.currency;
 
-            if(c){
+            if (c) {
               networks[k][ticker] = {
                 ...c.native!,
                 forward: currency.forward,
@@ -183,11 +190,10 @@ export class AssetUtils {
         }
       }
     }
-
     return {
       assetIcons,
       networks,
-      lease: ntwrks.lease
+      lease: AssetUtils.getLease(ntwrks)
     }
   }
 
@@ -283,7 +289,7 @@ export class AssetUtils {
       }
     );
 
-    if(networkInfo.forward){
+    if (networkInfo.forward) {
       return AssetUtils.getSourceChannelData(channels, channel!.a.network);
     }
 
@@ -304,40 +310,44 @@ export class AssetUtils {
     return routes;
   }
 
-  public static getLpn(ntwrks: Networks) {
-    switch(ntwrks.lease.Lpn.constructor){
-      case(Object): {
-        const lpn = Object.keys(ntwrks.lease.Lpn)[0];
-        return AssetUtils.getAsset(ntwrks, lpn as string, NATIVE_NETWORK.key as string);
-      }
-      case(Array): {
-        const lpn = (ntwrks.lease.Lpn as Array<string>)[0];
-        return AssetUtils.getAsset(ntwrks, lpn as string, NATIVE_NETWORK.key as string);
-      }
-    }
-  }
-
-  public static getAsset(ntwrks: Networks, key: string, network: string): { asset: Currency, key: string } {
+  public static getAsset(ntwrks: Networks, key: string, network: string): { asset: Currency; key: string } {
     const asset = ntwrks.networks.list[network].currencies[key];
 
     if (asset?.ibc) {
-      return AssetUtils.getAsset(ntwrks, asset.ibc?.currency as string, asset.ibc?.network as string)
+      return AssetUtils.getAsset(ntwrks, asset.ibc?.currency as string, asset.ibc?.network as string);
     }
 
     return { asset, key };
   }
 
-  public static getNative(ntwrks: Networks) {
-    const native = ntwrks.lease.Native.id;
-    return AssetUtils.getAsset(ntwrks, native as string, NATIVE_NETWORK.key as string);
+  public static getNative(ntwrks: Networks, protocol: string = 'OSMOSIS') {
+    const pr = AssetUtils.getProtocol(ntwrks, protocol);
+    const native = pr.Native['dex_currency'];
+    return AssetUtils.getAsset(ntwrks, native as string, ChainConstants.CHAIN_KEY as string);
   }
 
-  public static getLease(ntwrks: Networks) {
-    const lease = Object.keys(ntwrks.lease.Lease);
+  public static getLpn(ntwrks: Networks, protocol: string = 'OSMOSIS') {
+    const pr = AssetUtils.getProtocol(ntwrks, protocol);
+    const lpn = pr.Lpn;
+    return lpn.dex_currency;
+  }
+
+  public static getLease(ntwrks: Networks, protocol: string = 'OSMOSIS') {
+    const pr = AssetUtils.getProtocol(ntwrks, protocol);
+    const lease = Object.keys(pr.Lease);
     return lease.map((c) => {
       const asset = AssetUtils.getAsset(ntwrks, c as string, NATIVE_NETWORK.key as string);
       return asset.key;
     });
+  }
+
+  private static getProtocol(ntwrks: Networks, protocol: string) {
+    for (const key in ntwrks.protocols) {
+      if (ntwrks.protocols[key].DexNetwork == protocol) {
+        return ntwrks.protocols[key];
+      }
+    }
+    throw 'not supported protocol';
   }
 
   public static getChannel(

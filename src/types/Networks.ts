@@ -5,46 +5,50 @@ export interface Networks {
         list: {
             [key: string]: {
                 currencies: {
-                    [key: string]: Currency
-                }
-            }
-        }
+                    [key: string]: Currency;
+                };
+            };
+        };
         channels: {
             a: {
-                network: string,
-                ch: string
-            },
+                network: string;
+                ch: string;
+            };
             b: {
-                network: string,
-                ch: string
-            }
-        }[]
-    }
-    lease: {
-        Lpn: {
-            [key: string]: {}
-        } | string[]
-        Lease: {
-            [key: string]: {
+                network: string;
+                ch: string;
+            };
+        }[];
+    };
+    protocols: {
+        [key: string]: {
+            DexNetwork: string,
+            Lpn: {
+                "dex_currency": string;
+            };
+            Lease: {
+                [key: string]: {
+                    "dex_currency": string;
+                    swap_routes: Array<
+                        {
+                            pool_id: string;
+                            pool_token: string;
+                        }[]
+                    >;
+                };
+            };
+            Native: {
+                "dex_currency": string;
                 swap_routes: Array<
                     {
-                        pool_id: string,
-                        pool_token: string
+                        pool_id: string;
+                        pool_token: string;
                     }[]
-                >
-            }
-        },
-        Native: {
-            id: string,
-            swap_routes: Array<
-                {
-                    pool_id: string,
-                    pool_token: string
-                }[]
-            >
+                >;
+            };
         }
-    },
-    definitions: string[]
+    }
+    definitions: string[];
 }
 
 export interface NetworksInfo {

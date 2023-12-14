@@ -1,6 +1,6 @@
-import type { Coin } from '@cosmjs/proto-signing';
-import { StargateClient } from '@cosmjs/stargate';
-import { Tendermint34Client } from '@cosmjs/tendermint-rpc';
+import type { Coin } from '@0xsquid/sdk/node_modules/@cosmjs/proto-signing';
+import { StargateClient } from '@0xsquid/sdk/node_modules/@cosmjs/stargate';
+import { Tendermint34Client } from '@0xsquid/sdk/node_modules/@cosmjs/tendermint-rpc';
 
 export class Wallet {
     protected stargateClient: StargateClient | undefined;

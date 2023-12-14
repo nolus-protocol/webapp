@@ -1,4 +1,4 @@
-import { DirectSecp256k1Wallet, type OfflineDirectSigner } from "@cosmjs/proto-signing";
+import { DirectSecp256k1Wallet, type OfflineDirectSigner } from "@0xsquid/sdk/node_modules/@cosmjs/proto-signing";
 import type { Wallet } from ".";
 import type { Window as KeplrWindow } from "@keplr-wallet/types/build/window";
 
@@ -7,12 +7,12 @@ import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
 
 import { LedgerSigner } from "@cosmjs/ledger-amino";
 import { WalletConnectMechanism, type NetworkDataV2 } from "@/types";
-import { makeCosmoshubPath, type OfflineAminoSigner } from "@cosmjs/amino";
+import { makeCosmoshubPath, type OfflineAminoSigner } from "@0xsquid/sdk/node_modules/@cosmjs/amino";
 
-import { createBankAminoConverters, createIbcAminoConverters } from "@cosmjs/stargate";
-import { AminoTypes } from "@cosmjs/stargate";
+import { createBankAminoConverters, createIbcAminoConverters } from "@0xsquid/sdk/node_modules/@cosmjs/stargate";
+import { AminoTypes } from "@0xsquid/sdk/node_modules/@cosmjs/stargate";
 import { EncryptionUtils, WalletManager, WalletUtils } from "@/utils";
-import { fromHex } from "@cosmjs/encoding";
+import { fromHex } from "@0xsquid/sdk/node_modules/@cosmjs/encoding";
 import { BaseWallet } from "./BaseWallet";
 
 const aminoTypes = {
@@ -104,7 +104,7 @@ const authenticateLeap = async (wallet: Wallet, network: NetworkDataV2) => {
 const authenticateLedger = async (wallet: Wallet, network: NetworkDataV2) => {
     const transport = await getLedgerTransport();
     const accountNumbers = [0];
-    const paths = accountNumbers.map(makeCosmoshubPath);
+    const paths = accountNumbers.map(makeCosmoshubPath) as any;
     return await createWallet(
         wallet,
         new LedgerSigner(transport, {
