@@ -22,6 +22,7 @@ import { ASSETS } from "@/config/assetsInfo";
 import { ADAPTER_STATUS } from "@web3auth/base";
 import { Buffer } from "buffer";
 import { Lpp, Leaser } from "@nolus/nolusjs/build/contracts";
+import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
 import { CONTRACTS } from "@/config/contracts";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { coin, makeCosmoshubPath } from "@cosmjs/amino";
@@ -31,6 +32,7 @@ import { useApplicationStore } from "../application";
 import { defaultRegistryTypes, } from "@cosmjs/stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { AppUtils } from "@/utils/AppUtils";
+import { Networks, Protocols } from "@nolus/nolusjs/build/types/Networks";
 
 const useWalletStore = defineStore("wallet", {
   state: () => {
@@ -306,9 +308,15 @@ const useWalletStore = defineStore("wallet", {
         if (!WalletUtils.isAuth()) {
           for (const key in currencies) {
             const currency = app.currenciesData![key];
-            const ibcDenom = AssetUtils.makeIBCMinimalDenom(
-              currency.ibc_route,
-              currency.symbol
+            let ticker = currency.ticker;
+            if(ticker == 'USDC'){ //TODO: fix stable
+              ticker = 'USDC_AXELAR';
+            }
+            const ibcDenom = NolusAssetUtils.makeIBCMinimalDenom(
+              ticker,
+              app.networksData as any,
+              Networks.NOLUS,
+              Protocols.osmosis
             );
 
             const data = {
@@ -332,14 +340,18 @@ const useWalletStore = defineStore("wallet", {
 
           return false;
         }
-
-        for (const key in currencies) {
+        for (let key in currencies) {
           const currency = app.currenciesData![key];
-          const ibcDenom = AssetUtils.makeIBCMinimalDenom(
-            currency.ibc_route,
-            currency.symbol
+          let ticker = currency.ticker;
+          if(ticker == 'USDC'){ //TODO: fix stable
+            ticker = 'USDC_AXELAR';
+          }
+          const ibcDenom = NolusAssetUtils.makeIBCMinimalDenom(
+            ticker,
+            app.networksData as any,
+            Networks.NOLUS,
+            Protocols.osmosis
           );
-          console.log(currency)
           ibcBalances.push(
             NolusClient.getInstance()
               .getBalance(walletAddress, ibcDenom)
