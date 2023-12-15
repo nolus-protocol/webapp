@@ -97,6 +97,17 @@
                 "api": "https://api.pulsar.scrttestnet.com"
             }
         ]
-    }
-    
+    },
+    "NEUTRON": {
+        "primary": {
+            "rpc": "https://rpc-pion-1.nolus.cros-nest.net",
+            "api": "https://rest-pion-1.nolus.cros-nest.net"
+        },
+        "fallback": [
+            {
+                "rpc": "https://rpc-falcron.pion-1.ntrn.tech",
+                "api": "https://rest-falcron.pion-1.ntrn.tech"
+            }
+        ]
+        }
 }

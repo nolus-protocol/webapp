@@ -88,14 +88,15 @@
     },
     "NEUTRON": {
     "primary": {
-        "rpc": "https://rpc-falcron.pion-1.ntrn.tech",
-        "api": "https://rest-falcron.pion-1.ntrn.tech"
+        "rpc": "https://rpc-pion-1.nolus.cros-nest.net",
+        "api": "https://rest-pion-1.nolus.cros-nest.net"
     },
     "fallback": [
         {
-            "rpc": "https://neutron-testnet-rpc.polkachu.com",
-            "api": "https://api.pion.remedy.tm.p2p.org"
+            "rpc": "https://rpc-falcron.pion-1.ntrn.tech",
+            "api": "https://rest-falcron.pion-1.ntrn.tech"
         }
     ]
     }
 }
+

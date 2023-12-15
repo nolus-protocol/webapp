@@ -54,5 +54,8 @@ export const ASSETS = {
   },
   Q_ATOM: {
     coinGeckoId: 'cosmos'
+  },
+  NTRN: {
+    coinGeckoId: 'neutron-3'
   }
 };
