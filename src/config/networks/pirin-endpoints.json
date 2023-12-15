@@ -157,5 +157,17 @@
                 "api": "https://api-quicksilver.takeshi.team:443"
             }
         ]
+    },
+    "NEUTRON": {
+        "primary": {
+            "rpc": "https://rpc-neutron-1.nolus.cros-nest.net",
+            "api": "https://rest-neutron-1.nolus.cros-nest.net"
+        },
+        "fallback": [
+            {
+                "rpc": "https://rpc.novel.remedy.tm.p2p.org",
+                "api": "https://api.novel.remedy.tm.p2p.org"
+            }
+        ]
     }
 }
