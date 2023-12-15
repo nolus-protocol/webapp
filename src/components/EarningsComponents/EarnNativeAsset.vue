@@ -14,7 +14,7 @@
           width="32"
         />
         <div class="inline-block">
-          <p class="text-primary nls-font-500 text-18 text-left uppercase m-0">
+          <p class="text-primary nls-font-500 text-18 text-left m-0">
             {{ assetInfo.shortName }}
           </p>
           <p class="text-dark-grey text-12 garet-medium text-left capitalize m-0">

@@ -13,7 +13,7 @@
           width="32"
         />
         <div class="inline-block">
-          <p class="text-primary nls-font-500 text-18 text-left uppercase m-0">
+          <p class="text-primary nls-font-500 text-18 text-left m-0">
             <CurrencyComponent
               :type="CURRENCY_VIEW_TYPES.TOKEN"
               :amount="reward.balance.amount.toString()"

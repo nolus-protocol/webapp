@@ -1,32 +1,38 @@
 <template>
-  <ConfirmExternalComponent v-if="showConfirmScreen"
-                            :network-type="NetworkTypes.cosmos"
-                            :selectedCurrency="selectedCurrency!"
-                            :receiverAddress="(walletStore.wallet?.address as string)"
-                            :password="password"
-                            :amount="amount"
-                            :memo="memo"
-                            :txType="$t(`message.${TxType.SEND}`) + ':'"
-                            :txHash="txHash"
-                            :step="step"
-                            :fee="fee"
-                            :networkCurrencies="networkCurrenciesObject"
-                            :networkKey="selectedNetwork.key"
-                            :networkSymbol="selectedNetwork.symbol"
-                            :onSendClick="onSendClick"
-                            :onBackClick="onConfirmBackClick"
-                            :onOkClick="onClickOkBtn"
-                            @passwordUpdate="(value) => (password = value)" />
+  <ConfirmExternalComponent
+    v-if="showConfirmScreen"
+    :network-type="NetworkTypes.cosmos"
+    :selectedCurrency="selectedCurrency!"
+    :receiverAddress="(walletStore.wallet?.address as string)"
+    :password="password"
+    :amount="amount"
+    :memo="memo"
+    :txType="$t(`message.${TxType.SEND}`) + ':'"
+    :txHash="txHash"
+    :step="step"
+    :fee="fee"
+    :networkCurrencies="networkCurrenciesObject"
+    :networkKey="selectedNetwork.key"
+    :networkSymbol="selectedNetwork.symbol"
+    :onSendClick="onSendClick"
+    :onBackClick="onConfirmBackClick"
+    :onOkClick="onClickOkBtn"
+    @passwordUpdate="(value) => (password = value)"
+  />
   <template v-else>
-    <div class="modal-send-receive-input-area overflow-auto custom-scroll"
-         v-if="selectedNetwork.native">
+    <div
+      class="modal-send-receive-input-area overflow-auto custom-scroll"
+      v-if="selectedNetwork.native"
+    >
       <div class="block text-left">
 
         <div class="block mt-[25px]">
-          <Picker :default-option="networks[0]"
-                  :options="networks"
-                  :label="$t('message.network')"
-                  @update-selected="onUpdateNetwork" />
+          <Picker
+            :default-option="networks[0]"
+            :options="networks"
+            :label="$t('message.network')"
+            @update-selected="onUpdateNetwork"
+          />
         </div>
 
         <div class="block mt-[18px]">
@@ -37,11 +43,13 @@
             {{ WalletUtils.isAuth() ? walletStore.wallet?.address : $t('message.connect-wallet-label') }}
           </p>
           <div class="flex items-center justify-start mt-2">
-            <button class="btn btn-secondary btn-medium-secondary btn-icon mr-2 flex"
-                    @click="
-                      modelValue?.onCopyClick(wallet);
-                    onCopy();
-                    ">
+            <button
+              class="btn btn-secondary btn-medium-secondary btn-icon mr-2 flex"
+              @click="
+                modelValue?.onCopyClick(wallet);
+              onCopy();
+              "
+            >
               <DocumentDuplicateIcon class="icon w-4 h-4" />
               {{ copyText }}
             </button>
@@ -55,38 +63,44 @@
       </div>
     </div>
     <template v-else>
-      <form @submit.prevent="receive"
-            class="modal-form overflow-auto">
+      <form
+        @submit.prevent="receive"
+        class="modal-form overflow-auto"
+      >
         <!-- Input Area -->
         <div class="modal-send-receive-input-area background">
 
           <div class="block text-left">
 
             <div class="block mt-[20px]">
-              <Picker :default-option="selectedNetwork"
-                      :options="networks"
-                      :label="$t('message.network')"
-                      :value="selectedNetwork"
-                      @update-selected="onUpdateNetwork" />
+              <Picker
+                :default-option="selectedNetwork"
+                :options="networks"
+                :label="$t('message.network')"
+                :value="selectedNetwork"
+                @update-selected="onUpdateNetwork"
+              />
             </div>
 
             <div class="block mt-[20px]">
 
-              <CurrencyField id="amount"
-                             :currency-options="networkCurrencies"
-                             :disabled-currency-picker="disablePicker || disablePickerDialog"
-                             :is-loading-picker="disablePicker"
-                             :error-msg="amountErrorMsg"
-                             :is-error="amountErrorMsg !== ''"
-                             :option="selectedCurrency"
-                             :value="amount"
-                             :name="$t('message.amount')"
-                             :label="$t('message.amount-receive')"
-                             :set-input-value="setAmount"
-                             @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
-                             @input="handleAmountChange($event)"
-                             :balance="formatCurrentBalance(selectedCurrency)"
-                             :total="total" />
+              <CurrencyField
+                id="amount"
+                :currency-options="networkCurrencies"
+                :disabled-currency-picker="disablePicker || disablePickerDialog"
+                :is-loading-picker="disablePicker"
+                :error-msg="amountErrorMsg"
+                :is-error="amountErrorMsg !== ''"
+                :option="selectedCurrency"
+                :value="amount"
+                :name="$t('message.amount')"
+                :label="$t('message.amount-receive')"
+                :set-input-value="setAmount"
+                @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
+                @input="handleAmountChange($event)"
+                :balance="formatCurrentBalance(selectedCurrency)"
+                :total="total"
+              />
             </div>
 
             <div>
@@ -102,8 +116,10 @@
         </div>
         <!-- Actions -->
         <div class="modal-send-receive-actions background flex-col">
-          <button class="btn btn-primary btn-large-primary"
-                  :class="{ 'js-loading': isLoading }">
+          <button
+            class="btn btn-primary btn-large-primary"
+            :class="{ 'js-loading': isLoading }"
+          >
             {{ $t("message.receive") }}
           </button>
           <div class="flex justify-between w-full text-light-blue text-[14px] my-2">
@@ -127,7 +143,7 @@ import { CONFIRM_STEP, TxType, type Network, NetworkTypes } from "@/types";
 
 import { onUnmounted, ref, type PropType, inject, watch, computed } from "vue";
 import { DocumentDuplicateIcon } from "@heroicons/vue/24/solid";
-import { ErrorCodes, IGNORE_TRANSFER_ASSETS, NATIVE_NETWORK, SOURCE_PORTS } from "@/config/env";
+import { ErrorCodes, IGNORE_TRANSFER_ASSETS, NATIVE_NETWORK, SOURCE_PORTS, defaultUsdcName } from "@/config/env";
 import { useI18n } from "vue-i18n";
 import { AssetUtils, EnvNetworkUtils, WalletUtils } from "@/utils";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
@@ -241,21 +257,21 @@ const onUpdateNetwork = async (event: Network) => {
         filteredAssets[key] = assets[key];
       }
     }
-   
+
     if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
       const item = AssetUtils.getAssetInfo(props.modelValue?.dialogSelectedCurrency as string);
       const currency = filteredAssets[props.modelValue?.dialogSelectedCurrency as string];
       const asset = {
         balance: coin(0, item.coinMinimalDenom),
-          name: item.shortName,
-          shortName: item.shortName,
-          icon: item.coinIcon,
-          ticker:item.ticker,
-          ibc_route: currency.ibc_route,
-          decimals: item.coinDecimals,
-          symbol: currency.symbol,
-          native: currency.native
-        } as AssetBalance;
+        name: item.shortName,
+        shortName: item.shortName,
+        icon: item.coinIcon,
+        ticker: item.ticker,
+        ibc_route: currency.ibc_route,
+        decimals: item.coinDecimals,
+        symbol: currency.symbol,
+        native: currency.native
+      } as AssetBalance;
       selectedCurrency.value = asset;
     }
 
@@ -273,10 +289,16 @@ const onUpdateNetwork = async (event: Network) => {
         const ibc_route = AssetUtils.makeIBCMinimalDenom(assets[key].ibc_route, assets[key].symbol);
         const balance = WalletUtils.isAuth() ? await client.getBalance(wallet.value as string, ibc_route) : coin(0, ibc_route);
         const icon = app.assetIcons?.[assets[key].ticker] as string;
+        let shortName = assets[key].shortName;
+
+        if(assets[key].ticker == 'USDC'){ //TODO: fix stable
+          shortName = defaultUsdcName;
+        }
+
         return {
           balance,
           name: assets[key].shortName,
-          shortName: assets[key].shortName,
+          shortName: shortName,
           icon: icon,
           ticker: assets[key].ticker,
           ibc_route: assets[key].ibc_route,
