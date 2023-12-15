@@ -17,7 +17,7 @@ import { fromHex, toHex } from "@cosmjs/encoding";
 import { RouteNames } from "@/router/RouterNames";
 import { LedgerSigner } from "@cosmjs/ledger-amino";
 import { decodeTxRaw, type DecodedTxRaw, Registry } from "@cosmjs/proto-signing";
-import { NATIVE_ASSET, LedgerName, defaultUsdcName, defaultUsdcTicker } from "@/config/env";
+import { NATIVE_ASSET, LedgerName, defaultUsdcName, defaultUsdcTicker, defaultWBTCTicker, defaultWETHTicker } from "@/config/env";
 import { ASSETS } from "@/config/assetsInfo";
 import { ADAPTER_STATUS } from "@web3auth/base";
 import { Buffer } from "buffer";
@@ -315,6 +315,15 @@ const useWalletStore = defineStore("wallet", {
               ticker = defaultUsdcTicker;
               shortName = defaultUsdcName
             }
+  
+            if(ticker == 'WBTC'){ //TODO: fix stable
+              ticker = defaultWBTCTicker;
+            }
+  
+            if(ticker == 'WETH'){ //TODO: fix stable
+              ticker = defaultWETHTicker;
+            }
+            
             const ibcDenom = NolusAssetUtils.makeIBCMinimalDenom(
               ticker,
               app.networksData as any,
@@ -324,7 +333,7 @@ const useWalletStore = defineStore("wallet", {
 
             const data = {
               ticker: key,
-              shortName: currency.shortName,
+              shortName: shortName,
               name: currency.name,
               symbol: currency.symbol,
               decimal_digits: currency.decimal_digits
@@ -352,6 +361,15 @@ const useWalletStore = defineStore("wallet", {
             ticker = defaultUsdcTicker;
             shortName = defaultUsdcName
           }
+
+          if(ticker == 'WBTC'){ //TODO: fix stable
+            ticker = defaultWBTCTicker;
+          }
+
+          if(ticker == 'WETH'){ //TODO: fix stable
+            ticker = defaultWETHTicker;
+          }
+          
           const ibcDenom = NolusAssetUtils.makeIBCMinimalDenom(
             ticker,
             app.networksData as any,

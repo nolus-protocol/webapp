@@ -135,7 +135,7 @@ export class AssetUtils {
         let assets = ntwrks.networks.list[k].currencies;
         //TODO: fix native
         if(k == NATIVE_NETWORK.key){
-          assets = ntwrks.networks.list[defaultProtocol].currencies
+          assets = ntwrks.networks.list[defaultProtocol].currencies;
         }
 
         for (const ck in assets) {

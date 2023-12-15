@@ -365,6 +365,10 @@ export const defaultProtocol = 'OSMOSIS';
 export const defaultUsdcName = 'USDC.axl';
 export const defaultUsdcTicker = 'USDC_AXELAR';
 
+export const defaultWETHTicker = 'WETH_AXELAR';
+export const defaultWBTCTicker = 'WBTC_AXELAR';
+
+
 export const SUPPORT_URL = 'https://hub.nolus.io';
 export const ETL_API = "https://etl-cl.nolus.network:8080/api"
 export const DOWNPAYMENT_RANGE_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/downpayment-range.json';
