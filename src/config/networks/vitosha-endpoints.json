@@ -74,17 +74,28 @@
             }
         ]
     },
-"SECRET": {
-    "primary": {
-        "rpc": "https://rpc.testnet.secretsaturn.net",
-        "api": "https://lcd.testnet.secretsaturn.net"
+    "SECRET": {
+        "primary": {
+            "rpc": "https://rpc.testnet.secretsaturn.net",
+            "api": "https://lcd.testnet.secretsaturn.net"
+        },
+        "fallback": [
+            {
+                "rpc": "https://rpc.pulsar.scrttestnet.com",
+                "api": "https://api.pulsar.scrttestnet.com"
+            }
+        ]
     },
-    "fallback": [
-        {
-            "rpc": "https://rpc.pulsar.scrttestnet.com",
-            "api": "https://api.pulsar.scrttestnet.com"
-        }
-    ]
-}
-
+    "NEUTRON": {
+        "primary": {
+            "rpc": "https://rpc-falcron.pion-1.ntrn.tech",
+            "api": "https://rest-falcron.pion-1.ntrn.tech"
+        },
+        "fallback": [
+            {
+                "rpc": "https://neutron-testnet-rpc.polkachu.com",
+                "api": "https://api.pion.remedy.tm.p2p.org"
+            }
+        ]
+    }
 }

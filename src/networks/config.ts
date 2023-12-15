@@ -34,6 +34,12 @@ import { embedChainInfo as stargazeChainInfo } from './stargaze/contants';
 import { NETWORK as QUICKSILVER_NETWORK } from './quicksilver/network';
 import { embedChainInfo as quicksilverChainInfo } from './quicksilver/contants';
 
+import { NETWORK as NEUTRON_NETWORK } from './neutron/network';
+import { embedChainInfo as neutronChainInfo } from './neutron/contants';
+
+import { NETWORK as DYDX_NETWORK } from './dydx/network';
+import { embedChainInfo as dydxChainInfo } from './dydx/contants';
+
 import { useApplicationStore } from "@/stores/application";
 import type { ExternalCurrenciesType } from "@/types/CurreciesType";
 
@@ -159,6 +165,26 @@ export const SUPPORTED_NETWORKS_DATA: {
         symbol: "QCK",
         forward: true
     },
+    NEUTRON: {
+        prefix: "neutron",
+        value: "neutron",
+        label: "Neutron",
+        native: false,
+        estimation: 20,
+        key: "NEUTRON",
+        symbol: "NTRN",
+        forward: true
+    },
+    DYDX: {
+        prefix: "dydx",
+        value: "dydx",
+        label: "Dydx",
+        native: false,
+        estimation: 20,
+        key: "DYDX",
+        symbol: "DYDX",
+        forward: true
+    },
 }
 
 export const NETWORKS_DATA: {
@@ -183,6 +209,9 @@ export const NETWORKS_DATA: {
             SUPPORTED_NETWORKS_DATA.OSMOSIS,
             SUPPORTED_NETWORKS_DATA.COSMOS_HUB,
             SUPPORTED_NETWORKS_DATA.AXELAR,
+            SUPPORTED_NETWORKS_DATA.JUNO,
+            SUPPORTED_NETWORKS_DATA.NEUTRON,
+            SUPPORTED_NETWORKS_DATA.DYDX,
         ],
         supportedNetworks: {
             OSMOSIS: {
@@ -211,6 +240,33 @@ export const NETWORKS_DATA: {
                     return app?.networks?.[AXELAR_NETWORK.key] as ExternalCurrenciesType;
                 },
                 embedChainInfo: alexarChainInfo,
+            },
+            JUNO: {
+                ...JUNO_NETWORK,
+                explorer: 'https://testnet.mintscan.io/juno-testnet/txs',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[JUNO_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: junoChainInfo,
+            },
+            NEUTRON: {
+                ...NEUTRON_NETWORK,
+                explorer: 'https://testnet.mintscan.io/neutron-testnet/txs',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[NEUTRON_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: neutronChainInfo,
+            },
+            DYDX: {
+                ...DYDX_NETWORK,
+                explorer: 'https://testnet.mintscan.io/dydx-testnet/txs',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[DYDX_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: dydxChainInfo,
             }
         }
     },
@@ -220,6 +276,8 @@ export const NETWORKS_DATA: {
             SUPPORTED_NETWORKS_DATA.OSMOSIS,
             SUPPORTED_NETWORKS_DATA.COSMOS_HUB,
             SUPPORTED_NETWORKS_DATA.AXELAR,
+            SUPPORTED_NETWORKS_DATA.JUNO,
+            SUPPORTED_NETWORKS_DATA.NEUTRON
         ],
         supportedNetworks: {
             OSMOSIS: {
@@ -248,6 +306,24 @@ export const NETWORKS_DATA: {
                     return app?.networks?.[AXELAR_NETWORK.key] as ExternalCurrenciesType;
                 },
                 embedChainInfo: alexarChainInfo,
+            },
+            JUNO: {
+                ...JUNO_NETWORK,
+                explorer: 'https://testnet.mintscan.io/juno-testnet/txs',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[JUNO_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: junoChainInfo,
+            },
+            NEUTRON: {
+                ...NEUTRON_NETWORK,
+                explorer: 'https://testnet.mintscan.io/neutron-testnet/txs',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[NEUTRON_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: neutronChainInfo,
             }
         }
     },

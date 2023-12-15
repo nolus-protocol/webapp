@@ -11,6 +11,8 @@ import { Disparcher } from "@nolus/nolusjs/build/contracts";
 import { CONTRACTS } from "@/config/contracts";
 import { AppUtils } from "@/utils/AppUtils";
 import { WalletConnectMechanism } from "@/types";
+import { Protocols } from "@nolus/nolusjs/build/types/Networks";
+import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
 
 const useApplicationStore = defineStore("application", {
   state: () => {
@@ -31,22 +33,31 @@ const useApplicationStore = defineStore("application", {
   },
   actions: {
     async [ApplicationActionTypes.LOAD_CURRENCIES]() {
-    
-      try{
+
+      try {
         const network = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
         const currenciesData = await network.currencies();
         const data = AssetUtils.parseNetworks(currenciesData);
         this.assetIcons = data.assetIcons;
         this.networks = data.networks;
         this.networksData = currenciesData;
-        
-        const native = AssetUtils.getNative(currenciesData).key
-        const lpn = AssetUtils.getLpn(currenciesData)!;
+
+        const native = AssetUtils.getNative(currenciesData).key;
+
+        this.lpn = [];
         this.native = data.networks[NATIVE_NETWORK.key][native];
-        this.lpn = data.networks[NATIVE_NETWORK.key]['USDC'];
+
+        for (const protocol in Protocols) {
+          const p = Protocols[protocol as keyof typeof Protocols];
+          const lpn = NolusAssetUtils.getLpn(currenciesData, p);
+          this.lpn.push(
+            data.networks[NATIVE_NETWORK.key][`${lpn}@${p}`],
+          )
+        }
+
         this.currenciesData = data.networks[NATIVE_NETWORK.key];
         this.lease = AssetUtils.getLease(currenciesData);
-      }catch(e){
+      } catch (e) {
         console.log(e)
       }
 

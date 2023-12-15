@@ -1,10 +1,11 @@
-import { ChainConstants } from "@nolus/nolusjs";
-
 export const ASSETS = {
   NLS: {
     coinGeckoId: "nolus"
   },
   USDC: {
+    coinGeckoId: "usd-coin"
+  },
+  USDC_AXELAR: {
     coinGeckoId: "usd-coin"
   },
   ATOM: {
@@ -54,5 +55,11 @@ export const ASSETS = {
   },
   Q_ATOM: {
     coinGeckoId: 'cosmos'
+  },
+  NTRN: {
+    coinGeckoId: 'neutron-3'
+  },
+  DYDX: {
+    coinGeckoId: 'dydx-chain'
   }
 };

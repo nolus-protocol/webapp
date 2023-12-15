@@ -5,8 +5,9 @@ import { useWalletStore } from "@/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
 import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
-import { DECIMALS_AMOUNT, MAX_DECIMALS, ZERO_DECIMALS, SUPPORTED_NETWORKS, NATIVE_NETWORK, defaultProtocol } from "@/config/env";
+import { DECIMALS_AMOUNT, MAX_DECIMALS, ZERO_DECIMALS, SUPPORTED_NETWORKS, NATIVE_NETWORK, NATIVE_ASSET } from "@/config/env";
 import { SUPPORTED_NETWORKS_DATA } from "@/networks/config";
+import { Protocols } from "@nolus/nolusjs/build/types/Networks";
 
 export class AssetUtils {
   public static makeIBCMinimalDenom(
@@ -133,63 +134,54 @@ export class AssetUtils {
         }
 
         let assets = ntwrks.networks.list[k].currencies;
-        //TODO: fix native
-        if(k == NATIVE_NETWORK.key){
-          assets = ntwrks.networks.list[defaultProtocol].currencies
+
+        if (k == NATIVE_NETWORK.key) {
+          for(const protocol in Protocols){
+            const p = Protocols[protocol as keyof typeof Protocols];
+            for (const key in ntwrks.networks.list[p].currencies) {
+              assets[`${key}@${p}`] = ntwrks.networks.list[p].currencies[key];
+            };
+          }
         }
 
         for (const ck in assets) {
           const currency = assets[ck];
-
           if (currency.icon) {
-            const a = AssetUtils.getAsset(ntwrks, ck, k);
-            assetIcons[a.key] = currency.icon;
+            assetIcons[ck] = currency.icon;
           }
 
           if (currency.native) {
-            networks[k][ck] = {
-              ...currency.native,
-              forward: currency.forward,
-              shortName: currency.native?.ticker,
-              ticker: ck,
-              native: true,
-              ibc_route: []
+            if (currency.native.ticker != NATIVE_ASSET.ticker) {
+              networks[k][ck] = {
+                ...currency.native,
+                forward: undefined,
+                shortName: currency.native?.ticker,
+                ticker: currency.native.ticker,
+                native: k == NATIVE_NETWORK.key ? false : true,
+                ibc_route: []
+              }
             }
           }
 
           if (currency.ibc) {
             const n = ntwrks.networks.list[currency.ibc.network];
-            const ibc_route = [];
-
-            const channel = AssetUtils.getSourceChannel(ntwrks.networks.channels, k, currency.ibc.network, k);
-
-            ibc_route.push(channel as string);
-
-            let c = n.currencies[currency.ibc.currency];
-
-            if (c?.ibc) {
-              const n = ntwrks.networks.list[c.ibc.network];
-              const channel2 = AssetUtils.getChannel(ntwrks.networks.channels, c.ibc, currency.ibc.network);
-              c = n.currencies[c.ibc.currency];
-              ibc_route.push(channel2?.ch as string);
-            }
-
+            const c = n.currencies[currency.ibc.currency];
             const ticker = n.currencies[currency?.ibc?.currency]?.ibc?.currency ?? currency?.ibc?.currency;
-
             if (c) {
-              networks[k][ticker] = {
+              networks[k][ck] = {
                 ...c.native!,
-                forward: currency.forward,
+                forward: undefined,
                 shortName: c.native?.ticker as string,
                 ticker: ticker,
                 native: false,
-                ibc_route
+                ibc_route: []
               }
             }
           }
         }
       }
     }
+
     return {
       assetIcons,
       networks,

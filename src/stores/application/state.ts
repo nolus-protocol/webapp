@@ -16,6 +16,6 @@ export type State = {
   sessionExpired:  boolean,
   currenciesData: ExternalCurrenciesType | null,
   native: ExternalCurrencyType | null,
-  lpn: ExternalCurrencyType | null,
+  lpn: ExternalCurrencyType[] | null,
   lease: string[]
 };

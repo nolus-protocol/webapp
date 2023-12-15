@@ -1,8 +1,8 @@
 import type { Endpoint, Node, API, ARCHIVE_NODE, SquiRouterNetworks } from "@/types/NetworkConfig";
+import type { News } from "@/types/News";
 import { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL, Filament, NETWORKS, NEWS_URL, OPEAN_LEASE_FEE_URL, SWAP_FEE_URL, SquidRouter, isDev, languages } from "@/config/env";
 import { EnvNetworkUtils } from ".";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
-import type { News } from "@/types/News";
 
 export class AppUtils {
 

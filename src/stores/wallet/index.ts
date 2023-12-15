@@ -308,10 +308,10 @@ const useWalletStore = defineStore("wallet", {
         if (!WalletUtils.isAuth()) {
           for (const key in currencies) {
             const currency = app.currenciesData![key];
-            let ticker = currency.ticker;
+            let [ticker, protocol] = key.split('@');
             let shortName = currency.shortName;
 
-            if(ticker == 'USDC'){ //TODO: fix stable
+            if (ticker == 'USDC') { //TODO: fix stable
               ticker = defaultUsdcTicker;
               shortName = defaultUsdcName
             }
@@ -319,7 +319,7 @@ const useWalletStore = defineStore("wallet", {
               ticker,
               app.networksData as any,
               Networks.NOLUS,
-              Protocols.osmosis
+              protocol as Protocols
             );
 
             const data = {
@@ -343,12 +343,13 @@ const useWalletStore = defineStore("wallet", {
 
           return false;
         }
+
         for (const key in currencies) {
           const currency = app.currenciesData![key];
-          let ticker = currency.ticker;
           let shortName = currency.shortName;
+          let [ticker, protocol] = key.split('@');
 
-          if(ticker == 'USDC'){ //TODO: fix stable
+          if (ticker == 'USDC') { //TODO: fix stable
             ticker = defaultUsdcTicker;
             shortName = defaultUsdcName
           }
@@ -356,7 +357,7 @@ const useWalletStore = defineStore("wallet", {
             ticker,
             app.networksData as any,
             Networks.NOLUS,
-            Protocols.osmosis
+            protocol as Protocols
           );
           ibcBalances.push(
             NolusClient.getInstance()
@@ -841,24 +842,28 @@ const useWalletStore = defineStore("wallet", {
           };
         }
 
-        const key = currency?.ticker as keyof typeof ASSETS;
+        const [ticker] = (currency?.ticker ?? '').split('@');
+
         return {
-          ticker: key,
+          ticker: ticker,
           shortName: currency.shortName,
           coinDenom: currency.name,
           coinMinimalDenom: denom,
           coinDecimals: Number(currency.decimal_digits),
           coinAbbreviation: currency.name,
-          coinGeckoId: ASSETS[key].coinGeckoId,
-          coinIcon: assetIcons[key]
+          coinGeckoId: ASSETS[ticker as keyof typeof ASSETS].coinGeckoId,
+          coinIcon: assetIcons[ticker]
         };
       };
     },
     getCurrencyByTicker: (state) => {
       const app = useApplicationStore();
       return (ticker: string | undefined) => {
+        if(ticker == 'USDC'){
+          ticker = defaultUsdcTicker;
+        }
         return app.currenciesData![
-          ticker!
+          `${ticker!}@${Protocols.osmosis}`
         ];
       };
     },

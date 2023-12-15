@@ -61,8 +61,9 @@ const useOracleStore = defineStore("oracle", {
             };
             pr[currency.symbol] = tokenPrice;
           }
-          const c = app.currenciesData![app.lpn?.ticker as string];
-          pr[c.symbol] = { symbol: app.lpn?.ticker as string, amount: `${LPN_PRICE}` };
+          for(const lpn of app.lpn ?? []){
+            pr[lpn.symbol] = { symbol: lpn.ticker as string, amount: `${LPN_PRICE}` };
+          }
         }
 
         this.prices = pr;
