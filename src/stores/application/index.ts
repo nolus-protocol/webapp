@@ -122,7 +122,7 @@ const useApplicationStore = defineStore("application", {
 
         const [data, dispatcherRewards] = await Promise.all([
           fetch(`${ETL_API}/earn-apr`).then((data) => data.json()),
-          dispatcherClient.calculateRewards().catch(() => 0)
+          dispatcherClient.calculateRewards().catch(() => 130)
         ]);
 
         this.apr = Number(data.earn_apr);
