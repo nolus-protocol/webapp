@@ -1,10 +1,10 @@
 
 import { fileURLToPath, URL } from 'node:url';
 import { defineConfig } from 'vite';
+import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfill";
 
 import vue from '@vitejs/plugin-vue';
 import vueI18n from '@intlify/unplugin-vue-i18n/vite';
-import NodeGlobalsPolyfillPlugin from "@esbuild-plugins/node-globals-polyfill";
 import rollupNodePolyFill from 'rollup-plugin-polyfill-node';
 
 export default defineConfig({
