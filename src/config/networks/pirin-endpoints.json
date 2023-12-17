@@ -16,8 +16,8 @@
     },
     "OSMOSIS": {
         "primary": {
-            "rpc": "https://rpc-osmosis-1.nolus.cros-nest.net",
-            "api": "https://rest-osmosis-1.nolus.cros-nest.net/"
+            "rpc": "https://rpc.osmosis.zone",
+            "api": "https://lcd.osmosis.zone"
         },
         "fallback": [
             {
