@@ -157,6 +157,8 @@ const liquiStakeTokens = {
   }
 }
 
+const ignore = ['STK_ATOM'];
+
 onMounted(() => {
   if (props.modelValue.dialogSelectedCurrency) {
     const index = coinList.findIndex((item) => {
@@ -231,7 +233,7 @@ const balances = computed(() => {
   const balances = wallet.balances;
   return balances.filter((item) => {
     const currency = wallet.currencies[item.balance.denom];
-    if (IGNORE_LEASE_ASSETS.includes(currency.ticker)) {
+    if (IGNORE_LEASE_ASSETS.includes(currency.ticker) || ignore.includes(currency.ticker)) {
       return false;
     }
     return app.lpn?.ticker == currency.ticker || app.lease.includes(currency.ticker);
@@ -240,7 +242,7 @@ const balances = computed(() => {
 
 const coinList = props.modelValue.currentBalance.filter((item) => {
   const currency = wallet.currencies[item.balance.denom];
-  if (IGNORE_LEASE_ASSETS.includes(currency.ticker)) {
+  if (IGNORE_LEASE_ASSETS.includes(currency.ticker) || ignore.includes(currency.ticker)) {
     return false;
   }
   return app.lease.includes(currency.ticker);
