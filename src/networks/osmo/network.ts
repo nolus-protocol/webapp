@@ -1,7 +1,7 @@
 export const NETWORK = {
     prefix: "osmo",
     key: "OSMOSIS",
-    gasMuplttiplier: 2,
+    gasMuplttiplier: 2.5,
     bip44Path: "44'/118'/0'/0/0",
     ibcTransferTimeout: 60,
     ticker: "OSMO",
