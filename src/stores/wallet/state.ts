@@ -8,7 +8,6 @@ export interface AssetBalance {
   name?: string,
   ticker?: string,
   shortName?: string,
-  ibc_route?: string[],
   decimals?: number,
   symbol?: string,
   native?: boolean,

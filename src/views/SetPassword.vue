@@ -3,15 +3,16 @@
     @submit.prevent="clickContinue"
     class="block rounded-2xl background md:pb-10 pt-6 pb-[300px] -mt-8 md:mt-auto md:border nls-border shadow-box w-screen md:w-[516px] outline"
   >
-    <h1
-      class="text-to-big-number text-primary text-center relative relative z-[2]"
-    >
+    <h1 class="text-to-big-number text-primary text-center relative relative z-[2]">
       <button
         class="align-baseline absolute left-0 top-2/4 -mt-3 px-4 md:px-10"
         type="button"
         @click="clickBack"
       >
-        <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
+        <ArrowLeftIcon
+          aria-hidden="true"
+          class="h-6 w-6"
+        />
       </button>
       <span class="inline-block align-baseline text-28 md:text-32">
         {{ $t("message.set-password") }}
@@ -48,14 +49,11 @@
       <button class="btn btn-primary btn-large-primary">
         {{ $t("message.continue") }}
       </button>
-      <div
-        class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"
-      ></div>
+      <div class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]">
+      </div>
     </div>
 
-    <div
-      class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"
-    ></div>
+    <div class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
 
     <div
       class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal"
@@ -79,7 +77,6 @@ import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 
 const password = ref("");
 const confirmPassword = ref("");
-
 const errorMessage = ref("");
 const confirmErrorMessage = ref("");
 const i18n = useI18n();
@@ -87,14 +84,14 @@ const walletStore = useWalletStore();
 const minLength = 8;
 const specialSymbols = "-!$%^&*()_+|~=`{}[]:/;<>?,.@#";
 
-const clickBack = () => {
+function clickBack() {
   if (history.length > 2) {
     return router.back();
   }
   return router.push({ name: RouteNames.AUTH });
 };
 
-const clickContinue = () => {
+function clickContinue() {
   if (validate()) {
     return false;
   }
@@ -105,13 +102,13 @@ const clickContinue = () => {
   router.push({ name: RouteNames.SET_WALLET_NAME });
 };
 
-const validate = () => {
+function validate() {
   const password = validatePassword();
   const confirm = validateConfirmPassword();
   return password || confirm;
 };
 
-const validatePassword = () => {
+function validatePassword() {
   if (password.value === "") {
     errorMessage.value = i18n.t("message.password-error");
     return true;
@@ -159,7 +156,7 @@ const validatePassword = () => {
   return false;
 };
 
-const validateConfirmPassword = () => {
+function validateConfirmPassword() {
   if (confirmPassword.value === "") {
     confirmErrorMessage.value = i18n.t("message.confirm-password-error");
     return true;

@@ -261,8 +261,6 @@ const formatAmount = (value: string) => {
 }
 
 const calculateFee = () => {
-  const selectedCurrency = props.selectedCurrency;
-
   switch (props.networkType) {
     case (NetworkTypes.cosmos): {
       return calculateFeeCosmos();
@@ -277,7 +275,7 @@ const calculateFeeCosmos = () => {
   const currency = props.networkCurrencies?.[networkData.value.ticker]!;
   return CurrencyUtils.convertMinimalDenomToDenom(
     props.fee!.amount.toString(),
-    AssetUtils.makeIBCMinimalDenom(currency.ibc_route, currency.symbol),
+    props.selectedCurrency.balance.denom,
     props.networkSymbol as string,
     Number(currency.decimal_digits ?? currency.decimals)
   );
@@ -297,7 +295,7 @@ const getMinimalDenom = () => {
 
   switch (props.networkType) {
     case (NetworkTypes.cosmos): {
-      const coinMinimalDenom = AssetUtils.makeIBCMinimalDenom(selectedCurrency.ibc_route!, selectedCurrency.symbol!);
+      const coinMinimalDenom = selectedCurrency.balance.denom
       return coinMinimalDenom;
     }
     case (NetworkTypes.evm): {

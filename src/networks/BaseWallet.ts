@@ -4,6 +4,7 @@ import type { EncodeObject, OfflineSigner, TxBodyEncodeObject } from '@cosmjs/pr
 import type { Tendermint34Client } from '@cosmjs/tendermint-rpc';
 import type { Coin } from 'cosmjs-types/cosmos/base/v1beta1/coin';
 import type { MsgExecuteContract } from 'cosmjs-types/cosmwasm/wasm/v1/tx';
+import { type SignerData } from "@cosmjs/stargate";
 
 import { toHex } from '@cosmjs/encoding';
 import { MsgSend } from 'cosmjs-types/cosmos/bank/v1beta1/tx';
@@ -16,19 +17,12 @@ import { calculateFee, type DeliverTxResponse, QueryClient, setupAuthExtension, 
 import { accountFromAny } from './accountParser';
 import { encodeEthSecp256k1Pubkey, encodePubkey } from './encode';
 import { SUPPORTED_NETWORKS_DATA } from './config';
+import { isOfflineDirectSigner, makeAuthInfoBytes, makeSignDoc } from "@cosmjs/proto-signing";
 
-import {
-    isOfflineDirectSigner,
-    makeAuthInfoBytes,
-    makeSignDoc,
-} from "@cosmjs/proto-signing";
 import { makeSignDoc as makeSignDocAmino } from "@cosmjs/amino";
 import { fromBase64 } from "@cosmjs/encoding";
 import { Int53 } from "@cosmjs/math";
 import { assert } from "@cosmjs/utils";
-import {
-    type SignerData,
-} from "@cosmjs/stargate";
 import { SignMode } from 'cosmjs-types/cosmos/tx/signing/v1beta1/signing';
 
 export class BaseWallet extends SigningCosmWasmClient {

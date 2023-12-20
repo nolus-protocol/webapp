@@ -299,8 +299,9 @@ const message = (msg: Object | any) => {
 
         if (data.close_position?.partial_close) {
           const currency = wallet.getCurrencyByTicker(data.close_position?.partial_close.amount.ticker);
-          const denom = AssetUtils.makeIBCMinimalDenom(currency.ibc_route, currency.symbol);
-          const c = coin(data.close_position?.partial_close.amount.amount, denom);
+          // console.log(data.close_position?.partial_close.amount.ticker) //TODO: fix
+          // const denom = AssetUtils.makeIBCMinimalDenom(currency.ibc_route, currency.symbol);
+          const c = coin(data.close_position?.partial_close.amount.amount, data.close_position?.partial_close.amount.ticker);
           const token = getCurrency(c);
           return i18n.t('message.partial-close-action', {
             ticker: data.close_position.currency,

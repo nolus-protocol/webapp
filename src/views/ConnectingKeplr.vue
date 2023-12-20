@@ -8,11 +8,12 @@
         type="button"
         @click="clickBack"
       >
-        <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
+        <ArrowLeftIcon
+          aria-hidden="true"
+          class="h-6 w-6"
+        />
       </button>
-      <span
-        class="inline-block align-baseline text-28 md:text-32 relative z-[2]"
-      >
+      <span class="inline-block align-baseline text-28 md:text-32 relative z-[2]">
         {{ $t("message.connecting-kepler") }}
       </span>
     </h1>
@@ -24,14 +25,10 @@
         {{ $t("message.approving-extension") }}
       </p>
       <div class="mt-6 md:flex hidden">
-        <button
-          class="btn btn-primary btn-large-primary mr-4 js-loading -px-20"
-        >
+        <button class="btn btn-primary btn-large-primary mr-4 js-loading -px-20">
           {{ $t("message.connecting") }}
         </button>
-        <div
-          class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"
-        ></div>
+        <div class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"></div>
       </div>
     </div>
     <div
@@ -47,7 +44,7 @@
     v-if="showError"
     @close-modal="
       showError = false;
-      goToAuth();
+    goToAuth();
     "
     route="alert"
   >
@@ -73,11 +70,15 @@ const wallet = useWalletStore();
 const showError = ref(false);
 const errorMessage = ref("");
 
-const clickBack = () => {
+onMounted(async () => {
+  await connectKeplr();
+});
+
+function clickBack() {
   router.replace({ name: RouteNames.AUTH });
 };
 
-const connectKeplr = async () => {
+async function connectKeplr() {
   try {
     await wallet[WalletActionTypes.CONNECT_KEPLR]({ isFromAuth: true });
   } catch (e: Error | any) {
@@ -87,17 +88,13 @@ const connectKeplr = async () => {
   }
 };
 
-const clickTryAgain = async () => {
+async function clickTryAgain() {
   showError.value = false;
   errorMessage.value = "";
   await connectKeplr();
 };
 
-onMounted(async () => {
-  await connectKeplr();
-});
-
-const goToAuth = () => {
+function goToAuth() {
   router.replace({ name: RouteNames.AUTH });
 };
 </script>

@@ -33,7 +33,6 @@
             :total="modelValue.selectedCurrency.balance"
           />
         </div>
-
         <div v-if="modelValue.network.native" class="block mt-[20px]">
           <InputField
             :error-msg="modelValue.receiverErrorMsg"
@@ -97,6 +96,7 @@ const props = defineProps({
     default: {} as object,
   },
 });
+
 const app = useApplicationStore();
 const disablePickerDialog = ref(false);
 
@@ -104,7 +104,8 @@ const networks = computed(() => {
   const n: string[] = [];
   if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
     for (const key in app.networks ?? {}) {
-      const c = app.networks?.[key]?.[props.modelValue?.dialogSelectedCurrency as string];
+      const [ckey] = props.modelValue?.dialogSelectedCurrency.split('@');
+      const c = app.networks?.[key]?.[props.modelValue?.dialogSelectedCurrency as string] ?? app.networks?.[key]?.[ckey as string];
       if (c) {
         n.push(key);
       }

@@ -44,7 +44,10 @@
           <p class="text-center">
             {{ $t("message.empty-lease") }}
           </p>
-          <a @click="showLeaseModal = true" class="text-[#2868E1] mt-2 cursor-pointer">
+          <a
+            @click="showLeaseModal = true"
+            class="text-[#2868E1] mt-2 cursor-pointer"
+          >
             {{ $t("message.lease-now") }}
           </a>
         </div>
@@ -108,13 +111,13 @@ onUnmounted(() => {
 watch(
   () => applicationRef.sessionExpired.value,
   (value) => {
-    if(value){
+    if (value) {
       clearInterval(timeOut);
     }
   }
 );
 
-const onCloseLease = () => {
+function onCloseLease() {
   showLeaseModal.value = false;
 }
 
@@ -124,7 +127,7 @@ function onLeaseError(e: Error | any) {
   errorDialog.value.tryAgain = onTryAgain;
 }
 
-const onTryAgain = async () => {
+async function onTryAgain() {
   errorDialog.value.showDialog = false;
   errorDialog.value.errorMessage = "";
   getLeases();

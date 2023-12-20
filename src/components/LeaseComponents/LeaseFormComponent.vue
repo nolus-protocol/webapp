@@ -21,7 +21,6 @@
                          @input="handleDownPaymentChange($event)"
                          @update-currency="(event) => (modelValue.selectedDownPaymentCurrency = event)" />
         </div>
-
         <div class="block mt-[25px]">
           <Picker class="scrollbar"
                   :default-option="coinList[selectedIndex]"

@@ -9,7 +9,10 @@
         type="button"
         @click="clickBack"
       >
-        <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
+        <ArrowLeftIcon
+          aria-hidden="true"
+          class="h-6 w-6"
+        />
       </button>
       <span class="inline-block align-baseline text-28 md:text-32">
         {{ $t("message.import-seed") }}
@@ -32,15 +35,11 @@
         <button class="btn btn-primary btn-large-primary mr-4">
           {{ $t("message.unlock") }}
         </button>
-        <div
-          class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"
-        ></div>
+        <div class="background h-[60px] relative md:hidden mt-[-50px] mx-[-2px]"></div>
       </div>
     </div>
 
-    <div
-      class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"
-    ></div>
+    <div class="background h-[400px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
 
     <div
       class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background absolute inset-x-0 bottom-0 md:relative shadow-modal"
@@ -51,7 +50,11 @@
     </div>
   </form>
 
-  <Modal v-if="showError" route="alert" @close-modal="showError = false">
+  <Modal
+    v-if="showError"
+    route="alert"
+    @close-modal="showError = false"
+  >
     <ErrorDialog
       :title="$t('message.error-connecting')"
       :message="modalErrorMessage"
@@ -79,17 +82,17 @@ const seedErrorMessage = ref("");
 const i18n = useI18n();
 const wallet = useWalletStore();
 
-const clickTryAgain = async () => {
+async function clickTryAgain() {
   showError.value = false;
   modalErrorMessage.value = "";
   importStr.value = "";
 };
 
-const clickBack = () => {
+function clickBack() {
   router.replace({ name: RouteNames.AUTH });
 };
 
-const clickImport = async () => {
+async function clickImport() {
   if (importStr.value.length == 0) {
     seedErrorMessage.value = i18n.t("message.text-field-error");
     return;

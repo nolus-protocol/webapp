@@ -29,6 +29,7 @@ const useApplicationStore = defineStore("application", {
       lease: [] as string[],
       currenciesData: null,
       sessionExpired: false,
+      protocols: [] as string[],
     } as State;
   },
   actions: {
@@ -38,25 +39,34 @@ const useApplicationStore = defineStore("application", {
         const network = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
         const currenciesData = await network.currencies();
         const data = AssetUtils.parseNetworks(currenciesData);
+        const lease = new Set<string>();
+
         this.assetIcons = data.assetIcons;
         this.networks = data.networks;
         this.networksData = currenciesData;
 
-        const native = AssetUtils.getNative(currenciesData).key;
+        const native = NolusAssetUtils.getNativeAsset(currenciesData);
+        this.protocols =  NolusAssetUtils.getProtocols(this.networksData!);
 
         this.lpn = [];
         this.native = data.networks[NATIVE_NETWORK.key][native];
 
-        for (const protocol in Protocols) {
-          const p = Protocols[protocol as keyof typeof Protocols];
-          const lpn = NolusAssetUtils.getLpn(currenciesData, p);
+        for (const protocol of this.protocols) {
+          const lpn = NolusAssetUtils.getLpn(currenciesData, protocol);
           this.lpn.push(
-            data.networks[NATIVE_NETWORK.key][`${lpn}@${p}`],
+            data.networks[NATIVE_NETWORK.key][`${lpn}@${protocol}`],
           )
         }
 
         this.currenciesData = data.networks[NATIVE_NETWORK.key];
-        this.lease = AssetUtils.getLease(currenciesData);
+
+        for (const protocol of this.protocols) {
+          for(const l of NolusAssetUtils.getLease(currenciesData, protocol as Protocols)){
+            lease.add(l);
+          }
+        }
+        
+        this.lease = Array.from(lease);
       } catch (e) {
         console.log(e)
       }
@@ -73,7 +83,6 @@ const useApplicationStore = defineStore("application", {
         this.network.networkAddresses = {
           ...NETWORKS[this.network.networkName]
         };
-
 
         switch (WalletManager.getWalletConnectMechanism()) {
           case WalletConnectMechanism.EXTENSION: {
@@ -133,7 +142,7 @@ const useApplicationStore = defineStore("application", {
 
         const [data, dispatcherRewards] = await Promise.all([
           fetch(`${ETL_API}/earn-apr`).then((data) => data.json()),
-          dispatcherClient.calculateRewards().catch(() => 0)
+          dispatcherClient.calculateRewards().catch(() => 130)
         ]);
 
         this.apr = Number(data.earn_apr);

@@ -117,11 +117,11 @@ import Modal from "@/components/modals/templates/Modal.vue";
 import TermsDialog from "@/components/modals/TermsDialog.vue";
 import router from "@/router";
 import { RouteNames } from "@/router/RouterNames";
-import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
+import { useWalletStore } from "@/stores/wallet";
 import { ref } from "vue";
 
-const wallet = useWalletStore();
-const loadingGoogle = ref(false);
+// const wallet = useWalletStore();
+// const loadingGoogle = ref(false);
 const showTermsModal = ref(false);
 
 const clickConnectToKeplr = () => {
@@ -140,25 +140,25 @@ const onShowTermsModal = () => {
   showTermsModal.value = true;
 }
 
-const clickImportSeed = () => {
-  router.push({ name: RouteNames.IMPORT_SEED });
-};
+// const clickImportSeed = () => {
+//   router.push({ name: RouteNames.IMPORT_SEED });
+// };
 
-const clickCreateAccount = () => {
-  router.push({ name: RouteNames.CREATE_ACCOUNT });
-};
+// const clickCreateAccount = () => {
+//   router.push({ name: RouteNames.CREATE_ACCOUNT });
+// };
 
-const googleAuth = async () => {
-  try {
-    loadingGoogle.value = true;
-    const res = await wallet[WalletActionTypes.CONNECT_GOOGLE]();
-    if (res) {
-      await router.push({ name: RouteNames.SET_PASSWORD });
-    }
-  } catch (error: Error | any) {
-    loadingGoogle.value = false;
-  }
-};
+// const googleAuth = async () => {
+//   try {
+//     loadingGoogle.value = true;
+//     const res = await wallet[WalletActionTypes.CONNECT_GOOGLE]();
+//     if (res) {
+//       await router.push({ name: RouteNames.SET_PASSWORD });
+//     }
+//   } catch (error: Error | any) {
+//     loadingGoogle.value = false;
+//   }
+// };
 </script>
 <style scoped lang="scss">
 .fake-button {

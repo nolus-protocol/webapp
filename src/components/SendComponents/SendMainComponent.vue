@@ -51,8 +51,11 @@ import {
 } from "@/components/utils";
 import { AssetUtils, EnvNetworkUtils, WalletUtils } from "@/utils";
 import { useApplicationStore } from "@/stores/application";
+import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
+
 import type { AssetBalance } from "@/stores/wallet/state";
 import type { BaseWallet, Wallet } from "@/networks";
+import { Protocols, type Networks } from "@nolus/nolusjs/build/types/Networks";
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const walletStore = useWalletStore();
@@ -121,7 +124,7 @@ onMounted(() => {
   if (state.value.dialogSelectedCurrency.length as number > 0) {
     const currency = balances.value.find((e) => {
       const asset = AssetUtils.getAssetInfoByDenom(e.balance.denom);
-      return asset.ticker == props.dialogSelectedCurrency
+      return asset.key == props.dialogSelectedCurrency
     })!;
     state.value.selectedCurrency = currency;
     nextTick(() => {
@@ -153,14 +156,15 @@ watch(() => state.value.receiverAddress, () => {
 
 watch(() => state.value.network, async () => {
   const currencies = Object.keys(app.networks?.[state.value.network.key] ?? {});
-
   const native = app.networks![NATIVE_NETWORK.key];
   const items: string[] = [];
 
   for (const i in native) {
     const c = native[i];
     if (currencies.includes(c.ticker)) {
-      const ibc = AssetUtils.makeIBCMinimalDenom(c.ibc_route, c.symbol);
+      const [ckey, protocol = Protocols.osmosis]: string[] = c.key!.split('@')
+      const ibc = NolusAssetUtils.makeIBCMinimalDenom(ckey, app.networksData!, state.value.network.key as Networks, protocol as Protocols);
+
       items.push(ibc);
     }
   }

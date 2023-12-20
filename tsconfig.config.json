@@ -10,6 +10,7 @@
   ],
   "compilerOptions": {
     "composite": true,
+    "noEmit": false,
     "types": [
       "node",
       "@intlify/vite-plugin-vue-i18n/client"

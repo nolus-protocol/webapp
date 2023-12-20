@@ -17,7 +17,7 @@ import { fromHex, toHex } from "@cosmjs/encoding";
 import { RouteNames } from "@/router/RouterNames";
 import { LedgerSigner } from "@cosmjs/ledger-amino";
 import { decodeTxRaw, type DecodedTxRaw, Registry } from "@cosmjs/proto-signing";
-import { NATIVE_ASSET, LedgerName, defaultUsdcName, defaultUsdcTicker } from "@/config/env";
+import { NATIVE_ASSET, LedgerName, CurrencyMapping } from "@/config/env";
 import { ASSETS } from "@/config/assetsInfo";
 import { ADAPTER_STATUS } from "@web3auth/base";
 import { Buffer } from "buffer";
@@ -26,7 +26,7 @@ import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetU
 import { CONTRACTS } from "@/config/contracts";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { coin, makeCosmoshubPath } from "@cosmjs/amino";
-import { EncryptionUtils, EnvNetworkUtils, KeyUtils as KeyUtilities, WalletUtils, AssetUtils, Web3AuthProvider, WalletManager } from "@/utils";
+import { EncryptionUtils, EnvNetworkUtils, KeyUtils as KeyUtilities, WalletUtils, Web3AuthProvider, WalletManager } from "@/utils";
 import { CurrencyUtils, KeyUtils, NolusClient, NolusWalletFactory } from "@nolus/nolusjs";
 import { useApplicationStore } from "../application";
 import { defaultRegistryTypes, } from "@cosmjs/stargate";
@@ -311,10 +311,10 @@ const useWalletStore = defineStore("wallet", {
             let [ticker, protocol] = key.split('@');
             let shortName = currency.shortName;
 
-            if (ticker == 'USDC') { //TODO: fix stable
-              ticker = defaultUsdcTicker;
-              shortName = defaultUsdcName
+            if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
+              shortName = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.name ?? shortName;
             }
+
             const ibcDenom = NolusAssetUtils.makeIBCMinimalDenom(
               ticker,
               app.networksData as any,
@@ -324,7 +324,7 @@ const useWalletStore = defineStore("wallet", {
 
             const data = {
               ticker: key,
-              shortName: currency.shortName,
+              shortName: shortName,
               name: currency.name,
               symbol: currency.symbol,
               decimal_digits: currency.decimal_digits
@@ -349,10 +349,10 @@ const useWalletStore = defineStore("wallet", {
           let shortName = currency.shortName;
           let [ticker, protocol] = key.split('@');
 
-          if (ticker == 'USDC') { //TODO: fix stable
-            ticker = defaultUsdcTicker;
-            shortName = defaultUsdcName
+          if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
+            shortName = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.name ?? shortName;
           }
+
           const ibcDenom = NolusAssetUtils.makeIBCMinimalDenom(
             ticker,
             app.networksData as any,
@@ -839,36 +839,45 @@ const useWalletStore = defineStore("wallet", {
             coinAbbreviation: app.native?.name as string,
             coinGeckoId: ASSETS.NLS.coinGeckoId,
             coinIcon: app.assetIcons?.NLS as string,
+            key: `${app.native?.ticker}@${Protocols.osmosis}`
           };
         }
 
         const [ticker] = (currency?.ticker ?? '').split('@');
+        const mappedTicker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
 
         return {
-          ticker: ticker,
+          ticker: mappedTicker ?? ticker,
           shortName: currency.shortName,
           coinDenom: currency.name,
           coinMinimalDenom: denom,
           coinDecimals: Number(currency.decimal_digits),
           coinAbbreviation: currency.name,
-          coinGeckoId: ASSETS[ticker as keyof typeof ASSETS].coinGeckoId,
-          coinIcon: assetIcons[ticker]
+          coinGeckoId: ASSETS[(mappedTicker ?? ticker) as keyof typeof ASSETS].coinGeckoId,
+          coinIcon: assetIcons[currency?.ticker],
+          key: currency?.ticker
         };
       };
     },
     getCurrencyByTicker: (state) => {
       const app = useApplicationStore();
       return (ticker: string | undefined) => {
-        if(ticker == 'USDC'){
-          ticker = defaultUsdcTicker;
+
+        if (!ticker) {
+          return undefined;
         }
-        return app.currenciesData![
-          `${ticker!}@${Protocols.osmosis}`
-        ];
+
+        for (const currency in app.currenciesData) {
+          const [t] = currency.split('@');
+          if (t == ticker) {
+            return app.currenciesData![currency];
+          }
+        }
+
       };
     },
     getIbcDenomBySymbol: (state) => {
-      return (symbol: string) => {
+      return (symbol: string | undefined) => {
         for (const key in state.currencies) {
           if (symbol == state.currencies[key].symbol) {
             return key;

@@ -61,7 +61,10 @@
     :route="modalOptions[modalAction].route"
     @close-modal="showModal = false"
   >
-    <component :is="modalOptions[modalAction].dialog" :route="modalOptions[modalAction].route" />
+    <component
+      :is="modalOptions[modalAction].dialog"
+      :route="modalOptions[modalAction].route"
+    />
   </Modal>
 </template>
 
@@ -130,7 +133,6 @@ const oracle = useOracleStore();
 const app = useApplicationStore();
 
 const snackbar: Ref<typeof Snackbar> = ref(Snackbar);
-
 const showErrorDialog = ref(false);
 const errorMessage = ref("");
 const modalAction = ref<string>("");
@@ -139,6 +141,7 @@ const snackbarState = ref({
   type: SNACKBAR.Queued,
   transaction: "transaction",
 });
+
 provide('openDialog', openDialog);
 
 onMounted(async () => {
@@ -370,5 +373,4 @@ div.router-box {
       grid-column: span 11 / span 11;
     }
   }
-}
-</style>
+}</style>

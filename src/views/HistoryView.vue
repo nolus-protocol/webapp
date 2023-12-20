@@ -160,7 +160,7 @@ const visible = computed(() => {
   return initialLoad.value && !loaded.value;
 });
 
-const getTransactions = async () => {
+async function getTransactions() {
   try {
     const res = await wallet[WalletActionTypes.SEARCH_TX]({
       sender_per_page: senderPerPage,
@@ -186,7 +186,7 @@ const getTransactions = async () => {
   }
 };
 
-const load = async () => {
+async function load() {
   try {
     loading.value = true;
     const loadSender = (senderPage - 1) * senderPerPage <= senderTotal;
@@ -220,7 +220,7 @@ const load = async () => {
   }
 };
 
-const onClickTryAgain = async () => {
+async function onClickTryAgain() {
   await getTransactions();
 };
 

@@ -30,8 +30,8 @@ export interface ExternalCurrencyType {
   "shortName": string,
   "symbol": string,
   "decimal_digits": string,
-  "ibc_route": string[],
   "ticker": string,
   "native": boolean,
-  "forward"?: string[]
+  "key"?: string,
+  "ibcData"?: string
 }

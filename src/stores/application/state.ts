@@ -1,11 +1,12 @@
 import type { CurreciesType } from "@/types";
 import type { ExternalCurrenciesType, ExternalCurrencyType } from "@/types/CurreciesType";
 import type { NetworkConfig } from "@/types/NetworkConfig";
-import type { Networks, NetworksInfo } from "@/types/Networks";
+import type { NetworksInfo } from "@/types/Networks";
+import type { NetworkData } from "@nolus/nolusjs/build/types/Networks";
 
 export type State = {
   networks: NetworksInfo | null;
-  networksData: Networks | null;
+  networksData: NetworkData | null;
   assetIcons: {
     [key: string]: string
   } | null;
@@ -17,5 +18,6 @@ export type State = {
   currenciesData: ExternalCurrenciesType | null,
   native: ExternalCurrencyType | null,
   lpn: ExternalCurrencyType[] | null,
-  lease: string[]
+  lease: string[],
+  protocols: string[]
 };

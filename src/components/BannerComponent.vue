@@ -74,7 +74,7 @@ const rightButton = ref<HTMLElement>();
 const transformX = ref(0);
 const hideLeft = ref(true);
 const hideRight = ref(true);
-const openDialog = inject('openDialog', () => {})
+const openDialog = inject('openDialog', () => { })
 
 let padding = 0;
 
@@ -89,7 +89,7 @@ const loadNews = async () => {
     checkVisibility();
   });
 }
-const hideBanner = (event: MouseEvent,key: string) => {
+const hideBanner = (event: MouseEvent, key: string) => {
   event.preventDefault();
   event.stopPropagation();
   AppUtils.setBannerInvisible(key);
@@ -186,14 +186,14 @@ const moveDefault = () => {
 }
 
 const open = async (n: New) => {
-  if(n.target.length > 0){
+  if (n.target.length > 0) {
     const e = n.target[0];
-    if(e == '/'){
+    if (e == '/') {
       await router.push(n.target);
-      if(n.target.includes('#')){
+      if (n.target.includes('#')) {
         openDialog();
       }
-    }else{ 
+    } else {
       window.open(n.target, '_blank');
     }
   }

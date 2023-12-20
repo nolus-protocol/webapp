@@ -1,4 +1,4 @@
-import type { Networks } from "./Networks";
+import type { NetworkData } from "@nolus/nolusjs/build/types/Networks";
 
 export interface NetworkAddress {
   chainName?: string,
@@ -6,7 +6,7 @@ export interface NetworkAddress {
   govern: string;
   staking: string;
   endpoints: string;
-  currencies: () => Promise<Networks | any>, //CurreciesType //TODO: fix any
+  currencies: () => Promise<NetworkData | any>, //CurreciesType //TODO: fix any
   leaseBlockUpdate: number,
   lppCreatedAt: number,
   web3auth: {

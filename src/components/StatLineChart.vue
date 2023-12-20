@@ -93,12 +93,12 @@ const defaultOptions: ChartOptions<any> = {
       display: false,
     },
     tooltip: tooltipConfig((data: string[], index: number) => {
-        emits('inFocus', data, index);
+      emits('inFocus', data, index);
     }, false)
   },
 };
 
-const props =defineProps({
+const props = defineProps({
   chartId: {
     type: String,
     default: "line-chart",
@@ -133,18 +133,18 @@ const props =defineProps({
   },
 });
 
-function updateChart(supplied: any, borrowed: any){
+function updateChart(supplied: any, borrowed: any) {
   const [s, b] = chartElement.value!.chart.data.datasets;
-  for(const e of supplied){
+  for (const e of supplied) {
     s.data.push(e);
   }
-  for(const e of borrowed){
+  for (const e of borrowed) {
     b.data.push(e);
   }
   chartElement.value?.chart.update();
 }
 
-function getChartData(){
+function getChartData() {
   return props.chartData
 }
 
@@ -158,7 +158,6 @@ const emits = defineEmits(['inFocus'])
 </script>
 
 <style lang="scss">
-
 body.sync {
   @media (prefers-color-scheme: dark) {
     div.chart-tooltip {

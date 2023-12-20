@@ -144,7 +144,7 @@
 
 
     <div class="flex justify-end">
-      <button class="btn transfer btn-medium-secondary !px-[14px] py-[8px]" @click="sendReceiveOpen(assetInfo.ticker)">
+      <button class="btn transfer btn-medium-secondary !px-[14px] py-[8px]" @click="sendReceiveOpen(assetInfo.key)">
         <span class="icon icon-transfer !text-[14px]"></span>
       </button>
     </div>

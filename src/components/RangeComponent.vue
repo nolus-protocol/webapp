@@ -86,7 +86,7 @@ const setDefault = () => {
 
 const onMouseLeave = (event: MouseEvent | TouchEvent) => {
   event.preventDefault();
-  if(dragStart){
+  if (dragStart) {
     release();
   }
   dragStart = false;

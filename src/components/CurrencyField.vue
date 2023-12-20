@@ -220,9 +220,9 @@ const calculateInputBalance = () => {
   let symbol = null;
 
   if (ticker) {
-    const { decimals, symbol: currencySymbol, ibc_route } = props.option;
+    const { decimals, symbol: currencySymbol } = props.option;
     coinDecimals = decimals as number;
-    coinMinimalDenom = AssetUtils.makeIBCMinimalDenom(ibc_route as string[], currencySymbol as string);
+    coinMinimalDenom = props.option.balance.denom
     symbol = currencySymbol as string;
   } else {
     const denom = props.option.balance.denom;

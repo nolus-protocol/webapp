@@ -34,9 +34,7 @@
     <!-- Wallet Body -->
     <div class="box-open-body background p-4 lg:p-6 border-b border-standart text-left">
 
-      <div
-        class="block"
-      >
+      <div class="block">
         <Picker
           :default-option="selectedLang"
           :options="langs"
@@ -103,7 +101,7 @@ const i18n = useI18n();
 const showText = ref(false);
 const themeData = ThemeManager.getThemeData();
 const lang = AppUtils.getLang();
-const toggle = inject('toggle', () => {});
+const toggle = inject('toggle', () => { });
 
 const selectedAppearnce = ref({
   label: i18n.t(`message.${themeData}`),

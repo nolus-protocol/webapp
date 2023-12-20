@@ -1,11 +1,7 @@
 <template>
   <div class="block w-screen md:w-[516px] -mt-8 md:mt-auto">
-    <div
-      class="background rounded-2xl md:border nls-border shadow-box md:filter-none outline"
-    >
-      <h1
-        class="text-28 md:text-32 nls-font-700 text-primary text-center pt-6 pb-5 relative z-[2]"
-      >
+    <div class="background rounded-2xl md:border nls-border shadow-box md:filter-none outline">
+      <h1 class="text-28 md:text-32 nls-font-700 text-primary text-center pt-6 pb-5 relative z-[2]">
         {{ $t("message.connect-wallet") }}
       </h1>
 
@@ -56,9 +52,7 @@
         </span>
       </div>
 
-      <div
-        class="background h-[420px] absolute inset-x-0 bottom-0 z-[0] md:hidden"
-      ></div>
+      <div class="background h-[420px] absolute inset-x-0 bottom-0 z-[0] md:hidden"></div>
 
       <div class="align-center justify-center pt-7 text-center mx-auto md:flex">
         <button
@@ -68,9 +62,7 @@
         >
           {{ $t("message.create-new-account") }}
         </button>
-        <div
-          class="background h-[60px] relative md:hidden mt-[-62px] mx-[-2px]"
-        ></div>
+        <div class="background h-[60px] relative md:hidden mt-[-62px] mx-[-2px]"></div>
       </div>
     </div>
 
@@ -107,23 +99,23 @@ onUnmounted(async () => {
   await removListeners();
 });
 
-const clickConnectToKeplr = () => {
+function clickConnectToKeplr() {
   router.push({ name: RouteNames.CONNECT_KEPLR });
 };
 
-const clickImportLedger = () => {
+function clickImportLedger() {
   router.push({ name: RouteNames.IMPORT_LEDGER });
 };
 
-const clickImportSeed = () => {
+function clickImportSeed() {
   router.push({ name: RouteNames.IMPORT_SEED });
 };
 
-const clickCreateAccount = () => {
+function clickCreateAccount() {
   router.push({ name: RouteNames.CREATE_ACCOUNT });
 };
 
-const googleAuth = async () => {
+async function googleAuth() {
   try {
     loadingGoogle.value = true;
     await listen();
@@ -133,7 +125,7 @@ const googleAuth = async () => {
   }
 };
 
-const listen = async () => {
+async function listen() {
   const instance = await Web3AuthProvider.getInstance();
 
   if (instance.web3auth.status != ADAPTER_EVENTS.CONNECTED) {
@@ -144,12 +136,12 @@ const listen = async () => {
   }
 };
 
-const removListeners = async () => {
+async function removListeners() {
   const instance = await Web3AuthProvider.getInstance();
   instance.web3auth.removeAllListeners(ADAPTER_EVENTS.CONNECTED);
 };
 
-const init = async () => {
+async function init() {
   const res = await wallet[WalletActionTypes.CONNECT_GOOGLE]();
   if (res) {
     loadingGoogle.value = false;

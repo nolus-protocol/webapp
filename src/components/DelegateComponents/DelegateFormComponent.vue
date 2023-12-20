@@ -61,6 +61,7 @@ import type { PropType } from "vue";
 
 import CurrencyField from "@/components/CurrencyField.vue";
 import WarningBox from "@/components/modals/templates/WarningBox.vue";
+
 import { useWalletStore } from "@/stores/wallet";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { EnvNetworkUtils } from "@/utils";

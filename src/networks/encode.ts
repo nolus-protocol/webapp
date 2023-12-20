@@ -1,13 +1,6 @@
 import type { MultisigThresholdPubkey, Pubkey, SinglePubkey } from "@cosmjs/amino";
 import { toBase64 } from "@cosmjs/encoding";
-
-import {
-    encodeEd25519Pubkey,
-    encodeSecp256k1Pubkey,
-    isEd25519Pubkey,
-    isMultisigThresholdPubkey,
-    isSecp256k1Pubkey,
-} from "@cosmjs/amino";
+import { encodeEd25519Pubkey, encodeSecp256k1Pubkey, isEd25519Pubkey, isMultisigThresholdPubkey, isSecp256k1Pubkey } from "@cosmjs/amino";
 import { fromBase64 } from "@cosmjs/encoding";
 import { Uint53 } from "@cosmjs/math";
 import { PubKey as CosmosCryptoEd25519Pubkey } from "cosmjs-types/cosmos/crypto/ed25519/keys";
@@ -19,7 +12,6 @@ export interface EthSecp256k1Pubkey extends SinglePubkey {
     readonly type: "tendermint/PubKeyEthSecp256k1";
     readonly value: string;
 }
-
 
 export function encodeEthSecp256k1Pubkey(pubkey: Uint8Array): EthSecp256k1Pubkey {
     if (pubkey.length !== 33 || (pubkey[0] !== 0x02 && pubkey[0] !== 0x03)) {

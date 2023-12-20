@@ -143,7 +143,7 @@ import { CONFIRM_STEP, TxType, type Network, NetworkTypes } from "@/types";
 
 import { onUnmounted, ref, type PropType, inject, watch, computed } from "vue";
 import { DocumentDuplicateIcon } from "@heroicons/vue/24/solid";
-import { ErrorCodes, IGNORE_TRANSFER_ASSETS, NATIVE_NETWORK, SOURCE_PORTS, defaultUsdcName } from "@/config/env";
+import { CurrencyMapping, ErrorCodes, IGNORE_TRANSFER_ASSETS, NATIVE_NETWORK, SOURCE_PORTS } from "@/config/env";
 import { useI18n } from "vue-i18n";
 import { AssetUtils, EnvNetworkUtils, WalletUtils } from "@/utils";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
@@ -156,6 +156,8 @@ import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
 import { Dec, Coin as KeplrCoin } from "@keplr-wallet/unit";
 import { useApplicationStore } from "@/stores/application";
 import { onMounted } from "vue";
+import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
+import { Networks, Protocols } from "@nolus/nolusjs/build/types/Networks";
 
 export interface ReceiveComponentProps {
   currentBalance: AssetBalance[];
@@ -180,12 +182,15 @@ const app = useApplicationStore();
 const networks = computed(() => {
   const n: string[] = [];
   if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
+    const [ckey]: string[] = props.modelValue!.dialogSelectedCurrency.split('@')
+
     for (const key in app.networks ?? {}) {
-      const c = app.networks?.[key]?.[props.modelValue?.dialogSelectedCurrency as string];
+      const c = app.networks?.[key]?.[ckey as string];
       if (c) {
         n.push(key);
       }
     }
+
     return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list.filter((item) => n.includes(item.key));
   }
   return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list;
@@ -216,7 +221,8 @@ let wallet = ref(walletStore.wallet?.address);
 onMounted(() => {
   if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
     disablePickerDialog.value = true;
-    onUpdateNetwork(SUPPORTED_NETWORKS_DATA.OSMOSIS as Network);
+    const [_ckey, network]: string[] = props.modelValue!.dialogSelectedCurrency.split('@')
+    onUpdateNetwork(SUPPORTED_NETWORKS_DATA[network ?? Protocols.osmosis] as Network);
   }
 })
 
@@ -236,6 +242,7 @@ watch(() => [selectedCurrency.value, amount.value], () => {
 const onUpdateNetwork = async (event: Network) => {
   selectedNetwork.value = event;
   networkCurrencies.value = [];
+
   if (!event.native) {
 
     if (client) {
@@ -243,8 +250,6 @@ const onUpdateNetwork = async (event: Network) => {
     }
 
     disablePicker.value = true;
-
-
 
     const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
     const assets = network.supportedNetworks[event.key].currencies();
@@ -257,21 +262,22 @@ const onUpdateNetwork = async (event: Network) => {
         filteredAssets[key] = assets[key];
       }
     }
-
     if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
-      const item = AssetUtils.getAssetInfo(props.modelValue?.dialogSelectedCurrency as string);
-      const currency = filteredAssets[props.modelValue?.dialogSelectedCurrency as string];
+      const [ckey]: string[] = props.modelValue!.dialogSelectedCurrency.split('@')
+      const item = AssetUtils.getAssetInfo(ckey as string);
+
+      const currency = filteredAssets[ckey as string];
       const asset = {
         balance: coin(0, item.coinMinimalDenom),
         name: item.shortName,
         shortName: item.shortName,
         icon: item.coinIcon,
         ticker: item.ticker,
-        ibc_route: currency.ibc_route,
         decimals: item.coinDecimals,
         symbol: currency.symbol,
         native: currency.native
       } as AssetBalance;
+
       selectedCurrency.value = asset;
     }
 
@@ -286,22 +292,25 @@ const onUpdateNetwork = async (event: Network) => {
     for (const key in filteredAssets) {
 
       const fn = async () => {
-        const ibc_route = AssetUtils.makeIBCMinimalDenom(assets[key].ibc_route, assets[key].symbol);
+        const [ckey, protocol = Protocols.osmosis]: string[] = props.modelValue!.dialogSelectedCurrency.split('@')
+        const ibc_route = NolusAssetUtils.makeIBCMinimalDenom(ckey, app.networksData!, networkData.key as Networks, protocol as Protocols);
         const balance = WalletUtils.isAuth() ? await client.getBalance(wallet.value as string, ibc_route) : coin(0, ibc_route);
-        const icon = app.assetIcons?.[assets[key].ticker] as string;
         let shortName = assets[key].shortName;
+        let ticker = assets[key].ticker;
 
-        if(assets[key].ticker == 'USDC'){ //TODO: fix stable
-          shortName = defaultUsdcName;
+        if (CurrencyMapping[key]?.ticker == assets[key]?.ticker) {
+          shortName = CurrencyMapping[key].name ?? shortName;
+          ticker = key;
         }
+
+        const icon = app.assetIcons?.[`${ckey}@${protocol}`] as string;
 
         return {
           balance,
-          name: assets[key].shortName,
           shortName: shortName,
+          ticker: ticker,
+          name: shortName,
           icon: icon,
-          ticker: assets[key].ticker,
-          ibc_route: assets[key].ibc_route,
           decimals: Number(assets[key].decimal_digits),
           symbol: assets[key].symbol,
           native: assets[key].native
@@ -315,7 +324,9 @@ const onUpdateNetwork = async (event: Network) => {
     const items = await Promise.all(currenciesPromise);
 
     if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
-      selectedCurrency.value = items.find((e) => e.ticker == props.modelValue?.dialogSelectedCurrency)!;
+      const [ckey]: string[] = props.modelValue!.dialogSelectedCurrency.split('@')
+      const c = items.find((e) => e.ticker == ckey)!;
+      selectedCurrency.value = c;
     } else {
       selectedCurrency.value = items?.[0]
     }
@@ -353,13 +364,9 @@ const validateInputs = async () => {
     const isValid = await validateAmount();
     if (isValid) {
       const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[selectedNetwork.value.key];
-      const ibc_route = selectedCurrency.value?.ibc_route;
-      const symbol = selectedCurrency.value?.symbol;
 
-      if (ibc_route && symbol) {
-        fee.value = coin(network.fees.transfer_amount, AssetUtils.makeIBCMinimalDenom(ibc_route, symbol))
-        showConfirmScreen.value = true;
-      }
+      fee.value = coin(network.fees.transfer_amount, selectedCurrency.value.balance.denom)
+      showConfirmScreen.value = true;
 
     }
   } catch (error) {
@@ -385,14 +392,12 @@ const validateAmount = async () => {
   }
 
   const prefix = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[selectedNetwork.value.key]?.prefix;
-  const ibc_route = selectedCurrency.value?.ibc_route;
-  const symbol = selectedCurrency.value?.symbol;
   const decimals = selectedCurrency.value?.decimals;
 
-  if (prefix && ibc_route && symbol && decimals) {
+  if (prefix && decimals) {
 
     try {
-      const balance = await client.getBalance(wallet.value as string, AssetUtils.makeIBCMinimalDenom(ibc_route, symbol));
+      const balance = await client.getBalance(wallet.value as string, selectedCurrency.value.balance.denom);
       const walletBalance = Decimal.fromAtomics(balance.amount, decimals);
       const transferAmount = Decimal.fromUserInput(
         amount.value,
@@ -448,7 +453,7 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
     step.value = CONFIRM_STEP.PENDING;
 
     const networkData = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[selectedNetwork.value.key];
-    const denom = AssetUtils.makeIBCMinimalDenom(selectedCurrency.value?.ibc_route!, selectedCurrency.value?.symbol!);
+    const denom = selectedCurrency.value.balance.denom;
 
     const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
       amount.value,
@@ -590,13 +595,7 @@ const setAmount = (p: number) => {
 
 const total = computed(() => {
   if (selectedCurrency.value) {
-    const asset = walletStore.getCurrencyByTicker(
-      selectedCurrency.value.ticker!
-    );
-    if (asset) {
-      const ibc = AssetUtils.makeIBCMinimalDenom(asset.ibc_route, asset.symbol);
-      return new KeplrCoin(ibc, selectedCurrency.value.balance.amount);
-    }
+    return new KeplrCoin(selectedCurrency.value.balance.denom, selectedCurrency.value.balance.amount);
   }
   return undefined;
 })

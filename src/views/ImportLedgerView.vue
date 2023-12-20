@@ -9,11 +9,12 @@
         type="button"
         @click="clickBack"
       >
-        <ArrowLeftIcon aria-hidden="true" class="h-6 w-6" />
+        <ArrowLeftIcon
+          aria-hidden="true"
+          class="h-6 w-6"
+        />
       </button>
-      <span
-        class="inline-block align-baseline text-28 md:text-32 relative z-[2]"
-      >
+      <span class="inline-block align-baseline text-28 md:text-32 relative z-[2]">
         {{ $t("message.connect-ledger") }}
       </span>
     </h1>
@@ -34,7 +35,10 @@
             type="checkbox"
             v-model="isBluetoothConnection"
           />
-          <label class="text-primary" for="use-bluethooth">{{ $t("message.use-bluethooth") }}</label>
+          <label
+            class="text-primary"
+            for="use-bluethooth"
+          >{{ $t("message.use-bluethooth") }}</label>
         </div>
       </div>
 
@@ -65,7 +69,7 @@
     route="alert"
     @close-modal="
       showError = false;
-      goToAuth();
+    goToAuth();
     "
   >
     <ErrorDialog
@@ -94,11 +98,11 @@ const wallet = useWalletStore();
 const i18n = useI18n();
 const disabled = ref(false);
 
-const clickBack = () => {
+function clickBack() {
   router.replace({ name: RouteNames.AUTH });
 };
 
-const connectViaLedger = async () => {
+async function connectViaLedger() {
   try {
     if ((navigator as any)?.usb == null) {
       showError.value = true;
@@ -118,13 +122,13 @@ const connectViaLedger = async () => {
   }
 };
 
-const clickTryAgain = async () => {
+async function clickTryAgain() {
   showError.value = false;
   errorMessage.value = "";
   await connectViaLedger();
 };
 
-const goToAuth = () => {
+function goToAuth() {
   router.replace({ name: RouteNames.AUTH });
 };
 </script>

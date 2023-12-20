@@ -1,13 +1,13 @@
 <template>
   <div class="mt-[25px]">
 
-    <button
+    <!-- <button
       class="text-primary"
       v-if="AppUtils.isDev()"
       @click="openModal(DASHBOARD_ACTIONS.RECEIVEV2)"
     >
       Receive v2 / Send v2
-    </button>
+    </button> -->
     <BannerComponent />
     <div class="col-span-12">
       <!-- Header -->
@@ -490,7 +490,6 @@ const filteredAssets = computed(() => {
     }
     return true;
   });
-
   const balances = state.value.showSmallBalances
     ? b
     : filterSmallBalances(b as AssetBalance[]);
@@ -1039,7 +1038,8 @@ async function getRewards() {
   return new Dec(0);
 }
 </script>
-<style scoped lang="scss">.fade-enter-active,
+<style scoped lang="scss">
+.fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.4s ease;
 }
@@ -1047,4 +1047,5 @@ async function getRewards() {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}</style>
+}
+</style>

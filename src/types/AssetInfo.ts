@@ -7,4 +7,5 @@ export interface AssetInfo {
   coinGeckoId: string;
   coinAbbreviation: string;
   coinIcon: string;
+  key: string;
 }

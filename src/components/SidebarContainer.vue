@@ -1,54 +1,70 @@
 <template>
-  <div :class="{ 'mobile-nav': showMobileNav }"
-       class="sidebar-container"
-       ref="sidebar">
+  <div
+    :class="{ 'mobile-nav': showMobileNav }"
+    class="sidebar-container"
+    ref="sidebar"
+  >
     <div class="top pl-8">
       <LogoLink link="/" />
       <div class="sidebar-elements-container nls-nav-more flex flex-col mt-[55px]">
-        <div :style="showMobileNav
-          ? 'z-index: 5;box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15); transform: translateY(-206px)'
-          : ''
-          "
-             class="lg:hidden nls-border mb-[-1px] mobile-transition-taskbar">
+        <div
+          :style="showMobileNav
+            ? 'z-index: 5;box-shadow: 0px 8px 48px rgba(7, 45, 99, 0.15); transform: translateY(-206px)'
+            : ''
+            "
+          class="lg:hidden nls-border mb-[-1px] mobile-transition-taskbar"
+        >
           <div class="nls-nav-link flex flex-start nls-md-flex-row mb-[6px]">
-            <SidebarElement id="stats"
-                            href="/stats"
-                            :label="$t('message.protocol-stats')"
-                            @click="pushTo(RouteNames.STATS)" />
+            <SidebarElement
+              id="stats"
+              href="/stats"
+              :label="$t('message.protocol-stats')"
+              @click="pushTo(RouteNames.STATS)"
+            />
           </div>
           <div class="nls-nav-link flex flex-start nls-md-flex-row mb-[6px]">
-            <SidebarElement id="hub"
-                            target="_blank"
-                            :label="$t('message.support')"
-                            @click="openExternal(SUPPORT_URL, '_blank')" />
+            <SidebarElement
+              id="hub"
+              target="_blank"
+              :label="$t('message.support')"
+              @click="openExternal(SUPPORT_URL, '_blank')"
+            />
           </div>
           <div class="nls-nav-link flex flex-start nls-md-flex-row mt-[6px]">
-            <SidebarElement id="vote-v2"
-                            :label="$t('message.vote')"
-                            target="_blank"
-                            @click="openExternal(governUrl, '_blank')" />
+            <SidebarElement
+              id="vote-v2"
+              :label="$t('message.vote')"
+              target="_blank"
+              @click="openExternal(governUrl, '_blank')"
+            />
           </div>
           <div class="nls-nav-link flex flex-start nls-md-flex-row mb-[112px]">
-            <SidebarElement id="history-v2"
-                            href="/history"
-                            :label="$t('message.history')"
-                            @click="pushTo(RouteNames.HISTORY)" />
+            <SidebarElement
+              id="history-v2"
+              href="/history"
+              :label="$t('message.history')"
+              @click="pushTo(RouteNames.HISTORY)"
+            />
           </div>
         </div>
 
         <!-- DESKTOP -->
         <div class="md:flex md:justify-between sidebar-elements-block lg:block task-bar">
           <div class="block nls-nav-link icon">
-            <SidebarElement id="asset-v2"
-                            href="/"
-                            :label="$t('message.assets')"
-                            @click="pushTo(RouteNames.DASHBOARD)" />
+            <SidebarElement
+              id="asset-v2"
+              href="/"
+              :label="$t('message.assets')"
+              @click="pushTo(RouteNames.DASHBOARD)"
+            />
           </div>
           <div class="block nls-nav-link icon">
-            <SidebarElement id="lease-v2"
-                            href="/lease"
-                            :label="$t('message.lease')"
-                            @click="pushTo(RouteNames.LEASE)" />
+            <SidebarElement
+              id="lease-v2"
+              href="/lease"
+              :label="$t('message.lease')"
+              @click="pushTo(RouteNames.LEASE)"
+            />
           </div>
           <!-- <div class="block nls-nav-link icon">
             <SidebarElement v-if="AppUtils.isDev()"
@@ -58,44 +74,60 @@
                             @click="openSwapModal" />
           </div> -->
           <div class="block nls-nav-link icon">
-            <SidebarElement id="earn-v2"
-                            href="/earn"
-                            :label="$t('message.earn')"
-                            @click="pushTo(RouteNames.EARN)" />
+            <SidebarElement
+              id="earn-v2"
+              href="/earn"
+              :label="$t('message.earn')"
+              @click="pushTo(RouteNames.EARN)"
+            />
           </div>
           <div class="block nls-nav-link icon nls-md-hidden">
-            <SidebarElement id="history-v2"
-                            href="/history"
-                            :label="$t('message.history')"
-                            @click="pushTo(RouteNames.HISTORY)" />
+            <SidebarElement
+              id="history-v2"
+              href="/history"
+              :label="$t('message.history')"
+              @click="pushTo(RouteNames.HISTORY)"
+            />
           </div>
           <div class="block nls-nav-link icon nls-md-hidden">
-            <SidebarElement id="vote-v2"
-                            :label="$t('message.vote')"
-                            @click="openExternal(governUrl, '_blank')" />
+            <SidebarElement
+              id="vote-v2"
+              :label="$t('message.vote')"
+              @click="openExternal(governUrl, '_blank')"
+            />
           </div>
           <div class="block nls-nav-link nls-md-show">
-            <SidebarElement id="more"
-                            @click="showMobileNav = !showMobileNav"
-                            :label="isMobile ? $t('message.more') : $t('message.settings')" />
+            <SidebarElement
+              id="more"
+              @click="showMobileNav = !showMobileNav"
+              :label="isMobile ? $t('message.more') : $t('message.settings')"
+            />
           </div>
         </div>
       </div>
     </div>
     <div class="lg:bot lg:pb-8 pl-8">
       <div class="flex items-center sub-nav-social hidden">
-        <SidebarElement id="twitter"
-                        icon="/src/assets/icons/twitter.svg"
-                        @click="openExternal(TWITTER_ACCOUNT, '_blank')" />
-        <SidebarElement id="telegram"
-                        icon="/src/assets/icons/telegram.svg"
-                        @click="openExternal(TELEGRAM_ACCOUNT, '_blank')" />
-        <SidebarElement id="discord"
-                        icon="/src/assets/icons/discord.svg"
-                        @click="openExternal(DISCORD_ACCOUNT, '_blank')" />
-        <SidebarElement id="reddit"
-                        icon="/src/assets/icons/reddit.svg"
-                        @click="openExternal(REDDIT_ACCOUNT, '_blank')" />
+        <SidebarElement
+          id="twitter"
+          icon="/src/assets/icons/twitter.svg"
+          @click="openExternal(TWITTER_ACCOUNT, '_blank')"
+        />
+        <SidebarElement
+          id="telegram"
+          icon="/src/assets/icons/telegram.svg"
+          @click="openExternal(TELEGRAM_ACCOUNT, '_blank')"
+        />
+        <SidebarElement
+          id="discord"
+          icon="/src/assets/icons/discord.svg"
+          @click="openExternal(DISCORD_ACCOUNT, '_blank')"
+        />
+        <SidebarElement
+          id="reddit"
+          icon="/src/assets/icons/reddit.svg"
+          @click="openExternal(REDDIT_ACCOUNT, '_blank')"
+        />
       </div>
       <div class="block mt-3 text-12 garet-medium sub-nav-service"></div>
     </div>
@@ -103,18 +135,26 @@
 
   <div class="lg:col-span-3 inset-x-0 bottom-0 mb-6 ml-8 hidden md:grid fixed max-w-[190px]">
     <div class="flex flex-col mb-[6px] ml-[4px]">
-      <a target="_blank"
-         class="flex items-center mb-[4px] stats-link"
-         href="https://hub.nolus.io">
+      <a
+        target="_blank"
+        class="flex items-center mb-[4px] stats-link"
+        href="https://hub.nolus.io"
+      >
         <Hat class="stats-color" />
         <p class="text-12 nls-font-500 stats-color">{{ $t('message.support') }}</p>
       </a>
-      <a @click="pushTo(RouteNames.STATS)"
-         class="cursor-pointer select-none flex items-center ml-[4px] mb-[4px] stats-link">
-        <Stats :class="{ active: $route.name == RouteNames.STATS }"
-               class="stats-color" />
-        <p :class="{ active: $route.name == RouteNames.STATS }"
-           class="ml-[7px] text-12 nls-font-500 stats-color">{{ $t('message.protocol-stats') }}</p>
+      <a
+        @click="pushTo(RouteNames.STATS)"
+        class="cursor-pointer select-none flex items-center ml-[4px] mb-[4px] stats-link"
+      >
+        <Stats
+          :class="{ active: $route.name == RouteNames.STATS }"
+          class="stats-color"
+        />
+        <p
+          :class="{ active: $route.name == RouteNames.STATS }"
+          class="ml-[7px] text-12 nls-font-500 stats-color"
+        >{{ $t('message.protocol-stats') }}</p>
       </a>
     </div>
     <p class="nls-font-500 text-12 text-dark-grey text-upper pl-2">
@@ -122,9 +162,11 @@
     </p>
   </div>
 
-  <Modal v-if="showSwapModal"
-         @close-modal="showSwapModal = false"
-         route="swap">
+  <Modal
+    v-if="showSwapModal"
+    @close-modal="showSwapModal = false"
+    route="swap"
+  >
     <SwapDialog />
   </Modal>
 </template>
@@ -148,7 +190,6 @@ import { storeToRefs } from "pinia";
 import { EnvNetworkUtils } from "@/utils";
 import { DISCORD_ACCOUNT, REDDIT_ACCOUNT, TELEGRAM_ACCOUNT, TWITTER_ACCOUNT } from "@/config/globals";
 import { AppUtils } from "@/utils/AppUtils";
-import type HatVue from "./icons/Hat.vue";
 
 const showMobileNav = ref(false);
 const isMobile = ref(false);
@@ -247,8 +288,7 @@ function openExternal(url: string, target: string) {
 }
 </script>
 
-<style lang="scss" scoped>
-#governance:after,
+<style lang="scss" scoped>#governance:after,
 #hub::after {
   content: "\e801";
   font-family: "nolus";
@@ -260,5 +300,4 @@ div.nls-nav-link {
     width: 32px;
     height: 24px;
   }
-}
-</style>
+}</style>

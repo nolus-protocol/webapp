@@ -154,10 +154,6 @@ const router = createRouter({
       ],
     },
     {
-      path: "/styleguide",
-      component: () => import("@/views/StyleguideView.vue"),
-    },
-    {
       path: "/:pathMatch(.*)",
       redirect: "/",
     },

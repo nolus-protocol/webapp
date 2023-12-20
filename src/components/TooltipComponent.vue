@@ -71,7 +71,7 @@ function mouseover(event: MouseEvent) {
     return false;
   }
 
-  if(!triangleElement){
+  if (!triangleElement) {
     return false;
   }
 

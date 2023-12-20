@@ -268,23 +268,23 @@ watch(
   }
 );
 
-const onClickTryAgain = async () => {
+async function onClickTryAgain() {
   await Promise.all([
     loadRewards(),
     loadLPNCurrency()
   ]);
 };
 
-const onClickWithdrawRewards = () => {
+function onClickWithdrawRewards() {
   showWithrawRewardsDialog.value = true;
 };
 
-const openSupplyWithdrawDialog = (denom: string) => {
+function openSupplyWithdrawDialog(denom: string) {
   selectedAsset.value = denom;
   showSupplyWithdrawDialog.value = true;
 };
 
-const loadRewards = async () => {
+async function loadRewards() {
 
   const [rewards, lpnRewards] = await Promise.all([
     wallet[WalletActionTypes.LOAD_DELEGATOR](),
@@ -302,7 +302,7 @@ const loadRewards = async () => {
 
 }
 
-const getRewards = async () => {
+async function getRewards() {
   try {
 
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
@@ -322,7 +322,7 @@ const getRewards = async () => {
   return new Dec(0);
 }
 
-const loadDelegated = async () => {
+async function loadDelegated() {
 
   const delegations = await wallet[WalletActionTypes.LOAD_DELEGATIONS]();
   let decimalDelegated = new Dec(0);
@@ -339,7 +339,7 @@ const loadDelegated = async () => {
   delegated.value = { balance: coin(decimalDelegated.truncate().toString(), NATIVE_ASSET.denom) };
 }
 
-const loadLPNCurrency = async () => {
+async function loadLPNCurrency() {
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
   const contract = CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance;
   const lppClient = new Lpp(cosmWasmClient, contract);
@@ -350,6 +350,7 @@ const loadLPNCurrency = async () => {
   });
 
   const lppConfig = await lppClient.getLppConfig();
+  console.log(lppConfig, wallet.balances)
   const lpnCoin = wallet.getCurrencyByTicker(lppConfig.lpn_ticker);
   const lpnIbcDenom = wallet.getIbcDenomBySymbol(lpnCoin?.symbol);
 
@@ -375,7 +376,7 @@ const loadLPNCurrency = async () => {
 
 }
 
-const openDelegateUndelegateDialog = () => {
+function openDelegateUndelegateDialog() {
   selectedAsset.value = NATIVE_ASSET.denom;
   showDelegateUndelegateDialog.value = true;
 }
