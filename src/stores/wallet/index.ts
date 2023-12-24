@@ -767,7 +767,7 @@ const useWalletStore = defineStore("wallet", {
   getters: {
     available: (state) => {
       let balance = new Dec(0, ChainConstants.COIN_DECIMALS);
-      let notAvailable = new Dec(0, ChainConstants.COIN_DECIMALS);
+      // let notAvailable = new Dec(0, ChainConstants.COIN_DECIMALS);
 
       for (const b of state.balances) {
         if (b.balance.denom == ChainConstants.COIN_MINIMAL_DENOM) {
@@ -776,34 +776,34 @@ const useWalletStore = defineStore("wallet", {
         }
       }
 
-      for (const b of state.vest) {
-        const date = new Date();
-        const diff = b.end.getTime() - b.start.getTime();
-        const diffNow = date.getTime() - b.start.getTime();
-        let q = diffNow / diff;
+      // for (const b of state.vest) {
+      //   const date = new Date();
+      //   const diff = b.end.getTime() - b.start.getTime();
+      //   const diffNow = date.getTime() - b.start.getTime();
+      //   let q = diffNow / diff;
 
-        if (q > 1) {
-          q = 1;
-        }
+      //   if (q > 1) {
+      //     q = 1;
+      //   }
 
-        if (q < 0) {
-          q = 0;
-        }
+      //   if (q < 0) {
+      //     q = 0;
+      //   }
 
-        const amount = new Dec(b.amount.amount, ChainConstants.COIN_DECIMALS);
-        const navbl = amount.mul(new Dec(1 - q));
-        notAvailable = notAvailable.add(navbl);
-      }
+      //   const amount = new Dec(b.amount.amount, ChainConstants.COIN_DECIMALS);
+      //   const navbl = amount.mul(new Dec(1 - q));
+      //   notAvailable = notAvailable.add(navbl);
+      // }
 
 
-      if (state.delegated_vesting) {
-        const amount = new Dec(state.delegated_vesting?.amount?.toString() ?? '0', ChainConstants.COIN_DECIMALS);
-        if (amount.lt(notAvailable)) {
-          balance = balance.add(amount);
-        }
-      } else {
-        balance = balance.sub(notAvailable);
-      }
+      // if (state.delegated_vesting) {
+      //   const amount = new Dec(state.delegated_vesting?.amount?.toString() ?? '0', ChainConstants.COIN_DECIMALS);
+      //   if (amount.lt(notAvailable)) {
+      //     balance = balance.add(amount);
+      //   }
+      // } else {
+      //   balance = balance.sub(notAvailable);
+      // }
 
       if (balance.isNegative()) {
         balance = new Dec(0);
