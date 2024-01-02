@@ -256,85 +256,85 @@ const onUpdateNetwork = async (event: SquiRouterNetworkProp) => {
 
 const cosmosNetworkParse = async (fromChain: CosmosChain) => {
 
-  const assets = app?.networks?.[selectedNetwork.value.key];
+  // const assets = app?.networks?.[selectedNetwork.value.key];
 
-  if (!assets) {
-    return;
-  }
+  // if (!assets) {
+  //   return;
+  // }
 
-  if (client) {
-    client.destroy();
-  }
+  // if (client) {
+  //   client.destroy();
+  // }
 
-  client = await Wallet.getInstance(fromChain.rpc, fromChain.rest);
+  // client = await Wallet.getInstance(fromChain.rpc, fromChain.rest);
 
-  if (!selectedNetwork.value.native) {
-    const filteredAssets: { [key: string]: ExternalCurrencyType } = {};
-    const currenciesPromise = [];
+  // if (!selectedNetwork.value.native) {
+  //   const filteredAssets: { [key: string]: ExternalCurrencyType } = {};
+  //   const currenciesPromise = [];
 
-    fromChainData = {
-      prefix: fromChain.bech32Config.bech32PrefixAccAddr,
-      rpc: fromChain.rpc,
-      rest: fromChain.rest,
-      chainId: fromChain.chainId,
-      embedChainInfo: () => {
-        return {
-          chainId: fromChain.chainId,
-          chainName: 'Cosmos Hub',
-          rpc: fromChain.rpc,
-          rest: fromChain.rest,
-          bip44: fromChain.bip44,
-          bech32Config: fromChain.bech32Config,
-          currencies: fromChain.currencies,
-          feeCurrencies: fromChain.feeCurrencies,
-          stakeCurrency: fromChain.stakeCurrency,
-          features: fromChain.features,
-        }
-      }
-    };
+  //   fromChainData = {
+  //     prefix: fromChain.bech32Config.bech32PrefixAccAddr,
+  //     rpc: fromChain.rpc,
+  //     rest: fromChain.rest,
+  //     chainId: fromChain.chainId,
+  //     embedChainInfo: () => {
+  //       return {
+  //         chainId: fromChain.chainId,
+  //         chainName: 'Cosmos Hub',
+  //         rpc: fromChain.rpc,
+  //         rest: fromChain.rest,
+  //         bip44: fromChain.bip44,
+  //         bech32Config: fromChain.bech32Config,
+  //         currencies: fromChain.currencies,
+  //         feeCurrencies: fromChain.feeCurrencies,
+  //         stakeCurrency: fromChain.stakeCurrency,
+  //         features: fromChain.features,
+  //       }
+  //     }
+  //   };
 
-    const baseWallet = await externalWalletV2(client, fromChainData, password.value) as BaseWallet;
-    sendWallet.value = baseWallet?.address;
+  //   const baseWallet = await externalWalletV2(client, fromChainData, password.value) as BaseWallet;
+  //   sendWallet.value = baseWallet?.address;
 
 
-    for (const key in assets) {
-      if (!IGNORE_TRANSFER_ASSETS.includes(key)) {
-        filteredAssets[key] = assets[key];
-      }
-    }
+  //   for (const key in assets) {
+  //     if (!IGNORE_TRANSFER_ASSETS.includes(key)) {
+  //       filteredAssets[key] = assets[key];
+  //     }
+  //   }
 
-    networkCurrenciesObject.value = filteredAssets;
+  //   networkCurrenciesObject.value = filteredAssets;
 
-    for (const key in filteredAssets) {
+  //   for (const key in filteredAssets) {
 
-      const fn = async () => {
-        const ibc_route = AssetUtils.makeIBCMinimalDenom(assets[key].ibc_route, assets[key].symbol);
-        const balance = WalletUtils.isAuth() ? await client.getBalance(baseWallet.address as string, ibc_route) : coin(0, ibc_route);
-        const icon = app.assetIcons?.[assets[key].ticker] as string;
-        return {
-          balance,
-          name: assets[key].shortName,
-          shortName: assets[key].shortName,
-          icon: icon,
-          ticker: assets[key].ticker,
-          ibc_route: assets[key].ibc_route,
-          decimals: Number(assets[key].decimal_digits),
-          symbol: assets[key].symbol,
-          native: assets[key].native
-        };
-      }
+  //     const fn = async () => {
+  //       const ibc_route = AssetUtils.makeIBCMinimalDenom(assets[key].ibc_route, assets[key].symbol);
+  //       const balance = WalletUtils.isAuth() ? await client.getBalance(baseWallet.address as string, ibc_route) : coin(0, ibc_route);
+  //       const icon = app.assetIcons?.[assets[key].ticker] as string;
+  //       return {
+  //         balance,
+  //         name: assets[key].shortName,
+  //         shortName: assets[key].shortName,
+  //         icon: icon,
+  //         ticker: assets[key].ticker,
+  //         ibc_route: assets[key].ibc_route,
+  //         decimals: Number(assets[key].decimal_digits),
+  //         symbol: assets[key].symbol,
+  //         native: assets[key].native
+  //       };
+  //     }
 
-      currenciesPromise.push(fn());
+  //     currenciesPromise.push(fn());
 
-    }
+  //   }
 
-    const items = await Promise.all(currenciesPromise);
-    selectedCurrency.value = items?.[0]
-    networkCurrencies.value = items;
-    disablePicker.value = false;
-  } else {
-    selectedCurrency.value = walletStore.balances[0];
-  }
+  //   const items = await Promise.all(currenciesPromise);
+  //   selectedCurrency.value = items?.[0]
+  //   networkCurrencies.value = items;
+  //   disablePicker.value = false;
+  // } else {
+  //   selectedCurrency.value = walletStore.balances[0];
+  // }
 
 }
 
@@ -414,87 +414,87 @@ const connectMetamask = async () => {
 
 async function sendTXCosmos() {
 
-  try {
+  // try {
 
-    step.value = CONFIRM_STEP.PENDING;
+  //   step.value = CONFIRM_STEP.PENDING;
 
-    const squid = await squidRouter();
-    const chains = await AppUtils.getSquitRouteNetworks();
-    const denom = AssetUtils.makeIBCMinimalDenom(selectedCurrency.value?.ibc_route!, selectedCurrency.value?.symbol!);
-    const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
-      amount.value,
-      denom,
-      selectedCurrency.value?.decimals!
-    );
-    const asset = AssetUtils.getAssetInfo(selectedCurrency.value.ticker as string);
+  //   const squid = await squidRouter();
+  //   const chains = await AppUtils.getSquitRouteNetworks();
+  //   const denom = AssetUtils.makeIBCMinimalDenom(selectedCurrency.value?.ibc_route!, selectedCurrency.value?.symbol!);
+  //   const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
+  //     amount.value,
+  //     denom,
+  //     selectedCurrency.value?.decimals!
+  //   );
+  //   const asset = AssetUtils.getAssetInfo(selectedCurrency.value.ticker as string);
 
-    const params = {
-      fromAddress: sendWallet.value as string,
-      fromChain: selectedNetwork.value.chainId,
-      fromToken: minimalDenom.denom,
-      fromAmount: minimalDenom.amount.toString(),
-      toChain: chains.NOLUS.chainId,
-      toToken: asset.coinMinimalDenom,
-      toAddress: walletStore.wallet!.address as string,
-      slippage: 1.00,
-      quoteOnly: false,
-    };
+  //   const params = {
+  //     fromAddress: sendWallet.value as string,
+  //     fromChain: selectedNetwork.value.chainId,
+  //     fromToken: minimalDenom.denom,
+  //     fromAmount: minimalDenom.amount.toString(),
+  //     toChain: chains.NOLUS.chainId,
+  //     toToken: asset.coinMinimalDenom,
+  //     toAddress: walletStore.wallet!.address as string,
+  //     slippage: 1.00,
+  //     quoteOnly: false,
+  //   };
 
-    const data = await squid.getRoute(params);
+  //   const data = await squid.getRoute(params);
 
-    externalWalletOperationV2(
-      async () => {
-        try {
-          const baseWallet = await externalWalletV2(client, fromChainData as NetworkDataV2, password.value) as BaseWallet;
-          const offlineSigner = baseWallet.getOfflineSigner();
-          const signer = await SigningStargateClient.connectWithSigner(
-            fromChainData.rpc,
-            offlineSigner
-          );
+  //   externalWalletOperationV2(
+  //     async () => {
+  //       try {
+  //         const baseWallet = await externalWalletV2(client, fromChainData as NetworkDataV2, password.value) as BaseWallet;
+  //         const offlineSigner = baseWallet.getOfflineSigner();
+  //         const signer = await SigningStargateClient.connectWithSigner(
+  //           fromChainData.rpc,
+  //           offlineSigner
+  //         );
 
-          const cosmosTx = await squid.executeRoute({
-            signer,
-            signerAddress: baseWallet.address,
-            route: data.route,
-          }) as TxRaw;
+  //         const cosmosTx = await squid.executeRoute({
+  //           signer,
+  //           signerAddress: baseWallet.address,
+  //           route: data.route,
+  //         }) as TxRaw;
 
-          const txBytes = Uint8Array.from(TxRaw.encode(cosmosTx).finish());
-          const tx = toHex(sha256(txBytes));
+  //         const txBytes = Uint8Array.from(TxRaw.encode(cosmosTx).finish());
+  //         const tx = toHex(sha256(txBytes));
 
-          step.value = CONFIRM_STEP.SUCCESS;
-          txHash.value = tx;
+  //         step.value = CONFIRM_STEP.SUCCESS;
+  //         txHash.value = tx;
 
-        } catch (error: Error | any) {
-          switch (error.code) {
-            case (ErrorCodes.GasError): {
-              step.value = CONFIRM_STEP.GasErrorExternal;
-              break;
-            }
-            default: {
-              step.value = CONFIRM_STEP.ERROR;
-              break;
-            }
-          }
-        }
+  //       } catch (error: Error | any) {
+  //         switch (error.code) {
+  //           case (ErrorCodes.GasError): {
+  //             step.value = CONFIRM_STEP.GasErrorExternal;
+  //             break;
+  //           }
+  //           default: {
+  //             step.value = CONFIRM_STEP.ERROR;
+  //             break;
+  //           }
+  //         }
+  //       }
 
-      },
-      client,
-      fromChainData as NetworkDataV2,
-      password.value
-    );
-  } catch (error: Error | any) {
-    if(error?.errors){
-      let err = '';
-      for(const e of error.errors){
-        err += e.message as string;
-      }
-      amountErrorMsg.value = err;
-      onConfirmBackClick();
-      step.value = CONFIRM_STEP.CONFIRM;
-    }else{
-      step.value = CONFIRM_STEP.ERROR;
-    }
-  }
+  //     },
+  //     client,
+  //     fromChainData as NetworkDataV2,
+  //     password.value
+  //   );
+  // } catch (error: Error | any) {
+  //   if(error?.errors){
+  //     let err = '';
+  //     for(const e of error.errors){
+  //       err += e.message as string;
+  //     }
+  //     amountErrorMsg.value = err;
+  //     onConfirmBackClick();
+  //     step.value = CONFIRM_STEP.CONFIRM;
+  //   }else{
+  //     step.value = CONFIRM_STEP.ERROR;
+  //   }
+  // }
 }
 
 async function sendTXEvm() {
@@ -603,28 +603,28 @@ const validateInputs = async () => {
 }
 
 const validateInputsCosmos = async () => {
-  try {
-    isLoading.value = true;
-    const isValid = await validateAmount();
-    if (isValid) {
+  // try {
+  //   isLoading.value = true;
+  //   const isValid = await validateAmount();
+  //   if (isValid) {
 
-      const chains = await AppUtils.getSquitRouteNetworks();
+  //     const chains = await AppUtils.getSquitRouteNetworks();
 
-      const network = chains[selectedNetwork.value.key];
-      const ibc_route = selectedCurrency.value?.ibc_route;
-      const symbol = selectedCurrency.value?.symbol;
-      if (ibc_route && symbol) {
-        fee.value = coin(network.fees.transfer, AssetUtils.makeIBCMinimalDenom(ibc_route, symbol))
-        showConfirmScreen.value = true;
-      }
+  //     const network = chains[selectedNetwork.value.key];
+  //     const ibc_route = selectedCurrency.value?.ibc_route;
+  //     const symbol = selectedCurrency.value?.symbol;
+  //     if (ibc_route && symbol) {
+  //       fee.value = coin(network.fees.transfer, AssetUtils.makeIBCMinimalDenom(ibc_route, symbol))
+  //       showConfirmScreen.value = true;
+  //     }
 
-    }
-  } catch (error) {
-    step.value = CONFIRM_STEP.ERROR;
-    showConfirmScreen.value = true;
-  } finally {
-    isLoading.value = false;
-  }
+  //   }
+  // } catch (error) {
+  //   step.value = CONFIRM_STEP.ERROR;
+  //   showConfirmScreen.value = true;
+  // } finally {
+  //   isLoading.value = false;
+  // }
 }
 
 const validateInputsEvm = async () => {
@@ -679,47 +679,47 @@ const validateAmount = async () => {
 };
 
 const validateCosmos = async () => {
-  const prefix = (fromChainData as NetworkDataV2).prefix;
-  const ibc_route = selectedCurrency.value?.ibc_route;
-  const symbol = selectedCurrency.value?.symbol;
-  const decimals = selectedCurrency.value?.decimals;
+  // const prefix = (fromChainData as NetworkDataV2).prefix;
+  // const ibc_route = selectedCurrency.value?.ibc_route;
+  // const symbol = selectedCurrency.value?.symbol;
+  // const decimals = selectedCurrency.value?.decimals;
 
-  if (prefix && ibc_route && symbol && decimals) {
-    try {
+  // if (prefix && ibc_route && symbol && decimals) {
+  //   try {
 
-      const isLowerThanOrEqualsToZero = new Dec(amount.value).lte(new Dec(0));
+  //     const isLowerThanOrEqualsToZero = new Dec(amount.value).lte(new Dec(0));
 
-      if (isLowerThanOrEqualsToZero) {
-        amountErrorMsg.value = i18n.t("message.invalid-balance-low");
-        return false;
-      }
+  //     if (isLowerThanOrEqualsToZero) {
+  //       amountErrorMsg.value = i18n.t("message.invalid-balance-low");
+  //       return false;
+  //     }
 
-      const balance = await client.getBalance(sendWallet.value as string, AssetUtils.makeIBCMinimalDenom(ibc_route, symbol));
-      const walletBalance = Decimal.fromAtomics(balance.amount, decimals);
-      const transferAmount = Decimal.fromUserInput(
-        amount.value,
-        decimals
-      );
-      const isGreaterThanWalletBalance = transferAmount.isGreaterThan(walletBalance);
+  //     const balance = await client.getBalance(sendWallet.value as string, AssetUtils.makeIBCMinimalDenom(ibc_route, symbol));
+  //     const walletBalance = Decimal.fromAtomics(balance.amount, decimals);
+  //     const transferAmount = Decimal.fromUserInput(
+  //       amount.value,
+  //       decimals
+  //     );
+  //     const isGreaterThanWalletBalance = transferAmount.isGreaterThan(walletBalance);
 
 
-      if (isGreaterThanWalletBalance) {
-        amountErrorMsg.value = i18n.t("message.invalid-balance-big");
-        return false;
-      }
+  //     if (isGreaterThanWalletBalance) {
+  //       amountErrorMsg.value = i18n.t("message.invalid-balance-big");
+  //       return false;
+  //     }
 
-    } catch (e) {
-      console.log(e)
-      amountErrorMsg.value = i18n.t("message.unexpected-error");
-      return false;
-    }
+  //   } catch (e) {
+  //     console.log(e)
+  //     amountErrorMsg.value = i18n.t("message.unexpected-error");
+  //     return false;
+  //   }
 
-  } else {
-    amountErrorMsg.value = i18n.t("message.unexpected-error");
-    return false;
-  }
+  // } else {
+  //   amountErrorMsg.value = i18n.t("message.unexpected-error");
+  //   return false;
+  // }
 
-  return true;
+  // return true;
 }
 
 const validateEvm = async () => {
@@ -830,15 +830,15 @@ const setAmount = (p: number) => {
 };
 
 const total = computed(() => {
-  if (selectedCurrency.value) {
-    const asset = walletStore.getCurrencyByTicker(
-      selectedCurrency.value.ticker!
-    );
-    if (asset) {
-      const ibc = AssetUtils.makeIBCMinimalDenom(asset.ibc_route, asset.symbol);
-      return new KeplrCoin(ibc, selectedCurrency.value.balance.amount);
-    }
-  }
+  // if (selectedCurrency.value) {
+  //   const asset = walletStore.getCurrencyByTicker(
+  //     selectedCurrency.value.ticker!
+  //   );
+  //   if (asset) {
+  //     const ibc = AssetUtils.makeIBCMinimalDenom(asset.ibc_route, asset.symbol);
+  //     return new KeplrCoin(ibc, selectedCurrency.value.balance.amount);
+  //   }
+  // }
   return undefined;
 })
 </script>

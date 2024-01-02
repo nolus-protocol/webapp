@@ -73,7 +73,8 @@ const balances = computed(() => {
 
   return balances.filter((item) => {
     const currency = walletStore.currencies[item.balance.denom];
-    return currency.ticker == ticker;
+    const [t] = currency.ticker.split('@');
+    return t == ticker;
   });
 });
 
@@ -145,9 +146,9 @@ const isAmountValid = (): boolean => {
   state.value.amountErrorMsg = "";
 
   const amount = state.value.amount;
-  const currency = walletStore.getCurrencyByTicker(state.value.leaseInfo.amount.ticker);
+  const currency = walletStore.getCurrencyByTicker(state.value.leaseInfo.amount.ticker)!;
   const debt = new Dec(state.value.leaseInfo.amount.amount, Number(currency.decimal_digits));
-  const minAmountCurrency = walletStore.getCurrencyByTicker(config.value?.config.lease_position_spec.min_asset.ticker as string);
+  const minAmountCurrency = walletStore.getCurrencyByTicker(config.value?.config.lease_position_spec.min_asset.ticker as string)!;
   const minAmont = new Dec(config.value?.config.lease_position_spec.min_asset.amount ?? 0, Number(minAmountCurrency.decimal_digits));
   const price = new Dec(oracle.prices[currency.symbol].amount);
 

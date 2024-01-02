@@ -71,10 +71,14 @@ const balances = computed(() => {
   const balances = walletStore.balances;
   return balances.filter((item) => {
     const currency = walletStore.currencies[item.balance.denom];
-    if (IGNORE_LEASE_ASSETS.includes(currency.ticker)) {
+    const lpns = (app.lpn ?? []).map((item) => item.key);
+
+    const [ticker] = currency.ticker.split('@');
+
+    if (IGNORE_LEASE_ASSETS.includes(ticker)) {
       return false;
     }
-    return app.lease.includes(currency.ticker) || currency.ticker == app.lpn?.ticker;
+    return lpns.includes(currency.ticker) || app.lease.includes(ticker);
   });
 });
 
@@ -158,7 +162,7 @@ const isAmountValid = (): boolean => {
         currentBalance?.balance?.denom
       );
       const asset = walletStore.getCurrencyByTicker(coinData.ticker);
-      const price = oracle.prices[asset.symbol];
+      const price = oracle.prices[asset!.symbol];
 
       const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, "", coinData.coinDecimals);
       const balance = CurrencyUtils.calculateBalance(price.amount, amountInMinimalDenom, coinData.coinDecimals).toDec();
@@ -195,7 +199,7 @@ const isAmountValid = (): boolean => {
       }
 
       if (amountInStable.lt(minAmount)) {
-        state.value.amountErrorMsg = i18n.t("message.min-amount-allowed", { amount: minAmountCurrency.toString(Number(asset.decimal_digits)), currency: asset.shortName });
+        state.value.amountErrorMsg = i18n.t("message.min-amount-allowed", { amount: minAmountCurrency.toString(Number(asset!.decimal_digits)), currency: asset!.shortName });
         isValid = false;
       }
       
@@ -315,13 +319,16 @@ const additionalInterest = () => {
 
 const hasSwapFee = () => {
   const selectedCurrencyInfo = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom as string);
-  const isLpn = app.lpn?.ticker == selectedCurrencyInfo.ticker;
+  const lpns = (app.lpn ?? []).map((item) => item.key);
+  const isLpn =  lpns.find((lpn) => {
+    const [lpnTicker]  = lpn!.split('@')
+    return selectedCurrencyInfo.ticker == lpnTicker;
+  });
   if (isLpn) {
     return false;
   }
   return true;
-}
-
+};
 
 watch(walletRef.balances, (b: AssetBalance[]) => {
   if (b) {

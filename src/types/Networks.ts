@@ -17,6 +17,7 @@ export interface Currency {
         network: string,
         currency: string
     },
+    ibcData:  string,
     icon?: string,
     forward?: string[]
 }

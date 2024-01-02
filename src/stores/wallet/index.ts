@@ -828,17 +828,16 @@ const useWalletStore = defineStore("wallet", {
         const currency = state.currencies[denom];
         const app = useApplicationStore();
         const assetIcons = app.assetIcons!;
-
         if (!currency) {
           return {
-            ticker: app.native?.ticker as string,
-            shortName: app.native?.shortName as string,
-            coinDenom: app.native?.symbol as string,
-            coinMinimalDenom: app.native?.symbol as string,
+            ticker: NATIVE_ASSET.ticker as string,
+            shortName: NATIVE_ASSET.label as string,
+            coinDenom: NATIVE_ASSET.label as string,
+            coinMinimalDenom: NATIVE_ASSET.denom as string,
             coinDecimals: Number(0),
-            coinAbbreviation: app.native?.name as string,
+            coinAbbreviation: NATIVE_ASSET.label as string,
             coinGeckoId: ASSETS.NLS.coinGeckoId,
-            coinIcon: app.assetIcons?.NLS as string,
+            coinIcon: NATIVE_ASSET.icon as string,
             key: `${app.native?.ticker}@${Protocols.osmosis}`
           };
         }
@@ -865,6 +864,13 @@ const useWalletStore = defineStore("wallet", {
 
         if (!ticker) {
           return undefined;
+        }
+
+        for(const key in CurrencyMapping){
+          if(CurrencyMapping[key].ticker == ticker){
+            ticker = key;
+            break;
+          }
         }
 
         for (const currency in app.currenciesData) {

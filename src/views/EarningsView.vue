@@ -74,10 +74,10 @@
                 >
 
                   <EarnLpnAsset
-                    v-if="lpnAsset"
-                    key="`lpnAsset"
-                    :asset="lpnAsset"
-                    :openSupplyWithdraw="() => openSupplyWithdrawDialog(lpnAsset?.balance.denom)"
+                    v-for="lpn of lpnAsset"
+                    :key="lpn.balance.denom"
+                    :asset="lpn"
+                    :openSupplyWithdraw="() => openSupplyWithdrawDialog(lpn.balance.denom)"
                     :cols="cols"
                   />
 
@@ -167,6 +167,7 @@ import EarnReward from "@/components/EarningsComponents/EarnReward.vue";
 import SupplyWithdrawDialog from "@/components/modals/SupplyWithdrawDialog.vue";
 import DelegateUndelegateDialog from "@/components/modals/DelegateUndelegateDialog.vue";
 import WithdrawRewardsDialog from "@/components/modals/WithdrawRewardsDialog.vue";
+import EarnLpnAsset from "@/components/EarningsComponents/EarnLpnAsset.vue";
 
 import Modal from "@/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/components/modals/ErrorDialog.vue";
@@ -183,7 +184,6 @@ import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { claimRewardsMsg, type ContractData, Lpp } from "@nolus/nolusjs/build/contracts";
 import { NATIVE_ASSET, UPDATE_REWARDS_INTERVAL } from "@/config/env";
 import { coin } from "@cosmjs/amino";
-import EarnLpnAsset from "@/components/EarningsComponents/EarnLpnAsset.vue";
 import { useApplicationStore } from "@/stores/application";
 import { storeToRefs } from "pinia";
 
@@ -209,7 +209,7 @@ const showErrorDialog = ref(false);
 const errorMessage = ref("");
 const loading = ref(true);
 const isDelegated = ref(false);
-const lpnAsset = ref<AssetBalance | null>()
+const lpnAsset = ref<AssetBalance[] | []>([])
 const lpnReward = ref(new Dec(0))
 const applicaton = useApplicationStore();
 const applicationRef = storeToRefs(applicaton);
@@ -299,7 +299,6 @@ async function loadRewards() {
   }
 
   reward.value = { balance: coin(value.truncate().toString(), NATIVE_ASSET.denom) };
-
 }
 
 async function getRewards() {
@@ -350,29 +349,39 @@ async function loadLPNCurrency() {
   });
 
   const lppConfig = await lppClient.getLppConfig();
-  console.log(lppConfig, wallet.balances)
-  const lpnCoin = wallet.getCurrencyByTicker(lppConfig.lpn_ticker);
-  const lpnIbcDenom = wallet.getIbcDenomBySymbol(lpnCoin?.symbol);
+  const lpnCurrencies: AssetBalance[] = [];
+  const lpns = (applicaton.lpn ?? []).filter((item) => item.ticker == lppConfig.lpn_ticker);
+  const promises = [];
 
-  const index = wallet.balances.findIndex((item) => item.balance.denom == lpnIbcDenom);
+  for (const lpn of lpns) {
+    const index = wallet.balances.findIndex((item) => item.balance.denom == lpn.ibcData);
+    if (index > -1) {
+      const fn = async () => {
+        const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
+        const [depositBalance, price] = await Promise.all([
+          lppClient.getLenderDeposit(
+            walletAddress as string
+          ),
+          lppClient.getPrice()
+        ]);
+        const calculatedPrice = new Dec(price.amount_quote.amount).quo(
+          new Dec(price.amount.amount)
+        );
+        const amount = new Dec(depositBalance.balance).mul(calculatedPrice).truncate();
+        const currency = {
+          ...wallet.balances[index],
+        };
+        currency.balance.amount = amount;
+        lpnCurrencies.push(currency)
 
-  if (index > -1) {
+      }
+      promises.push(fn());
 
-    const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
-    const [depositBalance, price] = await Promise.all([
-      lppClient.getLenderDeposit(
-        walletAddress as string
-      ),
-      lppClient.getPrice()
-    ]);
-    const calculatedPrice = new Dec(price.amount_quote.amount).quo(
-      new Dec(price.amount.amount)
-    );
-    const amount = new Dec(depositBalance.balance).mul(calculatedPrice).truncate();
-    const asset = { ...wallet.balances[index].balance }
-    lpnAsset.value = { ...wallet.balances[index], balance: asset };
-    lpnAsset.value.balance.amount = amount;
+    }
   }
+
+  await Promise.all(promises);
+  lpnAsset.value = lpnCurrencies;
 
 }
 

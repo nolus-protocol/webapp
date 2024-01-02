@@ -276,21 +276,22 @@ const balances = ref<AssetBalance[]>(walletStore.balances.filter((item) => {
   }
   return true;
 }).map((item) => {
-  const e = { ...item }
-  const asset = walletStore.getCurrencyInfo(e.balance.denom);
-  const currency = walletStore.getCurrencyByTicker(asset.ticker);
+  // const e = { ...item }
+  // const asset = walletStore.getCurrencyInfo(e.balance.denom);
+  // const currency = walletStore.getCurrencyByTicker(asset.ticker);
 
-  if (e.balance.denom == walletStore.available.denom) {
-    e.balance = { ...walletStore.available }
-  }
-  e.ticker = asset.ticker;
-  e.name = asset.shortName;
-  e.shortName = asset.shortName;
-  e.ibc_route = currency.ibc_route;
-  e.decimals = asset.coinDecimals;
-  e.symbol = currency.symbol;
-  e.native = currency.native;
-  return e;
+  // if (e.balance.denom == walletStore.available.denom) {
+  //   e.balance = { ...walletStore.available }
+  // }
+  // e.ticker = asset.ticker;
+  // e.name = asset.shortName;
+  // e.shortName = asset.shortName;
+  // e.ibc_route = currency.ibc_route;
+  // e.decimals = asset.coinDecimals;
+  // e.symbol = currency.symbol;
+  // e.native = currency.native;
+  // return e;
+  return item;
 }));
 
 const closeModal = inject("onModalClose", () => () => { });
@@ -457,205 +458,205 @@ const checkEvmBalances = async () => {
 }
 
 const connectMetamask = async () => {
-  metamask = new MetaMaskWallet();
-  const chainId = Number((toChainData as EvmChain).chainId);
-  await metamask.connect({
-    chainId: `0x${chainId.toString(16)}`,
-    chainName: (toChainData as EvmChain).networkName,
-    nativeCurrency: (toChainData as EvmChain).nativeCurrency,
-    rpcUrls: [(toChainData as EvmChain).rpc],
-    blockExplorerUrls: (toChainData as EvmChain).blockExplorerUrls
-  }, (toChainData as EvmChain).rpc);
+//   metamask = new MetaMaskWallet();
+//   const chainId = Number((toChainData as EvmChain).chainId);
+//   await metamask.connect({
+//     chainId: `0x${chainId.toString(16)}`,
+//     chainName: (toChainData as EvmChain).networkName,
+//     nativeCurrency: (toChainData as EvmChain).nativeCurrency,
+//     rpcUrls: [(toChainData as EvmChain).rpc],
+//     blockExplorerUrls: (toChainData as EvmChain).blockExplorerUrls
+//   }, (toChainData as EvmChain).rpc);
 
-  metamaskAddress.value = metamask.shortAddress;
-  receiverAddress.value = metamask.address;
-}
+//   metamaskAddress.value = metamask.shortAddress;
+//   receiverAddress.value = metamask.address;
+// }
 
-async function sendTXCosmos() {
+// async function sendTXCosmos() {
 
-  try {
+//   try {
 
-    step.value = CONFIRM_STEP.PENDING;
+//     step.value = CONFIRM_STEP.PENDING;
 
-    const squid = await squidRouter();
-    const chains = await AppUtils.getSquitRouteNetworks();
-    const denom = AssetUtils.makeIBCMinimalDenom(selectedCurrency.value?.ibc_route!, selectedCurrency.value?.symbol!);
+//     const squid = await squidRouter();
+//     const chains = await AppUtils.getSquitRouteNetworks();
+//     const denom = AssetUtils.makeIBCMinimalDenom(selectedCurrency.value?.ibc_route!, selectedCurrency.value?.symbol!);
 
-    const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
-      amount.value,
-      denom,
-      selectedCurrency.value?.decimals!
-    );
+//     const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
+//       amount.value,
+//       denom,
+//       selectedCurrency.value?.decimals!
+//     );
 
-    const chain = chains[selectedNetwork.value.key];
-    const currency = squid.tokens.find((item) => item.chainId == chain.chainId && ASSETS[selectedCurrency.value.ticker as keyof typeof ASSETS].coinGeckoId == item.coingeckoId);
+//     const chain = chains[selectedNetwork.value.key];
+//     const currency = squid.tokens.find((item) => item.chainId == chain.chainId && ASSETS[selectedCurrency.value.ticker as keyof typeof ASSETS].coinGeckoId == item.coingeckoId);
 
-    if (!currency) {
-      console.warn(`Not supported currency ${selectedCurrency.value.ticker} on chain ${selectedNetwork.value.key}`)
-      return false;
-    }
+//     if (!currency) {
+//       console.warn(`Not supported currency ${selectedCurrency.value.ticker} on chain ${selectedNetwork.value.key}`)
+//       return false;
+//     }
 
-    const params = {
-      fromAddress: walletStore?.wallet?.address as string,
-      fromChain: chains.NOLUS.chainId,
-      fromToken: minimalDenom.denom,
-      fromAmount: minimalDenom.amount.toString(),
-      toChain: selectedNetwork.value.chainId,
-      toToken: currency.address,
-      toAddress: toWallet.value as string,
-      slippage: 1.00,
-      quoteOnly: false,
-    };
-    const data = await squid.getRoute(params);
+//     const params = {
+//       fromAddress: walletStore?.wallet?.address as string,
+//       fromChain: chains.NOLUS.chainId,
+//       fromToken: minimalDenom.denom,
+//       fromAmount: minimalDenom.amount.toString(),
+//       toChain: selectedNetwork.value.chainId,
+//       toToken: currency.address,
+//       toAddress: toWallet.value as string,
+//       slippage: 1.00,
+//       quoteOnly: false,
+//     };
+//     const data = await squid.getRoute(params);
 
-    walletOperation(
-      async () => {
-        try {
-          const offlineSigner = walletStore.wallet?.getOfflineSigner() as any;
-          const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
+//     walletOperation(
+//       async () => {
+//         try {
+//           const offlineSigner = walletStore.wallet?.getOfflineSigner() as any;
+//           const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
 
-          const signer = await SigningStargateClient.connectWithSigner(
-            url,
-            offlineSigner!
-          );
+//           const signer = await SigningStargateClient.connectWithSigner(
+//             url,
+//             offlineSigner!
+//           );
 
-          const cosmosTx = await squid.executeRoute({
-            signer,
-            signerAddress: walletStore.wallet?.address,
-            route: data.route,
-          }) as TxRaw;
+//           const cosmosTx = await squid.executeRoute({
+//             signer,
+//             signerAddress: walletStore.wallet?.address,
+//             route: data.route,
+//           }) as TxRaw;
 
-          const txBytes = Uint8Array.from(TxRaw.encode(cosmosTx).finish());
-          const tx = toHex(sha256(txBytes));
+//           const txBytes = Uint8Array.from(TxRaw.encode(cosmosTx).finish());
+//           const tx = toHex(sha256(txBytes));
 
-          step.value = CONFIRM_STEP.SUCCESS;
-          txHash.value = tx;
+//           step.value = CONFIRM_STEP.SUCCESS;
+//           txHash.value = tx;
 
-        } catch (error: Error | any) {
-          console.log(error)
-          switch (error.code) {
-            case (ErrorCodes.GasError): {
-              step.value = CONFIRM_STEP.GasErrorExternal;
-              break;
-            }
-            default: {
-              step.value = CONFIRM_STEP.ERROR;
-              break;
-            }
-          }
-        }
+//         } catch (error: Error | any) {
+//           console.log(error)
+//           switch (error.code) {
+//             case (ErrorCodes.GasError): {
+//               step.value = CONFIRM_STEP.GasErrorExternal;
+//               break;
+//             }
+//             default: {
+//               step.value = CONFIRM_STEP.ERROR;
+//               break;
+//             }
+//           }
+//         }
 
-      },
-      password.value
-    );
-  } catch (error: Error | any) {
+//       },
+//       password.value
+//     );
+//   } catch (error: Error | any) {
 
-    if (error?.errors) {
-      let err = '';
-      for (const e of error.errors) {
-        err += e.message as string;
-      }
-      amountErrorMsg.value = err;
-      onConfirmBackClick();
-      step.value = CONFIRM_STEP.CONFIRM;
-    } else {
-      step.value = CONFIRM_STEP.ERROR;
-    }
+//     if (error?.errors) {
+//       let err = '';
+//       for (const e of error.errors) {
+//         err += e.message as string;
+//       }
+//       amountErrorMsg.value = err;
+//       onConfirmBackClick();
+//       step.value = CONFIRM_STEP.CONFIRM;
+//     } else {
+//       step.value = CONFIRM_STEP.ERROR;
+//     }
 
-  }
+//   }
 }
 
 async function sendTXEvm() {
 
-  try {
+  // try {
 
-    step.value = CONFIRM_STEP.PENDING;
+  //   step.value = CONFIRM_STEP.PENDING;
 
-    const squid = await squidRouter();
-    const chains = await AppUtils.getSquitRouteNetworks();
-    const denom = AssetUtils.makeIBCMinimalDenom(selectedCurrency.value?.ibc_route!, selectedCurrency.value?.symbol!);
+  //   const squid = await squidRouter();
+  //   const chains = await AppUtils.getSquitRouteNetworks();
+  //   const denom = AssetUtils.makeIBCMinimalDenom(selectedCurrency.value?.ibc_route!, selectedCurrency.value?.symbol!);
 
-    const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
-      amount.value,
-      denom,
-      selectedCurrency.value?.decimals!
-    );
+  //   const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
+  //     amount.value,
+  //     denom,
+  //     selectedCurrency.value?.decimals!
+  //   );
 
-    const chain = chains[selectedNetwork.value.key];
-    const currency = squid.tokens.find((item) => item.chainId == chain.chainId && selectedCurrency.value.from == item.symbol);
+  //   const chain = chains[selectedNetwork.value.key];
+  //   const currency = squid.tokens.find((item) => item.chainId == chain.chainId && selectedCurrency.value.from == item.symbol);
 
-    if (!currency) {
-      console.warn(`Not supported currency ${selectedCurrency.value.ticker} on chain ${selectedNetwork.value.key}`)
-      return false;
-    }
+  //   if (!currency) {
+  //     console.warn(`Not supported currency ${selectedCurrency.value.ticker} on chain ${selectedNetwork.value.key}`)
+  //     return false;
+  //   }
 
-    const params = {
-      fromAddress: walletStore?.wallet?.address as string,
-      fromChain: chains.NOLUS.chainId,
-      fromToken: minimalDenom.denom,
-      fromAmount: minimalDenom.amount.toString(),
-      toChain: selectedNetwork.value.chainId,
-      toToken: currency.address,
-      toAddress: receiverAddress.value as string,
-      slippage: 1.00,
-      quoteOnly: false,
-    };
+  //   const params = {
+  //     fromAddress: walletStore?.wallet?.address as string,
+  //     fromChain: chains.NOLUS.chainId,
+  //     fromToken: minimalDenom.denom,
+  //     fromAmount: minimalDenom.amount.toString(),
+  //     toChain: selectedNetwork.value.chainId,
+  //     toToken: currency.address,
+  //     toAddress: receiverAddress.value as string,
+  //     slippage: 1.00,
+  //     quoteOnly: false,
+  //   };
 
-    const data = await squid.getRoute(params)
+  //   const data = await squid.getRoute(params)
 
-    walletOperation(
-      async () => {
-        try {
-          const offlineSigner = walletStore.wallet?.getOfflineSigner() as any;
-          const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
+  //   walletOperation(
+  //     async () => {
+  //       try {
+  //         const offlineSigner = walletStore.wallet?.getOfflineSigner() as any;
+  //         const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
 
-          const signer = await SigningStargateClient.connectWithSigner(
-            url,
-            offlineSigner!
-          );
+  //         const signer = await SigningStargateClient.connectWithSigner(
+  //           url,
+  //           offlineSigner!
+  //         );
 
-          const cosmosTx = await squid.executeRoute({
-            signer,
-            signerAddress: walletStore.wallet?.address,
-            route: data.route,
-          }) as TxRaw;
+  //         const cosmosTx = await squid.executeRoute({
+  //           signer,
+  //           signerAddress: walletStore.wallet?.address,
+  //           route: data.route,
+  //         }) as TxRaw;
 
-          const txBytes = Uint8Array.from(TxRaw.encode(cosmosTx).finish());
-          const tx = toHex(sha256(txBytes));
+  //         const txBytes = Uint8Array.from(TxRaw.encode(cosmosTx).finish());
+  //         const tx = toHex(sha256(txBytes));
 
-          step.value = CONFIRM_STEP.SUCCESS;
-          txHash.value = tx;
+  //         step.value = CONFIRM_STEP.SUCCESS;
+  //         txHash.value = tx;
 
-        } catch (error: Error | any) {
-          console.log(error)
-          switch (error.code) {
-            case (ErrorCodes.GasError): {
-              step.value = CONFIRM_STEP.GasErrorExternal;
-              break;
-            }
-            default: {
-              step.value = CONFIRM_STEP.ERROR;
-              break;
-            }
-          }
-        }
+  //       } catch (error: Error | any) {
+  //         console.log(error)
+  //         switch (error.code) {
+  //           case (ErrorCodes.GasError): {
+  //             step.value = CONFIRM_STEP.GasErrorExternal;
+  //             break;
+  //           }
+  //           default: {
+  //             step.value = CONFIRM_STEP.ERROR;
+  //             break;
+  //           }
+  //         }
+  //       }
 
-      },
-      password.value
-    );
-  } catch (error: Error | any) {
-    if (error?.errors) {
-      let err = '';
-      for (const e of error.errors) {
-        err += e.message as string;
-      }
-      amountErrorMsg.value = err;
-      onConfirmBackClick();
-      step.value = CONFIRM_STEP.CONFIRM;
-    } else {
-      step.value = CONFIRM_STEP.ERROR;
-    }
-  }
+  //     },
+  //     password.value
+  //   );
+  // } catch (error: Error | any) {
+  //   if (error?.errors) {
+  //     let err = '';
+  //     for (const e of error.errors) {
+  //       err += e.message as string;
+  //     }
+  //     amountErrorMsg.value = err;
+  //     onConfirmBackClick();
+  //     step.value = CONFIRM_STEP.CONFIRM;
+  //   } else {
+  //     step.value = CONFIRM_STEP.ERROR;
+  //   }
+  // }
 
 }
 
@@ -859,17 +860,17 @@ const validateEvm = async () => {
 
 const onSendClick = async () => {
 
-  switch (networkType.value) {
-    case (NetworkTypes.cosmos): {
-      if (selectedNetwork.value.native) {
-        return transferAmount();
-      }
-      return sendTXCosmos();
-    }
-    case (NetworkTypes.evm): {
-      return sendTXEvm();
-    }
-  }
+  // switch (networkType.value) {
+  //   case (NetworkTypes.cosmos): {
+  //     if (selectedNetwork.value.native) {
+  //       return transferAmount();
+  //     }
+  //     return sendTXCosmos();
+  //   }
+  //   case (NetworkTypes.evm): {
+  //     return sendTXEvm();
+  //   }
+  // }
 };
 
 const onConfirmBackClick = () => {
@@ -919,15 +920,15 @@ const setAmount = (p: number) => {
 };
 
 const total = computed(() => {
-  if (selectedCurrency.value) {
-    const asset = walletStore.getCurrencyByTicker(
-      selectedCurrency.value.ticker!
-    );
-    if (asset) {
-      const ibc = AssetUtils.makeIBCMinimalDenom(asset.ibc_route, asset.symbol);
-      return new KeplrCoin(ibc, selectedCurrency.value.balance.amount);
-    }
-  }
+  // if (selectedCurrency.value) {
+  //   const asset = walletStore.getCurrencyByTicker(
+  //     selectedCurrency.value.ticker!
+  //   );
+  //   if (asset) {
+  //     const ibc = AssetUtils.makeIBCMinimalDenom(asset.ibc_route, asset.symbol);
+  //     return new KeplrCoin(ibc, selectedCurrency.value.balance.amount);
+  //   }
+  // }
   return undefined;
 
 });

@@ -33,7 +33,7 @@
         {{ DEFAULT_CURRENCY.symbol }}{{ calculateBalance(price, assetBalance, denom) }}
       </div>
     </div>
-
+    
     <div v-if="earnings"
          class="hidden md:block">
       <div class="text-primary nls-font-500 text-14 text-right m-0">
@@ -89,11 +89,12 @@
         </p>
       </div>
       <div class="flex justify-end nls-btn-show  !right-0">
-        <button v-if="canLease"
+        <button 
                 class="btn btn-secondary btn-medium-secondary"
                 @click="openModal(DASHBOARD_ACTIONS.LEASE, denom)">
           {{ $t("message.lease") }}
         </button>
+        
         <button v-if="canSupply"
                 class="btn btn-secondary btn-medium-secondary"
                 @click="openModal(DASHBOARD_ACTIONS.SUPPLY, denom)">
@@ -207,15 +208,16 @@ const props = defineProps({
 
 const canLease = computed(() => {
   const curency = walletStore.currencies[props.denom];
-
+  const [ticker] = curency.ticker.split('@')
   return (
-    Number(props.assetBalance) > 0 && app.lease.includes(curency.ticker)
+    Number(props.assetBalance) > 0 && app.lease.includes(ticker)
   );
 });
 
 const canSupply = computed(() => {
   const curency = walletStore.currencies[props.denom];
-  return Number(props.assetBalance) > 0 && app.lpn?.ticker == curency.ticker;
+  const lpns = (app.lpn ?? []).map((item) => item.key);
+  return Number(props.assetBalance) > 0 && lpns.includes(curency.ticker)
 });
 
 const canStake = computed(() => {
@@ -227,8 +229,9 @@ const canStake = computed(() => {
 
 const isEarn = computed(() => {
   const curency = walletStore.currencies[props.denom];
+  const lpns = (app.lpn ?? []).map((item) => item.key);
   return (
-    app.lpn?.ticker == curency.ticker
+    lpns.includes(curency.ticker)
   );
 });
 

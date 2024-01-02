@@ -70,9 +70,11 @@ const app = useApplicationStore();
 
 const balances = computed(() => {
   const balances = walletStore.balances;
+  const lpns = (app.lpn ?? []).map((item) => item.key);
+
   return balances.filter((item) => {
     const currency = walletStore.currencies[item.balance.denom];
-    return currency.ticker == app.lpn?.ticker;
+    return lpns.includes(currency.ticker);
   });
 });
 

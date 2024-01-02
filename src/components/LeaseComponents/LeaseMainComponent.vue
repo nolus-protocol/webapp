@@ -43,7 +43,7 @@ import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import { computed } from "vue";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, TIP, WASM_EVENTS, INTEREST_DECIMALS, DEFAULT_LTD, PERMILLE, ErrorCodes } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, TIP, WASM_EVENTS, INTEREST_DECIMALS, DEFAULT_LTD, PERMILLE, ErrorCodes, CurrencyMapping } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/stores/oracle";
 import { useApplicationStore } from "@/stores/application";
@@ -61,7 +61,9 @@ const paymentBalances = computed(() => {
   const balances = walletStore.balances;
   return balances.filter((item) => {
     const currency = walletStore.currencies[item.balance.denom];
-    return app.lpn?.ticker == currency.ticker || app.lease.includes(currency.ticker);
+    const lpns = (app.lpn ?? []).map((item) => item.key);
+
+    return lpns.includes(currency.ticker) || app.lease.includes(currency.ticker);
   });
 });
 
@@ -69,7 +71,9 @@ const leaseBalances = computed(() => {
   const balances = walletStore.balances;
   return balances.filter((item) => {
     const currency = walletStore.currencies[item.balance.denom];
-    return app.lease.includes(currency.ticker);
+    const [ticker] = currency.ticker.split('@');
+
+    return app.lease.includes(ticker);
   }).map((item) => {
     const asset = walletStore.getCurrencyInfo(item.balance.denom);
     return {
@@ -178,12 +182,23 @@ const calculate = async () => {
       const currency = walletStore.currencies[
         state.value.selectedDownPaymentCurrency.balance.denom
       ];
-
       const lease = walletStore.currencies[state.value.selectedCurrency.balance.denom];
+
+      let [downPaymentTicker] = currency.ticker.split('@');
+      let [leaseTicker] = lease.ticker.split('@');
+
+      if (CurrencyMapping[downPaymentTicker as keyof typeof CurrencyMapping]) {
+        downPaymentTicker = CurrencyMapping[downPaymentTicker as keyof typeof CurrencyMapping]?.ticker;
+      }
+
+      if (CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]) {
+        leaseTicker = CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]?.ticker;
+      }
+
       const makeLeaseApplyResp = await leaserClient.leaseQuote(
         microAmount.mAmount.amount.toString(),
-        currency.ticker,
-        lease.ticker,
+        downPaymentTicker,
+        leaseTicker,
         state.value.ltd
       );
 
@@ -285,11 +300,11 @@ const validateMinMaxValues = (): boolean => {
   const rangedownPaymentCurrency = downPaymentRange?.[downPaymentCurrency.ticker];
   const values: number[] = [];
 
-  if(range?.max != null){
+  if (range?.max != null) {
     values.push(range.max);
   }
 
-  if(rangedownPaymentCurrency?.max != null){
+  if (rangedownPaymentCurrency?.max != null) {
     values.push(rangedownPaymentCurrency.max);
   }
 
@@ -306,7 +321,7 @@ const validateMinMaxValues = (): boolean => {
         currentBalance?.balance?.denom
       );
       const asset = walletStore.getCurrencyByTicker(coinData.ticker);
-      const price = oracle.prices[asset.symbol];
+      const price = oracle.prices[asset!.symbol];
 
       const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(downPaymentAmount, coinData.coinDenom, coinData.coinDecimals);
       const balance = CurrencyUtils.calculateBalance(price.amount, downPaymentAmountInMinimalDenom, coinData.coinDecimals).toDec();
@@ -376,9 +391,15 @@ const openLease = async () => {
         state.value.selectedCurrency.balance.denom
       ].ticker;
 
+      let [leaseTicker] = ticker.split('@');
+
+      if (CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]) {
+        leaseTicker = CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]?.ticker;
+      }
+
       const { txHash, txBytes, usedFee } = await leaserClient.simulateOpenLeaseTx(
         wallet,
-        ticker,
+        leaseTicker,
         state.value.ltd,
         funds
       );
@@ -405,13 +426,14 @@ const openLease = async () => {
           state.value.selectedDownPaymentCurrency.balance.denom
         ].ticker);
 
-        const downPaymentPrice = oracle.prices[downPaymentAsset.symbol];
-        const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(state.value.downPayment, "", Number(downPaymentAsset.decimal_digits));
-        const balance = CurrencyUtils.calculateBalance(downPaymentPrice.amount, downPaymentAmountInMinimalDenom, Number(downPaymentAsset.decimal_digits)).toDec().toString();
+
+        const downPaymentPrice = oracle.prices[downPaymentAsset!.symbol];
+        const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(state.value.downPayment, "", Number(downPaymentAsset!.decimal_digits));
+        const balance = CurrencyUtils.calculateBalance(downPaymentPrice.amount, downPaymentAmountInMinimalDenom, Number(downPaymentAsset!.decimal_digits)).toDec().toString();
 
         localStorage.setItem(data.value, JSON.stringify({
           downPayment: balance,
-          downpaymentTicker: downPaymentAsset.ticker,
+          downpaymentTicker: downPaymentAsset!.ticker,
           price: leaseAssetPrice,
           leasePositionTicker: ticker
         }));

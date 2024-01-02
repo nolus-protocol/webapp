@@ -8,7 +8,7 @@ import { NolusClient } from "@nolus/nolusjs";
 import { Oracle } from "@nolus/nolusjs/build/contracts/clients/Oracle";
 import { CONTRACTS } from "@/config/contracts";
 
-import { LPN_PRICE } from "@/config/env";
+import { LPN_DECIMALS, LPN_PRICE } from "@/config/env";
 import { useApplicationStore } from "../application";
 
 const useOracleStore = defineStore("oracle", {
@@ -42,14 +42,16 @@ const useOracleStore = defineStore("oracle", {
             }
           }[];
         } = await oracleContract.getPrices() as any;
+
         for (const price of data.prices) {
           const key = price.amount.ticker;
-          const currency = app.currenciesData![key];
+          const currency = app.getCurrencySymbol(key);
+
           if (currency) {
             const diff = Math.abs(
               Number(
-                app.currenciesData![key].decimal_digits
-              ) - Number(app.currenciesData!.USDC.decimal_digits)
+                currency.decimal_digits
+              ) - LPN_DECIMALS
             );
             let calculatedPrice = new Dec(price.amount_quote.amount).quo(
               new Dec(price.amount.amount)
@@ -61,7 +63,7 @@ const useOracleStore = defineStore("oracle", {
             };
             pr[currency.symbol] = tokenPrice;
           }
-          for(const lpn of app.lpn ?? []){
+          for (const lpn of app.lpn ?? []) {
             pr[lpn.symbol] = { symbol: lpn.ticker as string, amount: `${LPN_PRICE}` };
           }
         }

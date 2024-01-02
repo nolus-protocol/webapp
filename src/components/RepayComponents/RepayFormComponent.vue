@@ -57,7 +57,7 @@ import { CoinPretty, Dec, Int, } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
-import { NATIVE_NETWORK, PERMILLE, PERCENT } from "@/config/env";
+import { NATIVE_NETWORK, PERMILLE, PERCENT, LPN_DECIMALS, LPN_Symbol } from "@/config/env";
 import { calculateAditionalDebt } from "@/config/env";
 import { useApplicationStore } from "@/stores/application";
 
@@ -99,33 +99,33 @@ const outStandingDebt = () => {
   return debt;
 }
 
-const calucateAfterRepayment = computed(() => {
+// const calucateAfterRepayment = computed(() => {
 
-  if (props.modelValue.amount && props.modelValue.amount != "") {
-    const amount = outStandingDebt();
-    const currency = wallet.getCurrencyByTicker(props.modelValue.leaseInfo.principal_due.ticker);
-    const denom = wallet.getIbcDenomBySymbol(currency.symbol);
-    const info = wallet.getCurrencyInfo(denom as string);
-    const amountToRepay = CurrencyUtils.convertMinimalDenomToDenom(amount.toString(), info.coinMinimalDenom, info.coinDenom, info.coinDecimals).toDec();
+//   if (props.modelValue.amount && props.modelValue.amount != "") {
+//     const amount = outStandingDebt();
+//     const currency = wallet.getCurrencyByTicker(props.modelValue.leaseInfo.principal_due.ticker);
+//     const denom = wallet.getIbcDenomBySymbol(currency.symbol);
+//     const info = wallet.getCurrencyInfo(denom as string);
+//     const amountToRepay = CurrencyUtils.convertMinimalDenomToDenom(amount.toString(), info.coinMinimalDenom, info.coinDenom, info.coinDecimals).toDec();
 
-    const selectedCurrencyInfo = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom as string);
-    const selectedCurrency = wallet.getCurrencyByTicker(selectedCurrencyInfo.ticker);
-    const price = new Dec(oracle.prices[selectedCurrency.symbol]?.amount ?? 0);
+//     const selectedCurrencyInfo = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom as string);
+//     const selectedCurrency = wallet.getCurrencyByTicker(selectedCurrencyInfo.ticker);
+//     const price = new Dec(oracle.prices[selectedCurrency.symbol]?.amount ?? 0);
 
-    const repayment = new Dec(props.modelValue.amount).mul(price);
-    const diff = amountToRepay.sub(repayment);
+//     const repayment = new Dec(props.modelValue.amount).mul(price);
+//     const diff = amountToRepay.sub(repayment);
 
-    if (diff.isNegative()) {
-      return "0";
-    }
+//     if (diff.isNegative()) {
+//       return "0";
+//     }
 
-    return diff.toString(info.coinDecimals);
+//     return diff.toString(info.coinDecimals);
 
-  }
+//   }
 
-  return "0";
+//   return "0";
 
-});
+// });
 
 const handleAmountChange = (value: string) => {
   props.modelValue.amount = value;
@@ -154,7 +154,7 @@ const setRepayment = (p: number) => {
 const getRepayment = (p: number) => {
   const amount = outStandingDebt();
   const currency = wallet.getCurrencyByTicker(props.modelValue.leaseInfo.principal_due.ticker);
-  const denom = wallet.getIbcDenomBySymbol(currency.symbol);
+  const denom = wallet.getIbcDenomBySymbol(currency!.symbol);
   const info = wallet.getCurrencyInfo(denom as string);
   const amountToRepay = CurrencyUtils.convertMinimalDenomToDenom(amount.toString(), info.coinMinimalDenom, info.coinDenom, info.coinDecimals).toDec();
 
@@ -163,7 +163,7 @@ const getRepayment = (p: number) => {
 
   const selectedCurrencyInfo = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom as string);
   const selectedCurrency = wallet.getCurrencyByTicker(selectedCurrencyInfo.ticker);
-  const price = new Dec(oracle.prices[selectedCurrency.symbol].amount);
+  const price = new Dec(oracle.prices[selectedCurrency!.symbol].amount);
   const swap = hasSwapFee.value;
 
   if (swap) {
@@ -182,7 +182,11 @@ const getRepayment = (p: number) => {
 
 const hasSwapFee = computed(() => {
   const selectedCurrencyInfo = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom as string);
-  const isLpn = app.lpn?.ticker == selectedCurrencyInfo.ticker;
+  const lpns = (app.lpn ?? []).map((item) => item.key);
+  const isLpn =  lpns.find((lpn) => {
+    const [lpnTicker]  = lpn!.split('@')
+    return selectedCurrencyInfo.ticker == lpnTicker;
+  });
   if (isLpn) {
     return false;
   }
@@ -192,17 +196,15 @@ const hasSwapFee = computed(() => {
 const amount = computed(() => {
   const info = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
   const selectedCurrency = wallet.getCurrencyByTicker(info.ticker);
-  const lpn = app.currenciesData!.USDC;
-
   let amount = new Dec(props.modelValue.amount == '' ? 0 : props.modelValue.amount);
-  const price = new Dec(oracle.prices[selectedCurrency.symbol]?.amount ?? 0);
+  const price = new Dec(oracle.prices[selectedCurrency!.symbol]?.amount ?? 0);
   const { repayment, repaymentInStable } = getRepayment(100);
 
-  const amountInStableInt = amount.mul(price).mul(new Dec(10).pow(new Int(lpn.decimal_digits))).truncate();
+  const amountInStableInt = amount.mul(price).mul(new Dec(10).pow(new Int(LPN_DECIMALS))).truncate();
   const amountInt = amount.mul(new Dec(10).pow(new Int(info.coinDecimals))).truncate();
 
   const repaymentInt = repayment.mul(new Dec(10).pow(new Int(info.coinDecimals))).truncate();
-  const repaymentInStableInt = repaymentInStable.mul(new Dec(10).pow(new Int(lpn.decimal_digits))).truncate();
+  const repaymentInStableInt = repaymentInStable.mul(new Dec(10).pow(new Int(LPN_DECIMALS))).truncate();
 
   let vStable = repaymentInStableInt.sub(amountInStableInt);
   let v = repaymentInt.sub(amountInt);
@@ -218,9 +220,9 @@ const amount = computed(() => {
   return {
     amountInStable: new CoinPretty(
       {
-        coinDenom: lpn.shortName,
-        coinMinimalDenom: lpn.symbol,
-        coinDecimals: Number(lpn.decimal_digits),
+        coinDenom: LPN_Symbol,
+        coinMinimalDenom: LPN_Symbol,
+        coinDecimals: Number(LPN_DECIMALS),
       },
       vStable
     ).trim(true).maxDecimals(4).hideDenom(true),

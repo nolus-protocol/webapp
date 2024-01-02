@@ -1,4 +1,4 @@
-import type { NetworksInfo } from "@/types/Networks";
+import type { Currency, NetworksInfo } from "@/types/Networks";
 import type { ExternalCurrencyType } from "@/types/CurreciesType";
 import { Networks, type NetworkData, Protocols } from "@nolus/nolusjs/build/types/Networks";
 import { sha256 } from "@cosmjs/crypto";
@@ -136,13 +136,13 @@ export class AssetUtils {
           networks[k] = {};
         }
 
-        let assets = ntwrks.networks.list[k].currencies;
+        let assets: { [key: string]: Currency } = ntwrks.networks.list[k].currencies as { [key: string]: Currency };
 
         if (k == NATIVE_NETWORK.key) {
           for (const p of NolusAssetUtils.getProtocols(ntwrks)) {
             for (const key in ntwrks.networks.list[p].currencies) {
               const ck = `${key}@${p}`;
-              assets[ck] = ntwrks.networks.list[p].currencies[key];
+              assets[ck] = ntwrks.networks.list[p].currencies[key] as Currency;
               assetIcons[ck] = ntwrks.networks.list[p].currencies[key].icon as string;
               assets[ck].ibcData = NolusAssetUtils.makeIBCMinimalDenom(key, ntwrks!, NATIVE_NETWORK.key as Networks, p as Protocols);
 

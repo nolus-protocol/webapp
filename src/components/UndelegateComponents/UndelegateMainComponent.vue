@@ -66,7 +66,7 @@ const state = ref({
     }
     return false;
   }),
-  selectedCurrency: walletStore.balances[0],
+  selectedCurrency: walletStore.balances.find((item) => item.balance.denom == NATIVE_ASSET.denom),
   amount: "",
   password: "",
   amountErrorMsg: "",

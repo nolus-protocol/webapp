@@ -195,7 +195,12 @@ export const WASM_LP_DEPOSIT = "wasm-lp-deposit"
 export const WASM_LP_OPEN = "wasm-ls-open";
 
 export const INPUT_VALUES = [25, 50, 75, 100];
+
 export const LPN_PRICE = 1;
+export const LPN_DECIMALS = 6;
+export const LPN_Symbol = 'USDC.axl';
+export const LPN_Ticker = 'USDC_AXELAR';
+
 export const SESSION_TIME = 15 * 60 * 1000;
 
 export const DECIMALS_AMOUNT = [

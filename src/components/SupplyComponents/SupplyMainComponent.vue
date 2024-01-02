@@ -108,9 +108,11 @@ const checkSupply = async () => {
 
 const balances = computed(() => {
   const b = walletStore.balances;
+  const lpns = (app.lpn ?? []).map((item) => item.key);
+
   return b.filter((item) => {
     const currency = walletStore.currencies[item.balance.denom];
-    return currency.ticker == app.lpn?.ticker;
+    return lpns.includes(currency.ticker);
   });
 });
 

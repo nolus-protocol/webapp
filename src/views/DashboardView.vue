@@ -130,21 +130,6 @@
               />
             </div>
 
-
-
-            <!-- <div class="pt-3 lg:pl-6">
-              <p class="nls-font-500 text-12 text-dark-grey">
-                {{ $t("message.available-assets") }}
-              </p>
-
-              <CurrencyComponent :fontSize="20"
-                                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                                 :amount="state.availableAssets.toString()"
-                                 :denom="NATIVE_CURRENCY.symbol"
-                                 :has-space="false"
-                                 class="nls-font-500 text-primary" />
-            </div> -->
-
             <div class="flex">
               <div class="pt-3 pl-0 lg:pl-6 pr-6 lg:pr-0">
                 <p class="nls-font-500 text-12 text-dark-grey">
@@ -183,19 +168,7 @@
 
             <!-- HIDDEN ON DESKTOP -->
           </div>
-          <!-- <div class="pt-4 block lg:hidden">
-            <p class="nls-font-500 text-12 text-dark-grey">
-              {{ $t("message.supplied-and-staked") }}
-            </p>
 
-            <CurrencyComponent :fontSize="20"
-                               :prettyZeros="true"
-                               :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                               :amount="earnings.toString()"
-                               :denom="NATIVE_CURRENCY.symbol"
-                               :has-space="false"
-                               class="nls-font-500 text-primary" />
-          </div> -->
         </div>
       </Transition>
 
@@ -420,7 +393,7 @@ import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { useOracleStore } from "@/stores/oracle";
 import { useApplicationStore } from "@/stores/application";
 
-import { CoinGecko, DEFAULT_APR, IGNORE_TRANSFER_ASSETS, NATIVE_ASSET, NATIVE_CURRENCY, PERCENT, PERMILLE, calculateAditionalDebt } from "@/config/env";
+import { CoinGecko, DEFAULT_APR, IGNORE_TRANSFER_ASSETS, LPN_DECIMALS, LPN_Symbol, NATIVE_ASSET, NATIVE_CURRENCY, PERCENT, PERMILLE, calculateAditionalDebt } from "@/config/env";
 import { storeToRefs } from "pinia";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { CONTRACTS } from "@/config/contracts";
@@ -599,30 +572,6 @@ const totalBalance = computed(() => {
 });
 
 
-
-// const activeLeases = computed(() => {
-//   let totalLeases = new Dec(0);
-
-//   leases.value.forEach((lease) => {
-//     if (lease.leaseStatus.opened) {
-//       const ticker = lease.leaseStatus.opened.amount.ticker;
-//       const currency = wallet.getCurrencyByTicker(ticker);
-//       const ibcDenom = wallet.getIbcDenomBySymbol(currency?.symbol) as string;
-//       const data = wallet.getCurrencyInfo(ibcDenom as string);
-
-//       const balance = CurrencyUtils.calculateBalance(
-//         getMarketPrice(ibcDenom),
-//         new Coin(data.coinDenom, lease.leaseStatus.opened.amount.amount),
-//         data.coinDecimals
-//       );
-
-//       totalLeases = totalLeases.add(balance.toDec());
-//     }
-//   });
-
-//   return totalLeases;
-// });
-
 const availableAssets = () => {
 
   if (Object.keys(oracle.prices).length == 0) {
@@ -652,41 +601,6 @@ const availableAssets = () => {
     }, 400);
   }
 };
-
-// const suppliedAndStaked = computed(() => {
-
-//   const staking = wallet.stakingBalance as Coin;
-//   const supplied = wallet.suppliedBalance;
-//   const lppPrice = wallet.lppPrice;
-//   const suppliedSymbol = wallet.getCurrencyByTicker(app.lpn?.ticker as string);
-//   const suppliedCoin = wallet.getIbcDenomBySymbol(
-//     suppliedSymbol.symbol
-//   ) as string;
-//   const suppliedInfo = wallet.getCurrencyInfo(suppliedCoin as string);
-
-
-//   let totalSuppliedAndStaked = new Dec(0);
-
-//   const suppliedBalance = CurrencyUtils.calculateBalance(
-//     getMarketPrice(suppliedCoin),
-//     new Coin(suppliedCoin, supplied),
-//     suppliedInfo.coinDecimals
-//   ).toDec();
-//   const s = lppPrice.mul(suppliedBalance);
-//   totalSuppliedAndStaked = totalSuppliedAndStaked.add(s);
-
-//   if (staking) {
-//     const stakingInfo = wallet.getCurrencyInfo(staking.denom as string);
-//     const stakingBalance = CurrencyUtils.calculateBalance(
-//       getMarketPrice(staking.denom),
-//       staking,
-//       stakingInfo.coinDecimals
-//     );
-//     totalSuppliedAndStaked = totalSuppliedAndStaked.add(stakingBalance.toDec());
-//   }
-
-//   return totalSuppliedAndStaked;
-// });
 
 const loadSuppliedAndStaked = async () => {
   if (Object.keys(oracle.prices).length == 0) {
@@ -817,14 +731,10 @@ const loadLeases = async () => {
           const data = lease.leaseStatus?.opened;
 
           if (data) {
-            const lpn = wallet.getCurrencyByTicker(data.principal_due.ticker);
-            const lpnIbcDenom = wallet.getIbcDenomBySymbol(lpn.symbol) as string;
-            const lpnDecimal = Number(lpn.decimal_digits);
 
             const dasset = wallet.getCurrencyByTicker(data.amount.ticker);
-            const dIbcDenom = wallet.getIbcDenomBySymbol(dasset.symbol) as string;
-            const dDecimal = Number(dasset.decimal_digits);
-
+            const dIbcDenom = wallet.getIbcDenomBySymbol(dasset!.symbol) as string;
+            const dDecimal = Number(dasset!.decimal_digits);
             const l = CurrencyUtils.calculateBalance(
               getMarketPrice(dIbcDenom),
               new Coin(dIbcDenom, data.amount.amount),
@@ -833,36 +743,26 @@ const loadLeases = async () => {
 
             ls = ls.add(l);
 
-            const d = new Dec(data.principal_due.amount)
-              .add(new Dec(data.previous_margin_due.amount))
-              .add(new Dec(data.previous_interest_due.amount))
-              .add(new Dec(data.current_margin_due.amount))
-              .add(new Dec(data.current_interest_due.amount))
-              .add(additionalInterest(lease).roundUpDec())
+            db = new Dec(data.principal_due.amount, LPN_DECIMALS)
+              .add(new Dec(data.previous_margin_due.amount, LPN_DECIMALS))
+              .add(new Dec(data.previous_interest_due.amount, LPN_DECIMALS))
+              .add(new Dec(data.current_margin_due.amount, LPN_DECIMALS))
+              .add(new Dec(data.current_interest_due.amount, LPN_DECIMALS))
+              .add(new Dec(additionalInterest(lease).truncate(), LPN_DECIMALS))
 
-
-            db = db.add(CurrencyUtils.convertMinimalDenomToDenom(
-              d.truncate().toString(),
-              lpnIbcDenom,
-              lpn.symbol,
-              lpnDecimal
-            ).toDec());
-
-            //pnl
-
-            const amount = new Dec(data.principal_due.amount, lpnDecimal)
-              .add(new Dec(data.previous_margin_due.amount, lpnDecimal))
-              .add(new Dec(data.previous_interest_due.amount, lpnDecimal))
-              .add(new Dec(data.current_margin_due.amount, lpnDecimal))
-              .add(new Dec(data.current_interest_due.amount, lpnDecimal))
+            const amount = new Dec(data.principal_due.amount, LPN_DECIMALS)
+              .add(new Dec(data.previous_margin_due.amount, LPN_DECIMALS))
+              .add(new Dec(data.previous_interest_due.amount, LPN_DECIMALS))
+              .add(new Dec(data.current_margin_due.amount, LPN_DECIMALS))
+              .add(new Dec(data.current_interest_due.amount, LPN_DECIMALS))
 
             const totalAmount = new Dec(leaseData.downPayment as string ?? '0').add(amount);
             const assetData = wallet.getCurrencyByTicker(data.amount.ticker);
-            const assetAmount = new Dec(data.amount.amount, Number(assetData.decimal_digits))
+            const assetAmount = new Dec(data.amount.amount, Number(assetData!.decimal_digits))
             const prevPrice = totalAmount.quo(assetAmount);
 
             const unitAsset = new Dec(data.amount.amount, Number(dDecimal));
-            const currentPrice = new Dec(oracle.prices?.[dasset.symbol]?.amount ?? "0");
+            const currentPrice = new Dec(oracle.prices?.[dasset!.symbol]?.amount ?? "0");
             const prevAmount = unitAsset.mul(prevPrice);
             const currentAmount = unitAsset.mul(currentPrice);
             const dfee = new Dec(downpaymentFee[leaseData.downpaymentTicker]).mul(new Dec(leaseData.downPayment ?? 0));
@@ -994,7 +894,6 @@ const additionalInterest = (leaseInfo: LeaseData) => {
     const principal_due = new Dec(data.principal_due.amount)
     const loanInterest = new Dec(data.loan_interest_rate / PERMILLE).add(new Dec(data.margin_interest_rate / PERCENT));
     const debt = calculateAditionalDebt(principal_due, loanInterest);
-
     return debt;
   }
 
@@ -1032,7 +931,7 @@ async function getRewards() {
     return new Dec(lenderRewards.rewards.amount);
 
   } catch (e) {
-    // console.log(e)
+    console.log(e)
   }
 
   return new Dec(0);

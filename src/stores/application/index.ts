@@ -46,7 +46,7 @@ const useApplicationStore = defineStore("application", {
         this.networksData = currenciesData;
 
         const native = NolusAssetUtils.getNativeAsset(currenciesData);
-        this.protocols =  NolusAssetUtils.getProtocols(this.networksData!);
+        this.protocols = NolusAssetUtils.getProtocols(this.networksData!);
 
         this.lpn = [];
         this.native = data.networks[NATIVE_NETWORK.key][native];
@@ -61,11 +61,11 @@ const useApplicationStore = defineStore("application", {
         this.currenciesData = data.networks[NATIVE_NETWORK.key];
 
         for (const protocol of this.protocols) {
-          for(const l of NolusAssetUtils.getLease(currenciesData, protocol as Protocols)){
+          for (const l of NolusAssetUtils.getLease(currenciesData, protocol as Protocols)) {
             lease.add(l);
           }
         }
-        
+
         this.lease = Array.from(lease);
       } catch (e) {
         console.log(e)
@@ -155,7 +155,18 @@ const useApplicationStore = defineStore("application", {
 
     },
   },
-  getters: {},
+  getters: {
+    getCurrencySymbol: (state) => {
+      return (ticker: string) => {
+        for (const key in state.currenciesData) {
+          const currency = state.currenciesData[key];
+          if (ticker == currency.ticker) {
+            return currency;
+          }
+        }
+      }
+    },
+  },
 });
 
 export { useApplicationStore, ApplicationActionTypes };

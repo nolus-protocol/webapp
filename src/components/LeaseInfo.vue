@@ -712,7 +712,7 @@ const loadCharts = async () => {
 const currentPrice = computed(() => {
   if (props.leaseInfo.leaseStatus?.opening && leaseData.value) {
     const item = walletStore.getCurrencyByTicker(leaseData?.value?.leasePositionTicker as string);
-    return oracleStore.prices[item?.symbol]?.amount ?? '0';
+    return oracleStore.prices[item?.symbol as string]?.amount ?? '0';
   }
 
   const ticker =
@@ -721,7 +721,7 @@ const currentPrice = computed(() => {
     props.leaseInfo.leaseStatus?.paid?.amount.ticker;
 
   const item = walletStore.getCurrencyByTicker(ticker as string);
-  return oracleStore.prices[item.symbol]?.amount ?? '0';
+  return oracleStore.prices[item!.symbol]?.amount ?? '0';
 });
 
 const fetchChartData = async (days: string, interval: string) => {
@@ -747,7 +747,7 @@ const asset = computed(() => {
     props.leaseInfo.leaseStatus?.paid?.amount.ticker;
 
   const item = walletStore.getCurrencyByTicker(ticker as string);
-  const ibcDenom = walletStore.getIbcDenomBySymbol(item.symbol);
+  const ibcDenom = walletStore.getIbcDenomBySymbol(item!.symbol);
   const asset = walletStore.getCurrencyInfo(ibcDenom as string);
   return asset;
 
@@ -757,7 +757,7 @@ const getAssetIcon = computed((): string => {
 
   if (props.leaseInfo.leaseStatus?.opening && leaseData) {
     const item = walletStore.getCurrencyByTicker(leaseData.value?.leasePositionTicker as string);
-    return app.assetIcons?.[item.ticker] as string;
+    return app.assetIcons?.[item!.key as string] as string;
   }
 
   const ticker =
@@ -767,34 +767,14 @@ const getAssetIcon = computed((): string => {
     "";
 
   const item = walletStore.getCurrencyByTicker(ticker);
-  return app.assetIcons?.[item.ticker] as string;
+
+  return app.assetIcons?.[item!.key as string] as string;
 });
 
 const downPayment = computed(() => {
   const amount = new Dec((leaseData.value?.downPayment ?? '0'));
   return amount.toString(2);
 });
-
-// const loan = computed(() => {
-//   const data = props.leaseInfo.leaseStatus.opened;
-
-//   if (data && leaseData) {
-//     const amount = data.amount.amount;
-//     const asset = walletStore.getCurrencyByTicker(data.amount.ticker);
-//     const ibcDenom = walletStore.getIbcDenomBySymbol(asset.symbol) as string;
-//     const assetInfo = walletStore.getCurrencyInfo(ibcDenom);
-//     const loanInAsset = CurrencyUtils.convertMinimalDenomToDenom(amount, assetInfo.coinMinimalDenom, assetInfo.coinDenom, assetInfo.coinDecimals).toDec();
-
-//     const price = new Dec(leaseData.value?.price as string);
-//     const downPaymentAmount = new Dec(leaseData.value?.downPayment as string);
-//     const loan = loanInAsset.mul(price);
-
-//     return CurrencyUtils.formatPrice(loan.sub(downPaymentAmount).toString());
-
-//   }
-
-//   return '$0';
-// });
 
 const price = computed(() => {
   return CurrencyUtils.formatPrice(getPrice.value.toString());
@@ -810,7 +790,7 @@ const debt = computed(() => {
   const data = props.leaseInfo.leaseStatus?.opened;
   if (data) {
     const item = walletStore.getCurrencyByTicker(data.principal_due.ticker);
-    const ibcDenom = walletStore.getIbcDenomBySymbol(item.symbol) as string;
+    const ibcDenom = walletStore.getIbcDenomBySymbol(item!.symbol) as string;
     const amount = new Dec(data.principal_due.amount)
       .add(new Dec(data.previous_margin_due.amount))
       .add(new Dec(data.previous_interest_due.amount))
@@ -821,8 +801,8 @@ const debt = computed(() => {
     const token = CurrencyUtils.convertMinimalDenomToDenom(
       amount.truncate().toString(),
       ibcDenom,
-      item.symbol,
-      Number(item.decimal_digits)
+      item!.symbol,
+      Number(item!.decimal_digits)
     );
     return token.toDec().toString();
   }
@@ -849,7 +829,7 @@ const interestDue = computed(() => {
 
   if (data) {
     const item = walletStore.getCurrencyByTicker(data.current_interest_due.ticker);
-    const ibcDenom = walletStore.getIbcDenomBySymbol(item.symbol) as string;
+    const ibcDenom = walletStore.getIbcDenomBySymbol(item!.symbol) as string;
     const amount = new Dec(data.previous_margin_due.amount)
       .add(new Dec(data.previous_interest_due.amount))
       .add(new Dec(data.current_margin_due.amount))
@@ -859,8 +839,8 @@ const interestDue = computed(() => {
     const token = CurrencyUtils.convertMinimalDenomToDenom(
       amount.truncate().toString(),
       ibcDenom,
-      item.symbol,
-      Number(item.decimal_digits)
+      item!.symbol,
+      Number(item!.decimal_digits)
     );
     return token.toDec().toString();
   }
@@ -905,13 +885,12 @@ const onShowClaimDialog = () => {
     showClaimDialog.value = true;
 
   const item = walletStore.getCurrencyByTicker(data.amount.ticker);
-  const ibcDenom = walletStore.getIbcDenomBySymbol(item.symbol) as string;
-
+  const ibcDenom = walletStore.getIbcDenomBySymbol(item!.symbol) as string;
   const token = CurrencyUtils.convertMinimalDenomToDenom(
     data.amount.amount,
     ibcDenom,
-    item.symbol,
-    Number(item.decimal_digits)
+    item!.symbol,
+    Number(item!.decimal_digits)
   );
 
   state.value.amount = token.toDec().toString() ?? '0';
@@ -1000,8 +979,8 @@ const liquidation = computed(() => {
   if (lease) {
     const unitAssetInfo = walletStore.getCurrencyByTicker(lease.amount.ticker);
     const stableAssetInfo = walletStore.getCurrencyByTicker(lease.principal_due.ticker);
-    const unitAsset = new Dec(lease.amount.amount, Number(unitAssetInfo.decimal_digits));
-    const stableAsset = new Dec(lease.principal_due.amount, Number(stableAssetInfo.decimal_digits));
+    const unitAsset = new Dec(lease.amount.amount, Number(unitAssetInfo!.decimal_digits));
+    const stableAsset = new Dec(lease.principal_due.amount, Number(stableAssetInfo!.decimal_digits));
     const data = calculateLiquidation(stableAsset, unitAsset);
     return `$${data.toString(4)}`;
   }
@@ -1014,8 +993,8 @@ const pnl = computed(() => {
   if (lease) {
     const price = getPrice.value;
     const unitAssetInfo = walletStore.getCurrencyByTicker(lease.amount.ticker);
-    const currentPrice = new Dec(oracleStore.prices?.[unitAssetInfo.symbol]?.amount ?? "0");
-    const unitAsset = new Dec(lease.amount.amount, Number(unitAssetInfo.decimal_digits));
+    const currentPrice = new Dec(oracleStore.prices?.[unitAssetInfo!.symbol]?.amount ?? "0");
+    const unitAsset = new Dec(lease.amount.amount, Number(unitAssetInfo!.decimal_digits));
 
 
     const prevAmount = unitAsset.mul(price);
@@ -1045,7 +1024,7 @@ const getPrice = computed(() => {
   if (paidLease && leaseData) {
     const totalAmount = new Dec(leaseData.value?.downPayment ?? '0' as string);
     const assetData = walletStore.getCurrencyByTicker(paidLease.amount.ticker);
-    const assetAmount = new Dec(paidLease.amount.amount, Number(assetData.decimal_digits))
+    const assetAmount = new Dec(paidLease.amount.amount, Number(assetData!.decimal_digits))
     const p = totalAmount.quo(assetAmount);
 
     return p;
@@ -1055,16 +1034,15 @@ const getPrice = computed(() => {
 
   if (openedLease && leaseData) {
     const item = walletStore.getCurrencyByTicker(openedLease.principal_due.ticker);
-
-    const amount = new Dec(openedLease.principal_due.amount, Number(item.decimal_digits))
-      .add(new Dec(openedLease.previous_margin_due.amount, Number(item.decimal_digits)))
-      .add(new Dec(openedLease.previous_interest_due.amount, Number(item.decimal_digits)))
-      .add(new Dec(openedLease.current_margin_due.amount, Number(item.decimal_digits)))
-      .add(new Dec(openedLease.current_interest_due.amount, Number(item.decimal_digits)))
+    const amount = new Dec(openedLease.principal_due.amount, Number(item!.decimal_digits))
+      .add(new Dec(openedLease.previous_margin_due.amount, Number(item!.decimal_digits)))
+      .add(new Dec(openedLease.previous_interest_due.amount, Number(item!.decimal_digits)))
+      .add(new Dec(openedLease.current_margin_due.amount, Number(item!.decimal_digits)))
+      .add(new Dec(openedLease.current_interest_due.amount, Number(item!.decimal_digits)))
 
     const totalAmount = new Dec(leaseData.value?.downPayment as string ?? '0').add(amount);
     const assetData = walletStore.getCurrencyByTicker(openedLease.amount.ticker);
-    const assetAmount = new Dec(openedLease.amount.amount, Number(assetData.decimal_digits))
+    const assetAmount = new Dec(openedLease.amount.amount, Number(assetData!.decimal_digits))
     const p = totalAmount.quo(assetAmount);
 
     return p;
@@ -1156,6 +1134,7 @@ const interestDueStatus = computed(() => {
 const checkPrice = async () => {
   try {
     const node = (await AppUtils.getArchiveNodes());
+    console.log(`${node.archive_node_rpc}/tx_search?query="wasm.lease_address='${props.leaseInfo.leaseAddress}'"&prove=true`)
     const req = await fetch(`${node.archive_node_rpc}/tx_search?query="wasm.lease_address='${props.leaseInfo.leaseAddress}'"&prove=true`);
     const data = await req.json();
     const item = data.result?.txs?.[0];
@@ -1269,7 +1248,7 @@ const balances = () => {
   const ticker = props.leaseInfo.leaseStatus?.paid?.amount.ticker;
   if (ticker) {
     const asset = walletStore.getCurrencyByTicker(ticker);
-    const ibc = AssetUtils.makeIBCMinimalDenom(asset.ibc_route, asset.symbol);
+    const ibc = asset?.ibcData as string;
     disable.push(ibc);
   }
   return props.leaseInfo.balances?.filter((item) => {
