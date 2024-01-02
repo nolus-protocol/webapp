@@ -136,6 +136,7 @@ import { useOracleStore } from "@/stores/oracle";
 import { AssetUtils } from "@/utils";
 import { useApplicationStore } from "@/stores/application";
 import { AppUtils } from "@/utils/AppUtils";
+import type { ExternalCurrencyType } from "@/types/CurreciesType";
 
 const wallet = useWalletStore();
 const app = useApplicationStore();
@@ -156,6 +157,8 @@ const liquiStakeTokens = {
     key: 'stAtom'
   }
 }
+
+const ignore = ['STK_ATOM'];
 
 onMounted(() => {
   if (props.modelValue.dialogSelectedCurrency) {
@@ -234,7 +237,7 @@ const balances = computed(() => {
     if (IGNORE_LEASE_ASSETS.includes(currency.ticker)) {
       return false;
     }
-    const lpns = (app.lpn ?? []).map((item) => item.key);
+    const lpns = ((app.lpn ?? []) as ExternalCurrencyType[]).map(item => item.key as string);
     const [cticker] = currency.ticker.split('@');
     return lpns.includes(currency.ticker  as string) || app.lease.includes(cticker);
   });

@@ -95,11 +95,11 @@
                 :value="amount"
                 :name="$t('message.amount')"
                 :label="$t('message.amount-receive')"
-                :set-input-value="setAmount"
+                :total="total"
+                :balance="formatCurrentBalance(selectedCurrency)"
                 @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
                 @input="handleAmountChange($event)"
-                :balance="formatCurrentBalance(selectedCurrency)"
-                :total="total"
+                :set-input-value="setAmountValue"
               />
             </div>
 
@@ -583,7 +583,8 @@ const formatCurrentBalance = (selectedCurrency: AssetBalance | undefined) => {
   }
 };
 
-const setAmount = (p: number) => {
+const setAmountValue = (p: number) => {
+  console.log(p)
   const asset = AssetUtils.getAssetInfo(
     selectedCurrency.value.ticker as string
   );

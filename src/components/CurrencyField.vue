@@ -89,6 +89,7 @@ import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
 import { AssetUtils } from "@/utils";
 import { INPUT_VALUES } from "@/config/env";
+import type { ExternalCurrencyType } from "@/types/CurreciesType";
 
 const emit = defineEmits(["update-currency", "update:modelValue", "input"]);
 const oracle = useOracleStore();
@@ -303,10 +304,11 @@ const setValue = () => {
 
 const setBalance = () => {
   if (props.total) {
-    const asset = wallet.getCurrencyInfo(props.total.denom);
-    const value = new Dec(props.total.amount, asset.coinDecimals)
-    emit("input", value.toString(asset.coinDecimals));
-    emit("update:modelValue", value.toString(asset.coinDecimals));
+    const currency: ExternalCurrencyType | any = props.option?.ticker ? wallet.getCurrencyByTicker(props.option?.ticker) : wallet.getCurrencyInfo(props.total.denom);
+    const decimals = Number(currency.decimal_digits ?? currency.coinDecimals)
+    const value = new Dec(props.total.amount, decimals);
+    emit("input", value.toString(decimals));
+    emit("update:modelValue", value.toString(decimals));
   }
 }
 
