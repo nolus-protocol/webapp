@@ -136,7 +136,7 @@ export class AssetUtils {
           networks[k] = {};
         }
 
-        let assets: { [key: string]: Currency } = ntwrks.networks.list[k].currencies as { [key: string]: Currency };
+        const assets: { [key: string]: Currency } = ntwrks.networks.list[k].currencies as { [key: string]: Currency };
 
         if (k == NATIVE_NETWORK.key) {
           for (const p of NolusAssetUtils.getProtocols(ntwrks)) {

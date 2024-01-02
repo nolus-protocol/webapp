@@ -104,7 +104,7 @@ const networks = computed(() => {
   const n: string[] = [];
   if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
     for (const key in app.networks ?? {}) {
-      const [ckey] = props.modelValue?.dialogSelectedCurrency.split('@');
+      const [ckey] = props.modelValue!.dialogSelectedCurrency.split('@');
       const c = app.networks?.[key]?.[props.modelValue?.dialogSelectedCurrency as string] ?? app.networks?.[key]?.[ckey as string];
       if (c) {
         n.push(key);

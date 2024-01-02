@@ -308,7 +308,7 @@ const useWalletStore = defineStore("wallet", {
         if (!WalletUtils.isAuth()) {
           for (const key in currencies) {
             const currency = app.currenciesData![key];
-            let [ticker, protocol] = key.split('@');
+            const [ticker, protocol] = key.split('@');
             let shortName = currency.shortName;
 
             if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
@@ -347,7 +347,7 @@ const useWalletStore = defineStore("wallet", {
         for (const key in currencies) {
           const currency = app.currenciesData![key];
           let shortName = currency.shortName;
-          let [ticker, protocol] = key.split('@');
+          const [ticker, protocol] = key.split('@');
 
           if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
             shortName = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.name ?? shortName;
