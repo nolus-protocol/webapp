@@ -1,4 +1,4 @@
-export default {
+{
   "message": {
     "create-new-account": "创建新钱包",
     "connect-wallet": "连接钱包",
