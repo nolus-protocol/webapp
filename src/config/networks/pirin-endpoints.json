@@ -165,8 +165,8 @@
         },
         "fallback": [
             {
-                "rpc": "https://rpc.novel.remedy.tm.p2p.org",
-                "api": "https://api.novel.remedy.tm.p2p.org"
+                "rpc": "https://neutron-rpc.publicnode.com:443",
+                "api": "https://neutron-rest.publicnode.com"
             }
         ]
     }
