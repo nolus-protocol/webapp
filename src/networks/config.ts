@@ -396,7 +396,8 @@ export const NETWORKS_DATA: {
             SUPPORTED_NETWORKS_DATA.SECRET,
             SUPPORTED_NETWORKS_DATA.STARGAZE,
             SUPPORTED_NETWORKS_DATA.CELESTIA,
-            SUPPORTED_NETWORKS_DATA.QUICKSILVER
+            SUPPORTED_NETWORKS_DATA.QUICKSILVER,
+            SUPPORTED_NETWORKS_DATA.NEUTRON
             // SUPPORTED_NETWORKS_DATA.EVMOS
         ],
         supportedNetworks: {
@@ -499,6 +500,15 @@ export const NETWORKS_DATA: {
                 },
                 embedChainInfo: quicksilverChainInfo,
             },
+            NEUTRON: {
+                ...NEUTRON_NETWORK,
+                explorer: 'https://mintscan.io/neutron-testnet/txs',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[NEUTRON_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: neutronChainInfo,
+            }
         }
     },
 };
