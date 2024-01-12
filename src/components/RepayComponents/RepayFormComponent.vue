@@ -163,7 +163,7 @@ const getRepayment = (p: number) => {
 
   const selectedCurrencyInfo = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom as string);
   const selectedCurrency = wallet.getCurrencyByTicker(selectedCurrencyInfo.ticker);
-  const price = new Dec(oracle.prices[selectedCurrency!.symbol].amount);
+  const price = new Dec(oracle.prices[selectedCurrency!.ibcData as string].amount);
   const swap = hasSwapFee.value;
 
   if (swap) {
@@ -197,7 +197,7 @@ const amount = computed(() => {
   const info = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
   const selectedCurrency = wallet.getCurrencyByTicker(info.ticker);
   let amount = new Dec(props.modelValue.amount == '' ? 0 : props.modelValue.amount);
-  const price = new Dec(oracle.prices[selectedCurrency!.symbol]?.amount ?? 0);
+  const price = new Dec(oracle.prices[selectedCurrency!.ibcData as string]?.amount ?? 0);
   const { repayment, repaymentInStable } = getRepayment(100);
 
   const amountInStableInt = amount.mul(price).mul(new Dec(10).pow(new Int(LPN_DECIMALS))).truncate();

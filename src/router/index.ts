@@ -8,6 +8,7 @@ import { createRouter, createWebHistory, type NavigationGuardNext, type RouteLoc
 import { ApplicationActionTypes, useApplicationStore } from "@/stores/application";
 import { setLang } from "@/i18n";
 import { AppUtils } from "@/utils/AppUtils";
+import { AdminActionTypes, useAdminStore } from "@/stores/admin";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -244,14 +245,19 @@ function checkWalletName(
 
 async function loadData() {
   const app = useApplicationStore();
+  const admin = useAdminStore();
+
   await app[ApplicationActionTypes.CHANGE_NETWORK](false);
-  await app[ApplicationActionTypes.LOAD_CURRENCIES]();
+  await Promise.all([
+    app[ApplicationActionTypes.LOAD_CURRENCIES](),
+    admin[AdminActionTypes.GET_PROTOCOLS](),
+  ]);
 }
 
 router.beforeEach((to, from, next) => {
   const description: HTMLElement | null = document.querySelector('meta[name="description"]');
   window.document.title = to.meta.title as string;
-  if(description){
+  if (description) {
     description.setAttribute('content', to.meta.description as string);
   }
 

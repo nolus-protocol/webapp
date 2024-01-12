@@ -173,7 +173,7 @@ export const SUPPORTED_NETWORKS_DATA: {
         estimation: 20,
         key: "NEUTRON",
         symbol: "NTRN",
-        forward: true
+        forward: false
     },
     DYDX: {
         prefix: "dydx",
@@ -333,7 +333,8 @@ export const NETWORKS_DATA: {
             SUPPORTED_NETWORKS_DATA.OSMOSIS,
             SUPPORTED_NETWORKS_DATA.COSMOS_HUB,
             SUPPORTED_NETWORKS_DATA.AXELAR,
-            SUPPORTED_NETWORKS_DATA.JUNO
+            SUPPORTED_NETWORKS_DATA.JUNO,
+            SUPPORTED_NETWORKS_DATA.NEUTRON
         ],
         supportedNetworks: {
             OSMOSIS: {
@@ -371,6 +372,15 @@ export const NETWORKS_DATA: {
                     return app?.networks?.[JUNO_NETWORK.key] as ExternalCurrenciesType;
                 },
                 embedChainInfo: junoChainInfo,
+            },
+            NEUTRON: {
+                ...NEUTRON_NETWORK,
+                explorer: 'https://testnet.mintscan.io/neutron-testnet/txs',
+                currencies: () => {
+                    const app = useApplicationStore();
+                    return app?.networks?.[NEUTRON_NETWORK.key] as ExternalCurrenciesType;
+                },
+                embedChainInfo: neutronChainInfo,
             }
         }
     },

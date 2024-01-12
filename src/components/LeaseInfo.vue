@@ -612,7 +612,6 @@ const OPENING_CHANNEL = 'open_ica_account';
 const props = defineProps<Props>();
 const showRepayModal = ref(false);
 const showCloseModal = ref(false);
-
 const chartTimeRange = ref(CHART_RANGES["1"]);
 const i18n = useI18n();
 const chartData = ref();
@@ -712,7 +711,7 @@ const loadCharts = async () => {
 const currentPrice = computed(() => {
   if (props.leaseInfo.leaseStatus?.opening && leaseData.value) {
     const item = walletStore.getCurrencyByTicker(leaseData?.value?.leasePositionTicker as string);
-    return oracleStore.prices[item?.symbol as string]?.amount ?? '0';
+    return oracleStore.prices[item?.ibcData as string]?.amount ?? '0';
   }
 
   const ticker =
@@ -721,7 +720,7 @@ const currentPrice = computed(() => {
     props.leaseInfo.leaseStatus?.paid?.amount.ticker;
 
   const item = walletStore.getCurrencyByTicker(ticker as string);
-  return oracleStore.prices[item!.symbol]?.amount ?? '0';
+  return oracleStore.prices[item!.ibcData as string]?.amount ?? '0';
 });
 
 const fetchChartData = async (days: string, interval: string) => {
@@ -993,9 +992,8 @@ const pnl = computed(() => {
   if (lease) {
     const price = getPrice.value;
     const unitAssetInfo = walletStore.getCurrencyByTicker(lease.amount.ticker);
-    const currentPrice = new Dec(oracleStore.prices?.[unitAssetInfo!.symbol]?.amount ?? "0");
+    const currentPrice = new Dec(oracleStore.prices?.[unitAssetInfo!.ibcData as string]?.amount ?? "0");
     const unitAsset = new Dec(lease.amount.amount, Number(unitAssetInfo!.decimal_digits));
-
 
     const prevAmount = unitAsset.mul(price);
     const currentAmount = unitAsset.mul(currentPrice);
@@ -1134,7 +1132,6 @@ const interestDueStatus = computed(() => {
 const checkPrice = async () => {
   try {
     const node = (await AppUtils.getArchiveNodes());
-    console.log(`${node.archive_node_rpc}/tx_search?query="wasm.lease_address='${props.leaseInfo.leaseAddress}'"&prove=true`)
     const req = await fetch(`${node.archive_node_rpc}/tx_search?query="wasm.lease_address='${props.leaseInfo.leaseAddress}'"&prove=true`);
     const data = await req.json();
     const item = data.result?.txs?.[0];

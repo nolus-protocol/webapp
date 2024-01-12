@@ -210,7 +210,7 @@ const canLease = computed(() => {
   const curency = walletStore.currencies[props.denom];
   const [ticker] = curency.ticker.split('@')
   return (
-    Number(props.assetBalance) > 0 && app.lease.includes(ticker)
+    Number(props.assetBalance) > 0 && app.leasesCurrencies.includes(ticker)
   );
 });
 

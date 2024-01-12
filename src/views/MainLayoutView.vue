@@ -87,6 +87,7 @@ import { onMounted, onUnmounted, provide, ref, type Ref, type Component } from "
 
 import { SESSION_TIME, SNACKBAR, UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL, } from "@/config/env";
 import { ApplicationActionTypes, useApplicationStore } from "@/stores/application";
+import { useAdminStore, AdminActionTypes } from "@/stores/admin";
 
 let balanceInterval: NodeJS.Timeout | undefined;
 let pricesInterval: NodeJS.Timeout | undefined;

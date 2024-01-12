@@ -69,16 +69,22 @@ const props = defineProps({
 
 const balances = computed(() => {
   const balances = walletStore.balances;
+
   return balances.filter((item) => {
     const currency = walletStore.currencies[item.balance.denom];
     const lpns = (app.lpn ?? []).map((item) => item.key);
 
-    const [ticker] = currency.ticker.split('@');
+    const [ticker, network] = currency.ticker.split('@');
 
     if (IGNORE_LEASE_ASSETS.includes(ticker)) {
       return false;
     }
-    return lpns.includes(currency.ticker) || app.lease.includes(ticker);
+
+    if (network != props.leaseData?.protocol) {
+      return false;
+    }
+
+    return lpns.includes(currency.ticker) || app.lease?.[props.leaseData?.protocol as string].includes(ticker);
   });
 });
 
@@ -162,7 +168,7 @@ const isAmountValid = (): boolean => {
         currentBalance?.balance?.denom
       );
       const asset = walletStore.getCurrencyByTicker(coinData.ticker);
-      const price = oracle.prices[asset!.symbol];
+      const price = oracle.prices[asset!.ibcData as string];
 
       const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, "", coinData.coinDecimals);
       const balance = CurrencyUtils.calculateBalance(price.amount, amountInMinimalDenom, coinData.coinDecimals).toDec();
@@ -202,7 +208,7 @@ const isAmountValid = (): boolean => {
         state.value.amountErrorMsg = i18n.t("message.min-amount-allowed", { amount: minAmountCurrency.toString(Number(asset!.decimal_digits)), currency: asset!.shortName });
         isValid = false;
       }
-      
+
       if (balance.gt(debt) && debt.gt(minAmountCurrency)) {
         state.value.amountErrorMsg = i18n.t("message.lease-only-max-error", {
           maxAmount: Number(debtInCurrencies.toString(Number(coinData.coinDecimals))),
@@ -320,8 +326,8 @@ const additionalInterest = () => {
 const hasSwapFee = () => {
   const selectedCurrencyInfo = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom as string);
   const lpns = (app.lpn ?? []).map((item) => item.key);
-  const isLpn =  lpns.find((lpn) => {
-    const [lpnTicker]  = lpn!.split('@')
+  const isLpn = lpns.find((lpn) => {
+    const [lpnTicker] = lpn!.split('@')
     return selectedCurrencyInfo.ticker == lpnTicker;
   });
   if (isLpn) {

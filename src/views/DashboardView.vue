@@ -35,24 +35,21 @@
       <Transition :name="animate">
         <!-- v-if="isTotalBalancePositive" -->
         <div
-          class="flex flex-col balance-box items-center justify-start background mt-6 shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6 outline"
-        >
+             class="flex flex-col balance-box items-center justify-start background mt-6 shadow-box radius-medium radius-0-sm pt-6 pb-3 px-6 outline">
 
           <div class="left pr-6 lg:pb-4 pb-0 w-full border-standart border-b lg:mb-4 mb-2 flex-col flex lg:flex-row">
             <div>
               <p class="nls-font-500 text-16 text-primary">
                 {{ $t("message.portfolio-value") }}
               </p>
-              <CurrencyComponent
-                :fontSize="40"
-                :prettyZeros="true"
-                :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                :amount="totalBalance.toString()"
-                :denom="NATIVE_CURRENCY.symbol"
-                :has-space="false"
-                :decimals="2"
-                class="nls-font-700 text-primary"
-              />
+              <CurrencyComponent :fontSize="40"
+                                 :prettyZeros="true"
+                                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                                 :amount="totalBalance.toString()"
+                                 :denom="NATIVE_CURRENCY.symbol"
+                                 :has-space="false"
+                                 :decimals="2"
+                                 class="nls-font-700 text-primary" />
             </div>
 
             <div class="mb-4 lg:mb-0 lg:self-end lg:ml-[24px] lg:mb-[12px]">
@@ -60,16 +57,14 @@
                 {{ $t("message.total-equity") }}
               </p>
 
-              <CurrencyComponent
-                :fontSize="20"
-                :fontSizeSmall="14"
-                :prettyZeros="true"
-                :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                :amount="totalEquity.toString()"
-                :denom="NATIVE_CURRENCY.symbol"
-                :has-space="false"
-                class="nls-font-500 text-primary"
-              />
+              <CurrencyComponent :fontSize="20"
+                                 :fontSizeSmall="14"
+                                 :prettyZeros="true"
+                                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                                 :amount="totalEquity.toString()"
+                                 :denom="NATIVE_CURRENCY.symbol"
+                                 :has-space="false"
+                                 class="nls-font-500 text-primary" />
             </div>
           </div>
 
@@ -81,16 +76,14 @@
                   {{ $t("message.active-leases") }}
                 </p>
 
-                <CurrencyComponent
-                  :fontSize="20"
-                  :fontSizeSmall="14"
-                  :prettyZeros="true"
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  :amount="activeLeases.toString()"
-                  :denom="NATIVE_CURRENCY.symbol"
-                  :has-space="false"
-                  class="nls-font-500 text-primary"
-                />
+                <CurrencyComponent :fontSize="20"
+                                   :fontSizeSmall="14"
+                                   :prettyZeros="true"
+                                   :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                                   :amount="activeLeases.toString()"
+                                   :denom="NATIVE_CURRENCY.symbol"
+                                   :has-space="false"
+                                   class="nls-font-500 text-primary" />
               </div>
 
               <div class="pt-3 lg:pl-5">
@@ -98,36 +91,32 @@
                   {{ $t("message.outstanding-loan") }}
                 </p>
 
-                <CurrencyComponent
-                  :fontSize="20"
-                  :fontSizeSmall="14"
-                  :prettyZeros="true"
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  :amount="debt.toString()"
-                  :denom="NATIVE_CURRENCY.symbol"
-                  :has-space="false"
-                  class="nls-font-500 text-primary"
-                />
+                <CurrencyComponent :fontSize="20"
+                                   :fontSizeSmall="14"
+                                   :prettyZeros="true"
+                                   :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                                   :amount="debt.toString()"
+                                   :denom="NATIVE_CURRENCY.symbol"
+                                   :has-space="false"
+                                   class="nls-font-500 text-primary" />
               </div>
             </div>
 
             <div
-              class="pt-3 lg:pl-5 lg:pr-6 border-standart border-b lg:border-b-0 lg:border-r pb-3 mb-2 lg:pb-0 lg:mb-0">
+                 class="pt-3 lg:pl-5 lg:pr-6 border-standart border-b lg:border-b-0 lg:border-r pb-3 mb-2 lg:pb-0 lg:mb-0">
               <p class="nls-font-500 text-12 text-dark-grey">
                 {{ $t("message.positions-pnL") }}
               </p>
 
-              <CurrencyComponent
-                :class="pnl.isZero() ? 'text-primary' : (pnl.isPositive() ? '!text-[#1AB171]' : 'text-[#E42929]')"
-                :fontSize="20"
-                :fontSizeSmall="14"
-                :prettyZeros="true"
-                :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                :amount="pnl.abs().toString()"
-                :denom="`${pnl.isZero() ? '' : (pnl.isPositive() ? '+' : '-')}${NATIVE_CURRENCY.symbol}`"
-                :has-space="false"
-                class="nls-font-500"
-              />
+              <CurrencyComponent :class="pnl.isZero() ? 'text-primary' : (pnl.isPositive() ? '!text-[#1AB171]' : 'text-[#E42929]')"
+                                 :fontSize="20"
+                                 :fontSizeSmall="14"
+                                 :prettyZeros="true"
+                                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                                 :amount="pnl.abs().toString()"
+                                 :denom="`${pnl.isZero() ? '' : (pnl.isPositive() ? '+' : '-')}${NATIVE_CURRENCY.symbol}`"
+                                 :has-space="false"
+                                 class="nls-font-500" />
             </div>
 
             <div class="flex">
@@ -136,33 +125,29 @@
                   {{ $t("message.supplied-and-staked") }}
                 </p>
 
-                <CurrencyComponent
-                  :fontSize="20"
-                  :fontSizeSmall="14"
-                  :prettyZeros="true"
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  :amount="earnings.toString()"
-                  :denom="NATIVE_CURRENCY.symbol"
-                  :has-space="false"
-                  class="nls-font-500 text-primary"
-                />
+                <CurrencyComponent :fontSize="20"
+                                   :fontSizeSmall="14"
+                                   :prettyZeros="true"
+                                   :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                                   :amount="earnings.toString()"
+                                   :denom="NATIVE_CURRENCY.symbol"
+                                   :has-space="false"
+                                   class="nls-font-500 text-primary" />
               </div>
 
               <div class="pt-3 lg:pl-5">
                 <p class="nls-font-500 text-12 text-dark-grey">
                   {{ $t("message.rewards") }}
                 </p>
-                <CurrencyComponent
-                  :class="rewards.isZero() ? 'text-primary' : (rewards.isPositive() ? '!text-[#1AB171]' : 'text-[#E42929]')"
-                  :fontSize="20"
-                  :fontSizeSmall="14"
-                  :prettyZeros="true"
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  :amount="rewards.abs().toString()"
-                  :denom="`${rewards.isZero() ? '' : (rewards.isPositive() ? '+' : '-')}${NATIVE_CURRENCY.symbol}`"
-                  :has-space="false"
-                  class="nls-font-500"
-                />
+                <CurrencyComponent :class="rewards.isZero() ? 'text-primary' : (rewards.isPositive() ? '!text-[#1AB171]' : 'text-[#E42929]')"
+                                   :fontSize="20"
+                                   :fontSizeSmall="14"
+                                   :prettyZeros="true"
+                                   :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                                   :amount="rewards.abs().toString()"
+                                   :denom="`${rewards.isZero() ? '' : (rewards.isPositive() ? '+' : '-')}${NATIVE_CURRENCY.symbol}`"
+                                   :has-space="false"
+                                   class="nls-font-500" />
               </div>
             </div>
 
@@ -173,10 +158,8 @@
       </Transition>
 
       <!-- Existing Assets -->
-      <div
-        class="block background mt-6 border-standart shadow-box radius-medium radius-0-sm outline"
-        :class="{ 'async-loader': isAssetsLoading }"
-      >
+      <div class="block background mt-6 border-standart shadow-box radius-medium radius-0-sm outline"
+           :class="{ 'async-loader': isAssetsLoading }">
         <!-- Top -->
         <div class="flex flex-wrap items-baseline justify-between px-3 md:px-4 pt-6">
           <div class="left w-1/3">
@@ -219,37 +202,31 @@
             </div>
 
             <div
-              class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper"
-            >
+                 class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
               <span class="inline-block">{{ $t("message.yield") }}</span>
               <TooltipComponent :content="$t('message.earn-apr-tooltip')" />
             </div>
 
             <div
-              class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper"
-            >
+                 class="hidden md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
               <span class="inline-block">{{ $t("message.lease-up-to") }}</span>
               <TooltipComponent :content="$t('message.lease-up-to-tooltip')" />
             </div>
 
             <div
-              class="md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
+                 class="md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
               <span class="inline-block">{{ $t("message.receive/send") }}</span>
             </div>
           </div>
 
           <!-- Assets Container -->
-          <div
-            role="status"
-            class="block lg:mb-0"
-            :class="{ 'animate-pulse': loading }"
-          >
+          <div role="status"
+               class="block lg:mb-0"
+               :class="{ 'animate-pulse': loading }">
             <template v-if="loading">
-              <div
-                v-for=" index  in  currenciesSize "
-                :key="index"
-                class="h-[67px] flex items-center justify-between asset-partial nolus-box relative border-b border-standart py-3 px-4 items-center justify-between"
-              >
+              <div v-for=" index  in  currenciesSize "
+                   :key="index"
+                   class="h-[67px] flex items-center justify-between asset-partial nolus-box relative border-b border-standart py-3 px-4 items-center justify-between">
                 <div class="w-[50%] md:w-auto">
                   <div class="w-32 h-1.5 bg-grey rounded-full mb-2.5"></div>
                   <div class="h-1.5 bg-grey rounded-full w-24"></div>
@@ -263,32 +240,26 @@
               </div>
             </template>
             <template v-else>
-              <TransitionGroup
-                name="fade"
-                appear
-                tag="div"
-              >
-                <AssetPartial
-                  v-for="( asset, index ) in  filteredAssets "
-                  :key="`${asset.balance.denom}-${index}`"
-                  :asset-info="getAssetInfo(asset.balance.denom)"
-                  :assetBalance="asset.balance.denom == wallet.available.denom ? wallet.available.amount.toString() : asset.balance.amount.toString()"
-                  :changeDirection="index % 2 === 0"
-                  :denom="asset.balance.denom"
-                  :price="getMarketPrice(asset.balance.denom)"
-                  :openModal="openModal"
-                  :sendReceiveOpen="sendReceiveOpen"
-                  :earnings="DEFAULT_APR"
-                />
+              <TransitionGroup name="fade"
+                               appear
+                               tag="div">
+                <AssetPartial v-for="( asset, index ) in  filteredAssets "
+                              :key="`${asset.balance.denom}-${index}`"
+                              :asset-info="getAssetInfo(asset.balance.denom)"
+                              :assetBalance="asset.balance.denom == wallet.available.denom ? wallet.available.amount.toString() : asset.balance.amount.toString()"
+                              :changeDirection="index % 2 === 0"
+                              :denom="asset.balance.denom"
+                              :price="getMarketPrice(asset.balance.denom)"
+                              :openModal="openModal"
+                              :sendReceiveOpen="sendReceiveOpen"
+                              :earnings="DEFAULT_APR" />
               </TransitionGroup>
             </template>
           </div>
 
           <div class="flex justify-center pt-[8px] pb-[18px]">
-            <button
-              class="btn transfer btn-medium-secondary"
-              @click="setCurrency()"
-            >
+            <button class="btn transfer btn-medium-secondary"
+                    @click="setCurrency()">
               {{ state.showSmallBalances ? $t("message.hide-small-balances") : $t("message.show-small-balances") }}
             </button>
           </div>
@@ -297,10 +268,8 @@
       </div>
 
       <!-- Vested Assets -->
-      <div
-        v-if="vestedTokens.length > 0"
-        class="block background mt-6 shadow-box radius-medium radius-0-sm outline"
-      >
+      <div v-if="vestedTokens.length > 0"
+           class="block background mt-6 shadow-box radius-medium radius-0-sm outline">
         <!-- Top -->
         <div class="flex flex-wrap items-baseline justify-between px-4 pt-6">
           <div class="left w-1/2">
@@ -329,42 +298,32 @@
 
           <!-- Assets Container -->
           <div class="block mb-6 lg:mb-0">
-            <VestedAssetPartial
-              v-for="( asset, index ) in  vestedTokens "
-              :key="`${asset.amount.amount}-${index}`"
-              :asset-info="getAssetInfo(asset.amount.denom)"
-              :asset-balance="wallet.vestTokens.amount.toString()"
-              :denom="asset.amount.denom"
-              :end-time="asset.endTime"
-            />
+            <VestedAssetPartial v-for="( asset, index ) in  vestedTokens "
+                                :key="`${asset.amount.amount}-${index}`"
+                                :asset-info="getAssetInfo(asset.amount.denom)"
+                                :asset-balance="wallet.vestTokens.amount.toString()"
+                                :denom="asset.amount.denom"
+                                :end-time="asset.endTime" />
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <Modal
-    v-if="state.showModal"
-    :route="state.modalAction"
-    @close-modal="state.showModal = false"
-  >
-    <component
-      :is="modalOptions[state.modalAction]"
-      :selectedAsset="state.selectedAsset"
-      :dialogSelectedCurrency="state.dialogSelectedCurrency"
-    />
+  <Modal v-if="state.showModal"
+         :route="state.modalAction"
+         @close-modal="state.showModal = false">
+    <component :is="modalOptions[state.modalAction]"
+               :selectedAsset="state.selectedAsset"
+               :dialogSelectedCurrency="state.dialogSelectedCurrency" />
   </Modal>
 
-  <Modal
-    v-if="showErrorDialog"
-    route="alert"
-    @close-modal="showErrorDialog = false"
-  >
-    <ErrorDialog
-      :title="$t('message.error-connecting')"
-      :message="errorMessage"
-      :try-button="onClickTryAgain"
-    />
+  <Modal v-if="showErrorDialog"
+         route="alert"
+         @close-modal="showErrorDialog = false">
+    <ErrorDialog :title="$t('message.error-connecting')"
+                 :message="errorMessage"
+                 :try-button="onClickTryAgain" />
   </Modal>
 </template>
 
@@ -396,14 +355,14 @@ import { useApplicationStore } from "@/stores/application";
 import { CoinGecko, DEFAULT_APR, IGNORE_TRANSFER_ASSETS, LPN_DECIMALS, LPN_Symbol, NATIVE_ASSET, NATIVE_CURRENCY, PERCENT, PERMILLE, calculateAditionalDebt } from "@/config/env";
 import { storeToRefs } from "pinia";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
-import { CONTRACTS } from "@/config/contracts";
-import { AssetUtils, EnvNetworkUtils, WalletManager } from "@/utils";
+import { AssetUtils, WalletManager } from "@/utils";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { AppUtils } from "@/utils/AppUtils";
 import { ASSETS } from "@/config/assetsInfo";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 import { toUtf8 } from "@cosmjs/encoding";
 import { QuerySmartContractStateRequest } from "cosmjs-types/cosmwasm/wasm/v1/query";
+import { useAdminStore } from "@/stores/admin";
 
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
@@ -419,6 +378,7 @@ const smallBalancesStateKey = 'smallBalancesState';
 const wallet = useWalletStore();
 const oracle = useOracleStore();
 const app = useApplicationStore();
+const admin = useAdminStore();
 
 const walletRef = storeToRefs(wallet);
 const oracleRef = storeToRefs(oracle);
@@ -609,35 +569,36 @@ const loadSuppliedAndStaked = async () => {
 
   const supplied = async () => {
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-    const contract = CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance;
-    const lppClient = new Lpp(cosmWasmClient, contract);
+    const promises = [];
+    const amount = new Dec(0)
 
-    const lppConfig = await lppClient.getLppConfig();
-    const lpnCoin = wallet.getCurrencyByTicker(lppConfig.lpn_ticker);
-    const lpnIbcDenom = wallet.getIbcDenomBySymbol(lpnCoin?.symbol);
-    const asset = AssetUtils.getAssetInfo(lppConfig.lpn_ticker);
+    for (const protocolKey in admin.contracts) {
+      const fn = async () => {
+        const lppClient = new Lpp(cosmWasmClient, admin.contracts[protocolKey].lpp);
+        const lppConfig = await lppClient.getLppConfig();
+        const lpnCoin = app.getCurrencySymbol(lppConfig.lpn_ticker, protocolKey);
+        const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
 
-    const index = wallet.balances.findIndex((item) => item.balance.denom == lpnIbcDenom);
+        const [depositBalance, price] = await Promise.all([
+          lppClient.getLenderDeposit(
+            walletAddress as string
+          ),
+          lppClient.getPrice()
+        ]);
 
-    if (index > -1) {
+        const calculatedPrice = new Dec(price.amount_quote.amount).quo(
+          new Dec(price.amount.amount)
+        );
+        amount.add(new Dec(depositBalance.balance, Number(lpnCoin!.decimal_digits)).mul(calculatedPrice));
 
-      const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
-      const [depositBalance, price] = await Promise.all([
-        lppClient.getLenderDeposit(
-          walletAddress as string
-        ),
-        lppClient.getPrice()
-      ]);
+      }
 
-      const calculatedPrice = new Dec(price.amount_quote.amount).quo(
-        new Dec(price.amount.amount)
-      );
-      const amount = new Dec(depositBalance.balance, asset.coinDecimals).mul(calculatedPrice);
-      return amount;
-
+      promises.push(fn());
     }
 
-    return new Dec(0);
+    await Promise.all(promises);
+
+    return amount;
   }
 
   const delegated = async () => {
@@ -677,9 +638,7 @@ const getAssetInfo = (denom: string) => {
 };
 
 const getMarketPrice = (denom: string) => {
-  const item = wallet.currencies[denom];
-  const price = oracle.prices?.[item?.symbol]?.amount ?? "0";
-
+  const price = oracle.prices?.[denom]?.amount ?? "0";
   return price;
 };
 
@@ -762,7 +721,7 @@ const loadLeases = async () => {
             const prevPrice = totalAmount.quo(assetAmount);
 
             const unitAsset = new Dec(data.amount.amount, Number(dDecimal));
-            const currentPrice = new Dec(oracle.prices?.[dasset!.symbol]?.amount ?? "0");
+            const currentPrice = new Dec(oracle.prices?.[dasset!.ibcData as string]?.amount ?? "0");
             const prevAmount = unitAsset.mul(prevPrice);
             const currentAmount = unitAsset.mul(currentPrice);
             const dfee = new Dec(downpaymentFee[leaseData.downpaymentTicker]).mul(new Dec(leaseData.downPayment ?? 0));
@@ -922,13 +881,24 @@ async function getRewards() {
   try {
 
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-    const contract = CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance;
-    const lppClient = new Lpp(cosmWasmClient, contract);
-    const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
+    const promises = [];
+    const rewards = new Dec(0);
 
-    const lenderRewards = await lppClient.getLenderRewards(walletAddress);
+    for (const protocolKey in admin.contracts) {
+      const fn = async () => {
+        const contract = admin.contracts[protocolKey].lpp;
+        const lppClient = new Lpp(cosmWasmClient, contract);
+        const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
 
-    return new Dec(lenderRewards.rewards.amount);
+        const lenderRewards = await lppClient.getLenderRewards(walletAddress);
+        rewards.add(new Dec(lenderRewards.rewards.amount));
+      }
+      promises.push(fn());
+    }
+
+    await Promise.all(promises);
+
+    return rewards;
 
   } catch (e) {
     console.log(e)

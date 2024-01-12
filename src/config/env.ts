@@ -1,6 +1,6 @@
 import type { NetworkAddress } from "@/types";
-import nlsIcon from "@/assets/icons/coins/nls.svg";
 import { Dec } from "@keplr-wallet/unit";
+import nlsIcon from "@/assets/icons/coins/nls.svg";
 export const DEFAULT_PRIMARY_NETWORK = "mainnet";
 
 export const NETWORKS: { [key: string]: NetworkAddress } = {
@@ -386,6 +386,18 @@ export const CurrencyMapping: {
   }
 }
 
+export const ProtocolsConfig: {
+  [key: string]: {
+    hidden: string[]
+  }
+} = {
+  OSMOSIS: {
+    hidden: []
+  },
+  NEUTRON: {
+    hidden: ['ATOM']
+  }
+}
 
 export const SUPPORT_URL = 'https://hub.nolus.io';
 export const ETL_API = "https://etl-cl.nolus.network:8080/api"

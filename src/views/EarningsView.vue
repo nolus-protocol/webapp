@@ -13,8 +13,7 @@
       <div class="md:col-span-7 lg:col-span-7">
         <!-- Portfolio -->
         <div
-          class="block order-2 order-1 background md:col-span-7 md:mt-6 async-loader outline border-standart shadow-box radius-medium radius-0-sm"
-        >
+             class="block order-2 order-1 background md:col-span-7 md:mt-6 async-loader outline border-standart shadow-box radius-medium radius-0-sm">
           <div class="lg:flex block items-center justify-between px-3 md:px-6 pt-6">
             <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
               {{ $t("message.earning-assets") }}
@@ -30,31 +29,25 @@
               </div>
 
               <div
-                class="inline-flex items-center nls-font-500 text-12 text-dark-grey text-center text-upper md:col-span-1 justify-end md:m-r[10px]"
-              >
+                   class="inline-flex items-center nls-font-500 text-12 text-dark-grey text-center text-upper md:col-span-1 justify-end md:m-r[10px]">
                 <span class="inline-block">{{ $t("message.deposit") }}</span>
                 <TooltipComponent :content="$t('message.deposit-tooltip')" />
               </div>
 
               <div
-                class="nls-font-500 text-12 text-dark-grey text-right text-upper md:flex hidden items-center justify-end"
-              >
+                   class="nls-font-500 text-12 text-dark-grey text-right text-upper md:flex hidden items-center justify-end">
                 {{ $t("message.yield") }}
                 <TooltipComponent :content="$t('message.earn-view-apr-tooltip')" />
               </div>
             </div>
 
-            <div
-              role="status"
-              class="block lg:mb-0"
-              :class="{ 'animate-pulse': loading }"
-            >
+            <div role="status"
+                 class="block lg:mb-0"
+                 :class="{ 'animate-pulse': loading }">
               <template v-if="loading">
-                <div
-                  v-for="index in 2"
-                  :key="index"
-                  class="h-[67px] flex items-center justify-between asset-partial nolus-box relative border-b border-standart py-3 px-4 items-center justify-between"
-                >
+                <div v-for="index in 2"
+                     :key="index"
+                     class="h-[67px] flex items-center justify-between asset-partial nolus-box relative border-b border-standart py-3 px-4 items-center justify-between">
                   <div class="w-[50%] md:w-auto grow-[1]">
                     <div class="w-32 h-1.5 bg-grey rounded-full mb-2.5"></div>
                     <div class="h-1.5 bg-grey rounded-full w-24"></div>
@@ -67,27 +60,22 @@
                 </div>
               </template>
               <template v-else>
-                <TransitionGroup
-                  name="fade"
-                  appear
-                  tag="div"
-                >
+                <TransitionGroup name="fade"
+                                 appear
+                                 tag="div">
 
-                  <EarnLpnAsset
-                    v-for="lpn of lpnAsset"
-                    :key="lpn.balance.denom"
-                    :asset="lpn"
-                    :openSupplyWithdraw="() => openSupplyWithdrawDialog(lpn.balance.denom)"
-                    :cols="cols"
-                  />
+                  <EarnLpnAsset v-for="(lpn, index) of lpnAsset"
+                                :key="lpn.balance.denom"
+                                :asset="lpn"
+                                :openSupplyWithdraw="() => openSupplyWithdrawDialog(lpn.balance.denom)"
+                                :cols="cols"
+                                :class="index > 0 ? 'border-t-[1px]' : ''" />
 
-                  <EarnNativeAsset
-                    key="nativeAsset"
-                    :asset="delegated"
-                    :cols="cols"
-                    :openDelegateUndelegate="() => openDelegateUndelegateDialog()"
-                    :isDelegated="isDelegated"
-                  />
+                  <EarnNativeAsset key="nativeAsset"
+                                   :asset="delegated"
+                                   :cols="cols"
+                                   :openDelegateUndelegate="() => openDelegateUndelegateDialog()"
+                                   :isDelegated="isDelegated" />
                 </TransitionGroup>
               </template>
             </div>
@@ -100,8 +88,7 @@
       <div class="md:col-span-5 lg:co-span-5">
         <!-- Rewards -->
         <div
-          class="block order-2 md:order-1 background md:col-span-7 mt-6 outline border-standart shadow-box radius-medium radius-0-sm"
-        >
+             class="block order-2 md:order-1 background md:col-span-7 mt-6 outline border-standart shadow-box radius-medium radius-0-sm">
           <div class="flex items-center justify-between px-6 pt-6 border-b border-standart pb-4">
             <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
               {{ $t("message.rewards") }}
@@ -110,11 +97,9 @@
           <!-- Assets -->
           <div class="block mt-4">
             <!-- Assets Container -->
-            <EarnReward
-              :reward="reward"
-              :onClickClaim="onClickWithdrawRewards"
-              :cols="cols"
-            />
+            <EarnReward :reward="reward"
+                        :onClickClaim="onClickWithdrawRewards"
+                        :cols="cols" />
             <!-- Assets Container -->
           </div>
         </div>
@@ -122,40 +107,30 @@
     </div>
   </div>
 
-  <Modal
-    v-if="showSupplyWithdrawDialog"
-    route="supply"
-    @close-modal="showSupplyWithdrawDialog = false"
-  >
+  <Modal v-if="showSupplyWithdrawDialog"
+         route="supply"
+         @close-modal="showSupplyWithdrawDialog = false">
     <SupplyWithdrawDialog :selectedAsset="selectedAsset" />
   </Modal>
 
-  <Modal
-    v-if="showDelegateUndelegateDialog"
-    route="delegate"
-    @close-modal="showDelegateUndelegateDialog = false"
-  >
+  <Modal v-if="showDelegateUndelegateDialog"
+         route="delegate"
+         @close-modal="showDelegateUndelegateDialog = false">
     <DelegateUndelegateDialog :selectedAsset="selectedAsset" />
   </Modal>
 
-  <Modal
-    v-if="showWithrawRewardsDialog"
-    route="withdraw-rewards"
-    @close-modal="showWithrawRewardsDialog = false"
-  >
+  <Modal v-if="showWithrawRewardsDialog"
+         route="withdraw-rewards"
+         @close-modal="showWithrawRewardsDialog = false">
     <WithdrawRewardsDialog :amount="reward" />
   </Modal>
 
-  <Modal
-    v-if="showErrorDialog"
-    route="alert"
-    @close-modal="showErrorDialog = false"
-  >
-    <ErrorDialog
-      :title="$t('message.error-connecting')"
-      :message="errorMessage"
-      :try-button="onClickTryAgain"
-    />
+  <Modal v-if="showErrorDialog"
+         route="alert"
+         @close-modal="showErrorDialog = false">
+    <ErrorDialog :title="$t('message.error-connecting')"
+                 :message="errorMessage"
+                 :try-button="onClickTryAgain" />
   </Modal>
 </template>
 
@@ -175,8 +150,6 @@ import TooltipComponent from "@/components/TooltipComponent.vue";
 
 import { onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
-import { CONTRACTS } from "@/config/contracts";
-import { EnvNetworkUtils } from "@/utils/EnvNetworkUtils";
 import { WalletManager } from "@/utils";
 import { Dec } from "@keplr-wallet/unit";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
@@ -186,6 +159,7 @@ import { NATIVE_ASSET, UPDATE_REWARDS_INTERVAL } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useApplicationStore } from "@/stores/application";
 import { storeToRefs } from "pinia";
+import { useAdminStore } from "@/stores/admin";
 
 const wallet = useWalletStore();
 
@@ -213,6 +187,7 @@ const lpnAsset = ref<AssetBalance[] | []>([])
 const lpnReward = ref(new Dec(0))
 const applicaton = useApplicationStore();
 const applicationRef = storeToRefs(applicaton);
+const admin = useAdminStore();
 
 onMounted(async () => {
 
@@ -305,14 +280,25 @@ async function getRewards() {
   try {
 
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-    const contract = CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance;
-    const lppClient = new Lpp(cosmWasmClient, contract);
-    const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
+    const promises = [];
+    const rewards = new Dec(0);
 
-    const lenderRewards = await lppClient.getLenderRewards(walletAddress);
+    for (const protocolKey in admin.contracts) {
+      const fn = async () => {
+        const contract = admin.contracts[protocolKey].lpp;
+        const lppClient = new Lpp(cosmWasmClient, contract);
+        const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
 
-    lpnReward.value = new Dec(lenderRewards.rewards.amount);
-    return new Dec(lenderRewards.rewards.amount);
+        const lenderRewards = await lppClient.getLenderRewards(walletAddress);
+        rewards.add(new Dec(lenderRewards.rewards.amount));
+      }
+      promises.push(fn());
+    }
+
+    await Promise.all(promises);
+    lpnReward.value = rewards;
+
+    return rewards;
 
   } catch (e) {
     console.log(e)
@@ -339,24 +325,28 @@ async function loadDelegated() {
 }
 
 async function loadLPNCurrency() {
-  const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-  const contract = CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance;
-  const lppClient = new Lpp(cosmWasmClient, contract);
 
-  claimContractData.value.push({
-    contractAddress: contract,
-    msg: claimRewardsMsg(),
-  });
-
-  const lppConfig = await lppClient.getLppConfig();
   const lpnCurrencies: AssetBalance[] = [];
-  const lpns = (applicaton.lpn ?? []).filter((item) => item.ticker == lppConfig.lpn_ticker);
+  const lpns = applicaton.lpn;
   const promises = [];
+  const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
 
-  for (const lpn of lpns) {
+  for (const lpn of lpns ?? []) {
     const index = wallet.balances.findIndex((item) => item.balance.denom == lpn.ibcData);
     if (index > -1) {
       const fn = async () => {
+
+        const c = wallet.currencies[lpn.ibcData!];
+        const [_currency, protocol] = c.ticker.split('@');
+
+        const contract = admin.contracts[protocol].lpp;
+        const lppClient = new Lpp(cosmWasmClient, contract);
+
+        claimContractData.value.push({
+          contractAddress: contract,
+          msg: claimRewardsMsg(),
+        });
+
         const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
         const [depositBalance, price] = await Promise.all([
           lppClient.getLenderDeposit(
@@ -369,7 +359,9 @@ async function loadLPNCurrency() {
         );
         const amount = new Dec(depositBalance.balance).mul(calculatedPrice).truncate();
         const currency = {
-          ...wallet.balances[index],
+          balance: {
+            ...wallet.balances[index].balance
+          },
         };
         currency.balance.amount = amount;
         lpnCurrencies.push(currency)

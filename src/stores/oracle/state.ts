@@ -3,6 +3,10 @@ export interface Price {
   symbol: string;
 }
 
+export interface Prices {
+  [key: string]: Price
+}
+
 export type State = {
-  prices: { [key: string]: Price };
+  prices: Prices
 };

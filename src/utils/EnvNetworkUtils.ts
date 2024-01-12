@@ -1,4 +1,5 @@
 import type { NetworkAddress } from "@/types";
+import type { Networks } from "@/stores/admin/state";
 import { DEFAULT_PRIMARY_NETWORK, NETWORKS } from "@/config/env";
 
 export class EnvNetworkUtils {
@@ -31,7 +32,7 @@ export class EnvNetworkUtils {
     return NETWORKS[this.getStoredNetworkName() as string];
   }
 
-  public static getStoredNetworkName(): string {
-    return localStorage.getItem("currentNetwork") || DEFAULT_PRIMARY_NETWORK;
+  public static getStoredNetworkName(): Networks {
+    return (localStorage.getItem("currentNetwork") || DEFAULT_PRIMARY_NETWORK) as Networks;
   }
 }

@@ -238,8 +238,9 @@ const calculateInputBalance = () => {
     coinMinimalDenom as string,
     coinDecimals
   );
+
   const coin = new Coin(coinMinimalDenom as string, new Int(String(amount)));
-  const tokenPrice = prices[symbol]?.amount || "0";
+  const tokenPrice = prices[coinMinimalDenom]?.amount || "0";
 
   return CurrencyUtils.calculateBalance(tokenPrice, coin, coinDecimals);
 };

@@ -8,6 +8,7 @@ import { CONTRACTS } from "@/config/contracts";
 import { WalletManager, EnvNetworkUtils } from "@/utils";
 import { AppUtils } from "@/utils/AppUtils";
 import { IGNORE_LEASES } from "@/config/env";
+import { useAdminStore } from "@/stores/admin";
 
 export function useLeases(
   onError: (error: unknown) => void
@@ -18,62 +19,79 @@ export function useLeases(
   const getLeases = async () => {
     try {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const leaserClient = new Leaser(
-        cosmWasmClient,
-        CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance
-      );
-
-      const openedLeases: string[] = (await leaserClient.getCurrentOpenLeasesByOwner(
-        WalletManager.getWalletAddress()
-      )).filter((item) => {
-        return !IGNORE_LEASES.includes(item);
-      });
-
+      const admin = useAdminStore();
       const promises: Promise<{
         leaseAddress: string,
         leaseStatus: LeaseStatus,
+        protocol: string
       } | undefined>[] = [];
+      const protocolPromises = [];
 
-      for (const leaseAddress of openedLeases) {
+      for (const protocolKey in admin.contracts) {
         const fn = async () => {
-          const leaseClient = new Lease(cosmWasmClient, leaseAddress);
-          const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
-          const api = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+          const protocol = admin.contracts[protocolKey];
 
-          const [statusReq, leaseInfo, balancesReq] = await Promise.all([
-            fetch(`${url}/tx_search?query="wasm.lease_address='${leaseAddress}'"&prove=true`),
-            leaseClient.getLeaseStatus(),
-            fetch(`${api}/cosmos/bank/v1beta1/balances/${leaseAddress}`),
-          ]);
+          const leaserClient = new Leaser(
+            cosmWasmClient,
+            protocol.leaser
+          );
 
-          const [data, balances] = await Promise.all([
-            statusReq.json(),
-            balancesReq.json()
-          ]);
+          const openedLeases: string[] = (await leaserClient.getCurrentOpenLeasesByOwner(
+            WalletManager.getWalletAddress()
+          )).filter((item) => {
+            return !IGNORE_LEASES.includes(item);
+          });
 
-          const item = data.result?.txs?.[0];
-          if (leaseInfo && !leaseInfo.closed && !leaseInfo.liquidated) {
-            return {
-              leaseAddress: leaseAddress,
-              leaseStatus: leaseInfo,
-              height: item.height,
-              balances: balances.balances
+          for (const leaseAddress of openedLeases) {
+            const fn = async () => {
+              const leaseClient = new Lease(cosmWasmClient, leaseAddress);
+              const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
+              const api = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+
+              const [statusReq, leaseInfo, balancesReq] = await Promise.all([
+                fetch(`${url}/tx_search?query="wasm.lease_address='${leaseAddress}'"&prove=true`),
+                leaseClient.getLeaseStatus(),
+                fetch(`${api}/cosmos/bank/v1beta1/balances/${leaseAddress}`),
+              ]);
+
+              const [data, balances] = await Promise.all([
+                statusReq.json(),
+                balancesReq.json()
+              ]);
+
+              const item = data.result?.txs?.[0];
+              if (leaseInfo && !leaseInfo.closed && !leaseInfo.liquidated) {
+                return {
+                  leaseAddress: leaseAddress,
+                  leaseStatus: leaseInfo,
+                  height: item.height,
+                  balances: balances.balances,
+                  protocol: protocolKey
+                }
+              }
             }
+            promises.push(fn())
           }
+
         }
-        promises.push(fn())
+
+        protocolPromises.push(fn());
+
       }
-      
+
+      await Promise.all(protocolPromises);
+
       const items = (await Promise.all(promises)).filter((item) => {
         if (!item) {
           return false;
         }
         return true;
-      })
-      
+      }).sort((a, b) => b!.protocol.localeCompare(a!.protocol));
+
       leases.value = items as LeaseData[];
 
     } catch (e) {
+      console.log(e)
       onError(e);
     } finally {
       leaseLoaded.value = true;
@@ -120,20 +138,20 @@ export function useLease(
 }
 
 export function useLeaseConfig(
+  protocol: string,
   onError: (error: unknown) => void
 ) {
   const config = ref<LeaserConfig>();
 
   const getLeaseConfig = async () => {
     try {
-
+      const admin = useAdminStore();
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const leaserClient = new Leaser(
         cosmWasmClient,
-        CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance
+        admin.contracts[protocol].leaser
       );
       config.value = await leaserClient.getLeaserConfig();
-
     } catch (e) {
       onError(e);
     }

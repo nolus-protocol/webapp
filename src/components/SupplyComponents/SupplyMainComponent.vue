@@ -1,34 +1,26 @@
 <template>
-  <ConfirmComponent
-    v-if="showConfirmScreen"
-    :selectedCurrency="state.selectedCurrency"
-    :receiverAddress="state.receiverAddress"
-    :password="state.password"
-    :amount="state.amount"
-    :txType="$t(`message.${TxType.SUPPLY}`) + ':'"
-    :txHash="state.txHash"
-    :step="step"
-    :fee="state.fee"
-    :onSendClick="onSupplyClick"
-    :onBackClick="onConfirmBackClick"
-    :onOkClick="onClickOkBtn"
-    @passwordUpdate="(value) => (state.password = value)"
-  />
-  <SupplyFormComponent
-    v-else
-    v-model="state"
-    class="overflow-auto custom-scroll"
-  />
-  <Modal
-    v-if="errorDialog.showDialog"
-    @close-modal="errorDialog.showDialog = false"
-    route="alert"
-  >
-    <ErrorDialog
-      title="Error connecting"
-      :message="errorDialog.errorMessage"
-      :try-button="closeModal"
-    />
+  <ConfirmComponent v-if="showConfirmScreen"
+                    :selectedCurrency="state.selectedCurrency"
+                    :receiverAddress="state.receiverAddress"
+                    :password="state.password"
+                    :amount="state.amount"
+                    :txType="$t(`message.${TxType.SUPPLY}`) + ':'"
+                    :txHash="state.txHash"
+                    :step="step"
+                    :fee="state.fee"
+                    :onSendClick="onSupplyClick"
+                    :onBackClick="onConfirmBackClick"
+                    :onOkClick="onClickOkBtn"
+                    @passwordUpdate="(value) => (state.password = value)" />
+  <SupplyFormComponent v-else
+                       v-model="state"
+                       class="overflow-auto custom-scroll" />
+  <Modal v-if="errorDialog.showDialog"
+         @close-modal="errorDialog.showDialog = false"
+         route="alert">
+    <ErrorDialog title="Error connecting"
+                 :message="errorDialog.errorMessage"
+                 :try-button="closeModal" />
   </Modal>
 </template>
 
@@ -44,8 +36,6 @@ import { CONFIRM_STEP } from "@/types/ConfirmStep";
 import { TxType } from "@/types/TxType";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
-import { CONTRACTS } from "@/config/contracts";
-import { EnvNetworkUtils } from "@/utils/EnvNetworkUtils";
 import { useWalletStore } from "@/stores/wallet";
 import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -66,29 +56,40 @@ import {
 } from "@/config/env";
 import { useApplicationStore } from "@/stores/application";
 import { Int } from "@keplr-wallet/unit";
-
-defineProps({
-  selectedAsset: {
-    type: String
-  },
-});
+import { useAdminStore } from "@/stores/admin";
+import { onBeforeMount } from "vue";
 
 const i18n = useI18n();
 const walletStore = useWalletStore();
 const app = useApplicationStore();
+const admin = useAdminStore();
+
+const props = defineProps({
+  selectedAsset: {
+    type: String,
+  },
+});
 
 const snackbarVisible = inject("snackbarVisible", () => false);
 const loadLPNCurrency = inject("loadLPNCurrency", () => false);
+
+onBeforeMount(() => {
+  if (!props.selectedAsset) {
+    state.value.selectedAsset = app.lpn![0].ibcData as string
+  }
+});
 
 onMounted(() => {
   Promise.all([checkSupply()]).catch((e) => console.error(e));
 });
 
 const checkSupply = async () => {
+  const asset = walletStore.currencies[state.value.selectedAsset!];
+  const [_currency, protocol] = asset.ticker.split('@');
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
   const lpp = new Lpp(
     cosmWasmClient,
-    CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance
+    admin.contracts[protocol].lpp
   );
   const data = await lpp.getDepositCapacity();
   state.value.loading = false;
@@ -118,7 +119,11 @@ const balances = computed(() => {
 
 const selectedCurrency = computed(
   () => {
-    return balances.value[0];
+    const item = balances.value.find((item) => {
+      const c = props.selectedAsset ?? app.lpn![0].ibcData;
+      return item.balance.denom == c;
+    });
+    return item;
   }
 );
 
@@ -130,12 +135,13 @@ const state = ref({
   password: "",
   amountErrorMsg: "",
   currentAPR: `${DEFAULT_APR}%`,
-  receiverAddress: CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance,
+  receiverAddress: '',
   txHash: "",
   fee: coin(GAS_FEES.lender_deposit, NATIVE_ASSET.denom),
   supply: true,
   loading: true,
   maxSupply: new Int(0),
+  selectedAsset: props.selectedAsset,
   onNextClick: () => onNextClick(),
 } as SupplyFormComponentProps);
 
@@ -180,11 +186,9 @@ const validateSupply = () => {
 
 
 function onNextClick() {
-  if (!state.value.receiverAddress) {
-    errorDialog.value.showDialog = true;
-    errorDialog.value.errorMessage = i18n.t("message.missing-receiver");
-    return;
-  }
+  const currency = walletStore.currencies[state.value.selectedCurrency.balance.denom];
+  const [_currency, protocol] = currency.ticker.split('@');
+  state.value.receiverAddress = admin.contracts[protocol].lpp;
 
   validateInputs();
 
@@ -231,17 +235,22 @@ async function onSupplyClick() {
 async function transferAmount() {
   const wallet = walletStore.wallet as NolusWallet;
   if (wallet && state.value.amountErrorMsg === "") {
+
     step.value = CONFIRM_STEP.PENDING;
+
     try {
       const microAmount = getMicroAmount(
         state.value.selectedCurrency.balance.denom,
         state.value.amount
       );
 
+      const currency = walletStore.currencies[state.value.selectedCurrency.balance.denom];
+      const [_currency, protocol] = currency.ticker.split('@');
+
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const lppClient = new Lpp(
         cosmWasmClient,
-        CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance
+        admin.contracts[protocol].lpp
       );
 
       const { txHash, txBytes, usedFee } = await lppClient.simulateDepositTx(

@@ -17,6 +17,11 @@ export const CONTRACTS: ContractConfig = {
     dispatcher: {
       instance: "nolus1tqwwyth34550lg2437m05mjnjp8w7h5ka7m70jtzpxn4uh2ktsmqtctwnn",
       codeId: ""
+    },
+    admin: {
+      instance: "nolus1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsqxf8nd",
+      codeId: "",
+      ignoreProtocols: []
     }
   },
   testnet: {
@@ -35,6 +40,14 @@ export const CONTRACTS: ContractConfig = {
     dispatcher: {
       instance: "nolus1tqwwyth34550lg2437m05mjnjp8w7h5ka7m70jtzpxn4uh2ktsmqtctwnn",
       codeId: ""
+    },
+    admin: {
+      instance: "nolus1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsqxf8nd",
+      codeId: "",
+      ignoreProtocols: [
+        "OSMOSIS-OSMOSIS-USDC_AXELAR",
+        "osmosis-axlusdc"
+      ]
     }
   },
   mainnet: {
@@ -53,6 +66,11 @@ export const CONTRACTS: ContractConfig = {
     dispatcher: {
       instance: "nolus1tqwwyth34550lg2437m05mjnjp8w7h5ka7m70jtzpxn4uh2ktsmqtctwnn",
       codeId: ""
+    },
+    admin: {
+      instance: "nolus1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsqxf8nd",
+      codeId: "",
+      ignoreProtocols: []
     }
   },
   localnet: {
@@ -71,6 +89,11 @@ export const CONTRACTS: ContractConfig = {
     dispatcher: {
       instance: "nolus1tqwwyth34550lg2437m05mjnjp8w7h5ka7m70jtzpxn4uh2ktsmqtctwnn",
       codeId: ""
+    },
+    admin: {
+      instance: "nolus1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsqxf8nd",
+      codeId: "",
+      ignoreProtocols: []
     }
   },
 };

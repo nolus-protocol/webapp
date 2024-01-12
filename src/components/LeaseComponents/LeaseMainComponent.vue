@@ -1,25 +1,21 @@
 <template>
-  <ConfirmComponent
-    v-if="showConfirmScreen"
-    :selectedCurrency="state.selectedDownPaymentCurrency"
-    :receiverAddress="state.contractAddress"
-    :password="state.password"
-    :amount="state.downPayment"
-    :memo="state.memo"
-    :txType="$t(`message.${TX_TYPE.LEASE}`) + ':'"
-    :txHash="state.txHash"
-    :step="step"
-    :fee="state.fee"
-    :onSendClick="onSendClick"
-    :onBackClick="onConfirmBackClick"
-    :onOkClick="onClickOkBtn"
-    @passwordUpdate="(value: string) => state.password = value"
-  />
-  <LeaseFormComponent
-    v-else
-    v-model="state"
-    class="overflow-auto custom-scroll"
-  />
+  <ConfirmComponent v-if="showConfirmScreen"
+                    :selectedCurrency="state.selectedDownPaymentCurrency"
+                    :receiverAddress="state.contractAddress"
+                    :password="state.password"
+                    :amount="state.downPayment"
+                    :memo="state.memo"
+                    :txType="$t(`message.${TX_TYPE.LEASE}`) + ':'"
+                    :txHash="state.txHash"
+                    :step="step"
+                    :fee="state.fee"
+                    :onSendClick="onSendClick"
+                    :onBackClick="onConfirmBackClick"
+                    :onOkClick="onClickOkBtn"
+                    @passwordUpdate="(value: string) => state.password = value" />
+  <LeaseFormComponent v-else
+                      v-model="state"
+                      class="overflow-auto custom-scroll" />
 </template>
 
 <script setup lang="ts">
@@ -34,8 +30,6 @@ import { Leaser } from "@nolus/nolusjs/build/contracts";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { Dec, Int } from "@keplr-wallet/unit";
 
-import { CONTRACTS } from "@/config/contracts";
-import { EnvNetworkUtils } from "@/utils/EnvNetworkUtils";
 import { CONFIRM_STEP } from "@/types/ConfirmStep";
 import { TxType } from "@/types/TxType";
 import { getMicroAmount, walletOperation } from "@/components/utils";
@@ -48,6 +42,8 @@ import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/stores/oracle";
 import { useApplicationStore } from "@/stores/application";
 import { AppUtils } from "@/utils/AppUtils";
+import { useAdminStore } from "@/stores/admin";
+import { Protocols } from "@nolus/nolusjs/build/types/Networks";
 
 const onModalClose = inject("onModalClose", () => { });
 const walletStore = useWalletStore();
@@ -63,7 +59,7 @@ const paymentBalances = computed(() => {
     const currency = walletStore.currencies[item.balance.denom];
     const lpns = (app.lpn ?? []).map((item) => item.key);
 
-    return lpns.includes(currency.ticker) || app.lease.includes(currency.ticker);
+    return lpns.includes(currency.ticker) || app.leasesCurrencies.includes(currency.ticker);
   });
 });
 
@@ -73,7 +69,7 @@ const leaseBalances = computed(() => {
     const currency = walletStore.currencies[item.balance.denom];
     const [ticker] = currency.ticker.split('@');
 
-    return app.lease.includes(ticker);
+    return app.leasesCurrencies.includes(ticker);
   }).map((item) => {
     const asset = walletStore.getCurrencyInfo(item.balance.denom);
     return {
@@ -95,7 +91,7 @@ const props = defineProps({
 });
 
 const state = ref({
-  contractAddress: CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance,
+  contractAddress: '',
   currentBalance: walletStore.balances as AssetBalance[],
   selectedDownPaymentCurrency: paymentBalances.value[0] as AssetBalance,
   selectedCurrency: {
@@ -126,6 +122,7 @@ onMounted(async () => {
   if (balances) {
     state.value.currentBalance = balances;
   }
+  setLeaseAssets();
 });
 
 onUnmounted(() => {
@@ -147,6 +144,11 @@ watch(() => state.value.downPayment, () => {
   }
 });
 
+watch(() => state.value.selectedDownPaymentCurrency, () => {
+  setLeaseAssets();
+});
+
+
 watch(() => [state.value.selectedDownPaymentCurrency, state.value.selectedCurrency], () => {
   state.value.downPaymentErrorMsg = "";
   if (validateMinMaxValues()) {
@@ -162,6 +164,11 @@ watch(() => state.value.ltd, () => {
   calculate();
 });
 
+const setLeaseAssets = () => {
+  const currency = walletStore.currencies[state.value.selectedDownPaymentCurrency.balance.denom];
+  const [_currency, protocol] = currency.ticker.split('@');
+}
+
 const calculate = async () => {
   try {
     const downPaymentAmount = state.value.downPayment;
@@ -172,28 +179,32 @@ const calculate = async () => {
         state.value.selectedDownPaymentCurrency.balance.denom,
         state.value.downPayment
       );
-      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-
-      const leaserClient = new Leaser(
-        cosmWasmClient,
-        CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance
-      );
 
       const currency = walletStore.currencies[
         state.value.selectedDownPaymentCurrency.balance.denom
       ];
       const lease = walletStore.currencies[state.value.selectedCurrency.balance.denom];
 
-      let [downPaymentTicker] = currency.ticker.split('@');
+      let [downPaymentTicker, protocol] = currency.ticker.split('@');
       let [leaseTicker] = lease.ticker.split('@');
 
-      if (CurrencyMapping[downPaymentTicker as keyof typeof CurrencyMapping]) {
+      if (CurrencyMapping[downPaymentTicker as keyof typeof CurrencyMapping] && protocol == Protocols.osmosis) {
         downPaymentTicker = CurrencyMapping[downPaymentTicker as keyof typeof CurrencyMapping]?.ticker;
       }
 
-      if (CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]) {
-        leaseTicker = CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]?.ticker;
-      }
+      // if (CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]) {
+      //   leaseTicker = CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]?.ticker;
+      // }
+
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+      const admin = useAdminStore();
+
+      const leaserClient = new Leaser(
+        cosmWasmClient,
+        admin.contracts[protocol].leaser
+      );
+
+      state.value.contractAddress = admin.contracts[protocol].leaser;
 
       const makeLeaseApplyResp = await leaserClient.leaseQuote(
         microAmount.mAmount.amount.toString(),
@@ -211,6 +222,7 @@ const calculate = async () => {
       state.value.leaseApply = null;
     }
   } catch (error) {
+    console.log(error)
     state.value.leaseApply = null;
   }
 
@@ -321,7 +333,7 @@ const validateMinMaxValues = (): boolean => {
         currentBalance?.balance?.denom
       );
       const asset = walletStore.getCurrencyByTicker(coinData.ticker);
-      const price = oracle.prices[asset!.symbol];
+      const price = oracle.prices[asset!.ibcData as string];
 
       const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(downPaymentAmount, coinData.coinDenom, coinData.coinDecimals);
       const balance = CurrencyUtils.calculateBalance(price.amount, downPaymentAmountInMinimalDenom, coinData.coinDecimals).toDec();
@@ -383,15 +395,17 @@ const openLease = async () => {
       ];
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const leaserClient = new Leaser(
-        cosmWasmClient,
-        CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].leaser.instance
-      );
+      const admin = useAdminStore();
+
       const ticker = walletStore.currencies[
         state.value.selectedCurrency.balance.denom
       ].ticker;
+      let [leaseTicker, protocol] = ticker.split('@');
 
-      let [leaseTicker] = ticker.split('@');
+      const leaserClient = new Leaser(
+        cosmWasmClient,
+        admin.contracts[protocol].leaser
+      );
 
       if (CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]) {
         leaseTicker = CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]?.ticker;
@@ -422,12 +436,11 @@ const openLease = async () => {
 
       if (data && leaseAssetPrice) {
 
-        const downPaymentAsset = walletStore.getCurrencyByTicker(walletStore.currencies[
+        const downPaymentAsset = walletStore.currencies[
           state.value.selectedDownPaymentCurrency.balance.denom
-        ].ticker);
+        ]
 
-
-        const downPaymentPrice = oracle.prices[downPaymentAsset!.symbol];
+        const downPaymentPrice = oracle.prices[state.value.selectedDownPaymentCurrency.balance.denom as string];
         const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(state.value.downPayment, "", Number(downPaymentAsset!.decimal_digits));
         const balance = CurrencyUtils.calculateBalance(downPaymentPrice.amount, downPaymentAmountInMinimalDenom, Number(downPaymentAsset!.decimal_digits)).toDec().toString();
 
@@ -446,6 +459,7 @@ const openLease = async () => {
       getLeases();
 
     } catch (error: Error | any) {
+      console.log(error)
       switch (error.code) {
         case (ErrorCodes.GasError): {
           step.value = CONFIRM_STEP.GasError;

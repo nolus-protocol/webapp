@@ -7,7 +7,7 @@ import { useWalletStore } from "@/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { DECIMALS_AMOUNT, MAX_DECIMALS, ZERO_DECIMALS, SUPPORTED_NETWORKS, NATIVE_NETWORK, NATIVE_ASSET } from "@/config/env";
+import { DECIMALS_AMOUNT, MAX_DECIMALS, ZERO_DECIMALS, SUPPORTED_NETWORKS, NATIVE_NETWORK, NATIVE_ASSET, ProtocolsConfig } from "@/config/env";
 import { SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
 
@@ -40,7 +40,7 @@ export class AssetUtils {
     const currency = wallet.getCurrencyByTicker(ticker);
     const denom = wallet.getIbcDenomBySymbol(currency?.symbol);
     const info = wallet.getCurrencyInfo(denom as string);
-    const p = oracle.prices[currency?.symbol as string]?.amount;
+    const p = oracle.prices[currency?.ibcData as string]?.amount;
 
     if (!p) {
       return new Dec(0);
@@ -55,8 +55,7 @@ export class AssetUtils {
     const wallet = useWalletStore();
     const oracle = useOracleStore();
     const info = wallet.getCurrencyInfo(denom as string);
-    const currency = wallet.getCurrencyByTicker(info.ticker!);
-    const p = oracle.prices[currency?.symbol as string]?.amount;
+    const p = oracle.prices[denom as string]?.amount;
     if (!p) {
       return new Dec(0);
     }
@@ -141,11 +140,12 @@ export class AssetUtils {
         if (k == NATIVE_NETWORK.key) {
           for (const p of NolusAssetUtils.getProtocols(ntwrks)) {
             for (const key in ntwrks.networks.list[p].currencies) {
-              const ck = `${key}@${p}`;
-              assets[ck] = ntwrks.networks.list[p].currencies[key] as Currency;
-              assetIcons[ck] = ntwrks.networks.list[p].currencies[key].icon as string;
-              assets[ck].ibcData = NolusAssetUtils.makeIBCMinimalDenom(key, ntwrks!, NATIVE_NETWORK.key as Networks, p as Protocols);
-
+              if(!ProtocolsConfig[p].hidden.includes(key)){
+                const ck = `${key}@${p}`;
+                assets[ck] = ntwrks.networks.list[p].currencies[key] as Currency;
+                assetIcons[ck] = ntwrks.networks.list[p].currencies[key].icon as string;
+                assets[ck].ibcData = NolusAssetUtils.makeIBCMinimalDenom(key, ntwrks!, NATIVE_NETWORK.key as Networks, p as Protocols);
+              }
             };
           }
         }

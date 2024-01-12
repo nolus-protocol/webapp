@@ -55,17 +55,18 @@ const getLeases = inject("getLeases", () => { });
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const showConfirmScreen = ref(false);
-
-const closeModal = onModalClose;
-const { config } = useLeaseConfig(
-  (error: Error | any) => { },
-);
-
 const props = defineProps({
   leaseData: {
     type: Object as PropType<LeaseData>,
   },
 });
+
+const closeModal = onModalClose;
+const { config } = useLeaseConfig(
+  props.leaseData?.protocol as string,
+  (error: Error | any) => { },
+);
+
 
 const balances = computed(() => {
   const balances = walletStore.balances;
@@ -150,7 +151,7 @@ const isAmountValid = (): boolean => {
   const debt = new Dec(state.value.leaseInfo.amount.amount, Number(currency.decimal_digits));
   const minAmountCurrency = walletStore.getCurrencyByTicker(config.value?.config.lease_position_spec.min_asset.ticker as string)!;
   const minAmont = new Dec(config.value?.config.lease_position_spec.min_asset.amount ?? 0, Number(minAmountCurrency.decimal_digits));
-  const price = new Dec(oracle.prices[currency.symbol].amount);
+  const price = new Dec(oracle.prices[currency.ibcData as string].amount);
 
   const minAmountTemp = new Dec(minimumLeaseAmount);
   const amountInStable = new Dec(amount.length == 0 ? '0' : amount).mul(price);

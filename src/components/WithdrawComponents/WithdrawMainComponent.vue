@@ -1,34 +1,26 @@
 <template>
-  <ConfirmComponent
-    v-if="showConfirmScreen"
-    :selectedCurrency="state.selectedCurrency"
-    :receiverAddress="state.receiverAddress"
-    :password="state.password"
-    :amount="state.amount"
-    :txType="$t(`message.${TxType.WITHDRAW}`)+':'"
-    :txHash="state.txHash"
-    :step="step"
-    :fee="state.fee"
-    :onSendClick="onWithdrawClick"
-    :onBackClick="onConfirmBackClick"
-    :onOkClick="onClickOkBtn"
-    @passwordUpdate="(value) => (state.password = value)"
-  />
-  <WithdrawFormComponent
-    v-else
-    v-model="state"
-    class="overflow-auto custom-scroll"
-  />
-  <Modal
-    v-if="errorDialog.showDialog"
-    @close-modal="errorDialog.showDialog = false"
-    route="alert"
-  >
-    <ErrorDialog
-      title="Error connecting"
-      :message="errorDialog.errorMessage"
-      :try-button="errorDialog.tryAgain"
-    />
+  <ConfirmComponent v-if="showConfirmScreen"
+                    :selectedCurrency="state.selectedCurrency"
+                    :receiverAddress="state.receiverAddress"
+                    :password="state.password"
+                    :amount="state.amount"
+                    :txType="$t(`message.${TxType.WITHDRAW}`) + ':'"
+                    :txHash="state.txHash"
+                    :step="step"
+                    :fee="state.fee"
+                    :onSendClick="onWithdrawClick"
+                    :onBackClick="onConfirmBackClick"
+                    :onOkClick="onClickOkBtn"
+                    @passwordUpdate="(value) => (state.password = value)" />
+  <WithdrawFormComponent v-else
+                         v-model="state"
+                         class="overflow-auto custom-scroll" />
+  <Modal v-if="errorDialog.showDialog"
+         @close-modal="errorDialog.showDialog = false"
+         route="alert">
+    <ErrorDialog title="Error connecting"
+                 :message="errorDialog.errorMessage"
+                 :try-button="errorDialog.tryAgain" />
   </Modal>
 </template>
 
@@ -43,21 +35,21 @@ import Modal from "@/components/modals/templates/Modal.vue";
 
 import { CONFIRM_STEP } from "@/types/ConfirmStep";
 import { TxType } from "@/types/TxType";
-import { Coin, Dec, Int } from "@keplr-wallet/unit";
+import { Coin, Dec } from "@keplr-wallet/unit";
 import { NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
-import { EnvNetworkUtils, WalletManager } from "@/utils";
+import { WalletManager } from "@/utils";
 import {
   getMicroAmount,
   validateAmount,
   walletOperation,
 } from "@/components/utils";
 import { WalletActionTypes, useWalletStore } from "@/stores/wallet";
-import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
-import { CONTRACTS } from "@/config/contracts";
+import { computed, inject, onBeforeMount, onMounted, onUnmounted, ref, watch } from "vue";
 import { NATIVE_ASSET, GAS_FEES, SNACKBAR, ErrorCodes } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useApplicationStore } from "@/stores/application";
+import { useAdminStore } from "@/stores/admin";
 
 const props = defineProps({
   selectedAsset: {
@@ -67,6 +59,7 @@ const props = defineProps({
 
 const walletStore = useWalletStore();
 const app = useApplicationStore();
+const admin = useAdminStore();
 
 const balances = computed(() => {
   const balances = walletStore.balances;
@@ -79,23 +72,26 @@ const balances = computed(() => {
 });
 
 const selectedCurrency = computed(
-  () =>
-    balances.value.find(
-      (asset) => asset.balance.denom === props.selectedAsset
-    ) || balances.value[0]
+  () => {
+    const item = balances.value.find((item) => {
+      const c = props.selectedAsset ?? app.lpn![0].ibcData;
+      return item.balance.denom == c;
+    });
+    return item;
+  }
 );
-
 const showConfirmScreen = ref(false);
 const state = ref({
   currentDepositBalance: {} as any,
   currentBalance: balances.value,
   selectedCurrency: selectedCurrency.value,
-  receiverAddress: CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance,
+  receiverAddress: '',
   amount: "",
   password: "",
   amountErrorMsg: "",
   txHash: "",
   fee: coin(GAS_FEES.lender_burn_deposit, NATIVE_ASSET.denom),
+  selectedAsset: props.selectedAsset,
   onNextClick: () => onNextClick(),
   onSendClick: () => onWithdrawClick(),
   onConfirmBackClick: () => onConfirmBackClick(),
@@ -112,7 +108,10 @@ const fetchDepositBalance = async () => {
   try {
     const walletAddress = walletStore.wallet?.address ?? WalletManager.getWalletAddress();
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-    const lppClient = new Lpp(cosmWasmClient, state.value.receiverAddress);
+    const currency = walletStore.currencies[state.value.selectedCurrency.balance.denom];
+    const [_currency, protocol] = currency.ticker.split('@');
+
+    const lppClient = new Lpp(cosmWasmClient, admin.contracts[protocol].lpp);
     const [depositBalance, price] = await Promise.all([
       lppClient.getLenderDeposit(
         walletAddress as string
@@ -137,6 +136,12 @@ const fetchDepositBalance = async () => {
     errorDialog.value.tryAgain = fetchDepositBalance;
   }
 };
+
+onBeforeMount(() => {
+  if (!props.selectedAsset) {
+    state.value.selectedAsset = app.lpn![0].ibcData as string
+  }
+});
 
 onMounted(async () => {
   fetchDepositBalance();
@@ -168,12 +173,10 @@ const snackbarVisible = inject("snackbarVisible", () => false);
 const loadLPNCurrency = inject("loadLPNCurrency", () => false);
 
 function onNextClick() {
-  if (!state.value.receiverAddress) {
-    errorDialog.value.showDialog = true;
-    errorDialog.value.errorMessage = "Missing receiver address!";
-    errorDialog.value.tryAgain = hideErrorDialog;
-    return;
-  }
+  const currency = walletStore.currencies[state.value.selectedCurrency.balance.denom];
+  const [_currency, protocol] = currency.ticker.split('@');
+  state.value.receiverAddress = admin.contracts[protocol].lpp;
+
   validateInputs();
 
   if (!state.value.amountErrorMsg) {
@@ -219,7 +222,9 @@ async function onWithdrawClick() {
 async function transferAmount() {
   const wallet = walletStore.wallet as NolusWallet;
   if (wallet && state.value.amountErrorMsg === "") {
+
     step.value = CONFIRM_STEP.PENDING;
+
     try {
 
       const microAmount = getMicroAmount(
@@ -227,9 +232,12 @@ async function transferAmount() {
         state.value.amount
       );
 
+      const currency = walletStore.currencies[state.value.selectedCurrency.balance.denom];
+      const [_currency, protocol] = currency.ticker.split('@');
+
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const lppClient = new Lpp(cosmWasmClient, state.value.receiverAddress);
-      const price = await lppClient.getPrice()
+      const lppClient = new Lpp(cosmWasmClient, admin.contracts[protocol].lpp);
+      const price = await lppClient.getPrice();
 
       const calculatedPrice = new Dec(price.amount_quote.amount).quo(
         new Dec(price.amount.amount)
@@ -267,8 +275,8 @@ async function transferAmount() {
       await walletStore[WalletActionTypes.UPDATE_BALANCES]();
 
     } catch (error: Error | any) {
-      switch(error.code){
-        case(ErrorCodes.GasError): {
+      switch (error.code) {
+        case (ErrorCodes.GasError): {
           step.value = CONFIRM_STEP.GasError;
           break;
         }

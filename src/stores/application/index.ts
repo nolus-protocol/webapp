@@ -26,10 +26,11 @@ const useApplicationStore = defineStore("application", {
       dispatcherRewards: null,
       lpn: null,
       native: null,
-      lease: [] as string[],
+      lease: null,
       currenciesData: null,
       sessionExpired: false,
       protocols: [] as string[],
+      leasesCurrencies: [] as string[]
     } as State;
   },
   actions: {
@@ -39,7 +40,8 @@ const useApplicationStore = defineStore("application", {
         const network = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
         const currenciesData = await network.currencies();
         const data = AssetUtils.parseNetworks(currenciesData);
-        const lease = new Set<string>();
+        const lease: { [key: string]: string[] } = {};
+        const leasesCurrencies = new Set<string>()
 
         this.assetIcons = data.assetIcons;
         this.networks = data.networks;
@@ -49,7 +51,17 @@ const useApplicationStore = defineStore("application", {
         this.protocols = NolusAssetUtils.getProtocols(this.networksData!);
 
         this.lpn = [];
-        this.native = data.networks[NATIVE_NETWORK.key][native];
+        const nativeCurrency = currenciesData.networks.list[NATIVE_NETWORK.key].currencies[native].native;
+        this.native = {
+          name: nativeCurrency.name,
+          shortName: nativeCurrency.ticker,
+          symbol: nativeCurrency.symbol,
+          decimal_digits: nativeCurrency.decimal_digits,
+          ticker: nativeCurrency.ticker,
+          native: true,
+          key: nativeCurrency.ticker,
+          ibcData: nativeCurrency.symbol
+        };
 
         for (const protocol of this.protocols) {
           const lpn = NolusAssetUtils.getLpn(currenciesData, protocol);
@@ -61,12 +73,14 @@ const useApplicationStore = defineStore("application", {
         this.currenciesData = data.networks[NATIVE_NETWORK.key];
 
         for (const protocol of this.protocols) {
+          lease[protocol] = [];
           for (const l of NolusAssetUtils.getLease(currenciesData, protocol as Protocols)) {
-            lease.add(l);
+            lease[protocol].push(l);
+            leasesCurrencies.add(l)
           }
         }
-
-        this.lease = Array.from(lease);
+        this.lease = lease;
+        this.leasesCurrencies = Array.from(leasesCurrencies)
       } catch (e) {
         console.log(e)
       }
@@ -149,7 +163,6 @@ const useApplicationStore = defineStore("application", {
         this.dispatcherRewards = dispatcherRewards / Math.pow(10, INTEREST_DECIMALS);
 
       } catch (error) {
-        this.apr = 0;
         console.log(error)
       }
 
@@ -157,7 +170,13 @@ const useApplicationStore = defineStore("application", {
   },
   getters: {
     getCurrencySymbol: (state) => {
-      return (ticker: string) => {
+      return (ticker: string, protocol?: string) => {
+        const c = state.currenciesData?.[`${ticker}@${protocol}`];
+
+        if (c) {
+          return c;
+        }
+
         for (const key in state.currenciesData) {
           const currency = state.currenciesData[key];
           if (ticker == currency.ticker) {

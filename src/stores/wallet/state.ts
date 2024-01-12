@@ -38,9 +38,9 @@ export type State = {
       amount: string
     }
   }[];
-  suppliedBalance: string;
-  lppPrice: Dec;
-  leaserConfig: LeaserConfig | null,
+  suppliedBalance: { [protocol: string]: string };
+  lppPrice: { [protocol: string]: Dec };
+  leaserConfig: { [protocl: string]: LeaserConfig } | null,
   apr: number;
   currencies: {
     [key: string]: {

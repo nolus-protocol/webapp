@@ -162,19 +162,19 @@ const ignore = ['STK_ATOM'];
 
 onMounted(() => {
   if (props.modelValue.dialogSelectedCurrency) {
-    const index = coinList.findIndex((item) => {
+    const index = coinList.value.findIndex((item) => {
       return item.value == props.modelValue.dialogSelectedCurrency
     });
 
     if (index > -1) {
       selectedIndex.value = index;
       props.modelValue.selectedCurrency = {
-        balance: coin(0, coinList[index].value)
+        balance: coin(0, coinList.value[index].value)
       }
     }
   }
 
-  if (liquiStakeTokens[coinList[selectedIndex.value].ticker as keyof typeof liquiStakeTokens]) {
+  if (liquiStakeTokens[coinList.value[selectedIndex.value].ticker as keyof typeof liquiStakeTokens]) {
     liqudStakeShow.value = true;
   }
 
@@ -216,14 +216,14 @@ const setDownPaymentSwapFee = async () => {
   const asset = wallet.getCurrencyInfo(props.modelValue.selectedDownPaymentCurrency.balance.denom);
   const currecy = wallet.getCurrencyByTicker(asset.ticker);
 
-  const price = oracle.prices[currecy!.symbol];
+  const price = oracle.prices[currecy!.ibcData as string];
   const fee = (await AppUtils.getOpenLeaseFee())[asset.ticker] ?? 0;
 
   const value = new Dec(props.modelValue.downPayment.length == 0 ? 0 : props.modelValue.downPayment).mul(new Dec(price.amount)).mul(new Dec(fee));
 
   downPaymentSwapFeeStable.value = value.toString(USD_DECIMALS);
   downPaymentSwapFee.value = fee;
-  
+
 }
 
 const handleDownPaymentChange = (value: string) => {
@@ -239,26 +239,41 @@ const balances = computed(() => {
     }
     const lpns = ((app.lpn ?? []) as ExternalCurrencyType[]).map(item => item.key as string);
     const [cticker] = currency.ticker.split('@');
-    return lpns.includes(currency.ticker  as string) || app.lease.includes(cticker);
+    return lpns.includes(currency.ticker as string) || app.leasesCurrencies.includes(cticker);
   });
 });
 
-const coinList = props.modelValue.currentBalance.filter((item) => {
-  const currency = wallet.currencies[item.balance.denom];
-  const [ticker] = currency.ticker.split('@');
-  if (IGNORE_LEASE_ASSETS.includes(ticker)) {
-    return false;
-  }
-  return app.lease.includes(ticker);
-}).map((item) => {
-  const asset = wallet.getCurrencyInfo(item.balance.denom);
-  return {
-    ticker: asset.ticker,
-    label: asset.shortName as string,
-    value: asset.coinMinimalDenom,
-    icon: asset.coinIcon as string
-  }
+const coinList = computed(() => {
+  return props.modelValue.currentBalance.filter((item) => {
+    const currency = wallet.currencies[item.balance.denom];
+    const [ticker, protocol] = currency.ticker.split('@');
+
+    const downPaymentCurrency = wallet.currencies[props.modelValue.selectedDownPaymentCurrency.balance.denom];
+    const [_currency, downPaymentProtocol] = downPaymentCurrency.ticker.split('@');
+
+    if (downPaymentProtocol != protocol) {
+      return false;
+    }
+
+    if (IGNORE_LEASE_ASSETS.includes(ticker)) {
+      return false;
+    }
+    return app.leasesCurrencies.includes(ticker);
+  }).map((item) => {
+    const asset = wallet.getCurrencyInfo(item.balance.denom);
+    return {
+      ticker: asset.ticker,
+      label: asset.shortName as string,
+      value: asset.coinMinimalDenom,
+      icon: asset.coinIcon as string
+    }
+  })
 });
+
+
+watch(() => coinList.value, () => {
+  updateSelected(coinList.value[0]);
+})
 
 const annualInterestRate = computed(() => {
   return (props.modelValue?.leaseApply?.annual_interest_rate ?? 0) + (props.modelValue?.leaseApply?.annual_interest_rate_margin ?? 0);
@@ -341,7 +356,7 @@ const updateSelected = (event: PickerOption) => {
 
 const calculateLique = computed(() => {
   const d = getLquidation();
-  if(d.isZero()){
+  if (d.isZero()) {
     return `$${d.toString(2)}`
   }
   return `$${d.toString(4)}`;
@@ -367,7 +382,7 @@ const percentLique = computed(() => {
 
   const asset = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
   const currecy = wallet.getCurrencyByTicker(asset.ticker);
-  const price = new Dec(oracle.prices[currecy!.symbol]?.amount ?? '0', asset.coinDecimals);
+  const price = new Dec(oracle.prices[currecy!.ibcData as string]?.amount ?? '0', asset.coinDecimals);
   const lprice = getLquidation();
 
   if (lprice.isZero() || price.isZero()) {
@@ -429,7 +444,7 @@ const selectedAssetDenom = computed(() => {
 const selectedAssetPrice = computed(() => {
   const asset = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
   const currecy = wallet.getCurrencyByTicker(asset.ticker);
-  const price = oracle.prices[currecy!.symbol];
+  const price = oracle.prices[currecy!.ibcData as string];
 
   return CurrencyUtils.formatPrice(price?.amount ?? 0);
 });
