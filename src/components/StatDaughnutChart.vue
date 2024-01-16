@@ -5,7 +5,7 @@
     ref="chartElement"
   />
 </template>
-  
+
 <script lang="ts" setup>
 import { Doughnut } from 'vue-chartjs'
 import { Chart as ChartJS, ArcElement } from 'chart.js'
@@ -82,7 +82,7 @@ div.chart-tooltip {
   box-shadow: 0px 12px 32px rgba(7, 45, 99, 0.06);
   border-radius: 8px;
   background: white;
-  z-index: 2;
+  z-index: 9;
 
   table {
     margin: 0;
@@ -104,7 +104,7 @@ div.chart-tooltip {
         th {
           display: block;
           white-space: pre;
-
+          text-align: left;
           margin-bottom: 5px;
         }
       }

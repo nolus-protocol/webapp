@@ -316,7 +316,7 @@
     </div>
 
     <div class="background mt-6 shadow-box radius-medium radius-0-sm outline flex flex-col lg:flex-row">
-      <div class="pt-6 px-6 lg:pb-6 pb-2">
+      <div class="pt-6 px-6 lg:pb-6 pb-2 z-[1]">
         <p class="nls-font-500 text-16 text-primary">
           {{ $t('message.leased-assets-total') }}
         </p>
