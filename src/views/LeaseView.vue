@@ -1,7 +1,7 @@
 <template>
   <div class="col-span-12 mb-sm-nolus-70">
     <!-- Header -->
-    <div class="flex flex-wrap items-center justify-between md:px-4 lg:pt-[25px] lg:px-0 px-2">
+    <div class="flex flex-wrap items-center justify-between px-4 mt-4 lg:mt-0 lg:pt-[25px] lg:px-0">
       <div class="left w-full md:w-1/2">
         <h1 class="text-20 nls-font-700 text-primary m-0 nls-sm-title">
           {{ $t("message.leases") }}
@@ -23,6 +23,7 @@
       name="fade-long"
       appear
       tag="div"
+      class="px-4 lg:px-0"
     >
       <div
         v-for="lease in leases"
@@ -32,7 +33,7 @@
       </div>
       <div
         v-if="leaseLoaded && leases.length == 0"
-        class="background mt-12 border-standart shadow-box radius-medium radius-0-sm outline h-[220px]"
+        class="background px-1 mt-12 border-standart shadow-box radius-medium outline h-[220px] md:px-0"
       >
         <div class="flex nls-12 text-dark-grey justify-center items-center flex-col h-full">
           <img

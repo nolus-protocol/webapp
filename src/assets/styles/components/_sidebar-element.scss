@@ -257,7 +257,7 @@
   top: 0;
   right: 0;
   width: 100%;
-  padding: 8px;
+  padding: 8px 16px;
   background-color: $white;
   border-bottom: 1px solid $borderColor;
   z-index: 1;
@@ -273,7 +273,7 @@
       background-size: 125px 32px;
       width: 125px;
       height: 100%;
-      margin-left: 12px;
+      margin-left: 16px;
     }
   }
 
@@ -475,7 +475,7 @@
 .sidebar-elements-block {
   @media (max-width: $lg) {
     display: flex;
-    padding: 0 0.75rem;
+    padding: 0.63rem 1rem;
     justify-content: space-between;
 
     .sidebar-element {

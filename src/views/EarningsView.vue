@@ -1,7 +1,7 @@
 <template>
   <div class="col-span-12 mb-sm-nolus-70">
     <!-- Header -->
-    <div class="flex flex-wrap items-center justify-between px-2 lg:pt-[25px] lg:px-0">
+    <div class="flex flex-wrap items-center justify-between px-4 lg:pt-[25px] lg:px-0">
       <div class="left w-full md:w-1/2">
         <h1 class="text-20 nls-font-700 text-primary m-0 nls-sm-title">
           {{ $t("message.earn-title") }}
@@ -9,11 +9,11 @@
       </div>
     </div>
 
-    <div class="md:grid md:grid-cols-12 md:gap-4">
+    <div class="px-4 lg:px-0 md:grid md:grid-cols-12 md:gap-4">
       <div class="md:col-span-7 lg:col-span-7">
         <!-- Portfolio -->
         <div
-             class="block order-2 order-1 background md:col-span-7 md:mt-6 async-loader outline border-standart shadow-box radius-medium radius-0-sm">
+             class="block order-2 order-1 background md:col-span-7 md:mt-6 async-loader outline border-standart shadow-box radius-medium">
           <div class="lg:flex block items-center justify-between px-3 md:px-6 pt-6">
             <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
               {{ $t("message.earning-assets") }}
@@ -29,13 +29,13 @@
               </div>
 
               <div
-                   class="inline-flex items-center nls-font-500 text-12 text-dark-grey text-center text-upper md:col-span-1 justify-end md:m-r[10px]">
+                   class="inline-flex items-center nls-font-500 text-12 text-dark-grey text-center hidden md:flex text-upper md:col-span-1 justify-end md:m-r[10px]">
                 <span class="inline-block">{{ $t("message.deposit") }}</span>
                 <TooltipComponent :content="$t('message.deposit-tooltip')" />
               </div>
 
               <div
-                   class="nls-font-500 text-12 text-dark-grey text-right text-upper md:flex hidden items-center justify-end">
+                   class="nls-font-500 text-12 text-dark-grey text-right text-upper md:flex items-center justify-end">
                 {{ $t("message.yield") }}
                 <TooltipComponent :content="$t('message.earn-view-apr-tooltip')" />
               </div>
@@ -88,7 +88,7 @@
       <div class="md:col-span-5 lg:co-span-5">
         <!-- Rewards -->
         <div
-             class="block order-2 md:order-1 background md:col-span-7 mt-6 outline border-standart shadow-box radius-medium radius-0-sm">
+             class="block order-2 md:order-1 background md:col-span-7 mt-6 outline border-standart shadow-box radius-medium">
           <div class="flex items-center justify-between px-6 pt-6 border-b border-standart pb-4">
             <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
               {{ $t("message.rewards") }}

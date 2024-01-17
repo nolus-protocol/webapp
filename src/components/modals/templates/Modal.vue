@@ -5,6 +5,7 @@
       @keydown.esc="onModalClose"
       ref="dialog"
     >
+      <div class="modal-wrapper">
       <button
         v-if="collpase"
         class="btn-close-modal"
@@ -39,7 +40,8 @@
       >
         <XMarkIcon class="inline-block w-8 h-8 z-[5]" />
       </button>
-      <slot></slot>
+        <slot></slot>
+      </div>
     </div>
   </Teleport>
 </template>

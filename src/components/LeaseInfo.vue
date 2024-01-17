@@ -212,7 +212,7 @@
           </p>
         </div>
       </div>
-      <div>
+      <div class="flex w-full md:block md:w-auto">
         <button
           class="btn btn-secondary btn-large-secondary md:w-auto w-full md:mt-0 mt-4"
           v-if="leaseInfo.leaseStatus.opened"

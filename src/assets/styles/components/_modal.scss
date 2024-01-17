@@ -1,3 +1,9 @@
+.modal-wrapper {
+  @media (max-width: $md) {
+    @apply px-4 pb-4 overflow-auto;
+  }
+}
+
 .modal-form {
   width: 100%;
 }
@@ -14,8 +20,8 @@
     align-items: center;
     justify-content: flex-start;
     width: 100%;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    //border-bottom-left-radius: 0;
+    //border-bottom-right-radius: 0;
     overflow: hidden;
 
     @media (min-width: $md) {
