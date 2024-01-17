@@ -163,15 +163,14 @@ watch(() => state.value.network, async () => {
     const c = native[i];
     if (currencies.includes(c.ticker)) {
       const [ckey, protocol = Protocols.osmosis]: string[] = c.key!.split('@')
-      const ibc = NolusAssetUtils.makeIBCMinimalDenom(ckey, app.networksData!, state.value.network.key as Networks, protocol as Protocols);
+      const ibc = NolusAssetUtils.makeIBCMinimalDenom(ckey, app.networksData!, NATIVE_NETWORK.key as Networks, protocol as Protocols);
 
       items.push(ibc);
     }
   }
 
   state.value.currentBalance = walletStore.balances.filter((item) => {
-    const currency = walletStore.getCurrencyInfo(item.balance.denom);
-
+    const currency = walletStore.currencies[item.balance.denom];
     if (IGNORE_TRANSFER_ASSETS.includes(currency.ticker as string)) {
       return false;
     }

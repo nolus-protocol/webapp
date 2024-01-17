@@ -30,6 +30,7 @@ const useAdminStore = defineStore("admin", {
         const protocols = (await adminContract.getProtocols()).filter((item) => {
           return !adminInstance.ignoreProtocols?.includes(item)
         });
+
         const promises = [];
         const protocolData: Protocol = {};
 
