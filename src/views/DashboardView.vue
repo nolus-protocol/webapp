@@ -39,13 +39,15 @@
           <p class="nls-font-500 text-16 text-primary mb-1.5 md:mb-6">
             {{ $t('message.portfolio-title') }}
           </p>
-          <div
-            class="w-full border-standart border-b flex-col flex gap-8 pb-4 mb-4 md:mb-6 md:pb-6 md:flex-row"
-          >
-            <div v-show="!totalBalance.isZero()" class="hidden md:block">
+          <div class="w-full border-standart border-b flex-col flex gap-8 pb-4 mb-4 md:mb-6 md:pb-6 md:flex-row">
+            <div
+              v-show="!totalBalance.isZero()"
+              class="hidden md:block"
+            >
               <!-- Chart Component here -->
               <DashboardDaughnutChart ref="statChart" />
             </div>
+
 
             <div class="flex flex-col">
               <div>
@@ -129,16 +131,14 @@
 
               <CurrencyComponent
                 :amount="pnl.abs().toString()"
-                :class="
-                  pnl.isZero()
+                :class="pnl.isZero()
                     ? 'text-primary'
                     : pnl.isPositive()
                       ? '!text-[#1AB171]'
                       : 'text-[#E42929]'
-                "
-                :denom="`${pnl.isZero() ? '' : pnl.isPositive() ? '+' : '-'}${
-                  NATIVE_CURRENCY.symbol
-                }`"
+                  "
+                :denom="`${pnl.isZero() ? '' : pnl.isPositive() ? '+' : '-'}${NATIVE_CURRENCY.symbol
+                  }`"
                 :fontSize="20"
                 :fontSizeSmall="14"
                 :has-space="false"
@@ -172,16 +172,14 @@
                 </p>
                 <CurrencyComponent
                   :amount="rewards.abs().toString()"
-                  :class="
-                    rewards.isZero()
+                  :class="rewards.isZero()
                       ? 'text-primary'
                       : rewards.isPositive()
                         ? '!text-[#1AB171]'
                         : 'text-[#E42929]'
-                  "
-                  :denom="`${rewards.isZero() ? '' : rewards.isPositive() ? '+' : '-'}${
-                    NATIVE_CURRENCY.symbol
-                  }`"
+                    "
+                  :denom="`${rewards.isZero() ? '' : rewards.isPositive() ? '+' : '-'}${NATIVE_CURRENCY.symbol
+                    }`"
                   :fontSize="20"
                   :fontSizeSmall="14"
                   :has-space="false"
@@ -234,12 +232,8 @@
         <!-- Assets -->
         <div class="block mt-6 md:mt-[25px]">
           <!-- Assets Header -->
-          <div
-            class="grid grid-cols-4 md:grid-cols-5 gap-6 border-b border-standart pb-3 px-3 md:px-4"
-          >
-            <div
-              class="nls-font-500 text-12 text-left text-dark-grey text-upper md:col-span-1 col-span-2"
-            >
+          <div class="grid grid-cols-4 md:grid-cols-5 gap-6 border-b border-standart pb-3 px-3 md:px-4">
+            <div class="nls-font-500 text-12 text-left text-dark-grey text-upper md:col-span-1 col-span-2">
               {{ $t('message.assets') }}
             </div>
 
@@ -262,14 +256,17 @@
             </div>
 
             <div
-              class="md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper"
-            >
+              class="md:inline-flex items-center justify-end nls-font-500 text-dark-grey text-12 text-right text-upper">
               <span class="inline-block">{{ $t('message.receive/send') }}</span>
             </div>
           </div>
 
           <!-- Assets Container -->
-          <div :class="{ 'animate-pulse': loading }" class="block lg:mb-0" role="status">
+          <div
+            :class="{ 'animate-pulse': loading }"
+            class="block lg:mb-0"
+            role="status"
+          >
             <template v-if="loading">
               <div
                 v-for="index in currenciesSize"
@@ -289,16 +286,19 @@
               </div>
             </template>
             <template v-else>
-              <TransitionGroup appear name="fade" tag="div">
+              <TransitionGroup
+                appear
+                name="fade"
+                tag="div"
+              >
                 <AssetPartial
                   v-for="(asset, index) in filteredAssets"
                   :key="`${asset.balance.denom}-${index}`"
                   :asset-info="getAssetInfo(asset.balance.denom)"
-                  :assetBalance="
-                    asset.balance.denom == wallet.available.denom
+                  :assetBalance="asset.balance.denom == wallet.available.denom
                       ? wallet.available.amount.toString()
                       : asset.balance.amount.toString()
-                  "
+                    "
                   :changeDirection="index % 2 === 0"
                   :denom="asset.balance.denom"
                   :earnings="DEFAULT_APR"
@@ -311,11 +311,14 @@
           </div>
 
           <div class="flex justify-center pt-[8px] pb-[18px]">
-            <button class="btn transfer btn-medium-secondary" @click="setCurrency()">
+            <button
+              class="btn transfer btn-medium-secondary"
+              @click="setCurrency()"
+            >
               {{
                 state.showSmallBalances
-                  ? $t('message.hide-small-balances')
-                  : $t('message.show-small-balances')
+                ? $t('message.hide-small-balances')
+                : $t('message.show-small-balances')
               }}
             </button>
           </div>
@@ -344,9 +347,7 @@
               {{ $t('message.assets') }}
             </div>
 
-            <div
-              class="hidden md:inline-flex items-center nls-font-500 text-12 text-right text-dark-grey text-upper"
-            >
+            <div class="hidden md:inline-flex items-center nls-font-500 text-12 text-right text-dark-grey text-upper">
               <span class="inline-block">{{ $t('message.release') }}</span>
             </div>
 
@@ -371,7 +372,11 @@
     </div>
   </div>
 
-  <Modal v-if="state.showModal" :route="state.modalAction" @close-modal="state.showModal = false">
+  <Modal
+    v-if="state.showModal"
+    :route="state.modalAction"
+    @close-modal="state.showModal = false"
+  >
     <component
       :is="modalOptions[state.modalAction]"
       :dialogSelectedCurrency="state.dialogSelectedCurrency"
@@ -379,7 +384,11 @@
     />
   </Modal>
 
-  <Modal v-if="showErrorDialog" route="alert" @close-modal="showErrorDialog = false">
+  <Modal
+    v-if="showErrorDialog"
+    route="alert"
+    @close-modal="showErrorDialog = false"
+  >
     <ErrorDialog
       :message="errorMessage"
       :title="$t('message.error-connecting')"
@@ -516,7 +525,7 @@ const filteredAssets = computed(() => {
 
 const loading = computed(() => showSkeleton.value || wallet.balances.length == 0)
 const currenciesSize = computed(() => Object.keys(app.currenciesData ?? {}).length)
-const { leases, getLeases } = useLeases((error: Error | any) => {})
+const { leases, getLeases } = useLeases((error: Error | any) => { })
 
 provide('getLeases', getLeases)
 
@@ -752,7 +761,7 @@ const setChartData = async () => {
   const labels: string[] = []
   const colors: string[] = []
   const dataValue: string[] = []
-  const assets = []
+  const assets: string[] = [];
 
   const balances = wallet.balances
 
@@ -768,20 +777,24 @@ const setChartData = async () => {
     if (!balance.toDec().isZero()) {
       labels.push(currencyInfo.shortName)
       colors.push(`${strToColor(currencyInfo.shortName)}`)
-      dataValue.push(balance.toDec().toString(2))
+      dataValue.push(balance.toDec().toString(4))
+      assets.push(new Dec(item.balance.amount, currencyInfo.coinDecimals).toString(4));
     }
 
     return currencyInfo
   })
-
-  statChart.value?.updateChart(labels, colors, dataValue)
+  statChart.value?.updateChart(labels, colors, dataValue, assets)
 }
 
 watch(
   () => [oracle.prices, wallet.balances, statChart.value?.chartElement.chart],
   () => {
-    setChartData()
-  }
+    if (statChart.value?.chartElement.chart) {
+      setChartData()
+    }
+  }, {
+
+}
 )
 
 const loadLeases = async () => {
@@ -1032,8 +1045,7 @@ async function getRewards() {
   return new Dec(0)
 }
 </script>
-<style lang="scss" scoped>
-.fade-enter-active,
+<style lang="scss" scoped>.fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.4s ease;
 }
@@ -1041,5 +1053,4 @@ async function getRewards() {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}
-</style>
+}</style>

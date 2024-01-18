@@ -9,12 +9,12 @@
 
 <script lang="ts" setup>
 import { Doughnut } from 'vue-chartjs'
-import { ArcElement, Chart as ChartJS } from 'chart.js'
+import { ArcElement, Chart as ChartJS, Tooltip } from 'chart.js'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { tooltipConfig } from '@/components/templates/utils/tooltip'
 
-ChartJS.register(ArcElement)
+ChartJS.register(ArcElement, Tooltip)
 const chartElement = ref<typeof Doughnut>()
 const i18n = useI18n()
 
@@ -44,25 +44,17 @@ const defaultOptions: any = {
     legend: {
       display: false
     },
-    tooltip: tooltipConfig((data: string[]) => {})
+    tooltip: tooltipConfig((data: string[]) => { })
   }
 }
 
-function updateChart(labels: string[], colors: string[], data: any[]) {
-  if (!chartElement.value!.chart) return
-  const [s] = chartElement.value!.chart.data.datasets
+function updateChart(labels: string[], colors: string[], data: any[], assets: any[]) {
+  const [s] = chartElement.value!.chart.data.datasets;
+  chartElement.value!.chart.data.labels = labels;
+  s.data = data;
+  s.assets = assets;
+  s.backgroundColor = colors;
 
-  for (const e of labels) {
-    chartElement.value!.chart.data.labels.push(e)
-  }
-
-  for (const e of data) {
-    s.data.push(e)
-  }
-
-  for (const e of colors) {
-    s.backgroundColor.push(e)
-  }
 
   chartElement.value?.chart.update()
 }
@@ -124,6 +116,9 @@ div.chart-tooltip {
       color: #082d63;
 
       tr {
+        display: flex;
+        flex-direction: column;
+
         td {
           span {
             color: #8396b1;

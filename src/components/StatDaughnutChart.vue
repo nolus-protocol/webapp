@@ -8,12 +8,12 @@
 
 <script lang="ts" setup>
 import { Doughnut } from 'vue-chartjs'
-import { Chart as ChartJS, ArcElement } from 'chart.js'
+import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js'
 import { tooltipConfig } from '@/components/templates/utils/tooltip';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-ChartJS.register(ArcElement)
+ChartJS.register(ArcElement, Tooltip)
 const chartElement = ref<typeof Doughnut>()
 const i18n = useI18n();
 
