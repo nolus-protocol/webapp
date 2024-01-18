@@ -54,7 +54,7 @@ export const tooltipConfig = (callback?: Function, enable = true) => {
         }
         
         if((context.dataset as any).assets){
-          let label = (context.dataset as any).amount || ''
+          const label = (context.dataset as any).amount || ''
           const item = (context.dataset as any).assets[(context as any).dataIndex];
           labels.push({
             label: `${label} `,
