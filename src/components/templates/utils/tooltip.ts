@@ -35,6 +35,7 @@ export const tooltipConfig = (callback?: Function, enable = true) => {
       label: (context: { dataset: { label: string }; parsed: { y: number | bigint | null } }) => {
         let label = context.dataset.label || ''
         let value = ''
+        const labels = [];
         if (label) {
           label = `${label}: `
         }
@@ -51,11 +52,22 @@ export const tooltipConfig = (callback?: Function, enable = true) => {
             minimumFractionDigits: 4
           }).format(context.parsed.y)
         }
+        
+        if((context.dataset as any).assets){
+          let label = (context.dataset as any).amount || ''
+          const item = (context.dataset as any).assets[(context as any).dataIndex];
+          labels.push({
+            label: `${label} `,
+            value: `${item} ${(context as any).label}`
+          })
+        }
 
-        return {
+        labels.push({
           label,
           value
-        }
+        })
+
+        return labels;
       }
     },
     external: (context: { chart: any; tooltip?: any }) => {

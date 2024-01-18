@@ -23,6 +23,7 @@ const chartData = {
   datasets: [
     {
       label: i18n.t('message.total'),
+      amount: i18n.t('message.amount'),
       data: [],
       backgroundColor: [],
       hoverOffset: 12
