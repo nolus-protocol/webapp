@@ -7,7 +7,7 @@ import { useWalletStore } from "@/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { DECIMALS_AMOUNT, MAX_DECIMALS, ZERO_DECIMALS, SUPPORTED_NETWORKS, NATIVE_NETWORK, NATIVE_ASSET, ProtocolsConfig } from "@/config/env";
+import { DECIMALS_AMOUNT, MAX_DECIMALS, ZERO_DECIMALS, SUPPORTED_NETWORKS, NATIVE_NETWORK, NATIVE_ASSET, ProtocolsConfig, CurrencyMapping } from "@/config/env";
 import { SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
 
@@ -144,6 +144,10 @@ export class AssetUtils {
                 const ck = `${key}@${p}`;
                 assets[ck] = ntwrks.networks.list[p].currencies[key] as Currency;
                 assetIcons[ck] = ntwrks.networks.list[p].currencies[key].icon as string;
+                
+                if (CurrencyMapping[key]) {
+                  assetIcons[`${CurrencyMapping[key].ticker}@${p}`] = ntwrks.networks.list[p].currencies[key].icon as string;
+                }
                 assets[ck].ibcData = NolusAssetUtils.makeIBCMinimalDenom(key, ntwrks!, NATIVE_NETWORK.key as Networks, p as Protocols);
               }
             };
@@ -152,16 +156,16 @@ export class AssetUtils {
 
         for (const ck in assets) {
           const currency = assets[ck];
-
           if (currency.native) {
             if (currency.native.ticker != NATIVE_ASSET.ticker) {
+
               networks[k][ck] = {
                 ...currency.native,
                 shortName: currency.native?.ticker,
                 ticker: currency.native.ticker,
                 native: k == NATIVE_NETWORK.key ? false : true,
                 key: `${ck}`,
-                ibcData: currency.ibcData
+                ibcData: currency.ibcData ?? currency?.native?.symbol
               }
             }
           }
@@ -197,7 +201,6 @@ export class AssetUtils {
     }
 
     networks[NATIVE_NETWORK.key] = nolusMappedCurrencies
-
     return {
       assetIcons,
       networks,

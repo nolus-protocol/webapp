@@ -30,7 +30,7 @@ button {
 }
 
 .js-loading {
-  color: transparent;
+  color: transparent !important;
   background-color: $borderColor;
   pointer-events: none;
   cursor: pointer;
@@ -133,7 +133,7 @@ button {
 
   &.js-disabled,
   &.js-loading {
-    color: transparent;
+    color: transparent !important;
     background-color: $background-scale-darker;
     cursor: default;
   }
@@ -142,6 +142,9 @@ button {
     color: $lightBlue !important;
     background-color: $background-scale-darker !important;
     cursor: default !important;
+    &.js-loading{
+      color: transparent !important;
+    }
   }
 
   &-large-box,
@@ -281,7 +284,7 @@ button {
     }
 
     &.js-loading {
-      color: transparent;
+      color: transparen !important;
       background-color: $borderColor;
       pointer-events: none;
       cursor: default;

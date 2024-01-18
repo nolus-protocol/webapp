@@ -428,9 +428,9 @@
                 :type="CURRENCY_VIEW_TYPES.TOKEN"
                 :amount="b.amount"
                 :font-size="22"
-                :minimalDenom="b.coinMinimalDenom"
+                :minimalDenom="b.coinMinimalDenom.toString()"
                 :denom="b.shortName"
-                :decimals="b.decimals"
+                :decimals="Number(b.decimals)"
                 :maxDecimals="6"
               />
               <span class="inline-block ml-1 text-primary text-20 nls-font-400 uppercase">
@@ -710,7 +710,7 @@ const loadCharts = async () => {
 
 const currentPrice = computed(() => {
   if (props.leaseInfo.leaseStatus?.opening && leaseData.value) {
-    const item = walletStore.getCurrencyByTicker(leaseData?.value?.leasePositionTicker as string);
+    const item = app.currenciesData?.[leaseData?.value?.leasePositionTicker];
     return oracleStore.prices[item?.ibcData as string]?.amount ?? '0';
   }
 
@@ -734,7 +734,7 @@ const fetchChartData = async (days: string, interval: string) => {
 const asset = computed(() => {
 
   if (props.leaseInfo.leaseStatus?.opening && leaseData) {
-    const item = walletStore.getCurrencyByTicker(leaseData.value?.leasePositionTicker as string);
+    const item = app.currenciesData?.[leaseData?.value?.leasePositionTicker as string]
     const ibcDenom = walletStore.getIbcDenomBySymbol(item?.symbol);
     const asset = walletStore.getCurrencyInfo(ibcDenom as string);
     return asset;
@@ -755,7 +755,7 @@ const asset = computed(() => {
 const getAssetIcon = computed((): string => {
 
   if (props.leaseInfo.leaseStatus?.opening && leaseData) {
-    const item = walletStore.getCurrencyByTicker(leaseData.value?.leasePositionTicker as string);
+    const item = app.currenciesData?.[leaseData?.value?.leasePositionTicker as string]
     return app.assetIcons?.[item!.key as string] as string;
   }
 
@@ -1254,14 +1254,14 @@ const balances = () => {
     }
     return true;
   }).map((item) => {
-    const currency = walletStore.getCurrencyInfo(item.denom);
+    const currency = walletStore.currencies[item.denom];
 
     return {
       amount: item.amount,
       icon: app.assetIcons?.[currency.ticker] as string,
-      decimals: currency.coinDecimals,
+      decimals: currency.decimal_digits,
       shortName: currency.shortName,
-      coinMinimalDenom: currency.coinMinimalDenom
+      coinMinimalDenom: 1
     }
 
   })

@@ -16,7 +16,6 @@ const useAdminStore = defineStore("admin", {
     async [AdminActionTypes.GET_PROTOCOLS]() {
       try {
         const network = EnvNetworkUtils.getStoredNetworkName();
-
         if (this.protocols[network]) {
           return;
         }
@@ -27,9 +26,11 @@ const useAdminStore = defineStore("admin", {
           cosmWasmClient,
           adminInstance.instance
         );
+
         const protocols = (await adminContract.getProtocols()).filter((item) => {
           return !adminInstance.ignoreProtocols?.includes(item)
         });
+
         const promises = [];
         const protocolData: Protocol = {};
 

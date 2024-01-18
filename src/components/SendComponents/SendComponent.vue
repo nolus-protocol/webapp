@@ -85,6 +85,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { NETWORKS_DATA } from "@/networks";
 import { useApplicationStore } from "@/stores/application";
 import { NATIVE_NETWORK } from "@/config/env";
+import { Protocols } from "@nolus/nolusjs/build/types/Networks";
 
 const props = defineProps({
   modelValue: {
@@ -99,8 +100,8 @@ const disablePickerDialog = ref(false);
 const networks = computed(() => {
   const n: string[] = [];
   if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
+    const [ckey, protocol]: string[] = props.modelValue!.dialogSelectedCurrency.split('@')
     for (const key in app.networks ?? {}) {
-      const [ckey, protocol]: string[] = props.modelValue!.dialogSelectedCurrency.split('@')
 
       if (key == protocol) {
         n.push(key);
@@ -108,6 +109,10 @@ const networks = computed(() => {
     }
 
     n.push(NATIVE_NETWORK.key);
+
+    if (ckey == NATIVE_NETWORK.symbol) {
+      n.push(Protocols.neutron);
+    }
 
     return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list.filter((item) => n.includes(item.key));
   }

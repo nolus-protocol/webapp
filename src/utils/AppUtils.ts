@@ -255,41 +255,6 @@ export class AppUtils {
         return json;
     }
 
-    static async event(ev: {
-        address: string,
-        name: string,
-        data?: {
-            [key: string]: any
-        }
-    }) {
-        try {
-            const body = ev.data ?? {};
-            const data = await fetch(Filament.url, {
-
-                method: "POST",
-                headers: {
-                    "Accept": "application/json",
-                    "Authorization": `Bearer ${Filament.token}`,
-                },
-                body: JSON.stringify({
-                    name: ev.name,
-                    identity: {
-                        type: "address",
-                        id: ev.address
-                    },
-                    attributes: {
-                        ...body
-                    },
-                    timestamp: Date.now()
-                })
-            });
-  
-            const json = await data.json();
-        } catch (error) {
-            console.log(error)
-        }
-    }
-
     static async getSquitRouteNetworks() {
         const net = AppUtils.squidrouter?.[EnvNetworkUtils.getStoredNetworkName()];
 

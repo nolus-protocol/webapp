@@ -119,10 +119,6 @@ const useWalletStore = defineStore("wallet", {
 
           await Promise.all([
             this[WalletActionTypes.UPDATE_BALANCES](),
-            // AppUtils.event({
-            //   address: this.wallet.address as string,
-            //   name: "wallet_connected"
-            // })
           ]);
 
           if (payload?.isFromAuth) {
@@ -327,7 +323,8 @@ const useWalletStore = defineStore("wallet", {
               shortName: shortName,
               name: currency.name,
               symbol: currency.symbol,
-              decimal_digits: currency.decimal_digits
+              decimal_digits: currency.decimal_digits,
+              ibcData: ibcDenom
             };
             this.currencies[ibcDenom] = data;
             const item = {
@@ -369,7 +366,8 @@ const useWalletStore = defineStore("wallet", {
                   shortName: shortName,
                   name: currency.name,
                   symbol: currency.symbol,
-                  decimal_digits: currency.decimal_digits
+                  decimal_digits: currency.decimal_digits,
+                  ibcData: ibcDenom
                 };
                 this.currencies[ibcDenom] = data;
 

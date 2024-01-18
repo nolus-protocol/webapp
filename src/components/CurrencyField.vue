@@ -87,7 +87,6 @@ import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
-import { AssetUtils } from "@/utils";
 import { INPUT_VALUES } from "@/config/env";
 import type { ExternalCurrencyType } from "@/types/CurreciesType";
 
