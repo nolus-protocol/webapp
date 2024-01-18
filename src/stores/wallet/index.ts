@@ -119,10 +119,6 @@ const useWalletStore = defineStore("wallet", {
 
           await Promise.all([
             this[WalletActionTypes.UPDATE_BALANCES](),
-            // AppUtils.event({
-            //   address: this.wallet.address as string,
-            //   name: "wallet_connected"
-            // })
           ]);
 
           if (payload?.isFromAuth) {
