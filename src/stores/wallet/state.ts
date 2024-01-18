@@ -49,6 +49,7 @@ export type State = {
       name: string;
       decimal_digits: string;
       symbol: string;
+      ibcData: string;
     };
   };
 };

@@ -68,7 +68,7 @@ import { StringUtils } from "@/utils/StringUtils";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/stores/wallet";
 import { Buffer } from "buffer";
-import { AssetUtils, WalletManager } from "@/utils";
+import { WalletManager } from "@/utils";
 
 enum Messages {
   "/cosmos.bank.v1beta1.MsgSend" = "/cosmos.bank.v1beta1.MsgSend",
@@ -299,10 +299,13 @@ const message = (msg: Object | any) => {
 
         if (data.close_position?.partial_close) {
           const currency = wallet.getCurrencyByTicker(data.close_position?.partial_close.amount.ticker);
-          // console.log(data.close_position?.partial_close.amount.ticker) //TODO: fix
-          // const denom = AssetUtils.makeIBCMinimalDenom(currency.ibc_route, currency.symbol);
-          const c = coin(data.close_position?.partial_close.amount.amount, data.close_position?.partial_close.amount.ticker);
-          const token = getCurrency(c);
+          const token = CurrencyUtils.convertMinimalDenomToDenom(
+            data.close_position?.partial_close.amount.amount,
+            currency?.ibcData!,
+            currency?.shortName!,
+            Number(currency?.decimal_digits)
+          );
+
           return i18n.t('message.partial-close-action', {
             ticker: data.close_position.currency,
             amount: token.toString(),
@@ -312,6 +315,7 @@ const message = (msg: Object | any) => {
 
 
       } catch (error) {
+        console.log(error)
         return msg.typeUrl
       }
 
@@ -373,13 +377,12 @@ const getAmount = (log: any) => {
 
 const getCurrency = (amount: Coin) => {
   const currency = amount;
-  const info = wallet.getCurrencyInfo(amount.denom);
-
+  const info = wallet.currencies[amount.denom];
   const token = CurrencyUtils.convertMinimalDenomToDenom(
     currency?.amount,
-    info.coinMinimalDenom,
+    info.ibcData,
     info.shortName,
-    info.coinDecimals
+    Number(info.decimal_digits)
   );
 
   return token;

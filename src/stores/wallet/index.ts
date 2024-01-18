@@ -327,7 +327,8 @@ const useWalletStore = defineStore("wallet", {
               shortName: shortName,
               name: currency.name,
               symbol: currency.symbol,
-              decimal_digits: currency.decimal_digits
+              decimal_digits: currency.decimal_digits,
+              ibcData: ibcDenom
             };
             this.currencies[ibcDenom] = data;
             const item = {
@@ -369,7 +370,8 @@ const useWalletStore = defineStore("wallet", {
                   shortName: shortName,
                   name: currency.name,
                   symbol: currency.symbol,
-                  decimal_digits: currency.decimal_digits
+                  decimal_digits: currency.decimal_digits,
+                  ibcData: ibcDenom
                 };
                 this.currencies[ibcDenom] = data;
 

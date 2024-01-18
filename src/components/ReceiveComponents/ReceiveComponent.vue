@@ -71,7 +71,6 @@
             </div>
 
             <div class="block mt-[20px]">
-
               <CurrencyField id="amount"
                              :currency-options="networkCurrencies"
                              :disabled-currency-picker="disablePicker || disablePickerDialog"
@@ -176,6 +175,10 @@ const networks = computed(() => {
 
     n.push(NATIVE_NETWORK.key);
 
+    if (ckey == NATIVE_NETWORK.symbol) {
+      n.push(Protocols.neutron);
+    }
+
     return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list.filter((item) => n.includes(item.key));
   }
   return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list;
@@ -247,6 +250,7 @@ const onUpdateNetwork = async (event: Network) => {
         filteredAssets[key] = assets[key];
       }
     }
+
     if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
       const [ckey]: string[] = props.modelValue!.dialogSelectedCurrency.split('@')
       const item = AssetUtils.getAssetInfo(ckey as string);
@@ -264,6 +268,23 @@ const onUpdateNetwork = async (event: Network) => {
       } as AssetBalance;
 
       selectedCurrency.value = asset;
+    } else {
+      const crn = filteredAssets[Object.keys(filteredAssets)[0]];
+      const item = AssetUtils.getAssetInfo(crn.key as string);
+      const currency = filteredAssets[crn.key as string];
+      const asset = {
+        balance: coin(0, item.coinMinimalDenom),
+        name: item.shortName,
+        shortName: item.shortName,
+        icon: item.coinIcon,
+        ticker: item.ticker,
+        decimals: item.coinDecimals,
+        symbol: currency.symbol,
+        native: currency.native
+      } as AssetBalance;
+
+      selectedCurrency.value = asset;
+
     }
 
     client = await WalletUtils.getWallet(
@@ -277,18 +298,27 @@ const onUpdateNetwork = async (event: Network) => {
     for (const key in filteredAssets) {
 
       const fn = async () => {
-        const [ckey, protocol = Protocols.osmosis]: string[] = props.modelValue!.dialogSelectedCurrency.split('@')
+        let t = props.modelValue!.dialogSelectedCurrency ? props.modelValue!.dialogSelectedCurrency : selectedCurrency.value.ticker as string;
+        let [ckey, protocol = Protocols.osmosis]: string[] = t.split('@');
+
         const ibc_route = NolusAssetUtils.makeIBCMinimalDenom(ckey, app.networksData!, networkData.key as Networks, protocol as Protocols);
         const balance = WalletUtils.isAuth() ? await client.getBalance(wallet.value as string, ibc_route) : coin(0, ibc_route);
         let shortName = assets[key].shortName;
         let ticker = assets[key].ticker;
-
+        
         if (CurrencyMapping[key]?.ticker == assets[key]?.ticker) {
           shortName = CurrencyMapping[key].name ?? shortName;
           ticker = key;
         }
 
-        const icon = app.assetIcons?.[`${ckey}@${protocol}`] as string;
+        switch (selectedNetwork.value.key) {
+          case (Protocols.neutron): {
+            protocol = Protocols.neutron;
+            break;
+          }
+        }
+
+        const icon = app.assetIcons?.[`${assets[key].ticker}@${protocol}`] as string;
 
         return {
           balance,
@@ -505,7 +535,6 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
     }, 10000);
 
   } catch (error: Error | any) {
-    console.log(error)
     switch (error.code) {
       case (ErrorCodes.GasError): {
         step.value = CONFIRM_STEP.GasErrorExternal;
@@ -569,7 +598,6 @@ const formatCurrentBalance = (selectedCurrency: AssetBalance | undefined) => {
 };
 
 const setAmountValue = (p: number) => {
-  console.log(p)
   const asset = AssetUtils.getAssetInfo(
     selectedCurrency.value.ticker as string
   );
