@@ -1,7 +1,7 @@
 <template>
   <div class="col-span-12 mb-sm-nolus-70">
     <!-- Header -->
-    <div class="flex flex-wrap items-center justify-between px-2 lg:pt-[25px] lg:px-0">
+    <div class="flex flex-wrap items-center justify-between px-4 lg:pt-[25px] lg:px-0">
       <div class="left w-full md:w-1/2">
         <h1 class="text-20 nls-font-700 text-primary m-0 nls-sm-title">
           {{ $t("message.stats") }}
@@ -9,7 +9,8 @@
       </div>
     </div>
 
-    <div class="background mt-6 shadow-box radius-medium radius-0-sm pt-6 pb-3 outline">
+    <div class="px-4 lg:px-0">
+    <div class="background mt-6 shadow-box radius-medium pt-6 pb-3 outline">
       <div class="balance-box flex px-6 items-center justify-start">
 
         <div class="left inline-block line-mobile pb-4 md:pb-0">
@@ -111,7 +112,7 @@
 
     </div>
 
-    <div class="flex background outline border-standart shadow-box radius-medium radius-0-sm mt-6 md:max-w-[50%] max-w-[100%]">
+    <div class="flex background outline border-standart shadow-box radius-medium mt-6 md:max-w-[50%] max-w-[100%]">
       <!-- <div class="md:col-span-6 lg:co-span-6"> -->
       <!-- Rewards -->
       <div class="block flex-1 p-[12px]">
@@ -315,8 +316,8 @@
       </div> -->
     </div>
 
-    <div class="background mt-6 shadow-box radius-medium radius-0-sm outline flex flex-col lg:flex-row">
-      <div class="pt-6 px-6 lg:pb-6 pb-2">
+    <div class="background mt-6 shadow-box radius-medium outline flex flex-col lg:flex-row">
+      <div class="pt-6 px-6 lg:pb-6 pb-2 z-[1]">
         <p class="nls-font-500 text-16 text-primary">
           {{ $t('message.leased-assets-total') }}
         </p>
@@ -390,7 +391,7 @@
         </div>
       </div>
     </div>
-
+    </div>
   </div>
 </template>
 

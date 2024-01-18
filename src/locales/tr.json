@@ -248,6 +248,7 @@
     "swapping-assets": "VARLIKLAR TAKASLANIYOR",
     "min": "min",
     "amount-field": "Miktar",
+    "portfolio-title": "Portföy",
     "portfolio-value": "Portföy Değeri",
     "no-results": "Sonuç bulunamadı",
     "empty-lease": "Potansiyel kazançları kaçırıyor olabilirsiniz!",
@@ -357,4 +358,4 @@
     "positions-pnL": "Positionların Kâr/Zarar Durumu",
     "total-equity": "Toplam Sermaye"
   }
-}    
+}

@@ -60,7 +60,8 @@ $line-height-20: 20px;
 $mobileHeaderHeight: 64px;
 
 :root {
-  --font-size-main-head: 48px --line-height-main-head: 70px
+  --font-size-main-head: 48px;
+  --line-height-main-head: 70px;
 }
 
 //DUAL THEME COLORS
@@ -71,7 +72,6 @@ $background-scale-darker: #EBEFF5;
 
 //CTA color scale red
 $lightRed: rgba(228, 41, 41, 0.15);
-;
 $mediumRed: #E42929;
 
 $iconBackgroundRed: #edd4cf;

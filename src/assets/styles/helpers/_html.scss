@@ -156,7 +156,7 @@ body {
 		&::after {
 			content: "";
 			position: absolute;
-			width: 100vw;
+			width: calc(100vw - 32px);
 			height: 1px;
 			background-color: $borderColor;
 			left: -16px;

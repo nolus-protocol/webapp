@@ -1,31 +1,35 @@
 <template>
   <Doughnut
+    ref="chartElement"
     :data="chartData"
     :options="defaultOptions"
-    ref="chartElement"
+    :style="{ height: '140px', width: '140px' }"
   />
 </template>
 
 <script lang="ts" setup>
 import { Doughnut } from 'vue-chartjs'
-import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js'
-import { tooltipConfig } from '@/components/templates/utils/tooltip';
-import { ref } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { ArcElement, Chart as ChartJS, Tooltip } from 'chart.js'
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { tooltipConfig } from '@/components/templates/utils/tooltip'
 
 ChartJS.register(ArcElement, Tooltip)
 const chartElement = ref<typeof Doughnut>()
-const i18n = useI18n();
+const i18n = useI18n()
 
 const chartData = {
   labels: [],
-  datasets: [{
-    label: i18n.t('message.total'),
-    data: [],
-    backgroundColor: [],
-    hoverOffset: 12
-  }]
-};
+  datasets: [
+    {
+      label: i18n.t('message.total'),
+      amount: i18n.t('message.amount'),
+      data: [],
+      backgroundColor: [],
+      hoverOffset: 12
+    }
+  ]
+}
 
 const defaultOptions: any = {
   responsive: true,
@@ -33,45 +37,40 @@ const defaultOptions: any = {
   maintainAspectRatio: true,
   borderWidth: 0,
   aspectRatio: true,
-  cutout: window.innerWidth > 680 ? 60 : 95,
+  cutout: window.innerWidth > 680 ? 45 : 75,
   tooltips: {
-    intersect: false,
+    intersect: false
   },
   plugins: {
     legend: {
-      display: false,
+      display: false
     },
-    tooltip: tooltipConfig((data: string[]) => {
-      emits('inFocus', data);
-    })
+    tooltip: tooltipConfig((data: string[]) => { })
   }
 }
 
-function updateChart(labels: string[], colors: string[], data: number[]) {
+function updateChart(labels: string[], colors: string[], data: any[], assets: any[]) {
   const [s] = chartElement.value!.chart.data.datasets;
+  chartElement.value!.chart.data.labels = labels;
+  s.data = data;
+  s.assets = assets;
+  s.backgroundColor = colors;
 
-  for (const e of labels) {
-    chartElement.value!.chart.data.labels.push(e);
-  }
 
-  for (const e of data) {
-    s.data.push(e);
-  }
-
-  for (const e of colors) {
-    s.backgroundColor.push(e);
-  }
-
-  chartElement.value?.chart.update();
+  chartElement.value?.chart.update()
 }
 
 defineExpose({
   updateChart,
-});
-
-const emits = defineEmits(['inFocus'])
+  chartElement
+})
 </script>
+
 <style lang="scss">
+canvas {
+  z-index: initial;
+}
+
 div.chart-tooltip {
   padding: 16px;
   pointer-events: none;
@@ -96,7 +95,7 @@ div.chart-tooltip {
       color: #2868e1;
       font-size: 12px;
       text-transform: uppercase;
-      font-family: "Garet", sans-serif;
+      font-family: 'Garet', sans-serif;
       font-style: normal;
       font-weight: 500;
 
@@ -111,13 +110,16 @@ div.chart-tooltip {
     }
 
     tbody {
-      font-family: "Garet", sans-serif;
+      font-family: 'Garet', sans-serif;
       font-style: normal;
       font-weight: 600;
       font-size: 14px;
       color: #082d63;
 
       tr {
+        display: flex;
+        flex-direction: column;
+
         td {
           span {
             color: #8396b1;
