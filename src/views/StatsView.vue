@@ -618,7 +618,7 @@ function strToColor(str: string) {
   let hash = 0;
   if (str.length === 0) return hash;
   for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    hash = str.charCodeAt(i) + ((hash << 10) - hash);
     hash = hash & hash;
   }
   let rgb = [0, 0, 0];
