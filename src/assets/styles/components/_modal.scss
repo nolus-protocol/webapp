@@ -1,5 +1,7 @@
 .modal-wrapper {
+  width: 100%;
   @media (max-width: $md) {
+    width: auto;
     @apply px-4 pb-4 overflow-auto;
   }
 }
@@ -121,7 +123,7 @@
       -webkit-overflow-scrolling: touch;
 
       @media (min-width: $md) {
-        padding: 20px 40px 20px !important;
+        padding: 20px 32px 20px !important;
       }
 
       &.pt-0 {
