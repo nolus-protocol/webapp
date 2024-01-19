@@ -996,7 +996,13 @@ const pnl = computed(() => {
     const unitAsset = new Dec(lease.amount.amount, Number(unitAssetInfo!.decimal_digits));
 
     const prevAmount = unitAsset.mul(price);
-    const currentAmount = unitAsset.mul(currentPrice);
+    let currentAmount = unitAsset.mul(currentPrice);
+
+    for(const b of balances() ?? []){
+      const balance = new Dec(b.amount, Number(b.decimals));
+      currentAmount = currentAmount.add(balance);
+    }
+
     const amount = currentAmount.sub(prevAmount).add(downPaymentFee.value as Dec);
     const percent = amount.quo(prevAmount).mul(new Dec(100)).toString(2);
 

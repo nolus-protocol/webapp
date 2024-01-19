@@ -27,7 +27,6 @@
             <span class="text-light-blue text-[13px] nls-font-400 ml-[6px]">
               (${{ amount.amountInStable }})
             </span>
-            {{ modelValue.swapFee }}
             <TooltipComponent
                               :content="$t('message.outstanding-debt-tooltip', { fee: (modelValue.swapFee * 100).toFixed(2) })" />
           </p>
