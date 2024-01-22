@@ -1163,7 +1163,6 @@ const interestDueStatus = computed(() => {
 const checkPrice = async () => {
   try {
     const result = await EtlApi.fetchLeaseOpening(props.leaseInfo.leaseAddress);
-    console.log(result)
     const data = {
       downPayment: new Dec(result.lease.LS_cltr_amnt_stable, LPN_DECIMALS).toString(),
       downpaymentTicker: result.lease.LS_cltr_symbol,

@@ -535,8 +535,6 @@ async function sendTXEvm() {
       route: data.route,
     });
 
-    console.log(tx);
-
   } catch (error: Error | any) {
     if(error?.errors){
       let err = '';
