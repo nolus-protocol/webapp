@@ -1,21 +1,25 @@
 <template>
-  <ConfirmComponent v-if="showConfirmScreen"
-                    :selectedCurrency="state.selectedDownPaymentCurrency"
-                    :receiverAddress="state.contractAddress"
-                    :password="state.password"
-                    :amount="state.downPayment"
-                    :memo="state.memo"
-                    :txType="$t(`message.${TX_TYPE.LEASE}`) + ':'"
-                    :txHash="state.txHash"
-                    :step="step"
-                    :fee="state.fee"
-                    :onSendClick="onSendClick"
-                    :onBackClick="onConfirmBackClick"
-                    :onOkClick="onClickOkBtn"
-                    @passwordUpdate="(value: string) => state.password = value" />
-  <LeaseFormComponent v-else
-                      v-model="state"
-                      class="overflow-auto custom-scroll" />
+  <ConfirmComponent
+    v-if="showConfirmScreen"
+    :selectedCurrency="state.selectedDownPaymentCurrency"
+    :receiverAddress="state.contractAddress"
+    :password="state.password"
+    :amount="state.downPayment"
+    :memo="state.memo"
+    :txType="$t(`message.${TX_TYPE.LEASE}`) + ':'"
+    :txHash="state.txHash"
+    :step="step"
+    :fee="state.fee"
+    :onSendClick="onSendClick"
+    :onBackClick="onConfirmBackClick"
+    :onOkClick="onClickOkBtn"
+    @passwordUpdate="(value: string) => state.password = value"
+  />
+  <LeaseFormComponent
+    v-else
+    v-model="state"
+    class="overflow-auto custom-scroll"
+  />
 </template>
 
 <script setup lang="ts">
@@ -58,7 +62,6 @@ const paymentBalances = computed(() => {
   return balances.filter((item) => {
     const currency = walletStore.currencies[item.balance.denom];
     const lpns = (app.lpn ?? []).map((item) => item.key);
-
     return lpns.includes(currency.ticker) || app.leasesCurrencies.includes(currency.ticker);
   });
 });
@@ -67,10 +70,15 @@ const leaseBalances = computed(() => {
   const balances = walletStore.balances;
   return balances.filter((item) => {
     const currency = walletStore.currencies[item.balance.denom];
-    const [ticker] = currency.ticker.split('@');
+    let [ticker] = currency.ticker.split('@');
+
+    if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
+      ticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
+    }
 
     return app.leasesCurrencies.includes(ticker);
   }).map((item) => {
+    console.log(item)
     const asset = walletStore.getCurrencyInfo(item.balance.denom);
     return {
       ticker: asset.ticker,
@@ -188,13 +196,14 @@ const calculate = async () => {
       let [downPaymentTicker, protocol] = currency.ticker.split('@');
       let [leaseTicker] = lease.ticker.split('@');
 
+
       if (CurrencyMapping[downPaymentTicker as keyof typeof CurrencyMapping] && protocol == Protocols.osmosis) {
         downPaymentTicker = CurrencyMapping[downPaymentTicker as keyof typeof CurrencyMapping]?.ticker;
       }
 
-      // if (CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]) {
-      //   leaseTicker = CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]?.ticker;
-      // }
+      if (CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]) {
+        leaseTicker = CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]?.ticker;
+      }
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const admin = useAdminStore();

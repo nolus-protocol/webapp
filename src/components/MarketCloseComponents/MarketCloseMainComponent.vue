@@ -1,20 +1,24 @@
 <template>
-  <ConfirmComponent v-if="showConfirmScreen"
-                    :selectedCurrency="state.selectedCurrency"
-                    :receiverAddress="state.receiverAddress"
-                    :password="state.password"
-                    :amount="state.amount"
-                    :txType="$t(`message.${TxType.MARKET_CLOSE}`) + ':'"
-                    :txHash="state.txHash"
-                    :step="step"
-                    :fee="state.fee"
-                    :onSendClick="onSendClick"
-                    :onBackClick="onConfirmBackClick"
-                    :onOkClick="onClickOkBtn"
-                    @passwordUpdate="(value: string) => state.password = value" />
-  <MarketCloseFormComponent v-else
-                            v-model="state"
-                            class="overflow-auto custom-scroll" />
+  <ConfirmComponent
+    v-if="showConfirmScreen"
+    :selectedCurrency="state.selectedCurrency"
+    :receiverAddress="state.receiverAddress"
+    :password="state.password"
+    :amount="state.amount"
+    :txType="$t(`message.${TxType.MARKET_CLOSE}`) + ':'"
+    :txHash="state.txHash"
+    :step="step"
+    :fee="state.fee"
+    :onSendClick="onSendClick"
+    :onBackClick="onConfirmBackClick"
+    :onOkClick="onClickOkBtn"
+    @passwordUpdate="(value: string) => state.password = value"
+  />
+  <MarketCloseFormComponent
+    v-else
+    v-model="state"
+    class="overflow-auto custom-scroll"
+  />
 </template>
 
 <script setup lang="ts">
@@ -37,7 +41,7 @@ import { getMicroAmount, walletOperation } from "@/components/utils";
 import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, TIP, ErrorCodes, minimumLeaseAmount } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, TIP, ErrorCodes, minimumLeaseAmount, CurrencyDemapping } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { AppUtils } from "@/utils/AppUtils";
 import { useLeaseConfig } from "@/composables";
@@ -70,7 +74,11 @@ const { config } = useLeaseConfig(
 
 const balances = computed(() => {
   const balances = walletStore.balances;
-  const ticker = props.leaseData?.leaseStatus?.opened?.amount?.ticker;
+  let ticker = props.leaseData?.leaseStatus?.opened?.amount?.ticker;
+
+  if (CurrencyDemapping[ticker as keyof typeof CurrencyDemapping]) {
+    ticker = CurrencyDemapping[ticker as keyof typeof CurrencyDemapping]?.ticker;
+  }
 
   return balances.filter((item) => {
     const currency = walletStore.currencies[item.balance.denom];
