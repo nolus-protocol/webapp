@@ -62,7 +62,8 @@
             :isDenomInfront="false"
             denom="%"
           />
-          <p>
+          <p v-else
+          >
             -
           </p>
           <p class="text-[#1AB171] text-[12px]">
