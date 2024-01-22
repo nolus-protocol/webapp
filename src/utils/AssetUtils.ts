@@ -1,8 +1,6 @@
 import type { Currency, NetworksInfo } from "@/types/Networks";
 import type { ExternalCurrencyType } from "@/types/CurreciesType";
 import { Networks, type NetworkData, Protocols } from "@nolus/nolusjs/build/types/Networks";
-import { sha256 } from "@cosmjs/crypto";
-import { Buffer } from "buffer";
 import { useWalletStore } from "@/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
@@ -12,27 +10,6 @@ import { SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
 
 export class AssetUtils {
-
-  public static makeIBCMinimalDenom(
-    sourceChannelId: string[],
-    coinMinimalDenom: string
-  ): string {
-    if (sourceChannelId.length == 0) {
-      return coinMinimalDenom;
-    }
-
-    let path = sourceChannelId.reduce((a, b) => {
-      a += `transfer/${b}/`;
-      return a;
-    }, "");
-    path += `${coinMinimalDenom}`;
-    return (
-      "ibc/" +
-      Buffer.from(sha256(Buffer.from(path)))
-        .toString("hex")
-        .toUpperCase()
-    );
-  }
 
   public static getPriceByTicker(amount: number | string, ticker: string) {
     const wallet = useWalletStore();
@@ -140,11 +117,11 @@ export class AssetUtils {
         if (k == NATIVE_NETWORK.key) {
           for (const p of NolusAssetUtils.getProtocols(ntwrks)) {
             for (const key in ntwrks.networks.list[p].currencies) {
-              if(!ProtocolsConfig[p].hidden.includes(key)){
+              if (!ProtocolsConfig[p].hidden.includes(key)) {
                 const ck = `${key}@${p}`;
                 assets[ck] = ntwrks.networks.list[p].currencies[key] as Currency;
                 assetIcons[ck] = ntwrks.networks.list[p].currencies[key].icon as string;
-                
+
                 if (CurrencyMapping[key]) {
                   assetIcons[`${CurrencyMapping[key].ticker}@${p}`] = ntwrks.networks.list[p].currencies[key].icon as string;
                 }
@@ -174,6 +151,12 @@ export class AssetUtils {
             const n = ntwrks.networks.list[currency.ibc.network];
             const c = n.currencies[currency.ibc.currency];
             const ticker = n.currencies[currency?.ibc?.currency]?.ibc?.currency ?? currency?.ibc?.currency;
+            const hiddenAssets = ProtocolsConfig[k]?.hidden;
+
+            if (hiddenAssets?.includes(ticker)) {
+              continue;
+            }
+
             if (c) {
               networks[k][ck] = {
                 ...c.native!,

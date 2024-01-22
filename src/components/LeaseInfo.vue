@@ -575,9 +575,9 @@ import Swap from "./icons/Swap.vue";
 import ArrowUp from "./icons/ArrowUp.vue";
 import ArrowDown from "./icons/ArrowDown.vue";
 
-import { computed, inject, onUnmounted, ref, onBeforeMount } from "vue";
+import { computed, inject, onUnmounted, ref, onBeforeMount, watch } from "vue";
 import { ChainConstants, CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
-import { Dec, Coin, Int } from "@keplr-wallet/unit";
+import { Dec } from "@keplr-wallet/unit";
 import { CHART_RANGES } from "@/config/globals";
 import { useWalletStore } from "@/stores/wallet";
 import { useOracleStore } from "@/stores/oracle";
@@ -586,7 +586,7 @@ import { onMounted } from "vue";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { TxType } from "@/types";
 import { AssetUtils, EnvNetworkUtils, StringUtils, WalletManager } from "@/utils";
-import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation, INTEREST_DECIMALS, PERMILLE, PERCENT, calculateAditionalDebt, CoinGecko, NETWORKS } from "@/config/env";
+import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation, INTEREST_DECIMALS, PERMILLE, PERCENT, calculateAditionalDebt, CoinGecko, NETWORKS, LPN_DECIMALS } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { walletOperation } from "@/components/utils";
 import { useApplicationStore } from "@/stores/application";
@@ -595,6 +595,7 @@ import { ASSETS } from "@/config/assetsInfo";
 import { QuerySmartContractStateRequest } from "cosmjs-types/cosmwasm/wasm/v1/query";
 import { toUtf8 } from "@cosmjs/encoding";
 import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
+import { EtlApi } from "@/utils/EtlApi";
 
 interface Props {
   leaseInfo: LeaseData;
@@ -651,18 +652,7 @@ const state = ref({
 });
 
 onBeforeMount(() => {
-  try {
-    const data = JSON.parse(localStorage.getItem(props.leaseInfo.leaseAddress) ?? '{}');
-    if (data.downPayment && data.downpaymentTicker && data.price && data.leasePositionTicker) {
-      leaseData.value = data
-      setDownPaymentAssetFee();
-    } else {
-      checkPrice();
-    }
-  } catch (error) {
-    console.log(error);
-    checkPrice();
-  }
+  setLeaseOpening();
 });
 
 onMounted(() => {
@@ -675,6 +665,29 @@ onUnmounted(() => {
     showSnackbar(SNACKBAR.Queued, "loading");
   }
 });
+
+watch(() => props.leaseInfo.leaseStatus?.opened, () => {
+  setLeaseOpening();
+});
+
+
+const setLeaseOpening = () => {
+  try {
+    if(props.leaseInfo.leaseStatus?.opened || props.leaseInfo.leaseStatus?.paid){
+      return checkPrice();
+
+    }
+    const data = JSON.parse(localStorage.getItem(props.leaseInfo.leaseAddress) ?? '{}');
+    if (data.downPayment && data.downpaymentTicker && data.price && data.leasePositionTicker) {
+      leaseData.value = data
+      setDownPaymentAssetFee();
+    } else {
+      checkPrice();
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 async function setDownPaymentAssetFee() {
   const fee = (await AppUtils.getOpenLeaseFee())[leaseData.value?.downpaymentTicker as string] ?? 0;
@@ -724,8 +737,21 @@ const currentPrice = computed(() => {
 });
 
 const fetchChartData = async (days: string, interval: string) => {
+  let coinGeckoId = asset.value.coinGeckoId;
+
+  if (props.leaseInfo.leaseStatus?.opening && !leaseData.value) {
+    const ticker =
+      props.leaseInfo.leaseStatus?.opened?.amount.ticker ||
+      props.leaseInfo.leaseStatus?.opening?.downpayment.ticker ||
+      props.leaseInfo.leaseStatus?.paid?.amount.ticker;
+
+    const item = walletStore.getCurrencyByTicker(ticker);
+    const asset = walletStore.getCurrencyInfo(item?.ibcData as string);
+    coinGeckoId = asset.coinGeckoId;
+  }
+
   const res = await fetch(
-    `${CoinGecko.url}/coins/${asset.value.coinGeckoId}/market_chart?vs_currency=usd&days=${days}&interval=${interval}&x_cg_pro_api_key=${CoinGecko.key}`
+    `${CoinGecko.url}/coins/${coinGeckoId}/market_chart?vs_currency=usd&days=${days}&interval=${interval}&x_cg_pro_api_key=${CoinGecko.key}`
   );
   const { prices } = await res.json();
   return prices;
@@ -744,10 +770,9 @@ const asset = computed(() => {
     props.leaseInfo.leaseStatus?.opened?.amount.ticker ||
     props.leaseInfo.leaseStatus?.opening?.downpayment.ticker ||
     props.leaseInfo.leaseStatus?.paid?.amount.ticker;
-
   const item = walletStore.getCurrencyByTicker(ticker as string);
-  const ibcDenom = walletStore.getIbcDenomBySymbol(item!.symbol);
-  const asset = walletStore.getCurrencyInfo(ibcDenom as string);
+
+  const asset = walletStore.getCurrencyInfo(item?.ibcData as string);
   return asset;
 
 });
@@ -998,7 +1023,7 @@ const pnl = computed(() => {
     const prevAmount = unitAsset.mul(price);
     let currentAmount = unitAsset.mul(currentPrice);
 
-    for(const b of balances() ?? []){
+    for (const b of balances() ?? []) {
       const balance = new Dec(b.amount, Number(b.decimals));
       currentAmount = currentAmount.add(balance);
     }
@@ -1137,110 +1162,114 @@ const interestDueStatus = computed(() => {
 
 const checkPrice = async () => {
   try {
-    const node = (await AppUtils.getArchiveNodes());
-    const req = await fetch(`${node.archive_node_rpc}/tx_search?query="wasm.lease_address='${props.leaseInfo.leaseAddress}'"&prove=true`);
-    const data = await req.json();
-    const item = data.result?.txs?.[0];
-    if (item) {
-      getBlock(item?.height)
-    }
+    const result = await EtlApi.fetchLeaseOpening(props.leaseInfo.leaseAddress);
+    console.log(result)
+    const data = {
+      downPayment: new Dec(result.lease.LS_cltr_amnt_stable, LPN_DECIMALS).toString(),
+      downpaymentTicker: result.lease.LS_cltr_symbol,
+      leasePositionTicker: result.lease.LS_asset_symbol,
+      price: result.downpayment_price
+    };
+    leaseData.value = data;
+    localStorage.setItem(props.leaseInfo.leaseAddress, JSON.stringify(data));
+    loadCharts();
 
   } catch (error) {
     console.log(error)
   }
 }
 
-const getBlock = async (block: string) => {
-  try {
-    const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
-    const req = await fetch(`${url}/block?height=${block}`);
-    const data = await req.json();
-    const item = data.result?.block?.header?.time;
-    const ticker = props?.leaseInfo?.leaseStatus?.opened?.amount?.ticker ?? props?.leaseInfo?.leaseStatus?.paid?.amount?.ticker
+// const getBlock = async (block: string) => {
+//   try {
+//     const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
+//     const req = await fetch(`${url}/block?height=${block}`);
+//     const data = await req.json();
+//     const item = data.result?.block?.header?.time;
+//     const ticker = props?.leaseInfo?.leaseStatus?.opened?.amount?.ticker ?? props?.leaseInfo?.leaseStatus?.paid?.amount?.ticker
 
-    if (item && ticker) {
-      const date = new Date(item);
-      const [priceData, downpayment] = await Promise.all([
-        fetchPrice(date, ticker),
-        fetchDownPayment(Number(block)),
-      ]);
-      const downpaymentPrice = await fetchDownPaymentPrice(date, downpayment.opening.downpayment.ticker);
-      const asset = AssetUtils.getAssetInfo(downpayment.opening.downpayment.ticker);
+//     if (item && ticker) {
+//       const date = new Date(item);
+//       const [priceData, downpayment] = await Promise.all([
+//         fetchPrice(date, ticker),
+//         fetchDownPayment(Number(block)),
+//       ]);
+//       const downpaymentPrice = await fetchDownPaymentPrice(date, downpayment.opening.downpayment.ticker);
+//       const asset = AssetUtils.getAssetInfo(downpayment.opening.downpayment.ticker);
 
-      if (asset.coinDecimals == 0) {
-        return false;
-      }
+//       if (asset.coinDecimals == 0) {
+//         return false;
+//       }
 
-      const p = new Dec(downpaymentPrice);
-      const d = new Dec(downpayment.opening.downpayment.amount, asset.coinDecimals)
+//       const p = new Dec(downpaymentPrice);
+//       const d = new Dec(downpayment.opening.downpayment.amount, asset.coinDecimals)
 
-      const dprice = d.mul(p);
-      const res = {
-        downpaymentTicker: downpayment.opening.downpayment.ticker,
-        price: priceData.price,
-        leasePositionTicker: ticker,
-        downPayment: dprice.toString()
-      };
+//       const dprice = d.mul(p);
+//       const res = {
+//         downpaymentTicker: downpayment.opening.downpayment.ticker,
+//         price: priceData.price,
+//         leasePositionTicker: ticker,
+//         downPayment: dprice.toString()
+//       };
 
-      localStorage.setItem(props.leaseInfo.leaseAddress, JSON.stringify(res));
-      leaseData.value = res;
+//       localStorage.setItem(props.leaseInfo.leaseAddress, JSON.stringify(res));
+//       leaseData.value = res;
 
-      setDownPaymentAssetFee();
-    }
+//       setDownPaymentAssetFee();
+//     }
 
-  } catch (error) {
-    console.log(error)
-  }
-}
+//   } catch (error) {
+//     console.log(error)
+//   }
+// }
 
-const fetchPrice = async (time: Date, ticker: string) => {
+// const fetchPrice = async (time: Date, ticker: string) => {
 
-  const asset = ASSETS[ticker as keyof typeof ASSETS];
+//   const asset = ASSETS[ticker as keyof typeof ASSETS];
 
-  const date = `${time.getDate()}-${time.getMonth() + 1}-${time.getFullYear()}`;
-  const req = await fetch(`${CoinGecko.url}/coins/${asset.coinGeckoId}/history?date=${date}&vs_currency=usd&localization=false&x_cg_pro_api_key=${CoinGecko.key}`);
-  const data = await req.json();
-  const price = data.market_data.current_price.usd;
-  return {
-    price: price,
-    leasePositionTicker: ticker
-  }
+//   const date = `${time.getDate()}-${time.getMonth() + 1}-${time.getFullYear()}`;
+//   const req = await fetch(`${CoinGecko.url}/coins/${asset.coinGeckoId}/history?date=${date}&vs_currency=usd&localization=false&x_cg_pro_api_key=${CoinGecko.key}`);
+//   const data = await req.json();
+//   const price = data.market_data.current_price.usd;
+//   return {
+//     price: price,
+//     leasePositionTicker: ticker
+//   }
 
-}
+// }
 
-const fetchDownPaymentPrice = async (time: Date, ticker: string) => {
+// const fetchDownPaymentPrice = async (time: Date, ticker: string) => {
 
-  const asset = ASSETS[ticker as keyof typeof ASSETS];
+//   const asset = ASSETS[ticker as keyof typeof ASSETS];
 
-  const date = `${time.getDate()}-${time.getMonth() + 1}-${time.getFullYear()}`;
-  const req = await fetch(`${CoinGecko.url}/coins/${asset.coinGeckoId}/history?date=${date}&vs_currency=usd&localization=false&x_cg_pro_api_key=${CoinGecko.key}`);
-  const data = await req.json();
-  const price = data.market_data.current_price.usd;
+//   const date = `${time.getDate()}-${time.getMonth() + 1}-${time.getFullYear()}`;
+//   const req = await fetch(`${CoinGecko.url}/coins/${asset.coinGeckoId}/history?date=${date}&vs_currency=usd&localization=false&x_cg_pro_api_key=${CoinGecko.key}`);
+//   const data = await req.json();
+//   const price = data.market_data.current_price.usd;
 
-  return price;
+//   return price;
 
-}
+// }
 
-const fetchDownPayment = async (block: number) => {
-  const node = (await AppUtils.getArchiveNodes());
-  const client = await Tendermint34Client.connect(node.archive_node_rpc);
+// const fetchDownPayment = async (block: number) => {
+//   const node = (await AppUtils.getArchiveNodes());
+//   const client = await Tendermint34Client.connect(node.archive_node_rpc);
 
-  const data = QuerySmartContractStateRequest.encode({
-    address: props.leaseInfo.leaseAddress,
-    queryData: toUtf8(JSON.stringify({})),
-  }).finish();
+//   const data = QuerySmartContractStateRequest.encode({
+//     address: props.leaseInfo.leaseAddress,
+//     queryData: toUtf8(JSON.stringify({})),
+//   }).finish();
 
-  const query = {
-    path: '/cosmwasm.wasm.v1.Query/SmartContractState',
-    data,
-    prove: true,
-    height: block
-  };
+//   const query = {
+//     path: '/cosmwasm.wasm.v1.Query/SmartContractState',
+//     data,
+//     prove: true,
+//     height: block
+//   };
 
-  const response = await client.abciQuery(query);
-  const res = QuerySmartContractStateRequest.decode(response.value);
-  return JSON.parse(res.address);
-}
+//   const response = await client.abciQuery(query);
+//   const res = QuerySmartContractStateRequest.decode(response.value);
+//   return JSON.parse(res.address);
+// }
 
 const onShare = async () => {
   showShareDialog.value = true;
@@ -1274,7 +1303,8 @@ const balances = () => {
 }
 
 </script>
-<style lang="scss">button.share {
+<style lang="scss">
+button.share {
   padding: 6px 6px 6px 4px !important;
   font-size: 1.1rem !important;
 }
@@ -1286,4 +1316,5 @@ div.interest-free {
   display: flex;
   padding: 6px;
   border-radius: 4px;
-}</style>
+}
+</style>

@@ -55,12 +55,16 @@
       <div class="info-show">
         <div class="text-primary text-14 text-right m-0 justify-end nls-font-500">
           <CurrencyComponent
+            v-if="assetInfo.key == 'USDC_AXELAR@OSMOSIS'"
             :type="CURRENCY_VIEW_TYPES.CURRENCY"
             :amount="app.apr?.toString() ?? '0'"
             :hasSpace="false"
             :isDenomInfront="false"
             denom="%"
           />
+          <p>
+            -
+          </p>
           <p class="text-[#1AB171] text-[12px]">
             +{{ rewards }}% {{ NATIVE_ASSET.label }}
           </p>

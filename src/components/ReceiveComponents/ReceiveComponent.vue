@@ -165,9 +165,12 @@ const app = useApplicationStore();
 const networks = computed(() => {
   const n: string[] = [];
   if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
-    const [ckey, protocol]: string[] = props.modelValue!.dialogSelectedCurrency.split('@')
+    const [ckey, protocol]: string[] = props.modelValue!.dialogSelectedCurrency.split('@');
 
     for (const key in app.networks ?? {}) {
+      if(app.networks?.[key][ckey]){
+        n.push(key);
+      }
       if (key == protocol) {
         n.push(key);
       }
@@ -250,7 +253,6 @@ const onUpdateNetwork = async (event: Network) => {
         filteredAssets[key] = assets[key];
       }
     }
-
     if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
       const [ckey]: string[] = props.modelValue!.dialogSelectedCurrency.split('@')
       const item = AssetUtils.getAssetInfo(ckey as string);
@@ -304,7 +306,7 @@ const onUpdateNetwork = async (event: Network) => {
         const ibc_route = NolusAssetUtils.makeIBCMinimalDenom(ckey, app.networksData!, networkData.key as Networks, protocol as Protocols);
         const balance = WalletUtils.isAuth() ? await client.getBalance(wallet.value as string, ibc_route) : coin(0, ibc_route);
         let shortName = assets[key].shortName;
-        let ticker = assets[key].ticker;
+        let [ticker] = assets[key].key?.split('@') as string[];
         
         if (CurrencyMapping[key]?.ticker == assets[key]?.ticker) {
           shortName = CurrencyMapping[key].name ?? shortName;
@@ -318,7 +320,7 @@ const onUpdateNetwork = async (event: Network) => {
           }
         }
 
-        const icon = app.assetIcons?.[`${assets[key].ticker}@${protocol}`] as string;
+        const icon = app.assetIcons?.[`${ticker}@${protocol}`] as string;
 
         return {
           balance,
@@ -352,6 +354,7 @@ const onUpdateNetwork = async (event: Network) => {
     selectedCurrency.value = walletStore.balances[0];
     wallet.value = walletStore.wallet?.address;
   }
+
 };
 
 const onCopy = () => {
