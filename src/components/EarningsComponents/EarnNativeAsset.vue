@@ -23,7 +23,7 @@
         </div>
       </div>
 
-      <div class="hidden md:block flex flex-col md:col-span-1 items-end">
+      <div class="hidden md:flex flex flex-col md:col-span-1 items-end">
         <template v-if="showBalance">
           <p class="text-primary nls-font-500 text-16 nls-font-500 m-0">
             <CurrencyComponent
