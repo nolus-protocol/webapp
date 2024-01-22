@@ -1,4 +1,12 @@
 {
+    "neutron": {
+        "title-icon": "https://nolus.io/banner/lease.svg",
+        "image": "",
+        "title": "neutron-banner-title",
+        "subtitle": "neutron-banner-subtitle",
+        "description": "neutron-banner-description",
+        "target": "/lease#create"
+    },
     "zero-interest": {
         "title-icon": "https://nolus.io/banner/lease.svg",
         "image": "/lease.png",
@@ -14,13 +22,5 @@
         "subtitle": "knowledgehub-banner-subtitle",
         "description": "knowledgehub-banner-description",
         "target": "https://hub.nolus.io/"
-    },
-    "stats": {
-        "title-icon": "https://nolus.io/banner/stats.svg",
-        "image": "",
-        "title": "stats-banner-title",
-        "subtitle": "stats-banner-subtitle",
-        "description": "stats-banner-description",
-        "target": "/stats"
     }
 }
