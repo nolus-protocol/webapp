@@ -54,15 +54,15 @@ const router = createRouter({
             description: 'Review your activity on the Nolus Protocol. Access detailed records and insights of all your past transactions'
           }
         },
-        {
-          path: "/stats",
-          name: RouteNames.STATS,
-          component: () => import("@/views/StatsView.vue"),
-          meta: {
-            title: 'Nolus Protocol - Stats',
-            description: 'Examine the stability and health of the Nolus Protocol. Access vital stats and metrics to ensure optimal performance and reliability'
-          }
-        },
+        // {
+        //   path: "/stats",
+        //   name: RouteNames.STATS,
+        //   component: () => import("@/views/StatsView.vue"),
+        //   meta: {
+        //     title: 'Nolus Protocol - Stats',
+        //     description: 'Examine the stability and health of the Nolus Protocol. Access vital stats and metrics to ensure optimal performance and reliability'
+        //   }
+        // },
       ],
     },
     {
