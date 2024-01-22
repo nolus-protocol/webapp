@@ -321,7 +321,7 @@
           {{ $t('message.leased-assets-total') }}
         </p>
         <div class="w-full flex flex-col lg:flex-row items-center gap-4 lg:gap-6">
-          <div class="stats flex" v-show="loans?.length > 0">
+          <div class="stats flex" v-show="(loans?.length ?? 0) > 0">
             <StatDaughnutChart
               ref="statChart"
               @in-focus="inFocus"
