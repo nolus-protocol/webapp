@@ -1163,11 +1163,13 @@ const interestDueStatus = computed(() => {
 const checkPrice = async () => {
   try {
     const result = await EtlApi.fetchLeaseOpening(props.leaseInfo.leaseAddress);
+    const downpaymentTicker = result.lease.LS_cltr_symbol;
+    const c = walletStore.getCurrencyByTicker(downpaymentTicker)
     const data = {
-      downPayment: new Dec(result.lease.LS_cltr_amnt_stable, LPN_DECIMALS).toString(),
+      downPayment: new Dec(result.lease.LS_cltr_amnt_stable, Number(c!.decimal_digits)).toString(),
       downpaymentTicker: result.lease.LS_cltr_symbol,
       leasePositionTicker: result.lease.LS_asset_symbol,
-      price: result.downpayment_price
+      price: result.downpayment_price,
     };
     leaseData.value = data;
     localStorage.setItem(props.leaseInfo.leaseAddress, JSON.stringify(data));
