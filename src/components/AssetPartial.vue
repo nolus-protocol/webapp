@@ -1,5 +1,5 @@
 <template>
-  <div class="asset-partial nolus-box grid gap-6 relative border-b border-standart py-3 px-3 md:px-6 items-center justify-between"
+  <div class="asset-partial nolus-box grid gap-6 relative border-b border-standart py-3 items-center justify-between"
        :class="[
          showActionButtons ? 'row-actions' : '',
          cols ? 'grid-cols-' + cols : 'grid-cols-4 md:grid-cols-5',
@@ -33,7 +33,7 @@
         {{ DEFAULT_CURRENCY.symbol }}{{ calculateBalance(price, assetBalance, denom) }}
       </div>
     </div>
-    
+
     <div v-if="earnings"
          class="hidden md:block">
       <div class="text-primary nls-font-500 text-14 text-right m-0">
@@ -89,12 +89,12 @@
         </p>
       </div>
       <div class="flex justify-end nls-btn-show  !right-0">
-        <button 
+        <button
                 class="btn btn-secondary btn-medium-secondary"
                 @click="openModal(DASHBOARD_ACTIONS.LEASE, denom)">
           {{ $t("message.lease") }}
         </button>
-        
+
         <button v-if="canSupply"
                 class="btn btn-secondary btn-medium-secondary"
                 @click="openModal(DASHBOARD_ACTIONS.SUPPLY, denom)">

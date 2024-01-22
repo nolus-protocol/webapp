@@ -52,6 +52,10 @@ div.slider-box {
         height: 36px;
         background-image: url("@/assets/icons/slider.svg");
     }
+
+    @media (max-width: $sm) {
+        margin-right: 16px;
+    }
 }
 
 body.dark {

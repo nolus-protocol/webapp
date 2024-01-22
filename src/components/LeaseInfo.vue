@@ -238,11 +238,11 @@
 
   <div
     v-if="TEMPLATES.opening == status"
-    class="background mt-6 border-standart shadow-box radius-medium radius-0-sm outline"
+    class="background mt-6 border-standart shadow-box lg:rounded-xl outline"
   >
     <div class="grid grid-cols-1 lg:grid-cols-8">
       <div
-        class="lg:col-span-3 px-2 md:px-6 md:px-6 border-standart border-b lg:border-b-0 lg:border-r pt-5 pb-5 flex flex-col justify-between	"
+        class="lg:col-span-3 border-standart border-b lg:border-b-0 lg:border-r flex flex-col justify-between p-4 lg:p-6"
       >
 
         <div

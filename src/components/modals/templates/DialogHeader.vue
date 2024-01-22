@@ -1,6 +1,6 @@
 <template>
   <div
-    class="text-center background w-full max-w-[516px] rounded-[12px] mx-auto shadow-modal modal-send-receive md:mt-[52px] flex"
+    class="text-center background w-full max-w-[516px] rounded-[12px] mx-auto shadow-modal modal-send-receive mt-[52px] flex"
     :class="{
       'pt-[15px]': !showHeader,
     }"
