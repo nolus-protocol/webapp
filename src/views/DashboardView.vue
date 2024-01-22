@@ -198,8 +198,7 @@
       <!-- Existing Assets -->
       <div
         :class="{ 'async-loader': isAssetsLoading }"
-        class="block background mt-6 border-standart shadow-box radius-medium outline"
-      >
+        class="block background mt-6 border-standart shadow-box lg:rounded-xl outline p-4 lg:p-6">
         <!-- Top -->
         <div class="flex flex-wrap items-baseline justify-between">
           <div class="left w-1/3">
