@@ -236,8 +236,8 @@
     "deposit-interest": "COMPOUNDING",
     "pnl": "PnL",
     "yield": "Yield",
-    "amount-send": "Amount to Send",
-    "amount-receive": "Amount to Receive",
+    "amount-send": "Amount",
+    "amount-receive": "Amount",
     "price-per": "Price per",
     "price-pert-tooltip": " Amount of USD in stablecoins that will be borrowed for the DeFi Lease position",
     "open-position": "Open Position",
@@ -313,7 +313,7 @@
     "utilization-level": "Protocol Utilization",
     "optimal": "Optimal",
     "optimal-tooltip": "The threshold at which the maximum lease interest is reached",
-    "deposit-suspension": "Deposit Cap",
+    "deposit-suspension": "Deposit Cap Below",
     "deposit-suspension-tooltip": "The threshold under which new stablecoin deposits get suspended",
     "buyback-total": "Buyback (Total)",
     "incentives-pool": "Incentives Pool",
@@ -356,6 +356,9 @@
     "stats-banner-subtitle": "Staying Current with the Latest Stats",
     "stats-banner-description": "Track crucial protocol indicators like TVL, funds usage, buybacks, loan details and more",
     "positions-pnL": "Positions PnL",
-    "total-equity": "Total Equity"
+    "total-equity": "Total Equity",
+    "neutron-banner-title": "Lease",
+    "neutron-banner-subtitle": "$NTRN Now Available!",
+    "neutron-banner-description": "Lease now to be in the top 30 for limited-edition swag or among the first 100 for an exclusive #LFL Badge"
   }
 }

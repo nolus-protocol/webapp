@@ -5,8 +5,7 @@
       showActionButtons ? 'row-actions' : '',
       cols ? 'grid-cols-' + cols : 'grid-cols-4 md:grid-cols-5',
     ]"
-  >
-    <div class="inline-flex items-center md:col-span-1 col-span-2">
+  >    <div class="inline-flex items-center md:col-span-1 col-span-2">
       <img
         v-if="assetInfo.coinIcon"
         :src="assetInfo.coinIcon"
@@ -40,10 +39,8 @@
       </div>
     </div>
 
-    <div
-      v-if="earnings"
-      class="hidden md:block"
-    >
+    <div v-if="earnings"
+         class="hidden md:block">
       <div class="text-primary nls-font-500 text-14 text-right m-0">
 
         <CurrencyComponent
@@ -121,8 +118,7 @@
           v-if="canSupply"
           class="btn btn-secondary btn-medium-secondary"
           @click="openModal(DASHBOARD_ACTIONS.SUPPLY, denom)"
-        >
-          {{ $t("message.supply") }}
+        >          {{ $t("message.supply") }}
         </button>
       </div>
     </div>

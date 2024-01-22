@@ -8,7 +8,7 @@
       Receive v2 / Send v2
     </button> -->
     <BannerComponent />
-    <div class="col-span-12 px-4 lg:px-0">
+    <div class="col-span-12">
       <!-- Header -->
       <!-- <div class="table-header lg:flex block flex-wrap items-center justify-between lg:px-0 px-2">
         <div class="left">
@@ -201,9 +201,9 @@
         class="block background mt-6 border-standart shadow-box radius-medium outline"
       >
         <!-- Top -->
-        <div class="flex flex-wrap items-baseline justify-between px-3 md:px-4 pt-6">
+        <div class="flex flex-wrap items-baseline justify-between">
           <div class="left w-1/3">
-            <p class="text-16 nls-font-500 dark-text pl-0 md:pl-2">
+            <p class="text-16 nls-font-500 dark-text">
               {{ $t('message.available-assets') }}
             </p>
           </div>
@@ -232,7 +232,7 @@
         <!-- Assets -->
         <div class="block mt-6 md:mt-[25px]">
           <!-- Assets Header -->
-          <div class="grid grid-cols-4 md:grid-cols-5 gap-6 border-b border-standart pb-3 px-3 md:px-4">
+          <div class="grid grid-cols-4 md:grid-cols-5 gap-6 border-b border-standart pb-3">
             <div class="nls-font-500 text-12 text-left text-dark-grey text-upper md:col-span-1 col-span-2">
               {{ $t('message.assets') }}
             </div>

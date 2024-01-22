@@ -400,7 +400,7 @@ export const ProtocolsConfig: {
 }
 
 export const SUPPORT_URL = 'https://hub.nolus.io';
-export const ETL_API = "http://localhost:8081/api"
+export const ETL_API = "https://etl-cl.nolus.network:8080/api"
 export const DOWNPAYMENT_RANGE_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/downpayment-range.json';
 export const SWAP_FEE_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/swap-fee.json';
 export const OPEAN_LEASE_FEE_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/open-lease-fee.json';
