@@ -1,7 +1,7 @@
 <template>
   <div class="block relative border-standart">
     <div
-      class="grid gap-6 row-actions border-b flex border-t border-standart px-3 md:px-6 py-3 items-center justify-between earn-asset"
+      class="grid gap-6 row-actions border-b flex border-t border-standart py-3 items-center justify-between earn-asset"
       :class="[cols ? 'md:grid-cols-' + cols : 'grid-cols-2 md:grid-cols-3']"
     >
       <!-- Ticker -->

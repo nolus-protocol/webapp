@@ -475,7 +475,7 @@
 .sidebar-elements-block {
   @media (max-width: $lg) {
     display: flex;
-    padding: 0.63rem 1rem;
+    padding: 0.3rem 1rem 1rem 1rem;
     justify-content: space-between;
 
     .sidebar-element {

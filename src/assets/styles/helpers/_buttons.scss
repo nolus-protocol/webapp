@@ -505,21 +505,16 @@ button {
 
   &-close-modal {
     display: flex;
+    align-items: center;
     justify-content: center;
+    position: absolute;
+    top: 0;
+    right: 50%;
+    transform: translateX(50%) translateZ(0);
     width: 100%;
     padding: 10px 0;
-    margin: 10px 0;
 
     @media (min-width: $md) {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: absolute;
-      top: 0;
-      right: 50%;
-      margin: 0;
-      transform: translateX(50%) translateZ(0);
-
       &:hover {
         background-color: $lighestGrey;
       }

@@ -8,7 +8,7 @@
       Receive v2 / Send v2
     </button> -->
     <BannerComponent />
-    <div class="col-span-12 px-4 lg:px-0">
+    <div class="col-span-12">
       <!-- Header -->
       <!-- <div class="table-header lg:flex block flex-wrap items-center justify-between lg:px-0 px-2">
         <div class="left">
@@ -34,7 +34,7 @@
       <Transition :name="animate">
         <!-- v-if="isTotalBalancePositive" -->
         <div
-             class="flex flex-col balance-box justify-start background mt-6 shadow-box radius-medium p-4 lg:p-6 lg:items-baseline outline">
+             class="flex flex-col balance-box justify-start background mt-6 shadow-box lg:rounded-xl p-4 lg:p-6 lg:items-baseline outline">
           <p class="nls-font-500 text-16 text-primary mb-1.5 md:mb-6">
             {{ $t('message.portfolio-title') }}
           </p>
@@ -179,11 +179,11 @@
 
       <!-- Existing Assets -->
       <div :class="{ 'async-loader': isAssetsLoading }"
-           class="block background mt-6 border-standart shadow-box radius-medium outline">
+           class="block background mt-6 border-standart shadow-box lg:rounded-xl outline p-4 lg:p-6">
         <!-- Top -->
-        <div class="flex flex-wrap items-baseline justify-between px-3 md:px-4 pt-6">
+        <div class="flex flex-wrap items-baseline justify-between">
           <div class="left w-1/3">
-            <p class="text-16 nls-font-500 dark-text pl-0 md:pl-2">
+            <p class="text-16 nls-font-500 dark-text">
               {{ $t('message.available-assets') }}
             </p>
           </div>
@@ -212,7 +212,7 @@
         <!-- Assets -->
         <div class="block mt-6 md:mt-[25px]">
           <!-- Assets Header -->
-          <div class="grid grid-cols-4 md:grid-cols-5 gap-6 border-b border-standart pb-3 px-3 md:px-4">
+          <div class="grid grid-cols-4 md:grid-cols-5 gap-6 border-b border-standart pb-3">
             <div class="nls-font-500 text-12 text-left text-dark-grey text-upper md:col-span-1 col-span-2">
               {{ $t('message.assets') }}
             </div>
@@ -241,7 +241,7 @@
 
           <!-- Assets Container -->
           <div :class="{ 'animate-pulse': loading }"
-               class="block lg:mb-0"
+               class="block"
                role="status">
             <template v-if="loading">
               <div v-for="index in currenciesSize"
@@ -280,7 +280,7 @@
             </template>
           </div>
 
-          <div class="flex justify-center pt-[8px] pb-[18px]">
+          <div class="flex justify-center pt-[8px]">
             <button class="btn transfer btn-medium-secondary"
                     @click="setCurrency()">
               {{
