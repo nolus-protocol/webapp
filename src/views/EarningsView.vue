@@ -295,7 +295,7 @@ async function getRewards() {
       promises.push(fn());
     }
 
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
     lpnReward.value = rewards;
 
     return rewards;
