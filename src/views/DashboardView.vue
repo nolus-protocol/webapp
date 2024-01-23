@@ -841,6 +841,7 @@ const loadLeases = async () => {
                 .add(new Dec(data.current_margin_due.amount, LPN_DECIMALS))
                 .add(new Dec(data.current_interest_due.amount, LPN_DECIMALS))
                 .add(new Dec(additionalInterest(lease).truncate(), LPN_DECIMALS))
+                .add(db)
 
               const amount = new Dec(data.principal_due.amount, LPN_DECIMALS)
                 .add(new Dec(data.previous_margin_due.amount, LPN_DECIMALS))
