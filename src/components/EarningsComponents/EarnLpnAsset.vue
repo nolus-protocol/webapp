@@ -72,7 +72,7 @@
         </div>
       </div>
 
-      <div class="flex justify-end nls-btn-show">
+      <div class="flex justify-end nls-btn-show no-margin-right">
         <button
           @click="props.openSupplyWithdraw"
           class="btn btn-secondary btn-medium-secondary"
@@ -149,5 +149,8 @@ const maxCoinDecimals = computed(() => {
 <style lang="scss" scoped>
 .tag {
   color: #5E7699;
+}
+.no-margin-right{
+  right: 0;
 }
 </style>

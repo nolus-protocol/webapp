@@ -62,7 +62,7 @@
         </div>
       </div>
 
-      <div class="flex justify-end nls-btn-show">
+      <div class="flex justify-end nls-btn-show no-margin-right">
         <button
           class="btn btn-secondary btn-medium-secondary"
           @click="openDelegateUndelegate()"
@@ -135,3 +135,8 @@ const maxCoinDecimals = computed(() => {
   return AssetUtils.formatDecimals(props.asset.balance.denom, props.asset.balance.amount);
 });
 </script>
+<style lang="scss" scoped>
+.no-margin-right{
+  right: 0 !important;
+}
+</style>
