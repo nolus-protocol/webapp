@@ -55,6 +55,15 @@ const router = createRouter({
           }
         },
         {
+          path: "/vote",
+          name: RouteNames.VOTE,
+          component: () => import("@/views/VoteView.vue"),
+          meta: {
+            title: 'Nolus Protocol - Vote',
+            description: ''
+          }
+        },
+        {
           path: "/stats",
           name: RouteNames.STATS,
           component: () => import("@/views/StatsView.vue"),

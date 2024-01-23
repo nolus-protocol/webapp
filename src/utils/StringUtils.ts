@@ -10,6 +10,17 @@ export class StringUtils {
     )}`;
   }
 
+  public static truncateText(
+    text: string,
+    maxLength: number,
+    ellipsis: string = "..."
+  ): string {
+    if (text.length <= maxLength) {
+      return text;
+    }
+    return text.substring(0, maxLength) + ellipsis;
+  }
+
   public static async copyToClipboard(text: string): Promise<boolean> {
     try {
       if (navigator.clipboard) {

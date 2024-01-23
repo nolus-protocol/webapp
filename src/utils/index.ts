@@ -7,3 +7,4 @@ export { AssetUtils } from "@/utils/AssetUtils";
 export { Web3AuthProvider } from "@/utils/Web3Auth";
 export { WalletManager } from "@/utils/WalletManager";
 export { ThemeManager } from "@/utils/ThemeManager";
+export { DateUtils } from "@/utils/DateUtils";

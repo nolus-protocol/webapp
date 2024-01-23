@@ -93,7 +93,7 @@
             <SidebarElement
               id="vote-v2"
               :label="$t('message.vote')"
-              @click="openExternal(governUrl, '_blank')"
+              @click="pushTo(RouteNames.VOTE)"
             />
           </div>
           <div class="block nls-nav-link nls-md-show">

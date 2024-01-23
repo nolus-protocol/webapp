@@ -64,6 +64,4 @@ export function datePraser(dateTime: string) {
     const year = time.getFullYear();
 
     return `${m} ${date}, ${year}`;
-
-
 }
