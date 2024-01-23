@@ -9,12 +9,12 @@
       </div>
     </div>
 
-    <div class="px-4 lg:px-0 md:grid md:grid-cols-12 md:gap-4">
+    <div class="md:grid md:grid-cols-12 md:gap-4">
       <div class="md:col-span-7 lg:col-span-7">
         <!-- Portfolio -->
         <div
-             class="block order-2 order-1 background md:col-span-7 md:mt-6 async-loader outline border-standart shadow-box radius-medium">
-          <div class="lg:flex block items-center justify-between px-3 md:px-6 pt-6">
+             class="block order-2 order-1 background md:col-span-7 md:mt-6 async-loader outline border-standart shadow-box md:rounded-xl p-5">
+          <div class="lg:flex block items-center justify-between">
             <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
               {{ $t("message.earning-assets") }}
             </h2>
@@ -23,8 +23,8 @@
           <div class="block mt-6 md:mt-[25px]">
             <!-- Assets Header -->
 
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-6 border-b border-standart pb-3 px-3 md:px-4">
-              <div class="nls-font-500 text-12 text-dark-grey text-left text-upper pl-0 md:pl-2">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-6 border-b border-standart pb-3">
+              <div class="nls-font-500 text-12 text-dark-grey text-left text-upper">
                 {{ $t("message.asset") }}
               </div>
 
@@ -35,7 +35,7 @@
               </div>
 
               <div
-                   class="nls-font-500 text-12 text-dark-grey text-right text-upper md:flex items-center justify-end">
+                   class="flex nls-font-500 text-12 text-dark-grey text-right text-upper md:flex items-center justify-end items-center">
                 {{ $t("message.yield") }}
                 <TooltipComponent :content="$t('message.earn-view-apr-tooltip')" />
               </div>
@@ -88,14 +88,14 @@
       <div class="md:col-span-5 lg:co-span-5">
         <!-- Rewards -->
         <div
-             class="block order-2 md:order-1 background md:col-span-7 mt-6 outline border-standart shadow-box radius-medium">
-          <div class="flex items-center justify-between px-6 pt-6 border-b border-standart pb-4">
+             class="block order-2 md:order-1 background md:col-span-7 mt-6 outline border-standart shadow-box md:rounded-xl p-5">
+          <div class="flex items-center justify-between border-b border-standart pb-6">
             <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
               {{ $t("message.rewards") }}
             </h2>
           </div>
           <!-- Assets -->
-          <div class="block mt-4">
+          <div class="block">
             <!-- Assets Container -->
             <EarnReward :reward="reward"
                         :onClickClaim="onClickWithdrawRewards"

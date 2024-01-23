@@ -1,15 +1,18 @@
 <template>
-  <div class="asset-partial nolus-box grid gap-6 relative border-b border-standart py-3 px-3 md:px-6 items-center justify-between"
-       :class="[
-         showActionButtons ? 'row-actions' : '',
-         cols ? 'grid-cols-' + cols : 'grid-cols-4 md:grid-cols-5',
-       ]">
-    <div class="inline-flex items-center md:col-span-1 col-span-2">
-      <img v-if="assetInfo.coinIcon"
-           :src="assetInfo.coinIcon"
-           class="inline-block m-0 mr-4"
-           height="32"
-           width="32" />
+  <div
+    class="asset-partial nolus-box grid gap-6 relative border-b border-standart py-3 items-center justify-between"
+    :class="[
+      showActionButtons ? 'row-actions' : '',
+      cols ? 'grid-cols-' + cols : 'grid-cols-4 md:grid-cols-5',
+    ]"
+  >    <div class="inline-flex items-center md:col-span-1 col-span-2">
+      <img
+        v-if="assetInfo.coinIcon"
+        :src="assetInfo.coinIcon"
+        class="inline-block m-0 mr-4"
+        height="32"
+        width="32"
+      />
       <div class="inline-block">
         <p class="text-primary nls-font-500 text-18 text-left m-0">
           {{ assetInfo.shortName }}
@@ -22,36 +25,46 @@
 
     <div class="block">
       <p class="text-primary nls-font-500 text-16 text-right m-0">
-        <CurrencyComponent :type="CURRENCY_VIEW_TYPES.TOKEN"
-                           :amount="assetBalance"
-                           :minimalDenom="assetInfo.coinMinimalDenom"
-                           :decimals="assetInfo.coinDecimals"
-                           :maxDecimals="maxCoinDecimals"
-                           denom="" />
+        <CurrencyComponent
+          :type="CURRENCY_VIEW_TYPES.TOKEN"
+          :amount="assetBalance"
+          :minimalDenom="assetInfo.coinMinimalDenom"
+          :decimals="assetInfo.coinDecimals"
+          :maxDecimals="maxCoinDecimals"
+          denom=""
+        />
       </p>
       <div class="flex items-center justify-end text-dark-grey text-12 garet-medium text-right m-0">
         {{ DEFAULT_CURRENCY.symbol }}{{ calculateBalance(price, assetBalance, denom) }}
       </div>
     </div>
-    
+
     <div v-if="earnings"
          class="hidden md:block">
       <div class="text-primary nls-font-500 text-14 text-right m-0">
 
-        <CurrencyComponent v-if="app.native?.ticker == assetInfo.ticker"
-                           :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                           :amount="walletStore.apr.toString()"
-                           :hasSpace="false"
-                           :isDenomInfront="false"
-                           :defaultZeroValue="'-'"
-                           denom="%" />
+        <CurrencyComponent
+          v-if="app.native?.ticker == assetInfo.ticker"
+          :type="CURRENCY_VIEW_TYPES.CURRENCY"
+          :amount="walletStore.apr.toString()"
+          :hasSpace="false"
+          :isDenomInfront="false"
+          :defaultZeroValue="'-'"
+          denom="%"
+        />
         <template v-else>
           <div v-if="isEarn">
-            <CurrencyComponent :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                               :amount="app.apr?.toString() ?? '0'"
-                               :hasSpace="false"
-                               :isDenomInfront="false"
-                               denom="%" />
+            <CurrencyComponent
+              v-if="assetInfo.key == 'USDC_AXELAR@OSMOSIS'"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              :amount="app.apr?.toString() ?? '0'"
+              :hasSpace="false"
+              :isDenomInfront="false"
+              denom="%"
+            />
+            <p v-else>
+              -
+            </p>
             <p class="text-[#1AB171] text-[12px]">
               +{{ rewards }}% {{ NATIVE_ASSET.label }}
             </p>
@@ -68,19 +81,23 @@
         <p class="text-primary nls-font-500 text-16 text-right m-0">
           <template v-if="canLease">
             <template v-if="balance > 0">
-              <CurrencyComponent :type="CURRENCY_VIEW_TYPES.TOKEN"
-                                 :amount="leasUpTo"
-                                 :minimalDenom="assetInfo.coinMinimalDenom"
-                                 :decimals="assetInfo.coinDecimals"
-                                 :maxDecimals="maxLeaseUpToCoinDecimals"
-                                 denom="" />
+              <CurrencyComponent
+                :type="CURRENCY_VIEW_TYPES.TOKEN"
+                :amount="leasUpTo"
+                :minimalDenom="assetInfo.coinMinimalDenom"
+                :decimals="assetInfo.coinDecimals"
+                :maxDecimals="maxLeaseUpToCoinDecimals"
+                denom=""
+              />
             </template>
             <template v-else>
-              <CurrencyComponent :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                                 :amount="DEFAULT_LEASE_UP_PERCENT"
-                                 :hasSpace="false"
-                                 :isDenomInfront="false"
-                                 denom="%" />
+              <CurrencyComponent
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                :amount="DEFAULT_LEASE_UP_PERCENT"
+                :hasSpace="false"
+                :isDenomInfront="false"
+                denom="%"
+              />
             </template>
           </template>
           <template v-else>
@@ -89,21 +106,24 @@
         </p>
       </div>
       <div class="flex justify-end nls-btn-show  !right-0">
-        <button 
-                class="btn btn-secondary btn-medium-secondary"
-                @click="openModal(DASHBOARD_ACTIONS.LEASE, denom)">
+        <button
+          class="btn btn-secondary btn-medium-secondary"
+          @click="openModal(DASHBOARD_ACTIONS.LEASE, denom)"
+        >
           {{ $t("message.lease") }}
         </button>
-        
-        <button v-if="canSupply"
-                class="btn btn-secondary btn-medium-secondary"
-                @click="openModal(DASHBOARD_ACTIONS.SUPPLY, denom)">
-          {{ $t("message.supply") }}
+
+
+        <button
+          v-if="canSupply"
+          class="btn btn-secondary btn-medium-secondary"
+          @click="openModal(DASHBOARD_ACTIONS.SUPPLY, denom)"
+        >          {{ $t("message.supply") }}
         </button>
       </div>
     </div>
 
-      <!-- <div v-if="canLease || canSupply"
+    <!-- <div v-if="canLease || canSupply"
           class="mobile-actions md:hidden col-span-2">
         <div class="flex">
           <button class="btn btn-secondary btn-medium-secondary flex-1"
@@ -145,7 +165,10 @@
 
 
     <div class="flex justify-end">
-      <button class="btn transfer btn-medium-secondary !px-[14px] py-[8px]" @click="sendReceiveOpen(assetInfo.key)">
+      <button
+        class="btn transfer btn-medium-secondary !px-[14px] py-[8px]"
+        @click="sendReceiveOpen(assetInfo.key)"
+      >
         <span class="icon icon-transfer !text-[14px]"></span>
       </button>
     </div>
@@ -273,9 +296,10 @@ const maxLeaseUpToCoinDecimals = computed(() => {
 });
 </script>
 <style scoped lang="scss">
-button.transfer{
+button.transfer {
   padding: 8px 14px !important;
 }
+
 div.mobile-actions {
 
   button,
@@ -295,5 +319,4 @@ div.mobile-actions {
     justify-content: center;
     display: flex;
   }
-}
-</style>
+}</style>

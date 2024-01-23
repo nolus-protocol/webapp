@@ -23,7 +23,6 @@
       name="fade-long"
       appear
       tag="div"
-      class="px-4 lg:px-0"
     >
       <div
         v-for="lease in leases"
@@ -33,7 +32,7 @@
       </div>
       <div
         v-if="leaseLoaded && leases.length == 0"
-        class="background px-1 mt-12 border-standart shadow-box radius-medium outline h-[220px] md:px-0"
+        class="background px-1 mt-12 border-standart shadow-box lg:rounded-xl outline h-[220px] md:px-0"
       >
         <div class="flex nls-12 text-dark-grey justify-center items-center flex-col h-full">
           <img

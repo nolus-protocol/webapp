@@ -5,8 +5,18 @@
   }
 }
 
-div.asset-partial, div.vested-partial, div.earn-asset, div.history-item{
+div.asset-partial, div.vested-partial, div.earn-asset, div.history-item {
   &:last-child{
       border: none;
+  }
+}
+
+.history-items-container {
+  .history-item {
+    &:last-of-type {
+      > div {
+        border: none;
+      }
+    }
   }
 }

@@ -129,7 +129,7 @@ import { onMounted, ref, type PropType } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { computed, watch } from "vue";
 import { useWalletStore } from "@/stores/wallet";
-import { NATIVE_NETWORK, calculateLiquidation, PERMILLE, IGNORE_LEASE_ASSETS, USD_DECIMALS } from "@/config/env";
+import { NATIVE_NETWORK, calculateLiquidation, PERMILLE, IGNORE_LEASE_ASSETS, USD_DECIMALS, CurrencyMapping } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
@@ -238,7 +238,12 @@ const balances = computed(() => {
       return false;
     }
     const lpns = ((app.lpn ?? []) as ExternalCurrencyType[]).map(item => item.key as string);
-    const [cticker] = currency.ticker.split('@');
+    let [cticker] = currency.ticker.split('@');
+
+    if (CurrencyMapping[cticker as keyof typeof CurrencyMapping]) {
+      cticker = CurrencyMapping[cticker as keyof typeof CurrencyMapping]?.ticker;
+    }
+    
     return lpns.includes(currency.ticker as string) || app.leasesCurrencies.includes(cticker);
   });
 });
@@ -246,13 +251,17 @@ const balances = computed(() => {
 const coinList = computed(() => {
   return props.modelValue.currentBalance.filter((item) => {
     const currency = wallet.currencies[item.balance.denom];
-    const [ticker, protocol] = currency.ticker.split('@');
+    let [ticker, protocol] = currency.ticker.split('@');
 
     const downPaymentCurrency = wallet.currencies[props.modelValue.selectedDownPaymentCurrency.balance.denom];
     const [_currency, downPaymentProtocol] = downPaymentCurrency.ticker.split('@');
 
     if (downPaymentProtocol != protocol) {
       return false;
+    }
+
+    if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
+      ticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
     }
 
     if (IGNORE_LEASE_ASSETS.includes(ticker)) {

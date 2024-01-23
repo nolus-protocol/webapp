@@ -4,7 +4,7 @@ import { defineStore } from "pinia";
 import { ApplicationActionTypes } from "@/stores/application/action-types";
 import { AssetUtils, EnvNetworkUtils, ThemeManager, WalletManager } from "@/utils";
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
-import { DEFAULT_PRIMARY_NETWORK, ETL_API, INTEREST_DECIMALS, NATIVE_NETWORK, NETWORKS } from "@/config/env";
+import { DEFAULT_PRIMARY_NETWORK, INTEREST_DECIMALS, NATIVE_NETWORK, NETWORKS } from "@/config/env";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { useOracleStore, OracleActionTypes } from "../oracle";
 import { Disparcher } from "@nolus/nolusjs/build/contracts";
@@ -13,6 +13,7 @@ import { AppUtils } from "@/utils/AppUtils";
 import { WalletConnectMechanism } from "@/types";
 import { Protocols } from "@nolus/nolusjs/build/types/Networks";
 import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
+import { EtlApi } from "@/utils/EtlApi";
 
 const useApplicationStore = defineStore("application", {
   state: () => {
@@ -155,7 +156,7 @@ const useApplicationStore = defineStore("application", {
         const dispatcherClient = new Disparcher(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].dispatcher.instance);
 
         const [data, dispatcherRewards] = await Promise.all([
-          fetch(`${ETL_API}/earn-apr`).then((data) => data.json()),
+          EtlApi.fetchEarnApr(),
           dispatcherClient.calculateRewards().catch(() => 130)
         ]);
 

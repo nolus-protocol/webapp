@@ -1,7 +1,7 @@
 <template>
   <div class="block relative border-t-[1px] border-standart">
     <div
-      class="grid gap-6 row-actions border-b flex border-t border-standart px-3 md:px-6 py-3 items-center justify-between earn-asset"
+      class="grid gap-6 row-actions border-b flex border-t border-standart py-3 items-center justify-between earn-asset"
       :class="[cols ? 'md:grid-cols-' + cols : 'grid-cols-2 md:grid-cols-3']"
     >
       <!-- Ticker -->
@@ -23,7 +23,7 @@
         </div>
       </div>
 
-      <div class="hidden md:block flex flex-col md:col-span-1 items-end">
+      <div class="hidden md:flex flex flex-col md:col-span-1 items-end">
         <template v-if="showBalance">
           <p class="text-primary nls-font-500 text-16 nls-font-500 m-0">
             <CurrencyComponent
@@ -62,7 +62,7 @@
         </div>
       </div>
 
-      <div class="flex justify-end nls-btn-show">
+      <div class="flex justify-end nls-btn-show no-margin-right">
         <button
           class="btn btn-secondary btn-medium-secondary"
           @click="openDelegateUndelegate()"
@@ -135,3 +135,8 @@ const maxCoinDecimals = computed(() => {
   return AssetUtils.formatDecimals(props.asset.balance.denom, props.asset.balance.amount);
 });
 </script>
+<style lang="scss" scoped>
+.no-margin-right{
+  right: 0 !important;
+}
+</style>

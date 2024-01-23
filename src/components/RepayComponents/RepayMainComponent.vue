@@ -37,7 +37,7 @@ import { getMicroAmount, walletOperation } from "@/components/utils";
 import { useWalletStore } from "@/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { NATIVE_ASSET, GAS_FEES, SNACKBAR, TIP, PERMILLE, PERCENT, calculateAditionalDebt, ErrorCodes, IGNORE_LEASE_ASSETS, minimumLeaseAmount } from "@/config/env";
+import { NATIVE_ASSET, GAS_FEES, SNACKBAR, TIP, PERMILLE, PERCENT, calculateAditionalDebt, ErrorCodes, IGNORE_LEASE_ASSETS, minimumLeaseAmount, CurrencyMapping } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/stores/oracle";
 import { AssetUtils } from "@/utils";
@@ -74,7 +74,12 @@ const balances = computed(() => {
     const currency = walletStore.currencies[item.balance.denom];
     const lpns = (app.lpn ?? []).map((item) => item.key);
 
-    const [ticker, network] = currency.ticker.split('@');
+    let [ticker, network] = currency.ticker.split('@');
+
+    if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
+        ticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
+      }
+
 
     if (IGNORE_LEASE_ASSETS.includes(ticker)) {
       return false;

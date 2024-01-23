@@ -158,16 +158,15 @@ watch(() => state.value.network, async () => {
   const currencies = Object.keys(app.networks?.[state.value.network.key] ?? {});
   const native = app.networks![NATIVE_NETWORK.key];
   const items: string[] = [];
-
   for (const i in native) {
     const c = native[i];
     if (currencies.includes(c.ticker)) {
-      const [ckey, protocol = Protocols.osmosis]: string[] = c.key!.split('@')
+      const [ckey, protocol = Protocols.osmosis]: string[] = c.key!.split('@');
       const ibc = NolusAssetUtils.makeIBCMinimalDenom(ckey, app.networksData!, NATIVE_NETWORK.key as Networks, protocol as Protocols);
-
       items.push(ibc);
     }
   }
+
 
   state.value.currentBalance = walletStore.balances.filter((item) => {
     const currency = walletStore.currencies[item.balance.denom];

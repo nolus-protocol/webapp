@@ -7,6 +7,7 @@ export type { NetworkConfig } from "@/types/NetworkConfig";
 export type { LeaseData } from "@/types/LeaseData";
 export type { Network, NetworkData, NetworkDataV2 } from "@/types/Network";
 export type { CurreciesType } from "@/types/CurreciesType";
+export type { IObjectKeys } from  "@/types/IObjectKeys";
 
 export { WalletConnectMechanism } from "@/types/WalletConnectMechanism";
 export { DASHBOARD_ACTIONS } from "@/types/DashboardActions";

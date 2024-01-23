@@ -9,11 +9,10 @@
       </div>
     </div>
 
-    <div class="px-4 lg:px-0">
-    <div class="background mt-6 shadow-box radius-medium pt-6 pb-3 outline">
-      <div class="balance-box flex px-6 items-center justify-start">
+    <div class="background mt-6 shadow-box lg:rounded-xl p-4 lg:p-6 outline">
+      <div class="balance-box flex md:items-center md:justify-start">
 
-        <div class="left inline-block line-mobile pb-4 md:pb-0">
+        <div class="left inline-block line-mobile pb-4 lg:pb-0">
           <p class="nls-font-500 text-16 text-primary">
             {{ $t('message.total-value-locked') }}
           </p>
@@ -29,7 +28,7 @@
         </div>
 
         <div class="flex">
-          <div class="pt-3 lg:pl-6 md:flex-none flex-1">
+          <div class="pt-3 sm:pl-3 md:pl-6 md:flex-none flex-1">
             <p class="nls-font-500 text-12 text-dark-grey flex items-center">
               {{ $t('message.buyback') }}
             </p>
@@ -44,7 +43,7 @@
               class="nls-font-500 text-primary"
             />
           </div>
-          <div class="pt-3 lg:pl-6 lg:ml-0 md:flex-none flex-1">
+          <div class="pt-3 sm:pl-3 md:pl-6 lg:ml-0 md:flex-none flex-1">
             <p class="nls-font-500 text-12 text-dark-grey flex items-center">
               <!-- {{ $t('message.borrow-apr') }} -->
               {{ $t('message.incentives-pool') }}
@@ -64,7 +63,7 @@
 
       </div>
 
-      <div class="border-standart lg:border-t lg:border-b-0 lg:px-6 px-3 my-2 lg:pt-4 pt-2 flex">
+      <div class="border-standart lg:border-t lg:border-b-0 my-2 lg:pt-4 pt-2 flex">
         <div class="pt-3 md:flex-none flex-1">
           <p class="nls-font-500 text-12 text-dark-grey flex">
             {{ $t('message.supplied') }}
@@ -102,7 +101,7 @@
         </div>
       </div>
 
-      <div class="flex relaltive p-6 lg:block hidden">
+      <div class="flex relaltive lg:block hidden">
         <StatLineChart
           ref="chartElement"
           :chart-data="chartData"
@@ -112,20 +111,20 @@
 
     </div>
 
-    <div class="flex background outline border-standart shadow-box radius-medium mt-6 md:max-w-[50%] max-w-[100%]">
+    <div class="flex background outline border-standart shadow-box lg:rounded-xl mt-6 md:max-w-[50%] max-w-[100%]">
       <!-- <div class="md:col-span-6 lg:co-span-6"> -->
       <!-- Rewards -->
-      <div class="block flex-1 p-[12px]">
-        <div class="flex items-center justify-between px-0 md:px-4 pt-2 pb-0">
+      <div class="block flex-1 p-4 lg:p-6">
+        <div class="flex items-center justify-between pt-2 pb-0">
           <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
             {{ $t('message.utilization-level') }}
           </h2>
         </div>
         <!-- Assets Container -->
         <div class="block border-b border-standart">
-          <div class="grid gap-6px-3 md:px-4 py-2 items-center justify-between earn-asset grid-cols-3 md:grid-cols-3">
+          <div class="grid gap-6px-3 py-2 items-center justify-between earn-asset grid-cols-3 md:grid-cols-3">
             <!-- Ticker -->
-            <div class="inline-flex items-center col-span-2 lg:ml-0 ml-2">
+            <div class="inline-flex items-center col-span-2">
               <div class="inline-block">
 
                 <div class="pt-3">
@@ -154,7 +153,7 @@
 
         <div class="flex items-center justify-start py-4 px- md:px-6 lg:px-0">
 
-          <div class="pt-3 pl-2 md:pl-4">
+          <div class="pt-3">
             <p class="nls-font-500 text-12 text-dark-grey flex">
               {{ $t('message.yield') }}
               <TooltipComponent :content="$t('message.yield-tooltip')" />
@@ -316,81 +315,115 @@
       </div> -->
     </div>
 
-    <div class="background mt-6 shadow-box radius-medium outline flex flex-col lg:flex-row">
-      <div class="pt-6 px-6 lg:pb-6 pb-2">
+    <div class="background mt-6 shadow-box lg:rounded-xl outline flex flex-col lg:flex-row p-4 lg:p-6">
+      <div class="">
         <p class="nls-font-500 text-16 text-primary">
           {{ $t('message.leased-assets-total') }}
         </p>
-        <div class="flex flex-col lg:flex-row items-center">
-          <div class="stats flex">
+        <div class="w-full flex flex-col lg:flex-row items-center gap-4 lg:gap-6">
+          <div class="stats flex" v-show="(loans?.length ?? 0) > 0">
             <StatDaughnutChart
               ref="statChart"
               @in-focus="inFocus"
             />
           </div>
-          <div class="flex flex-wrap my-4">
+          <div class="w-full flex gap-4 lg:gap-6 flex-col lg:flex-row">
+            <div class="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-4 xl:grid-cols-5 gap-2 xl:gap-6">
 
-            <div
-              v-for="(item, index) in loans"
-              :key="index"
-              class="lg:pl-6 self-center lg:pt-2 pt-4 px-2 basis-1/4"
-            >
-              <p class="nls-font-500 text-12 text-dark-grey flex">
-                {{ item.name }}
-              </p>
+              <div
+                v-for="(item, index) in loans"
+                :key="index"
+              >
+                <p class="nls-font-500 text-12 text-dark-grey flex">
+                  {{ item.name }}
+                </p>
 
-              <CurrencyComponent
-                :fontSize="20"
-                :fontSizeSmall="16"
-                :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                :amount="item.loan.toString()"
-                denom="%"
-                :isDenomInfront="false"
-                :has-space="false"
-                class="nls-font-500 text-primary"
-                :class="{ 'loan-active': focus.includes(item.name) }"
-              />
+                <CurrencyComponent
+                  :fontSize="20"
+                  :fontSizeSmall="16"
+                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                  :amount="item.loan.toString()"
+                  denom="%"
+                  :isDenomInfront="false"
+                  :has-space="false"
+                  class="nls-font-500 text-primary"
+                  :class="{ 'loan-active': focus.includes(item.name) }"
+                />
+              </div>
             </div>
 
+            <div
+              class="border-standart border-t lg:border-t-0 lg:border-l flex lg:items-start lg:justify-start lg:flex-col lg:mr-6 pl-0 lg:pl-6"
+            >
+              <div class="pt-3 lg:pt-0">
+                <p class="nls-font-500 text-12 text-dark-grey flex">
+                  {{ $t('message.borrowed') }}
+                </p>
+
+                <CurrencyComponent
+                  :fontSize="20"
+                  :fontSizeSmall="16"
+                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                  :amount="totalBorrowed"
+                  denom="$"
+                  :has-space="false"
+                  class="nls-font-500 text-primary"
+                />
+              </div>
+              <div class="pt-3 lg:ml-0 ml-6">
+                <p class="nls-font-500 text-12 text-dark-grey flex">
+                  {{ $t('message.protocol-revenue') }}
+                </p>
+
+                <CurrencyComponent
+                  :fontSize="20"
+                  :fontSizeSmall="16"
+                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                  :amount="protocolRevenue"
+                  denom="$"
+                  :has-space="false"
+                  class="nls-font-500 text-primary"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div
-        class="border-standart lg:border-l lg:border-b-0 lg:px-14 flex lg:items-start lg:justify-center lg:flex-col lg:mr-6 px-8 lg:py-0 py-4 border-t"
-      >
-        <div class="pt-3">
-          <p class="nls-font-500 text-12 text-dark-grey flex">
-            {{ $t('message.borrowed') }}
-          </p>
+<!--      <div-->
+<!--        class="border-standart border-t lg:border-t-0 lg:border-l flex lg:items-start lg:justify-center lg:flex-col lg:mr-6"-->
+<!--      >-->
+<!--        <div class="pt-3">-->
+<!--          <p class="nls-font-500 text-12 text-dark-grey flex">-->
+<!--            {{ $t('message.borrowed') }}-->
+<!--          </p>-->
 
-          <CurrencyComponent
-            :fontSize="20"
-            :fontSizeSmall="16"
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            :amount="totalBorrowed"
-            denom="$"
-            :has-space="false"
-            class="nls-font-500 text-primary"
-          />
-        </div>
-        <div class="pt-3 lg:ml-0 ml-6">
-          <p class="nls-font-500 text-12 text-dark-grey flex">
-            {{ $t('message.protocol-revenue') }}
-          </p>
+<!--          <CurrencyComponent-->
+<!--            :fontSize="20"-->
+<!--            :fontSizeSmall="16"-->
+<!--            :type="CURRENCY_VIEW_TYPES.CURRENCY"-->
+<!--            :amount="totalBorrowed"-->
+<!--            denom="$"-->
+<!--            :has-space="false"-->
+<!--            class="nls-font-500 text-primary"-->
+<!--          />-->
+<!--        </div>-->
+<!--        <div class="pt-3 lg:ml-0 ml-6">-->
+<!--          <p class="nls-font-500 text-12 text-dark-grey flex">-->
+<!--            {{ $t('message.protocol-revenue') }}-->
+<!--          </p>-->
 
-          <CurrencyComponent
-            :fontSize="20"
-            :fontSizeSmall="16"
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            :amount="protocolRevenue"
-            denom="$"
-            :has-space="false"
-            class="nls-font-500 text-primary"
-          />
-        </div>
-      </div>
-    </div>
+<!--          <CurrencyComponent-->
+<!--            :fontSize="20"-->
+<!--            :fontSizeSmall="16"-->
+<!--            :type="CURRENCY_VIEW_TYPES.CURRENCY"-->
+<!--            :amount="protocolRevenue"-->
+<!--            denom="$"-->
+<!--            :has-space="false"-->
+<!--            class="nls-font-500 text-primary"-->
+<!--          />-->
+<!--        </div>-->
+<!--      </div>-->
     </div>
   </div>
 </template>

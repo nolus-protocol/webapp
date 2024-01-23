@@ -1,46 +1,56 @@
 <template>
-  <form @submit.prevent="modelValue.onNextClick"
-        class="modal-form">
+  <form
+    @submit.prevent="modelValue.onNextClick"
+    class="modal-form"
+  >
     <!-- Input Area -->
     <div class="modal-send-receive-input-area background">
 
       <div class="block text-left">
 
         <div class="block mt-[20px]">
-          <Picker :default-option="networks[0]"
-                  :options="networks"
-                  :label="$t('message.network')"
-                  :value="modelValue.network"
-                  @update-selected="onUpdateCurrency" />
+          <Picker
+            :default-option="networks[0]"
+            :options="networks"
+            :label="$t('message.network')"
+            :value="modelValue.network"
+            @update-selected="onUpdateCurrency"
+          />
         </div>
 
         <div class="block mt-[20px]">
-          <CurrencyField id="amount"
-                         :currency-options="modelValue.currentBalance"
-                         :disabled-currency-picker="disablePickerDialog"
-                         :error-msg="modelValue.amountErrorMsg"
-                         :is-error="modelValue.amountErrorMsg !== ''"
-                         :option="modelValue.selectedCurrency"
-                         :value="modelValue.amount"
-                         :name="$t('message.amount')"
-                         :label="$t('message.amount-field')"
-                         :set-input-value="setAmount"
-                         @input="handleAmountChange($event)"
-                         @update-currency="(event) => (modelValue.selectedCurrency = event)"
-                         :balance="formatCurrentBalance(modelValue.selectedCurrency)"
-                         :total="modelValue.selectedCurrency.balance" />
+          <CurrencyField
+            id="amount"
+            :currency-options="modelValue.currentBalance"
+            :disabled-currency-picker="disablePickerDialog"
+            :error-msg="modelValue.amountErrorMsg"
+            :is-error="modelValue.amountErrorMsg !== ''"
+            :option="modelValue.selectedCurrency"
+            :value="modelValue.amount"
+            :name="$t('message.amount')"
+            :label="$t('message.amount-field')"
+            :set-input-value="setAmount"
+            @input="handleAmountChange($event)"
+            @update-currency="(event) => (modelValue.selectedCurrency = event)"
+            :balance="formatCurrentBalance(modelValue.selectedCurrency)"
+            :total="modelValue.selectedCurrency.balance"
+          />
         </div>
-        <div v-if="modelValue.network.native"
-             class="block mt-[20px]">
-          <InputField :error-msg="modelValue.receiverErrorMsg"
-                      :is-error="modelValue.receiverErrorMsg !== ''"
-                      :value="modelValue.receiverAddress"
-                      :label="$t('message.recipient')"
-                      id="sendTo"
-                      name="sendTo"
-                      type="text"
-                      @input="(event) => (modelValue.receiverAddress = event.target.value)
-                        " />
+        <div
+          v-if="modelValue.network.native"
+          class="block mt-[20px]"
+        >
+          <InputField
+            :error-msg="modelValue.receiverErrorMsg"
+            :is-error="modelValue.receiverErrorMsg !== ''"
+            :value="modelValue.receiverAddress"
+            :label="$t('message.recipient')"
+            id="sendTo"
+            name="sendTo"
+            type="text"
+            @input="(event) => (modelValue.receiverAddress = event.target.value)
+              "
+          />
         </div>
 
         <div v-else>
@@ -100,18 +110,32 @@ const disablePickerDialog = ref(false);
 const networks = computed(() => {
   const n: string[] = [];
   if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
-    const [ckey, protocol]: string[] = props.modelValue!.dialogSelectedCurrency.split('@')
-    for (const key in app.networks ?? {}) {
+    const [ckey, protocol]: string[] = props.modelValue!.dialogSelectedCurrency.split('@');
 
-      if (key == protocol) {
-        n.push(key);
-      }
-    }
+    let lpn = app.lpn?.find((item) => {
+      return item.key == props.modelValue!.dialogSelectedCurrency;
+    });
 
     n.push(NATIVE_NETWORK.key);
 
     if (ckey == NATIVE_NETWORK.symbol) {
       n.push(Protocols.neutron);
+    }
+
+
+    if (lpn) {
+
+      const [key, protocol] = lpn.key!.split('@');
+      n.push(protocol);
+
+    } else {
+
+      for (const key in app.networks ?? {}) {
+        if (app.networks?.[key][ckey]) {
+          n.push(key);
+        }
+      }
+
     }
 
     return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list.filter((item) => n.includes(item.key));

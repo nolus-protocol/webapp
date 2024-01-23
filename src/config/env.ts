@@ -356,17 +356,16 @@ if (!isDev()) {
 
 export const minimumLeaseAmount = 1;
 export const languages = l;
-export const SUPPORTED_NETWORKS = ['NOLUS', 'OSMOSIS', 'COSMOS_HUB', 'AXELAR', 'STRIDE', 'JUNO', 'EVMOS', 'PERSISTENCE', 'SECRET', 'STARGAZE', 'CELESTIA', 'QUICKSILVER', 'NEUTRON', 'DYDX'];
+export const SUPPORTED_NETWORKS = ['NOLUS', 'OSMOSIS', 'COSMOS_HUB', 'AXELAR', 'STRIDE', 'JUNO', 'EVMOS', 'PERSISTENCE', 'SECRET', 'STARGAZE', 'CELESTIA', 'NEUTRON', 'DYDX'];
 export const SWAP_FEE = 0.007;
 export const ZERO_DECIMALS = 6;
 export const USD_DECIMALS = 6;
 export const MAX_DECIMALS = 8;
 export const LedgerName = "Ledger";
-export const IGNORE_LEASE_ASSETS: string[] = ['Q_ATOM'];
-export const IGNORE_TRANSFER_ASSETS: string[] = ['Q_ATOM'];
+export const IGNORE_LEASE_ASSETS: string[] = ['Q_ATOM', 'Q_ATOM@OSMOSIS', 'Q_ATOM@NEUTRON', 'STK_ATOM'];
+export const IGNORE_TRANSFER_ASSETS: string[] = ['Q_ATOM', 'Q_ATOM@OSMOSIS', 'Q_ATOM@NEUTRON'];
 export const IGNORE_LEASES: string[] = ["nolus1suz0vsqe8c8anckaer98awhqs8r4hu7wsm8a49acdl39x6ylfypsqywxwh", "nolus1q2ekwjj87jglqsszwy6ah5t08h0k8kq67ed0l899sku2qt0dztpsnwt6sw"];
 export const NEWS_URL = news;
-
 
 export const CurrencyMapping: {
   [key: string]: {
@@ -383,6 +382,24 @@ export const CurrencyMapping: {
   },
   WBTC_AXELAR: {
     ticker: 'WBTC'
+  }
+}
+
+export const CurrencyDemapping: {
+  [key: string]: {
+    ticker: string,
+    name?: string
+  }
+} = {
+  WETH: {
+    ticker: 'WETH_AXELAR',
+  },
+  USDC: {
+    ticker: 'USDC_AXELAR',
+    name: 'USDC.axl'
+  },
+  WBTC: {
+    ticker: 'WBTC_AXELAR'
   }
 }
 

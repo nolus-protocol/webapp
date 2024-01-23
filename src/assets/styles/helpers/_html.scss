@@ -159,7 +159,7 @@ body {
 			width: calc(100vw - 32px);
 			height: 1px;
 			background-color: $borderColor;
-			left: -16px;
+			left: 0;
 			bottom: 12px;
 		}
 	}
@@ -660,8 +660,8 @@ input[type="checkbox" i] {
 
 @media (max-width: $sm) {
 	.balance-box {
-		padding-right: 16px;
-		padding-left: 16px;
+		//padding-right: 16px;
+		//padding-left: 16px;
 		display: block;
 
 		&>div {

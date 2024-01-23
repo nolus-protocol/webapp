@@ -1,7 +1,7 @@
 <template>
   <div class="block relative border-standart">
     <div
-      class="grid gap-6 row-actions border-b flex border-t border-standart px-3 md:px-6 py-3 items-center justify-between earn-asset"
+      class="grid gap-6 row-actions border-b flex border-t border-standart py-3 items-center justify-between earn-asset"
       :class="[cols ? 'md:grid-cols-' + cols : 'grid-cols-2 md:grid-cols-3']"
     >
       <!-- Ticker -->
@@ -23,7 +23,7 @@
         </div>
       </div>
 
-      <div class="hidden md:block flex flex-col md:col-span-1 items-end">
+      <div class="hidden md:flex flex flex-col md:col-span-1 items-end">
         <template v-if="showBalance">
           <p class="text-primary nls-font-500 text-16 nls-font-500 m-0">
             <CurrencyComponent
@@ -55,19 +55,24 @@
       <div class="info-show">
         <div class="text-primary text-14 text-right m-0 justify-end nls-font-500">
           <CurrencyComponent
+            v-if="assetInfo.key == 'USDC_AXELAR@OSMOSIS'"
             :type="CURRENCY_VIEW_TYPES.CURRENCY"
             :amount="app.apr?.toString() ?? '0'"
             :hasSpace="false"
             :isDenomInfront="false"
             denom="%"
           />
+          <p v-else
+          >
+            -
+          </p>
           <p class="text-[#1AB171] text-[12px]">
             +{{ rewards }}% {{ NATIVE_ASSET.label }}
           </p>
         </div>
       </div>
 
-      <div class="flex justify-end nls-btn-show">
+      <div class="flex justify-end nls-btn-show no-margin-right">
         <button
           @click="props.openSupplyWithdraw"
           class="btn btn-secondary btn-medium-secondary"
@@ -144,5 +149,8 @@ const maxCoinDecimals = computed(() => {
 <style lang="scss" scoped>
 .tag {
   color: #5E7699;
+}
+.no-margin-right{
+  right: 0;
 }
 </style>

@@ -314,7 +314,7 @@
     "utilization-level": "Protocol Utilization",
     "optimal": "Optimal",
     "optimal-tooltip": "The threshold at which the maximum lease interest is reached",
-    "deposit-suspension": "Deposit Cap Below",
+    "deposit-suspension": "Deposit Cap",
     "deposit-suspension-tooltip": "The threshold under which new stablecoin deposits get suspended",
     "buyback-total": "Buyback (Total)",
     "incentives-pool": "Incentives Pool",

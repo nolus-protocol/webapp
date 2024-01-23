@@ -1,7 +1,7 @@
 <template>
   <div class="col-span-12 mb-sm-nolus-70p">
     <!-- Header -->
-    <div class="table-header flex mt-[25px] flex-wrap items-center justify-between items-baseline lg:px-0 px-2">
+    <div class="table-header flex mt-[25px] flex-wrap items-center justify-between items-baseline px-4 lg:px-0">
       <div class="left">
         <h1 class="text-20 nls-font-700 text-primary m-0">
           {{ $t("message.history") }}
@@ -10,21 +10,20 @@
     </div>
     <!-- History -->
     <div
-      class="block background mt-6 shadow-box radius-medium radius-0-sm overflow-hidden async-loader"
+      class="block background mt-6 shadow-box lg:rounded-xl overflow-hidden async-loader"
       :class="{ outline: hasOutline }"
     >
       <!-- Assets -->
-      <div class="block md:mt-4">
+      <div class="block p-4 lg:p-6">
         <HistoryTableHeader />
         <div
-          class="block"
+          class="block history-items-container"
           :class="{ 'animate-pulse': !initialLoad }"
         >
           <template v-if="initialLoad && !showSkeleton">
             <TransitionGroup
               name="fade-long"
               appear
-              tag="div"
             >
               <HistoryTableItem
                 v-for="transaction of transactions"
