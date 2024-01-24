@@ -650,7 +650,7 @@ const loadSuppliedAndStaked = async () => {
   const supplied = async () => {
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
     const promises = []
-    const amount = new Dec(0)
+    let amount = new Dec(0)
 
     for (const protocolKey in admin.contracts) {
       const fn = async () => {
@@ -665,7 +665,7 @@ const loadSuppliedAndStaked = async () => {
         ])
 
         const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount))
-        amount.add(
+        amount = amount.add(
           new Dec(depositBalance.balance, Number(lpnCoin!.decimal_digits)).mul(calculatedPrice)
         )
       }
@@ -693,9 +693,10 @@ const loadSuppliedAndStaked = async () => {
 
   await Promise.all([supplied(), delegated()])
     .then(([a, b]) => {
-      earnings.value = new Dec(0)
-      earnings.value = earnings.value.add(a)
-      earnings.value = earnings.value.add(b)
+      let value = new Dec(0)
+      value = value.add(a)
+      value = value.add(b)
+      earnings.value  = value;
     })
     .catch((e) => console.log(e))
 }

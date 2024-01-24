@@ -166,6 +166,7 @@ const useApplicationStore = defineStore("application", {
           const fn = async () => {
             const data = await EtlApi.fetchEarnApr(protocolKey);
             apr[protocolKey] = data.earn_apr;
+            return data.earn_apr;
           }
           promises.push(fn());
         }
