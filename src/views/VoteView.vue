@@ -47,7 +47,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { AppUtils } from '@/utils/AppUtils'
-import { type Proposal } from '@/types/Proposal'
+import { type Proposal } from '@/modules/vote/Proposal'
 import ProposalItem from '@/modules/vote/components/ProposalItem.vue'
 import ProposalReadMoreDialog from '@/modules/vote/components/ProposalReadMoreDialog.vue'
 import Modal from '@/components/modals/templates/Modal.vue'

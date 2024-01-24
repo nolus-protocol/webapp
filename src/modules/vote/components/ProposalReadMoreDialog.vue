@@ -36,13 +36,40 @@ const description = computed(() => {
 
 <style lang="scss">
 .proposal-modal {
-  @apply text-left;
+  p {
+    text-align: left;
+    font-size: 14px;
+    margin-bottom: 18px;
+
+    &.strong {
+      font-weight: 600;
+    }
+  }
 
   h1 {
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    line-height: 1.2;
-    color: #5e5873;
+    text-align: left;
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 18px;
+  }
+
+  h2 {
+    text-align: left;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  a {
+    transition: ease 200ms;
+    color: #2868e1;
+
+    &.link {
+      color: #2868e1;
+    }
+  }
+
+  a:hover {
+    color: #2868e1;
   }
 }
 </style>

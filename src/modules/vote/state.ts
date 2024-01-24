@@ -1,5 +1,5 @@
-import type { Proposal } from '@/types/Proposal'
-import { ProposalStatus } from '@/types/Proposal'
+import type { Proposal } from '@/modules/vote/Proposal'
+import { ProposalStatus } from '@/modules/vote/Proposal'
 
 export const ProposalState: Proposal = {
   proposal_id: '',

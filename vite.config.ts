@@ -16,7 +16,8 @@ export default defineConfig({
     })
   ],
   server: {
-    hmr: true
+    hmr: true,
+    host: true
   },
   resolve: {
     alias: {

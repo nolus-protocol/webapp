@@ -8,16 +8,12 @@
       :class="index > 1 ? ['bg-transparent', 'lg:w-[calc(50%-10px)]'] : ['background']"
       class="proposal w-full flex flex-col shadow-box lg:rounded-xl p-5 gap-3"
     >
-      <!-- Status -->
       <div class="flex flex-col md:flex-row gap-2 md:gap-0 justify-between text-[8px] text-upper">
         <div class="w-[30px] h-0.5 bg-grey" />
         <div v-if="index === 1" class="w-[300px] h-0.5 bg-grey" />
       </div>
-      <!-- Title -->
       <div class="text-primary text-small-heading break-all w-[100px] h-[5px] bg-grey" />
-      <!-- Line -->
       <div class="w-full h-[5px] bg-grey" />
-      <!-- Summary -->
       <div class="text-medium-blue text-12 flex flex-col gap-3">
         <div class="w-full h-[2px] bg-grey" />
         <div class="w-full h-[2px] bg-grey" />
@@ -40,20 +36,23 @@
 </template>
 
 <style lang="scss" scoped>
-.proposal {
-  outline: none;
-  position: relative;
-}
+.dark,
+.sync {
+  .proposal {
+    outline: none;
+    position: relative;
+  }
 
-.proposal::after {
-  content: '';
-  position: absolute;
-  top: 0px;
-  right: 0px;
-  bottom: 0px;
-  left: 0px;
-  border: 1px solid #2d3748;
-  border-radius: 12px;
-  pointer-events: none;
+  .proposal::after {
+    content: '';
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    left: 0px;
+    border: 1px solid #2d3748;
+    border-radius: 12px;
+    pointer-events: none;
+  }
 }
 </style>
