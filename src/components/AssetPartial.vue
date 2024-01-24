@@ -273,7 +273,6 @@ const rewards = computed(() => {
 });
 
 const apr = computed(() => {
-  console.log(props)
   const [ticker, protocol] = props.assetInfo.key.split('@');
   return (app.apr?.[protocol] ?? 0).toString();
 });

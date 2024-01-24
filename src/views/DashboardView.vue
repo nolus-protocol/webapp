@@ -198,7 +198,8 @@
       <!-- Existing Assets -->
       <div
         :class="{ 'async-loader': isAssetsLoading }"
-        class="block background mt-6 border-standart shadow-box lg:rounded-xl outline p-4 lg:p-6">
+        class="block background mt-6 border-standart shadow-box lg:rounded-xl outline p-4 lg:p-6"
+      >
         <!-- Top -->
         <div class="flex flex-wrap items-baseline justify-between">
           <div class="left w-1/3">
@@ -443,6 +444,7 @@ import { toUtf8 } from '@cosmjs/encoding'
 import { QuerySmartContractStateRequest } from 'cosmjs-types/cosmwasm/wasm/v1/query'
 import { useAdminStore } from '@/stores/admin'
 import DashboardDaughnutChart from '@/components/DashboardDaughnutChart.vue'
+import { EtlApi } from '@/utils/EtlApi'
 
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
@@ -696,7 +698,7 @@ const loadSuppliedAndStaked = async () => {
       let value = new Dec(0)
       value = value.add(a)
       value = value.add(b)
-      earnings.value  = value;
+      earnings.value = value;
     })
     .catch((e) => console.log(e))
 }
@@ -807,17 +809,20 @@ const loadLeases = async () => {
     for (const lease of leases.value) {
       if (lease.leaseStatus.opened) {
         const fn = async () => {
-          const data = JSON.parse(localStorage.getItem(lease.leaseAddress) ?? '{}')
-          if (
-            data.downPayment &&
-            data.downpaymentTicker &&
-            data.price &&
-            data.leasePositionTicker
-          ) {
-            return Promise.all([data, AppUtils.getOpenLeaseFee()])
-          } else {
-            return Promise.all([checkData(lease), AppUtils.getOpenLeaseFee()])
-          }
+
+          const data = EtlApi.fetchLeaseOpening(lease.leaseAddress).then((result) => {
+            const downpaymentTicker = result.lease.LS_cltr_symbol;
+            const c = wallet.getCurrencyByTicker(downpaymentTicker)
+            return {
+              downPayment: new Dec(result.lease.LS_cltr_amnt_stable, Number(c!.decimal_digits)).toString(),
+              downpaymentTicker: result.lease.LS_cltr_symbol,
+              leasePositionTicker: result.lease.LS_asset_symbol,
+              price: result.downpayment_price,
+            }
+          })
+
+          return Promise.all([data, AppUtils.getOpenLeaseFee()])
+
         }
 
         promises.push(
@@ -844,26 +849,31 @@ const loadLeases = async () => {
                 .add(new Dec(additionalInterest(lease).truncate(), LPN_DECIMALS))
                 .add(db)
 
-              const amount = new Dec(data.principal_due.amount, LPN_DECIMALS)
-                .add(new Dec(data.previous_margin_due.amount, LPN_DECIMALS))
-                .add(new Dec(data.previous_interest_due.amount, LPN_DECIMALS))
-                .add(new Dec(data.current_margin_due.amount, LPN_DECIMALS))
-                .add(new Dec(data.current_interest_due.amount, LPN_DECIMALS))
+              const item = wallet.getCurrencyByTicker(data.principal_due.ticker);
+              const amount = new Dec(data.principal_due.amount, Number(item!.decimal_digits))
+                .add(new Dec(data.previous_margin_due.amount, Number(item!.decimal_digits)))
+                .add(new Dec(data.previous_interest_due.amount, Number(item!.decimal_digits)))
+                .add(new Dec(data.current_margin_due.amount, Number(item!.decimal_digits)))
+                .add(new Dec(data.current_interest_due.amount, Number(item!.decimal_digits)))
 
               const totalAmount = new Dec((leaseData.downPayment as string) ?? '0').add(amount)
               const assetData = wallet.getCurrencyByTicker(data.amount.ticker)
               const assetAmount = new Dec(data.amount.amount, Number(assetData!.decimal_digits))
               const prevPrice = totalAmount.quo(assetAmount)
-
               const unitAsset = new Dec(data.amount.amount, Number(dDecimal))
+
               const currentPrice = new Dec(
                 oracle.prices?.[dasset!.ibcData as string]?.amount ?? '0'
               )
+
               const prevAmount = unitAsset.mul(prevPrice)
+
               const currentAmount = unitAsset.mul(currentPrice)
+
               const dfee = new Dec(downpaymentFee[leaseData.downpaymentTicker]).mul(
                 new Dec(leaseData.downPayment ?? 0)
               )
+
               const a = currentAmount.sub(prevAmount).add(dfee)
               pl = pl.add(a)
             }
@@ -1022,7 +1032,7 @@ async function getRewards() {
   try {
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient()
     const promises = []
-    const rewards = new Dec(0)
+    let rewards = new Dec(0)
 
     for (const protocolKey in admin.contracts) {
       const fn = async () => {
@@ -1031,7 +1041,7 @@ async function getRewards() {
         const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress()
 
         const lenderRewards = await lppClient.getLenderRewards(walletAddress)
-        rewards.add(new Dec(lenderRewards.rewards.amount));
+        rewards = rewards.add(new Dec(lenderRewards.rewards.amount));
 
         const [depositBalance, price] = await Promise.all([
           lppClient.getLenderDeposit(
@@ -1044,7 +1054,7 @@ async function getRewards() {
         );
         const amount = new Dec(depositBalance.balance).mul(calculatedPrice)
         const lpnReward = amount.sub(new Dec(depositBalance.balance)).truncateDec();
-        rewards.add(new Dec(lpnReward.truncate(), LPN_DECIMALS));
+        rewards = rewards.add(new Dec(lpnReward.truncate(), LPN_DECIMALS));
       }
       promises.push(fn())
     }
@@ -1060,7 +1070,8 @@ async function getRewards() {
   // return new Dec(0)
 }
 </script>
-<style lang="scss" scoped>.fade-enter-active,
+<style lang="scss" scoped>
+.fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.4s ease;
 }
@@ -1068,4 +1079,5 @@ async function getRewards() {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}</style>
+}
+</style>
