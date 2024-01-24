@@ -33,6 +33,7 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { SNACKBAR } from "@/config/env";
 import { CONTRACTS } from "@/config/contracts";
 import { Dec } from "@keplr-wallet/unit";
+import { useAdminStore } from "@/stores/admin";
 
 const walletStore = useWalletStore();
 const selectedCurrency = walletStore.balances[0]
@@ -75,6 +76,7 @@ const closeModal = inject("onModalClose", () => () => { });
 const onNextClick = () => { }
 const snackbarVisible = inject("snackbarVisible", () => false);
 const showSnackbar = inject("showSnackbar", (type: string, transaction: string) => { });
+const admin = useAdminStore();
 
 onUnmounted(() => {
   if (CONFIRM_STEP.PENDING == step.value) {
@@ -110,11 +112,11 @@ const requestClaim = async () => {
       const data = delegator.rewards.filter((item: any) => {
         const coin = item?.reward?.[0];
 
-        if(coin){
+        if (coin) {
           const asset = AssetUtils.getAssetInfoByDenom(coin.denom);
           const amount = new Dec(coin.amount, asset.coinDecimals);
 
-          if(amount.isPositive()){
+          if (amount.isPositive()) {
             return true;
           }
         }
@@ -127,7 +129,14 @@ const requestClaim = async () => {
         }
       });
 
-      const { txHash, txBytes, usedFee }  = await walletStore.wallet.simulateClaimRewards(data, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].lpp.instance);
+      const contracts = [];
+
+      for (const protocolKey in admin.contracts) {
+        const protocol = admin.contracts[protocolKey].lpp;
+        contracts.push(protocol);
+      }
+
+      const { txHash, txBytes, usedFee } = await walletStore.wallet.simulateClaimRewards(data, contracts);
       state.value.txHash = txHash;
 
       if (usedFee?.amount?.[0]) {
@@ -146,16 +155,16 @@ const requestClaim = async () => {
     await walletStore[WalletActionTypes.UPDATE_BALANCES]();
 
   } catch (error: Error | any) {
-    switch(error.code){
-        case(ErrorCodes.GasError): {
-          step.value = CONFIRM_STEP.GasError;
-          break;
-        }
-        default: {
-          step.value = CONFIRM_STEP.ERROR;
-          break;
-        }
+    switch (error.code) {
+      case (ErrorCodes.GasError): {
+        step.value = CONFIRM_STEP.GasError;
+        break;
       }
+      default: {
+        step.value = CONFIRM_STEP.ERROR;
+        break;
+      }
+    }
   }
 }
 </script>
