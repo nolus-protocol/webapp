@@ -6,8 +6,7 @@
         class="flex flex-wrap flex-row lg:gap-x-5 gap-y-8"
         name="fade-long"
         tag="div"
-      >
-        <ProposalItem
+        ><ProposalItem
           v-for="(proposal, index) in proposals"
           :key="index"
           :state="proposal"
@@ -33,12 +32,7 @@
       </Modal>
     </template>
     <template v-else>
-      <div v-for="index in 2" :key="index" class="h-[400px] md:h-[290px]">
-        <div class="flex justify-between">
-          <div class="w-[30px] h-0.5 bg-grey"></div>
-          <div class="w-[300px] h-0.5 bg-grey"></div>
-        </div>
-      </div>
+      <ProposalSkeleton />
     </template>
   </div>
 </template>
@@ -46,10 +40,11 @@
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { AppUtils } from '@/utils/AppUtils'
-import type { Proposal } from '@/types/Proposal'
+import { type Proposal } from '@/types/Proposal'
 import ProposalItem from '@/modules/vote/components/ProposalItem.vue'
 import ProposalReadMoreDialog from '@/modules/vote/components/ProposalReadMoreDialog.vue'
 import Modal from '@/components/modals/templates/Modal.vue'
+import ProposalSkeleton from '@/modules/vote/components/ProposalSkeleton.vue'
 
 const showReadMoreModal = ref(false)
 const showVoteModal = ref(false)

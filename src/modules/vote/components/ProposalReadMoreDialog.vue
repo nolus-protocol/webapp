@@ -27,7 +27,7 @@ const description = computed(() => {
   const source = props.source?.replace(/(?:\\[rn])+/g, '\n')
 
   return marked.parse(source, {
-    pedantic: false,
+    pedantic: true,
     gfm: true,
     breaks: true
   })
