@@ -14,6 +14,7 @@ import { WalletConnectMechanism } from "@/types";
 import { Protocols } from "@nolus/nolusjs/build/types/Networks";
 import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
 import { EtlApi } from "@/utils/EtlApi";
+import { useAdminStore } from "../admin";
 
 const useApplicationStore = defineStore("application", {
   state: () => {
@@ -152,15 +153,25 @@ const useApplicationStore = defineStore("application", {
 
       try {
 
+        const admin = useAdminStore();
         const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
         const dispatcherClient = new Disparcher(cosmWasmClient, CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].dispatcher.instance);
 
-        const [data, dispatcherRewards] = await Promise.all([
-          EtlApi.fetchEarnApr(),
+        const apr: { [key: string]: number } = {};
+        const promises = [
           dispatcherClient.calculateRewards().catch(() => 130)
-        ]);
+        ];
 
-        this.apr = Number(data.earn_apr);
+        for (const protocolKey in admin.contracts) {
+          const fn = async () => {
+            const data = await EtlApi.fetchEarnApr(protocolKey);
+            apr[protocolKey] = data.earn_apr;
+          }
+          promises.push(fn());
+        }
+
+        const [dispatcherRewards] = await Promise.all(promises);
+        this.apr = apr;
         this.dispatcherRewards = dispatcherRewards / Math.pow(10, INTEREST_DECIMALS);
 
       } catch (error) {

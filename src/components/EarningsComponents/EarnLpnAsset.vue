@@ -55,17 +55,8 @@
       <div class="info-show">
         <div class="text-primary text-14 text-right m-0 justify-end nls-font-500">
           <CurrencyComponent
-            v-if="assetInfo.key == 'USDC_AXELAR@OSMOSIS'"
             :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            :amount="app.apr?.toString() ?? '0'"
-            :hasSpace="false"
-            :isDenomInfront="false"
-            denom="%"
-          />
-          <CurrencyComponent
-            v-else
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            :amount="'6.00'"
+            :amount="apr"
             :hasSpace="false"
             :isDenomInfront="false"
             denom="%"
@@ -131,6 +122,12 @@ const props = defineProps({
 const assetInfo = computed(() => {
   const assetInfo = wallet.getCurrencyInfo(props.asset.balance.denom);
   return assetInfo;
+});
+
+const apr = computed(() => {
+  const currency = wallet.currencies[props.asset.balance.denom];
+  const [ticker, protocol] = currency.ticker.split('@');
+  return (app.apr?.[protocol] ?? 0).toString();
 });
 
 const showBalance = computed(() => {
