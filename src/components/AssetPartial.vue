@@ -62,9 +62,14 @@
               :isDenomInfront="false"
               denom="%"
             />
-            <p v-else>
-              -
-            </p>
+            <CurrencyComponent
+            v-else
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            :amount="'6.00'"
+            :hasSpace="false"
+            :isDenomInfront="false"
+            denom="%"
+          />
             <p class="text-[#1AB171] text-[12px]">
               +{{ rewards }}% {{ NATIVE_ASSET.label }}
             </p>
