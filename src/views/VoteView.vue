@@ -35,6 +35,13 @@
       <ProposalSkeleton />
     </template>
   </div>
+  <Modal v-if="showErrorDialog" route="alert" @close-modal="showErrorDialog = false">
+    <ErrorDialog
+      :message="errorMessage"
+      :title="$t('message.error-connecting')"
+      :try-button="onClickTryAgain"
+    />
+  </Modal>
 </template>
 
 <script lang="ts" setup>
@@ -45,12 +52,16 @@ import ProposalItem from '@/modules/vote/components/ProposalItem.vue'
 import ProposalReadMoreDialog from '@/modules/vote/components/ProposalReadMoreDialog.vue'
 import Modal from '@/components/modals/templates/Modal.vue'
 import ProposalSkeleton from '@/modules/vote/components/ProposalSkeleton.vue'
+import ErrorDialog from '@/components/modals/ErrorDialog.vue'
 
+const showErrorDialog = ref(false)
+const errorMessage = ref('')
 const showReadMoreModal = ref(false)
 const showVoteModal = ref(false)
 const loading = ref(false)
 const initialLoad = ref(false)
 const showSkeleton = ref(true)
+
 const proposals = ref([] as Proposal[])
 const proposal = ref({
   title: '',
@@ -65,9 +76,6 @@ let timeout: NodeJS.Timeout
 
 onMounted(async () => {
   await fetchGovernanceProposals()
-  timeout = setTimeout(() => {
-    showSkeleton.value = false
-  }, 400)
 })
 
 onUnmounted(() => {
@@ -88,11 +96,14 @@ const fetchGovernanceProposals = async () => {
     proposals.value = data.proposals
     pagination.value = data.pagination
 
-    console.info({ proposals: proposals.value, pagination: pagination.value })
-
     initialLoad.value = true
-  } catch (error) {
-    console.error(error)
+  } catch (error: Error | any) {
+    showErrorDialog.value = true
+    errorMessage.value = error?.message
+  } finally {
+    timeout = setTimeout(() => {
+      showSkeleton.value = false
+    }, 400)
   }
 }
 
@@ -132,13 +143,18 @@ const loadMoreProposals = async () => {
 
     proposals.value = [...proposals.value, ...data.proposals]
     pagination.value = data.pagination
-  } catch (e) {
-    console.error(e)
+  } catch (error: Error | any) {
+    showErrorDialog.value = true
+    errorMessage.value = error?.message
   } finally {
     setTimeout(() => {
       loading.value = false
     }, 500)
   }
+}
+
+async function onClickTryAgain() {
+  await fetchGovernanceProposals()
 }
 </script>
 
