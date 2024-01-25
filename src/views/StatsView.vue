@@ -535,7 +535,6 @@ function inFocus(data: string[]) {
 }
 
 function inStatLineFocus(data: string[], index: number) {
-
   if (index < 0) {
     return setLastIndex();
   }
@@ -550,8 +549,8 @@ function inStatLineFocus(data: string[], index: number) {
 
 function setLastIndex() {
   const [s, b] = chartElement.value!.getChartData().datasets;
-  const [_s, svalue] = s.data[s.data.length - 1];
-  const [_b, bvalue] = b.data[b.data.length - 1];
+  const [_s, svalue] = s.data[0];
+  const [_b, bvalue] = b.data[0];
   suppliedBorrowed.value.supplied = svalue;
   suppliedBorrowed.value.borrowed = bvalue;
 }
