@@ -1,7 +1,7 @@
 <template>
   <DialogHeader :headerList="[title]">
     <div
-      class="overflow-auto md:max-h-[70vh] text-primary p-10 custom-scroll proposal-modal"
+      class="overflow-auto w-full md:max-h-[70vh] text-primary p-10 custom-scroll proposal-modal"
       v-html="description"
     />
   </DialogHeader>

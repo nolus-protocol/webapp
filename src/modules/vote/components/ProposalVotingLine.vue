@@ -1,5 +1,5 @@
 <template>
-  <div class="flex z-[0]">
+  <div class="flex">
     <div
       v-for="(res, index) in result"
       :key="index"
@@ -33,6 +33,7 @@ const props = defineProps({
     required: true
   }
 })
+
 const showTooltips = ref(Array(Object.values(props.voting).length).fill(false))
 
 const colors: { [key: string]: any } = {
@@ -71,7 +72,7 @@ const result = Object.entries(props.voting)
     },
     [] as { label: string; percent: string }[]
   )
-  .filter((item) => item.percent !== '0.00')
+  .filter((item) => !!Number(item.percent))
 
 const showTooltip = (index: number) => {
   showTooltips.value[index] = true

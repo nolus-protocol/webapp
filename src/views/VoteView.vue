@@ -6,7 +6,8 @@
         class="flex flex-wrap flex-row lg:gap-x-5 gap-y-8"
         name="fade-long"
         tag="div"
-        ><ProposalItem
+      >
+        <ProposalItem
           v-for="(proposal, index) in proposals"
           :key="index"
           :state="proposal"
@@ -24,11 +25,11 @@
           {{ $t('message.load-more') }}
         </button>
       </div>
-      <Modal v-if="showReadMoreModal" route="create" @close-modal="onCloseReadMoreModal">
+      <Modal v-if="showReadMoreModal" @close-modal="onCloseReadMoreModal">
         <ProposalReadMoreDialog :source="proposal.description" :title="proposal.title" />
       </Modal>
-      <Modal v-if="showVoteModal" route="create" @close-modal="onCloseVoteModal">
-        <div>Vote Modal</div>
+      <Modal v-if="showVoteModal" @close-modal="onCloseVoteModal">
+        <ProposalVoteDialog :proposal="proposal" />
       </Modal>
     </template>
     <template v-else>
@@ -50,6 +51,7 @@ import { AppUtils } from '@/utils/AppUtils'
 import { type Proposal } from '@/modules/vote/Proposal'
 import ProposalItem from '@/modules/vote/components/ProposalItem.vue'
 import ProposalReadMoreDialog from '@/modules/vote/components/ProposalReadMoreDialog.vue'
+import ProposalVoteDialog from '@/modules/vote/components/ProposalVoteDialog.vue'
 import Modal from '@/components/modals/templates/Modal.vue'
 import ProposalSkeleton from '@/modules/vote/components/ProposalSkeleton.vue'
 import ErrorDialog from '@/components/modals/ErrorDialog.vue'
@@ -64,6 +66,7 @@ const showSkeleton = ref(true)
 
 const proposals = ref([] as Proposal[])
 const proposal = ref({
+  id: '',
   title: '',
   description: ''
 })
@@ -110,6 +113,7 @@ const fetchGovernanceProposals = async () => {
 const onReadMore = ({ description, title }: { description: string; title: string }) => {
   showReadMoreModal.value = true
   proposal.value = {
+    ...proposal.value,
     description,
     title
   }
@@ -119,12 +123,17 @@ const onCloseReadMoreModal = () => {
   showReadMoreModal.value = false
 }
 
-const onCloseVoteModal = () => {
-  showVoteModal.value = false
+const onVote = (selectedProposal: Proposal) => {
+  showVoteModal.value = true
+  proposal.value = {
+    ...proposal.value,
+    title: selectedProposal.content.title,
+    id: selectedProposal.proposal_id
+  }
 }
 
-const onVote = (proposalId: string) => {
-  console.log('onVote', proposalId)
+const onCloseVoteModal = () => {
+  showVoteModal.value = false
 }
 
 const visible = computed(() => {

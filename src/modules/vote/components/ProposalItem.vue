@@ -17,9 +17,15 @@
       </div>
     </div>
     <div class="text-primary text-small-heading break-all">
-      #{{ state.proposal_id }} {{ state.content.title }}
+      &#35;{{ state.proposal_id }} {{ state.content.title }}
     </div>
-    <proposal-voting-line v-if="isVotingPeriod" :voting="state.final_tally_result" />
+    <ProposalVotingLine
+      v-if="
+        isVotingPeriod &&
+        Object.values(state.final_tally_result).filter((res) => !!Number(res)).length > 0
+      "
+      :voting="state.final_tally_result"
+    />
     <div v-if="state.content.description" class="text-medium-blue text-12">
       <div class="text-bold text-14">Summary</div>
       {{ StringUtils.truncateText(state.content.description, 256) }}
@@ -38,7 +44,7 @@
       <div class="w-full border-standart border-b bg-transparent" />
       <button
         class="btn btn-primary btn-large-primary self-end !px-3 !py-2"
-        @click="$emit('vote', state.proposal_id)"
+        @click="$emit('vote', state)"
       >
         {{ $t('message.vote') }}
       </button>
