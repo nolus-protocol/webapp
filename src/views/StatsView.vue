@@ -10,7 +10,7 @@
     </div>
 
     <div class="background mt-6 shadow-box lg:rounded-xl p-4 lg:p-6 outline">
-      <div class="balance-box flex md:items-center md:justify-start">
+      <div class="assets-boxs flex md:items-center md:justify-start flex-col md:flex-row">
 
         <div class="left inline-block line-mobile pb-4 lg:pb-0">
           <p class="nls-font-500 text-16 text-primary">
@@ -316,7 +316,7 @@
     </div>
 
     <div class="background mt-6 shadow-box lg:rounded-xl outline flex flex-col lg:flex-row p-4 lg:p-6">
-      <div class="">
+      <div class="w-full">
         <p class="nls-font-500 text-16 text-primary">
           {{ $t('message.leased-assets-total') }}
         </p>
@@ -331,7 +331,7 @@
             />
           </div>
           <div class="w-full flex gap-4 lg:gap-6 flex-col lg:flex-row">
-            <div class="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-4 xl:grid-cols-5 gap-2 xl:gap-6">
+            <div class="pt-6 grid grid-cols-4 md:grid-cols-5 lg:grid-cols-4 xl:grid-cols-7 gap-2 xl:gap-6">
 
               <div
                 v-for="(item, index) in loans"
@@ -392,41 +392,6 @@
           </div>
         </div>
       </div>
-
-      <!--      <div-->
-      <!--        class="border-standart border-t lg:border-t-0 lg:border-l flex lg:items-start lg:justify-center lg:flex-col lg:mr-6"-->
-      <!--      >-->
-      <!--        <div class="pt-3">-->
-      <!--          <p class="nls-font-500 text-12 text-dark-grey flex">-->
-      <!--            {{ $t('message.borrowed') }}-->
-      <!--          </p>-->
-
-      <!--          <CurrencyComponent-->
-      <!--            :fontSize="20"-->
-      <!--            :fontSizeSmall="16"-->
-      <!--            :type="CURRENCY_VIEW_TYPES.CURRENCY"-->
-      <!--            :amount="totalBorrowed"-->
-      <!--            denom="$"-->
-      <!--            :has-space="false"-->
-      <!--            class="nls-font-500 text-primary"-->
-      <!--          />-->
-      <!--        </div>-->
-      <!--        <div class="pt-3 lg:ml-0 ml-6">-->
-      <!--          <p class="nls-font-500 text-12 text-dark-grey flex">-->
-      <!--            {{ $t('message.protocol-revenue') }}-->
-      <!--          </p>-->
-
-      <!--          <CurrencyComponent-->
-      <!--            :fontSize="20"-->
-      <!--            :fontSizeSmall="16"-->
-      <!--            :type="CURRENCY_VIEW_TYPES.CURRENCY"-->
-      <!--            :amount="protocolRevenue"-->
-      <!--            denom="$"-->
-      <!--            :has-space="false"-->
-      <!--            class="nls-font-500 text-primary"-->
-      <!--          />-->
-      <!--        </div>-->
-      <!--      </div>-->
     </div>
   </div>
 </template>
@@ -448,7 +413,7 @@ div.stats {
   }
 }
 
-.balance-box {
+.assets-box {
   div:first-of-type {
     margin-bottom: 0px !important;
   }
