@@ -1183,10 +1183,9 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@nolus/nolusjs@2.0.10":
-  version "2.0.10"
-  resolved "https://registry.yarnpkg.com/@nolus/nolusjs/-/nolusjs-2.0.10.tgz#4d0e4d11d39e3528d41aeaaecd10b992ffe4acae"
-  integrity sha512-hEwroAQHmkkEnHQxwTB+cKTD4Rax3Apx/2dFJ0vQF0PZ9ehkDIzqmr+9C1SxYRHBhLTV1fgwQhcthU55tFnoKA==
+"@nolus/nolusjs@file:../nolus.js/build/nolus-nolusjs-v2.0.12.tgz":
+  version "2.0.12"
+  resolved "file:../nolus.js/build/nolus-nolusjs-v2.0.12.tgz#abc6d91f7618ecc2b28ba57bbeafdb347490b55e"
   dependencies:
     "@cosmjs/cosmwasm-stargate" "0.32.2"
     "@cosmjs/crypto" "0.32.2"
@@ -4257,6 +4256,7 @@ stream-browserify@^3.0.0:
     readable-stream "^3.5.0"
 
 "string-width-cjs@npm:string-width@^4.2.0", string-width@^4.1.0:
+  name string-width-cjs
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
   integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==

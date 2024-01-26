@@ -33,7 +33,7 @@ const defaultOptions: any = {
   maintainAspectRatio: true,
   borderWidth: 0,
   aspectRatio: true,
-  cutout: window.innerWidth > 680 ? 60 : 95,
+  cutout: window.innerWidth > 680 ? 50 : 95,
   tooltips: {
     intersect: false,
   },
