@@ -16,7 +16,6 @@
         >
           <div class="nls-nav-link flex flex-start nls-md-flex-row mb-[6px]">
             <SidebarElement
-              v-if="AppUtils.isDev()"
               id="stats"
               href="/stats"
               :label="$t('message.protocol-stats')"
@@ -147,7 +146,6 @@
       <a
         @click="pushTo(RouteNames.STATS)"
         class="cursor-pointer select-none flex items-center ml-[4px] mb-[4px] stats-link"
-        v-if="AppUtils.isDev()"
       >
         <Stats
           :class="{ active: $route.name == RouteNames.STATS }"
