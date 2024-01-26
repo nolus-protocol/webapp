@@ -65,27 +65,6 @@ interface CustomError extends Error {
 
 const LOAD_TIMEOUT = 500
 
-// const showErrorDialog = ref(false)
-// const errorMessage = ref('')
-// const showReadMoreModal = ref(false)
-// const showVoteModal = ref(false)
-// const loading = ref(false)
-// const initialLoad = ref(false)
-// const showSkeleton = ref(true)
-//
-// const proposals = ref([] as Proposal[])
-// const proposal = ref({
-//   id: '',
-//   title: '',
-//   description: ''
-// })
-// const limit = ref(6)
-// const pagination = ref({
-//   total: 0,
-//   next_key: ''
-// })
-// let timeout: NodeJS.Timeout
-
 const state = reactive({
   showErrorDialog: false,
   errorMessage: '',
