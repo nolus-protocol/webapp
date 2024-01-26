@@ -10,7 +10,7 @@
     </div>
 
     <div class="background mt-6 shadow-box lg:rounded-xl p-4 lg:p-6 outline">
-      <div class="balance-box flex md:items-center md:justify-start">
+      <div class="assets-boxs flex md:items-center md:justify-start flex-col md:flex-row">
 
         <div class="left inline-block line-mobile pb-4 lg:pb-0">
           <p class="nls-font-500 text-16 text-primary">
@@ -111,7 +111,7 @@
 
     </div>
 
-    <div class="flex background outline border-standart shadow-box lg:rounded-xl mt-6 md:max-w-[50%] max-w-[100%]">
+    <div class="flex background outline border-standart shadow-box lg:rounded-xl mt-6  max-w-[100%] md:flex-row flex-col">
       <!-- <div class="md:col-span-6 lg:co-span-6"> -->
       <!-- Rewards -->
       <div class="block flex-1 p-4 lg:p-6">
@@ -136,7 +136,7 @@
                     :fontSize="28"
                     :fontSizeSmall="22"
                     :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                    :amount="utilizationLevel"
+                    :amount="utilizationLevelOsmosis"
                     denom="%"
                     :isDenomInfront="false"
                     :has-space="false"
@@ -168,7 +168,7 @@
                 :fontSize="20"
                 :fontSizeSmall="16"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                :amount="(app.apr ?? 0).toString()"
+                :amount="(app.apr?.[Protocols.osmosis] ?? 0).toString()"
                 denom="%"
                 :isDenomInfront="false"
                 :has-space="false"
@@ -216,15 +216,15 @@
         </div>
       </div>
 
-      <!-- <div class="block flex-1 p-[12px]">
-        <div class="flex items-center justify-between px-4 pt-2 pb-0">
+      <div class="block flex-1 p-4 lg:p-6">
+        <div class="md:flex items-center justify-between px-4 pt-2 pb-0 hidden">
           <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
             &nbsp;
           </h2>
         </div>
         <div class="block border-b border-standart">
-          <div class="grid gap-6px-3 md:px-4 py-2 items-center justify-between earn-asset grid-cols-3 md:grid-cols-3">
-            <div class="inline-flex items-center col-span-2 lg:ml-0 ml-6">
+          <div class="grid gap-6px-3 py-2 items-center justify-between earn-asset grid-cols-3 md:grid-cols-3">
+            <div class="inline-flex items-center col-span-2">
               <div class="inline-block">
 
                 <div class="pt-3">
@@ -236,7 +236,7 @@
                     :fontSize="28"
                     :fontSizeSmall="22"
                     :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                    :amount="'0.00'"
+                    :amount="utilizationLevelNeutron"
                     denom="%"
                     :isDenomInfront="false"
                     :has-space="false"
@@ -249,7 +249,7 @@
 
           </div>
         </div>
-        <div class="flex items-center justify-start py-4 px-6 lg:px-0">
+        <div class="flex items-center justify-start py-4 px- md:px-6 lg:px-0">
 
           <div class="pt-3 lg:pl-4">
             <p class="nls-font-500 text-12 text-dark-grey flex">
@@ -266,7 +266,7 @@
                 :fontSize="20"
                 :fontSizeSmall="16"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                :amount="'0'"
+                :amount="(app.apr?.[Protocols.neutron] ?? 0).toString()"
                 denom="%"
                 :isDenomInfront="false"
                 :has-space="false"
@@ -286,7 +286,7 @@
               :fontSize="20"
               :fontSizeSmall="16"
               :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              :amount="'0'"
+              :amount="optimal"
               denom="%"
               :isDenomInfront="false"
               :has-space="false"
@@ -304,7 +304,7 @@
               :fontSize="20"
               :fontSizeSmall="16"
               :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              :amount="'0'"
+              :amount="depositSuspension"
               denom="%"
               :isDenomInfront="false"
               :has-space="false"
@@ -312,23 +312,26 @@
             />
           </div>
         </div>
-      </div> -->
+      </div>
     </div>
 
     <div class="background mt-6 shadow-box lg:rounded-xl outline flex flex-col lg:flex-row p-4 lg:p-6">
-      <div class="">
+      <div class="w-full">
         <p class="nls-font-500 text-16 text-primary">
           {{ $t('message.leased-assets-total') }}
         </p>
         <div class="w-full flex flex-col lg:flex-row items-center gap-4 lg:gap-6">
-          <div class="stats flex" v-show="(loans?.length ?? 0) > 0">
+          <div
+            class="stats flex"
+            v-show="(loans?.length ?? 0) > 0"
+          >
             <StatDaughnutChart
               ref="statChart"
               @in-focus="inFocus"
             />
           </div>
           <div class="w-full flex gap-4 lg:gap-6 flex-col lg:flex-row">
-            <div class="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-4 xl:grid-cols-5 gap-2 xl:gap-6">
+            <div class="pt-6 gap-4 xl:gap-6 flex flex-wrap">
 
               <div
                 v-for="(item, index) in loans"
@@ -389,41 +392,6 @@
           </div>
         </div>
       </div>
-
-<!--      <div-->
-<!--        class="border-standart border-t lg:border-t-0 lg:border-l flex lg:items-start lg:justify-center lg:flex-col lg:mr-6"-->
-<!--      >-->
-<!--        <div class="pt-3">-->
-<!--          <p class="nls-font-500 text-12 text-dark-grey flex">-->
-<!--            {{ $t('message.borrowed') }}-->
-<!--          </p>-->
-
-<!--          <CurrencyComponent-->
-<!--            :fontSize="20"-->
-<!--            :fontSizeSmall="16"-->
-<!--            :type="CURRENCY_VIEW_TYPES.CURRENCY"-->
-<!--            :amount="totalBorrowed"-->
-<!--            denom="$"-->
-<!--            :has-space="false"-->
-<!--            class="nls-font-500 text-primary"-->
-<!--          />-->
-<!--        </div>-->
-<!--        <div class="pt-3 lg:ml-0 ml-6">-->
-<!--          <p class="nls-font-500 text-12 text-dark-grey flex">-->
-<!--            {{ $t('message.protocol-revenue') }}-->
-<!--          </p>-->
-
-<!--          <CurrencyComponent-->
-<!--            :fontSize="20"-->
-<!--            :fontSizeSmall="16"-->
-<!--            :type="CURRENCY_VIEW_TYPES.CURRENCY"-->
-<!--            :amount="protocolRevenue"-->
-<!--            denom="$"-->
-<!--            :has-space="false"-->
-<!--            class="nls-font-500 text-primary"-->
-<!--          />-->
-<!--        </div>-->
-<!--      </div>-->
     </div>
   </div>
 </template>
@@ -445,7 +413,7 @@ div.stats {
   }
 }
 
-.balance-box {
+.assets-box {
   div:first-of-type {
     margin-bottom: 0px !important;
   }
@@ -464,14 +432,15 @@ import { ETL_API } from '@/config/env';
 import { useI18n } from 'vue-i18n';
 import { useWalletStore } from '@/stores/wallet';
 import { useApplicationStore } from '@/stores/application';
+import { Protocols } from '@nolus/nolusjs/build/types/Networks';
 
 const i18n = useI18n();
 const totalValueLocked = ref('0');
-const borrowApr = ref('0');
-const utilizationLevel = ref('0');
+const utilizationLevelOsmosis = ref('0');
+const utilizationLevelNeutron = ref('0');
+
 const optimal = ref('70');
 const depositSuspension = ref('65');
-const distributed = ref('0');
 const totalBorrowed = ref('0');
 const protocolRevenue = ref('0');
 const buybackTotal = ref('0');
@@ -515,10 +484,9 @@ const chartData = {
 onMounted(async () => {
   await Promise.all([
     setTotalValueLocked(),
-    setBorrowApr(),
     setTimeSeries(),
-    setUtilization(),
-    setDistributed(),
+    setUtilizationOsmosis(),
+    setUtilizationNeutron(),
     setTotalBorrowed(),
     setProtocolRevenue(),
     setStats(),
@@ -532,7 +500,6 @@ function inFocus(data: string[]) {
 }
 
 function inStatLineFocus(data: string[], index: number) {
-
   if (index < 0) {
     return setLastIndex();
   }
@@ -547,8 +514,8 @@ function inStatLineFocus(data: string[], index: number) {
 
 function setLastIndex() {
   const [s, b] = chartElement.value!.getChartData().datasets;
-  const [_s, svalue] = s.data[s.data.length - 1];
-  const [_b, bvalue] = b.data[b.data.length - 1];
+  const [_s, svalue] = s.data[0];
+  const [_b, bvalue] = b.data[0];
   suppliedBorrowed.value.supplied = svalue;
   suppliedBorrowed.value.borrowed = bvalue;
 }
@@ -557,12 +524,6 @@ async function setTotalValueLocked() {
   const data = await fetch(`${ETL_API}/total-value-locked`);
   const item = await data.json();
   totalValueLocked.value = item.total_value_locked;
-}
-
-async function setBorrowApr() {
-  const data = await fetch(`${ETL_API}/borrow-apr`);
-  const item = await data.json();
-  borrowApr.value = item[0];
 }
 
 async function setTimeSeries() {
@@ -591,16 +552,16 @@ async function setTimeSeries() {
 
 }
 
-async function setUtilization() {
-  const data = await fetch(`${ETL_API}/utilization-level`);
+async function setUtilizationOsmosis() {
+  const data = await fetch(`${ETL_API}/utilization-level?protocol=${Protocols.osmosis}`);
   const item = await data.json();
-  utilizationLevel.value = item[0];
+  utilizationLevelOsmosis.value = item[0];
 }
 
-async function setDistributed() {
-  const data = await fetch(`${ETL_API}/distributed`);
+async function setUtilizationNeutron() {
+  const data = await fetch(`${ETL_API}/utilization-level?protocol=${Protocols.neutron}`);
   const item = await data.json();
-  distributed.value = item.distributed;
+  utilizationLevelNeutron.value = item[0];
 }
 
 async function setTotalBorrowed() {

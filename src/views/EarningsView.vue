@@ -13,7 +13,8 @@
       <div class="md:col-span-7 lg:col-span-7">
         <!-- Portfolio -->
         <div
-             class="block order-2 order-1 background md:col-span-7 md:mt-6 async-loader outline border-standart shadow-box md:rounded-xl p-5">
+          class="block order-2 order-1 background md:col-span-7 md:mt-6 async-loader outline border-standart shadow-box md:rounded-xl p-5"
+        >
           <div class="lg:flex block items-center justify-between">
             <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
               {{ $t("message.earning-assets") }}
@@ -29,25 +30,31 @@
               </div>
 
               <div
-                   class="inline-flex items-center nls-font-500 text-12 text-dark-grey text-center hidden md:flex text-upper md:col-span-1 justify-end md:m-r[10px]">
+                class="inline-flex items-center nls-font-500 text-12 text-dark-grey text-center hidden md:flex text-upper md:col-span-1 justify-end md:m-r[10px]"
+              >
                 <span class="inline-block">{{ $t("message.deposit") }}</span>
                 <TooltipComponent :content="$t('message.deposit-tooltip')" />
               </div>
 
               <div
-                   class="flex nls-font-500 text-12 text-dark-grey text-right text-upper md:flex items-center justify-end items-center">
+                class="flex nls-font-500 text-12 text-dark-grey text-right text-upper md:flex items-center justify-end items-center"
+              >
                 {{ $t("message.yield") }}
                 <TooltipComponent :content="$t('message.earn-view-apr-tooltip')" />
               </div>
             </div>
 
-            <div role="status"
-                 class="block lg:mb-0"
-                 :class="{ 'animate-pulse': loading }">
+            <div
+              role="status"
+              class="block lg:mb-0"
+              :class="{ 'animate-pulse': loading }"
+            >
               <template v-if="loading">
-                <div v-for="index in 2"
-                     :key="index"
-                     class="h-[67px] flex items-center justify-between asset-partial nolus-box relative border-b border-standart py-3 px-4 items-center justify-between">
+                <div
+                  v-for="index in 2"
+                  :key="index"
+                  class="h-[67px] flex items-center justify-between asset-partial nolus-box relative border-b border-standart py-3 px-4 items-center justify-between"
+                >
                   <div class="w-[50%] md:w-auto grow-[1]">
                     <div class="w-32 h-1.5 bg-grey rounded-full mb-2.5"></div>
                     <div class="h-1.5 bg-grey rounded-full w-24"></div>
@@ -60,22 +67,28 @@
                 </div>
               </template>
               <template v-else>
-                <TransitionGroup name="fade"
-                                 appear
-                                 tag="div">
+                <TransitionGroup
+                  name="fade"
+                  appear
+                  tag="div"
+                >
 
-                  <EarnLpnAsset v-for="(lpn, index) of lpnAsset"
-                                :key="lpn.balance.denom"
-                                :asset="lpn"
-                                :openSupplyWithdraw="() => openSupplyWithdrawDialog(lpn.balance.denom)"
-                                :cols="cols"
-                                :class="index > 0 ? 'border-t-[1px]' : ''" />
+                  <EarnLpnAsset
+                    v-for="(lpn, index) of lpnAsset"
+                    :key="lpn.balance.denom"
+                    :asset="lpn"
+                    :openSupplyWithdraw="() => openSupplyWithdrawDialog(lpn.balance.denom)"
+                    :cols="cols"
+                    :class="index > 0 ? 'border-t-[1px]' : ''"
+                  />
 
-                  <EarnNativeAsset key="nativeAsset"
-                                   :asset="delegated"
-                                   :cols="cols"
-                                   :openDelegateUndelegate="() => openDelegateUndelegateDialog()"
-                                   :isDelegated="isDelegated" />
+                  <EarnNativeAsset
+                    key="nativeAsset"
+                    :asset="delegated"
+                    :cols="cols"
+                    :openDelegateUndelegate="() => openDelegateUndelegateDialog()"
+                    :isDelegated="isDelegated"
+                  />
                 </TransitionGroup>
               </template>
             </div>
@@ -88,7 +101,8 @@
       <div class="md:col-span-5 lg:co-span-5">
         <!-- Rewards -->
         <div
-             class="block order-2 md:order-1 background md:col-span-7 mt-6 outline border-standart shadow-box md:rounded-xl p-5">
+          class="block order-2 md:order-1 background md:col-span-7 mt-6 outline border-standart shadow-box md:rounded-xl p-5"
+        >
           <div class="flex items-center justify-between border-b border-standart pb-6">
             <h2 class="text-16 nls-font-500 text-left my-0 text-primary">
               {{ $t("message.rewards") }}
@@ -97,9 +111,11 @@
           <!-- Assets -->
           <div class="block">
             <!-- Assets Container -->
-            <EarnReward :reward="reward"
-                        :onClickClaim="onClickWithdrawRewards"
-                        :cols="cols" />
+            <EarnReward
+              :reward="reward"
+              :onClickClaim="onClickWithdrawRewards"
+              :cols="cols"
+            />
             <!-- Assets Container -->
           </div>
         </div>
@@ -107,30 +123,40 @@
     </div>
   </div>
 
-  <Modal v-if="showSupplyWithdrawDialog"
-         route="supply"
-         @close-modal="showSupplyWithdrawDialog = false">
+  <Modal
+    v-if="showSupplyWithdrawDialog"
+    route="supply"
+    @close-modal="showSupplyWithdrawDialog = false"
+  >
     <SupplyWithdrawDialog :selectedAsset="selectedAsset" />
   </Modal>
 
-  <Modal v-if="showDelegateUndelegateDialog"
-         route="delegate"
-         @close-modal="showDelegateUndelegateDialog = false">
+  <Modal
+    v-if="showDelegateUndelegateDialog"
+    route="delegate"
+    @close-modal="showDelegateUndelegateDialog = false"
+  >
     <DelegateUndelegateDialog :selectedAsset="selectedAsset" />
   </Modal>
 
-  <Modal v-if="showWithrawRewardsDialog"
-         route="withdraw-rewards"
-         @close-modal="showWithrawRewardsDialog = false">
+  <Modal
+    v-if="showWithrawRewardsDialog"
+    route="withdraw-rewards"
+    @close-modal="showWithrawRewardsDialog = false"
+  >
     <WithdrawRewardsDialog :amount="reward" />
   </Modal>
 
-  <Modal v-if="showErrorDialog"
-         route="alert"
-         @close-modal="showErrorDialog = false">
-    <ErrorDialog :title="$t('message.error-connecting')"
-                 :message="errorMessage"
-                 :try-button="onClickTryAgain" />
+  <Modal
+    v-if="showErrorDialog"
+    route="alert"
+    @close-modal="showErrorDialog = false"
+  >
+    <ErrorDialog
+      :title="$t('message.error-connecting')"
+      :message="errorMessage"
+      :try-button="onClickTryAgain"
+    />
   </Modal>
 </template>
 
@@ -281,21 +307,27 @@ async function getRewards() {
 
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
     const promises = [];
-    const rewards = new Dec(0);
+    let rewards = new Dec(0);
 
     for (const protocolKey in admin.contracts) {
       const fn = async () => {
-        const contract = admin.contracts[protocolKey].lpp;
-        const lppClient = new Lpp(cosmWasmClient, contract);
-        const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
+        try {
+          const contract = admin.contracts[protocolKey].lpp;
+          const lppClient = new Lpp(cosmWasmClient, contract);
+          const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
 
-        const lenderRewards = await lppClient.getLenderRewards(walletAddress);
-        rewards.add(new Dec(lenderRewards.rewards.amount));
+          const lenderRewards = await lppClient.getLenderRewards(walletAddress);
+          rewards = rewards.add(new Dec(lenderRewards.rewards.amount));
+
+        } catch (e) {
+          console.log(e)
+        }
+
       }
       promises.push(fn());
     }
 
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
     lpnReward.value = rewards;
 
     return rewards;

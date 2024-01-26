@@ -1,21 +1,25 @@
 <template>
-  <ConfirmComponent v-if="showConfirmScreen"
-                    :selectedCurrency="state.selectedCurrency"
-                    :receiverAddress="state.receiverAddress"
-                    :password="state.password"
-                    :amount="state.amount"
-                    :memo="state.memo"
-                    :txType="$t(`message.${TxType.SEND}`) + ':'"
-                    :txHash="state.txHash"
-                    :step="step"
-                    :fee="state.fee"
-                    :onSendClick="onSendClick"
-                    :onBackClick="onConfirmBackClick"
-                    :onOkClick="onClickOkBtn"
-                    @passwordUpdate="(value) => (state.password = value)" />
-  <SendComponent v-else
-                 v-model="state"
-                 class="overflow-auto custom-scroll" />
+  <ConfirmComponent
+    v-if="showConfirmScreen"
+    :selectedCurrency="state.selectedCurrency"
+    :receiverAddress="state.receiverAddress"
+    :password="state.password"
+    :amount="state.amount"
+    :memo="state.memo"
+    :txType="$t(`message.${TxType.SEND}`) + ':'"
+    :txHash="state.txHash"
+    :step="step"
+    :fee="state.fee"
+    :onSendClick="onSendClick"
+    :onBackClick="onConfirmBackClick"
+    :onOkClick="onClickOkBtn"
+    @passwordUpdate="(value) => (state.password = value)"
+  />
+  <SendComponent
+    v-else
+    v-model="state"
+    class="overflow-auto custom-scroll"
+  />
 </template>
 
 <script lang="ts" setup>
@@ -39,7 +43,9 @@ import {
   SOURCE_PORTS,
   NATIVE_NETWORK,
   ErrorCodes,
-  IGNORE_TRANSFER_ASSETS
+  IGNORE_TRANSFER_ASSETS,
+  CurrencyDemapping,
+  CurrencyMapping
 } from "@/config/env";
 
 import {
@@ -158,15 +164,40 @@ watch(() => state.value.network, async () => {
   const currencies = Object.keys(app.networks?.[state.value.network.key] ?? {});
   const native = app.networks![NATIVE_NETWORK.key];
   const items: string[] = [];
-  for (const i in native) {
-    const c = native[i];
-    if (currencies.includes(c.ticker)) {
-      const [ckey, protocol = Protocols.osmosis]: string[] = c.key!.split('@');
-      const ibc = NolusAssetUtils.makeIBCMinimalDenom(ckey, app.networksData!, NATIVE_NETWORK.key as Networks, protocol as Protocols);
-      items.push(ibc);
+
+  if (state.value.network.key == NATIVE_NETWORK.key) {
+    for (const i in native) {
+      const c = native[i];
+      if (currencies.includes(c.key!)) {
+        const [ckey, protocol = Protocols.osmosis]: string[] = c.key!.split('@');
+        const ibc = NolusAssetUtils.makeIBCMinimalDenom(ckey, app.networksData!, NATIVE_NETWORK.key as Networks, protocol as Protocols);
+        items.push(ibc);
+      }
+    }
+  } else {
+    for (const i in native) {
+      const c = native[i];
+      let [ticker, protocol] = c.key!.split('@');
+
+      let lpn = app.lpn?.find((item) => {
+        return item.key == c.key;
+      });
+
+      if (lpn) {
+        if (protocol == state.value.network.key) {
+          const ibc = NolusAssetUtils.makeIBCMinimalDenom(ticker, app.networksData!, NATIVE_NETWORK.key as Networks, protocol as Protocols);
+          items.push(ibc);
+        }
+        continue;
+      }
+
+      if (currencies.includes(ticker)) {
+        const [ckey, protocol = Protocols.osmosis]: string[] = c.key!.split('@');
+        const ibc = NolusAssetUtils.makeIBCMinimalDenom(ckey, app.networksData!, NATIVE_NETWORK.key as Networks, protocol as Protocols);
+        items.push(ibc);
+      }
     }
   }
-
 
   state.value.currentBalance = walletStore.balances.filter((item) => {
     const currency = walletStore.currencies[item.balance.denom];
@@ -185,6 +216,7 @@ watch(() => state.value.network, async () => {
     }
     return e;
   });
+
 
   if (props.dialogSelectedCurrency.length as number == 0) {
     state.value.selectedCurrency = state.value.currentBalance[0];

@@ -137,7 +137,6 @@ const networks = computed(() => {
       }
 
     }
-
     return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list.filter((item) => n.includes(item.key));
   }
   return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list;

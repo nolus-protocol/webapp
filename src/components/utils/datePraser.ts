@@ -18,7 +18,6 @@ const one_d = 'a day';
 const many_d = 'days';
 
 export function datePraser(dateTime: string) {
-
     const time = new Date(dateTime);
     const currentDate = new Date();
     const diff = time.getTime() - currentDate.getTime();

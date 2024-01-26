@@ -11,14 +11,15 @@
           "
           class="lg:hidden nls-border mb-[-1px] mobile-transition-taskbar"
         >
-          <!-- <div class="nls-nav-link flex flex-start nls-md-flex-row mb-[6px]">
+          <div class="nls-nav-link flex flex-start nls-md-flex-row mb-[6px]">
             <SidebarElement
+              v-if="AppUtils.isDev()"
               id="stats"
               href="/stats"
               :label="$t('message.protocol-stats')"
               @click="pushTo(RouteNames.STATS)"
             />
-          </div> -->
+          </div>
           <div class="nls-nav-link flex flex-start nls-md-flex-row mb-[6px]">
             <SidebarElement
               id="hub"
@@ -136,9 +137,10 @@
         <Hat class="stats-color" />
         <p class="text-12 nls-font-500 stats-color">{{ $t('message.support') }}</p>
       </a>
-      <!-- <a
+      <a
         @click="pushTo(RouteNames.STATS)"
         class="cursor-pointer select-none flex items-center ml-[4px] mb-[4px] stats-link"
+        v-if="AppUtils.isDev()"
       >
         <Stats
           :class="{ active: $route.name == RouteNames.STATS }"
@@ -148,7 +150,7 @@
           :class="{ active: $route.name == RouteNames.STATS }"
           class="ml-[7px] text-12 nls-font-500 stats-color"
         >{{ $t('message.protocol-stats') }}</p>
-      </a> -->
+      </a>
     </div>
     <p class="nls-font-500 text-12 text-dark-grey text-upper pl-2">
       #<template v-if="block > 0">{{ block }} v{{ version }}</template>

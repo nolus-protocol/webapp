@@ -55,16 +55,12 @@
         <template v-else>
           <div v-if="isEarn">
             <CurrencyComponent
-              v-if="assetInfo.key == 'USDC_AXELAR@OSMOSIS'"
               :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              :amount="app.apr?.toString() ?? '0'"
+              :amount="apr"
               :hasSpace="false"
               :isDenomInfront="false"
               denom="%"
             />
-            <p v-else>
-              -
-            </p>
             <p class="text-[#1AB171] text-[12px]">
               +{{ rewards }}% {{ NATIVE_ASSET.label }}
             </p>
@@ -274,6 +270,11 @@ const leasUpTo = computed(() => {
 
 const rewards = computed(() => {
   return (app.dispatcherRewards ?? 0).toFixed(2);
+});
+
+const apr = computed(() => {
+  const [ticker, protocol] = props.assetInfo.key.split('@');
+  return (app.apr?.[protocol] ?? 0).toString();
 });
 
 const calculateBalance = (
