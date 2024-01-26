@@ -9,7 +9,7 @@
     },
     "zero-interest": {
         "title-icon": "https://nolus.io/banner/lease.svg",
-        "image": "/lease.png",
+        "image": "",
         "title": "zero-banner-title",
         "subtitle": "zero-banner-subtitle",
         "description": "zero-banner-description",
@@ -24,7 +24,7 @@
         "target": "https://hub.nolus.io/"
     },
     "stats": {
-        "title-icon": "https://nolus.io/banner/stats.svg",
+        "title-icon": "https://nolus.io/banner/lease.svg",
         "image": "",
         "title": "stats-banner-title",
         "subtitle": "stats-banner-subtitle",
