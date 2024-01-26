@@ -12,11 +12,11 @@ import { AdminActionTypes, useAdminStore } from "@/stores/admin";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  scrollBehavior(to, from, savedPosition) {
-    return {
-      top: 0,
-    }
-  },
+  // scrollBehavior(to, from, savedPosition) {
+  //   return {
+  //     top: 0,
+  //   }
+  // },
   routes: [
     {
       path: "/",
@@ -63,6 +63,13 @@ const router = createRouter({
           path: "/stats",
           name: RouteNames.STATS,
           component: () => import("@/views/StatsView.vue"),
+          beforeEnter: () => {
+            if(AppUtils.isDev()){
+              return true;
+            }
+            return { name: RouteNames.DASHBOARD }
+
+          },
           meta: {
             title: 'Nolus Protocol - Stats',
             description: 'Examine the stability and health of the Nolus Protocol. Access vital stats and metrics to ensure optimal performance and reliability'

@@ -318,6 +318,7 @@ async function getRewards() {
 
           const lenderRewards = await lppClient.getLenderRewards(walletAddress);
           rewards = rewards.add(new Dec(lenderRewards.rewards.amount));
+
         } catch (e) {
           console.log(e)
         }
