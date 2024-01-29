@@ -357,6 +357,8 @@
     "stats-banner-subtitle": "En Güncel İstatistikleri İnceleyin",
     "stats-banner-description": "TVL, fon kullanımı, geri alımlar, kredi ayrıntıları ve daha fazlası gibi önemli protokol göstergelerini takip edin",
     "positions-pnL": "Positionların Kâr/Zarar Durumu",
-    "total-equity": "Toplam Sermaye"
+    "total-equity": "Toplam Sermaye",
+    "proposal": "Proposal",
+    "voter": "Voter"
   }
 }

@@ -357,6 +357,8 @@
     "stats-banner-subtitle": "Mengikuti Berita Terbaru",
     "stats-banner-description": "Lacak indikator protokol penting seperti TVL, penggunaan dana, pembelian kembali, detail pinjaman, dan lainnya",
     "positions-pnL": "Posisi PnL",
-    "total-equity": "Total Ekuitas"
+    "total-equity": "Total Ekuitas",
+    "proposal": "Proposal",
+    "voter": "Voter"
   }
 }

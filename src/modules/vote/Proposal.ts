@@ -3,6 +3,7 @@ export interface Proposal {
   content: ProposalContent
   status: ProposalStatus
   final_tally_result: FinalTallyResult
+  tally: FinalTallyResult
   submit_time: string
   deposit_end_time: string
   total_deposit: TotalDeposit[]

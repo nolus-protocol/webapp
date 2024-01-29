@@ -357,6 +357,8 @@
     "stats-banner-subtitle": "Актуальная статистика",
     "stats-banner-description": "Отслеживайте важнейшие показатели протокола, такие как TVL, использование средств, выкуп, детали займа и многое другое",
     "positions-pnL": "Позиции PnL",
-    "total-equity": "Общий капитал"
+    "total-equity": "Общий капитал",
+    "proposal": "Proposal",
+    "voter": "Voter"
     }
 }

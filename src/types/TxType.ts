@@ -13,4 +13,5 @@ export enum TxType {
   GRANT = "grant-to",
   CLAIM = "claim-from",
   TRANSFER = "transfer-dialog",
+  VOTE = "vote"
 }

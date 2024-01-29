@@ -78,7 +78,6 @@ const leaseBalances = computed(() => {
 
     return app.leasesCurrencies.includes(ticker);
   }).map((item) => {
-    console.log(item)
     const asset = walletStore.getCurrencyInfo(item.balance.denom);
     return {
       ticker: asset.ticker,

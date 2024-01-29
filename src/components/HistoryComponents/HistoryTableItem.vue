@@ -130,7 +130,6 @@ const convertFeeAmount = (fee: Coin[] | null) => {
 }
 
 function getCreatedAtForHuman(createdAt: Date | null) {
-  console.info({ createdAt })
 
   if (createdAt == null) {
     return props.transaction.height

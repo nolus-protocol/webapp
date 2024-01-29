@@ -22,9 +22,9 @@
     <ProposalVotingLine
       v-if="
         isVotingPeriod &&
-        Object.values(state.final_tally_result).filter((res) => !!Number(res)).length > 0
+        Object.values(state.tally).filter((res) => !!Number(res)).length > 0
       "
-      :voting="state.final_tally_result"
+      :voting="state.tally"
     />
     <div v-if="state.content.description" class="text-medium-blue text-12">
       <div class="text-bold text-14">Summary</div>

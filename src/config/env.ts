@@ -142,6 +142,7 @@ export const GAS_FEES = {
   repay_lease: 5000,
   market_close_lease: 5000,
   swap_amount: 5000,
+  vote: 70000,
 };
 
 export enum APPEARANCE {

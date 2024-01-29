@@ -1,5 +1,8 @@
 <template>
-  <div :class="{ 'animate-pulse': !initialLoad }" class="block">
+  <div
+    :class="{ 'animate-pulse': !initialLoad }"
+    class="block"
+  >
     <template v-if="initialLoad && !showSkeleton">
       <TransitionGroup
         appear
@@ -8,8 +11,8 @@
         tag="div"
       >
         <ProposalItem
-          v-for="(proposal, index) in proposals"
-          :key="index"
+          v-for="proposal in proposals"
+          :key="proposal.proposal_id"
           :state="proposal"
           @vote="onVote"
           @read-more="onReadMore"
@@ -25,10 +28,21 @@
           {{ $t('message.load-more') }}
         </button>
       </div>
-      <Modal v-if="showReadMoreModal" @close-modal="onCloseReadMoreModal">
-        <ProposalReadMoreDialog :source="proposal.description" :title="proposal.title" />
+      <Modal
+        v-if="showReadMoreModal"
+        @close-modal="onCloseReadMoreModal"
+        route="read"
+      >
+        <ProposalReadMoreDialog
+          :source="proposal.description"
+          :title="proposal.title"
+        />
       </Modal>
-      <Modal v-if="showVoteModal" @close-modal="onCloseVoteModal">
+      <Modal
+        v-if="showVoteModal"
+        @close-modal="onCloseVoteModal"
+        route="actions"
+      >
         <ProposalVoteDialog :proposal="proposal" />
       </Modal>
     </template>
@@ -36,7 +50,11 @@
       <ProposalSkeleton />
     </template>
   </div>
-  <Modal v-if="showErrorDialog" route="alert" @close-modal="showErrorDialog = false">
+  <Modal
+    v-if="showErrorDialog"
+    route="alert"
+    @close-modal="showErrorDialog = false"
+  >
     <ErrorDialog
       :message="errorMessage"
       :title="$t('message.error-connecting')"
@@ -55,6 +73,7 @@ import ProposalVoteDialog from '@/modules/vote/components/ProposalVoteDialog.vue
 import Modal from '@/components/modals/templates/Modal.vue'
 import ProposalSkeleton from '@/modules/vote/components/ProposalSkeleton.vue'
 import ErrorDialog from '@/components/modals/ErrorDialog.vue'
+import { provide } from 'vue'
 
 const showErrorDialog = ref(false)
 const errorMessage = ref('')
@@ -75,7 +94,7 @@ const pagination = ref({
   total: 0,
   next_key: ''
 })
-let timeout: NodeJS.Timeout
+let timeout: NodeJS.Timeout;
 
 onMounted(async () => {
   await fetchGovernanceProposals()
@@ -87,6 +106,32 @@ onUnmounted(() => {
   }
 })
 
+const fetchTally = async (proposal: Proposal) => {
+  try {
+
+    const node = await AppUtils.getArchiveNodes()
+    const r = await fetch(
+      `${node.archive_node_api}/cosmos/gov/v1beta1/proposals/${proposal.proposal_id}/tally`
+    )
+    const d = await r.json();
+    proposal.tally = d.tally;
+    return proposal;
+
+  } catch (error: Error | any) {
+    showErrorDialog.value = true
+    errorMessage.value = error?.message
+  }
+
+}
+
+const reFetchTally = async (id: string) => {
+  const index = proposals.value.findIndex((item) => item.proposal_id == id);
+  if (index > -1) {
+    const proposal = await fetchTally(proposals.value[index]) as Proposal;
+    proposals.value[index] = proposal;
+  }
+}
+
 const fetchGovernanceProposals = async () => {
   try {
     const node = await AppUtils.getArchiveNodes()
@@ -94,7 +139,14 @@ const fetchGovernanceProposals = async () => {
       `${node.archive_node_api}/cosmos/gov/v1beta1/proposals?pagination.limit=${limit.value}&pagination.reverse=true&pagination.countTotal=true`
     )
 
-    const data = await req.json()
+    const data = await req.json();
+    const promises = [];
+
+    for (const item of data.proposals) {
+      promises.push(fetchTally(item));
+    }
+
+    await Promise.all(promises);
 
     proposals.value = data.proposals
     pagination.value = data.pagination
@@ -165,6 +217,9 @@ const loadMoreProposals = async () => {
 async function onClickTryAgain() {
   await fetchGovernanceProposals()
 }
+
+provide('reFetchTally', reFetchTally)
+
 </script>
 
 <style lang="scss" scoped></style>

@@ -19,6 +19,12 @@ export const ProposalState: Proposal = {
     no_with_veto: '',
     yes: ''
   },
+  tally: {
+    abstain: '',
+    no: '',
+    no_with_veto: '',
+    yes: ''
+  },
   submit_time: '',
   total_deposit: [],
   voting_start_time: ''
