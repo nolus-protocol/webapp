@@ -2,6 +2,7 @@ export interface Proposal {
   proposal_id: string
   content: ProposalContent
   status: ProposalStatus
+  nonce: number
   final_tally_result: FinalTallyResult
   tally: FinalTallyResult
   submit_time: string

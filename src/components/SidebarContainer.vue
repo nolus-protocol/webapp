@@ -11,14 +11,15 @@
           "
           class="lg:hidden nls-border mb-[-1px] mobile-transition-taskbar"
         >
-          <!-- <div class="nls-nav-link flex flex-start nls-md-flex-row mb-[6px]">
+          <div class="nls-nav-link flex flex-start nls-md-flex-row mb-[6px]">
             <SidebarElement
+              v-if="AppUtils.isDev()"
               id="stats"
-              href="/stats"
               :label="$t('message.protocol-stats')"
+              href="/stats"
               @click="pushTo(RouteNames.STATS)"
             />
-          </div> -->
+          </div>
           <div class="nls-nav-link flex flex-start nls-md-flex-row mb-[6px]">
             <SidebarElement
               id="hub"
@@ -136,19 +137,19 @@
         <Hat class="stats-color" />
         <p class="text-12 nls-font-500 stats-color">{{ $t('message.support') }}</p>
       </a>
-      <!-- <a
-        @click="pushTo(RouteNames.STATS)"
+      <a
+        v-if="AppUtils.isDev()"
         class="cursor-pointer select-none flex items-center ml-[4px] mb-[4px] stats-link"
+        @click="pushTo(RouteNames.STATS)"
       >
-        <Stats
-          :class="{ active: $route.name == RouteNames.STATS }"
-          class="stats-color"
-        />
+        <Stats :class="{ active: $route.name == RouteNames.STATS }" class="stats-color" />
         <p
           :class="{ active: $route.name == RouteNames.STATS }"
           class="ml-[7px] text-12 nls-font-500 stats-color"
-        >{{ $t('message.protocol-stats') }}</p>
-      </a> -->
+        >
+          {{ $t('message.protocol-stats') }}
+        </p>
+      </a>
     </div>
     <p class="nls-font-500 text-12 text-dark-grey text-upper pl-2">
       #<template v-if="block > 0">{{ block }} v{{ version }}</template>
@@ -166,6 +167,7 @@ import LogoLink from '@/components/LogoLink.vue'
 import SidebarElement from '@/components/SidebarElement.vue'
 import Modal from '@/components/modals/templates/Modal.vue'
 import SwapDialog from '@/components/modals/SwapDialog.vue'
+import Stats from './icons/Stats.vue'
 import Hat from './icons/Hat.vue'
 
 import { onMounted, onUnmounted, ref, watch } from 'vue'

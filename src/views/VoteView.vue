@@ -1,9 +1,9 @@
 <template>
   <div
-    :class="{ 'animate-pulse': !initialLoad }"
+    :class="{ 'animate-pulse': !state.initialLoad }"
     class="block"
   >
-    <template v-if="initialLoad && !showSkeleton">
+    <template v-if="state.initialLoad && !state.showSkeleton">
       <TransitionGroup
         appear
         class="flex flex-wrap flex-row lg:gap-x-5 gap-y-8"
@@ -11,8 +11,8 @@
         tag="div"
       >
         <ProposalItem
-          v-for="proposal in proposals"
-          :key="proposal.proposal_id"
+          v-for="proposal in state.proposals"
+          :key="`${proposal.nonce}_${proposal.proposal_id}`"
           :state="proposal"
           @vote="onVote"
           @read-more="onReadMore"
@@ -21,7 +21,7 @@
       <div class="text-center mt-6 lg:mt-8">
         <button
           v-if="visible"
-          :class="{ 'js-loading': loading }"
+          :class="{ 'js-loading': state.loading }"
           class="btn btn-secondary btn-medium-secondary mx-auto"
           @click="loadMoreProposals"
         >
@@ -29,21 +29,19 @@
         </button>
       </div>
       <Modal
-        v-if="showReadMoreModal"
+        v-if="state.showReadMoreModal"
         @close-modal="onCloseReadMoreModal"
-        route="read"
       >
         <ProposalReadMoreDialog
-          :source="proposal.description"
-          :title="proposal.title"
+          :source="state.proposal.description"
+          :title="state.proposal.title"
         />
       </Modal>
       <Modal
-        v-if="showVoteModal"
+        v-if="state.showVoteModal"
         @close-modal="onCloseVoteModal"
-        route="actions"
       >
-        <ProposalVoteDialog :proposal="proposal" />
+        <ProposalVoteDialog :proposal="state.proposal" />
       </Modal>
     </template>
     <template v-else>
@@ -51,12 +49,12 @@
     </template>
   </div>
   <Modal
-    v-if="showErrorDialog"
+    v-if="state.showErrorDialog"
     route="alert"
-    @close-modal="showErrorDialog = false"
+    @close-modal="state.showErrorDialog = false"
   >
     <ErrorDialog
-      :message="errorMessage"
+      :message="state.errorMessage"
       :title="$t('message.error-connecting')"
       :try-button="onClickTryAgain"
     />
@@ -75,34 +73,41 @@ import ProposalSkeleton from '@/modules/vote/components/ProposalSkeleton.vue'
 import ErrorDialog from '@/components/modals/ErrorDialog.vue'
 import { provide } from 'vue'
 
-const showErrorDialog = ref(false)
-const errorMessage = ref('')
-const showReadMoreModal = ref(false)
-const showVoteModal = ref(false)
-const loading = ref(false)
-const initialLoad = ref(false)
-const showSkeleton = ref(true)
+interface CustomError extends Error {
+  message: string
+}
 
-const proposals = ref([] as Proposal[])
-const proposal = ref({
-  id: '',
-  title: '',
-  description: ''
-})
-const limit = ref(6)
-const pagination = ref({
-  total: 0,
-  next_key: ''
-})
-let timeout: NodeJS.Timeout;
+const LOAD_TIMEOUT = 500
+
+const state = ref({
+  showErrorDialog: false,
+  errorMessage: '',
+  showReadMoreModal: false,
+  showVoteModal: false,
+  loading: false,
+  initialLoad: false,
+  showSkeleton: true,
+  proposals: [] as Proposal[],
+  proposal: {
+    id: '',
+    title: '',
+    description: ''
+  },
+  limit: 6,
+  pagination: {
+    total: 0,
+    next_key: ''
+  },
+  timeout: null as NodeJS.Timeout | null
+});
 
 onMounted(async () => {
   await fetchGovernanceProposals()
 })
 
 onUnmounted(() => {
-  if (timeout) {
-    clearTimeout(timeout)
+  if (state.value.timeout) {
+    clearTimeout(state.value.timeout)
   }
 })
 
@@ -115,103 +120,113 @@ const fetchTally = async (proposal: Proposal) => {
     )
     const d = await r.json();
     proposal.tally = d.tally;
+    proposal.nonce = proposal.nonce == null ? 0 : ++proposal.nonce;
     return proposal;
 
   } catch (error: Error | any) {
-    showErrorDialog.value = true
-    errorMessage.value = error?.message
+    state.value.showErrorDialog = true
+    state.value.errorMessage = error?.message
   }
 
 }
 
 const reFetchTally = async (id: string) => {
-  const index = proposals.value.findIndex((item) => item.proposal_id == id);
+  const index = state.value.proposals.findIndex((item) => item.proposal_id == id);
   if (index > -1) {
-    const proposal = await fetchTally(proposals.value[index]) as Proposal;
-    proposals.value[index] = proposal;
+    const proposal = await fetchTally(state.value.proposals[index]) as Proposal;
+    state.value.proposals[index] = { ...proposal };
+  }
+}
+
+const fetchData = async (url: string) => {
+  try {
+    const req = await fetch(url)
+    return await req.json()
+  } catch (error: CustomError | any) {
+    state.value.showErrorDialog = true
+    state.value.errorMessage = error.message
+    console.error(error)
+    return null
   }
 }
 
 const fetchGovernanceProposals = async () => {
-  try {
-    const node = await AppUtils.getArchiveNodes()
-    const req = await fetch(
-      `${node.archive_node_api}/cosmos/gov/v1beta1/proposals?pagination.limit=${limit.value}&pagination.reverse=true&pagination.countTotal=true`
-    )
+  const node = await AppUtils.getArchiveNodes()
+  const data = await fetchData(
+    `${node.archive_node_api}/cosmos/gov/v1beta1/proposals?pagination.limit=${state.value.limit}&pagination.reverse=true&pagination.countTotal=true`
+  )
+  if (!data) return
 
-    const data = await req.json();
-    const promises = [];
+  const promises = [];
 
-    for (const item of data.proposals) {
-      promises.push(fetchTally(item));
-    }
-
-    await Promise.all(promises);
-
-    proposals.value = data.proposals
-    pagination.value = data.pagination
-
-    initialLoad.value = true
-  } catch (error: Error | any) {
-    showErrorDialog.value = true
-    errorMessage.value = error?.message
-  } finally {
-    timeout = setTimeout(() => {
-      showSkeleton.value = false
-    }, 400)
+  for (const item of data.proposals) {
+    promises.push(fetchTally(item));
   }
+
+  await Promise.all(promises);
+
+  state.value.proposals = data.proposals
+  state.value.pagination = data.pagination
+
+  state.value.initialLoad = true
+  state.value.timeout = setTimeout(() => {
+    state.value.showSkeleton = false
+  }, LOAD_TIMEOUT)
 }
 
 const onReadMore = ({ description, title }: { description: string; title: string }) => {
-  showReadMoreModal.value = true
-  proposal.value = {
-    ...proposal.value,
+  state.value.showReadMoreModal = true
+  state.value.proposal = {
+    ...state.value.proposal,
     description,
     title
   }
 }
 
 const onCloseReadMoreModal = () => {
-  showReadMoreModal.value = false
+  state.value.showReadMoreModal = false
 }
 
 const onVote = (selectedProposal: Proposal) => {
-  showVoteModal.value = true
-  proposal.value = {
-    ...proposal.value,
+  state.value.showVoteModal = true
+  state.value.proposal = {
+    ...state.value.proposal,
     title: selectedProposal.content.title,
     id: selectedProposal.proposal_id
   }
 }
 
 const onCloseVoteModal = () => {
-  showVoteModal.value = false
+  state.value.showVoteModal = false
 }
 
 const visible = computed(() => {
-  return initialLoad.value && pagination.value.next_key
+  return state.value.initialLoad && state.value.pagination.next_key
 })
 
 const loadMoreProposals = async () => {
-  try {
-    loading.value = true
-    const node = await AppUtils.getArchiveNodes()
-    const req = await fetch(
-      `${node.archive_node_api}/cosmos/gov/v1beta1/proposals?pagination.limit=${limit.value}&pagination.key=${pagination.value.next_key}&pagination.reverse=true&pagination.countTotal=true`
-    )
+  state.value.loading = true
+  const node = await AppUtils.getArchiveNodes()
+  const data = await fetchData(
+    `${node.archive_node_api}/cosmos/gov/v1beta1/proposals?pagination.limit=${state.value.limit}&pagination.key=${state.value.pagination.next_key}&pagination.reverse=true&pagination.countTotal=true`
+  )
 
-    const data = await req.json()
+  if (!data) return
 
-    proposals.value = [...proposals.value, ...data.proposals]
-    pagination.value = data.pagination
-  } catch (error: Error | any) {
-    showErrorDialog.value = true
-    errorMessage.value = error?.message
-  } finally {
-    setTimeout(() => {
-      loading.value = false
-    }, 500)
+  const promises = [];
+
+  for (const item of data.proposals) {
+    promises.push(fetchTally(item));
   }
+
+  await Promise.all(promises);
+
+  state.value.proposals = [...state.value.proposals, ...data.proposals]
+  state.value.pagination = data.pagination
+
+  setTimeout(() => {
+    state.value.loading = false
+  }, LOAD_TIMEOUT)
 }
 
 async function onClickTryAgain() {

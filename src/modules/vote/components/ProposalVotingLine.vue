@@ -73,6 +73,7 @@ const result = Object.entries(props.voting)
     [] as { label: string; percent: string }[]
   )
   .filter((item) => !!Number(item.percent))
+  .reverse()
 
 const showTooltip = (index: number) => {
   showTooltips.value[index] = true

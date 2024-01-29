@@ -1,7 +1,7 @@
 <template>
   <DialogHeader :headerList="[title]">
     <div
-      class="overflow-auto w-full md:max-h-[70vh] text-primary p-10 custom-scroll proposal-modal"
+      class="overflow-auto w-full md:max-h-[70vh] text-primary p-10 custom-scroll proposal-modal text-left"
       v-html="description"
     />
   </DialogHeader>
@@ -44,6 +44,10 @@ const description = computed(() => {
     &.strong {
       font-weight: 600;
     }
+  }
+
+  ul {
+    margin-bottom: 18px;
   }
 
   h1 {

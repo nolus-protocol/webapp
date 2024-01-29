@@ -5,12 +5,21 @@
   >
     <div class="flex flex-col md:flex-row gap-2 md:gap-0 justify-between text-[8px] text-upper">
       <div class="flex items-center gap-1">
-        <div :class="{ [color.bg]: color }" class="w-1.5 h-1.5 rounded" />
-        <div :class="{ [color.text]: color }" class="font-medium">
+        <div
+          :class="{ [color.bg]: color }"
+          class="w-1.5 h-1.5 rounded"
+        />
+        <div
+          :class="{ [color.text]: color }"
+          class="font-medium"
+        >
           {{ ProposalStatus[state.status].split('_')[2] }}
         </div>
       </div>
-      <div v-if="isVotingPeriod" class="flex gap-2 text-light-blue">
+      <div
+        v-if="isVotingPeriod"
+        class="flex gap-2 text-light-blue"
+      >
         <div>turnout:</div>
         <div>quorum:</div>
         <div>voting ends: {{ DateUtils.formatDateTime(state.voting_end_time) }}</div>
@@ -20,13 +29,15 @@
       &#35;{{ state.proposal_id }} {{ state.content.title }}
     </div>
     <ProposalVotingLine
-      v-if="
-        isVotingPeriod &&
+      v-if="isVotingPeriod &&
         Object.values(state.tally).filter((res) => !!Number(res)).length > 0
-      "
+        "
       :voting="state.tally"
     />
-    <div v-if="state.content.description" class="text-medium-blue text-12">
+    <div
+      v-if="state.content.description"
+      class="text-medium-blue text-12"
+    >
       <div class="text-bold text-14">Summary</div>
       {{ StringUtils.truncateText(state.content.description, 256) }}
     </div>
@@ -35,13 +46,17 @@
       class="btn btn-secondary btn-medium-secondary self-start !text-12 !py-1"
       @click="
         $emit('read-more', { title: state.content.title, description: state.content.description })
-      "
+        "
     >
       {{ $t('message.read-more') }}
     </button>
 
-    <div v-if="isVotingPeriod" class="flex flex-col gap-3">
-      <div class="w-full border-standart border-b bg-transparent" />
+    <div
+      v-if="isVotingPeriod"
+      class="flex flex-col gap-3"
+    >
+      <div class="w-full border-standart border-b bg-transparent">
+      </div>
       <button
         class="btn btn-primary btn-large-primary self-end !px-3 !py-2"
         @click="$emit('vote', state)"

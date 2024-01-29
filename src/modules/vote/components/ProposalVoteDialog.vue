@@ -213,7 +213,7 @@ function onConfirmBackClick() {
 const openDialog = inject('openDialog', () => { })
 
 const onDelegateClick = async () => {
-  const url = `earn#delegate`
+  const url = `/earn#delegate`
   await router.push(url)
   if (url.includes('#')) {
     openDialog()

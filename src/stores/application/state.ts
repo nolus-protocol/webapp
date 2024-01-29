@@ -11,7 +11,7 @@ export type State = {
   } | null;
   network: NetworkConfig;
   theme: string | null;
-  apr: number | null,
+  apr: { [key: string]: number } |  null,
   dispatcherRewards: number | null,
   sessionExpired: boolean,
   currenciesData: ExternalCurrenciesType | null,
