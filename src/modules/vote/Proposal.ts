@@ -2,7 +2,6 @@ export interface Proposal {
   proposal_id: string
   content: ProposalContent
   status: ProposalStatus
-  nonce: number
   final_tally_result: FinalTallyResult
   tally: FinalTallyResult
   submit_time: string
@@ -26,7 +25,11 @@ export interface ProposalContent {
   title: string
   description: string
   subject_client_id: string
-  substitute_client_id: string
+  substitute_client_id: string,
+  params: {
+    quorum: string,
+    threshold: string
+  }
 }
 
 export interface FinalTallyResult {

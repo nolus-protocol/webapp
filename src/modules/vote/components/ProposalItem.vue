@@ -20,8 +20,8 @@
         v-if="isVotingPeriod"
         class="flex gap-2 text-light-blue"
       >
-        <div>turnout:</div>
-        <div>quorum:</div>
+        <div>turnout:  {{ turnout }}%</div>
+        <div>quorum: {{ quorum }}%</div>
         <div>voting ends: {{ DateUtils.formatDateTime(state.voting_end_time) }}</div>
       </div>
     </div>
@@ -80,6 +80,16 @@ const props = defineProps({
     required: true,
     default: ProposalState
   }
+})
+
+const quorum = computed(() => {
+  const q = (Number(props.state.content.params.quorum) * 100).toFixed(2);
+  return q;
+})
+
+const turnout = computed(() => {
+  const t = (Number(props.state.content.params.threshold) * 100).toFixed(2);
+  return t;
 })
 
 const color = computed(() => {

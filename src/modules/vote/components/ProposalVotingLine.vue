@@ -16,7 +16,10 @@
         v-show="showTooltips[index]"
         class="absolute gap-1 flex rounded-md border-[#C1CAD7] bg-white text-[8px] font-medium p-2 left-[50%] translate-x-[-50%] -top-[100%] translate-y-[calc(-50%-10px)]"
       >
-        <span :class="[colors[res.label].text]" class="uppercase font-bold">{{ res.label }}</span>
+        <span
+          :class="[colors[res.label].text]"
+          class="uppercase font-bold"
+        >{{ res.label }}</span>
         {{ res.percent }}%
       </div>
     </div>
@@ -26,6 +29,7 @@
 <script lang="ts" setup>
 import { type PropType, ref } from 'vue'
 import type { FinalTallyResult } from '@/modules/vote/Proposal'
+import { computed } from 'vue';
 
 const props = defineProps({
   voting: {
@@ -59,13 +63,13 @@ const colors: { [key: string]: any } = {
   }
 }
 
-const total = Object.values(props.voting).reduce((acc, value) => acc + Number(value), 0)
-const result = Object.entries(props.voting)
+const total = computed(() => Object.values(props.voting).reduce((acc, value) => acc + Number(value), 0))
+const result = computed(() => Object.entries(props.voting)
   .reduce(
     (acc, [key, value]) => {
       acc.push({
         label: key,
-        percent: ((Number(value) / total) * 100).toFixed(2)
+        percent: ((Number(value) / total.value) * 100).toFixed(2)
       })
 
       return acc
@@ -74,6 +78,7 @@ const result = Object.entries(props.voting)
   )
   .filter((item) => !!Number(item.percent))
   .reverse()
+);
 
 const showTooltip = (index: number) => {
   showTooltips.value[index] = true

@@ -1,7 +1,7 @@
 <template>
   <div
     :class="{ 'animate-pulse': !state.initialLoad }"
-    class="block"
+    class="block md:mt-0 mt-8"
   >
     <template v-if="state.initialLoad && !state.showSkeleton">
       <TransitionGroup
@@ -11,8 +11,8 @@
         tag="div"
       >
         <ProposalItem
-          v-for="proposal in state.proposals"
-          :key="`${proposal.nonce}_${proposal.proposal_id}`"
+          v-for="proposal in proposals"
+          :key="proposal.proposal_id"
           :state="proposal"
           @vote="onVote"
           @read-more="onReadMore"
@@ -62,7 +62,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, type Ref } from 'vue'
 import { AppUtils } from '@/utils/AppUtils'
 import { type Proposal } from '@/modules/vote/Proposal'
 import ProposalItem from '@/modules/vote/components/ProposalItem.vue'
@@ -87,7 +87,6 @@ const state = ref({
   loading: false,
   initialLoad: false,
   showSkeleton: true,
-  proposals: [] as Proposal[],
   proposal: {
     id: '',
     title: '',
@@ -101,6 +100,8 @@ const state = ref({
   timeout: null as NodeJS.Timeout | null
 });
 
+const proposals = ref([] as Proposal[]);
+
 onMounted(async () => {
   await fetchGovernanceProposals()
 })
@@ -113,17 +114,16 @@ onUnmounted(() => {
 
 const fetchTally = async (proposal: Proposal) => {
   try {
-
     const node = await AppUtils.getArchiveNodes()
     const r = await fetch(
       `${node.archive_node_api}/cosmos/gov/v1beta1/proposals/${proposal.proposal_id}/tally`
     )
     const d = await r.json();
     proposal.tally = d.tally;
-    proposal.nonce = proposal.nonce == null ? 0 : ++proposal.nonce;
     return proposal;
 
   } catch (error: Error | any) {
+    console.log(error)
     state.value.showErrorDialog = true
     state.value.errorMessage = error?.message
   }
@@ -131,10 +131,9 @@ const fetchTally = async (proposal: Proposal) => {
 }
 
 const reFetchTally = async (id: string) => {
-  const index = state.value.proposals.findIndex((item) => item.proposal_id == id);
+  const index = proposals.value.findIndex((item) => item.proposal_id == id);
   if (index > -1) {
-    const proposal = await fetchTally(state.value.proposals[index]) as Proposal;
-    state.value.proposals[index] = { ...proposal };
+    proposals.value[index] = await fetchTally(proposals.value[index]) as Proposal;
   }
 }
 
@@ -165,7 +164,7 @@ const fetchGovernanceProposals = async () => {
 
   await Promise.all(promises);
 
-  state.value.proposals = data.proposals
+  proposals.value = data.proposals
   state.value.pagination = data.pagination
 
   state.value.initialLoad = true
@@ -221,7 +220,7 @@ const loadMoreProposals = async () => {
 
   await Promise.all(promises);
 
-  state.value.proposals = [...state.value.proposals, ...data.proposals]
+  proposals.value = [...proposals.value, ...data.proposals]
   state.value.pagination = data.pagination
 
   setTimeout(() => {
