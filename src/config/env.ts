@@ -230,6 +230,8 @@ export enum ErrorCodes {
   GasError = 11
 }
 
+export const MONTHS = 12;
+
 export const calculateAditionalDebt = (principal: Dec, percent: Dec) => {
   const annualAmount = principal.mul(percent)
   const secondsAmount = annualAmount.quo(new Dec(31536000))
@@ -447,7 +449,7 @@ export const ProtocolsConfig: {
     hidden: []
   },
   NEUTRON: {
-    hidden: ['ATOM', 'DYDX', 'ST_ATOM']
+    hidden: ['ATOM', 'ST_ATOM']
   }
 }
 

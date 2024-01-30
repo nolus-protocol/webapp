@@ -586,7 +586,7 @@ import { onMounted } from "vue";
 import { CURRENCY_VIEW_TYPES } from "@/types/CurrencyViewType";
 import { TxType } from "@/types";
 import { AssetUtils, EnvNetworkUtils, StringUtils, WalletManager } from "@/utils";
-import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation, INTEREST_DECIMALS, PERMILLE, PERCENT, calculateAditionalDebt, CoinGecko, NETWORKS, LPN_DECIMALS } from "@/config/env";
+import { GAS_FEES, TIP, NATIVE_ASSET, SNACKBAR, calculateLiquidation, INTEREST_DECIMALS, PERMILLE, PERCENT, calculateAditionalDebt, CoinGecko, NETWORKS, LPN_DECIMALS, MONTHS } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { walletOperation } from "@/components/utils";
 import { useApplicationStore } from "@/stores/application";
@@ -669,7 +669,6 @@ onUnmounted(() => {
 watch(() => props.leaseInfo.leaseStatus?.opened, () => {
   setLeaseOpening();
 });
-
 
 const setLeaseOpening = () => {
   try {
@@ -796,7 +795,8 @@ const getAssetIcon = computed((): string => {
 });
 
 const downPayment = computed(() => {
-  const amount = new Dec((leaseData.value?.downPayment ?? '0'));
+  const fee = downPaymentFee.value as Dec;
+  const amount = new Dec((leaseData.value?.downPayment ?? '0')).sub(fee);
   return amount.toString(2);
 });
 
@@ -879,9 +879,9 @@ const interest = computed(() => {
     const config = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
     if (Number(props.leaseInfo?.height) > config.leaseBlockUpdate) {
       const amount = Number(data.loan_interest_rate) + Number(data.margin_interest_rate)
-      return (amount / Math.pow(10, INTEREST_DECIMALS)).toString();
+      return (amount / Math.pow(10, INTEREST_DECIMALS) / MONTHS).toString();
     }
-    return (data.loan_interest_rate / Math.pow(10, INTEREST_DECIMALS)).toString();
+    return (data.loan_interest_rate / Math.pow(10, INTEREST_DECIMALS) / MONTHS).toString();
   }
 
   return '0'
