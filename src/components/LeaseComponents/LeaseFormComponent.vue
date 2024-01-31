@@ -89,7 +89,7 @@
           <p class="text-[12px] mt-2  mr-5">
             {{ $t("message.swap-fee") }}
             <span class="text-[#8396B1] nls-font-400">
-              ({{ downPaymentSwapFee * 100 }}%)
+              ({{ (downPaymentSwapFee * 100).toFixed(2) }}%)
             </span>
           </p>
         </div>
