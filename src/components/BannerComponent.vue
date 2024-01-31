@@ -75,6 +75,9 @@ const fetchNewsWallets = async (singleNew: New, key: string) => {
 
   if (addresses.length == 0) return { key: '', singleNew: {} as New }
 
+  if (walletStore.wallet?.address && !addresses.includes(walletStore.wallet.address))
+    return { key: '', singleNew: {} as New }
+
   return { key, singleNew }
 }
 
