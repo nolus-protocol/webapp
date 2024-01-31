@@ -5,7 +5,8 @@
         "title": "neutron-banner-title",
         "subtitle": "neutron-banner-subtitle",
         "description": "neutron-banner-description",
-        "target": "/lease#create"
+        "target": "/lease#create",
+        "wallets": "neutron.json"
     },
     "zero-interest": {
         "title-icon": "https://nolus.io/banner/lease.svg",

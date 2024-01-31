@@ -364,8 +364,8 @@ let news: string | Promise<string> = import('./news/news.json?url').then((t) => 
 let newsWalletsPath: string = '/src/config/news/wallets/'
 
 if (!isDev()) {
-  news = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news.json'
-  newsWalletsPath = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/'
+  news = 'https://github.com/nolus-protocol/webapp/blob/feature/specific-wallets-for-banners/src/config/news/news.json'
+  newsWalletsPath = 'https://github.com/nolus-protocol/webapp/blob/feature/specific-wallets-for-banners/src/config/news/wallets/'
 }
 
 export const minimumLeaseAmount = 1
