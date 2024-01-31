@@ -795,8 +795,8 @@ const getAssetIcon = computed((): string => {
 });
 
 const downPayment = computed(() => {
-  // const fee = downPaymentFee.value as Dec;
-  const amount = new Dec((leaseData.value?.downPayment ?? '0'));
+  const fee = downPaymentFee.value as Dec;
+  const amount = new Dec((leaseData.value?.downPayment ?? '0')).sub(fee);
   return amount.toString(2);
 });
 

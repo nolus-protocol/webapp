@@ -7,9 +7,9 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   localnet: {
     currencies: () => import('@nolus/nolusjs/build/utils/currencies_devnet.json'),
     endpoints: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/vitosha-endpoints.json",
-    explorer: "https://explorer-rila.nolus.io/",
-    govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
-    staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
+    explorer: "https://testnet.ping.pub/nolus/tx",
+    govern: "https://testnet.ping.pub/nolus/gov",
+    staking: "https://testnet.ping.pub/nolus/staking",
     leaseBlockUpdate: 977014,
     lppCreatedAt: 0,
     web3auth: {
@@ -26,9 +26,9 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   devnet: {
     currencies: () => import('@nolus/nolusjs/build/utils/currencies_devnet.json'),
     endpoints: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/vitosha-endpoints.json",
-    explorer: "https://explorer-rila.nolus.io/",
-    govern: "https://explorer-rila.nolus.io/nolus-rila/gov",
-    staking: "https://explorer-rila.nolus.io/nolus-rila/staking",
+    explorer: "https://testnet.ping.pub/nolus/tx",
+    govern: "https://testnet.ping.pub/nolus/gov",
+    staking: "https://testnet.ping.pub/nolus/staking",
     leaseBlockUpdate: 1072220,
     lppCreatedAt: 1696843049941,
     web3auth: {
@@ -46,9 +46,9 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     currencies: () => import('@nolus/nolusjs/build/utils/currencies_testnet.json'),
     endpoints: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/rila-endpoints.json",
     chainName: "Nolus Testnet",
-    explorer: "https://explorer-rila.nolus.io/rila-1/tx",
-    govern: "https://explorer-rila.nolus.io/rila-1/gov",
-    staking: "https://explorer-rila.nolus.io/rila-1/staking",
+    explorer: "https://testnet.ping.pub/nolus/tx",
+    govern: "https://testnet.ping.pub/nolus/gov",
+    staking: "https://testnet.ping.pub/nolus/staking",
     leaseBlockUpdate: 977014,
     lppCreatedAt: 1686573237831,
     web3auth: {
@@ -66,9 +66,9 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     currencies: () => import('@nolus/nolusjs/build/utils/currencies_mainnet.json'),
     endpoints: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/pirin-endpoints.json",
     chainName: "Nolus",
-    explorer: "https://explorer.nolus.io/pirin-1/tx",
-    govern: "https://explorer.nolus.io/pirin-1/gov",
-    staking: "https://explorer.nolus.io/pirin-1/staking",
+    explorer: "https://ping.pub/nolus/tx",
+    govern: "https://ping.pub/nolus/gov",
+    staking: "https://ping.pub/nolus/staking",
     leaseBlockUpdate: 1029833,
     lppCreatedAt: 1686845698269,
     web3auth: {
@@ -222,7 +222,7 @@ export enum ErrorCodes {
   GasError = 11
 }
 
-export const MONTHS = 1;
+export const MONTHS = 12;
 
 export const calculateAditionalDebt = (principal: Dec, percent: Dec) => {
   const annualAmount = principal.mul(percent);
@@ -414,7 +414,7 @@ export const ProtocolsConfig: {
     hidden: []
   },
   NEUTRON: {
-    hidden: ['ATOM', 'DYDX', 'ST_ATOM']
+    hidden: ['ATOM', 'ST_ATOM']
   }
 }
 
