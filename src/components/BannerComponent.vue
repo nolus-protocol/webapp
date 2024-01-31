@@ -67,8 +67,7 @@ let padding = 0
 onMounted(() => {
   loadNews()
 })
-
-const fetchNewsWallets = async (singleNew: New, key: string) => {
+const filterNewsVisibility = async (singleNew: New, key: string) => {
   if (!singleNew.wallets && singleNew.wallets !== '') return { key, singleNew }
 
   const addresses = await AppUtils.getSingleNewAddresses(singleNew.wallets)
@@ -81,10 +80,10 @@ const fetchNewsWallets = async (singleNew: New, key: string) => {
   return { key, singleNew }
 }
 
-const filterNewsVisibility = async () => {
+const fetchNewsWallets = async () => {
   const news: News = await AppUtils.getNews()
   const newsPromises: Promise<{ key: string; singleNew: New }>[] = Object.keys(news).map((key) =>
-    fetchNewsWallets(news[key], key)
+    filterNewsVisibility(news[key], key)
   )
 
   return (await Promise.all(newsPromises)).reduce((acc, item) => {
@@ -96,7 +95,7 @@ const filterNewsVisibility = async () => {
 }
 
 const loadNews = async () => {
-  news.value = await filterNewsVisibility()
+  news.value = await fetchNewsWallets()
   padding = (Object.keys(news.value).length - 1) * 24
   nextTick(() => {
     checkVisibility()
