@@ -300,7 +300,7 @@ const useWalletStore = defineStore("wallet", {
         const ibcBalances = [];
         const app = useApplicationStore();
         const currencies = app.currenciesData;
-        
+
         if (!WalletUtils.isAuth()) {
           for (const key in currencies) {
             const currency = app.currenciesData![key];
@@ -631,10 +631,10 @@ const useWalletStore = defineStore("wallet", {
         const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
         const promises = [];
         const leaserConfig: { [protocol: string]: LeaserConfig } = {};
-  
+
 
         for (const protocolKey in admin.contracts) {
-  
+
           const fn = async () => {
             const protocol = admin.contracts[protocolKey];
             const leaserClient = new Leaser(
@@ -643,11 +643,11 @@ const useWalletStore = defineStore("wallet", {
             );
             leaserConfig[protocolKey] = await leaserClient.getLeaserConfig();
           }
-  
+
           promises.push(fn())
-  
+
         }
-  
+
         await Promise.all(promises);
 
       }

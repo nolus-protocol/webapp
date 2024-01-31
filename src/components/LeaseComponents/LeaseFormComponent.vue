@@ -285,7 +285,7 @@ watch(() => coinList.value, () => {
 })
 
 const annualInterestRate = computed(() => {
-  return ((props.modelValue?.leaseApply?.annual_interest_rate ?? 0) + (props.modelValue?.leaseApply?.annual_interest_rate_margin ?? 0)) / MONTHS;
+  return (((props.modelValue?.leaseApply?.annual_interest_rate ?? 0) + (props.modelValue?.leaseApply?.annual_interest_rate_margin ?? 0)) / MONTHS).toFixed(2);
 });
 
 const calculateMarginAmount = computed(() => {
