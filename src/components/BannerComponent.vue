@@ -48,7 +48,7 @@ import RightArrow from '@/components/icons/RightArrow.vue'
 
 import type { New, News } from '@/types/News'
 import { AppUtils } from '@/utils/AppUtils'
-import { inject, nextTick, onMounted, ref } from 'vue'
+import { inject, nextTick, onMounted, ref, watch } from 'vue'
 import router from '@/router'
 import { useWalletStore } from '@/stores/wallet'
 
@@ -67,14 +67,18 @@ let padding = 0
 onMounted(() => {
   loadNews()
 })
+
+watch(() => walletStore.wallet?.address, () => {
+  loadNews();
+});
+
 const filterNewsVisibility = async (singleNew: New, key: string) => {
   if (!singleNew.wallets && singleNew.wallets !== '') return { key, singleNew }
 
   const addresses = await AppUtils.getSingleNewAddresses(singleNew.wallets)
-
   if (addresses.length == 0) return { key: '', singleNew: {} as New }
 
-  if (walletStore.wallet?.address && !addresses.includes(walletStore.wallet.address))
+  if (!addresses.includes(walletStore.wallet?.address as string))
     return { key: '', singleNew: {} as New }
 
   return { key, singleNew }
