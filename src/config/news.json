@@ -1,4 +1,12 @@
 {
+    "dydx": {
+        "title-icon": "https://nolus.io/banner/lease.svg",
+        "image": "",
+        "title": "dydx-banner-title",
+        "subtitle": "dydx-banner-subtitle",
+        "description": "dydx-banner-description",
+        "target": "/lease#create"
+    },    
     "neutron": {
         "title-icon": "https://nolus.io/banner/lease.svg",
         "image": "",
