@@ -164,7 +164,7 @@
     "memo-only": "Memo (optional)",
     "lease-up-to-tooltip": "The maximum amount that can be leveraged based on the wallet balance",
     "earn-apr-tooltip": "Annualized percentage return on supplied or delegated assets",
-    "interest-fee-tooltip": "The percentage interest rate by which the debt will increase each year",
+    "interest-fee-tooltip": "The percentage interest rate by which the debt will increase each month",
     "interest-due-tooltip": "Accumulates each block and is added to the outstanding debt. Interest is due every 16 days",
     "earn-view-apr-tooltip": "Annualized percentage return on supplied or delegated assets",
     "net-worth": "Net Worth",
@@ -218,7 +218,7 @@
     "borrowed": "Borrowed",
     "borrowed-tooltip": "Amount of USD in stablecoins that will be borrowed for the DeFi Lease position",
     "interest": "Lease Interest",
-    "interest-tooltip": "The percentage interest rate by which the debt will increase each year",
+    "interest-tooltip": "The percentage interest rate by which the debt will increase each month",
     "liquidation-price-tooltip": "The collateral price which will trigger partial liquidation",
     "gas-service-fees": "Gas Fees",
     "gas-service-fees-tooltip": "Transaction fees charged by the Nolus providers integrated with Nolus",
@@ -271,7 +271,7 @@
     "refresh": "Refresh",
     "session-timeout": "Session Timeout",
     "session-timeout-message": "Your session has expired. Refresh to continue",
-    "swap-fee": "Swap fee",
+    "swap-fee": "Impact and Swap Fee",
     "swap-fee-tooltip": "A fixed {swapFee}% swap fee is deducted from repayments done with non-stable assets. If the actual swap fee is less, the difference will cover some of the outstanding debt or be transferred back to your wallet in USDC",
     "leap": "Leap",
     "amount-warning": "Leave small amount of NLS tokens to pay for subsequent transactions",
@@ -325,8 +325,8 @@
     "share": "Share",
     "buy-position": "BUY POSITION",
     "download": "Download",
-    "timestamp": "TIMESTAMP",
-    "price-per-symbol": "Price per {symbol}",
+    "timestamp": "Timestamp",
+    "price-per-symbol": "Price Per {symbol}",
     "free-interest": "0% Interest",
     "free-interest-tooltip": "Interest is offset every 3 hours ",
     "outstanding-debt-tooltip": "This amount includes both the outstanding debt and a swap fee of {fee}%",
@@ -359,6 +359,9 @@
     "total-equity": "Total Equity",
     "neutron-banner-title": "Lease",
     "neutron-banner-subtitle": "$NTRN Now Available!",
-    "neutron-banner-description": "Lease now to be in the top 30 for limited-edition swag or among the first 100 for an exclusive #LFL Badge"
+    "neutron-banner-description": "Lease now to be in the top 30 for limited-edition swag or among the first 100 for an exclusive #LFL Badge",
+    "dydx-banner-title": "Lease",
+    "dydx-banner-subtitle": "$DYDX Now Available!",
+    "dydx-banner-description": "The second asset from the Astroport (Neutron) integration is now open for leasing"
   }
 }
