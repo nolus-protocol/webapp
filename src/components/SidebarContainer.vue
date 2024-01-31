@@ -66,13 +66,13 @@
               @click="pushTo(RouteNames.LEASE)"
             />
           </div>
-          <div class="block nls-nav-link icon">
+          <!-- <div class="block nls-nav-link icon">
             <SidebarElement v-if="AppUtils.isDev()"
                             id="swap-v2"
                             href="#"
                             :label="$t('message.swap')"
                             @click="openSwapModal" />
-          </div>
+          </div> -->
           <div class="block nls-nav-link icon">
             <SidebarElement
               id="earn-v2"
