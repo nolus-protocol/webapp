@@ -63,13 +63,6 @@ const router = createRouter({
           path: "/stats",
           name: RouteNames.STATS,
           component: () => import("@/views/StatsView.vue"),
-          beforeEnter: () => {
-            if(AppUtils.isDev()){
-              return true;
-            }
-           router.push(RouteNames.DASHBOARD);
-           return false;
-          },
           meta: {
             title: 'Nolus Protocol - Stats',
             description: 'Examine the stability and health of the Nolus Protocol. Access vital stats and metrics to ensure optimal performance and reliability'
