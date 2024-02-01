@@ -356,6 +356,15 @@
     "stats-banner-subtitle": "En Güncel İstatistikleri İnceleyin",
     "stats-banner-description": "TVL, fon kullanımı, geri alımlar, kredi ayrıntıları ve daha fazlası gibi önemli protokol göstergelerini takip edin",
     "positions-pnL": "Positionların Kâr/Zarar Durumu",
-    "total-equity": "Toplam Sermaye"
+    "total-equity": "Toplam Sermaye",
+    "neutron-banner-title": "Lease",
+    "neutron-banner-subtitle": "$NTRN Now Available!",
+    "neutron-banner-description": "Lease now to be in the top 30 for limited-edition swag or among the first 100 for an exclusive #LFL Badge",
+    "proposal": "Proposal",
+    "voter": "Voter",
+    "read-more": "Read More",
+    "abstained": "Abstained",
+    "veto": "Veto",
+    "voting-warning": "To obtain voting privileges, you must first delegate NLS tokens to the network's validators"
   }
 }

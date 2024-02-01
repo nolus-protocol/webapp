@@ -359,6 +359,12 @@
     "total-equity": "Total Equity",
     "neutron-banner-title": "Lease",
     "neutron-banner-subtitle": "$NTRN Now Available!",
-    "neutron-banner-description": "Lease now to be in the top 30 for limited-edition swag or among the first 100 for an exclusive #LFL Badge"
+    "neutron-banner-description": "Lease now to be in the top 30 for limited-edition swag or among the first 100 for an exclusive #LFL Badge",
+    "proposal": "Proposal",
+    "voter": "Voter",
+    "read-more": "Read More",
+    "abstained": "Abstained",
+    "veto": "Veto",
+    "voting-warning": "To obtain voting privileges, you must first delegate NLS tokens to the network's validators"
   }
 }
