@@ -1,8 +1,16 @@
 {
+    "ntrn_0": {
+        "title-icon": "https://nolus.io/banner/lease.svg",
+        "image": "https://nolus.io/banner/ntrn_0int.webp",
+        "title": "lease-banner-title",
+        "subtitle": "ntrn_0-banner-subtitle",
+        "description": "ntrn_0-banner-description",
+        "target": "/lease#create"
+    },  
     "dydx": {
         "title-icon": "https://nolus.io/banner/lease.svg",
         "image": "",
-        "title": "dydx-banner-title",
+        "title": "lease-banner-title",
         "subtitle": "dydx-banner-subtitle",
         "description": "dydx-banner-description",
         "target": "/lease#create"
