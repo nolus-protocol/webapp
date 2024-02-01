@@ -1,20 +1,12 @@
 {
-    "neutron": {
+    "dydx": {
         "title-icon": "https://nolus.io/banner/lease.svg",
         "image": "",
-        "title": "neutron-banner-title",
-        "subtitle": "neutron-banner-subtitle",
-        "description": "neutron-banner-description",
+        "title": "dydx-banner-title",
+        "subtitle": "dydx-banner-subtitle",
+        "description": "dydx-banner-description",
         "target": "/lease#create"
-    },
-    "zero-interest": {
-        "title-icon": "https://nolus.io/banner/lease.svg",
-        "image": "",
-        "title": "zero-banner-title",
-        "subtitle": "zero-banner-subtitle",
-        "description": "zero-banner-description",
-        "target": "/lease#create"
-    },
+    },    
     "knowledgehub": {
         "title-icon": "https://nolus.io/banner/knowledge_hub.svg",
         "image": "",

@@ -365,7 +365,9 @@
     "read-more": "Read More",
     "abstained": "Abstained",
     "veto": "Veto",
-    "voting-warning": "To obtain voting privileges, you must first delegate NLS tokens to the network's validators"
-
+    "voting-warning": "To obtain voting privileges, you must first delegate NLS tokens to the network's validators",
+    "dydx-banner-title": "Lease",
+    "dydx-banner-subtitle": "$DYDX Now Available!",
+    "dydx-banner-description": "The second asset from the Astroport (Neutron) integration is now open for leasing"
     }
 }

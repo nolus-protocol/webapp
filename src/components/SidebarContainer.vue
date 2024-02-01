@@ -31,7 +31,7 @@
             <SidebarElement
               id="vote-v2"
               :label="$t('message.vote')"
-              target="_blank"
+              href="/vote"
               @click="navigateToVote()"
             />
           </div>
@@ -90,6 +90,7 @@
             <SidebarElement
               id="vote-v2"
               :label="$t('message.vote')"
+              href="/vote"
               @click="navigateToVote()"
             />
           </div>

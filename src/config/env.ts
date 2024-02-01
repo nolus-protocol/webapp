@@ -5,8 +5,9 @@ export const DEFAULT_PRIMARY_NETWORK = "mainnet";
 
 export const NETWORKS: { [key: string]: NetworkAddress } = {
   localnet: {
-    currencies: () => import('@nolus/nolusjs/build/utils/currencies_devnet.json'),
-    endpoints: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/vitosha-endpoints.json",
+    currencies: () => import("@nolus/nolusjs/build/utils/currencies_devnet.json"),
+    endpoints:
+      "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/vitosha-endpoints.json",
     explorer: "https://testnet.ping.pub/nolus/tx",
     govern: "https://testnet.ping.pub/nolus/gov",
     staking: "https://testnet.ping.pub/nolus/staking",
@@ -19,32 +20,35 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
         name: "Nolus",
         verifier: "nolusprotocol",
         typeOfLogin: "google",
-        clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
-      },
+        clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com"
+      }
     }
   },
   devnet: {
-    currencies: () => import('@nolus/nolusjs/build/utils/currencies_devnet.json'),
-    endpoints: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/vitosha-endpoints.json",
+    currencies: () => import("@nolus/nolusjs/build/utils/currencies_devnet.json"),
+    endpoints:
+      "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/vitosha-endpoints.json",
     explorer: "https://testnet.ping.pub/nolus/tx",
     govern: "https://testnet.ping.pub/nolus/gov",
     staking: "https://testnet.ping.pub/nolus/staking",
     leaseBlockUpdate: 1072220,
     lppCreatedAt: 1696843049941,
     web3auth: {
-      clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
+      clientId:
+        "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
       network: "cyan",
       google: {
         name: "Nolus",
         verifier: "nolusprotocol",
         typeOfLogin: "google",
-        clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
-      },
+        clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com"
+      }
     }
   },
   testnet: {
-    currencies: () => import('@nolus/nolusjs/build/utils/currencies_testnet.json'),
-    endpoints: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/rila-endpoints.json",
+    currencies: () => import("@nolus/nolusjs/build/utils/currencies_testnet.json"),
+    endpoints:
+      "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/rila-endpoints.json",
     chainName: "Nolus Testnet",
     explorer: "https://testnet.ping.pub/nolus/tx",
     govern: "https://testnet.ping.pub/nolus/gov",
@@ -52,19 +56,21 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     leaseBlockUpdate: 977014,
     lppCreatedAt: 1686573237831,
     web3auth: {
-      clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
+      clientId:
+        "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
       network: "cyan",
       google: {
         name: "Nolus",
         verifier: "nolusprotocol",
         typeOfLogin: "google",
-        clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
-      },
+        clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com"
+      }
     }
   },
   mainnet: {
-    currencies: () => import('@nolus/nolusjs/build/utils/currencies_mainnet.json'),
-    endpoints: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/pirin-endpoints.json",
+    currencies: () => import("@nolus/nolusjs/build/utils/currencies_mainnet.json"),
+    endpoints:
+      "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/pirin-endpoints.json",
     chainName: "Nolus",
     explorer: "https://ping.pub/nolus/tx",
     govern: "https://ping.pub/nolus/gov",
@@ -72,16 +78,17 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     leaseBlockUpdate: 1029833,
     lppCreatedAt: 1686845698269,
     web3auth: {
-      clientId: "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
+      clientId:
+        "BHYXk3KjVtoSMkmePippWgXv3vbgJnXnsORt9G4maaPsqNqcbK_TPF5WC6oPIm8xVaM21iHRRjUl0JhHft4ZgqY",
       network: "cyan",
       google: {
         name: "Nolus",
         verifier: "nolusprotocol",
         typeOfLogin: "google",
-        clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com",
-      },
-    },
-  },
+        clientId: "408160298134-e8ul2n0p1ka3fe01oalnodb2l6fs9nb6.apps.googleusercontent.com"
+      }
+    }
+  }
 };
 
 export const NATIVE_CURRENCY = {
@@ -89,7 +96,7 @@ export const NATIVE_CURRENCY = {
   symbol: "$",
   locale: "en-US",
   minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
+  maximumFractionDigits: 2
 };
 
 export const NATIVE_ASSET = {
@@ -97,7 +104,7 @@ export const NATIVE_ASSET = {
   label: "NLS",
   value: "NLS",
   denom: "unls",
-  icon: nlsIcon,
+  icon: nlsIcon
 };
 
 export const NATIVE_NETWORK = {
@@ -120,12 +127,12 @@ export enum SOURCE_PORTS {
 export enum SNACKBAR {
   Queued = "queued",
   Success = "success",
-  Error = "error",
+  Error = "error"
 }
 
 export enum Mode {
-  dev = 'dev',
-  prod = 'prod'
+  dev = "dev",
+  prod = "prod"
 }
 
 export const GAS_FEES = {
@@ -142,13 +149,13 @@ export const GAS_FEES = {
   repay_lease: 5000,
   market_close_lease: 5000,
   swap_amount: 5000,
-  vote: 70000,
+  vote: 70000
 };
 
 export enum APPEARANCE {
   light = "light",
   dark = "dark",
-  sync = "sync",
+  sync = "sync"
 }
 
 export const UPDATE_BLOCK_INTERVAL = 5 * 60 * 1000;
@@ -169,7 +176,7 @@ export const STAKING = {
 export const TIP = {
   amount: 100,
   denom: NATIVE_ASSET.denom
-}
+};
 
 export const INTEREST_DECIMALS = 1;
 export const PERMILLE = 1000;
@@ -180,27 +187,27 @@ export const WASM_EVENTS = {
     key: "wasm-ls-request-loan",
     index: 0
   }
-}
+};
 
 export const LIQUIDATION = new Dec(0.9);
 export const calculateLiquidation = (unit: Dec, price: Dec) => {
   return unit.quo(price).quo(LIQUIDATION);
-}
+};
 
 export const POSITIONS = 5;
 export const MIN_POSITION = 25;
 export const MAX_POSITION = 150;
 
 export const DEFAULT_LTD = 1.5;
-export const WASM_LP_DEPOSIT = "wasm-lp-deposit"
+export const WASM_LP_DEPOSIT = "wasm-lp-deposit";
 export const WASM_LP_OPEN = "wasm-ls-open";
 
 export const INPUT_VALUES = [25, 50, 75, 100];
 
 export const LPN_PRICE = 1;
 export const LPN_DECIMALS = 6;
-export const LPN_Symbol = 'USDC.axl';
-export const LPN_Ticker = 'USDC_AXELAR';
+export const LPN_Symbol = "USDC.axl";
+export const LPN_Ticker = "USDC_AXELAR";
 
 export const SESSION_TIME = 15 * 60 * 1000;
 
@@ -230,128 +237,130 @@ export const calculateAditionalDebt = (principal: Dec, percent: Dec) => {
   const secondsAmount = annualAmount.quo(new Dec(31536000));
   const amountForTwoMinuts = secondsAmount.mul(new Dec(180));
   return amountForTwoMinuts;
-}
+};
 
 export const isDev = () => {
   return import.meta.env.VITE_MODE == Mode.dev;
-}
+};
 
 export const CoinGecko = {
-  url: 'https://pro-api.coingecko.com/api/v3',
-  label: 'Nolus App',
-  key: 'CG-QQSfXqT6EJWXG9UjjfhfoJVk'
-}
+  url: "https://pro-api.coingecko.com/api/v3",
+  label: "Nolus App",
+  key: "CG-QQSfXqT6EJWXG9UjjfhfoJVk"
+};
 
 let l: {
   [key: string]: {
     key: string;
     label: string;
     url: string | Promise<string>;
-  }
+  };
 } = {
   en: {
-    key: 'en',
-    label: 'English',
-    url: import('../locales/en.json?url').then((t) => t.default)
+    key: "en",
+    label: "English",
+    url: import("../locales/en.json?url").then((t) => t.default)
   },
   ru: {
-    key: 'ru',
-    label: 'Русский',
-    url: import('../locales/ru.json?url').then((t) => t.default)
+    key: "ru",
+    label: "Русский",
+    url: import("../locales/ru.json?url").then((t) => t.default)
   },
   cn: {
-    key: 'cn',
-    label: '中文',
-    url: import('../locales/cn.json?url').then((t) => t.default)
+    key: "cn",
+    label: "中文",
+    url: import("../locales/cn.json?url").then((t) => t.default)
   },
   fr: {
-    key: 'fr',
-    label: 'Français',
-    url: import('../locales/fr.json?url').then((t) => t.default)
+    key: "fr",
+    label: "Français",
+    url: import("../locales/fr.json?url").then((t) => t.default)
   },
   es: {
-    key: 'es',
-    label: 'Español',
-    url: import('../locales/es.json?url').then((t) => t.default)
+    key: "es",
+    label: "Español",
+    url: import("../locales/es.json?url").then((t) => t.default)
   },
   gr: {
-    key: 'gr',
-    label: 'Ελληνικά',
-    url: import('../locales/gr.json?url').then((t) => t.default)
+    key: "gr",
+    label: "Ελληνικά",
+    url: import("../locales/gr.json?url").then((t) => t.default)
   },
   tr: {
-    key: 'tr',
-    label: 'Türkçe',
-    url: import('../locales/tr.json?url').then((t) => t.default)
+    key: "tr",
+    label: "Türkçe",
+    url: import("../locales/tr.json?url").then((t) => t.default)
   },
   id: {
-    key: 'id',
-    label: 'Bahasa Indo',
-    url: import('../locales/id.json?url').then((t) => t.default)
-  },
-}
+    key: "id",
+    label: "Bahasa Indo",
+    url: import("../locales/id.json?url").then((t) => t.default)
+  }
+};
 
 if (!isDev()) {
   l = {
     en: {
-      key: 'en',
-      label: 'English',
-      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/en.json'
+      key: "en",
+      label: "English",
+      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/en.json"
     },
     ru: {
-      key: 'ru',
-      label: 'Русский',
-      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/ru.json'
+      key: "ru",
+      label: "Русский",
+      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/ru.json"
     },
     cn: {
-      key: 'cn',
-      label: '中文',
-      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/cn.json'
+      key: "cn",
+      label: "中文",
+      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/cn.json"
     },
     es: {
-      key: 'es',
-      label: 'Español',
-      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/es.json'
+      key: "es",
+      label: "Español",
+      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/es.json"
     },
     gr: {
-      key: 'gr',
-      label: 'Ελληνικά',
-      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/gr.json'
+      key: "gr",
+      label: "Ελληνικά",
+      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/gr.json"
     },
     tr: {
-      key: 'tr',
-      label: 'Türkçe',
-      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/tr.json'
+      key: "tr",
+      label: "Türkçe",
+      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/tr.json"
     },
     fr: {
-      key: 'fr',
-      label: 'Français',
-      url: 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/fr.json'
+      key: "fr",
+      label: "Français",
+      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/fr.json"
     }
-  }
+  };
 }
 
 const filament = {
-  token: '1328330b-c9aa-46bd-aaf0-3330337f5400',
+  token: "1328330b-c9aa-46bd-aaf0-3330337f5400",
   url: "https://auxo.staging.numia.xyz/track"
-}
+};
 
 export const SquidRouter = {
-  integratorId: 'nolus-sdk',
+  integratorId: "nolus-sdk",
   baseUrl: "https://api.squidrouter.com",
   networks: {
-    localnet: import('./squidrouter/vitosha-networks.json?url').then((t) => t.default),
-    devnet: import('./squidrouter/vitosha-networks.json?url').then((t) => t.default),
-    testnet: import('./squidrouter/rila-networks.json?url').then((t) => t.default),
-    mainnet: import('./squidrouter/pirin-networks.json?url').then((t) => t.default),
+    localnet: import("./squidrouter/vitosha-networks.json?url").then((t) => t.default),
+    devnet: import("./squidrouter/vitosha-networks.json?url").then((t) => t.default),
+    testnet: import("./squidrouter/rila-networks.json?url").then((t) => t.default),
+    mainnet: import("./squidrouter/pirin-networks.json?url").then((t) => t.default)
   }
-}
+};
 
 export const getPrice = async (token: string) => {
-  return fetch(`${CoinGecko.url}/simple/price?ids=${token}&vs_currencies=usd&x_cg_pro_api_key=${CoinGecko.key}`).then((res) => res.json())
-}
+  return fetch(
+    `${CoinGecko.url}/simple/price?ids=${token}&vs_currencies=usd&x_cg_pro_api_key=${CoinGecko.key}`
+  ).then((res) => res.json());
+};
 
-let news: string | Promise<string> = import('./news.json?url').then((t) => t.default);
+let news: string | Promise<string> = import("./news.json?url").then((t) => t.default);
 
 if (!isDev()) {
   news = "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news.json";
@@ -359,70 +368,97 @@ if (!isDev()) {
 
 export const minimumLeaseAmount = 1;
 export const languages = l;
-export const SUPPORTED_NETWORKS = ['NOLUS', 'OSMOSIS', 'COSMOS_HUB', 'AXELAR', 'STRIDE', 'JUNO', 'EVMOS', 'PERSISTENCE', 'SECRET', 'STARGAZE', 'CELESTIA', 'NEUTRON', 'DYDX'];
+export const SUPPORTED_NETWORKS = [
+  "NOLUS",
+  "OSMOSIS",
+  "COSMOS_HUB",
+  "AXELAR",
+  "STRIDE",
+  "JUNO",
+  "EVMOS",
+  "PERSISTENCE",
+  "SECRET",
+  "STARGAZE",
+  "CELESTIA",
+  "NEUTRON",
+  "DYDX"
+];
 export const SWAP_FEE = 0.007;
 export const ZERO_DECIMALS = 6;
 export const USD_DECIMALS = 6;
 export const MAX_DECIMALS = 8;
 export const LedgerName = "Ledger";
-export const IGNORE_LEASE_ASSETS: string[] = ['Q_ATOM', 'Q_ATOM@OSMOSIS', 'Q_ATOM@NEUTRON', 'STK_ATOM'];
-export const IGNORE_TRANSFER_ASSETS: string[] = ['Q_ATOM', 'Q_ATOM@OSMOSIS', 'Q_ATOM@NEUTRON'];
-export const IGNORE_LEASES: string[] = ["nolus1suz0vsqe8c8anckaer98awhqs8r4hu7wsm8a49acdl39x6ylfypsqywxwh", "nolus1q2ekwjj87jglqsszwy6ah5t08h0k8kq67ed0l899sku2qt0dztpsnwt6sw"];
+export const IGNORE_LEASE_ASSETS: string[] = [
+  "Q_ATOM",
+  "Q_ATOM@OSMOSIS",
+  "Q_ATOM@NEUTRON",
+  "STK_ATOM"
+];
+export const IGNORE_TRANSFER_ASSETS: string[] = ["Q_ATOM", "Q_ATOM@OSMOSIS", "Q_ATOM@NEUTRON"];
+export const IGNORE_LEASES: string[] = [
+  "nolus1suz0vsqe8c8anckaer98awhqs8r4hu7wsm8a49acdl39x6ylfypsqywxwh",
+  "nolus1q2ekwjj87jglqsszwy6ah5t08h0k8kq67ed0l899sku2qt0dztpsnwt6sw"
+];
 export const NEWS_URL = news;
 
 export const CurrencyMapping: {
   [key: string]: {
-    ticker: string,
-    name?: string
-  }
+    ticker: string;
+    name?: string;
+  };
 } = {
   WETH_AXELAR: {
-    ticker: 'WETH',
+    ticker: "WETH"
   },
   USDC_AXELAR: {
-    ticker: 'USDC',
-    name: 'USDC.axl'
+    ticker: "USDC",
+    name: "USDC.axl"
   },
   WBTC_AXELAR: {
-    ticker: 'WBTC'
+    ticker: "WBTC"
   }
-}
+};
 
 export const CurrencyDemapping: {
   [key: string]: {
-    ticker: string,
-    name?: string
-  }
+    ticker: string;
+    name?: string;
+  };
 } = {
   WETH: {
-    ticker: 'WETH_AXELAR',
+    ticker: "WETH_AXELAR"
   },
   USDC: {
-    ticker: 'USDC_AXELAR',
-    name: 'USDC.axl'
+    ticker: "USDC_AXELAR",
+    name: "USDC.axl"
   },
   WBTC: {
-    ticker: 'WBTC_AXELAR'
+    ticker: "WBTC_AXELAR"
   }
-}
+};
 
 export const ProtocolsConfig: {
   [key: string]: {
-    hidden: string[]
-  }
+    hidden: string[];
+  };
 } = {
   OSMOSIS: {
     hidden: []
   },
   NEUTRON: {
-    hidden: ['ATOM', 'ST_ATOM']
+    hidden: ["ATOM", "ST_ATOM"]
   }
-}
+};
 
-export const SUPPORT_URL = 'https://hub.nolus.io';
-export const ETL_API = "https://etl-cl.nolus.network:8080/api"
-export const DOWNPAYMENT_RANGE_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/downpayment-range.json';
-export const SWAP_FEE_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/swap-fee.json';
-export const OPEAN_LEASE_FEE_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/open-lease-fee.json';
-export const FREE_INTEREST_ADDRESS_URL = 'https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/zero/0interest-payments.json';
+export const FREE_INTEREST_ASSETS = ["NTRN"];
+export const SUPPORT_URL = "https://hub.nolus.io";
+export const ETL_API = "https://etl-cl.nolus.network:8080/api";
+export const DOWNPAYMENT_RANGE_URL =
+  "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/downpayment-range.json";
+export const SWAP_FEE_URL =
+  "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/swap-fee.json";
+export const OPEAN_LEASE_FEE_URL =
+  "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/open-lease-fee.json";
+export const FREE_INTEREST_ADDRESS_URL =
+  "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/zero/0interest-payments.json";
 export const Filament = filament;
