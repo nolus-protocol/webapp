@@ -132,6 +132,7 @@ export enum SNACKBAR {
 }
 
 export enum Mode {
+  serve = 'serve',
   dev = 'dev',
   prod = 'prod'
 }
@@ -243,6 +244,10 @@ export const isDev = () => {
   return import.meta.env.VITE_MODE == Mode.dev
 }
 
+export const isServe = () => {
+  return import.meta.env.VITE_MODE == Mode.serve
+}
+
 export const CoinGecko = {
   url: 'https://pro-api.coingecko.com/api/v3',
   label: 'Nolus App',
@@ -298,7 +303,7 @@ let l: {
   }
 }
 
-if (!isDev()) {
+if (!isServe()) {
   l = {
     en: {
       key: 'en',
@@ -363,7 +368,7 @@ export const getPrice = async (token: string) => {
 let news: string | Promise<string> = import('./news/news.json?url').then((t) => t.default)
 let newsWalletsPath: string = '/src/config/news/wallets/'
 
-if (!isDev()) {
+if (!isServe()) {
   news = 'https://raw.githubusercontent.com/nolus-protocol/webapp/feature/specific-wallets-for-banners/src/config/news/news.json'
   newsWalletsPath = 'https://raw.githubusercontent.com/nolus-protocol/webapp/feature/specific-wallets-for-banners/src/config/news/wallets/'
 }

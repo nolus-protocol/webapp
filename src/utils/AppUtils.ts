@@ -4,6 +4,7 @@ import {
   DOWNPAYMENT_RANGE_URL,
   FREE_INTEREST_ADDRESS_URL,
   isDev,
+  isServe,
   languages,
   NETWORKS,
   NEWS_URL,
@@ -56,6 +57,10 @@ export class AppUtils {
 
   static isDev() {
     return isDev()
+  }
+
+  static isServe() {
+    return isServe()
   }
 
   public static setLang(lang: string) {
