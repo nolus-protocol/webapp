@@ -30,5 +30,10 @@ yarn serve
 yarn build
 ```
 
+## VS Code ext
+
+https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig
+https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode
+
 &nbsp;
 &nbsp;
