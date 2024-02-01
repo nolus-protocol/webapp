@@ -212,7 +212,7 @@
     "delegated": "Delegated",
     "undelegated": "Withdraw",
     "undelegating": "Withdrawing",
-    "undelegate-description": "Once the Withdrawing begins, you will stop receiving rewards and not be able to cancel it.",
+    "undelegate-description": "Once the Withdrawing begins, you will stop receiving rewards and not be able to cancel it",
     "down-payment-tooltip": "The initial deposit required to leverage a desired asset",
     "asset-to-lease": "Asset to Lease",
     "borrowed": "Borrowed",
