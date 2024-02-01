@@ -26,7 +26,7 @@
       </div>
     </div>
     <div class="text-primary text-small-heading break-all">
-      &#35;{{ state.proposal_id }} {{ state.content.title }}
+      &#35;{{ state.id }} {{ state.title }}
     </div>
     <ProposalVotingLine
       v-if="isVotingPeriod &&
@@ -35,17 +35,17 @@
       :voting="state.tally"
     />
     <div
-      v-if="state.content.description"
+      v-if="state.summary"
       class="text-medium-blue text-12"
     >
       <div class="text-bold text-14">Summary</div>
-      {{ StringUtils.truncateText(state.content.description, 256) }}
+      {{ StringUtils.truncateText(state.summary, 256) }}
     </div>
     <button
-      v-if="state.content.description && state.content.description.length > 256"
+      v-if="state.summary && state.summary.length > 256"
       class="btn btn-secondary btn-medium-secondary self-start !text-12 !py-1"
       @click="
-        $emit('read-more', { title: state.content.title, description: state.content.description })
+        $emit('read-more', { title: state.title, summary: state.summary })
         "
     >
       {{ $t('message.read-more') }}
@@ -83,12 +83,12 @@ const props = defineProps({
 })
 
 const quorum = computed(() => {
-  const q = (Number(props.state.content.params.quorum) * 100).toFixed(2);
+  const q = (Number(props.state.messages[0].params.quorum) * 100).toFixed(2);
   return q;
 })
 
 const turnout = computed(() => {
-  const t = (Number(props.state.content.params.threshold) * 100).toFixed(2);
+  const t = (Number(props.state.messages[0].params.threshold) * 100).toFixed(2);
   return t;
 })
 

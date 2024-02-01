@@ -12,7 +12,7 @@
       >
         <ProposalItem
           v-for="proposal in proposals"
-          :key="proposal.proposal_id"
+          :key="proposal.id"
           :state="proposal"
           @vote="onVote"
           @read-more="onReadMore"
@@ -33,7 +33,7 @@
         @close-modal="onCloseReadMoreModal"
       >
         <ProposalReadMoreDialog
-          :source="state.proposal.description"
+          :source="state.proposal.summary"
           :title="state.proposal.title"
         />
       </Modal>
@@ -90,7 +90,7 @@ const state = ref({
   proposal: {
     id: '',
     title: '',
-    description: ''
+    summary: ''
   },
   limit: 6,
   pagination: {
@@ -116,7 +116,7 @@ const fetchTally = async (proposal: Proposal) => {
   try {
     const node = await AppUtils.getArchiveNodes()
     const r = await fetch(
-      `${node.archive_node_api}/cosmos/gov/v1beta1/proposals/${proposal.proposal_id}/tally`
+      `${node.archive_node_api}/cosmos/gov/v1/proposals/${proposal.id}/tally`
     )
     const d = await r.json();
     proposal.tally = d.tally;
@@ -131,7 +131,7 @@ const fetchTally = async (proposal: Proposal) => {
 }
 
 const reFetchTally = async (id: string) => {
-  const index = proposals.value.findIndex((item) => item.proposal_id == id);
+  const index = proposals.value.findIndex((item) => item.id == id);
   if (index > -1) {
     proposals.value[index] = await fetchTally(proposals.value[index]) as Proposal;
   }
@@ -152,7 +152,7 @@ const fetchData = async (url: string) => {
 const fetchGovernanceProposals = async () => {
   const node = await AppUtils.getArchiveNodes()
   const data = await fetchData(
-    `${node.archive_node_api}/cosmos/gov/v1beta1/proposals?pagination.limit=${state.value.limit}&pagination.reverse=true&pagination.countTotal=true`
+    `${node.archive_node_api}/cosmos/gov/v1/proposals?pagination.limit=${state.value.limit}&pagination.reverse=true&pagination.countTotal=true`
   )
   if (!data) return
 
@@ -173,11 +173,11 @@ const fetchGovernanceProposals = async () => {
   }, LOAD_TIMEOUT)
 }
 
-const onReadMore = ({ description, title }: { description: string; title: string }) => {
+const onReadMore = ({ summary, title }: { summary: string; title: string }) => {
   state.value.showReadMoreModal = true
   state.value.proposal = {
     ...state.value.proposal,
-    description,
+    summary,
     title
   }
 }
@@ -190,8 +190,8 @@ const onVote = (selectedProposal: Proposal) => {
   state.value.showVoteModal = true
   state.value.proposal = {
     ...state.value.proposal,
-    title: selectedProposal.content.title,
-    id: selectedProposal.proposal_id
+    title: selectedProposal.title,
+    id: selectedProposal.id
   }
 }
 
@@ -207,7 +207,7 @@ const loadMoreProposals = async () => {
   state.value.loading = true
   const node = await AppUtils.getArchiveNodes()
   const data = await fetchData(
-    `${node.archive_node_api}/cosmos/gov/v1beta1/proposals?pagination.limit=${state.value.limit}&pagination.key=${state.value.pagination.next_key}&pagination.reverse=true&pagination.countTotal=true`
+    `${node.archive_node_api}/cosmos/gov/v1/proposals?pagination.limit=${state.value.limit}&pagination.key=${state.value.pagination.next_key}&pagination.reverse=true&pagination.countTotal=true`
   )
 
   if (!data) return

@@ -41,22 +41,22 @@ const props = defineProps({
 const showTooltips = ref(Array(Object.values(props.voting).length).fill(false))
 
 const colors: { [key: string]: any } = {
-  yes: {
+  yes_count: {
     bg: 'bg-[#1AB171]',
     before: 'before:bg-[#1AB171]',
     text: 'text-[#1AB171]'
   },
-  abstain: {
+  abstain_count: {
     bg: 'bg-[#C1CAD7]',
     before: 'before:bg-[#C1CAD7]',
     text: 'text-[#C1CAD7]'
   },
-  no: {
+  no_count: {
     bg: 'bg-[#E42929]',
     before: 'before:bg-[#E42929]',
     text: 'text-[#E42929]'
   },
-  no_with_veto: {
+  no_with_veto_count: {
     bg: 'bg-[#082D63]',
     before: 'before:bg-[#082D63]',
     text: 'text-[#082D63]'
