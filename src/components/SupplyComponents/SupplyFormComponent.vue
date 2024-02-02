@@ -19,6 +19,7 @@
           :balance="formatCurrentBalance(modelValue.selectedCurrency)"
           :total="modelValue.selectedCurrency?.balance"
           :set-input-value="setAmount"
+          :disabled-currency-picker="true"
           name="amountSupply"
           @input="handleAmountChange($event)"
           @update-currency="(event) => (modelValue.selectedCurrency = event)"
