@@ -238,7 +238,7 @@ export const calculateAditionalDebt = (principal: Dec, percent: Dec) => {
   const amountForTwoMinuts = secondsAmount.mul(new Dec(180));
   return amountForTwoMinuts;
 };
-console.log(import.meta.env)
+
 export const isDev = () => {
   return import.meta.env.VITE_MODE == Mode.dev;
 };

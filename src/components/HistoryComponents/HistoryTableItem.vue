@@ -63,6 +63,7 @@ import { useI18n } from 'vue-i18n'
 import { useWalletStore } from '@/stores/wallet'
 import { Buffer } from 'buffer'
 import { WalletManager } from '@/utils'
+import { VoteOption } from 'cosmjs-types/cosmos/gov/v1beta1/gov'
 
 enum Messages {
   '/cosmos.bank.v1beta1.MsgSend' = '/cosmos.bank.v1beta1.MsgSend',
@@ -109,6 +110,13 @@ const many_m = i18n.t('message.many_m')
 
 const one_h = i18n.t('message.one_h')
 const many_h = i18n.t('message.many_h')
+
+const voteMessages: {[key: string]: string} = {
+  [VoteOption.VOTE_OPTION_ABSTAIN]: i18n.t(`message.abstained`).toLowerCase(),
+  [VoteOption.VOTE_OPTION_NO_WITH_VETO]: i18n.t(`message.veto`).toLowerCase(),
+  [VoteOption.VOTE_OPTION_YES]: i18n.t(`message.yes`).toLowerCase(),
+  [VoteOption.VOTE_OPTION_NO]: i18n.t(`message.no`).toLowerCase()
+}
 
 interface Props {
   transaction: ITransaction
@@ -313,8 +321,9 @@ const message = (msg: Object | any) => {
       return msg.typeUrl
     }
     case Messages['/cosmos.gov.v1beta1.MsgVote']: {
+      const m = voteMessages[msg.data.option];
       return i18n.t('message.vote-position-action', {
-        vote: msg.data.option ? i18n.t('message.yes') : i18n.t('message.no'),
+        vote: m,
         propose: msg.data.proposalId?.toString()
       })
     }
