@@ -5,7 +5,8 @@
         "title": "lease-banner-title",
         "subtitle": "ntrn_0-banner-subtitle",
         "description": "ntrn_0-banner-description",
-        "target": "/lease#create"
+        "target": "/lease#create",
+        "wallets": "dydx.json"
     },  
     "dydx": {
         "title-icon": "https://nolus.io/banner/lease.svg",

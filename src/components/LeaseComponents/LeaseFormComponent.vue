@@ -169,8 +169,6 @@ const liquiStakeTokens = {
   }
 };
 
-const ignore = ["STK_ATOM"];
-
 onMounted(() => {
   if (props.modelValue.dialogSelectedCurrency) {
     const index = coinList.value.findIndex((item) => {

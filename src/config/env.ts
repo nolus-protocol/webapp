@@ -369,9 +369,9 @@ let newsWalletsPath: string = "/src/config/news/wallets/";
 
 if (!isServe()) {
   news =
-    "https://raw.githubusercontent.com/nolus-protocol/webapp/feature/specific-wallets-for-banners/src/config/news/news.json";
+    "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/news.json";
   newsWalletsPath =
-    "https://raw.githubusercontent.com/nolus-protocol/webapp/feature/specific-wallets-for-banners/src/config/news/wallets/";
+    "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/wallets/";
 }
 
 export const minimumLeaseAmount = 1;
