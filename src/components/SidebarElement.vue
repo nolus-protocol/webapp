@@ -5,46 +5,42 @@
     :class="{ active: $route.path == href }"
     :target="target || '_self'"
   >
-    <span
-      class="icon"
-      :class="[`icon-${id}`]"
-    >
-    </span>
+    <span class="icon" :class="[`icon-${id}`]"> </span>
     <span> {{ label }} </span>
   </a>
 </template>
 <script setup lang="ts">
 defineProps({
   id: {
-    type: String,
+    type: String
   },
   href: {
-    type: String,
+    type: String
   },
   label: {
-    type: String,
+    type: String
   },
   icon: {
-    type: String,
+    type: String
   },
   iconHover: {
-    type: String,
+    type: String
   },
   isActive: {
-    type: Boolean,
+    type: Boolean
   },
   mobile: {
-    type: String,
+    type: String
   },
   target: {
-    type: String,
-  },
-});
+    type: String
+  }
+})
 </script>
 <style scoped>
-[class^="icon-"]:before,
-[class*=" icon-"]:before {
-  font-family: "nolus";
+[class^='icon-']:before,
+[class*=' icon-']:before {
+  font-family: 'nolus';
   font-style: normal;
   font-weight: normal;
   display: inline-block;

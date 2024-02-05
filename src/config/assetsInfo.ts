@@ -61,5 +61,8 @@ export const ASSETS = {
   },
   DYDX: {
     coinGeckoId: 'dydx-chain'
+  },
+  STRD: {
+    coinGeckoId: 'stride'
   }
 };

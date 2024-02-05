@@ -64,11 +64,20 @@
             <TooltipComponent :content="$t('message.borrowed-tooltip')" />
           </p>
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
-            <span v-if="annualInterestRate"
+            <template v-if="FREE_INTEREST_ASSETS.includes(selectedAssetDenom)">
+              <span v-if="annualInterestRate"
                   class="text-[#8396B1] line-throught-gray">
               {{ annualInterestRate ?? 0 }}%
             </span>
             <span class="dark-text">0%</span>
+            </template>
+            <template v-else>
+              <span
+                  class="text-[#8396B1]">
+                {{ annualInterestRate ?? 0 }}%
+              </span>
+            </template>
+
             <TooltipComponent :content="$t('message.interest-tooltip')" />
           </p>
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
@@ -89,7 +98,7 @@
           <p class="text-[12px] mt-2  mr-5">
             {{ $t("message.swap-fee") }}
             <span class="text-[#8396B1] nls-font-400">
-              ({{ downPaymentSwapFee * 100 }}%)
+              ({{ (downPaymentSwapFee * 100).toFixed(2) }}%)
             </span>
           </p>
         </div>
@@ -129,7 +138,7 @@ import { onMounted, ref, type PropType } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { computed, watch } from "vue";
 import { useWalletStore } from "@/stores/wallet";
-import { NATIVE_NETWORK, calculateLiquidation, PERMILLE, IGNORE_LEASE_ASSETS, USD_DECIMALS, CurrencyMapping, MONTHS } from "@/config/env";
+import { NATIVE_NETWORK, calculateLiquidation, PERMILLE, IGNORE_LEASE_ASSETS, USD_DECIMALS, CurrencyMapping, MONTHS, FREE_INTEREST_ASSETS } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
@@ -243,7 +252,7 @@ const balances = computed(() => {
     if (CurrencyMapping[cticker as keyof typeof CurrencyMapping]) {
       cticker = CurrencyMapping[cticker as keyof typeof CurrencyMapping]?.ticker;
     }
-    
+
     return lpns.includes(currency.ticker as string) || app.leasesCurrencies.includes(cticker);
   });
 });
@@ -285,7 +294,7 @@ watch(() => coinList.value, () => {
 })
 
 const annualInterestRate = computed(() => {
-  return ((props.modelValue?.leaseApply?.annual_interest_rate ?? 0) + (props.modelValue?.leaseApply?.annual_interest_rate_margin ?? 0)) / MONTHS;
+  return (((props.modelValue?.leaseApply?.annual_interest_rate ?? 0) + (props.modelValue?.leaseApply?.annual_interest_rate_margin ?? 0)) / MONTHS).toFixed(2);
 });
 
 const calculateMarginAmount = computed(() => {

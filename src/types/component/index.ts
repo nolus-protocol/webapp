@@ -8,3 +8,4 @@ export type { DelegateFormComponentProps } from "@/types/component/DelegateFormC
 export type { WithdrawRewardsComponentProps } from "@/types/component/WithdrawRewardsComponentProps";
 export type { UndelegateFormComponentProps } from "@/types/component/UndelegateFormComponentProps";
 export type { MarketCloseComponentProps } from "@/types/component/MarketCloseComponentProps";
+export type { VoteComponentProps } from "@/types/component/VoteComponentProps";

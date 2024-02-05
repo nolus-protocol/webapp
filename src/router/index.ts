@@ -4,7 +4,12 @@ import { RouteNames } from "@/router/RouterNames";
 import { useWalletStore } from "@/stores/wallet";
 import { WalletConnectMechanism } from "@/types";
 
-import { createRouter, createWebHistory, type NavigationGuardNext, type RouteLocationNormalized } from "vue-router";
+import {
+  createRouter,
+  createWebHistory,
+  type NavigationGuardNext,
+  type RouteLocationNormalized
+} from "vue-router";
 import { ApplicationActionTypes, useApplicationStore } from "@/stores/application";
 import { setLang } from "@/i18n";
 import { AppUtils } from "@/utils/AppUtils";
@@ -28,8 +33,9 @@ const router = createRouter({
           name: RouteNames.DASHBOARD,
           component: () => import("@/views/DashboardView.vue"),
           meta: {
-            title: 'Nolus Protocol - Portfolio Dashboard',
-            description: 'A comprehensive interface offering insights and management tools for your activities on Nolus'
+            title: "Nolus Protocol - Portfolio Dashboard",
+            description:
+              "A comprehensive interface offering insights and management tools for your activities on Nolus"
           }
         },
         {
@@ -37,8 +43,9 @@ const router = createRouter({
           name: RouteNames.LEASE,
           component: () => import("@/views/LeaseView.vue"),
           meta: {
-            title: 'Nolus Protocol - Lease Positions',
-            description: 'Explore lease positions with the Nolus Protocol. Streamline tracking, management, and insights for your leasing activities'
+            title: "Nolus Protocol - Lease Positions",
+            description:
+              "Explore lease positions with the Nolus Protocol. Streamline tracking, management, and insights for your leasing activities"
           }
         },
         {
@@ -46,8 +53,9 @@ const router = createRouter({
           name: RouteNames.EARN,
           component: () => import("@/views/EarningsView.vue"),
           meta: {
-            title: 'Nolus Protocol - Earn',
-            description: 'Maximize your earnings with Nolus Protocol. Discover opportunities, manage assets, and grow your portfolio effortlessly'
+            title: "Nolus Protocol - Earn",
+            description:
+              "Maximize your earnings with Nolus Protocol. Discover opportunities, manage assets, and grow your portfolio effortlessly"
           }
         },
         {
@@ -55,8 +63,19 @@ const router = createRouter({
           name: RouteNames.HISTORY,
           component: () => import("@/views/HistoryView.vue"),
           meta: {
-            title: 'Nolus Protocol - Transaction History',
-            description: 'Review your activity on the Nolus Protocol. Access detailed records and insights of all your past transactions'
+            title: "Nolus Protocol - Transaction History",
+            description:
+              "Review your activity on the Nolus Protocol. Access detailed records and insights of all your past transactions"
+          }
+        },
+        {
+          path: "/vote",
+          name: RouteNames.VOTE,
+          component: () => import("@/views/VoteView.vue"),
+          meta: {
+            title: "Nolus Protocol - Votes",
+            description:
+              ""
           }
         },
         {
@@ -64,11 +83,12 @@ const router = createRouter({
           name: RouteNames.STATS,
           component: () => import("@/views/StatsView.vue"),
           meta: {
-            title: 'Nolus Protocol - Stats',
-            description: 'Examine the stability and health of the Nolus Protocol. Access vital stats and metrics to ensure optimal performance and reliability'
+            title: "Nolus Protocol - Stats",
+            description:
+              "Examine the stability and health of the Nolus Protocol. Access vital stats and metrics to ensure optimal performance and reliability"
           }
-        },
-      ],
+        }
+      ]
     },
     {
       path: "/auth",
@@ -80,8 +100,9 @@ const router = createRouter({
           name: RouteNames.AUTH,
           component: () => import("@/views/AuthSelectView.vue"),
           meta: {
-            title: 'Nolus Protocol',
-            description: 'Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space'
+            title: "Nolus Protocol",
+            description:
+              "Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space"
           }
         },
         {
@@ -89,8 +110,9 @@ const router = createRouter({
           name: RouteNames.IMPORT_SEED,
           component: () => import("@/views/ImportSeedView.vue"),
           meta: {
-            title: 'Nolus Protocol',
-            description: 'Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space'
+            title: "Nolus Protocol",
+            description:
+              "Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space"
           }
         },
         {
@@ -98,8 +120,9 @@ const router = createRouter({
           name: RouteNames.CREATE_ACCOUNT,
           component: () => import("@/views/CreateAccountView.vue"),
           meta: {
-            title: 'Nolus Protocol',
-            description: 'Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space'
+            title: "Nolus Protocol",
+            description:
+              "Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space"
           }
         },
         {
@@ -107,28 +130,31 @@ const router = createRouter({
           name: RouteNames.SET_PASSWORD,
           component: () => import("@/views/SetPassword.vue"),
           meta: {
-            title: 'Nolus Protocol',
-            description: 'Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space'
+            title: "Nolus Protocol",
+            description:
+              "Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space"
           },
-          beforeEnter: checkWallet,
+          beforeEnter: checkWallet
         },
         {
           path: "set-wallet-name",
           name: RouteNames.SET_WALLET_NAME,
           component: () => import("@/views/SetWalletName.vue"),
           meta: {
-            title: 'Nolus Protocol',
-            description: 'Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space'
+            title: "Nolus Protocol",
+            description:
+              "Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space"
           },
-          beforeEnter: beforeWalletName,
+          beforeEnter: beforeWalletName
         },
         {
           path: "connecting-to-keplr",
           name: RouteNames.CONNECT_KEPLR,
           component: () => import("@/views/ConnectingKeplr.vue"),
           meta: {
-            title: 'Nolus Protocol',
-            description: 'Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space'
+            title: "Nolus Protocol",
+            description:
+              "Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space"
           }
         },
         {
@@ -136,8 +162,9 @@ const router = createRouter({
           name: RouteNames.CONNECT_LEAP,
           component: () => import("@/views/ConnectingLeap.vue"),
           meta: {
-            title: 'Nolus Protocol',
-            description: 'Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space'
+            title: "Nolus Protocol",
+            description:
+              "Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space"
           }
         },
         {
@@ -145,35 +172,36 @@ const router = createRouter({
           name: RouteNames.IMPORT_LEDGER,
           component: () => import("@/views/ImportLedgerView.vue"),
           meta: {
-            title: 'Nolus Protocol',
-            description: 'Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space'
+            title: "Nolus Protocol",
+            description:
+              "Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space"
           }
         },
         {
           path: "google",
           component: () => import("@/views/GoogleAuthView.vue"),
           meta: {
-            title: 'Nolus Protocol',
-            description: 'Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space'
-          },
-        },
-      ],
+            title: "Nolus Protocol",
+            description:
+              "Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space"
+          }
+        }
+      ]
     },
     {
       path: "/:pathMatch(.*)",
-      redirect: "/",
-    },
-  ],
+      redirect: "/"
+    }
+  ]
 });
 
 async function loadLanguage(
   to: RouteLocationNormalized,
   from: RouteLocationNormalized,
-  next: NavigationGuardNext) {
-
+  next: NavigationGuardNext
+) {
   await setLang(AppUtils.getLang().key);
   return next();
-
 }
 
 function checkWallet(
@@ -255,7 +283,7 @@ async function loadData() {
   await app[ApplicationActionTypes.CHANGE_NETWORK](false);
   await Promise.all([
     app[ApplicationActionTypes.LOAD_CURRENCIES](),
-    admin[AdminActionTypes.GET_PROTOCOLS](),
+    admin[AdminActionTypes.GET_PROTOCOLS]()
   ]);
 }
 
@@ -263,7 +291,7 @@ router.beforeEach((to, from, next) => {
   const description: HTMLElement | null = document.querySelector('meta[name="description"]');
   window.document.title = to.meta.title as string;
   if (description) {
-    description.setAttribute('content', to.meta.description as string);
+    description.setAttribute("content", to.meta.description as string);
   }
 
   next();

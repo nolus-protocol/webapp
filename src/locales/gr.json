@@ -356,6 +356,18 @@
     "stats-banner-subtitle": "Παραμονή στην επικαιρότητα με τα τελευταία στατιστικά στοιχεία",
     "stats-banner-description": "Παρακολουθήστε τους κρίσιμους δείκτες πρωτοκόλλου, όπως TVL, χρήση κεφαλαίων, επαναγορές, λεπτομέρειες δανείων και άλλα",
     "positions-pnL": "PnL θέσεων",
-    "total-equity": "Σύνολο ιδίων κεφαλαίων"
+    "total-equity": "Σύνολο ιδίων κεφαλαίων",
+    "neutron-banner-title": "Lease",
+    "neutron-banner-subtitle": "$NTRN Now Available!",
+    "neutron-banner-description": "Lease now to be in the top 30 for limited-edition swag or among the first 100 for an exclusive #LFL Badge",
+    "proposal": "Proposal",
+    "voter": "Voter",
+    "read-more": "Read More",
+    "abstained": "Abstained",
+    "veto": "Veto",
+    "voting-warning": "To obtain voting privileges, you must first delegate NLS tokens to the network's validators",
+    "dydx-banner-title": "Lease",
+    "dydx-banner-subtitle": "$DYDX Now Available!",
+    "dydx-banner-description": "The second asset from the Astroport (Neutron) integration is now open for leasing"
   }
 }
