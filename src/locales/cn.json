@@ -357,17 +357,20 @@
     "stats-banner-description": "Track crucial protocol indicators like TVL, funds usage, buybacks, loan details and more",
     "positions-pnL": "Positions PnL",
     "total-equity": "Total Equity",
-    "neutron-banner-title": "Lease",
-    "neutron-banner-subtitle": "$NTRN Now Available!",
-    "neutron-banner-description": "Lease now to be in the top 30 for limited-edition swag or among the first 100 for an exclusive #LFL Badge",
     "proposal": "Proposal",
     "voter": "Voter",
     "read-more": "Read More",
-    "abstained": "Abstained",
+    "abstained": "Abstain",
     "veto": "Veto",
+    "yes_count": "YES",
+    "no_count": "NO",
+    "abstain_count": "ABSTAIN",
+    "no_with_veto_count": "NO WOTH VETO",
     "voting-warning": "To obtain voting privileges, you must first delegate NLS tokens to the network's validators",
-    "dydx-banner-title": "Lease",
+    "lease-banner-title": "Lease",
     "dydx-banner-subtitle": "$DYDX Now Available!",
-    "dydx-banner-description": "The second asset from the Astroport (Neutron) integration is now open for leasing"
+    "dydx-banner-description": "The second asset from the Astroport (Neutron) integration is now open for leasing",
+    "ntrn_0-banner-subtitle": "Zero Interest on All $NTRN Leases",
+    "ntrn_0-banner-description": "Enjoy interest-free leases on all $NTRN positions until April 30th"
   }
 }
