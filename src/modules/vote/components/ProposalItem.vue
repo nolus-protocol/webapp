@@ -59,7 +59,7 @@ const props = defineProps({
     default: ProposalState
   },
   bondedTokens: {
-    type: Object as PropType<Dec>,
+    type: Object as PropType<Dec | any>,
     required: true
   }
 });
