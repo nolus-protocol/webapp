@@ -1,46 +1,33 @@
 <template>
-  <div
-    :class="{ 'animate-pulse': !state.initialLoad }"
-    class="block md:mt-0 mt-8"
-  >
+  <div :class="{ 'animate-pulse': !state.initialLoad }"
+       class="block md:mt-0 mt-8">
     <template v-if="state.initialLoad && !state.showSkeleton">
-      <TransitionGroup
-        appear
-        class="flex flex-wrap flex-row lg:gap-x-5 gap-y-8"
-        name="fade-long"
-        tag="div"
-      >
-        <ProposalItem
-          v-for="proposal in proposals"
-          :key="proposal.id"
-          :state="proposal"
-          @vote="onVote"
-          @read-more="onReadMore"
-        />
+      <TransitionGroup appear
+                       class="flex flex-wrap flex-row lg:gap-x-5 gap-y-8"
+                       name="fade-long"
+                       tag="div">
+        <ProposalItem v-for="proposal in proposals"
+                      :key="proposal.id"
+                      :state="proposal"
+                      :bondedTokens="bondedTokens"
+                      @vote="onVote"
+                      @read-more="onReadMore" />
       </TransitionGroup>
       <div class="text-center mt-6 lg:mt-8">
-        <button
-          v-if="visible"
-          :class="{ 'js-loading': state.loading }"
-          class="btn btn-secondary btn-medium-secondary mx-auto"
-          @click="loadMoreProposals"
-        >
+        <button v-if="visible"
+                :class="{ 'js-loading': state.loading }"
+                class="btn btn-secondary btn-medium-secondary mx-auto"
+                @click="loadMoreProposals">
           {{ $t('message.load-more') }}
         </button>
       </div>
-      <Modal
-        v-if="state.showReadMoreModal"
-        @close-modal="onCloseReadMoreModal"
-      >
-        <ProposalReadMoreDialog
-          :source="state.proposal.summary"
-          :title="state.proposal.title"
-        />
+      <Modal v-if="state.showReadMoreModal"
+             @close-modal="onCloseReadMoreModal">
+        <ProposalReadMoreDialog :source="state.proposal.summary"
+                                :title="state.proposal.title" />
       </Modal>
-      <Modal
-        v-if="state.showVoteModal"
-        @close-modal="onCloseVoteModal"
-      >
+      <Modal v-if="state.showVoteModal"
+             @close-modal="onCloseVoteModal">
         <ProposalVoteDialog :proposal="state.proposal" />
       </Modal>
     </template>
@@ -48,16 +35,12 @@
       <ProposalSkeleton />
     </template>
   </div>
-  <Modal
-    v-if="state.showErrorDialog"
-    route="alert"
-    @close-modal="state.showErrorDialog = false"
-  >
-    <ErrorDialog
-      :message="state.errorMessage"
-      :title="$t('message.error-connecting')"
-      :try-button="onClickTryAgain"
-    />
+  <Modal v-if="state.showErrorDialog"
+         route="alert"
+         @close-modal="state.showErrorDialog = false">
+    <ErrorDialog :message="state.errorMessage"
+                 :title="$t('message.error-connecting')"
+                 :try-button="onClickTryAgain" />
   </Modal>
 </template>
 
@@ -72,12 +55,14 @@ import Modal from '@/components/modals/templates/Modal.vue'
 import ProposalSkeleton from '@/modules/vote/components/ProposalSkeleton.vue'
 import ErrorDialog from '@/components/modals/ErrorDialog.vue'
 import { provide } from 'vue'
+import { Dec } from '@keplr-wallet/unit'
 
 interface CustomError extends Error {
   message: string
 }
 
 const LOAD_TIMEOUT = 500
+const bondedTokens = ref(new Dec(0));
 
 const state = ref({
   showErrorDialog: false,
@@ -103,7 +88,10 @@ const state = ref({
 const proposals = ref([] as Proposal[]);
 
 onMounted(async () => {
-  await fetchGovernanceProposals()
+  await Promise.allSettled([
+    fetchGovernanceProposals(),
+    loadBondedTokens()
+  ])
 })
 
 onUnmounted(() => {
@@ -111,6 +99,15 @@ onUnmounted(() => {
     clearTimeout(state.value.timeout)
   }
 })
+
+const loadBondedTokens = async () => {
+  const node = await AppUtils.getArchiveNodes()
+  const res = await fetch(
+    `${node.archive_node_api}/cosmos/staking/v1beta1/pool`
+  )
+  const data = await res.json();
+  bondedTokens.value = new Dec(data.pool.bonded_tokens);
+}
 
 const fetchTally = async (proposal: Proposal) => {
   try {

@@ -1,16 +1,17 @@
 <template>
-  <div
-    :class="wrapperClasses"
-    class="proposal w-full flex flex-col shadow-box lg:rounded-xl p-5 gap-3"
-  >
+  <div :class="wrapperClasses"
+       class="proposal w-full flex flex-col shadow-box lg:rounded-xl p-5 gap-3">
     <div class="flex flex-col md:flex-row gap-2 md:gap-0 justify-between text-[10px] text-upper">
       <div class="flex items-center gap-1">
-        <div :class="{ [color.bg]: color }" class="w-1.5 h-1.5 rounded" />
-        <div :class="{ [color.text]: color }" class="font-medium">
+        <div :class="{ [color.bg]: color }"
+             class="w-1.5 h-1.5 rounded" />
+        <div :class="{ [color.text]: color }"
+             class="font-medium">
           {{ ProposalStatus[state.status].split("_")[2] }}
         </div>
       </div>
-      <div v-if="isVotingPeriod" class="flex gap-2 text-light-blue">
+      <div v-if="isVotingPeriod"
+           class="flex gap-2 text-light-blue">
         <div>turnout: {{ turnout }}%</div>
         <div>quorum: {{ quorum }}%</div>
         <div>voting ends: {{ DateUtils.formatDateTime(state.voting_end_time) }}</div>
@@ -19,28 +20,24 @@
     <div class="text-primary text-small-heading break-all">
       &#35;{{ state.id }} {{ state.title }}
     </div>
-    <ProposalVotingLine
-      v-if="isVotingPeriod && Object.values(state.tally).filter((res) => !!Number(res)).length > 0"
-      :voting="state.tally"
-    />
-    <div v-if="state.summary" class="text-medium-blue text-14">
+    <ProposalVotingLine v-if="isVotingPeriod && Object.values(state.tally).filter((res) => !!Number(res)).length > 0"
+                        :voting="state.tally" />
+    <div v-if="state.summary"
+         class="text-medium-blue text-14">
       <div class="text-bold">Summary</div>
       {{ StringUtils.truncateText(state.summary, 256) }}
     </div>
-    <button
-      v-if="state.summary && state.summary.length > 256"
-      class="btn btn-secondary btn-medium-secondary self-start !text-12 !py-1"
-      @click="$emit('read-more', { title: state.title, summary: state.summary })"
-    >
+    <button v-if="state.summary && state.summary.length > 256"
+            class="btn btn-secondary btn-medium-secondary self-start !text-12 !py-1"
+            @click="$emit('read-more', { title: state.title, summary: state.summary })">
       {{ $t("message.read-more") }}
     </button>
 
-    <div v-if="isVotingPeriod" class="flex flex-col gap-3">
+    <div v-if="isVotingPeriod"
+         class="flex flex-col gap-3">
       <div class="w-full border-standart border-b bg-transparent"></div>
-      <button
-        class="btn btn-primary btn-large-primary self-end !px-3 !py-2"
-        @click="$emit('vote', state)"
-      >
+      <button class="btn btn-primary btn-large-primary self-end !px-3 !py-2"
+              @click="$emit('vote', state)">
         {{ $t("message.vote") }}
       </button>
     </div>
@@ -50,26 +47,41 @@
 <script lang="ts" setup>
 import { computed, type PropType } from "vue";
 import { DateUtils, StringUtils } from "@/utils";
-import { type Proposal, ProposalStatus } from "@/modules/vote/Proposal";
+import { type Proposal, ProposalStatus, type FinalTallyResult } from "@/modules/vote/Proposal";
 import { ProposalState } from "@/modules/vote/state";
 import ProposalVotingLine from "@/modules/vote/components/ProposalVotingLine.vue";
+import { Dec } from "@keplr-wallet/unit";
 
 const props = defineProps({
   state: {
     type: Object as PropType<Proposal>,
     required: true,
     default: ProposalState
+  },
+  bondedTokens: {
+    type: Object as PropType<Dec>,
+    required: true
   }
+});
+
+const turnout = computed(() => {
+
+  if(props.bondedTokens.isZero()){
+    return 0;
+  }
+  
+  let tally = new Dec(0);
+
+  for(const key in props.state.tally){
+    tally = tally.add(new Dec(props.state.tally[key as keyof FinalTallyResult]));
+  }
+
+  return tally.quo(props.bondedTokens).mul(new Dec(100)).toString(2);
 });
 
 const quorum = computed(() => {
   const q = (Number(props.state.messages[0].params.quorum) * 100).toFixed(2);
   return q;
-});
-
-const turnout = computed(() => {
-  const t = (Number(props.state.messages[0].params.threshold) * 100).toFixed(2);
-  return t;
 });
 
 const color = computed(() => {
