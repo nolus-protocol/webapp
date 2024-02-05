@@ -33,10 +33,8 @@ export class DateUtils {
   static many_d = 'days'
 
   public static parseDateTime(dateTime: string | null): string {
-    console.info(dateTime)
 
     if (dateTime === null) {
-      console.warn('dateTime is null')
       return ''
     }
 
@@ -89,7 +87,6 @@ export class DateUtils {
 
   public static formatDateTime(dateTime: string | null) {
     if (dateTime === null) {
-      console.warn('dateTime is null')
       return false
     }
 

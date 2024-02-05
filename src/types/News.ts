@@ -1,12 +1,13 @@
 export interface News {
-    [key: string]: New
+  [key: string]: New
 }
 
 export interface New {
-    "title-icon": string,
-    "image": string,
-    "title": string,
-    "subtitle": string,
-    "description": string,
-    "target": string
+  'title-icon': string
+  image: string
+  title: string
+  subtitle: string
+  description: string
+  target: string
+  wallets?: string
 }

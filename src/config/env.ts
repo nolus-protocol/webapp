@@ -1,6 +1,7 @@
 import type { NetworkAddress } from "@/types";
 import { Dec } from "@keplr-wallet/unit";
 import nlsIcon from "@/assets/icons/coins/nls.svg";
+
 export const DEFAULT_PRIMARY_NETWORK = "mainnet";
 
 export const NETWORKS: { [key: string]: NetworkAddress } = {
@@ -131,6 +132,7 @@ export enum SNACKBAR {
 }
 
 export enum Mode {
+  serve = "serve",
   dev = "dev",
   prod = "prod"
 }
@@ -197,13 +199,11 @@ export const calculateLiquidation = (unit: Dec, price: Dec) => {
 export const POSITIONS = 5;
 export const MIN_POSITION = 25;
 export const MAX_POSITION = 150;
-
 export const DEFAULT_LTD = 1.5;
 export const WASM_LP_DEPOSIT = "wasm-lp-deposit";
 export const WASM_LP_OPEN = "wasm-ls-open";
 
 export const INPUT_VALUES = [25, 50, 75, 100];
-
 export const LPN_PRICE = 1;
 export const LPN_DECIMALS = 6;
 export const LPN_Symbol = "USDC.axl";
@@ -238,9 +238,13 @@ export const calculateAditionalDebt = (principal: Dec, percent: Dec) => {
   const amountForTwoMinuts = secondsAmount.mul(new Dec(180));
   return amountForTwoMinuts;
 };
-
+console.log(import.meta.env)
 export const isDev = () => {
   return import.meta.env.VITE_MODE == Mode.dev;
+};
+
+export const isServe = () => {
+  return import.meta.env.VITE_MODE == Mode.serve;
 };
 
 export const CoinGecko = {
@@ -298,7 +302,7 @@ let l: {
   }
 };
 
-if (!isDev()) {
+if (!isServe()) {
   l = {
     en: {
       key: "en",
@@ -360,10 +364,14 @@ export const getPrice = async (token: string) => {
   ).then((res) => res.json());
 };
 
-let news: string | Promise<string> = import("./news.json?url").then((t) => t.default);
+let news: string | Promise<string> = import("./news/news.json?url").then((t) => t.default);
+let newsWalletsPath: string = "/src/config/news/wallets/";
 
-if (!isDev()) {
-  news = "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news.json";
+if (!isServe()) {
+  news =
+    "https://raw.githubusercontent.com/nolus-protocol/webapp/feature/specific-wallets-for-banners/src/config/news/news.json";
+  newsWalletsPath =
+    "https://raw.githubusercontent.com/nolus-protocol/webapp/feature/specific-wallets-for-banners/src/config/news/wallets/";
 }
 
 export const minimumLeaseAmount = 1;
@@ -400,6 +408,7 @@ export const IGNORE_LEASES: string[] = [
   "nolus1q2ekwjj87jglqsszwy6ah5t08h0k8kq67ed0l899sku2qt0dztpsnwt6sw"
 ];
 export const NEWS_URL = news;
+export const NEWS_WALLETS_PATH = newsWalletsPath
 
 export const CurrencyMapping: {
   [key: string]: {

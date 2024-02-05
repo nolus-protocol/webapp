@@ -54,7 +54,7 @@
 
       <div
         class="block mt-3"
-        v-if="AppUtils.isDev()"
+        v-if="AppUtils.isDev() || AppUtils.isServe()"
       >
         <Picker
           :default-option="currentNetwork"
