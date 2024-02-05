@@ -15,10 +15,10 @@ export default defineConfig({
       runtimeOnly: false
     })
   ],
-  server: {
-    hmr: true,
-    host: true
-  },
+  // server: {
+  //   hmr: true,
+  //   host: true
+  // },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

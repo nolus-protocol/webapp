@@ -129,7 +129,7 @@ onMounted(async () => {
   if (balances) {
     state.value.currentBalance = balances;
   }
-  setLeaseAssets();
+  // setLeaseAssets();
 });
 
 onUnmounted(() => {
@@ -151,9 +151,9 @@ watch(() => state.value.downPayment, () => {
   }
 });
 
-watch(() => state.value.selectedDownPaymentCurrency, () => {
-  setLeaseAssets();
-});
+// watch(() => state.value.selectedDownPaymentCurrency, () => {
+//   setLeaseAssets();
+// });
 
 
 watch(() => [state.value.selectedDownPaymentCurrency, state.value.selectedCurrency], () => {
@@ -171,10 +171,10 @@ watch(() => state.value.ltd, () => {
   calculate();
 });
 
-const setLeaseAssets = () => {
-  const currency = walletStore.currencies[state.value.selectedDownPaymentCurrency.balance.denom];
-  const [_currency, protocol] = currency.ticker.split('@');
-}
+// const setLeaseAssets = () => {
+//   // const currency = walletStore.currencies[state.value.selectedDownPaymentCurrency.balance.denom];
+//   // const [_currency, protocol] = currency.ticker.split('@');
+// }
 
 const calculate = async () => {
   try {
