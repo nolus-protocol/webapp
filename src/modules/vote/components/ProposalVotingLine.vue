@@ -19,7 +19,7 @@
         <span
           :class="[colors[res.label].text]"
           class="uppercase font-bold"
-        >{{ res.label }}</span>
+        >{{  $t(`message.${res.label}`) }}</span>
         {{ res.percent }}%
       </div>
     </div>
