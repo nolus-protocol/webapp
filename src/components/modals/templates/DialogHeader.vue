@@ -25,7 +25,7 @@
         >
           <ArrowLeftIcon aria-hidden="true" class="h-6 w-6 text-primary" />
         </button>
-        <h1 class="block w-full nls-font-700 text-28 md:text-32 text-primary text-center break-all">
+        <h1 class="block w-full nls-font-700 text-28 md:text-32 text-primary text-center">
           {{ headerList[0] }}
         </h1>
       </div>
@@ -41,9 +41,9 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, type PropType, provide, ref } from 'vue'
-import router from '@/router'
-import { ArrowLeftIcon } from '@heroicons/vue/24/solid'
+import { computed, type PropType, provide, ref } from "vue";
+import router from "@/router";
+import { ArrowLeftIcon } from "@heroicons/vue/24/solid";
 
 const props = defineProps({
   headerList: {
@@ -65,46 +65,46 @@ const props = defineProps({
   routes: {
     type: Array as PropType<string[]>,
     default: () => {
-      return []
+      return [];
     }
   }
-})
+});
 
-const activeTab = ref(props.activeTab)
-const showHeader = ref(true)
+const activeTab = ref(props.activeTab);
+const showHeader = ref(true);
 
 const backClick = () => {
   if (props.back) {
-    props.back()
+    props.back();
   }
-}
+};
 
 const isTabLayout = computed(() => {
-  return props.headerList.length > 1
-})
+  return props.headerList.length > 1;
+});
 
 function switchTab(index: number) {
   if (props.disabled.includes(index)) {
-    return false
+    return false;
   }
-  activeTab.value = index
-  const route = props.routes[index - 1]
+  activeTab.value = index;
+  const route = props.routes[index - 1];
   if (route != null) {
-    setRoute(route)
+    setRoute(route);
   }
 }
 
 function setRoute(route: string) {
-  const path = router.currentRoute.value.path
+  const path = router.currentRoute.value.path;
   router.replace({
     path,
     hash: `#${route}`
-  })
+  });
 }
 
 function setShowDialogHeader(shouldShow: boolean) {
-  showHeader.value = shouldShow
+  showHeader.value = shouldShow;
 }
 
-provide('setShowDialogHeader', setShowDialogHeader)
+provide("setShowDialogHeader", setShowDialogHeader);
 </script>
