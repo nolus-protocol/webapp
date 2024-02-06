@@ -1,4 +1,22 @@
 {
+    "nn_swag": {
+        "title-icon": "https://nolus.io/banner/lease.svg",
+        "image": "",
+        "title": "lease-banner-title",
+        "subtitle": "nn_swag-banner-subtitle",
+        "description": "nn_swag-banner-description",
+        "target": "https://forms.gle/wNV6dYLsZymNdLbR7",
+        "wallets": "nn_swag.json"
+    },
+    "neutron_lfg": {
+        "title-icon": "https://nolus.io/banner/lease.svg",
+        "image": "",
+        "title": "lease-banner-title",
+        "subtitle": "lfg-banner-subtitle",
+        "description": "lfg-banner-description",
+        "target": "https://badges.stargaze.zone/?id=126&key=c476abb0bc330219a585478e5d55e4baff537147a024a9b16387f4522a27b24a",
+        "wallets": "lfl.json"
+    },
     "ntrn_0": {
         "title-icon": "https://nolus.io/banner/lease.svg",
         "image": "https://nolus.io/banner/ntrn_0int.webp",
@@ -7,15 +25,7 @@
         "description": "ntrn_0-banner-description",
         "target": "/lease#create",
         "wallets": "dydx.json"
-    },  
-    "dydx": {
-        "title-icon": "https://nolus.io/banner/lease.svg",
-        "image": "",
-        "title": "lease-banner-title",
-        "subtitle": "dydx-banner-subtitle",
-        "description": "dydx-banner-description",
-        "target": "/lease#create"
-    },    
+    },
     "knowledgehub": {
         "title-icon": "https://nolus.io/banner/knowledge_hub.svg",
         "image": "",
