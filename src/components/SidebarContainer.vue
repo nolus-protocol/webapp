@@ -270,10 +270,7 @@ function pushTo(route: RouteNames) {
 }
 
 function navigateToVote(){
-  if(AppUtils.isDev() || AppUtils.isServe()){
-    return pushTo(RouteNames.VOTE)
-  }
-  openExternal(governUrl, '_blank')
+  pushTo(RouteNames.VOTE);
 }
 
 function openExternal(url: string, target: string) {
