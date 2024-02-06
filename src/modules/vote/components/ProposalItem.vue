@@ -69,7 +69,7 @@ const turnout = computed(() => {
   if(props.bondedTokens.isZero()){
     return 0;
   }
-  
+
   let tally = new Dec(0);
 
   for(const key in props.state.tally){
@@ -80,7 +80,7 @@ const turnout = computed(() => {
 });
 
 const quorum = computed(() => {
-  const q = (Number(props.state.messages[0].params.quorum) * 100).toFixed(2);
+  const q = (Number(props.state.messages[0].params?.quorum ?? 0) * 100).toFixed(2);
   return q;
 });
 

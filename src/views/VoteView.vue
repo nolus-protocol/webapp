@@ -160,7 +160,6 @@ const fetchGovernanceProposals = async () => {
   }
 
   await Promise.all(promises);
-
   proposals.value = data.proposals
   state.value.pagination = data.pagination
 
