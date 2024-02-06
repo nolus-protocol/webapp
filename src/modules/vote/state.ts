@@ -5,6 +5,7 @@ export const ProposalState: Proposal = {
   id: "",
   title: "",
   summary: "",
+  voted: false,
   messages: [
     {
       "@type": "",

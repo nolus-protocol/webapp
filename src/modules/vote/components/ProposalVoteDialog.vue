@@ -123,7 +123,7 @@ const step = ref(CONFIRM_STEP.CONFIRM);
 const closeModal = inject("onModalClose", () => () => { });
 const snackbarVisible = inject("snackbarVisible", () => false);
 const showSnackbar = inject("showSnackbar", (_type: string, _transaction: string) => { });
-const reFetchTally = inject("reFetchTally", (id: string) => { });
+const refetchProposalData = inject("refetchProposalData", (id: string) => { });
 
 onMounted(async () => {
   await loadDelegated()
@@ -179,7 +179,7 @@ const onVoteEmit = async () => {
       const isSuccessful = tx?.code === 0;
       step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
 
-      reFetchTally(props.proposal.id);
+      refetchProposalData(props.proposal.id);
 
       if (snackbarVisible()) {
         showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
