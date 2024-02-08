@@ -27,16 +27,14 @@ import { walletOperation } from "@/components/utils";
 import { inject, onUnmounted, ref, type PropType, computed } from "vue";
 import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
 import { NATIVE_ASSET, GAS_FEES, ErrorCodes } from "@/config/env";
-import { AssetUtils, EnvNetworkUtils, WalletManager } from "@/utils";
+import { AssetUtils, WalletManager } from "@/utils";
 import { coin } from "@cosmjs/amino";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { SNACKBAR } from "@/config/env";
-import { CONTRACTS } from "@/config/contracts";
 import { Dec } from "@keplr-wallet/unit";
 import { useAdminStore } from "@/stores/admin";
 
 const walletStore = useWalletStore();
-const selectedCurrency = walletStore.balances[0]
 const showConfirmScreen = ref(true);
 const address = WalletManager.getWalletAddress();
 const loadRewards = inject("loadRewards", async () => { });
@@ -51,8 +49,7 @@ const props = defineProps({
 const parsedAmount = computed(() => {
   const balance = CurrencyUtils.convertCoinUNolusToNolus(props.amount.balance);
   if (balance) {
-    const data = walletStore.getCurrencyInfo(balance.denom);
-    const b = balance.toDec().toString(data.coinDecimals, false);
+    const b = balance.toDec().toString();
     return b;
   }
   return '0'
@@ -60,7 +57,7 @@ const parsedAmount = computed(() => {
 
 const state = ref({
   currentBalance: walletStore.balances,
-  selectedCurrency: selectedCurrency,
+  selectedCurrency: walletStore.balances.find((item) => item.balance.denom == NATIVE_ASSET.denom),
   amount: parsedAmount.value,
   password: "",
   txHash: "",

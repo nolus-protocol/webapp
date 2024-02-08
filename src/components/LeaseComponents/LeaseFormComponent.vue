@@ -92,7 +92,7 @@
           <p class="text-[12px] mt-2 mr-5">
             {{ $t("message.swap-fee") }}
             <span class="text-[#8396B1] nls-font-400">
-              ({{ (downPaymentSwapFee * 100).toFixed(2) }}%)
+              ({{ (swapFee * 100).toFixed(2) }}%)
             </span>
           </p>
         </div>
@@ -157,8 +157,8 @@ const liqudStake = ref(false);
 const liqudStakeShow = ref(false);
 const oracle = useOracleStore();
 const swapFee = ref(0);
-const downPaymentSwapFee = ref(0);
-const downPaymentSwapFeeStable = ref("0");
+// const downPaymentSwapFee = ref(0);
+// const downPaymentSwapFeeStable = ref("0");
 
 const liquiStakeTokens = {
   OSMO: {
@@ -189,7 +189,7 @@ onMounted(() => {
   }
 
   setSwapFee();
-  setDownPaymentSwapFee();
+  // setDownPaymentSwapFee();
 });
 
 const props = defineProps({
@@ -219,32 +219,43 @@ watch(
   }
 );
 
-watch(
-  () => [props.modelValue.selectedDownPaymentCurrency, props.modelValue.downPayment],
-  (value) => {
-    setDownPaymentSwapFee();
-  }
-);
+// watch(
+//   () => [props.modelValue.selectedDownPaymentCurrency, props.modelValue.downPayment],
+//   (value) => {
+//     setDownPaymentSwapFee();
+//   }
+// );
 
 const setSwapFee = async () => {
   const asset = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
-  swapFee.value = (await AppUtils.getOpenLeaseFee())[asset.ticker] ?? 0;
+  swapFee.value = (await AppUtils.getSwapFee())[asset.ticker] ?? 0;
 };
 
-const setDownPaymentSwapFee = async () => {
+const downPaymentSwapFeeStable = computed(() => {
   const asset = wallet.getCurrencyInfo(props.modelValue.selectedDownPaymentCurrency.balance.denom);
-  const currecy = wallet.getCurrencyByTicker(asset.ticker);
-
-  const price = oracle.prices[currecy!.ibcData as string];
-  const fee = (await AppUtils.getOpenLeaseFee())[asset.ticker] ?? 0;
+  const price = oracle.prices[asset.coinMinimalDenom];
 
   const value = new Dec(props.modelValue.downPayment.length == 0 ? 0 : props.modelValue.downPayment)
     .mul(new Dec(price.amount))
-    .mul(new Dec(fee));
+    .mul(new Dec(swapFee.value));
 
-  downPaymentSwapFeeStable.value = value.toString(USD_DECIMALS);
-  downPaymentSwapFee.value = fee;
-};
+  return value.toString(USD_DECIMALS);
+});
+
+// const setDownPaymentSwapFee = async () => {
+//   const asset = wallet.getCurrencyInfo(props.modelValue.selectedDownPaymentCurrency.balance.denom);
+//   const currecy = wallet.getCurrencyByTicker(asset.ticker);
+
+//   const price = oracle.prices[currecy!.ibcData as string];
+//   const fee = (await AppUtils.getOpenLeaseFee())[asset.ticker] ?? 0;
+
+//   const value = new Dec(props.modelValue.downPayment.length == 0 ? 0 : props.modelValue.downPayment)
+//     .mul(new Dec(price.amount))
+//     .mul(new Dec(fee));
+
+//   downPaymentSwapFeeStable.value = value.toString(USD_DECIMALS);
+//   downPaymentSwapFee.value = fee;
+// };
 
 const handleDownPaymentChange = (value: string) => {
   props.modelValue.downPayment = value;
@@ -338,6 +349,7 @@ const annualInterestRate = computed(() => {
 
 const calculateMarginAmount = computed(() => {
   const total = props.modelValue.leaseApply?.total;
+
   if (total) {
     const asset = wallet.getCurrencyByTicker(total.ticker);
     const ibcDenom = wallet.getIbcDenomBySymbol(asset!.symbol);
@@ -500,8 +512,10 @@ const selectedAssetPrice = computed(() => {
   const asset = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
   const currecy = wallet.getCurrencyByTicker(asset.ticker);
   const price = oracle.prices[currecy!.ibcData as string];
+  const p = new Dec(price?.amount ?? 0);
+  const fee = new Dec(1 + swapFee.value);
 
-  return CurrencyUtils.formatPrice(price?.amount ?? 0);
+  return CurrencyUtils.formatPrice(p.mul(fee).toString());
 });
 
 const submit = () => {

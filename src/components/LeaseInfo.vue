@@ -689,7 +689,7 @@ const setLeaseOpening = () => {
 }
 
 async function setDownPaymentAssetFee() {
-  const fee = (await AppUtils.getOpenLeaseFee())[leaseData.value?.downpaymentTicker as string] ?? 0;
+  const fee = (await AppUtils.getSwapFee())[leaseData.value?.leasePositionTicker as string] ?? 0;
   downPaymentFee.value = new Dec(fee).mul(new Dec(leaseData.value?.downPayment ?? 0));
 }
 
@@ -1015,13 +1015,9 @@ const pnl = computed(() => {
   const lease = props.leaseInfo.leaseStatus.opened ?? props.leaseInfo.leaseStatus.paid;
 
   if (lease) {
-    const price = getPrice.value;
-
     const unitAssetInfo = walletStore.getCurrencyByTicker(lease.amount.ticker);
     const currentPrice = new Dec(oracleStore.prices?.[unitAssetInfo!.ibcData as string]?.amount ?? "0");
     const unitAsset = new Dec(lease.amount.amount, Number(unitAssetInfo!.decimal_digits));
-
-    const prevAmount = unitAsset.mul(price);
 
     let currentAmount = unitAsset.mul(currentPrice);
 
@@ -1030,12 +1026,14 @@ const pnl = computed(() => {
       currentAmount = currentAmount.add(balance);
     }
 
-    const amount = currentAmount.sub(prevAmount).add(downPaymentFee.value as Dec);
-    const percent = amount.quo(prevAmount).mul(new Dec(100)).toString(2);
+    const downPayment = new Dec(leaseData.value?.downPayment ?? 0);
+    const amount = currentAmount.sub(new Dec(debt.value)).sub(downPayment).add(downPaymentFee.value as Dec);
+    const percent = amount.quo(downPayment).mul(new Dec(100));
+
     return {
-      percent,
+      percent: percent.toString(2),
       amount: CurrencyUtils.formatPrice(amount.toString()),
-      status: currentAmount.gte(prevAmount),
+      status: amount.isPositive()
     }
   }
 

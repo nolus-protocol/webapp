@@ -192,7 +192,7 @@ const networks = computed(() => {
     if (ckey == NATIVE_NETWORK.symbol) {
       n.push(Protocols.neutron);
     }
-    
+
     if (lpn) {
 
       const [key, protocol] = lpn.key!.split('@');
