@@ -634,6 +634,7 @@ let leaseData = ref<{
   downPayment: string | null,
   downpaymentTicker: string | null,
   price: string,
+  leasePositionStable: string | null
   leasePositionTicker: string
 } | null>(null);
 
@@ -690,7 +691,11 @@ const setLeaseOpening = () => {
 
 async function setDownPaymentAssetFee() {
   const fee = (await AppUtils.getSwapFee())[leaseData.value?.leasePositionTicker as string] ?? 0;
-  downPaymentFee.value = new Dec(fee).mul(new Dec(leaseData.value?.downPayment ?? 0));
+  const downPayment = new Dec((leaseData.value?.downPayment ?? '0'));
+
+  const positionSize = new Dec(leaseData.value?.leasePositionStable ?? 0, LPN_DECIMALS).add(downPayment);
+  const feeAmount = positionSize.quo(new Dec(1 - fee)).sub(positionSize);
+  downPaymentFee.value = feeAmount;
 }
 
 const setFreeInterest = async () => {
@@ -1168,6 +1173,7 @@ const checkPrice = async () => {
       downPayment: new Dec(result.lease.LS_cltr_amnt_stable, Number(c!.decimal_digits)).toString(),
       downpaymentTicker: result.lease.LS_cltr_symbol,
       leasePositionTicker: result.lease.LS_asset_symbol,
+      leasePositionStable: result.lease.LS_loan_amnt_asset,
       price: result.downpayment_price,
     };
     leaseData.value = data;

@@ -809,6 +809,7 @@ const loadLeases = async () => {
               ).toString(),
               downpaymentTicker: result.lease.LS_cltr_symbol,
               leasePositionTicker: result.lease.LS_asset_symbol,
+              leasePositionStable: result.lease.LS_loan_amnt_asset,
               price: result.downpayment_price
             };
           });
@@ -850,14 +851,17 @@ const loadLeases = async () => {
               const currentAmount = unitAsset.mul(currentPrice);
               const downPayment = new Dec(leaseData.downPayment ?? 0);
 
-              const dfee = new Dec(downpaymentFee[leaseData.leasePositionTicker]).mul(
-                new Dec(leaseData.downPayment ?? 0)
-              );
+
+              const positionSize = new Dec(leaseData.leasePositionStable ?? 0, LPN_DECIMALS).add(downPayment);
+
+              const feeAmount = positionSize
+                .quo(new Dec(1 - downpaymentFee[leaseData.leasePositionTicker]))
+                .sub(positionSize);
 
               const a = currentAmount
                 .sub(debt)
                 .sub(downPayment)
-                .add(dfee as Dec);
+                .add(feeAmount as Dec);
 
               pl = pl.add(a);
             }

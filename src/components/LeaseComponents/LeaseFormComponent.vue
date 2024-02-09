@@ -140,7 +140,8 @@ import {
   USD_DECIMALS,
   CurrencyMapping,
   MONTHS,
-  FREE_INTEREST_ASSETS
+  FREE_INTEREST_ASSETS,
+LPN_DECIMALS
 } from "@/config/env";
 import { coin } from "@cosmjs/amino";
 import { Dec } from "@keplr-wallet/unit";
@@ -234,9 +235,11 @@ const setSwapFee = async () => {
 const downPaymentSwapFeeStable = computed(() => {
   const asset = wallet.getCurrencyInfo(props.modelValue.selectedDownPaymentCurrency.balance.denom);
   const price = oracle.prices[asset.coinMinimalDenom];
+  const borrow = new Dec(props.modelValue.leaseApply?.borrow?.amount ?? 0, LPN_DECIMALS)
 
   const value = new Dec(props.modelValue.downPayment.length == 0 ? 0 : props.modelValue.downPayment)
     .mul(new Dec(price.amount))
+    .add(borrow)
     .mul(new Dec(swapFee.value));
 
   return value.toString(USD_DECIMALS);
