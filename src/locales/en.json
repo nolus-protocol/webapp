@@ -329,7 +329,7 @@
     "price-per-symbol": "Expected Price per {symbol}",
     "free-interest": "0% Interest",
     "free-interest-tooltip": "Interest is offset every 3 hours ",
-    "outstanding-debt-tooltip": "This amount includes both the outstanding debt and a swap fee of {fee}%",
+    "outstanding-debt-tooltip": "This amount covers both the principal and interest, making up the total outstanding debt",
     "supply-limit-error": "The current deposit limit is {amount}",
     "market-close": "Market Close",
     "market-close-to": "Market close to",
