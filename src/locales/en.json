@@ -238,7 +238,7 @@
     "yield": "Yield",
     "amount-send": "Amount",
     "amount-receive": "Amount",
-    "price-per": "Price per",
+    "price-per": "Expected Price per",
     "price-pert-tooltip": " Amount of USD in stablecoins that will be borrowed for the DeFi Lease position",
     "open-position": "Open Position",
     "delegate-undelegate": "Delegate / Withdraw",
