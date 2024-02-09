@@ -326,7 +326,7 @@
     "buy-position": "BUY POSITION",
     "download": "Download",
     "timestamp": "Timestamp",
-    "price-per-symbol": "Price Per {symbol}",
+    "price-per-symbol": "Expected Price per {symbol}",
     "free-interest": "0% Interest",
     "free-interest-tooltip": "Interest is offset every 3 hours ",
     "outstanding-debt-tooltip": "This amount includes both the outstanding debt and a swap fee of {fee}%",
