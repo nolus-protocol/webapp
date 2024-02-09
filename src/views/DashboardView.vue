@@ -842,15 +842,6 @@ const loadLeases = async () => {
 
               db = debt.add(db);
 
-              const item = wallet.getCurrencyByTicker(data.principal_due.ticker);
-              const amount = new Dec(data.principal_due.amount, Number(item!.decimal_digits))
-                .add(new Dec(data.previous_margin_due.amount, Number(item!.decimal_digits)))
-                .add(new Dec(data.previous_interest_due.amount, Number(item!.decimal_digits)))
-                .add(new Dec(data.current_margin_due.amount, Number(item!.decimal_digits)))
-                .add(new Dec(data.current_interest_due.amount, Number(item!.decimal_digits)));
-
-              const assetData = wallet.getCurrencyByTicker(data.amount.ticker);
-              const assetAmount = new Dec(data.amount.amount, Number(assetData!.decimal_digits));
               const unitAsset = new Dec(data.amount.amount, Number(dDecimal));
 
               const currentPrice = new Dec(
