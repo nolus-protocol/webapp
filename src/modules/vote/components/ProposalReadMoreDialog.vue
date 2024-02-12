@@ -24,7 +24,6 @@ const props = defineProps({
 });
 
 const description = computed(() => {
-  const source = props.source?.replace(/^[\u200B\u200C\u200D\u200E\u200F\uFEFF]/,"")
   return marked.parse(props.source, {
     pedantic: true,
     gfm: true,
