@@ -502,7 +502,7 @@ export const NETWORKS_DATA: {
             },
             NEUTRON: {
                 ...NEUTRON_NETWORK,
-                explorer: 'https://mintscan.io/neutron-testnet/txs',
+                explorer: 'https://mintscan.io/neutron/txs',
                 currencies: () => {
                     const app = useApplicationStore();
                     return app?.networks?.[NEUTRON_NETWORK.key] as ExternalCurrenciesType;

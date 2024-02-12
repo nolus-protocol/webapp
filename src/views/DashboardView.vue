@@ -1046,7 +1046,7 @@ async function getRewards() {
       promises.push(fn());
     }
 
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
 
     return rewards;
   } catch (e) {

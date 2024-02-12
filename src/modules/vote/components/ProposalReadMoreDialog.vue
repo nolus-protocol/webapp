@@ -24,12 +24,11 @@ const props = defineProps({
 });
 
 const description = computed(() => {
-  const source = props.source?.replace(/(?:\\[rn])+/g, "\n");
-
-  return marked.parse(source, {
+  const source = props.source?.replace(/^[\u200B\u200C\u200D\u200E\u200F\uFEFF]/,"")
+  return marked.parse(props.source, {
     pedantic: true,
     gfm: true,
-    breaks: true
+    breaks: true,
   });
 });
 </script>
@@ -48,6 +47,7 @@ const description = computed(() => {
 
   ul {
     margin-bottom: 18px;
+    list-style:  unset;
   }
 
   h1 {
