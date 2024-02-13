@@ -13,6 +13,7 @@
         :option="modelValue.selectedCurrency"
         :error-msg="modelValue.amountErrorMsg"
         :is-error="modelValue.amountErrorMsg !== ''"
+        :disabled-currency-picker="true"
         :balance="formatLeasePosition()"
         :total="total"
         :set-input-value="setAmount"
