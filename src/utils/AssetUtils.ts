@@ -5,12 +5,20 @@ import { useWalletStore } from "@/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/stores/oracle";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { DECIMALS_AMOUNT, MAX_DECIMALS, ZERO_DECIMALS, SUPPORTED_NETWORKS, NATIVE_NETWORK, NATIVE_ASSET, ProtocolsConfig, CurrencyMapping } from "@/config/env";
+import {
+  DECIMALS_AMOUNT,
+  MAX_DECIMALS,
+  ZERO_DECIMALS,
+  SUPPORTED_NETWORKS,
+  NATIVE_NETWORK,
+  NATIVE_ASSET,
+  ProtocolsConfig,
+  CurrencyMapping
+} from "@/config/env";
 import { SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
 
 export class AssetUtils {
-
   public static getPriceByTicker(amount: number | string, ticker: string) {
     const wallet = useWalletStore();
     const oracle = useOracleStore();
@@ -77,7 +85,6 @@ export class AssetUtils {
 
     const decimals = AssetUtils.getDecimals(a);
     if (decimals < 0) {
-
       if (info.coinDecimals > MAX_DECIMALS) {
         return MAX_DECIMALS;
       }
@@ -85,12 +92,10 @@ export class AssetUtils {
       return info.coinDecimals;
     }
 
-
-    return decimals
+    return decimals;
   }
 
   public static getDecimals(amount: Dec) {
-
     for (const item of DECIMALS_AMOUNT) {
       if (amount.gte(new Dec(item.amount))) {
         return item.decimals;
@@ -103,7 +108,7 @@ export class AssetUtils {
     const networks: NetworksInfo = {};
 
     const assetIcons: {
-      [key: string]: string
+      [key: string]: string;
     } = {};
 
     for (const k in ntwrks.networks.list) {
@@ -112,7 +117,9 @@ export class AssetUtils {
           networks[k] = {};
         }
 
-        const assets: { [key: string]: Currency } = ntwrks.networks.list[k].currencies as { [key: string]: Currency };
+        const assets: { [key: string]: Currency } = ntwrks.networks.list[k].currencies as {
+          [key: string]: Currency;
+        };
 
         if (k == NATIVE_NETWORK.key) {
           for (const p of NolusAssetUtils.getProtocols(ntwrks)) {
@@ -123,11 +130,17 @@ export class AssetUtils {
                 assetIcons[ck] = ntwrks.networks.list[p].currencies[key].icon as string;
 
                 if (CurrencyMapping[key]) {
-                  assetIcons[`${CurrencyMapping[key].ticker}@${p}`] = ntwrks.networks.list[p].currencies[key].icon as string;
+                  assetIcons[`${CurrencyMapping[key].ticker}@${p}`] = ntwrks.networks.list[p]
+                    .currencies[key].icon as string;
                 }
-                assets[ck].ibcData = NolusAssetUtils.makeIBCMinimalDenom(key, ntwrks!, NATIVE_NETWORK.key as Networks, p as Protocols);
+                assets[ck].ibcData = NolusAssetUtils.makeIBCMinimalDenom(
+                  key,
+                  ntwrks!,
+                  NATIVE_NETWORK.key as Networks,
+                  p as Protocols
+                );
               }
-            };
+            }
           }
         }
 
@@ -135,7 +148,6 @@ export class AssetUtils {
           const currency = assets[ck];
           if (currency.native) {
             if (currency.native.ticker != NATIVE_ASSET.ticker) {
-
               networks[k][ck] = {
                 ...currency.native,
                 shortName: currency.native?.ticker,
@@ -143,14 +155,15 @@ export class AssetUtils {
                 native: k == NATIVE_NETWORK.key ? false : true,
                 key: `${ck}`,
                 ibcData: currency.ibcData ?? currency?.native?.symbol
-              }
+              };
             }
           }
 
           if (currency.ibc) {
             const n = ntwrks.networks.list[currency.ibc.network];
             const c = n.currencies[currency.ibc.currency];
-            const ticker = n.currencies[currency?.ibc?.currency]?.ibc?.currency ?? currency?.ibc?.currency;
+            const ticker =
+              n.currencies[currency?.ibc?.currency]?.ibc?.currency ?? currency?.ibc?.currency;
             const hiddenAssets = ProtocolsConfig[k]?.hidden;
 
             if (hiddenAssets?.includes(ticker)) {
@@ -165,7 +178,7 @@ export class AssetUtils {
                 native: false,
                 key: `${ck}`,
                 ibcData: currency.ibcData
-              }
+              };
             }
           }
         }
@@ -179,62 +192,88 @@ export class AssetUtils {
       const ibcData = networks[NATIVE_NETWORK.key][key].ibcData as string;
       if (nolusCurrencies.findIndex((item) => item.ibcData == ibcData) == -1) {
         nolusCurrencies.push(networks[NATIVE_NETWORK.key][key]);
-        nolusMappedCurrencies[networks[NATIVE_NETWORK.key][key].key as string] = networks[NATIVE_NETWORK.key][key];
-      };
+        nolusMappedCurrencies[networks[NATIVE_NETWORK.key][key].key as string] =
+          networks[NATIVE_NETWORK.key][key];
+      }
     }
 
-    networks[NATIVE_NETWORK.key] = nolusMappedCurrencies
+    networks[NATIVE_NETWORK.key] = nolusMappedCurrencies;
     return {
       assetIcons,
-      networks,
-    }
+      networks
+    };
   }
 
-  public static getChannelData(channels: {
-    a: {
-      network: string,
-      ch: string
-    },
-    b: {
-      network: string,
-      ch: string
-    }
-  }[], b: string) {
-    const channel = channels.find(
-      (item) => {
-        return item.b.network == b;
-      }
-    );
+  public static getChannelData(
+    channels: {
+      a: {
+        network: string;
+        ch: string;
+      };
+      b: {
+        network: string;
+        ch: string;
+      };
+    }[],
+    b: string
+  ) {
+    const channel = channels.find((item) => {
+      return item.b.network == b;
+    });
 
     return channel;
   }
 
-  public static getSourceChannelData(channels: {
-    a: {
-      network: string,
-      ch: string
-    },
-    b: {
-      network: string,
-      ch: string
-    }
-  }[], b: string): {
-    a: {
-      network: string,
-      ch: string
-    },
-    b: {
-      network: string,
-      ch: string
-    }
-  } | undefined {
+  public static getChannelDataByProtocol(
+    channels: {
+      a: {
+        network: string;
+        ch: string;
+      };
+      b: {
+        network: string;
+        ch: string;
+      };
+    }[],
+    protocol: string,
+    b: string
+  ) {
+    const channel = channels.find((item) => {
+      return item.a.network == protocol && item.b.network == b;
+    });
+
+    return channel;
+  }
+
+  public static getSourceChannelData(
+    channels: {
+      a: {
+        network: string;
+        ch: string;
+      };
+      b: {
+        network: string;
+        ch: string;
+      };
+    }[],
+    b: string
+  ):
+    | {
+        a: {
+          network: string;
+          ch: string;
+        };
+        b: {
+          network: string;
+          ch: string;
+        };
+      }
+    | undefined {
     const networkInfo = SUPPORTED_NETWORKS_DATA[b as keyof typeof SUPPORTED_NETWORKS_DATA];
 
-    const channel = channels.find(
-      (item) => {
-        return item.b.network == b;
-      }
-    );
+    const channel = channels.find((item) => {
+      return item.b.network == b;
+    });
 
     if (networkInfo.forward) {
       return AssetUtils.getSourceChannelData(channels, channel!.a.network);
@@ -246,20 +285,22 @@ export class AssetUtils {
   public static getSourceChannel(
     channels: {
       a: {
-        network: string,
-        ch: string
-      },
+        network: string;
+        ch: string;
+      };
       b: {
-        network: string,
-        ch: string
-      }
-    }[], a: string, b: string, source?: string) {
+        network: string;
+        ch: string;
+      };
+    }[],
+    a: string,
+    b: string,
+    source?: string
+  ) {
     if (source) {
-      const channel = channels.find(
-        (item) => {
-          return (item.a.network == a && item.b.network == b)
-        }
-      );
+      const channel = channels.find((item) => {
+        return item.a.network == a && item.b.network == b;
+      });
 
       if (channel) {
         if (channel.a.network == source) {
@@ -272,11 +313,11 @@ export class AssetUtils {
       }
     }
 
-    const channel = channels.find(
-      (item) => {
-        return (item.a.network == a && item.b.network == b) || (item.a.network == b && item.b.network == a)
-      }
-    );
+    const channel = channels.find((item) => {
+      return (
+        (item.a.network == a && item.b.network == b) || (item.a.network == b && item.b.network == a)
+      );
+    });
 
     if (channel) {
       if (channel.a.network == (source ?? b)) {
@@ -288,6 +329,4 @@ export class AssetUtils {
       }
     }
   }
-
 }
-

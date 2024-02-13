@@ -3,7 +3,7 @@
     v-if="showConfirmScreen"
     :network-type="NetworkTypes.cosmos"
     :selectedCurrency="selectedCurrency!"
-    :receiverAddress="(walletStore.wallet?.address as string)"
+    :receiverAddress="walletStore.wallet?.address as string"
     :password="password"
     :amount="amount"
     :memo="memo"
@@ -25,7 +25,6 @@
       v-if="selectedNetwork.native"
     >
       <div class="block text-left">
-
         <div class="block mt-[25px]">
           <Picker
             :default-option="networks[0]"
@@ -40,14 +39,18 @@
             {{ $t("message.address") }}
           </p>
           <p class="text-14 text-primary nls-font-700 m-0 break-all">
-            {{ WalletUtils.isAuth() ? walletStore.wallet?.address : $t('message.connect-wallet-label') }}
+            {{
+              WalletUtils.isAuth()
+                ? walletStore.wallet?.address
+                : $t("message.connect-wallet-label")
+            }}
           </p>
           <div class="flex items-center justify-start mt-2">
             <button
               class="btn btn-secondary btn-medium-secondary btn-icon mr-2 flex"
               @click="
                 modelValue?.onCopyClick(wallet);
-              onCopy();
+                onCopy();
               "
             >
               <DocumentDuplicateIcon class="icon w-4 h-4" />
@@ -63,15 +66,10 @@
       </div>
     </div>
     <template v-else>
-      <form
-        @submit.prevent="receive"
-        class="modal-form overflow-auto"
-      >
+      <form @submit.prevent="receive" class="modal-form overflow-auto">
         <!-- Input Area -->
         <div class="modal-send-receive-input-area background">
-
           <div class="block text-left">
-
             <div class="block mt-[20px]">
               <Picker
                 :default-option="selectedNetwork"
@@ -107,18 +105,18 @@
                 {{ $t("message.recipient") }}
               </p>
               <p class="text-14 text-primary nls-font-700 m-0 break-all">
-                {{ WalletUtils.isAuth() ? walletStore.wallet?.address : $t('message.connect-wallet-label') }}
+                {{
+                  WalletUtils.isAuth()
+                    ? walletStore.wallet?.address
+                    : $t("message.connect-wallet-label")
+                }}
               </p>
             </div>
-
           </div>
         </div>
         <!-- Actions -->
         <div class="modal-send-receive-actions background flex-col">
-          <button
-            class="btn btn-primary btn-large-primary"
-            :class="{ 'js-loading': isLoading }"
-          >
+          <button class="btn btn-primary btn-large-primary" :class="{ 'js-loading': isLoading }">
             {{ $t("message.receive") }}
           </button>
           <div class="flex justify-between w-full text-light-blue text-[14px] my-2">
@@ -142,7 +140,15 @@ import { CONFIRM_STEP, TxType, type Network, NetworkTypes } from "@/types";
 
 import { onUnmounted, ref, type PropType, inject, watch, computed } from "vue";
 import { DocumentDuplicateIcon } from "@heroicons/vue/24/solid";
-import { CurrencyMapping, ErrorCodes, IGNORE_TRANSFER_ASSETS, NATIVE_NETWORK, SOURCE_PORTS } from "@/config/env";
+import {
+CurrencyDemapping,
+  CurrencyMapping,
+  ErrorCodes,
+  IGNORE_TRANSFER_ASSETS,
+  LPN_NETWORK,
+  NATIVE_NETWORK,
+  SOURCE_PORTS
+} from "@/config/env";
 import { useI18n } from "vue-i18n";
 import { AssetUtils, EnvNetworkUtils, WalletUtils } from "@/utils";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
@@ -162,7 +168,7 @@ export interface ReceiveComponentProps {
   currentBalance: AssetBalance[];
   selectedCurrency: AssetBalance;
   amount: string;
-  dialogSelectedCurrency: string,
+  dialogSelectedCurrency: string;
   onScanClick: () => void;
   onCopyClick: (wallet?: string) => void;
 }
@@ -171,8 +177,8 @@ let timeOut: NodeJS.Timeout;
 let client: Wallet;
 const props = defineProps({
   modelValue: {
-    type: Object as PropType<ReceiveComponentProps>,
-  },
+    type: Object as PropType<ReceiveComponentProps>
+  }
 });
 
 const walletStore = useWalletStore();
@@ -180,8 +186,8 @@ const app = useApplicationStore();
 
 const networks = computed(() => {
   const n: string[] = [];
-  if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
-    const [ckey, protocol]: string[] = props.modelValue!.dialogSelectedCurrency.split('@');
+  if ((props.modelValue?.dialogSelectedCurrency.length as number) > 0) {
+    const [ckey, protocol]: string[] = props.modelValue!.dialogSelectedCurrency.split("@");
 
     let lpn = app.lpn?.find((item) => {
       return item.key == props.modelValue!.dialogSelectedCurrency;
@@ -194,21 +200,23 @@ const networks = computed(() => {
     }
 
     if (lpn) {
-
-      const [key, protocol] = lpn.key!.split('@');
+      const [key, protocol] = lpn.key!.split("@");
       n.push(protocol);
 
+      for (const ntw of LPN_NETWORK) {
+        n.push(ntw);
+      }
     } else {
-
       for (const key in app.networks ?? {}) {
         if (app.networks?.[key][ckey]) {
           n.push(key);
         }
       }
-
     }
 
-    return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list.filter((item) => n.includes(item.key));
+    return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list.filter((item) =>
+      n.includes(item.key)
+    );
   }
   return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list;
 });
@@ -226,22 +234,22 @@ const disablePickerDialog = ref(false);
 
 const showConfirmScreen = ref(false);
 const step = ref(CONFIRM_STEP.CONFIRM);
-const password = ref('');
-const memo = ref('');
-const txHash = ref('');
-const fee = ref<Coin>()
+const password = ref("");
+const memo = ref("");
+const txHash = ref("");
+const fee = ref<Coin>();
 const isLoading = ref(false);
-const closeModal = inject("onModalClose", () => () => { });
+const closeModal = inject("onModalClose", () => () => {});
 const networkCurrenciesObject = ref();
 let wallet = ref(walletStore.wallet?.address);
 
 onMounted(() => {
-  if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
+  if ((props.modelValue?.dialogSelectedCurrency.length as number) > 0) {
     disablePickerDialog.value = true;
-    const [_ckey, network]: string[] = props.modelValue!.dialogSelectedCurrency.split('@')
+    const [_ckey, network]: string[] = props.modelValue!.dialogSelectedCurrency.split("@");
     onUpdateNetwork(SUPPORTED_NETWORKS_DATA[network ?? Protocols.osmosis] as Network);
   }
-})
+});
 
 onUnmounted(() => {
   clearTimeout(timeOut);
@@ -250,18 +258,20 @@ onUnmounted(() => {
   }
 });
 
-watch(() => [selectedCurrency.value, amount.value], () => {
-  if (amount.value.length > 0) {
-    validateAmount()
+watch(
+  () => [selectedCurrency.value, amount.value],
+  () => {
+    if (amount.value.length > 0) {
+      validateAmount();
+    }
   }
-});
+);
 
 const onUpdateNetwork = async (event: Network) => {
   selectedNetwork.value = event;
   networkCurrencies.value = [];
 
   if (!event.native) {
-
     if (client) {
       client.destroy();
     }
@@ -275,72 +285,76 @@ const onUpdateNetwork = async (event: Network) => {
     const networkData = network?.supportedNetworks[selectedNetwork.value.key];
 
     for (const key in assets) {
+      if (LPN_NETWORK.includes(selectedNetwork.value.key)) {
+        let lpn = app.lpn?.find((item) => {
+          return item.ticker == key;
+        });
+        if (lpn) {
+          for (const lpn of app.lpn ?? []) {
+            filteredAssets[lpn.key as string] = {
+              native: true,
+              decimal_digits: lpn.decimal_digits,
+              ibcData: assets[key].ibcData,
+              key: lpn.key,
+              name: lpn.name,
+              shortName: lpn.shortName,
+              symbol: lpn.symbol,
+              ticker: lpn.ticker
+            };
+          }
+          continue;
+        }
+      }
       if (!IGNORE_TRANSFER_ASSETS.includes(key)) {
         filteredAssets[key] = assets[key];
       }
     }
-    if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
-      const [ckey]: string[] = props.modelValue!.dialogSelectedCurrency.split('@')
-      const item = AssetUtils.getAssetInfo(ckey as string);
 
-      const currency = filteredAssets[ckey as string];
-      const asset = {
-        balance: coin(0, item.coinMinimalDenom),
-        name: item.shortName,
-        shortName: item.shortName,
-        icon: item.coinIcon,
-        ticker: item.ticker,
-        decimals: item.coinDecimals,
-        symbol: currency.symbol,
-        native: currency.native
-      } as AssetBalance;
+    client = await WalletUtils.getWallet(event.key);
 
-      selectedCurrency.value = asset;
-    } else {
-      const crn = filteredAssets[Object.keys(filteredAssets)[0]];
-      const item = AssetUtils.getAssetInfo(crn.key as string);
-      const currency = filteredAssets[crn.key as string];
-      const asset = {
-        balance: coin(0, item.coinMinimalDenom),
-        name: item.shortName,
-        shortName: item.shortName,
-        icon: item.coinIcon,
-        ticker: item.ticker,
-        decimals: item.coinDecimals,
-        symbol: currency.symbol,
-        native: currency.native
-      } as AssetBalance;
-
-      selectedCurrency.value = asset;
-
-    }
-
-    client = await WalletUtils.getWallet(
-      event.key
-    );
-
-    const baseWallet = await externalWallet(client, networkData, password.value) as BaseWallet;
+    const baseWallet = (await externalWallet(client, networkData, password.value)) as BaseWallet;
     wallet.value = baseWallet?.address as string;
     networkCurrenciesObject.value = filteredAssets;
 
     for (const key in filteredAssets) {
-
       const fn = async () => {
-        let t = props.modelValue!.dialogSelectedCurrency ? props.modelValue!.dialogSelectedCurrency : selectedCurrency.value.ticker as string;
-        let [ckey, protocol = Protocols.osmosis]: string[] = t.split('@');
+        let k = filteredAssets[key].key!;
+        let [ckey, protocol = Protocols.osmosis]: string[] = k.split("@");
 
-        const ibc_route = NolusAssetUtils.makeIBCMinimalDenom(ckey, app.networksData!, networkData.key as Networks, protocol as Protocols);
-        const balance = WalletUtils.isAuth() ? await client.getBalance(wallet.value as string, ibc_route) : coin(0, ibc_route);
-        let shortName = assets[key].shortName;
-        let [ticker] = assets[key].key?.split('@') as string[];
+        if (LPN_NETWORK.includes(selectedNetwork.value.key)) {
+          let lpn = app.lpn?.find((item) => {
+            return item.key == k;
+          });
+          if (lpn) {
+            ckey = filteredAssets[key].ticker;
+          }
+        }
 
-        if (CurrencyMapping[key]?.ticker == assets[key]?.ticker) {
+        const ibc_route = NolusAssetUtils.makeIBCMinimalDenom(
+          ckey,
+          app.networksData!,
+          networkData.key as Networks,
+          protocol as Protocols
+        );
+
+        const balance = WalletUtils.isAuth()
+          ? await client.getBalance(wallet.value as string, ibc_route)
+          : coin(0, ibc_route);
+
+        let shortName = filteredAssets[key].shortName;
+        let [ticker] = filteredAssets[key].key?.split("@") as string[];
+
+        if (CurrencyMapping[key]) {
           shortName = CurrencyMapping[key].name ?? shortName;
           ticker = key;
         }
 
+        if (CurrencyDemapping[ckey]) {
+          shortName = CurrencyDemapping[ckey].name ?? shortName;
+        }
+
         switch (selectedNetwork.value.key) {
-          case (Protocols.neutron): {
+          case Protocols.neutron: {
             protocol = Protocols.neutron;
             break;
           }
@@ -351,36 +365,32 @@ const onUpdateNetwork = async (event: Network) => {
         return {
           balance,
           shortName: shortName,
-          ticker: ticker,
+          ticker: k,
           name: shortName,
           icon: icon,
-          decimals: Number(assets[key].decimal_digits),
-          symbol: assets[key].symbol,
-          native: assets[key].native
+          decimals: Number(filteredAssets[key].decimal_digits),
+          symbol: filteredAssets[key].symbol,
+          native: filteredAssets[key].native
         };
-      }
+      };
 
       currenciesPromise.push(fn());
-
     }
 
     const items = await Promise.all(currenciesPromise);
-
-    if (props.modelValue?.dialogSelectedCurrency.length as number > 0) {
-      const [ckey]: string[] = props.modelValue!.dialogSelectedCurrency.split('@')
-      const c = items.find((e) => e.ticker == ckey)!;
+    if ((props.modelValue?.dialogSelectedCurrency.length as number) > 0) {
+      const [ckey]: string[] = props.modelValue!.dialogSelectedCurrency.split("@");
+      const c = items.find((e) => e.ticker == ckey || e.ticker == props.modelValue!.dialogSelectedCurrency)!;
       selectedCurrency.value = c;
     } else {
-      selectedCurrency.value = items?.[0]
+      selectedCurrency.value = items?.[0];
     }
     networkCurrencies.value = items;
     disablePicker.value = false;
-
   } else {
     selectedCurrency.value = walletStore.balances[0];
     wallet.value = walletStore.wallet?.address;
   }
-
 };
 
 const onCopy = () => {
@@ -395,23 +405,24 @@ const onCopy = () => {
 
 const receive = () => {
   validateInputs();
-}
+};
 
 const handleAmountChange = (event: string) => {
   amount.value = event;
-}
+};
 
 const validateInputs = async () => {
-
   try {
     isLoading.value = true;
     const isValid = await validateAmount();
     if (isValid) {
-      const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[selectedNetwork.value.key];
+      const network =
+        NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[
+          selectedNetwork.value.key
+        ];
 
-      fee.value = coin(network.fees.transfer_amount, selectedCurrency.value.balance.denom)
+      fee.value = coin(network.fees.transfer_amount, selectedCurrency.value.balance.denom);
       showConfirmScreen.value = true;
-
     }
   } catch (error) {
     step.value = CONFIRM_STEP.ERROR;
@@ -419,12 +430,10 @@ const validateInputs = async () => {
   } finally {
     isLoading.value = false;
   }
-
-}
+};
 
 const validateAmount = async () => {
-
-  amountErrorMsg.value = '';
+  amountErrorMsg.value = "";
 
   if (!WalletUtils.isAuth()) {
     return false;
@@ -435,29 +444,29 @@ const validateAmount = async () => {
     return false;
   }
 
-  const prefix = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[selectedNetwork.value.key]?.prefix;
+  const prefix =
+    NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[
+      selectedNetwork.value.key
+    ]?.prefix;
   const decimals = selectedCurrency.value?.decimals;
 
   if (prefix && decimals) {
-
     try {
-      const balance = await client.getBalance(wallet.value as string, selectedCurrency.value.balance.denom);
-      const walletBalance = Decimal.fromAtomics(balance.amount, decimals);
-      const transferAmount = Decimal.fromUserInput(
-        amount.value,
-        decimals
+      const balance = await client.getBalance(
+        wallet.value as string,
+        selectedCurrency.value.balance.denom
       );
+      const walletBalance = Decimal.fromAtomics(balance.amount, decimals);
+      const transferAmount = Decimal.fromUserInput(amount.value, decimals);
       const isGreaterThanWalletBalance = transferAmount.isGreaterThan(walletBalance);
 
       if (isGreaterThanWalletBalance) {
         amountErrorMsg.value = i18n.t("message.invalid-balance-big");
         return false;
       }
-
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
-
   } else {
     amountErrorMsg.value = i18n.t("message.unexpected-error");
     return false;
@@ -466,37 +475,48 @@ const validateAmount = async () => {
   return true;
 };
 
-
 const onSendClick = async () => {
   try {
-    const networkData = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[selectedNetwork.value.key];
-    await externalWalletOperation(
-      ibcTransfer,
-      client,
-      networkData,
-      password.value
-    );
+    const networkData =
+      NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[
+        selectedNetwork.value.key
+      ];
+    await externalWalletOperation(ibcTransfer, client, networkData, password.value);
   } catch (error: Error | any) {
     step.value = CONFIRM_STEP.ERROR;
   }
 };
 
 const getSourceChannel = () => {
-  const networkInfo = SUPPORTED_NETWORKS_DATA[selectedNetwork.value.key as keyof typeof SUPPORTED_NETWORKS_DATA];
+  const networkInfo =
+    SUPPORTED_NETWORKS_DATA[selectedNetwork.value.key as keyof typeof SUPPORTED_NETWORKS_DATA];
 
   if (networkInfo.forward) {
-    return AssetUtils.getChannelData(app.networksData?.networks?.channels!, selectedNetwork.value.key)!.b.ch;
+    const [_ckey, protocol = Protocols.osmosis]: string[] = selectedCurrency.value.ticker!.split('@');
+
+    return AssetUtils.getChannelDataByProtocol(
+      app.networksData?.networks?.channels!,
+      protocol,
+      selectedNetwork.value.key
+    )!.b.ch;
   } else {
-    return AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, selectedNetwork.value.key, NATIVE_NETWORK.key, selectedNetwork.value.key);
+    return AssetUtils.getSourceChannel(
+      app.networksData?.networks?.channels!,
+      selectedNetwork.value.key,
+      NATIVE_NETWORK.key,
+      selectedNetwork.value.key
+    );
   }
-}
+};
 
 const ibcTransfer = async (baseWallet: BaseWallet) => {
   try {
-
     step.value = CONFIRM_STEP.PENDING;
 
-    const networkData = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[selectedNetwork.value.key];
+    const networkData =
+      NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[
+        selectedNetwork.value.key
+      ];
     const denom = selectedCurrency.value.balance.denom;
 
     const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
@@ -507,21 +527,22 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
 
     const funds: Coin = {
       amount: minimalDenom.amount.toString(),
-      denom,
+      denom
     };
 
     const sourceChannel = getSourceChannel();
-    const networkInfo = SUPPORTED_NETWORKS_DATA[selectedNetwork.value.key as keyof typeof SUPPORTED_NETWORKS_DATA];
+    const networkInfo =
+      SUPPORTED_NETWORKS_DATA[selectedNetwork.value.key as keyof typeof SUPPORTED_NETWORKS_DATA];
 
     const rawTx: {
-      toAddress: string,
-      amount: Coin,
-      sourcePort: string,
-      sourceChannel: string,
-      gasMuplttiplier: number,
-      gasPrice: string,
-      timeOut: number
-      memo?: string,
+      toAddress: string;
+      amount: Coin;
+      sourcePort: string;
+      sourceChannel: string;
+      gasMuplttiplier: number;
+      gasPrice: string;
+      timeOut: number;
+      memo?: string;
     } = {
       toAddress: walletStore.wallet?.address as string,
       amount: funds,
@@ -533,21 +554,31 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
     };
 
     if (networkInfo.forward) {
-      const ch = AssetUtils.getChannelData(app.networksData?.networks?.channels!, networkInfo.key);
+      const [_ckey, protocol = Protocols.osmosis]: string[] = selectedCurrency.value.ticker!.split('@');
       const proxyAddress = wallet.value as string;
-      const channel = AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, NATIVE_NETWORK.key, ch!.a.network, ch!.a.network);
+      const channel = AssetUtils.getSourceChannel(
+        app.networksData?.networks?.channels!,
+        NATIVE_NETWORK.key,
+        protocol,
+        protocol
+      );
+
       rawTx.toAddress = proxyAddress;
 
       rawTx.memo = JSON.stringify({
-        "forward": {
-          "receiver": walletStore.wallet!.address,
-          "port": SOURCE_PORTS.TRANSFER,
-          "channel": channel
+        forward: {
+          receiver: walletStore.wallet!.address,
+          port: SOURCE_PORTS.TRANSFER,
+          channel: channel
         }
       });
     }
 
-    const { txHash: txHashData, txBytes, usedFee } = await baseWallet.simulateSendIbcTokensTx(rawTx);
+    const {
+      txHash: txHashData,
+      txBytes,
+      usedFee
+    } = await baseWallet.simulateSendIbcTokensTx(rawTx);
     txHash.value = txHashData;
 
     if (usedFee?.amount?.[0]) {
@@ -562,10 +593,9 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
     setTimeout(async () => {
       await walletStore[WalletActionTypes.UPDATE_BALANCES]();
     }, 10000);
-
   } catch (error: Error | any) {
     switch (error.code) {
-      case (ErrorCodes.GasError): {
+      case ErrorCodes.GasError: {
         step.value = CONFIRM_STEP.GasErrorExternal;
         break;
       }
@@ -575,17 +605,17 @@ const ibcTransfer = async (baseWallet: BaseWallet) => {
       }
     }
 
-    if (error.message.includes('You might want to check later')) {
+    if (error.message.includes("You might want to check later")) {
       step.value = CONFIRM_STEP.SUCCESS;
       return;
     }
 
-    if (error.message.includes('Length must be a multiple of 4')) {
+    if (error.message.includes("Length must be a multiple of 4")) {
       step.value = CONFIRM_STEP.SUCCESS;
       return;
     }
   }
-}
+};
 
 const onConfirmBackClick = () => {
   showConfirmScreen.value = false;
@@ -596,13 +626,9 @@ const onClickOkBtn = () => {
 };
 
 const formatCurrentBalance = (selectedCurrency: AssetBalance | undefined) => {
-
   if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
-
     if (selectedNetwork.value.native) {
-      const asset = walletStore.getCurrencyInfo(
-        selectedCurrency.balance.denom
-      );
+      const asset = walletStore.getCurrencyInfo(selectedCurrency.balance.denom);
       return CurrencyUtils.convertMinimalDenomToDenom(
         selectedCurrency.balance.amount.toString(),
         selectedCurrency.balance.denom,
@@ -610,9 +636,7 @@ const formatCurrentBalance = (selectedCurrency: AssetBalance | undefined) => {
         asset.coinDecimals
       ).toString();
     } else {
-
       if (selectedCurrency.decimals != null && selectedCurrency.name != null) {
-
         return CurrencyUtils.convertMinimalDenomToDenom(
           selectedCurrency.balance.amount.toString(),
           selectedCurrency.balance.denom,
@@ -620,26 +644,30 @@ const formatCurrentBalance = (selectedCurrency: AssetBalance | undefined) => {
           selectedCurrency.decimals as number
         ).toString();
       }
-
     }
-
   }
 };
 
 const setAmountValue = (p: number) => {
-  const asset = AssetUtils.getAssetInfo(
-    selectedCurrency.value.ticker as string
-  );
+  const asset = AssetUtils.getAssetInfo(selectedCurrency.value.ticker as string);
   const percent = new Dec(p).quo(new Dec(100));
-  const data = CurrencyUtils.convertMinimalDenomToDenom(selectedCurrency.value.balance.amount, asset.coinMinimalDenom, asset.coinDenom, asset.coinDecimals).toDec();
+  const data = CurrencyUtils.convertMinimalDenomToDenom(
+    selectedCurrency.value.balance.amount,
+    asset.coinMinimalDenom,
+    asset.coinDenom,
+    asset.coinDecimals
+  ).toDec();
   const value = data.mul(percent);
   amount.value = value.toString(asset.coinDecimals);
 };
 
 const total = computed(() => {
   if (selectedCurrency.value) {
-    return new KeplrCoin(selectedCurrency.value.balance.denom, selectedCurrency.value.balance.amount);
+    return new KeplrCoin(
+      selectedCurrency.value.balance.denom,
+      selectedCurrency.value.balance.amount
+    );
   }
   return undefined;
-})
+});
 </script>

@@ -368,8 +368,7 @@ let news: string | Promise<string> = import("./news/news.json?url").then((t) => 
 let newsWalletsPath: string = "/src/config/news/wallets/";
 
 if (!isServe()) {
-  news =
-    "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/news.json";
+  news = "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/news.json";
   newsWalletsPath =
     "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/wallets/";
 }
@@ -408,7 +407,7 @@ export const IGNORE_LEASES: string[] = [
   "nolus1q2ekwjj87jglqsszwy6ah5t08h0k8kq67ed0l899sku2qt0dztpsnwt6sw"
 ];
 export const NEWS_URL = news;
-export const NEWS_WALLETS_PATH = newsWalletsPath
+export const NEWS_WALLETS_PATH = newsWalletsPath;
 
 export const CurrencyMapping: {
   [key: string]: {
@@ -459,6 +458,7 @@ export const ProtocolsConfig: {
   }
 };
 
+export const LPN_NETWORK = ["AXELAR"];
 export const FREE_INTEREST_ASSETS = ["NTRN"];
 export const SUPPORT_URL = "https://hub.nolus.io";
 export const ETL_API = "https://etl-cl.nolus.network:8080/api";

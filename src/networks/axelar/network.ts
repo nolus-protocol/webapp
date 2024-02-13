@@ -4,7 +4,7 @@ export const NETWORK = {
     gasMuplttiplier: 2,
     bip44Path: "44'/118'/0'/0/0",
     ibcTransferTimeout: 600,
-    ticker: "USDC",
+    ticker: "AXL",
     name: "Axelar",
     gasPrice:'0.003uaxl',
     fees: {

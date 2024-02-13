@@ -45,7 +45,8 @@ import {
   ErrorCodes,
   IGNORE_TRANSFER_ASSETS,
   CurrencyDemapping,
-  CurrencyMapping
+  CurrencyMapping,
+LPN_NETWORK
 } from "@/config/env";
 
 import {
@@ -165,6 +166,12 @@ watch(() => state.value.network, async () => {
   const native = app.networks![NATIVE_NETWORK.key];
   const items: string[] = [];
 
+  for(let c of currencies){
+    if(CurrencyDemapping[c]){
+      currencies.push(CurrencyDemapping[c].ticker);
+    }
+  }
+
   if (state.value.network.key == NATIVE_NETWORK.key) {
     for (const i in native) {
       const c = native[i];
@@ -183,7 +190,7 @@ watch(() => state.value.network, async () => {
         return item.key == c.key;
       });
 
-      if (lpn) {
+      if (lpn && !LPN_NETWORK.includes(state.value.network.key)) {
         if (protocol == state.value.network.key) {
           const ibc = NolusAssetUtils.makeIBCMinimalDenom(ticker, app.networksData!, NATIVE_NETWORK.key as Networks, protocol as Protocols);
           items.push(ibc);
@@ -321,12 +328,15 @@ const ibcTransfer = async () => {
   try {
     const wallet = walletStore.wallet;
     const denom = state.value.selectedCurrency.balance.denom;
+
     if (wallet) {
       step.value = CONFIRM_STEP.PENDING;
       const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(
         state.value.selectedCurrency.balance.denom
       );
 
+      const currency = walletStore.currencies[state.value.selectedCurrency.balance.denom];
+      const [key, protocol] = currency.ticker.split('@');
       const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
         state.value.amount,
         coinMinimalDenom,
@@ -339,7 +349,8 @@ const ibcTransfer = async () => {
       };
 
       const networkInfo = SUPPORTED_NETWORKS_DATA[state.value.network.key as keyof typeof SUPPORTED_NETWORKS_DATA];
-      const sourceChannel = networkInfo.forward ? AssetUtils.getSourceChannelData(app.networksData?.networks?.channels!, networkInfo.key)!.a.ch : AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, state.value.network.key, NATIVE_NETWORK.key);
+
+      const sourceChannel = networkInfo.forward ? AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, protocol, NATIVE_NETWORK.key) : AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, state.value.network.key, NATIVE_NETWORK.key);
 
       const rawTx: {
         toAddress: string,
@@ -355,8 +366,7 @@ const ibcTransfer = async () => {
       };
 
       if (networkInfo.forward) {
-        const channel = AssetUtils.getChannelData(app.networksData?.networks?.channels!, state.value.network.key);
-
+        const channel = AssetUtils.getChannelDataByProtocol(app.networksData?.networks?.channels!, protocol, state.value.network.key);
         const proxyAddress = walletStore.wallet?.address as string;
 
         rawTx.toAddress = proxyAddress;

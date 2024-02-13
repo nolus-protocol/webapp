@@ -87,7 +87,6 @@ export function useLeases(
         }
         return true;
       }).sort((a, b) => b!.protocol.localeCompare(a!.protocol));
-
       leases.value = items as LeaseData[];
 
     } catch (e) {

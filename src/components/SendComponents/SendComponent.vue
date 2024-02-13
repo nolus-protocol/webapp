@@ -94,7 +94,7 @@ import { computed, ref, onMounted } from "vue";
 import { Dec } from "@keplr-wallet/unit";
 import { NETWORKS_DATA } from "@/networks";
 import { useApplicationStore } from "@/stores/application";
-import { NATIVE_NETWORK } from "@/config/env";
+import { LPN_NETWORK, NATIVE_NETWORK } from "@/config/env";
 import { Protocols } from "@nolus/nolusjs/build/types/Networks";
 
 const props = defineProps({
@@ -122,11 +122,14 @@ const networks = computed(() => {
       n.push(Protocols.neutron);
     }
 
-
     if (lpn) {
 
       const [key, protocol] = lpn.key!.split('@');
       n.push(protocol);
+
+      for(const ntw of LPN_NETWORK){
+        n.push(ntw);
+      }
 
     } else {
 
