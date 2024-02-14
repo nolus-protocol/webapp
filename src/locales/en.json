@@ -362,7 +362,7 @@
     "yes_count": "YES",
     "no_count": "NO",
     "abstain_count": "ABSTAIN",
-    "no_with_veto_count": "NO WOTH VETO",
+    "no_with_veto_count": "NO WITH VETO",
     "voting-warning": "To obtain voting privileges, you must first delegate NLS tokens to the network's validators",
     "lease-banner-title": "Lease",
     "dydx-banner-subtitle": "$DYDX Now Available!",
