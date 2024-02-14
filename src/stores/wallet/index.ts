@@ -25,10 +25,17 @@ import { Lpp, Leaser, type LeaserConfig } from "@nolus/nolusjs/build/contracts";
 import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { coin, makeCosmoshubPath } from "@cosmjs/amino";
-import { EncryptionUtils, EnvNetworkUtils, KeyUtils as KeyUtilities, WalletUtils, Web3AuthProvider, WalletManager } from "@/utils";
+import {
+  EncryptionUtils,
+  EnvNetworkUtils,
+  KeyUtils as KeyUtilities,
+  WalletUtils,
+  Web3AuthProvider,
+  WalletManager
+} from "@/utils";
 import { CurrencyUtils, KeyUtils, NolusClient, NolusWalletFactory } from "@nolus/nolusjs";
 import { useApplicationStore } from "../application";
-import { defaultRegistryTypes, } from "@cosmjs/stargate";
+import { defaultRegistryTypes } from "@cosmjs/stargate";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { AppUtils } from "@/utils/AppUtils";
 import { Networks, Protocols } from "@nolus/nolusjs/build/types/Networks";
@@ -59,18 +66,14 @@ const useWalletStore = defineStore("wallet", {
       this.walletName = null;
       this.privateKey = null;
     },
-    async [WalletActionTypes.CONNECT_KEPLR](
-      payload: { isFromAuth?: boolean } = {}
-    ) {
+    async [WalletActionTypes.CONNECT_KEPLR](payload: { isFromAuth?: boolean } = {}) {
       await WalletUtils.getKeplr();
       const keplrWindow = window as KeplrWindow;
 
       if (!keplrWindow.getOfflineSignerOnlyAmino || !keplrWindow.keplr) {
         throw new Error("Keplr wallet is not installed.");
       } else if (!keplrWindow.keplr.experimentalSuggestChain) {
-        throw new Error(
-          "Keplr version is not latest. Please upgrade your Keplr wallet"
-        );
+        throw new Error("Keplr version is not latest. Please upgrade your Keplr wallet");
       } else {
         let chainId = "";
 
@@ -88,7 +91,7 @@ const useWalletStore = defineStore("wallet", {
             )
           );
         } catch (e) {
-          console.log(e)
+          console.log(e);
 
           throw new Error("Failed to fetch suggest chain.");
         }
@@ -96,19 +99,15 @@ const useWalletStore = defineStore("wallet", {
         await keplrWindow.keplr?.enable(chainId);
 
         if (keplrWindow.getOfflineSignerOnlyAmino) {
-          const offlineSigner = keplrWindow.getOfflineSignerOnlyAmino(
-            chainId
+          const offlineSigner = keplrWindow.getOfflineSignerOnlyAmino(chainId);
+          const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(
+            offlineSigner as any
           );
-          const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(offlineSigner as any);
           await nolusWalletOfflineSigner.useAccount();
 
-          WalletManager.saveWalletConnectMechanism(
-            WalletConnectMechanism.EXTENSION
-          );
+          WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.EXTENSION);
 
-          WalletManager.storeWalletAddress(
-            nolusWalletOfflineSigner.address || ""
-          );
+          WalletManager.storeWalletAddress(nolusWalletOfflineSigner.address || "");
 
           WalletManager.setPubKey(
             Buffer.from(nolusWalletOfflineSigner?.pubKey ?? "").toString("hex")
@@ -117,9 +116,7 @@ const useWalletStore = defineStore("wallet", {
           this.wallet = nolusWalletOfflineSigner;
           this.walletName = (await keplrWindow.keplr.getKey(chainId)).name;
 
-          await Promise.all([
-            this[WalletActionTypes.UPDATE_BALANCES](),
-          ]);
+          await Promise.all([this[WalletActionTypes.UPDATE_BALANCES]()]);
 
           if (payload?.isFromAuth) {
             await router.push({ name: RouteNames.DASHBOARD });
@@ -127,23 +124,18 @@ const useWalletStore = defineStore("wallet", {
         }
       }
     },
-    async [WalletActionTypes.CONNECT_LEAP](
-      payload: { isFromAuth?: boolean } = {}
-    ) {
+    async [WalletActionTypes.CONNECT_LEAP](payload: { isFromAuth?: boolean } = {}) {
       await WalletUtils.getLeap();
       const leapWindow = window as any;
 
       if (!leapWindow.leap.getOfflineSignerOnlyAmino || !leapWindow.leap) {
         throw new Error("Leap wallet is not installed.");
       } else if (!leapWindow.leap.experimentalSuggestChain) {
-        throw new Error(
-          "Leap version is not latest. Please upgrade your Leap wallet"
-        );
+        throw new Error("Leap version is not latest. Please upgrade your Leap wallet");
       } else {
         let chainId = "";
 
         try {
-
           const networkConfig = await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
           NolusClient.setInstance(networkConfig.rpc);
 
@@ -163,19 +155,15 @@ const useWalletStore = defineStore("wallet", {
         await leapWindow.leap?.enable(chainId);
 
         if (leapWindow.leap.getOfflineSignerOnlyAmino) {
-          const offlineSigner = leapWindow.leap.getOfflineSignerOnlyAmino(
-            chainId
+          const offlineSigner = leapWindow.leap.getOfflineSignerOnlyAmino(chainId);
+          const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(
+            offlineSigner as any
           );
-          const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(offlineSigner as any);
           await nolusWalletOfflineSigner.useAccount();
 
-          WalletManager.saveWalletConnectMechanism(
-            WalletConnectMechanism.LEAP
-          );
+          WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.LEAP);
 
-          WalletManager.storeWalletAddress(
-            nolusWalletOfflineSigner.address || ""
-          );
+          WalletManager.storeWalletAddress(nolusWalletOfflineSigner.address || "");
 
           WalletManager.setPubKey(
             Buffer.from(nolusWalletOfflineSigner?.pubKey ?? "").toString("hex")
@@ -209,8 +197,7 @@ const useWalletStore = defineStore("wallet", {
       while (!ledgerWallet && !breakLoop) {
         try {
           const isConnectedViaLedgerBluetooth =
-            WalletManager.getWalletConnectMechanism() ===
-            WalletConnectMechanism.LEDGER_BLUETOOTH;
+            WalletManager.getWalletConnectMechanism() === WalletConnectMechanism.LEDGER_BLUETOOTH;
           const transport =
             payload.isBluetooth || isConnectedViaLedgerBluetooth
               ? await BluetoothTransport.create()
@@ -219,7 +206,7 @@ const useWalletStore = defineStore("wallet", {
           ledgerWallet = await NolusWalletFactory.nolusLedgerWallet(
             new LedgerSigner(transport, {
               prefix: ChainConstants.BECH32_PREFIX_ACC_ADDR,
-              hdPaths: paths,
+              hdPaths: paths
             })
           );
 
@@ -232,9 +219,7 @@ const useWalletStore = defineStore("wallet", {
               : WalletConnectMechanism.LEDGER
           );
           WalletManager.storeWalletAddress(ledgerWallet.address || "");
-          WalletManager.setPubKey(
-            Buffer.from(this.wallet?.pubKey ?? "").toString("hex")
-          );
+          WalletManager.setPubKey(Buffer.from(this.wallet?.pubKey ?? "").toString("hex"));
           this.walletName = LedgerName;
 
           if (payload?.isFromAuth) {
@@ -263,7 +248,8 @@ const useWalletStore = defineStore("wallet", {
         privateKey,
         ChainConstants.BECH32_PREFIX_ACC_ADDR
       );
-      const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
+      const nolusWalletOfflineSigner =
+        await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
       await nolusWalletOfflineSigner.useAccount();
       this.wallet = nolusWalletOfflineSigner;
       this.privateKey = toHex(privateKey);
@@ -272,23 +258,12 @@ const useWalletStore = defineStore("wallet", {
       const privateKey = this.privateKey ?? "";
       if (privateKey.length > 0 && password?.length > 0) {
         const pubKey = toHex(this.wallet?.pubKey || new Uint8Array(0));
-        const encryptedPbKey = EncryptionUtils.encryptEncryptionKey(
-          pubKey,
-          password
-        );
-        const encryptedPk = EncryptionUtils.encryptPrivateKey(
-          privateKey,
-          pubKey,
-          password
-        );
+        const encryptedPbKey = EncryptionUtils.encryptEncryptionKey(pubKey, password);
+        const encryptedPk = EncryptionUtils.encryptPrivateKey(privateKey, pubKey, password);
 
-        WalletManager.saveWalletConnectMechanism(
-          WalletConnectMechanism.MNEMONIC
-        );
+        WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.MNEMONIC);
         WalletManager.storeWalletAddress(this.wallet?.address ?? "");
-        WalletManager.setPubKey(
-          Buffer.from(this.wallet?.pubKey ?? "").toString("hex")
-        );
+        WalletManager.setPubKey(Buffer.from(this.wallet?.pubKey ?? "").toString("hex"));
         WalletManager.storeEncryptedPubKey(encryptedPbKey);
         WalletManager.storeEncryptedPk(encryptedPk);
         this.privateKey = null;
@@ -304,11 +279,12 @@ const useWalletStore = defineStore("wallet", {
         if (!WalletUtils.isAuth()) {
           for (const key in currencies) {
             const currency = app.currenciesData![key];
-            const [ticker, protocol] = key.split('@');
+            const [ticker, protocol] = key.split("@");
             let shortName = currency.shortName;
 
             if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
-              shortName = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.name ?? shortName;
+              shortName =
+                CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.name ?? shortName;
             }
 
             const ibcDenom = NolusAssetUtils.makeIBCMinimalDenom(
@@ -328,12 +304,10 @@ const useWalletStore = defineStore("wallet", {
             };
             this.currencies[ibcDenom] = data;
             const item = {
-              balance: CurrencyUtils.convertCosmosCoinToKeplCoin(coin('0', ibcDenom)),
+              balance: CurrencyUtils.convertCosmosCoinToKeplCoin(coin("0", ibcDenom))
             };
 
-            ibcBalances.push(
-              item
-            );
+            ibcBalances.push(item);
           }
 
           this.balances = ibcBalances;
@@ -344,7 +318,7 @@ const useWalletStore = defineStore("wallet", {
         for (const key in currencies) {
           const currency = app.currenciesData![key];
           let shortName = currency.shortName;
-          const [ticker, protocol] = key.split('@');
+          const [ticker, protocol] = key.split("@");
 
           if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
             shortName = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.name ?? shortName;
@@ -372,7 +346,7 @@ const useWalletStore = defineStore("wallet", {
                 this.currencies[ibcDenom] = data;
 
                 return {
-                  balance: CurrencyUtils.convertCosmosCoinToKeplCoin(item),
+                  balance: CurrencyUtils.convertCosmosCoinToKeplCoin(item)
                 };
               })
           );
@@ -382,9 +356,7 @@ const useWalletStore = defineStore("wallet", {
         throw new Error(e as string);
       }
     },
-    async [WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN](payload: {
-      password: string;
-    }) {
+    async [WalletActionTypes.LOAD_PRIVATE_KEY_AND_SIGN](payload: { password: string }) {
       if (this.privateKey === null && payload.password !== "") {
         const encryptedPubKey = WalletManager.getEncryptedPubKey();
         const encryptedPk = WalletManager.getPrivateKey();
@@ -401,7 +373,8 @@ const useWalletStore = defineStore("wallet", {
           fromHex(decryptedPrivateKey),
           ChainConstants.BECH32_PREFIX_ACC_ADDR
         );
-        const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
+        const nolusWalletOfflineSigner =
+          await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
         await nolusWalletOfflineSigner.useAccount();
 
         this.wallet = nolusWalletOfflineSigner;
@@ -423,12 +396,12 @@ const useWalletStore = defineStore("wallet", {
         const [sender]: any = await Promise.allSettled([
           load_sender
             ? client.txSearch({
-              query: `message.sender='${address}'`,
-              per_page: sender_per_page,
-              page: sender_page,
-              order_by: "desc",
-            })
-            : false,
+                query: `message.sender='${address}'`,
+                per_page: sender_per_page,
+                page: sender_page,
+                order_by: "desc"
+              })
+            : false
         ]);
         const data = [];
         let sender_total = 0;
@@ -438,8 +411,7 @@ const useWalletStore = defineStore("wallet", {
           for (const item of (sender.value as TxSearchResponse).txs) {
             const decodedTx: DecodedTxRaw = decodeTxRaw(item.tx);
             try {
-
-              const msgs = []
+              const msgs = [];
               for (const m of decodedTx.body.messages) {
                 msgs.push({
                   typeUrl: m.typeUrl,
@@ -455,9 +427,10 @@ const useWalletStore = defineStore("wallet", {
                 blockDate: null as null | ReadonlyDateWithNanoseconds,
                 memo: decodedTx.body.memo ?? "",
                 log: item.result.log,
-                fee: decodedTx?.authInfo?.fee?.amount.filter(
-                  (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
-                ) ?? null,
+                fee:
+                  decodedTx?.authInfo?.fee?.amount.filter(
+                    (coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM
+                  ) ?? null
               };
 
               data.push(transactionResult);
@@ -475,20 +448,19 @@ const useWalletStore = defineStore("wallet", {
           } catch (error) {
             return item;
           }
-
         });
 
         const items = await Promise.all(promises);
 
         return {
           data: items,
-          sender_total,
+          sender_total
         };
       }
 
       return {
         data: [],
-        sender_total: 0,
+        sender_total: 0
       };
     },
     async [WalletActionTypes.LOAD_VESTED_TOKENS](): Promise<
@@ -497,7 +469,6 @@ const useWalletStore = defineStore("wallet", {
         amount: { amount: string; denom: string };
       }[]
     > {
-
       if (!WalletUtils.isAuth()) {
         this.vest = [];
         this.delegated_vesting = null;
@@ -521,31 +492,30 @@ const useWalletStore = defineStore("wallet", {
         const end = new Date(vesting_account.end_time * 1000);
 
         const from = `${start.toLocaleDateString("en-US", {
-          day: "2-digit",
+          day: "2-digit"
         })}/${start.toLocaleDateString("en-US", {
-          month: "2-digit",
+          month: "2-digit"
         })}/${start.toLocaleDateString("en-US", { year: "numeric" })}`;
         const to = `${end.toLocaleDateString("en-US", {
-          day: "2-digit",
+          day: "2-digit"
         })}/${end.toLocaleDateString("en-US", {
-          month: "2-digit",
+          month: "2-digit"
         })}/${end.toLocaleDateString("en-US", { year: "numeric" })}`;
 
         items.push({
           endTime: `${from} - ${to}`,
-          amount: vesting_account.original_vesting[0],
+          amount: vesting_account.original_vesting[0]
         });
 
         vest.push({
           start,
           end,
-          amount: vesting_account.original_vesting[0],
+          amount: vesting_account.original_vesting[0]
         });
 
         this.vest = vest;
         this.delegated_vesting = vesting_account.delegated_vesting[0];
-        this.delegated_free = vesting_account.delegated_free[0];;
-
+        this.delegated_free = vesting_account.delegated_free[0];
       } else {
         this.vest = [];
         this.delegated_vesting = null;
@@ -562,7 +532,7 @@ const useWalletStore = defineStore("wallet", {
 
         if (provider) {
           const privateKeyStr = await provider.request({
-            method: "private_key",
+            method: "private_key"
           });
 
           if (KeyUtilities.isPrivateKey(privateKeyStr as string)) {
@@ -572,7 +542,8 @@ const useWalletStore = defineStore("wallet", {
               ChainConstants.BECH32_PREFIX_ACC_ADDR
             );
 
-            const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
+            const nolusWalletOfflineSigner =
+              await NolusWalletFactory.nolusOfflineSigner(directSecrWallet);
             await nolusWalletOfflineSigner.useAccount();
             this.wallet = nolusWalletOfflineSigner;
             this.privateKey = toHex(privateKey);
@@ -585,71 +556,54 @@ const useWalletStore = defineStore("wallet", {
       await instance.connect();
     },
     async [WalletActionTypes.LOAD_SUPPLIED_AMOUNT]() {
-
       const admin = useAdminStore();
       const walletAddress = this?.wallet?.address ?? WalletManager.getWalletAddress();
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const promises = [];
       const suppliedBalance: { [protocol: string]: string } = {};
-      const lppPrice: { [protocol: string]: Dec } = {}
+      const lppPrice: { [protocol: string]: Dec } = {};
 
       for (const protocolKey in admin.contracts) {
-
         const fn = async () => {
           const protocol = admin.contracts[protocolKey];
-          const lppClient = new Lpp(
-            cosmWasmClient,
-            protocol.lpp
-          );
+          const lppClient = new Lpp(cosmWasmClient, protocol.lpp);
 
           const [depositBalance, price] = await Promise.all([
-            lppClient.getLenderDeposit(
-              walletAddress as string
-            ),
+            lppClient.getLenderDeposit(walletAddress as string),
             lppClient.getPrice()
           ]);
 
           const p = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
           suppliedBalance[protocolKey] = depositBalance.balance;
           lppPrice[protocolKey as string] = p;
-        }
+        };
 
-        promises.push(fn())
-
+        promises.push(fn());
       }
 
       await Promise.all(promises);
 
       this.suppliedBalance = suppliedBalance;
       this.lppPrice = lppPrice;
-
     },
     async [WalletActionTypes.LOAD_LEASER_CONFIG]() {
       if (!this.leaserConfig) {
-
         const admin = useAdminStore();
         const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
         const promises = [];
         const leaserConfig: { [protocol: string]: LeaserConfig } = {};
 
-
         for (const protocolKey in admin.contracts) {
-
           const fn = async () => {
             const protocol = admin.contracts[protocolKey];
-            const leaserClient = new Leaser(
-              cosmWasmClient,
-              protocol.leaser
-            );
+            const leaserClient = new Leaser(cosmWasmClient, protocol.leaser);
             leaserConfig[protocolKey] = await leaserClient.getLeaserConfig();
-          }
+          };
 
-          promises.push(fn())
-
+          promises.push(fn());
         }
 
         await Promise.all(promises);
-
       }
       return this.leaserConfig;
     },
@@ -676,7 +630,6 @@ const useWalletStore = defineStore("wallet", {
       }
     },
     async [WalletActionTypes.LOAD_STAKED_TOKENS]() {
-
       if (!WalletUtils.isAuth()) {
         return false;
       }
@@ -697,23 +650,18 @@ const useWalletStore = defineStore("wallet", {
           s.amount = am;
           this.stakingBalance = s;
         } else {
-          this.stakingBalance = new Coin(NATIVE_ASSET.denom, new Int(0));;
+          this.stakingBalance = new Coin(NATIVE_ASSET.denom, new Int(0));
         }
       } catch (e) {
         this.stakingBalance = new Coin(NATIVE_ASSET.denom, new Int(0));
       }
     },
     async [WalletActionTypes.LOAD_APR]() {
-
       try {
         const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
         const [stakingBalance, infolation_data] = await Promise.all([
-          fetch(
-            `${url}/cosmos/staking/v1beta1/pool`
-          ).then((data) => data.json()),
-          fetch(
-            `${url}/nolus/mint/v1beta1/annual_inflation`
-          ).then((data) => data.json())
+          fetch(`${url}/cosmos/staking/v1beta1/pool`).then((data) => data.json()),
+          fetch(`${url}/nolus/mint/v1beta1/annual_inflation`).then((data) => data.json())
         ]);
         const bonded = Number(stakingBalance.pool.bonded_tokens);
         const inflation = Number(infolation_data.annual_inflation ?? 0);
@@ -721,7 +669,6 @@ const useWalletStore = defineStore("wallet", {
       } catch (error) {
         this.apr = 0;
       }
-
     },
     async [WalletActionTypes.LOAD_VALIDATORS]() {
       const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
@@ -730,10 +677,8 @@ const useWalletStore = defineStore("wallet", {
       const walletAddress = WalletManager.getWalletAddress() || "";
 
       return await loadValidators(url, [], walletAddress, offset, limit);
-
     },
     async [WalletActionTypes.LOAD_DELEGATOR]() {
-
       if (!WalletUtils.isAuth()) {
         return [];
       }
@@ -747,9 +692,9 @@ const useWalletStore = defineStore("wallet", {
     },
     async [WalletActionTypes.LOAD_VALIDATOR](validatorAddress: string) {
       const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
-      return await fetch(
-        `${url}/cosmos/staking/v1beta1/validators/${validatorAddress}`
-      ).then((data) => data.json());
+      return await fetch(`${url}/cosmos/staking/v1beta1/validators/${validatorAddress}`).then(
+        (data) => data.json()
+      );
     },
     async [WalletActionTypes.LOAD_DELEGATOR_VALIDATORS]() {
       const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
@@ -760,7 +705,6 @@ const useWalletStore = defineStore("wallet", {
       return await loadDelegatorValidators(url, [], walletAddress, offset, limit);
     },
     async [WalletActionTypes.LOAD_UNBONDING_DELEGATIONS]() {
-
       if (!WalletUtils.isAuth()) {
         return [];
       }
@@ -773,7 +717,6 @@ const useWalletStore = defineStore("wallet", {
       return await loadUnbondingDelegatoins(url, [], walletAddress, offset, limit);
     },
     async [WalletActionTypes.LOAD_DELEGATIONS]() {
-
       if (!WalletUtils.isAuth()) {
         return [];
       }
@@ -784,7 +727,7 @@ const useWalletStore = defineStore("wallet", {
       const walletAddress = WalletManager.getWalletAddress() || "";
 
       return await loadDelegatoins(url, [], walletAddress, offset, limit);
-    },
+    }
   },
   getters: {
     available: (state) => {
@@ -817,7 +760,6 @@ const useWalletStore = defineStore("wallet", {
       //   notAvailable = notAvailable.add(navbl);
       // }
 
-
       // if (state.delegated_vesting) {
       //   const amount = new Dec(state.delegated_vesting?.amount?.toString() ?? '0', ChainConstants.COIN_DECIMALS);
       //   if (amount.lt(notAvailable)) {
@@ -831,7 +773,9 @@ const useWalletStore = defineStore("wallet", {
         balance = new Dec(0);
       }
 
-      const int = new Int(balance.mul(new Dec(10).pow(new Int(ChainConstants.COIN_DECIMALS))).toString(0));
+      const int = new Int(
+        balance.mul(new Dec(10).pow(new Int(ChainConstants.COIN_DECIMALS))).toString(0)
+      );
 
       return { amount: int, denom: ChainConstants.COIN_MINIMAL_DENOM };
     },
@@ -857,8 +801,9 @@ const useWalletStore = defineStore("wallet", {
         balance = balance.add(notAvailable);
       }
 
-
-      const int = new Int(balance.mul(new Dec(10).pow(new Int(ChainConstants.COIN_DECIMALS))).toString(0));
+      const int = new Int(
+        balance.mul(new Dec(10).pow(new Int(ChainConstants.COIN_DECIMALS))).toString(0)
+      );
 
       return { amount: int, denom: ChainConstants.COIN_MINIMAL_DENOM };
     },
@@ -882,7 +827,7 @@ const useWalletStore = defineStore("wallet", {
           };
         }
 
-        const [ticker] = (currency?.ticker ?? '').split('@');
+        const [ticker] = (currency?.ticker ?? "").split("@");
         const mappedTicker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
 
         return {
@@ -901,7 +846,6 @@ const useWalletStore = defineStore("wallet", {
     getCurrencyByTicker: (state) => {
       const app = useApplicationStore();
       return (ticker: string | undefined) => {
-
         if (!ticker) {
           return undefined;
         }
@@ -912,14 +856,20 @@ const useWalletStore = defineStore("wallet", {
             break;
           }
         }
+        console.log(ticker);
 
         for (const currency in app.currenciesData) {
-          const [t] = currency.split('@');
-          if (t == ticker) {
+          if (currency == ticker) {
             return app.currenciesData![currency];
           }
         }
 
+        for (const currency in app.currenciesData) {
+          const [t] = currency.split("@");
+          if (t == ticker) {
+            return app.currenciesData![currency];
+          }
+        }
       };
     },
     getIbcDenomBySymbol: (state) => {
@@ -930,48 +880,80 @@ const useWalletStore = defineStore("wallet", {
           }
         }
       };
-    },
-  },
+    }
+  }
 });
 
-const loadValidators: any = async (url: string, validators: any[], address: string, offset: number, limit: number) => {
-  const data = await fetch(`${url}/cosmos/staking/v1beta1/validators?pagination.limit=${limit}&pagination.offset=${offset}&status=BOND_STATUS_BONDED`).then((data) => data.json());
+const loadValidators: any = async (
+  url: string,
+  validators: any[],
+  address: string,
+  offset: number,
+  limit: number
+) => {
+  const data = await fetch(
+    `${url}/cosmos/staking/v1beta1/validators?pagination.limit=${limit}&pagination.offset=${offset}&status=BOND_STATUS_BONDED`
+  ).then((data) => data.json());
   validators = [...validators, ...data.validators];
   offset += limit;
   if (data.pagination.next_key) {
     return await loadValidators(url, validators, address, offset, limit);
   }
   return validators;
-}
+};
 
-const loadDelegatorValidators: any = async (url: string, validators: any[], address: string, offset: number, limit: number) => {
-  const data = await fetch(`${url}/cosmos/staking/v1beta1/delegators/${address}/validators?pagination.limit=${limit}&pagination.offset=${offset}`).then((data) => data.json());
+const loadDelegatorValidators: any = async (
+  url: string,
+  validators: any[],
+  address: string,
+  offset: number,
+  limit: number
+) => {
+  const data = await fetch(
+    `${url}/cosmos/staking/v1beta1/delegators/${address}/validators?pagination.limit=${limit}&pagination.offset=${offset}`
+  ).then((data) => data.json());
   validators = [...validators, ...data.validators];
   offset += limit;
   if (data.pagination.next_key) {
     return await loadDelegatorValidators(url, validators, address, offset, limit);
   }
   return validators;
-}
+};
 
-const loadDelegatoins: any = async (url: string, delegations: any[], address: string, offset: number, limit: number) => {
-  const data = await fetch(`${url}/cosmos/staking/v1beta1/delegations/${address}?pagination.limit=${limit}&pagination.offset=${offset}`).then((data) => data.json());
+const loadDelegatoins: any = async (
+  url: string,
+  delegations: any[],
+  address: string,
+  offset: number,
+  limit: number
+) => {
+  const data = await fetch(
+    `${url}/cosmos/staking/v1beta1/delegations/${address}?pagination.limit=${limit}&pagination.offset=${offset}`
+  ).then((data) => data.json());
   delegations = [...delegations, ...data.delegation_responses];
   offset += limit;
   if (data.pagination.next_key) {
     return await loadDelegatoins(url, delegations, address, offset, limit);
   }
   return delegations;
-}
+};
 
-const loadUnbondingDelegatoins: any = async (url: string, unbondingDelegations: any[], address: string, offset: number, limit: number) => {
-  const data = await fetch(`${url}/cosmos/staking/v1beta1/delegators/${address}/unbonding_delegations?pagination.limit=${limit}&pagination.offset=${offset}`).then((data) => data.json());
+const loadUnbondingDelegatoins: any = async (
+  url: string,
+  unbondingDelegations: any[],
+  address: string,
+  offset: number,
+  limit: number
+) => {
+  const data = await fetch(
+    `${url}/cosmos/staking/v1beta1/delegators/${address}/unbonding_delegations?pagination.limit=${limit}&pagination.offset=${offset}`
+  ).then((data) => data.json());
   unbondingDelegations = [...unbondingDelegations, ...data.unbonding_responses];
   offset += limit;
   if (data.pagination.next_key) {
     return await loadUnbondingDelegatoins(url, unbondingDelegations, address, offset, limit);
   }
   return unbondingDelegations;
-}
+};
 
 export { useWalletStore, WalletActionTypes };

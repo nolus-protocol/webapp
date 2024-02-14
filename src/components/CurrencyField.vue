@@ -56,7 +56,7 @@
       </div>
     </div>
 
-    <div class="repayment items-start justify-between">
+    <!-- <div class="repayment items-start justify-between">
       <span class="msg error">
         {{ errorMsg }}
       </span>
@@ -70,7 +70,7 @@
           {{ value }}%
         </button>
       </div>
-    </div>
+    </div> -->
 
 
   </div>
@@ -87,7 +87,6 @@ import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/stores/oracle";
 import { useWalletStore } from "@/stores/wallet";
-import { INPUT_VALUES } from "@/config/env";
 import type { ExternalCurrencyType } from "@/types/CurreciesType";
 
 const emit = defineEmits(["update-currency", "update:modelValue", "input"]);
