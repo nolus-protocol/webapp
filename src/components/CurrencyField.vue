@@ -56,11 +56,11 @@
       </div>
     </div>
 
-    <!-- <div class="repayment items-start justify-between">
+    <div class="repayment items-start justify-between">
       <span class="msg error">
-        {{ errorMsg }}
+        &nbsp;{{ errorMsg }}
       </span>
-      <div class="min-w-[156px]">
+      <!-- <div class="min-w-[156px]">
         <button
           v-for="value in INPUT_VALUES"
           type="button"
@@ -69,8 +69,8 @@
         >
           {{ value }}%
         </button>
-      </div>
-    </div> -->
+      </div> -->
+    </div>
 
 
   </div>

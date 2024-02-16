@@ -38,7 +38,6 @@
         </div>
         <div
           v-if="modelValue.network.native"
-          class="block mt-[20px]"
         >
           <InputField
             :error-msg="modelValue.receiverErrorMsg"
@@ -54,7 +53,7 @@
         </div>
 
         <div v-else>
-          <p class="text-14 nls-font-500 text-primary m-0 mb-[6px] mt-4">
+          <p class="text-14 nls-font-500 text-primary m-0 mb-[6px] mt-2">
             {{ $t("message.recipient") }}
           </p>
           <p class="text-14 text-primary nls-font-700 m-0 break-all">

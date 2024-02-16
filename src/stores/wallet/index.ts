@@ -856,7 +856,6 @@ const useWalletStore = defineStore("wallet", {
             break;
           }
         }
-        console.log(ticker);
 
         for (const currency in app.currenciesData) {
           if (currency == ticker) {

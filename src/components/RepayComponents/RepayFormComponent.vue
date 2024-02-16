@@ -15,7 +15,7 @@
                      :set-input-value="setRepayment"
                      @input="handleAmountChange($event)"
                      @update-currency="(event) => (modelValue.selectedCurrency = event)" />
-      <div class="flex justify-end mt-[32px]">
+      <div class="flex justify-end mt-[12px]">
         <div class="grow-3 text-right nls-font-500 text-14 dark-text">
           <p class="mb-2 mt-[14px] mr-5">
             {{ $t("message.repayment-amount") }}:
@@ -23,10 +23,12 @@
         </div>
         <div class="text-right nls-font-700 text-14">
           <p class="mb-2 mt-[14px] flex justify-end align-center dark-text">
-            {{ amount.amount }}
-            <span class="text-light-blue text-[13px] nls-font-400 ml-[6px]">
-              (${{ amount.amountInStable }})
-            </span>
+            <a @click="setRepayAmount" class="cursor-pointer select-none">
+              {{ amount.amount }}
+              <span class="text-light-blue text-[13px] nls-font-400 ml-[6px]">
+                (${{ amount.amountInStable }})
+              </span>
+            </a>
             <TooltipComponent
                               :content="$t('message.outstanding-debt-tooltip', { fee: (modelValue.swapFee * 100).toFixed(2) })" />
           </p>
@@ -97,6 +99,10 @@ const outStandingDebt = () => {
     .add(additionalInterest().roundUpDec())
 
   return debt;
+}
+
+const setRepayAmount = () => {
+  setRepayment(100)
 }
 
 // const calucateAfterRepayment = computed(() => {
