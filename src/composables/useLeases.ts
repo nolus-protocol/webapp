@@ -4,8 +4,7 @@ import { ref, onMounted } from "vue";
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 import { Lease, Leaser, type LeaserConfig, type LeaseStatus } from "@nolus/nolusjs/build/contracts";
 
-import { CONTRACTS } from "@/config/contracts";
-import { WalletManager, EnvNetworkUtils } from "@/utils";
+import { WalletManager } from "@/utils";
 import { AppUtils } from "@/utils/AppUtils";
 import { IGNORE_LEASES } from "@/config/env";
 import { useAdminStore } from "@/stores/admin";
@@ -48,23 +47,19 @@ export function useLeases(
               const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
               const api = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
 
-              const [statusReq, leaseInfo, balancesReq] = await Promise.all([
-                fetch(`${url}/tx_search?query="wasm.lease_address='${leaseAddress}'"&prove=true`),
+              const [leaseInfo, balancesReq] = await Promise.all([
                 leaseClient.getLeaseStatus(),
                 fetch(`${api}/cosmos/bank/v1beta1/balances/${leaseAddress}`),
               ]);
 
-              const [data, balances] = await Promise.all([
-                statusReq.json(),
+              const [balances] = await Promise.all([
                 balancesReq.json()
               ]);
 
-              const item = data.result?.txs?.[0];
               if (leaseInfo && !leaseInfo.closed && !leaseInfo.liquidated) {
                 return {
                   leaseAddress: leaseAddress,
                   leaseStatus: leaseInfo,
-                  height: item.height,
                   balances: balances.balances,
                   protocol: protocolKey
                 }
