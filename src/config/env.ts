@@ -388,7 +388,8 @@ export const SUPPORTED_NETWORKS = [
   "STARGAZE",
   "CELESTIA",
   "NEUTRON",
-  "DYDX"
+  "DYDX",
+  "QUICKSILVER"
 ];
 export const SWAP_FEE = 0.007;
 export const ZERO_DECIMALS = 6;
@@ -396,12 +397,9 @@ export const USD_DECIMALS = 6;
 export const MAX_DECIMALS = 8;
 export const LedgerName = "Ledger";
 export const IGNORE_LEASE_ASSETS: string[] = [
-  "Q_ATOM",
-  "Q_ATOM@OSMOSIS",
-  "Q_ATOM@NEUTRON",
   "STK_ATOM"
 ];
-export const IGNORE_TRANSFER_ASSETS: string[] = ["Q_ATOM", "Q_ATOM@OSMOSIS", "Q_ATOM@NEUTRON"];
+export const IGNORE_TRANSFER_ASSETS: string[] = [];
 export const IGNORE_LEASES: string[] = [
   "nolus1suz0vsqe8c8anckaer98awhqs8r4hu7wsm8a49acdl39x6ylfypsqywxwh",
   "nolus1q2ekwjj87jglqsszwy6ah5t08h0k8kq67ed0l899sku2qt0dztpsnwt6sw"

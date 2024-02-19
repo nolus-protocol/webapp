@@ -54,7 +54,7 @@ export const ASSETS = {
     coinGeckoId: 'stargaze'
   },
   Q_ATOM: {
-    coinGeckoId: 'cosmos'
+    coinGeckoId: 'qatom'
   },
   NTRN: {
     coinGeckoId: 'neutron-3'
