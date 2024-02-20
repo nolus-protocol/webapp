@@ -456,6 +456,7 @@ export const ProtocolsConfig: {
   }
 };
 
+export const MAINNET = 'mainnet';
 export const LPN_NETWORK = ["AXELAR"];
 export const FREE_INTEREST_ASSETS = ["NTRN"];
 export const SUPPORT_URL = "https://hub.nolus.io";

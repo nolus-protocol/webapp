@@ -6,7 +6,7 @@ import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
 import type { HdPath } from "@cosmjs/crypto";
 import type { State } from "@/stores/wallet/state";
 import type { Window as KeplrWindow } from "@keplr-wallet/types/build/window";
-import type { ReadonlyDateWithNanoseconds, TxSearchResponse } from "@cosmjs/tendermint-rpc";
+import { connectComet, type ReadonlyDateWithNanoseconds, type TxSearchResponse } from "@cosmjs/tendermint-rpc";
 
 import { WalletConnectMechanism } from "@/types";
 import { defineStore } from "pinia";
@@ -17,7 +17,7 @@ import { fromHex, toHex } from "@cosmjs/encoding";
 import { RouteNames } from "@/router/RouterNames";
 import { LedgerSigner } from "@cosmjs/ledger-amino";
 import { decodeTxRaw, type DecodedTxRaw, Registry } from "@cosmjs/proto-signing";
-import { NATIVE_ASSET, LedgerName, CurrencyMapping } from "@/config/env";
+import { NATIVE_ASSET, LedgerName, CurrencyMapping, MAINNET } from "@/config/env";
 import { ASSETS } from "@/config/assetsInfo";
 import { ADAPTER_STATUS } from "@web3auth/base";
 import { Buffer } from "buffer";
@@ -392,7 +392,10 @@ const useWalletStore = defineStore("wallet", {
       registry.register("/cosmwasm.wasm.v1.MsgExecuteContract", MsgExecuteContract);
 
       if (address?.length > 0) {
-        const client = await NolusClient.getInstance().getTendermintClient();
+
+        const rpc = await getClient();
+        const client = await connectComet(rpc)
+
         const [sender]: any = await Promise.allSettled([
           load_sender
             ? client.txSearch({
@@ -954,5 +957,15 @@ const loadUnbondingDelegatoins: any = async (
   }
   return unbondingDelegations;
 };
+
+async function getClient(){
+  const network = EnvNetworkUtils.getStoredNetworkName();
+
+  if(network == MAINNET){
+    return (await AppUtils.getArchiveNodes()).archive_node_rpc;
+  }else{
+    return (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
+  }
+}
 
 export { useWalletStore, WalletActionTypes };
