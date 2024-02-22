@@ -835,10 +835,10 @@ const loadLeases = async () => {
               ls = ls.add(l);
 
               let debt = new Dec(data.principal_due.amount, LPN_DECIMALS)
-                .add(new Dec(data.previous_margin_due.amount, LPN_DECIMALS))
-                .add(new Dec(data.previous_interest_due.amount, LPN_DECIMALS))
-                .add(new Dec(data.current_margin_due.amount, LPN_DECIMALS))
-                .add(new Dec(data.current_interest_due.amount, LPN_DECIMALS))
+                .add(new Dec(data.overdue_margin.amount, LPN_DECIMALS))
+                .add(new Dec(data.overdue_interest.amount, LPN_DECIMALS))
+                .add(new Dec(data.due_margin.amount, LPN_DECIMALS))
+                .add(new Dec(data.due_interest.amount, LPN_DECIMALS))
                 .add(new Dec(additionalInterest(lease).truncate(), LPN_DECIMALS));
 
               db = debt.add(db);

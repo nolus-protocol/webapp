@@ -307,10 +307,10 @@ const outStandingDebt = () => {
   const info = AssetUtils.getAssetInfo(data.principal_due.ticker);
   const additional = new Dec(additionalInterest().roundUp(), info.coinDecimals);
   const debt = new Dec(data.principal_due.amount, info.coinDecimals)
-    .add(new Dec(data.previous_margin_due.amount, info.coinDecimals))
-    .add(new Dec(data.previous_interest_due.amount, info.coinDecimals))
-    .add(new Dec(data.current_margin_due.amount, info.coinDecimals))
-    .add(new Dec(data.current_interest_due.amount, info.coinDecimals))
+    .add(new Dec(data.overdue_margin.amount, info.coinDecimals))
+    .add(new Dec(data.overdue_interest.amount, info.coinDecimals))
+    .add(new Dec(data.due_margin.amount, info.coinDecimals))
+    .add(new Dec(data.due_interest.amount, info.coinDecimals))
     .add(additional)
   return debt;
 }

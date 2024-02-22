@@ -821,10 +821,10 @@ const debt = computed(() => {
     const item = walletStore.getCurrencyByTicker(data.principal_due.ticker);
     const ibcDenom = walletStore.getIbcDenomBySymbol(item!.symbol) as string;
     const amount = new Dec(data.principal_due.amount)
-      .add(new Dec(data.previous_margin_due.amount))
-      .add(new Dec(data.previous_interest_due.amount))
-      .add(new Dec(data.current_margin_due.amount))
-      .add(new Dec(data.current_interest_due.amount))
+      .add(new Dec(data.overdue_margin.amount))
+      .add(new Dec(data.overdue_interest.amount))
+      .add(new Dec(data.due_margin.amount))
+      .add(new Dec(data.due_interest.amount))
       .add(additionalInterest().roundUpDec())
 
     const token = CurrencyUtils.convertMinimalDenomToDenom(
@@ -857,12 +857,12 @@ const interestDue = computed(() => {
   const data = props.leaseInfo.leaseStatus?.opened;
 
   if (data) {
-    const item = walletStore.getCurrencyByTicker(data.current_interest_due.ticker);
+    const item = walletStore.getCurrencyByTicker(data.due_interest.ticker);
     const ibcDenom = walletStore.getIbcDenomBySymbol(item!.symbol) as string;
-    const amount = new Dec(data.previous_margin_due.amount)
-      .add(new Dec(data.previous_interest_due.amount))
-      .add(new Dec(data.current_margin_due.amount))
-      .add(new Dec(data.current_interest_due.amount))
+    const amount = new Dec(data.overdue_margin.amount)
+      .add(new Dec(data.overdue_interest.amount))
+      .add(new Dec(data.due_margin.amount))
+      .add(new Dec(data.due_interest.amount))
       .add(additionalInterest())
 
     const token = CurrencyUtils.convertMinimalDenomToDenom(
@@ -1068,10 +1068,10 @@ const getPrice = computed(() => {
   if (openedLease && leaseData) {
     const item = walletStore.getCurrencyByTicker(openedLease.principal_due.ticker);
     const amount = new Dec(openedLease.principal_due.amount, Number(item!.decimal_digits))
-      .add(new Dec(openedLease.previous_margin_due.amount, Number(item!.decimal_digits)))
-      .add(new Dec(openedLease.previous_interest_due.amount, Number(item!.decimal_digits)))
-      .add(new Dec(openedLease.current_margin_due.amount, Number(item!.decimal_digits)))
-      .add(new Dec(openedLease.current_interest_due.amount, Number(item!.decimal_digits)))
+      .add(new Dec(openedLease.overdue_margin.amount, Number(item!.decimal_digits)))
+      .add(new Dec(openedLease.overdue_interest.amount, Number(item!.decimal_digits)))
+      .add(new Dec(openedLease.due_margin.amount, Number(item!.decimal_digits)))
+      .add(new Dec(openedLease.due_interest.amount, Number(item!.decimal_digits)))
 
     const totalAmount = new Dec(leaseData.value?.downPayment as string ?? '0').add(amount);
     const assetData = walletStore.getCurrencyByTicker(openedLease.amount.ticker);
@@ -1155,7 +1155,7 @@ const loadingClose = computed(() => {
 const interestDueStatus = computed(() => {
   const lease = props.leaseInfo.leaseStatus?.opened;
   if (lease) {
-    const amount = new Dec(lease.previous_margin_due.amount);
+    const amount = new Dec(lease.overdue_margin.amount);
     if (amount.isPositive()) {
       return true;
     }

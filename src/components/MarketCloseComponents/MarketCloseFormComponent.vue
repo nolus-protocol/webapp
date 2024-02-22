@@ -110,10 +110,10 @@ const outStandingDebt = () => {
   const data = props.modelValue.leaseInfo;
 
   const debt = new Dec(data.principal_due.amount)
-    .add(new Dec(data.previous_margin_due.amount))
-    .add(new Dec(data.previous_interest_due.amount))
-    .add(new Dec(data.current_margin_due.amount))
-    .add(new Dec(data.current_interest_due.amount))
+    .add(new Dec(data.overdue_margin.amount))
+    .add(new Dec(data.overdue_interest.amount))
+    .add(new Dec(data.due_margin.amount))
+    .add(new Dec(data.due_interest.amount))
     .add(additionalInterest().roundUpDec())
 
   return debt;

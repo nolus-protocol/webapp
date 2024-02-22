@@ -44,7 +44,6 @@ export function useLeases(
           for (const leaseAddress of openedLeases) {
             const fn = async () => {
               const leaseClient = new Lease(cosmWasmClient, leaseAddress);
-              const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
               const api = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
 
               const [leaseInfo, balancesReq] = await Promise.all([

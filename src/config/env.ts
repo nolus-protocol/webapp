@@ -299,6 +299,11 @@ let l: {
     key: "id",
     label: "Bahasa Indo",
     url: import("../locales/id.json?url").then((t) => t.default)
+  },
+  jp: {
+    key: "jp",
+    label: "日本語",
+    url: import("../locales/jp.json?url").then((t) => t.default)
   }
 };
 
@@ -319,6 +324,11 @@ if (!isServe()) {
       label: "中文",
       url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/cn.json"
     },
+    fr: {
+      key: "fr",
+      label: "Français",
+      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/fr.json"
+    },
     es: {
       key: "es",
       label: "Español",
@@ -334,10 +344,15 @@ if (!isServe()) {
       label: "Türkçe",
       url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/tr.json"
     },
-    fr: {
-      key: "fr",
-      label: "Français",
-      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/fr.json"
+    id: {
+      key: "id",
+      label: "Bahasa Indo",
+      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/id.json"
+    },
+    jp: {
+      key: "jp",
+      label: "日本語",
+      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/jp.json"
     }
   };
 }
