@@ -433,6 +433,7 @@ import { useI18n } from 'vue-i18n';
 import { useWalletStore } from '@/stores/wallet';
 import { useApplicationStore } from '@/stores/application';
 import { Protocols } from '@nolus/nolusjs/build/types/Networks';
+import { useAdminStore } from '@/stores/admin';
 
 const i18n = useI18n();
 const totalValueLocked = ref('0');
@@ -450,6 +451,7 @@ const chartElement = ref<typeof StatLineChart>();
 const statChart = ref<typeof StatDaughnutChart>();
 const loans = ref<{ loan: number, name: string }[]>();
 const app = useApplicationStore();
+const admin = useAdminStore();
 const focus = ref<string[]>([])
 const suppliedBorrowed = ref({
   supplied: '0',
@@ -554,13 +556,13 @@ async function setTimeSeries() {
 }
 
 async function setUtilizationOsmosis() {
-  const data = await fetch(`${ETL_API}/utilization-level?protocol=${Protocols.osmosis}`);
+  const data = await fetch(`${ETL_API}/utilization-level?protocol=${(admin.contracts.OSMOSIS as any).key}`);
   const item = await data.json();
   utilizationLevelOsmosis.value = item[0];
 }
 
 async function setUtilizationNeutron() {
-  const data = await fetch(`${ETL_API}/utilization-level?protocol=${Protocols.neutron}`);
+  const data = await fetch(`${ETL_API}/utilization-level?protocol=${(admin.contracts.NEUTRON as any).key}`);
   const item = await data.json();
   utilizationLevelNeutron.value = item[0];
 }
