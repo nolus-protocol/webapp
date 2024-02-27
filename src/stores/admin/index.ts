@@ -38,6 +38,7 @@ const useAdminStore = defineStore("admin", {
           const fn = async () => {
             const p = await adminContract.getProtocol(protocol);
             protocolData[p.network] = p.contracts;
+            (protocolData[p.network] as any).key = protocol;
           }
           promises.push(fn());
         }

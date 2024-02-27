@@ -164,16 +164,16 @@ const useApplicationStore = defineStore("application", {
 
         for (const protocolKey in admin.contracts) {
           const fn = async () => {
-            const data = await EtlApi.fetchEarnApr(protocolKey);
+            const data = await EtlApi.fetchEarnApr((admin.contracts[protocolKey] as any).key);
             apr[protocolKey] = data.earn_apr;
             return data.earn_apr;
           }
           promises.push(fn());
         }
-
         const [dispatcherRewards] = await Promise.all(promises);
         this.apr = apr;
         this.dispatcherRewards = dispatcherRewards / Math.pow(10, INTEREST_DECIMALS);
+        console.log(apr)
 
       } catch (error) {
         console.log(error)

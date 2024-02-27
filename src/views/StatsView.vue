@@ -482,6 +482,7 @@ const chartData = {
 };
 
 onMounted(async () => {
+  console.log(app.apr)
   await Promise.all([
     setTotalValueLocked(),
     setTimeSeries(),
