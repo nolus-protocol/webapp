@@ -2,9 +2,9 @@
     "pnl01": {
         "title-icon": "https://nolus.io/banner/stats.svg",
         "image": "https://nolus.io/banner/pnl01.webp",
-        "title": "pnl01-banner-title",
-        "subtitle": "pnl01-banner-subtitle",
-        "description": "pnl01-banner-description",
+        "title": "pnl-banner-title",
+        "subtitle": "pnl-banner-subtitle",
+        "description": "pnl-banner-description",
         "target": "https://forms.gle/riVJV5Mmi3dKKdci8",
         "wallets": ""
     },
