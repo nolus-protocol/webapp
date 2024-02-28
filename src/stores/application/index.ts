@@ -173,7 +173,6 @@ const useApplicationStore = defineStore("application", {
         const [dispatcherRewards] = await Promise.all(promises);
         this.apr = apr;
         this.dispatcherRewards = dispatcherRewards / Math.pow(10, INTEREST_DECIMALS);
-        console.log(apr)
 
       } catch (error) {
         console.log(error)
