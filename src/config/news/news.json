@@ -32,8 +32,7 @@
         "title": "lease-banner-title",
         "subtitle": "ntrn_0-banner-subtitle",
         "description": "ntrn_0-banner-description",
-        "target": "/lease#create",
-        "wallets": ""
+        "target": "/lease#create"
     },
     "knowledgehub": {
         "title-icon": "https://nolus.io/banner/knowledge_hub.svg",
