@@ -375,6 +375,9 @@
     "nn_swag-banner-description" : "Remplissez le formulaire pour réclamer votre sweat à capuche Nolus X Neutron en édition limitée",
     "lfg-banner-subtitle" : "Badge LFG Neutron X Nolus",
     "lfg-banner-description" : "Ce badge est un symbole de distinction et une clé pour les futurs utilitaires et fonctions du protocole Nolus",
-    "voted" : "Voté"
+    "voted" : "Voté",
+    "pnl-banner-title": "PnL Challenge",
+    "pnl-banner-subtitle": "Win extra USDC",
+    "pnl-banner-description": "Share your top lease gainer on Twitter by March 15th. Post freely, then submit your best pick here"
   }
 }

@@ -1,4 +1,13 @@
 {
+    "pnl": {
+        "title-icon": "https://nolus.io/banner/stats.svg",
+        "image": "https://nolus.io/banner/pnl01.webp",
+        "title": "pnl-banner-title",
+        "subtitle": "pnl-banner-subtitle",
+        "description": "pnl-banner-description",
+        "target": "https://forms.gle/riVJV5Mmi3dKKdci8",
+        "wallets": ""
+    },
     "nn_swag": {
         "title-icon": "https://nolus.io/banner/lease.svg",
         "image": "https://nolus.io/banner/lfg_sweat.png",
@@ -31,7 +40,8 @@
         "title": "knowledgehub-banner-title",
         "subtitle": "knowledgehub-banner-subtitle",
         "description": "knowledgehub-banner-description",
-        "target": "https://hub.nolus.io/"
+        "target": "https://hub.nolus.io/",
+        "wallets": ""
     },
     "stats": {
         "title-icon": "https://nolus.io/banner/stats.svg",
@@ -39,6 +49,7 @@
         "title": "stats-banner-title",
         "subtitle": "stats-banner-subtitle",
         "description": "stats-banner-description",
-        "target": "/stats"
+        "target": "/stats",
+        "wallets": ""
     }
 }
