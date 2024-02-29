@@ -5,8 +5,7 @@
         "title": "pnl-banner-title",
         "subtitle": "pnl-banner-subtitle",
         "description": "pnl-banner-description",
-        "target": "https://forms.gle/riVJV5Mmi3dKKdci8",
-        "wallets": ""
+        "target": "https://forms.gle/riVJV5Mmi3dKKdci8"
     },
     "nn_swag": {
         "title-icon": "https://nolus.io/banner/lease.svg",
@@ -40,8 +39,7 @@
         "title": "knowledgehub-banner-title",
         "subtitle": "knowledgehub-banner-subtitle",
         "description": "knowledgehub-banner-description",
-        "target": "https://hub.nolus.io/",
-        "wallets": ""
+        "target": "https://hub.nolus.io/"
     },
     "stats": {
         "title-icon": "https://nolus.io/banner/stats.svg",
@@ -49,7 +47,6 @@
         "title": "stats-banner-title",
         "subtitle": "stats-banner-subtitle",
         "description": "stats-banner-description",
-        "target": "/stats",
-        "wallets": ""
+        "target": "/stats"
     }
 }
