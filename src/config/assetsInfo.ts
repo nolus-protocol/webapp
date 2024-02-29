@@ -64,5 +64,8 @@ export const ASSETS = {
   },
   STRD: {
     coinGeckoId: 'stride'
+  },
+  MILK_TIA: {
+    coinGeckoId: 'milkyway-staked-tia'
   }
 };
