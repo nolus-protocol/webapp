@@ -412,7 +412,8 @@ export const USD_DECIMALS = 6;
 export const MAX_DECIMALS = 8;
 export const LedgerName = "Ledger";
 export const IGNORE_LEASE_ASSETS: string[] = [
-  "STK_ATOM"
+  "STK_ATOM",
+  "DYDX"
 ];
 export const IGNORE_TRANSFER_ASSETS: string[] = [];
 export const IGNORE_LEASES: string[] = [
