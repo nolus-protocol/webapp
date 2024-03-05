@@ -795,8 +795,7 @@ const getAssetIcon = computed((): string => {
     "";
 
   const item = walletStore.getCurrencyByTicker(ticker);
-
-  return app.assetIcons?.[item!.key as string] as string;
+  return app.assetIcons?.[`${item!.ticker as string}@${props.leaseInfo.protocol}`] as string;
 });
 
 const downPayment = computed(() => {
