@@ -315,8 +315,8 @@ const validateMinMaxValues = (): boolean => {
 
   const currency = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom);
   const downPaymentCurrency = walletStore.getCurrencyInfo(state.value.selectedDownPaymentCurrency.balance.denom);
+  const range = downPaymentRange?.[currency.key] ?? downPaymentRange?.[currency.ticker];
 
-  const range = downPaymentRange?.[currency.ticker];
   const rangedownPaymentCurrency = downPaymentRange?.[downPaymentCurrency.ticker];
   const values: number[] = [];
 
