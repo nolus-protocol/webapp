@@ -20,5 +20,6 @@
   "NTRN": 0.0065,
   "DYDX": 0.0085,
   "MILK_TIA": 0.0091,
-  "ST_TIA": 0.0091
+  "ST_TIA": 0.0091,
+  "ST_TIA@NEUTRON": 0.0105
 }
