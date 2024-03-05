@@ -31,10 +31,10 @@
   integrity sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==
 
 "@babel/parser@^7.23.6":
-  version "7.23.9"
+  version "7.23.6"
 
 "@babel/runtime@^7.11.2", "@babel/runtime@^7.17.2", "@babel/runtime@^7.22.10", "@babel/runtime@^7.23.4", "@babel/runtime@^7.x", "@babel/runtime@7.x":
-  version "7.23.9"
+  version "7.23.8"
   dependencies:
     regenerator-runtime "^0.14.0"
 
@@ -326,10 +326,8 @@
   resolved "https://registry.npmjs.org/@esbuild-plugins/node-globals-polyfill/-/node-globals-polyfill-0.2.3.tgz"
   integrity sha512-r3MIryXDeXDOZh7ih1l/yE9ZLORCd5e8vWg02azWRGj5SPTuoh69A2AIyn0Z31V/kHBfZ4HgWJ+OK3GTTwLmnw==
 
-"@esbuild/darwin-arm64@0.19.12":
+"@esbuild/linux-x64@0.19.12":
   version "0.19.12"
-  resolved "https://registry.npmjs.org/@esbuild/darwin-arm64/-/darwin-arm64-0.19.12.tgz"
-  integrity sha512-B6IeSgZgtEzGC42jsI+YYu9Z3HKRxp8ZT3cqhvliEHovq8HSX2YX8lNocDn79gCKJXOSaEot9MVYky7AKjCs8g==
 
 "@eslint-community/eslint-utils@^4.2.0", "@eslint-community/eslint-utils@^4.4.0":
   version "4.4.0"
@@ -785,26 +783,20 @@
     source-map-js "^1.0.1"
     yaml-eslint-parser "^1.2.2"
 
-"@intlify/core-base@9.9.1":
-  version "9.9.1"
-  resolved "https://registry.npmjs.org/@intlify/core-base/-/core-base-9.9.1.tgz"
-  integrity sha512-qsV15dg7jNX2faBRyKMgZS8UcFJViWEUPLdzZ9UR0kQZpFVeIpc0AG7ZOfeP7pX2T9SQ5jSiorq/tii9nkkafA==
+"@intlify/core-base@9.9.0":
+  version "9.9.0"
   dependencies:
-    "@intlify/message-compiler" "9.9.1"
-    "@intlify/shared" "9.9.1"
+    "@intlify/message-compiler" "9.9.0"
+    "@intlify/shared" "9.9.0"
 
-"@intlify/message-compiler@^9.4.0", "@intlify/message-compiler@9.9.1":
-  version "9.9.1"
-  resolved "https://registry.npmjs.org/@intlify/message-compiler/-/message-compiler-9.9.1.tgz"
-  integrity sha512-zTvP6X6HeumHOXuAE1CMMsV6tTX+opKMOxO1OHTCg5N5Sm/F7d8o2jdT6W6L5oHUsJ/vvkGefHIs7Q3hfowmsA==
+"@intlify/message-compiler@^9.4.0", "@intlify/message-compiler@9.9.0":
+  version "9.9.0"
   dependencies:
-    "@intlify/shared" "9.9.1"
+    "@intlify/shared" "9.9.0"
     source-map-js "^1.0.2"
 
-"@intlify/shared@^9.4.0", "@intlify/shared@9.9.1":
-  version "9.9.1"
-  resolved "https://registry.npmjs.org/@intlify/shared/-/shared-9.9.1.tgz"
-  integrity sha512-b3Pta1nwkz5rGq434v0psHwEwHGy1pYCttfcM22IE//K9owbpkEvFptx9VcuRAxjQdrO2If249cmDDjBu5wMDA==
+"@intlify/shared@^9.4.0", "@intlify/shared@9.9.0":
+  version "9.9.0"
 
 "@intlify/unplugin-vue-i18n@^2.0.0":
   version "2.0.0"
@@ -922,35 +914,35 @@
   version "6.16.1"
 
 "@ledgerhq/hw-app-cosmos@^6.29.1":
-  version "6.29.3"
+  version "6.29.2"
   dependencies:
     "@ledgerhq/errors" "^6.16.1"
-    "@ledgerhq/hw-transport" "^6.30.3"
+    "@ledgerhq/hw-transport" "^6.30.2"
     bip32-path "^0.4.2"
 
 "@ledgerhq/hw-transport-web-ble@^6.28.1":
-  version "6.28.3"
+  version "6.28.2"
   dependencies:
     "@ledgerhq/devices" "^8.2.0"
     "@ledgerhq/errors" "^6.16.1"
-    "@ledgerhq/hw-transport" "^6.30.3"
+    "@ledgerhq/hw-transport" "^6.30.2"
     "@ledgerhq/logs" "^6.12.0"
     rxjs "^7.8.1"
 
 "@ledgerhq/hw-transport-webhid@^6.28.1":
-  version "6.28.3"
+  version "6.28.2"
   dependencies:
     "@ledgerhq/devices" "^8.2.0"
     "@ledgerhq/errors" "^6.16.1"
-    "@ledgerhq/hw-transport" "^6.30.3"
+    "@ledgerhq/hw-transport" "^6.30.2"
     "@ledgerhq/logs" "^6.12.0"
 
 "@ledgerhq/hw-transport-webusb@^6.28.1":
-  version "6.28.3"
+  version "6.28.2"
   dependencies:
     "@ledgerhq/devices" "^8.2.0"
     "@ledgerhq/errors" "^6.16.1"
-    "@ledgerhq/hw-transport" "^6.30.3"
+    "@ledgerhq/hw-transport" "^6.30.2"
     "@ledgerhq/logs" "^6.12.0"
 
 "@ledgerhq/hw-transport@^5.25.0":
@@ -962,8 +954,8 @@
     "@ledgerhq/errors" "^5.50.0"
     events "^3.3.0"
 
-"@ledgerhq/hw-transport@^6.30.3":
-  version "6.30.3"
+"@ledgerhq/hw-transport@^6.30.2":
+  version "6.30.2"
   dependencies:
     "@ledgerhq/devices" "^8.2.0"
     "@ledgerhq/errors" "^6.16.1"
@@ -1031,10 +1023,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@nolus/nolusjs@2.1.4":
-  version "2.1.4"
-  resolved "https://registry.npmjs.org/@nolus/nolusjs/-/nolusjs-2.1.4.tgz"
-  integrity sha512-KOh6QtvCd+w4i8LyGRAv7lmcAA4KAAPhximMpJHZN8156Kpg83DWvK4IsFiuraO6qus4rdyjxu6K4pDyWBH1zg==
+"@nolus/nolusjs@2.1.8":
+  version "2.1.8"
+  resolved "https://registry.npmjs.org/@nolus/nolusjs/-/nolusjs-2.1.8.tgz"
+  integrity sha512-FC4wpKj/HDEtObAoUszSsPDu7jEsqg4msRgcWAHuq9n2Sp6ulxgzNo/yB+y2X35305y6c9IRvhJPBtguL1CrVg==
   dependencies:
     "@cosmjs/cosmwasm-stargate" "0.32.2"
     "@cosmjs/crypto" "0.32.2"
@@ -1137,13 +1129,14 @@
     estree-walker "^2.0.2"
     picomatch "^2.3.1"
 
-"@rollup/rollup-darwin-arm64@4.9.6":
+"@rollup/rollup-linux-x64-gnu@4.9.6":
+  version "4.9.6"
+
+"@rollup/rollup-linux-x64-musl@4.9.6":
   version "4.9.6"
 
 "@rushstack/eslint-patch@^1.7.0":
-  version "1.7.2"
-  resolved "https://registry.npmjs.org/@rushstack/eslint-patch/-/eslint-patch-1.7.2.tgz"
-  integrity sha512-RbhOOTCNoCrbfkRyoXODZp75MlpiHMgbE5MEBZAnnnLyQNgrigEj4p0lzsMDyc1zVsJDLrivB58tgg3emX0eEA==
+  version "1.7.1"
 
 "@scure/base@^1.1.3", "@scure/base@~1.1.4":
   version "1.1.5"
@@ -1180,9 +1173,9 @@
     buffer "~6.0.3"
 
 "@solana/web3.js@^1.x":
-  version "1.90.0"
-  resolved "https://registry.npmjs.org/@solana/web3.js/-/web3.js-1.90.0.tgz"
-  integrity sha512-p0cb/COXb8NNVSMkGMPwqQ6NvObZgUitN80uOedMB+jbYWOKOeJBuPnzhenkIV9RX0krGwyuY1Ltn5O8MGFsEw==
+  version "1.89.1"
+  resolved "https://registry.npmjs.org/@solana/web3.js/-/web3.js-1.89.1.tgz"
+  integrity sha512-t9TTLtPQxtQB3SAf/5E8xPXfVDsC6WGOsgKY02l2cbe0HLymT7ynE8Hu48Lk5qynHCquj6nhISfEHcjMkYpu/A==
   dependencies:
     "@babel/runtime" "^7.23.4"
     "@noble/curves" "^1.2.0"
@@ -1285,10 +1278,10 @@
     json-stable-stringify "^1.0.2"
 
 "@toruslabs/openlogin-jrpc@^6.1.0", "@toruslabs/openlogin-jrpc@^6.2.2":
-  version "6.2.9"
+  version "6.2.5"
   dependencies:
     "@metamask/rpc-errors" "^6.1.0"
-    "@toruslabs/openlogin-utils" "^6.2.9"
+    "@toruslabs/openlogin-utils" "^6.2.5"
     end-of-stream "^1.4.4"
     events "^3.3.0"
     fast-safe-stringify "^2.1.1"
@@ -1305,19 +1298,19 @@
     "@toruslabs/eccrypto" "^4.0.0"
     "@toruslabs/metadata-helpers" "5.0.0"
 
-"@toruslabs/openlogin-utils@^6.2.2", "@toruslabs/openlogin-utils@^6.2.9":
-  version "6.2.9"
+"@toruslabs/openlogin-utils@^6.2.2", "@toruslabs/openlogin-utils@^6.2.5":
+  version "6.2.5"
   dependencies:
     "@toruslabs/constants" "^13.1.0"
     base64url "^3.0.1"
 
 "@toruslabs/openlogin@^6.2.2":
-  version "6.2.9"
+  version "6.2.5"
   dependencies:
     "@toruslabs/eccrypto" "^4.0.0"
     "@toruslabs/metadata-helpers" "^5.0.0"
     "@toruslabs/openlogin-session-manager" "^3.0.0"
-    "@toruslabs/openlogin-utils" "^6.2.9"
+    "@toruslabs/openlogin-utils" "^6.2.5"
     "@toruslabs/secure-pub-sub" "^0.0.1"
     bowser "^2.11.0"
     events "^3.3.0"
@@ -1428,7 +1421,7 @@
   integrity sha512-nG96G3Wp6acyAgJqGasjODb+acrI7KltPiRxzHPXnP3NgI28bpQDRv53olbqGXbfcgF5aiiHmO3xpwEpS5Ld9g==
 
 "@types/node@*", "@types/node@^18.0.0 || >=20.0.0", "@types/node@^20.11.5", "@types/node@>=13.7.0":
-  version "20.11.15"
+  version "20.11.6"
   dependencies:
     undici-types "~5.26.4"
 
@@ -1446,9 +1439,7 @@
   version "7.5.6"
 
 "@types/uuid@^9.0.7":
-  version "9.0.8"
-  resolved "https://registry.npmjs.org/@types/uuid/-/uuid-9.0.8.tgz"
-  integrity sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA==
+  version "9.0.7"
 
 "@types/ws@^7.4.4":
   version "7.4.7"
@@ -1458,13 +1449,13 @@
     "@types/node" "*"
 
 "@typescript-eslint/eslint-plugin@^6.7.0":
-  version "6.20.0"
+  version "6.19.1"
   dependencies:
     "@eslint-community/regexpp" "^4.5.1"
-    "@typescript-eslint/scope-manager" "6.20.0"
-    "@typescript-eslint/type-utils" "6.20.0"
-    "@typescript-eslint/utils" "6.20.0"
-    "@typescript-eslint/visitor-keys" "6.20.0"
+    "@typescript-eslint/scope-manager" "6.19.1"
+    "@typescript-eslint/type-utils" "6.19.1"
+    "@typescript-eslint/utils" "6.19.1"
+    "@typescript-eslint/visitor-keys" "6.19.1"
     debug "^4.3.4"
     graphemer "^1.4.0"
     ignore "^5.2.4"
@@ -1473,36 +1464,36 @@
     ts-api-utils "^1.0.1"
 
 "@typescript-eslint/parser@^6.0.0 || ^6.0.0-alpha", "@typescript-eslint/parser@^6.7.0":
-  version "6.20.0"
+  version "6.19.1"
   dependencies:
-    "@typescript-eslint/scope-manager" "6.20.0"
-    "@typescript-eslint/types" "6.20.0"
-    "@typescript-eslint/typescript-estree" "6.20.0"
-    "@typescript-eslint/visitor-keys" "6.20.0"
+    "@typescript-eslint/scope-manager" "6.19.1"
+    "@typescript-eslint/types" "6.19.1"
+    "@typescript-eslint/typescript-estree" "6.19.1"
+    "@typescript-eslint/visitor-keys" "6.19.1"
     debug "^4.3.4"
 
-"@typescript-eslint/scope-manager@6.20.0":
-  version "6.20.0"
+"@typescript-eslint/scope-manager@6.19.1":
+  version "6.19.1"
   dependencies:
-    "@typescript-eslint/types" "6.20.0"
-    "@typescript-eslint/visitor-keys" "6.20.0"
+    "@typescript-eslint/types" "6.19.1"
+    "@typescript-eslint/visitor-keys" "6.19.1"
 
-"@typescript-eslint/type-utils@6.20.0":
-  version "6.20.0"
+"@typescript-eslint/type-utils@6.19.1":
+  version "6.19.1"
   dependencies:
-    "@typescript-eslint/typescript-estree" "6.20.0"
-    "@typescript-eslint/utils" "6.20.0"
+    "@typescript-eslint/typescript-estree" "6.19.1"
+    "@typescript-eslint/utils" "6.19.1"
     debug "^4.3.4"
     ts-api-utils "^1.0.1"
 
-"@typescript-eslint/types@6.20.0":
-  version "6.20.0"
+"@typescript-eslint/types@6.19.1":
+  version "6.19.1"
 
-"@typescript-eslint/typescript-estree@6.20.0":
-  version "6.20.0"
+"@typescript-eslint/typescript-estree@6.19.1":
+  version "6.19.1"
   dependencies:
-    "@typescript-eslint/types" "6.20.0"
-    "@typescript-eslint/visitor-keys" "6.20.0"
+    "@typescript-eslint/types" "6.19.1"
+    "@typescript-eslint/visitor-keys" "6.19.1"
     debug "^4.3.4"
     globby "^11.1.0"
     is-glob "^4.0.3"
@@ -1510,21 +1501,21 @@
     semver "^7.5.4"
     ts-api-utils "^1.0.1"
 
-"@typescript-eslint/utils@6.20.0":
-  version "6.20.0"
+"@typescript-eslint/utils@6.19.1":
+  version "6.19.1"
   dependencies:
     "@eslint-community/eslint-utils" "^4.4.0"
     "@types/json-schema" "^7.0.12"
     "@types/semver" "^7.5.0"
-    "@typescript-eslint/scope-manager" "6.20.0"
-    "@typescript-eslint/types" "6.20.0"
-    "@typescript-eslint/typescript-estree" "6.20.0"
+    "@typescript-eslint/scope-manager" "6.19.1"
+    "@typescript-eslint/types" "6.19.1"
+    "@typescript-eslint/typescript-estree" "6.19.1"
     semver "^7.5.4"
 
-"@typescript-eslint/visitor-keys@6.20.0":
-  version "6.20.0"
+"@typescript-eslint/visitor-keys@6.19.1":
+  version "6.19.1"
   dependencies:
-    "@typescript-eslint/types" "6.20.0"
+    "@typescript-eslint/types" "6.19.1"
     eslint-visitor-keys "^3.4.1"
 
 "@ungap/structured-clone@^1.2.0":
@@ -1831,7 +1822,7 @@ autoprefixer@^10.4.17:
     postcss-value-parser "^4.2.0"
 
 available-typed-arrays@^1.0.5:
-  version "1.0.6"
+  version "1.0.5"
 
 axios@^0.21.2:
   version "0.21.4"
@@ -1849,9 +1840,7 @@ axios@^0.27.2:
     form-data "^4.0.0"
 
 axios@^1.6.0:
-  version "1.6.7"
-  resolved "https://registry.npmjs.org/axios/-/axios-1.6.7.tgz"
-  integrity sha512-/hDJGff6/c7u0hDkvkGxR/oy6CbCs8ziCsC7SqmhjfozqiJGc8Z11wrv9z9lYfY4K8l+H9TpjcMDX0xOZmx+RA==
+  version "1.6.6"
   dependencies:
     follow-redirects "^1.15.4"
     form-data "^4.0.0"
@@ -2071,10 +2060,10 @@ browserify-zlib@^0.2.0:
     pako "~1.0.5"
 
 browserslist@^4.22.2, "browserslist@>= 4.21.0":
-  version "4.22.3"
+  version "4.22.2"
   dependencies:
-    caniuse-lite "^1.0.30001580"
-    electron-to-chromium "^1.4.648"
+    caniuse-lite "^1.0.30001565"
+    electron-to-chromium "^1.4.601"
     node-releases "^2.0.14"
     update-browserslist-db "^1.0.13"
 
@@ -2131,8 +2120,8 @@ camelcase-css@^2.0.1:
   resolved "https://registry.npmjs.org/camelcase-css/-/camelcase-css-2.0.1.tgz"
   integrity sha512-QOSvevhslijgYwRx6Rv7zKdMF8lbRmx+uQGx2+vDc+KI/eBnsy9kit5aj23AgGu3pa4t9AgwbnXWqS+iOY+2aA==
 
-caniuse-lite@^1.0.30001578, caniuse-lite@^1.0.30001580:
-  version "1.0.30001582"
+caniuse-lite@^1.0.30001565, caniuse-lite@^1.0.30001578:
+  version "1.0.30001580"
 
 chalk@^4.0.0:
   version "4.1.2"
@@ -2401,8 +2390,8 @@ eastasianwidth@^0.2.0:
   resolved "https://registry.npmjs.org/eastasianwidth/-/eastasianwidth-0.2.0.tgz"
   integrity sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==
 
-electron-to-chromium@^1.4.648:
-  version "1.4.653"
+electron-to-chromium@^1.4.601:
+  version "1.4.645"
 
 elliptic@^6.4.0, elliptic@^6.5.3, elliptic@^6.5.4, elliptic@6.5.4:
   version "6.5.4"
@@ -2525,13 +2514,15 @@ eslint-plugin-prettier@^5.0.0:
     synckit "^0.8.6"
 
 eslint-plugin-vue@^9.0.0, eslint-plugin-vue@^9.21.1:
-  version "9.21.1"
+  version "9.22.0"
+  resolved "https://registry.npmjs.org/eslint-plugin-vue/-/eslint-plugin-vue-9.22.0.tgz"
+  integrity sha512-7wCXv5zuVnBtZE/74z4yZ0CM8AjH6bk4MQGm7hZjUC2DBppKU5ioeOk5LGSg/s9a1ZJnIsdPLJpXnu1Rc+cVHg==
   dependencies:
     "@eslint-community/eslint-utils" "^4.4.0"
     natural-compare "^1.4.0"
     nth-check "^2.1.1"
-    postcss-selector-parser "^6.0.13"
-    semver "^7.5.4"
+    postcss-selector-parser "^6.0.15"
+    semver "^7.6.0"
     vue-eslint-parser "^9.4.2"
     xml-name-validator "^4.0.0"
 
@@ -2757,7 +2748,7 @@ fast-stable-stringify@^1.0.0:
   integrity sha512-wpYMUmFu5f00Sm0cj2pfivpmawLZ0NKdviQ4w9zJeR8JVtOpOxHmLaJuj0vxvGqMJQWyP/COUkF75/57OKyRag==
 
 fastq@^1.6.0:
-  version "1.17.0"
+  version "1.16.0"
   dependencies:
     reusify "^1.0.4"
 
@@ -2847,11 +2838,6 @@ fs.realpath@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/fs.realpath/-/fs.realpath-1.0.0.tgz"
   integrity sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==
-
-fsevents@~2.3.2, fsevents@~2.3.3:
-  version "2.3.3"
-  resolved "https://registry.npmjs.org/fsevents/-/fsevents-2.3.3.tgz"
-  integrity sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==
 
 function-bind@^1.1.2:
   version "1.1.2"
@@ -3032,14 +3018,10 @@ ieee754@^1.2.1:
   integrity sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==
 
 ignore@^5.1.1, ignore@^5.2.0, ignore@^5.2.4:
-  version "5.3.1"
-  resolved "https://registry.npmjs.org/ignore/-/ignore-5.3.1.tgz"
-  integrity sha512-5Fytz/IraMjqpwfd34ke28PTVMjZjJG2MPn5t7OE4eUCUNf8BAa7b5WUS9/Qvr6mwOQS7Mk6vdsMno5he+T8Xw==
+  version "5.3.0"
 
 immutable@^4.0.0:
-  version "4.3.5"
-  resolved "https://registry.npmjs.org/immutable/-/immutable-4.3.5.tgz"
-  integrity sha512-8eabxkth9gZatlwl5TBuJnCsoTADlL6ftEr7A4qgdaTsPyreilDSnUk57SO+jfKcNtxPa22U5KK6DSeAYhpBJw==
+  version "4.3.4"
 
 import-fresh@^3.2.1:
   version "3.3.0"
@@ -3350,9 +3332,7 @@ lodash@^4.17.21:
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
 
 loglevel@^1.8.1:
-  version "1.9.1"
-  resolved "https://registry.npmjs.org/loglevel/-/loglevel-1.9.1.tgz"
-  integrity sha512-hP3I3kCrDIMuRwAwHltphhDM1r8i55H33GgqjXbrisuJhF4kRhW1dNuxsRklp4bXl8DSdLaNLuiL4A/LWRfxvg==
+  version "1.8.1"
 
 long@^4.0.0:
   version "4.0.0"
@@ -3367,9 +3347,7 @@ lru-cache@^6.0.0:
     yallist "^4.0.0"
 
 "lru-cache@^9.1.1 || ^10.0.0":
-  version "10.2.0"
-  resolved "https://registry.npmjs.org/lru-cache/-/lru-cache-10.2.0.tgz"
-  integrity sha512-2bIM8x+VAf6JT4bKAljS1qUWgMsqZRPGJS6FSahIMPVvctcNhyVp7AJu7quxOW9jwkryBReKZY5tY5JYv2n/7Q==
+  version "10.1.0"
 
 lunr@^2.3.9:
   version "2.3.9"
@@ -3377,7 +3355,7 @@ lunr@^2.3.9:
   integrity sha512-zTU3DaZaF3Rt9rhN3uBMGQD3dD2/vFQqnvZCDv4dl5iOzq2IZQqTxu90r4E5J+nP70J3ilqVCrbho2eWaeW8Ow==
 
 magic-string@^0.30.0, magic-string@^0.30.3, magic-string@^0.30.5:
-  version "0.30.6"
+  version "0.30.5"
   dependencies:
     "@jridgewell/sourcemap-codec" "^1.4.15"
 
@@ -3765,7 +3743,7 @@ postcss-nested@^6.0.1:
   dependencies:
     postcss-selector-parser "^6.0.11"
 
-postcss-selector-parser@^6.0.11, postcss-selector-parser@^6.0.13:
+postcss-selector-parser@^6.0.11, postcss-selector-parser@^6.0.15:
   version "6.0.15"
   resolved "https://registry.npmjs.org/postcss-selector-parser/-/postcss-selector-parser-6.0.15.tgz"
   integrity sha512-rEYkQOMUCEMhsKbK66tbEU9QVIxbhN18YiniAwA7XQYTVBqrBy+P2p5JcdqsHgKM2zWylp8d7J6eszocfds5Sw==
@@ -4051,8 +4029,10 @@ scrypt-js@3.0.1:
   resolved "https://registry.npmjs.org/scrypt-js/-/scrypt-js-3.0.1.tgz"
   integrity sha512-cdwTTnqPu0Hyvf5in5asVdZocVDTNRmR7XEcJuIzMjJeSHybHl7vpB66AzwTaIg6CLSbtjcxc8fqcySfnTkccA==
 
-semver@^7.3.5, semver@^7.3.6, semver@^7.5.2, semver@^7.5.4:
-  version "7.5.4"
+semver@^7.3.5, semver@^7.3.6, semver@^7.5.2, semver@^7.5.4, semver@^7.6.0:
+  version "7.6.0"
+  resolved "https://registry.npmjs.org/semver/-/semver-7.6.0.tgz"
+  integrity sha512-EnwXhrlwXMk9gKu5/flx5sv/an57AkRplG3hTK68W7FRDN+k+OWBj65M7719OkA82XLBxrcX0KSHj+X5COhOVg==
   dependencies:
     lru-cache "^6.0.0"
 
@@ -4481,9 +4461,7 @@ vue-chartjs@^5.3.0:
   integrity sha512-8XqX0JU8vFZ+WA2/knz4z3ThClduni2Nm0BMe2u0mXgTfd9pXrmJ07QBI+WAij5P/aPmPMX54HCE1seWL37ZdQ==
 
 vue-demi@>=0.14.5:
-  version "0.14.7"
-  resolved "https://registry.npmjs.org/vue-demi/-/vue-demi-0.14.7.tgz"
-  integrity sha512-EOG8KXDQNwkJILkx/gPcoL/7vH+hORoBaKgGe+6W7VFMvCYJfmF2dGbvgDroVnI8LU7/kTu8mbjRZGBU1z9NTA==
+  version "0.14.6"
 
 vue-eslint-parser@^9.3.1, vue-eslint-parser@^9.4.2:
   version "9.4.2"
@@ -4499,12 +4477,10 @@ vue-eslint-parser@^9.3.1, vue-eslint-parser@^9.4.2:
     semver "^7.3.6"
 
 vue-i18n@*, vue-i18n@^9.9.0:
-  version "9.9.1"
-  resolved "https://registry.npmjs.org/vue-i18n/-/vue-i18n-9.9.1.tgz"
-  integrity sha512-xyQ4VspLdNSPTKBFBPWa1tvtj+9HuockZwgFeD2OhxxXuC2CWeNvV4seu2o9+vbQOyQbhAM5Ez56oxUrrnTWdw==
+  version "9.9.0"
   dependencies:
-    "@intlify/core-base" "9.9.1"
-    "@intlify/shared" "9.9.1"
+    "@intlify/core-base" "9.9.0"
+    "@intlify/shared" "9.9.0"
     "@vue/devtools-api" "^6.5.0"
 
 vue-router@^4.2.5:

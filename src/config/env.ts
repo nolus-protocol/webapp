@@ -468,7 +468,7 @@ export const ProtocolsConfig: {
     hidden: []
   },
   NEUTRON: {
-    hidden: ["ATOM", "ST_ATOM"]
+    hidden: ["ATOM", "ST_ATOM", "TIA"]
   }
 };
 
