@@ -236,6 +236,20 @@ let wallet = ref(walletStore.wallet?.address);
 
 onMounted(() => {
   if ((props.modelValue?.dialogSelectedCurrency.length as number) > 0) {
+    const currency = app.currenciesData?.[props.modelValue?.dialogSelectedCurrency!]!;
+    selectedCurrency.value = {
+      balance: {
+        amount: "0",
+        denom: currency.ibcData
+      },
+      decimals: Number(currency.decimal_digits),
+      icon: app.assetIcons?.[currency.key!],
+      name: currency.shortName,
+      native: false,
+      shortName: currency.shortName,
+      symbol: currency.symbol,
+      ticker: currency.key
+    };
     disablePickerDialog.value = true;
     const [_ckey, protocol]: string[] = props.modelValue!.dialogSelectedCurrency.split("@");
     const n =

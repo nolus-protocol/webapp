@@ -354,7 +354,11 @@ async function ibcTransfer() {
       const networkInfo = SUPPORTED_NETWORKS_DATA[state.value.network.key as keyof typeof SUPPORTED_NETWORKS_DATA];
 
       const sourceChannel = networkInfo.forward
-        ? AssetUtils.getSourceChannel(app.networksData?.networks?.channels!, protocol, NATIVE_NETWORK.key)
+        ? AssetUtils.getSourceChannel(
+            app.networksData?.networks?.channels!,
+            app.networksData?.protocols[protocol].DexNetwork!,
+            NATIVE_NETWORK.key
+          )
         : AssetUtils.getSourceChannel(
             app.networksData?.networks?.channels!,
             state.value.network.key,
@@ -377,7 +381,7 @@ async function ibcTransfer() {
       if (networkInfo.forward) {
         const channel = AssetUtils.getChannelDataByProtocol(
           app.networksData?.networks?.channels!,
-          protocol,
+          app.networksData?.protocols[protocol].DexNetwork!,
           state.value.network.key
         );
         const proxyAddress = walletStore.wallet?.address as string;

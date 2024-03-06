@@ -72,6 +72,7 @@ import { StringUtils, WalletManager } from "@/common/utils";
 import { useI18n } from "vue-i18n";
 import { Buffer } from "buffer";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
+import { CurrencyMapping } from "@/config/global";
 
 enum Messages {
   "/cosmos.bank.v1beta1.MsgSend" = "/cosmos.bank.v1beta1.MsgSend",
@@ -179,8 +180,10 @@ function message(msg: IObjectKeys) {
 
         if (data.open_lease) {
           const token = getCurrency(msg.data.funds[0]);
+          const cr = wallet.getCurrencyByTicker(data.open_lease.currency);
+
           return i18n.t("message.open-position-action", {
-            ticker: data.open_lease.currency,
+            ticker: cr?.shortName,
             amount: token.toString()
           });
         }
@@ -219,9 +222,21 @@ function message(msg: IObjectKeys) {
 
         if (data.burn) {
           const log = JSON.parse(props.transaction.log as string);
-          const amount = log[0].events[0].attributes[1];
-          const coin = parseCoins(amount.value)[0];
-          const token = getCurrency(coin);
+          const withdraw = log[0].events.find((e: IObjectKeys) => e.type == "wasm-lp-withdraw");
+          const amount = withdraw.attributes.find((e: IObjectKeys) => e.key == "withdraw-amount");
+          const symbol = withdraw.attributes.find((e: IObjectKeys) => e.key == "withdraw-symbol");
+          const currency = wallet.getCurrencyByTicker(symbol.value)!;
+          let [ticker] = currency.key!.split("@");
+
+          if (CurrencyMapping[ticker]?.name) {
+            currency.shortName = CurrencyMapping[ticker]?.name!;
+          }
+          const token = CurrencyUtils.convertMinimalDenomToDenom(
+            amount.value,
+            currency?.ibcData!,
+            currency?.shortName!,
+            Number(currency?.decimal_digits)
+          );
           return i18n.t("message.withdraw-position-action", {
             amount: token.toString()
           });

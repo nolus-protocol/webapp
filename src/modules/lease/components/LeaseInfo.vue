@@ -127,7 +127,7 @@
     <div
       class="border-standart flex flex-col items-center justify-between border-t-[0px] px-2 pt-4 md:flex-row md:border-t-[1px] md:px-6"
     >
-      <div class="flex">
+      <div class="flex w-full justify-around lg:w-auto">
         <div class="block">
           <p class="text-detail data-text m-0 flex items-center text-primary">
             {{ $t("message.outstanding-loan") }}
@@ -711,10 +711,7 @@ const getAssetIcon = computed((): string => {
     props.leaseInfo.leaseStatus?.opening?.downpayment.ticker ||
     props.leaseInfo.leaseStatus?.paid?.amount.ticker ||
     "";
-
-  const item = walletStore.getCurrencyByTicker(ticker);
-
-  return app.assetIcons?.[item!.key as string] as string;
+  return app.assetIcons?.[`${ticker}@${props.leaseInfo.protocol}`] as string;
 });
 
 const downPayment = computed(() => {

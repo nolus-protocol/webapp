@@ -21,7 +21,12 @@ export async function changeNetwork(this: Store) {
     };
 
     await Promise.all([this.LOAD_CURRENCIES(), admin.GET_PROTOCOLS()]);
-    await Promise.allSettled([walletStore.UPDATE_BALANCES(), oracle.GET_PRICES(), this.LOAD_APR_REWARDS()]);
+    await Promise.allSettled([
+      walletStore.UPDATE_BALANCES(),
+      oracle.GET_PRICES(),
+      this.LOAD_APR_REWARDS(),
+      walletStore.LOAD_APR()
+    ]);
   } catch (error: Error | any) {
     throw new Error(error);
   }

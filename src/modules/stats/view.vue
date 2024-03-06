@@ -240,7 +240,7 @@
               <TooltipComponent :content="$t('message.yield-tooltip')" />
             </p>
 
-            <div class="flex items-center">
+            <div class="flex items-end">
               <img
                 class="mr-[6px]"
                 src="@/assets/icons/neutron-usdc.svg"
