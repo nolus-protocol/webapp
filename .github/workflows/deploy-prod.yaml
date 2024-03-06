@@ -22,8 +22,8 @@ jobs:
 
       - name: Build
         run: |
-          yarn install
-          yarn run build:production
+          npm install
+          npm run build:production
 
       - name: Archive src
         uses: actions/upload-artifact@v3

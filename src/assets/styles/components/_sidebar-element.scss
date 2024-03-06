@@ -4,26 +4,15 @@
   transition: ease 200ms;
 
   &.active {
-    color: #FF562E !important;
-    fill: #FF562E !important;
+    color: #ff562e !important;
+    fill: #ff562e !important;
   }
 }
 
 .sidebar-container {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  left: 0;
-  width: 100%;
-  max-width: 190px;
-  height: 100%;
-  transform: translateZ(0);
-  position: fixed;
-
   a.logo-float {
+    width: 125px;
+    height: 32px;
     background-image: url("@/assets/icons/logo.svg");
     background-repeat: no-repeat;
     background-position: left bottom;
@@ -104,24 +93,11 @@
     }
   }
 
-  .logo {
-    &-float {
-      position: relative !important;
-      width: 100%;
-      padding-left: 0;
-
-      img {
-        margin: 0;
-      }
-    }
-  }
-
   @media (max-width: $lg) {
     position: fixed;
 
     .sidebar-element {
       &.active {
-
         .icon,
         span {
           color: $orange !important;
@@ -132,36 +108,15 @@
 }
 
 .sidebar-element {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  padding-left: 8px;
-
-  background: transparent;
-  border-radius: 12px;
-  position: relative;
-  font-size: 16px;
-  line-height: 18px;
-  font-family: "Garet-Medium", sans-serif;
-  transition: 0.3s;
-
   .icon {
     font-size: 1.8em;
-    margin-top: 12.62px;
-    margin-bottom: 11.62px;
-    margin-right: 8.5px;
     color: $dark;
-    transition: 0.3s;
 
     @media (min-width: $lg) {
-
       &::before {
         font-size: 22px !important;
       }
-
     }
-
   }
 
   // &:hover {
@@ -171,18 +126,14 @@
   // }
 
   @media (min-width: $lg) {
-    font-size: 16px;
-
-    flex-direction: row;
-    justify-content: flex-start;
     font-family: "Garet-Medium", sans-serif;
 
     &:not(.icon) {
-      line-height: 14 px;
+      //line-height: 14px;
     }
   }
 
-  &.active {
+  &.router-link-exact-active {
     color: $orange !important;
 
     // &:hover {
@@ -192,7 +143,7 @@
     // }
 
     .icon {
-      color: $orange;
+      color: $orange !important;
     }
   }
 
@@ -209,7 +160,6 @@
 
     @media (min-width: $lg) {
       display: inline-block;
-
     }
   }
 }
@@ -250,21 +200,16 @@
 }
 
 .sidebar-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  position: absolute;
+  position: fixed;
   top: 0;
   right: 0;
-  width: 100%;
   padding: 8px 16px;
   background-color: $white;
   border-bottom: 1px solid $borderColor;
-  z-index: 1;
-
+  z-index: 9999;
 
   @media (max-width: $lg) {
-    position: fixed;
+    width: 100%;
 
     a.logo-float {
       background-image: url("@/assets/icons/logo.svg");
@@ -327,7 +272,6 @@
     font-size: 14px;
     line-height: 20px;
     font-family: "Garet", sans-serif;
-
   }
 }
 
@@ -347,7 +291,7 @@
 
 @media (max-width: $lg) {
   .nls-nav-more {
-    &>div:first-of-type {
+    & > div:first-of-type {
       z-index: 1;
       transform: translateY(150%);
       transition: 0.4s ease-in-out;
@@ -357,7 +301,7 @@
       border-top-right-radius: 16px;
       position: absolute;
 
-      &>div {
+      & > div {
         padding-left: 16px;
         border-bottom: 1px solid $borderColor;
       }
@@ -378,7 +322,7 @@
       }
     }
 
-    &>div:last-of-type {
+    & > div:last-of-type {
       z-index: 10;
       background: $white;
       width: 100vw;
@@ -475,7 +419,7 @@
 .sidebar-elements-block {
   @media (max-width: $lg) {
     display: flex;
-    padding: 0.3rem 1rem 1rem 1rem;
+    padding: 0.5rem 1rem 1.3rem 1rem;
     justify-content: space-between;
 
     .sidebar-element {
@@ -506,23 +450,20 @@
 }
 
 body.sync {
-
-
   @media (prefers-color-scheme: dark) {
-
     .stats-color {
       color: white;
-      fill: #8396B1;
+      fill: #8396b1;
     }
 
     .stats-link:hover {
       p {
-        color: #8396B1;
+        color: #8396b1;
       }
     }
 
     .nls-nav-link {
-      border-color: #2B384B !important;
+      border-color: #2b384b !important;
     }
 
     .sidebar-container {
@@ -531,7 +472,6 @@ body.sync {
       }
     }
   }
-
 
   .sidebar-header {
     @media (prefers-color-scheme: dark) {
@@ -543,7 +483,6 @@ body.sync {
     }
   }
 
-
   .sidebar-element {
     @media (prefers-color-scheme: dark) {
       color: $white;
@@ -551,7 +490,6 @@ body.sync {
       .icon {
         color: $lightBlue;
       }
-
 
       &:hover {
         // .icon {
@@ -563,74 +501,62 @@ body.sync {
     }
 
     @media (prefers-color-scheme: dark) {
-      &:active, &.active {
+      &:active,
+      &.active {
         color: $orange !important;
-        .icon{
+        .icon {
           color: $orange !important;
         }
       }
     }
-
   }
 
   .sidebar-header {
-
     @media (prefers-color-scheme: dark) {
       background-color: $dark-background;
       border-bottom: 1px solid $dark-line;
     }
-
   }
 
   @media (max-width: $lg) {
     .nls-nav-more {
-      &>div:first-of-type {
-
+      & > div:first-of-type {
         @media (prefers-color-scheme: dark) {
           background-color: $dark-background;
         }
-
       }
 
-      &>div:last-of-type {
-
+      & > div:last-of-type {
         @media (prefers-color-scheme: dark) {
           background-color: $dark-background;
         }
-
       }
     }
-
   }
 
   .mobile-nav {
     .backdrop {
-
       @media (prefers-color-scheme: dark) {
         background: $dark-gray;
       }
-
     }
-
   }
 }
 
 body.dark {
-
   .stats-color {
     color: white;
-    fill: #8396B1;
+    fill: #8396b1;
   }
 
   .stats-link:hover {
     p {
-      color: #8396B1;
+      color: #8396b1;
     }
   }
 
   .nls-nav-link {
-    border-color: #2B384B !important;
-
+    border-color: #2b384b !important;
   }
 
   .sidebar-container {
@@ -655,45 +581,39 @@ body.dark {
     }
 
     @media (min-width: $lg) {
-
       &:hover {
-        color: $lightBlue ;
+        color: $lightBlue;
       }
-
     }
 
-    &:active, &.active {
+    &:active,
+    &.active {
       .icon {
         color: $orange !important;
       }
     }
-
   }
 
   .sidebar-header {
-
     background-color: $dark-background;
     border-bottom: 1px solid $dark-line;
-
   }
 
   @media (max-width: $lg) {
     .nls-nav-more {
-      &>div:first-of-type {
+      & > div:first-of-type {
         background-color: $dark-background;
       }
 
-      &>div:last-of-type {
+      & > div:last-of-type {
         background-color: $dark-background;
       }
     }
-
   }
 
   .mobile-nav {
     .backdrop {
       background: $dark-gray;
     }
-
   }
 }

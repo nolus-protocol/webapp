@@ -1,0 +1,299 @@
+<template>
+  <div class="currency-field-container block">
+    <div class="flex items-center justify-between">
+      <label
+        :for="id"
+        class="nls-font-500 data-text flex text-14"
+      >
+        {{ label }}
+        <TooltipComponent
+          v-if="tooltip.length > 0"
+          :content="tooltip"
+        />
+      </label>
+      <div
+        v-if="balance"
+        class="balance cursor-pointer select-none"
+        @click="setBalance"
+      >
+        {{ $t("message.balance") }} {{ balance }}
+      </div>
+    </div>
+
+    <div
+      class="currency-field currency-field p-2.5 p-3.5"
+      :class="{ error: isError }"
+    >
+      <div class="flex items-center">
+        <div class="inline-block">
+          <CurrencyPicker
+            :currency-option="option"
+            :disabled="disabledCurrencyPicker"
+            :options="currencyOptions"
+            @update-currency="onUpdateCurrency"
+            :isLoading="isLoadingPicker"
+            type="small"
+          />
+        </div>
+        <div class="inline-block flex-1">
+          <input
+            :id="id"
+            :disabled="disabledInputField"
+            :name="name"
+            v-model="numberValue"
+            autocomplete="off"
+            class="nls-font-700 background text-right text-18 text-primary"
+            @keydown="inputValue"
+            @keypress.space.prevent
+            @paste="onPaste"
+            @keyup="setValue"
+            :placeholder="placeholder"
+          />
+          <span class="nls-font-400 block text-right text-14 text-light-blue">
+            {{ calculateInputBalance() }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="repayment items-start justify-between">
+      <span class="msg error"> &nbsp;{{ errorMsg }} </span>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { AssetBalance } from "@/common/stores/wallet/types";
+import type { ExternalCurrency } from "@/common/types/Currecies";
+
+import CurrencyPicker from "./CurrencyPicker.vue";
+import TooltipComponent from "./TooltipComponent.vue";
+
+import { onMounted, ref, watch, type PropType } from "vue";
+import { Coin, Dec, Int } from "@keplr-wallet/unit";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { useOracleStore } from "@/common/stores/oracle";
+import { useWalletStore } from "@/common/stores/wallet";
+
+const emit = defineEmits(["update-currency", "update:modelValue", "input"]);
+const oracle = useOracleStore();
+const wallet = useWalletStore();
+
+const dot = ".";
+const minus = "-";
+const comma = ",";
+const allowed = ["Delete", "Backspace", "ArrowLeft", "ArrowRight", "-", ".", "Enter", "Tab", "Control", "End", "Home"];
+const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+const props = defineProps({
+  name: {
+    type: String
+  },
+  value: {
+    type: String
+  },
+  currencyOptions: {
+    type: Array as PropType<AssetBalance[]>
+  },
+  tooltip: {
+    type: String,
+    default: ""
+  },
+  option: {
+    type: Object as PropType<AssetBalance>
+  },
+  id: {
+    type: String
+  },
+  label: {
+    type: String
+  },
+  disabledInputField: {
+    type: Boolean
+  },
+  disabledCurrencyPicker: {
+    type: Boolean
+  },
+  isLoadingPicker: {
+    type: Boolean,
+    default: false
+  },
+  isError: {
+    type: Boolean,
+    default: false
+  },
+  errorMsg: {
+    type: String,
+    default: ""
+  },
+  placeholder: {
+    type: String,
+    default: "0"
+  },
+  balance: {
+    type: String
+  },
+  total: {
+    type: Object
+  },
+  price: {
+    type: Number
+  },
+  positive: {
+    type: Boolean,
+    default: false
+  }
+});
+
+const numberValue = ref(props.value);
+let numberRealValue = Number(props.value);
+
+onMounted(() => {
+  setValue();
+});
+
+watch(
+  () => props.value,
+  () => {
+    numberValue.value = props.value;
+    numberRealValue = Number(props.value);
+    setValue();
+  }
+);
+
+function onUpdateCurrency(value: AssetBalance) {
+  emit("update-currency", value);
+}
+
+function calculateInputBalance() {
+  if (props.price) {
+    const coin = CurrencyUtils.convertDenomToMinimalDenom(
+      numberRealValue.toString(),
+      props.option?.balance.denom as string,
+      props.option?.decimals as number
+    );
+    return CurrencyUtils.calculateBalance(props.price.toString(), coin, props.option?.decimals as number);
+  }
+
+  const prices = oracle.prices;
+
+  if (!numberRealValue || !props.option || !prices) {
+    return "$0";
+  }
+
+  const ticker = props.option.ticker;
+
+  let coinDecimals = null;
+  let coinMinimalDenom = null;
+  let symbol = null;
+
+  if (ticker) {
+    const { decimals, symbol: currencySymbol } = props.option;
+    coinDecimals = decimals as number;
+    coinMinimalDenom = props.option.balance.denom;
+    symbol = currencySymbol as string;
+  } else {
+    const denom = props.option.balance.denom;
+    const { coinDecimals: decimals, coinMinimalDenom: minimalDenom } = wallet.getCurrencyInfo(denom);
+    symbol = wallet.currencies[denom].symbol;
+    coinDecimals = decimals;
+    coinMinimalDenom = minimalDenom;
+  }
+
+  const { amount } = CurrencyUtils.convertDenomToMinimalDenom(
+    numberRealValue.toString(),
+    coinMinimalDenom as string,
+    coinDecimals
+  );
+
+  const coin = new Coin(coinMinimalDenom as string, new Int(String(amount)));
+  const tokenPrice = prices[coinMinimalDenom]?.amount || "0";
+
+  return CurrencyUtils.calculateBalance(tokenPrice, coin, coinDecimals);
+}
+
+function inputValue(event: KeyboardEvent) {
+  const charCode = event.key;
+  const value = numberValue.value ?? "";
+
+  if (event.ctrlKey || event.metaKey) {
+    return true;
+  }
+
+  if (props.positive) {
+    if (event.key == minus) {
+      event.preventDefault();
+      return false;
+    }
+  }
+
+  if (charCode == minus && value.includes(minus)) {
+    event.preventDefault();
+    return false;
+  }
+
+  if (charCode == dot && value?.includes(dot)) {
+    event.preventDefault();
+    return false;
+  }
+
+  if (allowed.includes(charCode)) {
+    return true;
+  }
+
+  const num = Number(charCode);
+  if (numbers.includes(num)) {
+    return true;
+  }
+
+  event.preventDefault();
+  return false;
+}
+
+function onPaste(event: ClipboardEvent) {
+  const pastedText = event.clipboardData?.getData("text");
+  const num = Number(pastedText);
+  if (isNaN(num)) {
+    event.preventDefault();
+  }
+}
+
+function setValue() {
+  let value = removeComma(numberValue.value ?? "");
+  let numValue = Number(value);
+  numberValue.value = commify(value.toString());
+  if (isNaN(numValue)) {
+    return false;
+  }
+  numberRealValue = Number(value);
+  emit("input", value);
+  emit("update:modelValue", value);
+}
+
+function setBalance() {
+  if (props.total) {
+    const currency: ExternalCurrency | any = props.option?.ticker
+      ? wallet.getCurrencyByTicker(props.option?.ticker)
+      : wallet.getCurrencyInfo(props.total.denom);
+    const decimals = Number(currency.decimal_digits ?? currency.coinDecimals);
+    const value = new Dec(props.total.amount, decimals);
+    emit("input", value.toString(decimals));
+    emit("update:modelValue", value.toString(decimals));
+  }
+}
+
+function commify(n: string) {
+  const parts = n.split(".");
+  const numberPart = parts[0];
+  const decimalPart = parts[1];
+  const hasDot = n.includes(dot);
+  const thousands = /\B(?=(\d{3})+(?!\d))/g;
+
+  return numberPart.replace(thousands, comma) + (hasDot ? `.${decimalPart}` : "");
+}
+
+function removeComma(n: string) {
+  const re = new RegExp(comma, "g");
+  return n.replace(re, "");
+}
+</script>

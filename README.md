@@ -4,13 +4,12 @@
 
 ## Requirements
 
-* __Node.js__ v16+
-* Software Packaging System (Package Manager) - __yarn__ v1.22+
-* JavaScript Framework - __Vue.js__ v3+
+- **Node.js** v20+
+- JavaScript Framework - **Vue.js** v3+
 
-*Note: Keplr wallet is needed in order to use the app. Make sure you have Keplr as a browser extention.*
+_Note: Keplr wallet is needed in order to use the app. Make sure you have Keplr as a browser extention._
 
-*There is no official Keplr wallet for the Mozilla Firefox browser yet. There is an unofficial one that steals your data!*
+_There is no official Keplr wallet for the Mozilla Firefox browser yet. There is an unofficial one that steals your data!_
 
 &nbsp;
 
@@ -19,7 +18,7 @@
 ### Compiles and hot-reloads for development
 
 ```sh
-yarn serve
+npm serve
 ```
 
 &nbsp;
@@ -27,7 +26,7 @@ yarn serve
 ### Compiles and minifies for production
 
 ```sh
-yarn build
+npm build
 ```
 
 ## VS Code ext

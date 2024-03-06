@@ -1,12 +1,18 @@
 <template>
   <div
     :class="wrapperClasses"
-    class="proposal w-full flex flex-col shadow-box lg:rounded-xl p-5 gap-3"
+    class="proposal shadow-box flex w-full flex-col gap-3 p-5 lg:rounded-xl"
   >
-    <div class="flex flex-col md:flex-row gap-2 md:gap-0 justify-between text-[10px] text-upper">
+    <div class="text-upper flex flex-col justify-between gap-2 text-[10px] md:flex-row md:gap-0">
       <div class="flex items-center gap-1">
-        <div :class="{ [color.bg]: color }" class="w-1.5 h-1.5 rounded" />
-        <div :class="{ [color.text]: color }" class="font-medium">
+        <div
+          :class="{ [color.bg]: color }"
+          class="h-1.5 w-1.5 rounded"
+        ></div>
+        <div
+          :class="{ [color.text]: color }"
+          class="font-medium"
+        >
           <template v-if="state.voted">
             {{ $t("message.voted") }}
           </template>
@@ -15,33 +21,40 @@
           </template>
         </div>
       </div>
-      <div v-if="isVotingPeriod" class="flex gap-2 text-light-blue">
+      <div
+        v-if="isVotingPeriod"
+        class="flex gap-2 text-light-blue"
+      >
         <div>turnout: {{ turnout }}%</div>
         <div>quorum: {{ quorumState }}%</div>
-        <div>voting ends: {{ DateUtils.formatDateTime(state.voting_end_time) }}</div>
+        <div>voting ends: {{ formatDateTime(state.voting_end_time) }}</div>
       </div>
     </div>
-    <div class="text-primary text-small-heading break-all">
-      &#35;{{ state.id }} {{ state.title }}
-    </div>
+    <div class="text-small-heading break-all text-primary">&#35;{{ state.id }} {{ state.title }}</div>
     <ProposalVotingLine
       v-if="isVotingPeriod && Object.values(state.tally).filter((res) => !!Number(res)).length > 0"
       :voting="state.tally"
     />
-    <div v-if="state.summary" class="text-medium-blue text-14">
+    <div
+      v-if="state.summary"
+      class="text-14 text-medium-blue"
+    >
       <div class="text-bold">Summary</div>
       {{ StringUtils.truncateText(state.summary, 256) }}
     </div>
     <button
       v-if="state.summary && state.summary.length > 256"
-      class="btn btn-secondary btn-medium-secondary self-start !text-12 !py-1"
+      class="btn btn-secondary btn-medium-secondary self-start !py-1 !text-12"
       @click="$emit('read-more', { title: state.title, summary: state.summary })"
     >
       {{ $t("message.read-more") }}
     </button>
 
-    <div v-if="isVotingPeriod" class="flex flex-col gap-3">
-      <div class="w-full border-standart border-b bg-transparent"></div>
+    <div
+      v-if="isVotingPeriod"
+      class="flex flex-col gap-3"
+    >
+      <div class="border-standart w-full border-b bg-transparent"></div>
       <button
         class="btn btn-primary btn-large-primary self-end !px-3 !py-2"
         @click="$emit('vote', state)"
@@ -53,25 +66,24 @@
 </template>
 
 <script lang="ts" setup>
+import { ProposalStatus, type FinalTallyResult, type Proposal } from "@/modules/vote/types";
 import { computed, type PropType } from "vue";
-import { DateUtils, StringUtils } from "@/utils";
-import { type Proposal, ProposalStatus, type FinalTallyResult } from "@/modules/vote/Proposal";
-import { ProposalState } from "@/modules/vote/state";
-import ProposalVotingLine from "@/modules/vote/components/ProposalVotingLine.vue";
+import { StringUtils, formatDateTime } from "@/common/utils";
 import { Dec } from "@keplr-wallet/unit";
+
+import ProposalVotingLine from "@/modules/vote/components/ProposalVotingLine.vue";
 
 const props = defineProps({
   state: {
     type: Object as PropType<Proposal>,
-    required: true,
-    default: ProposalState
+    required: true
   },
   bondedTokens: {
-    type: Object as PropType<Dec | any>,
+    type: Object as PropType<Dec>,
     required: true
   },
   quorum: {
-    type: Object as PropType<Dec | any>,
+    type: Object as PropType<Dec>,
     required: true
   }
 });

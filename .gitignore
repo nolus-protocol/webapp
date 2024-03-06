@@ -6,8 +6,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-package-lock.json
 .yarn
+yarn.lock
 
 node_modules
 .DS_Store
@@ -19,7 +19,9 @@ coverage
 /cypress/videos/
 /cypress/screenshots/
 
-.vscode
+# Editor directories and files
+.vscode/extensions.json
+!.vscode/extensions.json
 .idea
 *.suo
 *.ntvs*
@@ -27,6 +29,4 @@ coverage
 *.sln
 *.sw?
 
-.env.local
-.env.*.local
-.yarn
+*.tsbuildinfo

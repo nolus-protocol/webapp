@@ -1,71 +1,34 @@
 <template>
   <RouterView />
-  <Modal
-    v-if="showErrorDialog"
-    @close-modal="showErrorDialog = false"
-    route="alert"
-  >
-    <ErrorDialog
-      :title="$t('message.error-connecting')"
-      :message="errorMessage"
-      :try-button="onClickTryAgain"
-    />
-  </Modal>
 </template>
 
-<script setup lang="ts">
-import Modal from "@/components/modals/templates/Modal.vue";
-import ErrorDialog from "@/components/modals/ErrorDialog.vue";
-
-import { onMounted, onBeforeMount, ref, watch } from "vue";
+<script lang="ts" setup>
 import { RouterView } from "vue-router";
-import { useWalletStore, WalletActionTypes } from "@/stores/wallet";
-import { storeToRefs } from "pinia";
-import { APPEARANCE } from "./config/env";
-import { useApplicationStore, ApplicationActionTypes } from "@/stores/application";
+import { watch } from "vue";
 
-const showErrorDialog = ref(false);
-const errorMessage = ref("");
+import { useApplicationStore } from "@/common/stores/application";
+import { APPEARANCE } from "./config/global";
+
 const application = useApplicationStore();
-const wallet = useWalletStore();
-const applicationRef = storeToRefs(application);
 
-onBeforeMount(() => {
-  application[ApplicationActionTypes.LOAD_THEME]();
-});
-
-onMounted(async () => {
-  await loadNetwork();
-});
-
-watch(applicationRef.theme, () => {
-  if (application.theme) {
-    const themes = Object.keys(APPEARANCE);
-    document.body.classList.forEach((item) => {
-      if (themes.includes(item)) {
-        document.body.classList.remove(item);
-      }
-    });
-    document.documentElement.classList.forEach((item) => {
-      if (themes.includes(item)) {
-        document.documentElement.classList.remove(item);
-      }
-    });
-    document.body.classList.add(application.theme);
-    document.documentElement.classList.add(application.theme);
+watch(
+  () => application.theme,
+  () => {
+    if (application.theme) {
+      const themes = Object.keys(APPEARANCE);
+      document.body.classList.forEach((item) => {
+        if (themes.includes(item)) {
+          document.body.classList.remove(item);
+        }
+      });
+      document.documentElement.classList.forEach((item) => {
+        if (themes.includes(item)) {
+          document.documentElement.classList.remove(item);
+        }
+      });
+      document.body.classList.add(application.theme);
+      document.documentElement.classList.add(application.theme);
+    }
   }
-});
-
-const onClickTryAgain = async () => {
-  await loadNetwork();
-};
-
-const loadNetwork = async () => {
-  try {
-    await wallet[WalletActionTypes.LOAD_WALLET_NAME]();
-  } catch (error: Error | any) {
-    showErrorDialog.value = true;
-    errorMessage.value = error?.message;
-  }
-};
+);
 </script>

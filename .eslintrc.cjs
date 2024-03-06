@@ -3,32 +3,23 @@ require("@rushstack/eslint-patch/modern-module-resolution");
 
 module.exports = {
   root: true,
-  env: {
-    node: true,
-  },
-  globals: {
-    NodeJS: true,
-  },
   extends: [
     "plugin:vue/vue3-essential",
+    "plugin:vue/html-self-closing",
     "eslint:recommended",
     "@vue/eslint-config-typescript",
-    "@vue/eslint-config-prettier",
+    "@vue/eslint-config-prettier/skip-formatting"
+  ],
+  overrides: [
+    {
+      files: ["cypress/e2e/**/*.{cy,spec}.{js,ts,jsx,tsx}", "cypress/support/**/*.{js,ts,jsx,tsx}"],
+      extends: ["plugin:cypress/recommended"]
+    }
   ],
   parserOptions: {
-    ecmaVersion: "latest",
+    ecmaVersion: "latest"
   },
   rules: {
-    "vue/multi-word-component-names": "off",
-    "vue/require-toggle-inside-transition": "off",
-    "no-unused-vars": "off",
-    "no-unused-expressions": "off",
-    "no-useless-escape": "off",
-    "@typescript-eslint/no-unused-vars": "off",
-    "vue/no-mutating-props": "off",
-    "prettier/prettier": "off",
-    "no-console": process.env.NODE_ENV === "production" ? "warn" : "off",
-    "no-debugger": process.env.NODE_ENV === "production" ? "warn" : "off",
-  },
-  ignorePatterns: ["modules/*.js"],
+    "vue/multi-word-component-names": "off"
+  }
 };

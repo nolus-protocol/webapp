@@ -1,0 +1,60 @@
+<template>
+  <fieldset>
+    <div class="input-field block">
+      <label
+        :for="id"
+        class="nls-font-500 data-text block text-14 text-primary"
+      >
+        {{ label }}
+      </label>
+      <input
+        autocomplete="off"
+        :id="id"
+        :class="{ error: isError }"
+        :name="name"
+        :type="type"
+        :value="value"
+        @input="$emit('update:value', handleInputChange($event))"
+        class="mt-[4px]"
+      />
+      <span
+        class="msg error"
+        :class="{ hidden: !errorMsg.length }"
+      >
+        {{ errorMsg }}
+      </span>
+    </div>
+  </fieldset>
+</template>
+
+<script setup lang="ts">
+defineProps({
+  type: {
+    type: String
+  },
+  name: {
+    type: String
+  },
+  value: {
+    type: String
+  },
+  id: {
+    type: String
+  },
+  label: {
+    type: String
+  },
+  isError: {
+    type: Boolean,
+    default: false
+  },
+  errorMsg: {
+    type: String,
+    default: ""
+  }
+});
+
+function handleInputChange(event: Event) {
+  return (event.target as HTMLInputElement).value;
+}
+</script>

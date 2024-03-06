@@ -99,7 +99,7 @@ export const BaseVestingAccount = {
           break;
 
         case 5:
-          message.endTime = (reader.int64() as Long);
+          message.endTime = reader.int64() as Long;
           break;
 
         default:
@@ -113,14 +113,17 @@ export const BaseVestingAccount = {
 
   fromPartial(object: DeepPartial<BaseVestingAccount>): BaseVestingAccount {
     const message = createBaseBaseVestingAccount();
-    message.baseAccount = object.baseAccount !== undefined && object.baseAccount !== null ? BaseAccount.fromPartial(object.baseAccount) : undefined;
-    message.originalVesting = object.originalVesting?.map(e => Coin.fromPartial(e)) || [];
-    message.delegatedFree = object.delegatedFree?.map(e => Coin.fromPartial(e)) || [];
-    message.delegatedVesting = object.delegatedVesting?.map(e => Coin.fromPartial(e)) || [];
-    message.endTime = object.endTime !== undefined && object.endTime !== null ? Long.fromValue(object.endTime) : Long.ZERO;
+    message.baseAccount =
+      object.baseAccount !== undefined && object.baseAccount !== null
+        ? BaseAccount.fromPartial(object.baseAccount)
+        : undefined;
+    message.originalVesting = object.originalVesting?.map((e) => Coin.fromPartial(e)) || [];
+    message.delegatedFree = object.delegatedFree?.map((e) => Coin.fromPartial(e)) || [];
+    message.delegatedVesting = object.delegatedVesting?.map((e) => Coin.fromPartial(e)) || [];
+    message.endTime =
+      object.endTime !== undefined && object.endTime !== null ? Long.fromValue(object.endTime) : Long.ZERO;
     return message;
   }
-
 };
 
 function createBasePeriod(): Period {
@@ -163,11 +166,11 @@ export const Period = {
 
       switch (tag >>> 3) {
         case 1:
-          message.startTime = (reader.int64() as Long);
+          message.startTime = reader.int64() as Long;
           break;
 
         case 2:
-          message.length = (reader.int64() as Long);
+          message.length = reader.int64() as Long;
           break;
 
         case 3:
@@ -189,13 +192,13 @@ export const Period = {
 
   fromPartial(object: DeepPartial<Period>): Period {
     const message = createBasePeriod();
-    message.startTime = object.startTime !== undefined && object.startTime !== null ? Long.fromValue(object.startTime) : Long.ZERO;
+    message.startTime =
+      object.startTime !== undefined && object.startTime !== null ? Long.fromValue(object.startTime) : Long.ZERO;
     message.length = object.length !== undefined && object.length !== null ? Long.fromValue(object.length) : Long.ZERO;
-    message.amount = object.amount?.map(e => Coin.fromPartial(e)) || [];
+    message.amount = object.amount?.map((e) => Coin.fromPartial(e)) || [];
     message.actionType = object.actionType ?? 0;
     return message;
   }
-
 };
 
 function createBaseStridePeriodicVestingAccount(): StridePeriodicVestingAccount {
@@ -246,9 +249,11 @@ export const StridePeriodicVestingAccount = {
 
   fromPartial(object: DeepPartial<StridePeriodicVestingAccount>): StridePeriodicVestingAccount {
     const message = createBaseStridePeriodicVestingAccount();
-    message.baseVestingAccount = object.baseVestingAccount !== undefined && object.baseVestingAccount !== null ? BaseVestingAccount.fromPartial(object.baseVestingAccount) : undefined;
-    message.vestingPeriods = object.vestingPeriods?.map(e => Period.fromPartial(e)) || [];
+    message.baseVestingAccount =
+      object.baseVestingAccount !== undefined && object.baseVestingAccount !== null
+        ? BaseVestingAccount.fromPartial(object.baseVestingAccount)
+        : undefined;
+    message.vestingPeriods = object.vestingPeriods?.map((e) => Period.fromPartial(e)) || [];
     return message;
   }
-
 };

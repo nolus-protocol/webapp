@@ -2,21 +2,19 @@
   <DialogHeader :headerList="[$t('message.vote')]">
     <ConfirmVoteComponent
       v-if="showConfirmScreen"
-      :receiverAddress="(wallet.wallet?.address as string)"
-      :password="state.password"
-      :txType="$t(`message.${TxType.VOTE}`) + ':'"
-      :txHash="state.txHash"
-      :step="step"
       :fee="state.fee"
-      :onSendClick="onVoteClick"
       :onBackClick="onConfirmBackClick"
       :onOkClick="onClickOkBtn"
+      :onSendClick="onVoteClick"
       :proposal="`&#35;${proposal.id} ${proposal.title ?? ''}`"
+      :receiverAddress="wallet.wallet?.address as string"
+      :step="step"
+      :txHash="state.txHash"
+      :txType="$t(`message.${TxType.VOTE}`) + ':'"
       :vote="state.vote"
-      @passwordUpdate="(value) => (state.password = value)"
     />
     <template v-else>
-      <div class="overflow-auto w-full md:max-h-[70vh] text-primary p-10 custom-scroll">
+      <div class="custom-scroll w-full overflow-auto p-10 text-primary md:max-h-[70vh]">
         <h1>&#35;{{ proposal.id }} {{ proposal.title }}</h1>
         <template v-if="!!Number(delegatedTokensAmount.amount)">
           <div class="flex flex-col gap-4">
@@ -24,13 +22,13 @@
               class="btn btn-secondary btn-large-primary"
               @click="onVote(VoteOption.VOTE_OPTION_YES)"
             >
-              {{ $t('message.yes') }}
+              {{ $t("message.yes") }}
             </button>
             <button
               class="btn btn-secondary btn-large-primary"
               @click="onVote(VoteOption.VOTE_OPTION_NO)"
             >
-              {{ $t('message.no') }}
+              {{ $t("message.no") }}
             </button>
 
             <div class="flex gap-4">
@@ -38,13 +36,13 @@
                 class="btn btn-secondary btn-large-secondary w-full"
                 @click="onVote(VoteOption.VOTE_OPTION_ABSTAIN)"
               >
-                {{ $t('message.abstained') }}
+                {{ $t("message.abstained") }}
               </button>
               <button
                 class="btn btn-secondary btn-large-secondary w-full"
                 @click="onVote(VoteOption.VOTE_OPTION_NO_WITH_VETO)"
               >
-                {{ $t('message.veto') }}
+                {{ $t("message.veto") }}
               </button>
             </div>
           </div>
@@ -56,13 +54,13 @@
           >
             <template v-slot:icon>
               <img
-                class="block mx-auto my-0 w-10 h-7"
+                class="mx-auto my-0 block h-7 w-10"
                 src="@/assets/icons/information-circle.svg"
               />
             </template>
             <template v-slot:content>
               <span class="text-primary">
-                {{ $t('message.voting-warning') }}
+                {{ $t("message.voting-warning") }}
               </span>
             </template>
           </WarningBox>
@@ -70,7 +68,7 @@
             class="btn btn-secondary btn-large-primary"
             @click="onDelegateClick"
           >
-            {{ $t('message.delegate') }}
+            {{ $t("message.delegate") }}
           </button>
         </template>
       </div>
@@ -79,30 +77,32 @@
 </template>
 
 <script lang="ts" setup>
-import DialogHeader from '@/components/modals/templates/DialogHeader.vue'
-import WarningBox from '@/components/modals/templates/WarningBox.vue'
-import router from '@/router'
-import ConfirmVoteComponent from '@/components/modals/templates/ConfirmVoteComponent.vue'
-import { inject, onMounted, type PropType, ref } from 'vue'
-import { useWalletStore, WalletActionTypes } from '@/stores/wallet'
-import { Dec } from '@keplr-wallet/unit'
-import { type Coin, coin } from '@cosmjs/amino'
-import { ErrorCodes, GAS_FEES, NATIVE_ASSET, SNACKBAR } from '@/config/env'
-import { VoteOption } from 'cosmjs-types/cosmos/gov/v1beta1/gov'
-import { CONFIRM_STEP, TxType } from '@/types'
-import type { VoteComponentProps } from '@/types/component'
-import { walletOperation } from '@/components/utils'
-import { MsgVote } from 'cosmjs-types/cosmos/gov/v1beta1/tx'
-import { longify } from '@cosmjs/stargate/build/queryclient'
+import { type Coin, coin } from "@cosmjs/amino";
+import type { VoteComponentProps } from "@/modules/vote/types";
+
+import DialogHeader from "@/common/components/modals/templates/DialogHeader.vue";
+import WarningBox from "@/common/components/modals/templates/WarningBox.vue";
+import ConfirmVoteComponent from "@/common/components/modals/templates/ConfirmVoteComponent.vue";
+
+import { router } from "@/router";
+import { inject, onMounted, type PropType, ref } from "vue";
+import { useWalletStore } from "@/common/stores/wallet";
+import { Dec } from "@keplr-wallet/unit";
+import { ErrorCodes, GAS_FEES, NATIVE_ASSET } from "@/config/global";
+import { VoteOption } from "cosmjs-types/cosmos/gov/v1/gov";
+import { CONFIRM_STEP, TxType } from "@/common/types";
+import { Logger, NetworkUtils, walletOperation } from "@/common/utils";
+import { MsgVote } from "cosmjs-types/cosmos/gov/v1/tx";
+import { longify } from "@cosmjs/stargate/build/queryclient";
 
 const props = defineProps({
   proposal: {
     type: Object as PropType<{ title: string; id: string }>,
     required: true
   }
-})
+});
 
-const wallet = useWalletStore()
+const wallet = useWalletStore();
 const delegatedTokensAmount = ref({} as Coin);
 const showConfirmScreen = ref(false);
 
@@ -113,51 +113,47 @@ const state = ref({
     }
     return false;
   }),
-  password: "",
   amountErrorMsg: "",
   txHash: "",
   vote: null,
-  fee: coin(GAS_FEES.vote, NATIVE_ASSET.denom),
+  fee: coin(GAS_FEES.vote, NATIVE_ASSET.denom)
 } as VoteComponentProps);
+
 const step = ref(CONFIRM_STEP.CONFIRM);
-const closeModal = inject("onModalClose", () => () => { });
-const snackbarVisible = inject("snackbarVisible", () => false);
-const showSnackbar = inject("showSnackbar", (_type: string, _transaction: string) => { });
-const refetchProposalData = inject("refetchProposalData", (id: string) => { });
+const closeModal = inject("onModalClose", () => () => {});
+const refetchProposalData = inject("refetchProposalData", (id: string) => {});
 
 onMounted(async () => {
-  await loadDelegated()
-})
+  await loadDelegated();
+});
 
 async function loadDelegated() {
-  const delegations = await wallet[WalletActionTypes.LOAD_DELEGATIONS]()
+  const delegations = await NetworkUtils.loadDelegations();
   let decimalDelegated = new Dec(0);
 
   for (const item of delegations) {
-    const d = new Dec(item.balance.amount)
-    decimalDelegated = decimalDelegated.add(d)
+    const d = new Dec(item.balance.amount);
+    decimalDelegated = decimalDelegated.add(d);
   }
 
-  delegatedTokensAmount.value = coin(decimalDelegated.truncate().toString(), NATIVE_ASSET.denom)
+  delegatedTokensAmount.value = coin(decimalDelegated.truncate().toString(), NATIVE_ASSET.denom);
 }
 
-const onVote = (vote: VoteOption) => {
+function onVote(vote: VoteOption) {
   showConfirmScreen.value = true;
   state.value.vote = vote;
 }
 
-const onVoteClick = async () => {
+async function onVoteClick() {
   try {
-    await walletOperation(onVoteEmit, state.value.password);
+    await walletOperation(onVoteEmit);
   } catch (error: Error | any) {
     step.value = CONFIRM_STEP.ERROR;
   }
-
 }
 
-const onVoteEmit = async () => {
+async function onVoteEmit() {
   try {
-
     if (wallet.wallet && state.value.amountErrorMsg === "") {
       step.value = CONFIRM_STEP.PENDING;
 
@@ -165,7 +161,7 @@ const onVoteEmit = async () => {
       const voteMsg = MsgVote.fromPartial({
         proposalId: longify(props.proposal.id),
         voter: wallet.wallet!.address,
-        option: state.value.vote as VoteOption,
+        option: state.value.vote as VoteOption
       });
 
       const { txHash, txBytes, usedFee } = await wallet.wallet!.simulateTx(voteMsg, typeUrl);
@@ -180,17 +176,11 @@ const onVoteEmit = async () => {
       step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
 
       refetchProposalData(props.proposal.id);
-
-      if (snackbarVisible()) {
-        showSnackbar(isSuccessful ? SNACKBAR.Success : SNACKBAR.Error, txHash);
-      }
-
     }
-
   } catch (error: Error | any) {
-    console.log(error);
+    Logger.error(error);
     switch (error.code) {
-      case (ErrorCodes.GasError): {
+      case ErrorCodes.GasError: {
         step.value = CONFIRM_STEP.GasError;
         break;
       }
@@ -210,15 +200,15 @@ function onConfirmBackClick() {
   showConfirmScreen.value = false;
 }
 
-const openDialog = inject('openDialog', () => { })
-
-const onDelegateClick = async () => {
-  const url = `/earn#delegate`
-  await router.push(url)
-  if (url.includes('#')) {
-    openDialog()
+async function onDelegateClick() {
+  const url = `/earn#delegate`;
+  await router.push(url);
+  if (url.includes("#")) {
+    openDialog();
   }
 }
+
+const openDialog = inject("openDialog", () => {});
 </script>
 
 <style lang="scss" scoped>

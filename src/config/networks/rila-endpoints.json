@@ -1,113 +1,113 @@
 {
-    "downtime": 30,
-    "archive_node_rpc": "https://rila-cl.nolus.network:26657",
-    "archive_node_api": "https://rila-cl.nolus.network:1317",
-    "NOLUS": {
-        "primary": {
-            "rpc": "https://rila-cl.nolus.network:26657",
-            "api": "https://rila-cl.nolus.network:1317"
-        },
-        "fallback": [
-            {
-                "rpc": "https://nolus-testnet.rpc.kjnodes.com",
-                "api": "https://nolus-testnet.api.kjnodes.com"
-            }
-        ]
+  "downtime": 30,
+  "archive_node_rpc": "https://rila-cl.nolus.network:26657",
+  "archive_node_api": "https://rila-cl.nolus.network:1317",
+  "NOLUS": {
+    "primary": {
+      "rpc": "https://rila-cl.nolus.network:26657",
+      "api": "https://rila-cl.nolus.network:1317"
     },
-    "OSMOSIS": {
-        "primary": {
-            "rpc": "https://rpc-osmo-test-5.nolus.cros-nest.net",
-            "api": "https://rest-osmo-test-5.nolus.cros-nest.net"
-        },
-        "fallback": [
-            {
-                "rpc": "https://rpc.osmotest5.osmosis.zone",
-                "api": "https://lcd.osmotest5.osmosis.zone"
-            }
-        ]
+    "fallback": [
+      {
+        "rpc": "https://nolus-testnet.rpc.kjnodes.com",
+        "api": "https://nolus-testnet.api.kjnodes.com"
+      }
+    ]
+  },
+  "OSMOSIS": {
+    "primary": {
+      "rpc": "https://rpc-osmo-test-5.nolus.cros-nest.net",
+      "api": "https://rest-osmo-test-5.nolus.cros-nest.net"
     },
-    "COSMOS_HUB": {
-        "primary": {
-            "rpc": "https://rpc-theta.osmotest5.osmosis.zone",
-            "api": "https://lcd-theta.osmotest5.osmosis.zone"
-        },
-        "fallback": [
-            {
-                "rpc": "https://rpc.sentry-01.theta-testnet.polypore.xyz",
-                "api": "https://rest.sentry-01.theta-testnet.polypore.xyz"
-            }
-        ]
+    "fallback": [
+      {
+        "rpc": "https://rpc.osmotest5.osmosis.zone",
+        "api": "https://lcd.osmotest5.osmosis.zone"
+      }
+    ]
+  },
+  "COSMOS_HUB": {
+    "primary": {
+      "rpc": "https://rpc-theta.osmotest5.osmosis.zone",
+      "api": "https://lcd-theta.osmotest5.osmosis.zone"
     },
-    "AXELAR": {
-        "primary": {
-            "rpc": "https://rpc-axelar-testnet.imperator.co:443",
-            "api": "https://lcd-axelar-testnet.imperator.co:443"
-        },
-        "fallback": [
-            {
-                "rpc": "https://axelartest-rpc.quickapi.com",
-                "api": "https://axelartest-lcd.quickapi.com"
-            }
-        ]
+    "fallback": [
+      {
+        "rpc": "https://rpc.sentry-01.theta-testnet.polypore.xyz",
+        "api": "https://rest.sentry-01.theta-testnet.polypore.xyz"
+      }
+    ]
+  },
+  "AXELAR": {
+    "primary": {
+      "rpc": "https://rpc-axelar-testnet.imperator.co:443",
+      "api": "https://lcd-axelar-testnet.imperator.co:443"
     },
-    "JUNO": {
-        "primary": {
-            "rpc": "https://rpc.uni.junonetwork.io",
-            "api": "https://api.uni.junonetwork.io"
-        },
-        "fallback": [
-            {
-                "rpc": "https://juno-testnet-rpc.polkachu.com",
-                "api": "https://juno-testnet-api.polkachu.com"
-            }
-        ]
+    "fallback": [
+      {
+        "rpc": "https://axelartest-rpc.quickapi.com",
+        "api": "https://axelartest-lcd.quickapi.com"
+      }
+    ]
+  },
+  "JUNO": {
+    "primary": {
+      "rpc": "https://rpc.uni.junonetwork.io",
+      "api": "https://api.uni.junonetwork.io"
     },
-    "EVMOS": {
-        "primary": {
-            "rpc": "https://evmos-testnet-rpc.polkachu.com",
-            "api": "https://evmos-testnet-api.polkachu.com"
-        },
-        "fallback": [
-            {
-                "rpc": "https://evmos.test.rpc.coldyvalidator.net",
-                "api": "https://evmos.test.api.coldyvalidator.net"
-            }
-        ]
+    "fallback": [
+      {
+        "rpc": "https://juno-testnet-rpc.polkachu.com",
+        "api": "https://juno-testnet-api.polkachu.com"
+      }
+    ]
+  },
+  "EVMOS": {
+    "primary": {
+      "rpc": "https://evmos-testnet-rpc.polkachu.com",
+      "api": "https://evmos-testnet-api.polkachu.com"
     },
-    "PERSISTENCE": {
-        "primary": {
-            "rpc": "https://rpc.testnet2.persistence.one/",
-            "api": "https://rest.testnet2.persistence.one/"
-        },
-        "fallback": [
-            {
-                "rpc": "https://persistence-testnet-rpc.polkachu.com/",
-                "api": "https://persistence-testnet-api.polkachu.com/"
-            }
-        ]
+    "fallback": [
+      {
+        "rpc": "https://evmos.test.rpc.coldyvalidator.net",
+        "api": "https://evmos.test.api.coldyvalidator.net"
+      }
+    ]
+  },
+  "PERSISTENCE": {
+    "primary": {
+      "rpc": "https://rpc.testnet2.persistence.one/",
+      "api": "https://rest.testnet2.persistence.one/"
     },
-    "SECRET": {
-        "primary": {
-            "rpc": "https://rpc.testnet.secretsaturn.net",
-            "api": "https://lcd.testnet.secretsaturn.net"
-        },
-        "fallback": [
-            {
-                "rpc": "https://rpc.pulsar.scrttestnet.com",
-                "api": "https://api.pulsar.scrttestnet.com"
-            }
-        ]
+    "fallback": [
+      {
+        "rpc": "https://persistence-testnet-rpc.polkachu.com/",
+        "api": "https://persistence-testnet-api.polkachu.com/"
+      }
+    ]
+  },
+  "SECRET": {
+    "primary": {
+      "rpc": "https://rpc.testnet.secretsaturn.net",
+      "api": "https://lcd.testnet.secretsaturn.net"
     },
-    "NEUTRON": {
-        "primary": {
-            "rpc": "https://rpc-pion-1.nolus.cros-nest.net",
-            "api": "https://rest-pion-1.nolus.cros-nest.net"
-        },
-        "fallback": [
-            {
-                "rpc": "https://rpc-falcron.pion-1.ntrn.tech",
-                "api": "https://rest-falcron.pion-1.ntrn.tech"
-            }
-        ]
-        }
+    "fallback": [
+      {
+        "rpc": "https://rpc.pulsar.scrttestnet.com",
+        "api": "https://api.pulsar.scrttestnet.com"
+      }
+    ]
+  },
+  "NEUTRON": {
+    "primary": {
+      "rpc": "https://rpc-pion-1.nolus.cros-nest.net",
+      "api": "https://rest-pion-1.nolus.cros-nest.net"
+    },
+    "fallback": [
+      {
+        "rpc": "https://rpc-falcron.pion-1.ntrn.tech",
+        "api": "https://rest-falcron.pion-1.ntrn.tech"
+      }
+    ]
+  }
 }

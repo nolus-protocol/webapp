@@ -1,173 +1,173 @@
 {
-    "downtime": 30,
-    "archive_node_rpc": "https://pirin-cl-arc.nolus.network:26612",
-    "archive_node_api": "https://pirin-cl-arc.nolus.network:1317",
-    "NOLUS": {
-        "primary": {
-            "rpc": "https://pirin-cl.nolus.network:26657",
-            "api": "https://pirin-cl.nolus.network:1317"
-        },
-        "fallback": [
-            {
-                "rpc": "https://rpc-nolus.architectnodes.com",
-                "api": "https://rest-nolus.architectnodes.com"
-            }
-        ]
+  "downtime": 30,
+  "archive_node_rpc": "https://pirin-cl-arc.nolus.network:26612",
+  "archive_node_api": "https://pirin-cl-arc.nolus.network:1317",
+  "NOLUS": {
+    "primary": {
+      "rpc": "https://pirin-cl.nolus.network:26657",
+      "api": "https://pirin-cl.nolus.network:1317"
     },
-    "OSMOSIS": {
-        "primary": {
-            "rpc": "https://rpc-osmosis-1.nolus.cros-nest.net",
-            "api": "https://rest-osmosis-1.nolus.cros-nest.net"
-        },
-        "fallback": [
-            {
-                "rpc": "https://rpc.osmosis.zone",
-                "api": "https://lcd.osmosis.zone"
-            }
-        ]
+    "fallback": [
+      {
+        "rpc": "https://rpc-nolus.architectnodes.com",
+        "api": "https://rest-nolus.architectnodes.com"
+      }
+    ]
+  },
+  "OSMOSIS": {
+    "primary": {
+      "rpc": "https://rpc-osmosis-1.nolus.cros-nest.net",
+      "api": "https://rest-osmosis-1.nolus.cros-nest.net"
     },
-    "COSMOS_HUB": {
-        "primary": {
-            "rpc": "https://rpc.cosmoshub.strange.love",
-            "api": "https://rest-cosmoshub.architectnodes.com"
-        },
-        "fallback": [
-            {
-                "rpc": "https://cosmoshub-rpc.lavenderfive.com:443",
-                "api": "https://cosmoshub-api.lavenderfive.com:443"
-            }
-        ]
+    "fallback": [
+      {
+        "rpc": "https://rpc.osmosis.zone",
+        "api": "https://lcd.osmosis.zone"
+      }
+    ]
+  },
+  "COSMOS_HUB": {
+    "primary": {
+      "rpc": "https://rpc.cosmoshub.strange.love",
+      "api": "https://rest-cosmoshub.architectnodes.com"
     },
-    "AXELAR": {
-        "primary": {
-            "rpc": "https://rpc-axelar.imperator.co:443",
-            "api": "https://lcd-axelar.imperator.co:443"
-        },
-        "fallback": [
-            {
-                "rpc": "https://axelar-rpc.polkachu.com",
-                "api": "https://axelar-api.polkachu.com"
-            }
-        ]
+    "fallback": [
+      {
+        "rpc": "https://cosmoshub-rpc.lavenderfive.com:443",
+        "api": "https://cosmoshub-api.lavenderfive.com:443"
+      }
+    ]
+  },
+  "AXELAR": {
+    "primary": {
+      "rpc": "https://rpc-axelar.imperator.co:443",
+      "api": "https://lcd-axelar.imperator.co:443"
     },
-    "AKASH": {
-        "primary": {
-            "rpc": "https://rpc-akash-ia.cosmosia.notional.ventures:443",
-            "api": "https://api-akash-ia.cosmosia.notional.ventures"
-        },
-        "fallback": [
-            {
-                "rpc": "https://akash-rpc.w3coins.io",
-                "api": "https://akash-api.w3coins.io"
-            }
-        ]
+    "fallback": [
+      {
+        "rpc": "https://axelar-rpc.polkachu.com",
+        "api": "https://axelar-api.polkachu.com"
+      }
+    ]
+  },
+  "AKASH": {
+    "primary": {
+      "rpc": "https://rpc-akash-ia.cosmosia.notional.ventures:443",
+      "api": "https://api-akash-ia.cosmosia.notional.ventures"
     },
-    "STRIDE": {
-        "primary": {
-            "rpc": "https://rpc-stride.architectnodes.com",
-            "api": "https://rest-stride.architectnodes.com"
-        },
-        "fallback": [
-            {
-                "rpc": "https://stride.rpc.kjnodes.com",
-                "api": "https://stride.api.kjnodes.com"
-            }
-        ]
+    "fallback": [
+      {
+        "rpc": "https://akash-rpc.w3coins.io",
+        "api": "https://akash-api.w3coins.io"
+      }
+    ]
+  },
+  "STRIDE": {
+    "primary": {
+      "rpc": "https://rpc-stride.architectnodes.com",
+      "api": "https://rest-stride.architectnodes.com"
     },
-    "JUNO": {
-        "primary": {
-            "rpc": "https://juno-rpc.polkachu.com",
-            "api": "https://juno-api.polkachu.com"
-        },
-        "fallback": [
-            {
-                "rpc": "https://rpc-juno.architectnodes.com",
-                "api": "https://rest-juno.architectnodes.com"
-            }
-        ]
+    "fallback": [
+      {
+        "rpc": "https://stride.rpc.kjnodes.com",
+        "api": "https://stride.api.kjnodes.com"
+      }
+    ]
+  },
+  "JUNO": {
+    "primary": {
+      "rpc": "https://juno-rpc.polkachu.com",
+      "api": "https://juno-api.polkachu.com"
     },
-    "EVMOS": {
-        "primary": {
-            "rpc": "https://evmos-rpc.polkachu.com",
-            "api": "https://evmos-api.polkachu.com"
-        },
-        "fallback": [
-            {
-                "rpc": "https://evmos.kingnodes.com",
-                "api": "https://evmos.kingnodes.com"
-            }
-        ]
+    "fallback": [
+      {
+        "rpc": "https://rpc-juno.architectnodes.com",
+        "api": "https://rest-juno.architectnodes.com"
+      }
+    ]
+  },
+  "EVMOS": {
+    "primary": {
+      "rpc": "https://evmos-rpc.polkachu.com",
+      "api": "https://evmos-api.polkachu.com"
     },
-    "PERSISTENCE": {
-        "primary": {
-            "rpc": "https://rpc.core.persistence.one",
-            "api": "https://rest.core.persistence.one"
-        },
-        "fallback": [
-            {
-                "rpc": "https://rpc-persistent-ia.cosmosia.notional.ventures/",
-                "api": "https://api-persistent-ia.cosmosia.notional.ventures/"
-            }
-        ]
+    "fallback": [
+      {
+        "rpc": "https://evmos.kingnodes.com",
+        "api": "https://evmos.kingnodes.com"
+      }
+    ]
+  },
+  "PERSISTENCE": {
+    "primary": {
+      "rpc": "https://rpc.core.persistence.one",
+      "api": "https://rest.core.persistence.one"
     },
-    "SECRET": {
-        "primary": {
-            "rpc": "https://rpc.secret.express",
-            "api": "https://lcd.secret.express"
-        },
-        "fallback": [
-            {
-                "rpc": "https://secret-rpc.bharvest.io",
-                "api": "https://secret-api.bharvest.io"
-            }
-        ]
+    "fallback": [
+      {
+        "rpc": "https://rpc-persistent-ia.cosmosia.notional.ventures/",
+        "api": "https://api-persistent-ia.cosmosia.notional.ventures/"
+      }
+    ]
+  },
+  "SECRET": {
+    "primary": {
+      "rpc": "https://rpc.secret.express",
+      "api": "https://lcd.secret.express"
     },
-    "CELESTIA": {
-        "primary": {
-            "rpc": "https://public-celestia-rpc.numia.xyz",
-            "api": "https://public-celestia-lcd.numia.xyz"
-        },
-        "fallback": [
-            {
-                "rpc": "https://celestia-rpc.lavenderfive.com:443",
-                "api": "https://celestia-api.lavenderfive.com:443"
-            }
-        ]
+    "fallback": [
+      {
+        "rpc": "https://secret-rpc.bharvest.io",
+        "api": "https://secret-api.bharvest.io"
+      }
+    ]
+  },
+  "CELESTIA": {
+    "primary": {
+      "rpc": "https://public-celestia-rpc.numia.xyz",
+      "api": "https://public-celestia-lcd.numia.xyz"
     },
-    "STARGAZE": {
-        "primary": {
-            "rpc": "https://rpc.stargaze-apis.com",
-            "api": "https://rest.stargaze-apis.com"
-        },
-        "fallback": [
-            {
-                "rpc": "https://stargaze-rpc.polkachu.com",
-                "api": "https://stargaze-api.polkachu.com"
-            }
-        ]
+    "fallback": [
+      {
+        "rpc": "https://celestia-rpc.lavenderfive.com:443",
+        "api": "https://celestia-api.lavenderfive.com:443"
+      }
+    ]
+  },
+  "STARGAZE": {
+    "primary": {
+      "rpc": "https://rpc.stargaze-apis.com",
+      "api": "https://rest.stargaze-apis.com"
     },
-    "QUICKSILVER": {
-        "primary": {
-            "rpc": "https://rpc-quicksilver-ia.cosmosia.notional.ventures:443",
-            "api": "https://api-quicksilver-ia.cosmosia.notional.ventures:443"
-        },
-        "fallback": [
-            {
-                "rpc": "https://rpc.quicksilver.zone:443",
-                "api": "https://api-quicksilver.takeshi.team:443"
-            }
-        ]
+    "fallback": [
+      {
+        "rpc": "https://stargaze-rpc.polkachu.com",
+        "api": "https://stargaze-api.polkachu.com"
+      }
+    ]
+  },
+  "QUICKSILVER": {
+    "primary": {
+      "rpc": "https://rpc-quicksilver-ia.cosmosia.notional.ventures:443",
+      "api": "https://api-quicksilver-ia.cosmosia.notional.ventures:443"
     },
-    "NEUTRON": {
-        "primary": {
-            "rpc": "https://rpc-neutron-1.nolus.cros-nest.net",
-            "api": "https://rest-neutron-1.nolus.cros-nest.net"
-        },
-        "fallback": [
-            {
-                "rpc": "https://neutron-rpc.publicnode.com:443",
-                "api": "https://neutron-rest.publicnode.com"
-            }
-        ]
-    }
+    "fallback": [
+      {
+        "rpc": "https://rpc.quicksilver.zone:443",
+        "api": "https://api-quicksilver.takeshi.team:443"
+      }
+    ]
+  },
+  "NEUTRON": {
+    "primary": {
+      "rpc": "https://rpc-neutron-1.nolus.cros-nest.net",
+      "api": "https://rest-neutron-1.nolus.cros-nest.net"
+    },
+    "fallback": [
+      {
+        "rpc": "https://neutron-rpc.publicnode.com:443",
+        "api": "https://neutron-rest.publicnode.com"
+      }
+    ]
+  }
 }

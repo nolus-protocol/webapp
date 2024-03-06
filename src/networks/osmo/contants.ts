@@ -1,49 +1,45 @@
 import type { ChainInfo } from "@keplr-wallet/types";
 
-const embedChainInfo = (
-  chainId: string,
-  tendermintRpc: string,
-  rest: string
-): ChainInfo => {
+const embedChainInfo = (chainId: string, tendermintRpc: string, rest: string): ChainInfo => {
   return {
     chainId: chainId,
-    chainName: 'Osmosis',
+    chainName: "Osmosis",
     rpc: tendermintRpc,
     rest: rest,
     bip44: {
-      coinType: 118,
+      coinType: 118
     },
     bech32Config: {
-      bech32PrefixAccAddr: 'osmo',
-      bech32PrefixAccPub: 'osmopub',
-      bech32PrefixValAddr: 'osmovaloper',
-      bech32PrefixValPub: 'osmovaloperpub',
-      bech32PrefixConsAddr: 'osmovalcons',
-      bech32PrefixConsPub: 'osmovalconspub',
+      bech32PrefixAccAddr: "osmo",
+      bech32PrefixAccPub: "osmopub",
+      bech32PrefixValAddr: "osmovaloper",
+      bech32PrefixValPub: "osmovaloperpub",
+      bech32PrefixConsAddr: "osmovalcons",
+      bech32PrefixConsPub: "osmovalconspub"
     },
     currencies: [
       {
-        coinDenom: 'osmo',
-        coinMinimalDenom: 'uosmo',
+        coinDenom: "osmo",
+        coinMinimalDenom: "uosmo",
         coinDecimals: 6,
-        coinGeckoId: 'osmosis',
-      },
+        coinGeckoId: "osmosis"
+      }
     ],
     feeCurrencies: [
       {
-        coinDenom: 'osmo',
-        coinMinimalDenom: 'uosmo',
+        coinDenom: "osmo",
+        coinMinimalDenom: "uosmo",
         coinDecimals: 6,
-        coinGeckoId: 'osmosis',
-      },
+        coinGeckoId: "osmosis"
+      }
     ],
     stakeCurrency: {
-      coinDenom: 'osmo',
-      coinMinimalDenom: 'uosmo',
+      coinDenom: "osmo",
+      coinMinimalDenom: "uosmo",
       coinDecimals: 6,
-      coinGeckoId: 'osmosis',
+      coinGeckoId: "osmosis"
     },
-    features: ["ibc-transfer"],
+    features: ["ibc-transfer"]
   };
 };
 

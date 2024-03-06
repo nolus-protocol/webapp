@@ -1,49 +1,45 @@
 import type { ChainInfo } from "@keplr-wallet/types";
 
-const embedChainInfo = (
-  chainId: string,
-  tendermintRpc: string,
-  rest: string
-): ChainInfo => {
+const embedChainInfo = (chainId: string, tendermintRpc: string, rest: string): ChainInfo => {
   return {
     chainId: chainId,
-    chainName: 'Celestia',
+    chainName: "Celestia",
     rpc: tendermintRpc,
     rest: rest,
     bip44: {
-      coinType: 118,
+      coinType: 118
     },
     bech32Config: {
-      bech32PrefixAccAddr: 'celestia',
-      bech32PrefixAccPub: 'celestiapub',
-      bech32PrefixValAddr: 'celestiavaloper',
-      bech32PrefixValPub: 'celestiavaloperpub',
-      bech32PrefixConsAddr: 'celestiavalcons',
-      bech32PrefixConsPub: 'celestiavalconspub',
+      bech32PrefixAccAddr: "celestia",
+      bech32PrefixAccPub: "celestiapub",
+      bech32PrefixValAddr: "celestiavaloper",
+      bech32PrefixValPub: "celestiavaloperpub",
+      bech32PrefixConsAddr: "celestiavalcons",
+      bech32PrefixConsPub: "celestiavalconspub"
     },
     currencies: [
       {
-        coinDenom: 'tia',
-        coinMinimalDenom: 'utia',
+        coinDenom: "tia",
+        coinMinimalDenom: "utia",
         coinDecimals: 6,
-        coinGeckoId: 'celestia',
-      },
+        coinGeckoId: "celestia"
+      }
     ],
     feeCurrencies: [
       {
-        coinDenom: 'tia',
-        coinMinimalDenom: 'utia',
+        coinDenom: "tia",
+        coinMinimalDenom: "utia",
         coinDecimals: 6,
-        coinGeckoId: 'celestia',
-      },
+        coinGeckoId: "celestia"
+      }
     ],
     stakeCurrency: {
-      coinDenom: 'tia',
-      coinMinimalDenom: 'utia',
+      coinDenom: "tia",
+      coinMinimalDenom: "utia",
       coinDecimals: 6,
-      coinGeckoId: 'celestia',
+      coinGeckoId: "celestia"
     },
-    features: ["ibc-transfer"],
+    features: ["ibc-transfer"]
   };
 };
 

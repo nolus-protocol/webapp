@@ -1,4 +1,4 @@
-import { DirectSecp256k1Wallet, type OfflineDirectSigner } from "@cosmjs/proto-signing";
+import { type OfflineDirectSigner } from "@cosmjs/proto-signing";
 import type { Wallet } from ".";
 import type { Window as KeplrWindow } from "@keplr-wallet/types/build/window";
 
@@ -6,156 +6,125 @@ import BluetoothTransport from "@ledgerhq/hw-transport-web-ble";
 import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
 
 import { LedgerSigner } from "@cosmjs/ledger-amino";
-import { WalletConnectMechanism, type NetworkData } from "@/types";
+import { WalletConnectMechanism, type NetworkData } from "@/common/types";
 import { makeCosmoshubPath, type OfflineAminoSigner } from "@cosmjs/amino";
 
 import { createBankAminoConverters, createIbcAminoConverters } from "@cosmjs/stargate";
 import { AminoTypes } from "@cosmjs/stargate";
-import { EncryptionUtils, WalletManager, WalletUtils } from "@/utils";
+import { WalletManager, WalletUtils, AppUtils, Logger } from "@/common//utils";
 import { BaseWallet } from "./BaseWallet";
-import { fromHex } from "@cosmjs/encoding";
-import { AppUtils } from "@/utils/AppUtils";
 
 const aminoTypes = {
-    ...createIbcAminoConverters(),
-    ...createBankAminoConverters()
-}
+  ...createIbcAminoConverters(),
+  ...createBankAminoConverters()
+};
 
 const MsgTransferAmino = new AminoTypes(aminoTypes);
 
-const createWallet = async (wallet: Wallet, offlineDirectSigner: OfflineDirectSigner | OfflineAminoSigner | LedgerSigner, prefix: string): Promise<BaseWallet> => {
-    const baseWallet = new BaseWallet(wallet.getTendermintClient(), offlineDirectSigner, { aminoTypes: MsgTransferAmino }, wallet.rpc, wallet.api, prefix);
-    await baseWallet.useAccount();
-    return baseWallet;
-};
+async function createWallet(
+  wallet: Wallet,
+  offlineDirectSigner: OfflineDirectSigner | OfflineAminoSigner | LedgerSigner,
+  prefix: string
+): Promise<BaseWallet> {
+  const baseWallet = new BaseWallet(
+    wallet.getTendermintClient(),
+    offlineDirectSigner,
+    { aminoTypes: MsgTransferAmino },
+    wallet.rpc,
+    wallet.api,
+    prefix
+  );
+  await baseWallet.useAccount();
+  return baseWallet;
+}
 
-const authenticateKeplr = async (wallet: Wallet, network: NetworkData) => {
+async function authenticateKeplr(wallet: Wallet, network: NetworkData) {
+  await WalletUtils.getKeplr();
+  const keplrWindow = window as KeplrWindow;
 
-    await WalletUtils.getKeplr();
-    const keplrWindow = window as KeplrWindow;
+  if (!keplrWindow.getOfflineSignerOnlyAmino || !keplrWindow.keplr) {
+    throw new Error("Keplr wallet is not installed.");
+  } else if (!keplrWindow.keplr.experimentalSuggestChain) {
+    throw new Error("Keplr version is not latest. Please upgrade your Keplr wallet");
+  } else {
+    let chainId = "";
 
-    if (!keplrWindow.getOfflineSignerOnlyAmino || !keplrWindow.keplr) {
-        throw new Error("Keplr wallet is not installed.");
-    } else if (!keplrWindow.keplr.experimentalSuggestChain) {
-        throw new Error(
-            "Keplr version is not latest. Please upgrade your Keplr wallet"
-        );
-    } else {
-        let chainId = "";
-
-        try {
-            chainId = await wallet.getChainId();
-            const node = await AppUtils.fetchEndpoints(network.key);
-            await keplrWindow.keplr?.experimentalSuggestChain(
-                network.embedChainInfo(chainId, node.rpc, node.api)
-            );
-        } catch (e) {
-            throw new Error("Failed to fetch suggest chain.");
-        }
-
-        await keplrWindow.keplr?.enable(chainId);
-
-        if (keplrWindow.getOfflineSignerOnlyAmino) {
-            const offlineSigner = keplrWindow.getOfflineSignerOnlyAmino(
-                chainId
-            );
-
-            return await createWallet(wallet, offlineSigner, network.prefix);
-
-        }
+    try {
+      chainId = await wallet.getChainId();
+      const node = await AppUtils.fetchEndpoints(network.key);
+      await keplrWindow.keplr?.experimentalSuggestChain(network.embedChainInfo(chainId, node.rpc, node.api));
+    } catch (e) {
+      throw new Error("Failed to fetch suggest chain.");
     }
 
-    throw new Error("Failed to fetch wallet.");
+    await keplrWindow.keplr?.enable(chainId);
 
+    if (keplrWindow.getOfflineSignerOnlyAmino) {
+      const offlineSigner = keplrWindow.getOfflineSignerOnlyAmino(chainId);
+
+      return await createWallet(wallet, offlineSigner, network.prefix);
+    }
+  }
+
+  throw new Error("Failed to fetch wallet.");
 }
 
-const authenticateLeap = async (wallet: Wallet, network: NetworkData) => {
-    await WalletUtils.getLeap();
-    const leapWindow = window as any;
+async function authenticateLeap(wallet: Wallet, network: NetworkData) {
+  await WalletUtils.getLeap();
+  const leapWindow = window as any;
 
-    if (!leapWindow.leap.getOfflineSignerOnlyAmino || !leapWindow.leap) {
-        throw new Error("Leap wallet is not installed.");
-    } else if (!leapWindow.leap.experimentalSuggestChain) {
-        throw new Error(
-            "Leap version is not latest. Please upgrade your Leap wallet"
-        );
-    } else {
-        let chainId = "";
+  if (!leapWindow.leap.getOfflineSignerOnlyAmino || !leapWindow.leap) {
+    throw new Error("Leap wallet is not installed.");
+  } else if (!leapWindow.leap.experimentalSuggestChain) {
+    throw new Error("Leap version is not latest. Please upgrade your Leap wallet");
+  } else {
+    let chainId = "";
 
-        try {
-            chainId = await wallet.getChainId();
-            const node = await AppUtils.fetchEndpoints(network.key);
+    try {
+      chainId = await wallet.getChainId();
+      const node = await AppUtils.fetchEndpoints(network.key);
 
-            await leapWindow.leap?.experimentalSuggestChain(
-                network.embedChainInfo(chainId, node.rpc, node.api)
-            );
-        } catch (e) {
-            console.log(e)
-            throw new Error("Failed to fetch suggest chain.");
-        }
-
-        await leapWindow.leap?.enable(chainId);
-
-        if (leapWindow.leap.getOfflineSignerOnlyAmino) {
-            const offlineSigner = leapWindow.leap.getOfflineSignerOnlyAmino(
-                chainId
-            );
-
-            return await createWallet(wallet, offlineSigner, network.prefix);
-
-        }
+      await leapWindow.leap?.experimentalSuggestChain(network.embedChainInfo(chainId, node.rpc, node.api));
+    } catch (e) {
+      Logger.error(e);
+      throw new Error("Failed to fetch suggest chain.");
     }
 
-    throw new Error("Failed to fetch wallet.");
+    await leapWindow.leap?.enable(chainId);
 
-}
+    if (leapWindow.leap.getOfflineSignerOnlyAmino) {
+      const offlineSigner = leapWindow.leap.getOfflineSignerOnlyAmino(chainId);
 
-const authenticateLedger = async (wallet: Wallet, network: NetworkData) => {
-    const transport = await getLedgerTransport();
-    const accountNumbers = [0];
-    const paths = accountNumbers.map(makeCosmoshubPath);
-    return await createWallet(
-        wallet,
-        new LedgerSigner(transport, {
-            prefix: network.prefix,
-            hdPaths: paths,
-        }),
-        network.prefix
-    );
-}
-
-const getLedgerTransport = async () => {
-    const isConnectedViaLedgerBluetooth = WalletManager.getWalletConnectMechanism() === WalletConnectMechanism.LEDGER_BLUETOOTH;
-
-    if (isConnectedViaLedgerBluetooth) {
-        return await BluetoothTransport.create();
+      return await createWallet(wallet, offlineSigner, network.prefix);
     }
+  }
 
-    return await TransportWebUSB.create();
-
+  throw new Error("Failed to fetch wallet.");
 }
 
-const authenticateDecrypt = async (wallet: Wallet, network: NetworkData, password: string) => {
-    const encryptedPk = WalletManager.getPrivateKey();
-    const encryptedPubKey = WalletManager.getEncryptedPubKey();
-
-    const decryptedPubKey = EncryptionUtils.decryptEncryptionKey(
-        encryptedPubKey,
-        password
-    );
-
-    const decryptedPrivateKey = EncryptionUtils.decryptPrivateKey(
-        encryptedPk,
-        decryptedPubKey,
-        password
-    );
-
-    const directSecrWallet = await DirectSecp256k1Wallet.fromKey(
-        fromHex(decryptedPrivateKey),
-        network.prefix
-    );
-
-    return await createWallet(wallet, directSecrWallet, network.prefix);
+async function authenticateLedger(wallet: Wallet, network: NetworkData) {
+  const transport = await getLedgerTransport();
+  const accountNumbers = [0];
+  const paths = accountNumbers.map(makeCosmoshubPath);
+  return await createWallet(
+    wallet,
+    new LedgerSigner(transport, {
+      prefix: network.prefix,
+      hdPaths: paths
+    }),
+    network.prefix
+  );
 }
 
-export { aminoTypes, authenticateLedger, authenticateKeplr, authenticateLeap, authenticateDecrypt, createWallet };
+async function getLedgerTransport() {
+  const isConnectedViaLedgerBluetooth =
+    WalletManager.getWalletConnectMechanism() === WalletConnectMechanism.LEDGER_BLUETOOTH;
+
+  if (isConnectedViaLedgerBluetooth) {
+    return await BluetoothTransport.create();
+  }
+
+  return await TransportWebUSB.create();
+}
+
+export { aminoTypes, authenticateLedger, authenticateKeplr, authenticateLeap, createWallet };

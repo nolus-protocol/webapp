@@ -1,7 +1,7 @@
 <template>
   <DialogHeader :headerList="[title]">
     <div
-      class="overflow-auto w-full md:max-h-[70vh] text-primary p-10 custom-scroll proposal-modal text-left"
+      class="custom-scroll proposal-modal w-full overflow-auto p-10 text-left text-primary md:max-h-[70vh]"
       v-html="description"
     ></div>
   </DialogHeader>
@@ -10,7 +10,7 @@
 <script lang="ts" setup>
 import { computed } from "vue";
 import { marked } from "marked";
-import DialogHeader from "@/components/modals/templates/DialogHeader.vue";
+import DialogHeader from "@/common/components/modals/templates/DialogHeader.vue";
 
 const props = defineProps({
   title: {
@@ -27,7 +27,7 @@ const description = computed(() => {
   return marked.parse(props.source, {
     pedantic: true,
     gfm: true,
-    breaks: true,
+    breaks: true
   });
 });
 </script>
@@ -46,7 +46,7 @@ const description = computed(() => {
 
   ul {
     margin-bottom: 18px;
-    list-style:  unset;
+    list-style: unset;
   }
 
   h1 {

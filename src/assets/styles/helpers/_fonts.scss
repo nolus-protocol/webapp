@@ -16,7 +16,8 @@
 
 @font-face {
   font-family: "Garet-Bold";
-  src: url("./fonts/Garet-Bold.woff2") format("woff2"),
+  src:
+    url("./fonts/Garet-Bold.woff2") format("woff2"),
     url("./fonts/Garet-Bold.woff") format("woff");
   font-weight: bold;
   font-style: normal;
@@ -25,17 +26,18 @@
 
 @font-face {
   font-family: "Garet-Regular";
-  src: url("./fonts/Garet-Regular.woff2") format("woff2"),
+  src:
+    url("./fonts/Garet-Regular.woff2") format("woff2"),
     url("./fonts/Garet-Regular.woff") format("woff");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
-  ;
 }
 
 @font-face {
   font-family: "Garet-Medium";
-  src: url("./fonts/Garet-Medium.woff2") format("woff2"),
+  src:
+    url("./fonts/Garet-Medium.woff2") format("woff2"),
     url("./fonts/Garet-Medium.woff") format("woff");
   font-weight: 500;
   font-style: normal;
@@ -45,7 +47,8 @@
 @font-face {
   font-family: "nolus";
   src: url("./fonts/nolus.eot?26006009");
-  src: url("./fonts//nolus.eot?26006009#iefix") format("embedded-opentype"),
+  src:
+    url("./fonts//nolus.eot?26006009#iefix") format("embedded-opentype"),
     url("./fonts/nolus.woff2?26006009") format("woff2"),
     url("./fonts/nolus.woff?26006009") format("woff"),
     url("./fonts/nolus.ttf?26006009") format("truetype"),

@@ -8,7 +8,6 @@ export interface EthermintBaseAccount {
 }
 
 export const EthermintAccount = {
-
   decode(input: _m0.Reader | Uint8Array, length?: number): BaseVestingAccount {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
@@ -26,8 +25,7 @@ export const EthermintAccount = {
     }
 
     return message;
-  },
-
+  }
 };
 
 function createBaseBaseVestingAccount(): EthermintBaseAccount {
