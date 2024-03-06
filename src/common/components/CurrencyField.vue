@@ -74,10 +74,13 @@ import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useWalletStore } from "@/common/stores/wallet";
+import { useApplicationStore } from "../stores/application";
+import { CurrencyMapping } from "@/config/global";
 
 const emit = defineEmits(["update-currency", "update:modelValue", "input"]);
 const oracle = useOracleStore();
 const wallet = useWalletStore();
+const app = useApplicationStore();
 
 const dot = ".";
 const minus = "-";
@@ -166,50 +169,52 @@ function onUpdateCurrency(value: AssetBalance) {
 }
 
 function calculateInputBalance() {
-  if (props.price) {
-    const coin = CurrencyUtils.convertDenomToMinimalDenom(
+  try {
+    if (props.price) {
+      const coin = CurrencyUtils.convertDenomToMinimalDenom(
+        numberRealValue.toString(),
+        props.option?.balance.denom as string,
+        props.option?.decimals as number
+      );
+      return CurrencyUtils.calculateBalance(props.price.toString(), coin, props.option?.decimals as number);
+    }
+
+    const prices = oracle.prices;
+    let coinDecimals = null;
+    let coinMinimalDenom = null;
+
+    if (!numberRealValue || !props.option || !prices) {
+      return "$0";
+    }
+
+    if (props.option.ticker) {
+      let [ticker, protocol] = props.option.ticker.split("@");
+
+      if (CurrencyMapping[ticker]) {
+        ticker = CurrencyMapping[ticker].ticker;
+      }
+
+      const currency = app.getCurrencySymbol(ticker, protocol);
+      coinDecimals = Number(currency?.decimal_digits);
+      coinMinimalDenom = currency?.ibcData;
+    } else {
+      const currency = wallet.currencies[props.option.balance.denom];
+      coinDecimals = Number(currency?.decimal_digits);
+      coinMinimalDenom = currency?.ibcData;
+    }
+
+    const { amount } = CurrencyUtils.convertDenomToMinimalDenom(
       numberRealValue.toString(),
-      props.option?.balance.denom as string,
-      props.option?.decimals as number
+      coinMinimalDenom as string,
+      coinDecimals
     );
-    return CurrencyUtils.calculateBalance(props.price.toString(), coin, props.option?.decimals as number);
+
+    const coin = new Coin(props.option.balance.denom as string, new Int(String(amount)));
+    const tokenPrice = prices[coinMinimalDenom!]?.amount || "0";
+    return CurrencyUtils.calculateBalance(tokenPrice, coin, coinDecimals);
+  } catch (error) {
+    return "$0.00";
   }
-
-  const prices = oracle.prices;
-
-  if (!numberRealValue || !props.option || !prices) {
-    return "$0";
-  }
-
-  const ticker = props.option.ticker;
-
-  let coinDecimals = null;
-  let coinMinimalDenom = null;
-  let symbol = null;
-
-  if (ticker) {
-    const { decimals, symbol: currencySymbol } = props.option;
-    coinDecimals = decimals as number;
-    coinMinimalDenom = props.option.balance.denom;
-    symbol = currencySymbol as string;
-  } else {
-    const denom = props.option.balance.denom;
-    const { coinDecimals: decimals, coinMinimalDenom: minimalDenom } = wallet.getCurrencyInfo(denom);
-    symbol = wallet.currencies[denom].symbol;
-    coinDecimals = decimals;
-    coinMinimalDenom = minimalDenom;
-  }
-
-  const { amount } = CurrencyUtils.convertDenomToMinimalDenom(
-    numberRealValue.toString(),
-    coinMinimalDenom as string,
-    coinDecimals
-  );
-
-  const coin = new Coin(coinMinimalDenom as string, new Int(String(amount)));
-  const tokenPrice = prices[coinMinimalDenom]?.amount || "0";
-
-  return CurrencyUtils.calculateBalance(tokenPrice, coin, coinDecimals);
 }
 
 function inputValue(event: KeyboardEvent) {

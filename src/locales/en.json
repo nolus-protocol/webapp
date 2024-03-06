@@ -376,6 +376,7 @@
     "voted": "Voted",
     "pnl-banner-title": "PnL Challenge",
     "pnl-banner-subtitle": "Win Extra USDC",
-    "pnl-banner-description": "Share your top lease gainer on Twitter by March 15th. Post freely, then submit your best pick here"
+    "pnl-banner-description": "Share your top lease gainer on Twitter by March 15th. Post freely, then submit your best pick here",
+    "integer-out-of-range": "Integer out of range"
   }
 }

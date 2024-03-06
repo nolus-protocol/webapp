@@ -3,7 +3,6 @@
     v-if="showConfirmScreen"
     :selectedCurrency="state.selectedCurrency"
     :receiver-address="address"
-    :password="state.password"
     :amount="state.amount"
     :txType="$t(`message.${TxType.GET_REWARD}`)"
     :txHash="state.txHash"
@@ -55,7 +54,6 @@ const state = ref({
   currentBalance: walletStore.balances,
   selectedCurrency: walletStore.balances.find((item) => item.balance.denom == NATIVE_ASSET.denom),
   amount: parsedAmount.value,
-  password: "",
   txHash: "",
   fee: coin(GAS_FEES.withdraw_delegator_reward, NATIVE_ASSET.denom),
   onNextClick: () => onNextClick(),

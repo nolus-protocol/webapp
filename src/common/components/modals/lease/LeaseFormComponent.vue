@@ -222,16 +222,20 @@ const setSwapFee = async () => {
 };
 
 const downPaymentSwapFeeStable = computed(() => {
-  const asset = wallet.getCurrencyInfo(props.modelValue.selectedDownPaymentCurrency.balance.denom);
-  const price = oracle.prices[asset.coinMinimalDenom];
-  const borrow = new Dec(props.modelValue.leaseApply?.borrow?.amount ?? 0, LPN_DECIMALS);
+  try {
+    const asset = wallet.getCurrencyInfo(props.modelValue.selectedDownPaymentCurrency.balance.denom);
+    const price = oracle.prices[asset.coinMinimalDenom];
+    const borrow = new Dec(props.modelValue.leaseApply?.borrow?.amount ?? 0, LPN_DECIMALS);
 
-  const value = new Dec(props.modelValue.downPayment.length == 0 ? 0 : props.modelValue.downPayment)
-    .mul(new Dec(price.amount))
-    .add(borrow)
-    .mul(new Dec(swapFee.value));
+    const value = new Dec(props.modelValue.downPayment.length == 0 ? 0 : props.modelValue.downPayment)
+      .mul(new Dec(price.amount))
+      .add(borrow)
+      .mul(new Dec(swapFee.value));
 
-  return value.toString(LPN_DECIMALS);
+    return value.toString(LPN_DECIMALS);
+  } catch (error) {
+    return "0.00";
+  }
 });
 
 function handleDownPaymentChange(value: string) {

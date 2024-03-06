@@ -191,7 +191,6 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
     }
 
     if (leaseData) {
-      console.log(leaseData);
       pnlAmount = currentAmount.sub(debt).sub(leaseData?.downPayment).add(leaseData?.downPaymentFee);
       if (leaseData.downPayment.isPositive()) {
         pnlPercent = pnlAmount.quo(leaseData?.downPayment).mul(new Dec(100));
