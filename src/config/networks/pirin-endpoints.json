@@ -172,8 +172,8 @@
   },
   "DYMENSION": {
     "primary": {
-      "rpc": "https://dym-m-rpc.agoranodes.com",
-      "api": "https://dym-m-api.agoranodes.com"
+      "rpc": "https://dymension-mainnet-rpc.autostake.com:443",
+      "api": "https://dymension-mainnet-lcd.autostake.com:443"
     },
     "fallback": [
       {
