@@ -27,7 +27,7 @@
         </div>
         <div class="nls-font-700 text-right text-14">
           <p
-            class="align-center dark-text mb-2 mt-[14px] flex cursor-pointer select-none justify-end"
+            class="align-center dark-text mb-2 mt-[14px] flex cursor-pointer select-none flex-wrap justify-end"
             @click="setValue"
           >
             {{ amount.amount }}

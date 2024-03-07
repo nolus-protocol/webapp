@@ -1,7 +1,7 @@
 <template>
   <div class="history-item">
     <div
-      v-for="(msg, index) in messages()"
+      v-for="(msg, index) in messagesRef"
       :key="index"
       class="border-standart items-center gap-6 border-b py-4 text-12 md:flex md:grid md:grid-cols-12"
     >
@@ -25,7 +25,7 @@
 
       <div class="nls-14 nls-font-400 col-span-6 block text-left text-14 text-primary">
         <span class="nls-12 nls-font-600">
-          {{ message(msg) }}
+          {{ msg }}
         </span>
       </div>
       <div class="md:justify-endtext-primary col-span-2 hidden items-center justify-start sm:block">
@@ -66,13 +66,15 @@ import Icon from "@/assets/icons/urlicon.svg";
 
 import { useApplicationStore } from "@/common/stores/application";
 import { useWalletStore } from "@/common/stores/wallet";
-import { Logger, getCreatedAtForHuman } from "@/common/utils";
-import { CurrencyUtils } from "@nolus/nolusjs";
+import { AppUtils, AssetUtils, Logger, getCreatedAtForHuman } from "@/common/utils";
+import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
 import { StringUtils, WalletManager } from "@/common/utils";
 import { useI18n } from "vue-i18n";
 import { Buffer } from "buffer";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { CurrencyMapping } from "@/config/global";
+import { ref } from "vue";
+import { onMounted } from "vue";
 
 enum Messages {
   "/cosmos.bank.v1beta1.MsgSend" = "/cosmos.bank.v1beta1.MsgSend",
@@ -91,6 +93,7 @@ enum Messages {
 const i18n = useI18n();
 const applicaton = useApplicationStore();
 const wallet = useWalletStore();
+const messagesRef = ref<string[]>();
 
 const voteMessages: { [key: string]: string } = {
   [VoteOption.VOTE_OPTION_ABSTAIN]: i18n.t(`message.abstained`).toLowerCase(),
@@ -103,6 +106,14 @@ interface Props {
   transaction: ITransaction;
 }
 const props = defineProps<Props>();
+
+onMounted(async () => {
+  const promises = [];
+  for (const m of messages()) {
+    promises.push(message(m));
+  }
+  messagesRef.value = await Promise.all(promises);
+});
 
 function truncateString(text: string) {
   return StringUtils.truncateString(text, 6, 6);
@@ -118,7 +129,7 @@ function convertFeeAmount(fee: Coin[] | null) {
   return feeAmount?.toString();
 }
 
-function message(msg: IObjectKeys) {
+async function message(msg: IObjectKeys) {
   switch (msg.typeUrl) {
     case Messages["/cosmos.bank.v1beta1.MsgSend"]: {
       if (props.transaction.type == "sender") {
@@ -141,7 +152,7 @@ function message(msg: IObjectKeys) {
     }
     case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
       if (props.transaction.type == "sender") {
-        const token = getCurrency(msg.data.token);
+        const token = await fetchCurrency(msg.data.token);
         return i18n.t("message.send-action", {
           address: truncateString(msg.data.receiver),
           amount: token.toString()
@@ -328,9 +339,9 @@ function getCurrency(amount: Coin) {
   const info = wallet.currencies[amount.denom];
   const token = CurrencyUtils.convertMinimalDenomToDenom(
     amount?.amount,
-    info.ibcData,
-    info.shortName,
-    Number(info.decimal_digits)
+    info?.ibcData,
+    info?.shortName ?? truncateString(amount.denom),
+    Number(info?.decimal_digits ?? 0)
   );
 
   return token;
@@ -437,6 +448,20 @@ function messages() {
 
     return true;
   });
+}
+
+async function fetchCurrency(amount: Coin) {
+  const api = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
+  const data = await fetch(`${api}/ibc/apps/transfer/v1/denom_traces/${amount.denom}`);
+  const json = await data.json();
+  const ibc = wallet.getIbcDenomBySymbol(json.denom_trace.base_denom);
+  const currency = wallet.currencies[ibc as string];
+  return CurrencyUtils.convertMinimalDenomToDenom(
+    amount?.amount,
+    currency?.ibcData,
+    currency?.shortName ?? truncateString(amount.denom),
+    Number(currency?.decimal_digits ?? 0)
+  );
 }
 </script>
 <style scoped>
