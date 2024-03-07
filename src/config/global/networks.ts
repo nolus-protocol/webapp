@@ -50,5 +50,6 @@ export const SUPPORTED_NETWORKS = [
   "CELESTIA",
   "NEUTRON",
   "DYDX",
-  "QUICKSILVER"
+  "QUICKSILVER",
+  "DYMENSION"
 ];

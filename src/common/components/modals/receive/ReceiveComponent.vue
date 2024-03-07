@@ -586,6 +586,8 @@ async function ibcTransfer(baseWallet: BaseWallet) {
       await walletStore.UPDATE_BALANCES();
     }, 10000);
   } catch (error: Error | any) {
+    console.log(error);
+
     switch (error.code) {
       case ErrorCodes.GasError: {
         step.value = CONFIRM_STEP.GasErrorExternal;

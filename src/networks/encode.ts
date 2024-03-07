@@ -11,7 +11,7 @@ import { fromBase64 } from "@cosmjs/encoding";
 import { Uint53 } from "@cosmjs/math";
 import { PubKey as CosmosCryptoEd25519Pubkey } from "cosmjs-types/cosmos/crypto/ed25519/keys";
 import { LegacyAminoPubKey } from "cosmjs-types/cosmos/crypto/multisig/keys";
-import { PubKey as CosmosCryptoSecp256k1Pubkey } from "cosmjs-types/cosmos/crypto/secp256k1/keys";
+import { PubKey as CosmosCryptoSecp256k1Pubkey } from "cosmjs-types-legacy/cosmos/crypto/secp256k1/keys";
 import { Any } from "cosmjs-types/google/protobuf/any";
 
 export interface EthSecp256k1Pubkey extends SinglePubkey {

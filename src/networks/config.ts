@@ -36,6 +36,9 @@ import { embedChainInfo as quicksilverChainInfo } from "./quicksilver/contants";
 import { NETWORK as NEUTRON_NETWORK } from "./neutron/network";
 import { embedChainInfo as neutronChainInfo } from "./neutron/contants";
 
+import { NETWORK as DYMENSION_NETWORK } from "./dymension/network";
+import { embedChainInfo as dymensionChainInfo } from "./dymension/contants";
+
 import { useApplicationStore } from "@/common/stores/application";
 import type { ExternalCurrencies, NetworkData } from "@/common/types";
 
@@ -180,6 +183,16 @@ export const SUPPORTED_NETWORKS_DATA: {
     key: "DYDX",
     symbol: "DYDX",
     forward: true
+  },
+  DYMENSION: {
+    prefix: "dymension",
+    value: "dymension",
+    label: "Dymension",
+    native: false,
+    estimation: 20,
+    key: "DYMENSION",
+    symbol: "DYM",
+    forward: true
   }
 };
 
@@ -269,7 +282,9 @@ export const NETWORKS_DATA: {
       SUPPORTED_NETWORKS_DATA.STARGAZE,
       SUPPORTED_NETWORKS_DATA.CELESTIA,
       SUPPORTED_NETWORKS_DATA.QUICKSILVER,
-      SUPPORTED_NETWORKS_DATA.NEUTRON
+      SUPPORTED_NETWORKS_DATA.NEUTRON,
+      SUPPORTED_NETWORKS_DATA.DYMENSION,
+      SUPPORTED_NETWORKS_DATA.EVMOS
     ],
     supportedNetworks: {
       OSMOSIS: {
@@ -373,12 +388,21 @@ export const NETWORKS_DATA: {
       },
       NEUTRON: {
         ...NEUTRON_NETWORK,
-        explorer: "https://mintscan.io/neutron-testnet/txs",
+        explorer: "https://mintscan.io/neutron/txs",
         currencies: () => {
           const app = useApplicationStore();
           return app?.networks?.[NEUTRON_NETWORK.key] as ExternalCurrencies;
         },
         embedChainInfo: neutronChainInfo
+      },
+      DYMENSION: {
+        ...DYMENSION_NETWORK,
+        explorer: "https://mintscan.io/dymension/txs",
+        currencies: () => {
+          const app = useApplicationStore();
+          return app?.networks?.[DYMENSION_NETWORK.key] as ExternalCurrencies;
+        },
+        embedChainInfo: dymensionChainInfo
       }
     }
   }

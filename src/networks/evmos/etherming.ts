@@ -1,6 +1,6 @@
 //@ts-nocheck
 
-import { BaseAccount } from "cosmjs-types/cosmos/auth/v1beta1/auth";
+import { BaseAccount } from "cosmjs-types-legacy/cosmos/auth/v1beta1/auth";
 import * as _m0 from "protobufjs/minimal";
 
 export interface EthermintBaseAccount {

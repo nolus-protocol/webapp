@@ -31,9 +31,9 @@ import {
   QueryClient,
   setupAuthExtension,
   setupBankExtension,
-  setupStakingExtension,
-  setupTxExtension
+  setupStakingExtension
 } from "@cosmjs/stargate";
+import { setupTxExtension } from "./setupTxExtension";
 
 export class BaseWallet extends SigningCosmWasmClient {
   address?: string;
@@ -101,6 +101,9 @@ export class BaseWallet extends SigningCosmWasmClient {
   private getPubKey(pubKey?: Uint8Array) {
     switch (this.prefix) {
       case SUPPORTED_NETWORKS_DATA.EVMOS.prefix: {
+        return encodeEthSecp256k1Pubkey(pubKey ?? (this.pubKey as Uint8Array));
+      }
+      case SUPPORTED_NETWORKS_DATA.DYMENSION.prefix: {
         return encodeEthSecp256k1Pubkey(pubKey ?? (this.pubKey as Uint8Array));
       }
       default: {

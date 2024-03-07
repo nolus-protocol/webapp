@@ -169,5 +169,17 @@
         "api": "https://neutron-rest.publicnode.com"
       }
     ]
+  },
+  "DYMENSION": {
+    "primary": {
+      "rpc": "https://dym-m-rpc.agoranodes.com",
+      "api": "https://dym-m-api.agoranodes.com"
+    },
+    "fallback": [
+      {
+        "rpc": "https://rpc.dymension.nodestake.org",
+        "api": "https://api.dymension.nodestake.org"
+      }
+    ]
   }
 }

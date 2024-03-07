@@ -70,6 +70,9 @@ export const ASSETS = {
   },
   ST_TIA: {
     coinGeckoId: "stride-staked-tia"
+  },
+  DYM: {
+    coinGeckoId: "dymension"
   }
 };
 
