@@ -172,8 +172,8 @@
   },
   "DYMENSION": {
     "primary": {
-      "rpc": "https://dymension-mainnet-rpc.autostake.com:443",
-      "api": "https://dymension-mainnet-lcd.autostake.com:443"
+      "rpc": "https://dymension-rpc.publicnode.com:443",
+      "api": "https://dymension-rest.publicnode.com"
     },
     "fallback": [
       {
