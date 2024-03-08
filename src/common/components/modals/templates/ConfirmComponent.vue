@@ -162,10 +162,22 @@ const btnAction = computed(() => {
 });
 
 const setShowDialogHeader = inject("setShowDialogHeader", (n: boolean) => {});
+const setDisable = inject("setDisable", (n: boolean) => {});
 
 onMounted(() => {
   setShowDialogHeader(false);
 });
+
+watch(
+  () => props.step,
+  () => {
+    if (props.step == CONFIRM_STEP.PENDING) {
+      setDisable(true);
+    } else {
+      setDisable(false);
+    }
+  }
+);
 
 function formatAmount(value: string) {
   const selectedCurrency = props.selectedCurrency;

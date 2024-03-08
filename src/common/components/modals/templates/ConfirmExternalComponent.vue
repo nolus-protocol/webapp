@@ -130,7 +130,7 @@
 import type { Coin } from "@cosmjs/amino";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 
-import { computed, inject, onMounted } from "vue";
+import { computed, inject, onMounted, watch } from "vue";
 import { ArrowLeftIcon, CheckIcon, XMarkIcon } from "@heroicons/vue/24/solid";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { AssetUtils, EnvNetworkUtils, StringUtils } from "@/common/utils";
@@ -185,8 +185,21 @@ const btnAction = computed(() => {
 });
 
 const setShowDialogHeader = inject("setShowDialogHeader", (n: boolean) => {});
+const setDisable = inject("setDisable", (n: boolean) => {});
+
+watch(
+  () => props.step,
+  () => {
+    if (props.step == CONFIRM_STEP.PENDING) {
+      setDisable(true);
+    } else {
+      setDisable(false);
+    }
+  }
+);
 
 onMounted(() => {
+  console.log("enter");
   setShowDialogHeader(false);
 });
 

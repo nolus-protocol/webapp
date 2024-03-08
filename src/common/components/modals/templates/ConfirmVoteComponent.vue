@@ -135,7 +135,7 @@ import WarningBox from "./WarningBox.vue";
 
 import type { Coin } from "@cosmjs/amino";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
-import { computed, inject, onMounted } from "vue";
+import { computed, inject, onMounted, watch } from "vue";
 import { CheckIcon, XMarkIcon } from "@heroicons/vue/24/solid";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { StringUtils } from "@/common/utils";
@@ -170,10 +170,22 @@ const btnAction = computed(() => {
 });
 
 const setShowDialogHeader = inject("setShowDialogHeader", (n: boolean) => {});
+const setDisable = inject("setDisable", (n: boolean) => {});
 
 onMounted(() => {
   setShowDialogHeader(false);
 });
+
+watch(
+  () => props.step,
+  () => {
+    if (props.step == CONFIRM_STEP.PENDING) {
+      setDisable(true);
+    } else {
+      setDisable(false);
+    }
+  }
+);
 
 function calculateFee(coin: Coin) {
   const { shortName, coinMinimalDenom, coinDecimals } = wallet.getCurrencyInfo(coin.denom);

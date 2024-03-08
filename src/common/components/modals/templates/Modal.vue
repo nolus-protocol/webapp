@@ -8,6 +8,7 @@
       <button
         class="btn-close-modal"
         @click="onModalClose"
+        v-if="!disable"
       >
         <XMarkIcon class="z-[5] inline-block h-8 w-8" />
       </button>
@@ -33,6 +34,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["close-modal"]);
+const disable = ref(false);
 
 onMounted(() => {
   document.body.style.overflowY = "hidden";
@@ -57,6 +59,9 @@ onUnmounted(() => {
 });
 
 function onModalClose() {
+  if (disable.value) {
+    return;
+  }
   if (!props.disableClose) {
     parseRoute();
     close();
@@ -93,8 +98,13 @@ function close() {
   }, 100);
 }
 
+function setDisable(bool: boolean) {
+  disable.value = bool;
+}
+
 provide("onModalClose", onModalClose);
 provide("parseRoute", parseRoute);
+provide("setDisable", setDisable);
 
 defineExpose({ onModalClose });
 </script>

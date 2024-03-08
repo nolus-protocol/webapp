@@ -354,7 +354,7 @@ import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 
-import { computed, onMounted, onUnmounted, provide, ref, Transition, watch } from "vue";
+import { computed, onUnmounted, provide, ref, Transition, watch } from "vue";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils, NolusClient } from "@nolus/nolusjs";
 import { useLeases } from "@/common/composables/useLeases";
