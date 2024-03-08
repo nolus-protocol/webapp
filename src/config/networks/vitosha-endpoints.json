@@ -97,17 +97,5 @@
         "api": "https://api.pion.remedy.tm.p2p.org"
       }
     ]
-  },
-  "JACKAL": {
-    "primary": {
-      "rpc": "https://rpc.jackalprotocol.com",
-      "api": "https://api.jackalprotocol.com"
-    },
-    "fallback": [
-      {
-        "rpc": "https://jackal-rpc.lavenderfive.com:443",
-        "api": "https://jackal-api.lavenderfive.com:443"
-      }
-    ]
   }
 }
