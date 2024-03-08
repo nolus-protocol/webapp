@@ -73,6 +73,9 @@ export const ASSETS = {
   },
   DYM: {
     coinGeckoId: "dymension"
+  },
+  JKL: {
+    coinGeckoId: "jackal-protocol"
   }
 };
 

@@ -39,6 +39,9 @@ import { embedChainInfo as neutronChainInfo } from "./neutron/contants";
 import { NETWORK as DYMENSION_NETWORK } from "./dymension/network";
 import { embedChainInfo as dymensionChainInfo } from "./dymension/contants";
 
+import { NETWORK as JACKAL_NETWORK } from "./jackal/network";
+import { embedChainInfo as jackalChainInfo } from "./jackal/contants";
+
 import { useApplicationStore } from "@/common/stores/application";
 import type { ExternalCurrencies, NetworkData } from "@/common/types";
 
@@ -193,6 +196,16 @@ export const SUPPORTED_NETWORKS_DATA: {
     key: "DYMENSION",
     symbol: "DYM",
     forward: true
+  },
+  JACKAL: {
+    prefix: "jackal",
+    value: "jackal",
+    label: "Jackal",
+    native: false,
+    estimation: 20,
+    key: "JACKAL",
+    symbol: "JKL",
+    forward: true
   }
 };
 
@@ -284,7 +297,8 @@ export const NETWORKS_DATA: {
       SUPPORTED_NETWORKS_DATA.QUICKSILVER,
       SUPPORTED_NETWORKS_DATA.NEUTRON,
       SUPPORTED_NETWORKS_DATA.DYMENSION,
-      SUPPORTED_NETWORKS_DATA.EVMOS
+      SUPPORTED_NETWORKS_DATA.EVMOS,
+      SUPPORTED_NETWORKS_DATA.JACKAL
     ],
     supportedNetworks: {
       OSMOSIS: {
@@ -403,6 +417,15 @@ export const NETWORKS_DATA: {
           return app?.networks?.[DYMENSION_NETWORK.key] as ExternalCurrencies;
         },
         embedChainInfo: dymensionChainInfo
+      },
+      JACKAL: {
+        ...JACKAL_NETWORK,
+        explorer: "https://ping.pub/jackal/tx",
+        currencies: () => {
+          const app = useApplicationStore();
+          return app?.networks?.[JACKAL_NETWORK.key] as ExternalCurrencies;
+        },
+        embedChainInfo: jackalChainInfo
       }
     }
   }
