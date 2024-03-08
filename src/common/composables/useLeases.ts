@@ -140,7 +140,7 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
 
   const [balancesData] = await Promise.all([balancesReq.json()]);
   const debt = LeaseUtils.getDebt(leaseInfo?.opened);
-  const balances = getLeaseBalances(leaseInfo, balancesData.balances);
+  const balances = getLeaseBalances(leaseInfo, protocolKey, balancesData.balances);
 
   let additionalInterest = new Dec(0);
   let interestDue = new Dec(0);
@@ -214,16 +214,14 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
   };
 }
 
-function getLeaseBalances(leaseInfo: LeaseStatus, balances: Coin[]) {
+function getLeaseBalances(leaseInfo: LeaseStatus, protocolKey: string, balances: Coin[]) {
   const disable = [NATIVE_ASSET.denom];
   const ticker = leaseInfo?.paid?.amount.ticker;
   const walletStore = useWalletStore();
   const app = useApplicationStore();
 
   if (ticker) {
-    const asset = walletStore.getCurrencyByTicker(ticker);
-    const ibc = asset?.ibcData as string;
-    disable.push(ibc);
+    disable.push(app.currenciesData![`${ticker}@${protocolKey}`].ibcData as string);
   }
 
   return balances
