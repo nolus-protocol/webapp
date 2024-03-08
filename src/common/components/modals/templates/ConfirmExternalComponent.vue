@@ -190,16 +190,28 @@ const setDisable = inject("setDisable", (n: boolean) => {});
 watch(
   () => props.step,
   () => {
-    if (props.step == CONFIRM_STEP.PENDING) {
-      setDisable(true);
-    } else {
-      setDisable(false);
+    switch (props.step) {
+      case CONFIRM_STEP.PENDING: {
+        setDisable(true);
+        break;
+      }
+      case CONFIRM_STEP.SUCCESS: {
+        setDisable(true);
+        break;
+      }
+      case CONFIRM_STEP.ERROR: {
+        setDisable(true);
+        break;
+      }
+      default: {
+        setDisable(false);
+        break;
+      }
     }
   }
 );
 
 onMounted(() => {
-  console.log("enter");
   setShowDialogHeader(false);
 });
 

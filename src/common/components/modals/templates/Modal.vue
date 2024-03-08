@@ -59,9 +59,6 @@ onUnmounted(() => {
 });
 
 function onModalClose() {
-  if (disable.value) {
-    return;
-  }
   if (!props.disableClose) {
     parseRoute();
     close();
@@ -78,7 +75,7 @@ function parseRoute() {
 }
 
 function escapeClicked(event: KeyboardEvent) {
-  if (event.key == "Escape") {
+  if (event.key == "Escape" && !disable.value) {
     onModalClose();
   }
 }
