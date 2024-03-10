@@ -177,8 +177,8 @@
     },
     "fallback": [
       {
-        "rpc": "https://dymension-rpc.publicnode.com:443",
-        "api": "https://dymension-rest.publicnode.com"
+        "rpc": "https://dymension-rpc.ibs.team",
+        "api": "https://dymension-api.ibs.team"
       }
     ]
   },
@@ -189,8 +189,8 @@
     },
     "fallback": [
       {
-        "rpc": "https://jackal-rpc.lavenderfive.com:443",
-        "api": "https://jackal-api.lavenderfive.com:443"
+        "rpc": "https://jackal-rpc.polkachu.com",
+        "api": "https://jackal-api.polkachu.com"
       }
     ]
   }
