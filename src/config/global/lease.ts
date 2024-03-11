@@ -28,8 +28,8 @@ let FREE_INTEREST_ADDRESS_URL: Promise<string> | string = import("../zero/0inter
 
 if (!isServe()) {
   DOWNPAYMENT_RANGE_URL =
-    "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/downpayment-range.json";
-  SWAP_FEE_URL = "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/swap-fee.json";
+    "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/lease/downpayment-range.json";
+  SWAP_FEE_URL = "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/lease/swap-fee.json";
   FREE_INTEREST_ADDRESS_URL =
     "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/zero/0interest-payments.json";
 }
