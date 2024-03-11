@@ -69,11 +69,16 @@ export async function updateBalances(this: Store) {
 }
 
 async function getNativeTotal(walletAddress: string) {
-  return NolusClient.getInstance()
-    .getBalance(walletAddress, NATIVE_ASSET.denom)
-    .then((item) => {
-      return {
-        balance: CurrencyUtils.convertCosmosCoinToKeplCoin(item)
-      };
-    });
+  if(WalletUtils.isAuth()){
+    return NolusClient.getInstance()
+      .getBalance(walletAddress, NATIVE_ASSET.denom)
+      .then((item) => {
+        return {
+          balance: CurrencyUtils.convertCosmosCoinToKeplCoin(item)
+        };
+      });
+  }
+  return {
+    balance: CurrencyUtils.convertCosmosCoinToKeplCoin(coin("0", NATIVE_ASSET.denom))
+  };
 }
