@@ -1,4 +1,4 @@
-import { CurrencyMapping } from "@/config/global";
+import { CurrencyMapping } from "@/config/currencies";
 import { useApplicationStore } from "../../application";
 
 //TODO: delete or refactor

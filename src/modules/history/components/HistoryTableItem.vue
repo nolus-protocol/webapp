@@ -66,13 +66,13 @@ import Icon from "@/assets/icons/urlicon.svg";
 
 import { useApplicationStore } from "@/common/stores/application";
 import { useWalletStore } from "@/common/stores/wallet";
-import { AppUtils, AssetUtils, Logger, getCreatedAtForHuman } from "@/common/utils";
+import { AppUtils, Logger, getCreatedAtForHuman } from "@/common/utils";
 import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
 import { StringUtils, WalletManager } from "@/common/utils";
 import { useI18n } from "vue-i18n";
 import { Buffer } from "buffer";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
-import { CurrencyMapping } from "@/config/global";
+import { CurrencyMapping } from "@/config/currencies";
 import { ref } from "vue";
 import { onMounted } from "vue";
 

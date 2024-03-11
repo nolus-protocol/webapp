@@ -44,6 +44,7 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { AssetUtils } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
 import { AppUtils } from "@/common/utils";
+import { CurrencyMapping } from "@/config/currencies";
 
 import {
   NATIVE_ASSET,
@@ -53,8 +54,7 @@ import {
   PERCENT,
   ErrorCodes,
   IGNORE_LEASE_ASSETS,
-  minimumLeaseAmount,
-  CurrencyMapping
+  minimumLeaseAmount
 } from "@/config/global";
 
 const walletStore = useWalletStore();

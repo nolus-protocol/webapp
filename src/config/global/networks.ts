@@ -51,5 +51,6 @@ export const SUPPORTED_NETWORKS = [
   "NEUTRON",
   "DYDX",
   "QUICKSILVER",
-  "DYMENSION"
+  "DYMENSION",
+  "JACKAL"
 ];

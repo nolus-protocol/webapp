@@ -37,11 +37,9 @@ import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import {
   NATIVE_ASSET,
   GAS_FEES,
-  SOURCE_PORTS,
   NATIVE_NETWORK,
   ErrorCodes,
   IGNORE_TRANSFER_ASSETS,
-  CurrencyDemapping,
   LPN_NETWORK
 } from "@/config/global";
 
@@ -60,6 +58,7 @@ import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetU
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { BaseWallet, Wallet } from "@/networks";
 import { AppUtils } from "@/common/utils";
+import { CurrencyDemapping, SOURCE_PORTS } from "@/config/currencies";
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const walletStore = useWalletStore();
@@ -384,6 +383,7 @@ async function ibcTransfer() {
           app.networksData?.protocols[protocol].DexNetwork!,
           state.value.network.key
         );
+
         const proxyAddress = walletStore.wallet?.address as string;
 
         rawTx.toAddress = proxyAddress;
@@ -412,6 +412,7 @@ async function ibcTransfer() {
     }
     await walletStore.UPDATE_BALANCES();
   } catch (error: Error | any) {
+    console.log(error);
     switch (error.code) {
       case ErrorCodes.GasError: {
         step.value = CONFIRM_STEP.GasError;

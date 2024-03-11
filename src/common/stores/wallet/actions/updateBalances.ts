@@ -1,7 +1,7 @@
 import type { Store } from "../types";
 import { Logger, WalletManager, WalletUtils } from "@/common/utils";
 import { useApplicationStore } from "../../application";
-import { CurrencyMapping } from "@/config/global";
+import { CurrencyMapping } from "@/config/currencies";
 import { AssetUtils, CurrencyUtils, NolusClient } from "@nolus/nolusjs";
 import { Networks } from "@nolus/nolusjs/build/types/Networks";
 import { coin } from "@cosmjs/amino";

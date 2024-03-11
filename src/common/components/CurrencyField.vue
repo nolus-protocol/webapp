@@ -75,7 +75,7 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useApplicationStore } from "../stores/application";
-import { CurrencyMapping } from "@/config/global";
+import { CurrencyMapping } from "@/config/currencies";
 
 const emit = defineEmits(["update-currency", "update:modelValue", "input"]);
 const oracle = useOracleStore();

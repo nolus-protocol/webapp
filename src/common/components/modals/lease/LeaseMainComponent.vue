@@ -44,6 +44,7 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
 import { AppUtils } from "@/common/utils";
 import { useAdminStore } from "@/common/stores/admin";
+import { CurrencyMapping } from "@/config/currencies";
 
 import {
   NATIVE_ASSET,
@@ -53,8 +54,7 @@ import {
   INTEREST_DECIMALS,
   DEFAULT_LTD,
   PERMILLE,
-  ErrorCodes,
-  CurrencyMapping
+  ErrorCodes
 } from "@/config/global";
 
 const onModalClose = inject("onModalClose", () => {});

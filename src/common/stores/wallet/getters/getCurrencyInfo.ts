@@ -1,8 +1,8 @@
 import type { State } from "../types";
-import { CurrencyMapping, NATIVE_ASSET } from "@/config/global";
+import { NATIVE_ASSET } from "@/config/global";
 import { useApplicationStore } from "../../application";
-import { ASSETS } from "@/config/global";
 import { AppUtils } from "@/common/utils";
+import { ASSETS, CurrencyMapping } from "@/config/currencies";
 
 //TODO: delete or refactor
 export function getCurrencyInfo(state: State) {

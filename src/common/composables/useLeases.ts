@@ -5,20 +5,13 @@ import { ref, onMounted } from "vue";
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 import { Lease, Leaser, type LeaserConfig, type LeaseStatus } from "@nolus/nolusjs/build/contracts";
 import { WalletManager, AppUtils, Logger, LeaseUtils } from "@/common/utils";
-import {
-  CurrencyDemapping,
-  IGNORE_LEASES,
-  INTEREST_DECIMALS,
-  MONTHS,
-  NATIVE_ASSET,
-  PERCENT,
-  PERMILLE
-} from "@/config/global";
+import { IGNORE_LEASES, INTEREST_DECIMALS, MONTHS, NATIVE_ASSET, PERCENT, PERMILLE } from "@/config/global";
 import { useAdminStore } from "@/common/stores/admin";
 import { Dec } from "@keplr-wallet/unit";
 import { useWalletStore } from "../stores/wallet";
 import { useOracleStore } from "../stores/oracle";
 import { useApplicationStore } from "../stores/application";
+import { CurrencyDemapping } from "@/config/currencies";
 
 export function useLeases(onError: (error: unknown) => void) {
   const leases = ref<LeaseData[]>([]);

@@ -3,8 +3,9 @@ import { Networks, type NetworkData } from "@nolus/nolusjs/build/types/Networks"
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
-import { SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { useOracleStore } from "@/common/stores/oracle";
+import { useWalletStore } from "@/common/stores/wallet";
+import { CurrencyMapping } from "@/config/currencies";
 
 import {
   DECIMALS_AMOUNT,
@@ -14,10 +15,8 @@ import {
   NATIVE_NETWORK,
   NATIVE_ASSET,
   ProtocolsConfig,
-  CurrencyMapping,
   NetworksConfig
 } from "@/config/global";
-import { useWalletStore } from "@/common/stores/wallet";
 
 export class AssetUtils {
   //TODO: remove

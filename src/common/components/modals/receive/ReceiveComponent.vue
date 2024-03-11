@@ -149,15 +149,8 @@ import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetU
 import { Networks } from "@nolus/nolusjs/build/types/Networks";
 import { AppUtils } from "@/common/utils";
 
-import {
-  CurrencyDemapping,
-  CurrencyMapping,
-  ErrorCodes,
-  IGNORE_TRANSFER_ASSETS,
-  LPN_NETWORK,
-  NATIVE_NETWORK,
-  SOURCE_PORTS
-} from "@/config/global";
+import { ErrorCodes, IGNORE_TRANSFER_ASSETS, LPN_NETWORK, NATIVE_NETWORK } from "@/config/global";
+import { CurrencyDemapping, CurrencyMapping, SOURCE_PORTS } from "@/config/currencies";
 
 export interface ReceiveComponentProps {
   currentBalance: AssetBalance[];

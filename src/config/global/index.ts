@@ -1,5 +1,4 @@
 export * from "./globals";
-export * from "./assetsInfo";
 export * from "./contracts";
 export * from "./errors";
 export * from "./fees";

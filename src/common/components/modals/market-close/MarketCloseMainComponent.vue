@@ -39,11 +39,12 @@ import { Logger, getMicroAmount, walletOperation } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { NATIVE_ASSET, GAS_FEES, TIP, ErrorCodes, minimumLeaseAmount, CurrencyDemapping } from "@/config/global";
+import { NATIVE_ASSET, GAS_FEES, TIP, ErrorCodes, minimumLeaseAmount } from "@/config/global";
 import { coin } from "@cosmjs/amino";
 import { AppUtils } from "@/common/utils";
 import { useLeaseConfig } from "@/common/composables";
 import { useOracleStore } from "@/common/stores/oracle";
+import { CurrencyDemapping } from "@/config/currencies";
 
 const walletStore = useWalletStore();
 const walletRef = storeToRefs(walletStore);

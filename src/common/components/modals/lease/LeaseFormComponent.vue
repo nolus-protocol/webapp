@@ -141,12 +141,12 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { AssetUtils, LeaseUtils } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
 import { AppUtils } from "@/common/utils";
+import { CurrencyMapping } from "@/config/currencies";
 
 import {
   NATIVE_NETWORK,
   PERMILLE,
   IGNORE_LEASE_ASSETS,
-  CurrencyMapping,
   MONTHS,
   FREE_INTEREST_ASSETS,
   LPN_DECIMALS
