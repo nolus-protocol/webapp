@@ -44,10 +44,10 @@ export async function updateBalances(this: Store) {
 
         if (WalletUtils.isAuth()) {
           return NolusClient.getInstance()
-            .getBalance(walletAddress, ibcDenom)
+            .getSpendableBalance(walletAddress, ibcDenom)
             .then((item) => {
               return {
-                balance: CurrencyUtils.convertCosmosCoinToKeplCoin(item)
+                balance: CurrencyUtils.convertCosmosCoinToKeplCoin(item.balance)
               };
             });
         }
