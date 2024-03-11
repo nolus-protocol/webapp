@@ -19,6 +19,7 @@ export type State = {
   wallet?: NolusWallet | any;
   privateKey?: string;
   balances: AssetBalance[];
+  total_unls: AssetBalance;
   walletName?: string;
   stakingBalance?: UnitCoin | any;
   delegated_vesting?: {
