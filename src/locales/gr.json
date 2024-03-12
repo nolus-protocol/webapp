@@ -282,7 +282,6 @@
     "GasError": "Ανεπαρκή NLS",
     "gassErrorMsg": "Ανεπαρκή NLS για τέλη δικτύου",
     "close": "Κλείσιμο",
-    "repay-interest": "Αποπληρώστε τους τόκους, αλλιώς θα αφαιρεθούν αυτόματα από τη θέση",
     "supply-limit-reached": "Επίτευξη ορίου προσφοράς",
     "language": "Γλώσσα",
     "rewards-from": "Ανταμοιβές από",
@@ -371,6 +370,7 @@
     "pnl-banner-title": "PnL Challenge",
     "pnl-banner-subtitle": "Win extra USDC",
     "pnl-banner-description": "Share your top lease gainer on Twitter by March 15th. Post freely, then submit your best pick here",
-    "integer-out-of-range": "Integer out of range"
+    "integer-out-of-range": "Integer out of range",
+    "repay-interest": "Accumulates each block and is added to the outstanding debt. Interest is due in {dueDate}"
   }
 }

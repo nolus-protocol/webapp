@@ -139,7 +139,6 @@
     "GasError": "NLS不足",
     "gassErrorMsg": "ガス手数料のNLSが不足しています",
     "close": "閉じる",
-    "repay-interest": "利子を返済してください。さもなければ、ポジションから自動的に差し引かれます",
     "supply-limit-reached": "供給限界に達しました",
     "language": "言語",
     "rewards-from": "からの報酬",
@@ -228,6 +227,7 @@
     "pnl-banner-title": "PnL Challenge",
     "pnl-banner-subtitle": "Win extra USDC",
     "pnl-banner-description": "Share your top lease gainer on Twitter by March 15th. Post freely, then submit your best pick here",
-    "integer-out-of-range": "Integer out of range"
+    "integer-out-of-range": "Integer out of range",
+    "repay-interest": "Accumulates each block and is added to the outstanding debt. Interest is due in {dueDate}"
   }
 }

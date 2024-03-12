@@ -202,7 +202,7 @@
             <TooltipComponent
               v-if="interestDueStatus && !openedSubState"
               class="text-yellow"
-              :content="$t('message.repay-interest')"
+              :content="$t('message.repay-interest', { dueDate: interestDueDate })"
             />
           </p>
         </div>
@@ -548,14 +548,14 @@ import ArrowDown from "@/common/components/icons/ArrowDown.vue";
 import { computed, inject, ref, type PropType } from "vue";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { Dec } from "@keplr-wallet/unit";
-import { CHART_RANGES } from "@/config/global";
+import { CHART_RANGES, LEASE_DUE } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useI18n } from "vue-i18n";
 import { onMounted } from "vue";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { TxType } from "@/common/types";
-import { Logger, StringUtils, WalletManager } from "@/common/utils";
+import { Logger, StringUtils, WalletManager, datePraser } from "@/common/utils";
 import { coin } from "@cosmjs/amino";
 import { walletOperation } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
@@ -948,13 +948,22 @@ const loadingClose = computed(() => {
 const interestDueStatus = computed(() => {
   const lease = props.leaseInfo.leaseStatus?.opened;
   if (lease) {
-    const amount = new Dec(lease.overdue_margin.amount);
-    if (amount.isPositive()) {
+    const isDue = new Dec(LEASE_DUE).gte(new Dec(lease.overdue_collect_in));
+    if (isDue) {
       return true;
     }
     return false;
   }
   return false;
+});
+
+const interestDueDate = computed(() => {
+  const lease = props.leaseInfo.leaseStatus?.opened;
+  let date = new Date();
+  if (lease) {
+    date = new Date(date.getTime() + lease.overdue_collect_in / 1000 / 1000);
+  }
+  return datePraser(date.toISOString());
 });
 
 async function onShare() {

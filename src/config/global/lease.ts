@@ -10,6 +10,7 @@ export const MIN_POSITION = 25;
 export const MAX_POSITION = 150;
 export const DEFAULT_LTD = 1.5;
 export const FREE_INTEREST_ASSETS = ["NTRN"];
+export const LEASE_DUE = 2 * 24 * 60 * 60 * 1000 * 1000 * 1000;
 
 export const WASM_EVENTS = {
   "wasm-ls-request-loan": {
