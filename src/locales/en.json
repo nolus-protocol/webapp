@@ -267,7 +267,7 @@
     "undelegate-position-action": "Withdraw {amount} from {validator}",
     "supply-position-action": "Supply {amount} to liquidity pool",
     "withdraw-position-action": "Withdraw {amount} from liquidity pool",
-    "settings": "Settings",
+    "settings": "More",
     "refresh": "Refresh",
     "session-timeout": "Session Timeout",
     "session-timeout-message": "Your session has expired. Refresh to continue",
