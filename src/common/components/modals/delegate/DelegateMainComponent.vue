@@ -66,7 +66,7 @@ const state = ref({
     }
     return false;
   }),
-  selectedCurrency: walletStore.balances.find((item) => item.balance.denom == NATIVE_ASSET.denom),
+  selectedCurrency: walletStore.total_unls,
   amount: "",
   amountErrorMsg: "",
   txHash: "",

@@ -5,6 +5,7 @@ import { CurrencyMapping } from "@/config/currencies";
 import { AssetUtils, CurrencyUtils, NolusClient } from "@nolus/nolusjs";
 import { Networks } from "@nolus/nolusjs/build/types/Networks";
 import { coin } from "@cosmjs/amino";
+import { NATIVE_ASSET } from "@/config/global";
 
 export async function updateBalances(this: Store) {
   try {
@@ -43,10 +44,10 @@ export async function updateBalances(this: Store) {
 
         if (WalletUtils.isAuth()) {
           return NolusClient.getInstance()
-            .getBalance(walletAddress, ibcDenom)
+            .getSpendableBalance(walletAddress, ibcDenom)
             .then((item) => {
               return {
-                balance: CurrencyUtils.convertCosmosCoinToKeplCoin(item)
+                balance: CurrencyUtils.convertCosmosCoinToKeplCoin(item.balance)
               };
             });
         }
@@ -55,12 +56,29 @@ export async function updateBalances(this: Store) {
           balance: CurrencyUtils.convertCosmosCoinToKeplCoin(coin("0", ibcDenom))
         };
       };
-
       ibcBalances.push(fn());
     }
-    this.balances = await Promise.all(ibcBalances);
+
+    const [nativeTotal, ...balances] = await Promise.all([getNativeTotal(walletAddress), ...ibcBalances]);
+    this.balances = balances;
+    this.total_unls = nativeTotal;
   } catch (e) {
     Logger.error(e);
     throw new Error(e as string);
   }
+}
+
+async function getNativeTotal(walletAddress: string) {
+  if(WalletUtils.isAuth()){
+    return NolusClient.getInstance()
+      .getBalance(walletAddress, NATIVE_ASSET.denom)
+      .then((item) => {
+        return {
+          balance: CurrencyUtils.convertCosmosCoinToKeplCoin(item)
+        };
+      });
+  }
+  return {
+    balance: CurrencyUtils.convertCosmosCoinToKeplCoin(coin("0", NATIVE_ASSET.denom))
+  };
 }

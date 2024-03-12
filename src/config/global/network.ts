@@ -13,7 +13,8 @@ export const NATIVE_ASSET = {
   label: "NLS",
   value: "NLS",
   denom: "unls",
-  icon: nlsIcon
+  icon: nlsIcon,
+  decimal_digits: 6
 };
 
 export const NATIVE_NETWORK = {
