@@ -165,7 +165,6 @@
     "lease-up-to-tooltip": "Jumlah maksimum yang dapat digunakan sebagai jaminan berdasarkan saldo dompet",
     "earn-apr-tooltip": "Persentase pengembalian tahunan pada aset yang dipasok atau ditugaskan",
     "interest-fee-tooltip": "Persentase tingkat bunga yang akan meningkat setiap tahunnya",
-    "interest-due-tooltip": "Dikumpulkan setiap blok dan ditambahkan ke utang yang belum lunas. Bunga jatuh tempo setiap 16 hari",
     "earn-view-apr-tooltip": "Persentase pengembalian tahunan pada aset yang dipasok atau ditugaskan",
     "net-worth": "Nilai Bersih",
     "error": "Kesalahan",

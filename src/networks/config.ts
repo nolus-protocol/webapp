@@ -42,6 +42,9 @@ import { embedChainInfo as dymensionChainInfo } from "./dymension/contants";
 import { NETWORK as JACKAL_NETWORK } from "./jackal/network";
 import { embedChainInfo as jackalChainInfo } from "./jackal/contants";
 
+import { NETWORK as INJECTIVE_NETWORK } from "./injective/network";
+import { embedChainInfo as injectiveChainInfo } from "./injective/contants";
+
 import { useApplicationStore } from "@/common/stores/application";
 import type { ExternalCurrencies, NetworkData } from "@/common/types";
 
@@ -206,6 +209,16 @@ export const SUPPORTED_NETWORKS_DATA: {
     key: "JACKAL",
     symbol: "JKL",
     forward: true
+  },
+  INJECTIVE: {
+    prefix: "injective",
+    value: "injective",
+    label: "Injective",
+    native: false,
+    estimation: 20,
+    key: "INJECTIVE",
+    symbol: "INJ",
+    forward: true
   }
 };
 
@@ -298,7 +311,8 @@ export const NETWORKS_DATA: {
       SUPPORTED_NETWORKS_DATA.NEUTRON,
       SUPPORTED_NETWORKS_DATA.DYMENSION,
       SUPPORTED_NETWORKS_DATA.EVMOS,
-      SUPPORTED_NETWORKS_DATA.JACKAL
+      SUPPORTED_NETWORKS_DATA.JACKAL,
+      SUPPORTED_NETWORKS_DATA.INJECTIVE
     ],
     supportedNetworks: {
       OSMOSIS: {
@@ -426,6 +440,15 @@ export const NETWORKS_DATA: {
           return app?.networks?.[JACKAL_NETWORK.key] as ExternalCurrencies;
         },
         embedChainInfo: jackalChainInfo
+      },
+      INJECTIVE: {
+        ...INJECTIVE_NETWORK,
+        explorer: "https://ping.pub/injective/tx",
+        currencies: () => {
+          const app = useApplicationStore();
+          return app?.networks?.[INJECTIVE_NETWORK.key] as ExternalCurrencies;
+        },
+        embedChainInfo: injectiveChainInfo
       }
     }
   }

@@ -167,7 +167,6 @@
     "lease-up-to-tooltip": "Le montant maximum qui peut être utilisé comme levier en fonction du solde du portefeuille",
     "earn-apr-tooltip": "Rendement annualisé en pourcentage des actifs fournis ou délégués",
     "interest-fee-tooltip": "Le taux d'intérêt en pourcentage selon lequel la dette augmentera chaque année",
-    "interest-due-tooltip": "Les intérêts s'accumulent à chaque bloc et sont ajoutés à la dette en cours. Les intérêts sont dus tous les 16 jours",
     "earn-view-apr-tooltip": "Rendement annualisé en pourcentage des actifs fournis ou délégués",
     "net-worth": "Valeur nette",
     "error": "Erreur",

@@ -106,6 +106,9 @@ export class BaseWallet extends SigningCosmWasmClient {
       case SUPPORTED_NETWORKS_DATA.DYMENSION.prefix: {
         return encodeEthSecp256k1Pubkey(pubKey ?? (this.pubKey as Uint8Array));
       }
+      case SUPPORTED_NETWORKS_DATA.INJECTIVE.prefix: {
+        return encodeEthSecp256k1Pubkey(pubKey ?? (this.pubKey as Uint8Array));
+      }
       default: {
         return encodeSecp256k1Pubkey(pubKey ?? (this.pubKey as Uint8Array));
       }

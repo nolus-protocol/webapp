@@ -165,7 +165,6 @@
     "lease-up-to-tooltip": "Cüzdan bakiyesine dayalı olarak kaldıraç yapılabilen maksimum miktar",
     "earn-apr-tooltip": "Tedarik edilen veya delege edilen varlıkların yıllık bileşik getirisi",
     "interest-fee-tooltip": "Borcun her yıl artacağı yüzde faiz oranı",
-    "interest-due-tooltip": "Her blokta biriken ve açık borca eklenen faiz. Faiz her 16 günde bir tahsil edilir",
     "earn-view-apr-tooltip": "Tedarik edilen veya delege edilen varlıklar üzerinde yıllık bileşik faiz getirisi",
     "net-worth": "Net Değer",
     "error": "Hata",

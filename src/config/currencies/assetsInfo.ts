@@ -76,6 +76,9 @@ export const ASSETS = {
   },
   JKL: {
     coinGeckoId: "jackal-protocol"
+  },
+  INJ: {
+    coinGeckoId: "injective-protocol"
   }
 };
 
