@@ -178,7 +178,7 @@
         <div class="ml-8 block">
           <p class="text-detail data-text m-0 flex items-center text-primary">
             {{ $t("message.interest-due") }}
-            <TooltipComponent :content="$t('message.interest-due-tooltip')" />
+            <TooltipComponent :content="$t('message.repay-interest', { dueDate: interestDueDate })" />
           </p>
           <p class="nls-font-400 m-0 flex items-baseline text-20 text-primary">
             <span
