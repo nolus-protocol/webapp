@@ -111,7 +111,12 @@ export class BaseWallet extends SigningCosmWasmClient {
     pubkey: EthSecp256k1Pubkey | Secp256k1Pubkey,
     sequence: { sequence?: number; accountNumber?: number }
   ) {
-    const { gasInfo } = await this.queryClient.tx.simulate([this.registry.encodeAsAny(msgAny)], memo, pubkey, sequence);
+    const { gasInfo } = await this.queryClient.tx.simulate(
+      [this.registry.encodeAsAny(msgAny)],
+      memo,
+      pubkey,
+      sequence.sequence
+    );
     return gasInfo;
   }
 
