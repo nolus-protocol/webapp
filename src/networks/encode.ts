@@ -1,3 +1,5 @@
+//@ts-nocheck
+
 import type { MultisigThresholdPubkey, Pubkey, SinglePubkey } from "@cosmjs/amino";
 import { toBase64 } from "@cosmjs/encoding";
 import {
@@ -13,6 +15,7 @@ import { PubKey as CosmosCryptoEd25519Pubkey } from "cosmjs-types/cosmos/crypto/
 import { LegacyAminoPubKey } from "cosmjs-types/cosmos/crypto/multisig/keys";
 import { PubKey as CosmosCryptoSecp256k1Pubkey } from "cosmjs-types-legacy/cosmos/crypto/secp256k1/keys";
 import { Any } from "cosmjs-types/google/protobuf/any";
+import { SUPPORTED_NETWORKS_DATA } from "./config";
 
 export interface EthSecp256k1Pubkey extends SinglePubkey {
   readonly type: "tendermint/PubKeyEthSecp256k1";
@@ -40,7 +43,17 @@ export const pubkeyType = {
   multisigThreshold: "tendermint/PubKeyMultisigThreshold" as const
 };
 
-export function encodePubkey(pubkey: Pubkey): Any {
+export function encodePubkey(pubkey: Pubkey, network?: string): Any {
+  if (network == SUPPORTED_NETWORKS_DATA.INJECTIVE.prefix) {
+    const pubkeyProto = CosmosCryptoSecp256k1Pubkey.fromPartial({
+      key: fromBase64(pubkey.value)
+    });
+    return Any.fromPartial({
+      typeUrl: "/injective.crypto.v1beta1.ethsecp256k1.PubKey",
+      value: Uint8Array.from(CosmosCryptoSecp256k1Pubkey.encode(pubkeyProto).finish())
+    });
+  }
+
   if (isSecp256k1Pubkey(pubkey)) {
     const pubkeyProto = CosmosCryptoSecp256k1Pubkey.fromPartial({
       key: fromBase64(pubkey.value)
@@ -87,8 +100,8 @@ export function decodePubkey(pubkey?: Any | null): Pubkey | null {
   if (!pubkey || !pubkey.value) {
     return null;
   }
-
   switch (pubkey.typeUrl) {
+    case "/injective.crypto.v1beta1.ethsecp256k1.PubKey":
     case "/ethermint.crypto.v1.ethsecp256k1.PubKey":
     case "/cosmos.crypto.secp256k1.PubKey":
     case "/cosmos.crypto.ed25519.PubKey": {
@@ -116,6 +129,7 @@ export function anyToSinglePubkey(pubkey: Any): SinglePubkey {
       const { key } = CosmosCryptoEd25519Pubkey.decode(pubkey.value);
       return encodeEd25519Pubkey(key);
     }
+    case "/injective.crypto.v1beta1.ethsecp256k1.PubKey":
     case "/ethermint.crypto.v1.ethsecp256k1.PubKey":
     case "/cosmos.crypto.secp256k1.PubKey": {
       const { key } = CosmosCryptoSecp256k1Pubkey.decode(pubkey.value);

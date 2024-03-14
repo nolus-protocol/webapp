@@ -52,5 +52,6 @@ export const SUPPORTED_NETWORKS = [
   "DYDX",
   "QUICKSILVER",
   "DYMENSION",
-  "JACKAL"
+  "JACKAL",
+  "INJECTIVE"
 ];

@@ -1,3 +1,4 @@
+export * from "./modes";
 export * from "./globals";
 export * from "./contracts";
 export * from "./errors";
@@ -5,7 +6,6 @@ export * from "./fees";
 export * from "./keplr";
 export * from "./lease";
 export * from "./locales";
-export * from "./modes";
 export * from "./network";
 export * from "./networks";
 export * from "./news";

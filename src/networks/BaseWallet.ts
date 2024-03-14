@@ -1,20 +1,22 @@
 //@ts-nocheck
-
 import type { EncodeObject, OfflineSigner, TxBodyEncodeObject } from "@cosmjs/proto-signing";
 import type { Tendermint34Client } from "@cosmjs/tendermint-rpc";
 import type { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import type { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
-import { type SignerData } from "@cosmjs/stargate";
+import type { Secp256k1Pubkey } from "@cosmjs/amino/build/pubkeys";
+import type { GasInfo } from "cosmjs-types/cosmos/base/abci/v1beta1/abci";
+import type { SignerData } from "@cosmjs/stargate";
 
 import { toHex } from "@cosmjs/encoding";
 import { MsgSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { encodeSecp256k1Pubkey, type StdFee } from "@cosmjs/amino";
+
 import { sha256 } from "@cosmjs/crypto";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 import { SigningCosmWasmClient, type SigningCosmWasmClientOptions } from "@cosmjs/cosmwasm-stargate";
 import { accountFromAny } from "./accountParser";
-import { encodeEthSecp256k1Pubkey, encodePubkey } from "./encode";
+import { encodeEthSecp256k1Pubkey, encodePubkey, type EthSecp256k1Pubkey } from "./encode";
 import { SUPPORTED_NETWORKS_DATA } from "./config";
 import { isOfflineDirectSigner, makeAuthInfoBytes, makeSignDoc } from "@cosmjs/proto-signing";
 
@@ -24,6 +26,7 @@ import { Int53 } from "@cosmjs/math";
 import { assert } from "@cosmjs/utils";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
 import { Logger } from "@/common/utils";
+import { simulateIBCTrasnferInj } from "./injective/tx";
 
 import {
   calculateFee,
@@ -74,7 +77,8 @@ export class BaseWallet extends SigningCosmWasmClient {
     msgTypeUrl: string,
     gasMuplttiplier: number,
     gasPrice: string,
-    memo = ""
+    memo = "",
+    gasData?: GasInfo
   ) {
     const pubkey = this.getPubKey();
     const msgAny = {
@@ -83,7 +87,7 @@ export class BaseWallet extends SigningCosmWasmClient {
     };
 
     const sequence = await this.sequence();
-    const { gasInfo } = await this.queryClient.tx.simulate([this.registry.encodeAsAny(msgAny)], memo, pubkey, sequence);
+    const gasInfo = gasData ?? (await this.getGas(msgAny, memo, pubkey, sequence));
     const gas = Math.round(Number(gasInfo?.gasUsed) * gasMuplttiplier);
     const usedFee = calculateFee(gas, gasPrice);
     const txRaw = await this.sign(this.address as string, [msgAny], usedFee, memo);
@@ -97,6 +101,52 @@ export class BaseWallet extends SigningCosmWasmClient {
       usedFee
     };
   }
+
+  private async getGas(
+    msgAny: {
+      typeUrl: string;
+      value: MsgSend | MsgExecuteContract | MsgTransfer;
+    },
+    memo: string,
+    pubkey: EthSecp256k1Pubkey | Secp256k1Pubkey,
+    sequence: { sequence?: number; accountNumber?: number }
+  ) {
+    const { gasInfo } = await this.queryClient.tx.simulate([this.registry.encodeAsAny(msgAny)], memo, pubkey, sequence);
+    return gasInfo;
+  }
+
+  // private async simulateInj(
+  //   msg: MasgTransferInj,
+  //   msgTypeUrl: string,
+  //   gasMuplttiplier: number,
+  //   gasPrice: string,
+  //   memo = ""
+  // ) {
+  //   const pubkey = this.getPubKey();
+  //   const msgAny = {
+  //     typeUrl: msgTypeUrl,
+  //     value: msg
+  //   };
+  //   const { sequence, accountNumber } = await this.sequence();
+
+  //   const { gasInfo } = await this.queryClient.tx.simulateInj([msg], memo, pubkey, sequence, accountNumber);
+
+  //   // const { gasInfo } = await this.queryClient.tx.simulate([this.registry.encodeAsAny(msgAny)], memo, pubkey, sequence);
+  //   const gas = Math.round(Number(gasInfo?.gasUsed) * gasMuplttiplier);
+  //   const usedFee = calculateFee(gas, gasPrice);
+
+  //   console.log(1);
+  //   const txRaw = await this.sign(this.address as string, [msgAny], usedFee, memo);
+  //   console.log(2);
+  //   const txBytes = Uint8Array.from(CosmosTxV1Beta1Tx.TxRaw.encode(txRaw).finish());
+  //   console.log(3);
+  //   const txHash = toHex(sha256(txBytes));
+  //   return {
+  //     txHash,
+  //     txBytes,
+  //     usedFee
+  //   };
+  // }
 
   private getPubKey(pubKey?: Uint8Array) {
     switch (this.prefix) {
@@ -155,6 +205,42 @@ export class BaseWallet extends SigningCosmWasmClient {
     return await this.simulateTx(msg, "/cosmos.bank.v1beta1.MsgSend", gasMuplttiplier, gasPrice);
   }
 
+  // public async simulateSendIbcTokensInjTx({
+  //   toAddress,
+  //   amount,
+  //   sourcePort,
+  //   sourceChannel,
+  //   timeOut,
+  //   gasMuplttiplier,
+  //   gasPrice,
+  //   memo = ""
+  // }: {
+  //   toAddress: string;
+  //   amount: Coin;
+  //   sourcePort: string;
+  //   sourceChannel: string;
+  //   timeOut: number;
+  //   gasMuplttiplier: number;
+  //   gasPrice: string;
+  //   memo?: string;
+  // }) {
+  //   const timeOutData = Math.floor(Date.now()) + timeOut;
+  //   const longTimeOut = BigInt(timeOutData) * 1_000_000_000n;
+  //   const timeoutTimestamp = makeTimeoutTimestampInNs();
+  //   const msg = MasgTransferInj.fromJSON({
+  //     port: sourcePort,
+  //     channelId: sourceChannel,
+  //     sender: this.address?.toString() as string,
+  //     receiver: toAddress,
+  //     amount: amount,
+  //     height: undefined,
+  //     timeout: timeoutTimestamp,
+  //     memo
+  //   });
+
+  //   return await this.simulateInj(msg, "/ibc.applications.transfer.v1.MsgTransfer", gasMuplttiplier, gasPrice, "");
+  // }
+
   public async simulateSendIbcTokensTx({
     toAddress,
     amount,
@@ -188,6 +274,27 @@ export class BaseWallet extends SigningCosmWasmClient {
       memo
     });
 
+    if (this.prefix == SUPPORTED_NETWORKS_DATA.INJECTIVE.prefix) {
+      const { sequence, accountNumber } = await this.sequence();
+
+      const data = await simulateIBCTrasnferInj(this.getPubKey(), sequence!, accountNumber!, {
+        toAddress: toAddress,
+        amount: amount,
+        sender: this.address?.toString() as string,
+        sourcePort,
+        sourceChannel,
+        memo
+      });
+      return await this.simulateTx(
+        msg,
+        "/ibc.applications.transfer.v1.MsgTransfer",
+        gasMuplttiplier,
+        gasPrice,
+        "",
+        data.gasInfo
+      );
+    }
+
     return await this.simulateTx(msg, "/ibc.applications.transfer.v1.MsgTransfer", gasMuplttiplier, gasPrice, "");
   }
 
@@ -195,7 +302,7 @@ export class BaseWallet extends SigningCosmWasmClient {
     try {
       const account = await this.getAccount(this.address);
 
-      return account?.sequence;
+      return { sequence: account?.sequence, accountNumber: account?.accountNumber };
     } catch (error) {
       Logger.error(error);
       throw new Error("Insufficient amount");
@@ -252,7 +359,7 @@ export class BaseWallet extends SigningCosmWasmClient {
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
     }
-    const pubkey = encodePubkey(this.getPubKey(accountFromSigner.pubkey));
+    const pubkey = encodePubkey(this.getPubKey(accountFromSigner.pubkey), this.prefix);
     const signMode = SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
     const msgs = messages.map((msg) => this.aminoTypes.toAmino(msg));
     const signDoc = makeSignDocAmino(msgs, fee, chainId, memo, accountNumber, sequence);
@@ -294,7 +401,7 @@ export class BaseWallet extends SigningCosmWasmClient {
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
     }
-    const pubkey = encodePubkey(this.getPubKey(accountFromSigner.pubkey));
+    const pubkey = encodePubkey(this.getPubKey(accountFromSigner.pubkey), this.prefix);
     const txBody: TxBodyEncodeObject = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
       value: {

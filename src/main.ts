@@ -1,9 +1,8 @@
-import { router } from "@/router";
-import { setupI18n } from "@/i18n";
-import { createApp } from "vue";
 import { createPinia } from "pinia";
+import { setupI18n } from "@/i18n";
+import { router } from "@/router";
+import { createApp } from "vue";
 import { Mode } from "./config/global";
-
 import App from "@/App.vue";
 
 import "@/index.scss";
