@@ -196,13 +196,13 @@
   },
   "INJECTIVE": {
     "primary": {
-      "rpc": "https://rpc-injective-ia.cosmosia.notional.ventures/",
-      "api": "https://api-injective-ia.cosmosia.notional.ventures/"
+      "rpc": "https://injective-rpc.polkachu.com",
+      "api": "https://injective-api.polkachu.com"
     },
     "fallback": [
       {
-        "rpc": "https://injective-rpc.polkachu.com",
-        "api": "https://injective-api.polkachu.com"
+        "rpc": "https://rpc-injective-ia.cosmosia.notional.ventures/",
+        "api": "https://api-injective-ia.cosmosia.notional.ventures/"
       }
     ]
   }
