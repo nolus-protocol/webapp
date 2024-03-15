@@ -1,11 +1,12 @@
 {
-    "pnl": {
+    "pnl-distribution": {
         "title-icon": "https://nolus.io/banner/stats.svg",
-        "image": "https://nolus.io/banner/pnl01.webp",
+        "image": "",
         "title": "pnl-banner-title",
         "subtitle": "pnl-banner-subtitle",
         "description": "pnl-banner-description",
-        "target": "https://forms.gle/riVJV5Mmi3dKKdci8"
+        "target": "/history",
+        "wallets": "pnl-challenge.json"
     },
     "ntrn_0": {
         "title-icon": "https://nolus.io/banner/lease.svg",

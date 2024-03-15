@@ -366,9 +366,9 @@
     "ntrn_0-banner-subtitle": "Zero Interest on All $NTRN Leases",
     "ntrn_0-banner-description": "Enjoy interest-free leases on all $NTRN positions until April 30th",
     "voted": "Voted",
-    "pnl-banner-title": "PnL Challenge",
-    "pnl-banner-subtitle": "Win Extra USDC",
-    "pnl-banner-description": "Share your top lease gainer on Twitter by March 15th. Post freely, then submit your best pick here",
+    "pnl-distribution-banner-title": "PnL Challenge",
+    "pnl-distribution-banner-subtitle": "Win Extra USDC",
+    "pnl-distribution-banner-description": "Share your top lease gainer on Twitter by March 15th. Post freely, then submit your best pick here",
     "integer-out-of-range": "Integer out of range",
     "repay-interest": "Accumulates each block and is added to the outstanding debt. Interest is due in {dueDate}"
   }

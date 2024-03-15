@@ -365,9 +365,9 @@
     "ntrn_0-banner-subtitle": "全部 $NTRN 租约都已 0 利率",
     "ntrn_0-banner-description": "尽情享受所有$NTRN仓位的免息租赁，直至4月30日",
     "voted": "已投票",
-    "pnl-banner-title": "PnL Challenge",
-    "pnl-banner-subtitle": "Win extra USDC",
-    "pnl-banner-description": "Share your top lease gainer on Twitter by March 15th. Post freely, then submit your best pick here",
+    "pnl-distribution-banner-title": "PnL Challenge",
+    "pnl-distribution-banner-subtitle": "Win Extra USDC",
+    "pnl-distribution-banner-description": "Share your top lease gainer on Twitter by March 15th. Post freely, then submit your best pick here",
     "integer-out-of-range": "Integer out of range",
     "repay-interest": "Accumulates each block and is added to the outstanding debt. Interest is due in {dueDate}"
   }
