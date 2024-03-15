@@ -5,7 +5,7 @@
         "title": "pnl-distribution-banner-title",
         "subtitle": "pnl-distribution-banner-subtitle",
         "description": "pnl-distribution-banner-description",
-        "target": "/history",
+        "target": "",
         "wallets": "pnl-challenge.json"
     },
     "ntrn_0": {
