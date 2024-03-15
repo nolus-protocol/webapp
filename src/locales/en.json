@@ -368,7 +368,7 @@
     "voted": "Voted",
     "pnl-distribution-banner-title": "PnL Challenge",
     "pnl-distribution-banner-subtitle": "Congratulations!",
-    "pnl-distribution-banner-description": "You've earned additional rewards from your shared lease PnL. Check your available balance",
+    "pnl-distribution-banner-description": "You've earned additional rewards from your shared lease PnL! For further details, visit ping.pub's recently received transactions",
     "integer-out-of-range": "Integer out of range",
     "repay-interest": "Accumulates each block and is added to the outstanding debt. Interest is due in {dueDate}"
   }
