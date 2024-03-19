@@ -79,6 +79,9 @@ export const ASSETS = {
   },
   INJ: {
     coinGeckoId: "injective-protocol"
+  },
+  LVN: {
+    coinGeckoId: "levana-protocol"
   }
 };
 
