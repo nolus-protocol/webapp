@@ -119,7 +119,7 @@
     "missing-receiver": "受取人のアドレスが見つかりません",
     "empty-password": "パスワードを入力してください",
     "send-only": "この入金先に <span class=\"nls-font-700\">NOLUS</span> のみを送る",
-    "qr-address-title": "Receive QR code",
+    "qr-address-title": "QRコードを受け取る",
     "nolus-token": "Nolus token",
     "repayment-amount": "Outstanding Debt",
     "outstanding-lease": "After Repayment",
