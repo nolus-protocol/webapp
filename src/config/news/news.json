@@ -1,6 +1,6 @@
 {
     "pnl-distribution": {
-        "title-icon": "https://nolus.io/banner/stats.svg",
+        "title-icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/stats.svg",
         "image": "",
         "title": "pnl-distribution-banner-title",
         "subtitle": "pnl-distribution-banner-subtitle",
@@ -9,15 +9,15 @@
         "wallets": "pnl-challenge.json"
     },
     "ntrn_0": {
-        "title-icon": "https://nolus.io/banner/lease.svg",
-        "image": "https://nolus.io/banner/ntrn_0int.webp",
+        "title-icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/lease.svg",
+        "image": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/ntrn_0int.webp",
         "title": "lease-banner-title",
         "subtitle": "ntrn_0-banner-subtitle",
         "description": "ntrn_0-banner-description",
         "target": "/lease#create"
     },
     "knowledgehub": {
-        "title-icon": "https://nolus.io/banner/knowledge_hub.svg",
+        "title-icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/knowledge_hub.svg",
         "image": "",
         "title": "knowledgehub-banner-title",
         "subtitle": "knowledgehub-banner-subtitle",
@@ -25,7 +25,7 @@
         "target": "https://hub.nolus.io/"
     },
     "stats": {
-        "title-icon": "https://nolus.io/banner/stats.svg",
+        "title-icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/stats.svg",
         "image": "",
         "title": "stats-banner-title",
         "subtitle": "stats-banner-subtitle",
