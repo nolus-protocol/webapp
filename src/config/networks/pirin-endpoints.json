@@ -40,8 +40,8 @@
   },
   "AXELAR": {
     "primary": {
-      "rpc": "https://rpc-axelar.imperator.co:443",
-      "api": "https://lcd-axelar.imperator.co:443"
+      "rpc": "https://r-axelar--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com",
+      "api": "https://a-axelar--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com"
     },
     "fallback": [
       {
