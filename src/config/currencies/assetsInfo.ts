@@ -82,6 +82,9 @@ export const ASSETS = {
   },
   LVN: {
     coinGeckoId: "levana-protocol"
+  },
+  PICA: {
+    coinGeckoId: "picasso"
   }
 };
 
