@@ -28,8 +28,8 @@
   },
   "COSMOS_HUB": {
     "primary": {
-      "rpc": "https://rpc.cosmoshub.strange.love",
-      "api": "https://rest-cosmoshub.architectnodes.com"
+      "rpc": "https://r-cosmoshub--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com",
+      "api": "https://a-cosmoshub--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com"
     },
     "fallback": [
       {
@@ -52,8 +52,8 @@
   },
   "AKASH": {
     "primary": {
-      "rpc": "https://rpc-akash-ia.cosmosia.notional.ventures:443",
-      "api": "https://api-akash-ia.cosmosia.notional.ventures"
+      "rpc": "https://r-akash--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com",
+      "api": "https://a-akash--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com"
     },
     "fallback": [
       {
@@ -64,8 +64,8 @@
   },
   "STRIDE": {
     "primary": {
-      "rpc": "https://rpc-stride.architectnodes.com",
-      "api": "https://rest-stride.architectnodes.com"
+      "rpc": "https://r-stride--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com",
+      "api": "https://a-stride--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com"
     },
     "fallback": [
       {
@@ -88,8 +88,8 @@
   },
   "EVMOS": {
     "primary": {
-      "rpc": "https://evmos-rpc.polkachu.com",
-      "api": "https://evmos-api.polkachu.com"
+      "rpc": "https://r-evmos--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com",
+      "api": "https://a-evmos--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com"
     },
     "fallback": [
       {
@@ -124,8 +124,8 @@
   },
   "CELESTIA": {
     "primary": {
-      "rpc": "https://public-celestia-rpc.numia.xyz",
-      "api": "https://public-celestia-lcd.numia.xyz"
+      "rpc": "https://r-celestia--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com",
+      "api": "https://a-celestia--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com"
     },
     "fallback": [
       {
@@ -196,13 +196,25 @@
   },
   "INJECTIVE": {
     "primary": {
-      "rpc": "https://injective-rpc.polkachu.com",
-      "api": "https://injective-api.polkachu.com"
+      "rpc": "https://r-injective--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com",
+      "api": "https://a-injective--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com"
     },
     "fallback": [
       {
         "rpc": "https://rpc-injective-ia.cosmosia.notional.ventures/",
         "api": "https://api-injective-ia.cosmosia.notional.ventures/"
+      }
+    ]
+  },
+  "COMPOSABLE": {
+    "primary": {
+      "rpc": "https://r-composable--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com",
+      "api": "https://a-composable--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com"
+    },
+    "fallback": [
+      {
+        "rpc": "https://rpc-composable.whispernode.com:443",
+        "api": "https://lcd-composable.whispernode.com:443"
       }
     ]
   }
