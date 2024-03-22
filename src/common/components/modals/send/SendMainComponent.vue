@@ -84,7 +84,8 @@ const balances = ref<AssetBalance[]>(
       return true;
     })
     .map((item) => {
-      const e = { ...item };
+      const currency = AssetUtils.getCurrencyByDenom(item.balance.denom);
+      const e = { ...item, icon: currency.icon, shortName: currency.shortName };
       if (e.balance.denom == walletStore.available.denom) {
         e.balance = { ...walletStore.available };
       }
@@ -232,7 +233,8 @@ watch(
         return false;
       })
       .map((item) => {
-        const e = { ...item };
+        const currency = AssetUtils.getCurrencyByDenom(item.balance.denom);
+        const e = { ...item, icon: currency.icon, shortName: currency.shortName };
         if (e.balance.denom == walletStore.available.denom) {
           e.balance = { ...walletStore.available };
         }
@@ -337,14 +339,13 @@ async function ibcTransfer() {
 
     if (wallet) {
       step.value = CONFIRM_STEP.PENDING;
-      const asset = AssetUtils.getCurrencyByDenom(state.value.selectedCurrency.balance.denom);
-
       const currency = AssetUtils.getCurrencyByDenom(state.value.selectedCurrency.balance.denom);
-      const [key, protocol] = currency.ticker.split("@");
+
+      const [_ticker, protocol] = currency.key.split("@");
       const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
         state.value.amount,
-        asset.ibcData,
-        asset.decimal_digits
+        currency.ibcData,
+        currency.decimal_digits
       );
 
       const funds: Coin = {
@@ -414,6 +415,7 @@ async function ibcTransfer() {
     }
     await walletStore.UPDATE_BALANCES();
   } catch (error: Error | any) {
+    Logger.error(error);
     console.log(error);
     switch (error.code) {
       case ErrorCodes.GasError: {
@@ -425,7 +427,6 @@ async function ibcTransfer() {
         break;
       }
     }
-    Logger.error(error);
   }
 }
 

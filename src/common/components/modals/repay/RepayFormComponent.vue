@@ -130,7 +130,7 @@ function getRepayment(p: number) {
   const amount = outStandingDebt();
 
   const ticker =
-    CurrencyDemapping[props.modelValue.leaseInfo.principal_due.ticker!].ticker ??
+    CurrencyDemapping[props.modelValue.leaseInfo.principal_due.ticker!]?.ticker ??
     props.modelValue.leaseInfo.principal_due.ticker;
   const currency = app.currenciesData![`${ticker!}@${props.modelValue.protocol}`];
 

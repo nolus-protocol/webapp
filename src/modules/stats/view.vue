@@ -547,10 +547,9 @@ async function setStats() {
   const colors = [];
   const dataValue = [];
   let total = 0;
-  console.log(items);
+
   for (const i of items) {
     const currency = AssetUtils.getCurrencyByTicker(i.asset);
-    console.log(currency);
     labels.push(currency?.shortName ?? i.asset);
     dataValue.push(i.loan);
     colors.push(StringUtils.strToColor(currency?.shortName ?? i.asset));

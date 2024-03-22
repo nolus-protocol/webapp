@@ -45,7 +45,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { computed, inject, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { coin } from "@cosmjs/amino";
-import { getMicroAmount, validateAmount, walletOperation } from "@/common/utils";
+import { Logger, getMicroAmount, validateAmount, walletOperation } from "@/common/utils";
 import { DEFAULT_APR, NATIVE_ASSET, GAS_FEES, ErrorCodes } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
 import { Int } from "@keplr-wallet/unit";
@@ -65,7 +65,7 @@ const props = defineProps({
 const loadLPNCurrency = inject("loadLPNCurrency", () => false);
 
 onMounted(() => {
-  Promise.all([checkSupply()]).catch((e) => console.error(e));
+  Promise.all([checkSupply()]).catch((e) => Logger.error(e));
 });
 
 const checkSupply = async () => {
@@ -255,14 +255,14 @@ async function transferAmount() {
 }
 
 watch(
-  () => [...state.value.amount],
+  () => state.value.amount,
   (currentValue, oldValue) => {
     validateInputs();
   }
 );
 
 watch(
-  () => [...(state.value.selectedCurrency?.balance.denom.toString() ?? [])],
+  () => state.value.selectedCurrency,
   (currentValue, oldValue) => {
     validateInputs();
   }

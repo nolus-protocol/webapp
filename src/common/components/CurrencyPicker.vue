@@ -18,12 +18,12 @@
         >
           <span class="flex items-center">
             <img
-              :src="selected.value?.icon ?? getAssetInfo(selected.value?.balance?.denom)?.icon"
+              :src="selected.value?.icon"
               class="h-6 w-6 flex-shrink-0 rounded-full"
               alt=""
             />
             <span class="dark-text block truncate">
-              {{ selected.value?.shortName ?? getAssetInfo(selected.value?.balance?.denom).shortName }}
+              {{ selected.value?.shortName }}
             </span>
             <span
               v-if="isLoading"
@@ -76,12 +76,12 @@
               >
                 <div class="flex items-center">
                   <img
-                    :src="option.icon ?? getAssetInfo(option.balance.denom).icon"
+                    :src="option.icon"
                     class="mr-3 h-6 w-6 flex-shrink-0 rounded-full"
                     alt=""
                   />
                   <span class="block truncate font-normal">
-                    {{ option.name ?? getAssetInfo(option.balance.denom).shortName }}
+                    {{ option.shortName }}
                   </span>
                 </div>
 
@@ -101,12 +101,11 @@
 </template>
 
 <script setup lang="ts">
-import type { AssetBalance } from "@/common/stores/wallet/types";
 import { type PropType, ref, onMounted, watch, computed } from "vue";
+import type { ExternalCurrency } from "../types";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
-import { NATIVE_ASSET } from "@/config/global";
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from "@headlessui/vue";
-import { AssetUtils } from "../utils";
+import type { AssetBalance } from "../stores/wallet/types";
 
 const props = defineProps({
   label: {
@@ -118,10 +117,10 @@ const props = defineProps({
     default: ""
   },
   options: {
-    type: Array as PropType<AssetBalance[]>
+    type: Array as PropType<ExternalCurrency[] | AssetBalance[]>
   },
   currencyOption: {
-    type: Object as PropType<AssetBalance>
+    type: Object as PropType<ExternalCurrency | AssetBalance>
   },
   disabled: {
     type: Boolean
@@ -144,7 +143,7 @@ const props = defineProps({
 });
 
 const selected = ref({
-  value: {} as AssetBalance
+  value: {} as ExternalCurrency | AssetBalance
 });
 
 const optionsValue = computed(() => {
@@ -161,17 +160,13 @@ const optionsValue = computed(() => {
 });
 
 onMounted(() => {
-  selected.value.value = props.currencyOption as AssetBalance;
+  selected.value.value = props.currencyOption!;
 });
 
 watch(
   () => props.currencyOption,
   () => {
-    selected.value.value = props.currencyOption as AssetBalance;
+    selected.value.value = props.currencyOption!;
   }
 );
-
-function getAssetInfo(denom: string) {
-  return AssetUtils.getCurrencyByDenom(denom ?? NATIVE_ASSET.denom);
-}
 </script>

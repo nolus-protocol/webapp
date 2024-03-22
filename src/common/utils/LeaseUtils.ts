@@ -72,7 +72,7 @@ export class LeaseUtils {
 
       const downpaymentTicker = result.lease.LS_cltr_symbol;
       const downPaymentCurrency = AssetUtils.getCurrencyByTicker(
-        CurrencyDemapping[downpaymentTicker].ticker ?? downpaymentTicker
+        CurrencyDemapping[downpaymentTicker]?.ticker ?? downpaymentTicker
       );
 
       const leasePositionStable = new Dec(result.lease.LS_loan_amnt_asset, LPN_DECIMALS);

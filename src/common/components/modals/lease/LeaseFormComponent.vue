@@ -339,14 +339,13 @@ const calculateMarginAmount = computed(() => {
   return token.toString();
 });
 
-function formatCurrentBalance(selectedCurrency: AssetBalance) {
+function formatCurrentBalance(selectedCurrency: ExternalCurrency) {
   if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
-    const asset = props.modelValue.selectedDownPaymentCurrency;
     return CurrencyUtils.convertMinimalDenomToDenom(
       selectedCurrency.balance.amount.toString(),
       selectedCurrency.balance.denom,
-      asset.shortName,
-      asset.decimal_digits
+      selectedCurrency.shortName,
+      selectedCurrency.decimal_digits
     ).toString();
   }
 }
@@ -404,7 +403,7 @@ const borrowed = computed(() => {
   const borrow = props.modelValue.leaseApply?.borrow;
 
   if (borrow) {
-    const ticker = CurrencyDemapping[borrow?.ticker!].ticker ?? borrow?.ticker;
+    const ticker = CurrencyDemapping[borrow?.ticker!]?.ticker ?? borrow?.ticker;
     const protocol = AssetUtils.getProtocolByContract(props.modelValue.contractAddress);
     const info = app.currenciesData![`${ticker}@${protocol}`];
 

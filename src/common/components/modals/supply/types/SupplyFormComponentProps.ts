@@ -1,11 +1,10 @@
-import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { ExternalCurrency } from "@/common/types";
 import type { Coin } from "@cosmjs/amino";
 import type { Int } from "@keplr-wallet/unit";
 
 export interface SupplyFormComponentProps {
   amountErrorMsg: string;
-  currentBalance: AssetBalance[];
+  currentBalance: ExternalCurrency[];
   selectedCurrency: ExternalCurrency;
   amount: string;
   receiverAddress: string;

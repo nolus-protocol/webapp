@@ -7,7 +7,7 @@ export interface AssetBalance {
   name?: string;
   ticker?: string;
   shortName?: string;
-  decimals?: number;
+  decimal_digits?: number;
   symbol?: string;
   native?: boolean;
   price?: number;

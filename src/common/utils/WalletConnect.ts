@@ -5,7 +5,7 @@ import { Int } from "@keplr-wallet/unit";
 import { fromBech32 } from "@cosmjs/encoding";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
-import { AssetUtils, WalletManager } from ".";
+import { AssetUtils, Logger, WalletManager } from ".";
 import { type NetworkData, type NetworkDataV2, WalletConnectMechanism } from "@/common/types";
 import { authenticateKeplr, authenticateLeap, authenticateLedger, type BaseWallet, type Wallet } from "@/networks";
 
@@ -200,7 +200,7 @@ export const transferCurrency = async (denom: string, amount: string, receiverAd
     result.usedFee = usedFee;
     result.success = true;
   } catch (e) {
-    console.error("Transaction failed. ", e);
+    Logger.error("Transaction failed. ", e);
   }
 
   return result;

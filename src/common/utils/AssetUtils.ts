@@ -162,6 +162,7 @@ export class AssetUtils {
                     ntwrks.protocols[p].DexNetwork
                   ].currencies[key].icon as string;
                 }
+
                 assets[ck].ibcData = NolusAssetUtils.makeIBCMinimalDenom(
                   key,
                   ntwrks!,
@@ -182,7 +183,7 @@ export class AssetUtils {
                 ...currency.native,
                 icon: assetIcons[ck],
                 decimal_digits: Number(currency.native!.decimal_digits),
-                shortName: currency.native?.ticker,
+                shortName: CurrencyDemapping[currency.native?.ticker]?.name ?? currency.native?.ticker,
                 ticker: currency.native.ticker,
                 native: k == NATIVE_NETWORK.key ? false : true,
                 key: `${ck}`,
@@ -207,7 +208,7 @@ export class AssetUtils {
                 ...c.native!,
                 icon: assetIcons[ck],
                 decimal_digits: Number(c.native!.decimal_digits),
-                shortName: c.native?.ticker as string,
+                shortName: (CurrencyDemapping[c.native?.ticker!]?.name ?? c.native?.ticker) as string,
                 ticker: ticker,
                 native: false,
                 key: `${ck}`,

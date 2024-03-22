@@ -140,11 +140,9 @@ import { CheckIcon, XMarkIcon } from "@heroicons/vue/24/solid";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { AssetUtils, StringUtils } from "@/common/utils";
 import { CONFIRM_STEP } from "@/common/types";
-import { useWalletStore } from "@/common/stores/wallet";
 import { useApplicationStore } from "@/common/stores/application";
 
 const applicaton = useApplicationStore();
-const wallet = useWalletStore();
 
 interface Props {
   receiverAddress: string;

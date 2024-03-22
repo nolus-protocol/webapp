@@ -28,7 +28,7 @@ export async function loadCurrennncies(this: Store) {
       name: nativeCurrency.name,
       shortName: nativeCurrency.ticker,
       symbol: nativeCurrency.symbol,
-      decimal_digits: nativeCurrency.decimal_digits,
+      decimal_digits: Number(nativeCurrency.decimal_digits),
       ticker: nativeCurrency.ticker,
       native: true,
       key: nativeCurrency.ticker,
@@ -51,11 +51,9 @@ export async function loadCurrennncies(this: Store) {
       }
     }
 
-    console.log(this.currenciesData);
     this.lease = lease;
     this.leasesCurrencies = Array.from(leasesCurrencies);
   } catch (e) {
-    console.log(e);
     Logger.error(e);
   }
 }

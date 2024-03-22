@@ -55,7 +55,7 @@ const app = useApplicationStore();
 
 const showConfirmScreen = ref(false);
 const state = ref({
-  currentBalance: [app.native],
+  currentBalance: [{ balance: walletStore.total_unls.balance, ...app.native }],
   selectedCurrency: { balance: walletStore.total_unls.balance, ...app.native },
   amount: "",
   amountErrorMsg: "",

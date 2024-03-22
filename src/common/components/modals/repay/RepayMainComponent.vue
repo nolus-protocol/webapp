@@ -93,7 +93,12 @@ const totalBalances = computed(() => {
 
 const balances = computed(() => {
   return totalBalances.value.filter((item) => {
-    const [ticker, _protocol] = item.key.split("@");
+    const [ticker, protocol] = item.key.split("@");
+
+    if (protocol != props.leaseData?.protocol) {
+      return false;
+    }
+
     let cticker = ticker;
 
     if (IGNORE_LEASE_ASSETS.includes(ticker)) {

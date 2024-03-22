@@ -95,14 +95,14 @@ const props = defineProps({
     type: String
   },
   currencyOptions: {
-    type: Array as PropType<AssetBalance[]>
+    type: Array as PropType<ExternalCurrency[] | AssetBalance[]>
   },
   tooltip: {
     type: String,
     default: ""
   },
   option: {
-    type: Object as PropType<AssetBalance>
+    type: Object as PropType<ExternalCurrency | AssetBalance>
   },
   id: {
     type: String
@@ -173,9 +173,9 @@ function calculateInputBalance() {
       const coin = CurrencyUtils.convertDenomToMinimalDenom(
         numberRealValue.toString(),
         props.option?.balance.denom as string,
-        props.option?.decimals as number
+        props.option?.decimal_digits as number
       );
-      return CurrencyUtils.calculateBalance(props.price.toString(), coin, props.option?.decimals as number);
+      return CurrencyUtils.calculateBalance(props.price.toString(), coin, props.option?.decimal_digits as number);
     }
 
     const prices = oracle.prices;

@@ -128,17 +128,17 @@
 
 <script lang="ts" setup>
 import type { Coin } from "@cosmjs/amino";
-import type { AssetBalance } from "@/common/stores/wallet/types";
 
 import { computed, inject, onMounted, watch } from "vue";
 import { ArrowLeftIcon, CheckIcon, XMarkIcon } from "@heroicons/vue/24/solid";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { AssetUtils, EnvNetworkUtils, StringUtils } from "@/common/utils";
-import { CONFIRM_STEP, NetworkTypes } from "@/common/types";
+import { CONFIRM_STEP, NetworkTypes, type ExternalCurrency } from "@/common/types";
 import { NETWORKS_DATA } from "@/networks";
+import type { AssetBalance } from "@/common/stores/wallet/types";
 
 interface Props {
-  selectedCurrency: AssetBalance;
+  selectedCurrency: ExternalCurrency | AssetBalance;
   receiverAddress: string;
   amount: string;
   networkKey: string;
@@ -228,13 +228,17 @@ function formatAmount(value: string) {
   }
 
   const coinMinimalDenom = getMinimalDenom();
-  const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(value, coinMinimalDenom, selectedCurrency.decimals!);
+  const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
+    value,
+    coinMinimalDenom,
+    selectedCurrency.decimal_digits!
+  );
 
   return CurrencyUtils.convertMinimalDenomToDenom(
     minimalDenom.amount.toString(),
     coinMinimalDenom,
     selectedCurrency.shortName!,
-    selectedCurrency.decimals!
+    selectedCurrency.decimal_digits!
   );
 }
 
@@ -264,7 +268,7 @@ function calculateFeeEvm() {
     props.fee!.amount.toString(),
     props.fee!.denom,
     props.networkSymbol as string,
-    props.selectedCurrency.decimals!
+    props.selectedCurrency.decimal_digits!
   );
 }
 

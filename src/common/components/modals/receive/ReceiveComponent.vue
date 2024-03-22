@@ -235,7 +235,7 @@ onMounted(() => {
         amount: "0",
         denom: currency.ibcData
       },
-      decimals: Number(currency.decimal_digits),
+      decimal_digits: Number(currency.decimal_digits),
       icon: app.assetIcons?.[currency.key!],
       name: currency.shortName,
       native: false,
@@ -372,7 +372,7 @@ async function onUpdateNetwork(event: Network) {
           ticker: k,
           name: shortName,
           icon: icon,
-          decimals: Number(filteredAssets[key].decimal_digits),
+          decimal_digits: Number(filteredAssets[key].decimal_digits),
           symbol: filteredAssets[key].symbol,
           native: filteredAssets[key].native
         };
@@ -448,7 +448,7 @@ async function validateAmount() {
 
   const prefix =
     NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[selectedNetwork.value.key]?.prefix;
-  const decimals = selectedCurrency.value?.decimals;
+  const decimals = selectedCurrency.value?.decimal_digits;
 
   if (prefix && decimals) {
     try {
@@ -514,7 +514,7 @@ async function ibcTransfer(baseWallet: BaseWallet) {
     const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
       amount.value,
       denom,
-      selectedCurrency.value?.decimals!
+      selectedCurrency.value?.decimal_digits!
     );
 
     const funds: Coin = {
@@ -581,8 +581,6 @@ async function ibcTransfer(baseWallet: BaseWallet) {
       await walletStore.UPDATE_BALANCES();
     }, 10000);
   } catch (error: Error | any) {
-    console.log(error);
-
     switch (error.code) {
       case ErrorCodes.GasError: {
         step.value = CONFIRM_STEP.GasErrorExternal;
@@ -625,12 +623,12 @@ function formatCurrentBalance(selectedCurrency: AssetBalance | undefined) {
         asset.decimal_digits
       ).toString();
     } else {
-      if (selectedCurrency.decimals != null && selectedCurrency.name != null) {
+      if (selectedCurrency.decimal_digits != null && selectedCurrency.name != null) {
         return CurrencyUtils.convertMinimalDenomToDenom(
           selectedCurrency.balance.amount.toString(),
           selectedCurrency.balance.denom,
           selectedCurrency.name as string,
-          selectedCurrency.decimals as number
+          selectedCurrency.decimal_digits as number
         ).toString();
       }
     }

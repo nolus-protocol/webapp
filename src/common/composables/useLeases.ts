@@ -61,7 +61,6 @@ export function useLeases(onError: (error: unknown) => void) {
       leases.value = items as LeaseData[];
     } catch (e) {
       onError(e);
-      console.log(e);
       Logger.error(e);
     } finally {
       leaseLoaded.value = true;
@@ -173,7 +172,7 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
     const unitAssetInfo = app.currenciesData![`${leaseInfo.opened.amount.ticker!}@${protocolKey}`];
 
     const stableTicker =
-      CurrencyDemapping[leaseInfo.opened.principal_due.ticker!].ticker ?? leaseInfo.opened.principal_due.ticker;
+      CurrencyDemapping[leaseInfo.opened.principal_due.ticker!]?.ticker ?? leaseInfo.opened.principal_due.ticker;
     const stableAssetInfo = app.currenciesData![`${stableTicker!}@${protocolKey}`];
 
     const unitAsset = new Dec(leaseInfo.opened.amount.amount, Number(unitAssetInfo!.decimal_digits));

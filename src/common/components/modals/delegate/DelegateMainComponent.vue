@@ -53,11 +53,9 @@ import { useApplicationStore } from "@/common/stores/application";
 const walletStore = useWalletStore();
 const app = useApplicationStore();
 
-const loadDelegated = inject("loadDelegated", () => false);
-
 const showConfirmScreen = ref(false);
 const state = ref({
-  currentBalance: [app.native],
+  currentBalance: [{ balance: walletStore.total_unls.balance, ...app.native }],
   selectedCurrency: { balance: walletStore.total_unls.balance, ...app.native },
   amount: "",
   amountErrorMsg: "",
@@ -72,7 +70,7 @@ const errorDialog = ref({
   errorMessage: ""
 });
 
-console.log(app.native);
+const loadDelegated = inject("loadDelegated", () => false);
 const closeModal = inject("onModalClose", () => () => {});
 
 watch(
@@ -227,14 +225,14 @@ async function getValidators() {
 }
 
 watch(
-  () => [...state.value.amount],
+  () => state.value.amount,
   (_currentValue, _oldValue) => {
     validateInputs();
   }
 );
 
 watch(
-  () => [...state.value.selectedCurrency.balance.denom.toString()],
+  () => state.value.selectedCurrency,
   (_currentValue, _oldValue) => {
     validateInputs();
   }

@@ -17,8 +17,7 @@
 <script lang="ts" setup>
 import ConfirmComponent from "@/common/components/modals/templates/ConfirmComponent.vue";
 import type { WithdrawRewardsComponentProps } from "./types";
-import type { AssetBalance } from "@/common/stores/wallet/types";
-import { CONFIRM_STEP, TxType } from "@/common/types";
+import { CONFIRM_STEP, TxType, type ExternalCurrency } from "@/common/types";
 
 import { inject, ref, type PropType, computed } from "vue";
 import { coin } from "@cosmjs/amino";
@@ -36,7 +35,7 @@ const loadRewards = inject("loadRewards", async () => {});
 
 const props = defineProps({
   amount: {
-    type: Object as PropType<AssetBalance>,
+    type: Object as PropType<ExternalCurrency>,
     required: true
   }
 });
