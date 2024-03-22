@@ -55,19 +55,18 @@ import CurrencyField from "@/common/components/CurrencyField.vue";
 import TooltipComponent from "@/common/components/TooltipComponent.vue";
 
 import type { RepayComponentProps } from "./types";
-import type { AssetBalance } from "@/common/stores/wallet/types";
 import { type PropType, computed } from "vue";
 
 import { CoinPretty, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/common/stores/oracle";
-import { useWalletStore } from "@/common/stores/wallet";
 import { NATIVE_NETWORK, PERMILLE, PERCENT, LPN_DECIMALS, LPN_Symbol } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
 import { LeaseUtils } from "@/common/utils";
+import type { ExternalCurrency } from "@/common/types";
+import { CurrencyDemapping } from "@/config/currencies";
 
 const oracle = useOracleStore();
-const wallet = useWalletStore();
 const app = useApplicationStore();
 
 const props = defineProps({
@@ -111,40 +110,41 @@ function handleAmountChange(value: string) {
   props.modelValue.amount = value;
 }
 
-function formatCurrentBalance(selectedCurrency: AssetBalance) {
+function formatCurrentBalance(selectedCurrency: ExternalCurrency) {
   if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
-    const asset = wallet.getCurrencyInfo(selectedCurrency.balance.denom);
     return CurrencyUtils.convertMinimalDenomToDenom(
       selectedCurrency.balance.amount.toString(),
       selectedCurrency.balance.denom,
-      asset.shortName,
-      asset.coinDecimals
+      selectedCurrency.shortName,
+      selectedCurrency.decimal_digits
     ).toString();
   }
 }
 
 function setRepayment(p: number) {
   const { repayment, selectedCurrencyInfo } = getRepayment(p);
-  props.modelValue.amount = repayment.toString(selectedCurrencyInfo.coinDecimals + 1);
+  props.modelValue.amount = repayment.toString(selectedCurrencyInfo.decimal_digits + 1);
 }
 
 function getRepayment(p: number) {
   const amount = outStandingDebt();
-  const currency = wallet.getCurrencyByTicker(props.modelValue.leaseInfo.principal_due.ticker);
-  const denom = wallet.getIbcDenomBySymbol(currency!.symbol);
-  const info = wallet.getCurrencyInfo(denom as string);
+
+  const ticker =
+    CurrencyDemapping[props.modelValue.leaseInfo.principal_due.ticker!].ticker ??
+    props.modelValue.leaseInfo.principal_due.ticker;
+  const currency = app.currenciesData![`${ticker!}@${props.modelValue.protocol}`];
+
   const amountToRepay = CurrencyUtils.convertMinimalDenomToDenom(
     amount.toString(),
-    info.coinMinimalDenom,
-    info.coinDenom,
-    info.coinDecimals
+    currency.shortName,
+    currency.ibcData,
+    currency.decimal_digits
   ).toDec();
 
   const percent = new Dec(p).quo(new Dec(100));
   let repaymentInStable = amountToRepay.mul(percent);
 
-  const selectedCurrencyInfo = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom as string);
-  const selectedCurrency = wallet.getCurrencyByTicker(selectedCurrencyInfo.ticker);
+  const selectedCurrency = props.modelValue.selectedCurrency;
   const price = new Dec(oracle.prices[selectedCurrency!.ibcData as string].amount);
   const swap = hasSwapFee.value;
 
@@ -157,12 +157,12 @@ function getRepayment(p: number) {
   return {
     repayment,
     repaymentInStable,
-    selectedCurrencyInfo
+    selectedCurrencyInfo: selectedCurrency
   };
 }
 
 const hasSwapFee = computed(() => {
-  const selectedCurrencyInfo = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom as string);
+  const selectedCurrencyInfo = props.modelValue.selectedCurrency;
   const lpns = (app.lpn ?? []).map((item) => item.key);
   const isLpn = lpns.find((lpn) => {
     const [lpnTicker] = lpn!.split("@");
@@ -175,8 +175,8 @@ const hasSwapFee = computed(() => {
 });
 
 const amount = computed(() => {
-  const info = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
-  const selectedCurrency = wallet.getCurrencyByTicker(info.ticker);
+  const selectedCurrency = props.modelValue.selectedCurrency;
+
   let amount = new Dec(props.modelValue.amount == "" ? 0 : props.modelValue.amount);
   const price = new Dec(oracle.prices[selectedCurrency!.ibcData as string]?.amount ?? 0);
   const { repayment, repaymentInStable } = getRepayment(100);
@@ -185,9 +185,9 @@ const amount = computed(() => {
     .mul(price)
     .mul(new Dec(10).pow(new Int(LPN_DECIMALS)))
     .truncate();
-  const amountInt = amount.mul(new Dec(10).pow(new Int(info.coinDecimals))).truncate();
+  const amountInt = amount.mul(new Dec(10).pow(new Int(selectedCurrency.decimal_digits))).truncate();
 
-  const repaymentInt = repayment.mul(new Dec(10).pow(new Int(info.coinDecimals))).truncate();
+  const repaymentInt = repayment.mul(new Dec(10).pow(new Int(selectedCurrency.decimal_digits))).truncate();
   const repaymentInStableInt = repaymentInStable.mul(new Dec(10).pow(new Int(LPN_DECIMALS))).truncate();
 
   let vStable = repaymentInStableInt.sub(amountInStableInt);
@@ -215,9 +215,9 @@ const amount = computed(() => {
       .hideDenom(true),
     amount: new CoinPretty(
       {
-        coinDenom: info.shortName,
-        coinMinimalDenom: info.coinMinimalDenom,
-        coinDecimals: info.coinDecimals
+        coinDenom: selectedCurrency.shortName,
+        coinMinimalDenom: selectedCurrency.ibcData,
+        coinDecimals: selectedCurrency.decimal_digits
       },
       v
     )

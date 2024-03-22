@@ -48,25 +48,17 @@ import { NATIVE_ASSET, GAS_FEES } from "@/config/global";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { WalletManager } from "@/common/utils";
 import { Utils } from "@/common/utils";
-
-defineProps({
-  selectedAsset: {
-    type: String
-  }
-});
+import { useApplicationStore } from "@/common/stores/application";
 
 const walletStore = useWalletStore();
+const app = useApplicationStore();
+
 const loadDelegated = inject("loadDelegated", () => false);
 
 const showConfirmScreen = ref(false);
 const state = ref({
-  currentBalance: walletStore.balances.filter((item) => {
-    if (item.balance.denom == NATIVE_ASSET.denom) {
-      return true;
-    }
-    return false;
-  }),
-  selectedCurrency: walletStore.total_unls,
+  currentBalance: [app.native],
+  selectedCurrency: { balance: walletStore.total_unls.balance, ...app.native },
   amount: "",
   amountErrorMsg: "",
   txHash: "",
@@ -80,6 +72,7 @@ const errorDialog = ref({
   errorMessage: ""
 });
 
+console.log(app.native);
 const closeModal = inject("onModalClose", () => () => {});
 
 watch(
@@ -137,9 +130,8 @@ async function delegate() {
         division = validators?.length;
       }
 
-      const denom = state.value.selectedCurrency.balance.denom;
-      const asset = walletStore.getCurrencyInfo(denom);
-      const data = CurrencyUtils.convertDenomToMinimalDenom(state.value.amount, asset.coinDenom, asset.coinDecimals);
+      const asset = state.value.selectedCurrency;
+      const data = CurrencyUtils.convertDenomToMinimalDenom(state.value.amount, asset.ibcData, asset.decimal_digits);
 
       const amount = Number(data.amount.toString());
       const quotient = Math.floor(amount / division);
@@ -162,7 +154,7 @@ async function delegate() {
       const delegations = amounts.map((item) => {
         return {
           validator: item.validator,
-          amount: coin(item.value, denom)
+          amount: coin(item.value, asset.ibcData)
         };
       });
 

@@ -1,10 +1,10 @@
 import type { OpenedLeaseInfo } from "@nolus/nolusjs/build/contracts";
+import type { LeaseAttributes } from "../types/LeaseData";
 import { Dec } from "@keplr-wallet/unit";
-import { useWalletStore } from "../stores/wallet";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { LPN_DECIMALS, PERCENT, PERMILLE } from "@/config/global";
-import { AppUtils, EtlApi, Logger } from ".";
-import type { LeaseAttributes } from "../types/LeaseData";
+import { AppUtils, AssetUtils, EtlApi, Logger } from ".";
+import { CurrencyDemapping } from "@/config/currencies";
 
 export class LeaseUtils {
   public static calculateLiquidation(unit: Dec, price: Dec) {
@@ -20,9 +20,7 @@ export class LeaseUtils {
 
   public static getDebt(data: OpenedLeaseInfo | undefined) {
     if (data) {
-      const walletStore = useWalletStore();
-      const item = walletStore.getCurrencyByTicker(data.principal_due.ticker);
-      const ibcDenom = walletStore.getIbcDenomBySymbol(item!.symbol) as string;
+      const item = AssetUtils.getCurrencyByTicker(data.principal_due.ticker!);
       const amount = new Dec(data.principal_due.amount)
         .add(new Dec(data.overdue_margin.amount))
         .add(new Dec(data.overdue_interest.amount))
@@ -32,7 +30,7 @@ export class LeaseUtils {
 
       const token = CurrencyUtils.convertMinimalDenomToDenom(
         amount.truncate().toString(),
-        ibcDenom,
+        item.ibcData,
         item!.symbol,
         Number(item!.decimal_digits)
       );
@@ -58,7 +56,6 @@ export class LeaseUtils {
 
   public static async getLeaseData(leaseAddress: string): Promise<LeaseAttributes | undefined> {
     try {
-      const walletStore = useWalletStore();
       const result = await EtlApi.fetchLeaseOpening(leaseAddress);
 
       if (!result) {
@@ -74,7 +71,9 @@ export class LeaseUtils {
       }
 
       const downpaymentTicker = result.lease.LS_cltr_symbol;
-      const downPaymentCurrency = walletStore.getCurrencyByTicker(downpaymentTicker);
+      const downPaymentCurrency = AssetUtils.getCurrencyByTicker(
+        CurrencyDemapping[downpaymentTicker].ticker ?? downpaymentTicker
+      );
 
       const leasePositionStable = new Dec(result.lease.LS_loan_amnt_asset, LPN_DECIMALS);
       const downPayment = new Dec(result.lease.LS_cltr_amnt_stable, Number(downPaymentCurrency!.decimal_digits));

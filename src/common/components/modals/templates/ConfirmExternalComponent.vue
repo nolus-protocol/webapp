@@ -177,7 +177,7 @@ const networkData = computed(() => {
 });
 
 const networkSymbol = computed(() => {
-  return AssetUtils.getAssetInfo(props.networkSymbol as string);
+  return AssetUtils.getCurrencyByTicker(props.networkSymbol as string);
 });
 
 const btnAction = computed(() => {

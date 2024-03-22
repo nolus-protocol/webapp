@@ -5,7 +5,7 @@ import { Int } from "@keplr-wallet/unit";
 import { fromBech32 } from "@cosmjs/encoding";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
-import { WalletManager } from ".";
+import { AssetUtils, WalletManager } from ".";
 import { type NetworkData, type NetworkDataV2, WalletConnectMechanism } from "@/common/types";
 import { authenticateKeplr, authenticateLeap, authenticateLedger, type BaseWallet, type Wallet } from "@/networks";
 
@@ -36,9 +36,9 @@ export const validateAmount = (amount: string, denom: string, balance: number) =
   }
 
   const walletStore = useWalletStore();
-  const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(denom);
-  const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, coinMinimalDenom, coinDecimals);
-  const zero = CurrencyUtils.convertDenomToMinimalDenom("0", coinMinimalDenom, coinDecimals).amount.toDec();
+  const asset = AssetUtils.getCurrencyByDenom(denom);
+  const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, asset.ibcData, asset.decimal_digits);
+  const zero = CurrencyUtils.convertDenomToMinimalDenom("0", asset.ibcData, asset.decimal_digits).amount.toDec();
 
   const walletBalance = String(balance || 0);
   const isLowerThanOrEqualsToZero = minimalDenom.amount.toDec().lte(zero);
@@ -157,11 +157,10 @@ export const externalWalletOperationV2 = async (
 };
 
 export const getMicroAmount = (denom: string, amount: string) => {
-  const walletStore = useWalletStore();
-  const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(denom);
-  const mAmount = CurrencyUtils.convertDenomToMinimalDenom(amount, coinMinimalDenom, coinDecimals);
+  const asset = AssetUtils.getCurrencyByDenom(denom);
+  const mAmount = CurrencyUtils.convertDenomToMinimalDenom(amount, asset.ibcData, asset.decimal_digits);
 
-  return { coinMinimalDenom, coinDecimals, mAmount };
+  return { coinMinimalDenom: asset.ibcData, coinDecimals: asset.decimal_digits, mAmount };
 };
 
 export const transferCurrency = async (denom: string, amount: string, receiverAddress: string, memo = "") => {
@@ -183,9 +182,8 @@ export const transferCurrency = async (denom: string, amount: string, receiverAd
     return result;
   }
 
-  const walletStore = useWalletStore();
-  const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(denom);
-  const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, coinMinimalDenom, coinDecimals);
+  const asset = AssetUtils.getCurrencyByDenom(denom);
+  const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, asset.ibcData, asset.decimal_digits);
 
   try {
     const funds: Coin[] = [

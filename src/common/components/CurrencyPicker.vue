@@ -18,7 +18,7 @@
         >
           <span class="flex items-center">
             <img
-              :src="selected.value?.icon ?? getAssetInfo(selected.value?.balance?.denom)?.coinIcon"
+              :src="selected.value?.icon ?? getAssetInfo(selected.value?.balance?.denom)?.icon"
               class="h-6 w-6 flex-shrink-0 rounded-full"
               alt=""
             />
@@ -76,7 +76,7 @@
               >
                 <div class="flex items-center">
                   <img
-                    :src="option.icon ?? getAssetInfo(option.balance.denom).coinIcon"
+                    :src="option.icon ?? getAssetInfo(option.balance.denom).icon"
                     class="mr-3 h-6 w-6 flex-shrink-0 rounded-full"
                     alt=""
                   />
@@ -104,9 +104,9 @@
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import { type PropType, ref, onMounted, watch, computed } from "vue";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
-import { useWalletStore } from "@/common/stores/wallet";
 import { NATIVE_ASSET } from "@/config/global";
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from "@headlessui/vue";
+import { AssetUtils } from "../utils";
 
 const props = defineProps({
   label: {
@@ -143,8 +143,6 @@ const props = defineProps({
   }
 });
 
-const wallet = useWalletStore();
-
 const selected = ref({
   value: {} as AssetBalance
 });
@@ -174,6 +172,6 @@ watch(
 );
 
 function getAssetInfo(denom: string) {
-  return wallet.getCurrencyInfo(denom ?? NATIVE_ASSET.denom);
+  return AssetUtils.getCurrencyByDenom(denom ?? NATIVE_ASSET.denom);
 }
 </script>

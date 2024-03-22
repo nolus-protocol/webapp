@@ -1,8 +1,9 @@
 import type { Store } from "../types";
 import type { NetworkData } from "@nolus/nolusjs/build/types/Networks";
-import { NATIVE_NETWORK, NETWORKS } from "@/config/global";
+import { NATIVE_ASSET, NATIVE_NETWORK, NETWORKS } from "@/config/global";
 import { AssetUtils, EnvNetworkUtils, Logger } from "@/common/utils";
 import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
+import { ASSETS } from "@/config/currencies";
 
 export async function loadCurrennncies(this: Store) {
   try {
@@ -21,7 +22,9 @@ export async function loadCurrennncies(this: Store) {
 
     this.lpn = [];
     const nativeCurrency = currenciesData.networks.list[NATIVE_NETWORK.key].currencies[native].native!;
+
     this.native = {
+      icon: NATIVE_ASSET.icon,
       name: nativeCurrency.name,
       shortName: nativeCurrency.ticker,
       symbol: nativeCurrency.symbol,
@@ -29,7 +32,8 @@ export async function loadCurrennncies(this: Store) {
       ticker: nativeCurrency.ticker,
       native: true,
       key: nativeCurrency.ticker,
-      ibcData: nativeCurrency.symbol
+      ibcData: nativeCurrency.symbol,
+      coingeckoId: ASSETS[NATIVE_ASSET.ticker as keyof typeof ASSETS].coinGeckoId
     };
 
     for (const protocol of this.protocols) {
@@ -47,9 +51,11 @@ export async function loadCurrennncies(this: Store) {
       }
     }
 
+    console.log(this.currenciesData);
     this.lease = lease;
     this.leasesCurrencies = Array.from(leasesCurrencies);
   } catch (e) {
+    console.log(e);
     Logger.error(e);
   }
 }

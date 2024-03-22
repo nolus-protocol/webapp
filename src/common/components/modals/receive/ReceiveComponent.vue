@@ -294,6 +294,8 @@ async function onUpdateNetwork(event: Network) {
         if (lpn) {
           for (const lpn of app.lpn ?? []) {
             filteredAssets[lpn.key as string] = {
+              icon: lpn.icon,
+              coingeckoId: lpn.coingeckoId,
               native: true,
               decimal_digits: lpn.decimal_digits,
               ibcData: assets[key].ibcData,
@@ -615,12 +617,12 @@ function onClickOkBtn() {
 function formatCurrentBalance(selectedCurrency: AssetBalance | undefined) {
   if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
     if (selectedNetwork.value.native) {
-      const asset = walletStore.getCurrencyInfo(selectedCurrency.balance.denom);
+      const asset = AssetUtils.getCurrencyByDenom(selectedCurrency.balance.denom);
       return CurrencyUtils.convertMinimalDenomToDenom(
         selectedCurrency.balance.amount.toString(),
         selectedCurrency.balance.denom,
-        asset.coinDenom,
-        asset.coinDecimals
+        asset.ibcData,
+        asset.decimal_digits
       ).toString();
     } else {
       if (selectedCurrency.decimals != null && selectedCurrency.name != null) {

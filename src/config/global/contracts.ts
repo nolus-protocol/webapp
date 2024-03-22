@@ -24,7 +24,7 @@ export const CONTRACTS: ContractConfig = {
     admin: {
       instance: "nolus1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsqxf8nd",
       codeId: "",
-      ignoreProtocols: ["OSMOSIS-OSMOSIS-USDC_NOBLE"]
+      ignoreProtocols: []
     }
   }
 };
@@ -46,6 +46,10 @@ export const ProtocolsConfig: {
   "NEUTRON-ASTROPORT-USDC_AXELAR": {
     only: [],
     hidden: ["ATOM", "ST_ATOM", "TIA"]
+  },
+  "OSMOSIS-OSMOSIS-USDC_NOBLE": {
+    only: [],
+    hidden: []
   }
 };
 

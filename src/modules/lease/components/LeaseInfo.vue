@@ -52,9 +52,9 @@
               :type="CURRENCY_VIEW_TYPES.TOKEN"
               :amount="amount"
               :font-size="22"
-              :minimalDenom="asset.coinMinimalDenom"
-              :denom="asset.shortName"
-              :decimals="asset?.coinDecimals"
+              :minimalDenom="asset!.ibcData"
+              :denom="asset!.shortName"
+              :decimals="asset?.decimal_digits"
               :maxDecimals="6"
             />
             <span class="nls-font-400 ml-1 inline-block text-20 uppercase text-primary"> </span>
@@ -72,7 +72,7 @@
             class="data-label-info garet-medium m-1.5 mb-0 ml-0 rounded p-1 text-medium-blue"
             v-if="leaseInfo.leaseData?.price"
           >
-            {{ `${$t("message.price-per")} ${asset.shortName}:` }} ${{ leaseInfo.leaseData?.price.toString(4) }}
+            {{ `${$t("message.price-per")} ${asset!.shortName}:` }} ${{ leaseInfo.leaseData?.price.toString(4) }}
           </span>
           <span class="data-label-info garet-medium m-1.5 mb-0 ml-0 rounded p-1 text-medium-blue">
             {{ $t("message.liq-trigger") }}: {{ liquidation }}
@@ -384,9 +384,9 @@
                 :type="CURRENCY_VIEW_TYPES.TOKEN"
                 :amount="amount"
                 :font-size="22"
-                :minimalDenom="asset.coinMinimalDenom"
-                :denom="asset.shortName"
-                :decimals="asset?.coinDecimals"
+                :minimalDenom="asset!.ibcData"
+                :denom="asset!.shortName"
+                :decimals="asset?.decimal_digits"
                 :maxDecimals="6"
               />
               <span class="nls-font-400 ml-1 inline-block text-20 uppercase text-primary"> </span>
@@ -518,7 +518,7 @@
   >
     <ShareDialog
       :icon="getAssetIcon"
-      :asset="asset.shortName"
+      :asset="asset!.shortName"
       :price="leaseInfo.leaseData?.price!.toString(6) ?? '0'"
       :position="pnl.percent"
     />
@@ -527,7 +527,7 @@
 
 <script lang="ts" setup>
 import { CONFIRM_STEP } from "@/common/types";
-import type { IObjectKeys, LeaseData } from "@/common/types";
+import type { LeaseData } from "@/common/types";
 
 import RepayDialog from "@/common/components/modals/RepayDialog.vue";
 import MarketCloseDialog from "@/common/components/modals/MarketCloseDialog.vue";
@@ -555,7 +555,7 @@ import { useI18n } from "vue-i18n";
 import { onMounted } from "vue";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { TxType } from "@/common/types";
-import { Logger, StringUtils, WalletManager, datePraser } from "@/common/utils";
+import { AssetUtils, Logger, StringUtils, WalletManager, datePraser } from "@/common/utils";
 import { coin } from "@cosmjs/amino";
 import { walletOperation } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
@@ -657,12 +657,13 @@ const currentPrice = computed(() => {
     props.leaseInfo.leaseStatus?.paid?.amount.ticker ||
     props.leaseInfo.leaseStatus?.opening?.downpayment.ticker;
 
-  const item = walletStore.getCurrencyByTicker(ticker as string);
+  const item = AssetUtils.getCurrencyByTicker(ticker as string);
   return oracleStore.prices[item!.ibcData as string]?.amount ?? "0";
 });
 
+//TODO: fix
 async function fetchChartData(days: string, interval: string) {
-  let coinGeckoId = asset.value.coinGeckoId;
+  let coinGeckoId = asset.value?.coingeckoId;
 
   if (props.leaseInfo.leaseStatus?.opening && !props.leaseInfo.leaseData) {
     const ticker =
@@ -670,9 +671,9 @@ async function fetchChartData(days: string, interval: string) {
       props.leaseInfo.leaseStatus?.opening?.downpayment.ticker ||
       props.leaseInfo.leaseStatus?.paid?.amount.ticker;
 
-    const item = walletStore.getCurrencyByTicker(ticker);
-    const asset = walletStore.getCurrencyInfo(item?.ibcData as string);
-    coinGeckoId = asset.coinGeckoId;
+    const item = AssetUtils.getCurrencyByTicker(ticker);
+    const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
+    coinGeckoId = asset.coingeckoId;
   }
 
   const res = await fetch(
@@ -685,18 +686,16 @@ async function fetchChartData(days: string, interval: string) {
 const asset = computed(() => {
   if (props.leaseInfo.leaseStatus?.opening && props.leaseInfo.leaseData) {
     const item = app.currenciesData?.[props.leaseInfo.leaseData?.leasePositionTicker as string];
-    const ibcDenom = walletStore.getIbcDenomBySymbol(item?.symbol);
-    const asset = walletStore.getCurrencyInfo(ibcDenom as string);
-    return asset;
+    return item;
   }
 
   const ticker =
     props.leaseInfo.leaseStatus?.opened?.amount.ticker ||
     props.leaseInfo.leaseStatus?.paid?.amount.ticker ||
     props.leaseInfo.leaseStatus?.opening?.downpayment.ticker;
-  const item = walletStore.getCurrencyByTicker(ticker as string);
+  const item = AssetUtils.getCurrencyByTicker(ticker as string);
 
-  const asset = walletStore.getCurrencyInfo(item?.ibcData as string);
+  const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
   return asset;
 });
 
@@ -732,12 +731,11 @@ const interestDue = computed(() => {
   const data = props.leaseInfo.leaseStatus?.opened;
 
   if (data) {
-    const item = walletStore.getCurrencyByTicker(data.due_interest.ticker);
-    const ibcDenom = walletStore.getIbcDenomBySymbol(item!.symbol) as string;
+    const item = AssetUtils.getCurrencyByTicker(data.due_interest.ticker);
 
     const token = CurrencyUtils.convertMinimalDenomToDenom(
       props.leaseInfo.interestDue.truncate().toString(),
-      ibcDenom,
+      item.ibcData,
       item!.symbol,
       Number(item!.decimal_digits)
     );
@@ -771,11 +769,10 @@ function onShowClaimDialog() {
   const data = props.leaseInfo.leaseStatus.paid as PaidLeaseInfo;
   if (data) showClaimDialog.value = true;
 
-  const item = walletStore.getCurrencyByTicker(data.amount.ticker);
-  const ibcDenom = walletStore.getIbcDenomBySymbol(item!.symbol) as string;
+  const item = AssetUtils.getCurrencyByTicker(data.amount.ticker!);
   const token = CurrencyUtils.convertMinimalDenomToDenom(
     data.amount.amount,
-    ibcDenom,
+    item.ibcData,
     item!.symbol,
     Number(item!.decimal_digits)
   );
@@ -784,7 +781,7 @@ function onShowClaimDialog() {
   state.value.selectedCurrency = {
     balance: {
       amount: 0,
-      denom: ibcDenom
+      denom: item.ibcData
     }
   };
 }

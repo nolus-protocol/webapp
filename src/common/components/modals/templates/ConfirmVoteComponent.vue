@@ -138,7 +138,7 @@ import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { computed, inject, onMounted, watch } from "vue";
 import { CheckIcon, XMarkIcon } from "@heroicons/vue/24/solid";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { StringUtils } from "@/common/utils";
+import { AssetUtils, StringUtils } from "@/common/utils";
 import { CONFIRM_STEP } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useApplicationStore } from "@/common/stores/application";
@@ -201,8 +201,13 @@ watch(
 );
 
 function calculateFee(coin: Coin) {
-  const { shortName, coinMinimalDenom, coinDecimals } = wallet.getCurrencyInfo(coin.denom);
+  const asset = AssetUtils.getCurrencyByDenom(coin.denom);
 
-  return CurrencyUtils.convertMinimalDenomToDenom(coin.amount.toString(), coinMinimalDenom, shortName, coinDecimals);
+  return CurrencyUtils.convertMinimalDenomToDenom(
+    coin.amount.toString(),
+    asset.ibcData,
+    asset.shortName,
+    asset.decimal_digits
+  );
 }
 </script>

@@ -128,7 +128,7 @@ import type { Coin } from "@cosmjs/amino";
 import { computed, inject, onMounted, watch } from "vue";
 import { CheckIcon, XMarkIcon } from "@heroicons/vue/24/solid";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { StringUtils } from "@/common/utils";
+import { AssetUtils, StringUtils } from "@/common/utils";
 import { CONFIRM_STEP } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useApplicationStore } from "@/common/stores/application";
@@ -199,20 +199,25 @@ function formatAmount(value: string) {
     return;
   }
 
-  const { shortName, coinMinimalDenom, coinDecimals } = wallet.getCurrencyInfo(selectedCurrency.balance.denom);
+  const asset = AssetUtils.getCurrencyByDenom(selectedCurrency.balance.denom);
 
-  const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(value, coinMinimalDenom, coinDecimals);
+  const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(value, asset.ibcData, asset.decimal_digits);
   return CurrencyUtils.convertMinimalDenomToDenom(
     minimalDenom.amount.toString(),
-    coinMinimalDenom,
-    shortName,
-    coinDecimals
+    asset.ibcData,
+    asset.shortName,
+    asset.decimal_digits
   );
 }
 
 function calculateFee(coin: Coin) {
-  const { shortName, coinMinimalDenom, coinDecimals } = wallet.getCurrencyInfo(coin.denom);
+  const asset = AssetUtils.getCurrencyByDenom(coin.denom);
 
-  return CurrencyUtils.convertMinimalDenomToDenom(coin.amount.toString(), coinMinimalDenom, shortName, coinDecimals);
+  return CurrencyUtils.convertMinimalDenomToDenom(
+    coin.amount.toString(),
+    asset.ibcData,
+    asset.shortName,
+    asset.decimal_digits
+  );
 }
 </script>

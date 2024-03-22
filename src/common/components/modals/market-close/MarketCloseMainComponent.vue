@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import type { LeaseData } from "@/common/types";
+import type { ExternalCurrency, LeaseData } from "@/common/types";
 import type { MarketCloseComponentProps } from "./types";
 import type { Coin } from "@cosmjs/proto-signing";
 import type { AssetBalance } from "@/common/stores/wallet/types";
@@ -35,7 +35,7 @@ import { Dec, Int } from "@keplr-wallet/unit";
 
 import { CONFIRM_STEP } from "@/common/types";
 import { TxType } from "@/common/types";
-import { Logger, getMicroAmount, walletOperation } from "@/common/utils";
+import { AssetUtils, Logger, getMicroAmount, walletOperation } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
@@ -44,12 +44,13 @@ import { coin } from "@cosmjs/amino";
 import { AppUtils } from "@/common/utils";
 import { useLeaseConfig } from "@/common/composables";
 import { useOracleStore } from "@/common/stores/oracle";
-import { CurrencyDemapping } from "@/config/currencies";
+import { useApplicationStore } from "@/common/stores/application";
 
 const walletStore = useWalletStore();
 const walletRef = storeToRefs(walletStore);
 const oracle = useOracleStore();
 const i18n = useI18n();
+const app = useApplicationStore();
 
 const onModalClose = inject("onModalClose", () => {});
 const getLeases = inject("getLeases", () => {});
@@ -66,24 +67,25 @@ const closeModal = onModalClose;
 const { config } = useLeaseConfig(props.leaseData?.protocol as string, (error: Error | any) => {});
 
 const balances = computed(() => {
-  const balances = walletStore.balances;
+  const assets = [];
   let ticker = props.leaseData?.leaseStatus?.opened?.amount?.ticker;
 
-  if (CurrencyDemapping[ticker as keyof typeof CurrencyDemapping]) {
-    ticker = CurrencyDemapping[ticker as keyof typeof CurrencyDemapping]?.ticker;
+  for (const key in app.currenciesData ?? {}) {
+    const currency = app.currenciesData![key];
+    const c = { ...currency };
+    const item = walletStore.balances.find((item) => item.balance.denom == currency.ibcData);
+    c.balance = item!.balance;
+    assets.push(c);
   }
 
-  return balances.filter((item) => {
-    const currency = walletStore.currencies[item.balance.denom];
-    const [t] = currency.ticker.split("@");
-    return t == ticker;
-  });
+  return assets.filter((item) => item.key == `${ticker}@${props.leaseData?.protocol}`);
 });
 
 const state = ref({
   leaseInfo: props.leaseData?.leaseStatus?.opened,
-  currentBalance: balances.value as AssetBalance[],
-  selectedCurrency: balances.value[0] as AssetBalance,
+  protocol: props.leaseData?.protocol,
+  currentBalance: balances.value as ExternalCurrency[],
+  selectedCurrency: balances.value[0] as ExternalCurrency,
   receiverAddress: props.leaseData?.leaseAddress || "",
   amount: "",
   amountErrorMsg: "",
@@ -112,7 +114,7 @@ watch(
 );
 
 async function setSwapFee() {
-  const asset = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom);
+  const asset = state.value.selectedCurrency;
   state.value.swapFee = (await AppUtils.getSwapFee())[asset.ticker] ?? 0;
 }
 
@@ -143,9 +145,9 @@ function isAmountValid() {
   state.value.amountErrorMsg = "";
 
   const amount = state.value.amount;
-  const currency = walletStore.getCurrencyByTicker(state.value.leaseInfo.amount.ticker)!;
+  const currency = AssetUtils.getCurrencyByTicker(state.value.leaseInfo.amount.ticker!);
   const debt = new Dec(state.value.leaseInfo.amount.amount, Number(currency.decimal_digits));
-  const minAmountCurrency = walletStore.getCurrencyByTicker(
+  const minAmountCurrency = AssetUtils.getCurrencyByTicker(
     config.value?.config.lease_position_spec.min_asset.ticker as string
   )!;
   const minAmont = new Dec(
@@ -202,7 +204,7 @@ async function marketCloseLease() {
     try {
       const microAmount = getMicroAmount(state.value.selectedCurrency.balance.denom, state.value.amount);
 
-      const currency = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom);
+      const currency = state.value.selectedCurrency;
       const amount = new Int(state.value.leaseInfo.amount.amount);
 
       const funds: Coin[] = [
@@ -254,10 +256,8 @@ async function marketCloseLease() {
 }
 
 watch(walletRef.balances, (b: AssetBalance[]) => {
-  if (b) {
-    if (!state.value.selectedCurrency) {
-      state.value.selectedCurrency = balances.value[0];
-    }
+  if (b && !state.value.selectedCurrency) {
+    state.value.selectedCurrency = balances.value[0];
   }
 });
 </script>

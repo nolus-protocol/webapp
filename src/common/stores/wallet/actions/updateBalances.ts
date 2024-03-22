@@ -31,17 +31,6 @@ export async function updateBalances(this: Store) {
       );
 
       const fn = () => {
-        const data = {
-          ticker: key,
-          shortName: shortName,
-          name: currency.name,
-          symbol: currency.symbol,
-          decimal_digits: currency.decimal_digits,
-          ibcData: ibcDenom
-        };
-
-        this.currencies[ibcDenom] = data;
-
         if (WalletUtils.isAuth()) {
           return NolusClient.getInstance()
             .getSpendableBalance(walletAddress, ibcDenom)
@@ -69,7 +58,7 @@ export async function updateBalances(this: Store) {
 }
 
 async function getNativeTotal(walletAddress: string) {
-  if(WalletUtils.isAuth()){
+  if (WalletUtils.isAuth()) {
     return NolusClient.getInstance()
       .getBalance(walletAddress, NATIVE_ASSET.denom)
       .then((item) => {

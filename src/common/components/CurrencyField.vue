@@ -73,13 +73,12 @@ import { onMounted, ref, watch, type PropType } from "vue";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/common/stores/oracle";
-import { useWalletStore } from "@/common/stores/wallet";
 import { useApplicationStore } from "../stores/application";
 import { CurrencyMapping } from "@/config/currencies";
+import { AssetUtils } from "../utils";
 
 const emit = defineEmits(["update-currency", "update:modelValue", "input"]);
 const oracle = useOracleStore();
-const wallet = useWalletStore();
 const app = useApplicationStore();
 
 const dot = ".";
@@ -198,7 +197,7 @@ function calculateInputBalance() {
       coinDecimals = Number(currency?.decimal_digits);
       coinMinimalDenom = currency?.ibcData;
     } else {
-      const currency = wallet.currencies[props.option.balance.denom];
+      const currency = AssetUtils.getCurrencyByDenom(props.option.balance.denom);
       coinDecimals = Number(currency?.decimal_digits);
       coinMinimalDenom = currency?.ibcData;
     }
@@ -278,8 +277,8 @@ function setValue() {
 function setBalance() {
   if (props.total) {
     const currency: ExternalCurrency | any = props.option?.ticker
-      ? wallet.getCurrencyByTicker(props.option?.ticker)
-      : wallet.getCurrencyInfo(props.total.denom);
+      ? AssetUtils.getCurrencyByTicker(props.option?.ticker)
+      : AssetUtils.getCurrencyByDenom(props.total.denom);
     const decimals = Number(currency.decimal_digits ?? currency.coinDecimals);
     const value = new Dec(props.total.amount, decimals);
     emit("input", value.toString(decimals));

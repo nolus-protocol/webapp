@@ -39,7 +39,7 @@ import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { WithdrawFormComponentProps } from "./types";
 import type { PropType } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { useWalletStore } from "@/common/stores/wallet";
+import { AssetUtils } from "@/common/utils";
 
 const props = defineProps({
   modelValue: {
@@ -48,18 +48,16 @@ const props = defineProps({
   }
 });
 
-const walletStore = useWalletStore();
-
 defineEmits(["update:modelValue.selectedCurrency"]);
 
 function formatCurrentBalance(selectedCurrency: AssetBalance) {
   if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
-    const asset = walletStore.getCurrencyInfo(selectedCurrency?.balance?.denom);
+    const asset = AssetUtils.getCurrencyByDenom(selectedCurrency?.balance?.denom);
     return CurrencyUtils.convertMinimalDenomToDenom(
       selectedCurrency.balance.amount.toString(),
       selectedCurrency.balance.denom,
       asset.shortName,
-      asset.coinDecimals
+      asset.decimal_digits
     ).toString();
   }
 }

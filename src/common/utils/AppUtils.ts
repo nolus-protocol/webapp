@@ -1,4 +1,5 @@
 import type { API, ARCHIVE_NODE, Endpoint, Node, News } from "@/common/types";
+
 import { connectComet } from "@cosmjs/tendermint-rpc";
 import { EnvNetworkUtils } from ".";
 import { CONTRACTS, NEWS_URL, NEWS_WALLETS_PATH } from "@/config/global";
@@ -161,9 +162,13 @@ export class AppUtils {
     return CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].protocols;
   }
 
+  public static getDefaultProtocol() {
+    return AppUtils.getProtocols().osmosis_noble;
+  }
+
   private static async fetchArchiveNodes(): Promise<ARCHIVE_NODE> {
     const config = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
-    const data = await fetch(config.endpoints);
+    const data = await fetch(await config.endpoints);
     const json = (await data.json()) as Endpoint;
 
     const archive = {
@@ -176,7 +181,7 @@ export class AppUtils {
 
   private static async fetch(network: string) {
     const config = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
-    const data = await fetch(config.endpoints);
+    const data = await fetch(await config.endpoints);
     const json = (await data.json()) as Endpoint;
     const status = await AppUtils.fetchStatus((json[network] as Node).primary.rpc, json.downtime);
 

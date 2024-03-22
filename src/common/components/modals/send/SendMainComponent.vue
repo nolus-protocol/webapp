@@ -77,7 +77,7 @@ const props = defineProps({
 const balances = ref<AssetBalance[]>(
   walletStore.balances
     .filter((item) => {
-      const currency = walletStore.getCurrencyInfo(item.balance.denom);
+      const currency = AssetUtils.getCurrencyByDenom(item.balance.denom);
       if (IGNORE_TRANSFER_ASSETS.includes(currency.ticker as string)) {
         return false;
       }
@@ -123,7 +123,7 @@ function onClickOkBtn() {
 onMounted(() => {
   if ((state.value.dialogSelectedCurrency.length as number) > 0) {
     const currency = balances.value.find((e) => {
-      const asset = AssetUtils.getAssetInfoByDenom(e.balance.denom);
+      const asset = AssetUtils.getCurrencyByDenom(e.balance.denom);
       return asset.key == props.dialogSelectedCurrency;
     })!;
     state.value.selectedCurrency = currency;
@@ -221,7 +221,7 @@ watch(
 
     state.value.currentBalance = walletStore.balances
       .filter((item) => {
-        const currency = walletStore.currencies[item.balance.denom];
+        const currency = AssetUtils.getCurrencyByDenom(item.balance.denom);
         if (IGNORE_TRANSFER_ASSETS.includes(currency.ticker as string)) {
           return false;
         }
@@ -337,13 +337,15 @@ async function ibcTransfer() {
 
     if (wallet) {
       step.value = CONFIRM_STEP.PENDING;
-      const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(
-        state.value.selectedCurrency.balance.denom
-      );
+      const asset = AssetUtils.getCurrencyByDenom(state.value.selectedCurrency.balance.denom);
 
-      const currency = walletStore.currencies[state.value.selectedCurrency.balance.denom];
+      const currency = AssetUtils.getCurrencyByDenom(state.value.selectedCurrency.balance.denom);
       const [key, protocol] = currency.ticker.split("@");
-      const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(state.value.amount, coinMinimalDenom, coinDecimals);
+      const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
+        state.value.amount,
+        asset.ibcData,
+        asset.decimal_digits
+      );
 
       const funds: Coin = {
         amount: minimalDenom.amount.toString(),

@@ -96,8 +96,8 @@ const requestClaim = async () => {
           const coin = item?.reward?.[0];
 
           if (coin) {
-            const asset = AssetUtils.getAssetInfoByDenom(coin.denom);
-            const amount = new Dec(coin.amount, asset.coinDecimals);
+            const asset = AssetUtils.getCurrencyByDenom(coin.denom);
+            const amount = new Dec(coin.amount, asset.decimal_digits);
 
             if (amount.isPositive()) {
               return true;

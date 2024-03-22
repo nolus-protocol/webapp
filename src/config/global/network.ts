@@ -38,4 +38,4 @@ export const STAKING = {
 };
 
 export const MAINNET = "mainnet";
-export const LPN_NETWORK = ["AXELAR"];
+export const LPN_NETWORK = ["AXELAR", "NOBLE"];
