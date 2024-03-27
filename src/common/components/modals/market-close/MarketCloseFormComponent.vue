@@ -114,7 +114,9 @@ function handleAmountChange(value: string) {
 }
 
 function formatLeasePosition() {
-  const asset = app.currenciesData![`${props.modelValue.leaseInfo.amount.ticker!}@${props.modelValue.protocol}`];
+  const ticker =
+    CurrencyDemapping[props.modelValue.leaseInfo.amount.ticker!]?.ticker ?? props.modelValue.leaseInfo.amount.ticker;
+  const asset = app.currenciesData![`${ticker!}@${props.modelValue.protocol}`];
   return CurrencyUtils.convertMinimalDenomToDenom(
     props.modelValue.leaseInfo.amount.amount.toString(),
     asset!.ibcData as string,
@@ -124,13 +126,17 @@ function formatLeasePosition() {
 }
 
 const total = computed(() => {
-  const asset = app.currenciesData![`${props.modelValue.leaseInfo.amount.ticker!}@${props.modelValue.protocol}`];
+  const ticker =
+    CurrencyDemapping[props.modelValue.leaseInfo.amount.ticker!]?.ticker ?? props.modelValue.leaseInfo.amount.ticker;
+  const asset = app.currenciesData![`${ticker!}@${props.modelValue.protocol}`];
   return new Coin(asset!.ibcData as string, props.modelValue.leaseInfo.amount.amount);
 });
 
 function setValue() {
   const a = amount.value.amount.toDec();
-  const currency = app.currenciesData![`${props.modelValue.leaseInfo.amount.ticker!}@${props.modelValue.protocol}`];
+  const ticker =
+    CurrencyDemapping[props.modelValue.leaseInfo.amount.ticker!]?.ticker ?? props.modelValue.leaseInfo.amount.ticker;
+  const currency = app.currenciesData![`${ticker!}@${props.modelValue.protocol}`];
 
   props.modelValue.amount = a.toString(Number(currency!.decimal_digits));
 }
@@ -149,7 +155,9 @@ const hasSwapFee = computed(() => {
 });
 
 const payout = computed(() => {
-  const currency = app.currenciesData![`${props.modelValue.leaseInfo.amount.ticker!}@${props.modelValue.protocol}`];
+  const ticker =
+    CurrencyDemapping[props.modelValue.leaseInfo.amount.ticker!]?.ticker ?? props.modelValue.leaseInfo.amount.ticker;
+  const currency = app.currenciesData![`${ticker!}@${props.modelValue.protocol}`];
   const price = new Dec(oracle.prices[currency!.ibcData as string]?.amount ?? 0);
   const value = new Dec(props.modelValue.amount.length == 0 ? 0 : props.modelValue.amount).mul(price);
 
@@ -164,7 +172,9 @@ const payout = computed(() => {
 });
 
 const positionLeft = computed(() => {
-  const currency = app.currenciesData![`${props.modelValue.leaseInfo.amount.ticker!}@${props.modelValue.protocol}`];
+  const ticker =
+    CurrencyDemapping[props.modelValue.leaseInfo.amount.ticker!]?.ticker ?? props.modelValue.leaseInfo.amount.ticker;
+  const currency = app.currenciesData![`${ticker!}@${props.modelValue.protocol}`];
   const amount = new Dec(props.modelValue.leaseInfo.amount.amount, Number(currency!.decimal_digits));
   const value = new Dec(props.modelValue.amount.length == 0 ? 0 : props.modelValue.amount);
   const left = amount.sub(value);

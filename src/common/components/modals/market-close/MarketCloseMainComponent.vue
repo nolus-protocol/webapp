@@ -45,6 +45,7 @@ import { AppUtils } from "@/common/utils";
 import { useLeaseConfig } from "@/common/composables";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
+import { CurrencyDemapping } from "@/config/currencies";
 
 const walletStore = useWalletStore();
 const walletRef = storeToRefs(walletStore);
@@ -68,14 +69,18 @@ const { config } = useLeaseConfig(props.leaseData?.protocol as string, (error: E
 
 const balances = computed(() => {
   const assets = [];
-  let ticker = props.leaseData?.leaseStatus?.opened?.amount?.ticker;
+  const ticker =
+    CurrencyDemapping[props.leaseData?.leaseStatus?.opened?.amount?.ticker!]?.ticker ??
+    props.leaseData?.leaseStatus?.opened?.amount?.ticker;
 
   for (const key in app.currenciesData ?? {}) {
     const currency = app.currenciesData![key];
     const c = { ...currency };
     const item = walletStore.balances.find((item) => item.balance.denom == currency.ibcData);
-    c.balance = item!.balance;
-    assets.push(c);
+    if (item) {
+      c.balance = item!.balance;
+      assets.push(c);
+    }
   }
 
   return assets.filter((item) => item.key == `${ticker}@${props.leaseData?.protocol}`);

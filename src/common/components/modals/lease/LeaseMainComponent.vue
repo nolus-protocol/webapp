@@ -53,7 +53,8 @@ import {
   INTEREST_DECIMALS,
   DEFAULT_LTD,
   PERMILLE,
-  ErrorCodes
+  ErrorCodes,
+  ProtocolsConfig
 } from "@/config/global";
 
 const onModalClose = inject("onModalClose", () => {});
@@ -71,8 +72,11 @@ const balances = computed(() => {
     const currency = app.currenciesData![key];
     const c = { ...currency };
     const item = walletStore.balances.find((item) => item.balance.denom == currency.ibcData);
-    c.balance = item!.balance;
-    assets.push(c);
+
+    if (item) {
+      c.balance = item!.balance;
+      assets.push(c);
+    }
   }
 
   return assets;
@@ -82,7 +86,12 @@ const paymentBalances = computed(() => {
   const lpns = (app.lpn ?? []).map((item) => item.key);
 
   const b = balances.value.filter((item) => {
-    const [ticker, _protocol] = item.key.split("@");
+    const [ticker, protocol] = item.key.split("@");
+
+    if (!ProtocolsConfig[protocol].lease) {
+      return false;
+    }
+
     return lpns.includes(ticker) || app.leasesCurrencies.includes(ticker);
   });
   return b;

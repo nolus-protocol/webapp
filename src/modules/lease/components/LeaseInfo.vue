@@ -661,7 +661,6 @@ const currentPrice = computed(() => {
   return oracleStore.prices[item!.ibcData as string]?.amount ?? "0";
 });
 
-//TODO: fix
 async function fetchChartData(days: string, interval: string) {
   let coinGeckoId = asset.value?.coingeckoId;
 

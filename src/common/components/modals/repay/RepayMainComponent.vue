@@ -43,7 +43,7 @@ import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
 import { AppUtils } from "@/common/utils";
-import { CurrencyMapping } from "@/config/currencies";
+import { CurrencyDemapping, CurrencyMapping } from "@/config/currencies";
 
 import {
   NATIVE_ASSET,
@@ -84,8 +84,10 @@ const totalBalances = computed(() => {
     const currency = app.currenciesData![key];
     const c = { ...currency };
     const item = walletStore.balances.find((item) => item.balance.denom == currency.ibcData);
-    c.balance = item!.balance;
-    assets.push(c);
+    if (item) {
+      c.balance = item!.balance;
+      assets.push(c);
+    }
   }
 
   return assets;
@@ -295,7 +297,8 @@ async function repayLease() {
 
 function outStandingDebt() {
   const data = state.value.leaseInfo;
-  const info = app.currenciesData![`${data.principal_due.ticker}@${props.leaseData?.protocol}`];
+  const ticker = CurrencyDemapping[data.principal_due.ticker!]?.ticker ?? data.principal_due.ticker;
+  const info = app.currenciesData![`${ticker}@${props.leaseData?.protocol}`];
   const additional = new Dec(additionalInterest().roundUp(), info.decimal_digits);
   const debt = new Dec(data.principal_due.amount, info.decimal_digits)
     .add(new Dec(data.overdue_margin.amount, info.decimal_digits))

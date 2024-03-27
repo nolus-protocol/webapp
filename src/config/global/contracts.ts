@@ -31,25 +31,57 @@ export const CONTRACTS: ContractConfig = {
 
 export const ProtocolsConfig: {
   [key: string]: {
-    hidden: string[];
     only: string[];
+    currencies: string[];
+    lease: boolean;
   };
 } = {
   "OSMOSIS-OSMOSIS-USDC-1": {
-    only: ["NLS", "ATOM", "ST_ATOM", "TIA"],
-    hidden: []
+    only: ["NLS", "ATOM"],
+    lease: true,
+    currencies: ["NLS", "OSMO", "USDC_AXELAR", "ATOM", "AKT", "JUNO"]
   },
   "OSMOSIS-OSMOSIS-USDC_AXELAR": {
-    only: ["NLS", "ATOM", "ST_ATOM", "TIA"],
-    hidden: []
+    only: [],
+    currencies: ["USDC_AXELAR"],
+    lease: false
   },
   "NEUTRON-ASTROPORT-USDC_AXELAR": {
     only: [],
-    hidden: ["ATOM", "ST_ATOM", "TIA"]
+    lease: true,
+    currencies: ["NTRN", "USDC_AXELAR", "DYDX", "ST_TIA"]
   },
   "OSMOSIS-OSMOSIS-USDC_NOBLE": {
-    only: [],
-    hidden: []
+    only: ["NLS", "ATOM", "ST_ATOM", "TIA"],
+    lease: true,
+    currencies: [
+      "NLS",
+      "OSMO",
+      "ST_OSMO",
+      "ATOM",
+      "ST_ATOM",
+      "USDC_NOBLE",
+      "WETH_AXELAR",
+      "WBTC_AXELAR",
+      "AKT",
+      "AXL",
+      "JUNO",
+      "EVMOS",
+      "STK_ATOM",
+      "SCRT",
+      "CRO",
+      "TIA",
+      "STARS",
+      "Q_ATOM",
+      "STRD",
+      "MILK_TIA",
+      "ST_TIA",
+      "JKL",
+      "DYM",
+      "INJ",
+      "LVN",
+      "PICA"
+    ]
   }
 };
 

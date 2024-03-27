@@ -75,7 +75,7 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "../stores/application";
 import { CurrencyMapping } from "@/config/currencies";
-import { AssetUtils } from "../utils";
+import { AppUtils, AssetUtils } from "../utils";
 
 const emit = defineEmits(["update-currency", "update:modelValue", "input"]);
 const oracle = useOracleStore();
@@ -181,19 +181,17 @@ function calculateInputBalance() {
     const prices = oracle.prices;
     let coinDecimals = null;
     let coinMinimalDenom = null;
-
     if (!numberRealValue || !props.option || !prices) {
       return "$0";
     }
 
-    if (props.option.ticker) {
-      let [ticker, protocol] = props.option.ticker.split("@");
+    if ((props.option as ExternalCurrency).ticker) {
+      let [ticker, protocol] = (props.option as ExternalCurrency).ticker.split("@");
 
       if (CurrencyMapping[ticker]) {
         ticker = CurrencyMapping[ticker].ticker;
       }
-
-      const currency = app.getCurrencySymbol(ticker, protocol);
+      const currency = AssetUtils.getCurrencyByTicker(ticker);
       coinDecimals = Number(currency?.decimal_digits);
       coinMinimalDenom = currency?.ibcData;
     } else {
@@ -276,10 +274,13 @@ function setValue() {
 
 function setBalance() {
   if (props.total) {
-    const currency: ExternalCurrency | any = props.option?.ticker
-      ? AssetUtils.getCurrencyByTicker(props.option?.ticker)
-      : AssetUtils.getCurrencyByDenom(props.total.denom);
-    const decimals = Number(currency.decimal_digits ?? currency.coinDecimals);
+    let decimals = props.option!.decimal_digits;
+
+    if (!decimals) {
+      const currency = AssetUtils.getCurrencyByDenom(props.total.denom);
+      decimals = currency.decimal_digits;
+    }
+
     const value = new Dec(props.total.amount, decimals);
     emit("input", value.toString(decimals));
     emit("update:modelValue", value.toString(decimals));

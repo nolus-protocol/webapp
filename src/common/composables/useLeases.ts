@@ -169,7 +169,8 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
         MONTHS
     );
 
-    const unitAssetInfo = app.currenciesData![`${leaseInfo.opened.amount.ticker!}@${protocolKey}`];
+    const ticker = CurrencyDemapping[leaseInfo.opened.amount.ticker!]?.ticker ?? leaseInfo.opened.amount.ticker;
+    const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
 
     const stableTicker =
       CurrencyDemapping[leaseInfo.opened.principal_due.ticker!]?.ticker ?? leaseInfo.opened.principal_due.ticker;
@@ -183,7 +184,9 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
 
   if (leaseInfo.opened || leaseInfo.paid) {
     const lease = leaseInfo.opened ?? leaseInfo.paid;
-    const unitAssetInfo = app.currenciesData![`${lease!.amount.ticker!}@${protocolKey}`];
+    const ticker = CurrencyDemapping[lease!.amount.ticker!]?.ticker ?? lease!.amount.ticker;
+
+    const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
     const unitAsset = new Dec(lease!.amount.amount, Number(unitAssetInfo!.decimal_digits));
 
     const currentPrice = new Dec(oracleStore.prices?.[unitAssetInfo!.ibcData as string]?.amount ?? "0");

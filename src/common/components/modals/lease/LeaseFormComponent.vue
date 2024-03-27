@@ -128,7 +128,6 @@ import Picker, { type PickerOption } from "@/common/components/Picker.vue";
 import RangeComponent from "@/common/components/RangeComponent.vue";
 
 import type { LeaseComponentProps } from "./types/LeaseComponentProps";
-import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { ExternalCurrency } from "@/common/types";
 
 import { onMounted, ref, type PropType } from "vue";
@@ -148,7 +147,8 @@ import {
   IGNORE_LEASE_ASSETS,
   MONTHS,
   FREE_INTEREST_ASSETS,
-  LPN_DECIMALS
+  LPN_DECIMALS,
+  ProtocolsConfig
 } from "@/config/global";
 
 const wallet = useWalletStore();
@@ -203,8 +203,10 @@ const totalBalances = computed(() => {
     const currency = app.currenciesData![key];
     const c = { ...currency };
     const item = wallet.balances.find((item) => item.balance.denom == currency.ibcData);
-    c.balance = item!.balance;
-    assets.push(c);
+    if (item) {
+      c.balance = item!.balance;
+      assets.push(c);
+    }
   }
 
   return assets;
@@ -233,8 +235,12 @@ function handleDownPaymentChange(value: string) {
 
 const balances = computed(() => {
   return totalBalances.value.filter((item) => {
-    const [ticker, _protocol] = item.key.split("@");
+    const [ticker, protocol] = item.key.split("@");
     let cticker = ticker;
+
+    if (!ProtocolsConfig[protocol].lease) {
+      return false;
+    }
 
     if (IGNORE_LEASE_ASSETS.includes(ticker)) {
       return false;

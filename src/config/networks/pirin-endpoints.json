@@ -201,8 +201,20 @@
     },
     "fallback": [
       {
-        "rpc": "https://rpc-injective-ia.cosmosia.notional.ventures/",
-        "api": "https://api-injective-ia.cosmosia.notional.ventures/"
+        "rpc": "https://rpc-injective-ia.cosmosia.notional.ventures",
+        "api": "https://api-injective-ia.cosmosia.notional.ventures"
+      }
+    ]
+  },
+  "NOBLE": {
+    "primary": {
+      "rpc": "https://noble-rpc.polkachu.com",
+      "api": "https://noble-api.polkachu.com"
+    },
+    "fallback": [
+      {
+        "rpc": "https://noble-rpc.lavenderfive.com:443",
+        "api": "https://noble-api.lavenderfive.com:443"
       }
     ]
   }

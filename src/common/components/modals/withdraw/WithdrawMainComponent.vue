@@ -70,8 +70,10 @@ const balances = computed(() => {
     const currency = app.currenciesData![key];
     const c = { ...currency };
     const item = walletStore.balances.find((item) => item.balance.denom == currency.ibcData);
-    c.balance = item!.balance;
-    assets.push(c);
+    if (item) {
+      c.balance = item!.balance;
+      assets.push(c);
+    }
   }
 
   return assets.filter((item) => lpns.includes(item.key));

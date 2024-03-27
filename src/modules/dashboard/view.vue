@@ -366,6 +366,7 @@ import { useAdminStore } from "@/common/stores/admin";
 import { AssetUtils, Logger, NetworkUtils, WalletManager } from "@/common/utils";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { DEFAULT_APR, IGNORE_TRANSFER_ASSETS, LPN_DECIMALS, NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
+import { CurrencyDemapping } from "@/config/currencies";
 
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
@@ -421,6 +422,7 @@ const filteredAssets = computed(() => {
     return true;
   });
   const balances = state.value.showSmallBalances ? b : filterSmallBalances(b as AssetBalance[]);
+
   return balances.sort((a, b) => {
     const aInfo = AssetUtils.getCurrencyByDenom(a.balance.denom);
     const aAssetBalance = CurrencyUtils.calculateBalance(
@@ -537,7 +539,10 @@ async function loadSuppliedAndStaked() {
       const fn = async () => {
         const lppClient = new Lpp(cosmWasmClient, admin.contracts![protocolKey].lpp);
         const lppConfig = await lppClient.getLppConfig();
-        const lpnCoin = app.getCurrencySymbol(lppConfig.lpn_ticker, protocolKey);
+        const lpnCoin =
+          app.currenciesData![
+            `${CurrencyDemapping[lppConfig.lpn_ticker]?.ticker ?? lppConfig.lpn_ticker}@${protocolKey}`
+          ];
         const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
 
         const [depositBalance, price] = await Promise.all([
@@ -576,7 +581,7 @@ async function loadSuppliedAndStaked() {
       value = value.add(b);
       earnings.value = value;
     })
-    .catch((e) => Logger.error(e));
+    .catch((e) => console.log(e));
 }
 
 function filterSmallBalances(balances: AssetBalance[]) {

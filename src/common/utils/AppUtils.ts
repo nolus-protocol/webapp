@@ -2,7 +2,7 @@ import type { API, ARCHIVE_NODE, Endpoint, Node, News } from "@/common/types";
 
 import { connectComet } from "@cosmjs/tendermint-rpc";
 import { EnvNetworkUtils } from ".";
-import { CONTRACTS, NEWS_URL, NEWS_WALLETS_PATH } from "@/config/global";
+import { CONTRACTS, DOWNPAYMENT_RANGE_DEV, NEWS_URL, NEWS_WALLETS_PATH } from "@/config/global";
 
 import {
   DOWNPAYMENT_RANGE_URL,
@@ -163,7 +163,17 @@ export class AppUtils {
   }
 
   public static getDefaultProtocol() {
-    return AppUtils.getProtocols().osmosis_noble;
+    switch (EnvNetworkUtils.getStoredNetworkName()) {
+      case "mainnet": {
+        return AppUtils.getProtocols().osmosis_noble;
+      }
+      case "testnet": {
+        return AppUtils.getProtocols().osmosis;
+      }
+      default: {
+        return AppUtils.getProtocols().osmosis_noble;
+      }
+    }
   }
 
   private static async fetchArchiveNodes(): Promise<ARCHIVE_NODE> {
@@ -236,6 +246,12 @@ export class AppUtils {
         max: number;
       };
     };
+
+    if (isDev() || isServe()) {
+      for (const key in json) {
+        json[key].min = DOWNPAYMENT_RANGE_DEV;
+      }
+    }
 
     return json;
   }

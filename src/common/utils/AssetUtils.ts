@@ -152,33 +152,31 @@ export class AssetUtils {
         if (k == NATIVE_NETWORK.key) {
           for (const p of NolusAssetUtils.getProtocols(ntwrks)) {
             for (const key in ntwrks.networks.list[ntwrks.protocols[p].DexNetwork].currencies) {
-              if (!ProtocolsConfig[p].hidden.includes(key)) {
-                const ck = `${key}@${p}`;
-                assets[ck] = ntwrks.networks.list[ntwrks.protocols[p].DexNetwork].currencies[key] as Currency;
-                assetIcons[ck] = ntwrks.networks.list[ntwrks.protocols[p].DexNetwork].currencies[key].icon as string;
+              const ck = `${key}@${p}`;
+              assets[ck] = ntwrks.networks.list[ntwrks.protocols[p].DexNetwork].currencies[key] as Currency;
+              assetIcons[ck] = ntwrks.networks.list[ntwrks.protocols[p].DexNetwork].currencies[key].icon as string;
 
-                if (CurrencyMapping[key]) {
-                  assetIcons[`${CurrencyMapping[key].ticker}@${p}`] = ntwrks.networks.list[
-                    ntwrks.protocols[p].DexNetwork
-                  ].currencies[key].icon as string;
-                }
-
-                assets[ck].ibcData = NolusAssetUtils.makeIBCMinimalDenom(
-                  key,
-                  ntwrks!,
-                  NATIVE_NETWORK.key as Networks,
-                  ntwrks.protocols[p].DexNetwork as string
-                );
+              if (CurrencyMapping[key]) {
+                assetIcons[`${CurrencyMapping[key].ticker}@${p}`] = ntwrks.networks.list[ntwrks.protocols[p].DexNetwork]
+                  .currencies[key].icon as string;
               }
+
+              assets[ck].ibcData = NolusAssetUtils.makeIBCMinimalDenom(
+                key,
+                ntwrks!,
+                NATIVE_NETWORK.key as Networks,
+                ntwrks.protocols[p].DexNetwork as string
+              );
             }
           }
         }
 
         for (const ck in assets) {
           const currency = assets[ck];
+          const [ti, pr] = ck.split("@");
+
           if (currency.native) {
             if (currency.native.ticker != NATIVE_ASSET.ticker) {
-              const [ti, pr] = ck.split("@");
               networks[k][ck] = {
                 ...currency.native,
                 icon: assetIcons[ck],
@@ -204,11 +202,12 @@ export class AssetUtils {
             }
 
             if (c) {
+              c;
               networks[k][ck] = {
                 ...c.native!,
                 icon: assetIcons[ck],
                 decimal_digits: Number(c.native!.decimal_digits),
-                shortName: (CurrencyDemapping[c.native?.ticker!]?.name ?? c.native?.ticker) as string,
+                shortName: CurrencyMapping[ti]?.name ?? (c.native?.ticker as string),
                 ticker: ticker,
                 native: false,
                 key: `${ck}`,
