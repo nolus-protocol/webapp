@@ -73,13 +73,12 @@ import { onMounted, ref, watch, type PropType } from "vue";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/common/stores/oracle";
-import { useWalletStore } from "@/common/stores/wallet";
 import { useApplicationStore } from "../stores/application";
 import { CurrencyMapping } from "@/config/currencies";
+import { AppUtils, AssetUtils } from "../utils";
 
 const emit = defineEmits(["update-currency", "update:modelValue", "input"]);
 const oracle = useOracleStore();
-const wallet = useWalletStore();
 const app = useApplicationStore();
 
 const dot = ".";
@@ -96,14 +95,14 @@ const props = defineProps({
     type: String
   },
   currencyOptions: {
-    type: Array as PropType<AssetBalance[]>
+    type: Array as PropType<ExternalCurrency[] | AssetBalance[]>
   },
   tooltip: {
     type: String,
     default: ""
   },
   option: {
-    type: Object as PropType<AssetBalance>
+    type: Object as PropType<ExternalCurrency | AssetBalance>
   },
   id: {
     type: String
@@ -174,31 +173,29 @@ function calculateInputBalance() {
       const coin = CurrencyUtils.convertDenomToMinimalDenom(
         numberRealValue.toString(),
         props.option?.balance.denom as string,
-        props.option?.decimals as number
+        props.option?.decimal_digits as number
       );
-      return CurrencyUtils.calculateBalance(props.price.toString(), coin, props.option?.decimals as number);
+      return CurrencyUtils.calculateBalance(props.price.toString(), coin, props.option?.decimal_digits as number);
     }
 
     const prices = oracle.prices;
     let coinDecimals = null;
     let coinMinimalDenom = null;
-
     if (!numberRealValue || !props.option || !prices) {
       return "$0";
     }
 
-    if (props.option.ticker) {
-      let [ticker, protocol] = props.option.ticker.split("@");
+    if ((props.option as ExternalCurrency).ticker) {
+      let [ticker, protocol] = (props.option as ExternalCurrency).ticker.split("@");
 
       if (CurrencyMapping[ticker]) {
         ticker = CurrencyMapping[ticker].ticker;
       }
-
-      const currency = app.getCurrencySymbol(ticker, protocol);
+      const currency = AssetUtils.getCurrencyByTicker(ticker);
       coinDecimals = Number(currency?.decimal_digits);
       coinMinimalDenom = currency?.ibcData;
     } else {
-      const currency = wallet.currencies[props.option.balance.denom];
+      const currency = AssetUtils.getCurrencyByDenom(props.option.balance.denom);
       coinDecimals = Number(currency?.decimal_digits);
       coinMinimalDenom = currency?.ibcData;
     }
@@ -277,10 +274,13 @@ function setValue() {
 
 function setBalance() {
   if (props.total) {
-    const currency: ExternalCurrency | any = props.option?.ticker
-      ? wallet.getCurrencyByTicker(props.option?.ticker)
-      : wallet.getCurrencyInfo(props.total.denom);
-    const decimals = Number(currency.decimal_digits ?? currency.coinDecimals);
+    let decimals = props.option!.decimal_digits;
+
+    if (!decimals) {
+      const currency = AssetUtils.getCurrencyByDenom(props.total.denom);
+      decimals = currency.decimal_digits;
+    }
+
     const value = new Dec(props.total.amount, decimals);
     emit("input", value.toString(decimals));
     emit("update:modelValue", value.toString(decimals));

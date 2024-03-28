@@ -66,7 +66,7 @@ import Icon from "@/assets/icons/urlicon.svg";
 
 import { useApplicationStore } from "@/common/stores/application";
 import { useWalletStore } from "@/common/stores/wallet";
-import { AppUtils, Logger, getCreatedAtForHuman } from "@/common/utils";
+import { AppUtils, AssetUtils, Logger, getCreatedAtForHuman } from "@/common/utils";
 import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
 import { StringUtils, WalletManager } from "@/common/utils";
 import { useI18n } from "vue-i18n";
@@ -191,7 +191,7 @@ async function message(msg: IObjectKeys) {
 
         if (data.open_lease) {
           const token = getCurrency(msg.data.funds[0]);
-          const cr = wallet.getCurrencyByTicker(data.open_lease.currency);
+          const cr = AssetUtils.getCurrencyByTicker(data.open_lease.currency);
 
           return i18n.t("message.open-position-action", {
             ticker: cr?.shortName,
@@ -236,7 +236,7 @@ async function message(msg: IObjectKeys) {
           const withdraw = log[0].events.find((e: IObjectKeys) => e.type == "wasm-lp-withdraw");
           const amount = withdraw.attributes.find((e: IObjectKeys) => e.key == "withdraw-amount");
           const symbol = withdraw.attributes.find((e: IObjectKeys) => e.key == "withdraw-symbol");
-          const currency = wallet.getCurrencyByTicker(symbol.value)!;
+          const currency = AssetUtils.getCurrencyByTicker(symbol.value)!;
           let [ticker] = currency.key!.split("@");
 
           if (CurrencyMapping[ticker]?.name) {
@@ -260,7 +260,7 @@ async function message(msg: IObjectKeys) {
         }
 
         if (data.close_position?.partial_close) {
-          const currency = wallet.getCurrencyByTicker(data.close_position?.partial_close.amount.ticker);
+          const currency = AssetUtils.getCurrencyByTicker(data.close_position?.partial_close.amount.ticker);
           const token = CurrencyUtils.convertMinimalDenomToDenom(
             data.close_position?.partial_close.amount.amount,
             currency?.ibcData!,
@@ -336,7 +336,7 @@ function getAmount(log: IObjectKeys) {
 }
 
 function getCurrency(amount: Coin) {
-  const info = wallet.currencies[amount.denom];
+  const info = AssetUtils.getCurrencyByDenom(amount.denom);
   const token = CurrencyUtils.convertMinimalDenomToDenom(
     amount?.amount,
     info?.ibcData,
@@ -454,8 +454,7 @@ async function fetchCurrency(amount: Coin) {
   const api = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
   const data = await fetch(`${api}/ibc/apps/transfer/v1/denom_traces/${amount.denom}`);
   const json = await data.json();
-  const ibc = wallet.getIbcDenomBySymbol(json.denom_trace.base_denom);
-  const currency = wallet.currencies[ibc as string];
+  const currency = AssetUtils.getCurrencyBySymbol(json.denom_trace.base_denom);
   return CurrencyUtils.convertMinimalDenomToDenom(
     amount?.amount,
     currency?.ibcData,

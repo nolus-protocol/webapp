@@ -366,6 +366,7 @@ import { useAdminStore } from "@/common/stores/admin";
 import { AssetUtils, Logger, NetworkUtils, WalletManager } from "@/common/utils";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { DEFAULT_APR, IGNORE_TRANSFER_ASSETS, LPN_DECIMALS, NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
+import { CurrencyDemapping } from "@/config/currencies";
 
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
@@ -414,26 +415,27 @@ const totalEquity = computed(() => {
 
 const filteredAssets = computed(() => {
   const b = wallet.balances.filter((currency) => {
-    const c = wallet.getCurrencyInfo(currency.balance.denom);
+    const c = AssetUtils.getCurrencyByDenom(currency.balance.denom);
     if (IGNORE_TRANSFER_ASSETS.includes(c.ticker as string)) {
       return false;
     }
     return true;
   });
   const balances = state.value.showSmallBalances ? b : filterSmallBalances(b as AssetBalance[]);
+
   return balances.sort((a, b) => {
-    const aInfo = wallet.getCurrencyInfo(a.balance.denom);
+    const aInfo = AssetUtils.getCurrencyByDenom(a.balance.denom);
     const aAssetBalance = CurrencyUtils.calculateBalance(
       oracle.prices[a.balance.denom]?.amount,
       new Coin(a.balance.denom, a.balance.amount.toString()),
-      aInfo.coinDecimals as number
+      aInfo.decimal_digits as number
     ).toDec();
 
-    const bInfo = wallet.getCurrencyInfo(b.balance.denom);
+    const bInfo = AssetUtils.getCurrencyByDenom(b.balance.denom);
     const bAssetBalance = CurrencyUtils.calculateBalance(
       oracle.prices[b.balance.denom]?.amount,
       new Coin(b.balance.denom, b.balance.amount.toString()),
-      bInfo.coinDecimals as number
+      bInfo.decimal_digits as number
     ).toDec();
 
     return Number(bAssetBalance.sub(aAssetBalance).toString(8));
@@ -509,7 +511,7 @@ const totalBalance = computed(() => {
 function setAvailableAssets() {
   let totalAssets = new Dec(0);
   wallet.balances.forEach((asset) => {
-    const currency = wallet.currencies[asset.balance.denom];
+    const currency = AssetUtils.getCurrencyByDenom(asset.balance.denom);
     const assetBalance = CurrencyUtils.calculateBalance(
       oracle.prices[asset.balance.denom]?.amount ?? 0,
       new Coin(currency.ibcData, asset.balance.amount.toString()),
@@ -537,7 +539,10 @@ async function loadSuppliedAndStaked() {
       const fn = async () => {
         const lppClient = new Lpp(cosmWasmClient, admin.contracts![protocolKey].lpp);
         const lppConfig = await lppClient.getLppConfig();
-        const lpnCoin = app.getCurrencySymbol(lppConfig.lpn_ticker, protocolKey);
+        const lpnCoin =
+          app.currenciesData![
+            `${CurrencyDemapping[lppConfig.lpn_ticker]?.ticker ?? lppConfig.lpn_ticker}@${protocolKey}`
+          ];
         const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
 
         const [depositBalance, price] = await Promise.all([
@@ -559,11 +564,10 @@ async function loadSuppliedAndStaked() {
 
   const delegated = async () => {
     const delegations = await NetworkUtils.loadDelegations();
-    const nativeAsset = AssetUtils.getAssetInfo(NATIVE_ASSET.ticker);
     let v = new Dec(0);
 
     for (const item of delegations) {
-      const p = AssetUtils.getPriceByDenom(item.balance.amount, nativeAsset.coinMinimalDenom);
+      const p = AssetUtils.getPriceByDenom(item.balance.amount, NATIVE_ASSET.denom);
       v = v.add(p);
     }
 
@@ -577,7 +581,7 @@ async function loadSuppliedAndStaked() {
       value = value.add(b);
       earnings.value = value;
     })
-    .catch((e) => Logger.error(e));
+    .catch((e) => console.log(e));
 }
 
 function filterSmallBalances(balances: AssetBalance[]) {
@@ -592,7 +596,7 @@ function openModal(action: DASHBOARD_ACTIONS, denom = "") {
 }
 
 function getAssetInfo(denom: string) {
-  return wallet.getCurrencyInfo(denom);
+  return AssetUtils.getCurrencyByDenom(denom);
 }
 
 function setCurrency() {
@@ -640,19 +644,19 @@ async function setChartData() {
   const balances = wallet.balances;
 
   balances.filter((item) => {
-    const currencyInfo = wallet.getCurrencyInfo(item.balance.denom);
+    const currencyInfo = AssetUtils.getCurrencyByDenom(item.balance.denom);
     const coin = new Coin(item.balance.denom, item.balance.amount);
     const balance = CurrencyUtils.calculateBalance(
       oracle.prices[item.balance.denom]?.amount,
       coin,
-      currencyInfo.coinDecimals
+      currencyInfo.decimal_digits
     );
 
     if (!balance.toDec().isZero()) {
       labels.push(currencyInfo.shortName);
       colors.push(`${strToColor(currencyInfo.shortName)}`);
       dataValue.push(balance.toDec().toString(4));
-      assets.push(new Dec(item.balance.amount, currencyInfo.coinDecimals).toString(4));
+      assets.push(new Dec(item.balance.amount, currencyInfo.decimal_digits).toString(4));
     }
 
     return currencyInfo;
@@ -677,12 +681,11 @@ function setLeases() {
     let pl = new Dec(0);
     for (const lease of leases.value) {
       if (lease.leaseStatus?.opened) {
-        const dasset = wallet.getCurrencyByTicker(lease.leaseStatus.opened.amount.ticker);
-        const dIbcDenom = wallet.getIbcDenomBySymbol(dasset!.symbol) as string;
+        const dasset = AssetUtils.getCurrencyByTicker(lease.leaseStatus.opened.amount.ticker!);
         const dDecimal = Number(dasset!.decimal_digits);
         const l = CurrencyUtils.calculateBalance(
-          oracle.prices[dIbcDenom].amount,
-          new Coin(dIbcDenom, lease.leaseStatus.opened.amount.amount),
+          oracle.prices[dasset.ibcData].amount,
+          new Coin(dasset.ibcData, lease.leaseStatus.opened.amount.amount),
           dDecimal
         ).toDec();
 

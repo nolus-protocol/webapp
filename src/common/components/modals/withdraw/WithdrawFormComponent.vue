@@ -35,11 +35,10 @@
 <script lang="ts" setup>
 import CurrencyField from "@/common/components/CurrencyField.vue";
 
-import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { WithdrawFormComponentProps } from "./types";
 import type { PropType } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { useWalletStore } from "@/common/stores/wallet";
+import type { ExternalCurrency } from "@/common/types";
 
 const props = defineProps({
   modelValue: {
@@ -48,18 +47,15 @@ const props = defineProps({
   }
 });
 
-const walletStore = useWalletStore();
-
 defineEmits(["update:modelValue.selectedCurrency"]);
 
-function formatCurrentBalance(selectedCurrency: AssetBalance) {
+function formatCurrentBalance(selectedCurrency: ExternalCurrency) {
   if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
-    const asset = walletStore.getCurrencyInfo(selectedCurrency?.balance?.denom);
     return CurrencyUtils.convertMinimalDenomToDenom(
       selectedCurrency.balance.amount.toString(),
       selectedCurrency.balance.denom,
-      asset.shortName,
-      asset.coinDecimals
+      selectedCurrency.shortName,
+      selectedCurrency.decimal_digits
     ).toString();
   }
 }
