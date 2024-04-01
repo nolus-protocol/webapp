@@ -1,12 +1,12 @@
-import type { AssetBalance } from "@/common/stores/wallet/types";
+import type { ExternalCurrency } from "@/common/types";
 import type { Coin } from "@cosmjs/amino";
 
 export interface WithdrawFormComponentProps {
-  currentDepositBalance: AssetBalance;
+  currentDepositBalance: ExternalCurrency;
   amountErrorMsg: string;
   receiverAddress: string;
-  currentBalance: AssetBalance[];
-  selectedCurrency: AssetBalance;
+  currentBalance: ExternalCurrency[];
+  selectedCurrency: ExternalCurrency;
   amount: string;
   txHash: string;
   fee: Coin;

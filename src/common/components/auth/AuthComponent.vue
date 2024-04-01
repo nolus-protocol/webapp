@@ -30,12 +30,12 @@
   </div>
 
   <div class="text-dark-grey relative z-[2] pb-2 text-[13px]">
-    By connecting a wallet, you acknowledge that you have read, agree and accept Nolus Protocol’s
+    {{ $t("message.policy") }}
     <button
       class="text-[#2868E1]"
       @click="onShowTermsModal"
     >
-      Terms of Service
+      {{ $t("message.terms-of-service") }}
     </button>
   </div>
   <Modal

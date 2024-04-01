@@ -74,9 +74,9 @@
                 >
                   <EarnLpnAsset
                     v-for="(lpn, index) of lpnAsset"
-                    :key="lpn.balance.denom"
+                    :key="lpn.key"
                     :asset="lpn"
-                    :openSupplyWithdraw="() => openSupplyWithdrawDialog(lpn.balance.denom)"
+                    :openSupplyWithdraw="() => openSupplyWithdrawDialog(lpn.key)"
                     :cols="cols"
                     :class="index > 0 ? 'border-t-[1px]' : ''"
                   />
@@ -134,7 +134,7 @@
     route="delegate"
     @close-modal="showDelegateUndelegateDialog = false"
   >
-    <DelegateUndelegateDialog :selectedAsset="selectedAsset" />
+    <DelegateUndelegateDialog />
   </Modal>
 
   <Modal
@@ -160,6 +160,7 @@
 
 <script setup lang="ts">
 import type { AssetBalance } from "@/common/stores/wallet/types";
+import type { Asset } from "./types";
 
 import SupplyWithdrawDialog from "@/common/components/modals/SupplyWithdrawDialog.vue";
 import DelegateUndelegateDialog from "@/common/components/modals/DelegateUndelegateDialog.vue";
@@ -172,7 +173,7 @@ import TooltipComponent from "@/common/components/TooltipComponent.vue";
 import { EarnNativeAsset, EarnReward, EarnLpnAsset } from "./components";
 import { onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
-import { Logger, NetworkUtils, WalletManager } from "@/common/utils";
+import { AppUtils, Logger, NetworkUtils, WalletManager } from "@/common/utils";
 import { Dec } from "@keplr-wallet/unit";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
 
@@ -205,7 +206,7 @@ const showErrorDialog = ref(false);
 const errorMessage = ref("");
 const loading = ref(true);
 const isDelegated = ref(false);
-const lpnAsset = ref<AssetBalance[] | []>([]);
+const lpnAsset = ref<Asset[] | []>([]);
 const lpnReward = ref(new Dec(0));
 const applicaton = useApplicationStore();
 const applicationRef = storeToRefs(applicaton);
@@ -338,7 +339,7 @@ async function loadDelegated() {
 }
 
 async function loadLPNCurrency() {
-  const lpnCurrencies: AssetBalance[] = [];
+  const lpnCurrencies: Asset[] = [];
   const lpns = applicaton.lpn;
   const promises = [];
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
@@ -347,9 +348,8 @@ async function loadLPNCurrency() {
     const index = wallet.balances.findIndex((item) => item.balance.denom == lpn.ibcData);
     if (index > -1) {
       const fn = async () => {
-        const c = wallet.currencies[lpn.ibcData!];
-        const [_currency, protocol] = c.ticker.split("@");
-
+        const c = applicaton.currenciesData![lpn.key!];
+        const [_currency, protocol] = c.key!.split("@");
         const contract = admin.contracts![protocol].lpp;
         const lppClient = new Lpp(cosmWasmClient, contract);
 
@@ -359,13 +359,16 @@ async function loadLPNCurrency() {
         });
 
         const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
+
         const [depositBalance, price] = await Promise.all([
           lppClient.getLenderDeposit(walletAddress as string),
           lppClient.getPrice()
         ]);
+
         const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
         const amount = new Dec(depositBalance.balance).mul(calculatedPrice).truncate();
         const currency = {
+          key: c.key,
           balance: {
             ...wallet.balances[index].balance
           }
@@ -377,12 +380,12 @@ async function loadLPNCurrency() {
     }
   }
 
-  await Promise.all(promises);
+  await Promise.allSettled(promises);
   lpnAsset.value = lpnCurrencies;
 }
 
 function openDelegateUndelegateDialog() {
-  selectedAsset.value = NATIVE_ASSET.denom;
+  selectedAsset.value = `${NATIVE_ASSET.ticker}@${AppUtils.getDefaultProtocol()}`;
   showDelegateUndelegateDialog.value = true;
 }
 

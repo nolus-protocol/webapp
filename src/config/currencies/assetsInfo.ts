@@ -85,6 +85,9 @@ export const ASSETS = {
   },
   PICA: {
     coinGeckoId: "picasso"
+  },
+  USDC_NOBLE: {
+    coinGeckoId: "usd-coin"
   }
 };
 

@@ -12,7 +12,7 @@ export interface Currency {
     name: string;
     ticker: string;
     symbol: string;
-    decimal_digits: string;
+    decimal_digits: number;
   };
   ibc?: {
     network: string;

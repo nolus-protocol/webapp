@@ -8,7 +8,6 @@ import { NATIVE_ASSET } from "@/config/global";
 
 const state = (): State => ({
   balances: [],
-  currencies: {},
   suppliedBalance: {},
   apr: 0,
   vest: [],
