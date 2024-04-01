@@ -64,13 +64,13 @@
   },
   "STRIDE": {
     "primary": {
-      "rpc": "https://stride.rpc.kjnodes.com",
-      "api": "https://stride.api.kjnodes.com"
+      "rpc": "https://r-stride--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
+      "api": "https://a-stride--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
     },
     "fallback": [
       {
-        "rpc": "https://r-stride--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
-        "api": "https://a-stride--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
+        "rpc": "https://stride.rpc.kjnodes.com",
+        "api": "https://stride.api.kjnodes.com"
       }
     ]
   },
