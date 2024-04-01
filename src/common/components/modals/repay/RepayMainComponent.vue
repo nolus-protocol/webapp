@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ExternalCurrency, LeaseData } from "@/common/types";
+import type { LeaseData } from "@/common/types";
 import type { RepayComponentProps } from "./types";
 import type { Coin } from "@cosmjs/proto-signing";
 import type { AssetBalance } from "@/common/stores/wallet/types";
@@ -41,9 +41,10 @@ import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/common/stores/oracle";
+import { AssetUtils } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
 import { AppUtils } from "@/common/utils";
-import { CurrencyDemapping, CurrencyMapping } from "@/config/currencies";
+import { CurrencyMapping } from "@/config/currencies";
 
 import {
   NATIVE_ASSET,
@@ -77,55 +78,41 @@ const props = defineProps({
   }
 });
 
-const totalBalances = computed(() => {
-  const assets = [];
-
-  for (const key in app.currenciesData ?? {}) {
-    const currency = app.currenciesData![key];
-    const c = { ...currency };
-    const item = walletStore.balances.find((item) => item.balance.denom == currency.ibcData);
-    if (item) {
-      c.balance = item!.balance;
-      assets.push(c);
-    }
-  }
-
-  return assets;
-});
-
 const balances = computed(() => {
-  return totalBalances.value.filter((item) => {
-    const [ticker, protocol] = item.key.split("@");
+  const balances = walletStore.balances;
 
-    if (protocol != props.leaseData?.protocol) {
-      return false;
+  return balances.filter((item) => {
+    const currency = walletStore.currencies[item.balance.denom];
+    const lpns = (app.lpn ?? []).map((item) => item.key);
+
+    let [ticker, network] = currency.ticker.split("@");
+
+    if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
+      ticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
     }
-
-    let cticker = ticker;
 
     if (IGNORE_LEASE_ASSETS.includes(ticker)) {
       return false;
     }
-    const lpns = ((app.lpn ?? []) as ExternalCurrency[]).map((item) => item.key as string);
 
-    if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
-      cticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
+    if (network != props.leaseData?.protocol) {
+      return false;
     }
-    return lpns.includes(item.key as string) || app.leasesCurrencies.includes(cticker);
+
+    return lpns.includes(currency.ticker) || app.lease?.[props.leaseData?.protocol as string].includes(ticker);
   });
 });
 
 const state = ref({
   leaseInfo: props.leaseData?.leaseStatus?.opened,
-  currentBalance: balances.value as ExternalCurrency[],
-  selectedCurrency: balances.value[0] as ExternalCurrency,
+  currentBalance: balances.value as AssetBalance[],
+  selectedCurrency: balances.value[0] as AssetBalance,
   receiverAddress: props.leaseData?.leaseAddress || "",
   amount: "",
   amountErrorMsg: "",
   txHash: "",
   fee: coin(GAS_FEES.repay_lease + TIP.amount, NATIVE_ASSET.denom),
   swapFee: 0,
-  protocol: props.leaseData?.protocol,
   onNextClick: () => onNextClick()
 } as RepayComponentProps);
 
@@ -149,7 +136,7 @@ watch(
 );
 
 async function setSwapFee() {
-  const asset = state.value.selectedCurrency;
+  const asset = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom);
   state.value.swapFee = (await AppUtils.getSwapFee())[asset.ticker] ?? 0;
 }
 
@@ -179,19 +166,18 @@ function isAmountValid() {
   let isValid = true;
   state.value.amountErrorMsg = "";
 
+  const selectedPaymentDenom = state.value.selectedCurrency.balance.denom;
   const amount = state.value.amount;
-  const coinData = state.value.selectedCurrency;
+  const currentBalance = getCurrentBalanceByDenom(selectedPaymentDenom);
 
-  if (coinData) {
+  if (currentBalance) {
     if (amount || amount !== "") {
-      const price = oracle.prices[coinData!.ibcData as string];
+      const coinData = walletStore.getCurrencyInfo(currentBalance?.balance?.denom);
+      const asset = walletStore.getCurrencyByTicker(coinData.ticker);
+      const price = oracle.prices[asset!.ibcData as string];
 
-      const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, "", coinData.decimal_digits);
-      const balance = CurrencyUtils.calculateBalance(
-        price.amount,
-        amountInMinimalDenom,
-        coinData.decimal_digits
-      ).toDec();
+      const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, "", coinData.coinDecimals);
+      const balance = CurrencyUtils.calculateBalance(price.amount, amountInMinimalDenom, coinData.coinDecimals).toDec();
       const minAmount = new Dec(minimumLeaseAmount);
       const p = new Dec(price.amount);
       const amountInStable = new Dec(amount.length == 0 ? "0" : amount).mul(p);
@@ -209,7 +195,7 @@ function isAmountValid() {
       const isLowerThanOrEqualsToZero = new Dec(amountInMinimalDenom.amount || "0").lte(new Dec(0));
 
       const isGreaterThanWalletBalance = new Int(amountInMinimalDenom.amount.toString() || "0").gt(
-        coinData?.balance?.amount
+        currentBalance?.balance?.amount
       );
 
       if (isLowerThanOrEqualsToZero) {
@@ -224,15 +210,15 @@ function isAmountValid() {
 
       if (amountInStable.lt(minAmount)) {
         state.value.amountErrorMsg = i18n.t("message.min-amount-allowed", {
-          amount: minAmountCurrency.toString(Number(coinData!.decimal_digits)),
-          currency: coinData!.shortName
+          amount: minAmountCurrency.toString(Number(asset!.decimal_digits)),
+          currency: asset!.shortName
         });
         isValid = false;
       }
 
       if (balance.gt(debt) && debt.gt(minAmountCurrency)) {
         state.value.amountErrorMsg = i18n.t("message.lease-only-max-error", {
-          maxAmount: Number(debtInCurrencies.toString(Number(coinData.decimal_digits))),
+          maxAmount: Number(debtInCurrencies.toString(Number(coinData.coinDecimals))),
           symbol: coinData.shortName
         });
         isValid = false;
@@ -295,16 +281,23 @@ async function repayLease() {
   }
 }
 
+function getCurrentBalanceByDenom(denom: string) {
+  for (let currency of state.value.currentBalance) {
+    if (currency.balance.denom == denom) {
+      return currency;
+    }
+  }
+}
+
 function outStandingDebt() {
   const data = state.value.leaseInfo;
-  const ticker = CurrencyDemapping[data.principal_due.ticker!]?.ticker ?? data.principal_due.ticker;
-  const info = app.currenciesData![`${ticker}@${props.leaseData?.protocol}`];
-  const additional = new Dec(additionalInterest().roundUp(), info.decimal_digits);
-  const debt = new Dec(data.principal_due.amount, info.decimal_digits)
-    .add(new Dec(data.overdue_margin.amount, info.decimal_digits))
-    .add(new Dec(data.overdue_interest.amount, info.decimal_digits))
-    .add(new Dec(data.due_margin.amount, info.decimal_digits))
-    .add(new Dec(data.due_interest.amount, info.decimal_digits))
+  const info = AssetUtils.getAssetInfo(data.principal_due.ticker);
+  const additional = new Dec(additionalInterest().roundUp(), info.coinDecimals);
+  const debt = new Dec(data.principal_due.amount, info.coinDecimals)
+    .add(new Dec(data.overdue_margin.amount, info.coinDecimals))
+    .add(new Dec(data.overdue_interest.amount, info.coinDecimals))
+    .add(new Dec(data.due_margin.amount, info.coinDecimals))
+    .add(new Dec(data.due_interest.amount, info.coinDecimals))
     .add(additional);
   return debt;
 }
@@ -323,7 +316,7 @@ function additionalInterest() {
 }
 
 function hasSwapFee() {
-  const selectedCurrencyInfo = state.value.selectedCurrency;
+  const selectedCurrencyInfo = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom as string);
   const lpns = (app.lpn ?? []).map((item) => item.key);
   const isLpn = lpns.find((lpn) => {
     const [lpnTicker] = lpn!.split("@");

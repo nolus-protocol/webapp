@@ -40,7 +40,8 @@ import {
   NATIVE_NETWORK,
   ErrorCodes,
   IGNORE_TRANSFER_ASSETS,
-  LPN_NETWORK
+  LPN_NETWORK,
+  NetworksConfig
 } from "@/config/global";
 
 import {
@@ -77,15 +78,14 @@ const props = defineProps({
 const balances = ref<AssetBalance[]>(
   walletStore.balances
     .filter((item) => {
-      const currency = AssetUtils.getCurrencyByDenom(item.balance.denom);
+      const currency = walletStore.getCurrencyInfo(item.balance.denom);
       if (IGNORE_TRANSFER_ASSETS.includes(currency.ticker as string)) {
         return false;
       }
       return true;
     })
     .map((item) => {
-      const currency = AssetUtils.getCurrencyByDenom(item.balance.denom);
-      const e = { ...item, icon: currency.icon, shortName: currency.shortName };
+      const e = { ...item };
       if (e.balance.denom == walletStore.available.denom) {
         e.balance = { ...walletStore.available };
       }
@@ -124,7 +124,7 @@ function onClickOkBtn() {
 onMounted(() => {
   if ((state.value.dialogSelectedCurrency.length as number) > 0) {
     const currency = balances.value.find((e) => {
-      const asset = AssetUtils.getCurrencyByDenom(e.balance.denom);
+      const asset = AssetUtils.getAssetInfoByDenom(e.balance.denom);
       return asset.key == props.dialogSelectedCurrency;
     })!;
     state.value.selectedCurrency = currency;
@@ -222,8 +222,12 @@ watch(
 
     state.value.currentBalance = walletStore.balances
       .filter((item) => {
-        const currency = AssetUtils.getCurrencyByDenom(item.balance.denom);
-        if (IGNORE_TRANSFER_ASSETS.includes(currency.ticker as string)) {
+        const currency = walletStore.currencies[item.balance.denom];
+
+        if (
+          IGNORE_TRANSFER_ASSETS.includes(currency.ticker as string) ||
+          NetworksConfig[state.value.network.key]?.hidden?.includes(currency.ticker)
+        ) {
           return false;
         }
 
@@ -233,8 +237,7 @@ watch(
         return false;
       })
       .map((item) => {
-        const currency = AssetUtils.getCurrencyByDenom(item.balance.denom);
-        const e = { ...item, icon: currency.icon, shortName: currency.shortName };
+        const e = { ...item };
         if (e.balance.denom == walletStore.available.denom) {
           e.balance = { ...walletStore.available };
         }
@@ -339,14 +342,13 @@ async function ibcTransfer() {
 
     if (wallet) {
       step.value = CONFIRM_STEP.PENDING;
-      const currency = AssetUtils.getCurrencyByDenom(state.value.selectedCurrency.balance.denom);
-
-      const [_ticker, protocol] = currency.key.split("@");
-      const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
-        state.value.amount,
-        currency.ibcData,
-        currency.decimal_digits
+      const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(
+        state.value.selectedCurrency.balance.denom
       );
+
+      const currency = walletStore.currencies[state.value.selectedCurrency.balance.denom];
+      const [key, protocol] = currency.ticker.split("@");
+      const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(state.value.amount, coinMinimalDenom, coinDecimals);
 
       const funds: Coin = {
         amount: minimalDenom.amount.toString(),
@@ -415,7 +417,7 @@ async function ibcTransfer() {
     }
     await walletStore.UPDATE_BALANCES();
   } catch (error: Error | any) {
-    Logger.error(error);
+    console.log(error);
     switch (error.code) {
       case ErrorCodes.GasError: {
         step.value = CONFIRM_STEP.GasError;
@@ -426,6 +428,7 @@ async function ibcTransfer() {
         break;
       }
     }
+    Logger.error(error);
   }
 }
 

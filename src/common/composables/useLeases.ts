@@ -4,13 +4,14 @@ import { ref, onMounted } from "vue";
 
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 import { Lease, Leaser, type LeaserConfig, type LeaseStatus } from "@nolus/nolusjs/build/contracts";
-import { WalletManager, AppUtils, Logger, LeaseUtils, AssetUtils } from "@/common/utils";
+import { WalletManager, AppUtils, Logger, LeaseUtils } from "@/common/utils";
 import { IGNORE_LEASES, INTEREST_DECIMALS, MONTHS, NATIVE_ASSET, PERCENT, PERMILLE } from "@/config/global";
 import { useAdminStore } from "@/common/stores/admin";
-import { CurrencyDemapping } from "@/config/currencies";
 import { Dec } from "@keplr-wallet/unit";
+import { useWalletStore } from "../stores/wallet";
 import { useOracleStore } from "../stores/oracle";
 import { useApplicationStore } from "../stores/application";
+import { CurrencyDemapping } from "@/config/currencies";
 
 export function useLeases(onError: (error: unknown) => void) {
   const leases = ref<LeaseData[]>([]);
@@ -127,8 +128,8 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
     AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)
   ]);
 
+  const walletStore = useWalletStore();
   const oracleStore = useOracleStore();
-  const app = useApplicationStore();
 
   const leaseClient = new Lease(cosmWasmClient, leaseAddress);
 
@@ -169,24 +170,17 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
         MONTHS
     );
 
-    const ticker = CurrencyDemapping[leaseInfo.opened.amount.ticker!]?.ticker ?? leaseInfo.opened.amount.ticker;
-    const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
-
-    const stableTicker =
-      CurrencyDemapping[leaseInfo.opened.principal_due.ticker!]?.ticker ?? leaseInfo.opened.principal_due.ticker;
-    const stableAssetInfo = app.currenciesData![`${stableTicker!}@${protocolKey}`];
+    const unitAssetInfo = walletStore.getCurrencyByTicker(leaseInfo.opened.amount.ticker);
+    const stableAssetInfo = walletStore.getCurrencyByTicker(leaseInfo.opened.principal_due.ticker);
 
     const unitAsset = new Dec(leaseInfo.opened.amount.amount, Number(unitAssetInfo!.decimal_digits));
-
     const stableAsset = new Dec(leaseInfo.opened.principal_due.amount, Number(stableAssetInfo!.decimal_digits));
     liquidation = LeaseUtils.calculateLiquidation(stableAsset, unitAsset);
   }
 
   if (leaseInfo.opened || leaseInfo.paid) {
     const lease = leaseInfo.opened ?? leaseInfo.paid;
-    const ticker = CurrencyDemapping[lease!.amount.ticker!]?.ticker ?? lease!.amount.ticker;
-
-    const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
+    const unitAssetInfo = walletStore.getCurrencyByTicker(lease!.amount.ticker);
     const unitAsset = new Dec(lease!.amount.amount, Number(unitAssetInfo!.decimal_digits));
 
     const currentPrice = new Dec(oracleStore.prices?.[unitAssetInfo!.ibcData as string]?.amount ?? "0");
@@ -224,6 +218,7 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
 function getLeaseBalances(leaseInfo: LeaseStatus, protocolKey: string, balances: Coin[]) {
   const disable = [NATIVE_ASSET.denom];
   const ticker = leaseInfo?.paid?.amount.ticker;
+  const walletStore = useWalletStore();
   const app = useApplicationStore();
 
   if (ticker) {
@@ -242,13 +237,11 @@ function getLeaseBalances(leaseInfo: LeaseStatus, protocolKey: string, balances:
       return true;
     })
     .map((item) => {
-      const asset = AssetUtils.getCurrencyByDenom(item.denom);
-      const [ticker] = asset.key.split("@");
-      const currency = app.currenciesData![`${ticker}@${protocolKey}`];
+      const currency = walletStore.currencies[item.denom];
 
       return {
         amount: item.amount,
-        icon: currency.icon,
+        icon: app.assetIcons?.[currency.ticker] as string,
         decimals: currency.decimal_digits,
         shortName: currency.shortName
       };

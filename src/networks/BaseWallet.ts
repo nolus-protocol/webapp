@@ -120,6 +120,39 @@ export class BaseWallet extends SigningCosmWasmClient {
     return gasInfo;
   }
 
+  // private async simulateInj(
+  //   msg: MasgTransferInj,
+  //   msgTypeUrl: string,
+  //   gasMuplttiplier: number,
+  //   gasPrice: string,
+  //   memo = ""
+  // ) {
+  //   const pubkey = this.getPubKey();
+  //   const msgAny = {
+  //     typeUrl: msgTypeUrl,
+  //     value: msg
+  //   };
+  //   const { sequence, accountNumber } = await this.sequence();
+
+  //   const { gasInfo } = await this.queryClient.tx.simulateInj([msg], memo, pubkey, sequence, accountNumber);
+
+  //   // const { gasInfo } = await this.queryClient.tx.simulate([this.registry.encodeAsAny(msgAny)], memo, pubkey, sequence);
+  //   const gas = Math.round(Number(gasInfo?.gasUsed) * gasMuplttiplier);
+  //   const usedFee = calculateFee(gas, gasPrice);
+
+  //   console.log(1);
+  //   const txRaw = await this.sign(this.address as string, [msgAny], usedFee, memo);
+  //   console.log(2);
+  //   const txBytes = Uint8Array.from(CosmosTxV1Beta1Tx.TxRaw.encode(txRaw).finish());
+  //   console.log(3);
+  //   const txHash = toHex(sha256(txBytes));
+  //   return {
+  //     txHash,
+  //     txBytes,
+  //     usedFee
+  //   };
+  // }
+
   private getPubKey(pubKey?: Uint8Array) {
     switch (this.prefix) {
       case SUPPORTED_NETWORKS_DATA.EVMOS.prefix: {
@@ -176,6 +209,42 @@ export class BaseWallet extends SigningCosmWasmClient {
 
     return await this.simulateTx(msg, "/cosmos.bank.v1beta1.MsgSend", gasMuplttiplier, gasPrice);
   }
+
+  // public async simulateSendIbcTokensInjTx({
+  //   toAddress,
+  //   amount,
+  //   sourcePort,
+  //   sourceChannel,
+  //   timeOut,
+  //   gasMuplttiplier,
+  //   gasPrice,
+  //   memo = ""
+  // }: {
+  //   toAddress: string;
+  //   amount: Coin;
+  //   sourcePort: string;
+  //   sourceChannel: string;
+  //   timeOut: number;
+  //   gasMuplttiplier: number;
+  //   gasPrice: string;
+  //   memo?: string;
+  // }) {
+  //   const timeOutData = Math.floor(Date.now()) + timeOut;
+  //   const longTimeOut = BigInt(timeOutData) * 1_000_000_000n;
+  //   const timeoutTimestamp = makeTimeoutTimestampInNs();
+  //   const msg = MasgTransferInj.fromJSON({
+  //     port: sourcePort,
+  //     channelId: sourceChannel,
+  //     sender: this.address?.toString() as string,
+  //     receiver: toAddress,
+  //     amount: amount,
+  //     height: undefined,
+  //     timeout: timeoutTimestamp,
+  //     memo
+  //   });
+
+  //   return await this.simulateInj(msg, "/ibc.applications.transfer.v1.MsgTransfer", gasMuplttiplier, gasPrice, "");
+  // }
 
   public async simulateSendIbcTokensTx({
     toAddress,

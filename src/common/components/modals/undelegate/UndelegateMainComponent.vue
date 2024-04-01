@@ -48,15 +48,23 @@ import { coin } from "@cosmjs/amino";
 import { useI18n } from "vue-i18n";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { WalletManager } from "@/common/utils";
-import { useApplicationStore } from "@/common/stores/application";
+
+defineProps({
+  selectedAsset: {
+    type: String
+  }
+});
 
 const walletStore = useWalletStore();
-const app = useApplicationStore();
-
 const showConfirmScreen = ref(false);
 const state = ref({
-  currentBalance: [{ balance: walletStore.total_unls.balance, ...app.native }],
-  selectedCurrency: { balance: walletStore.total_unls.balance, ...app.native },
+  currentBalance: walletStore.balances.filter((item) => {
+    if (item.balance.denom == NATIVE_ASSET.denom) {
+      return true;
+    }
+    return false;
+  }),
+  selectedCurrency: walletStore.balances.find((item) => item.balance.denom == NATIVE_ASSET.denom),
   amount: "",
   amountErrorMsg: "",
   txHash: "",
@@ -66,7 +74,6 @@ const state = ref({
   delegatedData: [],
   onNextClick: () => onNextClick()
 } as UndelegateFormComponentProps);
-
 let delegatedData: any = [];
 let decimalDelegated = new Dec(0);
 
@@ -144,9 +151,11 @@ function validateInputs() {
     return false;
   }
 
-  const asset = state.value.selectedCurrency;
-  const zero = CurrencyUtils.convertDenomToMinimalDenom("0", asset.ibcData, asset.decimal_digits).amount.toDec();
-  const amountToTransfer = CurrencyUtils.convertDenomToMinimalDenom(amount, asset.ibcData, asset.decimal_digits);
+  const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(NATIVE_ASSET.denom);
+
+  const zero = CurrencyUtils.convertDenomToMinimalDenom("0", coinMinimalDenom, coinDecimals).amount.toDec();
+
+  const amountToTransfer = CurrencyUtils.convertDenomToMinimalDenom(amount, coinMinimalDenom, coinDecimals);
 
   const isLowerThanOrEqualsToZero = amountToTransfer.amount.toDec().lte(zero);
 
@@ -177,8 +186,8 @@ async function undelegate() {
   if (walletStore.wallet) {
     try {
       const amount = state.value.amount;
-      const asset = state.value.selectedCurrency;
-      const amountToTransfer = CurrencyUtils.convertDenomToMinimalDenom(amount, asset.ibcData, asset.decimal_digits);
+      const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(NATIVE_ASSET.denom);
+      const amountToTransfer = CurrencyUtils.convertDenomToMinimalDenom(amount, coinMinimalDenom, coinDecimals);
 
       let amountToTransferDecimal = amountToTransfer.amount.toDec();
       const transactions = [];
@@ -193,14 +202,14 @@ async function undelegate() {
           const transfer = new Dec(amountToTransferDecimal.toString());
           transactions.push({
             validator: item.delegation.validator_address,
-            amount: coin(transfer.truncate().toString(), asset.ibcData)
+            amount: coin(transfer.truncate().toString(), coinMinimalDenom)
           });
           break;
         } else {
           const transfer = new Dec(amount.toString());
           transactions.push({
             validator: item.delegation.validator_address,
-            amount: coin(transfer.truncate().toString(), asset.ibcData)
+            amount: coin(transfer.truncate().toString(), coinMinimalDenom)
           });
         }
 

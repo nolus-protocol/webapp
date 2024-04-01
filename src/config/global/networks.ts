@@ -1,13 +1,10 @@
 import type { NetworkAddress } from "@/common/types";
-import { isServe } from ".";
 
 export const DEFAULT_PRIMARY_NETWORK = "mainnet";
 export const NETWORKS: { [key: string]: NetworkAddress } = {
   testnet: {
     currencies: () => import("@nolus/nolusjs/build/utils/currencies_testnet.json"),
-    endpoints: isServe()
-      ? import("../networks/rila-endpoints.json?url").then((t) => t.default)
-      : "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/rila-endpoints.json",
+    endpoints: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/rila-endpoints.json",
     chainName: "Nolus Testnet",
     explorer: "https://testnet.ping.pub/nolus/tx",
     govern: "https://testnet.ping.pub/nolus/gov",
@@ -18,9 +15,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   },
   mainnet: {
     currencies: () => import("@nolus/nolusjs/build/utils/currencies_mainnet.json"),
-    endpoints: isServe()
-      ? import("../networks/pirin-endpoints.json?url").then((t) => t.default)
-      : "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/pirin-endpoints.json",
+    endpoints: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/pirin-endpoints.json",
     chainName: "Nolus",
     explorer: "https://ping.pub/nolus/tx",
     govern: "https://ping.pub/nolus/gov",
@@ -37,7 +32,10 @@ export const NetworksConfig: {
   };
 } = {
   NEUTRON: {
-    hidden: ["ATOM", "ST_ATOM"]
+    hidden: ["ATOM", "ST_ATOM", "TIA", "ST_TIA@OSMOSIS-OSMOSIS-USDC_AXELAR"]
+  },
+  OSMOSIS: {
+    hidden: ["ST_TIA@NEUTRON-ASTROPORT-USDC_AXELAR"]
   }
 };
 
@@ -59,6 +57,5 @@ export const SUPPORTED_NETWORKS = [
   "DYMENSION",
   "JACKAL",
   "INJECTIVE",
-  "COMPOSABLE",
-  "NOBLE"
+  "COMPOSABLE"
 ];

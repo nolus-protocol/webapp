@@ -410,8 +410,9 @@ import StatDoughnutChart from "@/modules/stats/components/StatDoughnutChart.vue"
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { useWalletStore } from "@/common/stores/wallet";
 import { useApplicationStore } from "@/common/stores/application";
-import { AssetUtils, EtlApi, Logger, StringUtils } from "@/common/utils";
+import { EtlApi, StringUtils } from "@/common/utils";
 import { AppUtils } from "@/common/utils";
 
 const i18n = useI18n();
@@ -435,6 +436,8 @@ const suppliedBorrowed = ref({
   supplied: "0",
   borrowed: "0"
 });
+
+const wallet = useWalletStore();
 
 const chartData = {
   datasets: [
@@ -466,7 +469,7 @@ onMounted(async () => {
     setStats(),
     setBuyBackTotal(),
     setIncentivesPool()
-  ]).catch((e) => Logger.error(e));
+  ]).catch(() => {});
 });
 
 function inFocus(data: string[]) {
@@ -549,7 +552,7 @@ async function setStats() {
   let total = 0;
 
   for (const i of items) {
-    const currency = AssetUtils.getCurrencyByTicker(i.asset);
+    const currency = wallet.getCurrencyByTicker(i.asset);
     labels.push(currency?.shortName ?? i.asset);
     dataValue.push(i.loan);
     colors.push(StringUtils.strToColor(currency?.shortName ?? i.asset));
@@ -558,7 +561,7 @@ async function setStats() {
 
   loans.value = items
     .map((item) => {
-      const currency = AssetUtils.getCurrencyByTicker(item.asset);
+      const currency = wallet.getCurrencyByTicker(item.asset);
 
       const loan = (Number(item.loan) / total) * 100;
       return {

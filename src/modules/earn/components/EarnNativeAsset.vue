@@ -7,8 +7,8 @@
       <!-- Ticker -->
       <div class="inline-flex items-center">
         <img
-          v-if="assetInfo.icon"
-          :src="assetInfo.icon"
+          v-if="assetInfo.coinIcon"
+          :src="assetInfo.coinIcon"
           class="m-0 mr-4 inline-block"
           height="32"
           width="32"
@@ -27,8 +27,8 @@
             <CurrencyComponent
               :type="CURRENCY_VIEW_TYPES.TOKEN"
               :amount="asset.balance.amount.toString()"
-              :minimalDenom="assetInfo.ibcData"
-              :decimals="assetInfo.decimal_digits"
+              :minimalDenom="assetInfo.coinMinimalDenom"
+              :decimals="assetInfo.coinDecimals"
               :maxDecimals="maxCoinDecimals"
               :fontSizeSmall="12"
               denom=""
@@ -108,7 +108,7 @@ const props = defineProps({
 });
 
 const assetInfo = computed(() => {
-  const assetInfo = AssetUtils.getCurrencyByDenom(props.asset.balance.denom);
+  const assetInfo = wallet.getCurrencyInfo(props.asset.balance.denom);
   return assetInfo;
 });
 

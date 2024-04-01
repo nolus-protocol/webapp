@@ -5,8 +5,8 @@
   >
     <div class="col-span-2 inline-flex items-center md:col-span-1">
       <img
-        v-if="assetInfo.icon"
-        :src="assetInfo.icon"
+        v-if="assetInfo.coinIcon"
+        :src="assetInfo.coinIcon"
         class="m-0 mr-4 inline-block"
         height="32"
         width="32"
@@ -26,8 +26,8 @@
         <CurrencyComponent
           :type="CURRENCY_VIEW_TYPES.TOKEN"
           :amount="assetBalance"
-          :minimalDenom="assetInfo.ibcData"
-          :decimals="assetInfo.decimal_digits"
+          :minimalDenom="assetInfo.coinMinimalDenom"
+          :decimals="assetInfo.coinDecimals"
           :maxDecimals="maxCoinDecimals"
           denom=""
         />
@@ -75,8 +75,8 @@
               <CurrencyComponent
                 :type="CURRENCY_VIEW_TYPES.TOKEN"
                 :amount="leasUpTo"
-                :minimalDenom="assetInfo.ibcData"
-                :decimals="assetInfo.decimal_digits"
+                :minimalDenom="assetInfo.coinMinimalDenom"
+                :decimals="assetInfo.coinDecimals"
                 :maxDecimals="maxLeaseUpToCoinDecimals"
                 denom=""
               />
@@ -97,7 +97,7 @@
       <div class="nls-btn-show !right-0 flex justify-end">
         <button
           class="btn btn-secondary btn-medium-secondary"
-          @click="openModal(DASHBOARD_ACTIONS.LEASE, assetInfo.key)"
+          @click="openModal(DASHBOARD_ACTIONS.LEASE, denom)"
         >
           {{ $t("message.lease") }}
         </button>
@@ -105,7 +105,7 @@
         <button
           v-if="canSupply"
           class="btn btn-secondary btn-medium-secondary"
-          @click="openModal(DASHBOARD_ACTIONS.SUPPLY, assetInfo.key)"
+          @click="openModal(DASHBOARD_ACTIONS.SUPPLY, denom)"
         >
           {{ $t("message.supply") }}
         </button>
@@ -124,22 +124,22 @@
 </template>
 
 <script lang="ts" setup>
-import { DASHBOARD_ACTIONS } from "../types";
+import { type AssetInfo, DASHBOARD_ACTIONS } from "../types";
 import { computed, type PropType } from "vue";
 import { Coin, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { CURRENCY_VIEW_TYPES, type ExternalCurrency } from "@/common/types";
+import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useApplicationStore } from "@/common/stores/application";
 import { AssetUtils as WebAppAssetUtils } from "@/common/utils";
-import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
-
 import {
   NATIVE_CURRENCY as DEFAULT_CURRENCY,
   DEFAULT_LEASE_UP_PERCENT,
   LEASE_UP_COEFICIENT,
   NATIVE_ASSET
 } from "@/config/global";
+
+import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
 
 const walletStore = useWalletStore();
 const app = useApplicationStore();
@@ -150,7 +150,7 @@ const props = defineProps({
     required: true
   },
   assetInfo: {
-    type: Object as PropType<ExternalCurrency>,
+    type: Object as PropType<AssetInfo>,
     required: true
   },
   openModal: {
@@ -183,19 +183,19 @@ const props = defineProps({
 });
 
 const canLease = computed(() => {
-  const curency = WebAppAssetUtils.getCurrencyByDenom(props.denom);
-  const [ticker] = curency.key.split("@");
+  const curency = walletStore.currencies[props.denom];
+  const [ticker] = curency.ticker.split("@");
   return Number(props.assetBalance) > 0 && app.leasesCurrencies.includes(ticker);
 });
 
 const canSupply = computed(() => {
-  const curency = WebAppAssetUtils.getCurrencyByDenom(props.denom);
+  const curency = walletStore.currencies[props.denom];
   const lpns = (app.lpn ?? []).map((item) => item.key);
   return Number(props.assetBalance) > 0 && lpns.includes(curency.ticker);
 });
 
 const isEarn = computed(() => {
-  const curency = WebAppAssetUtils.getCurrencyByDenom(props.denom);
+  const curency = walletStore.currencies[props.denom];
   const lpns = (app.lpn ?? []).map((item) => item.key);
   return lpns.includes(curency.ticker);
 });
@@ -230,7 +230,7 @@ const maxLeaseUpToCoinDecimals = computed(() => {
 });
 
 function calculateBalance(price: string, tokenAmount: string, denom: string) {
-  const tokenDecimals = Number(WebAppAssetUtils.getCurrencyByDenom(denom).decimal_digits);
+  const tokenDecimals = Number(walletStore.currencies[denom].decimal_digits);
   const coin = new Coin(denom, new Int(tokenAmount));
   const data = CurrencyUtils.calculateBalance(price, coin, tokenDecimals);
   return data.toDec().toString(2);

@@ -24,64 +24,32 @@ export const CONTRACTS: ContractConfig = {
     admin: {
       instance: "nolus1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsqxf8nd",
       codeId: "",
-      ignoreProtocols: []
+      ignoreProtocols: ["OSMOSIS-OSMOSIS-USDC_NOBLE"]
     }
   }
 };
 
 export const ProtocolsConfig: {
   [key: string]: {
+    hidden: string[];
     only: string[];
-    currencies: string[];
-    lease: boolean;
+    ignoreNetowrk: string[];
   };
 } = {
   "OSMOSIS-OSMOSIS-USDC-1": {
-    only: ["NLS", "ATOM"],
-    lease: true,
-    currencies: ["NLS", "OSMO", "USDC_AXELAR", "ATOM", "AKT", "JUNO"]
+    only: ["NLS", "ATOM", "ST_ATOM", "TIA"],
+    hidden: [],
+    ignoreNetowrk: ["NEUTORN"]
   },
   "OSMOSIS-OSMOSIS-USDC_AXELAR": {
-    only: [],
-    currencies: ["USDC_AXELAR"],
-    lease: false
+    only: ["NLS", "ATOM", "ST_ATOM", "TIA"],
+    hidden: [],
+    ignoreNetowrk: ["NEUTRON"]
   },
   "NEUTRON-ASTROPORT-USDC_AXELAR": {
     only: [],
-    lease: true,
-    currencies: ["NTRN", "USDC_AXELAR", "DYDX", "ST_TIA"]
-  },
-  "OSMOSIS-OSMOSIS-USDC_NOBLE": {
-    only: ["NLS", "ATOM", "ST_ATOM", "TIA"],
-    lease: true,
-    currencies: [
-      "NLS",
-      "OSMO",
-      "ST_OSMO",
-      "ATOM",
-      "ST_ATOM",
-      "USDC_NOBLE",
-      "WETH_AXELAR",
-      "WBTC_AXELAR",
-      "AKT",
-      "AXL",
-      "JUNO",
-      "EVMOS",
-      "STK_ATOM",
-      "SCRT",
-      "CRO",
-      "TIA",
-      "STARS",
-      "Q_ATOM",
-      "STRD",
-      "MILK_TIA",
-      "ST_TIA",
-      "JKL",
-      "DYM",
-      "INJ",
-      "LVN",
-      "PICA"
-    ]
+    hidden: ["ATOM", "ST_ATOM", "TIA"],
+    ignoreNetowrk: ["OSMOSIS"]
   }
 };
 
