@@ -200,7 +200,6 @@ const networks = computed(() => {
         }
       }
     }
-
     return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list.filter((item) => n.includes(item.key));
   }
   return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list;
@@ -235,7 +234,7 @@ onMounted(() => {
         amount: "0",
         denom: currency.ibcData
       },
-      decimal_digits: Number(currency.decimal_digits),
+      decimals: Number(currency.decimal_digits),
       icon: app.assetIcons?.[currency.key!],
       name: currency.shortName,
       native: false,
@@ -281,8 +280,7 @@ async function onUpdateNetwork(event: Network) {
 
     const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
     const assets = network.supportedNetworks[event.key].currencies();
-    const currencies = [];
-    const promises = [];
+    const currenciesPromise = [];
     const filteredAssets: { [key: string]: ExternalCurrency } = {};
     const networkData = network?.supportedNetworks[selectedNetwork.value.key];
 
@@ -294,20 +292,16 @@ async function onUpdateNetwork(event: Network) {
 
         if (lpn) {
           for (const lpn of app.lpn ?? []) {
-            if (key == lpn.ticker) {
-              filteredAssets[lpn.key as string] = {
-                icon: lpn.icon,
-                coingeckoId: lpn.coingeckoId,
-                native: true,
-                decimal_digits: lpn.decimal_digits,
-                ibcData: assets[key].ibcData,
-                key: lpn.key,
-                name: lpn.name,
-                shortName: lpn.shortName,
-                symbol: lpn.symbol,
-                ticker: lpn.ticker
-              };
-            }
+            filteredAssets[lpn.key as string] = {
+              native: true,
+              decimal_digits: lpn.decimal_digits,
+              ibcData: assets[key].ibcData,
+              key: lpn.key,
+              name: lpn.name,
+              shortName: lpn.shortName,
+              symbol: lpn.symbol,
+              ticker: lpn.ticker
+            };
           }
           continue;
         }
@@ -317,8 +311,14 @@ async function onUpdateNetwork(event: Network) {
       }
     }
 
+    client = await WalletUtils.getWallet(event.key);
+
+    const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
+    wallet.value = baseWallet?.address as string;
+    networkCurrenciesObject.value = filteredAssets;
+
     for (const key in filteredAssets) {
-      const fn = () => {
+      const fn = async () => {
         let k = filteredAssets[key].key!;
         let [ckey, protocol = AppUtils.getProtocols().osmosis]: string[] = k.split("@");
 
@@ -338,9 +338,9 @@ async function onUpdateNetwork(event: Network) {
           app.networksData?.protocols[protocol].DexNetwork as string
         );
 
-        // const balance = WalletUtils.isAuth()
-        //   ? await client.getBalance(wallet.value as string, ibc_route)
-        //   : coin(0, ibc_route);
+        const balance = WalletUtils.isAuth()
+          ? await client.getBalance(wallet.value as string, ibc_route)
+          : coin(0, ibc_route);
 
         let shortName = filteredAssets[key].shortName;
         let [ticker] = filteredAssets[key].key?.split("@") as string[];
@@ -361,50 +361,36 @@ async function onUpdateNetwork(event: Network) {
           }
         }
 
+        if (ProtocolsConfig[protocol].hidden.includes(key)) {
+          return;
+        }
+
         const icon = app.assetIcons?.[`${ticker}@${protocol}`] as string;
 
         return {
-          balance: coin(0, ibc_route),
+          balance,
           shortName: shortName,
           ticker: k,
           name: shortName,
           icon: icon,
-          decimal_digits: Number(filteredAssets[key].decimal_digits),
+          decimals: Number(filteredAssets[key].decimal_digits),
           symbol: filteredAssets[key].symbol,
           native: filteredAssets[key].native
         };
       };
 
-      currencies.push(fn());
+      currenciesPromise.push(fn());
     }
 
+    const items = (await Promise.all(currenciesPromise)).filter((item) => item != null);
     if ((props.modelValue?.dialogSelectedCurrency.length as number) > 0) {
       const [ckey]: string[] = props.modelValue!.dialogSelectedCurrency.split("@");
-      const c = currencies.find((e) => e.ticker == ckey || e.ticker == props.modelValue!.dialogSelectedCurrency)!;
+      const c = items.find((e) => e!.ticker == ckey || e!.ticker == props.modelValue!.dialogSelectedCurrency)!;
       selectedCurrency.value = c;
     } else {
-      selectedCurrency.value = currencies?.[0];
+      selectedCurrency.value = items?.[0]!;
     }
-
-    client = await WalletUtils.getWallet(event.key);
-
-    const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
-    wallet.value = baseWallet?.address as string;
-    networkCurrenciesObject.value = filteredAssets;
-
-    if (WalletUtils.isAuth()) {
-      for (const c of currencies) {
-        async function fn() {
-          const balance = await client.getBalance(wallet.value as string, c.balance.denom);
-          c.balance = balance;
-        }
-        promises.push(fn());
-      }
-    }
-
-    await Promise.all(promises);
-
-    networkCurrencies.value = currencies;
+    networkCurrencies.value = items as any;
     disablePicker.value = false;
   } else {
     selectedCurrency.value = walletStore.balances[0];
@@ -463,7 +449,7 @@ async function validateAmount() {
 
   const prefix =
     NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[selectedNetwork.value.key]?.prefix;
-  const decimals = selectedCurrency.value?.decimal_digits;
+  const decimals = selectedCurrency.value?.decimals;
 
   if (prefix && decimals) {
     try {
@@ -529,7 +515,7 @@ async function ibcTransfer(baseWallet: BaseWallet) {
     const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
       amount.value,
       denom,
-      selectedCurrency.value?.decimal_digits!
+      selectedCurrency.value?.decimals!
     );
 
     const funds: Coin = {
@@ -596,6 +582,8 @@ async function ibcTransfer(baseWallet: BaseWallet) {
       await walletStore.UPDATE_BALANCES();
     }, 10000);
   } catch (error: Error | any) {
+    console.log(error);
+
     switch (error.code) {
       case ErrorCodes.GasError: {
         step.value = CONFIRM_STEP.GasErrorExternal;
@@ -630,20 +618,20 @@ function onClickOkBtn() {
 function formatCurrentBalance(selectedCurrency: AssetBalance | undefined) {
   if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
     if (selectedNetwork.value.native) {
-      const asset = AssetUtils.getCurrencyByDenom(selectedCurrency.balance.denom);
+      const asset = walletStore.getCurrencyInfo(selectedCurrency.balance.denom);
       return CurrencyUtils.convertMinimalDenomToDenom(
         selectedCurrency.balance.amount.toString(),
         selectedCurrency.balance.denom,
-        asset.ibcData,
-        asset.decimal_digits
+        asset.coinDenom,
+        asset.coinDecimals
       ).toString();
     } else {
-      if (selectedCurrency.decimal_digits != null && selectedCurrency.name != null) {
+      if (selectedCurrency.decimals != null && selectedCurrency.name != null) {
         return CurrencyUtils.convertMinimalDenomToDenom(
           selectedCurrency.balance.amount.toString(),
           selectedCurrency.balance.denom,
           selectedCurrency.name as string,
-          selectedCurrency.decimal_digits as number
+          selectedCurrency.decimals as number
         ).toString();
       }
     }

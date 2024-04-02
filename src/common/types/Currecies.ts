@@ -1,5 +1,3 @@
-import type { Coin as UnitCoin, Dec } from "@keplr-wallet/unit";
-
 export interface Currecies {
   amm_pools: {
     id: string;
@@ -27,14 +25,11 @@ export interface ExternalCurrency {
   name: string;
   shortName: string;
   symbol: string;
-  decimal_digits: number;
+  decimal_digits: string;
   ticker: string;
   native: boolean;
-  key: string;
-  ibcData: string;
-  icon: string;
-  coingeckoId: string;
-  balance?: UnitCoin | any;
+  key?: string;
+  ibcData?: string;
 }
 
 export interface ExternalCurrencies {

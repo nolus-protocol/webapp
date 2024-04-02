@@ -31,6 +31,7 @@
 </template>
 
 <script lang="ts" setup>
+import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { WithdrawFormComponentProps } from "./types";
 
 import ConfirmComponent from "@/common/components/modals/templates/ConfirmComponent.vue";
@@ -38,15 +39,15 @@ import WithdrawFormComponent from "./WithdrawFormComponent.vue";
 import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
 import Modal from "@/common/components/modals/templates/Modal.vue";
 
-import { CONFIRM_STEP, type ExternalCurrency } from "@/common/types";
+import { CONFIRM_STEP } from "@/common/types";
 import { TxType } from "@/common/types";
 import { Coin, Dec } from "@keplr-wallet/unit";
 import { NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
-import { Logger, WalletManager } from "@/common/utils";
+import { WalletManager } from "@/common/utils";
 import { getMicroAmount, validateAmount, walletOperation } from "@/common/utils";
 import { WalletActions, useWalletStore } from "@/common/stores/wallet";
-import { computed, inject, onBeforeMount, onMounted, ref, watch } from "vue";
+import { computed, inject, onBeforeMount, onMounted, onUnmounted, ref, watch } from "vue";
 import { NATIVE_ASSET, GAS_FEES, ErrorCodes } from "@/config/global";
 import { coin } from "@cosmjs/amino";
 import { useApplicationStore } from "@/common/stores/application";
@@ -63,41 +64,27 @@ const app = useApplicationStore();
 const admin = useAdminStore();
 
 const balances = computed(() => {
-  const assets = [];
-  const lpns = app.lpn?.map((item) => item.key) ?? [];
+  const balances = walletStore.balances;
+  const lpns = (app.lpn ?? []).map((item) => item.key);
 
-  for (const key in app.currenciesData ?? {}) {
-    const currency = app.currenciesData![key];
-    const c = { ...currency };
-    const item = walletStore.balances.find((item) => item.balance.denom == currency.ibcData);
-    if (item) {
-      c.balance = item!.balance;
-      assets.push(c);
-    }
-  }
-
-  return assets.filter((item) => lpns.includes(item.key));
+  return balances.filter((item) => {
+    const currency = walletStore.currencies[item.balance.denom];
+    return lpns.includes(currency.ticker);
+  });
 });
 
 const selectedCurrency = computed(() => {
   const item = balances.value.find((item) => {
-    let ibcData = app.lpn![0].ibcData;
-    if (props.selectedAsset) {
-      ibcData = app.currenciesData![props.selectedAsset!].ibcData;
-    }
-    return item.balance.denom == ibcData;
+    const c = props.selectedAsset ?? app.lpn![0].ibcData;
+    return item.balance.denom == c;
   });
   return item;
 });
-
 const showConfirmScreen = ref(false);
 const state = ref({
-  currentDepositBalance: {
-    ...selectedCurrency.value,
-    balance: coin(0, selectedCurrency.value?.balance.ibcData)
-  } as ExternalCurrency,
-  currentBalance: balances.value as ExternalCurrency[],
-  selectedCurrency: selectedCurrency.value as ExternalCurrency,
+  currentDepositBalance: {} as any,
+  currentBalance: balances.value,
+  selectedCurrency: selectedCurrency.value,
   receiverAddress: "",
   amount: "",
   amountErrorMsg: "",
@@ -120,8 +107,8 @@ async function fetchDepositBalance() {
   try {
     const walletAddress = walletStore.wallet?.address ?? WalletManager.getWalletAddress();
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-    const currency = state.value.selectedCurrency;
-    const [_currency, protocol] = currency.key.split("@");
+    const currency = walletStore.currencies[state.value.selectedCurrency.balance.denom];
+    const [_currency, protocol] = currency.ticker.split("@");
 
     const lppClient = new Lpp(cosmWasmClient, admin.contracts![protocol].lpp);
     const [depositBalance, price] = await Promise.all([
@@ -133,14 +120,12 @@ async function fetchDepositBalance() {
     const amount = new Dec(depositBalance.balance).mul(calculatedPrice);
 
     state.value.currentDepositBalance = {
-      ...state.value.selectedCurrency,
       balance: new Coin(state.value.selectedCurrency.balance.denom, amount.truncate().toString())
-    } as ExternalCurrency;
+    } as AssetBalance;
   } catch (e: Error | any) {
     errorDialog.value.showDialog = true;
     errorDialog.value.errorMessage = e.message;
     errorDialog.value.tryAgain = fetchDepositBalance;
-    Logger.error(e);
   }
 }
 
@@ -155,14 +140,14 @@ onMounted(async () => {
 });
 
 watch(
-  () => state.value.amount,
+  () => [...state.value.amount],
   (currentValue, oldValue) => {
     validateInputs();
   }
 );
 
 watch(
-  () => state.value.selectedCurrency,
+  () => [...state.value.selectedCurrency.balance.denom.toString()],
   (currentValue, oldValue) => {
     validateInputs();
     fetchDepositBalance();
@@ -175,8 +160,8 @@ const closeModal = inject("onModalClose", () => () => {});
 const loadLPNCurrency = inject("loadLPNCurrency", () => false);
 
 function onNextClick() {
-  const currency = state.value.selectedCurrency;
-  const [_currency, protocol] = currency.key.split("@");
+  const currency = walletStore.currencies[state.value.selectedCurrency.balance.denom];
+  const [_currency, protocol] = currency.ticker.split("@");
   state.value.receiverAddress = admin.contracts![protocol].lpp;
 
   validateInputs();
@@ -198,7 +183,7 @@ function validateInputs() {
   state.value.amountErrorMsg = validateAmount(
     state.value.amount,
     state.value.selectedCurrency.balance.denom,
-    Number(state.value.currentDepositBalance?.balance.amount)
+    Number(state.value.currentDepositBalance.balance.amount)
   );
 }
 
@@ -218,8 +203,8 @@ async function transferAmount() {
     try {
       const microAmount = getMicroAmount(state.value.selectedCurrency.balance.denom, state.value.amount);
 
-      const currency = state.value.selectedCurrency;
-      const [_currency, protocol] = currency.key.split("@");
+      const currency = walletStore.currencies[state.value.selectedCurrency.balance.denom];
+      const [_currency, protocol] = currency.ticker.split("@");
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const lppClient = new Lpp(cosmWasmClient, admin.contracts![protocol].lpp);
@@ -227,7 +212,7 @@ async function transferAmount() {
 
       const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
 
-      if (microAmount.mAmount.amount.equals(state.value.currentDepositBalance?.balance.amount)) {
+      if (microAmount.mAmount.amount.equals(state.value.currentDepositBalance.balance.amount)) {
         const walletAddress = walletStore.wallet?.address ?? WalletManager.getWalletAddress();
         const amount = await lppClient.getLenderDeposit(walletAddress as string);
         microAmount.mAmount.amount = new Dec(amount.balance).truncate();

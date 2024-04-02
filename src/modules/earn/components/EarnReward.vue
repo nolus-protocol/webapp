@@ -6,8 +6,8 @@
       <!-- Ticker -->
       <div class="col-span-2 inline-flex items-center">
         <img
-          v-if="assetInfo.icon"
-          :src="assetInfo.icon"
+          v-if="assetInfo.coinIcon"
+          :src="assetInfo.coinIcon"
           class="m-0 mr-4 inline-block"
           height="32"
           width="32"
@@ -17,9 +17,9 @@
             <CurrencyComponent
               :type="CURRENCY_VIEW_TYPES.TOKEN"
               :amount="reward.balance.amount.toString()"
-              :minimalDenom="assetInfo.ibcData"
+              :minimalDenom="assetInfo.coinMinimalDenom"
               :denom="assetInfo.shortName"
-              :decimals="assetInfo.decimal_digits"
+              :decimals="assetInfo.coinDecimals"
               :maxDecimals="6"
               :fontSizeSmall="12"
             />
@@ -51,6 +51,7 @@ import type { AssetBalance } from "@/common/stores/wallet/types";
 import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { Dec } from "@keplr-wallet/unit";
+import { useWalletStore } from "@/common/stores/wallet";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { AssetUtils } from "@/common/utils";
 
@@ -67,10 +68,11 @@ const props = defineProps({
   }
 });
 
+const wallet = useWalletStore();
 const loading = ref(false);
 
 const assetInfo = computed(() => {
-  const assetInfo = AssetUtils.getCurrencyByDenom(props.reward.balance.denom);
+  const assetInfo = wallet.getCurrencyInfo(props.reward.balance.denom);
   return assetInfo;
 });
 

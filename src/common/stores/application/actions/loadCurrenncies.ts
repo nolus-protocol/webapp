@@ -1,9 +1,8 @@
 import type { Store } from "../types";
 import type { NetworkData } from "@nolus/nolusjs/build/types/Networks";
-import { NATIVE_ASSET, NATIVE_NETWORK, NETWORKS } from "@/config/global";
+import { NATIVE_NETWORK, NETWORKS } from "@/config/global";
 import { AssetUtils, EnvNetworkUtils, Logger } from "@/common/utils";
 import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
-import { ASSETS } from "@/config/currencies";
 
 export async function loadCurrennncies(this: Store) {
   try {
@@ -22,23 +21,22 @@ export async function loadCurrennncies(this: Store) {
 
     this.lpn = [];
     const nativeCurrency = currenciesData.networks.list[NATIVE_NETWORK.key].currencies[native].native!;
-
     this.native = {
-      icon: NATIVE_ASSET.icon,
       name: nativeCurrency.name,
       shortName: nativeCurrency.ticker,
       symbol: nativeCurrency.symbol,
-      decimal_digits: Number(nativeCurrency.decimal_digits),
+      decimal_digits: nativeCurrency.decimal_digits,
       ticker: nativeCurrency.ticker,
       native: true,
       key: nativeCurrency.ticker,
-      ibcData: nativeCurrency.symbol,
-      coingeckoId: ASSETS[NATIVE_ASSET.ticker as keyof typeof ASSETS].coinGeckoId
+      ibcData: nativeCurrency.symbol
     };
 
     for (const protocol of this.protocols) {
       const lpn = NolusAssetUtils.getLpn(currenciesData, protocol);
-      this.lpn.push(data.networks[NATIVE_NETWORK.key][`${lpn}@${protocol}`]);
+      if (data.networks[NATIVE_NETWORK.key][`${lpn}@${protocol}`]) {
+        this.lpn.push(data.networks[NATIVE_NETWORK.key][`${lpn}@${protocol}`]);
+      }
     }
 
     this.currenciesData = data.networks[NATIVE_NETWORK.key];

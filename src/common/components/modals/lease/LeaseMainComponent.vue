@@ -25,13 +25,14 @@ import LeaseFormComponent from "./LeaseFormComponent.vue";
 import ConfirmComponent from "../templates/ConfirmComponent.vue";
 
 import type { LeaseComponentProps } from "./types";
+import type { AssetBalance } from "@/common/stores/wallet/types";
 
 import { inject, ref, watch, onMounted } from "vue";
 import { Leaser } from "@nolus/nolusjs/build/contracts";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { Dec, Int } from "@keplr-wallet/unit";
 
-import { CONFIRM_STEP, type ExternalCurrency, type IObjectKeys } from "@/common/types";
+import { CONFIRM_STEP, type IObjectKeys } from "@/common/types";
 import { TxType } from "@/common/types";
 import { Logger, getMicroAmount, walletOperation } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -53,8 +54,7 @@ import {
   INTEREST_DECIMALS,
   DEFAULT_LTD,
   PERMILLE,
-  ErrorCodes,
-  ProtocolsConfig
+  ErrorCodes
 } from "@/config/global";
 
 const onModalClose = inject("onModalClose", () => {});
@@ -65,42 +65,21 @@ const app = useApplicationStore();
 const walletRef = storeToRefs(walletStore);
 const i18n = useI18n();
 
-const balances = computed(() => {
-  const assets = [];
-
-  for (const key in app.currenciesData ?? {}) {
-    const currency = app.currenciesData![key];
-    const c = { ...currency };
-    const item = walletStore.balances.find((item) => item.balance.denom == currency.ibcData);
-
-    if (item) {
-      c.balance = item!.balance;
-      assets.push(c);
-    }
-  }
-
-  return assets;
-});
-
 const paymentBalances = computed(() => {
-  const lpns = (app.lpn ?? []).map((item) => item.key);
-
-  const b = balances.value.filter((item) => {
-    const [ticker, protocol] = item.key.split("@");
-
-    if (!ProtocolsConfig[protocol].lease) {
-      return false;
-    }
-
-    return lpns.includes(ticker) || app.leasesCurrencies.includes(ticker);
+  const balances = walletStore.balances;
+  return balances.filter((item) => {
+    const currency = walletStore.currencies[item.balance.denom];
+    const lpns = (app.lpn ?? []).map((item) => item.key);
+    return lpns.includes(currency.ticker) || app.leasesCurrencies.includes(currency.ticker);
   });
-  return b;
 });
 
 const leaseBalances = computed(() => {
-  const c = balances.value
+  const balances = walletStore.balances;
+  return balances
     .filter((item) => {
-      let [ticker] = item.key.split("@");
+      const currency = walletStore.currencies[item.balance.denom];
+      let [ticker] = currency.ticker.split("@");
 
       if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
         ticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
@@ -109,9 +88,13 @@ const leaseBalances = computed(() => {
       return app.leasesCurrencies.includes(ticker);
     })
     .map((item) => {
-      return item;
+      const asset = walletStore.getCurrencyInfo(item.balance.denom);
+      return {
+        ticker: asset.ticker,
+        denom: asset.coinMinimalDenom,
+        decimals: asset.coinDecimals
+      };
     });
-  return c;
 });
 
 const step = ref(CONFIRM_STEP.CONFIRM);
@@ -126,9 +109,11 @@ const props = defineProps({
 
 const state = ref({
   contractAddress: "",
-  currentBalance: balances.value as ExternalCurrency[],
-  selectedDownPaymentCurrency: paymentBalances.value[0] as ExternalCurrency,
-  selectedCurrency: leaseBalances.value[0] as ExternalCurrency,
+  currentBalance: walletStore.balances as AssetBalance[],
+  selectedDownPaymentCurrency: paymentBalances.value[0] as AssetBalance,
+  selectedCurrency: {
+    balance: coin(0, leaseBalances.value[0].denom)
+  } as AssetBalance,
   dialogSelectedCurrency: props.selectedAsset,
   downPayment: "",
   memo: "",
@@ -145,12 +130,16 @@ let leaseAssetPrice: string | null;
 let downPaymentRange: { [key: string]: { min: number; max: number } };
 
 onMounted(async () => {
+  const balances = walletStore.balances;
   downPaymentRange = await AppUtils.getDownpaymentRange();
+  if (balances) {
+    state.value.currentBalance = balances;
+  }
 });
 
-watch(walletRef.balances, async () => {
+watch(walletRef.balances, async (balances: AssetBalance[]) => {
   if (balances) {
-    state.value.currentBalance = balances.value;
+    state.value.currentBalance = balances;
   }
 });
 
@@ -198,11 +187,11 @@ async function calculate() {
         state.value.downPayment
       );
 
-      const currency = state.value.selectedDownPaymentCurrency;
-      const lease = state.value.selectedCurrency;
+      const currency = walletStore.currencies[state.value.selectedDownPaymentCurrency.balance.denom];
+      const lease = walletStore.currencies[state.value.selectedCurrency.balance.denom];
 
-      let [downPaymentTicker, protocol] = currency.key.split("@");
-      let [leaseTicker] = lease.key.split("@");
+      let [downPaymentTicker, protocol] = currency.ticker.split("@");
+      let [leaseTicker] = lease.ticker.split("@");
 
       if (
         CurrencyMapping[downPaymentTicker as keyof typeof CurrencyMapping] &&
@@ -219,6 +208,7 @@ async function calculate() {
       const admin = useAdminStore();
 
       const leaserClient = new Leaser(cosmWasmClient, admin.contracts![protocol].leaser);
+
       state.value.contractAddress = admin.contracts![protocol].leaser;
 
       const makeLeaseApplyResp = await leaserClient.leaseQuote(
@@ -276,10 +266,11 @@ function isDownPaymentAmountValid() {
 
   if (currentBalance) {
     if (downPaymentAmount || downPaymentAmount !== "") {
+      const coinData = walletStore.getCurrencyInfo(currentBalance?.balance?.denom);
       const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
         downPaymentAmount,
         "",
-        currentBalance.decimal_digits
+        coinData.coinDecimals
       );
 
       const isLowerThanOrEqualsToZero = new Dec(downPaymentAmountInMinimalDenom.amount || "0").lte(new Dec(0));
@@ -313,11 +304,12 @@ function isDownPaymentAmountValid() {
 function validateMinMaxValues(): boolean {
   try {
     let isValid = true;
+    const selectedDownPaymentDenom = state.value.selectedDownPaymentCurrency.balance.denom;
     const downPaymentAmount = state.value.downPayment;
-    const currentBalance = state.value.selectedDownPaymentCurrency;
+    const currentBalance = getCurrentBalanceByDenom(selectedDownPaymentDenom);
 
-    const currency = state.value.selectedCurrency;
-    const downPaymentCurrency = state.value.selectedDownPaymentCurrency;
+    const currency = walletStore.getCurrencyInfo(state.value.selectedCurrency.balance.denom);
+    const downPaymentCurrency = walletStore.getCurrencyInfo(state.value.selectedDownPaymentCurrency.balance.denom);
 
     const range = downPaymentRange?.[currency.ticker];
     const rangedownPaymentCurrency = downPaymentRange?.[downPaymentCurrency.ticker];
@@ -338,24 +330,26 @@ function validateMinMaxValues(): boolean {
         const leaseMax = new Dec(max);
         const leaseMin = new Dec(range.min);
 
-        const price = oracle.prices[currentBalance!.ibcData as string];
+        const coinData = walletStore.getCurrencyInfo(currentBalance?.balance?.denom);
+        const asset = walletStore.getCurrencyByTicker(coinData.ticker);
+        const price = oracle.prices[asset!.ibcData as string];
 
         const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
           downPaymentAmount,
-          currentBalance.ibcData,
-          currentBalance.decimal_digits
+          coinData.coinDenom,
+          coinData.coinDecimals
         );
         const balance = CurrencyUtils.calculateBalance(
           price.amount,
           downPaymentAmountInMinimalDenom,
-          currentBalance.decimal_digits
+          coinData.coinDecimals
         ).toDec();
 
         if (balance.lt(leaseMin)) {
           state.value.downPaymentErrorMsg = i18n.t("message.lease-min-error", {
             minAmount: Math.ceil((range.min / Number(price.amount)) * 1000) / 1000,
             maxAmount: Math.ceil((max / Number(price.amount)) * 1000) / 1000,
-            symbol: currentBalance.shortName
+            symbol: coinData.shortName
           });
           isValid = false;
         }
@@ -364,7 +358,7 @@ function validateMinMaxValues(): boolean {
           state.value.downPaymentErrorMsg = i18n.t("message.lease-max-error", {
             minAmount: Math.ceil((range.min / Number(price.amount)) * 1000) / 1000,
             maxAmount: Math.ceil((max / Number(price.amount)) * 1000) / 1000,
-            symbol: currentBalance.shortName
+            symbol: coinData.shortName
           });
           isValid = false;
         }
@@ -410,7 +404,8 @@ async function openLease() {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const admin = useAdminStore();
 
-      let [leaseTicker, protocol] = state.value.selectedCurrency.key.split("@");
+      const ticker = walletStore.currencies[state.value.selectedCurrency.balance.denom].ticker;
+      let [leaseTicker, protocol] = ticker.split("@");
 
       const leaserClient = new Leaser(cosmWasmClient, admin.contracts![protocol].leaser);
 
@@ -442,10 +437,26 @@ async function openLease() {
       const data = item?.attributes[WASM_EVENTS["wasm-ls-request-loan"].index];
 
       if (data && leaseAssetPrice) {
+        const downPaymentAsset = walletStore.currencies[state.value.selectedDownPaymentCurrency.balance.denom];
+
+        const downPaymentPrice = oracle.prices[state.value.selectedDownPaymentCurrency.balance.denom as string];
+        const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
+          state.value.downPayment,
+          "",
+          Number(downPaymentAsset!.decimal_digits)
+        );
+        const balance = CurrencyUtils.calculateBalance(
+          downPaymentPrice.amount,
+          downPaymentAmountInMinimalDenom,
+          Number(downPaymentAsset!.decimal_digits)
+        )
+          .toDec()
+          .toString();
+
         localStorage.setItem(
           data.value,
           JSON.stringify({
-            leasePositionTicker: state.value.selectedCurrency.key
+            leasePositionTicker: ticker
           })
         );
       }

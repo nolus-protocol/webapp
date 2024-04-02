@@ -48,9 +48,6 @@ import { embedChainInfo as injectiveChainInfo } from "./injective/contants";
 import { NETWORK as COMPOSABLE_NETWORK } from "./composable/network";
 import { embedChainInfo as composableChainInfo } from "./composable/contants";
 
-import { NETWORK as NOBLE_NETWORK } from "./noble/network";
-import { embedChainInfo as nobleChainInfo } from "./noble/contants";
-
 import { useApplicationStore } from "@/common/stores/application";
 import type { ExternalCurrencies, NetworkData } from "@/common/types";
 
@@ -235,16 +232,6 @@ export const SUPPORTED_NETWORKS_DATA: {
     key: "COMPOSABLE",
     symbol: "PICA",
     forward: true
-  },
-  NOBLE: {
-    prefix: "noble",
-    value: "noble",
-    label: "Noble",
-    native: false,
-    estimation: 20,
-    key: "NOBLE",
-    symbol: "USDC_NOBLE",
-    forward: true
   }
 };
 
@@ -339,8 +326,7 @@ export const NETWORKS_DATA: {
       SUPPORTED_NETWORKS_DATA.EVMOS,
       SUPPORTED_NETWORKS_DATA.JACKAL,
       SUPPORTED_NETWORKS_DATA.INJECTIVE,
-      SUPPORTED_NETWORKS_DATA.COMPOSABLE,
-      SUPPORTED_NETWORKS_DATA.NOBLE
+      SUPPORTED_NETWORKS_DATA.COMPOSABLE
     ],
     supportedNetworks: {
       OSMOSIS: {
@@ -486,15 +472,6 @@ export const NETWORKS_DATA: {
           return app?.networks?.[COMPOSABLE_NETWORK.key] as ExternalCurrencies;
         },
         embedChainInfo: composableChainInfo
-      },
-      NOBLE: {
-        ...NOBLE_NETWORK,
-        explorer: "https://ping.pub/noble/tx",
-        currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[NOBLE_NETWORK.key] as ExternalCurrencies;
-        },
-        embedChainInfo: nobleChainInfo
       }
     }
   }

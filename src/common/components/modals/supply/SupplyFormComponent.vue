@@ -44,10 +44,12 @@
 
 <script lang="ts" setup>
 import type { SupplyFormComponentProps } from "./types";
-import type { PropType } from "vue";
-import type { ExternalCurrency } from "@/common/types";
-import { CurrencyUtils } from "@nolus/nolusjs";
+import { type PropType } from "vue";
+import type { AssetBalance } from "@/common/stores/wallet/types";
+
 import CurrencyField from "@/common/components/CurrencyField.vue";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { useWalletStore } from "@/common/stores/wallet";
 
 const props = defineProps({
   modelValue: {
@@ -55,6 +57,8 @@ const props = defineProps({
     required: true
   }
 });
+
+const wallet = useWalletStore();
 
 function submit() {
   if (props.modelValue.supply) {
@@ -66,14 +70,14 @@ function handleAmountChange(value: string) {
   props.modelValue.amount = value;
 }
 
-function formatCurrentBalance(selectedCurrency: ExternalCurrency) {
+function formatCurrentBalance(selectedCurrency: AssetBalance) {
   if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
-    const asset = props.modelValue.selectedCurrency;
+    const asset = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
     return CurrencyUtils.convertMinimalDenomToDenom(
       selectedCurrency.balance.amount.toString(),
       selectedCurrency.balance.denom,
       asset.shortName,
-      asset.decimal_digits
+      asset.coinDecimals
     ).toString();
   }
 }

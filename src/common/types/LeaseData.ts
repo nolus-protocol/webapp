@@ -16,7 +16,7 @@ export interface LeaseData {
   balances: {
     amount: string;
     icon: string;
-    decimals: number;
+    decimals: string;
     shortName: string;
   }[];
 }
