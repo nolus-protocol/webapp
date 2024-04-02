@@ -1,0 +1,135 @@
+<template>
+  <div class="currency-field-container block">
+    <div
+      class="currency-field py-3.5"
+      :class="[isError === true ? 'error' : '']"
+    >
+      <div class="flex items-center px-3.5">
+        <div class="inline-block w-1/2">
+          <input
+            class="nls-font-700 text-18 text-primary"
+            type="number"
+            :value="amount"
+            @input="(event: Event) => $emit('updateAmount', (event.target as HTMLInputElement).value)"
+          />
+          <span class="nls-font-400 block text-14 text-light-blue">
+            {{ swapBalance }}
+          </span>
+        </div>
+        <div class="inline-block w-1/2">
+          <CurrencyPicker
+            :options="swapFromOptions"
+            :currencyOption="selectedOption"
+            :disabled="false"
+            :label="$t('message.asset')"
+            @update-currency="(value) => $emit('updateCurrency', value)"
+          />
+        </div>
+      </div>
+      <div class="separator">
+        <div class="arrow-box">
+          <ArrowDownIcon />
+        </div>
+      </div>
+      <div class="flex items-center px-3.5">
+        <div class="inline-block w-1/2">
+          <input
+            class="nls-font-700 text-18 text-primary"
+            type="number"
+            disabled="true"
+            :value="swapAmount"
+          />
+          <span class="nls-font-400 block text-14 text-light-blue">
+            {{ swapBalance }}
+          </span>
+        </div>
+        <div class="inline-block w-1/2">
+          <CurrencyPicker
+            :options="currencyOptions"
+            :currencyOption="swapToOption"
+            :disabled="false"
+            :label="$t('message.asset')"
+            @update-currency="(value: any) => $emit('updateSwapToCurrency', value)"
+          />
+        </div>
+      </div>
+    </div>
+
+    <span
+      class="msg error"
+      :class="{ hidden: !errorMsg?.length }"
+    >
+      {{ errorMsg }}
+    </span>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import type { AssetBalance } from "../stores/wallet/types";
+import CurrencyPicker from "./CurrencyPicker.vue";
+import { computed } from "vue";
+import { ArrowDownIcon } from "@heroicons/vue/24/solid";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { Coin, Int } from "@keplr-wallet/unit";
+import { useOracleStore } from "../stores/oracle";
+import { AssetUtils } from "../utils";
+
+const oracle = useOracleStore();
+
+interface Props {
+  amount: string;
+  currencyOptions: AssetBalance[];
+  selectedOption: AssetBalance;
+  swapToOption: AssetBalance;
+  isError: boolean;
+  errorMsg: string;
+}
+
+const props = defineProps<Props>();
+defineEmits(["updateCurrency", "updateAmount", "updateSwapToCurrency"]);
+
+const swapBalance = computed(() => calculateInputBalance(props.amount, props.selectedOption.balance.denom));
+
+const swapFromOptions = computed(() => {
+  return props.currencyOptions.filter((asset) => asset.balance.amount.gt(new Int("0")));
+});
+
+const swapAmount = computed(() => {
+  if (swapBalance.value !== "$0") {
+    return calculateSwapAmount(Number(swapBalance.value.toDec().toString(1)));
+  }
+  return "0";
+});
+
+function calculateInputBalance(amount: string, denom: string) {
+  const prices = oracle.prices;
+
+  if (!amount || !denom || !prices) {
+    return "$0";
+  }
+
+  const currency = AssetUtils.getCurrencyByDenom(denom);
+  const asset = CurrencyUtils.convertDenomToMinimalDenom(props.amount, currency.ibcData, currency.decimal_digits);
+  const coin = new Coin(denom, new Int(String(asset.amount)));
+  const tokenPrice = prices[denom]?.amount || "0";
+
+  return CurrencyUtils.calculateBalance(tokenPrice, coin, currency.decimal_digits);
+}
+
+function calculateSwapAmount(balance: number) {
+  const prices = oracle.prices;
+
+  if (!prices) {
+    return "0";
+  }
+
+  const swapToDenom = props.swapToOption.balance.denom;
+  const tokenPrice = prices[swapToDenom]?.amount || "0";
+
+  // @TODO implement coin conversion
+  console.log("converted info > ", tokenPrice, swapToDenom);
+  const mockedCoinResult = new Coin(swapToDenom, new Int((balance / Number(tokenPrice)).toFixed()));
+
+  return mockedCoinResult.amount;
+}
+</script>

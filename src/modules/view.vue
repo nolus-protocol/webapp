@@ -69,6 +69,7 @@ import DelegateUndelegateDialog from "@/common/components/modals/DelegateUndeleg
 import Modal from "@/common/components/modals/templates/Modal.vue";
 import SessionExpireDialog from "@/common/components/modals/SessionExpireDialog.vue";
 import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
+import SwapDialog from "@/common/components/modals/SwapDialog.vue";
 
 import { SkipRouter, SKIP_API_URL } from "@skip-router/core";
 
@@ -118,6 +119,10 @@ const modalOptions: {
   "/earn#undelegate": {
     dialog: DelegateUndelegateDialog,
     route: "undelegate"
+  },
+  "#swap": {
+    dialog: SwapDialog,
+    route: "swap"
   }
 };
 
@@ -181,8 +186,9 @@ async function testSkipRouter() {
 
     const gasCalc = 200000n;
     const gas = await client.getRecommendedGasPrice("pirin-1");
-    const gasPrice = (BigInt(gas?.amount?.atomics ?? 0n) * gasCalc) / BigInt(gas?.amount.fractionalDigits ?? 1) ** 10n;
-    console.log(gasPrice);
+    const pow = 10n ** BigInt(gas?.amount.fractionalDigits ?? 1);
+    const gasPrice = (BigInt(gas?.amount?.atomics ?? 0n) * gasCalc) / pow;
+    console.log(gasPrice, pow);
 
     // await client.executeRoute({
     //   route,
@@ -277,8 +283,14 @@ function refresh() {
 
 function openDialog() {
   if (window.location.hash) {
-    const action = `${window.location.pathname}${window.location.hash}`;
-    const modal = modalOptions[action];
+    let action = `${window.location.pathname}${window.location.hash}`;
+    let modal = modalOptions[action];
+
+    if (!modal) {
+      action = window.location.hash;
+      modal = modalOptions[action];
+    }
+
     if (modal) {
       modalAction.value = action;
       showModal.value = true;
