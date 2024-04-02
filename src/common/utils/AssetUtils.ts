@@ -181,7 +181,7 @@ export class AssetUtils {
                 ...currency.native,
                 icon: assetIcons[ck],
                 decimal_digits: Number(currency.native!.decimal_digits),
-                shortName: CurrencyDemapping[currency.native?.ticker]?.name ?? currency.native?.ticker,
+                shortName: CurrencyDemapping[ck]?.name ?? currency.native?.ticker,
                 ticker: currency.native.ticker,
                 native: k == NATIVE_NETWORK.key ? false : true,
                 key: `${ck}`,

@@ -149,7 +149,7 @@ import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetU
 import { Networks } from "@nolus/nolusjs/build/types/Networks";
 import { AppUtils } from "@/common/utils";
 
-import { ErrorCodes, IGNORE_TRANSFER_ASSETS, LPN_NETWORK, NATIVE_NETWORK } from "@/config/global";
+import { ErrorCodes, IGNORE_TRANSFER_ASSETS, LPN_NETWORK, NATIVE_NETWORK, ProtocolsConfig } from "@/config/global";
 import { CurrencyDemapping, CurrencyMapping, SOURCE_PORTS } from "@/config/currencies";
 
 export interface ReceiveComponentProps {
@@ -195,7 +195,7 @@ const networks = computed(() => {
       }
     } else {
       for (const key in app.networks ?? {}) {
-        if (app.networks?.[key][ckey]) {
+        if (app.networks?.[key][ckey] && !ProtocolsConfig[protocol].ignoreNetowrk.includes(key)) {
           n.push(key);
         }
       }
@@ -281,7 +281,8 @@ async function onUpdateNetwork(event: Network) {
 
     const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
     const assets = network.supportedNetworks[event.key].currencies();
-    const currenciesPromise = [];
+    const currencies = [];
+    const promises = [];
     const filteredAssets: { [key: string]: ExternalCurrency } = {};
     const networkData = network?.supportedNetworks[selectedNetwork.value.key];
 
@@ -293,18 +294,20 @@ async function onUpdateNetwork(event: Network) {
 
         if (lpn) {
           for (const lpn of app.lpn ?? []) {
-            filteredAssets[lpn.key as string] = {
-              icon: lpn.icon,
-              coingeckoId: lpn.coingeckoId,
-              native: true,
-              decimal_digits: lpn.decimal_digits,
-              ibcData: assets[key].ibcData,
-              key: lpn.key,
-              name: lpn.name,
-              shortName: lpn.shortName,
-              symbol: lpn.symbol,
-              ticker: lpn.ticker
-            };
+            if (key == lpn.ticker) {
+              filteredAssets[lpn.key as string] = {
+                icon: lpn.icon,
+                coingeckoId: lpn.coingeckoId,
+                native: true,
+                decimal_digits: lpn.decimal_digits,
+                ibcData: assets[key].ibcData,
+                key: lpn.key,
+                name: lpn.name,
+                shortName: lpn.shortName,
+                symbol: lpn.symbol,
+                ticker: lpn.ticker
+              };
+            }
           }
           continue;
         }
@@ -314,14 +317,8 @@ async function onUpdateNetwork(event: Network) {
       }
     }
 
-    client = await WalletUtils.getWallet(event.key);
-
-    const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
-    wallet.value = baseWallet?.address as string;
-    networkCurrenciesObject.value = filteredAssets;
-
     for (const key in filteredAssets) {
-      const fn = async () => {
+      const fn = () => {
         let k = filteredAssets[key].key!;
         let [ckey, protocol = AppUtils.getProtocols().osmosis]: string[] = k.split("@");
 
@@ -341,9 +338,9 @@ async function onUpdateNetwork(event: Network) {
           app.networksData?.protocols[protocol].DexNetwork as string
         );
 
-        const balance = WalletUtils.isAuth()
-          ? await client.getBalance(wallet.value as string, ibc_route)
-          : coin(0, ibc_route);
+        // const balance = WalletUtils.isAuth()
+        //   ? await client.getBalance(wallet.value as string, ibc_route)
+        //   : coin(0, ibc_route);
 
         let shortName = filteredAssets[key].shortName;
         let [ticker] = filteredAssets[key].key?.split("@") as string[];
@@ -367,7 +364,7 @@ async function onUpdateNetwork(event: Network) {
         const icon = app.assetIcons?.[`${ticker}@${protocol}`] as string;
 
         return {
-          balance,
+          balance: coin(0, ibc_route),
           shortName: shortName,
           ticker: k,
           name: shortName,
@@ -378,18 +375,36 @@ async function onUpdateNetwork(event: Network) {
         };
       };
 
-      currenciesPromise.push(fn());
+      currencies.push(fn());
     }
 
-    const items = await Promise.all(currenciesPromise);
     if ((props.modelValue?.dialogSelectedCurrency.length as number) > 0) {
       const [ckey]: string[] = props.modelValue!.dialogSelectedCurrency.split("@");
-      const c = items.find((e) => e.ticker == ckey || e.ticker == props.modelValue!.dialogSelectedCurrency)!;
+      const c = currencies.find((e) => e.ticker == ckey || e.ticker == props.modelValue!.dialogSelectedCurrency)!;
       selectedCurrency.value = c;
     } else {
-      selectedCurrency.value = items?.[0];
+      selectedCurrency.value = currencies?.[0];
     }
-    networkCurrencies.value = items;
+
+    client = await WalletUtils.getWallet(event.key);
+
+    const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
+    wallet.value = baseWallet?.address as string;
+    networkCurrenciesObject.value = filteredAssets;
+
+    if (WalletUtils.isAuth()) {
+      for (const c of currencies) {
+        async function fn() {
+          const balance = await client.getBalance(wallet.value as string, c.balance.denom);
+          c.balance = balance;
+        }
+        promises.push(fn());
+      }
+    }
+
+    await Promise.all(promises);
+
+    networkCurrencies.value = currencies;
     disablePicker.value = false;
   } else {
     selectedCurrency.value = walletStore.balances[0];

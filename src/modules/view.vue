@@ -178,7 +178,11 @@ async function testSkipRouter() {
       experimentalFeatures: ["cctp", "hyperlane"],
       rapidRelay: true
     });
-    console.log(route);
+
+    const gasCalc = 200000n;
+    const gas = await client.getRecommendedGasPrice("pirin-1");
+    const gasPrice = (BigInt(gas?.amount?.atomics ?? 0n) * gasCalc) / BigInt(gas?.amount.fractionalDigits ?? 1) ** 10n;
+    console.log(gasPrice);
 
     // await client.executeRoute({
     //   route,

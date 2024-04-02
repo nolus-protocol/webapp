@@ -37,10 +37,12 @@ export const NetworksConfig: {
   };
 } = {
   NEUTRON: {
-    hidden: ["ATOM", "ST_ATOM"]
+    hidden: ["ATOM", "ST_ATOM", "TIA", "ST_TIA@OSMOSIS-OSMOSIS-USDC_AXELAR", "USDC_AXELAR@OSMOSIS-OSMOSIS-USDC_AXELAR"]
+  },
+  OSMOSIS: {
+    hidden: ["ST_TIA@NEUTRON-ASTROPORT-USDC_AXELAR"]
   }
 };
-
 export const SUPPORTED_NETWORKS = [
   "NOLUS",
   "OSMOSIS",

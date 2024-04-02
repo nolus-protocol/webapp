@@ -40,7 +40,8 @@ import {
   NATIVE_NETWORK,
   ErrorCodes,
   IGNORE_TRANSFER_ASSETS,
-  LPN_NETWORK
+  LPN_NETWORK,
+  NetworksConfig
 } from "@/config/global";
 
 import {
@@ -223,7 +224,11 @@ watch(
     state.value.currentBalance = walletStore.balances
       .filter((item) => {
         const currency = AssetUtils.getCurrencyByDenom(item.balance.denom);
-        if (IGNORE_TRANSFER_ASSETS.includes(currency.ticker as string)) {
+
+        if (
+          IGNORE_TRANSFER_ASSETS.includes(currency.ticker as string) ||
+          NetworksConfig[state.value.network.key]?.hidden?.includes(currency.key)
+        ) {
           return false;
         }
 

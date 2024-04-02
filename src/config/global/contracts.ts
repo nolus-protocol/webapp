@@ -34,22 +34,26 @@ export const ProtocolsConfig: {
     only: string[];
     currencies: string[];
     lease: boolean;
+    ignoreNetowrk: string[];
   };
 } = {
   "OSMOSIS-OSMOSIS-USDC-1": {
     only: ["NLS", "ATOM"],
     lease: true,
-    currencies: ["NLS", "OSMO", "USDC_AXELAR", "ATOM", "AKT", "JUNO"]
+    currencies: ["NLS", "OSMO", "USDC_AXELAR", "ATOM", "AKT", "JUNO"],
+    ignoreNetowrk: ["NEUTRON"]
   },
   "OSMOSIS-OSMOSIS-USDC_AXELAR": {
     only: [],
     currencies: ["USDC_AXELAR"],
-    lease: false
+    lease: false,
+    ignoreNetowrk: ["NEUTRON"]
   },
   "NEUTRON-ASTROPORT-USDC_AXELAR": {
     only: [],
     lease: true,
-    currencies: ["NTRN", "USDC_AXELAR", "DYDX", "ST_TIA"]
+    currencies: ["NTRN", "USDC_AXELAR", "DYDX", "ST_TIA"],
+    ignoreNetowrk: ["OSMOSIS"]
   },
   "OSMOSIS-OSMOSIS-USDC_NOBLE": {
     only: ["NLS", "ATOM", "ST_ATOM", "TIA"],
@@ -81,7 +85,8 @@ export const ProtocolsConfig: {
       "INJ",
       "LVN",
       "PICA"
-    ]
+    ],
+    ignoreNetowrk: ["NEUTRON"]
   }
 };
 

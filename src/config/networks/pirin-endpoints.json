@@ -28,8 +28,8 @@
   },
   "COSMOS_HUB": {
     "primary": {
-      "rpc": "https://r-cosmoshub--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com",
-      "api": "https://a-cosmoshub--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com"
+      "rpc": "https://r-cosmoshub--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
+      "api": "https://a-cosmoshub--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
     },
     "fallback": [
       {
@@ -40,8 +40,8 @@
   },
   "AXELAR": {
     "primary": {
-      "rpc": "https://r-axelar--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com",
-      "api": "https://a-axelar--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com"
+      "rpc": "https://r-axelar--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
+      "api": "https://a-axelar--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
     },
     "fallback": [
       {
@@ -52,8 +52,8 @@
   },
   "AKASH": {
     "primary": {
-      "rpc": "https://r-akash--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com",
-      "api": "https://a-akash--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com"
+      "rpc": "https://r-akash--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
+      "api": "https://a-akash--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
     },
     "fallback": [
       {
@@ -64,8 +64,8 @@
   },
   "STRIDE": {
     "primary": {
-      "rpc": "https://r-stride--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com",
-      "api": "https://a-stride--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com"
+      "rpc": "https://r-stride--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
+      "api": "https://a-stride--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
     },
     "fallback": [
       {
@@ -88,8 +88,8 @@
   },
   "EVMOS": {
     "primary": {
-      "rpc": "https://r-evmos--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com",
-      "api": "https://a-evmos--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com"
+      "rpc": "https://r-evmos--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
+      "api": "https://a-evmos--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
     },
     "fallback": [
       {
@@ -124,8 +124,8 @@
   },
   "CELESTIA": {
     "primary": {
-      "rpc": "https://r-celestia--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com",
-      "api": "https://a-celestia--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com"
+      "rpc": "https://r-celestia--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
+      "api": "https://a-celestia--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
     },
     "fallback": [
       {
@@ -196,8 +196,8 @@
   },
   "INJECTIVE": {
     "primary": {
-      "rpc": "https://r-injective--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com",
-      "api": "https://a-injective--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com"
+      "rpc": "https://r-injective--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
+      "api": "https://a-injective--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
     },
     "fallback": [
       {
@@ -208,20 +208,20 @@
   },
   "NOBLE": {
     "primary": {
-      "rpc": "https://noble-rpc.polkachu.com",
-      "api": "https://noble-api.polkachu.com"
+      "rpc": "https://r-noble--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
+      "api": "https://a-noble--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
     },
     "fallback": [
       {
-        "rpc": "https://noble-rpc.lavenderfive.com:443",
-        "api": "https://noble-api.lavenderfive.com:443"
+        "rpc": "https://noble-rpc.polkachu.com",
+        "api": "https://noble-api.polkachu.com"
       }
     ]
   },
   "COMPOSABLE": {
     "primary": {
-      "rpc": "https://r-composable--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com",
-      "api": "https://a-composable--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.com"
+      "rpc": "https://r-composable--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
+      "api": "https://a-composable--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
     },
     "fallback": [
       {
