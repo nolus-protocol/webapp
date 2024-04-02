@@ -6,16 +6,8 @@ import { fromBech32 } from "@cosmjs/encoding";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
 import { AssetUtils, Logger, WalletManager } from ".";
-import { type NetworkData, type NetworkDataV2, WalletConnectMechanism } from "@/common/types";
+import { type NetworkData, WalletConnectMechanism } from "@/common/types";
 import { authenticateKeplr, authenticateLeap, authenticateLedger, type BaseWallet, type Wallet } from "@/networks";
-
-import {
-  authenticateKeplr as authenticateKeplrV2,
-  authenticateLeap as authenticateLeapV2,
-  authenticateLedger as authenticateLedgerV2,
-  type BaseWallet as BaseWalletV2,
-  type Wallet as WalletV2
-} from "@/wallet";
 
 export const validateAddress = (address: string) => {
   if (!address || address.trim() == "") {
@@ -114,44 +106,6 @@ export const externalWallet = async (wallet: Wallet, networkData: NetworkData) =
     }
     case WalletConnectMechanism.LEDGER_BLUETOOTH: {
       return await authenticateLedger(wallet, networkData);
-    }
-  }
-};
-
-export const externalWalletV2 = async (wallet: WalletV2, networkData: NetworkDataV2) => {
-  switch (WalletManager.getWalletConnectMechanism()) {
-    case WalletConnectMechanism.KEPLR: {
-      return await authenticateKeplrV2(wallet, networkData);
-    }
-    case WalletConnectMechanism.LEAP: {
-      return await authenticateLeapV2(wallet, networkData);
-    }
-    case WalletConnectMechanism.LEDGER: {
-      return await authenticateLedgerV2(wallet, networkData);
-    }
-    case WalletConnectMechanism.LEDGER_BLUETOOTH: {
-      return await authenticateLedgerV2(wallet, networkData);
-    }
-  }
-};
-
-export const externalWalletOperationV2 = async (
-  operation: (wallet: BaseWalletV2) => void,
-  wallet: WalletV2,
-  networkData: NetworkDataV2
-) => {
-  switch (WalletManager.getWalletConnectMechanism()) {
-    case WalletConnectMechanism.KEPLR: {
-      return operation(await authenticateKeplrV2(wallet, networkData));
-    }
-    case WalletConnectMechanism.LEAP: {
-      return operation(await authenticateLeapV2(wallet, networkData));
-    }
-    case WalletConnectMechanism.LEDGER: {
-      return operation(await authenticateLedgerV2(wallet, networkData));
-    }
-    case WalletConnectMechanism.LEDGER_BLUETOOTH: {
-      return operation(await authenticateLedgerV2(wallet, networkData));
     }
   }
 };
