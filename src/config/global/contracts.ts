@@ -48,7 +48,7 @@ export const ProtocolsConfig: {
   },
   "OSMOSIS-OSMOSIS-USDC_NOBLE": {
     only: [],
-    hidden: [],
+    hidden: ["USDC_NOBLE"],
     ignoreNetowrk: ["NEUTRON"]
   },
   "NEUTRON-ASTROPORT-USDC_AXELAR": {
