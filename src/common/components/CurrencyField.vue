@@ -73,14 +73,11 @@ import { onMounted, ref, watch, type PropType } from "vue";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/common/stores/oracle";
-import { useApplicationStore } from "../stores/application";
 import { CurrencyMapping } from "@/config/currencies";
-import { AppUtils, AssetUtils } from "../utils";
+import { AssetUtils } from "../utils";
 
 const emit = defineEmits(["update-currency", "update:modelValue", "input"]);
 const oracle = useOracleStore();
-const app = useApplicationStore();
-
 const dot = ".";
 const minus = "-";
 const comma = ",";

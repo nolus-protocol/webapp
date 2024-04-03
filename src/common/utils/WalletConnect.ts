@@ -27,7 +27,6 @@ export const validateAmount = (amount: string, denom: string, balance: number) =
     return i18n.global.t("message.invalid-amount");
   }
 
-  const walletStore = useWalletStore();
   const asset = AssetUtils.getCurrencyByDenom(denom);
   const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, asset.ibcData, asset.decimal_digits);
   const zero = CurrencyUtils.convertDenomToMinimalDenom("0", asset.ibcData, asset.decimal_digits).amount.toDec();

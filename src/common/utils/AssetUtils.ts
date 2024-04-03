@@ -18,7 +18,6 @@ import {
   SUPPORTED_NETWORKS,
   NATIVE_NETWORK,
   NATIVE_ASSET,
-  ProtocolsConfig,
   NetworksConfig
 } from "@/config/global";
 

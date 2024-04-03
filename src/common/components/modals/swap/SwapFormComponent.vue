@@ -1,86 +1,105 @@
 <template>
   <div class="modal-send-receive-input-area">
-    <div class="radius-light nls-font-400 mb-[13px] block bg-light-grey px-4 py-3 text-left text-14 text-primary">
-      {{ $t("message.balance") }}:
-      <a
-        class="text-secondary nls-font-700 ml-2 underline"
-        href="#"
+    <div class="currency-field-container flex items-center justify-end">
+      <div
+        class="balance cursor-pointer select-none"
+        @click="setBalance"
       >
-        {{ formatCurrentBalance(selectedCurrency) }}
-      </a>
+        {{ $t("message.balance") }} {{ formatCurrentBalance(selectedCurrency) }}
+      </div>
     </div>
+
     <div class="block text-left">
       <MultipleCurrencyField
         :amount="amount"
         :currencyOptions="currentBalance"
         :selectedOption="selectedCurrency"
         :swapToOption="swapToSelectedCurrency"
+        :swapToAmount="swapToAmount"
         :isError="!!errorMsg"
         :errorMsg="errorMsg"
-        @updateCurrency="(value: AssetBalance) => $emit('updateSelected', value)"
-        @updateSwapToCurrency="(value: AssetBalance) => $emit('updateSwapToSelected', value)"
-        @updateAmount="(value: string) => $emit('updateAmount', value)"
+        @updateCurrency="(value) => $emit('updateSelected', value)"
+        @updateSwapToCurrency="(value) => $emit('updateSwapToSelected', value)"
+        @updateAmount="(value) => $emit('updateAmount', value)"
+        @updateSwapToAmount="(value) => $emit('updateSwapToAmount', value)"
       />
-      <div class="mt-[25px] flex w-full">
-        <!-- @TODO: Implement -->
-        <div class="grow-3 nls-font-500 text-right text-14">
-          <p class="mt-nollus-255 mb-3 mr-5">{{ $t("message.minimum-received") }}:</p>
-          <p class="mb-3 mr-5">{{ $t("message.tx-fee") }}:</p>
-        </div>
-        <div class="nls-font-700 text-right text-14">
-          <p class="mt-nollus-255 mb-3">0.456232 ETH</p>
-          <p class="mb-3">0.09233 ETH</p>
-        </div>
+      <p class="mt-2 text-right text-xs text-light-blue">{{ $t("message.slippage") }} 1%</p>
+    </div>
+    <div class="flex justify-end">
+      <div class="grow-3 nls-font-500 dark-text text-right text-14">
+        <p class="mb-2 mr-5 mt-[14px]">
+          {{ $t("message.price-impact") }}
+        </p>
+        <p class="mb-2 mr-5 mt-[14px]">
+          {{ $t("message.min-received") }}
+        </p>
+        <p class="mb-2 mr-5 mt-[14px]">
+          {{ $t("message.swap-fee") }}
+        </p>
+      </div>
+      <div class="nls-font-700 text-right text-14">
+        <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">0.40%</p>
+        <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">0.00 NLS</p>
+        <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">
+          0.00 NLS
+          <span class="nls-font-400 flex text-[#8396B1]">
+            &nbsp;($0.00)
+            <TooltipComponent :content="$t('message.liquidation-price-tooltip')" />
+          </span>
+        </p>
       </div>
     </div>
   </div>
 
-  <div class="modal-send-receive-actions">
+  <div class="modal-send-receive-actions flex flex-col">
     <button
       class="btn btn-primary btn-large-primary text-center"
       @click="onSwapClick"
     >
-      {{ `${$t("message.swap")} ${coinAbbr} ${$t("message.for")} ${swapToCoinAbbr}` }}
+      {{ $t("message.swap") }}
     </button>
+    <div class="my-2 flex w-full justify-between text-[14px] text-light-blue">
+      <p>{{ $t("message.estimate-time") }}:</p>
+      <p>~{{ NATIVE_NETWORK.longOperationsEstimation }} {{ $t("message.sec") }}</p>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import type { AssetBalance } from "@/common/stores/wallet/types";
+import type { ExternalCurrency } from "@/common/types";
 import MultipleCurrencyField from "@/common/components/MultipleCurrencyField.vue";
+import TooltipComponent from "@/common/components/TooltipComponent.vue";
 
-import { computed } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { useWalletStore } from "@/common/stores/wallet";
 import { AssetUtils } from "@/common/utils";
+import { NATIVE_NETWORK } from "@/config/global";
+import { Dec } from "@keplr-wallet/unit";
 
 interface Props {
-  selectedCurrency: AssetBalance;
-  swapToSelectedCurrency: AssetBalance;
-  currentBalance: AssetBalance[];
+  selectedCurrency: ExternalCurrency;
+  swapToSelectedCurrency: ExternalCurrency;
+  currentBalance: ExternalCurrency[];
   amount: string;
+  swapToAmount: string;
   onSwapClick: () => void;
   errorMsg: string;
 }
 
-const wallet = useWalletStore();
 const props = defineProps<Props>();
-defineEmits(["updateSelected", "updateAmount", "updateSwapToSelected"]);
+const emit = defineEmits(["updateSelected", "updateAmount", "updateSwapToSelected", "updateSwapToAmount"]);
 
-const coinAbbr = computed(() =>
-  AssetUtils.getCurrencyByDenom(props.selectedCurrency.balance.denom).ticker.toUpperCase()
-);
-const swapToCoinAbbr = computed(() =>
-  AssetUtils.getCurrencyByDenom(props.swapToSelectedCurrency.balance.denom).ticker.toUpperCase()
-);
+function setBalance() {
+  const asset = new Dec(props.selectedCurrency.balance.amount, props.selectedCurrency.decimal_digits);
+  emit("updateAmount", asset.toString(props.selectedCurrency.decimal_digits));
+}
 
-function formatCurrentBalance(selectedCurrency: AssetBalance) {
+function formatCurrentBalance(selectedCurrency: ExternalCurrency) {
   if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
     const asset = AssetUtils.getCurrencyByDenom(selectedCurrency.balance.denom);
     return CurrencyUtils.convertMinimalDenomToDenom(
       selectedCurrency.balance.amount.toString(),
-      selectedCurrency.balance.denom,
-      asset.ibcData,
+      selectedCurrency.balance.ibcData,
+      asset.shortName,
       asset.decimal_digits
     ).toString();
   }

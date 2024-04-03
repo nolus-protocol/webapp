@@ -1,56 +1,64 @@
 <template>
   <div class="currency-field-container block">
     <div
-      class="currency-field py-3.5"
+      class="currency-field"
       :class="[isError === true ? 'error' : '']"
     >
-      <div class="flex items-center px-3.5">
-        <div class="inline-block w-1/2">
-          <input
-            class="nls-font-700 text-18 text-primary"
-            type="number"
-            :value="amount"
-            @input="(event: Event) => $emit('updateAmount', (event.target as HTMLInputElement).value)"
-          />
-          <span class="nls-font-400 block text-14 text-light-blue">
-            {{ swapBalance }}
-          </span>
-        </div>
-        <div class="inline-block w-1/2">
+      <div class="flex items-center p-2.5 p-3.5">
+        <div class="inline-block w-[135px]">
           <CurrencyPicker
-            :options="swapFromOptions"
             :currencyOption="selectedOption"
+            :options="currencyOptions"
             :disabled="false"
-            :label="$t('message.asset')"
             @update-currency="(value) => $emit('updateCurrency', value)"
           />
         </div>
+        <div class="inline-block flex-1">
+          <input
+            class="nls-font-700 background text-right text-18 text-primary"
+            v-model="numberValue"
+            autocomplete="off"
+            placeholder="0"
+            @keydown="inputValue"
+            @keypress.space.prevent
+            @paste="onPaste"
+            @keyup="setValue"
+          />
+          <span class="nls-font-400 block text-right text-14 text-light-blue">
+            {{ swapBalance }}
+          </span>
+        </div>
       </div>
-      <div class="separator">
+
+      <div class="separator m-auto w-[calc(100%-38px)]">
         <div class="arrow-box">
           <ArrowDownIcon />
         </div>
       </div>
-      <div class="flex items-center px-3.5">
-        <div class="inline-block w-1/2">
-          <input
-            class="nls-font-700 text-18 text-primary"
-            type="number"
-            disabled="true"
-            :value="swapAmount"
-          />
-          <span class="nls-font-400 block text-14 text-light-blue">
-            {{ swapBalance }}
-          </span>
-        </div>
-        <div class="inline-block w-1/2">
+
+      <div class="flex items-center p-2.5 p-3.5">
+        <div class="inline-block w-[135px]">
           <CurrencyPicker
-            :options="currencyOptions"
             :currencyOption="swapToOption"
+            :options="currencyOptions"
             :disabled="false"
-            :label="$t('message.asset')"
-            @update-currency="(value: any) => $emit('updateSwapToCurrency', value)"
+            @update-currency="(value) => $emit('updateSwapToCurrency', value)"
           />
+        </div>
+        <div class="inline-block flex-1">
+          <input
+            class="nls-font-700 background text-right text-18 text-primary"
+            autocomplete="off"
+            placeholder="0"
+            v-model="numberSwapValue"
+            @keydown="inputValue"
+            @keypress.space.prevent
+            @paste="onPaste"
+            @keyup="setSwapValue"
+          />
+          <span class="nls-font-400 block text-right text-14 text-light-blue">
+            {{ swapToBalance }}
+          </span>
         </div>
       </div>
     </div>
@@ -65,9 +73,9 @@
 </template>
 
 <script lang="ts" setup>
-import type { AssetBalance } from "../stores/wallet/types";
+import type { ExternalCurrency } from "../types";
 import CurrencyPicker from "./CurrencyPicker.vue";
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { ArrowDownIcon } from "@heroicons/vue/24/solid";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { Coin, Int } from "@keplr-wallet/unit";
@@ -77,29 +85,133 @@ import { AssetUtils } from "../utils";
 const oracle = useOracleStore();
 
 interface Props {
+  currencyOptions: ExternalCurrency[];
   amount: string;
-  currencyOptions: AssetBalance[];
-  selectedOption: AssetBalance;
-  swapToOption: AssetBalance;
+  selectedOption: ExternalCurrency;
+  swapToOption: ExternalCurrency;
+  swapToAmount: string;
   isError: boolean;
   errorMsg: string;
 }
 
 const props = defineProps<Props>();
-defineEmits(["updateCurrency", "updateAmount", "updateSwapToCurrency"]);
+const dot = ".";
+const minus = "-";
+const comma = ",";
+const allowed = ["Delete", "Backspace", "ArrowLeft", "ArrowRight", "-", ".", "Enter", "Tab", "Control", "End", "Home"];
+const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+const emit = defineEmits(["updateCurrency", "updateAmount", "updateSwapToCurrency", "updateSwapToAmount"]);
+
+let numberAmount = Number(props.amount);
+const numberValue = ref(props.amount);
+
+let numberSwapAmount = Number(props.swapToAmount);
+const numberSwapValue = ref(props.swapToAmount);
 
 const swapBalance = computed(() => calculateInputBalance(props.amount, props.selectedOption.balance.denom));
+const swapToBalance = computed(() => calculateInputBalance(props.swapToAmount, props.swapToOption.balance.denom));
 
-const swapFromOptions = computed(() => {
-  return props.currencyOptions.filter((asset) => asset.balance.amount.gt(new Int("0")));
-});
-
-const swapAmount = computed(() => {
-  if (swapBalance.value !== "$0") {
-    return calculateSwapAmount(Number(swapBalance.value.toDec().toString(1)));
+watch(
+  () => props.amount,
+  () => {
+    numberValue.value = props.amount;
+    numberAmount = Number(props.amount);
+    setValue();
   }
-  return "0";
-});
+);
+
+watch(
+  () => props.swapToAmount,
+  () => {
+    numberSwapValue.value = props.swapToAmount;
+    numberSwapAmount = Number(props.swapToAmount);
+    setSwapValue();
+  }
+);
+
+function inputValue(event: KeyboardEvent) {
+  const charCode = event.key;
+  const value = numberValue.value ?? "";
+
+  if (event.ctrlKey || event.metaKey) {
+    return true;
+  }
+
+  if (event.key == minus) {
+    event.preventDefault();
+    return false;
+  }
+
+  if (charCode == minus && value.includes(minus)) {
+    event.preventDefault();
+    return false;
+  }
+
+  if (charCode == dot && value?.includes(dot)) {
+    event.preventDefault();
+    return false;
+  }
+
+  if (allowed.includes(charCode)) {
+    return true;
+  }
+
+  const num = Number(charCode);
+  if (numbers.includes(num)) {
+    return true;
+  }
+
+  event.preventDefault();
+  return false;
+}
+
+function onPaste(event: ClipboardEvent) {
+  const pastedText = event.clipboardData?.getData("text");
+  const num = Number(pastedText);
+  if (isNaN(num)) {
+    event.preventDefault();
+  }
+}
+
+function setValue() {
+  let value = removeComma(numberValue.value ?? "");
+  let numValue = Number(value);
+  numberValue.value = commify(value.toString());
+  if (isNaN(numValue)) {
+    return false;
+  }
+  numberAmount = Number(value);
+
+  emit("updateAmount", value);
+}
+
+function setSwapValue() {
+  let value = removeComma(numberSwapValue.value ?? "");
+  let numValue = Number(value);
+  numberSwapValue.value = commify(value.toString());
+  if (isNaN(numValue)) {
+    return false;
+  }
+  numberSwapAmount = Number(value);
+
+  emit("updateSwapToAmount", value);
+}
+
+function commify(n: string) {
+  const parts = n.split(".");
+  const numberPart = parts[0];
+  const decimalPart = parts[1];
+  const hasDot = n.includes(dot);
+  const thousands = /\B(?=(\d{3})+(?!\d))/g;
+
+  return numberPart.replace(thousands, comma) + (hasDot ? `.${decimalPart}` : "");
+}
+
+function removeComma(n: string) {
+  const re = new RegExp(comma, "g");
+  return n.replace(re, "");
+}
 
 function calculateInputBalance(amount: string, denom: string) {
   const prices = oracle.prices;
@@ -109,27 +221,10 @@ function calculateInputBalance(amount: string, denom: string) {
   }
 
   const currency = AssetUtils.getCurrencyByDenom(denom);
-  const asset = CurrencyUtils.convertDenomToMinimalDenom(props.amount, currency.ibcData, currency.decimal_digits);
+  const asset = CurrencyUtils.convertDenomToMinimalDenom(amount, currency.shortName, currency.decimal_digits);
   const coin = new Coin(denom, new Int(String(asset.amount)));
-  const tokenPrice = prices[denom]?.amount || "0";
+  const tokenPrice = prices[denom].amount;
 
   return CurrencyUtils.calculateBalance(tokenPrice, coin, currency.decimal_digits);
-}
-
-function calculateSwapAmount(balance: number) {
-  const prices = oracle.prices;
-
-  if (!prices) {
-    return "0";
-  }
-
-  const swapToDenom = props.swapToOption.balance.denom;
-  const tokenPrice = prices[swapToDenom]?.amount || "0";
-
-  // @TODO implement coin conversion
-  console.log("converted info > ", tokenPrice, swapToDenom);
-  const mockedCoinResult = new Coin(swapToDenom, new Int((balance / Number(tokenPrice)).toFixed()));
-
-  return mockedCoinResult.amount;
 }
 </script>
