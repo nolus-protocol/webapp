@@ -16,7 +16,7 @@ export async function loadAprRewards(this: Store) {
     );
 
     const apr: { [key: string]: number } = {};
-    const promises = [dispatcherClient.calculateRewards().catch(() => 130)];
+    const promises = [dispatcherClient.calculateRewards().catch(() => 110)];
 
     for (const protocolKey in admin.contracts) {
       const fn = async () => {
