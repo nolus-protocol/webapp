@@ -434,6 +434,7 @@ async function validateInputs() {
   try {
     isLoading.value = true;
     const isValid = await validateAmount();
+    console.log(isValid);
     if (isValid) {
       const network =
         NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[selectedNetwork.value.key];

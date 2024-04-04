@@ -8,7 +8,6 @@
         {{ $t("message.balance") }} {{ formatCurrentBalance(selectedCurrency) }}
       </div>
     </div>
-
     <div class="block text-left">
       <MultipleCurrencyField
         :amount="amount"
@@ -16,7 +15,7 @@
         :selectedOption="selectedCurrency"
         :swapToOption="swapToSelectedCurrency"
         :swapToAmount="swapToAmount"
-        :isError="!!errorMsg"
+        :isError="errorMsg.length > 0"
         :errorMsg="errorMsg"
         @updateCurrency="(value) => $emit('updateSelected', value)"
         @updateSwapToCurrency="(value) => $emit('updateSwapToSelected', value)"
@@ -53,7 +52,7 @@
 
   <div class="modal-send-receive-actions flex flex-col">
     <button
-      class="btn btn-primary btn-large-primary text-center"
+      :class="`btn btn-primary btn-large-primary text-center ${loading ? 'js-loading' : ''}`"
       @click="onSwapClick"
     >
       {{ $t("message.swap") }}
@@ -71,7 +70,6 @@ import MultipleCurrencyField from "@/common/components/MultipleCurrencyField.vue
 import TooltipComponent from "@/common/components/TooltipComponent.vue";
 
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { AssetUtils } from "@/common/utils";
 import { NATIVE_NETWORK } from "@/config/global";
 import { Dec } from "@keplr-wallet/unit";
 
@@ -79,6 +77,7 @@ interface Props {
   selectedCurrency: ExternalCurrency;
   swapToSelectedCurrency: ExternalCurrency;
   currentBalance: ExternalCurrency[];
+  loading: boolean;
   amount: string;
   swapToAmount: string;
   onSwapClick: () => void;
@@ -94,14 +93,11 @@ function setBalance() {
 }
 
 function formatCurrentBalance(selectedCurrency: ExternalCurrency) {
-  if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
-    const asset = AssetUtils.getCurrencyByDenom(selectedCurrency.balance.denom);
-    return CurrencyUtils.convertMinimalDenomToDenom(
-      selectedCurrency.balance.amount.toString(),
-      selectedCurrency.balance.ibcData,
-      asset.shortName,
-      asset.decimal_digits
-    ).toString();
-  }
+  return CurrencyUtils.convertMinimalDenomToDenom(
+    selectedCurrency.balance.amount.toString(),
+    selectedCurrency.balance.ibcData,
+    selectedCurrency.shortName,
+    selectedCurrency.decimal_digits
+  ).toString();
 }
 </script>

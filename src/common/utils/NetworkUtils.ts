@@ -206,13 +206,7 @@ export async function loadDelegations(
 }
 
 export async function getClient() {
-  const network = EnvNetworkUtils.getStoredNetworkName();
-
-  if (network == MAINNET) {
-    return (await AppUtils.getArchiveNodes()).archive_node_rpc;
-  } else {
-    return (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
-  }
+  return (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
 }
 
 export async function loadUnboundingDelegations(

@@ -37,7 +37,7 @@
     "@ledgerhq/hw-transport-webhid": "^6.28.3",
     "@ledgerhq/hw-transport-webusb": "^6.28.3",
     "@ledgerhq/logs": "^6.12.0",
-    "@nolus/nolusjs": "2.1.19",
+    "@nolus/nolusjs": "2.2.19",
     "@skip-router/core": "^2.0.4",
     "chart.js": "^4.4.1",
     "chartjs-adapter-date-fns": "^3.0.0",

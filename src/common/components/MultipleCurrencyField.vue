@@ -22,7 +22,7 @@
             @keydown="inputValue"
             @keypress.space.prevent
             @paste="onPaste"
-            @keyup="setValue"
+            @keyup="setValue(true)"
           />
           <span class="nls-font-400 block text-right text-14 text-light-blue">
             {{ swapBalance }}
@@ -54,7 +54,7 @@
             @keydown="inputValue"
             @keypress.space.prevent
             @paste="onPaste"
-            @keyup="setSwapValue"
+            @keyup="setSwapValue(true)"
           />
           <span class="nls-font-400 block text-right text-14 text-light-blue">
             {{ swapToBalance }}
@@ -80,7 +80,6 @@ import { ArrowDownIcon } from "@heroicons/vue/24/solid";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { Coin, Int } from "@keplr-wallet/unit";
 import { useOracleStore } from "../stores/oracle";
-import { AssetUtils } from "../utils";
 
 const oracle = useOracleStore();
 
@@ -109,26 +108,8 @@ const numberValue = ref(props.amount);
 let numberSwapAmount = Number(props.swapToAmount);
 const numberSwapValue = ref(props.swapToAmount);
 
-const swapBalance = computed(() => calculateInputBalance(props.amount, props.selectedOption.balance.denom));
-const swapToBalance = computed(() => calculateInputBalance(props.swapToAmount, props.swapToOption.balance.denom));
-
-watch(
-  () => props.amount,
-  () => {
-    numberValue.value = props.amount;
-    numberAmount = Number(props.amount);
-    setValue();
-  }
-);
-
-watch(
-  () => props.swapToAmount,
-  () => {
-    numberSwapValue.value = props.swapToAmount;
-    numberSwapAmount = Number(props.swapToAmount);
-    setSwapValue();
-  }
-);
+const swapBalance = computed(() => calculateInputBalance(props.amount, props.selectedOption));
+const swapToBalance = computed(() => calculateInputBalance(props.swapToAmount, props.swapToOption));
 
 function inputValue(event: KeyboardEvent) {
   const charCode = event.key;
@@ -166,6 +147,22 @@ function inputValue(event: KeyboardEvent) {
   return false;
 }
 
+watch(
+  () => props.amount,
+  () => {
+    numberValue.value = props.amount;
+    setValue(false);
+  }
+);
+
+watch(
+  () => props.swapToAmount,
+  () => {
+    numberSwapValue.value = props.swapToAmount;
+    setSwapValue(false);
+  }
+);
+
 function onPaste(event: ClipboardEvent) {
   const pastedText = event.clipboardData?.getData("text");
   const num = Number(pastedText);
@@ -174,7 +171,7 @@ function onPaste(event: ClipboardEvent) {
   }
 }
 
-function setValue() {
+function setValue(isEmit = true) {
   let value = removeComma(numberValue.value ?? "");
   let numValue = Number(value);
   numberValue.value = commify(value.toString());
@@ -183,10 +180,12 @@ function setValue() {
   }
   numberAmount = Number(value);
 
-  emit("updateAmount", value);
+  if (isEmit) {
+    emit("updateAmount", value);
+  }
 }
 
-function setSwapValue() {
+function setSwapValue(isEmit = true) {
   let value = removeComma(numberSwapValue.value ?? "");
   let numValue = Number(value);
   numberSwapValue.value = commify(value.toString());
@@ -195,7 +194,9 @@ function setSwapValue() {
   }
   numberSwapAmount = Number(value);
 
-  emit("updateSwapToAmount", value);
+  if (isEmit) {
+    emit("updateSwapToAmount", value);
+  }
 }
 
 function commify(n: string) {
@@ -213,17 +214,16 @@ function removeComma(n: string) {
   return n.replace(re, "");
 }
 
-function calculateInputBalance(amount: string, denom: string) {
+function calculateInputBalance(amount: string, currency: ExternalCurrency) {
   const prices = oracle.prices;
 
-  if (!amount || !denom || !prices) {
+  if (!amount || !prices) {
     return "$0";
   }
 
-  const currency = AssetUtils.getCurrencyByDenom(denom);
   const asset = CurrencyUtils.convertDenomToMinimalDenom(amount, currency.shortName, currency.decimal_digits);
-  const coin = new Coin(denom, new Int(String(asset.amount)));
-  const tokenPrice = prices[denom].amount;
+  const coin = new Coin(currency.ibcData, new Int(String(asset.amount)));
+  const tokenPrice = prices[currency.ibcData].amount;
 
   return CurrencyUtils.calculateBalance(tokenPrice, coin, currency.decimal_digits);
 }

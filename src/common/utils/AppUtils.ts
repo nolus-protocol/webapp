@@ -13,6 +13,7 @@ import {
   NETWORKS,
   SWAP_FEE_URL
 } from "@/config/global";
+import { ChainConstants } from "@nolus/nolusjs";
 
 export class AppUtils {
   public static LANGUAGE = "language";
@@ -287,5 +288,19 @@ export class AppUtils {
     }
 
     return n;
+  }
+
+  public static async fetchNetworkStatus() {
+    const rpc = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
+    const data = await fetch(`${rpc}/status`);
+    const json = (await data.json()) as {
+      result: {
+        node_info: {
+          network: string;
+        };
+      };
+    };
+
+    return json;
   }
 }

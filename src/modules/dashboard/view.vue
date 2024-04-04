@@ -538,11 +538,8 @@ async function loadSuppliedAndStaked() {
     for (const protocolKey in admin.contracts) {
       const fn = async () => {
         const lppClient = new Lpp(cosmWasmClient, admin.contracts![protocolKey].lpp);
-        const lppConfig = await lppClient.getLppConfig();
-        const lpnCoin =
-          app.currenciesData![
-            `${CurrencyDemapping[lppConfig.lpn_ticker]?.ticker ?? lppConfig.lpn_ticker}@${protocolKey}`
-          ];
+        const lpn_ticker = await lppClient.getLPN();
+        const lpnCoin = app.currenciesData![`${CurrencyDemapping[lpn_ticker]?.ticker ?? lpn_ticker}@${protocolKey}`];
         const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
 
         const [depositBalance, price] = await Promise.all([

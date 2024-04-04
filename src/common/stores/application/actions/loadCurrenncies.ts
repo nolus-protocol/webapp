@@ -42,7 +42,6 @@ export async function loadCurrennncies(this: Store) {
     }
 
     this.currenciesData = data.networks[NATIVE_NETWORK.key];
-    console.log(this.currenciesData);
 
     for (const protocol of this.protocols) {
       lease[protocol] = [];
