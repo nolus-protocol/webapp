@@ -371,6 +371,19 @@
     "integer-out-of-range": "Integer out of range",
     "repay-interest": "Accumulates each block and is added to the outstanding debt. Interest is due in {dueDate}",
     "policy": "By connecting a wallet, you acknowledge that you have read, agree and accept Nolus Protocol’s",
-    "terms-of-service": "Terms of Service"
+    "terms-of-service": "Terms of Service",
+    "slippage": "Slippage",
+    "price-impact": "Price Impact",
+    "min-received": "Min Received",
+    "many_d": "days",
+    "one_d": "a day",
+    "one_s_in": "1 second",
+    "many_s_in": "seconds",
+    "one_m_in": "1 minute",
+    "many_m_in": "minutes",
+    "one_h_in": "1 hour",
+    "many_h_in": "hours",
+    "one_d_in": "day",
+    "swap-tooltip": "swap-tooltip"
   }
 }

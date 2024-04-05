@@ -32,6 +32,6 @@ export async function loadAprRewards(this: Store) {
     this.dispatcherRewards = dispatcherRewards / Math.pow(10, INTEREST_DECIMALS);
   } catch (error) {
     Logger.error(error);
-    return 130;
+    return 110;
   }
 }

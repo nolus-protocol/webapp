@@ -88,4 +88,4 @@ export const CoinGecko = {
 };
 
 export const LedgerName = "Ledger";
-export const IGNORE_TRANSFER_ASSETS: string[] = ["USDC_NOBLE"];
+export const IGNORE_TRANSFER_ASSETS: string[] = [];

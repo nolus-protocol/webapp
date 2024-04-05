@@ -372,6 +372,19 @@
     "integer-out-of-range": "整数が範囲外です",
     "repay-interest": "各ブロックで蓄積され、未払いの借金に追加されます。利子は{dueDate}に支払われます",
     "policy": "By connecting a wallet, you acknowledge that you have read, agree and accept Nolus Protocol’s",
-    "terms-of-service": "Terms of Service"
+    "terms-of-service": "Terms of Service",
+    "slippage": "Slippage",
+    "price-impact": "Price Impact",
+    "min-received": "Min Received",
+    "many_d": "days",
+    "one_d": "a day",
+    "one_s_in": "1 second",
+    "many_s_in": "seconds",
+    "one_m_in": "1 minute",
+    "many_m_in": "minutes",
+    "one_h_in": "1 hour",
+    "many_h_in": "hours",
+    "one_d_in": "day",
+    "swap-tooltip": "swap-tooltip"
   }
 }
