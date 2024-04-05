@@ -2,24 +2,39 @@ import { SkipRouter as SkipRouterLib, SKIP_API_URL, type RouteRequest, type Rout
 import { AppUtils, walletOperation } from ".";
 import { useWalletStore } from "../stores/wallet";
 import type { IObjectKeys } from "../types";
+import type { OfflineSigner } from "@cosmjs/proto-signing";
+
+class Swap extends SkipRouterLib {
+  signer: OfflineSigner | null;
+  constructor(data: {
+    apiURL: string;
+    signer: OfflineSigner;
+    getCosmosSigner: (chainID: string) => Promise<OfflineSigner>;
+  }) {
+    super(data);
+    this.signer = data.signer;
+  }
+}
 
 export class SkipRouter {
-  private static client: SkipRouterLib;
+  private static client: Swap;
   private static chainID: string;
 
-  static async getClient(): Promise<SkipRouterLib> {
-    if (SkipRouter.client) {
+  static async getClient(): Promise<Swap> {
+    const wallet = useWalletStore();
+    const signer = wallet.wallet?.getOfflineSigner();
+
+    if (SkipRouter.client && SkipRouter.client.signer && signer != SkipRouter.client.signer) {
       return SkipRouter.client;
     }
 
     const [client, status] = await Promise.all([
       new Promise((resolve) => {
         walletOperation(async () => {
-          const wallet = useWalletStore();
           const signer = wallet.wallet?.getOfflineSigner();
-          console.log(signer);
-          const client = new SkipRouterLib({
+          const client = new Swap({
             apiURL: SKIP_API_URL,
+            signer,
             getCosmosSigner: async (chainID) => {
               return signer;
             }
@@ -32,7 +47,7 @@ export class SkipRouter {
     ]);
 
     SkipRouter.chainID = status;
-    SkipRouter.client = client as SkipRouterLib;
+    SkipRouter.client = client as Swap;
 
     return SkipRouter.client;
   }
@@ -76,12 +91,19 @@ export class SkipRouter {
 
   static async submitRoute(route: RouteResponse, userAddresses: Record<string, string>) {
     const client = await SkipRouter.getClient();
-    client.executeRoute({
-      route,
-      userAddresses,
-      onTransactionCompleted: async (tx) => {
-        console.log(tx);
-      }
+    return new Promise((resolve) => {
+      client.executeRoute({
+        route,
+        userAddresses,
+        onTransactionCompleted: async (tx) => {
+          resolve(tx);
+        }
+      });
     });
+  }
+
+  static async getChains() {
+    const client = await SkipRouter.getClient();
+    return client.chains({ includeEVM: false, includeSVM: false, includeTestnets: false });
   }
 }

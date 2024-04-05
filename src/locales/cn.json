@@ -374,6 +374,16 @@
     "terms-of-service": "Terms of Service",
     "slippage": "Slippage",
     "price-impact": "Price Impact",
-    "min-received": "Min Received"
+    "min-received": "Min Received",
+    "many_d": "days",
+    "one_d": "a day",
+    "one_s_in": "1 second",
+    "many_s_in": "seconds",
+    "one_m_in": "1 minute",
+    "many_m_in": "minutes",
+    "one_h_in": "1 hour",
+    "many_h_in": "hours",
+    "one_d_in": "day",
+    "swap-tooltip": "swap-tooltip"
   }
 }

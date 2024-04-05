@@ -72,6 +72,10 @@ export class BaseWallet extends SigningCosmWasmClient {
     );
   }
 
+  getSigner() {
+    return this.signer;
+  }
+
   private async simulateTx(
     msg: MsgSend | MsgExecuteContract | MsgTransfer,
     msgTypeUrl: string,

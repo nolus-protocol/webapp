@@ -142,7 +142,7 @@ import { Decimal } from "@cosmjs/math";
 import { externalWalletOperation, externalWallet } from "@/common/utils";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore } from "@/common/stores/wallet";
-import { Coin as KeplrCoin } from "@keplr-wallet/unit";
+import { Dec, Coin as KeplrCoin } from "@keplr-wallet/unit";
 import { useApplicationStore } from "@/common/stores/application";
 import { onMounted } from "vue";
 import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
@@ -434,7 +434,7 @@ async function validateInputs() {
   try {
     isLoading.value = true;
     const isValid = await validateAmount();
-    console.log(isValid);
+
     if (isValid) {
       const network =
         NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[selectedNetwork.value.key];
@@ -472,6 +472,12 @@ async function validateAmount() {
       const walletBalance = Decimal.fromAtomics(balance.amount, decimals);
       const transferAmount = Decimal.fromUserInput(amount.value, decimals);
       const isGreaterThanWalletBalance = transferAmount.isGreaterThan(walletBalance);
+      const isLowerThanOrEqualsToZero = transferAmount.isLessThanOrEqual(Decimal.fromUserInput("0", decimals));
+
+      if (isLowerThanOrEqualsToZero) {
+        amountErrorMsg.value = i18n.t("message.invalid-balance-low");
+        return false;
+      }
 
       if (isGreaterThanWalletBalance) {
         amountErrorMsg.value = i18n.t("message.invalid-balance-big");

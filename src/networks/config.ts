@@ -1,7 +1,7 @@
 import { NATIVE_NETWORK } from "@/config/global";
 
-import { NETWORK as OSMO_NETWORK } from "./osmo/network";
-import { embedChainInfo as osmoChainInfo } from "./osmo/contants";
+import { NETWORK as OSMO_NETWORK } from "./osmosis/network";
+import { embedChainInfo as osmoChainInfo } from "./osmosis/contants";
 
 import { NETWORK as ATOM_NETWORK } from "./cosmos/network";
 import { embedChainInfo as atomChainInfo } from "./cosmos/contants";
@@ -69,7 +69,7 @@ export const SUPPORTED_NETWORKS_DATA: {
   NOLUS: NATIVE_NETWORK,
   OSMOSIS: {
     prefix: "osmo",
-    value: "osmo",
+    value: "osmosis",
     label: "Osmosis",
     native: false,
     estimation: 20,
@@ -168,7 +168,7 @@ export const SUPPORTED_NETWORKS_DATA: {
   },
   QUICKSILVER: {
     prefix: "quick",
-    value: "quick",
+    value: "quicksilver",
     label: "Quicksilver",
     native: false,
     estimation: 20,

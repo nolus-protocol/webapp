@@ -53,7 +53,7 @@
           :key="i"
         >
           <p>{{ $t("message.undelegating") }}: {{ transform(data.balance) }}</p>
-          <p>{{ datePraser(data.completion_time) }}</p>
+          <p>{{ datePraser(data.completion_time, true) }}</p>
         </div>
       </template>
     </div>

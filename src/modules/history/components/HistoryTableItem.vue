@@ -152,7 +152,6 @@ async function message(msg: IObjectKeys) {
     }
     case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
       if (props.transaction.type == "sender") {
-        console.log(msg);
         const token = await fetchCurrency(msg.data.token);
         return i18n.t("message.send-action", {
           address: truncateString(msg.data.receiver),

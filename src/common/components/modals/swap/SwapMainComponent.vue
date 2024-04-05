@@ -16,20 +16,30 @@
 </template>
 
 <script lang="ts" setup>
-import type { ExternalCurrency } from "@/common/types";
-import { Dec, type Coin } from "@keplr-wallet/unit";
+import type { ExternalCurrency, IObjectKeys } from "@/common/types";
+import { Dec, type Coin, Int } from "@keplr-wallet/unit";
 import type { RouteResponse } from "@skip-router/core";
+import type { BaseWallet } from "@/networks";
 import SwapFormComponent from "./SwapFormComponent.vue";
 
 import { computed, inject, ref, watch } from "vue";
-import { Logger, SkipRouter, WalletUtils, validateAmount, walletOperation } from "@/common/utils";
+import {
+  EnvNetworkUtils,
+  Logger,
+  SkipRouter,
+  WalletUtils,
+  externalWallet,
+  validateAmount,
+  walletOperation
+} from "@/common/utils";
 import { useI18n } from "vue-i18n";
 import { coin } from "@cosmjs/amino";
 import { useWalletStore } from "@/common/stores/wallet";
-import { GAS_FEES, NATIVE_ASSET } from "@/config/global";
+import { GAS_FEES, NATIVE_ASSET, SUPPORTED_NETWORKS } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
 import { SWAP_CURRENCIE } from "@/config/currencies";
 import { CurrencyUtils } from "@nolus/nolusjs";
+import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 
 const wallet = useWalletStore();
 const app = useApplicationStore();
@@ -82,13 +92,12 @@ async function setRoute(token: Coin, revert = false) {
   time = setTimeout(async () => {
     try {
       if (revert) {
-        route = await Skiproute.getRoute(
+        route = await SkipRouter.getRoute(
           state.value.selectedCurrency.ibcData,
           state.value.swapToSelectedCurrency.ibcData,
           token.amount.toString(),
           revert
         );
-
         state.value.amount = new Dec(route.amountIn, state.value.selectedCurrency.decimal_digits).toString(
           state.value.selectedCurrency.decimal_digits
         );
@@ -115,12 +124,15 @@ async function setRoute(token: Coin, revert = false) {
 
 function updateSwapToAmount(value: string) {
   state.value.swapToAmount = value;
+
   const token = CurrencyUtils.convertDenomToMinimalDenom(
     state.value.swapToAmount,
     state.value.swapToSelectedCurrency.ibcData,
     state.value.swapToSelectedCurrency.decimal_digits
   );
-  setRoute(token, true);
+  if (token.amount.gt(new Int(0))) {
+    setRoute(token, true);
+  }
 }
 
 function updateSelected(value: ExternalCurrency) {
@@ -139,7 +151,9 @@ function updateRoute() {
     state.value.selectedCurrency.ibcData,
     state.value.selectedCurrency.decimal_digits
   );
-  setRoute(token, false);
+  if (token.amount.gt(new Int(0))) {
+    setRoute(token, false);
+  }
 }
 
 function onSwapClick() {
@@ -173,12 +187,58 @@ async function onSwap() {
   if (!WalletUtils.isAuth()) {
     return false;
   }
-
   await walletOperation(async () => {
-    SkipRouter.submitRoute(route, {
-      "pirin-1": "nolus1ncc58ptqrkd7r7uk60dx4eufvvqf2edhtktv0q",
-      "osmosis-1": "osmo1ncc58ptqrkd7r7uk60dx4eufvvqf2edh4agrmh"
-    });
+    try {
+      state.value.loading = true;
+      const addresses = await getAddresses();
+      await SkipRouter.submitRoute(route, addresses);
+      await wallet.UPDATE_BALANCES();
+      closeModal();
+    } catch (error) {
+      Logger.error(error);
+    } finally {
+      state.value.loading = false;
+    }
   });
+}
+
+async function getAddresses() {
+  const native = wallet.wallet.signer.chainId;
+  const nolusAddress = wallet.wallet.address;
+
+  const addrs = {
+    [native]: nolusAddress
+  };
+  const chainToParse: { [key: string]: IObjectKeys } = {};
+  const chains = (await SkipRouter.getChains()).filter((item) => {
+    if (item.chainID == native) {
+      return false;
+    }
+    return route.chainIDs.includes(item.chainID);
+  });
+
+  for (const chain of chains) {
+    for (const key in SUPPORTED_NETWORKS_DATA) {
+      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chainName) {
+        chainToParse[key] = SUPPORTED_NETWORKS_DATA[key];
+      }
+    }
+  }
+  const promises = [];
+
+  for (const chain in chainToParse) {
+    const fn = async function () {
+      const client = await WalletUtils.getWallet(chain);
+      const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
+      const networkData = network?.supportedNetworks[chain];
+      const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
+      addrs[baseWallet.getSigner().chainId] = baseWallet.address;
+    };
+    promises.push(fn());
+  }
+
+  await Promise.all(promises);
+
+  return addrs;
 }
 </script>

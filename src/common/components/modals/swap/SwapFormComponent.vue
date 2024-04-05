@@ -43,7 +43,7 @@
           0.00 NLS
           <span class="nls-font-400 flex text-[#8396B1]">
             &nbsp;($0.00)
-            <TooltipComponent :content="$t('message.liquidation-price-tooltip')" />
+            <TooltipComponent :content="$t('message.swap-tooltip')" />
           </span>
         </p>
       </div>
