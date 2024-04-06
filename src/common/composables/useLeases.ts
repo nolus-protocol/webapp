@@ -4,17 +4,19 @@ import { ref, onMounted } from "vue";
 
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 import { Lease, Leaser, type LeaserConfig, type LeaseStatus } from "@nolus/nolusjs/build/contracts";
-import { WalletManager, AppUtils, Logger, LeaseUtils, AssetUtils } from "@/common/utils";
+import { AppUtils, Logger, LeaseUtils, AssetUtils, WalletManager } from "@/common/utils";
 import { IGNORE_LEASES, INTEREST_DECIMALS, MONTHS, NATIVE_ASSET, PERCENT, PERMILLE } from "@/config/global";
 import { useAdminStore } from "@/common/stores/admin";
 import { CurrencyDemapping } from "@/config/currencies";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "../stores/oracle";
 import { useApplicationStore } from "../stores/application";
+import { useWalletStore } from "../stores/wallet";
 
 export function useLeases(onError: (error: unknown) => void) {
   const leases = ref<LeaseData[]>([]);
   const leaseLoaded = ref(false);
+  const wallet = useWalletStore();
 
   const getLeases = async () => {
     try {
@@ -29,6 +31,7 @@ export function useLeases(onError: (error: unknown) => void) {
         | undefined
       >[] = [];
       const protocolPromises = [];
+      const paginate = 50;
 
       for (const protocolKey in admin.contracts) {
         const fn = async () => {
@@ -40,8 +43,16 @@ export function useLeases(onError: (error: unknown) => void) {
             return !IGNORE_LEASES.includes(item);
           });
 
-          for (const leaseAddress of openedLeases) {
-            promises.push(fetchLease(leaseAddress, protocolKey));
+          while (openedLeases.length > 0) {
+            const leases = openedLeases.splice(0, paginate);
+            const ps = [];
+
+            for (const leaseAddress of leases) {
+              const fn = fetchLease(leaseAddress, protocolKey);
+              ps.push(fn);
+              promises.push(fn);
+            }
+            await Promise.all(ps);
           }
         };
 
@@ -68,7 +79,9 @@ export function useLeases(onError: (error: unknown) => void) {
   };
 
   onMounted(async () => {
-    await getLeases();
+    if (wallet.wallet) {
+      await getLeases();
+    }
   });
 
   return { leases, leaseLoaded, getLeases };

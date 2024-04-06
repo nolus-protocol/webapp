@@ -122,7 +122,7 @@ async function setRoute(token: Coin, revert = false) {
         );
       }
 
-      const priceImpact = Number(route.swapPriceImpactPercent) * Number(route.usdAmountOut);
+      const priceImpact = (Number(route.swapPriceImpactPercent) * Number(route.usdAmountOut)) / 100;
       state.value.priceImpactUsd = priceImpact.toLocaleString("us-US");
     } catch (e) {
       Logger.error(e);

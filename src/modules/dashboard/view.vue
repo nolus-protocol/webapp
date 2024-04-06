@@ -483,7 +483,9 @@ watch(
 watch(
   () => wallet.wallet,
   () => {
-    getLeases();
+    if (wallet.wallet) {
+      getLeases();
+    }
   }
 );
 

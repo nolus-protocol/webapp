@@ -116,6 +116,12 @@
 			left: 50%;
 			transform: translate(-50%, -50%);
 
+			@media (max-width: $md) {
+				width: 28px !important;
+				transform: translate(0%, -30%) !important;
+
+			}
+
 			&:hover,
 			&:focus {
 			  border: 1px solid $lightBlue;
