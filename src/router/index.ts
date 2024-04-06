@@ -14,6 +14,9 @@ import { RouteNames } from "./RouteNames";
 import MainLayout from "@/modules/view.vue";
 
 const router = createRouter({
+  scrollBehavior(to, from, savedPosition) {
+    return { top: 0, behavior: "instant" };
+  },
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
