@@ -16,18 +16,20 @@
         <ListboxButton
           class="background relative w-full cursor-default rounded-md border border-gray-300 py-2 pl-3 pr-10 text-left shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
         >
-          <span class="flex items-center">
-            <img
-              :src="selected.value?.icon"
-              class="h-6 w-6 flex-shrink-0 rounded-full"
-              alt=""
-            />
-            <span class="dark-text block truncate">
-              {{ selected.value?.shortName }}
-            </span>
+          <span class="flex w-full items-center justify-between">
+            <div class="flex items-center">
+              <img
+                :src="selected.value?.icon"
+                class="h-6 w-6 flex-shrink-0 rounded-full"
+                alt=""
+              />
+              <span class="dark-text block truncate">
+                {{ selected.value?.shortName }}
+              </span>
+            </div>
             <span
               v-if="isLoading"
-              class="loading"
+              class="loading mr-[4px]"
             >
             </span>
           </span>

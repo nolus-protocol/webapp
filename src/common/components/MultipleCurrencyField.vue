@@ -9,7 +9,8 @@
           <CurrencyPicker
             :currencyOption="selectedOption"
             :options="currencyOptions"
-            :disabled="false"
+            :disabled="disabled || isLoading"
+            :is-loading="isLoading"
             @update-currency="(value) => $emit('updateCurrency', value)"
           />
         </div>
@@ -23,6 +24,7 @@
             @keypress.space.prevent
             @paste="onPaste"
             @keyup="setValue(true)"
+            :disabled="disabled"
           />
           <span class="nls-font-400 block text-right text-14 text-light-blue">
             {{ swapBalance }}
@@ -31,9 +33,14 @@
       </div>
 
       <div class="separator m-auto w-[calc(100%-38px)]">
-        <div class="arrow-box">
+        <button
+          type="button"
+          class="arrow-box transfer background !p-[4px]"
+          @click="$emit('changeFields')"
+          :disabled="disabled"
+        >
           <ArrowDownIcon />
-        </div>
+        </button>
       </div>
 
       <div class="flex items-center p-2.5 p-3.5">
@@ -41,7 +48,8 @@
           <CurrencyPicker
             :currencyOption="swapToOption"
             :options="currencyOptions"
-            :disabled="false"
+            :disabled="disabled || isLoading"
+            :is-loading="isLoading"
             @update-currency="(value) => $emit('updateSwapToCurrency', value)"
           />
         </div>
@@ -55,6 +63,7 @@
             @keypress.space.prevent
             @paste="onPaste"
             @keyup="setSwapValue(true)"
+            :disabled="disabled"
           />
           <span class="nls-font-400 block text-right text-14 text-light-blue">
             {{ swapToBalance }}
@@ -91,6 +100,8 @@ interface Props {
   swapToAmount: string;
   isError: boolean;
   errorMsg: string;
+  disabled: boolean;
+  isLoading: boolean;
 }
 
 const props = defineProps<Props>();
@@ -100,7 +111,13 @@ const comma = ",";
 const allowed = ["Delete", "Backspace", "ArrowLeft", "ArrowRight", "-", ".", "Enter", "Tab", "Control", "End", "Home"];
 const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-const emit = defineEmits(["updateCurrency", "updateAmount", "updateSwapToCurrency", "updateSwapToAmount"]);
+const emit = defineEmits([
+  "updateCurrency",
+  "updateAmount",
+  "updateSwapToCurrency",
+  "updateSwapToAmount",
+  "changeFields"
+]);
 
 let numberAmount = Number(props.amount);
 const numberValue = ref(props.amount);

@@ -3,6 +3,7 @@ import { AppUtils, walletOperation } from ".";
 import { useWalletStore } from "../stores/wallet";
 import type { IObjectKeys } from "../types";
 import type { OfflineSigner } from "@cosmjs/proto-signing";
+import { SLIPPAGE } from "@/config/global/swap";
 
 class Swap extends SkipRouterLib {
   signer: OfflineSigner | null;
@@ -91,14 +92,19 @@ export class SkipRouter {
 
   static async submitRoute(route: RouteResponse, userAddresses: Record<string, string>) {
     const client = await SkipRouter.getClient();
-    return new Promise((resolve) => {
-      client.executeRoute({
-        route,
-        userAddresses,
-        onTransactionCompleted: async (tx) => {
-          resolve(tx);
-        }
-      });
+    return new Promise(async (resolve, reject) => {
+      try {
+        await client.executeRoute({
+          route,
+          userAddresses,
+          slippageTolerancePercent: SLIPPAGE.toString(),
+          onTransactionCompleted: async (tx) => {
+            resolve(tx);
+          }
+        });
+      } catch (error) {
+        reject(error);
+      }
     });
   }
 

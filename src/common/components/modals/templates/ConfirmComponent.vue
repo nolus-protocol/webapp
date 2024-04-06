@@ -123,6 +123,7 @@
 
 <script lang="ts" setup>
 import type { Coin } from "@cosmjs/amino";
+import type { AssetBalance } from "@/common/stores/wallet/types";
 import { computed, inject, onMounted, watch } from "vue";
 import { CheckIcon, XMarkIcon } from "@heroicons/vue/24/solid";
 import { CurrencyUtils } from "@nolus/nolusjs";
@@ -131,7 +132,6 @@ import { CONFIRM_STEP, type ExternalCurrency } from "@/common/types";
 import { useApplicationStore } from "@/common/stores/application";
 
 import WarningBox from "./WarningBox.vue";
-import type { AssetBalance } from "@/common/stores/wallet/types";
 
 interface Props {
   selectedCurrency: ExternalCurrency | AssetBalance;

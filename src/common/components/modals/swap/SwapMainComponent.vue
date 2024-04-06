@@ -7,11 +7,16 @@
     :swapToAmount="state.swapToAmount"
     :errorMsg="state.errorMsg"
     :loading="state.loading"
+    :disabled="state.disabled"
+    :fee="state.fee"
+    :priceImpactUsd="state.priceImpactUsd"
+    :priceImpact="route?.swapPriceImpactPercent ?? '0'"
     :onSwapClick="onSwapClick"
     @updateSelected="updateSelected"
     @updateAmount="updateAmount"
     @updateSwapToSelected="updateSwapToSelected"
     @updateSwapToAmount="updateSwapToAmount"
+    @changeFields="onChangeFields"
   />
 </template>
 
@@ -23,6 +28,15 @@ import type { BaseWallet } from "@/networks";
 import SwapFormComponent from "./SwapFormComponent.vue";
 
 import { computed, inject, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
+import { coin } from "@cosmjs/amino";
+import { useWalletStore } from "@/common/stores/wallet";
+import { GAS_FEES, NATIVE_ASSET } from "@/config/global";
+import { useApplicationStore } from "@/common/stores/application";
+import { SWAP_CURRENCIE } from "@/config/currencies";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
+
 import {
   EnvNetworkUtils,
   Logger,
@@ -32,14 +46,6 @@ import {
   validateAmount,
   walletOperation
 } from "@/common/utils";
-import { useI18n } from "vue-i18n";
-import { coin } from "@cosmjs/amino";
-import { useWalletStore } from "@/common/stores/wallet";
-import { GAS_FEES, NATIVE_ASSET, SUPPORTED_NETWORKS } from "@/config/global";
-import { useApplicationStore } from "@/common/stores/application";
-import { SWAP_CURRENCIE } from "@/config/currencies";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 
 const wallet = useWalletStore();
 const app = useApplicationStore();
@@ -76,8 +82,10 @@ const state = ref({
   receiverAddress: "",
   errorMsg: "",
   txHash: "",
+  priceImpactUsd: "0.00",
   fee: coin(GAS_FEES.swap_amount, NATIVE_ASSET.denom),
-  loading: false
+  loading: false,
+  disabled: false
 });
 
 function updateAmount(value: string) {
@@ -87,10 +95,10 @@ function updateAmount(value: string) {
 
 async function setRoute(token: Coin, revert = false) {
   clearTimeout(time);
-  state.value.loading = true;
 
   time = setTimeout(async () => {
     try {
+      state.value.loading = true;
       if (revert) {
         route = await SkipRouter.getRoute(
           state.value.selectedCurrency.ibcData,
@@ -113,6 +121,9 @@ async function setRoute(token: Coin, revert = false) {
           state.value.swapToSelectedCurrency.decimal_digits
         );
       }
+
+      const priceImpact = Number(route.swapPriceImpactPercent) * Number(route.usdAmountOut);
+      state.value.priceImpactUsd = priceImpact.toLocaleString("us-US");
     } catch (e) {
       Logger.error(e);
       state.value.errorMsg = (e as Error).toString();
@@ -187,19 +198,25 @@ async function onSwap() {
   if (!WalletUtils.isAuth()) {
     return false;
   }
-  await walletOperation(async () => {
-    try {
-      state.value.loading = true;
-      const addresses = await getAddresses();
-      await SkipRouter.submitRoute(route, addresses);
-      await wallet.UPDATE_BALANCES();
-      closeModal();
-    } catch (error) {
-      Logger.error(error);
-    } finally {
-      state.value.loading = false;
-    }
-  });
+  try {
+    await walletOperation(async () => {
+      try {
+        state.value.loading = true;
+        state.value.disabled = true;
+        const addresses = await getAddresses();
+        await SkipRouter.submitRoute(route, addresses);
+        await wallet.UPDATE_BALANCES();
+        closeModal();
+      } catch (error) {
+        Logger.error(error);
+      } finally {
+        state.value.loading = false;
+        state.value.disabled = false;
+      }
+    });
+  } catch (e) {
+    Logger.error(e);
+  }
 }
 
 async function getAddresses() {
@@ -240,5 +257,15 @@ async function getAddresses() {
   await Promise.all(promises);
 
   return addrs;
+}
+
+function onChangeFields() {
+  const selected = state.value.selectedCurrency;
+  const swapToSelectedCurrency = state.value.swapToSelectedCurrency;
+  state.value.amount = state.value.swapToAmount;
+  state.value.selectedCurrency = swapToSelectedCurrency;
+  state.value.swapToSelectedCurrency = selected;
+  state.value.swapToAmount = "";
+  updateRoute();
 }
 </script>

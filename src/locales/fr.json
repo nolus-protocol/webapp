@@ -384,6 +384,7 @@
     "one_h_in": "1 hour",
     "many_h_in": "hours",
     "one_d_in": "day",
-    "swap-tooltip": "swap-tooltip"
+    "swap-tooltip": "swap-tooltip",
+    "estimated-tx-fee": "Estimated Transaction Fee"
   }
 }
