@@ -12,4 +12,3 @@ export * from "./Logger";
 export * from "./LeaseUtils";
 export * from "./WalletConnect";
 export * from "./NetworkUtils";
-export * from "./SkipRoute";

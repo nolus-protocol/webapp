@@ -7,8 +7,8 @@
       <!-- Ticker -->
       <div class="inline-flex items-center">
         <img
-          v-if="assetInfo.icon"
-          :src="assetInfo.icon"
+          v-if="assetInfo.coinIcon"
+          :src="assetInfo.coinIcon"
           class="m-0 mr-4 inline-block"
           height="32"
           width="32"
@@ -29,8 +29,8 @@
             <CurrencyComponent
               :type="CURRENCY_VIEW_TYPES.TOKEN"
               :amount="asset.balance.amount.toString()"
-              :minimalDenom="assetInfo.ibcData"
-              :decimals="assetInfo.decimal_digits"
+              :minimalDenom="assetInfo.coinMinimalDenom"
+              :decimals="assetInfo.coinDecimals"
               :maxDecimals="maxCoinDecimals"
               :fontSizeSmall="12"
               denom=""
@@ -81,22 +81,24 @@
 
 <script setup lang="ts">
 import type { PropType } from "vue";
-import type { Asset } from "../types";
+import type { AssetBalance } from "@/common/stores/wallet/types";
 
 import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
 
 import { Dec } from "@keplr-wallet/unit";
 import { computed } from "vue";
+import { useWalletStore } from "@/common/stores/wallet";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
 import { AssetUtils } from "@/common/utils";
 
+const wallet = useWalletStore();
 const app = useApplicationStore();
 
 const props = defineProps({
   asset: {
-    type: Object as PropType<Asset>,
+    type: Object as PropType<AssetBalance>,
     required: true
   },
   cols: {
@@ -109,12 +111,13 @@ const props = defineProps({
 });
 
 const assetInfo = computed(() => {
-  const assetInfo = AssetUtils.getCurrencyByDenom(props.asset.balance.denom);
+  const assetInfo = wallet.getCurrencyInfo(props.asset.balance.denom);
   return assetInfo;
 });
 
 const apr = computed(() => {
-  const [_ticker, protocol] = props.asset.key?.split("@") ?? [];
+  const currency = wallet.currencies[props.asset.balance.denom];
+  const [ticker, protocol] = currency.ticker.split("@");
   return (app.apr?.[protocol] ?? 0).toString();
 });
 

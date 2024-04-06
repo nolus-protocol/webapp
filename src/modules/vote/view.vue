@@ -175,7 +175,7 @@ async function fetchData(url: string) {
   } catch (error: Error | any) {
     showErrorDialog.value = true;
     errorMessage.value = error.message;
-    Logger.error(error);
+    console.error(error);
     return null;
   }
 }

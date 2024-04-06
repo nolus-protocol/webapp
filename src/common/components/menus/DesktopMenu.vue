@@ -1,46 +1,25 @@
 <template>
   <div>
-    <template
+    <RouterLink
       v-for="item in menuItems"
       :key="item.name"
+      :to="item.path"
+      class="sidebar-element flex items-center gap-2.5 font-garet-medium"
     >
-      <template v-if="item.action">
-        <a
-          class="sidebar-element flex cursor-pointer items-center gap-2.5 font-garet-medium"
-          @click="item.action(item.path)"
-        >
-          <span
-            :class="[`icon-${item.icon}`]"
-            class="icon"
-          >
-          </span>
-          {{ $t(`message.${item.name}`) }}
-        </a>
-      </template>
-      <template v-else>
-        <RouterLink
-          :to="item.path"
-          class="sidebar-element flex items-center gap-2.5 font-garet-medium"
-        >
-          <span
-            :class="[`icon-${item.icon}`]"
-            class="icon"
-          >
-          </span>
-          {{ $t(`message.${item.name}`) }}
-        </RouterLink>
-      </template>
-    </template>
+      <span
+        :class="[`icon-${item.icon}`]"
+        class="icon"
+      >
+      </span>
+      {{ $t(`message.${item.name}`) }}
+    </RouterLink>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref } from "vue";
 import { RouterLink } from "vue-router";
-import { RouteNames, router } from "@/router";
-import { inject } from "vue";
-
-const openDialog = inject("openDialog", () => {});
+import { RouteNames } from "@/router";
 
 const menuItems = ref([
   {
@@ -52,15 +31,6 @@ const menuItems = ref([
     icon: "lease-v2",
     name: "lease",
     path: `/${RouteNames.LEASE}`
-  },
-  {
-    icon: "swap-v2",
-    name: "swap",
-    path: `#swap`,
-    action: async (path: string) => {
-      await router.push(`${location.pathname}${path}`);
-      openDialog();
-    }
   },
   {
     icon: "earn-v2",

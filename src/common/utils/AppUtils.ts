@@ -1,8 +1,7 @@
 import type { API, ARCHIVE_NODE, Endpoint, Node, News } from "@/common/types";
-
 import { connectComet } from "@cosmjs/tendermint-rpc";
 import { EnvNetworkUtils } from ".";
-import { CONTRACTS, DOWNPAYMENT_RANGE_DEV, NEWS_URL, NEWS_WALLETS_PATH } from "@/config/global";
+import { CONTRACTS, NEWS_URL, NEWS_WALLETS_PATH } from "@/config/global";
 
 import {
   DOWNPAYMENT_RANGE_URL,
@@ -13,7 +12,6 @@ import {
   NETWORKS,
   SWAP_FEE_URL
 } from "@/config/global";
-import { ChainConstants } from "@nolus/nolusjs";
 
 export class AppUtils {
   public static LANGUAGE = "language";
@@ -163,23 +161,9 @@ export class AppUtils {
     return CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].protocols;
   }
 
-  public static getDefaultProtocol() {
-    switch (EnvNetworkUtils.getStoredNetworkName()) {
-      case "mainnet": {
-        return AppUtils.getProtocols().osmosis_noble;
-      }
-      case "testnet": {
-        return AppUtils.getProtocols().osmosis;
-      }
-      default: {
-        return AppUtils.getProtocols().osmosis_noble;
-      }
-    }
-  }
-
   private static async fetchArchiveNodes(): Promise<ARCHIVE_NODE> {
     const config = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
-    const data = await fetch(await config.endpoints);
+    const data = await fetch(config.endpoints);
     const json = (await data.json()) as Endpoint;
 
     const archive = {
@@ -192,7 +176,7 @@ export class AppUtils {
 
   private static async fetch(network: string) {
     const config = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
-    const data = await fetch(await config.endpoints);
+    const data = await fetch(config.endpoints);
     const json = (await data.json()) as Endpoint;
     const status = await AppUtils.fetchStatus((json[network] as Node).primary.rpc, json.downtime);
 
@@ -248,12 +232,6 @@ export class AppUtils {
       };
     };
 
-    if (isDev() || isServe()) {
-      for (const key in json) {
-        json[key].min = DOWNPAYMENT_RANGE_DEV;
-      }
-    }
-
     return json;
   }
 
@@ -288,19 +266,5 @@ export class AppUtils {
     }
 
     return n;
-  }
-
-  public static async fetchNetworkStatus() {
-    const rpc = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
-    const data = await fetch(`${rpc}/status`);
-    const json = (await data.json()) as {
-      result: {
-        node_info: {
-          network: string;
-        };
-      };
-    };
-
-    return json;
   }
 }

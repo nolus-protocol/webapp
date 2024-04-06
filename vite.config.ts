@@ -40,7 +40,7 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    exclude: [],
+    exclude: ["@solana/web3.js"],
     esbuildOptions: {
       sourcemap: false,
       define: {
