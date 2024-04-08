@@ -127,6 +127,8 @@ export const CurrencyDemapping: {
   }
 };
 
+export const SWAP_CURRENCIE = "USDC_NOBLE";
+
 export enum SOURCE_PORTS {
   TRANSFER = "transfer"
 }

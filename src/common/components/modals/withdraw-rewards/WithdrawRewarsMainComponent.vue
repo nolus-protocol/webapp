@@ -17,8 +17,8 @@
 <script lang="ts" setup>
 import ConfirmComponent from "@/common/components/modals/templates/ConfirmComponent.vue";
 import type { WithdrawRewardsComponentProps } from "./types";
-import type { AssetBalance } from "@/common/stores/wallet/types";
 import { CONFIRM_STEP, TxType } from "@/common/types";
+import type { AssetBalance } from "@/common/stores/wallet/types";
 
 import { inject, ref, type PropType, computed } from "vue";
 import { coin } from "@cosmjs/amino";
@@ -96,8 +96,8 @@ const requestClaim = async () => {
           const coin = item?.reward?.[0];
 
           if (coin) {
-            const asset = AssetUtils.getAssetInfoByDenom(coin.denom);
-            const amount = new Dec(coin.amount, asset.coinDecimals);
+            const asset = AssetUtils.getCurrencyByDenom(coin.denom);
+            const amount = new Dec(coin.amount, asset.decimal_digits);
 
             if (amount.isPositive()) {
               return true;

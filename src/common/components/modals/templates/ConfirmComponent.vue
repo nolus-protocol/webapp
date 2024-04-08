@@ -122,23 +122,19 @@
 </template>
 
 <script lang="ts" setup>
-import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { Coin } from "@cosmjs/amino";
-
+import type { AssetBalance } from "@/common/stores/wallet/types";
 import { computed, inject, onMounted, watch } from "vue";
 import { CheckIcon, XMarkIcon } from "@heroicons/vue/24/solid";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { StringUtils } from "@/common/utils";
-import { CONFIRM_STEP } from "@/common/types";
-import { useWalletStore } from "@/common/stores/wallet";
+import { AssetUtils, StringUtils } from "@/common/utils";
+import { CONFIRM_STEP, type ExternalCurrency } from "@/common/types";
 import { useApplicationStore } from "@/common/stores/application";
+
 import WarningBox from "./WarningBox.vue";
 
-const wallet = useWalletStore();
-const applicaton = useApplicationStore();
-
 interface Props {
-  selectedCurrency: AssetBalance;
+  selectedCurrency: ExternalCurrency | AssetBalance;
   receiverAddress: string;
   amount: string;
   memo?: string;
@@ -151,6 +147,7 @@ interface Props {
   onOkClick: () => void;
 }
 
+const applicaton = useApplicationStore();
 const props = defineProps<Props>();
 const isStepConfirm = computed(() => props.step === CONFIRM_STEP.CONFIRM);
 const isStepPending = computed(() => props.step === CONFIRM_STEP.PENDING);
@@ -199,20 +196,25 @@ function formatAmount(value: string) {
     return;
   }
 
-  const { shortName, coinMinimalDenom, coinDecimals } = wallet.getCurrencyInfo(selectedCurrency.balance.denom);
+  const asset = AssetUtils.getCurrencyByDenom(selectedCurrency.balance.denom);
 
-  const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(value, coinMinimalDenom, coinDecimals);
+  const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(value, asset.ibcData, asset.decimal_digits);
   return CurrencyUtils.convertMinimalDenomToDenom(
     minimalDenom.amount.toString(),
-    coinMinimalDenom,
-    shortName,
-    coinDecimals
+    asset.ibcData,
+    asset.shortName,
+    asset.decimal_digits
   );
 }
 
 function calculateFee(coin: Coin) {
-  const { shortName, coinMinimalDenom, coinDecimals } = wallet.getCurrencyInfo(coin.denom);
+  const asset = AssetUtils.getCurrencyByDenom(coin.denom);
 
-  return CurrencyUtils.convertMinimalDenomToDenom(coin.amount.toString(), coinMinimalDenom, shortName, coinDecimals);
+  return CurrencyUtils.convertMinimalDenomToDenom(
+    coin.amount.toString(),
+    asset.ibcData,
+    asset.shortName,
+    asset.decimal_digits
+  );
 }
 </script>

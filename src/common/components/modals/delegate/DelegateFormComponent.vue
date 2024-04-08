@@ -66,7 +66,6 @@ import type { PropType } from "vue";
 import CurrencyField from "@/common/components/CurrencyField.vue";
 import WarningBox from "@/common/components/modals/templates/WarningBox.vue";
 
-import { useWalletStore } from "@/common/stores/wallet";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { EnvNetworkUtils } from "@/common/utils";
 import { NETWORKS } from "@/config/global";
@@ -78,19 +77,16 @@ const props = defineProps({
   }
 });
 
-const walletStore = useWalletStore();
-
 function handleAmountChange(value: string) {
   props.modelValue.amount = value;
 }
 
 function formatCurrentBalance() {
-  const asset = walletStore.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
   return CurrencyUtils.convertMinimalDenomToDenom(
     props.modelValue.selectedCurrency.balance.amount.toString(),
     props.modelValue.selectedCurrency.balance.denom,
-    asset.shortName,
-    asset.coinDecimals
+    props.modelValue.selectedCurrency.shortName,
+    props.modelValue.selectedCurrency.decimal_digits
   ).toString();
 }
 

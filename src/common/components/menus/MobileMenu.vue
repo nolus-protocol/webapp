@@ -26,21 +26,42 @@
         {{ $t(`message.${item.name}`) }}
       </RouterLink>
     </div>
+
     <div class="background sidebar-elements-block relative z-20 flex w-full justify-between px-4 pb-4 pt-1.5">
-      <RouterLink
+      <template
         v-for="item in visibleMenuItems"
         :key="item.name"
-        :to="item.path"
         class="sidebar-element flex flex-col items-center font-garet-medium text-16"
         @click="showMobileNav = false"
       >
-        <span
-          :class="[`icon-${item.icon}`]"
-          class="icon"
-        >
-        </span>
-        {{ $t(`message.${item.name}`) }}
-      </RouterLink>
+        <template v-if="item.action">
+          <a
+            class="sidebar-element flex cursor-pointer flex-col items-center font-garet-medium text-16"
+            @click="item.action(item.path)"
+          >
+            <span
+              :class="[`icon-${item.icon}`]"
+              class="icon"
+            >
+            </span>
+            {{ $t(`message.${item.name}`) }}
+          </a>
+        </template>
+        <template v-else>
+          <RouterLink
+            :to="item.path"
+            class="sidebar-element flex flex-col items-center font-garet-medium text-16"
+          >
+            <span
+              :class="[`icon-${item.icon}`]"
+              class="icon"
+            >
+            </span>
+            {{ $t(`message.${item.name}`) }}
+          </RouterLink>
+        </template>
+      </template>
+
       <a
         :class="[showMobileNav ? 'router-link-exact-active' : '']"
         class="sidebar-element flex flex-col items-center font-garet-medium text-16"
@@ -56,8 +77,10 @@
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref } from "vue";
 import { RouterLink } from "vue-router";
-import { RouteNames } from "@/router";
+import { RouteNames, router } from "@/router";
+import { inject } from "vue";
 
+const openDialog = inject("openDialog", () => {});
 const showMobileNav = ref(false);
 const isMobile = ref(false);
 const sidebar = ref(null as HTMLDivElement | null);
@@ -66,13 +89,21 @@ const visibleMenuItems = [
   {
     icon: "asset-v2",
     name: "assets",
-    path: `/`,
-    click: (showMobileNav.value = false)
+    path: `/`
   },
   {
     icon: "lease-v2",
     name: "lease",
     path: `/${RouteNames.LEASE}`
+  },
+  {
+    icon: "swap-v2",
+    name: "swap",
+    path: `#swap`,
+    action: async (path: string) => {
+      await router.push(`${location.pathname}${path}`);
+      openDialog();
+    }
   },
   {
     icon: "earn-v2",
