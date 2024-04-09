@@ -1,35 +1,26 @@
 {
-    "pnl-distribution": {
-        "title-icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/stats.svg",
-        "image": "",
-        "title": "pnl-distribution-banner-title",
-        "subtitle": "pnl-distribution-banner-subtitle",
-        "description": "pnl-distribution-banner-description",
-        "target": "",
-        "wallets": "pnl-challenge.json"
-    },
-    "ntrn_0": {
-        "title-icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/lease.svg",
-        "image": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/ntrn_0int.webp",
-        "title": "lease-banner-title",
-        "subtitle": "ntrn_0-banner-subtitle",
-        "description": "ntrn_0-banner-description",
-        "target": "/lease#create"
-    },
-    "knowledgehub": {
-        "title-icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/knowledge_hub.svg",
-        "image": "",
-        "title": "knowledgehub-banner-title",
-        "subtitle": "knowledgehub-banner-subtitle",
-        "description": "knowledgehub-banner-description",
-        "target": "https://hub.nolus.io/"
-    },
-    "stats": {
-        "title-icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/stats.svg",
-        "image": "",
-        "title": "stats-banner-title",
-        "subtitle": "stats-banner-subtitle",
-        "description": "stats-banner-description",
-        "target": "/stats"
-    }
+  "ntrn_0": {
+    "title-icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/lease.svg",
+    "image": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/ntrn_0int.webp",
+    "title": "lease-banner-title",
+    "subtitle": "ntrn_0-banner-subtitle",
+    "description": "ntrn_0-banner-description",
+    "target": "/lease#create"
+  },
+  "knowledgehub": {
+    "title-icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/knowledge_hub.svg",
+    "image": "",
+    "title": "knowledgehub-banner-title",
+    "subtitle": "knowledgehub-banner-subtitle",
+    "description": "knowledgehub-banner-description",
+    "target": "https://hub.nolus.io/"
+  },
+  "stats": {
+    "title-icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/stats.svg",
+    "image": "",
+    "title": "stats-banner-title",
+    "subtitle": "stats-banner-subtitle",
+    "description": "stats-banner-description",
+    "target": "/stats"
+  }
 }
