@@ -4,7 +4,7 @@
     "swap_currency": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4",
     "swap_to_currency": "unls",
     "gas_multiplier": 2,
-    "fee": 400,
+    "fee": 1000,
     "timeoutSeconds": "60",
     "osmosis-poolmanager": "osmo14p4cu64dlwavj7kga4s3mj6xglucj9t358r5mz",
     "neutron-astroport": "neutron14p4cu64dlwavj7kga4s3mj6xglucj9t3crexhh"
