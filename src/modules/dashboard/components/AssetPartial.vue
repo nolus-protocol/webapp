@@ -140,6 +140,7 @@ import {
   LEASE_UP_COEFICIENT,
   NATIVE_ASSET
 } from "@/config/global";
+import { CurrencyMapping } from "@/config/currencies";
 
 const walletStore = useWalletStore();
 const app = useApplicationStore();
@@ -185,7 +186,7 @@ const props = defineProps({
 const canLease = computed(() => {
   const curency = WebAppAssetUtils.getCurrencyByDenom(props.denom);
   const [ticker] = curency.key.split("@");
-  return Number(props.assetBalance) > 0 && app.leasesCurrencies.includes(ticker);
+  return Number(props.assetBalance) > 0 && app.leasesCurrencies.includes(CurrencyMapping[ticker]?.ticker ?? ticker);
 });
 
 const canSupply = computed(() => {

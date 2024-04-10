@@ -8,6 +8,7 @@ export type { ContractInfo, ContractAdminInfo } from "@/common/types/ContractInf
 export type { Currecies, ExternalCurrencies, ExternalCurrency } from "@/common/types/Currecies";
 export type { NetworkConfig, API, ARCHIVE_NODE, Endpoint, Node, Status } from "@/common/types/NetworkConfig";
 export type { LeaseData } from "./LeaseData";
+export type { SkipRouteConfigType } from "./SkipRouteConfigType";
 
 export { WalletConnectMechanism } from "@/common/types/WalletConnectMechanism";
 export { TxType } from "@/common/types/TxType";

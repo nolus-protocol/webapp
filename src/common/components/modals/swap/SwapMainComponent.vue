@@ -2,7 +2,7 @@
   <SwapFormComponent
     :selectedCurrency="state.selectedCurrency"
     :swapToSelectedCurrency="state.swapToSelectedCurrency"
-    :currentBalance="state.currentBalance"
+    :currentBalance="balances"
     :amount="state.amount"
     :swapToAmount="state.swapToAmount"
     :errorMsg="state.errorMsg"
@@ -23,21 +23,20 @@
 <script lang="ts" setup>
 import type { ExternalCurrency, IObjectKeys } from "@/common/types";
 import { Dec, type Coin, Int } from "@keplr-wallet/unit";
-import type { RouteResponse } from "@skip-router/core";
 import type { BaseWallet } from "@/networks";
 import SwapFormComponent from "./SwapFormComponent.vue";
 
-import { computed, inject, ref, watch } from "vue";
+import { computed, inject, onMounted, ref, watch, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { coin } from "@cosmjs/amino";
 import { useWalletStore } from "@/common/stores/wallet";
 import { GAS_FEES, NATIVE_ASSET } from "@/config/global";
-import { useApplicationStore } from "@/common/stores/application";
-import { SWAP_CURRENCIE } from "@/config/currencies";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 
 import {
+  AppUtils,
+  AssetUtils,
   EnvNetworkUtils,
   Logger,
   SkipRouter,
@@ -48,35 +47,29 @@ import {
 } from "@/common/utils";
 
 const wallet = useWalletStore();
-const app = useApplicationStore();
 const i18n = useI18n();
 const timeOut = 600;
 
 let time: NodeJS.Timeout;
-let route: RouteResponse;
+let route: IObjectKeys;
 const closeModal = inject("onModalClose", () => () => {});
+const blacklist = ref<string[]>([]);
 
 const balances = computed(() => {
-  const assets = [];
-
-  for (const key in app.currenciesData ?? {}) {
-    const currency = app.currenciesData![key];
-    const c = { ...currency };
-    const item = wallet.balances.find((item) => item.balance.denom == currency.ibcData);
-
-    if (item) {
-      c.balance = item!.balance;
-      assets.push(c);
-    }
-  }
-
+  const assets = wallet.balances
+    .map((item) => {
+      const currency = { ...AssetUtils.getCurrencyByDenom(item.balance.denom), balance: item.balance };
+      return currency;
+    })
+    .filter((item) => {
+      return !blacklist.value.includes(item.ibcData);
+    });
   return assets;
 });
 
 const state = ref({
-  currentBalance: balances.value,
-  selectedCurrency: balances.value.find((item) => item.ticker == SWAP_CURRENCIE)!,
-  swapToSelectedCurrency: balances.value.find((item) => item.ticker == NATIVE_ASSET.ticker)!,
+  selectedCurrency: null as ExternalCurrency | null,
+  swapToSelectedCurrency: null as ExternalCurrency | null,
   amount: "",
   swapToAmount: "",
   receiverAddress: "",
@@ -88,49 +81,68 @@ const state = ref({
   disabled: false
 });
 
+onMounted(async () => {
+  try {
+    const config = await AppUtils.getSkipRouteConfig();
+    blacklist.value = config.blacklist;
+    state.value.selectedCurrency = balances.value.find((item) => item.ibcData == config.swap_currency)!;
+    state.value.swapToSelectedCurrency = balances.value.find((item) => item.ibcData == config.swap_to_currency)!;
+    nextTick(() => {
+      state.value.errorMsg = "";
+    });
+  } catch (error) {
+    Logger.error(error);
+  }
+});
+
 function updateAmount(value: string) {
   state.value.amount = value;
   updateRoute();
 }
 
 async function setRoute(token: Coin, revert = false) {
-  clearTimeout(time);
+  if (state.value.selectedCurrency && state.value.swapToSelectedCurrency) {
+    clearTimeout(time);
 
-  time = setTimeout(async () => {
-    try {
-      state.value.loading = true;
-      if (revert) {
-        route = await SkipRouter.getRoute(
-          state.value.selectedCurrency.ibcData,
-          state.value.swapToSelectedCurrency.ibcData,
-          token.amount.toString(),
-          revert
-        );
-        state.value.amount = new Dec(route.amountIn, state.value.selectedCurrency.decimal_digits).toString(
-          state.value.selectedCurrency.decimal_digits
-        );
-      } else {
-        route = await SkipRouter.getRoute(
-          state.value.selectedCurrency.ibcData,
-          state.value.swapToSelectedCurrency.ibcData,
-          token.amount.toString(),
-          revert
-        );
+    time = setTimeout(async () => {
+      try {
+        state.value.loading = true;
+        if (revert) {
+          route = await SkipRouter.getRoute(
+            state.value.selectedCurrency!.ibcData,
+            state.value.swapToSelectedCurrency!.ibcData,
+            token.amount.toString(),
+            revert
+          );
+          state.value.amount = new Dec(route.amountIn, state.value.selectedCurrency!.decimal_digits).toString(
+            state.value.selectedCurrency!.decimal_digits
+          );
+        } else {
+          route = await SkipRouter.getRoute(
+            state.value.selectedCurrency!.ibcData,
+            state.value.swapToSelectedCurrency!.ibcData,
+            token.amount.toString(),
+            revert
+          );
 
-        state.value.swapToAmount = new Dec(route.amountOut, state.value.swapToSelectedCurrency.decimal_digits).toString(
-          state.value.swapToSelectedCurrency.decimal_digits
-        );
+          state.value.swapToAmount = new Dec(
+            route.amountOut,
+            state.value.swapToSelectedCurrency!.decimal_digits
+          ).toString(state.value.swapToSelectedCurrency!.decimal_digits);
+        }
+
+        const priceImpact = (Number(route.swapPriceImpactPercent ?? 0) * Number(route.usdAmountIn)) / 100;
+        state.value.priceImpactUsd = priceImpact.toLocaleString("us-US", {
+          maximumFractionDigits: 6
+        });
+      } catch (e) {
+        Logger.error(e);
+        state.value.errorMsg = (e as Error).toString();
+      } finally {
+        state.value.loading = false;
       }
-
-      const priceImpact = (Number(route.swapPriceImpactPercent) * Number(route.usdAmountOut)) / 100;
-      state.value.priceImpactUsd = priceImpact.toLocaleString("us-US");
-    } catch (e) {
-      Logger.error(e);
-      state.value.errorMsg = (e as Error).toString();
-    } finally {
-      state.value.loading = false;
-    }
-  }, timeOut);
+    }, timeOut);
+  }
 }
 
 function updateSwapToAmount(value: string) {
@@ -138,8 +150,8 @@ function updateSwapToAmount(value: string) {
 
   const token = CurrencyUtils.convertDenomToMinimalDenom(
     state.value.swapToAmount,
-    state.value.swapToSelectedCurrency.ibcData,
-    state.value.swapToSelectedCurrency.decimal_digits
+    state.value.swapToSelectedCurrency!.ibcData,
+    state.value.swapToSelectedCurrency!.decimal_digits
   );
   if (token.amount.gt(new Int(0))) {
     setRoute(token, true);
@@ -159,8 +171,8 @@ function updateSwapToSelected(value: ExternalCurrency) {
 function updateRoute() {
   const token = CurrencyUtils.convertDenomToMinimalDenom(
     state.value.amount,
-    state.value.selectedCurrency.ibcData,
-    state.value.selectedCurrency.decimal_digits
+    state.value.selectedCurrency!.ibcData,
+    state.value.selectedCurrency!.decimal_digits
   );
   if (token.amount.gt(new Int(0))) {
     setRoute(token, false);
@@ -178,17 +190,17 @@ function onSwapClick() {
 function validateInputs() {
   state.value.errorMsg = validateAmount(
     state.value.amount,
-    state.value.selectedCurrency.balance.denom,
-    Number(state.value.selectedCurrency.balance.amount)
+    state.value.selectedCurrency!.balance.denom,
+    Number(state.value.selectedCurrency!.balance.amount)
   );
 
-  if (state.value.selectedCurrency.balance.denom === state.value.swapToSelectedCurrency.balance.denom) {
+  if (state.value.selectedCurrency!.balance.denom === state.value.swapToSelectedCurrency!.balance.denom) {
     state.value.errorMsg = i18n.t("message.swap-same-error");
   }
 }
 
 watch(
-  () => [state.value.amount, state.value.selectedCurrency],
+  () => [state.value.amount, state.value.selectedCurrency, state.value.swapToSelectedCurrency],
   () => {
     validateInputs();
   }
@@ -264,6 +276,11 @@ function onChangeFields() {
   const swapToSelectedCurrency = state.value.swapToSelectedCurrency;
   state.value.amount = state.value.swapToAmount;
   state.value.selectedCurrency = swapToSelectedCurrency;
+  if (state.value.amount.length == 0) {
+    nextTick(() => {
+      state.value.errorMsg = "";
+    });
+  }
   state.value.swapToSelectedCurrency = selected;
   state.value.swapToAmount = "";
   updateRoute();

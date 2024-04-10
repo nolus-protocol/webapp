@@ -89,7 +89,7 @@
                 :value="amount"
                 :name="$t('message.amount')"
                 :label="$t('message.amount-receive')"
-                :total="total"
+                :total="new KeplrCoin(selectedCurrency.balance.denom, selectedCurrency.balance.amount)"
                 :balance="formatCurrentBalance(selectedCurrency)"
                 @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
                 @input="handleAmountChange($event)"
@@ -316,7 +316,6 @@ async function onUpdateNetwork(event: Network) {
         filteredAssets[key] = assets[key];
       }
     }
-
     for (const key in filteredAssets) {
       const fn = () => {
         let k = filteredAssets[key].key!;
@@ -656,11 +655,4 @@ function formatCurrentBalance(selectedCurrency: AssetBalance | undefined) {
     }
   }
 }
-
-const total = computed(() => {
-  if (selectedCurrency.value) {
-    return new KeplrCoin(selectedCurrency.value.balance.denom, selectedCurrency.value.balance.amount);
-  }
-  return undefined;
-});
 </script>

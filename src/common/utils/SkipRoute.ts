@@ -1,9 +1,14 @@
-import { SkipRouter as SkipRouterLib, SKIP_API_URL, type RouteRequest, type RouteResponse } from "@skip-router/core";
+import {
+  SkipRouter as SkipRouterLib,
+  SKIP_API_URL,
+  type RouteRequest,
+  affiliateFromJSON,
+  type MsgsDirectRequest
+} from "@skip-router/core";
 import { AppUtils, walletOperation } from ".";
 import { useWalletStore } from "../stores/wallet";
-import type { IObjectKeys } from "../types";
+import type { IObjectKeys, SkipRouteConfigType } from "../types";
 import type { OfflineSigner } from "@cosmjs/proto-signing";
-import { SLIPPAGE } from "@/config/global/swap";
 
 class Swap extends SkipRouterLib {
   signer: OfflineSigner | null;
@@ -54,17 +59,15 @@ export class SkipRouter {
   }
 
   static async getRoute(sourceDenom: string, destDenom: string, amount: string, revert: boolean = false) {
-    const client = await SkipRouter.getClient();
+    const [client, config] = await Promise.all([SkipRouter.getClient(), AppUtils.getSkipRouteConfig()]);
 
     const request: IObjectKeys = {
       sourceAssetDenom: sourceDenom,
       sourceAssetChainID: SkipRouter.chainID,
       destAssetDenom: destDenom,
       destAssetChainID: SkipRouter.chainID,
-      allowMultiTx: true,
-      allowUnsafe: true,
-      experimentalFeatures: ["cctp", "hyperlane"],
-      rapidRelay: true
+      allowMultiTx: false,
+      cumulativeAffiliateFeeBPS: config.fee.toString()
     };
 
     if (revert) {
@@ -73,31 +76,47 @@ export class SkipRouter {
       request.amountIn = amount;
     }
 
-    return client.route(request as RouteRequest);
+    const route: IObjectKeys = await client.route(request as RouteRequest);
+    route.revert = true;
 
-    // const gasCalc = 200000n;
-    // const gas = await client.getRecommendedGasPrice("pirin-1");
-    // const pow = 10n ** BigInt(gas?.amount.fractionalDigits ?? 1);
-    // const gasPrice = (BigInt(gas?.amount?.atomics ?? 0n) * gasCalc) / pow;
-    // console.log(gasPrice, pow);
-
-    // await client.executeRoute({
-    //   route,
-    //   userAddresses: USER_ADDRESSES,
-    //   onTransactionCompleted: async (tx) => {
-    //     console.log(tx);
-    //   }
-    // });
+    return route;
   }
 
-  static async submitRoute(route: RouteResponse, userAddresses: Record<string, string>) {
-    const client = await SkipRouter.getClient();
+  static async submitRoute(route: IObjectKeys, userAddresses: Record<string, string>) {
+    const [client, config] = await Promise.all([SkipRouter.getClient(), AppUtils.getSkipRouteConfig()]);
     return new Promise(async (resolve, reject) => {
       try {
+        const affiliateAddress = config[route.swapVenue.name as keyof typeof config] as string;
+        const affiliate = affiliateFromJSON({
+          address: affiliateAddress,
+          basis_points_fee: config.fee.toString()
+        });
+
+        const request: IObjectKeys = {
+          sourceAssetDenom: route.sourceAssetDenom,
+          sourceAssetChainID: route.sourceAssetChainID,
+          destAssetDenom: route.destAssetDenom,
+          destAssetChainID: route.destAssetChainID,
+          swapVenue: route.swapVenue,
+          timeoutSeconds: config.timeoutSeconds,
+          slippageTolerancePercent: config.slippage.toString(),
+          chainIdsToAddresses: userAddresses,
+          affiliates: [affiliate]
+        };
+
+        if (route.revert) {
+          request.amountOut = route.amountOut;
+        } else {
+          request.amountIn = route.amountIn;
+        }
+
+        const response = await client.msgsDirect(request as MsgsDirectRequest);
+
         await client.executeRoute({
-          route,
+          route: response.route,
           userAddresses,
-          slippageTolerancePercent: SLIPPAGE.toString(),
+          gasAmountMultiplier: config.gas_multiplier,
+          slippageTolerancePercent: config.slippage.toString(),
           onTransactionCompleted: async (tx) => {
             resolve(tx);
           }

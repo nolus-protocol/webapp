@@ -33,7 +33,7 @@ import { Dec, Int } from "@keplr-wallet/unit";
 
 import { CONFIRM_STEP, type ExternalCurrency, type IObjectKeys } from "@/common/types";
 import { TxType } from "@/common/types";
-import { Logger, getMicroAmount, walletOperation } from "@/common/utils";
+import { AssetUtils, Logger, getMicroAmount, walletOperation } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
@@ -66,19 +66,10 @@ const walletRef = storeToRefs(walletStore);
 const i18n = useI18n();
 
 const balances = computed(() => {
-  const assets = [];
-
-  for (const key in app.currenciesData ?? {}) {
-    const currency = app.currenciesData![key];
-    const c = { ...currency };
-    const item = walletStore.balances.find((item) => item.balance.denom == currency.ibcData);
-
-    if (item) {
-      c.balance = item!.balance;
-      assets.push(c);
-    }
-  }
-
+  const assets = walletStore.balances.map((item) => {
+    const currency = { ...AssetUtils.getCurrencyByDenom(item.balance.denom), balance: item.balance };
+    return currency;
+  });
   return assets;
 });
 

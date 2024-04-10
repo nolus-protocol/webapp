@@ -18,7 +18,8 @@ import {
   SUPPORTED_NETWORKS,
   NATIVE_NETWORK,
   NATIVE_ASSET,
-  NetworksConfig
+  NetworksConfig,
+  ProtocolsConfig
 } from "@/config/global";
 
 export class AssetUtils {
@@ -50,8 +51,10 @@ export class AssetUtils {
     ticker = CurrencyDemapping[ticker]?.ticker ?? ticker;
     const application = useApplicationStore();
     for (const key in application.currenciesData) {
-      const [t, _pr] = application.currenciesData[key].key.split("@");
-      if (t == ticker) {
+      const [t, p] = key.split("@");
+      const currencies = ProtocolsConfig[p].currencies;
+
+      if (t == ticker && currencies.includes(t)) {
         return application.currenciesData[key];
       }
     }
@@ -62,7 +65,10 @@ export class AssetUtils {
   public static getCurrencyBySymbol(symbol: string) {
     const application = useApplicationStore();
     for (const key in application.currenciesData) {
-      if (application.currenciesData[key].symbol == symbol) {
+      const [t, p] = key.split("@");
+      const currencies = ProtocolsConfig[p].currencies;
+
+      if (application.currenciesData[key].symbol == symbol && currencies.includes(t)) {
         return application.currenciesData[key];
       }
     }
@@ -73,7 +79,9 @@ export class AssetUtils {
   public static getCurrencyByDenom(denom: string) {
     const application = useApplicationStore();
     for (const key in application.currenciesData) {
-      if (denom == application.currenciesData[key].ibcData) {
+      const [t, p] = key.split("@");
+      const currencies = ProtocolsConfig[p].currencies;
+      if (denom == application.currenciesData[key].ibcData && currencies.includes(t)) {
         return application.currenciesData[key];
       }
     }

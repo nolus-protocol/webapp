@@ -130,7 +130,7 @@ import RangeComponent from "@/common/components/RangeComponent.vue";
 import type { LeaseComponentProps } from "./types/LeaseComponentProps";
 import type { ExternalCurrency } from "@/common/types";
 
-import { onMounted, ref, type PropType } from "vue";
+import { nextTick, onMounted, ref, type PropType } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { computed, watch } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -158,7 +158,17 @@ const swapFee = ref(0);
 
 onMounted(() => {
   if (props.modelValue.dialogSelectedCurrency) {
-    props.modelValue.selectedCurrency = app.currenciesData![props.modelValue.dialogSelectedCurrency];
+    const [ticker, protocol] = props.modelValue.dialogSelectedCurrency.split("@");
+    for (const balance of balances.value) {
+      const [t, p] = balance.key.split("@");
+      if (p == protocol) {
+        props.modelValue.selectedDownPaymentCurrency = balance;
+        break;
+      }
+    }
+    nextTick(() => {
+      props.modelValue.selectedCurrency = app.currenciesData![props.modelValue.dialogSelectedCurrency!];
+    });
   }
 
   setSwapFee();
@@ -197,18 +207,10 @@ const setSwapFee = async () => {
 };
 
 const totalBalances = computed(() => {
-  const assets = [];
-
-  for (const key in app.currenciesData ?? {}) {
-    const currency = app.currenciesData![key];
-    const c = { ...currency };
-    const item = wallet.balances.find((item) => item.balance.denom == currency.ibcData);
-    if (item) {
-      c.balance = item!.balance;
-      assets.push(c);
-    }
-  }
-
+  const assets = wallet.balances.map((item) => {
+    const currency = { ...AssetUtils.getCurrencyByDenom(item.balance.denom), balance: item.balance };
+    return currency;
+  });
   return assets;
 });
 
@@ -412,15 +414,15 @@ const borrowed = computed(() => {
     const ticker = CurrencyDemapping[borrow?.ticker!]?.ticker ?? borrow?.ticker;
     const protocol = AssetUtils.getProtocolByContract(props.modelValue.contractAddress);
     const info = app.currenciesData![`${ticker}@${protocol}`];
-
-    const token = CurrencyUtils.convertMinimalDenomToDenom(
-      borrow.amount,
-      info.ibcData,
-      info.symbol,
-      info.decimal_digits
-    );
-
-    return token.hideDenom(true).toString();
+    if (info) {
+      const token = CurrencyUtils.convertMinimalDenomToDenom(
+        borrow.amount,
+        info.ibcData,
+        info.symbol,
+        info.decimal_digits
+      );
+      return token.hideDenom(true).toString();
+    }
   }
 
   return "0";

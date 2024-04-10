@@ -178,6 +178,11 @@ body.sync {
 
 		button.arrow-box {
 			color: white;
+			border-color: #2B384B;
+		}
+
+		.separator{
+			background-color: #2B384B;
 		}
 
 		.currency-field-container {
@@ -197,10 +202,16 @@ body.sync {
 }
 
 body.dark {
+
+	.separator{
+		background-color: #2B384B;
+	}
+
 	.currency-field-container {
 
 		button.arrow-box {
 			color: white;
+			border-color: #2B384B;
 		}
 		
 		.currency-field {

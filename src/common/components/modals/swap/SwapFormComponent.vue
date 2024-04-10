@@ -18,14 +18,14 @@
         :isError="errorMsg.length > 0"
         :errorMsg="errorMsg"
         :disabled="disabled"
-        :isLoading="loading"
+        :isLoading="false"
         @updateCurrency="(value) => $emit('updateSelected', value)"
         @updateSwapToCurrency="(value) => $emit('updateSwapToSelected', value)"
         @updateAmount="(value) => $emit('updateAmount', value)"
         @updateSwapToAmount="(value) => $emit('updateSwapToAmount', value)"
         @changeFields="$emit('changeFields')"
       />
-      <p class="mt-2 text-right text-xs text-light-blue">{{ $t("message.slippage") }} {{ SLIPPAGE }}%</p>
+      <p class="mt-2 text-right text-xs text-light-blue">{{ $t("message.slippage") }} {{ slippage }}%</p>
     </div>
     <div class="flex justify-end">
       <div class="grow-3 nls-font-500 dark-text text-right text-14">
@@ -72,12 +72,12 @@ import TooltipComponent from "@/common/components/TooltipComponent.vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { NATIVE_NETWORK } from "@/config/global";
 import { Dec } from "@keplr-wallet/unit";
-import { SLIPPAGE } from "@/config/global/swap";
-import { AssetUtils } from "@/common/utils";
+import { AppUtils, AssetUtils, Logger } from "@/common/utils";
+import { onMounted, ref } from "vue";
 
 interface Props {
-  selectedCurrency: ExternalCurrency;
-  swapToSelectedCurrency: ExternalCurrency;
+  selectedCurrency: ExternalCurrency | null;
+  swapToSelectedCurrency: ExternalCurrency | null;
   currentBalance: ExternalCurrency[];
   loading: boolean;
   disabled: boolean;
@@ -90,6 +90,7 @@ interface Props {
   fee: Coin;
 }
 
+const slippage = ref<number | null>(null);
 const props = defineProps<Props>();
 const emit = defineEmits([
   "updateSelected",
@@ -99,18 +100,30 @@ const emit = defineEmits([
   "changeFields"
 ]);
 
+onMounted(async () => {
+  try {
+    const config = await AppUtils.getSkipRouteConfig();
+    slippage.value = config.slippage;
+  } catch (error) {
+    Logger.error(error);
+  }
+});
+
 function setBalance() {
-  const asset = new Dec(props.selectedCurrency.balance.amount, props.selectedCurrency.decimal_digits);
-  emit("updateAmount", asset.toString(props.selectedCurrency.decimal_digits));
+  const asset = new Dec(props.selectedCurrency!.balance.amount, props.selectedCurrency!.decimal_digits);
+  emit("updateAmount", asset.toString(props.selectedCurrency!.decimal_digits));
 }
 
-function formatCurrentBalance(selectedCurrency: ExternalCurrency) {
-  return CurrencyUtils.convertMinimalDenomToDenom(
-    selectedCurrency.balance.amount.toString(),
-    selectedCurrency.balance.ibcData,
-    selectedCurrency.shortName,
-    selectedCurrency.decimal_digits
-  ).toString();
+function formatCurrentBalance(selectedCurrency: ExternalCurrency | null) {
+  if (selectedCurrency) {
+    return CurrencyUtils.convertMinimalDenomToDenom(
+      selectedCurrency.balance.amount.toString(),
+      selectedCurrency.balance.ibcData,
+      selectedCurrency.shortName,
+      selectedCurrency.decimal_digits
+    ).toString();
+  }
+  return "0.00";
 }
 
 function calculateFee(coin: Coin) {

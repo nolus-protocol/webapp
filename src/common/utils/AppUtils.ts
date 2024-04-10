@@ -1,8 +1,10 @@
-import type { API, ARCHIVE_NODE, Endpoint, Node, News } from "@/common/types";
+import type { API, ARCHIVE_NODE, Endpoint, Node, News, SkipRouteConfigType } from "@/common/types";
 
 import { connectComet } from "@cosmjs/tendermint-rpc";
 import { EnvNetworkUtils } from ".";
 import { CONTRACTS, DOWNPAYMENT_RANGE_DEV, NEWS_URL, NEWS_WALLETS_PATH } from "@/config/global";
+import { ChainConstants } from "@nolus/nolusjs";
+import { SKIPROUTE_CONFIG_URL } from "@/config/global/swap";
 
 import {
   DOWNPAYMENT_RANGE_URL,
@@ -13,7 +15,6 @@ import {
   NETWORKS,
   SWAP_FEE_URL
 } from "@/config/global";
-import { ChainConstants } from "@nolus/nolusjs";
 
 export class AppUtils {
   public static LANGUAGE = "language";
@@ -31,6 +32,7 @@ export class AppUtils {
   }>;
 
   static news: Promise<News>;
+  static skip_route_config: Promise<SkipRouteConfigType>;
 
   static swapFee: Promise<{
     [key: string]: number;
@@ -144,6 +146,16 @@ export class AppUtils {
     const news = AppUtils.fetchNews();
     this.news = news;
     return news;
+  }
+
+  static async getSkipRouteConfig() {
+    if (this.skip_route_config) {
+      return this.skip_route_config;
+    }
+
+    const skip_route_config = AppUtils.fetchSkipRoute();
+    this.skip_route_config = skip_route_config;
+    return skip_route_config;
   }
 
   static async getSingleNewAddresses(url = "") {
@@ -302,5 +314,11 @@ export class AppUtils {
     };
 
     return json;
+  }
+
+  private static async fetchSkipRoute(): Promise<SkipRouteConfigType> {
+    const url = await SKIPROUTE_CONFIG_URL;
+    const data = await fetch(url);
+    return data.json();
   }
 }

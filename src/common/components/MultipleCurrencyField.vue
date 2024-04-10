@@ -7,7 +7,7 @@
       <div class="flex items-center p-2.5 p-3.5">
         <div class="inline-block w-[135px]">
           <CurrencyPicker
-            :currencyOption="selectedOption"
+            :currencyOption="selectedOption!"
             :options="currencyOptions"
             :disabled="disabled || isLoading"
             :is-loading="isLoading"
@@ -46,7 +46,7 @@
       <div class="flex items-center p-2.5 p-3.5">
         <div class="inline-block w-[135px]">
           <CurrencyPicker
-            :currencyOption="swapToOption"
+            :currencyOption="swapToOption!"
             :options="currencyOptions"
             :disabled="disabled || isLoading"
             :is-loading="isLoading"
@@ -95,8 +95,8 @@ const oracle = useOracleStore();
 interface Props {
   currencyOptions: ExternalCurrency[];
   amount: string;
-  selectedOption: ExternalCurrency;
-  swapToOption: ExternalCurrency;
+  selectedOption: ExternalCurrency | null;
+  swapToOption: ExternalCurrency | null;
   swapToAmount: string;
   isError: boolean;
   errorMsg: string;
@@ -125,8 +125,8 @@ const numberValue = ref(props.amount);
 let numberSwapAmount = Number(props.swapToAmount);
 const numberSwapValue = ref(props.swapToAmount);
 
-const swapBalance = computed(() => calculateInputBalance(props.amount, props.selectedOption));
-const swapToBalance = computed(() => calculateInputBalance(props.swapToAmount, props.swapToOption));
+const swapBalance = computed(() => calculateInputBalance(props.amount, props.selectedOption!));
+const swapToBalance = computed(() => calculateInputBalance(props.swapToAmount, props.swapToOption!));
 
 function inputValue(event: KeyboardEvent) {
   const charCode = event.key;

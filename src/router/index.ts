@@ -15,7 +15,9 @@ import MainLayout from "@/modules/view.vue";
 
 const router = createRouter({
   scrollBehavior(to, from, savedPosition) {
-    return { top: 0, behavior: "instant" };
+    if (to.hash.length == 0 && from.hash.length == 0) {
+      return { top: 0, behavior: "instant" };
+    }
   },
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
