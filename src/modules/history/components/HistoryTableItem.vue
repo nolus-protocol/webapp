@@ -47,7 +47,6 @@
         </span>
         <span class="left-and-right nls-14 nls-font-400 his-gray">
           <template v-if="transaction.blockDate">
-            ?? transaction.height
             {{ getCreatedAtForHuman(transaction.blockDate) ?? transaction.height }}
           </template>
           <template v-else> - </template>
