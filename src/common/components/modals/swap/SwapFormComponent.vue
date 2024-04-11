@@ -25,10 +25,13 @@
         @updateSwapToAmount="(value) => $emit('updateSwapToAmount', value)"
         @changeFields="$emit('changeFields')"
       />
-      <p class="mt-2 text-right text-xs text-light-blue">{{ $t("message.slippage") }} {{ slippage }}%</p>
+      <!-- <p class="mt-2 text-right text-xs text-light-blue">{{ $t("message.slippage") }} {{ slippage }}%</p> -->
     </div>
-    <div class="flex justify-end">
+    <div class="mt-2 flex justify-end">
       <div class="grow-3 nls-font-500 dark-text text-right text-14">
+        <p class="mb-2 mr-5 mt-[14px]">
+          {{ $t("message.slippage") }}
+        </p>
         <p class="mb-2 mr-5 mt-[14px]">
           {{ $t("message.price-impact") }}
         </p>
@@ -37,14 +40,9 @@
         </p>
       </div>
       <div class="nls-font-700 text-right text-14">
-        <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">
-          {{ priceImpact }}%
-          <span class="nls-font-400 flex text-[#8396B1]">
-            &nbsp;(${{ priceImpactUsd }})
-            <TooltipComponent :content="$t('message.swap-tooltip')" />
-          </span>
-        </p>
-        <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">~{{ calculateFee(fee) }}</p>
+        <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">{{ slippage }}%</p>
+        <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">{{ priceImpact }}%</p>
+        <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">{{ swapFee }}</p>
       </div>
     </div>
   </div>
@@ -67,12 +65,11 @@
 import type { ExternalCurrency } from "@/common/types";
 import type { Coin } from "@cosmjs/amino";
 import MultipleCurrencyField from "@/common/components/MultipleCurrencyField.vue";
-import TooltipComponent from "@/common/components/TooltipComponent.vue";
 
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { NATIVE_NETWORK } from "@/config/global";
 import { Dec } from "@keplr-wallet/unit";
-import { AppUtils, AssetUtils, Logger } from "@/common/utils";
+import { AppUtils, Logger } from "@/common/utils";
 import { onMounted, ref } from "vue";
 
 interface Props {
@@ -84,10 +81,10 @@ interface Props {
   amount: string;
   swapToAmount: string;
   priceImpact: string;
-  priceImpactUsd: string;
   onSwapClick: () => void;
   errorMsg: string;
   fee: Coin;
+  swapFee: string;
 }
 
 const slippage = ref<number | null>(null);
@@ -124,16 +121,5 @@ function formatCurrentBalance(selectedCurrency: ExternalCurrency | null) {
     ).toString();
   }
   return "0.00";
-}
-
-function calculateFee(coin: Coin) {
-  const asset = AssetUtils.getCurrencyByDenom(coin.denom);
-
-  return CurrencyUtils.convertMinimalDenomToDenom(
-    coin.amount.toString(),
-    asset.ibcData,
-    asset.shortName,
-    asset.decimal_digits
-  ).trim(true);
 }
 </script>

@@ -3,22 +3,25 @@ import {
   SKIP_API_URL,
   type RouteRequest,
   affiliateFromJSON,
-  type MsgsDirectRequest
+  type MsgsRequest
 } from "@skip-router/core";
+
+import type { IObjectKeys } from "../types";
+
 import { AppUtils, walletOperation } from ".";
 import { useWalletStore } from "../stores/wallet";
-import type { IObjectKeys, SkipRouteConfigType } from "../types";
-import type { OfflineSigner } from "@cosmjs/proto-signing";
+import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
+import { toUtf8 } from "@cosmjs/encoding";
+import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
+
+enum Messages {
+  "/ibc.applications.transfer.v1.MsgTransfer" = "/ibc.applications.transfer.v1.MsgTransfer",
+  "/cosmwasm.wasm.v1.MsgExecuteContract" = "/cosmwasm.wasm.v1.MsgExecuteContract"
+}
 
 class Swap extends SkipRouterLib {
-  signer: OfflineSigner | null;
-  constructor(data: {
-    apiURL: string;
-    signer: OfflineSigner;
-    getCosmosSigner: (chainID: string) => Promise<OfflineSigner>;
-  }) {
+  constructor(data: { apiURL: string }) {
     super(data);
-    this.signer = data.signer;
   }
 }
 
@@ -27,27 +30,13 @@ export class SkipRouter {
   private static chainID: string;
 
   static async getClient(): Promise<Swap> {
-    const wallet = useWalletStore();
-    const signer = wallet.wallet?.getOfflineSigner();
-
-    if (SkipRouter.client && SkipRouter.client.signer && signer != SkipRouter.client.signer) {
+    if (SkipRouter.client) {
       return SkipRouter.client;
     }
 
     const [client, status] = await Promise.all([
-      new Promise((resolve) => {
-        walletOperation(async () => {
-          const signer = wallet.wallet?.getOfflineSigner();
-          const client = new Swap({
-            apiURL: SKIP_API_URL,
-            signer,
-            getCosmosSigner: async (chainID) => {
-              return signer;
-            }
-          });
-
-          return resolve(client);
-        });
+      new Swap({
+        apiURL: SKIP_API_URL
       }),
       SkipRouter.chainID ?? AppUtils.fetchNetworkStatus().then((status) => status.result.node_info.network)
     ]);
@@ -83,48 +72,99 @@ export class SkipRouter {
   }
 
   static async submitRoute(route: IObjectKeys, userAddresses: Record<string, string>) {
-    const [client, config] = await Promise.all([SkipRouter.getClient(), AppUtils.getSkipRouteConfig()]);
     return new Promise(async (resolve, reject) => {
       try {
-        const affiliateAddress = config[route.swapVenue.name as keyof typeof config] as string;
-        const affiliate = affiliateFromJSON({
-          address: affiliateAddress,
-          basis_points_fee: config.fee.toString()
-        });
-
-        const request: IObjectKeys = {
-          sourceAssetDenom: route.sourceAssetDenom,
-          sourceAssetChainID: route.sourceAssetChainID,
-          destAssetDenom: route.destAssetDenom,
-          destAssetChainID: route.destAssetChainID,
-          swapVenue: route.swapVenue,
-          timeoutSeconds: config.timeoutSeconds,
-          slippageTolerancePercent: config.slippage.toString(),
-          chainIdsToAddresses: userAddresses,
-          affiliates: [affiliate]
-        };
-
-        if (route.revert) {
-          request.amountOut = route.amountOut;
-        } else {
-          request.amountIn = route.amountIn;
-        }
-
-        const response = await client.msgsDirect(request as MsgsDirectRequest);
-
-        await client.executeRoute({
-          route: response.route,
-          userAddresses,
-          gasAmountMultiplier: config.gas_multiplier,
-          slippageTolerancePercent: config.slippage.toString(),
-          onTransactionCompleted: async (tx) => {
-            resolve(tx);
+        await walletOperation(async () => {
+          try {
+            await SkipRouter.transaction(route, userAddresses);
+            resolve(true);
+          } catch (error) {
+            reject(error);
           }
         });
       } catch (error) {
         reject(error);
       }
     });
+  }
+
+  private static async transaction(route: IObjectKeys, userAddresses: Record<string, string>) {
+    try {
+      const [client, config] = await Promise.all([SkipRouter.getClient(), AppUtils.getSkipRouteConfig()]);
+      const affiliateAddress = config[route.swapVenue.name as keyof typeof config] as string;
+      const affiliate = affiliateFromJSON({
+        address: affiliateAddress,
+        basis_points_fee: config.fee.toString()
+      });
+      const wallet = useWalletStore();
+      const addressList = [];
+
+      for (const id of route.chainIDs) {
+        addressList.push(userAddresses[id]);
+      }
+
+      const request: IObjectKeys = {
+        sourceAssetChainID: route.sourceAssetChainID,
+        destAssetChainID: route.destAssetChainID,
+        swapVenue: route.swapVenue,
+        timeoutSeconds: config.timeoutSeconds,
+        operations: route.operations,
+        slippageTolerancePercent: config.slippage.toString(),
+        addressList: addressList,
+        affiliates: [affiliate]
+      };
+
+      if (route.revert) {
+        request.amountIn = route.amountIn;
+        request.amountOut = route.amountOut;
+        request.sourceAssetDenom = route.sourceAssetDenom;
+        request.destAssetDenom = route.destAssetDenom;
+      } else {
+        request.amountIn = route.amountOut;
+        request.amountOut = route.amountIn;
+        request.sourceAssetDenom = route.sourceAssetDenom;
+        request.destAssetDenom = route.destAssetDenom;
+      }
+
+      const response = await client.messages(request as MsgsRequest);
+
+      const msg = (response.txs[0] as IObjectKeys).cosmosTx.msgs[0];
+      const msgJSON = JSON.parse(msg.msg);
+      const message = SkipRouter.getTx(msg, msgJSON);
+
+      const tx = await wallet.wallet.simulateTx(message, msg.msgTypeURL, "");
+      const data = await wallet.wallet.broadcastTx(tx.txBytes as Uint8Array);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  private static getTx(msg: IObjectKeys, msgJSON: IObjectKeys) {
+    switch (msg.msgTypeURL) {
+      case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
+        return MsgTransfer.fromPartial({
+          sourcePort: msgJSON.source_port,
+          sourceChannel: msgJSON.source_channel,
+          sender: msgJSON.sender,
+          receiver: msgJSON.receiver,
+          token: msgJSON.token,
+          timeoutHeight: undefined,
+          timeoutTimestamp: msgJSON.timeout_timestamp,
+          memo: msgJSON.memo
+        });
+      }
+      case Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]: {
+        return MsgExecuteContract.fromPartial({
+          sender: msgJSON.sender,
+          contract: msgJSON.contract,
+          msg: toUtf8(JSON.stringify(msgJSON.msg)),
+          funds: msgJSON.funds
+        });
+      }
+      default: {
+        throw new Error("Action not supported");
+      }
+    }
   }
 
   static async getChains() {

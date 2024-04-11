@@ -9,9 +9,9 @@
     :loading="state.loading"
     :disabled="state.disabled"
     :fee="state.fee"
-    :priceImpactUsd="state.priceImpactUsd"
     :priceImpact="route?.swapPriceImpactPercent ?? '0'"
     :onSwapClick="onSwapClick"
+    :swapFee="state.swapFee"
     @updateSelected="updateSelected"
     @updateAmount="updateAmount"
     @updateSwapToSelected="updateSwapToSelected"
@@ -75,10 +75,10 @@ const state = ref({
   receiverAddress: "",
   errorMsg: "",
   txHash: "",
-  priceImpactUsd: "0.00",
   fee: coin(GAS_FEES.swap_amount, NATIVE_ASSET.denom),
   loading: false,
-  disabled: false
+  disabled: false,
+  swapFee: ""
 });
 
 onMounted(async () => {
@@ -87,6 +87,7 @@ onMounted(async () => {
     blacklist.value = config.blacklist;
     state.value.selectedCurrency = balances.value.find((item) => item.ibcData == config.swap_currency)!;
     state.value.swapToSelectedCurrency = balances.value.find((item) => item.ibcData == config.swap_to_currency)!;
+    setSwapFee();
     nextTick(() => {
       state.value.errorMsg = "";
     });
@@ -130,11 +131,7 @@ async function setRoute(token: Coin, revert = false) {
             state.value.swapToSelectedCurrency!.decimal_digits
           ).toString(state.value.swapToSelectedCurrency!.decimal_digits);
         }
-
-        const priceImpact = (Number(route.swapPriceImpactPercent ?? 0) * Number(route.usdAmountIn)) / 100;
-        state.value.priceImpactUsd = priceImpact.toLocaleString("us-US", {
-          maximumFractionDigits: 6
-        });
+        setSwapFee();
       } catch (e) {
         Logger.error(e);
         state.value.errorMsg = (e as Error).toString();
@@ -284,5 +281,26 @@ function onChangeFields() {
   state.value.swapToSelectedCurrency = selected;
   state.value.swapToAmount = "";
   updateRoute();
+}
+
+async function setSwapFee() {
+  const amount = state.value.swapToAmount;
+  const asset = state.value.swapToSelectedCurrency;
+
+  if (asset) {
+    const config = await AppUtils.getSkipRouteConfig();
+    const amountString = amount.length > 0 ? amount : "0";
+    const fee = new Dec(config.fee).quo(new Dec(1000)).mul(new Dec(amountString, asset.decimal_digits));
+    const coin = CurrencyUtils.convertDenomToMinimalDenom(fee.toString(), asset.ibcData, asset.decimal_digits);
+
+    state.value.swapFee = CurrencyUtils.convertMinimalDenomToDenom(
+      coin.amount.toString(),
+      asset.ibcData,
+      asset.shortName,
+      asset.decimal_digits
+    )
+      .trim(true)
+      .toString();
+  }
 }
 </script>
