@@ -11,8 +11,6 @@ import type { IObjectKeys } from "../types";
 import { AppUtils, walletOperation } from ".";
 import { useWalletStore } from "../stores/wallet";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
-import { toUtf8 } from "@cosmjs/encoding";
-import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 
 enum Messages {
   "/ibc.applications.transfer.v1.MsgTransfer" = "/ibc.applications.transfer.v1.MsgTransfer",
@@ -153,14 +151,14 @@ export class SkipRouter {
           memo: msgJSON.memo
         });
       }
-      case Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]: {
-        return MsgExecuteContract.fromPartial({
-          sender: msgJSON.sender,
-          contract: msgJSON.contract,
-          msg: toUtf8(JSON.stringify(msgJSON.msg)),
-          funds: msgJSON.funds
-        });
-      }
+      // case Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]: {
+      //   return MsgExecuteContract.fromPartial({
+      //     sender: msgJSON.sender,
+      //     contract: msgJSON.contract,
+      //     msg: toUtf8(JSON.stringify(msgJSON.msg)),
+      //     funds: msgJSON.funds
+      //   });
+      // }
       default: {
         throw new Error("Action not supported");
       }
