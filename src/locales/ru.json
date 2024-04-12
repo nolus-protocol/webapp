@@ -53,7 +53,7 @@
     "ledger": "Леджер",
     "try-again": "Повторите попытку",
     "cancel": "Отменить",
-    "error-connecting": "Ошибка подключения",
+    "error-connecting": "Error connecting",
     "swap-same-error": "Невозможно обменять на ту же валюту",
     "tx-hash": "Хэш транзакции",
     "tx-and-fee": "Комиссия",

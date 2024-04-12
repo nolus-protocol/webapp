@@ -53,7 +53,7 @@
     "ledger": "Ledger",
     "try-again": "Intentar de nuevo",
     "cancel": "Cancelar",
-    "error-connecting": "Error conectando",
+    "error-connecting": "Error connecting",
     "swap-same-error": "No se puede cambiar a la misma moneda",
     "tx-hash": "Hash de transmisión",
     "tx-and-fee": "Tarifa",
