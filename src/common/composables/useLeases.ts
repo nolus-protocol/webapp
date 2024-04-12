@@ -1,6 +1,6 @@
 import type { LeaseData } from "@/common/types";
 import type { Coin } from "@cosmjs/proto-signing";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 import { Lease, Leaser, type LeaserConfig, type LeaseStatus } from "@nolus/nolusjs/build/contracts";
@@ -21,6 +21,7 @@ export function useLeases(onError: (error: unknown) => void) {
   const getLeases = async () => {
     try {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+
       const admin = useAdminStore();
       const promises: Promise<
         | {
@@ -32,7 +33,6 @@ export function useLeases(onError: (error: unknown) => void) {
       >[] = [];
       const protocolPromises = [];
       const paginate = 50;
-
       for (const protocolKey in admin.contracts) {
         const fn = async () => {
           const protocol = admin.contracts![protocolKey];
@@ -81,8 +81,19 @@ export function useLeases(onError: (error: unknown) => void) {
   onMounted(async () => {
     if (wallet.wallet) {
       await getLeases();
+    } else {
+      leaseLoaded.value = true;
     }
   });
+
+  watch(
+    () => wallet.wallet,
+    async () => {
+      if (wallet.wallet) {
+        await getLeases();
+      }
+    }
+  );
 
   return { leases, leaseLoaded, getLeases };
 }
