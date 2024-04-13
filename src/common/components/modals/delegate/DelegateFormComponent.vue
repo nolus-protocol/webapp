@@ -8,6 +8,7 @@
       <div class="mt-[25px] block text-left">
         <CurrencyField
           id="amountSupply"
+          :disabled-currency-picker="true"
           :currency-options="modelValue.currentBalance"
           :error-msg="modelValue.amountErrorMsg"
           :is-error="modelValue.amountErrorMsg !== ''"

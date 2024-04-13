@@ -6,6 +6,7 @@
     <div class="modal-send-receive-input-area">
       <div class="mt-[25px] block text-left">
         <CurrencyField
+          :disabled-currency-picker="true"
           id="amountSupply"
           :currency-options="modelValue.currentBalance"
           :error-msg="modelValue.amountErrorMsg"
