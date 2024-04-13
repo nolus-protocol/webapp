@@ -5,10 +5,10 @@
     :routes="routes"
   >
     <template #tab-1>
-      <DelegateMainComponent />
+      <DelegateMainComponent :selectedAsset="selectedAsset" />
     </template>
     <template #tab-2>
-      <UndelegateMainComponent />
+      <UndelegateMainComponent :selectedAsset="selectedAsset" />
     </template>
   </DialogHeader>
 </template>
@@ -21,6 +21,9 @@ import DialogHeader from "./templates/DialogHeader.vue";
 const routes = ["delegate", "undelegate"];
 
 const props = defineProps({
+  selectedAsset: {
+    type: String
+  },
   route: {
     type: String
   }

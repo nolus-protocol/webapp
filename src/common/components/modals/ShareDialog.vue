@@ -274,7 +274,7 @@ function share() {
 
       await navigator.share(shareData);
     } catch (error) {
-      Logger.error(error);
+      console.error(error);
     }
   }, "image/png");
 }

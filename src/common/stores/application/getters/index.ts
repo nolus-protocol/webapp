@@ -1,1 +1,5 @@
-export const getters = {};
+import { getCurrencySymbol } from "./getCurrencySymbol";
+
+export const getters = {
+  getCurrencySymbol
+};

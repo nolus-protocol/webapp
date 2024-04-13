@@ -6,7 +6,6 @@
     <div class="modal-send-receive-input-area">
       <div class="mt-[25px] block text-left">
         <CurrencyField
-          :disabled-currency-picker="true"
           id="amountSupply"
           :currency-options="modelValue.currentBalance"
           :error-msg="modelValue.amountErrorMsg"
@@ -54,7 +53,7 @@
           :key="i"
         >
           <p>{{ $t("message.undelegating") }}: {{ transform(data.balance) }}</p>
-          <p>{{ datePraser(data.completion_time, true) }}</p>
+          <p>{{ datePraser(data.completion_time) }}</p>
         </div>
       </template>
     </div>
@@ -68,6 +67,8 @@ import WarningBox from "../templates/WarningBox.vue";
 import type { UndelegateFormComponentProps } from "./types";
 import type { PropType } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
+import { useWalletStore } from "@/common/stores/wallet";
+import { NATIVE_ASSET } from "@/config/global";
 import { datePraser } from "@/common/utils";
 
 const props = defineProps({
@@ -77,26 +78,26 @@ const props = defineProps({
   }
 });
 
+const walletStore = useWalletStore();
+
 defineEmits(["update:modelValue.selectedCurrency"]);
 
 function formatCurrentBalance() {
   if (props.modelValue.delegated) {
+    const asset = walletStore.getCurrencyInfo(props.modelValue.delegated.denom);
     return CurrencyUtils.convertMinimalDenomToDenom(
       props.modelValue.delegated.amount.toString(),
       props.modelValue.delegated.denom,
-      props.modelValue.selectedCurrency.shortName,
-      props.modelValue.selectedCurrency.decimal_digits
+      asset.shortName,
+      asset.coinDecimals
     ).toString();
   }
 }
 
 function transform(amount: string) {
-  return CurrencyUtils.convertMinimalDenomToDenom(
-    amount,
-    props.modelValue.selectedCurrency.ibcData,
-    props.modelValue.selectedCurrency.shortName,
-    props.modelValue.selectedCurrency.decimal_digits
-  )
+  const asset = walletStore.getCurrencyInfo(NATIVE_ASSET.denom);
+
+  return CurrencyUtils.convertMinimalDenomToDenom(amount, asset.coinMinimalDenom, asset.coinDenom, asset.coinDecimals)
     .hideDenom(true)
     .toString();
 }
