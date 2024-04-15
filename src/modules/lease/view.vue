@@ -8,12 +8,12 @@
         </h1>
       </div>
       <div class="right inline-flex w-full justify-start md:mt-0 md:w-1/2 md:justify-end">
-        <!-- <button
+        <button
           class="btn btn-primary btn-large-primary w-full md:w-auto"
           @click="showLeaseModal = true"
         >
           {{ $t("message.lease-new") }}
-        </button> -->
+        </button>
       </div>
     </div>
 

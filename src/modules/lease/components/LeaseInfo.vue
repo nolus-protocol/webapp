@@ -217,7 +217,7 @@
         >
           {{ $t("message.repay") }}
         </button>
-        <!-- <button
+        <button
           class="btn btn-primary btn-large-primary ml-[12px] mt-4 w-full md:mt-0 md:w-auto"
           v-if="leaseInfo.leaseStatus.opened"
           @click="showCloseModal = true"
@@ -225,7 +225,7 @@
           :class="{ 'js-loading': loadingClose }"
         >
           {{ $t("message.close") }}
-        </button> -->
+        </button>
       </div>
     </div>
   </div>
@@ -464,13 +464,13 @@
       class="border-standart flex flex-col items-center justify-between border-t-[0px] px-2 pt-4 md:flex-row md:border-t-[1px] md:px-6"
     >
       <div class="flex"></div>
-      <!-- <button
+      <button
         class="btn btn-secondary btn-large-secondary mt-4 w-full md:mt-0 md:w-auto"
         :class="{ 'js-loading': leaseInfo.leaseStatus?.paid?.in_progress }"
         @click="onShowClaimDialog"
       >
         {{ $t("message.collect") }}
-      </button> -->
+      </button>
     </div>
   </div>
   <Modal

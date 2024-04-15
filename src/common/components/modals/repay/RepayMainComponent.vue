@@ -99,7 +99,7 @@ const balances = computed(() => {
       return false;
     }
 
-    return lpns.includes(currency.ticker);
+    return lpns.includes(currency.ticker as string) || app.leasesCurrencies.includes(ticker);
   });
 });
 
