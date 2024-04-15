@@ -95,7 +95,6 @@
 
 	.separator {
 		display: block;
-		width: 100%;
 		height: 1px;
 		position: relative;
 		background-color: $borderColor;
@@ -105,18 +104,34 @@
 			margin: 0;
 		}
 
-		.arrow-box {
+		button.arrow-box {
 			display: inline-block;
 			position: absolute;
 			width: 34px;
 			height: 34px;
 			padding: 9px;
-			background-color: $white;
 			border-radius: $lightRounded;
 			border: 1px solid $grey;
 			top: 50%;
 			left: 50%;
 			transform: translate(-50%, -50%);
+
+			@media (max-width: $md) {
+				width: 28px !important;
+				transform: translateY(-45%) !important;
+
+			}
+
+			&:hover,
+			&:focus {
+			  border: 1px solid $lightBlue;
+			  box-shadow: 0px 12px 32px $shadowBoxColor;
+			}
+
+			&:active {
+				border: 1px solid $lightElectric;
+				color: $lightElectric;
+			  }
 		}
 	}
 
@@ -160,6 +175,16 @@
 
 body.sync {
 	@media (prefers-color-scheme: dark) {
+
+		button.arrow-box {
+			color: white;
+			border-color: #2B384B;
+		}
+
+		.separator{
+			background-color: #2B384B;
+		}
+
 		.currency-field-container {
 			.currency-field {
 				background-color: $dark-background;
@@ -177,7 +202,18 @@ body.sync {
 }
 
 body.dark {
+
+	.separator{
+		background-color: #2B384B;
+	}
+
 	.currency-field-container {
+
+		button.arrow-box {
+			color: white;
+			border-color: #2B384B;
+		}
+		
 		.currency-field {
 			background-color: $dark-background;
 			border: 1px solid $dark-line;

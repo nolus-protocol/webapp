@@ -11,8 +11,8 @@ class Logger {
       this.log = window.console.log.bind(window.console, "[LOG]: %s");
       this.info = window.console.log.bind(window.console, "\x1b[34m[INFO]: %s");
       this.warning = window.console.log.bind(window.console, "\x1b[33m[WARNING]: %s");
-      this.error = window.console.error.bind(window.console);
     }
+    this.error = window.console.error.bind(window.console);
   }
 }
 

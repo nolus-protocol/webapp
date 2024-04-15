@@ -80,8 +80,7 @@ import InputField from "@/common/components/InputField.vue";
 import CurrencyField from "@/common/components/CurrencyField.vue";
 
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { useWalletStore } from "@/common/stores/wallet";
-import { EnvNetworkUtils, WalletUtils } from "@/common/utils";
+import { AssetUtils, EnvNetworkUtils, WalletUtils } from "@/common/utils";
 import { computed, ref, onMounted } from "vue";
 import { NETWORKS_DATA } from "@/networks";
 import { useApplicationStore } from "@/common/stores/application";
@@ -129,10 +128,9 @@ const networks = computed(() => {
     }
     return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list.filter((item) => n.includes(item.key));
   }
+
   return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list;
 });
-
-const wallet = useWalletStore();
 
 defineEmits(["update:modelValue.selectedCurrency"]);
 
@@ -144,12 +142,12 @@ onMounted(() => {
 
 function formatCurrentBalance(selectedCurrency: AssetBalance) {
   if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
-    const asset = wallet.getCurrencyInfo(props.modelValue.selectedCurrency.balance.denom);
+    const asset = AssetUtils.getCurrencyByDenom(props.modelValue.selectedCurrency.balance.denom);
     return CurrencyUtils.convertMinimalDenomToDenom(
       selectedCurrency.balance.amount.toString(),
       selectedCurrency.balance.denom,
       asset.shortName,
-      asset.coinDecimals
+      asset.decimal_digits
     ).toString();
   }
 }

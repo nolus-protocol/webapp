@@ -99,6 +99,8 @@ export interface PickerOption {
   label: string;
   value: string;
   icon?: string;
+  ticker?: string;
+  key?: string;
 }
 
 const props = defineProps({

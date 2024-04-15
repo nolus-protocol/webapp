@@ -5,17 +5,9 @@ import { Int } from "@keplr-wallet/unit";
 import { fromBech32 } from "@cosmjs/encoding";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
-import { WalletManager } from ".";
-import { type NetworkData, type NetworkDataV2, WalletConnectMechanism } from "@/common/types";
+import { AssetUtils, Logger, WalletManager } from ".";
+import { type NetworkData, WalletConnectMechanism } from "@/common/types";
 import { authenticateKeplr, authenticateLeap, authenticateLedger, type BaseWallet, type Wallet } from "@/networks";
-
-import {
-  authenticateKeplr as authenticateKeplrV2,
-  authenticateLeap as authenticateLeapV2,
-  authenticateLedger as authenticateLedgerV2,
-  type BaseWallet as BaseWalletV2,
-  type Wallet as WalletV2
-} from "@/wallet";
 
 export const validateAddress = (address: string) => {
   if (!address || address.trim() == "") {
@@ -35,10 +27,9 @@ export const validateAmount = (amount: string, denom: string, balance: number) =
     return i18n.global.t("message.invalid-amount");
   }
 
-  const walletStore = useWalletStore();
-  const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(denom);
-  const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, coinMinimalDenom, coinDecimals);
-  const zero = CurrencyUtils.convertDenomToMinimalDenom("0", coinMinimalDenom, coinDecimals).amount.toDec();
+  const asset = AssetUtils.getCurrencyByDenom(denom);
+  const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, asset.ibcData, asset.decimal_digits);
+  const zero = CurrencyUtils.convertDenomToMinimalDenom("0", asset.ibcData, asset.decimal_digits).amount.toDec();
 
   const walletBalance = String(balance || 0);
   const isLowerThanOrEqualsToZero = minimalDenom.amount.toDec().lte(zero);
@@ -118,50 +109,11 @@ export const externalWallet = async (wallet: Wallet, networkData: NetworkData) =
   }
 };
 
-export const externalWalletV2 = async (wallet: WalletV2, networkData: NetworkDataV2) => {
-  switch (WalletManager.getWalletConnectMechanism()) {
-    case WalletConnectMechanism.KEPLR: {
-      return await authenticateKeplrV2(wallet, networkData);
-    }
-    case WalletConnectMechanism.LEAP: {
-      return await authenticateLeapV2(wallet, networkData);
-    }
-    case WalletConnectMechanism.LEDGER: {
-      return await authenticateLedgerV2(wallet, networkData);
-    }
-    case WalletConnectMechanism.LEDGER_BLUETOOTH: {
-      return await authenticateLedgerV2(wallet, networkData);
-    }
-  }
-};
-
-export const externalWalletOperationV2 = async (
-  operation: (wallet: BaseWalletV2) => void,
-  wallet: WalletV2,
-  networkData: NetworkDataV2
-) => {
-  switch (WalletManager.getWalletConnectMechanism()) {
-    case WalletConnectMechanism.KEPLR: {
-      return operation(await authenticateKeplrV2(wallet, networkData));
-    }
-    case WalletConnectMechanism.LEAP: {
-      return operation(await authenticateLeapV2(wallet, networkData));
-    }
-    case WalletConnectMechanism.LEDGER: {
-      return operation(await authenticateLedgerV2(wallet, networkData));
-    }
-    case WalletConnectMechanism.LEDGER_BLUETOOTH: {
-      return operation(await authenticateLedgerV2(wallet, networkData));
-    }
-  }
-};
-
 export const getMicroAmount = (denom: string, amount: string) => {
-  const walletStore = useWalletStore();
-  const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(denom);
-  const mAmount = CurrencyUtils.convertDenomToMinimalDenom(amount, coinMinimalDenom, coinDecimals);
+  const asset = AssetUtils.getCurrencyByDenom(denom);
+  const mAmount = CurrencyUtils.convertDenomToMinimalDenom(amount, asset.ibcData, asset.decimal_digits);
 
-  return { coinMinimalDenom, coinDecimals, mAmount };
+  return { coinMinimalDenom: asset.ibcData, coinDecimals: asset.decimal_digits, mAmount };
 };
 
 export const transferCurrency = async (denom: string, amount: string, receiverAddress: string, memo = "") => {
@@ -183,9 +135,8 @@ export const transferCurrency = async (denom: string, amount: string, receiverAd
     return result;
   }
 
-  const walletStore = useWalletStore();
-  const { coinMinimalDenom, coinDecimals } = walletStore.getCurrencyInfo(denom);
-  const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, coinMinimalDenom, coinDecimals);
+  const asset = AssetUtils.getCurrencyByDenom(denom);
+  const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, asset.ibcData, asset.decimal_digits);
 
   try {
     const funds: Coin[] = [
@@ -202,7 +153,7 @@ export const transferCurrency = async (denom: string, amount: string, receiverAd
     result.usedFee = usedFee;
     result.success = true;
   } catch (e) {
-    console.error("Transaction failed. ", e);
+    Logger.error("Transaction failed. ", e);
   }
 
   return result;
