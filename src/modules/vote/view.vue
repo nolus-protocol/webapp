@@ -61,6 +61,8 @@
       :try-button="onClickTryAgain"
     />
   </Modal>
+  <Button label="test" />
+  <Box label="test" />
 </template>
 
 <script lang="ts" setup>
@@ -75,6 +77,9 @@ import ProposalVoteDialog from "@/modules/vote/components/ProposalVoteDialog.vue
 import Modal from "@/common/components/modals/templates/Modal.vue";
 import ProposalSkeleton from "@/modules/vote/components/ProposalSkeleton.vue";
 import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
+
+import { Button } from "web-components";
+import Box from "web-components/dist/src/components/atoms/boxes/Boxes.vue";
 
 const LOAD_TIMEOUT = 500;
 const bondedTokens = ref(new Dec(0));
