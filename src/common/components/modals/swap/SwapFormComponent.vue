@@ -49,6 +49,7 @@
 
   <div class="modal-send-receive-actions flex flex-col">
     <button
+      :disabled="disableForm"
       :class="`btn btn-primary btn-large-primary text-center ${loading ? 'js-loading' : ''}`"
       @click="onSwapClick"
     >
@@ -85,6 +86,7 @@ interface Props {
   errorMsg: string;
   fee: Coin;
   swapFee: string;
+  disableForm: boolean;
 }
 
 const slippage = ref<number | null>(null);

@@ -1,5 +1,21 @@
 <template>
+  <ConfirmSwapComponent
+    v-if="showConfirmScreen"
+    :txType="$t(`message.${TxType.SWAP}`) + ':'"
+    :txHash="[state.txHash]"
+    :step="step"
+    :fee="state.fee"
+    :errorMsg="state.errorMsg"
+    :txs="route!.txsRequired"
+    :swap-amount="`${state.amount} ${state.selectedCurrency?.shortName}`"
+    :for-amount="`${state.swapToAmount} ${state.swapToSelectedCurrency?.shortName}`"
+    :onSendClick="onSendClick"
+    :onBackClick="onReset"
+    :onOkClick="() => closeModal()"
+  />
+
   <SwapFormComponent
+    v-else
     :selectedCurrency="state.selectedCurrency"
     :swapToSelectedCurrency="state.swapToSelectedCurrency"
     :currentBalance="balances"
@@ -12,6 +28,7 @@
     :priceImpact="route?.swapPriceImpactPercent ?? '0'"
     :onSwapClick="onSwapClick"
     :swapFee="state.swapFee"
+    :disableForm="state.disableForm"
     @updateSelected="updateSelected"
     @updateAmount="updateAmount"
     @updateSwapToSelected="updateSwapToSelected"
@@ -21,10 +38,11 @@
 </template>
 
 <script lang="ts" setup>
-import type { ExternalCurrency, IObjectKeys } from "@/common/types";
+import { TxType, type ExternalCurrency, type IObjectKeys, CONFIRM_STEP } from "@/common/types";
 import { Dec, type Coin, Int } from "@keplr-wallet/unit";
 import type { BaseWallet } from "@/networks";
 import SwapFormComponent from "./SwapFormComponent.vue";
+import ConfirmSwapComponent from "../templates/ConfirmSwapComponent.vue";
 
 import { computed, inject, onMounted, ref, watch, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
@@ -51,9 +69,12 @@ const i18n = useI18n();
 const timeOut = 600;
 
 let time: NodeJS.Timeout;
-let route: IObjectKeys;
+let route: IObjectKeys | null;
 const closeModal = inject("onModalClose", () => () => {});
 const blacklist = ref<string[]>([]);
+const showConfirmScreen = ref(false);
+const step = ref(CONFIRM_STEP.CONFIRM);
+const setShowDialogHeader = inject("setShowDialogHeader", (n: boolean) => {});
 
 const balances = computed(() => {
   const assets = wallet.balances
@@ -78,6 +99,7 @@ const state = ref({
   fee: coin(GAS_FEES.swap_amount, NATIVE_ASSET.denom),
   loading: false,
   disabled: false,
+  disableForm: false,
   swapFee: ""
 });
 
@@ -95,6 +117,18 @@ onMounted(async () => {
     Logger.error(error);
   }
 });
+
+function onReset() {
+  showConfirmScreen.value = false;
+  state.value.amount = "";
+  state.value.swapToAmount = "";
+  nextTick(() => {
+    state.value.errorMsg = "";
+  });
+  setShowDialogHeader(true);
+  step.value = CONFIRM_STEP.CONFIRM;
+  route = null;
+}
 
 function updateAmount(value: string) {
   state.value.amount = value;
@@ -132,7 +166,10 @@ async function setRoute(token: Coin, revert = false) {
           ).toString(state.value.swapToSelectedCurrency!.decimal_digits);
         }
         setSwapFee();
+        state.value.disableForm = false;
       } catch (e) {
+        route = null;
+        state.value.disableForm = true;
         Logger.error(e);
         state.value.errorMsg = (e as Error).toString();
       } finally {
@@ -158,11 +195,13 @@ function updateSwapToAmount(value: string) {
 function updateSelected(value: ExternalCurrency) {
   state.value.selectedCurrency = value;
   updateRoute();
+  checkError();
 }
 
 function updateSwapToSelected(value: ExternalCurrency) {
   state.value.swapToSelectedCurrency = value;
   updateRoute();
+  checkError();
 }
 
 function updateRoute() {
@@ -179,8 +218,8 @@ function updateRoute() {
 function onSwapClick() {
   validateInputs();
 
-  if (!state.value.errorMsg) {
-    onSwap();
+  if (!state.value.errorMsg && WalletUtils.isAuth() && route) {
+    showConfirmScreen.value = true;
   }
 }
 
@@ -204,19 +243,24 @@ watch(
 );
 
 async function onSwap() {
-  if (!WalletUtils.isAuth()) {
+  if (!WalletUtils.isAuth() || !route) {
     return false;
   }
+
   try {
+    step.value = CONFIRM_STEP.PENDING;
+
     await walletOperation(async () => {
       try {
         state.value.loading = true;
         state.value.disabled = true;
         const addresses = await getAddresses();
-        await SkipRouter.submitRoute(route, addresses);
+        await SkipRouter.submitRoute(route!, addresses);
         await wallet.UPDATE_BALANCES();
-        closeModal();
+        step.value = CONFIRM_STEP.SUCCESS;
       } catch (error) {
+        step.value = CONFIRM_STEP.ERROR;
+        state.value.errorMsg = (error as Error).toString();
         Logger.error(error);
       } finally {
         state.value.loading = false;
@@ -240,7 +284,7 @@ async function getAddresses() {
     if (item.chainID == native) {
       return false;
     }
-    return route.chainIDs.includes(item.chainID);
+    return route!.chainIDs.includes(item.chainID);
   });
 
   for (const chain of chains) {
@@ -271,16 +315,18 @@ async function getAddresses() {
 function onChangeFields() {
   const selected = state.value.selectedCurrency;
   const swapToSelectedCurrency = state.value.swapToSelectedCurrency;
-  state.value.amount = state.value.swapToAmount;
   state.value.selectedCurrency = swapToSelectedCurrency;
+  state.value.swapToSelectedCurrency = selected;
+  checkError();
+  updateRoute();
+}
+
+function checkError() {
   if (state.value.amount.length == 0) {
     nextTick(() => {
       state.value.errorMsg = "";
     });
   }
-  state.value.swapToSelectedCurrency = selected;
-  state.value.swapToAmount = "";
-  updateRoute();
 }
 
 async function setSwapFee() {
@@ -302,5 +348,9 @@ async function setSwapFee() {
       .trim(true)
       .toString();
   }
+}
+
+function onSendClick() {
+  onSwap();
 }
 </script>

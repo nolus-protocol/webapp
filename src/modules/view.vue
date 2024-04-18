@@ -231,7 +231,7 @@ function openDialog() {
   if (window.location.hash) {
     let action = `${window.location.pathname}${window.location.hash}`;
     let modal = modalOptions[action];
-    console.log(modal, action);
+
     if (!modal) {
       action = window.location.hash;
       modal = modalOptions[action];

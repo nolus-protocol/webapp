@@ -286,6 +286,12 @@
     "one_h_in": "1 hour",
     "many_h_in": "hours",
     "one_d_in": "day",
-    "estimated-tx-fee": "Nolus Swap Fee"
+    "estimated-tx-fee": "Nolus Swap Fee",
+    "swap-confirm-warning": "This route requires <strong>{txs}</strong> to complete",
+    "transaction": "transaction",
+    "transactions": "transactions",
+    "for": "For",
+    "swap-success": "Swap has been executed successfully",
+    "swap-again": "Swap Again"
   }
 }
