@@ -3,7 +3,7 @@ name: Deploy dev
 on:
   push:
     branches:
-      - main
+      - dev
 
 env:
   BUCKET_NAME: app-dev.nolus.io
