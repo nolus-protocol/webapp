@@ -10,7 +10,7 @@
         name="fade-long"
         tag="div"
       >
-        <ProposalItem
+        <ProposalItemWrapper
           v-for="proposal in proposals"
           :key="proposal.id"
           :bondedTokens="bondedTokens as Dec"
@@ -21,14 +21,15 @@
         />
       </TransitionGroup>
       <div class="mt-6 text-center lg:mt-8">
-        <button
+        <Button
           v-if="visible"
-          :class="{ 'js-loading': loading }"
-          class="btn btn-secondary btn-medium-secondary mx-auto"
+          :label="$t('message.load-more')"
+          :loading="loading"
+          class="mx-auto"
+          severity="secondary"
+          size="medium"
           @click="loadMoreProposals"
-        >
-          {{ $t("message.load-more") }}
-        </button>
+        />
       </div>
       <Modal
         v-if="showReadMoreModal"
@@ -61,8 +62,6 @@
       :try-button="onClickTryAgain"
     />
   </Modal>
-  <Button label="test" />
-  <Box label="test" />
 </template>
 
 <script lang="ts" setup>
@@ -71,7 +70,7 @@ import { computed, onMounted, onUnmounted, provide, ref } from "vue";
 import { AppUtils, Logger, WalletManager } from "@/common/utils";
 import { Dec } from "@keplr-wallet/unit";
 import { ChainConstants } from "@nolus/nolusjs";
-import ProposalItem from "@/modules/vote/components/ProposalItem.vue";
+import ProposalItemWrapper from "@/modules/vote/components/ProposalItemWrapper.vue";
 import ProposalReadMoreDialog from "@/modules/vote/components/ProposalReadMoreDialog.vue";
 import ProposalVoteDialog from "@/modules/vote/components/ProposalVoteDialog.vue";
 import Modal from "@/common/components/modals/templates/Modal.vue";
@@ -79,7 +78,6 @@ import ProposalSkeleton from "@/modules/vote/components/ProposalSkeleton.vue";
 import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
 
 import { Button } from "web-components";
-import Box from "web-components/dist/src/components/atoms/boxes/Boxes.vue";
 
 const LOAD_TIMEOUT = 500;
 const bondedTokens = ref(new Dec(0));
