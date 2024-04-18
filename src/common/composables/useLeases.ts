@@ -1,26 +1,27 @@
 import type { LeaseData } from "@/common/types";
 import type { Coin } from "@cosmjs/proto-signing";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 import { Lease, Leaser, type LeaserConfig, type LeaseStatus } from "@nolus/nolusjs/build/contracts";
-import { WalletManager, AppUtils, Logger, LeaseUtils } from "@/common/utils";
+import { AppUtils, Logger, LeaseUtils, AssetUtils, WalletManager } from "@/common/utils";
 import { IGNORE_LEASES, INTEREST_DECIMALS, MONTHS, NATIVE_ASSET, PERCENT, PERMILLE } from "@/config/global";
 import { useAdminStore } from "@/common/stores/admin";
+import { CurrencyDemapping } from "@/config/currencies";
 import { Dec } from "@keplr-wallet/unit";
-import { useWalletStore } from "../stores/wallet";
 import { useOracleStore } from "../stores/oracle";
 import { useApplicationStore } from "../stores/application";
-import { CurrencyDemapping } from "@/config/currencies";
+import { useWalletStore } from "../stores/wallet";
 
 export function useLeases(onError: (error: unknown) => void) {
   const leases = ref<LeaseData[]>([]);
   const leaseLoaded = ref(false);
-  const paginate = 50;
+  const wallet = useWalletStore();
 
   const getLeases = async () => {
     try {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+
       const admin = useAdminStore();
       const promises: Promise<
         | {
@@ -31,7 +32,7 @@ export function useLeases(onError: (error: unknown) => void) {
         | undefined
       >[] = [];
       const protocolPromises = [];
-
+      const paginate = 50;
       for (const protocolKey in admin.contracts) {
         const fn = async () => {
           const protocol = admin.contracts![protocolKey];
@@ -78,8 +79,21 @@ export function useLeases(onError: (error: unknown) => void) {
   };
 
   onMounted(async () => {
-    await getLeases();
+    if (wallet.wallet) {
+      await getLeases();
+    } else {
+      leaseLoaded.value = true;
+    }
   });
+
+  watch(
+    () => wallet.wallet,
+    async () => {
+      if (wallet.wallet) {
+        await getLeases();
+      }
+    }
+  );
 
   return { leases, leaseLoaded, getLeases };
 }
@@ -137,8 +151,8 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
     AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)
   ]);
 
-  const walletStore = useWalletStore();
   const oracleStore = useOracleStore();
+  const app = useApplicationStore();
 
   const leaseClient = new Lease(cosmWasmClient, leaseAddress);
 
@@ -179,17 +193,24 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
         MONTHS
     );
 
-    const unitAssetInfo = walletStore.getCurrencyByTicker(leaseInfo.opened.amount.ticker);
-    const stableAssetInfo = walletStore.getCurrencyByTicker(leaseInfo.opened.principal_due.ticker);
+    const ticker = CurrencyDemapping[leaseInfo.opened.amount.ticker!]?.ticker ?? leaseInfo.opened.amount.ticker;
+    const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
+
+    const stableTicker =
+      CurrencyDemapping[leaseInfo.opened.principal_due.ticker!]?.ticker ?? leaseInfo.opened.principal_due.ticker;
+    const stableAssetInfo = app.currenciesData![`${stableTicker!}@${protocolKey}`];
 
     const unitAsset = new Dec(leaseInfo.opened.amount.amount, Number(unitAssetInfo!.decimal_digits));
+
     const stableAsset = new Dec(leaseInfo.opened.principal_due.amount, Number(stableAssetInfo!.decimal_digits));
     liquidation = LeaseUtils.calculateLiquidation(stableAsset, unitAsset);
   }
 
   if (leaseInfo.opened || leaseInfo.paid) {
     const lease = leaseInfo.opened ?? leaseInfo.paid;
-    const unitAssetInfo = walletStore.getCurrencyByTicker(lease!.amount.ticker);
+    const ticker = CurrencyDemapping[lease!.amount.ticker!]?.ticker ?? lease!.amount.ticker;
+
+    const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
     const unitAsset = new Dec(lease!.amount.amount, Number(unitAssetInfo!.decimal_digits));
 
     const currentPrice = new Dec(oracleStore.prices?.[unitAssetInfo!.ibcData as string]?.amount ?? "0");
@@ -227,7 +248,6 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
 function getLeaseBalances(leaseInfo: LeaseStatus, protocolKey: string, balances: Coin[]) {
   const disable = [NATIVE_ASSET.denom];
   const ticker = leaseInfo?.paid?.amount.ticker;
-  const walletStore = useWalletStore();
   const app = useApplicationStore();
 
   if (ticker) {
@@ -246,11 +266,13 @@ function getLeaseBalances(leaseInfo: LeaseStatus, protocolKey: string, balances:
       return true;
     })
     .map((item) => {
-      const currency = walletStore.currencies[item.denom];
+      const asset = AssetUtils.getCurrencyByDenom(item.denom);
+      const [ticker] = asset.key.split("@");
+      const currency = app.currenciesData![`${ticker}@${protocolKey}`];
 
       return {
         amount: item.amount,
-        icon: app.assetIcons?.[currency.ticker] as string,
+        icon: currency.icon,
         decimals: currency.decimal_digits,
         shortName: currency.shortName
       };

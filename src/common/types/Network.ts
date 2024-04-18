@@ -30,11 +30,3 @@ export interface NetworkData {
     transfer_amount: number;
   };
 }
-
-export interface NetworkDataV2 {
-  prefix: string;
-  chainId: string;
-  rpc: string;
-  rest: string;
-  embedChainInfo: Function;
-}

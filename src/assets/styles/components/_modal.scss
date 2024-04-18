@@ -3,7 +3,6 @@
 }
 
 .modal {
-
   &-header {
     padding: 23px 20px 19px 40px;
     border-bottom: 1px solid $borderColor;
@@ -38,7 +37,6 @@
         align-items: flex-start;
         padding-top: 2vh;
       }
-
     }
 
     &-header {
@@ -47,7 +45,7 @@
       width: 100%;
       border-bottom: 1px solid $borderColor;
 
-      &>button {
+      & > button {
         display: inline-block;
         background-color: $lightGrey;
         color: $mediumBlue;
@@ -109,7 +107,7 @@
     }
 
     &-input-area {
-      flex-grow: 1;
+      // flex-grow: 1;
       width: 100%;
       padding: 20px 16px 20px;
       -webkit-overflow-scrolling: touch;
@@ -154,11 +152,10 @@
       color: $brand-accent;
     }
   }
-
 }
 
 .modal-send-receive-actions {
-  @media (min-width:$md) {
+  @media (min-width: $md) {
     padding-bottom: 30px;
   }
 }
@@ -172,11 +169,11 @@ div.repayment {
   margin-top: 4px;
 
   button {
-    font-family: 'Garet-Medium', sans-serif;
+    font-family: "Garet-Medium", sans-serif;
     font-style: normal;
     font-weight: 500;
     font-size: 14px;
-    color: #2868E1;
+    color: #2868e1;
 
     &:not(:last-child) {
       margin-right: 10px;
@@ -185,7 +182,6 @@ div.repayment {
 }
 
 body.sync {
-
   // @media (prefers-color-scheme: dark) {
   //   button.btn-close-modal {
   //     border: 1px solid #2B384B;
@@ -193,21 +189,14 @@ body.sync {
   // }
 
   .modal {
-
-
     &-send-receive {
-
       &-parent {
-
         @media (prefers-color-scheme: dark) {
-
           background: $dark-gray;
 
           @media (min-width: $md) {
             background: linear-gradient(0deg, rgba(43, 56, 75, 0.5), rgba(43, 56, 75, 0.5)), rgba(40, 104, 225, 0.1);
           }
-
-
         }
       }
 
@@ -222,7 +211,7 @@ body.sync {
           border-bottom: 1px solid $dark-line;
         }
 
-        &>button {
+        & > button {
           @media (prefers-color-scheme: dark) {
             background-color: $dark-gray;
           }
@@ -239,42 +228,31 @@ body.sync {
               background-color: $dark-background;
             }
           }
-
         }
-
       }
-
     }
-
   }
 
   @media (prefers-color-scheme: dark) {
-
     .back-arrow {
       color: white;
     }
   }
-
 }
 
 body.dark {
-
   // button.btn-close-modal {
   //   border: 1px solid #2B384B !important;
   // }
 
   .modal {
-
     &-send-receive {
-
       &-parent {
-
         background: $dark-gray;
 
         @media (min-width: $md) {
           background: linear-gradient(0deg, rgba(43, 56, 75, 0.5), rgba(43, 56, 75, 0.5)), rgba(40, 104, 225, 0.1);
         }
-
       }
 
       .bg-light-grey {
@@ -284,7 +262,7 @@ body.dark {
       &-header {
         border-bottom: 1px solid $dark-line;
 
-        &>button {
+        & > button {
           background-color: $dark-gray;
 
           &:first-of-type {
@@ -295,14 +273,9 @@ body.dark {
             color: $white;
             background-color: $dark-background;
           }
-
         }
-
       }
-
     }
-
-
   }
 
   .back-arrow {

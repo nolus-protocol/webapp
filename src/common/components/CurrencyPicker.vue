@@ -16,18 +16,20 @@
         <ListboxButton
           class="background relative w-full cursor-default rounded-md border border-gray-300 py-2 pl-3 pr-10 text-left shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
         >
-          <span class="flex items-center">
-            <img
-              :src="selected.value?.icon ?? getAssetInfo(selected.value?.balance?.denom)?.coinIcon"
-              class="h-6 w-6 flex-shrink-0 rounded-full"
-              alt=""
-            />
-            <span class="dark-text block truncate">
-              {{ selected.value?.shortName ?? getAssetInfo(selected.value?.balance?.denom).shortName }}
-            </span>
+          <span class="flex w-full items-center justify-between">
+            <div class="flex items-center">
+              <img
+                :src="selected.value?.icon"
+                class="h-6 w-6 flex-shrink-0 rounded-full"
+                alt=""
+              />
+              <span class="dark-text block truncate">
+                {{ selected.value?.shortName }}
+              </span>
+            </div>
             <span
               v-if="isLoading"
-              class="loading"
+              class="loading mr-[4px]"
             >
             </span>
           </span>
@@ -76,12 +78,12 @@
               >
                 <div class="flex items-center">
                   <img
-                    :src="option.icon ?? getAssetInfo(option.balance.denom).coinIcon"
+                    :src="option.icon"
                     class="mr-3 h-6 w-6 flex-shrink-0 rounded-full"
                     alt=""
                   />
                   <span class="block truncate font-normal">
-                    {{ option.name ?? getAssetInfo(option.balance.denom).shortName }}
+                    {{ option.shortName }}
                   </span>
                 </div>
 
@@ -101,12 +103,11 @@
 </template>
 
 <script setup lang="ts">
-import type { AssetBalance } from "@/common/stores/wallet/types";
 import { type PropType, ref, onMounted, watch, computed } from "vue";
+import type { ExternalCurrency } from "../types";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
-import { useWalletStore } from "@/common/stores/wallet";
-import { NATIVE_ASSET } from "@/config/global";
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from "@headlessui/vue";
+import type { AssetBalance } from "../stores/wallet/types";
 
 const props = defineProps({
   label: {
@@ -118,10 +119,10 @@ const props = defineProps({
     default: ""
   },
   options: {
-    type: Array as PropType<AssetBalance[]>
+    type: Array as PropType<ExternalCurrency[] | AssetBalance[]>
   },
   currencyOption: {
-    type: Object as PropType<AssetBalance>
+    type: Object as PropType<ExternalCurrency | AssetBalance>
   },
   disabled: {
     type: Boolean
@@ -143,10 +144,8 @@ const props = defineProps({
   }
 });
 
-const wallet = useWalletStore();
-
 const selected = ref({
-  value: {} as AssetBalance
+  value: {} as ExternalCurrency | AssetBalance
 });
 
 const optionsValue = computed(() => {
@@ -163,17 +162,13 @@ const optionsValue = computed(() => {
 });
 
 onMounted(() => {
-  selected.value.value = props.currencyOption as AssetBalance;
+  selected.value.value = props.currencyOption!;
 });
 
 watch(
   () => props.currencyOption,
   () => {
-    selected.value.value = props.currencyOption as AssetBalance;
+    selected.value.value = props.currencyOption!;
   }
 );
-
-function getAssetInfo(denom: string) {
-  return wallet.getCurrencyInfo(denom ?? NATIVE_ASSET.denom);
-}
 </script>

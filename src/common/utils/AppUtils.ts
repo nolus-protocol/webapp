@@ -1,7 +1,10 @@
-import type { API, ARCHIVE_NODE, Endpoint, Node, News } from "@/common/types";
+import type { API, ARCHIVE_NODE, Endpoint, Node, News, SkipRouteConfigType } from "@/common/types";
+
 import { connectComet } from "@cosmjs/tendermint-rpc";
 import { EnvNetworkUtils } from ".";
-import { CONTRACTS, NEWS_URL, NEWS_WALLETS_PATH } from "@/config/global";
+import { CONTRACTS, DOWNPAYMENT_RANGE_DEV, NEWS_URL, NEWS_WALLETS_PATH } from "@/config/global";
+import { ChainConstants } from "@nolus/nolusjs";
+import { SKIPROUTE_CONFIG_URL } from "@/config/global/swap";
 
 import {
   DOWNPAYMENT_RANGE_URL,
@@ -29,6 +32,7 @@ export class AppUtils {
   }>;
 
   static news: Promise<News>;
+  static skip_route_config: Promise<SkipRouteConfigType>;
 
   static swapFee: Promise<{
     [key: string]: number;
@@ -144,6 +148,16 @@ export class AppUtils {
     return news;
   }
 
+  static async getSkipRouteConfig() {
+    if (this.skip_route_config) {
+      return this.skip_route_config;
+    }
+
+    const skip_route_config = AppUtils.fetchSkipRoute();
+    this.skip_route_config = skip_route_config;
+    return skip_route_config;
+  }
+
   static async getSingleNewAddresses(url = "") {
     try {
       if (!url.trim()) return [];
@@ -161,9 +175,23 @@ export class AppUtils {
     return CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].protocols;
   }
 
+  public static getDefaultProtocol() {
+    switch (EnvNetworkUtils.getStoredNetworkName()) {
+      case "mainnet": {
+        return AppUtils.getProtocols().osmosis_noble;
+      }
+      case "testnet": {
+        return AppUtils.getProtocols().osmosis;
+      }
+      default: {
+        return AppUtils.getProtocols().osmosis_noble;
+      }
+    }
+  }
+
   private static async fetchArchiveNodes(): Promise<ARCHIVE_NODE> {
     const config = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
-    const data = await fetch(config.endpoints);
+    const data = await fetch(await config.endpoints);
     const json = (await data.json()) as Endpoint;
 
     const archive = {
@@ -176,7 +204,7 @@ export class AppUtils {
 
   private static async fetch(network: string) {
     const config = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
-    const data = await fetch(config.endpoints);
+    const data = await fetch(await config.endpoints);
     const json = (await data.json()) as Endpoint;
     const status = await AppUtils.fetchStatus((json[network] as Node).primary.rpc, json.downtime);
 
@@ -232,6 +260,12 @@ export class AppUtils {
       };
     };
 
+    if (isDev() || isServe()) {
+      for (const key in json) {
+        json[key].min = DOWNPAYMENT_RANGE_DEV;
+      }
+    }
+
     return json;
   }
 
@@ -266,5 +300,25 @@ export class AppUtils {
     }
 
     return n;
+  }
+
+  public static async fetchNetworkStatus() {
+    const rpc = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
+    const data = await fetch(`${rpc}/status`);
+    const json = (await data.json()) as {
+      result: {
+        node_info: {
+          network: string;
+        };
+      };
+    };
+
+    return json;
+  }
+
+  private static async fetchSkipRoute(): Promise<SkipRouteConfigType> {
+    const url = await SKIPROUTE_CONFIG_URL;
+    const data = await fetch(url);
+    return data.json();
   }
 }

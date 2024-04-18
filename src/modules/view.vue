@@ -69,6 +69,8 @@ import DelegateUndelegateDialog from "@/common/components/modals/DelegateUndeleg
 import Modal from "@/common/components/modals/templates/Modal.vue";
 import SessionExpireDialog from "@/common/components/modals/SessionExpireDialog.vue";
 import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
+import SwapDialog from "@/common/components/modals/SwapDialog.vue";
+import { router } from "@/router";
 
 let balanceInterval: NodeJS.Timeout | undefined;
 let pricesInterval: NodeJS.Timeout | undefined;
@@ -116,6 +118,10 @@ const modalOptions: {
   "/earn#undelegate": {
     dialog: DelegateUndelegateDialog,
     route: "undelegate"
+  },
+  "#swap": {
+    dialog: SwapDialog,
+    route: "swap"
   }
 };
 
@@ -223,11 +229,21 @@ function refresh() {
 
 function openDialog() {
   if (window.location.hash) {
-    const action = `${window.location.pathname}${window.location.hash}`;
-    const modal = modalOptions[action];
+    let action = `${window.location.pathname}${window.location.hash}`;
+    let modal = modalOptions[action];
+
+    if (!modal) {
+      action = window.location.hash;
+      modal = modalOptions[action];
+    }
+
     if (modal) {
       modalAction.value = action;
       showModal.value = true;
+    }
+
+    if (modal == undefined) {
+      router.push(router.currentRoute.value.path);
     }
   }
 }

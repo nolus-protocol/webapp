@@ -1,13 +1,13 @@
-import type { AssetBalance } from "@/common/stores/wallet/types";
+import type { ExternalCurrency } from "@/common/types";
 import type { Coin } from "@cosmjs/amino";
 import type { LeaseApply } from "@nolus/nolusjs/build/contracts";
 
 export interface LeaseComponentProps {
   contractAddress: string;
   downPaymentErrorMsg: string;
-  currentBalance: AssetBalance[];
-  selectedDownPaymentCurrency: AssetBalance;
-  selectedCurrency: AssetBalance;
+  currentBalance: ExternalCurrency[];
+  selectedDownPaymentCurrency: ExternalCurrency;
+  selectedCurrency: ExternalCurrency;
   dialogSelectedCurrency: null | string;
   downPayment: string;
   memo: string;
