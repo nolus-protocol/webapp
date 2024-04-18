@@ -7,7 +7,7 @@ export interface AssetBalance {
   name?: string;
   ticker?: string;
   shortName?: string;
-  decimal_digits?: number;
+  decimals?: number;
   symbol?: string;
   native?: boolean;
   price?: number;
@@ -15,7 +15,9 @@ export interface AssetBalance {
 }
 
 export type State = {
+  torusClient?: Object;
   wallet?: NolusWallet | any;
+  privateKey?: string;
   balances: AssetBalance[];
   total_unls: AssetBalance;
   walletName?: string;
@@ -43,4 +45,14 @@ export type State = {
     [protocol: string]: Dec;
   };
   apr: number;
+  currencies: {
+    [key: string]: {
+      shortName: string;
+      ticker: string;
+      name: string;
+      decimal_digits: string;
+      symbol: string;
+      ibcData: string;
+    };
+  };
 };

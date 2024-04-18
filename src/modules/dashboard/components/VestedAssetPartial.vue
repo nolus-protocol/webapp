@@ -4,8 +4,8 @@
   >
     <div class="inline-flex items-center">
       <img
-        v-if="assetInfo.icon"
-        :src="assetInfo.icon"
+        v-if="assetInfo.coinIcon"
+        :src="assetInfo.coinIcon"
         class="m-0 mr-4 inline-block"
         height="32"
         width="32"
@@ -28,8 +28,8 @@
         <CurrencyComponent
           :type="CURRENCY_VIEW_TYPES.TOKEN"
           :amount="assetBalance"
-          :minimalDenom="assetInfo.ibcData"
-          :decimals="assetInfo.decimal_digits"
+          :minimalDenom="assetInfo.coinMinimalDenom"
+          :decimals="assetInfo.coinDecimals"
           :maxDecimals="maxCoinDecimals"
           denom=""
         />
@@ -45,8 +45,9 @@
 </template>
 
 <script lang="ts" setup>
+import { type AssetInfo } from "../types";
 import { computed, type PropType } from "vue";
-import { CURRENCY_VIEW_TYPES, type ExternalCurrency } from "@/common/types";
+import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { AssetUtils as WebAppAssetUtils } from "@/common/utils";
 import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
 
@@ -56,7 +57,7 @@ const props = defineProps({
     required: true
   },
   assetInfo: {
-    type: Object as PropType<ExternalCurrency>,
+    type: Object as PropType<AssetInfo>,
     required: true
   },
   denom: {

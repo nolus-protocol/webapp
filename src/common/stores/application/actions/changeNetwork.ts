@@ -20,8 +20,7 @@ export async function changeNetwork(this: Store) {
       ...NETWORKS[this.network.networkName]
     };
 
-    await admin.GET_PROTOCOLS();
-    await this.LOAD_CURRENCIES();
+    await Promise.all([this.LOAD_CURRENCIES(), admin.GET_PROTOCOLS()]);
     await Promise.allSettled([
       walletStore.UPDATE_BALANCES(),
       oracle.GET_PRICES(),

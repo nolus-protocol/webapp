@@ -75,6 +75,7 @@ import ProposalVoteDialog from "@/modules/vote/components/ProposalVoteDialog.vue
 import Modal from "@/common/components/modals/templates/Modal.vue";
 import ProposalSkeleton from "@/modules/vote/components/ProposalSkeleton.vue";
 import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
+import type { IObjectKeys } from "@/common/types";
 
 const LOAD_TIMEOUT = 500;
 const bondedTokens = ref(new Dec(0));
@@ -98,7 +99,7 @@ const pagination = ref({
   next_key: ""
 });
 let timeout = null as NodeJS.Timeout | null;
-
+const ignore = ["106", "105"];
 const proposals = ref([] as Proposal[]);
 
 onMounted(async () => {
@@ -175,7 +176,7 @@ async function fetchData(url: string) {
   } catch (error: Error | any) {
     showErrorDialog.value = true;
     errorMessage.value = error.message;
-    Logger.error(error);
+    console.error(error);
     return null;
   }
 }
@@ -197,7 +198,8 @@ async function fetchGovernanceProposals() {
   }
 
   await Promise.all(promises);
-  proposals.value = data.proposals;
+  console.log(data);
+  proposals.value = data.proposals.filter((item: IObjectKeys) => !ignore.includes(item.id));
   pagination.value = data.pagination;
 
   initialLoad.value = true;
@@ -254,7 +256,7 @@ async function loadMoreProposals() {
 
   await Promise.all(promises);
 
-  proposals.value = [...proposals.value, ...data.proposals];
+  proposals.value = [...proposals.value, ...data.proposals].filter((item: IObjectKeys) => !ignore.includes(item.id));
   pagination.value = data.pagination;
 
   setTimeout(() => {

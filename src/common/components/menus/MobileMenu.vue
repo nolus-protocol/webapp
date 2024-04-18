@@ -26,42 +26,21 @@
         {{ $t(`message.${item.name}`) }}
       </RouterLink>
     </div>
-
     <div class="background sidebar-elements-block relative z-20 flex w-full justify-between px-4 pb-4 pt-1.5">
-      <template
+      <RouterLink
         v-for="item in visibleMenuItems"
         :key="item.name"
+        :to="item.path"
         class="sidebar-element flex flex-col items-center font-garet-medium text-16"
         @click="showMobileNav = false"
       >
-        <template v-if="item!.action">
-          <a
-            class="sidebar-element flex cursor-pointer flex-col items-center font-garet-medium text-16"
-            @click="item!.action(item!.path)"
-          >
-            <span
-              :class="[`icon-${item!.icon}`]"
-              class="icon"
-            >
-            </span>
-            {{ $t(`message.${item!.name}`) }}
-          </a>
-        </template>
-        <template v-else>
-          <RouterLink
-            :to="item!.path"
-            class="sidebar-element flex flex-col items-center font-garet-medium text-16"
-          >
-            <span
-              :class="[`icon-${item!.icon}`]"
-              class="icon"
-            >
-            </span>
-            {{ $t(`message.${item!.name}`) }}
-          </RouterLink>
-        </template>
-      </template>
-
+        <span
+          :class="[`icon-${item.icon}`]"
+          class="icon"
+        >
+        </span>
+        {{ $t(`message.${item.name}`) }}
+      </RouterLink>
       <a
         :class="[showMobileNav ? 'router-link-exact-active' : '']"
         class="sidebar-element flex flex-col items-center font-garet-medium text-16"
@@ -77,11 +56,8 @@
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref } from "vue";
 import { RouterLink } from "vue-router";
-import { RouteNames, router } from "@/router";
-import { inject } from "vue";
-import { EnvNetworkUtils } from "@/common/utils";
+import { RouteNames } from "@/router";
 
-const openDialog = inject("openDialog", () => {});
 const showMobileNav = ref(false);
 const isMobile = ref(false);
 const sidebar = ref(null as HTMLDivElement | null);
@@ -90,30 +66,20 @@ const visibleMenuItems = [
   {
     icon: "asset-v2",
     name: "assets",
-    path: `/`
+    path: `/`,
+    click: (showMobileNav.value = false)
   },
   {
     icon: "lease-v2",
     name: "lease",
     path: `/${RouteNames.LEASE}`
   },
-  EnvNetworkUtils.getStoredNetworkName() == "mainnet"
-    ? {
-        icon: "swap-v2",
-        name: "swap",
-        path: `#swap`,
-        action: async (path: string) => {
-          await router.push(`${location.pathname}${path}`);
-          openDialog();
-        }
-      }
-    : null,
   {
     icon: "earn-v2",
     name: "earn",
     path: `/${RouteNames.EARN}`
   }
-].filter((item) => item != null);
+];
 
 const hiddenMenuItems = [
   {

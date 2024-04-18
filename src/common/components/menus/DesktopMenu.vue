@@ -1,89 +1,53 @@
 <template>
   <div>
-    <template
+    <RouterLink
       v-for="item in menuItems"
       :key="item.name"
+      :to="item.path"
+      class="sidebar-element flex items-center gap-2.5 font-garet-medium"
     >
-      <template v-if="item!.action">
-        <a
-          class="sidebar-element flex cursor-pointer items-center gap-2.5 font-garet-medium"
-          @click="item!.action(item!.path)"
-        >
-          <span
-            :class="[`icon-${item!.icon}`]"
-            class="icon"
-          >
-          </span>
-          {{ $t(`message.${item!.name}`) }}
-        </a>
-      </template>
-      <template v-else>
-        <RouterLink
-          :to="item!.path"
-          class="sidebar-element flex items-center gap-2.5 font-garet-medium"
-        >
-          <span
-            :class="[`icon-${item!.icon}`]"
-            class="icon"
-          >
-          </span>
-          {{ $t(`message.${item!.name}`) }}
-        </RouterLink>
-      </template>
-    </template>
+      <span
+        :class="[`icon-${item.icon}`]"
+        class="icon"
+      >
+      </span>
+      {{ $t(`message.${item.name}`) }}
+    </RouterLink>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref } from "vue";
 import { RouterLink } from "vue-router";
-import { RouteNames, router } from "@/router";
-import { inject } from "vue";
-import { EnvNetworkUtils } from "@/common/utils";
-import { type Networks } from "@/common/types";
+import { RouteNames } from "@/router";
 
-const openDialog = inject("openDialog", () => {});
-
-const menuItems = ref(
-  [
-    {
-      icon: "asset-v2",
-      name: "assets",
-      path: `/`
-    },
-    {
-      icon: "lease-v2",
-      name: "lease",
-      path: `/${RouteNames.LEASE}`
-    },
-    EnvNetworkUtils.getStoredNetworkName() == "mainnet"
-      ? {
-          icon: "swap-v2",
-          name: "swap",
-          path: `#swap`,
-          action: async (path: string) => {
-            await router.push(`${location.pathname}${path}`);
-            openDialog();
-          }
-        }
-      : null,
-    {
-      icon: "earn-v2",
-      name: "earn",
-      path: `/${RouteNames.EARN}`
-    },
-    {
-      icon: "history-v2",
-      name: "history",
-      path: `/${RouteNames.HISTORY}`
-    },
-    {
-      icon: "vote-v2",
-      name: "vote",
-      path: `/${RouteNames.VOTE}`
-    }
-  ].filter((item) => item != null)
-);
+const menuItems = ref([
+  {
+    icon: "asset-v2",
+    name: "assets",
+    path: `/`
+  },
+  {
+    icon: "lease-v2",
+    name: "lease",
+    path: `/${RouteNames.LEASE}`
+  },
+  {
+    icon: "earn-v2",
+    name: "earn",
+    path: `/${RouteNames.EARN}`
+  },
+  {
+    icon: "history-v2",
+    name: "history",
+    path: `/${RouteNames.HISTORY}`
+  },
+  {
+    icon: "vote-v2",
+    name: "vote",
+    path: `/${RouteNames.VOTE}`
+  }
+]);
 </script>
 
 <style lang="scss" scoped>

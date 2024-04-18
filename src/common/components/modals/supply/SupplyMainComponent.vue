@@ -45,11 +45,14 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { computed, inject, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { coin } from "@cosmjs/amino";
-import { Logger, getMicroAmount, validateAmount, walletOperation } from "@/common/utils";
+
+import { getMicroAmount, validateAmount, walletOperation } from "@/common/utils";
+
 import { DEFAULT_APR, NATIVE_ASSET, GAS_FEES, ErrorCodes } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
 import { Int } from "@keplr-wallet/unit";
 import { useAdminStore } from "@/common/stores/admin";
+import { onBeforeMount } from "vue";
 
 const i18n = useI18n();
 const walletStore = useWalletStore();
@@ -64,13 +67,19 @@ const props = defineProps({
 
 const loadLPNCurrency = inject("loadLPNCurrency", () => false);
 
+onBeforeMount(() => {
+  if (!props.selectedAsset) {
+    state.value.selectedAsset = app.lpn![0].ibcData as string;
+  }
+});
+
 onMounted(() => {
-  Promise.all([checkSupply()]).catch((e) => Logger.error(e));
+  Promise.all([checkSupply()]).catch((e) => console.error(e));
 });
 
 const checkSupply = async () => {
-  const asset = app.currenciesData![state.value.selectedAsset!];
-  const [_ticker, protocol] = asset.key.split("@");
+  const asset = walletStore.currencies[state.value.selectedAsset!];
+  const [_currency, protocol] = asset.ticker.split("@");
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
   const lpp = new Lpp(cosmWasmClient, admin.contracts![protocol].lpp);
   const data = await lpp.getDepositCapacity();
@@ -90,29 +99,19 @@ const checkSupply = async () => {
 };
 
 const balances = computed(() => {
-  const assets = [];
-  const lpns = app.lpn?.map((item) => item.key) ?? [];
+  const b = walletStore.balances;
+  const lpns = (app.lpn ?? []).map((item) => item.key);
 
-  for (const key in app.currenciesData ?? {}) {
-    const currency = app.currenciesData![key];
-    const c = { ...currency };
-    const item = walletStore.balances.find((item) => item.balance.denom == currency.ibcData);
-    if (item) {
-      c.balance = item!.balance;
-      assets.push(c);
-    }
-  }
-
-  return assets.filter((item) => lpns.includes(item.key));
+  return b.filter((item) => {
+    const currency = walletStore.currencies[item.balance.denom];
+    return lpns.includes(currency.ticker);
+  });
 });
 
 const selectedCurrency = computed(() => {
   const item = balances.value.find((item) => {
-    let ibcData = app.lpn![0].ibcData;
-    if (props.selectedAsset) {
-      ibcData = app.currenciesData![props.selectedAsset!].ibcData;
-    }
-    return item.balance.denom == ibcData;
+    const c = props.selectedAsset ?? app.lpn![0].ibcData;
+    return item.balance.denom == c;
   });
   return item;
 });
@@ -147,16 +146,14 @@ const validateSupply = () => {
     return "";
   }
 
-  const asset = state.value.selectedCurrency;
-  const amount = CurrencyUtils.convertDenomToMinimalDenom(state.value.amount, asset.ibcData, asset.decimal_digits);
+  const { coinMinimalDenom, coinDecimals, ticker } = walletStore.getCurrencyInfo(
+    state.value.selectedCurrency.balance.denom
+  );
+
+  const amount = CurrencyUtils.convertDenomToMinimalDenom(state.value.amount, coinMinimalDenom, coinDecimals);
 
   if (amount.amount.gt(state.value.maxSupply)) {
-    const max = CurrencyUtils.convertMinimalDenomToDenom(
-      state.value.maxSupply,
-      asset.ibcData,
-      asset.ticker,
-      asset.decimal_digits
-    );
+    const max = CurrencyUtils.convertMinimalDenomToDenom(state.value.maxSupply, coinMinimalDenom, ticker, coinDecimals);
     return i18n.t("message.supply-limit-error", { amount: max });
   }
 
@@ -164,8 +161,8 @@ const validateSupply = () => {
 };
 
 function onNextClick() {
-  const currency = state.value.selectedCurrency;
-  const [_currency, protocol] = currency.key.split("@");
+  const currency = walletStore.currencies[state.value.selectedCurrency.balance.denom];
+  const [_currency, protocol] = currency.ticker.split("@");
   state.value.receiverAddress = admin.contracts![protocol].lpp;
 
   validateInputs();
@@ -218,8 +215,8 @@ async function transferAmount() {
     try {
       const microAmount = getMicroAmount(state.value.selectedCurrency.balance.denom, state.value.amount);
 
-      const currency = state.value.selectedCurrency;
-      const [_currency, protocol] = currency.key.split("@");
+      const currency = walletStore.currencies[state.value.selectedCurrency.balance.denom];
+      const [_currency, protocol] = currency.ticker.split("@");
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const lppClient = new Lpp(cosmWasmClient, admin.contracts![protocol].lpp);
@@ -257,14 +254,14 @@ async function transferAmount() {
 }
 
 watch(
-  () => state.value.amount,
+  () => [...state.value.amount],
   (currentValue, oldValue) => {
     validateInputs();
   }
 );
 
 watch(
-  () => state.value.selectedCurrency,
+  () => [...(state.value.selectedCurrency?.balance.denom.toString() ?? [])],
   (currentValue, oldValue) => {
     validateInputs();
   }

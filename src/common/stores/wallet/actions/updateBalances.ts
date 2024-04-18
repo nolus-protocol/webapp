@@ -5,7 +5,7 @@ import { CurrencyMapping } from "@/config/currencies";
 import { AssetUtils, CurrencyUtils, NolusClient } from "@nolus/nolusjs";
 import { Networks } from "@nolus/nolusjs/build/types/Networks";
 import { coin } from "@cosmjs/amino";
-import { NATIVE_ASSET, ProtocolsConfig } from "@/config/global";
+import { NATIVE_ASSET } from "@/config/global";
 
 export async function updateBalances(this: Store) {
   try {
@@ -19,10 +19,6 @@ export async function updateBalances(this: Store) {
       let shortName = currency.shortName;
       const [ticker, protocol] = key.split("@");
 
-      if (!ProtocolsConfig[protocol].currencies.includes(ticker)) {
-        continue;
-      }
-
       if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
         shortName = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.name ?? shortName;
       }
@@ -35,6 +31,17 @@ export async function updateBalances(this: Store) {
       );
 
       const fn = () => {
+        const data = {
+          ticker: key,
+          shortName: shortName,
+          name: currency.name,
+          symbol: currency.symbol,
+          decimal_digits: currency.decimal_digits,
+          ibcData: ibcDenom
+        };
+
+        this.currencies[ibcDenom] = data;
+
         if (WalletUtils.isAuth()) {
           return NolusClient.getInstance()
             .getSpendableBalance(walletAddress, ibcDenom)
@@ -62,7 +69,7 @@ export async function updateBalances(this: Store) {
 }
 
 async function getNativeTotal(walletAddress: string) {
-  if (WalletUtils.isAuth()) {
+  if(WalletUtils.isAuth()){
     return NolusClient.getInstance()
       .getBalance(walletAddress, NATIVE_ASSET.denom)
       .then((item) => {

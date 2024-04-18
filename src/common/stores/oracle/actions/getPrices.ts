@@ -6,7 +6,6 @@ import { useAdminStore } from "../../admin";
 import { Oracle } from "@nolus/nolusjs/build/contracts";
 import { LPN_DECIMALS, LPN_PRICE, isProtocolInclude } from "@/config/global";
 import { Dec } from "@keplr-wallet/unit";
-import { CurrencyDemapping } from "@/config/currencies";
 
 export async function getPrices(this: State) {
   try {
@@ -26,10 +25,9 @@ export async function getPrices(this: State) {
         const data = (await oracleContract.getPrices()) as IObjectKeys;
 
         for (const price of data.prices) {
-          const ticker = CurrencyDemapping[price.amount.ticker]?.ticker ?? price.amount.ticker;
-          const present = isProtocolInclude(ticker);
-          const currency = app.currenciesData![`${ticker}@${protocolKey}`];
-
+          const key = price.amount.ticker;
+          const present = isProtocolInclude(key);
+          const currency = app.getCurrencySymbol(key, protocolKey);
           if (currency && (present.length == 0 || present.includes(protocolKey))) {
             const diff = Math.abs(Number(currency.decimal_digits) - LPN_DECIMALS);
             let calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
@@ -50,7 +48,6 @@ export async function getPrices(this: State) {
     for (const lpn of app.lpn ?? []) {
       pr[lpn.ibcData as string] = { symbol: lpn.ticker as string, amount: `${LPN_PRICE}` };
     }
-
     await Promise.all(promises);
     this.prices = pr;
   } catch (error: Error | any) {
