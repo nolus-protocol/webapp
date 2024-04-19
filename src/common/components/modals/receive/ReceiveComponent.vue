@@ -551,7 +551,7 @@ async function ibcTransfer(baseWallet: BaseWallet) {
       amount: Coin;
       sourcePort: string;
       sourceChannel: string;
-      gasMuplttiplier: number;
+      gasMupltiplier: number;
       gasPrice: string;
       timeOut: number;
       memo?: string;
@@ -560,7 +560,7 @@ async function ibcTransfer(baseWallet: BaseWallet) {
       amount: funds,
       sourcePort: SOURCE_PORTS.TRANSFER,
       sourceChannel: sourceChannel as string,
-      gasMuplttiplier: networkData.gasMuplttiplier,
+      gasMupltiplier: networkData.gasMupltiplier,
       gasPrice: networkData.gasPrice,
       timeOut: networkData.ibcTransferTimeout
     };

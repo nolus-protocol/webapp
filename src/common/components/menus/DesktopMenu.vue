@@ -47,18 +47,18 @@ const openDialog = inject("openDialog", () => {});
 const menuItems = ref(
   [
     {
-      icon: "asset-v2",
+      icon: "asset",
       name: "assets",
       path: `/`
     },
     {
-      icon: "lease-v2",
+      icon: "lease-1",
       name: "lease",
       path: `/${RouteNames.LEASE}`
     },
     EnvNetworkUtils.getStoredNetworkName() == "mainnet"
       ? {
-          icon: "swap-v2",
+          icon: "swap",
           name: "swap",
           path: `#swap`,
           action: async (path: string) => {
@@ -68,17 +68,17 @@ const menuItems = ref(
         }
       : null,
     {
-      icon: "earn-v2",
+      icon: "earn-1",
       name: "earn",
       path: `/${RouteNames.EARN}`
     },
     {
-      icon: "history-v2",
+      icon: "history-1",
       name: "history",
       path: `/${RouteNames.HISTORY}`
     },
     {
-      icon: "vote-v2",
+      icon: "vote",
       name: "vote",
       path: `/${RouteNames.VOTE}`
     }

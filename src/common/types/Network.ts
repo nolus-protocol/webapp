@@ -16,7 +16,7 @@ export interface Network {
 
 export interface NetworkData {
   prefix: string;
-  gasMuplttiplier: number;
+  gasMupltiplier: number;
   bip44Path: string;
   ibcTransferTimeout: number;
   ticker: string;

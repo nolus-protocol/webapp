@@ -66,7 +66,7 @@ async function authenticateKeplr(wallet: Wallet, network: NetworkData) {
     if (keplrWindow.getOfflineSignerOnlyAmino) {
       const offlineSigner = keplrWindow.getOfflineSignerOnlyAmino(chainId);
 
-      return await createWallet(wallet, offlineSigner, network.prefix, network.gasMuplttiplier, network.gasPrice);
+      return await createWallet(wallet, offlineSigner, network.prefix, network.gasMupltiplier, network.gasPrice);
     }
   }
 
@@ -99,7 +99,7 @@ async function authenticateLeap(wallet: Wallet, network: NetworkData) {
     if (leapWindow.leap.getOfflineSignerOnlyAmino) {
       const offlineSigner = leapWindow.leap.getOfflineSignerOnlyAmino(chainId);
 
-      return await createWallet(wallet, offlineSigner, network.prefix, network.gasMuplttiplier, network.gasPrice);
+      return await createWallet(wallet, offlineSigner, network.prefix, network.gasMupltiplier, network.gasPrice);
     }
   }
 
@@ -117,7 +117,7 @@ async function authenticateLedger(wallet: Wallet, network: NetworkData) {
       hdPaths: paths
     }),
     network.prefix,
-    network.gasMuplttiplier,
+    network.gasMupltiplier,
     network.gasPrice
   );
 }
