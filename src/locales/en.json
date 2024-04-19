@@ -292,6 +292,12 @@
     "transactions": "transactions",
     "for": "For",
     "swap-success": "Swap has been executed successfully",
-    "swap-again": "Swap Again"
+    "swap-again": "Swap Again",
+    "swap-sending": "Ensure the window remains open until Transaction {tx} is confirmed",
+    "turnout": "turnout",
+    "quorum": "quorum",
+    "voting-ends": "voting ends",
+    "date": "date",
+    "size": "size"
   }
 }

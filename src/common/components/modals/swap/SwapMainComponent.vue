@@ -2,13 +2,13 @@
   <ConfirmSwapComponent
     v-if="showConfirmScreen"
     :txType="$t(`message.${TxType.SWAP}`) + ':'"
-    :txHash="[state.txHash]"
+    :txHashes="txHashes"
     :step="step"
     :fee="state.fee"
     :errorMsg="state.errorMsg"
     :txs="route!.txsRequired"
-    :swap-amount="`${state.amount} ${state.selectedCurrency?.shortName}`"
-    :for-amount="`${state.swapToAmount} ${state.swapToSelectedCurrency?.shortName}`"
+    :swap-amount="`${swapAmount}`"
+    :for-amount="`${forAmount}`"
     :onSendClick="onSendClick"
     :onBackClick="onReset"
     :onOkClick="() => closeModal()"
@@ -40,7 +40,7 @@
 <script lang="ts" setup>
 import { TxType, type ExternalCurrency, type IObjectKeys, CONFIRM_STEP } from "@/common/types";
 import { Dec, type Coin, Int } from "@keplr-wallet/unit";
-import type { BaseWallet } from "@/networks";
+import { BaseWallet } from "@/networks";
 import SwapFormComponent from "./SwapFormComponent.vue";
 import ConfirmSwapComponent from "../templates/ConfirmSwapComponent.vue";
 
@@ -51,6 +51,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { GAS_FEES, NATIVE_ASSET } from "@/config/global";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
+import { SwapStatus } from "./types";
 
 import {
   AppUtils,
@@ -70,7 +71,9 @@ const timeOut = 600;
 
 let time: NodeJS.Timeout;
 let route: IObjectKeys | null;
-const closeModal = inject("onModalClose", () => () => {});
+const closeModal = inject("onModalClose", () => {});
+const setDisable = inject("setDisable", (b: boolean) => {});
+
 const blacklist = ref<string[]>([]);
 const showConfirmScreen = ref(false);
 const step = ref(CONFIRM_STEP.CONFIRM);
@@ -95,13 +98,14 @@ const state = ref({
   swapToAmount: "",
   receiverAddress: "",
   errorMsg: "",
-  txHash: "",
   fee: coin(GAS_FEES.swap_amount, NATIVE_ASSET.denom),
   loading: false,
   disabled: false,
   disableForm: false,
   swapFee: ""
 });
+
+const txHashes = ref<{ hash: string; status: SwapStatus }[]>([]);
 
 onMounted(async () => {
   try {
@@ -122,6 +126,7 @@ function onReset() {
   showConfirmScreen.value = false;
   state.value.amount = "";
   state.value.swapToAmount = "";
+  setDisable(false);
   nextTick(() => {
     state.value.errorMsg = "";
   });
@@ -254,8 +259,26 @@ async function onSwap() {
       try {
         state.value.loading = true;
         state.value.disabled = true;
-        const addresses = await getAddresses();
-        await SkipRouter.submitRoute(route!, addresses);
+        const wallets = await getWallets();
+        const addresses: Record<string, string> = {};
+
+        for (const key in wallets) {
+          addresses[key] = wallets[key].address!;
+        }
+
+        await SkipRouter.submitRoute(route!, wallets, async (tx: IObjectKeys, wallet: BaseWallet) => {
+          const element = {
+            hash: tx.txHash,
+            status: SwapStatus.pending
+          };
+
+          const index = txHashes.value.length;
+          txHashes.value.push(element);
+
+          await wallet.broadcastTx(tx.txBytes as Uint8Array);
+          txHashes.value[index].status = SwapStatus.success;
+        });
+
         await wallet.UPDATE_BALANCES();
         step.value = CONFIRM_STEP.SUCCESS;
       } catch (error) {
@@ -272,13 +295,12 @@ async function onSwap() {
   }
 }
 
-async function getAddresses() {
+async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
   const native = wallet.wallet.signer.chainId;
-  const nolusAddress = wallet.wallet.address;
-
   const addrs = {
-    [native]: nolusAddress
+    [native]: wallet.wallet
   };
+
   const chainToParse: { [key: string]: IObjectKeys } = {};
   const chains = (await SkipRouter.getChains()).filter((item) => {
     if (item.chainID == native) {
@@ -302,7 +324,7 @@ async function getAddresses() {
       const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
       const networkData = network?.supportedNetworks[chain];
       const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
-      addrs[baseWallet.getSigner().chainId] = baseWallet.address;
+      addrs[baseWallet.getSigner().chainId] = baseWallet;
     };
     promises.push(fn());
   }
@@ -349,6 +371,14 @@ async function setSwapFee() {
       .toString();
   }
 }
+
+const swapAmount = computed(() => {
+  return `${new Dec(state.value.amount).toString(state.value.selectedCurrency?.decimal_digits)} ${state.value.selectedCurrency?.shortName}`;
+});
+
+const forAmount = computed(() => {
+  return `${new Dec(state.value.swapToAmount).toString(state.value.swapToSelectedCurrency?.decimal_digits)} ${state.value.swapToSelectedCurrency?.shortName}`;
+});
 
 function onSendClick() {
   onSwap();

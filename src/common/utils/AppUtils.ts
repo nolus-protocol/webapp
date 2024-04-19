@@ -1,4 +1,4 @@
-import type { API, ARCHIVE_NODE, Endpoint, Node, News, SkipRouteConfigType } from "@/common/types";
+import type { API, ARCHIVE_NODE, Endpoint, Node, News, SkipRouteConfigType, ProposalsConfigType } from "@/common/types";
 
 import { connectComet } from "@cosmjs/tendermint-rpc";
 import { EnvNetworkUtils } from ".";
@@ -15,6 +15,7 @@ import {
   NETWORKS,
   SWAP_FEE_URL
 } from "@/config/global";
+import { PROMOSALS_CONFIG_URL } from "@/config/global/proposals";
 
 export class AppUtils {
   public static LANGUAGE = "language";
@@ -33,6 +34,7 @@ export class AppUtils {
 
   static news: Promise<News>;
   static skip_route_config: Promise<SkipRouteConfigType>;
+  static proposals_config: Promise<ProposalsConfigType>;
 
   static swapFee: Promise<{
     [key: string]: number;
@@ -156,6 +158,16 @@ export class AppUtils {
     const skip_route_config = AppUtils.fetchSkipRoute();
     this.skip_route_config = skip_route_config;
     return skip_route_config;
+  }
+
+  static async getProposalsConfig() {
+    if (this.proposals_config) {
+      return this.proposals_config;
+    }
+
+    const proposals_config = AppUtils.fetchProposalsConfigRoute();
+    this.proposals_config = proposals_config;
+    return proposals_config;
   }
 
   static async getSingleNewAddresses(url = "") {
@@ -318,6 +330,12 @@ export class AppUtils {
 
   private static async fetchSkipRoute(): Promise<SkipRouteConfigType> {
     const url = await SKIPROUTE_CONFIG_URL;
+    const data = await fetch(url);
+    return data.json();
+  }
+
+  private static async fetchProposalsConfigRoute(): Promise<ProposalsConfigType> {
+    const url = await PROMOSALS_CONFIG_URL;
     const data = await fetch(url);
     return data.json();
   }

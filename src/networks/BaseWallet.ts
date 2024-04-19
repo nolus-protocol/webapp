@@ -46,6 +46,8 @@ export class BaseWallet extends SigningCosmWasmClient {
   api: string;
   prefix: string;
   queryClient: QueryClient;
+  gasMupltiplier: number;
+  gasPrice: string;
 
   protected offlineSigner: OfflineSigner;
 
@@ -55,13 +57,17 @@ export class BaseWallet extends SigningCosmWasmClient {
     options: SigningCosmWasmClientOptions,
     rpc: string,
     api: string,
-    prefix: string
+    prefix: string,
+    gasMupltiplier: number,
+    gasPrice: string
   ) {
     super(tmClient, signer, options);
     this.offlineSigner = signer;
     this.rpc = rpc;
     this.api = api;
     this.prefix = prefix;
+    this.gasPrice = gasPrice;
+    this.gasMupltiplier = gasMupltiplier;
 
     this.queryClient = QueryClient.withExtensions(
       tmClient,
@@ -76,10 +82,10 @@ export class BaseWallet extends SigningCosmWasmClient {
     return this.signer;
   }
 
-  private async simulateTx(
+  async simulateTx(
     msg: MsgSend | MsgExecuteContract | MsgTransfer,
     msgTypeUrl: string,
-    gasMuplttiplier: number,
+    gasMupltiplier: number,
     gasPrice: string,
     memo = "",
     gasData?: GasInfo
@@ -92,8 +98,8 @@ export class BaseWallet extends SigningCosmWasmClient {
 
     const sequence = await this.sequence();
     const gasInfo = gasData ?? (await this.getGas(msgAny, memo, pubkey, sequence));
-    const gas = Math.round(Number(gasInfo?.gasUsed) * gasMuplttiplier);
-    const usedFee = calculateFee(gas, gasPrice);
+    const gas = Math.round(Number(gasInfo?.gasUsed) * (this.gasMupltiplier ?? gasMupltiplier));
+    const usedFee = calculateFee(gas, this.gasPrice ?? gasPrice);
     const txRaw = await this.sign(this.address as string, [msgAny], usedFee, memo);
 
     const txBytes = Uint8Array.from(TxRaw.encode(txRaw).finish());
@@ -168,7 +174,7 @@ export class BaseWallet extends SigningCosmWasmClient {
   public async simulateBankTransferTx(
     toAddress: string,
     amount: Coin[],
-    gasMuplttiplier: number,
+    gasMupltiplier: number,
     gasPrice: string,
     memo = ""
   ) {
@@ -178,7 +184,7 @@ export class BaseWallet extends SigningCosmWasmClient {
       amount
     });
 
-    return await this.simulateTx(msg, "/cosmos.bank.v1beta1.MsgSend", gasMuplttiplier, gasPrice);
+    return await this.simulateTx(msg, "/cosmos.bank.v1beta1.MsgSend", gasMupltiplier, gasPrice);
   }
 
   public async simulateSendIbcTokensTx({
@@ -187,7 +193,7 @@ export class BaseWallet extends SigningCosmWasmClient {
     sourcePort,
     sourceChannel,
     timeOut,
-    gasMuplttiplier,
+    gasMupltiplier,
     gasPrice,
     memo = ""
   }: {
@@ -196,7 +202,7 @@ export class BaseWallet extends SigningCosmWasmClient {
     sourcePort: string;
     sourceChannel: string;
     timeOut: number;
-    gasMuplttiplier: number;
+    gasMupltiplier: number;
     gasPrice: string;
     memo?: string;
   }) {
@@ -228,14 +234,14 @@ export class BaseWallet extends SigningCosmWasmClient {
       return await this.simulateTx(
         msg,
         "/ibc.applications.transfer.v1.MsgTransfer",
-        gasMuplttiplier,
+        gasMupltiplier,
         gasPrice,
         "",
         data.gasInfo
       );
     }
 
-    return await this.simulateTx(msg, "/ibc.applications.transfer.v1.MsgTransfer", gasMuplttiplier, gasPrice, "");
+    return await this.simulateTx(msg, "/ibc.applications.transfer.v1.MsgTransfer", gasMupltiplier, gasPrice, "");
   }
 
   private async sequence() {
