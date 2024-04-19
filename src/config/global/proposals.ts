@@ -1,8 +1,8 @@
-import { isServe } from "./modes";
+import { isDev } from "./modes";
 
 let url: string | Promise<string> = import("../proposals/config.json?url").then((t) => t.default);
 
-if (!isServe()) {
+if (!isDev()) {
   url = "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/proposals/config.json";
 }
 

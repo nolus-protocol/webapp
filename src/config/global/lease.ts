@@ -1,4 +1,4 @@
-import { isServe } from "./modes";
+import { isDev } from "./modes";
 
 export const DEFAULT_LEASE_UP_PERCENT = "150.00";
 export const LEASE_UP_COEFICIENT = 1.5;
@@ -28,7 +28,7 @@ let FREE_INTEREST_ADDRESS_URL: Promise<string> | string = import("../zero/0inter
   (t) => t.default
 );
 
-if (!isServe()) {
+if (!isDev()) {
   DOWNPAYMENT_RANGE_URL =
     "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/lease/downpayment-range.json";
   SWAP_FEE_URL = "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/lease/swap-fee.json";

@@ -272,7 +272,7 @@ export class AppUtils {
       };
     };
 
-    if (isDev() || isServe()) {
+    if (isDev()) {
       for (const key in json) {
         json[key].min = DOWNPAYMENT_RANGE_DEV;
       }

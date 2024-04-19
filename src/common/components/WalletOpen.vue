@@ -52,7 +52,7 @@
       </div>
 
       <div
-        v-if="AppUtils.isDev() || AppUtils.isServe()"
+        v-if="AppUtils.isDev()"
         class="mt-3 block"
       >
         <Picker

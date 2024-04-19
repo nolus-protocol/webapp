@@ -1,9 +1,9 @@
-import { isServe } from "./modes";
+import { isDev } from "./modes";
 
 let news: string | Promise<string> = import("../news/news.json?url").then((t) => t.default);
 let newsWalletsPath: string = "/src/config/news/wallets/";
 
-if (!isServe()) {
+if (!isDev()) {
   news = "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/news.json";
   newsWalletsPath = "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/wallets/";
 }
