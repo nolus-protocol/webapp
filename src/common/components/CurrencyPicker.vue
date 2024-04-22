@@ -5,7 +5,7 @@
       v-slot="{ open }"
       as="div"
       :disabled="disabled"
-      @update:modelValue="$emit('update-currency', selected.value)"
+      @update:modelValue="onSelect"
     >
       <div v-if="label.length > 0">
         <ListboxLabel class="nls-font-500 block text-14 text-primary">
@@ -14,9 +14,9 @@
       </div>
       <div class="picker-container icon relative mt-1">
         <ListboxButton
-          class="background relative w-full cursor-default rounded-md border border-gray-300 py-2 pl-3 pr-10 text-left shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
+          class="background relative cursor-default rounded-md border border-gray-300 py-2 pl-3 pr-10 text-left shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
         >
-          <span class="flex w-full items-center justify-between">
+          <span class="flex items-center justify-between">
             <div class="flex items-center">
               <img
                 :src="selected.value?.icon"
@@ -24,8 +24,16 @@
                 alt=""
               />
               <span class="dark-text block truncate">
-                {{ selected.value?.shortName }}
+                <input
+                  class="!w-auto pl-2"
+                  ref="searchInput"
+                  v-model="value"
+                  :size="value.length == 0 ? 1 : value.length"
+                />
               </span>
+              <!-- <span class="dark-text block truncate">
+                {{ selected.value?.shortName }}
+              </span> -->
             </div>
             <span
               v-if="isLoading"
@@ -64,6 +72,7 @@
           <ListboxOptions
             class="background scrollbar absolute top-[46px] z-10 mt-1 max-h-56 w-[125px] overflow-auto rounded-md text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
             v-if="optionsValue!.length > 0"
+            @focus="searchInput?.focus()"
           >
             <ListboxOption
               v-for="option in optionsValue"
@@ -104,10 +113,13 @@
 
 <script setup lang="ts">
 import { type PropType, ref, onMounted, watch, computed } from "vue";
-import type { ExternalCurrency } from "../types";
+import type { ExternalCurrency, IObjectKeys } from "../types";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from "@headlessui/vue";
 import type { AssetBalance } from "../stores/wallet/types";
+
+const searchInput = ref<HTMLInputElement>();
+const value = ref("");
 
 const props = defineProps({
   label: {
@@ -148,6 +160,8 @@ const selected = ref({
   value: {} as ExternalCurrency | AssetBalance
 });
 
+const emit = defineEmits(["update-currency"]);
+
 const optionsValue = computed(() => {
   if (props.disablePicker) {
     return (props.options ?? [])?.filter((item) => {
@@ -157,13 +171,25 @@ const optionsValue = computed(() => {
       return true;
     });
   }
-
-  return props.options;
+  const v = value.value.toLowerCase();
+  return (props.options ?? [])?.filter((item) => {
+    const name = item.shortName?.toLocaleLowerCase() ?? "";
+    if (name.includes(v)) {
+      return true;
+    }
+    return false;
+  });
 });
 
 onMounted(() => {
   selected.value.value = props.currencyOption!;
 });
+
+function onSelect(selected: IObjectKeys) {
+  console.log(selected);
+  value.value = selected.shortName;
+  // emit("update-currency", selected.value);
+}
 
 watch(
   () => props.currencyOption,
@@ -171,4 +197,9 @@ watch(
     selected.value.value = props.currencyOption!;
   }
 );
+
+// function filter() {
+//   const values = props.currencyOption
+//   console.log(value.value);
+// }
 </script>
