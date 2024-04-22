@@ -22,7 +22,7 @@
     v-if="isStepSuccess"
     class="modal-form"
   >
-    <div class="radius-rounded mx-[24px] my-[24px] block break-words bg-light-grey p-[24px] text-center">
+    <div class="radius-rounded mx-[24px] my-[24px] block break-words bg-light-grey p-[24px] text-center text-primary">
       {{ $t("message.swap-success") }}
     </div>
     <div class="flex gap-8 px-[24px] pb-[28px]">
@@ -46,7 +46,7 @@
     v-if="isStepError"
     class="modal-form"
   >
-    <div class="radius-rounded mx-[24px] my-[24px] block break-words bg-light-grey p-[24px] text-center">
+    <div class="radius-rounded mx-[24px] my-[24px] block break-words bg-light-grey p-[24px] text-center text-primary">
       {{ errorMsg }}
     </div>
     <div class="px-[24px] pb-[28px]">
@@ -85,7 +85,7 @@
           <p class="nls-font-700 m-0 text-14 text-primary">~{{ calculateFee(fee) }}</p>
         </div>
 
-        <span class="mt-3 block border-t"> </span>
+        <span class="border-swap mt-3 block border-t"> </span>
         <div
           v-for="item in txs"
           class="block"
@@ -212,7 +212,7 @@ watch(
         break;
       }
       case CONFIRM_STEP.SUCCESS: {
-        setDisable(true);
+        setDisable(false);
         break;
       }
       case CONFIRM_STEP.ERROR: {

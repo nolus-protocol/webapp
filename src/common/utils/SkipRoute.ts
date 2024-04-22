@@ -130,7 +130,8 @@ export class SkipRouter {
   }
 
   private static getAffialates(route: IObjectKeys, config: SkipRouteConfigType) {
-    if (route.swapVenue.name) {
+    console.log(route.swapVenue);
+    if (route.swapVenue?.name) {
       const affiliateAddress = config[route.swapVenue.name as keyof typeof config] as string;
       const affiliate = affiliateFromJSON({
         address: affiliateAddress,
