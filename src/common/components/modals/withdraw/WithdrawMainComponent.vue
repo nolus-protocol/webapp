@@ -40,8 +40,8 @@ import Modal from "@/common/components/modals/templates/Modal.vue";
 
 import { CONFIRM_STEP, type ExternalCurrency } from "@/common/types";
 import { TxType } from "@/common/types";
-import { Coin, Dec } from "@keplr-wallet/unit";
-import { NolusClient, NolusWallet } from "@nolus/nolusjs";
+import { Coin, Dec, Int } from "@keplr-wallet/unit";
+import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { Logger, WalletManager } from "@/common/utils";
 import { getMicroAmount, validateAmount, walletOperation } from "@/common/utils";
@@ -51,6 +51,7 @@ import { NATIVE_ASSET, GAS_FEES, ErrorCodes } from "@/config/global";
 import { coin } from "@cosmjs/amino";
 import { useApplicationStore } from "@/common/stores/application";
 import { useAdminStore } from "@/common/stores/admin";
+import { i18n } from "@/i18n";
 
 const props = defineProps({
   selectedAsset: {
@@ -104,6 +105,7 @@ const state = ref({
   txHash: "",
   fee: coin(GAS_FEES.lender_burn_deposit, NATIVE_ASSET.denom),
   selectedAsset: props.selectedAsset,
+  disabled: true,
   onNextClick: () => onNextClick(),
   onSendClick: () => onWithdrawClick(),
   onConfirmBackClick: () => onConfirmBackClick(),
@@ -147,6 +149,7 @@ async function fetchDepositBalance() {
 onBeforeMount(() => {
   if (!props.selectedAsset) {
     state.value.selectedAsset = app.lpn![0].ibcData as string;
+    state.value.disabled = false;
   }
 });
 
@@ -174,12 +177,16 @@ const step = ref(CONFIRM_STEP.CONFIRM);
 const closeModal = inject("onModalClose", () => () => {});
 const loadLPNCurrency = inject("loadLPNCurrency", () => false);
 
-function onNextClick() {
+async function onNextClick() {
   const currency = state.value.selectedCurrency;
   const [_currency, protocol] = currency.key.split("@");
   state.value.receiverAddress = admin.contracts![protocol].lpp;
 
   validateInputs();
+
+  if (state.value.amountErrorMsg.length == 0) {
+    await onValidateAmount();
+  }
 
   if (!state.value.amountErrorMsg) {
     showConfirmScreen.value = true;
@@ -200,6 +207,26 @@ function validateInputs() {
     state.value.selectedCurrency.balance.denom,
     Number(state.value.currentDepositBalance?.balance.amount)
   );
+}
+
+async function onValidateAmount() {
+  const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+  const currency = state.value.selectedCurrency;
+  const [_currency, protocol] = currency.key.split("@");
+  const lppClient = new Lpp(cosmWasmClient, admin.contracts![protocol].lpp);
+  const data = await lppClient.getLppBalance();
+  const amount = CurrencyUtils.convertDenomToMinimalDenom(
+    state.value.amount,
+    state.value.selectedCurrency.ibcData,
+    state.value.selectedCurrency.decimal_digits
+  );
+  const balance = new Int(data.balance.amount);
+  if (amount.amount.gt(balance)) {
+    const total = new Dec(data.balance.amount, state.value.selectedCurrency.decimal_digits);
+    state.value.amountErrorMsg = i18n.global.t("message.withdraw-lpp-balance-error", {
+      balance: `${total.toString(state.value.selectedCurrency.decimal_digits)} ${state.value.selectedCurrency.shortName}`
+    });
+  }
 }
 
 async function onWithdrawClick() {

@@ -42,7 +42,7 @@ import { CONFIRM_STEP, TxType } from "@/common/types";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { useWalletStore } from "@/common/stores/wallet";
-import { computed, inject, onMounted, ref, watch } from "vue";
+import { computed, inject, onBeforeMount, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { coin } from "@cosmjs/amino";
 import { Logger, getMicroAmount, validateAmount, walletOperation } from "@/common/utils";
@@ -68,8 +68,15 @@ onMounted(() => {
   Promise.all([checkSupply()]).catch((e) => Logger.error(e));
 });
 
+onBeforeMount(() => {
+  if (!props.selectedAsset) {
+    state.value.selectedAsset = app.lpn![0].key as string;
+    state.value.disabled = false;
+  }
+});
+
 const checkSupply = async () => {
-  const asset = app.currenciesData![state.value.selectedAsset!];
+  const asset = app.currenciesData![state.value.selectedCurrency.key!];
   const [_ticker, protocol] = asset.key.split("@");
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
   const lpp = new Lpp(cosmWasmClient, admin.contracts![protocol].lpp);
@@ -129,6 +136,7 @@ const state = ref({
   fee: coin(GAS_FEES.lender_deposit, NATIVE_ASSET.denom),
   supply: true,
   loading: true,
+  disabled: true,
   maxSupply: new Int(0),
   selectedAsset: props.selectedAsset,
   onNextClick: () => onNextClick()
@@ -257,14 +265,14 @@ async function transferAmount() {
 }
 
 watch(
-  () => state.value.amount,
-  (currentValue, oldValue) => {
-    validateInputs();
+  () => state.value.selectedCurrency,
+  () => {
+    checkSupply();
   }
 );
 
 watch(
-  () => state.value.selectedCurrency,
+  () => state.value.amount,
   (currentValue, oldValue) => {
     validateInputs();
   }

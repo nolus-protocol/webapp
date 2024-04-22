@@ -11,5 +11,6 @@ export interface WithdrawFormComponentProps {
   txHash: string;
   fee: Coin;
   selectedAsset: string;
+  disabled: boolean;
   onNextClick: () => void;
 }

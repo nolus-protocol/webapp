@@ -16,10 +16,10 @@
           :label="$t('message.amount')"
           :balance="formatCurrentBalance(modelValue.selectedCurrency)"
           :total="modelValue.selectedCurrency?.balance"
-          :disabled-currency-picker="true"
+          :disabled-currency-picker="modelValue.disabled"
           name="amountSupply"
           @input="handleAmountChange($event)"
-          @update-currency="(event) => (modelValue.selectedCurrency = event)"
+          @update-currency="(event) => (props.modelValue.selectedCurrency = event)"
         />
       </div>
     </div>

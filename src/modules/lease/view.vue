@@ -1,13 +1,12 @@
 <template>
   <div class="mb-sm-nolus-70 col-span-12">
     <!-- Header -->
-    <div class="mt-4 flex flex-wrap items-center justify-between px-4 lg:mt-0 lg:px-0 lg:pt-[25px]">
+    <div
+      class="mt-0 flex flex-col-reverse flex-wrap items-center justify-between lg:mt-0 lg:mt-4 lg:flex-row lg:px-0 lg:pt-[25px]"
+    >
       <div class="left w-full md:w-1/2">
-        <h1 class="nls-font-700 nls-sm-title m-0 text-20 text-primary">
-          {{ $t("message.leases") }}
-        </h1>
-        <!-- <div
-          class="background border-standart shadow-box inline-flex h-full max-h-[44px] items-center px-[14px] py-[12px] lg:rounded-md"
+        <div
+          class="sort disable background border-standart shadow-box mt-4 inline-flex h-full max-h-[44px] w-full items-center justify-between py-[12px] pl-[18px] pr-[24px] lg:mt-0 lg:w-auto lg:rounded-md"
         >
           <span class="icon icon-sort"> </span>
 
@@ -67,9 +66,9 @@
               </span>
             </div>
           </button>
-        </div> -->
+        </div>
       </div>
-      <div class="right inline-flex w-full justify-start md:mt-0 md:w-1/2 md:justify-end">
+      <div class="right inline-flex w-full justify-start px-4 md:mt-0 md:w-1/2 md:justify-end lg:px-0">
         <button
           class="btn btn-primary btn-large-primary w-full md:w-auto"
           @click="showLeaseModal = true"
@@ -94,7 +93,7 @@
       </div>
       <div
         v-if="leaseLoaded && leases.length == 0"
-        class="background border-standart shadow-box mt-12 h-[220px] px-1 outline md:px-0 lg:rounded-xl"
+        class="background border-standart shadow-box mt-5 h-[220px] px-1 outline md:px-0 lg:rounded-xl"
       >
         <div class="nls-12 text-dark-grey flex h-full flex-col items-center justify-center">
           <img
@@ -147,6 +146,7 @@ import { useLeases } from "@/common/composables";
 import { useApplicationStore } from "@/common/stores/application";
 import { storeToRefs } from "pinia";
 import { Sort, SortType } from "./types";
+import { Dec } from "@keplr-wallet/unit";
 
 const showLeaseModal = ref(false);
 const { leases, leaseLoaded, getLeases } = useLeases(onLeaseError);
@@ -215,6 +215,58 @@ function setSort(sort: Sort) {
   } else {
     SORT_TYPE.value.sort = sort;
     SORT_TYPE.value.type = SortType.desc;
+  }
+  onSort();
+}
+
+function onSort() {
+  const ls = leases.value;
+
+  switch (SORT_TYPE.value.sort) {
+    case Sort.date: {
+      if (SORT_TYPE.value.type == SortType.desc) {
+        leases.value = ls.sort(
+          (a, b) => (b.leaseData?.timestamp?.getTime() ?? 0) - (a.leaseData?.timestamp?.getTime() ?? 0)
+        );
+      } else if (SORT_TYPE.value.type == SortType.asc) {
+        leases.value = ls.sort(
+          (a, b) => (a.leaseData?.timestamp?.getTime() ?? 0) - (b.leaseData?.timestamp?.getTime() ?? 0)
+        );
+      }
+      break;
+    }
+    case Sort.size: {
+      if (SORT_TYPE.value.type == SortType.desc) {
+        leases.value = ls.sort((a, b) =>
+          Number(
+            ((b.leaseData?.leasePositionStable as Dec) ?? new Dec(0))
+              .sub((a.leaseData?.leasePositionStable as Dec) ?? new Dec(0))
+              .toString()
+          )
+        );
+      } else if (SORT_TYPE.value.type == SortType.asc) {
+        leases.value = ls.sort((a, b) =>
+          Number(
+            ((a.leaseData?.leasePositionStable as Dec) ?? new Dec(0))
+              .sub((b.leaseData?.leasePositionStable as Dec) ?? new Dec(0))
+              .toString()
+          )
+        );
+      }
+      break;
+    }
+    case Sort.pnl: {
+      if (SORT_TYPE.value.type == SortType.desc) {
+        leases.value = ls.sort((a, b) =>
+          Number(((b.pnlAmount as Dec) ?? new Dec(0)).sub((a.pnlAmount as Dec) ?? new Dec(0)).toString())
+        );
+      } else if (SORT_TYPE.value.type == SortType.asc) {
+        leases.value = ls.sort((a, b) =>
+          Number(((a.pnlAmount as Dec) ?? new Dec(0)).sub((b.pnlAmount as Dec) ?? new Dec(0)).toString())
+        );
+      }
+      break;
+    }
   }
 }
 

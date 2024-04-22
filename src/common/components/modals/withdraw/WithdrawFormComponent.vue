@@ -18,7 +18,7 @@
           name="amountSupply"
           @input="handleAmountChange($event)"
           @update-currency="(event) => (modelValue.selectedCurrency = event)"
-          :disabled-currency-picker="true"
+          :disabled-currency-picker="modelValue.disabled"
         />
       </div>
     </div>
