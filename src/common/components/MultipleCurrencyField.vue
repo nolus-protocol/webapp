@@ -7,6 +7,7 @@
       <div class="flex items-center p-2.5 p-3.5">
         <div class="inline-block w-[135px]">
           <CurrencyPicker
+            clsass="w-[135px]"
             :currencyOption="selectedOption!"
             :options="currencyOptions"
             :disabled="disabled || isLoading"
@@ -46,6 +47,7 @@
       <div class="flex items-center p-2.5 p-3.5">
         <div class="inline-block w-[135px]">
           <CurrencyPicker
+            clsass="w-[135px]"
             :currencyOption="swapToOption!"
             :options="currencyOptions"
             :disabled="disabled || isLoading"

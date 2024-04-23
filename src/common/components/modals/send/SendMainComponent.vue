@@ -86,7 +86,12 @@ const balances = ref<AssetBalance[]>(
     })
     .map((item) => {
       const currency = AssetUtils.getCurrencyByDenom(item.balance.denom);
-      const e = { ...item, icon: currency.icon, shortName: currency.shortName };
+      const e = {
+        ...item,
+        icon: currency.icon,
+        shortName: currency.shortName,
+        decimal_digits: currency.decimal_digits
+      };
       if (e.balance.denom == walletStore.available.denom) {
         e.balance = { ...walletStore.available };
       }

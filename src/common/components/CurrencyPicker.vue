@@ -24,7 +24,7 @@
                 alt=""
               />
               <span
-                class="dark-text search-input block truncate"
+                class="dark-text search-input !mt-0 block truncate"
                 :data="selected.value?.shortName"
               >
                 <input
@@ -171,18 +171,16 @@ const oracle = useOracleStore();
 const optionsValue = computed(() => {
   const i = items() ?? [];
   i.sort((a, b) => {
-    const aInfo = AssetUtils.getCurrencyByDenom(a.balance.denom);
     const aAssetBalance = CurrencyUtils.calculateBalance(
       oracle.prices[a.balance.denom]?.amount,
       new Coin(a.balance.denom, a.balance.amount.toString()),
-      aInfo.decimal_digits as number
+      a.decimal_digits as number
     ).toDec();
 
-    const bInfo = AssetUtils.getCurrencyByDenom(b.balance.denom);
     const bAssetBalance = CurrencyUtils.calculateBalance(
       oracle.prices[b.balance.denom]?.amount,
       new Coin(b.balance.denom, b.balance.amount.toString()),
-      bInfo.decimal_digits as number
+      b.decimal_digits as number
     ).toDec();
 
     return Number(bAssetBalance.sub(aAssetBalance).toString(8));
