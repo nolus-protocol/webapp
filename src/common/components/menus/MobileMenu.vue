@@ -122,7 +122,7 @@ const hiddenMenuItems = [
     path: `/${RouteNames.STATS}`
   },
   {
-    icon: "hub",
+    icon: "hat",
     name: "support",
     path: `https://hub.nolus.io`,
     target: "_blank",

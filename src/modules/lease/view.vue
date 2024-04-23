@@ -69,7 +69,7 @@
           </button>
         </div>
         <template v-else>
-          <h1 class="nls-font-700 m-0 text-20 text-primary">
+          <h1 class="nls-font-700 m-0 ml-[14px] mt-4 text-20 text-primary lg:ml-[0px] lg:mt-0">
             {{ $t("message.leases") }}
           </h1>
         </template>
