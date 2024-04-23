@@ -5,7 +5,7 @@
       v-model="selected"
       :disabled="disabled"
       as="div"
-      @update:modelValue="$emit('update-selected', selected)"
+      @update:modelValue="onSelect"
     >
       <ListboxLabel class="data-text block text-14">
         {{ label }}
@@ -21,7 +21,18 @@
               alt=""
               class="mr-3 h-6 w-6 flex-shrink-0 rounded-full"
             />
-            <span class="dark-text block truncate">{{ selected.label }}</span>
+            <span
+              class="dark-text search-input block truncate"
+              :data="selected.label"
+            >
+              <input
+                class="search-input"
+                ref="searchInput"
+                v-model="value"
+                :placeholder="selected.label"
+                :disabled="disabled || disableInput"
+              />
+            </span>
           </span>
           <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
             <ChevronUpIcon
@@ -49,10 +60,11 @@
           name="collapse"
         >
           <ListboxOptions
+            @focus="searchInput?.focus()"
             class="background scrollbar absolute z-10 mt-1 max-h-60 max-h-[160px] w-full overflow-auto rounded-md py-1 text-base shadow-lg focus:outline-none sm:text-sm"
           >
             <ListboxOption
-              v-for="option in options"
+              v-for="option in optionsValue"
               :key="option.value"
               v-slot="{ active, selected }"
               :value="option"
@@ -93,6 +105,9 @@
 import { onMounted, type PropType, ref, watch } from "vue";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from "@headlessui/vue";
+import { computed } from "vue";
+import type { ExternalCurrency } from "../types";
+import type { AssetBalance } from "../stores/wallet/types";
 
 export interface PickerOption {
   id?: string;
@@ -102,6 +117,8 @@ export interface PickerOption {
   ticker?: string;
   key?: string;
 }
+const searchInput = ref<HTMLInputElement>();
+const value = ref("");
 
 const props = defineProps({
   label: {
@@ -128,10 +145,15 @@ const props = defineProps({
   },
   disabled: {
     type: Boolean
+  },
+  disableInput: {
+    default: false,
+    type: Boolean
   }
 });
 
 const selected = ref({} as PickerOption);
+const emit = defineEmits(["update-selected"]);
 
 onMounted(() => {
   setValue(props.defaultOption);
@@ -144,6 +166,24 @@ watch(
   }
 );
 
+const optionsValue = computed(() => {
+  const v = value.value.toLowerCase();
+
+  const items = (props.options ?? [])?.filter((item) => {
+    const name = item.label?.toLocaleLowerCase() ?? "";
+    if (name.includes(v)) {
+      return true;
+    }
+    return false;
+  });
+
+  if (items.length > 0) {
+    return items;
+  }
+
+  return props.options;
+});
+
 function setValue(option: PickerOption) {
   for (const item of props.options ?? []) {
     if (item.value == option.value) {
@@ -151,5 +191,10 @@ function setValue(option: PickerOption) {
       break;
     }
   }
+}
+
+function onSelect(v: ExternalCurrency | AssetBalance) {
+  value.value = "";
+  emit("update-selected", v);
 }
 </script>

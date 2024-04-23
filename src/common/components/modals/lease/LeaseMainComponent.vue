@@ -309,7 +309,6 @@ function validateMinMaxValues(): boolean {
 
     const currency = state.value.selectedCurrency;
     const downPaymentCurrency = state.value.selectedDownPaymentCurrency;
-
     const range = downPaymentRange?.[currency.ticker];
     const rangedownPaymentCurrency = downPaymentRange?.[downPaymentCurrency.ticker];
     const values: number[] = [];

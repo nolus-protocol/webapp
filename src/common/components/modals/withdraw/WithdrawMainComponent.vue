@@ -133,10 +133,9 @@ async function fetchDepositBalance() {
 
     const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
     const amount = new Dec(depositBalance.balance).mul(calculatedPrice);
-
     state.value.currentDepositBalance = {
       ...state.value.selectedCurrency,
-      balance: new Coin(state.value.selectedCurrency.balance.denom, amount.truncate().toString())
+      balance: new Coin(state.value.selectedCurrency.balance.denom, amount.roundUp().toString())
     } as ExternalCurrency;
   } catch (e: Error | any) {
     errorDialog.value.showDialog = true;
