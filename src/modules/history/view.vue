@@ -26,6 +26,20 @@
               :key="transaction.id"
               :transaction="transaction"
             />
+            <div
+              v-if="transactions.length == 0"
+              class="h-[180px]"
+            >
+              <div class="nls-12 text-dark-grey flex h-full flex-col items-center justify-center">
+                <img
+                  class="m-4 inline-block"
+                  height="32"
+                  src="/src/assets/icons/empty_history.svg"
+                  width="32"
+                />
+                {{ $t("message.no-results") }}
+              </div>
+            </div>
           </TransitionGroup>
         </template>
         <template v-else>
