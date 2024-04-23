@@ -14,7 +14,7 @@
             class="flex"
             @click="setSort(Sort.date)"
           >
-            <span class="nls-font-400 ml-[21px] uppercase text-primary">{{ $t("message.date") }}</span>
+            <span class="nls-font-500 ml-[21px] uppercase text-primary">{{ $t("message.date") }}</span>
             <div class="ml-[2px] flex flex-col">
               <span
                 class="icon icon-arrow-up-sort !text-[7px] text-[#8396B1]"
@@ -33,7 +33,7 @@
             class="flex"
             @click="setSort(Sort.size)"
           >
-            <span class="nls-font-400 ml-[21px] uppercase text-primary">{{ $t("message.size") }}</span>
+            <span class="nls-font-500 ml-[21px] uppercase text-primary">{{ $t("message.size") }}</span>
             <div class="ml-[2px] flex flex-col">
               <span
                 class="icon icon-arrow-up-sort !text-[7px] text-[#8396B1]"
@@ -52,7 +52,7 @@
             class="flex"
             @click="setSort(Sort.pnl)"
           >
-            <span class="nls-font-400 ml-[21px] uppercase text-primary">{{ $t("message.pnl") }}</span>
+            <span class="nls-font-500 ml-[21px] uppercase text-primary">{{ $t("message.pnl") }}</span>
             <div class="ml-[2px] flex flex-col">
               <span
                 class="icon icon-arrow-up-sort !text-[7px] text-[#8396B1]"
@@ -86,7 +86,7 @@
       tag="div"
     >
       <div
-        v-for="lease in leases"
+        v-for="lease in leasesesData"
         :key="lease.leaseAddress"
       >
         <LeaseInfo :lease-info="lease" />
@@ -147,6 +147,7 @@ import { useApplicationStore } from "@/common/stores/application";
 import { storeToRefs } from "pinia";
 import { Sort, SortType } from "./types";
 import { Dec } from "@keplr-wallet/unit";
+import { computed } from "vue";
 
 const showLeaseModal = ref(false);
 const { leases, leaseLoaded, getLeases } = useLeases(onLeaseError);
@@ -216,28 +217,22 @@ function setSort(sort: Sort) {
     SORT_TYPE.value.sort = sort;
     SORT_TYPE.value.type = SortType.desc;
   }
-  onSort();
 }
 
-function onSort() {
+const leasesesData = computed(() => {
   const ls = leases.value;
 
   switch (SORT_TYPE.value.sort) {
     case Sort.date: {
       if (SORT_TYPE.value.type == SortType.desc) {
-        leases.value = ls.sort(
-          (a, b) => (b.leaseData?.timestamp?.getTime() ?? 0) - (a.leaseData?.timestamp?.getTime() ?? 0)
-        );
+        return ls.sort((a, b) => (b.leaseData?.timestamp?.getTime() ?? 0) - (a.leaseData?.timestamp?.getTime() ?? 0));
       } else if (SORT_TYPE.value.type == SortType.asc) {
-        leases.value = ls.sort(
-          (a, b) => (a.leaseData?.timestamp?.getTime() ?? 0) - (b.leaseData?.timestamp?.getTime() ?? 0)
-        );
+        return ls.sort((a, b) => (a.leaseData?.timestamp?.getTime() ?? 0) - (b.leaseData?.timestamp?.getTime() ?? 0));
       }
-      break;
     }
     case Sort.size: {
       if (SORT_TYPE.value.type == SortType.desc) {
-        leases.value = ls.sort((a, b) =>
+        return ls.sort((a, b) =>
           Number(
             ((b.leaseData?.leasePositionStable as Dec) ?? new Dec(0))
               .sub((a.leaseData?.leasePositionStable as Dec) ?? new Dec(0))
@@ -245,7 +240,7 @@ function onSort() {
           )
         );
       } else if (SORT_TYPE.value.type == SortType.asc) {
-        leases.value = ls.sort((a, b) =>
+        return ls.sort((a, b) =>
           Number(
             ((a.leaseData?.leasePositionStable as Dec) ?? new Dec(0))
               .sub((b.leaseData?.leasePositionStable as Dec) ?? new Dec(0))
@@ -253,22 +248,23 @@ function onSort() {
           )
         );
       }
-      break;
     }
     case Sort.pnl: {
       if (SORT_TYPE.value.type == SortType.desc) {
-        leases.value = ls.sort((a, b) =>
+        return ls.sort((a, b) =>
           Number(((b.pnlAmount as Dec) ?? new Dec(0)).sub((a.pnlAmount as Dec) ?? new Dec(0)).toString())
         );
       } else if (SORT_TYPE.value.type == SortType.asc) {
-        leases.value = ls.sort((a, b) =>
+        return ls.sort((a, b) =>
           Number(((a.pnlAmount as Dec) ?? new Dec(0)).sub((b.pnlAmount as Dec) ?? new Dec(0)).toString())
         );
       }
-      break;
+    }
+    default: {
+      return ls;
     }
   }
-}
+});
 
 provide("getLeases", getLeases);
 </script>

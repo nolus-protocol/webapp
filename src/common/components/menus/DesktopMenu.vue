@@ -40,7 +40,6 @@ import { RouterLink } from "vue-router";
 import { RouteNames, router } from "@/router";
 import { inject } from "vue";
 import { EnvNetworkUtils } from "@/common/utils";
-import { type Networks } from "@/common/types";
 
 const openDialog = inject("openDialog", () => {});
 

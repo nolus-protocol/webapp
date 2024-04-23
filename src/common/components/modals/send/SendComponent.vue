@@ -13,6 +13,7 @@
             :label="$t('message.network')"
             :value="modelValue.network"
             @update-selected="onUpdateCurrency"
+            :disable-input="true"
           />
         </div>
 

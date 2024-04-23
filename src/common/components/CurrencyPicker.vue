@@ -23,17 +23,18 @@
                 class="h-6 w-6 flex-shrink-0 rounded-full"
                 alt=""
               />
-              <span class="dark-text block truncate">
+              <span
+                class="dark-text search-input block truncate"
+                :data="selected.value?.shortName"
+              >
                 <input
-                  class="!w-auto pl-2"
+                  class="search-input"
                   ref="searchInput"
                   v-model="value"
-                  :size="value.length == 0 ? 1 : value.length"
+                  :placeholder="selected.value?.shortName"
+                  :disabled="disabled"
                 />
               </span>
-              <!-- <span class="dark-text block truncate">
-                {{ selected.value?.shortName }}
-              </span> -->
             </div>
             <span
               v-if="isLoading"
@@ -113,7 +114,7 @@
 
 <script setup lang="ts">
 import { type PropType, ref, onMounted, watch, computed } from "vue";
-import type { ExternalCurrency, IObjectKeys } from "../types";
+import type { ExternalCurrency } from "../types";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from "@headlessui/vue";
 import type { AssetBalance } from "../stores/wallet/types";
@@ -172,24 +173,21 @@ const optionsValue = computed(() => {
     });
   }
   const v = value.value.toLowerCase();
-  return (props.options ?? [])?.filter((item) => {
+
+  const items = (props.options ?? [])?.filter((item) => {
     const name = item.shortName?.toLocaleLowerCase() ?? "";
     if (name.includes(v)) {
       return true;
     }
     return false;
   });
-});
 
-onMounted(() => {
-  selected.value.value = props.currencyOption!;
-});
+  if (items.length > 0) {
+    return items;
+  }
 
-function onSelect(selected: IObjectKeys) {
-  console.log(selected);
-  value.value = selected.shortName;
-  // emit("update-currency", selected.value);
-}
+  return props.options;
+});
 
 watch(
   () => props.currencyOption,
@@ -198,8 +196,12 @@ watch(
   }
 );
 
-// function filter() {
-//   const values = props.currencyOption
-//   console.log(value.value);
-// }
+onMounted(() => {
+  selected.value.value = props.currencyOption!;
+});
+
+function onSelect(v: ExternalCurrency | AssetBalance) {
+  value.value = "";
+  emit("update-currency", v);
+}
 </script>

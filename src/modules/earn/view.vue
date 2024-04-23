@@ -366,7 +366,7 @@ async function loadLPNCurrency() {
         ]);
 
         const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
-        const amount = new Dec(depositBalance.balance).mul(calculatedPrice).truncate();
+        const amount = new Dec(depositBalance.balance).mul(calculatedPrice).roundUp().toString();
         const currency = {
           key: c.key,
           balance: {
