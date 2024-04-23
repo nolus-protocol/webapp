@@ -118,6 +118,10 @@ import type { ExternalCurrency } from "../types";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from "@headlessui/vue";
 import type { AssetBalance } from "../stores/wallet/types";
+import { AssetUtils } from "../utils";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { useOracleStore } from "../stores/oracle";
+import { Coin } from "@keplr-wallet/unit";
 
 const searchInput = ref<HTMLInputElement>();
 const value = ref("");
@@ -162,8 +166,31 @@ const selected = ref({
 });
 
 const emit = defineEmits(["update-currency"]);
+const oracle = useOracleStore();
 
 const optionsValue = computed(() => {
+  const i = items() ?? [];
+  i.sort((a, b) => {
+    const aInfo = AssetUtils.getCurrencyByDenom(a.balance.denom);
+    const aAssetBalance = CurrencyUtils.calculateBalance(
+      oracle.prices[a.balance.denom]?.amount,
+      new Coin(a.balance.denom, a.balance.amount.toString()),
+      aInfo.decimal_digits as number
+    ).toDec();
+
+    const bInfo = AssetUtils.getCurrencyByDenom(b.balance.denom);
+    const bAssetBalance = CurrencyUtils.calculateBalance(
+      oracle.prices[b.balance.denom]?.amount,
+      new Coin(b.balance.denom, b.balance.amount.toString()),
+      bInfo.decimal_digits as number
+    ).toDec();
+
+    return Number(bAssetBalance.sub(aAssetBalance).toString(8));
+  });
+  return i;
+});
+
+function items() {
   if (props.disablePicker) {
     return (props.options ?? [])?.filter((item) => {
       if (item.balance.denom == props.currencyOption?.balance.denom) {
@@ -172,6 +199,7 @@ const optionsValue = computed(() => {
       return true;
     });
   }
+
   const v = value.value.toLowerCase();
 
   const items = (props.options ?? [])?.filter((item) => {
@@ -187,7 +215,7 @@ const optionsValue = computed(() => {
   }
 
   return props.options;
-});
+}
 
 watch(
   () => props.currencyOption,

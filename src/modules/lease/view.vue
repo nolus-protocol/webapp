@@ -6,6 +6,7 @@
     >
       <div class="left w-full md:w-1/2">
         <div
+          v-if="leasesesData.length >= SORT_FEATURE_ENABLE"
           class="sort disable background border-standart shadow-box mt-4 inline-flex h-full max-h-[44px] w-full items-center justify-between py-[12px] pl-[18px] pr-[24px] lg:mt-0 lg:w-auto lg:rounded-md"
         >
           <span class="icon icon-sort"> </span>
@@ -67,6 +68,11 @@
             </div>
           </button>
         </div>
+        <template v-else>
+          <h1 class="nls-font-700 m-0 text-20 text-primary">
+            {{ $t("message.leases") }}
+          </h1>
+        </template>
       </div>
       <div class="right inline-flex w-full justify-start px-4 md:mt-0 md:w-1/2 md:justify-end lg:px-0">
         <button
@@ -159,6 +165,7 @@ const SORT_TYPE = ref({
   sort: Sort.date,
   type: SortType.desc
 });
+const SORT_FEATURE_ENABLE = 3;
 
 const errorDialog = ref({
   showDialog: false,
