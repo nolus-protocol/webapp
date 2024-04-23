@@ -12,17 +12,17 @@
       </ListboxLabel>
       <div class="picker-container relative mt-[4px]">
         <ListboxButton
-          class="background relative w-full cursor-default rounded-md border border-gray-300 py-2 pl-3 pr-10 text-left shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
+          class="background relative flex w-full cursor-default !items-center rounded-md border border-gray-300 py-2 pl-3 pr-10 text-left shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
         >
           <span class="flex items-center">
             <img
-              v-if="selected.icon"
+              v-if="selected.icon && value.length == 0"
               :src="selected.icon"
               alt=""
               class="mr-3 h-6 w-6 flex-shrink-0 rounded-full"
             />
             <span
-              class="dark-text search-input block truncate"
+              class="dark-text search-input !mt-0 block truncate !leading-normal"
               :data="selected.label"
             >
               <input
@@ -31,6 +31,7 @@
                 v-model="value"
                 :placeholder="selected.label"
                 :disabled="disabled || disableInput"
+                @focusout="focusOut"
               />
             </span>
           </span>
@@ -191,6 +192,12 @@ function setValue(option: PickerOption) {
       break;
     }
   }
+}
+
+function focusOut() {
+  setTimeout(() => {
+    value.value = "";
+  }, 200);
 }
 
 function onSelect(v: ExternalCurrency | AssetBalance) {

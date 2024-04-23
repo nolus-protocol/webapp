@@ -14,7 +14,7 @@
       </div>
       <div class="picker-container icon relative mt-1">
         <ListboxButton
-          class="background relative w-full cursor-default rounded-md border border-gray-300 py-2 pl-3 pr-10 text-left shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
+          class="background relative flex w-full cursor-default !items-center rounded-md border border-gray-300 py-2 pl-3 pr-10 text-left shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
         >
           <span class="flex items-center justify-between">
             <div class="flex items-center">
@@ -22,9 +22,10 @@
                 :src="selected.value?.icon"
                 class="h-6 w-6 flex-shrink-0 rounded-full"
                 alt=""
+                v-if="value.length == 0"
               />
               <span
-                class="dark-text search-input !mt-0 block truncate"
+                class="dark-text search-input !mt-0 block truncate !leading-normal"
                 :data="selected.value?.shortName"
               >
                 <input
@@ -33,6 +34,7 @@
                   v-model="value"
                   :placeholder="selected.value?.shortName"
                   :disabled="disabled"
+                  @focusout="focusOut"
                 />
               </span>
             </div>
@@ -118,7 +120,6 @@ import type { ExternalCurrency } from "../types";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from "@headlessui/vue";
 import type { AssetBalance } from "../stores/wallet/types";
-import { AssetUtils } from "../utils";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "../stores/oracle";
 import { Coin } from "@keplr-wallet/unit";
@@ -213,6 +214,12 @@ function items() {
   }
 
   return props.options;
+}
+
+function focusOut() {
+  setTimeout(() => {
+    value.value = "";
+  }, 200);
 }
 
 watch(
