@@ -14,7 +14,7 @@
       </div>
       <div class="picker-container icon relative mt-1">
         <ListboxButton
-          class="background relative cursor-default rounded-md border border-gray-300 py-2 pl-3 pr-10 text-left shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
+          class="background relative w-full cursor-default rounded-md border border-gray-300 py-2 pl-3 pr-10 text-left shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
         >
           <span class="flex items-center justify-between">
             <div class="flex items-center">
