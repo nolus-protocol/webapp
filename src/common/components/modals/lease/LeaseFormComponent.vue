@@ -244,9 +244,9 @@ const balances = computed(() => {
       return false;
     }
 
-    if (IGNORE_LEASE_ASSETS.includes(ticker)) {
-      return false;
-    }
+    // if (IGNORE_LEASE_ASSETS.includes(ticker)) {
+    //   return false;
+    // }
     const lpns = ((app.lpn ?? []) as ExternalCurrency[]).map((item) => item.key as string);
 
     if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {

@@ -33,7 +33,7 @@ export async function updateBalances(this: Store) {
         Networks.NOLUS,
         app.networksData?.protocols[protocol].DexNetwork as string
       );
-
+      console.log(ticker, ibcDenom);
       const fn = () => {
         if (WalletUtils.isAuth()) {
           return NolusClient.getInstance()
