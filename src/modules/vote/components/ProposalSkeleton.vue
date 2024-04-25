@@ -30,7 +30,10 @@
         <div class="flex flex-col items-center justify-between gap-2 dark:text-white md:flex-row md:gap-0">
           <div class="flex gap-4">
             <div>
-              <span class="block text-sm">Turnout:</span>
+              <span
+                class="block text-sm"
+                style="width: 25px; height: 1em"
+              ></span>
               <span class="text-base font-medium"
                 ><div
                   class="skeleton-box"
@@ -39,7 +42,10 @@
               ></span>
             </div>
             <div>
-              <span class="block text-sm">Quorum:</span>
+              <span
+                class="block text-sm"
+                style="width: 25px; height: 1em"
+              ></span>
               <span class="text-base font-medium"
                 ><div
                   class="skeleton-box"
@@ -48,7 +54,10 @@
               ></span>
             </div>
             <div>
-              <span class="block text-sm">Voting ends:</span>
+              <span
+                class="block text-sm"
+                style="width: 25px; height: 1em"
+              ></span>
               <span class="text-base font-medium"
                 ><div
                   class="skeleton-box"
