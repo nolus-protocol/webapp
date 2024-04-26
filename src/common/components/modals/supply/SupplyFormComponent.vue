@@ -28,7 +28,7 @@
       <button
         class="btn btn-primary btn-large-primary min-h-[44px] text-center"
         :class="{ 'js-loading': props.modelValue.loading }"
-        :disabled="!props.modelValue.supply"
+        :disabled="!props.modelValue.supply || disabled.includes(modelValue.selectedCurrency.key)"
       >
         {{
           props.modelValue.loading
@@ -48,6 +48,7 @@ import type { PropType } from "vue";
 import type { ExternalCurrency } from "@/common/types";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import CurrencyField from "@/common/components/CurrencyField.vue";
+const disabled = ["USDC_AXELAR@OSMOSIS-OSMOSIS-USDC_AXELAR"];
 
 const props = defineProps({
   modelValue: {
@@ -56,8 +57,10 @@ const props = defineProps({
   }
 });
 
+console.log(props);
+
 function submit() {
-  if (props.modelValue.supply) {
+  if (props.modelValue.supply && !disabled.includes(props.modelValue.selectedCurrency.key)) {
     props.modelValue.onNextClick();
   }
 }
