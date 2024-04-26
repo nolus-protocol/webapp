@@ -1,5 +1,5 @@
 <template>
-  <div class="mb-sm-nolus-70p col-span-12">
+  <div class="mb-sm-nolus-70 col-span-12">
     <!-- Header -->
     <div class="table-header mt-[25px] flex flex-wrap items-baseline justify-between px-4 lg:px-0">
       <div class="left">

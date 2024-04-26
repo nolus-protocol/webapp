@@ -4,7 +4,7 @@
       v-for="index in 5"
       :key="index"
       :class="index > 1 ? ['background lg:w-[calc(50%-10px)]'] : ['background']"
-      class="bg-neutral-bg-50 dark:border-border-color flex w-full flex-col overflow-clip rounded-xl shadow-lg dark:border-[1px]"
+      class="shadow-lg flex w-full flex-col overflow-clip rounded-xl bg-neutral-bg-50 dark:border dark:border-border-color"
     >
       <!-- Mimic the title and status -->
       <div class="mb-5 flex items-start justify-between p-5 pb-0">
