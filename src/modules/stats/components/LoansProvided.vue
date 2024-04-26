@@ -3,7 +3,7 @@
     class="shadow-field-normal mt-6 flex flex-col border border-border-color bg-neutral-bg-50 p-4 lg:flex-row lg:rounded-xl lg:p-6"
   >
     <div class="w-full">
-      <p class="nls-font-500 text-16 text-primary">
+      <p class="text-16 font-medium text-neutral-typography-200">
         {{ $t("message.leased-assets-total") }}
       </p>
       <div class="flex w-full flex-col items-center gap-4 lg:flex-row lg:gap-6">
@@ -22,7 +22,7 @@
               v-for="(item, index) in loans"
               :key="index"
             >
-              <p class="nls-font-500 text-dark-grey flex text-12">
+              <p class="flex text-12 font-medium text-neutral-400">
                 {{ item.name }}
               </p>
 
@@ -34,7 +34,7 @@
                 :has-space="false"
                 :isDenomInfront="false"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                class="nls-font-500 text-primary"
+                class="font-medium text-neutral-typography-200"
                 denom="%"
               />
             </div>
@@ -44,7 +44,7 @@
             class="flex border-t border-border-color pl-0 lg:mr-6 lg:flex-col lg:items-start lg:justify-start lg:border-l lg:border-t-0 lg:pl-6"
           >
             <div class="pt-3 lg:pt-0">
-              <p class="nls-font-500 text-dark-grey flex text-12">
+              <p class="flex text-12 font-medium text-neutral-400">
                 {{ $t("message.borrowed") }}
               </p>
 
@@ -54,12 +54,12 @@
                 :fontSizeSmall="16"
                 :has-space="false"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                class="nls-font-500 text-primary"
+                class="font-medium text-neutral-typography-200"
                 denom="$"
               />
             </div>
             <div class="ml-6 pt-3 lg:ml-0">
-              <p class="nls-font-500 text-dark-grey flex text-12">
+              <p class="flex text-12 font-medium text-neutral-400">
                 {{ $t("message.protocol-revenue") }}
               </p>
 
@@ -69,7 +69,7 @@
                 :fontSizeSmall="16"
                 :has-space="false"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                class="nls-font-500 text-primary"
+                class="font-medium text-neutral-typography-200"
                 denom="$"
               />
             </div>
