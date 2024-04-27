@@ -191,6 +191,7 @@ const cols = ref(3 as number);
 const showSupplyWithdrawDialog = ref(false);
 const showDelegateUndelegateDialog = ref(false);
 const showWithrawRewardsDialog = ref(false);
+const sort = ["OSMOSIS-OSMOSIS-USDC_NOBLE", "OSMOSIS-OSMOSIS-USDC_AXELAR", "NEUTRON-ASTROPORT-USDC_AXELAR"];
 
 const reward = ref({
   balance: coin(0, ChainConstants.COIN_MINIMAL_DENOM)
@@ -381,7 +382,20 @@ async function loadLPNCurrency() {
   }
 
   await Promise.allSettled(promises);
-  lpnAsset.value = lpnCurrencies;
+  const items = [];
+
+  for (const protocol of sort) {
+    const index = lpnCurrencies.findIndex((item) => {
+      const [_key, pr] = item.key.split("@");
+      return pr == protocol;
+    });
+    if (index > -1) {
+      items.push(lpnCurrencies[index]);
+      lpnCurrencies.splice(index, 1);
+    }
+  }
+
+  lpnAsset.value = [...items, ...lpnCurrencies];
 }
 
 function openDelegateUndelegateDialog() {

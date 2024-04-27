@@ -57,8 +57,6 @@ const props = defineProps({
   }
 });
 
-console.log(props);
-
 function submit() {
   if (props.modelValue.supply && !disabled.includes(props.modelValue.selectedCurrency.key)) {
     props.modelValue.onNextClick();
