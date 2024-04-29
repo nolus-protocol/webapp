@@ -15,5 +15,6 @@ export interface SupplyFormComponentProps {
   fee: Coin;
   maxSupply: Int | any;
   selectedAsset: string;
+  disabled: boolean;
   onNextClick: () => void;
 }

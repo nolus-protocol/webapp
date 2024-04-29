@@ -173,8 +173,11 @@ async function refetchProposalData(id: string) {
 
 async function fetchData(url: string) {
   try {
-    const req = await fetch(url);
-    return await req.json();
+    const [reqProposals, reqConfig] = await Promise.all([fetch(url), AppUtils.getProposalsConfig()]);
+
+    const data = await reqProposals.json();
+    data.proposals = data.proposals.filter((item: Proposal) => !reqConfig.hide.includes(item.id));
+    return data;
   } catch (error: Error | any) {
     showErrorDialog.value = true;
     errorMessage.value = error.message;

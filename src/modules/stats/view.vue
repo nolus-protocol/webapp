@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="flex flex-wrap items-center justify-between px-4 lg:px-0 lg:pt-[25px]">
       <div class="left w-full md:w-1/2">
-        <h1 class="m-0 mb-[11.5px] mt-[26px] text-20 font-semibold text-neutral-typography-200">
+        <h1 class="text-20 text-neutral-typography-200 m-0 mb-[11.5px] mt-[26px] font-semibold">
           {{ $t("message.stats") }}
         </h1>
       </div>

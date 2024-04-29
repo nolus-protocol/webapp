@@ -13,7 +13,7 @@
           href="https://hub.nolus.io"
           target="_blank"
         >
-          <span class="icon icon-hub" />
+          <span class="icon icon-hat" />
           {{ $t("message.support") }}
         </a>
         <RouterLink

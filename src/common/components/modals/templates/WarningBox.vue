@@ -1,7 +1,7 @@
 <template>
   <div
     :class="isWarning ? 'box-warning' : 'box-error'"
-    class="box radius-rounded mb-6 flex items-start break-words p-4 text-left"
+    class="box radius-rounded mb-6 flex items-start items-center break-words p-4 text-left"
   >
     <div class="mr-2 inline-block">
       <slot

@@ -24,7 +24,9 @@ const MsgTransferAmino = new AminoTypes(aminoTypes);
 async function createWallet(
   wallet: Wallet,
   offlineDirectSigner: OfflineDirectSigner | OfflineAminoSigner | LedgerSigner,
-  prefix: string
+  prefix: string,
+  gasMupltiplier: number,
+  gasPrice: string
 ): Promise<BaseWallet> {
   const baseWallet = new BaseWallet(
     wallet.getTendermintClient(),
@@ -32,7 +34,9 @@ async function createWallet(
     { aminoTypes: MsgTransferAmino },
     wallet.rpc,
     wallet.api,
-    prefix
+    prefix,
+    gasMupltiplier,
+    gasPrice
   );
   await baseWallet.useAccount();
   return baseWallet;
@@ -62,7 +66,7 @@ async function authenticateKeplr(wallet: Wallet, network: NetworkData) {
     if (keplrWindow.getOfflineSignerOnlyAmino) {
       const offlineSigner = keplrWindow.getOfflineSignerOnlyAmino(chainId);
 
-      return await createWallet(wallet, offlineSigner, network.prefix);
+      return await createWallet(wallet, offlineSigner, network.prefix, network.gasMupltiplier, network.gasPrice);
     }
   }
 
@@ -95,7 +99,7 @@ async function authenticateLeap(wallet: Wallet, network: NetworkData) {
     if (leapWindow.leap.getOfflineSignerOnlyAmino) {
       const offlineSigner = leapWindow.leap.getOfflineSignerOnlyAmino(chainId);
 
-      return await createWallet(wallet, offlineSigner, network.prefix);
+      return await createWallet(wallet, offlineSigner, network.prefix, network.gasMupltiplier, network.gasPrice);
     }
   }
 
@@ -112,7 +116,9 @@ async function authenticateLedger(wallet: Wallet, network: NetworkData) {
       prefix: network.prefix,
       hdPaths: paths
     }),
-    network.prefix
+    network.prefix,
+    network.gasMupltiplier,
+    network.gasPrice
   );
 }
 

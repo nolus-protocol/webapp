@@ -1,11 +1,11 @@
 import type { NetworkAddress } from "@/common/types";
-import { isServe } from ".";
+import { isDev } from ".";
 
 export const DEFAULT_PRIMARY_NETWORK = "mainnet";
 export const NETWORKS: { [key: string]: NetworkAddress } = {
   testnet: {
     currencies: () => import("@nolus/nolusjs/build/utils/currencies_testnet.json"),
-    endpoints: isServe()
+    endpoints: isDev()
       ? import("../networks/rila-endpoints.json?url").then((t) => t.default)
       : "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/rila-endpoints.json",
     chainName: "Nolus Testnet",
@@ -18,7 +18,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
   },
   mainnet: {
     currencies: () => import("@nolus/nolusjs/build/utils/currencies_mainnet.json"),
-    endpoints: isServe()
+    endpoints: isDev()
       ? import("../networks/pirin-endpoints.json?url").then((t) => t.default)
       : "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/pirin-endpoints.json",
     chainName: "Nolus",

@@ -28,7 +28,7 @@
       <!-- <p class="mt-2 text-right text-xs text-light-blue">{{ $t("message.slippage") }} {{ slippage }}%</p> -->
     </div>
     <div class="mt-2 flex justify-end">
-      <div class="grow-3 nls-font-500 dark-text text-right text-14">
+      <div class="nls-font-500 dark-text flex-[3] text-right text-14">
         <p class="mb-2 mr-5 mt-[14px]">
           {{ $t("message.slippage") }}
         </p>
@@ -39,16 +39,27 @@
           {{ $t("message.estimated-tx-fee") }}
         </p>
       </div>
-      <div class="nls-font-700 text-right text-14">
+      <div class="nls-font-700 flex-[1] text-right text-14">
         <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">{{ slippage }}%</p>
-        <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">{{ priceImpact }}%</p>
-        <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">{{ swapFee }}</p>
+        <template v-if="loading">
+          <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">
+            <span class="state-loading !mt-[5px] !w-[60px]"> </span>
+          </p>
+          <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">
+            <span class="state-loading !mt-[5px] !w-[60px]"> </span>
+          </p>
+        </template>
+        <template v-else>
+          <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">{{ priceImpact }}%</p>
+          <p class="align-center dark-text mb-2 mt-[14px] flex justify-end whitespace-pre">{{ swapFee }}</p>
+        </template>
       </div>
     </div>
   </div>
 
   <div class="modal-send-receive-actions flex flex-col">
     <button
+      :disabled="disableForm"
       :class="`btn btn-primary btn-large-primary text-center ${loading ? 'js-loading' : ''}`"
       @click="onSwapClick"
     >
@@ -85,6 +96,7 @@ interface Props {
   errorMsg: string;
   fee: Coin;
   swapFee: string;
+  disableForm: boolean;
 }
 
 const slippage = ref<number | null>(null);

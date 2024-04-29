@@ -71,7 +71,7 @@ const errorDialog = ref({
 });
 
 const loadDelegated = inject("loadDelegated", () => false);
-const closeModal = inject("onModalClose", () => () => {});
+const closeModal = inject("onModalClose", () => {});
 
 watch(
   () => [state.value.selectedCurrency, state.value.amount],
