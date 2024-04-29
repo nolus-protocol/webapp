@@ -292,7 +292,6 @@ async function setSwapFee() {
     const amountString = amount.length > 0 ? amount : "0";
     const fee = new Dec(config.fee).quo(new Dec(1000)).mul(new Dec(amountString, asset.decimal_digits));
     const coin = CurrencyUtils.convertDenomToMinimalDenom(fee.toString(), asset.ibcData, asset.decimal_digits);
-
     state.value.swapFee = CurrencyUtils.convertMinimalDenomToDenom(
       coin.amount.toString(),
       asset.ibcData,
