@@ -37,7 +37,7 @@
             />
           </p>
           <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">
-            {{ payout }} {{ LPN_Symbol }}
+            {{ payout }} {{ getLpnSymbol() }}
             <TooltipComponent :content="$t('message.usdc-payout-tooltip')" />
           </p>
           <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">
@@ -272,5 +272,16 @@ function getRepayment(p: number) {
     repaymentInStable,
     selectedCurrencyInfo: selectedCurrency
   };
+}
+
+function getLpnSymbol() {
+  const [_key, protocol] = props.modelValue.selectedCurrency.key.split("@");
+  for (const lpn of app.lpn ?? []) {
+    const [_, p] = lpn.key.split("@");
+    if (p == protocol) {
+      return lpn.shortName;
+    }
+  }
+  return LPN_Symbol;
 }
 </script>
