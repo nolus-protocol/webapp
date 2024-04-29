@@ -6,11 +6,11 @@ import {
   type MsgsRequest
 } from "@skip-router/core";
 
-import type { IObjectKeys } from "../types";
+import type { IObjectKeys, SkipRouteConfigType } from "../types";
 
-import { AppUtils, walletOperation } from ".";
-import { useWalletStore } from "../stores/wallet";
+import { AppUtils } from ".";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
+import type { BaseWallet } from "@/networks";
 
 enum Messages {
   "/ibc.applications.transfer.v1.MsgTransfer" = "/ibc.applications.transfer.v1.MsgTransfer",
@@ -53,7 +53,7 @@ export class SkipRouter {
       sourceAssetChainID: SkipRouter.chainID,
       destAssetDenom: destDenom,
       destAssetChainID: SkipRouter.chainID,
-      allowMultiTx: false,
+      allowMultiTx: true,
       cumulativeAffiliateFeeBPS: config.fee.toString()
     };
 
@@ -69,36 +69,26 @@ export class SkipRouter {
     return route;
   }
 
-  static async submitRoute(route: IObjectKeys, userAddresses: Record<string, string>) {
-    return new Promise(async (resolve, reject) => {
-      try {
-        await walletOperation(async () => {
-          try {
-            await SkipRouter.transaction(route, userAddresses);
-            resolve(true);
-          } catch (error) {
-            reject(error);
-          }
-        });
-      } catch (error) {
-        reject(error);
-      }
-    });
+  static async submitRoute(route: IObjectKeys, wallets: { [key: string]: BaseWallet }, callback: Function) {
+    try {
+      return await SkipRouter.transaction(route, wallets, callback);
+    } catch (error) {
+      throw error;
+    }
   }
 
-  private static async transaction(route: IObjectKeys, userAddresses: Record<string, string>) {
+  private static async transaction(route: IObjectKeys, wallets: { [key: string]: BaseWallet }, callback: Function) {
     try {
       const [client, config] = await Promise.all([SkipRouter.getClient(), AppUtils.getSkipRouteConfig()]);
-      const affiliateAddress = config[route.swapVenue.name as keyof typeof config] as string;
-      const affiliate = affiliateFromJSON({
-        address: affiliateAddress,
-        basis_points_fee: config.fee.toString()
-      });
-      const wallet = useWalletStore();
       const addressList = [];
+      const addresses: Record<string, string> = {};
+
+      for (const key in wallets) {
+        addresses[key] = wallets[key].address!;
+      }
 
       for (const id of route.chainIDs) {
-        addressList.push(userAddresses[id]);
+        addressList.push(addresses[id]);
       }
 
       const request: IObjectKeys = {
@@ -109,7 +99,7 @@ export class SkipRouter {
         operations: route.operations,
         slippageTolerancePercent: config.slippage.toString(),
         addressList: addressList,
-        affiliates: [affiliate]
+        affiliates: SkipRouter.getAffialates(route, config)
       };
 
       if (route.revert) {
@@ -125,16 +115,31 @@ export class SkipRouter {
       }
 
       const response = await client.messages(request as MsgsRequest);
+      for (const tx of response.txs) {
+        const msg = (tx as IObjectKeys).cosmosTx.msgs[0];
+        const msgJSON = JSON.parse(msg.msg);
+        const message = SkipRouter.getTx(msg, msgJSON);
+        const wallet = wallets[(tx as IObjectKeys).cosmosTx.chainID];
 
-      const msg = (response.txs[0] as IObjectKeys).cosmosTx.msgs[0];
-      const msgJSON = JSON.parse(msg.msg);
-      const message = SkipRouter.getTx(msg, msgJSON);
-
-      const tx = await wallet.wallet.simulateTx(message, msg.msgTypeURL, "");
-      const data = await wallet.wallet.broadcastTx(tx.txBytes as Uint8Array);
+        const txData = await (wallet as IObjectKeys).simulateTx(message, msg.msgTypeURL, "");
+        await callback(txData, wallet);
+      }
     } catch (error) {
       throw error;
     }
+  }
+
+  private static getAffialates(route: IObjectKeys, config: SkipRouteConfigType) {
+    if (route.swapVenue?.name) {
+      const affiliateAddress = config[route.swapVenue.name as keyof typeof config] as string;
+      const affiliate = affiliateFromJSON({
+        address: affiliateAddress,
+        basis_points_fee: config.fee.toString()
+      });
+      return [affiliate];
+    }
+
+    return [];
   }
 
   private static getTx(msg: IObjectKeys, msgJSON: IObjectKeys) {
@@ -151,6 +156,7 @@ export class SkipRouter {
           memo: msgJSON.memo
         });
       }
+      //TODO: not use for now update if require
       // case Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]: {
       //   return MsgExecuteContract.fromPartial({
       //     sender: msgJSON.sender,

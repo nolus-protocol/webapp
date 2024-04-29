@@ -188,6 +188,12 @@ body.sync {
   //   }
   // }
 
+  @media (prefers-color-scheme: dark) {
+    .border-swap {
+      border-color: #37475f;
+    }
+  }
+
   .modal {
     &-send-receive {
       &-parent {
@@ -244,6 +250,9 @@ body.dark {
   // button.btn-close-modal {
   //   border: 1px solid #2B384B !important;
   // }
+  .border-swap {
+    border-color: #37475f;
+  }
 
   .modal {
     &-send-receive {

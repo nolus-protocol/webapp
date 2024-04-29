@@ -122,11 +122,11 @@
               <div class="inline-block">
                 <div class="pt-3">
                   <p class="nls-font-500 text-dark-grey flex text-12">
-                    {{ $t("message.osmosis") }}
+                    {{ $t("message.osmosis-noble") }}
                   </p>
 
                   <CurrencyComponent
-                    :amount="utilizationLevelOsmosis"
+                    :amount="utilizationLevelNoble"
                     :fontSize="28"
                     :fontSizeSmall="22"
                     :has-space="false"
@@ -154,8 +154,9 @@
                 class="mr-[6px]"
                 src="@/assets/icons/osmosis-usdc.svg"
               />
+
               <CurrencyComponent
-                :amount="(app.apr?.[AppUtils.getProtocols().osmosis] ?? 0).toString()"
+                :amount="(app.apr?.[AppUtils.getProtocols().osmosis_noble] ?? 0).toString()"
                 :fontSize="20"
                 :fontSizeSmall="16"
                 :has-space="false"
@@ -215,6 +216,100 @@
               <div class="inline-block">
                 <div class="pt-3">
                   <p class="nls-font-500 text-dark-grey flex text-12">
+                    {{ $t("message.osmosis") }}
+                  </p>
+
+                  <CurrencyComponent
+                    :amount="utilizationLevelOsmosis"
+                    :fontSize="28"
+                    :fontSizeSmall="22"
+                    :has-space="false"
+                    :isDenomInfront="false"
+                    :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                    class="nls-font-500 text-primary"
+                    denom="%"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="px- flex items-center justify-start py-4 md:px-6 lg:px-0">
+          <div class="pt-3">
+            <p class="nls-font-500 text-dark-grey flex text-12">
+              {{ $t("message.yield") }}
+              <TooltipComponent :content="$t('message.yield-tooltip')" />
+            </p>
+
+            <div class="flex items-end">
+              <img
+                class="mr-[6px]"
+                src="@/assets/icons/osmosis-usdc.svg"
+              />
+              <CurrencyComponent
+                :amount="(app.apr?.[AppUtils.getProtocols().osmosis] ?? 0).toString()"
+                :fontSize="20"
+                :fontSizeSmall="16"
+                :has-space="false"
+                :isDenomInfront="false"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                class="nls-font-500 text-primary"
+                denom="%"
+              />
+            </div>
+          </div>
+
+          <div class="pt-3 lg:pl-6">
+            <p class="nls-font-500 text-dark-grey flex text-12">
+              {{ $t("message.optimal") }}
+              <TooltipComponent :content="$t('message.optimal-tooltip')" />
+            </p>
+
+            <CurrencyComponent
+              :amount="optimal"
+              :fontSize="20"
+              :fontSizeSmall="16"
+              :has-space="false"
+              :isDenomInfront="false"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              class="nls-font-500 text-primary"
+              denom="%"
+            />
+          </div>
+
+          <div class="pl-8 pt-3">
+            <p class="nls-font-500 text-dark-grey flex text-12">
+              {{ $t("message.deposit-suspension") }}
+              <TooltipComponent :content="$t('message.deposit-suspension-tooltip')" />
+            </p>
+
+            <CurrencyComponent
+              :amount="depositSuspension"
+              :fontSize="20"
+              :fontSizeSmall="16"
+              :has-space="false"
+              :isDenomInfront="false"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              class="nls-font-500 text-primary"
+              denom="%"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="background border-standart shadow-box mt-6 flex max-w-[100%] flex-col outline md:flex-row lg:max-w-[50%] lg:rounded-xl"
+    >
+      <!-- <div class="md:col-span-6 lg:co-span-6"> -->
+      <!-- Rewards -->
+      <div class="block flex-1 p-4 lg:p-6">
+        <div class="border-standart block border-b">
+          <div class="gap-6px-3 earn-asset grid grid-cols-3 items-center justify-between py-2 md:grid-cols-3">
+            <div class="col-span-2 inline-flex items-center">
+              <div class="inline-block">
+                <div class="pt-3">
+                  <p class="nls-font-500 text-dark-grey flex text-12">
                     {{ $t("message.neutron") }}
                   </p>
 
@@ -234,7 +329,7 @@
           </div>
         </div>
         <div class="px- flex items-center justify-start py-4 md:px-6 lg:px-0">
-          <div class="pt-3 lg:pl-4">
+          <div class="pt-3">
             <p class="nls-font-500 text-dark-grey flex text-12">
               {{ $t("message.yield") }}
               <TooltipComponent :content="$t('message.yield-tooltip')" />
@@ -418,6 +513,7 @@ const i18n = useI18n();
 const totalValueLocked = ref("0");
 const utilizationLevelOsmosis = ref("0");
 const utilizationLevelNeutron = ref("0");
+const utilizationLevelNoble = ref("0");
 
 const optimal = ref("70");
 const depositSuspension = ref("65");
@@ -461,6 +557,7 @@ onMounted(async () => {
     setTimeSeries(),
     setUtilizationOsmosis(),
     setUtilizationNeutron(),
+    setUtilizationNoble(),
     setTotalBorrowed(),
     setProtocolRevenue(),
     setStats(),
@@ -526,6 +623,12 @@ async function setUtilizationNeutron() {
   const data = await fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().neutron}`);
   const item = await data.json();
   utilizationLevelNeutron.value = item[0];
+}
+
+async function setUtilizationNoble() {
+  const data = await fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_noble}`);
+  const item = await data.json();
+  utilizationLevelNoble.value = item[0];
 }
 
 async function setTotalBorrowed() {

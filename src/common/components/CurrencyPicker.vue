@@ -5,7 +5,7 @@
       v-slot="{ open }"
       as="div"
       :disabled="disabled"
-      @update:modelValue="$emit('update-currency', selected.value)"
+      @update:modelValue="onSelect"
     >
       <div v-if="label.length > 0">
         <ListboxLabel class="nls-font-500 block text-14 text-primary">
@@ -14,17 +14,28 @@
       </div>
       <div class="picker-container icon relative mt-1">
         <ListboxButton
-          class="background relative w-full cursor-default rounded-md border border-gray-300 py-2 pl-3 pr-10 text-left shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
+          class="background relative flex w-full cursor-default !items-center rounded-md border border-gray-300 py-2 pl-3 pr-10 text-left shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
         >
-          <span class="flex w-full items-center justify-between">
+          <span class="flex items-center justify-between">
             <div class="flex items-center">
               <img
                 :src="selected.value?.icon"
                 class="h-6 w-6 flex-shrink-0 rounded-full"
                 alt=""
+                v-if="value.length == 0"
               />
-              <span class="dark-text block truncate">
-                {{ selected.value?.shortName }}
+              <span
+                class="dark-text search-input !mt-0 block truncate !leading-normal"
+                :data="selected.value?.shortName"
+              >
+                <input
+                  class="search-input"
+                  ref="searchInput"
+                  v-model="value"
+                  :placeholder="selected.value?.shortName"
+                  :disabled="disabled"
+                  @focusout="focusOut"
+                />
               </span>
             </div>
             <span
@@ -64,6 +75,7 @@
           <ListboxOptions
             class="background scrollbar absolute top-[46px] z-10 mt-1 max-h-56 w-[125px] overflow-auto rounded-md text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
             v-if="optionsValue!.length > 0"
+            @focus="searchInput?.focus()"
           >
             <ListboxOption
               v-for="option in optionsValue"
@@ -108,6 +120,12 @@ import type { ExternalCurrency } from "../types";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from "@headlessui/vue";
 import type { AssetBalance } from "../stores/wallet/types";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { useOracleStore } from "../stores/oracle";
+import { Coin } from "@keplr-wallet/unit";
+
+const searchInput = ref<HTMLInputElement>();
+const value = ref("");
 
 const props = defineProps({
   label: {
@@ -148,7 +166,30 @@ const selected = ref({
   value: {} as ExternalCurrency | AssetBalance
 });
 
+const emit = defineEmits(["update-currency"]);
+const oracle = useOracleStore();
+
 const optionsValue = computed(() => {
+  const i = items() ?? [];
+  i.sort((a, b) => {
+    const aAssetBalance = CurrencyUtils.calculateBalance(
+      oracle.prices[a.balance.denom]?.amount,
+      new Coin(a.balance.denom, a.balance.amount.toString()),
+      a.decimal_digits as number
+    ).toDec();
+
+    const bAssetBalance = CurrencyUtils.calculateBalance(
+      oracle.prices[b.balance.denom]?.amount,
+      new Coin(b.balance.denom, b.balance.amount.toString()),
+      b.decimal_digits as number
+    ).toDec();
+
+    return Number(bAssetBalance.sub(aAssetBalance).toString(8));
+  });
+  return i;
+});
+
+function items() {
   if (props.disablePicker) {
     return (props.options ?? [])?.filter((item) => {
       if (item.balance.denom == props.currencyOption?.balance.denom) {
@@ -158,12 +199,28 @@ const optionsValue = computed(() => {
     });
   }
 
-  return props.options;
-});
+  const v = value.value.toLowerCase();
 
-onMounted(() => {
-  selected.value.value = props.currencyOption!;
-});
+  const items = (props.options ?? [])?.filter((item) => {
+    const name = item.shortName?.toLocaleLowerCase() ?? "";
+    if (name.includes(v)) {
+      return true;
+    }
+    return false;
+  });
+
+  if (items.length > 0) {
+    return items;
+  }
+
+  return props.options;
+}
+
+function focusOut() {
+  setTimeout(() => {
+    value.value = "";
+  }, 200);
+}
 
 watch(
   () => props.currencyOption,
@@ -171,4 +228,13 @@ watch(
     selected.value.value = props.currencyOption!;
   }
 );
+
+onMounted(() => {
+  selected.value.value = props.currencyOption!;
+});
+
+function onSelect(v: ExternalCurrency | AssetBalance) {
+  value.value = "";
+  emit("update-currency", v);
+}
 </script>

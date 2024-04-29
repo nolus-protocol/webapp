@@ -1,7 +1,7 @@
 export const NETWORK = {
   prefix: "dymension",
   key: "DYMENSION",
-  gasMuplttiplier: 2,
+  gasMupltiplier: 2,
   bip44Path: "44'/60'/0'/0/0",
   ibcTransferTimeout: 600,
   ticker: "DYM",

@@ -39,6 +39,7 @@
           :label="$t('message.language')"
           :options="langs"
           @update-selected="setLanguage"
+          :disable-input="true"
         />
       </div>
 
@@ -48,11 +49,12 @@
           :label="$t('message.appearance')"
           :options="appearance"
           @update-selected="onUpdateTheme"
+          :disable-input="true"
         />
       </div>
 
       <div
-        v-if="AppUtils.isDev() || AppUtils.isServe()"
+        v-if="AppUtils.isDev()"
         class="mt-3 block"
       >
         <Picker
@@ -61,6 +63,7 @@
           :options="networks"
           @focus="showWallet = true"
           @update-selected="onUpdateNetwork"
+          :disable-input="true"
         />
       </div>
     </div>

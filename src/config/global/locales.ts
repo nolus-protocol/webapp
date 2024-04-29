@@ -1,4 +1,4 @@
-import { isServe } from "./modes";
+import { isDev } from "./modes";
 
 let languages: {
   [key: string]: {
@@ -54,7 +54,7 @@ let languages: {
   }
 };
 
-if (!isServe()) {
+if (!isDev()) {
   languages = {
     en: {
       key: "en",

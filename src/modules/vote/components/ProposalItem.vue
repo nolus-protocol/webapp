@@ -25,9 +25,9 @@
         v-if="isVotingPeriod"
         class="flex gap-2 text-light-blue"
       >
-        <div>turnout: {{ turnout }}%</div>
-        <div>quorum: {{ quorumState }}%</div>
-        <div>voting ends: {{ formatDateTime(state.voting_end_time) }}</div>
+        <div>{{ $t("message.turnout") }}: {{ turnout }}%</div>
+        <div>{{ $t("message.quorum") }}: {{ quorumState }}%</div>
+        <div>{{ $t("message.voting-ends") }}: {{ formatDateTime(state.voting_end_time) }}</div>
       </div>
     </div>
     <div class="text-small-heading break-all text-primary">&#35;{{ state.id }} {{ state.title }}</div>

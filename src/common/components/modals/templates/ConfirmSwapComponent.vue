@@ -22,7 +22,7 @@
     v-if="isStepSuccess"
     class="modal-form"
   >
-    <div class="radius-rounded mx-[24px] my-[24px] block break-words bg-light-grey p-[24px] text-center">
+    <div class="radius-rounded mx-[24px] my-[24px] block break-words bg-light-grey p-[24px] text-center text-primary">
       {{ $t("message.swap-success") }}
     </div>
     <div class="flex gap-8 px-[24px] pb-[28px]">
@@ -46,7 +46,7 @@
     v-if="isStepError"
     class="modal-form"
   >
-    <div class="radius-rounded mx-[24px] my-[24px] block break-words bg-light-grey p-[24px] text-center">
+    <div class="radius-rounded mx-[24px] my-[24px] block break-words bg-light-grey p-[24px] text-center text-primary">
       {{ errorMsg }}
     </div>
     <div class="px-[24px] pb-[28px]">
@@ -66,36 +66,61 @@
   >
     <!-- Input Area -->
     <div class="modal-send-receive-input-area pt-0">
-      <div class="radius-rounded mt-[25px] block break-words bg-light-grey p-4 text-left">
-        <div class="block">
+      <div class="radius-rounded mt-[25px] block break-words bg-light-grey py-4 text-left">
+        <div class="block px-4">
           <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.swap") }}:</p>
           <p class="nls-font-700 m-0 text-14 text-primary">{{ swapAmount }}</p>
         </div>
 
-        <div class="mt-3 block">
+        <div class="mt-3 block px-4">
           <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.for") }}:</p>
           <p class="nls-font-700 m-0 text-14 text-primary">{{ forAmount }}</p>
         </div>
 
-        <!-- <div
-          v-if="txHash"
-          class="mt-3 block"
-        >
-          <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.tx-hash") }}:</p>
-          <a
-            :href="`${applicaton.network.networkAddresses.explorer}/${txHash}`"
-            class="his-url m-0 text-14"
-            target="_blank"
-          >
-            {{ StringUtils.truncateString(txHash, 6, 6) }}
-          </a>
-        </div> -->
         <div
-          v-if="fee"
-          class="mt-3 block"
+          v-if="isStepConfirm"
+          class="mt-3 block px-4"
         >
           <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.tx-and-fee") }}:</p>
           <p class="nls-font-700 m-0 text-14 text-primary">~{{ calculateFee(fee) }}</p>
+        </div>
+
+        <span class="border-swap mt-3 block border-t"> </span>
+        <div
+          v-for="item in txs"
+          class="block"
+        >
+          <p class="nls-font-400 m-0 p-4 pb-0 text-14 capitalize text-primary">
+            {{ $t("message.transaction") }} {{ item }}:
+          </p>
+
+          <template v-if="txHashes[item - 1]">
+            <a
+              :href="`${applicaton.network.networkAddresses.explorer}/${txHashes[item - 1].hash}`"
+              class="his-url nls-font-500 m-0 flex flex items-center justify-between px-4 text-14"
+              target="_blank"
+            >
+              {{ StringUtils.truncateString(txHashes[item - 1].hash, 6, 6) }}
+              <img
+                v-if="txHashes[item - 1].status == SwapStatus.pending"
+                class="copy-icon loader-animate"
+                height="24"
+                src="@/assets/icons/loading.svg"
+                width="24"
+              />
+
+              <img
+                v-if="txHashes[item - 1].status == SwapStatus.success"
+                class="copy-icon"
+                height="24"
+                src="@/assets/icons/success.svg"
+                width="24"
+              />
+            </a>
+          </template>
+          <template v-else>
+            <p class="nls-font-700 m-0 px-4 text-14 text-primary">{{ $t("message.Pending") }}</p>
+          </template>
         </div>
       </div>
     </div>
@@ -111,7 +136,13 @@
         />
       </template>
       <template v-slot:content>
+        <template v-if="isStepPending">
+          <span class="text-primary">
+            {{ $t("message.swap-sending", { tx: txs }) }}
+          </span>
+        </template>
         <span
+          v-else
           class="text-primary"
           v-html="
             $t('message.swap-confirm-warning', {
@@ -136,20 +167,22 @@
 import WarningBox from "./WarningBox.vue";
 
 import type { Coin } from "@cosmjs/amino";
+import { SwapStatus } from "../swap/types";
 import { computed, inject, onMounted, watch } from "vue";
 import { CheckIcon, XMarkIcon } from "@heroicons/vue/24/solid";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { AssetUtils } from "@/common/utils";
+import { AssetUtils, StringUtils } from "@/common/utils";
 import { CONFIRM_STEP } from "@/common/types";
+import { useApplicationStore } from "@/common/stores/application";
 
 interface Props {
   txType: string;
-  txHash: string[];
+  txHashes: { hash: string; status: SwapStatus }[];
   swapAmount: string;
   forAmount: string;
   step: CONFIRM_STEP;
   errorMsg: string;
-  fee?: Coin;
+  fee: Coin;
   txs: number;
   onSendClick: () => void;
   onBackClick: () => void;
@@ -162,6 +195,7 @@ const isStepPending = computed(() => props.step === CONFIRM_STEP.PENDING);
 const isStepSuccess = computed(() => props.step === CONFIRM_STEP.SUCCESS);
 const isStepError = computed(() => props.step === CONFIRM_STEP.ERROR);
 
+const applicaton = useApplicationStore();
 const setShowDialogHeader = inject("setShowDialogHeader", (n: boolean) => {});
 const setDisable = inject("setDisable", (n: boolean) => {});
 
@@ -178,7 +212,7 @@ watch(
         break;
       }
       case CONFIRM_STEP.SUCCESS: {
-        setDisable(true);
+        setDisable(false);
         break;
       }
       case CONFIRM_STEP.ERROR: {
@@ -204,3 +238,15 @@ function calculateFee(coin: Coin) {
   );
 }
 </script>
+<style lang="scss" scoped>
+@keyframes spin {
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+.loader-animate {
+  animation: spin 0.8s linear infinite;
+}
+</style>

@@ -9,6 +9,7 @@ export type { Currecies, ExternalCurrencies, ExternalCurrency } from "@/common/t
 export type { NetworkConfig, API, ARCHIVE_NODE, Endpoint, Node, Status } from "@/common/types/NetworkConfig";
 export type { LeaseData } from "./LeaseData";
 export type { SkipRouteConfigType } from "./SkipRouteConfigType";
+export type { ProposalsConfigType } from "./ProposalsConfigType";
 
 export { WalletConnectMechanism } from "@/common/types/WalletConnectMechanism";
 export { TxType } from "@/common/types/TxType";

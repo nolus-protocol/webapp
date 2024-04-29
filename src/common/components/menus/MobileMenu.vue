@@ -88,18 +88,18 @@ const sidebar = ref(null as HTMLDivElement | null);
 
 const visibleMenuItems = [
   {
-    icon: "asset-v2",
+    icon: "asset",
     name: "assets",
     path: `/`
   },
   {
-    icon: "lease-v2",
+    icon: "lease-1",
     name: "lease",
     path: `/${RouteNames.LEASE}`
   },
   EnvNetworkUtils.getStoredNetworkName() == "mainnet"
     ? {
-        icon: "swap-v2",
+        icon: "swap",
         name: "swap",
         path: `#swap`,
         action: async (path: string) => {
@@ -109,7 +109,7 @@ const visibleMenuItems = [
       }
     : null,
   {
-    icon: "earn-v2",
+    icon: "earn-1",
     name: "earn",
     path: `/${RouteNames.EARN}`
   }
@@ -122,19 +122,19 @@ const hiddenMenuItems = [
     path: `/${RouteNames.STATS}`
   },
   {
-    icon: "hub",
+    icon: "hat",
     name: "support",
     path: `https://hub.nolus.io`,
     target: "_blank",
     id: "hub"
   },
   {
-    icon: "vote-v2",
+    icon: "vote",
     name: "vote",
     path: `/${RouteNames.VOTE}`
   },
   {
-    icon: "history-v2",
+    icon: "history-1",
     name: "history",
     path: `/${RouteNames.HISTORY}`
   }

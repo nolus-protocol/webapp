@@ -51,7 +51,7 @@
         </template>
         <template v-else>
           <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">{{ priceImpact }}%</p>
-          <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">{{ swapFee }}</p>
+          <p class="align-center dark-text mb-2 mt-[14px] flex justify-end whitespace-pre">{{ swapFee }}</p>
         </template>
       </div>
     </div>

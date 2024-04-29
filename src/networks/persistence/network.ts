@@ -1,7 +1,7 @@
 export const NETWORK = {
   prefix: "persistence",
   key: "PERSISTENCE",
-  gasMuplttiplier: 2,
+  gasMupltiplier: 2,
   bip44Path: "44'/118'/0'/0/0",
   ibcTransferTimeout: 600,
   ticker: "STK_ATOM",

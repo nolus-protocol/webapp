@@ -13,6 +13,7 @@
             :label="$t('message.network')"
             :value="modelValue.network"
             @update-selected="onUpdateCurrency"
+            :disable-input="true"
           />
         </div>
 
@@ -84,7 +85,7 @@ import { AssetUtils, EnvNetworkUtils, WalletUtils } from "@/common/utils";
 import { computed, ref, onMounted } from "vue";
 import { NETWORKS_DATA } from "@/networks";
 import { useApplicationStore } from "@/common/stores/application";
-import { LPN_NETWORK, NATIVE_NETWORK, ProtocolsConfig } from "@/config/global";
+import { IGNORE_LPN, LPN_NETWORK, NATIVE_NETWORK, ProtocolsConfig } from "@/config/global";
 import { AppUtils } from "@/common/utils";
 
 const props = defineProps({
@@ -111,8 +112,7 @@ const networks = computed(() => {
     if (ckey == NATIVE_NETWORK.symbol) {
       n.push(app.networksData?.protocols[AppUtils.getProtocols().neutron].DexNetwork as string);
     }
-
-    if (lpn) {
+    if (lpn && !IGNORE_LPN.includes(lpn.ticker)) {
       const [key, protocol] = lpn.key!.split("@");
       n.push(app.networksData?.protocols[protocol].DexNetwork as string);
 

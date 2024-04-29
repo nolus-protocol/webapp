@@ -197,7 +197,7 @@ const canSupply = computed(() => {
 
 const isEarn = computed(() => {
   const curency = WebAppAssetUtils.getCurrencyByDenom(props.denom);
-  const lpns = (app.lpn ?? []).map((item) => item.key);
+  const lpns = (app.lpn ?? []).map((item) => item.ticker);
   return lpns.includes(curency.ticker);
 });
 

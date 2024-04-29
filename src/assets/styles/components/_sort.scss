@@ -1,0 +1,16 @@
+body.sync {
+  .sort.disable {
+    @media (prefers-color-scheme: dark) {
+      .icon-sort {
+        color: white;
+      }
+    }
+  }
+}
+body.dark {
+  .sort.disable {
+    .icon-sort {
+      color: white;
+    }
+  }
+}

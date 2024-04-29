@@ -29,6 +29,7 @@
             :options="networks"
             :label="$t('message.network')"
             @update-selected="onUpdateNetwork"
+            :disable-input="true"
           />
         </div>
 
@@ -74,6 +75,7 @@
                 :label="$t('message.network')"
                 :value="selectedNetwork"
                 @update-selected="onUpdateNetwork"
+                :disable-input="true"
               />
             </div>
 
@@ -149,7 +151,14 @@ import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetU
 import { Networks } from "@nolus/nolusjs/build/types/Networks";
 import { AppUtils } from "@/common/utils";
 
-import { ErrorCodes, IGNORE_TRANSFER_ASSETS, LPN_NETWORK, NATIVE_NETWORK, ProtocolsConfig } from "@/config/global";
+import {
+  ErrorCodes,
+  IGNORE_LPN,
+  IGNORE_TRANSFER_ASSETS,
+  LPN_NETWORK,
+  NATIVE_NETWORK,
+  ProtocolsConfig
+} from "@/config/global";
 import { CurrencyDemapping, CurrencyMapping, SOURCE_PORTS } from "@/config/currencies";
 
 export interface ReceiveComponentProps {
@@ -186,7 +195,7 @@ const networks = computed(() => {
       n.push(app.networksData?.protocols[AppUtils.getProtocols().neutron].DexNetwork as string);
     }
 
-    if (lpn) {
+    if (lpn && !IGNORE_LPN.includes(lpn.ticker)) {
       const [key, protocol] = lpn.key!.split("@");
       n.push(app.networksData?.protocols[protocol].DexNetwork as string);
 
@@ -551,7 +560,7 @@ async function ibcTransfer(baseWallet: BaseWallet) {
       amount: Coin;
       sourcePort: string;
       sourceChannel: string;
-      gasMuplttiplier: number;
+      gasMupltiplier: number;
       gasPrice: string;
       timeOut: number;
       memo?: string;
@@ -560,7 +569,7 @@ async function ibcTransfer(baseWallet: BaseWallet) {
       amount: funds,
       sourcePort: SOURCE_PORTS.TRANSFER,
       sourceChannel: sourceChannel as string,
-      gasMuplttiplier: networkData.gasMuplttiplier,
+      gasMupltiplier: networkData.gasMupltiplier,
       gasPrice: networkData.gasPrice,
       timeOut: networkData.ibcTransferTimeout
     };
