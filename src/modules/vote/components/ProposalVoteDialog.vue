@@ -78,7 +78,7 @@ import type { VoteComponentProps } from "@/modules/vote/types";
 
 import DialogHeader from "@/common/components/modals/templates/DialogHeader.vue";
 import ConfirmVoteComponent from "@/common/components/modals/templates/ConfirmVoteComponent.vue";
-import { Button, NotificationBox } from "web-components";
+import { Button, NotificationBox, NotificationBoxType } from "web-components";
 
 import { router } from "@/router";
 import { inject, onMounted, type PropType, ref } from "vue";
@@ -90,7 +90,6 @@ import { CONFIRM_STEP, TxType } from "@/common/types";
 import { Logger, NetworkUtils, walletOperation } from "@/common/utils";
 import { MsgVote } from "cosmjs-types/cosmos/gov/v1/tx";
 import { longify } from "@cosmjs/stargate/build/queryclient";
-import { NotificationBoxType } from "web-components/dist/src/components/types";
 
 const props = defineProps({
   proposal: {
