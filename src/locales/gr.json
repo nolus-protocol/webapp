@@ -267,8 +267,6 @@
     "no_with_veto_count": "ΟΧΙ ΜΕ VETO",
     "voting-warning": "Για να αποκτήσετε προνόμια ψηφοφορίας, πρέπει πρώτα να αναθέσετε νομίσματα NLS στους επικυρωτές του δικτύου.",
     "lease-banner-title": "Μίσθωσε",
-    "ntrn_0-banner-subtitle": "Μηδενικός τόκος σε όλες τις μισθώσεις $NTRN",
-    "ntrn_0-banner-description": "Απολαύστε άτοκες μισθώσεις σε όλες τις θέσεις $NTRN μέχρι τις 30 Απριλίου",
     "voted": "Ψηφίστηκε",
     "integer-out-of-range": "Integer out of range",
     "repay-interest": "Accumulates each block and is added to the outstanding debt. Interest is due in {dueDate}",
