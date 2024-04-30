@@ -42,7 +42,7 @@ const props = defineProps({
 
 const turnout = computed(() => {
   if (props.bondedTokens.isZero()) {
-    return 0;
+    return "0";
   }
 
   let tally = new Dec(0);

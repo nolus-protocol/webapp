@@ -25,6 +25,7 @@ import { CurrencyMapping } from "@/config/currencies";
 import { computed, onMounted, ref } from "vue";
 import { HistoryTableRow } from "web-components";
 import Icon from "@/assets/icons/urlicon.svg";
+import type { HistoryTableItem } from "web-components/dist/src/components/types";
 
 enum Messages {
   "/cosmos.bank.v1beta1.MsgSend" = "/cosmos.bank.v1beta1.MsgSend",
@@ -66,7 +67,8 @@ onMounted(async () => {
   messagesRef.value = await Promise.all(promises);
 });
 
-const transactionData = computed(() =>
+//TODO: fix any
+const transactionData = computed<any>(() =>
   (messagesRef.value ?? []).map((msg) => ({
     items: [
       {

@@ -187,7 +187,7 @@ export function getCreatedAtForHuman(createdAt: Date | null) {
 
 export function formatDateTime(dateTime: string | null) {
   if (dateTime === null) {
-    return false;
+    return undefined;
   }
 
   const time = new Date(dateTime);

@@ -51,7 +51,7 @@
         <template v-else>
           <NotificationBox
             class="mb-6"
-            type="warning"
+            :type="NotificationBoxType.warning"
           >
             <template v-slot:content>
               <span class="text-neutral-typography-200">
@@ -90,6 +90,7 @@ import { CONFIRM_STEP, TxType } from "@/common/types";
 import { Logger, NetworkUtils, walletOperation } from "@/common/utils";
 import { MsgVote } from "cosmjs-types/cosmos/gov/v1/tx";
 import { longify } from "@cosmjs/stargate/build/queryclient";
+import { NotificationBoxType } from "web-components/dist/src/components/types";
 
 const props = defineProps({
   proposal: {
