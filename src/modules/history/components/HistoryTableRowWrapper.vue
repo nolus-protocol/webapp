@@ -1,59 +1,12 @@
 <template>
-  <div class="history-item">
-    <div
-      v-for="(msg, index) in messagesRef"
+  <template v-for="data in transactionData">
+    <HistoryTableRow
+      v-for="(row, index) in data"
       :key="index"
-      class="border-standart items-center gap-6 border-b py-4 text-12 md:flex md:grid md:grid-cols-12"
-    >
-      <div class="nls-14 nls-font-400 text-upper col-span-2 text-left text-14 text-primary lg:block">
-        <a
-          :href="`${applicaton.network.networkAddresses.explorer}/${transaction.id}`"
-          class="his-url"
-          target="_blank"
-        >
-          {{ truncateString(transaction.id) }}
-        </a>
-        <img
-          class="his-img float-right mt-[0.15rem] w-3"
-          :src="Icon"
-        />
-        <!-- <Icon
-          width="320"
-          height="320"
-        /> -->
-      </div>
-
-      <div class="nls-14 nls-font-400 col-span-6 block text-left text-14 text-primary">
-        <span class="nls-12 nls-font-600">
-          {{ msg }}
-        </span>
-      </div>
-      <div class="md:justify-endtext-primary col-span-2 hidden items-center justify-start sm:block">
-        <span class="left-and-right nls-14 nls-font-400 his-gray">
-          {{ convertFeeAmount(transaction.fee) }}
-        </span>
-      </div>
-      <div class="md:justify-endtext-primary col-span-2 hidden items-center justify-start sm:block">
-        <span class="left-and-right nls-14 nls-font-400 his-gray">
-          <template v-if="transaction.blockDate">
-            {{ getCreatedAtForHuman(transaction.blockDate) ?? transaction.height }}
-          </template>
-          <template v-else> - </template>
-        </span>
-      </div>
-      <div class="col-span-12 flex justify-between sm:hidden">
-        <span class="left-and-right nls-14 nls-font-400 his-gray">
-          {{ convertFeeAmount(transaction.fee) }}
-        </span>
-        <span class="left-and-right nls-14 nls-font-400 his-gray">
-          <template v-if="transaction.blockDate">
-            {{ getCreatedAtForHuman(transaction.blockDate) ?? transaction.height }}
-          </template>
-          <template v-else> - </template>
-        </span>
-      </div>
-    </div>
-  </div>
+      :class="$attrs.class"
+      :items="row"
+    />
+  </template>
 </template>
 
 <script lang="ts" setup>
@@ -61,19 +14,17 @@ import { type Coin, parseCoins } from "@cosmjs/proto-signing";
 import type { ITransaction } from "../types";
 import type { IObjectKeys } from "@/common/types";
 
-import Icon from "@/assets/icons/urlicon.svg";
-
 import { useApplicationStore } from "@/common/stores/application";
 import { useWalletStore } from "@/common/stores/wallet";
-import { AppUtils, AssetUtils, Logger, getCreatedAtForHuman } from "@/common/utils";
+import { AppUtils, AssetUtils, getCreatedAtForHuman, Logger, StringUtils, WalletManager } from "@/common/utils";
 import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
-import { StringUtils, WalletManager } from "@/common/utils";
 import { useI18n } from "vue-i18n";
 import { Buffer } from "buffer";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { CurrencyMapping } from "@/config/currencies";
-import { ref } from "vue";
-import { onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
+import { HistoryTableRow } from "web-components";
+import Icon from "@/assets/icons/urlicon.svg";
 
 enum Messages {
   "/cosmos.bank.v1beta1.MsgSend" = "/cosmos.bank.v1beta1.MsgSend",
@@ -93,6 +44,7 @@ const i18n = useI18n();
 const applicaton = useApplicationStore();
 const wallet = useWalletStore();
 const messagesRef = ref<string[]>();
+// const rowData = ref([] as HistoryTableRowItemProps[]);
 
 const voteMessages: { [key: string]: string } = {
   [VoteOption.VOTE_OPTION_ABSTAIN]: i18n.t(`message.abstained`).toLowerCase(),
@@ -113,6 +65,32 @@ onMounted(async () => {
   }
   messagesRef.value = await Promise.all(promises);
 });
+
+const transactionData = computed(() =>
+  (messagesRef.value ?? []).map((msg) => ({
+    items: [
+      {
+        value: truncateString(props.transaction.id),
+        url: `${applicaton.network.networkAddresses.explorer}/${props.transaction.id}}`,
+        icon: Icon,
+        class: "text-14 uppercase max-w-[200px]"
+      },
+      {
+        value: msg,
+        bold: true,
+        class: "text-14"
+      },
+      {
+        value: convertFeeAmount(props.transaction.fee),
+        class: "max-w-[200px]"
+      },
+      {
+        value: getCreatedAtForHuman(props.transaction.blockDate) ?? props.transaction.height,
+        class: "max-w-[200px]"
+      }
+    ]
+  }))
+);
 
 function truncateString(text: string) {
   return StringUtils.truncateString(text, 6, 6);
@@ -350,27 +328,17 @@ function messages() {
   return props.transaction.msgs.filter((item) => {
     switch (item.typeUrl) {
       case Messages["/cosmos.bank.v1beta1.MsgSend"]: {
-        if (
+        return !(
           props.transaction.type == "receiver" &&
           item.data.toAddress != (wallet.wallet?.address ?? WalletManager.getWalletAddress())
-        ) {
-          return false;
-        }
-
-        return true;
+        );
       }
-
       case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
-        if (
+        return !(
           props.transaction.type == "receiver" &&
           item.data.toAddress != (wallet.wallet?.address ?? WalletManager.getWalletAddress())
-        ) {
-          return false;
-        }
-
-        return true;
+        );
       }
-
       case Messages["/ibc.core.channel.v1.MsgRecvPacket"]: {
         try {
           const data = JSON.parse(props.transaction.log as string);
@@ -385,34 +353,17 @@ function messages() {
         return true;
       }
       case Messages["/cosmos.gov.v1beta1.MsgVote"]: {
-        if (item.data.voter != (wallet.wallet?.address ?? WalletManager.getWalletAddress())) {
-          return false;
-        }
-        return true;
+        return item.data.voter == (wallet.wallet?.address ?? WalletManager.getWalletAddress());
       }
-
       case Messages["/cosmos.staking.v1beta1.MsgDelegate"]: {
-        if (item.data.delegatorAddress != (wallet.wallet?.address ?? WalletManager.getWalletAddress())) {
-          return false;
-        }
-        return true;
+        return item.data.delegatorAddress == (wallet.wallet?.address ?? WalletManager.getWalletAddress());
       }
-
       case Messages["/cosmos.staking.v1beta1.MsgUndelegate"]: {
-        if (item.data.delegatorAddress != (wallet.wallet?.address ?? WalletManager.getWalletAddress())) {
-          return false;
-        }
-
-        return true;
+        return item.data.delegatorAddress == (wallet.wallet?.address ?? WalletManager.getWalletAddress());
       }
-
       case Messages["/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"]: {
-        if (item.data.delegatorAddress != (wallet.wallet?.address ?? WalletManager.getWalletAddress())) {
-          return false;
-        }
-        return true;
+        return item.data.delegatorAddress == (wallet.wallet?.address ?? WalletManager.getWalletAddress());
       }
-
       case Messages["/ibc.core.client.v1.MsgUpdateClient"]: {
         return false;
       }
@@ -438,10 +389,7 @@ function messages() {
       }
 
       case Messages["/cosmos.staking.v1beta1.MsgBeginRedelegate"]: {
-        if (props.transaction.type == "receiver") {
-          return false;
-        }
-        return true;
+        return props.transaction.type != "receiver";
       }
     }
 
@@ -462,15 +410,5 @@ async function fetchCurrency(amount: Coin) {
   );
 }
 </script>
-<style scoped>
-.his-gray {
-  color: #8396b1;
-  font-family: "Garet-Medium", sans-serif;
-}
 
-.his-img {
-  position: absolute;
-  display: inline;
-  margin-left: 5px;
-}
-</style>
+<style lang="" scoped></style>

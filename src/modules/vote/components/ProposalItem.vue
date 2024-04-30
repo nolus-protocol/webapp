@@ -44,7 +44,7 @@
     </div>
     <button
       v-if="state.summary && state.summary.length > 256"
-      class="btn btn-secondary btn-medium-secondary self-start !py-1 !text-12"
+      class="btn btn-secondary btn-medium-secondary !text-12 self-start !py-1"
       @click="$emit('read-more', { title: state.title, summary: state.summary })"
     >
       {{ $t("message.read-more") }}
@@ -71,7 +71,7 @@ import { computed, type PropType } from "vue";
 import { StringUtils, formatDateTime } from "@/common/utils";
 import { Dec } from "@keplr-wallet/unit";
 
-import ProposalVotingLine from "@/modules/vote/components/ProposalVotingLine.vue";
+// import ProposalVotingLine from "@/modules/vote/components/ProposalVotingLine.vue";
 
 const props = defineProps({
   state: {
