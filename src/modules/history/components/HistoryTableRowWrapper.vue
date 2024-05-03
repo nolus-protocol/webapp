@@ -1,9 +1,11 @@
 <template>
-  <template v-for="data in transactionData">
+  <template
+    v-for="(data, index) in transactionData"
+    :key="index"
+  >
     <HistoryTableRow
-      v-for="(row, index) in data"
-      :key="index"
-      :items="row"
+      :classes="data.classes"
+      :items="data.items"
     />
   </template>
 </template>
@@ -22,7 +24,8 @@ import { Buffer } from "buffer";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { CurrencyMapping } from "@/config/currencies";
 import { computed, onMounted, ref } from "vue";
-import { HistoryTableRow, HistoryTableRowItemProps } from "web-components";
+import type { HistoryTableRowItemProps } from "web-components";
+import { HistoryTableRow } from "web-components";
 import Icon from "@/assets/icons/urlicon.svg";
 
 enum Messages {
@@ -65,30 +68,33 @@ onMounted(async () => {
   messagesRef.value = await Promise.all(promises);
 });
 
-const transactionData = computed<HistoryTableRowItemProps>(() =>
-  (messagesRef.value ?? []).map((msg) => ({
-    items: [
-      {
-        value: truncateString(props.transaction.id),
-        url: `${applicaton.network.networkAddresses.explorer}/${props.transaction.id}}`,
-        icon: Icon,
-        class: "text-14 uppercase max-w-[200px]"
-      },
-      {
-        value: msg,
-        bold: true,
-        class: "text-14"
-      },
-      {
-        value: convertFeeAmount(props.transaction.fee),
-        class: "max-w-[200px]"
-      },
-      {
-        value: getCreatedAtForHuman(props.transaction.blockDate) ?? props.transaction.height,
-        class: "max-w-[200px]"
-      }
-    ]
-  }))
+const transactionData = computed(() =>
+  (messagesRef.value ?? []).map(
+    (msg) =>
+      ({
+        items: [
+          {
+            value: truncateString(props.transaction.id),
+            url: `${applicaton.network.networkAddresses.explorer}/${props.transaction.id}}`,
+            icon: Icon,
+            class: "text-14 uppercase max-w-[200px]"
+          },
+          {
+            value: msg,
+            bold: true,
+            class: "text-14"
+          },
+          {
+            value: convertFeeAmount(props.transaction.fee),
+            class: "max-w-[200px]"
+          },
+          {
+            value: getCreatedAtForHuman(props.transaction.blockDate) ?? props.transaction.height,
+            class: "max-w-[200px]"
+          }
+        ]
+      }) as HistoryTableRowItemProps
+  )
 );
 
 function truncateString(text: string) {
