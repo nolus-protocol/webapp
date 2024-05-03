@@ -3,7 +3,6 @@
     <HistoryTableRow
       v-for="(row, index) in data"
       :key="index"
-      :class="$attrs.class"
       :items="row"
     />
   </template>
@@ -23,9 +22,8 @@ import { Buffer } from "buffer";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { CurrencyMapping } from "@/config/currencies";
 import { computed, onMounted, ref } from "vue";
-import { HistoryTableRow } from "web-components";
+import { HistoryTableRow, HistoryTableRowItemProps } from "web-components";
 import Icon from "@/assets/icons/urlicon.svg";
-import type { HistoryTableItem } from "web-components/dist/src/components/types";
 
 enum Messages {
   "/cosmos.bank.v1beta1.MsgSend" = "/cosmos.bank.v1beta1.MsgSend",
@@ -67,8 +65,7 @@ onMounted(async () => {
   messagesRef.value = await Promise.all(promises);
 });
 
-//TODO: fix any
-const transactionData = computed<any>(() =>
+const transactionData = computed<HistoryTableRowItemProps>(() =>
   (messagesRef.value ?? []).map((msg) => ({
     items: [
       {
