@@ -160,8 +160,8 @@
   },
   "NEUTRON": {
     "primary": {
-      "rpc": "https://rpc-neutron-1.nolus.cros-nest.net",
-      "api": "https://rest-neutron-1.nolus.cros-nest.net"
+      "rpc": "https://r-neutron--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
+      "api": "https://a-neutron--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
     },
     "fallback": [
       {
