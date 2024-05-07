@@ -21,8 +21,8 @@
     },
     "fallback": [
       {
-        "rpc": "https://rpc.osmosis.zone",
-        "api": "https://lcd.osmosis.zone"
+        "rpc": "https://r-osmosis--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
+        "api": "https://a-osmosis--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
       }
     ]
   },
@@ -160,13 +160,13 @@
   },
   "NEUTRON": {
     "primary": {
-      "rpc": "https://r-neutron--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
-      "api": "https://a-neutron--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
+      "rpc": "https://rpc-neutron-1.nolus.cros-nest.net",
+      "api": "https://rest-neutron-1.nolus.cros-nest.net"
     },
     "fallback": [
       {
-        "rpc": "https://neutron-rpc.publicnode.com:443",
-        "api": "https://neutron-rest.publicnode.com"
+        "rpc": "https://r-neutron--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
+        "api": "https://a-neutron--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
       }
     ]
   },
