@@ -45,9 +45,9 @@
             </div>
 
             <div
-              role="status"
-              class="block lg:mb-0"
               :class="{ 'animate-pulse': loading }"
+              class="block lg:mb-0"
+              role="status"
             >
               <template v-if="loading">
                 <div
@@ -68,25 +68,25 @@
               </template>
               <template v-else>
                 <TransitionGroup
-                  name="fade"
                   appear
+                  name="fade"
                   tag="div"
                 >
                   <EarnLpnAsset
                     v-for="(lpn, index) of lpnAsset"
                     :key="lpn.key"
                     :asset="lpn"
-                    :openSupplyWithdraw="() => openSupplyWithdrawDialog(lpn.key)"
-                    :cols="cols"
                     :class="index > 0 ? 'border-t-[1px]' : ''"
+                    :cols="cols"
+                    :openSupplyWithdraw="() => openSupplyWithdrawDialog(lpn.key)"
                   />
 
                   <EarnNativeAsset
                     key="nativeAsset"
                     :asset="delegated"
                     :cols="cols"
-                    :openDelegateUndelegate="() => openDelegateUndelegateDialog()"
                     :isDelegated="isDelegated"
+                    :openDelegateUndelegate="() => openDelegateUnDelegateDialog()"
                   />
                 </TransitionGroup>
               </template>
@@ -94,6 +94,49 @@
           </div>
         </div>
         <!-- Portfolio -->
+
+        <Table
+          :class="['outline', { 'animate-pulse': loading }]"
+          :columns="earningColumns"
+          :title="$t('message.earning-assets')"
+        >
+          <template
+            v-if="loading"
+            v-slot:body
+          >
+            <div
+              v-for="index in 2"
+              :key="index"
+              class="asset-partial nolus-box border-standart relative flex h-[67px] items-center items-center justify-between justify-between border-b px-4 py-3"
+            >
+              <div class="w-[50%] grow-[1] md:w-auto">
+                <div class="mb-2.5 h-1.5 w-32 rounded-full bg-grey"></div>
+                <div class="h-1.5 w-24 rounded-full bg-grey"></div>
+              </div>
+              <div class="flex w-[50%] grow-[4] flex-col items-end md:w-auto md:items-start">
+                <div class="mb-2.5 h-1.5 w-32 rounded-full bg-grey"></div>
+                <div class="ml-8 h-1.5 w-24 rounded-full bg-grey"></div>
+              </div>
+              <div class="hidden h-1.5 w-12 rounded-full bg-grey md:flex"></div>
+            </div>
+          </template>
+          <template
+            v-else
+            v-slot:body
+          >
+            <TransitionGroup
+              appear
+              name="fade"
+              tag="div"
+            >
+              <EarnAssetRowWrapper
+                v-for="(asset, index) of assets"
+                :key="index"
+                :asset="asset"
+              />
+            </TransitionGroup>
+          </template>
+        </Table>
       </div>
 
       <div class="lg:co-span-5 md:col-span-5">
@@ -110,9 +153,9 @@
           <div class="block">
             <!-- Assets Container -->
             <EarnReward
-              :reward="reward"
-              :onClickClaim="onClickWithdrawRewards"
               :cols="cols"
+              :onClickClaim="onClickWithdrawRewards"
+              :reward="reward"
             />
             <!-- Assets Container -->
           </div>
@@ -151,14 +194,14 @@
     @close-modal="showErrorDialog = false"
   >
     <ErrorDialog
-      :title="$t('message.error-connecting')"
       :message="errorMessage"
+      :title="$t('message.error-connecting')"
       :try-button="onClickTryAgain"
     />
   </Modal>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { Asset } from "./types";
 
@@ -170,7 +213,7 @@ import Modal from "@/common/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
 import TooltipComponent from "@/common/components/TooltipComponent.vue";
 
-import { EarnNativeAsset, EarnReward, EarnLpnAsset } from "./components";
+import { EarnLpnAsset, EarnNativeAsset, EarnReward } from "./components";
 import { onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 import { AppUtils, Logger, NetworkUtils, WalletManager } from "@/common/utils";
@@ -181,8 +224,13 @@ import { claimRewardsMsg, type ContractData, Lpp } from "@nolus/nolusjs/build/co
 import { NATIVE_ASSET, UPDATE_REWARDS_INTERVAL } from "@/config/global";
 import { coin } from "@cosmjs/amino";
 import { useApplicationStore } from "@/common/stores/application";
+import { useI18n } from "vue-i18n";
 import { storeToRefs } from "pinia";
 import { useAdminStore } from "@/common/stores/admin";
+import { Table } from "web-components";
+import EarnAssetRowWrapper from "@/modules/earn/components/EarnAssetRowWrapper.vue";
+
+const i18n = useI18n();
 
 const wallet = useWalletStore();
 
@@ -209,13 +257,18 @@ const loading = ref(true);
 const isDelegated = ref(false);
 const lpnAsset = ref<Asset[] | []>([]);
 const lpnReward = ref(new Dec(0));
-const applicaton = useApplicationStore();
-const applicationRef = storeToRefs(applicaton);
+const application = useApplicationStore();
+const applicationRef = storeToRefs(application);
 const admin = useAdminStore();
+const earningColumns = [
+  { label: i18n.t("message.asset") },
+  { label: i18n.t("message.deposit"), tooltip: i18n.t("message.deposit-tooltip"), class: "hidden md:flex" },
+  { label: i18n.t("message.yield"), tooltip: i18n.t("message.earn-view-apr-tooltip") }
+];
 
 onMounted(async () => {
   try {
-    const [_delegations] = await Promise.allSettled([
+    await Promise.allSettled([
       NetworkUtils.loadDelegations(),
       loadRewards(),
       loadLPNCurrency(),
@@ -224,12 +277,7 @@ onMounted(async () => {
     ]);
 
     rewardsInterval = setInterval(async () => {
-      const [_delegations] = await Promise.allSettled([
-        NetworkUtils.loadDelegations(),
-        loadRewards(),
-        loadLPNCurrency(),
-        loadDelegated()
-      ]);
+      await Promise.allSettled([NetworkUtils.loadDelegations(), loadRewards(), loadLPNCurrency(), loadDelegated()]);
     }, UPDATE_REWARDS_INTERVAL);
 
     loading.value = false;
@@ -246,12 +294,7 @@ onUnmounted(() => {
 watch(
   () => wallet.balances,
   async (value) => {
-    const [_delegations] = await Promise.allSettled([
-      NetworkUtils.loadDelegations(),
-      loadRewards(),
-      loadLPNCurrency(),
-      loadDelegated()
-    ]);
+    await Promise.allSettled([NetworkUtils.loadDelegations(), loadRewards(), loadLPNCurrency(), loadDelegated()]);
   }
 );
 
@@ -336,12 +379,15 @@ async function loadDelegated() {
     isDelegated.value = true;
   }
 
+  console.info({ delegations, decimalDelegated });
+
   delegated.value = { balance: coin(decimalDelegated.truncate().toString(), NATIVE_ASSET.denom) };
+  console.info({ delegated: delegated.value });
 }
 
 async function loadLPNCurrency() {
   const lpnCurrencies: Asset[] = [];
-  const lpns = applicaton.lpn;
+  const lpns = application.lpn;
   const promises = [];
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
 
@@ -349,7 +395,7 @@ async function loadLPNCurrency() {
     const index = wallet.balances.findIndex((item) => item.balance.denom == lpn.ibcData);
     if (index > -1) {
       const fn = async () => {
-        const c = applicaton.currenciesData![lpn.key!];
+        const c = application.currenciesData![lpn.key!];
         const [_currency, protocol] = c.key!.split("@");
         const contract = admin.contracts![protocol].lpp;
         const lppClient = new Lpp(cosmWasmClient, contract);
@@ -396,9 +442,11 @@ async function loadLPNCurrency() {
   }
 
   lpnAsset.value = [...items, ...lpnCurrencies];
+
+  console.info({ lpnAsset: lpnAsset.value });
 }
 
-function openDelegateUndelegateDialog() {
+function openDelegateUnDelegateDialog() {
   selectedAsset.value = `${NATIVE_ASSET.ticker}@${AppUtils.getDefaultProtocol()}`;
   showDelegateUndelegateDialog.value = true;
 }
