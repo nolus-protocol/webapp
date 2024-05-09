@@ -599,23 +599,6 @@ input[type="checkbox" i] {
   .nls-md-show {
     display: none;
   }
-
-  .outline {
-    outline: none;
-    position: relative;
-
-    &::after {
-      content: "";
-      position: absolute;
-      top: 0px;
-      right: 0px;
-      bottom: 0px;
-      left: 0px;
-      border: 1px solid #ebeff5;
-      border-radius: 12px;
-      pointer-events: none;
-    }
-  }
 }
 
 @media (max-width: $lg) {
@@ -832,21 +815,6 @@ body.dark {
 
   .dark-text-light-blue {
     color: $lightBlue !important;
-  }
-
-  @media (max-width: $lg) {
-    .outline {
-      outline: 1px solid #2b384b !important;
-      box-shadow: 0px 12px 32px 0px rgba(7, 45, 99, 0.06);
-    }
-  }
-
-  @media (min-width: $md) {
-    .outline {
-      &::after {
-        border: 1px solid $dark-line;
-      }
-    }
   }
 }
 
