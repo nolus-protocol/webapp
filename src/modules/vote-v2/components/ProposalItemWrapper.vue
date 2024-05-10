@@ -18,7 +18,7 @@
 </template>
 
 <script lang="ts" setup>
-import { type FinalTallyResult, type Proposal, ProposalStatus } from "@/modules/vote/types";
+import { type FinalTallyResult, type Proposal, ProposalStatus } from "@/modules/vote-v2/types";
 import { computed, type PropType } from "vue";
 import { Dec } from "@keplr-wallet/unit";
 import { formatDateTime, StringUtils } from "@/common/utils";

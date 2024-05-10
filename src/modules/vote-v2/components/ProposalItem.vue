@@ -66,12 +66,12 @@
 </template>
 
 <script lang="ts" setup>
-import { type FinalTallyResult, type Proposal, ProposalStatus } from "@/modules/vote/types";
+import { type FinalTallyResult, type Proposal, ProposalStatus } from "@/modules/vote-v2/types";
 import { computed, type PropType } from "vue";
 import { formatDateTime, StringUtils } from "@/common/utils";
 import { Dec } from "@keplr-wallet/unit";
 
-import ProposalVotingLine from "@/modules/vote/components/ProposalVotingLine.vue";
+// import ProposalVotingLine from "@/modules/vote/components/ProposalVotingLine.vue";
 
 const props = defineProps({
   state: {
@@ -128,7 +128,7 @@ const isVotingPeriod = computed(() => {
 });
 
 const wrapperClasses = computed(() =>
-  isVotingPeriod.value ? ["background"] : ["background", "lg:w-[calc(50%-10px)]"]
+  isVotingPeriod.value ? ["background"] : ["bg-transparent", "lg:w-[calc(50%-10px)]"]
 );
 
 defineEmits(["vote", "read-more"]);
