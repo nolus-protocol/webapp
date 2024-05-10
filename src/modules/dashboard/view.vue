@@ -168,15 +168,46 @@
               {{ $t("message.available-assets") }}
             </p>
           </div>
-          <div class="right mt-0 inline-flex w-2/3 justify-end">
-            <div class="checkbox-container relative block"></div>
+          <div class="right mt-0 flex w-2/3 items-center justify-end gap-4">
+            <div class="checkbox-container">
+              <div class="flex w-full items-center">
+                <input
+                  id="low-balances"
+                  v-model="state.showSmallBalances"
+                  name="low-balances"
+                  type="checkbox"
+                />
+                <label
+                  class="text-primary"
+                  for="low-balances"
+                  >{{ $t("message.low-balances") }}</label
+                >
+              </div>
+            </div>
+            <Button
+              :label="$t('message.receive/send')"
+              class="hidden lg:block"
+              icon="icon-transfer"
+              iconPosition="left"
+              severity="primary"
+              size="large"
+              @click="() => sendReceiveOpen()"
+            />
+            <Button
+              class="block lg:hidden"
+              icon="icon-transfer"
+              iconPosition="left"
+              severity="primary"
+              size="large"
+              @click="() => sendReceiveOpen()"
+            />
           </div>
         </div>
 
         <!-- Assets -->
         <div class="mt-6 block md:mt-[25px]">
           <!-- Assets Header -->
-          <div class="border-standart grid grid-cols-4 gap-6 border-b pb-3 md:grid-cols-5">
+          <div class="border-standart grid grid-cols-4 gap-6 border-b pb-3">
             <div class="nls-font-500 text-dark-grey text-upper col-span-2 text-left text-12 md:col-span-1">
               {{ $t("message.assets") }}
             </div>
@@ -197,12 +228,6 @@
             >
               <span class="inline-block">{{ $t("message.lease-up-to") }}</span>
               <TooltipComponent :content="$t('message.lease-up-to-tooltip')" />
-            </div>
-
-            <div
-              class="nls-font-500 text-dark-grey text-upper items-center justify-end text-right text-12 md:inline-flex"
-            >
-              <span class="inline-block">{{ $t("message.receive/send") }}</span>
             </div>
           </div>
 
@@ -250,19 +275,9 @@
                   :earnings="DEFAULT_APR"
                   :openModal="openModal"
                   :price="oracle.prices[asset.balance.denom]?.amount ?? '0'"
-                  :sendReceiveOpen="sendReceiveOpen"
                 />
               </TransitionGroup>
             </template>
-          </div>
-
-          <div class="flex justify-center pb-[18px] pt-[8px]">
-            <button
-              class="btn transfer btn-medium-secondary"
-              @click="setCurrency()"
-            >
-              {{ state.showSmallBalances ? $t("message.hide-small-balances") : $t("message.show-small-balances") }}
-            </button>
           </div>
         </div>
       </div>
@@ -367,6 +382,7 @@ import { AssetUtils, Logger, NetworkUtils, WalletManager } from "@/common/utils"
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { DEFAULT_APR, IGNORE_TRANSFER_ASSETS, LPN_DECIMALS, NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
 import { CurrencyDemapping } from "@/config/currencies";
+import { Button } from "web-components";
 
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
@@ -598,10 +614,12 @@ function getAssetInfo(denom: string) {
   return AssetUtils.getCurrencyByDenom(denom);
 }
 
-function setCurrency() {
-  state.value.showSmallBalances = !state.value.showSmallBalances;
-  setSmallBalancesState(state.value.showSmallBalances);
-}
+watch(
+  () => state.value.showSmallBalances,
+  () => {
+    setSmallBalancesState(state.value.showSmallBalances);
+  }
+);
 
 function setSmallBalancesState(event: boolean) {
   if (!event) {
@@ -611,7 +629,7 @@ function setSmallBalancesState(event: boolean) {
   }
 }
 
-function sendReceiveOpen(currency: string) {
+function sendReceiveOpen(currency: string = "") {
   state.value.selectedAsset = "";
   state.value.dialogSelectedCurrency = currency;
   state.value.modalAction = DASHBOARD_ACTIONS.RECEIVE;

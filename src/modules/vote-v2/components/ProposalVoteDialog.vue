@@ -14,62 +14,58 @@
       :vote="state.vote"
     />
     <template v-else>
-      <div class="custom-scroll w-full overflow-auto p-10 text-primary md:max-h-[70vh]">
+      <div class="custom-scroll w-full overflow-auto p-10 text-neutral-typography-200 md:max-h-[70vh]">
         <h1>&#35;{{ proposal.id }} {{ proposal.title }}</h1>
         <template v-if="!!Number(delegatedTokensAmount.amount)">
           <div class="flex flex-col gap-4">
-            <button
-              class="btn btn-secondary btn-large-primary"
+            <Button
+              :label="$t('message.yes')"
+              severity="primary"
+              size="large"
               @click="onVote(VoteOption.VOTE_OPTION_YES)"
-            >
-              {{ $t("message.yes") }}
-            </button>
-            <button
-              class="btn btn-secondary btn-large-primary"
+            />
+            <Button
+              :label="$t('message.no')"
+              severity="primary"
+              size="large"
               @click="onVote(VoteOption.VOTE_OPTION_NO)"
-            >
-              {{ $t("message.no") }}
-            </button>
-
+            />
             <div class="flex gap-4">
-              <button
-                class="btn btn-secondary btn-large-secondary w-full"
+              <Button
+                :label="$t('message.abstained')"
+                class="w-full"
+                severity="secondary"
+                size="large"
                 @click="onVote(VoteOption.VOTE_OPTION_ABSTAIN)"
-              >
-                {{ $t("message.abstained") }}
-              </button>
-              <button
-                class="btn btn-secondary btn-large-secondary w-full"
+              />
+              <Button
+                :label="$t('message.veto')"
+                class="w-full"
+                severity="secondary"
+                size="large"
                 @click="onVote(VoteOption.VOTE_OPTION_NO_WITH_VETO)"
-              >
-                {{ $t("message.veto") }}
-              </button>
+              />
             </div>
           </div>
         </template>
         <template v-else>
-          <WarningBox
-            :isWarning="true"
+          <NotificationBox
+            :type="NotificationBoxType.warning"
             class="mb-6"
           >
-            <template v-slot:icon>
-              <img
-                class="mx-auto my-0 block h-7 w-10"
-                src="@/assets/icons/information-circle.svg"
-              />
-            </template>
             <template v-slot:content>
-              <span class="text-primary">
+              <span class="text-neutral-typography-200">
                 {{ $t("message.voting-warning") }}
               </span>
             </template>
-          </WarningBox>
-          <button
-            class="btn btn-secondary btn-large-primary"
+          </NotificationBox>
+          <Button
+            :label="$t('message.delegate')"
+            class="mx-auto"
+            severity="primary"
+            size="large"
             @click="onDelegateClick"
-          >
-            {{ $t("message.delegate") }}
-          </button>
+          />
         </template>
       </div>
     </template>
@@ -78,11 +74,11 @@
 
 <script lang="ts" setup>
 import { type Coin, coin } from "@cosmjs/amino";
-import type { VoteComponentProps } from "@/modules/vote/types";
+import type { VoteComponentProps } from "@/modules/vote-v2/types";
 
 import DialogHeader from "@/common/components/modals/templates/DialogHeader.vue";
-import WarningBox from "@/common/components/modals/templates/WarningBox.vue";
 import ConfirmVoteComponent from "@/common/components/modals/templates/ConfirmVoteComponent.vue";
+import { Button, NotificationBox, NotificationBoxType } from "web-components";
 
 import { router } from "@/router";
 import { inject, onMounted, type PropType, ref } from "vue";

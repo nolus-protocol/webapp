@@ -1,7 +1,7 @@
 <template>
   <div
+    :class="[showActionButtons ? 'row-actions' : '', cols ? 'grid-cols-' + cols : 'grid-cols-4']"
     class="asset-partial nolus-box border-standart relative grid items-center justify-between gap-6 border-b py-3"
-    :class="[showActionButtons ? 'row-actions' : '', cols ? 'grid-cols-' + cols : 'grid-cols-4 md:grid-cols-5']"
   >
     <div class="col-span-2 inline-flex items-center md:col-span-1">
       <img
@@ -24,11 +24,11 @@
     <div class="block">
       <p class="nls-font-500 m-0 text-right text-16 text-primary">
         <CurrencyComponent
-          :type="CURRENCY_VIEW_TYPES.TOKEN"
           :amount="assetBalance"
-          :minimalDenom="assetInfo.ibcData"
           :decimals="assetInfo.decimal_digits"
           :maxDecimals="maxCoinDecimals"
+          :minimalDenom="assetInfo.ibcData"
+          :type="CURRENCY_VIEW_TYPES.TOKEN"
           denom=""
         />
       </p>
@@ -44,20 +44,20 @@
       <div class="nls-font-500 m-0 text-right text-14 text-primary">
         <CurrencyComponent
           v-if="app.native?.ticker == assetInfo.ticker"
-          :type="CURRENCY_VIEW_TYPES.CURRENCY"
           :amount="walletStore.apr.toString()"
+          :defaultZeroValue="'-'"
           :hasSpace="false"
           :isDenomInfront="false"
-          :defaultZeroValue="'-'"
+          :type="CURRENCY_VIEW_TYPES.CURRENCY"
           denom="%"
         />
         <template v-else>
           <div v-if="isEarn">
             <CurrencyComponent
-              :type="CURRENCY_VIEW_TYPES.CURRENCY"
               :amount="apr"
               :hasSpace="false"
               :isDenomInfront="false"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
               denom="%"
             />
             <p class="text-[12px] text-[#1AB171]">+{{ rewards }}% {{ NATIVE_ASSET.label }}</p>
@@ -73,20 +73,20 @@
           <template v-if="canLease">
             <template v-if="balance > 0">
               <CurrencyComponent
-                :type="CURRENCY_VIEW_TYPES.TOKEN"
                 :amount="leasUpTo"
-                :minimalDenom="assetInfo.ibcData"
                 :decimals="assetInfo.decimal_digits"
                 :maxDecimals="maxLeaseUpToCoinDecimals"
+                :minimalDenom="assetInfo.ibcData"
+                :type="CURRENCY_VIEW_TYPES.TOKEN"
                 denom=""
               />
             </template>
             <template v-else>
               <CurrencyComponent
-                :type="CURRENCY_VIEW_TYPES.CURRENCY"
                 :amount="DEFAULT_LEASE_UP_PERCENT"
                 :hasSpace="false"
                 :isDenomInfront="false"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
                 denom="%"
               />
             </template>
@@ -111,15 +111,6 @@
         </button>
       </div>
     </div>
-
-    <div class="flex justify-end">
-      <button
-        class="btn transfer btn-medium-secondary !px-[14px] py-[8px]"
-        @click="sendReceiveOpen(assetInfo.key)"
-      >
-        <span class="icon icon-transfer !text-[14px]"></span>
-      </button>
-    </div>
   </div>
 </template>
 
@@ -135,10 +126,10 @@ import { AssetUtils as WebAppAssetUtils } from "@/common/utils";
 import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
 
 import {
-  NATIVE_CURRENCY as DEFAULT_CURRENCY,
   DEFAULT_LEASE_UP_PERCENT,
   LEASE_UP_COEFICIENT,
-  NATIVE_ASSET
+  NATIVE_ASSET,
+  NATIVE_CURRENCY as DEFAULT_CURRENCY
 } from "@/config/global";
 import { CurrencyMapping } from "@/config/currencies";
 
@@ -155,10 +146,6 @@ const props = defineProps({
     required: true
   },
   openModal: {
-    type: Function,
-    required: true
-  },
-  sendReceiveOpen: {
     type: Function,
     required: true
   },
@@ -237,7 +224,7 @@ function calculateBalance(price: string, tokenAmount: string, denom: string) {
   return data.toDec().toString(2);
 }
 </script>
-<style scoped lang="scss">
+<style lang="scss" scoped>
 button.transfer {
   padding: 8px 14px !important;
 }
