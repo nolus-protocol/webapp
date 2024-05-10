@@ -267,8 +267,6 @@
     "no_with_veto_count": "Нет с Вето(запрет на голосование)",
     "voting-warning": "Чтобы получить право голоса, вы должны сначала передать(заделигировать) токены NLS валидаторам сети",
     "lease-banner-title": "Заём",
-    "ntrn_0-banner-subtitle": "Нулевые проценты по всем займам $NTRN",
-    "ntrn_0-banner-description": "Наслаждайтесь беспроцентными займами по всем позициям $NTRN до 30 апреля",
     "voted": "Проголосовали",
     "integer-out-of-range": "Integer out of range",
     "repay-interest": "Accumulates each block and is added to the outstanding debt. Interest is due in {dueDate}",

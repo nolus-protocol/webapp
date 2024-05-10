@@ -267,8 +267,6 @@
     "no_with_veto_count": "拒否と棄権",
     "voting-warning": "投票権を取得するには、まずNLSトークンをネットワークのバリデータに委任する必要があります",
     "lease-banner-title": "リース",
-    "ntrn_0-banner-subtitle": "すべての$NTRNリースに0%の利息",
-    "ntrn_0-banner-description": "4月30日まで、すべての$NTRNポジションで無利息のリースをお楽しみください",
     "voted": "投票済み",
     "integer-out-of-range": "整数が範囲外です",
     "repay-interest": "各ブロックで蓄積され、未払いの借金に追加されます。利子は{dueDate}に支払われます",

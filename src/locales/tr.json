@@ -267,8 +267,6 @@
     "no_with_veto_count": "VETO İLE HAYIR",
     "voting-warning": "Oylama hakkı elde etmek için öncelikle NLS tokenlerinizi ağın doğrulayıcılarına delege etmeniz gerekir.",
     "lease-banner-title": "Kirala",
-    "ntrn_0-banner-subtitle": "Tüm $NTRN Kiralamalarında Sıfır Faiz",
-    "ntrn_0-banner-description": "30 Nisan'a kadar tüm $NTRN pozisyonlarında faizsiz kiralamaların keyfini çıkarın",
     "voted": "Oy verildi",
     "integer-out-of-range": "Integer out of range",
     "repay-interest": "Accumulates each block and is added to the outstanding debt. Interest is due in {dueDate}",

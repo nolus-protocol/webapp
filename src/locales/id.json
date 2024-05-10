@@ -267,8 +267,6 @@
     "no_with_veto_count": "Tidak Dengan Veto",
     "voting-warning": "Untuk memperoleh hak suara, Anda harus pertama-tama mendelekasikan token NLS ke validator jaringan",
     "lease-banner-title": "Sewa",
-    "ntrn_0-banner-subtitle": "Tanpa Bunga pada Semua Sewa $NTRN",
-    "ntrn_0-banner-description": "Nikmati sewa tanpa bunga pada semua posisi $NTRN hingga 30 April",
     "voted": "Memilih",
     "integer-out-of-range": "Integer out of range",
     "repay-interest": "Accumulates each block and is added to the outstanding debt. Interest is due in {dueDate}",
