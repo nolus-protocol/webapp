@@ -53,7 +53,7 @@ export class SkipRouter {
       sourceAssetChainID: SkipRouter.chainID,
       destAssetDenom: destDenom,
       destAssetChainID: SkipRouter.chainID,
-      allowMultiTx: true,
+      allowMultiTx: false,
       cumulativeAffiliateFeeBPS: config.fee.toString()
     };
 

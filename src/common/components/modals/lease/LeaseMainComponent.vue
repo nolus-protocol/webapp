@@ -197,7 +197,7 @@ async function calculate() {
 
       if (
         CurrencyMapping[downPaymentTicker as keyof typeof CurrencyMapping] &&
-        protocol == AppUtils.getProtocols().osmosis
+        (protocol == AppUtils.getProtocols().osmosis || protocol == AppUtils.getProtocols().osmosis_noble)
       ) {
         downPaymentTicker = CurrencyMapping[downPaymentTicker as keyof typeof CurrencyMapping]?.ticker;
       }

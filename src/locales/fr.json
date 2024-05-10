@@ -266,8 +266,6 @@
     "no_with_veto_count": "quantité de non avec véto",
     "voting-warning": "Pour obtenir des privilèges de vote, vous devez d'abord déléguer des jetons NLS aux validateurs du réseau",
     "lease-banner-title": "Prêter",
-    "ntrn_0-banner-subtitle": "Zero intérêt sur tous les emprunts $NTRN",
-    "ntrn_0-banner-description": "Profitez de baux sans intérêt sur toutes les positions $NTRN jusqu'au 30 avril",
     "voted": "Voté",
     "integer-out-of-range": "Integer out of range",
     "repay-interest": "Accumulates each block and is added to the outstanding debt. Interest is due in {dueDate}",
