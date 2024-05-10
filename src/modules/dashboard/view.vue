@@ -191,7 +191,7 @@
               iconPosition="left"
               severity="primary"
               size="large"
-              @click="sendReceiveOpen"
+              @click="() => sendReceiveOpen()"
             />
             <Button
               class="block lg:hidden"
@@ -199,7 +199,7 @@
               iconPosition="left"
               severity="primary"
               size="large"
-              @click="sendReceiveOpen"
+              @click="() => sendReceiveOpen()"
             />
           </div>
         </div>
@@ -629,7 +629,7 @@ function setSmallBalancesState(event: boolean) {
   }
 }
 
-function sendReceiveOpen(currency: string) {
+function sendReceiveOpen(currency: string = "") {
   state.value.selectedAsset = "";
   state.value.dialogSelectedCurrency = currency;
   state.value.modalAction = DASHBOARD_ACTIONS.RECEIVE;
