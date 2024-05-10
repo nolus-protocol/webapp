@@ -49,7 +49,7 @@ const messagesRef = ref<string[]>();
 // const rowData = ref([] as HistoryTableRowItemProps[]);
 
 //TODO: remove
-const mapCurrency = {
+const mapCurrency: { [key: string]: string } = {
   "transfer/channel-0/transfer/channel-750": "USDC",
   "transfer/channel-0/transfer/channel-208": "USDC"
 };
