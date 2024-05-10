@@ -94,6 +94,12 @@ const applicaton = useApplicationStore();
 const wallet = useWalletStore();
 const messagesRef = ref<string[]>();
 
+//TODO: remove
+const mapCurrency = {
+  "transfer/channel-0/transfer/channel-750": "USDC",
+  "transfer/channel-0/transfer/channel-208": "USDC"
+};
+
 const voteMessages: { [key: string]: string } = {
   [VoteOption.VOTE_OPTION_ABSTAIN]: i18n.t(`message.abstained`).toLowerCase(),
   [VoteOption.VOTE_OPTION_NO_WITH_VETO]: i18n.t(`message.veto`).toLowerCase(),
@@ -454,10 +460,11 @@ async function fetchCurrency(amount: Coin) {
   const data = await fetch(`${api}/ibc/apps/transfer/v1/denom_traces/${amount.denom}`);
   const json = await data.json();
   const currency = AssetUtils.getCurrencyBySymbol(json.denom_trace.base_denom);
+  const name = mapCurrency[json.denom_trace.path];
   return CurrencyUtils.convertMinimalDenomToDenom(
     amount?.amount,
     currency?.ibcData,
-    currency?.shortName ?? truncateString(amount.denom),
+    name ?? currency?.shortName ?? truncateString(amount.denom),
     Number(currency?.decimal_digits ?? 0)
   );
 }
