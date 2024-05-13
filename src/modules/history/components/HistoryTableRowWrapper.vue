@@ -50,8 +50,7 @@ const messagesRef = ref<string[]>();
 
 //TODO: remove
 const mapCurrency: { [key: string]: string } = {
-  "transfer/channel-0/transfer/channel-750": "USDC",
-  "transfer/channel-0/transfer/channel-208": "USDC"
+  "transfer/channel-0/transfer/channel-750": "USDC"
 };
 
 const voteMessages: { [key: string]: string } = {

@@ -52,8 +52,8 @@ import {
   PERMILLE,
   PERCENT,
   ErrorCodes,
-  IGNORE_LEASE_ASSETS,
-  minimumLeaseAmount
+  minimumLeaseAmount,
+  IGNORE_DOWNPAYMENT_ASSETS
 } from "@/config/global";
 
 const walletStore = useWalletStore();
@@ -103,9 +103,10 @@ const balances = computed(() => {
 
     let cticker = ticker;
 
-    // if (IGNORE_LEASE_ASSETS.includes(ticker)) {
-    //   return false;
-    // }
+    if (IGNORE_DOWNPAYMENT_ASSETS.includes(ticker)) {
+      return false;
+    }
+
     const lpns = ((app.lpn ?? []) as ExternalCurrency[]).map((item) => item.key as string);
 
     if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
