@@ -51,7 +51,7 @@ export const SUPPORTED_NETWORKS = [
   "STRIDE",
   "JUNO",
   "EVMOS",
-  "PERSISTENCE",
+  // "PERSISTENCE",
   "SECRET",
   "STARGAZE",
   "CELESTIA",
