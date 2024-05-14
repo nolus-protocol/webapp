@@ -37,7 +37,7 @@ if (!isDev()) {
 }
 
 export { DOWNPAYMENT_RANGE_URL, SWAP_FEE_URL, FREE_INTEREST_ADDRESS_URL };
-export const IGNORE_LEASE_ASSETS: string[] = ["STK_ATOM", "DYDX", "JUNO", "EVMOS", "STRD", "STK_ATOM"];
+export const IGNORE_LEASE_ASSETS: string[] = ["STK_ATOM", "DYDX", "JUNO", "EVMOS", "STRD", "STK_ATOM", "LVN", "DYM"];
 export const IGNORE_DOWNPAYMENT_ASSETS: string[] = ["STK_ATOM"];
 
 export const IGNORE_LEASES: string[] = [
