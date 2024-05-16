@@ -52,7 +52,7 @@ import { useApplicationStore } from "@/common/stores/application";
 
 const walletStore = useWalletStore();
 const app = useApplicationStore();
-
+console.log(app.currenciesData);
 const showConfirmScreen = ref(false);
 const state = ref({
   currentBalance: [{ balance: walletStore.total_unls.balance, ...app.native }],
@@ -60,7 +60,7 @@ const state = ref({
   amount: "",
   amountErrorMsg: "",
   txHash: "",
-  fee: coin(GAS_FEES.delegation, NATIVE_ASSET.denom),
+  fee: coin(GAS_FEES.delegation, "ibc/7DABB27AEEAFC0576967D342F21DC0944F5EA6584B45B9C635A3B3C35DCDA159"),
   onNextClick: () => onNextClick()
 } as DelegateFormComponentProps);
 

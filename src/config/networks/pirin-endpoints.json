@@ -16,13 +16,13 @@
   },
   "OSMOSIS": {
     "primary": {
-      "rpc": "https://rpc-osmosis-1.nolus.cros-nest.net",
-      "api": "https://rest-osmosis-1.nolus.cros-nest.net"
+      "rpc": "https://r-osmosis--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
+      "api": "https://a-osmosis--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
     },
     "fallback": [
       {
-        "rpc": "https://r-osmosis--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
-        "api": "https://a-osmosis--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
+        "rpc": "https://rpc-osmosis-1.nolus.cros-nest.net",
+        "api": "https://rest-osmosis-1.nolus.cros-nest.net"
       }
     ]
   },
@@ -105,8 +105,8 @@
     },
     "fallback": [
       {
-        "rpc": "https://rpc-persistent-ia.cosmosia.notional.ventures/",
-        "api": "https://api-persistent-ia.cosmosia.notional.ventures/"
+        "rpc": "https://rpc-persistent-ia.cosmosia.notional.ventures",
+        "api": "https://api-persistent-ia.cosmosia.notional.ventures"
       }
     ]
   },
@@ -148,8 +148,8 @@
   },
   "QUICKSILVER": {
     "primary": {
-      "rpc": "https://rpc-quicksilver-ia.cosmosia.notional.ventures:443",
-      "api": "https://api-quicksilver-ia.cosmosia.notional.ventures:443"
+      "rpc": "https://r-quicksilver--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
+      "api": "https://a-quicksilver--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
     },
     "fallback": [
       {
