@@ -162,7 +162,7 @@
         class="background border-standart shadow-box mt-6 block p-4 outline lg:rounded-xl lg:p-6"
       >
         <!-- Top -->
-        <div class="flex flex-wrap items-baseline justify-between">
+        <div class="flex flex-wrap items-center justify-between">
           <div class="left w-1/3">
             <p class="nls-font-500 dark-text text-16">
               {{ $t("message.available-assets") }}
@@ -187,8 +187,6 @@
             <Button
               :label="$t('message.receive/send')"
               class="hidden lg:block"
-              icon="icon-transfer"
-              iconPosition="left"
               severity="primary"
               size="large"
               @click="() => sendReceiveOpen()"
@@ -207,7 +205,7 @@
         <!-- Assets -->
         <div class="mt-6 block md:mt-[25px]">
           <!-- Assets Header -->
-          <div class="border-standart grid grid-cols-4 gap-6 border-b pb-3">
+          <div class="border-standart grid grid-cols-3 gap-6 border-b pb-3 md:grid-cols-4">
             <div class="nls-font-500 text-dark-grey text-upper col-span-2 text-left text-12 md:col-span-1">
               {{ $t("message.assets") }}
             </div>
@@ -611,6 +609,7 @@ function openModal(action: DASHBOARD_ACTIONS, denom = "") {
 }
 
 function getAssetInfo(denom: string) {
+  console.info(AssetUtils.getCurrencyByDenom(denom));
   return AssetUtils.getCurrencyByDenom(denom);
 }
 
