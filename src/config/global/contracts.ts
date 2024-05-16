@@ -52,7 +52,7 @@ export const ProtocolsConfig: {
   "NEUTRON-ASTROPORT-USDC_AXELAR": {
     only: [],
     lease: true,
-    currencies: ["NTRN", "USDC_AXELAR", "DYDX", "ST_TIA"],
+    currencies: ["NTRN", "USDC_AXELAR", "DYDX", "ST_TIA", "STK_ATOM"],
     ignoreNetowrk: ["OSMOSIS"]
   },
   "OSMOSIS-OSMOSIS-USDC_NOBLE": {
@@ -71,7 +71,6 @@ export const ProtocolsConfig: {
       "AXL",
       "JUNO",
       "EVMOS",
-      "STK_ATOM",
       "SCRT",
       "CRO",
       "TIA",
