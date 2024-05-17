@@ -480,7 +480,7 @@ export const NETWORKS_DATA: {
       },
       COMPOSABLE: {
         ...COMPOSABLE_NETWORK,
-        explorer: "https://ping.pub/composable/tx",
+        explorer: "https://ping.pub/picasso/tx",
         currencies: () => {
           const app = useApplicationStore();
           return app?.networks?.[COMPOSABLE_NETWORK.key] as ExternalCurrencies;
