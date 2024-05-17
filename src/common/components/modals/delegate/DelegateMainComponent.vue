@@ -52,7 +52,7 @@ import { useApplicationStore } from "@/common/stores/application";
 
 const walletStore = useWalletStore();
 const app = useApplicationStore();
-console.log(app.currenciesData);
+
 const showConfirmScreen = ref(false);
 const state = ref({
   currentBalance: [{ balance: walletStore.total_unls.balance, ...app.native }],
