@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="[showActionButtons ? 'row-actions' : '', cols ? 'grid-cols-' + cols : 'grid-cols-4']"
+    :class="[showActionButtons ? 'row-actions' : '', cols ? 'grid-cols-' + cols : 'grid-cols-3 md:grid-cols-4']"
     class="asset-partial nolus-box border-standart relative grid items-center justify-between gap-6 border-b py-3"
   >
     <div class="col-span-2 inline-flex items-center md:col-span-1">
