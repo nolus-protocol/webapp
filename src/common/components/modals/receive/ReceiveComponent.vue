@@ -280,6 +280,8 @@ watch(
 async function onUpdateNetwork(event: Network) {
   selectedNetwork.value = event;
   networkCurrencies.value = [];
+  amount.value = "";
+  amountErrorMsg.value = "";
 
   if (!event.native) {
     if (client) {
