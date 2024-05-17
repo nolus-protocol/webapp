@@ -133,7 +133,7 @@ import ConfirmExternalComponent from "@/common/components/modals/templates/Confi
 
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import { CONFIRM_STEP, TxType, type Network, NetworkTypes, type ExternalCurrency } from "@/common/types";
-import { onUnmounted, ref, type PropType, inject, watch, computed } from "vue";
+import { onUnmounted, ref, type PropType, inject, watch, computed, nextTick } from "vue";
 import { DocumentDuplicateIcon } from "@heroicons/vue/24/solid";
 import { useI18n } from "vue-i18n";
 import { AssetUtils, EnvNetworkUtils, Logger, WalletUtils } from "@/common/utils";
@@ -144,7 +144,7 @@ import { Decimal } from "@cosmjs/math";
 import { externalWalletOperation, externalWallet } from "@/common/utils";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore } from "@/common/stores/wallet";
-import { Dec, Coin as KeplrCoin } from "@keplr-wallet/unit";
+import { Coin as KeplrCoin } from "@keplr-wallet/unit";
 import { useApplicationStore } from "@/common/stores/application";
 import { onMounted } from "vue";
 import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
@@ -280,6 +280,8 @@ watch(
 async function onUpdateNetwork(event: Network) {
   selectedNetwork.value = event;
   networkCurrencies.value = [];
+  amount.value = "";
+  amountErrorMsg.value = "";
 
   if (!event.native) {
     if (client) {
