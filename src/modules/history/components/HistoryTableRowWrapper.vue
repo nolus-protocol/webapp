@@ -80,7 +80,7 @@ const transactionData = computed(() =>
         items: [
           {
             value: truncateString(props.transaction.id),
-            url: `${applicaton.network.networkAddresses.explorer}/${props.transaction.id}}`,
+            url: `${applicaton.network.networkAddresses.explorer}/${props.transaction.id}`,
             icon: Icon,
             class: "text-14 uppercase max-w-[200px]"
           },

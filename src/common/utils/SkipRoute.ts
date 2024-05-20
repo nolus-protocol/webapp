@@ -47,7 +47,7 @@ export class SkipRouter {
 
   static async getRoute(sourceDenom: string, destDenom: string, amount: string, revert: boolean = false) {
     const [client, config] = await Promise.all([SkipRouter.getClient(), AppUtils.getSkipRouteConfig()]);
-
+    console.log(amount);
     const request: IObjectKeys = {
       sourceAssetDenom: sourceDenom,
       sourceAssetChainID: SkipRouter.chainID,
