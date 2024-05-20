@@ -609,7 +609,6 @@ function openModal(action: DASHBOARD_ACTIONS, denom = "") {
 }
 
 function getAssetInfo(denom: string) {
-  console.info(AssetUtils.getCurrencyByDenom(denom));
   return AssetUtils.getCurrencyByDenom(denom);
 }
 
