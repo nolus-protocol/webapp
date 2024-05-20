@@ -52,7 +52,7 @@ import { useApplicationStore } from "@/common/stores/application";
 
 const walletStore = useWalletStore();
 const app = useApplicationStore();
-console.log(app.currenciesData);
+
 const showConfirmScreen = ref(false);
 const state = ref({
   currentBalance: [{ balance: walletStore.total_unls.balance, ...app.native }],
@@ -60,7 +60,7 @@ const state = ref({
   amount: "",
   amountErrorMsg: "",
   txHash: "",
-  fee: coin(GAS_FEES.delegation, "ibc/7DABB27AEEAFC0576967D342F21DC0944F5EA6584B45B9C635A3B3C35DCDA159"),
+  fee: coin(GAS_FEES.delegation, NATIVE_ASSET.denom),
   onNextClick: () => onNextClick()
 } as DelegateFormComponentProps);
 
@@ -127,7 +127,7 @@ async function delegate() {
       if (validators?.length > 0) {
         division = validators?.length;
       }
-
+      console.log(state.value.selectedCurrency);
       const asset = state.value.selectedCurrency;
       const data = CurrencyUtils.convertDenomToMinimalDenom(state.value.amount, asset.ibcData, asset.decimal_digits);
 
@@ -171,6 +171,7 @@ async function delegate() {
 
     await walletStore.UPDATE_BALANCES();
   } catch (error: Error | any) {
+    conso.log(error);
     switch (error.code) {
       case ErrorCodes.GasError: {
         step.value = CONFIRM_STEP.GasError;
