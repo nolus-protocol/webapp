@@ -127,7 +127,6 @@ async function delegate() {
       if (validators?.length > 0) {
         division = validators?.length;
       }
-      console.log(state.value.selectedCurrency);
       const asset = state.value.selectedCurrency;
       const data = CurrencyUtils.convertDenomToMinimalDenom(state.value.amount, asset.ibcData, asset.decimal_digits);
 
