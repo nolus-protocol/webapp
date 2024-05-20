@@ -170,7 +170,6 @@ async function delegate() {
 
     await walletStore.UPDATE_BALANCES();
   } catch (error: Error | any) {
-    conso.log(error);
     switch (error.code) {
       case ErrorCodes.GasError: {
         step.value = CONFIRM_STEP.GasError;
