@@ -1,23 +1,14 @@
 <template>
   <div
-    class="shadow-field-normal mt-6 flex flex-col border border-border-color bg-neutral-bg-50 p-4 lg:flex-row lg:rounded-xl lg:p-6"
+    class="mt-6 flex flex-col border border-border-color bg-neutral-bg-50 p-4 shadow-field-normal lg:flex-row lg:rounded-xl lg:p-6"
   >
     <div class="w-full">
       <p class="text-16 font-medium text-neutral-typography-200">
         {{ $t("message.leased-assets-total") }}
       </p>
       <div class="flex w-full flex-col items-center gap-4 lg:flex-row lg:gap-6">
-        <div
-          v-show="(loans?.length ?? 0) > 0"
-          class="stats flex"
-        >
-          <StatDoughnutChart
-            ref="statChart"
-            @in-focus="inFocus"
-          />
-        </div>
         <div class="flex w-full flex-col gap-4 lg:flex-row lg:gap-6">
-          <div class="flex flex-wrap gap-4 pt-6 xl:gap-6">
+          <div class="grid flex-1 grid-cols-4 gap-y-3 pt-6 sm:grid-cols-5 md:grid-cols-7 xl:grid-cols-8">
             <div
               v-for="(item, index) in loans"
               :key="index"
@@ -82,12 +73,11 @@
 
 <script lang="ts" setup>
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
-import StatDoughnutChart from "@/modules/stats/components/StatDoughnutChart.vue";
 import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
 import { onMounted, ref } from "vue";
 import { AssetUtils, EtlApi, Logger, StringUtils } from "@/common/utils";
 
-const statChart = ref<typeof StatDoughnutChart>();
+// const statChart = ref<typeof StatDoughnutChart>();
 const totalBorrowed = ref("0");
 const protocolRevenue = ref("0");
 const loans = ref<{ loan: number; name: string }[]>();
@@ -97,9 +87,9 @@ onMounted(async () => {
   await Promise.all([setTotalBorrowed(), setProtocolRevenue(), setStats()]).catch((e) => Logger.error(e));
 });
 
-function inFocus(data: string[]) {
-  focus.value = data;
-}
+// function inFocus(data: string[]) {
+//   focus.value = data;
+// }
 
 async function setTotalBorrowed() {
   const data = await fetch(`${EtlApi.getApiUrl()}/borrowed`);
@@ -143,7 +133,7 @@ async function setStats() {
       return b.loan - a.loan;
     });
 
-  statChart.value?.updateChart(labels, colors, dataValue);
+  // statChart.value?.updateChart(labels, colors, dataValue);
 }
 </script>
 
