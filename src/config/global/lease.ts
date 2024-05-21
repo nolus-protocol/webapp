@@ -9,7 +9,34 @@ export const POSITIONS = 5;
 export const MIN_POSITION = 25;
 export const MAX_POSITION = 150;
 export const DEFAULT_LTD = 1.5;
-export const FREE_INTEREST_ASSETS: string[] = [];
+export const FREE_INTEREST_ASSETS: string[] = [
+  "AKT",
+  "ATOM",
+  "AXL",
+  "CRO",
+  "DYDX",
+  "DYM",
+  "EVMOS",
+  "INJ",
+  "JKL",
+  "JUNO",
+  "LVN",
+  "milkTIA",
+  "NTRN",
+  "OSMO",
+  "PICA",
+  "qATOM",
+  "SCRT",
+  "STARS",
+  "stkATOM",
+  "STRD",
+  "stATOM",
+  "stOSMO",
+  "stTIA",
+  "TIA",
+  "WBTC",
+  "WETH"
+];
 export const LEASE_DUE = 2 * 24 * 60 * 60 * 1000 * 1000 * 1000;
 export const DOWNPAYMENT_RANGE_DEV = 15;
 
