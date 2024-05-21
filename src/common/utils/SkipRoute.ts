@@ -50,11 +50,12 @@ export class SkipRouter {
 
     const request: IObjectKeys = {
       sourceAssetDenom: sourceDenom,
-      sourceAssetChainID: SkipRouter.chainID,
+      sourceAssetChainID: "1",
       destAssetDenom: destDenom,
       destAssetChainID: SkipRouter.chainID,
       allowMultiTx: false,
-      cumulativeAffiliateFeeBPS: config.fee.toString()
+      cumulativeAffiliateFeeBPS: config.fee.toString(),
+      experimentalFeatures: ["cctp"]
     };
 
     if (revert) {
@@ -122,6 +123,65 @@ export class SkipRouter {
         const wallet = wallets[(tx as IObjectKeys).cosmosTx.chainID];
 
         const txData = await (wallet as IObjectKeys).simulateTx(message, msg.msgTypeURL, "");
+        await callback(txData, wallet);
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async transactionMetamask(route: IObjectKeys, wallets: { [key: string]: BaseWallet }, callback: Function) {
+    try {
+      const [client, config] = await Promise.all([SkipRouter.getClient(), AppUtils.getSkipRouteConfig()]);
+      const addressList = [];
+      const addresses: Record<string, string> = {};
+
+      for (const key in wallets) {
+        addresses[key] = wallets[key].address!;
+      }
+
+      for (const id of route.chainIDs) {
+        addressList.push(addresses[id]);
+      }
+
+      const request: IObjectKeys = {
+        sourceAssetChainID: route.sourceAssetChainID,
+        destAssetChainID: route.destAssetChainID,
+        swapVenue: route.swapVenue,
+        timeoutSeconds: config.timeoutSeconds,
+        operations: route.operations,
+        slippageTolerancePercent: config.slippage.toString(),
+        addressList: addressList,
+        affiliates: SkipRouter.getAffialates(route, config)
+      };
+
+      if (route.revert) {
+        request.amountIn = route.amountIn;
+        request.amountOut = route.amountOut;
+        request.sourceAssetDenom = route.sourceAssetDenom;
+        request.destAssetDenom = route.destAssetDenom;
+      } else {
+        request.amountIn = route.amountOut;
+        request.amountOut = route.amountIn;
+        request.sourceAssetDenom = route.sourceAssetDenom;
+        request.destAssetDenom = route.destAssetDenom;
+      }
+
+      const response = await client.messages(request as MsgsRequest);
+
+      for (const tx of response.txs) {
+        const msg = (tx as IObjectKeys).evmTx;
+        const wallet = wallets[(msg as IObjectKeys).chainID];
+        const signer = await wallet.getSigner();
+
+        const txData = await (signer as IObjectKeys).sendTransaction({
+          account: signer.account,
+          to: msg.to as `0x${string}`,
+          data: `0x${msg.data}`,
+          chain: signer.chain,
+          value: msg.value === "" ? undefined : BigInt(msg.value)
+        });
+
         await callback(txData, wallet);
       }
     } catch (error) {

@@ -170,6 +170,7 @@ watch(
     const currencies = Object.keys(app.networks?.[state.value.network.key] ?? {});
     const native = app.networks![NATIVE_NETWORK.key];
     const items: string[] = [];
+    state.value.amount = "";
 
     for (let c of currencies) {
       if (CurrencyDemapping[c]) {

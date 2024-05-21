@@ -1,4 +1,6 @@
 <template>
+  <button @click="onTest">evm</button>
+
   <ConfirmExternalComponent
     v-if="showConfirmScreen"
     :network-type="NetworkTypes.cosmos"
@@ -132,11 +134,18 @@ import CurrencyField from "@/common/components/CurrencyField.vue";
 import ConfirmExternalComponent from "@/common/components/modals/templates/ConfirmExternalComponent.vue";
 
 import type { AssetBalance } from "@/common/stores/wallet/types";
-import { CONFIRM_STEP, TxType, type Network, NetworkTypes, type ExternalCurrency } from "@/common/types";
+import {
+  CONFIRM_STEP,
+  TxType,
+  type Network,
+  NetworkTypes,
+  type ExternalCurrency,
+  type IObjectKeys
+} from "@/common/types";
 import { onUnmounted, ref, type PropType, inject, watch, computed, nextTick } from "vue";
 import { DocumentDuplicateIcon } from "@heroicons/vue/24/solid";
 import { useI18n } from "vue-i18n";
-import { AssetUtils, EnvNetworkUtils, Logger, WalletUtils } from "@/common/utils";
+import { AssetUtils, EnvNetworkUtils, Logger, SkipRouter, WalletUtils } from "@/common/utils";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { Wallet, BaseWallet } from "@/networks";
 import { coin, type Coin } from "@cosmjs/amino";
@@ -160,6 +169,7 @@ import {
   ProtocolsConfig
 } from "@/config/global";
 import { CurrencyDemapping, CurrencyMapping, SOURCE_PORTS } from "@/config/currencies";
+import { MetaMaskWallet } from "@/wallet/metamask";
 
 export interface ReceiveComponentProps {
   currentBalance: AssetBalance[];
@@ -665,5 +675,71 @@ function formatCurrentBalance(selectedCurrency: AssetBalance | undefined) {
       }
     }
   }
+}
+async function onTest() {
+  try {
+    const metamaskWallet = new MetaMaskWallet();
+    await metamaskWallet.connect({
+      chainId: `0x${(1).toString(16)}`,
+      chainName: "Ethereum",
+      rpcUrls: ["https://cloudflare-eth.com"],
+      blockExplorerUrls: ["https://etherscan.io"],
+      nativeCurrency: {
+        name: "Ethereum",
+        symbol: "ETH",
+        decimals: 18
+      }
+    });
+
+    const client = await SkipRouter.getClient();
+    const route = await SkipRouter.getRoute("ethereum-native", "unls", "5000000000000000");
+    const wallets = await getWallets(metamaskWallet, route);
+
+    await SkipRouter.transactionMetamask(route!, wallets, async (tx: IObjectKeys, wallet: BaseWallet) => {});
+  } catch (error) {
+    Logger.error(error);
+  }
+}
+
+async function getWallets(wallet: MetaMaskWallet, route: IObjectKeys): Promise<{ [key: string]: BaseWallet }> {
+  // const native = wallet.getSigner().chainId;
+  const native = walletStore.wallet.signer.chainId;
+
+  const addrs: { [key: string]: any } = {
+    ["1"]: wallet,
+    [native]: walletStore.wallet
+  };
+
+  const chainToParse: { [key: string]: IObjectKeys } = {};
+  const chains = (await SkipRouter.getChains()).filter((item) => {
+    if (item.chainID == "1") {
+      return false;
+    }
+    return route!.chainIDs.includes(item.chainID);
+  });
+
+  for (const chain of chains) {
+    for (const key in SUPPORTED_NETWORKS_DATA) {
+      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chainName) {
+        chainToParse[key] = SUPPORTED_NETWORKS_DATA[key];
+      }
+    }
+  }
+  const promises = [];
+
+  for (const chain in chainToParse) {
+    const fn = async function () {
+      const client = await WalletUtils.getWallet(chain);
+      const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
+      const networkData = network?.supportedNetworks[chain];
+      const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
+      addrs[baseWallet.getSigner().chainId] = baseWallet;
+    };
+    promises.push(fn());
+  }
+
+  await Promise.all(promises);
+
+  return addrs;
 }
 </script>
