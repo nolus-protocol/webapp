@@ -1,5 +1,5 @@
 <template>
-  <div class="shadow-field-normal mt-6 border border-border-color bg-neutral-bg-50 p-4 lg:rounded-xl lg:p-6">
+  <div class="mt-6 border border-border-color bg-neutral-bg-50 p-4 shadow-field-normal lg:rounded-xl lg:p-6">
     <div class="flex flex-col md:flex-row md:items-center md:justify-start">
       <div
         class="relative inline-block pb-4 after:absolute after:bottom-[12px] after:left-0 after:h-[1px] after:w-[calc(100vw-32px)] after:bg-border-color after:content-[''] md:after:h-0 md:after:w-0 lg:pb-0"
@@ -53,7 +53,7 @@
     </div>
 
     <div
-      class="border-t-none my-2 flex pt-2 md:border-t-[1px] md:border-border-color lg:border-b-0 lg:border-t lg:pt-4"
+      class="border-t-none my-2 hidden pt-2 md:border-t-[1px] md:border-border-color lg:flex lg:border-b-0 lg:border-t lg:pt-4"
     >
       <div class="flex-1 pt-3 md:flex-none">
         <p class="flex text-12 font-medium text-neutral-400">
