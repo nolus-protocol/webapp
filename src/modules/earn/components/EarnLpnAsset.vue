@@ -1,6 +1,5 @@
 <template>
   <EarningAssetsTableRow
-    :id="$attrs.key"
     :items="items"
     :rowButton="{ label: $t('message.supply-withdraw') }"
     @button-click="
