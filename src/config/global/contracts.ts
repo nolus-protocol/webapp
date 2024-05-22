@@ -38,7 +38,7 @@ export const ProtocolsConfig: {
   };
 } = {
   "OSMOSIS-OSMOSIS-USDC-1": {
-    only: ["NLS", "ATOM"],
+    only: ["NLS"],
     lease: true,
     currencies: ["NLS", "OSMO", "USDC_AXELAR", "ATOM", "AKT", "JUNO"],
     ignoreNetowrk: ["NEUTRON"]
