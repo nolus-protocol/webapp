@@ -22,82 +22,38 @@
   "timeoutSeconds": "60",
   "osmosis-poolmanager": "osmo14p4cu64dlwavj7kga4s3mj6xglucj9t358r5mz",
   "neutron-astroport": "neutron14p4cu64dlwavj7kga4s3mj6xglucj9t3crexhh",
-  "trasnfers": [
-    {
-      "axelar": {
-        "chainId": "axelar-dojo-1",
-        "key": "axelar",
-        "label": "Axelar",
-        "symbol": "AXL",
-        "rpc": "https://rpc-axelar.imperator.co:443",
-        "explorer": "https://axelarscan.io",
-        "type": "cosmos",
-        "fees": {
-          "transfer": 70000
-        },
-        "gasMultiplier": 2,
-        "estimation": {
-          "duration": 2,
-          "type": "min"
-        },
-        "currencies": [
-          {
-            "from": "NLS",
-            "to": "ibc/37731EEEAE2D4A18C296FA1B3808719ACCBFFF7BF7F6A1D6EEA1044472B689E3"
-          }
-        ]
-      }
+  "trasnfers": {
+    "axelar": {
+      "currencies": [
+        {
+          "from": "unls",
+          "to": "ibc/37731EEEAE2D4A18C296FA1B3808719ACCBFFF7BF7F6A1D6EEA1044472B689E3"
+        }
+      ]
     },
-    {
-      "ethereum": {
-        "chainId": 1,
-        "key": "ethereum",
-        "label": "Ethereum",
-        "symbol": "ETH",
-        "rpc": "https://cloudflare-eth.com",
-        "explorer": "https://etherscan.io",
-        "type": "evm",
-        "fees": {
-          "transfer": 30000
+    "ethereum": {
+      "currencies": [
+        {
+          "from": "ibc/84E70F4A34FB2DE135FD3A04FDDF53B7DA4206080AA785C8BAB7F8B26299A221",
+          "to": "ethereum-native"
         },
-        "gasMultiplier": 2,
-        "estimation": {
-          "duration": 16,
-          "type": "min"
-        },
-        "currencies": [
-          {
-            "from": "WETH_AXELAR",
-            "to": "ethereum-native"
-          },
-          {
-            "from": "WBTC_AXELAR",
-            "to": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"
-          }
-        ]
+        {
+          "from": "ibc/A7C4A3FB19E88ABE60416125F9189DA680800F4CDD14E3C10C874E022BEFF04C",
+          "to": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"
+        }
+      ]
+    },
+    "arbitrum": {
+      "estimation": {
+        "duration": 20,
+        "type": "min"
       },
-      "arbitrum": {
-        "chainId": 42161,
-        "key": "arbitrum",
-        "label": "Arbitrum",
-        "symbol": "ARB",
-        "rpc": "https://arb1.arbitrum.io/rpc",
-        "explorer": "https://arbiscan.io",
-        "type": "evm",
-        "fees": {
-          "transfer": 30000
-        },
-        "estimation": {
-          "duration": 20,
-          "type": "min"
-        },
-        "currencies": [
-          {
-            "from": "WBTC_AXELAR",
-            "to": "0x1a35EE4640b0A3B87705B0A4B45D227Ba60Ca2ad"
-          }
-        ]
-      }
+      "currencies": [
+        {
+          "from": "ibc/A7C4A3FB19E88ABE60416125F9189DA680800F4CDD14E3C10C874E022BEFF04C",
+          "to": "0x1a35EE4640b0A3B87705B0A4B45D227Ba60Ca2ad"
+        }
+      ]
     }
-  ]
+  }
 }

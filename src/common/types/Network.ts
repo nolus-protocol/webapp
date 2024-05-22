@@ -4,14 +4,28 @@ export interface Network {
   prefix: string;
   value: string;
   label: string;
-  icon: string;
   ticker: string;
   native: boolean;
   estimation: number;
-  sourcePort: string;
   key: string;
   symbol: string;
   forward?: boolean;
+  chain_type: ChainType;
+}
+
+export interface EvmNetwork {
+  estimation: { duration: number; type: string };
+  explorer: string;
+  fees: { transfer: number };
+  gasMupltiplier: number;
+  key: string;
+  label: string;
+  name: string;
+  native: boolean;
+  prefix: string;
+  symbol: string;
+  value: string;
+  chain_type: ChainType;
 }
 
 export interface NetworkData {
@@ -29,4 +43,9 @@ export interface NetworkData {
   fees: {
     transfer_amount: number;
   };
+}
+
+export enum ChainType {
+  cosmos = "cosmos",
+  evm = "evm"
 }

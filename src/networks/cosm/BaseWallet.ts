@@ -17,7 +17,7 @@ import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 import { SigningCosmWasmClient, type SigningCosmWasmClientOptions } from "@cosmjs/cosmwasm-stargate";
 import { accountFromAny } from "./accountParser";
 import { encodeEthSecp256k1Pubkey, encodePubkey, type EthSecp256k1Pubkey } from "./encode";
-import { SUPPORTED_NETWORKS_DATA } from "./config";
+import { SUPPORTED_NETWORKS_DATA } from "../config";
 import { isOfflineDirectSigner, makeAuthInfoBytes, makeSignDoc } from "@cosmjs/proto-signing";
 
 import { makeSignDoc as makeSignDocAmino } from "@cosmjs/amino";
@@ -26,7 +26,8 @@ import { Int53 } from "@cosmjs/math";
 import { assert } from "@cosmjs/utils";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
 import { Logger } from "@/common/utils";
-import { simulateIBCTrasnferInj } from "./injective/tx";
+import { simulateIBCTrasnferInj } from "../list/injective/tx";
+import { type Wallet } from "../wallet";
 
 import {
   calculateFee,
@@ -38,7 +39,7 @@ import {
 } from "@cosmjs/stargate";
 import { setupTxExtension } from "./setupTxExtension";
 
-export class BaseWallet extends SigningCosmWasmClient {
+export class BaseWallet extends SigningCosmWasmClient implements Wallet {
   address?: string;
   pubKey?: Uint8Array;
   algo?: string;

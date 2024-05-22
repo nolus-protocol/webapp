@@ -1,10 +1,11 @@
 import ABI from "./erc20.abi.json";
 import type { Window as MetamaskWindow } from "./window";
 import { Contract, ethers, isAddress } from "ethers";
+import type { Wallet } from "../wallet";
 
 const NATIVE_ASSET = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
-export class MetaMaskWallet {
+export class MetaMaskWallet implements Wallet {
   web3!: ethers.BrowserProvider;
   address!: string;
   shortAddress!: string;

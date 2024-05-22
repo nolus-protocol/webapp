@@ -1,4 +1,14 @@
 <template>
+  <button
+    @click="
+      () => {
+        state.modalAction = DASHBOARD_ACTIONS.SENDV2;
+        state.showModal = true;
+      }
+    "
+  >
+    SKIPROUTE
+  </button>
   <div class="mt-[25px]">
     <BannerComponent />
     <div class="col-span-12">
@@ -347,6 +357,8 @@ import TooltipComponent from "@/common/components/TooltipComponent.vue";
 import Modal from "@/common/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
 import SendReceiveDialog from "@/common/components/modals/SendReceiveDialog.vue";
+import SendReceiveDialogV2 from "@/common/components/modals/SendReceiveDialogV2.vue";
+
 import SupplyWithdrawDialog from "@/common/components/modals/SupplyWithdrawDialog.vue";
 import LeaseDialog from "@/common/components/modals/LeaseDialog.vue";
 import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
@@ -371,6 +383,8 @@ import { CurrencyDemapping } from "@/config/currencies";
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
   [DASHBOARD_ACTIONS.RECEIVE]: SendReceiveDialog,
+  [DASHBOARD_ACTIONS.SENDV2]: SendReceiveDialogV2,
+  [DASHBOARD_ACTIONS.RECEIVEV2]: SendReceiveDialogV2,
   [DASHBOARD_ACTIONS.SUPPLY]: SupplyWithdrawDialog,
   [DASHBOARD_ACTIONS.LEASE]: LeaseDialog
 };

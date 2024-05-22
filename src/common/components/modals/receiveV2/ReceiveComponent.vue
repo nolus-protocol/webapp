@@ -43,10 +43,7 @@
           <div class="mt-2 flex items-center justify-start">
             <button
               class="btn btn-secondary btn-medium-secondary btn-icon mr-2 flex"
-              @click="
-                modelValue?.onCopyClick(wallet);
-                onCopy();
-              "
+              @click="onCopy()"
             >
               <DocumentDuplicateIcon class="icon h-4 w-4" />
               {{ copyText }}
@@ -132,18 +129,9 @@ import CurrencyField from "@/common/components/CurrencyField.vue";
 import ConfirmExternalComponent from "@/common/components/modals/templates/ConfirmExternalComponent.vue";
 
 import type { AssetBalance } from "@/common/stores/wallet/types";
-import {
-  CONFIRM_STEP,
-  TxType,
-  type Network,
-  NetworkTypes,
-  type ExternalCurrency,
-  type IObjectKeys
-} from "@/common/types";
-import { onUnmounted, ref, type PropType, inject, watch, computed, nextTick } from "vue";
+import { onUnmounted, ref, inject, watch, computed } from "vue";
 import { DocumentDuplicateIcon } from "@heroicons/vue/24/solid";
 import { useI18n } from "vue-i18n";
-import { AssetUtils, EnvNetworkUtils, Logger, SkipRouter, WalletUtils } from "@/common/utils";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { Wallet, BaseWallet } from "@/networks";
 import { coin, type Coin } from "@cosmjs/amino";
@@ -153,73 +141,46 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Coin as KeplrCoin } from "@keplr-wallet/unit";
 import { useApplicationStore } from "@/common/stores/application";
-import { onMounted } from "vue";
 import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
 import { Networks } from "@nolus/nolusjs/build/types/Networks";
 import { AppUtils } from "@/common/utils";
-
-import {
-  ErrorCodes,
-  IGNORE_LPN,
-  IGNORE_TRANSFER_ASSETS,
-  LPN_NETWORK,
-  NATIVE_NETWORK,
-  ProtocolsConfig
-} from "@/config/global";
 import { CurrencyDemapping, CurrencyMapping, SOURCE_PORTS } from "@/config/currencies";
 import { MetaMaskWallet } from "@/networks/metamask";
+import { ErrorCodes, IGNORE_TRANSFER_ASSETS, LPN_NETWORK, NATIVE_NETWORK } from "@/config/global";
+
+import {
+  CONFIRM_STEP,
+  TxType,
+  type Network,
+  NetworkTypes,
+  type ExternalCurrency,
+  type IObjectKeys
+} from "@/common/types";
+
+import {
+  AssetUtils,
+  EnvNetworkUtils,
+  Logger,
+  SkipRouter,
+  StringUtils,
+  WalletManager,
+  WalletUtils
+} from "@/common/utils";
 
 export interface ReceiveComponentProps {
   currentBalance: AssetBalance[];
   selectedCurrency: AssetBalance;
   amount: string;
-  dialogSelectedCurrency: string;
   onCopyClick: (wallet?: string) => void;
 }
 
 let timeOut: NodeJS.Timeout;
 let client: Wallet;
-const props = defineProps({
-  modelValue: {
-    type: Object as PropType<ReceiveComponentProps>
-  }
-});
 
 const walletStore = useWalletStore();
 const app = useApplicationStore();
 
 const networks = computed(() => {
-  const n: string[] = [];
-  if ((props.modelValue?.dialogSelectedCurrency.length as number) > 0) {
-    const [ckey, protocol]: string[] = props.modelValue!.dialogSelectedCurrency.split("@");
-
-    let lpn = app.lpn?.find((item) => {
-      return item.key == props.modelValue!.dialogSelectedCurrency;
-    });
-
-    n.push(NATIVE_NETWORK.key);
-
-    if (ckey == NATIVE_NETWORK.symbol) {
-      n.push(app.networksData?.protocols[AppUtils.getProtocols().neutron].DexNetwork as string);
-    }
-
-    if (lpn && !IGNORE_LPN.includes(lpn.ticker)) {
-      const [key, protocol] = lpn.key!.split("@");
-      n.push(app.networksData?.protocols[protocol].DexNetwork as string);
-
-      for (const ntw of LPN_NETWORK) {
-        n.push(ntw);
-      }
-    } else {
-      for (const key in app.networks ?? {}) {
-        if (app.networks?.[key][ckey] && !ProtocolsConfig[protocol].ignoreNetowrk.includes(key)) {
-          n.push(key);
-        }
-      }
-    }
-
-    return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list.filter((item) => n.includes(item.key));
-  }
   return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list;
 });
 
@@ -242,32 +203,7 @@ const fee = ref<Coin>();
 const isLoading = ref(false);
 const closeModal = inject("onModalClose", () => () => {});
 const networkCurrenciesObject = ref();
-let wallet = ref(walletStore.wallet?.address);
-
-onMounted(() => {
-  if ((props.modelValue?.dialogSelectedCurrency.length as number) > 0) {
-    const currency = app.currenciesData?.[props.modelValue?.dialogSelectedCurrency!]!;
-    selectedCurrency.value = {
-      balance: {
-        amount: "0",
-        denom: currency.ibcData
-      },
-      decimal_digits: Number(currency.decimal_digits),
-      icon: app.assetIcons?.[currency.key!],
-      name: currency.shortName,
-      native: false,
-      shortName: currency.shortName,
-      symbol: currency.symbol,
-      ticker: currency.key
-    };
-    disablePickerDialog.value = true;
-    const [_ckey, protocol]: string[] = props.modelValue!.dialogSelectedCurrency.split("@");
-    const n =
-      app.networksData?.protocols[protocol].DexNetwork ??
-      app.networksData?.protocols[AppUtils.getProtocols().osmosis].DexNetwork;
-    onUpdateNetwork(SUPPORTED_NETWORKS_DATA[n as string] as Network);
-  }
-});
+const wallet = ref(walletStore.wallet?.address);
 
 onUnmounted(() => {
   clearTimeout(timeOut);
@@ -287,151 +223,143 @@ watch(
 
 async function onUpdateNetwork(event: Network) {
   selectedNetwork.value = event;
-  networkCurrencies.value = [];
-  amount.value = "";
-  amountErrorMsg.value = "";
+  console.log(event);
+  // networkCurrencies.value = [];
+  // amount.value = "";
+  // amountErrorMsg.value = "";
 
-  if (!event.native) {
-    if (client) {
-      client.destroy();
-    }
+  // if (!event.native) {
+  //   if (client) {
+  //     client.destroy();
+  //   }
 
-    disablePicker.value = true;
+  //   disablePicker.value = true;
+  //   const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
+  //   const assets = network.supportedNetworks[event.key].currencies();
+  //   const currencies = [];
+  //   const promises = [];
+  //   const filteredAssets: { [key: string]: ExternalCurrency } = {};
+  //   const networkData = network?.supportedNetworks[selectedNetwork.value.key];
 
-    const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
-    const assets = network.supportedNetworks[event.key].currencies();
-    const currencies = [];
-    const promises = [];
-    const filteredAssets: { [key: string]: ExternalCurrency } = {};
-    const networkData = network?.supportedNetworks[selectedNetwork.value.key];
+  //   for (const key in assets) {
+  //     if (LPN_NETWORK.includes(selectedNetwork.value.key)) {
+  //       let lpn = app.lpn?.find((item) => {
+  //         return item.ticker == key;
+  //       });
 
-    for (const key in assets) {
-      if (LPN_NETWORK.includes(selectedNetwork.value.key)) {
-        let lpn = app.lpn?.find((item) => {
-          return item.ticker == key;
-        });
+  //       if (lpn) {
+  //         for (const lpn of app.lpn ?? []) {
+  //           if (key == lpn.ticker) {
+  //             filteredAssets[lpn.key as string] = {
+  //               icon: lpn.icon,
+  //               coingeckoId: lpn.coingeckoId,
+  //               native: true,
+  //               decimal_digits: lpn.decimal_digits,
+  //               ibcData: assets[key].ibcData,
+  //               key: lpn.key,
+  //               name: lpn.name,
+  //               shortName: lpn.shortName,
+  //               symbol: lpn.symbol,
+  //               ticker: lpn.ticker
+  //             };
+  //           }
+  //         }
+  //         continue;
+  //       }
+  //     }
+  //     if (!IGNORE_TRANSFER_ASSETS.includes(key)) {
+  //       filteredAssets[key] = assets[key];
+  //     }
+  //   }
 
-        if (lpn) {
-          for (const lpn of app.lpn ?? []) {
-            if (key == lpn.ticker) {
-              filteredAssets[lpn.key as string] = {
-                icon: lpn.icon,
-                coingeckoId: lpn.coingeckoId,
-                native: true,
-                decimal_digits: lpn.decimal_digits,
-                ibcData: assets[key].ibcData,
-                key: lpn.key,
-                name: lpn.name,
-                shortName: lpn.shortName,
-                symbol: lpn.symbol,
-                ticker: lpn.ticker
-              };
-            }
-          }
-          continue;
-        }
-      }
-      if (!IGNORE_TRANSFER_ASSETS.includes(key)) {
-        filteredAssets[key] = assets[key];
-      }
-    }
-    for (const key in filteredAssets) {
-      const fn = () => {
-        let k = filteredAssets[key].key!;
-        let [ckey, protocol = AppUtils.getProtocols().osmosis]: string[] = k.split("@");
+  //   for (const key in filteredAssets) {
+  //     const fn = () => {
+  //       let k = filteredAssets[key].key!;
+  //       let [ckey, protocol = AppUtils.getProtocols().osmosis]: string[] = k.split("@");
 
-        if (LPN_NETWORK.includes(selectedNetwork.value.key)) {
-          let lpn = app.lpn?.find((item) => {
-            return item.key == k;
-          });
-          if (lpn) {
-            ckey = filteredAssets[key].ticker;
-          }
-        }
+  //       if (LPN_NETWORK.includes(selectedNetwork.value.key)) {
+  //         let lpn = app.lpn?.find((item) => {
+  //           return item.key == k;
+  //         });
+  //         if (lpn) {
+  //           ckey = filteredAssets[key].ticker;
+  //         }
+  //       }
 
-        const ibc_route = NolusAssetUtils.makeIBCMinimalDenom(
-          ckey,
-          app.networksData!,
-          networkData.key as Networks,
-          app.networksData?.protocols[protocol].DexNetwork as string
-        );
+  //       const ibc_route = NolusAssetUtils.makeIBCMinimalDenom(
+  //         ckey,
+  //         app.networksData!,
+  //         networkData.key as Networks,
+  //         app.networksData?.protocols[protocol].DexNetwork as string
+  //       );
 
-        // const balance = WalletUtils.isAuth()
-        //   ? await client.getBalance(wallet.value as string, ibc_route)
-        //   : coin(0, ibc_route);
+  //       let shortName = filteredAssets[key].shortName;
+  //       let [ticker] = filteredAssets[key].key?.split("@") as string[];
 
-        let shortName = filteredAssets[key].shortName;
-        let [ticker] = filteredAssets[key].key?.split("@") as string[];
+  //       if (CurrencyMapping[key]) {
+  //         shortName = CurrencyMapping[key].name ?? shortName;
+  //         ticker = key;
+  //       }
 
-        if (CurrencyMapping[key]) {
-          shortName = CurrencyMapping[key].name ?? shortName;
-          ticker = key;
-        }
+  //       if (CurrencyDemapping[ckey]) {
+  //         shortName = CurrencyDemapping[ckey].name ?? shortName;
+  //       }
 
-        if (CurrencyDemapping[ckey]) {
-          shortName = CurrencyDemapping[ckey].name ?? shortName;
-        }
+  //       switch (selectedNetwork.value.key) {
+  //         case app.networksData?.protocols[AppUtils.getProtocols().neutron].DexNetwork: {
+  //           protocol = AppUtils.getProtocols().neutron as string;
+  //           break;
+  //         }
+  //       }
 
-        switch (selectedNetwork.value.key) {
-          case app.networksData?.protocols[AppUtils.getProtocols().neutron].DexNetwork: {
-            protocol = AppUtils.getProtocols().neutron as string;
-            break;
-          }
-        }
+  //       const icon = app.assetIcons?.[`${ticker}@${protocol}`] as string;
 
-        const icon = app.assetIcons?.[`${ticker}@${protocol}`] as string;
+  //       return {
+  //         balance: coin(0, ibc_route),
+  //         shortName: shortName,
+  //         ticker: k,
+  //         name: shortName,
+  //         icon: icon,
+  //         decimal_digits: Number(filteredAssets[key].decimal_digits),
+  //         symbol: filteredAssets[key].symbol,
+  //         native: filteredAssets[key].native
+  //       };
+  //     };
 
-        return {
-          balance: coin(0, ibc_route),
-          shortName: shortName,
-          ticker: k,
-          name: shortName,
-          icon: icon,
-          decimal_digits: Number(filteredAssets[key].decimal_digits),
-          symbol: filteredAssets[key].symbol,
-          native: filteredAssets[key].native
-        };
-      };
+  //     currencies.push(fn());
+  //   }
 
-      currencies.push(fn());
-    }
+  //   selectedCurrency.value = currencies?.[0];
+  //   client = await WalletUtils.getWallet(event.key);
 
-    if ((props.modelValue?.dialogSelectedCurrency.length as number) > 0) {
-      const [ckey]: string[] = props.modelValue!.dialogSelectedCurrency.split("@");
-      const c = currencies.find((e) => e.ticker == ckey || e.ticker == props.modelValue!.dialogSelectedCurrency)!;
-      selectedCurrency.value = c;
-    } else {
-      selectedCurrency.value = currencies?.[0];
-    }
+  //   const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
+  //   wallet.value = baseWallet?.address as string;
+  //   networkCurrenciesObject.value = filteredAssets;
 
-    client = await WalletUtils.getWallet(event.key);
+  //   if (WalletUtils.isAuth()) {
+  //     for (const c of currencies) {
+  //       async function fn() {
+  //         const balance = await client.getBalance(wallet.value as string, c.balance.denom);
+  //         c.balance = balance;
+  //       }
+  //       promises.push(fn());
+  //     }
+  //   }
 
-    const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
-    wallet.value = baseWallet?.address as string;
-    networkCurrenciesObject.value = filteredAssets;
+  //   await Promise.all(promises);
 
-    if (WalletUtils.isAuth()) {
-      for (const c of currencies) {
-        async function fn() {
-          const balance = await client.getBalance(wallet.value as string, c.balance.denom);
-          c.balance = balance;
-        }
-        promises.push(fn());
-      }
-    }
-
-    await Promise.all(promises);
-
-    networkCurrencies.value = currencies;
-    disablePicker.value = false;
-  } else {
-    selectedCurrency.value = walletStore.balances[0];
-    wallet.value = walletStore.wallet?.address;
-  }
+  //   networkCurrencies.value = currencies;
+  //   disablePicker.value = false;
+  // } else {
+  //   selectedCurrency.value = walletStore.balances[0];
+  //   wallet.value = walletStore.wallet?.address;
+  // }
 }
 
 function onCopy() {
   copyText.value = i18n.t("message.copied");
+  StringUtils.copyToClipboard(wallet.value ?? WalletManager.getWalletAddress());
+
   if (timeOut) {
     clearTimeout(timeOut);
   }
@@ -673,5 +601,71 @@ function formatCurrentBalance(selectedCurrency: AssetBalance | undefined) {
       }
     }
   }
+}
+async function onTest() {
+  try {
+    const metamaskWallet = new MetaMaskWallet();
+    await metamaskWallet.connect({
+      chainId: `0x${(1).toString(16)}`,
+      chainName: "Ethereum",
+      rpcUrls: ["https://cloudflare-eth.com"],
+      blockExplorerUrls: ["https://etherscan.io"],
+      nativeCurrency: {
+        name: "Ethereum",
+        symbol: "ETH",
+        decimals: 18
+      }
+    });
+
+    const client = await SkipRouter.getClient();
+    const route = await SkipRouter.getRoute("ethereum-native", "unls", "5000000000000000");
+    const wallets = await getWallets(metamaskWallet, route);
+
+    await SkipRouter.transactionMetamask(route!, wallets, async (tx: IObjectKeys, wallet: BaseWallet) => {});
+  } catch (error) {
+    Logger.error(error);
+  }
+}
+
+async function getWallets(wallet: MetaMaskWallet, route: IObjectKeys): Promise<{ [key: string]: BaseWallet }> {
+  // const native = wallet.getSigner().chainId;
+  const native = walletStore.wallet.signer.chainId;
+
+  const addrs: { [key: string]: any } = {
+    ["1"]: wallet,
+    [native]: walletStore.wallet
+  };
+
+  const chainToParse: { [key: string]: IObjectKeys } = {};
+  const chains = (await SkipRouter.getChains()).filter((item) => {
+    if (item.chainID == "1") {
+      return false;
+    }
+    return route!.chainIDs.includes(item.chainID);
+  });
+
+  for (const chain of chains) {
+    for (const key in SUPPORTED_NETWORKS_DATA) {
+      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chainName) {
+        chainToParse[key] = SUPPORTED_NETWORKS_DATA[key];
+      }
+    }
+  }
+  const promises = [];
+
+  for (const chain in chainToParse) {
+    const fn = async function () {
+      const client = await WalletUtils.getWallet(chain);
+      const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
+      const networkData = network?.supportedNetworks[chain];
+      const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
+      addrs[baseWallet.getSigner().chainId] = baseWallet;
+    };
+    promises.push(fn());
+  }
+
+  await Promise.all(promises);
+
+  return addrs;
 }
 </script>
