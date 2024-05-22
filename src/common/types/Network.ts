@@ -4,7 +4,6 @@ export interface Network {
   prefix: string;
   value: string;
   label: string;
-  ticker: string;
   native: boolean;
   estimation: number;
   key: string;

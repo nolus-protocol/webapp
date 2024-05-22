@@ -23,7 +23,7 @@
   "osmosis-poolmanager": "osmo14p4cu64dlwavj7kga4s3mj6xglucj9t358r5mz",
   "neutron-astroport": "neutron14p4cu64dlwavj7kga4s3mj6xglucj9t3crexhh",
   "trasnfers": {
-    "axelar": {
+    "AXELAR": {
       "currencies": [
         {
           "from": "unls",
@@ -31,7 +31,7 @@
         }
       ]
     },
-    "ethereum": {
+    "ETHEREUM": {
       "currencies": [
         {
           "from": "ibc/84E70F4A34FB2DE135FD3A04FDDF53B7DA4206080AA785C8BAB7F8B26299A221",
@@ -40,18 +40,6 @@
         {
           "from": "ibc/A7C4A3FB19E88ABE60416125F9189DA680800F4CDD14E3C10C874E022BEFF04C",
           "to": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"
-        }
-      ]
-    },
-    "arbitrum": {
-      "estimation": {
-        "duration": 20,
-        "type": "min"
-      },
-      "currencies": [
-        {
-          "from": "ibc/A7C4A3FB19E88ABE60416125F9189DA680800F4CDD14E3C10C874E022BEFF04C",
-          "to": "0x1a35EE4640b0A3B87705B0A4B45D227Ba60Ca2ad"
         }
       ]
     }

@@ -27,7 +27,7 @@ import { type Networks } from "@nolus/nolusjs/build/types/Networks";
 import SendComponent from "./SendComponent.vue";
 import ConfirmComponent from "../templates/ConfirmComponent.vue";
 
-import { CONFIRM_STEP, TxType } from "@/common/types";
+import { CONFIRM_STEP, TxType, type Network } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
 import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { coin, type Coin } from "@cosmjs/amino";
@@ -286,7 +286,7 @@ function validateInputs() {
     state.value.selectedCurrency.balance.amount
   );
   const networkInfo = SUPPORTED_NETWORKS_DATA[state.value.network.key as keyof typeof SUPPORTED_NETWORKS_DATA];
-  if (networkInfo.forward) {
+  if ((networkInfo as Network).forward!) {
     const proxyAddress = state.value.wallet as string;
     state.value.receiverErrorMsg = validateAddress(proxyAddress);
     return;
@@ -366,7 +366,7 @@ async function ibcTransfer() {
 
       const networkInfo = SUPPORTED_NETWORKS_DATA[state.value.network.key as keyof typeof SUPPORTED_NETWORKS_DATA];
 
-      const sourceChannel = networkInfo.forward
+      const sourceChannel = (networkInfo as Network).forward
         ? AssetUtils.getSourceChannel(
             app.networksData?.networks?.channels!,
             app.networksData?.protocols[protocol].DexNetwork!,
@@ -391,7 +391,7 @@ async function ibcTransfer() {
         sourceChannel: sourceChannel as string
       };
 
-      if (networkInfo.forward) {
+      if ((networkInfo as Network).forward) {
         const channel = AssetUtils.getChannelDataByProtocol(
           app.networksData?.networks?.channels!,
           app.networksData?.protocols[protocol].DexNetwork!,

@@ -453,7 +453,7 @@ async function onSendClick() {
 function getSourceChannel() {
   const networkInfo = SUPPORTED_NETWORKS_DATA[selectedNetwork.value.key as keyof typeof SUPPORTED_NETWORKS_DATA];
 
-  if (networkInfo.forward) {
+  if ((networkInfo as Network).forward) {
     const [_ckey, protocol = AppUtils.getProtocols().osmosis]: string[] = selectedCurrency.value.ticker!.split("@");
 
     return AssetUtils.getChannelDataByProtocol(
@@ -512,7 +512,7 @@ async function ibcTransfer(baseWallet: BaseWallet) {
       timeOut: networkData.ibcTransferTimeout
     };
 
-    if (networkInfo.forward) {
+    if ((networkInfo as Network).forward) {
       const [_ckey, protocol = AppUtils.getProtocols().osmosis]: string[] = selectedCurrency.value.ticker!.split("@");
       const proxyAddress = wallet.value as string;
       const channel = AssetUtils.getSourceChannel(
