@@ -1,6 +1,5 @@
 <template>
   <AssetsTableRow
-    :id="$attrs.key"
     :items="items"
     class="flex-wrap md:flex-nowrap"
   >
@@ -22,6 +21,7 @@
       </div>
     </template>
   </AssetsTableRow>
+  {{ $attrs }}
 </template>
 
 <script lang="ts" setup>

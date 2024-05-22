@@ -1,6 +1,5 @@
 <template>
   <EarningAssetsTableRow
-    id="earn-rewards"
     :items="items"
     @button-click="
       () => {

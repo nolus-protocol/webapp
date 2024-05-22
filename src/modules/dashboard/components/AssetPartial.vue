@@ -1,8 +1,7 @@
 <template>
   <AssetsTableRow
-    :id="$attrs.key"
     :items="items"
-    :rowButton="showActionButtons && { label: canSupply ? $t('message.supply') : $t('message.lease'), classes: '' }"
+    :rowButton="showActionButtons ? { label: canSupply ? $t('message.supply') : $t('message.lease') } : null"
     @button-click="
       () => {
         canSupply
@@ -78,12 +77,12 @@ import { DASHBOARD_ACTIONS } from "../types";
 import { computed, type PropType } from "vue";
 import { Coin, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { CURRENCY_VIEW_TYPES, type ExternalCurrency } from "@/common/types";
+import { type ExternalCurrency } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useApplicationStore } from "@/common/stores/application";
 import { AssetUtils as WebAppAssetUtils } from "@/common/utils";
 import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
-import { AssetsTableRow } from "web-components";
+import { AssetsTableRow, CURRENCY_VIEW_TYPES } from "web-components";
 
 import {
   DEFAULT_LEASE_UP_PERCENT,
@@ -200,7 +199,7 @@ const items = computed(() => [
     class: "hidden md:flex"
   },
   {
-    type: "COMPLEX",
+    type: CURRENCY_VIEW_TYPES.COMPLEX,
     class: "hidden md:flex"
   }
 ]);
