@@ -31,7 +31,6 @@
             <TransitionGroup
               appear
               name="fade"
-              tag="div"
             >
               <EarnLpnAsset
                 v-for="lpn of lpnAsset"

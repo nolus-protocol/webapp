@@ -1,47 +1,27 @@
 <template>
-  <div
-    class="vested-partial nolus-box border-standart grid grid-cols-2 items-center justify-between gap-6 border-b px-6 py-3 md:grid-cols-3"
+  <AssetsTableRow
+    :items="items"
+    class="flex-wrap md:flex-nowrap"
   >
-    <div class="inline-flex items-center">
-      <img
-        v-if="assetInfo.icon"
-        :src="assetInfo.icon"
-        class="m-0 mr-4 inline-block"
-        height="32"
-        width="32"
+    <template #token>
+      <CurrencyComponent
+        :amount="assetBalance"
+        :decimals="assetInfo.decimal_digits"
+        :maxDecimals="maxCoinDecimals"
+        :minimalDenom="assetInfo.ibcData"
+        :type="CURRENCY_VIEW_TYPES.TOKEN"
+        denom=""
       />
-      <div class="inline-block">
-        <p class="nls-font-500 m-0 text-left text-18 uppercase text-primary">
-          {{ assetInfo.shortName }}
+    </template>
+    <template #rowFooter>
+      <div class="basis-full md:hidden">
+        <p class="text-dark-grey nls-font-500 m-0 text-center text-12">
+          {{ endTime }}
         </p>
       </div>
-    </div>
-
-    <div class="hidden md:block">
-      <p class="nls-font-500 m-0 text-16 text-primary">
-        {{ endTime }}
-      </p>
-    </div>
-
-    <div class="block">
-      <div class="nls-font-500 m-0 text-right text-16 text-primary">
-        <CurrencyComponent
-          :type="CURRENCY_VIEW_TYPES.TOKEN"
-          :amount="assetBalance"
-          :minimalDenom="assetInfo.ibcData"
-          :decimals="assetInfo.decimal_digits"
-          :maxDecimals="maxCoinDecimals"
-          denom=""
-        />
-      </div>
-    </div>
-
-    <div class="col-span-2 md:hidden">
-      <p class="text-dark-grey nls-font-500 m-0 text-center text-12">
-        {{ endTime }}
-      </p>
-    </div>
-  </div>
+    </template>
+  </AssetsTableRow>
+  {{ $attrs }}
 </template>
 
 <script lang="ts" setup>
@@ -49,6 +29,7 @@ import { computed, type PropType } from "vue";
 import { CURRENCY_VIEW_TYPES, type ExternalCurrency } from "@/common/types";
 import { AssetUtils as WebAppAssetUtils } from "@/common/utils";
 import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
+import { AssetsTableRow } from "web-components";
 
 const props = defineProps({
   assetBalance: {
@@ -72,4 +53,19 @@ const props = defineProps({
 const maxCoinDecimals = computed(() => {
   return WebAppAssetUtils.formatDecimals(props.denom, props.assetBalance);
 });
+
+const items = computed(() => [
+  {
+    value: props.assetInfo?.shortName,
+    image: props.assetInfo.icon,
+    imageClass: "w-8"
+  },
+  {
+    value: props.endTime,
+    class: "hidden md:flex !justify-start"
+  },
+  {
+    type: CURRENCY_VIEW_TYPES.TOKEN
+  }
+]);
 </script>
