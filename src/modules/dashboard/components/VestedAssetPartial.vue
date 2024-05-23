@@ -21,7 +21,6 @@
       </div>
     </template>
   </AssetsTableRow>
-  {{ $attrs }}
 </template>
 
 <script lang="ts" setup>
