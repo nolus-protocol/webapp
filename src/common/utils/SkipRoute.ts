@@ -45,14 +45,20 @@ export class SkipRouter {
     return SkipRouter.client;
   }
 
-  static async getRoute(sourceDenom: string, destDenom: string, amount: string, revert: boolean = false) {
+  static async getRoute(
+    sourceDenom: string,
+    destDenom: string,
+    amount: string,
+    revert: boolean = false,
+    destAssetChainID?: string
+  ) {
     const [client, config] = await Promise.all([SkipRouter.getClient(), AppUtils.getSkipRouteConfig()]);
 
     const request: IObjectKeys = {
       sourceAssetDenom: sourceDenom,
-      sourceAssetChainID: "1",
+      sourceAssetChainID: SkipRouter.chainID,
       destAssetDenom: destDenom,
-      destAssetChainID: SkipRouter.chainID,
+      destAssetChainID: destAssetChainID ?? SkipRouter.chainID,
       allowMultiTx: false,
       cumulativeAffiliateFeeBPS: config.fee.toString(),
       experimentalFeatures: ["cctp"]
