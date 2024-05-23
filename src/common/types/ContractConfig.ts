@@ -8,6 +8,6 @@ export interface ContractConfig {
   };
 }
 
-interface Protocols {
+export interface Protocols {
   [key: string]: string;
 }

@@ -22,7 +22,15 @@
   "timeoutSeconds": "60",
   "osmosis-poolmanager": "osmo14p4cu64dlwavj7kga4s3mj6xglucj9t358r5mz",
   "neutron-astroport": "neutron14p4cu64dlwavj7kga4s3mj6xglucj9t3crexhh",
-  "trasnfers": {
+  "transfers": {
+    "OSMOSIS": {
+      "currencies": [
+        {
+          "from": "unls",
+          "to": "ibc/D9AFCECDD361D38302AA66EB3BAC23B95234832C51D12489DC451FA2B7C72782"
+        }
+      ]
+    },
     "AXELAR": {
       "currencies": [
         {
