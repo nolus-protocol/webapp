@@ -1,7 +1,9 @@
 <template>
   <AssetsTableRow
     :items="items"
-    :rowButton="showActionButtons ? { label: canSupply ? $t('message.supply') : $t('message.lease') } : null"
+    :rowButton="
+      showActionButtons ? { label: canSupply ? $t('message.supply') : $t('message.lease'), class: 'hidden' } : null
+    "
     @button-click="
       () => {
         canSupply

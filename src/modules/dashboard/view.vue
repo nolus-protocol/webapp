@@ -4,13 +4,13 @@
     <div class="col-span-12">
       <!-- Wallet -->
       <div
-        class="mt-6 flex flex-col justify-start bg-neutral-bg-50 p-4 shadow-field-normal outline md:rounded-xl lg:items-baseline lg:p-6"
+        class="mt-6 flex flex-col justify-start border-[1px] border-border-color bg-neutral-bg-50 p-4 shadow-field-normal outline md:rounded-xl lg:items-baseline lg:p-6"
       >
         <p class="mb-1.5 text-16 font-medium text-neutral-typography-200 md:mb-6">
           {{ $t("message.portfolio-title") }}
         </p>
         <div class="mb-4 flex w-full flex-row gap-8 border-b border-border-color pb-4 md:mb-6 md:pb-6">
-          <div class="flex flex-row gap-8">
+          <div class="flex flex-col gap-1 md:flex-row md:gap-8">
             <div>
               <p class="text-dark-grey text-12 font-medium">
                 {{ $t("message.portfolio-value") }}
@@ -28,7 +28,7 @@
               />
             </div>
 
-            <div class="self-center">
+            <div class="md:self-center">
               <p class="text-dark-grey text-12 font-medium">
                 {{ $t("message.total-equity") }}
               </p>
@@ -350,7 +350,7 @@ const vestedColumns = [
 let timeout: NodeJS.Timeout;
 
 const state = ref({
-  showSmallBalances: localStorage.getItem(smallBalancesStateKey) ? false : true,
+  showSmallBalances: !localStorage.getItem(smallBalancesStateKey),
   showModal: false,
   modalAction: DASHBOARD_ACTIONS.SEND,
   selectedAsset: "",
