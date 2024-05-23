@@ -6,7 +6,7 @@
       <div
         class="mt-6 flex flex-col justify-start border-[1px] border-border-color bg-neutral-bg-50 p-4 shadow-field-normal outline md:rounded-xl lg:items-baseline lg:p-6"
       >
-        <p class="mb-1.5 text-16 font-medium text-neutral-typography-200 md:mb-6">
+        <p class="text-neutral-typography-200 mb-1.5 text-16 font-medium md:mb-6">
           {{ $t("message.portfolio-title") }}
         </p>
         <div class="mb-4 flex w-full flex-row gap-8 border-b border-border-color pb-4 md:mb-6 md:pb-6">
@@ -24,7 +24,7 @@
                 :has-space="false"
                 :prettyZeros="true"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                class="font-semibold text-neutral-typography-200"
+                class="text-neutral-typography-200 font-semibold"
               />
             </div>
 
@@ -41,7 +41,7 @@
                 :has-space="false"
                 :prettyZeros="true"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                class="font-medium text-neutral-typography-200"
+                class="text-neutral-typography-200 font-medium"
               />
             </div>
           </div>
@@ -62,7 +62,7 @@
                 :has-space="false"
                 :prettyZeros="true"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                class="font-medium text-neutral-typography-200"
+                class="text-neutral-typography-200 font-medium"
               />
             </div>
 
@@ -79,13 +79,13 @@
                 :has-space="false"
                 :prettyZeros="true"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                class="font-medium text-neutral-typography-200"
+                class="text-neutral-typography-200 font-medium"
               />
             </div>
           </div>
 
           <div
-            class="mb-4 border-b border-border-color pb-4 pt-4 md:mb-0 md:border-b-0 md:border-r md:pb-0 md:pl-8 md:pr-8 md:pt-0"
+            class="border-border-color mb-4 border-b pb-4 pt-4 md:mb-0 md:border-b-0 md:border-r md:pb-0 md:pl-8 md:pr-8 md:pt-0"
           >
             <p class="text-dark-grey text-12 font-medium">
               {{ $t("message.positions-pnL") }}
@@ -120,7 +120,7 @@
                 :has-space="false"
                 :prettyZeros="true"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                class="font-medium text-neutral-typography-200"
+                class="text-neutral-typography-200 font-medium"
               />
             </div>
 
@@ -318,6 +318,8 @@ const app = useApplicationStore();
 const admin = useAdminStore();
 
 const i18n = useI18n();
+
+console.log(oracle.prices);
 
 const isAssetsLoading = ref(wallet.balances.length == 0);
 const showSkeleton = ref(wallet.balances.length == 0);
