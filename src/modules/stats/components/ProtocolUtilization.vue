@@ -33,28 +33,30 @@
           </div>
         </div>
       </div>
-      <div class="flex items-center justify-start px-0 pt-4">
+      <div class="flex items-center justify-between px-0 pt-4 md:justify-start">
         <div class="pt-3">
           <p class="flex items-center text-12 font-medium text-neutral-400">
             {{ $t("message.yield") }}
             <Tooltip :content="$t('message.yield-tooltip')" />
           </p>
 
-          <div class="flex items-end">
+          <div class="flex items-center">
             <img
               class="mr-[6px]"
               src="@/assets/icons/osmosis-usdc.svg"
             />
-            <CurrencyComponent
-              :amount="(app.apr?.[AppUtils.getProtocols().osmosis_noble] ?? 0).toString()"
-              :fontSize="20"
-              :fontSizeSmall="16"
-              :has-space="false"
-              :isDenomInfront="false"
-              :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              class="font-medium text-neutral-typography-200"
-              denom="%"
-            />
+            <div>
+              <CurrencyComponent
+                :amount="(app.apr?.[AppUtils.getProtocols().osmosis_noble] ?? 0).toString()"
+                :fontSize="20"
+                :fontSizeSmall="16"
+                :has-space="false"
+                :isDenomInfront="false"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                class="font-medium text-neutral-typography-200"
+                denom="%"
+              />
+            </div>
           </div>
         </div>
 
@@ -126,28 +128,30 @@
         </div>
         <!-- Assets Container -->
       </div>
-      <div class="flex items-center justify-start px-0 pt-4">
+      <div class="flex items-center justify-between px-0 pt-4 md:justify-start">
         <div class="pt-3">
           <p class="flex items-center text-12 font-medium text-neutral-400">
             {{ $t("message.yield") }}
             <Tooltip :content="$t('message.yield-tooltip')" />
           </p>
 
-          <div class="flex items-end">
+          <div class="flex items-center">
             <img
               class="mr-[6px]"
               src="@/assets/icons/osmosis-usdc.svg"
             />
-            <CurrencyComponent
-              :amount="(app.apr?.[AppUtils.getProtocols().neutron] ?? 0).toString()"
-              :fontSize="20"
-              :fontSizeSmall="16"
-              :has-space="false"
-              :isDenomInfront="false"
-              :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              class="font-medium text-neutral-typography-200"
-              denom="%"
-            />
+            <div>
+              <CurrencyComponent
+                :amount="(app.apr?.[AppUtils.getProtocols().neutron] ?? 0).toString()"
+                :fontSize="20"
+                :fontSizeSmall="16"
+                :has-space="false"
+                :isDenomInfront="false"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                class="font-medium text-neutral-typography-200"
+                denom="%"
+              />
+            </div>
           </div>
         </div>
 
