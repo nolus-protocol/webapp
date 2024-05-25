@@ -68,13 +68,15 @@
     <div class="modal-send-receive-input-area pt-0">
       <div class="radius-rounded mt-[25px] block break-words bg-light-grey py-4 text-left">
         <div class="block px-4">
-          <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.swap") }}:</p>
-          <p class="nls-font-700 m-0 text-14 text-primary">{{ swapAmount }}</p>
+          <p class="nls-font-400 m-0 text-14 text-primary">{{ txType }}</p>
+          <p class="nls-font-700 m-0 text-14 text-primary">
+            {{ receiverAddress }}
+          </p>
         </div>
 
         <div class="mt-3 block px-4">
-          <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.for") }}:</p>
-          <p class="nls-font-700 m-0 text-14 text-primary">{{ forAmount }}</p>
+          <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.amount") }}</p>
+          <p class="nls-font-700 m-0 text-14 text-primary">{{ amount }}</p>
         </div>
 
         <div
@@ -176,10 +178,10 @@ import { CONFIRM_STEP } from "@/common/types";
 import { useApplicationStore } from "@/common/stores/application";
 
 interface Props {
+  receiverAddress: string;
   txType: string;
   txHashes: { hash: string; status: SwapStatus }[];
-  swapAmount: string;
-  forAmount: string;
+  amount: string;
   step: CONFIRM_STEP;
   errorMsg: string;
   fee: Coin;
@@ -228,13 +230,13 @@ watch(
 );
 
 function calculateFee(coin: Coin) {
-  // const asset = AssetUtils.getCurrencyByDenom(coin.denom);
-  // return CurrencyUtils.convertMinimalDenomToDenom(
-  //   coin.amount.toString(),
-  //   asset.ibcData,
-  //   asset.shortName,
-  //   asset.decimal_digits
-  // );
+  const asset = AssetUtils.getCurrencyByDenom(coin.denom);
+  return CurrencyUtils.convertMinimalDenomToDenom(
+    coin.amount.toString(),
+    asset.ibcData,
+    asset.shortName,
+    asset.decimal_digits
+  );
 }
 </script>
 <style lang="scss" scoped>

@@ -1,14 +1,14 @@
 <template>
   <ConfirmRouteComponent
     v-if="showConfirmScreen"
-    :txType="$t(`message.${TxType.SWAP}`) + ':'"
+    :txType="$t(`message.${TxType.SEND}`) + ':'"
     :txHashes="txHashes"
     :step="step"
     :fee="fee!"
+    :receiverAddress="walletStore.wallet?.address"
     :errorMsg="errorMsg"
-    :txs="txsRequired"
-    :swap-amount="`${0}`"
-    :for-amount="`${0}`"
+    :txs="route!.txsRequired"
+    :amount="`${swapAmount}`"
     :onSendClick="onSwap"
     :onBackClick="onConfirmBackClick"
     :onOkClick="() => closeModal()"
@@ -125,7 +125,7 @@ import CurrencyField from "@/common/components/CurrencyField.vue";
 import ConfirmRouteComponent from "../templates/ConfirmRouteComponent.vue";
 
 import type { AssetBalance } from "@/common/stores/wallet/types";
-import { onUnmounted, ref, inject, watch, onMounted } from "vue";
+import { onUnmounted, ref, inject, watch, onMounted, nextTick, computed } from "vue";
 import { DocumentDuplicateIcon } from "@heroicons/vue/24/solid";
 import { useI18n } from "vue-i18n";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
@@ -135,8 +135,7 @@ import { Decimal } from "@cosmjs/math";
 import { externalWallet, walletOperation } from "@/common/utils";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore } from "@/common/stores/wallet";
-import { Coin as KeplrCoin } from "@keplr-wallet/unit";
-import { useApplicationStore } from "@/common/stores/application";
+import { Dec, Coin as KeplrCoin } from "@keplr-wallet/unit";
 import { AppUtils } from "@/common/utils";
 import { NATIVE_NETWORK } from "@/config/global";
 import type { EvmNetwork } from "@/common/types/Network";
@@ -163,12 +162,15 @@ export interface ReceiveComponentProps {
 
 let client: Wallet;
 let timeOut: NodeJS.Timeout;
+let route: IObjectKeys | null;
 
 const walletStore = useWalletStore();
 const networks = ref<(Network | EvmNetwork)[]>([SUPPORTED_NETWORKS_DATA[NATIVE_NETWORK.key]]);
 const i18n = useI18n();
 const copyText = ref(i18n.t("message.copy"));
 const selectedNetwork = ref(networks.value[0]);
+const setShowDialogHeader = inject("setShowDialogHeader", (n: boolean) => {});
+const setDisable = inject("setDisable", (b: boolean) => {});
 
 const networkCurrencies = ref<AssetBalance[]>([]);
 const selectedCurrency = ref<AssetBalance>(walletStore.balances[0]);
@@ -178,7 +180,6 @@ const disablePicker = ref(false);
 const disablePickerDialog = ref(false);
 const txHashes = ref<{ hash: string; status: SwapStatus }[]>([]);
 const errorMsg = ref("");
-const txsRequired = ref(0);
 
 const showConfirmScreen = ref(false);
 const step = ref(CONFIRM_STEP.CONFIRM);
@@ -306,10 +307,11 @@ async function validateInputs() {
     const isValid = await validateAmount();
 
     if (isValid) {
+      route = await getRoute();
       const network =
         NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[selectedNetwork.value.key];
-
-      fee.value = coin(network.fees.transfer_amount, selectedCurrency.value.balance.denom);
+      const currency = AssetUtils.getCurrencyByTicker(network.ticker);
+      fee.value = coin(network.fees.transfer_amount, currency.ibcData);
       showConfirmScreen.value = true;
     }
   } catch (error) {
@@ -373,14 +375,12 @@ async function onSendClick() {
 }
 
 async function onSwap() {
-  if (!WalletUtils.isAuth() || amountErrorMsg.value.length > 0) {
+  if (!route || !WalletUtils.isAuth() || amountErrorMsg.value.length > 0) {
     return false;
   }
 
   try {
     step.value = CONFIRM_STEP.PENDING;
-    const route = await getRoute();
-    txsRequired.value = route!.txsRequired;
 
     await walletOperation(async () => {
       try {
@@ -477,15 +477,20 @@ async function getRoute() {
     return route;
   } catch (e) {
     Logger.error(e);
+    return null;
   }
 }
 
 function onConfirmBackClick() {
   showConfirmScreen.value = false;
-}
-
-function onClickOkBtn() {
-  closeModal();
+  amount.value = "";
+  setDisable(false);
+  nextTick(() => {
+    errorMsg.value = "";
+  });
+  setShowDialogHeader(true);
+  step.value = CONFIRM_STEP.CONFIRM;
+  route = null;
 }
 
 function formatCurrentBalance(selectedCurrency: AssetBalance | undefined) {
@@ -577,4 +582,8 @@ function formatCurrentBalance(selectedCurrency: AssetBalance | undefined) {
 
 //   return addrs;
 // }
+
+const swapAmount = computed(() => {
+  return `${new Dec(amount.value).toString(selectedCurrency.value?.decimal_digits)} ${selectedCurrency.value?.shortName}`;
+});
 </script>
