@@ -1,5 +1,4 @@
-//@ts-nocheck
-
+import type { IObjectKeys } from "@/common/types";
 import { BaseAccount } from "cosmjs-types-legacy/cosmos/auth/v1beta1/auth";
 import * as _m0 from "protobufjs/minimal";
 
@@ -8,7 +7,7 @@ export interface EthermintBaseAccount {
 }
 
 export const EthermintAccount = {
-  decode(input: _m0.Reader | Uint8Array, length?: number): BaseVestingAccount {
+  decode(input: _m0.Reader | Uint8Array, length?: number): IObjectKeys {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseEthAccount();
@@ -38,6 +37,6 @@ export const EthermintAccount = {
   }
 };
 
-function createBaseEthAccount() {
+function createBaseEthAccount(): { baseAccount: BaseAccount | undefined; codeHash: Uint8Array } {
   return { baseAccount: undefined, codeHash: new Uint8Array(0) };
 }

@@ -357,7 +357,6 @@ import TooltipComponent from "@/common/components/TooltipComponent.vue";
 import Modal from "@/common/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
 import SendReceiveDialog from "@/common/components/modals/SendReceiveDialog.vue";
-import SendReceiveDialogV2 from "@/common/components/modals/SendReceiveDialogV2.vue";
 
 import SupplyWithdrawDialog from "@/common/components/modals/SupplyWithdrawDialog.vue";
 import LeaseDialog from "@/common/components/modals/LeaseDialog.vue";
@@ -366,7 +365,7 @@ import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 
-import { computed, onUnmounted, provide, ref, Transition, watch } from "vue";
+import { computed, defineAsyncComponent, onUnmounted, provide, ref, Transition, watch } from "vue";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils, NolusClient } from "@nolus/nolusjs";
 import { useLeases } from "@/common/composables/useLeases";
@@ -379,6 +378,8 @@ import { AssetUtils, Logger, NetworkUtils, WalletManager } from "@/common/utils"
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { DEFAULT_APR, IGNORE_TRANSFER_ASSETS, LPN_DECIMALS, NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
 import { CurrencyDemapping } from "@/config/currencies";
+
+const SendReceiveDialogV2 = defineAsyncComponent(() => import("@/common/components/modals/SendReceiveDialogV2.vue"));
 
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,

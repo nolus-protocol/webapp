@@ -9,6 +9,7 @@
     :errorMsg="errorMsg"
     :txs="route!.txsRequired"
     :amount="`${swapAmount}`"
+    :network="selectedNetwork"
     :onSendClick="onSwap"
     :onBackClick="onConfirmBackClick"
     :onOkClick="() => closeModal()"
@@ -61,7 +62,7 @@
         <!-- Input Area -->
         <div class="modal-send-receive-input-area background">
           <div class="block text-left">
-            <div class="mt-[20px] block">
+            <div class="mt-[20px] flex flex-col">
               <Picker
                 :default-option="selectedNetwork"
                 :options="networks"
@@ -70,6 +71,19 @@
                 @update-selected="onUpdateNetwork"
                 :disable-input="true"
               />
+              <button
+                v-if="selectedNetwork.chain_type == 'evm'"
+                class="nls-font-700 btn btn-secondary btn-medium-secondary mt-2 flex self-end !text-12 text-primary"
+                type="button"
+                :class="{ 'js-loading': isMetamaskLoading }"
+                @click="connectEvm"
+              >
+                <img
+                  src="@/assets/icons/metamask.svg"
+                  class="mr-1"
+                />
+                {{ evmAddress.length == 0 ? $t("message.connect") : evmAddress }}
+              </button>
             </div>
 
             <div class="mt-[20px] block">
@@ -111,7 +125,15 @@
           </button>
           <div class="my-2 flex w-full justify-between text-[14px] text-light-blue">
             <p>{{ $t("message.estimate-time") }}:</p>
-            <p>~{{ selectedNetwork.estimation }} {{ $t("message.sec") }}</p>
+            <template v-if="selectedNetwork.chain_type == 'evm'">
+              <p>
+                ~{{ (selectedNetwork as EvmNetwork).estimation.duration }}
+                {{ $t(`message.${(selectedNetwork as EvmNetwork).estimation.type}`) }}
+              </p>
+            </template>
+            <template v-else>
+              <p>~{{ selectedNetwork.estimation }} {{ $t("message.sec") }}</p>
+            </template>
           </div>
         </div>
       </form>
@@ -140,6 +162,7 @@ import { AppUtils } from "@/common/utils";
 import { NATIVE_NETWORK } from "@/config/global";
 import type { EvmNetwork } from "@/common/types/Network";
 import { SwapStatus } from "../swap/types";
+import { MetaMaskWallet } from "@/networks/metamask";
 
 import { CONFIRM_STEP, TxType, type Network, type IObjectKeys, type SkipRouteConfigType } from "@/common/types";
 
@@ -160,7 +183,7 @@ export interface ReceiveComponentProps {
   onCopyClick: (wallet?: string) => void;
 }
 
-let client: Wallet;
+let client: Wallet | MetaMaskWallet;
 let timeOut: NodeJS.Timeout;
 let route: IObjectKeys | null;
 
@@ -185,8 +208,10 @@ const showConfirmScreen = ref(false);
 const step = ref(CONFIRM_STEP.CONFIRM);
 const fee = ref<Coin>();
 const isLoading = ref(false);
+const evmAddress = ref("");
 const closeModal = inject("onModalClose", () => () => {});
 const wallet = ref(walletStore.wallet?.address);
+const isMetamaskLoading = ref(false);
 let skipRouteConfig: SkipRouteConfigType | null;
 
 onMounted(async () => {
@@ -208,7 +233,7 @@ onMounted(async () => {
 onUnmounted(() => {
   clearTimeout(timeOut);
   if (client) {
-    client.destroy();
+    (client as Wallet).destroy();
   }
 });
 
@@ -223,65 +248,17 @@ watch(
 
 async function onUpdateNetwork(event: Network) {
   selectedNetwork.value = event;
-  networkCurrencies.value = [];
-  amount.value = "";
-  amountErrorMsg.value = "";
-
   if (!event.native) {
-    if (client) {
-      client.destroy();
-    }
-
-    disablePicker.value = true;
-    const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
-
-    const currencies = [];
-    const promises = [];
-    const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[event.key].currencies;
-
-    for (const c of data ?? []) {
-      const currency = AssetUtils.getCurrencyByDenom(c.from);
-      currency.balance = coin(0, c.to);
-      currencies.push(currency);
-    }
-
-    const mappedCurrencies = currencies.map((item) => {
-      return {
-        balance: item.balance,
-        shortName: item.shortName,
-        ticker: item.ticker,
-        name: item.shortName,
-        icon: item.icon,
-        decimal_digits: item.decimal_digits,
-        symbol: item.symbol,
-        native: item.native,
-        from: item.ibcData
-      };
-    });
-
-    selectedCurrency.value = mappedCurrencies?.[0];
-
-    const networkData = network?.supportedNetworks[selectedNetwork.value.key];
-    client = await WalletUtils.getWallet(event.key);
-    const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
-    wallet.value = baseWallet?.address as string;
-
-    client = await WalletUtils.getWallet(event.key);
-
-    if (WalletUtils.isAuth()) {
-      for (const c of mappedCurrencies) {
-        async function fn() {
-          const balance = await client.getBalance(wallet.value as string, c.balance.denom);
-          c.balance = balance;
-        }
-        promises.push(fn());
+    switch (event.chain_type) {
+      case "cosmos": {
+        setCosmosNetwork();
+        break;
+      }
+      case "evm": {
+        setEvmNetwork();
+        break;
       }
     }
-
-    await Promise.all(promises);
-
-    networkCurrencies.value = mappedCurrencies;
-    disablePicker.value = false;
   }
 }
 
@@ -301,10 +278,10 @@ function handleAmountChange(event: string) {
   amount.value = event;
 }
 
-async function validateInputs() {
+async function onSubmitCosmos() {
   try {
     isLoading.value = true;
-    const isValid = await validateAmount();
+    const isValid = validateAmount();
 
     if (isValid) {
       route = await getRoute();
@@ -322,7 +299,141 @@ async function validateInputs() {
   }
 }
 
-async function validateAmount() {
+async function onSubmitEvm() {
+  try {
+    isLoading.value = true;
+    const isValid = validateAmount();
+
+    if (isValid) {
+      route = await getRoute();
+      const network = selectedNetwork.value as EvmNetwork;
+      fee.value = coin(network.fees.transfer, network.nativeCurrency.symbol);
+      showConfirmScreen.value = true;
+    }
+  } catch (error) {
+    step.value = CONFIRM_STEP.ERROR;
+    showConfirmScreen.value = true;
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+async function setCosmosNetwork() {
+  networkCurrencies.value = [];
+  amount.value = "";
+  amountErrorMsg.value = "";
+  if (client) {
+    client.destroy();
+  }
+
+  disablePicker.value = true;
+  const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
+
+  const currencies = [];
+  const promises = [];
+  const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[selectedNetwork.value.key].currencies;
+
+  for (const c of data ?? []) {
+    const currency = AssetUtils.getCurrencyByDenom(c.from);
+    currency.balance = coin(0, c.to);
+    currencies.push(currency);
+  }
+
+  const mappedCurrencies = currencies.map((item) => {
+    return {
+      balance: item.balance,
+      shortName: item.shortName,
+      ticker: item.ticker,
+      name: item.shortName,
+      icon: item.icon,
+      decimal_digits: item.decimal_digits,
+      symbol: item.symbol,
+      native: item.native,
+      from: item.ibcData
+    };
+  });
+
+  selectedCurrency.value = mappedCurrencies?.[0];
+
+  const networkData = network?.supportedNetworks[selectedNetwork.value.key];
+  client = await WalletUtils.getWallet(selectedNetwork.value.key);
+  const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
+  wallet.value = baseWallet?.address as string;
+
+  client = await WalletUtils.getWallet(selectedNetwork.value.key);
+
+  if (WalletUtils.isAuth()) {
+    for (const c of mappedCurrencies) {
+      async function fn() {
+        const balance = await (client as Wallet).getBalance(wallet.value as string, c.balance.denom);
+        c.balance = balance;
+      }
+      promises.push(fn());
+    }
+  }
+
+  await Promise.all(promises);
+
+  networkCurrencies.value = mappedCurrencies;
+  disablePicker.value = false;
+}
+
+async function setEvmNetwork() {
+  networkCurrencies.value = [];
+  amount.value = "";
+  amountErrorMsg.value = "";
+
+  disablePicker.value = true;
+
+  const currencies = [];
+  const promises = [];
+  const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[selectedNetwork.value.key].currencies;
+
+  for (const c of data ?? []) {
+    const currency = AssetUtils.getCurrencyByDenom(c.from);
+    currency.native = c.native;
+    currency.balance = coin(0, c.to);
+    currencies.push(currency);
+  }
+
+  const mappedCurrencies = currencies.map((item) => {
+    return {
+      balance: item.balance,
+      shortName: item.shortName,
+      ticker: item.ticker,
+      name: item.shortName,
+      icon: item.icon,
+      decimal_digits: item.decimal_digits,
+      symbol: item.symbol,
+      native: item.native,
+      from: item.ibcData
+    };
+  });
+
+  selectedCurrency.value = mappedCurrencies?.[0];
+
+  if (client instanceof MetaMaskWallet) {
+    for (const c of mappedCurrencies) {
+      async function fn() {
+        if (c.native) {
+          const balance = await (client as MetaMaskWallet).getBalance();
+          c.balance.amount = balance;
+        } else {
+          const balance = await (client as MetaMaskWallet).getContractBalance(c.balance.denom);
+          c.balance.amount = balance;
+        }
+      }
+      promises.push(fn());
+    }
+  }
+
+  await Promise.all(promises);
+
+  networkCurrencies.value = mappedCurrencies;
+  disablePicker.value = false;
+}
+
+function validateAmount() {
   amountErrorMsg.value = "";
 
   if (!WalletUtils.isAuth()) {
@@ -333,15 +444,11 @@ async function validateAmount() {
     amountErrorMsg.value = i18n.t("message.invalid-amount");
     return false;
   }
-
-  const prefix =
-    NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[selectedNetwork.value.key]?.prefix;
   const decimals = selectedCurrency.value?.decimal_digits;
-
-  if (prefix && decimals) {
+  if (decimals) {
     try {
-      const balance = await client.getBalance(wallet.value as string, selectedCurrency.value.balance.denom);
-      const walletBalance = Decimal.fromAtomics(balance.amount, decimals);
+      const balance = selectedCurrency.value.balance;
+      const walletBalance = Decimal.fromAtomics(balance.amount.toString(), decimals);
       const transferAmount = Decimal.fromUserInput(amount.value, decimals);
       const isGreaterThanWalletBalance = transferAmount.isGreaterThan(walletBalance);
       const isLowerThanOrEqualsToZero = transferAmount.isLessThanOrEqual(Decimal.fromUserInput("0", decimals));
@@ -368,13 +475,39 @@ async function validateAmount() {
 
 async function onSendClick() {
   try {
-    validateInputs();
+    switch (selectedNetwork.value.chain_type) {
+      case "cosmos": {
+        onSubmitCosmos();
+        break;
+      }
+      case "evm": {
+        onSubmitEvm();
+        break;
+      }
+    }
   } catch (error: Error | any) {
     step.value = CONFIRM_STEP.ERROR;
   }
 }
 
 async function onSwap() {
+  try {
+    switch (selectedNetwork.value.chain_type) {
+      case "cosmos": {
+        onSwapCosmos();
+        break;
+      }
+      case "evm": {
+        onSwapEvm();
+        break;
+      }
+    }
+  } catch (error: Error | any) {
+    step.value = CONFIRM_STEP.ERROR;
+  }
+}
+
+async function onSwapCosmos() {
   if (!route || !WalletUtils.isAuth() || amountErrorMsg.value.length > 0) {
     return false;
   }
@@ -384,9 +517,7 @@ async function onSwap() {
 
     await walletOperation(async () => {
       try {
-        // state.value.loading = true;
-        // state.value.disabled = true;
-        const wallets = await getWallets(route as IObjectKeys);
+        const wallets = await getWalletsCosmos();
         const addresses: Record<string, string> = {};
 
         for (const key in wallets) {
@@ -412,9 +543,6 @@ async function onSwap() {
         step.value = CONFIRM_STEP.ERROR;
         errorMsg.value = (error as Error).toString();
         Logger.error(error);
-      } finally {
-        // state.value.loading = false;
-        // state.value.disabled = false;
       }
     });
   } catch (e) {
@@ -422,8 +550,8 @@ async function onSwap() {
   }
 }
 
-async function getWallets(route: IObjectKeys): Promise<{ [key: string]: BaseWallet }> {
-  const native = walletStore.wallet.signer.chainId;
+async function getWalletsCosmos(): Promise<{ [key: string]: BaseWallet }> {
+  const native = walletStore.wallet.signer.chainId as string;
   const addrs = {
     [native]: walletStore.wallet
   };
@@ -451,7 +579,8 @@ async function getWallets(route: IObjectKeys): Promise<{ [key: string]: BaseWall
       const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
       const networkData = network?.supportedNetworks[chain];
       const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
-      addrs[baseWallet.getSigner().chainId] = baseWallet;
+      const chainId = await baseWallet.getChainId();
+      addrs[chainId] = baseWallet;
     };
     promises.push(fn());
   }
@@ -463,12 +592,19 @@ async function getWallets(route: IObjectKeys): Promise<{ [key: string]: BaseWall
 
 async function getRoute() {
   try {
-    const chaindId = await client.getChainId();
+    let chaindId = await client.getChainId();
     const transferAmount = Decimal.fromUserInput(amount.value, selectedCurrency.value!.decimal_digits as number);
 
+    switch (selectedNetwork.value.chain_type) {
+      case "evm": {
+        chaindId = Number(chaindId).toString();
+        break;
+      }
+    }
+
     const route = await SkipRouter.getRoute(
-      selectedCurrency.value.from!,
       selectedCurrency.value.balance.denom,
+      selectedCurrency.value.from!,
       transferAmount.atomics,
       false,
       chaindId
@@ -516,72 +652,100 @@ function formatCurrentBalance(selectedCurrency: AssetBalance | undefined) {
   }
 }
 
-// async function onTest() {
-//   try {
-//     const metamaskWallet = new MetaMaskWallet();
-//     await metamaskWallet.connect({
-//       chainId: `0x${(1).toString(16)}`,
-//       chainName: "Ethereum",
-//       rpcUrls: ["https://cloudflare-eth.com"],
-//       blockExplorerUrls: ["https://etherscan.io"],
-//       nativeCurrency: {
-//         name: "Ethereum",
-//         symbol: "ETH",
-//         decimals: 18
-//       }
-//     });
+async function connectEvm() {
+  try {
+    if (client) {
+      (client as MetaMaskWallet)?.destroy();
+    }
+    client = new MetaMaskWallet();
+    isMetamaskLoading.value = true;
 
-//     const client = await SkipRouter.getClient();
-//     const route = await SkipRouter.getRoute("ethereum-native", "unls", "5000000000000000");
-//     const wallets = await getWallets(metamaskWallet, route);
+    const net = selectedNetwork.value as EvmNetwork;
+    const endpoint = await AppUtils.fetchEvmEndpoints(net.key);
+    const chaindId = await client.getChainId(endpoint.rpc);
+    await client.connect({
+      chainId: chaindId,
+      chainName: net.label,
+      rpcUrls: [endpoint.rpc],
+      blockExplorerUrls: [net.explorer],
+      nativeCurrency: { ...net.nativeCurrency }
+    });
 
-//     await SkipRouter.transactionMetamask(route!, wallets, async (tx: IObjectKeys, wallet: BaseWallet) => {});
-//   } catch (error) {
-//     Logger.error(error);
-//   }
-// }
+    evmAddress.value = client.shortAddress;
+    setEvmNetwork();
+  } catch (error) {
+    Logger.error(error);
+  } finally {
+    isMetamaskLoading.value = false;
+  }
+}
 
-// async function getWallets(wallet: MetaMaskWallet, route: IObjectKeys): Promise<{ [key: string]: BaseWallet }> {
-//   // const native = wallet.getSigner().chainId;
-//   const native = walletStore.wallet.signer.chainId;
+async function onSwapEvm() {
+  try {
+    if (!route || !WalletUtils.isAuth() || amountErrorMsg.value.length > 0) {
+      return false;
+    }
 
-//   const addrs: { [key: string]: any } = {
-//     ["1"]: wallet,
-//     [native]: walletStore.wallet
-//   };
+    step.value = CONFIRM_STEP.PENDING;
 
-//   const chainToParse: { [key: string]: IObjectKeys } = {};
-//   const chains = (await SkipRouter.getChains()).filter((item) => {
-//     if (item.chainID == "1") {
-//       return false;
-//     }
-//     return route!.chainIDs.includes(item.chainID);
-//   });
+    const wallets = await getWalletsEvm();
+    await SkipRouter.transactionMetamask(route!, wallets, async (tx: IObjectKeys, _wallet: BaseWallet) => {
+      const element = {
+        hash: tx.hash,
+        status: SwapStatus.pending
+      };
+      const index = txHashes.value.length;
+      txHashes.value.push(element);
+      txHashes.value[index].status = SwapStatus.success;
+    });
+  } catch (error) {
+    step.value = CONFIRM_STEP.ERROR;
+    errorMsg.value = (error as Error).toString();
+    Logger.error(error);
+  }
+}
 
-//   for (const chain of chains) {
-//     for (const key in SUPPORTED_NETWORKS_DATA) {
-//       if (SUPPORTED_NETWORKS_DATA[key].value == chain.chainName) {
-//         chainToParse[key] = SUPPORTED_NETWORKS_DATA[key];
-//       }
-//     }
-//   }
-//   const promises = [];
+async function getWalletsEvm(): Promise<{ [key: string]: BaseWallet }> {
+  const native = walletStore.wallet.signer.chainId;
+  const chainId = Number((client as MetaMaskWallet).chainId).toString();
+  const addrs: { [key: string]: any } = {
+    [chainId]: client as MetaMaskWallet,
+    [native]: walletStore.wallet
+  };
 
-//   for (const chain in chainToParse) {
-//     const fn = async function () {
-//       const client = await WalletUtils.getWallet(chain);
-//       const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
-//       const networkData = network?.supportedNetworks[chain];
-//       const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
-//       addrs[baseWallet.getSigner().chainId] = baseWallet;
-//     };
-//     promises.push(fn());
-//   }
+  const chainToParse: { [key: string]: IObjectKeys } = {};
+  const chains = (await SkipRouter.getChains()).filter((item) => {
+    if (item.chainID == chainId) {
+      return false;
+    }
+    return route!.chainIDs.includes(item.chainID);
+  });
 
-//   await Promise.all(promises);
+  for (const chain of chains) {
+    for (const key in SUPPORTED_NETWORKS_DATA) {
+      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chainName) {
+        chainToParse[key] = SUPPORTED_NETWORKS_DATA[key];
+      }
+    }
+  }
+  const promises = [];
 
-//   return addrs;
-// }
+  for (const chain in chainToParse) {
+    const fn = async function () {
+      const client = await WalletUtils.getWallet(chain);
+      const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
+      const networkData = network?.supportedNetworks[chain];
+      const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
+      const chaindId = await baseWallet.getChainId();
+      addrs[chaindId] = baseWallet;
+    };
+    promises.push(fn());
+  }
+
+  await Promise.all(promises);
+
+  return addrs;
+}
 
 const swapAmount = computed(() => {
   return `${new Dec(amount.value).toString(selectedCurrency.value?.decimal_digits)} ${selectedCurrency.value?.shortName}`;

@@ -176,6 +176,7 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { AssetUtils, StringUtils } from "@/common/utils";
 import { CONFIRM_STEP } from "@/common/types";
 import { useApplicationStore } from "@/common/stores/application";
+import type { EvmNetwork, Network } from "@/common/types/Network";
 
 interface Props {
   receiverAddress: string;
@@ -186,6 +187,7 @@ interface Props {
   errorMsg: string;
   fee: Coin;
   txs: number;
+  network: EvmNetwork | Network;
   onSendClick: () => void;
   onBackClick: () => void;
   onOkClick: () => void;
@@ -230,12 +232,32 @@ watch(
 );
 
 function calculateFee(coin: Coin) {
+  switch (props.network.chain_type) {
+    case "cosmos": {
+      return calculateCosmosFee(coin);
+    }
+    case "evm": {
+      return calculateEvmFee(coin);
+    }
+  }
+}
+
+function calculateCosmosFee(coin: Coin) {
   const asset = AssetUtils.getCurrencyByDenom(coin.denom);
   return CurrencyUtils.convertMinimalDenomToDenom(
     coin.amount.toString(),
     asset.ibcData,
     asset.shortName,
     asset.decimal_digits
+  );
+}
+
+function calculateEvmFee(coin: Coin) {
+  return CurrencyUtils.convertMinimalDenomToDenom(
+    coin.amount.toString(),
+    coin.denom,
+    coin.denom,
+    (props.network as EvmNetwork).nativeCurrency.decimals
   );
 }
 </script>

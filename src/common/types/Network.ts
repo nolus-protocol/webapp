@@ -25,6 +25,11 @@ export interface EvmNetwork {
   symbol: string;
   value: string;
   chain_type: ChainType;
+  nativeCurrency: {
+    name: string;
+    symbol: string;
+    decimals: number;
+  };
 }
 
 export interface NetworkData {

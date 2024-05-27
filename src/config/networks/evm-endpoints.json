@@ -1,0 +1,12 @@
+{
+  "ETHEREUM": {
+    "primary": {
+      "rpc": "https://cloudflare-eth.com"
+    },
+    "fallback": [
+      {
+        "rpc": "https://cloudflare-eth.com"
+      }
+    ]
+  }
+}

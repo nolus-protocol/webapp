@@ -7,10 +7,15 @@ export const NETWORK = {
   name: "ETH",
   explorer: "https://etherscan.io",
   fees: {
-    transfer: 30000
+    transfer: 3000000000000000
   },
   estimation: {
     duration: 16,
     type: "min"
+  },
+  nativeCurrency: {
+    name: "Ethereum",
+    symbol: "ETH",
+    decimals: 18
   }
 };

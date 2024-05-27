@@ -1,5 +1,3 @@
-//@ts-nocheck
-
 import type { MultisigThresholdPubkey, Pubkey, SinglePubkey } from "@cosmjs/amino";
 import { toBase64 } from "@cosmjs/encoding";
 import {
@@ -43,7 +41,7 @@ export const pubkeyType = {
   multisigThreshold: "tendermint/PubKeyMultisigThreshold" as const
 };
 
-export function encodePubkey(pubkey: Pubkey, network?: string): Any {
+export function encodePubkey(pubkey: Pubkey, network?: string | number): Any {
   if (network == SUPPORTED_NETWORKS_DATA.INJECTIVE.prefix) {
     const pubkeyProto = CosmosCryptoSecp256k1Pubkey.fromPartial({
       key: fromBase64(pubkey.value)

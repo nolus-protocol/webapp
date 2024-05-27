@@ -50,15 +50,15 @@ export class SkipRouter {
     destDenom: string,
     amount: string,
     revert: boolean = false,
-    destAssetChainID?: string
+    sourceId?: string
   ) {
     const [client, config] = await Promise.all([SkipRouter.getClient(), AppUtils.getSkipRouteConfig()]);
 
     const request: IObjectKeys = {
       sourceAssetDenom: sourceDenom,
-      sourceAssetChainID: SkipRouter.chainID,
+      sourceAssetChainID: sourceId ?? SkipRouter.chainID,
       destAssetDenom: destDenom,
-      destAssetChainID: destAssetChainID ?? SkipRouter.chainID,
+      destAssetChainID: SkipRouter.chainID,
       allowMultiTx: false,
       cumulativeAffiliateFeeBPS: config.fee.toString(),
       experimentalFeatures: ["cctp"]
@@ -181,10 +181,9 @@ export class SkipRouter {
         const signer = await wallet.getSigner();
 
         const txData = await (signer as IObjectKeys).sendTransaction({
-          account: signer.account,
+          account: wallet.address,
           to: msg.to as `0x${string}`,
           data: `0x${msg.data}`,
-          chain: signer.chain,
           value: msg.value === "" ? undefined : BigInt(msg.value)
         });
 

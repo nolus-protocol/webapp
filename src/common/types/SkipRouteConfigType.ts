@@ -14,6 +14,7 @@ export interface SkipRouteConfigType {
       currencies: {
         from: string;
         to: string;
+        native: boolean;
       }[];
     };
   };

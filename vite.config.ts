@@ -39,6 +39,20 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url))
     }
   },
+  build: {
+    rollupOptions: {
+      output: {
+        sourcemapExcludeSources: true,
+        manualChunks: (id) => {
+          const url = new URL(id, import.meta.url);
+          const chunkName = url.searchParams.get("chunkName");
+          if (chunkName) {
+            return chunkName;
+          }
+        }
+      }
+    }
+  },
   optimizeDeps: {
     exclude: [],
     esbuildOptions: {

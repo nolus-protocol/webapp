@@ -52,7 +52,7 @@
 </template>
 
 <script lang="ts" setup>
-import { type Component, onMounted, provide, ref, onUnmounted } from "vue";
+import { type Component, onMounted, provide, ref, onUnmounted, defineAsyncComponent } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
@@ -69,7 +69,6 @@ import DelegateUndelegateDialog from "@/common/components/modals/DelegateUndeleg
 import Modal from "@/common/components/modals/templates/Modal.vue";
 import SessionExpireDialog from "@/common/components/modals/SessionExpireDialog.vue";
 import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
-import SwapDialog from "@/common/components/modals/SwapDialog.vue";
 import { router } from "@/router";
 
 let balanceInterval: NodeJS.Timeout | undefined;
@@ -79,6 +78,7 @@ let sessionTimeOut: NodeJS.Timeout | undefined;
 const wallet = useWalletStore();
 const oracle = useOracleStore();
 const app = useApplicationStore();
+const SwapDialog = defineAsyncComponent(() => import("@/common/components/modals/SwapDialog.vue"));
 
 const showErrorDialog = ref(false);
 const errorMessage = ref("");

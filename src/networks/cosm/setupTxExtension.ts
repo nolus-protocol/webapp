@@ -1,6 +1,10 @@
 import type { Pubkey } from "@cosmjs/amino";
 import { createProtobufRpcClient, type QueryClient } from "@cosmjs/stargate";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
+import { AuthInfo, Fee, Tx, TxBody } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import { Any } from "cosmjs-types/google/protobuf/any";
+import { encodePubkey } from "./encode";
+
 import {
   GetTxRequest,
   GetTxResponse,
@@ -8,9 +12,6 @@ import {
   SimulateRequest,
   SimulateResponse
 } from "cosmjs-types/cosmos/tx/v1beta1/service";
-import { AuthInfo, Fee, Tx, TxBody } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import { Any } from "cosmjs-types/google/protobuf/any";
-import { encodePubkey } from "./encode";
 
 export interface TxExtension {
   readonly tx: {
@@ -21,15 +22,10 @@ export interface TxExtension {
       signer: Pubkey,
       sequence: number
     ) => Promise<SimulateResponse>;
-    // Add here with tests:
-    // - broadcastTx
-    // - getTxsEvent
   };
 }
 
 export function setupTxExtension(base: QueryClient): TxExtension {
-  // Use this service to get easy typed access to query methods
-  // This cannot be used for proof verification
   const rpc = createProtobufRpcClient(base);
   const queryService = new ServiceClientImpl(rpc);
 
