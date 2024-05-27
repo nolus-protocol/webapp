@@ -297,6 +297,8 @@
     "date": "ημερομηνία",
     "size": "μέγεθος",
     "withdraw-lpp-balance-error": "Το ποσό ανάληψης υπερβαίνει το διαθέσιμο υπόλοιπο: {balance}",
-    "osmosis-noble": "Osmosis Noble"
+    "osmosis-noble": "Osmosis",
+    "0int-banner-subtitle": "Zero in for the DeFi Summer",
+    "0int-banner-description": "All leases are interest-free until Sep 1st. Let's make this DeFi Summer one to remember! 🚀"
   }
 }

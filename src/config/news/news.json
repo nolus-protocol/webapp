@@ -1,4 +1,12 @@
 {
+  "0int": {
+    "title-icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/lease.svg",
+    "image": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/0int.webp",
+    "title": "lease-banner-title",
+    "subtitle": "0int-banner-subtitle",
+    "description": "0int-banner-description",
+    "target": "/lease#create"
+  },
   "knowledgehub": {
     "title-icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/knowledge_hub.svg",
     "image": "",
