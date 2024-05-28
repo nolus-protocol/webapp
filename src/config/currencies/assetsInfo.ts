@@ -88,6 +88,9 @@ export const ASSETS = {
   },
   USDC_NOBLE: {
     coinGeckoId: "usd-coin"
+  },
+  CUDOS: {
+    coinGeckoId: "cudos"
   }
 };
 
