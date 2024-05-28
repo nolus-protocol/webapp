@@ -63,4 +63,5 @@ export const SUPPORTED_NETWORKS = [
   "INJECTIVE",
   "COMPOSABLE",
   "NOBLE"
+  // "CUDOS"
 ];

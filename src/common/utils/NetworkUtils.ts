@@ -6,7 +6,6 @@ import { toHex } from "@cosmjs/encoding";
 import { defaultRegistryTypes } from "@cosmjs/stargate";
 import { connectComet, type ReadonlyDateWithNanoseconds, type TxSearchResponse } from "@cosmjs/tendermint-rpc";
 import { decodeTxRaw, type DecodedTxRaw, Registry } from "@cosmjs/proto-signing";
-import { MAINNET } from "@/config/global";
 
 export class NetworkUtils {
   static async loadDelegatorValidators() {

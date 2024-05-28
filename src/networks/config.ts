@@ -54,6 +54,9 @@ import { embedChainInfo as nobleChainInfo } from "./noble/contants";
 import { useApplicationStore } from "@/common/stores/application";
 import type { ExternalCurrencies, NetworkData } from "@/common/types";
 
+import { NETWORK as CUDOS_NETWORK } from "./cudos/network";
+import { embedChainInfo as cudosChainInfo } from "./cudos/contants";
+
 export const SUPPORTED_NETWORKS_DATA: {
   [key: string]: {
     prefix: string;
@@ -245,6 +248,16 @@ export const SUPPORTED_NETWORKS_DATA: {
     key: "NOBLE",
     symbol: "USDC_NOBLE",
     forward: true
+  },
+  CUDOS: {
+    prefix: "cudos",
+    value: "cudos",
+    label: "Cudos",
+    native: false,
+    estimation: 20,
+    key: "CUDOS",
+    symbol: "CUDOS",
+    forward: true
   }
 };
 
@@ -340,7 +353,8 @@ export const NETWORKS_DATA: {
       SUPPORTED_NETWORKS_DATA.JACKAL,
       SUPPORTED_NETWORKS_DATA.INJECTIVE,
       SUPPORTED_NETWORKS_DATA.COMPOSABLE,
-      SUPPORTED_NETWORKS_DATA.NOBLE
+      SUPPORTED_NETWORKS_DATA.NOBLE,
+      SUPPORTED_NETWORKS_DATA.CUDOS
     ],
     supportedNetworks: {
       OSMOSIS: {
@@ -495,6 +509,15 @@ export const NETWORKS_DATA: {
           return app?.networks?.[NOBLE_NETWORK.key] as ExternalCurrencies;
         },
         embedChainInfo: nobleChainInfo
+      },
+      CUDOS: {
+        ...CUDOS_NETWORK,
+        explorer: "https://ping.pub/cudos/tx",
+        currencies: () => {
+          const app = useApplicationStore();
+          return app?.networks?.[CUDOS_NETWORK.key] as ExternalCurrencies;
+        },
+        embedChainInfo: cudosChainInfo
       }
     }
   }

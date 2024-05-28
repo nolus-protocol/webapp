@@ -229,5 +229,17 @@
         "api": "https://lcd-composable.whispernode.com:443"
       }
     ]
+  },
+  "CUDOS": {
+    "primary": {
+      "rpc": "http://mainnet-full-node-01.hosts.cudos.org:26657",
+      "api": "http://mainnet-full-node-01.hosts.cudos.org:1317"
+    },
+    "fallback": [
+      {
+        "rpc": "https://mainnet-full-node-02.hosts.cudos.org:36657",
+        "api": "https://mainnet-full-node-02.hosts.cudos.org:31317"
+      }
+    ]
   }
 }

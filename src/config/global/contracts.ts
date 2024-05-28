@@ -83,7 +83,8 @@ export const ProtocolsConfig: {
       "DYM",
       "INJ",
       "LVN",
-      "PICA"
+      "PICA",
+      "CUDOS"
     ],
     ignoreNetowrk: ["NEUTRON"]
   }

@@ -76,6 +76,7 @@ export class BaseWallet extends SigningCosmWasmClient {
       setupStakingExtension,
       setupTxExtension
     );
+    this.registry.register("cosmos-sdk/MsgTransfer", TransferMessage);
   }
 
   getSigner() {
@@ -91,6 +92,7 @@ export class BaseWallet extends SigningCosmWasmClient {
     gasData?: GasInfo
   ) {
     const pubkey = this.getPubKey();
+
     const msgAny = {
       typeUrl: msgTypeUrl,
       value: msg
@@ -99,12 +101,13 @@ export class BaseWallet extends SigningCosmWasmClient {
     const sequence = await this.sequence();
     const gasInfo = gasData ?? (await this.getGas(msgAny, memo, pubkey, sequence));
     const gas = Math.round(Number(gasInfo?.gasUsed) * (this.gasMupltiplier ?? gasMupltiplier));
+
     const usedFee = calculateFee(gas, this.gasPrice ?? gasPrice);
+
     const txRaw = await this.sign(this.address as string, [msgAny], usedFee, memo);
 
     const txBytes = Uint8Array.from(TxRaw.encode(txRaw).finish());
     const txHash = toHex(sha256(txBytes));
-
     return {
       txHash,
       txBytes,
@@ -139,6 +142,9 @@ export class BaseWallet extends SigningCosmWasmClient {
         return encodeEthSecp256k1Pubkey(pubKey ?? (this.pubKey as Uint8Array));
       }
       case SUPPORTED_NETWORKS_DATA.INJECTIVE.prefix: {
+        return encodeEthSecp256k1Pubkey(pubKey ?? (this.pubKey as Uint8Array));
+      }
+      case SUPPORTED_NETWORKS_DATA.CUDOS.prefix: {
         return encodeEthSecp256k1Pubkey(pubKey ?? (this.pubKey as Uint8Array));
       }
       default: {
@@ -241,7 +247,7 @@ export class BaseWallet extends SigningCosmWasmClient {
       );
     }
 
-    return await this.simulateTx(msg, "/ibc.applications.transfer.v1.MsgTransfer", gasMupltiplier, gasPrice, "");
+    return await this.simulateTx(msg, "cosmos-sdk/MsgTransfer", gasMupltiplier, gasPrice, "");
   }
 
   private async sequence() {
@@ -367,3 +373,27 @@ export class BaseWallet extends SigningCosmWasmClient {
     });
   }
 }
+
+export const TransferMessage = {
+  process(chainId: string, msg) {
+    const d = (() => {
+      if ("type" in msg && msg.type === "cosmos-sdk/MsgTransfer") {
+        return {
+          token: msg.value.token,
+          receiver: msg.value.receiver,
+          channelId: msg.value.source_channel,
+          ibcMemo: msg.value.memo
+        };
+      }
+
+      if ("unpacked" in msg && msg.typeUrl === "/ibc.applications.transfer.v1.MsgTransfer") {
+        return {
+          token: (msg.unpacked as MsgTransfer).token,
+          receiver: (msg.unpacked as MsgTransfer).receiver,
+          channelId: (msg.unpacked as MsgTransfer).sourceChannel,
+          ibcMemo: (msg.unpacked as MsgTransfer).memo
+        };
+      }
+    })();
+  }
+};
