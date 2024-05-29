@@ -76,7 +76,6 @@ export class BaseWallet extends SigningCosmWasmClient {
       setupStakingExtension,
       setupTxExtension
     );
-    this.registry.register("cosmos-sdk/MsgTransfer", TransferMessage);
   }
 
   getSigner() {
@@ -247,7 +246,7 @@ export class BaseWallet extends SigningCosmWasmClient {
       );
     }
 
-    return await this.simulateTx(msg, "cosmos-sdk/MsgTransfer", gasMupltiplier, gasPrice, "");
+    return await this.simulateTx(msg, "/ibc.applications.transfer.v1.MsgTransfer", gasMupltiplier, gasPrice, "");
   }
 
   private async sequence() {
@@ -373,27 +372,3 @@ export class BaseWallet extends SigningCosmWasmClient {
     });
   }
 }
-
-export const TransferMessage = {
-  process(chainId: string, msg) {
-    const d = (() => {
-      if ("type" in msg && msg.type === "cosmos-sdk/MsgTransfer") {
-        return {
-          token: msg.value.token,
-          receiver: msg.value.receiver,
-          channelId: msg.value.source_channel,
-          ibcMemo: msg.value.memo
-        };
-      }
-
-      if ("unpacked" in msg && msg.typeUrl === "/ibc.applications.transfer.v1.MsgTransfer") {
-        return {
-          token: (msg.unpacked as MsgTransfer).token,
-          receiver: (msg.unpacked as MsgTransfer).receiver,
-          channelId: (msg.unpacked as MsgTransfer).sourceChannel,
-          ibcMemo: (msg.unpacked as MsgTransfer).memo
-        };
-      }
-    })();
-  }
-};
