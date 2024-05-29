@@ -11,4 +11,5 @@ export interface NetworkAddress {
   etlApi: string;
   leaseBlockUpdate: number;
   lppCreatedAt: number;
+  evmEndpoints: Promise<string> | string;
 }

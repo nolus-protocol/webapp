@@ -1,5 +1,5 @@
 import { type OfflineDirectSigner } from "@cosmjs/proto-signing";
-import type { Wallet } from ".";
+import type { Wallet } from "..";
 import type { Window as KeplrWindow } from "@keplr-wallet/types/build/window";
 
 import BluetoothTransport from "@ledgerhq/hw-transport-web-ble";
@@ -87,7 +87,6 @@ async function authenticateLeap(wallet: Wallet, network: NetworkData) {
     try {
       chainId = await wallet.getChainId();
       const node = await AppUtils.fetchEndpoints(network.key);
-
       await leapWindow.leap?.experimentalSuggestChain(network.embedChainInfo(chainId, node.rpc, node.api));
     } catch (e) {
       Logger.error(e);

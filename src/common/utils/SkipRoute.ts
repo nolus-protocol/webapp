@@ -11,6 +11,7 @@ import type { IObjectKeys, SkipRouteConfigType } from "../types";
 import { AppUtils } from ".";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 import type { BaseWallet } from "@/networks";
+import type { MetaMaskWallet } from "@/networks/metamask";
 
 enum Messages {
   "/ibc.applications.transfer.v1.MsgTransfer" = "/ibc.applications.transfer.v1.MsgTransfer",
@@ -45,16 +46,27 @@ export class SkipRouter {
     return SkipRouter.client;
   }
 
-  static async getRoute(sourceDenom: string, destDenom: string, amount: string, revert: boolean = false) {
+  static async getRoute(
+    sourceDenom: string,
+    destDenom: string,
+    amount: string,
+    revert: boolean = false,
+    sourceId?: string,
+    destSourceId?: string
+  ) {
     const [client, config] = await Promise.all([SkipRouter.getClient(), AppUtils.getSkipRouteConfig()]);
-    console.log(amount);
     const request: IObjectKeys = {
       sourceAssetDenom: sourceDenom,
-      sourceAssetChainID: SkipRouter.chainID,
+      sourceAssetChainID: sourceId ?? SkipRouter.chainID,
       destAssetDenom: destDenom,
-      destAssetChainID: SkipRouter.chainID,
-      allowMultiTx: false,
-      cumulativeAffiliateFeeBPS: config.fee.toString()
+      destAssetChainID: destSourceId ?? SkipRouter.chainID,
+      cumulativeAffiliateFeeBPS: config.fee.toString(),
+      allowMultiTx: true,
+      allowUnsafe: true,
+      experimentalFeatures: ["cctp"],
+      smartSwapOptions: {
+        splitRoutes: true
+      }
     };
 
     if (revert) {
@@ -129,6 +141,68 @@ export class SkipRouter {
     }
   }
 
+  static async transactionMetamask(route: IObjectKeys, wallets: { [key: string]: BaseWallet }, callback: Function) {
+    try {
+      const [client, config] = await Promise.all([SkipRouter.getClient(), AppUtils.getSkipRouteConfig()]);
+      const addressList = [];
+      const addresses: Record<string, string> = {};
+
+      for (const key in wallets) {
+        addresses[key] = wallets[key].address!;
+      }
+
+      for (const id of route.chainIDs) {
+        addressList.push(addresses[id]);
+      }
+
+      const request: IObjectKeys = {
+        sourceAssetChainID: route.sourceAssetChainID,
+        destAssetChainID: route.destAssetChainID,
+        swapVenue: route.swapVenue,
+        timeoutSeconds: config.timeoutSeconds,
+        operations: route.operations,
+        slippageTolerancePercent: config.slippage.toString(),
+        addressList: addressList,
+        affiliates: SkipRouter.getAffialates(route, config)
+      };
+
+      if (route.revert) {
+        request.amountIn = route.amountIn;
+        request.amountOut = route.amountOut;
+        request.sourceAssetDenom = route.sourceAssetDenom;
+        request.destAssetDenom = route.destAssetDenom;
+      } else {
+        request.amountIn = route.amountOut;
+        request.amountOut = route.amountIn;
+        request.sourceAssetDenom = route.sourceAssetDenom;
+        request.destAssetDenom = route.destAssetDenom;
+      }
+
+      const response = await client.messages(request as MsgsRequest);
+
+      for (const tx of response.txs) {
+        const msg = (tx as IObjectKeys).evmTx;
+        const wallet = wallets[(msg as IObjectKeys).chainID];
+        const signer = await wallet.getSigner();
+
+        for (const t of msg.requiredERC20Approvals) {
+          await (wallet as any).setApprove(t);
+        }
+
+        const txData = await (signer as IObjectKeys).sendTransaction({
+          account: wallet.address,
+          to: msg.to as string,
+          data: `0x${msg.data}`,
+          value: msg.value === "" ? undefined : BigInt(msg.value)
+        });
+
+        await callback(txData, wallet);
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
   private static getAffialates(route: IObjectKeys, config: SkipRouteConfigType) {
     if (route.swapVenue?.name) {
       const affiliateAddress = config[route.swapVenue.name as keyof typeof config] as string;
@@ -173,6 +247,6 @@ export class SkipRouter {
 
   static async getChains() {
     const client = await SkipRouter.getClient();
-    return client.chains({ includeEVM: false, includeSVM: false, includeTestnets: false });
+    return client.chains({ includeEVM: true, includeSVM: false, includeTestnets: false });
   }
 }

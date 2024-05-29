@@ -1,11 +1,11 @@
 import type { Coin } from "@cosmjs/proto-signing";
 import { StargateClient } from "@cosmjs/stargate";
-import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
+import { connectComet, type CometClient } from "@cosmjs/tendermint-rpc";
 import { accountFromAny } from "./accountParser";
 
 export class Wallet {
   protected stargateClient: StargateClient | undefined;
-  protected tendermintClient: Tendermint34Client | undefined;
+  protected tendermintClient: CometClient | undefined;
   rpc: string;
   api: string;
 
@@ -21,7 +21,7 @@ export class Wallet {
   }
 
   private async setInstance(tendermintRpc: string) {
-    const tendermintClient = await Tendermint34Client.connect(tendermintRpc);
+    const tendermintClient = await connectComet(tendermintRpc);
     const stargateClient = await StargateClient.create(tendermintClient, {
       accountParser: accountFromAny
     });

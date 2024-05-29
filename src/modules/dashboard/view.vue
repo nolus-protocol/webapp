@@ -1,15 +1,25 @@
 <template>
+  <button
+    @click="
+      () => {
+        state.modalAction = DASHBOARD_ACTIONS.SENDV2;
+        state.showModal = true;
+      }
+    "
+  >
+    SKIPROUTE
+  </button>
   <div class="mt-[25px]">
     <BannerComponent />
     <div class="col-span-12">
       <!-- Wallet -->
       <div
-        class="mt-6 flex flex-col justify-start border-[1px] border-border-color bg-neutral-bg-50 p-4 shadow-field-normal outline md:rounded-xl lg:items-baseline lg:p-6"
+        class="border-border-color bg-neutral-bg-50 shadow-field-normal mt-6 flex flex-col justify-start border-[1px] p-4 outline md:rounded-xl lg:items-baseline lg:p-6"
       >
         <p class="text-neutral-typography-200 mb-1.5 text-16 font-medium md:mb-6">
           {{ $t("message.portfolio-title") }}
         </p>
-        <div class="mb-4 flex w-full flex-row gap-8 border-b border-border-color pb-4 md:mb-6 md:pb-6">
+        <div class="border-border-color mb-4 flex w-full flex-row gap-8 border-b pb-4 md:mb-6 md:pb-6">
           <div class="flex flex-col gap-1 md:flex-row md:gap-8">
             <div>
               <p class="text-dark-grey text-12 font-medium">
@@ -280,6 +290,7 @@ import { DASHBOARD_ACTIONS } from "./types";
 import Modal from "@/common/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
 import SendReceiveDialog from "@/common/components/modals/SendReceiveDialog.vue";
+
 import SupplyWithdrawDialog from "@/common/components/modals/SupplyWithdrawDialog.vue";
 import LeaseDialog from "@/common/components/modals/LeaseDialog.vue";
 import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
@@ -287,8 +298,8 @@ import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 
-import { computed, onUnmounted, provide, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { computed, defineAsyncComponent, onUnmounted, provide, ref, watch } from "vue";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils, NolusClient } from "@nolus/nolusjs";
 import { useLeases } from "@/common/composables/useLeases";
@@ -303,9 +314,13 @@ import { DEFAULT_APR, IGNORE_TRANSFER_ASSETS, LPN_DECIMALS, NATIVE_ASSET, NATIVE
 import { CurrencyDemapping } from "@/config/currencies";
 import { Button, Table } from "web-components";
 
+const SendReceiveDialogV2 = defineAsyncComponent(() => import("@/common/components/modals/SendReceiveDialogV2.vue"));
+
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
   [DASHBOARD_ACTIONS.RECEIVE]: SendReceiveDialog,
+  [DASHBOARD_ACTIONS.SENDV2]: SendReceiveDialogV2,
+  [DASHBOARD_ACTIONS.RECEIVEV2]: SendReceiveDialogV2,
   [DASHBOARD_ACTIONS.SUPPLY]: SupplyWithdrawDialog,
   [DASHBOARD_ACTIONS.LEASE]: LeaseDialog
 };
@@ -318,9 +333,6 @@ const app = useApplicationStore();
 const admin = useAdminStore();
 
 const i18n = useI18n();
-
-console.log(oracle.prices);
-
 const isAssetsLoading = ref(wallet.balances.length == 0);
 const showSkeleton = ref(wallet.balances.length == 0);
 

@@ -1,4 +1,5 @@
 import nlsIcon from "@/assets/icons/coins/nls.svg";
+import { ChainType } from "@/common/types/Network";
 
 export const NATIVE_CURRENCY = {
   currency: "usd",
@@ -27,7 +28,8 @@ export const NATIVE_NETWORK = {
   leaseOpenEstimation: 2,
   leaseRepayEstimation: 1,
   key: "NOLUS",
-  symbol: "NLS"
+  symbol: "NLS",
+  chain_type: ChainType.cosmos
 };
 
 export const STAKING = {

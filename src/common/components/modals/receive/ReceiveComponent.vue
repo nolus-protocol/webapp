@@ -132,11 +132,18 @@ import CurrencyField from "@/common/components/CurrencyField.vue";
 import ConfirmExternalComponent from "@/common/components/modals/templates/ConfirmExternalComponent.vue";
 
 import type { AssetBalance } from "@/common/stores/wallet/types";
-import { CONFIRM_STEP, TxType, type Network, NetworkTypes, type ExternalCurrency } from "@/common/types";
+import {
+  CONFIRM_STEP,
+  TxType,
+  type Network,
+  NetworkTypes,
+  type ExternalCurrency,
+  type IObjectKeys
+} from "@/common/types";
 import { onUnmounted, ref, type PropType, inject, watch, computed, nextTick } from "vue";
 import { DocumentDuplicateIcon } from "@heroicons/vue/24/solid";
 import { useI18n } from "vue-i18n";
-import { AssetUtils, EnvNetworkUtils, Logger, WalletUtils } from "@/common/utils";
+import { AssetUtils, EnvNetworkUtils, Logger, SkipRouter, WalletUtils } from "@/common/utils";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { Wallet, BaseWallet } from "@/networks";
 import { coin, type Coin } from "@cosmjs/amino";
@@ -160,6 +167,7 @@ import {
   ProtocolsConfig
 } from "@/config/global";
 import { CurrencyDemapping, CurrencyMapping, SOURCE_PORTS } from "@/config/currencies";
+import { MetaMaskWallet } from "@/networks/metamask";
 
 export interface ReceiveComponentProps {
   currentBalance: AssetBalance[];
@@ -528,7 +536,7 @@ async function onSendClick() {
 function getSourceChannel() {
   const networkInfo = SUPPORTED_NETWORKS_DATA[selectedNetwork.value.key as keyof typeof SUPPORTED_NETWORKS_DATA];
 
-  if (networkInfo.forward) {
+  if ((networkInfo as Network).forward) {
     const [_ckey, protocol = AppUtils.getProtocols().osmosis]: string[] = selectedCurrency.value.ticker!.split("@");
 
     return AssetUtils.getChannelDataByProtocol(
@@ -587,7 +595,7 @@ async function ibcTransfer(baseWallet: BaseWallet) {
       timeOut: networkData.ibcTransferTimeout
     };
 
-    if (networkInfo.forward) {
+    if ((networkInfo as Network).forward) {
       const [_ckey, protocol = AppUtils.getProtocols().osmosis]: string[] = selectedCurrency.value.ticker!.split("@");
       const proxyAddress = wallet.value as string;
       const channel = AssetUtils.getSourceChannel(
