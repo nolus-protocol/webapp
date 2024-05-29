@@ -304,7 +304,6 @@ async function onUpdateNetwork(event: Network) {
     const promises = [];
     const filteredAssets: { [key: string]: ExternalCurrency } = {};
     const networkData = network?.supportedNetworks[selectedNetwork.value.key];
-    const c: any = [];
 
     for (const key in assets) {
       if (LPN_NETWORK.includes(selectedNetwork.value.key)) {
@@ -381,10 +380,7 @@ async function onUpdateNetwork(event: Network) {
         }
 
         const icon = app.assetIcons?.[`${ticker}@${protocol}`] as string;
-        c.push({
-          from: filteredAssets[key].ibcData,
-          to: ibc_route
-        });
+
         return {
           balance: coin(0, ibc_route),
           shortName: shortName,
@@ -393,14 +389,13 @@ async function onUpdateNetwork(event: Network) {
           icon: icon,
           decimal_digits: Number(filteredAssets[key].decimal_digits),
           symbol: filteredAssets[key].symbol,
-          native: filteredAssets[key].native,
-          from: filteredAssets[key].ibcData
+          native: filteredAssets[key].native
         };
       };
 
       currencies.push(fn());
     }
-    console.log(JSON.stringify(c));
+
     if ((props.modelValue?.dialogSelectedCurrency.length as number) > 0) {
       const [ckey]: string[] = props.modelValue!.dialogSelectedCurrency.split("@");
       const c = currencies.find((e) => e.ticker == ckey || e.ticker == props.modelValue!.dialogSelectedCurrency)!;

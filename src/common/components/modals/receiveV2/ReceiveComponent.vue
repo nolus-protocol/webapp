@@ -27,7 +27,6 @@
             :options="networks"
             :label="$t('message.network')"
             @update-selected="onUpdateNetwork"
-            :disable-input="true"
           />
         </div>
 
@@ -70,7 +69,6 @@
                 :label="$t('message.network')"
                 :value="selectedNetwork"
                 @update-selected="onUpdateNetwork"
-                :disable-input="true"
               />
               <button
                 v-if="selectedNetwork.chain_type == 'evm'"
