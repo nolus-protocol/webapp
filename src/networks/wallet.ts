@@ -1,3 +1,3 @@
 export interface Wallet {
-  address?: string;
+  address: string;
 }

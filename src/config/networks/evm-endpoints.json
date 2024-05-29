@@ -8,5 +8,15 @@
         "rpc": "https://cloudflare-eth.com"
       }
     ]
+  },
+  "BINANCE": {
+    "primary": {
+      "rpc": "https://bsc-dataseed2.binance.org"
+    },
+    "fallback": [
+      {
+        "rpc": "https://bsc-dataseed2.binance.org"
+      }
+    ]
   }
 }

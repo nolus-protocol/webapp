@@ -13,6 +13,7 @@
     :onSendClick="onSwap"
     :onBackClick="onConfirmBackClick"
     :onOkClick="() => closeModal()"
+    :warning="route?.warning?.message ?? ''"
   />
   <template v-else>
     <div
@@ -256,6 +257,9 @@ async function onUpdateNetwork(event: Network) {
       }
       case "evm": {
         setEvmNetwork();
+        if (client) {
+          connectEvm();
+        }
         break;
       }
     }
@@ -281,6 +285,7 @@ function handleAmountChange(event: string) {
 async function onSubmitCosmos() {
   try {
     isLoading.value = true;
+    amountErrorMsg.value = "";
     const isValid = validateAmount();
 
     if (isValid) {
@@ -291,9 +296,10 @@ async function onSubmitCosmos() {
       fee.value = coin(network.fees.transfer_amount, currency.ibcData);
       showConfirmScreen.value = true;
     }
-  } catch (error) {
-    step.value = CONFIRM_STEP.ERROR;
-    showConfirmScreen.value = true;
+  } catch (e: Error | any) {
+    amountErrorMsg.value = e.toString();
+    isLoading.value = false;
+    showConfirmScreen.value = false;
   } finally {
     isLoading.value = false;
   }
@@ -302,6 +308,7 @@ async function onSubmitCosmos() {
 async function onSubmitEvm() {
   try {
     isLoading.value = true;
+    amountErrorMsg.value = "";
     const isValid = validateAmount();
 
     if (isValid) {
@@ -310,9 +317,10 @@ async function onSubmitEvm() {
       fee.value = coin(network.fees.transfer, network.nativeCurrency.symbol);
       showConfirmScreen.value = true;
     }
-  } catch (error) {
-    step.value = CONFIRM_STEP.ERROR;
-    showConfirmScreen.value = true;
+  } catch (e: Error | any) {
+    amountErrorMsg.value = e.toString();
+    isLoading.value = false;
+    showConfirmScreen.value = false;
   } finally {
     isLoading.value = false;
   }
@@ -474,19 +482,15 @@ function validateAmount() {
 }
 
 async function onSendClick() {
-  try {
-    switch (selectedNetwork.value.chain_type) {
-      case "cosmos": {
-        onSubmitCosmos();
-        break;
-      }
-      case "evm": {
-        onSubmitEvm();
-        break;
-      }
+  switch (selectedNetwork.value.chain_type) {
+    case "cosmos": {
+      onSubmitCosmos();
+      break;
     }
-  } catch (error: Error | any) {
-    step.value = CONFIRM_STEP.ERROR;
+    case "evm": {
+      onSubmitEvm();
+      break;
+    }
   }
 }
 
@@ -494,11 +498,11 @@ async function onSwap() {
   try {
     switch (selectedNetwork.value.chain_type) {
       case "cosmos": {
-        onSwapCosmos();
+        await onSwapCosmos();
         break;
       }
       case "evm": {
-        onSwapEvm();
+        await onSwapEvm();
         break;
       }
     }
@@ -566,7 +570,7 @@ async function getWalletsCosmos(): Promise<{ [key: string]: BaseWallet }> {
 
   for (const chain of chains) {
     for (const key in SUPPORTED_NETWORKS_DATA) {
-      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chainName) {
+      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chainName.toLowerCase()) {
         chainToParse[key] = SUPPORTED_NETWORKS_DATA[key];
       }
     }
@@ -591,30 +595,25 @@ async function getWalletsCosmos(): Promise<{ [key: string]: BaseWallet }> {
 }
 
 async function getRoute() {
-  try {
-    let chaindId = await client.getChainId();
-    const transferAmount = Decimal.fromUserInput(amount.value, selectedCurrency.value!.decimal_digits as number);
+  let chaindId = await client.getChainId();
+  const transferAmount = Decimal.fromUserInput(amount.value, selectedCurrency.value!.decimal_digits as number);
 
-    switch (selectedNetwork.value.chain_type) {
-      case "evm": {
-        chaindId = Number(chaindId).toString();
-        break;
-      }
+  switch (selectedNetwork.value.chain_type) {
+    case "evm": {
+      chaindId = Number(chaindId).toString();
+      break;
     }
-
-    const route = await SkipRouter.getRoute(
-      selectedCurrency.value.balance.denom,
-      selectedCurrency.value.from!,
-      transferAmount.atomics,
-      false,
-      chaindId
-    );
-
-    return route;
-  } catch (e) {
-    Logger.error(e);
-    return null;
   }
+
+  const route = await SkipRouter.getRoute(
+    selectedCurrency.value.balance.denom,
+    selectedCurrency.value.from!,
+    transferAmount.atomics,
+    false,
+    chaindId
+  );
+
+  return route;
 }
 
 function onConfirmBackClick() {
@@ -672,7 +671,9 @@ async function connectEvm() {
     });
 
     evmAddress.value = client.shortAddress;
-    setEvmNetwork();
+    wallet.value = client.address;
+
+    await setEvmNetwork();
   } catch (error) {
     Logger.error(error);
   } finally {
@@ -692,12 +693,13 @@ async function onSwapEvm() {
     await SkipRouter.transactionMetamask(route!, wallets, async (tx: IObjectKeys, _wallet: BaseWallet) => {
       const element = {
         hash: tx.hash,
-        status: SwapStatus.pending
+        status: SwapStatus.success
       };
-      const index = txHashes.value.length;
       txHashes.value.push(element);
-      txHashes.value[index].status = SwapStatus.success;
     });
+
+    await walletStore.UPDATE_BALANCES();
+    step.value = CONFIRM_STEP.SUCCESS;
   } catch (error) {
     step.value = CONFIRM_STEP.ERROR;
     errorMsg.value = (error as Error).toString();
@@ -723,7 +725,7 @@ async function getWalletsEvm(): Promise<{ [key: string]: BaseWallet }> {
 
   for (const chain of chains) {
     for (const key in SUPPORTED_NETWORKS_DATA) {
-      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chainName) {
+      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chainName.toLowerCase()) {
         chainToParse[key] = SUPPORTED_NETWORKS_DATA[key];
       }
     }

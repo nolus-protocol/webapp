@@ -52,6 +52,7 @@ import { NETWORK as NOBLE_NETWORK } from "./list/noble/network";
 import { embedChainInfo as nobleChainInfo } from "./list/noble/contants";
 
 import { NETWORK as ETHEREUM_NETWORK } from "./list/ethereum/network";
+import { NETWORK as BINANCE_NETWORK } from "./list/binance/network";
 
 import { useApplicationStore } from "@/common/stores/application";
 import type { ExternalCurrencies, NetworkData } from "@/common/types";
@@ -252,6 +253,12 @@ export const SUPPORTED_NETWORKS_DATA: {
     value: "ethereum",
     native: false,
     chain_type: ChainType.evm
+  },
+  BINANCE: {
+    ...BINANCE_NETWORK,
+    value: "binance",
+    native: false,
+    chain_type: ChainType.evm
   }
 };
 
@@ -352,7 +359,8 @@ export const NETWORKS_DATA: {
       SUPPORTED_NETWORKS_DATA.INJECTIVE,
       SUPPORTED_NETWORKS_DATA.COMPOSABLE,
       SUPPORTED_NETWORKS_DATA.NOBLE,
-      SUPPORTED_NETWORKS_DATA.ETHEREUM
+      SUPPORTED_NETWORKS_DATA.ETHEREUM,
+      SUPPORTED_NETWORKS_DATA.BINANCE
     ],
     supportedNetworks: {
       OSMOSIS: {

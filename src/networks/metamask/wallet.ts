@@ -4,6 +4,8 @@ import { Contract, ethers, isAddress } from "ethers";
 import type { Wallet } from "../wallet";
 import type { IObjectKeys } from "@/common/types";
 
+const confirmations = 1;
+
 export class MetaMaskWallet implements Wallet {
   web3!: ethers.BrowserProvider;
   address!: string;
@@ -38,6 +40,13 @@ export class MetaMaskWallet implements Wallet {
 
   destroy() {
     this.web3.destroy();
+  }
+
+  async setApprove({ amount, spender, tokenContract }: { amount: string; spender: string; tokenContract: string }) {
+    const signer = await this.getSigner();
+    const contract = new ethers.Contract(tokenContract, ABI, signer);
+    const data = await contract.approve(spender, amount);
+    await this.web3.waitForTransaction(data.hash, confirmations);
   }
 
   async getChainId(rpc?: string) {

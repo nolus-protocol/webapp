@@ -8,7 +8,7 @@
       <ReceiveComponent />
     </template>
     <template #tab-2>
-      <!-- <SendMainComponent :dialogSelectedCurrency="props.dialogSelectedCurrency" /> -->
+      <SendMainComponent />
     </template>
   </DialogHeader>
 </template>

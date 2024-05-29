@@ -11,6 +11,7 @@ import type { IObjectKeys, SkipRouteConfigType } from "../types";
 import { AppUtils } from ".";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 import type { BaseWallet } from "@/networks";
+import type { MetaMaskWallet } from "@/networks/metamask";
 
 enum Messages {
   "/ibc.applications.transfer.v1.MsgTransfer" = "/ibc.applications.transfer.v1.MsgTransfer",
@@ -50,7 +51,8 @@ export class SkipRouter {
     destDenom: string,
     amount: string,
     revert: boolean = false,
-    sourceId?: string
+    sourceId?: string,
+    destSourceId?: string
   ) {
     const [client, config] = await Promise.all([SkipRouter.getClient(), AppUtils.getSkipRouteConfig()]);
 
@@ -58,10 +60,14 @@ export class SkipRouter {
       sourceAssetDenom: sourceDenom,
       sourceAssetChainID: sourceId ?? SkipRouter.chainID,
       destAssetDenom: destDenom,
-      destAssetChainID: SkipRouter.chainID,
-      allowMultiTx: false,
+      destAssetChainID: destSourceId ?? SkipRouter.chainID,
       cumulativeAffiliateFeeBPS: config.fee.toString(),
-      experimentalFeatures: ["cctp"]
+      allowMultiTx: true,
+      allowUnsafe: true,
+      experimentalFeatures: ["cctp"],
+      smartSwapOptions: {
+        splitRoutes: true
+      }
     };
 
     if (revert) {
@@ -180,9 +186,13 @@ export class SkipRouter {
         const wallet = wallets[(msg as IObjectKeys).chainID];
         const signer = await wallet.getSigner();
 
+        for (const t of msg.requiredERC20Approvals) {
+          await (wallet as any).setApprove(t);
+        }
+
         const txData = await (signer as IObjectKeys).sendTransaction({
           account: wallet.address,
-          to: msg.to as `0x${string}`,
+          to: msg.to as string,
           data: `0x${msg.data}`,
           value: msg.value === "" ? undefined : BigInt(msg.value)
         });
@@ -238,6 +248,6 @@ export class SkipRouter {
 
   static async getChains() {
     const client = await SkipRouter.getClient();
-    return client.chains({ includeEVM: false, includeSVM: false, includeTestnets: false });
+    return client.chains({ includeEVM: true, includeSVM: false, includeTestnets: false });
   }
 }

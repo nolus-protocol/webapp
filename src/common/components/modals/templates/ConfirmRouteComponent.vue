@@ -44,7 +44,7 @@
 
   <div
     v-if="isStepError"
-    class="modal-form"
+    class="modal-form overflow-auto"
   >
     <div class="radius-rounded mx-[24px] my-[24px] block break-words bg-light-grey p-[24px] text-center text-primary">
       {{ errorMsg }}
@@ -139,9 +139,7 @@
       </template>
       <template v-slot:content>
         <template v-if="isStepPending">
-          <span class="text-primary">
-            {{ $t("message.swap-sending", { tx: txs }) }}
-          </span>
+          <span class="text-primary"> {{ $t("message.swap-sending", { tx: txs }) }} </span>
         </template>
         <span
           v-else
@@ -152,7 +150,9 @@
             })
           "
         >
-        </span>
+        </span
+        >.
+        <span>&#160;{{ warning }} </span>
       </template>
     </WarningBox>
 
@@ -185,6 +185,7 @@ interface Props {
   amount: string;
   step: CONFIRM_STEP;
   errorMsg: string;
+  warning: string;
   fee: Coin;
   txs: number;
   network: EvmNetwork | Network;
