@@ -192,7 +192,7 @@
       ]
     },
     "DYMENSION": {
-      "currencies": [{ "from": "ibc/9C7F70E92CCBA0F2DC94796B0682955E090676EA7A2F8E0A4611956B79CB4406", "to": "uqatom" }]
+      "currencies": [{ "from": "ibc/9C7F70E92CCBA0F2DC94796B0682955E090676EA7A2F8E0A4611956B79CB4406", "to": "adym" }]
     },
     "EVMOS": {
       "currencies": [{ "from": "ibc/A59A9C955F1AB8B76671B00C1A0482C64A6590352944BB5880E5122358F7E1CE", "to": "aevmos" }]

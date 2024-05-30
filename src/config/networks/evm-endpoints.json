@@ -1,7 +1,7 @@
 {
   "ETHEREUM": {
     "primary": {
-      "rpc": "https://cloudflare-eth.com"
+      "rpc": "https://mainnet.infura.io/v3/"
     },
     "fallback": [
       {
@@ -11,7 +11,7 @@
   },
   "BINANCE": {
     "primary": {
-      "rpc": "https://bsc-dataseed2.binance.org"
+      "rpc": "https://bsc-dataseed.binance.org"
     },
     "fallback": [
       {
