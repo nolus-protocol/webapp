@@ -9,13 +9,13 @@
       }
     ]
   },
-  "BINANCE": {
+  "ARBITRUM": {
     "primary": {
-      "rpc": "https://bsc-dataseed.binance.org"
+      "rpc": "https://arb1.arbitrum.io/rpc"
     },
     "fallback": [
       {
-        "rpc": "https://bsc-dataseed2.binance.org"
+        "rpc": "https://arbitrum.llamarpc.com"
       }
     ]
   }
