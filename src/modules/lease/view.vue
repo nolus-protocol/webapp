@@ -29,14 +29,14 @@
       </div>
       <div
         v-if="leaseLoaded && leases.length == 0"
-        class="background border-standart shadow-box mt-5 h-[220px] px-1 outline md:px-0 lg:rounded-xl"
+        class="shadow-lease mt-5 h-[176px] border-[1px] border-border-color bg-neutral-bg-50 px-1 md:px-0 lg:rounded-xl"
       >
-        <div class="nls-12 text-dark-grey flex h-full flex-col items-center justify-center">
+        <div class="flex h-full flex-col items-center justify-center text-neutral-typography-50">
           <img
-            class="m-4 inline-block"
-            height="32"
-            src="/src/assets/icons/empty_lease.svg"
-            width="32"
+            class="mb-4 inline-block"
+            height="34"
+            src="/src/assets/icons/union.svg"
+            width="36"
           />
           <p class="text-center">
             {{ $t("message.empty-lease") }}

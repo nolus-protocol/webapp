@@ -2,7 +2,7 @@
   <div class="left w-full md:w-1/2">
     <div
       v-if="leasesData.length >= sortFailure"
-      class="sort disable background mt-4 inline-flex items-center justify-between gap-8 border-[1px] border-border-color p-3 px-[18px] shadow-field-normal lg:mt-0 lg:w-auto lg:rounded-lg"
+      class="sort disable mt-4 inline-flex items-center justify-between gap-8 border-[1px] border-border-color bg-neutral-bg-50 p-3 px-[18px] shadow-field-normal lg:mt-0 lg:w-auto lg:rounded-lg"
     >
       <span class="icon icon-sort !text-14"></span>
 
