@@ -234,17 +234,17 @@
         }
       ]
     },
-  "ARBITRUM": {
-    "currencies": [
-      {
-        "from": "ibc/7FBDBEEEBA9C50C4BCDF7BF438EAB99E64360833D240B32655C96E319559E911",
-        "to": "0xaf88d065e77c8cc2239327c5edb3a432268e5831"
-      },
-      {
-      "from": "ibc/076CF690A9912E0B7A2CCA75B719D68AF7C20E4B0B6460569B333DDEB19BBBA1",
-      "to": "0xaf88d065e77c8cc2239327c5edb3a432268e5831"
-      }
-    ]
-   }
+    "ARBITRUM": {
+      "currencies": [
+        {
+          "from": "ibc/7FBDBEEEBA9C50C4BCDF7BF438EAB99E64360833D240B32655C96E319559E911",
+          "to": "0xaf88d065e77c8cc2239327c5edb3a432268e5831"
+        },
+        {
+          "from": "ibc/076CF690A9912E0B7A2CCA75B719D68AF7C20E4B0B6460569B333DDEB19BBBA1",
+          "to": "0xaf88d065e77c8cc2239327c5edb3a432268e5831"
+        }
+      ]
+    }
   }
 }

@@ -52,6 +52,9 @@ export class MetaMaskWallet implements Wallet {
   async getChainId(rpc?: string) {
     const data = await fetch(this.rpc ?? rpc, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({ method: "eth_chainId", params: [], id: 1, jsonrpc: "2.0" })
     });
     const json = (await data.json()) as IObjectKeys;

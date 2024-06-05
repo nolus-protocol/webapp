@@ -317,6 +317,9 @@ export class AppUtils {
     try {
       const data = await fetch(rpc, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({ method: "eth_syncing", params: [], id: 1, jsonrpc: "2.0" })
       });
       const json = await data.json();

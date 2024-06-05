@@ -53,6 +53,7 @@ import { embedChainInfo as nobleChainInfo } from "./list/noble/contants";
 
 import { NETWORK as ETHEREUM_NETWORK } from "./list/ethereum/network";
 import { NETWORK as BINANCE_NETWORK } from "./list/binance/network";
+import { NETWORK as ARBITRUM_NETWORK } from "./list/arbitrum/network";
 
 import { useApplicationStore } from "@/common/stores/application";
 import type { ExternalCurrencies, NetworkData } from "@/common/types";
@@ -268,6 +269,12 @@ export const SUPPORTED_NETWORKS_DATA: {
     native: false,
     chain_type: ChainType.evm
   },
+  ARBITRUM: {
+    ...ARBITRUM_NETWORK,
+    value: "arbitrum",
+    native: false,
+    chain_type: ChainType.evm
+  },
   BINANCE: {
     ...BINANCE_NETWORK,
     value: "binance",
@@ -375,6 +382,7 @@ export const NETWORKS_DATA: {
       SUPPORTED_NETWORKS_DATA.NOBLE,
       // SUPPORTED_NETWORKS_DATA.CUDOS
       SUPPORTED_NETWORKS_DATA.ETHEREUM,
+      SUPPORTED_NETWORKS_DATA.ARBITRUM,
       SUPPORTED_NETWORKS_DATA.BINANCE
     ],
     supportedNetworks: {
