@@ -1,15 +1,15 @@
 <template>
   <LineWithLine
-    class="max-h-[150px]"
-    :data="chartData"
     :id="chartId"
-    :options="defaultOptions"
+    ref="chartElement"
     :css-classes="cssClasses"
+    :data="chartData"
     :height="height"
+    :options="defaultOptions"
     :plugins="plugins"
     :styles="styles"
     :width="width"
-    ref="chartElement"
+    class="max-h-[100px]"
   />
 </template>
 
@@ -19,21 +19,21 @@ import { createTypedChart } from "vue-chartjs";
 import {
   CategoryScale,
   Chart as ChartJS,
+  type ChartData,
   Legend,
   LinearScale,
-  TimeScale,
   LineController,
   LineElement,
-  PointElement,
-  Title,
-  Tooltip,
   type Plugin,
-  type ChartData,
-  type Point
+  type Point,
+  PointElement,
+  TimeScale,
+  Title,
+  Tooltip
 } from "chart.js";
 
 import { defaultOptions } from "./options";
-import { ref, type PropType } from "vue";
+import { type PropType, ref } from "vue";
 
 ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, TimeScale);
 

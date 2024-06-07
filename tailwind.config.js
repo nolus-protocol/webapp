@@ -2,7 +2,6 @@
 export default {
   presets: [require("web-components/dist/tailwind.config.js")],
   content: ["./index.html", "./src/**/*.{vue,js,ts,jsx,tsx}"],
-  darkMode: "class",
   theme: {
     extend: {
       colors: {

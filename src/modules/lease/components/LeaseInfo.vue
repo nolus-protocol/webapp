@@ -1,45 +1,55 @@
 <template>
-  <!-- Leases -->
-  <div
+  <!-- OPENED -->
+  <LeaseNew
     v-if="TEMPLATES.opened == status"
-    class="background border-standart shadow-box radius-medium radius-0-sm mt-6 pb-5 outline"
+    class="mt-6"
+    v-bind="leaseOpened"
+    @on-repay="showRepayModal = true"
+    @on-close="showCloseModal = true"
+    @on-share="onShare"
   >
-    <div class="grid grid-cols-1 lg:grid-cols-8">
-      <div class="border-standart border-b px-2 pb-5 pt-5 md:px-6 lg:col-span-3 lg:border-b-0 lg:border-r">
-        <div
-          v-if="leaseInfo.leaseData"
-          class="pnl-container flex-1"
-        >
-          <div
-            :class="[pnl.status ? 'success' : 'alert']"
-            class="pnl nls-font-500 mr-2 flex cursor-pointer items-center whitespace-pre text-12"
-            @click="pnlType = !pnlType"
-          >
-            <template v-if="pnl.status">
-              <ArrowUp />
-            </template>
-            <template v-else>
-              <ArrowDown />
-            </template>
-            &nbsp;{{ pnl.status ? "+" : "" }}<template v-if="!pnlType">{{ pnl.amount }}</template
-            ><template v-else>{{ pnl.percent }}%</template>
-          </div>
-          <button
-            class="btn btn-secondary btn-medium-secondary btn-icon icon-share share flex text-primary"
-            @click="onShare"
-          ></button>
-          <div
-            v-if="isFreeInterest"
-            class="interest-free nls-font-500 mr-2 flex cursor-pointer items-center whitespace-pre text-12"
-          >
-            {{ $t("message.free-interest") }}
-            <TooltipComponent
-              :content="$t('message.free-interest-tooltip')"
-              class="!text-[#fff]"
-            />
-          </div>
+    <template #tab-0>
+      <div class="flex items-center justify-between">
+        <div class="text-12 font-medium text-neutral-400">
+          {{ $t("message.chart") }}
         </div>
-        <div class="my-4 flex">
+        <div class="flex gap-2">
+          <CurrencyComponent
+            :amount="currentPrice"
+            :decimals="4"
+            :font-size="20"
+            :font-size-small="14"
+            :hasSpace="false"
+            :isDenomInfront="true"
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            denom="$"
+          />
+          <Dropdown
+            :on-select="
+              (data) => {
+                chartTimeRange = data;
+                loadCharts();
+              }
+            "
+            :options="options"
+            class="h-[28px] w-[72px]"
+          />
+        </div>
+      </div>
+      <div class="relaltive flex">
+        <div class="relative hidden w-full md:block">
+          <div v-if="leaseInfo.leaseData"></div>
+          <PriceHistoryChart
+            :chartData="chartData"
+            class="max-h-[100px]"
+          />
+        </div>
+      </div>
+    </template>
+    <template #tab-1>
+      <div class="flex h-full flex-col justify-between">
+        <div class="text-12 font-medium text-neutral-400">{{ $t("message.lease-size") }}</div>
+        <div class="flex">
           <img
             :src="getAssetIcon"
             class="m-0 mr-3 inline-block"
@@ -60,267 +70,22 @@
             <span class="nls-font-400 ml-1 inline-block text-20 uppercase text-primary"> </span>
           </h1>
         </div>
-        <div class="flex flex-wrap whitespace-nowrap text-10 uppercase">
+        <div class="flex flex-wrap gap-2 whitespace-nowrap text-10 font-medium uppercase text-medium-blue">
           <span
             v-if="leaseInfo.leaseData?.downPayment"
-            class="data-label-info garet-medium m-1.5 mb-0 ml-0 rounded p-1 text-medium-blue"
+            class="data-label-info rounded p-1"
           >
             {{ $t("message.down-payment") }}: ${{ downPayment }}
           </span>
 
           <span
             v-if="leaseInfo.leaseData?.price"
-            class="data-label-info garet-medium m-1.5 mb-0 ml-0 rounded p-1 text-medium-blue"
+            class="data-label-info rounded p-1"
           >
             {{ `${$t("message.price-per")} ${asset!.shortName}:` }} ${{ leaseInfo.leaseData?.price.toString(4) }}
           </span>
-          <span class="data-label-info garet-medium m-1.5 mb-0 ml-0 rounded p-1 text-medium-blue">
-            {{ $t("message.liq-trigger") }}: {{ liquidation }}
-          </span>
+          <span class="data-label-info rounded p-1"> {{ $t("message.liq-trigger") }}: {{ liquidation }} </span>
         </div>
-      </div>
-      <div class="relative hidden px-2 pb-3 pt-3 md:block md:px-6 md:pb-0 md:pt-5 lg:col-span-5">
-        <!-- Graph -->
-        <div class="flex justify-between">
-          <div>
-            <span class="text-dark-grey">
-              {{ $t("message.price") }}
-            </span>
-            <p class="text-primary">
-              <b>
-                <CurrencyComponent
-                  :amount="currentPrice"
-                  :decimals="4"
-                  :font-size="20"
-                  :font-size-small="14"
-                  :hasSpace="false"
-                  :isDenomInfront="true"
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  denom="$"
-                />
-              </b>
-            </p>
-          </div>
-          <div class="flex h-6 text-10">
-            <button
-              v-for="(value, index) in CHART_RANGES"
-              :key="index"
-              :class="`${value.label === chartTimeRange.label ? 'border-1 border-light-electric bg-[#0ea5e9]/10' : ''}`"
-              class="chart-dates ml-2 w-10 justify-center rounded border"
-              @click="
-                chartTimeRange = value;
-                loadCharts();
-              "
-            >
-              {{ value.label }}
-            </button>
-          </div>
-        </div>
-        <div class="relaltive flex">
-          <div class="relative hidden w-full md:block">
-            <div v-if="leaseInfo.leaseData"></div>
-            <PriceHistoryChart :chartData="chartData" />
-          </div>
-        </div>
-      </div>
-    </div>
-    <div
-      class="border-standart flex flex-col items-center justify-between border-t-[0px] px-2 pt-4 md:flex-row md:border-t-[1px] md:px-6"
-    >
-      <div class="flex w-full justify-around lg:w-auto">
-        <div class="block">
-          <p class="text-detail data-text m-0 flex items-center text-primary">
-            {{ $t("message.outstanding-loan") }}
-            <TooltipComponent :content="$t('message.outstanding-debt-tooltip')" />
-          </p>
-          <p class="nls-font-400 m-0 mt-1 text-20 text-primary">
-            <span
-              v-if="openedSubState"
-              class="state-loading"
-            >
-            </span>
-            <CurrencyComponent
-              v-else
-              :amount="leaseInfo.debt.toString()"
-              :decimals="4"
-              :font-size="20"
-              :font-size-small="14"
-              :hasSpace="false"
-              :isDenomInfront="true"
-              :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              class="garet-medium"
-              denom="$"
-            />
-          </p>
-        </div>
-        <div class="ml-8 block">
-          <p class="text-detail data-text m-0 flex items-center text-primary">
-            {{ $t("message.interest-fee") }}
-            <TooltipComponent :content="$t('message.interest-fee-tooltip')" />
-          </p>
-          <p
-            :class="{ 'line-throught': isFreeInterest }"
-            class="nls-font-400 m-0 mt-1 text-20 text-primary"
-          >
-            <CurrencyComponent
-              :amount="interest"
-              :decimals="2"
-              :font-size="20"
-              :font-size-small="14"
-              :hasSpace="false"
-              :isDenomInfront="false"
-              :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              class="garet-medium"
-              denom="%"
-            />
-          </p>
-        </div>
-        <div class="ml-8 block">
-          <p class="text-detail data-text m-0 flex items-center text-primary">
-            {{ $t("message.interest-due") }}
-            <TooltipComponent :content="$t('message.repay-interest', { dueDate: interestDueDate })" />
-          </p>
-          <p class="nls-font-400 m-0 flex items-baseline text-20 text-primary">
-            <span
-              v-if="openedSubState"
-              class="state-loading"
-            >
-            </span>
-            <CurrencyComponent
-              v-else
-              :amount="interestDue"
-              :class="{ 'text-yellow': interestDueStatus }"
-              :decimals="4"
-              :font-size="20"
-              :font-size-small="14"
-              :hasSpace="false"
-              :isDenomInfront="true"
-              :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              class="garet-medium mt-1"
-              denom="$"
-            />
-            <TooltipComponent
-              v-if="interestDueStatus && !openedSubState"
-              :content="$t('message.repay-interest', { dueDate: interestDueDate })"
-              class="text-yellow"
-            />
-          </p>
-        </div>
-      </div>
-      <div class="flex w-full md:block md:w-auto">
-        <button
-          v-if="leaseInfo.leaseStatus.opened"
-          :class="{ 'js-loading': loadingRepay }"
-          :disabled="openedSubState"
-          class="btn btn-secondary btn-large-secondary mt-4 w-full md:mt-0 md:w-auto"
-          @click="showRepayModal = true"
-        >
-          {{ $t("message.repay") }}
-        </button>
-        <button
-          v-if="leaseInfo.leaseStatus.opened"
-          :class="{ 'js-loading': loadingClose }"
-          :disabled="openedSubState"
-          class="btn btn-primary btn-large-primary ml-[12px] mt-4 w-full md:mt-0 md:w-auto"
-          @click="showCloseModal = true"
-        >
-          {{ $t("message.close") }}
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <LeaseNew
-    v-if="TEMPLATES.opened == status"
-    class="mt-6"
-    v-bind="leaseOpened"
-    @on-share="onShare"
-  >
-    <template #chart>
-      <div class="flex justify-between">
-        <div>
-          <span class="text-dark-grey">
-            {{ $t("message.price") }}
-          </span>
-          <p class="text-primary">
-            <b>
-              <CurrencyComponent
-                :amount="currentPrice"
-                :decimals="4"
-                :font-size="20"
-                :font-size-small="14"
-                :hasSpace="false"
-                :isDenomInfront="true"
-                :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                denom="$"
-              />
-            </b>
-          </p>
-        </div>
-        <div class="flex h-6 text-10">
-          <button
-            v-for="(value, index) in CHART_RANGES"
-            :key="index"
-            :class="`${value.label === chartTimeRange.label ? 'border-1 border-light-electric bg-[#0ea5e9]/10' : ''}`"
-            class="chart-dates ml-2 w-10 justify-center rounded border"
-            @click="
-              chartTimeRange = value;
-              loadCharts();
-            "
-          >
-            {{ value.label }}
-          </button>
-        </div>
-      </div>
-      <div class="relaltive flex">
-        <div class="relative hidden w-full md:block">
-          <div v-if="leaseInfo.leaseData"></div>
-          <PriceHistoryChart
-            :chartData="chartData"
-            class="max-h-[100px]"
-          />
-        </div>
-      </div>
-    </template>
-    <template #size>
-      <div class="my-4 flex">
-        <img
-          :src="getAssetIcon"
-          class="m-0 mr-3 inline-block"
-          height="36"
-          width="36"
-          @dblclick="copy"
-        />
-        <h1 class="nls-font-700 text-28 text-primary md:text-28">
-          <CurrencyComponent
-            :amount="amount"
-            :decimals="asset?.decimal_digits"
-            :denom="asset!.shortName"
-            :font-size="22"
-            :maxDecimals="6"
-            :minimalDenom="asset!.ibcData"
-            :type="CURRENCY_VIEW_TYPES.TOKEN"
-          />
-          <span class="nls-font-400 ml-1 inline-block text-20 uppercase text-primary"> </span>
-        </h1>
-      </div>
-      <div class="flex flex-wrap whitespace-nowrap text-10 uppercase">
-        <span
-          v-if="leaseInfo.leaseData?.downPayment"
-          class="data-label-info garet-medium m-1.5 mb-0 ml-0 rounded p-1 text-medium-blue"
-        >
-          {{ $t("message.down-payment") }}: ${{ downPayment }}
-        </span>
-
-        <span
-          v-if="leaseInfo.leaseData?.price"
-          class="data-label-info garet-medium m-1.5 mb-0 ml-0 rounded p-1 text-medium-blue"
-        >
-          {{ `${$t("message.price-per")} ${asset!.shortName}:` }} ${{ leaseInfo.leaseData?.price.toString(4) }}
-        </span>
-        <span class="data-label-info garet-medium m-1.5 mb-0 ml-0 rounded p-1 text-medium-blue">
-          {{ $t("message.liq-trigger") }}: {{ liquidation }}
-        </span>
       </div>
     </template>
     <template #debt-1>
@@ -350,534 +115,124 @@
       />
     </template>
     <template #interest-1>
-      <CurrencyComponent
-        :amount="interestDue"
-        :class="{ 'text-yellow': interestDueStatus }"
-        :decimals="4"
-        :font-size="20"
-        :font-size-small="14"
-        :hasSpace="false"
-        :isDenomInfront="true"
-        :type="CURRENCY_VIEW_TYPES.CURRENCY"
-        class="garet-medium mt-1"
-        denom="$"
-      />
+      <div class="flex items-center">
+        <div>
+          <CurrencyComponent
+            :amount="interestDue"
+            :class="{ 'text-yellow': interestDueStatus }"
+            :decimals="4"
+            :font-size="20"
+            :font-size-small="14"
+            :hasSpace="false"
+            :isDenomInfront="true"
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            class="garet-medium mt-1"
+            denom="$"
+          />
+        </div>
+        <TooltipComponent
+          v-if="interestDueStatus && !openedSubState"
+          :content="$t('message.repay-interest', { dueDate: interestDueDate })"
+          class="text-yellow"
+        />
+      </div>
     </template>
   </LeaseNew>
 
+  <!-- OPENING -->
+  <LeaseNew
+    v-if="TEMPLATES.opening == status"
+    class="mt-6"
+    v-bind="leaseOpening"
+  >
+    <template #tab-0>
+      <div class="flex items-center justify-between">
+        <div class="text-12 font-medium text-neutral-400">
+          {{ $t("message.chart") }}
+        </div>
+        <div class="flex gap-2">
+          <CurrencyComponent
+            :amount="currentPrice"
+            :decimals="4"
+            :font-size="20"
+            :font-size-small="14"
+            :hasSpace="false"
+            :isDenomInfront="true"
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            denom="$"
+          />
+          <Dropdown
+            :on-select="
+              (data) => {
+                chartTimeRange = data;
+                loadCharts();
+              }
+            "
+            :options="options"
+            class="h-[28px] w-[72px]"
+          />
+        </div>
+      </div>
+      <div class="relaltive flex">
+        <div class="relative hidden w-full md:block">
+          <Chart :chartData="chartData" />
+        </div>
+      </div>
+    </template>
+  </LeaseNew>
+
+  <!-- PAID -->
   <LeaseNew
     v-if="TEMPLATES.paid == status"
     class="mt-6"
-    v-bind="leaseOpened"
+    v-bind="leasePaid"
     @on-share="onShare"
+    @on-collect="onShowClaimDialog"
   >
-    <template #chart>
-      <div class="flex justify-between">
-        <div>
-          <span class="text-dark-grey">
-            {{ $t("message.price") }}
-          </span>
-          <p class="text-primary">
-            <b>
-              <CurrencyComponent
-                :amount="currentPrice"
-                :decimals="4"
-                :font-size="20"
-                :font-size-small="14"
-                :hasSpace="false"
-                :isDenomInfront="true"
-                :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                denom="$"
-              />
-            </b>
-          </p>
-        </div>
-        <div class="flex h-6 text-10">
-          <button
-            v-for="(value, index) in CHART_RANGES"
-            :key="index"
-            :class="`${value.label === chartTimeRange.label ? 'border-1 border-light-electric bg-[#0ea5e9]/10' : ''}`"
-            class="chart-dates ml-2 w-10 justify-center rounded border"
-            @click="
-              chartTimeRange = value;
-              loadCharts();
-            "
-          >
-            {{ value.label }}
-          </button>
-        </div>
-      </div>
-      <div class="relaltive flex">
-        <div class="relative hidden w-full md:block">
-          <div v-if="leaseInfo.leaseData"></div>
-          <PriceHistoryChart
-            :chartData="chartData"
-            class="max-h-[100px]"
+    <template #tab-1>
+      <div class="flex h-full flex-col justify-between">
+        <div class="text-12 font-medium text-neutral-400">{{ $t("message.lease-size") }}</div>
+        <div class="flex">
+          <img
+            :src="getAssetIcon"
+            class="m-0 mr-3 inline-block"
+            height="36"
+            width="36"
+            @dblclick="copy"
           />
-        </div>
-      </div>
-    </template>
-    <template #size>
-      <div class="my-4 flex">
-        <img
-          :src="getAssetIcon"
-          class="m-0 mr-3 inline-block"
-          height="36"
-          width="36"
-          @dblclick="copy"
-        />
-        <h1 class="nls-font-700 text-28 text-primary md:text-28">
-          <CurrencyComponent
-            :amount="amount"
-            :decimals="asset?.decimal_digits"
-            :denom="asset!.shortName"
-            :font-size="22"
-            :maxDecimals="6"
-            :minimalDenom="asset!.ibcData"
-            :type="CURRENCY_VIEW_TYPES.TOKEN"
-          />
-          <span class="nls-font-400 ml-1 inline-block text-20 uppercase text-primary"> </span>
-        </h1>
-      </div>
-      <div class="flex flex-wrap whitespace-nowrap text-10 uppercase">
-        <span
-          v-if="leaseInfo.leaseData?.downPayment"
-          class="data-label-info garet-medium m-1.5 mb-0 ml-0 rounded p-1 text-medium-blue"
-        >
-          {{ $t("message.down-payment") }}: ${{ downPayment }}
-        </span>
-
-        <span
-          v-if="leaseInfo.leaseData?.price"
-          class="data-label-info garet-medium m-1.5 mb-0 ml-0 rounded p-1 text-medium-blue"
-        >
-          {{ `${$t("message.price-per")} ${asset!.shortName}:` }} ${{ leaseInfo.leaseData?.price.toString(4) }}
-        </span>
-        <span class="data-label-info garet-medium m-1.5 mb-0 ml-0 rounded p-1 text-medium-blue">
-          {{ $t("message.liq-trigger") }}: {{ liquidation }}
-        </span>
-      </div>
-    </template>
-    <template #debt-1>
-      <CurrencyComponent
-        :amount="leaseInfo.debt.toString()"
-        :decimals="4"
-        :font-size="20"
-        :font-size-small="14"
-        :hasSpace="false"
-        :isDenomInfront="true"
-        :type="CURRENCY_VIEW_TYPES.CURRENCY"
-        class="garet-medium"
-        denom="$"
-      />
-    </template>
-    <template #interest-0>
-      <CurrencyComponent
-        :amount="interest"
-        :decimals="2"
-        :font-size="20"
-        :font-size-small="14"
-        :hasSpace="false"
-        :isDenomInfront="false"
-        :type="CURRENCY_VIEW_TYPES.CURRENCY"
-        class="garet-medium"
-        denom="%"
-      />
-    </template>
-    <template #interest-1>
-      <CurrencyComponent
-        :amount="interestDue"
-        :class="{ 'text-yellow': interestDueStatus }"
-        :decimals="4"
-        :font-size="20"
-        :font-size-small="14"
-        :hasSpace="false"
-        :isDenomInfront="true"
-        :type="CURRENCY_VIEW_TYPES.CURRENCY"
-        class="garet-medium mt-1"
-        denom="$"
-      />
-    </template>
-  </LeaseNew>
-
-  <LeaseNew
-    v-if="TEMPLATES.opening == status"
-    class="mt-6"
-    v-bind="leaseOpened"
-    @on-share="onShare"
-  >
-    <template #chart>
-      <div class="flex justify-between">
-        <div>
-          <span class="text-dark-grey">
-            {{ $t("message.price") }}
-          </span>
-          <p class="text-primary">
-            <b>
-              <CurrencyComponent
-                :amount="currentPrice"
-                :decimals="4"
-                :font-size="20"
-                :font-size-small="14"
-                :hasSpace="false"
-                :isDenomInfront="true"
-                :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                denom="$"
-              />
-            </b>
-          </p>
-        </div>
-        <div class="flex h-6 text-10">
-          <button
-            v-for="(value, index) in CHART_RANGES"
-            :key="index"
-            :class="`${value.label === chartTimeRange.label ? 'border-1 border-light-electric bg-[#0ea5e9]/10' : ''}`"
-            class="chart-dates ml-2 w-10 justify-center rounded border"
-            @click="
-              chartTimeRange = value;
-              loadCharts();
-            "
-          >
-            {{ value.label }}
-          </button>
-        </div>
-      </div>
-      <div class="relaltive flex">
-        <div class="relative hidden w-full md:block">
-          <div v-if="leaseInfo.leaseData"></div>
-          <PriceHistoryChart
-            :chartData="chartData"
-            class="max-h-[100px]"
-          />
-        </div>
-      </div>
-    </template>
-    <template #size>
-      <div class="my-4 flex">
-        <img
-          :src="getAssetIcon"
-          class="m-0 mr-3 inline-block"
-          height="36"
-          width="36"
-          @dblclick="copy"
-        />
-        <h1 class="nls-font-700 text-28 text-primary md:text-28">
-          <CurrencyComponent
-            :amount="amount"
-            :decimals="asset?.decimal_digits"
-            :denom="asset!.shortName"
-            :font-size="22"
-            :maxDecimals="6"
-            :minimalDenom="asset!.ibcData"
-            :type="CURRENCY_VIEW_TYPES.TOKEN"
-          />
-          <span class="nls-font-400 ml-1 inline-block text-20 uppercase text-primary"> </span>
-        </h1>
-      </div>
-      <div class="flex flex-wrap whitespace-nowrap text-10 uppercase">
-        <span
-          v-if="leaseInfo.leaseData?.downPayment"
-          class="data-label-info garet-medium m-1.5 mb-0 ml-0 rounded p-1 text-medium-blue"
-        >
-          {{ $t("message.down-payment") }}: ${{ downPayment }}
-        </span>
-
-        <span
-          v-if="leaseInfo.leaseData?.price"
-          class="data-label-info garet-medium m-1.5 mb-0 ml-0 rounded p-1 text-medium-blue"
-        >
-          {{ `${$t("message.price-per")} ${asset!.shortName}:` }} ${{ leaseInfo.leaseData?.price.toString(4) }}
-        </span>
-        <span class="data-label-info garet-medium m-1.5 mb-0 ml-0 rounded p-1 text-medium-blue">
-          {{ $t("message.liq-trigger") }}: {{ liquidation }}
-        </span>
-      </div>
-    </template>
-    <template #debt-1>
-      <CurrencyComponent
-        :amount="leaseInfo.debt.toString()"
-        :decimals="4"
-        :font-size="20"
-        :font-size-small="14"
-        :hasSpace="false"
-        :isDenomInfront="true"
-        :type="CURRENCY_VIEW_TYPES.CURRENCY"
-        class="garet-medium"
-        denom="$"
-      />
-    </template>
-    <template #interest-0>
-      <CurrencyComponent
-        :amount="interest"
-        :decimals="2"
-        :font-size="20"
-        :font-size-small="14"
-        :hasSpace="false"
-        :isDenomInfront="false"
-        :type="CURRENCY_VIEW_TYPES.CURRENCY"
-        class="garet-medium"
-        denom="%"
-      />
-    </template>
-    <template #interest-1>
-      <CurrencyComponent
-        :amount="interestDue"
-        :class="{ 'text-yellow': interestDueStatus }"
-        :decimals="4"
-        :font-size="20"
-        :font-size-small="14"
-        :hasSpace="false"
-        :isDenomInfront="true"
-        :type="CURRENCY_VIEW_TYPES.CURRENCY"
-        class="garet-medium mt-1"
-        denom="$"
-      />
-    </template>
-  </LeaseNew>
-
-  <div
-    v-if="TEMPLATES.opening == status"
-    class="background border-standart shadow-box mt-6 outline lg:rounded-xl"
-  >
-    <div class="grid grid-cols-1 lg:grid-cols-8">
-      <div
-        class="border-standart flex flex-col justify-between border-b p-4 lg:col-span-3 lg:border-b-0 lg:border-r lg:p-6"
-      >
-        <div
-          v-if="leaseInfo.leaseData"
-          class="pnl-container"
-        >
-          <div class="pnl nls-font-500 grey mr-2 whitespace-pre text-12">{{ $t("message.pnl") }} $0.00</div>
-        </div>
-        <div class="flex flex-col">
           <h1 class="nls-font-700 text-28 text-primary md:text-28">
-            {{ $t("message.opening") }}
+            <CurrencyComponent
+              :amount="amount"
+              :decimals="asset?.decimal_digits"
+              :denom="asset!.shortName"
+              :font-size="22"
+              :maxDecimals="6"
+              :minimalDenom="asset!.ibcData"
+              :type="CURRENCY_VIEW_TYPES.TOKEN"
+            />
+            <span class="nls-font-400 ml-1 inline-block text-20 uppercase text-primary"> </span>
           </h1>
         </div>
-        <div class="relative">
-          <div class="state flex pt-4 md:pt-0">
-            <div class="status state-background relative cursor-pointer">
-              <div class="state-status garet-medium">
-                {{ $t("message.opening-channel") }}
-              </div>
-              <OpenChannel
-                :class="openingSubState?.channel"
-                :height="16"
-                :width="16"
-              />
-            </div>
-            <div class="status relative mx-4 cursor-pointer">
-              <div class="state-status garet-medium">
-                {{ $t("message.transferring-assets") }}
-              </div>
-              <Transfer
-                :class="openingSubState?.transfer"
-                :height="16"
-                :width="16"
-              />
-            </div>
-            <div class="status relative cursor-pointer">
-              <div class="state-status garet-medium">
-                {{ $t("message.swapping-assets") }}
-              </div>
-              <Swap
-                :class="openingSubState?.swap"
-                :height="16"
-                :width="16"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="relative hidden px-2 pb-3 pt-3 md:block md:px-6 md:pb-5 md:pt-5 lg:col-span-5">
-        <!-- Graph -->
-
-        <div class="flex justify-between">
-          <div>
-            <span class="text-dark-grey">
-              {{ $t("message.price") }}
-            </span>
-            <p class="text-primary">
-              <b>
-                <CurrencyComponent
-                  :amount="currentPrice"
-                  :font-size="20"
-                  :font-size-small="14"
-                  :hasSpace="false"
-                  :isDenomInfront="true"
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  denom="$"
-                />
-              </b>
-            </p>
-          </div>
-          <div class="flex h-6 text-10">
-            <button
-              v-for="(value, index) in CHART_RANGES"
-              :key="index"
-              :class="`${value.label === chartTimeRange.label ? 'border-1 border-light-electric bg-[#0ea5e9]/10' : ''}`"
-              class="chart-dates ml-2 w-10 justify-center rounded border"
-              @click="
-                chartTimeRange = value;
-                loadCharts();
-              "
-            >
-              {{ value.label }}
-            </button>
-          </div>
-        </div>
-        <div class="relaltive flex">
-          <div class="relative hidden w-full md:block">
-            <Chart :chartData="chartData" />
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div
-    v-if="TEMPLATES.paid == status"
-    class="background border-standart shadow-box radius-medium radius-0-sm mt-6 pb-5 outline"
-  >
-    <div class="grid grid-cols-1 lg:grid-cols-8">
-      <div class="border-standart border-b px-6 pb-5 pt-5 lg:col-span-3 lg:border-b-0 lg:border-r">
-        <div
-          v-if="leaseInfo.leaseData"
-          class="pnl-container"
-        >
-          <div
-            :class="[pnl.status ? 'success' : 'alert']"
-            class="pnl nls-font-500 mr-2 flex cursor-pointer items-center whitespace-pre text-12"
-            @click="pnlType = !pnlType"
+        <div class="flex flex-wrap gap-2 whitespace-nowrap text-10 font-medium uppercase text-medium-blue">
+          <span
+            v-if="leaseInfo.leaseData?.downPayment"
+            class="data-label-info rounded p-1"
           >
-            <template v-if="pnl.status">
-              <ArrowUp />
-            </template>
-            <template v-else>
-              <ArrowDown />
-            </template>
-            &nbsp;{{ pnl.status ? "+" : "" }}<template v-if="!pnlType">{{ pnl.amount }}</template
-            ><template v-else>{{ pnl.percent }}%</template>
-          </div>
-          <button
-            class="btn btn-secondary btn-medium-secondary btn-icon icon-share share flex text-primary"
-            @click="onShare"
-          ></button>
-          <div
-            v-if="isFreeInterest"
-            class="interest-free nls-font-500 mr-2 flex cursor-pointer items-center whitespace-pre text-12"
-          >
-            {{ $t("message.free-interest") }}
-            <TooltipComponent
-              :content="$t('message.free-interest-tooltip')"
-              class="!text-[#fff]"
-            />
-          </div>
-        </div>
+            {{ $t("message.down-payment") }}: ${{ downPayment }}
+          </span>
 
-        <div class="my-4 flex flex-col">
-          <div class="flex">
-            <img
-              :src="getAssetIcon"
-              class="m-0 mr-3 inline-block"
-              height="36"
-              width="36"
-              @dblclick="copy"
-            />
-            <h1 class="nls-font-700 text-28 text-primary md:text-28">
-              <CurrencyComponent
-                :amount="amount"
-                :decimals="asset?.decimal_digits"
-                :denom="asset!.shortName"
-                :font-size="22"
-                :maxDecimals="6"
-                :minimalDenom="asset!.ibcData"
-                :type="CURRENCY_VIEW_TYPES.TOKEN"
-              />
-              <span class="nls-font-400 ml-1 inline-block text-20 uppercase text-primary"> </span>
-            </h1>
-          </div>
-          <div
-            v-for="b of leaseInfo.balances"
-            :key="b.icon"
-            class="mt-[12px] flex"
+          <span
+            v-if="leaseInfo.leaseData?.price"
+            class="data-label-info rounded p-1"
           >
-            <img
-              :src="b.icon"
-              class="m-0 mr-3 inline-block"
-              height="36"
-              width="36"
-            />
-            <h1 class="nls-font-700 text-28 text-primary md:text-28">
-              <CurrencyComponent
-                :amount="b.amount"
-                :decimals="Number(b.decimals)"
-                :denom="b.shortName"
-                :font-size="22"
-                :maxDecimals="6"
-                :type="CURRENCY_VIEW_TYPES.TOKEN"
-              />
-              <span class="nls-font-400 ml-1 inline-block text-20 uppercase text-primary"> </span>
-            </h1>
-          </div>
+            {{ `${$t("message.price-per")} ${asset!.shortName}:` }} ${{ leaseInfo.leaseData?.price.toString(4) }}
+          </span>
+          <span class="data-label-info rounded p-1"> {{ $t("message.liq-trigger") }}: {{ liquidation }} </span>
         </div>
       </div>
-      <div class="relative hidden px-2 pb-3 pt-3 md:block md:px-6 md:pb-0 md:pt-5 lg:col-span-5">
-        <!-- Graph -->
-        <div class="flex justify-between">
-          <div>
-            <span class="text-dark-grey">
-              {{ $t("message.price") }}
-            </span>
-            <p class="text-primary">
-              <b>
-                <CurrencyComponent
-                  :amount="currentPrice"
-                  :font-size="20"
-                  :font-size-small="14"
-                  :hasSpace="false"
-                  :isDenomInfront="true"
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  denom="$"
-                />
-              </b>
-            </p>
-          </div>
-          <div class="flex h-6 text-10">
-            <button
-              v-for="(value, index) in CHART_RANGES"
-              :key="index"
-              :class="`${value.label === chartTimeRange.label ? 'border-1 border-light-electric bg-[#0ea5e9]/10' : ''}`"
-              class="chart-dates ml-2 w-10 justify-center rounded border"
-              @click="
-                chartTimeRange = value;
-                loadCharts();
-              "
-            >
-              {{ value.label }}
-            </button>
-          </div>
-        </div>
-        <div class="relaltive flex">
-          <div class="relative hidden w-full md:block">
-            <PriceHistoryChart :chartData="chartData" />
-          </div>
-        </div>
-      </div>
-    </div>
-    <div
-      class="border-standart flex flex-col items-center justify-between border-t-[0px] px-2 pt-4 md:flex-row md:border-t-[1px] md:px-6"
-    >
-      <div class="flex"></div>
-      <button
-        :class="{ 'js-loading': leaseInfo.leaseStatus?.paid?.in_progress }"
-        class="btn btn-secondary btn-large-secondary mt-4 w-full md:mt-0 md:w-auto"
-        @click="onShowClaimDialog"
-      >
-        {{ $t("message.collect") }}
-      </button>
-    </div>
-  </div>
+    </template>
+  </LeaseNew>
+
   <Modal
     v-if="showClaimDialog"
     ref="claimDialog"
@@ -931,7 +286,14 @@
 </template>
 
 <script lang="ts" setup>
-import { Lease as LeaseNew, LeasePnlStatus, type LeaseProps } from "web-components";
+import {
+  Dropdown,
+  Lease as LeaseNew,
+  LeaseOpeningBarStatuses,
+  LeasePnlStatus,
+  type LeaseProps,
+  LeaseStatus
+} from "web-components";
 import type { LeaseData } from "@/common/types";
 import { CONFIRM_STEP, CURRENCY_VIEW_TYPES, TxType } from "@/common/types";
 
@@ -945,30 +307,33 @@ import ConfirmComponent from "@/common/components/modals/templates/ConfirmCompon
 import DialogHeader from "@/common/components/modals/templates/DialogHeader.vue";
 import ShareDialog from "@/common/components/modals/ShareDialog.vue";
 
-import OpenChannel from "@/common/components/icons/OpenChannel.vue";
-import Transfer from "@/common/components/icons/Transfer.vue";
-import Swap from "@/common/components/icons/Swap.vue";
-import ArrowUp from "@/common/components/icons/ArrowUp.vue";
-import ArrowDown from "@/common/components/icons/ArrowDown.vue";
-
 import { computed, inject, onMounted, type PropType, ref } from "vue";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
+import {
+  type BuyAssetOngoingState,
+  Lease,
+  type OpenedLeaseInfo,
+  type PaidLeaseInfo,
+  type TransferOutOngoingState
+} from "@nolus/nolusjs/build/contracts";
 import { Dec } from "@keplr-wallet/unit";
 import { CHART_RANGES, CoinGecko, GAS_FEES, LEASE_DUE, NATIVE_ASSET, TIP } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useI18n } from "vue-i18n";
-import { AppUtils, AssetUtils, datePraser, Logger, StringUtils, WalletManager, walletOperation } from "@/common/utils";
+import {
+  AppUtils,
+  AssetUtils,
+  datePraser,
+  getCreatedAtForHuman,
+  Logger,
+  StringUtils,
+  WalletManager,
+  walletOperation
+} from "@/common/utils";
 import { coin } from "@cosmjs/amino";
 import { useApplicationStore } from "@/common/stores/application";
 import { Chart, PriceHistoryChart } from "./";
-
-import {
-  type BuyAssetOngoingState,
-  Lease,
-  type PaidLeaseInfo,
-  type TransferOutOngoingState
-} from "@nolus/nolusjs/build/contracts";
 
 enum TEMPLATES {
   "opening",
@@ -995,6 +360,10 @@ const showClaimDialog = ref(false);
 const walletStore = useWalletStore();
 const oracleStore = useOracleStore();
 const app = useApplicationStore();
+const options = Object.values(CHART_RANGES).map((value) => ({
+  ...value,
+  value: value.label
+}));
 
 const getLeases = inject("getLeases", () => {});
 const claimDialog = ref();
@@ -1280,37 +649,23 @@ const copy = () => {
 const openingSubState = computed(() => {
   const data = props.leaseInfo.leaseStatus.opening;
   if (OPENING_CHANNEL == data?.in_progress) {
-    return {
-      channel: ["current"],
-      transfer: [],
-      swap: []
-    };
+    return [LeaseOpeningBarStatuses.CURRENT, "", ""];
   }
 
   const state = data?.in_progress as TransferOutOngoingState | BuyAssetOngoingState;
 
   if ((state as TransferOutOngoingState).transfer_out) {
-    return {
-      channel: ["ready"],
-      transfer: ["current"],
-      swap: []
-    };
+    return [LeaseOpeningBarStatuses.READY, LeaseOpeningBarStatuses.CURRENT, ""];
   }
 
   if ((state as BuyAssetOngoingState).buy_asset) {
-    return {
-      channel: ["ready"],
-      transfer: ["ready"],
-      swap: ["current"]
-    };
+    return [LeaseOpeningBarStatuses.READY, LeaseOpeningBarStatuses.READY, LeaseOpeningBarStatuses.CURRENT];
   }
 
-  return {
-    channel: [],
-    transfer: [],
-    swap: []
-  };
+  return ["", "", ""];
 });
+
+const openingSubTitle = ["message.opening-channel", "message.transferring-assets", "message.swapping-assets"];
 
 const openedSubState = computed(() => {
   const data = props.leaseInfo.leaseStatus.opened;
@@ -1366,45 +721,38 @@ async function onShare() {
   showShareDialog.value = true;
 }
 
-// <button
-//   v-if="leaseInfo.leaseStatus.opened"
-//   :class="{ 'js-loading': loadingRepay }"
-// :disabled="openedSubState"
-// class="btn btn-secondary btn-large-secondary mt-4 w-full md:mt-0 md:w-auto"
-// @click="showRepayModal = true"
-//   >
-//   {{ $t("message.repay") }}
-// </button>
-// <button
-// v-if="leaseInfo.leaseStatus.opened"
-//   :class="{ 'js-loading': loadingClose }"
-// :disabled="openedSubState"
-// class="btn btn-primary btn-large-primary ml-[12px] mt-4 w-full md:mt-0 md:w-auto"
-// @click="showCloseModal = true"
-//   >
-//   {{ $t("message.close") }}
-// </button>
+const leaseOpenedMargin = ({ overdue_interest, overdue_margin, principal_due, amount }: OpenedLeaseInfo) => {
+  const margin =
+    ((+overdue_interest.amount + +overdue_margin.amount + +principal_due.amount) /
+      (+amount.amount + +props.leaseInfo.leaseData?.price)) *
+    100;
+
+  return Math.round(margin);
+};
 
 const leaseOpened = computed<LeaseProps>(() => ({
-  title: "Buy position",
+  // TODO: here we have click event which need to lead to history page with the hash as query param to load information in history table when this functionality is ready
+  history: {
+    value: `#${props.leaseInfo.leaseAddress.slice(-8)}`
+  },
+  title: i18n.t("message.buy-position"),
   share: {
-    label: "Share Position"
+    label: i18n.t("message.share-position")
   },
-  status: status.value,
-  tabs: [
-    { button: { icon: "icon-assets" }, content: "Some content 1", name: "chart" },
-    { button: { icon: "icon-assets" }, content: "Some content 2", name: "size" },
-    { button: { icon: "icon-assets" }, content: "Some content 3", name: "test" }
-  ],
+  status: LeaseStatus.OPENED,
+  tabs: [{ button: { icon: "icon-stats" } }, { button: { icon: "icon-lease-1" } }],
   actionButtons: {
-    repay: { label: "Repay", loading: loadingRepay.value },
-    close: { label: "Close", loading: loadingClose.value },
-    collect: { label: "Collect" }
+    repay: { label: i18n.t("message.repay"), loading: loadingRepay.value },
+    close: { label: i18n.t("message.close"), loading: loadingClose.value }
   },
-  progressBarTitle: "Health",
-  progressDateTitle: "Opened on",
-  progressDate: "FEB. 8, 2024",
-  margin: 66,
+  progressBar: {
+    title: i18n.t("message.health"),
+    value: [`${leaseOpenedMargin(props.leaseInfo.leaseStatus.opened)}`]
+  },
+  progressDate: {
+    title: i18n.t("message.opened-on"),
+    value: `${getCreatedAtForHuman(props.leaseInfo.leaseData?.timestamp)?.toUpperCase()}`
+  },
   pnl: {
     click() {
       pnlType.value = !pnlType.value;
@@ -1427,8 +775,72 @@ const leaseOpened = computed<LeaseProps>(() => ({
   }
 }));
 
-// {{ pnl.status ? "+" : "" }}<template v-if="!pnlType">{{ pnl.amount }}</template
-// ><template v-else>{{ pnl.percent }}%</template>
+const leaseOpening = computed<LeaseProps>(() => ({
+  // TODO: here we have click event which need to lead to history page with the hash as query param to load information in history table when this functionality is ready
+  history: {
+    value: `#${props.leaseInfo.leaseAddress.slice(-8)}`
+  },
+  title: i18n.t("message.buy-position"),
+  status: LeaseStatus.OPENING,
+  tabs: [{ button: { icon: "icon-stats" } }, { button: { icon: "icon-lease-1" } }],
+  actionButtons: {
+    repay: { label: i18n.t("message.repay"), loading: loadingRepay.value },
+    close: { label: i18n.t("message.close"), loading: loadingClose.value }
+  },
+  progressBar: {
+    title: i18n.t(openingSubTitle[openingSubState.value.findIndex((item) => item === LeaseOpeningBarStatuses.CURRENT)]),
+    value: openingSubState.value
+  },
+  progressDate: {
+    title: i18n.t("message.opened-on"),
+    value: i18n.t("message.opening")
+  },
+  pnl: {
+    value: `$${pnl.value.amount}`
+  },
+  debt: {
+    title: i18n.t("message.outstanding-loan"),
+    tooltip: i18n.t("message.outstanding-debt-tooltip"),
+    class: "h-5 mt-0.5 bg-neutral-100 rounded-md text-transparent"
+  },
+  interest: {
+    title: i18n.t("message.interest-fee"),
+    tooltip: i18n.t("message.interest-fee-tooltip"),
+    class: "h-5 mt-0.5 bg-neutral-100 rounded-md text-transparent"
+  },
+  interestDue: {
+    title: i18n.t("message.interest-due"),
+    tooltip: i18n.t("message.repay-interest", { dueDate: interestDueDate.value }),
+    class: "h-5 mt-0.5 bg-neutral-100 rounded-md text-transparent"
+  }
+}));
+
+const leasePaid = computed<LeaseProps>(() => ({
+  // TODO: here we have click event which need to lead to history page with the hash as query param to load information in history table when this functionality is ready
+  history: {
+    value: `#${props.leaseInfo.leaseAddress.slice(-8)}`
+  },
+  title: i18n.t("message.buy-position"),
+  share: {
+    label: i18n.t("message.share-position")
+  },
+  status: LeaseStatus.PAID,
+  tabs: [{ button: { icon: "icon-stats", disabled: true } }, { button: { icon: "icon-lease-1" }, active: true }],
+  actionButtons: {
+    collect: { label: i18n.t("message.collect") }
+  },
+  progressDate: {
+    title: i18n.t("message.opened-on"),
+    value: `${getCreatedAtForHuman(props.leaseInfo.leaseData?.timestamp)?.toUpperCase()}`
+  },
+  pnl: {
+    click() {
+      pnlType.value = !pnlType.value;
+    },
+    value: pnl.value.status ? `+${pnl.value.amount}` : !pnlType.value ? `${pnl.value.amount}` : `${pnl.value.percent}%`,
+    status: pnl.value.status ? LeasePnlStatus.POSITIVE : LeasePnlStatus.NEGATIVE
+  }
+}));
 </script>
 <style lang="scss">
 button.share {

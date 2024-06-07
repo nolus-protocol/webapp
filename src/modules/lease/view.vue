@@ -1,6 +1,6 @@
 <template>
   <div class="col-span-12">
-    <div class="mt-0 flex flex-col-reverse flex-wrap items-center justify-between lg:mt-10 lg:flex-row">
+    <div class="mt-0 flex flex-col-reverse flex-wrap justify-between md:flex-row md:items-center lg:mt-10">
       <LeaseFilter
         :leases-data="leasesData"
         :set-sort="setSort"
@@ -10,6 +10,7 @@
       <div class="right inline-flex w-full justify-start px-4 md:mt-0 md:w-1/2 md:justify-end lg:px-0">
         <Button
           :label="$t('message.lease-new')"
+          class="w-full md:w-auto"
           severity="primary"
           size="large"
           @click="showLeaseModal = true"
@@ -29,7 +30,7 @@
       </div>
       <div
         v-if="leaseLoaded && leases.length == 0"
-        class="shadow-lease mt-5 h-[176px] border-[1px] border-border-color bg-neutral-bg-50 px-1 md:px-0 lg:rounded-xl"
+        class="mt-5 h-[176px] border-[1px] border-border-color bg-neutral-bg-50 px-1 shadow-lease md:px-0 lg:rounded-xl"
       >
         <div class="flex h-full flex-col items-center justify-center text-neutral-typography-50">
           <img
