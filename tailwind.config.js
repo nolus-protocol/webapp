@@ -2,7 +2,6 @@
 export default {
   presets: [require("web-components/dist/tailwind.config.js")],
   content: ["./index.html", "./src/**/*.{vue,js,ts,jsx,tsx}"],
-  darkMode: "class",
   theme: {
     extend: {
       colors: {
@@ -39,6 +38,9 @@ export default {
         "garet-medium": ["Garet-Medium"],
         "garet-bold": ["Garet-Bold"],
         "garet-bolder": ["Garet-Black"]
+      },
+      boxShadow: {
+        lease: "0px 4px 6px -1px rgba(0, 0, 0, 0.10), 0px 2px 4px -2px rgba(0, 0, 0, 0.10)"
       }
     }
   },
