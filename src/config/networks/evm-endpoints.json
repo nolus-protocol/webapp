@@ -1,11 +1,11 @@
 {
   "ETHEREUM": {
     "primary": {
-      "rpc": "https://mainnet.infura.io/v3/"
+      "rpc": "https://mainnet.infura.io/v3"
     },
     "fallback": [
       {
-        "rpc": "https://mainnet.infura.io/v3/"
+        "rpc": "https://eth.llamarpc.com"
       }
     ]
   },
