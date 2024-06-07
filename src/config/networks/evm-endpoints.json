@@ -5,7 +5,7 @@
     },
     "fallback": [
       {
-        "rpc": "https://cloudflare-eth.com"
+        "rpc": "https://mainnet.infura.io/v3/"
       }
     ]
   },
