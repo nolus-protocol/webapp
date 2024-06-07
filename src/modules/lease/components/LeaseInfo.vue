@@ -27,7 +27,7 @@
           <Dropdown
             :on-select="
               (data) => {
-                chartTimeRange = data;
+                chartTimeRange = data as any;
                 loadCharts();
               }
             "
@@ -164,7 +164,7 @@
           <Dropdown
             :on-select="
               (data) => {
-                chartTimeRange = data;
+                chartTimeRange = data as any;
                 loadCharts();
               }
             "
