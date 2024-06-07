@@ -494,22 +494,13 @@ async function onSendClick() {
 
 async function onSwap() {
   try {
-    switch (selectedNetwork.value.chain_type) {
-      case "cosmos": {
-        await onSwapCosmos();
-        break;
-      }
-      case "evm": {
-        await onSwapEvm();
-        break;
-      }
-    }
+    await onSubmit();
   } catch (error: Error | any) {
     step.value = CONFIRM_STEP.ERROR;
   }
 }
 
-async function onSwapCosmos() {
+async function onSubmit() {
   if (!route || !WalletUtils.isAuth() || amountErrorMsg.value.length > 0) {
     return false;
   }
@@ -519,25 +510,13 @@ async function onSwapCosmos() {
 
     await walletOperation(async () => {
       try {
-        const wallets = await getWalletsCosmos();
+        const wallets = await getWallets();
         const addresses: Record<string, string> = {};
 
         for (const key in wallets) {
           addresses[key] = wallets[key].address!;
         }
-
-        await SkipRouter.submitRoute(route!, wallets, async (tx: IObjectKeys, wallet: BaseWallet) => {
-          const element = {
-            hash: tx.txHash,
-            status: SwapStatus.pending
-          };
-
-          const index = txHashes.value.length;
-          txHashes.value.push(element);
-
-          await wallet.broadcastTx(tx.txBytes as Uint8Array);
-          txHashes.value[index].status = SwapStatus.success;
-        });
+        await submit(wallets);
 
         await walletStore.UPDATE_BALANCES();
         step.value = CONFIRM_STEP.SUCCESS;
@@ -552,7 +531,40 @@ async function onSwapCosmos() {
   }
 }
 
-async function getWalletsCosmos(): Promise<{ [key: string]: BaseWallet }> {
+async function submit(wallets: { [key: string]: BaseWallet | MetaMaskWallet }) {
+  await SkipRouter.submitRoute(route!, wallets, async (tx: IObjectKeys, wallet: BaseWallet, chaindId: string) => {
+    switch (wallet.constructor) {
+      case MetaMaskWallet: {
+        await SkipRouter.track(chaindId, (tx as IObjectKeys).hash);
+        await SkipRouter.fetchStatus((tx as IObjectKeys).hash, chaindId);
+        const element = {
+          hash: tx.hash,
+          status: SwapStatus.success
+        };
+        txHashes.value.push(element);
+        break;
+      }
+      default: {
+        const element = {
+          hash: tx.txHash,
+          status: SwapStatus.pending
+        };
+
+        const index = txHashes.value.length;
+        txHashes.value.push(element);
+
+        await wallet.broadcastTx(tx.txBytes as Uint8Array);
+        await SkipRouter.track(chaindId, (tx as IObjectKeys).txHash);
+        await SkipRouter.fetchStatus((tx as IObjectKeys).txHash, chaindId);
+
+        txHashes.value[index].status = SwapStatus.success;
+        break;
+      }
+    }
+  });
+}
+
+async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
   const native = walletStore.wallet.signer.chainId as string;
   const addrs = {
     [native]: walletStore.wallet
@@ -577,12 +589,34 @@ async function getWalletsCosmos(): Promise<{ [key: string]: BaseWallet }> {
 
   for (const chain in chainToParse) {
     const fn = async function () {
-      const client = await WalletUtils.getWallet(chain);
-      const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
-      const networkData = network?.supportedNetworks[chain];
-      const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
-      const chainId = await baseWallet.getChainId();
-      addrs[chainId] = baseWallet;
+      switch (chainToParse[chain].chain_type) {
+        case "cosmos": {
+          const client = await WalletUtils.getWallet(chain);
+          const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
+          const networkData = network?.supportedNetworks[chain];
+          const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
+          const chainId = await baseWallet.getChainId();
+          addrs[chainId] = baseWallet;
+          break;
+        }
+        case "evm": {
+          const client = new MetaMaskWallet();
+          const net = selectedNetwork.value as EvmNetwork;
+          const endpoint = await AppUtils.fetchEvmEndpoints(net.key);
+          const chainId = await client.getChainId(endpoint.rpc);
+
+          await client.connect({
+            chainId: chainId,
+            chainName: net.label,
+            rpcUrls: [endpoint.rpc],
+            blockExplorerUrls: [net.explorer],
+            nativeCurrency: { ...net.nativeCurrency }
+          });
+          addrs[parseInt(chainId).toString()] = client;
+
+          break;
+        }
+      }
     };
     promises.push(fn());
   }
@@ -677,74 +711,6 @@ async function connectEvm() {
   } finally {
     isMetamaskLoading.value = false;
   }
-}
-
-async function onSwapEvm() {
-  try {
-    if (!route || !WalletUtils.isAuth() || amountErrorMsg.value.length > 0) {
-      return false;
-    }
-
-    step.value = CONFIRM_STEP.PENDING;
-
-    const wallets = await getWalletsEvm();
-    await SkipRouter.transactionMetamask(route!, wallets, async (tx: IObjectKeys, _wallet: BaseWallet) => {
-      const element = {
-        hash: tx.hash,
-        status: SwapStatus.success
-      };
-      txHashes.value.push(element);
-    });
-
-    await walletStore.UPDATE_BALANCES();
-    step.value = CONFIRM_STEP.SUCCESS;
-  } catch (error) {
-    step.value = CONFIRM_STEP.ERROR;
-    errorMsg.value = (error as Error).toString();
-    Logger.error(error);
-  }
-}
-
-async function getWalletsEvm(): Promise<{ [key: string]: BaseWallet }> {
-  const native = walletStore.wallet.signer.chainId;
-  const chainId = Number((client as MetaMaskWallet).chainId).toString();
-  const addrs: { [key: string]: any } = {
-    [chainId]: client as MetaMaskWallet,
-    [native]: walletStore.wallet
-  };
-
-  const chainToParse: { [key: string]: IObjectKeys } = {};
-  const chains = (await SkipRouter.getChains()).filter((item) => {
-    if (item.chainID == chainId) {
-      return false;
-    }
-    return route!.chainIDs.includes(item.chainID);
-  });
-
-  for (const chain of chains) {
-    for (const key in SUPPORTED_NETWORKS_DATA) {
-      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chainName.toLowerCase()) {
-        chainToParse[key] = SUPPORTED_NETWORKS_DATA[key];
-      }
-    }
-  }
-  const promises = [];
-
-  for (const chain in chainToParse) {
-    const fn = async function () {
-      const client = await WalletUtils.getWallet(chain);
-      const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
-      const networkData = network?.supportedNetworks[chain];
-      const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
-      const chaindId = await baseWallet.getChainId();
-      addrs[chaindId] = baseWallet;
-    };
-    promises.push(fn());
-  }
-
-  await Promise.all(promises);
-
-  return addrs;
 }
 
 const swapAmount = computed(() => {

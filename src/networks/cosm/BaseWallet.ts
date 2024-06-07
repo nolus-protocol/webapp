@@ -36,6 +36,9 @@ import {
   setupBankExtension,
   setupStakingExtension
 } from "@cosmjs/stargate";
+import type { MsgDelegate, MsgUndelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx";
+import type { MsgWithdrawDelegatorReward } from "cosmjs-types/cosmos/distribution/v1beta1/tx";
+import { MsgDepositForBurnWithCaller } from "../list/noble/tx";
 
 export class BaseWallet extends SigningCosmWasmClient implements Wallet {
   address!: string;
@@ -74,6 +77,11 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
       setupStakingExtension,
       setupTxExtension
     );
+    this.registerMessages();
+  }
+
+  private registerMessages() {
+    this.registry.register("/circle.cctp.v1.MsgDepositForBurnWithCaller", MsgDepositForBurnWithCaller);
   }
 
   async getSigner() {
@@ -373,5 +381,42 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
       authInfoBytes: signed.authInfoBytes,
       signatures: [fromBase64(signature.signature)]
     });
+  }
+
+  async simulateMultiTx(
+    messages: {
+      msg: MsgSend | MsgExecuteContract | MsgTransfer | MsgDelegate | MsgUndelegate | MsgWithdrawDelegatorReward;
+      msgTypeUrl: string;
+    }[],
+    memo = ""
+  ) {
+    const pubkey = encodeSecp256k1Pubkey(this.pubKey as Uint8Array);
+    const encodedMSGS = [];
+    const msgs = [];
+
+    for (const item of messages) {
+      const msgAny = {
+        typeUrl: item.msgTypeUrl,
+        value: item.msg
+      };
+      encodedMSGS.push(this.registry.encodeAsAny(msgAny));
+      msgs.push(msgAny);
+    }
+
+    const sequence = await this.sequence();
+    const { gasInfo } = await this.forceGetQueryClient().tx.simulate(encodedMSGS, memo, pubkey, sequence?.sequence!);
+
+    const gas = Math.round(Number(gasInfo?.gasUsed ?? 0) * this.gasMupltiplier);
+    const usedFee = calculateFee(gas, this.gasPriceData);
+    const txRaw = await this.sign(this.address as string, msgs, usedFee, memo);
+
+    const txBytes = Uint8Array.from(TxRaw.encode(txRaw).finish());
+    const txHash = toHex(sha256(txBytes));
+
+    return {
+      txHash,
+      txBytes,
+      usedFee
+    };
   }
 }

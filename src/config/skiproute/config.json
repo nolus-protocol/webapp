@@ -226,14 +226,6 @@
         }
       ]
     },
-    "BINANCE": {
-      "currencies": [
-        {
-          "from": "ibc/7FBDBEEEBA9C50C4BCDF7BF438EAB99E64360833D240B32655C96E319559E911",
-          "to": "0x4268B8F0B87b6Eae5d897996E6b845ddbD99Adf3"
-        }
-      ]
-    },
     "ARBITRUM": {
       "currencies": [
         {

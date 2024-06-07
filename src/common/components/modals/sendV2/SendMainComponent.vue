@@ -595,18 +595,7 @@ async function onSwapCosmos() {
           addresses[key] = wallets[key].address!;
         }
 
-        await SkipRouter.submitRoute(route!, wallets, async (tx: IObjectKeys, wallet: BaseWallet) => {
-          const element = {
-            hash: tx.txHash,
-            status: SwapStatus.pending
-          };
-
-          const index = txHashes.value.length;
-          txHashes.value.push(element);
-
-          await wallet.broadcastTx(tx.txBytes as Uint8Array);
-          txHashes.value[index].status = SwapStatus.success;
-        });
+        await submit(wallets);
 
         await walletStore.UPDATE_BALANCES();
         step.value = CONFIRM_STEP.SUCCESS;
@@ -621,9 +610,42 @@ async function onSwapCosmos() {
   }
 }
 
+async function submit(wallets: { [key: string]: BaseWallet | MetaMaskWallet }) {
+  await SkipRouter.submitRoute(route!, wallets, async (tx: IObjectKeys, wallet: BaseWallet, chaindId: string) => {
+    switch (wallet.constructor) {
+      case MetaMaskWallet: {
+        await SkipRouter.track(chaindId, (tx as IObjectKeys).hash);
+        await SkipRouter.fetchStatus((tx as IObjectKeys).hash, chaindId);
+
+        const element = {
+          hash: tx.hash,
+          status: SwapStatus.success
+        };
+        txHashes.value.push(element);
+        break;
+      }
+      default: {
+        const element = {
+          hash: tx.txHash,
+          status: SwapStatus.pending
+        };
+
+        const index = txHashes.value.length;
+        txHashes.value.push(element);
+
+        await wallet.broadcastTx(tx.txBytes as Uint8Array);
+        await SkipRouter.track(chaindId, (tx as IObjectKeys).txHash);
+        await SkipRouter.fetchStatus((tx as IObjectKeys).txHash, chaindId);
+
+        txHashes.value[index].status = SwapStatus.success;
+        break;
+      }
+    }
+  });
+}
+
 async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
   const native = walletStore.wallet.signer.chainId as string;
-
   const addrs = {
     [native]: walletStore.wallet
   };
@@ -647,7 +669,7 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
 
   for (const chain in chainToParse) {
     const fn = async function () {
-      switch (SUPPORTED_NETWORKS_DATA[chain].chain_type) {
+      switch (chainToParse[chain].chain_type) {
         case "cosmos": {
           const client = await WalletUtils.getWallet(chain);
           const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
@@ -658,8 +680,20 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
           break;
         }
         case "evm": {
-          const chainId = Number((client as MetaMaskWallet).chainId).toString();
-          addrs[chainId] = client;
+          const client = new MetaMaskWallet();
+          const net = selectedNetwork.value as EvmNetwork;
+          const endpoint = await AppUtils.fetchEvmEndpoints(net.key);
+          const chainId = await client.getChainId(endpoint.rpc);
+
+          await client.connect({
+            chainId: chainId,
+            chainName: net.label,
+            rpcUrls: [endpoint.rpc],
+            blockExplorerUrls: [net.explorer],
+            nativeCurrency: { ...net.nativeCurrency }
+          });
+          addrs[parseInt(chainId).toString()] = client;
+
           break;
         }
       }
@@ -671,7 +705,6 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
 
   return addrs;
 }
-
 async function getRoute() {
   let chaindId = await client.getChainId();
   const transferAmount = Decimal.fromUserInput(amount.value, selectedCurrency.value!.decimal_digits as number);
