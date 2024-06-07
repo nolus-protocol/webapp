@@ -1,7 +1,7 @@
 {
   "ETHEREUM": {
     "primary": {
-      "rpc": "https://mainnet.infura.io/v3"
+      "rpc": "https://mainnet.infura.io/v3/469f9ca5d6b54bb9856d573c23adfd2c"
     },
     "fallback": [
       {
@@ -11,7 +11,7 @@
   },
   "ARBITRUM": {
     "primary": {
-      "rpc": "https://arb1.arbitrum.io/rpc"
+      "rpc": "https://arbitrum-mainnet.infura.io/v3/469f9ca5d6b54bb9856d573c23adfd2c"
     },
     "fallback": [
       {
