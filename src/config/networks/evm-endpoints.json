@@ -11,11 +11,11 @@
   },
   "ARBITRUM": {
     "primary": {
-      "rpc": "https://arbitrum.llamarpc.com"
+      "rpc": "https://arb1.arbitrum.io/rpc"
     },
     "fallback": [
       {
-        "rpc": "https://arb1.arbitrum.io/rpc"
+        "rpc": "https://arbitrum.llamarpc.com"
       }
     ]
   }
