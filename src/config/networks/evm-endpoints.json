@@ -1,21 +1,21 @@
 {
   "ETHEREUM": {
     "primary": {
-      "rpc": "https://eth.llamarpc.com"
+      "rpc": "https://mainnet.infura.io/v3/469f9ca5d6b54bb9856d573c23adfd2c"
     },
     "fallback": [
       {
-        "rpc": "https://mainnet.infura.io/v3/469f9ca5d6b54bb9856d573c23adfd2c"
+        "rpc": "https://eth.llamarpc.com"
       }
     ]
   },
   "ARBITRUM": {
     "primary": {
-      "rpc": "https://arbitrum.llamarpc.com"
+      "rpc": "https://arbitrum-mainnet.infura.io/v3/469f9ca5d6b54bb9856d573c23adfd2c"
     },
     "fallback": [
       {
-        "rpc": "https://arbitrum-mainnet.infura.io/v3/469f9ca5d6b54bb9856d573c23adfd2c"
+        "rpc": "https://arbitrum.llamarpc.com"
       }
     ]
   }
