@@ -293,6 +293,6 @@ export class SkipRouter {
 
   static async getChains() {
     const client = await SkipRouter.getClient();
-    return client.chains({ includeEVM: true, includeSVM: false, includeTestnets: false });
+    return client.chains({ includeEVM: true, includeSVM: false });
   }
 }
