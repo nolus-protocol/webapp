@@ -35,7 +35,8 @@ export const FREE_INTEREST_ASSETS: string[] = [
   "stTIA",
   "TIA",
   "WBTC",
-  "WETH"
+  "WETH",
+  "CUDOS"
 ];
 export const LEASE_DUE = 2 * 24 * 60 * 60 * 1000 * 1000 * 1000;
 export const DOWNPAYMENT_RANGE_DEV = 15;
@@ -64,7 +65,7 @@ if (!isDev()) {
 }
 
 export { DOWNPAYMENT_RANGE_URL, SWAP_FEE_URL, FREE_INTEREST_ADDRESS_URL };
-export const IGNORE_LEASE_ASSETS: string[] = ["DYDX", "JUNO", "EVMOS", "STRD", "LVN", "DYM"];
+export const IGNORE_LEASE_ASSETS: string[] = ["DYDX", "JUNO", "EVMOS", "STRD", "LVN", "DYM", "Q_ATOM", "STARS"];
 export const IGNORE_DOWNPAYMENT_ASSETS: string[] = [];
 
 export const IGNORE_LEASES: string[] = [
