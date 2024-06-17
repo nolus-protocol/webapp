@@ -15,7 +15,7 @@
         </div>
         <div class="flex gap-2">
           <CurrencyComponent
-            :amount="currentPrice"
+            :amount="focusPrice ?? currentPrice"
             :decimals="4"
             :font-size="20"
             :font-size-small="14"
@@ -41,6 +41,7 @@
           <div v-if="leaseInfo.leaseData"></div>
           <PriceHistoryChart
             :chartData="chartData"
+            @in-focus="onFocusChart"
             class="max-h-[100px]"
           />
         </div>
@@ -102,17 +103,22 @@
       />
     </template>
     <template #interest-0>
-      <CurrencyComponent
-        :amount="interest"
-        :decimals="2"
-        :font-size="20"
-        :font-size-small="14"
-        :hasSpace="false"
-        :isDenomInfront="false"
-        :type="CURRENCY_VIEW_TYPES.CURRENCY"
-        class="garet-medium"
-        denom="%"
-      />
+      <p
+        class="nls-font-400 m-0 mt-1 text-20 text-primary"
+        :class="{ 'line-throught': isFreeInterest }"
+      >
+        <CurrencyComponent
+          :amount="interest"
+          :decimals="2"
+          :font-size="20"
+          :font-size-small="14"
+          :hasSpace="false"
+          :isDenomInfront="false"
+          :type="CURRENCY_VIEW_TYPES.CURRENCY"
+          class="garet-medium"
+          denom="%"
+        />
+      </p>
     </template>
     <template #interest-1>
       <div class="flex items-center">
@@ -370,6 +376,7 @@ const claimDialog = ref();
 const pnlType = ref(false);
 const showShareDialog = ref(false);
 const isFreeInterest = ref(false);
+const focusPrice = ref<string | null>();
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const state = ref({
@@ -841,6 +848,16 @@ const leasePaid = computed<LeaseProps>(() => ({
     status: pnl.value.status ? LeasePnlStatus.POSITIVE : LeasePnlStatus.NEGATIVE
   }
 }));
+
+function onFocusChart(data: string[], index: number) {
+  if (index < 0) {
+    focusPrice.value = null;
+    return;
+  }
+  const dataSet = chartData.value.datasets[0].data;
+  const value = dataSet[index];
+  focusPrice.value = value[1];
+}
 </script>
 <style lang="scss">
 button.share {
