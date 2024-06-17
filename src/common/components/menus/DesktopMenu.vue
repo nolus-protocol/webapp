@@ -2,12 +2,12 @@
   <div>
     <template
       v-for="item in menuItems"
-      :key="item.name"
+      :key="item?.name"
     >
       <template v-if="item!.action">
         <a
           class="sidebar-element flex cursor-pointer items-center gap-2.5 font-garet-medium"
-          @click="item!.action(item!.path)"
+          @click="item?.action(item!.path)"
         >
           <span
             :class="[`icon-${item!.icon}`]"

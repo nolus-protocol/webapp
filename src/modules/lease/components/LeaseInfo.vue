@@ -30,7 +30,7 @@
         <div class="flex gap-2">
           <div class="flex gap-1">
             <img
-              src="https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/currencies/icons/osmosis-usdc.svg"
+              :src="getAssetIcon"
             />
             <div>
               <CurrencyComponent
