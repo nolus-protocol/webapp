@@ -11,13 +11,13 @@
     <template #pnl-slot>
       <div>
         <CurrencyComponent
-          :amount="pnl.status ? pnl.amount : !pnlType ? pnl.amount : pnl.percent"
+          :amount="pnl.status ? pnl.amount : !pnlType ? -pnl.amount : pnl.percent"
           :decimals="2"
           :denom="pnl.status ? `+$` : !pnlType ? `-$` : `%`"
           :font-size="12"
           :font-size-small="12"
           :hasSpace="false"
-          :isDenomInfront="pnl.status ? true : !pnlType"
+          :isDenomInfront="pnl.status ? pnl.status : !pnlType"
           :type="CURRENCY_VIEW_TYPES.CURRENCY"
         />
       </div>
@@ -28,18 +28,23 @@
           {{ $t("message.chart") }}
         </div>
         <div class="flex gap-2">
-          <div>
-            <CurrencyComponent
-              :amount="focusPrice ?? currentPrice"
-              :decimals="2"
-              :font-size="20"
-              :font-size-small="14"
-              :hasSpace="false"
-              :isDenomInfront="true"
-              :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              class="font-medium text-neutral-typography-200"
-              denom="$"
+          <div class="flex gap-1">
+            <img
+              src="https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/currencies/icons/osmosis-usdc.svg"
             />
+            <div>
+              <CurrencyComponent
+                :amount="focusPrice ?? currentPrice"
+                :decimals="2"
+                :font-size="20"
+                :font-size-small="14"
+                :hasSpace="false"
+                :isDenomInfront="true"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                class="font-medium text-neutral-typography-200"
+                denom="$"
+              />
+            </div>
           </div>
           <Dropdown
             :on-select="
@@ -54,18 +59,18 @@
         </div>
       </div>
       <div class="relaltive flex">
-        <div class="relative hidden w-full md:block">
+        <div class="relative w-full">
           <div v-if="leaseInfo.leaseData"></div>
           <PriceHistoryChart
             :chartData="chartData"
-            @in-focus="onFocusChart"
             class="max-h-[100px]"
+            @in-focus="onFocusChart"
           />
         </div>
       </div>
     </template>
     <template #tab-1>
-      <div class="flex h-full flex-col justify-between">
+      <div class="flex h-full flex-col justify-between gap-2 lg:gap-0">
         <div class="text-12 font-medium text-neutral-400">{{ $t("message.lease-size") }}</div>
         <div class="flex">
           <img
@@ -120,10 +125,7 @@
       />
     </template>
     <template #interest-0>
-      <p
-        class="nls-font-400 m-0 mt-1 text-20 text-primary"
-        :class="{ 'line-throught': isFreeInterest }"
-      >
+      <p :class="{ 'line-throught': isFreeInterest }">
         <CurrencyComponent
           :amount="interest"
           :decimals="2"
@@ -170,18 +172,16 @@
   >
     <template #pnl-slot>
       <div>
-        <template v-if="pnl.status">
-          <CurrencyComponent
-            :amount="pnl.status ? `+${pnl.amount}` : !pnlType ? `${pnl.amount}` : `${pnl.percent}%`"
-            :decimals="2"
-            :font-size="12"
-            :font-size-small="12"
-            :hasSpace="false"
-            :isDenomInfront="true"
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            denom="$"
-          />
-        </template>
+        <CurrencyComponent
+          :amount="pnl.status ? pnl.amount : !pnlType ? -pnl.amount : pnl.percent"
+          :decimals="2"
+          :denom="pnl.status ? `+$` : !pnlType ? `-$` : `%`"
+          :font-size="12"
+          :font-size-small="12"
+          :hasSpace="false"
+          :isDenomInfront="pnl.status ? pnl.status : !pnlType"
+          :type="CURRENCY_VIEW_TYPES.CURRENCY"
+        />
       </div>
     </template>
     <template #tab-0>
@@ -190,18 +190,23 @@
           {{ $t("message.chart") }}
         </div>
         <div class="flex gap-2">
-          <div>
-            <CurrencyComponent
-              :amount="currentPrice"
-              :decimals="2"
-              :font-size="20"
-              :font-size-small="14"
-              :hasSpace="false"
-              :isDenomInfront="true"
-              :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              class="font-medium text-neutral-typography-200"
-              denom="$"
+          <div class="flex gap-1">
+            <img
+              src="https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/currencies/icons/osmosis-usdc.svg"
             />
+            <div>
+              <CurrencyComponent
+                :amount="focusPrice ?? currentPrice"
+                :decimals="2"
+                :font-size="20"
+                :font-size-small="14"
+                :hasSpace="false"
+                :isDenomInfront="true"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                class="font-medium text-neutral-typography-200"
+                denom="$"
+              />
+            </div>
           </div>
           <Dropdown
             :on-select="
@@ -216,7 +221,7 @@
         </div>
       </div>
       <div class="relaltive flex">
-        <div class="relative hidden w-full md:block">
+        <div class="relative w-full">
           <Chart :chartData="chartData" />
         </div>
       </div>
@@ -234,19 +239,19 @@
     <template #pnl-slot>
       <div>
         <CurrencyComponent
-          :amount="pnl.status ? `+${pnl.amount}` : !pnlType ? `${pnl.amount}` : `${pnl.percent}%`"
+          :amount="pnl.status ? pnl.amount : !pnlType ? -pnl.amount : pnl.percent"
           :decimals="2"
+          :denom="pnl.status ? `+$` : !pnlType ? `-$` : `%`"
           :font-size="12"
           :font-size-small="12"
           :hasSpace="false"
-          :isDenomInfront="true"
+          :isDenomInfront="pnl.status ? pnl.status : !pnlType"
           :type="CURRENCY_VIEW_TYPES.CURRENCY"
-          denom="$"
         />
       </div>
     </template>
     <template #tab-1>
-      <div class="flex h-full flex-col justify-between">
+      <div class="flex h-full flex-col justify-between gap-2 lg:gap-0">
         <div class="text-12 font-medium text-neutral-400">{{ $t("message.lease-size") }}</div>
         <div class="flex">
           <img
@@ -685,7 +690,6 @@ const liquidation = computed(() => {
 const pnl = computed(() => {
   const lease = props.leaseInfo.leaseStatus.opened ?? props.leaseInfo.leaseStatus.paid;
   if (lease) {
-    console.info();
     return {
       percent: props.leaseInfo.pnlPercent.toString(2),
       amount: props.leaseInfo.pnlAmount.toString(),
@@ -758,7 +762,6 @@ const interestDueStatus = computed(() => {
   const lease = props.leaseInfo.leaseStatus?.opened;
   if (lease) {
     const isDue = new Dec(LEASE_DUE).gte(new Dec(lease.overdue_collect_in));
-    console.log(isDue);
     if (isDue) {
       return true;
     }
@@ -788,15 +791,19 @@ const leaseOpenedMargin = ({
   due_margin,
   due_interest
 }: OpenedLeaseInfo) => {
-  const margin =
-    ((+overdue_interest.amount + +overdue_margin.amount + +due_margin + +due_interest + +principal_due.amount) /
-      (+amount.amount + +props.leaseInfo.leaseData?.price)) *
-    100;
+  const externalCurrencies = [overdue_interest, overdue_margin, due_margin, due_interest, principal_due, amount].map(
+    (amount) => AssetUtils.getCurrencyByTicker(amount?.ticker as string)
+  );
 
-  return Math.round(margin);
+  const margin = new Dec(overdue_interest.amount, externalCurrencies[0].decimal_digits)
+    .add(new Dec(overdue_margin.amount, externalCurrencies[1].decimal_digits))
+    .add(new Dec(due_margin.amount, externalCurrencies[2].decimal_digits))
+    .add(new Dec(due_interest.amount, externalCurrencies[3].decimal_digits))
+    .add(new Dec(principal_due.amount, externalCurrencies[4].decimal_digits))
+    .quo(new Dec(amount.amount, externalCurrencies[5].decimal_digits).mulRoundUp(props.leaseInfo.leaseData?.price));
+
+  return +margin.toString(2) * 100; // 100% is the max value
 };
-
-console.info(props.leaseInfo);
 
 const leaseOpened = computed<LeaseProps>(() => ({
   // TODO: here we have click event which need to lead to history page with the hash as query param to load information in history table when this functionality is ready
