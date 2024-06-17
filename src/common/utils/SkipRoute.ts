@@ -65,7 +65,7 @@ export class SkipRouter {
       destAssetDenom: destDenom,
       destAssetChainID: destSourceId ?? SkipRouter.chainID,
       cumulativeAffiliateFeeBPS: config.fee.toString(),
-      smart_relay: true,
+      smartRelay: true,
       allowMultiTx: true,
       allowUnsafe: true,
       experimentalFeatures: ["cctp"],
@@ -293,6 +293,6 @@ export class SkipRouter {
 
   static async getChains() {
     const client = await SkipRouter.getClient();
-    return client.chains({ includeEVM: true, includeSVM: false, includeTestnets: false });
+    return client.chains({ includeEVM: true, includeSVM: false });
   }
 }

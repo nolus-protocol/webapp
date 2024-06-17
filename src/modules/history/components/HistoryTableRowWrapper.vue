@@ -1,8 +1,5 @@
 <template>
-  <template
-    v-for="(data, index) in transactionData"
-    :key="index"
-  >
+  <template v-for="(data, index) in transactionData">
     <HistoryTableRow
       :classes="data.classes"
       :items="data.items"

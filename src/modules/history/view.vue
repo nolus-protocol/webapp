@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="table-header mt-[25px] flex flex-wrap items-baseline justify-between px-4 lg:px-0">
       <div class="left">
-        <h1 class="nls-font-700 text-20 m-0 text-primary">
+        <h1 class="nls-font-700 m-0 text-20 text-primary">
           {{ $t("message.history") }}
         </h1>
       </div>
@@ -21,23 +21,24 @@
             appear
             name="fade-long"
           >
-            <HistoryTableRowWrapper
-              v-for="transaction of transactions"
-              :key="transaction.id"
-              :transaction="transaction"
-            />
             <div
-              v-if="transactions.length == 0"
-              class="h-[180px]"
+              v-for="(transaction, index) of transactions"
+              :key="`${transaction.id}_${index}`"
             >
-              <div class="nls-12 text-dark-grey flex h-full flex-col items-center justify-center">
-                <img
-                  class="m-4 inline-block"
-                  height="32"
-                  src="/src/assets/icons/empty_history.svg"
-                  width="32"
-                />
-                {{ $t("message.no-results") }}
+              <HistoryTableRowWrapper :transaction="transaction" />
+              <div
+                v-if="transactions.length == 0"
+                class="h-[180px]"
+              >
+                <div class="nls-12 text-dark-grey flex h-full flex-col items-center justify-center">
+                  <img
+                    class="m-4 inline-block"
+                    height="32"
+                    src="/src/assets/icons/empty_history.svg"
+                    width="32"
+                  />
+                  {{ $t("message.no-results") }}
+                </div>
               </div>
             </div>
           </TransitionGroup>
