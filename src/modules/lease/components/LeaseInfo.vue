@@ -173,14 +173,14 @@
     <template #pnl-slot>
       <div>
         <CurrencyComponent
-          :amount="pnl.status ? pnl.amount : !pnlType ? -pnl.amount : pnl.percent"
+          :amount="pnl.amount"
           :decimals="2"
-          :denom="pnl.status ? `+$` : !pnlType ? `-$` : `%`"
           :font-size="12"
           :font-size-small="12"
           :hasSpace="false"
-          :isDenomInfront="pnl.status ? pnl.status : !pnlType"
+          :isDenomInfront="true"
           :type="CURRENCY_VIEW_TYPES.CURRENCY"
+          denom="$"
         />
       </div>
     </template>
