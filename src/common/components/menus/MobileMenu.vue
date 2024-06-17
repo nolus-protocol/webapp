@@ -32,7 +32,7 @@
     >
       <template
         v-for="item in visibleMenuItems"
-        :key="item.name"
+        :key="item?.name"
         class="sidebar-element flex flex-col items-center font-garet-medium text-16"
         @click="showMobileNav = false"
       >
