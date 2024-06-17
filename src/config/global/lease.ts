@@ -66,7 +66,7 @@ if (!isDev()) {
 
 export { DOWNPAYMENT_RANGE_URL, SWAP_FEE_URL, FREE_INTEREST_ADDRESS_URL };
 export const IGNORE_LEASE_ASSETS: string[] = ["DYDX", "JUNO", "EVMOS", "STRD", "LVN", "DYM", "Q_ATOM", "STARS", "JKL"];
-export const IGNORE_DOWNPAYMENT_ASSETS: string[] = [];
+export const IGNORE_DOWNPAYMENT_ASSETS: string[] = ["DYDX"];
 
 export const IGNORE_LEASES: string[] = [
   "nolus1suz0vsqe8c8anckaer98awhqs8r4hu7wsm8a49acdl39x6ylfypsqywxwh",
