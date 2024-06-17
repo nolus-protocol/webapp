@@ -8,26 +8,43 @@
     @on-close="showCloseModal = true"
     @on-share="onShare"
   >
+    <template #pnl-slot>
+      <div>
+        <CurrencyComponent
+          :amount="pnl.status ? pnl.amount : !pnlType ? pnl.amount : pnl.percent"
+          :decimals="2"
+          :denom="pnl.status ? `+$` : !pnlType ? `-$` : `%`"
+          :font-size="12"
+          :font-size-small="12"
+          :hasSpace="false"
+          :isDenomInfront="pnl.status ? true : !pnlType"
+          :type="CURRENCY_VIEW_TYPES.CURRENCY"
+        />
+      </div>
+    </template>
     <template #tab-0>
       <div class="flex items-center justify-between">
         <div class="text-12 font-medium text-neutral-400">
           {{ $t("message.chart") }}
         </div>
         <div class="flex gap-2">
-          <CurrencyComponent
-            :amount="currentPrice"
-            :decimals="4"
-            :font-size="20"
-            :font-size-small="14"
-            :hasSpace="false"
-            :isDenomInfront="true"
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            denom="$"
-          />
+          <div>
+            <CurrencyComponent
+              :amount="currentPrice"
+              :decimals="2"
+              :font-size="20"
+              :font-size-small="14"
+              :hasSpace="false"
+              :isDenomInfront="true"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              class="font-medium text-neutral-typography-200"
+              denom="$"
+            />
+          </div>
           <Dropdown
             :on-select="
-              (data) => {
-                chartTimeRange = data as any;
+              (data: any) => {
+                chartTimeRange = data;
                 loadCharts();
               }
             "
@@ -145,26 +162,45 @@
     class="mt-6"
     v-bind="leaseOpening"
   >
+    <template #pnl-slot>
+      <div>
+        <template v-if="pnl.status">
+          <CurrencyComponent
+            :amount="pnl.status ? `+${pnl.amount}` : !pnlType ? `${pnl.amount}` : `${pnl.percent}%`"
+            :decimals="2"
+            :font-size="12"
+            :font-size-small="12"
+            :hasSpace="false"
+            :isDenomInfront="true"
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            denom="$"
+          />
+        </template>
+      </div>
+    </template>
     <template #tab-0>
       <div class="flex items-center justify-between">
         <div class="text-12 font-medium text-neutral-400">
           {{ $t("message.chart") }}
         </div>
         <div class="flex gap-2">
-          <CurrencyComponent
-            :amount="currentPrice"
-            :decimals="4"
-            :font-size="20"
-            :font-size-small="14"
-            :hasSpace="false"
-            :isDenomInfront="true"
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            denom="$"
-          />
+          <div>
+            <CurrencyComponent
+              :amount="currentPrice"
+              :decimals="2"
+              :font-size="20"
+              :font-size-small="14"
+              :hasSpace="false"
+              :isDenomInfront="true"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              class="font-medium text-neutral-typography-200"
+              denom="$"
+            />
+          </div>
           <Dropdown
             :on-select="
-              (data) => {
-                chartTimeRange = data as any;
+              (data: any) => {
+                chartTimeRange = data;
                 loadCharts();
               }
             "
@@ -189,6 +225,20 @@
     @on-share="onShare"
     @on-collect="onShowClaimDialog"
   >
+    <template #pnl-slot>
+      <div>
+        <CurrencyComponent
+          :amount="pnl.status ? `+${pnl.amount}` : !pnlType ? `${pnl.amount}` : `${pnl.percent}%`"
+          :decimals="2"
+          :font-size="12"
+          :font-size-small="12"
+          :hasSpace="false"
+          :isDenomInfront="true"
+          :type="CURRENCY_VIEW_TYPES.CURRENCY"
+          denom="$"
+        />
+      </div>
+    </template>
     <template #tab-1>
       <div class="flex h-full flex-col justify-between">
         <div class="text-12 font-medium text-neutral-400">{{ $t("message.lease-size") }}</div>
@@ -628,9 +678,10 @@ const liquidation = computed(() => {
 const pnl = computed(() => {
   const lease = props.leaseInfo.leaseStatus.opened ?? props.leaseInfo.leaseStatus.paid;
   if (lease) {
+    console.info();
     return {
       percent: props.leaseInfo.pnlPercent.toString(2),
-      amount: CurrencyUtils.formatPrice(props.leaseInfo.pnlAmount.toString()),
+      amount: props.leaseInfo.pnlAmount.toString(),
       status: props.leaseInfo.pnlAmount.isPositive()
     };
   }
@@ -721,14 +772,23 @@ async function onShare() {
   showShareDialog.value = true;
 }
 
-const leaseOpenedMargin = ({ overdue_interest, overdue_margin, principal_due, amount }: OpenedLeaseInfo) => {
+const leaseOpenedMargin = ({
+  overdue_interest,
+  overdue_margin,
+  principal_due,
+  amount,
+  due_margin,
+  due_interest
+}: OpenedLeaseInfo) => {
   const margin =
-    ((+overdue_interest.amount + +overdue_margin.amount + +principal_due.amount) /
+    ((+overdue_interest.amount + +overdue_margin.amount + +due_margin + +due_interest + +principal_due.amount) /
       (+amount.amount + +props.leaseInfo.leaseData?.price)) *
     100;
 
   return Math.round(margin);
 };
+
+console.info(props.leaseInfo);
 
 const leaseOpened = computed<LeaseProps>(() => ({
   // TODO: here we have click event which need to lead to history page with the hash as query param to load information in history table when this functionality is ready
@@ -742,8 +802,8 @@ const leaseOpened = computed<LeaseProps>(() => ({
   status: LeaseStatus.OPENED,
   tabs: [{ button: { icon: "icon-stats" } }, { button: { icon: "icon-lease-1" } }],
   actionButtons: {
-    repay: { label: i18n.t("message.repay"), loading: loadingRepay.value },
-    close: { label: i18n.t("message.close"), loading: loadingClose.value }
+    repay: { label: i18n.t("message.repay"), loading: loadingRepay.value, disabled: loadingClose.value },
+    close: { label: i18n.t("message.close"), loading: loadingClose.value, disabled: loadingRepay.value }
   },
   progressBar: {
     title: i18n.t("message.health"),
@@ -751,13 +811,14 @@ const leaseOpened = computed<LeaseProps>(() => ({
   },
   progressDate: {
     title: i18n.t("message.opened-on"),
-    value: `${getCreatedAtForHuman(props.leaseInfo.leaseData?.timestamp)?.toUpperCase()}`
+    value: props.leaseInfo.leaseData?.timestamp
+      ? `${getCreatedAtForHuman(props.leaseInfo.leaseData?.timestamp)?.toUpperCase()}`
+      : ""
   },
   pnl: {
     click() {
       pnlType.value = !pnlType.value;
     },
-    value: pnl.value.status ? `+${pnl.value.amount}` : !pnlType.value ? `${pnl.value.amount}` : `${pnl.value.percent}%`,
     status: pnl.value.status ? LeasePnlStatus.POSITIVE : LeasePnlStatus.NEGATIVE
   },
   debt: {
@@ -795,9 +856,6 @@ const leaseOpening = computed<LeaseProps>(() => ({
     title: i18n.t("message.opened-on"),
     value: i18n.t("message.opening")
   },
-  pnl: {
-    value: `$${pnl.value.amount}`
-  },
   debt: {
     title: i18n.t("message.outstanding-loan"),
     tooltip: i18n.t("message.outstanding-debt-tooltip"),
@@ -831,13 +889,14 @@ const leasePaid = computed<LeaseProps>(() => ({
   },
   progressDate: {
     title: i18n.t("message.opened-on"),
-    value: `${getCreatedAtForHuman(props.leaseInfo.leaseData?.timestamp)?.toUpperCase()}`
+    value: props.leaseInfo.leaseData?.timestamp
+      ? `${getCreatedAtForHuman(props.leaseInfo.leaseData?.timestamp)?.toUpperCase()}`
+      : ""
   },
   pnl: {
     click() {
       pnlType.value = !pnlType.value;
     },
-    value: pnl.value.status ? `+${pnl.value.amount}` : !pnlType.value ? `${pnl.value.amount}` : `${pnl.value.percent}%`,
     status: pnl.value.status ? LeasePnlStatus.POSITIVE : LeasePnlStatus.NEGATIVE
   }
 }));
