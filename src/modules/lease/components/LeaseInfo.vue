@@ -11,8 +11,8 @@
     <template #pnl-slot>
       <div>
         <CurrencyComponent
-          :amount="pnl.status ? pnl.amount : !pnlType ? -pnl.amount : pnl.percent"
-          :decimals="2"
+          :amount="pnl.status ? pnl.amount : !pnlType ? (-pnl.amount).toString() : pnl.percent"
+          :decimals="pnlType ? 2 : 4"
           :denom="pnl.status ? `+$` : !pnlType ? `-$` : `%`"
           :font-size="12"
           :font-size-small="12"
@@ -29,9 +29,7 @@
         </div>
         <div class="flex gap-2">
           <div class="flex gap-1">
-            <img
-              :src="getAssetIcon"
-            />
+            <img :src="getAssetIcon" />
             <div>
               <CurrencyComponent
                 :amount="focusPrice ?? currentPrice"
@@ -187,7 +185,7 @@
     <template #tab-0>
       <div class="flex items-center justify-between">
         <div class="text-12 font-medium text-neutral-400">
-          {{ $t("message.chart") }}
+          <!-- {{ $t("message.chart") }} -->
         </div>
         <div class="flex gap-2">
           <div class="flex gap-1">
@@ -222,7 +220,11 @@
       </div>
       <div class="relaltive flex">
         <div class="relative w-full">
-          <Chart :chartData="chartData" />
+          <PriceHistoryChart
+            :chartData="chartData"
+            class="max-h-[100px]"
+            @in-focus="onFocusChart"
+          />
         </div>
       </div>
     </template>
@@ -386,7 +388,7 @@ import {
   AppUtils,
   AssetUtils,
   datePraser,
-  getCreatedAtForHuman,
+  formatDate,
   Logger,
   StringUtils,
   WalletManager,
@@ -394,7 +396,7 @@ import {
 } from "@/common/utils";
 import { coin } from "@cosmjs/amino";
 import { useApplicationStore } from "@/common/stores/application";
-import { Chart, PriceHistoryChart } from "./";
+import { PriceHistoryChart } from "./";
 
 enum TEMPLATES {
   "opening",
@@ -794,15 +796,17 @@ const leaseOpenedMargin = ({
   const externalCurrencies = [overdue_interest, overdue_margin, due_margin, due_interest, principal_due, amount].map(
     (amount) => AssetUtils.getCurrencyByTicker(amount?.ticker as string)
   );
+  const priceAmount = new Dec(amount.amount, externalCurrencies[5].decimal_digits).mul(
+    props.leaseInfo.leaseData?.price
+  );
 
   const margin = new Dec(overdue_interest.amount, externalCurrencies[0].decimal_digits)
     .add(new Dec(overdue_margin.amount, externalCurrencies[1].decimal_digits))
     .add(new Dec(due_margin.amount, externalCurrencies[2].decimal_digits))
     .add(new Dec(due_interest.amount, externalCurrencies[3].decimal_digits))
-    .add(new Dec(principal_due.amount, externalCurrencies[4].decimal_digits))
-    .quo(new Dec(amount.amount, externalCurrencies[5].decimal_digits).mulRoundUp(props.leaseInfo.leaseData?.price));
+    .add(new Dec(principal_due.amount, externalCurrencies[4].decimal_digits));
 
-  return +margin.toString(2) * 100; // 100% is the max value
+  return margin.quo(priceAmount).mul(new Dec(100)).toString(2); // 100% is the max value
 };
 
 const leaseOpened = computed<LeaseProps>(() => ({
@@ -827,7 +831,7 @@ const leaseOpened = computed<LeaseProps>(() => ({
   progressDate: {
     title: i18n.t("message.opened-on"),
     value: props.leaseInfo.leaseData?.timestamp
-      ? `${getCreatedAtForHuman(props.leaseInfo.leaseData?.timestamp)?.toUpperCase()}`
+      ? `${formatDate(props.leaseInfo.leaseData?.timestamp)?.toUpperCase()}`
       : ""
   },
   pnl: {
@@ -904,7 +908,7 @@ const leasePaid = computed<LeaseProps>(() => ({
   progressDate: {
     title: i18n.t("message.opened-on"),
     value: props.leaseInfo.leaseData?.timestamp
-      ? `${getCreatedAtForHuman(props.leaseInfo.leaseData?.timestamp)?.toUpperCase()}`
+      ? `${formatDate(props.leaseInfo.leaseData?.timestamp)?.toUpperCase()}`
       : ""
   },
   pnl: {

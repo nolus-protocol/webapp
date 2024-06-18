@@ -200,3 +200,18 @@ export function formatDateTime(dateTime: string | null) {
 
   return `${m} ${date}, ${year} ${timeString}`;
 }
+
+export function formatDate(dateTime: string | null) {
+  if (dateTime === null) {
+    return undefined;
+  }
+
+  const time = new Date(dateTime);
+  const { months } = getParams();
+
+  const m = months[time.getMonth()];
+  const date = `${time.getDate()}`;
+  const year = time.getFullYear();
+
+  return `${m} ${date}, ${year}`;
+}
