@@ -9,18 +9,8 @@
     @on-share="onShare"
   >
     <template #pnl-slot>
-      <div>
-        <CurrencyComponent
-          :amount="pnl.status ? pnl.amount : !pnlType ? (-pnl.amount).toString() : pnl.percent"
-          :decimals="pnlType ? 2 : 4"
-          :denom="pnl.status ? `+$` : !pnlType ? `-$` : `%`"
-          :font-size="12"
-          :font-size-small="12"
-          :hasSpace="false"
-          :isDenomInfront="pnl.status ? pnl.status : !pnlType"
-          :type="CURRENCY_VIEW_TYPES.CURRENCY"
-        />
-      </div>
+      <template v-if="!pnlType">{{ pnl.amount }}</template>
+      <template v-else>{{ pnl.percent }}%</template>
     </template>
     <template #tab-0>
       <div class="flex items-center justify-between">
@@ -29,7 +19,10 @@
         </div>
         <div class="flex gap-2">
           <div class="flex gap-1">
-            <img :src="getAssetIcon" />
+            <img
+              width="32"
+              :src="getAssetIcon"
+            />
             <div>
               <CurrencyComponent
                 :amount="focusPrice ?? currentPrice"
@@ -169,28 +162,19 @@
     v-bind="leaseOpening"
   >
     <template #pnl-slot>
-      <div>
-        <CurrencyComponent
-          :amount="pnl.amount"
-          :decimals="2"
-          :font-size="12"
-          :font-size-small="12"
-          :hasSpace="false"
-          :isDenomInfront="true"
-          :type="CURRENCY_VIEW_TYPES.CURRENCY"
-          denom="$"
-        />
-      </div>
+      <template v-if="!pnlType">{{ pnl.amount }}</template>
+      <template v-else>{{ pnl.percent }}%</template>
     </template>
     <template #tab-0>
       <div class="flex items-center justify-between">
         <div class="text-12 font-medium text-neutral-400">
-          <!-- {{ $t("message.chart") }} -->
+          {{ $t("message.chart") }}
         </div>
         <div class="flex gap-2">
           <div class="flex gap-1">
             <img
-              src="https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/currencies/icons/osmosis-usdc.svg"
+              width="32"
+              :src="getAssetIcon"
             />
             <div>
               <CurrencyComponent
@@ -239,18 +223,8 @@
     @on-collect="onShowClaimDialog"
   >
     <template #pnl-slot>
-      <div>
-        <CurrencyComponent
-          :amount="pnl.status ? pnl.amount : !pnlType ? -pnl.amount : pnl.percent"
-          :decimals="2"
-          :denom="pnl.status ? `+$` : !pnlType ? `-$` : `%`"
-          :font-size="12"
-          :font-size-small="12"
-          :hasSpace="false"
-          :isDenomInfront="pnl.status ? pnl.status : !pnlType"
-          :type="CURRENCY_VIEW_TYPES.CURRENCY"
-        />
-      </div>
+      <template v-if="!pnlType">{{ pnl.amount }}</template>
+      <template v-else>{{ pnl.percent }}%</template>
     </template>
     <template #tab-1>
       <div class="flex h-full flex-col justify-between gap-2 lg:gap-0">
@@ -694,7 +668,7 @@ const pnl = computed(() => {
   if (lease) {
     return {
       percent: props.leaseInfo.pnlPercent.toString(2),
-      amount: props.leaseInfo.pnlAmount.toString(),
+      amount: CurrencyUtils.formatPrice(props.leaseInfo.pnlAmount.toString()),
       status: props.leaseInfo.pnlAmount.isPositive()
     };
   }
@@ -760,6 +734,16 @@ const loadingClose = computed(() => {
   return false;
 });
 
+const loadingCollect = computed(() => {
+  const data = props.leaseInfo.leaseStatus.paid;
+  console.log(props.leaseInfo);
+  if (data?.in_progress == "transfer_in_init") {
+    return true;
+  }
+
+  return false;
+});
+
 const interestDueStatus = computed(() => {
   const lease = props.leaseInfo.leaseStatus?.opened;
   if (lease) {
@@ -796,16 +780,13 @@ const leaseOpenedMargin = ({
   const externalCurrencies = [overdue_interest, overdue_margin, due_margin, due_interest, principal_due, amount].map(
     (amount) => AssetUtils.getCurrencyByTicker(amount?.ticker as string)
   );
-  const priceAmount = new Dec(amount.amount, externalCurrencies[5].decimal_digits).mul(
-    props.leaseInfo.leaseData?.price
-  );
-
+  const price = oracleStore.prices[externalCurrencies[5].ibcData];
+  const priceAmount = new Dec(amount.amount, externalCurrencies[5].decimal_digits).mul(new Dec(price.amount));
   const margin = new Dec(overdue_interest.amount, externalCurrencies[0].decimal_digits)
     .add(new Dec(overdue_margin.amount, externalCurrencies[1].decimal_digits))
     .add(new Dec(due_margin.amount, externalCurrencies[2].decimal_digits))
     .add(new Dec(due_interest.amount, externalCurrencies[3].decimal_digits))
     .add(new Dec(principal_due.amount, externalCurrencies[4].decimal_digits));
-
   return margin.quo(priceAmount).mul(new Dec(100)).toString(2); // 100% is the max value
 };
 
@@ -842,7 +823,8 @@ const leaseOpened = computed<LeaseProps>(() => ({
   },
   debt: {
     title: i18n.t("message.outstanding-loan"),
-    tooltip: i18n.t("message.outstanding-debt-tooltip")
+    tooltip: i18n.t("message.outstanding-debt-tooltip"),
+    class: loadingRepay.value || loadingClose.value ? "h-5 mt-0.5 bg-neutral-100 rounded-md text-transparent" : ""
   },
   interest: {
     title: i18n.t("message.interest-fee"),
@@ -850,7 +832,8 @@ const leaseOpened = computed<LeaseProps>(() => ({
   },
   interestDue: {
     title: i18n.t("message.interest-due"),
-    tooltip: i18n.t("message.repay-interest", { dueDate: interestDueDate.value })
+    tooltip: i18n.t("message.repay-interest", { dueDate: interestDueDate.value }),
+    class: loadingRepay.value || loadingClose.value ? "h-5 mt-0.5 bg-neutral-100 rounded-md text-transparent" : ""
   }
 }));
 
@@ -871,7 +854,7 @@ const leaseOpening = computed<LeaseProps>(() => ({
     value: openingSubState.value
   },
   progressDate: {
-    title: i18n.t("message.opened-on"),
+    title: "",
     value: i18n.t("message.opening")
   },
   debt: {
@@ -903,7 +886,7 @@ const leasePaid = computed<LeaseProps>(() => ({
   status: LeaseStatus.PAID,
   tabs: [{ button: { icon: "icon-stats", disabled: true } }, { button: { icon: "icon-lease-1" }, active: true }],
   actionButtons: {
-    collect: { label: i18n.t("message.collect") }
+    collect: { label: i18n.t("message.collect"), loading: loadingCollect.value, disabled: loadingCollect.value }
   },
   progressDate: {
     title: i18n.t("message.opened-on"),
