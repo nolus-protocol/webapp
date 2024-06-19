@@ -232,7 +232,6 @@
               "
               :changeDirection="index % 2 === 0"
               :denom="asset.balance.denom"
-              :earnings="DEFAULT_APR"
               :openModal="openModal"
               :price="oracle.prices[asset.balance.denom]?.amount ?? '0'"
             />

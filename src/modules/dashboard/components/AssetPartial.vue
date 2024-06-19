@@ -118,10 +118,6 @@ const props = defineProps({
     type: String,
     required: true
   },
-  earnings: {
-    type: String,
-    required: true
-  },
   changeDirection: {
     type: Boolean,
     default: false
