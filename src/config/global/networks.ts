@@ -14,7 +14,10 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     staking: "https://testnet.ping.pub/nolus/staking",
     etlApi: "https://etl-cl.nolus.network:8081/api",
     leaseBlockUpdate: 977014,
-    lppCreatedAt: 1686573237831
+    lppCreatedAt: 1686573237831,
+    evmEndpoints: isDev()
+      ? import("../networks/evm-endpoints?url").then((t) => t.default)
+      : "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/evm-endpoints"
   },
   mainnet: {
     currencies: () => import("@nolus/nolusjs/build/utils/currencies_mainnet.json"),
@@ -27,7 +30,10 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     staking: "https://ping.pub/nolus/staking",
     etlApi: "https://etl-cl.nolus.network:8080/api",
     leaseBlockUpdate: 1029833,
-    lppCreatedAt: 1686845698269
+    lppCreatedAt: 1686845698269,
+    evmEndpoints: isDev()
+      ? import("../networks/evm-endpoints?url").then((t) => t.default)
+      : "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/evm-endpoints"
   }
 };
 
@@ -37,7 +43,7 @@ export const NetworksConfig: {
   };
 } = {
   NEUTRON: {
-    hidden: ["ATOM", "ST_ATOM", "TIA", "ST_TIA@OSMOSIS-OSMOSIS-USDC_AXELAR", "USDC_AXELAR@OSMOSIS-OSMOSIS-USDC_AXELAR"]
+    hidden: ["ST_ATOM", "TIA", "ST_TIA@OSMOSIS-OSMOSIS-USDC_AXELAR", "USDC_AXELAR@OSMOSIS-OSMOSIS-USDC_AXELAR"]
   },
   OSMOSIS: {
     hidden: ["ST_TIA@NEUTRON-ASTROPORT-USDC_AXELAR"]

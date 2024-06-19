@@ -1,126 +1,77 @@
 <template>
-  <div
-    class="asset-partial nolus-box border-standart relative grid items-center justify-between gap-6 border-b py-3"
-    :class="[showActionButtons ? 'row-actions' : '', cols ? 'grid-cols-' + cols : 'grid-cols-4 md:grid-cols-5']"
+  <AssetsTableRow
+    :items="items"
+    :rowButton="
+      showActionButtons ? { label: canSupply ? $t('message.supply') : $t('message.lease'), class: 'hidden' } : null
+    "
+    @button-click="
+      () => {
+        canSupply
+          ? openModal(DASHBOARD_ACTIONS.SUPPLY, assetInfo.key)
+          : openModal(DASHBOARD_ACTIONS.LEASE, assetInfo.key);
+      }
+    "
   >
-    <div class="col-span-2 inline-flex items-center md:col-span-1">
-      <img
-        v-if="assetInfo.icon"
-        :src="assetInfo.icon"
-        class="m-0 mr-4 inline-block"
-        height="32"
-        width="32"
+    <template #token>
+      <CurrencyComponent
+        v-if="assetBalance"
+        :amount="assetBalance"
+        :decimals="assetInfo.decimal_digits"
+        :maxDecimals="maxCoinDecimals"
+        :minimalDenom="assetInfo.ibcData"
+        :type="CURRENCY_VIEW_TYPES.TOKEN"
+        denom=""
       />
-      <div class="inline-block">
-        <p class="nls-font-500 m-0 text-left text-18 text-primary">
-          {{ assetInfo.shortName }}
-        </p>
-        <p class="text-dark-grey garet-medium m-0 text-left text-12 capitalize">
-          {{ CurrencyUtils.formatPrice(price).maxDecimals(6) }}
-        </p>
-      </div>
-    </div>
-
-    <div class="block">
-      <p class="nls-font-500 m-0 text-right text-16 text-primary">
-        <CurrencyComponent
-          :type="CURRENCY_VIEW_TYPES.TOKEN"
-          :amount="assetBalance"
-          :minimalDenom="assetInfo.ibcData"
-          :decimals="assetInfo.decimal_digits"
-          :maxDecimals="maxCoinDecimals"
-          denom=""
-        />
-      </p>
-      <div class="text-dark-grey garet-medium m-0 flex items-center justify-end text-right text-12">
-        {{ DEFAULT_CURRENCY.symbol }}{{ calculateBalance(price, assetBalance, denom) }}
-      </div>
-    </div>
-
-    <div
-      v-if="earnings"
-      class="hidden md:block"
-    >
-      <div class="nls-font-500 m-0 text-right text-14 text-primary">
-        <CurrencyComponent
-          v-if="app.native?.ticker == assetInfo.ticker"
-          :type="CURRENCY_VIEW_TYPES.CURRENCY"
-          :amount="walletStore.apr.toString()"
-          :hasSpace="false"
-          :isDenomInfront="false"
-          :defaultZeroValue="'-'"
-          denom="%"
-        />
-        <template v-else>
-          <div v-if="isEarn">
-            <CurrencyComponent
-              :type="CURRENCY_VIEW_TYPES.CURRENCY"
-              :amount="apr"
-              :hasSpace="false"
-              :isDenomInfront="false"
-              denom="%"
-            />
-            <p class="text-[12px] text-[#1AB171]">+{{ rewards }}% {{ NATIVE_ASSET.label }}</p>
-          </div>
-          <template v-else> – </template>
+    </template>
+    <template #currency>
+      <CurrencyComponent
+        v-if="app.native?.ticker == assetInfo.ticker"
+        :amount="walletStore.apr.toString()"
+        :defaultZeroValue="'-'"
+        :hasSpace="false"
+        :isDenomInfront="false"
+        :type="CURRENCY_VIEW_TYPES.CURRENCY"
+        denom="%"
+      />
+      <template v-else>
+        <div v-if="isEarn">
+          <CurrencyComponent
+            :amount="apr"
+            :hasSpace="false"
+            :isDenomInfront="false"
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            denom="%"
+          />
+          <p class="text-[12px] text-[#1AB171]">+{{ rewards }}% {{ NATIVE_ASSET.label }}</p>
+        </div>
+        <template v-else> – </template>
+      </template>
+    </template>
+    <template #complex>
+      <template v-if="canLease">
+        <template v-if="balance > 0">
+          <CurrencyComponent
+            :amount="leasUpTo"
+            :decimals="assetInfo.decimal_digits"
+            :maxDecimals="maxLeaseUpToCoinDecimals"
+            :minimalDenom="assetInfo.ibcData"
+            :type="CURRENCY_VIEW_TYPES.TOKEN"
+            denom=""
+          />
         </template>
-      </div>
-    </div>
-
-    <div class="relative hidden md:block">
-      <div class="info-show">
-        <p class="nls-font-500 m-0 text-right text-16 text-primary">
-          <template v-if="canLease">
-            <template v-if="balance > 0">
-              <CurrencyComponent
-                :type="CURRENCY_VIEW_TYPES.TOKEN"
-                :amount="leasUpTo"
-                :minimalDenom="assetInfo.ibcData"
-                :decimals="assetInfo.decimal_digits"
-                :maxDecimals="maxLeaseUpToCoinDecimals"
-                denom=""
-              />
-            </template>
-            <template v-else>
-              <CurrencyComponent
-                :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                :amount="DEFAULT_LEASE_UP_PERCENT"
-                :hasSpace="false"
-                :isDenomInfront="false"
-                denom="%"
-              />
-            </template>
-          </template>
-          <template v-else> – </template>
-        </p>
-      </div>
-      <div class="nls-btn-show !right-0 flex justify-end">
-        <button
-          class="btn btn-secondary btn-medium-secondary"
-          @click="openModal(DASHBOARD_ACTIONS.LEASE, assetInfo.key)"
-        >
-          {{ $t("message.lease") }}
-        </button>
-
-        <button
-          v-if="canSupply"
-          class="btn btn-secondary btn-medium-secondary"
-          @click="openModal(DASHBOARD_ACTIONS.SUPPLY, assetInfo.key)"
-        >
-          {{ $t("message.supply") }}
-        </button>
-      </div>
-    </div>
-
-    <div class="flex justify-end">
-      <button
-        class="btn transfer btn-medium-secondary !px-[14px] py-[8px]"
-        @click="sendReceiveOpen(assetInfo.key)"
-      >
-        <span class="icon icon-transfer !text-[14px]"></span>
-      </button>
-    </div>
-  </div>
+        <template v-else>
+          <CurrencyComponent
+            :amount="DEFAULT_LEASE_UP_PERCENT"
+            :hasSpace="false"
+            :isDenomInfront="false"
+            :type="CURRENCY_VIEW_TYPES.CURRENCY"
+            denom="%"
+          />
+        </template>
+      </template>
+      <template v-else> – </template>
+    </template>
+  </AssetsTableRow>
 </template>
 
 <script lang="ts" setup>
@@ -128,17 +79,18 @@ import { DASHBOARD_ACTIONS } from "../types";
 import { computed, type PropType } from "vue";
 import { Coin, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { CURRENCY_VIEW_TYPES, type ExternalCurrency } from "@/common/types";
+import { type ExternalCurrency } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useApplicationStore } from "@/common/stores/application";
 import { AssetUtils as WebAppAssetUtils } from "@/common/utils";
 import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
+import { AssetsTableRow, CURRENCY_VIEW_TYPES } from "web-components";
 
 import {
-  NATIVE_CURRENCY as DEFAULT_CURRENCY,
   DEFAULT_LEASE_UP_PERCENT,
   LEASE_UP_COEFICIENT,
-  NATIVE_ASSET
+  NATIVE_ASSET,
+  NATIVE_CURRENCY as DEFAULT_CURRENCY
 } from "@/config/global";
 import { CurrencyMapping } from "@/config/currencies";
 
@@ -155,10 +107,6 @@ const props = defineProps({
     required: true
   },
   openModal: {
-    type: Function,
-    required: true
-  },
-  sendReceiveOpen: {
     type: Function,
     required: true
   },
@@ -236,29 +184,26 @@ function calculateBalance(price: string, tokenAmount: string, denom: string) {
   const data = CurrencyUtils.calculateBalance(price, coin, tokenDecimals);
   return data.toDec().toString(2);
 }
+
+const items = computed(() => [
+  {
+    value: props.assetInfo?.shortName,
+    subValue: `${CurrencyUtils.formatPrice(props.price).maxDecimals(6)}`,
+    image: props.assetInfo.icon,
+    imageClass: "w-8"
+  },
+  {
+    type: CURRENCY_VIEW_TYPES.TOKEN,
+    subValue: `${DEFAULT_CURRENCY.symbol}${calculateBalance(props.price, props.assetBalance, props.denom)}`
+  },
+  {
+    type: CURRENCY_VIEW_TYPES.CURRENCY,
+    class: "hidden md:flex"
+  },
+  {
+    type: CURRENCY_VIEW_TYPES.COMPLEX,
+    class: "hidden md:flex"
+  }
+]);
 </script>
-<style scoped lang="scss">
-button.transfer {
-  padding: 8px 14px !important;
-}
-
-div.mobile-actions {
-  button,
-  a {
-    font-family: "Garet-Medium", sans-serif !important;
-
-    &:first-child:not(&:last-child) {
-      margin-right: 5px;
-    }
-
-    &:last-child:not(&:first-child) {
-      margin-left: 5px;
-    }
-  }
-
-  a {
-    justify-content: center;
-    display: flex;
-  }
-}
-</style>
+<style lang="scss" scoped></style>

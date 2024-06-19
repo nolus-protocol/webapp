@@ -1,51 +1,29 @@
 <template>
-  <div class="block">
-    <div
-      class="border-standart earn-asset grid grid-cols-3 items-center justify-between gap-6 border-b border-t py-3 md:grid-cols-3"
-    >
-      <!-- Ticker -->
-      <div class="col-span-2 inline-flex items-center">
-        <img
-          v-if="assetInfo.icon"
-          :src="assetInfo.icon"
-          class="m-0 mr-4 inline-block"
-          height="32"
-          width="32"
-        />
-        <div class="inline-block">
-          <p class="nls-font-500 m-0 text-left text-18 text-primary">
-            <CurrencyComponent
-              :type="CURRENCY_VIEW_TYPES.TOKEN"
-              :amount="reward.balance.amount.toString()"
-              :minimalDenom="assetInfo.ibcData"
-              :denom="assetInfo.shortName"
-              :decimals="assetInfo.decimal_digits"
-              :maxDecimals="6"
-              :fontSizeSmall="12"
-            />
-          </p>
-          <p class="text-dark-grey garet-medium m-0 text-left text-12 capitalize">
-            ${{ calculateBalance(reward.balance?.amount.toString(), reward.balance?.denom) }}
-          </p>
-        </div>
-      </div>
-
-      <!-- Balance -->
-      <div class="flex justify-end">
-        <button
-          :disabled="!isEnabled"
-          :class="`btn btn-secondary btn-medium-secondary ${loading ? 'js-loading' : ''} ${isEnabled ? '' : 'disabled'}`"
-          @:click="onClickClaim"
-        >
-          {{ $t("message.claim") }}
-        </button>
-      </div>
-    </div>
-  </div>
+  <EarningAssetsTableRow
+    :items="items"
+    @button-click="
+      () => {
+        props.onClickClaim?.();
+      }
+    "
+  >
+    <template #token>
+      <CurrencyComponent
+        :amount="reward.balance.amount.toString()"
+        :decimals="assetInfo.decimal_digits"
+        :denom="assetInfo.shortName"
+        :fontSizeSmall="12"
+        :maxDecimals="6"
+        :minimalDenom="assetInfo.ibcData"
+        :type="CURRENCY_VIEW_TYPES.TOKEN"
+      />
+    </template>
+  </EarningAssetsTableRow>
 </template>
 
 <script lang="ts" setup>
-import { type PropType, ref, computed } from "vue";
+import { computed, type PropType, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 
 import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
@@ -53,6 +31,9 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { Dec } from "@keplr-wallet/unit";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { AssetUtils } from "@/common/utils";
+import { EarningAssetsTableRow } from "web-components";
+
+const i18n = useI18n();
 
 const props = defineProps({
   cols: {
@@ -87,4 +68,17 @@ const isEnabled = computed(() => {
 
   return false;
 });
+
+const items = computed(() => [
+  {
+    type: CURRENCY_VIEW_TYPES.TOKEN,
+    subValue: `$${calculateBalance(props.reward.balance?.amount.toString(), props.reward.balance?.denom)}`,
+    image: assetInfo.value.icon,
+    imageClass: "w-8"
+  },
+  {
+    button: { label: i18n.t("message.claim"), loading: loading.value, disabled: !isEnabled.value },
+    buttonOnly: true
+  }
+]);
 </script>

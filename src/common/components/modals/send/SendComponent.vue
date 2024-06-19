@@ -29,7 +29,7 @@
             :name="$t('message.amount')"
             :label="$t('message.amount-field')"
             @input="handleAmountChange($event)"
-            @update-currency="(event) => (modelValue.selectedCurrency = event)"
+            @update-currency="onUpdateSelectedCurrency"
             :balance="formatCurrentBalance(modelValue.selectedCurrency)"
             :total="modelValue.selectedCurrency.balance"
           />
@@ -82,7 +82,7 @@ import CurrencyField from "@/common/components/CurrencyField.vue";
 
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { AssetUtils, EnvNetworkUtils, WalletUtils } from "@/common/utils";
-import { computed, ref, onMounted } from "vue";
+import { computed, ref, onMounted, nextTick } from "vue";
 import { NETWORKS_DATA } from "@/networks";
 import { useApplicationStore } from "@/common/stores/application";
 import { IGNORE_LPN, LPN_NETWORK, NATIVE_NETWORK, ProtocolsConfig } from "@/config/global";
@@ -162,6 +162,15 @@ function onUpdateCurrency(event: Network) {
     props.modelValue.receiverAddress = props.modelValue.wallet as string;
   } else {
     props.modelValue.receiverAddress = "";
+  }
+}
+
+function onUpdateSelectedCurrency(value: AssetBalance) {
+  props.modelValue.selectedCurrency = value as AssetBalance;
+  if (props.modelValue.amount.length == 0) {
+    nextTick(() => {
+      props.modelValue.amountErrorMsg = "";
+    });
   }
 }
 </script>

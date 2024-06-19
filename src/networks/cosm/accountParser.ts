@@ -2,9 +2,9 @@
 import { Uint64 } from "@cosmjs/math";
 import { assert } from "@cosmjs/utils";
 import { BaseAccount, ModuleAccount } from "cosmjs-types/cosmos/auth/v1beta1/auth";
-import { StridePeriodicVestingAccount } from "./stride/vesting";
-import { EthermintAccount } from "./evmos/etherming";
-import { EthermintAccount as InjectiveAccount } from "./injective/etherming";
+import { StridePeriodicVestingAccount } from "../list/stride/vesting";
+import { EthermintAccount } from "../list/evmos/etherming";
+import { EthermintAccount as InjectiveAccount } from "../list/injective/etherming";
 import { decodePubkey } from "./encode";
 
 import {

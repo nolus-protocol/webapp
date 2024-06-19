@@ -6,7 +6,7 @@
     <!-- Hidden menu -->
     <div
       :style="showMobileNav ? 'transform: translateY(-176px)' : ''"
-      class="background nls-border mobile-transition-taskbar absolute z-[10] mb-[-1px] flex w-full flex-col rounded-tl-xl rounded-tr-xl transition-[0.5s]"
+      class="background nls-border mobile-transition-taskbar absolute z-[10] mb-[-1px] flex w-full flex-col transition-[0.5s]"
     >
       <RouterLink
         v-for="item in hiddenMenuItems"
@@ -27,10 +27,12 @@
       </RouterLink>
     </div>
 
-    <div class="background sidebar-elements-block relative z-20 flex w-full justify-between px-4 pb-4 pt-1.5">
+    <div
+      class="background sidebar-elements-block relative z-20 flex w-full justify-between border-t-[1px] border-border-color px-4 pb-4 pt-1.5"
+    >
       <template
         v-for="item in visibleMenuItems"
-        :key="item.name"
+        :key="item?.name"
         class="sidebar-element flex flex-col items-center font-garet-medium text-16"
         @click="showMobileNav = false"
       >
@@ -75,10 +77,9 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref } from "vue";
+import { inject, onMounted, onUnmounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 import { RouteNames, router } from "@/router";
-import { inject } from "vue";
 import { EnvNetworkUtils } from "@/common/utils";
 
 const openDialog = inject("openDialog", () => {});

@@ -100,8 +100,6 @@ div.chart-tooltip {
       font-size: 12px;
       text-transform: uppercase;
       font-family: "Garet", sans-serif;
-      font-style: normal;
-      font-weight: 500;
 
       tr {
         th {
@@ -109,6 +107,8 @@ div.chart-tooltip {
           white-space: pre;
           text-align: left;
           margin-bottom: 5px;
+          font-style: normal;
+          font-weight: 500;
         }
       }
     }

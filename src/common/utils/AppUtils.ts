@@ -46,6 +46,10 @@ export class AppUtils {
     };
   } = {};
 
+  static evmRpc: {
+    [key: string]: Promise<API>;
+  } = {};
+
   static archive_node: {
     [key: string]: Promise<ARCHIVE_NODE>;
   } = {};
@@ -92,6 +96,22 @@ export class AppUtils {
 
     const networkData = AppUtils.fetch(network);
     AppUtils.rpc[EnvNetworkUtils.getStoredNetworkName()][network] = networkData;
+    return networkData;
+  }
+
+  static async fetchEvmEndpoints(network: string) {
+    const net = AppUtils.evmRpc?.[network];
+
+    if (net) {
+      return net;
+    }
+
+    if (!AppUtils.evmRpc) {
+      AppUtils.evmRpc = {};
+    }
+
+    const networkData = AppUtils.fetchEvmRpc(network);
+    AppUtils.evmRpc[network] = networkData;
     return networkData;
   }
 
@@ -228,6 +248,20 @@ export class AppUtils {
     return networkData;
   }
 
+  private static async fetchEvmRpc(network: string) {
+    const config = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
+    const data = await fetch(await config.evmEndpoints);
+    const json = (await data.json()) as Endpoint;
+    const status = await AppUtils.fetchEvmStatus((json[network] as Node).primary.rpc);
+
+    if (status) {
+      return (json[network] as Node).primary;
+    }
+
+    const networkData = AppUtils.fetchEvmFallback(json[network] as Node);
+    return networkData;
+  }
+
   private static async fetchFallback(node: Node, downtime: number): Promise<API> {
     const item = (node as Node).fallback.shift();
 
@@ -242,6 +276,22 @@ export class AppUtils {
     }
 
     return AppUtils.fetchFallback(node as Node, downtime);
+  }
+
+  private static async fetchEvmFallback(node: Node): Promise<API> {
+    const item = (node as Node).fallback.shift();
+
+    if (!item) {
+      return node.primary;
+    }
+
+    const status = await AppUtils.fetchEvmStatus(item.rpc);
+
+    if (status) {
+      return item;
+    }
+
+    return AppUtils.fetchEvmFallback(node as Node);
   }
 
   private static async fetchStatus(rpc: string, dtime: number) {
@@ -261,6 +311,22 @@ export class AppUtils {
     }
 
     return false;
+  }
+
+  private static async fetchEvmStatus(rpc: string) {
+    try {
+      const data = await fetch(rpc, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ method: "eth_syncing", params: [], id: 1, jsonrpc: "2.0" })
+      });
+      const json = await data.json();
+      return !json.result;
+    } catch (error) {
+      return false;
+    }
   }
 
   private static async fetchDownpaymentRange() {

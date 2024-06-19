@@ -1,4 +1,4 @@
-import HistoryTableHeader from "./HistoryTableHeader.vue";
-import HistoryTableItem from "./HistoryTableItem.vue";
+import HistoryTableRowWrapper from "./HistoryTableRowWrapper.vue";
+import HistoryTableSkeleton from "./HistoryTableSkeleton.vue";
 
-export { HistoryTableHeader, HistoryTableItem };
+export { HistoryTableRowWrapper, HistoryTableSkeleton };

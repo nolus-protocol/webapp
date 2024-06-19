@@ -1,316 +1,262 @@
 <template>
+  <button
+    v-if="AppUtils.isDev()"
+    @click="
+      () => {
+        state.modalAction = DASHBOARD_ACTIONS.SENDV2;
+        state.showModal = true;
+      }
+    "
+  >
+    SKIPROUTE
+  </button>
   <div class="mt-[25px]">
     <BannerComponent />
     <div class="col-span-12">
       <!-- Wallet -->
-      <Transition :name="animate">
-        <!-- v-if="isTotalBalancePositive" -->
-        <div
-          class="balance-box background shadow-box radius-medium mt-6 flex flex-col justify-start p-4 outline lg:items-baseline lg:p-6"
-        >
-          <p class="nls-font-500 mb-1.5 text-16 text-primary md:mb-6">
-            {{ $t("message.portfolio-title") }}
-          </p>
-          <div class="border-standart mb-4 flex w-full flex-col gap-8 border-b pb-4 md:mb-6 md:flex-row md:pb-6">
-            <div
-              v-show="!totalBalance.isZero()"
-              class="hidden md:block"
-            >
-              <!-- Chart Component here -->
-              <DashboardDaughnutChart ref="statChart" />
-            </div>
-
-            <div class="flex flex-col">
-              <div>
-                <p class="nls-font-500 text-dark-grey text-12">
-                  {{ $t("message.portfolio-value") }}
-                </p>
-                <CurrencyComponent
-                  :amount="totalBalance.toString()"
-                  :decimals="2"
-                  :denom="NATIVE_CURRENCY.symbol"
-                  :fontSize="40"
-                  :has-space="false"
-                  :prettyZeros="true"
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  class="nls-font-700 text-primary"
-                />
-              </div>
-
-              <div class="">
-                <p class="nls-font-500 text-dark-grey text-12">
-                  {{ $t("message.total-equity") }}
-                </p>
-
-                <CurrencyComponent
-                  :amount="totalEquity.toString()"
-                  :denom="NATIVE_CURRENCY.symbol"
-                  :fontSize="20"
-                  :fontSizeSmall="14"
-                  :has-space="false"
-                  :prettyZeros="true"
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  class="nls-font-500 text-primary"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div class="flex w-full flex-col pb-2 md:flex-row lg:mt-0">
-            <div class="flex">
-              <div class="pr-8 lg:pr-0">
-                <p class="nls-font-500 text-dark-grey text-12">
-                  {{ $t("message.active-leases") }}
-                </p>
-
-                <CurrencyComponent
-                  :amount="activeLeases.toString()"
-                  :denom="NATIVE_CURRENCY.symbol"
-                  :fontSize="20"
-                  :fontSizeSmall="14"
-                  :has-space="false"
-                  :prettyZeros="true"
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  class="nls-font-500 text-primary"
-                />
-              </div>
-
-              <div class="lg:pl-8">
-                <p class="nls-font-500 text-dark-grey text-12">
-                  {{ $t("message.outstanding-loan") }}
-                </p>
-
-                <CurrencyComponent
-                  :amount="debt.toString()"
-                  :denom="NATIVE_CURRENCY.symbol"
-                  :fontSize="20"
-                  :fontSizeSmall="14"
-                  :has-space="false"
-                  :prettyZeros="true"
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  class="nls-font-500 text-primary"
-                />
-              </div>
-            </div>
-
-            <div
-              class="border-standart mb-4 border-b pb-4 pt-4 md:mb-0 md:border-b-0 md:border-r md:pb-0 md:pl-8 md:pr-8 md:pt-0"
-            >
-              <p class="nls-font-500 text-dark-grey text-12">
-                {{ $t("message.positions-pnL") }}
+      <div
+        class="mt-6 flex flex-col justify-start border-[1px] border-border-color bg-neutral-bg-50 p-4 shadow-field-normal outline md:rounded-xl lg:items-baseline lg:p-6"
+      >
+        <p class="mb-1.5 text-16 font-medium text-neutral-typography-200 md:mb-6">
+          {{ $t("message.portfolio-title") }}
+        </p>
+        <div class="mb-4 flex w-full flex-row gap-8 border-b border-border-color pb-4 md:mb-6 md:pb-6">
+          <div class="flex flex-col gap-1 md:flex-row md:gap-8">
+            <div>
+              <p class="text-dark-grey text-12 font-medium">
+                {{ $t("message.portfolio-value") }}
               </p>
-
               <CurrencyComponent
-                :amount="pnl.abs().toString()"
-                :class="pnl.isZero() ? 'text-primary' : pnl.isPositive() ? '!text-[#1AB171]' : 'text-[#E42929]'"
-                :denom="`${pnl.isZero() ? '' : pnl.isPositive() ? '+' : '-'}${NATIVE_CURRENCY.symbol}`"
-                :fontSize="20"
-                :fontSizeSmall="14"
+                :amount="totalBalance.toString()"
+                :decimals="2"
+                :denom="NATIVE_CURRENCY.symbol"
+                :fontSize="40"
+                :fontSizeSmall="32"
                 :has-space="false"
                 :prettyZeros="true"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                class="nls-font-500"
+                class="font-semibold text-neutral-typography-200"
               />
             </div>
 
-            <div class="flex">
-              <div class="pl-0 pr-8 md:pl-8 md:pr-0">
-                <p class="nls-font-500 text-dark-grey text-12">
-                  {{ $t("message.supplied-and-staked") }}
-                </p>
+            <div class="md:self-center">
+              <p class="text-dark-grey text-12 font-medium">
+                {{ $t("message.total-equity") }}
+              </p>
 
-                <CurrencyComponent
-                  :amount="earnings.toString()"
-                  :denom="NATIVE_CURRENCY.symbol"
-                  :fontSize="20"
-                  :fontSizeSmall="14"
-                  :has-space="false"
-                  :prettyZeros="true"
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  class="nls-font-500 text-primary"
-                />
-              </div>
-
-              <div class="md:pl-8">
-                <p class="nls-font-500 text-dark-grey text-12">
-                  {{ $t("message.rewards") }}
-                </p>
-                <CurrencyComponent
-                  :amount="rewards.abs().toString()"
-                  :class="
-                    rewards.isZero() ? 'text-primary' : rewards.isPositive() ? '!text-[#1AB171]' : 'text-[#E42929]'
-                  "
-                  :denom="`${rewards.isZero() ? '' : rewards.isPositive() ? '+' : '-'}${NATIVE_CURRENCY.symbol}`"
-                  :fontSize="20"
-                  :fontSizeSmall="14"
-                  :has-space="false"
-                  :prettyZeros="true"
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  class="nls-font-500"
-                />
-              </div>
+              <CurrencyComponent
+                :amount="totalEquity.toString()"
+                :denom="NATIVE_CURRENCY.symbol"
+                :fontSize="20"
+                :fontSizeSmall="16"
+                :has-space="false"
+                :prettyZeros="true"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                class="font-medium text-neutral-typography-200"
+              />
             </div>
-
-            <!-- HIDDEN ON DESKTOP -->
-          </div>
-        </div>
-      </Transition>
-
-      <!-- Existing Assets -->
-      <div
-        :class="{ 'async-loader': isAssetsLoading }"
-        class="background border-standart shadow-box mt-6 block p-4 outline lg:rounded-xl lg:p-6"
-      >
-        <!-- Top -->
-        <div class="flex flex-wrap items-baseline justify-between">
-          <div class="left w-1/3">
-            <p class="nls-font-500 dark-text text-16">
-              {{ $t("message.available-assets") }}
-            </p>
-          </div>
-          <div class="right mt-0 inline-flex w-2/3 justify-end">
-            <div class="checkbox-container relative block"></div>
           </div>
         </div>
 
-        <!-- Assets -->
-        <div class="mt-6 block md:mt-[25px]">
-          <!-- Assets Header -->
-          <div class="border-standart grid grid-cols-4 gap-6 border-b pb-3 md:grid-cols-5">
-            <div class="nls-font-500 text-dark-grey text-upper col-span-2 text-left text-12 md:col-span-1">
-              {{ $t("message.assets") }}
+        <div class="flex w-full flex-col md:flex-row lg:mt-0">
+          <div class="flex">
+            <div class="pr-8 lg:pr-0">
+              <p class="text-dark-grey text-12 font-medium">
+                {{ $t("message.active-leases") }}
+              </p>
+
+              <CurrencyComponent
+                :amount="activeLeases.toString()"
+                :denom="NATIVE_CURRENCY.symbol"
+                :fontSize="16"
+                :fontSizeSmall="12"
+                :has-space="false"
+                :prettyZeros="true"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                class="font-medium text-neutral-typography-200"
+              />
             </div>
 
-            <div class="nls-font-500 text-dark-grey text-upper text-right text-12">
-              {{ $t("message.balance") }}
-            </div>
+            <div class="lg:pl-8">
+              <p class="text-dark-grey text-12 font-medium">
+                {{ $t("message.outstanding-loan") }}
+              </p>
 
-            <div
-              class="nls-font-500 text-dark-grey text-upper hidden items-center justify-end text-right text-12 md:inline-flex"
-            >
-              <span class="inline-block">{{ $t("message.yield") }}</span>
-              <TooltipComponent :content="$t('message.earn-apr-tooltip')" />
-            </div>
-
-            <div
-              class="nls-font-500 text-dark-grey text-upper hidden items-center justify-end text-right text-12 md:inline-flex"
-            >
-              <span class="inline-block">{{ $t("message.lease-up-to") }}</span>
-              <TooltipComponent :content="$t('message.lease-up-to-tooltip')" />
-            </div>
-
-            <div
-              class="nls-font-500 text-dark-grey text-upper items-center justify-end text-right text-12 md:inline-flex"
-            >
-              <span class="inline-block">{{ $t("message.receive/send") }}</span>
+              <CurrencyComponent
+                :amount="debt.toString()"
+                :denom="NATIVE_CURRENCY.symbol"
+                :fontSize="16"
+                :fontSizeSmall="12"
+                :has-space="false"
+                :prettyZeros="true"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                class="font-medium text-neutral-typography-200"
+              />
             </div>
           </div>
 
-          <!-- Assets Container -->
           <div
-            :class="{ 'animate-pulse': loading }"
-            class="block lg:mb-0"
-            role="status"
+            class="mb-4 border-b border-border-color pb-4 pt-4 md:mb-0 md:border-b-0 md:border-r md:pb-0 md:pl-8 md:pr-8 md:pt-0"
           >
-            <template v-if="loading">
-              <div
-                v-for="index in currenciesSize"
-                :key="index"
-                class="asset-partial nolus-box border-standart relative flex h-[67px] items-center items-center justify-between justify-between border-b px-4 py-3"
-              >
-                <div class="w-[50%] md:w-auto">
-                  <div class="mb-2.5 h-1.5 w-32 rounded-full bg-grey"></div>
-                  <div class="h-1.5 w-24 rounded-full bg-grey"></div>
-                </div>
-                <div class="ml-8 flex w-[50%] flex-col items-end md:w-auto">
-                  <div class="mb-2.5 h-1.5 w-32 rounded-full bg-grey"></div>
-                  <div class="h-1.5 w-24 rounded-full bg-grey"></div>
-                </div>
-                <div class="hidden h-1.5 w-12 rounded-full bg-grey md:flex"></div>
-                <div class="hidden h-1.5 w-12 rounded-full bg-grey md:flex"></div>
-              </div>
-            </template>
-            <template v-else>
-              <TransitionGroup
-                appear
-                name="fade"
-                tag="div"
-              >
-                <AssetPartial
-                  v-for="(asset, index) in filteredAssets"
-                  :key="`${asset.balance.denom}-${index}`"
-                  :asset-info="getAssetInfo(asset.balance.denom)"
-                  :assetBalance="
-                    asset.balance.denom == wallet.available.denom
-                      ? wallet.available.amount.toString()
-                      : asset.balance.amount.toString()
-                  "
-                  :changeDirection="index % 2 === 0"
-                  :denom="asset.balance.denom"
-                  :earnings="DEFAULT_APR"
-                  :openModal="openModal"
-                  :price="oracle.prices[asset.balance.denom]?.amount ?? '0'"
-                  :sendReceiveOpen="sendReceiveOpen"
-                />
-              </TransitionGroup>
-            </template>
-          </div>
-
-          <div class="flex justify-center pb-[18px] pt-[8px]">
-            <button
-              class="btn transfer btn-medium-secondary"
-              @click="setCurrency()"
-            >
-              {{ state.showSmallBalances ? $t("message.hide-small-balances") : $t("message.show-small-balances") }}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Vested Assets -->
-      <div
-        v-if="vestedTokens.length > 0"
-        class="background shadow-box radius-medium mt-6 block outline"
-      >
-        <!-- Top -->
-        <div class="flex flex-wrap items-baseline justify-between px-4 pt-6">
-          <div class="left w-1/2">
-            <p class="nls-font-500 dark-text text-16">
-              {{ $t("message.vested") }}
+            <p class="text-dark-grey text-12 font-medium">
+              {{ $t("message.positions-pnL") }}
             </p>
-          </div>
-        </div>
 
-        <!-- Assets -->
-        <div class="mt-6 block md:mt-[25px]">
-          <!-- Assets Header -->
-          <div class="border-standart grid grid-cols-2 gap-6 border-b px-6 pb-3 md:grid-cols-3">
-            <div class="nls-font-500 text-dark-grey text-upper text-left text-12">
-              {{ $t("message.assets") }}
-            </div>
-
-            <div class="nls-font-500 text-dark-grey text-upper hidden items-center text-right text-12 md:inline-flex">
-              <span class="inline-block">{{ $t("message.release") }}</span>
-            </div>
-
-            <div class="nls-font-500 text-dark-grey text-upper text-right text-12">
-              {{ $t("message.balance") }}
-            </div>
-          </div>
-
-          <!-- Assets Container -->
-          <div class="mb-6 block lg:mb-0">
-            <VestedAssetPartial
-              v-for="(asset, index) in vestedTokens"
-              :key="`${asset.amount.amount}-${index}`"
-              :asset-balance="wallet.vestTokens.amount.toString()"
-              :asset-info="getAssetInfo(asset.amount.denom)"
-              :denom="asset.amount.denom"
-              :end-time="asset.endTime"
+            <CurrencyComponent
+              :amount="pnl.abs().toString()"
+              :class="
+                pnl.isZero() ? 'text-neutral-typography-200' : pnl.isPositive() ? '!text-[#1AB171]' : 'text-[#E42929]'
+              "
+              :denom="`${pnl.isZero() ? '' : pnl.isPositive() ? '+' : '-'}${NATIVE_CURRENCY.symbol}`"
+              :fontSize="16"
+              :fontSizeSmall="12"
+              :has-space="false"
+              :prettyZeros="true"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              class="font-medium"
             />
           </div>
+
+          <div class="flex">
+            <div class="pl-0 pr-8 md:pl-8 md:pr-0">
+              <p class="text-dark-grey text-12 font-medium">
+                {{ $t("message.supplied-and-staked") }}
+              </p>
+
+              <CurrencyComponent
+                :amount="earnings.toString()"
+                :denom="NATIVE_CURRENCY.symbol"
+                :fontSize="16"
+                :fontSizeSmall="12"
+                :has-space="false"
+                :prettyZeros="true"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                class="font-medium text-neutral-typography-200"
+              />
+            </div>
+
+            <div class="md:pl-8">
+              <p class="text-dark-grey text-12 font-medium">
+                {{ $t("message.rewards") }}
+              </p>
+              <CurrencyComponent
+                :amount="rewards.abs().toString()"
+                :class="
+                  rewards.isZero()
+                    ? 'text-neutral-typography-200'
+                    : rewards.isPositive()
+                      ? '!text-[#1AB171]'
+                      : 'text-[#E42929]'
+                "
+                :denom="`${rewards.isZero() ? '' : rewards.isPositive() ? '+' : '-'}${NATIVE_CURRENCY.symbol}`"
+                :fontSize="16"
+                :fontSizeSmall="12"
+                :has-space="false"
+                :prettyZeros="true"
+                :type="CURRENCY_VIEW_TYPES.CURRENCY"
+                class="font-medium"
+              />
+            </div>
+          </div>
+
+          <!-- HIDDEN ON DESKTOP -->
         </div>
       </div>
+      <!-- Assets -->
+      <Table
+        :class="['outline', { 'async-loader': isAssetsLoading }]"
+        :columns="assetsColumns"
+        :title="$t('message.available-assets')"
+        class="mt-6"
+      >
+        <template #header>
+          <div class="flex items-center gap-4">
+            <div class="checkbox-container">
+              <div class="flex w-full items-center">
+                <input
+                  id="low-balances"
+                  v-model="state.showSmallBalances"
+                  name="low-balances"
+                  type="checkbox"
+                />
+                <label
+                  class="text-neutral-typography-200"
+                  for="low-balances"
+                  >{{ $t("message.low-balances") }}</label
+                >
+              </div>
+            </div>
+            <Button
+              :label="$t('message.receive/send')"
+              class="hidden lg:block"
+              severity="primary"
+              size="large"
+              @click="() => sendReceiveOpen()"
+            />
+            <Button
+              class="block lg:hidden"
+              icon="icon-transfer"
+              iconPosition="left"
+              severity="primary"
+              size="large"
+              @click="() => sendReceiveOpen()"
+            />
+          </div>
+        </template>
+
+        <template
+          v-if="loading"
+          v-slot:body
+        >
+          <AssetsSkeleton
+            v-for="index in currenciesSize"
+            :key="index"
+          />
+        </template>
+        <template
+          v-else
+          v-slot:body
+        >
+          <TransitionGroup
+            appear
+            name="fade"
+          >
+            <AssetPartial
+              v-for="(asset, index) in filteredAssets"
+              :key="`${asset.balance.denom}-${index}`"
+              :asset-info="getAssetInfo(asset.balance.denom)"
+              :assetBalance="
+                asset.balance.denom == wallet.available.denom
+                  ? wallet.available.amount.toString()
+                  : asset.balance.amount.toString()
+              "
+              :changeDirection="index % 2 === 0"
+              :denom="asset.balance.denom"
+              :earnings="DEFAULT_APR"
+              :openModal="openModal"
+              :price="oracle.prices[asset.balance.denom]?.amount ?? '0'"
+            />
+          </TransitionGroup>
+        </template>
+      </Table>
+      <!-- Vested Assets -->
+      <Table
+        v-if="vestedTokens.length > 0"
+        :columns="vestedColumns"
+        :title="$t('message.vested')"
+        class="mt-6"
+      >
+        <template v-slot:body>
+          <VestedAssetPartial
+            v-for="(asset, index) in vestedTokens"
+            :key="`${asset.amount.amount}-${index}`"
+            :asset-balance="wallet.vestTokens.amount.toString()"
+            :asset-info="getAssetInfo(asset.amount.denom)"
+            :denom="asset.amount.denom"
+            :end-time="asset.endTime"
+          />
+        </template>
+      </Table>
     </div>
   </div>
 
@@ -340,13 +286,12 @@
 </template>
 
 <script lang="ts" setup>
-import { AssetPartial, BannerComponent, DashboardDaughnutChart, VestedAssetPartial } from "./components";
+import { AssetPartial, AssetsSkeleton, BannerComponent, VestedAssetPartial } from "./components";
 import { DASHBOARD_ACTIONS } from "./types";
-
-import TooltipComponent from "@/common/components/TooltipComponent.vue";
 import Modal from "@/common/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
 import SendReceiveDialog from "@/common/components/modals/SendReceiveDialog.vue";
+
 import SupplyWithdrawDialog from "@/common/components/modals/SupplyWithdrawDialog.vue";
 import LeaseDialog from "@/common/components/modals/LeaseDialog.vue";
 import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
@@ -354,7 +299,8 @@ import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 
-import { computed, onUnmounted, provide, ref, Transition, watch } from "vue";
+import { useI18n } from "vue-i18n";
+import { computed, defineAsyncComponent, onUnmounted, provide, ref, watch } from "vue";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils, NolusClient } from "@nolus/nolusjs";
 import { useLeases } from "@/common/composables/useLeases";
@@ -363,26 +309,31 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
 import { useAdminStore } from "@/common/stores/admin";
 
-import { AssetUtils, Logger, NetworkUtils, WalletManager } from "@/common/utils";
+import { AssetUtils, Logger, NetworkUtils, WalletManager, AppUtils } from "@/common/utils";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
-import { DEFAULT_APR, IGNORE_TRANSFER_ASSETS, LPN_DECIMALS, NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
+import { IGNORE_TRANSFER_ASSETS, LPN_DECIMALS, NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
 import { CurrencyDemapping } from "@/config/currencies";
+import { Button, Table } from "web-components";
+
+const SendReceiveDialogV2 = defineAsyncComponent(() => import("@/common/components/modals/SendReceiveDialogV2.vue"));
 
 const modalOptions = {
   [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
   [DASHBOARD_ACTIONS.RECEIVE]: SendReceiveDialog,
+  [DASHBOARD_ACTIONS.SENDV2]: SendReceiveDialogV2,
+  [DASHBOARD_ACTIONS.RECEIVEV2]: SendReceiveDialogV2,
   [DASHBOARD_ACTIONS.SUPPLY]: SupplyWithdrawDialog,
   [DASHBOARD_ACTIONS.LEASE]: LeaseDialog
 };
 
 const smallBalancesStateKey = "smallBalancesState";
-const statChart = ref<typeof DashboardDaughnutChart>();
 
 const wallet = useWalletStore();
 const oracle = useOracleStore();
 const app = useApplicationStore();
 const admin = useAdminStore();
 
+const i18n = useI18n();
 const isAssetsLoading = ref(wallet.balances.length == 0);
 const showSkeleton = ref(wallet.balances.length == 0);
 
@@ -395,11 +346,26 @@ const debt = ref(new Dec(0));
 const activeLeases = ref(new Dec(0));
 const pnl = ref(new Dec(0));
 const rewards = ref(new Dec(0));
+const assetsColumns = [
+  { label: i18n.t("message.assets") },
+  { label: i18n.t("message.balance") },
+  { label: i18n.t("message.yield"), tooltip: i18n.t("message.earn-apr-tooltip"), class: "hidden md:flex" },
+  {
+    label: i18n.t("message.lease-up-to"),
+    tooltip: i18n.t("message.lease-up-to-tooltip"),
+    class: "hidden md:flex justify-end"
+  }
+];
+const vestedColumns = [
+  { label: i18n.t("message.assets") },
+  { label: i18n.t("message.release"), class: "hidden md:flex !justify-start" },
+  { label: i18n.t("message.balance") }
+];
 
 let timeout: NodeJS.Timeout;
 
 const state = ref({
-  showSmallBalances: localStorage.getItem(smallBalancesStateKey) ? false : true,
+  showSmallBalances: !localStorage.getItem(smallBalancesStateKey),
   showModal: false,
   modalAction: DASHBOARD_ACTIONS.SEND,
   selectedAsset: "",
@@ -598,10 +564,12 @@ function getAssetInfo(denom: string) {
   return AssetUtils.getCurrencyByDenom(denom);
 }
 
-function setCurrency() {
-  state.value.showSmallBalances = !state.value.showSmallBalances;
-  setSmallBalancesState(state.value.showSmallBalances);
-}
+watch(
+  () => state.value.showSmallBalances,
+  () => {
+    setSmallBalancesState(state.value.showSmallBalances);
+  }
+);
 
 function setSmallBalancesState(event: boolean) {
   if (!event) {
@@ -611,7 +579,7 @@ function setSmallBalancesState(event: boolean) {
   }
 }
 
-function sendReceiveOpen(currency: string) {
+function sendReceiveOpen(currency: string = "") {
   state.value.selectedAsset = "";
   state.value.dialogSelectedCurrency = currency;
   state.value.modalAction = DASHBOARD_ACTIONS.RECEIVE;
@@ -633,45 +601,6 @@ function strToColor(str: string) {
 
   return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
 }
-
-async function setChartData() {
-  const labels: string[] = [];
-  const colors: string[] = [];
-  const dataValue: string[] = [];
-  const assets: string[] = [];
-
-  const balances = wallet.balances;
-
-  balances.filter((item) => {
-    const currencyInfo = AssetUtils.getCurrencyByDenom(item.balance.denom);
-    const coin = new Coin(item.balance.denom, item.balance.amount);
-    const balance = CurrencyUtils.calculateBalance(
-      oracle.prices[item.balance.denom]?.amount,
-      coin,
-      currencyInfo.decimal_digits
-    );
-
-    if (!balance.toDec().isZero()) {
-      labels.push(currencyInfo.shortName);
-      colors.push(`${strToColor(currencyInfo.shortName)}`);
-      dataValue.push(balance.toDec().toString(4));
-      assets.push(new Dec(item.balance.amount, currencyInfo.decimal_digits).toString(4));
-    }
-
-    return currencyInfo;
-  });
-  statChart.value?.updateChart(labels, colors, dataValue, assets);
-}
-
-watch(
-  () => [oracle.prices, wallet.balances, statChart.value?.chartElement.chart],
-  () => {
-    if (statChart.value?.chartElement.chart) {
-      setChartData();
-    }
-  },
-  {}
-);
 
 function setLeases() {
   try {

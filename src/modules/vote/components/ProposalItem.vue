@@ -66,9 +66,9 @@
 </template>
 
 <script lang="ts" setup>
-import { ProposalStatus, type FinalTallyResult, type Proposal } from "@/modules/vote/types";
+import { type FinalTallyResult, type Proposal, ProposalStatus } from "@/modules/vote/types";
 import { computed, type PropType } from "vue";
-import { StringUtils, formatDateTime } from "@/common/utils";
+import { formatDateTime, StringUtils } from "@/common/utils";
 import { Dec } from "@keplr-wallet/unit";
 
 import ProposalVotingLine from "@/modules/vote/components/ProposalVotingLine.vue";
@@ -128,7 +128,7 @@ const isVotingPeriod = computed(() => {
 });
 
 const wrapperClasses = computed(() =>
-  isVotingPeriod.value ? ["background"] : ["bg-transparent", "lg:w-[calc(50%-10px)]"]
+  isVotingPeriod.value ? ["background"] : ["background", "lg:w-[calc(50%-10px)]"]
 );
 
 defineEmits(["vote", "read-more"]);

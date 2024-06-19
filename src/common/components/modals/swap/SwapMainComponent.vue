@@ -296,7 +296,7 @@ async function onSwap() {
 }
 
 async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
-  const native = wallet.wallet.signer.chainId;
+  const native = wallet.wallet.signer.chainId as string;
   const addrs = {
     [native]: wallet.wallet
   };
@@ -324,7 +324,8 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
       const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
       const networkData = network?.supportedNetworks[chain];
       const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
-      addrs[baseWallet.getSigner().chainId] = baseWallet;
+      const chainId = await baseWallet.getChainId();
+      addrs[chainId] = baseWallet;
     };
     promises.push(fn());
   }

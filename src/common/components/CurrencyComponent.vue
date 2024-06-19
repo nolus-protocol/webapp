@@ -17,7 +17,7 @@
   </template>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { NATIVE_CURRENCY } from "@/config/global";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { CurrencyUtils } from "@nolus/nolusjs";
@@ -156,7 +156,7 @@ const amount = computed(() => {
   };
 });
 </script>
-<style scoped lang="scss">
+<style lang="scss" scoped>
 span {
   &.text-40 {
     font-size: 40px;
@@ -169,9 +169,9 @@ span {
 
 @media (max-width: 576px) {
   span {
-    &.text-40 {
-      font-size: 32px;
-    }
+    //&.text-40 {
+    //  font-size: 32px;
+    //}
 
     &.text-38 {
       font-size: 28px;
