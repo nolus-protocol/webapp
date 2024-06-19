@@ -1,4 +1,4 @@
-import { NATIVE_NETWORK } from "@/config/global";
+import { NATIVE_NETWORK, isDev } from "@/config/global";
 
 import { NETWORK as OSMO_NETWORK } from "./list/osmosis/network";
 import { embedChainInfo as osmoChainInfo } from "./list/osmosis/contants";
@@ -283,6 +283,8 @@ export const SUPPORTED_NETWORKS_DATA: {
   }
 };
 
+const APP_DEV_LIST = isDev() ? [SUPPORTED_NETWORKS_DATA.ETHEREUM, SUPPORTED_NETWORKS_DATA.ARBITRUM] : [];
+
 export const NETWORKS_DATA: {
   [key: string]: {
     list: {
@@ -380,9 +382,10 @@ export const NETWORKS_DATA: {
       SUPPORTED_NETWORKS_DATA.INJECTIVE,
       SUPPORTED_NETWORKS_DATA.COMPOSABLE,
       SUPPORTED_NETWORKS_DATA.NOBLE,
+      ...APP_DEV_LIST
       // SUPPORTED_NETWORKS_DATA.CUDOS
-      SUPPORTED_NETWORKS_DATA.ETHEREUM,
-      SUPPORTED_NETWORKS_DATA.ARBITRUM
+      // SUPPORTED_NETWORKS_DATA.ETHEREUM,
+      // SUPPORTED_NETWORKS_DATA.ARBITRUM
       // SUPPORTED_NETWORKS_DATA.BINANCE
     ],
     supportedNetworks: {
