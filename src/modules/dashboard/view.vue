@@ -1,5 +1,6 @@
 <template>
   <button
+    v-if="AppUtils.isDev()"
     @click="
       () => {
         state.modalAction = DASHBOARD_ACTIONS.SENDV2;
@@ -14,12 +15,12 @@
     <div class="col-span-12">
       <!-- Wallet -->
       <div
-        class="border-border-color bg-neutral-bg-50 shadow-field-normal mt-6 flex flex-col justify-start border-[1px] p-4 outline md:rounded-xl lg:items-baseline lg:p-6"
+        class="mt-6 flex flex-col justify-start border-[1px] border-border-color bg-neutral-bg-50 p-4 shadow-field-normal outline md:rounded-xl lg:items-baseline lg:p-6"
       >
-        <p class="text-neutral-typography-200 mb-1.5 text-16 font-medium md:mb-6">
+        <p class="mb-1.5 text-16 font-medium text-neutral-typography-200 md:mb-6">
           {{ $t("message.portfolio-title") }}
         </p>
-        <div class="border-border-color mb-4 flex w-full flex-row gap-8 border-b pb-4 md:mb-6 md:pb-6">
+        <div class="mb-4 flex w-full flex-row gap-8 border-b border-border-color pb-4 md:mb-6 md:pb-6">
           <div class="flex flex-col gap-1 md:flex-row md:gap-8">
             <div>
               <p class="text-dark-grey text-12 font-medium">
@@ -34,7 +35,7 @@
                 :has-space="false"
                 :prettyZeros="true"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                class="text-neutral-typography-200 font-semibold"
+                class="font-semibold text-neutral-typography-200"
               />
             </div>
 
@@ -51,7 +52,7 @@
                 :has-space="false"
                 :prettyZeros="true"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                class="text-neutral-typography-200 font-medium"
+                class="font-medium text-neutral-typography-200"
               />
             </div>
           </div>
@@ -72,7 +73,7 @@
                 :has-space="false"
                 :prettyZeros="true"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                class="text-neutral-typography-200 font-medium"
+                class="font-medium text-neutral-typography-200"
               />
             </div>
 
@@ -89,13 +90,13 @@
                 :has-space="false"
                 :prettyZeros="true"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                class="text-neutral-typography-200 font-medium"
+                class="font-medium text-neutral-typography-200"
               />
             </div>
           </div>
 
           <div
-            class="border-border-color mb-4 border-b pb-4 pt-4 md:mb-0 md:border-b-0 md:border-r md:pb-0 md:pl-8 md:pr-8 md:pt-0"
+            class="mb-4 border-b border-border-color pb-4 pt-4 md:mb-0 md:border-b-0 md:border-r md:pb-0 md:pl-8 md:pr-8 md:pt-0"
           >
             <p class="text-dark-grey text-12 font-medium">
               {{ $t("message.positions-pnL") }}
@@ -130,7 +131,7 @@
                 :has-space="false"
                 :prettyZeros="true"
                 :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                class="text-neutral-typography-200 font-medium"
+                class="font-medium text-neutral-typography-200"
               />
             </div>
 
@@ -308,9 +309,9 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
 import { useAdminStore } from "@/common/stores/admin";
 
-import { AssetUtils, Logger, NetworkUtils, WalletManager } from "@/common/utils";
+import { AssetUtils, Logger, NetworkUtils, WalletManager, AppUtils } from "@/common/utils";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
-import { DEFAULT_APR, IGNORE_TRANSFER_ASSETS, LPN_DECIMALS, NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
+import { IGNORE_TRANSFER_ASSETS, LPN_DECIMALS, NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
 import { CurrencyDemapping } from "@/config/currencies";
 import { Button, Table } from "web-components";
 

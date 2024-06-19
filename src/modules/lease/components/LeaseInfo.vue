@@ -20,7 +20,7 @@
         <div class="flex gap-2">
           <div class="flex gap-1">
             <img
-              width="32"
+              class="h-[28px] w-[28px] object-contain"
               :src="getAssetIcon"
             />
             <div>
@@ -173,7 +173,7 @@
         <div class="flex gap-2">
           <div class="flex gap-1">
             <img
-              width="32"
+              class="h-[28px] w-[28px] object-contain"
               :src="getAssetIcon"
             />
             <div>
@@ -824,7 +824,7 @@ const leaseOpened = computed<LeaseProps>(() => ({
   debt: {
     title: i18n.t("message.outstanding-loan"),
     tooltip: i18n.t("message.outstanding-debt-tooltip"),
-    class: loadingRepay.value || loadingClose.value ? "h-5 mt-0.5 bg-neutral-100 rounded-md text-transparent" : ""
+    class: loadingRepay.value || loadingClose.value ? "h-5 mt-0.5 bg-neutral-100 rounded-md text-transparent pulse" : ""
   },
   interest: {
     title: i18n.t("message.interest-fee"),
@@ -833,7 +833,7 @@ const leaseOpened = computed<LeaseProps>(() => ({
   interestDue: {
     title: i18n.t("message.interest-due"),
     tooltip: i18n.t("message.repay-interest", { dueDate: interestDueDate.value }),
-    class: loadingRepay.value || loadingClose.value ? "h-5 mt-0.5 bg-neutral-100 rounded-md text-transparent" : ""
+    class: loadingRepay.value || loadingClose.value ? "h-5 mt-0.5 bg-neutral-100 rounded-md text-transparent pulse" : ""
   }
 }));
 
@@ -855,7 +855,7 @@ const leaseOpening = computed<LeaseProps>(() => ({
   },
   progressDate: {
     title: "",
-    value: i18n.t("message.opening")
+    value: ""
   },
   debt: {
     title: i18n.t("message.outstanding-loan"),
