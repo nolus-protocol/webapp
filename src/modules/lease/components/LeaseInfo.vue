@@ -18,10 +18,11 @@
           {{ $t("message.chart") }}
         </div>
         <div class="flex gap-2">
-          <div class="flex gap-1">
+          <div class="flex items-center gap-1">
             <img
-              class="h-[28px] w-[28px] object-contain"
               :src="getAssetIcon"
+              class="h-[28px] w-[28px] object-contain"
+              width="25"
             />
             <div>
               <CurrencyComponent
@@ -171,10 +172,10 @@
           {{ $t("message.chart") }}
         </div>
         <div class="flex gap-2">
-          <div class="flex gap-1">
+          <div class="flex items-center gap-1">
             <img
-              class="h-[28px] w-[28px] object-contain"
               :src="getAssetIcon"
+              class="h-[28px] w-[28px] object-contain"
             />
             <div>
               <CurrencyComponent
@@ -817,6 +818,7 @@ const leaseOpened = computed<LeaseProps>(() => ({
   },
   pnl: {
     click() {
+      console.info("pnl clicked");
       pnlType.value = !pnlType.value;
     },
     status: pnl.value.status ? LeasePnlStatus.POSITIVE : LeasePnlStatus.NEGATIVE
