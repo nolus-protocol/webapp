@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-send-receive-input-area">
+  <div>
     <div class="currency-field-container flex items-center justify-end">
       <div
         class="balance cursor-pointer select-none"
@@ -12,18 +12,18 @@
       <MultipleCurrencyField
         :amount="amount"
         :currencyOptions="currentBalance"
-        :selectedOption="selectedCurrency"
-        :swapToOption="swapToSelectedCurrency"
-        :swapToAmount="swapToAmount"
-        :isError="errorMsg.length > 0"
-        :errorMsg="errorMsg"
         :disabled="disabled"
+        :errorMsg="errorMsg"
+        :isError="errorMsg.length > 0"
         :isLoading="false"
-        @updateCurrency="(value) => $emit('updateSelected', value)"
-        @updateSwapToCurrency="(value) => $emit('updateSwapToSelected', value)"
-        @updateAmount="(value) => $emit('updateAmount', value)"
-        @updateSwapToAmount="(value) => $emit('updateSwapToAmount', value)"
+        :selectedOption="selectedCurrency"
+        :swapToAmount="swapToAmount"
+        :swapToOption="swapToSelectedCurrency"
         @changeFields="$emit('changeFields')"
+        @updateAmount="(value) => $emit('updateAmount', value)"
+        @updateCurrency="(value) => $emit('updateSelected', value)"
+        @updateSwapToAmount="(value) => $emit('updateSwapToAmount', value)"
+        @updateSwapToCurrency="(value) => $emit('updateSwapToSelected', value)"
       />
       <!-- <p class="mt-2 text-right text-xs text-light-blue">{{ $t("message.slippage") }} {{ slippage }}%</p> -->
     </div>
@@ -57,10 +57,10 @@
     </div>
   </div>
 
-  <div class="modal-send-receive-actions flex flex-col">
+  <div class="flex flex-col">
     <button
-      :disabled="disableForm"
       :class="`btn btn-primary btn-large-primary text-center ${loading ? 'js-loading' : ''}`"
+      :disabled="disableForm"
       @click="onSwapClick"
     >
       {{ $t("message.swap") }}
