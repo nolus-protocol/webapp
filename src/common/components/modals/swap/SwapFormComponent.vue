@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="mt-6">
     <div class="currency-field-container flex items-center justify-end">
       <div
         class="balance cursor-pointer select-none"
@@ -28,7 +28,7 @@
       <!-- <p class="mt-2 text-right text-xs text-light-blue">{{ $t("message.slippage") }} {{ slippage }}%</p> -->
     </div>
     <div class="mt-2 flex justify-end">
-      <div class="nls-font-500 dark-text flex-[3] text-right text-14">
+      <div class="flex-[3] text-right text-14 font-medium text-neutral-typography-200">
         <p class="mb-2 mr-5 mt-[14px]">
           {{ $t("message.slippage") }}
         </p>
@@ -39,33 +39,35 @@
           {{ $t("message.estimated-tx-fee") }}
         </p>
       </div>
-      <div class="nls-font-700 flex-[1] text-right text-14">
-        <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">{{ slippage }}%</p>
+      <div class="flex-[1] text-right text-14 font-semibold text-neutral-typography-200">
+        <p class="align-center mb-2 mt-[14px] flex justify-end">{{ slippage }}%</p>
         <template v-if="loading">
-          <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">
+          <p class="align-center mb-2 mt-[14px] flex justify-end">
             <span class="state-loading !mt-[5px] !w-[60px]"> </span>
           </p>
-          <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">
+          <p class="align-center mb-2 mt-[14px] flex justify-end">
             <span class="state-loading !mt-[5px] !w-[60px]"> </span>
           </p>
         </template>
         <template v-else>
-          <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">{{ priceImpact }}%</p>
-          <p class="align-center dark-text mb-2 mt-[14px] flex justify-end whitespace-pre">{{ swapFee }}</p>
+          <p class="align-center mb-2 mt-[14px] flex justify-end">{{ priceImpact }}%</p>
+          <p class="align-center mb-2 mt-[14px] flex justify-end whitespace-pre">{{ swapFee }}</p>
         </template>
       </div>
     </div>
   </div>
 
   <div class="flex flex-col">
-    <button
-      :class="`btn btn-primary btn-large-primary text-center ${loading ? 'js-loading' : ''}`"
+    <Button
       :disabled="disableForm"
+      :label="$t('message.swap')"
+      :loading="loading"
+      class="my-8 w-full md:w-auto"
+      severity="primary"
+      size="large"
       @click="onSwapClick"
-    >
-      {{ $t("message.swap") }}
-    </button>
-    <div class="my-2 flex w-full justify-between text-[14px] text-light-blue">
+    />
+    <div class="flex w-full justify-between text-[14px] text-neutral-400">
       <p>{{ $t("message.estimate-time") }}:</p>
       <p>~{{ NATIVE_NETWORK.longOperationsEstimation }} {{ $t("message.sec") }}</p>
     </div>
@@ -76,6 +78,7 @@
 import type { ExternalCurrency } from "@/common/types";
 import type { Coin } from "@cosmjs/amino";
 import MultipleCurrencyField from "@/common/components/MultipleCurrencyField.vue";
+import { Button } from "web-components";
 
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { NATIVE_NETWORK } from "@/config/global";
