@@ -1,15 +1,4 @@
 <template>
-  <button
-    v-if="AppUtils.isDev()"
-    @click="
-      () => {
-        state.modalAction = DASHBOARD_ACTIONS.SENDV2;
-        state.showModal = true;
-      }
-    "
-  >
-    SKIPROUTE
-  </button>
   <div class="mt-[25px]">
     <BannerComponent />
     <div class="col-span-12">
@@ -258,7 +247,6 @@
       </Table>
     </div>
   </div>
-
   <Modal
     v-if="state.showModal"
     :route="state.modalAction"
@@ -295,7 +283,7 @@ import SupplyWithdrawDialog from "@/common/components/modals/SupplyWithdrawDialo
 import LeaseDialog from "@/common/components/modals/LeaseDialog.vue";
 import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
 
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
+import { CURRENCY_VIEW_TYPES, type IObjectKeys } from "@/common/types";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 
 import { useI18n } from "vue-i18n";
@@ -410,6 +398,7 @@ const filteredAssets = computed(() => {
 const loading = computed(() => showSkeleton.value || wallet.balances.length == 0);
 const currenciesSize = computed(() => Object.keys(app.currenciesData ?? {}).length);
 const { leases, getLeases } = useLeases((error: Error | any) => {});
+// const modalParams = ref<IObjectKeys | null>(null);
 
 provide("getLeases", getLeases);
 
@@ -581,7 +570,7 @@ function setSmallBalancesState(event: boolean) {
 function sendReceiveOpen(currency: string = "") {
   state.value.selectedAsset = "";
   state.value.dialogSelectedCurrency = currency;
-  state.value.modalAction = DASHBOARD_ACTIONS.RECEIVE;
+  state.value.modalAction = DASHBOARD_ACTIONS.RECEIVEV2;
   state.value.showModal = true;
 }
 

@@ -2,6 +2,7 @@
   <ConfirmRouteComponent
     v-if="showConfirmScreen"
     :txType="$t(`message.${TxType.SEND}`) + ':'"
+    :fromAddress="walletStore.wallet.address"
     :txHashes="txHashes"
     :step="step"
     :fee="fee!"
@@ -14,6 +15,8 @@
     :onBackClick="onConfirmBackClick"
     :onOkClick="() => closeModal()"
     :warning="route?.warning?.message ?? ''"
+    :toNetwork="selectedNetwork.label"
+    :fromNetwork="SUPPORTED_NETWORKS_DATA[NATIVE_NETWORK.key].label"
   />
   <template v-else>
     <form
@@ -160,7 +163,7 @@ import InputField from "@/common/components/InputField.vue";
 
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { EvmNetwork } from "@/common/types/Network";
-import { onUnmounted, ref, inject, watch, onMounted, nextTick, computed } from "vue";
+import { onUnmounted, ref, inject, watch, onMounted, nextTick, computed, type PropType } from "vue";
 import { useI18n } from "vue-i18n";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { Wallet, BaseWallet } from "@/networks";
@@ -178,6 +181,7 @@ import { MetaMaskWallet } from "@/networks/metamask";
 import { CONFIRM_STEP, TxType, type Network, type IObjectKeys, type SkipRouteConfigType } from "@/common/types";
 
 import { AssetUtils, EnvNetworkUtils, Logger, SkipRouter, WalletUtils } from "@/common/utils";
+import { HYSTORY_ACTIONS } from "@/modules/history/types";
 
 export interface ReceiveComponentProps {
   currentBalance: AssetBalance[];
@@ -219,6 +223,13 @@ const receiverErrorMsg = ref("");
 const receiverAddress = ref("");
 
 let skipRouteConfig: SkipRouteConfigType | null;
+let id = Date.now();
+
+const params = defineProps({
+  data: {
+    type: Object as PropType<IObjectKeys | null>
+  }
+});
 
 const balances = ref<AssetBalance[]>(
   walletStore.balances
@@ -256,6 +267,7 @@ onMounted(async () => {
     }) as (Network | EvmNetwork)[];
 
     networks.value = [...networks.value, ...n];
+    setParams();
   } catch (error) {
     Logger.error(error);
   }
@@ -263,10 +275,55 @@ onMounted(async () => {
 
 onUnmounted(() => {
   clearTimeout(timeOut);
-  if (client) {
-    (client as Wallet).destroy();
+  if (step.value == CONFIRM_STEP.PENDING && params.data == null) {
+    const data = {
+      id,
+      skipRouteConfig,
+      wallet: wallet,
+      client,
+      route,
+      selectedNetwork: selectedNetwork.value,
+      selectedCurrency: selectedCurrency.value,
+      amount: amount.value,
+      txHashes: txHashes.value,
+      step: step.value,
+      fee: fee.value,
+      fromAddress: wallet,
+      action: HYSTORY_ACTIONS.SENDV2,
+      errorMsg: errorMsg.value
+    };
+    walletStore.updateHistory(data);
   }
 });
+
+watch(
+  () => params.data,
+  () => {
+    setParams();
+  },
+  {
+    deep: true
+  }
+);
+
+function setParams() {
+  if (params.data) {
+    id = params.data.id;
+    skipRouteConfig = params.data.skipRouteConfig;
+    wallet.value = params.data.wallet;
+    client = params.data.client;
+    route = params.data.route;
+    selectedNetwork.value = params.data.selectedNetwork;
+    amount.value = params.data.amount;
+    txHashes.value = params.data.txHashes;
+    step.value = params.data.step;
+    fee.value = params.data.fee;
+    wallet.value = params.data.fromAddress;
+    showConfirmScreen.value = true;
+    selectedCurrency.value = params.data.selectedCurrency;
+    errorMsg.value = params.data.errorMsg;
+  }
+}
 
 watch(
   () => [selectedCurrency.value, amount.value],
@@ -561,7 +618,15 @@ async function transferAmount() {
       txHashes.value[index].status = SwapStatus.success;
 
       await walletStore.UPDATE_BALANCES();
+
+      if (walletStore.history[id]) {
+        walletStore.history[id].step = CONFIRM_STEP.SUCCESS;
+      }
     } catch (error: Error | any) {
+      if (walletStore.history[id]) {
+        walletStore.history[id].step = CONFIRM_STEP.ERROR;
+        walletStore.history[id].errorMsg = errorMsg.value;
+      }
       switch (error.code) {
         case ErrorCodes.GasError: {
           step.value = CONFIRM_STEP.GasError;
@@ -572,9 +637,18 @@ async function transferAmount() {
           break;
         }
       }
+    } finally {
+      if (client) {
+        (client as Wallet).destroy();
+      }
     }
   } else {
     step.value = CONFIRM_STEP.ERROR;
+
+    if (walletStore.history[id]) {
+      walletStore.history[id].step = CONFIRM_STEP.ERROR;
+      walletStore.history[id].errorMsg = errorMsg.value;
+    }
   }
 }
 
@@ -599,14 +673,27 @@ async function onSwapCosmos() {
 
         await walletStore.UPDATE_BALANCES();
         step.value = CONFIRM_STEP.SUCCESS;
+
+        if (walletStore.history[id]) {
+          walletStore.history[id].step = CONFIRM_STEP.SUCCESS;
+        }
       } catch (error) {
         step.value = CONFIRM_STEP.ERROR;
         errorMsg.value = (error as Error).toString();
         Logger.error(error);
+
+        if (walletStore.history[id]) {
+          walletStore.history[id].step = CONFIRM_STEP.ERROR;
+          walletStore.history[id].errorMsg = errorMsg.value;
+        }
       }
     });
   } catch (e) {
     Logger.error(e);
+  } finally {
+    if (client) {
+      (client as Wallet).destroy();
+    }
   }
 }
 

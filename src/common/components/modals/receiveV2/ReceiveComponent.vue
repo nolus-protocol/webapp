@@ -14,6 +14,9 @@
     :onBackClick="onConfirmBackClick"
     :onOkClick="() => closeModal()"
     :warning="route?.warning?.message ?? ''"
+    :fromAddress="wallet"
+    :fromNetwork="selectedNetwork.label"
+    :toNetwork="SUPPORTED_NETWORKS_DATA[NATIVE_NETWORK.key].label"
   />
   <template v-else>
     <div
@@ -146,7 +149,7 @@ import CurrencyField from "@/common/components/CurrencyField.vue";
 import ConfirmRouteComponent from "../templates/ConfirmRouteComponent.vue";
 
 import type { AssetBalance } from "@/common/stores/wallet/types";
-import { onUnmounted, ref, inject, watch, onMounted, nextTick, computed } from "vue";
+import { onUnmounted, ref, inject, watch, onMounted, nextTick, computed, type PropType } from "vue";
 import { DocumentDuplicateIcon } from "@heroicons/vue/24/solid";
 import { useI18n } from "vue-i18n";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
@@ -174,6 +177,7 @@ import {
   WalletManager,
   WalletUtils
 } from "@/common/utils";
+import { HYSTORY_ACTIONS } from "@/modules/history/types";
 
 export interface ReceiveComponentProps {
   currentBalance: AssetBalance[];
@@ -209,9 +213,17 @@ const fee = ref<Coin>();
 const isLoading = ref(false);
 const evmAddress = ref("");
 const closeModal = inject("onModalClose", () => () => {});
+
 const wallet = ref(walletStore.wallet?.address);
 const isMetamaskLoading = ref(false);
 let skipRouteConfig: SkipRouteConfigType | null;
+let id = Date.now();
+
+const params = defineProps({
+  data: {
+    type: Object as PropType<IObjectKeys | null>
+  }
+});
 
 onMounted(async () => {
   try {
@@ -224,17 +236,66 @@ onMounted(async () => {
     }) as (Network | EvmNetwork)[];
 
     networks.value = [...networks.value, ...n];
+    setParams();
   } catch (error) {
     Logger.error(error);
   }
 });
 
 onUnmounted(() => {
-  clearTimeout(timeOut);
-  if (client) {
-    (client as Wallet).destroy();
+  if (step.value == CONFIRM_STEP.PENDING && params.data == null) {
+    const data = {
+      id,
+      skipRouteConfig,
+      wallet: wallet,
+      client,
+      route,
+      selectedNetwork: selectedNetwork.value,
+      selectedCurrency: selectedCurrency.value,
+      amount: amount.value,
+      txHashes: txHashes.value,
+      step: step.value,
+      fee: fee.value,
+      fromAddress: wallet,
+      action: HYSTORY_ACTIONS.RECEIVEV2,
+      errorMsg: errorMsg.value
+    };
+    walletStore.updateHistory(data);
   }
 });
+
+onUnmounted(() => {
+  clearTimeout(timeOut);
+});
+
+watch(
+  () => params.data,
+  () => {
+    setParams();
+  },
+  {
+    deep: true
+  }
+);
+
+function setParams() {
+  if (params.data) {
+    id = params.data.id;
+    skipRouteConfig = params.data.skipRouteConfig;
+    wallet.value = params.data.wallet;
+    client = params.data.client;
+    route = params.data.route;
+    selectedNetwork.value = params.data.selectedNetwork;
+    amount.value = params.data.amount;
+    txHashes.value = params.data.txHashes;
+    step.value = params.data.step;
+    fee.value = params.data.fee;
+    wallet.value = params.data.fromAddress;
+    showConfirmScreen.value = true;
+    selectedCurrency.value = params.data.selectedCurrency;
+    errorMsg.value = params.data.errorMsg;
+  }
+}
 
 watch(
   () => [selectedCurrency.value, amount.value],
@@ -520,14 +581,26 @@ async function onSubmit() {
 
         await walletStore.UPDATE_BALANCES();
         step.value = CONFIRM_STEP.SUCCESS;
+        if (walletStore.history[id]) {
+          walletStore.history[id].step = CONFIRM_STEP.SUCCESS;
+        }
       } catch (error) {
         step.value = CONFIRM_STEP.ERROR;
         errorMsg.value = (error as Error).toString();
+
+        if (walletStore.history[id]) {
+          walletStore.history[id].step = CONFIRM_STEP.ERROR;
+          walletStore.history[id].errorMsg = errorMsg.value;
+        }
         Logger.error(error);
       }
     });
   } catch (e) {
     Logger.error(e);
+  } finally {
+    if (client) {
+      (client as Wallet).destroy();
+    }
   }
 }
 

@@ -10,6 +10,7 @@ import { loadSuppliedAmount } from "./loadSuppliedAmount";
 import { loadVestedTokens } from "./loadVestedTokens";
 import { loadWalletName } from "./loadWalletName";
 import { updateBalances } from "./updateBalances";
+import { updateHistory } from "./updateHistory";
 
 export const actions = {
   [WalletActions.DISCONNECT]: disconnect,
@@ -21,5 +22,6 @@ export const actions = {
   [WalletActions.LOAD_SUPPLIED_AMOUNT]: loadSuppliedAmount,
   [WalletActions.LOAD_WALLET_NAME]: loadWalletName,
   [WalletActions.LOAD_STAKED_TOKENS]: loadStakedTokens,
-  [WalletActions.LOAD_APR]: loadApr
+  [WalletActions.LOAD_APR]: loadApr,
+  updateHistory
 };

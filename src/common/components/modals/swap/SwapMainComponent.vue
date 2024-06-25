@@ -5,13 +5,17 @@
     :txHashes="txHashes"
     :step="step"
     :fee="state.fee"
-    :errorMsg="state.errorMsg"
+    :errorMsg="params.data?.errorMsg ?? state.errorMsg"
     :txs="route!.txsRequired"
     :swap-amount="`${swapAmount}`"
     :for-amount="`${forAmount}`"
     :onSendClick="onSendClick"
     :onBackClick="onReset"
     :onOkClick="() => closeModal()"
+    :from-network="SUPPORTED_NETWORKS_DATA[NATIVE_NETWORK.key].label"
+    :to-network="SUPPORTED_NETWORKS_DATA[NATIVE_NETWORK.key].label"
+    :from-address="wallet.wallet?.address"
+    :receiver-address="wallet.wallet?.address"
   />
 
   <SwapFormComponent
@@ -44,11 +48,11 @@ import { BaseWallet } from "@/networks";
 import SwapFormComponent from "./SwapFormComponent.vue";
 import ConfirmSwapComponent from "../templates/ConfirmSwapComponent.vue";
 
-import { computed, inject, onMounted, ref, watch, nextTick } from "vue";
+import { computed, inject, onMounted, ref, watch, nextTick, type PropType, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { coin } from "@cosmjs/amino";
 import { useWalletStore } from "@/common/stores/wallet";
-import { GAS_FEES, NATIVE_ASSET } from "@/config/global";
+import { GAS_FEES, NATIVE_ASSET, NATIVE_NETWORK } from "@/config/global";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { SwapStatus } from "./types";
@@ -64,6 +68,7 @@ import {
   validateAmount,
   walletOperation
 } from "@/common/utils";
+import { HYSTORY_ACTIONS } from "@/modules/history/types";
 
 const wallet = useWalletStore();
 const i18n = useI18n();
@@ -106,6 +111,12 @@ const state = ref({
 });
 
 const txHashes = ref<{ hash: string; status: SwapStatus }[]>([]);
+let id = Date.now();
+const params = defineProps({
+  data: {
+    type: Object as PropType<IObjectKeys | null>
+  }
+});
 
 onMounted(async () => {
   try {
@@ -117,10 +128,58 @@ onMounted(async () => {
     nextTick(() => {
       state.value.errorMsg = "";
     });
+    setParams();
   } catch (error) {
     Logger.error(error);
   }
 });
+
+onUnmounted(() => {
+  if (step.value == CONFIRM_STEP.PENDING && params.data == null) {
+    const data = {
+      id,
+      route,
+      selectedCurrency: state.value.selectedCurrency,
+      swapToSelectedCurrency: state.value.swapToSelectedCurrency,
+      amount: state.value.amount,
+      swapToAmount: state.value.swapToAmount,
+      txHashes: txHashes.value,
+      step: step.value,
+      fee: state.value.fee,
+      fromAddress: wallet,
+      action: HYSTORY_ACTIONS.SWAP,
+      errorMsg: state.value.errorMsg,
+      selectedNetwork: SUPPORTED_NETWORKS_DATA[NATIVE_NETWORK.key]
+    };
+    wallet.updateHistory(data);
+  }
+});
+
+watch(
+  () => params.data,
+  () => {
+    setParams();
+  },
+  {
+    deep: true
+  }
+);
+
+function setParams() {
+  if (params.data) {
+    id = params.data.id;
+    route = params.data.route;
+    state.value.selectedCurrency = params.data.selectedCurrency;
+    state.value.swapToSelectedCurrency = params.data.swapToSelectedCurrency;
+    state.value.amount = params.data.amount;
+    state.value.swapToAmount = params.data.swapToAmount;
+    txHashes.value = params.data.txHashes;
+    step.value = params.data.step;
+    state.value.fee = params.data.fee;
+    state.value.errorMsg = params.data.errorMsg;
+    showConfirmScreen.value = true;
+  }
+}
 
 function onReset() {
   showConfirmScreen.value = false;
@@ -281,10 +340,19 @@ async function onSwap() {
 
         await wallet.UPDATE_BALANCES();
         step.value = CONFIRM_STEP.SUCCESS;
+
+        if (wallet.history[id]) {
+          wallet.history[id].step = CONFIRM_STEP.SUCCESS;
+        }
       } catch (error) {
         step.value = CONFIRM_STEP.ERROR;
         state.value.errorMsg = (error as Error).toString();
         Logger.error(error);
+
+        if (wallet.history[id]) {
+          wallet.history[id].step = CONFIRM_STEP.ERROR;
+          wallet.history[id].errorMsg = state.value.errorMsg;
+        }
       } finally {
         state.value.loading = false;
         state.value.disabled = false;
