@@ -22,14 +22,14 @@
     v-if="isStepSuccess"
     class="mt-6 flex flex-col gap-6"
   >
-    <div class="bg-dialogs-swap-color block break-words rounded-lg p-[24px] text-center text-neutral-typography-200">
+    <div class="block break-words rounded-lg bg-dialogs-swap-color p-[24px] text-center text-neutral-typography-200">
       {{ $t("message.swap-success") }}
     </div>
     <div class="flex gap-8">
       <Button
         :label="$t('message.ok')"
         class="flex-1"
-        severity="secondary"
+        severity="primary"
         size="large"
         @click="onOkClick"
       />
@@ -40,7 +40,7 @@
     v-if="isStepError"
     class="mt-6 flex flex-col gap-6"
   >
-    <div class="bg-dialogs-swap-color block break-words rounded-lg p-[24px] text-center text-neutral-typography-200">
+    <div class="block break-words rounded-lg bg-dialogs-swap-color p-[24px] text-center text-neutral-typography-200">
       {{ errorMsg }}
     </div>
     <Button
@@ -58,7 +58,7 @@
   >
     <!-- Input Area -->
     <div class="">
-      <div class="radius-rounded bg-dialogs-swap-color block break-words py-4 text-left">
+      <div class="radius-rounded block break-words bg-dialogs-swap-color py-4 text-left">
         <div class="block px-4">
           <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ $t("message.from") }}:</p>
           <p class="m-0 text-14 font-semibold text-neutral-typography-200">{{ swapAmount }}</p>
