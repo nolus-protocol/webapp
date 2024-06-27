@@ -279,7 +279,7 @@ onUnmounted(() => {
     const data = {
       id,
       skipRouteConfig,
-      wallet: wallet,
+      wallet: wallet.value,
       client,
       route,
       selectedNetwork: selectedNetwork.value,
@@ -288,8 +288,8 @@ onUnmounted(() => {
       txHashes: txHashes.value,
       step: step.value,
       fee: fee.value,
-      fromAddress: wallet,
-      action: HYSTORY_ACTIONS.SENDV2,
+      fromAddress: wallet.value,
+      action: HYSTORY_ACTIONS.SENDV,
       errorMsg: errorMsg.value
     };
     walletStore.updateHistory(data);

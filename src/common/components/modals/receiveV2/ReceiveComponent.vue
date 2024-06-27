@@ -149,7 +149,6 @@ import ConfirmRouteComponent from "../templates/ConfirmRouteComponent.vue";
 
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import { onUnmounted, ref, inject, watch, onMounted, nextTick, computed, type PropType } from "vue";
-import { DocumentDuplicateIcon } from "@heroicons/vue/24/solid";
 import { useI18n } from "vue-i18n";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { Wallet, BaseWallet } from "@/networks";
@@ -250,7 +249,7 @@ onUnmounted(() => {
     const data = {
       id,
       skipRouteConfig,
-      wallet: wallet,
+      wallet: wallet.value,
       client,
       route,
       selectedNetwork: selectedNetwork.value,
@@ -259,8 +258,8 @@ onUnmounted(() => {
       txHashes: txHashes.value,
       step: step.value,
       fee: fee.value,
-      fromAddress: wallet,
-      action: HYSTORY_ACTIONS.RECEIVEV2,
+      fromAddress: wallet.value,
+      action: HYSTORY_ACTIONS.RECEIVEV,
       errorMsg: errorMsg.value
     };
     walletStore.updateHistory(data);

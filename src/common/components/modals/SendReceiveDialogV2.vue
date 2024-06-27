@@ -20,7 +20,7 @@ import DialogHeader from "./templates/DialogHeader.vue";
 import type { IObjectKeys } from "@/common/types";
 import type { PropType } from "vue";
 
-const routes = ["receivev2", "sendv2"];
+const routes = ["receive", "send"];
 
 const props = defineProps({
   route: {

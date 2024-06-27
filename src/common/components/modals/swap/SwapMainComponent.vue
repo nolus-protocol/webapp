@@ -147,7 +147,7 @@ onUnmounted(() => {
       txHashes: txHashes.value,
       step: step.value,
       fee: state.value.fee,
-      fromAddress: wallet,
+      fromAddress: wallet.wallet.address,
       action: HYSTORY_ACTIONS.SWAP,
       errorMsg: state.value.errorMsg,
       selectedNetwork: SUPPORTED_NETWORKS_DATA[NATIVE_NETWORK.key]

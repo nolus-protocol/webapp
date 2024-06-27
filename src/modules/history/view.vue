@@ -118,7 +118,7 @@ import Modal from "@/common/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
 
 import { HYSTORY_ACTIONS, type ITransaction } from "./types";
-import { computed, defineAsyncComponent, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { AssetUtils, NetworkUtils } from "@/common/utils";
 import { Button, HistoryTableLoadingRow, Table, Spinner } from "web-components";
 import { useI18n } from "vue-i18n";
@@ -131,6 +131,8 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { CONFIRM_STEP, type IObjectKeys } from "@/common/types";
 import type { EvmNetwork, Network } from "@/common/types/Network";
 import type { CoinPretty } from "@keplr-wallet/unit";
+import SendReceiveDialogV2 from "@/common/components/modals/SendReceiveDialogV2.vue";
+import SwapDialog from "@/common/components/modals/SwapDialog.vue";
 
 const showErrorDialog = ref(false);
 const errorMessage = ref("");
@@ -154,12 +156,10 @@ const loaded = ref(false);
 const initialLoad = ref(false);
 const showSkeleton = ref(true);
 let timeout: NodeJS.Timeout;
-const SendReceiveDialogV2 = defineAsyncComponent(() => import("@/common/components/modals/SendReceiveDialogV2.vue"));
-const SwapDialog = defineAsyncComponent(() => import("@/common/components/modals/SwapDialog.vue"));
 
 const modalOptions = {
-  [HYSTORY_ACTIONS.SENDV2]: SendReceiveDialogV2,
-  [HYSTORY_ACTIONS.RECEIVEV2]: SendReceiveDialogV2,
+  [HYSTORY_ACTIONS.SENDV]: SendReceiveDialogV2,
+  [HYSTORY_ACTIONS.RECEIVEV]: SendReceiveDialogV2,
   [HYSTORY_ACTIONS.SWAP]: SwapDialog
 };
 
@@ -169,7 +169,7 @@ const state = ref<{
   data: IObjectKeys | null;
 }>({
   showModal: false,
-  modalAction: HYSTORY_ACTIONS.SENDV2,
+  modalAction: HYSTORY_ACTIONS.SENDV,
   data: null
 });
 
@@ -270,6 +270,7 @@ const history = computed(() => {
 
   for (const key in h) {
     const item = h[key];
+    console.log(h);
     items.push({
       action: item.action,
       status: i18n.t(`message.${item.step}-History`),
