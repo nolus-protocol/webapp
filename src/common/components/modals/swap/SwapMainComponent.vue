@@ -16,6 +16,7 @@
     :to-network="SUPPORTED_NETWORKS_DATA[NATIVE_NETWORK.key].label"
     :from-address="wallet.wallet?.address"
     :receiver-address="wallet.wallet?.address"
+    :warning="route?.warning?.message ?? ''"
   />
 
   <SwapFormComponent

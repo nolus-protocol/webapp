@@ -8,6 +8,7 @@
       <button
         class="btn-close-modal"
         @click="onModalClose"
+        v-if="disable"
       >
         <svg
           width="28"

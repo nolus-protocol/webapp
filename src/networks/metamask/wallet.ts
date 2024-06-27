@@ -12,33 +12,48 @@ export class MetaMaskWallet implements Wallet {
   shortAddress!: string;
   rpc!: string;
   chainId!: string;
+  accountChangeCallback!: Function | null;
 
-  async connect(config: IObjectKeys) {
+  async connect(config: IObjectKeys, accountChangeCallback?: Function) {
     const metamask = (window as MetamaskWindow).ethereum;
-
+    this.accountChangeCallback = accountChangeCallback as Function | null;
     if (metamask) {
       try {
         this.web3 = new ethers.BrowserProvider((window as MetamaskWindow).ethereum);
         await this.web3.send("wallet_addEthereumChain", [{ ...config }]);
 
         const addr = await this.web3.send("eth_requestAccounts", []);
-        this.address = addr[0];
-        const first = this.address.slice(0, 7);
-        const last = this.address.slice(this.address.length - 4, this.address.length);
-        this.shortAddress = `${first}...${last}`;
+        this.setAccount(addr[0]);
         this.rpc = config.rpcUrls[0];
         this.chainId = config.chainId;
+
+        (window as IObjectKeys).ethereum.on("accountsChanged", this.toggleAccounts);
       } catch (e: Error | any) {
         throw new Error(e);
       }
     }
   }
 
+  toggleAccounts = (accounts: string[]) => {
+    this.setAccount(accounts[0]);
+    if (this.accountChangeCallback) {
+      this.accountChangeCallback();
+    }
+  };
+
   getSigner() {
     return this.web3.getSigner();
   }
 
+  private setAccount(addr: string) {
+    this.address = addr;
+    const first = this.address.slice(0, 7);
+    const last = this.address.slice(this.address.length - 4, this.address.length);
+    this.shortAddress = `${first}...${last}`;
+  }
+
   destroy() {
+    (window as IObjectKeys).ethereum.removeListener("accountsChanged", this.toggleAccounts);
     this.web3.destroy();
   }
 

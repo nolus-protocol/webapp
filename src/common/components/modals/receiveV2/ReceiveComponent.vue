@@ -19,7 +19,7 @@
     :toNetwork="SUPPORTED_NETWORKS_DATA[NATIVE_NETWORK.key].label"
   />
   <template v-else>
-    <div
+    <!-- <div
       class="modal-send-receive-input-area custom-scroll overflow-auto"
       v-if="selectedNetwork.native"
     >
@@ -56,91 +56,91 @@
           <p>~{{ selectedNetwork.estimation }} {{ $t("message.sec") }}</p>
         </div>
       </div>
-    </div>
-    <template v-else>
-      <form
-        @submit.prevent="onSendClick"
-        class="modal-form overflow-auto"
-      >
-        <!-- Input Area -->
-        <div class="modal-send-receive-input-area background">
-          <div class="block text-left">
-            <div class="mt-[20px] flex flex-col">
-              <Picker
-                :default-option="selectedNetwork"
-                :options="networks"
-                :label="$t('message.network')"
-                :value="selectedNetwork"
-                @update-selected="onUpdateNetwork"
+    </div> -->
+    <!-- <template v-else> -->
+    <form
+      @submit.prevent="onSendClick"
+      class="modal-form overflow-auto"
+    >
+      <!-- Input Area -->
+      <div class="modal-send-receive-input-area background">
+        <div class="block text-left">
+          <div class="mt-[20px] flex flex-col">
+            <Picker
+              :default-option="selectedNetwork"
+              :options="networks"
+              :label="$t('message.network')"
+              :value="selectedNetwork"
+              @update-selected="onUpdateNetwork"
+            />
+            <button
+              v-if="selectedNetwork.chain_type == 'evm'"
+              class="nls-font-700 btn btn-secondary btn-medium-secondary mt-2 flex self-end !text-12 text-primary"
+              type="button"
+              :class="{ 'js-loading': isMetamaskLoading }"
+              @click="connectEvm"
+            >
+              <img
+                src="@/assets/icons/metamask.svg"
+                class="mr-1"
               />
-              <button
-                v-if="selectedNetwork.chain_type == 'evm'"
-                class="nls-font-700 btn btn-secondary btn-medium-secondary mt-2 flex self-end !text-12 text-primary"
-                type="button"
-                :class="{ 'js-loading': isMetamaskLoading }"
-                @click="connectEvm"
-              >
-                <img
-                  src="@/assets/icons/metamask.svg"
-                  class="mr-1"
-                />
-                {{ evmAddress.length == 0 ? $t("message.connect") : evmAddress }}
-              </button>
-            </div>
+              {{ evmAddress.length == 0 ? $t("message.connect") : evmAddress }}
+            </button>
+          </div>
+          {{ formatCurrentBalance(selectedCurrency) }}
+          <div class="mt-[20px] block">
+            <CurrencyField
+              id="amount"
+              :currency-options="networkCurrencies"
+              :disabled-currency-picker="disablePicker || disablePickerDialog"
+              :is-loading-picker="disablePicker"
+              :error-msg="amountErrorMsg"
+              :is-error="amountErrorMsg !== ''"
+              :option="selectedCurrency"
+              :value="amount"
+              :name="$t('message.amount')"
+              :label="$t('message.amount-receive')"
+              :total="new KeplrCoin(selectedCurrency.balance.denom, selectedCurrency.balance.amount)"
+              :balance="formatCurrentBalance(selectedCurrency)"
+              @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
+              @input="handleAmountChange($event)"
+            />
+          </div>
 
-            <div class="mt-[20px] block">
-              <CurrencyField
-                id="amount"
-                :currency-options="networkCurrencies"
-                :disabled-currency-picker="disablePicker || disablePickerDialog"
-                :is-loading-picker="disablePicker"
-                :error-msg="amountErrorMsg"
-                :is-error="amountErrorMsg !== ''"
-                :option="selectedCurrency"
-                :value="amount"
-                :name="$t('message.amount')"
-                :label="$t('message.amount-receive')"
-                :total="new KeplrCoin(selectedCurrency.balance.denom, selectedCurrency.balance.amount)"
-                :balance="formatCurrentBalance(selectedCurrency)"
-                @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
-                @input="handleAmountChange($event)"
-              />
-            </div>
-
-            <div>
-              <p class="nls-font-500 m-0 mb-[6px] mt-2 text-14 text-primary">
-                {{ $t("message.recipient") }}
-              </p>
-              <p class="nls-font-700 m-0 break-all text-14 text-primary">
-                {{ WalletUtils.isAuth() ? walletStore.wallet?.address : $t("message.connect-wallet-label") }}
-              </p>
-            </div>
+          <div>
+            <p class="nls-font-500 m-0 mb-[6px] mt-2 text-14 text-primary">
+              {{ $t("message.recipient") }}
+            </p>
+            <p class="nls-font-700 m-0 break-all text-14 text-primary">
+              {{ WalletUtils.isAuth() ? walletStore.wallet?.address : $t("message.connect-wallet-label") }}
+            </p>
           </div>
         </div>
-        <!-- Actions -->
-        <div class="modal-send-receive-actions background flex-col">
-          <button
-            class="btn btn-primary btn-large-primary"
-            :class="{ 'js-loading': isLoading }"
-          >
-            {{ $t("message.receive") }}
-          </button>
-          <div class="my-2 flex w-full justify-between text-[14px] text-light-blue">
-            <p>{{ $t("message.estimate-time") }}:</p>
-            <template v-if="selectedNetwork.chain_type == 'evm'">
-              <p>
-                ~{{ (selectedNetwork as EvmNetwork).estimation.duration }}
-                {{ $t(`message.${(selectedNetwork as EvmNetwork).estimation.type}`) }}
-              </p>
-            </template>
-            <template v-else>
-              <p>~{{ selectedNetwork.estimation }} {{ $t("message.sec") }}</p>
-            </template>
-          </div>
+      </div>
+      <!-- Actions -->
+      <div class="modal-send-receive-actions background flex-col">
+        <button
+          class="btn btn-primary btn-large-primary"
+          :class="{ 'js-loading': isLoading }"
+        >
+          {{ $t("message.receive") }}
+        </button>
+        <div class="my-2 flex w-full justify-between text-[14px] text-light-blue">
+          <p>{{ $t("message.estimate-time") }}:</p>
+          <template v-if="selectedNetwork.chain_type == 'evm'">
+            <p>
+              ~{{ (selectedNetwork as EvmNetwork).estimation.duration }}
+              {{ $t(`message.${(selectedNetwork as EvmNetwork).estimation.type}`) }}
+            </p>
+          </template>
+          <template v-else>
+            <p>~{{ selectedNetwork.estimation }} {{ $t("message.sec") }}</p>
+          </template>
         </div>
-      </form>
-    </template>
+      </div>
+    </form>
   </template>
+  <!-- </template> -->
 </template>
 
 <script setup lang="ts">
@@ -191,7 +191,8 @@ let timeOut: NodeJS.Timeout;
 let route: IObjectKeys | null;
 
 const walletStore = useWalletStore();
-const networks = ref<(Network | EvmNetwork)[]>([SUPPORTED_NETWORKS_DATA[NATIVE_NETWORK.key]]);
+const networks = ref<(Network | EvmNetwork)[]>([SUPPORTED_NETWORKS_DATA.OSMOSIS]);
+
 const i18n = useI18n();
 const copyText = ref(i18n.t("message.copy"));
 const selectedNetwork = ref(networks.value[0]);
@@ -212,6 +213,7 @@ const step = ref(CONFIRM_STEP.CONFIRM);
 const fee = ref<Coin>();
 const isLoading = ref(false);
 const evmAddress = ref("");
+
 const closeModal = inject("onModalClose", () => () => {});
 
 const wallet = ref(walletStore.wallet?.address);
@@ -235,7 +237,9 @@ onMounted(async () => {
       return false;
     }) as (Network | EvmNetwork)[];
 
-    networks.value = [...networks.value, ...n];
+    networks.value = [...n];
+    onUpdateNetwork(SUPPORTED_NETWORKS_DATA.OSMOSIS as any);
+
     setParams();
   } catch (error) {
     Logger.error(error);
@@ -262,9 +266,11 @@ onUnmounted(() => {
     };
     walletStore.updateHistory(data);
   }
-});
 
-onUnmounted(() => {
+  if (client && step.value != CONFIRM_STEP.PENDING) {
+    client.destroy();
+  }
+
   clearTimeout(timeOut);
 });
 
@@ -315,9 +321,10 @@ async function onUpdateNetwork(event: Network) {
         break;
       }
       case "evm": {
-        setEvmNetwork();
         if (client) {
           connectEvm();
+        } else {
+          setEvmNetwork();
         }
         break;
       }
@@ -734,7 +741,7 @@ function onConfirmBackClick() {
 }
 
 function formatCurrentBalance(selectedCurrency: AssetBalance | undefined) {
-  if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
+  if (selectedCurrency?.balance?.denom) {
     if (selectedNetwork.value.native) {
       const asset = AssetUtils.getCurrencyByDenom(selectedCurrency.balance.denom);
       return CurrencyUtils.convertMinimalDenomToDenom(
@@ -767,13 +774,24 @@ async function connectEvm() {
     const net = selectedNetwork.value as EvmNetwork;
     const endpoint = await AppUtils.fetchEvmEndpoints(net.key);
     const chaindId = await client.getChainId(endpoint.rpc);
-    await client.connect({
-      chainId: chaindId,
-      chainName: net.label,
-      rpcUrls: [endpoint.rpc],
-      blockExplorerUrls: [net.explorer],
-      nativeCurrency: { ...net.nativeCurrency }
-    });
+    await client.connect(
+      {
+        chainId: chaindId,
+        chainName: net.label,
+        rpcUrls: [endpoint.rpc],
+        blockExplorerUrls: [net.explorer],
+        nativeCurrency: { ...net.nativeCurrency }
+      },
+      async () => {
+        try {
+          evmAddress.value = (client as MetaMaskWallet).shortAddress;
+          wallet.value = (client as MetaMaskWallet).address;
+          await setEvmNetwork();
+        } catch (error) {
+          Logger.error(error);
+        }
+      }
+    );
 
     evmAddress.value = client.shortAddress;
     wallet.value = client.address;

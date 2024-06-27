@@ -131,6 +131,33 @@
     <WarningBox
       :isWarning="true"
       class="mx-[18px] mb-[4px] lg:mx-[38px] lg:mb-[20px]"
+      v-if="isStepConfirm && (warning.length > 0 || txs > 1)"
+    >
+      <template v-slot:icon>
+        <img
+          class="mx-auto my-0 block h-7 w-10"
+          src="@/assets/icons/information-circle.svg"
+        />
+      </template>
+
+      <template v-slot:content>
+        <span
+          class="text-primary"
+          v-html="
+            $t('message.swap-confirm-warning', {
+              txs: `${txs} ${txs > 1 ? $t('message.transactions') : $t('message.transaction')}`
+            })
+          "
+        >
+        </span>
+        <span class="text-primary">.&#160;{{ warning }} </span>
+      </template>
+    </WarningBox>
+
+    <WarningBox
+      :isWarning="true"
+      v-if="isStepPending"
+      class="mx-[18px] mb-[4px] lg:mx-[38px] lg:mb-[20px]"
     >
       <template v-slot:icon>
         <img
@@ -139,29 +166,15 @@
         />
       </template>
       <template v-slot:content>
-        <template v-if="isStepPending">
-          <span class="text-primary">
-            {{ $t("message.swap-warning") }}
-            <RouterLink
-              to="/history"
-              class="text-primary-50"
-              @click="onClose"
-              >{{ $t("message.history-page") }}</RouterLink
-            ></span
-          >
-        </template>
-        <span
-          v-else
-          class="text-primary"
-          v-html="
-            $t('message.swap-confirm-warning', {
-              txs: `${txs} ${txs > 1 ? $t('message.transactions') : $t('message.transaction')}`
-            })
-          "
+        <span class="text-primary">
+          {{ $t("message.swap-warning") }}
+          <RouterLink
+            to="/history"
+            class="text-primary-50"
+            @click="onClose"
+            >{{ $t("message.history-page") }}</RouterLink
+          ></span
         >
-        </span
-        >.
-        <span>&#160;{{ warning }} </span>
       </template>
     </WarningBox>
 

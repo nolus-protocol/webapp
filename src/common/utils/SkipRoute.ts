@@ -23,7 +23,7 @@ enum Messages {
 }
 
 class Swap extends SkipRouterLib {
-  constructor(data: { apiURL: string }) {
+  constructor(data: { apiURL: string; apiKey: string }) {
     super(data);
   }
 }
@@ -37,9 +37,11 @@ export class SkipRouter {
       return SkipRouter.client;
     }
 
+    const config = await AppUtils.getSkipRouteConfig();
     const [client, status] = await Promise.all([
       new Swap({
-        apiURL: SKIP_API_URL
+        apiURL: SKIP_API_URL,
+        apiKey: config.apiKey
       }),
       SkipRouter.chainID ?? AppUtils.fetchNetworkStatus().then((status) => status.result.node_info.network)
     ]);
@@ -79,7 +81,7 @@ export class SkipRouter {
     } else {
       request.amountIn = amount;
     }
-
+    console.log(JSON.stringify(request));
     const route: IObjectKeys = await client.route(request as RouteRequest);
     route.revert = true;
 

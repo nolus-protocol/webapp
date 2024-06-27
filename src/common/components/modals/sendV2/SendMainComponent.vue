@@ -294,6 +294,10 @@ onUnmounted(() => {
     };
     walletStore.updateHistory(data);
   }
+
+  if (client && step.value != CONFIRM_STEP.PENDING) {
+    client.destroy();
+  }
 });
 
 watch(
@@ -350,9 +354,10 @@ async function onUpdateNetwork(event: Network) {
         break;
       }
       case "evm": {
-        setEvmNetwork();
         if (client) {
           connectEvm();
+        } else {
+          setEvmNetwork();
         }
         break;
       }
@@ -772,13 +777,16 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
           const endpoint = await AppUtils.fetchEvmEndpoints(net.key);
           const chainId = await client.getChainId(endpoint.rpc);
 
-          await client.connect({
-            chainId: chainId,
-            chainName: net.label,
-            rpcUrls: [endpoint.rpc],
-            blockExplorerUrls: [net.explorer],
-            nativeCurrency: { ...net.nativeCurrency }
-          });
+          await client.connect(
+            {
+              chainId: chainId,
+              chainName: net.label,
+              rpcUrls: [endpoint.rpc],
+              blockExplorerUrls: [net.explorer],
+              nativeCurrency: { ...net.nativeCurrency }
+            },
+            () => {}
+          );
           addrs[parseInt(chainId).toString()] = client;
 
           break;
@@ -861,13 +869,19 @@ async function connectEvm() {
     const net = selectedNetwork.value as EvmNetwork;
     const endpoint = await AppUtils.fetchEvmEndpoints(net.key);
     const chaindId = await client.getChainId(endpoint.rpc);
-    await client.connect({
-      chainId: chaindId,
-      chainName: net.label,
-      rpcUrls: [endpoint.rpc],
-      blockExplorerUrls: [net.explorer],
-      nativeCurrency: { ...net.nativeCurrency }
-    });
+    await client.connect(
+      {
+        chainId: chaindId,
+        chainName: net.label,
+        rpcUrls: [endpoint.rpc],
+        blockExplorerUrls: [net.explorer],
+        nativeCurrency: { ...net.nativeCurrency }
+      },
+      () => {
+        evmAddress.value = (client as MetaMaskWallet).shortAddress;
+        wallet.value = (client as MetaMaskWallet).address;
+      }
+    );
 
     evmAddress.value = client.shortAddress;
     wallet.value = client.address;
