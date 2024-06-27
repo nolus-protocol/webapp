@@ -196,9 +196,6 @@
     "DYMENSION": {
       "currencies": [{ "from": "ibc/9C7F70E92CCBA0F2DC94796B0682955E090676EA7A2F8E0A4611956B79CB4406", "to": "adym" }]
     },
-    "EVMOS": {
-      "currencies": [{ "from": "ibc/A59A9C955F1AB8B76671B00C1A0482C64A6590352944BB5880E5122358F7E1CE", "to": "aevmos" }]
-    },
     "JACKAL": {
       "currencies": [{ "from": "ibc/28F026607184B151F1F7D7F5D8AE644528550EB05203A28B6233DFA923669876", "to": "ujkl" }]
     },
