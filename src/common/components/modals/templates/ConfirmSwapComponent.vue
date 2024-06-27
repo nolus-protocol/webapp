@@ -128,7 +128,7 @@
       </div>
     </div>
 
-    <NotificationBox type="warning">
+    <NotificationBox :type="NotificationBoxType.warning">
       <template v-slot:content>
         <template v-if="isStepPending">
           <span class="text-neutral-typography-200">
@@ -168,7 +168,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, NotificationBox } from "web-components";
+import { Button, NotificationBox, NotificationBoxType } from "web-components";
 
 import type { Coin } from "@cosmjs/amino";
 import { SwapStatus } from "../swap/types";

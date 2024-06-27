@@ -2,7 +2,7 @@
   <div class="mb-8 grid grid-cols-2 gap-4">
     <Boxes
       v-for="connection in connections"
-      :key="connection"
+      :key="connection.label"
       :icon="connection.icon"
       :label="connection.label"
       @click="connection.onClick"

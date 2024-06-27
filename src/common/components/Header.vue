@@ -17,7 +17,7 @@
           style="font-size: 1.5em !important; margin-right: 0"
         >
         </span>
-        <span class="nls-font-400 nls-md-hidden text-12 text-primary">
+        <span class="nls-md-hidden text-12 font-normal text-primary">
           {{ walletStore.walletName }}
         </span>
       </button>
@@ -32,7 +32,7 @@
           style="font-size: 1.5em !important; margin-right: 0"
         >
         </span>
-        <span class="nls-font-400 nls-md-hidden text-12 text-primary">
+        <span class="nls-md-hidden text-12 font-normal text-primary">
           {{ $t("message.connect-wallet") }}
         </span>
       </button>
