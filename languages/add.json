@@ -1,1 +1,3 @@
-{}
+{
+  "send-skip-action": "Send {amount} to {network}"
+}

@@ -306,6 +306,9 @@
     "Pending-History": "Pending",
     "Success-History": "Success",
     "Error-History": "Fail",
-    "details": "Details"
+    "details": "Details",
+    "swap-skip-action": "Swap {amount} to {swapTo}",
+    "receive-skip-action": "Receive {amount} from {network}",
+    "send-skip-action": "Send {amount} to {network}"
   }
 }

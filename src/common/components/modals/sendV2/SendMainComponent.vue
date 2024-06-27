@@ -289,7 +289,7 @@ onUnmounted(() => {
       step: step.value,
       fee: fee.value,
       fromAddress: wallet.value,
-      action: HYSTORY_ACTIONS.SENDV,
+      action: HYSTORY_ACTIONS.SEND,
       errorMsg: errorMsg.value
     };
     walletStore.updateHistory(data);

@@ -35,7 +35,7 @@
                 <template v-slot:status>
                   <span
                     v-if="tx.step == CONFIRM_STEP.SUCCESS"
-                    class="icon icon-arrow-down-sort mr-2 !text-[12px] text-success-100"
+                    class="icon icon-success !text-[20px] text-success-100"
                   >
                   </span>
                   <Spinner
@@ -130,7 +130,7 @@ import type { Coin } from "@keplr-wallet/types";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { CONFIRM_STEP, type IObjectKeys } from "@/common/types";
 import type { EvmNetwork, Network } from "@/common/types/Network";
-import type { CoinPretty } from "@keplr-wallet/unit";
+import { Dec, type CoinPretty } from "@keplr-wallet/unit";
 import SendReceiveDialogV2 from "@/common/components/modals/SendReceiveDialogV2.vue";
 import SwapDialog from "@/common/components/modals/SwapDialog.vue";
 
@@ -158,8 +158,8 @@ const showSkeleton = ref(true);
 let timeout: NodeJS.Timeout;
 
 const modalOptions = {
-  [HYSTORY_ACTIONS.SENDV]: SendReceiveDialogV2,
-  [HYSTORY_ACTIONS.RECEIVEV]: SendReceiveDialogV2,
+  [HYSTORY_ACTIONS.SEND]: SendReceiveDialogV2,
+  [HYSTORY_ACTIONS.RECEIVE]: SendReceiveDialogV2,
   [HYSTORY_ACTIONS.SWAP]: SwapDialog
 };
 
@@ -169,7 +169,7 @@ const state = ref<{
   data: IObjectKeys | null;
 }>({
   showModal: false,
-  modalAction: HYSTORY_ACTIONS.SENDV,
+  modalAction: HYSTORY_ACTIONS.SEND,
   data: null
 });
 
@@ -272,7 +272,7 @@ const history = computed(() => {
     const item = h[key];
     console.log(h);
     items.push({
-      action: item.action,
+      action: getAction(item),
       status: i18n.t(`message.${item.step}-History`),
       fee: calculateFee(item.fee, item.selectedNetwork) as CoinPretty,
       step: item.step,
@@ -281,6 +281,30 @@ const history = computed(() => {
   }
   return items.sort((a, b) => Number(b.key) - Number(a.key));
 });
+
+function getAction(item: IObjectKeys) {
+  switch (item.action) {
+    case HYSTORY_ACTIONS.SWAP: {
+      return i18n.t("message.swap-skip-action", {
+        amount: `${new Dec(item.amount).toString(item.selectedCurrency.decimal_digits)} ${item.selectedCurrency.shortName}`,
+        swapTo: `${new Dec(item.swapToAmount).toString(item.swapToSelectedCurrency.decimal_digits)} ${item.swapToSelectedCurrency.shortName}`
+      });
+    }
+    case HYSTORY_ACTIONS.RECEIVE: {
+      return i18n.t("message.receive-skip-action", {
+        amount: `${new Dec(item.amount).toString(item.selectedCurrency.decimal_digits)} ${item.selectedCurrency.shortName}`,
+        network: `${item.selectedNetwork.label}`
+      });
+    }
+    case HYSTORY_ACTIONS.SEND: {
+      return i18n.t("message.send-skip-action", {
+        amount: `${new Dec(item.amount).toString(item.selectedCurrency.decimal_digits)} ${item.selectedCurrency.shortName}`,
+        network: `${item.selectedNetwork.label}`
+      });
+    }
+  }
+  return "";
+}
 
 function calculateFee(coin: Coin, network: Network | EvmNetwork) {
   switch (network.chain_type) {
@@ -336,4 +360,8 @@ watch(
     deep: true
   }
 );
+
+function truncateString(denom: string): string {
+  throw new Error("Function not implemented.");
+}
 </script>

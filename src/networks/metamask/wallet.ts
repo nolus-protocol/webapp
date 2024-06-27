@@ -29,7 +29,7 @@ export class MetaMaskWallet implements Wallet {
         this.rpc = config.rpcUrls[0];
         this.chainId = config.chainId;
 
-        this.web3.on("accountsChanged", this.toggleAccounts);
+        (window as IObjectKeys).ethereum.on("accountsChanged", this.toggleAccounts);
       } catch (e: Error | any) {
         throw new Error(e);
       }
@@ -73,7 +73,7 @@ export class MetaMaskWallet implements Wallet {
   }
 
   destroy() {
-    this.web3.removeListener("accountsChanged", this.toggleAccounts);
+    (window as IObjectKeys).ethereum.removeListener("accountsChanged", this.toggleAccounts);
     this.web3.destroy();
   }
 
