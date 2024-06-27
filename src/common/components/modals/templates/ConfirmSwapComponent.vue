@@ -175,7 +175,7 @@ import { SwapStatus } from "../swap/types";
 import { computed, inject, onMounted, watch } from "vue";
 import { CheckIcon, XMarkIcon } from "@heroicons/vue/24/solid";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { AssetUtils } from "@/common/utils";
+import { AssetUtils, StringUtils } from "@/common/utils";
 import { CONFIRM_STEP } from "@/common/types";
 import { useApplicationStore } from "@/common/stores/application";
 
