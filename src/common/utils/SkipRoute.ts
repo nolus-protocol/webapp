@@ -24,7 +24,7 @@ enum Messages {
 
 class Swap extends SkipRouterLib {
   constructor(data: { apiURL: string; apiKey: string }) {
-    super(data);
+    super({ apiURL: data.apiURL });
   }
 }
 

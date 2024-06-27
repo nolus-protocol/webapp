@@ -87,7 +87,6 @@
               {{ evmAddress.length == 0 ? $t("message.connect") : evmAddress }}
             </button>
           </div>
-          {{ formatCurrentBalance(selectedCurrency) }}
           <div class="mt-[20px] block">
             <CurrencyField
               id="amount"
