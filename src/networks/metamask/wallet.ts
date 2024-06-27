@@ -3,6 +3,7 @@ import type { Window as MetamaskWindow } from "./window";
 import { Contract, ethers, isAddress } from "ethers";
 import type { Wallet } from "../wallet";
 import type { IObjectKeys } from "@/common/types";
+import { Logger } from "@/common/utils";
 
 const confirmations = 1;
 
@@ -20,7 +21,8 @@ export class MetaMaskWallet implements Wallet {
     if (metamask) {
       try {
         this.web3 = new ethers.BrowserProvider((window as MetamaskWindow).ethereum);
-        await this.web3.send("wallet_addEthereumChain", [{ ...config }]);
+
+        await this.switchNetwork(config);
 
         const addr = await this.web3.send("eth_requestAccounts", []);
         this.setAccount(addr[0]);
@@ -31,6 +33,24 @@ export class MetaMaskWallet implements Wallet {
       } catch (e: Error | any) {
         throw new Error(e);
       }
+    }
+  }
+
+  async switchNetwork(config: IObjectKeys) {
+    try {
+      await this.web3.send("wallet_switchEthereumChain", [{ chainId: config.chainId }]);
+    } catch (error: Error | any) {
+      if (error?.error?.code == 4902) {
+        this.addNetwork(config);
+      }
+    }
+  }
+
+  async addNetwork(config: IObjectKeys) {
+    try {
+      await this.web3.send("wallet_addEthereumChain", [{ ...config }]);
+    } catch (error: Error | any) {
+      Logger.error(error);
     }
   }
 

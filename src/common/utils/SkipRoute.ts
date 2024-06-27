@@ -81,7 +81,7 @@ export class SkipRouter {
     } else {
       request.amountIn = amount;
     }
-    console.log(JSON.stringify(request));
+
     const route: IObjectKeys = await client.route(request as RouteRequest);
     route.revert = true;
 
