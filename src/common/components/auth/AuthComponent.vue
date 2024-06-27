@@ -1,38 +1,18 @@
 <template>
-  <div class="relative z-[2] flex pb-2">
-    <button
-      class="btn btn-box btn-large-box auth grow basis-0"
-      @click="clickConnectToKeplr"
-    >
-      <span class="icon icon-keplr ml-1"></span>
-      {{ $t("message.keplr") }}
-    </button>
-
-    <button
-      class="btn btn-box btn-large-box auth ml-5 grow basis-0 md:ml-4"
-      @click="clickConnectToLeap"
-    >
-      <span class="icon icon-leap ml-1"></span>
-      {{ $t("message.leap") }}
-    </button>
+  <div class="mb-8 grid grid-cols-2 gap-4">
+    <Boxes
+      v-for="connection in connections"
+      :key="connection"
+      :icon="connection.icon"
+      :label="connection.label"
+      @click="connection.onClick"
+    />
   </div>
 
-  <div class="relative z-[2] flex pb-6 pt-3 lg:pt-2">
-    <button
-      class="btn btn-box btn-large-box auth grow basis-0"
-      @click="clickImportLedger"
-    >
-      <span class="icon icon-ledger mb-[4px]"></span>
-      {{ $t("message.ledger") }}
-    </button>
-
-    <div class="fake-button ml-5 grow basis-0 md:ml-4"></div>
-  </div>
-
-  <div class="text-dark-grey relative z-[2] pb-2 text-[13px]">
+  <div class="text-[13px] text-neutral-400">
     {{ $t("message.policy") }}
     <button
-      class="text-[#2868E1]"
+      class="text-primary-50"
       @click="onShowTermsModal"
     >
       {{ $t("message.terms-of-service") }}
@@ -52,6 +32,10 @@ import Modal from "@/common/components/modals/templates/Modal.vue";
 import TermsDialog from "@/common/components/modals/TermsDialog.vue";
 import { WalletActions } from "@/common/stores/wallet";
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+import { Boxes } from "web-components";
+
+const i18n = useI18n();
 
 const showTermsModal = ref(false);
 const props = defineProps({
@@ -60,6 +44,24 @@ const props = defineProps({
     required: true
   }
 });
+
+const connections = {
+  Keplr: {
+    icon: "icon-keplr",
+    label: i18n.t("message.keplr"),
+    onClick: clickConnectToKeplr
+  },
+  Leap: {
+    icon: "icon-leap",
+    label: i18n.t("message.leap"),
+    onClick: clickConnectToLeap
+  },
+  Ledger: {
+    icon: "icon-ledger",
+    label: i18n.t("message.ledger"),
+    onClick: clickImportLedger
+  }
+};
 
 function clickConnectToKeplr() {
   props.switchView(WalletActions.CONNECT_KEPLR);

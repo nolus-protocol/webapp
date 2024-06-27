@@ -3,7 +3,7 @@
     :back="backButton"
     :headerList="[title]"
   >
-    <div class="custom-scroll overflow-auto p-4 pt-8 text-primary md:max-h-[70vh] md:p-8 md:pt-8">
+    <div class="custom-scroll overflow-auto pt-6 text-neutral-typography-200 md:max-h-[70vh]">
       <AuthComponent
         v-if="view == null"
         :switchView="switchView"

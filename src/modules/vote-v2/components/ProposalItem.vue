@@ -1,7 +1,7 @@
 <template>
   <div
     :class="wrapperClasses"
-    class="proposal shadow-box flex w-full flex-col gap-3 p-5 lg:rounded-xl"
+    class="proposal flex w-full flex-col gap-3 p-5 shadow-field-normal lg:rounded-xl"
   >
     <div class="text-upper flex flex-col justify-between gap-2 text-[10px] md:flex-row md:gap-0">
       <div class="flex items-center gap-1">
@@ -54,7 +54,7 @@
       v-if="isVotingPeriod"
       class="flex flex-col gap-3"
     >
-      <div class="border-standart w-full border-b bg-transparent"></div>
+      <div class="w-full border-b border-border-color bg-transparent"></div>
       <button
         class="btn btn-primary btn-large-primary self-end !px-3 !py-2"
         @click="$emit('vote', state)"

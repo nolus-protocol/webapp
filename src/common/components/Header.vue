@@ -9,7 +9,7 @@
       <button
         v-if="walletStore.wallet"
         :class="showWallet ? 'active' : false"
-        class="show-box-wallet btn-header with-icon shadow-box rounded-r-none"
+        class="show-box-wallet btn-header with-icon rounded-r-none"
         @click="showWallet = !showWallet"
       >
         <span
@@ -24,7 +24,7 @@
 
       <button
         v-else
-        class="show-box-wallet btn-header with-icon shadow-box rounded-r-none"
+        class="show-box-wallet btn-header with-icon rounded-r-none"
         @click="showAuthDialog = !showAuthDialog"
       >
         <span

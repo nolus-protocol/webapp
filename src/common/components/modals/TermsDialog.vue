@@ -1,6 +1,6 @@
 <template>
   <DialogHeader :headerList="[$t('message.terms')]">
-    <div class="custom-scroll overflow-auto p-10 text-primary md:max-h-[70vh]">
+    <div class="custom-scroll overflow-auto py-6 pr-5 text-primary md:max-h-[70vh]">
       <p>
         We, the Stakeholders in the Nolus network hereby adopt and accept the following Statutes of Operation, which set
         and determine the rules of operation of the Nolus DeFi protocol. These Statutes constitute multilateral

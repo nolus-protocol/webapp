@@ -2,7 +2,7 @@
   <div
     :class="{
       'pt-[15px]': !showHeader,
-      'px-10 py-6': !isTabLayout
+      'p-10': !isTabLayout
     }"
     class="mx-auto mt-[62px] flex w-full max-w-[516px] flex-col rounded-xl bg-neutral-bg-50 text-center"
     @click.stop
@@ -29,22 +29,24 @@
         </div>
       </template>
       <template v-else>
-        <button
-          v-if="back"
-          class="absolute left-0 top-2/4 -mt-3 px-4 align-baseline md:px-10"
-          type="button"
-          @click="backClick"
-        >
-          <ArrowLeftIcon
-            aria-hidden="true"
-            class="h-6 w-6 text-neutral-typography-200"
-          />
-        </button>
-        <h1
-          class="block w-full border-b-[1px] border-border-color pb-5 text-center text-28 font-semibold text-neutral-typography-200 md:text-32"
-        >
-          {{ headerList[0] }}
-        </h1>
+        <div class="flex w-full border-b-[1px] border-border-color pb-5">
+          <button
+            v-if="back"
+            class=""
+            type="button"
+            @click="backClick"
+          >
+            <ArrowLeftIcon
+              aria-hidden="true"
+              class="h-6 w-6 text-neutral-typography-200"
+            />
+          </button>
+          <h1
+            class="block w-full text-center text-28 font-semibold leading-7 text-neutral-typography-200 md:text-32 md:leading-8"
+          >
+            {{ headerList[0] }}
+          </h1>
+        </div>
       </template>
     </div>
 

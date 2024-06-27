@@ -1,34 +1,33 @@
 <template>
   <div
-    class="block z-[101] md:rounded-2xl rounded-t-2xl background md:pb-10 pt-6 pb-[210px] mt-[52px] md:border border-standart shadow-box w-screen md:w-[516px] h-full md:h-auto"
+    class="background z-[101] mt-[52px] block h-full w-screen rounded-t-2xl border-border-color pb-[210px] pt-6 shadow-field-normal md:h-auto md:w-[516px] md:rounded-2xl md:border md:pb-10"
     @click.stop
   >
     <div class="flex flex-col items-center">
-      <XMarkIcon class="h-14 w-14 bg-light-red/30 radius-circle p-2 text-dark-red z-[5]" />
-      <h1 class="nls-font-700 text-28 md:text-32 text-primary text-center mt-4 z-[5]">
+      <XMarkIcon class="radius-circle z-[5] h-14 w-14 bg-light-red/30 p-2 text-dark-red" />
+      <h1 class="nls-font-700 z-[5] mt-4 text-center text-28 text-primary md:text-32">
         {{ $t("message.session-timeout") }}
       </h1>
     </div>
 
-    <div class="separator-line py-6 relative z-[5]"></div>
+    <div class="separator-line relative z-[5] py-6"></div>
 
     <div class="flex flex-col items-center">
-      <p class="text-18 text-primary text-center nls-font-400 z-[5] px-4 md:px-10">
+      <p class="nls-font-400 z-[5] px-4 text-center text-18 text-primary md:px-10">
         {{ $t("message.session-timeout-message") }}
       </p>
 
-      <div class="gap-2 mt-6 md:flex hidden">
+      <div class="mt-6 hidden gap-2 md:flex">
         <button
           class="btn btn-primary btn-large-primary"
           @click="close()"
         >
           {{ $t("message.refresh") }}
         </button>
-
       </div>
 
       <div
-        class="md:hidden flex align-center justify-center md:pt-7 p-4 text-center mx-auto background inset-x-0 bottom-0 md:relative"
+        class="align-center background inset-x-0 bottom-0 mx-auto flex justify-center p-4 text-center md:relative md:hidden md:pt-7"
       >
         <button
           class="btn btn-primary btn-large-primary mr-4 w-40"
@@ -41,14 +40,13 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { XMarkIcon } from "@heroicons/vue/24/solid";
 
 defineProps({
   close: {
     type: Function,
-    required: true,
-  },
+    required: true
+  }
 });
-
 </script>
