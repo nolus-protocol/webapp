@@ -71,7 +71,7 @@
 
         <div class="block px-4">
           <p class="nls-font-400 m-0 text-14 text-primary">{{ txType }}</p>
-          <p class="nls-font-700 m-0 text-14 text-primary">{{ amount }}</p>
+          <p class="nls-font-700 m-0 text-14 text-primary">{{ swapToAmount }}</p>
           <p class="nls-font-400 m-0 text-14 text-primary">
             {{ receiverAddress }}
           </p>
@@ -83,11 +83,10 @@
           class="mt-3 block px-4"
         >
           <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.tx-and-fee") }}:</p>
-          <p class="nls-font-700 m-0 text-14 text-primary">~{{ calculateFee(fee) }}</p>
+          <p class="nls-font-700 m-0 text-14 text-primary">~{{ fee }}</p>
         </div>
 
         <template v-if="isStepPending">
-          <span class="border-swap mt-3 block border-t"> </span>
           <div
             v-for="item in txs"
             class="block"
@@ -208,10 +207,11 @@ interface Props {
   txType: string;
   txHashes: { hash: string; status: SwapStatus; url: string | null }[];
   amount: string;
+  swapToAmount: string;
   step: CONFIRM_STEP;
   errorMsg: string;
   warning: string;
-  fee: Coin;
+  fee: string;
   txs: number;
   network: EvmNetwork | Network;
   onSendClick: () => void;
@@ -261,36 +261,6 @@ function setDisabled() {
       break;
     }
   }
-}
-
-function calculateFee(coin: Coin) {
-  switch (props.network.chain_type) {
-    case "cosmos": {
-      return calculateCosmosFee(coin);
-    }
-    case "evm": {
-      return calculateEvmFee(coin);
-    }
-  }
-}
-
-function calculateCosmosFee(coin: Coin) {
-  const asset = AssetUtils.getCurrencyByDenom(coin.denom);
-  return CurrencyUtils.convertMinimalDenomToDenom(
-    coin.amount.toString(),
-    asset.ibcData,
-    asset.shortName,
-    asset.decimal_digits
-  );
-}
-
-function calculateEvmFee(coin: Coin) {
-  return CurrencyUtils.convertMinimalDenomToDenom(
-    coin.amount.toString(),
-    coin.denom,
-    coin.denom,
-    (props.network as EvmNetwork).nativeCurrency.decimals
-  );
 }
 </script>
 <style lang="scss" scoped>

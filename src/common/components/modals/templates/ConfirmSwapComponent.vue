@@ -70,7 +70,7 @@
         </div>
 
         <div class="block px-4">
-          <p class="nls-font-400 m-0 text-14 text-primary">{{ txType }}</p>
+          <p class="nls-font-400 m-0 text-14 capitalize text-primary">{{ $t("message.to") }}:</p>
           <p class="nls-font-700 m-0 text-14 text-primary">{{ forAmount }}</p>
           <p class="nls-font-400 m-0 text-14 text-primary">
             {{ receiverAddress }}
@@ -87,7 +87,6 @@
         </div>
 
         <template v-if="isStepPending">
-          <span class="border-swap mt-3 block border-t"> </span>
           <div
             v-for="item in txs"
             class="block"

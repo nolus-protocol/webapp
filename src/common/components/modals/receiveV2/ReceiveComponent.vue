@@ -4,11 +4,12 @@
     :txType="$t(`message.${TxType.SEND}`) + ':'"
     :txHashes="txHashes"
     :step="step"
-    :fee="fee!"
+    :fee="calculateFee(fee!)"
     :receiverAddress="walletStore.wallet?.address"
     :errorMsg="errorMsg"
     :txs="route!.txsRequired"
     :amount="`${swapAmount}`"
+    :swap-to-amount="swapToAmount()"
     :network="selectedNetwork"
     :onSendClick="onSwap"
     :onBackClick="onConfirmBackClick"
@@ -817,4 +818,39 @@ async function connectEvm() {
 const swapAmount = computed(() => {
   return `${new Dec(amount.value).toString(selectedCurrency.value?.decimal_digits)} ${selectedCurrency.value?.shortName}`;
 });
+
+function swapToAmount() {
+  return `${new Dec(route!.amountOut, selectedCurrency.value?.decimal_digits).toString(selectedCurrency.value?.decimal_digits)} ${selectedCurrency.value?.shortName}`;
+}
+
+function calculateFee(coin: Coin) {
+  switch (selectedNetwork.value.chain_type) {
+    case "cosmos": {
+      return calculateCosmosFee(coin);
+    }
+    case "evm": {
+      return calculateEvmFee(coin);
+    }
+  }
+  return "";
+}
+
+function calculateCosmosFee(coin: Coin) {
+  const asset = AssetUtils.getCurrencyByDenom(coin.denom);
+  return CurrencyUtils.convertMinimalDenomToDenom(
+    coin.amount.toString(),
+    asset.ibcData,
+    asset.shortName,
+    asset.decimal_digits
+  ).toString();
+}
+
+function calculateEvmFee(coin: Coin) {
+  return CurrencyUtils.convertMinimalDenomToDenom(
+    coin.amount.toString(),
+    coin.denom,
+    coin.denom,
+    (selectedNetwork.value as EvmNetwork).nativeCurrency.decimals
+  ).toString();
+}
 </script>

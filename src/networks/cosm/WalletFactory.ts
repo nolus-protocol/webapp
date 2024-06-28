@@ -86,7 +86,6 @@ async function authenticateKeplr(wallet: Wallet, network: NetworkData) {
 }
 
 async function authenticateLeap(wallet: Wallet, network: NetworkData) {
-  console.log(network);
   await WalletUtils.getLeap();
   const leapWindow = window as any;
 

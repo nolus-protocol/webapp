@@ -5,11 +5,12 @@
     :fromAddress="walletStore.wallet.address"
     :txHashes="txHashes"
     :step="step"
-    :fee="fee!"
+    :fee="calculateCosmosFee(fee!)"
     :receiverAddress="wallet"
     :errorMsg="errorMsg"
     :txs="route?.txsRequired ?? 1"
     :amount="`${swapAmount}`"
+    :swap-to-amount="swapToAmount()"
     :network="selectedNetwork"
     :onSendClick="onSwap"
     :onBackClick="onConfirmBackClick"
@@ -908,4 +909,18 @@ async function connectEvm() {
 const swapAmount = computed(() => {
   return `${new Dec(amount.value).toString(selectedCurrency.value?.decimal_digits)} ${selectedCurrency.value?.shortName}`;
 });
+
+function swapToAmount() {
+  return `${new Dec(route!.amountOut, selectedCurrency.value?.decimal_digits).toString(selectedCurrency.value?.decimal_digits)} ${selectedCurrency.value?.shortName}`;
+}
+
+function calculateCosmosFee(coin: Coin) {
+  const asset = AssetUtils.getCurrencyByDenom(coin.denom);
+  return CurrencyUtils.convertMinimalDenomToDenom(
+    coin.amount.toString(),
+    asset.ibcData,
+    asset.shortName,
+    asset.decimal_digits
+  ).toString();
+}
 </script>
