@@ -306,7 +306,7 @@
     "0int-banner-subtitle": "Zero in for the DeFi Summer",
     "0int-banner-description": "All leases are interest-free until Sep 1st. Let's make this DeFi Summer one to remember! 🚀",
     "from": "From",
-    "swap-warning": "You can minimize this window and track the progress on the",
+    "swap-warning": "Transactions from EVM chains might take up to 20 minutes to process. You can minimize this window and monitor the progress on the",
     "history-page": "History page",
     "Pending-History": "Pending",
     "Success-History": "Successful",
