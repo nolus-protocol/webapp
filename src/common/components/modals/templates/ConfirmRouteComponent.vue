@@ -98,7 +98,7 @@
 
             <template v-if="txHashes[item - 1]">
               <a
-                :href="`${applicaton.network.networkAddresses.explorer}/${txHashes[item - 1].hash}`"
+                :href="`${txHashes[item - 1].url ?? applicaton.network.networkAddresses.explorer}/${txHashes[item - 1].hash}`"
                 class="his-url nls-font-500 m-0 flex items-center justify-between px-4 text-14"
                 target="_blank"
               >
@@ -206,7 +206,7 @@ interface Props {
   fromNetwork: string;
   toNetwork: string;
   txType: string;
-  txHashes: { hash: string; status: SwapStatus }[];
+  txHashes: { hash: string; status: SwapStatus; url: string | null }[];
   amount: string;
   step: CONFIRM_STEP;
   errorMsg: string;

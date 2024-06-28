@@ -14,6 +14,11 @@ export class MetaMaskWallet implements Wallet {
   rpc!: string;
   chainId!: string;
   accountChangeCallback!: Function | null;
+  explorer: string;
+
+  constructor(explorer: string) {
+    this.explorer = explorer;
+  }
 
   async connect(config: IObjectKeys, accountChangeCallback?: Function) {
     const metamask = (window as MetamaskWindow).ethereum;

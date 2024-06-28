@@ -62,6 +62,8 @@ import { ChainType, type EvmNetwork, type Network } from "@/common/types/Network
 import { NETWORK as CUDOS_NETWORK } from "./cudos/network";
 import { embedChainInfo as cudosChainInfo } from "./cudos/contants";
 
+export const PROOBUF_ONLY_NETWORK = [ARBITRUM_NETWORK.key];
+
 export const SUPPORTED_NETWORKS_DATA: {
   [key: string]: Network | EvmNetwork;
 } = {

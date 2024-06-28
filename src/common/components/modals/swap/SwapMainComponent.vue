@@ -49,7 +49,7 @@ import { BaseWallet } from "@/networks";
 import SwapFormComponent from "./SwapFormComponent.vue";
 import ConfirmSwapComponent from "../templates/ConfirmSwapComponent.vue";
 
-import { computed, inject, onMounted, ref, watch, nextTick, type PropType, onUnmounted } from "vue";
+import { computed, inject, onMounted, ref, watch, nextTick, type PropType } from "vue";
 import { useI18n } from "vue-i18n";
 import { coin } from "@cosmjs/amino";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -111,7 +111,7 @@ const state = ref({
   swapFee: ""
 });
 
-const txHashes = ref<{ hash: string; status: SwapStatus }[]>([]);
+const txHashes = ref<{ hash: string; status: SwapStatus; url: string | null }[]>([]);
 let id = Date.now();
 const params = defineProps({
   data: {
@@ -135,8 +135,18 @@ onMounted(async () => {
   }
 });
 
-onUnmounted(() => {
-  if (step.value == CONFIRM_STEP.PENDING && params.data == null) {
+watch(
+  () => params.data,
+  () => {
+    setParams();
+  },
+  {
+    deep: true
+  }
+);
+
+function setHistory() {
+  if (params.data == null) {
     const data = {
       id,
       route,
@@ -154,18 +164,7 @@ onUnmounted(() => {
     };
     wallet.updateHistory(data);
   }
-});
-
-watch(
-  () => params.data,
-  () => {
-    setParams();
-  },
-  {
-    deep: true
-  }
-);
-
+}
 function setParams() {
   if (params.data) {
     id = params.data.id;
@@ -326,17 +325,19 @@ async function onSwap() {
           addresses[key] = wallets[key].address!;
         }
 
+        setHistory();
+
         await SkipRouter.submitRoute(route!, wallets, async (tx: IObjectKeys, wallet: BaseWallet) => {
           const element = {
             hash: tx.txHash,
-            status: SwapStatus.pending
+            status: SwapStatus.pending,
+            url: wallet.explorer
           };
 
-          const index = txHashes.value.length;
           txHashes.value.push(element);
 
           await wallet.broadcastTx(tx.txBytes as Uint8Array);
-          txHashes.value[index].status = SwapStatus.success;
+          element.status = SwapStatus.success;
         });
 
         await wallet.UPDATE_BALANCES();
@@ -344,6 +345,7 @@ async function onSwap() {
 
         if (wallet.history[id]) {
           wallet.history[id].step = CONFIRM_STEP.SUCCESS;
+          wallet.history[id].txHashes = txHashes.value;
         }
       } catch (error) {
         step.value = CONFIRM_STEP.ERROR;

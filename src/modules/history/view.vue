@@ -270,7 +270,6 @@ const history = computed(() => {
 
   for (const key in h) {
     const item = h[key];
-    console.log(h);
     items.push({
       action: getAction(item),
       status: i18n.t(`message.${item.step}-History`),

@@ -5,7 +5,7 @@ export const NETWORK = {
   symbol: "ETH",
   gasMupltiplier: 2,
   name: "ETH",
-  explorer: "https://etherscan.io",
+  explorer: "https://etherscan.io/tx",
   fees: {
     transfer: 3000000000000000
   },

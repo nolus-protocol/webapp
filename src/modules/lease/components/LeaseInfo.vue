@@ -26,7 +26,7 @@
             <div>
               <CurrencyComponent
                 :amount="focusPrice ?? currentPrice"
-                :decimals="2"
+                :decimals="4"
                 :font-size="20"
                 :font-size-small="14"
                 :hasSpace="false"
