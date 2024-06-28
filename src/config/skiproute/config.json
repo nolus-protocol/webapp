@@ -197,15 +197,6 @@
     "ETHEREUM": {
       "currencies": [
         {
-          "from": "ibc/A7C4A3FB19E88ABE60416125F9189DA680800F4CDD14E3C10C874E022BEFF04C",
-          "to": "ethereum-native",
-          "native": true
-        },
-        {
-          "from": "ibc/84E70F4A34FB2DE135FD3A04FDDF53B7DA4206080AA785C8BAB7F8B26299A221",
-          "to": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"
-        },
-        {
           "from": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4",
           "to": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
         }
@@ -215,10 +206,6 @@
       "currencies": [
         {
           "from": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4",
-          "to": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-        },
-        {
-          "from": "ibc/076CF690A9912E0B7A2CCA75B719D68AF7C20E4B0B6460569B333DDEB19BBBA1",
           "to": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
         }
       ]
