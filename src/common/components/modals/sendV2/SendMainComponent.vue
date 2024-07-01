@@ -772,7 +772,6 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
     }
   }
   const promises = [];
-
   for (const chain in chainToParse) {
     const fn = async function () {
       switch (chainToParse[chain].chain_type) {
@@ -811,7 +810,6 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
   }
 
   await Promise.all(promises);
-
   return addrs;
 }
 async function getRoute() {

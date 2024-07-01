@@ -112,8 +112,8 @@
   },
   "SECRET": {
     "primary": {
-      "rpc": "https://rpc.secret.express",
-      "api": "https://lcd.secret.express"
+      "rpc": "https://rpc-secret.01node.com",
+      "api": "https://rest-secret.01node.com"
     },
     "fallback": [
       {
@@ -136,8 +136,8 @@
   },
   "STARGAZE": {
     "primary": {
-      "rpc": "https://rpc.stargaze-apis.com",
-      "api": "https://rest.stargaze-apis.com"
+      "rpc": "https://rpc-stargaze.pupmos.network",
+      "api": "https://api-stargaze.pupmos.network"
     },
     "fallback": [
       {
