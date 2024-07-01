@@ -909,6 +909,9 @@ const swapAmount = computed(() => {
 });
 
 function swapToAmount() {
+  if (selectedNetwork.value.native) {
+    return `${new Dec(amount.value).toString(selectedCurrency.value?.decimal_digits)} ${selectedCurrency.value?.shortName}`;
+  }
   return `${new Dec(route!.amountOut, selectedCurrency.value?.decimal_digits).toString(selectedCurrency.value?.decimal_digits)} ${selectedCurrency.value?.shortName}`;
 }
 
