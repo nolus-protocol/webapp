@@ -117,8 +117,8 @@
     },
     "fallback": [
       {
-        "rpc": "https://secret-rpc.bharvest.io",
-        "api": "https://secret-api.bharvest.io"
+        "rpc": "https://rpc.mainnet.secretsaturn.net",
+        "api": "https://lcd.mainnet.secretsaturn.net"
       }
     ]
   },
