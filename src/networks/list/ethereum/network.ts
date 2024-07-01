@@ -1,7 +1,7 @@
 export const NETWORK = {
   prefix: "ethereum",
   key: "ETHEREUM",
-  label: "Ethereum",
+  label: "Ethereum (beta)",
   symbol: "ETH",
   gasMupltiplier: 2,
   name: "ETH",

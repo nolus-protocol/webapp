@@ -1,7 +1,7 @@
 export const NETWORK = {
   prefix: "arbitrum",
   key: "ARBITRUM",
-  label: "Arbitrum",
+  label: "Arbitrum (beta)",
   symbol: "ETH",
   gasMupltiplier: 2,
   name: "ETH",
