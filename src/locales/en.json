@@ -315,7 +315,7 @@
     "swap-skip-action": "Swap {amount} to {swapTo}",
     "receive-skip-action": "Receive {amount} from {network}",
     "send-skip-action": "Send {amount} to {network}",
-    "defi-summer-winners-subtitle": "winners subtitle",
-    "defi-summer-winners-description": "description"
+    "defi-summer-winners-subtitle": "You've Won a Limited Edition Tee",
+    "defi-summer-winners-description": "Congratulations! Your Limited Edition DeFi Summer Tee by Arsek & Erase is waiting for you. Fill out the form to claim it"
   }
 }
