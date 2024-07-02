@@ -17,7 +17,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     lppCreatedAt: 1686573237831,
     evmEndpoints: isDev()
       ? import("../networks/evm-endpoints?url").then((t) => t.default)
-      : "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/evm-endpoints"
+      : "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/evm-endpoints.json"
   },
   mainnet: {
     currencies: () => import("@nolus/nolusjs/build/utils/currencies_mainnet.json"),
@@ -33,7 +33,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     lppCreatedAt: 1686845698269,
     evmEndpoints: isDev()
       ? import("../networks/evm-endpoints?url").then((t) => t.default)
-      : "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/evm-endpoints"
+      : "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/evm-endpoints.json"
   }
 };
 
