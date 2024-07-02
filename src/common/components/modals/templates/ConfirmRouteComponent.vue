@@ -28,16 +28,9 @@
     <div class="flex gap-8 px-[24px] pb-[28px]">
       <button
         class="btn btn-primary btn-large-primary w-full"
-        @click="onBackClick"
-      >
-        {{ $t("message.swap-again") }}
-      </button>
-
-      <button
-        class="btn btn-secondary btn-large-secondary w-full"
         @click="onOkClick"
       >
-        {{ $t("message.close") }}
+        {{ $t("message.ok") }}
       </button>
     </div>
   </div>
@@ -67,16 +60,22 @@
     <!-- Input Area -->
     <div class="modal-send-receive-input-area pt-0">
       <div class="radius-rounded mt-[25px] block break-words bg-light-grey py-4 text-left">
-        <div class="block px-4">
-          <p class="nls-font-400 m-0 text-14 text-primary">{{ txType }}</p>
-          <p class="nls-font-700 m-0 text-14 text-primary">
-            {{ receiverAddress }}
+        <div class="mb-4 block px-4">
+          <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.from") }}:</p>
+          <p class="nls-font-700 m-0 text-14 text-primary">{{ amount }}</p>
+          <p class="nls-font-400 m-0 text-14 text-primary">
+            {{ fromAddress }}
           </p>
+          <p class="nls-font-400 m-0 text-14 text-primary">{{ fromNetwork }}</p>
         </div>
 
-        <div class="mt-3 block px-4">
-          <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.amount") }}</p>
-          <p class="nls-font-700 m-0 text-14 text-primary">{{ amount }}</p>
+        <div class="block px-4">
+          <p class="nls-font-400 m-0 text-14 text-primary">{{ txType }}</p>
+          <p class="nls-font-700 m-0 text-14 text-primary">{{ swapToAmount }}</p>
+          <p class="nls-font-400 m-0 text-14 text-primary">
+            {{ receiverAddress }}
+          </p>
+          <p class="nls-font-400 m-0 text-14 text-primary">{{ toNetwork }}</p>
         </div>
 
         <div
@@ -84,51 +83,79 @@
           class="mt-3 block px-4"
         >
           <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.tx-and-fee") }}:</p>
-          <p class="nls-font-700 m-0 text-14 text-primary">~{{ calculateFee(fee) }}</p>
+          <p class="nls-font-700 m-0 text-14 text-primary">~{{ fee }}</p>
         </div>
 
-        <span class="border-swap mt-3 block border-t"> </span>
-        <div
-          v-for="item in txs"
-          class="block"
-        >
-          <p class="nls-font-400 m-0 p-4 pb-0 text-14 capitalize text-primary">
-            {{ $t("message.transaction") }} {{ item }}:
-          </p>
+        <template v-if="isStepPending">
+          <div
+            v-for="item in txs"
+            class="block"
+          >
+            <p class="nls-font-400 m-0 p-4 pb-0 text-14 capitalize text-primary">
+              {{ $t("message.transaction") }} {{ item }}:
+            </p>
 
-          <template v-if="txHashes[item - 1]">
-            <a
-              :href="`${applicaton.network.networkAddresses.explorer}/${txHashes[item - 1].hash}`"
-              class="his-url nls-font-500 m-0 flex flex items-center justify-between px-4 text-14"
-              target="_blank"
-            >
-              {{ StringUtils.truncateString(txHashes[item - 1].hash, 6, 6) }}
-              <img
-                v-if="txHashes[item - 1].status == SwapStatus.pending"
-                class="copy-icon loader-animate"
-                height="24"
-                src="@/assets/icons/loading.svg"
-                width="24"
-              />
+            <template v-if="txHashes[item - 1]">
+              <a
+                :href="`${txHashes[item - 1].url ?? applicaton.network.networkAddresses.explorer}/${txHashes[item - 1].hash}`"
+                class="his-url nls-font-500 m-0 flex items-center justify-between px-4 text-14"
+                target="_blank"
+              >
+                {{ StringUtils.truncateString(txHashes[item - 1].hash, 6, 6) }}
+                <img
+                  v-if="txHashes[item - 1].status == SwapStatus.pending"
+                  class="copy-icon loader-animate"
+                  height="24"
+                  src="@/assets/icons/loading.svg"
+                  width="24"
+                />
 
-              <img
-                v-if="txHashes[item - 1].status == SwapStatus.success"
-                class="copy-icon"
-                height="24"
-                src="@/assets/icons/success.svg"
-                width="24"
-              />
-            </a>
-          </template>
-          <template v-else>
-            <p class="nls-font-700 m-0 px-4 text-14 text-primary">{{ $t("message.Pending") }}</p>
-          </template>
-        </div>
+                <img
+                  v-if="txHashes[item - 1].status == SwapStatus.success"
+                  class="copy-icon"
+                  height="24"
+                  src="@/assets/icons/success.svg"
+                  width="24"
+                />
+              </a>
+            </template>
+            <template v-else>
+              <p class="nls-font-700 m-0 px-4 text-14 text-primary">{{ $t("message.Pending") }}</p>
+            </template>
+          </div>
+        </template>
       </div>
     </div>
 
     <WarningBox
       :isWarning="true"
+      class="mx-[18px] mb-[4px] lg:mx-[38px] lg:mb-[20px]"
+      v-if="isStepConfirm && (warning.length > 0 || txs > 1)"
+    >
+      <template v-slot:icon>
+        <img
+          class="mx-auto my-0 block h-7 w-10"
+          src="@/assets/icons/information-circle.svg"
+        />
+      </template>
+
+      <template v-slot:content>
+        <span
+          class="text-primary"
+          v-html="
+            $t('message.swap-confirm-warning', {
+              txs: `${txs} ${txs > 1 ? $t('message.transactions') : $t('message.transaction')}`
+            })
+          "
+        >
+        </span>
+        <span class="text-primary">.&#160;{{ warning }} </span>
+      </template>
+    </WarningBox>
+
+    <WarningBox
+      :isWarning="true"
+      v-if="isStepPending"
       class="mx-[18px] mb-[4px] lg:mx-[38px] lg:mb-[20px]"
     >
       <template v-slot:icon>
@@ -138,21 +165,15 @@
         />
       </template>
       <template v-slot:content>
-        <template v-if="isStepPending">
-          <span class="text-primary"> {{ $t("message.swap-sending", { tx: txs }) }} </span>
-        </template>
-        <span
-          v-else
-          class="text-primary"
-          v-html="
-            $t('message.swap-confirm-warning', {
-              txs: `${txs} ${txs > 1 ? $t('message.transactions') : $t('message.transaction')}`
-            })
-          "
+        <span class="text-primary">
+          {{ $t("message.swap-warning") }}
+          <RouterLink
+            to="/history"
+            class="text-primary-50"
+            @click="onClose"
+            >{{ $t("message.history-page") }}</RouterLink
+          ></span
         >
-        </span
-        >.
-        <span>&#160;{{ warning }} </span>
       </template>
     </WarningBox>
 
@@ -179,14 +200,18 @@ import { useApplicationStore } from "@/common/stores/application";
 import type { EvmNetwork, Network } from "@/common/types/Network";
 
 interface Props {
+  fromAddress: string;
   receiverAddress: string;
+  fromNetwork: string;
+  toNetwork: string;
   txType: string;
-  txHashes: { hash: string; status: SwapStatus }[];
+  txHashes: { hash: string; status: SwapStatus; url: string | null }[];
   amount: string;
+  swapToAmount: string;
   step: CONFIRM_STEP;
   errorMsg: string;
   warning: string;
-  fee: Coin;
+  fee: string;
   txs: number;
   network: EvmNetwork | Network;
   onSendClick: () => void;
@@ -203,63 +228,39 @@ const isStepError = computed(() => props.step === CONFIRM_STEP.ERROR);
 const applicaton = useApplicationStore();
 const setShowDialogHeader = inject("setShowDialogHeader", (n: boolean) => {});
 const setDisable = inject("setDisable", (n: boolean) => {});
+const onClose = inject("onClose", (n: boolean) => {});
 
 onMounted(() => {
   setShowDialogHeader(false);
+  setDisabled();
 });
 
 watch(
   () => props.step,
   () => {
-    switch (props.step) {
-      case CONFIRM_STEP.PENDING: {
-        setDisable(true);
-        break;
-      }
-      case CONFIRM_STEP.SUCCESS: {
-        setDisable(false);
-        break;
-      }
-      case CONFIRM_STEP.ERROR: {
-        setDisable(true);
-        break;
-      }
-      default: {
-        setDisable(false);
-        break;
-      }
-    }
+    setDisabled();
   }
 );
 
-function calculateFee(coin: Coin) {
-  switch (props.network.chain_type) {
-    case "cosmos": {
-      return calculateCosmosFee(coin);
+function setDisabled() {
+  switch (props.step) {
+    case CONFIRM_STEP.PENDING: {
+      setDisable(true);
+      break;
     }
-    case "evm": {
-      return calculateEvmFee(coin);
+    case CONFIRM_STEP.SUCCESS: {
+      setDisable(false);
+      break;
+    }
+    case CONFIRM_STEP.ERROR: {
+      setDisable(false);
+      break;
+    }
+    default: {
+      setDisable(false);
+      break;
     }
   }
-}
-
-function calculateCosmosFee(coin: Coin) {
-  const asset = AssetUtils.getCurrencyByDenom(coin.denom);
-  return CurrencyUtils.convertMinimalDenomToDenom(
-    coin.amount.toString(),
-    asset.ibcData,
-    asset.shortName,
-    asset.decimal_digits
-  );
-}
-
-function calculateEvmFee(coin: Coin) {
-  return CurrencyUtils.convertMinimalDenomToDenom(
-    coin.amount.toString(),
-    coin.denom,
-    coin.denom,
-    (props.network as EvmNetwork).nativeCurrency.decimals
-  );
 }
 </script>
 <style lang="scss" scoped>

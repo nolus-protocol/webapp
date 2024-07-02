@@ -26,7 +26,7 @@
             <div>
               <CurrencyComponent
                 :amount="focusPrice ?? currentPrice"
-                :decimals="2"
+                :decimals="4"
                 :font-size="20"
                 :font-size-small="14"
                 :hasSpace="false"
@@ -735,7 +735,7 @@ const loadingClose = computed(() => {
 
 const loadingCollect = computed(() => {
   const data = props.leaseInfo.leaseStatus.paid;
-  console.log(props.leaseInfo);
+
   if (data?.in_progress == "transfer_in_init") {
     return true;
   }

@@ -63,12 +63,13 @@ import Sidebar from "@/common/components/Sidebar.vue";
 import Header from "@/common/components/Header.vue";
 import MobileMenu from "@/common/components/menus/MobileMenu.vue";
 import LeaseDialog from "@/common/components/modals/LeaseDialog.vue";
-import SendReceiveDialog from "@/common/components/modals/SendReceiveDialog.vue";
 import SupplyWithdrawDialog from "@/common/components/modals/SupplyWithdrawDialog.vue";
 import DelegateUndelegateDialog from "@/common/components/modals/DelegateUndelegateDialog.vue";
 import Modal from "@/common/components/modals/templates/Modal.vue";
 import SessionExpireDialog from "@/common/components/modals/SessionExpireDialog.vue";
 import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
+import SendReceiveDialogV2 from "@/common/components/modals/SendReceiveDialogV2.vue";
+
 import { router } from "@/router";
 
 let balanceInterval: NodeJS.Timeout | undefined;
@@ -96,11 +97,11 @@ const modalOptions: {
     route: "create"
   },
   "/#receive": {
-    dialog: SendReceiveDialog,
+    dialog: SendReceiveDialogV2,
     route: "receive"
   },
   "/#send": {
-    dialog: SendReceiveDialog,
+    dialog: SendReceiveDialogV2,
     route: "send"
   },
   "/earn#supply": {

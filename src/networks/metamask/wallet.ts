@@ -3,6 +3,7 @@ import type { Window as MetamaskWindow } from "./window";
 import { Contract, ethers, isAddress } from "ethers";
 import type { Wallet } from "../wallet";
 import type { IObjectKeys } from "@/common/types";
+import { Logger } from "@/common/utils";
 
 const confirmations = 1;
 
@@ -12,33 +13,72 @@ export class MetaMaskWallet implements Wallet {
   shortAddress!: string;
   rpc!: string;
   chainId!: string;
+  accountChangeCallback!: Function | null;
+  explorer: string;
 
-  async connect(config: IObjectKeys) {
+  constructor(explorer: string) {
+    this.explorer = explorer;
+  }
+
+  async connect(config: IObjectKeys, accountChangeCallback?: Function) {
     const metamask = (window as MetamaskWindow).ethereum;
-
+    this.accountChangeCallback = accountChangeCallback as Function | null;
     if (metamask) {
       try {
         this.web3 = new ethers.BrowserProvider((window as MetamaskWindow).ethereum);
-        await this.web3.send("wallet_addEthereumChain", [{ ...config }]);
+
+        await this.switchNetwork(config);
 
         const addr = await this.web3.send("eth_requestAccounts", []);
-        this.address = addr[0];
-        const first = this.address.slice(0, 7);
-        const last = this.address.slice(this.address.length - 4, this.address.length);
-        this.shortAddress = `${first}...${last}`;
+        this.setAccount(addr[0]);
         this.rpc = config.rpcUrls[0];
         this.chainId = config.chainId;
+
+        (window as IObjectKeys).ethereum.on("accountsChanged", this.toggleAccounts);
       } catch (e: Error | any) {
         throw new Error(e);
       }
     }
   }
 
+  async switchNetwork(config: IObjectKeys) {
+    try {
+      await this.web3.send("wallet_switchEthereumChain", [{ chainId: config.chainId }]);
+    } catch (error: Error | any) {
+      if (error?.error?.code == 4902) {
+        this.addNetwork(config);
+      }
+    }
+  }
+
+  async addNetwork(config: IObjectKeys) {
+    try {
+      await this.web3.send("wallet_addEthereumChain", [{ ...config }]);
+    } catch (error: Error | any) {
+      Logger.error(error);
+    }
+  }
+
+  toggleAccounts = (accounts: string[]) => {
+    this.setAccount(accounts[0]);
+    if (this.accountChangeCallback) {
+      this.accountChangeCallback();
+    }
+  };
+
   getSigner() {
     return this.web3.getSigner();
   }
 
+  private setAccount(addr: string) {
+    this.address = addr;
+    const first = this.address.slice(0, 7);
+    const last = this.address.slice(this.address.length - 4, this.address.length);
+    this.shortAddress = `${first}...${last}`;
+  }
+
   destroy() {
+    (window as IObjectKeys).ethereum.removeListener("accountsChanged", this.toggleAccounts);
     this.web3.destroy();
   }
 

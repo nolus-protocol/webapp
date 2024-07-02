@@ -62,6 +62,8 @@ import { ChainType, type EvmNetwork, type Network } from "@/common/types/Network
 import { NETWORK as CUDOS_NETWORK } from "./cudos/network";
 import { embedChainInfo as cudosChainInfo } from "./cudos/contants";
 
+export const PROOBUF_ONLY_NETWORK = [ARBITRUM_NETWORK.key];
+
 export const SUPPORTED_NETWORKS_DATA: {
   [key: string]: Network | EvmNetwork;
 } = {
@@ -80,7 +82,7 @@ export const SUPPORTED_NETWORKS_DATA: {
     prefix: ATOM_NETWORK.prefix,
     key: ATOM_NETWORK.key,
     symbol: ATOM_NETWORK.ticker,
-    value: ChainType.cosmos,
+    value: "cosmoshub",
     label: "Cosmos Hub",
     native: false,
     estimation: 20,
@@ -168,7 +170,7 @@ export const SUPPORTED_NETWORKS_DATA: {
     prefix: STARGAZE_NETWORK.prefix,
     key: STARGAZE_NETWORK.key,
     symbol: STARGAZE_NETWORK.ticker,
-    value: "stars",
+    value: "stargaze",
     label: "Stargaze",
     native: false,
     estimation: 20,

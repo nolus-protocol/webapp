@@ -45,7 +45,7 @@
     "available-assets": "Περιουσιακά στοιχεία",
     "active-leases": "Μισθώσεις",
     "supplied-and-staked": "Εσοδοφόρα",
-    "low-balances": "",
+    "low-balances": "Low Balances",
     "lease-up-to": "Μίσθωση έως και",
     "earn-apr": "Κερδίστε APR",
     "balance": "Υπόλοιπο",
@@ -300,7 +300,22 @@
     "osmosis-noble": "Osmosis",
     "0int-banner-subtitle": "Zero in for the DeFi Summer",
     "0int-banner-description": "All leases are interest-free until Sep 1st. Let's make this DeFi Summer one to remember! 🚀",
+    "from": "From",
+    "swap-warning": "You can minimize this window and track the progress on the",
+    "history-page": "History page",
+    "Pending-History": "Pending",
+    "Success-History": "Success",
+    "Error-History": "Fail",
+    "details": "Details",
+    "swap-skip-action": "Swap {amount} to {swapTo}",
+    "receive-skip-action": "Receive {amount} from {network}",
+    "send-skip-action": "Send {amount} to {network}",
     "defi-summer-winners-subtitle": "You've Won a Limited Edition Tee",
-    "defi-summer-winners-description": "Congratulations! Your Limited Edition DeFi Summer Tee by Arsek & Erase is waiting for you. Fill out the form to claim it"
+    "defi-summer-winners-description": "Congratulations! Your Limited Edition DeFi Summer Tee by Arsek & Erase is waiting for you. Fill out the form to claim it",
+    "chart": "Chart",
+    "share-position": "Share PnL",
+    "lease-size": "Size",
+    "health": "Health",
+    "opened-on": "Opened on"
   }
 }

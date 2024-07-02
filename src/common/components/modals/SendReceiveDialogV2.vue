@@ -5,10 +5,10 @@
     :routes="routes"
   >
     <template #tab-1>
-      <ReceiveComponent />
+      <ReceiveComponent :data="props.data" />
     </template>
     <template #tab-2>
-      <SendMainComponent />
+      <SendMainComponent :data="props.data" />
     </template>
   </DialogHeader>
 </template>
@@ -17,8 +17,10 @@ v2
 import SendMainComponent from "./sendV2/SendMainComponent.vue";
 import ReceiveComponent from "./receiveV2/ReceiveComponent.vue";
 import DialogHeader from "./templates/DialogHeader.vue";
+import type { IObjectKeys } from "@/common/types";
+import type { PropType } from "vue";
 
-const routes = ["receiveV2", "sendV2"];
+const routes = ["receive", "send"];
 
 const props = defineProps({
   route: {
@@ -27,11 +29,14 @@ const props = defineProps({
   dialogSelectedCurrency: {
     type: String,
     default: ""
+  },
+  data: {
+    type: Object as PropType<IObjectKeys | null>
   }
 });
 
 const activeTab = () => {
-  const index = routes.indexOf(props.route as string);
+  const index = routes.indexOf(props.route?.toLocaleLowerCase() as string);
 
   if (index < 0) {
     return 1;

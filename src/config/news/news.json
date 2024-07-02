@@ -23,13 +23,13 @@
     "description": "stats-banner-description",
     "target": "/stats"
   },
-"defi-summer-winners": {
-  "title-icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/lease.svg",
-  "image": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/defi_summer_tee.webp",
-  "title": "lease-banner-title",
-  "subtitle": "defi-summer-winners-subtitle",
-  "description": "defi-summer-winners-description",
-  "target": "https://forms.gle/XP5zHogrvra8h2Y2A",
-  "wallets": "defi-summer-winners.json"
+  "defi-summer-winners": {
+    "title-icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/lease.svg",
+    "image": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/defi_summer_tee.webp",
+    "title": "lease-banner-title",
+    "subtitle": "defi-summer-winners-subtitle",
+    "description": "defi-summer-winners-description",
+    "target": "https://forms.gle/XP5zHogrvra8h2Y2A",
+    "wallets": "defi-summer-winners.json"
   }
 }

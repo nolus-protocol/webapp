@@ -1,5 +1,6 @@
 import type { NolusWallet } from "@nolus/nolusjs";
 import type { Coin as UnitCoin, Dec } from "@keplr-wallet/unit";
+import type { IObjectKeys } from "@/common/types";
 
 export interface AssetBalance {
   balance: UnitCoin | any;
@@ -43,4 +44,7 @@ export type State = {
     [protocol: string]: Dec;
   };
   apr: number;
+  history: {
+    [key: string]: IObjectKeys;
+  };
 };

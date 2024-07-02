@@ -22,13 +22,15 @@ const aminoTypes = {
 };
 
 const MsgTransferAmino = new AminoTypes(aminoTypes);
+const signer = ["getOfflineSigner", ""];
 
 async function createWallet(
   wallet: Wallet,
   offlineDirectSigner: OfflineDirectSigner | OfflineAminoSigner | LedgerSigner,
   prefix: string,
   gasMupltiplier: number,
-  gasPrice: string
+  gasPrice: string,
+  explorer: string
 ): Promise<BaseWallet> {
   const baseWallet = new BaseWallet(
     wallet.getTendermintClient(),
@@ -38,7 +40,8 @@ async function createWallet(
     wallet.api,
     prefix,
     gasMupltiplier,
-    gasPrice
+    gasPrice,
+    explorer
   );
   await baseWallet.useAccount();
   return baseWallet;
@@ -48,7 +51,7 @@ async function authenticateKeplr(wallet: Wallet, network: NetworkData) {
   await WalletUtils.getKeplr();
   const keplrWindow = window as KeplrWindow;
 
-  if (!keplrWindow.getOfflineSignerOnlyAmino || !keplrWindow.keplr) {
+  if (!keplrWindow.getOfflineSignerAuto || !keplrWindow.keplr) {
     throw new Error("Keplr wallet is not installed.");
   } else if (!keplrWindow.keplr.experimentalSuggestChain) {
     throw new Error("Keplr version is not latest. Please upgrade your Keplr wallet");
@@ -65,10 +68,17 @@ async function authenticateKeplr(wallet: Wallet, network: NetworkData) {
 
     await keplrWindow.keplr?.enable(chainId);
 
-    if (keplrWindow.getOfflineSignerOnlyAmino) {
-      const offlineSigner = keplrWindow.getOfflineSignerOnlyAmino(chainId);
+    if (keplrWindow.getOfflineSignerAuto) {
+      const offlineSigner = await keplrWindow.getOfflineSignerAuto(chainId);
 
-      return await createWallet(wallet, offlineSigner, network.prefix, network.gasMupltiplier, network.gasPrice);
+      return await createWallet(
+        wallet,
+        offlineSigner as any,
+        network.prefix,
+        network.gasMupltiplier,
+        network.gasPrice,
+        network.explorer
+      );
     }
   }
 
@@ -79,7 +89,7 @@ async function authenticateLeap(wallet: Wallet, network: NetworkData) {
   await WalletUtils.getLeap();
   const leapWindow = window as any;
 
-  if (!leapWindow.leap.getOfflineSignerOnlyAmino || !leapWindow.leap) {
+  if (!leapWindow.leap.getOfflineSignerAuto || !leapWindow.leap) {
     throw new Error("Leap wallet is not installed.");
   } else if (!leapWindow.leap.experimentalSuggestChain) {
     throw new Error("Leap version is not latest. Please upgrade your Leap wallet");
@@ -97,10 +107,17 @@ async function authenticateLeap(wallet: Wallet, network: NetworkData) {
 
     await leapWindow.leap?.enable(chainId);
 
-    if (leapWindow.leap.getOfflineSignerOnlyAmino) {
-      const offlineSigner = leapWindow.leap.getOfflineSignerOnlyAmino(chainId);
+    if (leapWindow.leap.getOfflineSignerAuto) {
+      const offlineSigner = await leapWindow.leap.getOfflineSignerAuto(chainId);
 
-      return await createWallet(wallet, offlineSigner, network.prefix, network.gasMupltiplier, network.gasPrice);
+      return await createWallet(
+        wallet,
+        offlineSigner,
+        network.prefix,
+        network.gasMupltiplier,
+        network.gasPrice,
+        network.explorer
+      );
     }
   }
 
@@ -119,7 +136,8 @@ async function authenticateLedger(wallet: Wallet, network: NetworkData) {
     }),
     network.prefix,
     network.gasMupltiplier,
-    network.gasPrice
+    network.gasPrice,
+    network.explorer
   );
 }
 
