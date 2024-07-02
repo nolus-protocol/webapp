@@ -897,10 +897,12 @@ async function connectEvm() {
     evmAddress.value = client.shortAddress;
     wallet.value = client.address;
     await setEvmNetwork();
-  } catch (error) {
+  } catch (error: Error | any) {
     Logger.error(error);
+    amountErrorMsg.value = error.toString();
   } finally {
     isMetamaskLoading.value = false;
+    disablePicker.value = false;
   }
 }
 
