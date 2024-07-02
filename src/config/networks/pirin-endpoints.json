@@ -76,8 +76,8 @@
   },
   "JUNO": {
     "primary": {
-      "rpc": "https://juno-rpc.polkachu.com",
-      "api": "https://juno-api.polkachu.com"
+      "rpc": "https://r-juno--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
+      "api": "https://a-juno--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
     },
     "fallback": [
       {
@@ -100,13 +100,13 @@
   },
   "PERSISTENCE": {
     "primary": {
-      "rpc": "https://rpc.core.persistence.one",
-      "api": "https://rest.core.persistence.one"
+      "rpc": "https://r-persistence--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
+      "api": "https://a-persistence--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
     },
     "fallback": [
       {
-        "rpc": "https://rpc-persistent-ia.cosmosia.notional.ventures",
-        "api": "https://api-persistent-ia.cosmosia.notional.ventures"
+        "rpc": "https://rpc.core.persistence.one",
+        "api": "https://rest.core.persistence.one"
       }
     ]
   },
@@ -136,8 +136,8 @@
   },
   "STARGAZE": {
     "primary": {
-      "rpc": "https://rpc-stargaze.pupmos.network",
-      "api": "https://api-stargaze.pupmos.network"
+      "rpc": "https://r-stargaze--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
+      "api": "https://a-stargaze--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
     },
     "fallback": [
       {
@@ -172,13 +172,13 @@
   },
   "DYMENSION": {
     "primary": {
-      "rpc": "https://rpc.dymension.nodestake.org",
-      "api": "https://api.dymension.nodestake.org"
+      "rpc": "https://r-dymension--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
+      "api": "https://a-dymension--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
     },
     "fallback": [
       {
-        "rpc": "https://dymension-rpc.ibs.team",
-        "api": "https://dymension-api.ibs.team"
+        "rpc": "https://rpc.dymension.nodestake.org",
+        "api": "https://api.dymension.nodestake.org"
       }
     ]
   },
