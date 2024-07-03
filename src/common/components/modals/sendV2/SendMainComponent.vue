@@ -92,7 +92,7 @@
                   src="@/assets/icons/metamask.svg"
                   class="mr-1"
                 />
-                {{ evmAddress.length == 0 ? $t("message.connect") : evmAddress }}
+                {{ evmAddress == null || evmAddress?.length == 0 ? $t("message.connect") : evmAddress }}
               </button>
             </div>
 
@@ -897,12 +897,10 @@ async function connectEvm() {
     evmAddress.value = client.shortAddress;
     wallet.value = client.address;
     await setEvmNetwork();
-  } catch (error: Error | any) {
+  } catch (error) {
     Logger.error(error);
-    amountErrorMsg.value = error.toString();
   } finally {
     isMetamaskLoading.value = false;
-    disablePicker.value = false;
   }
 }
 
