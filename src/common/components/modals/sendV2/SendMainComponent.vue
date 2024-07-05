@@ -6,7 +6,7 @@
     :txHashes="txHashes"
     :step="step"
     :fee="calculateCosmosFee(fee!)"
-    :receiverAddress="wallet"
+    :receiverAddress="selectedNetwork.native ? receiverAddress : wallet"
     :errorMsg="errorMsg"
     :txs="route?.txsRequired ?? 1"
     :amount="`${swapAmount}`"
