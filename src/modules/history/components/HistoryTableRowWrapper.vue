@@ -405,11 +405,23 @@ function messages() {
 }
 
 async function fetchCurrency(amount: Coin) {
+  const coin = AssetUtils.getCurrencyByDenom(amount.denom);
+
+  if (coin) {
+    return CurrencyUtils.convertMinimalDenomToDenom(
+      amount?.amount,
+      coin?.ibcData,
+      coin?.shortName ?? truncateString(amount.denom),
+      Number(coin?.decimal_digits ?? 0)
+    );
+  }
+
   const api = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
   const data = await fetch(`${api}/ibc/apps/transfer/v1/denom_traces/${amount.denom}`);
   const json = await data.json();
   const currency = AssetUtils.getCurrencyBySymbol(json.denom_trace.base_denom);
   const name = mapCurrency[json.denom_trace.path];
+
   return CurrencyUtils.convertMinimalDenomToDenom(
     amount?.amount,
     currency?.ibcData,

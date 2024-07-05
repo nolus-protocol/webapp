@@ -71,7 +71,7 @@
 
         <div class="block px-4">
           <p class="nls-font-400 m-0 text-14 text-primary">{{ txType }}</p>
-          <p class="nls-font-700 m-0 text-14 text-primary">{{ amount }}</p>
+          <p class="nls-font-700 m-0 text-14 text-primary">{{ swapToAmount }}</p>
           <p class="nls-font-400 m-0 text-14 text-primary">
             {{ receiverAddress }}
           </p>
@@ -83,11 +83,10 @@
           class="mt-3 block px-4"
         >
           <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.tx-and-fee") }}:</p>
-          <p class="nls-font-700 m-0 text-14 text-primary">~{{ calculateFee(fee) }}</p>
+          <p class="nls-font-700 m-0 text-14 text-primary">~{{ fee }}</p>
         </div>
 
         <template v-if="isStepPending">
-          <span class="border-swap mt-3 block border-t"> </span>
           <div
             v-for="item in txs"
             class="block"
@@ -98,7 +97,7 @@
 
             <template v-if="txHashes[item - 1]">
               <a
-                :href="`${applicaton.network.networkAddresses.explorer}/${txHashes[item - 1].hash}`"
+                :href="`${txHashes[item - 1].url ?? applicaton.network.networkAddresses.explorer}/${txHashes[item - 1].hash}`"
                 class="his-url nls-font-500 m-0 flex items-center justify-between px-4 text-14"
                 target="_blank"
               >
@@ -131,6 +130,33 @@
     <WarningBox
       :isWarning="true"
       class="mx-[18px] mb-[4px] lg:mx-[38px] lg:mb-[20px]"
+      v-if="isStepConfirm && (warning.length > 0 || txs > 1)"
+    >
+      <template v-slot:icon>
+        <img
+          class="mx-auto my-0 block h-7 w-10"
+          src="@/assets/icons/information-circle.svg"
+        />
+      </template>
+
+      <template v-slot:content>
+        <span
+          class="text-primary"
+          v-html="
+            $t('message.swap-confirm-warning', {
+              txs: `${txs} ${txs > 1 ? $t('message.transactions') : $t('message.transaction')}`
+            })
+          "
+        >
+        </span>
+        <span class="text-primary">.&#160;{{ warning }} </span>
+      </template>
+    </WarningBox>
+
+    <WarningBox
+      :isWarning="true"
+      v-if="isStepPending"
+      class="mx-[18px] mb-[4px] lg:mx-[38px] lg:mb-[20px]"
     >
       <template v-slot:icon>
         <img
@@ -139,29 +165,15 @@
         />
       </template>
       <template v-slot:content>
-        <template v-if="isStepPending">
-          <span class="text-primary">
-            {{ $t("message.swap-warning") }}
-            <RouterLink
-              to="/history"
-              class="text-primary-50"
-              @click="onClose"
-              >{{ $t("message.history-page") }}</RouterLink
-            ></span
-          >
-        </template>
-        <span
-          v-else
-          class="text-primary"
-          v-html="
-            $t('message.swap-confirm-warning', {
-              txs: `${txs} ${txs > 1 ? $t('message.transactions') : $t('message.transaction')}`
-            })
-          "
+        <span class="text-primary">
+          {{ $t("message.swap-warning") }}
+          <RouterLink
+            to="/history"
+            class="text-primary-50"
+            @click="onClose"
+            >{{ $t("message.history-page") }}</RouterLink
+          ></span
         >
-        </span
-        >.
-        <span>&#160;{{ warning }} </span>
       </template>
     </WarningBox>
 
@@ -193,12 +205,13 @@ interface Props {
   fromNetwork: string;
   toNetwork: string;
   txType: string;
-  txHashes: { hash: string; status: SwapStatus }[];
+  txHashes: { hash: string; status: SwapStatus; url: string | null }[];
   amount: string;
+  swapToAmount: string;
   step: CONFIRM_STEP;
   errorMsg: string;
   warning: string;
-  fee: Coin;
+  fee: string;
   txs: number;
   network: EvmNetwork | Network;
   onSendClick: () => void;
@@ -248,36 +261,6 @@ function setDisabled() {
       break;
     }
   }
-}
-
-function calculateFee(coin: Coin) {
-  switch (props.network.chain_type) {
-    case "cosmos": {
-      return calculateCosmosFee(coin);
-    }
-    case "evm": {
-      return calculateEvmFee(coin);
-    }
-  }
-}
-
-function calculateCosmosFee(coin: Coin) {
-  const asset = AssetUtils.getCurrencyByDenom(coin.denom);
-  return CurrencyUtils.convertMinimalDenomToDenom(
-    coin.amount.toString(),
-    asset.ibcData,
-    asset.shortName,
-    asset.decimal_digits
-  );
-}
-
-function calculateEvmFee(coin: Coin) {
-  return CurrencyUtils.convertMinimalDenomToDenom(
-    coin.amount.toString(),
-    coin.denom,
-    coin.denom,
-    (props.network as EvmNetwork).nativeCurrency.decimals
-  );
 }
 </script>
 <style lang="scss" scoped>

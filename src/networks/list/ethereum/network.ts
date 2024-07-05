@@ -1,11 +1,11 @@
 export const NETWORK = {
   prefix: "ethereum",
   key: "ETHEREUM",
-  label: "Ethereum",
+  label: "Ethereum (beta)",
   symbol: "ETH",
   gasMupltiplier: 2,
   name: "ETH",
-  explorer: "https://etherscan.io",
+  explorer: "https://etherscan.io/tx",
   fees: {
     transfer: 3000000000000000
   },

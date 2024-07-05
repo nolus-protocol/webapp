@@ -5,11 +5,12 @@
     :fromAddress="walletStore.wallet.address"
     :txHashes="txHashes"
     :step="step"
-    :fee="fee!"
+    :fee="calculateCosmosFee(fee!)"
     :receiverAddress="wallet"
     :errorMsg="errorMsg"
     :txs="route?.txsRequired ?? 1"
     :amount="`${swapAmount}`"
+    :swap-to-amount="swapToAmount()"
     :network="selectedNetwork"
     :onSendClick="onSwap"
     :onBackClick="onConfirmBackClick"
@@ -91,7 +92,7 @@
                   src="@/assets/icons/metamask.svg"
                   class="mr-1"
                 />
-                {{ evmAddress.length == 0 ? $t("message.connect") : evmAddress }}
+                {{ evmAddress == null || evmAddress?.length == 0 ? $t("message.connect") : evmAddress }}
               </button>
             </div>
 
@@ -182,6 +183,7 @@ import { CONFIRM_STEP, TxType, type Network, type IObjectKeys, type SkipRouteCon
 
 import { AssetUtils, EnvNetworkUtils, Logger, SkipRouter, WalletUtils } from "@/common/utils";
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
+import { useApplicationStore } from "@/common/stores/application";
 
 export interface ReceiveComponentProps {
   currentBalance: AssetBalance[];
@@ -207,7 +209,7 @@ const amount = ref("");
 const amountErrorMsg = ref("");
 const disablePicker = ref(false);
 const disablePickerDialog = ref(false);
-const txHashes = ref<{ hash: string; status: SwapStatus }[]>([]);
+const txHashes = ref<{ hash: string; status: SwapStatus; url: string | null }[]>([]);
 const errorMsg = ref("");
 
 const showConfirmScreen = ref(false);
@@ -221,6 +223,7 @@ const isMetamaskLoading = ref(false);
 
 const receiverErrorMsg = ref("");
 const receiverAddress = ref("");
+const app = useApplicationStore();
 
 let skipRouteConfig: SkipRouteConfigType | null;
 let id = Date.now();
@@ -275,26 +278,16 @@ onMounted(async () => {
 
 onUnmounted(() => {
   clearTimeout(timeOut);
-  if (step.value == CONFIRM_STEP.PENDING && params.data == null) {
-    const data = {
-      id,
-      skipRouteConfig,
-      wallet: wallet,
-      client,
-      route,
-      selectedNetwork: selectedNetwork.value,
-      selectedCurrency: selectedCurrency.value,
-      amount: amount.value,
-      txHashes: txHashes.value,
-      step: step.value,
-      fee: fee.value,
-      fromAddress: wallet,
-      action: HYSTORY_ACTIONS.SENDV2,
-      errorMsg: errorMsg.value
-    };
-    walletStore.updateHistory(data);
+  if (client && step.value != CONFIRM_STEP.PENDING) {
+    destroyClient();
   }
 });
+
+function destroyClient() {
+  try {
+    client.destroy();
+  } catch (error) {}
+}
 
 watch(
   () => params.data,
@@ -305,6 +298,28 @@ watch(
     deep: true
   }
 );
+
+function setHistory() {
+  if (params.data == null) {
+    const data = {
+      id,
+      skipRouteConfig,
+      wallet: wallet.value,
+      client,
+      route,
+      selectedNetwork: selectedNetwork.value,
+      selectedCurrency: selectedCurrency.value,
+      amount: amount.value,
+      txHashes: txHashes.value,
+      step: step.value,
+      fee: fee.value,
+      fromAddress: wallet.value,
+      action: HYSTORY_ACTIONS.SEND,
+      errorMsg: errorMsg.value
+    };
+    walletStore.updateHistory(data);
+  }
+}
 
 function setParams() {
   if (params.data) {
@@ -346,13 +361,14 @@ async function onUpdateNetwork(event: Network) {
   if (!event.native) {
     switch (event.chain_type) {
       case "cosmos": {
-        setCosmosNetwork();
+        await setCosmosNetwork();
         break;
       }
       case "evm": {
-        setEvmNetwork();
         if (client) {
-          connectEvm();
+          await connectEvm();
+        } else {
+          await setEvmNetwork();
         }
         break;
       }
@@ -422,9 +438,7 @@ async function setCosmosNetwork() {
   networkCurrencies.value = [];
   amount.value = "";
   amountErrorMsg.value = "";
-  if (client) {
-    client.destroy();
-  }
+  destroyClient();
 
   disablePicker.value = true;
   const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
@@ -458,8 +472,6 @@ async function setCosmosNetwork() {
   client = await WalletUtils.getWallet(selectedNetwork.value.key);
   const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
   wallet.value = baseWallet?.address as string;
-
-  client = await WalletUtils.getWallet(selectedNetwork.value.key);
 
   networkCurrencies.value = mappedCurrencies;
   disablePicker.value = false;
@@ -601,7 +613,8 @@ async function transferAmount() {
   if (success) {
     const element = {
       hash: txHash,
-      status: SwapStatus.pending
+      status: SwapStatus.pending,
+      url: null
     };
 
     const index = txHashes.value.length;
@@ -618,10 +631,6 @@ async function transferAmount() {
       txHashes.value[index].status = SwapStatus.success;
 
       await walletStore.UPDATE_BALANCES();
-
-      if (walletStore.history[id]) {
-        walletStore.history[id].step = CONFIRM_STEP.SUCCESS;
-      }
     } catch (error: Error | any) {
       if (walletStore.history[id]) {
         walletStore.history[id].step = CONFIRM_STEP.ERROR;
@@ -638,9 +647,7 @@ async function transferAmount() {
         }
       }
     } finally {
-      if (client) {
-        (client as Wallet).destroy();
-      }
+      destroyClient();
     }
   } else {
     step.value = CONFIRM_STEP.ERROR;
@@ -669,6 +676,7 @@ async function onSwapCosmos() {
           addresses[key] = wallets[key].address!;
         }
 
+        setHistory();
         await submit(wallets);
 
         await walletStore.UPDATE_BALANCES();
@@ -691,9 +699,7 @@ async function onSwapCosmos() {
   } catch (e) {
     Logger.error(e);
   } finally {
-    if (client) {
-      (client as Wallet).destroy();
-    }
+    destroyClient();
   }
 }
 
@@ -701,30 +707,43 @@ async function submit(wallets: { [key: string]: BaseWallet | MetaMaskWallet }) {
   await SkipRouter.submitRoute(route!, wallets, async (tx: IObjectKeys, wallet: BaseWallet, chaindId: string) => {
     switch (wallet.constructor) {
       case MetaMaskWallet: {
-        await SkipRouter.track(chaindId, (tx as IObjectKeys).hash);
-        await SkipRouter.fetchStatus((tx as IObjectKeys).hash, chaindId);
-
         const element = {
           hash: tx.hash,
-          status: SwapStatus.success
+          status: SwapStatus.pending,
+          url: wallet.explorer
         };
+
         txHashes.value.push(element);
+
+        if (walletStore.history[id]) {
+          walletStore.history[id].txHashes = txHashes.value;
+        }
+
+        await SkipRouter.track(chaindId, (tx as IObjectKeys).hash);
+        await SkipRouter.fetchStatus((tx as IObjectKeys).hash, chaindId);
+        element.status = SwapStatus.success;
+
         break;
       }
       default: {
         const element = {
           hash: tx.txHash,
-          status: SwapStatus.pending
+          status: SwapStatus.pending,
+          url: wallet.explorer
         };
 
-        const index = txHashes.value.length;
         txHashes.value.push(element);
+
+        if (walletStore.history[id]) {
+          walletStore.history[id].txHashes = txHashes.value;
+        }
 
         await wallet.broadcastTx(tx.txBytes as Uint8Array);
         await SkipRouter.track(chaindId, (tx as IObjectKeys).txHash);
         await SkipRouter.fetchStatus((tx as IObjectKeys).txHash, chaindId);
 
-        txHashes.value[index].status = SwapStatus.success;
+        element.status = SwapStatus.success;
+
         break;
       }
     }
@@ -753,7 +772,6 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
     }
   }
   const promises = [];
-
   for (const chain in chainToParse) {
     const fn = async function () {
       switch (chainToParse[chain].chain_type) {
@@ -767,18 +785,21 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
           break;
         }
         case "evm": {
-          const client = new MetaMaskWallet();
           const net = selectedNetwork.value as EvmNetwork;
+          const client = new MetaMaskWallet(net.explorer);
           const endpoint = await AppUtils.fetchEvmEndpoints(net.key);
           const chainId = await client.getChainId(endpoint.rpc);
 
-          await client.connect({
-            chainId: chainId,
-            chainName: net.label,
-            rpcUrls: [endpoint.rpc],
-            blockExplorerUrls: [net.explorer],
-            nativeCurrency: { ...net.nativeCurrency }
-          });
+          await client.connect(
+            {
+              chainId: chainId,
+              chainName: net.label,
+              rpcUrls: [endpoint.rpc],
+              blockExplorerUrls: [net.explorer],
+              nativeCurrency: { ...net.nativeCurrency }
+            },
+            () => {}
+          );
           addrs[parseInt(chainId).toString()] = client;
 
           break;
@@ -789,7 +810,6 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
   }
 
   await Promise.all(promises);
-
   return addrs;
 }
 async function getRoute() {
@@ -852,22 +872,27 @@ function formatCurrentBalance(selectedCurrency: AssetBalance | undefined) {
 
 async function connectEvm() {
   try {
-    if (client) {
-      (client as MetaMaskWallet)?.destroy();
-    }
-    client = new MetaMaskWallet();
+    destroyClient();
     isMetamaskLoading.value = true;
 
     const net = selectedNetwork.value as EvmNetwork;
+    client = new MetaMaskWallet(net.explorer);
+
     const endpoint = await AppUtils.fetchEvmEndpoints(net.key);
     const chaindId = await client.getChainId(endpoint.rpc);
-    await client.connect({
-      chainId: chaindId,
-      chainName: net.label,
-      rpcUrls: [endpoint.rpc],
-      blockExplorerUrls: [net.explorer],
-      nativeCurrency: { ...net.nativeCurrency }
-    });
+    await client.connect(
+      {
+        chainId: chaindId,
+        chainName: net.label,
+        rpcUrls: [endpoint.rpc],
+        blockExplorerUrls: [net.explorer],
+        nativeCurrency: { ...net.nativeCurrency }
+      },
+      () => {
+        evmAddress.value = (client as MetaMaskWallet).shortAddress;
+        wallet.value = (client as MetaMaskWallet).address;
+      }
+    );
 
     evmAddress.value = client.shortAddress;
     wallet.value = client.address;
@@ -882,4 +907,21 @@ async function connectEvm() {
 const swapAmount = computed(() => {
   return `${new Dec(amount.value).toString(selectedCurrency.value?.decimal_digits)} ${selectedCurrency.value?.shortName}`;
 });
+
+function swapToAmount() {
+  if (selectedNetwork.value.native) {
+    return `${new Dec(amount.value).toString(selectedCurrency.value?.decimal_digits)} ${selectedCurrency.value?.shortName}`;
+  }
+  return `${new Dec(route!.amountOut, selectedCurrency.value?.decimal_digits).toString(selectedCurrency.value?.decimal_digits)} ${selectedCurrency.value?.shortName}`;
+}
+
+function calculateCosmosFee(coin: Coin) {
+  const asset = AssetUtils.getCurrencyByDenom(coin.denom);
+  return CurrencyUtils.convertMinimalDenomToDenom(
+    coin.amount.toString(),
+    asset.ibcData,
+    asset.shortName,
+    asset.decimal_digits
+  ).toString();
+}
 </script>

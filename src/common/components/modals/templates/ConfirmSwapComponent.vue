@@ -22,7 +22,7 @@
     v-if="isStepSuccess"
     class="mt-6 flex flex-col gap-6"
   >
-    <div class="block break-words rounded-lg bg-dialogs-swap-color p-[24px] text-center text-neutral-typography-200">
+    <div class="bg-dialogs-swap-color block break-words rounded-lg p-[24px] text-center text-neutral-typography-200">
       {{ $t("message.swap-success") }}
     </div>
     <div class="flex gap-8">
@@ -40,7 +40,7 @@
     v-if="isStepError"
     class="mt-6 flex flex-col gap-6"
   >
-    <div class="block break-words rounded-lg bg-dialogs-swap-color p-[24px] text-center text-neutral-typography-200">
+    <div class="bg-dialogs-swap-color block break-words rounded-lg p-[24px] text-center text-neutral-typography-200">
       {{ errorMsg }}
     </div>
     <Button
@@ -58,7 +58,7 @@
   >
     <!-- Input Area -->
     <div class="">
-      <div class="radius-rounded block break-words bg-dialogs-swap-color py-4 text-left">
+      <div class="radius-rounded bg-dialogs-swap-color block break-words py-4 text-left">
         <div class="block px-4">
           <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ $t("message.from") }}:</p>
           <p class="m-0 text-14 font-semibold text-neutral-typography-200">{{ swapAmount }}</p>
@@ -69,7 +69,7 @@
         </div>
 
         <div class="mt-3 block px-4">
-          <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ txType }}</p>
+          <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ $t("message.to") }}:</p>
           <p class="m-0 text-14 font-semibold text-neutral-typography-200">{{ forAmount }}</p>
           <p class="m-0 text-14 font-normal text-neutral-typography-200">
             {{ receiverAddress }}
@@ -86,7 +86,6 @@
         </div>
 
         <template v-if="isStepPending">
-          <span class="border-swap mt-3 block border-t"> </span>
           <div
             v-for="item in txs"
             :key="item"
@@ -98,8 +97,8 @@
 
             <template v-if="txHashes[item - 1]">
               <a
-                :href="`${applicaton.network.networkAddresses.explorer}/${txHashes[item - 1].hash}`"
-                class="his-url m-0 flex items-center justify-between px-4 text-14 font-medium"
+                :href="`${txHashes[item - 1].url ?? applicaton.network.networkAddresses.explorer}/${txHashes[item - 1].hash}`"
+                class="his-url nls-font-500 m-0 flex items-center justify-between px-4 text-14"
                 target="_blank"
               >
                 {{ StringUtils.truncateString(txHashes[item - 1].hash, 6, 6) }}
@@ -128,7 +127,7 @@
       </div>
     </div>
 
-    <NotificationBox :type="NotificationBoxType.warning">
+    <!-- <NotificationBox :type="NotificationBoxType.warning">
       <template v-slot:content>
         <template v-if="isStepPending">
           <span class="text-neutral-typography-200">
@@ -150,6 +149,41 @@
             })
           "
         ></span>
+      </template>
+    </NotificationBox> -->
+
+    <NotificationBox
+      :type="NotificationBoxType.warning"
+      v-if="isStepConfirm && (warning.length > 0 || txs > 1)"
+    >
+      <template v-slot:content>
+        <span
+          class="text-neutral-typography-200"
+          v-html="
+            $t('message.swap-confirm-warning', {
+              txs: `${txs} ${txs > 1 ? $t('message.transactions') : $t('message.transaction')}`
+            })
+          "
+        >
+        </span>
+        <span class="text-primary">.&#160;{{ warning }} </span>
+      </template>
+    </NotificationBox>
+
+    <NotificationBox
+      :type="NotificationBoxType.warning"
+      v-if="isStepPending"
+    >
+      <template v-slot:content>
+        <span class="text-primary">
+          {{ $t("message.swap-warning") }}
+          <RouterLink
+            to="/history"
+            class="text-primary-50"
+            @click="onClose"
+            >{{ $t("message.history-page") }}</RouterLink
+          ></span
+        >
       </template>
     </NotificationBox>
 
@@ -185,8 +219,9 @@ interface Props {
   fromNetwork: string;
   toNetwork: string;
   txType: string;
-  txHashes: { hash: string; status: SwapStatus }[];
+  txHashes: { hash: string; status: SwapStatus; url: string | null }[];
   swapAmount: string;
+  warning: string;
   forAmount: string;
   step: CONFIRM_STEP;
   errorMsg: string;

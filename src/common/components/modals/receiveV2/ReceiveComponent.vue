@@ -4,22 +4,23 @@
     :txType="$t(`message.${TxType.SEND}`) + ':'"
     :txHashes="txHashes"
     :step="step"
-    :fee="fee!"
+    :fee="calculateFee(fee!)"
     :receiverAddress="walletStore.wallet?.address"
     :errorMsg="errorMsg"
     :txs="route!.txsRequired"
     :amount="`${swapAmount}`"
+    :swap-to-amount="swapToAmount()"
     :network="selectedNetwork"
     :onSendClick="onSwap"
     :onBackClick="onConfirmBackClick"
     :onOkClick="() => closeModal()"
     :warning="route?.warning?.message ?? ''"
-    :fromAddress="wallet"
+    :fromAddress="params.data?.wallet ?? wallet"
     :fromNetwork="selectedNetwork.label"
     :toNetwork="SUPPORTED_NETWORKS_DATA[NATIVE_NETWORK.key].label"
   />
   <template v-else>
-    <div
+    <!-- <div
       class="modal-send-receive-input-area custom-scroll overflow-auto"
       v-if="selectedNetwork.native"
     >
@@ -56,91 +57,90 @@
           <p>~{{ selectedNetwork.estimation }} {{ $t("message.sec") }}</p>
         </div>
       </div>
-    </div>
-    <template v-else>
-      <form
-        @submit.prevent="onSendClick"
-        class="modal-form overflow-auto"
-      >
-        <!-- Input Area -->
-        <div class="modal-send-receive-input-area background">
-          <div class="block text-left">
-            <div class="mt-[20px] flex flex-col">
-              <Picker
-                :default-option="selectedNetwork"
-                :options="networks"
-                :label="$t('message.network')"
-                :value="selectedNetwork"
-                @update-selected="onUpdateNetwork"
+    </div> -->
+    <!-- <template v-else> -->
+    <form
+      @submit.prevent="onSendClick"
+      class="modal-form overflow-auto"
+    >
+      <!-- Input Area -->
+      <div class="modal-send-receive-input-area background">
+        <div class="block text-left">
+          <div class="mt-[20px] flex flex-col">
+            <Picker
+              :default-option="selectedNetwork"
+              :options="networks"
+              :label="$t('message.network')"
+              :value="selectedNetwork"
+              @update-selected="onUpdateNetwork"
+            />
+            <button
+              v-if="selectedNetwork.chain_type == 'evm'"
+              class="nls-font-700 btn btn-secondary btn-medium-secondary mt-2 flex self-end !text-12 text-primary"
+              type="button"
+              :class="{ 'js-loading': isMetamaskLoading }"
+              @click="connectEvm"
+            >
+              <img
+                src="@/assets/icons/metamask.svg"
+                class="mr-1"
               />
-              <button
-                v-if="selectedNetwork.chain_type == 'evm'"
-                class="nls-font-700 btn btn-secondary btn-medium-secondary mt-2 flex self-end !text-12 text-primary"
-                type="button"
-                :class="{ 'js-loading': isMetamaskLoading }"
-                @click="connectEvm"
-              >
-                <img
-                  src="@/assets/icons/metamask.svg"
-                  class="mr-1"
-                />
-                {{ evmAddress.length == 0 ? $t("message.connect") : evmAddress }}
-              </button>
-            </div>
+              {{ evmAddress == null || evmAddress?.length == 0 ? $t("message.connect") : evmAddress }}
+            </button>
+          </div>
+          <div class="mt-[20px] block">
+            <CurrencyField
+              id="amount"
+              :currency-options="networkCurrencies"
+              :disabled-currency-picker="disablePicker || disablePickerDialog"
+              :is-loading-picker="disablePicker"
+              :error-msg="amountErrorMsg"
+              :is-error="amountErrorMsg !== ''"
+              :option="selectedCurrency"
+              :value="amount"
+              :name="$t('message.amount')"
+              :label="$t('message.amount-receive')"
+              :total="new KeplrCoin(selectedCurrency.balance.denom, selectedCurrency.balance.amount)"
+              :balance="formatCurrentBalance(selectedCurrency)"
+              @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
+              @input="handleAmountChange($event)"
+            />
+          </div>
 
-            <div class="mt-[20px] block">
-              <CurrencyField
-                id="amount"
-                :currency-options="networkCurrencies"
-                :disabled-currency-picker="disablePicker || disablePickerDialog"
-                :is-loading-picker="disablePicker"
-                :error-msg="amountErrorMsg"
-                :is-error="amountErrorMsg !== ''"
-                :option="selectedCurrency"
-                :value="amount"
-                :name="$t('message.amount')"
-                :label="$t('message.amount-receive')"
-                :total="new KeplrCoin(selectedCurrency.balance.denom, selectedCurrency.balance.amount)"
-                :balance="formatCurrentBalance(selectedCurrency)"
-                @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
-                @input="handleAmountChange($event)"
-              />
-            </div>
-
-            <div>
-              <p class="nls-font-500 m-0 mb-[6px] mt-2 text-14 text-primary">
-                {{ $t("message.recipient") }}
-              </p>
-              <p class="nls-font-700 m-0 break-all text-14 text-primary">
-                {{ WalletUtils.isAuth() ? walletStore.wallet?.address : $t("message.connect-wallet-label") }}
-              </p>
-            </div>
+          <div>
+            <p class="nls-font-500 m-0 mb-[6px] mt-2 text-14 text-primary">
+              {{ $t("message.recipient") }}
+            </p>
+            <p class="nls-font-700 m-0 break-all text-14 text-primary">
+              {{ WalletUtils.isAuth() ? walletStore.wallet?.address : $t("message.connect-wallet-label") }}
+            </p>
           </div>
         </div>
-        <!-- Actions -->
-        <div class="modal-send-receive-actions background flex-col">
-          <button
-            class="btn btn-primary btn-large-primary"
-            :class="{ 'js-loading': isLoading }"
-          >
-            {{ $t("message.receive") }}
-          </button>
-          <div class="my-2 flex w-full justify-between text-[14px] text-light-blue">
-            <p>{{ $t("message.estimate-time") }}:</p>
-            <template v-if="selectedNetwork.chain_type == 'evm'">
-              <p>
-                ~{{ (selectedNetwork as EvmNetwork).estimation.duration }}
-                {{ $t(`message.${(selectedNetwork as EvmNetwork).estimation.type}`) }}
-              </p>
-            </template>
-            <template v-else>
-              <p>~{{ selectedNetwork.estimation }} {{ $t("message.sec") }}</p>
-            </template>
-          </div>
+      </div>
+      <!-- Actions -->
+      <div class="modal-send-receive-actions background flex-col">
+        <button
+          class="btn btn-primary btn-large-primary"
+          :class="{ 'js-loading': isLoading }"
+        >
+          {{ $t("message.receive") }}
+        </button>
+        <div class="my-2 flex w-full justify-between text-[14px] text-light-blue">
+          <p>{{ $t("message.estimate-time") }}:</p>
+          <template v-if="selectedNetwork.chain_type == 'evm'">
+            <p>
+              ~{{ (selectedNetwork as EvmNetwork).estimation.duration }}
+              {{ $t(`message.${(selectedNetwork as EvmNetwork).estimation.type}`) }}
+            </p>
+          </template>
+          <template v-else>
+            <p>~{{ selectedNetwork.estimation }} {{ $t("message.sec") }}</p>
+          </template>
         </div>
-      </form>
-    </template>
+      </div>
+    </form>
   </template>
+  <!-- </template> -->
 </template>
 
 <script setup lang="ts">
@@ -150,7 +150,6 @@ import ConfirmRouteComponent from "../templates/ConfirmRouteComponent.vue";
 
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import { onUnmounted, ref, inject, watch, onMounted, nextTick, computed, type PropType } from "vue";
-import { DocumentDuplicateIcon } from "@heroicons/vue/24/solid";
 import { useI18n } from "vue-i18n";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { Wallet, BaseWallet } from "@/networks";
@@ -191,7 +190,8 @@ let timeOut: NodeJS.Timeout;
 let route: IObjectKeys | null;
 
 const walletStore = useWalletStore();
-const networks = ref<(Network | EvmNetwork)[]>([SUPPORTED_NETWORKS_DATA[NATIVE_NETWORK.key]]);
+const networks = ref<(Network | EvmNetwork)[]>([SUPPORTED_NETWORKS_DATA.OSMOSIS]);
+
 const i18n = useI18n();
 const copyText = ref(i18n.t("message.copy"));
 const selectedNetwork = ref(networks.value[0]);
@@ -204,7 +204,7 @@ const amount = ref("");
 const amountErrorMsg = ref("");
 const disablePicker = ref(false);
 const disablePickerDialog = ref(false);
-const txHashes = ref<{ hash: string; status: SwapStatus }[]>([]);
+const txHashes = ref<{ hash: string; status: SwapStatus; url: string | null }[]>([]);
 const errorMsg = ref("");
 
 const showConfirmScreen = ref(false);
@@ -212,6 +212,7 @@ const step = ref(CONFIRM_STEP.CONFIRM);
 const fee = ref<Coin>();
 const isLoading = ref(false);
 const evmAddress = ref("");
+
 const closeModal = inject("onModalClose", () => () => {});
 
 const wallet = ref(walletStore.wallet?.address);
@@ -235,7 +236,8 @@ onMounted(async () => {
       return false;
     }) as (Network | EvmNetwork)[];
 
-    networks.value = [...networks.value, ...n];
+    networks.value = [...n];
+    onUpdateNetwork(SUPPORTED_NETWORKS_DATA.OSMOSIS as any);
     setParams();
   } catch (error) {
     Logger.error(error);
@@ -243,12 +245,25 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-  if (step.value == CONFIRM_STEP.PENDING && params.data == null) {
+  if (client && step.value != CONFIRM_STEP.PENDING) {
+    destroyClient();
+  }
+
+  clearTimeout(timeOut);
+});
+
+function destroyClient() {
+  try {
+    client.destroy();
+  } catch (error) {}
+}
+
+function setHistory() {
+  if (params.data == null) {
     const data = {
       id,
       skipRouteConfig,
-      wallet: wallet,
-      client,
+      wallet: wallet.value,
       route,
       selectedNetwork: selectedNetwork.value,
       selectedCurrency: selectedCurrency.value,
@@ -256,17 +271,13 @@ onUnmounted(() => {
       txHashes: txHashes.value,
       step: step.value,
       fee: fee.value,
-      fromAddress: wallet,
-      action: HYSTORY_ACTIONS.RECEIVEV2,
+      fromAddress: wallet.value,
+      action: HYSTORY_ACTIONS.RECEIVE,
       errorMsg: errorMsg.value
     };
     walletStore.updateHistory(data);
   }
-});
-
-onUnmounted(() => {
-  clearTimeout(timeOut);
-});
+}
 
 watch(
   () => params.data,
@@ -283,7 +294,6 @@ function setParams() {
     id = params.data.id;
     skipRouteConfig = params.data.skipRouteConfig;
     wallet.value = params.data.wallet;
-    client = params.data.client;
     route = params.data.route;
     selectedNetwork.value = params.data.selectedNetwork;
     amount.value = params.data.amount;
@@ -311,13 +321,14 @@ async function onUpdateNetwork(event: Network) {
   if (!event.native) {
     switch (event.chain_type) {
       case "cosmos": {
-        setCosmosNetwork();
+        await setCosmosNetwork();
         break;
       }
       case "evm": {
-        setEvmNetwork();
         if (client) {
-          connectEvm();
+          await connectEvm();
+        } else {
+          await setEvmNetwork();
         }
         break;
       }
@@ -389,9 +400,7 @@ async function setCosmosNetwork() {
   networkCurrencies.value = [];
   amount.value = "";
   amountErrorMsg.value = "";
-  if (client) {
-    client.destroy();
-  }
+  destroyClient();
 
   disablePicker.value = true;
   const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
@@ -426,8 +435,6 @@ async function setCosmosNetwork() {
   client = await WalletUtils.getWallet(selectedNetwork.value.key);
   const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
   wallet.value = baseWallet?.address as string;
-
-  client = await WalletUtils.getWallet(selectedNetwork.value.key);
 
   if (WalletUtils.isAuth()) {
     for (const c of mappedCurrencies) {
@@ -577,6 +584,8 @@ async function onSubmit() {
         for (const key in wallets) {
           addresses[key] = wallets[key].address!;
         }
+
+        setHistory();
         await submit(wallets);
 
         await walletStore.UPDATE_BALANCES();
@@ -598,9 +607,7 @@ async function onSubmit() {
   } catch (e) {
     Logger.error(e);
   } finally {
-    if (client) {
-      (client as Wallet).destroy();
-    }
+    destroyClient();
   }
 }
 
@@ -608,29 +615,42 @@ async function submit(wallets: { [key: string]: BaseWallet | MetaMaskWallet }) {
   await SkipRouter.submitRoute(route!, wallets, async (tx: IObjectKeys, wallet: BaseWallet, chaindId: string) => {
     switch (wallet.constructor) {
       case MetaMaskWallet: {
-        await SkipRouter.track(chaindId, (tx as IObjectKeys).hash);
-        await SkipRouter.fetchStatus((tx as IObjectKeys).hash, chaindId);
         const element = {
           hash: tx.hash,
-          status: SwapStatus.success
+          status: SwapStatus.pending,
+          url: wallet.explorer
         };
         txHashes.value.push(element);
+        if (walletStore.history[id]) {
+          walletStore.history[id].txHashes = txHashes.value;
+        }
+
+        await SkipRouter.track(chaindId, (tx as IObjectKeys).hash);
+        await SkipRouter.fetchStatus((tx as IObjectKeys).hash, chaindId);
+        element.status = SwapStatus.success;
+
         break;
       }
       default: {
         const element = {
           hash: tx.txHash,
-          status: SwapStatus.pending
+          status: SwapStatus.pending,
+          url: wallet.explorer
         };
 
         const index = txHashes.value.length;
         txHashes.value.push(element);
 
+        if (walletStore.history[id]) {
+          walletStore.history[id].txHashes = txHashes.value;
+        }
+
         await wallet.broadcastTx(tx.txBytes as Uint8Array);
         await SkipRouter.track(chaindId, (tx as IObjectKeys).txHash);
         await SkipRouter.fetchStatus((tx as IObjectKeys).txHash, chaindId);
 
-        txHashes.value[index].status = SwapStatus.success;
+        element.status = SwapStatus.success;
+
         break;
       }
     }
@@ -673,8 +693,8 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
           break;
         }
         case "evm": {
-          const client = new MetaMaskWallet();
           const net = selectedNetwork.value as EvmNetwork;
+          const client = new MetaMaskWallet(net.explorer);
           const endpoint = await AppUtils.fetchEvmEndpoints(net.key);
           const chainId = await client.getChainId(endpoint.rpc);
 
@@ -734,7 +754,7 @@ function onConfirmBackClick() {
 }
 
 function formatCurrentBalance(selectedCurrency: AssetBalance | undefined) {
-  if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
+  if (selectedCurrency?.balance?.denom) {
     if (selectedNetwork.value.native) {
       const asset = AssetUtils.getCurrencyByDenom(selectedCurrency.balance.denom);
       return CurrencyUtils.convertMinimalDenomToDenom(
@@ -758,35 +778,81 @@ function formatCurrentBalance(selectedCurrency: AssetBalance | undefined) {
 
 async function connectEvm() {
   try {
-    if (client) {
-      (client as MetaMaskWallet)?.destroy();
-    }
-    client = new MetaMaskWallet();
+    destroyClient();
     isMetamaskLoading.value = true;
 
     const net = selectedNetwork.value as EvmNetwork;
+    client = new MetaMaskWallet(net.explorer);
     const endpoint = await AppUtils.fetchEvmEndpoints(net.key);
     const chaindId = await client.getChainId(endpoint.rpc);
-    await client.connect({
-      chainId: chaindId,
-      chainName: net.label,
-      rpcUrls: [endpoint.rpc],
-      blockExplorerUrls: [net.explorer],
-      nativeCurrency: { ...net.nativeCurrency }
-    });
+    await client.connect(
+      {
+        chainId: chaindId,
+        chainName: net.label,
+        rpcUrls: [endpoint.rpc],
+        blockExplorerUrls: [net.explorer],
+        nativeCurrency: { ...net.nativeCurrency }
+      },
+      async () => {
+        try {
+          evmAddress.value = (client as MetaMaskWallet).shortAddress;
+          wallet.value = (client as MetaMaskWallet).address;
+          await setEvmNetwork();
+        } catch (error) {
+          Logger.error(error);
+        }
+      }
+    );
 
     evmAddress.value = client.shortAddress;
     wallet.value = client.address;
 
     await setEvmNetwork();
-  } catch (error) {
+  } catch (error: Error | any) {
     Logger.error(error);
+    amountErrorMsg.value = error.toString();
   } finally {
     isMetamaskLoading.value = false;
+    disablePicker.value = false;
   }
 }
 
 const swapAmount = computed(() => {
   return `${new Dec(amount.value).toString(selectedCurrency.value?.decimal_digits)} ${selectedCurrency.value?.shortName}`;
 });
+
+function swapToAmount() {
+  return `${new Dec(route!.amountOut, selectedCurrency.value?.decimal_digits).toString(selectedCurrency.value?.decimal_digits)} ${selectedCurrency.value?.shortName}`;
+}
+
+function calculateFee(coin: Coin) {
+  switch (selectedNetwork.value.chain_type) {
+    case "cosmos": {
+      return calculateCosmosFee(coin);
+    }
+    case "evm": {
+      return calculateEvmFee(coin);
+    }
+  }
+  return "";
+}
+
+function calculateCosmosFee(coin: Coin) {
+  const asset = AssetUtils.getCurrencyByDenom(coin.denom);
+  return CurrencyUtils.convertMinimalDenomToDenom(
+    coin.amount.toString(),
+    asset.ibcData,
+    asset.shortName,
+    asset.decimal_digits
+  ).toString();
+}
+
+function calculateEvmFee(coin: Coin) {
+  return CurrencyUtils.convertMinimalDenomToDenom(
+    coin.amount.toString(),
+    coin.denom,
+    coin.denom,
+    (selectedNetwork.value as EvmNetwork).nativeCurrency.decimals
+  ).toString();
+}
 </script>

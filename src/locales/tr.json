@@ -45,7 +45,7 @@
     "available-assets": "Varlıklar",
     "active-leases": "Kiralamalar",
     "supplied-and-staked": "Kazanç Sağlayan",
-    "low-balances": "",
+    "low-balances": "Low Balances",
     "lease-up-to": "Kiralama sınırı:",
     "earn-apr": "Kazanç APR'si",
     "balance": "Bakiye",
@@ -306,6 +306,16 @@
     "Pending-History": "Pending",
     "Success-History": "Success",
     "Error-History": "Fail",
-    "details": "Details"
+    "details": "Details",
+    "swap-skip-action": "Swap {amount} to {swapTo}",
+    "receive-skip-action": "Receive {amount} from {network}",
+    "send-skip-action": "Send {amount} to {network}",
+    "defi-summer-winners-subtitle": "You've Won a Limited Edition Tee",
+    "defi-summer-winners-description": "Congratulations! Your Limited Edition DeFi Summer Tee by Arsek & Erase is waiting for you. Fill out the form to claim it",
+    "chart": "Chart",
+    "share-position": "Share PnL",
+    "lease-size": "Size",
+    "health": "Health",
+    "opened-on": "Opened on"
   }
 }

@@ -282,12 +282,13 @@ import SendReceiveDialog from "@/common/components/modals/SendReceiveDialog.vue"
 import SupplyWithdrawDialog from "@/common/components/modals/SupplyWithdrawDialog.vue";
 import LeaseDialog from "@/common/components/modals/LeaseDialog.vue";
 import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
+import SendReceiveDialogV2 from "@/common/components/modals/SendReceiveDialogV2.vue";
 
-import { CURRENCY_VIEW_TYPES, type IObjectKeys } from "@/common/types";
+import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 
 import { useI18n } from "vue-i18n";
-import { computed, defineAsyncComponent, onUnmounted, provide, ref, watch } from "vue";
+import { computed, onUnmounted, provide, ref, watch } from "vue";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils, NolusClient } from "@nolus/nolusjs";
 import { useLeases } from "@/common/composables/useLeases";
@@ -296,19 +297,17 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
 import { useAdminStore } from "@/common/stores/admin";
 
-import { AssetUtils, Logger, NetworkUtils, WalletManager, AppUtils } from "@/common/utils";
+import { AssetUtils, Logger, NetworkUtils, WalletManager } from "@/common/utils";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { IGNORE_TRANSFER_ASSETS, LPN_DECIMALS, NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
 import { CurrencyDemapping } from "@/config/currencies";
 import { Button, Table } from "web-components";
 
-const SendReceiveDialogV2 = defineAsyncComponent(() => import("@/common/components/modals/SendReceiveDialogV2.vue"));
-
 const modalOptions = {
-  [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
-  [DASHBOARD_ACTIONS.RECEIVE]: SendReceiveDialog,
-  [DASHBOARD_ACTIONS.SENDV2]: SendReceiveDialogV2,
-  [DASHBOARD_ACTIONS.RECEIVEV2]: SendReceiveDialogV2,
+  // [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
+  // [DASHBOARD_ACTIONS.RECEIVE]: SendReceiveDialog,
+  [DASHBOARD_ACTIONS.SEND]: SendReceiveDialogV2,
+  [DASHBOARD_ACTIONS.RECEIVE]: SendReceiveDialogV2,
   [DASHBOARD_ACTIONS.SUPPLY]: SupplyWithdrawDialog,
   [DASHBOARD_ACTIONS.LEASE]: LeaseDialog
 };
@@ -570,7 +569,7 @@ function setSmallBalancesState(event: boolean) {
 function sendReceiveOpen(currency: string = "") {
   state.value.selectedAsset = "";
   state.value.dialogSelectedCurrency = currency;
-  state.value.modalAction = DASHBOARD_ACTIONS.RECEIVEV2;
+  state.value.modalAction = DASHBOARD_ACTIONS.RECEIVE;
   state.value.showModal = true;
 }
 

@@ -27,7 +27,7 @@
             <div>
               <CurrencyComponent
                 :amount="focusPrice ?? currentPrice"
-                :decimals="2"
+                :decimals="4"
                 :font-size="20"
                 :font-size-small="14"
                 :hasSpace="false"
@@ -372,6 +372,7 @@ import {
 import { coin } from "@cosmjs/amino";
 import { useApplicationStore } from "@/common/stores/application";
 import { PriceHistoryChart } from "./";
+import { CurrencyDemapping } from "@/config/currencies";
 
 enum TEMPLATES {
   "opening",
@@ -461,12 +462,10 @@ const currentPrice = computed(() => {
   }
 
   const ticker =
-    props.leaseInfo.leaseStatus?.opened?.amount.ticker ||
-    props.leaseInfo.leaseStatus?.paid?.amount.ticker ||
-    props.leaseInfo.leaseStatus?.opening?.downpayment.ticker;
+    CurrencyDemapping[props.leaseInfo.leaseData?.leasePositionTicker]?.ticker ??
+    props.leaseInfo.leaseData?.leasePositionTicker;
 
-  const item = AssetUtils.getCurrencyByTicker(ticker as string);
-  return oracleStore.prices[item!.ibcData as string]?.amount ?? "0";
+  return oracleStore.prices[`${ticker}@${props.leaseInfo.protocol}`]?.amount ?? "0";
 });
 
 async function fetchChartData(days: string, interval: string) {

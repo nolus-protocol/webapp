@@ -3,7 +3,8 @@ import {
   SKIP_API_URL,
   type RouteRequest,
   affiliateFromJSON,
-  type MsgsRequest
+  type MsgsRequest,
+  type TxStatusResponse
 } from "@skip-router/core";
 
 import type { IObjectKeys, SkipRouteConfigType } from "../types";
@@ -23,8 +24,8 @@ enum Messages {
 }
 
 class Swap extends SkipRouterLib {
-  constructor(data: { apiURL: string }) {
-    super(data);
+  constructor(data: { apiURL: string; apiKey: string }) {
+    super({ apiURL: data.apiURL });
   }
 }
 
@@ -37,9 +38,11 @@ export class SkipRouter {
       return SkipRouter.client;
     }
 
+    const config = await AppUtils.getSkipRouteConfig();
     const [client, status] = await Promise.all([
       new Swap({
-        apiURL: SKIP_API_URL
+        apiURL: SKIP_API_URL,
+        apiKey: config.apiKey
       }),
       SkipRouter.chainID ?? AppUtils.fetchNetworkStatus().then((status) => status.result.node_info.network)
     ]);
@@ -185,7 +188,7 @@ export class SkipRouter {
     }
   }
 
-  static async fetchStatus(hash: string, chaindId: string): Promise<boolean> {
+  static async fetchStatus(hash: string, chaindId: string): Promise<TxStatusResponse> {
     const client = await SkipRouter.getClient();
     const status = await client.transactionStatus({ chainID: chaindId, txHash: hash });
 
@@ -198,7 +201,7 @@ export class SkipRouter {
         throw new Error("STATE_ABANDONED");
       }
       case "STATE_COMPLETED_SUCCESS": {
-        return true;
+        return status;
       }
       case "STATE_COMPLETED_ERROR": {
         throw new Error("STATE_COMPLETED_ERROR");

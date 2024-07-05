@@ -49,6 +49,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
   prefix: string;
   queryClientBase: QueryClient & AuthExtension & BankExtension & StakingExtension & TxExtension;
   gasMupltiplier: number;
+  explorer: string;
 
   protected gasPriceData: string;
   protected offlineSigner: OfflineSigner;
@@ -61,7 +62,8 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
     api: string,
     prefix: string,
     gasMupltiplier: number,
-    gasPrice: string
+    gasPrice: string,
+    explorer: string
   ) {
     super(tmClient, signer, options);
     this.offlineSigner = signer;
@@ -70,6 +72,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
     this.prefix = prefix;
     this.gasPriceData = gasPrice;
     this.gasMupltiplier = gasMupltiplier;
+    this.explorer = explorer;
     this.queryClientBase = QueryClient.withExtensions(
       tmClient!,
       setupAuthExtension,

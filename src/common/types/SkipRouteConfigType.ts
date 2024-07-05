@@ -1,5 +1,6 @@
 export interface SkipRouteConfigType {
   blacklist: string[];
+  apiKey: string;
   slippage: number;
   swap_currency: string;
   swap_to_currency: string;
