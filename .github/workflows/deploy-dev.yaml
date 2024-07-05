@@ -32,14 +32,14 @@ jobs:
 
   deploy:
     name: Deploy to AWS
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     container: amazon/aws-cli
     environment: development
     needs: build
 
     steps:
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -57,14 +57,14 @@ jobs:
 
   invalidate-cache:
     name: Invalidate cache
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     container: amazon/aws-cli
     environment: development
     needs: deploy
 
     steps:
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
