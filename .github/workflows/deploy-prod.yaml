@@ -10,6 +10,7 @@ env:
   BUCKET_NAME: app-staging.nolus.io
   CLOUDFRONT_ID: E2CRLUCGAPADWN
   AWS_REGION: eu-west-1
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
 jobs:
   build:
@@ -33,14 +34,14 @@ jobs:
 
   deploy:
     name: Deploy to AWS
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     container: amazon/aws-cli
     environment: production
     needs: build
 
     steps:
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -58,14 +59,14 @@ jobs:
 
   invalidate-cache:
     name: Invalidate cache
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     container: amazon/aws-cli
     environment: production
     needs: deploy
 
     steps:
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
