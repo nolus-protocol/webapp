@@ -29,7 +29,7 @@
         </div>
       </template>
       <template v-else>
-        <div class="flex w-full border-b-[1px] border-border-color pb-5">
+        <div class="mb-6 flex w-full border-b-[1px] border-border-color pb-5">
           <button
             v-if="back"
             class=""
