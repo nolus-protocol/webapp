@@ -54,12 +54,12 @@ export async function loadCurrennncies(this: Store) {
     for (const protocol of this.protocols) {
       lease[protocol] = [];
       lpnPromises.push(
-        getLpn(cosmWasmClient as any, protocol, admin).then((lpn) => {
+        getLpn(cosmWasmClient, protocol, admin).then((lpn) => {
           return data.networks[NATIVE_NETWORK.key][`${CurrencyDemapping[lpn]?.ticker ?? lpn}@${protocol}`];
         })
       );
       leasePromises.push(
-        getLease(cosmWasmClient as any, protocol, admin).then((leases) => {
+        getLease(cosmWasmClient, protocol, admin).then((leases) => {
           for (const l of leases) {
             lease[protocol].push(l);
             leasesCurrencies.add(l);
@@ -80,15 +80,12 @@ export async function loadCurrennncies(this: Store) {
 }
 
 async function getLpn(client: CosmWasmClient, protocol: string, admin: AdminStore) {
-  const lppClient = new Lpp(client as any, admin.protocols[EnvNetworkUtils.getStoredNetworkName()]![protocol].lpp);
+  const lppClient = new Lpp(client, admin.protocols[EnvNetworkUtils.getStoredNetworkName()]![protocol].lpp);
   return lppClient.getLPN();
 }
 
 async function getLease(client: CosmWasmClient, protocol: string, admin: AdminStore) {
-  const oracleClient = new Oracle(
-    client as any,
-    admin.protocols[EnvNetworkUtils.getStoredNetworkName()]![protocol].oracle
-  );
+  const oracleClient = new Oracle(client, admin.protocols[EnvNetworkUtils.getStoredNetworkName()]![protocol].oracle);
   const currencies = await oracleClient.getCurrencies();
   return NolusAssetUtils.findTickersByGroup(currencies, "lease");
 }

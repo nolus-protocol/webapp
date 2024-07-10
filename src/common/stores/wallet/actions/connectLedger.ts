@@ -34,7 +34,7 @@ export async function connectLedger(this: Store, payload: { isBluetooth?: boolea
         new LedgerSigner(transport, {
           prefix: ChainConstants.BECH32_PREFIX_ACC_ADDR,
           hdPaths: paths
-        }) as any
+        })
       );
 
       await ledgerWallet.useAccount();
