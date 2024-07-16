@@ -26,7 +26,7 @@
               />
               <span
                 :data="selected.value?.shortName"
-                class="dark-text search-input !mt-0 block truncate !leading-normal"
+                class="search-input !mt-0 block truncate !leading-normal text-neutral-typography-200"
               >
                 <input
                   ref="searchInput"
@@ -115,7 +115,7 @@
 </template>
 
 <script lang="ts" setup>
-import { type PropType, ref, onMounted, watch, computed } from "vue";
+import { computed, onMounted, type PropType, ref, watch } from "vue";
 import type { ExternalCurrency } from "../types";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from "@headlessui/vue";

@@ -1,9 +1,9 @@
 <template>
   <form
-    class="w-full"
+    class="flex flex-col gap-6"
     @submit.prevent="modelValue.onNextClick"
   >
-    <div class="mt-10 block px-5 py-[5px] text-left lg:px-10">
+    <div class="flex flex-col gap-6">
       <CurrencyField
         id="repayBalance"
         :balance="formatCurrentBalance(modelValue.selectedCurrency)"
@@ -18,12 +18,12 @@
         @input="handleAmountChange($event)"
         @update-currency="(event) => (modelValue.selectedCurrency = event)"
       />
-      <div class="mt-[12px] flex justify-end">
-        <div class="grow-3 dark-text text-right text-14 font-medium">
+      <div class="flex justify-end">
+        <div class="grow-3 text-right text-14 font-medium text-neutral-typography-200">
           <p class="mb-2 mr-5 mt-[14px]">{{ $t("message.repayment-amount") }}:</p>
         </div>
         <div class="text-right text-14 font-semibold">
-          <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">
+          <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
             <a
               class="cursor-pointer select-none"
               @click="setRepayAmount"
@@ -31,18 +31,21 @@
               {{ amount.amount }}
               <span class="ml-[6px] text-[13px] font-normal text-neutral-400"> (${{ amount.amountInStable }}) </span>
             </a>
-            <TooltipComponent
+            <Tooltip
               :content="$t('message.outstanding-debt-tooltip', { fee: (modelValue.swapFee * 100).toFixed(2) })"
             />
           </p>
         </div>
       </div>
     </div>
-    <div class="modal-send-receive-actions flex flex-col">
-      <button class="btn btn-primary btn-large-primary text-center">
-        {{ $t("message.repay") }}
-      </button>
-      <div class="my-2 flex w-full justify-between text-[14px] text-neutral-400">
+    <div class="flex flex-col gap-6">
+      <Button
+        :label="$t('message.repay')"
+        severity="primary"
+        size="large"
+        type="submit"
+      />
+      <div class="flex w-full justify-between text-[14px] text-neutral-400">
         <p>{{ $t("message.estimate-time") }}:</p>
         <p>~{{ NATIVE_NETWORK.longOperationsEstimation }} {{ $t("message.sec") }}</p>
       </div>
@@ -52,7 +55,6 @@
 
 <script lang="ts" setup>
 import CurrencyField from "@/common/components/CurrencyField.vue";
-import TooltipComponent from "@/common/components/TooltipComponent.vue";
 
 import type { RepayComponentProps } from "./types";
 import { computed, type PropType } from "vue";
@@ -65,6 +67,7 @@ import { useApplicationStore } from "@/common/stores/application";
 import { LeaseUtils } from "@/common/utils";
 import type { ExternalCurrency } from "@/common/types";
 import { CurrencyDemapping } from "@/config/currencies";
+import { Button, Tooltip } from "web-components";
 
 const oracle = useOracleStore();
 const app = useApplicationStore();

@@ -1,5 +1,5 @@
 <template>
-  <div :class="[type.length > 0 ? 'picker ' + type : 'picker ', isError ? ' error' : '']">
+  <div :class="[type.length > 0 ? 'picker ' + type : 'picker', isError ? 'error' : '']">
     <Listbox
       v-slot="{ open }"
       v-model="selected"
@@ -12,7 +12,7 @@
       </ListboxLabel>
       <div class="picker-container relative mt-[4px]">
         <ListboxButton
-          class="background relative flex w-full cursor-default !items-center rounded-md border border-gray-300 py-2 pl-3 pr-10 text-left shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
+          class="background shadow-sm relative flex w-full cursor-default !items-center rounded-md border border-gray-300 py-2 pl-3 pr-10 text-left focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
         >
           <span class="flex items-center">
             <img
@@ -22,15 +22,15 @@
               class="mr-3 h-6 w-6 flex-shrink-0 rounded-full"
             />
             <span
-              class="dark-text search-input !mt-0 block truncate !leading-normal"
               :data="selected.label"
+              class="search-input !mt-0 block truncate !leading-normal text-neutral-typography-200"
             >
               <input
-                class="search-input"
                 ref="searchInput"
                 v-model="value"
-                :placeholder="selected.label"
                 :disabled="disabled || disableInput"
+                :placeholder="selected.label"
+                class="search-input"
                 @focusout="focusOut"
               />
             </span>
@@ -61,8 +61,8 @@
           name="collapse"
         >
           <ListboxOptions
+            class="background scrollbar shadow-lg absolute z-10 mt-1 max-h-60 max-h-[160px] w-full overflow-auto rounded-md py-1 text-base focus:outline-none sm:text-sm"
             @focus="searchInput?.focus()"
-            class="background scrollbar absolute z-10 mt-1 max-h-60 max-h-[160px] w-full overflow-auto rounded-md py-1 text-base shadow-lg focus:outline-none sm:text-sm"
           >
             <ListboxOption
               v-for="option in optionsValue"
@@ -103,10 +103,9 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, type PropType, ref, watch } from "vue";
+import { computed, onMounted, type PropType, ref, watch } from "vue";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";
 import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from "@headlessui/vue";
-import { computed } from "vue";
 import type { ExternalCurrency } from "../types";
 import type { AssetBalance } from "../stores/wallet/types";
 

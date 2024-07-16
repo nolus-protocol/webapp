@@ -12,7 +12,7 @@
         class="grey-box modal-balance radius-rounded copy-button mt-3 flex items-center justify-between px-2"
         @click="onCopy()"
       >
-        <span class="dark-text ml-2 text-14 font-normal">
+        <span class="ml-2 text-14 font-normal text-neutral-typography-200">
           {{ getWallet }}
         </span>
         <span
@@ -83,13 +83,13 @@
 </template>
 <script lang="ts" setup>
 import Picker, { type PickerOption } from "@/common/components/Picker.vue";
-import { router, RouteNames } from "@/router";
+import { RouteNames, router } from "@/router";
 import { computed, inject, onMounted, onUnmounted, ref } from "vue";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
 import { APPEARANCE, languages } from "@/config/global";
 import { useI18n } from "vue-i18n";
 import { ApplicationActions, useApplicationStore } from "@/common/stores/application";
-import { EnvNetworkUtils, StringUtils, ThemeManager, WalletManager, AppUtils } from "@/common/utils";
+import { AppUtils, EnvNetworkUtils, StringUtils, ThemeManager, WalletManager } from "@/common/utils";
 import { setLang } from "@/i18n";
 
 let timeOut: NodeJS.Timeout;
