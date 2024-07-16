@@ -109,7 +109,7 @@
         size="large"
         type="submit"
       />
-      <div class="my-2 flex w-full justify-between text-[14px] text-light-blue">
+      <div class="my-2 flex w-full justify-between text-[14px] text-neutral-400">
         <p>{{ $t("message.estimate-time") }}:</p>
         <p>~{{ NATIVE_NETWORK.leaseOpenEstimation }} {{ $t("message.min") }}</p>
       </div>

@@ -1,39 +1,39 @@
 <template>
-  <div :class="[type.length > 0 ? 'picker ' + type : 'picker', isError ? ' error' : '']">
+  <div :class="[type.length > 0 ? 'picker ' + type : 'picker', isError ? 'error' : '']">
     <Listbox
-      v-model="selected.value"
       v-slot="{ open }"
-      as="div"
+      v-model="selected.value"
       :disabled="disabled"
+      as="div"
       @update:modelValue="onSelect"
     >
       <div v-if="label.length > 0">
-        <ListboxLabel class="nls-font-500 block text-14 text-primary">
+        <ListboxLabel class="block text-14 font-medium text-neutral-typography-200">
           {{ label }}
         </ListboxLabel>
       </div>
       <div class="picker-container icon relative mt-1">
         <ListboxButton
-          class="background relative flex w-full cursor-default !items-center rounded-md border border-gray-300 py-2 pl-3 pr-10 text-left shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
+          class="background shadow-sm relative flex w-full cursor-default !items-center rounded-md border border-gray-300 py-2 pl-3 pr-10 text-left focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
         >
           <span class="flex items-center justify-between">
             <div class="flex items-center">
               <img
-                :src="selected.value?.icon"
-                class="h-6 w-6 flex-shrink-0 rounded-full"
-                alt=""
                 v-if="value.length == 0"
+                :src="selected.value?.icon"
+                alt=""
+                class="h-6 w-6 flex-shrink-0 rounded-full"
               />
               <span
-                class="dark-text search-input !mt-0 block truncate !leading-normal"
                 :data="selected.value?.shortName"
+                class="dark-text search-input !mt-0 block truncate !leading-normal"
               >
                 <input
-                  class="search-input"
                   ref="searchInput"
                   v-model="value"
-                  :placeholder="selected.value?.shortName"
                   :disabled="disabled"
+                  :placeholder="selected.value?.shortName"
+                  class="search-input"
                   @focusout="focusOut"
                 />
               </span>
@@ -45,54 +45,54 @@
             </span>
           </span>
           <span
-            class="pointer-events-none inset-y-0 right-0 ml-[2px] mt-[2px] flex items-center"
             v-if="optionsValue!.length > 0 && !disabled"
+            class="pointer-events-none inset-y-0 right-0 ml-[2px] mt-[2px] flex items-center"
           >
             <ChevronUpIcon
               v-if="open"
-              class="h-5 w-5 text-gray-400"
               aria-hidden="true"
+              class="h-5 w-5 text-gray-400"
             />
             <ChevronDownIcon
               v-else
-              class="h-5 w-5 text-gray-400"
               aria-hidden="true"
+              class="h-5 w-5 text-gray-400"
             />
           </span>
         </ListboxButton>
 
         <span
-          class="msg error"
           :class="{ hidden: !errorMsg.length }"
+          class="msg error"
         >
           {{ errorMsg }}
         </span>
 
         <transition
-          name="collapse"
           appear
+          name="collapse"
         >
           <ListboxOptions
-            class="background scrollbar absolute top-[46px] z-10 mt-1 max-h-56 w-[125px] overflow-auto rounded-md text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
             v-if="optionsValue!.length > 0"
+            class="background scrollbar shadow-lg absolute top-[46px] z-10 mt-1 max-h-56 w-[125px] overflow-auto rounded-md text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
             @focus="searchInput?.focus()"
           >
             <ListboxOption
               v-for="option in optionsValue"
               :key="option.balance.denom"
-              :value="option"
               v-slot="{ active, selected }"
+              :value="option"
               as="template"
             >
               <li
-                class="dropdown-elements relative my-1 cursor-default select-none py-2 pl-3 pr-9"
                 :class="{ selected: selected }"
+                class="dropdown-elements relative my-1 cursor-default select-none py-2 pl-3 pr-9"
               >
                 <div class="flex items-center">
                   <img
                     :src="option.icon"
-                    class="mr-3 h-6 w-6 flex-shrink-0 rounded-full"
                     alt=""
+                    class="mr-3 h-6 w-6 flex-shrink-0 rounded-full"
                   />
                   <span class="block truncate font-normal">
                     {{ option.shortName }}
@@ -101,8 +101,8 @@
 
                 <span
                   v-if="selected"
-                  class="absolute inset-y-0 right-0 flex items-center pr-4"
                   :class="[active ? 'text-white' : 'text-indigo-600']"
+                  class="absolute inset-y-0 right-0 flex items-center pr-4"
                 >
                 </span>
               </li>
@@ -114,7 +114,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { type PropType, ref, onMounted, watch, computed } from "vue";
 import type { ExternalCurrency } from "../types";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/vue/24/solid";

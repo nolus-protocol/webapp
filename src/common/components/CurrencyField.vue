@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between">
       <label
         :for="id"
-        class="nls-font-500 data-text flex text-14"
+        class="data-text flex text-14 font-medium"
       >
         {{ label }}
         <TooltipComponent
@@ -43,13 +43,13 @@
             :name="name"
             :placeholder="placeholder"
             autocomplete="off"
-            class="nls-font-700 background text-right text-18 text-primary"
+            class="background text-right text-18 font-semibold text-neutral-typography-200"
             @keydown="inputValue"
             @keyup="setValue"
             @paste="onPaste"
             @keypress.space.prevent
           />
-          <span class="nls-font-400 block text-right text-14 text-light-blue">
+          <span class="block text-right text-14 font-normal text-neutral-400">
             {{ calculateInputBalance() }}
           </span>
         </div>

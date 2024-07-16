@@ -14,13 +14,13 @@
       ></i>
     </div>
     <div class="box grow-1 block">
-      <p class="nls-font-400 text-left text-14">
+      <p class="text-left text-14 font-normal">
         <slot name="content"></slot>
       </p>
     </div>
   </div>
 </template>
-<script setup lang="ts">
+<script lang="ts" setup>
 defineProps({
   isWarning: {
     type: Boolean

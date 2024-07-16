@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="table-header mt-[25px] flex flex-wrap items-baseline justify-between px-4 lg:px-0">
       <div class="left">
-        <h1 class="nls-font-700 m-0 text-20 text-primary">
+        <h1 class="m-0 text-20 font-semibold text-neutral-typography-200">
           {{ $t("message.history") }}
         </h1>
       </div>
@@ -27,9 +27,9 @@
             >
               <HistoryTableLoadingRow
                 :action="tx.action"
+                :button="$t('message.details')"
                 :fee="tx.fee.toString()"
                 :status="tx.status"
-                :button="$t('message.details')"
                 @button-click="openAction(tx.key)"
               >
                 <template v-slot:status>

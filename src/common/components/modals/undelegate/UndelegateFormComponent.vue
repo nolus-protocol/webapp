@@ -42,7 +42,7 @@
         <div
           v-for="(data, i) in item.entries"
           :key="i"
-          class="mt-2 flex w-full justify-between text-[12px] text-light-blue"
+          class="mt-2 flex w-full justify-between text-[12px] text-neutral-400"
         >
           <p>{{ $t("message.undelegating") }}: {{ transform(data.balance) }}</p>
           <p>{{ datePraser(data.completion_time, true) }}</p>

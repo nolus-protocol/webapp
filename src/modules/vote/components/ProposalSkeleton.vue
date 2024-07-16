@@ -15,7 +15,7 @@
           class="h-0.5 w-[300px] bg-grey"
         />
       </div>
-      <div class="text-small-heading h-[5px] w-[100px] break-all bg-grey text-primary" />
+      <div class="text-small-heading h-[5px] w-[100px] break-all bg-grey text-neutral-typography-200" />
       <div class="h-[5px] w-full bg-grey" />
       <div class="flex flex-col gap-3 text-12 text-medium-blue">
         <div class="h-[2px] w-full bg-grey" />

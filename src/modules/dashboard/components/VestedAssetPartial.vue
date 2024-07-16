@@ -15,7 +15,7 @@
     </template>
     <template #rowFooter>
       <div class="basis-full md:hidden">
-        <p class="text-dark-grey nls-font-500 m-0 text-center text-12">
+        <p class="text-dark-grey m-0 text-center text-12 font-medium">
           {{ endTime }}
         </p>
       </div>

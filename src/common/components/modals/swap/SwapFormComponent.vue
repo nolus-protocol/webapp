@@ -25,7 +25,7 @@
         @updateSwapToAmount="(value) => $emit('updateSwapToAmount', value)"
         @updateSwapToCurrency="(value) => $emit('updateSwapToSelected', value)"
       />
-      <!-- <p class="mt-2 text-right text-xs text-light-blue">{{ $t("message.slippage") }} {{ slippage }}%</p> -->
+      <!-- <p class="mt-2 text-right text-xs text-neutral-400">{{ $t("message.slippage") }} {{ slippage }}%</p> -->
     </div>
     <div class="mt-2 flex justify-end">
       <div class="flex-[3] text-right text-14 font-medium text-neutral-typography-200">

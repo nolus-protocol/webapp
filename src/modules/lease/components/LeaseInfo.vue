@@ -72,7 +72,7 @@
             width="36"
             @dblclick="copy"
           />
-          <h1 class="nls-font-700 text-28 text-primary md:text-28">
+          <h1 class="text-28 font-semibold text-neutral-typography-200 md:text-28">
             <CurrencyComponent
               :amount="amount"
               :decimals="asset?.decimal_digits"
@@ -82,7 +82,7 @@
               :minimalDenom="asset!.ibcData"
               :type="CURRENCY_VIEW_TYPES.TOKEN"
             />
-            <span class="nls-font-400 ml-1 inline-block text-20 uppercase text-primary"> </span>
+            <span class="ml-1 inline-block text-20 font-normal uppercase text-neutral-typography-200"> </span>
           </h1>
         </div>
         <div class="flex flex-wrap gap-2 whitespace-nowrap text-10 font-medium uppercase text-medium-blue">
@@ -238,7 +238,7 @@
             width="36"
             @dblclick="copy"
           />
-          <h1 class="nls-font-700 text-28 text-primary md:text-28">
+          <h1 class="text-28 font-semibold text-neutral-typography-200 md:text-28">
             <CurrencyComponent
               :amount="amount"
               :decimals="asset?.decimal_digits"
@@ -248,7 +248,7 @@
               :minimalDenom="asset!.ibcData"
               :type="CURRENCY_VIEW_TYPES.TOKEN"
             />
-            <span class="nls-font-400 ml-1 inline-block text-20 uppercase text-primary"> </span>
+            <span class="ml-1 inline-block text-20 font-normal uppercase text-neutral-typography-200"> </span>
           </h1>
         </div>
         <div class="flex flex-wrap gap-2 whitespace-nowrap text-10 font-medium uppercase text-medium-blue">

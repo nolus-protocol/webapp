@@ -5,7 +5,7 @@
   >
     <div class="flex flex-col items-center">
       <XMarkIcon class="radius-circle z-[5] h-14 w-14 bg-light-red/30 p-2 text-dark-red" />
-      <h1 class="nls-font-700 z-[5] mt-4 text-center text-28 text-primary md:text-32">
+      <h1 class="z-[5] mt-4 text-center text-28 font-semibold text-neutral-typography-200 md:text-32">
         {{ $t("message.session-timeout") }}
       </h1>
     </div>
@@ -13,7 +13,7 @@
     <div class="separator-line relative z-[5] py-6"></div>
 
     <div class="flex flex-col items-center">
-      <p class="nls-font-400 z-[5] px-4 text-center text-18 text-primary md:px-10">
+      <p class="z-[5] px-4 text-center text-18 font-normal text-neutral-typography-200 md:px-10">
         {{ $t("message.session-timeout-message") }}
       </p>
 

@@ -30,7 +30,7 @@
         <div>{{ $t("message.voting-ends") }}: {{ formatDateTime(state.voting_end_time) }}</div>
       </div>
     </div>
-    <div class="text-small-heading break-all text-primary">&#35;{{ state.id }} {{ state.title }}</div>
+    <div class="text-small-heading break-all text-neutral-typography-200">&#35;{{ state.id }} {{ state.title }}</div>
     <ProposalVotingLine
       v-if="isVotingPeriod && Object.values(state.tally).filter((res) => !!Number(res)).length > 0"
       :voting="state.tally"

@@ -1,43 +1,43 @@
 <template>
   <ConfirmExternalComponent
     v-if="showConfirmScreen"
-    :network-type="NetworkTypes.cosmos"
-    :selectedCurrency="selectedCurrency!"
-    :receiverAddress="walletStore.wallet?.address as string"
     :amount="amount"
-    :memo="memo"
-    :txType="$t(`message.${TxType.SEND}`) + ':'"
-    :txHash="txHash"
-    :step="step"
     :fee="fee"
+    :memo="memo"
+    :network-type="NetworkTypes.cosmos"
     :networkCurrencies="networkCurrenciesObject"
     :networkKey="selectedNetwork.key"
     :networkSymbol="selectedNetwork.symbol"
-    :onSendClick="onSendClick"
     :onBackClick="onConfirmBackClick"
     :onOkClick="onClickOkBtn"
+    :onSendClick="onSendClick"
+    :receiverAddress="walletStore.wallet?.address as string"
+    :selectedCurrency="selectedCurrency!"
+    :step="step"
+    :txHash="txHash"
+    :txType="$t(`message.${TxType.SEND}`) + ':'"
   />
   <template v-else>
     <div
-      class="modal-send-receive-input-area custom-scroll overflow-auto"
       v-if="selectedNetwork.native"
+      class="modal-send-receive-input-area custom-scroll overflow-auto"
     >
       <div class="block text-left">
         <div class="mt-[25px] block">
           <Picker
             :default-option="networks[0]"
-            :options="networks"
-            :label="$t('message.network')"
-            @update-selected="onUpdateNetwork"
             :disable-input="true"
+            :label="$t('message.network')"
+            :options="networks"
+            @update-selected="onUpdateNetwork"
           />
         </div>
 
         <div class="mt-[18px] block">
-          <p class="nls-font-500 m-0 mb-[6px] text-14 text-primary">
+          <p class="m-0 mb-[6px] text-14 font-medium text-neutral-typography-200">
             {{ $t("message.address") }}
           </p>
-          <p class="nls-font-700 m-0 break-all text-14 text-primary">
+          <p class="m-0 break-all text-14 font-semibold text-neutral-typography-200">
             {{ WalletUtils.isAuth() ? walletStore.wallet?.address : $t("message.connect-wallet-label") }}
           </p>
           <div class="mt-2 flex items-center justify-start">
@@ -54,7 +54,7 @@
           </div>
         </div>
 
-        <div class="mt-4 flex w-full justify-between text-[14px] text-light-blue">
+        <div class="mt-4 flex w-full justify-between text-[14px] text-neutral-400">
           <p>{{ $t("message.estimate-time") }}:</p>
           <p>~{{ selectedNetwork.estimation }} {{ $t("message.sec") }}</p>
         </div>
@@ -62,8 +62,8 @@
     </div>
     <template v-else>
       <form
-        @submit.prevent="receive"
         class="modal-form overflow-auto"
+        @submit.prevent="receive"
       >
         <!-- Input Area -->
         <div class="modal-send-receive-input-area background">
@@ -71,38 +71,38 @@
             <div class="mt-[20px] block">
               <Picker
                 :default-option="selectedNetwork"
-                :options="networks"
+                :disable-input="true"
                 :label="$t('message.network')"
+                :options="networks"
                 :value="selectedNetwork"
                 @update-selected="onUpdateNetwork"
-                :disable-input="true"
               />
             </div>
 
             <div class="mt-[20px] block">
               <CurrencyField
                 id="amount"
+                :balance="formatCurrentBalance(selectedCurrency)"
                 :currency-options="networkCurrencies"
                 :disabled-currency-picker="disablePicker || disablePickerDialog"
-                :is-loading-picker="disablePicker"
                 :error-msg="amountErrorMsg"
                 :is-error="amountErrorMsg !== ''"
-                :option="selectedCurrency"
-                :value="amount"
-                :name="$t('message.amount')"
+                :is-loading-picker="disablePicker"
                 :label="$t('message.amount-receive')"
+                :name="$t('message.amount')"
+                :option="selectedCurrency"
                 :total="new KeplrCoin(selectedCurrency.balance.denom, selectedCurrency.balance.amount)"
-                :balance="formatCurrentBalance(selectedCurrency)"
-                @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
+                :value="amount"
                 @input="handleAmountChange($event)"
+                @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
               />
             </div>
 
             <div>
-              <p class="nls-font-500 m-0 mb-[6px] mt-2 text-14 text-primary">
+              <p class="m-0 mb-[6px] mt-2 text-14 font-medium text-neutral-typography-200">
                 {{ $t("message.recipient") }}
               </p>
-              <p class="nls-font-700 m-0 break-all text-14 text-primary">
+              <p class="m-0 break-all text-14 font-semibold text-neutral-typography-200">
                 {{ WalletUtils.isAuth() ? walletStore.wallet?.address : $t("message.connect-wallet-label") }}
               </p>
             </div>
@@ -111,12 +111,12 @@
         <!-- Actions -->
         <div class="modal-send-receive-actions background flex-col">
           <button
-            class="btn btn-primary btn-large-primary"
             :class="{ 'js-loading': isLoading }"
+            class="btn btn-primary btn-large-primary"
           >
             {{ $t("message.receive") }}
           </button>
-          <div class="my-2 flex w-full justify-between text-[14px] text-light-blue">
+          <div class="my-2 flex w-full justify-between text-[14px] text-neutral-400">
             <p>{{ $t("message.estimate-time") }}:</p>
             <p>~{{ selectedNetwork.estimation }} {{ $t("message.sec") }}</p>
           </div>
@@ -126,37 +126,35 @@
   </template>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import Picker from "@/common/components/Picker.vue";
 import CurrencyField from "@/common/components/CurrencyField.vue";
 import ConfirmExternalComponent from "@/common/components/modals/templates/ConfirmExternalComponent.vue";
 
 import type { AssetBalance } from "@/common/stores/wallet/types";
-import {
-  CONFIRM_STEP,
-  TxType,
-  type Network,
-  NetworkTypes,
-  type ExternalCurrency,
-  type IObjectKeys
-} from "@/common/types";
-import { onUnmounted, ref, type PropType, inject, watch, computed, nextTick } from "vue";
+import { CONFIRM_STEP, type ExternalCurrency, type Network, NetworkTypes, TxType } from "@/common/types";
+import { computed, inject, nextTick, onMounted, onUnmounted, type PropType, ref, watch } from "vue";
 import { DocumentDuplicateIcon } from "@heroicons/vue/24/solid";
 import { useI18n } from "vue-i18n";
-import { AssetUtils, EnvNetworkUtils, Logger, SkipRouter, WalletUtils } from "@/common/utils";
+import {
+  AppUtils,
+  AssetUtils,
+  EnvNetworkUtils,
+  externalWallet,
+  externalWalletOperation,
+  Logger,
+  WalletUtils
+} from "@/common/utils";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
-import { Wallet, BaseWallet } from "@/networks";
+import { BaseWallet, Wallet } from "@/networks";
 import { coin, type Coin } from "@cosmjs/amino";
 import { Decimal } from "@cosmjs/math";
-import { externalWalletOperation, externalWallet } from "@/common/utils";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Coin as KeplrCoin } from "@keplr-wallet/unit";
 import { useApplicationStore } from "@/common/stores/application";
-import { onMounted } from "vue";
 import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
 import { Networks } from "@nolus/nolusjs/build/types/Networks";
-import { AppUtils } from "@/common/utils";
 
 import {
   ErrorCodes,
@@ -167,7 +165,6 @@ import {
   ProtocolsConfig
 } from "@/config/global";
 import { CurrencyDemapping, CurrencyMapping, SOURCE_PORTS } from "@/config/currencies";
-import { MetaMaskWallet } from "@/networks/metamask";
 
 export interface ReceiveComponentProps {
   currentBalance: AssetBalance[];
