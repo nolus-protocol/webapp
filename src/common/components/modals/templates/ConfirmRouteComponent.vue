@@ -131,19 +131,11 @@
         </template>
       </div>
     </div>
-
-    <WarningBox
+    <NotificationBox
       v-if="isStepConfirm && (warning.length > 0 || txs > 1)"
-      :isWarning="true"
+      :type="NotificationBoxType.warning"
       class="mx-[18px] mb-[4px] lg:mx-[38px] lg:mb-[20px]"
     >
-      <template v-slot:icon>
-        <img
-          class="mx-auto my-0 block h-7 w-10"
-          src="@/assets/icons/information-circle.svg"
-        />
-      </template>
-
       <template v-slot:content>
         <span
           class="text-neutral-typography-200"
@@ -156,19 +148,13 @@
         </span>
         <span class="text-neutral-typography-200">.&#160;{{ warning }} </span>
       </template>
-    </WarningBox>
+    </NotificationBox>
 
-    <WarningBox
+    <NotificationBox
       v-if="isStepPending"
-      :isWarning="true"
+      :type="NotificationBoxType.warning"
       class="mx-[18px] mb-[4px] lg:mx-[38px] lg:mb-[20px]"
     >
-      <template v-slot:icon>
-        <img
-          class="mx-auto my-0 block h-7 w-10"
-          src="@/assets/icons/information-circle.svg"
-        />
-      </template>
       <template v-slot:content>
         <span class="text-neutral-typography-200">
           {{ $t("message.swap-warning") }}
@@ -180,8 +166,7 @@
           ></span
         >
       </template>
-    </WarningBox>
-
+    </NotificationBox>
     <!-- Actions -->
     <div class="modal-send-receive-actions">
       <button :class="`btn btn-primary btn-large-primary ${isStepPending ? 'js-loading' : ''}`">
@@ -192,7 +177,6 @@
 </template>
 
 <script lang="ts" setup>
-import WarningBox from "./WarningBox.vue";
 import { SwapStatus } from "../swap/types";
 import { computed, inject, onMounted, watch } from "vue";
 import { CheckIcon, XMarkIcon } from "@heroicons/vue/24/solid";
@@ -200,6 +184,7 @@ import { StringUtils } from "@/common/utils";
 import { CONFIRM_STEP } from "@/common/types";
 import { useApplicationStore } from "@/common/stores/application";
 import type { EvmNetwork, Network } from "@/common/types/Network";
+import { NotificationBox, NotificationBoxType } from "web-components";
 
 interface Props {
   fromAddress: string;

@@ -48,22 +48,16 @@
           </div>
         </template>
         <template v-else>
-          <WarningBox
-            :isWarning="true"
+          <NotificationBox
+            :type="NotificationBoxType.warning"
             class="mb-6"
           >
-            <template v-slot:icon>
-              <img
-                class="mx-auto my-0 block h-7 w-10"
-                src="@/assets/icons/information-circle.svg"
-              />
-            </template>
             <template v-slot:content>
               <span class="text-neutral-typography-200">
                 {{ $t("message.voting-warning") }}
               </span>
             </template>
-          </WarningBox>
+          </NotificationBox>
           <button
             class="btn btn-secondary btn-large-primary"
             @click="onDelegateClick"
@@ -81,7 +75,6 @@ import { type Coin, coin } from "@cosmjs/amino";
 import type { VoteComponentProps } from "@/modules/vote/types";
 
 import DialogHeader from "@/common/components/modals/templates/DialogHeader.vue";
-import WarningBox from "@/common/components/modals/templates/WarningBox.vue";
 import ConfirmVoteComponent from "@/common/components/modals/templates/ConfirmVoteComponent.vue";
 
 import { router } from "@/router";
@@ -94,6 +87,7 @@ import { CONFIRM_STEP, TxType } from "@/common/types";
 import { Logger, NetworkUtils, walletOperation } from "@/common/utils";
 import { MsgVote } from "cosmjs-types/cosmos/gov/v1/tx";
 import { longify } from "@cosmjs/stargate/build/queryclient";
+import { NotificationBox, NotificationBoxType } from "web-components";
 
 const props = defineProps({
   proposal: {

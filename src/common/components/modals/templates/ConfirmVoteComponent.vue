@@ -103,23 +103,15 @@
       </div>
     </div>
 
-    <WarningBox
+    <NotificationBox
       v-if="isStepConfirm"
-      :isWarning="true"
+      :type="NotificationBoxType.warning"
       class="mx-[38px] mb-[20px]"
     >
-      <template v-slot:icon>
-        <img
-          class="mx-auto my-0 block h-7 w-10"
-          src="@/assets/icons/information-circle.svg"
-        />
-      </template>
       <template v-slot:content>
-        <span class="text-neutral-typography-200">
-          {{ $t("message.amount-warning") }}
-        </span>
+        {{ $t("message.amount-warning") }}
       </template>
-    </WarningBox>
+    </NotificationBox>
 
     <!-- Actions -->
     <div class="modal-send-receive-actions">
@@ -131,8 +123,6 @@
 </template>
 
 <script lang="ts" setup>
-import WarningBox from "./WarningBox.vue";
-
 import type { Coin } from "@cosmjs/amino";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { computed, inject, onMounted, watch } from "vue";
@@ -141,6 +131,7 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { AssetUtils, StringUtils } from "@/common/utils";
 import { CONFIRM_STEP } from "@/common/types";
 import { useApplicationStore } from "@/common/stores/application";
+import { NotificationBox, NotificationBoxType } from "web-components";
 
 const applicaton = useApplicationStore();
 
