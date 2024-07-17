@@ -10,7 +10,7 @@ export const CONTRACTS: ContractConfig = {
       codeId: ""
     },
     admin: {
-      instance: "nolus1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsqxf8nd",
+      instance: "nolus17p9rzwnnfxcjp32un9ug7yhhzgtkhvl9jfksztgw5uh69wac2pgsmc5xhq",
       codeId: "",
       ignoreProtocols: ["OSMOSIS-OSMOSIS-USDC_NOBLE", "OSMOSIS-OSMOSIS-USDC_AXELAR", "osmosis-axlusdc"]
     }
@@ -24,7 +24,7 @@ export const CONTRACTS: ContractConfig = {
     admin: {
       instance: "nolus1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsqxf8nd",
       codeId: "",
-      ignoreProtocols: []
+      ignoreProtocols: ["NEUTRON-ASTROPORT-USDC_NOBLE"]
     }
   }
 };
@@ -37,11 +37,17 @@ export const ProtocolsConfig: {
     ignoreNetowrk: string[];
   };
 } = {
-  "OSMOSIS-OSMOSIS-USDC-1": {
+  "OSMOSIS-OSMOSIS-OSMO": {
     only: ["NLS"],
     lease: true,
     currencies: ["NLS", "OSMO", "USDC_AXELAR", "ATOM", "AKT", "JUNO"],
     ignoreNetowrk: ["NEUTRON"]
+  },
+  "NEUTRON-ASTROPORT-USDC_AXL": {
+    only: [],
+    lease: true,
+    currencies: ["NTRN", "USDC_AXELAR", "DYDX", "ST_TIA", "STK_ATOM", "ATOM"],
+    ignoreNetowrk: ["OSMOSIS"]
   },
   "OSMOSIS-OSMOSIS-USDC_AXELAR": {
     only: [],

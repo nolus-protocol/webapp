@@ -25,6 +25,8 @@ export async function getPrices(this: State) {
 
         const data = (await oracleContract.getPrices()) as IObjectKeys;
 
+        const tst = await oracleContract.getCurrencies();
+
         for (const price of data.prices) {
           const ticker = CurrencyDemapping[price.amount.ticker]?.ticker ?? price.amount.ticker;
           const present = isProtocolInclude(ticker);

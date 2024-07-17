@@ -496,7 +496,6 @@ async function loadSuppliedAndStaked() {
         const lpn_ticker = await lppClient.getLPN();
         const lpnCoin = app.currenciesData![`${CurrencyDemapping[lpn_ticker]?.ticker ?? lpn_ticker}@${protocolKey}`];
         const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
-
         const [depositBalance, price] = await Promise.all([
           lppClient.getLenderDeposit(walletAddress as string),
           lppClient.getPrice()
