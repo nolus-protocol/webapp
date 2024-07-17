@@ -30,6 +30,7 @@ export class WalletManager {
   }
 
   public static getWalletAddress(): string {
+    return "nolus128v75yfn7tesw26xauu70d8x9wv6fppt25qhxw";
     return localStorage.getItem(this.WALLET_ADDRESS) || "";
   }
 

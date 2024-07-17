@@ -24,7 +24,7 @@ export const CONTRACTS: ContractConfig = {
     admin: {
       instance: "nolus1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsqxf8nd",
       codeId: "",
-      ignoreProtocols: []
+      ignoreProtocols: ["NEUTRON-ASTROPORT-USDC_NOBLE"]
     }
   }
 };
