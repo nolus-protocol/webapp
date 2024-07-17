@@ -1,6 +1,6 @@
 <template>
   <form
-    class="px-10 py-6"
+    class="flex flex-col gap-8 px-10 py-6"
     @submit.prevent="modelValue.onNextClick"
   >
     <div class="flex flex-col gap-4">
@@ -27,10 +27,9 @@
     </div>
 
     <!-- Actions -->
-    <div class="flex flex-col justify-center text-center">
+    <div class="flex flex-col justify-center gap-8 text-center">
       <Button
         :label="$t('message.undelegated')"
-        class="my-8"
         severity="primary"
         size="large"
         type="submit"
