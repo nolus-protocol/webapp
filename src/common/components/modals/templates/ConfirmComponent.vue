@@ -1,5 +1,5 @@
 <template>
-  <div class="px-10 pb-6 pt-2.5">
+  <div class="pt-2.5">
     <!-- Header -->
     <div class="mb-6 flex w-full justify-center border-b-[1px] border-border-color pb-5">
       <div class="flex w-full flex-col items-center justify-center">
