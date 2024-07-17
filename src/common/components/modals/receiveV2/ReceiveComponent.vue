@@ -20,112 +20,69 @@
     :warning="route?.warning?.message ?? ''"
   />
   <template v-else>
-    <!-- <div
-      class="modal-send-receive-input-area custom-scroll overflow-auto"
-      v-if="selectedNetwork.native"
-    >
-      <div class="block text-left">
-        <div class="mt-[25px] block">
-          <Picker
-            :default-option="networks[0]"
-            :options="networks"
-            :label="$t('message.network')"
-            @update-selected="onUpdateNetwork"
-          />
-        </div>
-
-        <div class="mt-[18px] block">
-          <p class="font-medium m-0 mb-[6px] text-14 text-neutral-typography-200">
-            {{ $t("message.address") }}
-          </p>
-          <p class="font-semibold m-0 break-all text-14 text-neutral-typography-200">
-            {{ WalletUtils.isAuth() ? walletStore.wallet?.address : $t("message.connect-wallet-label") }}
-          </p>
-          <div class="mt-2 flex items-center justify-start">
-            <button
-              class="btn btn-secondary btn-medium-secondary btn-icon mr-2 flex"
-              @click="onCopy()"
-            >
-              <DocumentDuplicateIcon class="icon h-4 w-4" />
-              {{ copyText }}
-            </button>
-          </div>
-        </div>
-
-        <div class="mt-4 flex w-full justify-between text-[14px] text-neutral-400">
-          <p>{{ $t("message.estimate-time") }}:</p>
-          <p>~{{ selectedNetwork.estimation }} {{ $t("message.sec") }}</p>
-        </div>
-      </div>
-    </div> -->
-    <!-- <template v-else> -->
     <form
-      class="modal-form overflow-auto"
+      class="flex flex-col gap-6 overflow-auto px-10 pb-8 pt-6"
       @submit.prevent="onSendClick"
     >
       <!-- Input Area -->
-      <div class="modal-send-receive-input-area background">
-        <div class="block text-left">
-          <div class="mt-[20px] flex flex-col">
-            <Picker
-              :default-option="selectedNetwork"
-              :label="$t('message.network')"
-              :options="networks"
-              :value="selectedNetwork"
-              @update-selected="onUpdateNetwork"
+      <div class="flex flex-col gap-6 text-left">
+        <div class="flex flex-col">
+          <Picker
+            :default-option="selectedNetwork"
+            :label="$t('message.network')"
+            :options="networks"
+            :value="selectedNetwork"
+            @update-selected="onUpdateNetwork"
+          />
+          <button
+            v-if="selectedNetwork.chain_type == 'evm'"
+            :class="{ 'js-loading': isMetamaskLoading }"
+            class="btn btn-secondary btn-medium-secondary mt-2 flex self-end !text-12 font-semibold text-neutral-typography-200"
+            type="button"
+            @click="connectEvm"
+          >
+            <img
+              class="mr-1"
+              src="@/assets/icons/metamask.svg"
             />
-            <button
-              v-if="selectedNetwork.chain_type == 'evm'"
-              :class="{ 'js-loading': isMetamaskLoading }"
-              class="btn btn-secondary btn-medium-secondary mt-2 flex self-end !text-12 font-semibold text-neutral-typography-200"
-              type="button"
-              @click="connectEvm"
-            >
-              <img
-                class="mr-1"
-                src="@/assets/icons/metamask.svg"
-              />
-              {{ evmAddress == null || evmAddress?.length == 0 ? $t("message.connect") : evmAddress }}
-            </button>
-          </div>
-          <div class="mt-[20px] block">
-            <CurrencyField
-              id="amount"
-              :balance="formatCurrentBalance(selectedCurrency)"
-              :currency-options="networkCurrencies"
-              :disabled-currency-picker="disablePicker || disablePickerDialog"
-              :error-msg="amountErrorMsg"
-              :is-error="amountErrorMsg !== ''"
-              :is-loading-picker="disablePicker"
-              :label="$t('message.amount-receive')"
-              :name="$t('message.amount')"
-              :option="selectedCurrency"
-              :total="new KeplrCoin(selectedCurrency.balance.denom, selectedCurrency.balance.amount)"
-              :value="amount"
-              @input="handleAmountChange($event)"
-              @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
-            />
-          </div>
-
-          <div>
-            <p class="m-0 mb-[6px] mt-2 text-14 font-medium text-neutral-typography-200">
-              {{ $t("message.recipient") }}
-            </p>
-            <p class="m-0 break-all text-14 font-semibold text-neutral-typography-200">
-              {{ WalletUtils.isAuth() ? walletStore.wallet?.address : $t("message.connect-wallet-label") }}
-            </p>
-          </div>
+            {{ evmAddress == null || evmAddress?.length == 0 ? $t("message.connect") : evmAddress }}
+          </button>
+        </div>
+        <CurrencyField
+          id="amount"
+          :balance="formatCurrentBalance(selectedCurrency)"
+          :currency-options="networkCurrencies"
+          :disabled-currency-picker="disablePicker || disablePickerDialog"
+          :error-msg="amountErrorMsg"
+          :is-error="amountErrorMsg !== ''"
+          :is-loading-picker="disablePicker"
+          :label="$t('message.amount-receive')"
+          :name="$t('message.amount')"
+          :option="selectedCurrency"
+          :total="new KeplrCoin(selectedCurrency.balance.denom, selectedCurrency.balance.amount)"
+          :value="amount"
+          @input="handleAmountChange($event)"
+          @update-currency="(event: AssetBalance) => (selectedCurrency = event)"
+        />
+        <div>
+          <p class="mb-[6px] mt-2 text-14 font-medium text-neutral-typography-200">
+            {{ $t("message.recipient") }}
+          </p>
+          <p class="break-all text-14 font-semibold text-neutral-typography-200">
+            {{ WalletUtils.isAuth() ? walletStore.wallet?.address : $t("message.connect-wallet-label") }}
+          </p>
         </div>
       </div>
       <!-- Actions -->
-      <div class="modal-send-receive-actions background flex-col">
-        <button
-          :class="{ 'js-loading': isLoading }"
-          class="btn btn-primary btn-large-primary"
-        >
-          {{ $t("message.receive") }}
-        </button>
-        <div class="my-2 flex w-full justify-between text-[14px] text-neutral-400">
+      <div class="flex flex-col gap-6">
+        <Button
+          :label="$t('message.receive')"
+          :loading="isLoading"
+          severity="primary"
+          size="large"
+          type="submit"
+        />
+        <div class="flex w-full justify-between text-[14px] text-neutral-400">
           <p>{{ $t("message.estimate-time") }}:</p>
           <template v-if="selectedNetwork.chain_type == 'evm'">
             <p>
@@ -140,7 +97,6 @@
       </div>
     </form>
   </template>
-  <!-- </template> -->
 </template>
 
 <script lang="ts" setup>
@@ -177,6 +133,7 @@ import { MetaMaskWallet } from "@/networks/metamask";
 
 import { CONFIRM_STEP, type IObjectKeys, type Network, type SkipRouteConfigType, TxType } from "@/common/types";
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
+import { Button } from "web-components";
 
 export interface ReceiveComponentProps {
   currentBalance: AssetBalance[];
