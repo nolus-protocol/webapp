@@ -15,7 +15,7 @@
         :href="item.path"
         :target="item.target"
         :to="item.path"
-        class="sidebar-element nls-nav-link flex items-center gap-2.5 py-2.5 pl-4 font-garet-medium text-16 text-primary [&:not(:last-child)]:border-b-[1px]"
+        class="sidebar-element nls-nav-link flex items-center gap-2.5 py-2.5 pl-4 font-garet-medium text-16 text-neutral-typography-200 [&:not(:last-child)]:border-b-[1px]"
         @click="showMobileNav = false"
       >
         <span

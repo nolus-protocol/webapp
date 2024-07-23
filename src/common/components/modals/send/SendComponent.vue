@@ -1,7 +1,7 @@
 <template>
   <form
-    @submit.prevent="modelValue.onNextClick"
     class="modal-form"
+    @submit.prevent="modelValue.onNextClick"
   >
     <!-- Input Area -->
     <div class="modal-send-receive-input-area background">
@@ -9,38 +9,38 @@
         <div class="mt-[20px] block">
           <Picker
             :default-option="networks[0]"
-            :options="networks"
+            :disable-input="true"
             :label="$t('message.network')"
+            :options="networks"
             :value="modelValue.network"
             @update-selected="onUpdateCurrency"
-            :disable-input="true"
           />
         </div>
 
         <div class="mt-[20px] block">
           <CurrencyField
             id="amount"
+            :balance="formatCurrentBalance(modelValue.selectedCurrency)"
             :currency-options="modelValue.currentBalance"
             :disabled-currency-picker="disablePickerDialog"
             :error-msg="modelValue.amountErrorMsg"
             :is-error="modelValue.amountErrorMsg !== ''"
-            :option="modelValue.selectedCurrency"
-            :value="modelValue.amount"
-            :name="$t('message.amount')"
             :label="$t('message.amount-field')"
+            :name="$t('message.amount')"
+            :option="modelValue.selectedCurrency"
+            :total="modelValue.selectedCurrency.balance"
+            :value="modelValue.amount"
             @input="handleAmountChange($event)"
             @update-currency="onUpdateSelectedCurrency"
-            :balance="formatCurrentBalance(modelValue.selectedCurrency)"
-            :total="modelValue.selectedCurrency.balance"
           />
         </div>
         <div v-if="modelValue.network.native">
           <InputField
+            id="sendTo"
             :error-msg="modelValue.receiverErrorMsg"
             :is-error="modelValue.receiverErrorMsg !== ''"
-            :value="modelValue.receiverAddress"
             :label="$t('message.recipient')"
-            id="sendTo"
+            :value="modelValue.receiverAddress"
             name="sendTo"
             type="text"
             @input="(event) => (modelValue.receiverAddress = event.target.value)"
@@ -48,10 +48,10 @@
         </div>
 
         <div v-else>
-          <p class="nls-font-500 m-0 mb-[6px] mt-2 text-14 text-primary">
+          <p class="m-0 mb-[6px] mt-2 text-14 font-medium text-neutral-typography-200">
             {{ $t("message.recipient") }}
           </p>
-          <p class="nls-font-700 m-0 break-all text-14 text-primary">
+          <p class="m-0 break-all text-14 font-semibold text-neutral-typography-200">
             {{ WalletUtils.isAuth() ? modelValue.wallet : $t("message.connect-wallet-label") }}
           </p>
         </div>
@@ -62,7 +62,7 @@
       <button class="btn btn-primary btn-large-primary">
         {{ $t("message.send") }}
       </button>
-      <div class="my-2 flex w-full justify-between text-[14px] text-light-blue">
+      <div class="my-2 flex w-full justify-between text-[14px] text-neutral-400">
         <p>{{ $t("message.estimate-time") }}:</p>
         <p>~{{ modelValue.network.estimation }} {{ $t("message.sec") }}</p>
       </div>
@@ -70,8 +70,9 @@
   </form>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import type { PropType } from "vue";
+import { computed, nextTick, onMounted, ref } from "vue";
 import type { SendComponentProps } from "./types";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { Network } from "@/common/types";
@@ -81,12 +82,10 @@ import InputField from "@/common/components/InputField.vue";
 import CurrencyField from "@/common/components/CurrencyField.vue";
 
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { AssetUtils, EnvNetworkUtils, WalletUtils } from "@/common/utils";
-import { computed, ref, onMounted, nextTick } from "vue";
+import { AppUtils, AssetUtils, EnvNetworkUtils, WalletUtils } from "@/common/utils";
 import { NETWORKS_DATA } from "@/networks";
 import { useApplicationStore } from "@/common/stores/application";
 import { IGNORE_LPN, LPN_NETWORK, NATIVE_NETWORK, ProtocolsConfig } from "@/config/global";
-import { AppUtils } from "@/common/utils";
 
 const props = defineProps({
   modelValue: {

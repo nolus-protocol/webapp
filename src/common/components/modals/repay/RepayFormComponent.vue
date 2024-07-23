@@ -1,48 +1,51 @@
 <template>
   <form
+    class="flex flex-col gap-6"
     @submit.prevent="modelValue.onNextClick"
-    class="w-full"
   >
-    <div class="mt-10 block px-5 py-[5px] text-left lg:px-10">
+    <div class="flex flex-col gap-6">
       <CurrencyField
         id="repayBalance"
-        name="repayBalance"
-        :label="$t('message.amount-field')"
-        :value="modelValue.amount"
+        :balance="formatCurrentBalance(modelValue.selectedCurrency)"
         :currency-options="modelValue.currentBalance"
-        :option="modelValue.selectedCurrency"
         :error-msg="modelValue.amountErrorMsg"
         :is-error="modelValue.amountErrorMsg !== ''"
-        :balance="formatCurrentBalance(modelValue.selectedCurrency)"
+        :label="$t('message.amount-field')"
+        :option="modelValue.selectedCurrency"
         :total="modelValue.selectedCurrency.balance"
+        :value="modelValue.amount"
+        name="repayBalance"
         @input="handleAmountChange($event)"
         @update-currency="(event) => (modelValue.selectedCurrency = event)"
       />
-      <div class="mt-[12px] flex justify-end">
-        <div class="grow-3 nls-font-500 dark-text text-right text-14">
+      <div class="flex justify-end">
+        <div class="grow-3 text-right text-14 font-medium text-neutral-typography-200">
           <p class="mb-2 mr-5 mt-[14px]">{{ $t("message.repayment-amount") }}:</p>
         </div>
-        <div class="nls-font-700 text-right text-14">
-          <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">
+        <div class="text-right text-14 font-semibold">
+          <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
             <a
-              @click="setRepayAmount"
               class="cursor-pointer select-none"
+              @click="setRepayAmount"
             >
               {{ amount.amount }}
-              <span class="nls-font-400 ml-[6px] text-[13px] text-light-blue"> (${{ amount.amountInStable }}) </span>
+              <span class="ml-[6px] text-[13px] font-normal text-neutral-400"> (${{ amount.amountInStable }}) </span>
             </a>
-            <TooltipComponent
+            <Tooltip
               :content="$t('message.outstanding-debt-tooltip', { fee: (modelValue.swapFee * 100).toFixed(2) })"
             />
           </p>
         </div>
       </div>
     </div>
-    <div class="modal-send-receive-actions flex flex-col">
-      <button class="btn btn-primary btn-large-primary text-center">
-        {{ $t("message.repay") }}
-      </button>
-      <div class="my-2 flex w-full justify-between text-[14px] text-light-blue">
+    <div class="flex flex-col gap-6">
+      <Button
+        :label="$t('message.repay')"
+        severity="primary"
+        size="large"
+        type="submit"
+      />
+      <div class="flex w-full justify-between text-[14px] text-neutral-400">
         <p>{{ $t("message.estimate-time") }}:</p>
         <p>~{{ NATIVE_NETWORK.longOperationsEstimation }} {{ $t("message.sec") }}</p>
       </div>
@@ -50,21 +53,21 @@
   </form>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import CurrencyField from "@/common/components/CurrencyField.vue";
-import TooltipComponent from "@/common/components/TooltipComponent.vue";
 
 import type { RepayComponentProps } from "./types";
-import { type PropType, computed } from "vue";
+import { computed, type PropType } from "vue";
 
 import { CoinPretty, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/common/stores/oracle";
-import { NATIVE_NETWORK, PERMILLE, PERCENT, LPN_DECIMALS, LPN_Symbol } from "@/config/global";
+import { LPN_DECIMALS, LPN_Symbol, NATIVE_NETWORK, PERCENT, PERMILLE } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
 import { LeaseUtils } from "@/common/utils";
 import type { ExternalCurrency } from "@/common/types";
 import { CurrencyDemapping } from "@/config/currencies";
+import { Button, Tooltip } from "web-components";
 
 const oracle = useOracleStore();
 const app = useApplicationStore();

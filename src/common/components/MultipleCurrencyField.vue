@@ -1,33 +1,33 @@
 <template>
   <div class="currency-field-container block">
     <div
-      class="currency-field"
       :class="[isError === true ? 'error' : '']"
+      class="currency-field"
     >
       <div class="flex items-center p-2.5 p-3.5">
         <div class="inline-block w-[135px]">
           <CurrencyPicker
-            clsass="w-[135px]"
             :currencyOption="selectedOption!"
-            :options="currencyOptions"
             :disabled="disabled || isLoading"
             :is-loading="isLoading"
+            :options="currencyOptions"
+            clsass="w-[135px]"
             @update-currency="(value) => $emit('updateCurrency', value)"
           />
         </div>
         <div class="inline-block flex-1">
           <input
-            class="nls-font-700 background text-right text-18 text-primary"
             v-model="numberValue"
+            :disabled="disabled"
             autocomplete="off"
+            class="background text-right text-18 font-semibold text-neutral-typography-200"
             placeholder="0"
             @keydown="inputValue"
-            @keypress.space.prevent
-            @paste="onPaste"
             @keyup="setValue(true)"
-            :disabled="disabled"
+            @paste="onPaste"
+            @keypress.space.prevent
           />
-          <span class="nls-font-400 block text-right text-14 text-light-blue">
+          <span class="block text-right text-14 font-normal text-neutral-400">
             {{ swapBalance }}
           </span>
         </div>
@@ -35,10 +35,10 @@
 
       <div class="separator m-auto w-[calc(100%-38px)]">
         <button
-          type="button"
-          class="arrow-box transfer background !p-[4px]"
-          @click="$emit('changeFields')"
           :disabled="disabled"
+          class="arrow-box transfer background !p-[4px]"
+          type="button"
+          @click="$emit('changeFields')"
         >
           <ArrowDownIcon />
         </button>
@@ -47,27 +47,27 @@
       <div class="flex items-center p-2.5 p-3.5">
         <div class="inline-block w-[135px]">
           <CurrencyPicker
-            clsass="w-[135px]"
             :currencyOption="swapToOption!"
-            :options="currencyOptions"
             :disabled="disabled || isLoading"
             :is-loading="isLoading"
+            :options="currencyOptions"
+            clsass="w-[135px]"
             @update-currency="(value) => $emit('updateSwapToCurrency', value)"
           />
         </div>
         <div class="inline-block flex-1">
           <input
-            class="nls-font-700 background text-right text-18 text-primary"
-            autocomplete="off"
-            placeholder="0"
             v-model="numberSwapValue"
-            @keydown="inputValue"
-            @keypress.space.prevent
-            @paste="onPaste"
-            @keyup="setSwapValue(true)"
             :disabled="disabled"
+            autocomplete="off"
+            class="background text-right text-18 font-semibold text-neutral-typography-200"
+            placeholder="0"
+            @keydown="inputValue"
+            @keyup="setSwapValue(true)"
+            @paste="onPaste"
+            @keypress.space.prevent
           />
-          <span class="nls-font-400 block text-right text-14 text-light-blue">
+          <span class="block text-right text-14 font-normal text-neutral-400">
             {{ swapToBalance }}
           </span>
         </div>
@@ -75,8 +75,8 @@
     </div>
 
     <span
-      class="msg error"
       :class="{ hidden: !errorMsg?.length }"
+      class="msg error"
     >
       {{ errorMsg }}
     </span>

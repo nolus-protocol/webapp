@@ -1,44 +1,41 @@
 <template>
   <form
-    class="modal-form"
+    class="flex flex-col gap-8 px-10 py-6"
     @submit.prevent="submit"
   >
     <!-- Input Area -->
-    <div class="modal-send-receive-input-area">
-      <div class="mt-[25px] block text-left">
-        <CurrencyField
-          id="amountSupply"
-          :currency-options="modelValue.currentBalance"
-          :error-msg="modelValue.amountErrorMsg"
-          :is-error="modelValue.amountErrorMsg !== ''"
-          :option="modelValue.selectedCurrency"
-          :value="modelValue.amount"
-          :label="$t('message.amount')"
-          :balance="formatCurrentBalance(modelValue.selectedCurrency)"
-          :total="modelValue.selectedCurrency?.balance"
-          :disabled-currency-picker="modelValue.disabled"
-          name="amountSupply"
-          @input="handleAmountChange($event)"
-          @update-currency="(event) => (props.modelValue.selectedCurrency = event)"
-        />
-      </div>
-    </div>
+    <CurrencyField
+      id="amountSupply"
+      :balance="formatCurrentBalance(modelValue.selectedCurrency)"
+      :currency-options="modelValue.currentBalance"
+      :disabled-currency-picker="modelValue.disabled"
+      :error-msg="modelValue.amountErrorMsg"
+      :is-error="modelValue.amountErrorMsg !== ''"
+      :label="$t('message.amount')"
+      :option="modelValue.selectedCurrency"
+      :total="modelValue.selectedCurrency?.balance"
+      :value="modelValue.amount"
+      class="text-left"
+      name="amountSupply"
+      @input="handleAmountChange($event)"
+      @update-currency="(event) => (props.modelValue.selectedCurrency = event)"
+    />
     <!-- Actions -->
-    <div class="modal-send-receive-actions">
-      <button
-        class="btn btn-primary btn-large-primary min-h-[44px] text-center"
-        :class="{ 'js-loading': props.modelValue.loading }"
-        :disabled="!props.modelValue.supply || disabled.includes(modelValue.selectedCurrency.key)"
-      >
-        {{
-          props.modelValue.loading
-            ? ""
-            : props.modelValue.supply
-              ? $t("message.supply")
-              : $t("message.supply-limit-reached")
-        }}
-      </button>
-    </div>
+    <Button
+      :disabled="!props.modelValue.supply || disabled.includes(modelValue.selectedCurrency.key)"
+      :label="
+        props.modelValue.loading
+          ? ''
+          : props.modelValue.supply
+            ? $t('message.supply')
+            : $t('message.supply-limit-reached')
+      "
+      :loading="props.modelValue.loading"
+      class="w-full"
+      severity="primary"
+      size="large"
+      type="submit"
+    />
   </form>
 </template>
 
@@ -48,6 +45,8 @@ import type { PropType } from "vue";
 import type { ExternalCurrency } from "@/common/types";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import CurrencyField from "@/common/components/CurrencyField.vue";
+import { Button } from "web-components";
+
 const disabled = ["USDC_AXELAR@OSMOSIS-OSMOSIS-USDC_AXELAR"];
 
 const props = defineProps({

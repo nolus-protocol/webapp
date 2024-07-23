@@ -3,23 +3,23 @@
     <div class="input-field block">
       <label
         :for="id"
-        class="nls-font-500 data-text block text-14 text-primary"
+        class="data-text block text-14 font-medium text-neutral-typography-200"
       >
         {{ label }}
       </label>
       <input
-        autocomplete="off"
         :id="id"
         :class="{ error: isError }"
         :name="name"
         :type="type"
         :value="value"
-        @input="$emit('update:value', handleInputChange($event))"
+        autocomplete="off"
         class="mt-[4px]"
+        @input="$emit('update:value', handleInputChange($event))"
       />
       <span
-        class="msg error"
         :class="{ hidden: !errorMsg.length }"
+        class="msg error"
       >
         {{ errorMsg }}
       </span>
@@ -27,7 +27,7 @@
   </fieldset>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 defineProps({
   type: {
     type: String

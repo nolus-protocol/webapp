@@ -14,7 +14,7 @@
           v-if="isStepError || isStepCustomError"
           class="radius-circle error-icon mb-2 h-14 w-14 p-2"
         />
-        <h1 class="nls-font-700 text-center text-28 text-primary md:text-32">
+        <h1 class="text-center text-28 font-semibold text-neutral-typography-200 md:text-32">
           {{ $t(`message.${step}`) }}
         </h1>
       </div>
@@ -47,15 +47,15 @@
     <div class="modal-send-receive-input-area pt-0">
       <div class="radius-rounded mt-[25px] block break-words bg-light-grey p-4 text-left">
         <div class="block">
-          <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.proposal") }}:</p>
-          <p class="nls-font-700 m-0 text-14 text-primary">
+          <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ $t("message.proposal") }}:</p>
+          <p class="m-0 text-14 font-semibold text-neutral-typography-200">
             {{ proposal }}
           </p>
         </div>
 
         <div class="mt-3 block">
-          <p class="nls-font-400 m-0 text-14 text-primary">{{ txType }}</p>
-          <p class="nls-font-700 m-0 text-14 text-primary">
+          <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ txType }}</p>
+          <p class="m-0 text-14 font-semibold text-neutral-typography-200">
             <template v-if="vote == VoteOption.VOTE_OPTION_YES">
               {{ $t("message.yes") }}
             </template>
@@ -74,8 +74,8 @@
         </div>
 
         <div class="mt-3 block">
-          <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.voter") }}:</p>
-          <p class="nls-font-700 m-0 text-14 text-primary">
+          <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ $t("message.voter") }}:</p>
+          <p class="m-0 text-14 font-semibold text-neutral-typography-200">
             {{ receiverAddress }}
           </p>
         </div>
@@ -84,7 +84,7 @@
           v-if="txHash"
           class="mt-3 block"
         >
-          <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.tx-hash") }}:</p>
+          <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ $t("message.tx-hash") }}:</p>
           <a
             :href="`${applicaton.network.networkAddresses.explorer}/${txHash}`"
             class="his-url m-0 text-14"
@@ -97,29 +97,21 @@
           v-if="fee"
           class="mt-3 block"
         >
-          <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.tx-and-fee") }}:</p>
-          <p class="nls-font-700 m-0 text-14 text-primary">~{{ calculateFee(fee) }}</p>
+          <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ $t("message.tx-and-fee") }}:</p>
+          <p class="m-0 text-14 font-semibold text-neutral-typography-200">~{{ calculateFee(fee) }}</p>
         </div>
       </div>
     </div>
 
-    <WarningBox
+    <NotificationBox
       v-if="isStepConfirm"
-      :isWarning="true"
+      :type="NotificationBoxType.warning"
       class="mx-[38px] mb-[20px]"
     >
-      <template v-slot:icon>
-        <img
-          class="mx-auto my-0 block h-7 w-10"
-          src="@/assets/icons/information-circle.svg"
-        />
-      </template>
       <template v-slot:content>
-        <span class="text-primary">
-          {{ $t("message.amount-warning") }}
-        </span>
+        {{ $t("message.amount-warning") }}
       </template>
-    </WarningBox>
+    </NotificationBox>
 
     <!-- Actions -->
     <div class="modal-send-receive-actions">
@@ -131,8 +123,6 @@
 </template>
 
 <script lang="ts" setup>
-import WarningBox from "./WarningBox.vue";
-
 import type { Coin } from "@cosmjs/amino";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { computed, inject, onMounted, watch } from "vue";
@@ -141,6 +131,7 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { AssetUtils, StringUtils } from "@/common/utils";
 import { CONFIRM_STEP } from "@/common/types";
 import { useApplicationStore } from "@/common/stores/application";
+import { NotificationBox, NotificationBoxType } from "web-components";
 
 const applicaton = useApplicationStore();
 

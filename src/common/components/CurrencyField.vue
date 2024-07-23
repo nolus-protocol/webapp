@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between">
       <label
         :for="id"
-        class="nls-font-500 data-text flex text-14"
+        class="data-text flex text-14 font-medium"
       >
         {{ label }}
         <TooltipComponent
@@ -21,55 +21,58 @@
     </div>
 
     <div
-      class="currency-field currency-field p-2.5 p-3.5"
       :class="{ error: isError }"
+      class="currency-field currency-field p-2.5 p-3.5"
     >
       <div class="flex items-center">
         <div class="inline-block">
           <CurrencyPicker
             :currency-option="option"
             :disabled="disabledCurrencyPicker"
-            :options="currencyOptions"
-            @update-currency="onUpdateCurrency"
             :isLoading="isLoadingPicker"
+            :options="currencyOptions"
             type="small"
+            @update-currency="onUpdateCurrency"
           />
         </div>
         <div class="inline-block flex-1">
           <input
             :id="id"
+            v-model="numberValue"
             :disabled="disabledInputField"
             :name="name"
-            v-model="numberValue"
-            autocomplete="off"
-            class="nls-font-700 background text-right text-18 text-primary"
-            @keydown="inputValue"
-            @keypress.space.prevent
-            @paste="onPaste"
-            @keyup="setValue"
             :placeholder="placeholder"
+            autocomplete="off"
+            class="background text-right text-18 font-semibold text-neutral-typography-200"
+            @keydown="inputValue"
+            @keyup="setValue"
+            @paste="onPaste"
+            @keypress.space.prevent
           />
-          <span class="nls-font-400 block text-right text-14 text-light-blue">
+          <span class="block text-right text-14 font-normal text-neutral-400">
             {{ calculateInputBalance() }}
           </span>
         </div>
       </div>
     </div>
 
-    <div class="repayment items-start justify-between">
+    <div
+      v-if="errorMsg"
+      class="repayment items-start justify-between"
+    >
       <span class="msg error"> &nbsp;{{ errorMsg }} </span>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { ExternalCurrency } from "@/common/types/Currecies";
 
 import CurrencyPicker from "./CurrencyPicker.vue";
 import TooltipComponent from "./TooltipComponent.vue";
 
-import { onMounted, ref, watch, type PropType } from "vue";
+import { onMounted, type PropType, ref, watch } from "vue";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/common/stores/oracle";

@@ -1,58 +1,49 @@
 <template>
   <!-- Input Area -->
-  <form
-    @submit.prevent="submit"
-    class="modal-form"
-  >
-    <div class="modal-send-receive-input-area">
-      <div class="block text-left">
-        <div class="block">
-          <CurrencyField
-            id="amount-investment"
-            :currency-options="balances"
-            :error-msg="modelValue.downPaymentErrorMsg"
-            :is-error="modelValue.downPaymentErrorMsg !== ''"
-            :option="modelValue.selectedDownPaymentCurrency"
-            :value="modelValue.downPayment"
-            :label="$t('message.down-payment-uppercase')"
-            name="amountInvestment"
-            :tooltip="$t('message.down-payment-tooltip')"
-            :balance="formatCurrentBalance(modelValue.selectedDownPaymentCurrency)"
-            :total="modelValue.selectedDownPaymentCurrency.balance"
-            @input="handleDownPaymentChange($event)"
-            @update-currency="(event) => (modelValue.selectedDownPaymentCurrency = event)"
-          />
-        </div>
-        <div class="mt-[12px] block">
-          <Picker
-            class="scrollbar"
-            :default-option="coinList[selectedIndex]"
-            :options="coinList"
-            :label="$t('message.asset-to-lease')"
-            @update-selected="updateSelected"
-          />
-        </div>
-      </div>
+  <form @submit.prevent="submit">
+    <div class="flex flex-col gap-4 overflow-x-hidden">
+      <CurrencyField
+        id="amount-investment"
+        :balance="formatCurrentBalance(modelValue.selectedDownPaymentCurrency)"
+        :currency-options="balances"
+        :error-msg="modelValue.downPaymentErrorMsg"
+        :is-error="modelValue.downPaymentErrorMsg !== ''"
+        :label="$t('message.down-payment-uppercase')"
+        :option="modelValue.selectedDownPaymentCurrency"
+        :tooltip="$t('message.down-payment-tooltip')"
+        :total="modelValue.selectedDownPaymentCurrency.balance"
+        :value="modelValue.downPayment"
+        name="amountInvestment"
+        @input="handleDownPaymentChange($event)"
+        @update-currency="(event) => (modelValue.selectedDownPaymentCurrency = event)"
+      />
+      <Picker
+        :default-option="coinList[selectedIndex]"
+        :label="$t('message.asset-to-lease')"
+        :options="coinList"
+        class="scrollbar text-left"
+        @update-selected="updateSelected"
+      />
 
-      <div class="garet-medium mt-6 flex justify-between text-[14px] text-primary">
-        <p class="pb-0">
+      <div class="flex justify-between text-[14px] font-medium text-neutral-typography-200">
+        <p>
           {{ $t("message.margin") }}
         </p>
         <p class="flex">
           ~{{ calculateMarginAmount }}
-          <TooltipComponent :content="$t('message.lease-swap-fee-tooltip', { swap_fee: swapFee * 100 })" />
+          <Tooltip :content="$t('message.lease-swap-fee-tooltip', { swap_fee: swapFee * 100 })" />
         </p>
       </div>
 
       <RangeComponent
-        class="my-2 py-4"
         :disabled="false"
+        class="my-2 mr-[18px]"
         @on-drag="onDrag"
       >
       </RangeComponent>
 
       <div class="flex justify-end">
-        <div class="grow-3 nls-font-500 dark-text text-right text-14">
+        <div class="grow-3 text-right text-14 font-medium text-neutral-typography-200">
           <p class="mb-2 mr-5 mt-[14px]">
             {{ $t("message.borrowed") }}
           </p>
@@ -63,57 +54,62 @@
             {{ $t("message.liquidation-price") }}
           </p>
         </div>
-        <div class="nls-font-700 text-right text-14">
-          <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">
-            ${{ borrowed }}
-            <TooltipComponent :content="$t('message.borrowed-tooltip')" />
+        <div class="text-right text-14 font-semibold">
+          <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
+            <span class="mt-[1px]">${{ borrowed }}</span>
+            <Tooltip :content="$t('message.borrowed-tooltip')" />
           </p>
-          <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">
+          <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
             <template v-if="FREE_INTEREST_ASSETS.includes(selectedAssetDenom)">
               <span
                 v-if="annualInterestRate"
-                class="line-throught-gray text-[#8396B1]"
+                class="line-throught-gray mt-[1px] text-[#8396B1]"
               >
                 {{ annualInterestRate ?? 0 }}%
               </span>
-              <span class="dark-text">0%</span>
+              <span class="mt-[1px] text-neutral-typography-200">0%</span>
             </template>
             <template v-else>
               <span class="text-[#8396B1]"> {{ annualInterestRate ?? 0 }}% </span>
             </template>
 
-            <TooltipComponent :content="$t('message.interest-tooltip')" />
+            <Tooltip :content="$t('message.interest-tooltip')" />
           </p>
-          <p class="align-center dark-text mb-2 mt-[14px] flex justify-end">
-            {{ calculateLique }}
-            <span class="text-[#8396B1]"> &nbsp;|&nbsp; {{ percentLique }} </span>
-            <TooltipComponent :content="$t('message.liquidation-price-tooltip')" />
+          <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
+            <span class="mt-[1px]">{{ calculateLique }}</span>
+            <span class="mt-[1px] text-[#8396B1]"> &nbsp;|&nbsp; {{ percentLique }} </span>
+            <Tooltip :content="$t('message.liquidation-price-tooltip')" />
           </p>
         </div>
       </div>
 
-      <div class="border-standart flex justify-end border-t pt-2">
-        <div class="grow-3 nls-font-500 dark-text text-right text-14">
+      <div class="flex justify-end border-t border-border-color pt-2">
+        <div class="grow-3 text-right text-14 font-medium text-neutral-typography-200">
           <p class="mr-5 mt-2 text-[12px]">{{ $t("message.price-per") }} {{ selectedAssetDenom }}</p>
           <p class="mr-5 mt-2 text-[12px]">
             {{ $t("message.swap-fee") }}
-            <span class="nls-font-400 text-[#8396B1]"> ({{ (swapFee * 100).toFixed(2) }}%) </span>
+            <span class="font-normal text-[#8396B1]"> ({{ (swapFee * 100).toFixed(2) }}%) </span>
           </p>
         </div>
-        <div class="nls-font-700 text-right text-14">
-          <p class="align-center dark-text mt-[5px] flex justify-end text-[12px]">
+        <div class="text-right text-14 font-semibold">
+          <p class="align-center mt-[8px] flex justify-end text-[12px] text-neutral-typography-200">
             {{ selectedAssetPrice }}
           </p>
-          <p class="align-center dark-text mt-[5px] flex justify-end text-[12px]">-${{ downPaymentSwapFeeStable }}</p>
+          <p class="align-center mt-[8px] flex justify-end text-[12px] text-neutral-typography-200">
+            -${{ downPaymentSwapFeeStable }}
+          </p>
         </div>
       </div>
     </div>
     <!-- Actions -->
-    <div class="modal-send-receive-actions flex flex-col">
-      <button class="btn btn-primary btn-large-primary">
-        {{ $t("message.open-position") }}
-      </button>
-      <div class="my-2 flex w-full justify-between text-[14px] text-light-blue">
+    <div class="mt-8 flex flex-col">
+      <Button
+        :label="$t('message.open-position')"
+        severity="primary"
+        size="large"
+        type="submit"
+      />
+      <div class="my-2 flex w-full justify-between text-[14px] text-neutral-400">
         <p>{{ $t("message.estimate-time") }}:</p>
         <p>~{{ NATIVE_NETWORK.leaseOpenEstimation }} {{ $t("message.min") }}</p>
       </div>
@@ -121,35 +117,33 @@
   </form>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import CurrencyField from "@/common/components/CurrencyField.vue";
-import TooltipComponent from "@/common/components/TooltipComponent.vue";
 import Picker, { type PickerOption } from "@/common/components/Picker.vue";
 import RangeComponent from "@/common/components/RangeComponent.vue";
+import { Button, Tooltip } from "web-components";
 
 import type { LeaseComponentProps } from "./types/LeaseComponentProps";
 import type { ExternalCurrency } from "@/common/types";
 
-import { nextTick, onMounted, ref, type PropType } from "vue";
+import { computed, nextTick, onMounted, type PropType, ref, watch } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { computed, watch } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/common/stores/oracle";
-import { AssetUtils, LeaseUtils } from "@/common/utils";
+import { AppUtils, AssetUtils, LeaseUtils } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
-import { AppUtils } from "@/common/utils";
 import { CurrencyDemapping, CurrencyMapping } from "@/config/currencies";
 
 import {
+  FREE_INTEREST_ASSETS,
+  IGNORE_DOWNPAYMENT_ASSETS,
+  IGNORE_LEASE_ASSETS,
+  LPN_DECIMALS,
+  MONTHS,
   NATIVE_NETWORK,
   PERMILLE,
-  IGNORE_LEASE_ASSETS,
-  MONTHS,
-  FREE_INTEREST_ASSETS,
-  LPN_DECIMALS,
-  ProtocolsConfig,
-  IGNORE_DOWNPAYMENT_ASSETS
+  ProtocolsConfig
 } from "@/config/global";
 
 const wallet = useWalletStore();
