@@ -18,7 +18,7 @@
             :key="`${tab}-${index}`"
             :class="[
               {
-                'bg-neutral-bg-200 text-neutral-typography-50': index + 1 !== activeTab,
+                'bg-hover-btn text-neutral-typography-50': index + 1 !== activeTab,
                 active: index + 1 === activeTab
               }
             ]"
