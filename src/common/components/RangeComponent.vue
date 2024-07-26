@@ -189,7 +189,7 @@ function release() {
     element.style.transition = "ease 200ms";
   }
   if (btnElement) {
-    btnElement.style.left = `calc( ${scalePercent}% - 18px )`;
+    btnElement.style.left = `calc( ${scalePercent == 0 ? `${scalePercent}%` : `${scalePercent}% - 18px`} )`;
     btnElement.style.transition = "ease 200ms";
   }
 }

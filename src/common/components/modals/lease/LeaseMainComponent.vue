@@ -16,7 +16,7 @@
   <LeaseFormComponent
     v-else
     v-model="state"
-    class="custom-scroll overflow-auto"
+    class="custom-scroll overflow-y-auto md:overflow-y-visible"
   />
 </template>
 

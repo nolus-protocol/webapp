@@ -12,14 +12,15 @@
       class="flex justify-center"
     >
       <template v-if="isTabLayout">
-        <div class="flex w-full">
+        <div class="flex w-full border-b-[1px] border-dialogs-swap-stroke">
           <button
             v-for="(tab, index) of headerList"
             :key="`${tab}-${index}`"
             :class="[
               {
-                'bg-hover-btn text-neutral-typography-50': index + 1 !== activeTab,
-                active: index + 1 === activeTab
+                'bg-dialogs-swap-inactive text-neutral-typography-50': index + 1 !== activeTab,
+                active: index + 1 === activeTab,
+                'border-r-[1px] border-dialogs-swap-stroke': headerList.length > 1 && index == 0
               }
             ]"
             class="flex-1 py-6 text-center text-28 font-semibold text-neutral-typography-200 first:rounded-tl-xl last:rounded-tr-xl md:text-32"
