@@ -2,7 +2,7 @@
   <div
     :class="{
       'pt-[15px]': !showHeader,
-      'p-10': !isTabLayout
+      'px-4 py-6 lg:p-10': !isTabLayout
     }"
     class="mx-auto mt-[62px] flex w-full max-w-[516px] flex-col rounded-xl bg-neutral-bg-50 text-center"
     @click.stop

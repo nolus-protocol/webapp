@@ -1,7 +1,7 @@
 <template>
   <!-- Input Area -->
   <form @submit.prevent="submit">
-    <div class="flex flex-col gap-4 overflow-x-hidden">
+    <div class="flex flex-col gap-4">
       <CurrencyField
         id="amount-investment"
         :balance="formatCurrentBalance(modelValue.selectedDownPaymentCurrency)"
