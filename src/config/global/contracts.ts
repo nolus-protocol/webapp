@@ -64,7 +64,7 @@ export const ProtocolsConfig: {
   "NEUTRON-ASTROPORT-USDC_NOBLE": {
     only: [],
     lease: true,
-    currencies: ["NTRN", "USDC_NOBLE", "DYDX", "ST_TIA", "STK_ATOM", "ATOM", "TIA"],
+    currencies: ["NTRN", "USDC_NOBLE", "DYDX", "ST_TIA", "STK_ATOM", "ATOM"],
     ignoreNetowrk: ["OSMOSIS"]
   },
   "OSMOSIS-OSMOSIS-USDC_NOBLE": {

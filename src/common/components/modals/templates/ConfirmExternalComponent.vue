@@ -65,7 +65,7 @@
   >
     <!-- Input Area -->
     <div class="modal-send-receive-input-area pt-0">
-      <div class="radius-rounded mt-[25px] block break-words bg-light-grey p-4 text-left">
+      <div class="radius-rounded mt-[25px] block break-words bg-dialogs-swap-color p-4 text-left">
         <div class="block">
           <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ txType }}</p>
           <p class="m-0 text-14 font-semibold text-neutral-typography-200">

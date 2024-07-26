@@ -41,7 +41,7 @@
       class="flex flex-col gap-4"
       @submit.prevent="btnAction"
     >
-      <div class="block break-words rounded-lg bg-light-grey p-4 text-left">
+      <div class="block break-words rounded-lg bg-dialogs-swap-color p-4 text-left">
         <div class="block">
           <p class="text-14 font-normal text-neutral-typography-200">{{ txType }}</p>
           <p class="text-14 font-semibold text-neutral-typography-200">

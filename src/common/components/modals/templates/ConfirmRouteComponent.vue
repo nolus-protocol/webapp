@@ -23,7 +23,7 @@
     class="modal-form"
   >
     <div
-      class="radius-rounded mx-[24px] my-[24px] block break-words bg-light-grey p-[24px] text-center text-neutral-typography-200"
+      class="radius-rounded mx-[24px] my-[24px] block break-words bg-dialogs-swap-color p-[24px] text-center text-neutral-typography-200"
     >
       {{ $t("message.swap-success") }}
     </div>
@@ -42,7 +42,7 @@
     class="modal-form overflow-auto"
   >
     <div
-      class="radius-rounded mx-[24px] my-[24px] block break-words bg-light-grey p-[24px] text-center text-neutral-typography-200"
+      class="radius-rounded mx-[24px] my-[24px] block break-words bg-dialogs-swap-color p-[24px] text-center text-neutral-typography-200"
     >
       {{ errorMsg }}
     </div>
@@ -63,7 +63,7 @@
   >
     <!-- Input Area -->
     <div class="modal-send-receive-input-area pt-0">
-      <div class="radius-rounded mt-[25px] block break-words bg-light-grey py-4 text-left">
+      <div class="radius-rounded mt-[25px] block break-words bg-dialogs-swap-color py-4 text-left">
         <div class="mb-4 block px-4">
           <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ $t("message.from") }}:</p>
           <p class="m-0 text-14 font-semibold text-neutral-typography-200">{{ amount }}</p>
