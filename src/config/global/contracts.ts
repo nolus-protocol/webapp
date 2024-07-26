@@ -24,7 +24,7 @@ export const CONTRACTS: ContractConfig = {
     admin: {
       instance: "nolus1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsqxf8nd",
       codeId: "",
-      ignoreProtocols: ["NEUTRON-ASTROPORT-USDC_NOBLE"]
+      ignoreProtocols: []
     }
   }
 };
@@ -57,8 +57,14 @@ export const ProtocolsConfig: {
   },
   "NEUTRON-ASTROPORT-USDC_AXELAR": {
     only: [],
+    lease: false,
+    currencies: ["USDC_AXELAR"],
+    ignoreNetowrk: ["OSMOSIS"]
+  },
+  "NEUTRON-ASTROPORT-USDC_NOBLE": {
+    only: [],
     lease: true,
-    currencies: ["NTRN", "USDC_AXELAR", "DYDX", "ST_TIA", "STK_ATOM", "ATOM"],
+    currencies: ["NTRN", "USDC_NOBLE", "DYDX", "ST_TIA", "STK_ATOM", "ATOM", "TIA"],
     ignoreNetowrk: ["OSMOSIS"]
   },
   "OSMOSIS-OSMOSIS-USDC_NOBLE": {

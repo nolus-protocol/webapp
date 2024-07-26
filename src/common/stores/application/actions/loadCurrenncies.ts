@@ -50,7 +50,6 @@ export async function loadCurrennncies(this: Store) {
       ibcData: nativeCurrency.symbol,
       coingeckoId: ASSETS[NATIVE_ASSET.ticker as keyof typeof ASSETS].coinGeckoId
     };
-
     for (const protocol of this.protocols) {
       lease[protocol] = [];
       lpnPromises.push(
@@ -69,7 +68,6 @@ export async function loadCurrennncies(this: Store) {
     }
 
     const [lpns] = await Promise.all([Promise.all(lpnPromises), Promise.all(leasePromises)]);
-
     this.lpn = lpns;
     this.lease = lease;
     this.currenciesData = data.networks[NATIVE_NETWORK.key];
