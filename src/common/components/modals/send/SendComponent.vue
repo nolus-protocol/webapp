@@ -109,7 +109,7 @@ const networks = computed(() => {
     n.push(NATIVE_NETWORK.key);
 
     if (ckey == NATIVE_NETWORK.symbol) {
-      n.push(app.networksData?.protocols[AppUtils.getProtocols().neutron].DexNetwork as string);
+      n.push(app.networksData?.protocols[AppUtils.getProtocols().neutron_noble].DexNetwork as string);
     }
     if (lpn && !IGNORE_LPN.includes(lpn.ticker)) {
       const [key, protocol] = lpn.key!.split("@");

@@ -142,7 +142,7 @@
             />
             <div>
               <CurrencyComponent
-                :amount="(app.apr?.[AppUtils.getProtocols().neutron] ?? 0).toString()"
+                :amount="(app.apr?.[AppUtils.getProtocols().neutron_noble] ?? 0).toString()"
                 :fontSize="20"
                 :fontSizeSmall="16"
                 :has-space="false"
@@ -223,7 +223,7 @@ async function setUtilizationOsmosis() {
 }
 
 async function setUtilizationNeutron() {
-  const data = await fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().neutron}`);
+  const data = await fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().neutron_noble}`);
   const item = await data.json();
   utilizationLevelNeutron.value = item[0];
 }

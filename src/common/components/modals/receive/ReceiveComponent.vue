@@ -197,7 +197,7 @@ const networks = computed(() => {
     n.push(NATIVE_NETWORK.key);
 
     if (ckey == NATIVE_NETWORK.symbol) {
-      n.push(app.networksData?.protocols[AppUtils.getProtocols().neutron].DexNetwork as string);
+      n.push(app.networksData?.protocols[AppUtils.getProtocols().neutron_noble].DexNetwork as string);
     }
 
     if (lpn && !IGNORE_LPN.includes(lpn.ticker)) {
@@ -370,8 +370,8 @@ async function onUpdateNetwork(event: Network) {
         }
 
         switch (selectedNetwork.value.key) {
-          case app.networksData?.protocols[AppUtils.getProtocols().neutron].DexNetwork: {
-            protocol = AppUtils.getProtocols().neutron as string;
+          case app.networksData?.protocols[AppUtils.getProtocols().neutron_noble].DexNetwork: {
+            protocol = AppUtils.getProtocols().neutron_noble as string;
             break;
           }
         }
