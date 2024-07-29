@@ -65,23 +65,7 @@ if (!isDev()) {
 }
 
 export { DOWNPAYMENT_RANGE_URL, SWAP_FEE_URL, FREE_INTEREST_ADDRESS_URL };
-<<<<<<< HEAD
-export const IGNORE_LEASE_ASSETS: string[] = [
-  "DYDX",
-  "JUNO",
-  "EVMOS",
-  "STRD",
-  "LVN",
-  "DYM",
-  "Q_ATOM",
-  "STARS",
-  "PICA",
-  "ATOM@NEUTRON-ASTROPORT-USDC_AXELAR"
-];
-export const IGNORE_DOWNPAYMENT_ASSETS: string[] = ["DYDX"];
-=======
 export const IGNORE_LEASE_ASSETS: string[] = ["JUNO", "EVMOS", "STRD", "LVN", "DYM", "Q_ATOM", "STARS", "PICA"];
 export const IGNORE_DOWNPAYMENT_ASSETS: string[] = [];
->>>>>>> dev
 
 export const IGNORE_LEASES: string[] = ["nolus1mqezz2qs8cy8qx50yms0r6xc3lae20tms8dqq3t2tl7dd6gnxhxq3kz4uf"];
