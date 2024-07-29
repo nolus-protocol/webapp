@@ -138,7 +138,7 @@
           <div class="flex items-center">
             <img
               class="mr-[6px]"
-              src="@/assets/icons/osmosis-usdc.svg"
+              src="@/assets/icons/neutron-usdc.svg"
             />
             <div>
               <CurrencyComponent
