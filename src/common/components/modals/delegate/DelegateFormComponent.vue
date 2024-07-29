@@ -1,59 +1,49 @@
 <template>
   <form
+    class="px-10 py-6"
     @submit.prevent="modelValue.onNextClick"
-    class="modal-form"
   >
-    <!-- Input Area -->
-    <div class="modal-send-receive-input-area">
-      <div class="mt-[25px] block text-left">
-        <CurrencyField
-          id="amountSupply"
-          :disabled-currency-picker="true"
-          :currency-options="modelValue.currentBalance"
-          :error-msg="modelValue.amountErrorMsg"
-          :is-error="modelValue.amountErrorMsg !== ''"
-          :option="modelValue.selectedCurrency"
-          :value="modelValue.amount"
-          :label="$t('message.amount')"
-          :balance="formatCurrentBalance()"
-          :total="props.modelValue.selectedCurrency.balance"
-          name="amountSupply"
-          @input="handleAmountChange($event)"
-          @update-currency="(event) => (modelValue.selectedCurrency = event)"
-        />
-        <WarningBox
-          :isWarning="true"
-          class="mt-[25px]"
-        >
-          <template v-slot:icon>
-            <img
-              class="mx-auto my-0 block h-7 w-10"
-              src="@/assets/icons/information-circle.svg"
-            />
-          </template>
-          <template v-slot:content>
-            <span class="text-primary">
-              {{ $t("message.delegate-description") }}
-            </span>
-          </template>
-        </WarningBox>
-      </div>
+    <div class="flex flex-col gap-4">
+      <CurrencyField
+        id="amountSupply"
+        :balance="formatCurrentBalance()"
+        :currency-options="modelValue.currentBalance"
+        :disabled-currency-picker="true"
+        :error-msg="modelValue.amountErrorMsg"
+        :is-error="modelValue.amountErrorMsg !== ''"
+        :label="$t('message.amount')"
+        :option="modelValue.selectedCurrency"
+        :total="props.modelValue.selectedCurrency.balance"
+        :value="modelValue.amount"
+        name="amountSupply"
+        @input="handleAmountChange($event)"
+        @update-currency="(event) => (modelValue.selectedCurrency = event)"
+      />
+      <NotificationBox :type="NotificationBoxType.warning">
+        <template v-slot:content>
+          {{ $t("message.delegate-description") }}
+        </template>
+      </NotificationBox>
     </div>
 
     <!-- Actions -->
-    <div class="modal-send-receive-actions flex flex-col">
-      <button class="btn btn-primary btn-large-primary text-center">
-        {{ $t("message.delegate") }}
-      </button>
+    <div class="flex flex-col justify-center text-center">
+      <Button
+        :label="$t('message.delegate')"
+        class="my-8"
+        severity="primary"
+        size="large"
+        type="submit"
+      />
       <a
         :href="`${NETWORKS[EnvNetworkUtils.getStoredNetworkName()].staking}`"
-        class="his-url mt-4 flex flex self-start text-14"
+        class="text-primary-50 flex self-center text-14"
         target="_blank"
       >
         {{ $t("message.manual-delegation") }}
         <img
+          class="float-right mb-[2px] ml-2 w-3"
           src="@/assets/icons/urlicon.svg"
-          class="his-img float-right mb-[2px] ml-2 w-3"
         />
       </a>
     </div>
@@ -65,7 +55,7 @@ import type { DelegateFormComponentProps } from "./types";
 import type { PropType } from "vue";
 
 import CurrencyField from "@/common/components/CurrencyField.vue";
-import WarningBox from "@/common/components/modals/templates/WarningBox.vue";
+import { Button, NotificationBox, NotificationBoxType } from "web-components";
 
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { EnvNetworkUtils } from "@/common/utils";

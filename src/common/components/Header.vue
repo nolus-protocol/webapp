@@ -9,7 +9,7 @@
       <button
         v-if="walletStore.wallet"
         :class="showWallet ? 'active' : false"
-        class="show-box-wallet btn-header with-icon shadow-box rounded-r-none"
+        class="show-box-wallet btn-header with-icon rounded-r-none"
         @click="showWallet = !showWallet"
       >
         <span
@@ -17,14 +17,14 @@
           style="font-size: 1.5em !important; margin-right: 0"
         >
         </span>
-        <span class="nls-font-400 nls-md-hidden text-12 text-primary">
+        <span class="nls-md-hidden text-12 font-normal text-neutral-typography-200">
           {{ walletStore.walletName }}
         </span>
       </button>
 
       <button
         v-else
-        class="show-box-wallet btn-header with-icon shadow-box rounded-r-none"
+        class="show-box-wallet btn-header with-icon rounded-r-none"
         @click="showAuthDialog = !showAuthDialog"
       >
         <span
@@ -32,7 +32,7 @@
           style="font-size: 1.5em !important; margin-right: 0"
         >
         </span>
-        <span class="nls-font-400 nls-md-hidden text-12 text-primary">
+        <span class="nls-md-hidden text-12 font-normal text-neutral-typography-200">
           {{ $t("message.connect-wallet") }}
         </span>
       </button>

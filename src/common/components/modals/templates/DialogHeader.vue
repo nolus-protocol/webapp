@@ -1,43 +1,54 @@
 <template>
   <div
     :class="{
-      'pt-[15px]': !showHeader
+      'pt-[15px]': !showHeader,
+      'px-4 py-6 lg:p-10': !isTabLayout
     }"
-    class="background shadow-modal modal-send-receive mx-auto mt-[52px] flex w-full max-w-[516px] rounded-[12px] text-center"
+    class="mx-auto mt-[62px] flex w-full max-w-[516px] flex-col rounded-xl bg-neutral-bg-50 text-center"
     @click.stop
   >
     <div
       v-if="showHeader"
-      class="modal-send-receive-header flex"
+      class="flex justify-center"
     >
       <template v-if="isTabLayout">
-        <button
-          v-for="(tab, index) of headerList"
-          :key="`${tab}-${index}`"
-          :class="index + 1 === activeTab ? 'active' : ''"
-          @click="switchTab(index + 1)"
-          v-text="tab"
-        ></button>
+        <div class="flex w-full border-b-[1px] border-dialogs-swap-stroke">
+          <button
+            v-for="(tab, index) of headerList"
+            :key="`${tab}-${index}`"
+            :class="[
+              {
+                'bg-dialogs-swap-inactive text-neutral-typography-50': index + 1 !== activeTab,
+                active: index + 1 === activeTab,
+                'border-r-[1px] border-dialogs-swap-stroke': headerList.length > 1 && index == 0
+              }
+            ]"
+            class="flex-1 py-6 text-center text-28 font-semibold text-neutral-typography-200 first:rounded-tl-xl last:rounded-tr-xl md:text-32"
+            @click="switchTab(index + 1)"
+            v-text="tab"
+          ></button>
+        </div>
       </template>
-      <div
-        v-else
-        class="navigation-header"
-      >
-        <button
-          v-if="back"
-          class="absolute left-0 top-2/4 -mt-3 px-4 align-baseline md:px-10"
-          type="button"
-          @click="backClick"
-        >
-          <ArrowLeftIcon
-            aria-hidden="true"
-            class="h-6 w-6 text-primary"
-          />
-        </button>
-        <h1 class="nls-font-700 block w-full text-center text-28 text-primary md:text-32">
-          {{ headerList[0] }}
-        </h1>
-      </div>
+      <template v-else>
+        <div class="mb-6 flex w-full border-b-[1px] border-border-color pb-5">
+          <button
+            v-if="back"
+            class=""
+            type="button"
+            @click="backClick"
+          >
+            <ArrowLeftIcon
+              aria-hidden="true"
+              class="h-6 w-6 text-neutral-typography-200"
+            />
+          </button>
+          <h1
+            class="block w-full text-center text-28 font-semibold leading-7 text-neutral-typography-200 md:text-32 md:leading-8"
+          >
+            {{ headerList[0] }}
+          </h1>
+        </div>
+      </template>
     </div>
 
     <template v-if="isTabLayout">

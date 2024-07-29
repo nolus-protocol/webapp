@@ -1,49 +1,36 @@
 <template>
   <form
-    class="relative z-[2] flex flex-col"
+    class="flex flex-col"
     @submit.prevent="connectViaLedger"
   >
-    <div class="px-4">
+    <div class="">
       <p
-        class="nls-font-400 relative z-[2] text-14 text-primary"
+        class="text-14 font-normal text-neutral-typography-200 md:text-left"
         v-html="$t('message.ledger-dongle')"
-      ></p>
+      />
 
-      <div class="checkbox-container relative z-[2] block">
-        <div class="flex w-full items-center pt-6">
-          <input
-            id="use-bluethooth"
-            v-model="isBluetoothConnection"
-            name="use-bluethooth"
-            type="checkbox"
-          />
-          <label
-            class="text-primary"
-            for="use-bluethooth"
-            >{{ $t("message.use-bluethooth") }}</label
-          >
-        </div>
-      </div>
-
-      <div class="mt-6 hidden md:flex">
-        <button
-          :class="{ 'js-loading': disabled }"
-          class="btn btn-primary btn-large-primary"
+      <div class="checkbox-container flex w-full items-center pt-6">
+        <input
+          id="use-bluethooth"
+          v-model="isBluetoothConnection"
+          name="use-bluethooth"
+          type="checkbox"
+        />
+        <label
+          class="text-neutral-typography-200"
+          for="use-bluethooth"
+          >{{ $t("message.use-bluethooth") }}</label
         >
-          {{ $t("message.connect") }}
-        </button>
       </div>
-    </div>
 
-    <div
-      class="align-center background inset-x-0 bottom-0 mx-auto flex w-full justify-center px-4 pt-8 text-center md:relative md:hidden"
-    >
-      <button
-        :class="{ 'js-loading': disabled }"
-        class="btn btn-primary btn-large-primary w-full"
-      >
-        {{ $t("message.connect") }}
-      </button>
+      <Button
+        :label="$t('message.connect')"
+        :loading="disabled"
+        class="mt-6 w-full md:w-auto"
+        severity="primary"
+        size="large"
+        type="submit"
+      />
     </div>
   </form>
 
@@ -66,6 +53,7 @@
 <script lang="ts" setup>
 import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
 import Modal from "@/common/components/modals/templates/Modal.vue";
+import { Button } from "web-components";
 
 import { ref } from "vue";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";

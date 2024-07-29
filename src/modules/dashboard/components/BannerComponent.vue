@@ -27,11 +27,11 @@
         @click="open(n)"
       >
         <div class="flex flex-col items-start">
-          <p class="title nls-font-500 flex items-center">
+          <p class="title flex items-center font-medium">
             <img :src="n['title-icon']" />
             {{ $t(`message.${n.title}`) }}
           </p>
-          <p class="nls-font-700 substitle">
+          <p class="substitle font-semibold">
             {{ $t(`message.${n["subtitle"]}`) }}
           </p>
           <p class="description">

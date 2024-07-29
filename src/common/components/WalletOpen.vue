@@ -5,14 +5,14 @@
   >
     <!-- Wallet Header -->
     <div class="box-open-header background border-standart radius-top-left border-b p-4 lg:p-6">
-      <h2 class="nls-font-700 m-0 text-left text-18 text-primary">
+      <h2 class="m-0 text-left text-18 font-semibold text-neutral-typography-200">
         {{ $t("message.your-wallet") }}
       </h2>
       <div
         class="grey-box modal-balance radius-rounded copy-button mt-3 flex items-center justify-between px-2"
         @click="onCopy()"
       >
-        <span class="nls-font-400 dark-text ml-2 text-14">
+        <span class="ml-2 text-14 font-normal text-neutral-typography-200">
           {{ getWallet }}
         </span>
         <span
@@ -36,20 +36,20 @@
       <div class="block">
         <Picker
           :default-option="selectedLang"
+          :disable-input="true"
           :label="$t('message.language')"
           :options="langs"
           @update-selected="setLanguage"
-          :disable-input="true"
         />
       </div>
 
       <div class="mt-3 block">
         <Picker
           :default-option="selectedAppearnce"
+          :disable-input="true"
           :label="$t('message.appearance')"
           :options="appearance"
           @update-selected="onUpdateTheme"
-          :disable-input="true"
         />
       </div>
 
@@ -59,11 +59,11 @@
       >
         <Picker
           :default-option="currentNetwork"
+          :disable-input="true"
           :label="$t('message.network')"
           :options="networks"
           @focus="showWallet = true"
           @update-selected="onUpdateNetwork"
-          :disable-input="true"
         />
       </div>
     </div>
@@ -83,13 +83,13 @@
 </template>
 <script lang="ts" setup>
 import Picker, { type PickerOption } from "@/common/components/Picker.vue";
-import { router, RouteNames } from "@/router";
+import { RouteNames, router } from "@/router";
 import { computed, inject, onMounted, onUnmounted, ref } from "vue";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
 import { APPEARANCE, languages } from "@/config/global";
 import { useI18n } from "vue-i18n";
 import { ApplicationActions, useApplicationStore } from "@/common/stores/application";
-import { EnvNetworkUtils, StringUtils, ThemeManager, WalletManager, AppUtils } from "@/common/utils";
+import { AppUtils, EnvNetworkUtils, StringUtils, ThemeManager, WalletManager } from "@/common/utils";
 import { setLang } from "@/i18n";
 
 let timeOut: NodeJS.Timeout;

@@ -1,104 +1,104 @@
 <template>
   <!-- Header -->
-  <div class="modal-send-receive-header flex">
-    <div class="navigation-header">
-      <div class="flex flex-col items-center justify-center">
-        <CheckIcon
-          v-if="isStepSuccess"
-          class="radius-circle success-icon mb-2 h-14 w-14 p-2"
-        />
-        <XMarkIcon
-          v-if="isStepError"
-          class="radius-circle error-icon mb-2 h-14 w-14 p-2"
-        />
-        <h1 class="nls-font-700 text-center text-28 text-primary md:text-32">
-          {{ $t(`message.${step}`) }}
-        </h1>
-      </div>
+  <div class="flex">
+    <div class="flex w-full flex-col items-center justify-center">
+      <CheckIcon
+        v-if="isStepSuccess"
+        class="mb-2 h-14 w-14 rounded-full bg-success-50 p-2 text-success-100"
+      />
+      <XMarkIcon
+        v-if="isStepError"
+        class="mb-2 h-14 w-14 rounded-full bg-danger-50 p-2 text-danger-100"
+      />
+      <h1
+        class="w-full border-b-[1px] border-border-color pb-5 text-center text-28 font-semibold text-neutral-typography-200 md:text-32"
+      >
+        {{ $t(`message.${step}`) }}
+      </h1>
     </div>
   </div>
 
   <div
     v-if="isStepSuccess"
-    class="modal-form"
+    class="mt-6 flex flex-col gap-6"
   >
-    <div class="radius-rounded mx-[24px] my-[24px] block break-words bg-light-grey p-[24px] text-center text-primary">
+    <div class="block break-words rounded-lg bg-dialogs-swap-color p-[24px] text-center text-neutral-typography-200">
       {{ $t("message.swap-success") }}
     </div>
-    <div class="flex gap-8 px-[24px] pb-[28px]">
-      <button
-        class="btn btn-primary btn-large-primary w-full"
+    <div class="flex gap-8">
+      <Button
+        :label="$t('message.ok')"
+        class="flex-1"
+        severity="primary"
+        size="large"
         @click="onOkClick"
-      >
-        {{ $t("message.ok") }}
-      </button>
+      />
     </div>
   </div>
 
   <div
     v-if="isStepError"
-    class="modal-form"
+    class="mt-6 flex flex-col gap-6"
   >
-    <div class="radius-rounded mx-[24px] my-[24px] block break-words bg-light-grey p-[24px] text-center text-primary">
+    <div class="block break-words rounded-lg bg-dialogs-swap-color p-[24px] text-center text-neutral-typography-200">
       {{ errorMsg }}
     </div>
-    <div class="px-[24px] pb-[28px]">
-      <button
-        class="btn btn-primary btn-large-primary w-full"
-        @click="onOkClick"
-      >
-        {{ $t("message.close") }}
-      </button>
-    </div>
+    <Button
+      :label="$t('message.close')"
+      severity="primary"
+      size="large"
+      @click="onOkClick"
+    />
   </div>
 
   <form
     v-if="isStepConfirm || isStepPending"
-    class="modal-form"
+    class="mt-6 flex flex-col gap-6"
     @submit.prevent="onSendClick"
   >
     <!-- Input Area -->
-    <div class="modal-send-receive-input-area pt-0">
-      <div class="radius-rounded mt-[25px] block break-words bg-light-grey py-4 text-left">
-        <div class="mb-4 block px-4">
-          <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.from") }}:</p>
-          <p class="nls-font-700 m-0 text-14 text-primary">{{ swapAmount }}</p>
-          <p class="nls-font-400 m-0 text-14 text-primary">
+    <div class="">
+      <div class="radius-rounded block break-words bg-dialogs-swap-color py-4 text-left">
+        <div class="block px-4">
+          <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ $t("message.from") }}:</p>
+          <p class="m-0 text-14 font-semibold text-neutral-typography-200">{{ swapAmount }}</p>
+          <p class="m-0 text-14 font-normal text-neutral-typography-200">
             {{ fromAddress }}
           </p>
-          <p class="nls-font-400 m-0 text-14 text-primary">{{ fromNetwork }}</p>
+          <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ fromNetwork }}</p>
         </div>
 
-        <div class="block px-4">
-          <p class="nls-font-400 m-0 text-14 capitalize text-primary">{{ $t("message.to") }}:</p>
-          <p class="nls-font-700 m-0 text-14 text-primary">{{ forAmount }}</p>
-          <p class="nls-font-400 m-0 text-14 text-primary">
+        <div class="mt-3 block px-4">
+          <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ $t("message.to") }}:</p>
+          <p class="m-0 text-14 font-semibold text-neutral-typography-200">{{ forAmount }}</p>
+          <p class="m-0 text-14 font-normal text-neutral-typography-200">
             {{ receiverAddress }}
           </p>
-          <p class="nls-font-400 m-0 text-14 text-primary">{{ toNetwork }}</p>
+          <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ toNetwork }}</p>
         </div>
 
         <div
           v-if="isStepConfirm"
           class="mt-3 block px-4"
         >
-          <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.tx-and-fee") }}:</p>
-          <p class="nls-font-700 m-0 text-14 text-primary">~{{ calculateFee(fee) }}</p>
+          <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ $t("message.tx-and-fee") }}:</p>
+          <p class="m-0 text-14 font-semibold text-neutral-typography-200">~{{ calculateFee(fee) }}</p>
         </div>
 
         <template v-if="isStepPending">
           <div
             v-for="item in txs"
+            :key="item"
             class="block"
           >
-            <p class="nls-font-400 m-0 p-4 pb-0 text-14 capitalize text-primary">
+            <p class="m-0 p-4 pb-0 text-14 font-normal capitalize text-neutral-typography-200">
               {{ $t("message.transaction") }} {{ item }}:
             </p>
 
             <template v-if="txHashes[item - 1]">
               <a
                 :href="`${txHashes[item - 1].url ?? applicaton.network.networkAddresses.explorer}/${txHashes[item - 1].hash}`"
-                class="his-url nls-font-500 m-0 flex items-center justify-between px-4 text-14"
+                class="his-url m-0 flex items-center justify-between px-4 text-14 font-medium"
                 target="_blank"
               >
                 {{ StringUtils.truncateString(txHashes[item - 1].hash, 6, 6) }}
@@ -120,28 +120,45 @@
               </a>
             </template>
             <template v-else>
-              <p class="nls-font-700 m-0 px-4 text-14 text-primary">{{ $t("message.Pending") }}</p>
+              <p class="m-0 px-4 text-14 font-semibold text-neutral-typography-200">{{ $t("message.Pending") }}</p>
             </template>
           </div>
         </template>
       </div>
     </div>
 
-    <WarningBox
-      :isWarning="true"
-      class="mx-[18px] mb-[4px] lg:mx-[38px] lg:mb-[20px]"
-      v-if="isStepConfirm && (warning.length > 0 || txs > 1)"
-    >
-      <template v-slot:icon>
-        <img
-          class="mx-auto my-0 block h-7 w-10"
-          src="@/assets/icons/information-circle.svg"
-        />
+    <!-- <NotificationBox :type="NotificationBoxType.warning">
+      <template v-slot:content>
+        <template v-if="isStepPending">
+          <span class="text-neutral-typography-200">
+            {{ $t("message.swap-warning") }}
+            <RouterLink
+              class="text-primary-50"
+              to="/history"
+              @click="onClose"
+              >{{ $t("message.history-page") }}</RouterLink
+            >
+          </span>
+        </template>
+        <span
+          v-else
+          class="text-neutral-typography-200"
+          v-html="
+            $t('message.swap-confirm-warning', {
+              txs: `${txs} ${txs > 1 ? $t('message.transactions') : $t('message.transaction')}`
+            })
+          "
+        ></span>
       </template>
+    </NotificationBox> -->
 
+    <NotificationBox
+      v-if="isStepConfirm && (warning.length > 0 || txs > 1)"
+      :type="NotificationBoxType.warning"
+    >
       <template v-slot:content>
         <span
-          class="text-primary"
+          class="text-neutral-typography-200"
           v-html="
             $t('message.swap-confirm-warning', {
               txs: `${txs} ${txs > 1 ? $t('message.transactions') : $t('message.transaction')}`
@@ -149,45 +166,43 @@
           "
         >
         </span>
-        <span class="text-primary">.&#160;{{ warning }} </span>
+        <span class="text-neutral-typography-200">.&#160;{{ warning }} </span>
       </template>
-    </WarningBox>
+    </NotificationBox>
 
-    <WarningBox
-      :isWarning="true"
+    <NotificationBox
       v-if="isStepPending"
-      class="mx-[18px] mb-[4px] lg:mx-[38px] lg:mb-[20px]"
+      :type="NotificationBoxType.warning"
     >
-      <template v-slot:icon>
-        <img
-          class="mx-auto my-0 block h-7 w-10"
-          src="@/assets/icons/information-circle.svg"
-        />
-      </template>
       <template v-slot:content>
-        <span class="text-primary">
+        <span class="text-neutral-typography-200">
           {{ $t("message.swap-warning") }}
           <RouterLink
-            to="/history"
             class="text-primary-50"
+            to="/history"
             @click="onClose"
             >{{ $t("message.history-page") }}</RouterLink
           ></span
         >
       </template>
-    </WarningBox>
+    </NotificationBox>
 
     <!-- Actions -->
-    <div class="modal-send-receive-actions">
-      <button :class="`btn btn-primary btn-large-primary ${isStepPending ? 'js-loading' : ''}`">
-        {{ isStepConfirm ? $t("message.confirm") : $t("message.ok") }}
-      </button>
+    <div class="">
+      <Button
+        :label="isStepConfirm ? $t('message.confirm') : $t('message.ok')"
+        :loading="isStepPending"
+        class="w-full"
+        severity="primary"
+        size="large"
+        type="submit"
+      />
     </div>
   </form>
 </template>
 
 <script lang="ts" setup>
-import WarningBox from "./WarningBox.vue";
+import { Button, NotificationBox, NotificationBoxType } from "web-components";
 
 import type { Coin } from "@cosmjs/amino";
 import { SwapStatus } from "../swap/types";

@@ -1,34 +1,33 @@
 <template>
   <form
+    class="flex flex-col gap-8 px-10 py-6"
     @submit.prevent="modelValue.onNextClick"
-    class="modal-form"
   >
-    <div class="modal-send-receive-input-area">
-      <div class="mt-[25px] block text-left">
-        <CurrencyField
-          id="amountSupply"
-          :currency-options="modelValue.currentBalance"
-          :error-msg="modelValue.amountErrorMsg"
-          :is-error="modelValue.amountErrorMsg !== ''"
-          :option="modelValue.selectedCurrency"
-          :value="modelValue.amount"
-          :label="$t('message.amount')"
-          :balance="formatCurrentBalance(modelValue.currentDepositBalance)"
-          :total="modelValue.currentDepositBalance.balance"
-          name="amountSupply"
-          @input="handleAmountChange($event)"
-          @update-currency="(event) => (modelValue.selectedCurrency = event)"
-          :disabled-currency-picker="modelValue.disabled"
-        />
-      </div>
-    </div>
+    <CurrencyField
+      id="amountSupply"
+      :balance="formatCurrentBalance(modelValue.currentDepositBalance)"
+      :currency-options="modelValue.currentBalance"
+      :disabled-currency-picker="modelValue.disabled"
+      :error-msg="modelValue.amountErrorMsg"
+      :is-error="modelValue.amountErrorMsg !== ''"
+      :label="$t('message.amount')"
+      :option="modelValue.selectedCurrency"
+      :total="modelValue.currentDepositBalance.balance"
+      :value="modelValue.amount"
+      class="text-left"
+      name="amountSupply"
+      @input="handleAmountChange($event)"
+      @update-currency="(event) => (modelValue.selectedCurrency = event)"
+    />
 
     <!-- Actions -->
-    <div class="modal-send-receive-actions">
-      <button class="btn btn-primary btn-large-primary text-center">
-        {{ $t("message.withdraw") }}
-      </button>
-    </div>
+    <Button
+      :label="$t('message.withdraw')"
+      class="w-full"
+      severity="primary"
+      size="large"
+      type="submit"
+    />
   </form>
 </template>
 
@@ -39,6 +38,7 @@ import type { WithdrawFormComponentProps } from "./types";
 import type { PropType } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import type { ExternalCurrency } from "@/common/types";
+import { Button } from "web-components";
 
 const props = defineProps({
   modelValue: {

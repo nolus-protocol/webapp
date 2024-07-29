@@ -27,13 +27,13 @@
         />
         <h1
           v-if="isStepCustomError"
-          class="nls-font-700 text-center text-28 text-primary md:text-32"
+          class="text-center text-28 font-semibold text-neutral-typography-200 md:text-32"
         >
           {{ $t(`message.${step}`, { symbol: networkSymbol }) }}
         </h1>
         <h1
           v-else
-          class="nls-font-700 text-center text-28 text-primary md:text-32"
+          class="text-center text-28 font-semibold text-neutral-typography-200 md:text-32"
         >
           {{ $t(`message.${step}`) }}
         </h1>
@@ -65,10 +65,10 @@
   >
     <!-- Input Area -->
     <div class="modal-send-receive-input-area pt-0">
-      <div class="radius-rounded mt-[25px] block break-words bg-light-grey p-4 text-left">
+      <div class="radius-rounded mt-[25px] block break-words bg-dialogs-swap-color p-4 text-left">
         <div class="block">
-          <p class="nls-font-400 m-0 text-14 text-primary">{{ txType }}</p>
-          <p class="nls-font-700 m-0 text-14 text-primary">
+          <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ txType }}</p>
+          <p class="m-0 text-14 font-semibold text-neutral-typography-200">
             {{ receiverAddress }}
           </p>
         </div>
@@ -77,17 +77,17 @@
           v-if="memo"
           class="mt-3 block"
         >
-          <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.memo") }}:</p>
-          <p class="nls-font-700 m-0 text-14 text-primary">
+          <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ $t("message.memo") }}:</p>
+          <p class="m-0 text-14 font-semibold text-neutral-typography-200">
             {{ memo }}
           </p>
         </div>
 
         <div class="mt-3 block">
-          <p class="nls-font-400 m-0 text-14 text-primary">
+          <p class="m-0 text-14 font-normal text-neutral-typography-200">
             {{ $t("message.amount") }}
           </p>
-          <p class="nls-font-700 m-0 text-14 text-primary">
+          <p class="m-0 text-14 font-semibold text-neutral-typography-200">
             {{ formatAmount(amount) }}
           </p>
         </div>
@@ -96,7 +96,7 @@
           v-if="txHash"
           class="mt-3 block"
         >
-          <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.tx-hash") }}:</p>
+          <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ $t("message.tx-hash") }}:</p>
           <a
             :href="`${networkData.explorer}/${txHash}`"
             class="his-url m-0 text-14"
@@ -109,8 +109,8 @@
           v-if="fee"
           class="mt-3 block"
         >
-          <p class="nls-font-400 m-0 text-14 text-primary">{{ $t("message.tx-and-fee") }}:</p>
-          <p class="nls-font-700 m-0 text-14 text-primary">
+          <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ $t("message.tx-and-fee") }}:</p>
+          <p class="m-0 text-14 font-semibold text-neutral-typography-200">
             {{ calculateFee() }}
           </p>
         </div>

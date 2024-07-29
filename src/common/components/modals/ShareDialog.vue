@@ -1,21 +1,23 @@
 <template>
   <DialogHeader :headerList="[$t('message.share')]">
-    <div class="container p-8">
+    <div class="container">
       <canvas ref="canvas"></canvas>
-      <div class="mt-[24px] flex gap-[12px]">
-        <button
+      <div class="mt-8 flex gap-[12px]">
+        <Button
           v-if="supportShare()"
-          class="btn btn-primary btn-large-primary flex-1"
+          :label="$t('message.share')"
+          class="flex-1"
+          severity="primary"
+          size="large"
           @click="share()"
-        >
-          {{ $t("message.share") }}
-        </button>
-        <button
-          class="btn btn-secondary btn-large-secondary flex-1"
+        />
+        <Button
+          :label="$t('message.download')"
+          class="flex-1"
+          severity="secondary"
+          size="large"
           @click="download()"
-        >
-          {{ $t("message.download") }}
-        </button>
+        />
       </div>
     </div>
   </DialogHeader>
@@ -30,6 +32,7 @@ import shareImage from "@/assets/icons/share_image.svg";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { Logger } from "@/common/utils";
+import { Button } from "web-components";
 
 const i18n = useI18n();
 const colors = {

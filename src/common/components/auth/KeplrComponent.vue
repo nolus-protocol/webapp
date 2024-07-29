@@ -1,24 +1,14 @@
 <template>
-  <div class="relative z-[2] flex flex-col">
-    <div class="px-4">
-      <p class="nls-font-400 relative z-[2] text-14 text-primary">
-        {{ $t("message.approving-extension") }}
-      </p>
-      <div class="mt-6 hidden md:flex">
-        <button class="btn btn-primary btn-large-primary js-loading -px-20 mr-4">
-          {{ $t("message.connecting") }}
-        </button>
-        <div class="background relative mx-[-2px] mt-[-50px] h-[60px] md:hidden"></div>
-      </div>
-    </div>
-    <div
-      class="align-center background inset-x-0 bottom-0 mx-auto flex justify-center px-4 pt-8 text-center md:relative md:hidden"
-    >
-      <button class="btn btn-primary btn-large-primary js-loading w-full">
-        {{ $t("message.connecting") }}
-      </button>
-    </div>
-  </div>
+  <p class="text-14 font-normal text-neutral-typography-200 md:text-left">
+    {{ $t("message.approving-extension") }}
+  </p>
+  <Button
+    :label="$t('message.connecting')"
+    class="mt-6 w-full md:w-auto"
+    loading
+    severity="secondary"
+    size="large"
+  />
 
   <Modal
     v-if="showError"
@@ -39,6 +29,7 @@
 <script lang="ts" setup>
 import Modal from "@/common/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
+import { Button } from "web-components";
 
 import { onMounted, ref } from "vue";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
