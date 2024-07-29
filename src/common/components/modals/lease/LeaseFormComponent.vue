@@ -266,7 +266,6 @@ const coinList = computed(() => {
       if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
         ticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
       }
-
       if (IGNORE_LEASE_ASSETS.includes(ticker) || IGNORE_LEASE_ASSETS.includes(`${ticker}@${protocol}`)) {
         return false;
       }
