@@ -9,15 +9,15 @@
     },
     "fallback": [
       {
-        "rpc": "https://rpc-nolus.architectnodes.com",
-        "api": "https://rest-nolus.architectnodes.com"
+        "rpc": "https://nolus-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
+        "api": "https://nolus-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
       }
     ]
   },
   "OSMOSIS": {
     "primary": {
-      "rpc": "https://r-osmosis--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
-      "api": "https://a-osmosis--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
+      "rpc": "https://osmosis-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
+      "api": "https://osmosis-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
     },
     "fallback": [
       {
@@ -28,8 +28,8 @@
   },
   "COSMOS_HUB": {
     "primary": {
-      "rpc": "https://r-cosmoshub--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
-      "api": "https://a-cosmoshub--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
+      "rpc": "https://cosmos-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
+      "api": "https://cosmos-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
     },
     "fallback": [
       {
@@ -40,8 +40,8 @@
   },
   "AXELAR": {
     "primary": {
-      "rpc": "https://r-axelar--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
-      "api": "https://a-axelar--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
+      "rpc": "https://axelar-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
+      "api": "https://axelar-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
     },
     "fallback": [
       {
@@ -52,8 +52,8 @@
   },
   "AKASH": {
     "primary": {
-      "rpc": "https://r-akash--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
-      "api": "https://a-akash--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
+      "rpc": "https://akash-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
+      "api": "https://akash-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
     },
     "fallback": [
       {
@@ -64,8 +64,8 @@
   },
   "STRIDE": {
     "primary": {
-      "rpc": "https://r-stride--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
-      "api": "https://a-stride--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
+      "rpc": "https://stride-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
+      "api": "https://stride-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
     },
     "fallback": [
       {
@@ -100,8 +100,8 @@
   },
   "PERSISTENCE": {
     "primary": {
-      "rpc": "https://r-persistence--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
-      "api": "https://a-persistence--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
+      "rpc": "https://persistence-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
+      "api": "https://persistence-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
     },
     "fallback": [
       {
@@ -112,8 +112,8 @@
   },
   "SECRET": {
     "primary": {
-      "rpc": "https://rpc-secret.01node.com",
-      "api": "https://rest-secret.01node.com"
+      "rpc": "https://secretnetwork-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
+      "api": "https://secretnetwork-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
     },
     "fallback": [
       {
@@ -124,8 +124,8 @@
   },
   "CELESTIA": {
     "primary": {
-      "rpc": "https://r-celestia--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
-      "api": "https://a-celestia--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
+      "rpc": "https://celestia-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
+      "api": "https://celestia-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
     },
     "fallback": [
       {
@@ -136,8 +136,8 @@
   },
   "STARGAZE": {
     "primary": {
-      "rpc": "https://r-stargaze--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
-      "api": "https://a-stargaze--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
+      "rpc": "https://stargaze-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
+      "api": "https://stargaze-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
     },
     "fallback": [
       {
@@ -148,8 +148,8 @@
   },
   "QUICKSILVER": {
     "primary": {
-      "rpc": "https://r-quicksilver--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
-      "api": "https://a-quicksilver--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
+      "rpc": "https://quicksilver-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
+      "api": "https://quicksilver-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
     },
     "fallback": [
       {
@@ -160,8 +160,8 @@
   },
   "NEUTRON": {
     "primary": {
-      "rpc": "https://r-neutron--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
-      "api": "https://a-neutron--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
+      "rpc": "https://neutron-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
+      "api": "https://neutron-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
     },
     "fallback": [
       {
@@ -172,8 +172,8 @@
   },
   "DYMENSION": {
     "primary": {
-      "rpc": "https://r-dymension--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
-      "api": "https://a-dymension--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
+      "rpc": "https://dymension-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
+      "api": "https://dymension-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
     },
     "fallback": [
       {
@@ -184,20 +184,20 @@
   },
   "JACKAL": {
     "primary": {
-      "rpc": "https://rpc.jackalprotocol.com",
-      "api": "https://api.jackalprotocol.com"
+      "rpc": "https://jackal-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
+      "api": "https://jackal-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
     },
     "fallback": [
       {
-        "rpc": "https://jackal-rpc.polkachu.com",
-        "api": "https://jackal-api.polkachu.com"
+        "rpc": "https://rpc.jackalprotocol.com",
+        "api": "https://api.jackalprotocol.com"
       }
     ]
   },
   "INJECTIVE": {
     "primary": {
-      "rpc": "https://r-injective--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
-      "api": "https://a-injective--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
+      "rpc": "https://injective-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
+      "api": "https://injective-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
     },
     "fallback": [
       {
@@ -208,8 +208,8 @@
   },
   "NOBLE": {
     "primary": {
-      "rpc": "https://r-noble--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
-      "api": "https://a-noble--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
+      "rpc": "https://noble-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
+      "api": "https://noble-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
     },
     "fallback": [
       {
@@ -220,8 +220,8 @@
   },
   "COMPOSABLE": {
     "primary": {
-      "rpc": "https://r-composable--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net",
-      "api": "https://a-composable--tptlam769gr03qkn5h03dui4gpkc51pg.gw.notionalapi.net"
+      "rpc": "https://composable-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
+      "api": "https://composable-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
     },
     "fallback": [
       {
@@ -232,8 +232,8 @@
   },
   "CUDOS": {
     "primary": {
-      "rpc": "http://mainnet-full-node-01.hosts.cudos.org:26657",
-      "api": "http://mainnet-full-node-01.hosts.cudos.org:1317"
+      "rpc": "https://cudos-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
+      "api": "https://cudos-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
     },
     "fallback": [
       {
