@@ -21,8 +21,8 @@
     },
     "fallback": [
       {
-        "rpc": "https://rpc-osmosis-1.nolus.cros-nest.net",
-        "api": "https://rest-osmosis-1.nolus.cros-nest.net"
+        "rpc": "https://rpc.osmosis.zone",
+        "api": "https://lcd.osmosis.zone"
       }
     ]
   },
@@ -33,8 +33,8 @@
     },
     "fallback": [
       {
-        "rpc": "https://cosmoshub-rpc.lavenderfive.com:443",
-        "api": "https://cosmoshub-api.lavenderfive.com:443"
+        "rpc": "https://cosmos-rpc.polkachu.com/",
+        "api": "https://cosmos-api.polkachu.com/"
       }
     ]
   },
