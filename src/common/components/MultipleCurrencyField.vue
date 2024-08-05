@@ -62,7 +62,7 @@
             autocomplete="off"
             class="background text-right text-18 font-semibold text-neutral-typography-200"
             placeholder="0"
-            @keydown="inputValue"
+            @keydown="inputSwapValue"
             @keyup="setSwapValue(true)"
             @paste="onPaste"
             @keypress.space.prevent
@@ -166,6 +166,42 @@ function inputValue(event: KeyboardEvent) {
   return false;
 }
 
+function inputSwapValue(event: KeyboardEvent) {
+  const charCode = event.key;
+  const value = numberSwapValue.value ?? "";
+
+  if (event.ctrlKey || event.metaKey) {
+    return true;
+  }
+
+  if (event.key == minus) {
+    event.preventDefault();
+    return false;
+  }
+
+  if (charCode == minus && value.includes(minus)) {
+    event.preventDefault();
+    return false;
+  }
+
+  if (charCode == dot && value?.includes(dot)) {
+    event.preventDefault();
+    return false;
+  }
+
+  if (allowed.includes(charCode)) {
+    return true;
+  }
+
+  const num = Number(charCode);
+  if (numbers.includes(num)) {
+    return true;
+  }
+
+  event.preventDefault();
+  return false;
+}
+
 watch(
   () => props.amount,
   () => {
@@ -208,6 +244,7 @@ function setSwapValue(isEmit = true) {
   let value = removeComma(numberSwapValue.value ?? "");
   let numValue = Number(value);
   numberSwapValue.value = commify(value.toString());
+
   if (isNaN(numValue)) {
     return false;
   }
