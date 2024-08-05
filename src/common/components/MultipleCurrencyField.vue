@@ -240,6 +240,10 @@ function calculateInputBalance(amount: string, currency: ExternalCurrency) {
     return "$0";
   }
 
+  if (amount.at(0) == ".") {
+    return "$0";
+  }
+
   const asset = CurrencyUtils.convertDenomToMinimalDenom(amount, currency.shortName, currency.decimal_digits);
   const coin = new Coin(currency.ibcData, new Int(String(asset.amount)));
   const tokenPrice = prices[currency.ibcData].amount;

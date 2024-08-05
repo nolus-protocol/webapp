@@ -520,6 +520,11 @@ function validateAmount() {
     return false;
   }
 
+  if (amount.value.at(0) == ".") {
+    amountErrorMsg.value = i18n.t("message.invalid-amount");
+    return false;
+  }
+
   if (!amount.value) {
     amountErrorMsg.value = i18n.t("message.invalid-amount");
     return false;

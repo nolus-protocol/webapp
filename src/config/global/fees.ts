@@ -6,7 +6,7 @@ export const GAS_FEES = {
   lender_deposit: 1000,
   lender_burn_deposit: 1200,
   lender_claim_rewards: 17000,
-  transfer_amount: 500,
+  transfer_amount: 5000,
   open_lease: 5000,
   close_lease: 5000,
   repay_lease: 5000,
