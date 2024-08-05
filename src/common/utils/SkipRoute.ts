@@ -5,7 +5,7 @@ import {
   affiliateFromJSON,
   type MsgsRequest,
   type TxStatusResponse
-} from "@skip-router/core";
+} from "@skip-go/core";
 
 import type { IObjectKeys, SkipRouteConfigType } from "../types";
 
@@ -82,10 +82,8 @@ export class SkipRouter {
     } else {
       request.amountIn = amount;
     }
-
     const route: IObjectKeys = await client.route(request as RouteRequest);
     route.revert = true;
-
     return route;
   }
 

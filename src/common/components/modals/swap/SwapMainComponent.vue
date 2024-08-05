@@ -244,6 +244,9 @@ async function setRoute(token: Coin, revert = false) {
 }
 
 function updateSwapToAmount(value: string) {
+  if (value.at(0) == ".") {
+    return;
+  }
   state.value.swapToAmount = value;
 
   const token = CurrencyUtils.convertDenomToMinimalDenom(
@@ -269,6 +272,9 @@ function updateSwapToSelected(value: ExternalCurrency) {
 }
 
 function updateRoute() {
+  if (state.value.amount.at(0) == ".") {
+    return;
+  }
   const token = CurrencyUtils.convertDenomToMinimalDenom(
     state.value.amount,
     state.value.selectedCurrency!.ibcData,
