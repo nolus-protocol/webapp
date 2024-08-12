@@ -5,7 +5,7 @@ import {
   affiliateFromJSON,
   type MsgsRequest,
   type TxStatusResponse
-} from "@skip-go/core";
+} from "@skip-go/client";
 
 import type { IObjectKeys, SkipRouteConfigType } from "../types";
 
@@ -71,12 +71,12 @@ export class SkipRouter {
       smartRelay: true,
       allowMultiTx: true,
       allowUnsafe: true,
+      swapVenues: config.swapVenues,
       experimentalFeatures: ["cctp"],
       smartSwapOptions: {
         splitRoutes: true
       }
     };
-
     if (revert) {
       request.amountOut = amount;
     } else {

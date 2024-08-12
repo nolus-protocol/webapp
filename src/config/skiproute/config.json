@@ -26,6 +26,16 @@
   "timeoutSeconds": "60",
   "osmosis-poolmanager": "osmo14p4cu64dlwavj7kga4s3mj6xglucj9t358r5mz",
   "neutron-astroport": "neutron14p4cu64dlwavj7kga4s3mj6xglucj9t3crexhh",
+  "swapVenues": [
+    {
+      "name": "osmosis-poolmanager",
+      "chainID": "osmosis-1"
+    },
+    {
+      "name": "neutron-lido-satellite",
+      "chainID": "neutron-1"
+    }
+  ],
   "transfers": {
     "OSMOSIS": {
       "currencies": [

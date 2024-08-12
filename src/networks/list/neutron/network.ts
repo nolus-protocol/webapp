@@ -1,7 +1,7 @@
 export const NETWORK = {
   prefix: "neutron",
   key: "NEUTRON",
-  gasMupltiplier: 2,
+  gasMupltiplier: 2.5,
   bip44Path: "44'/118'/0'/0/0",
   ibcTransferTimeout: 600,
   ticker: "NTRN",

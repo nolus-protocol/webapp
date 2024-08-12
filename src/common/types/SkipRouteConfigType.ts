@@ -10,6 +10,10 @@ export interface SkipRouteConfigType {
   timeoutSeconds: string;
   "osmosis-poolmanager": string;
   "neutron-astroport": string;
+  swapVenues: {
+    name: string;
+    chainID: string;
+  }[];
   transfers: {
     [key: string]: {
       currencies: {
