@@ -11,6 +11,7 @@
     :onSendClick="onWithdrawClick"
     :onBackClick="onConfirmBackClick"
     :onOkClick="onClickOkBtn"
+    class="lg:p-10"
   />
   <WithdrawFormComponent
     v-else
