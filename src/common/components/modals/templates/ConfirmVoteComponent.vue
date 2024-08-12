@@ -103,7 +103,6 @@
     <NotificationBox
       v-if="isStepConfirm"
       :type="NotificationBoxType.warning"
-      class="mx-[38px] mb-[20px]"
     >
       <template v-slot:content>
         {{ $t("message.amount-warning") }}
