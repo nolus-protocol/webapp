@@ -14,7 +14,7 @@
       :vote="state.vote"
     />
     <template v-else>
-      <div class="custom-scroll w-full overflow-auto p-10 text-neutral-typography-200 md:max-h-[70vh]">
+      <div class="custom-scroll w-full overflow-auto text-neutral-typography-200 md:max-h-[70vh]">
         <h1>&#35;{{ proposal.id }} {{ proposal.title }}</h1>
         <template v-if="!!Number(delegatedTokensAmount.amount)">
           <div class="flex flex-col gap-4">

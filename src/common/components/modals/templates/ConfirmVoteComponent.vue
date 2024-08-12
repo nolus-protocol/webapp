@@ -1,50 +1,47 @@
 <template>
   <!-- Header -->
-  <div
-    :class="{ 'no-border': !isStepCustomError }"
-    class="modal-send-receive-header flex"
-  >
-    <div class="navigation-header">
-      <div class="flex flex-col items-center justify-center">
-        <CheckIcon
-          v-if="isStepSuccess"
-          class="radius-circle success-icon mb-2 h-14 w-14 p-2"
-        />
-        <XMarkIcon
-          v-if="isStepError || isStepCustomError"
-          class="radius-circle error-icon mb-2 h-14 w-14 p-2"
-        />
-        <h1 class="text-center text-28 font-semibold text-neutral-typography-200 md:text-32">
-          {{ $t(`message.${step}`) }}
-        </h1>
-      </div>
+  <div class="mb-6 flex w-full justify-center border-b-[1px] border-border-color pb-5">
+    <div class="flex w-full flex-col items-center justify-center">
+      <CheckIcon
+        v-if="isStepSuccess"
+        class="mb-2 h-14 w-14 rounded-full bg-success-50 p-2 text-success-100"
+      />
+      <XMarkIcon
+        v-if="isStepError || isStepCustomError"
+        class="mb-2 h-14 w-14 rounded-full bg-danger-50 p-2 text-danger-100"
+      />
+      <h1
+        class="block w-full text-center text-28 font-semibold leading-7 text-neutral-typography-200 md:text-32 md:leading-8"
+      >
+        {{ $t(`message.${step}`) }}
+      </h1>
     </div>
   </div>
 
   <div
     v-if="isStepCustomError"
-    class="modal-form"
+    class=""
   >
-    <div class="py-[28px]">
+    <div class="block break-words rounded-lg bg-dialogs-swap-color p-[24px] text-center text-neutral-typography-200">
       {{ $t("message.gassErrorMsg") }}
     </div>
-    <div class="px-[12px] pb-[28px]">
-      <button
-        class="btn btn-primary btn-large-primary w-auto"
+    <div class="">
+      <Button
+        :label="$t('message.close')"
+        class="mt-6 w-full"
+        severity="primary"
+        size="large"
         @click="btnAction"
-      >
-        {{ $t("message.close") }}
-      </button>
+      />
     </div>
   </div>
-
   <form
     v-else
-    class="modal-form"
+    class="flex flex-col gap-4"
     @submit.prevent="btnAction"
   >
     <!-- Input Area -->
-    <div class="modal-send-receive-input-area pt-0">
+    <div class="block break-words rounded-lg bg-dialogs-swap-color p-4 text-left">
       <div class="radius-rounded mt-[25px] block break-words bg-dialogs-swap-color p-4 text-left">
         <div class="block">
           <p class="m-0 text-14 font-normal text-neutral-typography-200">{{ $t("message.proposal") }}:</p>
@@ -114,11 +111,9 @@
     </NotificationBox>
 
     <!-- Actions -->
-    <div class="modal-send-receive-actions">
-      <button :class="`btn btn-primary btn-large-primary ${isStepPending ? 'js-loading' : ''}`">
-        {{ isStepConfirm ? $t("message.confirm") : $t("message.ok") }}
-      </button>
-    </div>
+    <button :class="`btn btn-primary btn-large-primary ${isStepPending ? 'js-loading' : ''}`">
+      {{ isStepConfirm ? $t("message.confirm") : $t("message.ok") }}
+    </button>
   </form>
 </template>
 
