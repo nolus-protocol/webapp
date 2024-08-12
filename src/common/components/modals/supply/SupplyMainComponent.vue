@@ -11,6 +11,7 @@
     :onSendClick="onSupplyClick"
     :onBackClick="onConfirmBackClick"
     :onOkClick="onClickOkBtn"
+    class="lg:p-10"
   />
   <SupplyFormComponent
     v-else

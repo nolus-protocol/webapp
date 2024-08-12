@@ -168,6 +168,7 @@ watch(
 watch(
   () => state.value.selectedCurrency,
   () => {
+    console.log(state.value.selectedCurrency);
     calculate();
   }
 );
@@ -309,6 +310,7 @@ function validateMinMaxValues(): boolean {
 
     const currency = state.value.selectedCurrency;
     const downPaymentCurrency = state.value.selectedDownPaymentCurrency;
+    console.log(currency);
     const range = downPaymentRange?.[currency.ticker];
     const rangedownPaymentCurrency = downPaymentRange?.[downPaymentCurrency.ticker];
     const values: number[] = [];
@@ -363,6 +365,7 @@ function validateMinMaxValues(): boolean {
 
     return isValid;
   } catch (error) {
+    console.log(error);
     state.value.downPaymentErrorMsg = i18n.t("message.integer-out-of-range");
     return false;
   }

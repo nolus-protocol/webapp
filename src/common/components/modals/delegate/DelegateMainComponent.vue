@@ -11,6 +11,7 @@
     :onSendClick="onDelegateClick"
     :onBackClick="onConfirmBackClick"
     :onOkClick="onClickOkBtn"
+    class="lg:p-10"
   />
   <DelegateFormComponent
     v-else
