@@ -23,7 +23,7 @@ export const validateAddress = (address: string) => {
 };
 
 export const validateAmount = (amount: string, denom: string, balance: number) => {
-  const hasDot = amount.includes(".");
+  const hasDot = amount?.at?.(0) == ".";
 
   if (!amount || hasDot) {
     return i18n.global.t("message.invalid-amount");
