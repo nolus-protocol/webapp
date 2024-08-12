@@ -62,7 +62,7 @@ import { Logger, WalletManager, walletOperation } from "@/common/utils";
 import Sidebar from "@/common/components/Sidebar.vue";
 import Header from "@/common/components/Header.vue";
 import MobileMenu from "@/common/components/menus/MobileMenu.vue";
-import LeaseDialog from "@/common/components/modals/LeaseDialog.vue";
+import LeaseDialog from "@/common/components/modals/LongShortDialog.vue";
 import SupplyWithdrawDialog from "@/common/components/modals/SupplyWithdrawDialog.vue";
 import DelegateUndelegateDialog from "@/common/components/modals/DelegateUndelegateDialog.vue";
 import Modal from "@/common/components/modals/templates/Modal.vue";
@@ -92,9 +92,13 @@ const modalOptions: {
     dialog: Component;
   };
 } = {
-  "/lease#create": {
+  "/lease#long": {
     dialog: LeaseDialog,
-    route: "create"
+    route: "long"
+  },
+  "/lease#short": {
+    dialog: LeaseDialog,
+    route: "short"
   },
   "/#receive": {
     dialog: SendReceiveDialogV2,

@@ -13,7 +13,7 @@
     :onBackClick="onConfirmBackClick"
     :onOkClick="onClickOkBtn"
   />
-  <LeaseFormComponent
+  <ShortFormComponent
     v-else
     v-model="state"
     class="custom-scroll overflow-y-auto md:overflow-y-visible"
@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import LeaseFormComponent from "./LeaseFormComponent.vue";
+import ShortFormComponent from "./ShortFormComponent.vue";
 import ConfirmComponent from "../templates/ConfirmComponent.vue";
 
 import type { LeaseComponentProps } from "./types";
@@ -168,7 +168,6 @@ watch(
 watch(
   () => state.value.selectedCurrency,
   () => {
-    console.log(state.value.selectedCurrency);
     calculate();
   }
 );
@@ -310,7 +309,6 @@ function validateMinMaxValues(): boolean {
 
     const currency = state.value.selectedCurrency;
     const downPaymentCurrency = state.value.selectedDownPaymentCurrency;
-    console.log(currency);
     const range = downPaymentRange?.[currency.ticker];
     const rangedownPaymentCurrency = downPaymentRange?.[downPaymentCurrency.ticker];
     const values: number[] = [];
