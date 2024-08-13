@@ -12,7 +12,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     explorer: "https://testnet.ping.pub/nolus/tx",
     govern: "https://testnet.ping.pub/nolus/gov",
     staking: "https://testnet.ping.pub/nolus/staking",
-    etlApi: "http://localhost:8081/api",
+    etlApi: "https://etl-cl.nolus.network:8081/api",
     leaseBlockUpdate: 977014,
     lppCreatedAt: 1686573237831,
     evmEndpoints: isDev()
