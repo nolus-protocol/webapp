@@ -29,43 +29,54 @@ export const CONTRACTS: ContractConfig = {
   }
 };
 
+export enum PositionTypes {
+  long = "long",
+  short = "short"
+}
+
 export const ProtocolsConfig: {
   [key: string]: {
     only: string[];
     currencies: string[];
     lease: boolean;
     ignoreNetowrk: string[];
+    type: PositionTypes;
   };
 } = {
   "OSMOSIS-OSMOSIS-OSMO": {
     only: ["NLS"],
     lease: true,
     currencies: ["NLS", "OSMO", "USDC_AXELAR", "ATOM", "AKT", "JUNO"],
-    ignoreNetowrk: ["NEUTRON"]
+    ignoreNetowrk: ["NEUTRON"],
+    type: PositionTypes.short
   },
   "NEUTRON-ASTROPORT-USDC_AXL": {
     only: [],
     lease: true,
     currencies: ["NTRN", "USDC_AXELAR", "DYDX", "ST_TIA", "STK_ATOM", "ATOM"],
-    ignoreNetowrk: ["OSMOSIS"]
+    ignoreNetowrk: ["OSMOSIS"],
+    type: PositionTypes.long
   },
   "OSMOSIS-OSMOSIS-USDC_AXELAR": {
     only: [],
     currencies: ["USDC_AXELAR"],
     lease: false,
-    ignoreNetowrk: ["NEUTRON"]
+    ignoreNetowrk: ["NEUTRON"],
+    type: PositionTypes.long
   },
   "NEUTRON-ASTROPORT-USDC_AXELAR": {
     only: [],
     lease: false,
     currencies: ["USDC_AXELAR"],
-    ignoreNetowrk: ["OSMOSIS"]
+    ignoreNetowrk: ["OSMOSIS"],
+    type: PositionTypes.long
   },
   "NEUTRON-ASTROPORT-USDC_NOBLE": {
     only: [],
     lease: true,
     currencies: ["NTRN", "USDC_NOBLE", "DYDX", "ST_TIA", "STK_ATOM", "ATOM"],
-    ignoreNetowrk: ["OSMOSIS"]
+    ignoreNetowrk: ["OSMOSIS"],
+    type: PositionTypes.long
   },
   "OSMOSIS-OSMOSIS-USDC_NOBLE": {
     only: ["NLS", "ST_ATOM", "TIA"],
@@ -98,7 +109,8 @@ export const ProtocolsConfig: {
       "PICA",
       "CUDOS"
     ],
-    ignoreNetowrk: ["NEUTRON"]
+    ignoreNetowrk: ["NEUTRON"],
+    type: PositionTypes.long
   }
 };
 

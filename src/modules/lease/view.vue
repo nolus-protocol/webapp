@@ -35,6 +35,7 @@
         <div class="flex h-full flex-col items-center justify-center text-neutral-typography-50">
           <img
             class="mb-4 inline-block"
+            z
             height="34"
             src="/src/assets/icons/union.svg"
             width="36"
@@ -55,10 +56,10 @@
 
   <Modal
     v-if="showLeaseModal"
-    route="create"
+    route="long"
     @close-modal="onCloseLease"
   >
-    <LeaseDialog />
+    <LongShortDialog />
   </Modal>
   <Modal
     v-if="errorDialog.showDialog"
@@ -73,7 +74,7 @@
 </template>
 
 <script lang="ts" setup>
-import LeaseDialog from "@/common/components/modals/LeaseDialog.vue";
+import LongShortDialog from "@/common/components/modals/LongShortDialog.vue";
 import Modal from "@/common/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
 import { Button } from "web-components";

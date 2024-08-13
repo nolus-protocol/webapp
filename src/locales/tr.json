@@ -316,6 +316,8 @@
     "share-position": "Share PnL",
     "lease-size": "Size",
     "health": "Health",
-    "opened-on": "Opened on"
+    "opened-on": "Opened on",
+    "long": "Long",
+    "short": "Short"
   }
 }

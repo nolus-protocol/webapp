@@ -280,7 +280,7 @@ import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
 import SendReceiveDialog from "@/common/components/modals/SendReceiveDialog.vue";
 
 import SupplyWithdrawDialog from "@/common/components/modals/SupplyWithdrawDialog.vue";
-import LeaseDialog from "@/common/components/modals/LeaseDialog.vue";
+import LeaseDialog from "@/common/components/modals/LongShortDialog.vue";
 import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
 import SendReceiveDialogV2 from "@/common/components/modals/SendReceiveDialogV2.vue";
 

@@ -13,7 +13,7 @@
     :onBackClick="onConfirmBackClick"
     :onOkClick="onClickOkBtn"
   />
-  <LeaseFormComponent
+  <LongFormComponent
     v-else
     v-model="state"
     class="custom-scroll overflow-y-auto md:overflow-y-visible"
@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import LeaseFormComponent from "./LeaseFormComponent.vue";
+import LongFormComponent from "./LongFormComponent.vue";
 import ConfirmComponent from "../templates/ConfirmComponent.vue";
 
 import type { LeaseComponentProps } from "./types";
@@ -54,7 +54,8 @@ import {
   DEFAULT_LTD,
   PERMILLE,
   ErrorCodes,
-  ProtocolsConfig
+  ProtocolsConfig,
+  PositionTypes
 } from "@/config/global";
 
 const onModalClose = inject("onModalClose", () => {});
@@ -66,10 +67,20 @@ const walletRef = storeToRefs(walletStore);
 const i18n = useI18n();
 
 const balances = computed(() => {
-  const assets = walletStore.balances.map((item) => {
-    const currency = { ...AssetUtils.getCurrencyByDenom(item.balance.denom), balance: item.balance };
-    return currency;
-  });
+  const assets = walletStore.balances
+    .map((item) => {
+      const currency = { ...AssetUtils.getCurrencyByDenom(item.balance.denom), balance: item.balance };
+      return currency;
+    })
+    .filter((item) => {
+      let [_ticker, protocol] = item.key.split("@");
+
+      if (ProtocolsConfig[protocol].type != PositionTypes.long) {
+        return false;
+      }
+
+      return true;
+    });
   return assets;
 });
 
@@ -168,7 +179,6 @@ watch(
 watch(
   () => state.value.selectedCurrency,
   () => {
-    console.log(state.value.selectedCurrency);
     calculate();
   }
 );
@@ -310,7 +320,6 @@ function validateMinMaxValues(): boolean {
 
     const currency = state.value.selectedCurrency;
     const downPaymentCurrency = state.value.selectedDownPaymentCurrency;
-    console.log(currency);
     const range = downPaymentRange?.[currency.ticker];
     const rangedownPaymentCurrency = downPaymentRange?.[downPaymentCurrency.ticker];
     const values: number[] = [];
@@ -365,7 +374,6 @@ function validateMinMaxValues(): boolean {
 
     return isValid;
   } catch (error) {
-    console.log(error);
     state.value.downPaymentErrorMsg = i18n.t("message.integer-out-of-range");
     return false;
   }
