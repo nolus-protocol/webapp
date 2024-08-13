@@ -102,7 +102,7 @@
       <Button
         :label="isStepConfirm ? $t('message.confirm') : $t('message.ok')"
         :loading="isStepPending"
-        class="mt-8 w-full"
+        class="mt-4 w-full"
         severity="primary"
         size="large"
         type="submit"
