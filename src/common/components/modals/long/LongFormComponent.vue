@@ -146,6 +146,7 @@ import {
   MONTHS,
   NATIVE_NETWORK,
   PERMILLE,
+  PositionTypes,
   ProtocolsConfig
 } from "@/config/global";
 
@@ -205,10 +206,20 @@ const setSwapFee = async () => {
 };
 
 const totalBalances = computed(() => {
-  const assets = wallet.balances.map((item) => {
-    const currency = { ...AssetUtils.getCurrencyByDenom(item.balance.denom), balance: item.balance };
-    return currency;
-  });
+  const assets = wallet.balances
+    .map((item) => {
+      const currency = { ...AssetUtils.getCurrencyByDenom(item.balance.denom), balance: item.balance };
+      return currency;
+    })
+    .filter((item) => {
+      let [_ticker, protocol] = item.key.split("@");
+
+      if (ProtocolsConfig[protocol].type != PositionTypes.long) {
+        return false;
+      }
+
+      return true;
+    });
   return assets;
 });
 
@@ -261,7 +272,6 @@ const coinList = computed(() => {
       let [ticker, protocol] = item.key.split("@");
 
       const [_currency, downPaymentProtocol] = props.modelValue.selectedDownPaymentCurrency.key.split("@");
-
       if (downPaymentProtocol != protocol) {
         return false;
       }
@@ -269,6 +279,11 @@ const coinList = computed(() => {
       if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
         ticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
       }
+
+      if (!app.lease?.[protocol].includes(ticker)) {
+        return false;
+      }
+
       if (IGNORE_LEASE_ASSETS.includes(ticker) || IGNORE_LEASE_ASSETS.includes(`${ticker}@${protocol}`)) {
         return false;
       }

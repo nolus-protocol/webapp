@@ -17,7 +17,7 @@ export async function getProtocols(this: Store) {
     const adminContract = new Admin(cosmWasmClient, adminInstance.instance);
 
     const protocols = (await adminContract.getProtocols()).filter((item) => {
-      return !adminInstance.ignoreProtocols?.includes(item);
+      return true;
     });
 
     const promises = [];

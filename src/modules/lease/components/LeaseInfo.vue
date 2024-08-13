@@ -355,7 +355,7 @@ import {
   type TransferOutOngoingState
 } from "@nolus/nolusjs/build/contracts";
 import { Dec } from "@keplr-wallet/unit";
-import { CHART_RANGES, CoinGecko, GAS_FEES, LEASE_DUE, NATIVE_ASSET, TIP } from "@/config/global";
+import { CHART_RANGES, CoinGecko, GAS_FEES, LEASE_DUE, NATIVE_ASSET, ProtocolsConfig, TIP } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useI18n } from "vue-i18n";
@@ -795,7 +795,7 @@ const leaseOpened = computed<LeaseProps>(() => ({
   history: {
     value: `#${props.leaseInfo.leaseAddress.slice(-8)}`
   },
-  title: i18n.t("message.buy-position"),
+  title: `${i18n.t(`message.${ProtocolsConfig[props.leaseInfo.protocol].type}`)} ${i18n.t("message.buy-position")}`,
   share: {
     label: i18n.t("message.share-position")
   },
@@ -843,7 +843,7 @@ const leaseOpening = computed<LeaseProps>(() => ({
   history: {
     value: `#${props.leaseInfo.leaseAddress.slice(-8)}`
   },
-  title: i18n.t("message.buy-position"),
+  title: `${i18n.t(`message.${ProtocolsConfig[props.leaseInfo.protocol].type}`)} ${i18n.t("message.buy-position")}`,
   status: LeaseStatus.OPENING,
   tabs: [{ button: { icon: "icon-stats" } }, { button: { icon: "icon-lease-1" } }],
   actionButtons: {
@@ -880,7 +880,7 @@ const leasePaid = computed<LeaseProps>(() => ({
   history: {
     value: `#${props.leaseInfo.leaseAddress.slice(-8)}`
   },
-  title: i18n.t("message.buy-position"),
+  title: `${i18n.t(`message.${ProtocolsConfig[props.leaseInfo.protocol].type}`)} ${i18n.t("message.buy-position")}`,
   share: {
     label: i18n.t("message.share-position")
   },
