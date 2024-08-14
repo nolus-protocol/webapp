@@ -22,7 +22,7 @@
   "fee": 35,
   "timeoutSeconds": "60",
   "osmosis-poolmanager": "osmo14p4cu64dlwavj7kga4s3mj6xglucj9t358r5mz",
-  "neutron-astroport": "neutron14p4cu64dlwavj7kga4s3mj6xglucj9t3crexhh",
+  "neutron-astroport": "neutron1war9ee549tt9rla54g56ca78y969l6239pang9",
   "swapVenues": [
     {
       "name": "osmosis-poolmanager",
