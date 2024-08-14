@@ -90,7 +90,8 @@ import {
   DEFAULT_LEASE_UP_PERCENT,
   LEASE_UP_COEFICIENT,
   NATIVE_ASSET,
-  NATIVE_CURRENCY as DEFAULT_CURRENCY
+  NATIVE_CURRENCY as DEFAULT_CURRENCY,
+  ProtocolsConfig
 } from "@/config/global";
 import { CurrencyMapping } from "@/config/currencies";
 
@@ -141,6 +142,11 @@ const canSupply = computed(() => {
 
 const isEarn = computed(() => {
   const curency = WebAppAssetUtils.getCurrencyByDenom(props.denom);
+  const [_, protocol] = curency.key.split("@");
+
+  if (!ProtocolsConfig[protocol].rewards) {
+    return false;
+  }
   const lpns = (app.lpn ?? []).map((item) => item.ticker);
   return lpns.includes(curency.ticker);
 });

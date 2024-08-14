@@ -6,7 +6,7 @@ export const CONTRACTS: ContractConfig = {
   testnet: {
     protocols: ProtocolsRila,
     dispatcher: {
-      instance: "nolus1tqwwyth34550lg2437m05mjnjp8w7h5ka7m70jtzpxn4uh2ktsmqtctwnn",
+      instance: "nolus1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrqrr2r7y",
       codeId: ""
     },
     admin: {
@@ -18,7 +18,7 @@ export const CONTRACTS: ContractConfig = {
   mainnet: {
     protocols: ProtocolsPirin,
     dispatcher: {
-      instance: "nolus1tqwwyth34550lg2437m05mjnjp8w7h5ka7m70jtzpxn4uh2ktsmqtctwnn",
+      instance: "nolus14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s0k0puz",
       codeId: ""
     },
     admin: {
