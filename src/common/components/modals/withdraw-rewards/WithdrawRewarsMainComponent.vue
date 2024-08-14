@@ -26,7 +26,7 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { Dec } from "@keplr-wallet/unit";
 import { useWalletStore } from "@/common/stores/wallet";
 import { AssetUtils, NetworkUtils, WalletManager, walletOperation } from "@/common/utils";
-import { ErrorCodes, GAS_FEES, NATIVE_ASSET } from "@/config/global";
+import { ErrorCodes, GAS_FEES, NATIVE_ASSET, ProtocolsConfig } from "@/config/global";
 import { useAdminStore } from "@/common/stores/admin";
 
 const walletStore = useWalletStore();
@@ -117,7 +117,9 @@ const requestClaim = async () => {
 
       for (const protocolKey in admin.contracts) {
         const protocol = admin.contracts[protocolKey].lpp;
-        contracts.push(protocol);
+        if (ProtocolsConfig[protocolKey].rewards) {
+          contracts.push(protocol);
+        }
       }
 
       const { txHash, txBytes, usedFee } = await walletStore.wallet.simulateClaimRewards(data, contracts);

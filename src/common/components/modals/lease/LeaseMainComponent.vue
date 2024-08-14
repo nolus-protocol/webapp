@@ -168,7 +168,6 @@ watch(
 watch(
   () => state.value.selectedCurrency,
   () => {
-    console.log(state.value.selectedCurrency);
     calculate();
   }
 );
@@ -310,7 +309,6 @@ function validateMinMaxValues(): boolean {
 
     const currency = state.value.selectedCurrency;
     const downPaymentCurrency = state.value.selectedDownPaymentCurrency;
-    console.log(currency);
     const range = downPaymentRange?.[currency.ticker];
     const rangedownPaymentCurrency = downPaymentRange?.[downPaymentCurrency.ticker];
     const values: number[] = [];

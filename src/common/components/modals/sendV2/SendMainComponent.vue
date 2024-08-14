@@ -180,7 +180,6 @@ import { MetaMaskWallet } from "@/networks/metamask";
 
 import { CONFIRM_STEP, type IObjectKeys, type Network, type SkipRouteConfigType, TxType } from "@/common/types";
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
-import { useApplicationStore } from "@/common/stores/application";
 import { Button } from "web-components";
 
 export interface ReceiveComponentProps {
@@ -221,7 +220,6 @@ const isMetamaskLoading = ref(false);
 
 const receiverErrorMsg = ref("");
 const receiverAddress = ref("");
-const app = useApplicationStore();
 
 let skipRouteConfig: SkipRouteConfigType | null;
 let id = Date.now();

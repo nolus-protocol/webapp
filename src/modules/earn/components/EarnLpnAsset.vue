@@ -43,7 +43,7 @@ import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
 
 import { Dec } from "@keplr-wallet/unit";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
-import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
+import { NATIVE_ASSET, NATIVE_CURRENCY, ProtocolsConfig } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
 import { AssetUtils } from "@/common/utils";
 import { EarningAssetsTableRow } from "web-components";
@@ -90,24 +90,28 @@ const maxCoinDecimals = computed(() => {
   return AssetUtils.formatDecimals(props.asset.balance.denom, props.asset.balance.amount);
 });
 
-const items = computed(() => [
-  {
-    value: assetInfo.value.shortName,
-    valueInfo: i18n.t("message.deposit-interest"),
-    image: assetInfo.value.icon,
-    imageClass: "w-8"
-  },
-  {
-    type: CURRENCY_VIEW_TYPES.TOKEN,
-    subValue: `${NATIVE_CURRENCY.symbol}${calculateBalance(props.asset.balance.amount.toString(), props.asset.balance.denom)}`,
-    class: "hidden md:flex"
-  },
-  {
-    type: CURRENCY_VIEW_TYPES.CURRENCY,
-    subValue: `+${rewards.value}% ${NATIVE_ASSET.label}`,
-    class: "text-success-100"
-  }
-]);
+const items = computed(() => {
+  const [_key, protocol] = props.asset.key.split("@");
+  const hasReswards = ProtocolsConfig[protocol].rewards;
+  return [
+    {
+      value: assetInfo.value.shortName,
+      valueInfo: i18n.t("message.deposit-interest"),
+      image: assetInfo.value.icon,
+      imageClass: "w-8"
+    },
+    {
+      type: CURRENCY_VIEW_TYPES.TOKEN,
+      subValue: `${NATIVE_CURRENCY.symbol}${calculateBalance(props.asset.balance.amount.toString(), props.asset.balance.denom)}`,
+      class: "hidden md:flex"
+    },
+    {
+      type: CURRENCY_VIEW_TYPES.CURRENCY,
+      subValue: hasReswards ? `+${rewards.value}% ${NATIVE_ASSET.label}` : "-",
+      class: hasReswards ? "text-success-100" : "text-neutral-typography-200"
+    }
+  ];
+});
 </script>
 
 <style lang="scss" scoped></style>
