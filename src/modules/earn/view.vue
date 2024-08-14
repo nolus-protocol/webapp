@@ -123,7 +123,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
 
 import { claimRewardsMsg, type ContractData, Lpp } from "@nolus/nolusjs/build/contracts";
-import { NATIVE_ASSET, UPDATE_REWARDS_INTERVAL } from "@/config/global";
+import { NATIVE_ASSET, ProtocolsConfig, UPDATE_REWARDS_INTERVAL } from "@/config/global";
 import { coin } from "@cosmjs/amino";
 import { useApplicationStore } from "@/common/stores/application";
 import { useI18n } from "vue-i18n";
@@ -140,7 +140,12 @@ const cols = ref(3 as number);
 const showSupplyWithdrawDialog = ref(false);
 const showDelegateUndelegateDialog = ref(false);
 const showWithrawRewardsDialog = ref(false);
-const sort = ["OSMOSIS-OSMOSIS-USDC_NOBLE", "OSMOSIS-OSMOSIS-USDC_AXELAR", "NEUTRON-ASTROPORT-USDC_AXELAR"];
+const sort = [
+  "OSMOSIS-OSMOSIS-USDC_NOBLE",
+  "NEUTRON-ASTROPORT-USDC_NOBLE",
+  "OSMOSIS-OSMOSIS-USDC_AXELAR",
+  "NEUTRON-ASTROPORT-USDC_AXELAR"
+];
 
 const reward = ref({
   balance: coin(0, ChainConstants.COIN_MINIMAL_DENOM)
@@ -240,19 +245,21 @@ async function getRewards() {
     let rewards = new Dec(0);
 
     for (const protocolKey in admin.contracts) {
-      const fn = async () => {
-        try {
-          const contract = admin.contracts![protocolKey].lpp;
-          const lppClient = new Lpp(cosmWasmClient, contract);
-          const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
+      if (ProtocolsConfig[protocolKey].rewards) {
+        const fn = async () => {
+          try {
+            const contract = admin.contracts![protocolKey].lpp;
+            const lppClient = new Lpp(cosmWasmClient, contract);
+            const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
 
-          const lenderRewards = await lppClient.getLenderRewards(walletAddress);
-          rewards = rewards.add(new Dec(lenderRewards.rewards.amount));
-        } catch (e) {
-          Logger.error(e);
-        }
-      };
-      promises.push(fn());
+            const lenderRewards = await lppClient.getLenderRewards(walletAddress);
+            rewards = rewards.add(new Dec(lenderRewards.rewards.amount));
+          } catch (e) {
+            Logger.error(e);
+          }
+        };
+        promises.push(fn());
+      }
     }
 
     await Promise.allSettled(promises);

@@ -16,7 +16,7 @@
         :value="modelValue.amount"
         name="repayBalance"
         @input="handleAmountChange($event)"
-        @update-currency="(event) => (modelValue.selectedCurrency = event)"
+        @update-currency="updateCurrency"
       />
       <div class="flex justify-end">
         <div class="grow-3 text-right text-14 font-medium text-neutral-typography-200">
@@ -57,7 +57,7 @@
 import CurrencyField from "@/common/components/CurrencyField.vue";
 
 import type { RepayComponentProps } from "./types";
-import { computed, type PropType } from "vue";
+import { computed, nextTick, type PropType } from "vue";
 
 import { CoinPretty, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
@@ -65,7 +65,7 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { LPN_DECIMALS, LPN_Symbol, NATIVE_NETWORK, PERCENT, PERMILLE } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
 import { LeaseUtils } from "@/common/utils";
-import type { ExternalCurrency } from "@/common/types";
+import type { ExternalCurrency, IObjectKeys } from "@/common/types";
 import { CurrencyDemapping } from "@/config/currencies";
 import { Button, Tooltip } from "web-components";
 
@@ -226,4 +226,13 @@ const amount = computed(() => {
     )
   };
 });
+
+function updateCurrency(event: ExternalCurrency) {
+  props.modelValue.selectedCurrency = event;
+  if (props.modelValue.amount == "" || !props.modelValue.amount) {
+    nextTick(() => {
+      props.modelValue.amountErrorMsg = "";
+    });
+  }
+}
 </script>
