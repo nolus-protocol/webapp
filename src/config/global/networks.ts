@@ -1,7 +1,7 @@
 import type { NetworkAddress } from "@/common/types";
 import { isDev } from ".";
 
-export const DEFAULT_PRIMARY_NETWORK = "mainnet";
+export const DEFAULT_PRIMARY_NETWORK = import.meta.env.VITE_DEFAULT_NETWORK;
 export const NETWORKS: { [key: string]: NetworkAddress } = {
   testnet: {
     currencies: () => import("@nolus/nolusjs/build/utils/currencies_testnet.json"),

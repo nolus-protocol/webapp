@@ -109,11 +109,11 @@
         :decimals="4"
         :font-size="20"
         :font-size-small="14"
-        :hasSpace="false"
-        :isDenomInfront="true"
+        :hasSpace="true"
+        :isDenomInfront="false"
         :type="CURRENCY_VIEW_TYPES.CURRENCY"
         class="garet-medium"
-        denom="$"
+        :denom="AssetUtils.getLpnByProtocol(leaseInfo.protocol)?.shortName"
       />
     </template>
     <template #interest-0>
@@ -140,11 +140,11 @@
             :decimals="4"
             :font-size="20"
             :font-size-small="14"
-            :hasSpace="false"
-            :isDenomInfront="true"
+            :hasSpace="true"
+            :isDenomInfront="false"
             :type="CURRENCY_VIEW_TYPES.CURRENCY"
             class="garet-medium mt-1"
-            denom="$"
+            :denom="AssetUtils.getLpnByProtocol(leaseInfo.protocol)?.shortName"
           />
         </div>
         <TooltipComponent

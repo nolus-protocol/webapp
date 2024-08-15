@@ -22,7 +22,7 @@
       />
       <Picker
         :default-option="coinList[selectedIndex]"
-        :label="$t('message.asset-to-lease')"
+        :label="$t('message.long')"
         :options="coinList"
         class="scrollbar text-left"
         @update-selected="updateSelected"
@@ -59,7 +59,7 @@
         </div>
         <div class="text-right text-14 font-semibold">
           <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
-            <span class="mt-[1px]">${{ borrowed }}</span>
+            <span class="mt-[1px]">{{ borrowed }}</span>
             <Tooltip :content="$t('message.borrowed-tooltip')" />
           </p>
           <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
@@ -422,23 +422,14 @@ function onDrag(event: number) {
 
 const borrowed = computed(() => {
   const borrow = props.modelValue.leaseApply?.borrow;
+  const [_, protocol] = props.modelValue.selectedDownPaymentCurrency.key.split("@");
+  const lpn = AssetUtils.getLpnByProtocol(protocol);
 
   if (borrow) {
-    const ticker = CurrencyDemapping[borrow?.ticker!]?.ticker ?? borrow?.ticker;
-    const protocol = AssetUtils.getProtocolByContract(props.modelValue.contractAddress);
-    const info = app.currenciesData![`${ticker}@${protocol}`];
-    if (info) {
-      const token = CurrencyUtils.convertMinimalDenomToDenom(
-        borrow.amount,
-        info.ibcData,
-        info.symbol,
-        info.decimal_digits
-      );
-      return token.hideDenom(true).toString();
-    }
+    return CurrencyUtils.convertMinimalDenomToDenom(borrow.amount, lpn.symbol, lpn.shortName, lpn.decimal_digits);
   }
 
-  return "0";
+  return CurrencyUtils.convertMinimalDenomToDenom("0", lpn.symbol, lpn.shortName, lpn.decimal_digits);
 });
 
 function getBorrowedAmount() {

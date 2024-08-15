@@ -24,14 +24,12 @@ export async function getPrices(this: State) {
         const oracleContract = new Oracle(cosmWasmClient, protocol.oracle);
 
         const data = (await oracleContract.getPrices()) as IObjectKeys;
-
-        const tst = await oracleContract.getCurrencies();
-
+        // console.log(protocol.oracle, protocolKey);
+        // const basePrice = (await oracleContract.getBasePrice("OSMO")) as IObjectKeys;
         for (const price of data.prices) {
           const ticker = CurrencyDemapping[price.amount.ticker]?.ticker ?? price.amount.ticker;
           const present = isProtocolInclude(ticker);
           const currency = app.currenciesData![`${ticker}@${protocolKey}`];
-
           if (currency && (present.length == 0 || present.includes(protocolKey))) {
             const diff = Math.abs(Number(currency.decimal_digits) - LPN_DECIMALS);
             let calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
