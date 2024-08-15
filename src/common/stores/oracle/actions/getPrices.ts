@@ -4,9 +4,10 @@ import { NolusClient } from "@nolus/nolusjs";
 import { useApplicationStore } from "../../application";
 import { useAdminStore } from "../../admin";
 import { Oracle } from "@nolus/nolusjs/build/contracts";
-import { LPN_DECIMALS, LPN_PRICE, isProtocolInclude } from "@/config/global";
+import { isProtocolInclude } from "@/config/global";
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyDemapping } from "@/config/currencies";
+import { AssetUtils } from "@/common/utils";
 
 export async function getPrices(this: State) {
   try {
@@ -23,16 +24,17 @@ export async function getPrices(this: State) {
         const protocol = admin.contracts![protocolKey];
         const oracleContract = new Oracle(cosmWasmClient, protocol.oracle);
 
-        const data = (await oracleContract.getPrices()) as IObjectKeys;
-        // console.log(protocol.oracle, protocolKey);
-        // const basePrice = (await oracleContract.getBasePrice("OSMO")) as IObjectKeys;
-        for (const price of data.prices) {
+        const [data, lpnPrice] = await Promise.all([oracleContract.getPrices(), getLpnPrice(oracleContract)]);
+        const lpn = AssetUtils.getLpnByProtocol(protocolKey);
+        pr[lpn.ibcData as string] = { symbol: lpn.ticker as string, amount: lpnPrice.toString() };
+
+        for (const price of (data as IObjectKeys).prices) {
           const ticker = CurrencyDemapping[price.amount.ticker]?.ticker ?? price.amount.ticker;
           const present = isProtocolInclude(ticker);
           const currency = app.currenciesData![`${ticker}@${protocolKey}`];
           if (currency && (present.length == 0 || present.includes(protocolKey))) {
-            const diff = Math.abs(Number(currency.decimal_digits) - LPN_DECIMALS);
-            let calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
+            const diff = Math.abs(Number(currency.decimal_digits) - lpn.decimal_digits);
+            let calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount)).mul(lpnPrice);
             calculatedPrice = calculatedPrice.mul(new Dec(10 ** diff));
             const tokenPrice = {
               amount: calculatedPrice.toString(),
@@ -47,13 +49,15 @@ export async function getPrices(this: State) {
       promises.push(fn());
     }
 
-    for (const lpn of app.lpn ?? []) {
-      pr[lpn.ibcData as string] = { symbol: lpn.ticker as string, amount: `${LPN_PRICE}` };
-    }
-
     await Promise.all(promises);
     this.prices = pr;
   } catch (error: Error | any) {
     throw new Error(error);
   }
+}
+
+async function getLpnPrice(oracleContract: Oracle) {
+  const lpn = await oracleContract.getBaseCurrency();
+  const price = await oracleContract.getStablePrice(lpn);
+  return new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
 }

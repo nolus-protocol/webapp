@@ -62,10 +62,10 @@ import { computed, nextTick, type PropType } from "vue";
 import { CoinPretty, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/common/stores/oracle";
-import { LPN_DECIMALS, LPN_Symbol, NATIVE_NETWORK, PERCENT, PERMILLE } from "@/config/global";
+import { NATIVE_NETWORK, PERCENT, PERMILLE } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
-import { LeaseUtils } from "@/common/utils";
-import type { ExternalCurrency, IObjectKeys } from "@/common/types";
+import { AssetUtils, LeaseUtils } from "@/common/utils";
+import type { ExternalCurrency } from "@/common/types";
 import { CurrencyDemapping } from "@/config/currencies";
 import { Button, Tooltip } from "web-components";
 
@@ -179,6 +179,9 @@ const hasSwapFee = computed(() => {
 
 const amount = computed(() => {
   const selectedCurrency = props.modelValue.selectedCurrency;
+  const [_, protocolKey] = selectedCurrency.key.split("@");
+
+  const lpn = AssetUtils.getLpnByProtocol(protocolKey);
 
   let amount = new Dec(props.modelValue.amount == "" ? 0 : props.modelValue.amount);
   const price = new Dec(oracle.prices[selectedCurrency!.ibcData as string]?.amount ?? 0);
@@ -186,12 +189,12 @@ const amount = computed(() => {
 
   const amountInStableInt = amount
     .mul(price)
-    .mul(new Dec(10).pow(new Int(LPN_DECIMALS)))
+    .mul(new Dec(10).pow(new Int(lpn.decimal_digits)))
     .truncate();
   const amountInt = amount.mul(new Dec(10).pow(new Int(selectedCurrency.decimal_digits))).truncate();
 
   const repaymentInt = repayment.mul(new Dec(10).pow(new Int(selectedCurrency.decimal_digits))).truncate();
-  const repaymentInStableInt = repaymentInStable.mul(new Dec(10).pow(new Int(LPN_DECIMALS))).truncate();
+  const repaymentInStableInt = repaymentInStable.mul(new Dec(10).pow(new Int(lpn.decimal_digits))).truncate();
 
   let vStable = repaymentInStableInt.sub(amountInStableInt);
   let v = repaymentInt.sub(amountInt);
@@ -207,9 +210,9 @@ const amount = computed(() => {
   return {
     amountInStable: new CoinPretty(
       {
-        coinDenom: LPN_Symbol,
-        coinMinimalDenom: LPN_Symbol,
-        coinDecimals: Number(LPN_DECIMALS)
+        coinDenom: selectedCurrency.shortName,
+        coinMinimalDenom: selectedCurrency.ibcData,
+        coinDecimals: selectedCurrency.decimal_digits
       },
       vStable
     )

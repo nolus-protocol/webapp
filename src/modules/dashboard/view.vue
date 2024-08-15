@@ -299,7 +299,7 @@ import { useAdminStore } from "@/common/stores/admin";
 
 import { AssetUtils, Logger, NetworkUtils, WalletManager } from "@/common/utils";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
-import { IGNORE_TRANSFER_ASSETS, LPN_DECIMALS, NATIVE_ASSET, NATIVE_CURRENCY, ProtocolsConfig } from "@/config/global";
+import { IGNORE_TRANSFER_ASSETS, NATIVE_ASSET, NATIVE_CURRENCY, ProtocolsConfig } from "@/config/global";
 import { CurrencyDemapping } from "@/config/currencies";
 import { Button, Table } from "web-components";
 
@@ -653,7 +653,9 @@ async function getRewards() {
           const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
           const amount = new Dec(depositBalance.balance).mul(calculatedPrice);
           const lpnReward = amount.sub(new Dec(depositBalance.balance)).truncateDec();
-          rewards = rewards.add(new Dec(lpnReward.truncate(), LPN_DECIMALS));
+          const lpn = AssetUtils.getLpnByProtocol(protocolKey);
+
+          rewards = rewards.add(new Dec(lpnReward.truncate(), lpn.decimal_digits));
         };
         promises.push(fn());
       }

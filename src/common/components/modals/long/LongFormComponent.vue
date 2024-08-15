@@ -142,7 +142,6 @@ import {
   FREE_INTEREST_ASSETS,
   IGNORE_DOWNPAYMENT_ASSETS,
   IGNORE_LEASE_ASSETS,
-  LPN_DECIMALS,
   MONTHS,
   NATIVE_NETWORK,
   PERMILLE,
@@ -226,15 +225,18 @@ const totalBalances = computed(() => {
 const downPaymentSwapFeeStable = computed(() => {
   try {
     const asset = props.modelValue.selectedDownPaymentCurrency;
+    const [_, protocol] = asset.key.split("@");
+    const lpn = AssetUtils.getLpnByProtocol(protocol);
+
     const price = oracle.prices[asset.ibcData];
-    const borrow = new Dec(props.modelValue.leaseApply?.borrow?.amount ?? 0, LPN_DECIMALS);
+    const borrow = new Dec(props.modelValue.leaseApply?.borrow?.amount ?? 0, lpn.decimal_digits);
 
     const value = new Dec(props.modelValue.downPayment.length == 0 ? 0 : props.modelValue.downPayment)
       .mul(new Dec(price.amount))
       .add(borrow)
       .mul(new Dec(swapFee.value));
 
-    return value.toString(LPN_DECIMALS);
+    return value.toString(lpn.decimal_digits);
   } catch (error) {
     return "0.00";
   }
