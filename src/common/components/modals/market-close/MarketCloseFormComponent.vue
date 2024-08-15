@@ -71,9 +71,9 @@ import { computed, type PropType } from "vue";
 import { Coin, CoinPretty, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/common/stores/oracle";
-import { LPN_DECIMALS, LPN_Symbol, NATIVE_NETWORK, PERCENT, PERMILLE } from "@/config/global";
+import { NATIVE_NETWORK, PERCENT, PERMILLE } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
-import { LeaseUtils } from "@/common/utils";
+import { AssetUtils, LeaseUtils } from "@/common/utils";
 import { CurrencyDemapping } from "@/config/currencies";
 
 const oracle = useOracleStore();
@@ -195,6 +195,8 @@ const amount = computed(() => {
 
 function getAmountValue(a: string) {
   const selectedCurrency = props.modelValue.selectedCurrency;
+  const [_, protocolKey] = selectedCurrency.key.split("@");
+  const lpn = AssetUtils.getLpnByProtocol(protocolKey);
 
   let amount = new Dec(a);
   const price = new Dec(oracle.prices[selectedCurrency!.ibcData as string]?.amount ?? 0);
@@ -202,12 +204,12 @@ function getAmountValue(a: string) {
 
   const amountInStableInt = amount
     .mul(price)
-    .mul(new Dec(10).pow(new Int(LPN_DECIMALS)))
+    .mul(new Dec(10).pow(new Int(lpn.decimal_digits)))
     .truncate();
   const amountInt = amount.mul(new Dec(10).pow(new Int(selectedCurrency.decimal_digits))).truncate();
 
   const repaymentInt = repayment.mul(new Dec(10).pow(new Int(selectedCurrency.decimal_digits))).truncate();
-  const repaymentInStableInt = repaymentInStable.mul(new Dec(10).pow(new Int(LPN_DECIMALS))).truncate();
+  const repaymentInStableInt = repaymentInStable.mul(new Dec(10).pow(new Int(lpn.decimal_digits))).truncate();
 
   let vStable = repaymentInStableInt.sub(amountInStableInt);
   let v = repaymentInt.sub(amountInt);
@@ -223,9 +225,9 @@ function getAmountValue(a: string) {
   return {
     amountInStable: new CoinPretty(
       {
-        coinDenom: LPN_Symbol,
-        coinMinimalDenom: LPN_Symbol,
-        coinDecimals: Number(LPN_DECIMALS)
+        coinDenom: lpn.shortName,
+        coinMinimalDenom: lpn.ibcData,
+        coinDecimals: Number(lpn.decimal_digits)
       },
       vStable
     )
@@ -279,12 +281,14 @@ function getRepayment(p: number) {
 
 function getLpnSymbol() {
   const [_key, protocol] = props.modelValue.selectedCurrency.key.split("@");
+  const lpn = AssetUtils.getLpnByProtocol(protocol);
+
   for (const lpn of app.lpn ?? []) {
     const [_, p] = lpn.key.split("@");
     if (p == protocol) {
       return lpn.shortName;
     }
   }
-  return LPN_Symbol;
+  return lpn.shortName;
 }
 </script>

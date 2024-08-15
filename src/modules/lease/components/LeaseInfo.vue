@@ -64,26 +64,29 @@
     <template #tab-1>
       <div class="flex h-full flex-col justify-between gap-2 lg:gap-0">
         <div class="text-12 font-medium text-neutral-400">{{ $t("message.lease-size") }}</div>
-        <div class="flex">
-          <img
-            :src="getAssetIcon"
-            class="m-0 mr-3 inline-block"
-            height="36"
-            width="36"
-            @dblclick="copy"
-          />
-          <h1 class="text-28 font-semibold text-neutral-typography-200 md:text-28">
-            <CurrencyComponent
-              :amount="amount"
-              :decimals="asset?.decimal_digits"
-              :denom="asset!.shortName"
-              :font-size="22"
-              :maxDecimals="6"
-              :minimalDenom="asset!.ibcData"
-              :type="CURRENCY_VIEW_TYPES.TOKEN"
+        <div>
+          <div class="flex">
+            <img
+              :src="getAssetIcon"
+              class="m-0 mr-3 inline-block"
+              height="36"
+              width="36"
+              @dblclick="copy"
             />
-            <span class="ml-1 inline-block text-20 font-normal uppercase text-neutral-typography-200"> </span>
-          </h1>
+            <h1 class="text-28 font-semibold text-neutral-typography-200 md:text-28">
+              <CurrencyComponent
+                :amount="amount"
+                :decimals="asset?.decimal_digits"
+                :denom="asset!.shortName"
+                :font-size="22"
+                :maxDecimals="6"
+                :minimalDenom="asset!.ibcData"
+                :type="CURRENCY_VIEW_TYPES.TOKEN"
+              />
+              <span class="ml-1 inline-block text-20 font-normal uppercase text-neutral-typography-200"> </span>
+            </h1>
+          </div>
+          <span class="text-15 pl-[50px] font-extralight text-neutral-400">${{ positionInStable }}</span>
         </div>
         <div class="flex flex-wrap gap-2 whitespace-nowrap text-10 font-medium uppercase text-medium-blue">
           <span
@@ -355,7 +358,16 @@ import {
   type TransferOutOngoingState
 } from "@nolus/nolusjs/build/contracts";
 import { Dec } from "@keplr-wallet/unit";
-import { CHART_RANGES, CoinGecko, GAS_FEES, LEASE_DUE, NATIVE_ASSET, ProtocolsConfig, TIP } from "@/config/global";
+import {
+  CHART_RANGES,
+  CoinGecko,
+  GAS_FEES,
+  LEASE_DUE,
+  NATIVE_ASSET,
+  PositionTypes,
+  ProtocolsConfig,
+  TIP
+} from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useI18n } from "vue-i18n";
@@ -795,7 +807,10 @@ const leaseOpened = computed<LeaseProps>(() => ({
   history: {
     value: `#${props.leaseInfo.leaseAddress.slice(-8)}`
   },
-  title: `${i18n.t(`message.${ProtocolsConfig[props.leaseInfo.protocol].type}`)} ${i18n.t("message.buy-position")}`,
+  title: {
+    value: `${i18n.t(`message.${ProtocolsConfig[props.leaseInfo.protocol].type}`)} ${i18n.t("message.buy-position")}`,
+    class: getTitleClass()
+  },
   share: {
     label: i18n.t("message.share-position")
   },
@@ -843,7 +858,10 @@ const leaseOpening = computed<LeaseProps>(() => ({
   history: {
     value: `#${props.leaseInfo.leaseAddress.slice(-8)}`
   },
-  title: `${i18n.t(`message.${ProtocolsConfig[props.leaseInfo.protocol].type}`)} ${i18n.t("message.buy-position")}`,
+  title: {
+    value: `${i18n.t(`message.${ProtocolsConfig[props.leaseInfo.protocol].type}`)} ${i18n.t("message.buy-position")}`,
+    class: getTitleClass()
+  },
   status: LeaseStatus.OPENING,
   tabs: [{ button: { icon: "icon-stats" } }, { button: { icon: "icon-lease-1" } }],
   actionButtons: {
@@ -880,7 +898,10 @@ const leasePaid = computed<LeaseProps>(() => ({
   history: {
     value: `#${props.leaseInfo.leaseAddress.slice(-8)}`
   },
-  title: `${i18n.t(`message.${ProtocolsConfig[props.leaseInfo.protocol].type}`)} ${i18n.t("message.buy-position")}`,
+  title: {
+    value: `${i18n.t(`message.${ProtocolsConfig[props.leaseInfo.protocol].type}`)} ${i18n.t("message.buy-position")}`,
+    class: getTitleClass()
+  },
   share: {
     label: i18n.t("message.share-position")
   },
@@ -902,6 +923,28 @@ const leasePaid = computed<LeaseProps>(() => ({
     status: pnl.value.status ? LeasePnlStatus.POSITIVE : LeasePnlStatus.NEGATIVE
   }
 }));
+
+function getTitleClass() {
+  switch (ProtocolsConfig[props.leaseInfo.protocol].type) {
+    case PositionTypes.long: {
+      return "rounded border border-success-100 p-1 text-success-100";
+    }
+    case PositionTypes.short: {
+      return "rounded border border-danger-100 p-1 text-danger-100";
+    }
+  }
+}
+
+const positionInStable = computed(() => {
+  const amount =
+    props.leaseInfo.leaseStatus?.opened?.amount ||
+    props.leaseInfo.leaseStatus.opening?.downpayment ||
+    props.leaseInfo.leaseStatus.paid?.amount;
+  const asset = app.currenciesData?.[`${props.leaseInfo.leaseData.leasePositionTicker}@${props.leaseInfo.protocol}`];
+  const price = oracleStore.prices?.[`${props.leaseInfo.leaseData.leasePositionTicker}@${props.leaseInfo.protocol}`];
+  const value = new Dec(amount.amount, asset?.decimal_digits).mul(new Dec(price.amount));
+  return value.toString(asset?.decimal_digits);
+});
 
 function onFocusChart(data: string[], index: number) {
   if (index < 0) {

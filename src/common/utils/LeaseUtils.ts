@@ -2,7 +2,7 @@ import type { OpenedLeaseInfo } from "@nolus/nolusjs/build/contracts";
 import type { LeaseAttributes } from "../types/LeaseData";
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { LPN_DECIMALS, PERCENT, PERMILLE } from "@/config/global";
+import { PERCENT, PERMILLE } from "@/config/global";
 import { AppUtils, AssetUtils, EtlApi, Logger } from ".";
 import { CurrencyDemapping } from "@/config/currencies";
 
@@ -74,8 +74,9 @@ export class LeaseUtils {
       const downPaymentCurrency = AssetUtils.getCurrencyByTicker(
         CurrencyDemapping[downpaymentTicker]?.ticker ?? downpaymentTicker
       );
+      const lpn = AssetUtils.getLpnByProtocol(AssetUtils.getProtocolByContract(result.lease.LS_loan_pool_id));
 
-      const leasePositionStable = new Dec(result.lease.LS_loan_amnt_asset, LPN_DECIMALS);
+      const leasePositionStable = new Dec(result.lease.LS_loan_amnt_asset, lpn.decimal_digits);
       const downPayment = new Dec(result.lease.LS_cltr_amnt_stable, Number(downPaymentCurrency!.decimal_digits));
       const positionSize = leasePositionStable.add(downPayment);
       const fee = (await AppUtils.getSwapFee())[result.lease.LS_asset_symbol as string] ?? 0;
