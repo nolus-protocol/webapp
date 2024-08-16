@@ -598,7 +598,7 @@ function setLeases() {
         const dasset = AssetUtils.getCurrencyByTicker(lease.leaseStatus.opened.amount.ticker!);
         const dDecimal = Number(dasset!.decimal_digits);
         const l = CurrencyUtils.calculateBalance(
-          oracle.prices[dasset.ibcData].amount,
+          oracle.prices[dasset.ibcData]?.amount,
           new Coin(dasset.ibcData, lease.leaseStatus.opened.amount.amount),
           dDecimal
         ).toDec();

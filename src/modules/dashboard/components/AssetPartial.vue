@@ -1,17 +1,5 @@
 <template>
-  <AssetsTableRow
-    :items="items"
-    :rowButton="
-      showActionButtons ? { label: canSupply ? $t('message.supply') : $t('message.lease'), class: 'hidden' } : null
-    "
-    @button-click="
-      () => {
-        canSupply
-          ? openModal(DASHBOARD_ACTIONS.SUPPLY, assetInfo.key)
-          : openModal(DASHBOARD_ACTIONS.LEASE, assetInfo.key);
-      }
-    "
-  >
+  <AssetsTableRow :items="items">
     <template #token>
       <CurrencyComponent
         v-if="assetBalance"
@@ -75,7 +63,6 @@
 </template>
 
 <script lang="ts" setup>
-import { DASHBOARD_ACTIONS } from "../types";
 import { computed, type PropType } from "vue";
 import { Coin, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
@@ -134,12 +121,6 @@ const canLease = computed(() => {
   return Number(props.assetBalance) > 0 && app.leasesCurrencies.includes(CurrencyMapping[ticker]?.ticker ?? ticker);
 });
 
-const canSupply = computed(() => {
-  const curency = WebAppAssetUtils.getCurrencyByDenom(props.denom);
-  const lpns = (app.lpn ?? []).map((item) => item.key);
-  return Number(props.assetBalance) > 0 && lpns.includes(curency.ticker);
-});
-
 const isEarn = computed(() => {
   const curency = WebAppAssetUtils.getCurrencyByDenom(props.denom);
   const [_, protocol] = curency.key.split("@");
@@ -150,8 +131,6 @@ const isEarn = computed(() => {
   const lpns = (app.lpn ?? []).map((item) => item.ticker);
   return lpns.includes(curency.ticker);
 });
-
-const showActionButtons = computed(() => canLease.value);
 
 const balance = computed(() => {
   return Number(props.assetBalance);

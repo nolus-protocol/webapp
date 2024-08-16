@@ -793,7 +793,7 @@ const leaseOpenedMargin = ({
     (amount) => AssetUtils.getCurrencyByTicker(amount?.ticker as string)
   );
   const price = oracleStore.prices[externalCurrencies[5].ibcData];
-  const priceAmount = new Dec(amount.amount, externalCurrencies[5].decimal_digits).mul(new Dec(price.amount));
+  const priceAmount = new Dec(amount.amount, externalCurrencies[5].decimal_digits).mul(new Dec(price?.amount ?? 1));
   const margin = new Dec(overdue_interest.amount, externalCurrencies[0].decimal_digits)
     .add(new Dec(overdue_margin.amount, externalCurrencies[1].decimal_digits))
     .add(new Dec(due_margin.amount, externalCurrencies[2].decimal_digits))
