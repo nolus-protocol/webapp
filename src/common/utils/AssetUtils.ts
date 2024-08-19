@@ -106,10 +106,8 @@ export class AssetUtils {
 
   public static getLpnByProtocol(protocol: string) {
     const app = useApplicationStore();
-    const chain = EnvNetworkUtils.getStoredNetworkName();
     for (const lpn of app.lpn ?? []) {
-      const [t, p] = lpn.key.split("@");
-
+      const [_, p] = lpn.key.split("@");
       if (p == protocol) {
         return lpn;
       }

@@ -375,6 +375,7 @@ import {
   AppUtils,
   AssetUtils,
   datePraser,
+  EtlApi,
   formatDate,
   Logger,
   StringUtils,
@@ -451,8 +452,8 @@ async function setFreeInterest() {
 }
 
 async function loadCharts() {
-  const { days, interval } = chartTimeRange.value;
-  const pricesData = await fetchChartData(days, interval);
+  const { days } = chartTimeRange.value;
+  const pricesData = await fetchChartData(days);
 
   chartData.value = {
     datasets: [
@@ -480,24 +481,12 @@ const currentPrice = computed(() => {
   return oracleStore.prices[`${ticker}@${props.leaseInfo.protocol}`]?.amount ?? "0";
 });
 
-async function fetchChartData(days: string, interval: string) {
-  let coinGeckoId = asset.value?.coingeckoId;
+async function fetchChartData(intetval: string) {
+  let [key, protocol]: string[] = props.leaseInfo.leaseData.leasePositionTicker.includes("@")
+    ? props.leaseInfo.leaseData.leasePositionTicker.split("@")
+    : [props.leaseInfo.leaseData.leasePositionTicker, props.leaseInfo.protocol];
+  const prices = await EtlApi.fetchPriceSeries(key, protocol, intetval);
 
-  if (props.leaseInfo.leaseStatus?.opening && !props.leaseInfo.leaseData) {
-    const ticker =
-      props.leaseInfo.leaseStatus?.opened?.amount.ticker ||
-      props.leaseInfo.leaseStatus?.opening?.downpayment.ticker ||
-      props.leaseInfo.leaseStatus?.paid?.amount.ticker;
-
-    const item = AssetUtils.getCurrencyByTicker(ticker);
-    const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
-    coinGeckoId = asset.coingeckoId;
-  }
-
-  const res = await fetch(
-    `${CoinGecko.url}/coins/${coinGeckoId}/market_chart?vs_currency=usd&days=${days}&interval=${interval}&x_cg_pro_api_key=${CoinGecko.key}`
-  );
-  const { prices } = await res.json();
   return prices;
 }
 
@@ -519,8 +508,8 @@ const asset = computed(() => {
 
 const getAssetIcon = computed((): string => {
   if (props.leaseInfo.leaseStatus?.opening && props.leaseInfo.leaseData) {
-    const item = app.currenciesData?.[props.leaseInfo.leaseData?.leasePositionTicker as string];
-    return app.assetIcons?.[item!.key as string] as string;
+    // const item = app.currenciesData?.[props.leaseInfo.leaseData?.leasePositionTicker as string];
+    return app.assetIcons?.[props.leaseInfo.leaseData?.leasePositionTicker as string] as string;
   }
 
   const ticker =
@@ -832,7 +821,6 @@ const leaseOpened = computed<LeaseProps>(() => ({
   },
   pnl: {
     click() {
-      console.info("pnl clicked");
       pnlType.value = !pnlType.value;
     },
     status: pnl.value.status ? LeasePnlStatus.POSITIVE : LeasePnlStatus.NEGATIVE
