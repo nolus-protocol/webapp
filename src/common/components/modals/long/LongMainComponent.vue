@@ -56,7 +56,8 @@ import {
   PERMILLE,
   ErrorCodes,
   ProtocolsConfig,
-  PositionTypes
+  PositionTypes,
+  IGNORE_LEASE_ASSETS
 } from "@/config/global";
 
 const onModalClose = inject("onModalClose", () => {});
@@ -103,10 +104,14 @@ const paymentBalances = computed(() => {
 const leaseBalances = computed(() => {
   const c = balances.value
     .filter((item) => {
-      let [ticker] = item.key.split("@");
+      let [ticker, protocol] = item.key.split("@");
 
       if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
         ticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
+      }
+
+      if (IGNORE_LEASE_ASSETS.includes(ticker) || IGNORE_LEASE_ASSETS.includes(`${ticker}@${protocol}`)) {
+        return false;
       }
 
       return app.leasesCurrencies.includes(ticker);
