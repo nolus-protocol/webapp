@@ -12,8 +12,9 @@
     :onSendClick="onSendClick"
     :onBackClick="onConfirmBackClick"
     :onOkClick="onClickOkBtn"
+    class="lg:p-10"
   />
-  <LeaseFormComponent
+  <ShortFormComponent
     v-else
     v-model="state"
     class="custom-scroll overflow-y-auto md:overflow-y-visible"
@@ -21,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import LeaseFormComponent from "./LeaseFormComponent.vue";
+import ShortFormComponent from "./ShortFormComponent.vue";
 import ConfirmComponent from "../templates/ConfirmComponent.vue";
 
 import type { LeaseComponentProps } from "./types";
@@ -54,7 +55,8 @@ import {
   DEFAULT_LTD,
   PERMILLE,
   ErrorCodes,
-  ProtocolsConfig
+  ProtocolsConfig,
+  PositionTypes
 } from "@/config/global";
 
 const onModalClose = inject("onModalClose", () => {});
@@ -66,10 +68,20 @@ const walletRef = storeToRefs(walletStore);
 const i18n = useI18n();
 
 const balances = computed(() => {
-  const assets = walletStore.balances.map((item) => {
-    const currency = { ...AssetUtils.getCurrencyByDenom(item.balance.denom), balance: item.balance };
-    return currency;
-  });
+  const assets = walletStore.balances
+    .map((item) => {
+      const currency = { ...AssetUtils.getCurrencyByDenom(item.balance.denom), balance: item.balance };
+      return currency;
+    })
+    .filter((item) => {
+      let [_ticker, protocol] = item.key.split("@");
+
+      if (ProtocolsConfig[protocol].type != PositionTypes.short) {
+        return false;
+      }
+
+      return true;
+    });
   return assets;
 });
 
@@ -363,7 +375,6 @@ function validateMinMaxValues(): boolean {
 
     return isValid;
   } catch (error) {
-    console.log(error);
     state.value.downPaymentErrorMsg = i18n.t("message.integer-out-of-range");
     return false;
   }

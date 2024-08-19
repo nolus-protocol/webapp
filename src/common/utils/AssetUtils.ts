@@ -104,6 +104,19 @@ export class AssetUtils {
     throw new Error(`Contract not found ${contract}`);
   }
 
+  public static getLpnByProtocol(protocol: string) {
+    const app = useApplicationStore();
+    const chain = EnvNetworkUtils.getStoredNetworkName();
+    for (const lpn of app.lpn ?? []) {
+      const [t, p] = lpn.key.split("@");
+
+      if (p == protocol) {
+        return lpn;
+      }
+    }
+    throw new Error(`Lpn not found ${protocol}`);
+  }
+
   public static formatCurrentBalance(denom: string, amount: string) {
     const asset = AssetUtils.getCurrencyByDenom(denom);
     return CurrencyUtils.convertMinimalDenomToDenom(amount, denom, asset.ibcData!, asset.decimal_digits);

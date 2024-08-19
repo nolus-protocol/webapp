@@ -59,10 +59,6 @@ export const UPDATE_REWARDS_INTERVAL = 5 * 60 * 1000;
 export const SESSION_TIME = 25 * 60 * 1000;
 export const MONTHS = 12;
 
-export const LPN_PRICE = 1;
-export const LPN_DECIMALS = 6;
-export const LPN_Symbol = "USDC.axl";
-
 export const DECIMALS_AMOUNT = [
   {
     decimals: 2,

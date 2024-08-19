@@ -1,6 +1,9 @@
 <template>
   <!-- Input Area -->
-  <form @submit.prevent="submit">
+  <form
+    @submit.prevent="submit"
+    class="px-10 py-6"
+  >
     <div class="flex flex-col gap-4">
       <CurrencyField
         id="amount-investment"
@@ -19,7 +22,7 @@
       />
       <Picker
         :default-option="coinList[selectedIndex]"
-        :label="$t('message.asset-to-lease')"
+        :label="$t('message.short')"
         :options="coinList"
         class="scrollbar text-left"
         @update-selected="updateSelected"
@@ -56,7 +59,7 @@
         </div>
         <div class="text-right text-14 font-semibold">
           <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
-            <span class="mt-[1px]">${{ borrowed }}</span>
+            <span class="mt-[1px]">{{ borrowed }}</span>
             <Tooltip :content="$t('message.borrowed-tooltip')" />
           </p>
           <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
@@ -139,10 +142,10 @@ import {
   FREE_INTEREST_ASSETS,
   IGNORE_DOWNPAYMENT_ASSETS,
   IGNORE_LEASE_ASSETS,
-  LPN_DECIMALS,
   MONTHS,
   NATIVE_NETWORK,
   PERMILLE,
+  PositionTypes,
   ProtocolsConfig
 } from "@/config/global";
 
@@ -202,25 +205,38 @@ const setSwapFee = async () => {
 };
 
 const totalBalances = computed(() => {
-  const assets = wallet.balances.map((item) => {
-    const currency = { ...AssetUtils.getCurrencyByDenom(item.balance.denom), balance: item.balance };
-    return currency;
-  });
+  const assets = wallet.balances
+    .map((item) => {
+      const currency = { ...AssetUtils.getCurrencyByDenom(item.balance.denom), balance: item.balance };
+      return currency;
+    })
+    .filter((item) => {
+      let [_ticker, protocol] = item.key.split("@");
+
+      if (ProtocolsConfig[protocol].type != PositionTypes.short) {
+        return false;
+      }
+
+      return true;
+    });
   return assets;
 });
 
 const downPaymentSwapFeeStable = computed(() => {
   try {
     const asset = props.modelValue.selectedDownPaymentCurrency;
+    const [_, protocolKey] = asset.key.split("@");
+    const lpn = AssetUtils.getLpnByProtocol(protocolKey);
+
     const price = oracle.prices[asset.ibcData];
-    const borrow = new Dec(props.modelValue.leaseApply?.borrow?.amount ?? 0, LPN_DECIMALS);
+    const borrow = new Dec(props.modelValue.leaseApply?.borrow?.amount ?? 0, lpn.decimal_digits);
 
     const value = new Dec(props.modelValue.downPayment.length == 0 ? 0 : props.modelValue.downPayment)
       .mul(new Dec(price.amount))
       .add(borrow)
       .mul(new Dec(swapFee.value));
 
-    return value.toString(LPN_DECIMALS);
+    return value.toString(lpn.decimal_digits);
   } catch (error) {
     return "0.00";
   }
@@ -258,7 +274,6 @@ const coinList = computed(() => {
       let [ticker, protocol] = item.key.split("@");
 
       const [_currency, downPaymentProtocol] = props.modelValue.selectedDownPaymentCurrency.key.split("@");
-
       if (downPaymentProtocol != protocol) {
         return false;
       }
@@ -266,6 +281,11 @@ const coinList = computed(() => {
       if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
         ticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
       }
+
+      if (!app.lease?.[protocol].includes(ticker)) {
+        return false;
+      }
+
       if (IGNORE_LEASE_ASSETS.includes(ticker) || IGNORE_LEASE_ASSETS.includes(`${ticker}@${protocol}`)) {
         return false;
       }
@@ -377,7 +397,7 @@ function getLquidation() {
     const unitAsset = new Dec(getBorrowedAmount(), Number(unitAssetInfo!.decimal_digits));
 
     const stableAsset = new Dec(getTotalAmount(), Number(stableAssetInfo!.decimal_digits));
-    return LeaseUtils.calculateLiquidation(unitAsset, stableAsset);
+    return LeaseUtils.calculateLiquidation(stableAsset, unitAsset);
   }
 
   return new Dec(0);
@@ -404,23 +424,14 @@ function onDrag(event: number) {
 
 const borrowed = computed(() => {
   const borrow = props.modelValue.leaseApply?.borrow;
+  const [_, protocol] = props.modelValue.selectedDownPaymentCurrency.key.split("@");
+  const lpn = AssetUtils.getLpnByProtocol(protocol);
 
   if (borrow) {
-    const ticker = CurrencyDemapping[borrow?.ticker!]?.ticker ?? borrow?.ticker;
-    const protocol = AssetUtils.getProtocolByContract(props.modelValue.contractAddress);
-    const info = app.currenciesData![`${ticker}@${protocol}`];
-    if (info) {
-      const token = CurrencyUtils.convertMinimalDenomToDenom(
-        borrow.amount,
-        info.ibcData,
-        info.symbol,
-        info.decimal_digits
-      );
-      return token.hideDenom(true).toString();
-    }
+    return CurrencyUtils.convertMinimalDenomToDenom(borrow.amount, lpn.symbol, lpn.shortName, lpn.decimal_digits);
   }
 
-  return "0";
+  return CurrencyUtils.convertMinimalDenomToDenom("0", lpn.symbol, lpn.shortName, lpn.decimal_digits);
 });
 
 function getBorrowedAmount() {
