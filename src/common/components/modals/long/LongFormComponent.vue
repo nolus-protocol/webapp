@@ -20,7 +20,7 @@
       />
       <Picker
         :default-option="coinList[selectedIndex]"
-        :label="$t('message.long')"
+        :label="$t('message.asset-to-lease')"
         :options="coinList"
         class="scrollbar text-left"
         @update-selected="updateSelected"
