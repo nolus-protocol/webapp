@@ -15,33 +15,19 @@ export enum APPEARANCE {
 export const CHART_RANGES = {
   "1": {
     label: "24h",
-    days: "1",
-    interval: ""
+    days: "1"
   },
   "7": {
     label: "7d",
-    days: "7",
-    interval: ""
+    days: "7"
   },
   "30": {
     label: "30d",
-    days: "30",
-    interval: "daily"
+    days: "30"
   },
   "90": {
     label: "90d",
-    days: "90",
-    interval: "daily"
-  },
-  "365": {
-    label: "1y",
-    days: "365",
-    interval: "daily"
-  },
-  max: {
-    label: "Max",
-    days: "max",
-    interval: "daily"
+    days: "90"
   }
 };
 

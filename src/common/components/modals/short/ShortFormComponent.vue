@@ -27,7 +27,6 @@
         class="scrollbar text-left"
         @update-selected="updateSelected"
       />
-
       <div class="flex justify-between text-[14px] font-medium text-neutral-typography-200">
         <p>
           {{ $t("message.margin") }}
