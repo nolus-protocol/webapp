@@ -34,7 +34,7 @@ import { Dec, Int } from "@keplr-wallet/unit";
 
 import { CONFIRM_STEP, type ExternalCurrency, type IObjectKeys } from "@/common/types";
 import { TxType } from "@/common/types";
-import { AssetUtils, Logger, getMicroAmount, walletOperation } from "@/common/utils";
+import { Logger, getMicroAmount, walletOperation } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
@@ -44,7 +44,7 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
 import { AppUtils } from "@/common/utils";
 import { useAdminStore } from "@/common/stores/admin";
-import { CurrencyMapping } from "@/config/currencies";
+import { CurrencyDemapping, CurrencyMapping } from "@/config/currencies";
 
 import {
   NATIVE_ASSET,
@@ -56,8 +56,7 @@ import {
   PERMILLE,
   ErrorCodes,
   ProtocolsConfig,
-  PositionTypes,
-  IGNORE_LEASE_ASSETS
+  PositionTypes
 } from "@/config/global";
 
 const onModalClose = inject("onModalClose", () => {});
@@ -69,57 +68,66 @@ const walletRef = storeToRefs(walletStore);
 const i18n = useI18n();
 
 const balances = computed(() => {
-  const assets = walletStore.balances
-    .map((item) => {
-      const currency = { ...AssetUtils.getCurrencyByDenom(item.balance.denom), balance: item.balance };
-      return currency;
-    })
-    .filter((item) => {
-      let [_ticker, protocol] = item.key.split("@");
+  let currencies: ExternalCurrency[] = [];
 
-      if (ProtocolsConfig[protocol].type != PositionTypes.short) {
-        return false;
-      }
+  for (const protocol of app.protocols) {
+    if (ProtocolsConfig[protocol].type == PositionTypes.short) {
+      const c =
+        app.lease?.[protocol].map((item) => {
+          const ticker = CurrencyDemapping[item]?.ticker ?? item;
+          const currency = app.currenciesData?.[`${ticker}@${protocol}`];
+          let balance = walletStore.balances.find((item) => item.balance.denom == currency?.ibcData);
+          const c = { ...currency, balance: balance?.balance };
+          return c as ExternalCurrency;
+        }) ?? [];
+      currencies = [...currencies, ...c];
+    }
+  }
 
-      return true;
-    });
-  return assets;
+  for (const lpn of app.lpn ?? []) {
+    const [_, protocol] = lpn.key.split("@");
+    if (ProtocolsConfig[protocol].type == PositionTypes.short) {
+      let balance = walletStore.balances.find((item) => item.balance.denom == lpn?.ibcData);
+      const c = { ...lpn, balance: balance?.balance };
+
+      currencies.push(c);
+    }
+  }
+
+  return currencies;
 });
 
 const paymentBalances = computed(() => {
-  const lpns = (app.lpn ?? []).map((item) => item.key);
-
   const b = balances.value.filter((item) => {
-    const [ticker, protocol] = item.key.split("@");
+    const [_, protocol] = item.key.split("@");
 
     if (!ProtocolsConfig[protocol].lease) {
       return false;
     }
 
-    return lpns.includes(ticker) || app.leasesCurrencies.includes(ticker);
+    return true;
   });
   return b;
 });
 
 const leaseBalances = computed(() => {
-  const c = balances.value
-    .filter((item) => {
-      let [ticker, protocol] = item.key.split("@");
+  let currencies: ExternalCurrency[] = [];
 
-      if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
-        ticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
-      }
+  for (const protocol of app.protocols) {
+    if (ProtocolsConfig[protocol].type == PositionTypes.short) {
+      const c =
+        app.lpn?.filter((item) => {
+          const [_, p] = item.key.split("@");
+          if (p == protocol) {
+            return true;
+          }
+          return false;
+        }) ?? [];
+      currencies = [...currencies, ...c];
+    }
+  }
 
-      if (IGNORE_LEASE_ASSETS.includes(ticker) || IGNORE_LEASE_ASSETS.includes(`${ticker}@${protocol}`)) {
-        return false;
-      }
-
-      return app.leasesCurrencies.includes(ticker);
-    })
-    .map((item) => {
-      return item;
-    });
-  return c;
+  return currencies;
 });
 
 const step = ref(CONFIRM_STEP.CONFIRM);
@@ -207,20 +215,14 @@ async function calculate() {
       );
 
       const currency = state.value.selectedDownPaymentCurrency;
-      const lease = state.value.selectedCurrency;
 
       let [downPaymentTicker, protocol] = currency.key.split("@");
-      let [leaseTicker] = lease.key.split("@");
 
       if (
         CurrencyMapping[downPaymentTicker as keyof typeof CurrencyMapping] &&
         (protocol == AppUtils.getProtocols().osmosis || protocol == AppUtils.getProtocols().osmosis_noble)
       ) {
         downPaymentTicker = CurrencyMapping[downPaymentTicker as keyof typeof CurrencyMapping]?.ticker;
-      }
-
-      if (CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]) {
-        leaseTicker = CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]?.ticker;
       }
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
@@ -232,7 +234,7 @@ async function calculate() {
       const makeLeaseApplyResp = await leaserClient.leaseQuote(
         microAmount.mAmount.amount.toString(),
         downPaymentTicker,
-        leaseTicker,
+        app.lease?.[protocol][0] as string,
         state.value.ltd
       );
 
@@ -417,17 +419,13 @@ async function openLease() {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const admin = useAdminStore();
 
-      let [leaseTicker, protocol] = state.value.selectedCurrency.key.split("@");
+      let [_, protocol] = state.value.selectedCurrency.key.split("@");
 
       const leaserClient = new Leaser(cosmWasmClient, admin.contracts![protocol].leaser);
 
-      if (CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]) {
-        leaseTicker = CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]?.ticker;
-      }
-
       const { txHash, txBytes, usedFee } = await leaserClient.simulateOpenLeaseTx(
         wallet,
-        leaseTicker,
+        app.lease?.[protocol][0] as string,
         state.value.ltd,
         funds
       );

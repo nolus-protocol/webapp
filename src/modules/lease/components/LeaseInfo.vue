@@ -17,6 +17,7 @@
         <div class="text-12 font-medium text-neutral-400">
           {{ $t("message.chart") }}
         </div>
+
         <div class="flex gap-2">
           <div class="flex items-center gap-1">
             <img
@@ -358,16 +359,7 @@ import {
   type TransferOutOngoingState
 } from "@nolus/nolusjs/build/contracts";
 import { Dec } from "@keplr-wallet/unit";
-import {
-  CHART_RANGES,
-  CoinGecko,
-  GAS_FEES,
-  LEASE_DUE,
-  NATIVE_ASSET,
-  PositionTypes,
-  ProtocolsConfig,
-  TIP
-} from "@/config/global";
+import { CHART_RANGES, GAS_FEES, LEASE_DUE, NATIVE_ASSET, PositionTypes, ProtocolsConfig, TIP } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useI18n } from "vue-i18n";
@@ -478,7 +470,8 @@ const currentPrice = computed(() => {
     CurrencyDemapping[props.leaseInfo.leaseData?.leasePositionTicker]?.ticker ??
     props.leaseInfo.leaseData?.leasePositionTicker;
 
-  return oracleStore.prices[`${ticker}@${props.leaseInfo.protocol}`]?.amount ?? "0";
+  const currency = app.currenciesData?.[`${ticker}@${props.leaseInfo.protocol}`];
+  return oracleStore.prices[currency?.ibcData as string]?.amount ?? "0";
 });
 
 async function fetchChartData(intetval: string) {
@@ -496,28 +489,32 @@ const asset = computed(() => {
     return item;
   }
 
-  const ticker =
-    props.leaseInfo.leaseStatus?.opened?.amount.ticker ||
-    props.leaseInfo.leaseStatus?.paid?.amount.ticker ||
-    props.leaseInfo.leaseStatus?.opening?.downpayment.ticker;
-  const item = AssetUtils.getCurrencyByTicker(ticker as string);
+  switch (ProtocolsConfig[props.leaseInfo.protocol].type) {
+    case PositionTypes.long: {
+      const ticker =
+        props.leaseInfo.leaseStatus?.opened?.amount.ticker ||
+        props.leaseInfo.leaseStatus?.paid?.amount.ticker ||
+        props.leaseInfo.leaseStatus?.opening?.downpayment.ticker;
+      const item = AssetUtils.getCurrencyByTicker(ticker as string);
 
-  const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
-  return asset;
+      const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
+      return asset;
+    }
+    case PositionTypes.short: {
+      const item = AssetUtils.getCurrencyByTicker(props.leaseInfo.leaseData.leasePositionTicker as string);
+
+      const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
+      return asset;
+    }
+  }
 });
 
 const getAssetIcon = computed((): string => {
   if (props.leaseInfo.leaseStatus?.opening && props.leaseInfo.leaseData) {
-    // const item = app.currenciesData?.[props.leaseInfo.leaseData?.leasePositionTicker as string];
     return app.assetIcons?.[props.leaseInfo.leaseData?.leasePositionTicker as string] as string;
   }
 
-  const ticker =
-    props.leaseInfo.leaseStatus?.opened?.amount.ticker ||
-    props.leaseInfo.leaseStatus?.opening?.downpayment.ticker ||
-    props.leaseInfo.leaseStatus?.paid?.amount.ticker ||
-    "";
-  return app.assetIcons?.[`${ticker}@${props.leaseInfo.protocol}`] as string;
+  return app.assetIcons?.[`${props.leaseInfo.leaseData?.leasePositionTicker}@${props.leaseInfo.protocol}`] as string;
 });
 
 const downPayment = computed(() => {
@@ -527,11 +524,26 @@ const downPayment = computed(() => {
 });
 
 const amount = computed(() => {
-  const data =
-    props.leaseInfo.leaseStatus?.opened?.amount ||
-    props.leaseInfo.leaseStatus.opening?.downpayment ||
-    props.leaseInfo.leaseStatus.paid?.amount;
-  return data?.amount ?? "0";
+  switch (ProtocolsConfig[props.leaseInfo.protocol].type) {
+    case PositionTypes.long: {
+      const data =
+        props.leaseInfo.leaseStatus?.opened?.amount ||
+        props.leaseInfo.leaseStatus.opening?.downpayment ||
+        props.leaseInfo.leaseStatus.paid?.amount;
+      return data?.amount ?? "0";
+    }
+    case PositionTypes.short: {
+      const data =
+        props.leaseInfo.leaseStatus?.opened?.amount ||
+        props.leaseInfo.leaseStatus.opening?.downpayment ||
+        props.leaseInfo.leaseStatus.paid?.amount;
+
+      const asset =
+        app.currenciesData?.[`${props.leaseInfo.leaseData.leasePositionTicker}@${props.leaseInfo.protocol}`];
+      const price = oracleStore.prices?.[asset?.ibcData as string];
+      return new Dec(data.amount).quo(new Dec(price.amount)).toString();
+    }
+  }
 });
 
 const interestDue = computed(() => {
@@ -924,14 +936,33 @@ function getTitleClass() {
 }
 
 const positionInStable = computed(() => {
-  const amount =
-    props.leaseInfo.leaseStatus?.opened?.amount ||
-    props.leaseInfo.leaseStatus.opening?.downpayment ||
-    props.leaseInfo.leaseStatus.paid?.amount;
-  const asset = app.currenciesData?.[`${props.leaseInfo.leaseData.leasePositionTicker}@${props.leaseInfo.protocol}`];
-  const price = oracleStore.prices?.[`${props.leaseInfo.leaseData.leasePositionTicker}@${props.leaseInfo.protocol}`];
-  const value = new Dec(amount.amount, asset?.decimal_digits).mul(new Dec(price.amount));
-  return value.toString(asset?.decimal_digits);
+  switch (ProtocolsConfig[props.leaseInfo.protocol].type) {
+    case PositionTypes.long: {
+      const amount =
+        props.leaseInfo.leaseStatus?.opened?.amount ||
+        props.leaseInfo.leaseStatus.opening?.downpayment ||
+        props.leaseInfo.leaseStatus.paid?.amount;
+      const asset =
+        app.currenciesData?.[`${props.leaseInfo.leaseData.leasePositionTicker}@${props.leaseInfo.protocol}`];
+      const price =
+        oracleStore.prices?.[`${props.leaseInfo.leaseData.leasePositionTicker}@${props.leaseInfo.protocol}`];
+      const value = new Dec(amount.amount, asset?.decimal_digits).mul(new Dec(price.amount));
+      return value.toString(asset?.decimal_digits);
+    }
+    case PositionTypes.short: {
+      const amount =
+        props.leaseInfo.leaseStatus?.opened?.amount ||
+        props.leaseInfo.leaseStatus.opening?.downpayment ||
+        props.leaseInfo.leaseStatus.paid?.amount;
+
+      const ticker =
+        CurrencyDemapping[props.leaseInfo.leaseData.leasePositionTicker]?.ticker ??
+        props.leaseInfo.leaseData.leasePositionTicker;
+      const asset = app.currenciesData?.[`${ticker}@${props.leaseInfo.protocol}`];
+      const value = new Dec(amount.amount, asset?.decimal_digits);
+      return value.toString(asset?.decimal_digits);
+    }
+  }
 });
 
 function onFocusChart(data: string[], index: number) {

@@ -71,7 +71,7 @@ import { computed, type PropType } from "vue";
 import { Coin, CoinPretty, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/common/stores/oracle";
-import { NATIVE_NETWORK, PERCENT, PERMILLE } from "@/config/global";
+import { NATIVE_NETWORK, PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
 import { AssetUtils, LeaseUtils } from "@/common/utils";
 import { CurrencyDemapping } from "@/config/currencies";
@@ -254,29 +254,45 @@ function getRepayment(p: number) {
 
   const amountToRepay = CurrencyUtils.convertMinimalDenomToDenom(
     amount.toString(),
-    currency.ibcData,
     currency.shortName,
+    currency.ibcData,
     currency.decimal_digits
   ).toDec();
 
   const percent = new Dec(p).quo(new Dec(100));
   let repaymentInStable = amountToRepay.mul(percent);
-
   const selectedCurrency = props.modelValue.selectedCurrency;
-  const price = new Dec(oracle.prices[selectedCurrency!.ibcData as string].amount);
   const swap = hasSwapFee.value;
 
   if (swap) {
     repaymentInStable = repaymentInStable.add(repaymentInStable.mul(new Dec(props.modelValue.swapFee)));
   }
 
-  const repayment = repaymentInStable.quo(price);
+  switch (ProtocolsConfig[props.modelValue.protocol].type) {
+    case PositionTypes.short: {
+      let lpn = AssetUtils.getLpnByProtocol(props.modelValue.protocol);
+      const price = new Dec(oracle.prices[lpn!.ibcData as string].amount);
+      const selected_asset_price = new Dec(oracle.prices[selectedCurrency!.ibcData as string].amount);
 
-  return {
-    repayment,
-    repaymentInStable,
-    selectedCurrencyInfo: selectedCurrency
-  };
+      const repayment = repaymentInStable.mul(price);
+
+      return {
+        repayment: repayment.quo(selected_asset_price),
+        repaymentInStable: repayment,
+        selectedCurrencyInfo: selectedCurrency
+      };
+    }
+    case PositionTypes.long: {
+      const price = new Dec(oracle.prices[selectedCurrency!.ibcData as string].amount);
+      const repayment = repaymentInStable.quo(price);
+
+      return {
+        repayment,
+        repaymentInStable,
+        selectedCurrencyInfo: selectedCurrency
+      };
+    }
+  }
 }
 
 function getLpnSymbol() {

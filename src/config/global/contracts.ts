@@ -1,6 +1,7 @@
 import type { ContractConfig } from "@/common/types";
 import { ProtocolsRila, ProtocolsPirin } from "@nolus/nolusjs/build/types/Networks";
 import { NATIVE_ASSET } from "./network";
+import { isDev } from "./modes";
 
 export const CONTRACTS: ContractConfig = {
   testnet: {
@@ -12,7 +13,7 @@ export const CONTRACTS: ContractConfig = {
     admin: {
       instance: "nolus17p9rzwnnfxcjp32un9ug7yhhzgtkhvl9jfksztgw5uh69wac2pgsmc5xhq",
       codeId: "",
-      ignoreProtocols: ["OSMOSIS-OSMOSIS-USDC_NOBLE", "OSMOSIS-OSMOSIS-USDC_AXELAR", "osmosis-axlusdc"]
+      ignoreProtocols: []
     }
   },
   mainnet: {
@@ -45,9 +46,9 @@ export const ProtocolsConfig: {
   };
 } = {
   "OSMOSIS-OSMOSIS-OSMO": {
-    only: ["NLS"],
+    only: [],
     lease: true,
-    currencies: ["NLS", "OSMO", "USDC_AXELAR", "ATOM", "AKT", "JUNO"],
+    currencies: [],
     ignoreNetowrk: ["NEUTRON"],
     type: PositionTypes.short,
     rewards: true
@@ -61,9 +62,9 @@ export const ProtocolsConfig: {
     rewards: true
   },
   "OSMOSIS-OSMOSIS-USDC_AXELAR": {
-    only: [],
-    currencies: ["USDC_AXELAR"],
-    lease: false,
+    only: ["NLS"],
+    currencies: ["NLS", "OSMO", "USDC_AXELAR", "ATOM", "AKT", "JUNO"],
+    lease: isDev() ? true : false,
     ignoreNetowrk: ["NEUTRON"],
     type: PositionTypes.long,
     rewards: false
