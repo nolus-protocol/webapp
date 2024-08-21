@@ -200,7 +200,7 @@ function getAmountValue(a: string) {
 
   let amount = new Dec(a);
   const price = new Dec(oracle.prices[selectedCurrency!.ibcData as string]?.amount ?? 0);
-  const { repayment, repaymentInStable } = getRepayment(100);
+  const { repayment, repaymentInStable } = getRepayment(100)!;
 
   const amountInStableInt = amount
     .mul(price)

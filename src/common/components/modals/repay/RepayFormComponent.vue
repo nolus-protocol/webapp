@@ -125,7 +125,7 @@ function formatCurrentBalance(selectedCurrency: ExternalCurrency) {
 }
 
 function setRepayment(p: number) {
-  const { repayment, selectedCurrencyInfo } = getRepayment(p);
+  const { repayment, selectedCurrencyInfo } = getRepayment(p)!;
   props.modelValue.amount = repayment.toString(selectedCurrencyInfo.decimal_digits + 1);
 }
 
@@ -200,7 +200,7 @@ const amount = computed(() => {
 
   let amount = new Dec(props.modelValue.amount == "" ? 0 : props.modelValue.amount);
   const price = new Dec(oracle.prices[selectedCurrency!.ibcData as string]?.amount ?? 0);
-  const { repayment, repaymentInStable } = getRepayment(100);
+  const { repayment, repaymentInStable } = getRepayment(100)!;
 
   const amountInStableInt = amount
     .mul(price)
