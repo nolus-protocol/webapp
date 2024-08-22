@@ -233,26 +233,30 @@
     <template #tab-1>
       <div class="flex h-full flex-col justify-between gap-2 lg:gap-0">
         <div class="text-12 font-medium text-neutral-400">{{ $t("message.lease-size") }}</div>
-        <div class="flex">
-          <img
-            :src="getAssetIcon"
-            class="m-0 mr-3 inline-block"
-            height="36"
-            width="36"
-            @dblclick="copy"
-          />
-          <h1 class="text-28 font-semibold text-neutral-typography-200 md:text-28">
-            <CurrencyComponent
-              :amount="amount"
-              :decimals="asset?.decimal_digits"
-              :denom="asset!.shortName"
-              :font-size="22"
-              :maxDecimals="6"
-              :minimalDenom="asset!.ibcData"
-              :type="CURRENCY_VIEW_TYPES.TOKEN"
+
+        <div>
+          <div class="flex">
+            <img
+              :src="getAssetIcon"
+              class="m-0 mr-3 inline-block"
+              height="36"
+              width="36"
+              @dblclick="copy"
             />
-            <span class="ml-1 inline-block text-20 font-normal uppercase text-neutral-typography-200"> </span>
-          </h1>
+            <h1 class="text-28 font-semibold text-neutral-typography-200 md:text-28">
+              <CurrencyComponent
+                :amount="amount"
+                :decimals="asset?.decimal_digits"
+                :denom="asset!.shortName"
+                :font-size="22"
+                :maxDecimals="6"
+                :minimalDenom="asset!.ibcData"
+                :type="CURRENCY_VIEW_TYPES.TOKEN"
+              />
+              <span class="ml-1 inline-block text-20 font-normal uppercase text-neutral-typography-200"> </span>
+            </h1>
+          </div>
+          <span class="text-15 pl-[50px] font-extralight text-neutral-400">${{ positionInStable }}</span>
         </div>
         <div class="flex flex-wrap gap-2 whitespace-nowrap text-10 font-medium uppercase text-medium-blue">
           <span
