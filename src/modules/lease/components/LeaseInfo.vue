@@ -940,8 +940,15 @@ const positionInStable = computed(() => {
     props.leaseInfo.leaseStatus?.opened?.amount ||
     props.leaseInfo.leaseStatus.opening?.downpayment ||
     props.leaseInfo.leaseStatus.paid?.amount;
-  const asset = app.currenciesData?.[`${props.leaseInfo.leaseData.leasePositionTicker}@${props.leaseInfo.protocol}`];
-  const price = oracleStore.prices?.[`${props.leaseInfo.leaseData.leasePositionTicker}@${props.leaseInfo.protocol}`];
+
+  let ticker = props.leaseInfo.leaseData.leasePositionTicker;
+
+  if (CurrencyDemapping[ticker]) {
+    ticker = CurrencyDemapping[ticker].ticker;
+  }
+
+  const asset = app.currenciesData?.[`${ticker}@${props.leaseInfo.protocol}`];
+  const price = oracleStore.prices?.[`${ticker}@${props.leaseInfo.protocol}`];
   const value = new Dec(amount.amount, asset?.decimal_digits).mul(new Dec(price.amount));
   return value.toString(asset?.decimal_digits);
 });
