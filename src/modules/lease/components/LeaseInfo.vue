@@ -944,15 +944,23 @@ const positionInStable = computed(() => {
     props.leaseInfo.leaseStatus?.opened?.amount ||
     props.leaseInfo.leaseStatus.opening?.downpayment ||
     props.leaseInfo.leaseStatus.paid?.amount;
+  let protocol = props.leaseInfo.protocol;
 
   let ticker = props.leaseInfo.leaseData.leasePositionTicker;
+
+  if (ticker.includes("@")) {
+    let [t, p] = ticker.split("@");
+    ticker = t;
+    protocol = p;
+  }
 
   if (CurrencyDemapping[ticker]) {
     ticker = CurrencyDemapping[ticker].ticker;
   }
 
-  const asset = app.currenciesData?.[`${ticker}@${props.leaseInfo.protocol}`];
-  const price = oracleStore.prices?.[`${ticker}@${props.leaseInfo.protocol}`];
+  const asset = app.currenciesData?.[`${ticker}@${protocol}`];
+  const price = oracleStore.prices?.[`${ticker}@${protocol}`];
+
   const value = new Dec(amount.amount, asset?.decimal_digits).mul(new Dec(price.amount));
   return value.toString(asset?.decimal_digits);
 });
