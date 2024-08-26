@@ -3,7 +3,7 @@ import type { NetworkData } from "@nolus/nolusjs/build/types/Networks";
 import type { CosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 import type { Store as AdminStore } from "../../admin/types";
 
-import { CONTRACTS, NATIVE_ASSET, NATIVE_NETWORK, NETWORKS } from "@/config/global";
+import { FIX_CONTRACTS, NATIVE_ASSET, NATIVE_NETWORK, NETWORKS } from "@/config/global";
 import { AssetUtils, EnvNetworkUtils, Logger } from "@/common/utils";
 import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
 import { ASSETS, CurrencyDemapping } from "@/config/currencies";
@@ -32,11 +32,8 @@ export async function loadCurrennncies(this: Store) {
     this.assetIcons = data.assetIcons;
     this.networks = data.networks;
     this.networksData = currenciesData as NetworkData;
-    const adminInstance = CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].admin;
 
-    this.protocols = NolusAssetUtils.getProtocols(this.networksData!).filter(
-      (item) => !adminInstance.ignoreProtocols.includes(item)
-    );
+    this.protocols = NolusAssetUtils.getProtocols(this.networksData!);
     this.lpn = [];
 
     const nativeCurrency = currenciesData.networks.list[NATIVE_NETWORK.key].currencies[native].native!;
@@ -60,6 +57,11 @@ export async function loadCurrennncies(this: Store) {
           return data.networks[NATIVE_NETWORK.key][`${CurrencyDemapping[lpn]?.ticker ?? lpn}@${protocol}`];
         })
       );
+
+      if (FIX_CONTRACTS.includes(protocol)) {
+        continue;
+      }
+
       leasePromises.push(
         getLease(cosmWasmClient, protocol, admin).then((leases) => {
           for (const l of leases) {

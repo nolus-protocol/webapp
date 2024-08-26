@@ -4,7 +4,7 @@ import { NolusClient } from "@nolus/nolusjs";
 import { useApplicationStore } from "../../application";
 import { useAdminStore } from "../../admin";
 import { Oracle } from "@nolus/nolusjs/build/contracts";
-import { isProtocolInclude } from "@/config/global";
+import { FIX_CONTRACTS, isProtocolInclude } from "@/config/global";
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyDemapping } from "@/config/currencies";
 import { AssetUtils } from "@/common/utils";
@@ -20,6 +20,9 @@ export async function getPrices(this: State) {
     const promises = [];
 
     for (const protocolKey in admin.contracts) {
+      if (FIX_CONTRACTS.includes(protocolKey)) {
+        continue;
+      }
       const fn = async () => {
         const protocol = admin.contracts![protocolKey];
         const oracleContract = new Oracle(cosmWasmClient, protocol.oracle);

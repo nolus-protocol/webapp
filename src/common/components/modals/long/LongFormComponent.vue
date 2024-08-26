@@ -137,6 +137,7 @@ import { useApplicationStore } from "@/common/stores/application";
 import { CurrencyDemapping, CurrencyMapping } from "@/config/currencies";
 
 import {
+  FIX_CONTRACTS,
   FREE_INTEREST_ASSETS,
   IGNORE_DOWNPAYMENT_ASSETS,
   IGNORE_LEASE_ASSETS,
@@ -211,6 +212,10 @@ const totalBalances = computed(() => {
     .filter((item) => {
       let [_ticker, protocol] = item.key.split("@");
 
+      if (FIX_CONTRACTS.includes(protocol)) {
+        return false;
+      }
+
       if (ProtocolsConfig[protocol].type != PositionTypes.long) {
         return false;
       }
@@ -248,6 +253,10 @@ const balances = computed(() => {
   return totalBalances.value.filter((item) => {
     const [ticker, protocol] = item.key.split("@");
     let cticker = ticker;
+
+    if (FIX_CONTRACTS.includes(protocol)) {
+      return false;
+    }
 
     if (!ProtocolsConfig[protocol].lease) {
       return false;
