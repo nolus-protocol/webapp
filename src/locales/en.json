@@ -318,6 +318,8 @@
     "defi-summer-winners-subtitle": "You've Won a Limited Edition Tee",
     "defi-summer-winners-description": "Congratulations! Your Limited Edition DeFi Summer Tee by Arsek & Erase is waiting for you. Fill out the form to claim it",
     "long": "Long",
-    "short": "Short"
+    "short": "Short",
+    "maintainance-banner-subtitle": "Some Positions in View-Only Mode",
+    "maintainance-banner-description": "Due to a government proposal in the Nolus Money Market, Osmosis lease positions are in view-only mode. Liquidations and system repayments will not take place"
   }
 }
