@@ -365,7 +365,6 @@ import { Dec } from "@keplr-wallet/unit";
 import {
   CHART_RANGES,
   CoinGecko,
-  FIX_CONTRACTS,
   GAS_FEES,
   LEASE_DUE,
   NATIVE_ASSET,
@@ -427,7 +426,6 @@ const pnlType = ref(false);
 const showShareDialog = ref(false);
 const isFreeInterest = ref(false);
 const focusPrice = ref<string | null>();
-const latestPrices = ref<string | null>();
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const state = ref({
@@ -478,11 +476,12 @@ const currentPrice = computed(() => {
     const item = app.currenciesData?.[props.leaseInfo.leaseData?.leasePositionTicker as string];
     return oracleStore.prices[item?.ibcData as string]?.amount ?? "0";
   }
+
   const ticker =
     CurrencyDemapping[props.leaseInfo.leaseData?.leasePositionTicker]?.ticker ??
     props.leaseInfo.leaseData?.leasePositionTicker;
 
-  return oracleStore.prices[`${ticker}@${props.leaseInfo.protocol}`]?.amount ?? latestPrices.value ?? "0";
+  return oracleStore.prices[`${ticker}@${props.leaseInfo.protocol}`]?.amount ?? "0";
 });
 
 async function fetchChartData(days: string, interval: string) {
@@ -503,7 +502,6 @@ async function fetchChartData(days: string, interval: string) {
     `${CoinGecko.url}/coins/${coinGeckoId}/market_chart?vs_currency=usd&days=${days}&interval=${interval}&x_cg_pro_api_key=${CoinGecko.key}`
   );
   const { prices } = await res.json();
-  latestPrices.value = prices.at(-1)[1].toString();
   return prices;
 }
 
@@ -823,16 +821,8 @@ const leaseOpened = computed<LeaseProps>(() => ({
   status: LeaseStatus.OPENED,
   tabs: [{ button: { icon: "icon-stats" } }, { button: { icon: "icon-lease-1" } }],
   actionButtons: {
-    repay: {
-      label: i18n.t("message.repay"),
-      loading: loadingRepay.value,
-      disabled: loadingClose.value || FIX_CONTRACTS.includes(props.leaseInfo.protocol)
-    },
-    close: {
-      label: i18n.t("message.close"),
-      loading: loadingClose.value,
-      disabled: loadingRepay.value || FIX_CONTRACTS.includes(props.leaseInfo.protocol)
-    }
+    repay: { label: i18n.t("message.repay"), loading: loadingRepay.value, disabled: loadingClose.value },
+    close: { label: i18n.t("message.close"), loading: loadingClose.value, disabled: loadingRepay.value }
   },
   progressBar: {
     title: i18n.t("message.health"),

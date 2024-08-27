@@ -56,8 +56,7 @@ import {
   PERMILLE,
   ErrorCodes,
   ProtocolsConfig,
-  PositionTypes,
-  FIX_CONTRACTS
+  PositionTypes
 } from "@/config/global";
 
 const onModalClose = inject("onModalClose", () => {});
@@ -76,10 +75,6 @@ const balances = computed(() => {
     })
     .filter((item) => {
       let [_ticker, protocol] = item.key.split("@");
-
-      if (FIX_CONTRACTS.includes(protocol)) {
-        return false;
-      }
 
       if (ProtocolsConfig[protocol].type != PositionTypes.long) {
         return false;
@@ -108,11 +103,8 @@ const paymentBalances = computed(() => {
 const leaseBalances = computed(() => {
   const c = balances.value
     .filter((item) => {
-      let [ticker, protocol] = item.key.split("@");
+      let [ticker] = item.key.split("@");
 
-      if (FIX_CONTRACTS.includes(protocol)) {
-        return false;
-      }
       if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
         ticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
       }

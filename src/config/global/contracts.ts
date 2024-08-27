@@ -135,5 +135,3 @@ export const TIP = {
   amount: 100,
   denom: NATIVE_ASSET.denom
 };
-
-export const FIX_CONTRACTS = ["OSMOSIS-OSMOSIS-USDC_AXELAR", "OSMOSIS-OSMOSIS-USDC_NOBLE"];
