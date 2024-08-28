@@ -1,12 +1,4 @@
 {
-  "maintainance": {
-    "title-icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/lease.svg",
-    "image": "",
-    "title": "lease-banner-title",
-    "subtitle": "maintainance-banner-subtitle",
-    "description": "maintainance-banner-description",
-    "target": ""
-  },
   "0int": {
     "title-icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/lease.svg",
     "image": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/0int.webp",
