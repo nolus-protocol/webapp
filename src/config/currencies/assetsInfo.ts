@@ -91,6 +91,9 @@ export const ASSETS = {
   },
   CUDOS: {
     coinGeckoId: "cudos"
+  },
+  D_ATOM: {
+    coinGeckoId: null
   }
 };
 
