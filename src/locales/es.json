@@ -318,8 +318,6 @@
     "health": "Health",
     "opened-on": "Opened on",
     "long": "Long",
-    "short": "Short",
-    "maintainance-banner-subtitle": "Some Positions in View-Only Mode",
-    "maintainance-banner-description": "Due to an ongoing governance proposal in the Nolus Money Market, Osmosis lease positions are in view-only mode. Liquidations and system repayments will not take place"
+    "short": "Short"
   }
 }
