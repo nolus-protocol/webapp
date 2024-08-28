@@ -78,8 +78,11 @@ export const IGNORE_LEASE_ASSETS: string[] = [
   "ATOM@NEUTRON-ASTROPORT-USDC_NOBLE",
   "ST_TIA@NEUTRON-ASTROPORT-USDC_NOBLE",
   "USDC",
-  "USDC_AXELAR"
+  "USDC_AXELAR",
+  "STK_ATOM",
+  "LVN",
+  "EVMOS"
 ];
-export const IGNORE_DOWNPAYMENT_ASSETS: string[] = ["STK_ATOM"];
+export const IGNORE_DOWNPAYMENT_ASSETS: string[] = ["STK_ATOM", "LVN", "EVMOS"];
 
 export const IGNORE_LEASES: string[] = ["nolus1mqezz2qs8cy8qx50yms0r6xc3lae20tms8dqq3t2tl7dd6gnxhxq3kz4uf"];

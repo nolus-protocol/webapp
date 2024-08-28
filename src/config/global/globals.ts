@@ -84,4 +84,4 @@ export const CoinGecko = {
 };
 
 export const LedgerName = "Ledger";
-export const IGNORE_TRANSFER_ASSETS: string[] = [];
+export const IGNORE_TRANSFER_ASSETS: string[] = ["STK_ATOM", "LVN", "EVMOS"];
