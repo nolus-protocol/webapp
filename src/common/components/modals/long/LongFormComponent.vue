@@ -1,9 +1,7 @@
 <template>
   <!-- Input Area -->
-  <form
-    @submit.prevent="submit"
-    class="px-10 py-6"
-  >
+  <!-- class="px-10 py-6" -->
+  <form @submit.prevent="submit">
     <div class="flex flex-col gap-4">
       <CurrencyField
         id="amount-investment"

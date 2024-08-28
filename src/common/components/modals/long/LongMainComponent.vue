@@ -1,4 +1,5 @@
 <template>
+  <!-- class="lg:p-10" -->
   <ConfirmComponent
     v-if="showConfirmScreen"
     :selectedCurrency="state.selectedDownPaymentCurrency"
@@ -12,7 +13,6 @@
     :onSendClick="onSendClick"
     :onBackClick="onConfirmBackClick"
     :onOkClick="onClickOkBtn"
-    class="lg:p-10"
   />
   <LongFormComponent
     v-else

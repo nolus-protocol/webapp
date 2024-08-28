@@ -1,15 +1,15 @@
 <template>
   <DialogHeader
     :active-tab="activeTab()"
-    :headerList="[$t('message.long'), $t('message.short')]"
+    :headerList="[$t('message.long')]"
     :routes="routes"
   >
-    <template #tab-1>
-      <LongMainComponent :selectedAsset="selectedAsset" />
-    </template>
+    <!-- <template #tab-1> -->
+    <LongMainComponent :selectedAsset="selectedAsset" />
+    <!-- </template>
     <template #tab-2>
       <ShortMainComponent :selectedAsset="selectedAsset" />
-    </template>
+    </template> -->
   </DialogHeader>
 </template>
 
@@ -18,7 +18,7 @@ import DialogHeader from "@/common/components/modals/templates/DialogHeader.vue"
 import LongMainComponent from "./long/LongMainComponent.vue";
 import ShortMainComponent from "./short/ShortMainComponent.vue";
 
-const routes = ["long", "short"];
+const routes = ["long"];
 
 const props = defineProps({
   route: {
