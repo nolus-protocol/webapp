@@ -102,6 +102,14 @@ export const CONTRACTS: ContractConfig = {
         ignoreNetowrk: ["NEUTRON"],
         type: PositionTypes.long,
         rewards: true
+      },
+      "OSMOSIS-OSMOSIS-ST_ATOM": {
+        only: [],
+        lease: true,
+        currencies: ["ATOM", "USD_NOBLE", "NLS", "OSMO", , "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
+        ignoreNetowrk: ["NEUTRON"],
+        type: PositionTypes.short,
+        rewards: true
       }
     },
     dispatcher: {
@@ -111,7 +119,7 @@ export const CONTRACTS: ContractConfig = {
     admin: {
       instance: "nolus1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsqxf8nd",
       codeId: "",
-      ignoreProtocols: ["OSMOSIS-OSMOSIS-ST_ATOM"]
+      ignoreProtocols: []
     }
   }
 };

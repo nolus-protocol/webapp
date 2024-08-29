@@ -14,9 +14,14 @@ export async function loadAprRewards(this: Store) {
       cosmWasmClient,
       CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].dispatcher.instance
     );
-
+    console.log(CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].dispatcher.instance);
     const apr: { [key: string]: number } = {};
-    const promises = [dispatcherClient.calculateRewards().catch(() => 40)];
+    const promises = [
+      dispatcherClient.calculateRewards().catch((e) => {
+        console.log(e);
+        return 40;
+      })
+    ];
 
     for (const protocolKey in admin.contracts) {
       const fn = async () => {

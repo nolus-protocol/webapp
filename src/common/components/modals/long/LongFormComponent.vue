@@ -1,7 +1,9 @@
 <template>
   <!-- Input Area -->
-  <!-- class="px-10 py-6" -->
-  <form @submit.prevent="submit">
+  <form
+    @submit.prevent="submit"
+    class="px-10 py-6"
+  >
     <div class="flex flex-col gap-4">
       <CurrencyField
         id="amount-investment"
@@ -16,7 +18,7 @@
         :value="modelValue.downPayment"
         name="amountInvestment"
         @input="handleDownPaymentChange($event)"
-        @update-currency="(event) => (modelValue.selectedDownPaymentCurrency = event)"
+        @update-currency="(event: any) => (modelValue.selectedDownPaymentCurrency = event)"
       />
       <Picker
         :default-option="coinList[selectedIndex]"
@@ -134,7 +136,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/common/stores/oracle";
 import { AppUtils, AssetUtils, LeaseUtils } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
-import { CurrencyDemapping, CurrencyMapping } from "@/config/currencies";
+import { CurrencyMapping } from "@/config/currencies";
 
 import {
   FREE_INTEREST_ASSETS,

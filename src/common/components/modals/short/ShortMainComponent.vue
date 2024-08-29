@@ -249,7 +249,6 @@ async function calculate() {
     }
   } catch (error) {
     state.value.leaseApply = null;
-    Logger.error(error);
   }
 }
 
