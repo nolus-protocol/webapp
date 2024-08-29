@@ -70,27 +70,13 @@ const i18n = useI18n();
 const balances = computed(() => {
   let currencies: ExternalCurrency[] = [];
 
-  for (const protocol of app.protocols) {
+  for (const protocol in ProtocolsConfig) {
     if (ProtocolsConfig[protocol].type == PositionTypes.short) {
-      const c =
-        app.lease?.[protocol].map((item) => {
-          const ticker = CurrencyDemapping[item]?.ticker ?? item;
-          const currency = app.currenciesData?.[`${ticker}@${protocol}`];
-          let balance = walletStore.balances.find((item) => item.balance.denom == currency?.ibcData);
-          const c = { ...currency, balance: balance?.balance };
-          return c as ExternalCurrency;
-        }) ?? [];
-      currencies = [...currencies, ...c];
-    }
-  }
-
-  for (const lpn of app.lpn ?? []) {
-    const [_, protocol] = lpn.key.split("@");
-    if (ProtocolsConfig[protocol].type == PositionTypes.short) {
-      let balance = walletStore.balances.find((item) => item.balance.denom == lpn?.ibcData);
-      const c = { ...lpn, balance: balance?.balance };
-
-      currencies.push(c);
+      for (const c of ProtocolsConfig[protocol].currencies) {
+        const item = app.currenciesData?.[`${c}@${protocol}`];
+        let balance = walletStore.balances.find((c) => c.balance.denom == item?.ibcData);
+        currencies.push({ ...item, balance: balance?.balance } as ExternalCurrency);
+      }
     }
   }
 

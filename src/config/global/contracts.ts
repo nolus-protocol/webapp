@@ -12,12 +12,13 @@ export enum PositionTypes {
 
 export const CONTRACTS: ContractConfig = {
   testnet: {
+    longDefault: "OSMO@OSMOSIS-OSMOSIS-USDC_AXELAR",
     protocols: ProtocolsRila,
     protocolConfig: {
       "NEUTRON-ASTROPORT-USDC_AXL": {
         only: [],
         lease: true,
-        currencies: ["NTRN", "USDC_AXELAR", "DYDX", "ST_TIA", "STK_ATOM", "ATOM"],
+        currencies: ["NTRN", "USDC_AXELAR", "ATOM"],
         ignoreNetowrk: ["OSMOSIS"],
         type: PositionTypes.long,
         rewards: true
@@ -42,6 +43,7 @@ export const CONTRACTS: ContractConfig = {
     }
   },
   mainnet: {
+    longDefault: "OSMO@OSMOSIS-OSMOSIS-USDC_NOBLE",
     protocols: ProtocolsPirin,
     protocolConfig: {
       "OSMOSIS-OSMOSIS-USDC_AXELAR": {
@@ -106,7 +108,7 @@ export const CONTRACTS: ContractConfig = {
       "OSMOSIS-OSMOSIS-ST_ATOM": {
         only: [],
         lease: true,
-        currencies: ["ATOM", "USD_NOBLE", "OSMO", , "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
+        currencies: ["ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
         ignoreNetowrk: ["NEUTRON"],
         type: PositionTypes.short,
         rewards: true
@@ -124,11 +126,8 @@ export const CONTRACTS: ContractConfig = {
   }
 };
 
-export const ProtocolsConfig = new Proxy(CONTRACTS[network].protocolConfig, {
-  get(target, prop) {
-    return target[prop as string];
-  }
-});
+export const Contracts = CONTRACTS[network];
+export const ProtocolsConfig = Contracts.protocolConfig;
 
 // export enum PositionTypes {
 //   long = "long",

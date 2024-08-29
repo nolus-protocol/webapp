@@ -53,7 +53,8 @@ import {
   PERCENT,
   ErrorCodes,
   minimumLeaseAmount,
-  IGNORE_DOWNPAYMENT_ASSETS
+  IGNORE_DOWNPAYMENT_ASSETS,
+  ProtocolsConfig
 } from "@/config/global";
 
 const walletStore = useWalletStore();
@@ -104,6 +105,10 @@ const balances = computed(() => {
     let cticker = ticker;
 
     if (IGNORE_DOWNPAYMENT_ASSETS.includes(ticker)) {
+      return false;
+    }
+
+    if (ProtocolsConfig[protocol].lease && !ProtocolsConfig[protocol].currencies.includes(ticker)) {
       return false;
     }
 

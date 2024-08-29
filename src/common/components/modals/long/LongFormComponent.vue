@@ -59,7 +59,7 @@
         </div>
         <div class="text-right text-14 font-semibold">
           <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
-            <span >{{ borrowed }}</span>
+            <span>{{ borrowed }}</span>
             <Tooltip :content="$t('message.borrowed-tooltip')" />
           </p>
           <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
@@ -79,7 +79,7 @@
             <Tooltip :content="$t('message.interest-tooltip')" />
           </p>
           <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
-            <span >{{ calculateLique }}</span>
+            <span>{{ calculateLique }}</span>
             <span class="text-[#8396B1]"> &nbsp;|&nbsp; {{ percentLique }} </span>
             <Tooltip :content="$t('message.liquidation-price-tooltip')" />
           </p>
@@ -205,21 +205,19 @@ const setSwapFee = async () => {
 };
 
 const totalBalances = computed(() => {
-  const assets = wallet.balances
-    .map((item) => {
-      const currency = { ...AssetUtils.getCurrencyByDenom(item.balance.denom), balance: item.balance };
-      return currency;
-    })
-    .filter((item) => {
-      let [_ticker, protocol] = item.key.split("@");
+  let currencies: ExternalCurrency[] = [];
 
-      if (ProtocolsConfig[protocol].type != PositionTypes.long) {
-        return false;
+  for (const protocol in ProtocolsConfig) {
+    if (ProtocolsConfig[protocol].type == PositionTypes.long) {
+      for (const c of ProtocolsConfig[protocol].currencies) {
+        const item = app.currenciesData?.[`${c}@${protocol}`];
+        let balance = wallet.balances.find((c) => c.balance.denom == item?.ibcData);
+        currencies.push({ ...item, balance: balance?.balance } as ExternalCurrency);
       }
+    }
+  }
 
-      return true;
-    });
-  return assets;
+  return currencies;
 });
 
 const downPaymentSwapFeeStable = computed(() => {
