@@ -59,18 +59,18 @@
         </div>
         <div class="text-right text-14 font-semibold">
           <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
-            <span class="mt-[1px]">{{ borrowed }}</span>
+            <span >{{ borrowed }}</span>
             <Tooltip :content="$t('message.borrowed-tooltip')" />
           </p>
           <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
             <template v-if="FREE_INTEREST_ASSETS.includes(selectedAssetDenom)">
               <span
                 v-if="annualInterestRate"
-                class="line-throught-gray mt-[1px] text-[#8396B1]"
+                class="line-throught-gray text-[#8396B1]"
               >
                 {{ annualInterestRate ?? 0 }}%
               </span>
-              <span class="mt-[1px] text-neutral-typography-200">0%</span>
+              <span class="text-neutral-typography-200">0%</span>
             </template>
             <template v-else>
               <span class="text-[#8396B1]"> {{ annualInterestRate ?? 0 }}% </span>
@@ -79,8 +79,8 @@
             <Tooltip :content="$t('message.interest-tooltip')" />
           </p>
           <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
-            <span class="mt-[1px]">{{ calculateLique }}</span>
-            <span class="mt-[1px] text-[#8396B1]"> &nbsp;|&nbsp; {{ percentLique }} </span>
+            <span >{{ calculateLique }}</span>
+            <span class="text-[#8396B1]"> &nbsp;|&nbsp; {{ percentLique }} </span>
             <Tooltip :content="$t('message.liquidation-price-tooltip')" />
           </p>
         </div>

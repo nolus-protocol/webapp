@@ -106,7 +106,7 @@ export const CONTRACTS: ContractConfig = {
       "OSMOSIS-OSMOSIS-ST_ATOM": {
         only: [],
         lease: true,
-        currencies: ["ATOM", "USD_NOBLE", "NLS", "OSMO", , "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
+        currencies: ["ATOM", "USD_NOBLE", "OSMO", , "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
         ignoreNetowrk: ["NEUTRON"],
         type: PositionTypes.short,
         rewards: true

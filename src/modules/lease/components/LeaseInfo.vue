@@ -479,7 +479,7 @@ const currentPrice = computed(() => {
 });
 
 async function fetchChartData(intetval: string) {
-  let [key, protocol]: string[] = props.leaseInfo.leaseData.leasePositionTicker.includes("@")
+  let [key, protocol]: string[] = props.leaseInfo.leaseData?.leasePositionTicker?.includes("@")
     ? props.leaseInfo.leaseData.leasePositionTicker.split("@")
     : [props.leaseInfo.leaseData.leasePositionTicker, props.leaseInfo.protocol];
   const prices = await EtlApi.fetchPriceSeries(key, protocol, intetval);
@@ -515,10 +515,11 @@ const asset = computed(() => {
 
 const getAssetIcon = computed((): string => {
   if (props.leaseInfo.leaseStatus?.opening && props.leaseInfo.leaseData) {
-    return app.assetIcons?.[props.leaseInfo.leaseData?.leasePositionTicker as string] as string;
+    return app.assetIcons?.[props.leaseInfo.leaseData?.leasePositionTicker as string] as string ?? app.assetIcons?.[`${props.leaseInfo.leaseStatus.opening.loan.ticker}@${props.leaseInfo.protocol}`];
   }
 
   return app.assetIcons?.[`${props.leaseInfo.leaseData?.leasePositionTicker}@${props.leaseInfo.protocol}`] as string;
+
 });
 
 const downPayment = computed(() => {
@@ -940,29 +941,34 @@ function getTitleClass() {
 }
 
 const positionInStable = computed(() => {
+  const amount =
+    props.leaseInfo.leaseStatus?.opened?.amount ||
+    props.leaseInfo.leaseStatus.opening?.downpayment ||
+    props.leaseInfo.leaseStatus.paid?.amount;
+  let protocol = props.leaseInfo.protocol;
+
+  let ticker = props.leaseInfo.leaseData.leasePositionTicker;
+
+  if (ticker.includes("@")) {
+    let [t, p] = ticker.split("@");
+    ticker = t;
+    protocol = p;
+  }
+
+  if (CurrencyDemapping[ticker]) {
+    ticker = CurrencyDemapping[ticker].ticker;
+  }
+
+  const asset = app.currenciesData?.[`${ticker}@${protocol}`];
+
   switch (ProtocolsConfig[props.leaseInfo.protocol].type) {
     case PositionTypes.long: {
-      const amount =
-        props.leaseInfo.leaseStatus?.opened?.amount ||
-        props.leaseInfo.leaseStatus.opening?.downpayment ||
-        props.leaseInfo.leaseStatus.paid?.amount;
-      const asset =
-        app.currenciesData?.[`${props.leaseInfo.leaseData.leasePositionTicker}@${props.leaseInfo.protocol}`];
-      const price =
-        oracleStore.prices?.[`${props.leaseInfo.leaseData.leasePositionTicker}@${props.leaseInfo.protocol}`];
+      const price = oracleStore.prices?.[`${ticker}@${protocol}`];
+
       const value = new Dec(amount.amount, asset?.decimal_digits).mul(new Dec(price.amount));
       return value.toString(asset?.decimal_digits);
     }
     case PositionTypes.short: {
-      const amount =
-        props.leaseInfo.leaseStatus?.opened?.amount ||
-        props.leaseInfo.leaseStatus.opening?.downpayment ||
-        props.leaseInfo.leaseStatus.paid?.amount;
-
-      const ticker =
-        CurrencyDemapping[props.leaseInfo.leaseData.leasePositionTicker]?.ticker ??
-        props.leaseInfo.leaseData.leasePositionTicker;
-      const asset = app.currenciesData?.[`${ticker}@${props.leaseInfo.protocol}`];
       const value = new Dec(amount.amount, asset?.decimal_digits);
       return value.toString(asset?.decimal_digits);
     }

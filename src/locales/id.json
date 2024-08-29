@@ -167,7 +167,7 @@
     "lease-now": "Sewa sekarang",
     "send-action": "Kirim {amount} ke {address}",
     "receive-action": "Terima {amount} dari {address}",
-    "open-position-action": "Buka posisi sewa dalam {ticker} dengan {amount}",
+    "open-position-action": "Open {position} position in {ticker} with {amount}",
     "repay-position-action": "Lunasi {amount} untuk posisi sewa {contract}",
     "close-position-action": "Kumpulkan token dari posisi sewa {contract}",
     "claim-position-action": "Klaim hadiah {amount} dari {address}",
@@ -320,6 +320,7 @@
     "long": "Long",
     "short": "Short",
     "pnl02-banner-subtitle": "Win Еxtra USDC",
-    "pnl02-banner-description": "Share your top lease gainer on Twitter by September 9th. Post freely, then submit your best pick here"
+    "pnl02-banner-description": "Share your top lease gainer on Twitter by September 9th. Post freely, then submit your best pick here",
+    "osmosis-st-atom": "Osmosis stATOM"
   }
 }
