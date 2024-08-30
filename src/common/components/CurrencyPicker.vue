@@ -74,7 +74,7 @@
         >
           <ListboxOptions
             v-if="optionsValue!.length > 0"
-            class="background scrollbar shadow-lg absolute top-[46px] z-10 mt-1 max-h-56 w-[125px] overflow-auto rounded-md text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+            class="background scrollbar shadow-lg absolute top-[46px] z-10 mt-1 max-h-[11rem] w-[125px] overflow-auto rounded-md text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
             @focus="searchInput?.focus()"
           >
             <ListboxOption

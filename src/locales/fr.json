@@ -168,7 +168,7 @@
     "lease-now": "Emprunter maintenant",
     "send-action": "Envoyer {amount} à {address}",
     "receive-action": "Recevoir {amount} à {address}",
-    "open-position-action": "Ouvrir une position d’emprunt dans {ticker} avec {amount}",
+    "open-position-action": "Open {position} position in {ticker} with {amount}",
     "repay-position-action": "Rembourser {amount} pour la position de l’emprunt {contract}",
     "close-position-action": "Collecter les jetons de la position d’emprunt {contract}",
     "claim-position-action": "Réclamer {amount} de récompenses de {address}",
@@ -318,6 +318,9 @@
     "health": "Health",
     "opened-on": "Opened on",
     "long": "Long",
-    "short": "Short"
+    "short": "Short",
+    "pnl02-banner-subtitle": "Win Еxtra USDC",
+    "pnl02-banner-description": "Share your top lease gainer on Twitter by September 9th. Post freely, then submit your best pick here",
+    "osmosis-st-atom": "Osmosis stATOM"
   }
 }

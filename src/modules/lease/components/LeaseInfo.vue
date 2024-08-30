@@ -17,6 +17,7 @@
         <div class="text-12 font-medium text-neutral-400">
           {{ $t("message.chart") }}
         </div>
+
         <div class="flex gap-2">
           <div class="flex items-center gap-1">
             <img
@@ -362,16 +363,7 @@ import {
   type TransferOutOngoingState
 } from "@nolus/nolusjs/build/contracts";
 import { Dec } from "@keplr-wallet/unit";
-import {
-  CHART_RANGES,
-  CoinGecko,
-  GAS_FEES,
-  LEASE_DUE,
-  NATIVE_ASSET,
-  PositionTypes,
-  ProtocolsConfig,
-  TIP
-} from "@/config/global";
+import { CHART_RANGES, GAS_FEES, LEASE_DUE, NATIVE_ASSET, PositionTypes, ProtocolsConfig, TIP } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useI18n } from "vue-i18n";
@@ -379,6 +371,7 @@ import {
   AppUtils,
   AssetUtils,
   datePraser,
+  EtlApi,
   formatDate,
   Logger,
   StringUtils,
@@ -455,8 +448,8 @@ async function setFreeInterest() {
 }
 
 async function loadCharts() {
-  const { days, interval } = chartTimeRange.value;
-  const pricesData = await fetchChartData(days, interval);
+  const { days } = chartTimeRange.value;
+  const pricesData = await fetchChartData(days);
 
   chartData.value = {
     datasets: [
@@ -481,27 +474,16 @@ const currentPrice = computed(() => {
     CurrencyDemapping[props.leaseInfo.leaseData?.leasePositionTicker]?.ticker ??
     props.leaseInfo.leaseData?.leasePositionTicker;
 
-  return oracleStore.prices[`${ticker}@${props.leaseInfo.protocol}`]?.amount ?? "0";
+  const currency = app.currenciesData?.[`${ticker}@${props.leaseInfo.protocol}`];
+  return oracleStore.prices[currency?.ibcData as string]?.amount ?? "0";
 });
 
-async function fetchChartData(days: string, interval: string) {
-  let coinGeckoId = asset.value?.coingeckoId;
+async function fetchChartData(intetval: string) {
+  let [key, protocol]: string[] = props.leaseInfo.leaseData?.leasePositionTicker?.includes("@")
+    ? props.leaseInfo.leaseData.leasePositionTicker.split("@")
+    : [props.leaseInfo.leaseData.leasePositionTicker, props.leaseInfo.protocol];
+  const prices = await EtlApi.fetchPriceSeries(key, protocol, intetval);
 
-  if (props.leaseInfo.leaseStatus?.opening && !props.leaseInfo.leaseData) {
-    const ticker =
-      props.leaseInfo.leaseStatus?.opened?.amount.ticker ||
-      props.leaseInfo.leaseStatus?.opening?.downpayment.ticker ||
-      props.leaseInfo.leaseStatus?.paid?.amount.ticker;
-
-    const item = AssetUtils.getCurrencyByTicker(ticker);
-    const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
-    coinGeckoId = asset.coingeckoId;
-  }
-
-  const res = await fetch(
-    `${CoinGecko.url}/coins/${coinGeckoId}/market_chart?vs_currency=usd&days=${days}&interval=${interval}&x_cg_pro_api_key=${CoinGecko.key}`
-  );
-  const { prices } = await res.json();
   return prices;
 }
 
@@ -511,28 +493,33 @@ const asset = computed(() => {
     return item;
   }
 
-  const ticker =
-    props.leaseInfo.leaseStatus?.opened?.amount.ticker ||
-    props.leaseInfo.leaseStatus?.paid?.amount.ticker ||
-    props.leaseInfo.leaseStatus?.opening?.downpayment.ticker;
-  const item = AssetUtils.getCurrencyByTicker(ticker as string);
+  switch (ProtocolsConfig[props.leaseInfo.protocol].type) {
+    case PositionTypes.long: {
+      const ticker =
+        props.leaseInfo.leaseStatus?.opened?.amount.ticker ||
+        props.leaseInfo.leaseStatus?.paid?.amount.ticker ||
+        props.leaseInfo.leaseStatus?.opening?.downpayment.ticker;
+      const item = AssetUtils.getCurrencyByTicker(ticker as string);
 
-  const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
-  return asset;
+      const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
+      return asset;
+    }
+    case PositionTypes.short: {
+      const item = AssetUtils.getCurrencyByTicker(props.leaseInfo.leaseData.leasePositionTicker as string);
+
+      const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
+      return asset;
+    }
+  }
 });
 
 const getAssetIcon = computed((): string => {
   if (props.leaseInfo.leaseStatus?.opening && props.leaseInfo.leaseData) {
-    const item = app.currenciesData?.[props.leaseInfo.leaseData?.leasePositionTicker as string];
-    return app.assetIcons?.[item!.key as string] as string;
+    return app.assetIcons?.[props.leaseInfo.leaseData?.leasePositionTicker as string] as string ?? app.assetIcons?.[`${props.leaseInfo.leaseStatus.opening.loan.ticker}@${props.leaseInfo.protocol}`];
   }
 
-  const ticker =
-    props.leaseInfo.leaseStatus?.opened?.amount.ticker ||
-    props.leaseInfo.leaseStatus?.opening?.downpayment.ticker ||
-    props.leaseInfo.leaseStatus?.paid?.amount.ticker ||
-    "";
-  return app.assetIcons?.[`${ticker}@${props.leaseInfo.protocol}`] as string;
+  return app.assetIcons?.[`${props.leaseInfo.leaseData?.leasePositionTicker}@${props.leaseInfo.protocol}`] as string;
+
 });
 
 const downPayment = computed(() => {
@@ -542,11 +529,26 @@ const downPayment = computed(() => {
 });
 
 const amount = computed(() => {
-  const data =
-    props.leaseInfo.leaseStatus?.opened?.amount ||
-    props.leaseInfo.leaseStatus.opening?.downpayment ||
-    props.leaseInfo.leaseStatus.paid?.amount;
-  return data?.amount ?? "0";
+  switch (ProtocolsConfig[props.leaseInfo.protocol].type) {
+    case PositionTypes.long: {
+      const data =
+        props.leaseInfo.leaseStatus?.opened?.amount ||
+        props.leaseInfo.leaseStatus.opening?.downpayment ||
+        props.leaseInfo.leaseStatus.paid?.amount;
+      return data?.amount ?? "0";
+    }
+    case PositionTypes.short: {
+      const data =
+        props.leaseInfo.leaseStatus?.opened?.amount ||
+        props.leaseInfo.leaseStatus.opening?.downpayment ||
+        props.leaseInfo.leaseStatus.paid?.amount;
+
+      const asset =
+        app.currenciesData?.[`${props.leaseInfo.leaseData.leasePositionTicker}@${props.leaseInfo.protocol}`];
+      const price = oracleStore.prices?.[asset?.ibcData as string];
+      return new Dec(data.amount).quo(new Dec(price.amount)).toString();
+    }
+  }
 });
 
 const interestDue = computed(() => {
@@ -836,7 +838,6 @@ const leaseOpened = computed<LeaseProps>(() => ({
   },
   pnl: {
     click() {
-      console.info("pnl clicked");
       pnlType.value = !pnlType.value;
     },
     status: pnl.value.status ? LeasePnlStatus.POSITIVE : LeasePnlStatus.NEGATIVE
@@ -959,10 +960,19 @@ const positionInStable = computed(() => {
   }
 
   const asset = app.currenciesData?.[`${ticker}@${protocol}`];
-  const price = oracleStore.prices?.[`${ticker}@${protocol}`];
 
-  const value = new Dec(amount.amount, asset?.decimal_digits).mul(new Dec(price.amount));
-  return value.toString(asset?.decimal_digits);
+  switch (ProtocolsConfig[props.leaseInfo.protocol].type) {
+    case PositionTypes.long: {
+      const price = oracleStore.prices?.[`${ticker}@${protocol}`];
+
+      const value = new Dec(amount.amount, asset?.decimal_digits).mul(new Dec(price.amount));
+      return value.toString(asset?.decimal_digits);
+    }
+    case PositionTypes.short: {
+      const value = new Dec(amount.amount, asset?.decimal_digits);
+      return value.toString(asset?.decimal_digits);
+    }
+  }
 });
 
 function onFocusChart(data: string[], index: number) {

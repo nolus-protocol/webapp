@@ -167,7 +167,7 @@
     "lease-now": "Lease now",
     "send-action": "Send {amount} to {address}",
     "receive-action": "Receive {amount} from {address}",
-    "open-position-action": "Open lease position in {ticker} with {amount}",
+    "open-position-action": "Open {position} position in {ticker} with {amount}",
     "repay-position-action": "Repay {amount} for lease position {contract}",
     "close-position-action": "Collect tokens from lease position {contract}",
     "claim-position-action": " Claim {amount} rewards from {address}",
@@ -318,6 +318,9 @@
     "defi-summer-winners-subtitle": "You've Won a Limited Edition Tee",
     "defi-summer-winners-description": "Congratulations! Your Limited Edition DeFi Summer Tee by Arsek & Erase is waiting for you. Fill out the form to claim it",
     "long": "Long",
-    "short": "Short"
+    "short": "Short",
+    "pnl02-banner-subtitle": "Win Еxtra USDC",
+    "pnl02-banner-description": "Share your top lease gainer on Twitter by September 9th. Post freely, then submit your best pick here",
+    "osmosis-st-atom": "Osmosis stATOM"
   }
 }

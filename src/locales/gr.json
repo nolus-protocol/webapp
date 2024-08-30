@@ -166,7 +166,7 @@
     "lease-now": "Μίσθωση τώρα",
     "send-action": "Στείλατε {amount} στο {address}",
     "receive-action": "Λάβατε {amount} από {address}",
-    "open-position-action": "Ανοίξτε θέση μίσθωσης σε {ticker} με {amount}",
+    "open-position-action": "Open {position} position in {ticker} with {amount}",
     "repay-position-action": "Αποπληρωμή {amount} για θέση μίσθωσης {contract}",
     "close-position-action": "Συλλογή νομισμάτων από τη θέση μίσθωσης {contract}",
     "claim-position-action": "Λήψη {amount} ανταμοιβών από {address}",
@@ -318,6 +318,9 @@
     "health": "Health",
     "opened-on": "Opened on",
     "long": "Long",
-    "short": "Short"
+    "short": "Short",
+    "pnl02-banner-subtitle": "Win Еxtra USDC",
+    "pnl02-banner-description": "Share your top lease gainer on Twitter by September 9th. Post freely, then submit your best pick here",
+    "osmosis-st-atom": "Osmosis stATOM"
   }
 }

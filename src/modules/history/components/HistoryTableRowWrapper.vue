@@ -24,6 +24,7 @@ import { computed, onMounted, ref } from "vue";
 import type { HistoryTableRowItemProps } from "web-components";
 import { HistoryTableRow } from "web-components";
 import Icon from "@/assets/icons/urlicon.svg";
+import { ProtocolsConfig } from "@/config/global";
 
 enum Messages {
   "/cosmos.bank.v1beta1.MsgSend" = "/cosmos.bank.v1beta1.MsgSend",
@@ -176,9 +177,11 @@ async function message(msg: IObjectKeys) {
         if (data.open_lease) {
           const token = getCurrency(msg.data.funds[0]);
           const cr = AssetUtils.getCurrencyByTicker(data.open_lease.currency);
-
+          const item = AssetUtils.getProtocolByContract(msg.data.contract);
+          const protocol = ProtocolsConfig[item];
           return i18n.t("message.open-position-action", {
             ticker: cr?.shortName,
+            position: i18n.t(`message.${protocol.type}`).toLowerCase(),
             amount: token.toString()
           });
         }

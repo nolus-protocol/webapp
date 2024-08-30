@@ -166,7 +166,7 @@
     "lease-now": "立即租赁",
     "send-action": "将 {amount} 发送至 {address}",
     "receive-action": "从 {address} 收到 {amount}",
-    "open-position-action": "使用 {amount} 在 {ticker} 中开启租赁头寸",
+    "open-position-action": "Open {position} position in {ticker} with {amount}",
     "repay-position-action": "为租赁合约 {contract} 还款 {amount}",
     "close-position-action": "从租赁合约 {contract} 头寸中收取代币",
     "claim-position-action": "从 {address} 领取 {amount} 奖励",
@@ -318,6 +318,9 @@
     "health": "Health",
     "opened-on": "Opened on",
     "long": "Long",
-    "short": "Short"
+    "short": "Short",
+    "pnl02-banner-subtitle": "Win Еxtra USDC",
+    "pnl02-banner-description": "Share your top lease gainer on Twitter by September 9th. Post freely, then submit your best pick here",
+    "osmosis-st-atom": "Osmosis stATOM"
   }
 }

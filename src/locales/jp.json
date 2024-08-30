@@ -166,7 +166,7 @@
     "lease-now": "今すぐリース",
     "send-action": "{amount} を {address} に送信",
     "receive-action": "{address} から {amount} を受け取る",
-    "open-position-action": "{amount} で {ticker} のリースポジションを開く",
+    "open-position-action": "Open {position} position in {ticker} with {amount}",
     "repay-position-action": "{contract} のリースポジションに対して {amount} を返済する",
     "close-position-action": "リースポジション {contract} からトークンを受け取る",
     "claim-position-action": "{address} から {amount} の報酬を請求する",
@@ -318,6 +318,9 @@
     "health": "Health",
     "opened-on": "Opened on",
     "long": "Long",
-    "short": "Short"
+    "short": "Short",
+    "pnl02-banner-subtitle": "Win Еxtra USDC",
+    "pnl02-banner-description": "Share your top lease gainer on Twitter by September 9th. Post freely, then submit your best pick here",
+    "osmosis-st-atom": "Osmosis stATOM"
   }
 }

@@ -29,4 +29,5 @@ export interface LeaseAttributes {
   leasePositionStable: Dec;
   leasePositionTicker: string | null;
   timestamp: Date;
+  ls_asset_symbol: string;
 }

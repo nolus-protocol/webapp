@@ -13,7 +13,6 @@ export async function updateBalances(this: Store) {
     const ibcBalances = [];
     const app = useApplicationStore();
     const currencies = app.currenciesData;
-    console;
     for (const key in currencies) {
       const currency = app.currenciesData![key];
       let shortName = currency.shortName;

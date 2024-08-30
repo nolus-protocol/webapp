@@ -16,8 +16,8 @@
   },
   "OSMOSIS": {
     "primary": {
-      "rpc": "https://osmosis-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
-      "api": "https://osmosis-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
+      "rpc": "https://osmosis-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3",
+      "api": "https://osmosis-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3"
     },
     "fallback": [
       {

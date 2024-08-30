@@ -166,7 +166,7 @@
     "lease-now": "Alquilar ahora",
     "send-action": "Enviar {amount} a {address}",
     "receive-action": "Recibir {amount} de {address}",
-    "open-position-action": "Posición de arrendamiento abierta en {ticker} con {amount}",
+    "open-position-action": "Open {position} position in {ticker} with {amount}",
     "repay-position-action": "Pagar {amount} para la posición de alquiler {contract}",
     "close-position-action": "Recoge tokens de la posición de arrendamiento {contract}",
     "claim-position-action": " Reclamar {amount} recompensas de {address}",
@@ -318,6 +318,9 @@
     "health": "Health",
     "opened-on": "Opened on",
     "long": "Long",
-    "short": "Short"
+    "short": "Short",
+    "pnl02-banner-subtitle": "Win Еxtra USDC",
+    "pnl02-banner-description": "Share your top lease gainer on Twitter by September 9th. Post freely, then submit your best pick here",
+    "osmosis-st-atom": "Osmosis stATOM"
   }
 }

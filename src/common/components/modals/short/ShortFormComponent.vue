@@ -8,7 +8,7 @@
       <CurrencyField
         id="amount-investment"
         :balance="formatCurrentBalance(modelValue.selectedDownPaymentCurrency)"
-        :currency-options="balances"
+        :currency-options="totalBalances"
         :error-msg="modelValue.downPaymentErrorMsg"
         :is-error="modelValue.downPaymentErrorMsg !== ''"
         :label="$t('message.down-payment-uppercase')"
@@ -22,12 +22,11 @@
       />
       <Picker
         :default-option="coinList[selectedIndex]"
-        :label="$t('message.short')"
+        :label="$t('message.asset-to-lease')"
         :options="coinList"
         class="scrollbar text-left"
         @update-selected="updateSelected"
       />
-
       <div class="flex justify-between text-[14px] font-medium text-neutral-typography-200">
         <p>
           {{ $t("message.margin") }}
@@ -59,18 +58,18 @@
         </div>
         <div class="text-right text-14 font-semibold">
           <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
-            <span class="mt-[1px]">{{ borrowed }}</span>
+            <span>{{ borrowed }}</span>
             <Tooltip :content="$t('message.borrowed-tooltip')" />
           </p>
           <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
             <template v-if="FREE_INTEREST_ASSETS.includes(selectedAssetDenom)">
               <span
                 v-if="annualInterestRate"
-                class="line-throught-gray mt-[1px] text-[#8396B1]"
+                class="line-throught-graytext-[#8396B1]"
               >
                 {{ annualInterestRate ?? 0 }}%
               </span>
-              <span class="mt-[1px] text-neutral-typography-200">0%</span>
+              <span class="text-neutral-typography-200">0%</span>
             </template>
             <template v-else>
               <span class="text-[#8396B1]"> {{ annualInterestRate ?? 0 }}% </span>
@@ -79,8 +78,8 @@
             <Tooltip :content="$t('message.interest-tooltip')" />
           </p>
           <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
-            <span class="mt-[1px]">{{ calculateLique }}</span>
-            <span class="mt-[1px] text-[#8396B1]"> &nbsp;|&nbsp; {{ percentLique }} </span>
+            <span>{{ calculateLique }}</span>
+            <span class="text-[#8396B1]"> &nbsp;|&nbsp; {{ percentLique }} </span>
             <Tooltip :content="$t('message.liquidation-price-tooltip')" />
           </p>
         </div>
@@ -136,12 +135,10 @@ import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/common/stores/oracle";
 import { AppUtils, AssetUtils, LeaseUtils } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
-import { CurrencyDemapping, CurrencyMapping } from "@/config/currencies";
+import { CurrencyDemapping } from "@/config/currencies";
 
 import {
   FREE_INTEREST_ASSETS,
-  IGNORE_DOWNPAYMENT_ASSETS,
-  IGNORE_LEASE_ASSETS,
   MONTHS,
   NATIVE_NETWORK,
   PERMILLE,
@@ -157,7 +154,7 @@ const swapFee = ref(0);
 onMounted(() => {
   if (props.modelValue.dialogSelectedCurrency) {
     const [ticker, protocol] = props.modelValue.dialogSelectedCurrency.split("@");
-    for (const balance of balances.value) {
+    for (const balance of totalBalances.value) {
       const [t, p] = balance.key.split("@");
       if (p == protocol) {
         props.modelValue.selectedDownPaymentCurrency = balance;
@@ -205,21 +202,19 @@ const setSwapFee = async () => {
 };
 
 const totalBalances = computed(() => {
-  const assets = wallet.balances
-    .map((item) => {
-      const currency = { ...AssetUtils.getCurrencyByDenom(item.balance.denom), balance: item.balance };
-      return currency;
-    })
-    .filter((item) => {
-      let [_ticker, protocol] = item.key.split("@");
+  let currencies: ExternalCurrency[] = [];
 
-      if (ProtocolsConfig[protocol].type != PositionTypes.short) {
-        return false;
+  for (const protocol in ProtocolsConfig) {
+    if (ProtocolsConfig[protocol].type == PositionTypes.short) {
+      for (const c of ProtocolsConfig[protocol].currencies) {
+        const item = app.currenciesData?.[`${c}@${protocol}`];
+        let balance = wallet.balances.find((c) => c.balance.denom == item?.ibcData);
+        currencies.push({ ...item, balance: balance?.balance } as ExternalCurrency);
       }
+    }
+  }
 
-      return true;
-    });
-  return assets;
+  return currencies;
 });
 
 const downPaymentSwapFeeStable = computed(() => {
@@ -246,60 +241,30 @@ function handleDownPaymentChange(value: string) {
   props.modelValue.downPayment = value;
 }
 
-const balances = computed(() => {
-  return totalBalances.value.filter((item) => {
-    const [ticker, protocol] = item.key.split("@");
-    let cticker = ticker;
-
-    if (!ProtocolsConfig[protocol].lease) {
-      return false;
-    }
-
-    if (IGNORE_DOWNPAYMENT_ASSETS.includes(ticker)) {
-      return false;
-    }
-
-    const lpns = ((app.lpn ?? []) as ExternalCurrency[]).map((item) => item.key as string);
-
-    if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
-      cticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
-    }
-    return lpns.includes(item.key as string) || app.leasesCurrencies.includes(cticker);
-  });
-});
-
 const coinList = computed(() => {
-  return props.modelValue.currentBalance
-    .filter((item) => {
-      let [ticker, protocol] = item.key.split("@");
+  let currencies: ExternalCurrency[] = [];
 
-      const [_currency, downPaymentProtocol] = props.modelValue.selectedDownPaymentCurrency.key.split("@");
-      if (downPaymentProtocol != protocol) {
-        return false;
-      }
+  for (const protocol of app.protocols) {
+    if (ProtocolsConfig[protocol].type == PositionTypes.short) {
+      const c =
+        app.lpn?.filter((item) => {
+          const [_, p] = item.key.split("@");
+          if (p == protocol) {
+            return true;
+          }
+          return false;
+        }) ?? [];
+      currencies = [...currencies, ...c];
+    }
+  }
 
-      if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
-        ticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
-      }
-
-      if (!app.lease?.[protocol].includes(ticker)) {
-        return false;
-      }
-
-      if (IGNORE_LEASE_ASSETS.includes(ticker) || IGNORE_LEASE_ASSETS.includes(`${ticker}@${protocol}`)) {
-        return false;
-      }
-      return app.leasesCurrencies.includes(ticker);
-    })
-    .map((item) => {
-      return {
-        key: item.key,
-        ticker: item.ticker,
-        label: item.shortName as string,
-        value: item.ibcData,
-        icon: item.icon as string
-      };
-    });
+  return currencies.map((item) => ({
+    key: item.key,
+    ticker: item.ticker,
+    label: item.shortName as string,
+    value: item.ibcData,
+    icon: item.icon as string
+  }));
 });
 
 const selectedIndex = computed(() => {

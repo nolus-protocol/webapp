@@ -2,7 +2,7 @@ import type { OpenedLeaseInfo } from "@nolus/nolusjs/build/contracts";
 import type { LeaseAttributes } from "../types/LeaseData";
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { PERCENT, PERMILLE } from "@/config/global";
+import { PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { AppUtils, AssetUtils, EtlApi, Logger } from ".";
 import { CurrencyDemapping } from "@/config/currencies";
 
@@ -74,7 +74,17 @@ export class LeaseUtils {
       const downPaymentCurrency = AssetUtils.getCurrencyByTicker(
         CurrencyDemapping[downpaymentTicker]?.ticker ?? downpaymentTicker
       );
-      const lpn = AssetUtils.getLpnByProtocol(AssetUtils.getProtocolByContract(result.lease.LS_loan_pool_id));
+
+      const contract = AssetUtils.getProtocolByContract(result.lease.LS_loan_pool_id);
+      const lpn = AssetUtils.getLpnByProtocol(contract);
+      let leasePositionTicker = result.lease.LS_asset_symbol;
+
+      switch (ProtocolsConfig[contract].type) {
+        case PositionTypes.short: {
+          leasePositionTicker = lpn.ticker;
+          break;
+        }
+      }
 
       const leasePositionStable = new Dec(result.lease.LS_loan_amnt_asset, lpn.decimal_digits);
       const downPayment = new Dec(result.lease.LS_cltr_amnt_stable, Number(downPaymentCurrency!.decimal_digits));
@@ -86,10 +96,11 @@ export class LeaseUtils {
         downPaymentFee,
         downPayment,
         downpaymentTicker: result.lease.LS_cltr_symbol,
-        leasePositionTicker: result.lease.LS_asset_symbol,
+        leasePositionTicker,
         leasePositionStable: leasePositionStable,
         timestamp: new Date(result.lease.LS_timestamp),
-        price: new Dec(result.downpayment_price)
+        price: new Dec(result.downpayment_price),
+        ls_asset_symbol: result.lease.LS_asset_symbol
       };
     } catch (error) {
       Logger.error(error);

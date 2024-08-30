@@ -1,5 +1,4 @@
 <template>
-  <!-- class="lg:p-10" -->
   <ConfirmComponent
     v-if="showConfirmScreen"
     :selectedCurrency="state.selectedDownPaymentCurrency"
@@ -13,6 +12,7 @@
     :onSendClick="onSendClick"
     :onBackClick="onConfirmBackClick"
     :onOkClick="onClickOkBtn"
+    class="lg:p-10"
   />
   <LongFormComponent
     v-else
@@ -56,7 +56,9 @@ import {
   PERMILLE,
   ErrorCodes,
   ProtocolsConfig,
-  PositionTypes
+  PositionTypes,
+  IGNORE_LEASE_ASSETS,
+  Contracts
 } from "@/config/global";
 
 const onModalClose = inject("onModalClose", () => {});
@@ -68,21 +70,18 @@ const walletRef = storeToRefs(walletStore);
 const i18n = useI18n();
 
 const balances = computed(() => {
-  const assets = walletStore.balances
-    .map((item) => {
-      const currency = { ...AssetUtils.getCurrencyByDenom(item.balance.denom), balance: item.balance };
-      return currency;
-    })
-    .filter((item) => {
-      let [_ticker, protocol] = item.key.split("@");
+  let currencies: ExternalCurrency[] = [];
 
-      if (ProtocolsConfig[protocol].type != PositionTypes.long) {
-        return false;
+  for (const protocol in ProtocolsConfig) {
+    if (ProtocolsConfig[protocol].type == PositionTypes.long) {
+      for (const c of ProtocolsConfig[protocol].currencies) {
+        const item = app.currenciesData?.[`${c}@${protocol}`];
+        let balance = walletStore.balances.find((c) => c.balance.denom == item?.ibcData);
+        currencies.push({ ...item, balance: balance?.balance } as ExternalCurrency);
       }
-
-      return true;
-    });
-  return assets;
+    }
+  }
+  return currencies;
 });
 
 const paymentBalances = computed(() => {
@@ -103,10 +102,14 @@ const paymentBalances = computed(() => {
 const leaseBalances = computed(() => {
   const c = balances.value
     .filter((item) => {
-      let [ticker] = item.key.split("@");
+      let [ticker, protocol] = item.key.split("@");
 
       if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
         ticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
+      }
+
+      if (IGNORE_LEASE_ASSETS.includes(ticker) || IGNORE_LEASE_ASSETS.includes(`${ticker}@${protocol}`)) {
+        return false;
       }
 
       return app.leasesCurrencies.includes(ticker);
@@ -114,6 +117,7 @@ const leaseBalances = computed(() => {
     .map((item) => {
       return item;
     });
+
   return c;
 });
 
@@ -130,7 +134,9 @@ const props = defineProps({
 const state = ref({
   contractAddress: "",
   currentBalance: balances.value as ExternalCurrency[],
-  selectedDownPaymentCurrency: paymentBalances.value[0] as ExternalCurrency,
+  selectedDownPaymentCurrency: paymentBalances.value.find(
+    (item) => item.key == Contracts.longDefault
+  ) as ExternalCurrency,
   selectedCurrency: leaseBalances.value[0] as ExternalCurrency,
   dialogSelectedCurrency: props.selectedAsset,
   downPayment: "",
@@ -242,7 +248,6 @@ async function calculate() {
     }
   } catch (error) {
     state.value.leaseApply = null;
-    Logger.error(error);
   }
 }
 

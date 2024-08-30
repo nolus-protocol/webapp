@@ -14,4 +14,10 @@ export class EtlApi {
   static async fetchLeaseOpening(leaseAddres: string): Promise<IObjectKeys> {
     return fetch(`${EtlApi.getApiUrl()}/ls-opening?lease=${leaseAddres}`).then((data) => data.json());
   }
+
+  static async fetchPriceSeries(key: string, protocol: string, interval: string): Promise<IObjectKeys> {
+    return fetch(`${EtlApi.getApiUrl()}/prices?interval=${interval}&key=${key}&protocol=${protocol}`).then((data) =>
+      data.json()
+    );
+  }
 }
