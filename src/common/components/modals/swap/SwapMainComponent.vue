@@ -53,7 +53,7 @@ import { computed, inject, onMounted, ref, watch, nextTick, type PropType } from
 import { useI18n } from "vue-i18n";
 import { coin } from "@cosmjs/amino";
 import { useWalletStore } from "@/common/stores/wallet";
-import { GAS_FEES, NATIVE_ASSET, NATIVE_NETWORK } from "@/config/global";
+import { GAS_FEES, IGNORE_TRANSFER_ASSETS, NATIVE_ASSET, NATIVE_NETWORK } from "@/config/global";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { SwapStatus } from "./types";
@@ -86,12 +86,28 @@ const step = ref(CONFIRM_STEP.CONFIRM);
 const setShowDialogHeader = inject("setShowDialogHeader", (n: boolean) => {});
 
 const balances = computed(() => {
-  const assets = wallet.balances
+  let k: any = {};
+
+  for (const c of wallet.balances) {
+    const asset = AssetUtils.getCurrencyByDenom(c.balance.denom);
+    if (!IGNORE_TRANSFER_ASSETS.includes(asset.key as string)) {
+      k[c.balance.denom as string] = c;
+    }
+  }
+  const b = [];
+
+  for (const c in k) {
+    b.push(k[c]);
+  }
+
+  const assets = b
     .map((item) => {
       const currency = { ...AssetUtils.getCurrencyByDenom(item.balance.denom), balance: item.balance };
       return currency;
     })
     .filter((item) => {
+      if (IGNORE_TRANSFER_ASSETS.includes(item.key as string)) {
+      }
       return !blacklist.value.includes(item.ibcData);
     });
   return assets;

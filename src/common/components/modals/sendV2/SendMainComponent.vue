@@ -402,8 +402,23 @@ function setNativeNetwork() {
   amountErrorMsg.value = "";
   receiverErrorMsg.value = "";
   route = null;
-  networkCurrencies.value = balances.value;
-  selectedCurrency.value = balances.value[0];
+
+  let k: any = {};
+
+  for (const c of balances.value) {
+    const asset = AssetUtils.getCurrencyByDenom(c.balance.denom);
+    if (!IGNORE_TRANSFER_ASSETS.includes(asset.key as string)) {
+      k[c.balance.denom as string] = c;
+    }
+  }
+  const b = [] as AssetBalance[];
+
+  for (const c in k) {
+    b.push(k[c]);
+  }
+
+  networkCurrencies.value = b;
+  selectedCurrency.value = b[0];
 }
 
 async function onSubmitEvm() {

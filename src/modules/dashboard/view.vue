@@ -366,13 +366,20 @@ const totalEquity = computed(() => {
 });
 
 const filteredAssets = computed(() => {
-  const b = wallet.balances.filter((currency) => {
-    const c = AssetUtils.getCurrencyByDenom(currency.balance.denom);
-    if (IGNORE_TRANSFER_ASSETS.includes(c.ticker as string)) {
-      return false;
+  let k: any = {};
+
+  for (const c of wallet.balances) {
+    const asset = AssetUtils.getCurrencyByDenom(c.balance.denom);
+    if (!IGNORE_TRANSFER_ASSETS.includes(asset.key as string)) {
+      k[c.balance.denom as string] = c;
     }
-    return true;
-  });
+  }
+  const b = [] as AssetBalance[];
+
+  for (const c in k) {
+    b.push(k[c]);
+  }
+
   const balances = state.value.showSmallBalances ? b : filterSmallBalances(b as AssetBalance[]);
 
   return balances.sort((a, b) => {

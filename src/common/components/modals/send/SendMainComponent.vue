@@ -227,7 +227,21 @@ watch(
       }
     }
 
-    state.value.currentBalance = walletStore.balances
+    let k: any = {};
+
+    for (const c of walletStore.balances) {
+      const asset = AssetUtils.getCurrencyByDenom(c.balance.denom);
+      if (!IGNORE_TRANSFER_ASSETS.includes(asset.key as string)) {
+        k[c.balance.denom as string] = c;
+      }
+    }
+    const b = [] as AssetBalance[];
+
+    for (const c in k) {
+      b.push(k[c]);
+    }
+
+    state.value.currentBalance = b
       .filter((item) => {
         const currency = AssetUtils.getCurrencyByDenom(item.balance.denom);
 
