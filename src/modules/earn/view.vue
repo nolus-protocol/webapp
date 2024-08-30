@@ -123,7 +123,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
 
 import { claimRewardsMsg, type ContractData, Lpp } from "@nolus/nolusjs/build/contracts";
-import { NATIVE_ASSET, ProtocolsConfig, UPDATE_REWARDS_INTERVAL } from "@/config/global";
+import { Contracts, NATIVE_ASSET, ProtocolsConfig, UPDATE_REWARDS_INTERVAL } from "@/config/global";
 import { coin } from "@cosmjs/amino";
 import { useApplicationStore } from "@/common/stores/application";
 import { useI18n } from "vue-i18n";
@@ -342,7 +342,13 @@ async function loadLPNCurrency() {
     }
   }
 
-  lpnAsset.value = [...items, ...lpnCurrencies];
+  lpnAsset.value = [...items, ...lpnCurrencies].filter((item) => {
+    const [t, p] = item.key.split("@");
+    if (Contracts.ignoreProtocolsInEarn.includes(p)) {
+      return false;
+    }
+    return true;
+  });
 }
 
 function openDelegateUnDelegateDialog() {

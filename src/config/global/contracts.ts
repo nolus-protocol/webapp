@@ -13,6 +13,7 @@ export enum PositionTypes {
 export const CONTRACTS: ContractConfig = {
   testnet: {
     longDefault: "OSMO@OSMOSIS-OSMOSIS-USDC_AXELAR",
+    ignoreProtocolsInEarn: [],
     protocols: ProtocolsRila,
     protocolConfig: {
       "NEUTRON-ASTROPORT-USDC_AXL": {
@@ -44,6 +45,7 @@ export const CONTRACTS: ContractConfig = {
   },
   mainnet: {
     longDefault: "OSMO@OSMOSIS-OSMOSIS-USDC_NOBLE",
+    ignoreProtocolsInEarn: ["OSMOSIS-OSMOSIS-ST_ATOM"],
     protocols: ProtocolsPirin,
     protocolConfig: {
       "OSMOSIS-OSMOSIS-USDC_AXELAR": {

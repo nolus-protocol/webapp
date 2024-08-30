@@ -7,6 +7,7 @@ export interface ContractConfig {
     protocolConfig: IObjectKeys;
     dispatcher: ContractInfo;
     admin: ContractAdminInfo;
+    ignoreProtocolsInEarn: string[];
   };
 }
 
