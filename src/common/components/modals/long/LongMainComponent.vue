@@ -34,7 +34,7 @@ import { Dec, Int } from "@keplr-wallet/unit";
 
 import { CONFIRM_STEP, type ExternalCurrency, type IObjectKeys } from "@/common/types";
 import { TxType } from "@/common/types";
-import { AssetUtils, Logger, getMicroAmount, walletOperation } from "@/common/utils";
+import { Logger, getMicroAmount, walletOperation } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
@@ -137,7 +137,7 @@ const state = ref({
   selectedDownPaymentCurrency: paymentBalances.value.find(
     (item) => item.key == Contracts.longDefault
   ) as ExternalCurrency,
-  selectedCurrency: leaseBalances.value[0] as ExternalCurrency,
+  selectedCurrency: leaseBalances.value.find((item) => item.key == Contracts.longDefault) as ExternalCurrency,
   dialogSelectedCurrency: props.selectedAsset,
   downPayment: "",
   memo: "",

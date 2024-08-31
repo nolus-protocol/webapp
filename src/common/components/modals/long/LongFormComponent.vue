@@ -137,6 +137,7 @@ import { useApplicationStore } from "@/common/stores/application";
 import { CurrencyMapping } from "@/config/currencies";
 
 import {
+  Contracts,
   FREE_INTEREST_ASSETS,
   IGNORE_DOWNPAYMENT_ASSETS,
   IGNORE_LEASE_ASSETS,
@@ -307,7 +308,7 @@ const selectedIndex = computed(() => {
     return index > -1 ? index : 0;
   }
 
-  return 0;
+  return coinList.value.findIndex((item) => item.key == Contracts.longDefault);
 });
 
 watch(

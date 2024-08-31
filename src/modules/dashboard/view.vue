@@ -370,7 +370,7 @@ const filteredAssets = computed(() => {
 
   for (const c of wallet.balances) {
     const asset = AssetUtils.getCurrencyByDenom(c.balance.denom);
-    if (!IGNORE_TRANSFER_ASSETS.includes(asset.key as string)) {
+    if (!IGNORE_TRANSFER_ASSETS.includes(asset.ticker as string)) {
       k[c.balance.denom as string] = c;
     }
   }
