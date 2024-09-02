@@ -82,13 +82,6 @@ export class AssetUtils {
       const [t, p] = key.split("@");
       const currencies = ProtocolsConfig[p].currencies;
 
-      for (const c in application.currenciesData) {
-        const item = application.currenciesData[c];
-        if (item.ibcData == denom) {
-          return item;
-        }
-      }
-
       if (denom == application.currenciesData[key].ibcData && currencies.includes(t)) {
         return application.currenciesData[key];
       }

@@ -6,28 +6,28 @@ import { IGNORE_TRANSFER_ASSETS } from "@/config/global";
 import { useWalletStore } from "../stores/wallet";
 
 export function useCurrecies(onError: (error: unknown) => void) {
-  const b = ref<ExternalCurrency[]>([]);
+  const b: ExternalCurrency[] = [];
+  const currencies = ref<ExternalCurrency[]>([]);
 
   try {
-    const currencies: { [key: string]: ExternalCurrency } = {};
     const wallet = useWalletStore();
 
     for (const c of wallet.balances) {
       const asset = AssetUtils.getCurrencyByDenom(c.balance.denom);
-      if (!IGNORE_TRANSFER_ASSETS.includes(asset.ticker as string)) {
-        currencies[c.balance.denom as string] = { ...c, ...asset };
+      if (
+        !IGNORE_TRANSFER_ASSETS.includes(asset.ticker as string) &&
+        b.findIndex((item) => item.ibcData == c.balance.denom) == -1
+      ) {
+        b.push({ ...asset, balance: c.balance });
       }
-    }
-
-    for (const c in currencies) {
-      b.value.push(currencies[c]);
     }
   } catch (e) {
     Logger.error(e);
     onError(e);
   }
 
+  currencies.value = b;
   return {
-    currencies: b
+    currencies
   };
 }
