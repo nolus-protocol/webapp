@@ -1,6 +1,6 @@
 <template>
-  <!-- class="lg:p-10" -->
   <ConfirmComponent
+    class="lg:p-10"
     v-if="showConfirmScreen"
     :selectedCurrency="state.selectedDownPaymentCurrency"
     :receiverAddress="state.contractAddress"
