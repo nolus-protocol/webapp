@@ -216,7 +216,6 @@ function startTimer() {
     clearInterval(sessionTimeOut);
   }
   sessionTimeOut = setTimeout(() => {
-    console.log("cc");
     app.sessionExpired = true;
     clearInterval(balanceInterval);
     clearInterval(pricesInterval);
