@@ -277,15 +277,13 @@ import { AssetPartial, AssetsSkeleton, BannerComponent, VestedAssetPartial } fro
 import { DASHBOARD_ACTIONS } from "./types";
 import Modal from "@/common/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
-import SendReceiveDialog from "@/common/components/modals/SendReceiveDialog.vue";
 
 import SupplyWithdrawDialog from "@/common/components/modals/SupplyWithdrawDialog.vue";
 import LeaseDialog from "@/common/components/modals/LongShortDialog.vue";
 import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
 import SendReceiveDialogV2 from "@/common/components/modals/SendReceiveDialogV2.vue";
 
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
-import type { AssetBalance } from "@/common/stores/wallet/types";
+import { CURRENCY_VIEW_TYPES, type ExternalCurrency } from "@/common/types";
 
 import { useI18n } from "vue-i18n";
 import { computed, onUnmounted, provide, ref, watch } from "vue";
@@ -299,9 +297,10 @@ import { useAdminStore } from "@/common/stores/admin";
 
 import { AssetUtils, Logger, NetworkUtils, WalletManager } from "@/common/utils";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
-import { IGNORE_TRANSFER_ASSETS, NATIVE_ASSET, NATIVE_CURRENCY, ProtocolsConfig } from "@/config/global";
+import { NATIVE_ASSET, NATIVE_CURRENCY, ProtocolsConfig } from "@/config/global";
 import { CurrencyDemapping } from "@/config/currencies";
 import { Button, Table } from "web-components";
+import { useCurrecies } from "@/common/composables/useCurrencies";
 
 const modalOptions = {
   // [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
@@ -358,6 +357,7 @@ const state = ref({
   dialogSelectedCurrency: "",
   setAvailableAssets: new Dec(0)
 });
+const { currencies } = useCurrecies((e) => {});
 
 const vestedTokens = ref([] as { endTime: string; amount: { amount: string; denom: string } }[]);
 
@@ -366,35 +366,19 @@ const totalEquity = computed(() => {
 });
 
 const filteredAssets = computed(() => {
-  let k: any = {};
-
-  for (const c of wallet.balances) {
-    const asset = AssetUtils.getCurrencyByDenom(c.balance.denom);
-    if (!IGNORE_TRANSFER_ASSETS.includes(asset.ticker as string)) {
-      k[c.balance.denom as string] = c;
-    }
-  }
-  const b = [] as AssetBalance[];
-
-  for (const c in k) {
-    b.push(k[c]);
-  }
-
-  const balances = state.value.showSmallBalances ? b : filterSmallBalances(b as AssetBalance[]);
+  const balances = state.value.showSmallBalances ? currencies.value : filterSmallBalances(currencies.value);
 
   return balances.sort((a, b) => {
-    const aInfo = AssetUtils.getCurrencyByDenom(a.balance.denom);
     const aAssetBalance = CurrencyUtils.calculateBalance(
       oracle.prices[a.balance.denom]?.amount,
       new Coin(a.balance.denom, a.balance.amount.toString()),
-      aInfo.decimal_digits as number
+      a.decimal_digits as number
     ).toDec();
 
-    const bInfo = AssetUtils.getCurrencyByDenom(b.balance.denom);
     const bAssetBalance = CurrencyUtils.calculateBalance(
       oracle.prices[b.balance.denom]?.amount,
       new Coin(b.balance.denom, b.balance.amount.toString()),
-      bInfo.decimal_digits as number
+      b.decimal_digits as number
     ).toDec();
 
     return Number(bAssetBalance.sub(aAssetBalance).toString(8));
@@ -404,7 +388,6 @@ const filteredAssets = computed(() => {
 const loading = computed(() => showSkeleton.value || wallet.balances.length == 0);
 const currenciesSize = computed(() => Object.keys(app.currenciesData ?? {}).length);
 const { leases, getLeases } = useLeases((error: Error | any) => {});
-// const modalParams = ref<IObjectKeys | null>(null);
 
 provide("getLeases", getLeases);
 
@@ -472,7 +455,7 @@ const totalBalance = computed(() => {
 
 function setAvailableAssets() {
   let totalAssets = new Dec(0);
-  wallet.balances.forEach((asset) => {
+  currencies.value.forEach((asset) => {
     const currency = AssetUtils.getCurrencyByDenom(asset.balance.denom);
     const assetBalance = CurrencyUtils.calculateBalance(
       oracle.prices[asset.balance.denom]?.amount ?? 0,
@@ -542,7 +525,7 @@ async function loadSuppliedAndStaked() {
     .catch((e) => console.log(e));
 }
 
-function filterSmallBalances(balances: AssetBalance[]) {
+function filterSmallBalances(balances: ExternalCurrency[]) {
   return balances.filter((asset) => asset.balance.amount.gt(new Int("1")));
 }
 
@@ -577,22 +560,6 @@ function sendReceiveOpen(currency: string = "") {
   state.value.dialogSelectedCurrency = currency;
   state.value.modalAction = DASHBOARD_ACTIONS.RECEIVE;
   state.value.showModal = true;
-}
-
-function strToColor(str: string) {
-  let hash = 0;
-  if (str.length === 0) return hash;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 10) - hash);
-    hash = hash & hash;
-  }
-  let rgb = [0, 0, 0];
-  for (let i = 0; i < 3; i++) {
-    let value = (hash >> (i * 8)) & 255;
-    rgb[i] = value;
-  }
-
-  return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
 }
 
 function setLeases() {

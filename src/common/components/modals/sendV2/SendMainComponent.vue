@@ -178,9 +178,17 @@ import { ErrorCodes, GAS_FEES, IGNORE_TRANSFER_ASSETS, NATIVE_ASSET, NATIVE_NETW
 import { SwapStatus } from "../swap/types";
 import { MetaMaskWallet } from "@/networks/metamask";
 
-import { CONFIRM_STEP, type IObjectKeys, type Network, type SkipRouteConfigType, TxType } from "@/common/types";
+import {
+  CONFIRM_STEP,
+  type ExternalCurrency,
+  type IObjectKeys,
+  type Network,
+  type SkipRouteConfigType,
+  TxType
+} from "@/common/types";
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
 import { Button } from "web-components";
+import { useCurrecies } from "@/common/composables/useCurrencies";
 
 export interface ReceiveComponentProps {
   currentBalance: AssetBalance[];
@@ -200,8 +208,9 @@ const selectedNetwork = ref(networks.value[0]);
 const setShowDialogHeader = inject("setShowDialogHeader", (n: boolean) => {});
 const setDisable = inject("setDisable", (b: boolean) => {});
 
-const networkCurrencies = ref<AssetBalance[]>([]);
-const selectedCurrency = ref<AssetBalance>(walletStore.balances[0]);
+const { currencies: balances } = useCurrecies((e) => {});
+const networkCurrencies = ref<ExternalCurrency[] | AssetBalance[]>([]);
+const selectedCurrency = ref<ExternalCurrency | AssetBalance>(balances.value[0]);
 const amount = ref("");
 const amountErrorMsg = ref("");
 const disablePicker = ref(false);
@@ -229,30 +238,6 @@ const params = defineProps({
     type: Object as PropType<IObjectKeys | null>
   }
 });
-
-const balances = ref<AssetBalance[]>(
-  walletStore.balances
-    .filter((item) => {
-      const currency = AssetUtils.getCurrencyByDenom(item.balance.denom);
-      if (IGNORE_TRANSFER_ASSETS.includes(currency.ticker as string)) {
-        return false;
-      }
-      return true;
-    })
-    .map((item) => {
-      const currency = AssetUtils.getCurrencyByDenom(item.balance.denom);
-      const e = {
-        ...item,
-        icon: currency.icon,
-        shortName: currency.shortName,
-        decimal_digits: currency.decimal_digits
-      };
-      if (e.balance.denom == walletStore.available.denom) {
-        e.balance = { ...walletStore.available };
-      }
-      return e;
-    })
-);
 
 onMounted(async () => {
   try {
@@ -403,22 +388,8 @@ function setNativeNetwork() {
   receiverErrorMsg.value = "";
   route = null;
 
-  let k: any = {};
-
-  for (const c of balances.value) {
-    const asset = AssetUtils.getCurrencyByDenom(c.balance.denom);
-    if (!IGNORE_TRANSFER_ASSETS.includes(asset.ticker as string)) {
-      k[c.balance.denom as string] = c;
-    }
-  }
-  const b = [] as AssetBalance[];
-
-  for (const c in k) {
-    b.push(k[c]);
-  }
-
-  networkCurrencies.value = b;
-  selectedCurrency.value = b[0];
+  networkCurrencies.value = balances.value;
+  selectedCurrency.value = balances.value[0];
 }
 
 async function onSubmitEvm() {
@@ -840,7 +811,7 @@ async function getRoute() {
   }
 
   const route = await SkipRouter.getRoute(
-    selectedCurrency.value.from!,
+    (selectedCurrency.value as AssetBalance).from!,
     selectedCurrency.value.balance.denom,
     transferAmount.atomics,
     false,
@@ -863,15 +834,14 @@ function onConfirmBackClick() {
   route = null;
 }
 
-function formatCurrentBalance(selectedCurrency: AssetBalance | undefined) {
+function formatCurrentBalance(selectedCurrency: AssetBalance | ExternalCurrency | undefined) {
   if (selectedCurrency?.balance?.denom && selectedCurrency?.balance?.amount) {
     if (selectedNetwork.value.native) {
-      const asset = AssetUtils.getCurrencyByDenom(selectedCurrency.balance.denom);
       return CurrencyUtils.convertMinimalDenomToDenom(
-        selectedCurrency.balance.amount.toString(),
-        selectedCurrency.balance.denom,
-        asset.shortName,
-        asset.decimal_digits
+        (selectedCurrency as ExternalCurrency).balance.amount.toString(),
+        (selectedCurrency as ExternalCurrency).balance.denom,
+        (selectedCurrency as ExternalCurrency).shortName,
+        (selectedCurrency as ExternalCurrency).decimal_digits
       ).toString();
     } else {
       if (selectedCurrency.decimal_digits != null && selectedCurrency.name != null) {

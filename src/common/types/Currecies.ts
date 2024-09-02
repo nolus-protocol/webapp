@@ -1,4 +1,4 @@
-import type { Coin as UnitCoin, Dec } from "@keplr-wallet/unit";
+import type { Coin as UnitCoin } from "@keplr-wallet/unit";
 
 export interface Currecies {
   amm_pools: {

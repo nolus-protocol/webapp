@@ -60,7 +60,6 @@ import { SwapStatus } from "./types";
 
 import {
   AppUtils,
-  AssetUtils,
   EnvNetworkUtils,
   Logger,
   SkipRouter,
@@ -70,6 +69,7 @@ import {
   walletOperation
 } from "@/common/utils";
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
+import { useCurrecies } from "@/common/composables/useCurrencies";
 
 const wallet = useWalletStore();
 const i18n = useI18n();
@@ -84,33 +84,14 @@ const blacklist = ref<string[]>([]);
 const showConfirmScreen = ref(false);
 const step = ref(CONFIRM_STEP.CONFIRM);
 const setShowDialogHeader = inject("setShowDialogHeader", (n: boolean) => {});
+const { currencies } = useCurrecies((e) => {});
 
 const balances = computed(() => {
-  let k: any = {};
-
-  for (const c of wallet.balances) {
-    const asset = AssetUtils.getCurrencyByDenom(c.balance.denom);
-    if (!IGNORE_TRANSFER_ASSETS.includes(asset.ticker as string)) {
-      k[c.balance.denom as string] = c;
+  return currencies.value.filter((item) => {
+    if (IGNORE_TRANSFER_ASSETS.includes(item.ticker as string)) {
     }
-  }
-  const b = [];
-
-  for (const c in k) {
-    b.push(k[c]);
-  }
-
-  const assets = b
-    .map((item) => {
-      const currency = { ...AssetUtils.getCurrencyByDenom(item.balance.denom), balance: item.balance };
-      return currency;
-    })
-    .filter((item) => {
-      if (IGNORE_TRANSFER_ASSETS.includes(item.ticker as string)) {
-      }
-      return !blacklist.value.includes(item.ibcData);
-    });
-  return assets;
+    return !blacklist.value.includes(item.ibcData);
+  });
 });
 
 const state = ref({

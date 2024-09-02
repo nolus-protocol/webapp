@@ -1,5 +1,5 @@
 import {
-  SkipRouter as SkipRouterLib,
+  SkipClient as SkipRouterLib,
   SKIP_API_URL,
   type RouteRequest,
   affiliateFromJSON,
