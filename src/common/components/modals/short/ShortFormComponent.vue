@@ -65,7 +65,7 @@
             <template v-if="FREE_INTEREST_ASSETS.includes(selectedAssetDenom)">
               <span
                 v-if="annualInterestRate"
-                class="line-throught-graytext-[#8396B1]"
+                class="line-throught-gray text-[#8396B1]"
               >
                 {{ annualInterestRate ?? 0 }}%
               </span>
@@ -379,7 +379,7 @@ const percentLique = computed(() => {
 
   const p = price.sub(lprice).quo(price);
 
-  return `-${p.mul(new Dec(100)).toString(0)}%`;
+  return `${p.abs().mul(new Dec(100)).toString(0)}%`;
 });
 
 function onDrag(event: number) {

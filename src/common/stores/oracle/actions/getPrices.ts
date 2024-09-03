@@ -27,6 +27,7 @@ export async function getPrices(this: State) {
         const [data, lpnPrice] = await Promise.all([oracleContract.getPrices(), getLpnPrice(oracleContract)]);
         const lpn = AssetUtils.getLpnByProtocol(protocolKey);
         pr[lpn.ibcData as string] = { symbol: lpn.ticker as string, amount: lpnPrice.toString() };
+        pr[lpn.key as string] = { symbol: lpn.ticker as string, amount: lpnPrice.toString() };
 
         for (const price of (data as IObjectKeys).prices) {
           const ticker = CurrencyDemapping[price.amount.ticker]?.ticker ?? price.amount.ticker;

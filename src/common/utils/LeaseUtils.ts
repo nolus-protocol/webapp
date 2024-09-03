@@ -66,6 +66,7 @@ export class LeaseUtils {
         item.leasePositionStable = new Dec(0);
         item.price = new Dec(0);
         item.downPaymentFee = new Dec(0);
+        item.lpnPrice = new Dec(0);
 
         return item;
       }
@@ -100,6 +101,7 @@ export class LeaseUtils {
         leasePositionStable: leasePositionStable,
         timestamp: new Date(result.lease.LS_timestamp),
         price: new Dec(result.downpayment_price),
+        lpnPrice: new Dec(result.lpn_price),
         ls_asset_symbol: result.lease.LS_asset_symbol
       };
     } catch (error) {

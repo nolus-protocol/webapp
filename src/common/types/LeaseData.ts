@@ -26,6 +26,7 @@ export interface LeaseAttributes {
   downPayment: Dec;
   downpaymentTicker: string | null;
   price: Dec | null;
+  lpnPrice: Dec | null;
   leasePositionStable: Dec;
   leasePositionTicker: string | null;
   timestamp: Date;

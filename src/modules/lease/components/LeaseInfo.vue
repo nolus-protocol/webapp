@@ -98,10 +98,10 @@
           </span>
 
           <span
-            v-if="leaseInfo.leaseData?.price"
+            v-if="leaseInfo.leaseData"
             class="data-label-info rounded p-1"
           >
-            {{ `${$t("message.price-per")} ${asset!.shortName}:` }} ${{ leaseInfo.leaseData?.price.toString(4) }}
+            {{ `${$t("message.price-per")} ${asset!.shortName}:` }} ${{ getPrice() }}
           </span>
           <span class="data-label-info rounded p-1"> {{ $t("message.liq-trigger") }}: {{ liquidation }} </span>
         </div>
@@ -268,10 +268,10 @@
           </span>
 
           <span
-            v-if="leaseInfo.leaseData?.price"
+            v-if="leaseInfo.leaseData"
             class="data-label-info rounded p-1"
           >
-            {{ `${$t("message.price-per")} ${asset!.shortName}:` }} ${{ leaseInfo.leaseData?.price.toString(4) }}
+            {{ `${$t("message.price-per")} ${asset!.shortName}:` }} ${{ getPrice() }}
           </span>
           <span class="data-label-info rounded p-1"> {{ $t("message.liq-trigger") }}: {{ liquidation }} </span>
         </div>
@@ -515,11 +515,13 @@ const asset = computed(() => {
 
 const getAssetIcon = computed((): string => {
   if (props.leaseInfo.leaseStatus?.opening && props.leaseInfo.leaseData) {
-    return app.assetIcons?.[props.leaseInfo.leaseData?.leasePositionTicker as string] as string ?? app.assetIcons?.[`${props.leaseInfo.leaseStatus.opening.loan.ticker}@${props.leaseInfo.protocol}`];
+    return (
+      (app.assetIcons?.[props.leaseInfo.leaseData?.leasePositionTicker as string] as string) ??
+      app.assetIcons?.[`${props.leaseInfo.leaseStatus.opening.loan.ticker}@${props.leaseInfo.protocol}`]
+    );
   }
 
   return app.assetIcons?.[`${props.leaseInfo.leaseData?.leasePositionTicker}@${props.leaseInfo.protocol}`] as string;
-
 });
 
 const downPayment = computed(() => {
@@ -983,6 +985,19 @@ function onFocusChart(data: string[], index: number) {
   const dataSet = chartData.value.datasets[0].data;
   const value = dataSet[index];
   focusPrice.value = value[1].toString();
+}
+
+function getPrice() {
+  switch (ProtocolsConfig[props.leaseInfo.protocol].type) {
+    case PositionTypes.long: {
+      return props.leaseInfo.leaseData?.price.toString(4);
+    }
+    case PositionTypes.short: {
+      return props.leaseInfo.leaseData.lpnPrice.toString(4);
+    }
+  }
+
+  ("0");
 }
 </script>
 <style lang="scss">

@@ -161,7 +161,7 @@ const payout = computed(() => {
   const ticker =
     CurrencyDemapping[props.modelValue.leaseInfo.amount.ticker!]?.ticker ?? props.modelValue.leaseInfo.amount.ticker;
   const currency = app.currenciesData![`${ticker!}@${props.modelValue.protocol}`];
-  const price = new Dec(oracle.prices[currency!.ibcData as string]?.amount ?? 0);
+  const price = new Dec(oracle.prices[currency!.key as string]?.amount ?? 0);
   const value = new Dec(props.modelValue.amount.length == 0 ? 0 : props.modelValue.amount).mul(price);
 
   const outStanding = getAmountValue("0").amountInStable.toDec();
@@ -199,7 +199,7 @@ function getAmountValue(a: string) {
   const lpn = AssetUtils.getLpnByProtocol(protocolKey);
 
   let amount = new Dec(a);
-  const price = new Dec(oracle.prices[selectedCurrency!.ibcData as string]?.amount ?? 0);
+  const price = new Dec(oracle.prices[selectedCurrency!.key as string]?.amount ?? 0);
   const { repayment, repaymentInStable } = getRepayment(100)!;
 
   const amountInStableInt = amount
@@ -271,8 +271,8 @@ function getRepayment(p: number) {
   switch (ProtocolsConfig[props.modelValue.protocol].type) {
     case PositionTypes.short: {
       let lpn = AssetUtils.getLpnByProtocol(props.modelValue.protocol);
-      const price = new Dec(oracle.prices[lpn!.ibcData as string].amount);
-      const selected_asset_price = new Dec(oracle.prices[selectedCurrency!.ibcData as string].amount);
+      const price = new Dec(oracle.prices[lpn!.key as string].amount);
+      const selected_asset_price = new Dec(oracle.prices[selectedCurrency!.key as string].amount);
 
       const repayment = repaymentInStable.mul(price);
 
@@ -283,7 +283,7 @@ function getRepayment(p: number) {
       };
     }
     case PositionTypes.long: {
-      const price = new Dec(oracle.prices[selectedCurrency!.ibcData as string].amount);
+      const price = new Dec(oracle.prices[selectedCurrency!.key as string].amount);
       const repayment = repaymentInStable.quo(price);
 
       return {

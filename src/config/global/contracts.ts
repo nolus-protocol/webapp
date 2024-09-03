@@ -73,7 +73,7 @@ export const CONTRACTS: ContractConfig = {
         rewards: true
       },
       "OSMOSIS-OSMOSIS-USDC_NOBLE": {
-        only: ["NLS", "ST_ATOM", "TIA"],
+        only: ["NLS"],
         lease: true,
         currencies: [
           "NLS",

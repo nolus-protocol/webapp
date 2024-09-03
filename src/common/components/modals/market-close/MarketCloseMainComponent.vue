@@ -159,7 +159,7 @@ function isAmountValid() {
     config.value?.config.lease_position_spec.min_asset.amount ?? 0,
     Number(minAmountCurrency.decimal_digits)
   );
-  const price = new Dec(oracle.prices[currency.ibcData as string].amount);
+  const price = new Dec(oracle.prices[currency.key as string].amount);
 
   const minAmountTemp = new Dec(minimumLeaseAmount);
   const amountInStable = new Dec(amount.length == 0 ? "0" : amount).mul(price);

@@ -5,7 +5,16 @@ import { ref, onMounted, watch } from "vue";
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 import { Lease, Leaser, type LeaserConfig, type LeaseStatus } from "@nolus/nolusjs/build/contracts";
 import { AppUtils, Logger, LeaseUtils, AssetUtils, WalletManager } from "@/common/utils";
-import { IGNORE_LEASES, INTEREST_DECIMALS, MONTHS, NATIVE_ASSET, PERCENT, PERMILLE } from "@/config/global";
+import {
+  IGNORE_LEASES,
+  INTEREST_DECIMALS,
+  MONTHS,
+  NATIVE_ASSET,
+  PERCENT,
+  PERMILLE,
+  PositionTypes,
+  ProtocolsConfig
+} from "@/config/global";
 import { useAdminStore } from "@/common/stores/admin";
 import { CurrencyDemapping } from "@/config/currencies";
 import { Dec } from "@keplr-wallet/unit";
@@ -203,7 +212,17 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
     const unitAsset = new Dec(leaseInfo.opened.amount.amount, Number(unitAssetInfo!.decimal_digits));
 
     const stableAsset = new Dec(leaseInfo.opened.principal_due.amount, Number(stableAssetInfo!.decimal_digits));
-    liquidation = LeaseUtils.calculateLiquidation(stableAsset, unitAsset);
+
+    switch (ProtocolsConfig[protocolKey].type) {
+      case PositionTypes.long: {
+        liquidation = LeaseUtils.calculateLiquidation(stableAsset, unitAsset);
+        break;
+      }
+      case PositionTypes.short: {
+        liquidation = LeaseUtils.calculateLiquidation(unitAsset, stableAsset);
+        break;
+      }
+    }
   }
 
   if (leaseInfo.opened || leaseInfo.paid) {
