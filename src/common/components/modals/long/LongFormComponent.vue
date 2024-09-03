@@ -26,6 +26,7 @@
         :options="coinList"
         class="scrollbar text-left"
         @update-selected="updateSelected"
+        data-cy="lease-currency-dropdown"
       />
 
       <div class="flex justify-between text-[14px] font-medium text-neutral-typography-200">
@@ -111,6 +112,7 @@
         severity="primary"
         size="large"
         type="submit"
+        data-cy="open-position-button"
       />
       <div class="my-2 flex w-full justify-between text-[14px] text-neutral-400">
         <p>{{ $t("message.estimate-time") }}:</p>

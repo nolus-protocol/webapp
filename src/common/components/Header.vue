@@ -26,6 +26,7 @@
         v-else
         class="show-box-wallet btn-header with-icon rounded-r-none"
         @click="showAuthDialog = !showAuthDialog"
+        data-cy="connect-wallet-button"
       >
         <span
           class="icon-wallet mr-0"

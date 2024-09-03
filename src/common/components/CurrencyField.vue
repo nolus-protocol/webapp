@@ -33,6 +33,7 @@
             :options="currencyOptions"
             type="small"
             @update-currency="onUpdateCurrency"
+            data-cy="dp-currency-dropdown"
           />
         </div>
         <div class="inline-block flex-1">
@@ -48,6 +49,7 @@
             @keyup="setValue"
             @paste="onPaste"
             @keypress.space.prevent
+            data-cy="dp-amount-text-field"
           />
           <span class="block text-right text-14 font-normal text-neutral-400">
             {{ calculateInputBalance() }}

@@ -15,8 +15,8 @@
     "format": "prettier --write src",
     "prepare": "husky",
     "test:unit": "vitest",
-    "test:e2e": "start-server-and-test preview http://localhost:4173 'cypress run --e2e'",
-    "test:e2e:dev": "CYPRESS_COMMAND_TIMEOUT=600000000 start-server-and-test 'vite --mode test --port 4173' http://localhost:4173 'cypress open --e2e'"
+    "synpress:run:keplr": "EXTENSION=keplr SKIP_EXTENSION_SETUP=true synpress run --configFile=tests/e2e/synpress.config.cjs --browser chrome",
+    "test:e2e:testnet": "CYPRESS_COMMAND_TIMEOUT=600000000 start-server-and-test 'vite --mode test --port 8080' http://localhost:8080 'pnpm synpress:run:keplr'"
   },
   "dependencies": {
     "@cosmjs/cosmwasm-stargate": "0.32.4",
@@ -54,6 +54,7 @@
     "web-components": "github:nolus-protocol/web-components#v1.5.9"
   },
   "devDependencies": {
+    "@agoric/synpress": "github:nolus-protocol/synpress#dev",
     "@intlify/unplugin-vue-i18n": "^4.0.0",
     "@rushstack/eslint-patch": "^1.10.1",
     "@tsconfig/node20": "^20.1.2",
@@ -66,9 +67,7 @@
     "@vue/tsconfig": "^0.5.1",
     "autoprefixer": "^10.4.17",
     "buffer": "^6.0.3",
-    "cypress": "^13.13.0",
     "eslint": "^8.57.0",
-    "eslint-plugin-cypress": "^2.15.1",
     "eslint-plugin-vue": "^9.27.0",
     "husky": "^9.0.10",
     "jsdom": "^24.1.0",

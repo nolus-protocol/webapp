@@ -106,6 +106,7 @@
         severity="primary"
         size="large"
         type="submit"
+        data-cy="amount-warning"
       />
     </form>
   </div>

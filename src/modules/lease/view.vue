@@ -14,6 +14,7 @@
           severity="primary"
           size="large"
           @click="showLeaseModal = true"
+          data-cy="lease-new-button"
         />
       </div>
     </div>
