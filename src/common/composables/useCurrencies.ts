@@ -11,7 +11,6 @@ export function useCurrecies(onError: (error: unknown) => void) {
 
   try {
     const wallet = useWalletStore();
-
     for (const c of wallet.balances) {
       const asset = AssetUtils.getCurrencyByDenom(c.balance.denom);
       if (

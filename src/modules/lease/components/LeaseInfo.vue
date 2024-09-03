@@ -327,6 +327,7 @@
       :icon="getAssetIcon"
       :position="pnl.percent"
       :price="leaseInfo.leaseData?.price!.toString(6) ?? '0'"
+      :position-type="ProtocolsConfig[props.leaseInfo.protocol].type"
     />
   </Modal>
 </template>
@@ -515,11 +516,13 @@ const asset = computed(() => {
 
 const getAssetIcon = computed((): string => {
   if (props.leaseInfo.leaseStatus?.opening && props.leaseInfo.leaseData) {
-    return app.assetIcons?.[props.leaseInfo.leaseData?.leasePositionTicker as string] as string ?? app.assetIcons?.[`${props.leaseInfo.leaseStatus.opening.loan.ticker}@${props.leaseInfo.protocol}`];
+    return (
+      (app.assetIcons?.[props.leaseInfo.leaseData?.leasePositionTicker as string] as string) ??
+      app.assetIcons?.[`${props.leaseInfo.leaseStatus.opening.loan.ticker}@${props.leaseInfo.protocol}`]
+    );
   }
 
   return app.assetIcons?.[`${props.leaseInfo.leaseData?.leasePositionTicker}@${props.leaseInfo.protocol}`] as string;
-
 });
 
 const downPayment = computed(() => {

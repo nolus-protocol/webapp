@@ -49,6 +49,7 @@ export const NetworksConfig: {
     hidden: ["ST_TIA@NEUTRON-ASTROPORT-USDC_AXELAR"]
   }
 };
+
 export const SUPPORTED_NETWORKS = [
   "NOLUS",
   "OSMOSIS",
@@ -57,7 +58,6 @@ export const SUPPORTED_NETWORKS = [
   "STRIDE",
   "JUNO",
   "EVMOS",
-  // "PERSISTENCE",
   "SECRET",
   "STARGAZE",
   "CELESTIA",
@@ -69,5 +69,4 @@ export const SUPPORTED_NETWORKS = [
   "INJECTIVE",
   "COMPOSABLE",
   "NOBLE"
-  // "CUDOS"
 ];
