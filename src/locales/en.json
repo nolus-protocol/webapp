@@ -237,7 +237,7 @@
     "price-per-symbol": "Price per {symbol}",
     "free-interest": "0% Interest",
     "free-interest-tooltip": "Interest is offset every 3 hours ",
-    "outstanding-debt-tooltip": "Includes both the principal amount and the interest, constituting the total remaining debt",
+    "outstanding-debt-tooltip": "Includes both the principal and the interest, representing the total debt",
     "supply-limit-error": "The current deposit limit is {amount}",
     "market-close": "Market Close",
     "market-close-to": "Market close to",
