@@ -66,7 +66,8 @@ export const FREE_INTEREST_ASSETS: string[] = [
   "WBTC",
   "WETH",
   "CUDOS",
-  "dATOM"
+  "dATOM",
+  "USDC"
 ];
 
 export const IGNORE_LEASE_ASSETS: string[] = [
