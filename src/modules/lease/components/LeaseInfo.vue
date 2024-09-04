@@ -66,28 +66,56 @@
       <div class="flex h-full flex-col justify-between gap-2 lg:gap-0">
         <div class="text-12 font-medium text-neutral-400">{{ $t("message.lease-size") }}</div>
         <div>
-          <div class="flex">
-            <img
-              :src="getAssetIcon"
-              class="m-0 mr-3 inline-block"
-              height="36"
-              width="36"
-              @dblclick="copy"
-            />
-            <h1 class="text-28 font-semibold text-neutral-typography-200 md:text-28">
-              <CurrencyComponent
-                :amount="amount"
-                :decimals="asset?.decimal_digits"
-                :denom="asset!.shortName"
-                :font-size="22"
-                :maxDecimals="6"
-                :minimalDenom="asset!.ibcData"
-                :type="CURRENCY_VIEW_TYPES.TOKEN"
+          <template v-if="PositionTypes.long == ProtocolsConfig[props.leaseInfo.protocol].type">
+            <div class="flex">
+              <img
+                :src="getAssetIcon"
+                class="m-0 mr-3 inline-block"
+                height="36"
+                width="36"
+                @dblclick="copy"
               />
-              <span class="ml-1 inline-block text-20 font-normal uppercase text-neutral-typography-200"> </span>
-            </h1>
-          </div>
-          <span class="text-15 pl-[50px] font-extralight text-neutral-400">${{ positionInStable }}</span>
+
+              <h1 class="text-28 font-semibold text-neutral-typography-200 md:text-28">
+                <CurrencyComponent
+                  :amount="amount"
+                  :decimals="asset?.decimal_digits"
+                  :denom="asset!.shortName"
+                  :font-size="22"
+                  :maxDecimals="6"
+                  :minimalDenom="asset!.ibcData"
+                  :type="CURRENCY_VIEW_TYPES.TOKEN"
+                />
+                <span class="ml-1 inline-block text-20 font-normal uppercase text-neutral-typography-200"> </span>
+              </h1>
+            </div>
+            <span class="text-15 pl-[50px] font-extralight text-neutral-400">${{ positionInStable }}</span>
+          </template>
+          <template v-if="PositionTypes.short == ProtocolsConfig[props.leaseInfo.protocol].type">
+            <div class="flex">
+              <img
+                :src="leaseAsset!.icon"
+                class="m-0 mr-3 inline-block"
+                height="36"
+                width="36"
+                @dblclick="copy"
+              />
+
+              <h1 class="text-28 font-semibold text-neutral-typography-200 md:text-28">
+                <CurrencyComponent
+                  :amount="positionInStable"
+                  :decimals="leaseAsset?.decimal_digits"
+                  :denom="leaseAsset!.shortName"
+                  :font-size="22"
+                  :maxDecimals="6"
+                  :minimalDenom="asset!.ibcData"
+                  :type="CURRENCY_VIEW_TYPES.TOKEN"
+                />
+                <span class="ml-1 inline-block text-20 font-normal uppercase text-neutral-typography-200"> </span>
+              </h1>
+            </div>
+            <span class="text-15 pl-[50px] font-extralight text-neutral-400">{{ amount }} {{ asset!.shortName }}</span>
+          </template>
         </div>
         <div class="flex flex-wrap gap-2 whitespace-nowrap text-10 font-medium uppercase text-medium-blue">
           <span
@@ -236,29 +264,58 @@
         <div class="text-12 font-medium text-neutral-400">{{ $t("message.lease-size") }}</div>
 
         <div>
-          <div class="flex">
-            <img
-              :src="getAssetIcon"
-              class="m-0 mr-3 inline-block"
-              height="36"
-              width="36"
-              @dblclick="copy"
-            />
-            <h1 class="text-28 font-semibold text-neutral-typography-200 md:text-28">
-              <CurrencyComponent
-                :amount="amount"
-                :decimals="asset?.decimal_digits"
-                :denom="asset!.shortName"
-                :font-size="22"
-                :maxDecimals="6"
-                :minimalDenom="asset!.ibcData"
-                :type="CURRENCY_VIEW_TYPES.TOKEN"
+          <template v-if="PositionTypes.long == ProtocolsConfig[props.leaseInfo.protocol].type">
+            <div class="flex">
+              <img
+                :src="getAssetIcon"
+                class="m-0 mr-3 inline-block"
+                height="36"
+                width="36"
+                @dblclick="copy"
               />
-              <span class="ml-1 inline-block text-20 font-normal uppercase text-neutral-typography-200"> </span>
-            </h1>
-          </div>
-          <span class="text-15 pl-[50px] font-extralight text-neutral-400">${{ positionInStable }}</span>
+
+              <h1 class="text-28 font-semibold text-neutral-typography-200 md:text-28">
+                <CurrencyComponent
+                  :amount="amount"
+                  :decimals="asset?.decimal_digits"
+                  :denom="asset!.shortName"
+                  :font-size="22"
+                  :maxDecimals="6"
+                  :minimalDenom="asset!.ibcData"
+                  :type="CURRENCY_VIEW_TYPES.TOKEN"
+                />
+                <span class="ml-1 inline-block text-20 font-normal uppercase text-neutral-typography-200"> </span>
+              </h1>
+            </div>
+            <span class="text-15 pl-[50px] font-extralight text-neutral-400">${{ positionInStable }}</span>
+          </template>
+          <template v-if="PositionTypes.short == ProtocolsConfig[props.leaseInfo.protocol].type">
+            <div class="flex">
+              <img
+                :src="leaseAsset!.icon"
+                class="m-0 mr-3 inline-block"
+                height="36"
+                width="36"
+                @dblclick="copy"
+              />
+
+              <h1 class="text-28 font-semibold text-neutral-typography-200 md:text-28">
+                <CurrencyComponent
+                  :amount="positionInStable"
+                  :decimals="leaseAsset?.decimal_digits"
+                  :denom="leaseAsset!.shortName"
+                  :font-size="22"
+                  :maxDecimals="6"
+                  :minimalDenom="asset!.ibcData"
+                  :type="CURRENCY_VIEW_TYPES.TOKEN"
+                />
+                <span class="ml-1 inline-block text-20 font-normal uppercase text-neutral-typography-200"> </span>
+              </h1>
+            </div>
+            <span class="text-15 pl-[50px] font-extralight text-neutral-400">{{ amount }} {{ asset!.shortName }}</span>
+          </template>
         </div>
+
         <div class="flex flex-wrap gap-2 whitespace-nowrap text-10 font-medium uppercase text-medium-blue">
           <span
             v-if="leaseInfo.leaseData?.downPayment"
@@ -327,6 +384,7 @@
       :icon="getAssetIcon"
       :position="pnl.percent"
       :price="leaseInfo.leaseData?.price!.toString(6) ?? '0'"
+      :position-type="ProtocolsConfig[props.leaseInfo.protocol].type"
     />
   </Modal>
 </template>
@@ -381,7 +439,7 @@ import {
 import { coin } from "@cosmjs/amino";
 import { useApplicationStore } from "@/common/stores/application";
 import { PriceHistoryChart } from "./";
-import { CurrencyDemapping } from "@/config/currencies";
+import { CurrencyDemapping, CurrencyMapping } from "@/config/currencies";
 
 enum TEMPLATES {
   "opening",
@@ -546,9 +604,9 @@ const amount = computed(() => {
         props.leaseInfo.leaseStatus.paid?.amount;
 
       const asset =
-        app.currenciesData?.[`${props.leaseInfo.leaseData.leasePositionTicker}@${props.leaseInfo.protocol}`];
+        app.currenciesData?.[`${props.leaseInfo.leaseData.leasePositionTicker}@${props.leaseInfo.protocol}`]!;
       const price = oracleStore.prices?.[asset?.ibcData as string];
-      return new Dec(data.amount).quo(new Dec(price.amount)).toString();
+      return new Dec(data.amount, asset.decimal_digits).quo(new Dec(price.amount)).toString(asset.decimal_digits);
     }
   }
 });
@@ -971,10 +1029,12 @@ const positionInStable = computed(() => {
       return value.toString(asset?.decimal_digits);
     }
     case PositionTypes.short: {
-      const value = new Dec(amount.amount, asset?.decimal_digits);
+      const value = new Dec(amount.amount);
       return value.toString(asset?.decimal_digits);
     }
   }
+
+  return "0";
 });
 
 function onFocusChart(data: string[], index: number) {
@@ -999,6 +1059,14 @@ function getPrice() {
 
   ("0");
 }
+
+const leaseAsset = computed(() => {
+  let ticker =
+    CurrencyMapping[props.leaseInfo.leaseData.ls_asset_symbol]?.ticker ?? props.leaseInfo.leaseData.ls_asset_symbol;
+
+  const asset = app.currenciesData?.[`${ticker}@${props.leaseInfo.protocol}`];
+  return asset;
+});
 </script>
 <style lang="scss">
 button.share {

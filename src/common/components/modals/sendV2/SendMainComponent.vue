@@ -152,17 +152,15 @@ import ConfirmRouteComponent from "../templates/ConfirmRouteComponent.vue";
 import InputField from "@/common/components/InputField.vue";
 
 import type { AssetBalance } from "@/common/stores/wallet/types";
-import type { EvmNetwork } from "@/common/types/Network";
 import { computed, inject, nextTick, onMounted, onUnmounted, type PropType, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
+import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { BaseWallet, Wallet } from "@/networks";
 import { coin, type Coin } from "@cosmjs/amino";
 import { Decimal } from "@cosmjs/math";
 import {
   AppUtils,
   AssetUtils,
-  EnvNetworkUtils,
   externalWallet,
   Logger,
   SkipRouter,
@@ -174,7 +172,7 @@ import {
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Coin as KeplrCoin, Dec } from "@keplr-wallet/unit";
-import { ErrorCodes, GAS_FEES, IGNORE_TRANSFER_ASSETS, NATIVE_ASSET, NATIVE_NETWORK } from "@/config/global";
+import { ErrorCodes, GAS_FEES, NATIVE_ASSET, NATIVE_NETWORK, NETWORK } from "@/config/global";
 import { SwapStatus } from "../swap/types";
 import { MetaMaskWallet } from "@/networks/metamask";
 
@@ -189,6 +187,7 @@ import {
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
 import { Button } from "web-components";
 import { useCurrecies } from "@/common/composables/useCurrencies";
+import type { EvmNetwork } from "@/common/types/Network";
 
 export interface ReceiveComponentProps {
   currentBalance: AssetBalance[];
@@ -209,8 +208,10 @@ const setShowDialogHeader = inject("setShowDialogHeader", (n: boolean) => {});
 const setDisable = inject("setDisable", (b: boolean) => {});
 
 const { currencies: balances } = useCurrecies((e) => {});
-const networkCurrencies = ref<ExternalCurrency[] | AssetBalance[]>([]);
-const selectedCurrency = ref<ExternalCurrency | AssetBalance>(balances.value[0]);
+const networkCurrencies = ref<ExternalCurrency[] | AssetBalance[]>(balances.value);
+const selectedCurrency = ref<ExternalCurrency | AssetBalance>(
+  balances.value.find((item) => item.key == NETWORK.sendDefaultValue)!
+);
 const amount = ref("");
 const amountErrorMsg = ref("");
 const disablePicker = ref(false);
@@ -243,7 +244,7 @@ onMounted(async () => {
   try {
     setNativeNetwork();
     skipRouteConfig = await AppUtils.getSkipRouteConfig();
-    const n = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list.filter((item) => {
+    const n = NETWORK_DATA.list.filter((item) => {
       if (skipRouteConfig!.transfers[item.key]) {
         return true;
       }
@@ -389,7 +390,7 @@ function setNativeNetwork() {
   route = null;
 
   networkCurrencies.value = balances.value;
-  selectedCurrency.value = balances.value[0];
+  selectedCurrency.value = balances.value.find((item) => item.key == NETWORK.sendDefaultValue)!;
 }
 
 async function onSubmitEvm() {
@@ -423,7 +424,7 @@ async function setCosmosNetwork() {
   destroyClient();
 
   disablePicker.value = true;
-  const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
+  const network = NETWORK_DATA;
 
   const currencies = [];
   const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[selectedNetwork.value.key].currencies;
@@ -764,7 +765,7 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
       switch (chainToParse[chain].chain_type) {
         case "cosmos": {
           const client = await WalletUtils.getWallet(chain);
-          const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
+          const network = NETWORK_DATA;
           const networkData = network?.supportedNetworks[chain];
           const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
           const chainId = await baseWallet.getChainId();

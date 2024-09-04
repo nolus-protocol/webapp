@@ -31,9 +31,6 @@ export const CHART_RANGES = {
   }
 };
 
-export const WASM_LP_DEPOSIT = "wasm-lp-deposit";
-export const WASM_LP_OPEN = "wasm-ls-open";
-
 export const INTEREST_DECIMALS = 1;
 export const PERMILLE = 1000;
 export const PERCENT = 100;
@@ -62,12 +59,5 @@ export const DECIMALS_AMOUNT = [
 
 export const ZERO_DECIMALS = 6;
 export const MAX_DECIMALS = 8;
-
-export const CoinGecko = {
-  url: "https://pro-api.coingecko.com/api/v3",
-  label: "Nolus App",
-  key: "CG-QQSfXqT6EJWXG9UjjfhfoJVk"
-};
-
 export const LedgerName = "Ledger";
 export const IGNORE_TRANSFER_ASSETS: string[] = ["STK_ATOM", "LVN", "EVMOS"];

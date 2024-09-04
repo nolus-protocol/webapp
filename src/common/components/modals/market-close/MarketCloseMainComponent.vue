@@ -39,7 +39,15 @@ import { AssetUtils, Logger, getMicroAmount, walletOperation } from "@/common/ut
 import { useWalletStore } from "@/common/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { NATIVE_ASSET, GAS_FEES, TIP, ErrorCodes, minimumLeaseAmount } from "@/config/global";
+import {
+  NATIVE_ASSET,
+  GAS_FEES,
+  TIP,
+  ErrorCodes,
+  minimumLeaseAmount,
+  ProtocolsConfig,
+  PositionTypes
+} from "@/config/global";
 import { coin } from "@cosmjs/amino";
 import { AppUtils } from "@/common/utils";
 import { useLeaseConfig } from "@/common/composables";
@@ -68,22 +76,44 @@ const closeModal = onModalClose;
 const { config } = useLeaseConfig(props.leaseData?.protocol as string, (error: Error | any) => {});
 
 const balances = computed(() => {
-  const assets = [];
-  const ticker =
-    CurrencyDemapping[props.leaseData?.leaseStatus?.opened?.amount?.ticker!]?.ticker ??
-    props.leaseData?.leaseStatus?.opened?.amount?.ticker;
+  const assets: ExternalCurrency[] = [];
 
-  for (const key in app.currenciesData ?? {}) {
-    const currency = app.currenciesData![key];
-    const c = { ...currency };
-    const item = walletStore.balances.find((item) => item.balance.denom == currency.ibcData);
-    if (item) {
-      c.balance = item!.balance;
-      assets.push(c);
+  switch (ProtocolsConfig[props.leaseData!.protocol].type) {
+    case PositionTypes.short: {
+      const lpn = AssetUtils.getLpnByProtocol(props.leaseData!.protocol);
+
+      for (const key in app.currenciesData ?? {}) {
+        const currency = app.currenciesData![key];
+        const c = { ...currency };
+        const item = walletStore.balances.find((item) => item.balance.denom == currency.ibcData);
+        if (item) {
+          c.balance = item!.balance;
+          assets.push(c);
+        }
+      }
+
+      return assets.filter((item) => item.key == lpn.key);
+    }
+    case PositionTypes.long: {
+      const ticker =
+        CurrencyDemapping[props.leaseData?.leaseStatus?.opened?.amount?.ticker!]?.ticker ??
+        props.leaseData?.leaseStatus?.opened?.amount?.ticker;
+
+      for (const key in app.currenciesData ?? {}) {
+        const currency = app.currenciesData![key];
+        const c = { ...currency };
+        const item = walletStore.balances.find((item) => item.balance.denom == currency.ibcData);
+        if (item) {
+          c.balance = item!.balance;
+          assets.push(c);
+        }
+      }
+
+      return assets.filter((item) => item.key == `${ticker}@${props.leaseData?.protocol}`);
     }
   }
 
-  return assets.filter((item) => item.key == `${ticker}@${props.leaseData?.protocol}`);
+  return assets;
 });
 
 const state = ref({
@@ -202,16 +232,39 @@ function isAmountValid() {
   return isValid;
 }
 
+function getCurrency() {
+  const microAmount = getMicroAmount(state.value.selectedCurrency.balance.denom, state.value.amount);
+  const amount = new Int(state.value.leaseInfo.amount.amount);
+
+  if (amount.equals(microAmount.mAmount.amount)) {
+    return undefined;
+  }
+
+  switch (ProtocolsConfig[props.leaseData!.protocol].type) {
+    case PositionTypes.short: {
+      const lpn = AssetUtils.getLpnByProtocol(props.leaseData!.protocol);
+      const ticker = app.lease![props.leaseData!.protocol][0];
+      return {
+        ticker: ticker,
+        amount: new Dec(microAmount.mAmount.amount).mul(new Dec(oracle.prices[lpn.key].amount)).truncate().toString()
+      };
+    }
+    case PositionTypes.long: {
+      const currency = state.value.selectedCurrency;
+
+      return {
+        ticker: currency.ticker,
+        amount: microAmount.mAmount.amount.toString()
+      };
+    }
+  }
+}
+
 async function marketCloseLease() {
   const wallet = walletStore.wallet as NolusWallet;
   if (wallet && isAmountValid()) {
     step.value = CONFIRM_STEP.PENDING;
     try {
-      const microAmount = getMicroAmount(state.value.selectedCurrency.balance.denom, state.value.amount);
-
-      const currency = state.value.selectedCurrency;
-      const amount = new Int(state.value.leaseInfo.amount.amount);
-
       const funds: Coin[] = [
         {
           denom: TIP.denom,
@@ -222,16 +275,7 @@ async function marketCloseLease() {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const leaseClient = new Lease(cosmWasmClient, state.value.receiverAddress);
 
-      const { txHash, txBytes, usedFee } = await leaseClient.simulateClosePositionLeaseTx(
-        wallet,
-        amount.equals(microAmount.mAmount.amount)
-          ? undefined
-          : {
-              ticker: currency.ticker,
-              amount: microAmount.mAmount.amount.toString()
-            },
-        funds
-      );
+      const { txHash, txBytes, usedFee } = await leaseClient.simulateClosePositionLeaseTx(wallet, getCurrency(), funds);
 
       state.value.txHash = txHash;
 

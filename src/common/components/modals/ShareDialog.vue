@@ -58,6 +58,10 @@ const props = defineProps({
   position: {
     type: String,
     required: true
+  },
+  positionType: {
+    type: String,
+    required: true
   }
 });
 
@@ -167,14 +171,19 @@ const generateCanvas = async () => {
   }
 
   async function getBuyTextWidth(ctx: CanvasRenderingContext2D) {
-    ctx.font = "bold 30px 'Garet Bolder'";
-    return ctx.measureText(i18n.t("message.buy-position")).width;
+    ctx.font = "bold 30px 'Garet-Medium'";
+    return ctx.measureText(`${i18n.t(`message.${props.positionType}`)} ${i18n.t("message.buy-position")}`.toUpperCase())
+      .width;
   }
 
   async function setBuyText(ctx: CanvasRenderingContext2D) {
-    ctx.font = "bold 30px 'Garet Bolder'";
+    ctx.font = "bold 30px 'Garet-Medium'";
     ctx.fillStyle = "white";
-    ctx.fillText(i18n.t("message.buy-position"), 150, 270);
+    ctx.fillText(
+      `${i18n.t(`message.${props.positionType}`)} ${i18n.t("message.buy-position")}`.toUpperCase(),
+      150,
+      270
+    );
   }
 
   async function setAsset(ctx: CanvasRenderingContext2D) {
@@ -221,12 +230,12 @@ const generateCanvas = async () => {
 
     const amount = `${symbol}${new Intl.NumberFormat().format(Number(a))}`;
 
-    ctx.font = "700 72px 'Garet Bolder'";
+    ctx.font = "700 72px 'Garet-Medium'";
     ctx.fillText(amount, 90, 545);
 
     const w = ctx.measureText(amount).width;
 
-    ctx.font = "700 58px 'Garet Bolder'";
+    ctx.font = "700 58px 'Garet-Medium'";
     ctx.fillText(`.${d}%`, 90 + w, 545);
   }
 

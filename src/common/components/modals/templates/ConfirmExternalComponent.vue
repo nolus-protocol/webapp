@@ -132,9 +132,9 @@ import type { Coin } from "@cosmjs/amino";
 import { computed, inject, onMounted, watch } from "vue";
 import { ArrowLeftIcon, CheckIcon, XMarkIcon } from "@heroicons/vue/24/solid";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { AssetUtils, EnvNetworkUtils, StringUtils } from "@/common/utils";
+import { AssetUtils, StringUtils } from "@/common/utils";
 import { CONFIRM_STEP, NetworkTypes, type ExternalCurrency } from "@/common/types";
-import { NETWORKS_DATA } from "@/networks";
+import { NETWORK_DATA } from "@/networks";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 
 interface Props {
@@ -173,7 +173,7 @@ const isStepError = computed(() => props.step === CONFIRM_STEP.ERROR);
 const isStepCustomError = computed(() => props.step === CONFIRM_STEP.GasErrorExternal);
 
 const networkData = computed(() => {
-  return NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].supportedNetworks[props.networkKey];
+  return NETWORK_DATA.supportedNetworks[props.networkKey];
 });
 
 const networkSymbol = computed(() => {

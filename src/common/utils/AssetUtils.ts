@@ -18,7 +18,6 @@ import {
   SUPPORTED_NETWORKS,
   NATIVE_NETWORK,
   NATIVE_ASSET,
-  NetworksConfig,
   ProtocolsConfig
 } from "@/config/global";
 
@@ -214,11 +213,6 @@ export class AssetUtils {
             const n = ntwrks.networks.list[currency.ibc.network];
             const c = n.currencies[currency.ibc.currency];
             const ticker = n.currencies[currency?.ibc?.currency]?.ibc?.currency ?? currency?.ibc?.currency;
-            const hiddenAssets = NetworksConfig[k]?.hidden;
-
-            if (hiddenAssets?.includes(ticker)) {
-              continue;
-            }
 
             if (c) {
               c;

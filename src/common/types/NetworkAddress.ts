@@ -6,6 +6,7 @@ export interface NetworkAddress {
   explorer: string;
   govern: string;
   staking: string;
+  sendDefaultValue: string;
   endpoints: Promise<string> | string;
   currencies: () => Promise<NetworkData | IObjectKeys>;
   etlApi: string;

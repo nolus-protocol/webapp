@@ -1,15 +1,13 @@
-import type { NetworkAddress, Networks } from "@/common/types";
-import { DEFAULT_PRIMARY_NETWORK, NETWORKS } from "@/config/global";
+import type { Networks } from "@/common/types";
+import { CURRENT_NETWORK_KEY, DEFAULT_PRIMARY_NETWORK } from "@/config/global";
 
 export class EnvNetworkUtils {
-  public static CURRENT_NETWORK = "currentNetwork";
-
   public static saveCurrentNetwork(networkName: string) {
-    localStorage.setItem(EnvNetworkUtils.CURRENT_NETWORK, networkName);
+    localStorage.setItem(CURRENT_NETWORK_KEY, networkName);
   }
 
   public static removeCurrentNetwork() {
-    localStorage.removeItem(EnvNetworkUtils.CURRENT_NETWORK);
+    localStorage.removeItem(CURRENT_NETWORK_KEY);
   }
 
   public static getEnvNetworks(): string[] {
@@ -21,16 +19,7 @@ export class EnvNetworkUtils {
     return [];
   }
 
-  public static loadNetworkConfig(): NetworkAddress | null {
-    if (!this.getStoredNetworkName() || !NETWORKS[this.getStoredNetworkName() as string]) {
-      EnvNetworkUtils.saveCurrentNetwork(DEFAULT_PRIMARY_NETWORK);
-      return NETWORKS[DEFAULT_PRIMARY_NETWORK];
-    }
-
-    return NETWORKS[this.getStoredNetworkName() as string];
-  }
-
   public static getStoredNetworkName(): Networks {
-    return (localStorage.getItem(EnvNetworkUtils.CURRENT_NETWORK) || DEFAULT_PRIMARY_NETWORK) as Networks;
+    return (localStorage.getItem(CURRENT_NETWORK_KEY) || DEFAULT_PRIMARY_NETWORK) as Networks;
   }
 }

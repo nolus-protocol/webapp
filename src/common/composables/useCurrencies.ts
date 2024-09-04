@@ -11,13 +11,9 @@ export function useCurrecies(onError: (error: unknown) => void) {
 
   try {
     const wallet = useWalletStore();
-
     for (const c of wallet.balances) {
       const asset = AssetUtils.getCurrencyByDenom(c.balance.denom);
-      if (
-        !IGNORE_TRANSFER_ASSETS.includes(asset.ticker as string) &&
-        b.findIndex((item) => item.ibcData == c.balance.denom) == -1
-      ) {
+      if (!IGNORE_TRANSFER_ASSETS.includes(asset.ticker as string)) {
         b.push({ ...asset, balance: c.balance });
       }
     }

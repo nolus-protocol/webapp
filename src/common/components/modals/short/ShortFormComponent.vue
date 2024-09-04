@@ -302,11 +302,15 @@ const calculateMarginAmount = computed(() => {
   const total = props.modelValue.leaseApply?.total;
 
   if (total) {
-    const asset = AssetUtils.getCurrencyByTicker(total.ticker!);
-    const t = new Dec(total.amount).mul(new Dec(1).sub(new Dec(swapFee.value)));
+    let [_, protocol] = props.modelValue.selectedDownPaymentCurrency.key.split("@");
+
+    const lpn = AssetUtils.getLpnByProtocol(protocol);
+    const asset = app.currenciesData![`${lpn.key}`];
+    const assetPrice = new Dec(oracle.prices[asset.key].amount);
+    const amount = new Dec(total.amount).quo(assetPrice).mul(new Dec(1).sub(new Dec(swapFee.value)));
 
     const token = CurrencyUtils.convertMinimalDenomToDenom(
-      t.truncate().toString(),
+      amount.truncate().toString(),
       asset.ibcData as string,
       asset.shortName as string,
       asset.decimal_digits
@@ -362,7 +366,8 @@ function getLquidation() {
     const unitAsset = new Dec(getBorrowedAmount(), Number(unitAssetInfo!.decimal_digits));
 
     const stableAsset = new Dec(getTotalAmount(), Number(stableAssetInfo!.decimal_digits));
-    return LeaseUtils.calculateLiquidation(stableAsset, unitAsset);
+
+    return LeaseUtils.calculateLiquidationShort(stableAsset, unitAsset);
   }
 
   return new Dec(0);
@@ -379,7 +384,7 @@ const percentLique = computed(() => {
 
   const p = price.sub(lprice).quo(price);
 
-  return `${p.abs().mul(new Dec(100)).toString(0)}%`;
+  return `${p.mul(new Dec(100)).toString(0)}%`;
 });
 
 function onDrag(event: number) {

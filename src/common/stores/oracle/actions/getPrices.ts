@@ -4,7 +4,6 @@ import { NolusClient } from "@nolus/nolusjs";
 import { useApplicationStore } from "../../application";
 import { useAdminStore } from "../../admin";
 import { Oracle } from "@nolus/nolusjs/build/contracts";
-import { isProtocolInclude } from "@/config/global";
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyDemapping } from "@/config/currencies";
 import { AssetUtils } from "@/common/utils";
@@ -31,9 +30,8 @@ export async function getPrices(this: State) {
 
         for (const price of (data as IObjectKeys).prices) {
           const ticker = CurrencyDemapping[price.amount.ticker]?.ticker ?? price.amount.ticker;
-          const present = isProtocolInclude(ticker);
           const currency = app.currenciesData![`${ticker}@${protocolKey}`];
-          if (currency && (present.length == 0 || present.includes(protocolKey))) {
+          if (currency) {
             const diff = Math.abs(Number(currency.decimal_digits) - lpn.decimal_digits);
             let calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount)).mul(lpnPrice);
             calculatedPrice = calculatedPrice.mul(new Dec(10 ** diff));

@@ -98,7 +98,6 @@ const totalBalances = computed(() => {
 const balances = computed(() => {
   return totalBalances.value.filter((item) => {
     const [ticker, protocol] = item.key.split("@");
-
     if (protocol != props.leaseData?.protocol) {
       return false;
     }
@@ -118,7 +117,8 @@ const balances = computed(() => {
     if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
       cticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
     }
-    return lpns.includes(item.key as string) || app.leasesCurrencies.includes(cticker);
+
+    return true;
   });
 });
 
@@ -248,12 +248,7 @@ function isAmountValid() {
 
 function getDebtValue() {
   let debt = outStandingDebt();
-
-  const swap = hasSwapFee();
-
-  if (swap) {
-    debt = debt.add(debt.mul(new Dec(state.value.swapFee)));
-  }
+  debt = debt.add(debt.mul(new Dec(state.value.swapFee)));
 
   switch (ProtocolsConfig[state.value.protocol].type) {
     case PositionTypes.short: {
@@ -340,19 +335,6 @@ function additionalInterest() {
   }
 
   return new Dec(0);
-}
-
-function hasSwapFee() {
-  const selectedCurrencyInfo = state.value.selectedCurrency;
-  const lpns = (app.lpn ?? []).map((item) => item.key);
-  const isLpn = lpns.find((lpn) => {
-    const [lpnTicker] = lpn!.split("@");
-    return selectedCurrencyInfo.ticker == lpnTicker;
-  });
-  if (isLpn) {
-    return false;
-  }
-  return true;
 }
 
 watch(walletRef.balances, (b: AssetBalance[]) => {

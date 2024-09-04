@@ -219,7 +219,7 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
         break;
       }
       case PositionTypes.short: {
-        liquidation = LeaseUtils.calculateLiquidation(unitAsset, stableAsset);
+        liquidation = LeaseUtils.calculateLiquidationShort(unitAsset, stableAsset);
         break;
       }
     }

@@ -146,12 +146,10 @@ function getRepayment(p: number) {
   const percent = new Dec(p).quo(new Dec(100));
   let repaymentInStable = amountToRepay.mul(percent);
   const selectedCurrency = props.modelValue.selectedCurrency;
-  const swap = hasSwapFee.value;
 
-  if (swap) {
+  if (props.modelValue.swapFee) {
     repaymentInStable = repaymentInStable.add(repaymentInStable.mul(new Dec(props.modelValue.swapFee)));
   }
-
   switch (ProtocolsConfig[props.modelValue.protocol].type) {
     case PositionTypes.short: {
       let lpn = AssetUtils.getLpnByProtocol(props.modelValue.protocol);
@@ -169,7 +167,6 @@ function getRepayment(p: number) {
     case PositionTypes.long: {
       const price = new Dec(oracle.prices[selectedCurrency!.key as string].amount);
       const repayment = repaymentInStable.quo(price);
-
       return {
         repayment,
         repaymentInStable,
@@ -178,19 +175,6 @@ function getRepayment(p: number) {
     }
   }
 }
-
-const hasSwapFee = computed(() => {
-  const selectedCurrencyInfo = props.modelValue.selectedCurrency;
-  const lpns = (app.lpn ?? []).map((item) => item.key);
-  const isLpn = lpns.find((lpn) => {
-    const [lpnTicker] = lpn!.split("@");
-    return selectedCurrencyInfo.ticker == lpnTicker;
-  });
-  if (isLpn) {
-    return false;
-  }
-  return true;
-});
 
 const amount = computed(() => {
   const selectedCurrency = props.modelValue.selectedCurrency;

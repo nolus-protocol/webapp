@@ -11,6 +11,9 @@ export class LeaseUtils {
     return unit.quo(price).quo(new Dec(0.9));
   }
 
+  public static calculateLiquidationShort(unit: Dec, price: Dec) {
+    return unit.mul(new Dec(0.9)).quo(price);
+  }
   public static calculateAditionalDebt(principal: Dec, percent: Dec) {
     const annualAmount = principal.mul(percent);
     const secondsAmount = annualAmount.quo(new Dec(31536000));
