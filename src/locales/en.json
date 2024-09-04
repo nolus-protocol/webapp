@@ -167,7 +167,7 @@
     "lease-now": "Lease now",
     "send-action": "Send {amount} to {address}",
     "receive-action": "Receive {amount} from {address}",
-    "open-position-action": "Open {position} position in {ticker} with {amount}",
+    "open-position-action": "Open {position} position on {ticker} with {amount}",
     "repay-position-action": "Repay {amount} for lease position {contract}",
     "close-position-action": "Collect tokens from lease position {contract}",
     "claim-position-action": " Claim {amount} rewards from {address}",
@@ -321,6 +321,7 @@
     "short": "Short",
     "pnl02-banner-subtitle": "Win Еxtra USDC",
     "pnl02-banner-description": "Share your top lease gainer on Twitter by September 16th. Post freely, then submit your best pick here",
-    "osmosis-st-atom": "Osmosis stATOM"
+    "osmosis-st-atom": "Osmosis stATOM",
+    "open-short-position-action": "Open {position} position on {LPN_ticker} with {amount}"
   }
 }

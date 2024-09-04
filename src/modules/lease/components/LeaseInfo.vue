@@ -421,7 +421,16 @@ import {
   type TransferOutOngoingState
 } from "@nolus/nolusjs/build/contracts";
 import { Dec } from "@keplr-wallet/unit";
-import { CHART_RANGES, GAS_FEES, LEASE_DUE, NATIVE_ASSET, PositionTypes, ProtocolsConfig, TIP } from "@/config/global";
+import {
+  CHART_RANGES,
+  GAS_FEES,
+  LEASE_DUE,
+  MAX_DECIMALS,
+  NATIVE_ASSET,
+  PositionTypes,
+  ProtocolsConfig,
+  TIP
+} from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useI18n } from "vue-i18n";
@@ -1026,11 +1035,11 @@ const positionInStable = computed(() => {
       const price = oracleStore.prices?.[`${ticker}@${protocol}`];
 
       const value = new Dec(amount.amount, asset?.decimal_digits).mul(new Dec(price.amount));
-      return value.toString(asset?.decimal_digits);
+      return value.toString(asset!.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : asset?.decimal_digits);
     }
     case PositionTypes.short: {
       const value = new Dec(amount.amount);
-      return value.toString(asset?.decimal_digits);
+      return value.toString(asset!.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : asset?.decimal_digits);
     }
   }
 

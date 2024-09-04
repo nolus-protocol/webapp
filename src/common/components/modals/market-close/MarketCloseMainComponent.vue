@@ -78,40 +78,21 @@ const { config } = useLeaseConfig(props.leaseData?.protocol as string, (error: E
 const balances = computed(() => {
   const assets: ExternalCurrency[] = [];
 
-  switch (ProtocolsConfig[props.leaseData!.protocol].type) {
-    case PositionTypes.short: {
-      const lpn = AssetUtils.getLpnByProtocol(props.leaseData!.protocol);
+  const ticker =
+    CurrencyDemapping[props.leaseData?.leaseStatus?.opened?.amount?.ticker!]?.ticker ??
+    props.leaseData?.leaseStatus?.opened?.amount?.ticker;
 
-      for (const key in app.currenciesData ?? {}) {
-        const currency = app.currenciesData![key];
-        const c = { ...currency };
-        const item = walletStore.balances.find((item) => item.balance.denom == currency.ibcData);
-        if (item) {
-          c.balance = item!.balance;
-          assets.push(c);
-        }
-      }
-
-      return assets.filter((item) => item.key == lpn.key);
-    }
-    case PositionTypes.long: {
-      const ticker =
-        CurrencyDemapping[props.leaseData?.leaseStatus?.opened?.amount?.ticker!]?.ticker ??
-        props.leaseData?.leaseStatus?.opened?.amount?.ticker;
-
-      for (const key in app.currenciesData ?? {}) {
-        const currency = app.currenciesData![key];
-        const c = { ...currency };
-        const item = walletStore.balances.find((item) => item.balance.denom == currency.ibcData);
-        if (item) {
-          c.balance = item!.balance;
-          assets.push(c);
-        }
-      }
-
-      return assets.filter((item) => item.key == `${ticker}@${props.leaseData?.protocol}`);
+  for (const key in app.currenciesData ?? {}) {
+    const currency = app.currenciesData![key];
+    const c = { ...currency };
+    const item = walletStore.balances.find((item) => item.balance.denom == currency.ibcData);
+    if (item) {
+      c.balance = item!.balance;
+      assets.push(c);
     }
   }
+
+  return assets.filter((item) => item.key == `${ticker}@${props.leaseData?.protocol}`);
 
   return assets;
 });
@@ -240,24 +221,12 @@ function getCurrency() {
     return undefined;
   }
 
-  switch (ProtocolsConfig[props.leaseData!.protocol].type) {
-    case PositionTypes.short: {
-      const lpn = AssetUtils.getLpnByProtocol(props.leaseData!.protocol);
-      const ticker = app.lease![props.leaseData!.protocol][0];
-      return {
-        ticker: ticker,
-        amount: new Dec(microAmount.mAmount.amount).mul(new Dec(oracle.prices[lpn.key].amount)).truncate().toString()
-      };
-    }
-    case PositionTypes.long: {
-      const currency = state.value.selectedCurrency;
+  const currency = state.value.selectedCurrency;
 
-      return {
-        ticker: currency.ticker,
-        amount: microAmount.mAmount.amount.toString()
-      };
-    }
-  }
+  return {
+    ticker: currency.ticker,
+    amount: microAmount.mAmount.amount.toString()
+  };
 }
 
 async function marketCloseLease() {
