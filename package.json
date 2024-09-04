@@ -16,7 +16,7 @@
     "prepare": "husky",
     "test:unit": "vitest",
     "synpress:run:keplr": "EXTENSION=keplr SKIP_EXTENSION_SETUP=true synpress run --configFile=tests/e2e/synpress.config.cjs --browser chrome",
-    "test:e2e:testnet": "CYPRESS_COMMAND_TIMEOUT=600000000 start-server-and-test 'vite --mode test --port 8080' http://localhost:8080 'pnpm synpress:run:keplr'"
+    "test:e2e:testnet": "CYPRESS_COMMAND_TIMEOUT=600000000 start-server-and-test 'vite --mode test --port 8080' http://localhost:8080 'npm run synpress:run:keplr'"
   },
   "dependencies": {
     "@cosmjs/cosmwasm-stargate": "0.32.4",
