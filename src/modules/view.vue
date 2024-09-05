@@ -159,8 +159,10 @@ async function connect() {
 
 async function updateKeplr() {
   try {
+    console.log("enter");
     await wallet.CONNECT_KEPLR();
     await loadNetwork();
+    await wallet.UPDATE_BALANCES();
   } catch (error: Error | any) {
     showErrorDialog.value = true;
     errorMessage.value = error?.message;
@@ -171,7 +173,9 @@ async function updateLeap() {
   try {
     await wallet.CONNECT_LEAP();
     await loadNetwork();
+    await wallet.UPDATE_BALANCES();
   } catch (error: Error | any) {
+    Logger.error(error);
     showErrorDialog.value = true;
     errorMessage.value = error?.message;
   }

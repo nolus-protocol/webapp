@@ -153,10 +153,20 @@ const payout = computed(() => {
   const value = new Dec(props.modelValue.amount.length == 0 ? 0 : props.modelValue.amount).mul(price);
 
   const outStanding = getAmountValue("0").amountInStable.toDec();
-  const payOutValue = value.sub(outStanding);
+  let payOutValue = value.sub(outStanding);
 
   if (payOutValue.isNegative()) {
     return "0.00";
+  }
+
+  switch (ProtocolsConfig[props.modelValue.protocol].type) {
+    case PositionTypes.short: {
+      let lpn = AssetUtils.getLpnByProtocol(props.modelValue.protocol);
+      const price = new Dec(oracle.prices[lpn!.key as string].amount);
+      payOutValue = payOutValue.quo(price);
+
+      break;
+    }
   }
 
   return payOutValue.toString(Number(currency!.decimal_digits));

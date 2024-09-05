@@ -62,7 +62,7 @@
             <Tooltip :content="$t('message.borrowed-tooltip')" />
           </p>
           <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
-            <template v-if="FREE_INTEREST_ASSETS.includes(selectedAssetDenom)">
+            <template v-if="FREE_INTEREST_ASSETS.includes(selectedAssetDenom.shortName)">
               <span
                 v-if="annualInterestRate"
                 class="line-throught-gray text-[#8396B1]"
@@ -87,7 +87,7 @@
 
       <div class="flex justify-end border-t border-border-color pt-2">
         <div class="grow-3 text-right text-14 font-medium text-neutral-typography-200">
-          <p class="mr-5 mt-2 text-[12px]">{{ $t("message.price-per") }} {{ selectedAssetDenom }}</p>
+          <p class="mr-5 mt-2 text-[12px]">{{ $t("message.price-per") }} {{ selectedAssetDenom.shortName }}</p>
           <p class="mr-5 mt-2 text-[12px]">
             {{ $t("message.swap-fee") }}
             <span class="font-normal text-[#8396B1]"> ({{ (swapFee * 100).toFixed(2) }}%) </span>
@@ -135,7 +135,6 @@ import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/common/stores/oracle";
 import { AppUtils, AssetUtils, LeaseUtils } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
-import { CurrencyDemapping } from "@/config/currencies";
 
 import {
   FREE_INTEREST_ASSETS,
@@ -416,13 +415,15 @@ function getTotalAmount() {
 }
 
 const selectedAssetDenom = computed(() => {
-  const asset = props.modelValue.selectedCurrency;
-  return asset.shortName;
+  const asset = props.modelValue.selectedDownPaymentCurrency;
+  const [_, protocolKey] = asset.key.split("@");
+  const lpn = AssetUtils.getLpnByProtocol(protocolKey);
+
+  return lpn;
 });
 
 const selectedAssetPrice = computed(() => {
-  const asset = props.modelValue.selectedCurrency;
-  const price = oracle.prices[asset!.ibcData as string];
+  const price = oracle.prices[selectedAssetDenom.value.key as string];
   const p = new Dec(price?.amount ?? 0);
   const fee = new Dec(1 + swapFee.value);
 
