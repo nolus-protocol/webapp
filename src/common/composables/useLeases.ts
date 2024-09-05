@@ -242,7 +242,7 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
 
     if (leaseData) {
       let lpn = AssetUtils.getLpnByProtocol(protocolKey);
-      const lpnPrice = new Dec(oracleStore.prices[lpn.ibcData].amount);
+      const lpnPrice = new Dec(oracleStore.prices[lpn.ibcData]?.amount);
       pnlAmount = currentAmount.sub(debt.mul(lpnPrice)).sub(leaseData?.downPayment).add(leaseData?.downPaymentFee);
       if (leaseData.downPayment.isPositive()) {
         pnlPercent = pnlAmount.quo(leaseData?.downPayment).mul(new Dec(100));
