@@ -79,7 +79,7 @@
           </p>
           <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
             <span>{{ calculateLique }}</span>
-            <span class="text-[#8396B1]"> &nbsp;|&nbsp; {{ percentLique }} </span>
+            <span class="text-[#8396B1]"> &nbsp;|&nbsp; -{{ percentLique }} </span>
             <Tooltip :content="$t('message.liquidation-price-tooltip')" />
           </p>
         </div>
@@ -369,7 +369,10 @@ function getLquidation() {
 
 const percentLique = computed(() => {
   const asset = props.modelValue.selectedCurrency;
-  const price = new Dec(oracle.prices[asset!.ibcData as string]?.amount ?? "0", asset.decimal_digits);
+  const [_, protocol] = props.modelValue.selectedDownPaymentCurrency.key.split("@");
+  const lpn = AssetUtils.getLpnByProtocol(protocol);
+
+  const price = new Dec(oracle.prices[lpn.key]?.amount ?? "0", asset.decimal_digits);
   const lprice = getLquidation();
 
   if (lprice.isZero() || price.isZero()) {
