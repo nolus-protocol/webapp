@@ -11,6 +11,9 @@ export class LeaseUtils {
     return unit.quo(price).quo(new Dec(0.9));
   }
 
+  public static calculateLiquidationShort(unit: Dec, price: Dec) {
+    return unit.mul(new Dec(0.9)).quo(price);
+  }
   public static calculateAditionalDebt(principal: Dec, percent: Dec) {
     const annualAmount = principal.mul(percent);
     const secondsAmount = annualAmount.quo(new Dec(31536000));
@@ -66,6 +69,7 @@ export class LeaseUtils {
         item.leasePositionStable = new Dec(0);
         item.price = new Dec(0);
         item.downPaymentFee = new Dec(0);
+        item.lpnPrice = new Dec(0);
 
         return item;
       }
@@ -100,6 +104,7 @@ export class LeaseUtils {
         leasePositionStable: leasePositionStable,
         timestamp: new Date(result.lease.LS_timestamp),
         price: new Dec(result.downpayment_price),
+        lpnPrice: new Dec(result.lpn_price),
         ls_asset_symbol: result.lease.LS_asset_symbol
       };
     } catch (error) {

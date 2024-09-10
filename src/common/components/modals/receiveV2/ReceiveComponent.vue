@@ -107,14 +107,13 @@ import ConfirmRouteComponent from "../templates/ConfirmRouteComponent.vue";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import { computed, inject, nextTick, onMounted, onUnmounted, type PropType, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
+import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { BaseWallet, Wallet } from "@/networks";
 import { coin, type Coin } from "@cosmjs/amino";
 import { Decimal } from "@cosmjs/math";
 import {
   AppUtils,
   AssetUtils,
-  EnvNetworkUtils,
   externalWallet,
   Logger,
   SkipRouter,
@@ -186,7 +185,7 @@ const params = defineProps({
 onMounted(async () => {
   try {
     skipRouteConfig = await AppUtils.getSkipRouteConfig();
-    const n = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()].list.filter((item) => {
+    const n = NETWORK_DATA.list.filter((item) => {
       if (skipRouteConfig!.transfers[item.key]) {
         return true;
       }
@@ -317,8 +316,7 @@ async function onSubmitCosmos() {
 
     if (isValid) {
       route = await getRoute();
-      const network =
-        NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()]?.supportedNetworks[selectedNetwork.value.key];
+      const network = NETWORK_DATA?.supportedNetworks[selectedNetwork.value.key];
       const currency = AssetUtils.getCurrencyByTicker(network.ticker);
       fee.value = coin(network.fees.transfer_amount, currency.ibcData);
       showConfirmScreen.value = true;
@@ -360,7 +358,7 @@ async function setCosmosNetwork() {
   destroyClient();
 
   disablePicker.value = true;
-  const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
+  const network = NETWORK_DATA;
 
   const currencies = [];
   const promises = [];
@@ -646,7 +644,7 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
       switch (chainToParse[chain].chain_type) {
         case "cosmos": {
           const client = await WalletUtils.getWallet(chain);
-          const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
+          const network = NETWORK_DATA;
           const networkData = network?.supportedNetworks[chain];
           const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
           const chainId = await baseWallet.getChainId();

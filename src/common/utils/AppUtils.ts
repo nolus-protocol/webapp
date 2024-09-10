@@ -12,7 +12,7 @@ import {
   isDev,
   isServe,
   languages,
-  NETWORKS,
+  NETWORK,
   SWAP_FEE_URL
 } from "@/config/global";
 import { PROMOSALS_CONFIG_URL } from "@/config/global/proposals";
@@ -222,7 +222,7 @@ export class AppUtils {
   }
 
   private static async fetchArchiveNodes(): Promise<ARCHIVE_NODE> {
-    const config = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
+    const config = NETWORK;
     const data = await fetch(await config.endpoints);
     const json = (await data.json()) as Endpoint;
 
@@ -235,7 +235,7 @@ export class AppUtils {
   }
 
   private static async fetch(network: string) {
-    const config = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
+    const config = NETWORK;
     const data = await fetch(await config.endpoints);
     const json = (await data.json()) as Endpoint;
     const status = await AppUtils.fetchStatus((json[network] as Node).primary.rpc, json.downtime);
@@ -249,7 +249,7 @@ export class AppUtils {
   }
 
   private static async fetchEvmRpc(network: string) {
-    const config = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
+    const config = NETWORK;
     const data = await fetch(await config.evmEndpoints);
     const json = (await data.json()) as Endpoint;
     const status = await AppUtils.fetchEvmStatus((json[network] as Node).primary.rpc);

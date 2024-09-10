@@ -17,18 +17,14 @@ export const CONTRACTS: ContractConfig = {
     protocols: ProtocolsRila,
     protocolConfig: {
       "NEUTRON-ASTROPORT-USDC_AXL": {
-        only: [],
         lease: true,
         currencies: ["NTRN", "USDC_AXELAR", "ATOM"],
-        ignoreNetowrk: ["OSMOSIS"],
         type: PositionTypes.long,
         rewards: true
       },
       "OSMOSIS-OSMOSIS-USDC_AXELAR": {
-        only: ["NLS"],
         currencies: ["NLS", "OSMO", "USDC_AXELAR", "ATOM", "AKT", "JUNO"],
         lease: true,
-        ignoreNetowrk: ["NEUTRON"],
         type: PositionTypes.long,
         rewards: false
       }
@@ -45,35 +41,28 @@ export const CONTRACTS: ContractConfig = {
   },
   mainnet: {
     longDefault: "OSMO@OSMOSIS-OSMOSIS-USDC_NOBLE",
-    ignoreProtocolsInEarn: ["OSMOSIS-OSMOSIS-ST_ATOM"],
+    ignoreProtocolsInEarn: [],
     protocols: ProtocolsPirin,
     protocolConfig: {
       "OSMOSIS-OSMOSIS-USDC_AXELAR": {
-        only: [],
         currencies: ["USDC_AXELAR"],
         lease: false,
-        ignoreNetowrk: ["NEUTRON"],
         type: PositionTypes.long,
         rewards: false
       },
       "NEUTRON-ASTROPORT-USDC_AXELAR": {
-        only: [],
         lease: false,
         currencies: ["USDC_AXELAR"],
-        ignoreNetowrk: ["OSMOSIS"],
         type: PositionTypes.long,
         rewards: false
       },
       "NEUTRON-ASTROPORT-USDC_NOBLE": {
-        only: [],
         lease: true,
         currencies: ["NTRN", "USDC_NOBLE", "DYDX", "ST_TIA", "STK_ATOM", "ATOM", "D_ATOM"],
-        ignoreNetowrk: ["OSMOSIS"],
         type: PositionTypes.long,
         rewards: true
       },
       "OSMOSIS-OSMOSIS-USDC_NOBLE": {
-        only: [],
         lease: true,
         currencies: [
           "NLS",
@@ -103,7 +92,6 @@ export const CONTRACTS: ContractConfig = {
           "PICA",
           "CUDOS"
         ],
-        ignoreNetowrk: ["NEUTRON"],
         type: PositionTypes.long,
         rewards: true
       },
@@ -111,7 +99,6 @@ export const CONTRACTS: ContractConfig = {
         only: [],
         lease: true,
         currencies: ["ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
-        ignoreNetowrk: ["NEUTRON"],
         type: PositionTypes.short,
         rewards: true
       }
@@ -130,16 +117,6 @@ export const CONTRACTS: ContractConfig = {
 
 export const Contracts = CONTRACTS[network];
 export const ProtocolsConfig = Contracts.protocolConfig;
-
-export const isProtocolInclude = (currency: string) => {
-  const networks = [];
-  for (const key in ProtocolsConfig) {
-    if (ProtocolsConfig[key].only.includes(currency)) {
-      networks.push(key);
-    }
-  }
-  return networks;
-};
 
 export const TIP = {
   amount: 100,

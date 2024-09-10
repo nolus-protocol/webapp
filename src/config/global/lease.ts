@@ -9,6 +9,7 @@ export const POSITIONS = 5;
 export const MIN_POSITION = 25;
 export const MAX_POSITION = 150;
 export const DEFAULT_LTD = 1.5;
+
 export const LEASE_DUE = 2 * 24 * 60 * 60 * 1000 * 1000 * 1000;
 export const DOWNPAYMENT_RANGE_DEV = 15;
 
@@ -65,7 +66,8 @@ export const FREE_INTEREST_ASSETS: string[] = [
   "WBTC",
   "WETH",
   "CUDOS",
-  "dATOM"
+  "dATOM",
+  "USDC"
 ];
 
 export const IGNORE_LEASE_ASSETS: string[] = [
@@ -87,5 +89,8 @@ export const IGNORE_LEASE_ASSETS: string[] = [
   "EVMOS"
 ];
 
-export const IGNORE_DOWNPAYMENT_ASSETS: string[] = ["STK_ATOM", "LVN", "EVMOS"];
+export const IGNORE_DOWNPAYMENT_ASSETS: string[] = ["STK_ATOM", "LVN", "EVMOS", "NLS"];
+
+export const IGNORE_LEASE_ASSETS_STABLES: string[] = ["USDC_NOBLE"];
+
 export const IGNORE_LEASES: string[] = ["nolus1mqezz2qs8cy8qx50yms0r6xc3lae20tms8dqq3t2tl7dd6gnxhxq3kz4uf"];

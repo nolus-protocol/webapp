@@ -13,6 +13,8 @@ export async function updateBalances(this: Store) {
     const ibcBalances = [];
     const app = useApplicationStore();
     const currencies = app.currenciesData;
+    const set = new Set();
+
     for (const key in currencies) {
       const currency = app.currenciesData![key];
       let shortName = currency.shortName;
@@ -32,6 +34,12 @@ export async function updateBalances(this: Store) {
         Networks.NOLUS,
         app.networksData?.protocols[protocol].DexNetwork as string
       );
+
+      if (set.has(ibcDenom)) {
+        continue;
+      }
+
+      set.add(ibcDenom);
 
       const fn = () => {
         if (WalletUtils.isAuth()) {

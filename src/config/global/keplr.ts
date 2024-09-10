@@ -1,10 +1,9 @@
 import type { ChainInfo } from "@keplr-wallet/types";
 import { ChainConstants } from "@nolus/nolusjs";
-import { EnvNetworkUtils } from "@/common/utils";
-import { NETWORKS } from "./networks";
+import { NETWORK } from "./networks";
 
 const KeplrEmbedChainInfo = (networkName: string, chainId: string, tendermintRpc: string, rest: string): ChainInfo => {
-  const network = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
+  const network = NETWORK;
   return {
     chainId: chainId,
     chainName: network.chainName ?? ChainConstants.CHAIN_NAME + " " + networkName,

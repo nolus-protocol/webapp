@@ -44,7 +44,7 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
 import { AppUtils } from "@/common/utils";
 import { useAdminStore } from "@/common/stores/admin";
-import { CurrencyDemapping, CurrencyMapping } from "@/config/currencies";
+import { CurrencyMapping } from "@/config/currencies";
 
 import {
   NATIVE_ASSET,
@@ -102,17 +102,13 @@ const leaseBalances = computed(() => {
   for (const protocol of app.protocols) {
     if (ProtocolsConfig[protocol].type == PositionTypes.short) {
       const c =
-        app.lpn?.filter((item) => {
-          const [_, p] = item.key.split("@");
-          if (p == protocol) {
-            return true;
-          }
-          return false;
+        app.lease![protocol].map((item) => {
+          const currency = app.currenciesData![`${item}@${protocol}`];
+          return currency;
         }) ?? [];
       currencies = [...currencies, ...c];
     }
   }
-
   return currencies;
 });
 

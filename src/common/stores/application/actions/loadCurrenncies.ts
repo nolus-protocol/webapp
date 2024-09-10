@@ -3,7 +3,7 @@ import type { NetworkData } from "@nolus/nolusjs/build/types/Networks";
 import type { CosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 import type { Store as AdminStore } from "../../admin/types";
 
-import { NATIVE_ASSET, NATIVE_NETWORK, NETWORKS } from "@/config/global";
+import { IGNORE_LEASE_ASSETS_STABLES, NATIVE_ASSET, NATIVE_NETWORK, NETWORK } from "@/config/global";
 import { AssetUtils, EnvNetworkUtils, Logger } from "@/common/utils";
 import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
 import { ASSETS, CurrencyDemapping } from "@/config/currencies";
@@ -13,7 +13,7 @@ import { useAdminStore } from "../../admin";
 
 export async function loadCurrennncies(this: Store) {
   try {
-    const network = NETWORKS[EnvNetworkUtils.getStoredNetworkName()];
+    const network = NETWORK;
     const [currenciesData, cosmWasmClient] = await Promise.all([
       network.currencies(),
       NolusClient.getInstance().getCosmWasmClient()
@@ -71,7 +71,7 @@ export async function loadCurrennncies(this: Store) {
     this.lpn = lpns;
     this.lease = lease;
     this.currenciesData = data.networks[NATIVE_NETWORK.key];
-    this.leasesCurrencies = Array.from(leasesCurrencies);
+    this.leasesCurrencies = Array.from(leasesCurrencies).filter((item) => !IGNORE_LEASE_ASSETS_STABLES.includes(item));
   } catch (e) {
     Logger.error(e);
   }

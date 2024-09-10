@@ -1,4 +1,4 @@
-import { NATIVE_NETWORK, isDev } from "@/config/global";
+import { CURRENT_NETWORK_KEY, DEFAULT_PRIMARY_NETWORK, NATIVE_NETWORK } from "@/config/global";
 
 import { NETWORK as OSMO_NETWORK } from "./list/osmosis/network";
 import { embedChainInfo as osmoChainInfo } from "./list/osmosis/contants";
@@ -553,3 +553,5 @@ export const NETWORKS_DATA: {
     }
   }
 };
+
+export const NETWORK_DATA = NETWORKS_DATA[localStorage.getItem(CURRENT_NETWORK_KEY) || DEFAULT_PRIMARY_NETWORK];

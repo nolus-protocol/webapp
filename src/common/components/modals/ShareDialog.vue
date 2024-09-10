@@ -171,13 +171,13 @@ const generateCanvas = async () => {
   }
 
   async function getBuyTextWidth(ctx: CanvasRenderingContext2D) {
-    ctx.font = "bold 30px 'Garet Bolder'";
+    ctx.font = "bold 30px 'Garet-Medium'";
     return ctx.measureText(`${i18n.t(`message.${props.positionType}`)} ${i18n.t("message.buy-position")}`.toUpperCase())
       .width;
   }
 
   async function setBuyText(ctx: CanvasRenderingContext2D) {
-    ctx.font = "bold 30px 'Garet Bolder'";
+    ctx.font = "bold 30px 'Garet-Medium'";
     ctx.fillStyle = "white";
     ctx.fillText(
       `${i18n.t(`message.${props.positionType}`)} ${i18n.t("message.buy-position")}`.toUpperCase(),

@@ -1,10 +1,9 @@
 import type { IObjectKeys } from "@/common/types";
-import { NETWORKS } from "@/config/global";
-import { EnvNetworkUtils } from ".";
+import { NETWORK } from "@/config/global";
 
 export class EtlApi {
   static getApiUrl() {
-    return NETWORKS[EnvNetworkUtils.getStoredNetworkName()].etlApi;
+    return NETWORK.etlApi;
   }
 
   static async fetchEarnApr(protocol: string): Promise<IObjectKeys> {

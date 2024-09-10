@@ -35,7 +35,7 @@ import { Dec, Int } from "@keplr-wallet/unit";
 
 import { CONFIRM_STEP } from "@/common/types";
 import { TxType } from "@/common/types";
-import { LeaseUtils, getMicroAmount, walletOperation } from "@/common/utils";
+import { AssetUtils, LeaseUtils, getMicroAmount, walletOperation } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
@@ -54,7 +54,8 @@ import {
   ErrorCodes,
   minimumLeaseAmount,
   IGNORE_DOWNPAYMENT_ASSETS,
-  ProtocolsConfig
+  ProtocolsConfig,
+  PositionTypes
 } from "@/config/global";
 
 const walletStore = useWalletStore();
@@ -97,7 +98,6 @@ const totalBalances = computed(() => {
 const balances = computed(() => {
   return totalBalances.value.filter((item) => {
     const [ticker, protocol] = item.key.split("@");
-
     if (protocol != props.leaseData?.protocol) {
       return false;
     }
@@ -117,7 +117,8 @@ const balances = computed(() => {
     if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
       cticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
     }
-    return lpns.includes(item.key as string) || app.leasesCurrencies.includes(cticker);
+
+    return true;
   });
 });
 
@@ -190,7 +191,7 @@ function isAmountValid() {
 
   if (coinData) {
     if (amount || amount !== "") {
-      const price = oracle.prices[coinData!.ibcData as string];
+      const price = oracle.prices[coinData!.key as string];
 
       const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, "", coinData.decimal_digits);
       const balance = CurrencyUtils.calculateBalance(
@@ -202,16 +203,9 @@ function isAmountValid() {
       const p = new Dec(price.amount);
       const amountInStable = new Dec(amount.length == 0 ? "0" : amount).mul(p);
 
-      let debt = outStandingDebt();
-      const swap = hasSwapFee();
-
-      if (swap) {
-        debt = debt.add(debt.mul(new Dec(state.value.swapFee)));
-      }
-
+      const debt = getDebtValue();
       const debtInCurrencies = debt.quo(new Dec(price.amount));
       const minAmountCurrency = minAmount.quo(p);
-
       const isLowerThanOrEqualsToZero = new Dec(amountInMinimalDenom.amount || "0").lte(new Dec(0));
 
       const isGreaterThanWalletBalance = new Int(amountInMinimalDenom.amount.toString() || "0").gt(
@@ -250,6 +244,21 @@ function isAmountValid() {
   }
 
   return isValid;
+}
+
+function getDebtValue() {
+  let debt = outStandingDebt();
+  debt = debt.add(debt.mul(new Dec(state.value.swapFee)));
+
+  switch (ProtocolsConfig[state.value.protocol].type) {
+    case PositionTypes.short: {
+      let lpn = AssetUtils.getLpnByProtocol(state.value.protocol);
+      const price = new Dec(oracle.prices[lpn!.key as string].amount);
+
+      return debt.mul(price);
+    }
+  }
+  return debt;
 }
 
 async function repayLease() {
@@ -326,19 +335,6 @@ function additionalInterest() {
   }
 
   return new Dec(0);
-}
-
-function hasSwapFee() {
-  const selectedCurrencyInfo = state.value.selectedCurrency;
-  const lpns = (app.lpn ?? []).map((item) => item.key);
-  const isLpn = lpns.find((lpn) => {
-    const [lpnTicker] = lpn!.split("@");
-    return selectedCurrencyInfo.ticker == lpnTicker;
-  });
-  if (isLpn) {
-    return false;
-  }
-  return true;
 }
 
 watch(walletRef.balances, (b: AssetBalance[]) => {

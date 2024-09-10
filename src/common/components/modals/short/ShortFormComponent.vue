@@ -62,10 +62,10 @@
             <Tooltip :content="$t('message.borrowed-tooltip')" />
           </p>
           <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
-            <template v-if="FREE_INTEREST_ASSETS.includes(selectedAssetDenom)">
+            <template v-if="FREE_INTEREST_ASSETS.includes(selectedAssetDenom.shortName)">
               <span
                 v-if="annualInterestRate"
-                class="line-throught-graytext-[#8396B1]"
+                class="line-throught-gray text-[#8396B1]"
               >
                 {{ annualInterestRate ?? 0 }}%
               </span>
@@ -87,7 +87,7 @@
 
       <div class="flex justify-end border-t border-border-color pt-2">
         <div class="grow-3 text-right text-14 font-medium text-neutral-typography-200">
-          <p class="mr-5 mt-2 text-[12px]">{{ $t("message.price-per") }} {{ selectedAssetDenom }}</p>
+          <p class="mr-5 mt-2 text-[12px]">{{ $t("message.price-per") }} {{ selectedAssetDenom.shortName }}</p>
           <p class="mr-5 mt-2 text-[12px]">
             {{ $t("message.swap-fee") }}
             <span class="font-normal text-[#8396B1]"> ({{ (swapFee * 100).toFixed(2) }}%) </span>
@@ -135,7 +135,6 @@ import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/common/stores/oracle";
 import { AppUtils, AssetUtils, LeaseUtils } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
-import { CurrencyDemapping } from "@/config/currencies";
 
 import {
   FREE_INTEREST_ASSETS,
@@ -316,7 +315,6 @@ const calculateMarginAmount = computed(() => {
   }
 
   const currency = props.modelValue.selectedCurrency;
-
   const token = CurrencyUtils.convertMinimalDenomToDenom(
     "0",
     currency.decimal_digits.toString(),
@@ -362,7 +360,8 @@ function getLquidation() {
     const unitAsset = new Dec(getBorrowedAmount(), Number(unitAssetInfo!.decimal_digits));
 
     const stableAsset = new Dec(getTotalAmount(), Number(stableAssetInfo!.decimal_digits));
-    return LeaseUtils.calculateLiquidation(stableAsset, unitAsset);
+
+    return LeaseUtils.calculateLiquidationShort(stableAsset, unitAsset);
   }
 
   return new Dec(0);
@@ -379,7 +378,7 @@ const percentLique = computed(() => {
 
   const p = price.sub(lprice).quo(price);
 
-  return `-${p.mul(new Dec(100)).toString(0)}%`;
+  return `${p.abs().mul(new Dec(100)).toString(0)}%`;
 });
 
 function onDrag(event: number) {
@@ -416,13 +415,15 @@ function getTotalAmount() {
 }
 
 const selectedAssetDenom = computed(() => {
-  const asset = props.modelValue.selectedCurrency;
-  return asset.shortName;
+  const asset = props.modelValue.selectedDownPaymentCurrency;
+  const [_, protocolKey] = asset.key.split("@");
+  const lpn = AssetUtils.getLpnByProtocol(protocolKey);
+
+  return lpn;
 });
 
 const selectedAssetPrice = computed(() => {
-  const asset = props.modelValue.selectedCurrency;
-  const price = oracle.prices[asset!.ibcData as string];
+  const price = oracle.prices[selectedAssetDenom.value.key as string];
   const p = new Dec(price?.amount ?? 0);
   const fee = new Dec(1 + swapFee.value);
 

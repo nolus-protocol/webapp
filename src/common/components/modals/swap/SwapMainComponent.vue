@@ -55,12 +55,11 @@ import { coin } from "@cosmjs/amino";
 import { useWalletStore } from "@/common/stores/wallet";
 import { GAS_FEES, IGNORE_TRANSFER_ASSETS, NATIVE_ASSET, NATIVE_NETWORK } from "@/config/global";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { NETWORKS_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
+import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { SwapStatus } from "./types";
 
 import {
   AppUtils,
-  EnvNetworkUtils,
   Logger,
   SkipRouter,
   WalletUtils,
@@ -395,7 +394,7 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
   for (const chain in chainToParse) {
     const fn = async function () {
       const client = await WalletUtils.getWallet(chain);
-      const network = NETWORKS_DATA[EnvNetworkUtils.getStoredNetworkName()];
+      const network = NETWORK_DATA;
       const networkData = network?.supportedNetworks[chain];
       const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
       const chainId = await baseWallet.getChainId();

@@ -36,7 +36,7 @@
         type="submit"
       />
       <a
-        :href="`${NETWORKS[EnvNetworkUtils.getStoredNetworkName()].staking}`"
+        :href="`${NETWORK.staking}`"
         class="text-primary-50 flex self-center text-14"
         target="_blank"
       >
@@ -58,8 +58,7 @@ import CurrencyField from "@/common/components/CurrencyField.vue";
 import { Button, NotificationBox, NotificationBoxType } from "web-components";
 
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { EnvNetworkUtils } from "@/common/utils";
-import { NETWORKS } from "@/config/global";
+import { NETWORK } from "@/config/global";
 
 const props = defineProps({
   modelValue: {
