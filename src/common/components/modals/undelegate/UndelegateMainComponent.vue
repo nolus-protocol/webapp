@@ -11,6 +11,7 @@
     :onSendClick="onUndelegateClick"
     :onBackClick="onConfirmBackClick"
     :onOkClick="onClickOkBtn"
+    class="lg:p-10"
   />
   <UndelegateFormComponent
     v-else
