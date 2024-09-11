@@ -60,5 +60,6 @@ export const SUPPORTED_NETWORKS = [
   "JACKAL",
   "INJECTIVE",
   "COMPOSABLE",
-  "NOBLE"
+  "NOBLE",
+  "CUDOS"
 ];
