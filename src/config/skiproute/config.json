@@ -223,11 +223,6 @@
         { "from": "ibc/18161D8EFBD00FF5B7683EF8E923B8913453567FBE3FB6672D75712B0DEB6682", "to": "uusdc" }
       ]
     },
-    "CUDOS": {
-      "currencies": [
-        { "from": "ibc/BB9810E7FE8836311126F15BE0B20E7463189751840F8C3FEF3AC8F87D8AB7C8", "to": "acudos" }
-      ]
-    },
     "ETHEREUM": {
       "currencies": [
         {
