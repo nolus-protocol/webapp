@@ -224,18 +224,13 @@ const totalBalances = computed(() => {
 const downPaymentSwapFeeStable = computed(() => {
   try {
     const asset = props.modelValue.selectedDownPaymentCurrency;
-    const [_, protocol] = asset.key.split("@");
-    const lpn = AssetUtils.getLpnByProtocol(protocol);
-
     const price = oracle.prices[asset.ibcData];
-    const borrow = new Dec(props.modelValue.leaseApply?.borrow?.amount ?? 0, lpn.decimal_digits);
 
     const value = new Dec(props.modelValue.downPayment.length == 0 ? 0 : props.modelValue.downPayment)
       .mul(new Dec(price.amount))
-      .add(borrow)
       .mul(new Dec(swapFee.value));
 
-    return value.toString(lpn.decimal_digits);
+    return value.toString(asset.decimal_digits);
   } catch (error) {
     return "0.00";
   }
@@ -336,8 +331,23 @@ const calculateMarginAmount = computed(() => {
   const total = props.modelValue.leaseApply?.total;
 
   if (total) {
+    const selectedDownPaymentCurrency = props.modelValue.selectedDownPaymentCurrency;
+    const selectedCurrencyPrice = oracle.prices[props.modelValue.selectedCurrency.key];
+    const price = oracle.prices[selectedDownPaymentCurrency.key];
+
+    const fee = new Dec(props.modelValue.downPayment.length == 0 ? 0 : props.modelValue.downPayment)
+      .mul(new Dec(price.amount))
+      .mul(new Dec(swapFee.value))
+      .quo(new Dec(selectedCurrencyPrice.amount));
+
+    const feeMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
+      fee.toString(),
+      props.modelValue.selectedCurrency.ibcData as string,
+      props.modelValue.selectedCurrency.decimal_digits
+    ).amount.toDec();
+
     const asset = AssetUtils.getCurrencyByTicker(total.ticker!);
-    const t = new Dec(total.amount).mul(new Dec(1).sub(new Dec(swapFee.value)));
+    const t = new Dec(total.amount).sub(feeMinimalDenom);
 
     const token = CurrencyUtils.convertMinimalDenomToDenom(
       t.truncate().toString(),
@@ -350,7 +360,6 @@ const calculateMarginAmount = computed(() => {
   }
 
   const currency = props.modelValue.selectedCurrency;
-
   const token = CurrencyUtils.convertMinimalDenomToDenom(
     "0",
     currency.decimal_digits.toString(),
