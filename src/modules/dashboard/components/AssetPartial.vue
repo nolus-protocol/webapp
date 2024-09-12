@@ -147,7 +147,9 @@ const rewards = computed(() => {
 });
 
 const apr = computed(() => {
-  const [ticker, protocol] = props.assetInfo.key.split("@");
+  const [ticker] = props.assetInfo.key.split("@");
+  const asset = (app.lpn ?? []).find((item) => item.ticker == ticker);
+  const [_, protocol] = asset?.key.split("@") ?? [];
   return (app.apr?.[protocol] ?? 0).toString();
 });
 
