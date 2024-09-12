@@ -147,10 +147,7 @@ const rewards = computed(() => {
 });
 
 const apr = computed(() => {
-  const [ticker] = props.assetInfo.key.split("@");
-  const asset = (app.lpn ?? []).find((item) => item.ticker == ticker);
-  const [_, protocol] = asset?.key.split("@") ?? [];
-  return (app.apr?.[protocol] ?? 0).toString();
+  return (getApr() ?? 0).toString();
 });
 
 const maxCoinDecimals = computed(() => {
@@ -166,6 +163,20 @@ function calculateBalance(price: string, tokenAmount: string, denom: string) {
   const coin = new Coin(denom, new Int(tokenAmount));
   const data = CurrencyUtils.calculateBalance(price, coin, tokenDecimals);
   return data.toDec().toString(2);
+}
+
+function getApr() {
+  const [ticker] = props.assetInfo.key.split("@");
+
+  let asset = (app.lpn ?? []).find((item) => item.key == props.assetInfo.key);
+
+  if (!asset) {
+    asset = (app.lpn ?? []).find((item) => item.ticker == ticker);
+  }
+
+  const [_, protocol] = asset?.key.split("@") ?? [];
+
+  return (app.apr?.[protocol] ?? 0).toString();
 }
 
 const items = computed(() => [
