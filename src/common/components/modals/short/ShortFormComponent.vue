@@ -62,7 +62,7 @@
             <Tooltip :content="$t('message.borrowed-tooltip')" />
           </p>
           <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
-            <template v-if="FREE_INTEREST_ASSETS.includes(selectedAssetDenom.shortName)">
+            <!-- <template v-if="FREE_INTEREST_ASSETS.includes(selectedAssetDenom.shortName)">
               <span
                 v-if="annualInterestRate"
                 class="line-throught-gray text-[#8396B1]"
@@ -70,10 +70,10 @@
                 {{ annualInterestRate ?? 0 }}%
               </span>
               <span class="text-neutral-typography-200">0%</span>
-            </template>
-            <template v-else>
-              <span class="text-[#8396B1]"> {{ annualInterestRate ?? 0 }}% </span>
-            </template>
+            </template> -->
+            <!-- <template v-else> -->
+            <span class="text-[#8396B1]"> {{ annualInterestRate ?? 0 }}% </span>
+            <!-- </template> -->
 
             <Tooltip :content="$t('message.interest-tooltip')" />
           </p>
