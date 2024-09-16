@@ -2,34 +2,34 @@ import { setupWallet, acceptAccessForKeplr } from '../utils/wallet.js';
 
 describe('OpenPosition tests', () => {
 
-    before(() => {
-        setupWallet();
-    });
-
-    it('open position', () => {
+    const openPosition = (dpAmount, dpCurrencyIcon, leaseCurrency) => {
         cy.visit('/lease')
         acceptAccessForKeplr();
 
         // Click "Lease New"
-        cy.get('[data-cy="lease-new-button"]').click()
+        cy.get('[data-cy="lease-new-button"]')
+            .click()
 
         // Select dp currency
-        cy.get('[data-cy="dp-currency-dropdown"]').click();
+        cy.get('[data-cy="dp-currency-dropdown"]')
+            .click();
         cy.get('[data-cy="dp-currency-dropdown"]')
             .find('li')
-            .find('img[src="https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/currencies/icons/neutron-usdc.svg"]')
+            .find(`img[src="https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/currencies/icons/${dpCurrencyIcon}.svg"]`)
             .parents('li')
             .click();
 
         // Enter dp amount
         cy.get('[data-cy="dp-amount-text-field"]')
             .clear()
-        cy.get('[data-cy="dp-amount-text-field"]')
-            .type('0.1')
+            .type(dpAmount)
 
         // Select lease currency
-        cy.get('[data-cy="lease-currency-dropdown"]').click();
-        cy.get('[data-cy="lease-currency-dropdown"]').contains('NTRN').click();
+        cy.get('[data-cy="lease-currency-dropdown"]')
+            .click();
+        cy.get('[data-cy="lease-currency-dropdown"]')
+            .contains(leaseCurrency)
+            .click();
 
         // TO DO: Drag the RangeComponent
         // cy.get('[data-cy="lease-range-component"]').then(($range) => {
@@ -67,5 +67,13 @@ describe('OpenPosition tests', () => {
         });
 
         // TO DO: Check the result
+    };
+
+    before(() => {
+        setupWallet();
+    });
+
+    it('open position - lc=NTRN, dc=USDC-neutron', () => {
+        openPosition('0.1', 'neutron-usdc', 'NTRN');
     })
 })
