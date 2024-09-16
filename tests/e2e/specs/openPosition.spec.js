@@ -1,22 +1,15 @@
+import { setupWallet, acceptAccessForKeplr } from '../utils/wallet.js';
 
 describe('OpenPosition tests', () => {
 
-    it('should setup a Keplr wallet', () => {
-        cy.setupWallet({
-            secretWords: Cypress.env('secretWords'),
-        });
-    });
-
-    it('should accept connection with wallet', () => {
-        cy.visit('/lease')
-        cy.get('[data-cy="connect-wallet-button"]').click()
-        cy.contains('Keplr').click()
-        cy.acceptAccess().then((taskCompleted) => {
-            expect(taskCompleted).to.be.true;
-        });
+    before(() => {
+        setupWallet();
     });
 
     it('open position', () => {
+        cy.visit('/lease')
+        acceptAccessForKeplr();
+
         // Click "Lease New"
         cy.get('[data-cy="lease-new-button"]').click()
 
