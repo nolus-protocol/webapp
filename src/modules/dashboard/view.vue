@@ -570,6 +570,9 @@ function setLeases() {
     for (const lease of leases.value) {
       if (lease.leaseStatus?.opened) {
         const dasset = AssetUtils.getCurrencyByTicker(lease.leaseStatus.opened.amount.ticker!);
+        const lpn = AssetUtils.getLpnByProtocol(lease.protocol);
+        const price = oracle.prices[lpn.key];
+
         const dDecimal = Number(dasset!.decimal_digits);
         const l = CurrencyUtils.calculateBalance(
           oracle.prices[dasset.ibcData]?.amount,
@@ -578,6 +581,7 @@ function setLeases() {
         ).toDec();
 
         ls = ls.add(l);
+        lease.debt = lease.debt.mul(new Dec(price.amount));
       }
       db = db.add(lease.debt as Dec);
       pl = pl.add(lease.pnlAmount as Dec);

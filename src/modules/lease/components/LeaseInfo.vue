@@ -532,9 +532,22 @@ async function loadCharts() {
 }
 
 const currentPrice = computed(() => {
-  if (props.leaseInfo.leaseStatus?.opening && props.leaseInfo.leaseData) {
-    const item = app.currenciesData?.[props.leaseInfo.leaseData?.leasePositionTicker as string];
-    return oracleStore.prices[item?.ibcData as string]?.amount ?? "0";
+  switch (ProtocolsConfig[props.leaseInfo.protocol].type) {
+    case PositionTypes.long: {
+      if (props.leaseInfo.leaseStatus?.opening && props.leaseInfo.leaseData) {
+        const item = app.currenciesData?.[props.leaseInfo.leaseData?.leasePositionTicker as string];
+        return oracleStore.prices[item?.ibcData as string]?.amount ?? "0";
+      }
+      break;
+    }
+    case PositionTypes.short: {
+      if (props.leaseInfo.leaseStatus?.opening && props.leaseInfo.leaseData) {
+        return (
+          oracleStore.prices[`${props.leaseInfo.leaseStatus.opening.loan.ticker}@${props.leaseInfo.protocol}`]
+            ?.amount ?? "0"
+        );
+      }
+    }
   }
 
   const ticker =
@@ -546,12 +559,23 @@ const currentPrice = computed(() => {
 });
 
 async function fetchChartData(intetval: string) {
-  let [key, protocol]: string[] = props.leaseInfo.leaseData?.leasePositionTicker?.includes("@")
-    ? props.leaseInfo.leaseData.leasePositionTicker.split("@")
-    : [props.leaseInfo.leaseData.leasePositionTicker, props.leaseInfo.protocol];
-  const prices = await EtlApi.fetchPriceSeries(key, protocol, intetval);
+  switch (ProtocolsConfig[props.leaseInfo.protocol].type) {
+    case PositionTypes.long: {
+      let [key, protocol]: string[] = props.leaseInfo.leaseData?.leasePositionTicker?.includes("@")
+        ? props.leaseInfo.leaseData.leasePositionTicker.split("@")
+        : [props.leaseInfo.leaseData.leasePositionTicker, props.leaseInfo.protocol];
+      const prices = await EtlApi.fetchPriceSeries(key, protocol, intetval);
 
-  return prices;
+      return prices;
+    }
+    case PositionTypes.short: {
+      const lpn = AssetUtils.getLpnByProtocol(props.leaseInfo.protocol);
+      let [key, protocol] = lpn.key.split("@");
+      const prices = await EtlApi.fetchPriceSeries(key, protocol, intetval);
+
+      return prices;
+    }
+  }
 }
 
 const asset = computed(() => {
@@ -581,11 +605,21 @@ const asset = computed(() => {
 });
 
 const getAssetIcon = computed((): string => {
-  if (props.leaseInfo.leaseStatus?.opening && props.leaseInfo.leaseData) {
-    return (
-      (app.assetIcons?.[props.leaseInfo.leaseData?.leasePositionTicker as string] as string) ??
-      app.assetIcons?.[`${props.leaseInfo.leaseStatus.opening.loan.ticker}@${props.leaseInfo.protocol}`]
-    );
+  switch (ProtocolsConfig[props.leaseInfo.protocol].type) {
+    case PositionTypes.long: {
+      if (props.leaseInfo.leaseStatus?.opening && props.leaseInfo.leaseData) {
+        return (
+          (app.assetIcons?.[props.leaseInfo.leaseData?.leasePositionTicker as string] as string) ??
+          app.assetIcons?.[`${props.leaseInfo.leaseStatus.opening.loan.ticker}@${props.leaseInfo.protocol}`]
+        );
+      }
+      break;
+    }
+    case PositionTypes.short: {
+      if (props.leaseInfo.leaseStatus?.opening && props.leaseInfo.leaseData) {
+        return app.assetIcons?.[`${props.leaseInfo.leaseStatus.opening.loan.ticker}@${props.leaseInfo.protocol}`]!;
+      }
+    }
   }
 
   return app.assetIcons?.[`${props.leaseInfo.leaseData?.leasePositionTicker}@${props.leaseInfo.protocol}`] as string;

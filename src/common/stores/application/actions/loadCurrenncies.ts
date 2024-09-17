@@ -71,7 +71,6 @@ export async function loadCurrennncies(this: Store) {
     this.lpn = lpns;
     this.lease = lease;
     this.currenciesData = data.networks[NATIVE_NETWORK.key];
-    console.log(this.currenciesData);
     this.leasesCurrencies = Array.from(leasesCurrencies).filter((item) => !IGNORE_LEASE_ASSETS_STABLES.includes(item));
   } catch (e) {
     Logger.error(e);
