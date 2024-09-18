@@ -68,7 +68,6 @@ import {
   walletOperation
 } from "@/common/utils";
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
-import { useCurrecies } from "@/common/composables/useCurrencies";
 
 const wallet = useWalletStore();
 const i18n = useI18n();
@@ -83,10 +82,9 @@ const blacklist = ref<string[]>([]);
 const showConfirmScreen = ref(false);
 const step = ref(CONFIRM_STEP.CONFIRM);
 const setShowDialogHeader = inject("setShowDialogHeader", (n: boolean) => {});
-const { currencies } = useCurrecies((e) => {});
 
 const balances = computed(() => {
-  return currencies.value.filter((item) => {
+  return wallet.currencies.filter((item) => {
     if (IGNORE_TRANSFER_ASSETS.includes(item.ticker as string)) {
     }
     return !blacklist.value.includes(item.ibcData);
@@ -119,8 +117,8 @@ onMounted(async () => {
   try {
     const config = await AppUtils.getSkipRouteConfig();
     blacklist.value = config.blacklist;
-    state.value.selectedCurrency = balances.value.find((item) => item.ibcData == config.swap_currency)!;
-    state.value.swapToSelectedCurrency = balances.value.find((item) => item.ibcData == config.swap_to_currency)!;
+    state.value.selectedCurrency = wallet.currencies.find((item) => item.ibcData == config.swap_currency)!;
+    state.value.swapToSelectedCurrency = wallet.currencies.find((item) => item.ibcData == config.swap_to_currency)!;
     setSwapFee();
     nextTick(() => {
       state.value.errorMsg = "";

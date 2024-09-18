@@ -172,10 +172,6 @@ async function onClickDisconnect() {
   WalletManager.eraseWalletInfo();
   wallet[WalletActions.DISCONNECT]();
   await applicaton[ApplicationActions.CHANGE_NETWORK]();
-  await Promise.all([
-    applicaton[ApplicationActions.LOAD_CURRENCIES](),
-    applicaton[ApplicationActions.LOAD_APR_REWARDS]()
-  ]);
 }
 
 async function setLanguage(item: PickerOption) {

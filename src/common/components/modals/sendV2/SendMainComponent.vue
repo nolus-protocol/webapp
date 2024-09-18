@@ -186,7 +186,6 @@ import {
 } from "@/common/types";
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
 import { Button } from "web-components";
-import { useCurrecies } from "@/common/composables/useCurrencies";
 import type { EvmNetwork } from "@/common/types/Network";
 
 export interface ReceiveComponentProps {
@@ -207,10 +206,9 @@ const selectedNetwork = ref(networks.value[0]);
 const setShowDialogHeader = inject("setShowDialogHeader", (n: boolean) => {});
 const setDisable = inject("setDisable", (b: boolean) => {});
 
-const { currencies: balances } = useCurrecies((e) => {});
-const networkCurrencies = ref<ExternalCurrency[] | AssetBalance[]>(balances.value);
+const networkCurrencies = ref<ExternalCurrency[] | AssetBalance[]>(walletStore.currencies);
 const selectedCurrency = ref<ExternalCurrency | AssetBalance>(
-  balances.value.find((item) => item.key == NETWORK.sendDefaultValue)!
+  walletStore.currencies.find((item) => item.key == NETWORK.sendDefaultValue)!
 );
 const amount = ref("");
 const amountErrorMsg = ref("");
@@ -389,8 +387,8 @@ function setNativeNetwork() {
   receiverErrorMsg.value = "";
   route = null;
 
-  networkCurrencies.value = balances.value;
-  selectedCurrency.value = balances.value.find((item) => item.key == NETWORK.sendDefaultValue)!;
+  networkCurrencies.value = walletStore.currencies;
+  selectedCurrency.value = walletStore.currencies.find((item) => item.key == NETWORK.sendDefaultValue)!;
 }
 
 async function onSubmitEvm() {

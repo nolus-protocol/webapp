@@ -159,7 +159,6 @@ async function connect() {
 
 async function updateKeplr() {
   try {
-    console.log("enter");
     await wallet.CONNECT_KEPLR();
     await loadNetwork();
     await wallet.UPDATE_BALANCES();

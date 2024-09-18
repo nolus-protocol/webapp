@@ -300,7 +300,6 @@ import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { NATIVE_ASSET, NATIVE_CURRENCY, ProtocolsConfig } from "@/config/global";
 import { CurrencyDemapping } from "@/config/currencies";
 import { Button, Table } from "web-components";
-import { useCurrecies } from "@/common/composables/useCurrencies";
 
 const modalOptions = {
   // [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
@@ -357,7 +356,6 @@ const state = ref({
   dialogSelectedCurrency: "",
   setAvailableAssets: new Dec(0)
 });
-const { currencies } = useCurrecies((e) => {});
 
 const vestedTokens = ref([] as { endTime: string; amount: { amount: string; denom: string } }[]);
 
@@ -366,7 +364,7 @@ const totalEquity = computed(() => {
 });
 
 const filteredAssets = computed(() => {
-  const balances = state.value.showSmallBalances ? currencies.value : filterSmallBalances(currencies.value);
+  const balances = state.value.showSmallBalances ? wallet.currencies : filterSmallBalances(wallet.currencies);
 
   return balances.sort((a, b) => {
     const aAssetBalance = CurrencyUtils.calculateBalance(
@@ -426,9 +424,7 @@ watch(
 watch(
   () => wallet.wallet,
   () => {
-    if (wallet.wallet) {
-      getLeases();
-    }
+    getLeases();
   }
 );
 
@@ -455,7 +451,7 @@ const totalBalance = computed(() => {
 
 function setAvailableAssets() {
   let totalAssets = new Dec(0);
-  currencies.value.forEach((asset) => {
+  wallet.currencies.forEach((asset) => {
     const currency = AssetUtils.getCurrencyByDenom(asset.balance.denom);
     const assetBalance = CurrencyUtils.calculateBalance(
       oracle.prices[asset.balance.denom]?.amount ?? 0,

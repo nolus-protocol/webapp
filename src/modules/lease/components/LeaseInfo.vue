@@ -500,6 +500,7 @@ const state = ref({
 });
 
 onMounted(() => {
+  console.log(props);
   loadCharts();
   setFreeInterest();
 });
