@@ -139,6 +139,7 @@ onMounted(async () => {
   window.addEventListener("focus", stopTimer);
   window.addEventListener("blur", startTimer);
   openDialog();
+  checkBalances();
 });
 
 onUnmounted(() => {

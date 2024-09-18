@@ -35,10 +35,10 @@ export const INTEREST_DECIMALS = 1;
 export const PERMILLE = 1000;
 export const PERCENT = 100;
 
-export const UPDATE_BLOCK_INTERVAL = 5 * 60 * 1000;
-export const UPDATE_BALANCE_INTERVAL = 5 * 60 * 1000;
-export const UPDATE_PRICES_INTERVAL = 5 * 60 * 1000;
-export const UPDATE_REWARDS_INTERVAL = 5 * 60 * 1000;
+export const UPDATE_BLOCK_INTERVAL = 1 * 60 * 1000;
+export const UPDATE_BALANCE_INTERVAL = 10 * 1000;
+export const UPDATE_PRICES_INTERVAL = 60 * 1000;
+export const UPDATE_REWARDS_INTERVAL = 60 * 1000;
 export const SESSION_TIME = 25 * 60 * 1000;
 export const MONTHS = 12;
 

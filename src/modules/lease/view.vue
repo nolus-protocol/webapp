@@ -89,7 +89,7 @@ import { Dec } from "@keplr-wallet/unit";
 
 const showLeaseModal = ref(false);
 const { leases, leaseLoaded, getLeases } = useLeases(onLeaseError);
-const CHECK_TIME = 15000;
+const CHECK_TIME = 5000;
 const applicaton = useApplicationStore();
 const applicationRef = storeToRefs(applicaton);
 let timeOut: NodeJS.Timeout;
