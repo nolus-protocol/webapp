@@ -1,11 +1,9 @@
 import { setupWallet, acceptAccessForKeplr } from '../utils/wallet.js';
+const testData = require('../data/openPosition.json')
 
 describe('OpenPosition tests', () => {
 
     const openPosition = (dpAmount, dpCurrencyIcon, leaseCurrency) => {
-        cy.visit('/lease')
-        acceptAccessForKeplr();
-
         // Click "Lease New"
         cy.get('[data-cy="lease-new-button"]')
             .click()
@@ -66,14 +64,26 @@ describe('OpenPosition tests', () => {
             expect(taskCompleted).to.be.true;
         });
 
+        cy.get('[data-cy="amount-warning"]')
+            .click()
+
         // TO DO: Check the result
     };
 
     before(() => {
         setupWallet();
+
+        cy.visit('/lease')
+        acceptAccessForKeplr();
     });
 
-    it('open position - lc=NTRN, dc=USDC-neutron', () => {
-        openPosition('0.1', 'neutron-usdc', 'NTRN');
-    })
-})
+    testData.forEach((positionInfo) => {
+        const dpCurrencyIcon = positionInfo.dpCurrencyIcon;
+        const leaseCurrency = positionInfo.leaseCurrency;
+        const dpAmount = positionInfo.dpAmount;
+        it(`open position - dpCurrency=${dpCurrencyIcon}, leaseCurrency=${leaseCurrency}, dpAmount=${dpAmount}`, () => {
+
+            openPosition(dpAmount, dpCurrencyIcon, leaseCurrency);
+        });
+    });
+});

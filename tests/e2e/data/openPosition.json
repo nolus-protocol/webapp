@@ -1,0 +1,12 @@
+[
+    {
+        "leaseCurrency": "NTRN",
+        "dpCurrencyIcon": "neutron-usdc",
+        "dpAmount": "0.1"
+    },
+    {
+        "leaseCurrency": "OSMO",
+        "dpCurrencyIcon": "osmosis-usdc",
+        "dpAmount": "0.1"
+    }
+]
