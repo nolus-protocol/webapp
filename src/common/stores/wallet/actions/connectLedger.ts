@@ -43,7 +43,6 @@ export async function connectLedger(this: Store, payload: { isBluetooth?: boolea
       WalletManager.saveWalletConnectMechanism(
         payload.isBluetooth ? WalletConnectMechanism.LEDGER_BLUETOOTH : WalletConnectMechanism.LEDGER
       );
-      WalletManager.storeWalletAddress(ledgerWallet.address || "");
       WalletManager.setPubKey(Buffer.from(this.wallet?.pubKey ?? "").toString("hex"));
       this.walletName = LedgerName;
     } catch (e: Error | any) {

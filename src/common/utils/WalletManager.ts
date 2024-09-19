@@ -1,4 +1,5 @@
 import type { WalletConnectMechanism } from "@/common/types";
+import { useWalletStore } from "../stores/wallet";
 
 export class WalletManager {
   public static WALLET_CONNECT_MECHANISM = "wallet_connect_mechanism";
@@ -25,20 +26,12 @@ export class WalletManager {
     localStorage.removeItem(this.WALLET_CONNECT_MECHANISM);
   }
 
-  public static storeWalletAddress(address: string) {
-    localStorage.setItem(this.WALLET_ADDRESS, address);
-  }
-
   public static getWalletAddress(): string {
-    return localStorage.getItem(this.WALLET_ADDRESS) || "";
-  }
-
-  public static removeWalletAddress() {
-    localStorage.removeItem(this.WALLET_ADDRESS);
+    const wallet = useWalletStore();
+    return wallet.wallet?.address ?? "";
   }
 
   public static eraseWalletInfo() {
-    localStorage.removeItem(this.WALLET_ADDRESS);
     localStorage.removeItem(this.WALLET_CONNECT_MECHANISM);
     localStorage.removeItem(this.WALLET_PUBKEY);
   }
