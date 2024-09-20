@@ -43,9 +43,6 @@ export async function connectKeplr(this: Store) {
       await nolusWalletOfflineSigner.useAccount();
 
       WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.KEPLR);
-
-      WalletManager.storeWalletAddress(nolusWalletOfflineSigner.address || "");
-
       WalletManager.setPubKey(Buffer.from(nolusWalletOfflineSigner?.pubKey ?? "").toString("hex"));
 
       this.wallet = nolusWalletOfflineSigner;
