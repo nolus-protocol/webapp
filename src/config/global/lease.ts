@@ -86,10 +86,11 @@ export const IGNORE_LEASE_ASSETS: string[] = [
   "USDC_AXELAR",
   "STK_ATOM",
   "LVN",
-  "EVMOS"
+  "EVMOS",
+  "DYM"
 ];
 
-export const IGNORE_DOWNPAYMENT_ASSETS: string[] = ["STK_ATOM", "LVN", "EVMOS", "NLS"];
+export const IGNORE_DOWNPAYMENT_ASSETS: string[] = ["STK_ATOM", "LVN", "EVMOS", "NLS", "DYM", "CUDOS"];
 
 export const IGNORE_LEASE_ASSETS_STABLES: string[] = ["USDC_NOBLE"];
 
