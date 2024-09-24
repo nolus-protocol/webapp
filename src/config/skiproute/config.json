@@ -28,10 +28,6 @@
       "chainID": "osmosis-1"
     },
     {
-      "name": "neutron-lido-satellite",
-      "chainID": "neutron-1"
-    },
-    {
       "name": "neutron-astroport",
       "chainID": "neutron-1"
     }
