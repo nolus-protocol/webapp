@@ -90,7 +90,9 @@ export const CONTRACTS: ContractConfig = {
           "INJ",
           "LVN",
           "PICA",
-          "CUDOS"
+          "CUDOS",
+          "ALL_BTC",
+          "ALL_SOL"
         ],
         type: PositionTypes.long,
         rewards: false
