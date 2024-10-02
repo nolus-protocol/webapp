@@ -1,12 +1,4 @@
 {
-  "pnl02": {
-    "title-icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/lease.svg",
-    "image": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/pnl01.webp",
-    "title": "lease-banner-title",
-    "subtitle": "pnl02-banner-subtitle",
-    "description": "pnl02-banner-description",
-    "target": "https://forms.gle/Ei8YMz1YyqPV9fTYA"
-      },
   "0int": {
     "title-icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/lease.svg",
     "image": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/news/icons/0int.webp",
