@@ -51,6 +51,7 @@ export async function getPrices(this: State) {
     await Promise.all(promises);
     this.prices = pr;
   } catch (error: Error | any) {
+    console.log(error);
     throw new Error(error);
   }
 }
