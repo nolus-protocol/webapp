@@ -380,7 +380,6 @@ function validateMinMaxValues(): boolean {
 
     return isValid;
   } catch (error) {
-    console.log(error);
     state.value.downPaymentErrorMsg = i18n.t("message.integer-out-of-range");
     return false;
   }

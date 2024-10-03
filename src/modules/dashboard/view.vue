@@ -222,7 +222,7 @@
               :changeDirection="index % 2 === 0"
               :denom="asset.balance.denom"
               :openModal="openModal"
-              :price="oracle.prices[asset.balance.denom]?.amount ?? '0'"
+              :price="oracle.prices[asset.key]?.amount ?? '0'"
             />
           </TransitionGroup>
         </template>
@@ -365,16 +365,15 @@ const totalEquity = computed(() => {
 
 const filteredAssets = computed(() => {
   const balances = state.value.showSmallBalances ? wallet.currencies : filterSmallBalances(wallet.currencies);
-
   return balances.sort((a, b) => {
     const aAssetBalance = CurrencyUtils.calculateBalance(
-      oracle.prices[a.balance.denom]?.amount,
+      oracle.prices[a.key]?.amount,
       new Coin(a.balance.denom, a.balance.amount.toString()),
       a.decimal_digits as number
     ).toDec();
 
     const bAssetBalance = CurrencyUtils.calculateBalance(
-      oracle.prices[b.balance.denom]?.amount,
+      oracle.prices[b.key]?.amount,
       new Coin(b.balance.denom, b.balance.amount.toString()),
       b.decimal_digits as number
     ).toDec();
@@ -454,7 +453,7 @@ function setAvailableAssets() {
   wallet.currencies.forEach((asset) => {
     const currency = AssetUtils.getCurrencyByDenom(asset.balance.denom);
     const assetBalance = CurrencyUtils.calculateBalance(
-      oracle.prices[asset.balance.denom]?.amount ?? 0,
+      oracle.prices[asset.key]?.amount ?? 0,
       new Coin(currency.ibcData, asset.balance.amount.toString()),
       Number(currency.decimal_digits)
     );
@@ -571,7 +570,7 @@ function setLeases() {
 
         const dDecimal = Number(dasset!.decimal_digits);
         const l = CurrencyUtils.calculateBalance(
-          oracle.prices[dasset.ibcData]?.amount,
+          oracle.prices[dasset.key]?.amount,
           new Coin(dasset.ibcData, lease.leaseStatus.opened.amount.amount),
           dDecimal
         ).toDec();

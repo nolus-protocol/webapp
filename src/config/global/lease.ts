@@ -68,8 +68,8 @@ export const FREE_INTEREST_ASSETS: string[] = [
   "CUDOS",
   "dATOM",
   "USDC",
-  "allBTC",
-  "allSOL"
+  "BTC",
+  "SOL"
 ];
 
 export const IGNORE_LEASE_ASSETS: string[] = [
