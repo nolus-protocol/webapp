@@ -12,6 +12,7 @@ export class LeaseUtils {
   }
 
   public static calculateLiquidationShort(unit: Dec, price: Dec) {
+    console.log(unit.toString(), price.toString());
     return unit.mul(new Dec(0.9)).quo(price);
   }
   public static calculateAditionalDebt(principal: Dec, percent: Dec) {

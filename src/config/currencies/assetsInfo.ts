@@ -94,6 +94,12 @@ export const ASSETS = {
   },
   D_ATOM: {
     coinGeckoId: null
+  },
+  ALL_BTC: {
+    coinGeckoId: "osmosis-allbtc"
+  },
+  ALL_SOL: {
+    coinGeckoId: "osmosis-allsol"
   }
 };
 
