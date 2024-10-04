@@ -858,7 +858,7 @@ const loadingClose = computed(() => {
 const loadingCollect = computed(() => {
   const data = props.leaseInfo.leaseStatus.paid;
 
-  if (data?.in_progress == "transfer_in_init") {
+  if (data?.in_progress == "transfer_in_init" || data?.in_progress == "transfer_in_finish") {
     return true;
   }
 

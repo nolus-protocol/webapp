@@ -113,7 +113,6 @@ export function useLease(leaseAddress: string, onError: (error: unknown) => void
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const leaseClient = new Lease(cosmWasmClient, leaseAddress);
       const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus();
-
       return {
         leaseAddress,
         leaseStatus: leaseInfo
