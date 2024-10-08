@@ -19,4 +19,10 @@ export class EtlApi {
       data.json()
     );
   }
+
+  static async fetchPNL(address: string, skip: number, limit: number): Promise<IObjectKeys[]> {
+    return fetch(`${EtlApi.getApiUrl()}/ls-loan-closing?address=${address}&skip=${skip}&limit=${limit}`).then((data) =>
+      data.json()
+    );
+  }
 }

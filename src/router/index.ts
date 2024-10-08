@@ -12,6 +12,7 @@ import { VoteRouter } from "@/modules/vote/router";
 import { RouteNames } from "./RouteNames";
 
 import MainLayout from "@/modules/view.vue";
+import { PnlHistoryRouter } from "@/modules/pnl-history/router";
 
 const router = createRouter({
   scrollBehavior(to, from, savedPosition) {
@@ -25,7 +26,7 @@ const router = createRouter({
       path: "/",
       component: MainLayout,
       beforeEnter: [loadLanguage, loadData],
-      children: [AssetsRouter, LeaseRouter, EarnRouter, HistoryRouter, VoteRouter, StatsRouter]
+      children: [AssetsRouter, LeaseRouter, EarnRouter, HistoryRouter, VoteRouter, StatsRouter, PnlHistoryRouter]
     },
     {
       path: "/:pathMatch(.*)",

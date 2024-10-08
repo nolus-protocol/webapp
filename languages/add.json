@@ -1,3 +1,5 @@
 {
-  "osmosis-st-atom": "Osmosis stATOM"
+  "status-liquidation": "Liquidate",
+  "status-market-close": "Close",
+  "status-repay": "Repaid"
 }
