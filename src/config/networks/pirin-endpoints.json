@@ -5,7 +5,7 @@
   "NOLUS": {
     "primary": {
       "rpc": "https://rpc.nolus.network",
-      "api": "hhttps://lcd.nolus.network"
+      "api": "https://lcd.nolus.network"
     },
     "fallback": [
       {
