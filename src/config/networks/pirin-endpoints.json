@@ -4,8 +4,8 @@
   "archive_node_api": "https://pirin-cl-arc.nolus.network:1317",
   "NOLUS": {
     "primary": {
-      "rpc": "https://pirin-cl.nolus.network:26657",
-      "api": "hhttps://pirin-cl.nolus.network:1317"
+      "rpc": "https://rpc.nolus.network",
+      "api": "hhttps://lcd.nolus.network"
     },
     "fallback": [
       {
