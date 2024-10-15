@@ -11,3 +11,18 @@ export interface ITransaction {
   log: string | null;
   type: "sender" | "receiver";
 }
+
+export interface ITransactionData {
+  block: number;
+  fee_amount: string;
+  fee_denom: string;
+  from: string;
+  index: number;
+  memo: string;
+  timestamp: Date;
+  to: string;
+  tx_hash: string;
+  type: string;
+  value: string;
+  data: IObjectKeys;
+}

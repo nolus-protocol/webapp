@@ -1,4 +1,4 @@
-export type { ITransaction } from "./ITransaction";
+export type { ITransaction, ITransactionData } from "./ITransaction";
 
 export enum HYSTORY_ACTIONS {
   SEND = "SEND",

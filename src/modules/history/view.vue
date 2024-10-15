@@ -16,7 +16,7 @@
       columnsClasses="hidden md:flex"
     >
       <template v-slot:body>
-        <template v-if="initialLoad && !showSkeleton">
+        <template v-if="!showSkeleton">
           <TransitionGroup
             appear
             name="fade-long"
@@ -51,8 +51,8 @@
               </HistoryTableLoadingRow>
             </div>
             <div
-              v-for="(transaction, index) of transactions"
-              :key="`${transaction.id}_${index}`"
+              v-for="transaction of transactions"
+              :key="`${transaction.tx_hash}_${transaction.index}`"
             >
               <HistoryTableRowWrapper :transaction="transaction" />
             </div>
@@ -85,7 +85,7 @@
         class="mx-auto"
         severity="secondary"
         size="medium"
-        @click="load"
+        @click="loadTxs"
       />
     </div>
   </div>
@@ -117,9 +117,9 @@
 import Modal from "@/common/components/modals/templates/Modal.vue";
 import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
 
-import { HYSTORY_ACTIONS, type ITransaction } from "./types";
+import { HYSTORY_ACTIONS, type ITransactionData } from "./types";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { AssetUtils, NetworkUtils } from "@/common/utils";
+import { AssetUtils, EtlApi } from "@/common/utils";
 import { Button, HistoryTableLoadingRow, Table, Spinner } from "web-components";
 import { useI18n } from "vue-i18n";
 
@@ -136,7 +136,7 @@ import SwapDialog from "@/common/components/modals/SwapDialog.vue";
 
 const showErrorDialog = ref(false);
 const errorMessage = ref("");
-const transactions = ref([] as ITransaction[]);
+const transactions = ref([] as ITransactionData[]);
 const i18n = useI18n();
 const wallet = useWalletStore();
 
@@ -147,13 +147,11 @@ const columns = [
   { label: i18n.t("message.time"), class: "max-w-[200px]" }
 ];
 
-const senderPerPage = 10;
-let senderPage = 1;
-let senderTotal = 0;
+const limit = 10;
+let skip = 0;
 
 const loading = ref(false);
 const loaded = ref(false);
-const initialLoad = ref(false);
 const showSkeleton = ref(true);
 let timeout: NodeJS.Timeout;
 
@@ -186,8 +184,7 @@ onUnmounted(() => {
 watch(
   () => wallet.wallet,
   () => {
-    senderPage = 1;
-    senderTotal = 0;
+    skip = 0;
     loadTxs();
   }
 );
@@ -200,60 +197,28 @@ const hasOutline = computed(() => {
 });
 
 const visible = computed(() => {
-  return initialLoad.value && !loaded.value;
+  return !loaded.value;
 });
 
 function onClickTryAgain() {
   loadTxs();
 }
 
-async function getTransactions() {
+async function loadTxs() {
   try {
-    const res = await NetworkUtils.searchTx({
-      sender_per_page: senderPerPage,
-      sender_page: senderPage
-    });
-
-    senderPage++;
-    senderTotal = res.sender_total as number;
-    transactions.value = res.data as ITransaction[];
-    const loadedSender = (senderPage - 1) * senderPerPage >= senderTotal;
-
-    if (loadedSender) {
-      loaded.value = true;
+    if (wallet.wallet?.address) {
+      loading.value = true;
+      const res = await EtlApi.fetchTXS(wallet.wallet?.address, skip, limit);
+      transactions.value = [...transactions.value, ...res] as ITransactionData[];
+      const loadedSender = res.length < limit;
+      if (loadedSender) {
+        loaded.value = true;
+      }
+      skip += limit;
+    } else {
+      transactions.value = [];
     }
-
-    initialLoad.value = true;
-  } catch (e: Error | any) {
-    showErrorDialog.value = true;
-    errorMessage.value = e?.message;
-  }
-}
-
-async function load() {
-  try {
-    loading.value = true;
-    const loadSender = (senderPage - 1) * senderPerPage <= senderTotal;
-
-    const res = await NetworkUtils.searchTx({
-      sender_per_page: senderPerPage,
-      sender_page: senderPage,
-      load_sender: loadSender
-    });
-
-    transactions.value = [...transactions.value, ...res.data] as ITransaction[];
-
-    if (loadSender) {
-      senderPage++;
-    }
-
-    const loadedSender = (senderPage - 1) * senderPerPage <= senderTotal;
-
-    if (!loadedSender) {
-      loaded.value = true;
-    }
-
-    senderTotal = res.sender_total as number;
+    showSkeleton.value = false;
   } catch (e: Error | any) {
     showErrorDialog.value = true;
     errorMessage.value = e?.message;
@@ -335,13 +300,6 @@ function calculateEvmFee(coin: Coin, network: Network | EvmNetwork) {
   );
 }
 
-function loadTxs() {
-  getTransactions();
-  timeout = setTimeout(() => {
-    showSkeleton.value = false;
-  }, 400);
-}
-
 function openAction(key: string | number) {
   state.value.data = wallet.history[key];
   state.value.showModal = true;
@@ -359,8 +317,4 @@ watch(
     deep: true
   }
 );
-
-function truncateString(denom: string): string {
-  throw new Error("Function not implemented.");
-}
 </script>
