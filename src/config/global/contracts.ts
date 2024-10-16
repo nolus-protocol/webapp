@@ -107,21 +107,21 @@ export const CONTRACTS: ContractConfig = {
       "OSMOSIS-OSMOSIS-ALL_BTC": {
         only: [],
         lease: true,
-        currencies: [],
+        currencies: ["ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
         type: PositionTypes.short,
         rewards: true
       },
       "OSMOSIS-OSMOSIS-ALL_SOL": {
         only: [],
         lease: true,
-        currencies: [],
+        currencies: ["ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
         type: PositionTypes.short,
         rewards: true
       },
       "OSMOSIS-OSMOSIS-AKT": {
         only: [],
         lease: true,
-        currencies: [],
+        currencies: ["ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
         type: PositionTypes.short,
         rewards: true
       }

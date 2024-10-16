@@ -138,7 +138,7 @@
     <template #debt-1>
       <CurrencyComponent
         :amount="leaseInfo.debt.toString()"
-        :decimals="4"
+        :decimals="lpn.decimal_digits"
         :font-size="20"
         :font-size-small="14"
         :hasSpace="true"
@@ -169,7 +169,7 @@
           <CurrencyComponent
             :amount="interestDue"
             :class="{ 'text-warning-100': interestDueStatus }"
-            :decimals="4"
+            :decimals="lpn.decimal_digits"
             :font-size="20"
             :font-size-small="14"
             :hasSpace="true"
@@ -504,6 +504,11 @@ onMounted(() => {
   setFreeInterest();
 });
 
+const lpn = computed(() => {
+  const l = AssetUtils.getLpnByProtocol(props.leaseInfo.protocol);
+  return l;
+});
+
 async function setFreeInterest() {
   const data = await AppUtils.getFreeInterestAddress();
   for (const item of data.interest_paid_to) {
@@ -621,7 +626,6 @@ const getAssetIcon = computed((): string => {
       }
     }
   }
-
   return app.assetIcons?.[`${props.leaseInfo.leaseData?.leasePositionTicker}@${props.leaseInfo.protocol}`] as string;
 });
 

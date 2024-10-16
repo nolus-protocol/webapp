@@ -85,7 +85,7 @@ export class LeaseUtils {
 
       switch (ProtocolsConfig[contract].type) {
         case PositionTypes.short: {
-          leasePositionTicker = lpn.ticker;
+          leasePositionTicker = CurrencyDemapping[lpn.ticker]?.ticker ?? lpn.ticker;
           break;
         }
       }

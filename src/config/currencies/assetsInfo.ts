@@ -118,6 +118,12 @@ export const CurrencyMapping: {
   },
   WBTC_AXELAR: {
     ticker: "WBTC"
+  },
+  ALL_SOL: {
+    ticker: "SOL"
+  },
+  ALL_BTC: {
+    ticker: "BTC"
   }
 };
 
@@ -136,6 +142,12 @@ export const CurrencyDemapping: {
   },
   WBTC: {
     ticker: "WBTC_AXELAR"
+  },
+  SOL: {
+    ticker: "ALL_SOL"
+  },
+  BTC: {
+    ticker: "ALL_BTC"
   }
 };
 

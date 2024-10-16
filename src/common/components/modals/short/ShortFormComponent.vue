@@ -136,14 +136,7 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { AppUtils, AssetUtils, LeaseUtils } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
 
-import {
-  FREE_INTEREST_ASSETS,
-  MONTHS,
-  NATIVE_NETWORK,
-  PERMILLE,
-  PositionTypes,
-  ProtocolsConfig
-} from "@/config/global";
+import { MONTHS, NATIVE_NETWORK, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
 
 const wallet = useWalletStore();
 const app = useApplicationStore();
@@ -208,7 +201,9 @@ const totalBalances = computed(() => {
       for (const c of ProtocolsConfig[protocol].currencies) {
         const item = app.currenciesData?.[`${c}@${protocol}`];
         let balance = wallet.balances.find((c) => c.balance.denom == item?.ibcData);
-        currencies.push({ ...item, balance: balance?.balance } as ExternalCurrency);
+        if (currencies.findIndex((item) => item.balance.denom == balance?.balance.denom) == -1) {
+          currencies.push({ ...item, balance: balance?.balance } as ExternalCurrency);
+        }
       }
     }
   }
@@ -366,7 +361,6 @@ function getLquidation() {
     const stableAssetInfo = AssetUtils.getCurrencyByTicker(lease.total.ticker!);
 
     const unitAsset = new Dec(getBorrowedAmount(), Number(unitAssetInfo!.decimal_digits));
-
     const stableAsset = new Dec(getTotalAmount(), Number(stableAssetInfo!.decimal_digits));
 
     return LeaseUtils.calculateLiquidationShort(stableAsset, unitAsset);
@@ -377,7 +371,7 @@ function getLquidation() {
 
 const percentLique = computed(() => {
   const asset = props.modelValue.selectedCurrency;
-  const [_, protocol] = props.modelValue.selectedDownPaymentCurrency.key.split("@");
+  const [_, protocol] = asset.key.split("@");
   const lpn = AssetUtils.getLpnByProtocol(protocol);
 
   const price = new Dec(oracle.prices[lpn.key]?.amount ?? "0", asset.decimal_digits);
@@ -399,7 +393,8 @@ function onDrag(event: number) {
 
 const borrowed = computed(() => {
   const borrow = props.modelValue.leaseApply?.borrow;
-  const [_, protocol] = props.modelValue.selectedDownPaymentCurrency.key.split("@");
+
+  const [_, protocol] = props.modelValue.selectedCurrency.key.split("@");
   const lpn = AssetUtils.getLpnByProtocol(protocol);
 
   if (borrow) {
@@ -426,7 +421,7 @@ function getTotalAmount() {
 }
 
 const selectedAssetDenom = computed(() => {
-  const asset = props.modelValue.selectedDownPaymentCurrency;
+  const asset = props.modelValue.selectedCurrency;
   const [_, protocolKey] = asset.key.split("@");
   const lpn = AssetUtils.getLpnByProtocol(protocolKey);
 
@@ -435,6 +430,7 @@ const selectedAssetDenom = computed(() => {
 
 const selectedAssetPrice = computed(() => {
   const price = oracle.prices[selectedAssetDenom.value.key as string];
+
   const p = new Dec(price?.amount ?? 0);
   const fee = new Dec(1 + swapFee.value);
 

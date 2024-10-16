@@ -102,20 +102,12 @@ const balances = computed(() => {
       return false;
     }
 
-    let cticker = ticker;
-
     if (IGNORE_DOWNPAYMENT_ASSETS.includes(ticker)) {
       return false;
     }
 
     if (ProtocolsConfig[protocol].lease && !ProtocolsConfig[protocol].currencies.includes(ticker)) {
       return false;
-    }
-
-    const lpns = ((app.lpn ?? []) as ExternalCurrency[]).map((item) => item.key as string);
-
-    if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
-      cticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
     }
 
     return true;
