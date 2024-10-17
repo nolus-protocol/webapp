@@ -32,7 +32,10 @@
               v-for="l of loansData"
               :key="l.LS_contract_id"
             >
-              <HistoryTableRow :items="l.items" />
+              <HistoryTableRow
+                :items="l.items"
+                classes="!flex-row !flex-wrap !md:flex-nowrap"
+              />
             </div>
           </TransitionGroup>
         </template>
@@ -178,36 +181,37 @@ const loansData = computed(() => {
       items: [
         {
           value: i18n.t(`message.${ProtocolsConfig[protocol].type}`),
-          class: `text-14 uppercase ${getTitleClass(ProtocolsConfig[protocol])} max-w-[150px]`
+          class: `text-14 uppercase ${getTitleClass(ProtocolsConfig[protocol])} max-w-[150px] mb-[4px] md:mb-[0px] md:basis-0`
         },
         {
           value: `#${item.LS_contract_id.slice(-8)}`,
           url: `#`,
-          class: "text-14 !justify-start"
+          class:
+            "text-14 !justify-start cursor-defaul pointer-events-none	basis-[80%] md:basis-0 mb-[4px] pl-[12px] md:mb-[0px] md:pl-[0px]"
         },
         {
           value: currency.shortName,
-          class: "text-14 md:justify-end max-w-[100px] text-neutral-typography-200"
+          class: "text-14 md:justify-end max-w-[100px] text-neutral-typography-200 basis-1/3 md:basis-0"
         },
         {
           value: i18n.t(`message.status-${item.Type}`),
-          class: "text-14 md:justify-end text-neutral-typography-200"
+          class: "text-14 md:justify-end text-neutral-typography-200 hidden md:flex md:basis-0"
         },
         {
           value: new PricePretty(
             {
               currency: "usd",
-              maxDecimals: 4,
+              maxDecimals: currency.decimal_digits,
               symbol: "$",
               locale: "en-US"
             },
             new Dec(item.LS_pnl).quo(new Dec(10 ** currency.decimal_digits))
           ).toString(),
-          class: "text-14 text-neutral-typography-200"
+          class: "text-14 text-neutral-typography-200 basis-1/3 justify-center md:basis-0"
         },
         {
           value: getCreatedAtForHuman(new Date(item.LS_timestamp)) as string,
-          class: "text-14 justify-end"
+          class: "text-14 justify-end basis-1/3 md:basis-0"
         }
       ]
     };

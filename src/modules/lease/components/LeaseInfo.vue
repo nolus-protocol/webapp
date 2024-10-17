@@ -383,7 +383,7 @@
       :asset="asset!.shortName"
       :icon="getAssetIcon"
       :position="pnl.percent"
-      :price="leaseInfo.leaseData?.price!.toString(6) ?? '0'"
+      :price="getSharePrice()"
       :position-type="ProtocolsConfig[props.leaseInfo.protocol].type"
     />
   </Modal>
@@ -1114,6 +1114,17 @@ const leaseAsset = computed(() => {
   const asset = app.currenciesData?.[`${ticker}@${props.leaseInfo.protocol}`];
   return asset;
 });
+
+function getSharePrice() {
+  switch (ProtocolsConfig[props.leaseInfo.protocol].type) {
+    case PositionTypes.long: {
+      return props.leaseInfo.leaseData?.price!.toString(6) ?? "0";
+    }
+    case PositionTypes.short: {
+      return props.leaseInfo.leaseData.lpnPrice.toString(lpn.value.decimal_digits);
+    }
+  }
+}
 </script>
 <style lang="scss">
 button.share {

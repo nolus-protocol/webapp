@@ -79,7 +79,7 @@
           </p>
           <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
             <span>{{ calculateLique }}</span>
-            <span class="text-[#8396B1]"> &nbsp;|&nbsp; {{ percentLique }} </span>
+            <span class="text-[#8396B1]"> &nbsp;|&nbsp; +{{ percentLique }} </span>
             <Tooltip :content="$t('message.liquidation-price-tooltip')" />
           </p>
         </div>
