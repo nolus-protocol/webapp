@@ -175,7 +175,16 @@ const loansData = computed(() => {
   return loans.value.map((item) => {
     const protocol = AssetUtils.getProtocolByContract(item.LS_loan_pool_id);
     const ticker = CurrencyDemapping[item.LS_asset_symbol]?.ticker ?? item.LS_asset_symbol;
-    const currency = app.currenciesData![`${ticker}@${protocol}`];
+    let currency = app.currenciesData![`${ticker}@${protocol}`];
+
+    switch (ProtocolsConfig[protocol].type) {
+      case PositionTypes.short: {
+        const lpn = AssetUtils.getLpnByProtocol(protocol);
+        currency = lpn;
+        break;
+      }
+    }
+
     return {
       LS_contract_id: item.LS_contract_id,
       items: [
