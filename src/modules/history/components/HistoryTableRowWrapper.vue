@@ -14,7 +14,7 @@ import type { IObjectKeys } from "@/common/types";
 
 import { useApplicationStore } from "@/common/stores/application";
 import { useWalletStore } from "@/common/stores/wallet";
-import { AppUtils, AssetUtils, getCreatedAtForHuman, Logger, StringUtils, WalletManager } from "@/common/utils";
+import { AppUtils, AssetUtils, getCreatedAtForHuman, Logger, StringUtils } from "@/common/utils";
 import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
 import { useI18n } from "vue-i18n";
 import { Buffer } from "buffer";

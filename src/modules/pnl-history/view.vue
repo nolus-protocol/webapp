@@ -241,13 +241,13 @@ function getTitleClass(protocol: IObjectKeys) {
 <style>
 .pnl-status-long {
   span {
-    @apply rounded border border-success-100 p-1 text-success-100;
+    @apply rounded border border-success-100 p-1 text-12 text-success-100;
   }
 }
 
 .pnl-status-short {
   span {
-    @apply rounded border border-danger-100 p-1 text-danger-100;
+    @apply rounded border border-danger-100 p-1 text-12 text-danger-100;
   }
 }
 </style>

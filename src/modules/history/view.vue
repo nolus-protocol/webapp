@@ -27,9 +27,10 @@
             >
               <HistoryTableLoadingRow
                 :action="tx.action"
-                :button="$t('message.details')"
+                :button="tx.step == CONFIRM_STEP.SUCCESS ? '' : $t('message.details')"
                 :fee="tx.fee.toString()"
                 :status="tx.status"
+                :date="tx.step == CONFIRM_STEP.SUCCESS ? getCreatedAtForHuman(tx.date) : ''"
                 @button-click="openAction(tx.key)"
               >
                 <template v-slot:status>
@@ -119,7 +120,7 @@ import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
 
 import { HYSTORY_ACTIONS, type ITransactionData } from "./types";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { AssetUtils, EtlApi } from "@/common/utils";
+import { AssetUtils, EtlApi, getCreatedAtForHuman } from "@/common/utils";
 import { Button, HistoryTableLoadingRow, Table, Spinner } from "web-components";
 import { useI18n } from "vue-i18n";
 
@@ -232,10 +233,10 @@ async function loadTxs() {
 const history = computed(() => {
   const h = wallet.history;
   const items = [];
-
   for (const key in h) {
     const item = h[key];
     items.push({
+      date: new Date(item.id),
       action: getAction(item),
       status: i18n.t(`message.${item.step}-History`),
       fee: calculateFee(item.fee, item.selectedNetwork) as CoinPretty,
