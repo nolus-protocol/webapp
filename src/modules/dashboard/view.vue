@@ -6,9 +6,18 @@
       <div
         class="mt-6 flex flex-col justify-start border-[1px] border-border-color bg-neutral-bg-50 p-4 shadow-field-normal outline md:rounded-xl lg:items-baseline lg:p-6"
       >
-        <p class="mb-1.5 text-16 font-medium text-neutral-typography-200 md:mb-6">
-          {{ $t("message.portfolio-title") }}
-        </p>
+        <div class="mb-1.5 flex w-full items-center justify-between md:mb-6">
+          <p class="text-16 font-medium text-neutral-typography-200">
+            {{ $t("message.portfolio-title") }}
+          </p>
+          <Button
+            :label="$t('message.pnl-history')"
+            severity="secondary"
+            size="medium"
+            class="items-center"
+            @click="router.push({ name: RouteNames['PNL-HISTORY'] })"
+          />
+        </div>
         <div class="mb-4 flex w-full flex-row gap-8 border-b border-border-color pb-4 md:mb-6 md:pb-6">
           <div class="flex flex-col gap-1 md:flex-row md:gap-8">
             <div>
@@ -300,6 +309,7 @@ import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { NATIVE_ASSET, NATIVE_CURRENCY, ProtocolsConfig } from "@/config/global";
 import { CurrencyDemapping } from "@/config/currencies";
 import { Button, Table } from "web-components";
+import { RouteNames, router } from "@/router";
 
 const modalOptions = {
   // [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
@@ -481,13 +491,17 @@ async function loadSuppliedAndStaked() {
         const lpn_ticker = await lppClient.getLPN();
         const lpnCoin = app.currenciesData![`${CurrencyDemapping[lpn_ticker]?.ticker ?? lpn_ticker}@${protocolKey}`];
         const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
+        const lpnPrice = new Dec(oracle.prices[lpnCoin.key].amount);
         const [depositBalance, price] = await Promise.all([
           lppClient.getLenderDeposit(walletAddress as string),
           lppClient.getPrice()
         ]);
 
-        const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
-        amount = amount.add(new Dec(depositBalance.balance, Number(lpnCoin!.decimal_digits)).mul(calculatedPrice));
+        const calculatedPrice = new Dec(price.amount_quote.amount).mul(lpnPrice).quo(new Dec(price.amount.amount));
+        const a = new Dec(depositBalance.balance, Number(lpnCoin!.decimal_digits)).mul(calculatedPrice);
+        console.log(protocolKey, a.toString(), depositBalance, price);
+
+        amount = amount.add(a);
       };
 
       promises.push(fn());

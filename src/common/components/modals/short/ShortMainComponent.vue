@@ -75,11 +75,12 @@ const balances = computed(() => {
       for (const c of ProtocolsConfig[protocol].currencies) {
         const item = app.currenciesData?.[`${c}@${protocol}`];
         let balance = walletStore.balances.find((c) => c.balance.denom == item?.ibcData);
-        currencies.push({ ...item, balance: balance?.balance } as ExternalCurrency);
+        if (currencies.findIndex((item) => item.balance.denom == balance?.balance.denom) == -1) {
+          currencies.push({ ...item, balance: balance?.balance } as ExternalCurrency);
+        }
       }
     }
   }
-
   return currencies;
 });
 
@@ -93,6 +94,7 @@ const paymentBalances = computed(() => {
 
     return true;
   });
+  console.log(b);
   return b;
 });
 
@@ -197,8 +199,9 @@ async function calculate() {
       );
 
       const currency = state.value.selectedDownPaymentCurrency;
+      const [_c, protocol] = state.value.selectedCurrency.key.split("@");
 
-      let [downPaymentTicker, protocol] = currency.key.split("@");
+      let [downPaymentTicker, _p] = currency.key.split("@");
 
       if (
         CurrencyMapping[downPaymentTicker as keyof typeof CurrencyMapping] &&

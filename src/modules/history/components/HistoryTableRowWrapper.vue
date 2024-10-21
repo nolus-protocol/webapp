@@ -8,18 +8,17 @@
 </template>
 
 <script lang="ts" setup>
-import { type Coin, parseCoins } from "@cosmjs/proto-signing";
-import type { ITransaction } from "../types";
+import { coin, parseCoins, type Coin } from "@cosmjs/proto-signing";
+import type { ITransactionData } from "../types";
 import type { IObjectKeys } from "@/common/types";
 
 import { useApplicationStore } from "@/common/stores/application";
 import { useWalletStore } from "@/common/stores/wallet";
-import { AppUtils, AssetUtils, getCreatedAtForHuman, Logger, StringUtils, WalletManager } from "@/common/utils";
+import { AppUtils, AssetUtils, getCreatedAtForHuman, Logger, StringUtils } from "@/common/utils";
 import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
 import { useI18n } from "vue-i18n";
 import { Buffer } from "buffer";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
-import { CurrencyMapping } from "@/config/currencies";
 import { computed, onMounted, ref } from "vue";
 import type { HistoryTableRowItemProps } from "web-components";
 import { HistoryTableRow } from "web-components";
@@ -44,12 +43,6 @@ const i18n = useI18n();
 const applicaton = useApplicationStore();
 const wallet = useWalletStore();
 const messagesRef = ref<string[]>();
-// const rowData = ref([] as HistoryTableRowItemProps[]);
-
-//TODO: remove
-const mapCurrency: { [key: string]: string } = {
-  "transfer/channel-0/transfer/channel-750": "USDC"
-};
 
 const voteMessages: { [key: string]: string } = {
   [VoteOption.VOTE_OPTION_ABSTAIN]: i18n.t(`message.abstained`).toLowerCase(),
@@ -59,15 +52,13 @@ const voteMessages: { [key: string]: string } = {
 };
 
 interface Props {
-  transaction: ITransaction;
+  transaction: ITransactionData;
 }
 const props = defineProps<Props>();
 
 onMounted(async () => {
   const promises = [];
-  for (const m of messages()) {
-    promises.push(message(m));
-  }
+  promises.push(message(props.transaction));
   messagesRef.value = await Promise.all(promises);
 });
 
@@ -77,8 +68,8 @@ const transactionData = computed(() =>
       ({
         items: [
           {
-            value: truncateString(props.transaction.id),
-            url: `${applicaton.network.networkAddresses.explorer}/${props.transaction.id}`,
+            value: truncateString(props.transaction.tx_hash),
+            url: `${applicaton.network.networkAddresses.explorer}/${props.transaction.tx_hash}`,
             icon: Icon,
             class: "text-14 uppercase max-w-[200px]"
           },
@@ -88,11 +79,11 @@ const transactionData = computed(() =>
             class: "text-14"
           },
           {
-            value: convertFeeAmount(props.transaction.fee),
+            value: convertFeeAmount(coin(props.transaction.fee_amount, props.transaction.fee_denom)),
             class: "max-w-[200px]"
           },
           {
-            value: getCreatedAtForHuman(props.transaction.blockDate) ?? props.transaction.height,
+            value: getCreatedAtForHuman(props.transaction.timestamp) ?? props.transaction.block,
             class: "max-w-[200px]"
           }
         ]
@@ -104,20 +95,20 @@ function truncateString(text: string) {
   return StringUtils.truncateString(text, 6, 6);
 }
 
-function convertFeeAmount(fee: Coin[] | null) {
+function convertFeeAmount(fee: Coin) {
   if (fee === null) {
     return "0";
   }
 
-  const convertFee = CurrencyUtils.convertCosmosCoinToKeplCoin(fee[0]);
+  const convertFee = CurrencyUtils.convertCosmosCoinToKeplCoin(fee);
   const feeAmount = CurrencyUtils.convertCoinUNolusToNolus(convertFee);
   return feeAmount?.toString();
 }
 
 async function message(msg: IObjectKeys) {
-  switch (msg.typeUrl) {
+  switch (msg.type) {
     case Messages["/cosmos.bank.v1beta1.MsgSend"]: {
-      if (props.transaction.type == "sender") {
+      if (msg.from == wallet.wallet?.address) {
         const token = getCurrency(msg.data?.amount?.[0]);
         return i18n.t("message.send-action", {
           address: truncateString(msg.data?.toAddress),
@@ -125,18 +116,17 @@ async function message(msg: IObjectKeys) {
         });
       }
 
-      if (props.transaction.type == "receiver") {
+      if (msg.to == wallet.wallet?.address) {
         const token = getCurrency(msg.data.amount[0]);
         return i18n.t("message.receive-action", {
           address: truncateString(msg.data.fromAddress),
           amount: token.toString()
         });
       }
-
-      return msg.typeUrl;
+      return msg.type;
     }
     case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
-      if (props.transaction.type == "sender") {
+      if (msg.from == wallet.wallet?.address) {
         const token = await fetchCurrency(msg.data.token);
         return i18n.t("message.send-action", {
           address: truncateString(msg.data.receiver),
@@ -144,7 +134,7 @@ async function message(msg: IObjectKeys) {
         });
       }
 
-      if (props.transaction.type == "receiver") {
+      if (msg.to == wallet.wallet?.address) {
         const token = getCurrency(msg.data.token);
         return i18n.t("message.receive-action", {
           address: truncateString(msg.data.sender),
@@ -152,22 +142,23 @@ async function message(msg: IObjectKeys) {
         });
       }
 
-      return msg.typeUrl;
+      return msg.type;
     }
     case Messages["/ibc.core.channel.v1.MsgRecvPacket"]: {
       try {
-        const buf = JSON.parse(Buffer.from(msg.data.packet.data).toString());
-        const data = JSON.parse(props.transaction.log as string);
-        const amount = data[1].events[0].attributes[3];
-        const coin = parseCoins(amount.value)[0];
-        const token = getCurrency(coin);
-
+        const data = JSON.parse(Buffer.from(msg.data.packet.data).toString());
+        const denom = AssetUtils.getIbc(
+          `${msg.data.packet.destinationPort}/${msg.data.packet.destinationChannel}/${data.denom}`
+        );
+        const coin = parseCoins(`${data.amount}${denom}`)[0];
+        const token = await fetchCurrency(coin);
         return i18n.t("message.receive-action", {
-          address: truncateString(buf.sender),
+          address: truncateString(data.sender),
           amount: token.toString()
         });
       } catch (e) {
-        return msg.typeUrl;
+        console.log(e);
+        return msg.type;
       }
     }
     case Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]: {
@@ -213,12 +204,10 @@ async function message(msg: IObjectKeys) {
         }
 
         if (data.claim_rewards) {
-          const log = JSON.parse(props.transaction.log as string);
-          const amount = log[0].events[0].attributes[1];
-          const coin = parseCoins(amount.value)[0];
-          const token = getCurrency(coin);
+          const coin = msg.rewards ? getCurrency(parseCoins(`${msg.rewards}`)[0]).toString() : "";
+
           return i18n.t("message.claim-position-action", {
-            amount: token.toString(),
+            amount: coin,
             address: truncateString(msg.data.contract)
           });
         }
@@ -231,21 +220,14 @@ async function message(msg: IObjectKeys) {
         }
 
         if (data.burn) {
-          const log = JSON.parse(props.transaction.log as string);
-          const withdraw = log[0].events.find((e: IObjectKeys) => e.type == "wasm-lp-withdraw");
-          const amount = withdraw.attributes.find((e: IObjectKeys) => e.key == "withdraw-amount");
-          const symbol = withdraw.attributes.find((e: IObjectKeys) => e.key == "withdraw-symbol");
-          const currency = AssetUtils.getCurrencyByTicker(symbol.value)!;
-          let [ticker] = currency.key!.split("@");
+          const protocol = AssetUtils.getProtocolByContract(msg.data.contract);
+          const lpn = AssetUtils.getLpnByProtocol(protocol);
 
-          if (CurrencyMapping[ticker]?.name) {
-            currency.shortName = CurrencyMapping[ticker]?.name!;
-          }
           const token = CurrencyUtils.convertMinimalDenomToDenom(
-            amount.value,
-            currency?.ibcData!,
-            currency?.shortName!,
-            Number(currency?.decimal_digits)
+            data.burn.amount,
+            lpn.ibcData!,
+            lpn.shortName!,
+            Number(lpn.decimal_digits)
           );
           return i18n.t("message.withdraw-position-action", {
             amount: token.toString()
@@ -275,10 +257,10 @@ async function message(msg: IObjectKeys) {
         }
       } catch (error) {
         Logger.error(error);
-        return msg.typeUrl;
+        return msg.type;
       }
 
-      return msg.typeUrl;
+      return msg.type;
     }
     case Messages["/cosmos.gov.v1beta1.MsgVote"]: {
       const m = voteMessages[msg.data.option];
@@ -302,12 +284,10 @@ async function message(msg: IObjectKeys) {
       });
     }
     case Messages["/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"]: {
-      const log = JSON.parse(props.transaction.log as string);
-      const amount = getAmount(log);
-      const coin = parseCoins(amount.value)[0];
-      const token = getCurrency(coin);
+      const coin = msg.rewards ? getCurrency(parseCoins(`${msg.rewards}`)[0]).toString() : "";
+
       return i18n.t("message.claim-position-action", {
-        amount: token.toString(),
+        amount: coin,
         address: truncateString(msg.data?.validatorAddress)
       });
     }
@@ -346,81 +326,13 @@ function getCurrency(amount: Coin) {
   return token;
 }
 
-function messages() {
-  return props.transaction.msgs.filter((item) => {
-    switch (item.typeUrl) {
-      case Messages["/cosmos.bank.v1beta1.MsgSend"]: {
-        return !(
-          props.transaction.type == "receiver" &&
-          item.data.toAddress != (wallet.wallet?.address ?? WalletManager.getWalletAddress())
-        );
-      }
-      case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
-        return !(
-          props.transaction.type == "receiver" &&
-          item.data.toAddress != (wallet.wallet?.address ?? WalletManager.getWalletAddress())
-        );
-      }
-      case Messages["/ibc.core.channel.v1.MsgRecvPacket"]: {
-        try {
-          const data = JSON.parse(props.transaction.log as string);
-          const receiver = data?.[1]?.events?.[0]?.attributes?.[2];
-
-          if (receiver?.value != (wallet.wallet?.address ?? WalletManager.getWalletAddress())) {
-            return false;
-          }
-        } catch (e) {
-          return false;
-        }
-        return true;
-      }
-      case Messages["/cosmos.gov.v1beta1.MsgVote"]: {
-        return item.data.voter == (wallet.wallet?.address ?? WalletManager.getWalletAddress());
-      }
-      case Messages["/cosmos.staking.v1beta1.MsgDelegate"]: {
-        return item.data.delegatorAddress == (wallet.wallet?.address ?? WalletManager.getWalletAddress());
-      }
-      case Messages["/cosmos.staking.v1beta1.MsgUndelegate"]: {
-        return item.data.delegatorAddress == (wallet.wallet?.address ?? WalletManager.getWalletAddress());
-      }
-      case Messages["/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"]: {
-        return item.data.delegatorAddress == (wallet.wallet?.address ?? WalletManager.getWalletAddress());
-      }
-      case Messages["/ibc.core.client.v1.MsgUpdateClient"]: {
-        return false;
-      }
-      case Messages["/ibc.core.channel.v1.MsgAcknowledgement"]: {
-        return false;
-      }
-      case Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]: {
-        try {
-          const data = JSON.parse(Buffer.from(item.data.msg).toString());
-
-          if (item.data.sender != (wallet.wallet?.address ?? WalletManager.getWalletAddress())) {
-            return false;
-          }
-
-          if (data.dispatch_alarms) {
-            return false;
-          }
-        } catch (e) {
-          return false;
-        }
-
-        return true;
-      }
-
-      case Messages["/cosmos.staking.v1beta1.MsgBeginRedelegate"]: {
-        return props.transaction.type != "receiver";
-      }
-    }
-
-    return true;
-  });
-}
-
 async function fetchCurrency(amount: Coin) {
-  const coin = AssetUtils.getCurrencyByDenom(amount.denom);
+  let coin;
+  try {
+    coin = AssetUtils.getCurrencyByDenom(amount.denom);
+  } catch (e) {
+    console.log(e);
+  }
 
   if (coin) {
     return CurrencyUtils.convertMinimalDenomToDenom(
@@ -435,12 +347,11 @@ async function fetchCurrency(amount: Coin) {
   const data = await fetch(`${api}/ibc/apps/transfer/v1/denom_traces/${amount.denom}`);
   const json = await data.json();
   const currency = AssetUtils.getCurrencyBySymbol(json.denom_trace.base_denom);
-  const name = mapCurrency[json.denom_trace.path];
 
   return CurrencyUtils.convertMinimalDenomToDenom(
     amount?.amount,
     currency?.ibcData,
-    name ?? currency?.shortName ?? truncateString(amount.denom),
+    currency?.shortName ?? truncateString(amount.denom),
     Number(currency?.decimal_digits ?? 0)
   );
 }

@@ -138,7 +138,7 @@
     <template #debt-1>
       <CurrencyComponent
         :amount="leaseInfo.debt.toString()"
-        :decimals="4"
+        :decimals="lpn.decimal_digits"
         :font-size="20"
         :font-size-small="14"
         :hasSpace="true"
@@ -169,7 +169,7 @@
           <CurrencyComponent
             :amount="interestDue"
             :class="{ 'text-warning-100': interestDueStatus }"
-            :decimals="4"
+            :decimals="lpn.decimal_digits"
             :font-size="20"
             :font-size-small="14"
             :hasSpace="true"
@@ -383,7 +383,7 @@
       :asset="asset!.shortName"
       :icon="getAssetIcon"
       :position="pnl.percent"
-      :price="leaseInfo.leaseData?.price!.toString(6) ?? '0'"
+      :price="getSharePrice()"
       :position-type="ProtocolsConfig[props.leaseInfo.protocol].type"
     />
   </Modal>
@@ -504,6 +504,11 @@ onMounted(() => {
   setFreeInterest();
 });
 
+const lpn = computed(() => {
+  const l = AssetUtils.getLpnByProtocol(props.leaseInfo.protocol);
+  return l;
+});
+
 async function setFreeInterest() {
   const data = await AppUtils.getFreeInterestAddress();
   for (const item of data.interest_paid_to) {
@@ -621,7 +626,6 @@ const getAssetIcon = computed((): string => {
       }
     }
   }
-
   return app.assetIcons?.[`${props.leaseInfo.leaseData?.leasePositionTicker}@${props.leaseInfo.protocol}`] as string;
 });
 
@@ -1110,6 +1114,17 @@ const leaseAsset = computed(() => {
   const asset = app.currenciesData?.[`${ticker}@${props.leaseInfo.protocol}`];
   return asset;
 });
+
+function getSharePrice() {
+  switch (ProtocolsConfig[props.leaseInfo.protocol].type) {
+    case PositionTypes.long: {
+      return props.leaseInfo.leaseData?.price!.toString(6) ?? "0";
+    }
+    case PositionTypes.short: {
+      return props.leaseInfo.leaseData.lpnPrice.toString(lpn.value.decimal_digits);
+    }
+  }
+}
 </script>
 <style lang="scss">
 button.share {

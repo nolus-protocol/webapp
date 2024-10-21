@@ -10,6 +10,7 @@ import { ASSETS, CurrencyDemapping, CurrencyMapping } from "@/config/currencies"
 import { useApplicationStore } from "../stores/application";
 import { useAdminStore } from "../stores/admin";
 import { EnvNetworkUtils } from ".";
+import { Hash } from "@keplr-wallet/crypto";
 
 import {
   DECIMALS_AMOUNT,
@@ -242,7 +243,6 @@ export class AssetUtils {
     }
 
     networks[NATIVE_NETWORK.key] = nolusMappedCurrencies;
-
     return {
       assetIcons,
       networks
@@ -314,5 +314,14 @@ export class AssetUtils {
         return channel.b.ch;
       }
     }
+  }
+
+  static getIbc(path: string) {
+    return (
+      "ibc/" +
+      Buffer.from(Hash.sha256(Buffer.from(path)))
+        .toString("hex")
+        .toUpperCase()
+    );
   }
 }

@@ -60,7 +60,7 @@ export const CONTRACTS: ContractConfig = {
         lease: true,
         currencies: ["NTRN", "USDC_NOBLE", "DYDX", "ST_TIA", "STK_ATOM", "ATOM", "D_ATOM"],
         type: PositionTypes.long,
-        rewards: false
+        rewards: true
       },
       "OSMOSIS-OSMOSIS-USDC_NOBLE": {
         lease: true,
@@ -95,14 +95,35 @@ export const CONTRACTS: ContractConfig = {
           "ALL_SOL"
         ],
         type: PositionTypes.long,
-        rewards: false
+        rewards: true
       },
       "OSMOSIS-OSMOSIS-ST_ATOM": {
         only: [],
         lease: true,
         currencies: ["ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
         type: PositionTypes.short,
-        rewards: false
+        rewards: true
+      },
+      "OSMOSIS-OSMOSIS-ALL_BTC": {
+        only: [],
+        lease: true,
+        currencies: ["ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
+        type: PositionTypes.short,
+        rewards: true
+      },
+      "OSMOSIS-OSMOSIS-ALL_SOL": {
+        only: [],
+        lease: true,
+        currencies: ["ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
+        type: PositionTypes.short,
+        rewards: true
+      },
+      "OSMOSIS-OSMOSIS-AKT": {
+        only: [],
+        lease: true,
+        currencies: ["ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
+        type: PositionTypes.short,
+        rewards: true
       }
     },
     dispatcher: {
@@ -112,7 +133,7 @@ export const CONTRACTS: ContractConfig = {
     admin: {
       instance: "nolus1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsqxf8nd",
       codeId: "",
-      ignoreProtocols: ["OSMOSIS-OSMOSIS-ALL_BTC", "OSMOSIS-OSMOSIS-ALL_SOL", "OSMOSIS-OSMOSIS-AKT"]
+      ignoreProtocols: []
     }
   }
 };

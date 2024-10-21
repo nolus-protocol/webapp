@@ -4,5 +4,6 @@ export enum RouteNames {
   VOTE = "vote",
   LEASE = "lease",
   EARN = "earn",
-  STATS = "stats"
+  STATS = "stats",
+  "PNL-HISTORY" = "pnl-history"
 }

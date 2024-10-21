@@ -30,7 +30,7 @@
             :type="CURRENCY_VIEW_TYPES.CURRENCY"
             denom="%"
           />
-          <p class="text-[12px] text-[#1AB171]">+{{ rewards }}% {{ NATIVE_ASSET.label }}</p>
+          <!-- <p class="text-[12px] text-[#1AB171]">+{{ rewards }}% {{ NATIVE_ASSET.label }}</p> -->
         </div>
         <template v-else> – </template>
       </template>

@@ -142,6 +142,9 @@ const showDelegateUndelegateDialog = ref(false);
 const showWithrawRewardsDialog = ref(false);
 const sort = [
   "OSMOSIS-OSMOSIS-ST_ATOM",
+  "OSMOSIS-OSMOSIS-ALL_BTC",
+  "OSMOSIS-OSMOSIS-ALL_SOL",
+  "OSMOSIS-OSMOSIS-AKT",
   "OSMOSIS-OSMOSIS-USDC_NOBLE",
   "NEUTRON-ASTROPORT-USDC_NOBLE",
   "OSMOSIS-OSMOSIS-USDC_AXELAR",

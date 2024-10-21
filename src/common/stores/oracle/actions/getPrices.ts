@@ -25,16 +25,23 @@ export async function getPrices(this: State) {
 
         const [data, lpnPrice] = await Promise.all([oracleContract.getPrices(), getLpnPrice(oracleContract)]);
         const lpn = AssetUtils.getLpnByProtocol(protocolKey);
-        pr[lpn.ibcData as string] = { symbol: lpn.ticker as string, amount: lpnPrice.toString() };
-        pr[lpn.key as string] = { symbol: lpn.ticker as string, amount: lpnPrice.toString() };
+
+        const baseCurrency = app.currenciesData![`${lpnPrice.amount_quote}@${protocolKey}`];
+        const decimals = lpn.decimal_digits - baseCurrency.decimal_digits;
+
+        lpnPrice.price = lpnPrice.price.mul(new Dec(10 ** decimals));
+        pr[lpn.ibcData as string] = { symbol: lpn.ticker as string, amount: lpnPrice.price.toString() };
+        pr[lpn.key as string] = { symbol: lpn.ticker as string, amount: lpnPrice.price.toString() };
 
         for (const price of (data as IObjectKeys).prices) {
           const ticker = CurrencyDemapping[price.amount.ticker]?.ticker ?? price.amount.ticker;
           const currency = app.currenciesData![`${ticker}@${protocolKey}`];
           if (currency) {
-            const diff = Math.abs(Number(currency.decimal_digits) - lpn.decimal_digits);
-            let calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount)).mul(lpnPrice);
-            calculatedPrice = calculatedPrice.mul(new Dec(10 ** diff));
+            const diff = currency.decimal_digits - lpn.decimal_digits;
+            let calculatedPrice = new Dec(price.amount_quote.amount)
+              .quo(new Dec(price.amount.amount))
+              .mul(lpnPrice.price)
+              .mul(new Dec(10 ** diff));
             const tokenPrice = {
               amount: calculatedPrice.toString(),
               symbol: price.amount_quote.ticker
@@ -58,5 +65,8 @@ export async function getPrices(this: State) {
 async function getLpnPrice(oracleContract: Oracle) {
   const lpn = await oracleContract.getBaseCurrency();
   const price = await oracleContract.getStablePrice(lpn);
-  return new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
+  return {
+    price: new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount)),
+    amount_quote: CurrencyDemapping[price.amount_quote.ticker!]?.ticker ?? price.amount_quote.ticker
+  };
 }

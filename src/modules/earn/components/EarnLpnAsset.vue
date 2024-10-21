@@ -107,7 +107,7 @@ const items = computed(() => {
     },
     {
       type: CURRENCY_VIEW_TYPES.CURRENCY,
-      subValue: hasReswards ? `+${rewards.value}% ${NATIVE_ASSET.label}` : "-",
+      // subValue: hasReswards ? `+${rewards.value}% ${NATIVE_ASSET.label}` : "-",
       class: hasReswards ? "text-success-100" : "text-neutral-typography-200"
     }
   ];

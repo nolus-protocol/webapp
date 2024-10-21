@@ -322,6 +322,16 @@
     "pnl02-banner-subtitle": "Win Еxtra USDC",
     "pnl02-banner-description": "Share your top lease gainer on Twitter by September 30th. Post freely, then submit your best pick here",
     "osmosis-st-atom": "Osmosis stATOM",
-    "open-short-position-action": "Open {position} position on {LPN_ticker} with {amount}"
+    "open-short-position-action": "Open {position} position on {LPN_ticker} with {amount}",
+    "pnl-history": "PnL History",
+    "lease-history": "Lease History",
+    "contract-id": "Contract id",
+    "realized": "Realized",
+    "status-liquidation": "Liquidate",
+    "status-market-close": "Close",
+    "status-repay": "Repaid",
+    "osmosis-allbtc": "Osmosis BTC",
+    "osmosis-allsol": "Osmosis SOL",
+    "osmosis-akt": "Osmosis AKT"
   }
 }

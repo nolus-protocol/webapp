@@ -1,5 +1,13 @@
 import type { IObjectKeys } from "@/common/types";
 import { NETWORK } from "@/config/global";
+import { defaultRegistryTypes } from "@cosmjs/stargate";
+import { Registry } from "@cosmjs/proto-signing";
+import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
+import { Any } from "cosmjs-types/google/protobuf/any";
+import { Buffer } from "buffer";
+
+const registry = new Registry(defaultRegistryTypes);
+registry.register("/cosmwasm.wasm.v1.MsgExecuteContract", MsgExecuteContract);
 
 export class EtlApi {
   static getApiUrl() {
@@ -18,5 +26,25 @@ export class EtlApi {
     return fetch(`${EtlApi.getApiUrl()}/prices?interval=${interval}&key=${key}&protocol=${protocol}`).then((data) =>
       data.json()
     );
+  }
+
+  static async fetchPNL(address: string, skip: number, limit: number): Promise<IObjectKeys[]> {
+    return fetch(`${EtlApi.getApiUrl()}/ls-loan-closing?address=${address}&skip=${skip}&limit=${limit}`).then((data) =>
+      data.json()
+    );
+  }
+
+  static async fetchTXS(address: string, skip: number, limit: number): Promise<IObjectKeys[]> {
+    return fetch(`${EtlApi.getApiUrl()}/txs?address=${address}&skip=${skip}&limit=${limit}`).then(async (data) => {
+      const items = await data.json();
+
+      return items.map((item: IObjectKeys) => {
+        item.timestamp = new Date(item.timestamp);
+        const value = Uint8Array.from(Buffer.from(item.value, "base64"));
+        const any = Any.fromPartial({ typeUrl: item.type, value });
+        item.data = registry.decode(any);
+        return item;
+      });
+    });
   }
 }
