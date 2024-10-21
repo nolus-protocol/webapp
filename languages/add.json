@@ -1,5 +1,5 @@
 {
-  "status-liquidation": "Liquidate",
-  "status-market-close": "Close",
-  "status-repay": "Repaid"
+  "osmosis-allbtc": "Osmosis BTC",
+  "osmosis-allsol": "Osmosis SOL",
+  "osmosis-axk": "Osmosis AXL"
 }

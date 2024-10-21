@@ -30,7 +30,7 @@
                 :button="tx.step == CONFIRM_STEP.SUCCESS ? '' : $t('message.details')"
                 :fee="tx.fee.toString()"
                 :status="tx.status"
-                :date="tx.step == CONFIRM_STEP.SUCCESS ? getCreatedAtForHuman(tx.date) : ''"
+                :date="tx.step == CONFIRM_STEP.SUCCESS ? getCreatedAtForHuman(tx.date)! : ''"
                 @button-click="openAction(tx.key)"
               >
                 <template v-slot:status>

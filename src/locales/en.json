@@ -329,6 +329,9 @@
     "realized": "Realized",
     "status-liquidation": "Liquidate",
     "status-market-close": "Close",
-    "status-repay": "Repaid"
+    "status-repay": "Repaid",
+    "osmosis-allbtc": "Osmosis BTC",
+    "osmosis-allsol": "Osmosis SOL",
+    "osmosis-akt": "Osmosis AKT"
   }
 }

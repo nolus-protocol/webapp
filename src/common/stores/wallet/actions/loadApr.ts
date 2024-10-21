@@ -9,6 +9,7 @@ export async function loadApr(this: Store) {
       fetch(`${url}/cosmos/staking/v1beta1/pool`).then((data) => data.json()),
       fetch(`${url}/nolus/mint/v1beta1/annual_inflation`).then((data) => data.json())
     ]);
+
     const bonded = Number(stakingBalance.pool.bonded_tokens);
     const inflation = Number(infolation_data.annual_inflation ?? 0);
     this.apr = (inflation / bonded) * 100;

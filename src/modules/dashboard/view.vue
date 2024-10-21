@@ -491,13 +491,17 @@ async function loadSuppliedAndStaked() {
         const lpn_ticker = await lppClient.getLPN();
         const lpnCoin = app.currenciesData![`${CurrencyDemapping[lpn_ticker]?.ticker ?? lpn_ticker}@${protocolKey}`];
         const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
+        const lpnPrice = new Dec(oracle.prices[lpnCoin.key].amount);
         const [depositBalance, price] = await Promise.all([
           lppClient.getLenderDeposit(walletAddress as string),
           lppClient.getPrice()
         ]);
 
-        const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
-        amount = amount.add(new Dec(depositBalance.balance, Number(lpnCoin!.decimal_digits)).mul(calculatedPrice));
+        const calculatedPrice = new Dec(price.amount_quote.amount).mul(lpnPrice).quo(new Dec(price.amount.amount));
+        const a = new Dec(depositBalance.balance, Number(lpnCoin!.decimal_digits)).mul(calculatedPrice);
+        console.log(protocolKey, a.toString(), depositBalance, price);
+
+        amount = amount.add(a);
       };
 
       promises.push(fn());
