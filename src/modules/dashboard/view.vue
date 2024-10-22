@@ -499,7 +499,6 @@ async function loadSuppliedAndStaked() {
 
         const calculatedPrice = new Dec(price.amount_quote.amount).mul(lpnPrice).quo(new Dec(price.amount.amount));
         const a = new Dec(depositBalance.balance, Number(lpnCoin!.decimal_digits)).mul(calculatedPrice);
-        console.log(protocolKey, a.toString(), depositBalance, price);
 
         amount = amount.add(a);
       };

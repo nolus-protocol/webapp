@@ -318,13 +318,14 @@ const calculateMarginAmount = computed(() => {
   }
 
   const [_, protocolKey] = props.modelValue.selectedCurrency.key.split("@");
-  const lpn = AssetUtils.getLpnByProtocol(protocolKey);
+  const stable = ProtocolsConfig[protocolKey].stable;
+  const asset = app.currenciesData![`${stable}@${protocolKey}`];
 
   const token = CurrencyUtils.convertMinimalDenomToDenom(
     "0",
-    lpn.decimal_digits.toString(),
-    lpn.shortName as string,
-    lpn.decimal_digits
+    asset.decimal_digits.toString(),
+    asset.shortName as string,
+    asset.decimal_digits
   );
 
   return token.toString();

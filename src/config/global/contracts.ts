@@ -19,11 +19,13 @@ export const CONTRACTS: ContractConfig = {
       "NEUTRON-ASTROPORT-USDC_AXL": {
         lease: true,
         currencies: ["NTRN", "USDC_AXELAR", "ATOM"],
+        stable: "USDC_AXELAR",
         type: PositionTypes.long,
         rewards: true
       },
       "OSMOSIS-OSMOSIS-USDC_AXELAR": {
         currencies: ["NLS", "OSMO", "USDC_AXELAR", "ATOM", "AKT", "JUNO"],
+        stable: "USDC_AXELAR",
         lease: true,
         type: PositionTypes.long,
         rewards: false
@@ -46,6 +48,7 @@ export const CONTRACTS: ContractConfig = {
     protocolConfig: {
       "OSMOSIS-OSMOSIS-USDC_AXELAR": {
         currencies: ["USDC_AXELAR"],
+        stable: "USDC_AXELAR",
         lease: false,
         type: PositionTypes.long,
         rewards: false
@@ -53,12 +56,14 @@ export const CONTRACTS: ContractConfig = {
       "NEUTRON-ASTROPORT-USDC_AXELAR": {
         lease: false,
         currencies: ["USDC_AXELAR"],
+        stable: "USDC_AXELAR",
         type: PositionTypes.long,
         rewards: false
       },
       "NEUTRON-ASTROPORT-USDC_NOBLE": {
         lease: true,
         currencies: ["NTRN", "USDC_NOBLE", "DYDX", "ST_TIA", "STK_ATOM", "ATOM", "D_ATOM"],
+        stable: "USDC_NOBLE",
         type: PositionTypes.long,
         rewards: true
       },
@@ -94,6 +99,7 @@ export const CONTRACTS: ContractConfig = {
           "ALL_BTC",
           "ALL_SOL"
         ],
+        stable: "USDC_NOBLE",
         type: PositionTypes.long,
         rewards: true
       },
@@ -101,6 +107,7 @@ export const CONTRACTS: ContractConfig = {
         only: [],
         lease: true,
         currencies: ["ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
+        stable: "USDC_NOBLE",
         type: PositionTypes.short,
         rewards: true
       },
@@ -108,6 +115,7 @@ export const CONTRACTS: ContractConfig = {
         only: [],
         lease: true,
         currencies: ["ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
+        stable: "USDC_NOBLE",
         type: PositionTypes.short,
         rewards: true
       },
@@ -115,6 +123,7 @@ export const CONTRACTS: ContractConfig = {
         only: [],
         lease: true,
         currencies: ["ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
+        stable: "USDC_NOBLE",
         type: PositionTypes.short,
         rewards: true
       },
@@ -123,6 +132,7 @@ export const CONTRACTS: ContractConfig = {
         lease: true,
         currencies: ["ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
         type: PositionTypes.short,
+        stable: "USDC_NOBLE",
         rewards: true
       }
     },

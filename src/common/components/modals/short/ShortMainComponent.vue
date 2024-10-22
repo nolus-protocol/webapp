@@ -94,7 +94,6 @@ const paymentBalances = computed(() => {
 
     return true;
   });
-  console.log(b);
   return b;
 });
 
