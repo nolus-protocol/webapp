@@ -253,7 +253,7 @@
     "stats-banner-title": "Protokol İstatistikleri",
     "stats-banner-subtitle": "En Güncel İstatistikleri İnceleyin",
     "stats-banner-description": "TVL, fon kullanımı, geri alımlar, kredi ayrıntıları ve daha fazlası gibi önemli protokol göstergelerini takip edin",
-    "positions-pnL": "Positionların Kâr/Zarar Durumu",
+    "positions-pnL": "Unrealized PnL",
     "total-equity": "Toplam Sermaye",
     "proposal": "Teklif",
     "voter": "Oy veren",

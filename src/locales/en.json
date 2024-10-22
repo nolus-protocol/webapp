@@ -258,7 +258,7 @@
     "stats-banner-title": "Protocol Stats",
     "stats-banner-subtitle": "Staying Current with the Latest Stats",
     "stats-banner-description": "Track crucial protocol indicators like TVL, funds usage, buybacks, loan details and more",
-    "positions-pnL": "Positions PnL",
+    "positions-pnL": "Unrealized PnL",
     "total-equity": "Total Equity",
     "proposal": "Proposal",
     "voter": "Voter",

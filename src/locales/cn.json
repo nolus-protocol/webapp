@@ -253,7 +253,7 @@
     "stats-banner-title": "协议统计",
     "stats-banner-subtitle": "了解最新统计数据",
     "stats-banner-description": "追踪关键的协议指标，如总锁定价值、资金使用情况、回购、贷款详情等",
-    "positions-pnL": "仓位损益",
+    "positions-pnL": "Unrealized PnL",
     "total-equity": "总资产",
     "proposal": "提案",
     "voter": "投票人",

@@ -253,7 +253,7 @@
     "stats-banner-title": "プロトコル統計",
     "stats-banner-subtitle": "最新の統計情報を把握する",
     "stats-banner-description": "TVL、資金使用状況、買い戻し、ローンの詳細など、重要なプロトコル指標を追跡する",
-    "positions-pnL": "ポジションPnL",
+    "positions-pnL": "Unrealized PnL",
     "total-equity": "総資産",
     "proposal": "提案",
     "voter": "投票者",
