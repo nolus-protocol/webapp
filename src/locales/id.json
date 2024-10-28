@@ -221,7 +221,7 @@
     "optimal-tooltip": "Ambang batas di mana bunga sewa maksimum tercapai",
     "deposit-suspension": "Deposit Cap",
     "deposit-suspension-tooltip": "Ambang batas di bawah mana deposit stablecoin baru ditangguhkan",
-    "incentives-pool": "Kolam Insentif",
+    "incentives-pool": "Protocol Owned Liquidity",
     "leased-assets-total": "Pinjaman Disediakan (Total)",
     "protocol-revenue": "Pendapatan Protokol",
     "protocol-stats": "Statistik Protokol",

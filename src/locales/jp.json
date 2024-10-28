@@ -220,7 +220,7 @@
     "optimal-tooltip": "最大リース利息が達成される閾値",
     "deposit-suspension": "入金制限",
     "deposit-suspension-tooltip": "新しいステーブルコインの入金が一時停止される閾値",
-    "incentives-pool": "インセンティブプール",
+    "incentives-pool": "Protocol Owned Liquidity",
     "leased-assets-total": "提供されたローン（合計）",
     "protocol-revenue": "プロトコル収益",
     "protocol-stats": "プロトコル統計",

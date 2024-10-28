@@ -220,7 +220,7 @@
     "optimal-tooltip": "Azami kira faizine ulaşılan eşik",
     "deposit-suspension": "Deposit Cap",
     "deposit-suspension-tooltip": "Yeni stabilkoin mevduatlarının askıya alındığı eşik",
-    "incentives-pool": "Teşvik Havuzu",
+    "incentives-pool": "Protocol Owned Liquidity",
     "leased-assets-total": "Kiralanan Varlıklar (Toplam)",
     "protocol-revenue": "Protokol geliri",
     "protocol-stats": "Protokol İstatistikleri",

@@ -220,7 +220,7 @@
     "optimal-tooltip": "Порог, при котором достигается максимальный процент по займу",
     "deposit-suspension": "Deposit Cap",
     "deposit-suspension-tooltip": "Порог, ниже которого новые депозиты в стейблкоинах приостанавливаются",
-    "incentives-pool": "Пул наград",
+    "incentives-pool": "Protocol Owned Liquidity",
     "leased-assets-total": "Сданные в заём активы (Все)",
     "protocol-revenue": "Доход протокола",
     "protocol-stats": "Статистика Протокола",
