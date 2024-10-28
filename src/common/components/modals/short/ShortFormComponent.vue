@@ -128,12 +128,12 @@ import { Button, Tooltip } from "web-components";
 import type { LeaseComponentProps } from "./types/LeaseComponentProps";
 import type { ExternalCurrency } from "@/common/types";
 
-import { computed, nextTick, onMounted, type PropType, ref, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, type PropType, ref, watch } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/common/stores/oracle";
-import { AppUtils, AssetUtils, LeaseUtils } from "@/common/utils";
+import { AssetUtils, getMicroAmount, LeaseUtils, SkipRouter } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
 
 import { MONTHS, NATIVE_NETWORK, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
@@ -142,6 +142,9 @@ const wallet = useWalletStore();
 const app = useApplicationStore();
 const oracle = useOracleStore();
 const swapFee = ref(0);
+
+const timeOut = 200;
+let time: NodeJS.Timeout;
 
 onMounted(() => {
   if (props.modelValue.dialogSelectedCurrency) {
@@ -157,8 +160,10 @@ onMounted(() => {
       props.modelValue.selectedCurrency = app.currenciesData![props.modelValue.dialogSelectedCurrency!];
     });
   }
+});
 
-  setSwapFee();
+onUnmounted(() => {
+  clearTimeout(time);
 });
 
 const props = defineProps({
@@ -182,15 +187,48 @@ watch(
 );
 
 watch(
-  () => props.modelValue.selectedCurrency,
+  () => [props.modelValue.leaseApply],
   (value) => {
     setSwapFee();
   }
 );
 
 const setSwapFee = async () => {
-  const asset = props.modelValue.selectedCurrency;
-  swapFee.value = (await AppUtils.getSwapFee())[asset.ticker] ?? 0;
+  clearTimeout(time);
+  if (props.modelValue.downPaymentErrorMsg.length == 0 && Number(props.modelValue.downPayment) > 0) {
+    time = setTimeout(async () => {
+      const currency = props.modelValue.selectedDownPaymentCurrency;
+      const lease = props.modelValue.selectedCurrency;
+      const [_, p] = lease.key.split("@");
+
+      const microAmount = CurrencyUtils.convertDenomToMinimalDenom(
+        props.modelValue.downPayment,
+        props.modelValue.selectedDownPaymentCurrency.ibcData,
+        props.modelValue.selectedDownPaymentCurrency.decimal_digits
+      ).amount.toString();
+
+      const lpn = AssetUtils.getLpnByProtocol(p);
+      let amountIn = 0;
+      let amountOut = 0;
+      const [r, r2] = await Promise.all([
+        SkipRouter.getRoute(currency.ibcData, lease.ibcData, microAmount).then((data) => {
+          amountIn += Number(data.usdAmountIn);
+          amountOut += Number(data.usdAmountOut);
+
+          return Number(data?.swapPriceImpactPercent ?? 0);
+        }),
+        SkipRouter.getRoute(lpn.ibcData, lease.ibcData, props.modelValue.leaseApply!.borrow.amount).then((data) => {
+          amountIn += Number(data.usdAmountIn);
+          amountOut += Number(data.usdAmountOut);
+
+          return Number(data?.swapPriceImpactPercent ?? 0);
+        })
+      ]);
+      const diff = amountOut - amountIn;
+      const fee = diff / amountIn;
+      swapFee.value = fee;
+    }, timeOut);
+  }
 };
 
 const totalBalances = computed(() => {

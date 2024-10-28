@@ -652,8 +652,12 @@ const amount = computed(() => {
 
       const asset =
         app.currenciesData?.[`${props.leaseInfo.leaseData.leasePositionTicker}@${props.leaseInfo.protocol}`]!;
+      const lease_asset =
+        app.currenciesData?.[`${props.leaseInfo.leaseData.ls_asset_symbol}@${props.leaseInfo.protocol}`]!;
       const price = oracleStore.prices?.[asset?.ibcData as string];
-      return new Dec(data.amount, asset.decimal_digits).quo(new Dec(price.amount)).toString(asset.decimal_digits);
+      return new Dec(data.amount, lease_asset.decimal_digits)
+        .quo(new Dec(price.amount))
+        .toString(lease_asset.decimal_digits);
     }
   }
 });
