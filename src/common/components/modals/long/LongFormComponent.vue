@@ -236,8 +236,11 @@ const setSwapFee = async () => {
           return Number(data?.swapPriceImpactPercent ?? 0);
         })
       ]);
-      const diff = amountOut - amountIn;
-      const fee = diff / amountIn;
+      const out_a = Math.max(amountOut, amountIn);
+      const in_a = Math.min(amountOut, amountIn);
+
+      const diff = out_a - in_a;
+      const fee = diff / in_a;
       swapFee.value = fee;
     }, timeOut);
   }

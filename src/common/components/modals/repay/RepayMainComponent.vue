@@ -130,10 +130,6 @@ const state = ref({
   onNextClick: () => onNextClick()
 } as RepayComponentProps);
 
-onMounted(async () => {
-  setSwapFee();
-});
-
 onUnmounted(() => {
   clearTimeout(time);
 });
@@ -176,15 +172,18 @@ const setSwapFee = async () => {
       let amountIn = 0;
       let amountOut = 0;
       const [r] = await Promise.all([
-        SkipRouter.getRoute(lease.ibcData, lease.ibcData, microAmount).then((data) => {
+        SkipRouter.getRoute(lease.ibcData, currecy.ibcData, microAmount).then((data) => {
           amountIn += Number(data.usdAmountIn);
           amountOut += Number(data.usdAmountOut);
 
           return Number(data?.swapPriceImpactPercent ?? 0);
         })
       ]);
-      const diff = amountOut - amountIn;
-      const fee = diff / amountIn;
+      const out_a = Math.max(amountOut, amountIn);
+      const in_a = Math.min(amountOut, amountIn);
+
+      const diff = out_a - in_a;
+      const fee = diff / in_a;
       state.value.swapFee = fee;
     }, timeOut);
   }

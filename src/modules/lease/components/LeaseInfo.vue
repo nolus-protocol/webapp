@@ -559,8 +559,7 @@ const currentPrice = computed(() => {
     CurrencyDemapping[props.leaseInfo.leaseData?.leasePositionTicker]?.ticker ??
     props.leaseInfo.leaseData?.leasePositionTicker;
 
-  const currency = app.currenciesData?.[`${ticker}@${props.leaseInfo.protocol}`];
-  return oracleStore.prices[currency?.ibcData as string]?.amount ?? "0";
+  return oracleStore.prices[`${ticker}@${props.leaseInfo.protocol}`]?.amount ?? "0";
 });
 
 async function fetchChartData(intetval: string) {
