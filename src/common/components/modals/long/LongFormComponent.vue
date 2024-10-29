@@ -136,7 +136,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/common/stores/oracle";
 import { AssetUtils, getMicroAmount, LeaseUtils, SkipRouter } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
-import { CurrencyMapping } from "@/config/currencies";
+import { CurrencyDemapping, CurrencyMapping } from "@/config/currencies";
 
 import {
   Contracts,
@@ -316,15 +316,14 @@ const coinList = computed(() => {
       if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
         ticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
       }
-
-      if (!app.lease?.[protocol].includes(ticker)) {
+      if (!app.lease?.[protocol].includes(CurrencyDemapping[ticker]?.ticker ?? ticker)) {
         return false;
       }
 
       if (IGNORE_LEASE_ASSETS.includes(ticker) || IGNORE_LEASE_ASSETS.includes(`${ticker}@${protocol}`)) {
         return false;
       }
-      return app.leasesCurrencies.includes(ticker);
+      return app.leasesCurrencies.includes(CurrencyDemapping[ticker]?.ticker ?? ticker);
     })
     .map((item) => {
       return {

@@ -90,7 +90,8 @@ export const IGNORE_LEASE_ASSETS: string[] = [
   "LVN",
   "EVMOS",
   "DYM",
-  "JKL"
+  "JKL",
+  "CUDOS"
 ];
 
 export const IGNORE_DOWNPAYMENT_ASSETS: string[] = ["STK_ATOM", "LVN", "JKL", "EVMOS", "NLS", "DYM", "CUDOS", "Q_ATOM"];
