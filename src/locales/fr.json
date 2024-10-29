@@ -220,7 +220,7 @@
     "optimal-tooltip": "Le seuil à partir duquel le montant maximum du taux d'intérêt est atteint",
     "deposit-suspension": "Dépôts suspendus",
     "deposit-suspension-tooltip": "Le seuil en dessous duquel les nouveaux dépôts en stablecoins sont suspendus",
-    "incentives-pool": "Réserve d'incitations",
+    "incentives-pool": "Protocol Owned Liquidity",
     "leased-assets-total": "Assets Empruntés (Total)",
     "protocol-revenue": "revenus du protocol",
     "protocol-stats": "Protocol Stats",

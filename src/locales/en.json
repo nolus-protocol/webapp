@@ -221,7 +221,7 @@
     "optimal-tooltip": "The threshold at which the maximum lease interest is reached",
     "deposit-suspension": "Deposit Cap",
     "deposit-suspension-tooltip": "The limit below which new asset deposits are halted",
-    "incentives-pool": "Incentives Pool",
+    "incentives-pool": "Protocol Owned Liquidity",
     "leased-assets-total": "Loans Provided (Total)",
     "protocol-revenue": "Protocol Revenue",
     "protocol-stats": "Protocol Stats",

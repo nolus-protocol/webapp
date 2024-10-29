@@ -220,7 +220,7 @@
     "optimal-tooltip": "Το όριο στο οποίο επιτυγχάνεται το μέγιστο ποσοστό μισθώσεων",
     "deposit-suspension": "Deposit Cap",
     "deposit-suspension-tooltip": "Το όριο κάτω από το οποίο οι νέες καταθέσεις stablecoin αναστέλλονται",
-    "incentives-pool": "Πισίνα κινήτρων",
+    "incentives-pool": "Protocol Owned Liquidity",
     "leased-assets-total": "Χορηγηθέντα δάνεια (Σύνολο)",
     "protocol-revenue": "Έσοδα Πρωτοκόλλου",
     "protocol-stats": "Στατιστικά Πρωτοκόλλου",

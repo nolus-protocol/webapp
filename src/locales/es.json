@@ -220,7 +220,7 @@
     "optimal-tooltip": "El umbral en el que se alcanza el interés máximo de arrendamiento",
     "deposit-suspension": "Deposit Cap",
     "deposit-suspension-tooltip": "El umbral por debajo del cual se suspenden los nuevos depósitos de monedas estables",
-    "incentives-pool": "Pool de incentivos",
+    "incentives-pool": "Protocol Owned Liquidity",
     "leased-assets-total": "Activos arrendados (Total)",
     "protocol-revenue": "Ingresos del protocolo",
     "protocol-stats": "Protocol Stats",

@@ -220,7 +220,7 @@
     "optimal-tooltip": "达到最大租金利息的阈值",
     "deposit-suspension": "存款上限",
     "deposit-suspension-tooltip": "新的稳定币存款上限阈值",
-    "incentives-pool": "激励池",
+    "incentives-pool": "Protocol Owned Liquidity",
     "leased-assets-total": "提供的贷款（总计）",
     "protocol-revenue": "协议收入",
     "protocol-stats": "协议统计",
