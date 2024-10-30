@@ -299,6 +299,7 @@ const balances = computed(() => {
     if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
       cticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
     }
+
     return lpns.includes(item.key as string) || app.leasesCurrencies.includes(cticker);
   });
 });
@@ -316,14 +317,16 @@ const coinList = computed(() => {
       if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
         ticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
       }
-      if (!app.lease?.[protocol].includes(CurrencyDemapping[ticker]?.ticker ?? ticker)) {
+
+      if (!app.lease?.[protocol].includes(ticker)) {
         return false;
       }
 
       if (IGNORE_LEASE_ASSETS.includes(ticker) || IGNORE_LEASE_ASSETS.includes(`${ticker}@${protocol}`)) {
         return false;
       }
-      return app.leasesCurrencies.includes(CurrencyDemapping[ticker]?.ticker ?? ticker);
+
+      return app.leasesCurrencies.includes(ticker);
     })
     .map((item) => {
       return {

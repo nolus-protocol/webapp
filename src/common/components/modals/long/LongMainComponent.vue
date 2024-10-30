@@ -103,7 +103,6 @@ const leaseBalances = computed(() => {
   const c = balances.value
     .filter((item) => {
       let [ticker, protocol] = item.key.split("@");
-
       if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
         ticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
       }

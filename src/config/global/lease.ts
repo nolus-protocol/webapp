@@ -92,7 +92,9 @@ export const IGNORE_LEASE_ASSETS: string[] = [
   "JKL",
   "CUDOS",
   "SCRT",
-  "CRO"
+  "CRO",
+  "WBTC_AXELAR",
+  "WBTC"
 ];
 
 export const IGNORE_DOWNPAYMENT_ASSETS: string[] = [
@@ -108,7 +110,10 @@ export const IGNORE_DOWNPAYMENT_ASSETS: string[] = [
   "JUNO",
   "STARS",
   "CRO",
-  "STRD"
+  "STRD",
+  "WBTC_AXELAR",
+  "WBTC",
+  "PICA"
 ];
 
 export const IGNORE_LEASE_ASSETS_STABLES: string[] = ["USDC_NOBLE"];
