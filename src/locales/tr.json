@@ -182,7 +182,7 @@
     "refresh": "Yenile",
     "session-timeout": "Oturum Zaman Aşımı",
     "session-timeout-message": "Oturumunuzun süresi doldu. Devam etmek için yenileyin",
-    "swap-fee": "Fiyat Etkisi ve Takas Ücreti",
+    "swap-fee": "DEX Fee",
     "leap": "Leap",
     "amount-warning": "Sonraki işlemlerde ödeme yapabilmek için cüzdanda bir miktar NLS token bırakın",
     "Confirm": "Onayla",

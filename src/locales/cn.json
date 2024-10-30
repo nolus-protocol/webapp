@@ -182,7 +182,7 @@
     "refresh": "刷新",
     "session-timeout": "会话进程超时",
     "session-timeout-message": "当前会话进程超时, 请刷新后继续",
-    "swap-fee": "影响和交换费用",
+    "swap-fee": "DEX Fee",
     "leap": "Leap",
     "amount-warning": "请留下少量 NLS 代币用于支付后续交易",
     "Confirm": "确认",

@@ -182,7 +182,7 @@
     "refresh": "リフレッシュ",
     "session-timeout": "セッションタイムアウト",
     "session-timeout-message": "セッションが期限切れになりました。続行するにはリフレッシュしてください",
-    "swap-fee": "影響とスワップ手数料",
+    "swap-fee": "DEX Fee",
     "leap": "Leap",
     "amount-warning": "次のトランザクションの手数料支払いのために少額のNLSトークンを残しておいてください",
     "Confirm": "確認",

@@ -184,7 +184,7 @@
     "refresh": "Rafraîchir",
     "session-timeout": "Expiration de la session",
     "session-timeout-message": "Votre session a expiré. Rafraîchissez pour continuer",
-    "swap-fee": "Impact et frais de swap",
+    "swap-fee": "DEX Fee",
     "leap": "Leap",
     "amount-warning": "Laisser un petit montant de jetons NLS pour payer les transactions ultérieures",
     "Confirm": "Confimer",

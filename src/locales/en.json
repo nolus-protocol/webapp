@@ -183,7 +183,7 @@
     "refresh": "Refresh",
     "session-timeout": "Session Timeout",
     "session-timeout-message": "Your session has expired. Refresh to continue",
-    "swap-fee": "Impact and DEX Fee",
+    "swap-fee": "DEX Fee",
     "leap": "Leap",
     "amount-warning": "Leave small amount of NLS tokens to pay for subsequent transactions",
     "Confirm": "Confirm",

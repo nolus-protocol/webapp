@@ -182,7 +182,7 @@
     "refresh": "Actualizar",
     "session-timeout": "Sesión expirada",
     "session-timeout-message": "Su sesión ha caducado. Actualizar para continuar",
-    "swap-fee": "Tarifa de intercambio",
+    "swap-fee": "DEX Fee",
     "leap": "Salto",
     "amount-warning": "Deje una pequeña cantidad de tokens NLS para pagar las transacciones posteriores",
     "Confirm": "Confirmar",
