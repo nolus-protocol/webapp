@@ -76,7 +76,6 @@ import { AssetsTableRow, CURRENCY_VIEW_TYPES } from "web-components";
 import {
   DEFAULT_LEASE_UP_PERCENT,
   LEASE_UP_COEFICIENT,
-  NATIVE_ASSET,
   NATIVE_CURRENCY as DEFAULT_CURRENCY,
   ProtocolsConfig
 } from "@/config/global";
@@ -166,16 +165,14 @@ function calculateBalance(price: string, tokenAmount: string, denom: string) {
 }
 
 function getApr() {
-  const [ticker] = props.assetInfo.key.split("@");
-
+  let [ticker] = props.assetInfo.key.split("@");
   let asset = (app.lpn ?? []).find((item) => item.key == props.assetInfo.key);
-
   if (!asset) {
+    ticker = CurrencyMapping[ticker]?.ticker ?? ticker;
     asset = (app.lpn ?? []).find((item) => item.ticker == ticker);
   }
 
   const [_, protocol] = asset?.key.split("@") ?? [];
-
   return (app.apr?.[protocol] ?? 0).toString();
 }
 

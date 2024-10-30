@@ -28,14 +28,14 @@ import type { AssetBalance } from "@/common/stores/wallet/types";
 import RepayFormComponent from "./RepayFormComponent.vue";
 import ConfirmComponent from "@/common/components/modals/templates/ConfirmComponent.vue";
 
-import { computed, inject, ref, watch, type PropType, onMounted } from "vue";
+import { computed, inject, ref, watch, type PropType, onMounted, onUnmounted } from "vue";
 import { Lease } from "@nolus/nolusjs/build/contracts";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { Dec, Int } from "@keplr-wallet/unit";
 
 import { CONFIRM_STEP } from "@/common/types";
 import { TxType } from "@/common/types";
-import { AssetUtils, LeaseUtils, getMicroAmount, walletOperation } from "@/common/utils";
+import { AssetUtils, LeaseUtils, SkipRouter, getMicroAmount, walletOperation } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
@@ -70,6 +70,8 @@ const getLeases = inject("getLeases", () => {});
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const showConfirmScreen = ref(false);
+const timeOut = 200;
+let time: NodeJS.Timeout;
 
 const closeModal = onModalClose;
 
@@ -128,8 +130,8 @@ const state = ref({
   onNextClick: () => onNextClick()
 } as RepayComponentProps);
 
-onMounted(async () => {
-  setSwapFee();
+onUnmounted(() => {
+  clearTimeout(time);
 });
 
 watch(
@@ -143,14 +145,49 @@ watch(
 watch(
   () => [...state.value.amount],
   (currentValue, oldValue) => {
+    setSwapFee();
     isAmountValid();
   }
 );
 
-async function setSwapFee() {
-  const asset = state.value.selectedCurrency;
-  state.value.swapFee = (await AppUtils.getSwapFee())[asset.ticker] ?? 0;
-}
+// async function setSwapFee() {
+//   const asset = state.value.selectedCurrency;
+//   state.value.swapFee = (await AppUtils.getSwapFee())[asset.ticker] ?? 0;
+// }
+
+const setSwapFee = async () => {
+  clearTimeout(time);
+  if (isAmountValid()) {
+    time = setTimeout(async () => {
+      const lease = state.value.selectedCurrency;
+      const currecy =
+        app.currenciesData![`${props.leaseData?.leaseData?.leasePositionTicker}@${props.leaseData?.protocol}`];
+
+      const microAmount = CurrencyUtils.convertDenomToMinimalDenom(
+        state.value.amount,
+        lease.balance.ibcData,
+        lease.decimal_digits
+      ).amount.toString();
+
+      let amountIn = 0;
+      let amountOut = 0;
+      const [r] = await Promise.all([
+        SkipRouter.getRoute(lease.ibcData, currecy.ibcData, microAmount).then((data) => {
+          amountIn += Number(data.usdAmountIn);
+          amountOut += Number(data.usdAmountOut);
+
+          return Number(data?.swapPriceImpactPercent ?? 0);
+        })
+      ]);
+      const out_a = Math.max(amountOut, amountIn);
+      const in_a = Math.min(amountOut, amountIn);
+
+      const diff = out_a - in_a;
+      const fee = diff / in_a;
+      state.value.swapFee = fee;
+    }, timeOut);
+  }
+};
 
 async function onNextClick() {
   if (isAmountValid()) {

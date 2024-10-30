@@ -89,11 +89,27 @@ export const IGNORE_LEASE_ASSETS: string[] = [
   "STK_ATOM",
   "LVN",
   "EVMOS",
-  "DYM",
-  "JKL"
+  "JKL",
+  "CUDOS",
+  "SCRT",
+  "CRO"
 ];
 
-export const IGNORE_DOWNPAYMENT_ASSETS: string[] = ["STK_ATOM", "LVN", "JKL", "EVMOS", "NLS", "DYM", "CUDOS", "Q_ATOM"];
+export const IGNORE_DOWNPAYMENT_ASSETS: string[] = [
+  "STK_ATOM",
+  "SCRT",
+  "LVN",
+  "JKL",
+  "EVMOS",
+  "NLS",
+  "DYM",
+  "CUDOS",
+  "Q_ATOM",
+  "JUNO",
+  "STARS",
+  "CRO",
+  "STRD"
+];
 
 export const IGNORE_LEASE_ASSETS_STABLES: string[] = ["USDC_NOBLE"];
 

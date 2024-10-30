@@ -5,6 +5,7 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { AppUtils, AssetUtils, EtlApi, Logger } from ".";
 import { CurrencyDemapping } from "@/config/currencies";
+import { useApplicationStore } from "../stores/application";
 
 export class LeaseUtils {
   public static calculateLiquidation(unit: Dec, price: Dec) {
@@ -92,9 +93,19 @@ export class LeaseUtils {
 
       const leasePositionStable = new Dec(result.lease.LS_loan_amnt_asset, lpn.decimal_digits);
       const downPayment = new Dec(result.lease.LS_cltr_amnt_stable, Number(downPaymentCurrency!.decimal_digits));
-      const positionSize = leasePositionStable.add(downPayment);
-      const fee = (await AppUtils.getSwapFee())[result.lease.LS_asset_symbol as string] ?? 0;
-      const downPaymentFee = positionSize.quo(new Dec(1 - fee)).sub(positionSize);
+      // const positionSize = leasePositionStable.add(downPayment);
+      const app = useApplicationStore();
+      const ctrl_currency = app.currenciesData![`${result.lease.LS_cltr_symbol}@${contract}`];
+      const ls_asset_symbol = CurrencyDemapping[result.lease.LS_asset_symbol]?.ticker ?? result.lease.LS_asset_symbol;
+      const lease_currency = app.currenciesData![`${ls_asset_symbol}@${contract}`];
+
+      const ctrl_asset = new Dec(result.lease.LS_cltr_amnt_stable, ctrl_currency.decimal_digits);
+      const loan = new Dec(result.lease.LS_loan_amnt_stable, lpn.decimal_digits);
+      const total = ctrl_asset.add(loan);
+      const loan_amnt_stable = new Dec(result.lease.LS_lpn_loan_amnt, lease_currency.decimal_digits).mul(
+        new Dec(result.lpn_price)
+      );
+      const downPaymentFee = total.sub(loan_amnt_stable);
 
       return {
         downPaymentFee,
