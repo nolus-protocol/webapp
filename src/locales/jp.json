@@ -323,7 +323,7 @@
     "pnl02-banner-description": "Share your top lease gainer on Twitter by September 30th. Post freely, then submit your best pick here",
     "osmosis-st-atom": "Osmosis stATOM",
     "open-short-position-action": "Open {position} position on {LPN_ticker} with {amount}",
-    "pnl-history": "PnL History",
+    "pnl-history": "Realized PnL Log",
     "lease-history": "Lease History",
     "contract-id": "Contract id",
     "realized": "Realized",
