@@ -93,9 +93,10 @@ export class LeaseUtils {
 
       const leasePositionStable = new Dec(result.lease.LS_loan_amnt_asset, lpn.decimal_digits);
       const downPayment = new Dec(result.lease.LS_cltr_amnt_stable, Number(downPaymentCurrency!.decimal_digits));
-      // const positionSize = leasePositionStable.add(downPayment);
       const app = useApplicationStore();
-      const ctrl_currency = app.currenciesData![`${result.lease.LS_cltr_symbol}@${contract}`];
+      const ctrl_asset_ticker = CurrencyDemapping[result.lease.LS_cltr_symbol]?.ticker ?? result.lease.LS_cltr_symbol;
+
+      const ctrl_currency = app.currenciesData![`${ctrl_asset_ticker}@${contract}`];
       const ls_asset_symbol = CurrencyDemapping[result.lease.LS_asset_symbol]?.ticker ?? result.lease.LS_asset_symbol;
       const lease_currency = app.currenciesData![`${ls_asset_symbol}@${contract}`];
 
