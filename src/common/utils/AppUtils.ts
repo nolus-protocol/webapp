@@ -6,27 +6,22 @@ import { CONTRACTS, DOWNPAYMENT_RANGE_DEV, NEWS_URL, NEWS_WALLETS_PATH } from "@
 import { ChainConstants } from "@nolus/nolusjs";
 import { SKIPROUTE_CONFIG_URL } from "@/config/global/swap";
 
-import {
-  DOWNPAYMENT_RANGE_URL,
-  FREE_INTEREST_ADDRESS_URL,
-  isDev,
-  isServe,
-  languages,
-  NETWORK,
-  SWAP_FEE_URL
-} from "@/config/global";
+import { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL, isDev, isServe, languages, NETWORK } from "@/config/global";
 import { PROMOSALS_CONFIG_URL } from "@/config/global/proposals";
+import { FREE_INTEREST_URL } from "@/config/global/free-interest-url";
 
 export class AppUtils {
   public static LANGUAGE = "language";
   public static BANNER = "banner";
 
-  static downpaymentRange: Promise<{
-    [key: string]: {
-      min: number;
-      max: number;
-    };
-  }>;
+  static downpaymentRange: {
+    [key: string]: Promise<{
+      [key: string]: {
+        min: number;
+        max: number;
+      };
+    }>;
+  } = {};
 
   static freeInterestAdress: Promise<{
     interest_paid_to: string[];
@@ -39,6 +34,8 @@ export class AppUtils {
   static swapFee: Promise<{
     [key: string]: number;
   }>;
+
+  static freeInterest: Promise<string[]>;
 
   static rpc: {
     [key: string]: {
@@ -127,26 +124,26 @@ export class AppUtils {
     return archive;
   }
 
-  static async getDownpaymentRange() {
-    const downpaymentRange = AppUtils.downpaymentRange;
+  static async getDownpaymentRange(protocol: string) {
+    const downpaymentRange = AppUtils.downpaymentRange[protocol];
 
     if (downpaymentRange) {
       return downpaymentRange;
     }
 
-    AppUtils.downpaymentRange = AppUtils.fetchDownpaymentRange();
-    return AppUtils.downpaymentRange;
+    AppUtils.downpaymentRange = { [protocol]: AppUtils.fetchDownpaymentRange(protocol) };
+    return AppUtils.downpaymentRange[protocol];
   }
 
-  static async getSwapFee() {
-    const swapFee = AppUtils.swapFee;
+  static async getFreeInterest() {
+    const freeInterest = AppUtils.freeInterest;
 
-    if (swapFee) {
-      return swapFee;
+    if (freeInterest) {
+      return freeInterest;
     }
 
-    AppUtils.swapFee = AppUtils.fetchSwapFee();
-    return AppUtils.swapFee;
+    AppUtils.freeInterest = AppUtils.fetchFreeInterest();
+    return AppUtils.freeInterest;
   }
 
   static async getFreeInterestAddress() {
@@ -329,8 +326,8 @@ export class AppUtils {
     }
   }
 
-  private static async fetchDownpaymentRange() {
-    const data = await fetch(await DOWNPAYMENT_RANGE_URL);
+  private static async fetchDownpaymentRange(protocol: string) {
+    const data = await fetch(DOWNPAYMENT_RANGE_URL(protocol));
     const json = (await data.json()) as {
       [key: string]: {
         min: number;
@@ -343,15 +340,6 @@ export class AppUtils {
         json[key].min = DOWNPAYMENT_RANGE_DEV;
       }
     }
-
-    return json;
-  }
-
-  private static async fetchSwapFee() {
-    const data = await fetch(await SWAP_FEE_URL);
-    const json = (await data.json()) as {
-      [key: string]: number;
-    };
 
     return json;
   }
@@ -404,5 +392,12 @@ export class AppUtils {
     const url = await PROMOSALS_CONFIG_URL;
     const data = await fetch(url);
     return data.json();
+  }
+
+  private static async fetchFreeInterest() {
+    const data = await fetch(await FREE_INTEREST_URL);
+    const json = (await data.json()) as string[];
+
+    return json;
   }
 }

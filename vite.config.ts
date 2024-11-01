@@ -1,10 +1,33 @@
 import { resolve } from "node:path";
 import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
+import { cp } from "fs/promises";
+import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 import vue from "@vitejs/plugin-vue";
 import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
-import { nodePolyfills } from "vite-plugin-node-polyfills";
+
+const downpayments_range_dir = fileURLToPath(new URL("./src/config/lease/downpayment-range", import.meta.url));
+const public_dir = "public";
+
+const downpayments_range = () => ({
+  name: "downpayments-range-copy",
+  configResolved,
+  handleHotUpdate: async ({ file, server }: { file: string; server: any }) => {
+    if (file.includes(downpayments_range_dir)) {
+      await configResolved();
+      server.ws.send({
+        type: "full-reload",
+        path: "*"
+      });
+    }
+  }
+});
+
+async function configResolved() {
+  const public_locales_dir = fileURLToPath(new URL(`./${public_dir}/downpayment-range`, import.meta.url));
+  await cp(downpayments_range_dir, public_locales_dir, { recursive: true });
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -16,6 +39,7 @@ export default defineConfig({
       strictMessage: false,
       runtimeOnly: false
     }),
+    downpayments_range(),
     nodePolyfills({
       include: ["path", "stream", "util"],
       exclude: ["http"],

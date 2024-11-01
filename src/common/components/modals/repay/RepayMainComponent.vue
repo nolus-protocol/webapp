@@ -28,7 +28,7 @@ import type { AssetBalance } from "@/common/stores/wallet/types";
 import RepayFormComponent from "./RepayFormComponent.vue";
 import ConfirmComponent from "@/common/components/modals/templates/ConfirmComponent.vue";
 
-import { computed, inject, ref, watch, type PropType, onMounted, onUnmounted } from "vue";
+import { computed, inject, ref, watch, type PropType, onUnmounted } from "vue";
 import { Lease } from "@nolus/nolusjs/build/contracts";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { Dec, Int } from "@keplr-wallet/unit";
@@ -42,8 +42,7 @@ import { useI18n } from "vue-i18n";
 import { coin } from "@cosmjs/amino";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
-import { AppUtils } from "@/common/utils";
-import { CurrencyDemapping, CurrencyMapping } from "@/config/currencies";
+import { CurrencyDemapping } from "@/config/currencies";
 
 import {
   NATIVE_ASSET,
@@ -104,7 +103,7 @@ const balances = computed(() => {
       return false;
     }
 
-    if (IGNORE_DOWNPAYMENT_ASSETS.includes(ticker)) {
+    if (IGNORE_DOWNPAYMENT_ASSETS.includes(ticker) || IGNORE_DOWNPAYMENT_ASSETS.includes(`${ticker}@${protocol}`)) {
       return false;
     }
 

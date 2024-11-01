@@ -63,7 +63,7 @@
             <Tooltip :content="$t('message.borrowed-tooltip')" />
           </p>
           <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
-            <template v-if="FREE_INTEREST_ASSETS.includes(selectedAssetDenom)">
+            <template v-if="freeInterest?.includes(selectedAssetDenom)">
               <span
                 v-if="annualInterestRate"
                 class="line-throught-gray text-[#8396B1]"
@@ -134,13 +134,12 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/common/stores/oracle";
-import { AssetUtils, getMicroAmount, LeaseUtils, SkipRouter } from "@/common/utils";
+import { AppUtils, AssetUtils, LeaseUtils, SkipRouter } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
-import { CurrencyDemapping, CurrencyMapping } from "@/config/currencies";
+import { CurrencyMapping } from "@/config/currencies";
 
 import {
   Contracts,
-  FREE_INTEREST_ASSETS,
   IGNORE_DOWNPAYMENT_ASSETS,
   IGNORE_LEASE_ASSETS,
   MONTHS,
@@ -157,8 +156,10 @@ const swapFee = ref(0);
 
 const timeOut = 200;
 let time: NodeJS.Timeout;
+let freeInterest = ref<string[]>();
 
-onMounted(() => {
+onMounted(async () => {
+  freeInterest.value = await AppUtils.getFreeInterest();
   if (props.modelValue.dialogSelectedCurrency) {
     const [ticker, protocol] = props.modelValue.dialogSelectedCurrency.split("@");
     for (const balance of balances.value) {
@@ -290,7 +291,7 @@ const balances = computed(() => {
       return false;
     }
 
-    if (IGNORE_DOWNPAYMENT_ASSETS.includes(ticker)) {
+    if (IGNORE_DOWNPAYMENT_ASSETS.includes(ticker) || IGNORE_DOWNPAYMENT_ASSETS.includes(`${ticker}@${protocol}`)) {
       return false;
     }
 

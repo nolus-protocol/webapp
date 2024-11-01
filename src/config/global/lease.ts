@@ -20,57 +20,26 @@ export const WASM_EVENTS = {
   }
 };
 
-let DOWNPAYMENT_RANGE_URL: Promise<string> | string = import("../lease/downpayment-range.json?url").then(
-  (t) => t.default
-);
-let SWAP_FEE_URL: Promise<string> | string = import("../lease/swap-fee?url").then((t) => t.default);
+let DOWNPAYMENT_RANGE_URL = (protocol: string) => {
+  return `/downpayment-range/${protocol}/downpayment-range.json`;
+};
+
+// let DOWNPAYMENT_RANGE_URL: Promise<string> | string = import("../lease/downpayment-range.json?url").then(
+//   (t) => t.default
+// );
 let FREE_INTEREST_ADDRESS_URL: Promise<string> | string = import("../zero/0interest-payments.json?url").then(
   (t) => t.default
 );
 
 if (!isDev()) {
-  DOWNPAYMENT_RANGE_URL =
-    "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/lease/downpayment-range.json";
-  SWAP_FEE_URL = "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/lease/swap-fee.json";
+  DOWNPAYMENT_RANGE_URL = (protocol: string) => {
+    return `https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/lease/downpayment-range/${protocol}/downpayment-range.json`;
+  };
   FREE_INTEREST_ADDRESS_URL =
     "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/zero/0interest-payments.json";
 }
 
-export { DOWNPAYMENT_RANGE_URL, SWAP_FEE_URL, FREE_INTEREST_ADDRESS_URL };
-
-export const FREE_INTEREST_ASSETS: string[] = [
-  "AKT",
-  "ATOM",
-  "AXL",
-  "CRO",
-  "DYDX",
-  "DYM",
-  "EVMOS",
-  "INJ",
-  "JKL",
-  "JUNO",
-  "LVN",
-  "milkTIA",
-  "NTRN",
-  "OSMO",
-  "PICA",
-  "qATOM",
-  "SCRT",
-  "STARS",
-  "stkATOM",
-  "STRD",
-  "stATOM",
-  "stOSMO",
-  "stTIA",
-  "TIA",
-  "WBTC",
-  "WETH",
-  "CUDOS",
-  "dATOM",
-  "USDC",
-  "BTC",
-  "SOL"
-];
+export { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL };
 
 export const IGNORE_LEASE_ASSETS: string[] = [
   "JUNO",

@@ -150,10 +150,10 @@ const state = ref({
 
 const getLeases = inject("getLeases", () => {});
 let leaseAssetPrice: string | null;
-let downPaymentRange: { [key: string]: { min: number; max: number } };
+const downPaymentRange = ref<{ [key: string]: { min: number; max: number } }>();
 
 onMounted(async () => {
-  downPaymentRange = await AppUtils.getDownpaymentRange();
+  setDownpaymentRange();
 });
 
 watch(walletRef.balances, async () => {
@@ -186,6 +186,7 @@ watch(
   () => state.value.selectedCurrency,
   () => {
     calculate();
+    setDownpaymentRange();
   }
 );
 
@@ -195,6 +196,11 @@ watch(
     calculate();
   }
 );
+
+async function setDownpaymentRange() {
+  const [_, p] = state.value.selectedCurrency.key.split("@");
+  downPaymentRange.value = await AppUtils.getDownpaymentRange(p);
+}
 
 async function calculate() {
   try {
@@ -323,28 +329,18 @@ function validateMinMaxValues(): boolean {
     const downPaymentAmount = state.value.downPayment;
     const currentBalance = state.value.selectedDownPaymentCurrency;
 
-    const currency = state.value.selectedCurrency;
-    const downPaymentCurrency = state.value.selectedDownPaymentCurrency;
-    const range = downPaymentRange?.[currency.ticker];
-    const rangedownPaymentCurrency = downPaymentRange?.[downPaymentCurrency.ticker];
-    const values: number[] = [];
-
-    if (range?.max != null) {
-      values.push(range.max);
-    }
-
-    if (rangedownPaymentCurrency?.max != null) {
-      values.push(rangedownPaymentCurrency.max);
-    }
-
-    const max = Math.min(...values);
+    const [c, _] = state.value.selectedCurrency.key.split("@");
+    const range = downPaymentRange.value?.[c];
 
     if (currentBalance) {
       if (downPaymentAmount || downPaymentAmount !== "") {
-        const leaseMax = new Dec(max);
-        const leaseMin = new Dec(range.min);
+        const price = oracle.prices[state.value.selectedDownPaymentCurrency.key as string];
 
-        const price = oracle.prices[currentBalance!.ibcData as string];
+        const max = new Dec(range?.max ?? 0);
+        const min = new Dec(range?.min ?? 0);
+
+        const leaseMax = max.quo(new Dec(price.amount));
+        const leaseMin = min.quo(new Dec(price.amount));
 
         const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
           downPaymentAmount,
@@ -357,20 +353,20 @@ function validateMinMaxValues(): boolean {
           currentBalance.decimal_digits
         ).toDec();
 
-        if (balance.lt(leaseMin)) {
+        if (balance.lt(min)) {
           state.value.downPaymentErrorMsg = i18n.t("message.lease-min-error", {
-            minAmount: Math.ceil((range.min / Number(price.amount)) * 1000) / 1000,
-            maxAmount: Math.ceil((max / Number(price.amount)) * 1000) / 1000,
-            symbol: currentBalance.shortName
+            minAmount: leaseMin.toString(state.value.selectedDownPaymentCurrency.decimal_digits),
+            maxAmount: leaseMax.toString(state.value.selectedDownPaymentCurrency.decimal_digits),
+            symbol: state.value.selectedDownPaymentCurrency.shortName
           });
           isValid = false;
         }
 
-        if (balance.gt(leaseMax)) {
+        if (balance.gt(max)) {
           state.value.downPaymentErrorMsg = i18n.t("message.lease-max-error", {
-            minAmount: Math.ceil((range.min / Number(price.amount)) * 1000) / 1000,
-            maxAmount: Math.ceil((max / Number(price.amount)) * 1000) / 1000,
-            symbol: currentBalance.shortName
+            minAmount: leaseMin.toString(state.value.selectedDownPaymentCurrency.decimal_digits),
+            maxAmount: leaseMax.toString(state.value.selectedDownPaymentCurrency.decimal_digits),
+            symbol: state.value.selectedDownPaymentCurrency.shortName
           });
           isValid = false;
         }
