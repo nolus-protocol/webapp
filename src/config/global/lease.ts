@@ -38,39 +38,7 @@ if (!isDev()) {
 
 export { DOWNPAYMENT_RANGE_URL, SWAP_FEE_URL, FREE_INTEREST_ADDRESS_URL };
 
-export const FREE_INTEREST_ASSETS: string[] = [
-  "AKT",
-  "ATOM",
-  "AXL",
-  "CRO",
-  "DYDX",
-  "DYM",
-  "EVMOS",
-  "INJ",
-  "JKL",
-  "JUNO",
-  "LVN",
-  "milkTIA",
-  "NTRN",
-  "OSMO",
-  "PICA",
-  "qATOM",
-  "SCRT",
-  "STARS",
-  "stkATOM",
-  "STRD",
-  "stATOM",
-  "stOSMO",
-  "stTIA",
-  "TIA",
-  "WBTC",
-  "WETH",
-  "CUDOS",
-  "dATOM",
-  "USDC",
-  "BTC",
-  "SOL"
-];
+export const FREE_INTEREST_ASSETS: string[] = [];
 
 export const IGNORE_LEASE_ASSETS: string[] = [
   "JUNO",
