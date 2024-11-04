@@ -10,7 +10,5 @@ export interface NetworkAddress {
   endpoints: Promise<string> | string;
   currencies: () => Promise<NetworkData | IObjectKeys>;
   etlApi: string;
-  leaseBlockUpdate: number;
-  lppCreatedAt: number;
   evmEndpoints: Promise<string> | string;
 }

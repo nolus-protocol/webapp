@@ -38,7 +38,3 @@ export const STAKING = {
   PERCENT: 0.05,
   SLICE: 3
 };
-
-export const MAINNET = "mainnet";
-export const LPN_NETWORK = ["AXELAR"];
-export const IGNORE_LPN = ["USDC_NOBLE"];

@@ -6,7 +6,7 @@ import { DEFAULT_BLOCK_TIMEOUT_HEIGHT, BigNumberInBase } from "@injectivelabs/ut
 import { ChainId } from "@injectivelabs/ts-types";
 import { makeTimeoutTimestampInNs, MsgTransfer as MasgTransferInj } from "@injectivelabs/sdk-ts";
 
-import { DEFAULT_STD_FEE, TxGrpcClient, createTransaction, ChainRestTendermintApi } from "@injectivelabs/sdk-ts";
+import { DEFAULT_STD_FEE, TxGrpcApi, createTransaction, ChainRestTendermintApi } from "@injectivelabs/sdk-ts";
 
 const simulateIBCTrasnferInj = async (
   signer: Pubkey,
@@ -34,7 +34,7 @@ const simulateIBCTrasnferInj = async (
     memo: message.memo
   });
   const endpoint = getNetworkEndpoints(Network.Mainnet);
-  const txService = new TxGrpcClient(endpoint.grpc);
+  const txService = new TxGrpcApi(endpoint.grpc);
   const chainRestTendermintApi = new ChainRestTendermintApi(endpoint.rest);
   const latestBlock = await chainRestTendermintApi.fetchLatestBlock();
   const latestHeight = latestBlock.header.height;

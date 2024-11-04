@@ -28,7 +28,7 @@ import type { AssetBalance } from "@/common/stores/wallet/types";
 import MarketCloseFormComponent from "./MarketCloseFormComponent.vue";
 import ConfirmComponent from "../templates/ConfirmComponent.vue";
 
-import { computed, inject, ref, watch, type PropType, onMounted, onUnmounted } from "vue";
+import { computed, inject, ref, watch, type PropType, onUnmounted } from "vue";
 import { Lease } from "@nolus/nolusjs/build/contracts";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { Dec, Int } from "@keplr-wallet/unit";

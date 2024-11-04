@@ -20,70 +20,83 @@ export const WASM_EVENTS = {
   }
 };
 
-let DOWNPAYMENT_RANGE_URL: Promise<string> | string = import("../lease/downpayment-range.json?url").then(
-  (t) => t.default
-);
-let SWAP_FEE_URL: Promise<string> | string = import("../lease/swap-fee?url").then((t) => t.default);
+let DOWNPAYMENT_RANGE_URL = (protocol: string) => {
+  return `/downpayment-range/${protocol}/downpayment-range.json`;
+};
+
 let FREE_INTEREST_ADDRESS_URL: Promise<string> | string = import("../zero/0interest-payments.json?url").then(
   (t) => t.default
 );
 
+let IGNORE_LEASE_ASSETS_URL: Promise<string> | string = import("../lease/ignore-lease-assets.json?url").then(
+  (t) => t.default
+);
+
+let IGNORE_DOWNPAYMENT_ASSETS_URL: Promise<string> | string = import(
+  "../lease/ignore-downpayment-assets.json?url"
+).then((t) => t.default);
+
 if (!isDev()) {
-  DOWNPAYMENT_RANGE_URL =
-    "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/lease/downpayment-range.json";
-  SWAP_FEE_URL = "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/lease/swap-fee.json";
+  DOWNPAYMENT_RANGE_URL = (protocol: string) => {
+    return `https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/lease/downpayment-range/${protocol}/downpayment-range.json`;
+  };
   FREE_INTEREST_ADDRESS_URL =
     "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/zero/0interest-payments.json";
+  IGNORE_LEASE_ASSETS_URL =
+    "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/lease/ignore-lease-assets.json";
+  IGNORE_DOWNPAYMENT_ASSETS_URL =
+    "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/lease/ignore-downpayment-assets.json";
 }
 
-export { DOWNPAYMENT_RANGE_URL, SWAP_FEE_URL, FREE_INTEREST_ADDRESS_URL };
+export { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL, IGNORE_LEASE_ASSETS_URL, IGNORE_DOWNPAYMENT_ASSETS_URL };
 
+<<<<<<< HEAD
 export const FREE_INTEREST_ASSETS: string[] = [];
+=======
+// export const IGNORE_LEASE_ASSETS: string[] = [
+//   "JUNO",
+//   "EVMOS",
+//   "STRD",
+//   "LVN",
+//   "DYM",
+//   "Q_ATOM",
+//   "STARS",
+//   "PICA",
+//   "STK_ATOM",
+//   "ATOM@NEUTRON-ASTROPORT-USDC_NOBLE",
+//   "ST_TIA@NEUTRON-ASTROPORT-USDC_NOBLE",
+//   "USDC",
+//   "USDC_AXELAR",
+//   "STK_ATOM",
+//   "LVN",
+//   "EVMOS",
+//   "JKL",
+//   "CUDOS",
+//   "SCRT",
+//   "CRO",
+//   "WBTC_AXELAR",
+//   "WBTC"
+// ];
+>>>>>>> origin/dev
 
-export const IGNORE_LEASE_ASSETS: string[] = [
-  "JUNO",
-  "EVMOS",
-  "STRD",
-  "LVN",
-  "DYM",
-  "Q_ATOM",
-  "STARS",
-  "PICA",
-  "STK_ATOM",
-  "ATOM@NEUTRON-ASTROPORT-USDC_NOBLE",
-  "ST_TIA@NEUTRON-ASTROPORT-USDC_NOBLE",
-  "USDC",
-  "USDC_AXELAR",
-  "STK_ATOM",
-  "LVN",
-  "EVMOS",
-  "JKL",
-  "CUDOS",
-  "SCRT",
-  "CRO",
-  "WBTC_AXELAR",
-  "WBTC"
-];
-
-export const IGNORE_DOWNPAYMENT_ASSETS: string[] = [
-  "STK_ATOM",
-  "SCRT",
-  "LVN",
-  "JKL",
-  "EVMOS",
-  "NLS",
-  "DYM",
-  "CUDOS",
-  "Q_ATOM",
-  "JUNO",
-  "STARS",
-  "CRO",
-  "STRD",
-  "WBTC_AXELAR",
-  "WBTC",
-  "PICA"
-];
+// export const IGNORE_DOWNPAYMENT_ASSETS: string[] = [
+//   "STK_ATOM",
+//   "SCRT",
+//   "LVN",
+//   "JKL",
+//   "EVMOS",
+//   "NLS",
+//   "DYM",
+//   "CUDOS",
+//   "Q_ATOM",
+//   "JUNO",
+//   "STARS",
+//   "CRO",
+//   "STRD",
+//   "WBTC_AXELAR",
+//   "WBTC",
+//   "PICA"
+// ];
 
 export const IGNORE_LEASE_ASSETS_STABLES: string[] = ["USDC_NOBLE"];
-
 export const IGNORE_LEASES: string[] = ["nolus1mqezz2qs8cy8qx50yms0r6xc3lae20tms8dqq3t2tl7dd6gnxhxq3kz4uf"];

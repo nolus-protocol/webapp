@@ -62,7 +62,7 @@
             <Tooltip :content="$t('message.borrowed-tooltip')" />
           </p>
           <p class="align-center mb-2 mt-[14px] flex justify-end text-neutral-typography-200">
-            <!-- <template v-if="FREE_INTEREST_ASSETS.includes(selectedAssetDenom.shortName)">
+            <!-- <template v-if="freeInterest?.includes(selectedAssetDenom)">
               <span
                 v-if="annualInterestRate"
                 class="line-throught-gray text-[#8396B1]"
@@ -133,7 +133,7 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/common/stores/oracle";
-import { AssetUtils, getMicroAmount, LeaseUtils, SkipRouter } from "@/common/utils";
+import { AppUtils, AssetUtils, LeaseUtils, SkipRouter } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
 
 import { MONTHS, NATIVE_NETWORK, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
@@ -145,8 +145,10 @@ const swapFee = ref(0);
 
 const timeOut = 200;
 let time: NodeJS.Timeout;
+let freeInterest = ref<string[]>();
 
-onMounted(() => {
+onMounted(async () => {
+  freeInterest.value = await AppUtils.getFreeInterest();
   if (props.modelValue.dialogSelectedCurrency) {
     const [ticker, protocol] = props.modelValue.dialogSelectedCurrency.split("@");
     for (const balance of totalBalances.value) {
