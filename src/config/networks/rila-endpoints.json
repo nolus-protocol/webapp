@@ -4,8 +4,8 @@
   "archive_node_api": "https://rila-cl.nolus.network:1317",
   "NOLUS": {
     "primary": {
-      "rpc": "https://rila-cl.nolus.network:26657",
-      "api": "https://rila-cl.nolus.network:1317"
+      "rpc": "https://rila-rpc.nolus.network",
+      "api": "https://rila-lcd.nolus.network"
     },
     "fallback": [
       {
