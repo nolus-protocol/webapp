@@ -28,14 +28,14 @@ import type { AssetBalance } from "@/common/stores/wallet/types";
 import RepayFormComponent from "./RepayFormComponent.vue";
 import ConfirmComponent from "@/common/components/modals/templates/ConfirmComponent.vue";
 
-import { computed, inject, ref, watch, type PropType, onUnmounted } from "vue";
+import { computed, inject, ref, watch, type PropType, onUnmounted, onMounted } from "vue";
 import { Lease } from "@nolus/nolusjs/build/contracts";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { Dec, Int } from "@keplr-wallet/unit";
 
 import { CONFIRM_STEP } from "@/common/types";
 import { TxType } from "@/common/types";
-import { AssetUtils, LeaseUtils, SkipRouter, getMicroAmount, walletOperation } from "@/common/utils";
+import { AppUtils, AssetUtils, LeaseUtils, SkipRouter, getMicroAmount, walletOperation } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
@@ -52,7 +52,6 @@ import {
   PERCENT,
   ErrorCodes,
   minimumLeaseAmount,
-  IGNORE_DOWNPAYMENT_ASSETS,
   ProtocolsConfig,
   PositionTypes
 } from "@/config/global";
@@ -69,6 +68,8 @@ const getLeases = inject("getLeases", () => {});
 
 const step = ref(CONFIRM_STEP.CONFIRM);
 const showConfirmScreen = ref(false);
+const ignoreDownpaymentAssets = ref<string[]>();
+
 const timeOut = 200;
 let time: NodeJS.Timeout;
 
@@ -78,6 +79,10 @@ const props = defineProps({
   leaseData: {
     type: Object as PropType<LeaseData>
   }
+});
+
+onMounted(async () => {
+  ignoreDownpaymentAssets.value = await AppUtils.getFreeInterest();
 });
 
 const totalBalances = computed(() => {
@@ -103,7 +108,10 @@ const balances = computed(() => {
       return false;
     }
 
-    if (IGNORE_DOWNPAYMENT_ASSETS.includes(ticker) || IGNORE_DOWNPAYMENT_ASSETS.includes(`${ticker}@${protocol}`)) {
+    if (
+      ignoreDownpaymentAssets.value?.includes(ticker) ||
+      ignoreDownpaymentAssets.value?.includes(`${ticker}@${protocol}`)
+    ) {
       return false;
     }
 

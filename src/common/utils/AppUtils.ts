@@ -2,7 +2,14 @@ import type { API, ARCHIVE_NODE, Endpoint, Node, News, SkipRouteConfigType, Prop
 
 import { connectComet } from "@cosmjs/tendermint-rpc";
 import { EnvNetworkUtils } from ".";
-import { CONTRACTS, DOWNPAYMENT_RANGE_DEV, NEWS_URL, NEWS_WALLETS_PATH } from "@/config/global";
+import {
+  CONTRACTS,
+  DOWNPAYMENT_RANGE_DEV,
+  IGNORE_DOWNPAYMENT_ASSETS_URL,
+  IGNORE_LEASE_ASSETS_URL,
+  NEWS_URL,
+  NEWS_WALLETS_PATH
+} from "@/config/global";
 import { ChainConstants } from "@nolus/nolusjs";
 import { SKIPROUTE_CONFIG_URL } from "@/config/global/swap";
 
@@ -36,6 +43,8 @@ export class AppUtils {
   }>;
 
   static freeInterest: Promise<string[]>;
+  static ignoreLeaseAssets: Promise<string[]>;
+  static ignoreDownpaymentAssets: Promise<string[]>;
 
   static rpc: {
     [key: string]: {
@@ -155,6 +164,28 @@ export class AppUtils {
 
     AppUtils.freeInterestAdress = AppUtils.fetchFreeInterestAddress();
     return AppUtils.freeInterestAdress;
+  }
+
+  static async getIgnoreLeaseAssets() {
+    const ignoreLeaseAssets = AppUtils.ignoreLeaseAssets;
+
+    if (ignoreLeaseAssets) {
+      return ignoreLeaseAssets;
+    }
+
+    AppUtils.ignoreLeaseAssets = AppUtils.fetchIgnoreLeaseAssets();
+    return AppUtils.ignoreLeaseAssets;
+  }
+
+  static async getIgnoreDownpaymentAssets() {
+    const ignoreDownpaymentAssets = AppUtils.ignoreDownpaymentAssets;
+
+    if (ignoreDownpaymentAssets) {
+      return ignoreDownpaymentAssets;
+    }
+
+    AppUtils.ignoreDownpaymentAssets = AppUtils.fetchIgnoreDownpaymentAssets();
+    return AppUtils.ignoreDownpaymentAssets;
   }
 
   static async getNews() {
@@ -396,6 +427,20 @@ export class AppUtils {
 
   private static async fetchFreeInterest() {
     const data = await fetch(await FREE_INTEREST_URL);
+    const json = (await data.json()) as string[];
+
+    return json;
+  }
+
+  private static async fetchIgnoreLeaseAssets() {
+    const data = await fetch(await IGNORE_LEASE_ASSETS_URL);
+    const json = (await data.json()) as string[];
+
+    return json;
+  }
+
+  private static async fetchIgnoreDownpaymentAssets() {
+    const data = await fetch(await IGNORE_DOWNPAYMENT_ASSETS_URL);
     const json = (await data.json()) as string[];
 
     return json;

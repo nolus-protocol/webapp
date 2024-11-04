@@ -14,8 +14,6 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     govern: "https://testnet.ping.pub/nolus/gov",
     staking: "https://testnet.ping.pub/nolus/staking",
     etlApi: "https://etl-cl.nolus.network:8081/api",
-    leaseBlockUpdate: 977014,
-    lppCreatedAt: 1686573237831,
     evmEndpoints: isDev()
       ? import("../networks/evm-endpoints?url").then((t) => t.default)
       : "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/evm-endpoints.json"
@@ -31,8 +29,6 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     govern: "https://ping.pub/nolus/gov",
     staking: "https://ping.pub/nolus/staking",
     etlApi: "https://etl-cl.nolus.network:8082/api",
-    leaseBlockUpdate: 1029833,
-    lppCreatedAt: 1686845698269,
     evmEndpoints: isDev()
       ? import("../networks/evm-endpoints?url").then((t) => t.default)
       : "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/evm-endpoints.json"

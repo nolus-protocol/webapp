@@ -57,7 +57,6 @@ import {
   ErrorCodes,
   ProtocolsConfig,
   PositionTypes,
-  IGNORE_LEASE_ASSETS,
   Contracts
 } from "@/config/global";
 
@@ -68,6 +67,11 @@ const app = useApplicationStore();
 
 const walletRef = storeToRefs(walletStore);
 const i18n = useI18n();
+const ignoreLeaseAssets = ref<string[]>();
+
+onMounted(async () => {
+  ignoreLeaseAssets.value = await AppUtils.getIgnoreLeaseAssets();
+});
 
 const balances = computed(() => {
   let currencies: ExternalCurrency[] = [];
@@ -107,7 +111,7 @@ const leaseBalances = computed(() => {
         ticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
       }
 
-      if (IGNORE_LEASE_ASSETS.includes(ticker) || IGNORE_LEASE_ASSETS.includes(`${ticker}@${protocol}`)) {
+      if (ignoreLeaseAssets.value?.includes(ticker) || ignoreLeaseAssets.value?.includes(`${ticker}@${protocol}`)) {
         return false;
       }
 

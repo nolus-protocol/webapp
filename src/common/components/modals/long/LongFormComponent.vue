@@ -138,30 +138,26 @@ import { AppUtils, AssetUtils, LeaseUtils, SkipRouter } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
 import { CurrencyMapping } from "@/config/currencies";
 
-import {
-  Contracts,
-  IGNORE_DOWNPAYMENT_ASSETS,
-  IGNORE_LEASE_ASSETS,
-  MONTHS,
-  NATIVE_NETWORK,
-  PERMILLE,
-  PositionTypes,
-  ProtocolsConfig
-} from "@/config/global";
+import { Contracts, MONTHS, NATIVE_NETWORK, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
 
 const wallet = useWalletStore();
 const app = useApplicationStore();
 const oracle = useOracleStore();
 const swapFee = ref(0);
+const freeInterest = ref<string[]>();
+const ignoreLeaseAssets = ref<string[]>();
+const ignoreDownpaymentAssets = ref<string[]>();
 
 const timeOut = 200;
 let time: NodeJS.Timeout;
-let freeInterest = ref<string[]>();
 
 onMounted(async () => {
   freeInterest.value = await AppUtils.getFreeInterest();
+  ignoreLeaseAssets.value = await AppUtils.getIgnoreLeaseAssets();
+  ignoreDownpaymentAssets.value = await AppUtils.getIgnoreDownpaymentAssets();
+
   if (props.modelValue.dialogSelectedCurrency) {
-    const [ticker, protocol] = props.modelValue.dialogSelectedCurrency.split("@");
+    const [_, protocol] = props.modelValue.dialogSelectedCurrency.split("@");
     for (const balance of balances.value) {
       const [t, p] = balance.key.split("@");
       if (p == protocol) {
@@ -291,7 +287,10 @@ const balances = computed(() => {
       return false;
     }
 
-    if (IGNORE_DOWNPAYMENT_ASSETS.includes(ticker) || IGNORE_DOWNPAYMENT_ASSETS.includes(`${ticker}@${protocol}`)) {
+    if (
+      ignoreDownpaymentAssets.value?.includes(ticker) ||
+      ignoreDownpaymentAssets.value?.includes(`${ticker}@${protocol}`)
+    ) {
       return false;
     }
 
@@ -323,7 +322,7 @@ const coinList = computed(() => {
         return false;
       }
 
-      if (IGNORE_LEASE_ASSETS.includes(ticker) || IGNORE_LEASE_ASSETS.includes(`${ticker}@${protocol}`)) {
+      if (ignoreLeaseAssets.value?.includes(ticker) || ignoreLeaseAssets.value?.includes(`${ticker}@${protocol}`)) {
         return false;
       }
 
