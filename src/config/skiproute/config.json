@@ -136,24 +136,14 @@
       "currencies": [
         { "from": "ibc/FCFF8B19C61677F3B78E2A5AE3B4A34A8D23858D16905F253B8438B3AFD07FF8", "to": "stuatom" },
         { "from": "ibc/AF5559D128329B6C753F15481BEC26E533B847A471074703FA4903E7E6F61BA1", "to": "stuosmo" },
-        { "from": "ibc/8D4FC51F696E03711B9B37A5787FB89BD2DDBAF788813478B002D552A12F9157", "to": "stutia" },
-        { "from": "ibc/04CA9067228BB51F1C39A506DA00DF07E1496D8308DD21E8EF66AD6169FA722B", "to": "ustrd" }
+        { "from": "ibc/8D4FC51F696E03711B9B37A5787FB89BD2DDBAF788813478B002D552A12F9157", "to": "stutia" }
       ]
-    },
-    "JUNO": {
-      "currencies": [{ "from": "ibc/4F3E83AB35529435E4BFEA001F5D935E7250133347C4E1010A9C77149EF0394C", "to": "ujuno" }]
     },
     "SECRET": {
       "currencies": [{ "from": "ibc/EA00FFF0335B07B5CD1530B7EB3D2C710620AE5B168C71AFF7B50532D690E107", "to": "uscrt" }]
     },
-    "STARGAZE": {
-      "currencies": [{ "from": "ibc/11E3CF372E065ACB1A39C531A3C7E7E03F60B5D0653AD2139D31128ACD2772B5", "to": "ustars" }]
-    },
     "CELESTIA": {
       "currencies": [{ "from": "ibc/6C349F0EB135C5FA99301758F35B87DB88403D690E5E314AB080401FEE4066E5", "to": "utia" }]
-    },
-    "QUICKSILVER": {
-      "currencies": [{ "from": "ibc/317FCA2D7554F55BBCD0019AB36F7FEA18B6D161F462AF5E565068C719A29F20", "to": "uqatom" }]
     },
     "NEUTRON": {
       "currencies": [
@@ -185,17 +175,11 @@
         }
       ]
     },
-    "DYMENSION": {
-      "currencies": [{ "from": "ibc/9C7F70E92CCBA0F2DC94796B0682955E090676EA7A2F8E0A4611956B79CB4406", "to": "adym" }]
-    },
     "JACKAL": {
       "currencies": [{ "from": "ibc/28F026607184B151F1F7D7F5D8AE644528550EB05203A28B6233DFA923669876", "to": "ujkl" }]
     },
     "INJECTIVE": {
       "currencies": [{ "from": "ibc/4DE84C92C714009D07AFEA7350AB3EC383536BB0FAAD7AF9C0F1A0BEA169304E", "to": "inj" }]
-    },
-    "COMPOSABLE": {
-      "currencies": [{ "from": "ibc/7F2DC2A595EDCAEC1C03D607C6DC3C79EDDC029A53D16C0788835C1A9AA06306", "to": "ppica" }]
     },
     "NOBLE": {
       "currencies": [
