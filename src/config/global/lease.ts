@@ -50,9 +50,9 @@ if (!isDev()) {
 
 export { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL, IGNORE_LEASE_ASSETS_URL, IGNORE_DOWNPAYMENT_ASSETS_URL };
 
-<<<<<<< HEAD
-export const FREE_INTEREST_ASSETS: string[] = [];
-=======
+
+// export const FREE_INTEREST_ASSETS: string[] = [];
+
 // export const IGNORE_LEASE_ASSETS: string[] = [
 //   "JUNO",
 //   "EVMOS",
@@ -77,7 +77,6 @@ export const FREE_INTEREST_ASSETS: string[] = [];
 //   "WBTC_AXELAR",
 //   "WBTC"
 // ];
->>>>>>> origin/dev
 
 // export const IGNORE_DOWNPAYMENT_ASSETS: string[] = [
 //   "STK_ATOM",
