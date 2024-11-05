@@ -1,5 +1,5 @@
 import type { IObjectKeys } from "../types";
-import { AppUtils, EnvNetworkUtils, Logger, WalletManager, WalletUtils } from ".";
+import { AppUtils, Logger, WalletManager, WalletUtils } from ".";
 import { ChainConstants } from "@nolus/nolusjs";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toHex } from "@cosmjs/encoding";

@@ -18,6 +18,7 @@ coverage
 
 /cypress/videos/
 /cypress/screenshots/
+public/downpayment-range/*
 
 # Editor directories and files
 .idea
