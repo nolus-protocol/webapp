@@ -41,7 +41,7 @@ export default defineConfig({
     }),
     downpayments_range(),
     nodePolyfills({
-      include: ["path", "stream", "util"],
+      include: ["path", "stream", "util", "crypto"],
       exclude: ["http"],
       globals: {
         Buffer: true,
