@@ -13,6 +13,7 @@ import { RouteNames } from "./RouteNames";
 
 import MainLayout from "@/modules/view.vue";
 import { PnlHistoryRouter } from "@/modules/pnl-history/router";
+import { useWalletStore } from "@/common/stores/wallet";
 
 const router = createRouter({
   scrollBehavior(to, from, savedPosition) {
@@ -42,8 +43,9 @@ async function loadLanguage(to: RouteLocationNormalized, from: RouteLocationNorm
 
 async function loadData() {
   const app = useApplicationStore();
+  const wallet = useWalletStore();
   app[ApplicationActions.LOAD_THEME]();
-  await app[ApplicationActions.CHANGE_NETWORK]();
+  await Promise.all([app[ApplicationActions.CHANGE_NETWORK](), wallet.ignoreAssets()]);
 }
 
 router.beforeEach((to, from, next) => {

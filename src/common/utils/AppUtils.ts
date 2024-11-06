@@ -8,7 +8,8 @@ import {
   IGNORE_DOWNPAYMENT_ASSETS_URL,
   IGNORE_LEASE_ASSETS_URL,
   NEWS_URL,
-  NEWS_WALLETS_PATH
+  NEWS_WALLETS_PATH,
+  IGNORE_ASSETS_URL
 } from "@/config/global";
 import { ChainConstants } from "@nolus/nolusjs";
 import { SKIPROUTE_CONFIG_URL } from "@/config/global/swap";
@@ -45,6 +46,7 @@ export class AppUtils {
   static freeInterest: Promise<string[]>;
   static ignoreLeaseAssets: Promise<string[]>;
   static ignoreDownpaymentAssets: Promise<string[]>;
+  static ignoreAssets: Promise<string[]>;
 
   static rpc: {
     [key: string]: {
@@ -186,6 +188,17 @@ export class AppUtils {
 
     AppUtils.ignoreDownpaymentAssets = AppUtils.fetchIgnoreDownpaymentAssets();
     return AppUtils.ignoreDownpaymentAssets;
+  }
+
+  static async getIgnoreAssets() {
+    const ignoreAssets = AppUtils.ignoreAssets;
+
+    if (ignoreAssets) {
+      return ignoreAssets;
+    }
+
+    AppUtils.ignoreAssets = AppUtils.fetchIgnoreAssets();
+    return AppUtils.ignoreAssets;
   }
 
   static async getNews() {
@@ -441,6 +454,13 @@ export class AppUtils {
 
   private static async fetchIgnoreDownpaymentAssets() {
     const data = await fetch(await IGNORE_DOWNPAYMENT_ASSETS_URL);
+    const json = (await data.json()) as string[];
+
+    return json;
+  }
+
+  private static async fetchIgnoreAssets() {
+    const data = await fetch(await IGNORE_ASSETS_URL);
     const json = (await data.json()) as string[];
 
     return json;

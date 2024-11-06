@@ -13,7 +13,8 @@ const state = (): State => ({
   vest: [],
   lppPrice: {},
   total_unls: { balance: new UnitCoin(NATIVE_ASSET.denom, new Int(0)) },
-  history: {}
+  history: {},
+  ignoreCurrencies: []
 });
 
 const useWalletStore = defineStore("wallet", {

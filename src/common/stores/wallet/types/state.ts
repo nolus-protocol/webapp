@@ -25,6 +25,7 @@ export type State = {
     denom: string;
     amount: string;
   };
+  ignoreCurrencies: string[];
   delegated_free?: {
     denom: string;
     amount: string;

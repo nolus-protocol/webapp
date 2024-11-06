@@ -36,6 +36,8 @@ let IGNORE_DOWNPAYMENT_ASSETS_URL: Promise<string> | string = import(
   "../lease/ignore-downpayment-assets.json?url"
 ).then((t) => t.default);
 
+let IGNORE_ASSETS_URL: Promise<string> | string = import("../lease/ignore-assets.json?url").then((t) => t.default);
+
 if (!isDev()) {
   DOWNPAYMENT_RANGE_URL = (protocol: string) => {
     return `https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/lease/downpayment-range/${protocol}/downpayment-range.json`;
@@ -46,10 +48,17 @@ if (!isDev()) {
     "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/lease/ignore-lease-assets.json";
   IGNORE_DOWNPAYMENT_ASSETS_URL =
     "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/lease/ignore-downpayment-assets.json";
+  IGNORE_ASSETS_URL =
+    "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/lease/ignore-assets.json";
 }
 
-export { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL, IGNORE_LEASE_ASSETS_URL, IGNORE_DOWNPAYMENT_ASSETS_URL };
-
+export {
+  DOWNPAYMENT_RANGE_URL,
+  FREE_INTEREST_ADDRESS_URL,
+  IGNORE_LEASE_ASSETS_URL,
+  IGNORE_DOWNPAYMENT_ASSETS_URL,
+  IGNORE_ASSETS_URL
+};
 
 // export const FREE_INTEREST_ASSETS: string[] = [];
 

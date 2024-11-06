@@ -53,7 +53,7 @@ import { computed, inject, onMounted, ref, watch, nextTick, type PropType } from
 import { useI18n } from "vue-i18n";
 import { coin } from "@cosmjs/amino";
 import { useWalletStore } from "@/common/stores/wallet";
-import { GAS_FEES, IGNORE_TRANSFER_ASSETS, NATIVE_ASSET, NATIVE_NETWORK } from "@/config/global";
+import { GAS_FEES, NATIVE_ASSET, NATIVE_NETWORK } from "@/config/global";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { SwapStatus } from "./types";
@@ -85,7 +85,8 @@ const setShowDialogHeader = inject("setShowDialogHeader", (n: boolean) => {});
 
 const balances = computed(() => {
   return wallet.currencies.filter((item) => {
-    if (IGNORE_TRANSFER_ASSETS.includes(item.ticker as string)) {
+    if (wallet.ignoreCurrencies.includes(item.ticker as string)) {
+      return false;
     }
     return !blacklist.value.includes(item.ibcData);
   });

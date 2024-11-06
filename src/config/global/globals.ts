@@ -60,4 +60,4 @@ export const DECIMALS_AMOUNT = [
 export const ZERO_DECIMALS = 6;
 export const MAX_DECIMALS = 8;
 export const LedgerName = "Ledger";
-export const IGNORE_TRANSFER_ASSETS: string[] = ["STK_ATOM", "LVN", "EVMOS"];
+// export const IGNORE_TRANSFER_ASSETS: string[] = ["STK_ATOM", "LVN", "EVMOS"];
