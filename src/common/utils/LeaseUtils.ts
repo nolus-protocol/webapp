@@ -2,7 +2,7 @@ import type { OpenedLeaseInfo } from "@nolus/nolusjs/build/contracts";
 import type { LeaseAttributes } from "../types/LeaseData";
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { depracated_contracts, PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
+import { PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { AssetUtils, EtlApi, Logger } from ".";
 import { CurrencyDemapping } from "@/config/currencies";
 import { useApplicationStore } from "../stores/application";
@@ -106,13 +106,7 @@ export class LeaseUtils {
       const loan_amnt_stable = new Dec(result.lease.LS_lpn_loan_amnt, lease_currency.decimal_digits).mul(
         new Dec(result.lpn_price)
       );
-      let downPaymentFee = total.sub(loan_amnt_stable);
-
-      if (depracated_contracts.includes(result.lease.LS_loan_pool_id)) {
-        const lease = new Dec(result.lease.LS_loan_amnt, lease_currency.decimal_digits);
-        const fee = leasePositionStable.sub(lease);
-        downPaymentFee = fee;
-      }
+      const downPaymentFee = total.sub(loan_amnt_stable);
 
       return {
         downPaymentFee,

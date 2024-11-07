@@ -155,8 +155,3 @@ export const TIP = {
   amount: 100,
   denom: NATIVE_ASSET.denom
 };
-
-export const depracated_contracts = [
-  "nolus1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sqaa3c5",
-  "nolus1qqcr7exupnymvg6m63eqwu8pd4n5x6r5t3pyyxdy7r97rcgajmhqy3gn94"
-];
