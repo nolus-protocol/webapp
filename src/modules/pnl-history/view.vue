@@ -56,7 +56,7 @@
       />
     </div>
   </div>
-  <Modal
+  <!-- <Modal
     v-if="showErrorDialog"
     route="alert"
     @close-modal="showErrorDialog = false"
@@ -66,7 +66,7 @@
       :title="$t('message.error-connecting')"
       :try-button="onClickTryAgain"
     />
-  </Modal>
+  </Modal> -->
 </template>
 
 <script lang="ts" setup>
