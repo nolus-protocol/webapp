@@ -15,8 +15,10 @@
         :total="modelValue.selectedCurrency.balance"
         :value="modelValue.amount"
         name="repayBalance"
+        :disabled="true"
         @input="handleAmountChange($event)"
         @update-currency="updateCurrency"
+        :disabledCurrencyPicker="true"
       />
       <div class="flex justify-end">
         <div class="grow-3 text-right text-14 font-medium text-neutral-typography-200">
