@@ -61,7 +61,7 @@
   >
     <LongShortDialog />
   </Modal>
-  <Modal
+  <!-- <Modal
     v-if="errorDialog.showDialog"
     @close-modal="errorDialog.showDialog = false"
   >
@@ -70,7 +70,7 @@
       :title="$t('message.error-connecting')"
       :try-button="onTryAgain"
     />
-  </Modal>
+  </Modal> -->
 </template>
 
 <script lang="ts" setup>
@@ -89,7 +89,7 @@ import { Dec } from "@keplr-wallet/unit";
 
 const showLeaseModal = ref(false);
 const { leases, leaseLoaded, getLeases } = useLeases(onLeaseError);
-const CHECK_TIME = 5000;
+const CHECK_TIME = 8000;
 const applicaton = useApplicationStore();
 const applicationRef = storeToRefs(applicaton);
 let timeOut: NodeJS.Timeout;

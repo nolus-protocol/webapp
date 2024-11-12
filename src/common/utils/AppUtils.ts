@@ -379,11 +379,11 @@ export class AppUtils {
       };
     };
 
-    // if (isDev()) {
-    //   for (const key in json) {
-    //     json[key].min = DOWNPAYMENT_RANGE_DEV;
-    //   }
-    // }
+    if (isDev()) {
+      for (const key in json) {
+        json[key].min = DOWNPAYMENT_RANGE_DEV;
+      }
+    }
 
     return json;
   }

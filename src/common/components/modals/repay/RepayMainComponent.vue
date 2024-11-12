@@ -119,6 +119,11 @@ const balances = computed(() => {
       return false;
     }
 
+    const lpn = AssetUtils.getLpnByProtocol(protocol);
+    if (item.key != lpn.key) {
+      return false;
+    }
+
     return true;
   });
 });
