@@ -36,8 +36,8 @@ export const PERMILLE = 1000;
 export const PERCENT = 100;
 
 export const UPDATE_BLOCK_INTERVAL = 1 * 60 * 1000;
-export const UPDATE_BALANCE_INTERVAL = 15 * 1000; // 5s;
-export const UPDATE_PRICES_INTERVAL = 60 * 1000;
+export const UPDATE_BALANCE_INTERVAL = 8 * 1000; // 5s;
+export const UPDATE_PRICES_INTERVAL = 15 * 1000;
 export const UPDATE_REWARDS_INTERVAL = 60 * 1000;
 export const SESSION_TIME = 25 * 60 * 1000;
 export const MONTHS = 12;
