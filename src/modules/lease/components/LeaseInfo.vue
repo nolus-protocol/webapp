@@ -890,7 +890,7 @@ const interestDueDate = computed(() => {
   if (lease) {
     date = new Date(date.getTime() + lease.overdue_collect_in / 1000 / 1000);
   }
-  return datePraser(date.toISOString());
+  return datePraser(date.toISOString(), true);
 });
 
 async function onShare() {
@@ -908,14 +908,19 @@ const leaseOpenedMargin = ({
   const externalCurrencies = [overdue_interest, overdue_margin, due_margin, due_interest, principal_due, amount].map(
     (amount) => AssetUtils.getCurrencyByTicker(amount?.ticker as string)
   );
-  const price = oracleStore.prices[externalCurrencies[5].ibcData];
+
+  const l = AssetUtils.getLpnByProtocol(props.leaseInfo.protocol);
+  const price = oracleStore.prices[`${externalCurrencies[5].ticker}@${props.leaseInfo.protocol}`];
+  const marginPrice = oracleStore.prices[l.key];
   const priceAmount = new Dec(amount.amount, externalCurrencies[5].decimal_digits).mul(new Dec(price?.amount ?? 1));
   const margin = new Dec(overdue_interest.amount, externalCurrencies[0].decimal_digits)
     .add(new Dec(overdue_margin.amount, externalCurrencies[1].decimal_digits))
     .add(new Dec(due_margin.amount, externalCurrencies[2].decimal_digits))
     .add(new Dec(due_interest.amount, externalCurrencies[3].decimal_digits))
     .add(new Dec(principal_due.amount, externalCurrencies[4].decimal_digits));
-  return margin.quo(priceAmount).mul(new Dec(100)).toString(2); // 100% is the max value
+  const margin_total = margin.mul(new Dec(marginPrice.amount));
+
+  return margin_total.quo(priceAmount).mul(new Dec(100)).toString(2); // 100% is the max value
 };
 
 const leaseOpened = computed<LeaseProps>(() => ({
