@@ -15,63 +15,63 @@ jobs:
   build:
     name: Build static files
     runs-on: ubuntu-latest
-    container: node:20.9.0
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Build
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install dependencies and build
         run: |
           npm install
           npm run build
 
-      - name: Archive src
+      - name: Archive build artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: src
+          name: build
           path: dist/
 
   deploy:
     name: Deploy to AWS
-    runs-on: ubuntu-20.04
-    container: amazon/aws-cli
-    environment: development
+    runs-on: ubuntu-latest
     needs: build
 
     steps:
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Download src
+      - name: Download build artifacts
         uses: actions/download-artifact@v3
         with:
-          name: src
+          name: build
           path: dist/
 
-      - name: Sync bucket
+      - name: Sync to S3
         run: |
-          aws s3 sync dist/ s3://${BUCKET_NAME}
+          aws s3 sync dist/ s3://${BUCKET_NAME} --delete
 
   invalidate-cache:
     name: Invalidate cache
-    runs-on: ubuntu-20.04
-    container: amazon/aws-cli
-    environment: development
+    runs-on: ubuntu-latest
     needs: deploy
 
     steps:
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Invalidate cloudfront cache
+      - name: Invalidate CloudFront Cache
         run: |
-          aws cloudfront create-invalidation --distribution-id ${CLOUDFRONT_ID} --paths "/*" --output table
-          echo "Cache invalidation usually takes a couple of minutes"
+          aws cloudfront create-invalidation --distribution-id ${CLOUDFRONT_ID} --paths "/*"
+          echo "Cache invalidation request sent. It may take a few minutes to complete."
