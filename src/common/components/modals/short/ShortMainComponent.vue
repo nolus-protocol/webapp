@@ -141,11 +141,6 @@ const state = ref({
 
 const getLeases = inject("getLeases", () => {});
 let leaseAssetPrice: string | null;
-const downPaymentRange = ref<{ [key: string]: { min: number; max: number } }>();
-
-onMounted(async () => {
-  setDownpaymentRange();
-});
 
 watch(walletRef.balances, async () => {
   if (balances) {
@@ -155,9 +150,9 @@ watch(walletRef.balances, async () => {
 
 watch(
   () => state.value.downPayment,
-  () => {
+  async () => {
     state.value.downPaymentErrorMsg = "";
-    if (validateMinMaxValues()) {
+    if (await validateMinMaxValues()) {
       calculate();
     }
   }
@@ -165,9 +160,9 @@ watch(
 
 watch(
   () => [state.value.selectedDownPaymentCurrency, state.value.selectedCurrency],
-  () => {
+  async () => {
     state.value.downPaymentErrorMsg = "";
-    if (validateMinMaxValues()) {
+    if (await validateMinMaxValues()) {
       calculate();
     }
   }
@@ -177,7 +172,6 @@ watch(
   () => state.value.selectedCurrency,
   () => {
     calculate();
-    setDownpaymentRange();
   }
 );
 
@@ -188,15 +182,9 @@ watch(
   }
 );
 
-async function setDownpaymentRange() {
-  const [_, p] = state.value.selectedCurrency.key.split("@");
-  downPaymentRange.value = await AppUtils.getDownpaymentRange(p);
-}
-
 async function calculate() {
   try {
     const downPaymentAmount = state.value.downPayment;
-
     if (downPaymentAmount) {
       const microAmount = getMicroAmount(
         state.value.selectedDownPaymentCurrency.balance.denom,
@@ -309,14 +297,15 @@ function isDownPaymentAmountValid() {
   return isValid;
 }
 
-function validateMinMaxValues(): boolean {
+async function validateMinMaxValues(): Promise<boolean> {
   try {
     let isValid = true;
     const downPaymentAmount = state.value.downPayment;
     const currentBalance = state.value.selectedDownPaymentCurrency;
 
-    const [c, _] = state.value.selectedCurrency.key.split("@");
-    const range = downPaymentRange.value?.[c];
+    const [c, p] = state.value.selectedCurrency.key.split("@");
+
+    const range = (await AppUtils.getDownpaymentRange(p))[c];
 
     if (currentBalance) {
       if (downPaymentAmount || downPaymentAmount !== "") {

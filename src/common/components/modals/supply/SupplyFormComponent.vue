@@ -47,7 +47,7 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import CurrencyField from "@/common/components/CurrencyField.vue";
 import { Button } from "web-components";
 
-const disabled = ["USDC_AXELAR@OSMOSIS-OSMOSIS-USDC_AXELAR"];
+const disabled = ["USDC_AXELAR@OSMOSIS-OSMOSIS-USDC_AXELAR", "USDC_AXELAR@NEUTRON-ASTROPORT-USDC_AXELAR"];
 
 const props = defineProps({
   modelValue: {

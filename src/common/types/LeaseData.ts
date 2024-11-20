@@ -11,6 +11,7 @@ export interface LeaseData {
   interest: Dec;
   liquidation: Dec;
   pnlAmount: Dec;
+  fee: Dec;
   pnlPercent: Dec;
   leaseData: LeaseAttributes | undefined;
   balances: {
@@ -22,7 +23,8 @@ export interface LeaseData {
 }
 
 export interface LeaseAttributes {
-  downPaymentFee: Dec;
+  pnlAmount: Dec;
+  fee: Dec;
   downPayment: Dec;
   downpaymentTicker: string | null;
   price: Dec | null;

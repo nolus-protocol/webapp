@@ -332,6 +332,7 @@
     "status-repay": "Repaid",
     "osmosis-allbtc": "Osmosis BTC",
     "osmosis-allsol": "Osmosis SOL",
-    "osmosis-akt": "Osmosis AKT"
+    "osmosis-akt": "Osmosis AKT",
+    "impact-fee": "impact and dex fees:"
   }
 }

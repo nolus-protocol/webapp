@@ -132,6 +132,7 @@
             {{ `${$t("message.price-per")} ${asset!.shortName}:` }} ${{ getPrice() }}
           </span>
           <span class="data-label-info rounded p-1"> {{ $t("message.liq-trigger") }}: {{ liquidation }} </span>
+          <span class="data-label-info rounded p-1"> {{ $t("message.impact-fee") }} ${{ fee }} </span>
         </div>
       </div>
     </template>
@@ -331,6 +332,7 @@
             {{ `${$t("message.price-per")} ${asset!.shortName}:` }} ${{ getPrice() }}
           </span>
           <span class="data-label-info rounded p-1"> {{ $t("message.liq-trigger") }}: {{ liquidation }} </span>
+          <span class="data-label-info rounded p-1"> {{ $t("message.impact-fee") }} ${{ fee }} </span>
         </div>
       </div>
     </template>
@@ -629,8 +631,12 @@ const getAssetIcon = computed((): string => {
 });
 
 const downPayment = computed(() => {
-  const fee = props.leaseInfo.leaseData?.downPaymentFee as Dec;
-  const amount = props.leaseInfo.leaseData?.downPayment.sub(fee);
+  const amount = props.leaseInfo.leaseData?.downPayment;
+  return amount?.toString(2);
+});
+
+const fee = computed(() => {
+  const amount = props.leaseInfo.leaseData?.fee;
   return amount?.toString(2);
 });
 
@@ -910,7 +916,10 @@ const leaseOpenedMargin = ({
   );
 
   const l = AssetUtils.getLpnByProtocol(props.leaseInfo.protocol);
-  const price = oracleStore.prices[`${externalCurrencies[5].ticker}@${props.leaseInfo.protocol}`];
+  const price =
+    oracleStore.prices[
+      `${CurrencyDemapping[externalCurrencies[5].ticker]?.ticker ?? externalCurrencies[5].ticker}@${props.leaseInfo.protocol}`
+    ];
   const marginPrice = oracleStore.prices[l.key];
   const priceAmount = new Dec(amount.amount, externalCurrencies[5].decimal_digits).mul(new Dec(price?.amount ?? 1));
   const margin = new Dec(overdue_interest.amount, externalCurrencies[0].decimal_digits)
@@ -918,6 +927,7 @@ const leaseOpenedMargin = ({
     .add(new Dec(due_margin.amount, externalCurrencies[2].decimal_digits))
     .add(new Dec(due_interest.amount, externalCurrencies[3].decimal_digits))
     .add(new Dec(principal_due.amount, externalCurrencies[4].decimal_digits));
+
   const margin_total = margin.mul(new Dec(marginPrice.amount));
 
   return margin_total.quo(priceAmount).mul(new Dec(100)).toString(2); // 100% is the max value

@@ -82,7 +82,8 @@ export class LeaseUtils {
 
       const contract = AssetUtils.getProtocolByContract(result.lease.LS_loan_pool_id);
       const lpn = AssetUtils.getLpnByProtocol(contract);
-      let leasePositionTicker = result.lease.LS_asset_symbol;
+      let leasePositionTicker = CurrencyDemapping[result.lease.LS_asset_symbol]?.ticker ?? result.lease.LS_asset_symbol;
+      let l_c = CurrencyDemapping[result.lease.LS_asset_symbol]?.ticker ?? result.lease.LS_asset_symbol;
 
       switch (ProtocolsConfig[contract].type) {
         case PositionTypes.short: {
@@ -106,10 +107,13 @@ export class LeaseUtils {
       const loan_amnt_stable = new Dec(result.lease.LS_lpn_loan_amnt, lease_currency.decimal_digits).mul(
         new Dec(result.lpn_price)
       );
-      const downPaymentFee = total.sub(loan_amnt_stable);
+      // const downPaymentFee = total.sub(loan_amnt_stable);
+
+      const currency = app.currenciesData![`${l_c}@${contract}`];
 
       return {
-        downPaymentFee,
+        pnlAmount: new Dec(result.pnl, currency.decimal_digits),
+        fee: new Dec(result.fee, currency.decimal_digits),
         downPayment,
         downpaymentTicker: result.lease.LS_cltr_symbol,
         leasePositionTicker,

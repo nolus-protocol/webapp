@@ -204,7 +204,11 @@ watch(
 
 const setSwapFee = async () => {
   clearTimeout(time);
-  if (props.modelValue.downPaymentErrorMsg.length == 0 && Number(props.modelValue.downPayment) > 0) {
+  if (
+    props.modelValue.downPaymentErrorMsg.length == 0 &&
+    Number(props.modelValue.downPayment) > 0 &&
+    props.modelValue.leaseApply
+  ) {
     time = setTimeout(async () => {
       const currency = props.modelValue.selectedDownPaymentCurrency;
       const lease = props.modelValue.selectedCurrency;
