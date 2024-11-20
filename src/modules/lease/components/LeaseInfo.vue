@@ -570,7 +570,9 @@ async function fetchChartData(intetval: string) {
       let [key, protocol]: string[] = props.leaseInfo.leaseData?.leasePositionTicker?.includes("@")
         ? props.leaseInfo.leaseData.leasePositionTicker.split("@")
         : [props.leaseInfo.leaseData.leasePositionTicker, props.leaseInfo.protocol];
-      const prices = await EtlApi.fetchPriceSeries(key, protocol, intetval);
+
+      const ticker = CurrencyMapping[key]?.ticker ?? key;
+      const prices = await EtlApi.fetchPriceSeries(ticker, protocol, intetval);
 
       return prices;
     }
