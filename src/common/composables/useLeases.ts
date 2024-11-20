@@ -47,7 +47,7 @@ export function useLeases(onError: (error: unknown) => void) {
           const protocol = admin.contracts![protocolKey];
           const leaserClient = new Leaser(cosmWasmClient, protocol.leaser);
           const openedLeases: string[] = (
-            await leaserClient.getCurrentOpenLeasesByOwner("nolus17snxq7sdny468jc7kyxc2m4pzqvzpnv0uck0dl")
+            await leaserClient.getCurrentOpenLeasesByOwner(WalletManager.getWalletAddress())
           ).filter((item) => {
             return !IGNORE_LEASES.includes(item);
           });
