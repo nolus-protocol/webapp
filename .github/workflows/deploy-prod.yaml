@@ -1,11 +1,11 @@
 name: Deploy prod
 
-# A version is denoted with a protected tag.
+# Trigger the workflow only for protected tags matching the specified pattern.
 on:
   push:
-    # Only tags which match the protected tag pattern will trigger this workflow
     tags:
       - v*.*.*
+
 env:
   BUCKET_NAME: app-staging.nolus.io
   CLOUDFRONT_ID: E2CRLUCGAPADWN
@@ -34,14 +34,13 @@ jobs:
 
   deploy:
     name: Deploy to AWS
-    runs-on: ubuntu-20.04
-    container: amazon/aws-cli
+    runs-on: ubuntu-22.04
     environment: production
     needs: build
 
     steps:
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -59,14 +58,13 @@ jobs:
 
   invalidate-cache:
     name: Invalidate cache
-    runs-on: ubuntu-20.04
-    container: amazon/aws-cli
+    runs-on: ubuntu-22.04
     environment: production
     needs: deploy
 
     steps:
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
