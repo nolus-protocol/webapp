@@ -1,27 +1,38 @@
 function calculateDynamicPNL({
   downpayment,
   loanMultiplier,
+  open_price,
   close_price,
-  atomClosePrice,
+  repaymentTransactions = [],
   closeTransactions = [],
   liquidationTransactions = []
 }) {
   const loan = loanMultiplier * downpayment; // Размер на заема
   const lease = loan + downpayment; // Общ капитал
-  let totalAsset = lease / close_price; // Общо количество активи (ATOM)
-  let remainingDebt = (loan * atomClosePrice) / close_price;
+  let totalAsset = lease / open_price; // Общо количество активи (ATOM)
+  let remainingDebt = (loan * close_price) / open_price;
 
   closeTransactions.forEach((tx) => {
-    totalAsset -= tx.amount;
+    // totalAsset -= tx.amount;
     remainingDebt -= tx.amount * tx.price;
   });
 
-  liquidationTransactions.forEach((tx) => {
-    totalAsset -= tx.amount;
-    remainingDebt -= tx.amount * tx.price;
-  });
+  // liquidationTransactions.forEach((tx) => {
+  //   totalAsset -= tx.amount;
+  //   remainingDebt -= tx.amount * tx.price;
+  // });
 
-  const pnl = (atomClosePrice - close_price) * totalAsset + remainingDebt + downpayment;
+  // repaymentTransactions.forEach((tx) => {
+  //   remainingDebt -= tx.amount * tx.price;
+  // });
+
+  // console.log((close_price - open_price) * totalAsset);
+
+  console.log(totalAsset);
+
+  console.log(remainingDebt);
+
+  const pnl = ((close_price - open_price) * totalAsset + remainingDebt + downpayment) * -1;
 
   return {
     loan,
@@ -36,23 +47,25 @@ function calculateDynamicPNL({
 const result = calculateDynamicPNL({
   downpayment: 100,
   loanMultiplier: 1.5,
-  close_price: 10,
-  atomClosePrice: 5,
+  open_price: 10,
+  close_price: 8,
+  repaymentTransactions: [
+    // {
+    //   amount: 15,
+    //   price: 5
+    // }
+  ],
   closeTransactions: [
     {
-      amount: 1,
-      price: 9
-    },
-    {
-      amount: 1,
-      price: 15
+      amount: 15,
+      price: 5
     }
   ], // Пример за затваряне на 5 активи при цена 5
   liquidationTransactions: [
-    {
-      amount: 2,
-      price: 25
-    }
+    // {
+    //   amount: 2,
+    //   price: 25
+    // }
   ] // Пример за погасяване на 50 от заема
 });
 

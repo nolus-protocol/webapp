@@ -79,7 +79,7 @@ import {
   NATIVE_CURRENCY as DEFAULT_CURRENCY,
   ProtocolsConfig
 } from "@/config/global";
-import { CurrencyMapping } from "@/config/currencies";
+import { CurrencyMapping, CurrencyMappingEarn } from "@/config/currencies";
 
 const walletStore = useWalletStore();
 const app = useApplicationStore();
@@ -123,10 +123,10 @@ const canLease = computed(() => {
 const isEarn = computed(() => {
   const curency = WebAppAssetUtils.getCurrencyByDenom(props.denom);
   const [_, protocol] = curency.key.split("@");
-
   if (!ProtocolsConfig[protocol].rewards) {
     return false;
   }
+
   const lpns = (app.lpn ?? []).map((item) => item.ticker);
   return lpns.includes(curency.ticker);
 });
@@ -168,10 +168,9 @@ function getApr() {
   let [ticker] = props.assetInfo.key.split("@");
   let asset = (app.lpn ?? []).find((item) => item.key == props.assetInfo.key);
   if (!asset) {
-    ticker = CurrencyMapping[ticker]?.ticker ?? ticker;
+    ticker = CurrencyMappingEarn[ticker]?.ticker ?? ticker;
     asset = (app.lpn ?? []).find((item) => item.ticker == ticker);
   }
-
   const [_, protocol] = asset?.key.split("@") ?? [];
   return (app.apr?.[protocol] ?? 0).toString();
 }

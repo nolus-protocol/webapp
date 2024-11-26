@@ -127,6 +127,30 @@ export const CurrencyMapping: {
   // }
 };
 
+export const CurrencyMappingEarn: {
+  [key: string]: {
+    ticker: string;
+    name?: string;
+  };
+} = {
+  WETH_AXELAR: {
+    ticker: "WETH"
+  },
+  USDC_AXELAR: {
+    ticker: "USDC",
+    name: "USDC.axl"
+  },
+  WBTC_AXELAR: {
+    ticker: "WBTC"
+  },
+  ALL_SOL: {
+    ticker: "SOL"
+  },
+  ALL_BTC: {
+    ticker: "BTC"
+  }
+};
+
 export const CurrencyDemapping: {
   [key: string]: {
     ticker: string;

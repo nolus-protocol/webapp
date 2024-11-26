@@ -132,7 +132,7 @@
             {{ `${$t("message.price-per")} ${asset!.shortName}:` }} ${{ getPrice() }}
           </span>
           <span class="data-label-info rounded p-1"> {{ $t("message.liq-trigger") }}: {{ liquidation }} </span>
-          <!-- <span class="data-label-info rounded p-1"> {{ $t("message.impact-fee") }} ${{ fee }} </span> -->
+          <span class="data-label-info rounded p-1"> {{ $t("message.impact-fee") }} ${{ fee }} </span>
         </div>
       </div>
     </template>
