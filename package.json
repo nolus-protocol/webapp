@@ -38,7 +38,7 @@
     "@ledgerhq/hw-transport-webusb": "^6.29.4",
     "@ledgerhq/logs": "^6.12.0",
     "@nolus/nolusjs": "^2.4.17",
-    "@skip-go/client": "^0.11.1",
+    "@skip-go/client": "^0.14.6",
     "chart.js": "^4.4.5",
     "chartjs-adapter-date-fns": "^3.0.0",
     "cosmjs-types": "^0.9.0",

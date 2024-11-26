@@ -39,17 +39,8 @@ import { AssetUtils, Logger, SkipRouter, getMicroAmount, walletOperation } from 
 import { useWalletStore } from "@/common/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import {
-  NATIVE_ASSET,
-  GAS_FEES,
-  TIP,
-  ErrorCodes,
-  minimumLeaseAmount,
-  ProtocolsConfig,
-  PositionTypes
-} from "@/config/global";
+import { NATIVE_ASSET, GAS_FEES, TIP, ErrorCodes, minimumLeaseAmount } from "@/config/global";
 import { coin } from "@cosmjs/amino";
-import { AppUtils } from "@/common/utils";
 import { useLeaseConfig } from "@/common/composables";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
@@ -154,8 +145,8 @@ const setSwapFee = async () => {
       let amountOut = 0;
       const [r] = await Promise.all([
         SkipRouter.getRoute(currecy.ibcData, lpn.ibcData, microAmount).then((data) => {
-          amountIn += Number(data.usdAmountIn);
-          amountOut += Number(data.usdAmountOut);
+          amountIn += Number(data.usdAmountIn ?? 0);
+          amountOut += Number(data.usdAmountOut ?? 0);
 
           return Number(data?.swapPriceImpactPercent ?? 0);
         })
@@ -164,7 +155,12 @@ const setSwapFee = async () => {
       const in_a = Math.min(amountOut, amountIn);
 
       const diff = out_a - in_a;
-      const fee = diff / in_a;
+      let fee = 0;
+
+      if (in_a > 0) {
+        fee = diff / in_a;
+      }
+
       state.value.swapFee = fee;
     }, timeOut);
   }

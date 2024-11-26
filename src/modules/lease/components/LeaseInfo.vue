@@ -132,7 +132,7 @@
             {{ `${$t("message.price-per")} ${asset!.shortName}:` }} ${{ getPrice() }}
           </span>
           <span class="data-label-info rounded p-1"> {{ $t("message.liq-trigger") }}: {{ liquidation }} </span>
-          <span class="data-label-info rounded p-1"> {{ $t("message.impact-fee") }} ${{ fee }} </span>
+          <!-- <span class="data-label-info rounded p-1"> {{ $t("message.impact-fee") }} ${{ fee }} </span> -->
         </div>
       </div>
     </template>
@@ -801,18 +801,19 @@ const liquidation = computed(() => {
 
 const pnl = computed(() => {
   const lease = props.leaseInfo.leaseStatus.opened ?? props.leaseInfo.leaseStatus.paid;
+
   if (lease) {
     return {
       percent: props.leaseInfo.pnlPercent.toString(2),
       amount: CurrencyUtils.formatPrice(props.leaseInfo.pnlAmount.toString()),
-      status: props.leaseInfo.pnlAmount.isPositive()
+      status: props.leaseInfo.pnlAmount.isPositive() || props.leaseInfo.pnlAmount.isZero()
     };
   }
 
   return {
     percent: "0",
     amount: "0",
-    status: false
+    status: true
   };
 });
 

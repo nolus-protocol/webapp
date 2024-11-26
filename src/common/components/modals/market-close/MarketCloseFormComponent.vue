@@ -45,6 +45,24 @@
           </p>
         </div>
       </div>
+
+      <div class="flex justify-end border-t border-border-color pt-2">
+        <div class="grow-3 text-right text-14 font-medium text-neutral-typography-200">
+          <p class="mr-5 mt-2 text-[12px]">{{ $t("message.price-per") }} {{ modelValue.selectedCurrency.shortName }}</p>
+          <p class="mr-5 mt-2 text-[12px]">
+            {{ $t("message.swap-fee") }}
+            <span class="font-normal text-[#8396B1]"> ({{ (modelValue.swapFee * 100).toFixed(2) }}%) </span>
+          </p>
+        </div>
+        <div class="text-right text-14 font-semibold">
+          <p class="align-center mt-[8px] flex justify-end text-[12px] text-neutral-typography-200">
+            {{ selectedAssetPrice }}
+          </p>
+          <p class="align-center mt-[8px] flex justify-end text-[12px] text-neutral-typography-200">
+            -${{ swapFeeStable }}
+          </p>
+        </div>
+      </div>
     </div>
     <div class="flex flex-col gap-6">
       <Button
@@ -304,4 +322,26 @@ function getLpnSymbol() {
   }
   return lpn.shortName;
 }
+
+const selectedAssetPrice = computed(() => {
+  const price = oracle.prices[props.modelValue.selectedCurrency.key as string];
+
+  const p = new Dec(price?.amount ?? 0);
+  const fee = new Dec(1 + (props.modelValue?.swapFee ?? 0));
+
+  return CurrencyUtils.formatPrice(p.mul(fee).toString());
+});
+
+const swapFeeStable = computed(() => {
+  try {
+    const asset = props.modelValue.selectedCurrency;
+    const amount = new Dec(props.modelValue.amount);
+    const price = oracle.prices[asset.ibcData];
+    const value = amount.mul(new Dec(price.amount)).mul(new Dec(props.modelValue.swapFee));
+
+    return value.toString(asset.decimal_digits);
+  } catch (error) {
+    return "0.00";
+  }
+});
 </script>

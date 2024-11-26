@@ -185,17 +185,23 @@ const setSwapFee = async () => {
       let amountOut = 0;
       const [r] = await Promise.all([
         SkipRouter.getRoute(lease.ibcData, currecy.ibcData, microAmount).then((data) => {
-          amountIn += Number(data.usdAmountIn);
-          amountOut += Number(data.usdAmountOut);
+          amountIn += Number(data.usdAmountIn ?? 0);
+          amountOut += Number(data.usdAmountOut ?? 0);
 
           return Number(data?.swapPriceImpactPercent ?? 0);
         })
       ]);
+
       const out_a = Math.max(amountOut, amountIn);
       const in_a = Math.min(amountOut, amountIn);
 
       const diff = out_a - in_a;
-      const fee = diff / in_a;
+      let fee = 0;
+
+      if (in_a > 0) {
+        fee = diff / in_a;
+      }
+
       state.value.swapFee = fee;
     }, timeOut);
   }
