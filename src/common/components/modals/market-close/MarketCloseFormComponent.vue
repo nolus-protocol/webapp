@@ -48,7 +48,7 @@
 
       <div class="flex justify-end border-t border-border-color pt-2">
         <div class="grow-3 text-right text-14 font-medium text-neutral-typography-200">
-          <p class="mr-5 mt-2 text-[12px]">{{ $t("message.price-per") }} {{ modelValue.selectedCurrency.shortName }}</p>
+          <p class="mr-5 mt-2 text-[12px]">{{ $t("message.price-per") }} {{ swapFeeCurrency?.shortName }}</p>
           <p class="mr-5 mt-2 text-[12px]">
             {{ $t("message.swap-fee") }}
             <span class="font-normal text-[#8396B1]"> ({{ (modelValue.swapFee * 100).toFixed(2) }}%) </span>
@@ -324,7 +324,7 @@ function getLpnSymbol() {
 }
 
 const selectedAssetPrice = computed(() => {
-  const price = oracle.prices[props.modelValue.selectedCurrency.key as string];
+  const price = oracle.prices[swapFeeCurrency.value?.key as string];
 
   const p = new Dec(price?.amount ?? 0);
   const fee = new Dec(1 + (props.modelValue?.swapFee ?? 0));
@@ -342,6 +342,17 @@ const swapFeeStable = computed(() => {
     return value.toString(asset.decimal_digits);
   } catch (error) {
     return "0.00";
+  }
+});
+
+const swapFeeCurrency = computed(() => {
+  switch (ProtocolsConfig[props.modelValue.protocol].type) {
+    case PositionTypes.short: {
+      return AssetUtils.getLpnByProtocol(props.modelValue.protocol);
+    }
+    case PositionTypes.long: {
+      return props.modelValue.selectedCurrency;
+    }
   }
 });
 </script>

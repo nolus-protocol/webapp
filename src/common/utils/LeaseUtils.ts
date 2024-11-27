@@ -95,18 +95,18 @@ export class LeaseUtils {
       const leasePositionStable = new Dec(result.lease.LS_loan_amnt_asset, lpn.decimal_digits);
       const downPayment = new Dec(result.lease.LS_cltr_amnt_stable, Number(downPaymentCurrency!.decimal_digits));
       const app = useApplicationStore();
-      const ctrl_asset_ticker = CurrencyDemapping[result.lease.LS_cltr_symbol]?.ticker ?? result.lease.LS_cltr_symbol;
+      // const ctrl_asset_ticker = CurrencyDemapping[result.lease.LS_cltr_symbol]?.ticker ?? result.lease.LS_cltr_symbol;
 
-      const ctrl_currency = app.currenciesData![`${ctrl_asset_ticker}@${contract}`];
-      const ls_asset_symbol = CurrencyDemapping[result.lease.LS_asset_symbol]?.ticker ?? result.lease.LS_asset_symbol;
-      const lease_currency = app.currenciesData![`${ls_asset_symbol}@${contract}`];
+      // const ctrl_currency = app.currenciesData![`${ctrl_asset_ticker}@${contract}`];
+      // const ls_asset_symbol = CurrencyDemapping[result.lease.LS_asset_symbol]?.ticker ?? result.lease.LS_asset_symbol;
+      // const lease_currency = app.currenciesData![`${ls_asset_symbol}@${contract}`];
 
-      const ctrl_asset = new Dec(result.lease.LS_cltr_amnt_stable, ctrl_currency.decimal_digits);
-      const loan = new Dec(result.lease.LS_loan_amnt_stable, lpn.decimal_digits);
-      const total = ctrl_asset.add(loan);
-      const loan_amnt_stable = new Dec(result.lease.LS_lpn_loan_amnt, lease_currency.decimal_digits).mul(
-        new Dec(result.lpn_price)
-      );
+      // const ctrl_asset = new Dec(result.lease.LS_cltr_amnt_stable, ctrl_currency.decimal_digits);
+      // const loan = new Dec(result.lease.LS_loan_amnt_stable, lpn.decimal_digits);
+      // const total = ctrl_asset.add(loan);
+      // const loan_amnt_stable = new Dec(result.lease.LS_lpn_loan_amnt, lease_currency.decimal_digits).mul(
+      //   new Dec(result.lpn_price)
+      // );
       // const downPaymentFee = total.sub(loan_amnt_stable);
 
       const currency = app.currenciesData![`${l_c}@${contract}`];
@@ -121,7 +121,8 @@ export class LeaseUtils {
         timestamp: new Date(result.lease.LS_timestamp),
         price: new Dec(result.downpayment_price),
         lpnPrice: new Dec(result.lpn_price),
-        ls_asset_symbol: result.lease.LS_asset_symbol
+        ls_asset_symbol: result.lease.LS_asset_symbol,
+        repayment_value: new Dec(result.repayment_value)
       };
     } catch (error) {
       Logger.error(error);

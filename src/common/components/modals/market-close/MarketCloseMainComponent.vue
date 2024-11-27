@@ -39,7 +39,15 @@ import { AssetUtils, Logger, SkipRouter, getMicroAmount, walletOperation } from 
 import { useWalletStore } from "@/common/stores/wallet";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
-import { NATIVE_ASSET, GAS_FEES, TIP, ErrorCodes, minimumLeaseAmount } from "@/config/global";
+import {
+  NATIVE_ASSET,
+  GAS_FEES,
+  TIP,
+  ErrorCodes,
+  minimumLeaseAmount,
+  ProtocolsConfig,
+  PositionTypes
+} from "@/config/global";
 import { coin } from "@cosmjs/amino";
 import { useLeaseConfig } from "@/common/composables";
 import { useOracleStore } from "@/common/stores/oracle";
@@ -131,15 +139,27 @@ const setSwapFee = async () => {
   if (isAmountValid()) {
     time = setTimeout(async () => {
       const lease = state.value.selectedCurrency;
-      const currecy =
+      let currecy =
         app.currenciesData![`${props.leaseData?.leaseData?.leasePositionTicker}@${props.leaseData?.protocol}`];
       const lpn = AssetUtils.getLpnByProtocol(props.leaseData?.protocol as string);
-
-      const microAmount = CurrencyUtils.convertDenomToMinimalDenom(
+      let microAmount = CurrencyUtils.convertDenomToMinimalDenom(
         state.value.amount,
         lease.balance.ibcData,
         lease.decimal_digits
       ).amount.toString();
+
+      switch (ProtocolsConfig[props.leaseData?.protocol!].type) {
+        case PositionTypes.short: {
+          currecy = lease;
+          microAmount = CurrencyUtils.convertDenomToMinimalDenom(
+            state.value.amount,
+            currecy.balance.ibcData,
+            currecy.decimal_digits
+          ).amount.toString();
+
+          break;
+        }
+      }
 
       let amountIn = 0;
       let amountOut = 0;

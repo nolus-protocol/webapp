@@ -179,7 +179,7 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
   let interest = new Dec(0);
   let liquidation = new Dec(0);
   let pnlPercent = new Dec(0);
-  let pnlAmount = leaseData?.pnlAmount ?? new Dec(0);
+  let pnlAmount = new Dec(0);
   let fee = leaseData?.fee ?? new Dec(0);
 
   if (leaseInfo.opened) {
@@ -239,8 +239,15 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
       const balance = new Dec(b.amount, Number(b.decimals));
       currentAmount = currentAmount.add(balance);
     }
-
     if (leaseData) {
+      let lpn = AssetUtils.getLpnByProtocol(protocolKey);
+      const lpnPrice = new Dec(oracleStore.prices[lpn.ibcData]?.amount);
+
+      pnlAmount = currentAmount
+        .sub(debt.mul(lpnPrice))
+        .sub(leaseData?.downPayment)
+        .sub(fee)
+        .sub(leaseData?.repayment_value);
       if (leaseData.downPayment.isPositive()) {
         pnlPercent = pnlAmount.quo(leaseData?.downPayment).mul(new Dec(100));
       }

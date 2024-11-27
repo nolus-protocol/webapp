@@ -33,4 +33,5 @@ export interface LeaseAttributes {
   leasePositionTicker: string | null;
   timestamp: Date;
   ls_asset_symbol: string;
+  repayment_value: Dec;
 }
