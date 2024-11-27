@@ -246,7 +246,7 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
       pnlAmount = currentAmount
         .sub(debt.mul(lpnPrice))
         .sub(leaseData?.downPayment)
-        .sub(fee)
+        .add(fee)
         .sub(leaseData?.repayment_value);
       if (leaseData.downPayment.isPositive()) {
         pnlPercent = pnlAmount.quo(leaseData?.downPayment).mul(new Dec(100));
