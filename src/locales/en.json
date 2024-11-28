@@ -331,6 +331,8 @@
     "osmosis-allbtc": "Osmosis BTC",
     "osmosis-allsol": "Osmosis SOL",
     "osmosis-akt": "Osmosis AKT",
-    "impact-fee": "impact and dex fees:"
+    "impact-fee": "impact and dex fees:",
+    "axlusdc-subtitle": "End of Support for axlUSDC",
+    "axlusdc-description": "Support for axlUSDC as a lending asset will officially conclude on January 31, 2025. Kindly ensure all Lease positions are closed and liquidity withdrawn from Earn prior to this date"
   }
 }
