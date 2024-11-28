@@ -177,6 +177,14 @@ const loansData = computed(() => {
     const ticker = CurrencyDemapping[item.LS_asset_symbol]?.ticker ?? item.LS_asset_symbol;
     let currency = app.currenciesData![`${ticker}@${protocol}`];
 
+    switch (ProtocolsConfig[protocol].type) {
+      case PositionTypes.short: {
+        let lpn = app.networksData?.protocols?.[protocol].Lpn.dex_currency;
+        currency = app.currenciesData![`${lpn}@${protocol}`];
+        break;
+      }
+    }
+
     return {
       LS_contract_id: item.LS_contract_id,
       items: [

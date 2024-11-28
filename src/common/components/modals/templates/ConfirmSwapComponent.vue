@@ -158,6 +158,7 @@
     >
       <template v-slot:content>
         <span
+          v-if="txs > 1"
           class="text-neutral-typography-200"
           v-html="
             $t('message.swap-confirm-warning', {

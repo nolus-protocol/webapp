@@ -341,7 +341,9 @@ async function repayLease() {
       const isSuccessful = tx?.code === 0;
       step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
 
-      getLeases();
+      setTimeout(() => {
+        getLeases();
+      }, 400);
     } catch (error: Error | any) {
       switch (error.code) {
         case ErrorCodes.GasError: {
