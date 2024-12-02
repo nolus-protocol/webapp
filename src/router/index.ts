@@ -14,6 +14,7 @@ import { RouteNames } from "./RouteNames";
 import MainLayout from "@/modules/view.vue";
 import { PnlHistoryRouter } from "@/modules/pnl-history/router";
 import { useWalletStore } from "@/common/stores/wallet";
+import { Intercom } from "@/common/utils/Intercom";
 
 const router = createRouter({
   scrollBehavior(to, from, savedPosition) {
@@ -56,6 +57,10 @@ router.beforeEach((to, from, next) => {
   }
 
   next();
+});
+
+router.afterEach(() => {
+  Intercom.update();
 });
 
 export { router, RouteNames };

@@ -919,10 +919,9 @@ const leaseOpenedMargin = ({
   );
 
   const l = AssetUtils.getLpnByProtocol(props.leaseInfo.protocol);
-  const price =
-    oracleStore.prices[
-      `${CurrencyDemapping[externalCurrencies[5].ticker]?.ticker ?? externalCurrencies[5].ticker}@${props.leaseInfo.protocol}`
-    ];
+  const [t, p] = externalCurrencies[5].key.split("@");
+  const price = oracleStore.prices[`${CurrencyDemapping[t]?.ticker ?? t}@${props.leaseInfo.protocol}`];
+
   const marginPrice = oracleStore.prices[l.key];
   const priceAmount = new Dec(amount.amount, externalCurrencies[5].decimal_digits).mul(new Dec(price?.amount ?? 1));
   const margin = new Dec(overdue_interest.amount, externalCurrencies[0].decimal_digits)
@@ -932,8 +931,9 @@ const leaseOpenedMargin = ({
     .add(new Dec(principal_due.amount, externalCurrencies[4].decimal_digits));
 
   const margin_total = margin.mul(new Dec(marginPrice.amount));
+  const res = margin_total.quo(priceAmount).mul(new Dec(100));
 
-  return margin_total.quo(priceAmount).mul(new Dec(100)).toString(2); // 100% is the max value
+  return res.toString(2); // 100% is the max value
 };
 
 const leaseOpened = computed<LeaseProps>(() => ({

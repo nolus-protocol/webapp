@@ -9,6 +9,7 @@ import { LedgerName } from "@/config/global";
 
 import BluetoothTransport from "@ledgerhq/hw-transport-web-ble";
 import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
+import { Intercom } from "@/common/utils/Intercom";
 
 export async function connectLedger(this: Store, payload: { isBluetooth?: boolean } = {}) {
   let breakLoop = false;
@@ -52,6 +53,8 @@ export async function connectLedger(this: Store, payload: { isBluetooth?: boolea
   }
 
   await this.UPDATE_BALANCES();
+
+  Intercom.load(this.wallet?.address);
 
   clearTimeout(to);
 }

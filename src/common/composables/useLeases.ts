@@ -8,6 +8,7 @@ import { AppUtils, Logger, LeaseUtils, AssetUtils, WalletManager } from "@/commo
 import {
   IGNORE_LEASES,
   INTEREST_DECIMALS,
+  isDev,
   MONTHS,
   NATIVE_ASSET,
   PERCENT,
@@ -46,9 +47,14 @@ export function useLeases(onError: (error: unknown) => void) {
         const fn = async () => {
           const protocol = admin.contracts![protocolKey];
           const leaserClient = new Leaser(cosmWasmClient, protocol.leaser);
-          const openedLeases: string[] = (
-            await leaserClient.getCurrentOpenLeasesByOwner(WalletManager.getWalletAddress())
-          ).filter((item) => {
+          let address = WalletManager.getWalletAddress();
+          const searchParamAddress = new URLSearchParams(window.location.search).get("address");
+
+          if (isDev() && searchParamAddress) {
+            address = searchParamAddress;
+          }
+
+          const openedLeases: string[] = (await leaserClient.getCurrentOpenLeasesByOwner(address)).filter((item) => {
             return !IGNORE_LEASES.includes(item);
           });
 

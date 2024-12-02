@@ -6,6 +6,7 @@ import { ChainConstants, NolusClient, NolusWalletFactory } from "@nolus/nolusjs"
 import { WalletConnectMechanism } from "@/common/types";
 import { KeplrEmbedChainInfo } from "@/config/global/keplr";
 import { Buffer } from "buffer";
+import { Intercom } from "@/common/utils/Intercom";
 
 export async function connectKeplr(this: Store) {
   await WalletUtils.getKeplr();
@@ -51,4 +52,6 @@ export async function connectKeplr(this: Store) {
       await this.UPDATE_BALANCES();
     }
   }
+
+  Intercom.load(this.wallet?.address);
 }

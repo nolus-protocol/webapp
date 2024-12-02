@@ -57,6 +57,8 @@ export const DECIMALS_AMOUNT = [
   }
 ];
 
+export const INTERCOM_API = "hbjifswh";
+
 export const ZERO_DECIMALS = 6;
 export const MAX_DECIMALS = 8;
 export const LedgerName = "Ledger";
