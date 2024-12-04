@@ -1,12 +1,9 @@
-import { INTERCOM_API, isDev } from "@/config/global";
+import { INTERCOM_API } from "@/config/global";
 import { boot, Intercom as messenger, shutdown, update } from "@intercom/messenger-js-sdk";
 
 export class Intercom {
   private static loaded = false;
   public static load(wallet: string) {
-    if (!isDev()) {
-      return;
-    }
     if (Intercom.loaded) {
       return Intercom.boot(wallet);
     }
