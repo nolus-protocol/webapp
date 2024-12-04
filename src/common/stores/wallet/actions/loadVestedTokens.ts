@@ -57,9 +57,7 @@ export async function loadVestedTokens(this: Store): Promise<
     this.delegated_vesting = vesting_account.delegated_vesting[0];
     this.delegated_free = vesting_account.delegated_free[0];
     Intercom.update({
-      custom_attributes: {
-        NLSAmountVested: new Dec(vest?.[0].amount?.amount ?? 0, NATIVE_ASSET.decimal_digits).toString()
-      }
+      NLSAmountVested: new Dec(vest?.[0].amount?.amount ?? 0, NATIVE_ASSET.decimal_digits).toString()
     });
   } else {
     this.vest = [];

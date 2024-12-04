@@ -101,9 +101,7 @@ export function useLeases(onError: (error: unknown) => void) {
         attributes.PositionsLastOpened = leases.value[0].leaseData?.timestamp;
       }
 
-      Intercom.update({
-        custom_attributes: attributes
-      });
+      Intercom.update(attributes);
     } catch (e) {
       onError(e);
       Logger.error(e);

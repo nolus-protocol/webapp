@@ -342,10 +342,8 @@ async function loadLPNCurrency() {
   await Promise.allSettled(promises);
   const items = [];
   Intercom.update({
-    custom_attributes: {
-      LentProtocols: protocols.join("|"),
-      LentAmountUSD: usdAmount.toString()
-    }
+    LentProtocols: protocols.join("|"),
+    LentAmountUSD: usdAmount.toString()
   });
 
   Intercom.update({});

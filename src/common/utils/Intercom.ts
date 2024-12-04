@@ -4,9 +4,9 @@ import { boot, Intercom as messenger, shutdown, update } from "@intercom/messeng
 export class Intercom {
   private static loaded = false;
   public static load(wallet: string) {
-    // if (!isDev()) {
-    //   return;
-    // }
+    if (!isDev()) {
+      return;
+    }
     if (Intercom.loaded) {
       return Intercom.boot(wallet);
     }

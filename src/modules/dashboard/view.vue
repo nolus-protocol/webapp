@@ -600,10 +600,8 @@ function setLeases() {
     pnl.value = pl;
 
     Intercom.update({
-      custom_attributes: {
-        PositionsUnrealizedPnlUSD: pl.toString(),
-        PositionsDebtUSD: db.toString()
-      }
+      PositionsUnrealizedPnlUSD: pl.toString(),
+      PositionsDebtUSD: db.toString()
     });
   } catch (e) {
     Logger.error(e);
