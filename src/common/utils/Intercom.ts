@@ -12,7 +12,10 @@ export class Intercom {
     }
     messenger({
       app_id: INTERCOM_API,
-      user_id: wallet
+      user_id: wallet,
+      custom_attributes: {
+        PositionsDetailes: `https://grafana9.nolus.network/d/ea14ddcc-73ed-4810-89be-fb5e035edee51/wallet-checker?orgId=1&var-walletAddress=${wallet}`
+      }
     });
     Intercom.loaded = true;
   }
@@ -30,7 +33,10 @@ export class Intercom {
   private static boot(wallet: string) {
     boot({
       app_id: INTERCOM_API, // Workplace ID
-      user_id: wallet // User's wallet address
+      user_id: wallet, // User's wallet address
+      custom_attributes: {
+        PositionsDetailes: `https://grafana9.nolus.network/d/ea14ddcc-73ed-4810-89be-fb5e035edee51/wallet-checker?orgId=1&var-walletAddress=${wallet}`
+      }
     });
   }
 }

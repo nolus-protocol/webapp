@@ -1,8 +1,9 @@
 import type { Store } from "../types";
 import { AppUtils, WalletManager, WalletUtils } from "@/common/utils";
 import { ChainConstants } from "@nolus/nolusjs";
-import { Coin, Int } from "@keplr-wallet/unit";
+import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { NATIVE_ASSET } from "@/config/global";
+import { Intercom } from "@/common/utils/Intercom";
 
 export async function loadStakedTokens(this: Store) {
   if (!WalletUtils.isAuth()) {
@@ -22,6 +23,9 @@ export async function loadStakedTokens(this: Store) {
       }
       s.amount = am;
       this.stakingBalance = s;
+      Intercom.update({
+        custom_attributes: { NLSAmountDelegated: new Dec(s?.amount ?? 0, NATIVE_ASSET.decimal_digits).toString() }
+      });
     } else {
       this.stakingBalance = new Coin(NATIVE_ASSET.denom, new Int(0));
     }

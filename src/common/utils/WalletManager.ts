@@ -1,5 +1,6 @@
 import type { WalletConnectMechanism } from "@/common/types";
 import { useWalletStore } from "../stores/wallet";
+import { isDev } from "@/config/global";
 
 export class WalletManager {
   public static WALLET_CONNECT_MECHANISM = "wallet_connect_mechanism";
@@ -28,7 +29,15 @@ export class WalletManager {
 
   public static getWalletAddress(): string {
     const wallet = useWalletStore();
-    return wallet.wallet?.address ?? "";
+
+    let address = wallet.wallet?.address ?? "";
+    const searchParamAddress = new URLSearchParams(window.location.search).get("address");
+
+    if (isDev() && searchParamAddress) {
+      address = searchParamAddress;
+    }
+
+    return address;
   }
 
   public static eraseWalletInfo() {

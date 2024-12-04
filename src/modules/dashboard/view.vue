@@ -310,6 +310,7 @@ import { NATIVE_ASSET, NATIVE_CURRENCY, ProtocolsConfig } from "@/config/global"
 import { CurrencyDemapping } from "@/config/currencies";
 import { Button, Table } from "web-components";
 import { RouteNames, router } from "@/router";
+import { Intercom } from "@/common/utils/Intercom";
 
 const modalOptions = {
   // [DASHBOARD_ACTIONS.SEND]: SendReceiveDialog,
@@ -597,6 +598,13 @@ function setLeases() {
     activeLeases.value = ls;
     debt.value = db;
     pnl.value = pl;
+
+    Intercom.update({
+      custom_attributes: {
+        PositionsUnrealizedPnlUSD: pl.toString(),
+        PositionsDebtUSD: db.toString()
+      }
+    });
   } catch (e) {
     Logger.error(e);
   }

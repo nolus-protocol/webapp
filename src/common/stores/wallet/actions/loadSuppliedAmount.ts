@@ -12,7 +12,6 @@ export async function loadSuppliedAmount(this: Store) {
   const promises = [];
   const suppliedBalance: { [protocol: string]: string } = {};
   const lppPrice: { [protocol: string]: Dec } = {};
-
   for (const protocolKey in admin.contracts) {
     const fn = async () => {
       const protocol = admin.contracts![protocolKey];

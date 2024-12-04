@@ -22,6 +22,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "../stores/oracle";
 import { useApplicationStore } from "../stores/application";
 import { useWalletStore } from "../stores/wallet";
+import { Intercom } from "../utils/Intercom";
 
 export function useLeases(onError: (error: unknown) => void) {
   const leases = ref<LeaseData[]>([]);
@@ -43,18 +44,15 @@ export function useLeases(onError: (error: unknown) => void) {
       >[] = [];
       const protocolPromises = [];
       const paginate = 50;
+      const protocols = [];
       for (const protocolKey in admin.contracts) {
         const fn = async () => {
           const protocol = admin.contracts![protocolKey];
           const leaserClient = new Leaser(cosmWasmClient, protocol.leaser);
-          let address = WalletManager.getWalletAddress();
-          const searchParamAddress = new URLSearchParams(window.location.search).get("address");
 
-          if (isDev() && searchParamAddress) {
-            address = searchParamAddress;
-          }
-
-          const openedLeases: string[] = (await leaserClient.getCurrentOpenLeasesByOwner(address)).filter((item) => {
+          const openedLeases: string[] = (
+            await leaserClient.getCurrentOpenLeasesByOwner(WalletManager.getWalletAddress())
+          ).filter((item) => {
             return !IGNORE_LEASES.includes(item);
           });
 
@@ -84,7 +82,28 @@ export function useLeases(onError: (error: unknown) => void) {
           return true;
         })
         .sort((a, b) => (b.leaseData?.timestamp?.getTime() ?? 0) - (a.leaseData?.timestamp?.getTime() ?? 0));
+
+      for (const l of items) {
+        protocols.push(ProtocolsConfig[l.protocol].shortName);
+      }
+
       leases.value = items as LeaseData[];
+      const attributes: {
+        PositionsCount: number;
+        PositionsProtocols: string;
+        PositionsLastOpened?: Date;
+      } = {
+        PositionsCount: leases.value.length,
+        PositionsProtocols: protocols.join("|")
+      };
+
+      if (leases.value.length > 0) {
+        attributes.PositionsLastOpened = leases.value[0].leaseData?.timestamp;
+      }
+
+      Intercom.update({
+        custom_attributes: attributes
+      });
     } catch (e) {
       onError(e);
       Logger.error(e);

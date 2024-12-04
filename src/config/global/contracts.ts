@@ -21,14 +21,16 @@ export const CONTRACTS: ContractConfig = {
         currencies: ["NTRN", "USDC_AXELAR", "ATOM"],
         stable: "USDC_AXELAR",
         type: PositionTypes.long,
-        rewards: true
+        rewards: true,
+        shortName: "NTRN-axlUSDC"
       },
       "OSMOSIS-OSMOSIS-USDC_AXELAR": {
         currencies: ["NLS", "OSMO", "USDC_AXELAR", "ATOM", "AKT", "JUNO"],
         stable: "USDC_AXELAR",
         lease: true,
         type: PositionTypes.long,
-        rewards: false
+        rewards: false,
+        shortName: "OSMO-axlUSDC"
       }
     },
     dispatcher: {
@@ -51,21 +53,24 @@ export const CONTRACTS: ContractConfig = {
         stable: "USDC_AXELAR",
         lease: false,
         type: PositionTypes.long,
-        rewards: false
+        rewards: false,
+        shortName: "OSMO-axlUSDC"
       },
       "NEUTRON-ASTROPORT-USDC_AXELAR": {
         lease: false,
         currencies: ["USDC_AXELAR"],
         stable: "USDC_AXELAR",
         type: PositionTypes.long,
-        rewards: false
+        rewards: false,
+        shortName: "NTRN-axlUSDC"
       },
       "NEUTRON-ASTROPORT-USDC_NOBLE": {
         lease: true,
         currencies: ["NTRN", "USDC_NOBLE", "DYDX", "ST_TIA", "STK_ATOM", "ATOM", "D_ATOM"],
         stable: "USDC_NOBLE",
         type: PositionTypes.long,
-        rewards: true
+        rewards: true,
+        shortName: "NTRN-USDC"
       },
       "OSMOSIS-OSMOSIS-USDC_NOBLE": {
         lease: true,
@@ -101,7 +106,8 @@ export const CONTRACTS: ContractConfig = {
         ],
         stable: "USDC_NOBLE",
         type: PositionTypes.long,
-        rewards: true
+        rewards: true,
+        shortName: "OSMO-USDC"
       },
       "OSMOSIS-OSMOSIS-ST_ATOM": {
         only: [],
@@ -109,7 +115,8 @@ export const CONTRACTS: ContractConfig = {
         currencies: ["ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
         stable: "USDC_NOBLE",
         type: PositionTypes.short,
-        rewards: true
+        rewards: true,
+        shortName: "OSMO-stATOM"
       },
       "OSMOSIS-OSMOSIS-ALL_BTC": {
         only: [],
@@ -117,7 +124,8 @@ export const CONTRACTS: ContractConfig = {
         currencies: ["ALL_BTC", "ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
         stable: "USDC_NOBLE",
         type: PositionTypes.short,
-        rewards: true
+        rewards: true,
+        shortName: "OSMO-allBTC"
       },
       "OSMOSIS-OSMOSIS-ALL_SOL": {
         only: [],
@@ -125,7 +133,8 @@ export const CONTRACTS: ContractConfig = {
         currencies: ["ALL_SOL", "ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
         stable: "USDC_NOBLE",
         type: PositionTypes.short,
-        rewards: true
+        rewards: true,
+        shortName: "OSMO-allSOL"
       },
       "OSMOSIS-OSMOSIS-AKT": {
         only: [],
@@ -133,7 +142,8 @@ export const CONTRACTS: ContractConfig = {
         currencies: ["ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
         type: PositionTypes.short,
         stable: "USDC_NOBLE",
-        rewards: true
+        rewards: true,
+        shortName: "OSMO-allAKT"
       }
     },
     dispatcher: {

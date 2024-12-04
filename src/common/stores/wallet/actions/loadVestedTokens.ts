@@ -1,5 +1,8 @@
+import { Intercom } from "@/common/utils/Intercom";
 import type { Store } from "../types";
 import { AppUtils, WalletManager, WalletUtils } from "@/common/utils";
+import { NATIVE_ASSET } from "@/config/global";
+import { Dec } from "@keplr-wallet/unit";
 import { ChainConstants } from "@nolus/nolusjs";
 
 export async function loadVestedTokens(this: Store): Promise<
@@ -53,6 +56,11 @@ export async function loadVestedTokens(this: Store): Promise<
     this.vest = vest;
     this.delegated_vesting = vesting_account.delegated_vesting[0];
     this.delegated_free = vesting_account.delegated_free[0];
+    Intercom.update({
+      custom_attributes: {
+        NLSAmountVested: new Dec(vest?.[0].amount?.amount ?? 0, NATIVE_ASSET.decimal_digits).toString()
+      }
+    });
   } else {
     this.vest = [];
     this.delegated_vesting = undefined;

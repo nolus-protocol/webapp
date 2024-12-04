@@ -130,6 +130,8 @@ import { useI18n } from "vue-i18n";
 import { storeToRefs } from "pinia";
 import { useAdminStore } from "@/common/stores/admin";
 import { Table } from "web-components";
+import { useOracleStore } from "@/common/stores/oracle";
+import { Intercom } from "@/common/utils/Intercom";
 
 const i18n = useI18n();
 
@@ -169,6 +171,7 @@ const lpnReward = ref(new Dec(0));
 const application = useApplicationStore();
 const applicationRef = storeToRefs(application);
 const admin = useAdminStore();
+const oracle = useOracleStore();
 const earningColumns = [
   { label: i18n.t("message.asset") },
   { label: i18n.t("message.deposit"), tooltip: i18n.t("message.deposit-tooltip"), class: "hidden md:flex" },
@@ -294,6 +297,8 @@ async function loadLPNCurrency() {
   const lpns = application.lpn;
   const promises = [];
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+  const protocols: string[] = [];
+  let usdAmount = new Dec(0);
 
   for (const lpn of lpns ?? []) {
     const index = wallet.balances.findIndex((item) => item.balance.denom == lpn.ibcData);
@@ -315,16 +320,19 @@ async function loadLPNCurrency() {
           lppClient.getLenderDeposit(walletAddress as string),
           lppClient.getPrice()
         ]);
-
         const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
-        const amount = new Dec(depositBalance.balance).mul(calculatedPrice).roundUp().toString();
+        const amount = new Dec(depositBalance.balance).mul(calculatedPrice).roundUp();
+        usdAmount = usdAmount.add(
+          new Dec(oracle.prices?.[lpn.key]?.amount ?? 0).mul(new Dec(amount, lpn.decimal_digits))
+        );
+        protocols.push(ProtocolsConfig[protocol].shortName);
         const currency = {
           key: c.key,
           balance: {
             ...wallet.balances[index].balance
           }
         };
-        currency.balance.amount = amount;
+        currency.balance.amount = amount.toString();
         lpnCurrencies.push(currency);
       };
       promises.push(fn());
@@ -333,6 +341,14 @@ async function loadLPNCurrency() {
 
   await Promise.allSettled(promises);
   const items = [];
+  Intercom.update({
+    custom_attributes: {
+      LentProtocols: protocols.join("|"),
+      LentAmountUSD: usdAmount.toString()
+    }
+  });
+
+  Intercom.update({});
 
   for (const protocol of sort) {
     const index = lpnCurrencies.findIndex((item) => {
