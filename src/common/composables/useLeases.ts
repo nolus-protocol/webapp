@@ -44,7 +44,6 @@ export function useLeases(onError: (error: unknown) => void) {
       >[] = [];
       const protocolPromises = [];
       const paginate = 50;
-      const protocols = [];
       for (const protocolKey in admin.contracts) {
         const fn = async () => {
           const protocol = admin.contracts![protocolKey];
@@ -83,18 +82,12 @@ export function useLeases(onError: (error: unknown) => void) {
         })
         .sort((a, b) => (b.leaseData?.timestamp?.getTime() ?? 0) - (a.leaseData?.timestamp?.getTime() ?? 0));
 
-      for (const l of items) {
-        protocols.push(ProtocolsConfig[l.protocol].shortName);
-      }
-
       leases.value = items as LeaseData[];
       const attributes: {
         PositionsCount: number;
-        PositionsProtocols: string;
         PositionsLastOpened?: Date;
       } = {
-        PositionsCount: leases.value.length,
-        PositionsProtocols: protocols.join("|")
+        PositionsCount: leases.value.length
       };
 
       if (leases.value.length > 0) {

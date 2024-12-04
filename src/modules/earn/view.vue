@@ -297,7 +297,6 @@ async function loadLPNCurrency() {
   const lpns = application.lpn;
   const promises = [];
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-  const protocols: string[] = [];
   let usdAmount = new Dec(0);
 
   for (const lpn of lpns ?? []) {
@@ -325,7 +324,6 @@ async function loadLPNCurrency() {
         usdAmount = usdAmount.add(
           new Dec(oracle.prices?.[lpn.key]?.amount ?? 0).mul(new Dec(amount, lpn.decimal_digits))
         );
-        protocols.push(ProtocolsConfig[protocol].shortName);
         const currency = {
           key: c.key,
           balance: {
@@ -342,7 +340,6 @@ async function loadLPNCurrency() {
   await Promise.allSettled(promises);
   const items = [];
   Intercom.update({
-    LentProtocols: protocols.join("|"),
     LentAmountUSD: usdAmount.toString()
   });
 

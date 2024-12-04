@@ -23,7 +23,7 @@ export async function loadStakedTokens(this: Store) {
       }
       s.amount = am;
       this.stakingBalance = s;
-      Intercom.update({ NLSAmountDelegated: new Dec(s?.amount ?? 0, NATIVE_ASSET.decimal_digits).toString() });
+      Intercom.update({ Nlsamountdelegated: new Dec(s?.amount ?? 0, NATIVE_ASSET.decimal_digits).toString() });
     } else {
       this.stakingBalance = new Coin(NATIVE_ASSET.denom, new Int(0));
     }
