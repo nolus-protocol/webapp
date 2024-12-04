@@ -30,3 +30,9 @@
 strong {
   font-weight: 600;
 }
+
+@media (max-width: $md) { 
+  .intercom-lightweight-app-launcher{
+    bottom: 84px !important; 
+  }
+}
