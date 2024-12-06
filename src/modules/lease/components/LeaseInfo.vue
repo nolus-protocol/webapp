@@ -989,7 +989,7 @@ const leaseOpened = computed<LeaseProps>(() => ({
     showText: i18n.t("message.show-lease-history"),
     hideText: i18n.t("message.hide-lease-history"),
     actionText: i18n.t("message.action"),
-    timeText: i18n.t("message.time"),
+    timeText: i18n.t("message.date"),
     items: props.leaseInfo.leaseData.history.map((item: IObjectKeys) => {
       const currency = app.currenciesData?.[`${item.symbol}@${props.leaseInfo.protocol}`];
       return {
@@ -1042,8 +1042,14 @@ const leaseOpening = computed<LeaseProps>(() => ({
     showText: i18n.t("message.show-lease-history"),
     hideText: i18n.t("message.hide-lease-history"),
     actionText: i18n.t("message.action"),
-    timeText: i18n.t("message.time"),
-    items: []
+    timeText: i18n.t("message.date"),
+    items: props.leaseInfo.leaseData.history.map((item: IObjectKeys) => {
+      const currency = app.currenciesData?.[`${item.symbol}@${props.leaseInfo.protocol}`];
+      return {
+        time: getCreatedAtForHuman(new Date(item.time)),
+        action: `${i18n.t(`message.${item.type}`)} ${new Dec(item.amount, currency?.decimal_digits).toString(currency?.decimal_digits)} ${currency?.shortName}`
+      };
+    })
   }
 }));
 
@@ -1080,8 +1086,14 @@ const leasePaid = computed<LeaseProps>(() => ({
     showText: i18n.t("message.show-lease-history"),
     hideText: i18n.t("message.hide-lease-history"),
     actionText: i18n.t("message.action"),
-    timeText: i18n.t("message.time"),
-    items: []
+    timeText: i18n.t("message.date"),
+    items: props.leaseInfo.leaseData.history.map((item: IObjectKeys) => {
+      const currency = app.currenciesData?.[`${item.symbol}@${props.leaseInfo.protocol}`];
+      return {
+        time: getCreatedAtForHuman(new Date(item.time)),
+        action: `${i18n.t(`message.${item.type}`)} ${new Dec(item.amount, currency?.decimal_digits).toString(currency?.decimal_digits)} ${currency?.shortName}`
+      };
+    })
   }
 }));
 

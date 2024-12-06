@@ -459,9 +459,22 @@ watch(
 
 watch(
   () => wallet.wallet,
+  async () => {
+    try {
+      getRealizedPnl();
+    } catch (e) {
+      Logger.error(e);
+    }
+  },
+  {
+    immediate: true
+  }
+);
+
+watch(
+  () => wallet.wallet,
   () => {
     getLeases();
-    getRealizedPnl();
   }
 );
 
