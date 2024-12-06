@@ -328,15 +328,15 @@
     "contract-id": "Contract id",
     "status-liquidation": "Liquidate",
     "status-market-close": "Close",
-    "status-repay": "Repaid",
+    "status-repay": "Repay",
     "osmosis-allbtc": "Osmosis BTC",
     "osmosis-allsol": "Osmosis SOL",
     "osmosis-akt": "Osmosis AKT",
     "impact-fee": "impact and dex fees:",
     "realized-pnl": "Realized PnL",
     "realized": "Realized",
-    "show-lease-history": "Show Lease History",
-    "hide-lease-history": "Hide Lease History",
+    "show-lease-history": "Show Actions Log",
+    "hide-lease-history": "Hide Actions Log",
     "liquidation": "Liquidate"
   }
 }
