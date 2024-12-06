@@ -400,7 +400,7 @@ import {
   type LeaseProps,
   LeaseStatus
 } from "web-components";
-import type { LeaseData } from "@/common/types";
+import type { IObjectKeys, LeaseData } from "@/common/types";
 import { CONFIRM_STEP, CURRENCY_VIEW_TYPES, TxType } from "@/common/types";
 
 import RepayDialog from "@/common/components/modals/RepayDialog.vue";
@@ -442,6 +442,7 @@ import {
   datePraser,
   EtlApi,
   formatDate,
+  getCreatedAtForHuman,
   Logger,
   StringUtils,
   WalletManager,
@@ -633,7 +634,7 @@ const getAssetIcon = computed((): string => {
 });
 
 const downPayment = computed(() => {
-  const amount = props.leaseInfo.leaseData?.downPayment;
+  const amount = props.leaseInfo.leaseData?.downPayment.add(props.leaseInfo.leaseData?.repayment_value);
   return amount?.toString(2);
 });
 
@@ -983,6 +984,19 @@ const leaseOpened = computed<LeaseProps>(() => ({
     title: i18n.t("message.interest-due"),
     tooltip: i18n.t("message.repay-interest", { dueDate: interestDueDate.value }),
     class: loadingRepay.value || loadingClose.value ? "h-5 mt-0.5 bg-neutral-100 rounded-md text-transparent pulse" : ""
+  },
+  lease_history: {
+    showText: i18n.t("message.show-lease-history"),
+    hideText: i18n.t("message.hide-lease-history"),
+    actionText: i18n.t("message.action"),
+    timeText: i18n.t("message.time"),
+    items: props.leaseInfo.leaseData.history.map((item: IObjectKeys) => {
+      const currency = app.currenciesData?.[`${item.symbol}@${props.leaseInfo.protocol}`];
+      return {
+        time: getCreatedAtForHuman(new Date(item.time)),
+        action: `${i18n.t(`message.${item.type}`)} ${new Dec(item.amount, currency?.decimal_digits).toString(currency?.decimal_digits)} ${currency?.shortName}`
+      };
+    })
   }
 }));
 
@@ -1023,6 +1037,13 @@ const leaseOpening = computed<LeaseProps>(() => ({
     title: i18n.t("message.interest-due"),
     tooltip: i18n.t("message.repay-interest", { dueDate: interestDueDate.value }),
     class: "h-5 mt-0.5 bg-neutral-100 rounded-md text-transparent"
+  },
+  lease_history: {
+    showText: i18n.t("message.show-lease-history"),
+    hideText: i18n.t("message.hide-lease-history"),
+    actionText: i18n.t("message.action"),
+    timeText: i18n.t("message.time"),
+    items: []
   }
 }));
 
@@ -1054,6 +1075,13 @@ const leasePaid = computed<LeaseProps>(() => ({
       pnlType.value = !pnlType.value;
     },
     status: pnl.value.status ? LeasePnlStatus.POSITIVE : LeasePnlStatus.NEGATIVE
+  },
+  lease_history: {
+    showText: i18n.t("message.show-lease-history"),
+    hideText: i18n.t("message.hide-lease-history"),
+    actionText: i18n.t("message.action"),
+    timeText: i18n.t("message.time"),
+    items: []
   }
 }));
 

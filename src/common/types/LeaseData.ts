@@ -34,4 +34,10 @@ export interface LeaseAttributes {
   timestamp: Date;
   ls_asset_symbol: string;
   repayment_value: Dec;
+  history: {
+    symbol: string;
+    amount: string;
+    type: string;
+    time: string;
+  }[];
 }

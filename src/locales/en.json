@@ -324,7 +324,6 @@
     "pnl-history": "Realized PnL Log",
     "lease-history": "Lease History",
     "contract-id": "Contract id",
-    "realized": "Realized",
     "status-liquidation": "Liquidate",
     "status-market-close": "Close",
     "status-repay": "Repaid",
@@ -333,6 +332,11 @@
     "osmosis-akt": "Osmosis AKT",
     "impact-fee": "impact and dex fees:",
     "axlusdc-subtitle": "End of Support for axlUSDC",
-    "axlusdc-description": "Support for axlUSDC as a lending asset will officially conclude on January 31, 2025. Kindly ensure all Lease positions are closed and liquidity withdrawn from Earn prior to this date"
+    "axlusdc-description": "Support for axlUSDC as a lending asset will officially conclude on January 31, 2025. Kindly ensure all Lease positions are closed and liquidity withdrawn from Earn prior to this date",
+    "realized-pnl": "Realized PnL",
+    "realized": "Realized",
+    "show-lease-history": "Show Lease History",
+    "hide-lease-history": "Hide Lease History",
+    "liquidation": "Liquidate"
   }
 }

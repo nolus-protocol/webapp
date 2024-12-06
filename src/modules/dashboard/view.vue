@@ -93,9 +93,7 @@
             </div>
           </div>
 
-          <div
-            class="mb-4 border-b border-border-color pb-4 pt-4 md:mb-0 md:border-b-0 md:border-r md:pb-0 md:pl-8 md:pr-8 md:pt-0"
-          >
+          <div class="mb-4 pt-4 md:mb-0 md:pb-0 md:pl-8 md:pt-0">
             <p class="text-dark-grey text-12 font-medium">
               {{ $t("message.positions-pnL") }}
             </p>
@@ -106,6 +104,32 @@
                 pnl.isZero() ? 'text-neutral-typography-200' : pnl.isPositive() ? '!text-[#1AB171]' : 'text-[#E42929]'
               "
               :denom="`${pnl.isZero() ? '' : pnl.isPositive() ? '+' : '-'}${NATIVE_CURRENCY.symbol}`"
+              :fontSize="16"
+              :fontSizeSmall="12"
+              :has-space="false"
+              :prettyZeros="true"
+              :type="CURRENCY_VIEW_TYPES.CURRENCY"
+              class="font-medium"
+            />
+          </div>
+
+          <div
+            class="mb-4 border-b border-border-color pb-4 md:mb-0 md:border-b-0 md:border-r md:pb-0 md:pl-8 md:pr-8 md:pt-0"
+          >
+            <p class="text-dark-grey text-12 font-medium">
+              {{ $t("message.realized-pnl") }}
+            </p>
+
+            <CurrencyComponent
+              :amount="realized_pnl.abs().toString()"
+              :class="
+                realized_pnl.isZero()
+                  ? 'text-neutral-typography-200'
+                  : realized_pnl.isPositive()
+                    ? '!text-[#1AB171]'
+                    : 'text-[#E42929]'
+              "
+              :denom="`${realized_pnl.isZero() ? '' : realized_pnl.isPositive() ? '+' : '-'}${NATIVE_CURRENCY.symbol}`"
               :fontSize="16"
               :fontSizeSmall="12"
               :has-space="false"
@@ -304,7 +328,7 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
 import { useAdminStore } from "@/common/stores/admin";
 
-import { AssetUtils, Logger, NetworkUtils, WalletManager } from "@/common/utils";
+import { AssetUtils, EtlApi, Logger, NetworkUtils, WalletManager } from "@/common/utils";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { NATIVE_ASSET, NATIVE_CURRENCY, ProtocolsConfig } from "@/config/global";
 import { CurrencyDemapping } from "@/config/currencies";
@@ -340,6 +364,8 @@ const earnings = ref(new Dec(0));
 const debt = ref(new Dec(0));
 const activeLeases = ref(new Dec(0));
 const pnl = ref(new Dec(0));
+const realized_pnl = ref(new Dec(0));
+
 const rewards = ref(new Dec(0));
 const assetsColumns = [
   { label: i18n.t("message.assets") },
@@ -435,6 +461,7 @@ watch(
   () => wallet.wallet,
   () => {
     getLeases();
+    getRealizedPnl();
   }
 );
 
@@ -598,10 +625,10 @@ function setLeases() {
     activeLeases.value = ls;
     debt.value = db;
     pnl.value = pl;
-
     Intercom.update({
       PositionsUnrealizedPnlUSD: pl.toString(),
-      PositionsDebtUSD: db.toString()
+      PositionsDebtUSD: db.toString(),
+      Positionsvalueusd: ls.toString()
     });
   } catch (e) {
     Logger.error(e);
@@ -658,6 +685,15 @@ async function getRewards() {
     return rewards;
   } catch (e) {
     return new Dec(0);
+  }
+}
+
+async function getRealizedPnl() {
+  try {
+    const data = await EtlApi.fetchRealizedPNL(wallet?.wallet?.address);
+    realized_pnl.value = new Dec(data.realized_pnl);
+  } catch (error) {
+    console.error(error);
   }
 }
 </script>

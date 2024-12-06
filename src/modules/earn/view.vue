@@ -290,6 +290,9 @@ async function loadDelegated() {
   }
 
   delegated.value = { balance: coin(decimalDelegated.truncate().toString(), NATIVE_ASSET.denom) };
+  Intercom.update({
+    Nlsamountdelegated: new Dec(delegated.value.balance.amount ?? 0, NATIVE_ASSET.decimal_digits).toString()
+  });
 }
 
 async function loadLPNCurrency() {
