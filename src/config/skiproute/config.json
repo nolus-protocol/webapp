@@ -116,7 +116,9 @@
       ]
     },
     "COSMOS_HUB": {
-      "currencies": [{ "from": "ibc/6CDD4663F2F09CD62285E2D45891FC149A3568E316CE3EBBE201A71A78A69388", "to": "uatom" }]
+      "currencies": [{ "from": "ibc/6CDD4663F2F09CD62285E2D45891FC149A3568E316CE3EBBE201A71A78A69388", "to": "uatom" },
+      { "from": "ibc/74329D0B6EAA37AD07FF44EC40D998357D1478C504AB5A9C91C3F42F1078A226", "to": "uatom" }
+      ]
     },
     "AXELAR": {
       "currencies": [
