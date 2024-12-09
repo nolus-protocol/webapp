@@ -377,11 +377,11 @@ async function openLease() {
         {
           denom: microAmount.coinMinimalDenom,
           amount: microAmount.mAmount.amount.toString()
-        },
-        {
-          denom: TIP.denom,
-          amount: TIP.amount.toString()
         }
+        // {
+        //   denom: TIP.denom,
+        //   amount: TIP.amount.toString()
+        // }
       ];
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();

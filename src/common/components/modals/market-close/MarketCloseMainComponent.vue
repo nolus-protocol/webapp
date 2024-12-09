@@ -287,10 +287,10 @@ async function marketCloseLease() {
     step.value = CONFIRM_STEP.PENDING;
     try {
       const funds: Coin[] = [
-        {
-          denom: TIP.denom,
-          amount: TIP.amount.toString()
-        }
+        // {
+        //   denom: TIP.denom,
+        //   amount: TIP.amount.toString()
+        // }
       ];
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();

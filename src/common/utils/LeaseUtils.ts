@@ -112,7 +112,7 @@ export class LeaseUtils {
       const currency = app.currenciesData![`${l_c}@${contract}`];
 
       return {
-        history: result.history,
+        history: result?.history ?? [],
         pnlAmount: new Dec(result.pnl, currency.decimal_digits),
         fee: new Dec(result.fee, currency.decimal_digits),
         downPayment,
