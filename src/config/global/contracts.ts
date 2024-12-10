@@ -152,6 +152,6 @@ export const Contracts = CONTRACTS[network];
 export const ProtocolsConfig = Contracts.protocolConfig;
 
 export const TIP = {
-  amount: 100,
+  amount: 0,
   denom: NATIVE_ASSET.denom
 };
