@@ -1,7 +1,7 @@
 export const NETWORK = {
   prefix: "axelar",
   key: "AXELAR",
-  gasMupltiplier: 2.5,
+  gasMupltiplier: 2.7,
   bip44Path: "44'/118'/0'/0/0",
   ibcTransferTimeout: 600,
   ticker: "AXL",
