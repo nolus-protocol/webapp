@@ -8,13 +8,13 @@
         :sort-type="SORT_TYPE"
       />
       <div class="right inline-flex w-full justify-start px-4 md:mt-0 md:w-1/2 md:justify-end lg:px-0">
-        <!-- <Button
+        <Button
           :label="$t('message.lease-new')"
           class="w-full md:w-auto"
           severity="primary"
           size="large"
           @click="showLeaseModal = true"
-        /> -->
+        />
       </div>
     </div>
     <TransitionGroup
