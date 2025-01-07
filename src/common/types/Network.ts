@@ -10,6 +10,7 @@ export interface Network {
   symbol: string;
   forward?: boolean;
   chain_type: ChainType;
+  icon: string;
 }
 
 export interface EvmNetwork {
@@ -25,6 +26,7 @@ export interface EvmNetwork {
   symbol: string;
   value: string;
   chain_type: ChainType;
+  icon: string;
   nativeCurrency: {
     name: string;
     symbol: string;

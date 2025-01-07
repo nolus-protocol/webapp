@@ -122,29 +122,26 @@ export function useLeases(onError: (error: unknown) => void) {
   return { leases, leaseLoaded, getLeases };
 }
 
-export function useLease(leaseAddress: string, onError: (error: unknown) => void) {
+export function useLease(leaseAddress: string, protocol: string, onError: (error: unknown) => void) {
+  const lease = ref<LeaseData>();
+  const leaseLoaded = ref(false);
+
   const getLease = async () => {
     try {
-      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const leaseClient = new Lease(cosmWasmClient, leaseAddress);
-      const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus();
-      return {
-        leaseAddress,
-        leaseStatus: leaseInfo
-      } as {
-        leaseAddress: string;
-        leaseStatus: LeaseStatus;
-      };
+      lease.value = await fetchLease(leaseAddress, protocol.toUpperCase());
     } catch (e) {
       onError(e);
+      Logger.error(e);
+    } finally {
+      leaseLoaded.value = true;
     }
   };
 
-  onMounted(async () => {
-    await getLease();
+  onMounted(() => {
+    getLease();
   });
 
-  return { getLease };
+  return { lease, leaseLoaded, getLease };
 }
 
 export function useLeaseConfig(protocol: string, onError: (error: unknown) => void) {
@@ -196,6 +193,19 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
   let pnlPercent = new Dec(0);
   let pnlAmount = new Dec(0);
   let fee = leaseData?.fee ?? new Dec(0);
+
+  leaseData.downpaymentTicker =
+    leaseData.downpaymentTicker ??
+    CurrencyDemapping[leaseInfo.opening?.downpayment?.ticker as string]?.ticker ??
+    leaseInfo.opening?.downpayment.ticker;
+  leaseData.leasePositionTicker =
+    leaseData.leasePositionTicker ??
+    CurrencyDemapping[leaseInfo.opening?.loan.ticker as string]?.ticker ??
+    leaseInfo.opening?.loan.ticker;
+
+  if (!leaseData.ls_asset_symbol) {
+    leaseData.ls_asset_symbol = leaseData.leasePositionTicker;
+  }
 
   if (leaseInfo.opened) {
     const principal_due = new Dec(leaseInfo.opened.principal_due.amount);

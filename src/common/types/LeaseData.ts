@@ -26,15 +26,15 @@ export interface LeaseAttributes {
   pnlAmount: Dec;
   fee: Dec;
   downPayment: Dec;
-  downpaymentTicker: string | null;
-  price: Dec | null;
-  lpnPrice: Dec | null;
+  downpaymentTicker?: string;
+  price?: Dec;
+  lpnPrice?: Dec;
   leasePositionStable: Dec;
-  leasePositionTicker: string | null;
+  leasePositionTicker?: string;
   timestamp: Date;
-  ls_asset_symbol: string;
+  ls_asset_symbol?: string;
   repayment_value: Dec;
-  history: {
+  history?: {
     symbol: string;
     amount: string;
     type: string;

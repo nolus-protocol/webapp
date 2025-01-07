@@ -1,0 +1,83 @@
+<template>
+  <ProposalItem
+    class="proposal-item"
+    :id="state.id"
+    :quorum="quorumState"
+    :read-more-button-text="$t('message.read-more')"
+    :status="state.status"
+    :summary="StringUtils.truncateText(`${summary}`, 256)"
+    :tally="state.tally"
+    :title="state.title"
+    :turnout="turnout"
+    :voteButtonText="$t('message.vote')"
+    :voted="!state.voted"
+    :voting_end_time="formatDateTime(state.voting_end_time)"
+    @actionButton="emit('actionButton', state)"
+  />
+</template>
+
+<script lang="ts" setup>
+import { type FinalTallyResult, type Proposal } from "@/modules/vote/types";
+import { computed, type PropType } from "vue";
+import { Dec } from "@keplr-wallet/unit";
+import { formatDateTime, StringUtils } from "@/common/utils";
+
+import { Proposal as ProposalItem } from "web-components";
+import { marked } from "marked";
+
+const props = defineProps({
+  state: {
+    type: Object as PropType<Proposal>,
+    required: true
+  },
+  bondedTokens: {
+    type: Object as PropType<Dec | any>,
+    required: true
+  },
+  quorum: {
+    type: Object as PropType<Dec | any>,
+    required: true
+  }
+});
+
+const summary = computed(() => {
+  return marked.parse(props.state.summary, {
+    pedantic: true,
+    gfm: true,
+    breaks: true
+  });
+});
+
+const turnout = computed(() => {
+  if (props.bondedTokens.isZero()) {
+    return "0";
+  }
+
+  let tally = new Dec(0);
+
+  for (const key in props.state.tally) {
+    tally = tally.add(new Dec(props.state.tally[key as keyof FinalTallyResult]));
+  }
+
+  return tally.quo(props.bondedTokens).mul(new Dec(100)).toString(2);
+});
+
+const quorumState = computed(() => {
+  return props.quorum.mul(new Dec(100)).toString(2);
+});
+
+const emit = defineEmits<{
+  (e: "actionButton", value: Proposal): void;
+}>();
+</script>
+
+<style lang="scss">
+.proposal-item {
+  h2 {
+    @apply mb-2 text-left text-18 font-semibold;
+  }
+  strong {
+    @apply font-semibold;
+  }
+}
+</style>

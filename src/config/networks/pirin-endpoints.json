@@ -1,7 +1,7 @@
 {
   "downtime": 30,
   "archive_node_rpc": "https://archive-rpc.nolus.network",
-  "archive_node_api": "https://archive-lcd.nolus.network",
+  "archive_node_api": "archive-lcd.nolus.network",
   "NOLUS": {
     "primary": {
       "rpc": "https://rpc.nolus.network",
@@ -227,6 +227,18 @@
       {
         "rpc": "https://rpc-composable.whispernode.com:443",
         "api": "https://lcd-composable.whispernode.com:443"
+      }
+    ]
+  },
+  "CUDOS": {
+    "primary": {
+      "rpc": "https://cudos-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
+      "api": "https://cudos-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
+    },
+    "fallback": [
+      {
+        "rpc": "https://mainnet-full-node-02.hosts.cudos.org:36657",
+        "api": "https://mainnet-full-node-02.hosts.cudos.org:31317"
       }
     ]
   }

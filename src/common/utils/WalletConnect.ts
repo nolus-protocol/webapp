@@ -1,7 +1,7 @@
 import type { Coin } from "@cosmjs/proto-signing";
 import type { StdFee } from "@cosmjs/amino";
 import { i18n } from "@/i18n";
-import { Int } from "@keplr-wallet/unit";
+import { Dec, Int } from "@keplr-wallet/unit";
 import { fromBech32 } from "@cosmjs/encoding";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
@@ -41,6 +41,31 @@ export const validateAmount = (amount: string, denom: string, balance: number) =
   if (isLowerThanOrEqualsToZero) {
     return i18n.global.t("message.invalid-balance-low");
   }
+
+  if (isGreaterThanWalletBalance) {
+    return i18n.global.t("message.invalid-balance-big");
+  }
+
+  return "";
+};
+
+export const validateAmountV2 = (amount: string, amount2: string) => {
+  const hasDot = amount?.at?.(0) == ".";
+
+  if (!amount || hasDot) {
+    return i18n.global.t("message.invalid-amount");
+  }
+
+  const a = new Dec(amount);
+  const b = new Dec(amount2);
+
+  const isLowerThanOrEqualsToZero = a.lte(new Dec(0));
+
+  if (isLowerThanOrEqualsToZero) {
+    return i18n.global.t("message.invalid-balance-low");
+  }
+
+  const isGreaterThanWalletBalance = a.gt(b);
 
   if (isGreaterThanWalletBalance) {
     return i18n.global.t("message.invalid-balance-big");
@@ -140,23 +165,19 @@ export const transferCurrency = async (denom: string, amount: string, receiverAd
   const asset = AssetUtils.getCurrencyByDenom(denom);
   const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, asset.ibcData, asset.decimal_digits);
 
-  try {
-    const funds: Coin[] = [
-      {
-        amount: minimalDenom.amount.toString(),
-        denom
-      }
-    ];
+  const funds: Coin[] = [
+    {
+      amount: minimalDenom.amount.toString(),
+      denom
+    }
+  ];
 
-    const { txBytes, txHash, usedFee } = await wallet.simulateBankTransferTx(receiverAddress, funds);
+  const { txBytes, txHash, usedFee } = await wallet.simulateBankTransferTx(receiverAddress, funds);
 
-    result.txHash = txHash;
-    result.txBytes = txBytes;
-    result.usedFee = usedFee;
-    result.success = true;
-  } catch (e) {
-    Logger.error("Transaction failed. ", e);
-  }
+  result.txHash = txHash;
+  result.txBytes = txBytes;
+  result.usedFee = usedFee;
+  result.success = true;
 
   return result;
 };

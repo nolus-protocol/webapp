@@ -1,57 +1,121 @@
-<script lang="ts" setup></script>
-
 <template>
-  <div class="flex flex-row flex-wrap gap-y-8 lg:gap-x-5">
-    <div
+  <div class="flex flex-col flex-wrap justify-between gap-y-8 md:flex-row">
+    <Widget
+      class="h-fit flex-[0_calc(100%/2-16px)] !gap-0 !p-0"
       v-for="index in 5"
       :key="index"
-      :class="index > 1 ? ['bg-transparent', 'lg:w-[calc(50%-10px)]'] : ['background']"
-      class="proposal flex w-full flex-col gap-3 p-5 shadow-field-normal lg:rounded-xl"
     >
-      <div class="text-upper flex flex-col justify-between gap-2 text-[8px] md:flex-row md:gap-0">
-        <div class="h-0.5 w-[30px] bg-grey" />
+      <div class="flex flex-col gap-y-6 p-6 pb-4">
+        <div class="flex flex-col gap-y-3">
+          <div class="text-20 font-semibold text-neutral-bg-inverted-1">
+            <div
+              class="skeleton-box"
+              style="width: 70%; height: 1em"
+            ></div>
+          </div>
+          <div
+            class="skeleton-box"
+            style="width: 20%; height: 1em"
+          ></div>
+        </div>
+        <hr class="border-border-color" />
         <div
           v-if="index === 1"
-          class="h-0.5 w-[300px] bg-grey"
-        />
-      </div>
-      <div class="text-small-heading h-[5px] w-[100px] break-all bg-grey text-neutral-typography-200" />
-      <div class="h-[5px] w-full bg-grey" />
-      <div class="flex flex-col gap-3 text-12 text-medium-blue">
-        <div class="h-[2px] w-full bg-grey" />
-        <div class="h-[2px] w-full bg-grey" />
-        <div class="h-[2px] w-full bg-grey" />
-      </div>
-      <div class="btn btn-secondary btn-medium-secondary h-[25px] w-[91px] self-start bg-grey !py-1 !text-12" />
-
-      <div v-if="index === 1">
-        <div class="flex flex-col gap-3">
-          <div class="w-full border-b border-border-color bg-transparent" />
-          <div class="btn btn-primary btn-large-primary h-[36px] w-[58px] self-end bg-grey !px-3 !py-2" />
+          class="flex flex-col gap-y-3"
+        >
+          <div class="flex gap-3">
+            <div>
+              <span class="mb-1 block text-14">
+                <div
+                  class="skeleton-box"
+                  style="width: 100px; height: 1em"
+                ></div>
+              </span>
+              <span class="text-16 font-semibold text-typography-default"
+                ><div
+                  class="skeleton-box"
+                  style="width: 70px; height: 1em"
+                ></div
+              ></span>
+            </div>
+            <div>
+              <span class="mb-1 block text-14">
+                <div
+                  class="skeleton-box"
+                  style="width: 100px; height: 1em"
+                ></div>
+              </span>
+              <span class="text-16 font-semibold text-typography-default"
+                ><div
+                  class="skeleton-box"
+                  style="width: 70px; height: 1em"
+                ></div
+              ></span>
+            </div>
+            <div>
+              <span class="mb-1 block text-14">
+                <div
+                  class="skeleton-box"
+                  style="width: 100px; height: 1em"
+                ></div
+              ></span>
+              <span class="text-16 font-semibold text-typography-default"
+                ><div
+                  class="skeleton-box"
+                  style="width: 70px; height: 1em"
+                ></div
+              ></span>
+            </div>
+          </div>
+        </div>
+        <div
+          class="prose prose-h1:mb-2 prose-h1:text-lg prose-h1:font-medium prose-h2:my-1 prose-h2:text-lg prose-h2:font-medium text-16 font-normal"
+        >
+          <div
+            class="skeleton-box"
+            style="width: 100%; height: 1em"
+          ></div>
+          <div
+            class="skeleton-box"
+            style="width: 80%; height: 1em"
+          ></div>
+          <div
+            class="skeleton-box"
+            style="width: 90%; height: 1em"
+          ></div>
         </div>
       </div>
-    </div>
+      <div class="flex justify-center rounded-b-xl border-t border-border-color bg-neutral-bg-1 p-3">
+        <div
+          class="skeleton-box"
+          style="width: 100%; height: 1em"
+        ></div>
+        <div
+          class="skeleton-box"
+          style="width: 100%; height: 1em"
+        ></div>
+      </div>
+    </Widget>
   </div>
 </template>
 
-<style lang="scss" scoped>
-.dark,
-.sync {
-  .proposal {
-    outline: none;
-    position: relative;
-  }
+<script lang="ts" setup>
+import { Widget } from "web-components";
+</script>
 
-  .proposal::after {
-    content: "";
-    position: absolute;
-    top: 0px;
-    right: 0px;
-    bottom: 0px;
-    left: 0px;
-    border: 1px solid #2d3748;
-    border-radius: 12px;
-    pointer-events: none;
+<style lang="scss" scoped>
+.skeleton-box {
+  background-color: #ccc;
+  animation: blink 1.2s linear infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
   }
 }
 </style>

@@ -1,5 +1,5 @@
 import type { Proposal } from "@/modules/vote/types";
-import { ProposalStatus } from "@/modules/vote/types";
+import { ProposalStatus } from "web-components";
 
 export const ProposalState: Proposal = {
   id: "",
@@ -16,7 +16,10 @@ export const ProposalState: Proposal = {
       }
     }
   ],
-  status: ProposalStatus.PROPOSAL_STATUS_VOTING_PERIOD,
+  status: ProposalStatus.PROPOSAL_STATUS_VOTING_PERIOD as Exclude<
+    ProposalStatus,
+    ProposalStatus.PROPOSAL_STATUS_VOTING_PERIOD
+  >,
   tally: {
     abstain_count: "",
     no_count: "",

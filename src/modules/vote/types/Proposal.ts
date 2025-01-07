@@ -1,9 +1,11 @@
+import type { ProposalStatus } from "web-components";
+
 export interface Proposal {
   id: string;
   title: string;
   summary: string;
   messages: ProposalContent[];
-  status: ProposalStatus;
+  status: Exclude<ProposalStatus, ProposalStatus.PROPOSAL_STATUS_VOTING_PERIOD>;
   tally: FinalTallyResult;
   submit_time: string;
   deposit_end_time: string;
@@ -11,15 +13,6 @@ export interface Proposal {
   voting_start_time: string;
   voting_end_time: string;
   voted: boolean;
-}
-
-export enum ProposalStatus {
-  PROPOSAL_STATUS_UNSPECIFIED = "PROPOSAL_STATUS_UNSPECIFIED",
-  PROPOSAL_STATUS_DEPOSIT_PERIOD = "PROPOSAL_STATUS_DEPOSIT_PERIOD",
-  PROPOSAL_STATUS_VOTING_PERIOD = "PROPOSAL_STATUS_VOTING_PERIOD",
-  PROPOSAL_STATUS_PASSED = "PROPOSAL_STATUS_PASSED",
-  PROPOSAL_STATUS_REJECTED = "PROPOSAL_STATUS_REJECTED",
-  PROPOSAL_STATUS_FAILED = "PROPOSAL_STATUS_FAILED"
 }
 
 export interface ProposalContent {

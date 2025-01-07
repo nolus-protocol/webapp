@@ -1,14 +1,14 @@
 <template>
-  <template v-for="(data, index) in transactionData">
-    <HistoryTableRow
-      :classes="data.classes"
-      :items="data.items"
-    />
+  <template
+    v-for="transaction in transactionData"
+    :key="`${transaction.items[0].value}_${transaction.index}`"
+  >
+    <TableRow :items="transaction.items" />
   </template>
 </template>
 
 <script lang="ts" setup>
-import { coin, parseCoins, type Coin } from "@cosmjs/proto-signing";
+import { type Coin, parseCoins } from "@cosmjs/proto-signing";
 import type { ITransactionData } from "../types";
 import type { IObjectKeys } from "@/common/types";
 
@@ -19,10 +19,8 @@ import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
 import { useI18n } from "vue-i18n";
 import { Buffer } from "buffer";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
-import { computed, onMounted, ref } from "vue";
-import type { HistoryTableRowItemProps } from "web-components";
-import { HistoryTableRow } from "web-components";
-import Icon from "@/assets/icons/urlicon.svg";
+import { computed, h, onMounted, ref } from "vue";
+import { Label, SvgIcon, TableRow, type LabelProps, type SvgProps, type TableRowItemProps } from "web-components";
 import { PositionTypes, ProtocolsConfig } from "@/config/global";
 
 enum Messages {
@@ -68,26 +66,25 @@ const transactionData = computed(() =>
       ({
         items: [
           {
-            value: truncateString(props.transaction.tx_hash),
-            url: `${applicaton.network.networkAddresses.explorer}/${props.transaction.tx_hash}`,
-            icon: Icon,
-            class: "text-14 uppercase max-w-[200px]"
-          },
-          {
             value: msg,
-            bold: true,
-            class: "text-14"
+            url: `${applicaton.network.networkAddresses.explorer}/${props.transaction.tx_hash}`,
+            variant: "left"
           },
           {
-            value: convertFeeAmount(coin(props.transaction.fee_amount, props.transaction.fee_denom)),
-            class: "max-w-[200px]"
+            value: props.transaction.type.split(".").at(-1),
+            class: "max-w-[140px]"
           },
           {
             value: getCreatedAtForHuman(props.transaction.timestamp) ?? props.transaction.block,
-            class: "max-w-[200px]"
-          }
+            class: "max-w-[140px]"
+          },
+          {
+            component: () => h<LabelProps>(Label, { value: i18n.t(`message.completed`), variant: "success" }),
+            class: "max-w-[150px]"
+          },
+          { component: () => h<SvgProps>(SvgIcon, { name: "more" }), class: "max-w-[120px]" }
         ]
-      }) as HistoryTableRowItemProps
+      }) as TableRowItemProps
   )
 );
 

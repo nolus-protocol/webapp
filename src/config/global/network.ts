@@ -1,4 +1,4 @@
-import nlsIcon from "@/assets/icons/coins/nls.svg";
+import nlsIcon from "@/assets/icons/coins/nls.svg?url";
 import { ChainType } from "@/common/types/Network";
 
 export const NATIVE_CURRENCY = {

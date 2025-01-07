@@ -6,6 +6,7 @@ export class WalletManager {
   public static WALLET_CONNECT_MECHANISM = "wallet_connect_mechanism";
   public static WALLET_ADDRESS = "wallet_address";
   public static WALLET_PUBKEY = "wallet_pubkey";
+  public static SHOW_SMALL_BALANCES = "show_small_balances";
 
   public static saveWalletConnectMechanism(walletConnectMechanism: WalletConnectMechanism) {
     localStorage.setItem(this.WALLET_CONNECT_MECHANISM, walletConnectMechanism);
@@ -38,6 +39,18 @@ export class WalletManager {
     }
 
     return address;
+  }
+
+  public static setSmallBalances(bool: boolean) {
+    if (!bool) {
+      localStorage.setItem(WalletManager.SHOW_SMALL_BALANCES, "false");
+    } else {
+      localStorage.removeItem(WalletManager.SHOW_SMALL_BALANCES);
+    }
+  }
+
+  public static getSmallBalances() {
+    return !localStorage.getItem(WalletManager.SHOW_SMALL_BALANCES);
   }
 
   public static eraseWalletInfo() {

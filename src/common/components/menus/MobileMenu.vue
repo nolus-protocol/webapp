@@ -1,194 +1,172 @@
 <template>
-  <div
-    ref="sidebar"
-    class="fixed bottom-0 left-0 z-[9999] w-full lg:hidden"
-  >
-    <!-- Hidden menu -->
+  <transition name="fade">
     <div
-      :style="showMobileNav ? 'transform: translateY(-176px)' : ''"
-      class="background nls-border mobile-transition-taskbar absolute z-[10] mb-[-1px] flex w-full flex-col transition-[0.5s]"
+      v-show="toggleMenuWrapper"
+      class="fixed left-0 top-0 z-[99999] h-full w-full bg-neutral-bg-inverted-1/50"
+      v-on:click.self="close"
     >
-      <RouterLink
-        v-for="item in hiddenMenuItems"
-        :id="item.id"
-        :key="item.name"
-        :href="item.path"
-        :target="item.target"
-        :to="item.path"
-        class="sidebar-element nls-nav-link flex items-center gap-2.5 py-2.5 pl-4 font-garet-medium text-16 text-neutral-typography-200 [&:not(:last-child)]:border-b-[1px]"
-        @click="showMobileNav = false"
+      <div
+        class="duration-250 flex h-full max-w-[280px] flex-col bg-neutral-bg-1 transition-transform landscape:overflow-auto"
+        :class="{ 'translate-x-0': toggleMobileNav, '-translate-x-full': !toggleMobileNav }"
       >
-        <span
-          :class="[`icon-${item.icon}`]"
-          class="icon"
-        >
-        </span>
-        {{ $t(`message.${item.name}`) }}
-      </RouterLink>
-    </div>
-
-    <div
-      class="background sidebar-elements-block relative z-20 flex w-full justify-between border-t-[1px] border-border-color px-4 pb-4 pt-1.5"
-    >
-      <template
-        v-for="item in visibleMenuItems"
-        :key="item?.name"
-        class="sidebar-element flex flex-col items-center font-garet-medium text-16"
-        @click="showMobileNav = false"
-      >
-        <template v-if="item!.action">
-          <a
-            class="sidebar-element flex cursor-pointer flex-col items-center font-garet-medium text-16"
-            @click="item!.action(item!.path)"
-          >
-            <span
-              :class="[`icon-${item!.icon}`]"
-              class="icon"
+        <div class="flex w-full flex-1 flex-col gap-4">
+          <div class="flex items-center justify-between px-4 pt-4">
+            <span class="text-24 font-semibold text-typography-default">{{ $t(`message.menu`) }}</span>
+            <SvgIcon
+              name="close"
+              class="cursor-pointer"
+              @click="close"
+            />
+          </div>
+          <div class="flex flex-col gap-3">
+            <template
+              v-for="item in filteredRouteNames"
+              :key="item"
             >
-            </span>
-            {{ $t(`message.${item!.name}`) }}
-          </a>
-        </template>
-        <template v-else>
+              <RouterLink
+                :to="item === RouteNames.DASHBOARD ? '/' : item"
+                class="router-link flex h-[50px] items-center gap-2 border-b border-t border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
+                v-on:click="
+                  () => {
+                    close();
+                  }
+                "
+              >
+                <SvgIcon
+                  :name="item"
+                  size="l"
+                />
+                {{ $t(`message.${item}`) }}
+              </RouterLink>
+            </template>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1 pb-12">
           <RouterLink
-            :to="item!.path"
-            class="sidebar-element flex flex-col items-center font-garet-medium text-16"
+            :to="{ name: RouteNames.STATS }"
+            class="router-link flex h-[50px] items-center gap-2 border-b border-t border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
           >
-            <span
-              :class="[`icon-${item!.icon}`]"
-              class="icon"
+            <div
+              @click="close"
+              class="flex items-center gap-2"
             >
-            </span>
-            {{ $t(`message.${item!.name}`) }}
+              <SvgIcon
+                name="bar-chart"
+                size="l"
+              />
+              {{ $t("message.stats") }}
+            </div>
           </RouterLink>
-        </template>
-      </template>
-
-      <a
-        :class="[showMobileNav ? 'router-link-exact-active' : '']"
-        class="sidebar-element flex flex-col items-center font-garet-medium text-16"
-        @click="showMobileNav = !showMobileNav"
-      >
-        <span class="icon icon-more" />
-        {{ $t("message.settings") }}
-      </a>
+          <p class="text-upper text-center text-12 text-typography-secondary">
+            #
+            <template v-if="block > 0">{{ block }} v{{ version }}</template>
+          </p>
+        </div>
+      </div>
     </div>
-  </div>
+  </transition>
 </template>
 
 <script lang="ts" setup>
-import { inject, onMounted, onUnmounted, ref } from "vue";
-import { RouterLink } from "vue-router";
-import { RouteNames, router } from "@/router";
-import { EnvNetworkUtils } from "@/common/utils";
+import { computed, onMounted, provide, ref } from "vue";
+import { RouteNames } from "@/router";
+import { SvgIcon } from "web-components";
+import { UPDATE_BLOCK_INTERVAL } from "@/config/global";
+import { ChainConstants, NolusClient } from "@nolus/nolusjs";
+import { AppUtils, Logger } from "@/common/utils";
 
-const openDialog = inject("openDialog", () => {});
-const showMobileNav = ref(false);
-const isMobile = ref(false);
-const sidebar = ref(null as HTMLDivElement | null);
+const toggleMobileNav = ref(false);
+const toggleMenuWrapper = ref(false);
 
-const visibleMenuItems = [
-  {
-    icon: "asset",
-    name: "assets",
-    path: `/`
-  },
-  {
-    icon: "lease-1",
-    name: "lease",
-    path: `/${RouteNames.LEASE}`
-  },
-  EnvNetworkUtils.getStoredNetworkName() == "mainnet"
-    ? {
-        icon: "swap",
-        name: "swap",
-        path: `#swap`,
-        action: async (path: string) => {
-          await router.push(`${location.pathname}${path}`);
-          openDialog();
-        }
-      }
-    : null,
-  {
-    icon: "earn-1",
-    name: "earn",
-    path: `/${RouteNames.EARN}`
-  }
-].filter((item) => item != null);
+const filteredRouteNames = computed(() => {
+  return Object.values(RouteNames).filter((name) => name !== RouteNames.STATS);
+});
 
-const hiddenMenuItems = [
-  {
-    icon: "stats",
-    name: "protocol-stats",
-    path: `/${RouteNames.STATS}`
-  },
-  {
-    icon: "hat",
-    name: "support",
-    path: `https://hub.nolus.io`,
-    target: "_blank",
-    id: "hub"
-  },
-  {
-    icon: "vote",
-    name: "vote",
-    path: `/${RouteNames.VOTE}`
-  },
-  {
-    icon: "history-1",
-    name: "history",
-    path: `/${RouteNames.HISTORY}`
-  }
-];
+const block = ref(0);
+const version = ref("");
+
+let blockInterval: NodeJS.Timeout | undefined;
 
 onMounted(() => {
-  isMobile.value = screen?.width < 1024;
+  setBlock();
+  setVersion();
 
-  if (isMobile.value) {
-    document.addEventListener("click", onClick);
-  }
+  blockInterval = setInterval(() => {
+    setBlock();
+    blockInterval;
+  }, UPDATE_BLOCK_INTERVAL);
 });
 
-onUnmounted(() => {
-  if (isMobile.value) {
-    document.removeEventListener("click", onClick);
+async function setBlock() {
+  try {
+    const nolusClient = NolusClient.getInstance();
+    block.value = await nolusClient.getBlockHeight();
+  } catch (error: Error | any) {
+    Logger.error(error);
   }
-});
+}
 
-function onClick(event: MouseEvent) {
-  if (isMobile.value) {
-    const isClickedOutside = sidebar.value?.contains(event.target as Node);
-    if (!isClickedOutside) {
-      showMobileNav.value = false;
+async function setVersion() {
+  try {
+    const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
+
+    const data = await fetch(`${url}/abci_info`);
+    const res = await data.json();
+    version.value = res?.result?.response.version;
+  } catch (error: Error | any) {
+    Logger.error(error);
+  }
+}
+
+const open = () => {
+  document.body.style.overflow = "hidden";
+  toggleMenuWrapper.value = true;
+
+  setTimeout(() => {
+    toggleMobileNav.value = true;
+  }, 100);
+};
+
+const close = () => {
+  document.body.style.overflow = "auto";
+  toggleMobileNav.value = false;
+
+  setTimeout(() => {
+    toggleMenuWrapper.value = false;
+  }, 250);
+};
+
+provide("open", open);
+provide("close", close);
+
+defineExpose({ open, close });
+</script>
+
+<style scoped lang="scss">
+.router-link-exact-active {
+  @apply border-b border-t border-border-default bg-neutral-bg-2 text-typography-link shadow-small;
+
+  svg {
+    @apply fill-icon-link;
+  }
+}
+
+.router-link:not(.router-link-exact-active) {
+  &:hover {
+    @apply border-b border-t border-border-default bg-neutral-bg-2 text-typography-link shadow-small;
+
+    svg {
+      @apply fill-icon-link;
     }
   }
 }
-</script>
 
-<style lang="scss" scoped>
-[class^="icon-"]:before,
-[class*=" icon-"]:before {
-  font-family: "nolus";
-  font-style: normal;
-  font-weight: normal;
-  display: inline-block;
-  text-decoration: inherit;
-  width: unset;
-  margin-right: 0;
-  text-align: center;
-  opacity: 1;
-  font-variant: normal;
-  text-transform: none;
-  line-height: unset;
-  margin-left: 0;
-  font-size: 22px;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 250ms;
 }
-
-#governance:after,
-#hub::after {
-  content: "\e801";
-  font-family: "nolus";
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

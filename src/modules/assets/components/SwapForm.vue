@@ -1,0 +1,464 @@
+<template>
+  <MultipleCurrencyComponent
+    :currency-options="assets"
+    :itemsHeadline="[$t('message.assets'), $t('message.balance')]"
+    :selected-first-currency-option="selectedAsset"
+    :selected-second-currency-option="selectedSecondCurrencyOption"
+    :disabled="disabled || loadingTx"
+    @on-first-change="updateAmount"
+    @on-second-change="updateSwapToAmount"
+    :first-input-value="firstInputAmount?.toString()"
+    :second-input-value="secondInputAmount?.toString()"
+    :first-calculated-balance="firstCalculatedBalance"
+    :second-calculated-balance="secondCalculatedBalance"
+    :error-msg="error"
+    @swap="onSwapItems"
+    :item-template="
+      (item) =>
+        h<AssetItemProps>(AssetItem, {
+          ...item,
+          abbreviation: item.label,
+          name: item.name,
+          balance: item.balance.value,
+          max_decimals: item.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : item.decimal_digits
+        })
+    "
+  />
+  <div class="flex justify-end border-b border-t border-border-color px-6 py-4">
+    <div class="flex flex-[3] flex-col gap-3 text-right text-14 font-normal text-typography-secondary">
+      <p class="flex gap-1 self-end">
+        {{ $t("message.slippage") }}:
+        <Tooltip
+          position="top"
+          :content="$t('message.slippage-message')"
+        >
+          <SvgIcon
+            name="help"
+            class="rouded-full"
+            size="s"
+          />
+        </Tooltip>
+      </p>
+      <p class="flex gap-1 self-end">
+        {{ $t("message.price-impact") }}:
+        <Tooltip
+          position="top"
+          :content="$t('message.price-message')"
+        >
+          <SvgIcon
+            name="help"
+            class="rouded-full"
+            size="s"
+          />
+        </Tooltip>
+      </p>
+      <p class="flex gap-1 self-end">
+        {{ $t("message.estimated-tx-fee") }}:
+        <Tooltip
+          position="top"
+          :content="$t('message.estimated-message')"
+        >
+          <SvgIcon
+            name="help"
+            class="rouded-full"
+            size="s"
+          />
+        </Tooltip>
+      </p>
+    </div>
+    <div class="flex flex-[1] flex-col gap-2 text-right text-16 font-semibold text-typography-default">
+      <p class="align-center flex justify-end">{{ slippage }}%</p>
+      <template v-if="loading">
+        <p class="align-center flex justify-end">
+          <span class="state-loading !w-[60px]"> </span>
+        </p>
+        <p class="align-center flex justify-end">
+          <span class="state-loading !w-[60px]"> </span>
+        </p>
+      </template>
+      <template v-else>
+        <p class="align-center flex justify-end">{{ priceImapact }}%</p>
+        <p class="align-center flex justify-end whitespace-pre">
+          {{ swapFee }}
+        </p>
+      </template>
+    </div>
+  </div>
+  <div class="flex flex-col gap-2 p-6">
+    <Button
+      size="large"
+      severity="primary"
+      :label="$t('message.swap')"
+      :loading="loading || loadingTx"
+      :disabled="disabled"
+      @click="onNextClick"
+    />
+    <p class="text-center text-12 text-typography-secondary">
+      {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.longOperationsEstimation }}{{ $t("message.sec") }}
+    </p>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import MultipleCurrencyComponent from "@/common/components/MultipleCurrencyComponent.vue";
+import {
+  Button,
+  SvgIcon,
+  Tooltip,
+  type AssetItemProps,
+  AssetItem,
+  type AdvancedCurrencyFieldOption
+} from "web-components";
+import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
+import { computed, inject, onMounted, ref } from "vue";
+import { useWalletStore } from "@/common/stores/wallet";
+import {
+  AppUtils,
+  AssetUtils,
+  externalWallet,
+  Logger,
+  validateAmountV2,
+  walletOperation,
+  WalletUtils
+} from "@/common/utils";
+import { Coin, Dec, Int } from "@keplr-wallet/unit";
+import { useOracleStore } from "@/common/stores/oracle";
+import { h } from "vue";
+import { CurrencyUtils } from "@nolus/nolusjs";
+import { MultipleCurrencyEventType, type IObjectKeys } from "@/common/types";
+import { useI18n } from "vue-i18n";
+import { BaseWallet } from "@/networks";
+import { SwapStatus } from "../enums";
+import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
+import { SkipRouter } from "@/common/utils/SkipRoute";
+import { MAX_DECIMALS } from "@/config/global";
+
+let time: NodeJS.Timeout;
+let route: IObjectKeys | null;
+const timeOut = 600;
+const id = Date.now();
+
+const wallet = useWalletStore();
+const oracle = useOracleStore();
+const i18n = useI18n();
+
+const blacklist = ref<string[]>([]);
+const selectedFirstCurrencyOption = ref<AdvancedCurrencyFieldOption | undefined>();
+const selectedSecondCurrencyOption = ref<AdvancedCurrencyFieldOption | undefined>();
+const amount = ref("0");
+const swapToAmount = ref("0");
+const error = ref("");
+const txHashes = ref<{ hash: string; status: SwapStatus; url: string | null }[]>([]);
+
+const firstInputAmount = ref();
+const secondInputAmount = ref();
+
+const swapFee = ref("");
+const loading = ref(false);
+const slippage = ref<number | undefined>();
+const disabled = ref(false);
+const loadingTx = ref(false);
+const priceImapact = ref(0);
+const onClose = inject("close", () => {});
+
+const assets = computed(() => {
+  const data = [];
+
+  for (const asset of balances.value ?? []) {
+    const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
+    const balance = AssetUtils.formatNumber(value.toString(), asset.decimal_digits);
+
+    const price = new Dec(oracle.prices?.[asset.key]?.amount ?? 0);
+    const stable = price.mul(value);
+
+    data.push({
+      name: asset.name,
+      value: asset.key,
+      label: asset.shortName,
+      icon: asset.icon,
+      ibcData: asset.ibcData,
+      decimal_digits: asset.decimal_digits,
+      balance: { value: balance, ticker: asset.shortName },
+      stable,
+      price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
+    });
+  }
+
+  return data.sort((a, b) => {
+    return Number(b.stable.sub(a.stable).toString(8));
+  });
+});
+
+const firstCalculatedBalance = computed(() => {
+  const price = new Dec(oracle.prices?.[selectedFirstCurrencyOption.value?.value!]?.amount ?? 0);
+  const v = amount?.value?.length ? amount?.value : "0";
+  const stable = price.mul(new Dec(v));
+  return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+});
+
+const secondCalculatedBalance = computed(() => {
+  const price = new Dec(oracle.prices?.[selectedSecondCurrencyOption.value?.value!]?.amount ?? 0);
+  const v = swapToAmount?.value?.length ? swapToAmount?.value : "0";
+  const stable = price.mul(new Dec(v));
+  return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+});
+
+const selectedAsset = computed(() => {
+  const item = assets.value.find((item) => item.value == selectedFirstCurrencyOption.value?.value)!;
+  return item;
+});
+
+const balances = computed(() => {
+  return wallet.currencies.filter((item) => {
+    if (wallet.ignoreCurrencies.includes(item.ticker as string)) {
+      return false;
+    }
+    return !blacklist.value.includes(item.ibcData);
+  });
+});
+
+onMounted(async () => {
+  try {
+    const config = await AppUtils.getSkipRouteConfig();
+    blacklist.value = config.blacklist;
+    slippage.value = config.slippage;
+
+    selectedFirstCurrencyOption.value = assets.value.find((item) => item.ibcData == config.swap_currency)!;
+    selectedSecondCurrencyOption.value = assets.value.find((item) => item.ibcData == config.swap_to_currency)!;
+
+    setSwapFee();
+  } catch (error) {
+    Logger.error(error);
+  }
+});
+
+async function onNextClick() {
+  if (validateInputs().length == 0) {
+    try {
+      disabled.value = true;
+      await walletOperation(onSwap);
+    } catch (e) {
+      Logger.error(e);
+    } finally {
+      disabled.value = false;
+    }
+  }
+}
+
+function updateAmount(value: IObjectKeys) {
+  amount.value = value.input.value ?? 0;
+  selectedFirstCurrencyOption.value = assets.value.find((item) => item.value == value.currency.value)!;
+  updateRoute();
+}
+
+function updateSwapToAmount(value: IObjectKeys) {
+  swapToAmount.value = value.input.value;
+  selectedSecondCurrencyOption.value = assets.value.find((item) => item.value == value.currency.value)!;
+
+  switch (value.type) {
+    case MultipleCurrencyEventType.select: {
+      updateRoute();
+      break;
+    }
+    case MultipleCurrencyEventType.input: {
+      updateSwapToRoute();
+      break;
+    }
+  }
+}
+
+function onSwapItems() {
+  const secondItem = selectedSecondCurrencyOption.value;
+  selectedSecondCurrencyOption.value = selectedFirstCurrencyOption.value;
+  selectedFirstCurrencyOption.value = secondItem;
+  updateRoute();
+}
+
+async function setSwapFee() {
+  const amount = swapToAmount.value;
+  const asset = selectedSecondCurrencyOption.value;
+
+  if (asset) {
+    const config = await AppUtils.getSkipRouteConfig();
+    const fee = new Dec(config.fee).quo(new Dec(10000)).mul(new Dec(amount, asset.decimal_digits));
+    const coin = CurrencyUtils.convertDenomToMinimalDenom(fee.toString(), asset.ibcData, asset.decimal_digits);
+    swapFee.value = CurrencyUtils.convertMinimalDenomToDenom(
+      coin.amount.toString(),
+      asset.ibcData,
+      asset.label,
+      asset.decimal_digits
+    )
+      .trim(true)
+      .toString();
+  }
+}
+
+function updateRoute() {
+  if (validateInputs().length == 0) {
+    const token = CurrencyUtils.convertDenomToMinimalDenom(
+      amount.value.toString(),
+      selectedFirstCurrencyOption.value!.ibcData,
+      selectedFirstCurrencyOption.value!.decimal_digits
+    );
+    if (token.amount.gt(new Int(0))) {
+      setRoute(token, false);
+    }
+  }
+}
+
+function updateSwapToRoute() {
+  if (validateSwapToInputs().length == 0) {
+    const token = CurrencyUtils.convertDenomToMinimalDenom(
+      swapToAmount.value.toString(),
+      selectedSecondCurrencyOption.value!.ibcData,
+      selectedSecondCurrencyOption.value!.decimal_digits
+    );
+    if (token.amount.gt(new Int(0))) {
+      setRoute(token, true);
+    }
+  }
+}
+
+async function setRoute(token: Coin, revert = false) {
+  clearTimeout(time);
+
+  time = setTimeout(async () => {
+    try {
+      loading.value = true;
+      error.value = "";
+      if (revert) {
+        route = await SkipRouter.getRoute(
+          selectedFirstCurrencyOption.value!.ibcData,
+          selectedSecondCurrencyOption.value!.ibcData,
+          token.amount.toString(),
+          revert
+        );
+        firstInputAmount.value = new Dec(route.amountIn, selectedFirstCurrencyOption.value!.decimal_digits).toString(
+          selectedFirstCurrencyOption.value!.decimal_digits
+        );
+        amount.value = secondInputAmount.value;
+      } else {
+        route = await SkipRouter.getRoute(
+          selectedFirstCurrencyOption.value!.ibcData,
+          selectedSecondCurrencyOption.value!.ibcData,
+          token.amount.toString(),
+          revert
+        );
+        secondInputAmount.value = new Dec(route.amountOut, selectedSecondCurrencyOption.value!.decimal_digits).toString(
+          selectedSecondCurrencyOption.value!.decimal_digits
+        );
+        swapToAmount.value = secondInputAmount.value;
+      }
+      priceImapact.value = route.swapPriceImpactPercent ?? "0";
+      setSwapFee();
+    } catch (e) {
+      error.value = (e as Error).toString();
+      route = null;
+      Logger.error(e);
+    } finally {
+      loading.value = false;
+    }
+  }, timeOut);
+}
+
+function validateInputs() {
+  error.value = validateAmountV2(amount.value, selectedFirstCurrencyOption.value!.balance!.value);
+  if (selectedFirstCurrencyOption.value!.ibcData === selectedSecondCurrencyOption.value!.ibcData) {
+    error.value = i18n.t("message.swap-same-error");
+  }
+  return error.value;
+}
+
+function validateSwapToInputs() {
+  error.value = validateAmountV2(swapToAmount.value, selectedSecondCurrencyOption.value!.balance!.value);
+  if (selectedFirstCurrencyOption.value!.ibcData === selectedSecondCurrencyOption.value!.ibcData) {
+    error.value = i18n.t("message.swap-same-error");
+  }
+  return error.value;
+}
+
+async function onSwap() {
+  if (!WalletUtils.isAuth() || !route) {
+    return false;
+  }
+
+  try {
+    loadingTx.value = true;
+
+    const wallets = await getWallets();
+    const addresses: Record<string, string> = {};
+
+    for (const key in wallets) {
+      addresses[key] = wallets[key].address!;
+    }
+
+    await SkipRouter.submitRoute(route!, wallets, async (tx: IObjectKeys, baseWallet: BaseWallet) => {
+      const element = {
+        hash: tx.txHash,
+        status: SwapStatus.pending,
+        url: baseWallet.explorer
+      };
+
+      txHashes.value.push(element);
+
+      await baseWallet.broadcastTx(tx.txBytes as Uint8Array);
+      element.status = SwapStatus.success;
+      await wallet.UPDATE_BALANCES();
+      onClose();
+    });
+
+    if (wallet.history[id]) {
+      wallet.history[id].txHashes = txHashes.value;
+    }
+  } catch (e) {
+    error.value = (e as Error).toString();
+    Logger.error(error);
+
+    if (wallet.history[id]) {
+      wallet.history[id].errorMsg = error.value;
+    }
+  } finally {
+    loadingTx.value = false;
+  }
+}
+
+async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
+  const native = wallet.wallet.signer.chainId as string;
+  const addrs = {
+    [native]: wallet.wallet
+  };
+
+  const chainToParse: { [key: string]: IObjectKeys } = {};
+  const chains = (await SkipRouter.getChains()).filter((item) => {
+    if (item.chainID == native) {
+      return false;
+    }
+    return route!.chainIDs.includes(item.chainID);
+  });
+
+  for (const chain of chains) {
+    for (const key in SUPPORTED_NETWORKS_DATA) {
+      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chainName) {
+        chainToParse[key] = SUPPORTED_NETWORKS_DATA[key];
+      }
+    }
+  }
+  const promises = [];
+
+  for (const chain in chainToParse) {
+    const fn = async function () {
+      const client = await WalletUtils.getWallet(chain);
+      const network = NETWORK_DATA;
+      const networkData = network?.supportedNetworks[chain];
+      const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
+      const chainId = await baseWallet.getChainId();
+      addrs[chainId] = baseWallet;
+    };
+    promises.push(fn());
+  }
+
+  await Promise.all(promises);
+
+  return addrs;
+}
+</script>

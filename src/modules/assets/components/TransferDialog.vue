@@ -1,0 +1,72 @@
+<template>
+  <Dialog
+    ref="dialog"
+    :title="$t('message.transfer')"
+    :tabs="[{ label: $t('message.swap') }, { label: $t('message.receive') }, { label: $t('message.send') }]"
+    showClose
+    @close-dialog="
+      () => {
+        router.push(`/${RouteNames.ASSETS}`);
+      }
+    "
+    @change-tab="onChangeTab"
+    :activeTabIndex="activeTabIndex"
+  >
+    <template #tab-content-0>
+      <SwapForm />
+    </template>
+    <template #tab-content-1>
+      <ReceiveForm />
+    </template>
+    <template #tab-content-2>
+      <SendForm />
+    </template>
+  </Dialog>
+</template>
+
+<script lang="ts" setup>
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { Dialog } from "web-components";
+
+import { RouteNames } from "@/router";
+import { AssetsDialog } from "@/modules/assets/enums";
+
+import { SwapForm, SendForm, ReceiveForm } from "./index";
+
+const route = useRoute();
+const router = useRouter();
+const dialog = ref<typeof Dialog | null>(null);
+
+onMounted(() => {
+  dialog?.value?.show();
+});
+
+onBeforeUnmount(() => {
+  dialog?.value?.close();
+});
+
+const activeTabIndex = computed(() => {
+  const tab = route.params.tab as string;
+
+  if (tab === AssetsDialog.SWAP) return 0;
+  if (tab === AssetsDialog.RECEIVE) return 1;
+  if (tab === AssetsDialog.SEND) return 2;
+
+  return 0;
+});
+
+function onChangeTab(event: number) {
+  switch (event) {
+    case 0: {
+      return router.push(`/${RouteNames.ASSETS}/${AssetsDialog.SWAP}`);
+    }
+    case 1: {
+      return router.push(`/${RouteNames.ASSETS}/${AssetsDialog.RECEIVE}`);
+    }
+    case 2: {
+      return router.push(`/${RouteNames.ASSETS}/${AssetsDialog.SEND}`);
+    }
+  }
+}
+</script>

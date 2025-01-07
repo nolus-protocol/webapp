@@ -1,9 +1,10 @@
 export enum RouteNames {
-  DASHBOARD = "dashboard",
+  DASHBOARD = "home",
+  LEASES = "leases",
+  ASSETS = "assets",
+  EARN = "earn",
+  STAKE = "stake",
   HISTORY = "history",
   VOTE = "vote",
-  LEASE = "lease",
-  EARN = "earn",
-  STATS = "stats",
-  "PNL-HISTORY" = "pnl-history"
+  STATS = "stats"
 }

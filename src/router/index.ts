@@ -1,26 +1,27 @@
 import { createRouter, createWebHistory, type NavigationGuardNext, type RouteLocationNormalized } from "vue-router";
-import { AssetsRouter } from "@/modules/dashboard/router";
+import { DashboardRouter } from "@/modules/dashboard/router";
 import { EarnRouter } from "@/modules/earn/router";
 import { AppUtils } from "@/common/utils";
 import { setLang } from "@/i18n";
+import { useWalletStore } from "@/common/stores/wallet";
 
 import { ApplicationActions, useApplicationStore } from "@/common/stores/application";
 import { StatsRouter } from "@/modules/stats/router";
-import { LeaseRouter } from "@/modules/lease/router";
+import { LeasesRouter } from "@/modules/leases/router";
 import { HistoryRouter } from "@/modules/history/router";
 import { VoteRouter } from "@/modules/vote/router";
+import { AssetsRouter } from "@/modules/assets/router";
+import { StakeRouter } from "@/modules/stake/router";
 import { RouteNames } from "./RouteNames";
 
 import MainLayout from "@/modules/view.vue";
-import { PnlHistoryRouter } from "@/modules/pnl-history/router";
-import { useWalletStore } from "@/common/stores/wallet";
-import { Intercom } from "@/common/utils/Intercom";
 
 const router = createRouter({
-  scrollBehavior(to, from, savedPosition) {
-    if (to.hash.length == 0 && from.hash.length == 0) {
-      return { top: 0, behavior: "instant" };
+  scrollBehavior(to, from, position) {
+    if (to.meta.key == from.meta.key) {
+      return false;
     }
+    return restoreScroll(position);
   },
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -28,7 +29,16 @@ const router = createRouter({
       path: "/",
       component: MainLayout,
       beforeEnter: [loadLanguage, loadData],
-      children: [AssetsRouter, LeaseRouter, EarnRouter, HistoryRouter, VoteRouter, StatsRouter, PnlHistoryRouter]
+      children: [
+        DashboardRouter,
+        LeasesRouter,
+        EarnRouter,
+        HistoryRouter,
+        VoteRouter,
+        StatsRouter,
+        AssetsRouter,
+        StakeRouter
+      ]
     },
     {
       path: "/:pathMatch(.*)",
@@ -36,6 +46,39 @@ const router = createRouter({
     }
   ]
 });
+
+let lastPromise: Promise<{ top: number; behavior: string }> | any;
+let timeOut: NodeJS.Timeout | null;
+let reject: Function;
+
+function restoreScroll(position: { behavior?: ScrollOptions["behavior"]; left: number; top: number } | null) {
+  if (timeOut) {
+    clearTimeout(timeOut);
+    timeOut = null;
+  }
+
+  lastPromise = new Promise((resolve, r) => {
+    reject = r;
+    timeOut = setTimeout(() => {
+      timeOut = null;
+      resolve({ top: position?.top ?? 0, behavior: "instant" });
+    }, 350);
+  }).catch((e) => {});
+
+  return lastPromise;
+}
+
+window.addEventListener(
+  "scroll",
+  () => {
+    if (timeOut) {
+      reject?.();
+      clearTimeout(timeOut);
+      timeOut = null;
+    }
+  },
+  { passive: true }
+);
 
 async function loadLanguage(to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) {
   await setLang(AppUtils.getLang().key);
@@ -57,10 +100,6 @@ router.beforeEach((to, from, next) => {
   }
 
   next();
-});
-
-router.afterEach(() => {
-  Intercom.update();
 });
 
 export { router, RouteNames };

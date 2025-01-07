@@ -8,4 +8,3 @@ export * from "./lease";
 export * from "./locales";
 export * from "./network";
 export * from "./networks";
-export * from "./news";
