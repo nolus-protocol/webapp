@@ -353,5 +353,3 @@ async function fetchCurrency(amount: Coin) {
   );
 }
 </script>
-
-<style lang="" scoped></style>

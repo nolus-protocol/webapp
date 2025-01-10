@@ -100,21 +100,29 @@
         "
       />
     </div>
-    <SharePnLDialog ref="sharePnlDialog" />
+    <SharePnLDialog
+      v-if="asset && lease"
+      :icon="asset.icon"
+      :positionType="ProtocolsConfig[lease.protocol!].type"
+      :price="currentPrice"
+      :asset="asset.shortName"
+      :position="pnl.percent"
+      ref="sharePnlDialog"
+    />
   </div>
 </template>
 
 <script lang="ts" setup>
+import type { LeaseData } from "@/common/types";
 import { computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { Button, Label, SvgIcon } from "web-components";
 
 import { RouteNames } from "@/router";
-import { formatDate } from "@/common/utils";
+import { AssetUtils, formatDate } from "@/common/utils";
 import { SingleLeaseDialog } from "@/modules/leases/enums";
 
 import SharePnLDialog from "@/modules/leases/components/single-lease/SharePnLDialog.vue";
-import type { LeaseData } from "@/common/types";
 import { NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/common/stores/oracle";
@@ -192,9 +200,67 @@ const stable = computed(() => {
   return "0";
 });
 
-const goBack = () => {
+const asset = computed(() => {
+  if (props.lease?.leaseStatus?.opening && props.lease?.leaseData) {
+    const item = app.currenciesData?.[props.lease.leaseData?.leasePositionTicker as string];
+    return item;
+  }
+
+  switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
+    case PositionTypes.long: {
+      const ticker =
+        props.lease?.leaseStatus?.opened?.amount.ticker ||
+        props.lease?.leaseStatus?.paid?.amount.ticker ||
+        props.lease?.leaseStatus?.opening?.downpayment.ticker;
+      const item = AssetUtils.getCurrencyByTicker(ticker as string);
+
+      const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
+      return asset;
+    }
+    case PositionTypes.short: {
+      const item = AssetUtils.getCurrencyByTicker(props.lease?.leaseData?.leasePositionTicker as string);
+
+      const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
+      return asset;
+    }
+  }
+});
+
+const currentPrice = computed(() => {
+  switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
+    case PositionTypes.long: {
+      if (props.lease?.leaseStatus?.opening && props.lease?.leaseData) {
+        const item = app.currenciesData?.[props.lease?.leaseData?.leasePositionTicker as string];
+        return AssetUtils.formatNumber(
+          oracle.prices[item?.ibcData as string]?.amount ?? "0",
+          asset.value?.decimal_digits!
+        );
+      }
+      break;
+    }
+    case PositionTypes.short: {
+      if (props.lease?.leaseStatus?.opening && props.lease?.leaseData) {
+        return AssetUtils.formatNumber(
+          oracle.prices[`${props.lease.leaseStatus.opening.loan.ticker}@${props.lease.protocol}`]?.amount ?? "0",
+          asset.value?.decimal_digits!
+        );
+      }
+    }
+  }
+
+  const ticker =
+    CurrencyDemapping[props.lease?.leaseData?.leasePositionTicker!]?.ticker ??
+    props.lease?.leaseData?.leasePositionTicker;
+
+  return AssetUtils.formatNumber(
+    oracle.prices[`${ticker}@${props.lease?.protocol}`]?.amount ?? "0",
+    asset.value?.decimal_digits!
+  );
+});
+
+function goBack() {
   router.push(`/${RouteNames.LEASES}`);
-};
+}
 </script>
 
 <style scoped lang=""></style>

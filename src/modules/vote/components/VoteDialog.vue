@@ -11,15 +11,15 @@
       >
         <div class="flex gap-3">
           <div>
-            <span class="block text-14 text-typography-secondary">Turnout</span>
+            <span class="block text-14 text-typography-secondary">{{ $t("message.turnout") }}</span>
             <span class="text-16 font-semibold text-typography-default">{{ turnout }}</span>
           </div>
           <div>
-            <span class="block text-14 text-typography-secondary">Quorum</span>
+            <span class="block text-14 text-typography-secondary">{{ $t("message.quorum") }}</span>
             <span class="text-16 font-semibold text-typography-default">{{ quorum }}</span>
           </div>
           <div>
-            <span class="block text-14 text-typography-secondary">Voting ends</span>
+            <span class="block text-14 text-typography-secondary">{{ $t("message.voting-ends") }}</span>
             <span class="text-16 font-semibold text-typography-default">{{
               formatDateTime(proposal.voting_end_time)
             }}</span>
@@ -51,6 +51,8 @@
           size="medium"
           @click="onVote(VoteOption.VOTE_OPTION_YES)"
           class="flex-1"
+          :disabled="isDisabled"
+          :loading="isLoading == VoteOption.VOTE_OPTION_YES"
         />
         <Button
           :label="$t('message.no')"
@@ -60,6 +62,8 @@
           size="medium"
           @click="onVote(VoteOption.VOTE_OPTION_NO)"
           class="flex-1"
+          :disabled="isDisabled"
+          :loading="isLoading == VoteOption.VOTE_OPTION_NO"
         />
         <Button
           :label="$t('message.abstained')"
@@ -67,6 +71,8 @@
           size="medium"
           @click="onVote(VoteOption.VOTE_OPTION_ABSTAIN)"
           class="flex-1"
+          :disabled="isDisabled"
+          :loading="isLoading == VoteOption.VOTE_OPTION_ABSTAIN"
         />
         <Button
           :label="$t('message.veto')"
@@ -74,6 +80,8 @@
           size="medium"
           @click="onVote(VoteOption.VOTE_OPTION_NO_WITH_VETO)"
           class="flex-1"
+          :disabled="isDisabled"
+          :loading="isLoading == VoteOption.VOTE_OPTION_NO_WITH_VETO"
         />
       </div>
     </template>
@@ -81,36 +89,29 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, provide, ref, watch } from "vue";
+import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { marked } from "marked";
 import { type Coin, coin } from "@cosmjs/amino";
+import type { FinalTallyResult, Proposal } from "@/modules/vote/types";
 import { Dec } from "@keplr-wallet/unit";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { Button, Dialog, ProposalStatus, ProposalVotingLine } from "web-components";
 
-import { GAS_FEES, NATIVE_ASSET } from "@/config/global";
-import { formatDateTime, NetworkUtils } from "@/common/utils";
+import { NATIVE_ASSET } from "@/config/global";
+import { formatDateTime, Logger, NetworkUtils, walletOperation } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";
-
-import type { FinalTallyResult, Proposal, VoteComponentProps } from "@/modules/vote/types";
+import { MsgVote } from "cosmjs-types/cosmos/gov/v1/tx";
+import { longify } from "@cosmjs/stargate/build/queryclient";
 
 const dialog = ref<typeof Dialog | null>(null);
-const wallet = useWalletStore();
 const delegatedTokensAmount = ref({} as Coin);
 const description = ref();
 const quorum = ref("");
 const turnout = ref("");
 const isVotingPeriod = ref(false);
-
-const state = ref({
-  currentBalance: wallet.balances.filter((item) => {
-    return item.balance.denom == NATIVE_ASSET.denom;
-  }),
-  amountErrorMsg: "",
-  txHash: "",
-  vote: null,
-  fee: coin(GAS_FEES.vote, NATIVE_ASSET.denom)
-} as VoteComponentProps);
+const isDisabled = ref(false);
+const isLoading = ref(-1);
+const wallet = useWalletStore();
 
 const props = defineProps<{
   proposal: Proposal;
@@ -120,6 +121,10 @@ const props = defineProps<{
 
 onMounted(async () => {
   await loadDelegated();
+});
+
+onBeforeUnmount(() => {
+  hide();
 });
 
 async function loadDelegated() {
@@ -167,15 +172,49 @@ watch(
   }
 );
 
-const onVote = (vote: VoteOption) => {
-  state.value.vote = vote;
-};
+async function onVote(vote: VoteOption) {
+  try {
+    isDisabled.value = true;
+    await walletOperation(() => onVoteEmit(vote));
+  } catch (error: Error | any) {
+    Logger.error(error);
+  } finally {
+    isDisabled.value = false;
+  }
+}
 
-const show = () => dialog.value?.show();
-const hide = () => dialog.value?.hide();
+async function onVoteEmit(vote: VoteOption) {
+  try {
+    isLoading.value = vote;
+    isDisabled.value = true;
 
-provide("show", show);
-provide("hide", hide);
+    if (wallet.wallet) {
+      const typeUrl = "/cosmos.gov.v1beta1.MsgVote";
+      const voteMsg = MsgVote.fromPartial({
+        proposalId: longify(props.proposal.id),
+        voter: wallet.wallet!.address,
+        option: vote
+      });
+
+      const { txHash, txBytes, usedFee } = await wallet.wallet!.simulateTx(voteMsg, typeUrl);
+
+      await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
+      hide();
+    }
+  } catch (error: Error | any) {
+    Logger.error(error);
+  } finally {
+    isLoading.value = -1;
+    isDisabled.value = false;
+  }
+}
+
+function show() {
+  dialog.value?.show?.();
+}
+function hide() {
+  dialog.value?.close();
+}
 
 defineExpose({ show, hide });
 </script>

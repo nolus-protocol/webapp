@@ -70,6 +70,13 @@ export const LeasesRouter: RouteRecordRaw = {
             key: `${RouteNames.LEASES}-single`
           },
           component: () => import("./components/single-lease/RepayDialog.vue")
+        },
+        {
+          path: "close",
+          meta: {
+            key: `${RouteNames.LEASES}-single`
+          },
+          component: () => import("./components/single-lease/CloseDialog.vue")
         }
       ]
     }

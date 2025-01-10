@@ -43,17 +43,14 @@
 </template>
 
 <script lang="ts" setup>
+import ListHeader from "@/common/components/ListHeader.vue";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { Dec } from "@keplr-wallet/unit";
 import { ChainConstants } from "@nolus/nolusjs";
 import { Button } from "web-components";
-
 import { AppUtils } from "@/common/utils";
-
 import { type Proposal } from "@/modules/vote/types";
 import { ProposalItemWrapper, ProposalSkeleton, VoteDialog } from "@/modules/vote/components";
-
-import ListHeader from "@/common/components/ListHeader.vue";
 import { useFetchGovernanceProposals, useLoadBondedTokens, useLoadTallying } from "./composable";
 
 const dialog = ref<InstanceType<typeof VoteDialog> | null>(null);
@@ -126,5 +123,3 @@ function onActionButton(proposal: Proposal) {
   dialog.value?.show();
 }
 </script>
-
-<style scoped lang=""></style>

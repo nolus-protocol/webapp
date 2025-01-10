@@ -426,6 +426,11 @@
     "learn-health": "Learn more about position health",
     "date-capitalize": "Date",
     "completed": "Completed",
-    "amount-to-repay": "Amount to repay"
+    "amount-to-repay": "Amount to repay",
+    "download-png": "Download as PNG",
+    "cover-design": "Cover design",
+    "close-btn-label": "Close position",
+    "amount-to-close": "Amount to close in",
+    "full-position": "Full position"
   }
 }

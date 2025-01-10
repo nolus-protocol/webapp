@@ -125,15 +125,15 @@ async function getRewards() {
   }
 }
 
-const onWithdrawRewards = async () => {
+async function onWithdrawRewards() {
   try {
     await walletOperation(requestClaim);
   } catch (error: Error | any) {
     Logger.error(error);
   }
-};
+}
 
-const requestClaim = async () => {
+async function requestClaim() {
   try {
     loadingStaking.value = true;
     if (wallet.wallet) {
@@ -172,5 +172,5 @@ const requestClaim = async () => {
   } finally {
     loadingStaking.value = false;
   }
-};
+}
 </script>

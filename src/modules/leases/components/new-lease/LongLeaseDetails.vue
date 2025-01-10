@@ -325,7 +325,7 @@ function getTotalAmount() {
   return new Dec(total?.amount ?? 0).truncate();
 }
 
-const setSwapFee = async () => {
+async function setSwapFee() {
   clearTimeout(time!);
   if (props.lease) {
     time = setTimeout(async () => {
@@ -368,7 +368,7 @@ const setSwapFee = async () => {
       swapFee.value = fee;
     }, timeOut);
   }
-};
+}
 </script>
 <style lang="scss" scoped>
 .fadeHeight-enter-active,

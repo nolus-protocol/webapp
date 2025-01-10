@@ -59,7 +59,7 @@ const loadRewards = inject("loadRewards", async () => {});
 const loading = ref(false);
 const disabled = ref(false);
 
-const onWithdrawRewards = async () => {
+async function onWithdrawRewards() {
   try {
     disabled.value = true;
     await walletOperation(requestClaim);
@@ -68,9 +68,9 @@ const onWithdrawRewards = async () => {
   } finally {
     disabled.value = false;
   }
-};
+}
 
-const requestClaim = async () => {
+async function requestClaim() {
   try {
     loading.value = true;
     if (wallet.wallet) {
@@ -110,5 +110,5 @@ const requestClaim = async () => {
   } finally {
     loading.value = false;
   }
-};
+}
 </script>

@@ -109,11 +109,6 @@
         :loading="isLoading"
         :disabled="isDisabled"
       />
-      <!-- @click="
-          () => {
-            router.push(`/${RouteNames.LEASES}/hs5uwaa2`);
-          }
-        " -->
       <p class="text-center text-12 text-typography-secondary">
         {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.longOperationsEstimation }}{{ $t("message.sec") }}
       </p>

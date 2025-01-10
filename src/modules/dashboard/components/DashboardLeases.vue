@@ -186,5 +186,3 @@ async function getRealizedPnl() {
   }
 }
 </script>
-
-<style scoped lang=""></style>

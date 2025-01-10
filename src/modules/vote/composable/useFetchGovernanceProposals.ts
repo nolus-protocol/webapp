@@ -54,8 +54,6 @@ export const useFetchGovernanceProposals = () => {
       data.proposals = data.proposals.filter((item: Proposal) => !reqConfig.hide.includes(item.id));
       return data;
     } catch (error: Error | any) {
-      // showErrorDialog.value = true;
-      // errorMessage.value = error.message;
       Logger.error(error);
       return null;
     }
@@ -87,8 +85,7 @@ export const useFetchGovernanceProposals = () => {
       }
       await Promise.allSettled(promises);
     } catch (error: Error | any) {
-      // showErrorDialog.value = true;
-      // errorMessage.value = error?.message;
+      Logger.error(error);
     }
   };
 

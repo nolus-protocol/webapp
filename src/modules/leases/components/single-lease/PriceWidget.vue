@@ -34,7 +34,7 @@ import type { LeaseData } from "@/common/types";
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import PriceOverTimeChart from "./PriceOverTimeChart.vue";
 
-const props = defineProps<{
+defineProps<{
   lease?: LeaseData;
 }>();
 

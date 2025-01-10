@@ -1,56 +1,58 @@
 <template>
   <Dialog
     ref="dialog"
-    :title="$t(`message.repay`)"
+    :title="$t(`message.close`)"
     showClose
     :disable-close="true"
     @close-dialog="router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}`)"
   >
     <template v-slot:content>
       <hr class="border-border-color" />
-      <div class="flex flex-col gap-4 px-2 py-4">
+      <div class="flex flex-col gap-4 px-6 py-4">
         <AdvancedFormControl
-          searchable
-          id="receive-send"
+          id="repay-close"
+          labelAdvanced
           :currencyOptions="assets"
-          class="px-6 pt-4"
-          :label="$t('message.amount-to-repay')"
-          :balanceLabel="$t('message.balance')"
-          placeholder="0"
-          :calculated-balance="calculatedBalance"
           :disabled-currency-picker="isLoading"
           :disabled-input-field="isLoading"
-          @on-selected-currency="
-            (option) => {
-              selectedCurrency = assets.findIndex((item) => item == option);
-            }
-          "
+          :selectedCurrencyOption="assets[0]"
+          :calculated-balance="calculatedBalance"
           :value-only="amount"
           @input="handleAmountChange"
           :error-msg="amountErrorMsg"
-          :itemsHeadline="[$t('message.assets'), $t('message.balance')]"
-          :item-template="
-            (item: any) =>
-              h<AssetItemProps>(AssetItem, {
-                ...item,
-                abbreviation: item.label,
-                name: item.name,
-                balance: item.balance.value,
-                max_decimals: item.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : item.decimal_digits
-              })
-          "
-          :selected-currency-option="currency"
-        />
-        <div class="px-6 py-3">
+          placeholder="0"
+        >
+          <template v-slot:label>
+            <div class="flex items-center gap-1">
+              {{ $t("message.amount-to-close") }}
+              <span class="flex items-center gap-1 font-normal"
+                ><img :src="currency?.icon" /> {{ currency?.label }}</span
+              >
+              <Tooltip content="This is a tooltip"
+                ><SvgIcon
+                  name="help"
+                  class="fill-icon-link"
+              /></Tooltip>
+            </div>
+          </template>
+        </AdvancedFormControl>
+        <div class="mt-2 px-4 py-3">
           <Slider
             :min-position="sliderValue"
             :max-position="100"
+            :mid-position="midPosition"
             :value="sliderValue"
             @on-drag="onSetAmount"
             :label-left="`0`"
-            :label-right="`${$t('message.debt')} (~${debt?.amount?.toString() ?? ''})`"
+            :label-mid="`${$t('message.debt')} (~${debt?.amount?.toString() ?? ''})`"
+            :label-right="`${$t('message.full-position')} (~${AssetUtils.formatNumber(total?.toString(currency?.decimal_digits), currency?.decimal_digits) ?? ''})`"
             @click-right-label="() => onSetAmount(100)"
             @click-left-label="() => onSetAmount(0)"
+            @click-mid-label="
+              () => {
+                handleAmountChange(debt?.amount?.toString() ?? '0');
+              }
+            "
           />
         </div>
       </div>
@@ -62,7 +64,7 @@
             name="list-sparkle"
             class="fill-icon-secondary"
           />
-          {{ $t("message.preview-input") }}
+          <span class="text-typography-default">{{ $t("message.preview-input") }}</span>
         </div>
       </div>
       <hr class="border-border-color" />
@@ -81,7 +83,7 @@
         <Button
           size="large"
           severity="primary"
-          :label="$t(`message.repay`)"
+          :label="$t(`message.close-btn-label`)"
           @click="onSendClick"
           :disabled="disabled"
           :loading="loading"
@@ -97,7 +99,7 @@
 <script lang="ts" setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { AdvancedFormControl, Button, Dialog, AssetItem, Slider, SvgIcon, type AssetItemProps } from "web-components";
+import { AdvancedFormControl, Button, Dialog, Tooltip, Slider, SvgIcon } from "web-components";
 import { RouteNames } from "@/router";
 
 import { useWalletStore } from "@/common/stores/wallet";
@@ -106,12 +108,11 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { AssetUtils, getMicroAmount, LeaseUtils, Logger, walletOperation } from "@/common/utils";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency } from "@/common/types";
-import { MAX_DECIMALS, minimumLeaseAmount, PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
+import { minimumLeaseAmount, PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { CurrencyDemapping } from "@/config/currencies";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import { CoinPretty, Dec, Int } from "@keplr-wallet/unit";
-import { h } from "vue";
-import { useLease } from "@/common/composables";
+import { useLease, useLeaseConfig } from "@/common/composables";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { SkipRouter } from "@/common/utils/SkipRoute";
 import { useI18n } from "vue-i18n";
@@ -131,7 +132,6 @@ const i18n = useI18n();
 const amount = ref("");
 const amountErrorMsg = ref("");
 const selectedCurrency = ref(0);
-const ignoreDownpaymentAssets = ref<string[]>();
 const isLoading = ref(false);
 const swapFee = ref(0);
 const sliderValue = ref(0);
@@ -142,6 +142,7 @@ const dialog = ref<typeof Dialog | null>(null);
 const { lease } = useLease(route.params.id as string, route.params.protocol as string, (error) => {
   Logger.error(error);
 });
+const { config } = useLeaseConfig(route.params.protocol as string, (error: Error | any) => {});
 
 onMounted(() => {
   dialog?.value?.show();
@@ -155,42 +156,34 @@ const currency = computed(() => {
 });
 
 function onSetAmount(percent: number) {
-  const a = getRepayment(percent);
   sliderValue.value = percent;
-  amount.value = a?.repayment ? a.repayment.toString(currency!.value.decimal_digits) : "";
+  const a = total.value.mul(new Dec(percent).quo(new Dec(100)));
+  amount.value = a.toString(currency!.value.decimal_digits);
 }
 
 const assets = computed(() => {
   const data = [];
-  for (const asset of (balances.value as ExternalCurrency[]) ?? []) {
-    const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
-    const balance = AssetUtils.formatNumber(value.toString(), asset.decimal_digits);
+
+  if (lease.value) {
+    const ticker =
+      CurrencyDemapping[lease.value?.leaseStatus?.opened?.amount?.ticker!]?.ticker ??
+      lease.value?.leaseStatus?.opened?.amount?.ticker;
+    const asset = app.currenciesData![`${ticker}@${lease.value!.protocol}`];
     const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
-    const price = new Dec(oracle.prices?.[asset.key]?.amount ?? 0);
-    const stable = price.mul(value);
 
     data.push({
       name: asset.name,
+      icon: asset.icon,
       value: denom,
-      label: asset.shortName!,
-      shortName: asset.shortName!,
-      icon: asset.icon!,
+      label: asset.shortName,
+      ibcData: asset.ibcData,
+      shortName: asset.shortName,
       decimal_digits: asset.decimal_digits!,
-      balance: {
-        value: balance,
-        ticker: asset.shortName!,
-        denom: asset.balance.denom,
-        amount: asset.balance?.amount
-      },
-      ibcData: (asset as ExternalCurrency).ibcData,
-      native: asset.native!,
-      sybmol: asset.symbol!,
-      ticker: asset.ticker!,
       key: asset.key,
-      stable,
-      price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
+      ticker: asset.ticker
     });
   }
+
   return data;
 });
 
@@ -205,53 +198,24 @@ const calculatedBalance = computed(() => {
   return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
 });
 
-const balances = computed(() => {
-  return totalBalances.value.filter((item) => {
-    const [ticker, protocol] = item.key.split("@");
-    if (protocol != lease.value?.protocol) {
-      return false;
-    }
+const midPosition = computed(() => {
+  const d = debt.value?.amount.toDec() ?? new Dec(0);
 
-    if (
-      ignoreDownpaymentAssets.value?.includes(ticker) ||
-      ignoreDownpaymentAssets.value?.includes(`${ticker}@${protocol}`)
-    ) {
-      return false;
-    }
-
-    if (ProtocolsConfig[protocol].lease && !ProtocolsConfig[protocol].currencies.includes(ticker)) {
-      return false;
-    }
-
-    const lpn = AssetUtils.getLpnByProtocol(protocol);
-    if (item.key != lpn.key) {
-      return false;
-    }
-
-    return true;
-  });
-});
-
-const totalBalances = computed(() => {
-  const assets = [];
-
-  for (const key in app.currenciesData ?? {}) {
-    const currency = app.currenciesData![key];
-    const c = { ...currency };
-    const item = walletStore.balances.find((item) => item.balance.denom == currency.ibcData);
-    if (item) {
-      c.balance = item!.balance;
-      assets.push(c);
-    }
+  if (total.value.isZero()) {
+    return 0;
   }
 
-  return assets;
+  return Number(d.quo(total.value).mul(new Dec(100)).toString());
+});
+
+const total = computed(() => {
+  return new Dec(lease.value?.leaseStatus.opened?.amount.amount ?? 0, currency.value?.decimal_digits);
 });
 
 function handleAmountChange(event: string) {
   amount.value = event;
-  if (amount.value != "" && debt.value) {
-    let percent = new Dec(amount.value).quo(debt.value.amount.toDec()).mul(new Dec(100));
+  if (amount.value != "") {
+    let percent = new Dec(amount.value).quo(total.value).mul(new Dec(100));
     if (percent.isNegative()) {
       percent = new Dec(0);
     }
@@ -409,63 +373,49 @@ const setSwapFee = async () => {
 function isAmountValid() {
   let isValid = true;
   amountErrorMsg.value = "";
+  if (lease.value) {
+    const a = amount.value;
+    const currency = AssetUtils.getCurrencyByTicker(lease.value.leaseStatus.opened!.amount.ticker!);
+    const debt = new Dec(lease.value.leaseStatus.opened!.amount.amount, Number(currency.decimal_digits));
+    const minAmountCurrency = AssetUtils.getCurrencyByTicker(
+      config.value?.config.lease_position_spec.min_asset.ticker as string
+    )!;
+    const minAmont = new Dec(
+      config.value?.config.lease_position_spec.min_asset.amount ?? 0,
+      Number(minAmountCurrency.decimal_digits)
+    );
+    const price = new Dec(oracle.prices[currency.key as string].amount);
 
-  const amnt = amount.value;
-  const coinData = currency.value;
+    const minAmountTemp = new Dec(minimumLeaseAmount);
+    const amountInStable = new Dec(a.length == 0 ? "0" : a).mul(price);
 
-  if (coinData) {
-    if (amnt || amnt !== "") {
-      const price = oracle.prices[coinData!.key as string];
+    if (amount || amount !== "") {
+      const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(a, "", Number(currency.decimal_digits));
+      const value = new Dec(amountInMinimalDenom.amount, Number(currency.decimal_digits));
 
-      const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amnt, "", coinData.decimal_digits);
-      const balance = CurrencyUtils.calculateBalance(
-        price.amount,
-        amountInMinimalDenom,
-        coinData.decimal_digits
-      ).toDec();
-      const minAmount = new Dec(minimumLeaseAmount);
-      const p = new Dec(price.amount);
-      const amountInStable = new Dec(amnt.length == 0 ? "0" : amnt).mul(p);
-
-      const minAmountCurrency = minAmount.quo(p);
       const isLowerThanOrEqualsToZero = new Dec(amountInMinimalDenom.amount || "0").lte(new Dec(0));
-
-      const isGreaterThanWalletBalance = new Int(amountInMinimalDenom.amount.toString() || "0").gt(
-        coinData?.balance?.amount
-      );
 
       if (isLowerThanOrEqualsToZero) {
         amountErrorMsg.value = i18n.t("message.invalid-balance-low");
         isValid = false;
       }
 
-      if (isGreaterThanWalletBalance) {
-        amountErrorMsg.value = i18n.t("message.invalid-balance-big");
-        isValid = false;
-      }
-
-      if (amountInStable.lt(minAmount)) {
+      if (amountInStable.lt(minAmountTemp)) {
         amountErrorMsg.value = i18n.t("message.min-amount-allowed", {
-          amount: minAmountCurrency.toString(Number(coinData!.decimal_digits)),
-          currency: coinData!.shortName
+          amount: minAmountTemp.quo(price).toString(Number(currency.decimal_digits)),
+          currency: currency.shortName
         });
         isValid = false;
-      }
-
-      const debt = getDebtValue();
-      const debtInCurrencies = debt.quo(new Dec(price.amount));
-
-      const b = CurrencyUtils.convertDenomToMinimalDenom(
-        balance.toString(),
-        "",
-        coinData.decimal_digits
-      ).amount.toDec();
-
-      if (b.gt(debt) && debt.gt(minAmountCurrency)) {
-        const n = new Dec(debtInCurrencies.truncate().toString(), coinData.decimal_digits);
+      } else if (value.gt(debt)) {
         amountErrorMsg.value = i18n.t("message.lease-only-max-error", {
-          maxAmount: n.toString(coinData.decimal_digits),
-          symbol: coinData.shortName
+          maxAmount: Number(debt.toString(Number(currency.decimal_digits))),
+          symbol: currency.shortName
+        });
+        isValid = false;
+      } else if (!value.equals(debt) && debt.sub(value).mul(price).lte(minAmont)) {
+        amountErrorMsg.value = i18n.t("message.lease-min-amount", {
+          amount: Number(minAmont.quo(price).toString(Number(currency.decimal_digits))),
+          symbol: currency.shortName
         });
         isValid = false;
       }
@@ -478,48 +428,27 @@ function isAmountValid() {
   return isValid;
 }
 
-function getDebtValue() {
-  let debt = outStandingDebt();
-  debt = debt.add(debt.mul(new Dec(swapFee.value)));
-
-  switch (ProtocolsConfig[lease.value!.protocol].type) {
-    case PositionTypes.short: {
-      let lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
-      const price = new Dec(oracle.prices[lpn!.key as string].amount);
-      return debt.mul(price);
-    }
-  }
-  return debt;
-}
-
 async function onSendClick() {
   try {
     disabled.value = true;
-    await walletOperation(repayLease);
+    await walletOperation(marketCloseLease);
   } catch (error: Error | any) {
   } finally {
     disabled.value = false;
   }
 }
 
-async function repayLease() {
+async function marketCloseLease() {
   const wallet = walletStore.wallet as NolusWallet;
   if (wallet && isAmountValid()) {
     try {
       loading.value = true;
-
-      const microAmount = getMicroAmount(currency.value.balance.denom, amount.value);
-      const funds: Coin[] = [
-        {
-          denom: microAmount.coinMinimalDenom,
-          amount: microAmount.mAmount.amount.toString()
-        }
-      ];
+      const funds: Coin[] = [];
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const leaseClient = new Lease(cosmWasmClient, lease?.value!.leaseAddress);
 
-      const { txHash, txBytes, usedFee } = await leaseClient.simulateRepayLeaseTx(wallet, funds);
+      const { txHash, txBytes, usedFee } = await leaseClient.simulateClosePositionLeaseTx(wallet, getCurrency(), funds);
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
       dialog?.value?.close();
     } catch (error: Error | any) {
@@ -528,6 +457,22 @@ async function repayLease() {
       loading.value = false;
     }
   }
+}
+
+function getCurrency() {
+  const microAmount = getMicroAmount(currency.value.ibcData, amount.value);
+  const a = new Int(lease.value?.leaseStatus.opened?.amount.amount ?? 0);
+
+  if (a.equals(microAmount.mAmount.amount)) {
+    return undefined;
+  }
+
+  const c = currency.value;
+
+  return {
+    ticker: c.ticker,
+    amount: microAmount.mAmount.amount.toString()
+  };
 }
 
 watch(
@@ -547,5 +492,3 @@ watch(
   }
 );
 </script>
-
-<style scoped lang=""></style>
