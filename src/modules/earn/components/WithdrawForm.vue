@@ -61,7 +61,8 @@ import {
   SvgIcon,
   type AdvancedCurrencyFieldOption,
   type AssetItemProps,
-  AssetItem
+  AssetItem,
+  ToastType
 } from "web-components";
 import { computed, inject, ref, watch } from "vue";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
@@ -75,6 +76,7 @@ import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { useAdminStore } from "@/common/stores/admin";
 import { h } from "vue";
 import { MAX_DECIMALS } from "@/config/global";
+import { useI18n } from "vue-i18n";
 
 const assets = computed(() => {
   const lpns = application.lpn;
@@ -105,12 +107,14 @@ const assets = computed(() => {
   });
 });
 
+const i18n = useI18n();
 const walletStore = useWalletStore();
 const oracle = useOracleStore();
 const application = useApplicationStore();
 const admin = useAdminStore();
 const loadLPNCurrency = inject("loadLPNCurrency", () => false);
 const onClose = inject("close", () => {});
+const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
 const input = ref("0");
 const error = ref("");
@@ -225,6 +229,10 @@ async function transferAmount() {
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
       await Promise.all([loadLPNCurrency(), walletStore[WalletActions.UPDATE_BALANCES]()]);
       onClose();
+      onShowToast({
+        type: ToastType.success,
+        message: i18n.t("message.withdraw-successful")
+      });
     } catch (error) {
       Logger.error(error);
     } finally {

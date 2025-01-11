@@ -71,12 +71,12 @@ const transactionData = computed(() =>
             variant: "left"
           },
           {
-            value: props.transaction.type.split(".").at(-1),
+            value: action(props.transaction),
             class: "max-w-[140px]"
           },
           {
             value: getCreatedAtForHuman(props.transaction.timestamp) ?? props.transaction.block,
-            class: "max-w-[140px]"
+            class: "max-w-[180px]"
           },
           {
             component: () => h<LabelProps>(Label, { value: i18n.t(`message.completed`), variant: "success" }),
@@ -90,16 +90,6 @@ const transactionData = computed(() =>
 
 function truncateString(text: string) {
   return StringUtils.truncateString(text, 6, 6);
-}
-
-function convertFeeAmount(fee: Coin) {
-  if (fee === null) {
-    return "0";
-  }
-
-  const convertFee = CurrencyUtils.convertCosmosCoinToKeplCoin(fee);
-  const feeAmount = CurrencyUtils.convertCoinUNolusToNolus(convertFee);
-  return feeAmount?.toString();
 }
 
 async function message(msg: IObjectKeys) {
@@ -300,13 +290,74 @@ async function message(msg: IObjectKeys) {
     }
   }
 }
+function action(msg: IObjectKeys) {
+  switch (msg.type) {
+    case Messages["/cosmos.bank.v1beta1.MsgSend"]: {
+      return i18n.t("message.transfer-action");
+    }
+    case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
+      return i18n.t("message.transfer-action");
+    }
+    case Messages["/ibc.core.channel.v1.MsgRecvPacket"]: {
+      return i18n.t("message.transfer-action");
+    }
+    case Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]: {
+      try {
+        const data = JSON.parse(Buffer.from(msg.data.msg).toString());
 
-function getAmount(log: IObjectKeys) {
-  for (const l of log[0].events) {
-    for (const v of l.attributes) {
-      if (v.key == "amount") {
-        return v;
+        if (data.open_lease) {
+          return i18n.t("message.leases");
+        }
+
+        if (data.repay) {
+          return i18n.t("message.leases");
+        }
+
+        if (data.close) {
+          return i18n.t("message.leases");
+        }
+
+        if (data.claim_rewards) {
+          return i18n.t("message.earn");
+        }
+
+        if (data.deposit) {
+          return i18n.t("message.earn");
+        }
+
+        if (data.burn) {
+          return i18n.t("message.earn");
+        }
+
+        if (data.close_position?.full_close) {
+          return i18n.t("message.leases");
+        }
+
+        if (data.close_position?.partial_close) {
+          return i18n.t("message.leases");
+        }
+      } catch (error) {
+        Logger.error(error);
+        return msg.type;
       }
+    }
+    case Messages["/cosmos.gov.v1beta1.MsgVote"]: {
+      return i18n.t("message.vote");
+    }
+    case Messages["/cosmos.staking.v1beta1.MsgDelegate"]: {
+      return i18n.t("message.stake");
+    }
+    case Messages["/cosmos.staking.v1beta1.MsgUndelegate"]: {
+      return i18n.t("message.stake");
+    }
+    case Messages["/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"]: {
+      return i18n.t("message.stake");
+    }
+    case Messages["/cosmos.staking.v1beta1.MsgBeginRedelegate"]: {
+      return i18n.t("message.stake");
+    }
+    default: {
+      return msg.typeUrl;
     }
   }
 }

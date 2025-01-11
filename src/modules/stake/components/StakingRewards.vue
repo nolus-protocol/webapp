@@ -5,6 +5,7 @@
       :icon="{ name: 'list-sparkle' }"
     >
       <Button
+        v-if="!showEmpty"
         :label="$t('message.claim-rewards')"
         severity="secondary"
         size="large"
@@ -13,7 +14,10 @@
         @click="onWithdrawRewards"
       />
     </WidgetHeader>
-    <div class="flex flex-col gap-y-2">
+    <div
+      class="flex flex-col gap-y-2"
+      v-if="!showEmpty"
+    >
       <BigNumber
         :label="$t('message.unclaimed-staking')"
         :amount="{
@@ -25,23 +29,32 @@
     </div>
 
     <Asset
-      v-if="reward"
+      v-if="reward && !showEmpty"
       :icon="reward.icon"
       :amount="reward.amount"
       :stable-amount="reward.stableAmount"
+    />
+
+    <EmptyState
+      v-if="showEmpty"
+      :image="{ name: 'no-rewards' }"
+      :title="$t('message.no-rewards')"
+      :description="$t('message.deposit-assets')"
     />
   </Widget>
 </template>
 
 <script lang="ts" setup>
-import { Button, Widget, Asset } from "web-components";
+import { Button, Widget, Asset, ToastType } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { AssetUtils, Logger, NetworkUtils, walletOperation } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { inject, ref } from "vue";
+import { useI18n } from "vue-i18n";
 
+import EmptyState from "@/common/components/EmptyState.vue";
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 
@@ -52,10 +65,13 @@ defineProps<{
     icon: string;
   };
   stableRewards: string;
+  showEmpty: boolean;
 }>();
 
-const wallet = useWalletStore();
+const i18n = useI18n();
+const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 const loadRewards = inject("loadRewards", async () => {});
+const wallet = useWalletStore();
 const loading = ref(false);
 const disabled = ref(false);
 
@@ -105,6 +121,10 @@ async function requestClaim() {
       loadRewards();
     }
     await wallet.UPDATE_BALANCES();
+    onShowToast({
+      type: ToastType.success,
+      message: i18n.t("message.rewards-claimed-successful")
+    });
   } catch (error: Error | any) {
     Logger.error(error);
   } finally {

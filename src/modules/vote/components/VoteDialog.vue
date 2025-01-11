@@ -89,19 +89,20 @@
 </template>
 
 <script lang="ts" setup>
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { marked } from "marked";
 import { type Coin, coin } from "@cosmjs/amino";
 import type { FinalTallyResult, Proposal } from "@/modules/vote/types";
 import { Dec } from "@keplr-wallet/unit";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
-import { Button, Dialog, ProposalStatus, ProposalVotingLine } from "web-components";
+import { Button, Dialog, ProposalStatus, ProposalVotingLine, ToastType } from "web-components";
 
 import { NATIVE_ASSET } from "@/config/global";
 import { formatDateTime, Logger, NetworkUtils, walletOperation } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";
 import { MsgVote } from "cosmjs-types/cosmos/gov/v1/tx";
 import { longify } from "@cosmjs/stargate/build/queryclient";
+import { useI18n } from "vue-i18n";
 
 const dialog = ref<typeof Dialog | null>(null);
 const delegatedTokensAmount = ref({} as Coin);
@@ -112,12 +113,15 @@ const isVotingPeriod = ref(false);
 const isDisabled = ref(false);
 const isLoading = ref(-1);
 const wallet = useWalletStore();
+const i18n = useI18n();
 
 const props = defineProps<{
   proposal: Proposal;
   bondedTokens: Dec | any;
   quorumTokens: Dec | any;
 }>();
+
+const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
 onMounted(async () => {
   await loadDelegated();
@@ -200,6 +204,12 @@ async function onVoteEmit(vote: VoteOption) {
 
       await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
       hide();
+      onShowToast({
+        type: ToastType.success,
+        message: i18n.t("message.vote-successful", {
+          proposal: props.proposal.id
+        })
+      });
     }
   } catch (error: Error | any) {
     Logger.error(error);

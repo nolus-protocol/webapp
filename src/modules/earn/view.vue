@@ -21,23 +21,25 @@
         :stableAmount="stableAmount"
         :items="assetsRows"
         class="order-2 overflow-x-auto md:overflow-auto lg:order-none lg:flex-[60%]"
+        :onSearch="onSearch"
       />
-      <EarnRewards
+      <!-- <EarnRewards
         :rewards="lpnReward"
         :stableRewards="lpnRewardStable"
         class="order-1 lg:order-none lg:flex-[40%]"
-      />
+      /> -->
     </div>
     <router-view></router-view>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { Button } from "web-components";
 import ListHeader from "@/common/components/ListHeader.vue";
+import PausedLabel from "./components/PausedLabel.vue";
+import { Button } from "web-components";
 import { RouteNames } from "@/router";
 
-import { EarnAssets, EarnRewards } from "./components";
+import { EarnAssets } from "./components";
 import { EarnAssetsDialog } from "./enums";
 
 import { computed, h, onMounted, onUnmounted, provide, ref, watch } from "vue";
@@ -82,6 +84,7 @@ const lpnReward = ref<
 >([]);
 const lpnRewardStable = ref("0.00");
 const claimContractData = ref([] as ContractData[]);
+const search = ref("");
 
 onMounted(async () => {
   try {
@@ -113,6 +116,10 @@ watch(
     await Promise.allSettled([loadLPNCurrency(), loadRewards()]);
   }
 );
+
+function onSearch(data: string) {
+  search.value = data;
+}
 
 async function loadLPNCurrency() {
   const lpnCurrencies: Asset[] = [];
@@ -195,37 +202,56 @@ async function loadLPNCurrency() {
 }
 
 const assetsRows = computed<TableRowItemProps[]>(() => {
-  return lpnAsset.value.map((item) => {
-    const c = application.currenciesData![item.key!];
+  const param = search.value.toLowerCase();
+  return lpnAsset.value
+    .filter((item) => {
+      if (param.length == 0) {
+        return true;
+      }
 
-    const stable_b = CurrencyUtils.calculateBalance(
-      oracle.prices[item.key]?.amount,
-      new Coin(item.balance.denom, item.balance.amount.toString()),
-      c.decimal_digits
-    ).toDec();
+      if (item.key.toLowerCase().includes(param) || item.balance.denom.toLowerCase().includes(param)) {
+        return true;
+      }
 
-    const balance = AssetUtils.formatNumber(new Dec(item.balance.amount, c.decimal_digits).toString(3), 3);
-    const stable_balance = AssetUtils.formatNumber(stable_b.toString(2), 2);
-    const [_ticker, protocol] = item.key?.split("@") ?? [];
-    const apr = new Dec(application.apr?.[protocol] ?? 0).toString(2);
-    const v = item.supply
-      ? () => h<LabelProps>(Label, { value: i18n.t("message.open"), variant: "success" })
-      : () => h<LabelProps>(Label, { value: i18n.t("message.paused"), variant: "warning" });
+      return false;
+    })
+    .map((item) => {
+      const c = application.currenciesData![item.key!];
 
-    return {
-      items: [
-        {
-          value: c.name,
-          subValue: c.shortName,
-          image: c.icon,
-          variant: "left"
-        },
-        { value: `${balance}`, subValue: `${NATIVE_CURRENCY.symbol}${stable_balance}`, variant: "right" },
-        { value: `${apr}%` },
-        { component: v }
-      ]
-    };
-  });
+      const stable_b = CurrencyUtils.calculateBalance(
+        oracle.prices[item.key]?.amount,
+        new Coin(item.balance.denom, item.balance.amount.toString()),
+        c.decimal_digits
+      ).toDec();
+
+      const balance = AssetUtils.formatNumber(new Dec(item.balance.amount, c.decimal_digits).toString(3), 3);
+      const stable_balance = AssetUtils.formatNumber(stable_b.toString(2), 2);
+      const [_ticker, protocol] = item.key?.split("@") ?? [];
+      const apr = new Dec(application.apr?.[protocol] ?? 0).toString(2);
+      const v = item.supply
+        ? () => h<LabelProps>(Label, { value: i18n.t("message.open"), variant: "success" })
+        : () =>
+            h<LabelProps>(PausedLabel, {
+              value: i18n.t("message.paused"),
+              variant: "warning",
+              tooltip: i18n.t("message.pause-tooltip"),
+              class: "flex items-center"
+            });
+
+      return {
+        items: [
+          {
+            value: c.name,
+            subValue: c.shortName,
+            image: c.icon,
+            variant: "left"
+          },
+          { value: `${balance}`, subValue: `${NATIVE_CURRENCY.symbol}${stable_balance}`, variant: "right" },
+          { value: `${apr}%` },
+          { component: v }
+        ]
+      };
+    });
 });
 
 async function loadRewards() {

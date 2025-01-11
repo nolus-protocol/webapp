@@ -4,7 +4,10 @@
       :label="$t('message.earning-assets')"
       :icon="{ name: 'earn' }"
     />
-    <EarnAssetsTable :items="items">
+    <EarnAssetsTable
+      :items="items"
+      :onSearch="onSearch"
+    >
       <BigNumber
         :label="$t('message.total-value')"
         :amount="{
@@ -41,5 +44,6 @@ import { NATIVE_CURRENCY } from "@/config/global";
 defineProps<{
   items: TableRowItemProps[];
   stableAmount: string;
+  onSearch: Function;
 }>();
 </script>

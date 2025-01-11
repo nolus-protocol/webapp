@@ -13,14 +13,18 @@
       v-if="link"
       :href="link.url"
       target="_blank"
-      class="w-fit text-14 font-normal text-typography-link"
-      >{{ link.label }}</a
-    >
+      class="flex w-fit text-14 font-normal text-typography-link"
+      >{{ link.label
+      }}<SvgIcon
+        name="help"
+        class="rouded-full ml-1 fill-icon-link"
+        size="s"
+    /></a>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { type TooltipProps } from "web-components";
+import { type TooltipProps, SvgIcon } from "web-components";
 
 defineProps<{
   image?: { alt?: string; class?: string; style?: string; name: string };

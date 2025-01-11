@@ -1,4 +1,17 @@
 <template>
+  <div class="flex flex-1 flex-col justify-between gap-y-2 pb-3 lg:flex-row lg:gap-0">
+    <div class="flex items-center">
+      <SvgIcon
+        name="arrow-left"
+        size="l"
+        class="mx-4 cursor-pointer text-icon-default"
+        @click="goBack"
+      />
+      <div class="flex flex-col">
+        <div class="text-24 font-semibold text-typography-default">{{ $t("message.pnl-history") }}</div>
+      </div>
+    </div>
+  </div>
   <Widget class="overflow-auto">
     <BigNumber
       :label="$t('message.realized-pnl')"
@@ -22,6 +35,17 @@
       </template>
     </Table>
   </Widget>
+  <div class="my-4 flex justify-center">
+    <Button
+      v-if="!loaded"
+      :label="$t('message.load-more')"
+      :loading="loading"
+      class="mx-auto"
+      severity="secondary"
+      size="medium"
+      @click="loadLoans"
+    />
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -33,7 +57,9 @@ import {
   type TableColumnProps,
   TableRow,
   type TableRowItemProps,
-  Widget
+  Widget,
+  SvgIcon,
+  Button
 } from "web-components";
 import { computed, h, onMounted, ref, watch } from "vue";
 import BigNumber from "@/common/components/BigNumber.vue";
@@ -46,6 +72,8 @@ import { CurrencyDemapping } from "@/config/currencies";
 import { useApplicationStore } from "@/common/stores/application";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Dec, PricePretty } from "@keplr-wallet/unit";
+import { RouteNames } from "@/router";
+import { useRouter } from "vue-router";
 
 const i18n = useI18n();
 const app = useApplicationStore();
@@ -58,6 +86,7 @@ let skip = 0;
 const loading = ref(false);
 const loaded = ref(false);
 const showSkeleton = ref(true);
+const router = useRouter();
 
 const columns: TableColumnProps[] = [
   { label: i18n.t("message.type"), variant: "left", class: "max-w-[150px]" },
@@ -82,6 +111,10 @@ watch(
     loadLoans();
   }
 );
+
+function goBack() {
+  router.push({ path: `/${RouteNames.LEASES}` });
+}
 
 async function loadLoans() {
   try {

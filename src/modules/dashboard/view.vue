@@ -3,10 +3,16 @@
     <ListHeader
       :title="wallet?.walletName ? `${$t('message.hello')} ${wallet?.walletName}!` : $t('message.hello-stranger')"
     />
-    <DashboardLeases />
+    <DashboardLeases :isVisible="isVisible" />
     <div class="flex flex-col gap-8 lg:flex-row">
-      <DashboardAssets class="lg:flex-[60%]" />
-      <DashboardRewards class="lg:flex-[40%] lg:self-start" />
+      <DashboardAssets
+        :isVisible="isVisible"
+        class="lg:flex-[60%]"
+      />
+      <DashboardRewards
+        v-if="isVisible"
+        class="lg:flex-[40%] lg:self-start"
+      />
     </div>
   </div>
 </template>
@@ -15,7 +21,13 @@
 import { useWalletStore } from "@/common/stores/wallet";
 import { DashboardAssets, DashboardLeases, DashboardRewards } from "./components";
 import ListHeader from "@/common/components/ListHeader.vue";
+import { computed } from "vue";
+import { WalletManager } from "@/common/utils";
 
 const wallet = useWalletStore();
+
+const isVisible = computed(() => {
+  const w = WalletManager.getPubKey()?.length ?? 0;
+  return !!wallet?.wallet || w > 0;
+});
 </script>
-<style lang="scss" scoped></style>

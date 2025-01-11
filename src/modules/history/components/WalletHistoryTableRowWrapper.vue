@@ -99,5 +99,3 @@ function calculateEvmFee(coin: Coin, network: Network | EvmNetwork) {
   );
 }
 </script>
-
-<style scoped lang=""></style>

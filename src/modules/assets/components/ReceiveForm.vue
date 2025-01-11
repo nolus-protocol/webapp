@@ -69,7 +69,7 @@
       >
       <Tooltip
         position="top"
-        content="some content"
+        :content="$t('message.receive-tooltip')"
       >
         <SvgIcon
           name="help"

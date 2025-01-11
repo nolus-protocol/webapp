@@ -38,7 +38,7 @@
 </template>
 
 <script lang="ts" setup>
-import { AdvancedFormControl, Button } from "web-components";
+import { AdvancedFormControl, Button, ToastType } from "web-components";
 import { computed, inject, ref, watch } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -48,9 +48,12 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { coin } from "@cosmjs/stargate";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import type { IObjectKeys } from "@/common/types";
+import { useI18n } from "vue-i18n";
 
 const wallet = useWalletStore();
 const oracle = useOracleStore();
+const i18n = useI18n();
+
 const input = ref("0");
 const error = ref("");
 const loading = ref(false);
@@ -58,6 +61,8 @@ const disabled = ref(false);
 const loadDelegated = inject("loadDelegated", () => false);
 const delegatedData = ref<IObjectKeys[]>([]);
 const onClose = inject("close", () => {});
+
+const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
 watch(
   () => wallet.wallet,
@@ -160,6 +165,10 @@ async function undelegate() {
       await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
       await Promise.all([loadDelegated(), wallet.UPDATE_BALANCES()]);
       onClose();
+      onShowToast({
+        type: ToastType.success,
+        message: i18n.t("message.undelegate-successful")
+      });
     } catch (err: Error | any) {
       error.value = err.toString();
       Logger.error(error);

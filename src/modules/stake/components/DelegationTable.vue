@@ -24,17 +24,18 @@
       />
     </template>
   </Table>
-  <!-- <EmptyState
-    v-else
-    :image="{ name: '' }"
+  <EmptyState
+    v-if="showEmpty"
+    :image="{ name: 'delegate-nls' }"
     :title="$t('message.delegate-nls')"
     :description="$t('message.delegate-nls-description')"
-  /> -->
+  />
 </template>
 
 <script lang="ts" setup>
 import { useI18n } from "vue-i18n";
 import { Button, Table, type TableColumnProps, TableRow, type TableRowItemProps } from "web-components";
+import EmptyState from "@/common/components/EmptyState.vue";
 
 const i18n = useI18n();
 
@@ -47,5 +48,6 @@ const columns: TableColumnProps[] = [
 
 defineProps<{
   validators: TableRowItemProps[];
+  showEmpty: boolean;
 }>();
 </script>

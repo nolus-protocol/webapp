@@ -6,70 +6,89 @@
       :badge="{ content: leases.length.toString() }"
     >
       <Button
+        v-if="isVisible"
         :label="$t('message.viewAllLeases')"
         severity="secondary"
         size="large"
         @click="() => router.push(`/${RouteNames.LEASES}`)"
       />
+      <template v-else>
+        <Button
+          :label="$t('message.new-lease')"
+          severity="secondary"
+          size="large"
+          @click="() => router.push(`/${RouteNames.LEASES}/open/long`)"
+        />
+      </template>
     </WidgetHeader>
-    <div class="flex gap-8">
-      <BigNumber
-        :label="$t('message.unrealized-pnl')"
-        :amount="{
-          amount: pnl.toString(),
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: NATIVE_CURRENCY.symbol
-        }"
-        :pnl-status="{
-          positive: pnl_percent.isPositive() || pnl_percent.isZero(),
-          value: `${pnl_percent.isPositive() || pnl_percent.isZero() ? '+' : '-'}${pnl_percent.abs().toString(2)}%`,
-          badge: {
-            content: pnl_percent.toString(),
-            base: false
-          }
-        }"
-      />
-      <BigNumber
-        :label="$t('message.leases')"
-        :amount="{
-          amount: activeLeases.toString(),
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: NATIVE_CURRENCY.symbol,
-          fontSize: 20,
-          fontSizeSmall: 20
-        }"
-      />
-      <BigNumber
-        :label="$t('message.debt')"
-        :amount="{
-          amount: debt.toString(),
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: NATIVE_CURRENCY.symbol,
-          fontSize: 20,
-          fontSizeSmall: 20
-        }"
-      />
-      <span class="hidden border-r border-border-color md:block" />
-      <div class="flex flex-col gap-2">
+    <template v-if="isVisible">
+      <div class="flex gap-8">
         <BigNumber
-          :label="$t('message.realized-pnl')"
+          :label="$t('message.unrealized-pnl')"
           :amount="{
-            amount: realized_pnl.toString(),
+            amount: pnl.toString(),
+            type: CURRENCY_VIEW_TYPES.CURRENCY,
+            denom: NATIVE_CURRENCY.symbol
+          }"
+          :pnl-status="{
+            positive: pnl_percent.isPositive() || pnl_percent.isZero(),
+            value: `${pnl_percent.isPositive() || pnl_percent.isZero() ? '+' : '-'}${pnl_percent.abs().toString(2)}%`,
+            badge: {
+              content: pnl_percent.toString(),
+              base: false
+            }
+          }"
+        />
+        <BigNumber
+          :label="$t('message.leases')"
+          :amount="{
+            amount: activeLeases.toString(),
             type: CURRENCY_VIEW_TYPES.CURRENCY,
             denom: NATIVE_CURRENCY.symbol,
             fontSize: 20,
             fontSizeSmall: 20
           }"
         />
-        <Button
-          label="Realized PnL Log"
-          severity="secondary"
-          size="small"
-          @click="router.push(`/${RouteNames.LEASES}/pnl-log`)"
+        <BigNumber
+          :label="$t('message.debt')"
+          :amount="{
+            amount: debt.toString(),
+            type: CURRENCY_VIEW_TYPES.CURRENCY,
+            denom: NATIVE_CURRENCY.symbol,
+            fontSize: 20,
+            fontSizeSmall: 20
+          }"
         />
+        <span class="hidden border-r border-border-color md:block" />
+        <div class="flex flex-col gap-2">
+          <BigNumber
+            :label="$t('message.realized-pnl')"
+            :amount="{
+              amount: realized_pnl.toString(),
+              type: CURRENCY_VIEW_TYPES.CURRENCY,
+              denom: NATIVE_CURRENCY.symbol,
+              fontSize: 20,
+              fontSizeSmall: 20
+            }"
+          />
+          <Button
+            label="Realized PnL Log"
+            severity="secondary"
+            size="small"
+            @click="router.push(`/${RouteNames.LEASES}/pnl-log`)"
+          />
+        </div>
       </div>
-    </div>
-    <UnrealizedPnlChart />
+      <UnrealizedPnlChart />
+    </template>
+    <template v-else>
+      <EmptyState
+        :image="{ name: 'new-lease' }"
+        :title="$t('message.start-lease')"
+        :description="$t('message.start-lease')"
+        :link="{ label: 'Learn more about assets', url: '#' }"
+      />
+    </template>
   </Widget>
 </template>
 
@@ -92,6 +111,7 @@ import { useApplicationStore } from "@/common/stores/application";
 import UnrealizedPnlChart from "./UnrealizedPnlChart.vue";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useRouter } from "vue-router";
+import EmptyState from "@/common/components/EmptyState.vue";
 
 const { leases, getLeases } = useLeases((error: Error | any) => {});
 const activeLeases = ref(new Dec(0));
@@ -104,6 +124,8 @@ const router = useRouter();
 const wallet = useWalletStore();
 const oracle = useOracleStore();
 const app = useApplicationStore();
+
+defineProps<{ isVisible: boolean }>();
 
 watch(
   () => leases.value,
