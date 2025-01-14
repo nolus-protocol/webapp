@@ -73,7 +73,6 @@ export class SkipRouter {
       allowUnsafe: true,
       swapVenues: config.swapVenues,
       experimentalFeatures: ["cctp"],
-      goFast: true,
       smartSwapOptions: {
         splitRoutes: true
       }
