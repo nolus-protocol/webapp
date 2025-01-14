@@ -6,18 +6,19 @@
 </template>
 
 <script lang="ts" setup>
+import type { IObjectKeys } from "@/common/types";
 import { computed, onMounted, ref } from "vue";
 import { lineY, plot, ruleY } from "@observablehq/plot";
-import type { IObjectKeys } from "@/common/types";
+import { EtlApi } from "@/common/utils";
 
-const data = ref([]);
+const data = ref<IObjectKeys[]>([]);
 
 onMounted(async () => {
   await loadData();
 });
 
 const loadData = async () => {
-  const response = await fetch("https://etl-cl.nolus.network:8082/api/time-series").then((res) => res.json());
+  const response = await EtlApi.fetchTimeSeries();
   data.value = response.map((d: IObjectKeys) => {
     return {
       date: new Date(d.lp_pool_timestamp).toLocaleDateString("en-CA"),
@@ -32,6 +33,9 @@ const lineChartHTML = computed(
     plot({
       color: {
         legend: true
+      },
+      style: {
+        width: "100%"
       },
       width: 960,
       height: 250,

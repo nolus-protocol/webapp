@@ -97,9 +97,9 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { AdvancedFormControl, Button, Dialog, Tooltip, Slider, SvgIcon } from "web-components";
+import { AdvancedFormControl, Button, Dialog, Tooltip, Slider, SvgIcon, ToastType } from "web-components";
 import { RouteNames } from "@/router";
 
 import { useWalletStore } from "@/common/stores/wallet";
@@ -137,12 +137,17 @@ const swapFee = ref(0);
 const sliderValue = ref(0);
 const loading = ref(false);
 const disabled = ref(false);
+const reload = inject("reload", () => {});
+const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
 const dialog = ref<typeof Dialog | null>(null);
 const { lease } = useLease(route.params.id as string, route.params.protocol as string, (error) => {
   Logger.error(error);
 });
-const { config } = useLeaseConfig(route.params.protocol as string, (error: Error | any) => {});
+const { config } = useLeaseConfig(
+  (route.params.protocol as string).toUpperCase() as string,
+  (error: Error | any) => {}
+);
 
 onMounted(() => {
   dialog?.value?.show();
@@ -450,7 +455,12 @@ async function marketCloseLease() {
 
       const { txHash, txBytes, usedFee } = await leaseClient.simulateClosePositionLeaseTx(wallet, getCurrency(), funds);
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
+      reload();
       dialog?.value?.close();
+      onShowToast({
+        type: ToastType.success,
+        message: i18n.t("message.toast-closed")
+      });
     } catch (error: Error | any) {
       Logger.error(error);
     } finally {

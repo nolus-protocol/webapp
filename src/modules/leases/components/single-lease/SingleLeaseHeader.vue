@@ -68,6 +68,7 @@
         iconPosition="left"
         size="medium"
         @click="sharePnlDialog?.show()"
+        v-if="TEMPLATES.opened == status"
       />
       <Button
         :label="$t('message.repay')"
@@ -78,6 +79,7 @@
             path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.leaseAddress}/${SingleLeaseDialog.REPAY}`
           })
         "
+        v-if="TEMPLATES.opened == status"
       />
       <Button
         :label="$t('message.close')"
@@ -85,19 +87,15 @@
         size="medium"
         @click="
           router.push({
-            path: `/${RouteNames.LEASES}/${lease?.protocol}/${lease?.leaseAddress}/${SingleLeaseDialog.CLOSE}`
+            path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.leaseAddress}/${SingleLeaseDialog.CLOSE}`
           })
         "
+        v-if="TEMPLATES.opened == status"
       />
-      <Button
-        :label="$t('message.collect')"
+      <Collect
+        :lease="lease!"
         severity="primary"
-        size="medium"
-        @click="
-          () => {
-            console.info('Collect ');
-          }
-        "
+        v-if="TEMPLATES.paid == status"
       />
     </div>
     <SharePnLDialog
@@ -113,6 +111,7 @@
 </template>
 
 <script lang="ts" setup>
+import Collect from "./Collect.vue";
 import type { LeaseData } from "@/common/types";
 import { computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
@@ -129,6 +128,7 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyDemapping } from "@/config/currencies";
+import { getStatus, TEMPLATES } from "../common";
 
 const sharePnlDialog = ref<typeof SharePnLDialog | null>(null);
 const router = useRouter();
@@ -261,6 +261,10 @@ const currentPrice = computed(() => {
 function goBack() {
   router.push(`/${RouteNames.LEASES}`);
 }
+
+const status = computed(() => {
+  return getStatus(props.lease as LeaseData);
+});
 </script>
 
 <style scoped lang=""></style>

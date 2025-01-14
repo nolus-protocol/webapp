@@ -7,17 +7,20 @@
 
 <script lang="ts" setup>
 import { ref } from "vue";
-import * as Plot from "@observablehq/plot";
 import supply from "./supply.json";
-import * as d3Time from "d3-time";
+import { rectY, ruleY, binX } from "@observablehq/plot";
+import { timeMonth } from "d3-time";
 
 const chartHTML = ref();
 
-chartHTML.value = Plot.rectY(
+chartHTML.value = rectY(
   supply,
   // @ts-ignore
-  Plot.binX({ y: "sum" }, { x: "lp_pool_timestamp", y: "borrowed", fill: "#19A96C", thresholds: d3Time.timeMonth })
+  binX({ y: "sum" }, { x: "lp_pool_timestamp", y: "borrowed", fill: "#19A96C", thresholds: timeMonth })
 ).plot({
+  style: {
+    width: "100%"
+  },
   width: 960,
   height: 250,
   marginLeft: 70,
@@ -29,7 +32,7 @@ chartHTML.value = Plot.rectY(
     tickFormat: (d) => `$${d / 1e6}M`
   },
   x: { label: null, interval: "months" },
-  marks: [Plot.ruleY([0])]
+  marks: [ruleY([0])]
 }).outerHTML;
 </script>
 

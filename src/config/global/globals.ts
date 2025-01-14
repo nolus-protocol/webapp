@@ -40,6 +40,7 @@ export const PERCENT = 100;
 export const UPDATE_BLOCK_INTERVAL = 1 * 60 * 1000;
 export const UPDATE_REWARDS_INTERVAL = 60 * 1000;
 export const SESSION_TIME = 25 * 60 * 1000;
+export const UPDATE_LEASES = 10000;
 
 let update_balance_interval = 8 * 1000; // 5s;
 let update_prices_interval = 15 * 1000;

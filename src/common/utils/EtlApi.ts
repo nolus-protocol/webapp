@@ -38,6 +38,10 @@ export class EtlApi {
     return fetch(`${EtlApi.getApiUrl()}/realized-pnl?address=${address}`).then((data) => data.json());
   }
 
+  static async fetchTimeSeries(): Promise<IObjectKeys[]> {
+    return fetch(`${EtlApi.getApiUrl()}/time-series`).then((data) => data.json());
+  }
+
   static async fetchTXS(address: string, skip: number, limit: number): Promise<IObjectKeys[]> {
     return fetch(`${EtlApi.getApiUrl()}/txs?address=${address}&skip=${skip}&limit=${limit}`).then(async (data) => {
       const items = await data.json();

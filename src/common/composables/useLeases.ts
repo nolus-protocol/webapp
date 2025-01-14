@@ -8,7 +8,6 @@ import { AppUtils, Logger, LeaseUtils, AssetUtils, WalletManager } from "@/commo
 import {
   IGNORE_LEASES,
   INTEREST_DECIMALS,
-  isDev,
   MONTHS,
   NATIVE_ASSET,
   PERCENT,
@@ -23,6 +22,8 @@ import { useOracleStore } from "../stores/oracle";
 import { useApplicationStore } from "../stores/application";
 import { useWalletStore } from "../stores/wallet";
 import { Intercom } from "../utils/Intercom";
+import { RouteNames } from "@/router";
+import { useRouter } from "vue-router";
 
 export function useLeases(onError: (error: unknown) => void) {
   const leases = ref<LeaseData[]>([]);
@@ -83,6 +84,7 @@ export function useLeases(onError: (error: unknown) => void) {
         .sort((a, b) => (b.leaseData?.timestamp?.getTime() ?? 0) - (a.leaseData?.timestamp?.getTime() ?? 0));
 
       leases.value = items as LeaseData[];
+
       const attributes: {
         PositionsCount: number;
         PositionsLastOpened?: Date;
@@ -125,10 +127,16 @@ export function useLeases(onError: (error: unknown) => void) {
 export function useLease(leaseAddress: string, protocol: string, onError: (error: unknown) => void) {
   const lease = ref<LeaseData>();
   const leaseLoaded = ref(false);
+  const router = useRouter();
 
   const getLease = async () => {
     try {
-      lease.value = await fetchLease(leaseAddress, protocol.toUpperCase());
+      const l = await fetchLease(leaseAddress, protocol.toUpperCase());
+      if (l.leaseStatus.closed) {
+        router.push(`/${RouteNames.LEASES}`);
+        return;
+      }
+      lease.value = l;
     } catch (e) {
       onError(e);
       Logger.error(e);

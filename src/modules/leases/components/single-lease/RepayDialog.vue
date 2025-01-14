@@ -95,9 +95,18 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { AdvancedFormControl, Button, Dialog, AssetItem, Slider, SvgIcon, type AssetItemProps } from "web-components";
+import {
+  AdvancedFormControl,
+  Button,
+  Dialog,
+  AssetItem,
+  Slider,
+  SvgIcon,
+  type AssetItemProps,
+  ToastType
+} from "web-components";
 import { RouteNames } from "@/router";
 
 import { useWalletStore } from "@/common/stores/wallet";
@@ -137,6 +146,8 @@ const swapFee = ref(0);
 const sliderValue = ref(0);
 const loading = ref(false);
 const disabled = ref(false);
+const reload = inject("reload", () => {});
+const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
 const dialog = ref<typeof Dialog | null>(null);
 const { lease } = useLease(route.params.id as string, route.params.protocol as string, (error) => {
@@ -521,7 +532,12 @@ async function repayLease() {
 
       const { txHash, txBytes, usedFee } = await leaseClient.simulateRepayLeaseTx(wallet, funds);
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
+      reload();
       dialog?.value?.close();
+      onShowToast({
+        type: ToastType.success,
+        message: i18n.t("message.toast-repaid")
+      });
     } catch (error: Error | any) {
       Logger.error(error);
     } finally {

@@ -28,7 +28,7 @@
           <div class="flex flex-col gap-4">
             <BigNumber
               :label="$t('message.outstanding-loan')"
-              :label-tooltip="{ content: 'text for tooltip' }"
+              :label-tooltip="{ content: $t('message.outstanding-loan-tooltip') }"
               :amount="{
                 amount: debt,
                 type: CURRENCY_VIEW_TYPES.TOKEN,
@@ -41,7 +41,7 @@
             />
             <BigNumber
               :label="$t('message.down-payment')"
-              :label-tooltip="{ content: 'text for tooltip' }"
+              :label-tooltip="{ content: $t('message.downpayment-tooltip') }"
               :amount="{
                 amount: downPayment,
                 type: CURRENCY_VIEW_TYPES.CURRENCY,
@@ -53,7 +53,7 @@
             />
             <BigNumber
               :label="$t('message.impact-dex-fee')"
-              :label-tooltip="{ content: 'text for tooltip' }"
+              :label-tooltip="{ content: $t('message.impact-dex-fee-tooltip') }"
               :amount="{
                 amount: fee,
                 type: CURRENCY_VIEW_TYPES.CURRENCY,
@@ -77,7 +77,7 @@
             />
             <BigNumber
               :label="$t('message.partial-liquidation')"
-              :label-tooltip="{ content: 'text for tooltip' }"
+              :label-tooltip="{ content: $t('message.partial-liquidation-tooltip') }"
               :amount="{
                 amount: liquidationPercent,
                 type: CURRENCY_VIEW_TYPES.CURRENCY,
@@ -90,7 +90,7 @@
             />
             <BigNumber
               :label="$t('message.interest-fee')"
-              :label-tooltip="{ content: 'text for tooltip' }"
+              :label-tooltip="{ content: $t('message.interest-fee-tooltip') }"
               :amount="{
                 amount: interest,
                 type: CURRENCY_VIEW_TYPES.CURRENCY,
@@ -102,7 +102,7 @@
             />
             <BigNumber
               :label="$t('message.interest-due')"
-              :label-tooltip="{ content: 'text for tooltip' }"
+              :label-tooltip="{ content: $t('message.repay-interest', { dueDate: interestDueDate }) }"
               :amount="{
                 amount: interestDue,
                 type: CURRENCY_VIEW_TYPES.TOKEN,
@@ -119,7 +119,7 @@
       <span class="border-b border-border-color md:block md:border-r" />
       <div class="flex flex-1 flex-col gap-4">
         <BigNumber
-          label="Unrealized P&L"
+          :label="$t('message.unrealized-pnl')"
           :amount="{
             amount: pnl.amount.toString(),
             type: CURRENCY_VIEW_TYPES.CURRENCY,
@@ -138,7 +138,7 @@
           <div class="flex flex-col gap-2">
             <span class="flex items-center gap-1">
               {{ $t("message.stop-loss-price") }}
-              <Tooltip content="some content">
+              <Tooltip :content="$t('message.stop-loss-price-tooltip')">
                 <SvgIcon
                   name="help"
                   class="rouded-full"
@@ -154,7 +154,7 @@
           <div class="flex flex-col gap-2">
             <span class="flex items-center gap-1">
               {{ $t("message.take-profit-price") }}
-              <Tooltip content="some content">
+              <Tooltip :content="$t('message.take-profit-price-tooltip')">
                 <SvgIcon
                   name="help"
                   class="rouded-full"
@@ -191,6 +191,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { AssetUtils } from "@/common/utils/AssetUtils";
 import { CurrencyDemapping } from "@/config/currencies";
 import { CurrencyUtils } from "@nolus/nolusjs";
+import { datePraser } from "@/common/utils";
 
 const props = defineProps<{
   lease?: LeaseData;
@@ -406,9 +407,18 @@ const liquidationPercent = computed(() => {
     const price = props.lease.liquidation;
     const cPrice = new Dec(currentPrice.value);
     const diff = cPrice.sub(price);
-    const percent = diff.quo(cPrice).mul(new Dec(PERCENT)).toString(2);
-    return `-${percent}`;
+    const percent = diff.quo(cPrice).mul(new Dec(PERCENT)).mul(new Dec(-1)).toString(2);
+    return `${percent}`;
   }
   return "0";
+});
+
+const interestDueDate = computed(() => {
+  const lease = props.lease?.leaseStatus?.opened;
+  let date = new Date();
+  if (lease) {
+    date = new Date(date.getTime() + Number(lease.overdue_collect_in) / 1000 / 1000);
+  }
+  return datePraser(date.toISOString(), true);
 });
 </script>

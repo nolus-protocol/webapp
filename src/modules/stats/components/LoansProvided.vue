@@ -3,19 +3,19 @@
     <WidgetHeader :label="$t('message.leased-assets-total')" />
     <div class="flex flex-col gap-4 md:flex-row md:gap-8">
       <BigNumber
-        label="Protocol Revenue"
+        :label="$t('message.protocol-revenue')"
         :amount="{
-          amount: '108619.33',
+          amount: protocolRevenue,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: '$'
+          denom: NATIVE_CURRENCY.symbol
         }"
       />
       <BigNumber
-        label="Borrow"
+        :label="$t('message.borrowed')"
         :amount="{
-          amount: '14091616.25',
+          amount: totalBorrowed,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: '$'
+          denom: NATIVE_CURRENCY.symbol
         }"
       />
     </div>
@@ -31,6 +31,26 @@ import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import BigNumber from "@/common/components/BigNumber.vue";
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import LoansChart from "@/modules/stats/components/LoansChart.vue";
-</script>
+import { Logger, EtlApi } from "@/common/utils";
+import { ref, onMounted } from "vue";
+import { NATIVE_CURRENCY } from "@/config/global";
 
-<style lang="scss" scoped></style>
+const totalBorrowed = ref("0");
+const protocolRevenue = ref("0");
+
+onMounted(async () => {
+  await Promise.all([setTotalBorrowed(), setProtocolRevenue()]).catch((e) => Logger.error(e));
+});
+
+async function setTotalBorrowed() {
+  const data = await fetch(`${EtlApi.getApiUrl()}/borrowed`);
+  const item = await data.json();
+  totalBorrowed.value = item.borrowed;
+}
+
+async function setProtocolRevenue() {
+  const data = await fetch(`${EtlApi.getApiUrl()}/revenue`);
+  const item = await data.json();
+  protocolRevenue.value = item.revenue;
+}
+</script>

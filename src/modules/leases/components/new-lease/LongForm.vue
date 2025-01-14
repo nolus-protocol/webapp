@@ -74,9 +74,19 @@
     <div class="flex flex-col gap-2 px-6">
       <label
         for="position-size"
-        class="w-fit text-16 font-semibold text-typography-default"
-        >{{ $t("message.position-size") }}</label
-      >
+        class="flex w-fit items-center text-16 font-semibold text-typography-default"
+        >{{ $t("message.position-size") }}
+        <Tooltip
+          position="top"
+          :content="$t('message.lease-swap-fee-tooltip')"
+        >
+          <SvgIcon
+            name="help"
+            class="rounded-full"
+            size="s"
+          />
+        </Tooltip>
+      </label>
       <div class="px-[18px] py-3">
         <Slider
           :disabled="isLoading"
@@ -123,7 +133,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, inject, onMounted, ref, watch } from "vue";
 import {
   AdvancedFormControl,
   Button,
@@ -132,7 +142,10 @@ import {
   Size,
   Slider,
   type AssetItemProps,
-  AssetItem
+  AssetItem,
+  Tooltip,
+  SvgIcon,
+  ToastType
 } from "web-components";
 import { RouteNames } from "@/router";
 import { tabs } from "../types";
@@ -181,6 +194,8 @@ const selectedCurrency = ref(0);
 const selectedLoanCurrency = ref(0);
 const isLoading = ref(false);
 const isDisabled = ref(false);
+const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const reload = inject("reload", () => {});
 
 const amount = ref("");
 const amountErrorMsg = ref("");
@@ -556,7 +571,14 @@ async function openLease() {
       });
 
       const data = item?.attributes[WASM_EVENTS["wasm-ls-request-loan"].index];
-      router.push(`/${RouteNames.LEASES}/${data.value}`);
+
+      reload();
+      onShowToast({
+        type: ToastType.success,
+        message: i18n.t("message.currently-opening")
+      });
+
+      router.push(`/${RouteNames.LEASES}/${protocol.toLowerCase()}/${data.value}`);
     } catch (error: Error | any) {
       amountErrorMsg.value = error.toString();
       Logger.error(error);

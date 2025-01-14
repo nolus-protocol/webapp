@@ -3,33 +3,35 @@
     <WidgetHeader :label="$t('message.overview')" />
     <div class="flex flex-col gap-3 md:flex-row md:gap-8">
       <BigNumber
-        label="Total Value Locked"
+        :label="$t('message.total-value-locked')"
         :amount="{
-          amount: '1732513.96',
+          amount: totalValueLocked,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: ''
+          denom: NATIVE_CURRENCY.symbol
         }"
       />
       <BigNumber
-        label="Buyback"
+        :label="$t('message.buyback')"
         :amount="{
-          amount: '345775290',
-          type: CURRENCY_VIEW_TYPES.TOKEN,
-          denom: 'NLS',
+          amount: buybackTotal,
+          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          denom: NATIVE_ASSET.label,
           decimals: 2,
           hasSpace: true,
+          isDenomInfront: false,
           fontSize: 20,
           fontSizeSmall: 20
         }"
       />
       <BigNumber
-        label="Protocol Owned Liquidity"
+        :label="$t('message.incentives-pool')"
         :amount="{
-          amount: '11743183431',
-          type: CURRENCY_VIEW_TYPES.TOKEN,
-          denom: 'NLS',
+          amount: incentivesPool,
+          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          denom: NATIVE_ASSET.label,
           decimals: 2,
           hasSpace: true,
+          isDenomInfront: false,
           fontSize: 20,
           fontSizeSmall: 20
         }"
@@ -43,13 +45,40 @@
 </template>
 
 <script lang="ts" setup>
-import { Widget } from "web-components";
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import BigNumber from "@/common/components/BigNumber.vue";
-
 import SupplyBorrowedChart from "./SupplyBorrowedChart.vue";
 import LeasesMonthlyChart from "@/modules/stats/components/LeasesMonthlyChart.vue";
-</script>
 
-<style scoped lang="scss"></style>
+import { Widget } from "web-components";
+import { CURRENCY_VIEW_TYPES } from "@/common/types";
+import { EtlApi, Logger } from "@/common/utils";
+import { onMounted, ref } from "vue";
+import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
+
+const totalValueLocked = ref("0");
+const buybackTotal = ref("0");
+const incentivesPool = ref("0");
+
+onMounted(async () => {
+  await Promise.all([setTotalValueLocked(), setBuyBackTotal(), setIncentivesPool()]).catch((e) => Logger.error(e));
+});
+
+async function setTotalValueLocked() {
+  const data = await fetch(`${EtlApi.getApiUrl()}/total-value-locked`);
+  const item = await data.json();
+  totalValueLocked.value = item.total_value_locked;
+}
+
+async function setBuyBackTotal() {
+  const data = await fetch(`${EtlApi.getApiUrl()}/buyback-total`);
+  const item = await data.json();
+  buybackTotal.value = item.buyback_total;
+}
+
+async function setIncentivesPool() {
+  const data = await fetch(`${EtlApi.getApiUrl()}/incentives-pool`);
+  const item = await data.json();
+  incentivesPool.value = item.incentives_pool;
+}
+</script>
