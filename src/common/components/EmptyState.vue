@@ -3,8 +3,7 @@
     <img
       v-if="image"
       v-bind="image"
-      :src="`src/assets/icons/empty-state/${image.name}.png`"
-      :srcset="`src/assets/icons/empty-state/${image.name}@2x.png 2x`"
+      :src="emptyState[image.name as keyof typeof emptyState]"
       :class="['mx-auto w-full max-w-[255px] items-center object-contain', image.class]"
     />
     <span class="text-20 font-semibold text-typography-default">{{ title }}</span>
@@ -25,6 +24,33 @@
 
 <script lang="ts" setup>
 import { type TooltipProps, SvgIcon } from "web-components";
+import delegateNls from "@/assets/icons/empty-state/delegate-nls.png?url";
+import depositAssets from "@/assets/icons/empty-state/deposit-assets.png?url";
+import newLease from "@/assets/icons/empty-state/new-lease.png?url";
+import noEntries from "@/assets/icons/empty-state/no-entries.png?url";
+import noNotifications from "@/assets/icons/empty-state/no-notifications.png?url";
+import noRewards from "@/assets/icons/empty-state/no-rewards.png?url";
+import noResultsFound from "@/assets/icons/empty-state/no-results-found.png?url";
+import positionHealth from "@/assets/icons/empty-state/position-health.png?url";
+import positionSummary from "@/assets/icons/empty-state/position-summary.png?url";
+import sessionTimeout from "@/assets/icons/empty-state/session-timeout.png?url";
+import somethingWentWrong from "@/assets/icons/empty-state/something-went-wrong.png?url";
+import strategies from "@/assets/icons/empty-state/strategies.png?url";
+
+const emptyState = {
+  "delegate-nls": delegateNls,
+  "deposit-assets": depositAssets,
+  "new-lease": newLease,
+  "no-entries": noEntries,
+  "no-notifications": noNotifications,
+  "no-rewards": noRewards,
+  "no-results-found": noResultsFound,
+  "position-health": positionHealth,
+  "position-summary": positionSummary,
+  "session-timeout": sessionTimeout,
+  "something-went-wrong": somethingWentWrong,
+  strategies: strategies
+};
 
 defineProps<{
   image?: { alt?: string; class?: string; style?: string; name: string };
