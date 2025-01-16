@@ -18,7 +18,7 @@
       </template>
     </Alert>
     <Alert
-      v-if="loadingClose"
+      v-if="loadingClose || loadingCollect"
       :title="$t('message.closing-title')"
       :type="AlertType.info"
     >

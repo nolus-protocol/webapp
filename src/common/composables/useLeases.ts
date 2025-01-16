@@ -84,7 +84,6 @@ export function useLeases(onError: (error: unknown) => void) {
         .sort((a, b) => (b.leaseData?.timestamp?.getTime() ?? 0) - (a.leaseData?.timestamp?.getTime() ?? 0));
 
       leases.value = items as LeaseData[];
-
       const attributes: {
         PositionsCount: number;
         PositionsLastOpened?: Date;
@@ -113,7 +112,7 @@ export function useLeases(onError: (error: unknown) => void) {
   });
 
   watch(
-    () => wallet.wallet,
+    () => wallet.wallet?.address,
     async () => {
       if (wallet.wallet) {
         await getLeases();

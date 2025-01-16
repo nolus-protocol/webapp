@@ -56,14 +56,18 @@ export class WalletManager {
 
   public static setHideBalances(bool: boolean) {
     if (!bool) {
-      localStorage.setItem(WalletManager.HIDE_BALANCES, "false");
+      localStorage.setItem(WalletManager.HIDE_BALANCES, "0");
     } else {
-      localStorage.removeItem(WalletManager.HIDE_BALANCES);
+      localStorage.setItem(WalletManager.HIDE_BALANCES, "1");
     }
   }
 
   public static getHideBalances() {
-    return !localStorage.getItem(WalletManager.HIDE_BALANCES);
+    const item = Number(localStorage.getItem(WalletManager.HIDE_BALANCES));
+    if (item) {
+      return true;
+    }
+    return false;
   }
 
   public static eraseWalletInfo() {

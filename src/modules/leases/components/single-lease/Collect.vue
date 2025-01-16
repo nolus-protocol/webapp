@@ -4,7 +4,7 @@
     :severity="severity"
     size="medium"
     :disabled="isCollectDisabled"
-    :loading="isCollectLoading"
+    :loading="isCollectLoading || loadingCollect"
     @click="onClaimSubmit"
   />
 </template>
@@ -14,11 +14,10 @@ import type { LeaseData } from "@/common/types";
 import { Button, ToastType, type ButtonType } from "web-components";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useI18n } from "vue-i18n";
-import { inject, ref } from "vue";
+import { computed, inject, ref } from "vue";
 import { Logger, walletOperation } from "@/common/utils";
 import { NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { Lease } from "@nolus/nolusjs/build/contracts";
-import { onMounted } from "vue";
 
 export interface ICollect {
   lease: LeaseData;
@@ -55,7 +54,7 @@ async function onClaim(lease: LeaseData) {
     } catch (e) {
       Logger.error(e);
     } finally {
-      // isCollectLoading.value = false;
+      isCollectLoading.value = false;
     }
   }
 }
@@ -70,4 +69,14 @@ async function onClaimSubmit() {
     isCollectDisabled.value = false;
   }
 }
+
+const loadingCollect = computed(() => {
+  const data = props.lease.leaseStatus.paid;
+
+  if (data?.in_progress == "transfer_in_init" || data?.in_progress == "transfer_in_finish") {
+    return true;
+  }
+
+  return false;
+});
 </script>

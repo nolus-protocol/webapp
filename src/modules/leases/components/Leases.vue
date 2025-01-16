@@ -267,7 +267,6 @@ onUnmounted(() => {
 });
 
 function reload() {
-  console.log(12);
   getLeases();
 }
 
@@ -404,7 +403,7 @@ function getActions(lease: LeaseData) {
       })
     );
   }
-  if (status == TEMPLATES.paid) {
+  if (status == TEMPLATES.paid && !isCollecting(lease)) {
     actions.unshift(
       h<ICollect>(Collect, {
         severity: "secondary",
@@ -427,7 +426,9 @@ function getSubValue(lease: LeaseData) {
     if (isRepaying(lease)) {
       return i18n.t("message.repaying");
     }
+  }
 
+  if (TEMPLATES.paid == status) {
     if (isCollecting(lease)) {
       return i18n.t("message.collecting");
     }
