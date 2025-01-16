@@ -138,5 +138,6 @@
   "interest-fee-tooltip": "The monthly percentage rate at which the debt will grow",
   "take-profit-price-tooltip": "A predetermined level at which a lease position is automatically closed to secure profits",
   "stop-loss-price-tooltip": "A predetermined level at which a lease position is automatically closed to minimize potential losses",
-  "claim-successful": "claim-successful"
+  "claim-successful": "claim-successful",
+  "show-transaction-details": "show-transaction-details"
 }

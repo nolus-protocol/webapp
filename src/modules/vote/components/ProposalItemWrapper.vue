@@ -12,18 +12,20 @@
     :voteButtonText="$t('message.vote')"
     :voted="!state.voted"
     :voting_end_time="formatDateTime(state.voting_end_time)"
+    :labels
     @actionButton="emit('actionButton', state)"
   />
 </template>
 
 <script lang="ts" setup>
 import { type FinalTallyResult, type Proposal } from "@/modules/vote/types";
-import { computed, type PropType } from "vue";
+import { computed, ref, type PropType } from "vue";
 import { Dec } from "@keplr-wallet/unit";
 import { formatDateTime, StringUtils } from "@/common/utils";
 
 import { Proposal as ProposalItem } from "web-components";
 import { marked } from "marked";
+import { useI18n } from "vue-i18n";
 
 const props = defineProps({
   state: {
@@ -38,6 +40,14 @@ const props = defineProps({
     type: Object as PropType<Dec | any>,
     required: true
   }
+});
+const i18n = useI18n();
+
+const labels = ref({
+  yes_count: i18n.t(`message.yes_count`),
+  abstain_count: i18n.t(`message.abstain_count`),
+  no_count: i18n.t(`message.no_count`),
+  no_with_veto_count: i18n.t(`message.no_with_veto_count`)
 });
 
 const summary = computed(() => {

@@ -31,6 +31,7 @@
             isVotingPeriod && proposal.tally && Object.values(proposal.tally).filter((res) => !!Number(res)).length > 0
           "
           :voting="proposal.tally"
+          :labels
         />
       </div>
       <div
@@ -122,6 +123,12 @@ const props = defineProps<{
 }>();
 
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const labels = ref({
+  yes_count: i18n.t(`message.yes_count`),
+  abstain_count: i18n.t(`message.abstain_count`),
+  no_count: i18n.t(`message.no_count`),
+  no_with_veto_count: i18n.t(`message.no_with_veto_count`)
+});
 
 onMounted(async () => {
   await loadDelegated();
