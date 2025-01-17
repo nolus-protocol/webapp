@@ -102,7 +102,8 @@ export const CONTRACTS: ContractConfig = {
           "PICA",
           "CUDOS",
           "ALL_BTC",
-          "ALL_SOL"
+          "ALL_SOL",
+          "OM"
         ],
         stable: "USDC_NOBLE",
         type: PositionTypes.long,

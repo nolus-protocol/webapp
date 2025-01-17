@@ -241,5 +241,17 @@
         "api": "https://mainnet-full-node-02.hosts.cudos.org:31317"
       }
     ]
+  },
+  "MANTRA": {
+    "primary": {
+      "rpc": "https://rpc-mantra.r93axnodes.cloud:443",
+      "api": "https://api-mantra.r93axnodes.cloud:443"
+    },
+    "fallback": [
+      {
+        "rpc": "https://rpc.mantrachain.io/",
+        "api": "https://api.mantrachain.io/"
+      }
+    ]
   }
 }
