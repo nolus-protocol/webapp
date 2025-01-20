@@ -51,6 +51,9 @@ import { embedChainInfo as composableChainInfo } from "./list/composable/contant
 import { NETWORK as NOBLE_NETWORK } from "./list/noble/network";
 import { embedChainInfo as nobleChainInfo } from "./list/noble/contants";
 
+import { NETWORK as MANTRA_NETWORK } from "./list/mantra/network";
+import { embedChainInfo as mantraChainInfo } from "./list/mantra/contants";
+
 import { NETWORK as ETHEREUM_NETWORK } from "./list/ethereum/network";
 import { NETWORK as BINANCE_NETWORK } from "./list/binance/network";
 import { NETWORK as ARBITRUM_NETWORK } from "./list/arbitrum/network";
@@ -282,6 +285,17 @@ export const SUPPORTED_NETWORKS_DATA: {
     value: "binance",
     native: false,
     chain_type: ChainType.evm
+  },
+  MANTRA: {
+    prefix: MANTRA_NETWORK.prefix,
+    key: MANTRA_NETWORK.key,
+    symbol: MANTRA_NETWORK.ticker,
+    value: "mantra",
+    label: "Mantra",
+    native: false,
+    estimation: 20,
+    forward: true,
+    chain_type: ChainType.cosmos
   }
 };
 
@@ -382,8 +396,10 @@ export const NETWORKS_DATA: {
       SUPPORTED_NETWORKS_DATA.INJECTIVE,
       SUPPORTED_NETWORKS_DATA.COMPOSABLE,
       SUPPORTED_NETWORKS_DATA.NOBLE,
+      SUPPORTED_NETWORKS_DATA.MANTRA,
       SUPPORTED_NETWORKS_DATA.ETHEREUM,
       SUPPORTED_NETWORKS_DATA.ARBITRUM
+
       // SUPPORTED_NETWORKS_DATA.CUDOS
       // SUPPORTED_NETWORKS_DATA.BINANCE
     ],
@@ -549,6 +565,15 @@ export const NETWORKS_DATA: {
           return app?.networks?.[CUDOS_NETWORK.key] as ExternalCurrencies;
         },
         embedChainInfo: cudosChainInfo
+      },
+      MANTRA: {
+        ...MANTRA_NETWORK,
+        explorer: "https://www.mintscan.io/mantra/tx",
+        currencies: () => {
+          const app = useApplicationStore();
+          return app?.networks?.[MANTRA_NETWORK.key] as ExternalCurrencies;
+        },
+        embedChainInfo: mantraChainInfo
       }
     }
   }
