@@ -100,6 +100,9 @@ export const ASSETS = {
   },
   ALL_SOL: {
     coinGeckoId: "osmosis-allsol"
+  },
+  OM: {
+    coinGeckoId: "mantra-dao"
   }
 };
 
