@@ -282,7 +282,7 @@
     "one_h_in": "1 hour",
     "many_h_in": "hours",
     "one_d_in": "day",
-    "estimated-tx-fee": "Nolus Swap Fee",
+    "estimated-tx-fee": "Nolus Fee",
     "swap-confirm-warning": "This route requires <strong>{txs}</strong> to be completed. You will be prompted for a second signature after the first transaction is finalized",
     "transaction": "transaction",
     "transactions": "transactions",
