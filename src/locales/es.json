@@ -331,6 +331,7 @@
     "realized": "Realized",
     "show-lease-history": "Show Actions Log",
     "hide-lease-history": "Hide Actions Log",
-    "liquidation": "Liquidate"
+    "liquidation": "Liquidate",
+    "no-liquidity": "Not enough available liquidity in the LP to borrow from. Please check back later"
   }
 }

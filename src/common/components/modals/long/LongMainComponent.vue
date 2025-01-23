@@ -244,7 +244,8 @@ async function calculate() {
     } else {
       state.value.leaseApply = null;
     }
-  } catch (error) {
+  } catch (error: Error | any) {
+    state.value.downPaymentErrorMsg = i18n.t("message.no-liquidity");
     state.value.leaseApply = null;
   }
 }

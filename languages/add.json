@@ -1,3 +1,3 @@
 {
-  "liquidation": "Liquidate"
+  "no-liquidity": "Not enough available liquidity in the LP to borrow from. Please check back later"
 }
