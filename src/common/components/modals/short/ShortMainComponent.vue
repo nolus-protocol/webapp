@@ -185,6 +185,8 @@ watch(
 async function calculate() {
   try {
     const downPaymentAmount = state.value.downPayment;
+    state.value.downPaymentErrorMsg = "";
+
     if (downPaymentAmount) {
       const microAmount = getMicroAmount(
         state.value.selectedDownPaymentCurrency.balance.denom,
