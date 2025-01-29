@@ -12,20 +12,20 @@
           :label="$t('message.swap')"
           severity="secondary"
           size="large"
-          @click="() => router.push(`/${RouteNames.ASSETS}/${AssetsDialog.SWAP}`)"
+          @click="() => router.push(`/${AssetsDialog.SWAP}`)"
         />
         <Button
           :label="$t('message.receive')"
           severity="secondary"
           size="large"
-          @click="() => router.push(`/${RouteNames.ASSETS}/${AssetsDialog.RECEIVE}`)"
+          @click="() => router.push(`/${AssetsDialog.RECEIVE}`)"
         />
         <Button
           v-if="isVisible"
           :label="$t('message.send')"
           severity="secondary"
           size="large"
-          @click="() => router.push(`/${RouteNames.ASSETS}/${AssetsDialog.SEND}`)"
+          @click="() => router.push(`/${AssetsDialog.SEND}`)"
         />
       </div>
     </WidgetHeader>

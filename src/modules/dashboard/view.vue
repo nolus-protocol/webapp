@@ -14,6 +14,7 @@
         class="lg:flex-[40%] lg:self-start"
       />
     </div>
+    <router-view></router-view>
   </div>
 </template>
 

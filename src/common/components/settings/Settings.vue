@@ -15,7 +15,7 @@
     @close="isOpen = !isOpen"
   >
     <template #content>
-      <AvatarSettings />
+      <!-- <AvatarSettings /> -->
       <ThemeSettings />
     </template>
   </Popover>
@@ -25,7 +25,7 @@
 import { ref } from "vue";
 import { Button, Popover } from "web-components";
 
-import AvatarSettings from "./AvatarSettings.vue";
+// import AvatarSettings from "./AvatarSettings.vue";
 import ThemeSettings from "./ThemeSettings.vue";
 
 const popoverParent = ref();

@@ -14,6 +14,7 @@
         class="flex cursor-pointer justify-center border-r border-border-color bg-neutral-bg-1 px-6 py-5 text-16 font-normal text-typography-default"
         name="dialogTabsGroup"
         @click="handleParentClick(index)"
+        :disabled="!isShortEnabled"
       />
     </div>
 
@@ -158,6 +159,7 @@ import { AppUtils, AssetUtils, getMicroAmount, Logger, walletOperation } from "@
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency, IObjectKeys } from "@/common/types";
 import {
+  Contracts,
   INTEREST_DECIMALS,
   MAX_DECIMALS,
   MAX_POSITION,
@@ -219,6 +221,8 @@ watch(
     amountErrorMsg.value = "";
     if (await validateMinMaxValues()) {
       calculate();
+    } else {
+      leaseApply.value = null;
     }
   }
 );
@@ -239,13 +243,28 @@ const totalBalances = computed(() => {
   return currencies;
 });
 
+const isShortEnabled = computed(() => {
+  const protocols = Contracts.protocolsFilter[app.protocolFilter];
+  return protocols.short;
+});
+
 const currency = computed(() => {
   return assets.value[selectedCurrency.value];
 });
 
 const assets = computed(() => {
   const data = [];
-  for (const asset of (balances.value as ExternalCurrency[]) ?? []) {
+  const protocols = Contracts.protocolsFilter[app.protocolFilter];
+
+  const b = ((balances.value as ExternalCurrency[]) ?? []).filter((item) => {
+    const [_, p] = item.key.split("@");
+
+    if (protocols.hold.includes(p)) {
+      return true;
+    }
+    return false;
+  });
+  for (const asset of b) {
     const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
     const balance = AssetUtils.formatNumber(value.toString(), asset.decimal_digits);
     const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
@@ -511,6 +530,7 @@ async function calculate() {
       leaseApply.value = null;
     }
   } catch (error) {
+    amountErrorMsg.value = i18n.t("message.no-liquidity");
     leaseApply.value = null;
   }
 }

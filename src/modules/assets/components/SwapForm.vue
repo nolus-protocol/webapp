@@ -125,13 +125,14 @@ import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/common/stores/oracle";
 import { h } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { MultipleCurrencyEventType, type IObjectKeys } from "@/common/types";
+import { MultipleCurrencyEventType, type IObjectKeys, type SkipRouteConfigType } from "@/common/types";
 import { useI18n } from "vue-i18n";
 import { BaseWallet } from "@/networks";
 import { SwapStatus } from "../enums";
 import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { SkipRouter } from "@/common/utils/SkipRoute";
 import { MAX_DECIMALS } from "@/config/global";
+import { useApplicationStore } from "@/common/stores/application";
 
 let time: NodeJS.Timeout;
 let route: IObjectKeys | null;
@@ -140,6 +141,7 @@ const id = Date.now();
 
 const wallet = useWalletStore();
 const oracle = useOracleStore();
+const applicaiton = useApplicationStore();
 const i18n = useI18n();
 
 const blacklist = ref<string[]>([]);
@@ -220,10 +222,12 @@ const balances = computed(() => {
 onMounted(async () => {
   try {
     const config = await AppUtils.getSkipRouteConfig();
+    const protocol = applicaiton.protocolFilter.toLowerCase();
     blacklist.value = config.blacklist;
     slippage.value = config.slippage;
-
-    selectedFirstCurrencyOption.value = assets.value.find((item) => item.ibcData == config.swap_currency)!;
+    selectedFirstCurrencyOption.value = assets.value.find(
+      (item) => item.ibcData == config[`swap_currency_${protocol}` as keyof SkipRouteConfigType]
+    )!;
     selectedSecondCurrencyOption.value = assets.value.find((item) => item.ibcData == config.swap_to_currency)!;
 
     setSwapFee();

@@ -6,6 +6,11 @@ export const AssetsRouter: RouteRecordRaw = {
   path: `/${RouteNames.ASSETS}`,
   name: RouteNames.ASSETS,
   component: () => import("./view.vue"),
+  meta: {
+    key: RouteNames.ASSETS,
+    title: "Nolus Protocol - Portfolio Assets",
+    description: "A comprehensive interface offering insights and management tools for your activities on Nolus"
+  },
   children: [
     {
       path: ":tab",
@@ -22,10 +27,5 @@ export const AssetsRouter: RouteRecordRaw = {
         key: RouteNames.ASSETS
       }
     }
-  ],
-  meta: {
-    key: RouteNames.ASSETS,
-    title: "Nolus Protocol - Portfolio Assets",
-    description: "A comprehensive interface offering insights and management tools for your activities on Nolus"
-  }
+  ]
 };

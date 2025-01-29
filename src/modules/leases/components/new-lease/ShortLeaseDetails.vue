@@ -30,7 +30,14 @@
     />
     <div class="flex flex-col gap-3">
       <span class="text-16 font-semibold text-typography-default">{{ $t("message.position-preview") }}</span>
-      <PositionPreviewChart />
+      <PositionPreviewChart
+        :borrowAsset="asset"
+        :borrowStable="lease ? borrowStable : new Dec(0)"
+        :borrowAmount="lease ? borrowAmount : '0'"
+        :downPaymentStable="lease ? downPaymentStable : new Dec(0)"
+        :downPaymentAmount="lease ? downPaymentAmount : '0'"
+        :downPaymentAsset="downPaymentAsset"
+      />
       <Transition name="fadeHeight">
         <div
           v-if="showDetails"
@@ -248,7 +255,7 @@ const downPaymentAmount = computed(() => {
   const decimals = new Dec(10 ** downPaymentAsset.value.decimal_digits);
   const v = downPaymentStable.value;
   const amount = v.quo(price).mul(decimals);
-  return amount.toString();
+  return amount.truncate().toString();
 });
 
 const downPaymentStable = computed(() => {
@@ -261,9 +268,9 @@ const downPaymentStable = computed(() => {
 const borrowAmount = computed(() => {
   const price = new Dec(oracle.prices?.[asset.value.key!]?.amount ?? 0);
   const decimals = new Dec(10 ** lpn.value.decimal_digits);
-  const v = new Dec(borrowStable.value);
+  const v = borrowStable.value;
   const amount = v.quo(price).mul(decimals);
-  return amount.toString();
+  return amount.truncate().toString();
 });
 
 const swapFeeAmount = computed(() => {
@@ -278,7 +285,7 @@ const borrowStable = computed(() => {
   const price = new Dec(oracle.prices?.[lpn.value.key!]?.amount ?? 0);
   const v = props.lease?.borrow?.amount ?? "0";
   const stable = price.mul(new Dec(v, lpn.value.decimal_digits));
-  return stable.toString();
+  return stable;
 });
 
 const calculateLique = computed(() => {

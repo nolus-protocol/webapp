@@ -75,11 +75,21 @@ import { NolusClient, type NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { useAdminStore } from "@/common/stores/admin";
 import { h } from "vue";
-import { MAX_DECIMALS } from "@/config/global";
+import { MAX_DECIMALS, Contracts } from "@/config/global";
 import { useI18n } from "vue-i18n";
 
 const assets = computed(() => {
-  const lpns = application.lpn;
+  const protocols = Contracts.protocolsFilter[application.protocolFilter];
+  const lpns = application.lpn?.filter((item) => {
+    const c = application.currenciesData![item.key!];
+    const [_currency, protocol] = c.key!.split("@");
+
+    if (protocols.hold.includes(protocol)) {
+      return true;
+    }
+    return false;
+  });
+
   const data = [];
 
   for (const lpn of lpns ?? []) {

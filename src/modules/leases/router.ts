@@ -1,6 +1,5 @@
 import type { RouteRecordRaw } from "vue-router";
 import { RouteNames } from "@/router/RouteNames";
-import { SingleLeaseDialog } from "@/modules/leases/enums";
 
 export const LeasesRouter: RouteRecordRaw = {
   path: `/${RouteNames.LEASES}`,

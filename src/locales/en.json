@@ -463,6 +463,9 @@
     "partial-liquidation-tooltip": "The price triggering partial or full liquidation based on asset price action",
     "take-profit-price-tooltip": "A set price where a position auto-closes to lock in profits",
     "stop-loss-price-tooltip": "A set level where a position auto-closes to limit losses",
-    "claim-successful": "claim-successful"
+    "claim-successful": "claim-successful",
+    "show-transaction-details": "show-transaction-details",
+    "no-liquidity": "Not enough available liquidity in the LP to borrow from. Please check back later",
+    "borrowed-taxes": "Borrowed + taxes"
   }
 }

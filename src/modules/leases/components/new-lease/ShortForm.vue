@@ -210,6 +210,8 @@ watch(
     amountErrorMsg.value = "";
     if (await validateMinMaxValues()) {
       calculate();
+    } else {
+      leaseApply.value = null;
     }
   }
 );
@@ -467,6 +469,7 @@ async function calculate() {
       leaseApply.value = null;
     }
   } catch (error) {
+    amountErrorMsg.value = i18n.t("message.no-liquidity");
     leaseApply.value = null;
   }
 }

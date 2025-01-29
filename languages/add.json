@@ -139,5 +139,7 @@
   "take-profit-price-tooltip": "A predetermined level at which a lease position is automatically closed to secure profits",
   "stop-loss-price-tooltip": "A predetermined level at which a lease position is automatically closed to minimize potential losses",
   "claim-successful": "claim-successful",
-  "show-transaction-details": "show-transaction-details"
+  "show-transaction-details": "show-transaction-details",
+  "no-liquidity": "Not enough available liquidity in the LP to borrow from. Please check back later",
+  "borrowed-taxes": "Borrowed + taxes"
 }

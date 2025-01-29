@@ -111,7 +111,7 @@ watch(
 );
 
 watch(
-  () => wallet.balances,
+  () => [wallet.balances, application.protocolFilter],
   async (value) => {
     await Promise.allSettled([loadLPNCurrency(), loadRewards()]);
   }
@@ -123,7 +123,17 @@ function onSearch(data: string) {
 
 async function loadLPNCurrency() {
   const lpnCurrencies: Asset[] = [];
-  const lpns = application.lpn;
+  const protocols = Contracts.protocolsFilter[application.protocolFilter];
+
+  const lpns = application.lpn?.filter((item) => {
+    const c = application.currenciesData![item.key!];
+    const [_currency, protocol] = c.key!.split("@");
+
+    if (protocols.hold.includes(protocol)) {
+      return true;
+    }
+    return false;
+  });
   const promises = [];
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
   let usdAmount = new Dec(0);

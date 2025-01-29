@@ -38,7 +38,7 @@
         </AdvancedFormControl>
         <div class="mt-2 px-4 py-3">
           <Slider
-            :min-position="sliderValue"
+            :min-position="0"
             :max-position="100"
             :mid-position="midPosition"
             :value="sliderValue"

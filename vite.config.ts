@@ -3,7 +3,6 @@ import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import { cp } from "fs/promises";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
-import vueDevTools from "vite-plugin-vue-devtools";
 import vue from "@vitejs/plugin-vue";
 import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
 import svgLoader from "vite-svg-loader";
@@ -34,7 +33,6 @@ async function configResolved() {
 export default defineConfig({
   plugins: [
     vue(),
-    vueDevTools(),
     svgLoader(),
     VueI18nPlugin({
       include: [resolve(__dirname, "./src/locales/**")],

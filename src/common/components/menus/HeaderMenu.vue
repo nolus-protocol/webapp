@@ -10,8 +10,8 @@
         class="border-none bg-transparent focus:px-2 focus:py-1 lg:w-32"
         :size="Size.small"
         :options="options"
-        :selected="options[0]"
-        :on-select="() => {}"
+        :selected="option"
+        :on-select="onSelect"
         :hideText="isMobile()"
         dropdownPosition="right"
       />
@@ -23,33 +23,35 @@
 
 <script lang="ts" setup>
 import { Dropdown, Size } from "web-components";
-import { isMobile } from "@/common/utils";
+import { isMobile, WalletManager } from "@/common/utils";
 
 import WalletInfo from "../WalletInfo.vue";
 import AuthDialog from "../dialogs/AuthDialog.vue";
+import Activities from "@/common/components/activities/Activities.vue";
 import Settings from "@/common/components/settings/Settings.vue";
 import { useWalletStore } from "@/common/stores/wallet";
-import Activities from "@/common/components/activities/Activities.vue";
+import { Contracts } from "@/config/global";
+import { useApplicationStore } from "@/common/stores/application";
+import { useRouter } from "vue-router";
 
 const wallet = useWalletStore();
+const app = useApplicationStore();
+const router = useRouter();
 
-const options = [
-  {
-    value: "osmosis",
-    label: "Osmosis",
-    icon: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/currencies/icons/osmosis-osmo.svg"
-  },
-  {
-    value: "neutron",
-    label: "Neutron",
-    icon: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/currencies/icons/neutron-ntrn.svg"
-  },
-  {
-    value: "nolus",
-    label: "Nolus",
-    icon: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/currencies/icons/osmosis-nls.svg"
-  }
-];
+const options = Object.keys(Contracts.protocolsFilter).map((item) => {
+  const protocol = Contracts.protocolsFilter[item];
+  return {
+    value: protocol.key,
+    label: protocol.name,
+    icon: protocol.image
+  };
+});
+const option = options.find((item) => item.value == WalletManager.getProtocolFilter());
+
+function onSelect(item: { value: string; label: string; icon: string }) {
+  app.setProtcolFilter(item.value);
+  router.push("/");
+}
 </script>
 
 <style scoped lang=""></style>

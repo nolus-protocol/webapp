@@ -72,7 +72,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { AssetUtils, getMicroAmount, Logger, validateAmountV2, walletOperation } from "@/common/utils";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
-import { ProtocolsConfig, SORT_PROTOCOLS, MAX_DECIMALS } from "@/config/global";
+import { ProtocolsConfig, SORT_PROTOCOLS, MAX_DECIMALS, Contracts } from "@/config/global";
 import { NolusClient, type NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { useAdminStore } from "@/common/stores/admin";
@@ -81,7 +81,17 @@ import Info from "./Info.vue";
 import { useI18n } from "vue-i18n";
 
 const assets = computed(() => {
-  const lpns = application.lpn;
+  const protocols = Contracts.protocolsFilter[application.protocolFilter];
+  const lpns = application.lpn?.filter((item) => {
+    const c = application.currenciesData![item.key!];
+    const [_currency, protocol] = c.key!.split("@");
+
+    if (protocols.hold.includes(protocol)) {
+      return true;
+    }
+    return false;
+  });
+
   const data = [];
 
   for (const lpn of lpns ?? []) {

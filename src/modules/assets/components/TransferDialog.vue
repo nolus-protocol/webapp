@@ -6,7 +6,8 @@
     showClose
     @close-dialog="
       () => {
-        router.push(`/${RouteNames.ASSETS}`);
+        const path = route.matched[1].path ?? '/';
+        router.push(path);
       }
     "
     @change-tab="onChangeTab"
@@ -57,15 +58,21 @@ const activeTabIndex = computed(() => {
 });
 
 function onChangeTab(event: number) {
+  let path = route.matched[1].path ?? "/";
+
+  if (path == "/") {
+    path = "";
+  }
+
   switch (event) {
     case 0: {
-      return router.push(`/${RouteNames.ASSETS}/${AssetsDialog.SWAP}`);
+      return router.push(`${path}/${AssetsDialog.SWAP}`);
     }
     case 1: {
-      return router.push(`/${RouteNames.ASSETS}/${AssetsDialog.RECEIVE}`);
+      return router.push(`${path}/${AssetsDialog.RECEIVE}`);
     }
     case 2: {
-      return router.push(`/${RouteNames.ASSETS}/${AssetsDialog.SEND}`);
+      return router.push(`${path}/${AssetsDialog.SEND}`);
     }
   }
 }

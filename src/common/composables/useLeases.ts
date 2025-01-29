@@ -6,6 +6,7 @@ import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 import { Lease, Leaser, type LeaserConfig, type LeaseStatus } from "@nolus/nolusjs/build/contracts";
 import { AppUtils, Logger, LeaseUtils, AssetUtils, WalletManager } from "@/common/utils";
 import {
+  Contracts,
   IGNORE_LEASES,
   INTEREST_DECIMALS,
   MONTHS,
@@ -29,12 +30,15 @@ export function useLeases(onError: (error: unknown) => void) {
   const leases = ref<LeaseData[]>([]);
   const leaseLoaded = ref(false);
   const wallet = useWalletStore();
+  const app = useApplicationStore();
 
   const getLeases = async () => {
     try {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
 
       const admin = useAdminStore();
+      const protocols = Contracts.protocolsFilter[app.protocolFilter];
+
       const promises: Promise<
         | {
             leaseAddress: string;
@@ -46,30 +50,32 @@ export function useLeases(onError: (error: unknown) => void) {
       const protocolPromises = [];
       const paginate = 50;
       for (const protocolKey in admin.contracts) {
-        const fn = async () => {
-          const protocol = admin.contracts![protocolKey];
-          const leaserClient = new Leaser(cosmWasmClient, protocol.leaser);
+        if (protocols.hold.includes(protocolKey)) {
+          const fn = async () => {
+            const protocol = admin.contracts![protocolKey];
+            const leaserClient = new Leaser(cosmWasmClient, protocol.leaser);
 
-          const openedLeases: string[] = (
-            await leaserClient.getCurrentOpenLeasesByOwner(WalletManager.getWalletAddress())
-          ).filter((item) => {
-            return !IGNORE_LEASES.includes(item);
-          });
+            const openedLeases: string[] = (
+              await leaserClient.getCurrentOpenLeasesByOwner(WalletManager.getWalletAddress())
+            ).filter((item) => {
+              return !IGNORE_LEASES.includes(item);
+            });
 
-          while (openedLeases.length > 0) {
-            const leases = openedLeases.splice(0, paginate);
-            const ps = [];
+            while (openedLeases.length > 0) {
+              const leases = openedLeases.splice(0, paginate);
+              const ps = [];
 
-            for (const leaseAddress of leases) {
-              const fn = fetchLease(leaseAddress, protocolKey);
-              ps.push(fn);
-              promises.push(fn);
+              for (const leaseAddress of leases) {
+                const fn = fetchLease(leaseAddress, protocolKey);
+                ps.push(fn);
+                promises.push(fn);
+              }
+              await Promise.all(ps);
             }
-            await Promise.all(ps);
-          }
-        };
+          };
 
-        protocolPromises.push(fn());
+          protocolPromises.push(fn());
+        }
       }
 
       await Promise.all(protocolPromises);
@@ -112,7 +118,7 @@ export function useLeases(onError: (error: unknown) => void) {
   });
 
   watch(
-    () => wallet.wallet?.address,
+    () => [wallet.wallet?.address, app.protocolFilter],
     async () => {
       if (wallet.wallet) {
         await getLeases();

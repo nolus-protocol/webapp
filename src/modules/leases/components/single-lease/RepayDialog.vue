@@ -43,7 +43,7 @@
         />
         <div class="px-6 py-3">
           <Slider
-            :min-position="sliderValue"
+            :min-position="0"
             :max-position="100"
             :value="sliderValue"
             @on-drag="onSetAmount"
