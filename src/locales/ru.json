@@ -485,6 +485,7 @@
     "open-interest-tooltip": "open-interest-tooltip",
     "leases-monthly": "Leases monthly ($)",
     "open-interest": "Open interest",
-    "unrealized-pnl-tooltip": "unrealized-pnl-tooltip"
+    "unrealized-pnl-tooltip": "unrealized-pnl-tooltip",
+    "days-unrealized-pnL": "30 Days Unrealized PnL"
   }
 }

@@ -28,6 +28,7 @@ const chartHeight = 250;
 const marginLeft = 40;
 const chartWidth = 960;
 const marginRight = 30;
+const marginBottom = 50;
 
 let data: ChartData[] = [];
 const i18n = useI18n();
@@ -44,6 +45,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     height: chartHeight,
     marginLeft: marginLeft,
     marginRight: marginRight,
+    marginBottom: marginBottom,
     y: {
       type: "linear",
       grid: true,
