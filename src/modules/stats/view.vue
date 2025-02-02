@@ -3,8 +3,8 @@
     <ListHeader :title="$t('message.protocol-stats')" />
     <div class="flex flex-col gap-8">
       <Overview />
-      <ProtocolUtilization />
       <LoansProvided />
+      <ProtocolUtilization />
     </div>
   </div>
 </template>

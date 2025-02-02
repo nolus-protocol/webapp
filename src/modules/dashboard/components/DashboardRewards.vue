@@ -1,68 +1,62 @@
 <template>
   <Widget>
     <WidgetHeader
-      :label="$t('message.rewards')"
+      :label="$t('message.staking-rewards')"
       :icon="{ name: 'list-sparkle' }"
-    />
-    <div class="flex flex-col gap-y-2">
-      <BigNumber
-        :label="$t('message.unclaimed-rewards')"
-        :amount="{
-          amount: protocolRewards.toString(),
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: NATIVE_CURRENCY.symbol
-        }"
-      />
+    >
       <Button
-        :label="$t('message.claim-earn-rewards')"
+        :label="$t('message.claim-rewards')"
         severity="secondary"
-        size="small"
-        class="w-fit"
+        size="large"
+        :loading="loadingStaking"
+        :disabled="disabled"
+        @click="onWithdrawRewards"
       />
-    </div>
+    </WidgetHeader>
     <div class="flex flex-col gap-y-2">
       <BigNumber
         :label="$t('message.unclaimed-staking')"
         :amount="{
-          amount: stakingRewards.toString(),
+          amount: rewards.stableAmount,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol
         }"
       />
-      <Button
-        :label="$t('message.claim-stacking-rewards')"
-        severity="secondary"
-        size="small"
-        class="w-fit"
-        :loading="loadingStaking"
-        @click="onWithdrawRewards"
-      />
     </div>
+    <Asset
+      :icon="rewards.icon"
+      :amount="rewards.amount"
+      :stable-amount="`${rewards.stableAmount}`"
+    />
   </Widget>
 </template>
 
 <script lang="ts" setup>
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
-import { Button, Widget } from "web-components";
+import { Button, Widget, Asset } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
-import { AssetUtils, Logger, NetworkUtils, WalletManager, walletOperation } from "@/common/utils";
+import { AssetUtils, Logger, NetworkUtils, walletOperation } from "@/common/utils";
 import { Dec } from "@keplr-wallet/unit";
-import { NATIVE_ASSET, NATIVE_CURRENCY, ProtocolsConfig } from "@/config/global";
-import { NolusClient } from "@nolus/nolusjs";
-import { Lpp } from "@nolus/nolusjs/build/contracts";
+import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
-import { useAdminStore } from "@/common/stores/admin";
 import { ref, watch } from "vue";
 import { useOracleStore } from "@/common/stores/oracle";
 
 const wallet = useWalletStore();
-const admin = useAdminStore();
 const oracle = useOracleStore();
 
-const stakingRewards = ref(new Dec(0));
-const protocolRewards = ref(new Dec(0));
 const loadingStaking = ref(false);
+const disabled = ref(false);
+const rewards = ref<{
+  amount: string;
+  stableAmount: string;
+  icon: string;
+}>({
+  amount: `0.00 ${NATIVE_ASSET.label}`,
+  stableAmount: `${NATIVE_CURRENCY.symbol}0.00`,
+  icon: NATIVE_ASSET.icon
+});
 
 watch(
   () => [wallet.wallet, oracle.prices],
@@ -79,57 +73,27 @@ watch(
 );
 
 async function setRewards() {
-  const [r, lpnRewards] = await Promise.all([NetworkUtils.loadDelegator(), getRewards()]);
-  const staking_rewards = new Dec(r?.total?.[0]?.amount ?? 0);
+  const [r] = await Promise.all([NetworkUtils.loadDelegator()]);
+  const total = new Dec(new Dec(r?.total?.[0]?.amount ?? 0).truncate(), NATIVE_ASSET.decimal_digits);
+  const currency = AssetUtils.getCurrencyByTicker(NATIVE_ASSET.ticker);
+  const price = new Dec(oracle.prices?.[currency.key]?.amount ?? 0);
+  const stable = price.mul(total);
 
-  stakingRewards.value = AssetUtils.getPriceByDenom(staking_rewards.truncate().toString(), NATIVE_ASSET.denom);
-  protocolRewards.value = AssetUtils.getPriceByDenom(lpnRewards.truncate().toString(), NATIVE_ASSET.denom);
-}
-
-async function getRewards() {
-  try {
-    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-    const promises = [];
-    let rewards = new Dec(0);
-
-    for (const protocolKey in admin.contracts) {
-      if (ProtocolsConfig[protocolKey].rewards) {
-        const fn = async () => {
-          const contract = admin.contracts![protocolKey].lpp;
-          const lppClient = new Lpp(cosmWasmClient, contract);
-          const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
-
-          const lenderRewards = await lppClient.getLenderRewards(walletAddress);
-          rewards = rewards.add(new Dec(lenderRewards.rewards.amount));
-
-          const [depositBalance, price] = await Promise.all([
-            lppClient.getLenderDeposit(walletAddress as string),
-            lppClient.getPrice()
-          ]);
-          const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
-          const amount = new Dec(depositBalance.balance).mul(calculatedPrice);
-          const lpnReward = amount.sub(new Dec(depositBalance.balance)).truncateDec();
-          const lpn = AssetUtils.getLpnByProtocol(protocolKey);
-
-          rewards = rewards.add(new Dec(lpnReward.truncate(), lpn.decimal_digits));
-        };
-        promises.push(fn());
-      }
-    }
-
-    await Promise.allSettled(promises);
-
-    return rewards;
-  } catch (e) {
-    return new Dec(0);
-  }
+  rewards.value = {
+    amount: `${AssetUtils.formatNumber(total.toString(), NATIVE_ASSET.decimal_digits)} ${NATIVE_ASSET.label}`,
+    stableAmount: AssetUtils.formatNumber(stable.toString(2), 2),
+    icon: NATIVE_ASSET.icon
+  };
 }
 
 async function onWithdrawRewards() {
   try {
+    disabled.value = true;
     await walletOperation(requestClaim);
   } catch (error: Error | any) {
     Logger.error(error);
+  } finally {
+    disabled.value = false;
   }
 }
 

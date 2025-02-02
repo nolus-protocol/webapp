@@ -28,7 +28,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     explorer: "https://ping.pub/nolus/tx",
     govern: "https://ping.pub/nolus/gov",
     staking: "https://wallet.keplr.app/chains/nolus",
-    etlApi: "https://etl.nolus.network/api",
+    etlApi: "http://localhost:8082/api",
     evmEndpoints: isDev()
       ? import("../networks/evm-endpoints?url").then((t) => t.default)
       : "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/evm-endpoints.json"

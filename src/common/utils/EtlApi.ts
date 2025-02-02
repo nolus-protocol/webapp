@@ -28,10 +28,26 @@ export class EtlApi {
     );
   }
 
+  static async fetchLeaseMonthly(): Promise<IObjectKeys[]> {
+    return fetch(`${EtlApi.getApiUrl()}/leases-monthly`).then((data) => data.json());
+  }
+
   static async fetchPNL(address: string, skip: number, limit: number): Promise<IObjectKeys[]> {
     return fetch(`${EtlApi.getApiUrl()}/ls-loan-closing?address=${address}&skip=${skip}&limit=${limit}`).then((data) =>
       data.json()
     );
+  }
+
+  static async fetchOpenPositionValue(): Promise<IObjectKeys> {
+    return fetch(`${EtlApi.getApiUrl()}/open-position-value`).then((data) => data.json());
+  }
+
+  static async fetchOpenInterest(): Promise<IObjectKeys> {
+    return fetch(`${EtlApi.getApiUrl()}/open-interest`).then((data) => data.json());
+  }
+
+  static async fetchUnrealizedPnl(): Promise<IObjectKeys> {
+    return fetch(`${EtlApi.getApiUrl()}/unrealized-pnl`).then((data) => data.json());
   }
 
   static async fetchRealizedPNL(address: string): Promise<IObjectKeys> {

@@ -3,6 +3,7 @@
     v-html="chartHTML"
     class="flex w-full items-center justify-center"
   />
+  xa
 </template>
 
 <script lang="ts" setup>
@@ -21,7 +22,13 @@ const aapl = [
   { Date: "2020-04-14", Close: 312.68 }
 ];
 
-const chartHTML = line(aapl, { x: "Date", y: "Close", stroke: "#3470E2", strokeWidth: 4 }).plot({
+const chartHTML = line(aapl, {
+  x: "Date",
+  y: "Close",
+  stroke: "#3470E2",
+  strokeWidth: 4,
+  curve: "basis"
+}).plot({
   width: 960,
   height: 350,
   style: {

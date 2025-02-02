@@ -16,7 +16,6 @@ export const DashboardRouter: RouteRecordRaw = {
       path: ":tab",
       component: () => import("../assets/components/TransferDialog.vue"),
       beforeEnter: (to, from, next) => {
-        console.log("enter");
         const validTabs = Object.values(AssetsDialog);
         if (validTabs.includes(to.params.tab as AssetsDialog)) {
           next();

@@ -11,6 +11,16 @@
         }"
       />
       <BigNumber
+        :label="$t('message.protocol-revenue')"
+        :amount="{
+          amount: protocolRevenue,
+          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          denom: NATIVE_CURRENCY.symbol,
+          fontSize: 20,
+          fontSizeSmall: 20
+        }"
+      />
+      <BigNumber
         :label="$t('message.buyback')"
         :amount="{
           amount: buybackTotal,
@@ -59,9 +69,12 @@ import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
 const totalValueLocked = ref("0");
 const buybackTotal = ref("0");
 const incentivesPool = ref("0");
+const protocolRevenue = ref("0");
 
 onMounted(async () => {
-  await Promise.all([setTotalValueLocked(), setBuyBackTotal(), setIncentivesPool()]).catch((e) => Logger.error(e));
+  await Promise.all([setTotalValueLocked(), setBuyBackTotal(), setIncentivesPool(), setProtocolRevenue()]).catch((e) =>
+    Logger.error(e)
+  );
 });
 
 async function setTotalValueLocked() {
@@ -80,5 +93,11 @@ async function setIncentivesPool() {
   const data = await fetch(`${EtlApi.getApiUrl()}/incentives-pool`);
   const item = await data.json();
   incentivesPool.value = item.incentives_pool;
+}
+
+async function setProtocolRevenue() {
+  const data = await fetch(`${EtlApi.getApiUrl()}/revenue`);
+  const item = await data.json();
+  protocolRevenue.value = item.revenue;
 }
 </script>
