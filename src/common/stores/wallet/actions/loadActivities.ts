@@ -16,6 +16,7 @@ export async function loadActivities(this: Store) {
 
       this.activities.loaded = false;
       const res = await EtlApi.fetchTXS(this.wallet?.address, 0, 10).then((data) => {
+        console.log(data);
         const promises = [];
         for (const d of data) {
           const fn = async () => {

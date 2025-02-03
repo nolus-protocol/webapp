@@ -1,72 +1,61 @@
 <template>
-  <template
-    v-for="transaction in transactionData"
-    :key="`${transaction.items[0].value}_${transaction.index}`"
-  >
-    <TableRow :items="transaction.items" />
-  </template>
+  <TableRow :items="transactionData.items" />
+  <TransactionDetails ref="transactionDialogRef" />
 </template>
 
 <script lang="ts" setup>
 import { type ITransactionData } from "../types";
 
-import { useApplicationStore } from "@/common/stores/application";
-import { useWalletStore } from "@/common/stores/wallet";
-import { getCreatedAtForHuman } from "@/common/utils";
 import { useI18n } from "vue-i18n";
-import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
-import { computed, h, onMounted, ref } from "vue";
+import { computed, h, ref } from "vue";
 import { Label, SvgIcon, TableRow, type LabelProps, type SvgProps, type TableRowItemProps } from "web-components";
-import { action, message } from "../common";
+import type { HistoryData } from "../types/ITransaction";
+import TransactionDetails from "@/common/components/activities/TransactionDetails.vue";
+import { useApplicationStore } from "@/common/stores/application";
 
 const i18n = useI18n();
-const applicaton = useApplicationStore();
-const wallet = useWalletStore();
-const messagesRef = ref<string[]>();
+const transactionDialogRef = ref<typeof TransactionDetails | null>(null);
 
 interface Props {
-  transaction: ITransactionData;
+  transaction: ITransactionData & HistoryData;
 }
 const props = defineProps<Props>();
+const applicaton = useApplicationStore();
 
-const voteMessages: { [key: string]: string } = {
-  [VoteOption.VOTE_OPTION_ABSTAIN]: i18n.t(`message.abstained`).toLowerCase(),
-  [VoteOption.VOTE_OPTION_NO_WITH_VETO]: i18n.t(`message.veto`).toLowerCase(),
-  [VoteOption.VOTE_OPTION_YES]: i18n.t(`message.yes`).toLowerCase(),
-  [VoteOption.VOTE_OPTION_NO]: i18n.t(`message.no`).toLowerCase()
-};
-
-onMounted(async () => {
-  const promises = [];
-  promises.push(message(props.transaction, wallet?.wallet?.address, i18n, voteMessages));
-  messagesRef.value = await Promise.all(promises);
-});
-
-const transactionData = computed(() =>
-  (messagesRef.value ?? []).map(
-    ([msg]) =>
-      ({
-        items: [
-          {
-            value: msg,
-            url: `${applicaton.network.networkAddresses.explorer}/${props.transaction.tx_hash}`,
-            variant: "left"
-          },
-          {
-            value: action(props.transaction, i18n),
-            class: "max-w-[140px]"
-          },
-          {
-            value: getCreatedAtForHuman(props.transaction.timestamp) ?? props.transaction.block,
-            class: "max-w-[180px]"
-          },
-          {
-            component: () => h<LabelProps>(Label, { value: i18n.t(`message.completed`), variant: "success" }),
-            class: "max-w-[150px]"
-          },
-          { component: () => h<SvgProps>(SvgIcon, { name: "more" }), class: "max-w-[120px]" }
-        ]
-      }) as TableRowItemProps
-  )
+const transactionData = computed(
+  () =>
+    ({
+      items: [
+        {
+          value: props.transaction.historyData.msg,
+          variant: "left",
+          click: onActivityClick,
+          class: "text-typography-link cursor-pointer"
+        },
+        {
+          value: props.transaction.historyData.action,
+          class: "max-w-[140px]"
+        },
+        {
+          value: props.transaction.historyData.timestamp ?? props.transaction.block,
+          class: "max-w-[180px]"
+        },
+        {
+          component: () => h<LabelProps>(Label, { value: i18n.t(`message.completed`), variant: "success" }),
+          class: "max-w-[150px]"
+        },
+        {
+          component: () => h<SvgProps>(SvgIcon, { name: "more" }),
+          class: "max-w-[120px] cursor-pointer",
+          click: () => {
+            window.open(`${applicaton.network.networkAddresses.explorer}/${props.transaction.tx_hash}`, "_blank");
+          }
+        }
+      ]
+    }) as TableRowItemProps
 );
+
+const onActivityClick = () => {
+  transactionDialogRef.value?.show(props.transaction);
+};
 </script>

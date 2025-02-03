@@ -48,20 +48,31 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Table, type TableColumnProps, Widget, Button } from "web-components";
 import { useWalletStore } from "@/common/stores/wallet";
-import { EtlApi } from "@/common/utils";
+import { EtlApi, getCreatedAtForHuman } from "@/common/utils";
 import { type ITransactionData } from "@/modules/history/types";
 
 import HistoryTableRowWrapper from "./components/HistoryTableRowWrapper.vue";
 import ListHeader from "@/common/components/ListHeader.vue";
 import EmptyState from "@/common/components/EmptyState.vue";
 import WalletHistoryTableRowWrapper from "@/modules/history/components/WalletHistoryTableRowWrapper.vue";
+import type { HistoryData } from "./types/ITransaction";
+import { action, message } from "./common";
+import { VoteOption } from "cosmjs-types/cosmos/gov/v1/gov";
+import type { IObjectKeys } from "@/common/types";
 
 const showErrorDialog = ref(false);
 const errorMessage = ref("");
-const transactions = ref([] as ITransactionData[]);
+const transactions = ref([] as ITransactionData[] | IObjectKeys[] | any[]);
 const i18n = useI18n();
 const wallet = useWalletStore();
 const search = ref("");
+
+const voteMessages: { [key: string]: string } = {
+  [VoteOption.VOTE_OPTION_ABSTAIN]: i18n.t(`message.abstained`).toLowerCase(),
+  [VoteOption.VOTE_OPTION_NO_WITH_VETO]: i18n.t(`message.veto`).toLowerCase(),
+  [VoteOption.VOTE_OPTION_YES]: i18n.t(`message.yes`).toLowerCase(),
+  [VoteOption.VOTE_OPTION_NO]: i18n.t(`message.no`).toLowerCase()
+};
 
 const columns: TableColumnProps[] = [
   { label: i18n.t("message.history-transaction"), variant: "left" },
@@ -113,8 +124,24 @@ async function loadTxs() {
   try {
     if (wallet.wallet?.address) {
       loading.value = true;
-      const res = await EtlApi.fetchTXS(wallet.wallet?.address, skip, limit);
-      transactions.value = [...transactions.value, ...res] as ITransactionData[];
+      const res = await EtlApi.fetchTXS(wallet.wallet?.address, skip, limit).then((data) => {
+        const promises = [];
+        for (const d of data) {
+          const fn = async () => {
+            const [msg, coin] = await message(d, wallet.wallet?.address, i18n, voteMessages);
+            d.historyData = {
+              msg,
+              coin,
+              action: action(d, i18n).toLowerCase(),
+              timestamp: getCreatedAtForHuman(d.timestamp)
+            };
+            return d;
+          };
+          promises.push(fn());
+        }
+        return Promise.all(promises);
+      });
+      transactions.value = [...transactions.value, ...res] as (ITransactionData & HistoryData)[];
       const loadedSender = res.length < limit;
       if (loadedSender) {
         loaded.value = true;
