@@ -53,5 +53,6 @@ export async function connectKeplr(this: Store) {
     }
   }
 
+  this.loadActivities();
   Intercom.load(this.wallet?.address);
 }

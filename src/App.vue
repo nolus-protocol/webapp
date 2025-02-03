@@ -69,6 +69,6 @@ div.toast {
   right: 24px;
   bottom: 84px;
   min-width: 220px;
-  z-index: 11;
+  z-index: 11111;
 }
 </style>

@@ -1,5 +1,6 @@
 import type { IObjectKeys } from "@/common/types";
 import type { Coin } from "@cosmjs/proto-signing";
+import type { CoinPretty } from "@keplr-wallet/unit";
 
 export interface ITransaction {
   id: string;
@@ -26,3 +27,12 @@ export interface ITransactionData {
   value: string;
   data: IObjectKeys;
 }
+
+export type HistoryData = {
+  historyData: {
+    msg: string;
+    action: string;
+    timestamp: string;
+    coin: CoinPretty;
+  };
+};

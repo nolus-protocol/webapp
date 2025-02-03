@@ -213,6 +213,7 @@ const isMetamaskLoading = ref(false);
 let skipRouteConfig: SkipRouteConfigType | null;
 let id = Date.now();
 const onClose = inject("close", () => {});
+const test = inject("update-activities", () => {});
 
 onMounted(async () => {
   try {

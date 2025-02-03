@@ -51,5 +51,6 @@ export async function connectLeap(this: Store) {
     }
   }
 
+  this.loadActivities();
   Intercom.load(this.wallet?.address);
 }

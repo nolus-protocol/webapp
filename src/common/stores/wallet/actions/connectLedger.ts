@@ -53,6 +53,7 @@ export async function connectLedger(this: Store, payload: { isBluetooth?: boolea
   }
 
   await this.UPDATE_BALANCES();
+  this.loadActivities();
 
   Intercom.load(this.wallet?.address);
 

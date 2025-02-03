@@ -486,6 +486,13 @@
     "leases-monthly": "Leases monthly ($)",
     "open-interest": "Open interest",
     "unrealized-pnl-tooltip": "unrealized-pnl-tooltip",
-    "days-unrealized-pnL": "30 Days Unrealized PnL"
+    "days-unrealized-pnL": "30 Days Unrealized PnL",
+    "view-all-activites": "View all activites",
+    "no-notifications": "No notifications",
+    "come-back-later": "Come back later",
+    "route": "Route",
+    "tx-copied-successfully": "Tx hash copied successfully",
+    "tx-raw-copied-successfully": "Tx raw copied successfully",
+    "account": "Account"
   }
 }

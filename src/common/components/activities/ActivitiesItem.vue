@@ -13,7 +13,7 @@
         class="flex items-center gap-1"
         v-if="route"
       >
-        Route:
+        {{ $t("mesasge.route") }}:
         <Stepper
           v-if="route"
           :variant="StepperVariant.SMALL"
@@ -28,7 +28,7 @@
 import { type SmallStepperProps, Stepper, StepperVariant, SvgIcon } from "web-components";
 
 export type ActivityItemProps = {
-  type: "leases" | "earn" | "assets";
+  type: "leases" | "earn" | "assets" | string;
   title: string;
   time?: string;
   route?: SmallStepperProps;
