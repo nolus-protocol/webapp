@@ -90,7 +90,6 @@ async function loadData() {
   const wallet = useWalletStore();
   app[ApplicationActions.LOAD_THEME]();
   await Promise.all([app[ApplicationActions.CHANGE_NETWORK](), wallet.ignoreAssets()]);
-  preloadAllRoutes();
 }
 
 router.beforeEach((to, from, next) => {
@@ -102,6 +101,13 @@ router.beforeEach((to, from, next) => {
 
   next();
 });
+
+router
+  .isReady()
+  .then(() => {
+    preloadAllRoutes();
+  })
+  .catch((e) => console.error(e));
 
 const preloadAllRoutes = () => {
   router.getRoutes().forEach((route) => {
