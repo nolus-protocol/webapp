@@ -5,7 +5,7 @@
     :disabled="disabled"
     @click="onClick"
   >
-    <icon />
+    <img :src="icon" />
     {{ label }}
     <Spinner
       v-if="disabled"
@@ -29,7 +29,7 @@ const i18n = useI18n();
 
 const props = defineProps<{
   label?: string;
-  icon?: Component | string;
+  icon?: string;
   type?: WalletActions;
 }>();
 

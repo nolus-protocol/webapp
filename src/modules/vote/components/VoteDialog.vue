@@ -12,11 +12,11 @@
         <div class="flex gap-3">
           <div>
             <span class="block text-14 text-typography-secondary">{{ $t("message.turnout") }}</span>
-            <span class="text-16 font-semibold text-typography-default">{{ turnout }}</span>
+            <span class="text-16 font-semibold text-typography-default">{{ turnout }}%</span>
           </div>
           <div>
             <span class="block text-14 text-typography-secondary">{{ $t("message.quorum") }}</span>
-            <span class="text-16 font-semibold text-typography-default">{{ quorum }}</span>
+            <span class="text-16 font-semibold text-typography-default">{{ quorum }}%</span>
           </div>
           <div>
             <span class="block text-14 text-typography-secondary">{{ $t("message.voting-ends") }}</span>
@@ -149,6 +149,13 @@ async function loadDelegated() {
 
   delegatedTokensAmount.value = coin(decimalDelegated.truncate().toString(), NATIVE_ASSET.denom);
 }
+
+watch(
+  () => wallet.wallet,
+  () => {
+    loadDelegated();
+  }
+);
 
 watch(
   () => props.proposal,

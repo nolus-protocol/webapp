@@ -6,6 +6,7 @@
     />
     <div class="flex flex-col gap-6 md:flex-row md:gap-0">
       <BigNumber
+        v-if="!showEmpty"
         :label="$t('message.total-value')"
         :amount="{
           amount: delegated,
@@ -21,6 +22,20 @@
           amount: stableDelegated,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: '$'
+        }"
+      />
+      <BigNumber
+        v-if="showEmpty"
+        :label="$t('message.yield')"
+        :amount="{
+          amount: wallet.apr.toString(),
+          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          denom: '%',
+          isDenomInfront: false,
+          minimalDenom: '',
+          decimals: 2,
+          hasSpace: false,
+          class: 'leading-[36px]'
         }"
       />
       <template v-if="!showEmpty">

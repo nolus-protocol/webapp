@@ -183,11 +183,9 @@ const stable = computed(() => {
   }
 
   const asset = app.currenciesData?.[`${ticker}@${protocol}`];
-
   switch (ProtocolsConfig[lease.protocol].type) {
     case PositionTypes.long: {
       const price = oracle.prices?.[`${ticker}@${protocol}`];
-
       const value = new Dec(amount!.amount, asset?.decimal_digits).mul(new Dec(price.amount));
       return value.toString(NATIVE_CURRENCY.maximumFractionDigits);
     }

@@ -26,13 +26,13 @@
         </div>
       </div>
     </div>
-    <div class="flex gap-2 text-typography-default">
+    <!-- <div class="flex gap-2 text-typography-default">
       <p class="flex-1">Include exchange fees in PnL</p>
       <Toggle
         label="On"
         id="theme-toggle"
       />
-    </div>
+    </div> -->
   </div>
 </template>
 

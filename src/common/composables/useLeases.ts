@@ -142,6 +142,7 @@ export function useLease(leaseAddress: string, protocol: string, onError: (error
         return;
       }
       lease.value = l;
+      console.log(l);
     } catch (e) {
       onError(e);
       Logger.error(e);

@@ -1,5 +1,6 @@
 <template>
   <Chart
+    ref="chart"
     :updateChart="updateChart"
     :fns="[setStats]"
     :getClosestDataPoint="getClosestDataPoint"
@@ -11,10 +12,13 @@ import Chart from "@/common/components/Chart.vue";
 import { barX, gridX, plot, ruleX } from "@observablehq/plot";
 import { AssetUtils, EtlApi } from "@/common/utils";
 import { select, pointer, type Selection } from "d3";
+import { ref } from "vue";
 const chartHeight = 500;
 const marginTop = 20;
 const marginBottom = 30;
 const marginLeft = 50;
+
+const chart = ref<typeof Chart>();
 let loans: { percentage: number; ticker: string }[] = [];
 
 async function setStats() {
@@ -38,6 +42,8 @@ async function setStats() {
       };
     })
     .sort((a, b) => b.percentage - a.percentage);
+
+  chart.value?.update();
 }
 
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {

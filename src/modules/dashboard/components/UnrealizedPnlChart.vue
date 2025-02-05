@@ -8,7 +8,7 @@
 
 <script lang="ts" setup>
 import Chart from "@/common/components/Chart.vue";
-import { lineY, plot, ruleY } from "@observablehq/plot";
+import { lineY, plot } from "@observablehq/plot";
 import { useI18n } from "vue-i18n";
 import { pointer, select, type Selection } from "d3";
 import { AssetUtils } from "@/common/utils";

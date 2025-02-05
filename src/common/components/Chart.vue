@@ -24,10 +24,15 @@ onMounted(async () => {
   props.updateChart(plotContainer.value, tooltip);
   const items = props.fns.map((item) => item());
   await Promise.all(items).catch((e) => Logger.error(e));
-  props.updateChart(plotContainer.value, tooltip);
 });
+
+function updateChart() {
+  props.updateChart(plotContainer.value, tooltip);
+}
 
 onUnmounted(() => {
   tooltip.remove();
 });
+
+defineExpose({ update: updateChart });
 </script>

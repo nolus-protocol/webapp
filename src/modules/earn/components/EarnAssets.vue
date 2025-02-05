@@ -1,9 +1,9 @@
 <template>
   <Widget>
-    <WidgetHeader
+    <!-- <WidgetHeader
       :label="$t('message.earning-assets')"
       :icon="{ name: 'earn' }"
-    />
+    /> -->
     <EarnAssetsTable
       :items="items"
       :onSearch="onSearch"
@@ -21,12 +21,7 @@
           name="info"
           class="mr-2 fill-icon-secondary"
         />
-        All supplied assets auto-compound.
-        <a
-          class="underline"
-          href="#"
-          >Learn more</a
-        >
+        {{ $t("message.supplied-auto-compound") }}
       </div>
     </EarnAssetsTable>
   </Widget>

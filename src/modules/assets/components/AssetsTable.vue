@@ -1,10 +1,9 @@
 <template>
   <Table
-    v-if="wallet.wallet"
     :columns="columns"
     searchable
     :size="`${assets.length} ${$t('message.assets')}`"
-    :toggle="{ label: $t('message.show-small-balances'), value: showSmallBalances }"
+    :toggle="{ label: $t('message.show-small-balances'), value: smBalances }"
     @togle-value="setSmallBalancesState"
     :hide-values="{ text: $t('message.toggle-values'), value: hide }"
     @hide-value="onHide"
@@ -28,18 +27,10 @@
       />
     </template>
   </Table>
-  <EmptyState
-    v-else
-    :image="{ name: 'deposit-assets' }"
-    :title="$t('message.deposit-assets-empty')"
-    :description="$t('message.deposit-assets')"
-    :link="{ label: 'Learn more about assets', url: '#' }"
-  />
 </template>
 
 <script lang="ts" setup>
 import BigNumber from "@/common/components/BigNumber.vue";
-import EmptyState from "@/common/components/EmptyState.vue";
 import type { TableColumnProps, TableRowItemProps } from "web-components";
 import { Table, TableRow } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
@@ -61,7 +52,14 @@ const oracle = useOracleStore();
 const app = useApplicationStore();
 const hide = ref(WalletManager.getHideBalances());
 const total = ref(new Dec(0));
-const showSmallBalances = ref(WalletManager.getSmallBalances());
+const smBalances = ref(WalletManager.getSmallBalances());
+
+const showSmallBalances = computed(() => {
+  if (!wallet.wallet) {
+    return true;
+  }
+  return smBalances;
+});
 const search = ref("");
 
 const columns: TableColumnProps[] = [
@@ -176,7 +174,11 @@ const assets = computed<TableRowItemProps[]>(() => {
         return true;
       }
 
-      if (item.name.toLowerCase().includes(param) || item.ibcData.toLowerCase().includes(param)) {
+      if (
+        item.name.toLowerCase().includes(param) ||
+        item.shortName.toLowerCase().includes(param) ||
+        item.ibcData.toLowerCase().includes(param)
+      ) {
         return true;
       }
 
@@ -217,7 +219,7 @@ const assets = computed<TableRowItemProps[]>(() => {
 });
 
 function setSmallBalancesState(event: boolean) {
-  showSmallBalances.value = event;
+  smBalances.value = event;
   WalletManager.setSmallBalances(event);
 }
 </script>

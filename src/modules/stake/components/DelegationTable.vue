@@ -4,7 +4,7 @@
     :columns="columns"
   >
     <template v-slot:body>
-      <div class="thin-scroll max-h-[600px] overflow-auto pr-2">
+      <div class="thin-scroll overflow-auto pr-2">
         <TableRow
           v-for="(row, index) in validators"
           :key="index"
@@ -20,7 +20,7 @@
         icon="arrow-external"
         iconPosition="left"
         size="small"
-        @click="() => {}"
+        @click="openLink"
       />
     </template>
   </Table>
@@ -36,6 +36,7 @@
 import { useI18n } from "vue-i18n";
 import { Button, Table, type TableColumnProps, TableRow, type TableRowItemProps } from "web-components";
 import EmptyState from "@/common/components/EmptyState.vue";
+import { NETWORK } from "@/config/global";
 
 const i18n = useI18n();
 
@@ -45,6 +46,10 @@ const columns: TableColumnProps[] = [
   { label: i18n.t("message.comm"), class: "hidden md:flex max-w-[100px]" },
   { label: i18n.t("message.status"), class: "max-w-[100px]" }
 ];
+
+function openLink() {
+  window.open(NETWORK.staking, "_blank");
+}
 
 defineProps<{
   validators: TableRowItemProps[];

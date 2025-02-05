@@ -13,6 +13,7 @@
     :parent="popoverParent"
     :title="$t('message.settings')"
     @close="isOpen = !isOpen"
+    class="max-w-[394px]"
   >
     <template #content>
       <!-- <AvatarSettings /> -->

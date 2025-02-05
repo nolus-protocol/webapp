@@ -14,6 +14,9 @@
     :voting_end_time="formatDateTime(state.voting_end_time)"
     :labels
     @actionButton="emit('actionButton', state)"
+    :turnoutLabel="$t('message.turnout')"
+    :quorumLabel="$t('message.quorum')"
+    :votingEndsLabel="$t('message.voting-ends')"
   />
 </template>
 
@@ -47,7 +50,10 @@ const labels = ref({
   yes_count: i18n.t(`message.yes_count`),
   abstain_count: i18n.t(`message.abstain_count`),
   no_count: i18n.t(`message.no_count`),
-  no_with_veto_count: i18n.t(`message.no_with_veto_count`)
+  no_with_veto_count: i18n.t(`message.no_with_veto_count`),
+  turnoutLabel: i18n.t("message.turnout"),
+  quorumLabel: i18n.t("message.quorum"),
+  votingEndsLabel: i18n.t("message.voting-ends")
 });
 
 const summary = computed(() => {

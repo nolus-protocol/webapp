@@ -1,5 +1,6 @@
 <template>
   <Chart
+    ref="chart"
     :updateChart="updateChart"
     :fns="[setStats]"
     :getClosestDataPoint="getClosestDataPoint"
@@ -13,12 +14,14 @@ import { AssetUtils, EtlApi } from "@/common/utils";
 import { select, pointer, timeMonth, type Selection } from "d3";
 import { useI18n } from "vue-i18n";
 import { NATIVE_CURRENCY } from "@/config/global";
+import { ref } from "vue";
 
 const chartHeight = 300;
 const chartWidth = 1000;
 const marginBottom = 50;
 const marginLeft = 30;
 const marginRight = 30;
+const chart = ref<typeof Chart>();
 
 const i18n = useI18n();
 let loans: { amount: number; date: Date }[] = [];
@@ -31,6 +34,8 @@ async function setStats() {
       amount: d.amount
     }))
     .reverse();
+
+  chart.value?.update();
 }
 
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {

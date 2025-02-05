@@ -82,7 +82,7 @@ const columns: TableColumnProps[] = [
   { label: i18n.t("message.action"), class: "max-w-[120px]" }
 ];
 
-const limit = 10;
+const limit = 50;
 let skip = 0;
 
 const loading = ref(false);

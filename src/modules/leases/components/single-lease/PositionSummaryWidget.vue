@@ -145,10 +145,23 @@
                   size="s"
                 /> </Tooltip
             ></span>
+            <template v-if="stopLoss">
+              <span class="flex text-14 font-semibold text-typography-default">
+                {{ NATIVE_CURRENCY.symbol }}{{ stopLoss.amount }} {{ $t("message.per") }} {{ asset?.shortName }}
+              </span>
+              <span class="flex text-12 text-typography-default">
+                {{ $t("message.max-loss") }}: {{ stopLoss.percent }}%
+              </span>
+            </template>
             <Button
-              :label="$t('message.set-stop-loss')"
+              :label="stopLoss ? $t('message.edit') : $t('message.set-stop-loss')"
               severity="secondary"
               size="small"
+              @click="
+                router.push({
+                  path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.leaseAddress}/${SingleLeaseDialog.STOP_LOSS}`
+                })
+              "
             />
           </div>
           <div class="flex flex-col gap-2">
@@ -161,10 +174,23 @@
                   size="s"
                 /> </Tooltip
             ></span>
+            <template v-if="takeProfit">
+              <span class="flex text-14 font-semibold text-typography-default">
+                {{ NATIVE_CURRENCY.symbol }}{{ takeProfit.amount }} {{ $t("message.per") }} {{ asset?.shortName }}
+              </span>
+              <span class="flex text-12 text-typography-default">
+                {{ $t("message.max-profit") }}: {{ takeProfit.percent }}%
+              </span>
+            </template>
             <Button
-              :label="$t('message.set-take-profit')"
+              :label="stopLoss ? $t('message.edit') : $t('message.set-take-profit')"
               severity="secondary"
               size="small"
+              @click="
+                router.push({
+                  path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.leaseAddress}/${SingleLeaseDialog.TAKE_PROFIT}`
+                })
+              "
             />
           </div>
         </div>
@@ -179,11 +205,12 @@
 import { Button, SvgIcon, Tooltip, Widget } from "web-components";
 
 import { CURRENCY_VIEW_TYPES, type LeaseData } from "@/common/types";
+import { RouteNames } from "@/router";
 
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import PnlOverTimeChart from "./PnlOverTimeChart.vue";
-import { MID_DECIMALS, NATIVE_CURRENCY, PERCENT, PositionTypes, ProtocolsConfig } from "@/config/global";
+import { MID_DECIMALS, NATIVE_CURRENCY, PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { computed, ref, watch } from "vue";
 import { useApplicationStore } from "@/common/stores/application";
 import { useOracleStore } from "@/common/stores/oracle";
@@ -192,6 +219,8 @@ import { AssetUtils } from "@/common/utils/AssetUtils";
 import { CurrencyDemapping } from "@/config/currencies";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { datePraser } from "@/common/utils";
+import { useRouter } from "vue-router";
+import { SingleLeaseDialog } from "@/modules/leases/enums";
 
 const props = defineProps<{
   lease?: LeaseData;
@@ -199,6 +228,7 @@ const props = defineProps<{
 
 const app = useApplicationStore();
 const oracle = useOracleStore();
+const router = useRouter();
 
 const pnl = ref({
   percent: "0.00",
@@ -243,6 +273,36 @@ const amount = computed(() => {
       return "0";
     }
   }
+});
+
+const stopLoss = computed(() => {
+  const data = props.lease?.leaseStatus.opened?.close_policy.stop_loss;
+  const price = props.lease?.leaseData?.price;
+
+  if (!!data && !!price) {
+    const p = price.sub(price.mul(new Dec(data).quo(new Dec(PERMILLE))));
+    return {
+      percent: data / (PERMILLE / PERCENT),
+      amount: p.toString(asset.value?.decimal_digits)
+    };
+  }
+
+  return null;
+});
+
+const takeProfit = computed(() => {
+  const data = props.lease?.leaseStatus.opened?.close_policy.stop_loss;
+  const price = props.lease?.leaseData?.price;
+
+  if (!!data && !!price) {
+    const p = price.add(price.mul(new Dec(data).quo(new Dec(PERMILLE))));
+    return {
+      percent: data / (PERMILLE / PERCENT),
+      amount: p.toString(asset.value?.decimal_digits)
+    };
+  }
+
+  return null;
 });
 
 const asset = computed(() => {

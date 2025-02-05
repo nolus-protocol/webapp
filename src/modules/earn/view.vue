@@ -1,7 +1,10 @@
 <template>
   <div class="flex flex-col gap-8">
     <ListHeader :title="$t('message.earn')">
-      <div class="flex gap-2">
+      <div
+        class="flex gap-2"
+        v-if="wallet.wallet"
+      >
         <Button
           :label="$t('message.supply')"
           severity="secondary"
@@ -43,7 +46,7 @@ import { EarnAssets } from "./components";
 import { EarnAssetsDialog } from "./enums";
 
 import { computed, h, onMounted, onUnmounted, provide, ref, watch } from "vue";
-import { Label, type LabelProps, type TableRowItemProps } from "web-components";
+import { type LabelProps, type TableRowItemProps } from "web-components";
 import type { Asset } from "./types";
 import { claimRewardsMsg, Lpp, type ContractData } from "@nolus/nolusjs/build/contracts";
 
@@ -239,7 +242,13 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
       const [_ticker, protocol] = item.key?.split("@") ?? [];
       const apr = new Dec(application.apr?.[protocol] ?? 0).toString(2);
       const v = item.supply
-        ? () => h<LabelProps>(Label, { value: i18n.t("message.open"), variant: "success" })
+        ? () =>
+            h<LabelProps>(PausedLabel, {
+              value: i18n.t("message.open"),
+              variant: "success",
+              tooltip: i18n.t("message.opened-tooltip"),
+              class: "flex items-center"
+            })
         : () =>
             h<LabelProps>(PausedLabel, {
               value: i18n.t("message.paused"),
@@ -257,7 +266,7 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
             variant: "left"
           },
           { value: `${balance}`, subValue: `${NATIVE_CURRENCY.symbol}${stable_balance}`, variant: "right" },
-          { value: `${apr}%` },
+          { value: `${apr}%`, class: "text-typography-success" },
           { component: v }
         ]
       };

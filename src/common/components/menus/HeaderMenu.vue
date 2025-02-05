@@ -15,8 +15,12 @@
         :hideText="isMobile()"
         dropdownPosition="right"
       />
-      <WalletInfo v-if="wallet.wallet" />
+      <WalletInfo
+        v-if="wallet.wallet"
+        @onDisconnect="disconnect?.show()"
+      />
       <AuthDialog v-else />
+      <Disconnect ref="disconnect" />
     </div>
   </div>
 </template>
@@ -27,16 +31,20 @@ import { isMobile, WalletManager } from "@/common/utils";
 
 import WalletInfo from "../WalletInfo.vue";
 import AuthDialog from "../dialogs/AuthDialog.vue";
+import Disconnect from "../auth/Disconnect.vue";
+
 import Activities from "@/common/components/activities/Activities.vue";
 import Settings from "@/common/components/settings/Settings.vue";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Contracts } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
 import { useRouter } from "vue-router";
+import { ref } from "vue";
 
 const wallet = useWalletStore();
 const app = useApplicationStore();
 const router = useRouter();
+const disconnect = ref<typeof Disconnect>();
 
 const options = Object.keys(Contracts.protocolsFilter).map((item) => {
   const protocol = Contracts.protocolsFilter[item];

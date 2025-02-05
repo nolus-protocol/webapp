@@ -1,6 +1,7 @@
 <template>
+  <TermsDialog ref="terms" />
   <div class="flex flex-col gap-4 px-6 pb-6">
-    <div class="text-[13px] text-neutral-400">
+    <div class="text-[14px] text-neutral-400">
       {{ $t("message.policy") }}
       <button
         class="text-primary-50"
@@ -40,16 +41,17 @@
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { SvgIcon } from "web-components";
-import WalletBoxes from "./WalletBoxes.vue";
-
-import KeplrIcon from "@/assets/icons/wallets/keplr.svg";
-import LedgerIcon from "@/assets/icons/wallets/ledger.svg";
-import LeapIcon from "@/assets/icons/wallets/leapwallet.svg";
-import MetamaskIcon from "@/assets/icons/wallets/metamask.svg";
 import { WalletActions } from "@/common/stores/wallet";
 
+import WalletBoxes from "./WalletBoxes.vue";
+import TermsDialog from "../dialogs/TermsDialog.vue";
+import KeplrIcon from "@/assets/icons/wallets/keplr.svg?url";
+import LedgerIcon from "@/assets/icons/wallets/ledger.svg?url";
+import LeapIcon from "@/assets/icons/wallets/leapwallet.svg?url";
+import MetamaskIcon from "@/assets/icons/wallets/metamask.svg?url";
+
 const i18n = useI18n();
-const showTermsModal = ref(false);
+const terms = ref<typeof TermsDialog>();
 
 const connections = {
   Keplr: {
@@ -75,6 +77,6 @@ const connections = {
 };
 
 function onShowTermsModal() {
-  showTermsModal.value = true;
+  terms.value?.show();
 }
 </script>

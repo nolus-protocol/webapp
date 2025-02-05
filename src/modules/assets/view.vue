@@ -1,7 +1,10 @@
 <template>
   <div class="flex flex-col gap-8">
     <ListHeader :title="$t('message.assets')">
-      <div class="flex gap-2">
+      <div
+        class="flex gap-2"
+        v-if="wallet.wallet"
+      >
         <Button
           :label="$t('message.swap')"
           severity="secondary"
@@ -37,6 +40,8 @@ import ListHeader from "@/common/components/ListHeader.vue";
 import { AssetsTable } from "./components";
 import { AssetsDialog } from "@/modules/assets/enums";
 import { useRouter } from "vue-router";
+import { useWalletStore } from "@/common/stores/wallet";
 
 const router = useRouter();
+const wallet = useWalletStore();
 </script>

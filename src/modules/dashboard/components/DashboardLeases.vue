@@ -14,6 +14,7 @@
       />
       <template v-else>
         <Button
+          v-if="wallet.wallet"
           :label="$t('message.new-lease')"
           severity="secondary"
           size="large"

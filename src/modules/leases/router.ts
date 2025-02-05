@@ -76,6 +76,20 @@ export const LeasesRouter: RouteRecordRaw = {
             key: `${RouteNames.LEASES}-single`
           },
           component: () => import("./components/single-lease/CloseDialog.vue")
+        },
+        {
+          path: "stop-loss",
+          meta: {
+            key: `${RouteNames.LEASES}-single`
+          },
+          component: () => import("./components/single-lease/StopLossDialog.vue")
+        },
+        {
+          path: "take-profit",
+          meta: {
+            key: `${RouteNames.LEASES}-single`
+          },
+          component: () => import("./components/single-lease/TakeProfitDialog.vue")
         }
       ]
     }

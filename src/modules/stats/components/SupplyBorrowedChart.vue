@@ -8,6 +8,7 @@
     </div>
   </div>
   <Chart
+    ref="chart"
     :updateChart="updateChart"
     :fns="[loadData]"
     :getClosestDataPoint="getClosestDataPoint"
@@ -21,6 +22,7 @@ import { pointer, select, type Selection } from "d3";
 import { AssetUtils, EtlApi } from "@/common/utils";
 import { useI18n } from "vue-i18n";
 import { NATIVE_CURRENCY } from "@/config/global";
+import { ref } from "vue";
 
 type ChartData = { date: Date; borrowed: number; supplied: number };
 
@@ -32,6 +34,7 @@ const marginBottom = 50;
 
 let data: ChartData[] = [];
 const i18n = useI18n();
+const chart = ref<typeof Chart>();
 
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
   if (!plotContainer) return;
@@ -125,6 +128,8 @@ async function loadData() {
       supplied: d.supplied
     }))
     .reverse();
+
+  chart.value?.update();
 }
 </script>
 

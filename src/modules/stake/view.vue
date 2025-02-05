@@ -1,7 +1,10 @@
 <template>
   <div class="flex flex-col gap-8">
     <ListHeader :title="$t('message.stake')">
-      <div class="flex gap-2">
+      <div
+        class="flex gap-2"
+        v-if="wallet.wallet"
+      >
         <Button
           :label="$t('message.delegate')"
           severity="secondary"
@@ -93,7 +96,7 @@ onUnmounted(() => {
 });
 
 watch(
-  () => wallet.balances,
+  () => wallet.wallet,
   async (value) => {
     await Promise.allSettled([loadDelegated(), loadDelegator(), loadUnboundingDelegations()]);
   }

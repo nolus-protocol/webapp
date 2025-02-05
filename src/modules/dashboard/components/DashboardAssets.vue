@@ -29,46 +29,36 @@
         />
       </div>
     </WidgetHeader>
-    <template v-if="isVisible">
-      <BigNumber
-        :label="$t('message.total-value')"
-        class="px-6"
-        :amount="{
-          amount: total.toString(2),
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: NATIVE_CURRENCY.symbol
-        }"
-      />
-      <Table
-        :columns="columns"
-        class="px-6"
-      >
-        <template v-slot:body>
-          <TableRow
-            v-for="(row, index) in assets"
-            :key="index"
-            :items="row.items"
-          />
-        </template>
-      </Table>
-      <div class="flex justify-center rounded-b-xl border-t border-border-color bg-neutral-bg-1 p-3">
-        <Button
-          :label="$t('message.view-all-assets')"
-          class="w-full"
-          severity="tertiary"
-          size="medium"
-          @click="() => router.push(`/${RouteNames.ASSETS}`)"
+    <BigNumber
+      :label="$t('message.total-value')"
+      class="px-6"
+      :amount="{
+        amount: total.toString(2),
+        type: CURRENCY_VIEW_TYPES.CURRENCY,
+        denom: NATIVE_CURRENCY.symbol
+      }"
+    />
+    <Table
+      :columns="columns"
+      class="px-6"
+    >
+      <template v-slot:body>
+        <TableRow
+          v-for="(row, index) in assets"
+          :key="index"
+          :items="row.items"
         />
-      </div>
-    </template>
-    <template v-else>
-      <EmptyState
-        :image="{ name: 'deposit-assets' }"
-        :title="$t('message.deposit-assets-empty')"
-        :description="$t('message.deposit-assets')"
-        :link="{ label: 'Learn more about assets', url: '#' }"
+      </template>
+    </Table>
+    <div class="flex justify-center rounded-b-xl border-t border-border-color bg-neutral-bg-1 p-3">
+      <Button
+        :label="$t('message.view-all-assets')"
+        class="w-full"
+        severity="tertiary"
+        size="medium"
+        @click="() => router.push(`/${RouteNames.ASSETS}`)"
       />
-    </template>
+    </div>
   </Widget>
 </template>
 
@@ -80,7 +70,6 @@ import { CURRENCY_VIEW_TYPES } from "@/common/types";
 
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
-import EmptyState from "@/common/components/EmptyState.vue";
 
 import { AssetsDialog } from "@/modules/assets/enums";
 import { useI18n } from "vue-i18n";

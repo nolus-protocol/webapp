@@ -1,6 +1,7 @@
 <template>
   <ListHeader :title="$t('message.leases')">
     <Button
+      v-if="wallet.wallet"
       :label="$t('message.new-lease')"
       severity="primary"
       size="large"

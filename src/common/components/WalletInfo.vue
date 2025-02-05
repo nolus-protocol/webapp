@@ -47,16 +47,17 @@
             </div>
             <div class="flex flex-1 items-center justify-end">
               <button
+                class="wallet-action mr-4"
+                @click="onCopy"
+              >
+                <SvgIcon name="copy" />
+              </button>
+
+              <button
                 class="wallet-action"
                 @click="onClickDisconnect"
               >
                 <SvgIcon name="trash" />
-              </button>
-              <button
-                class="wallet-action"
-                @click="onCopy"
-              >
-                <SvgIcon name="copy" />
               </button>
             </div>
           </div>
@@ -69,7 +70,7 @@
 <script lang="ts" setup>
 import { inject, ref, type FunctionalComponent } from "vue";
 import { Button, Popover, SvgIcon, ToastType } from "web-components";
-import { isMobile, Logger, StringUtils, WalletManager } from "@/common/utils";
+import { isMobile, StringUtils, WalletManager } from "@/common/utils";
 import { useI18n } from "vue-i18n";
 
 import KeplrIcon from "@/assets/icons/wallets/keplr.svg";
@@ -77,22 +78,18 @@ import LedgerIcon from "@/assets/icons/wallets/ledger.svg";
 import LeapIcon from "@/assets/icons/wallets/leapwallet.svg";
 import NolusIcon from "@/assets/icons/coins/nls.svg?url";
 
-import { useWalletStore, WalletActions } from "../stores/wallet";
+import { useWalletStore } from "../stores/wallet";
 import { NATIVE_NETWORK } from "@/config/global";
 import { WalletConnectMechanism } from "../types";
-import { ApplicationActions, useApplicationStore } from "../stores/application";
-import { RouteNames } from "@/router";
-import { useRouter } from "vue-router";
 
 const popoverParent = ref();
 const isOpen = ref(false);
 const wallet = useWalletStore();
-const application = useApplicationStore();
 
 const i18n = useI18n();
-const router = useRouter();
 const type = WalletManager.getWalletConnectMechanism();
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const emitter = defineEmits(["onDisconnect"]);
 
 const connections: {
   [key: string]: {
@@ -119,19 +116,8 @@ const connections: {
 };
 const connection = connections[type as keyof typeof WalletConnectMechanism];
 
-async function onClickDisconnect() {
-  try {
-    router.push({ name: RouteNames.DASHBOARD });
-    WalletManager.eraseWalletInfo();
-    wallet[WalletActions.DISCONNECT]();
-    onShowToast({
-      type: ToastType.success,
-      message: i18n.t("message.wallet-disconnected")
-    });
-    await application[ApplicationActions.CHANGE_NETWORK]();
-  } catch (error) {
-    Logger.error(error);
-  }
+function onClickDisconnect() {
+  emitter("onDisconnect");
 }
 
 async function onCopy() {

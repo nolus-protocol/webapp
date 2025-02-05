@@ -66,9 +66,12 @@ watch(
 <style lang="scss" scoped>
 div.toast {
   position: fixed;
-  right: 24px;
-  bottom: 84px;
+  bottom: 24px;
   min-width: 220px;
   z-index: 11111;
+
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
 }
 </style>
