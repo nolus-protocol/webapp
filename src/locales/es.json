@@ -504,6 +504,7 @@
     "disconnect-body": "You are about to disconnect the following wallet",
     "disconnect-body-btm": "This action will remove the wallet from your Nolus dApp. Are you sure you want to continue?",
     "opened-tooltip": "opened-tooltip",
-    "supplied-auto-compound": "All supplied assets auto-compound"
+    "supplied-auto-compound": "All supplied assets auto-compound",
+    "chart-liquidation-tooltip": "Liquidation"
   }
 }

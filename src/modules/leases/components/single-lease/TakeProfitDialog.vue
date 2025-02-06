@@ -90,7 +90,7 @@ import { RouteNames } from "@/router";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useApplicationStore } from "@/common/stores/application";
 import { useOracleStore } from "@/common/stores/oracle";
-import { AssetUtils, getMicroAmount, Logger, walletOperation } from "@/common/utils";
+import { AssetUtils, Logger, walletOperation } from "@/common/utils";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency } from "@/common/types";
 import { CurrencyDemapping } from "@/config/currencies";
@@ -101,7 +101,7 @@ import { NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { useI18n } from "vue-i18n";
 import type { Coin } from "@cosmjs/proto-signing";
 import { Lease } from "@nolus/nolusjs/build/contracts";
-import { PERMILLE } from "@/config/global";
+import { PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
 
 const timeOut = 250;
 let time: NodeJS.Timeout;
@@ -148,10 +148,7 @@ const assets = computed(() => {
   const data = [];
 
   if (lease.value) {
-    const ticker =
-      CurrencyDemapping[lease.value?.leaseStatus?.opened?.amount?.ticker!]?.ticker ??
-      lease.value?.leaseStatus?.opened?.amount?.ticker;
-    const asset = app.currenciesData![`${ticker}@${lease.value!.protocol}`];
+    const asset = getCurrency()!;
     const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
     const price = new Dec(oracle.prices?.[asset.key]?.amount ?? 0).toString(asset.decimal_digits);
 
@@ -177,6 +174,33 @@ const assets = computed(() => {
   return data;
 });
 
+function getCurrency() {
+  switch (ProtocolsConfig[lease.value?.protocol!].type) {
+    case PositionTypes.long: {
+      const ticker =
+        CurrencyDemapping[lease.value?.leaseStatus?.opened?.amount?.ticker!]?.ticker ??
+        lease.value?.leaseStatus?.opened?.amount?.ticker;
+      return app.currenciesData![`${ticker}@${lease.value!.protocol}`];
+    }
+    case PositionTypes.short: {
+      const lpn = AssetUtils.getLpnByProtocol(lease.value?.protocol!);
+
+      return lpn;
+    }
+  }
+}
+
+function getPrice() {
+  switch (ProtocolsConfig[lease.value?.protocol!].type) {
+    case PositionTypes.long: {
+      return lease.value?.leaseData?.price;
+    }
+    case PositionTypes.short: {
+      return lease.value?.leaseData?.lpnPrice;
+    }
+  }
+}
+
 const total = computed(() => {
   return new Dec(lease.value?.leaseStatus.opened?.amount.amount ?? 0, currency.value?.decimal_digits);
 });
@@ -201,7 +225,7 @@ function isAmountValid() {
   if (lease.value) {
     const a = new Dec(amount.value.length > 0 ? amount.value : 0);
     const currency = AssetUtils.getCurrencyByTicker(lease.value.leaseStatus.opened!.amount.ticker!);
-    const price = new Dec(oracle.prices[currency.key as string].amount);
+    const price = getPrice()!;
 
     if (amount || amount !== "") {
       const isLowerThanOrEqualsToZero = a.lte(new Dec(0));
@@ -248,15 +272,17 @@ async function marketCloseLease() {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const leaseClient = new Lease(cosmWasmClient, lease?.value!.leaseAddress);
       const value = new Dec(amount.value);
-      const price = lease.value?.leaseData?.price;
+      const price = getPrice();
 
       if (!price) {
         return;
       }
 
-      const takeProfit = Number(value.sub(price).quo(price).mul(new Dec(PERMILLE)).round().toString());
-      const stopLoss = lease.value?.leaseStatus.opened?.close_policy.take_profit;
+      const diff = value.sub(price);
+      const percent = diff.quo(price);
 
+      const takeProfit = Number(percent.mul(new Dec(PERMILLE)).round().toString());
+      const stopLoss = lease.value?.leaseStatus.opened?.close_policy.take_profit;
       const { txHash, txBytes, usedFee } = await leaseClient.simulateChangeClosePolicyTx(
         wallet,
         stopLoss,
@@ -276,22 +302,6 @@ async function marketCloseLease() {
       loading.value = false;
     }
   }
-}
-
-function getCurrency() {
-  const microAmount = getMicroAmount(currency.value.ibcData, amount.value);
-  const a = new Int(lease.value?.leaseStatus.opened?.amount.amount ?? 0);
-
-  if (a.equals(microAmount.mAmount.amount)) {
-    return undefined;
-  }
-
-  const c = currency.value;
-
-  return {
-    ticker: c.ticker,
-    amount: microAmount.mAmount.amount.toString()
-  };
 }
 
 watch(

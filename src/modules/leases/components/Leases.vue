@@ -97,6 +97,7 @@
       </Table>
     </template>
   </Widget>
+  <router-view />
 </template>
 
 <script lang="ts" setup>
@@ -398,7 +399,7 @@ function getActions(lease: LeaseData) {
         size: "medium",
         onClick: () => {
           router.push({
-            path: `/${RouteNames.LEASES}/${lease.protocol?.toLowerCase()}/${lease.leaseAddress}/${SingleLeaseDialog.CLOSE}`
+            path: `/${RouteNames.LEASES}/${SingleLeaseDialog.CLOSE}/${lease.protocol?.toLowerCase()}/${lease.leaseAddress}`
           });
         }
       })

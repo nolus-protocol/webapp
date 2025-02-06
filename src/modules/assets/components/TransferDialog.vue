@@ -29,10 +29,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { Dialog } from "web-components";
-
-import { RouteNames } from "@/router";
 import { AssetsDialog } from "@/modules/assets/enums";
-
 import { SwapForm, SendForm, ReceiveForm } from "./index";
 
 const route = useRoute();

@@ -21,7 +21,10 @@
         />
       </div>
     </WidgetHeader>
-    <PriceOverTimeChart />
+    <PriceOverTimeChart
+      :lease="lease"
+      :interval="chartTimeRange.days"
+    />
   </Widget>
 </template>
 

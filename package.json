@@ -36,7 +36,7 @@
     "@ledgerhq/hw-transport-webhid": "^6.29.4",
     "@ledgerhq/hw-transport-webusb": "^6.29.4",
     "@ledgerhq/logs": "^6.12.0",
-    "@nolus/nolusjs": "file:../nolus.js/build",
+    "@nolus/nolusjs": "^2.4.20",
     "@observablehq/plot": "^0.6.16",
     "@skip-go/client": "^0.16.4",
     "cosmjs-types": "^0.9.0",
@@ -48,7 +48,7 @@
     "vue": "^3.5.13",
     "vue-i18n": "11.0.1",
     "vue-router": "^4.5.0",
-    "web-components": "file:../web-components"
+    "web-components": "github:nolus-protocol/web-components#v2.0.8"
   },
   "devDependencies": {
     "@intlify/unplugin-vue-i18n": "^6.0.1",

@@ -14,7 +14,16 @@ export const LeasesRouter: RouteRecordRaw = {
         key: RouteNames.LEASES,
         description:
           "Explore lease positions with the Nolus Protocol. Streamline tracking, management, and insights for your leasing activities"
-      }
+      },
+      children: [
+        {
+          path: "close/:protocol/:id",
+          component: () => import("./components/single-lease/CloseDialog.vue"),
+          meta: {
+            key: RouteNames.LEASES
+          }
+        }
+      ]
     },
     {
       path: `open`,

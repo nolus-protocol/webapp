@@ -132,7 +132,7 @@ async function authenticateLedger(wallet: Wallet, network: NetworkData) {
     wallet,
     new LedgerSigner(transport, {
       prefix: network.prefix,
-      hdPaths: paths
+      hdPaths: paths as any
     }),
     network.prefix,
     network.gasMupltiplier,

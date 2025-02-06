@@ -183,7 +183,7 @@
               </span>
             </template>
             <Button
-              :label="stopLoss ? $t('message.edit') : $t('message.set-take-profit')"
+              :label="takeProfit ? $t('message.edit') : $t('message.set-take-profit')"
               severity="secondary"
               size="small"
               @click="
@@ -277,7 +277,7 @@ const amount = computed(() => {
 
 const stopLoss = computed(() => {
   const data = props.lease?.leaseStatus.opened?.close_policy.stop_loss;
-  const price = props.lease?.leaseData?.price;
+  const price = getPrice()!;
 
   if (!!data && !!price) {
     const p = price.sub(price.mul(new Dec(data).quo(new Dec(PERMILLE))));
@@ -291,8 +291,8 @@ const stopLoss = computed(() => {
 });
 
 const takeProfit = computed(() => {
-  const data = props.lease?.leaseStatus.opened?.close_policy.stop_loss;
-  const price = props.lease?.leaseData?.price;
+  const data = props.lease?.leaseStatus.opened?.close_policy.take_profit;
+  const price = getPrice()!;
 
   if (!!data && !!price) {
     const p = price.add(price.mul(new Dec(data).quo(new Dec(PERMILLE))));
@@ -304,6 +304,19 @@ const takeProfit = computed(() => {
 
   return null;
 });
+
+function getPrice() {
+  switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
+    case PositionTypes.long: {
+      return props.lease?.leaseData?.price;
+    }
+    case PositionTypes.short: {
+      return props.lease?.leaseData?.lpnPrice;
+    }
+  }
+
+  return new Dec(0);
+}
 
 const asset = computed(() => {
   if (props.lease?.leaseStatus?.opening && props.lease?.leaseData) {
@@ -465,7 +478,7 @@ const liquidationPercent = computed(() => {
   const lease = props.lease?.leaseStatus?.opened;
   if (lease) {
     const price = props.lease.liquidation;
-    const cPrice = new Dec(currentPrice.value);
+    const cPrice = getPrice()!;
     const diff = cPrice.sub(price);
     const percent = diff.quo(cPrice).mul(new Dec(PERCENT)).mul(new Dec(-1)).toString(2);
     return `${percent}`;
