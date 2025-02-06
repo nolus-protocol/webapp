@@ -46,19 +46,21 @@
               <span class="text-12 font-normal">{{ NATIVE_NETWORK.label }}</span>
             </div>
             <div class="flex flex-1 items-center justify-end">
-              <button
-                class="wallet-action mr-4"
+              <Button
+                severity="tertiary"
+                icon="copy"
+                size="small"
+                class="!p-2.5 text-icon-default"
                 @click="onCopy"
-              >
-                <SvgIcon name="copy" />
-              </button>
+              />
 
-              <button
-                class="wallet-action"
+              <Button
+                severity="tertiary"
+                icon="trash"
+                size="small"
+                class="!p-2.5 text-icon-default"
                 @click="onClickDisconnect"
-              >
-                <SvgIcon name="trash" />
-              </button>
+              />
             </div>
           </div>
         </div>
@@ -68,9 +70,10 @@
 </template>
 
 <script lang="ts" setup>
-import { inject, ref, type FunctionalComponent } from "vue";
-import { Button, Popover, SvgIcon, ToastType } from "web-components";
+import { type FunctionalComponent, inject, ref } from "vue";
+import { Button, Popover, ToastType } from "web-components";
 import { isMobile, StringUtils, WalletManager } from "@/common/utils";
+import { NATIVE_NETWORK } from "@/config/global";
 import { useI18n } from "vue-i18n";
 
 import KeplrIcon from "@/assets/icons/wallets/keplr.svg";
@@ -79,7 +82,6 @@ import LeapIcon from "@/assets/icons/wallets/leapwallet.svg";
 import NolusIcon from "@/assets/icons/coins/nls.svg?url";
 
 import { useWalletStore } from "../stores/wallet";
-import { NATIVE_NETWORK } from "@/config/global";
 import { WalletConnectMechanism } from "../types";
 
 const popoverParent = ref();

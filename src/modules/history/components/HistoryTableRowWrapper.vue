@@ -8,10 +8,11 @@ import { type ITransactionData } from "../types";
 
 import { useI18n } from "vue-i18n";
 import { computed, h, ref } from "vue";
-import { Label, SvgIcon, TableRow, type LabelProps, type SvgProps, type TableRowItemProps } from "web-components";
+import { Label, type LabelProps, TableRow, type TableRowItemProps } from "web-components";
 import type { HistoryData } from "../types/ITransaction";
 import TransactionDetails from "@/common/components/activities/TransactionDetails.vue";
 import { useApplicationStore } from "@/common/stores/application";
+import Action from "@/common/components/Action.vue";
 
 const i18n = useI18n();
 const transactionDialogRef = ref<typeof TransactionDetails | null>(null);
@@ -30,7 +31,7 @@ const transactionData = computed(
           value: props.transaction.historyData.msg,
           variant: "left",
           click: onActivityClick,
-          class: "text-typography-link cursor-pointer"
+          class: "text-typography-link cursor-pointer font-semibold"
         },
         {
           value: props.transaction.historyData.action,
@@ -45,11 +46,11 @@ const transactionData = computed(
           class: "max-w-[150px]"
         },
         {
-          component: () => h<SvgProps>(SvgIcon, { name: "more" }),
-          class: "max-w-[120px] cursor-pointer",
-          click: () => {
-            window.open(`${applicaton.network.networkAddresses.explorer}/${props.transaction.tx_hash}`, "_blank");
-          }
+          component: () => h(Action, {}),
+          class: "max-w-[120px]"
+          // click: () => {
+          //   window.open(`${applicaton.network.networkAddresses.explorer}/${props.transaction.tx_hash}`, "_blank");
+          // }
         }
       ]
     }) as TableRowItemProps
