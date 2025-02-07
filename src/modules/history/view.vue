@@ -21,9 +21,13 @@
           </template>
           <template v-if="!wallet.wallet || (loaded && transactions.length == 0)">
             <EmptyState
-              :image="{ name: 'no-entries' }"
-              :title="$t('message.no-entries')"
-              :description="$t('message.empty-history')"
+              :slider="[
+                {
+                  image: { name: 'no-entries' },
+                  title: $t('message.no-entries'),
+                  description: $t('message.empty-history')
+                }
+              ]"
             />
           </template>
         </template>
@@ -46,7 +50,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { Table, type TableColumnProps, Widget, Button } from "web-components";
+import { Button, Table, type TableColumnProps, Widget } from "web-components";
 import { useWalletStore } from "@/common/stores/wallet";
 import { EtlApi, getCreatedAtForHuman } from "@/common/utils";
 import { type ITransactionData } from "@/modules/history/types";

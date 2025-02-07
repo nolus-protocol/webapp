@@ -84,10 +84,14 @@
     </template>
     <template v-else>
       <EmptyState
-        :image="{ name: 'new-lease' }"
-        :title="$t('message.start-lease')"
-        :description="$t('message.start-lease')"
-        :link="{ label: 'Learn more about assets', url: '#' }"
+        :slider="[
+          {
+            image: { name: 'new-lease' },
+            title: $t('message.start-lease'),
+            description: $t('message.start-lease'),
+            link: { label: 'Learn more about assets', url: '#' }
+          }
+        ]"
       />
     </template>
   </Widget>

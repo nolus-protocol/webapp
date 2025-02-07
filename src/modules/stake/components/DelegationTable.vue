@@ -26,9 +26,28 @@
   </Table>
   <EmptyState
     v-if="showEmpty"
-    :image="{ name: 'delegate-nls' }"
-    :title="$t('message.delegate-nls')"
-    :description="$t('message.delegate-nls-description')"
+    :slider="[
+      {
+        image: { name: 'delegate-nls' },
+        title: $t('message.delegate-nls'),
+        description: $t('message.delegate-nls-description')
+      },
+      {
+        image: { name: 'network-rewards' },
+        title: $t('message.delegate-nls'),
+        description: $t('message.delegate-nls-description')
+      },
+      {
+        image: { name: 'government' },
+        title: $t('message.delegate-nls'),
+        description: $t('message.delegate-nls-description')
+      },
+      {
+        image: { name: 'unlock-discounts' },
+        title: $t('message.delegate-nls'),
+        description: $t('message.delegate-nls-description')
+      }
+    ]"
   />
 </template>
 
