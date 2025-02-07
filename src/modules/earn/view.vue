@@ -132,6 +132,7 @@ import { useAdminStore } from "@/common/stores/admin";
 import { Table } from "web-components";
 import { useOracleStore } from "@/common/stores/oracle";
 import { Intercom } from "@/common/utils/Intercom";
+import type { IObjectKeys } from "@/common/types";
 
 const i18n = useI18n();
 
@@ -234,8 +235,8 @@ function openSupplyWithdrawDialog(denom: string) {
 
 async function loadRewards() {
   const [rewards, lpnRewards] = await Promise.all([NetworkUtils.loadDelegator(), getRewards()]);
-
-  const total = rewards?.total?.[0];
+  console.log(rewards);
+  const total = rewards?.total?.find((item: IObjectKeys) => item.denom == NATIVE_ASSET.denom);
   let value = new Dec("0").add(lpnRewards);
 
   if (total) {

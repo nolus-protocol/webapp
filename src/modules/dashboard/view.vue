@@ -316,7 +316,7 @@ import LeaseDialog from "@/common/components/modals/LongShortDialog.vue";
 import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
 import SendReceiveDialogV2 from "@/common/components/modals/SendReceiveDialogV2.vue";
 
-import { CURRENCY_VIEW_TYPES, type ExternalCurrency } from "@/common/types";
+import { CURRENCY_VIEW_TYPES, type ExternalCurrency, type IObjectKeys } from "@/common/types";
 
 import { useI18n } from "vue-i18n";
 import { computed, onUnmounted, provide, ref, watch } from "vue";
@@ -651,7 +651,7 @@ function setLeases() {
 async function setRewards() {
   const [r, lpnRewards] = await Promise.all([NetworkUtils.loadDelegator(), getRewards()]);
 
-  const total = r?.total?.[0];
+  const total = r?.total?.find((item: IObjectKeys) => item.denom == NATIVE_ASSET.denom);
   let value = new Dec("0").add(lpnRewards);
 
   if (total) {
