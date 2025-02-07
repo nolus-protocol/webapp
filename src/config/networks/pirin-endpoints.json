@@ -232,13 +232,13 @@
   },
   "MANTRA": {
     "primary": {
-      "rpc": "https://rpc-mantra.r93axnodes.cloud:443",
-      "api": "https://api-mantra.r93axnodes.cloud:443"
+      "rpc": "https://rpc.mantrachain.io/",
+      "api": "https://api.mantrachain.io/"
     },
     "fallback": [
       {
-        "rpc": "https://rpc.mantrachain.io/",
-        "api": "https://api.mantrachain.io/"
+        "rpc": "https://mantra-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
+        "api": "https://mantra-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
       }
     ]
   }
