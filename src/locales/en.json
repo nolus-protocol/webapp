@@ -397,7 +397,7 @@
     "hash": "Tx hash",
     "btn-tx-hash": "Copy TX Hash",
     "btn-raw-json": "Copy Raw JSON",
-    "claim-rewards": "Claim Staking Rewards",
+    "claim-rewards": "Claim",
     "claim-stacking-rewards": "Claim",
     "claim-earn-rewards": "Claim Earn Rewards",
     "preview-input": "A preview will be generated here based on your input",
