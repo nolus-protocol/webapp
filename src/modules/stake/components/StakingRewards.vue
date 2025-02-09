@@ -37,15 +37,19 @@
 
     <EmptyState
       v-if="showEmpty"
-      :image="{ name: 'no-rewards' }"
-      :title="$t('message.no-rewards')"
-      :description="$t('message.deposit-assets')"
+      :slider="[
+        {
+          image: { name: 'no-rewards' },
+          title: $t('message.no-rewards'),
+          description: $t('message.deposit-assets')
+        }
+      ]"
     />
   </Widget>
 </template>
 
 <script lang="ts" setup>
-import { Button, Widget, Asset, ToastType } from "web-components";
+import { Asset, Button, ToastType, Widget } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { AssetUtils, Logger, NetworkUtils, walletOperation } from "@/common/utils";

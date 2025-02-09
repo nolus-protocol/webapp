@@ -14,10 +14,18 @@
   >
     <EmptyState
       v-if="leases.length == 0"
-      :image="{ name: 'new-lease' }"
-      :title="$t('message.start-lease')"
-      :description="$t('message.start-lease-description')"
-      :link="{ label: $t('message.learn-new-leases'), url: '#', tooltip: { content: $t('message.learn-new-leases') } }"
+      :slider="[
+        {
+          image: { name: 'new-lease' },
+          title: $t('message.start-lease'),
+          description: $t('message.start-lease-description'),
+          link: {
+            label: $t('message.learn-new-leases'),
+            url: '#',
+            tooltip: { content: $t('message.learn-new-leases') }
+          }
+        }
+      ]"
     />
     <template v-else>
       <Table
@@ -121,9 +129,9 @@ import EmptyState from "@/common/components/EmptyState.vue";
 import Collect, { type ICollect } from "./single-lease/Collect.vue";
 
 import { useI18n } from "vue-i18n";
-import { computed, h, onMounted, onUnmounted, provide, ref, watch, type Component } from "vue";
+import { type Component, computed, h, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { CURRENCY_VIEW_TYPES, type LeaseData } from "@/common/types";
-import { formatDate, WalletManager } from "@/common/utils";
+import { AssetUtils, EtlApi, formatDate, Logger, WalletManager } from "@/common/utils";
 
 import { useLeases } from "@/common/composables";
 import { Coin, Dec } from "@keplr-wallet/unit";
@@ -131,7 +139,6 @@ import { Intercom } from "@/common/utils/Intercom";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useOracleStore } from "@/common/stores/oracle";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { AssetUtils, EtlApi, Logger } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
 import { MAX_DECIMALS, NATIVE_CURRENCY, PositionTypes, ProtocolsConfig, UPDATE_LEASES } from "@/config/global";
 import { CurrencyDemapping } from "@/config/currencies";

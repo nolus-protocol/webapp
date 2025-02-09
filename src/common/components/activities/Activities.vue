@@ -77,11 +77,13 @@
       </template>
       <template v-else>
         <EmptyState
-          :image="{
-            name: 'no-notifications'
-          }"
-          :title="$t('message.no-notifications')"
-          :description="$t('message.come-back-later')"
+          :slider="[
+            {
+              image: { name: 'no-notifications' },
+              title: $t('message.no-notifications'),
+              description: $t('message.come-back-later')
+            }
+          ]"
         />
       </template>
     </template>
