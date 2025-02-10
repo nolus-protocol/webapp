@@ -45,13 +45,18 @@
     </div>
     <div class="flex flex-col items-center text-typography-default">
       <div class="text-32 font-semibold">{{ health }}%</div>
-      <div class="text-16">{{ $t("message.current-health") }}: <span class="font-semibold">Good</span></div>
+      <div class="text-16">
+        {{ $t("message.current-health") }}:
+        <span class="font-semibold">
+          {{ $t(`message.${healTitle}-status`) }}
+        </span>
+      </div>
       <a
         href="#"
         target="_blank"
         class="flex w-fit items-center gap-1 text-14 font-normal text-typography-link"
         >{{ $t("message.learn-health") }}
-        <Tooltip content="This is a tooltip"
+        <Tooltip :content="$t('message.position-health-tooltip')"
           ><SvgIcon
             name="help"
             class="fill-icon-link" /></Tooltip
@@ -76,6 +81,12 @@ const radius = 112;
 const centerX = 128;
 const centerY = 128;
 
+enum status {
+  green = "green",
+  yellow = "yellow",
+  red = "red"
+}
+
 const props = withDefaults(
   defineProps<{
     lease?: LeaseData;
@@ -87,6 +98,21 @@ const props = withDefaults(
     yellowLimit: 80
   }
 );
+
+const healTitle = computed((item) => {
+  console.log(health.value, props.yellowLimit);
+
+  if (health.value <= props.greenLimit) {
+    return status.green;
+  }
+
+  if (health.value < props.yellowLimit && health.value > props.greenLimit) {
+    return status.yellow;
+  }
+  if (health.value >= props.yellowLimit) {
+    return status.red;
+  }
+});
 
 const oracle = useOracleStore();
 const greenEndAngle = computed(() => (props.greenLimit / 100) * 180);

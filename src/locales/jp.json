@@ -513,6 +513,16 @@
     "supplied-auto-compound": "All supplied assets auto-compound",
     "chart-liquidation-tooltip": "Liquidation",
     "release-schedule": "Release schedule",
-    "release-schedule-tooltip": "Release schedule tooltip"
+    "release-schedule-tooltip": "Release schedule tooltip",
+    "close-dialog-tooltip": "close-dialog-tooltip",
+    "stop-loss-tooltip": "stop-loss-tooltip",
+    "take-profit-tooltip": "take-profit-tooltip",
+    "position-health-tooltip": "position-health-tooltip",
+    "asset-price": "Asset price",
+    "green-status": "Healthy",
+    "yellow-status": "Moderate",
+    "red-status": "Risky",
+    "no-entries-lease": "no-entries-lease",
+    "no-entries-lease-description": "no-entries-lease-description"
   }
 }

@@ -5,6 +5,7 @@
       :icon="{ name: 'history', class: 'fill-icon-link' }"
     />
     <Table
+      v-if="leasesHistory.length > 0"
       :columns="leasesHistory.length > 0 ? columns : []"
       :class="[{ 'min-w-[600px]': leasesHistory.length > 0 }]"
     >
@@ -16,6 +17,16 @@
         />
       </template>
     </Table>
+    <EmptyState
+      v-else
+      :slider="[
+        {
+          image: { name: 'no-entries' },
+          title: $t('message.no-entries-lease'),
+          description: $t('message.no-entries-lease-description')
+        }
+      ]"
+    />
   </Widget>
 </template>
 
@@ -38,6 +49,7 @@ import type { LeaseData } from "@/common/types";
 import { useApplicationStore } from "@/common/stores/application";
 import { getCreatedAtForHuman } from "@/common/utils";
 import { Dec } from "@keplr-wallet/unit";
+import EmptyState from "@/common/components/EmptyState.vue";
 
 const i18n = useI18n();
 const app = useApplicationStore();

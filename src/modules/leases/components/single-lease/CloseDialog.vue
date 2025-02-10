@@ -33,7 +33,7 @@
               <span class="flex items-center gap-1 font-normal"
                 ><img :src="currency?.icon" /> {{ currency?.label }}</span
               >
-              <Tooltip content="This is a tooltip"
+              <Tooltip :content="$t('message.close-dialog-tooltip')"
                 ><SvgIcon
                   name="help"
                   class="fill-icon-link"

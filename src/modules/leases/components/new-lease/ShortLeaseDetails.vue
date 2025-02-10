@@ -47,21 +47,21 @@
             class="md:flex-[50%]"
             :label="$t('message.downpayment')"
             :amount="{
-              amount: downPaymentStable.toString(),
-              type: CURRENCY_VIEW_TYPES.CURRENCY,
-              denom: NATIVE_CURRENCY.symbol,
-              maxDecimals: 2,
-              minimalDenom: '',
-              decimals: 2,
-              fontSize: 16,
-              fontSizeSmall: 16
-            }"
-            :secondary="{
               amount: downPaymentAmount,
               decimals: downPaymentAsset.decimal_digits,
               type: CURRENCY_VIEW_TYPES.TOKEN,
               denom: downPaymentAsset.shortName,
-              hasSpace: true
+              hasSpace: true,
+              fontSize: 16,
+              fontSizeSmall: 16
+            }"
+            :secondary="{
+              amount: downPaymentStable.toString(),
+              type: CURRENCY_VIEW_TYPES.CURRENCY,
+              denom: NATIVE_CURRENCY.symbol,
+              decimals: 2,
+              maxDecimals: 2,
+              minimalDenom: ''
             }"
           />
           <div class="flex flex-col gap-y-3 md:flex-[50%]">
@@ -69,41 +69,41 @@
               class="md:flex-[50%]"
               :label="$t('message.borrow')"
               :amount="{
-                amount: borrowStable.toString(),
-                type: CURRENCY_VIEW_TYPES.CURRENCY,
-                denom: NATIVE_CURRENCY.symbol,
-                maxDecimals: 2,
-                minimalDenom: '',
-                decimals: 2,
-                fontSize: 16,
-                fontSizeSmall: 16
-              }"
-              :secondary="{
                 amount: borrowAmount,
                 decimals: asset.decimal_digits,
                 type: CURRENCY_VIEW_TYPES.TOKEN,
                 denom: asset.shortName,
-                hasSpace: true
+                hasSpace: true,
+                fontSize: 16,
+                fontSizeSmall: 16
+              }"
+              :secondary="{
+                amount: borrowStable.toString(),
+                type: CURRENCY_VIEW_TYPES.CURRENCY,
+                denom: NATIVE_CURRENCY.symbol,
+                decimals: 2,
+                maxDecimals: 2,
+                minimalDenom: ''
               }"
             />
             <BigNumber
               :label="$t('message.impact-and-dex-fees')"
               :amount="{
-                amount: swapStableFee.toString(),
-                type: CURRENCY_VIEW_TYPES.CURRENCY,
-                denom: NATIVE_CURRENCY.symbol,
-                maxDecimals: 4,
-                minimalDenom: '',
-                decimals: 4,
-                fontSize: 16,
-                fontSizeSmall: 16
-              }"
-              :secondary="{
                 amount: swapFeeAmount,
                 decimals: asset.decimal_digits,
                 type: CURRENCY_VIEW_TYPES.TOKEN,
                 denom: asset.shortName,
-                hasSpace: true
+                hasSpace: true,
+                fontSize: 16,
+                fontSizeSmall: 16
+              }"
+              :secondary="{
+                amount: swapStableFee.toString(),
+                type: CURRENCY_VIEW_TYPES.CURRENCY,
+                denom: NATIVE_CURRENCY.symbol,
+                maxDecimals: 4,
+                decimals: 4,
+                minimalDenom: ''
               }"
             />
           </div>

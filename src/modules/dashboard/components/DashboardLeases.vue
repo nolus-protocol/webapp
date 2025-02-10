@@ -92,7 +92,7 @@ import { Intercom } from "@/common/utils/Intercom";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useOracleStore } from "@/common/stores/oracle";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { AssetUtils, EtlApi, Logger } from "@/common/utils";
+import { AssetUtils, Logger } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
 import UnrealizedPnlChart from "./UnrealizedPnlChart.vue";
 import { NATIVE_CURRENCY } from "@/config/global";

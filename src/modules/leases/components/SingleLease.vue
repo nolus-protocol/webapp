@@ -57,10 +57,9 @@
       <PositionHealthWidget :lease="lease" />
       <StrategiesWidget :lease="lease" />
     </div>
-    <LeaseLogWidget
-      v-if="(lease?.leaseData?.history?.length ?? 0) > 0"
-      :lease="lease"
-    />
+    <template v-if="lease?.leaseData">
+      <LeaseLogWidget :lease="lease" />
+    </template>
   </div>
   <router-view></router-view>
 </template>

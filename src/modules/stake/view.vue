@@ -115,7 +115,6 @@ async function loadUnboundingDelegations() {
 
 async function loadVested() {
   vestedTokens.value = await wallet.LOAD_VESTED_TOKENS();
-  console.log(vestedTokens.value);
 }
 
 async function loadDelegator() {

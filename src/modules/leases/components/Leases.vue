@@ -62,7 +62,8 @@
               type: CURRENCY_VIEW_TYPES.CURRENCY,
               denom: NATIVE_CURRENCY.symbol,
               fontSize: 20,
-              fontSizeSmall: 20
+              fontSizeSmall: 20,
+              hide: hide
             }"
           />
           <BigNumber
@@ -72,7 +73,8 @@
               type: CURRENCY_VIEW_TYPES.CURRENCY,
               denom: NATIVE_CURRENCY.symbol,
               fontSize: 20,
-              fontSizeSmall: 20
+              fontSizeSmall: 20,
+              hide: hide
             }"
           />
           <span class="hidden border-r border-border-color md:block" />
@@ -84,7 +86,8 @@
                 type: CURRENCY_VIEW_TYPES.CURRENCY,
                 denom: NATIVE_CURRENCY.symbol,
                 fontSize: 20,
-                fontSizeSmall: 20
+                fontSizeSmall: 20,
+                hide: hide
               }"
             />
             <Button
@@ -204,8 +207,8 @@ const leasesData = computed<TableRowItemProps[]>(() => {
       const stable = getPositionInStable(item as LeaseData);
       const actions: Component[] = getActions(item as LeaseData);
       const value = {
-        value: `${NATIVE_CURRENCY.symbol}${stable}`,
-        subValue: `${amount.toString(asset.decimal_digits)} ${asset.shortName}`
+        subValue: `${NATIVE_CURRENCY.symbol}${stable}`,
+        value: `${amount.toString(asset.decimal_digits)} ${asset.shortName}`
       };
 
       if (hide.value) {

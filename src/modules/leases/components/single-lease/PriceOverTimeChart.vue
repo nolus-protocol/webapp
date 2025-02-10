@@ -1,4 +1,12 @@
 <template>
+  <div class="flex justify-center">
+    <div class="flex items-center">
+      <span class="m-2 block h-[8px] w-[20px] rounded bg-blue-500"></span>{{ $t("message.asset-price") }}
+    </div>
+    <div class="flex items-center">
+      <span class="m-2 block h-[8px] w-[20px] rounded bg-red-500"></span>{{ $t("message.liquidation") }}
+    </div>
+  </div>
   <Chart
     ref="chart"
     :updateChart="updateChart"
