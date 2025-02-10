@@ -142,7 +142,6 @@ export function useLease(leaseAddress: string, protocol: string, onError: (error
         return;
       }
       lease.value = l;
-      console.log(l);
     } catch (e) {
       onError(e);
       Logger.error(e);
@@ -207,6 +206,8 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
   let pnlPercent = new Dec(0);
   let pnlAmount = new Dec(0);
   let fee = leaseData?.fee ?? new Dec(0);
+  let unitAsset = new Dec(0);
+  let stableAsset = new Dec(0);
 
   leaseData.downpaymentTicker =
     leaseData.downpaymentTicker ??
@@ -248,9 +249,8 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
       CurrencyDemapping[leaseInfo.opened.principal_due.ticker!]?.ticker ?? leaseInfo.opened.principal_due.ticker;
     const stableAssetInfo = app.currenciesData![`${stableTicker!}@${protocolKey}`];
 
-    const unitAsset = new Dec(leaseInfo.opened.amount.amount, Number(unitAssetInfo!.decimal_digits));
-
-    const stableAsset = new Dec(leaseInfo.opened.principal_due.amount, Number(stableAssetInfo!.decimal_digits));
+    unitAsset = new Dec(leaseInfo.opened.amount.amount, Number(unitAssetInfo!.decimal_digits));
+    stableAsset = new Dec(leaseInfo.opened.principal_due.amount, Number(stableAssetInfo!.decimal_digits));
 
     switch (ProtocolsConfig[protocolKey].type) {
       case PositionTypes.long: {
@@ -294,6 +294,8 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
   }
 
   return {
+    stableAsset,
+    unitAsset,
     fee,
     pnlAmount,
     pnlPercent,

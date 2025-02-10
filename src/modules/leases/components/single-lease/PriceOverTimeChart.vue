@@ -86,14 +86,16 @@ async function setData() {
     const chartData = await loadData(props.interval);
     const liq = Number(liquidation().quo(new Dec(PERCENT)).toString());
 
-    data = (chartData ?? []).map((item) => {
-      const [date, price] = item;
-      return {
-        Date: new Date(date),
-        Price: price,
-        Liquidation: getLiquidationPrice(price, liq)!
-      };
-    });
+    data = (chartData ?? [])
+      .map((item) => {
+        const [date, price] = item;
+        return {
+          Date: new Date(date),
+          Price: price,
+          Liquidation: getLiquidationPrice(price, liq)!
+        };
+      })
+      .reverse();
     chart.value?.update();
   }
 }

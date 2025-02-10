@@ -235,13 +235,28 @@ function isAmountValid() {
         isValid = false;
       }
 
-      if (a.lte(price)) {
-        amountErrorMsg.value = i18n.t("message.take-profit-min-amount-error", {
-          amount: `${NATIVE_CURRENCY.symbol}${Number(price.toString(Number(currency.decimal_digits)))}`,
-          symbol: ""
-        });
+      switch (ProtocolsConfig[lease.value?.protocol!].type) {
+        case PositionTypes.long: {
+          if (a.lte(price)) {
+            amountErrorMsg.value = i18n.t("message.take-profit-min-amount-error", {
+              amount: `${NATIVE_CURRENCY.symbol}${Number(price.toString(Number(currency.decimal_digits)))}`,
+              symbol: ""
+            });
 
-        isValid = false;
+            isValid = false;
+          }
+          break;
+        }
+        case PositionTypes.short: {
+          if (a.gt(price)) {
+            amountErrorMsg.value = i18n.t("message.lease-only-max-error", {
+              maxAmount: `${NATIVE_CURRENCY.symbol}${Number(price.toString(Number(currency.decimal_digits)))}`,
+              symbol: ""
+            });
+            isValid = false;
+          }
+          break;
+        }
       }
     } else {
       amountErrorMsg.value = i18n.t("message.missing-amount");
@@ -271,18 +286,16 @@ async function marketCloseLease() {
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const leaseClient = new Lease(cosmWasmClient, lease?.value!.leaseAddress);
-      const value = new Dec(amount.value);
       const price = getPrice();
 
       if (!price) {
         return;
       }
 
-      const diff = value.sub(price);
-      const percent = diff.quo(price);
+      const percent = getPercent();
 
-      const takeProfit = Number(percent.mul(new Dec(PERMILLE)).round().toString());
-      const stopLoss = lease.value?.leaseStatus.opened?.close_policy.take_profit;
+      const takeProfit = Number(percent!.mul(new Dec(PERMILLE)).round().toString());
+      const stopLoss = lease.value?.leaseStatus.opened?.close_policy.stop_loss;
       const { txHash, txBytes, usedFee } = await leaseClient.simulateChangeClosePolicyTx(
         wallet,
         stopLoss,
@@ -298,8 +311,21 @@ async function marketCloseLease() {
       });
     } catch (error: Error | any) {
       Logger.error(error);
+      amountErrorMsg.value = error.message;
     } finally {
       loading.value = false;
+    }
+  }
+}
+
+function getPercent() {
+  const value = new Dec(amount.value);
+  switch (ProtocolsConfig[lease.value?.protocol!].type) {
+    case PositionTypes.long: {
+      return lease.value!.stableAsset.quo(value.mul(lease.value!.unitAsset));
+    }
+    case PositionTypes.short: {
+      return lease.value!.stableAsset.quo(lease.value!.unitAsset).mul(value);
     }
   }
 }

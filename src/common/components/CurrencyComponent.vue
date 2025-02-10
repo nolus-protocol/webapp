@@ -42,6 +42,7 @@ export interface CurrencyComponentProps {
   defaultZeroValue?: string;
   prettyZeros?: boolean;
   around?: boolean;
+  hide?: boolean;
 }
 
 const props = withDefaults(defineProps<CurrencyComponentProps>(), {
@@ -95,9 +96,15 @@ const amount = computed(() => {
         afterDecimal = ".00";
       }
 
+      if (props.hide) {
+        beforeDecimal = "**";
+        afterDecimal = "**";
+        symbol = "";
+      }
+
       return {
         symbol,
-        denom: props.denom,
+        denom: props.hide ? "" : props.denom,
         beforeDecimal,
         afterDecimal
       };
@@ -109,7 +116,7 @@ const amount = computed(() => {
         props.denom as string,
         props.decimals as number
       );
-      const denom = token.denom;
+      let denom = token.denom;
       const amount = token.hideDenom(true).toString();
       let [beforeDecimal, afterDecimal] = amount.split(".");
       if (props.maxDecimals > 0 && afterDecimal?.length > props.maxDecimals) {
@@ -134,6 +141,12 @@ const amount = computed(() => {
         afterDecimal = `.${afterDecimal}`;
       } else {
         afterDecimal = ".00";
+      }
+
+      if (props.hide) {
+        beforeDecimal = "**";
+        afterDecimal = "**";
+        denom = "";
       }
 
       return {

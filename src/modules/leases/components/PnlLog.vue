@@ -12,28 +12,48 @@
       </div>
     </div>
   </div>
-  <Widget class="overflow-auto">
-    <BigNumber
-      :label="$t('message.realized-pnl')"
-      :amount="{
-        amount: pnl.toString(),
-        type: CURRENCY_VIEW_TYPES.CURRENCY,
-        denom: NATIVE_CURRENCY.symbol
-      }"
+  <Widget
+    v-if="!showSkeleton"
+    class="overflow-auto"
+  >
+    <EmptyState
+      v-if="leasesHistory.length == 0"
+      :slider="[
+        {
+          image: { name: 'new-lease' },
+          title: $t('message.start-lease'),
+          description: $t('message.start-lease-description'),
+          link: {
+            label: $t('message.learn-new-leases'),
+            url: '#',
+            tooltip: { content: $t('message.learn-new-leases') }
+          }
+        }
+      ]"
     />
-    <PositionPreviewChart />
-    <Table
-      :columns="leasesHistory.length > 0 ? columns : []"
-      :class="[{ 'min-w-[600px]': leasesHistory.length > 0 }]"
-    >
-      <template v-slot:body>
-        <TableRow
-          v-for="(row, index) in leasesHistory"
-          :key="index"
-          :items="row.items"
-        />
-      </template>
-    </Table>
+    <template v-else>
+      <BigNumber
+        :label="$t('message.realized-pnl')"
+        :amount="{
+          amount: pnl.toString(),
+          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          denom: NATIVE_CURRENCY.symbol
+        }"
+      />
+      <PositionPreviewChart />
+      <Table
+        :columns="leasesHistory.length > 0 ? columns : []"
+        :class="[{ 'min-w-[600px]': leasesHistory.length > 0 }]"
+      >
+        <template v-slot:body>
+          <TableRow
+            v-for="(row, index) in leasesHistory"
+            :key="index"
+            :items="row.items"
+          />
+        </template>
+      </Table>
+    </template>
   </Widget>
   <div class="my-4 flex justify-center">
     <Button
@@ -74,6 +94,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { Dec, PricePretty } from "@keplr-wallet/unit";
 import { RouteNames } from "@/router";
 import { useRouter } from "vue-router";
+import EmptyState from "@/common/components/EmptyState.vue";
 
 const i18n = useI18n();
 const app = useApplicationStore();

@@ -60,25 +60,6 @@
             fontSizeSmall: 20
           }"
         />
-        <span class="hidden border-r border-border-color md:block" />
-        <div class="flex flex-col gap-2">
-          <BigNumber
-            :label="$t('message.realized-pnl')"
-            :amount="{
-              amount: realized_pnl.toString(),
-              type: CURRENCY_VIEW_TYPES.CURRENCY,
-              denom: NATIVE_CURRENCY.symbol,
-              fontSize: 20,
-              fontSizeSmall: 20
-            }"
-          />
-          <Button
-            label="Realized PnL Log"
-            severity="secondary"
-            size="small"
-            @click="router.push(`/${RouteNames.LEASES}/pnl-log`)"
-          />
-        </div>
       </div>
       <UnrealizedPnlChart />
     </template>
@@ -122,7 +103,6 @@ const { leases, getLeases } = useLeases((error: Error | any) => {});
 const activeLeases = ref(new Dec(0));
 const pnl = ref(new Dec(0));
 const debt = ref(new Dec(0));
-const realized_pnl = ref(new Dec(0));
 const pnl_percent = ref(new Dec(0));
 
 const router = useRouter();
@@ -143,20 +123,6 @@ watch(
   () => wallet.wallet,
   () => {
     getLeases();
-  }
-);
-
-watch(
-  () => wallet.wallet,
-  async () => {
-    try {
-      getRealizedPnl();
-    } catch (e) {
-      Logger.error(e);
-    }
-  },
-  {
-    immediate: true
   }
 );
 
@@ -201,15 +167,6 @@ function setLeases() {
     });
   } catch (e) {
     Logger.error(e);
-  }
-}
-
-async function getRealizedPnl() {
-  try {
-    const data = await EtlApi.fetchRealizedPNL(wallet?.wallet?.address);
-    realized_pnl.value = new Dec(data.realized_pnl);
-  } catch (error) {
-    console.error(error);
   }
 }
 </script>

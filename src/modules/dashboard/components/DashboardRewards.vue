@@ -35,7 +35,7 @@
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import { Button, Widget, Asset } from "web-components";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
+import { CURRENCY_VIEW_TYPES, type IObjectKeys } from "@/common/types";
 import { AssetUtils, Logger, NetworkUtils, walletOperation } from "@/common/utils";
 import { Dec } from "@keplr-wallet/unit";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
@@ -74,7 +74,9 @@ watch(
 
 async function setRewards() {
   const [r] = await Promise.all([NetworkUtils.loadDelegator()]);
-  const total = new Dec(new Dec(r?.total?.[0]?.amount ?? 0).truncate(), NATIVE_ASSET.decimal_digits);
+  const t = r?.total?.find((item: IObjectKeys) => item.denom == NATIVE_ASSET.denom);
+
+  const total = new Dec(new Dec(t.amount ?? 0).truncate(), NATIVE_ASSET.decimal_digits);
   const currency = AssetUtils.getCurrencyByTicker(NATIVE_ASSET.ticker);
   const price = new Dec(oracle.prices?.[currency.key]?.amount ?? 0);
   const stable = price.mul(total);

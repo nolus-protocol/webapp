@@ -1,32 +1,5 @@
-<template>
-  <div class="flex items-center justify-between text-typography-default">
-    <span class="text-16 font-semibold">{{ $t("message.pnl-over-time") }}</span>
-    <div class="flex items-center gap-3 text-14">
-      {{ $t("message.period") }}:
-      <Dropdown
-        id="pnl-over-time"
-        :on-select="
-          (data: any) => {
-            chartTimeRange = data;
-            // loadCharts();
-          }
-        "
-        :selected="options[0]"
-        :options="options"
-        class="w-20 !border-none focus:px-3 focus:py-2"
-        dropdownPosition="right"
-        dropdownClassName="min-w-10"
-      />
-    </div>
-  </div>
-  <div
-    v-html="chartHTML"
-    class="flex items-center justify-center"
-  />
-</template>
-
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { Dropdown } from "web-components";
 import * as Plot from "@observablehq/plot";
 
@@ -52,25 +25,58 @@ const aapl = [
   { Date: "2020-04-14", Close: 312.68 }
 ];
 
-const chartHTML = Plot.line(aapl, { x: "Date", y: "Close", stroke: "#3470E2", strokeWidth: 4 }).plot({
-  width: 960,
-  height: 350,
-  y: {
-    grid: true,
-    label: null,
-    labelArrow: false,
-    tickFormat: (d) => `$${d}`,
-    ticks: 4,
-    tickSize: 0
-  },
-  x: {
-    label: null,
-    type: "time",
-    ticks: 3,
-    tickSize: 0,
-    tickFormat: (d) => new Date(d).toLocaleString("default", { month: "short", year: "2-digit" })
-  }
-}).outerHTML;
+// SVG Gradient за плавно преливане между два цвята
+const gradientHTML = `
+  <svg width="0" height="0">
+    <defs>
+      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" style="stop-color:#EF4444; stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#FACC15; stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#34D399; stop-opacity:1" />
+      </linearGradient>
+    </defs>
+  </svg>
+`;
+
+const chartHTML = computed(
+  () =>
+    Plot.plot({
+      width: 960,
+      height: 350,
+      y: {
+        grid: true,
+        label: null,
+        labelArrow: false,
+        tickFormat: (d) => `$${d}`,
+        ticks: 4,
+        tickSize: 0
+      },
+      x: {
+        label: null,
+        type: "time",
+        ticks: 3,
+        tickSize: 0,
+        tickFormat: (d) => new Date(d).toLocaleString("default", { month: "short", year: "2-digit" })
+      },
+      marks: [
+        Plot.line(aapl, {
+          x: "Date",
+          y: "Close",
+          stroke: "url(#gradient)", // Градиентен цвят
+          strokeWidth: 4,
+          strokeLinecap: "round" // За плавни краища
+        })
+      ]
+    }).outerHTML
+);
 </script>
 
-<style scoped lang=""></style>
+<template>
+  <div class="chart-container">
+    <div v-html="gradientHTML"></div>
+    <div
+      v-html="chartHTML"
+      class="flex items-center justify-center"
+    />
+  </div>
+</template>

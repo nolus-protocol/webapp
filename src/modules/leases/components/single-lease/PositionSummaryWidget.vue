@@ -280,11 +280,22 @@ const stopLoss = computed(() => {
   const price = getPrice()!;
 
   if (!!data && !!price) {
-    const p = price.sub(price.mul(new Dec(data).quo(new Dec(PERMILLE))));
-    return {
-      percent: data / (PERMILLE / PERCENT),
-      amount: p.toString(asset.value?.decimal_digits)
-    };
+    switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
+      case PositionTypes.long: {
+        const p = props.lease.stableAsset.quo(new Dec(data).quo(new Dec(PERMILLE))).quo(props.lease.unitAsset);
+        return {
+          percent: data / (PERMILLE / PERCENT),
+          amount: p.toString(asset.value?.decimal_digits)
+        };
+      }
+      case PositionTypes.short: {
+        const p = props.lease.unitAsset.mul(new Dec(data).quo(new Dec(PERMILLE))).quo(props.lease.stableAsset);
+        return {
+          percent: data / (PERMILLE / PERCENT),
+          amount: p.toString(asset.value?.decimal_digits)
+        };
+      }
+    }
   }
 
   return null;
@@ -295,11 +306,22 @@ const takeProfit = computed(() => {
   const price = getPrice()!;
 
   if (!!data && !!price) {
-    const p = price.add(price.mul(new Dec(data).quo(new Dec(PERMILLE))));
-    return {
-      percent: data / (PERMILLE / PERCENT),
-      amount: p.toString(asset.value?.decimal_digits)
-    };
+    switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
+      case PositionTypes.long: {
+        const p = props.lease.stableAsset.quo(new Dec(data).quo(new Dec(PERMILLE))).quo(props.lease.unitAsset);
+        return {
+          percent: data / (PERMILLE / PERCENT),
+          amount: p.toString(asset.value?.decimal_digits)
+        };
+      }
+      case PositionTypes.short: {
+        const p = props.lease.unitAsset.mul(new Dec(data).quo(new Dec(PERMILLE))).quo(props.lease.stableAsset);
+        return {
+          percent: data / (PERMILLE / PERCENT),
+          amount: p.toString(asset.value?.decimal_digits)
+        };
+      }
+    }
   }
 
   return null;

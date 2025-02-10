@@ -13,6 +13,8 @@ export interface LeaseData {
   pnlAmount: Dec;
   fee: Dec;
   pnlPercent: Dec;
+  stableAsset: Dec;
+  unitAsset: Dec;
   leaseData: LeaseAttributes | undefined;
   balances: {
     amount: string;

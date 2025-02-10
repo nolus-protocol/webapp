@@ -14,6 +14,7 @@
       :label="$t('message.total-value')"
       :amount="{
         amount: total.toString(2),
+        hide: hide,
         type: CURRENCY_VIEW_TYPES.CURRENCY,
         denom: NATIVE_CURRENCY.symbol
       }"
@@ -58,7 +59,7 @@ const showSmallBalances = computed(() => {
   if (!wallet.wallet) {
     return true;
   }
-  return smBalances;
+  return smBalances.value;
 });
 const search = ref("");
 

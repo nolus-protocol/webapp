@@ -25,20 +25,7 @@
     "
   />
   <div class="flex justify-end border-b border-t border-border-color px-6 py-4">
-    <div class="flex flex-[3] flex-col gap-3 text-right text-14 font-normal text-typography-secondary">
-      <p class="flex gap-1 self-end">
-        {{ $t("message.slippage") }}:
-        <Tooltip
-          position="top"
-          :content="$t('message.slippage-message')"
-        >
-          <SvgIcon
-            name="help"
-            class="rouded-full"
-            size="s"
-          />
-        </Tooltip>
-      </p>
+    <div class="flex flex-[3] flex-col gap-3 text-right text-16 font-normal text-typography-secondary">
       <p class="flex gap-1 self-end">
         {{ $t("message.price-impact") }}:
         <Tooltip
@@ -66,8 +53,9 @@
         </Tooltip>
       </p>
     </div>
-    <div class="flex flex-[1] flex-col gap-2 text-right text-16 font-semibold text-typography-default">
-      <p class="align-center flex justify-end">{{ slippage }}%</p>
+    <div
+      class="ml-2 flex flex-[1] flex-col justify-between gap-2 text-right text-16 font-semibold text-typography-default"
+    >
       <template v-if="loading">
         <p class="align-center flex justify-end">
           <span class="state-loading !w-[60px]"> </span>
@@ -157,7 +145,6 @@ const secondInputAmount = ref();
 
 const swapFee = ref("");
 const loading = ref(false);
-const slippage = ref<number | undefined>();
 const disabled = ref(false);
 const loadingTx = ref(false);
 const priceImapact = ref(0);
@@ -224,7 +211,6 @@ onMounted(async () => {
     const config = await AppUtils.getSkipRouteConfig();
     const protocol = applicaiton.protocolFilter.toLowerCase();
     blacklist.value = config.blacklist;
-    slippage.value = config.slippage;
     selectedFirstCurrencyOption.value = assets.value.find(
       (item) => item.ibcData == config[`swap_currency_${protocol}` as keyof SkipRouteConfigType]
     )!;
@@ -298,6 +284,10 @@ async function setSwapFee() {
 }
 
 function updateRoute() {
+  if (!amount.value.length || amount.value.length == 0) {
+    return false;
+  }
+
   if (validateInputs().length == 0) {
     const token = CurrencyUtils.convertDenomToMinimalDenom(
       amount.value.toString(),

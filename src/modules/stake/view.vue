@@ -117,7 +117,9 @@ async function loadUnboundingDelegations() {
 
 async function loadDelegator() {
   const delegator = await NetworkUtils.loadDelegator();
-  const total = new Dec(new Dec(delegator?.total?.[0]?.amount ?? 0).truncate(), NATIVE_ASSET.decimal_digits);
+  const t = delegator?.total?.find((item: IObjectKeys) => item.denom == NATIVE_ASSET.denom);
+
+  const total = new Dec(new Dec(t?.amount ?? 0).truncate(), NATIVE_ASSET.decimal_digits);
 
   const currency = AssetUtils.getCurrencyByTicker(NATIVE_ASSET.ticker);
   const price = new Dec(oracle.prices?.[currency.key]?.amount ?? 0);
@@ -169,7 +171,7 @@ async function loadDelegated() {
           },
           { value: `${rate}%`, class: "hidden md:flex max-w-[100px]" },
           {
-            class: "max-w-[100px]",
+            class: "max-w-[150px]",
             component: () =>
               validator.jailed
                 ? h<LabelProps>(Label, { value: i18n.t("message.jailed"), variant: "error" })
