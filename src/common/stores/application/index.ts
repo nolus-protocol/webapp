@@ -8,7 +8,6 @@ const state = (): State => ({
   network: {},
   theme: "",
   protocolFilter: DefaultProtocolFilter,
-  sessionExpired: false,
   protocols: [] as string[],
   leasesCurrencies: [] as string[]
 });

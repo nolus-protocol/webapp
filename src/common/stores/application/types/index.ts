@@ -21,7 +21,6 @@ export type State = {
   theme?: string;
   apr?: { [key: string]: number };
   dispatcherRewards?: number;
-  sessionExpired: boolean;
   currenciesData?: ExternalCurrencies;
   native?: ExternalCurrency;
   lpn?: ExternalCurrency[];

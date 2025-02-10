@@ -105,15 +105,6 @@ onUnmounted(() => {
 });
 
 watch(
-  () => application.sessionExpired,
-  (value) => {
-    if (value) {
-      clearInterval(interval);
-    }
-  }
-);
-
-watch(
   () => [wallet.balances, application.protocolFilter],
   async (value) => {
     await Promise.allSettled([loadLPNCurrency(), loadRewards()]);
@@ -139,6 +130,7 @@ async function loadLPNCurrency() {
   });
   const promises = [];
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+  const claimContract: ContractData[] = [];
   let usdAmount = new Dec(0);
 
   for (const lpn of lpns ?? []) {
@@ -151,7 +143,7 @@ async function loadLPNCurrency() {
         const lppClient = new Lpp(cosmWasmClient, contract);
         let s = true;
 
-        claimContractData.value.push({
+        claimContract.push({
           contractAddress: contract,
           msg: claimRewardsMsg()
         });
@@ -205,6 +197,7 @@ async function loadLPNCurrency() {
   }
 
   stableAmount.value = usdAmount.toString(2);
+  claimContractData.value = claimContract;
   lpnAsset.value = [...items, ...lpnCurrencies].filter((item) => {
     const [_, p] = item.key.split("@");
     if (Contracts.ignoreProtocolsInEarn.includes(p)) {

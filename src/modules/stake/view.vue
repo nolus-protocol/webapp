@@ -20,14 +20,21 @@
       </div>
     </ListHeader>
     <div class="flex flex-col gap-8 lg:flex-row">
-      <DelegationOverview
-        :delegated="delegated"
-        :stableDelegated="stableDelegated"
-        :validators="validators"
-        :showEmpty="showEmpty"
-        :unboundingDelegations="unboundingDelegations"
-        class="order-2 lg:order-none lg:flex-[60%]"
-      />
+      <div class="order-2 lg:order-none lg:flex-[60%]">
+        <DelegationOverview
+          :delegated="delegated"
+          :stableDelegated="stableDelegated"
+          :validators="validators"
+          :showEmpty="showEmpty"
+          :unboundingDelegations="unboundingDelegations"
+        />
+
+        <VestedOverview
+          v-if="vestedTokens.length > 0"
+          :vestedTokens="vestedTokens"
+          class="mt-8"
+        />
+      </div>
       <StakingRewards
         :reward="reward"
         :stableRewards="stableRewards"
@@ -42,6 +49,7 @@
 <script lang="ts" setup>
 import { Button, Label, type LabelProps, type TableRowItemProps } from "web-components";
 import { RouteNames } from "@/router";
+import type { IObjectKeys } from "@/common/types";
 
 import ListHeader from "@/common/components/ListHeader.vue";
 
@@ -49,7 +57,6 @@ import { StakeDialog } from "@/modules/stake/enums";
 import { DelegationOverview, StakingRewards } from "./components";
 import { h, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { AssetUtils, Logger, NetworkUtils } from "@/common/utils";
-import { useApplicationStore } from "@/common/stores/application";
 import { NATIVE_ASSET, NATIVE_CURRENCY, PERCENT, UPDATE_REWARDS_INTERVAL } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
@@ -58,10 +65,9 @@ import { Intercom } from "@/common/utils/Intercom";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
-import type { IObjectKeys } from "@/common/types";
+import VestedOverview from "./components/VestedOverview.vue";
 
 let interval: NodeJS.Timeout | undefined;
-const application = useApplicationStore();
 const wallet = useWalletStore();
 const oracle = useOracleStore();
 const i18n = useI18n();
@@ -78,13 +84,14 @@ const reward = ref<{
   icon: string;
 }>();
 const unboundingDelegations = ref<IObjectKeys[]>([]);
+const vestedTokens = ref([] as { endTime: string; amount: { amount: string; denom: string } }[]);
 
 onMounted(async () => {
   try {
-    await Promise.all([loadDelegated(), loadDelegator(), loadUnboundingDelegations()]);
+    await Promise.all([loadDelegated(), loadDelegator(), loadUnboundingDelegations(), loadVested()]);
 
     interval = setInterval(async () => {
-      await Promise.allSettled([loadDelegated(), loadDelegator(), loadUnboundingDelegations()]);
+      await Promise.allSettled([loadDelegated(), loadDelegator(), loadUnboundingDelegations(), loadVested()]);
     }, UPDATE_REWARDS_INTERVAL);
   } catch (e: Error | any) {
     Logger.error(e);
@@ -98,21 +105,17 @@ onUnmounted(() => {
 watch(
   () => wallet.wallet,
   async (value) => {
-    await Promise.allSettled([loadDelegated(), loadDelegator(), loadUnboundingDelegations()]);
-  }
-);
-
-watch(
-  () => application.sessionExpired,
-  (value) => {
-    if (value) {
-      clearInterval(interval);
-    }
+    await Promise.allSettled([loadDelegated(), loadDelegator(), loadUnboundingDelegations(), loadVested()]);
   }
 );
 
 async function loadUnboundingDelegations() {
   unboundingDelegations.value = await NetworkUtils.loadUnboundingDelegations();
+}
+
+async function loadVested() {
+  vestedTokens.value = await wallet.LOAD_VESTED_TOKENS();
+  console.log(vestedTokens.value);
 }
 
 async function loadDelegator() {
@@ -137,8 +140,8 @@ async function loadDelegator() {
 async function loadDelegated() {
   const delegations = await NetworkUtils.loadDelegations();
   const promises = [];
+  const data: TableRowItemProps[] = [];
   let decimalDelegated = new Dec(0);
-  validators.value = [];
 
   const currency = AssetUtils.getCurrencyByTicker(NATIVE_ASSET.ticker);
   const price = new Dec(oracle.prices?.[currency.key]?.amount ?? 0);
@@ -156,7 +159,7 @@ async function loadDelegated() {
       const amount_label = AssetUtils.formatNumber(amount.toString(), 3);
       const stable_label = AssetUtils.formatNumber(stable.toString(), 2);
 
-      validators.value.push({
+      data.push({
         items: [
           {
             value: validator.description.moniker,
@@ -198,6 +201,7 @@ async function loadDelegated() {
   }
 
   await Promise.all(promises);
+  validators.value = data;
 
   Intercom.update({
     Nlsamountdelegated: new Dec(d.balance.amount ?? 0, NATIVE_ASSET.decimal_digits).toString()

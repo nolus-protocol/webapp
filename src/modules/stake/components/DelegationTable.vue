@@ -63,7 +63,7 @@ const columns: TableColumnProps[] = [
   { label: i18n.t("message.validator"), variant: "left" },
   { label: i18n.t("message.amount-delegated"), class: "hidden md:flex" },
   { label: i18n.t("message.comm"), class: "hidden md:flex max-w-[100px]" },
-  { label: i18n.t("message.status"), class: "max-w-[150px]" }
+  { label: i18n.t("message.status"), class: "max-w-[100px]" }
 ];
 
 function openLink() {

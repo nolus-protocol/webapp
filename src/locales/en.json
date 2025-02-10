@@ -499,6 +499,8 @@
     "disconnect-body-btm": "Disconnect the wallet from the Nolus app. Are you sure you want to continue?",
     "opened-tooltip": "opened-tooltip",
     "supplied-auto-compound": "All supplied assets auto-compound",
-    "chart-liquidation-tooltip": "Liquidation"
+    "chart-liquidation-tooltip": "Liquidation",
+    "release-schedule": "Release schedule",
+    "release-schedule-tooltip": "Release schedule tooltip"
   }
 }

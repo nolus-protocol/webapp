@@ -17,13 +17,13 @@
     class="md:max-w-[385px]"
   >
     <template #header>
-      <Button
+      <!-- <Button
         severity="tertiary"
         size="small"
         class="!p-[9px] text-icon-default"
       >
         <SvgIcon name="bell" />
-      </Button>
+      </Button> -->
       <!-- <Tooltip
         :content="`Push notifications are <span class='font-semibold'>${isClicked ? 'enabled' : 'disabled'}</span>`"
         class="max-w-[152px]"

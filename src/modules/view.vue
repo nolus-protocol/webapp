@@ -25,7 +25,7 @@ import { onMounted, onUnmounted, ref } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
-import { SESSION_TIME, UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL } from "@/config/global";
+import { UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL } from "@/config/global";
 import { Logger, WalletManager, walletOperation } from "@/common/utils";
 
 import Sidebar from "@/common/components/Sidebar.vue";
@@ -48,8 +48,6 @@ onMounted(async () => {
   walletOperation(() => {});
   window.addEventListener("keplr_keystorechange", updateKeplr);
   window.addEventListener("leap_keystorechange", updateLeap);
-  window.addEventListener("focus", stopTimer);
-  window.addEventListener("blur", startTimer);
   checkBalances();
 });
 
@@ -59,15 +57,7 @@ onUnmounted(() => {
   clearInterval(sessionTimeOut);
   window.removeEventListener("keplr_keystorechange", updateKeplr);
   window.addEventListener("leap_keystorechange", updateLeap);
-  window.removeEventListener("focus", stopTimer);
-  window.removeEventListener("blur", startTimer);
 });
-
-async function connect() {
-  clearInterval(balanceInterval);
-  clearInterval(pricesInterval);
-  await loadNetwork();
-}
 
 async function updateKeplr() {
   try {
@@ -124,27 +114,6 @@ async function checkPrices() {
       errorMessage.value = error?.message;
     }
   }, UPDATE_PRICES_INTERVAL);
-}
-
-function startTimer() {
-  if (sessionTimeOut) {
-    clearInterval(sessionTimeOut);
-  }
-  sessionTimeOut = setTimeout(() => {
-    app.sessionExpired = true;
-    clearInterval(balanceInterval);
-    clearInterval(pricesInterval);
-  }, SESSION_TIME);
-}
-
-function stopTimer() {
-  if (sessionTimeOut) {
-    clearInterval(sessionTimeOut);
-  }
-}
-
-function refresh() {
-  window.location.reload();
 }
 </script>
 

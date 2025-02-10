@@ -76,7 +76,7 @@ async function setRewards() {
   const [r] = await Promise.all([NetworkUtils.loadDelegator()]);
   const t = r?.total?.find((item: IObjectKeys) => item.denom == NATIVE_ASSET.denom);
 
-  const total = new Dec(new Dec(t.amount ?? 0).truncate(), NATIVE_ASSET.decimal_digits);
+  const total = new Dec(new Dec(t?.amount ?? 0).truncate(), NATIVE_ASSET.decimal_digits);
   const currency = AssetUtils.getCurrencyByTicker(NATIVE_ASSET.ticker);
   const price = new Dec(oracle.prices?.[currency.key]?.amount ?? 0);
   const stable = price.mul(total);

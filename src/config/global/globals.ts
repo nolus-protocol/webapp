@@ -26,10 +26,6 @@ export const CHART_RANGES = {
   "30": {
     label: "30d",
     days: "30"
-  },
-  "90": {
-    label: "90d",
-    days: "90"
   }
 };
 
