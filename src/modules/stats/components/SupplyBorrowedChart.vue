@@ -131,7 +131,6 @@ async function loadData() {
       supplied: d.supplied
     }))
     .reverse();
-  console.log(data);
 
   chart.value?.update();
 }

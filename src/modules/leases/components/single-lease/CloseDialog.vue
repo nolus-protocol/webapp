@@ -463,6 +463,7 @@ async function marketCloseLease() {
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
       reload();
       dialog?.value?.close();
+      walletStore.loadActivities();
       onShowToast({
         type: ToastType.success,
         message: i18n.t("message.toast-closed")

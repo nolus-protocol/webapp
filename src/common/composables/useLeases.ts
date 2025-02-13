@@ -129,14 +129,14 @@ export function useLeases(onError: (error: unknown) => void) {
   return { leases, leaseLoaded, getLeases };
 }
 
-export function useLease(leaseAddress: string, protocol: string, onError: (error: unknown) => void) {
+export function useLease(leaseAddress: string, protocol: string, onError: (error: unknown) => void, period?: number) {
   const lease = ref<LeaseData>();
   const leaseLoaded = ref(false);
   const router = useRouter();
 
   const getLease = async () => {
     try {
-      const l = await fetchLease(leaseAddress, protocol.toUpperCase());
+      const l = await fetchLease(leaseAddress, protocol.toUpperCase(), period);
       if (l.leaseStatus.closed) {
         router.push(`/${RouteNames.LEASES}`);
         return;
@@ -178,7 +178,7 @@ export function useLeaseConfig(protocol: string, onError: (error: unknown) => vo
   return { getLeaseConfig, config };
 }
 
-async function fetchLease(leaseAddress: string, protocolKey: string): Promise<LeaseData> {
+async function fetchLease(leaseAddress: string, protocolKey: string, period?: number): Promise<LeaseData> {
   const [cosmWasmClient, etl] = await Promise.all([
     NolusClient.getInstance().getCosmWasmClient(),
     AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)
@@ -190,7 +190,7 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
   const leaseClient = new Lease(cosmWasmClient, leaseAddress);
 
   const [leaseInfo, balancesReq, leaseData] = await Promise.all([
-    leaseClient.getLeaseStatus(),
+    leaseClient.getLeaseStatus(period),
     fetch(`${etl.api}/cosmos/bank/v1beta1/balances/${leaseAddress}`),
     LeaseUtils.getLeaseData(leaseAddress)
   ]);

@@ -128,6 +128,7 @@ import type { Coin } from "@cosmjs/proto-signing";
 import { Lease } from "@nolus/nolusjs/build/contracts";
 
 const timeOut = 250;
+const period = 30;
 let time: NodeJS.Timeout;
 
 const route = useRoute();
@@ -150,9 +151,14 @@ const reload = inject("reload", () => {});
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
 const dialog = ref<typeof Dialog | null>(null);
-const { lease } = useLease(route.params.id as string, route.params.protocol as string, (error) => {
-  Logger.error(error);
-});
+const { lease } = useLease(
+  route.params.id as string,
+  route.params.protocol as string,
+  (error) => {
+    Logger.error(error);
+  },
+  period
+);
 
 onMounted(() => {
   dialog?.value?.show();
@@ -532,6 +538,7 @@ async function repayLease() {
 
       const { txHash, txBytes, usedFee } = await leaseClient.simulateRepayLeaseTx(wallet, funds);
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
+      walletStore.loadActivities();
       reload();
       dialog?.value?.close();
       onShowToast({

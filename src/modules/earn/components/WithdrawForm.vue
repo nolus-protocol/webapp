@@ -238,6 +238,7 @@ async function transferAmount() {
 
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
       await Promise.all([loadLPNCurrency(), walletStore[WalletActions.UPDATE_BALANCES]()]);
+      walletStore.loadActivities();
       onClose();
       onShowToast({
         type: ToastType.success,

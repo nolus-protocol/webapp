@@ -125,6 +125,7 @@ async function requestClaim() {
       loadRewards();
     }
     await wallet.UPDATE_BALANCES();
+    wallet.loadActivities();
     onShowToast({
       type: ToastType.success,
       message: i18n.t("message.rewards-claimed-successful")

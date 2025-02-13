@@ -398,6 +398,7 @@ async function onSwap() {
       await baseWallet.broadcastTx(tx.txBytes as Uint8Array);
       element.status = SwapStatus.success;
       await wallet.UPDATE_BALANCES();
+      wallet.loadActivities();
       onClose();
     });
 

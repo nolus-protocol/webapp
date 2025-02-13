@@ -20,7 +20,16 @@ import type { IObjectKeys } from "@/common/types";
 
 type ChartData = { amount: number; date: Date };
 
-let data: ChartData[] = [];
+let data: ChartData[] = [
+  {
+    amount: 0,
+    date: new Date(Date.now() - 1000 * 60 * 60)
+  },
+  {
+    amount: 0,
+    date: new Date()
+  }
+];
 
 const chartHeight = 250;
 const marginLeft = 40;

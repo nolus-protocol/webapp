@@ -22,59 +22,61 @@
         />
       </template>
     </WidgetHeader>
-    <template v-if="isVisible">
-      <div class="flex gap-8">
-        <BigNumber
-          :label="$t('message.unrealized-pnl')"
-          :amount="{
-            amount: pnl.toString(),
-            type: CURRENCY_VIEW_TYPES.CURRENCY,
-            denom: NATIVE_CURRENCY.symbol
-          }"
-          :pnl-status="{
-            positive: pnl_percent.isPositive() || pnl_percent.isZero(),
-            value: `${pnl_percent.isPositive() || pnl_percent.isZero() ? '+' : '-'}${pnl_percent.abs().toString(2)}%`,
-            badge: {
-              content: pnl_percent.toString(),
-              base: false
+    <div :class="{ 'opacity-0': !loaded }">
+      <template v-if="isVisibleWidget">
+        <div class="flex gap-8">
+          <BigNumber
+            :label="$t('message.unrealized-pnl')"
+            :amount="{
+              amount: pnl.toString(),
+              type: CURRENCY_VIEW_TYPES.CURRENCY,
+              denom: NATIVE_CURRENCY.symbol
+            }"
+            :pnl-status="{
+              positive: pnl_percent.isPositive() || pnl_percent.isZero(),
+              value: `${pnl_percent.isPositive() || pnl_percent.isZero() ? '+' : '-'}${pnl_percent.abs().toString(2)}%`,
+              badge: {
+                content: pnl_percent.toString(),
+                base: false
+              }
+            }"
+          />
+          <BigNumber
+            :label="$t('message.leases')"
+            :amount="{
+              amount: activeLeases.toString(),
+              type: CURRENCY_VIEW_TYPES.CURRENCY,
+              denom: NATIVE_CURRENCY.symbol,
+              fontSize: 20,
+              fontSizeSmall: 20
+            }"
+          />
+          <BigNumber
+            :label="$t('message.debt')"
+            :amount="{
+              amount: debt.toString(),
+              type: CURRENCY_VIEW_TYPES.CURRENCY,
+              denom: NATIVE_CURRENCY.symbol,
+              fontSize: 20,
+              fontSizeSmall: 20
+            }"
+          />
+        </div>
+        <UnrealizedPnlChart />
+      </template>
+      <template v-else>
+        <EmptyState
+          :slider="[
+            {
+              image: { name: 'new-lease' },
+              title: $t('message.start-lease'),
+              description: $t('message.start-lease'),
+              link: { label: 'Learn more about assets', url: '#' }
             }
-          }"
+          ]"
         />
-        <BigNumber
-          :label="$t('message.leases')"
-          :amount="{
-            amount: activeLeases.toString(),
-            type: CURRENCY_VIEW_TYPES.CURRENCY,
-            denom: NATIVE_CURRENCY.symbol,
-            fontSize: 20,
-            fontSizeSmall: 20
-          }"
-        />
-        <BigNumber
-          :label="$t('message.debt')"
-          :amount="{
-            amount: debt.toString(),
-            type: CURRENCY_VIEW_TYPES.CURRENCY,
-            denom: NATIVE_CURRENCY.symbol,
-            fontSize: 20,
-            fontSizeSmall: 20
-          }"
-        />
-      </div>
-      <UnrealizedPnlChart />
-    </template>
-    <template v-else>
-      <EmptyState
-        :slider="[
-          {
-            image: { name: 'new-lease' },
-            title: $t('message.start-lease'),
-            description: $t('message.start-lease'),
-            link: { label: 'Learn more about assets', url: '#' }
-          }
-        ]"
-      />
-    </template>
+      </template>
+    </div>
   </Widget>
 </template>
 
@@ -86,7 +88,7 @@ import { Button, Widget } from "web-components";
 import { RouteNames } from "@/router";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { useLeases } from "@/common/composables";
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { Coin, Dec } from "@keplr-wallet/unit";
 import { Intercom } from "@/common/utils/Intercom";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -109,8 +111,13 @@ const router = useRouter();
 const wallet = useWalletStore();
 const oracle = useOracleStore();
 const app = useApplicationStore();
+const loaded = ref(false);
 
-defineProps<{ isVisible: boolean }>();
+const props = defineProps<{ isVisible: boolean }>();
+
+const isVisibleWidget = computed(() => {
+  return props.isVisible && leases.value.length > 0;
+});
 
 watch(
   () => leases.value,
@@ -167,6 +174,8 @@ function setLeases() {
     });
   } catch (e) {
     Logger.error(e);
+  } finally {
+    loaded.value = true;
   }
 }
 </script>

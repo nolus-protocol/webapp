@@ -270,14 +270,14 @@ function isAmountValid() {
 async function onSendClick() {
   try {
     disabled.value = true;
-    await walletOperation(marketCloseLease);
+    await walletOperation(operation);
   } catch (error: Error | any) {
   } finally {
     disabled.value = false;
   }
 }
 
-async function marketCloseLease() {
+async function operation() {
   const wallet = walletStore.wallet as NolusWallet;
   if (wallet && isAmountValid()) {
     try {
@@ -303,6 +303,7 @@ async function marketCloseLease() {
         funds
       );
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
+      walletStore.loadActivities();
       reload();
       dialog?.value?.close();
       onShowToast({

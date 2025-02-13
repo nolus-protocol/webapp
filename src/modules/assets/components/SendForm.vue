@@ -676,6 +676,7 @@ async function transferAmount() {
       }
     }
 
+    walletStore.loadActivities();
     onClose();
   } catch (e: Error | any) {
     amountErrorMsg.value = e.toString();
@@ -713,6 +714,7 @@ async function onSwapCosmos() {
           walletStore.history[id].step = CONFIRM_STEP.SUCCESS;
         }
 
+        walletStore.loadActivities();
         onClose();
       } catch (error) {
         step.value = CONFIRM_STEP.ERROR;

@@ -46,6 +46,7 @@ async function onClaim(lease: LeaseData) {
       const { txHash, txBytes, usedFee } = await leaseClient.simulateCloseLeaseTx(wallet, []);
 
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
+      walletStore.loadActivities();
       reload();
       onShowToast({
         type: ToastType.success,

@@ -218,6 +218,7 @@ async function onVoteEmit(vote: VoteOption) {
 
       await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
       hide();
+      wallet.loadActivities();
       onShowToast({
         type: ToastType.success,
         message: i18n.t("message.vote-successful", {

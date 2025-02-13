@@ -570,6 +570,7 @@ async function onSubmit() {
         await submit(wallets);
         await walletStore.UPDATE_BALANCES();
 
+        walletStore.loadActivities();
         step.value = CONFIRM_STEP.SUCCESS;
         if (walletStore.history[id]) {
           walletStore.history[id].step = CONFIRM_STEP.SUCCESS;

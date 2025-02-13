@@ -164,6 +164,7 @@ async function undelegate() {
 
       await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
       await Promise.all([loadDelegated(), wallet.UPDATE_BALANCES()]);
+      wallet.loadActivities();
       onClose();
       onShowToast({
         type: ToastType.success,

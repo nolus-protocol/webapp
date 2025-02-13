@@ -132,6 +132,8 @@ async function requestClaim() {
 
       setRewards();
     }
+
+    wallet.loadActivities();
     await wallet.UPDATE_BALANCES();
   } catch (error: Error | any) {
     Logger.error(error);

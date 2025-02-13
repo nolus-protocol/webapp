@@ -7,6 +7,10 @@ import { PositionTypes, ProtocolsConfig } from "@/config/global";
 import { Buffer } from "buffer";
 import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
 
+const currency_mapper: { [key: string]: string } = {
+  "transfer/channel-0/transfer/channel-783/unls": "unls"
+};
+
 export async function message(msg: IObjectKeys, address: string, i18n: IObjectKeys, voteMessages: IObjectKeys) {
   switch (msg.type) {
     case Messages["/cosmos.bank.v1beta1.MsgSend"]: {
@@ -61,10 +65,10 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
     case Messages["/ibc.core.channel.v1.MsgRecvPacket"]: {
       try {
         const data = JSON.parse(Buffer.from(msg.data.packet.data).toString());
-        const denom = AssetUtils.getIbc(
-          `${msg.data.packet.destinationPort}/${msg.data.packet.destinationChannel}/${data.denom}`
-        );
+        const d = `${msg.data.packet.destinationPort}/${msg.data.packet.destinationChannel}/${data.denom}`;
+        const denom = currency_mapper[d] ?? AssetUtils.getIbc(d);
         const coin = parseCoins(`${data.amount}${denom}`)[0];
+
         const token = await fetchCurrency(coin);
         return [
           i18n.t("message.receive-action", {
