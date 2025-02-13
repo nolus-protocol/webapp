@@ -28,6 +28,15 @@ export class EtlApi {
     );
   }
 
+  static async fetchPnlOverTime(address: string, interval: string): Promise<{ amount: number; date: Date }[]> {
+    return fetch(`${EtlApi.getApiUrl()}/pnl-over-time?interval=${interval}&address=${address}`).then((data) =>
+      data.json()
+    );
+  }
+
+  static async fetchTxVolume(): Promise<{ total_tx_value: string }> {
+    return fetch(`${EtlApi.getApiUrl()}/total-tx-value`).then((data) => data.json());
+  }
   static async fetchLeaseMonthly(): Promise<IObjectKeys[]> {
     return fetch(`${EtlApi.getApiUrl()}/leases-monthly`).then((data) => data.json());
   }
@@ -50,8 +59,20 @@ export class EtlApi {
     return fetch(`${EtlApi.getApiUrl()}/unrealized-pnl`).then((data) => data.json());
   }
 
+  static async fetchUnrealizedByAddressPnl(address: string): Promise<IObjectKeys> {
+    return fetch(`${EtlApi.getApiUrl()}/unrealized-pnl-by-address?address=${address}`).then((data) => data.json());
+  }
+
   static async fetchRealizedPNL(address: string): Promise<IObjectKeys> {
     return fetch(`${EtlApi.getApiUrl()}/realized-pnl?address=${address}`).then((data) => data.json());
+  }
+
+  static async fetchRealizedPNLStats(): Promise<IObjectKeys> {
+    return fetch(`${EtlApi.getApiUrl()}/realized-pnl-stats`).then((data) => data.json());
+  }
+
+  static async fetchSuppliedFunds(): Promise<IObjectKeys> {
+    return fetch(`${EtlApi.getApiUrl()}/supplied-funds`).then((data) => data.json());
   }
 
   static async fetchTimeSeries(): Promise<IObjectKeys[]> {

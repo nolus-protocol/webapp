@@ -100,8 +100,6 @@ const props = withDefaults(
 );
 
 const healTitle = computed((item) => {
-  console.log(health.value, props.yellowLimit);
-
   if (health.value <= props.greenLimit) {
     return status.green;
   }

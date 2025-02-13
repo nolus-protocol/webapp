@@ -18,12 +18,14 @@ import { Table, type TableColumnProps, TableRow, type TableRowItemProps } from "
 import { computed } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
 import { useOracleStore } from "@/common/stores/oracle";
-import { AssetUtils, datePraser } from "@/common/utils";
+import { AssetUtils } from "@/common/utils";
 import { Coin, Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
+import { useWalletStore } from "@/common/stores/wallet";
 
 const i18n = useI18n();
 const oracle = useOracleStore();
+const wallet = useWalletStore();
 
 const columns: TableColumnProps[] = [
   { label: i18n.t("message.asset"), variant: "left" },
@@ -45,10 +47,10 @@ const assets = computed(() => {
   const price = oracle.prices[asset.key]?.amount;
 
   for (const item of props.vestedTokens) {
-    const balance = AssetUtils.formatNumber(new Dec(item.amount.amount, asset.decimal_digits).toString(3), 3);
+    const balance = AssetUtils.formatNumber(new Dec(wallet.vestTokens.amount, asset.decimal_digits).toString(3), 3);
     const stable_b = CurrencyUtils.calculateBalance(
       price,
-      new Coin(asset.ibcData, item.amount.amount),
+      new Coin(asset.ibcData, wallet.vestTokens.amount),
       asset.decimal_digits
     ).toDec();
 

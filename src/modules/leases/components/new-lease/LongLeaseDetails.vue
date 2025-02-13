@@ -67,21 +67,20 @@
               class="md:flex-[50%]"
               :label="$t('message.borrow')"
               :amount="{
-                amount: borrowAmount,
-                decimals: asset.decimal_digits,
+                amount: borrowStableMinimal.toString(),
                 type: CURRENCY_VIEW_TYPES.TOKEN,
-                denom: asset.shortName,
                 hasSpace: true,
+                denom: lpn.shortName,
+                decimals: lpn.decimal_digits,
                 fontSize: 16,
                 fontSizeSmall: 16
               }"
               :secondary="{
-                amount: borrowStable.toString(),
-                type: CURRENCY_VIEW_TYPES.CURRENCY,
-                denom: NATIVE_CURRENCY.symbol,
-                decimals: 2,
-                maxDecimals: 2,
-                minimalDenom: ''
+                amount: borrowAmount,
+                decimals: asset.decimal_digits,
+                type: CURRENCY_VIEW_TYPES.TOKEN,
+                denom: asset.shortName,
+                hasSpace: true
               }"
             />
             <BigNumber
@@ -277,6 +276,13 @@ const borrowStable = computed(() => {
   const price = new Dec(oracle.prices?.[lpn.value.key!]?.amount ?? 0);
   const v = props.lease?.borrow?.amount ?? "0";
   const stable = price.mul(new Dec(v, lpn.value.decimal_digits));
+  return stable;
+});
+
+const borrowStableMinimal = computed(() => {
+  const price = new Dec(oracle.prices?.[lpn.value.key!]?.amount ?? 0);
+  const v = props.lease?.borrow?.amount ?? "0";
+  const stable = price.mul(new Dec(v));
   return stable;
 });
 

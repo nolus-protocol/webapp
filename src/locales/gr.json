@@ -523,6 +523,9 @@
     "yellow-status": "Moderate",
     "red-status": "Risky",
     "no-entries-lease": "no-entries-lease",
-    "no-entries-lease-description": "no-entries-lease-description"
+    "no-entries-lease-description": "no-entries-lease-description",
+    "pnl-in-usdc": "P&L in USDC",
+    "tx-volume": "Tx Volume",
+    "supplied-funds": "Supplied Funds Value"
   }
 }

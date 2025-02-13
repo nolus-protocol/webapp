@@ -95,7 +95,7 @@ import EmptyState from "@/common/components/EmptyState.vue";
 import ActivitiesItem from "./ActivitiesItem.vue";
 import TransactionDetails from "./TransactionDetails.vue";
 import { ref } from "vue";
-import { Button, Popover, SvgIcon } from "web-components";
+import { Button, Popover } from "web-components";
 import { useRouter } from "vue-router";
 import { RouteNames } from "@/router";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -111,5 +111,6 @@ const wallet = useWalletStore();
 
 const onActivityClick = (transaction: ITransactionData & HistoryData) => {
   transactionDialogRef.value?.show(transaction);
+  isOpen.value = false;
 };
 </script>

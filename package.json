@@ -36,7 +36,7 @@
     "@ledgerhq/hw-transport-webhid": "^6.29.4",
     "@ledgerhq/hw-transport-webusb": "^6.29.4",
     "@ledgerhq/logs": "^6.12.0",
-    "@nolus/nolusjs": "^2.4.20",
+    "@nolus/nolusjs": "^2.4.21",
     "@observablehq/plot": "^0.6.16",
     "@skip-go/client": "^0.16.4",
     "cosmjs-types": "^0.9.0",

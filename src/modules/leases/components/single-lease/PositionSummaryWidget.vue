@@ -4,7 +4,7 @@
       :label="$t('message.position-summary')"
       :icon="{ name: 'bar-chart', class: 'fill-icon-link' }"
     />
-    <div class="flex flex-col gap-6 md:flex-row md:gap-8">
+    <div class="flex flex-col gap-6 md:flex-row md:gap-10">
       <div class="flex flex-col gap-3">
         <BigNumber
           :label="$t('message.lease-size')"
@@ -195,7 +195,7 @@
           </div>
         </div>
         <hr class="border-t border-border-color" />
-        <PnlOverTimeChart />
+        <PnlOverTimeChart :lease="lease" />
       </div>
     </div>
   </Widget>

@@ -109,14 +109,17 @@ function getClosestDataPoint(cPosition: number) {
   const plotAreaWidth = chartWidth - marginLeft - marginRight;
   const adjustedX = cPosition - marginLeft;
   const barWidth = plotAreaWidth / data.length;
-
   const barIndex = Math.floor(adjustedX / barWidth);
 
-  if (barIndex >= 0 && barIndex < data.length) {
-    return data[barIndex];
+  if (barIndex < 0) {
+    return data.at(0);
   }
 
-  return null;
+  if (barIndex > data.length - 1) {
+    return data.at(-1);
+  }
+
+  return data[barIndex];
 }
 
 async function loadData() {
@@ -128,6 +131,7 @@ async function loadData() {
       supplied: d.supplied
     }))
     .reverse();
+  console.log(data);
 
   chart.value?.update();
 }

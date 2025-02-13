@@ -17,7 +17,12 @@
     <template #content>
       <button
         class="button-secondary w-full border-none px-3 py-3 text-left"
-        @click="emitter('click')"
+        @click="
+          () => {
+            emitter('click');
+            close();
+          }
+        "
       >
         {{ $t("message.details") }}
       </button>

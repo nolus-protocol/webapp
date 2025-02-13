@@ -3,6 +3,7 @@
     :updateChart="updateChart"
     :fns="[loadData]"
     :getClosestDataPoint="getClosestDataPoint"
+    ref="chart"
   />
 </template>
 
@@ -11,48 +12,15 @@ import Chart from "@/common/components/Chart.vue";
 import { lineY, plot } from "@observablehq/plot";
 import { useI18n } from "vue-i18n";
 import { pointer, select, type Selection } from "d3";
-import { AssetUtils } from "@/common/utils";
+import { AssetUtils, EtlApi } from "@/common/utils";
 import { NATIVE_CURRENCY } from "@/config/global";
+import { useWalletStore } from "@/common/stores/wallet";
+import { ref } from "vue";
+import type { IObjectKeys } from "@/common/types";
 
-const data = [
-  {
-    amount: "4456.612",
-    date: "2025-01-03T00:00:00Z"
-  },
-  {
-    amount: "4736.26",
-    date: "2025-01-07T00:00:00Z"
-  },
-  {
-    amount: "3104.47",
-    date: "2025-01-08T00:00:00Z"
-  },
-  {
-    amount: "2680.74",
-    date: "2025-01-14T00:00:00Z"
-  },
-  {
-    amount: "2641.88",
-    date: "2025-01-20T00:00:00Z"
-  },
-  {
-    amount: "2078.23",
-    date: "2025-02-01T00:00:00Z"
-  },
-  {
-    amount: "1512.61",
-    date: "2025-02-02T00:00:00Z"
-  },
-  {
-    amount: "12512.61",
-    date: "2025-03-02T00:00:00Z"
-  }
-].map((item) => {
-  return {
-    date: new Date(item.date),
-    amount: Number(item.amount)
-  };
-});
+type ChartData = { amount: number; date: Date };
+
+let data: ChartData[] = [];
 
 const chartHeight = 250;
 const marginLeft = 40;
@@ -61,6 +29,8 @@ const marginRight = 30;
 const marginBottom = 50;
 
 const i18n = useI18n();
+const wallet = useWalletStore();
+const chart = ref<typeof Chart>();
 
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
   if (!plotContainer) return;
@@ -77,8 +47,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     y: {
       type: "linear",
       grid: true,
-      label: i18n.t("message.days-unrealized-pnL"),
-      tickFormat: (d) => `$${d / 1e3}K`
+      label: i18n.t("message.days-unrealized-pnL")
     },
     x: { type: "time", label: i18n.t("message.date-capitalize") },
     marks: [
@@ -124,15 +93,28 @@ function getClosestDataPoint(cPosition: number) {
   const plotAreaWidth = chartWidth - marginLeft - marginRight;
   const adjustedX = cPosition - marginLeft;
   const barWidth = plotAreaWidth / data.length;
+  const barIndex = Math.floor(adjustedX / barWidth) + 1;
 
-  const barIndex = Math.floor(adjustedX / barWidth);
-
-  if (barIndex >= 0 && barIndex < data.length) {
-    return data[barIndex];
+  if (barIndex < 0) {
+    return data.at(0);
   }
 
-  return null;
+  if (barIndex > data.length - 1) {
+    return data.at(-1);
+  }
+
+  return data[barIndex];
 }
 
-async function loadData() {}
+async function loadData() {
+  if (wallet.wallet?.address) {
+    const response = await EtlApi.fetchUnrealizedByAddressPnl(wallet.wallet?.address);
+
+    data = response.map((d: IObjectKeys) => ({
+      date: new Date(d.date),
+      amount: Number(d.amount)
+    }));
+    chart.value?.update();
+  }
+}
 </script>

@@ -11,14 +11,6 @@
         }"
       />
       <BigNumber
-        :label="$t('message.borrowed')"
-        :amount="{
-          amount: totalBorrowed,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: NATIVE_CURRENCY.symbol
-        }"
-      />
-      <BigNumber
         :label="$t('message.open-interest')"
         :label-tooltip="{
           content: $t('message.open-interest-tooltip')
@@ -26,7 +18,9 @@
         :amount="{
           amount: openInterest,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: NATIVE_CURRENCY.symbol
+          denom: NATIVE_CURRENCY.symbol,
+          fontSize: 20,
+          fontSizeSmall: 20
         }"
       />
       <BigNumber
@@ -37,7 +31,9 @@
         :amount="{
           amount: unraelizedPnl,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: NATIVE_CURRENCY.symbol
+          denom: NATIVE_CURRENCY.symbol,
+          fontSize: 20,
+          fontSizeSmall: 20
         }"
       />
     </div>
@@ -57,22 +53,13 @@ import { Logger, EtlApi } from "@/common/utils";
 import { ref, onMounted } from "vue";
 import { NATIVE_CURRENCY } from "@/config/global";
 
-const totalBorrowed = ref("0");
 const openPositionValue = ref("0");
 const openInterest = ref("0");
 const unraelizedPnl = ref("0");
 
 onMounted(async () => {
-  await Promise.all([setTotalBorrowed(), setOpenPositonsValue(), setOpenInterest(), setUnrealizedPnl()]).catch((e) =>
-    Logger.error(e)
-  );
+  await Promise.all([setOpenPositonsValue(), setOpenInterest(), setUnrealizedPnl()]).catch((e) => Logger.error(e));
 });
-
-async function setTotalBorrowed() {
-  const data = await fetch(`${EtlApi.getApiUrl()}/borrowed`);
-  const item = await data.json();
-  totalBorrowed.value = item.borrowed;
-}
 
 async function setOpenPositonsValue() {
   const data = await EtlApi.fetchOpenPositionValue();

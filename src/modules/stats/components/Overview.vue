@@ -3,11 +3,22 @@
     <WidgetHeader :label="$t('message.overview')" />
     <div class="flex flex-col gap-3 md:flex-row md:gap-8">
       <BigNumber
-        :label="$t('message.total-value-locked')"
+        :label="$t('message.tx-volume')"
         :amount="{
-          amount: totalValueLocked,
+          amount: txVolume,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol
+        }"
+      />
+      <BigNumber
+        :label="$t('message.realized-pnl')"
+        :amount="{
+          amount: realized_pnl,
+          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          denom: NATIVE_CURRENCY.symbol,
+          decimals: 2,
+          fontSize: 20,
+          fontSizeSmall: 20
         }"
       />
       <BigNumber
@@ -24,19 +35,6 @@
         :label="$t('message.buyback')"
         :amount="{
           amount: buybackTotal,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: NATIVE_ASSET.label,
-          decimals: 2,
-          hasSpace: true,
-          isDenomInfront: false,
-          fontSize: 20,
-          fontSizeSmall: 20
-        }"
-      />
-      <BigNumber
-        :label="$t('message.incentives-pool')"
-        :amount="{
-          amount: incentivesPool,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_ASSET.label,
           decimals: 2,
@@ -66,21 +64,20 @@ import { EtlApi, Logger } from "@/common/utils";
 import { onMounted, ref } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
 
-const totalValueLocked = ref("0");
+const txVolume = ref("0");
 const buybackTotal = ref("0");
-const incentivesPool = ref("0");
+const realized_pnl = ref("0");
 const protocolRevenue = ref("0");
 
 onMounted(async () => {
-  await Promise.all([setTotalValueLocked(), setBuyBackTotal(), setIncentivesPool(), setProtocolRevenue()]).catch((e) =>
+  await Promise.all([setTxVolume(), setBuyBackTotal(), setRealizedPnl(), setProtocolRevenue()]).catch((e) =>
     Logger.error(e)
   );
 });
 
-async function setTotalValueLocked() {
-  const data = await fetch(`${EtlApi.getApiUrl()}/total-value-locked`);
-  const item = await data.json();
-  totalValueLocked.value = item.total_value_locked;
+async function setTxVolume() {
+  const data = await EtlApi.fetchTxVolume();
+  txVolume.value = data.total_tx_value;
 }
 
 async function setBuyBackTotal() {
@@ -89,10 +86,9 @@ async function setBuyBackTotal() {
   buybackTotal.value = item.buyback_total;
 }
 
-async function setIncentivesPool() {
-  const data = await fetch(`${EtlApi.getApiUrl()}/incentives-pool`);
-  const item = await data.json();
-  incentivesPool.value = item.incentives_pool;
+async function setRealizedPnl() {
+  const data = await EtlApi.fetchRealizedPNLStats();
+  realized_pnl.value = data.amount;
 }
 
 async function setProtocolRevenue() {
