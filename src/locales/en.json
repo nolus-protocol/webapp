@@ -500,7 +500,7 @@
     "opened-tooltip": "opened-tooltip",
     "supplied-auto-compound": "All supplied assets auto-compound",
     "chart-liquidation-tooltip": "Liquidation",
-    "release-schedule": "Release schedule",
+    "release-schedule": "Released by",
     "release-schedule-tooltip": "Release schedule tooltip",
     "close-dialog-tooltip": "close-dialog-tooltip",
     "stop-loss-tooltip": "stop-loss-tooltip",
