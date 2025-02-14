@@ -2,8 +2,8 @@
   <Table
     :columns="columns"
     searchable
-    :size="`${items.length} ${$t('message.assets')}`"
-    class="min-w-[500px]"
+    :size="isMobile() ? '' : `${items.length} ${$t('message.assets')}`"
+    tableWrapperClasses="min-w-[500px] pr-6 md:min-w-auto md:p-0"
     @input="(e: Event) => onSearch((e.target as HTMLInputElement).value)"
     @onSearchClear="onSearch('')"
   >
@@ -19,8 +19,9 @@
 </template>
 
 <script lang="ts" setup>
-import { Table, TableRow, type TableColumnProps, type TableRowItemProps } from "web-components";
+import { Table, type TableColumnProps, TableRow, type TableRowItemProps } from "web-components";
 import { useI18n } from "vue-i18n";
+import { isMobile } from "@/common/utils";
 
 const i18n = useI18n();
 
