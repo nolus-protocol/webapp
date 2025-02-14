@@ -4,64 +4,82 @@
       :label="$t('message.position-health')"
       :icon="{ name: 'heart', class: 'fill-icon-link' }"
     />
-    <div class="relative flex flex-col items-center justify-center">
-      <svg
-        width="256"
-        height="128"
-        viewBox="0 0 256 128"
-      >
-        <!-- Green Arc -->
-        <path
-          v-if="greenEndAngle > 0"
-          :d="arcPath(0, greenEndAngle)"
-          fill="none"
-          stroke="#19A96C"
-          stroke-width="12"
-          stroke-linecap="round"
-        />
+    <EmptyState
+      v-if="leaseStatus == TEMPLATES.opening"
+      :slider="[
+        {
+          image: { name: 'position-health' },
+          title: $t('message.position-health-empty'),
+          description: $t('message.position-health-empty-description'),
+          link: {
+            label: $t('message.position-health-empty-link'),
+            url: '#',
+            tooltip: { content: $t('message.position-health-empty-tooltip') }
+          }
+        }
+      ]"
+    />
 
-        <!-- Yellow Arc -->
-        <path
-          v-if="yellowEndAngle > greenEndAngle"
-          :d="arcPath(greenEndAngle, yellowEndAngle)"
-          fill="none"
-          stroke="#FFBF34"
-          stroke-width="12"
-        />
+    <template v-else>
+      <div class="relative flex flex-col items-center justify-center">
+        <svg
+          width="256"
+          height="128"
+          viewBox="0 0 256 128"
+        >
+          <!-- Green Arc -->
+          <path
+            v-if="greenEndAngle > 0"
+            :d="arcPath(0, greenEndAngle)"
+            fill="none"
+            stroke="#19A96C"
+            stroke-width="12"
+            stroke-linecap="round"
+          />
 
-        <!-- Red Arc -->
-        <path
-          v-if="yellowEndAngle < 180"
-          :d="arcPath(yellowEndAngle, 180)"
-          fill="none"
-          stroke="#DF294D"
-          stroke-width="12"
+          <!-- Yellow Arc -->
+          <path
+            v-if="yellowEndAngle > greenEndAngle"
+            :d="arcPath(greenEndAngle, yellowEndAngle)"
+            fill="none"
+            stroke="#FFBF34"
+            stroke-width="12"
+          />
+
+          <!-- Red Arc -->
+          <path
+            v-if="yellowEndAngle < 180"
+            :d="arcPath(yellowEndAngle, 180)"
+            fill="none"
+            stroke="#DF294D"
+            stroke-width="12"
+          />
+        </svg>
+        <HealthArrow
+          class="absolute bottom-0 left-0 right-0 mx-auto origin-bottom transform"
+          :style="[`${rotationStyle}`]"
         />
-      </svg>
-      <HealthArrow
-        class="absolute bottom-0 left-0 right-0 mx-auto origin-bottom transform"
-        :style="[`${rotationStyle}`]"
-      />
-    </div>
-    <div class="flex flex-col items-center text-typography-default">
-      <div class="text-32 font-semibold">{{ health }}%</div>
-      <div class="text-16">
-        {{ $t("message.current-health") }}:
-        <span class="font-semibold">
-          {{ $t(`message.${healTitle}-status`) }}
-        </span>
       </div>
-      <a
-        href="#"
-        target="_blank"
-        class="flex w-fit items-center gap-1 text-14 font-normal text-typography-link"
-        >{{ $t("message.learn-health") }}
-        <Tooltip :content="$t('message.position-health-tooltip')"
-          ><SvgIcon
-            name="help"
-            class="fill-icon-link" /></Tooltip
-      ></a>
-    </div>
+      <div class="flex flex-col items-center text-typography-default">
+        <div class="text-32 font-semibold">{{ health }}%</div>
+        <div class="text-16">
+          {{ $t("message.current-health") }}:
+          <span class="font-semibold">
+            {{ $t(`message.${healTitle}-status`) }}
+          </span>
+        </div>
+        <a
+          href="#"
+          target="_blank"
+          class="flex w-fit items-center gap-1 text-14 font-normal text-typography-link"
+          >{{ $t("message.learn-health") }}
+          <Tooltip :content="$t('message.position-health-tooltip')"
+            ><SvgIcon
+              name="help"
+              class="fill-icon-link" /></Tooltip
+        ></a>
+      </div>
+    </template>
   </Widget>
 </template>
 
@@ -76,6 +94,8 @@ import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import HealthArrow from "@/assets/icons/lease/health-arrow.svg";
 import { useOracleStore } from "@/common/stores/oracle";
 import type { LeaseData } from "@/common/types";
+import { getStatus, TEMPLATES } from "../common";
+import EmptyState from "@/common/components/EmptyState.vue";
 
 const radius = 112;
 const centerX = 128;
@@ -161,5 +181,9 @@ const health = computed(() => {
   }
 
   return 0;
+});
+
+const leaseStatus = computed(() => {
+  return getStatus(props.lease as LeaseData);
 });
 </script>

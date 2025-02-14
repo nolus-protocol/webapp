@@ -19,7 +19,10 @@
           </div>
           <div class="m flex items-center gap-1 text-14 text-typography-default">
             <span class="mr-1">{{ $t("message.pnl") }}: </span>
-            <span class="font-semibold">
+            <span
+              class="font-semibold"
+              v-if="TEMPLATES.opened == status"
+            >
               <Label
                 v-if="pnl.neutral"
                 variant="info"
@@ -264,5 +267,3 @@ const status = computed(() => {
   return getStatus(props.lease as LeaseData);
 });
 </script>
-
-<style scoped lang=""></style>

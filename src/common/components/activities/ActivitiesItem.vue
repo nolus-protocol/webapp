@@ -1,9 +1,18 @@
 <template>
   <div class="flex cursor-pointer gap-3 p-4 hover:bg-neutral-bg-3">
-    <SvgIcon
-      :name="type"
-      size="l"
-    />
+    <div class="relative">
+      <SvgIcon
+        :name="type"
+        size="l"
+        class="rounded bg-neutral-bg-4 p-1"
+      />
+      <img
+        class="absolute right-[-5px] top-[15px]"
+        width="16"
+        v-if="icon"
+        :src="icon"
+      />
+    </div>
     <div class="flex flex-col gap-2">
       <div class="flex flex-col">
         <span class="text-16 font-semibold text-typography-default">{{ title }}</span>
@@ -25,6 +34,8 @@
 </template>
 
 <script lang="ts" setup>
+import { AssetUtils } from "@/common/utils";
+import { computed } from "vue";
 import { type SmallStepperProps, Stepper, StepperVariant, SvgIcon } from "web-components";
 
 export type ActivityItemProps = {
@@ -32,9 +43,16 @@ export type ActivityItemProps = {
   title: string;
   time?: string;
   route?: SmallStepperProps;
+  coinMinimalDenom?: string;
 };
 
-defineProps<ActivityItemProps>();
-</script>
+const icon = computed(() => {
+  if (props.coinMinimalDenom) {
+    const asset = AssetUtils.getCurrencyByDenom(props.coinMinimalDenom);
+    return asset.icon;
+  }
+  return null;
+});
 
-<style scoped lang=""></style>
+const props = defineProps<ActivityItemProps>();
+</script>

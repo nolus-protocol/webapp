@@ -20,6 +20,7 @@ export async function loadActivities(this: Store) {
         for (const d of data) {
           const fn = async () => {
             const [msg, coin] = await message(d, this.wallet?.address, i18n.global, voteMessages);
+            console.log(coin);
             d.historyData = {
               msg,
               coin,

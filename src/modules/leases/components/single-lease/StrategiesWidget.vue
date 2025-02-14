@@ -4,7 +4,25 @@
       :label="$t('message.strategies')"
       :icon="{ name: 'strategy', class: 'fill-icon-link' }"
     />
-    <div class="flex flex-col gap-2">
+    <EmptyState
+      v-if="leaseStatus == TEMPLATES.opening"
+      :slider="[
+        {
+          image: { name: 'strategies' },
+          title: $t('message.position-strategy-empty'),
+          description: $t('message.position-strategy-empty-description'),
+          link: {
+            label: $t('message.position-strategy-empty-link'),
+            url: '#',
+            tooltip: { content: $t('message.position-strategy-empty-tooltip') }
+          }
+        }
+      ]"
+    />
+    <div
+      v-else
+      class="flex flex-col gap-2"
+    >
       <div
         v-for="(strategy, index) in strategies"
         :key="index"
@@ -30,14 +48,20 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { Toggle, Widget } from "web-components";
-import WidgetHeader from "@/common/components/WidgetHeader.vue";
+import { getStatus, TEMPLATES } from "../common";
+import type { LeaseData } from "@/common/types";
 
+import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import WatcherIcon from "@/assets/icons/lease/watcher.svg";
 import ActivateStrategyDialog from "@/modules/leases/components/single-lease/ActivateStrategyDialog.vue";
+import EmptyState from "@/common/components/EmptyState.vue";
 
 const strategyDialogRef = ref<typeof ActivateStrategyDialog | null>(null);
+const props = defineProps<{
+  lease?: LeaseData;
+}>();
 
 const strategies = [
   {
@@ -52,6 +76,8 @@ const strategies = [
   },
   { heading: "Earn +3% APY", content: "Automate lease interest repayments", icon: WatcherIcon }
 ];
-</script>
 
-<style scoped lang=""></style>
+const leaseStatus = computed(() => {
+  return getStatus(props.lease as LeaseData);
+});
+</script>

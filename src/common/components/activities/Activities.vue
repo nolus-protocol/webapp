@@ -52,6 +52,7 @@
           <div class="custom-scroll max-h-auto overflow-y-auto md:max-h-[250px]">
             <ActivitiesItem
               v-for="transaction in wallet.activities.data"
+              :coinMinimalDenom="transaction.historyData?.coin?.currency?.coinMinimalDenom"
               :key="transaction.tx_hash"
               :title="transaction.historyData.msg"
               :type="transaction.historyData.action"

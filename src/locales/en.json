@@ -514,6 +514,18 @@
     "no-entries-lease-description": "no-entries-lease-description",
     "pnl-in-usdc": "P&L in USDC",
     "tx-volume": "Tx Volume",
-    "supplied-funds": "Supplied Funds Value"
+    "supplied-funds": "Supplied Funds Value",
+    "position-summary-lease": "What’s position summary?",
+    "position-summary-lease-description": "View your position details once it’s open",
+    "learn-more-leases": "Learn more about leases",
+    "learn-more-leases-tooltip": "learn-more-leases-tooltip",
+    "position-health-empty": "What’s position health?",
+    "position-health-empty-description": "See health here and monitor position indicators once it’s open",
+    "position-health-empty-link": "Learn more about position health",
+    "position-health-empty-tooltip": "What’s position health?",
+    "position-strategy-empty": "What are strategies?",
+    "position-strategy-empty-description": "Strategies save you time and hassle by automating processes around your positions.",
+    "position-strategy-empty-link": "Learn more about strategies",
+    "position-strategy-empty-tooltip": "position-strategy-empty-tooltip"
   }
 }

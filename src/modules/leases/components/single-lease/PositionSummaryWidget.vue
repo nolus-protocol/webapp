@@ -4,7 +4,27 @@
       :label="$t('message.position-summary')"
       :icon="{ name: 'bar-chart', class: 'fill-icon-link' }"
     />
-    <div class="flex flex-col gap-6 md:flex-row md:gap-10">
+
+    <EmptyState
+      v-if="status == TEMPLATES.opening"
+      :slider="[
+        {
+          image: { name: 'position-summary' },
+          title: $t('message.position-summary-lease'),
+          description: $t('message.position-summary-lease-description'),
+          link: {
+            label: $t('message.learn-more-leases'),
+            url: '#',
+            tooltip: { content: $t('message.learn-more-leases-tooltip') }
+          }
+        }
+      ]"
+    />
+
+    <div
+      v-else
+      class="flex flex-col gap-6 md:flex-row md:gap-10"
+    >
       <div class="flex flex-col gap-3">
         <BigNumber
           :label="$t('message.lease-size')"
@@ -207,6 +227,7 @@ import { Button, SvgIcon, Tooltip, Widget } from "web-components";
 import { CURRENCY_VIEW_TYPES, type LeaseData } from "@/common/types";
 import { RouteNames } from "@/router";
 
+import EmptyState from "@/common/components/EmptyState.vue";
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import PnlOverTimeChart from "./PnlOverTimeChart.vue";
@@ -221,6 +242,7 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { datePraser } from "@/common/utils";
 import { useRouter } from "vue-router";
 import { SingleLeaseDialog } from "@/modules/leases/enums";
+import { getStatus, TEMPLATES } from "../common";
 
 const props = defineProps<{
   lease?: LeaseData;
@@ -248,6 +270,10 @@ watch(
     };
   }
 );
+
+const status = computed(() => {
+  return getStatus(props.lease as LeaseData);
+});
 
 const amount = computed(() => {
   switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
