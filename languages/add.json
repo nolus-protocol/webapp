@@ -202,5 +202,7 @@
   "position-strategy-empty": "What are strategies?",
   "position-strategy-empty-description": "Strategies save you time and hassle by automating processes around your positions.",
   "position-strategy-empty-link": "Learn more about strategies",
-  "position-strategy-empty-tooltip": "position-strategy-empty-tooltip"
+  "position-strategy-empty-tooltip": "position-strategy-empty-tooltip",
+  "debt-pay-off": "You will pay off {data} of the debt",
+  "outstanding-debt-rest": "Outstanding debt will be"
 }

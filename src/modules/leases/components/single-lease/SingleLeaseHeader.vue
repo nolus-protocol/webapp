@@ -17,12 +17,12 @@
               }}
             </span>
           </div>
-          <div class="m flex items-center gap-1 text-14 text-typography-default">
+          <div
+            v-if="TEMPLATES.opened == status"
+            class="m flex items-center gap-1 text-14 text-typography-default"
+          >
             <span class="mr-1">{{ $t("message.pnl") }}: </span>
-            <span
-              class="font-semibold"
-              v-if="TEMPLATES.opened == status"
-            >
+            <span class="font-semibold">
               <Label
                 v-if="pnl.neutral"
                 variant="info"

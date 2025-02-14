@@ -22,7 +22,6 @@
         />
       </template>
     </WidgetHeader>
-    {{ !loaded || props.isVisible }}
     <div :class="{ 'opacity-0': !loaded && props.isVisible }">
       <template v-if="isVisibleWidget">
         <div class="flex gap-8">

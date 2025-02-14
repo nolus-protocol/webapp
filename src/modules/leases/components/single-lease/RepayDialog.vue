@@ -57,13 +57,42 @@
       <hr class="border-border-color" />
       <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
         <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
-        <div class="flex items-center gap-2 text-14">
-          <SvgIcon
-            name="list-sparkle"
-            class="fill-icon-secondary"
-          />
-          {{ $t("message.preview-input") }}
-        </div>
+        <template v-if="sliderValue == 0">
+          <div class="flex items-center gap-2 text-14">
+            <SvgIcon
+              name="list-sparkle"
+              class="fill-icon-secondary"
+            />
+            {{ $t("message.preview-input") }}
+          </div>
+        </template>
+        <template v-if="sliderValue > 0 && sliderValue < 100">
+          <div class="flex items-center gap-2 text-14">
+            <SvgIcon
+              name="check-solid"
+              class="fill-icon-success"
+            />
+            <p :innerHTML="$t('message.debt-pay-off', { data: detbPartial.payment })"></p>
+          </div>
+          <div class="flex items-center gap-2 text-14">
+            <SvgIcon
+              name="info"
+              class="fill-icon-secondary"
+            />
+            {{ $t("message.outstanding-debt-rest") }}
+            {{ detbPartial.rest }}
+          </div>
+        </template>
+        <template v-if="sliderValue >= 100">
+          <div class="flex items-center gap-2 text-14">
+            <SvgIcon
+              name="check-solid"
+              class="fill-icon-success"
+            />
+            {{ $t("message.debt-paid") }}
+            <strong>{{ debtData }}</strong>
+          </div>
+        </template>
       </div>
       <hr class="border-border-color" />
       <div class="flex justify-end px-6 py-4">
@@ -286,17 +315,6 @@ const debt = computed(() => {
     const repaymentInt = repayment.mul(new Dec(10).pow(new Int(selectedCurrency.decimal_digits))).truncate();
 
     return {
-      amountInStable: new CoinPretty(
-        {
-          coinDenom: selectedCurrency.shortName,
-          coinMinimalDenom: selectedCurrency.ibcData,
-          coinDecimals: selectedCurrency.decimal_digits
-        },
-        repaymentInStable
-      )
-        .trim(true)
-        .maxDecimals(4)
-        .hideDenom(true),
       amount: new CoinPretty(
         {
           coinDenom: selectedCurrency.shortName,
@@ -569,6 +587,72 @@ watch(
     deep: true
   }
 );
-</script>
 
-<style scoped lang=""></style>
+function getPrice() {
+  switch (ProtocolsConfig[lease.value!.protocol].type) {
+    case PositionTypes.short: {
+      return lease.value?.leaseData?.lpnPrice;
+    }
+    case PositionTypes.long: {
+      return lease.value?.leaseData?.price;
+    }
+  }
+}
+
+const detbPartial = computed(() => {
+  const price = getPrice();
+  const debt = getRepayment(sliderValue.value);
+  const debtTotal = getRepayment(100);
+
+  const d = debt?.repayment;
+  if (price && d && debtTotal) {
+    const currecy = app.currenciesData![`${lease.value?.leaseData!.leasePositionTicker}@${lease.value!.protocol}`];
+
+    switch (ProtocolsConfig[lease.value!.protocol].type) {
+      case PositionTypes.short: {
+        const asset = d.mul(price);
+        const rest = debtTotal.repayment.sub(d);
+        const restAsset = rest.mul(price);
+        return {
+          payment: `${AssetUtils.formatNumber(d.toString(), currecy.decimal_digits)} ${currecy.shortName} (${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(asset.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)})`,
+          rest: `${AssetUtils.formatNumber(rest.toString(), currecy.decimal_digits)} ${currecy.shortName} (${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(restAsset.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)})`
+        };
+      }
+      case PositionTypes.long: {
+        const asset = d.quo(price);
+        const rest = debtTotal.repayment.sub(d);
+        const restAsset = rest.quo(price);
+        return {
+          payment: `${AssetUtils.formatNumber(asset.toString(), currecy.decimal_digits)} ${currecy.shortName} (${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(d.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)})`,
+          rest: `${AssetUtils.formatNumber(restAsset.toString(), currecy.decimal_digits)} ${currecy.shortName} (${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(rest.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)})`
+        };
+      }
+    }
+  }
+
+  return { payment: "", rest: "" };
+});
+
+const debtData = computed(() => {
+  const price = getPrice();
+  const debt = getRepayment(100);
+  const d = debt?.repayment;
+
+  if (price && d) {
+    const currecy = app.currenciesData![`${lease.value?.leaseData!.leasePositionTicker}@${lease.value!.protocol}`];
+
+    switch (ProtocolsConfig[lease.value!.protocol].type) {
+      case PositionTypes.short: {
+        const asset = d.mul(price);
+        return `${AssetUtils.formatNumber(d.toString(), currecy.decimal_digits)} ${currecy.shortName} (${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(asset.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)})`;
+      }
+      case PositionTypes.long: {
+        const asset = d.quo(price);
+        return `${AssetUtils.formatNumber(asset.toString(), currecy.decimal_digits)} ${currecy.shortName} (${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(d.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)})`;
+      }
+    }
+  }
+
+  return "";
+});
+</script>
