@@ -292,7 +292,7 @@
     "swap-sending": "Ensure the window remains open until Transaction {tx} is confirmed",
     "turnout": "Turnout",
     "quorum": "Quorum",
-    "voting-ends": "voting Ends",
+    "voting-ends": "Voting ends",
     "date": "Date",
     "size": "Size",
     "withdraw-lpp-balance-error": "Withdrawal amount exceeds available balance: {balance}",

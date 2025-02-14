@@ -7,6 +7,7 @@
     </div>
     <div class="flex h-8 gap-2">
       <Dropdown
+        id="header"
         class="border-none bg-transparent focus:px-2 focus:py-1 lg:w-32"
         :size="Size.small"
         :options="options"

@@ -30,10 +30,10 @@
     <template v-else>
       <Table
         searchable
-        :size="`${leasesData.length} leases`"
+        :size="isTablet() ? '' : `${leasesData.length} leases`"
         :columns="leasesData.length > 0 ? columns : []"
-        :class="[{ 'min-w-[900px]': leasesData.length > 0 }]"
-        :hide-values="{ text: $t('message.toggle-values'), value: hide }"
+        tableWrapperClasses="min-w-[900px] pr-6 md:min-w-auto md:p-0"
+        :hide-values="isTablet() ? undefined : { text: $t('message.toggle-values'), value: hide }"
         @hide-value="onHide"
         @onSearchClear="onSearch('')"
         @on-input="(e: Event) => onSearch((e.target as HTMLInputElement).value)"
@@ -134,7 +134,7 @@ import Collect, { type ICollect } from "./single-lease/Collect.vue";
 import { useI18n } from "vue-i18n";
 import { type Component, computed, h, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { CURRENCY_VIEW_TYPES, type LeaseData } from "@/common/types";
-import { AssetUtils, EtlApi, formatDate, Logger, WalletManager } from "@/common/utils";
+import { AssetUtils, EtlApi, formatDate, isTablet, Logger, WalletManager } from "@/common/utils";
 
 import { useLeases } from "@/common/composables";
 import { Coin, Dec } from "@keplr-wallet/unit";

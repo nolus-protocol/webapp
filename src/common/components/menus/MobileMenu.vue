@@ -6,7 +6,7 @@
       v-on:click.self="close"
     >
       <div
-        class="duration-250 flex h-full max-w-[280px] flex-col bg-neutral-bg-1 transition-transform landscape:overflow-auto"
+        class="duration-250 flex h-full max-w-[75%] flex-col bg-neutral-bg-1 transition-transform md:max-w-[400px] landscape:overflow-auto"
         :class="{ 'translate-x-0': toggleMobileNav, '-translate-x-full': !toggleMobileNav }"
       >
         <div class="flex w-full flex-1 flex-col gap-4">
