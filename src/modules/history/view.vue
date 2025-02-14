@@ -5,9 +5,9 @@
       <Table
         searchable
         @input="(e: Event) => (search = (e.target as HTMLInputElement).value)"
-        :size="`${transactions.length} transactions`"
+        :size="isMobile() ? '' : `${transactions.length} transactions`"
         :columns="transactions.length > 0 ? columns : []"
-        :class="[{ 'min-w-[600px]': transactions.length > 0 }]"
+        tableWrapperClasses="min-w-[800px] pr-6 md:min-w-auto md:pr-0"
         @onSearchClear="search = ''"
       >
         <template v-slot:body>
@@ -52,7 +52,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Button, Table, type TableColumnProps, Widget } from "web-components";
 import { useWalletStore } from "@/common/stores/wallet";
-import { EtlApi, getCreatedAtForHuman } from "@/common/utils";
+import { EtlApi, getCreatedAtForHuman, isMobile } from "@/common/utils";
 import { type ITransactionData } from "@/modules/history/types";
 
 import HistoryTableRowWrapper from "./components/HistoryTableRowWrapper.vue";

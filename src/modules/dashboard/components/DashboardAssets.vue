@@ -6,7 +6,7 @@
       :badge="{ content: filteredAssets.length.toString() }"
       class="px-6 pt-6"
     >
-      <div class="flex gap-2">
+      <div class="flex flex-wrap gap-2">
         <Button
           v-if="isVisible"
           :label="$t('message.swap')"
