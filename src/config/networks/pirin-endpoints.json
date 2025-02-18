@@ -37,5 +37,17 @@
         "api": "https://rest-neutron-1.nolus.cros-nest.net"
       }
     ]
+  },
+  "NOBLE": {
+    "primary": {
+      "rpc": "https://noble-rpc.polkachu.com",
+      "api": "https://noble-api.polkachu.com"
+    },
+    "fallback": [
+      {
+        "rpc": "https://rpc.lavenderfive.com:443/noble",
+        "api": "https://rest.lavenderfive.com:443/noble"
+      }
+    ]
   }
 }

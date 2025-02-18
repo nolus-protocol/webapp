@@ -2,12 +2,13 @@
   <Table
     :columns="columns"
     searchable
-    :size="`${assets.length} ${$t('message.assets')}`"
+    :size="isMobile() ? '' : `${assets.length} ${$t('message.assets')}`"
     :toggle="{ label: $t('message.show-small-balances'), value: smBalances }"
     @togle-value="setSmallBalancesState"
     :hide-values="{ text: $t('message.toggle-values'), value: hide }"
     @hide-value="onHide"
     @on-input="(e: Event) => onSearch((e.target as HTMLInputElement).value)"
+    header-classes="md:flex-row flex-col items-stretch md:items-center gap-4 md:gap-2"
     @onSearchClear="onSearch('')"
   >
     <BigNumber
@@ -46,6 +47,7 @@ import { NATIVE_CURRENCY, ProtocolsConfig } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
 import { CurrencyMappingEarn } from "@/config/currencies";
 import type { ExternalCurrency } from "@/common/types";
+import { isMobile } from "@/common/utils";
 
 const i18n = useI18n();
 const wallet = useWalletStore();

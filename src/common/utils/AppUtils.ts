@@ -90,7 +90,6 @@ export class AppUtils {
 
   static async fetchEndpoints(network: string) {
     const net = AppUtils.rpc?.[EnvNetworkUtils.getStoredNetworkName()]?.[network];
-
     if (net) {
       return net;
     }

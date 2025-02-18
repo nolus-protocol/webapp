@@ -32,7 +32,7 @@ import { AppUtils, AssetUtils, EnvNetworkUtils, EtlApi, Logger } from "@/common/
 import { computed, h, onMounted, ref } from "vue";
 import { useApplicationStore } from "@/common/stores/application";
 import { useI18n } from "vue-i18n";
-import { NATIVE_CURRENCY } from "@/config/global";
+import { NATIVE_CURRENCY, PERCENT, PERMILLE } from "@/config/global";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 
 import osmoUsdc from "@/assets/icons/osmosis-usdc.svg?url";
@@ -304,8 +304,8 @@ async function getDepositCapacityMsg(protocol: string) {
   const client = await NolusClient.getInstance().getCosmWasmClient();
   const lppClient = new Lpp(client, admin.protocols[EnvNetworkUtils.getStoredNetworkName()]![protocol].lpp);
   const lpn = AssetUtils.getLpnByProtocol(protocol);
-  const data = await lppClient.getDepositCapacity();
-  const amount = AssetUtils.formatNumber(new Dec(data?.amount ?? 0, lpn.decimal_digits).toString(), lpn.decimal_digits);
-  return `${amount} ${lpn.shortName}`;
+  const data = await lppClient.getLppConfig();
+  const percent = (data.min_utilization / PERMILLE) * PERCENT;
+  return `${percent}%`;
 }
 </script>

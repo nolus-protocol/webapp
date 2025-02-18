@@ -96,7 +96,7 @@
       type="button"
       @click="connectEvm"
     >
-      <MetamaskIcon />
+      <component :is="connection?.icon" />
       {{ evmAddress == null || evmAddress?.length == 0 ? $t("message.connect") : evmAddress }}
     </button>
     <Button
@@ -114,10 +114,12 @@
 </template>
 
 <script lang="ts" setup>
+import KeplrIcon from "@/assets/icons/wallets/keplr.svg";
+import LedgerIcon from "@/assets/icons/wallets/ledger.svg";
+import LeapIcon from "@/assets/icons/wallets/leapwallet.svg";
 import type { EvmNetwork } from "@/common/types/Network";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { Coin } from "@keplr-wallet/types";
-import MetamaskIcon from "@/assets/icons/wallets/metamask.svg";
 
 import { SwapStatus } from "../enums";
 import {
@@ -137,16 +139,57 @@ import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network"
 import { MAX_DECIMALS } from "../../../config/global";
 
 import { BaseWallet, Wallet } from "@/networks";
-import { CONFIRM_STEP, type IObjectKeys, type Network, type SkipRouteConfigType } from "@/common/types";
+import {
+  CONFIRM_STEP,
+  WalletConnectMechanism,
+  type IObjectKeys,
+  type Network,
+  type SkipRouteConfigType
+} from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
-import { computed, onMounted, onUnmounted, ref, watch, h, inject } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch, h, inject, type FunctionalComponent } from "vue";
 import { useI18n } from "vue-i18n";
-import { AppUtils, AssetUtils, externalWallet, Logger, walletOperation, WalletUtils } from "@/common/utils";
+import {
+  AppUtils,
+  WalletManager,
+  AssetUtils,
+  externalWallet,
+  Logger,
+  walletOperation,
+  WalletUtils
+} from "@/common/utils";
 import { coin } from "@cosmjs/stargate";
 import { Decimal } from "@cosmjs/math";
 import { SkipRouter } from "@/common/utils/SkipRoute";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/common/stores/oracle";
+
+const i18n = useI18n();
+const connections: {
+  [key: string]: {
+    icon: FunctionalComponent | string;
+    label: string;
+  };
+} = {
+  [WalletConnectMechanism.KEPLR]: {
+    icon: KeplrIcon,
+    label: i18n.t("message.keplr")
+  },
+  [WalletConnectMechanism.LEAP]: {
+    icon: LeapIcon,
+    label: i18n.t("message.leap")
+  },
+  [WalletConnectMechanism.LEDGER]: {
+    icon: LedgerIcon,
+    label: i18n.t("message.ledger")
+  },
+  [WalletConnectMechanism.LEDGER_BLUETOOTH]: {
+    icon: LedgerIcon,
+    label: i18n.t("message.ledger")
+  }
+};
+const type = WalletManager.getWalletConnectMechanism();
+const connection = connections[type as keyof typeof WalletConnectMechanism];
 
 const assets = computed(() => {
   const data = [];
@@ -190,8 +233,6 @@ let route: IObjectKeys | null;
 
 const walletStore = useWalletStore();
 const networks = ref<(Network | EvmNetwork)[]>([SUPPORTED_NETWORKS_DATA.OSMOSIS]);
-
-const i18n = useI18n();
 const oracle = useOracleStore();
 
 const selectedNetwork = ref(networks.value[0]);
