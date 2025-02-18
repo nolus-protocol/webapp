@@ -12,34 +12,40 @@ import Chart from "@/common/components/Chart.vue";
 import { lineY, plot } from "@observablehq/plot";
 import { useI18n } from "vue-i18n";
 import { pointer, select, type Selection } from "d3";
-import { AssetUtils, EtlApi } from "@/common/utils";
-import { NATIVE_CURRENCY } from "@/config/global";
+import { AssetUtils } from "@/common/utils";
+import { NATIVE_ASSET, NATIVE_CURRENCY, PERCENT } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
-import { ref } from "vue";
-import type { IObjectKeys } from "@/common/types";
+import { ref, watch } from "vue";
+import { Dec } from "@keplr-wallet/unit";
 
-type ChartData = { amount: number; date: Date };
+type ChartData = { amount: number; date: number };
 
-let data: ChartData[] = [
-  {
-    amount: 0,
-    date: new Date(Date.now() - 1000 * 60 * 60)
-  },
-  {
-    amount: 0,
-    date: new Date()
-  }
-];
+let data: ChartData[] = [];
 
-const chartHeight = 250;
+const period = [{ months: 0 }, { months: 12 }, { months: 24 }, { months: 48 }];
+const days = 30;
+
+const chartHeight = 300;
 const marginLeft = 40;
-const chartWidth = 960;
+const chartWidth = 400;
 const marginRight = 30;
 const marginBottom = 50;
+const marginTop = 50;
 
 const i18n = useI18n();
 const wallet = useWalletStore();
 const chart = ref<typeof Chart>();
+const props = defineProps<{ amount: Dec }>();
+
+watch(
+  () => [wallet?.apr, props.amount],
+  () => {
+    loadData();
+  },
+  {
+    immediate: true
+  }
+);
 
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
   if (!plotContainer) return;
@@ -48,6 +54,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   const plotChart = plot({
     color: { legend: true },
     style: { width: "100%" },
+    marginTop,
     width: chartWidth,
     height: chartHeight,
     marginLeft: marginLeft,
@@ -56,9 +63,11 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     y: {
       type: "linear",
       grid: true,
-      label: i18n.t("message.days-unrealized-pnL")
+      label: i18n.t("message.earn-chart-y"),
+      ticks: 4,
+      round: true
     },
-    x: { type: "time", label: i18n.t("message.date-capitalize") },
+    x: { ticks: 4, type: "linear", round: true, tickFormat: (d) => `${d}m.` },
     marks: [
       lineY(data, {
         x: "date",
@@ -80,7 +89,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const closestData = getClosestDataPoint(x);
       if (closestData) {
         tooltip.html(
-          `<strong>${i18n.t("message.amount")}</strong> $${AssetUtils.formatNumber(closestData.amount, NATIVE_CURRENCY.maximumFractionDigits)}`
+          `<strong>${i18n.t("message.amount")}</strong> ${AssetUtils.formatNumber(closestData.amount, NATIVE_CURRENCY.maximumFractionDigits)} ${NATIVE_ASSET.label}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();
@@ -105,8 +114,8 @@ function getClosestDataPoint(cPosition: number) {
   if (data.length === 0) return null;
 
   // Scale `adjustedX` to match `data` range
-  const maxDate = Math.max(...data.map((d) => d.date.getTime()));
-  const minDate = Math.min(...data.map((d) => d.date.getTime()));
+  const maxDate = Math.max(...data.map((d) => d.date));
+  const minDate = Math.min(...data.map((d) => d.date));
   const xScale = plotAreaWidth / (maxDate - minDate || 1);
 
   // Convert adjustedX to the corresponding date value
@@ -114,10 +123,10 @@ function getClosestDataPoint(cPosition: number) {
 
   // Find the closest data point
   let closest = data[0];
-  let minDiff = Math.abs(targetDate - closest.date.getTime());
+  let minDiff = Math.abs(targetDate - closest.date);
 
   for (const point of data) {
-    const diff = Math.abs(targetDate - point.date.getTime());
+    const diff = Math.abs(targetDate - point.date);
     if (diff < minDiff) {
       closest = point;
       minDiff = diff;
@@ -128,14 +137,15 @@ function getClosestDataPoint(cPosition: number) {
 }
 
 async function loadData() {
-  if (wallet.wallet?.address) {
-    const response = await EtlApi.fetchUnrealizedByAddressPnl(wallet.wallet?.address);
-
-    data = response.map((d: IObjectKeys) => ({
-      date: new Date(d.date),
-      amount: Number(d.amount)
-    }));
-    chart.value?.update();
-  }
+  const apr = new Dec(wallet?.apr ?? 0);
+  data = period.map((item) => {
+    const p = item.months * days;
+    const a = props.amount.add(apr.quo(new Dec(PERCENT)).mul(props.amount).mul(new Dec(p))).toString(2);
+    return {
+      amount: Number(a),
+      date: item.months
+    };
+  });
+  chart.value?.update();
 }
 </script>

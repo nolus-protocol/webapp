@@ -10,6 +10,8 @@ const registry = new Registry(defaultRegistryTypes);
 registry.register("/cosmwasm.wasm.v1.MsgExecuteContract", MsgExecuteContract);
 
 export class EtlApi {
+  static cache: { [key: string]: IObjectKeys } = {};
+
   static getApiUrl() {
     return NETWORK.etlApi;
   }
@@ -60,7 +62,14 @@ export class EtlApi {
   }
 
   static async fetchUnrealizedByAddressPnl(address: string): Promise<IObjectKeys> {
-    return fetch(`${EtlApi.getApiUrl()}/unrealized-pnl-by-address?address=${address}`).then((data) => data.json());
+    if (this.cache[`unrealized-pnl-by-address@${address}`]) {
+      return this.cache[`unrealized-pnl-by-address@${address}`];
+    }
+    const data = fetch(`${EtlApi.getApiUrl()}/unrealized-pnl-by-address?address=${address}`).then((data) =>
+      data.json()
+    );
+    this.cache[`unrealized-pnl-by-address@${address}`] = data;
+    return data;
   }
 
   static async fetchRealizedPNL(address: string): Promise<IObjectKeys> {

@@ -64,7 +64,16 @@ const options = Object.values(CHART_RANGES).map((value) => ({
   value: value.label
 }));
 
-let data: ChartData[] = [];
+let data: ChartData[] = [
+  {
+    amount: 0,
+    date: new Date(Date.now() - 1000 * 60 * 60)
+  },
+  {
+    amount: 0,
+    date: new Date()
+  }
+];
 const chart = ref<typeof Chart>();
 const props = defineProps<{ lease?: LeaseData }>();
 
@@ -83,11 +92,13 @@ const gradientHTML = `
 async function setData() {
   if (props.lease?.leaseAddress) {
     const response = await EtlApi.fetchPnlOverTime(props.lease?.leaseAddress, chartTimeRange.value.days);
-    data = response.map((d) => ({
-      date: new Date(d.date),
-      amount: Number(d.amount)
-    }));
-    chart.value?.update();
+    if (response.length > 0) {
+      data = response.map((d) => ({
+        date: new Date(d.date),
+        amount: Number(d.amount)
+      }));
+      chart.value?.update();
+    }
   }
 }
 
@@ -156,8 +167,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
         tooltip
           .style("opacity", 1)
-          .style("left", `${event.pageX - width / 2}px`) // Using native event
-          .style("top", `${event.pageY - height - 10}px`); // Using native event
+          .style("left", `${event.pageX - width / 2}px`)
+          .style("top", `${event.pageY - height - 10}px`);
       }
     })
     .on("mouseleave", () => {
@@ -165,21 +176,50 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     });
 }
 
+// function getClosestDataPoint(cPosition: number) {
+//   const plotAreaWidth = chartWidth - marginLeft - marginRight;
+//   const adjustedX = cPosition - marginLeft;
+//   const barWidth = plotAreaWidth / data.length;
+//   const barIndex = Math.floor(adjustedX / barWidth) + 1;
+
+//   if (barIndex < 0) {
+//     return data.at(0);
+//   }
+
+//   if (barIndex > data.length - 1) {
+//     return data.at(-1);
+//   }
+
+//   return data[barIndex];
+// }
+
 function getClosestDataPoint(cPosition: number) {
   const plotAreaWidth = chartWidth - marginLeft - marginRight;
   const adjustedX = cPosition - marginLeft;
-  const barWidth = plotAreaWidth / data.length;
-  const barIndex = Math.floor(adjustedX / barWidth) + 1;
 
-  if (barIndex < 0) {
-    return data.at(0);
+  if (data.length === 0) return null;
+
+  // Scale `adjustedX` to match `data` range
+  const maxDate = Math.max(...data.map((d) => d.date.getTime()));
+  const minDate = Math.min(...data.map((d) => d.date.getTime()));
+  const xScale = plotAreaWidth / (maxDate - minDate || 1);
+
+  // Convert adjustedX to the corresponding date value
+  const targetDate = adjustedX / xScale + minDate;
+
+  // Find the closest data point
+  let closest = data[0];
+  let minDiff = Math.abs(targetDate - closest.date.getTime());
+
+  for (const point of data) {
+    const diff = Math.abs(targetDate - point.date.getTime());
+    if (diff < minDiff) {
+      closest = point;
+      minDiff = diff;
+    }
   }
 
-  if (barIndex > data.length - 1) {
-    return data.at(-1);
-  }
-
-  return data[barIndex];
+  return closest;
 }
 </script>
 <style lang="scss" scoped>

@@ -529,6 +529,9 @@
     "position-strategy-empty-tooltip": "position-strategy-empty-tooltip",
     "debt-paid": "Your debt will be fully paid off",
     "debt-pay-off": "You will pay off <strong>{data}</strong> of the debt",
-    "outstanding-debt-rest": "Outstanding debt will be"
+    "outstanding-debt-rest": "Outstanding debt will be",
+    "delegate-preview-rate": "You’ll start earning rewards at the approx. rate shown below",
+    "delegate-preview": "You will delegate <strong>{amount}</strong> to validators beyond the top three in terms of voting power and impose a commission of 5% or lower",
+    "earn-chart-y": "Rewards projection"
   }
 }

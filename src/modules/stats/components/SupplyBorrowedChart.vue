@@ -108,18 +108,30 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 function getClosestDataPoint(cPosition: number) {
   const plotAreaWidth = chartWidth - marginLeft - marginRight;
   const adjustedX = cPosition - marginLeft;
-  const barWidth = plotAreaWidth / data.length;
-  const barIndex = Math.floor(adjustedX / barWidth);
 
-  if (barIndex < 0) {
-    return data.at(0);
+  if (data.length === 0) return null;
+
+  // Scale `adjustedX` to match `loans` range
+  const maxDate = Math.max(...data.map((d) => d.date.getTime()));
+  const minDate = Math.min(...data.map((d) => d.date.getTime()));
+  const xScale = plotAreaWidth / (maxDate - minDate || 1);
+
+  // Convert adjustedX to the corresponding date value
+  const targetDate = adjustedX / xScale + minDate;
+
+  // Find the closest loans point
+  let closest = data[0];
+  let minDiff = Math.abs(targetDate - closest.date.getTime());
+
+  for (const point of data) {
+    const diff = Math.abs(targetDate - point.date.getTime());
+    if (diff < minDiff) {
+      closest = point;
+      minDiff = diff;
+    }
   }
 
-  if (barIndex > data.length - 1) {
-    return data.at(-1);
-  }
-
-  return data[barIndex];
+  return closest;
 }
 
 async function loadData() {

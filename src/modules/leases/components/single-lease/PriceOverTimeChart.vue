@@ -220,17 +220,29 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 function getClosestDataPoint(cPosition: number) {
   const plotAreaWidth = chartWidth - marginLeft - marginRight;
   const adjustedX = cPosition - marginLeft;
-  const barWidth = plotAreaWidth / data.length;
-  const barIndex = Math.floor(adjustedX / barWidth) + 1;
 
-  if (barIndex < 0) {
-    return data.at(0);
+  if (data.length === 0) return null;
+
+  // Scale `adjustedX` to match `data` range
+  const maxDate = Math.max(...data.map((d) => d.Date.getTime()));
+  const minDate = Math.min(...data.map((d) => d.Date.getTime()));
+  const xScale = plotAreaWidth / (maxDate - minDate || 1);
+
+  // Convert adjustedX to the corresponding date value
+  const targetDate = adjustedX / xScale + minDate;
+
+  // Find the closest data point
+  let closest = data[0];
+  let minDiff = Math.abs(targetDate - closest.Date.getTime());
+
+  for (const point of data) {
+    const diff = Math.abs(targetDate - point.Date.getTime());
+    if (diff < minDiff) {
+      closest = point;
+      minDiff = diff;
+    }
   }
 
-  if (barIndex > data.length - 1) {
-    return data.at(-1);
-  }
-
-  return data[barIndex];
+  return closest;
 }
 </script>
