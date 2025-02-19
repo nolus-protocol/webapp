@@ -227,10 +227,12 @@ function getType(item: ILoan) {
 
   switch (ProtocolsConfig[protocol].type) {
     case PositionTypes.short: {
-      return h<LabelProps>(Label, { value: i18n.t(`message.${ProtocolsConfig[protocol].type}`), variant: "error" });
+      return () =>
+        h<LabelProps>(Label, { value: i18n.t(`message.${ProtocolsConfig[protocol].type}`), variant: "error" });
     }
     case PositionTypes.long: {
-      return h<LabelProps>(Label, { value: i18n.t(`message.${ProtocolsConfig[protocol].type}`), variant: "success" });
+      return () =>
+        h<LabelProps>(Label, { value: i18n.t(`message.${ProtocolsConfig[protocol].type}`), variant: "success" });
     }
   }
 }

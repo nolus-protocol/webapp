@@ -64,26 +64,159 @@
       <hr class="border-border-color" />
       <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
         <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
-        <div class="flex items-center gap-2 text-14">
-          <SvgIcon
-            name="list-sparkle"
-            class="fill-icon-secondary"
-          />
-          <span class="text-typography-default">{{ $t("message.preview-input") }}</span>
-        </div>
+        <template v-if="lease">
+          <template v-if="sliderValue == 0">
+            <div class="flex items-center gap-2 text-14">
+              <SvgIcon
+                name="list-sparkle"
+                class="fill-icon-secondary"
+              />
+              {{ $t("message.preview-input") }}
+            </div>
+          </template>
+
+          <template v-if="sliderValue > 0 && sliderValue < midPosition">
+            <div class="flex items-center gap-2 text-14">
+              <SvgIcon
+                name="check-solid"
+                class="fill-icon-success"
+              />
+              <p
+                class="flex-1"
+                :innerHTML="
+                  $t('message.preview-closed-paid-debt', {
+                    amount: debtData.debt,
+                    price: debtData.price,
+                    asset: debtData.asset,
+                    fee: debtData.fee
+                  })
+                "
+              ></p>
+            </div>
+
+            <div class="flex items-center gap-2 text-14">
+              <SvgIcon
+                name="info"
+                class="fill-icon-secondary"
+              />
+              {{ $t("message.preview-closed-debt") }} {{ remaining.amount }} ({{ NATIVE_CURRENCY.symbol
+              }}{{ remaining.amountInStable }})
+            </div>
+
+            <div class="flex items-center gap-2 text-14">
+              <SvgIcon
+                name="info"
+                class="fill-icon-secondary"
+              />
+              {{ positionLeft }} {{ $t("message.preview-closed-rest") }}
+            </div>
+          </template>
+
+          <template v-if="sliderValue == midPosition">
+            <div class="flex items-center gap-2 text-14">
+              <SvgIcon
+                name="check-solid"
+                class="fill-icon-success"
+              />
+              <p
+                class="flex-1"
+                :innerHTML="
+                  $t('message.preview-closed-paid-debt', {
+                    amount: debtData.debt,
+                    price: debtData.price,
+                    asset: debtData.asset,
+                    fee: debtData.fee
+                  })
+                "
+              ></p>
+            </div>
+
+            <div class="flex items-center gap-2 text-14">
+              <SvgIcon
+                name="info"
+                class="fill-icon-secondary"
+              />
+              {{ positionLeft }} {{ $t("message.preview-closed-rest") }}
+            </div>
+          </template>
+
+          <template v-if="sliderValue > midPosition && sliderValue < 100">
+            <div class="flex items-center gap-2 text-14">
+              <SvgIcon
+                name="check-solid"
+                class="fill-icon-success"
+              />
+              <p
+                class="flex-1"
+                :innerHTML="
+                  $t('message.preview-closed-paid-debt', {
+                    amount: debtData.debt,
+                    price: debtData.price,
+                    asset: debtData.asset,
+                    fee: debtData.fee
+                  })
+                "
+              ></p>
+            </div>
+
+            <div class="flex items-center gap-2 text-14">
+              <SvgIcon
+                name="check-solid"
+                class="fill-icon-success"
+              />
+              {{ $t("message.preview-closed-paid") }}
+              <strong>{{ payout }} {{ lpn }}</strong>
+            </div>
+
+            <div class="flex items-center gap-2 text-14">
+              <SvgIcon
+                name="info"
+                class="fill-icon-secondary"
+              />
+              {{ positionLeft }} {{ $t("message.preview-closed-rest") }}
+            </div>
+          </template>
+
+          <template v-if="sliderValue >= 100">
+            <div class="flex items-center gap-2 text-14">
+              <SvgIcon
+                name="check-solid"
+                class="fill-icon-success"
+              />
+              <p
+                class="flex-1"
+                :innerHTML="
+                  $t('message.preview-closed-paid-debt', {
+                    amount: debtData.debt,
+                    price: debtData.price,
+                    asset: debtData.asset,
+                    fee: debtData.fee
+                  })
+                "
+              ></p>
+            </div>
+
+            <div class="flex items-center gap-2 text-14">
+              <SvgIcon
+                name="check-solid"
+                class="fill-icon-success"
+              />
+              {{ $t("message.preview-closed-paid") }}
+              <strong>{{ payout }} {{ lpn }}</strong>
+            </div>
+
+            <div class="flex items-center gap-2 text-14">
+              <SvgIcon
+                name="check-solid"
+                class="fill-icon-success"
+              />
+              {{ $t("message.preview-closed") }}
+            </div>
+          </template>
+        </template>
       </div>
       <hr class="border-border-color" />
-      <div class="flex justify-end px-6 py-4">
-        <Button
-          :label="$t('message.show-transaction-details')"
-          severity="tertiary"
-          icon="plus"
-          iconPosition="left"
-          size="small"
-          class="text-icon-default"
-        />
-      </div>
-      <hr class="border-border-color" />
+
       <div class="flex flex-col gap-2 p-6">
         <Button
           size="large"
@@ -113,7 +246,7 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { AssetUtils, getMicroAmount, LeaseUtils, Logger, walletOperation } from "@/common/utils";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency } from "@/common/types";
-import { minimumLeaseAmount, PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
+import { MAX_DECIMALS, minimumLeaseAmount, PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { CurrencyDemapping } from "@/config/currencies";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import { CoinPretty, Dec, Int } from "@keplr-wallet/unit";
@@ -162,16 +295,6 @@ onBeforeUnmount(() => {
   dialog?.value?.close();
 });
 
-const currency = computed(() => {
-  return assets.value[selectedCurrency.value];
-});
-
-function onSetAmount(percent: number) {
-  sliderValue.value = percent;
-  const a = total.value.mul(new Dec(percent).quo(new Dec(100)));
-  amount.value = a.toString(currency!.value.decimal_digits);
-}
-
 const assets = computed(() => {
   const data = [];
 
@@ -198,44 +321,53 @@ const assets = computed(() => {
   return data;
 });
 
-const calculatedBalance = computed(() => {
-  const asset = assets.value[selectedCurrency.value];
-  if (!asset) {
-    return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber("0.00", NATIVE_CURRENCY.maximumFractionDigits)}`;
-  }
-  const price = new Dec(oracle.prices?.[asset.key!]?.amount ?? 0);
-  const v = amount?.value?.length ? amount?.value : "0";
-  const stable = price.mul(new Dec(v));
-  return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+const currency = computed(() => {
+  return assets.value[selectedCurrency.value];
 });
 
-const midPosition = computed(() => {
-  const d = debt.value?.amount.toDec() ?? new Dec(0);
+const remaining = computed(() => {
+  return getAmountValue(amount.value == "" ? "0" : amount.value);
+});
 
-  if (total.value.isZero()) {
-    return 0;
+const debtData = computed(() => {
+  const price = getPrice();
+  const debt = getRepayment(100);
+  const d = debt?.repayment;
+
+  if (price && d) {
+    const currecy = app.currenciesData![`${lease.value?.leaseData!.leasePositionTicker}@${lease.value!.protocol}`];
+    switch (ProtocolsConfig[lease.value!.protocol].type) {
+      case PositionTypes.short: {
+        const asset = d.quo(price);
+        const value = asset.mul(new Dec(swapFee.value));
+
+        return {
+          fee: `${(swapFee.value * PERCENT).toFixed(NATIVE_CURRENCY.maximumFractionDigits)}% (${NATIVE_CURRENCY.symbol}${value.toString(NATIVE_CURRENCY.maximumFractionDigits)})`,
+          asset: currecy.shortName,
+          price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(price.toString(MAX_DECIMALS), MAX_DECIMALS)}`,
+          debt: `${AssetUtils.formatNumber(asset.toString(), currecy.decimal_digits)} ${currecy.shortName} (${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(d.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)})`
+        };
+      }
+      case PositionTypes.long: {
+        const asset = d.mul(price);
+        const value = asset.mul(new Dec(swapFee.value));
+
+        return {
+          fee: `${(swapFee.value * PERCENT).toFixed(NATIVE_CURRENCY.maximumFractionDigits)}% (${NATIVE_CURRENCY.symbol}${value.toString(NATIVE_CURRENCY.maximumFractionDigits)})`,
+          asset: currecy.shortName,
+          price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(price.toString(MAX_DECIMALS), MAX_DECIMALS)}`,
+          debt: `${AssetUtils.formatNumber(d.toString(), currecy.decimal_digits)} ${currecy.shortName} (${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(asset.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)})`
+        };
+      }
+    }
   }
 
-  return Number(d.quo(total.value).mul(new Dec(100)).toString());
+  return { debt: "", price: "", asset: "", fee: "" };
 });
 
 const total = computed(() => {
   return new Dec(lease.value?.leaseStatus.opened?.amount.amount ?? 0, currency.value?.decimal_digits);
 });
-
-function handleAmountChange(event: string) {
-  amount.value = event;
-  if (amount.value != "") {
-    let percent = new Dec(amount.value).quo(total.value).mul(new Dec(100));
-    if (percent.isNegative()) {
-      percent = new Dec(0);
-    }
-    if (percent.gt(new Dec(100))) {
-      percent = new Dec(100);
-    }
-    sliderValue.value = Number(percent.toString(0));
-  }
-}
 
 const debt = computed(() => {
   const selectedCurrency = currency.value;
@@ -267,51 +399,100 @@ const debt = computed(() => {
   }
 });
 
-function getRepayment(p: number) {
-  const data = lease.value?.leaseStatus.opened!;
+const lpn = computed(() => {
+  const [_key, protocol] = currency.value.key.split("@");
+  const lpn = AssetUtils.getLpnByProtocol(protocol);
 
-  const amount = outStandingDebt();
-  const ticker = CurrencyDemapping[data.principal_due.ticker!]?.ticker ?? data.principal_due.ticker;
-  const c = app.currenciesData![`${ticker!}@${lease.value!.protocol}`];
+  for (const lpn of app.lpn ?? []) {
+    const [_, p] = lpn.key.split("@");
+    if (p == protocol) {
+      return lpn.shortName;
+    }
+  }
+  return lpn.shortName;
+});
 
-  const amountToRepay = CurrencyUtils.convertMinimalDenomToDenom(
-    amount.toString(),
-    c.shortName,
-    c.ibcData,
-    c.decimal_digits
-  ).toDec();
+const payout = computed(() => {
+  const leaseInfo = lease.value?.leaseStatus.opened!;
+  const ticker = CurrencyDemapping[leaseInfo.amount.ticker!]?.ticker ?? leaseInfo.amount.ticker;
+  const currency = app.currenciesData![`${ticker!}@${lease.value?.protocol}`];
+  const price = new Dec(oracle.prices[currency!.key as string]?.amount ?? 0);
+  const value = new Dec(amount.value.length == 0 ? 0 : amount.value).mul(price);
 
-  const percent = new Dec(p).quo(new Dec(100));
-  let repaymentInStable = amountToRepay.mul(percent);
-  const selectedCurrency = currency.value;
+  const outStanding = getAmountValue("0").amountInStable.toDec();
+  let payOutValue = value.sub(outStanding);
 
-  if (swapFee.value) {
-    repaymentInStable = repaymentInStable.add(repaymentInStable.mul(new Dec(swapFee.value)));
+  if (payOutValue.isNegative()) {
+    return "0.00";
   }
 
   switch (ProtocolsConfig[lease.value!.protocol].type) {
     case PositionTypes.short: {
       let lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
       const price = new Dec(oracle.prices[lpn!.key as string].amount);
-      const selected_asset_price = new Dec(oracle.prices[selectedCurrency!.key as string].amount);
+      payOutValue = payOutValue.quo(price);
 
-      const repayment = repaymentInStable.mul(price);
+      break;
+    }
+  }
 
-      return {
-        repayment: repayment.quo(selected_asset_price),
-        repaymentInStable: repayment,
-        selectedCurrencyInfo: selectedCurrency
-      };
+  return payOutValue.toString(Number(currency!.decimal_digits));
+});
+
+const positionLeft = computed(() => {
+  const leaseInfo = lease.value?.leaseStatus.opened!;
+
+  const ticker = CurrencyDemapping[leaseInfo.amount.ticker!]?.ticker ?? leaseInfo.amount.ticker;
+  const currency = app.currenciesData![`${ticker!}@${lease.value!.protocol}`];
+  const a = new Dec(leaseInfo.amount.amount, Number(currency!.decimal_digits));
+  const value = new Dec(amount.value.length == 0 ? 0 : amount.value);
+  const left = a.sub(value);
+
+  if (left.isNegative()) {
+    return "0.00";
+  }
+
+  return `${left.toString(Number(currency!.decimal_digits))} ${currency!.shortName}`;
+});
+
+function onSetAmount(percent: number) {
+  sliderValue.value = percent;
+  const a = total.value.mul(new Dec(percent).quo(new Dec(100)));
+  amount.value = a.toString(currency!.value.decimal_digits);
+}
+
+const calculatedBalance = computed(() => {
+  const asset = assets.value[selectedCurrency.value];
+  if (!asset) {
+    return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber("0.00", NATIVE_CURRENCY.maximumFractionDigits)}`;
+  }
+  const price = new Dec(oracle.prices?.[asset.key!]?.amount ?? 0);
+  const v = amount?.value?.length ? amount?.value : "0";
+  const stable = price.mul(new Dec(v));
+  return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+});
+
+const midPosition = computed(() => {
+  const d = debt.value?.amount.toDec() ?? new Dec(0);
+
+  if (total.value.isZero()) {
+    return 0;
+  }
+
+  return Number(d.quo(total.value).mul(new Dec(100)).toString());
+});
+
+function handleAmountChange(event: string) {
+  amount.value = event;
+  if (amount.value != "") {
+    let percent = new Dec(amount.value).quo(total.value).mul(new Dec(100));
+    if (percent.isNegative()) {
+      percent = new Dec(0);
     }
-    case PositionTypes.long: {
-      const price = new Dec(oracle.prices[selectedCurrency!.key as string].amount);
-      const repayment = repaymentInStable.quo(price);
-      return {
-        repayment,
-        repaymentInStable,
-        selectedCurrencyInfo: selectedCurrency
-      };
+    if (percent.gt(new Dec(100))) {
+      percent = new Dec(100);
     }
+    sliderValue.value = Number(percent);
   }
 }
 
@@ -344,13 +525,12 @@ function additionalInterest() {
   return new Dec(0);
 }
 
-const setSwapFee = async () => {
+async function setSwapFee() {
   clearTimeout(time);
   time = setTimeout(async () => {
     const lease_currency = currency.value;
-    const currecy = app.currenciesData![`${lease.value?.leaseData!.leasePositionTicker}@${lease.value!.protocol}`];
-
-    const microAmount = CurrencyUtils.convertDenomToMinimalDenom(
+    let currecy = AssetUtils.getLpnByProtocol(lease.value?.protocol as string);
+    let microAmount = CurrencyUtils.convertDenomToMinimalDenom(
       debt.value!.amount.toDec().toString(),
       lease_currency.ibcData,
       lease_currency.decimal_digits
@@ -358,6 +538,20 @@ const setSwapFee = async () => {
 
     let amountIn = 0;
     let amountOut = 0;
+
+    switch (ProtocolsConfig[lease.value?.protocol!].type) {
+      case PositionTypes.short: {
+        const currecy = app.currenciesData![`${lease.value?.leaseData!.leasePositionTicker}@${lease.value!.protocol}`];
+        microAmount = CurrencyUtils.convertDenomToMinimalDenom(
+          debt.value!.amount.toDec().toString(),
+          currecy.ibcData,
+          currecy.decimal_digits
+        ).amount.toString();
+
+        break;
+      }
+    }
+
     const [r] = await Promise.all([
       SkipRouter.getRoute(lease_currency.ibcData, currecy.ibcData, microAmount).then((data) => {
         amountIn += Number(data.usdAmountIn ?? 0);
@@ -379,7 +573,7 @@ const setSwapFee = async () => {
 
     swapFee.value = fee;
   }, timeOut);
-};
+}
 
 function isAmountValid() {
   let isValid = true;
@@ -439,6 +633,64 @@ function isAmountValid() {
   return isValid;
 }
 
+function getPrice() {
+  switch (ProtocolsConfig[lease.value!.protocol].type) {
+    case PositionTypes.short: {
+      return lease.value?.leaseData?.lpnPrice;
+    }
+    case PositionTypes.long: {
+      return lease.value?.leaseData?.price;
+    }
+  }
+}
+
+function getRepayment(p: number) {
+  const data = lease.value?.leaseStatus.opened!;
+
+  const amount = outStandingDebt();
+  const ticker = CurrencyDemapping[data.principal_due.ticker!]?.ticker ?? data.principal_due.ticker;
+  const c = app.currenciesData![`${ticker!}@${lease.value!.protocol}`];
+
+  const amountToRepay = CurrencyUtils.convertMinimalDenomToDenom(
+    amount.toString(),
+    c.shortName,
+    c.ibcData,
+    c.decimal_digits
+  ).toDec();
+
+  const percent = new Dec(p).quo(new Dec(100));
+  let repaymentInStable = amountToRepay.mul(percent);
+  const selectedCurrency = currency.value;
+
+  if (swapFee.value) {
+    repaymentInStable = repaymentInStable.add(repaymentInStable.mul(new Dec(swapFee.value)));
+  }
+
+  switch (ProtocolsConfig[lease.value!.protocol].type) {
+    case PositionTypes.short: {
+      let lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
+      const price = new Dec(oracle.prices[lpn!.key as string].amount);
+      const selected_asset_price = new Dec(oracle.prices[selectedCurrency!.key as string].amount);
+
+      const repayment = repaymentInStable.mul(price);
+
+      return {
+        repayment: repayment.quo(selected_asset_price),
+        repaymentInStable: repayment,
+        selectedCurrencyInfo: selectedCurrency
+      };
+    }
+    case PositionTypes.long: {
+      const price = new Dec(oracle.prices[selectedCurrency!.key as string].amount);
+      const repayment = repaymentInStable.quo(price);
+      return {
+        repayment,
+        repaymentInStable,
+        selectedCurrencyInfo: selectedCurrency
+      };
+    }
+  }
+}
 async function onSendClick() {
   try {
     disabled.value = true;
@@ -508,4 +760,56 @@ watch(
     deep: true
   }
 );
+
+function getAmountValue(a: string) {
+  const selectedCurrency = assets.value[0];
+  const [_, protocolKey] = selectedCurrency.key.split("@");
+  const lpn = AssetUtils.getLpnByProtocol(protocolKey);
+
+  let amount = new Dec(a);
+  const price = new Dec(oracle.prices[selectedCurrency!.key as string]?.amount ?? 0);
+  const { repayment, repaymentInStable } = getRepayment(100)!;
+
+  const amountInStableInt = amount
+    .mul(price)
+    .mul(new Dec(10).pow(new Int(lpn.decimal_digits)))
+    .truncate();
+  const amountInt = amount.mul(new Dec(10).pow(new Int(selectedCurrency.decimal_digits))).truncate();
+
+  const repaymentInt = repayment.mul(new Dec(10).pow(new Int(selectedCurrency.decimal_digits))).truncate();
+  const repaymentInStableInt = repaymentInStable.mul(new Dec(10).pow(new Int(lpn.decimal_digits))).truncate();
+
+  let vStable = repaymentInStableInt.sub(amountInStableInt);
+  let v = repaymentInt.sub(amountInt);
+
+  if (vStable.isNegative()) {
+    vStable = new Int(0);
+  }
+
+  if (v.isNegative()) {
+    v = new Int(0);
+  }
+
+  return {
+    amountInStable: new CoinPretty(
+      {
+        coinDenom: lpn.shortName,
+        coinMinimalDenom: lpn.ibcData,
+        coinDecimals: Number(lpn.decimal_digits)
+      },
+      vStable
+    )
+      .trim(true)
+      .maxDecimals(4)
+      .hideDenom(true),
+    amount: new CoinPretty(
+      {
+        coinDenom: selectedCurrency.shortName,
+        coinMinimalDenom: selectedCurrency.ibcData,
+        coinDecimals: selectedCurrency.decimal_digits
+      },
+      v
+    )
+  };
+}
 </script>

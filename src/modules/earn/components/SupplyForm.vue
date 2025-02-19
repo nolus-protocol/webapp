@@ -1,57 +1,77 @@
 <template>
-  <AdvancedFormControl
-    id="receive-send"
-    :currencyOptions="assets"
-    class="px-6 py-4"
-    :label="$t('message.amount')"
-    :balanceLabel="$t('message.balance')"
-    :selectedCurrencyOption="assets[selectedCurrency]"
-    @on-selected-currency="onSelect"
-    placeholder="0"
-    :calculatedBalance="stable"
-    @input="onInput"
-    :error-msg="error"
-    :searchable="true"
-    :itemsHeadline="[$t('message.assets'), $t('message.your-balance')]"
-    :item-template="
-      (item: any) =>
-        h<AssetItemProps>(AssetItem, {
-          ...item,
-          abbreviation: item.label,
-          name: item.name,
-          balance: item.balance.value,
-          info: item.disabled ? () => h(Info) : null,
-          max_decimals: item.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : item.decimal_digits
-        })
-    "
-  >
-  </AdvancedFormControl>
-
-  <hr class="border-border-color" />
-  <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
-    <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
-    <div class="flex items-center gap-2 text-14">
-      <SvgIcon
-        name="list-sparkle"
-        class="fill-icon-secondary"
-      />
-      {{ $t("message.preview-input") }}
+  <div class="custom-scroll max-h-full overflow-auto md:max-h-[75vh]">
+    <AdvancedFormControl
+      id="receive-send"
+      :currencyOptions="assets"
+      class="px-6 py-4"
+      :label="$t('message.amount')"
+      :balanceLabel="$t('message.balance')"
+      :selectedCurrencyOption="assets[selectedCurrency]"
+      @on-selected-currency="onSelect"
+      placeholder="0"
+      :calculatedBalance="stable"
+      @input="onInput"
+      :error-msg="error"
+      :searchable="true"
+      :itemsHeadline="[$t('message.assets'), $t('message.your-balance')]"
+      :item-template="
+        (item: any) =>
+          h<AssetItemProps>(AssetItem, {
+            ...item,
+            abbreviation: item.label,
+            name: item.name,
+            balance: item.balance.value,
+            info: item.disabled ? () => h(Info) : null,
+            max_decimals: item.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : item.decimal_digits
+          })
+      "
+    >
+    </AdvancedFormControl>
+    <hr class="border-border-color" />
+    <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
+      <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
+      <template v-if="decAmount.isZero()">
+        <div class="flex items-center gap-2 text-14">
+          <SvgIcon
+            name="list-sparkle"
+            class="fill-icon-secondary"
+          />
+          {{ $t("message.preview-input") }}
+        </div>
+      </template>
+      <template v-if="decAmount.isPositive()">
+        <div class="flex items-center gap-2 text-14">
+          <SvgIcon
+            name="check-solid"
+            class="fill-icon-success"
+          />
+          <p
+            class="flex-1"
+            :innerHTML="$t('message.supply-preview', { amount: amountStr })"
+          ></p>
+        </div>
+        <EarnChart
+          class="mt-4"
+          :currencyKey="assets[selectedCurrency].key"
+          :amount="decAmount"
+        />
+      </template>
     </div>
-  </div>
-  <hr class="border-border-color" />
+    <hr class="border-border-color" />
 
-  <div class="flex flex-col gap-2 p-6">
-    <Button
-      size="large"
-      severity="primary"
-      :label="$t('message.supply')"
-      @click="onNextClick"
-      :disabled="disabled || assets[selectedCurrency].disabled"
-      :loading="loading"
-    />
-    <p class="text-center text-12 text-typography-secondary">
-      {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.longOperationsEstimation }}{{ $t("message.sec") }}
-    </p>
+    <div class="flex flex-col gap-2 p-6">
+      <Button
+        size="large"
+        severity="primary"
+        :label="$t('message.supply')"
+        @click="onNextClick"
+        :disabled="disabled || assets[selectedCurrency].disabled"
+        :loading="loading"
+      />
+      <p class="text-center text-12 text-typography-secondary">
+        {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.longOperationsEstimation }}{{ $t("message.sec") }}
+      </p>
+    </div>
   </div>
 </template>
 
@@ -66,7 +86,7 @@ import {
   ToastType
 } from "web-components";
 import { computed, inject, onMounted, ref } from "vue";
-import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
+import { NATIVE_ASSET, NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { AssetUtils, getMicroAmount, Logger, validateAmountV2, walletOperation } from "@/common/utils";
@@ -79,6 +99,7 @@ import { useAdminStore } from "@/common/stores/admin";
 import { h } from "vue";
 import Info from "./Info.vue";
 import { useI18n } from "vue-i18n";
+import EarnChart from "./EarnChart.vue";
 
 const assets = computed(() => {
   const protocols = Contracts.protocolsFilter[application.protocolFilter];
@@ -103,6 +124,7 @@ const assets = computed(() => {
     const price = new Dec(oracle.prices?.[lpn.key]?.amount ?? 0);
     const stable = price.mul(value);
     data.push({
+      key: lpn.key,
       disabled: !supply.value[p],
       name: lpn.name,
       value: lpn.key,
@@ -171,6 +193,15 @@ function onInput(data: string) {
   input.value = data;
   validateInputs();
 }
+
+const decAmount = computed(() => {
+  return new Dec(input.value.length > 0 ? input.value : 0);
+});
+
+const amountStr = computed(() => {
+  const currency = assets.value[selectedCurrency.value];
+  return `${AssetUtils.formatNumber(decAmount.value.toString(), currency.decimal_digits)} ${currency.label} (${stable.value})`;
+});
 
 async function onNextClick() {
   if (validateInputs().length == 0) {

@@ -52,7 +52,7 @@
           <span class="text-typography-default">{{ $t("message.preview-input") }}</span>
         </div>
       </div>
-      <hr class="border-border-color" />
+      <!-- <hr class="border-border-color" />
       <div class="flex justify-end px-6 py-4">
         <Button
           :label="$t('message.show-transaction-details')"
@@ -62,7 +62,7 @@
           size="small"
           class="text-icon-default"
         />
-      </div>
+      </div> -->
       <hr class="border-border-color" />
       <div class="flex flex-col gap-2 p-6">
         <Button

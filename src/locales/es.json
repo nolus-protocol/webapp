@@ -535,8 +535,12 @@
     "position-strategy-empty-tooltip": "position-strategy-empty-tooltip",
     "debt-pay-off": "You will pay off {data} of the debt",
     "outstanding-debt-rest": "Outstanding debt will be",
-    "delegate-preview-rate": "You’ll start earning rewards at the approx. rate shown below",
-    "delegate-preview": "You will delegate <strong>{amount}</strong> to validators beyond the top three in terms of voting power and impose a commission of 5% or lower",
-    "earn-chart-y": "Rewards projection"
+    "earn-chart-y": "Rewards projection",
+    "preview-closed": "This position will be closed",
+    "preview-closed-paid": "You will be paid out",
+    "preview-closed-paid-debt": "Your debt will be fully paid off - <strong>{amount}</strong> at a rate of <strong>{price} per {asset}</strong> with <strong>{fee} in DEX fees</strong>",
+    "preview-closed-rest": "will remain in this position",
+    "supply-preview": "You will supply <strong>{amount}</strong>",
+    "preview-closed-debt": "Outstanding debt will be"
   }
 }

@@ -157,8 +157,6 @@ const pnl = ref(new Dec(0));
 const debt = ref(new Dec(0));
 const realized_pnl = ref(new Dec(0));
 const pnl_percent = ref(new Dec(0));
-const leaseRef = ref<LeaseData | null>();
-
 const router = useRouter();
 const wallet = useWalletStore();
 const oracle = useOracleStore();
@@ -397,10 +395,7 @@ function getActions(lease: LeaseData) {
       lease,
       key: `action-${lease.leaseAddress}`,
       onSharePnl: () => {
-        leaseRef.value = lease;
-        nextTick(() => {
-          sharePnlDialog.value?.show(lease);
-        });
+        sharePnlDialog.value?.show(lease);
       }
     })
   ];

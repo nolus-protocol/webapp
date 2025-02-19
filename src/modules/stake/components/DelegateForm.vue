@@ -21,42 +21,6 @@
     </template>
   </AdvancedFormControl>
   <hr class="border-border-color" />
-  <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
-    <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
-    <template v-if="decAmount.isZero()">
-      <div class="flex items-center gap-2 text-14">
-        <SvgIcon
-          name="list-sparkle"
-          class="fill-icon-secondary"
-        />
-        {{ $t("message.preview-input") }}
-      </div>
-    </template>
-    <template v-if="decAmount.isPositive()">
-      <div class="flex items-center gap-2 text-14">
-        <SvgIcon
-          name="check-solid"
-          class="fill-icon-success"
-        />
-        <p
-          class="flex-1"
-          :innerHTML="$t('message.delegate-preview', { amount: amountStr })"
-        ></p>
-      </div>
-      <div class="flex items-center gap-2 text-14">
-        <SvgIcon
-          name="info"
-          class="fill-icon-secondary"
-        />
-        {{ $t("message.delegate-preview-rate") }}
-      </div>
-      <DelegateChart
-        class="mt-4"
-        :amount="decAmount"
-      />
-    </template>
-  </div>
-  <hr class="border-border-color" />
   <div class="flex flex-col gap-2 p-6">
     <Button
       size="large"
@@ -73,9 +37,7 @@
 </template>
 
 <script lang="ts" setup>
-import DelegateChart from "./DelegateChart.vue";
-
-import { AdvancedFormControl, Button, ToastType, SvgIcon } from "web-components";
+import { AdvancedFormControl, Button, ToastType } from "web-components";
 import { computed, inject, ref } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY, NATIVE_NETWORK, STAKING } from "../../../config/global/network";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -125,10 +87,6 @@ function onInput(data: string) {
   input.value = data;
   validateInputs();
 }
-
-const decAmount = computed(() => {
-  return new Dec(input.value.length > 0 ? input.value : 0);
-});
 
 async function onNextClick() {
   if (validateInputs().length == 0) {
@@ -245,8 +203,4 @@ async function getValidators() {
 
   return loadedValidators;
 }
-
-const amountStr = computed(() => {
-  return `${AssetUtils.formatNumber(decAmount.value.toString(), NATIVE_ASSET.decimal_digits)} ${NATIVE_ASSET.label} (${stable.value})`;
-});
 </script>
