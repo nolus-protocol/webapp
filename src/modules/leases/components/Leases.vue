@@ -108,6 +108,7 @@
       </Table>
     </template>
   </Widget>
+  <SharePnLDialog ref="sharePnlDialog" />
   <router-view />
 </template>
 
@@ -115,8 +116,6 @@
 import {
   Button,
   type ButtonProps,
-  SvgIcon,
-  type SvgProps,
   Table,
   type TableColumnProps,
   TableRow,
@@ -130,9 +129,10 @@ import BigNumber, { type IBigNumber } from "@/common/components/BigNumber.vue";
 import ListHeader from "@/common/components/ListHeader.vue";
 import EmptyState from "@/common/components/EmptyState.vue";
 import Collect, { type ICollect } from "./single-lease/Collect.vue";
+import SharePnLDialog from "@/modules/leases/components/single-lease/SharePnLDialog.vue";
 
 import { useI18n } from "vue-i18n";
-import { type Component, computed, h, onMounted, onUnmounted, provide, ref, watch } from "vue";
+import { type Component, computed, h, nextTick, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { CURRENCY_VIEW_TYPES, type LeaseData } from "@/common/types";
 import { AssetUtils, EtlApi, formatDate, isTablet, Logger, WalletManager } from "@/common/utils";
 
@@ -148,6 +148,8 @@ import { CurrencyDemapping } from "@/config/currencies";
 import { useRouter } from "vue-router";
 import { getStatus, TEMPLATES } from "./common";
 import { SingleLeaseDialog } from "../enums";
+import type { IAction } from "./single-lease/Action.vue";
+import Action from "./single-lease/Action.vue";
 
 const { leases, getLeases, leaseLoaded } = useLeases((error: Error | any) => {});
 const activeLeases = ref(new Dec(0));
@@ -155,6 +157,7 @@ const pnl = ref(new Dec(0));
 const debt = ref(new Dec(0));
 const realized_pnl = ref(new Dec(0));
 const pnl_percent = ref(new Dec(0));
+const leaseRef = ref<LeaseData | null>();
 
 const router = useRouter();
 const wallet = useWalletStore();
@@ -163,6 +166,7 @@ const app = useApplicationStore();
 const i18n = useI18n();
 const hide = ref(WalletManager.getHideBalances());
 const search = ref("");
+const sharePnlDialog = ref<typeof SharePnLDialog | null>(null);
 
 let timeOut: NodeJS.Timeout;
 
@@ -173,7 +177,7 @@ const columns: TableColumnProps[] = [
   { label: i18n.t("message.pnl"), class: "max-w-[200px]" },
   { label: i18n.t("message.lease-size") },
   { label: i18n.t("message.opened-on"), class: "max-w-[200px]" },
-  { label: "", class: "max-w-[150px]" }
+  { label: "", class: "max-w-[180px]" }
 ];
 
 const leasesData = computed<TableRowItemProps[]>(() => {
@@ -260,7 +264,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
           { value: date, class: "max-w-[200px]" },
           {
             component: () => [...actions],
-            class: "max-w-[150px] pr-4 cursor-pointer"
+            class: "max-w-[180px] pr-4 cursor-pointer"
           }
         ]
       };
@@ -389,11 +393,14 @@ function getPositionInStable(lease: LeaseData) {
 function getActions(lease: LeaseData) {
   const status = getStatus(lease as LeaseData);
   const actions = [
-    h<SvgProps>(SvgIcon, {
-      name: "more",
-      class: "mt-2 ml-4",
-      onClick: () => {
-        router.push(`/${RouteNames.LEASES}/${lease.protocol.toLocaleLowerCase()}/${lease.leaseAddress}`);
+    h<IAction>(Action, {
+      lease,
+      key: `action-${lease.leaseAddress}`,
+      onSharePnl: () => {
+        leaseRef.value = lease;
+        nextTick(() => {
+          sharePnlDialog.value?.show(lease);
+        });
       }
     })
   ];
@@ -407,6 +414,7 @@ function getActions(lease: LeaseData) {
         label: i18n.t("message.close"),
         severity: "secondary",
         size: "medium",
+        key: `close-${lease.leaseAddress}`,
         onClick: () => {
           router.push({
             path: `/${RouteNames.LEASES}/${SingleLeaseDialog.CLOSE}/${lease.protocol?.toLowerCase()}/${lease.leaseAddress}`
@@ -419,7 +427,8 @@ function getActions(lease: LeaseData) {
     actions.unshift(
       h<ICollect>(Collect, {
         severity: "secondary",
-        lease: lease
+        lease: lease,
+        key: `collect-${lease.leaseAddress}`
       })
     );
   }

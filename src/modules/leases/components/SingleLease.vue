@@ -62,6 +62,10 @@
     </template>
   </div>
   <router-view></router-view>
+  <div
+    id="history"
+    class="mt-[50px]"
+  ></div>
 </template>
 
 <script lang="ts" setup>

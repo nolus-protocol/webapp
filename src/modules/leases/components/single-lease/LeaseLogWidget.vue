@@ -21,7 +21,7 @@
       v-else
       :slider="[
         {
-          image: { name: 'no-entries' },
+          image: { name: 'no-entries', class: 'min-h-[240px]' },
           title: $t('message.no-entries-lease'),
           description: $t('message.no-entries-lease-description')
         }

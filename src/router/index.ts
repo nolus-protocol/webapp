@@ -21,6 +21,9 @@ const router = createRouter({
     if (to.meta.key == from.meta.key) {
       return false;
     }
+    if (to.hash.length > 0) {
+      return scrollHash(to.hash);
+    }
     return restoreScroll(position);
   },
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -115,6 +118,20 @@ const preloadAllRoutes = () => {
     if (preload instanceof Function) {
       (preload as Function)();
     }
+  });
+};
+
+const scrollHash = (hash: string) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const element = document.querySelector(hash);
+      if (element) {
+        element.scrollIntoView({ inline: "end" });
+        resolve(false);
+      } else {
+        resolve(false);
+      }
+    }, 375);
   });
 };
 

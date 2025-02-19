@@ -47,7 +47,7 @@ import { inject, ref } from "vue";
 import { Button, Popover, ToastType } from "web-components";
 import type { ITransactionData } from "@/modules/history/types";
 import type { HistoryData } from "@/modules/history/types/ITransaction";
-import { StringUtils } from "../utils";
+import { StringUtils } from "../../../common/utils";
 import { useI18n } from "vue-i18n";
 
 export type IAction = { transaction: ITransactionData & HistoryData };

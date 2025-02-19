@@ -4,7 +4,12 @@
     :title="$t(`message.repay`)"
     showClose
     :disable-close="true"
-    @close-dialog="router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}`)"
+    @close-dialog="
+      () => {
+        const path = route.matched[2].path ?? `/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}`;
+        router.push(path);
+      }
+    "
   >
     <template v-slot:content>
       <hr class="border-border-color" />

@@ -70,7 +70,7 @@
         icon="share"
         iconPosition="left"
         size="medium"
-        @click="sharePnlDialog?.show()"
+        @click="sharePnlDialog?.show(lease)"
         v-if="TEMPLATES.opened == status"
       />
       <Button
@@ -101,15 +101,7 @@
         v-if="TEMPLATES.paid == status"
       />
     </div>
-    <SharePnLDialog
-      v-if="asset && lease"
-      :icon="asset.icon"
-      :positionType="ProtocolsConfig[lease.protocol!].type"
-      :price="currentPrice"
-      :asset="asset.shortName"
-      :position="pnl.percent"
-      ref="sharePnlDialog"
-    />
+    <SharePnLDialog ref="sharePnlDialog" />
   </div>
 </template>
 

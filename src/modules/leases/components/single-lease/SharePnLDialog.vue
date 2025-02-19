@@ -50,9 +50,9 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { Button, Dialog } from "web-components";
-import { Logger } from "@/common/utils";
+import { AssetUtils, Logger } from "@/common/utils";
 import { useI18n } from "vue-i18n";
 
 import arrowup from "@/assets/icons/arrowup.svg?url";
@@ -61,10 +61,17 @@ import shareImageOne from "@/assets/icons/share-image-1.svg?url";
 import shareImageTwo from "@/assets/icons/share-image-2.png?url";
 import shareImageThree from "@/assets/icons/share-image-3.png?url";
 import shareImageFour from "@/assets/icons/share-image-4.png?url";
+import type { LeaseData } from "@/common/types";
+import { PositionTypes, ProtocolsConfig } from "@/config/global";
+import { useApplicationStore } from "@/common/stores/application";
+import { CurrencyDemapping } from "@/config/currencies";
+import { useOracleStore } from "@/common/stores/oracle";
 
 const dialog = ref<typeof Dialog | null>(null);
 const canvas = ref<HTMLCanvasElement>();
 const i18n = useI18n();
+const app = useApplicationStore();
+const oracle = useOracleStore();
 const imageIndex = ref(0);
 const images = [shareImageOne, shareImageTwo, shareImageThree, shareImageFour];
 
@@ -74,32 +81,61 @@ const colors = {
   white: "white"
 };
 
-const props = defineProps({
-  icon: {
-    type: String,
-    required: true
-  },
-  asset: {
-    type: String,
-    required: true
-  },
-  price: {
-    type: String,
-    required: true
-  },
-  position: {
-    type: String,
-    required: true
-  },
-  positionType: {
-    type: String,
-    required: true
-  }
-});
+let leaseData: LeaseData | null;
 
-onMounted(() => {
-  generateCanvas();
-});
+const asset = () => {
+  if (leaseData?.leaseStatus?.opening && leaseData?.leaseData) {
+    const item = app.currenciesData?.[leaseData.leaseData?.leasePositionTicker as string];
+    return item;
+  }
+
+  switch (ProtocolsConfig[leaseData?.protocol!]?.type) {
+    case PositionTypes.long: {
+      const ticker =
+        leaseData?.leaseStatus?.opened?.amount.ticker ||
+        leaseData?.leaseStatus?.paid?.amount.ticker ||
+        leaseData?.leaseStatus?.opening?.downpayment.ticker;
+      const item = AssetUtils.getCurrencyByTicker(ticker as string);
+
+      const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
+      return asset;
+    }
+    case PositionTypes.short: {
+      const item = AssetUtils.getCurrencyByTicker(leaseData?.leaseData?.leasePositionTicker as string);
+
+      const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
+      return asset;
+    }
+  }
+};
+
+const currentPrice = () => {
+  switch (ProtocolsConfig[leaseData?.protocol!]?.type) {
+    case PositionTypes.long: {
+      if (leaseData?.leaseStatus?.opening && leaseData?.leaseData) {
+        const item = app.currenciesData?.[leaseData?.leaseData?.leasePositionTicker as string];
+        return AssetUtils.formatNumber(oracle.prices[item?.ibcData as string]?.amount ?? "0", asset()?.decimal_digits!);
+      }
+      break;
+    }
+    case PositionTypes.short: {
+      if (leaseData?.leaseStatus?.opening && leaseData?.leaseData) {
+        return AssetUtils.formatNumber(
+          oracle.prices[`${leaseData.leaseStatus.opening.loan.ticker}@${leaseData.protocol}`]?.amount ?? "0",
+          asset()?.decimal_digits!
+        );
+      }
+    }
+  }
+
+  const ticker =
+    CurrencyDemapping[leaseData?.leaseData?.leasePositionTicker!]?.ticker ?? leaseData?.leaseData?.leasePositionTicker;
+
+  return AssetUtils.formatNumber(
+    oracle.prices[`${ticker}@${leaseData?.protocol}`]?.amount ?? "0",
+    asset()?.decimal_digits!
+  );
+};
 
 const supportShare = () => {
   return !!navigator.share;
@@ -197,7 +233,7 @@ const generateCanvas = async () => {
       height: number;
     }
   ) {
-    const num = Number(props.position);
+    const num = Number(leaseData?.pnlPercent.toString(2));
 
     if (num < 0) {
       ctx.strokeStyle = colors.red;
@@ -230,7 +266,7 @@ const generateCanvas = async () => {
 
   async function setArrow(ctx: CanvasRenderingContext2D) {
     const image = new Image();
-    const num = Number(props.position);
+    const num = Number(leaseData?.pnlPercent.toString(2));
 
     const data = await fetch(num < 0 ? arrowdown : arrowup);
     const blob = await data.blob();
@@ -244,41 +280,41 @@ const generateCanvas = async () => {
 
   async function getBuyTextWidth(ctx: CanvasRenderingContext2D) {
     ctx.font = "600 30px 'Garet'";
-    return ctx.measureText(`${i18n.t(`message.${props.positionType}`)} ${i18n.t("message.buy-position")}`.toUpperCase())
-      .width;
+    return ctx.measureText(
+      `${i18n.t(`message.${ProtocolsConfig[leaseData?.protocol!].type}`)} ${i18n.t("message.buy-position")}`.toUpperCase()
+    ).width;
   }
 
   async function setBuyText(ctx: CanvasRenderingContext2D) {
     ctx.font = "600 30px 'Garet'";
     ctx.fillStyle = "white";
     ctx.fillText(
-      `${i18n.t(`message.${props.positionType}`)} ${i18n.t("message.buy-position")}`.toUpperCase(),
+      `${i18n.t(`message.${ProtocolsConfig[leaseData?.protocol!].type}`)} ${i18n.t("message.buy-position")}`.toUpperCase(),
       150,
       270
     );
   }
 
   async function setAsset(ctx: CanvasRenderingContext2D) {
-    if (props.icon) {
-      const image = new Image();
-      const data = await fetch(props.icon);
-      const blob = await data.blob();
+    const asst = asset()!;
+    const image = new Image();
+    const data = await fetch(asst.icon);
+    const blob = await data.blob();
 
-      image.onload = async () => {
-        const rect = 60;
-        const hf = rect / image.height;
-        const width = hf * image.width;
-        ctx.drawImage(image, 100, 310, width, hf * image.height);
+    image.onload = async () => {
+      const rect = 60;
+      const hf = rect / image.height;
+      const width = hf * image.width;
+      ctx.drawImage(image, 100, 310, width, hf * image.height);
 
-        ctx.font = "500 42px 'Garet'";
-        ctx.fillStyle = "#082D63";
-        if (props.asset) {
-          ctx.fillText(props.asset, 115 + width, 350);
-        }
-      };
+      ctx.font = "500 42px 'Garet'";
+      ctx.fillStyle = "#082D63";
+      if (asst.shortName) {
+        ctx.fillText(asst.shortName, 115 + width, 350);
+      }
+    };
 
-      image.src = window.URL.createObjectURL(blob);
-    }
+    image.src = window.URL.createObjectURL(blob);
   }
 
   function setPricePerSymbol(ctx: CanvasRenderingContext2D) {
@@ -286,15 +322,15 @@ const generateCanvas = async () => {
     ctx.fillStyle = "#5E7699";
     ctx.fillText(
       `${i18n.t("message.price-per-symbol", {
-        symbol: props.asset
-      })}: ${props.price}`,
+        symbol: asset()?.shortName
+      })}: ${currentPrice()}`,
       100,
       405
     );
   }
 
   function setPosition(ctx: CanvasRenderingContext2D) {
-    const pos = Number(props.position);
+    const pos = Number(leaseData?.pnlPercent.toString(2));
     const symbol = pos < 0 ? "-" : "+";
     let [a, d] = Math.abs(pos).toFixed(2).split(".");
 
@@ -367,7 +403,13 @@ function share() {
   }, "image/png");
 }
 
-defineExpose({ show: () => dialog?.value?.show() });
+defineExpose({
+  show: (data: LeaseData) => {
+    leaseData = data;
+    dialog?.value?.show();
+    generateCanvas();
+  }
+});
 </script>
 <style scoped lang="scss">
 .selected {

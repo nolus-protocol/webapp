@@ -11,7 +11,7 @@ import { useI18n } from "vue-i18n";
 import { computed, h, ref } from "vue";
 import { Label, type LabelProps, TableRow, type TableRowItemProps } from "web-components";
 import TransactionDetails from "@/common/components/activities/TransactionDetails.vue";
-import Action, { type IAction } from "@/common/components/Action.vue";
+import Action, { type IAction } from "@/modules/history/components/Action.vue";
 
 const i18n = useI18n();
 const transactionDialogRef = ref<typeof TransactionDetails | null>(null);

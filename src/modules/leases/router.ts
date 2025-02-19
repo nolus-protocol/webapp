@@ -22,6 +22,13 @@ export const LeasesRouter: RouteRecordRaw = {
           meta: {
             key: RouteNames.LEASES
           }
+        },
+        {
+          path: "repay/:protocol/:id",
+          meta: {
+            key: RouteNames.LEASES
+          },
+          component: () => import("./components/single-lease/RepayDialog.vue")
         }
       ]
     },
