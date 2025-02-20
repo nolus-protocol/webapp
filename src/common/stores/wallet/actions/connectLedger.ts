@@ -34,7 +34,7 @@ export async function connectLedger(this: Store, payload: { isBluetooth?: boolea
       ledgerWallet = await NolusWalletFactory.nolusLedgerWallet(
         new LedgerSigner(transport, {
           prefix: ChainConstants.BECH32_PREFIX_ACC_ADDR,
-          hdPaths: paths
+          hdPaths: paths as any
         })
       );
 
