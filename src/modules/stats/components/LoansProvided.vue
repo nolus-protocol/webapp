@@ -9,6 +9,7 @@
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol
         }"
+        :loading="loading"
       />
       <BigNumber
         :label="$t('message.open-interest')"
@@ -22,6 +23,7 @@
           fontSize: 20,
           fontSizeSmall: 20
         }"
+        :loading="loading"
       />
       <BigNumber
         :label="$t('message.unrealized-pnl')"
@@ -35,6 +37,7 @@
           fontSize: 20,
           fontSizeSmall: 20
         }"
+        :loading="loading"
       />
     </div>
     <LoansChart />
@@ -49,10 +52,11 @@ import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import BigNumber from "@/common/components/BigNumber.vue";
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import LoansChart from "@/modules/stats/components/LoansChart.vue";
-import { Logger, EtlApi } from "@/common/utils";
-import { ref, onMounted } from "vue";
+import { EtlApi, Logger } from "@/common/utils";
+import { onMounted, ref } from "vue";
 import { NATIVE_CURRENCY } from "@/config/global";
 
+const loading = ref(true);
 const openPositionValue = ref("0");
 const openInterest = ref("0");
 const unraelizedPnl = ref("0");
@@ -64,15 +68,18 @@ onMounted(async () => {
 async function setOpenPositonsValue() {
   const data = await EtlApi.fetchOpenPositionValue();
   openPositionValue.value = data.open_position_value;
+  loading.value = false;
 }
 
 async function setOpenInterest() {
   const data = await EtlApi.fetchOpenInterest();
   openInterest.value = data.open_interest;
+  loading.value = false;
 }
 
 async function setUnrealizedPnl() {
   const data = await EtlApi.fetchUnrealizedPnl();
   unraelizedPnl.value = data.unrealized_pnl;
+  loading.value = false;
 }
 </script>

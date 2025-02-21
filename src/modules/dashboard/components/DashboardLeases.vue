@@ -22,8 +22,8 @@
         />
       </template>
     </WidgetHeader>
-    <div :class="{ 'opacity-0': !loaded && props.isVisible }">
-      <template v-if="isVisibleWidget">
+    <div>
+      <template v-if="props.isVisible">
         <div class="flex gap-8">
           <BigNumber
             :label="$t('message.unrealized-pnl')"
@@ -40,6 +40,7 @@
                 base: false
               }
             }"
+            :loading="loaded"
           />
           <BigNumber
             :label="$t('message.leases')"
@@ -50,6 +51,7 @@
               fontSize: 20,
               fontSizeSmall: 20
             }"
+            :loading="loaded"
           />
           <BigNumber
             :label="$t('message.debt')"
@@ -60,6 +62,7 @@
               fontSize: 20,
               fontSizeSmall: 20
             }"
+            :loading="loaded"
           />
         </div>
         <UnrealizedPnlChart />
@@ -88,7 +91,7 @@ import { Button, Widget } from "web-components";
 import { RouteNames } from "@/router";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { useLeases } from "@/common/composables";
-import { computed, ref, watch } from "vue";
+import { ref, watch } from "vue";
 import { Coin, Dec } from "@keplr-wallet/unit";
 import { Intercom } from "@/common/utils/Intercom";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -111,13 +114,9 @@ const router = useRouter();
 const wallet = useWalletStore();
 const oracle = useOracleStore();
 const app = useApplicationStore();
-const loaded = ref(false);
+const loaded = ref(true);
 
 const props = defineProps<{ isVisible: boolean }>();
-
-const isVisibleWidget = computed(() => {
-  return props.isVisible && leases.value.length > 0;
-});
 
 watch(
   () => leases.value,
@@ -175,7 +174,7 @@ function setLeases() {
   } catch (e) {
     Logger.error(e);
   } finally {
-    loaded.value = true;
+    loaded.value = false;
   }
 }
 </script>
