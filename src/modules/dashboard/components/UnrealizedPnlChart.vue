@@ -130,7 +130,6 @@ function getClosestDataPoint(cPosition: number) {
 async function loadData() {
   if (wallet.wallet?.address) {
     const response = await EtlApi.fetchUnrealizedByAddressPnl(wallet.wallet?.address);
-
     data = response.map((d: IObjectKeys) => ({
       date: new Date(d.date),
       amount: Number(d.amount)

@@ -45,7 +45,6 @@ import type { UtilizationProps } from "../types";
 import { NolusClient } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { useAdminStore } from "@/common/stores/admin";
-import { Dec } from "@keplr-wallet/unit";
 
 const i18n = useI18n();
 
@@ -77,14 +76,16 @@ const assets = computed<TableRowItemProps[]>(() => {
           component: () =>
             h<UtilizationProps>(ChartUtilizaiton, {
               value: utilizationLevelOsmosis.value,
-              icon: osmoUsdc,
-              depositCap: "65"
+              icon: osmoUsdc
             }),
           class: "hidden md:flex w-full min-w-[200]"
         },
         { value: `${utilizationLevelOsmosis.value}%`, class: "hidden md:flex font-semibold" },
         { value: depositNeutron.value },
-        { value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_noble]) ?? 0).toFixed(2)}%` }
+        {
+          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_noble]) ?? 0).toFixed(2)}%`,
+          class: "text-typography-success"
+        }
       ]
     },
     {
@@ -99,14 +100,16 @@ const assets = computed<TableRowItemProps[]>(() => {
           component: () =>
             h<UtilizationProps>(ChartUtilizaiton, {
               value: utilizationLevelNeutron.value,
-              icon: neutronUsdc,
-              depositCap: "65"
+              icon: neutronUsdc
             }),
           class: "hidden md:flex min-w-[200]"
         },
         { value: `${utilizationLevelNeutron.value}%`, class: "hidden md:flex font-semibold" },
         { value: depositOsmosis.value },
-        { value: `${(Number(app.apr?.[AppUtils.getProtocols().neutron_noble]) ?? 0).toFixed(2)}%` }
+        {
+          value: `${(Number(app.apr?.[AppUtils.getProtocols().neutron_noble]) ?? 0).toFixed(2)}%`,
+          class: "text-typography-success"
+        }
       ]
     },
     {
@@ -121,14 +124,16 @@ const assets = computed<TableRowItemProps[]>(() => {
           component: () =>
             h<UtilizationProps>(ChartUtilizaiton, {
               value: utilizationLevelOsmosisAllSol.value,
-              icon: osmosisSol,
-              depositCap: "65"
+              icon: osmosisSol
             }),
           class: "hidden md:flex min-w-[200]"
         },
         { value: `${utilizationLevelOsmosisAllSol.value}%`, class: "hidden md:flex font-semibold" },
         { value: depositAllSol.value },
-        { value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_all_sol]) ?? 0).toFixed(2)}%` }
+        {
+          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_all_sol]) ?? 0).toFixed(2)}%`,
+          class: "text-typography-success"
+        }
       ]
     },
     {
@@ -143,14 +148,16 @@ const assets = computed<TableRowItemProps[]>(() => {
           component: () =>
             h<UtilizationProps>(ChartUtilizaiton, {
               value: utilizationLevelOsmosisAllBtc.value,
-              icon: osmosisBtc,
-              depositCap: "65"
+              icon: osmosisBtc
             }),
           class: "hidden md:flex min-w-[200]"
         },
         { value: `${utilizationLevelOsmosisAllBtc.value}%`, class: "hidden md:flex font-semibold" },
         { value: depositAllBtc.value },
-        { value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_all_btc]) ?? 0).toFixed(2)}%` }
+        {
+          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_all_btc]) ?? 0).toFixed(2)}%`,
+          class: "text-typography-success"
+        }
       ]
     },
     {
@@ -165,14 +172,16 @@ const assets = computed<TableRowItemProps[]>(() => {
           component: () =>
             h<UtilizationProps>(ChartUtilizaiton, {
               value: utilizationLevelOsmosis.value,
-              icon: osmosisStAtom,
-              depositCap: "65"
+              icon: osmosisStAtom
             }),
           class: "hidden md:flex min-w-[200]"
         },
         { value: `${utilizationLevelOsmosis.value}%`, class: "hidden md:flex font-semibold" },
         { value: depositStAtom.value },
-        { value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_st_atom]) ?? 0).toFixed(2)}%` }
+        {
+          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_st_atom]) ?? 0).toFixed(2)}%`,
+          class: "text-typography-success"
+        }
       ]
     },
     {
@@ -187,14 +196,16 @@ const assets = computed<TableRowItemProps[]>(() => {
           component: () =>
             h<UtilizationProps>(ChartUtilizaiton, {
               value: utilizationLevelOsmosisAkt.value,
-              icon: osmosisAkt,
-              depositCap: "65"
+              icon: osmosisAkt
             }),
           class: "hidden md:flex min-w-[200]"
         },
         { value: `${utilizationLevelOsmosisAkt.value}%`, class: "hidden md:flex font-semibold" },
         { value: depositAkt.value },
-        { value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_akt]) ?? 0).toFixed(2)}%` }
+        {
+          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_akt]) ?? 0).toFixed(2)}%`,
+          class: "text-typography-success"
+        }
       ]
     }
   ] as TableRowItemProps[];

@@ -9,6 +9,7 @@
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol
         }"
+        :loading="loading"
       />
       <BigNumber
         :label="$t('message.realized-pnl')"
@@ -20,6 +21,7 @@
           fontSize: 20,
           fontSizeSmall: 20
         }"
+        :loading="loading"
       />
       <BigNumber
         :label="$t('message.protocol-revenue')"
@@ -30,6 +32,7 @@
           fontSize: 20,
           fontSizeSmall: 20
         }"
+        :loading="loading"
       />
       <BigNumber
         :label="$t('message.buyback')"
@@ -43,6 +46,7 @@
           fontSize: 20,
           fontSizeSmall: 20
         }"
+        :loading="loading"
       />
     </div>
 
@@ -68,11 +72,13 @@ const txVolume = ref("0");
 const buybackTotal = ref("0");
 const realized_pnl = ref("0");
 const protocolRevenue = ref("0");
+const loading = ref(true);
 
 onMounted(async () => {
   await Promise.all([setTxVolume(), setBuyBackTotal(), setRealizedPnl(), setProtocolRevenue()]).catch((e) =>
     Logger.error(e)
   );
+  loading.value = false;
 });
 
 async function setTxVolume() {
