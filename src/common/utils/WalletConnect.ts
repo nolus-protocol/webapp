@@ -5,9 +5,10 @@ import { Dec, Int } from "@keplr-wallet/unit";
 import { fromBech32 } from "@cosmjs/encoding";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
-import { AssetUtils, Logger, WalletManager } from ".";
+import { AssetUtils, WalletManager } from ".";
 import { type NetworkData, WalletConnectMechanism } from "@/common/types";
 import { authenticateKeplr, authenticateLeap, authenticateLedger, type BaseWallet, type Wallet } from "@/networks";
+import type { Window as KeplrWindow } from "@keplr-wallet/types/build/window";
 
 export const validateAddress = (address: string) => {
   if (!address || address.trim() == "") {

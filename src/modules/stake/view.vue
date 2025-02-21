@@ -36,7 +36,7 @@
         />
       </div>
       <StakingRewards
-        :reward="reward"
+        :rewards="rewards"
         :stableRewards="stableRewards"
         :showEmpty="showEmpty"
         class="order-1 lg:order-none lg:flex-[40%]"
@@ -52,6 +52,7 @@ import { RouteNames } from "@/router";
 import type { IObjectKeys } from "@/common/types";
 
 import ListHeader from "@/common/components/ListHeader.vue";
+import VestedOverview from "./components/VestedOverview.vue";
 
 import { StakeDialog } from "@/modules/stake/enums";
 import { DelegationOverview, StakingRewards } from "./components";
@@ -65,7 +66,6 @@ import { Intercom } from "@/common/utils/Intercom";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
-import VestedOverview from "./components/VestedOverview.vue";
 
 let interval: NodeJS.Timeout | undefined;
 const wallet = useWalletStore();
@@ -78,11 +78,13 @@ const stableDelegated = ref("0.00");
 const validators = ref<TableRowItemProps[]>([]);
 const stableRewards = ref("0.00");
 const showEmpty = ref(false);
-const reward = ref<{
-  amount: string;
-  stableAmount: string;
-  icon: string;
-}>();
+const rewards = ref<
+  {
+    amount: string;
+    stableAmount: string;
+    icon: string;
+  }[]
+>();
 const unboundingDelegations = ref<IObjectKeys[]>([]);
 const vestedTokens = ref([] as { endTime: string; amount: { amount: string; denom: string } }[]);
 
@@ -119,21 +121,29 @@ async function loadVested() {
 
 async function loadDelegator() {
   const delegator = await NetworkUtils.loadDelegator();
-  const t = delegator?.total?.find((item: IObjectKeys) => item.denom == NATIVE_ASSET.denom);
+  const data: {
+    amount: string;
+    stableAmount: string;
+    icon: string;
+  }[] = [];
+  let stable = new Dec(0);
+  (delegator?.total ?? [])?.forEach((item: IObjectKeys) => {
+    const currency = AssetUtils.getCurrencyByDenom(item.denom);
+    const total = new Dec(new Dec(item?.amount ?? 0).truncate(), currency.decimal_digits);
+    const price = new Dec(oracle.prices?.[currency.key]?.amount ?? 0);
+    const s = price.mul(total);
 
-  const total = new Dec(new Dec(t?.amount ?? 0).truncate(), NATIVE_ASSET.decimal_digits);
+    data.push({
+      amount: `${AssetUtils.formatNumber(total.toString(), currency.decimal_digits)} ${currency.shortName}`,
+      stableAmount: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(s.toString(2), 2)}`,
+      icon: currency.icon
+    });
 
-  const currency = AssetUtils.getCurrencyByTicker(NATIVE_ASSET.ticker);
-  const price = new Dec(oracle.prices?.[currency.key]?.amount ?? 0);
-  const stable = price.mul(total);
+    stable = stable.add(s);
+  });
 
-  reward.value = {
-    amount: `${AssetUtils.formatNumber(total.toString(), NATIVE_ASSET.decimal_digits)} ${NATIVE_ASSET.label}`,
-    stableAmount: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(2), 2)}`,
-    icon: NATIVE_ASSET.icon
-  };
-
-  stableRewards.value = stable.toString(2);
+  rewards.value = data;
+  stableRewards.value = stable.toString(NATIVE_CURRENCY.maximumFractionDigits);
 }
 
 async function loadDelegated() {

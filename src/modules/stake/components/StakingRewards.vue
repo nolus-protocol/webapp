@@ -29,7 +29,8 @@
     </div>
 
     <Asset
-      v-if="reward && !showEmpty"
+      v-if="!showEmpty"
+      v-for="reward of rewards"
       :icon="reward.icon"
       :amount="reward.amount"
       :stable-amount="reward.stableAmount"
@@ -63,11 +64,11 @@ import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 
 defineProps<{
-  reward?: {
+  rewards?: {
     amount: string;
     stableAmount: string;
     icon: string;
-  };
+  }[];
   stableRewards: string;
   showEmpty: boolean;
 }>();

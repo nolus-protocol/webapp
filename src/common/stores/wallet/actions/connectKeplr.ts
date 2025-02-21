@@ -48,7 +48,11 @@ export async function connectKeplr(this: Store) {
 
       this.wallet = nolusWalletOfflineSigner;
       this.walletName = (await keplrWindow.keplr.getKey(chainId)).name;
-
+      (window as any).keplr.defaultOptions = {
+        sign: {
+          preferNoSetFee: true
+        }
+      };
       await this.UPDATE_BALANCES();
     }
   }

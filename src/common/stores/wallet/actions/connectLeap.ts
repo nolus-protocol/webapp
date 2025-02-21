@@ -46,7 +46,11 @@ export async function connectLeap(this: Store) {
 
       this.wallet = nolusWalletOfflineSigner;
       this.walletName = (await leapWindow.leap.getKey(chainId)).name;
-
+      (window as any).leap.defaultOptions = {
+        sign: {
+          preferNoSetFee: true
+        }
+      };
       await this.UPDATE_BALANCES();
     }
   }
