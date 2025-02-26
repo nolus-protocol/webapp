@@ -85,7 +85,7 @@
           </div>
           <div class="flex flex-col gap-4">
             <BigNumber
-              :label="$t('message.price-per-asset')"
+              :label="`${$t('message.price-per-asset')} ${asset?.shortName}`"
               :amount="{
                 amount: currentPrice,
                 type: CURRENCY_VIEW_TYPES.CURRENCY,
@@ -169,20 +169,32 @@
               <span class="flex text-14 font-semibold text-typography-default">
                 {{ NATIVE_CURRENCY.symbol }}{{ stopLoss.amount }} {{ $t("message.per") }} {{ asset?.shortName }}
               </span>
-              <span class="flex text-12 text-typography-default">
+              <!-- <span class="flex text-12 text-typography-default">
                 {{ $t("message.max-loss") }}: {{ stopLoss.percent }}%
-              </span>
+              </span> -->
             </template>
-            <Button
-              :label="stopLoss ? $t('message.edit') : $t('message.set-stop-loss')"
-              severity="secondary"
-              size="small"
-              @click="
-                router.push({
-                  path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.leaseAddress}/${SingleLeaseDialog.STOP_LOSS}`
-                })
-              "
-            />
+            <div class="flex">
+              <Button
+                class="flex-1"
+                :label="stopLoss ? $t('message.edit') : $t('message.set-stop-loss')"
+                severity="secondary"
+                size="small"
+                @click="
+                  router.push({
+                    path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.leaseAddress}/${SingleLeaseDialog.STOP_LOSS}`
+                  })
+                "
+              />
+              <Button
+                v-if="stopLoss"
+                severity="secondary"
+                icon="trash"
+                size="small"
+                class="ml-2 text-icon-default"
+                :loading="loadingStopLoss"
+                @click="onRemoveStopLoss"
+              />
+            </div>
           </div>
           <div class="flex flex-col gap-2">
             <span class="flex items-center gap-1">
@@ -198,20 +210,32 @@
               <span class="flex text-14 font-semibold text-typography-default">
                 {{ NATIVE_CURRENCY.symbol }}{{ takeProfit.amount }} {{ $t("message.per") }} {{ asset?.shortName }}
               </span>
-              <span class="flex text-12 text-typography-default">
+              <!-- <span class="flex text-12 text-typography-default">
                 {{ $t("message.max-profit") }}: {{ takeProfit.percent }}%
-              </span>
+              </span> -->
             </template>
-            <Button
-              :label="takeProfit ? $t('message.edit') : $t('message.set-take-profit')"
-              severity="secondary"
-              size="small"
-              @click="
-                router.push({
-                  path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.leaseAddress}/${SingleLeaseDialog.TAKE_PROFIT}`
-                })
-              "
-            />
+            <div class="flex">
+              <Button
+                class="flex-1"
+                :label="takeProfit ? $t('message.edit') : $t('message.set-take-profit')"
+                severity="secondary"
+                size="small"
+                @click="
+                  router.push({
+                    path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.leaseAddress}/${SingleLeaseDialog.TAKE_PROFIT}`
+                  })
+                "
+              />
+              <Button
+                v-if="takeProfit"
+                severity="secondary"
+                icon="trash"
+                size="small"
+                class="ml-2 text-icon-default"
+                :loading="loadingTakeProfit"
+                @click="onRemoveTakeProfit"
+              />
+            </div>
           </div>
         </div>
         <hr class="border-t border-border-color" />
@@ -222,7 +246,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, SvgIcon, Tooltip, Widget } from "web-components";
+import { Button, SvgIcon, ToastType, Tooltip, Widget } from "web-components";
 
 import { CURRENCY_VIEW_TYPES, type LeaseData } from "@/common/types";
 import { RouteNames } from "@/router";
@@ -232,17 +256,20 @@ import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import PnlOverTimeChart from "./PnlOverTimeChart.vue";
 import { MID_DECIMALS, NATIVE_CURRENCY, PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
-import { computed, ref, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { useApplicationStore } from "@/common/stores/application";
 import { useOracleStore } from "@/common/stores/oracle";
 import { Dec } from "@keplr-wallet/unit";
 import { AssetUtils } from "@/common/utils/AssetUtils";
 import { CurrencyDemapping } from "@/config/currencies";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import { datePraser } from "@/common/utils";
+import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
+import { datePraser, Logger, walletOperation } from "@/common/utils";
 import { useRouter } from "vue-router";
 import { SingleLeaseDialog } from "@/modules/leases/enums";
 import { getStatus, TEMPLATES } from "../common";
+import { useWalletStore } from "@/common/stores/wallet";
+import { Lease } from "@nolus/nolusjs/build/contracts";
+import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
   lease?: LeaseData;
@@ -251,6 +278,12 @@ const props = defineProps<{
 const app = useApplicationStore();
 const oracle = useOracleStore();
 const router = useRouter();
+const walletStore = useWalletStore();
+const loadingStopLoss = ref(false);
+const loadingTakeProfit = ref(false);
+const i18n = useI18n();
+const reload = inject("reload", () => {});
+const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
 const pnl = ref({
   percent: "0.00",
@@ -526,13 +559,19 @@ const liquidationPercent = computed(() => {
   const lease = props.lease?.leaseStatus?.opened;
   if (lease) {
     const price = props.lease.liquidation;
-    const cPrice = getPrice()!;
+    const cPrice = getCurrentPrice()!;
     const diff = cPrice.sub(price);
     const percent = diff.quo(cPrice).mul(new Dec(PERCENT)).mul(new Dec(-1)).toString(2);
     return `${percent}`;
   }
   return "0";
 });
+
+function getCurrentPrice() {
+  const key = `${props.lease?.leaseData?.leasePositionTicker}@${props.lease?.protocol}`;
+  const price = oracle.prices[key];
+  return new Dec(price?.amount ?? 0);
+}
 
 const interestDueDate = computed(() => {
   const lease = props.lease?.leaseStatus?.opened;
@@ -542,4 +581,78 @@ const interestDueDate = computed(() => {
   }
   return datePraser(date.toISOString(), true);
 });
+
+async function onRemoveStopLoss() {
+  try {
+    await walletOperation(onSetStopLoss);
+  } catch (error: Error | any) {}
+}
+
+async function onSetStopLoss() {
+  const wallet = walletStore.wallet as NolusWallet;
+  if (wallet) {
+    try {
+      loadingStopLoss.value = true;
+
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+      const leaseClient = new Lease(cosmWasmClient, props.lease?.leaseAddress!);
+      const price = getPrice();
+
+      if (!price) {
+        return;
+      }
+
+      const takeProfit = props.lease?.leaseStatus.opened?.close_policy.take_profit;
+      const { txHash, txBytes, usedFee } = await leaseClient.simulateChangeClosePolicyTx(wallet, null, takeProfit);
+      await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
+      walletStore.loadActivities();
+      reload();
+      onShowToast({
+        type: ToastType.success,
+        message: i18n.t("message.stop-loss-toast")
+      });
+    } catch (error: Error | any) {
+      Logger.error(error);
+    } finally {
+      loadingStopLoss.value = false;
+    }
+  }
+}
+
+async function onRemoveTakeProfit() {
+  try {
+    await walletOperation(onSetTakeProfit);
+  } catch (error: Error | any) {}
+}
+
+async function onSetTakeProfit() {
+  const wallet = walletStore.wallet as NolusWallet;
+  if (wallet) {
+    try {
+      loadingTakeProfit.value = true;
+
+      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+      const leaseClient = new Lease(cosmWasmClient, props.lease?.leaseAddress!);
+      const price = getPrice();
+
+      if (!price) {
+        return;
+      }
+
+      const stopLoss = props.lease?.leaseStatus.opened?.close_policy.stop_loss;
+      const { txHash, txBytes, usedFee } = await leaseClient.simulateChangeClosePolicyTx(wallet, stopLoss, null);
+      await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
+      walletStore.loadActivities();
+      reload();
+      onShowToast({
+        type: ToastType.success,
+        message: i18n.t("message.stop-loss-toast")
+      });
+    } catch (error: Error | any) {
+      Logger.error(error);
+    } finally {
+      loadingTakeProfit.value = false;
+    }
+  }
+}
 </script>

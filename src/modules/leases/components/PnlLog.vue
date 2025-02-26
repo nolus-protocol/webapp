@@ -40,7 +40,7 @@
           denom: NATIVE_CURRENCY.symbol
         }"
       />
-      <PositionPreviewChart />
+      <!-- <PositionPreviewChart /> -->
       <Table
         :columns="leasesHistory.length > 0 ? columns : []"
         :class="[{ 'min-w-[600px]': leasesHistory.length > 0 }]"
@@ -85,7 +85,6 @@ import { computed, h, onMounted, ref, watch } from "vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
-import PositionPreviewChart from "./pnl-log/PositionPreviewChart.vue";
 import type { ILoan } from "./types";
 import { AssetUtils, EtlApi, getCreatedAtForHuman, Logger } from "@/common/utils";
 import { CurrencyDemapping } from "@/config/currencies";
@@ -181,7 +180,7 @@ const leasesHistory = computed(() => {
     return {
       items: [
         {
-          component: () => getType(item),
+          component: getType(item),
           class: "max-w-[150px] cursor-pointer",
           variant: "left"
         },
@@ -205,12 +204,12 @@ const leasesHistory = computed(() => {
           value: new PricePretty(
             {
               currency: "usd",
-              maxDecimals: currency.decimal_digits,
               symbol: "$",
-              locale: "en-US"
+              locale: "en-US",
+              maxDecimals: NATIVE_CURRENCY.maximumFractionDigits
             },
             pnl.quo(new Dec(10 ** currency.decimal_digits))
-          ).toString(),
+          ),
           class: `max-w-[200px] ${pnl_status ? "text-typography-success" : "text-typography-error"}`
         },
         {

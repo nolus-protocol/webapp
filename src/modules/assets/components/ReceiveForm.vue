@@ -1,115 +1,166 @@
 <template>
-  <div class="flex max-w-[190px] flex-col gap-2 px-6 py-4">
-    <label
-      for="dropdown-btn-network"
-      class="text-16 font-semibold text-typography-default"
-      >{{ $t("message.network") }}</label
-    >
-    <Dropdown
-      id="network"
-      :on-select="onUpdateNetwork"
-      :options="networks"
-      :size="Size.medium"
-      searchable
-      :selected="selectedNetwork"
-      :disabled="isDisabled"
-    />
-  </div>
-  <hr class="border-border-color" />
-  <AdvancedFormControl
-    id="receive"
-    searchable
-    :currencyOptions="assets"
-    class="px-6 py-4"
-    :label="$t('message.amount')"
-    :balanceLabel="$t('message.balance')"
-    placeholder="0"
-    :calculated-balance="calculatedBalance"
-    :pickerPlacehodler="$t('message.loading')"
-    @on-selected-currency="
-      (option) => {
-        selectedCurrency = assets.findIndex((item) => item == option);
-      }
-    "
-    @input="handleAmountChange"
-    :value="amount"
-    :is-loading-picker="disablePicker || isDisabled"
-    :disabled-input-field="isDisabled"
-    :disabled-currency-picker="disablePicker || isDisabled"
-    :error-msg="amountErrorMsg"
-    :selected-currency-option="assets[selectedCurrency]"
-    :itemsHeadline="[$t('message.assets'), $t('message.balance')]"
-    :item-template="
-      (item: any) =>
-        h<AssetItemProps>(AssetItem, {
-          ...item,
-          abbreviation: item.label,
-          name: item.name,
-          balance: item.balance.value,
-          max_decimals: item.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : item.decimal_digits
-        })
-    "
-  />
-  <div class="relative flex items-center justify-center">
-    <hr class="border-border-color" />
-    <Button
-      severity="secondary"
-      icon="arrow-down"
-      size="large"
-      class="pointer-events-none absolute cursor-none !p-[9px]"
-    />
-  </div>
-  <hr class="border-border-color" />
-  <div class="flex flex-col gap-2 px-6 py-4">
-    <div class="flex items-center gap-1">
+  <div class="custom-scroll max-h-full overflow-auto md:max-h-[75vh]">
+    <div class="flex max-w-[190px] flex-col gap-2 px-6 py-4">
       <label
-        for="input-receipt-send-2"
+        for="dropdown-btn-network"
         class="text-16 font-semibold text-typography-default"
-        >{{ $t("message.recipient") }}</label
+        >{{ $t("message.network") }}</label
       >
-      <Tooltip
-        position="top"
-        :content="$t('message.receive-tooltip')"
-      >
-        <SvgIcon
-          name="help"
-          class="rounded-full"
-          size="s"
-        />
-      </Tooltip>
+      <Dropdown
+        id="network"
+        :on-select="onUpdateNetwork"
+        :options="networks"
+        :size="Size.medium"
+        searchable
+        :selected="selectedNetwork"
+        :disabled="isDisabled"
+      />
     </div>
-    <Input
-      id="receipt-send-2"
-      type="text"
-      :disabled="true"
-      inputClass="border-none p-0"
-      :value="walletStore.wallet?.address ? walletStore.wallet?.address : $t('message.connect-wallet-label')"
+    <hr class="border-border-color" />
+    <AdvancedFormControl
+      id="receive"
+      searchable
+      :currencyOptions="assets"
+      class="px-6 py-4"
+      :label="$t('message.amount')"
+      :balanceLabel="$t('message.balance')"
+      placeholder="0"
+      :calculated-balance="calculatedBalance"
+      :pickerPlacehodler="$t('message.loading')"
+      @on-selected-currency="
+        (option) => {
+          selectedCurrency = assets.findIndex((item) => item == option);
+        }
+      "
+      @input="handleAmountChange"
+      :value="amount"
+      :is-loading-picker="disablePicker || isDisabled"
+      :disabled-input-field="isDisabled"
+      :disabled-currency-picker="disablePicker || isDisabled"
+      :error-msg="amountErrorMsg"
+      :selected-currency-option="assets[selectedCurrency]"
+      :itemsHeadline="[$t('message.assets'), $t('message.balance')]"
+      :item-template="
+        (item: any) =>
+          h<AssetItemProps>(AssetItem, {
+            ...item,
+            abbreviation: item.label,
+            name: item.name,
+            balance: item.balance.value,
+            max_decimals: item.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : item.decimal_digits
+          })
+      "
     />
-  </div>
+    <div class="relative flex items-center justify-center">
+      <hr class="border-border-color" />
+      <Button
+        severity="secondary"
+        icon="arrow-down"
+        size="large"
+        class="pointer-events-none absolute cursor-none !p-[9px]"
+      />
+    </div>
+    <hr class="border-border-color" />
+    <div class="flex flex-col gap-2 px-6 py-4">
+      <div class="flex items-center gap-1">
+        <label
+          for="input-receipt-send-2"
+          class="text-16 font-semibold text-typography-default"
+          >{{ $t("message.recipient") }}</label
+        >
+        <Tooltip
+          position="top"
+          :content="$t('message.receive-tooltip')"
+        >
+          <SvgIcon
+            name="help"
+            class="rounded-full"
+            size="s"
+          />
+        </Tooltip>
+      </div>
+      <Input
+        id="receipt-send-2"
+        type="text"
+        :disabled="true"
+        inputClass="border-none p-0"
+        :value="walletStore.wallet?.address ? walletStore.wallet?.address : $t('message.connect-wallet-label')"
+      />
+    </div>
 
-  <hr class="border-border-color" />
-  <div class="flex flex-col gap-2 p-6">
-    <button
-      v-if="selectedNetwork.chain_type == 'evm'"
-      :class="{ 'js-loading': isMetamaskLoading }"
-      class="bmt-2 flex items-center !text-12 font-semibold text-neutral-typography-200"
-      type="button"
-      @click="connectEvm"
-    >
-      <component :is="connection?.icon" />
-      {{ evmAddress == null || evmAddress?.length == 0 ? $t("message.connect") : evmAddress }}
-    </button>
-    <Button
-      size="large"
-      severity="primary"
-      :label="$t('message.receive')"
-      :loading="isLoading"
-      :disabled="isDisabled"
-      @click="onSwap"
-    />
-    <p class="text-center text-12 text-typography-secondary">
-      {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.longOperationsEstimation }}{{ $t("message.sec") }}
-    </p>
+    <div class="mt-4 flex flex-col justify-end px-4">
+      <Button
+        v-if="showDetails"
+        :label="$t('message.hide-transaction-details')"
+        @click="showDetails = !showDetails"
+        severity="tertiary"
+        icon="minus"
+        iconPosition="left"
+        size="small"
+        class="self-end text-icon-default"
+      />
+
+      <Button
+        v-else
+        :label="$t('message.show-transaction-details')"
+        @click="showDetails = !showDetails"
+        severity="tertiary"
+        icon="plus"
+        iconPosition="left"
+        size="small"
+        class="self-end text-icon-default"
+      />
+
+      <Stepper
+        v-if="showDetails"
+        :active-step="-1"
+        :steps="[
+          {
+            label: $t('message.send-stepper'),
+            icon: selectedNetwork.icon,
+            token: {
+              balance: AssetUtils.formatNumber(amount, assets[selectedCurrency]?.decimal_digits),
+              symbol: assets[selectedCurrency]?.shortName
+            },
+            meta: () => h('div', `${selectedNetwork.label} > ${NATIVE_NETWORK.label}`)
+          },
+          {
+            label: $t('message.receive-stepper'),
+            icon: NATIVE_NETWORK.icon,
+            token: {
+              balance: AssetUtils.formatNumber(amount, assets[selectedCurrency]?.decimal_digits),
+              symbol: assets[selectedCurrency]?.shortName
+            },
+            meta: () => h('div', `${NATIVE_NETWORK.label}`)
+          }
+        ]"
+        :variant="StepperVariant.MEDIUM"
+      />
+    </div>
+    <hr class="my-4 border-border-color" />
+    <div class="flex flex-col gap-2 p-6">
+      <button
+        v-if="selectedNetwork.chain_type == 'evm'"
+        :class="{ 'js-loading': isMetamaskLoading }"
+        class="bmt-2 flex items-center !text-12 font-semibold text-neutral-typography-200"
+        type="button"
+        @click="connectEvm"
+      >
+        <component :is="connection?.icon" />
+        {{ evmAddress == null || evmAddress?.length == 0 ? $t("message.connect") : evmAddress }}
+      </button>
+      <Button
+        size="large"
+        severity="primary"
+        :label="$t('message.receive')"
+        :loading="isLoading"
+        :disabled="isDisabled"
+        @click="onSwap"
+      />
+      <p class="text-center text-12 text-typography-secondary">
+        {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.longOperationsEstimation }}{{ $t("message.sec") }}
+      </p>
+    </div>
   </div>
 </template>
 
@@ -163,6 +214,7 @@ import { Decimal } from "@cosmjs/math";
 import { SkipRouter } from "@/common/utils/SkipRoute";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/common/stores/oracle";
+import { StepperVariant, Stepper } from "web-components";
 
 const i18n = useI18n();
 const connections: {
@@ -190,6 +242,7 @@ const connections: {
 };
 const type = WalletManager.getWalletConnectMechanism();
 const connection = connections[type as keyof typeof WalletConnectMechanism];
+const showDetails = ref(false);
 
 const assets = computed(() => {
   const data = [];

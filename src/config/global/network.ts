@@ -29,7 +29,8 @@ export const NATIVE_NETWORK = {
   leaseRepayEstimation: 1,
   key: "NOLUS",
   symbol: "NLS",
-  chain_type: ChainType.cosmos
+  chain_type: ChainType.cosmos,
+  icon: nlsIcon
 };
 
 export const STAKING = {
@@ -38,3 +39,5 @@ export const STAKING = {
   PERCENT: 0.05,
   SLICE: 3
 };
+
+export const LTV = 0.9;

@@ -132,7 +132,7 @@ import Collect, { type ICollect } from "./single-lease/Collect.vue";
 import SharePnLDialog from "@/modules/leases/components/single-lease/SharePnLDialog.vue";
 
 import { useI18n } from "vue-i18n";
-import { type Component, computed, h, nextTick, onMounted, onUnmounted, provide, ref, watch } from "vue";
+import { type Component, computed, h, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { CURRENCY_VIEW_TYPES, type LeaseData } from "@/common/types";
 import { AssetUtils, EtlApi, formatDate, isTablet, Logger, WalletManager } from "@/common/utils";
 

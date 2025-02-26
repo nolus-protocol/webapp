@@ -72,6 +72,6 @@ const props = defineProps<IBigNumber>();
 
 <style scoped lang="scss">
 .label {
-  text-transform: capitalize;
+  // text-transform: capitalize;
 }
 </style>

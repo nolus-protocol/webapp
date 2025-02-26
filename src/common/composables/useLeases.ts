@@ -129,14 +129,15 @@ export function useLeases(onError: (error: unknown) => void) {
   return { leases, leaseLoaded, getLeases };
 }
 
-export function useLease(leaseAddress: string, protocol: string, onError: (error: unknown) => void, period?: number) {
+export function useLease(leaseAddress: string, protocol: string, onError: (error: unknown) => void, period?: boolean) {
   const lease = ref<LeaseData>();
   const leaseLoaded = ref(false);
   const router = useRouter();
 
   const getLease = async () => {
     try {
-      const l = await fetchLease(leaseAddress, protocol.toUpperCase(), period);
+      let secs = period ? await AppUtils.getDueProjectionSecs() : null;
+      const l = await fetchLease(leaseAddress, protocol.toUpperCase(), secs?.due_projection_secs);
       if (l.leaseStatus.closed) {
         router.push(`/${RouteNames.LEASES}`);
         return;

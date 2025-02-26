@@ -34,18 +34,18 @@
       },
       {
         image: { name: 'network-rewards' },
-        title: $t('message.delegate-nls'),
-        description: $t('message.delegate-nls-description')
+        title: $t('message.delegate-nls-2'),
+        description: $t('message.delegate-nls-description-2')
       },
       {
         image: { name: 'government' },
-        title: $t('message.delegate-nls'),
-        description: $t('message.delegate-nls-description')
+        title: $t('message.delegate-nls-3'),
+        description: $t('message.delegate-nls-description-3')
       },
       {
         image: { name: 'unlock-discounts' },
-        title: $t('message.delegate-nls'),
-        description: $t('message.delegate-nls-description')
+        title: $t('message.delegate-nls-4'),
+        description: $t('message.delegate-nls-description-4')
       }
     ]"
   />

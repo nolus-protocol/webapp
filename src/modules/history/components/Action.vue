@@ -69,7 +69,14 @@ function copyHash() {
 
 function copyTxRaw() {
   if (props.transaction) {
-    StringUtils.copyToClipboard(props.transaction.value);
+    const item = { ...props.transaction.data };
+    if (props.transaction.data.msg) {
+      const msg = JSON.parse(Buffer.from(props.transaction.data.msg).toString());
+      item.msg = msg;
+    }
+
+    const data = JSON.stringify(item, (key, value) => (typeof value === "bigint" ? value.toString() : value));
+    StringUtils.copyToClipboard(data);
     onShowToast({ type: ToastType.success, message: i18n.t("message.tx-raw-copied-successfully") });
   }
   close();

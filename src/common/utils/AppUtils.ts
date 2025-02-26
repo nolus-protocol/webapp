@@ -15,6 +15,7 @@ import { SKIPROUTE_CONFIG_URL } from "@/config/global/swap";
 import { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL, isDev, isServe, languages, NETWORK } from "@/config/global";
 import { PROMOSALS_CONFIG_URL } from "@/config/global/proposals";
 import { FREE_INTEREST_URL } from "@/config/global/free-interest-url";
+import { DUE_PROJECTION_SECS_URL } from "@/config/global/due-projection-secs-url";
 
 export class AppUtils {
   public static LANGUAGE = "language";
@@ -41,6 +42,9 @@ export class AppUtils {
   }>;
 
   static freeInterest: Promise<string[]>;
+  static dueProjectionSecs: Promise<{
+    due_projection_secs: number;
+  }>;
   static ignoreLeaseAssets: Promise<string[]>;
   static ignoreDownpaymentAssets: Promise<string[]>;
   static ignoreAssets: Promise<string[]>;
@@ -151,6 +155,17 @@ export class AppUtils {
 
     AppUtils.freeInterest = AppUtils.fetchFreeInterest();
     return AppUtils.freeInterest;
+  }
+
+  static async getDueProjectionSecs() {
+    const dueProjectionSecs = AppUtils.dueProjectionSecs;
+
+    if (dueProjectionSecs) {
+      return dueProjectionSecs;
+    }
+
+    AppUtils.dueProjectionSecs = AppUtils.fetchDueProjectionSecs();
+    return AppUtils.dueProjectionSecs;
   }
 
   static async getFreeInterestAddress() {
@@ -399,6 +414,13 @@ export class AppUtils {
   private static async fetchFreeInterest() {
     const data = await fetch(await FREE_INTEREST_URL);
     const json = (await data.json()) as string[];
+
+    return json;
+  }
+
+  private static async fetchDueProjectionSecs() {
+    const data = await fetch(await DUE_PROJECTION_SECS_URL);
+    const json = (await data.json()) as { due_projection_secs: number };
 
     return json;
   }

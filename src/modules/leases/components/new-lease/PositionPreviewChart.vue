@@ -87,7 +87,6 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
-
   const plotChart = plot({
     className: "position-preview-chart",
     y: { label: null, ticks: 3, tickFormat: (d) => `$${d}`, tickSize: 0, line: true },
@@ -101,8 +100,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         y: "value",
         fill: "#C1CAD7",
         rx: 6,
-        insetBottom: -3,
-        clip: "frame"
+        insetBottom: -3
       }),
       barY([responses.value[0]], { x: "name", y: "value", fill: "#19A96C", rx: 6, insetBottom: -3, clip: "frame" }),
       text(responses.value, {

@@ -17,14 +17,14 @@ import { RouteNames } from "./RouteNames";
 import MainLayout from "@/modules/view.vue";
 
 const router = createRouter({
-  scrollBehavior(to, from, position) {
+  scrollBehavior(to, from) {
     if (to.meta.key == from.meta.key) {
       return false;
     }
     if (to.hash.length > 0) {
       return scrollHash(to.hash);
     }
-    return restoreScroll(position);
+    return { top: 0 } as any;
   },
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -49,39 +49,6 @@ const router = createRouter({
     }
   ]
 });
-
-let lastPromise: Promise<{ top: number; behavior: string }> | any;
-let timeOut: NodeJS.Timeout | null;
-let reject: Function;
-
-function restoreScroll(position: { behavior?: ScrollOptions["behavior"]; left: number; top: number } | null) {
-  if (timeOut) {
-    clearTimeout(timeOut);
-    timeOut = null;
-  }
-
-  lastPromise = new Promise((resolve, r) => {
-    reject = r;
-    timeOut = setTimeout(() => {
-      timeOut = null;
-      resolve({ top: position?.top ?? 0, behavior: "instant" });
-    }, 350);
-  }).catch((e) => {});
-
-  return lastPromise;
-}
-
-window.addEventListener(
-  "scroll",
-  () => {
-    if (timeOut) {
-      reject?.();
-      clearTimeout(timeOut);
-      timeOut = null;
-    }
-  },
-  { passive: true }
-);
 
 async function loadLanguage(to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) {
   await setLang(AppUtils.getLang().key);

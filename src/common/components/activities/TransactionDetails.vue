@@ -74,33 +74,32 @@
             </div>
           </div>
         </div>
-
-        <!-- <span
-          v-if="data.summary"
-          class="text-18 font-semibold"
-          >{{ $t("message.transactions-summary") }}</span
-        >
-        <Stepper
-          v-if="data.summary"
-          :variant="StepperVariant.MEDIUM"
-          v-bind="data.summary"
-        /> -->
+        <template v-if="data?.historyData?.routeDetails">
+          <p class="font-semibold text-typography-default">
+            {{ $t("message.transactions-summary") }}
+          </p>
+          <Stepper
+            v-bind="data?.historyData?.routeDetails"
+            :variant="StepperVariant.MEDIUM"
+          />
+        </template>
       </div>
     </template>
   </Dialog>
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, onBeforeUnmount, ref } from "vue";
+import nlsIcon from "@/assets/icons/networks/nolus.svg?url";
+import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
+import { computed, inject, onBeforeUnmount, ref, h } from "vue";
 import { Button, Dialog, ToastType } from "web-components";
 import type { ITransactionData } from "@/modules/history/types";
 import type { HistoryData } from "@/modules/history/types/ITransaction";
 import { AssetUtils, StringUtils } from "@/common/utils";
 import { useI18n } from "vue-i18n";
-import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
-import nlsIcon from "@/assets/icons/networks/nolus.svg?url";
 import { useWalletStore } from "@/common/stores/wallet";
+import { StepperVariant, Stepper } from "web-components";
 
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
@@ -108,7 +107,6 @@ const dialog = ref<typeof Dialog | null>(null);
 const data = ref<ITransactionData & HistoryData>();
 const i18n = useI18n();
 const wallet = useWalletStore();
-
 onBeforeUnmount(() => {
   dialog?.value?.close();
 });
@@ -134,7 +132,14 @@ function copyHash() {
 
 function copyTxRaw() {
   if (data.value) {
-    StringUtils.copyToClipboard(data.value.value);
+    const item = { ...data.value.data };
+    if (data.value.data.msg) {
+      const msg = JSON.parse(Buffer.from(data.value.data.msg).toString());
+      item.msg = msg;
+    }
+
+    const params = JSON.stringify(item, (key, value) => (typeof value === "bigint" ? value.toString() : value));
+    StringUtils.copyToClipboard(params);
     onShowToast({ type: ToastType.success, message: i18n.t("message.tx-raw-copied-successfully") });
   }
 }

@@ -3,9 +3,12 @@ import { type Coin, parseCoins } from "@cosmjs/proto-signing";
 
 import { Messages } from "./types";
 import { AppUtils, AssetUtils, Logger, StringUtils } from "@/common/utils";
-import { PositionTypes, ProtocolsConfig } from "@/config/global";
+import { Contracts, NATIVE_NETWORK, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { Buffer } from "buffer";
 import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
+import { decode } from "bech32";
+import { SUPPORTED_NETWORKS_DATA } from "@/networks";
+import { h } from "vue";
 
 const currency_mapper: { [key: string]: string } = {
   "transfer/channel-0/transfer/channel-783/unls": "unls"
@@ -14,25 +17,55 @@ const currency_mapper: { [key: string]: string } = {
 export async function message(msg: IObjectKeys, address: string, i18n: IObjectKeys, voteMessages: IObjectKeys) {
   switch (msg.type) {
     case Messages["/cosmos.bank.v1beta1.MsgSend"]: {
+      const steps = [
+        {
+          icon: NATIVE_NETWORK.icon
+        }
+      ];
+      const token = getCurrency(msg.data?.amount?.[0]);
+
+      const detailedSteps = [
+        {
+          label: i18n.t("message.send-stepper"),
+          icon: NATIVE_NETWORK.icon,
+          tokenComponent: () => h("div", `${token}`),
+          meta: () => h("div", `${NATIVE_NETWORK.label} > ${NATIVE_NETWORK.label}`)
+        }
+      ];
+
       if (msg.from == address) {
-        const token = getCurrency(msg.data?.amount?.[0]);
         return [
           i18n.t("message.send-action", {
             address: truncateString(msg.data?.toAddress),
             amount: token.toString()
           }),
-          token
+          token,
+          {
+            activeStep: steps.length,
+            steps
+          },
+          {
+            activeStep: detailedSteps.length,
+            steps: detailedSteps
+          }
         ];
       }
 
       if (msg.to == address) {
-        const token = getCurrency(msg.data.amount[0]);
         return [
           i18n.t("message.receive-action", {
             address: truncateString(msg.data.fromAddress),
             amount: token.toString()
           }),
-          token
+          token,
+          {
+            activeStep: steps.length,
+            steps
+          },
+          {
+            activeStep: detailedSteps.length,
+            steps: detailedSteps
+          }
         ];
       }
       return msg.type;
@@ -40,12 +73,50 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
     case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
       if (msg.from == address) {
         const token = await fetchCurrency(msg.data.token);
+
+        const receiver = getIcon(getChainName(msg.data.receiver)!);
+        const sender = getIcon(getChainName(msg.data.sender)!);
+        const labelReceiver = getChainLabel(getChainName(msg.data.receiver)!);
+        const labelSender = getChainLabel(getChainName(msg.data.sender)!);
+
+        const steps = [
+          {
+            icon: sender
+          },
+          {
+            icon: receiver
+          }
+        ];
+
+        const detailedSteps = [
+          {
+            label: i18n.t("message.send-stepper"),
+            icon: sender,
+            tokenComponent: () => h("div", `${token}`),
+            meta: () => h("div", `${labelSender} > ${labelReceiver}`)
+          },
+          {
+            label: i18n.t("message.receive-stepper"),
+            icon: receiver,
+            tokenComponent: () => h("div", `${token}`),
+            meta: () => h("div", `${labelReceiver}`)
+          }
+        ];
+
         return [
           i18n.t("message.send-action", {
             address: truncateString(msg.data.receiver),
             amount: token.toString()
           }),
-          token
+          token,
+          {
+            activeStep: steps.length,
+            steps
+          },
+          {
+            activeStep: detailedSteps.length,
+            steps: detailedSteps
+          }
         ];
       }
 
@@ -69,13 +140,49 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         const denom = currency_mapper[d] ?? AssetUtils.getIbc(d);
         const coin = parseCoins(`${data.amount}${denom}`)[0];
 
+        const receiver = getIcon(getChainName(data.receiver)!);
+        const sender = getIcon(getChainName(data.sender)!);
+        const labelReceiver = getChainLabel(getChainName(data.receiver)!);
+        const labelSender = getChainLabel(getChainName(data.sender)!);
+
+        const detailedSteps = [
+          {
+            label: i18n.t("message.send-stepper"),
+            icon: sender,
+            tokenComponent: () => h("div", `${token}`),
+            meta: () => h("div", `${labelSender} > ${labelReceiver}`)
+          },
+          {
+            label: i18n.t("message.receive-stepper"),
+            icon: receiver,
+            tokenComponent: () => h("div", `${token}`),
+            meta: () => h("div", `${labelReceiver}`)
+          }
+        ];
+
         const token = await fetchCurrency(coin);
+        const steps = [
+          {
+            icon: sender
+          },
+          {
+            icon: receiver
+          }
+        ];
         return [
           i18n.t("message.receive-action", {
             address: truncateString(data.sender),
             amount: token.toString()
           }),
-          token
+          token,
+          {
+            activeStep: steps.length,
+            steps
+          },
+          {
+            activeStep: detailedSteps.length,
+            steps: detailedSteps
+          }
         ];
       } catch (e) {
         console.log(e);
@@ -91,6 +198,17 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
           const cr = AssetUtils.getCurrencyByTicker(data.open_lease.currency);
           const item = AssetUtils.getProtocolByContract(msg.data.contract);
           const protocol = ProtocolsConfig[item];
+          const steps = [
+            {
+              icon: NATIVE_NETWORK.icon
+            },
+            {
+              icon: getIconByContract(msg.data.contract)
+            },
+            {
+              icon: NATIVE_NETWORK.icon
+            }
+          ];
 
           if (protocol.type == PositionTypes.short) {
             const lpn = AssetUtils.getLpnByProtocol(item);
@@ -102,7 +220,11 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
                 position: i18n.t(`message.${protocol.type}`).toLowerCase(),
                 amount: token.toString()
               }),
-              token
+              token,
+              {
+                activeStep: steps.length,
+                steps
+              }
             ];
           }
 
@@ -112,7 +234,11 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
               position: i18n.t(`message.${protocol.type}`).toLowerCase(),
               amount: token.toString()
             }),
-            token
+            token,
+            {
+              activeStep: steps.length,
+              steps
+            }
           ];
         }
 
@@ -383,4 +509,54 @@ async function fetchCurrency(amount: Coin) {
     currency?.shortName ?? truncateString(amount.denom),
     Number(currency?.decimal_digits ?? 0)
   );
+}
+
+function getChainName(address: string) {
+  try {
+    const decoded = decode(address);
+    return decoded.prefix;
+  } catch (error) {
+    console.error("Invalid address format:", error);
+    return null;
+  }
+}
+
+function getIcon(prefix: string) {
+  try {
+    for (const key in SUPPORTED_NETWORKS_DATA) {
+      if (SUPPORTED_NETWORKS_DATA[key].prefix == prefix) {
+        return SUPPORTED_NETWORKS_DATA[key].icon;
+      }
+    }
+  } catch (error) {
+    console.error("Invalid address format:", error);
+    return null;
+  }
+}
+
+function getChainLabel(prefix: string) {
+  try {
+    for (const key in SUPPORTED_NETWORKS_DATA) {
+      if (SUPPORTED_NETWORKS_DATA[key].prefix == prefix) {
+        return SUPPORTED_NETWORKS_DATA[key].label;
+      }
+    }
+  } catch (error) {
+    console.error("Invalid address format:", error);
+    return null;
+  }
+}
+
+function getIconByContract(contract: string) {
+  try {
+    const protocol = AssetUtils.getProtocolByContract(contract);
+    for (const key in Contracts.protocolsFilter) {
+      if (Contracts.protocolsFilter[key].hold.includes(protocol)) {
+        return Contracts.protocolsFilter[key].image;
+      }
+    }
+  } catch (error) {
+    console.error("Invalid address format:", error);
+    return null;
+  }
 }

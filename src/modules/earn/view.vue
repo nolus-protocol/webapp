@@ -239,14 +239,12 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
             h<LabelProps>(PausedLabel, {
               value: i18n.t("message.open"),
               variant: "success",
-              tooltip: i18n.t("message.opened-tooltip"),
               class: "flex items-center"
             })
         : () =>
             h<LabelProps>(PausedLabel, {
               value: i18n.t("message.paused"),
               variant: "warning",
-              tooltip: i18n.t("message.pause-tooltip"),
               class: "flex items-center"
             });
 

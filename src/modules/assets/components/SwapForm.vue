@@ -1,89 +1,139 @@
 <template>
-  <MultipleCurrencyComponent
-    :currency-options="assets"
-    :itemsHeadline="[$t('message.assets'), $t('message.balance')]"
-    :selected-first-currency-option="selectedAsset"
-    :selected-second-currency-option="selectedSecondCurrencyOption"
-    :disabled="disabled || loadingTx"
-    @on-first-change="updateAmount"
-    @on-second-change="updateSwapToAmount"
-    :first-input-value="firstInputAmount?.toString()"
-    :second-input-value="secondInputAmount?.toString()"
-    :first-calculated-balance="firstCalculatedBalance"
-    :second-calculated-balance="secondCalculatedBalance"
-    :error-msg="error"
-    @swap="onSwapItems"
-    :item-template="
-      (item) =>
-        h<AssetItemProps>(AssetItem, {
-          ...item,
-          abbreviation: item.label,
-          name: item.name,
-          balance: item.balance.value,
-          max_decimals: item.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : item.decimal_digits
-        })
-    "
-  />
-  <div class="flex justify-end border-b border-t border-border-color px-6 py-4">
-    <div class="flex flex-[3] flex-col gap-3 text-right text-16 font-normal text-typography-secondary">
-      <p class="flex gap-1 self-end">
-        {{ $t("message.price-impact") }}:
-        <Tooltip
-          position="top"
-          :content="$t('message.price-message')"
-        >
-          <SvgIcon
-            name="help"
-            class="rouded-full"
-            size="s"
-          />
-        </Tooltip>
-      </p>
-      <p class="flex gap-1 self-end">
-        {{ $t("message.estimated-tx-fee") }}:
-        <Tooltip
-          position="top"
-          :content="$t('message.estimated-message')"
-        >
-          <SvgIcon
-            name="help"
-            class="rouded-full"
-            size="s"
-          />
-        </Tooltip>
-      </p>
-    </div>
-    <div
-      class="ml-2 flex flex-[1] flex-col justify-between gap-2 text-right text-16 font-semibold text-typography-default"
-    >
-      <template v-if="loading">
-        <p class="align-center flex justify-end">
-          <span class="state-loading !w-[60px]"> </span>
-        </p>
-        <p class="align-center flex justify-end">
-          <span class="state-loading !w-[60px]"> </span>
-        </p>
-      </template>
-      <template v-else>
-        <p class="align-center flex justify-end">{{ priceImapact }}%</p>
-        <p class="align-center flex justify-end whitespace-pre">
-          {{ swapFee }}
-        </p>
-      </template>
-    </div>
-  </div>
-  <div class="flex flex-col gap-2 p-6">
-    <Button
-      size="large"
-      severity="primary"
-      :label="$t('message.swap')"
-      :loading="loading || loadingTx"
-      :disabled="disabled"
-      @click="onNextClick"
+  <div class="custom-scroll max-h-full overflow-auto md:max-h-[75vh]">
+    <MultipleCurrencyComponent
+      :currency-options="assets"
+      :itemsHeadline="[$t('message.assets'), $t('message.balance')]"
+      :selected-first-currency-option="selectedAsset"
+      :selected-second-currency-option="selectedSecondCurrencyOption"
+      :disabled="disabled || loadingTx"
+      @on-first-change="updateAmount"
+      @on-second-change="updateSwapToAmount"
+      :first-input-value="firstInputAmount?.toString()"
+      :second-input-value="secondInputAmount?.toString()"
+      :first-calculated-balance="firstCalculatedBalance"
+      :second-calculated-balance="secondCalculatedBalance"
+      :error-msg="error"
+      @swap="onSwapItems"
+      :item-template="
+        (item) =>
+          h<AssetItemProps>(AssetItem, {
+            ...item,
+            abbreviation: item.label,
+            name: item.name,
+            balance: item.balance.value,
+            max_decimals: item.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : item.decimal_digits
+          })
+      "
     />
-    <p class="text-center text-12 text-typography-secondary">
-      {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.longOperationsEstimation }}{{ $t("message.sec") }}
-    </p>
+    <div class="flex justify-end border-b border-t border-border-color px-6 py-4">
+      <div class="flex flex-[3] flex-col gap-3 text-right text-16 font-normal text-typography-secondary">
+        <p class="flex gap-1 self-end">
+          {{ $t("message.price-impact") }}:
+          <Tooltip
+            position="top"
+            :content="$t('message.price-message')"
+          >
+            <SvgIcon
+              name="help"
+              class="rouded-full"
+              size="s"
+            />
+          </Tooltip>
+        </p>
+        <p class="flex gap-1 self-end">
+          {{ $t("message.estimated-tx-fee") }}:
+          <Tooltip
+            position="top"
+            :content="$t('message.estimated-message')"
+          >
+            <SvgIcon
+              name="help"
+              class="rouded-full"
+              size="s"
+            />
+          </Tooltip>
+        </p>
+      </div>
+      <div
+        class="ml-2 flex flex-[1] flex-col justify-between gap-2 text-right text-16 font-semibold text-typography-default"
+      >
+        <template v-if="loading">
+          <p class="align-center flex justify-end">
+            <span class="state-loading !w-[60px]"> </span>
+          </p>
+          <p class="align-center flex justify-end">
+            <span class="state-loading !w-[60px]"> </span>
+          </p>
+        </template>
+        <template v-else>
+          <p class="align-center flex justify-end">{{ priceImapact }}%</p>
+          <p class="align-center flex justify-end whitespace-pre">
+            {{ swapFee }}
+          </p>
+        </template>
+      </div>
+    </div>
+
+    <div class="mt-4 flex flex-col justify-end px-4">
+      <Button
+        v-if="showDetails"
+        :label="$t('message.hide-transaction-details')"
+        @click="showDetails = !showDetails"
+        severity="tertiary"
+        icon="minus"
+        iconPosition="left"
+        size="small"
+        class="self-end text-icon-default"
+      />
+
+      <Button
+        v-else
+        :label="$t('message.show-transaction-details')"
+        @click="showDetails = !showDetails"
+        severity="tertiary"
+        icon="plus"
+        iconPosition="left"
+        size="small"
+        class="self-end text-icon-default"
+      />
+
+      <Stepper
+        v-if="showDetails"
+        :active-step="-1"
+        :steps="[
+          {
+            label: $t('message.swap'),
+            icon: NATIVE_NETWORK.icon,
+            // token: {
+            //   balance: AssetUtils.formatNumber(amount, selectedAsset?.decimal_digits),
+            //   symbol: selectedAsset?.label
+            // },
+            tokenComponent: () =>
+              h(
+                'div',
+                `${AssetUtils.formatNumber(amount, NATIVE_CURRENCY.maximumFractionDigits)} ${selectedAsset?.label} > ${AssetUtils.formatNumber(swapToAmount, NATIVE_CURRENCY.maximumFractionDigits)} ${selectedSecondCurrencyOption?.label}`
+              ),
+            meta: () => h('div', `${NATIVE_NETWORK.label}`)
+          }
+        ]"
+        :variant="StepperVariant.MEDIUM"
+      />
+    </div>
+    <hr class="my-4 border-border-color" />
+
+    <div class="flex flex-col gap-2 p-6">
+      <Button
+        size="large"
+        severity="primary"
+        :label="$t('message.swap')"
+        :loading="loading || loadingTx"
+        :disabled="disabled"
+        @click="onNextClick"
+      />
+      <p class="text-center text-12 text-typography-secondary">
+        {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.longOperationsEstimation }}{{ $t("message.sec") }}
+      </p>
+    </div>
   </div>
 </template>
 
@@ -121,6 +171,7 @@ import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { SkipRouter } from "@/common/utils/SkipRoute";
 import { MAX_DECIMALS } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
+import { StepperVariant, Stepper } from "web-components";
 
 let time: NodeJS.Timeout;
 let route: IObjectKeys | null;
@@ -142,6 +193,7 @@ const txHashes = ref<{ hash: string; status: SwapStatus; url: string | null }[]>
 
 const firstInputAmount = ref();
 const secondInputAmount = ref();
+const showDetails = ref(false);
 
 const swapFee = ref("");
 const loading = ref(false);

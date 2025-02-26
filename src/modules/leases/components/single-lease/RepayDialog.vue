@@ -162,7 +162,6 @@ import type { Coin } from "@cosmjs/proto-signing";
 import { Lease } from "@nolus/nolusjs/build/contracts";
 
 const timeOut = 250;
-const period = 30;
 let time: NodeJS.Timeout;
 
 const route = useRoute();
@@ -191,7 +190,7 @@ const { lease } = useLease(
   (error) => {
     Logger.error(error);
   },
-  period
+  true
 );
 
 onMounted(() => {

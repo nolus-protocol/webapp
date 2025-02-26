@@ -370,7 +370,6 @@
     "strategies": "Strategies",
     "lease-log": "Lease log",
     "period": "Period",
-    "price-per-asset": "Price Per Asset",
     "impact-dex-fee": "Impact & DEX fee",
     "set-stop-loss": "Set stop loss",
     "set-take-profit": "Set take profit",
@@ -547,6 +546,19 @@
     "preview-closed-paid-debt": "Your debt will be fully paid off - <strong>{amount}</strong> at a rate of <strong>{price} per {asset}</strong> with <strong>{fee} in DEX fees</strong>",
     "preview-closed-rest": "will remain in this position",
     "supply-preview": "You will supply <strong>{amount}</strong>",
-    "preview-closed-debt": "Outstanding debt will be"
+    "preview-closed-debt": "Outstanding debt will be",
+    "delegate-nls-2": "Get network rewards",
+    "delegate-nls-description-2": "Earn from all network transactions and share in the protocol's revenue",
+    "delegate-nls-3": "Guide the future",
+    "delegate-nls-description-3": "Shape the protocol's future by actively participating in governance decisions",
+    "delegate-nls-4": "Unlock discounts",
+    "delegate-nls-description-4": "Enjoy up to a 6% discount on lease interest based on your delegation",
+    "no-rewards-description": "Deposit some assets to start earning",
+    "hide-transaction-details": "Hide transaction details",
+    "send-stepper": "Send",
+    "receive-stepper": "Receive",
+    "transactions-summary": "Transactions summary",
+    "price-per-asset": "Price Per",
+    "preview-closed-paid-partuial-debt": "You will pay off - <strong>{amount}</strong> of the debt at a rate of <strong>{price} per {asset}</strong> with <strong>{fee} in DEX fees</strong>"
   }
 }

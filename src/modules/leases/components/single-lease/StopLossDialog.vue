@@ -103,9 +103,6 @@ import type { Coin } from "@cosmjs/proto-signing";
 import { Lease } from "@nolus/nolusjs/build/contracts";
 import { PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
 
-const timeOut = 250;
-let time: NodeJS.Timeout;
-
 const route = useRoute();
 const router = useRouter();
 const oracle = useOracleStore();

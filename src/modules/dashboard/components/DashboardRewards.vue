@@ -17,16 +17,17 @@
       <BigNumber
         :label="$t('message.unclaimed-staking')"
         :amount="{
-          amount: rewards.stableAmount,
+          amount: stableRewards,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol
         }"
       />
     </div>
     <Asset
-      :icon="rewards.icon"
-      :amount="rewards.amount"
-      :stable-amount="`${rewards.stableAmount}`"
+      v-for="reward of rewards"
+      :icon="reward.icon"
+      :amount="reward.amount"
+      :stable-amount="`${reward.stableAmount}`"
     />
   </Widget>
 </template>
@@ -48,15 +49,14 @@ const oracle = useOracleStore();
 
 const loadingStaking = ref(false);
 const disabled = ref(false);
-const rewards = ref<{
-  amount: string;
-  stableAmount: string;
-  icon: string;
-}>({
-  amount: `0.00 ${NATIVE_ASSET.label}`,
-  stableAmount: `${NATIVE_CURRENCY.symbol}0.00`,
-  icon: NATIVE_ASSET.icon
-});
+const rewards = ref<
+  {
+    amount: string;
+    stableAmount: string;
+    icon: string;
+  }[]
+>();
+const stableRewards = ref("0.00");
 
 watch(
   () => [wallet.wallet, oracle.prices],
@@ -73,19 +73,30 @@ watch(
 );
 
 async function setRewards() {
-  const [r] = await Promise.all([NetworkUtils.loadDelegator()]);
-  const t = r?.total?.find((item: IObjectKeys) => item.denom == NATIVE_ASSET.denom);
+  const delegator = await NetworkUtils.loadDelegator();
+  const data: {
+    amount: string;
+    stableAmount: string;
+    icon: string;
+  }[] = [];
+  let stable = new Dec(0);
+  (delegator?.total ?? [])?.forEach((item: IObjectKeys) => {
+    const currency = AssetUtils.getCurrencyByDenom(item.denom);
+    const total = new Dec(new Dec(item?.amount ?? 0).truncate(), currency.decimal_digits);
+    const price = new Dec(oracle.prices?.[currency.key]?.amount ?? 0);
+    const s = price.mul(total);
 
-  const total = new Dec(new Dec(t?.amount ?? 0).truncate(), NATIVE_ASSET.decimal_digits);
-  const currency = AssetUtils.getCurrencyByTicker(NATIVE_ASSET.ticker);
-  const price = new Dec(oracle.prices?.[currency.key]?.amount ?? 0);
-  const stable = price.mul(total);
+    data.push({
+      amount: `${AssetUtils.formatNumber(total.toString(), currency.decimal_digits)} ${currency.shortName}`,
+      stableAmount: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(s.toString(2), 2)}`,
+      icon: currency.icon
+    });
 
-  rewards.value = {
-    amount: `${AssetUtils.formatNumber(total.toString(), NATIVE_ASSET.decimal_digits)} ${NATIVE_ASSET.label}`,
-    stableAmount: AssetUtils.formatNumber(stable.toString(2), 2),
-    icon: NATIVE_ASSET.icon
-  };
+    stable = stable.add(s);
+  });
+
+  rewards.value = data;
+  stableRewards.value = stable.toString(NATIVE_CURRENCY.maximumFractionDigits);
 }
 
 async function onWithdrawRewards() {

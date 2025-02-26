@@ -62,7 +62,7 @@
             }"
           />
         </div>
-        <UnrealizedPnlChart />
+        <UnrealizedPnlChart class="mt-4" />
       </template>
       <template v-else>
         <EmptyState
@@ -70,8 +70,8 @@
             {
               image: { name: 'new-lease' },
               title: $t('message.start-lease'),
-              description: $t('message.start-lease'),
-              link: { label: 'Learn more about assets', url: '#' }
+              description: $t('message.start-lease-description'),
+              link: { label: $t('message.learn-new-leases'), url: '#' }
             }
           ]"
         />

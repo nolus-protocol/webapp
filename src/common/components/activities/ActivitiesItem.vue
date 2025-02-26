@@ -19,12 +19,11 @@
         <span class="text-xs font-normal text-typography-secondary">{{ time }}</span>
       </div>
       <div
-        class="flex items-center gap-1"
+        class="flex items-center gap-1 text-xs font-normal text-typography-secondary"
         v-if="route"
       >
-        {{ $t("mesasge.route") }}:
+        {{ $t("message.route") }}:
         <Stepper
-          v-if="route"
           :variant="StepperVariant.SMALL"
           v-bind="route"
         />

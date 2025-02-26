@@ -84,7 +84,7 @@
               <p
                 class="flex-1"
                 :innerHTML="
-                  $t('message.preview-closed-paid-debt', {
+                  $t('message.preview-closed-paid-partuial-debt', {
                     amount: debtData.debt,
                     price: debtData.price,
                     asset: debtData.asset,

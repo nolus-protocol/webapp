@@ -96,6 +96,7 @@ import { useOracleStore } from "@/common/stores/oracle";
 import type { LeaseData } from "@/common/types";
 import { getStatus, TEMPLATES } from "../common";
 import EmptyState from "@/common/components/EmptyState.vue";
+import { LTV, PERCENT } from "@/config/global";
 
 const radius = 112;
 const centerX = 128;
@@ -120,14 +121,16 @@ const props = withDefaults(
 );
 
 const healTitle = computed((item) => {
-  if (health.value <= props.greenLimit) {
+  const p = PERCENT - health.value;
+
+  if (p <= props.greenLimit) {
     return status.green;
   }
 
-  if (health.value < props.yellowLimit && health.value > props.greenLimit) {
+  if (p < props.yellowLimit && p > props.greenLimit) {
     return status.yellow;
   }
-  if (health.value >= props.yellowLimit) {
+  if (p >= props.yellowLimit) {
     return status.red;
   }
 });
@@ -136,7 +139,9 @@ const oracle = useOracleStore();
 const greenEndAngle = computed(() => (props.greenLimit / 100) * 180);
 const yellowEndAngle = computed(() => (props.yellowLimit / 100) * 180);
 const rotationStyle = computed(() => {
-  const angle = (health.value / 100) * 180;
+  const p = PERCENT - health.value;
+
+  const angle = (p / 100) * 180;
   if (angle >= 90) {
     return `rotate: ${angle - 90}deg`;
   }
@@ -175,9 +180,9 @@ const health = computed(() => {
       .add(new Dec(principal_due.amount, externalCurrencies[4].decimal_digits));
 
     const margin_total = margin.mul(new Dec(marginPrice.amount));
-    const res = margin_total.quo(priceAmount).mul(new Dec(100));
+    const health = new Dec(1).sub(margin_total.quo(priceAmount).quo(new Dec(LTV)));
 
-    return Number(res.toString(2)); // 100% is the max value
+    return Number(health.mul(new Dec(PERCENT)).toString(2)); // 100% is the max value
   }
 
   return 0;

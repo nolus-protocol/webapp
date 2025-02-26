@@ -132,12 +132,14 @@ async function loadTxs() {
         const promises = [];
         for (const d of data) {
           const fn = async () => {
-            const [msg, coin] = await message(d, wallet.wallet?.address, i18n, voteMessages);
+            const [msg, coin, route, routeDetails] = await message(d, wallet.wallet?.address, i18n, voteMessages);
             d.historyData = {
               msg,
               coin,
               action: action(d, i18n).toLowerCase(),
-              timestamp: getCreatedAtForHuman(d.timestamp)
+              timestamp: getCreatedAtForHuman(d.timestamp),
+              route,
+              routeDetails
             };
             return d;
           };

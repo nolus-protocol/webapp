@@ -27,7 +27,7 @@
   </AdvancedFormControl>
 
   <hr class="border-border-color" />
-  <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
+  <!-- <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
     <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
     <div class="flex items-center gap-2 text-14">
       <SvgIcon
@@ -37,7 +37,7 @@
       {{ $t("message.preview-input") }}
     </div>
   </div>
-  <hr class="border-border-color" />
+  <hr class="border-border-color" /> -->
 
   <div class="flex flex-col gap-2 p-6">
     <Button

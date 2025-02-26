@@ -16,33 +16,7 @@
     @close="isOpen = !isOpen"
     class="md:max-w-[385px]"
   >
-    <template #header>
-      <!-- <Button
-        severity="tertiary"
-        size="small"
-        class="!p-[9px] text-icon-default"
-      >
-        <SvgIcon name="bell" />
-      </Button> -->
-      <!-- <Tooltip
-        :content="`Push notifications are <span class='font-semibold'>${isClicked ? 'enabled' : 'disabled'}</span>`"
-        class="max-w-[152px]"
-      >
-        <Button
-          severity="tertiary"
-          size="small"
-          class="!p-[9px] text-icon-default"
-          @click="isClicked = !isClicked"
-        >
-          <SvgIcon
-            name="bell"
-            v-show="isClicked" />
-          <SvgIcon
-            name="bell-disabled"
-            v-show="!isClicked"
-        /></Button>
-      </Tooltip> -->
-    </template>
+    <template #header> </template>
     <template #content>
       <template v-if="wallet.activities.data.length > 0">
         <div class="flex h-full flex-col">
@@ -54,6 +28,7 @@
               :title="transaction.historyData.msg"
               :type="transaction.historyData.action"
               :time="transaction.historyData.timestamp"
+              :route="transaction.historyData.route"
               @click="onActivityClick(transaction as any)"
             />
           </div>

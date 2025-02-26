@@ -27,6 +27,7 @@ import { ref, watch } from "vue";
 import { pointer, select, type Selection } from "d3";
 import { useI18n } from "vue-i18n";
 import { Dec } from "@keplr-wallet/unit";
+import { useOracleStore } from "@/common/stores/oracle";
 
 type ChartData = { Date: Date; Price: number; Liquidation: number };
 
@@ -43,6 +44,7 @@ const marginLeft = 40;
 const chartWidth = 960;
 const marginRight = 30;
 const marginBottom = 50;
+const oracle = useOracleStore();
 
 const likert = {
   order: ["Price", "Liquidation"]
@@ -79,14 +81,9 @@ function getDiff(price: Dec, cPrice: Dec) {
 }
 
 function getPrice() {
-  switch (ProtocolsConfig[props.lease?.protocol!].type) {
-    case PositionTypes.long: {
-      return props.lease?.leaseData?.price;
-    }
-    case PositionTypes.short: {
-      return props.lease?.leaseData?.lpnPrice;
-    }
-  }
+  const key = `${props.lease?.leaseData?.leasePositionTicker}@${props.lease?.protocol}`;
+  const price = oracle.prices[key];
+  return new Dec(price?.amount ?? 0);
 }
 
 async function setData() {

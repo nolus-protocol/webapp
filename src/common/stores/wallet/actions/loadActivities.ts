@@ -19,12 +19,14 @@ export async function loadActivities(this: Store) {
         const promises = [];
         for (const d of data) {
           const fn = async () => {
-            const [msg, coin] = await message(d, this.wallet?.address, i18n.global, voteMessages);
+            const [msg, coin, route, routeDetails] = await message(d, this.wallet?.address, i18n.global, voteMessages);
             d.historyData = {
               msg,
               coin,
               action: action(d, i18n.global).toLowerCase(),
-              timestamp: getCreatedAtForHuman(d.timestamp)
+              timestamp: getCreatedAtForHuman(d.timestamp),
+              route,
+              routeDetails
             };
             return d;
           };

@@ -42,7 +42,7 @@
         {
           image: { name: 'no-rewards' },
           title: $t('message.no-rewards'),
-          description: $t('message.deposit-assets')
+          description: $t('message.no-rewards-description')
         }
       ]"
     />
