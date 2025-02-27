@@ -97,8 +97,8 @@ async function setData() {
         date: new Date(d.date),
         amount: Number(d.amount)
       }));
-      chart.value?.update();
     }
+    chart.value?.update();
   }
 }
 

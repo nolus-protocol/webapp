@@ -3,6 +3,7 @@
     ref="chart"
     :updateChart="updateChart"
     :fns="[setStats]"
+    :disableSkeleton="true"
     :getClosestDataPoint="getClosestDataPoint"
   />
 </template>
@@ -16,7 +17,8 @@ import { ref } from "vue";
 const chartHeight = 500;
 const marginTop = 20;
 const marginBottom = 30;
-const marginLeft = 50;
+const marginLeft = 100;
+const width = 960;
 
 const chart = ref<typeof Chart>();
 let loans: { percentage: number; ticker: string }[] = [];
@@ -27,17 +29,17 @@ async function setStats() {
   let total = 0;
 
   for (const i of items) {
-    const currency = AssetUtils.getCurrencyByTicker(i.asset);
     total += Number(i.loan);
   }
 
   loans = items
     .map((item) => {
-      const currency = AssetUtils.getCurrencyByTicker(item.asset);
+      const [key, protocol] = item.asset.split(" ");
+      const currency = AssetUtils.getCurrencyByTicker(key);
 
       const loan = (Number(item.loan) / total) * 100;
       return {
-        ticker: currency?.shortName ?? item.asset,
+        ticker: `${currency?.shortName ?? key}${protocol ? ` ${protocol}` : ""}`,
         percentage: loan
       };
     })
@@ -52,7 +54,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   plotContainer.innerHTML = "";
 
   const plotChart = plot({
-    width: 960,
+    width,
     height: chartHeight,
     marginLeft: marginLeft,
     marginTop: marginTop,

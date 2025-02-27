@@ -450,7 +450,7 @@
     "toast-repaid": "Position is repaid successfully",
     "toast-closed": "Position is closed successfully",
     "closing-title": "Position Now Closing",
-    "closing-description": "his usually takes less than a minutes",
+    "closing-description": "This usually takes less than a minutes",
     "repaid-title": "This position is being repaid",
     "repaid-description": "This usually takes less than 2 minutes. Please wait a moment or check back later",
     "repaying": "Repaying",
@@ -548,6 +548,10 @@
     "receive-stepper": "Receive",
     "transactions-summary": "Transactions summary",
     "price-per-asset": "Price Per",
-    "preview-closed-paid-partuial-debt": "You will pay off - <strong>{amount}</strong> of the debt at a rate of <strong>{price} per {asset}</strong> with <strong>{fee} in DEX fees</strong>"
+    "preview-closed-paid-partuial-debt": "You will pay off - <strong>{amount}</strong> of the debt at a rate of <strong>{price} per {asset}</strong> with <strong>{fee} in DEX fees</strong>",
+    "stoppings-close-price": "Your position will automatically close if the price of {asset} hits {price}",
+    "stoppings-payout": "This position will have an approximate payout of {amount}",
+    "collect-title": "This position is being collect",
+    "collect-description": "Please come back later or wait, this usually takes less than 2 minutes."
   }
 }

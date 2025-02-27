@@ -22,8 +22,8 @@
         />
       </template>
     </WidgetHeader>
-    <div :class="{ 'opacity-0': !loaded && props.isVisible }">
-      <template v-if="isVisibleWidget">
+    <div>
+      <template v-if="props.isVisible && !emptyState">
         <div class="flex gap-8">
           <BigNumber
             :label="$t('message.unrealized-pnl')"
@@ -40,6 +40,7 @@
                 base: false
               }
             }"
+            :loading="loaded"
           />
           <BigNumber
             :label="$t('message.leases')"
@@ -50,6 +51,7 @@
               fontSize: 20,
               fontSizeSmall: 20
             }"
+            :loading="loaded"
           />
           <BigNumber
             :label="$t('message.debt')"
@@ -60,6 +62,7 @@
               fontSize: 20,
               fontSizeSmall: 20
             }"
+            :loading="loaded"
           />
         </div>
         <UnrealizedPnlChart class="mt-4" />
@@ -83,6 +86,8 @@
 <script lang="ts" setup>
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
+import UnrealizedPnlChart from "./UnrealizedPnlChart.vue";
+import EmptyState from "@/common/components/EmptyState.vue";
 
 import { Button, Widget } from "web-components";
 import { RouteNames } from "@/router";
@@ -96,28 +101,23 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { AssetUtils, Logger } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
-import UnrealizedPnlChart from "./UnrealizedPnlChart.vue";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useRouter } from "vue-router";
-import EmptyState from "@/common/components/EmptyState.vue";
 
 const { leases, getLeases } = useLeases((error: Error | any) => {});
 const activeLeases = ref(new Dec(0));
 const pnl = ref(new Dec(0));
 const debt = ref(new Dec(0));
 const pnl_percent = ref(new Dec(0));
+const count = ref(0);
 
 const router = useRouter();
 const wallet = useWalletStore();
 const oracle = useOracleStore();
 const app = useApplicationStore();
-const loaded = ref(false);
+const loaded = ref(true);
 
 const props = defineProps<{ isVisible: boolean }>();
-
-const isVisibleWidget = computed(() => {
-  return props.isVisible && leases.value.length > 0;
-});
 
 watch(
   () => leases.value,
@@ -133,13 +133,17 @@ watch(
   }
 );
 
+const emptyState = computed(() => {
+  return !loaded.value && count.value == 0;
+});
+
 function setLeases() {
   try {
     let db = new Dec(0);
     let ls = new Dec(0);
     let pl = new Dec(0);
     let pnlPercent = new Dec(0);
-    let count = 0;
+    let c = 0;
     for (const lease of leases.value) {
       if (lease.leaseStatus?.opened) {
         const dasset = app.currenciesData![`${lease.leaseStatus.opened.amount.ticker}@${lease.protocol}`];
@@ -156,7 +160,7 @@ function setLeases() {
         ls = ls.add(l);
         lease.debt = lease.debt.mul(new Dec(price.amount));
         pnlPercent = pnlPercent.add(lease.pnlAmount.quo(downpayment as Dec).mul(new Dec(100)));
-        count++;
+        c++;
       }
       db = db.add(lease.debt as Dec);
       pl = pl.add(lease.pnlAmount as Dec);
@@ -164,8 +168,9 @@ function setLeases() {
     activeLeases.value = ls;
     debt.value = db;
     pnl.value = pl;
-    if (count) {
-      pnl_percent.value = pnlPercent.quo(new Dec(count));
+    count.value = c;
+    if (c) {
+      pnl_percent.value = pnlPercent.quo(new Dec(c));
     }
     Intercom.update({
       PositionsUnrealizedPnlUSD: pl.toString(),
@@ -175,7 +180,7 @@ function setLeases() {
   } catch (e) {
     Logger.error(e);
   } finally {
-    loaded.value = true;
+    loaded.value = false;
   }
 }
 </script>

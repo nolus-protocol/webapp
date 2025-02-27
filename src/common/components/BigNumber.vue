@@ -16,35 +16,61 @@
       /></Tooltip>
     </div>
     <div class="flex items-center gap-2">
-      <CurrencyComponent
-        v-if="amount"
-        :font-size="32"
-        :font-size-small="32"
-        v-bind="amount"
-        class="flex font-semibold text-typography-default"
-      />
+      <template v-if="!loading">
+        <CurrencyComponent
+          v-if="amount"
+          :font-size="32"
+          :font-size-small="32"
+          v-bind="amount"
+          class="flex font-semibold text-typography-default"
+        />
+      </template>
+      <div
+        v-else
+        class="skeleton-box rounded-sm"
+        :style="[{ width: '100%', height: `${amount?.fontSize || 32 * 1.2}px` }]"
+      ></div>
     </div>
-    <div
-      v-if="pnlStatus"
-      :class="pnlStatus?.positive ? 'text-typography-success' : 'text-typography-error'"
-      class="flex gap-1 text-14 font-normal"
-    >
-      <Badge
-        v-if="pnlStatus?.badge"
-        v-bind="pnlStatus?.badge"
-      />
-      {{ pnlStatus?.value }}
-    </div>
-    <CurrencyComponent
-      v-if="secondary"
-      v-bind="secondary"
-      :amount="secondary?.amount"
-      :denom="secondary?.denom"
-      :type="secondary?.type"
-      :font-size="12"
-      :font-size-small="12"
-      class="flex font-normal text-typography-default"
-    />
+    <template v-if="pnlStatus">
+      <template v-if="!loading">
+        <div
+          v-if="pnlStatus"
+          :class="pnlStatus?.positive ? 'text-typography-success' : 'text-typography-error'"
+          class="flex gap-1 text-14 font-normal"
+        >
+          <Badge
+            v-if="pnlStatus?.badge"
+            v-bind="pnlStatus?.badge"
+          />
+          {{ pnlStatus?.value }}
+        </div>
+      </template>
+      <div
+        v-else
+        class="skeleton-box mt-1 rounded-sm"
+        :style="[{ width: '100%', height: `${14 * 1.2}px` }]"
+      ></div>
+    </template>
+
+    <template v-if="secondary">
+      <template v-if="!loading">
+        <CurrencyComponent
+          v-if="secondary"
+          v-bind="secondary"
+          :amount="secondary?.amount"
+          :denom="secondary?.denom"
+          :type="secondary?.type"
+          :font-size="12"
+          :font-size-small="12"
+          class="flex font-normal text-typography-default"
+        />
+      </template>
+      <div
+        v-else
+        class="skeleton-box rounded-sm"
+        :style="[{ width: '100%', height: `${secondary?.fontSize || 12 * 1.2}px` }]"
+      ></div>
+    </template>
   </div>
 </template>
 
@@ -66,6 +92,7 @@ export interface IBigNumber {
     value?: string;
   };
   icon?: boolean;
+  loading?: boolean;
 }
 const props = defineProps<IBigNumber>();
 </script>

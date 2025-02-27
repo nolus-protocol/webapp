@@ -73,3 +73,18 @@ svg {
   position: relative;
   z-index: 9997;
 }
+
+.skeleton-box {
+  background-color: #ccc;
+  animation: blink 1.2s linear infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}

@@ -1,8 +1,13 @@
 <template>
-  <div>
+  <div class="parent">
+    <div
+      class="absolute right-0 h-[4px] rounded bg-success-100"
+      :style="{ width: `${100 - Number(deposit)}%` }"
+    ></div>
     <img
       :style="{ left: `${position}%` }"
       :src="icon"
+      alt=""
     />
   </div>
 </template>
@@ -12,21 +17,13 @@ import { computed } from "vue";
 import type { UtilizationProps } from "../types";
 
 const props = defineProps<UtilizationProps>();
-const percent = 65;
-
-const position = computed(() => {
-  return (percent * Number(props.value)) / 100;
-});
+const position = computed(() => props.value);
 </script>
 
 <style lang="scss" scoped>
-div {
+.parent {
   @apply relative h-[4px] w-[200px] rounded bg-neutral-bg-3;
-  &::after {
-    content: "";
-    @apply absolute h-[4px] w-[35%] rounded bg-neutral-bg-3 bg-success-100;
-    right: 0;
-  }
+
   img {
     position: absolute;
     top: 50%;

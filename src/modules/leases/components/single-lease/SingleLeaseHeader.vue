@@ -82,7 +82,7 @@
             path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.leaseAddress}/${SingleLeaseDialog.REPAY}`
           })
         "
-        v-if="TEMPLATES.opened == status"
+        v-if="TEMPLATES.opened == status && !openedSubState"
       />
       <Button
         :label="$t('message.close')"
@@ -93,7 +93,7 @@
             path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.leaseAddress}/${SingleLeaseDialog.CLOSE}`
           })
         "
-        v-if="TEMPLATES.opened == status"
+        v-if="TEMPLATES.opened == status && !openedSubState"
       />
       <Collect
         :lease="lease!"
@@ -153,6 +153,15 @@ watch(
     };
   }
 );
+
+const openedSubState = computed(() => {
+  const data = props.lease?.leaseStatus.opened;
+  if (data?.in_progress != null) {
+    return true;
+  }
+
+  return false;
+});
 
 const stable = computed(() => {
   const lease = props.lease;

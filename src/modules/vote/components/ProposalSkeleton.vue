@@ -103,19 +103,4 @@
 import { Widget } from "web-components";
 </script>
 
-<style lang="scss" scoped>
-.skeleton-box {
-  background-color: #ccc;
-  animation: blink 1.2s linear infinite;
-}
-
-@keyframes blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-</style>
+<style lang="scss" scoped></style>

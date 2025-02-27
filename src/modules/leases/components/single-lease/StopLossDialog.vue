@@ -44,13 +44,39 @@
       <hr class="border-border-color" />
       <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
         <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
-        <div class="flex items-center gap-2 text-14">
-          <SvgIcon
-            name="list-sparkle"
-            class="fill-icon-secondary"
-          />
-          <span class="text-typography-default">{{ $t("message.preview-input") }}</span>
-        </div>
+        <template v-if="amount.length == 0 || amount == '0'">
+          <div class="flex items-center gap-2 text-14">
+            <SvgIcon
+              name="list-sparkle"
+              class="fill-icon-secondary"
+            />
+            {{ $t("message.preview-input") }}
+          </div>
+        </template>
+        <template v-else>
+          <div class="flex items-center gap-2 text-14">
+            <SvgIcon
+              name="check-solid"
+              class="fill-icon-success"
+            />
+            <p
+              class="flex-1"
+              :innerHTML="
+                $t('message.stoppings-close-price', {
+                  price: `${NATIVE_CURRENCY.symbol}${price}`,
+                  asset: currency.shortName
+                })
+              "
+            ></p>
+          </div>
+          <div class="flex items-center gap-2 text-14">
+            <SvgIcon
+              name="check-solid"
+              class="fill-icon-success"
+            />
+            {{ $t("message.stoppings-payout", { amount: `${NATIVE_CURRENCY.symbol}${payout}` }) }}
+          </div>
+        </template>
       </div>
       <!-- <hr class="border-border-color" />
       <div class="flex justify-end px-6 py-4">
@@ -137,6 +163,10 @@ onBeforeUnmount(() => {
   dialog?.value?.close();
 });
 
+const price = computed(() => {
+  return AssetUtils.formatNumber(amount.value.length == 0 ? 0 : amount.value, currency.value.decimal_digits);
+});
+
 const currency = computed(() => {
   return assets.value[selectedCurrency.value];
 });
@@ -188,7 +218,7 @@ function getCurrency() {
 }
 
 function getPrice() {
-  switch (ProtocolsConfig[lease.value?.protocol!].type) {
+  switch (ProtocolsConfig[lease.value?.protocol!]?.type) {
     case PositionTypes.long: {
       return lease.value?.leaseData?.price;
     }
@@ -197,6 +227,25 @@ function getPrice() {
     }
   }
 }
+
+const payout = computed(() => {
+  const end_price = new Dec(amount.value.length == 0 ? 0 : amount.value);
+  const end = totalAmount.value.mul(end_price);
+
+  switch (ProtocolsConfig[lease.value?.protocol!].type) {
+    case PositionTypes.long: {
+      return AssetUtils.formatNumber(end.toString(), currency.value?.decimal_digits);
+    }
+    case PositionTypes.short: {
+      const start_price = getPrice() ?? new Dec(0);
+      const start = totalAmount.value.mul(start_price);
+      const a = start.sub(end.sub(start));
+      return AssetUtils.formatNumber(a.toString(), currency.value?.decimal_digits);
+    }
+  }
+
+  return "0";
+});
 
 const total = computed(() => {
   return new Dec(lease.value?.leaseStatus.opened?.amount.amount ?? 0, currency.value?.decimal_digits);
@@ -326,6 +375,30 @@ function getPercent() {
     }
   }
 }
+
+const totalAmount = computed(() => {
+  switch (ProtocolsConfig[lease?.value?.protocol!]?.type) {
+    case PositionTypes.long: {
+      const data =
+        lease?.value!.leaseStatus?.opened?.amount ||
+        lease?.value!.leaseStatus.opening?.downpayment ||
+        lease?.value!.leaseStatus.paid?.amount;
+      return new Dec(data?.amount ?? "0", currency.value.decimal_digits);
+    }
+    case PositionTypes.short: {
+      const data =
+        lease?.value!.leaseStatus?.opened?.amount ||
+        lease?.value!.leaseStatus.opening?.downpayment ||
+        lease?.value!.leaseStatus.paid?.amount;
+
+      const asset = app.currenciesData?.[`${lease?.value!.leaseData!.leasePositionTicker}@${lease?.value!.protocol}`]!;
+      const price = oracle.prices?.[asset?.ibcData as string];
+      let k = new Dec(data?.amount ?? 0, currency.value.decimal_digits).quo(new Dec(price.amount));
+      return k;
+    }
+  }
+  return new Dec(0);
+});
 
 watch(
   () => [amount.value, selectedCurrency.value],

@@ -4,6 +4,7 @@
     :fns="[setStats]"
     :getClosestDataPoint="getClosestDataPoint"
     ref="chart"
+    :disableSkeleton="true"
   />
 </template>
 

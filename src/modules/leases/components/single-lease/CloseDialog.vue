@@ -279,9 +279,14 @@ const reload = inject("reload", () => {});
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
 const dialog = ref<typeof Dialog | null>(null);
-const { lease } = useLease(route.params.id as string, route.params.protocol as string, (error) => {
-  Logger.error(error);
-});
+const { lease } = useLease(
+  route.params.id as string,
+  route.params.protocol as string,
+  (error) => {
+    Logger.error(error);
+  },
+  true
+);
 const { config } = useLeaseConfig(
   (route.params.protocol as string).toUpperCase() as string,
   (error: Error | any) => {}
