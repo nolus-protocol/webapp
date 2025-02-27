@@ -12,8 +12,8 @@
   "USDC",
   "USDC_AXELAR",
   "CUDOS",
-  "WBTC_AXELAR",
-  "WBTC",
   "INJ",
-  "ALL_SOL"
+  "ALL_SOL",
+  "WBTC_AXELAR",
+  "OM"
 ]
