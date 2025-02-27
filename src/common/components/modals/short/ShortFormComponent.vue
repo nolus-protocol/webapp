@@ -146,6 +146,7 @@ const swapFee = ref(0);
 const timeOut = 200;
 let time: NodeJS.Timeout;
 let freeInterest = ref<string[]>();
+const ignoreLeaseAssets = ref<string[]>(["ALL_BTC", "ALL_SOL"]);
 
 onMounted(async () => {
   freeInterest.value = await AppUtils.getFreeInterest();
@@ -253,7 +254,10 @@ const totalBalances = computed(() => {
       for (const c of ProtocolsConfig[protocol].currencies) {
         const item = app.currenciesData?.[`${c}@${protocol}`];
         let balance = wallet.balances.find((c) => c.balance.denom == item?.ibcData);
-        if (currencies.findIndex((item) => item.balance.denom == balance?.balance.denom) == -1) {
+        if (
+          !ignoreLeaseAssets.value?.includes(c) &&
+          currencies.findIndex((item) => item.balance.denom == balance?.balance.denom) == -1
+        ) {
           currencies.push({ ...item, balance: balance?.balance } as ExternalCurrency);
         }
       }
@@ -289,7 +293,12 @@ const coinList = computed(() => {
     if (ProtocolsConfig[protocol].type == PositionTypes.short) {
       const c =
         app.lpn?.filter((item) => {
-          const [_, p] = item.key.split("@");
+          const [c, p] = item.key.split("@");
+
+          if (ignoreLeaseAssets.value?.includes(c)) {
+            return false;
+          }
+
           if (p == protocol) {
             return true;
           }

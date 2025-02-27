@@ -235,7 +235,6 @@ function openSupplyWithdrawDialog(denom: string) {
 
 async function loadRewards() {
   const [rewards, lpnRewards] = await Promise.all([NetworkUtils.loadDelegator(), getRewards()]);
-  console.log(rewards);
   const total = rewards?.total?.find((item: IObjectKeys) => item.denom == NATIVE_ASSET.denom);
   let value = new Dec("0").add(lpnRewards);
 

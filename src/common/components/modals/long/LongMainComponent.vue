@@ -239,7 +239,7 @@ async function calculate() {
         makeLeaseApplyResp.annual_interest_rate / Math.pow(10, INTEREST_DECIMALS);
       makeLeaseApplyResp.annual_interest_rate_margin =
         makeLeaseApplyResp.annual_interest_rate_margin / Math.pow(10, INTEREST_DECIMALS);
-      console.log(makeLeaseApplyResp);
+
       state.value.leaseApply = makeLeaseApplyResp;
     } else {
       state.value.leaseApply = null;
