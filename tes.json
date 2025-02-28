@@ -1,0 +1,59 @@
+{
+  "account_number": "2",
+  "chain_id": "pirin-1",
+  "fee": {
+    "gas": "3926979",
+    "amount": [
+      {
+        "amount": "98175",
+        "denom": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4"
+      }
+    ]
+  },
+  "memo": "",
+  "msgs": [
+    {
+      "type": "cosmos-sdk/MsgWithdrawDelegationReward",
+      "value": {
+        "delegator_address": "nolus17snxq7sdny468jc7kyxc2m4pzqvzpnv0uck0dl",
+        "validator_address": "nolusvaloper1rja6uxmkvk8ferkgf5hkrygdxndszq6c4u0nlx"
+      }
+    },
+    {
+      "type": "cosmos-sdk/MsgWithdrawDelegationReward",
+      "value": {
+        "delegator_address": "nolus17snxq7sdny468jc7kyxc2m4pzqvzpnv0uck0dl",
+        "validator_address": "nolusvaloper19k3fmww60txaudx92yjg3hcg36hepkzgtqwunc"
+      }
+    },
+    {
+      "type": "cosmos-sdk/MsgWithdrawDelegationReward",
+      "value": {
+        "delegator_address": "nolus17snxq7sdny468jc7kyxc2m4pzqvzpnv0uck0dl",
+        "validator_address": "nolusvaloper1vytpvur69pn4f356kmkwwdeqpmr9ymejf4yt5d"
+      }
+    },
+    {
+      "type": "cosmos-sdk/MsgWithdrawDelegationReward",
+      "value": {
+        "delegator_address": "nolus17snxq7sdny468jc7kyxc2m4pzqvzpnv0uck0dl",
+        "validator_address": "nolusvaloper1dzyw04glsxpczw9yndeuy9hrjf5t9lyhw2sfhv"
+      }
+    },
+    {
+      "type": "cosmos-sdk/MsgWithdrawDelegationReward",
+      "value": {
+        "delegator_address": "nolus17snxq7sdny468jc7kyxc2m4pzqvzpnv0uck0dl",
+        "validator_address": "nolusvaloper106sz33gddhvve5r3hq4hvyzxakd7ntw9duc6c5"
+      }
+    },
+    {
+      "type": "cosmos-sdk/MsgWithdrawDelegationReward",
+      "value": {
+        "delegator_address": "nolus17snxq7sdny468jc7kyxc2m4pzqvzpnv0uck0dl",
+        "validator_address": "nolusvaloper1ldp9kthjxl6hun23ghlwg5szf297sz5a0pf3xe"
+      }
+    }
+  ],
+  "sequence": "822"
+}
