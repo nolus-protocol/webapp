@@ -146,7 +146,7 @@ const swapFee = ref(0);
 const timeOut = 200;
 let time: NodeJS.Timeout;
 let freeInterest = ref<string[]>();
-const ignoreLeaseAssets = ref<string[]>([]);
+const ignoreLeaseAssets = ref<string[]>(["ALL_BTC"]);
 
 onMounted(async () => {
   freeInterest.value = await AppUtils.getFreeInterest();
