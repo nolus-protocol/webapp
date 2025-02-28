@@ -497,7 +497,7 @@
     "disconnect-body": "You are about to disconnect the following wallet",
     "disconnect-body-btm": "Disconnect the wallet from the Nolus app. Are you sure you want to continue?",
     "opened-tooltip": "opened-tooltip",
-    "supplied-auto-compound": "All supplied assets automatically compound",
+    "supplied-auto-compound": "All supplied assets compound automatically",
     "chart-liquidation-tooltip": "Liquidation",
     "release-schedule": "Released by",
     "release-schedule-tooltip": "Full release following the conclusion of linear vesting period",
