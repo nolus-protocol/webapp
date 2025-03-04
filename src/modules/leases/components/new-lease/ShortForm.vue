@@ -99,14 +99,56 @@
       </div>
     </div>
     <hr class="my-4 border-border-color" />
-    <div class="flex justify-end px-4">
+
+    <div class="mt-4 flex flex-col justify-end px-4">
       <Button
+        v-if="showDetails"
+        :label="$t('message.hide-transaction-details')"
+        @click="showDetails = !showDetails"
+        severity="tertiary"
+        icon="minus"
+        iconPosition="left"
+        size="small"
+        class="self-end text-icon-default"
+      />
+
+      <Button
+        v-else
         :label="$t('message.show-transaction-details')"
+        @click="showDetails = !showDetails"
         severity="tertiary"
         icon="plus"
         iconPosition="left"
         size="small"
-        class="text-icon-default"
+        class="self-end text-icon-default"
+      />
+
+      <Stepper
+        v-if="showDetails"
+        :active-step="-1"
+        :steps="[
+          {
+            label: $t('message.open-position'),
+            icon: NATIVE_NETWORK.icon,
+            meta: () => h('div', `${NATIVE_NETWORK.label}`)
+          },
+          {
+            label: $t('message.stepper-transfer-position'),
+            icon: getIconByProtocol()!,
+            token: {
+              balance: AssetUtils.formatNumber(amount, assets[selectedCurrency]?.decimal_digits),
+              symbol: assets[selectedCurrency]?.label
+            },
+            meta: () => h('div', `${NATIVE_NETWORK.label} > ${protocolName}`)
+          },
+          {
+            label: $t('message.swap'),
+            icon: getIconByProtocol()!,
+            tokenComponent: () => h('div', swapAmount),
+            meta: () => h('div', `${protocolName} > ${NATIVE_NETWORK.label}`)
+          }
+        ]"
+        :variant="StepperVariant.MEDIUM"
       />
     </div>
     <hr class="my-4 border-border-color" />
@@ -145,7 +187,9 @@ import {
   AssetItem,
   Tooltip,
   SvgIcon,
-  ToastType
+  ToastType,
+  StepperVariant,
+  Stepper
 } from "web-components";
 import { RouteNames } from "@/router";
 import { tabs } from "../types";
@@ -158,6 +202,7 @@ import { AppUtils, AssetUtils, getMicroAmount, Logger, walletOperation } from "@
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency, IObjectKeys } from "@/common/types";
 import {
+  Contracts,
   INTEREST_DECIMALS,
   MAX_DECIMALS,
   MAX_POSITION,
@@ -198,6 +243,7 @@ const amount = ref("");
 const amountErrorMsg = ref("");
 const ltd = ref((MAX_POSITION / PERCENT) * PERMILLE);
 const leaseApply = ref<LeaseApply | null>();
+const showDetails = ref(false);
 
 onMounted(async () => {
   const [freeInterestv] = await Promise.all([AppUtils.getFreeInterest()]);
@@ -310,6 +356,15 @@ const calculatedBalance = computed(() => {
   const v = amount?.value?.length ? amount?.value : "0";
   const stable = price.mul(new Dec(v));
   return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+});
+
+const swapAmount = computed(() => {
+  let total = leaseApply.value?.total;
+  const selectedDownPaymentCurrency = currency.value;
+  let [_, protocol] = selectedDownPaymentCurrency.key.split("@");
+  const stable = app.currenciesData![`${ProtocolsConfig[protocol].stable}@${protocol}`];
+  const a = new Dec(total?.amount ?? 0, stable.decimal_digits);
+  return `${AssetUtils.formatNumber(a.toString(), stable.decimal_digits)} ${stable.shortName}`;
 });
 
 function handleAmountChange(event: string) {
@@ -542,4 +597,36 @@ async function openLease() {
     }
   }
 }
+
+function getIconByProtocol() {
+  try {
+    const selectedDownPaymentCurrency = currency.value;
+    let [_, protocol] = selectedDownPaymentCurrency.key.split("@");
+
+    for (const key in Contracts.protocolsFilter) {
+      if (Contracts.protocolsFilter[key].hold.includes(protocol)) {
+        return Contracts.protocolsFilter[key].image;
+      }
+    }
+  } catch (error) {
+    console.error("Invalid address format:", error);
+    return null;
+  }
+}
+
+const protocolName = computed(() => {
+  try {
+    const selectedDownPaymentCurrency = currency.value;
+    let [_, protocol] = selectedDownPaymentCurrency.key.split("@");
+
+    for (const key in Contracts.protocolsFilter) {
+      if (Contracts.protocolsFilter[key].hold.includes(protocol)) {
+        return Contracts.protocolsFilter[key].name;
+      }
+    }
+  } catch (error) {
+    console.error("Invalid address format:", error);
+    return null;
+  }
+});
 </script>

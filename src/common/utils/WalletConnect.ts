@@ -8,7 +8,6 @@ import { useWalletStore, WalletActions } from "@/common/stores/wallet";
 import { AssetUtils, WalletManager } from ".";
 import { type NetworkData, WalletConnectMechanism } from "@/common/types";
 import { authenticateKeplr, authenticateLeap, authenticateLedger, type BaseWallet, type Wallet } from "@/networks";
-import type { Window as KeplrWindow } from "@keplr-wallet/types/build/window";
 
 export const validateAddress = (address: string) => {
   if (!address || address.trim() == "") {
@@ -57,8 +56,8 @@ export const validateAmountV2 = (amount: string, amount2: string) => {
     return i18n.global.t("message.invalid-amount");
   }
 
-  const a = new Dec(amount);
-  const b = new Dec(amount2);
+  const a = new Dec(amount.replace(",", ""));
+  const b = new Dec(amount2.replace(",", ""));
 
   const isLowerThanOrEqualsToZero = a.lte(new Dec(0));
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="custom-scroll max-h-full overflow-auto md:max-h-[75vh]">
+  <div class="custom-scroll max-h-full flex-1 overflow-auto">
     <AdvancedFormControl
       id="receive-send"
       :currencyOptions="assets"
@@ -58,20 +58,19 @@
       </template>
     </div>
     <hr class="border-border-color" />
-
-    <div class="flex flex-col gap-2 p-6">
-      <Button
-        size="large"
-        severity="primary"
-        :label="$t('message.supply')"
-        @click="onNextClick"
-        :disabled="disabled || assets[selectedCurrency].disabled"
-        :loading="loading"
-      />
-      <p class="text-center text-12 text-typography-secondary">
-        {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.longOperationsEstimation }}{{ $t("message.sec") }}
-      </p>
-    </div>
+  </div>
+  <div class="flex flex-col gap-2 p-6">
+    <Button
+      size="large"
+      severity="primary"
+      :label="$t('message.supply')"
+      @click="onNextClick"
+      :disabled="disabled || assets[selectedCurrency].disabled"
+      :loading="loading"
+    />
+    <p class="text-center text-12 text-typography-secondary">
+      {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.longOperationsEstimation }}{{ $t("message.sec") }}
+    </p>
   </div>
 </template>
 
@@ -86,14 +85,14 @@ import {
   ToastType
 } from "web-components";
 import { computed, inject, onMounted, ref } from "vue";
-import { NATIVE_ASSET, NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
+import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
-import { Dec } from "@keplr-wallet/unit";
+import { Dec, Int } from "@keplr-wallet/unit";
 import { AssetUtils, getMicroAmount, Logger, validateAmountV2, walletOperation } from "@/common/utils";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
 import { ProtocolsConfig, SORT_PROTOCOLS, MAX_DECIMALS, Contracts } from "@/config/global";
-import { NolusClient, type NolusWallet } from "@nolus/nolusjs";
+import { CurrencyUtils, NolusClient, type NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { useAdminStore } from "@/common/stores/admin";
 import { h } from "vue";
@@ -129,6 +128,7 @@ const assets = computed(() => {
       name: lpn.name,
       value: lpn.key,
       label: lpn.shortName,
+      ibcData: lpn.ibcData,
       icon: lpn.icon,
       balance: { value: balance, ticker: lpn.shortName },
       stable,
@@ -172,6 +172,7 @@ const error = ref("");
 const loading = ref(false);
 const disabled = ref(false);
 const supply = ref<{ [key: string]: boolean }>({});
+const maxSupply = ref<{ [key: string]: Int }>({});
 
 const selectedCurrency = ref(0);
 
@@ -271,8 +272,10 @@ async function fetchDepositCapacity() {
 
       if (Number(supply?.amount) == 0 || !ProtocolsConfig[protocol].supply) {
         value[protocol] = false;
+        maxSupply.value[protocol] = new Int(-1);
       } else {
         value[protocol] = true;
+        maxSupply.value[protocol] = new Int(supply?.amount ?? 0);
       }
     };
 
@@ -283,6 +286,32 @@ async function fetchDepositCapacity() {
   supply.value = value;
 }
 
+function validateSupply() {
+  const asset = assets.value[selectedCurrency.value];
+  const [_, protocol] = assets.value[selectedCurrency.value].key.split("@");
+  const max = maxSupply.value[protocol];
+
+  if (max.isNegative()) {
+    return "";
+  }
+
+  const i = input.value.length == 0 ? "0" : input.value;
+
+  const a = CurrencyUtils.convertDenomToMinimalDenom(i, asset.ibcData, asset.decimal_digits);
+
+  if (a.amount.gt(max)) {
+    const m = CurrencyUtils.convertMinimalDenomToDenom(
+      max.toString(),
+      asset.ibcData,
+      asset.label,
+      asset.decimal_digits
+    );
+    return i18n.t("message.supply-limit-error", { amount: m });
+  }
+
+  return "";
+}
+
 function onSelect(event: AdvancedCurrencyFieldOption) {
   const index = assets.value.findIndex((item) => item == event);
   selectedCurrency.value = index;
@@ -290,6 +319,14 @@ function onSelect(event: AdvancedCurrencyFieldOption) {
 
 function validateInputs() {
   const currency = assets.value[selectedCurrency.value];
+
+  const verr = validateSupply();
+
+  if (verr.length > 0) {
+    error.value = verr;
+    return error.value;
+  }
+
   error.value = validateAmountV2(input.value, currency.balance.value);
   return error.value;
 }

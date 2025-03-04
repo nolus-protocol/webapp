@@ -12,94 +12,95 @@
     "
   >
     <template v-slot:content>
-      <hr class="border-border-color" />
-      <div class="flex flex-col gap-4 px-2 py-4">
-        <AdvancedFormControl
-          searchable
-          id="receive-send"
-          :currencyOptions="assets"
-          class="px-6 pt-4"
-          :label="$t('message.amount-to-repay')"
-          :balanceLabel="$t('message.balance')"
-          placeholder="0"
-          :calculated-balance="calculatedBalance"
-          :disabled-currency-picker="isLoading"
-          :disabled-input-field="isLoading"
-          @on-selected-currency="
-            (option) => {
-              selectedCurrency = assets.findIndex((item) => item == option);
-            }
-          "
-          :value-only="amount"
-          @input="handleAmountChange"
-          :error-msg="amountErrorMsg"
-          :itemsHeadline="[$t('message.assets'), $t('message.balance')]"
-          :item-template="
-            (item: any) =>
-              h<AssetItemProps>(AssetItem, {
-                ...item,
-                abbreviation: item.label,
-                name: item.name,
-                balance: item.balance.value,
-                max_decimals: item.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : item.decimal_digits
-              })
-          "
-          :selected-currency-option="currency"
-        />
-        <div class="px-6 py-3">
-          <Slider
-            :min-position="0"
-            :max-position="100"
-            :value="sliderValue"
-            @on-drag="onSetAmount"
-            :label-left="`0`"
-            :label-right="`${$t('message.debt')} (~${debt?.amount?.toString() ?? ''})`"
-            @click-right-label="() => onSetAmount(100)"
-            @click-left-label="() => onSetAmount(0)"
+      <div class="custom-scroll max-h-full flex-1 overflow-auto">
+        <hr class="border-border-color" />
+        <div class="flex flex-col gap-4 px-2 py-4">
+          <AdvancedFormControl
+            searchable
+            id="receive-send"
+            :currencyOptions="assets"
+            class="px-6 pt-4"
+            :label="$t('message.amount-to-repay')"
+            :balanceLabel="$t('message.balance')"
+            placeholder="0"
+            :calculated-balance="calculatedBalance"
+            :disabled-currency-picker="isLoading"
+            :disabled-input-field="isLoading"
+            @on-selected-currency="
+              (option) => {
+                selectedCurrency = assets.findIndex((item) => item == option);
+              }
+            "
+            :value-only="amount"
+            @input="handleAmountChange"
+            :error-msg="amountErrorMsg"
+            :itemsHeadline="[$t('message.assets'), $t('message.balance')]"
+            :item-template="
+              (item: any) =>
+                h<AssetItemProps>(AssetItem, {
+                  ...item,
+                  abbreviation: item.label,
+                  name: item.name,
+                  balance: item.balance.value,
+                  max_decimals: item.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : item.decimal_digits
+                })
+            "
+            :selected-currency-option="currency"
           />
+          <div class="px-6 py-3">
+            <Slider
+              :min-position="0"
+              :max-position="100"
+              :value="sliderValue"
+              @on-drag="onSetAmount"
+              :label-left="`0`"
+              :label-right="`${$t('message.debt')} (~${debt?.amount?.toString() ?? ''})`"
+              @click-right-label="() => onSetAmount(100)"
+              @click-left-label="() => onSetAmount(0)"
+            />
+          </div>
         </div>
-      </div>
-      <hr class="border-border-color" />
-      <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
-        <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
-        <template v-if="sliderValue == 0">
-          <div class="flex items-center gap-2 text-14">
-            <SvgIcon
-              name="list-sparkle"
-              class="fill-icon-secondary"
-            />
-            {{ $t("message.preview-input") }}
-          </div>
-        </template>
-        <template v-if="sliderValue > 0 && sliderValue < 100">
-          <div class="flex items-center gap-2 text-14">
-            <SvgIcon
-              name="check-solid"
-              class="fill-icon-success"
-            />
-            <p :innerHTML="$t('message.debt-pay-off', { data: detbPartial.payment })"></p>
-          </div>
-          <div class="flex items-center gap-2 text-14">
-            <SvgIcon
-              name="info"
-              class="fill-icon-secondary"
-            />
-            {{ $t("message.outstanding-debt-rest") }}
-            {{ detbPartial.rest }}
-          </div>
-        </template>
-        <template v-if="sliderValue >= 100">
-          <div class="flex items-center gap-2 text-14">
-            <SvgIcon
-              name="check-solid"
-              class="fill-icon-success"
-            />
-            {{ $t("message.debt-paid") }}
-            <strong>{{ debtData }}</strong>
-          </div>
-        </template>
-      </div>
-      <!-- <hr class="border-border-color" />
+        <hr class="border-border-color" />
+        <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
+          <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
+          <template v-if="sliderValue == 0">
+            <div class="flex items-center gap-2 text-14">
+              <SvgIcon
+                name="list-sparkle"
+                class="fill-icon-secondary"
+              />
+              {{ $t("message.preview-input") }}
+            </div>
+          </template>
+          <template v-if="sliderValue > 0 && sliderValue < 100">
+            <div class="flex items-center gap-2 text-14">
+              <SvgIcon
+                name="check-solid"
+                class="fill-icon-success"
+              />
+              <p :innerHTML="$t('message.debt-pay-off', { data: detbPartial.payment })"></p>
+            </div>
+            <div class="flex items-center gap-2 text-14">
+              <SvgIcon
+                name="info"
+                class="fill-icon-secondary"
+              />
+              {{ $t("message.outstanding-debt-rest") }}
+              {{ detbPartial.rest }}
+            </div>
+          </template>
+          <template v-if="sliderValue >= 100">
+            <div class="flex items-center gap-2 text-14">
+              <SvgIcon
+                name="check-solid"
+                class="fill-icon-success"
+              />
+              {{ $t("message.debt-paid") }}
+              <strong>{{ debtData }}</strong>
+            </div>
+          </template>
+        </div>
+        <!-- <hr class="border-border-color" />
       <div class="flex justify-end px-6 py-4">
         <Button
           :label="$t('message.show-transaction-details')"
@@ -110,7 +111,8 @@
           class="text-icon-default"
         />
       </div> -->
-      <hr class="border-border-color" />
+        <hr class="border-border-color" />
+      </div>
       <div class="flex flex-col gap-2 p-6">
         <Button
           size="large"

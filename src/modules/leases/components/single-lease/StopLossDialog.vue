@@ -136,6 +136,7 @@ const walletStore = useWalletStore();
 const app = useApplicationStore();
 const i18n = useI18n();
 
+const error_percent = 0.9;
 const amount = ref("");
 const amountErrorMsg = ref("");
 const selectedCurrency = ref(0);
@@ -281,6 +282,11 @@ function isAmountValid() {
         isValid = false;
       }
 
+      if (getPercent().gte(new Dec(error_percent))) {
+        amountErrorMsg.value = i18n.t("message.stop-loss-error");
+        return false;
+      }
+
       switch (ProtocolsConfig[lease.value?.protocol!].type) {
         case PositionTypes.long: {
           if (a.gt(price)) {
@@ -365,15 +371,23 @@ async function operation() {
 }
 
 function getPercent() {
-  const value = new Dec(amount.value);
+  const value = new Dec(amount.value.length == 0 ? 0 : amount.value);
   switch (ProtocolsConfig[lease.value?.protocol!].type) {
     case PositionTypes.long: {
-      return lease.value!.stableAsset.quo(value.mul(lease.value!.unitAsset));
+      const v = value.mul(lease.value!.unitAsset);
+      if (v.isZero()) {
+        return new Dec(0);
+      }
+      return lease.value!.stableAsset.quo(v);
     }
     case PositionTypes.short: {
+      if (lease.value!.unitAsset.isZero()) {
+        return new Dec(0);
+      }
       return lease.value!.stableAsset.quo(lease.value!.unitAsset).mul(value);
     }
   }
+  return new Dec(0);
 }
 
 const totalAmount = computed(() => {

@@ -158,7 +158,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
       if (closestData) {
         tooltip.html(
-          `<strong>${i18n.t("message.amount")}:</strong> $${AssetUtils.formatNumber(closestData.amount, NATIVE_CURRENCY.maximumFractionDigits)}`
+          `<strong>${i18n.t("message.amount")}:</strong> ${AssetUtils.formatNumber(closestData.amount, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();

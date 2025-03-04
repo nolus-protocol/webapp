@@ -27,7 +27,7 @@
       </template>
       <div
         v-else
-        class="skeleton-box rounded-sm"
+        class="skeleton-box rounded-[4px]"
         :style="[{ width: '100%', height: `${amount?.fontSize || 32 * 1.2}px` }]"
       ></div>
     </div>
@@ -47,7 +47,7 @@
       </template>
       <div
         v-else
-        class="skeleton-box mt-1 rounded-sm"
+        class="skeleton-box mt-1 rounded-[4px]"
         :style="[{ width: '100%', height: `${14 * 1.2}px` }]"
       ></div>
     </template>
@@ -67,7 +67,7 @@
       </template>
       <div
         v-else
-        class="skeleton-box rounded-sm"
+        class="skeleton-box rounded-[4px]"
         :style="[{ width: '100%', height: `${secondary?.fontSize || 12 * 1.2}px` }]"
       ></div>
     </template>

@@ -5,14 +5,15 @@
   >
     <div
       v-if="!disableSkeleton && isLoading"
-      class="skeleton-loader absolute inset-0 flex items-end justify-center gap-1 rounded p-2"
+      class="absolute h-full w-full"
     >
-      <div
-        v-for="n in numberOfBars"
-        :key="n"
-        class="blink bg-gray-300"
-        :style="{ width: barWidth + 'px', height: randomHeight() }"
-      ></div>
+      <div class="flex h-full w-full flex-col items-center justify-center">
+        <span class="mb-2 justify-center text-14 text-typography-default">{{ $t("message.loading-data") }}</span>
+        <Spinner
+          height="20"
+          width="20"
+        />
+      </div>
     </div>
     <div
       ref="plotContainer"
@@ -24,8 +25,9 @@
 
 <script lang="ts" setup>
 import { select } from "d3";
-import { onBeforeUnmount, onMounted, onUnmounted, ref, watch } from "vue";
+import { onMounted, onUnmounted, ref, watch } from "vue";
 import { Logger } from "../utils";
+import { Spinner } from "web-components";
 
 export interface IChart {
   updateChart: Function;
@@ -40,22 +42,12 @@ const props = defineProps<IChart>();
 const isLoading = ref(true);
 const maxHeight = ref(0);
 const container = ref<HTMLDivElement | null>();
-const numberOfBars = ref(0);
-const barWidth = 10;
-
 const plotContainer = ref<HTMLElement | null>(null);
 
 onMounted(async () => {
-  updateNumberOfBars();
-  window.addEventListener("resize", updateNumberOfBars);
-
   await props.updateChart(plotContainer.value, tooltip);
   const items = props.fns.map((item) => item());
   await Promise.all(items).catch((e) => Logger.error(e));
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener("resize", updateNumberOfBars);
 });
 
 onUnmounted(() => {
@@ -75,35 +67,5 @@ watch(
   }
 );
 
-function updateNumberOfBars() {
-  if (container.value) {
-    const containerWidth = container.value?.clientWidth;
-    const totalBarWidth = barWidth;
-    numberOfBars.value = Math.floor(containerWidth / totalBarWidth);
-  }
-}
-
-function randomHeight() {
-  const min = 10;
-  const max = 50;
-  return Math.floor(Math.random() * (max - min + 1) + min) + "%";
-}
-
 defineExpose({ update });
 </script>
-
-<style scoped lang="scss">
-.skeleton-loader {
-  animation: blink 1.5s linear infinite;
-}
-
-@keyframes blink {
-  0%,
-  100% {
-    background-color: rgba(224, 224, 224, 0.6);
-  }
-  50% {
-    background-color: rgba(224, 224, 224, 0.4);
-  }
-}
-</style>

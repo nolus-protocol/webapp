@@ -4,6 +4,7 @@
     :fns="[loadData]"
     :getClosestDataPoint="getClosestDataPoint"
     ref="chart"
+    :disableSkeleton="true"
   />
 </template>
 
@@ -40,8 +41,12 @@ const app = useApplicationStore();
 const chart = ref<typeof Chart>();
 const props = defineProps<{ amount: Dec; currencyKey: string }>();
 
+const currency = computed(() => {
+  return app.currenciesData![props.currencyKey];
+});
+
 watch(
-  () => [wallet?.apr, props.amount],
+  () => [wallet?.apr, props.amount, currency.value],
   () => {
     loadData();
   },
@@ -49,10 +54,6 @@ watch(
     immediate: true
   }
 );
-
-const currency = computed(() => {
-  return app.currenciesData![props.currencyKey];
-});
 
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
   if (!plotContainer) return;
@@ -141,19 +142,19 @@ function getClosestDataPoint(cPosition: number) {
 
 async function loadData() {
   let apr = new Dec(getApr(props.currencyKey) ?? 0);
-
   if (apr.isZero()) {
-    return;
+    data = [];
+  } else {
+    apr = apr.quo(new Dec(365));
+    data = period.map((item) => {
+      const p = item.months * days;
+      const a = props.amount.add(apr.quo(new Dec(PERCENT)).mul(props.amount).mul(new Dec(p))).toString(2);
+      return {
+        amount: Number(a),
+        date: item.months
+      };
+    });
   }
-  apr = apr.quo(new Dec(365));
-  data = period.map((item) => {
-    const p = item.months * days;
-    const a = props.amount.add(apr.quo(new Dec(PERCENT)).mul(props.amount).mul(new Dec(p))).toString(2);
-    return {
-      amount: Number(a),
-      date: item.months
-    };
-  });
   chart.value?.update();
 }
 

@@ -107,7 +107,6 @@ async function setData() {
 
 function getLiquidationPrice(price: number, liq: number) {
   const p = price * liq;
-
   switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
     case PositionTypes.long: {
       return price - p;

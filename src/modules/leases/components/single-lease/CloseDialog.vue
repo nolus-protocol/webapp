@@ -12,210 +12,212 @@
     "
   >
     <template v-slot:content>
-      <hr class="border-border-color" />
-      <div class="flex flex-col gap-4 px-6 py-4">
-        <AdvancedFormControl
-          id="repay-close"
-          labelAdvanced
-          :currencyOptions="assets"
-          :disabled-currency-picker="isLoading"
-          :disabled-input-field="isLoading"
-          :selectedCurrencyOption="assets[0]"
-          :calculated-balance="calculatedBalance"
-          :value-only="amount"
-          @input="handleAmountChange"
-          :error-msg="amountErrorMsg"
-          placeholder="0"
-        >
-          <template v-slot:label>
-            <div class="flex items-center gap-1">
-              {{ $t("message.amount-to-close") }}
-              <span class="flex items-center gap-1 font-normal"
-                ><img :src="currency?.icon" /> {{ currency?.label }}</span
-              >
-              <Tooltip :content="$t('message.close-dialog-tooltip')"
-                ><SvgIcon
-                  name="help"
-                  class="fill-icon-link"
-              /></Tooltip>
-            </div>
-          </template>
-        </AdvancedFormControl>
-        <div class="mt-2 px-4 py-3">
-          <Slider
-            :min-position="0"
-            :max-position="100"
-            :mid-position="midPosition"
-            :value="sliderValue"
-            @on-drag="onSetAmount"
-            :label-left="`0`"
-            :label-mid="`${$t('message.debt')} (~${debt?.amount?.toString() ?? ''})`"
-            :label-right="`${$t('message.full-position')} (~${AssetUtils.formatNumber(total?.toString(currency?.decimal_digits), currency?.decimal_digits) ?? ''})`"
-            @click-right-label="() => onSetAmount(100)"
-            @click-left-label="() => onSetAmount(0)"
-            @click-mid-label="
-              () => {
-                handleAmountChange(debt?.amount?.toString() ?? '0');
-              }
-            "
-          />
+      <div class="custom-scroll max-h-full flex-1 overflow-auto">
+        <hr class="border-border-color" />
+        <div class="flex flex-col gap-4 px-6 py-4">
+          <AdvancedFormControl
+            id="repay-close"
+            labelAdvanced
+            :currencyOptions="assets"
+            :disabled-currency-picker="isLoading"
+            :disabled-input-field="isLoading"
+            :selectedCurrencyOption="assets[0]"
+            :calculated-balance="calculatedBalance"
+            :value-only="amount"
+            @input="handleAmountChange"
+            :error-msg="amountErrorMsg"
+            placeholder="0"
+          >
+            <template v-slot:label>
+              <div class="flex items-center gap-1">
+                {{ $t("message.amount-to-close") }}
+                <span class="flex items-center gap-1 font-normal"
+                  ><img :src="currency?.icon" /> {{ currency?.label }}</span
+                >
+                <Tooltip :content="$t('message.close-dialog-tooltip')"
+                  ><SvgIcon
+                    name="help"
+                    class="fill-icon-link"
+                /></Tooltip>
+              </div>
+            </template>
+          </AdvancedFormControl>
+          <div class="mt-2 px-4 py-3">
+            <Slider
+              :min-position="0"
+              :max-position="100"
+              :mid-position="midPosition"
+              :value="sliderValue"
+              @on-drag="onSetAmount"
+              :label-left="`0`"
+              :label-mid="`${$t('message.debt')} (~${debt?.amount?.toString() ?? ''})`"
+              :label-right="`${$t('message.full-position')} (~${AssetUtils.formatNumber(total?.toString(currency?.decimal_digits), currency?.decimal_digits) ?? ''})`"
+              @click-right-label="() => onSetAmount(100)"
+              @click-left-label="() => onSetAmount(0)"
+              @click-mid-label="
+                () => {
+                  handleAmountChange(debt?.amount?.toString() ?? '0');
+                }
+              "
+            />
+          </div>
         </div>
+        <hr class="border-border-color" />
+        <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
+          <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
+          <template v-if="lease">
+            <template v-if="sliderValue == 0">
+              <div class="flex items-center gap-2 text-14">
+                <SvgIcon
+                  name="list-sparkle"
+                  class="fill-icon-secondary"
+                />
+                {{ $t("message.preview-input") }}
+              </div>
+            </template>
+
+            <template v-if="sliderValue > 0 && sliderValue < midPosition">
+              <div class="flex items-center gap-2 text-14">
+                <SvgIcon
+                  name="check-solid"
+                  class="fill-icon-success"
+                />
+                <p
+                  class="flex-1"
+                  :innerHTML="
+                    $t('message.preview-closed-paid-partuial-debt', {
+                      amount: paidDebt,
+                      price: debtData.price,
+                      asset: debtData.asset,
+                      fee: debtData.fee
+                    })
+                  "
+                ></p>
+              </div>
+
+              <div class="flex items-center gap-2 text-14">
+                <SvgIcon
+                  name="info"
+                  class="fill-icon-secondary"
+                />
+                {{ $t("message.preview-closed-debt") }} {{ remaining.amount }} ({{ NATIVE_CURRENCY.symbol
+                }}{{ remaining.amountInStable }})
+              </div>
+
+              <div class="flex items-center gap-2 text-14">
+                <SvgIcon
+                  name="info"
+                  class="fill-icon-secondary"
+                />
+                {{ positionLeft }} {{ $t("message.preview-closed-rest") }}
+              </div>
+            </template>
+
+            <template v-if="sliderValue == midPosition">
+              <div class="flex items-center gap-2 text-14">
+                <SvgIcon
+                  name="check-solid"
+                  class="fill-icon-success"
+                />
+                <p
+                  class="flex-1"
+                  :innerHTML="
+                    $t('message.preview-closed-paid-debt', {
+                      amount: debtData.debt,
+                      price: debtData.price,
+                      asset: debtData.asset,
+                      fee: debtData.fee
+                    })
+                  "
+                ></p>
+              </div>
+
+              <div class="flex items-center gap-2 text-14">
+                <SvgIcon
+                  name="info"
+                  class="fill-icon-secondary"
+                />
+                {{ positionLeft }} {{ $t("message.preview-closed-rest") }}
+              </div>
+            </template>
+
+            <template v-if="sliderValue > midPosition && sliderValue < 100">
+              <div class="flex items-center gap-2 text-14">
+                <SvgIcon
+                  name="check-solid"
+                  class="fill-icon-success"
+                />
+                <p
+                  class="flex-1"
+                  :innerHTML="
+                    $t('message.preview-closed-paid-debt', {
+                      amount: debtData.debt,
+                      price: debtData.price,
+                      asset: debtData.asset,
+                      fee: debtData.fee
+                    })
+                  "
+                ></p>
+              </div>
+
+              <div class="flex items-center gap-2 text-14">
+                <SvgIcon
+                  name="check-solid"
+                  class="fill-icon-success"
+                />
+                {{ $t("message.preview-closed-paid") }}
+                <strong>{{ payout }} {{ lpn }}</strong>
+              </div>
+
+              <div class="flex items-center gap-2 text-14">
+                <SvgIcon
+                  name="info"
+                  class="fill-icon-secondary"
+                />
+                {{ positionLeft }} {{ $t("message.preview-closed-rest") }}
+              </div>
+            </template>
+
+            <template v-if="sliderValue >= 100">
+              <div class="flex items-center gap-2 text-14">
+                <SvgIcon
+                  name="check-solid"
+                  class="fill-icon-success"
+                />
+                <p
+                  class="flex-1"
+                  :innerHTML="
+                    $t('message.preview-closed-paid-debt', {
+                      amount: debtData.debt,
+                      price: debtData.price,
+                      asset: debtData.asset,
+                      fee: debtData.fee
+                    })
+                  "
+                ></p>
+              </div>
+
+              <div class="flex items-center gap-2 text-14">
+                <SvgIcon
+                  name="check-solid"
+                  class="fill-icon-success"
+                />
+                {{ $t("message.preview-closed-paid") }}
+                <strong>{{ payout }} {{ lpn }}</strong>
+              </div>
+
+              <div class="flex items-center gap-2 text-14">
+                <SvgIcon
+                  name="check-solid"
+                  class="fill-icon-success"
+                />
+                {{ $t("message.preview-closed") }}
+              </div>
+            </template>
+          </template>
+        </div>
+        <hr class="border-border-color" />
       </div>
-      <hr class="border-border-color" />
-      <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
-        <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
-        <template v-if="lease">
-          <template v-if="sliderValue == 0">
-            <div class="flex items-center gap-2 text-14">
-              <SvgIcon
-                name="list-sparkle"
-                class="fill-icon-secondary"
-              />
-              {{ $t("message.preview-input") }}
-            </div>
-          </template>
-
-          <template v-if="sliderValue > 0 && sliderValue < midPosition">
-            <div class="flex items-center gap-2 text-14">
-              <SvgIcon
-                name="check-solid"
-                class="fill-icon-success"
-              />
-              <p
-                class="flex-1"
-                :innerHTML="
-                  $t('message.preview-closed-paid-partuial-debt', {
-                    amount: debtData.debt,
-                    price: debtData.price,
-                    asset: debtData.asset,
-                    fee: debtData.fee
-                  })
-                "
-              ></p>
-            </div>
-
-            <div class="flex items-center gap-2 text-14">
-              <SvgIcon
-                name="info"
-                class="fill-icon-secondary"
-              />
-              {{ $t("message.preview-closed-debt") }} {{ remaining.amount }} ({{ NATIVE_CURRENCY.symbol
-              }}{{ remaining.amountInStable }})
-            </div>
-
-            <div class="flex items-center gap-2 text-14">
-              <SvgIcon
-                name="info"
-                class="fill-icon-secondary"
-              />
-              {{ positionLeft }} {{ $t("message.preview-closed-rest") }}
-            </div>
-          </template>
-
-          <template v-if="sliderValue == midPosition">
-            <div class="flex items-center gap-2 text-14">
-              <SvgIcon
-                name="check-solid"
-                class="fill-icon-success"
-              />
-              <p
-                class="flex-1"
-                :innerHTML="
-                  $t('message.preview-closed-paid-debt', {
-                    amount: debtData.debt,
-                    price: debtData.price,
-                    asset: debtData.asset,
-                    fee: debtData.fee
-                  })
-                "
-              ></p>
-            </div>
-
-            <div class="flex items-center gap-2 text-14">
-              <SvgIcon
-                name="info"
-                class="fill-icon-secondary"
-              />
-              {{ positionLeft }} {{ $t("message.preview-closed-rest") }}
-            </div>
-          </template>
-
-          <template v-if="sliderValue > midPosition && sliderValue < 100">
-            <div class="flex items-center gap-2 text-14">
-              <SvgIcon
-                name="check-solid"
-                class="fill-icon-success"
-              />
-              <p
-                class="flex-1"
-                :innerHTML="
-                  $t('message.preview-closed-paid-debt', {
-                    amount: debtData.debt,
-                    price: debtData.price,
-                    asset: debtData.asset,
-                    fee: debtData.fee
-                  })
-                "
-              ></p>
-            </div>
-
-            <div class="flex items-center gap-2 text-14">
-              <SvgIcon
-                name="check-solid"
-                class="fill-icon-success"
-              />
-              {{ $t("message.preview-closed-paid") }}
-              <strong>{{ payout }} {{ lpn }}</strong>
-            </div>
-
-            <div class="flex items-center gap-2 text-14">
-              <SvgIcon
-                name="info"
-                class="fill-icon-secondary"
-              />
-              {{ positionLeft }} {{ $t("message.preview-closed-rest") }}
-            </div>
-          </template>
-
-          <template v-if="sliderValue >= 100">
-            <div class="flex items-center gap-2 text-14">
-              <SvgIcon
-                name="check-solid"
-                class="fill-icon-success"
-              />
-              <p
-                class="flex-1"
-                :innerHTML="
-                  $t('message.preview-closed-paid-debt', {
-                    amount: debtData.debt,
-                    price: debtData.price,
-                    asset: debtData.asset,
-                    fee: debtData.fee
-                  })
-                "
-              ></p>
-            </div>
-
-            <div class="flex items-center gap-2 text-14">
-              <SvgIcon
-                name="check-solid"
-                class="fill-icon-success"
-              />
-              {{ $t("message.preview-closed-paid") }}
-              <strong>{{ payout }} {{ lpn }}</strong>
-            </div>
-
-            <div class="flex items-center gap-2 text-14">
-              <SvgIcon
-                name="check-solid"
-                class="fill-icon-success"
-              />
-              {{ $t("message.preview-closed") }}
-            </div>
-          </template>
-        </template>
-      </div>
-      <hr class="border-border-color" />
 
       <div class="flex flex-col gap-2 p-6">
         <Button
@@ -332,6 +334,10 @@ const currency = computed(() => {
 
 const remaining = computed(() => {
   return getAmountValue(amount.value == "" ? "0" : amount.value);
+});
+
+const paidDebt = computed(() => {
+  return `${AssetUtils.formatNumber(amount.value, currency.value.decimal_digits)} ${currency.value.shortName} (${calculatedBalance.value})`;
 });
 
 const debtData = computed(() => {

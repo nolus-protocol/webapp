@@ -396,48 +396,48 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
 export function action(msg: IObjectKeys, i18n: IObjectKeys) {
   switch (msg.type) {
     case Messages["/cosmos.bank.v1beta1.MsgSend"]: {
-      return i18n.t("message.transfer-action");
+      return i18n.t("message.transfer-history");
     }
     case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
-      return i18n.t("message.transfer-action");
+      return i18n.t("message.transfer-history");
     }
     case Messages["/ibc.core.channel.v1.MsgRecvPacket"]: {
-      return i18n.t("message.transfer-action");
+      return i18n.t("message.transfer-history");
     }
     case Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]: {
       try {
         const data = JSON.parse(Buffer.from(msg.data.msg).toString());
 
         if (data.open_lease) {
-          return i18n.t("message.leases");
+          return i18n.t("message.leases-history");
         }
 
         if (data.repay) {
-          return i18n.t("message.leases");
+          return i18n.t("message.leases-history");
         }
 
         if (data.close) {
-          return i18n.t("message.leases");
+          return i18n.t("message.leases-history");
         }
 
         if (data.claim_rewards) {
-          return i18n.t("message.earn");
+          return i18n.t("message.earn-history");
         }
 
         if (data.deposit) {
-          return i18n.t("message.earn");
+          return i18n.t("message.earn-history");
         }
 
         if (data.burn) {
-          return i18n.t("message.earn");
+          return i18n.t("message.earn-history");
         }
 
         if (data.close_position?.full_close) {
-          return i18n.t("message.leases");
+          return i18n.t("message.leases-history");
         }
 
         if (data.close_position?.partial_close) {
-          return i18n.t("message.leases");
+          return i18n.t("message.leases-history");
         }
       } catch (error) {
         Logger.error(error);
@@ -445,19 +445,19 @@ export function action(msg: IObjectKeys, i18n: IObjectKeys) {
       }
     }
     case Messages["/cosmos.gov.v1beta1.MsgVote"]: {
-      return i18n.t("message.vote");
+      return i18n.t("message.vote-history");
     }
     case Messages["/cosmos.staking.v1beta1.MsgDelegate"]: {
-      return i18n.t("message.stake");
+      return i18n.t("message.stake-history");
     }
     case Messages["/cosmos.staking.v1beta1.MsgUndelegate"]: {
-      return i18n.t("message.stake");
+      return i18n.t("message.stake-history");
     }
     case Messages["/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"]: {
-      return i18n.t("message.stake");
+      return i18n.t("message.stake-history");
     }
     case Messages["/cosmos.staking.v1beta1.MsgBeginRedelegate"]: {
-      return i18n.t("message.stake");
+      return i18n.t("message.stake-history");
     }
     default: {
       return msg.typeUrl;

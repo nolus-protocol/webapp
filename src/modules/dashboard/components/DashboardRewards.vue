@@ -5,6 +5,7 @@
       :icon="{ name: 'list-sparkle' }"
     >
       <Button
+        v-if="!showEmpty"
         :label="$t('message.claim-rewards')"
         severity="secondary"
         size="large"
@@ -15,6 +16,7 @@
     </WidgetHeader>
     <div class="flex flex-col gap-y-2">
       <BigNumber
+        v-if="!showEmpty"
         :label="$t('message.unclaimed-staking')"
         :amount="{
           amount: stableRewards,
@@ -24,10 +26,22 @@
       />
     </div>
     <Asset
+      v-if="!showEmpty"
       v-for="reward of rewards"
       :icon="reward.icon"
       :amount="reward.amount"
       :stable-amount="`${reward.stableAmount}`"
+    />
+
+    <EmptyState
+      v-if="showEmpty"
+      :slider="[
+        {
+          image: { name: 'no-rewards' },
+          title: $t('message.no-rewards'),
+          description: $t('message.no-rewards-description')
+        }
+      ]"
     />
   </Widget>
 </template>
@@ -35,14 +49,20 @@
 <script lang="ts" setup>
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
+import EmptyState from "@/common/components/EmptyState.vue";
+
 import { Button, Widget, Asset } from "web-components";
 import { CURRENCY_VIEW_TYPES, type IObjectKeys } from "@/common/types";
 import { AssetUtils, Logger, NetworkUtils, walletOperation } from "@/common/utils";
 import { Dec } from "@keplr-wallet/unit";
-import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
+import { NATIVE_CURRENCY } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { ref, watch } from "vue";
 import { useOracleStore } from "@/common/stores/oracle";
+
+defineProps<{
+  showEmpty: boolean;
+}>();
 
 const wallet = useWalletStore();
 const oracle = useOracleStore();

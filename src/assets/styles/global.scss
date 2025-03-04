@@ -75,7 +75,7 @@ svg {
 }
 
 .skeleton-box {
-  background-color: #ccc;
+  @apply bg-neutral-bg-300;
   animation: blink 1.2s linear infinite;
 }
 

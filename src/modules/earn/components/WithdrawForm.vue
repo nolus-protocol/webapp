@@ -58,7 +58,6 @@
 import {
   AdvancedFormControl,
   Button,
-  SvgIcon,
   type AdvancedCurrencyFieldOption,
   type AssetItemProps,
   AssetItem,

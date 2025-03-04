@@ -557,6 +557,14 @@
     "stoppings-close-price": "Your position will automatically close if the price of {asset} hits {price}",
     "stoppings-payout": "This position will have an approximate payout of {amount}",
     "collect-title": "This position is being collect",
-    "collect-description": "Please come back later or wait, this usually takes less than 2 minutes."
+    "collect-description": "Please come back later or wait, this usually takes less than 2 minutes.",
+    "leases-history": "leases",
+    "vote-history": "vote",
+    "stake-history": "stake",
+    "earn-history": "earn",
+    "transfer-history": "transfer",
+    "loading-data": "Loading data",
+    "stop-loss-error": "stop-loss-error",
+    "stepper-transfer-position": "Transfer"
   }
 }

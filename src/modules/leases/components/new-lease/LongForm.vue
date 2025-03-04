@@ -100,14 +100,56 @@
       </div>
     </div>
     <hr class="my-4 border-border-color" />
-    <div class="flex justify-end px-4">
+
+    <div class="mt-4 flex flex-col justify-end px-4">
       <Button
+        v-if="showDetails"
+        :label="$t('message.hide-transaction-details')"
+        @click="showDetails = !showDetails"
+        severity="tertiary"
+        icon="minus"
+        iconPosition="left"
+        size="small"
+        class="self-end text-icon-default"
+      />
+
+      <Button
+        v-else
         :label="$t('message.show-transaction-details')"
+        @click="showDetails = !showDetails"
         severity="tertiary"
         icon="plus"
         iconPosition="left"
         size="small"
-        class="text-icon-default"
+        class="self-end text-icon-default"
+      />
+
+      <Stepper
+        v-if="showDetails"
+        :active-step="-1"
+        :steps="[
+          {
+            label: $t('message.open-position'),
+            icon: NATIVE_NETWORK.icon,
+            meta: () => h('div', `${NATIVE_NETWORK.label}`)
+          },
+          {
+            label: $t('message.stepper-transfer-position'),
+            icon: getIconByProtocol()!,
+            token: {
+              balance: AssetUtils.formatNumber(amount, assets[selectedCurrency]?.decimal_digits),
+              symbol: assets[selectedCurrency]?.label
+            },
+            meta: () => h('div', `${NATIVE_NETWORK.label} > ${protocolName}`)
+          },
+          {
+            label: $t('message.swap'),
+            icon: getIconByProtocol()!,
+            tokenComponent: () => h('div', swapAmount),
+            meta: () => h('div', `${protocolName} > ${NATIVE_NETWORK.label}`)
+          }
+        ]"
+        :variant="StepperVariant.MEDIUM"
       />
     </div>
     <hr class="my-4 border-border-color" />
@@ -146,7 +188,9 @@ import {
   AssetItem,
   Tooltip,
   SvgIcon,
-  ToastType
+  ToastType,
+  StepperVariant,
+  Stepper
 } from "web-components";
 import { RouteNames } from "@/router";
 import { tabs } from "../types";
@@ -188,6 +232,7 @@ const oracle = useOracleStore();
 const admin = useAdminStore();
 const i18n = useI18n();
 const router = useRouter();
+const showDetails = ref(false);
 
 const freeInterest = ref<string[]>();
 const ignoreLeaseAssets = ref<string[]>();
@@ -324,6 +369,7 @@ const coinList = computed(() => {
     })
     .map((item) => {
       return {
+        decimal_digits: item.decimal_digits,
         key: item.key,
         ticker: item.ticker,
         label: item.shortName as string,
@@ -368,6 +414,14 @@ const balances = computed(() => {
 
     return lpns.includes(item.key as string) || app.leasesCurrencies.includes(cticker);
   });
+});
+
+const swapAmount = computed(() => {
+  let total = leaseApply.value?.total;
+  const currency = coinList.value[selectedLoanCurrency.value];
+  const a = new Dec(total?.amount ?? 0, currency.decimal_digits);
+
+  return `${AssetUtils.formatNumber(a.toString(), currency.decimal_digits)} ${currency.label}`;
 });
 
 function handleAmountChange(event: string) {
@@ -607,4 +661,36 @@ async function openLease() {
     }
   }
 }
+
+function getIconByProtocol() {
+  try {
+    const selectedDownPaymentCurrency = currency.value;
+    let [_, protocol] = selectedDownPaymentCurrency.key.split("@");
+
+    for (const key in Contracts.protocolsFilter) {
+      if (Contracts.protocolsFilter[key].hold.includes(protocol)) {
+        return Contracts.protocolsFilter[key].image;
+      }
+    }
+  } catch (error) {
+    console.error("Invalid address format:", error);
+    return null;
+  }
+}
+
+const protocolName = computed(() => {
+  try {
+    const selectedDownPaymentCurrency = currency.value;
+    let [_, protocol] = selectedDownPaymentCurrency.key.split("@");
+
+    for (const key in Contracts.protocolsFilter) {
+      if (Contracts.protocolsFilter[key].hold.includes(protocol)) {
+        return Contracts.protocolsFilter[key].name;
+      }
+    }
+  } catch (error) {
+    console.error("Invalid address format:", error);
+    return null;
+  }
+});
 </script>

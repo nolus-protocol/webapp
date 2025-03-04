@@ -10,7 +10,7 @@
         class="lg:flex-[60%]"
       />
       <DashboardRewards
-        v-if="isVisible"
+        :show-empty="!isVisible"
         class="lg:flex-[40%] lg:self-start"
       />
     </div>

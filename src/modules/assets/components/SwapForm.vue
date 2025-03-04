@@ -1,5 +1,5 @@
 <template>
-  <div class="custom-scroll max-h-full overflow-auto md:max-h-[75vh]">
+  <div class="custom-scroll max-h-full flex-1 overflow-auto">
     <MultipleCurrencyComponent
       :currency-options="assets"
       :itemsHeadline="[$t('message.assets'), $t('message.balance')]"
@@ -120,20 +120,19 @@
       />
     </div>
     <hr class="my-4 border-border-color" />
-
-    <div class="flex flex-col gap-2 p-6">
-      <Button
-        size="large"
-        severity="primary"
-        :label="$t('message.swap')"
-        :loading="loading || loadingTx"
-        :disabled="disabled"
-        @click="onNextClick"
-      />
-      <p class="text-center text-12 text-typography-secondary">
-        {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.longOperationsEstimation }}{{ $t("message.sec") }}
-      </p>
-    </div>
+  </div>
+  <div class="flex flex-col gap-2 p-6">
+    <Button
+      size="large"
+      severity="primary"
+      :label="$t('message.swap')"
+      :loading="loading || loadingTx"
+      :disabled="disabled"
+      @click="onNextClick"
+    />
+    <p class="text-center text-12 text-typography-secondary">
+      {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.longOperationsEstimation }}{{ $t("message.sec") }}
+    </p>
   </div>
 </template>
 

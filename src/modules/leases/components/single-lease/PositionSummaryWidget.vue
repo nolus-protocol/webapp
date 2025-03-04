@@ -99,11 +99,10 @@
               :label="$t('message.partial-liquidation')"
               :label-tooltip="{ content: $t('message.partial-liquidation-tooltip') }"
               :amount="{
-                amount: liquidationPercent,
+                amount: liquidation,
                 type: CURRENCY_VIEW_TYPES.CURRENCY,
-                denom: `% (${NATIVE_CURRENCY.symbol}${liquidation})`,
-                isDenomInfront: false,
-                decimals: 2,
+                denom: `${NATIVE_CURRENCY.symbol}`,
+                decimals: NATIVE_CURRENCY.maximumFractionDigits,
                 fontSize: 16,
                 fontSizeSmall: 16
               }"

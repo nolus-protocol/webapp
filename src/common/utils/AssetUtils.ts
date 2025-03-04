@@ -24,10 +24,20 @@ import {
 } from "@/config/global";
 
 export class AssetUtils {
-  public static formatNumber(amount: number | string, decimals: number) {
-    return new Intl.NumberFormat("us-US", { maximumFractionDigits: decimals, minimumFractionDigits: decimals })
-      .format(Number(amount))
-      .toString();
+  public static formatNumber(amount: number | string, decimals: number, symbol?: string) {
+    const a = Number(amount);
+    let sign = "";
+
+    if (a < 0) {
+      sign = "-";
+    }
+
+    return `${sign}${symbol ?? ""}${new Intl.NumberFormat("us-US", {
+      maximumFractionDigits: decimals,
+      minimumFractionDigits: decimals
+    })
+      .format(Math.abs(a))
+      .toString()}`;
   }
 
   public static getBalance(ibcData: string) {

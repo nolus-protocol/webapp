@@ -27,10 +27,24 @@
           height="128"
           viewBox="0 0 256 128"
         >
+          <path
+            :d="arcPath(0, yellowEndAngle)"
+            fill="none"
+            stroke="#DF294D"
+            stroke-width="12"
+          />
+
+          <path
+            :d="arcPath(yellowEndAngle, greenEndAngle)"
+            fill="none"
+            stroke="#FFBF34"
+            stroke-width="12"
+          />
+
           <!-- Green Arc -->
           <path
             v-if="greenEndAngle > 0"
-            :d="arcPath(0, greenEndAngle)"
+            :d="arcPath(greenEndAngle, 180)"
             fill="none"
             stroke="#19A96C"
             stroke-width="12"
@@ -38,22 +52,8 @@
           />
 
           <!-- Yellow Arc -->
-          <path
-            v-if="yellowEndAngle > greenEndAngle"
-            :d="arcPath(greenEndAngle, yellowEndAngle)"
-            fill="none"
-            stroke="#FFBF34"
-            stroke-width="12"
-          />
 
           <!-- Red Arc -->
-          <path
-            v-if="yellowEndAngle < 180"
-            :d="arcPath(yellowEndAngle, 180)"
-            fill="none"
-            stroke="#DF294D"
-            stroke-width="12"
-          />
         </svg>
         <HealthArrow
           class="absolute bottom-0 left-0 right-0 mx-auto origin-bottom transform"
@@ -115,8 +115,8 @@ const props = withDefaults(
     yellowLimit?: number;
   }>(),
   {
-    greenLimit: 65,
-    yellowLimit: 80
+    greenLimit: 57,
+    yellowLimit: 20
   }
 );
 
@@ -139,7 +139,7 @@ const oracle = useOracleStore();
 const greenEndAngle = computed(() => (props.greenLimit / 100) * 180);
 const yellowEndAngle = computed(() => (props.yellowLimit / 100) * 180);
 const rotationStyle = computed(() => {
-  const p = PERCENT - health.value;
+  const p = health.value;
 
   const angle = (p / 100) * 180;
   if (angle >= 90) {

@@ -36,17 +36,18 @@ const props = defineProps<{
   borrowAmount: string;
   borrowAsset: ExternalCurrency;
 }>();
+const zero = 0.00000001;
 
 const responses = ref<{ name: string; value: number; ticker: string; price: string }[]>([
   {
     name: i18n.t("message.borrowed-taxes"),
-    value: Number(`${props.borrowStable.toString(NATIVE_CURRENCY.minimumFractionDigits)}`),
+    value: zero,
     ticker: `${new Dec(props.borrowAmount, props.borrowAsset.decimal_digits).toString(props.borrowAsset.decimal_digits)} ${props.borrowAsset.shortName}`,
     price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(props.borrowStable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
   },
   {
     name: i18n.t("message.downpayment"),
-    value: Number(`${props.downPaymentStable.toString(NATIVE_CURRENCY.minimumFractionDigits)}`),
+    value: zero,
     ticker: `${new Dec(props.downPaymentAmount, props.downPaymentAsset.decimal_digits).toString(props.downPaymentAsset.decimal_digits)} ${props.downPaymentAsset.shortName}`,
     price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(props.downPaymentStable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
   }
@@ -68,16 +69,18 @@ watch(
 );
 
 async function setStats() {
+  const v1 = Number(`${props.borrowStable.toString(NATIVE_CURRENCY.minimumFractionDigits)}`);
+  const v2 = Number(`${props.downPaymentStable.toString(NATIVE_CURRENCY.minimumFractionDigits)}`);
   responses.value = [
     {
       name: i18n.t("message.borrowed-taxes"),
-      value: Number(`${props.borrowStable.toString(NATIVE_CURRENCY.minimumFractionDigits)}`),
+      value: v1 == 0 ? zero : v1,
       ticker: `${new Dec(props.borrowAmount, props.borrowAsset.decimal_digits).toString(props.borrowAsset.decimal_digits)} ${props.borrowAsset.shortName}`,
       price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(props.borrowStable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
     },
     {
       name: i18n.t("message.downpayment"),
-      value: Number(`${props.downPaymentStable.toString(NATIVE_CURRENCY.minimumFractionDigits)}`),
+      value: v2 == 0 ? zero : v2,
       ticker: `${new Dec(props.downPaymentAmount, props.downPaymentAsset.decimal_digits).toString(props.downPaymentAsset.decimal_digits)} ${props.downPaymentAsset.shortName}`,
       price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(props.downPaymentStable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
     }

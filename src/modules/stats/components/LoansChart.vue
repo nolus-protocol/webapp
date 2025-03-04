@@ -3,7 +3,6 @@
     ref="chart"
     :updateChart="updateChart"
     :fns="[setStats]"
-    :disableSkeleton="true"
     :getClosestDataPoint="getClosestDataPoint"
   />
 </template>
@@ -14,6 +13,7 @@ import { barX, gridX, plot, ruleX } from "@observablehq/plot";
 import { AssetUtils, EtlApi } from "@/common/utils";
 import { select, pointer, type Selection } from "d3";
 import { ref } from "vue";
+import { NATIVE_CURRENCY } from "@/config/global";
 const chartHeight = 500;
 const marginTop = 20;
 const marginBottom = 30;
@@ -21,7 +21,7 @@ const marginLeft = 100;
 const width = 960;
 
 const chart = ref<typeof Chart>();
-let loans: { percentage: number; ticker: string }[] = [];
+let loans: { percentage: number; ticker: string; loan: string }[] = [];
 
 async function setStats() {
   const data = await fetch(`${EtlApi.getApiUrl()}/leased-assets`);
@@ -40,7 +40,8 @@ async function setStats() {
       const loan = (Number(item.loan) / total) * 100;
       return {
         ticker: `${currency?.shortName ?? key}${protocol ? ` ${protocol}` : ""}`,
-        percentage: loan
+        percentage: loan,
+        loan: item.loan
       };
     })
     .sort((a, b) => b.percentage - a.percentage);
@@ -92,7 +93,9 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
       const nearestData = getClosestDataPoint(y);
       if (nearestData) {
-        tooltip.html(`<strong>${nearestData.ticker}:</strong> ${nearestData.percentage.toFixed(2)}%`);
+        tooltip.html(
+          `<strong>${nearestData.ticker}:</strong> $${AssetUtils.formatNumber(nearestData.loan, NATIVE_CURRENCY.maximumFractionDigits)}`
+        );
 
         const node = tooltip.node()!.getBoundingClientRect();
         const height = node.height;
