@@ -170,7 +170,7 @@
     "open-position-action": "Open {position} position on {ticker} with {amount}",
     "repay-position-action": "Repay {amount} for lease position {contract}",
     "close-position-action": "Collect tokens from lease position {contract}",
-    "claim-position-action": " Claim {amount} rewards from {address}",
+    "claim-position-action": "Claim staking rewards from {validator}",
     "vote-position-action": "Vote {vote} on proposal #{propose}",
     "redelegate-action": "Redelegate {amount} to {address}",
     "yes": "Yes",
