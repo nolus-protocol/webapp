@@ -137,7 +137,7 @@
     "interest": "Interest",
     "interest-tooltip": "The percentage interest rate by which the debt will increase each month",
     "liquidation-price-tooltip": "The collateral price which will trigger partial liquidation",
-    "margin": "Position Size",
+    "margin": "Borrow",
     "terms": "Terms of Service",
     "lease-min-error": "Amount must be between {minAmount} {symbol} and {maxAmount} {symbol}",
     "lease-max-error": "Amount must be between {minAmount} {symbol} and {maxAmount} {symbol}",
