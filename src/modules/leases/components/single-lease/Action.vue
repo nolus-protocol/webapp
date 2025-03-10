@@ -17,6 +17,12 @@
     <template #content>
       <button
         class="button-secondary w-full border-none px-3 py-3 text-left"
+        @click="onShowDetails"
+      >
+        {{ $t("message.details") }}
+      </button>
+      <button
+        class="button-secondary w-full border-none px-3 py-3 text-left"
         @click="sharePnl"
       >
         {{ $t("message.share-position") }}
@@ -67,6 +73,11 @@ function repay() {
 
 function history() {
   router.push(`/${RouteNames.LEASES}/${props.lease.protocol.toLocaleLowerCase()}/${props.lease.leaseAddress}#history`);
+  close();
+}
+
+function onShowDetails() {
+  router.push(`/${RouteNames.LEASES}/${props.lease.protocol.toLocaleLowerCase()}/${props.lease.leaseAddress}`);
   close();
 }
 

@@ -88,6 +88,8 @@
       />
     </div>
 
+    <hr class="my-4 border-border-color" />
+
     <div class="mt-4 flex flex-col justify-end px-4">
       <Button
         v-if="showDetails"

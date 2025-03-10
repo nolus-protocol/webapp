@@ -74,7 +74,7 @@
               image: { name: 'new-lease' },
               title: $t('message.start-lease'),
               description: $t('message.start-lease-description'),
-              link: { label: $t('message.learn-new-leases'), url: '#' }
+              link: { label: $t('message.learn-new-leases'), url: `/learn-leases` }
             }
           ]"
         />

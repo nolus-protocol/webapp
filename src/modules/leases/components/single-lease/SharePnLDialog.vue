@@ -76,9 +76,12 @@ const imageIndex = ref(0);
 const images = [shareImageOne, shareImageTwo, shareImageThree, shareImageFour];
 
 const colors = {
-  red: "#E42929",
+  red: "#ab1f3b",
+  redBackground: "#fceaee",
+  redBorder: "#df294d",
   green: "#1AB171",
-  white: "white"
+  white: "white",
+  gray: "#c1cad7"
 };
 
 let leaseData: LeaseData | null;
@@ -170,6 +173,19 @@ const generateCanvas = async () => {
     setTimeStamp(context);
     setAsset(context);
     setPricePerSymbol(context);
+
+    setLines(context, {
+      x: 100,
+      y: 450,
+      width: 450,
+      height: 3
+    });
+    setLines(context, {
+      x: 100,
+      y: 582,
+      width: 450,
+      height: 3
+    });
   } catch (e) {
     Logger.error(e);
   }
@@ -218,6 +234,25 @@ const generateCanvas = async () => {
       options.width - options.radius,
       options.height - options.radius
     );
+
+    ctx.stroke();
+    ctx.fill();
+  }
+
+  function setLines(
+    ctx: CanvasRenderingContext2D,
+    options: {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }
+  ) {
+    ctx.fillStyle = colors.white;
+
+    ctx.lineJoin = "round";
+    ctx.fillStyle = colors.gray;
+    ctx.fillRect(options.x, options.y, options.width, options.height);
 
     ctx.stroke();
     ctx.fill();

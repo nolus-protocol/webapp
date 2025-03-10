@@ -27,19 +27,38 @@
   </AdvancedFormControl>
 
   <hr class="border-border-color" />
-  <!-- <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
+  <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
     <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
-    <div class="flex items-center gap-2 text-14">
-      <SvgIcon
-        name="list-sparkle"
-        class="fill-icon-secondary"
-      />
-      {{ $t("message.preview-input") }}
-    </div>
+    <template v-if="isEmpty">
+      <div class="flex items-center gap-2 text-14">
+        <SvgIcon
+          name="list-sparkle"
+          class="fill-icon-secondary"
+        />
+        {{ $t("message.preview-input") }}
+      </div>
+    </template>
+    <template v-else>
+      <div class="flex items-center gap-2 text-14">
+        <SvgIcon
+          name="check-solid"
+          class="fill-icon-success"
+        />
+        <p
+          class="flex-1"
+          :innerHTML="
+            $t('message.withdraw-rewards-preview', {
+              amount: `${input} ${assets[selectedCurrency].label}`,
+              amountStable: stable
+            })
+          "
+        ></p>
+      </div>
+    </template>
   </div>
-  <hr class="border-border-color" /> -->
+  <hr class="border-border-color" />
 
-  <div class="flex flex-col gap-2 p-6">
+  <div class="flex flex-1 flex-col justify-end gap-2 p-6">
     <Button
       size="large"
       severity="primary"
@@ -61,7 +80,8 @@ import {
   type AdvancedCurrencyFieldOption,
   type AssetItemProps,
   AssetItem,
-  ToastType
+  ToastType,
+  SvgIcon
 } from "web-components";
 import { computed, inject, ref, watch } from "vue";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
@@ -70,7 +90,7 @@ import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { AssetUtils, getMicroAmount, Logger, validateAmountV2, WalletManager, walletOperation } from "@/common/utils";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
-import { NolusClient, type NolusWallet } from "@nolus/nolusjs";
+import { CurrencyUtils, NolusClient, type NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { useAdminStore } from "@/common/stores/admin";
 import { h } from "vue";
@@ -147,6 +167,13 @@ const stable = computed(() => {
   return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
 });
 
+const isEmpty = computed(() => {
+  if (input.value.length == 0 || Number(input.value) == 0) {
+    return true;
+  }
+  return false;
+});
+
 watch(
   () => walletStore.wallet,
   async () => {
@@ -156,6 +183,7 @@ watch(
     immediate: true
   }
 );
+
 async function fetchDepositBalance() {
   try {
     const lpns = application.lpn;
@@ -194,6 +222,8 @@ function onInput(data: string) {
 async function onNextClick() {
   if (validateInputs().length == 0) {
     try {
+      await onValidateAmount();
+
       disabled.value = true;
       await walletOperation(transferAmount);
     } catch (e) {
@@ -201,6 +231,22 @@ async function onNextClick() {
     } finally {
       disabled.value = false;
     }
+  }
+}
+
+async function onValidateAmount() {
+  const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+  const currency = application.currenciesData![assets.value[selectedCurrency.value].value];
+  const [_currency, protocol] = currency.key.split("@");
+  const lppClient = new Lpp(cosmWasmClient, admin.contracts![protocol].lpp);
+  const data = await lppClient.getLppBalance();
+  const amount = CurrencyUtils.convertDenomToMinimalDenom(input.value, currency.ibcData, currency.decimal_digits);
+  const balance = new Int(data.balance.amount);
+  if (amount.amount.gt(balance)) {
+    const total = new Dec(data.balance.amount, currency.decimal_digits);
+    error.value = i18n.t("message.withdraw-lpp-balance-error", {
+      balance: `${total.toString(currency.decimal_digits)} ${currency.shortName}`
+    });
   }
 }
 

@@ -12,7 +12,7 @@
         :options="networks"
         :size="Size.medium"
         searchable
-        :selected="selectedNetwork"
+        :selected="network"
         :disabled="isDisabled"
       />
     </div>
@@ -82,8 +82,8 @@
       <Input
         id="receipt-send-2"
         type="text"
-        :inputClass="selectedNetwork.native ? '' : 'border-none p-0'"
-        :disabled="!selectedNetwork.native"
+        :inputClass="network.native ? '' : 'border-none p-0'"
+        :disabled="!network.native"
         :value="walletRef"
         @input="
           (e) => {
@@ -125,13 +125,13 @@
             label: $t('message.send-stepper'),
             icon: NATIVE_NETWORK.icon,
             token: { balance: AssetUtils.formatNumber(amount, currency?.decimal_digits), symbol: currency?.shortName },
-            meta: () => h('div', `${NATIVE_NETWORK.label} > ${selectedNetwork.label}`)
+            meta: () => h('div', `${NATIVE_NETWORK.label} > ${network.label}`)
           },
           {
             label: $t('message.receive-stepper'),
-            icon: selectedNetwork.icon,
+            icon: network.icon,
             token: { balance: AssetUtils.formatNumber(amount, currency?.decimal_digits), symbol: currency?.shortName },
-            meta: () => h('div', `${selectedNetwork.label}`)
+            meta: () => h('div', `${network.label}`)
           }
         ]"
         :variant="StepperVariant.MEDIUM"
@@ -141,7 +141,7 @@
   </div>
   <div class="flex flex-col gap-2 p-6">
     <button
-      v-if="selectedNetwork.chain_type == 'evm'"
+      v-if="network.chain_type == 'evm'"
       :class="{ 'js-loading': isMetamaskLoading }"
       class="bmt-2 flex items-center !text-12 font-semibold text-neutral-typography-200"
       type="button"
@@ -189,7 +189,7 @@ import {
 import { MetaMaskWallet } from "@/networks/metamask";
 import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
-import { MAX_DECIMALS } from "../../../config/global";
+import { IGNORED_NETWORKS, MAX_DECIMALS } from "../../../config/global";
 
 import { BaseWallet, Wallet } from "@/networks";
 import {
@@ -300,7 +300,7 @@ const walletStore = useWalletStore();
 const networks = ref<(Network | EvmNetwork | any)[]>([SUPPORTED_NETWORKS_DATA[NATIVE_NETWORK.key]]);
 const oracle = useOracleStore();
 
-const selectedNetwork = ref(networks.value[0]);
+const selectedNetwork = ref(0);
 const networkCurrencies = ref<ExternalCurrency[] | AssetBalance[]>(walletStore.currencies);
 const selectedCurrency = ref(0);
 const amount = ref("");
@@ -321,15 +321,19 @@ const wallet = ref(walletStore.wallet?.address);
 const isMetamaskLoading = ref(false);
 const onClose = inject("close", () => {});
 
+const network = computed(() => {
+  return networks.value[selectedNetwork.value];
+});
+
 const networkCurrenciesRef = computed(() => {
-  if (selectedNetwork.value.native) {
+  if (network.value.native) {
     return walletStore.currencies;
   }
   return networkCurrencies.value;
 });
 
 const walletRef = computed(() => {
-  if (selectedNetwork.value.native) {
+  if (network.value.native) {
     return "";
   }
   return wallet.value;
@@ -346,7 +350,7 @@ onMounted(async () => {
       return false;
     }) as (Network | EvmNetwork)[];
 
-    networks.value = [...networks.value, ...n];
+    networks.value = [...networks.value, ...n].filter((item) => !IGNORED_NETWORKS.includes(item.key));
     setParams();
   } catch (error) {
     Logger.error(error);
@@ -448,7 +452,7 @@ watch(
 );
 
 async function onUpdateNetwork(event: Network) {
-  selectedNetwork.value = event;
+  selectedNetwork.value = networks.value.findIndex((item) => item == event);
   if (!event.native) {
     switch (event.chain_type) {
       case "cosmos": {
@@ -528,10 +532,10 @@ async function setCosmosNetwork() {
   destroyClient();
 
   disablePicker.value = true;
-  const network = NETWORK_DATA;
+  const ntwrk = NETWORK_DATA;
 
   const currencies = [];
-  const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[selectedNetwork.value.key].currencies;
+  const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[network.value.key].currencies;
   for (const c of data ?? []) {
     const currency = AssetUtils.getCurrencyByDenom(c.from);
     const balance = walletStore.balances.find((item) => item.balance.denom == c.from);
@@ -553,8 +557,8 @@ async function setCosmosNetwork() {
     };
   });
 
-  const networkData = network?.supportedNetworks[selectedNetwork.value.key];
-  client = await WalletUtils.getWallet(selectedNetwork.value.key);
+  const networkData = ntwrk?.supportedNetworks[network.value.key];
+  client = await WalletUtils.getWallet(network.value.key);
   const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
   wallet.value = baseWallet?.address as string;
 
@@ -572,7 +576,7 @@ async function setEvmNetwork() {
 
   const currencies = [];
   // const promises = [];
-  const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[selectedNetwork.value.key].currencies;
+  const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[network.value.key].currencies;
 
   for (const c of data ?? []) {
     const currency = AssetUtils.getCurrencyByDenom(c.from);
@@ -648,11 +652,11 @@ function validateAmount() {
 }
 
 async function onSendClick() {
-  if (selectedNetwork.value.native) {
+  if (network.value.native) {
     return onSubmitNative();
   }
 
-  switch (selectedNetwork.value.chain_type) {
+  switch (network.value.chain_type) {
     case "cosmos": {
       onSubmitCosmos();
       break;
@@ -674,7 +678,7 @@ function onSubmitNative() {
 
 async function onSwap() {
   try {
-    if (selectedNetwork.value.native) {
+    if (network.value.native) {
       await onSwapNative();
     } else {
       await onSwapCosmos();
@@ -898,7 +902,7 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
           break;
         }
         case "evm": {
-          const net = selectedNetwork.value as EvmNetwork;
+          const net = network.value as EvmNetwork;
           const client = new MetaMaskWallet(net.explorer);
           const endpoint = await AppUtils.fetchEvmEndpoints(net.key);
           const chainId = await client.getChainId(endpoint.rpc);
@@ -931,7 +935,7 @@ async function getRoute() {
 
   const transferAmount = Decimal.fromUserInput(amount.value, asset!.decimal_digits as number);
 
-  switch (selectedNetwork.value.chain_type) {
+  switch (network.value.chain_type) {
     case "evm": {
       chaindId = Number(chaindId).toString();
       break;
@@ -955,7 +959,7 @@ async function connectEvm() {
     destroyClient();
     isMetamaskLoading.value = true;
 
-    const net = selectedNetwork.value as EvmNetwork;
+    const net = network.value as EvmNetwork;
     client = new MetaMaskWallet(net.explorer);
 
     const endpoint = await AppUtils.fetchEvmEndpoints(net.key);

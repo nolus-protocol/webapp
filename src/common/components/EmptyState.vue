@@ -23,18 +23,20 @@
           />
           <span class="text-20 font-semibold text-typography-default">{{ slide.title }}</span>
           <span class="text-14 font-normal text-typography-default">{{ slide.description }}</span>
-          <a
+          <button
             v-if="slide.link"
+            @click="router.push(slide.link?.url)"
             :href="slide.link.url"
             target="_blank"
             class="flex w-fit text-14 font-normal text-typography-link"
-            >{{ slide.link.label }}
+          >
+            {{ slide.link.label }}
             <SvgIcon
               name="help"
               class="rouded-full ml-1 fill-icon-link"
               size="s"
             />
-          </a>
+          </button>
         </div>
       </template>
     </div>
@@ -80,6 +82,7 @@ import government from "@/assets/icons/empty-state/government.png?url";
 import networkRewards from "@/assets/icons/empty-state/network-rewards.png?url";
 import unlockDiscounts from "@/assets/icons/empty-state/unlock-discounts.png?url";
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 
 const emptyState = {
   "delegate-nls": delegateNls,
@@ -100,6 +103,7 @@ const emptyState = {
 };
 
 const currentIndex = ref(0);
+const router = useRouter();
 
 const props = defineProps<{
   slider: {

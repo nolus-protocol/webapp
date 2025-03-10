@@ -90,7 +90,7 @@
         />
       </div> -->
       <hr class="border-border-color" />
-      <div class="flex flex-col gap-2 p-6">
+      <div class="flex flex-1 flex-col justify-end gap-2 p-6">
         <Button
           size="large"
           severity="primary"

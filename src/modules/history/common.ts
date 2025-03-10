@@ -139,6 +139,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         const d = `${msg.data.packet.destinationPort}/${msg.data.packet.destinationChannel}/${data.denom}`;
         const denom = currency_mapper[d] ?? AssetUtils.getIbc(d);
         const coin = parseCoins(`${data.amount}${denom}`)[0];
+        delete msg.fee_denom;
 
         const receiver = getIcon(getChainName(data.receiver)!);
         const sender = getIcon(getChainName(data.sender)!);
@@ -204,9 +205,6 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
             },
             {
               icon: getIconByContract(msg.data.contract)
-            },
-            {
-              icon: NATIVE_NETWORK.icon
             }
           ];
 

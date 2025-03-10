@@ -31,7 +31,7 @@
         <Toggle
           :id="`theme-toggle-${index}`"
           class="mr-3"
-          @click="() => $refs.strategyDialogRef[index]?.show()"
+          @click="show(index)"
         />
         <div class="flex flex-1 flex-col gap-1">
           <div class="text-14 font-semibold text-typography-default">{{ strategy.heading }}</div>
@@ -76,6 +76,10 @@ const strategies = [
   },
   { heading: "Earn +3% APY", content: "Automate lease interest repayments", icon: WatcherIcon }
 ];
+
+function show(index: number) {
+  strategyDialogRef.value?.[index]?.show();
+}
 
 const leaseStatus = computed(() => {
   return getStatus(props.lease as LeaseData);

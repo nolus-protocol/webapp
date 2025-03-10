@@ -107,7 +107,18 @@
         </div>
       </Transition>
       <Button
-        :label="showDetails ? $t('message.hide-drilldown-details') : $t('message.drilldown-details')"
+        v-if="showDetails"
+        :label="$t('message.hide-drilldown-details')"
+        severity="secondary"
+        icon="minus"
+        iconPosition="left"
+        size="small"
+        class="w-fit self-end text-icon-default"
+        @click="() => (showDetails = !showDetails)"
+      />
+      <Button
+        v-else
+        :label="$t('message.drilldown-details')"
         severity="secondary"
         icon="plus"
         iconPosition="left"

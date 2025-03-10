@@ -104,9 +104,10 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         y: "value",
         fill: "#C1CAD7",
         rx: 6,
-        insetBottom: -3
+        insetBottom: 0,
+        clip: "frame"
       }),
-      barY([responses.value[0]], { x: "name", y: "value", fill: "#19A96C", rx: 6, insetBottom: -3, clip: "frame" }),
+      barY([responses.value[0]], { x: "name", y: "value", fill: "#19A96C", rx: 6, insetBottom: 0, clip: "frame" }),
       text(responses.value, {
         x: "name",
         y: "value",

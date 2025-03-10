@@ -42,7 +42,7 @@ export async function connectLeap(this: Store) {
       await nolusWalletOfflineSigner.useAccount();
 
       WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.LEAP);
-      WalletManager.setPubKey(Buffer.from(nolusWalletOfflineSigner?.pubKey ?? "").toString("hex"));
+      WalletManager.setPubKey(Buffer.from((nolusWalletOfflineSigner?.pubKey ?? "") as string).toString("hex"));
 
       this.wallet = nolusWalletOfflineSigner;
       this.walletName = (await leapWindow.leap.getKey(chainId)).name;

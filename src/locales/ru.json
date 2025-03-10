@@ -571,6 +571,9 @@
     "transfer-history": "transfer",
     "loading-data": "Loading data",
     "stop-loss-error": "stop-loss-error",
-    "stepper-transfer-position": "Transfer"
+    "stepper-transfer-position": "Transfer",
+    "delegate-preview": "You will delegate <strong>{amount} ({amountStable})</strong> to validators beyond the top three in terms of voting power and impose a commission of 5% or lower",
+    "undelegate-preview": "You will withdraw <strong>{amount} ({amountStable})</strong> which will be unbonded by <strong>{date}</strong>",
+    "withdraw-rewards-preview": "You will withdraw <strong>{amount} ({amountStable})</strong>"
   }
 }

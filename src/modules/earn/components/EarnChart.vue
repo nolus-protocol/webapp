@@ -14,18 +14,17 @@ import { lineY, plot } from "@observablehq/plot";
 import { useI18n } from "vue-i18n";
 import { pointer, select, type Selection } from "d3";
 import { AssetUtils } from "@/common/utils";
-import { MONTHS, NATIVE_CURRENCY, PERCENT } from "@/config/global";
+import { NATIVE_CURRENCY, PERCENT } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { computed, ref, watch } from "vue";
 import { Dec } from "@keplr-wallet/unit";
 import { useApplicationStore } from "@/common/stores/application";
-import { CurrencyMappingEarn } from "@/config/currencies";
 
 type ChartData = { amount: number; date: number };
 
 let data: ChartData[] = [];
 
-const period = [{ months: 0 }, { months: 12 }, { months: 24 }, { months: 48 }];
+const period = 48;
 const days = 30;
 
 const chartHeight = 300;
@@ -142,24 +141,29 @@ function getClosestDataPoint(cPosition: number) {
 
 async function loadData() {
   let apr = new Dec(getApr(props.currencyKey) ?? 0);
+  data = [];
   if (apr.isZero()) {
     data = [];
   } else {
     apr = apr.quo(new Dec(365));
-    data = period.map((item) => {
-      const p = item.months * days;
-      const a = props.amount.add(apr.quo(new Dec(PERCENT)).mul(props.amount).mul(new Dec(p))).toString(2);
-      return {
-        amount: Number(a),
-        date: item.months
-      };
-    });
+    let amount = props.amount;
+
+    for (let i = 0; i <= period; i++) {
+      const p = i * days;
+      const a = amount.add(apr.quo(new Dec(PERCENT)).mul(amount).mul(new Dec(p)));
+      amount = amount.add(a.sub(amount));
+
+      data.push({
+        amount: Number(a.toString(2)),
+        date: i
+      });
+    }
   }
   chart.value?.update();
 }
 
 function getApr(key: string) {
   let [_, protocol] = key.split("@");
-  return AssetUtils.formatNumber(app.apr?.[protocol] ?? 0, 2);
+  return (app.apr?.[protocol] ?? 0) / PERCENT;
 }
 </script>

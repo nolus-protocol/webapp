@@ -14,7 +14,7 @@
           description: $t('message.position-summary-lease-description'),
           link: {
             label: $t('message.learn-more-leases'),
-            url: '#',
+            url: `/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/learn-summary`,
             tooltip: { content: $t('message.learn-more-leases-tooltip') }
           }
         }
@@ -263,7 +263,7 @@ import { AssetUtils } from "@/common/utils/AssetUtils";
 import { CurrencyDemapping } from "@/config/currencies";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { datePraser, Logger, walletOperation } from "@/common/utils";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { SingleLeaseDialog } from "@/modules/leases/enums";
 import { getStatus, TEMPLATES } from "../common";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -281,6 +281,7 @@ const walletStore = useWalletStore();
 const loadingStopLoss = ref(false);
 const loadingTakeProfit = ref(false);
 const i18n = useI18n();
+const route = useRoute();
 const reload = inject("reload", () => {});
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 

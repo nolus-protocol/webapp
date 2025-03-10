@@ -145,10 +145,6 @@ const steps = computed(() => {
     {
       label: "",
       icon: protocol
-    },
-    {
-      label: "",
-      icon: NATIVE_NETWORK.icon
     }
   ];
 });

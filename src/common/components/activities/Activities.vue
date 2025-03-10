@@ -20,7 +20,7 @@
     <template #content>
       <template v-if="wallet.activities.data.length > 0">
         <div class="flex h-full flex-col">
-          <div class="custom-scroll max-h-auto h-full overflow-y-auto md:max-h-[250px]">
+          <div class="custom-scroll max-h-auto h-full overflow-y-auto md:max-h-[512px]">
             <ActivitiesItem
               v-for="transaction in wallet.activities.data"
               :coinMinimalDenom="transaction.historyData?.coin?.currency?.coinMinimalDenom"

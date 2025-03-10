@@ -29,6 +29,13 @@ export const LeasesRouter: RouteRecordRaw = {
             key: RouteNames.LEASES
           },
           component: () => import("./components/single-lease/RepayDialog.vue")
+        },
+        {
+          path: `learn-leases`,
+          component: () => import("@/common/components/EmptyRoute.vue"),
+          meta: {
+            key: `${RouteNames.LEASES}`
+          }
         }
       ]
     },
@@ -106,6 +113,27 @@ export const LeasesRouter: RouteRecordRaw = {
             key: `${RouteNames.LEASES}-single`
           },
           component: () => import("./components/single-lease/TakeProfitDialog.vue")
+        },
+        {
+          path: `learn-health`,
+          component: () => import("./components/single-lease/EmptyRoute.vue"),
+          meta: {
+            key: `${RouteNames.LEASES}-single`
+          }
+        },
+        {
+          path: `learn-summary`,
+          component: () => import("@/common/components/EmptyRoute.vue"),
+          meta: {
+            key: `${RouteNames.LEASES}-single`
+          }
+        },
+        {
+          path: `learn-health`,
+          component: () => import("@/common/components/EmptyRoute.vue"),
+          meta: {
+            key: `${RouteNames.LEASES}-single`
+          }
         }
       ]
     }

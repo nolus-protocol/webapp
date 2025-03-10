@@ -5,7 +5,7 @@
       :icon="{ name: 'list-sparkle' }"
     >
       <Button
-        v-if="!showEmpty"
+        v-if="!isEmpty"
         :label="$t('message.claim-rewards')"
         severity="secondary"
         size="large"
@@ -16,7 +16,7 @@
     </WidgetHeader>
     <div class="flex flex-col gap-y-2">
       <BigNumber
-        v-if="!showEmpty"
+        v-if="!isEmpty"
         :label="$t('message.unclaimed-staking')"
         :amount="{
           amount: stableRewards,
@@ -26,7 +26,7 @@
       />
     </div>
     <Asset
-      v-if="!showEmpty"
+      v-if="!isEmpty"
       v-for="reward of rewards"
       :icon="reward.icon"
       :amount="reward.amount"
@@ -34,7 +34,7 @@
     />
 
     <EmptyState
-      v-if="showEmpty"
+      v-if="isEmpty"
       :slider="[
         {
           image: { name: 'no-rewards' },
@@ -57,15 +57,16 @@ import { AssetUtils, Logger, NetworkUtils, walletOperation } from "@/common/util
 import { Dec } from "@keplr-wallet/unit";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useOracleStore } from "@/common/stores/oracle";
 
-defineProps<{
+const props = defineProps<{
   showEmpty: boolean;
 }>();
 
 const wallet = useWalletStore();
 const oracle = useOracleStore();
+const emptyState = ref(false);
 
 const loadingStaking = ref(false);
 const disabled = ref(false);
@@ -77,6 +78,10 @@ const rewards = ref<
   }[]
 >();
 const stableRewards = ref("0.00");
+
+const isEmpty = computed(() => {
+  return props.showEmpty || emptyState.value;
+});
 
 watch(
   () => [wallet.wallet, oracle.prices],
@@ -93,6 +98,9 @@ watch(
 );
 
 async function setRewards() {
+  if (!wallet.wallet) {
+    return false;
+  }
   const delegator = await NetworkUtils.loadDelegator();
   const data: {
     amount: string;
@@ -114,6 +122,12 @@ async function setRewards() {
 
     stable = stable.add(s);
   });
+
+  if (delegator.rewards.length == 0) {
+    emptyState.value = true;
+  } else {
+    emptyState.value = false;
+  }
 
   rewards.value = data;
   stableRewards.value = stable.toString(NATIVE_CURRENCY.maximumFractionDigits);

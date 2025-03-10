@@ -68,16 +68,22 @@
             {{ $t(`message.${healTitle}-status`) }}
           </span>
         </div>
-        <a
-          href="#"
+        <button
+          @click="
+            () => {
+              router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/learn-health`);
+            }
+          "
           target="_blank"
           class="flex w-fit items-center gap-1 text-14 font-normal text-typography-link"
-          >{{ $t("message.learn-health") }}
+        >
+          {{ $t("message.learn-health") }}
           <Tooltip :content="$t('message.position-health-tooltip')"
             ><SvgIcon
               name="help"
-              class="fill-icon-link" /></Tooltip
-        ></a>
+              class="fill-icon-link"
+          /></Tooltip>
+        </button>
       </div>
     </template>
   </Widget>
@@ -96,11 +102,15 @@ import { useOracleStore } from "@/common/stores/oracle";
 import type { LeaseData } from "@/common/types";
 import { getStatus, TEMPLATES } from "../common";
 import EmptyState from "@/common/components/EmptyState.vue";
-import { LTV, PERCENT } from "@/config/global";
+import { LTV, PERCENT, PositionTypes, ProtocolsConfig } from "@/config/global";
+import { useRoute, useRouter } from "vue-router";
+import { RouteNames } from "@/router";
 
 const radius = 112;
 const centerX = 128;
 const centerY = 128;
+const route = useRoute();
+const router = useRouter();
 
 enum status {
   green = "green",
@@ -179,7 +189,18 @@ const health = computed(() => {
       .add(new Dec(due_interest.amount, externalCurrencies[3].decimal_digits))
       .add(new Dec(principal_due.amount, externalCurrencies[4].decimal_digits));
 
-    const margin_total = margin.mul(new Dec(marginPrice.amount));
+    let fn = () => {
+      switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
+        case PositionTypes.long: {
+          return margin.mul(new Dec(marginPrice.amount));
+        }
+        case PositionTypes.short: {
+          return margin.quo(new Dec(marginPrice.amount));
+        }
+      }
+    };
+
+    const margin_total = fn()!;
     const health = new Dec(1).sub(margin_total.quo(priceAmount).quo(new Dec(LTV)));
 
     return Number(health.mul(new Dec(PERCENT)).toString(2)); // 100% is the max value

@@ -21,8 +21,8 @@
     </div>
     <p class="font- flex items-center justify-center gap-1 text-14 font-semibold text-typography-secondary">
       {{ $t("message.new-with-wallets") }}
-      <a
-        href="#"
+      <button
+        @click="router.push('learn-wallet')"
         target="_blank"
         class="flex items-center gap-1 text-typography-link"
       >
@@ -32,7 +32,7 @@
           size="xs"
           class="fill-icon-link"
         />
-      </a>
+      </button>
     </p>
   </div>
 </template>
@@ -49,9 +49,11 @@ import KeplrIcon from "@/assets/icons/wallets/keplr.svg?url";
 import LedgerIcon from "@/assets/icons/wallets/ledger.svg?url";
 import LeapIcon from "@/assets/icons/wallets/leapwallet.svg?url";
 import MetamaskIcon from "@/assets/icons/wallets/metamask.svg?url";
+import { useRouter } from "vue-router";
 
 const i18n = useI18n();
 const terms = ref<typeof TermsDialog>();
+const router = useRouter();
 
 const connections = {
   Keplr: {

@@ -59,3 +59,5 @@ export const SUPPORTED_NETWORKS = [
   "NOBLE",
   "MANTRA"
 ];
+
+export const IGNORED_NETWORKS = ["NOLUS"];

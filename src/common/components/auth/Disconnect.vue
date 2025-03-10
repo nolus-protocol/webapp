@@ -3,6 +3,7 @@
     ref="dialog"
     show-close
     :title="$t('message.disconnect-title')"
+    class-list="md:h-auto"
   >
     <template v-slot:content>
       <div class="px-6 pb-6">

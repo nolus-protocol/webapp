@@ -21,23 +21,54 @@
     </template>
   </AdvancedFormControl>
   <hr class="border-border-color" />
-  <div class="flex flex-col gap-2 p-6">
-    <Button
-      size="large"
-      severity="primary"
-      :label="$t('message.delegate')"
-      @click="onNextClick"
-      :loading="loading"
-      :disabled="disabled"
-    />
-    <p class="text-center text-12 text-typography-secondary">
-      {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.longOperationsEstimation }}{{ $t("message.sec") }}
-    </p>
+  <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
+    <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
+    <template v-if="isEmpty">
+      <div class="flex items-center gap-2 text-14">
+        <SvgIcon
+          name="list-sparkle"
+          class="fill-icon-secondary"
+        />
+        {{ $t("message.preview-input") }}
+      </div>
+    </template>
+    <template v-else>
+      <div class="flex items-center gap-2 text-14">
+        <SvgIcon
+          name="check-solid"
+          class="fill-icon-success"
+        />
+        <p
+          class="flex-1"
+          :innerHTML="
+            $t('message.delegate-preview', { amount: `${input} ${NATIVE_ASSET.label}`, amountStable: stable })
+          "
+        ></p>
+      </div>
+    </template>
+  </div>
+  <hr class="border-border-color" />
+
+  <div class="flex flex-1 flex-col justify-end">
+    <hr class="border-border-color" />
+    <div class="flex flex-col gap-2 p-6">
+      <Button
+        size="large"
+        severity="primary"
+        :label="$t('message.delegate')"
+        @click="onNextClick"
+        :loading="loading"
+        :disabled="disabled"
+      />
+      <p class="text-center text-12 text-typography-secondary">
+        {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.longOperationsEstimation }}{{ $t("message.sec") }}
+      </p>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { AdvancedFormControl, Button, ToastType } from "web-components";
+import { AdvancedFormControl, Button, ToastType, SvgIcon } from "web-components";
 import { computed, inject, ref } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY, NATIVE_NETWORK, STAKING } from "../../../config/global/network";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -81,6 +112,13 @@ const stable = computed(() => {
   const v = input?.value?.length ? input?.value : "0";
   const stable = price.mul(new Dec(v));
   return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+});
+
+const isEmpty = computed(() => {
+  if (input.value.length == 0 || Number(input.value) == 0) {
+    return true;
+  }
+  return false;
 });
 
 function onInput(data: string) {

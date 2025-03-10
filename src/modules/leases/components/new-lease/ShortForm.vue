@@ -136,7 +136,7 @@
             label: $t('message.stepper-transfer-position'),
             icon: getIconByProtocol()!,
             token: {
-              balance: AssetUtils.formatNumber(amount, assets[selectedCurrency]?.decimal_digits),
+              balance: AssetUtils.formatNumber(stepperTransfer.toString(), assets[selectedCurrency]?.decimal_digits),
               symbol: assets[selectedCurrency]?.label
             },
             meta: () => h('div', `${NATIVE_NETWORK.label} > ${protocolName}`)
@@ -628,5 +628,19 @@ const protocolName = computed(() => {
     console.error("Invalid address format:", error);
     return null;
   }
+});
+
+const borrowStable = computed(() => {
+  let [_, protocol] = currency.value.key.split("@");
+  const lpn = AssetUtils.getLpnByProtocol(protocol);
+  const price = new Dec(oracle.prices?.[lpn.key!]?.amount ?? 0);
+  const v = leaseApply.value?.borrow?.amount ?? "0";
+  const stable = price.mul(new Dec(v, lpn.decimal_digits));
+  return stable;
+});
+
+const stepperTransfer = computed(() => {
+  const a = new Dec(amount.value);
+  return a.add(borrowStable.value);
 });
 </script>

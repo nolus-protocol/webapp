@@ -52,8 +52,8 @@ import type { LeaseData } from "@/common/types";
 type ChartData = { amount: number; date: Date };
 
 const chartHeight = 250;
-const marginLeft = 40;
-const chartWidth = 960;
+const marginLeft = 60;
+const chartWidth = 550;
 const marginRight = 30;
 const marginBottom = 50;
 
@@ -127,7 +127,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       grid: true,
       label: null,
       labelArrow: false,
-      tickFormat: (d) => `$${d}`,
+      tickFormat: (d) => `${AssetUtils.formatNumber(d, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`,
       tickSize: 0
     },
     x: {

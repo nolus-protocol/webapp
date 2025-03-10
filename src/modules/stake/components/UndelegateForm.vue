@@ -21,8 +21,34 @@
     </template>
   </AdvancedFormControl>
   <hr class="border-border-color" />
+  <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
+    <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
+    <template v-if="isEmpty">
+      <div class="flex items-center gap-2 text-14">
+        <SvgIcon
+          name="list-sparkle"
+          class="fill-icon-secondary"
+        />
+        {{ $t("message.preview-input") }}
+      </div>
+    </template>
+    <template v-else>
+      <div class="flex items-center gap-2 text-14">
+        <SvgIcon
+          name="check-solid"
+          class="fill-icon-success"
+        />
+        <p
+          class="flex-1"
+          :innerHTML="
+            $t('message.undelegate-preview', { amount: `${input} ${NATIVE_ASSET.label}`, amountStable: stable, date })
+          "
+        ></p>
+      </div>
+    </template>
+  </div>
   <hr class="border-border-color" />
-  <div class="flex flex-col gap-2 p-6">
+  <div class="flex flex-1 flex-col justify-end gap-2 p-6">
     <Button
       size="large"
       severity="primary"
@@ -38,17 +64,18 @@
 </template>
 
 <script lang="ts" setup>
-import { AdvancedFormControl, Button, ToastType } from "web-components";
+import { AdvancedFormControl, Button, ToastType, SvgIcon } from "web-components";
 import { computed, inject, ref, watch } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
-import { AssetUtils, Logger, NetworkUtils, validateAmountV2, walletOperation } from "@/common/utils";
+import { AssetUtils, formatDateTime, Logger, NetworkUtils, validateAmountV2, walletOperation } from "@/common/utils";
 import { useOracleStore } from "@/common/stores/oracle";
 import { coin } from "@cosmjs/stargate";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import type { IObjectKeys } from "@/common/types";
 import { useI18n } from "vue-i18n";
+import { UNDELEGATE_DAYS } from "@/config/global";
 
 const wallet = useWalletStore();
 const oracle = useOracleStore();
@@ -74,6 +101,12 @@ watch(
     immediate: true
   }
 );
+
+const date = computed(() => {
+  const date = new Date();
+  date.setDate(date.getDate() + UNDELEGATE_DAYS);
+  return formatDateTime(date.toString());
+});
 
 const assets = computed(() => {
   let amount = new Dec(0, NATIVE_ASSET.decimal_digits);
@@ -101,6 +134,13 @@ const stable = computed(() => {
   const v = input?.value?.length ? input?.value : "0";
   const stable = price.mul(new Dec(v));
   return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+});
+
+const isEmpty = computed(() => {
+  if (input.value.length == 0 || Number(input.value) == 0) {
+    return true;
+  }
+  return false;
 });
 
 function onInput(data: string) {
