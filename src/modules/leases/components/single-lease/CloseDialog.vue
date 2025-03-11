@@ -87,7 +87,7 @@
                   :innerHTML="
                     $t('message.preview-closed-paid-partuial-debt', {
                       amount: paidDebt,
-                      price: debtData.price,
+                      price: price,
                       asset: debtData.asset,
                       fee: debtData.fee
                     })
@@ -124,7 +124,7 @@
                   :innerHTML="
                     $t('message.preview-closed-paid-debt', {
                       amount: debtData.debt,
-                      price: debtData.price,
+                      price: price,
                       asset: debtData.asset,
                       fee: debtData.fee
                     })
@@ -152,7 +152,7 @@
                   :innerHTML="
                     $t('message.preview-closed-paid-debt', {
                       amount: debtData.debt,
-                      price: debtData.price,
+                      price: price,
                       asset: debtData.asset,
                       fee: debtData.fee
                     })
@@ -189,7 +189,7 @@
                   :innerHTML="
                     $t('message.preview-closed-paid-debt', {
                       amount: debtData.debt,
-                      price: debtData.price,
+                      price: price,
                       asset: debtData.asset,
                       fee: debtData.fee
                     })
@@ -330,6 +330,12 @@ const assets = computed(() => {
 
 const currency = computed(() => {
   return assets.value[selectedCurrency.value];
+});
+
+const price = computed(() => {
+  return new Dec(oracle.prices[currency.value?.key]?.amount, currency.value?.decimal_digits).toString(
+    currency.value?.decimal_digits
+  );
 });
 
 const remaining = computed(() => {
