@@ -3,6 +3,7 @@
     ref="dialog"
     show-close
     :title="`&#35;${proposal.id} ${proposal.title}`"
+    class-list="md:h-auto"
   >
     <template v-slot:content>
       <div
