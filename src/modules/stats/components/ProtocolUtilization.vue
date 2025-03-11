@@ -6,7 +6,8 @@
       :amount="{
         amount: suppliedFunds,
         type: CURRENCY_VIEW_TYPES.CURRENCY,
-        denom: NATIVE_CURRENCY.symbol
+        denom: NATIVE_CURRENCY.symbol,
+        decimals: 0
       }"
     />
     <Table :columns="columns">

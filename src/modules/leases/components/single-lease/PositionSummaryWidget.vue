@@ -59,6 +59,47 @@
                 fontSizeSmall: 16
               }"
             />
+
+            <BigNumber
+              :label="`${$t('message.price-per-asset')} ${asset?.shortName}`"
+              :amount="{
+                amount: currentPrice,
+                type: CURRENCY_VIEW_TYPES.CURRENCY,
+                denom: NATIVE_CURRENCY.symbol,
+                decimals: MID_DECIMALS,
+                fontSize: 16,
+                fontSizeSmall: 16
+              }"
+            />
+
+            <BigNumber
+              :label="$t('message.partial-liquidation')"
+              :label-tooltip="{ content: $t('message.partial-liquidation-tooltip') }"
+              :amount="{
+                amount: liquidation,
+                type: CURRENCY_VIEW_TYPES.CURRENCY,
+                denom: `${NATIVE_CURRENCY.symbol}`,
+                decimals: 4,
+                fontSize: 16,
+                fontSizeSmall: 16
+              }"
+            />
+
+            <BigNumber
+              :label="$t('message.interest-due')"
+              :label-tooltip="{ content: $t('message.repay-interest', { dueDate: interestDueDate }) }"
+              :amount="{
+                amount: interestDue,
+                type: CURRENCY_VIEW_TYPES.TOKEN,
+                denom: lpn?.shortName ?? '',
+                decimals: lpn?.decimal_digits ?? 0,
+                hasSpace: true,
+                fontSize: 16,
+                fontSizeSmall: 16
+              }"
+            />
+          </div>
+          <div class="flex flex-col gap-4">
             <BigNumber
               :label="$t('message.down-payment')"
               :label-tooltip="{ content: $t('message.downpayment-tooltip') }"
@@ -71,6 +112,7 @@
                 fontSizeSmall: 16
               }"
             />
+
             <BigNumber
               :label="$t('message.impact-dex-fee')"
               :label-tooltip="{ content: $t('message.impact-dex-fee-tooltip') }"
@@ -82,31 +124,7 @@
                 fontSizeSmall: 16
               }"
             />
-          </div>
-          <div class="flex flex-col gap-4">
-            <BigNumber
-              :label="`${$t('message.price-per-asset')} ${asset?.shortName}`"
-              :amount="{
-                amount: currentPrice,
-                type: CURRENCY_VIEW_TYPES.CURRENCY,
-                denom: NATIVE_CURRENCY.symbol,
-                decimals: MID_DECIMALS,
-                fontSize: 16,
-                fontSizeSmall: 16
-              }"
-            />
-            <BigNumber
-              :label="$t('message.partial-liquidation')"
-              :label-tooltip="{ content: $t('message.partial-liquidation-tooltip') }"
-              :amount="{
-                amount: liquidation,
-                type: CURRENCY_VIEW_TYPES.CURRENCY,
-                denom: `${NATIVE_CURRENCY.symbol}`,
-                decimals: NATIVE_CURRENCY.maximumFractionDigits,
-                fontSize: 16,
-                fontSizeSmall: 16
-              }"
-            />
+
             <BigNumber
               :label="$t('message.interest-fee')"
               :label-tooltip="{ content: $t('message.interest-fee-tooltip') }"
@@ -115,19 +133,6 @@
                 type: CURRENCY_VIEW_TYPES.CURRENCY,
                 denom: '%',
                 isDenomInfront: false,
-                fontSize: 16,
-                fontSizeSmall: 16
-              }"
-            />
-            <BigNumber
-              :label="$t('message.interest-due')"
-              :label-tooltip="{ content: $t('message.repay-interest', { dueDate: interestDueDate }) }"
-              :amount="{
-                amount: interestDue,
-                type: CURRENCY_VIEW_TYPES.TOKEN,
-                denom: lpn?.shortName ?? '',
-                decimals: lpn?.decimal_digits ?? 0,
-                hasSpace: true,
                 fontSize: 16,
                 fontSizeSmall: 16
               }"

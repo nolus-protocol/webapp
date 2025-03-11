@@ -192,7 +192,7 @@ const assets = computed<TableRowItemProps[]>(() => {
       item.decimal_digits
     ).toDec();
 
-    const price = AssetUtils.formatNumber(oracle.prices[item.key]?.amount ?? 0, 2);
+    const price = AssetUtils.formatNumber(oracle.prices[item.key]?.amount ?? 0, 4);
     const balance = AssetUtils.formatNumber(new Dec(item.balance.amount, item.decimal_digits).toString(3), 3);
     const stable_balance = AssetUtils.formatNumber(stable_b.toString(2), 2);
     return {

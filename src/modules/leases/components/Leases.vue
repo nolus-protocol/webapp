@@ -222,7 +222,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
         items: [
           {
             value: getTitle(item as LeaseData),
-            subValue: getSubValue(item as LeaseData),
+            // subValue: getSubValue(item as LeaseData),
             subValueClass: "text-typography-secondary rounded border-[1px] px-2 py-1 self-start	",
             variant: "left",
             click: () => {
@@ -287,6 +287,24 @@ function reload() {
 function getTitle(item: LeaseData) {
   if (item.leaseStatus.opening) {
     return `${i18n.t("message.opening")}...`;
+  }
+
+  const status = getStatus(item);
+
+  if (status == TEMPLATES.opened) {
+    if (isClosing(item)) {
+      return `${i18n.t("message.closing")}...`;
+    }
+
+    if (isRepaying(item)) {
+      return `${i18n.t("message.repaying")}...`;
+    }
+  }
+
+  if (TEMPLATES.paid == status) {
+    if (isCollecting(item)) {
+      return `${i18n.t("message.collecting")}...`;
+    }
   }
 
   return `#${item.leaseAddress.slice(-8)}`;

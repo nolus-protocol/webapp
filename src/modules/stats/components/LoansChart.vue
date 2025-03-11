@@ -64,7 +64,6 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       width: "100%"
     },
     x: {
-      grid: true,
       percent: true,
       label: null
     },
@@ -80,7 +79,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         fill: "#3470E2",
         sort: { y: "x", reverse: true }
       }),
-      gridX({ stroke: "white", strokeOpacity: 0.5 })
+      gridX({})
     ]
   });
 

@@ -57,6 +57,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     marginRight: marginRight,
     color: { legend: true },
     y: {
+      grid: true,
       type: "linear",
       label: i18n.t("message.leases-monthly"),
       tickFormat: (d) => `$${d / 1e6}M`

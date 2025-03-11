@@ -6,7 +6,6 @@ import { PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/glob
 import { AssetUtils, EtlApi, Logger } from ".";
 import { CurrencyDemapping } from "@/config/currencies";
 import { useApplicationStore } from "../stores/application";
-import type { IObjectKeys } from "../types";
 
 export class LeaseUtils {
   public static calculateLiquidation(unit: Dec, price: Dec) {

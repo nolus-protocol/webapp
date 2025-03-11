@@ -7,7 +7,8 @@
         :amount="{
           amount: openPositionValue,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: NATIVE_CURRENCY.symbol
+          denom: NATIVE_CURRENCY.symbol,
+          decimals: 0
         }"
         :loading="loading"
       />
@@ -21,7 +22,8 @@
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
           fontSize: 20,
-          fontSizeSmall: 20
+          fontSizeSmall: 20,
+          decimals: 0
         }"
         :loading="loading"
       />
@@ -35,7 +37,8 @@
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
           fontSize: 20,
-          fontSizeSmall: 20
+          fontSizeSmall: 20,
+          decimals: 0
         }"
         :loading="loading"
       />
@@ -55,6 +58,7 @@ import LoansChart from "@/modules/stats/components/LoansChart.vue";
 import { EtlApi, Logger } from "@/common/utils";
 import { onMounted, ref } from "vue";
 import { NATIVE_CURRENCY } from "@/config/global";
+import type { M } from "node_modules/vite/dist/node/types.d-aGj9QkWt";
 
 const loading = ref(true);
 const openPositionValue = ref("0");

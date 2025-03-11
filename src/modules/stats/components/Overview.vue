@@ -7,7 +7,8 @@
         :amount="{
           amount: txVolume,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: NATIVE_CURRENCY.symbol
+          denom: NATIVE_CURRENCY.symbol,
+          decimals: 0
         }"
         :loading="loading"
       />
@@ -17,7 +18,7 @@
           amount: realized_pnl,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
-          decimals: 2,
+          decimals: 0,
           fontSize: 20,
           fontSizeSmall: 20
         }"
@@ -30,7 +31,8 @@
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
           fontSize: 20,
-          fontSizeSmall: 20
+          fontSizeSmall: 20,
+          decimals: 0
         }"
         :loading="loading"
       />
@@ -40,7 +42,7 @@
           amount: buybackTotal,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_ASSET.label,
-          decimals: 2,
+          decimals: 0,
           hasSpace: true,
           isDenomInfront: false,
           fontSize: 20,

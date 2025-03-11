@@ -125,22 +125,20 @@ const props = withDefaults(
     yellowLimit?: number;
   }>(),
   {
-    greenLimit: 57,
-    yellowLimit: 20
+    greenLimit: 25,
+    yellowLimit: 10
   }
 );
 
 const healTitle = computed((item) => {
-  const p = PERCENT - health.value;
-
-  if (p <= props.greenLimit) {
+  if (health.value >= props.greenLimit) {
     return status.green;
   }
 
-  if (p < props.yellowLimit && p > props.greenLimit) {
+  if (health.value > props.yellowLimit && health.value < props.greenLimit) {
     return status.yellow;
   }
-  if (p >= props.yellowLimit) {
+  if (health.value <= props.yellowLimit) {
     return status.red;
   }
 });

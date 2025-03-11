@@ -102,6 +102,10 @@ const amount = computed(() => {
         symbol = "";
       }
 
+      if (props.decimals == 0) {
+        afterDecimal = "";
+      }
+
       return {
         symbol,
         denom: props.hide ? "" : props.denom,
@@ -149,6 +153,9 @@ const amount = computed(() => {
         denom = "";
       }
 
+      if (props.decimals == 0) {
+        afterDecimal = "";
+      }
       return {
         denom,
         beforeDecimal,

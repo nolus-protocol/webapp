@@ -19,32 +19,33 @@
 import Chart from "@/common/components/Chart.vue";
 
 import type { LeaseData } from "@/common/types";
-import { AssetUtils, EtlApi } from "@/common/utils";
-import { CurrencyMapping } from "@/config/currencies";
-import { NATIVE_CURRENCY, PERCENT, PositionTypes, ProtocolsConfig } from "@/config/global";
+import { AssetUtils, EtlApi, LeaseUtils } from "@/common/utils";
+import { CurrencyDemapping, CurrencyMapping } from "@/config/currencies";
+import { NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { plot, lineY, ruleY } from "@observablehq/plot";
 import { ref, watch } from "vue";
 import { pointer, select, type Selection } from "d3";
 import { useI18n } from "vue-i18n";
 import { Dec } from "@keplr-wallet/unit";
-import { useOracleStore } from "@/common/stores/oracle";
+import { useApplicationStore } from "@/common/stores/application";
 
-type ChartData = { Date: Date; Price: number; Liquidation: number };
+type ChartData = { Date: Date; Price: number; Liquidation: string | null };
 
 let data: ChartData[] = [];
 const props = defineProps<{
   lease?: LeaseData;
   interval: string;
 }>();
+
 const chart = ref<typeof Chart>();
 const i18n = useI18n();
+const app = useApplicationStore();
 
 const chartHeight = 250;
 const marginLeft = 40;
 const chartWidth = 960;
 const marginRight = 30;
 const marginBottom = 50;
-const oracle = useOracleStore();
 
 const likert = {
   order: ["Price", "Liquidation"]
@@ -57,47 +58,25 @@ watch(
   }
 );
 
-function liquidation() {
-  const lease = props.lease?.leaseStatus?.opened;
-  if (lease) {
-    const price = props.lease.liquidation;
-    const cPrice = getPrice()!;
-    const diff = getDiff(price, cPrice)!;
-    const percent = diff.quo(cPrice).mul(new Dec(PERCENT)).mul(new Dec(-1));
-    return percent;
-  }
-  return new Dec(0);
-}
-
-function getDiff(price: Dec, cPrice: Dec) {
-  switch (ProtocolsConfig[props.lease?.protocol!].type) {
-    case PositionTypes.long: {
-      return price.sub(cPrice);
-    }
-    case PositionTypes.short: {
-      return cPrice.sub(price);
-    }
-  }
-}
-
-function getPrice() {
-  const key = `${props.lease?.leaseData?.leasePositionTicker}@${props.lease?.protocol}`;
-  const price = oracle.prices[key];
-  return new Dec(price?.amount ?? 0);
-}
-
 async function setData() {
   if (props.lease) {
     const chartData = await loadData(props.interval);
-    const liq = Number(liquidation().quo(new Dec(PERCENT)).toString());
-
+    const liquidations = getLiquidations();
     data = (chartData ?? [])
       .map((item) => {
         const [date, price] = item;
+        const now = new Date(date);
+
+        const l = liquidations.reduce((closest, date) =>
+          Math.abs(date.date.getTime() - now.getTime()) < Math.abs(closest.date.getTime() - now.getTime())
+            ? date
+            : closest
+        );
+
         return {
-          Date: new Date(date),
+          Date: now,
           Price: price,
-          Liquidation: getLiquidationPrice(price, liq)!
+          Liquidation: props.lease?.leaseStatus.opening ? null : l.amount.toString()
         };
       })
       .reverse();
@@ -105,16 +84,76 @@ async function setData() {
   }
 }
 
-function getLiquidationPrice(price: number, liq: number) {
-  const p = price * liq;
-  switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
-    case PositionTypes.long: {
-      return price - p;
-    }
-    case PositionTypes.short: {
-      return price + p;
+function getLiquidations() {
+  let asset = new Dec(0);
+  let asset2 = new Dec(0);
+
+  const liquidations: {
+    amount: Dec;
+    date: Date;
+  }[] = [];
+
+  const leaseData = props.lease?.leaseStatus?.opened;
+  const protocolKey = props.lease?.protocol!;
+
+  if (leaseData) {
+    const ticker = CurrencyDemapping[leaseData.amount.ticker!]?.ticker ?? leaseData.amount.ticker;
+    const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
+    const historyElements = [...(props.lease?.leaseData?.history ?? [])].reverse();
+
+    for (const history of historyElements) {
+      asset = asset.add(new Dec(history.amount, unitAssetInfo.decimal_digits));
+
+      if (history.ls_amnt) {
+        const unitAssetInfo2 = app.currenciesData![`${history.ls_amnt_symbol}@${protocolKey}`];
+        asset2 = asset2.add(new Dec(history.ls_amnt, unitAssetInfo2.decimal_digits));
+      }
+
+      const l = parceLiquidaitons(asset, asset2);
+
+      liquidations.push({
+        amount: l,
+        date: new Date(history.time)
+      });
     }
   }
+  const l = parceLiquidaitons(new Dec(0), new Dec(0));
+
+  liquidations.unshift({
+    amount: l,
+    date: new Date()
+  });
+
+  return liquidations;
+}
+
+function parceLiquidaitons(stableAdd: Dec, uAsset: Dec) {
+  let liquidation = new Dec(0);
+  const leaseData = props.lease?.leaseStatus?.opened;
+  if (leaseData) {
+    const protocolKey = props.lease?.protocol!;
+    const ticker = CurrencyDemapping[leaseData.amount.ticker!]?.ticker ?? leaseData.amount.ticker;
+    const stableTicker = CurrencyDemapping[leaseData.principal_due.ticker!]?.ticker ?? leaseData.principal_due.ticker;
+
+    const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
+    const stableAssetInfo = app.currenciesData![`${stableTicker!}@${protocolKey}`];
+
+    const unitAsset = new Dec(leaseData.amount.amount, Number(unitAssetInfo!.decimal_digits));
+    const stableAsset = new Dec(leaseData.principal_due.amount, Number(stableAssetInfo!.decimal_digits));
+
+    switch (ProtocolsConfig[protocolKey].type) {
+      case PositionTypes.long: {
+        liquidation = LeaseUtils.calculateLiquidation(stableAsset.add(stableAdd), unitAsset.add(uAsset));
+        break;
+      }
+      case PositionTypes.short: {
+        liquidation = LeaseUtils.calculateLiquidationShort(unitAsset.add(uAsset), stableAsset.add(stableAdd));
+        break;
+      }
+    }
+  }
+
+  return liquidation;
 }
 
 async function loadData(intetval: string) {
@@ -195,7 +234,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
       if (closestData) {
         tooltip.html(
-          `<strong>${i18n.t("message.price")}:</strong> $${AssetUtils.formatNumber(closestData.Price, NATIVE_CURRENCY.maximumFractionDigits)}<br><strong>${i18n.t("message.chart-liquidation-tooltip")}:</strong> $${AssetUtils.formatNumber(closestData.Liquidation, NATIVE_CURRENCY.maximumFractionDigits)}`
+          `<strong>${i18n.t("message.price")}:</strong> $${AssetUtils.formatNumber(closestData.Price, NATIVE_CURRENCY.maximumFractionDigits)}<br><strong>${i18n.t("message.chart-liquidation-tooltip")}:</strong> $${AssetUtils.formatNumber(closestData.Liquidation!, NATIVE_CURRENCY.maximumFractionDigits)}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();
