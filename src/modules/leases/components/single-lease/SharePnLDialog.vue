@@ -3,6 +3,7 @@
     ref="dialog"
     :title="$t(`message.share-position`)"
     showClose
+    class-list="md:h-auto"
   >
     <template v-slot:content>
       <div class="flex flex-col gap-6 px-6 pb-6 text-typography-default">
@@ -15,7 +16,12 @@
               :class="{ selected: index == imageIndex }"
               @click="setBackgroundIndex(index)"
             >
-              <img :src="img" />
+              <!-- <img :src="img" /> -->
+
+              <canvas
+                :ref="(el) => (canvasRefs[index] = el as HTMLCanvasElement)"
+                class="w-full rounded"
+              ></canvas>
             </button>
           </div>
         </div>
@@ -74,11 +80,10 @@ const app = useApplicationStore();
 const oracle = useOracleStore();
 const imageIndex = ref(0);
 const images = [shareImageOne, shareImageTwo, shareImageThree, shareImageFour];
+const canvasRefs = ref<{ [key: string]: HTMLCanvasElement }>({});
 
 const colors = {
   red: "#ab1f3b",
-  redBackground: "#fceaee",
-  redBorder: "#df294d",
   green: "#1AB171",
   white: "white",
   gray: "#c1cad7"
@@ -149,6 +154,62 @@ function setBackgroundIndex(index: number) {
   generateCanvas();
 }
 
+const generateSmallCanvas = async (canvasElement: HTMLCanvasElement, imgSrc: string) => {
+  try {
+    const context = canvasElement.getContext("2d") as CanvasRenderingContext2D;
+
+    canvasElement.width = 1600;
+    canvasElement.height = 900;
+
+    await setSmallBackground(context, imgSrc);
+    const metric = await getBuyTextWidth(context);
+    roundedRectWhite(context);
+    roundedRect(context, {
+      radius: 20,
+      x: 90,
+      y: 230,
+      width: metric + 100,
+      height: 60
+    });
+    setArrow(context);
+    setBuyText(context);
+    setPosition(context);
+    setTimeStamp(context);
+    setAsset(context);
+    setPricePerSymbol(context);
+
+    setLines(context, {
+      x: 100,
+      y: 450,
+      width: 450,
+      height: 3
+    });
+    setLines(context, {
+      x: 100,
+      y: 582,
+      width: 450,
+      height: 3
+    });
+  } catch (e) {
+    Logger.error(e);
+  }
+};
+
+async function setSmallBackground(ctx: CanvasRenderingContext2D, imgSrc: string) {
+  const image = new Image();
+  const data = await fetch(imgSrc);
+  const blob = await data.blob();
+
+  return new Promise<void>((resolve) => {
+    image.onload = async () => {
+      ctx.drawImage(image, 0, 0, 1600, 900);
+      return resolve();
+    };
+
+    image.src = window.URL.createObjectURL(blob);
+  });
+}
+
 const generateCanvas = async () => {
   try {
     const canvasElement = canvas.value as HTMLCanvasElement;
@@ -189,221 +250,221 @@ const generateCanvas = async () => {
   } catch (e) {
     Logger.error(e);
   }
-
-  async function setBackground(ctx: CanvasRenderingContext2D) {
-    const image = new Image();
-    const data = await fetch(images[imageIndex.value]);
-    const blob = await data.blob();
-
-    return new Promise<void>((resolve) => {
-      image.onload = async () => {
-        ctx.drawImage(image, 0, 0, 1600, 900);
-        return resolve();
-      };
-
-      image.src = window.URL.createObjectURL(blob);
-    });
-  }
-
-  function roundedRectWhite(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = colors.white;
-
-    const options = {
-      radius: 20,
-      x: 50,
-      y: 200,
-      width: 550,
-      height: 500
-    };
-
-    ctx.lineJoin = "round";
-    ctx.lineWidth = options.radius;
-    ctx.strokeStyle = colors.white;
-    ctx.fillStyle = colors.white;
-
-    ctx.strokeRect(
-      options.x + options.radius * 0.5,
-      options.y + options.radius * 0.5,
-      options.width - options.radius,
-      options.height - options.radius
-    );
-
-    ctx.fillRect(
-      options.x + options.radius * 0.5,
-      options.y + options.radius * 0.5,
-      options.width - options.radius,
-      options.height - options.radius
-    );
-
-    ctx.stroke();
-    ctx.fill();
-  }
-
-  function setLines(
-    ctx: CanvasRenderingContext2D,
-    options: {
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-    }
-  ) {
-    ctx.fillStyle = colors.white;
-
-    ctx.lineJoin = "round";
-    ctx.fillStyle = colors.gray;
-    ctx.fillRect(options.x, options.y, options.width, options.height);
-
-    ctx.stroke();
-    ctx.fill();
-  }
-
-  function roundedRect(
-    ctx: CanvasRenderingContext2D,
-    options: {
-      radius: number;
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-    }
-  ) {
-    const num = Number(leaseData?.pnlPercent.toString(2));
-
-    if (num < 0) {
-      ctx.strokeStyle = colors.red;
-      ctx.fillStyle = colors.red;
-    } else {
-      ctx.strokeStyle = colors.green;
-      ctx.fillStyle = colors.green;
-    }
-
-    ctx.lineJoin = "round";
-    ctx.lineWidth = options.radius;
-
-    ctx.strokeRect(
-      options.x + options.radius * 0.5,
-      options.y + options.radius * 0.5,
-      options.width - options.radius,
-      options.height - options.radius
-    );
-
-    ctx.fillRect(
-      options.x + options.radius * 0.5,
-      options.y + options.radius * 0.5,
-      options.width - options.radius,
-      options.height - options.radius
-    );
-
-    ctx.stroke();
-    ctx.fill();
-  }
-
-  async function setArrow(ctx: CanvasRenderingContext2D) {
-    const image = new Image();
-    const num = Number(leaseData?.pnlPercent.toString(2));
-
-    const data = await fetch(num < 0 ? arrowdown : arrowup);
-    const blob = await data.blob();
-
-    image.onload = async () => {
-      ctx.drawImage(image, 110, 247, 28, 26);
-    };
-
-    image.src = window.URL.createObjectURL(blob);
-  }
-
-  async function getBuyTextWidth(ctx: CanvasRenderingContext2D) {
-    ctx.font = "600 30px 'Garet'";
-    return ctx.measureText(
-      `${i18n.t(`message.${ProtocolsConfig[leaseData?.protocol!].type}`)} ${i18n.t("message.buy-position")}`.toUpperCase()
-    ).width;
-  }
-
-  async function setBuyText(ctx: CanvasRenderingContext2D) {
-    ctx.font = "600 30px 'Garet'";
-    ctx.fillStyle = "white";
-    ctx.fillText(
-      `${i18n.t(`message.${ProtocolsConfig[leaseData?.protocol!].type}`)} ${i18n.t("message.buy-position")}`.toUpperCase(),
-      150,
-      270
-    );
-  }
-
-  async function setAsset(ctx: CanvasRenderingContext2D) {
-    const asst = asset()!;
-    const image = new Image();
-    const data = await fetch(asst.icon);
-    const blob = await data.blob();
-
-    image.onload = async () => {
-      const rect = 60;
-      const hf = rect / image.height;
-      const width = hf * image.width;
-      ctx.drawImage(image, 100, 310, width, hf * image.height);
-
-      ctx.font = "500 42px 'Garet'";
-      ctx.fillStyle = "#082D63";
-      if (asst.shortName) {
-        ctx.fillText(asst.shortName, 115 + width, 350);
-      }
-    };
-
-    image.src = window.URL.createObjectURL(blob);
-  }
-
-  function setPricePerSymbol(ctx: CanvasRenderingContext2D) {
-    ctx.font = "500 32px 'Garet'";
-    ctx.fillStyle = "#5E7699";
-    ctx.fillText(
-      `${i18n.t("message.price-per-symbol", {
-        symbol: asset()?.shortName
-      })}: ${currentPrice()}`,
-      100,
-      405
-    );
-  }
-
-  function setPosition(ctx: CanvasRenderingContext2D) {
-    const pos = Number(leaseData?.pnlPercent.toString(2));
-    const symbol = pos < 0 ? "-" : "+";
-    let [a, d] = Math.abs(pos).toFixed(2).split(".");
-
-    if (pos < 0) {
-      ctx.fillStyle = colors.red;
-    } else {
-      ctx.fillStyle = colors.green;
-    }
-
-    const amount = `${symbol}${new Intl.NumberFormat().format(Number(a))}`;
-
-    ctx.font = "600 72px 'Garet'";
-    ctx.fillText(amount, 90, 545);
-
-    const w = ctx.measureText(amount).width;
-
-    ctx.font = "600 58px 'Garet'";
-    ctx.fillText(`.${d}%`, 90 + w, 545);
-  }
-
-  function setTimeStamp(ctx: CanvasRenderingContext2D) {
-    const timestamp = new Date();
-    const m = timestamp.getMonth() + 1;
-    const d = timestamp.getDate();
-    const h = timestamp.getHours();
-    const min = timestamp.getMinutes();
-
-    const year = timestamp.getFullYear();
-    const month = m.toString().length == 1 ? `0${m}` : m;
-    const day = d.toString().length == 1 ? `0${d}` : d;
-    const hours = h.toString().length == 1 ? `0${h}` : h;
-    const minutes = min.toString().length == 1 ? `0${min}` : min;
-
-    ctx.font = "500 32px 'Garet'";
-    ctx.fillStyle = "#5E7699";
-    ctx.fillText(`${i18n.t("message.timestamp")}:  ${year}-${month}-${day} ${hours}:${minutes}`, 90, 655);
-  }
 };
+
+async function setBackground(ctx: CanvasRenderingContext2D) {
+  const image = new Image();
+  const data = await fetch(images[imageIndex.value]);
+  const blob = await data.blob();
+
+  return new Promise<void>((resolve) => {
+    image.onload = async () => {
+      ctx.drawImage(image, 0, 0, 1600, 900);
+      return resolve();
+    };
+
+    image.src = window.URL.createObjectURL(blob);
+  });
+}
+
+function roundedRectWhite(ctx: CanvasRenderingContext2D) {
+  ctx.fillStyle = colors.white;
+
+  const options = {
+    radius: 20,
+    x: 50,
+    y: 200,
+    width: 550,
+    height: 500
+  };
+
+  ctx.lineJoin = "round";
+  ctx.lineWidth = options.radius;
+  ctx.strokeStyle = colors.white;
+  ctx.fillStyle = colors.white;
+
+  ctx.strokeRect(
+    options.x + options.radius * 0.5,
+    options.y + options.radius * 0.5,
+    options.width - options.radius,
+    options.height - options.radius
+  );
+
+  ctx.fillRect(
+    options.x + options.radius * 0.5,
+    options.y + options.radius * 0.5,
+    options.width - options.radius,
+    options.height - options.radius
+  );
+
+  ctx.stroke();
+  ctx.fill();
+}
+
+function setLines(
+  ctx: CanvasRenderingContext2D,
+  options: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }
+) {
+  ctx.fillStyle = colors.white;
+
+  ctx.lineJoin = "round";
+  ctx.fillStyle = colors.gray;
+  ctx.fillRect(options.x, options.y, options.width, options.height);
+
+  ctx.stroke();
+  ctx.fill();
+}
+
+function roundedRect(
+  ctx: CanvasRenderingContext2D,
+  options: {
+    radius: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }
+) {
+  const num = Number(leaseData?.pnlPercent.toString(2));
+
+  if (num < 0) {
+    ctx.strokeStyle = colors.red;
+    ctx.fillStyle = colors.red;
+  } else {
+    ctx.strokeStyle = colors.green;
+    ctx.fillStyle = colors.green;
+  }
+
+  ctx.lineJoin = "round";
+  ctx.lineWidth = options.radius;
+
+  ctx.strokeRect(
+    options.x + options.radius * 0.5,
+    options.y + options.radius * 0.5,
+    options.width - options.radius,
+    options.height - options.radius
+  );
+
+  ctx.fillRect(
+    options.x + options.radius * 0.5,
+    options.y + options.radius * 0.5,
+    options.width - options.radius,
+    options.height - options.radius
+  );
+
+  ctx.stroke();
+  ctx.fill();
+}
+
+async function setArrow(ctx: CanvasRenderingContext2D) {
+  const image = new Image();
+  const num = Number(leaseData?.pnlPercent.toString(2));
+
+  const data = await fetch(num < 0 ? arrowdown : arrowup);
+  const blob = await data.blob();
+
+  image.onload = async () => {
+    ctx.drawImage(image, 110, 247, 28, 26);
+  };
+
+  image.src = window.URL.createObjectURL(blob);
+}
+
+async function getBuyTextWidth(ctx: CanvasRenderingContext2D) {
+  ctx.font = "600 30px 'Garet'";
+  return ctx.measureText(
+    `${i18n.t(`message.${ProtocolsConfig[leaseData?.protocol!].type}`)} ${i18n.t("message.buy-position")}`.toUpperCase()
+  ).width;
+}
+
+async function setBuyText(ctx: CanvasRenderingContext2D) {
+  ctx.font = "600 30px 'Garet'";
+  ctx.fillStyle = "white";
+  ctx.fillText(
+    `${i18n.t(`message.${ProtocolsConfig[leaseData?.protocol!].type}`)} ${i18n.t("message.buy-position")}`.toUpperCase(),
+    150,
+    270
+  );
+}
+
+async function setAsset(ctx: CanvasRenderingContext2D) {
+  const asst = asset()!;
+  const image = new Image();
+  const data = await fetch(asst.icon);
+  const blob = await data.blob();
+
+  image.onload = async () => {
+    const rect = 60;
+    const hf = rect / image.height;
+    const width = hf * image.width;
+    ctx.drawImage(image, 100, 310, width, hf * image.height);
+
+    ctx.font = "500 42px 'Garet'";
+    ctx.fillStyle = "#082D63";
+    if (asst.shortName) {
+      ctx.fillText(asst.shortName, 115 + width, 350);
+    }
+  };
+
+  image.src = window.URL.createObjectURL(blob);
+}
+
+function setPricePerSymbol(ctx: CanvasRenderingContext2D) {
+  ctx.font = "500 32px 'Garet'";
+  ctx.fillStyle = "#5E7699";
+  ctx.fillText(
+    `${i18n.t("message.price-per-symbol", {
+      symbol: asset()?.shortName
+    })}: ${currentPrice()}`,
+    100,
+    405
+  );
+}
+
+function setPosition(ctx: CanvasRenderingContext2D) {
+  const pos = Number(leaseData?.pnlPercent.toString(2));
+  const symbol = pos < 0 ? "-" : "+";
+  let [a, d] = Math.abs(pos).toFixed(2).split(".");
+
+  if (pos < 0) {
+    ctx.fillStyle = colors.red;
+  } else {
+    ctx.fillStyle = colors.green;
+  }
+
+  const amount = `${symbol}${new Intl.NumberFormat().format(Number(a))}`;
+
+  ctx.font = "600 72px 'Garet'";
+  ctx.fillText(amount, 90, 545);
+
+  const w = ctx.measureText(amount).width;
+
+  ctx.font = "600 58px 'Garet'";
+  ctx.fillText(`.${d}%`, 90 + w, 545);
+}
+
+function setTimeStamp(ctx: CanvasRenderingContext2D) {
+  const timestamp = new Date();
+  const m = timestamp.getMonth() + 1;
+  const d = timestamp.getDate();
+  const h = timestamp.getHours();
+  const min = timestamp.getMinutes();
+
+  const year = timestamp.getFullYear();
+  const month = m.toString().length == 1 ? `0${m}` : m;
+  const day = d.toString().length == 1 ? `0${d}` : d;
+  const hours = h.toString().length == 1 ? `0${h}` : h;
+  const minutes = min.toString().length == 1 ? `0${min}` : min;
+
+  ctx.font = "500 32px 'Garet'";
+  ctx.fillStyle = "#5E7699";
+  ctx.fillText(`${i18n.t("message.timestamp")}:  ${year}-${month}-${day} ${hours}:${minutes}`, 90, 655);
+}
 
 function download() {
   const anchor = document.createElement("a");
@@ -443,6 +504,11 @@ defineExpose({
     leaseData = data;
     dialog?.value?.show();
     generateCanvas();
+
+    for (const key in canvasRefs.value) {
+      const img = images[key as keyof typeof images];
+      generateSmallCanvas(canvasRefs.value[key], img as string);
+    }
   }
 });
 </script>
