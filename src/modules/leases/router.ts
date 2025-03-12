@@ -134,6 +134,13 @@ export const LeasesRouter: RouteRecordRaw = {
           meta: {
             key: `${RouteNames.LEASES}-single`
           }
+        },
+        {
+          path: `learn-lease`,
+          component: () => import("@/common/components/EmptyRoute.vue"),
+          meta: {
+            key: `${RouteNames.LEASES}-single`
+          }
         }
       ]
     }

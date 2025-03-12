@@ -6,7 +6,10 @@
     :disable-close="true"
     @close-dialog="
       () => {
-        const path = route.matched[2].path ?? `/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}`;
+        const path =
+          route.matched[2].path == `/${RouteNames.LEASES}`
+            ? `/${RouteNames.LEASES}`
+            : `/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}`;
         router.push(path);
       }
     "
