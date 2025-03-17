@@ -27,6 +27,7 @@
     >
       <div class="flex flex-col gap-3">
         <BigNumber
+          :loading="loading"
           :label="$t('message.lease-size')"
           :amount="{
             amount: amount,
@@ -47,6 +48,7 @@
         <div class="flex flex-col gap-8 md:flex-row">
           <div class="flex flex-col gap-4">
             <BigNumber
+              :loading="loading"
               :label="$t('message.outstanding-loan')"
               :label-tooltip="{ content: $t('message.outstanding-loan-tooltip') }"
               :amount="{
@@ -61,6 +63,7 @@
             />
 
             <BigNumber
+              :loading="loading"
               :label="`${$t('message.price-per-asset')} ${asset?.shortName}`"
               :amount="{
                 amount: currentPrice,
@@ -73,6 +76,7 @@
             />
 
             <BigNumber
+              :loading="loading"
               :label="$t('message.partial-liquidation')"
               :label-tooltip="{ content: $t('message.partial-liquidation-tooltip') }"
               :amount="{
@@ -86,6 +90,7 @@
             />
 
             <BigNumber
+              :loading="loading"
               :label="$t('message.interest-due')"
               :label-tooltip="{ content: $t('message.repay-interest', { dueDate: interestDueDate }) }"
               :amount="{
@@ -101,6 +106,7 @@
           </div>
           <div class="flex flex-col gap-4">
             <BigNumber
+              :loading="loading"
               :label="$t('message.down-payment')"
               :label-tooltip="{ content: $t('message.downpayment-tooltip') }"
               :amount="{
@@ -114,6 +120,7 @@
             />
 
             <BigNumber
+              :loading="loading"
               :label="$t('message.impact-dex-fee')"
               :label-tooltip="{ content: $t('message.impact-dex-fee-tooltip') }"
               :amount="{
@@ -126,6 +133,7 @@
             />
 
             <BigNumber
+              :loading="loading"
               :label="$t('message.interest-fee')"
               :label-tooltip="{ content: $t('message.interest-fee-tooltip') }"
               :amount="{
@@ -143,6 +151,8 @@
       <span class="border-b border-border-color md:block md:border-r" />
       <div class="flex flex-1 flex-col gap-4">
         <BigNumber
+          :loading="loading"
+          :loading-width="'120px'"
           :label="$t('message.unrealized-pnl')"
           :amount="{
             amount: pnl.amount.toString(),
@@ -277,6 +287,7 @@ import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
   lease?: LeaseData;
+  loading: boolean;
 }>();
 
 const app = useApplicationStore();

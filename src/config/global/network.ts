@@ -27,6 +27,8 @@ export const NATIVE_NETWORK = {
   longOperationsEstimation: 20,
   leaseOpenEstimation: 2,
   leaseRepayEstimation: 1,
+  delegateEstimation: 3,
+  transferEstimation: 6,
   key: "NOLUS",
   symbol: "NLS",
   chain_type: ChainType.cosmos,

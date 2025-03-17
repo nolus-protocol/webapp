@@ -24,7 +24,7 @@
               :key="item"
             >
               <RouterLink
-                :to="item === RouteNames.DASHBOARD ? '/' : item"
+                :to="item === RouteNames.DASHBOARD ? '/' : `/${item}`"
                 class="router-link flex h-[50px] items-center gap-2 border-b border-t border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
                 v-on:click="
                   () => {

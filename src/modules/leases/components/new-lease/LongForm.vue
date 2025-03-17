@@ -163,7 +163,7 @@
         :disabled="isDisabled"
       />
       <p class="text-center text-12 text-typography-secondary">
-        {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.longOperationsEstimation }}{{ $t("message.sec") }}
+        {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.leaseOpenEstimation }}{{ $t("message.min") }}
       </p>
     </div>
   </div>
@@ -348,7 +348,7 @@ const coinList = computed(() => {
     .filter((item) => {
       let [ticker, protocol] = item.key.split("@");
 
-      const [_currency, downPaymentProtocol] = currency.value.key.split("@");
+      const [_currency, downPaymentProtocol] = currency.value?.key.split("@");
       if (downPaymentProtocol != protocol) {
         return false;
       }

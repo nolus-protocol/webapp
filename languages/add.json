@@ -252,5 +252,7 @@
   "liquidation-ongoingpartial-liability-description-link": "Learn more about liquidations",
   "liquidation-ongoingfull-liability-title": "Ongoing Full Liquidation",
   "liquidation-ongoingfull-liability-description": "This position is being liquidated.",
-  "liquidation-ongoingfull-liability-description-link": "Learn more about liquidations"
+  "liquidation-ongoingfull-liability-description-link": "Learn more about liquidations",
+  "no-chartdata": "Insufficient Data",
+  "no-chartdata-description": "Insufficient historical data available to generate the graph"
 }

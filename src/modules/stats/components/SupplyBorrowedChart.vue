@@ -12,6 +12,7 @@
     :updateChart="updateChart"
     :fns="[loadData]"
     :getClosestDataPoint="getClosestDataPoint"
+    :data-length="data.length"
   />
 </template>
 
@@ -32,7 +33,7 @@ const chartWidth = 960;
 const marginRight = 30;
 const marginBottom = 50;
 
-let data: ChartData[] = [];
+const data = ref<ChartData[]>([]);
 const i18n = useI18n();
 const chart = ref<typeof Chart>();
 
@@ -60,13 +61,13 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     x: { type: "time", label: i18n.t("message.date-capitalize") },
     marks: [
       ruleY([0]),
-      lineY(data, {
+      lineY(data.value, {
         x: "date",
         y: "borrowed",
         stroke: "#3470E2",
         curve: "basis"
       }),
-      lineY(data, {
+      lineY(data.value, {
         x: "date",
         y: "supplied",
         stroke: "#19A96C",
@@ -109,21 +110,21 @@ function getClosestDataPoint(cPosition: number) {
   const plotAreaWidth = chartWidth - marginLeft - marginRight;
   const adjustedX = cPosition - marginLeft;
 
-  if (data.length === 0) return null;
+  if (data.value.length === 0) return null;
 
   // Scale `adjustedX` to match `loans` range
-  const maxDate = Math.max(...data.map((d) => d.date.getTime()));
-  const minDate = Math.min(...data.map((d) => d.date.getTime()));
+  const maxDate = Math.max(...data.value.map((d) => d.date.getTime()));
+  const minDate = Math.min(...data.value.map((d) => d.date.getTime()));
   const xScale = plotAreaWidth / (maxDate - minDate || 1);
 
   // Convert adjustedX to the corresponding date value
   const targetDate = adjustedX / xScale + minDate;
 
   // Find the closest loans point
-  let closest = data[0];
+  let closest = data.value[0];
   let minDiff = Math.abs(targetDate - closest.date.getTime());
 
-  for (const point of data) {
+  for (const point of data.value) {
     const diff = Math.abs(targetDate - point.date.getTime());
     if (diff < minDiff) {
       closest = point;
@@ -136,7 +137,7 @@ function getClosestDataPoint(cPosition: number) {
 
 async function loadData() {
   const response = await EtlApi.fetchTimeSeries();
-  data = response
+  data.value = response
     .map((d) => ({
       date: new Date(d.lp_pool_timestamp),
       borrowed: d.borrowed,

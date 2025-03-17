@@ -1,7 +1,7 @@
 <template>
   <Dialog
     ref="dialog"
-    :title="$t('message.transfer')"
+    :title="title"
     :tabs="[{ label: $t('message.swap') }, { label: $t('message.receive') }, { label: $t('message.send') }]"
     showClose
     @close-dialog="
@@ -31,10 +31,12 @@ import { useRoute, useRouter } from "vue-router";
 import { Dialog } from "web-components";
 import { AssetsDialog } from "@/modules/assets/enums";
 import { SwapForm, SendForm, ReceiveForm } from "./index";
+import { useI18n } from "vue-i18n";
 
 const route = useRoute();
 const router = useRouter();
 const dialog = ref<typeof Dialog | null>(null);
+const i18n = useI18n();
 
 onMounted(() => {
   dialog?.value?.show();
@@ -52,6 +54,16 @@ const activeTabIndex = computed(() => {
   if (tab === AssetsDialog.SEND) return 2;
 
   return 0;
+});
+
+const title = computed(() => {
+  const tab = route.params.tab as string;
+
+  if (tab === AssetsDialog.SWAP) return i18n.t("message.swap");
+  if (tab === AssetsDialog.RECEIVE) return i18n.t("message.receive");
+  if (tab === AssetsDialog.SEND) return i18n.t("message.send");
+
+  return i18n.t("message.transfer");
 });
 
 function onChangeTab(event: number) {

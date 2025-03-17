@@ -4,6 +4,7 @@
     :fns="[loadData]"
     :getClosestDataPoint="getClosestDataPoint"
     ref="chart"
+    :data-length="data.length"
   />
 </template>
 
@@ -20,8 +21,7 @@ import { Dec } from "@keplr-wallet/unit";
 
 type ChartData = { amount: number; date: number };
 
-let data: ChartData[] = [];
-
+const data = ref<ChartData[]>([]);
 const period = [{ months: 0 }, { months: 12 }, { months: 24 }, { months: 48 }];
 const days = 30;
 
@@ -69,7 +69,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     },
     x: { ticks: 4, type: "linear", round: true, tickFormat: (d) => `${d}m.` },
     marks: [
-      lineY(data, {
+      lineY(data.value, {
         x: "date",
         y: "amount",
         stroke: "#3470E2",
@@ -111,21 +111,18 @@ function getClosestDataPoint(cPosition: number) {
   const plotAreaWidth = chartWidth - marginLeft - marginRight;
   const adjustedX = cPosition - marginLeft;
 
-  if (data.length === 0) return null;
+  if (data.value.length === 0) return null;
 
-  // Scale `adjustedX` to match `data` range
-  const maxDate = Math.max(...data.map((d) => d.date));
-  const minDate = Math.min(...data.map((d) => d.date));
+  const maxDate = Math.max(...data.value.map((d) => d.date));
+  const minDate = Math.min(...data.value.map((d) => d.date));
   const xScale = plotAreaWidth / (maxDate - minDate || 1);
 
-  // Convert adjustedX to the corresponding date value
   const targetDate = adjustedX / xScale + minDate;
 
-  // Find the closest data point
-  let closest = data[0];
+  let closest = data.value[0];
   let minDiff = Math.abs(targetDate - closest.date);
 
-  for (const point of data) {
+  for (const point of data.value) {
     const diff = Math.abs(targetDate - point.date);
     if (diff < minDiff) {
       closest = point;
@@ -138,7 +135,7 @@ function getClosestDataPoint(cPosition: number) {
 
 async function loadData() {
   const apr = new Dec(wallet?.apr ?? 0);
-  data = period.map((item) => {
+  data.value = period.map((item) => {
     const p = item.months * days;
     const a = props.amount.add(apr.quo(new Dec(PERCENT)).mul(props.amount).mul(new Dec(p))).toString(2);
     return {

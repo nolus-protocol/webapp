@@ -5,6 +5,7 @@
     :getClosestDataPoint="getClosestDataPoint"
     ref="chart"
     :disableSkeleton="true"
+    :data-length="5"
   />
 </template>
 

@@ -98,11 +98,11 @@ import { AssetUtils } from "@/common/utils";
 
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import HealthArrow from "@/assets/icons/lease/health-arrow.svg";
+import EmptyState from "@/common/components/EmptyState.vue";
 import { useOracleStore } from "@/common/stores/oracle";
 import type { LeaseData } from "@/common/types";
 import { getStatus, TEMPLATES } from "../common";
-import EmptyState from "@/common/components/EmptyState.vue";
-import { LTV, PERCENT, PositionTypes, ProtocolsConfig } from "@/config/global";
+import { PERCENT, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { useRoute, useRouter } from "vue-router";
 import { RouteNames } from "@/router";
 
@@ -199,9 +199,11 @@ const health = computed(() => {
     };
 
     const margin_total = fn()!;
-    const health = new Dec(1).sub(margin_total.quo(priceAmount).quo(new Dec(LTV)));
+    const ltv = margin_total.quo(priceAmount).sub(new Dec(0.2));
 
-    return Number(health.mul(new Dec(PERCENT)).toString(2)); // 100% is the max value
+    const health = new Dec(1).sub(ltv.quo(new Dec(0.7)));
+
+    return Math.min(100, Math.max(Number(health.mul(new Dec(PERCENT)).toString(2)), 0)); // 100% is the max value
   }
 
   return 0;

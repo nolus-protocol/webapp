@@ -15,19 +15,34 @@
         />
       </div>
     </div>
+
+    <template v-else>
+      <EmptyState
+        v-if="dataLength < minLength"
+        :slider="[
+          {
+            image: { name: 'no-results-found', class: 'max-h-[150px]' },
+            title: $t('message.no-chartdata'),
+            description: $t('message.no-chartdata-description')
+          }
+        ]"
+      />
+    </template>
+
     <div
       ref="plotContainer"
       class="flex items-center justify-center"
-      :class="[{ 'opacity-0': isLoading && !disableSkeleton }]"
+      :class="[{ 'opacity-0': isLoading && !disableSkeleton, hidden: !isLoading && dataLength < minLength }]"
     ></div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { select } from "d3";
-import { onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { Logger } from "../utils";
 import { Spinner } from "web-components";
+import EmptyState from "@/common/components/EmptyState.vue";
 
 export interface IChart {
   updateChart: Function;
@@ -35,8 +50,10 @@ export interface IChart {
   getClosestDataPoint: Function;
   loader?: boolean;
   disableSkeleton?: boolean;
+  dataLength: number;
 }
 
+const minLength = 3;
 const tooltip = select("body").append("div").attr("class", "custom-tooltip").style("opacity", 0);
 const props = defineProps<IChart>();
 const isLoading = ref(true);
@@ -54,6 +71,10 @@ onUnmounted(() => {
   tooltip.remove();
 });
 
+const isLegendVisible = computed(() => {
+  return !(!isLoading.value && props.dataLength < minLength);
+});
+
 function update() {
   props.updateChart(plotContainer.value, tooltip);
   isLoading.value = false;
@@ -67,5 +88,5 @@ watch(
   }
 );
 
-defineExpose({ update });
+defineExpose({ update, isLegendVisible });
 </script>

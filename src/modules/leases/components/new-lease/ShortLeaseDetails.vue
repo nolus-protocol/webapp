@@ -30,6 +30,7 @@
     />
     <div class="flex flex-col gap-3">
       <span class="text-16 font-semibold text-typography-default">{{ $t("message.position-preview") }}</span>
+      {{ borrowStable }} axaxaxax
       <PositionPreviewChart
         :borrowAsset="asset"
         :borrowStable="lease ? borrowStable : new Dec(0)"
@@ -240,13 +241,18 @@ const asset = computed(() => {
 });
 
 const lpn = computed(() => {
-  const [t, p] = downPaymentAsset.value.key.split("@");
+  const [t, p] = loanAsset.value.key.split("@");
   const lpn = AssetUtils.getLpnByProtocol(p);
   return lpn;
 });
 
 const downPaymentAsset = computed(() => {
   const currency = app.currenciesData![props.downpaymentCurrency];
+  return currency;
+});
+
+const loanAsset = computed(() => {
+  const currency = app.currenciesData![props.loanCurrency];
   return currency;
 });
 

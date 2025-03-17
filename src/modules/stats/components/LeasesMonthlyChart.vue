@@ -4,6 +4,7 @@
     :updateChart="updateChart"
     :fns="[setStats]"
     :getClosestDataPoint="getClosestDataPoint"
+    :data-length="loans.length"
   />
 </template>
 
@@ -24,11 +25,11 @@ const marginRight = 30;
 const chart = ref<typeof Chart>();
 
 const i18n = useI18n();
-let loans: { amount: number; date: Date }[] = [];
+const loans = ref<{ amount: number; date: Date }[]>([]);
 
 async function setStats() {
   const response = await EtlApi.fetchLeaseMonthly();
-  loans = response
+  loans.value = response
     .map((d) => ({
       date: new Date(d.date),
       amount: d.amount
@@ -43,7 +44,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
   plotContainer.innerHTML = "";
   const plotChart = rectY(
-    loans,
+    loans.value,
     // @ts-ignore
     binX({ y: "sum" }, { x: "date", y: "amount", fill: "#19A96C", thresholds: timeMonth })
   ).plot({
@@ -91,17 +92,19 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     .on("mouseleave", () => {
       tooltip.style("opacity", 0);
     });
+
+  select(plotChart).selectAll("rect").attr("rx", 3).attr("ry", 3);
 }
 
 function getClosestDataPoint(cPosition: number) {
   const plotAreaWidth = chartWidth - marginLeft - marginRight;
   const adjustedX = cPosition - marginLeft;
-  const barWidth = plotAreaWidth / loans.length;
+  const barWidth = plotAreaWidth / loans.value.length;
 
   const barIndex = Math.floor(adjustedX / barWidth);
 
-  if (barIndex >= 0 && barIndex < loans.length) {
-    return loans[barIndex];
+  if (barIndex >= 0 && barIndex < loans.value.length) {
+    return loans.value[barIndex];
   }
 
   return null;

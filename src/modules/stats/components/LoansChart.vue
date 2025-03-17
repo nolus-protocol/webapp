@@ -4,6 +4,7 @@
     :updateChart="updateChart"
     :fns="[setStats]"
     :getClosestDataPoint="getClosestDataPoint"
+    :data-length="loans.length"
   />
 </template>
 
@@ -21,7 +22,7 @@ const marginLeft = 100;
 const width = 960;
 
 const chart = ref<typeof Chart>();
-let loans: { percentage: number; ticker: string; loan: string }[] = [];
+const loans = ref<{ percentage: number; ticker: string; loan: string }[]>([]);
 
 async function setStats() {
   const data = await fetch(`${EtlApi.getApiUrl()}/leased-assets`);
@@ -32,7 +33,7 @@ async function setStats() {
     total += Number(i.loan);
   }
 
-  loans = items
+  loans.value = items
     .map((item) => {
       const [key, protocol] = item.asset.split(" ");
       const currency = AssetUtils.getCurrencyByTicker(key);
@@ -72,7 +73,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     },
     marks: [
       ruleX([0]),
-      barX(loans, {
+      barX(loans.value, {
         x: "percentage",
         y: "ticker",
         rx2: 2,
@@ -114,11 +115,11 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 function getClosestDataPoint(yPosition: number) {
   const plotAreaHeight = chartHeight - marginTop - marginBottom;
   const adjustedY = yPosition - marginTop;
-  const barHeight = plotAreaHeight / loans.length;
+  const barHeight = plotAreaHeight / loans.value.length;
   const barIndex = Math.floor(adjustedY / barHeight);
 
-  if (barIndex >= 0 && barIndex < loans.length) {
-    return loans[barIndex];
+  if (barIndex >= 0 && barIndex < loans.value.length) {
+    return loans.value[barIndex];
   }
 
   return null;

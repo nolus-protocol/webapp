@@ -28,7 +28,7 @@
       <div
         v-else
         class="skeleton-box rounded-[4px]"
-        :style="[{ width: '100%', height: `${amount?.fontSize || 32 * 1.2}px` }]"
+        :style="[{ width: loadingWidth ?? '100%', height: `${amount?.fontSize || 32 * 1.2}px` }]"
       ></div>
     </div>
     <template v-if="pnlStatus">
@@ -48,7 +48,7 @@
       <div
         v-else
         class="skeleton-box mt-1 rounded-[4px]"
-        :style="[{ width: '100%', height: `${14 * 1.2}px` }]"
+        :style="[{ width: loadingWidth ?? '100%', height: `${14 * 1.2}px` }]"
       ></div>
     </template>
 
@@ -67,8 +67,8 @@
       </template>
       <div
         v-else
-        class="skeleton-box rounded-[4px]"
-        :style="[{ width: '100%', height: `${secondary?.fontSize || 12 * 1.2}px` }]"
+        class="skeleton-box mt-1 rounded-[4px]"
+        :style="[{ width: loadingWidth ?? '100%', height: `${secondary?.fontSize || 12 * 1.2}px` }]"
       ></div>
     </template>
   </div>
@@ -93,12 +93,7 @@ export interface IBigNumber {
   };
   icon?: boolean;
   loading?: boolean;
+  loadingWidth?: string;
 }
-const props = defineProps<IBigNumber>();
+defineProps<IBigNumber>();
 </script>
-
-<style scoped lang="scss">
-.label {
-  // text-transform: capitalize;
-}
-</style>

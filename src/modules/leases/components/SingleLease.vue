@@ -155,7 +155,17 @@
     </Alert>
 
     <PriceWidget :lease="lease" />
-    <PositionSummaryWidget :lease="lease" />
+    <PositionSummaryWidget
+      :lease="lease"
+      :loading="
+        loadingPartialClose ||
+        loadingFullClose ||
+        loadingOngoingPartialLiquidation ||
+        loadingFullPartialLiquidation ||
+        loadingOngoingPartialLiquidationLiability ||
+        loadingOngoingFullLiquidationLiability
+      "
+    />
     <div class="flex flex-col gap-8 md:flex-row">
       <PositionHealthWidget :lease="lease" />
       <!-- <StrategiesWidget :lease="lease" /> -->

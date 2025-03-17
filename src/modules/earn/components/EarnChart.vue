@@ -5,6 +5,7 @@
     :getClosestDataPoint="getClosestDataPoint"
     ref="chart"
     :disableSkeleton="true"
+    :data-length="5"
   />
 </template>
 
@@ -22,12 +23,12 @@ import { useApplicationStore } from "@/common/stores/application";
 
 type ChartData = { amount: number; date: number };
 
-let data: ChartData[] = [];
+const data = ref<ChartData[]>([]);
 
 const period = 48;
 const days = 30;
 
-const chartHeight = 300;
+const chartHeight = 250;
 const marginLeft = 40;
 const chartWidth = 400;
 const marginRight = 30;
@@ -71,12 +72,11 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       type: "linear",
       grid: true,
       label: i18n.t("message.earn-chart-y"),
-      ticks: 4,
       round: true
     },
-    x: { ticks: 4, type: "linear", round: true, tickFormat: (d) => `${d}m.` },
+    x: { ticks: 9, tickRotate: 15, type: "linear", tickFormat: (d) => `${d}m.` },
     marks: [
-      lineY(data, {
+      lineY(data.value, {
         x: "date",
         y: "amount",
         stroke: "#3470E2",
@@ -118,17 +118,17 @@ function getClosestDataPoint(cPosition: number) {
   const plotAreaWidth = chartWidth - marginLeft - marginRight;
   const adjustedX = cPosition - marginLeft;
 
-  if (data.length === 0) return null;
+  if (data.value.length === 0) return null;
 
-  const maxDate = Math.max(...data.map((d) => d.date));
-  const minDate = Math.min(...data.map((d) => d.date));
+  const maxDate = Math.max(...data.value.map((d) => d.date));
+  const minDate = Math.min(...data.value.map((d) => d.date));
   const xScale = plotAreaWidth / (maxDate - minDate || 1);
   const targetDate = adjustedX / xScale + minDate;
 
-  let closest = data[0];
+  let closest = data.value[0];
   let minDiff = Math.abs(targetDate - closest.date);
 
-  for (const point of data) {
+  for (const point of data.value) {
     const diff = Math.abs(targetDate - point.date);
     if (diff < minDiff) {
       closest = point;
@@ -141,9 +141,9 @@ function getClosestDataPoint(cPosition: number) {
 
 async function loadData() {
   let apr = new Dec(getApr(props.currencyKey) ?? 0);
-  data = [];
+  data.value = [];
   if (apr.isZero()) {
-    data = [];
+    data.value = [];
   } else {
     apr = apr.quo(new Dec(365));
     let amount = props.amount;
@@ -153,7 +153,7 @@ async function loadData() {
       const a = amount.add(apr.quo(new Dec(PERCENT)).mul(amount).mul(new Dec(p)));
       amount = amount.add(a.sub(amount));
 
-      data.push({
+      data.value.push({
         amount: Number(a.toString(2)),
         date: i
       });

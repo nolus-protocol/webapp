@@ -4,6 +4,7 @@
     :fns="[loadData]"
     :getClosestDataPoint="getClosestDataPoint"
     ref="chart"
+    :data-length="data.length"
   />
 </template>
 
@@ -20,7 +21,7 @@ import type { IObjectKeys } from "@/common/types";
 
 type ChartData = { amount: number; date: Date };
 
-let data: ChartData[] = [
+const data = ref<ChartData[]>([
   {
     amount: 0,
     date: new Date(Date.now() - 1000 * 60 * 60)
@@ -29,7 +30,7 @@ let data: ChartData[] = [
     amount: 0,
     date: new Date()
   }
-];
+]);
 
 const chartHeight = 250;
 const marginLeft = 40;
@@ -60,7 +61,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     },
     x: { type: "time", label: i18n.t("message.date-capitalize") },
     marks: [
-      lineY(data, {
+      lineY(data.value, {
         x: "date",
         y: "amount",
         stroke: "#3470E2",
@@ -102,21 +103,21 @@ function getClosestDataPoint(cPosition: number) {
   const plotAreaWidth = chartWidth - marginLeft - marginRight;
   const adjustedX = cPosition - marginLeft;
 
-  if (data.length === 0) return null;
+  if (data.value.length === 0) return null;
 
   // Scale `adjustedX` to match `data` range
-  const maxDate = Math.max(...data.map((d) => d.date.getTime()));
-  const minDate = Math.min(...data.map((d) => d.date.getTime()));
+  const maxDate = Math.max(...data.value.map((d) => d.date.getTime()));
+  const minDate = Math.min(...data.value.map((d) => d.date.getTime()));
   const xScale = plotAreaWidth / (maxDate - minDate || 1);
 
   // Convert adjustedX to the corresponding date value
   const targetDate = adjustedX / xScale + minDate;
 
   // Find the closest data point
-  let closest = data[0];
+  let closest = data.value[0];
   let minDiff = Math.abs(targetDate - closest.date.getTime());
 
-  for (const point of data) {
+  for (const point of data.value) {
     const diff = Math.abs(targetDate - point.date.getTime());
     if (diff < minDiff) {
       closest = point;
@@ -130,9 +131,9 @@ function getClosestDataPoint(cPosition: number) {
 async function loadData() {
   if (wallet.wallet?.address) {
     const response = await EtlApi.fetchUnrealizedByAddressPnl(wallet.wallet?.address);
-    data = response.map((d: IObjectKeys) => ({
-      date: new Date(d.date),
-      amount: Number(d.amount)
+    data.value = response.map((d: IObjectKeys) => ({
+      date: new Date(d.time),
+      amount: Number(d.pnl)
     }));
     chart.value?.update();
   }

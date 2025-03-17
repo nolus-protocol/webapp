@@ -1,5 +1,8 @@
 <template>
-  <div class="flex justify-center">
+  <div
+    v-if="chart?.isLegendVisible"
+    class="flex justify-center"
+  >
     <div class="flex items-center">
       <span class="m-2 block h-[8px] w-[20px] rounded bg-blue-500"></span>{{ $t("message.asset-price") }}
     </div>
@@ -12,6 +15,7 @@
     :updateChart="updateChart"
     :fns="[setData]"
     :getClosestDataPoint="getClosestDataPoint"
+    :data-length="data.length"
   />
 </template>
 
@@ -31,7 +35,7 @@ import { useApplicationStore } from "@/common/stores/application";
 
 type ChartData = { Date: Date; Price: number; Liquidation: string | null };
 
-let data: ChartData[] = [];
+const data = ref<ChartData[]>([]);
 const props = defineProps<{
   lease?: LeaseData;
   interval: string;
@@ -62,7 +66,7 @@ async function setData() {
   if (props.lease) {
     const chartData = await loadData(props.interval);
     const liquidations = getLiquidations();
-    data = (chartData ?? [])
+    data.value = (chartData ?? [])
       .map((item) => {
         const [date, price] = item;
         const now = new Date(date);
@@ -208,13 +212,13 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     },
     marks: [
       ruleY([0]),
-      lineY(data, {
+      lineY(data.value, {
         x: "Date",
         y: "Price",
         stroke: "#3470E2",
         curve: "basis"
       }),
-      lineY(data, {
+      lineY(data.value, {
         x: "Date",
         y: "Liquidation",
         stroke: "#FF5F3A",
@@ -256,21 +260,18 @@ function getClosestDataPoint(cPosition: number) {
   const plotAreaWidth = chartWidth - marginLeft - marginRight;
   const adjustedX = cPosition - marginLeft;
 
-  if (data.length === 0) return null;
+  if (data.value.length === 0) return null;
 
-  // Scale `adjustedX` to match `data` range
-  const maxDate = Math.max(...data.map((d) => d.Date.getTime()));
-  const minDate = Math.min(...data.map((d) => d.Date.getTime()));
+  const maxDate = Math.max(...data.value.map((d) => d.Date.getTime()));
+  const minDate = Math.min(...data.value.map((d) => d.Date.getTime()));
   const xScale = plotAreaWidth / (maxDate - minDate || 1);
 
-  // Convert adjustedX to the corresponding date value
   const targetDate = adjustedX / xScale + minDate;
 
-  // Find the closest data point
-  let closest = data[0];
+  let closest = data.value[0];
   let minDiff = Math.abs(targetDate - closest.Date.getTime());
 
-  for (const point of data) {
+  for (const point of data.value) {
     const diff = Math.abs(targetDate - point.Date.getTime());
     if (diff < minDiff) {
       closest = point;

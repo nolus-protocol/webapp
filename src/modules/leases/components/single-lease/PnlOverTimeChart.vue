@@ -22,14 +22,17 @@
       v-html="gradientHTML"
     ></div>
     <Chart
+      :data-length="data.length"
       ref="chart"
       :updateChart="updateChart"
       :fns="[setData]"
       :getClosestDataPoint="getClosestDataPoint"
     />
   </div>
-
-  <div class="flex justify-center">
+  <div
+    class="flex justify-center"
+    v-if="chart?.isLegendVisible"
+  >
     <div class="flex items-center">
       <span class="btn-gradient m-2 block h-[8px] w-[20px] rounded"></span>
       {{ $t("message.pnl-in-usdc") }}
@@ -64,7 +67,7 @@ const options = Object.values(CHART_RANGES).map((value) => ({
   value: value.label
 }));
 
-let data: ChartData[] = [
+const data = ref<ChartData[]>([
   {
     amount: 0,
     date: new Date(Date.now() - 1000 * 60 * 60)
@@ -73,7 +76,7 @@ let data: ChartData[] = [
     amount: 0,
     date: new Date()
   }
-];
+]);
 const chart = ref<typeof Chart>();
 const props = defineProps<{ lease?: LeaseData }>();
 
@@ -93,7 +96,7 @@ async function setData() {
   if (props.lease?.leaseAddress) {
     const response = await EtlApi.fetchPnlOverTime(props.lease?.leaseAddress, chartTimeRange.value.days);
     if (response.length > 0) {
-      data = response.map((d) => ({
+      data.value = response.map((d) => ({
         date: new Date(d.date),
         amount: Number(d.amount)
       }));
@@ -137,7 +140,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       tickFormat: (d) => new Date(d).toLocaleString("default", { month: "short", year: "2-digit" })
     },
     marks: [
-      line(data, {
+      line(data.value, {
         x: "date",
         y: "amount",
         stroke: "url(#gradient)",
@@ -176,42 +179,21 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     });
 }
 
-// function getClosestDataPoint(cPosition: number) {
-//   const plotAreaWidth = chartWidth - marginLeft - marginRight;
-//   const adjustedX = cPosition - marginLeft;
-//   const barWidth = plotAreaWidth / data.length;
-//   const barIndex = Math.floor(adjustedX / barWidth) + 1;
-
-//   if (barIndex < 0) {
-//     return data.at(0);
-//   }
-
-//   if (barIndex > data.length - 1) {
-//     return data.at(-1);
-//   }
-
-//   return data[barIndex];
-// }
-
 function getClosestDataPoint(cPosition: number) {
   const plotAreaWidth = chartWidth - marginLeft - marginRight;
   const adjustedX = cPosition - marginLeft;
 
-  if (data.length === 0) return null;
+  if (data.value.length === 0) return null;
 
-  // Scale `adjustedX` to match `data` range
-  const maxDate = Math.max(...data.map((d) => d.date.getTime()));
-  const minDate = Math.min(...data.map((d) => d.date.getTime()));
+  const maxDate = Math.max(...data.value.map((d) => d.date.getTime()));
+  const minDate = Math.min(...data.value.map((d) => d.date.getTime()));
   const xScale = plotAreaWidth / (maxDate - minDate || 1);
 
-  // Convert adjustedX to the corresponding date value
   const targetDate = adjustedX / xScale + minDate;
-
-  // Find the closest data point
-  let closest = data[0];
+  let closest = data.value[0];
   let minDiff = Math.abs(targetDate - closest.date.getTime());
 
-  for (const point of data) {
+  for (const point of data.value) {
     const diff = Math.abs(targetDate - point.date.getTime());
     if (diff < minDiff) {
       closest = point;
