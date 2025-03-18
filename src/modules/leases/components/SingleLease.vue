@@ -77,7 +77,7 @@
           <a
             @click="
               () => {
-                router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/lear-liquidation`);
+                router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/interest-collection`);
               }
             "
             class="cursor-pointer font-normal text-typography-link"
@@ -99,7 +99,7 @@
           <a
             @click="
               () => {
-                router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/lear-liquidation`);
+                router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/interest-collection`);
               }
             "
             class="cursor-pointer font-normal text-typography-link"
@@ -121,7 +121,7 @@
           <a
             @click="
               () => {
-                router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/lear-liquidation`);
+                router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/liquidation-partial`);
               }
             "
             class="cursor-pointer font-normal text-typography-link"
@@ -143,7 +143,7 @@
           <a
             @click="
               () => {
-                router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/lear-liquidation`);
+                router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/liquidation-full`);
               }
             "
             class="cursor-pointer font-normal text-typography-link"
