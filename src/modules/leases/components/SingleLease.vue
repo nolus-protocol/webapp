@@ -77,7 +77,7 @@
           <a
             @click="
               () => {
-                router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/learn-lease`);
+                router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/lear-liquidation`);
               }
             "
             class="cursor-pointer font-normal text-typography-link"
@@ -99,7 +99,7 @@
           <a
             @click="
               () => {
-                router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/learn-lease`);
+                router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/lear-liquidation`);
               }
             "
             class="cursor-pointer font-normal text-typography-link"
@@ -121,7 +121,7 @@
           <a
             @click="
               () => {
-                router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/learn-lease`);
+                router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/lear-liquidation`);
               }
             "
             class="cursor-pointer font-normal text-typography-link"
@@ -143,7 +143,7 @@
           <a
             @click="
               () => {
-                router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/learn-lease`);
+                router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/lear-liquidation`);
               }
             "
             class="cursor-pointer font-normal text-typography-link"

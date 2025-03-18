@@ -28,6 +28,8 @@ export const NATIVE_NETWORK = {
   leaseOpenEstimation: 2,
   leaseRepayEstimation: 1,
   delegateEstimation: 3,
+  earnEstimation: 3,
+  voteEstimation: 3,
   transferEstimation: 6,
   key: "NOLUS",
   symbol: "NLS",

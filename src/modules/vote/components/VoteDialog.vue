@@ -86,6 +86,9 @@
           :loading="isLoading == VoteOption.VOTE_OPTION_NO_WITH_VETO"
         />
       </div>
+      <p class="mt-4 text-center text-12 text-typography-secondary">
+        {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.voteEstimation }}{{ $t("message.sec") }}
+      </p>
     </template>
   </Dialog>
 </template>
@@ -98,6 +101,7 @@ import type { FinalTallyResult, Proposal } from "@/modules/vote/types";
 import { Dec } from "@keplr-wallet/unit";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { Button, Dialog, ProposalStatus, ProposalVotingLine, ToastType } from "web-components";
+import { NATIVE_NETWORK } from "../../../config/global/network";
 
 import { NATIVE_ASSET } from "@/config/global";
 import { formatDateTime, Logger, NetworkUtils, walletOperation } from "@/common/utils";
