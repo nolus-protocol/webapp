@@ -22,35 +22,43 @@
             class="m flex items-center gap-1 text-14 text-typography-default"
           >
             <span class="mr-1">{{ $t("message.pnl") }}: </span>
-            <span class="font-semibold">
-              <Label
-                v-if="pnl.neutral"
-                variant="info"
-              >
-                <SvgIcon
-                  name="arrow-up"
-                  size="xs"
-                />
-                <span class="ml-1">{{ pnl.status ? "+" : "" }}{{ pnl.percent }}%</span>
-              </Label>
-              <template v-else>
-                <Label :variant="pnl?.status ? 'success' : 'error'">
+
+            <div
+              v-if="loading"
+              class="skeleton-box rounded-[4px]"
+              :style="[{ width: '80px', height: `${16 * 1.2}px` }]"
+            ></div>
+            <template v-else>
+              <span class="font-semibold">
+                <Label
+                  v-if="pnl.neutral"
+                  variant="info"
+                >
                   <SvgIcon
-                    v-if="pnl?.status"
                     name="arrow-up"
                     size="xs"
-                    class="fill-icon-success"
-                  />
-                  <SvgIcon
-                    v-if="pnl?.status == false"
-                    name="arrow-down"
-                    size="xs"
-                    class="fill-icon-error"
                   />
                   <span class="ml-1">{{ pnl.status ? "+" : "" }}{{ pnl.percent }}%</span>
                 </Label>
-              </template>
-            </span>
+                <template v-else>
+                  <Label :variant="pnl?.status ? 'success' : 'error'">
+                    <SvgIcon
+                      v-if="pnl?.status"
+                      name="arrow-up"
+                      size="xs"
+                      class="fill-icon-success"
+                    />
+                    <SvgIcon
+                      v-if="pnl?.status == false"
+                      name="arrow-down"
+                      size="xs"
+                      class="fill-icon-error"
+                    />
+                    <span class="ml-1">{{ pnl.status ? "+" : "" }}{{ pnl.percent }}%</span>
+                  </Label>
+                </template>
+              </span>
+            </template>
           </div>
           <div class="hidden gap-1 text-14 text-typography-default md:flex">
             {{ $t("message.opened-on") }}:<span class="font-semibold">{{
@@ -58,7 +66,14 @@
             }}</span>
           </div>
           <div class="hidden gap-1 text-14 text-typography-default md:flex">
-            {{ $t("message.lease-size") }}:<span class="font-semibold">{{ NATIVE_CURRENCY.symbol }}{{ stable }}</span>
+            {{ $t("message.lease-size") }}:<span class="font-semibold">
+              <div
+                v-if="loading"
+                class="skeleton-box rounded-[4px]"
+                :style="[{ width: '80px', height: `${16 * 1.2}px` }]"
+              ></div>
+              <template v-else> {{ NATIVE_CURRENCY.symbol }}{{ stable }} </template>
+            </span>
           </div>
         </div>
       </div>
@@ -137,6 +152,7 @@ const pnl = ref({
 
 const props = defineProps<{
   lease?: LeaseData;
+  loading?: boolean;
 }>();
 
 const oracle = useOracleStore();

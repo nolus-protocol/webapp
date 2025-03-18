@@ -544,7 +544,11 @@ function setLeases() {
 
         ls = ls.add(l);
         lease.debt = lease.debt.mul(new Dec(price.amount));
-        pnlPercent = pnlPercent.add(lease.pnlAmount.quo(downpayment as Dec).mul(new Dec(100)));
+        pnlPercent = pnlPercent.add(
+          lease.pnlAmount
+            .quo((downpayment as Dec).add((lease.leaseData?.repayment_value ?? new Dec(0)) as Dec))
+            .mul(new Dec(100))
+        );
         count++;
       }
       db = db.add(lease.debt as Dec);

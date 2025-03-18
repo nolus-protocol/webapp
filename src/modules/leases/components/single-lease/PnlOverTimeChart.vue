@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center justify-end gap-3">
+  <!-- <div class="flex items-center justify-end gap-3">
     <span>{{ $t("message.period") }}:</span>
     <Dropdown
       id="price"
@@ -14,7 +14,7 @@
       dropdownPosition="right"
       dropdownClassName="min-w-10"
     />
-  </div>
+  </div> -->
 
   <div class="chart-container">
     <div
@@ -43,7 +43,6 @@
 <script lang="ts" setup>
 import Chart from "@/common/components/Chart.vue";
 import { ref, watch } from "vue";
-import { Dropdown } from "web-components";
 import { plot, line } from "@observablehq/plot";
 import { pointer, select, type Selection } from "d3";
 

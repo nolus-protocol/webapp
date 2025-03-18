@@ -10,7 +10,7 @@
         {{ $t("message.terms-of-service") }}
       </button>
     </div>
-    <div class="flex flex-col gap-2 lg:grid lg:grid-cols-2">
+    <div class="flex flex-col gap-2">
       <WalletBoxes
         v-for="connection in connections"
         :key="connection.label"
@@ -48,7 +48,6 @@ import TermsDialog from "../dialogs/TermsDialog.vue";
 import KeplrIcon from "@/assets/icons/wallets/keplr.svg?url";
 import LedgerIcon from "@/assets/icons/wallets/ledger.svg?url";
 import LeapIcon from "@/assets/icons/wallets/leapwallet.svg?url";
-import MetamaskIcon from "@/assets/icons/wallets/metamask.svg?url";
 import { useRouter } from "vue-router";
 
 const i18n = useI18n();
@@ -70,11 +69,6 @@ const connections = {
     icon: LedgerIcon,
     label: i18n.t("message.ledger"),
     type: WalletActions.CONNECT_LEDGER
-  },
-  Metamask: {
-    icon: MetamaskIcon,
-    label: i18n.t("message.metamask"),
-    type: undefined
   }
 };
 

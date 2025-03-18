@@ -18,7 +18,7 @@
 <script lang="ts" setup>
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
 import { Logger } from "@/common/utils";
-import { inject, ref, type Component } from "vue";
+import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { Spinner, ToastType } from "web-components";
 

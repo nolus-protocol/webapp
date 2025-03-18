@@ -126,7 +126,7 @@
           :loading="loading"
         />
         <p class="text-center text-12 text-typography-secondary">
-          {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.longOperationsEstimation }}{{ $t("message.sec") }}
+          {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.leaseRepayEstimation }}{{ $t("message.sec") }}
         </p>
       </div>
     </template>

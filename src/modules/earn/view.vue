@@ -234,6 +234,19 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
       const stable_balance = AssetUtils.formatNumber(stable_b.toString(2), 2);
       const [_ticker, protocol] = item.key?.split("@") ?? [];
       const apr = new Dec(application.apr?.[protocol] ?? 0).toString(2);
+
+      return {
+        supply: item.supply,
+        balance,
+        stable_balance,
+        apr,
+        currency: c
+      };
+    })
+    .sort((a, b) => {
+      return Number(b.stable_balance) - Number(a.stable_balance);
+    })
+    .map((item) => {
       const v = item.supply
         ? () =>
             h<LabelProps>(PausedLabel, {
@@ -251,13 +264,13 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
       return {
         items: [
           {
-            value: c.name,
-            subValue: c.shortName,
-            image: c.icon,
+            value: item.currency.name,
+            subValue: item.currency.shortName,
+            image: item.currency.icon,
             variant: "left"
           },
-          { value: `${balance}`, subValue: `${NATIVE_CURRENCY.symbol}${stable_balance}`, variant: "right" },
-          { value: `${apr}%`, class: "text-typography-success" },
+          { value: `${item.balance}`, subValue: `${NATIVE_CURRENCY.symbol}${item.stable_balance}`, variant: "right" },
+          { value: `${item.apr}%`, class: "text-typography-success" },
           { component: v }
         ]
       };

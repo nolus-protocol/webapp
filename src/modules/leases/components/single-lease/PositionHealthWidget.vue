@@ -61,10 +61,29 @@
         />
       </div>
       <div class="flex flex-col items-center text-typography-default">
-        <div class="text-32 font-semibold">{{ health }}%</div>
-        <div class="text-16">
+        <div
+          v-if="loading"
+          class="skeleton-box mb-2 rounded-[4px]"
+          :style="[{ width: '100px', height: `${26 * 1.2}px` }]"
+        ></div>
+        <div
+          v-else
+          class="text-32 font-semibold"
+        >
+          {{ health }}%
+        </div>
+        <div class="flex text-16">
           {{ $t("message.current-health") }}:
-          <span class="font-semibold">
+          <div
+            v-if="loading"
+            class="skeleton-box ml-2 rounded-[4px]"
+            :style="[{ width: '60px', height: `${16 * 1.2}px` }]"
+          ></div>
+
+          <span
+            class="ml-2 font-semibold"
+            v-else
+          >
             {{ $t(`message.${healTitle}-status`) }}
           </span>
         </div>
@@ -123,6 +142,7 @@ const props = withDefaults(
     lease?: LeaseData;
     greenLimit?: number;
     yellowLimit?: number;
+    loading?: boolean;
   }>(),
   {
     greenLimit: 25,

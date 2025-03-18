@@ -1,5 +1,16 @@
 <template>
-  <SingleLeaseHeader :lease="lease" />
+  <SingleLeaseHeader
+    :lease="lease"
+    :loading="
+      status == TEMPLATES.opening ||
+      loadingPartialClose ||
+      loadingFullClose ||
+      loadingOngoingPartialLiquidation ||
+      loadingFullPartialLiquidation ||
+      loadingOngoingPartialLiquidationLiability ||
+      loadingOngoingFullLiquidationLiability
+    "
+  />
   <div class="flex flex-col gap-8">
     <Alert
       v-if="status == TEMPLATES.opening"
@@ -167,7 +178,18 @@
       "
     />
     <div class="flex flex-col gap-8 md:flex-row">
-      <PositionHealthWidget :lease="lease" />
+      <PositionHealthWidget
+        :lease="lease"
+        :loading="
+          status == TEMPLATES.opening ||
+          loadingPartialClose ||
+          loadingFullClose ||
+          loadingOngoingPartialLiquidation ||
+          loadingFullPartialLiquidation ||
+          loadingOngoingPartialLiquidationLiability ||
+          loadingOngoingFullLiquidationLiability
+        "
+      />
       <!-- <StrategiesWidget :lease="lease" /> -->
     </div>
     <template v-if="lease?.leaseData">
@@ -195,7 +217,12 @@ import { Alert, AlertType, Stepper, StepperVariant } from "web-components";
 import { getStatus, TEMPLATES } from "./common";
 import type { LeaseData } from "@/common/types";
 import { Contracts, NATIVE_NETWORK, UPDATE_LEASES } from "@/config/global";
-import type { BuyAssetOngoingState, TransferOutOngoingState } from "@nolus/nolusjs/build/contracts";
+import type {
+  BuyAssetOngoingState,
+  CloseOngoingState,
+  LiquidationOngoingState,
+  TransferOutOngoingState
+} from "@nolus/nolusjs/build/contracts";
 import { RouteNames } from "@/router";
 
 const route = useRoute();
@@ -265,9 +292,9 @@ onUnmounted(() => {
 });
 
 const loadingPartialClose = computed(() => {
-  const data = lease.value?.leaseStatus.additional_data;
+  const data = lease.value?.leaseStatus.opened?.in_progress as CloseOngoingState;
 
-  if (data?.type == "PartialClose") {
+  if (data?.close?.type == "Partial") {
     return true;
   }
 
@@ -275,9 +302,9 @@ const loadingPartialClose = computed(() => {
 });
 
 const loadingFullClose = computed(() => {
-  const data = lease.value?.leaseStatus.additional_data;
+  const data = lease.value?.leaseStatus.opened?.in_progress as CloseOngoingState;
 
-  if (data?.type == "FullClose") {
+  if (data?.close?.type == "Full") {
     return true;
   }
 
@@ -305,9 +332,9 @@ const loadingCollect = computed(() => {
 });
 
 const loadingOngoingPartialLiquidation = computed(() => {
-  const data = lease.value?.leaseStatus.additional_data;
+  const data = lease.value?.leaseStatus.opened?.in_progress as LiquidationOngoingState;
 
-  if (data?.type == "PartialLiquidation" && data?.cause == "Overdue") {
+  if (data?.liquidation.type == "Partial" && data?.liquidation?.cause == "overdue") {
     return true;
   }
 
@@ -315,9 +342,9 @@ const loadingOngoingPartialLiquidation = computed(() => {
 });
 
 const loadingFullPartialLiquidation = computed(() => {
-  const data = lease.value?.leaseStatus.additional_data;
+  const data = lease.value?.leaseStatus.opened?.in_progress as LiquidationOngoingState;
 
-  if (data?.type == "FullLiquidation" && data?.cause == "Overdue") {
+  if (data?.liquidation.type == "Full" && data?.liquidation?.cause == "overdue") {
     return true;
   }
 
@@ -325,9 +352,9 @@ const loadingFullPartialLiquidation = computed(() => {
 });
 
 const loadingOngoingPartialLiquidationLiability = computed(() => {
-  const data = lease.value?.leaseStatus.additional_data;
+  const data = lease.value?.leaseStatus.opened?.in_progress as LiquidationOngoingState;
 
-  if (data?.type == "PartialLiquidation" && data?.cause == "Liability") {
+  if (data?.liquidation.type == "Partial" && data?.liquidation?.cause == "liability") {
     return true;
   }
 
@@ -335,9 +362,9 @@ const loadingOngoingPartialLiquidationLiability = computed(() => {
 });
 
 const loadingOngoingFullLiquidationLiability = computed(() => {
-  const data = lease.value?.leaseStatus.additional_data;
+  const data = lease.value?.leaseStatus.opened?.in_progress as LiquidationOngoingState;
 
-  if (data?.type == "FullLiquidation" && data?.cause == "Liability") {
+  if (data?.liquidation.type == "Full" && data?.liquidation?.cause == "liability") {
     return true;
   }
 
