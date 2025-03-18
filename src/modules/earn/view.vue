@@ -239,12 +239,13 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
         supply: item.supply,
         balance,
         stable_balance,
+        stable_balance_number: Number(stable_b.toString(2)),
         apr,
         currency: c
       };
     })
     .sort((a, b) => {
-      return Number(b.stable_balance) - Number(a.stable_balance);
+      return Number(b.stable_balance_number) - Number(a.stable_balance_number);
     })
     .map((item) => {
       const v = item.supply

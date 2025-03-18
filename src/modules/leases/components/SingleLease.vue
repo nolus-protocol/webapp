@@ -333,8 +333,7 @@ const loadingCollect = computed(() => {
 
 const loadingOngoingPartialLiquidation = computed(() => {
   const data = lease.value?.leaseStatus.opened?.in_progress as LiquidationOngoingState;
-
-  if (data?.liquidation.type == "Partial" && data?.liquidation?.cause == "overdue") {
+  if (data?.liquidation?.type == "Partial" && data?.liquidation?.cause == "overdue") {
     return true;
   }
 
@@ -344,7 +343,7 @@ const loadingOngoingPartialLiquidation = computed(() => {
 const loadingFullPartialLiquidation = computed(() => {
   const data = lease.value?.leaseStatus.opened?.in_progress as LiquidationOngoingState;
 
-  if (data?.liquidation.type == "Full" && data?.liquidation?.cause == "overdue") {
+  if (data?.liquidation?.type == "Full" && data?.liquidation?.cause == "overdue") {
     return true;
   }
 
@@ -354,7 +353,7 @@ const loadingFullPartialLiquidation = computed(() => {
 const loadingOngoingPartialLiquidationLiability = computed(() => {
   const data = lease.value?.leaseStatus.opened?.in_progress as LiquidationOngoingState;
 
-  if (data?.liquidation.type == "Partial" && data?.liquidation?.cause == "liability") {
+  if (data?.liquidation?.type == "Partial" && data?.liquidation?.cause == "liability") {
     return true;
   }
 
@@ -364,7 +363,7 @@ const loadingOngoingPartialLiquidationLiability = computed(() => {
 const loadingOngoingFullLiquidationLiability = computed(() => {
   const data = lease.value?.leaseStatus.opened?.in_progress as LiquidationOngoingState;
 
-  if (data?.liquidation.type == "Full" && data?.liquidation?.cause == "liability") {
+  if (data?.liquidation?.type == "Full" && data?.liquidation?.cause == "liability") {
     return true;
   }
 

@@ -13,7 +13,7 @@
           description: $t('message.position-strategy-empty-description'),
           link: {
             label: $t('message.position-strategy-empty-link'),
-            url: '#',
+            url: `/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/learn-summary`,
             tooltip: { content: $t('message.position-strategy-empty-tooltip') }
           }
         }
@@ -52,12 +52,15 @@ import { ref, computed } from "vue";
 import { Toggle, Widget } from "web-components";
 import { getStatus, TEMPLATES } from "../common";
 import type { LeaseData } from "@/common/types";
+import { RouteNames } from "@/router";
+import { useRoute } from "vue-router";
 
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import WatcherIcon from "@/assets/icons/lease/watcher.svg";
 import ActivateStrategyDialog from "@/modules/leases/components/single-lease/ActivateStrategyDialog.vue";
 import EmptyState from "@/common/components/EmptyState.vue";
 
+const route = useRoute();
 const strategyDialogRef = ref<typeof ActivateStrategyDialog | null>(null);
 const props = defineProps<{
   lease?: LeaseData;

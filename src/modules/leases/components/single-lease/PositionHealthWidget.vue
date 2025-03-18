@@ -13,7 +13,7 @@
           description: $t('message.position-health-empty-description'),
           link: {
             label: $t('message.position-health-empty-link'),
-            url: '#',
+            url: `/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/learn-health`,
             tooltip: { content: $t('message.position-health-empty-tooltip') }
           }
         }
