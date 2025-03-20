@@ -48,7 +48,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
   api: string;
   prefix: string;
   queryClientBase: QueryClient & AuthExtension & BankExtension & StakingExtension & TxExtension;
-  gasMupltiplier: number;
+  gasMultiplier: number;
   explorer: string;
 
   protected gasPriceData: string;
@@ -61,7 +61,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
     rpc: string,
     api: string,
     prefix: string,
-    gasMupltiplier: number,
+    gasMultiplier: number,
     gasPrice: string,
     explorer: string
   ) {
@@ -71,7 +71,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
     this.api = api;
     this.prefix = prefix;
     this.gasPriceData = gasPrice;
-    this.gasMupltiplier = gasMupltiplier;
+    this.gasMultiplier = gasMultiplier;
     this.explorer = explorer;
     this.queryClientBase = QueryClient.withExtensions(
       tmClient!,
@@ -94,7 +94,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
   async simulateTx(
     msg: MsgSend | MsgExecuteContract | MsgTransfer,
     msgTypeUrl: string,
-    gasMupltiplier: number,
+    gasMultiplier: number,
     gasPrice: string,
     memo = "",
     gasData?: { gasWanted: number; gasUsed: number }
@@ -108,7 +108,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
 
     const sequence = await this.sequence();
     const gasInfo = gasData ?? (await this.getGas(msgAny, memo, pubkey, sequence));
-    const gas = Math.round(Number(gasInfo?.gasUsed) * (this.gasMupltiplier ?? gasMupltiplier));
+    const gas = Math.round(Number(gasInfo?.gasUsed) * (this.gasMultiplier ?? gasMultiplier));
     const usedFee = calculateFee(gas, this.gasPriceData ?? gasPrice);
     const txRaw = await this.sign(this.address as string, [msgAny], usedFee, memo);
 
@@ -186,7 +186,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
   public async simulateBankTransferTx(
     toAddress: string,
     amount: Coin[],
-    gasMupltiplier: number,
+    gasMultiplier: number,
     gasPrice: string,
     memo = ""
   ) {
@@ -196,7 +196,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
       amount
     });
 
-    return await this.simulateTx(msg, "/cosmos.bank.v1beta1.MsgSend", gasMupltiplier, gasPrice);
+    return await this.simulateTx(msg, "/cosmos.bank.v1beta1.MsgSend", gasMultiplier, gasPrice);
   }
 
   public async simulateSendIbcTokensTx({
@@ -205,7 +205,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
     sourcePort,
     sourceChannel,
     timeOut,
-    gasMupltiplier,
+    gasMultiplier,
     gasPrice,
     memo = ""
   }: {
@@ -214,7 +214,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
     sourcePort: string;
     sourceChannel: string;
     timeOut: number;
-    gasMupltiplier: number;
+    gasMultiplier: number;
     gasPrice: string;
     memo?: string;
   }) {
@@ -246,14 +246,14 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
       return await this.simulateTx(
         msg,
         "/ibc.applications.transfer.v1.MsgTransfer",
-        gasMupltiplier,
+        gasMultiplier,
         gasPrice,
         "",
         data.gasInfo
       );
     }
 
-    return await this.simulateTx(msg, "/ibc.applications.transfer.v1.MsgTransfer", gasMupltiplier, gasPrice, "");
+    return await this.simulateTx(msg, "/ibc.applications.transfer.v1.MsgTransfer", gasMultiplier, gasPrice, "");
   }
 
   private async sequence() {
@@ -409,7 +409,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
     const sequence = await this.sequence();
     const { gasInfo } = await this.forceGetQueryClient().tx.simulate(encodedMSGS, memo, pubkey, sequence?.sequence!);
 
-    const gas = Math.round(Number(gasInfo?.gasUsed ?? 0) * this.gasMupltiplier);
+    const gas = Math.round(Number(gasInfo?.gasUsed ?? 0) * this.gasMultiplier);
     const usedFee = calculateFee(gas, this.gasPriceData);
     const txRaw = await this.sign(this.address as string, msgs, usedFee, memo);
 

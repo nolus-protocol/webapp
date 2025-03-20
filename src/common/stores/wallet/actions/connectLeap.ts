@@ -37,7 +37,9 @@ export async function connectLeap(this: Store) {
     await leapWindow.leap?.enable(chainId);
 
     if (leapWindow.leap.getOfflineSignerOnlyAmino) {
-      const offlineSigner = leapWindow.leap.getOfflineSignerOnlyAmino(chainId);
+      const offlineSigner = leapWindow.leap.getOfflineSignerOnlyAmino(chainId, {
+        preferNoSetFee: true
+      });
       const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(offlineSigner as any);
       await nolusWalletOfflineSigner.useAccount();
 
@@ -46,11 +48,6 @@ export async function connectLeap(this: Store) {
 
       this.wallet = nolusWalletOfflineSigner;
       this.walletName = (await leapWindow.leap.getKey(chainId)).name;
-      (window as any).leap.defaultOptions = {
-        sign: {
-          preferNoSetFee: true
-        }
-      };
       await this.UPDATE_BALANCES();
     }
   }

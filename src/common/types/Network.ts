@@ -17,7 +17,7 @@ export interface EvmNetwork {
   estimation: { duration: number; type: string };
   explorer: string;
   fees: { transfer: number };
-  gasMupltiplier: number;
+  gasMultiplier: number;
   key: string;
   label: string;
   name: string;
@@ -36,7 +36,7 @@ export interface EvmNetwork {
 
 export interface NetworkData {
   prefix: string;
-  gasMupltiplier: number;
+  gasMultiplier: number;
   bip44Path: string;
   ibcTransferTimeout: number;
   ticker: string;

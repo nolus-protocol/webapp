@@ -33,7 +33,7 @@ const data = ref<ChartData[]>([
 ]);
 
 const chartHeight = 250;
-const marginLeft = 40;
+const marginLeft = 50;
 const chartWidth = 960;
 const marginRight = 30;
 const marginBottom = 50;
@@ -57,7 +57,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     y: {
       type: "linear",
       grid: true,
-      label: i18n.t("message.days-unrealized-pnL")
+      label: i18n.t("message.days-unrealized-pnL"),
+      tickFormat: (d) => `${AssetUtils.formatNumber(d, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`
     },
     x: { type: "time", label: i18n.t("message.date-capitalize") },
     marks: [

@@ -28,7 +28,7 @@ async function createWallet(
   wallet: Wallet,
   offlineDirectSigner: OfflineDirectSigner | OfflineAminoSigner | LedgerSigner,
   prefix: string,
-  gasMupltiplier: number,
+  gasMultiplier: number,
   gasPrice: string,
   explorer: string
 ): Promise<BaseWallet> {
@@ -39,7 +39,7 @@ async function createWallet(
     wallet.rpc,
     wallet.api,
     prefix,
-    gasMupltiplier,
+    gasMultiplier,
     gasPrice,
     explorer
   );
@@ -75,7 +75,7 @@ async function authenticateKeplr(wallet: Wallet, network: NetworkData) {
         wallet,
         offlineSigner as any,
         network.prefix,
-        network.gasMupltiplier,
+        network.gasMultiplier,
         network.gasPrice,
         network.explorer
       );
@@ -114,7 +114,7 @@ async function authenticateLeap(wallet: Wallet, network: NetworkData) {
         wallet,
         offlineSigner,
         network.prefix,
-        network.gasMupltiplier,
+        network.gasMultiplier,
         network.gasPrice,
         network.explorer
       );
@@ -135,7 +135,7 @@ async function authenticateLedger(wallet: Wallet, network: NetworkData) {
       hdPaths: paths as any
     }),
     network.prefix,
-    network.gasMupltiplier,
+    network.gasMultiplier,
     network.gasPrice,
     network.explorer
   );

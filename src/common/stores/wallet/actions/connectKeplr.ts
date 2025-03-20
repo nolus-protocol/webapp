@@ -39,7 +39,9 @@ export async function connectKeplr(this: Store) {
     await keplrWindow.keplr?.enable(chainId);
 
     if (keplrWindow.getOfflineSignerOnlyAmino) {
-      const offlineSigner = keplrWindow.getOfflineSignerOnlyAmino(chainId);
+      const offlineSigner = keplrWindow.getOfflineSignerOnlyAmino(chainId, {
+        preferNoSetFee: true
+      });
       const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(offlineSigner as any);
       await nolusWalletOfflineSigner.useAccount();
 
@@ -48,11 +50,6 @@ export async function connectKeplr(this: Store) {
 
       this.wallet = nolusWalletOfflineSigner;
       this.walletName = (await keplrWindow.keplr.getKey(chainId)).name;
-      (window as any).keplr.defaultOptions = {
-        sign: {
-          preferNoSetFee: true
-        }
-      };
       await this.UPDATE_BALANCES();
     }
   }

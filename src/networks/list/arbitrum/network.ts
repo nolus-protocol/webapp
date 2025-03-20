@@ -1,9 +1,9 @@
 export const NETWORK = {
   prefix: "arbitrum",
   key: "ARBITRUM",
-  label: "Arbitrum (beta)",
+  label: "Arbitrum",
   symbol: "ETH",
-  gasMupltiplier: 2,
+  gasMultiplier: 2,
   name: "ETH",
   explorer: "https://arbiscan.io/tx",
   fees: {
