@@ -277,15 +277,6 @@ export class SkipRouter {
           mintRecipient: msgJSON.mint_recipient
         });
       }
-      //TODO: not use for now update if require
-      // case Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]: {
-      //   return MsgExecuteContract.fromPartial({
-      //     sender: msgJSON.sender,
-      //     contract: msgJSON.contract,
-      //     msg: toUtf8(JSON.stringify(msgJSON.msg)),
-      //     funds: msgJSON.funds
-      //   });
-      // }
       default: {
         throw new Error("Action not supported");
       }
