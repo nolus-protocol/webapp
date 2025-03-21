@@ -551,7 +551,7 @@
     "stoppings-payout": "This position will have an approximate payout of {amount}",
     "collect-title": "This position is being collect",
     "collect-description": "Please come back later or wait, this usually takes less than 2 minutes",
-    "leases-history": "Positions",
+    "leases-history": "Margin",
     "vote-history": "Vote",
     "stake-history": "Stake",
     "earn-history": "Earn",
