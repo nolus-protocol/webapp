@@ -82,7 +82,7 @@
     "chart-tooltip-price": "Price",
     "recipient": "Recipient",
     "address": "Address",
-    "down-payment-uppercase": "Down Payment",
+    "down-payment-uppercase": "Collateral",
     "apr": "APR",
     "lease-up-to-tooltip": "The maximum amount that can be leveraged based on the wallet balance",
     "earn-apr-tooltip": "Annualized percentage return on supplied or delegated assets",
