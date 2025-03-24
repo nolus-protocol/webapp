@@ -4,7 +4,8 @@ import {
   type RouteRequest,
   affiliateFromJSON,
   type MsgsRequest,
-  type TxStatusResponse
+  type TxStatusResponse,
+  type Chain
 } from "@skip-go/client";
 
 import type { IObjectKeys, SkipRouteConfigType } from "../types";
@@ -32,6 +33,7 @@ class Swap extends SkipRouterLib {
 export class SkipRouter {
   private static client: Swap;
   private static chainID: string;
+  private static chains: Promise<Chain[]>;
 
   static async getClient(): Promise<Swap> {
     if (SkipRouter.client) {
@@ -284,7 +286,11 @@ export class SkipRouter {
   }
 
   static async getChains() {
+    if (SkipRouter.chains) {
+      return SkipRouter.chains;
+    }
     const client = await SkipRouter.getClient();
-    return client.chains({ includeEVM: true, includeSVM: false });
+    SkipRouter.chains = client.chains({ includeEVM: true, includeSVM: false });
+    return SkipRouter.chains;
   }
 }

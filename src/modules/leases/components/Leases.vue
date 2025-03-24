@@ -56,7 +56,7 @@
             }"
           />
           <BigNumber
-            :label="$t('message.leases')"
+            :label="$t('message.leases-table')"
             :amount="{
               amount: activeLeases.toString(),
               type: CURRENCY_VIEW_TYPES.CURRENCY,

@@ -23,6 +23,15 @@
           />
           <span class="text-20 font-semibold text-typography-default">{{ slide.title }}</span>
           <span class="text-14 font-normal text-typography-default">{{ slide.description }}</span>
+          <Button
+            v-if="slide.button"
+            :icon="slide.button.icon"
+            icon-position="left"
+            :label="slide.button.name"
+            severity="secondary"
+            size="large"
+            @click="() => router.push(slide.button!.url)"
+          />
           <button
             v-if="slide.link"
             @click="router.push(slide.link?.url)"
@@ -111,6 +120,7 @@ const props = defineProps<{
     title: string;
     description: string;
     link?: { url: string; label: string; tooltip?: TooltipProps };
+    button?: { name: string; icon: string; url: string };
   }[];
   // images?: { alt?: string; class?: string; style?: string; name: string }[];
 }>();

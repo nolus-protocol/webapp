@@ -20,7 +20,7 @@ export const NATIVE_ASSET = {
 
 export const NATIVE_NETWORK = {
   prefix: "nolus",
-  value: "nls",
+  value: "nolus",
   label: "Nolus",
   native: true,
   estimation: 6,

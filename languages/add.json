@@ -254,5 +254,9 @@
   "liquidation-ongoingfull-liability-description": "This position is being liquidated.",
   "liquidation-ongoingfull-liability-description-link": "Learn more about liquidations",
   "no-chartdata": "Insufficient Data",
-  "no-chartdata-description": "Insufficient historical data available to generate the graph"
+  "no-chartdata-description": "Insufficient historical data available to generate the graph",
+  "swap-stepper": "Swap",
+  "leases-home": "Leases",
+  "leases-table": "Leases",
+  "open-position": "Open position"
 }

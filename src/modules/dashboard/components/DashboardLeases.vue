@@ -1,18 +1,11 @@
 <template>
   <Widget class="overflow-auto">
     <WidgetHeader
-      :label="$t('message.leases')"
-      :icon="{ name: 'leases', class: 'fill-icon-link' }"
-      :badge="{ content: leases.length.toString() }"
+      :label="isVisible ? '' : $t('message.leases')"
+      :icon="isVisible ? undefined : { name: 'leases', class: 'fill-icon-link' }"
+      :badge="isVisible ? undefined : { content: leases.length.toString() }"
     >
-      <Button
-        v-if="isVisible"
-        :label="$t('message.viewAllLeases')"
-        severity="secondary"
-        size="large"
-        @click="() => router.push(`/${RouteNames.LEASES}`)"
-      />
-      <template v-else>
+      <template v-if="!isVisible">
         <Button
           v-if="wallet.wallet"
           :label="$t('message.new-lease')"
@@ -43,7 +36,7 @@
             :loading="loaded"
           />
           <BigNumber
-            :label="$t('message.leases')"
+            :label="$t('message.leases-home')"
             :amount="{
               amount: activeLeases.toString(),
               type: CURRENCY_VIEW_TYPES.CURRENCY,
@@ -74,6 +67,9 @@
               image: { name: 'new-lease' },
               title: $t('message.start-lease'),
               description: $t('message.start-lease-description'),
+              button: wallet.wallet
+                ? { name: $t('message.open-position'), icon: 'plus', url: '/leases/open/long' }
+                : undefined,
               link: { label: $t('message.learn-new-leases'), url: `/learn-leases` }
             }
           ]"

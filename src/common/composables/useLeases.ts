@@ -287,6 +287,7 @@ async function fetchLease(leaseAddress: string, protocolKey: string, period?: nu
         .sub(leaseData?.downPayment)
         .add(fee)
         .sub(leaseData?.repayment_value);
+
       if (leaseData.downPayment.isPositive()) {
         pnlPercent = pnlAmount.quo(leaseData?.downPayment.add(leaseData?.repayment_value)).mul(new Dec(100));
       }
