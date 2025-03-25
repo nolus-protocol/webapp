@@ -12,7 +12,7 @@
         :options="networks"
         :size="Size.medium"
         searchable
-        :selected="selectedNetwork"
+        :selected="network"
         :disabled="isDisabled"
       />
     </div>
@@ -34,9 +34,9 @@
       "
       @input="handleAmountChange"
       :value="amount"
-      :is-loading-picker="disablePicker || isDisabled"
-      :disabled-input-field="isDisabled"
-      :disabled-currency-picker="disablePicker || isDisabled"
+      :is-loading-picker="disablePicker || isDisabled || isMetamaskLoading"
+      :disabled-input-field="isDisabled || isMetamaskLoading"
+      :disabled-currency-picker="disablePicker || isDisabled || isMetamaskLoading"
       :error-msg="amountErrorMsg"
       :selected-currency-option="assets[selectedCurrency]"
       :itemsHeadline="[$t('message.assets'), $t('message.balance')]"
@@ -116,33 +116,14 @@
       <Stepper
         v-if="showDetails"
         :active-step="-1"
-        :steps="[
-          {
-            label: $t('message.send-stepper'),
-            icon: selectedNetwork.icon,
-            token: {
-              balance: AssetUtils.formatNumber(amount, assets[selectedCurrency]?.decimal_digits),
-              symbol: assets[selectedCurrency]?.shortName
-            },
-            meta: () => h('div', `${selectedNetwork.label} > ${NATIVE_NETWORK.label}`)
-          },
-          {
-            label: $t('message.receive-stepper'),
-            icon: NATIVE_NETWORK.icon,
-            token: {
-              balance: AssetUtils.formatNumber(amount, assets[selectedCurrency]?.decimal_digits),
-              symbol: assets[selectedCurrency]?.shortName
-            },
-            meta: () => h('div', `${NATIVE_NETWORK.label}`)
-          }
-        ]"
+        :steps="steps"
         :variant="StepperVariant.MEDIUM"
       />
     </div>
     <hr class="my-4 border-border-color" />
   </div>
   <div class="flex flex-col gap-2 p-6">
-    <button
+    <!-- <button
       v-if="selectedNetwork.chain_type == 'evm'"
       :class="{ 'js-loading': isMetamaskLoading }"
       class="bmt-2 flex items-center !text-12 font-semibold text-neutral-typography-200"
@@ -151,7 +132,7 @@
     >
       <component :is="connection?.icon" />
       {{ evmAddress == null || evmAddress?.length == 0 ? $t("message.connect") : evmAddress }}
-    </button>
+    </button> -->
     <Button
       size="large"
       severity="primary"
@@ -167,9 +148,6 @@
 </template>
 
 <script lang="ts" setup>
-import KeplrIcon from "@/assets/icons/wallets/keplr.svg";
-import LedgerIcon from "@/assets/icons/wallets/ledger.svg";
-import LeapIcon from "@/assets/icons/wallets/leapwallet.svg";
 import type { EvmNetwork } from "@/common/types/Network";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { Coin } from "@keplr-wallet/types";
@@ -189,61 +167,24 @@ import {
 import { MetaMaskWallet } from "@/networks/metamask";
 import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
-import { MAX_DECIMALS } from "../../../config/global";
+import { IGNORED_NETWORKS, MAX_DECIMALS } from "../../../config/global";
 
 import { BaseWallet, Wallet } from "@/networks";
-import {
-  CONFIRM_STEP,
-  WalletConnectMechanism,
-  type IObjectKeys,
-  type Network,
-  type SkipRouteConfigType
-} from "@/common/types";
+import { CONFIRM_STEP, type IObjectKeys, type Network, type SkipRouteConfigType } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
-import { computed, onMounted, onUnmounted, ref, watch, h, inject, type FunctionalComponent } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch, h, inject } from "vue";
 import { useI18n } from "vue-i18n";
-import {
-  AppUtils,
-  WalletManager,
-  AssetUtils,
-  externalWallet,
-  Logger,
-  walletOperation,
-  WalletUtils
-} from "@/common/utils";
+import { AppUtils, AssetUtils, externalWallet, Logger, walletOperation, WalletUtils } from "@/common/utils";
 import { coin } from "@cosmjs/stargate";
 import { Decimal } from "@cosmjs/math";
 import { SkipRouter } from "@/common/utils/SkipRoute";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "@/common/stores/oracle";
 import { StepperVariant, Stepper } from "web-components";
+import { useApplicationStore } from "@/common/stores/application";
+import type { Chain } from "@skip-go/client";
 
 const i18n = useI18n();
-const connections: {
-  [key: string]: {
-    icon: FunctionalComponent | string;
-    label: string;
-  };
-} = {
-  [WalletConnectMechanism.KEPLR]: {
-    icon: KeplrIcon,
-    label: i18n.t("message.keplr")
-  },
-  [WalletConnectMechanism.LEAP]: {
-    icon: LeapIcon,
-    label: i18n.t("message.leap")
-  },
-  [WalletConnectMechanism.LEDGER]: {
-    icon: LedgerIcon,
-    label: i18n.t("message.ledger")
-  },
-  [WalletConnectMechanism.LEDGER_BLUETOOTH]: {
-    icon: LedgerIcon,
-    label: i18n.t("message.ledger")
-  }
-};
-const type = WalletManager.getWalletConnectMechanism();
-const connection = connections[type as keyof typeof WalletConnectMechanism];
 const showDetails = ref(false);
 
 const assets = computed(() => {
@@ -283,14 +224,15 @@ const assets = computed(() => {
 });
 
 let client: Wallet | MetaMaskWallet;
-let timeOut: NodeJS.Timeout;
+let timeOut!: NodeJS.Timeout;
 let route: IObjectKeys | null;
 
 const walletStore = useWalletStore();
-const networks = ref<(Network | EvmNetwork)[]>([SUPPORTED_NETWORKS_DATA.OSMOSIS]);
 const oracle = useOracleStore();
+const app = useApplicationStore();
+const networks = ref<(Network | EvmNetwork | any)[]>([SUPPORTED_NETWORKS_DATA[app.protocolFilter]]);
 
-const selectedNetwork = ref(networks.value[0]);
+const selectedNetwork = ref(0);
 const networkCurrencies = ref<AssetBalance[]>([]);
 const selectedCurrency = ref(0);
 const amount = ref("");
@@ -303,17 +245,21 @@ const isLoading = ref(false);
 const disablePicker = ref(false);
 const isDisabled = ref(false);
 const evmAddress = ref("");
+const tempRoute = ref<IObjectKeys | null>();
+let chainsData: Chain[] = [];
 
 const wallet = ref(walletStore.wallet?.address);
 const isMetamaskLoading = ref(false);
 let skipRouteConfig: SkipRouteConfigType | null;
 let id = Date.now();
 const onClose = inject("close", () => {});
-const test = inject("update-activities", () => {});
 
 onMounted(async () => {
   try {
-    skipRouteConfig = await AppUtils.getSkipRouteConfig();
+    const [config, chns] = await Promise.all([AppUtils.getSkipRouteConfig(), SkipRouter.getChains()]);
+    skipRouteConfig = config;
+    chainsData = chns;
+
     const n = NETWORK_DATA.list.filter((item) => {
       if (skipRouteConfig!.transfers[item.key]) {
         return true;
@@ -321,9 +267,9 @@ onMounted(async () => {
       return false;
     }) as (Network | EvmNetwork)[];
 
-    networks.value = [...n];
-    onUpdateNetwork(SUPPORTED_NETWORKS_DATA.OSMOSIS as any);
-    setParams();
+    networks.value = [...n].filter((item) => !IGNORED_NETWORKS.includes(item.key));
+    selectedNetwork.value = networks.value.findIndex((item: Network) => item.key == app.protocolFilter);
+    await onUpdateNetwork(networks.value[selectedNetwork.value]);
   } catch (error) {
     Logger.error(error);
   }
@@ -335,6 +281,84 @@ onUnmounted(() => {
   }
 
   clearTimeout(timeOut!);
+});
+
+const network = computed(() => {
+  return networks.value[selectedNetwork.value];
+});
+
+const currency = computed(() => {
+  return assets.value[selectedCurrency.value];
+});
+
+const steps = computed(() => {
+  if (tempRoute.value && network.value.chain_type == "evm") {
+    const chains = getChainIds(tempRoute.value);
+    const stps = [];
+    for (const [index, operation] of (tempRoute.value?.operations ?? []).entries()) {
+      if (operation.transfer || operation.cctpTransfer) {
+        const op = operation.transfer ?? operation.cctpTransfer;
+        const from = chains[op.fromChainID];
+        const to = chains[op.toChainID];
+        let label = i18n.t("message.send-stepper");
+
+        if (index > 0 && index < tempRoute.value?.operations.length) {
+          label = i18n.t("message.swap-stepper");
+        }
+
+        stps.push({
+          label,
+          icon: from.icon,
+          token: {
+            balance: AssetUtils.formatNumber(
+              new Dec(operation.amountOut, currency.value?.decimal_digits).toString(currency.value?.decimal_digits),
+              currency.value?.decimal_digits
+            ),
+            symbol: currency.value?.shortName
+          },
+          meta: () => h("div", `${from.label} > ${to.label}`)
+        });
+
+        if (index == tempRoute.value?.operations.length - 1) {
+          stps.push({
+            label: i18n.t("message.receive-stepper"),
+            icon: to.icon,
+            token: {
+              balance: AssetUtils.formatNumber(
+                new Dec(operation.amountOut, currency.value?.decimal_digits).toString(currency.value?.decimal_digits),
+                currency.value?.decimal_digits
+              ),
+              symbol: currency.value?.shortName
+            },
+            meta: () => h("div", `${to.label}`)
+          });
+        }
+      }
+    }
+
+    return stps;
+  }
+
+  return [
+    {
+      label: i18n.t("message.send-stepper"),
+      icon: NATIVE_NETWORK.icon,
+      token: {
+        balance: AssetUtils.formatNumber(amount.value, currency.value?.decimal_digits),
+        symbol: currency.value?.shortName
+      },
+      meta: () => h("div", `${NATIVE_NETWORK.label} > ${network.value.label}`)
+    },
+    {
+      label: i18n.t("message.receive-stepper"),
+      icon: network.value.icon,
+      token: {
+        balance: AssetUtils.formatNumber(amount.value, currency.value?.decimal_digits),
+        symbol: currency.value?.shortName
+      },
+      meta: () => h("div", `${network.value.label}`)
+    }
+  ];
 });
 
 const calculatedBalance = computed(() => {
@@ -414,8 +438,28 @@ watch(
   }
 );
 
-async function onUpdateNetwork(event: Network | EvmNetwork) {
-  selectedNetwork.value = event;
+watch(
+  () => [selectedCurrency.value, amount.value, wallet.value],
+  () => {
+    if (amount.value.length > 0) {
+      if (validateAmount() && wallet.value?.length > 0) {
+        clearTimeout(timeOut);
+        tempRoute.value = null;
+        timeOut = setTimeout(async () => {
+          try {
+            tempRoute.value = await getRoute();
+          } catch (e) {
+            console.log(e);
+          }
+        });
+      }
+    }
+  }
+);
+
+async function onUpdateNetwork(event: Network) {
+  tempRoute.value = null;
+  selectedNetwork.value = networks.value.findIndex((item) => item.key == event.key);
   if (!event.native) {
     switch (event.chain_type) {
       case "cosmos": {
@@ -423,11 +467,8 @@ async function onUpdateNetwork(event: Network | EvmNetwork) {
         break;
       }
       case "evm": {
-        if (client) {
-          await connectEvm();
-        } else {
-          await setEvmNetwork();
-        }
+        await setEvmNetwork();
+        await connectEvm();
         break;
       }
     }
@@ -445,11 +486,12 @@ async function onSubmitCosmos() {
 
     if (isValid) {
       route = await getRoute();
-      const network = NETWORK_DATA?.supportedNetworks[selectedNetwork.value.key];
-      const currency = AssetUtils.getCurrencyByTicker(network.ticker);
-      fee.value = coin(network.fees.transfer_amount, currency.ibcData);
+      const networkdata = NETWORK_DATA?.supportedNetworks[network.value.key];
+      const currency = AssetUtils.getCurrencyByTicker(networkdata.ticker);
+      fee.value = coin(networkdata.fees.transfer_amount, currency.ibcData);
     }
   } catch (e: Error | any) {
+    console.log(e);
     amountErrorMsg.value = e.toString();
   }
 }
@@ -461,8 +503,7 @@ async function onSubmitEvm() {
 
     if (isValid) {
       route = await getRoute();
-      const network = selectedNetwork.value as EvmNetwork;
-      fee.value = coin(network.fees.transfer, network.nativeCurrency.symbol);
+      fee.value = coin(network.value.fees.transfer, network.value.nativeCurrency.symbol);
     }
   } catch (e: Error | any) {
     amountErrorMsg.value = e.toString();
@@ -476,11 +517,11 @@ async function setCosmosNetwork() {
   destroyClient();
 
   disablePicker.value = true;
-  const network = NETWORK_DATA;
+  const ntwrk = NETWORK_DATA;
 
   const currencies = [];
   const promises = [];
-  const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[selectedNetwork.value.key].currencies;
+  const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[network.value.key].currencies;
 
   for (const c of data ?? []) {
     const currency = AssetUtils.getCurrencyByDenom(c.from);
@@ -502,8 +543,8 @@ async function setCosmosNetwork() {
     };
   });
 
-  const networkData = network?.supportedNetworks[selectedNetwork.value.key];
-  client = await WalletUtils.getWallet(selectedNetwork.value.key);
+  const networkData = ntwrk?.supportedNetworks[network.value.key];
+  client = await WalletUtils.getWallet(network.value.key);
   const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
   wallet.value = baseWallet?.address as string;
 
@@ -533,7 +574,7 @@ async function setEvmNetwork() {
 
   const currencies = [];
   const promises = [];
-  const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[selectedNetwork.value.key].currencies;
+  const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[network.value.key].currencies;
 
   for (const c of data ?? []) {
     const currency = AssetUtils.getCurrencyByDenom(c.from);
@@ -621,7 +662,7 @@ function validateAmount() {
 }
 
 async function loadRoute() {
-  switch (selectedNetwork.value.chain_type) {
+  switch (network.value.chain_type) {
     case "cosmos": {
       return onSubmitCosmos();
     }
@@ -743,22 +784,7 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
   const addrs = {
     [native]: walletStore.wallet
   };
-
-  const chainToParse: { [key: string]: IObjectKeys } = {};
-  const chains = (await SkipRouter.getChains()).filter((item) => {
-    if (item.chainID == native) {
-      return false;
-    }
-    return route!.chainIDs.includes(item.chainID);
-  });
-
-  for (const chain of chains) {
-    for (const key in SUPPORTED_NETWORKS_DATA) {
-      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chainName.toLowerCase()) {
-        chainToParse[key] = SUPPORTED_NETWORKS_DATA[key];
-      }
-    }
-  }
+  const chainToParse: { [key: string]: IObjectKeys } = getChains(route as IObjectKeys);
   const promises = [];
 
   for (const chain in chainToParse) {
@@ -774,7 +800,7 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
           break;
         }
         case "evm": {
-          const net = selectedNetwork.value as EvmNetwork;
+          const net = network.value as EvmNetwork;
           const client = new MetaMaskWallet(net.explorer);
           const endpoint = await AppUtils.fetchEvmEndpoints(net.key);
           const chainId = await client.getChainId(endpoint.rpc);
@@ -806,7 +832,7 @@ async function getRoute() {
 
   const transferAmount = Decimal.fromUserInput(amount.value, asset!.decimal_digits as number);
 
-  switch (selectedNetwork.value.chain_type) {
+  switch (network.value.chain_type) {
     case "evm": {
       chaindId = Number(chaindId).toString();
       break;
@@ -823,7 +849,7 @@ async function connectEvm() {
     destroyClient();
     isMetamaskLoading.value = true;
 
-    const net = selectedNetwork.value as EvmNetwork;
+    const net = network.value as EvmNetwork;
     client = new MetaMaskWallet(net.explorer);
     const endpoint = await AppUtils.fetchEvmEndpoints(net.key);
     const chaindId = await client.getChainId(endpoint.rpc);
@@ -857,5 +883,43 @@ async function connectEvm() {
     isMetamaskLoading.value = false;
     disablePicker.value = false;
   }
+}
+
+function getChains(route?: IObjectKeys) {
+  const chainToParse: { [key: string]: IObjectKeys } = {};
+  const native = walletStore.wallet.signer.chainId as string;
+  const chains = chainsData.filter((item) => {
+    if (item.chainID == native) {
+      return false;
+    }
+    return route!.chainIDs.includes(item.chainID);
+  });
+
+  for (const chain of chains) {
+    for (const key in SUPPORTED_NETWORKS_DATA) {
+      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chainName.toLowerCase()) {
+        chainToParse[key] = SUPPORTED_NETWORKS_DATA[key];
+      }
+    }
+  }
+
+  return chainToParse;
+}
+
+function getChainIds(route?: IObjectKeys) {
+  const chainToParse: { [key: string]: IObjectKeys } = {};
+  const chains = chainsData.filter((item) => {
+    return route!.chainIDs.includes(item.chainID);
+  });
+
+  for (const chain of chains) {
+    for (const key in SUPPORTED_NETWORKS_DATA) {
+      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chainName.toLowerCase()) {
+        chainToParse[chain.chainID] = SUPPORTED_NETWORKS_DATA[key];
+      }
+    }
+  }
+
+  return chainToParse;
 }
 </script>
