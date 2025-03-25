@@ -23,7 +23,7 @@
 import Chart from "@/common/components/Chart.vue";
 
 import type { LeaseData } from "@/common/types";
-import { AssetUtils, EtlApi, LeaseUtils } from "@/common/utils";
+import { AssetUtils, EtlApi, isMobile, LeaseUtils } from "@/common/utils";
 import { CurrencyDemapping, CurrencyMapping } from "@/config/currencies";
 import { NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { plot, lineY, ruleY } from "@observablehq/plot";
@@ -47,7 +47,7 @@ const app = useApplicationStore();
 
 const chartHeight = 250;
 const marginLeft = 40;
-const chartWidth = 960;
+const chartWidth = isMobile() ? 350 : 950;
 const marginRight = 30;
 const marginBottom = 50;
 

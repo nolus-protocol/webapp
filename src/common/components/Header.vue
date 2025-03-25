@@ -8,7 +8,10 @@
         class="cursor-pointer lg:hidden"
         @click="toggleMobileNav"
       />
-      <Logo class="relative hidden md:flex lg:fixed" />
+      <Logo
+        @click="router.push('/')"
+        class="relative hidden cursor-pointer md:flex lg:fixed"
+      />
       <RouterLink
         to="/"
         class="md:hidden"
@@ -25,6 +28,7 @@ import { SvgIcon } from "web-components";
 import Logo from "@/common/components/Logo.vue";
 import NolusIcon from "@/assets/icons/nolus-icon.svg";
 import HeaderMenu from "@/common/components/menus/HeaderMenu.vue";
+import { useRouter } from "vue-router";
 
 const props = defineProps<{
   toggleMobileNav: () => void;
@@ -35,6 +39,7 @@ const toggleMobileNav = () => {
     props.toggleMobileNav();
   }
 };
+const router = useRouter();
 </script>
 
 <style scoped lang=""></style>

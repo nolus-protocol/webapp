@@ -8,10 +8,16 @@
         :key="index"
         :id="`tab-${index}`"
         ref="radioRefs"
-        :class="[{ 'bg-neutral-bg-2': activeTabIdx === index, 'rounded-tl-xl': index === 0 }]"
+        :class="[
+          {
+            'bg-neutral-bg-2': activeTabIdx === index,
+            'rounded-tl-xl': index === 0,
+            'rounded-tr-xl': index === tabs.length - 1
+          }
+        ]"
         :label="$t(`message.${tab.action}`)"
         :checked="activeTabIdx == index"
-        class="flex cursor-pointer justify-center border-r border-border-color bg-neutral-bg-1 px-6 py-5 text-16 font-normal text-typography-default"
+        class="flex flex-1 cursor-pointer justify-center border-r border-border-color bg-neutral-bg-1 px-6 py-5 text-16 font-normal text-typography-default"
         name="dialogTabsGroup"
         @click="handleParentClick(index)"
       />
@@ -76,16 +82,6 @@
         for="position-size"
         class="flex w-fit items-center text-16 font-semibold text-typography-default"
         >{{ $t("message.position-size") }}
-        <Tooltip
-          position="top"
-          :content="$t('message.lease-swap-fee-tooltip')"
-        >
-          <SvgIcon
-            name="help"
-            class="rounded-full"
-            size="s"
-          />
-        </Tooltip>
       </label>
       <div class="px-[18px] py-3">
         <Slider
@@ -185,8 +181,6 @@ import {
   Slider,
   type AssetItemProps,
   AssetItem,
-  Tooltip,
-  SvgIcon,
   ToastType,
   StepperVariant,
   Stepper

@@ -16,7 +16,7 @@
     />
   </div> -->
 
-  <div class="chart-container">
+  <div class="chart-container overflow-hidden">
     <div
       class="h-0"
       v-html="gradientHTML"
@@ -48,14 +48,14 @@ import { pointer, select, type Selection } from "d3";
 
 import { CHART_RANGES, NATIVE_CURRENCY } from "@/config/global";
 import { useI18n } from "vue-i18n";
-import { AssetUtils, EtlApi } from "@/common/utils";
+import { AssetUtils, EtlApi, isMobile } from "@/common/utils";
 import type { LeaseData } from "@/common/types";
 
 type ChartData = { amount: number; date: Date };
 
 const chartHeight = 250;
 const marginLeft = 60;
-const chartWidth = 550;
+const chartWidth = isMobile() ? 350 : 550;
 const marginRight = 30;
 const marginBottom = 50;
 

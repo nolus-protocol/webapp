@@ -97,11 +97,6 @@
           class="flex w-fit items-center gap-1 text-14 font-normal text-typography-link"
         >
           {{ $t("message.learn-health") }}
-          <Tooltip :content="$t('message.position-health-tooltip')"
-            ><SvgIcon
-              name="help"
-              class="fill-icon-link"
-          /></Tooltip>
         </button>
       </div>
     </template>
@@ -110,7 +105,7 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import { SvgIcon, Tooltip, Widget } from "web-components";
+import { Widget } from "web-components";
 import { CurrencyDemapping } from "@/config/currencies";
 import { Dec } from "@keplr-wallet/unit";
 import { AssetUtils } from "@/common/utils";

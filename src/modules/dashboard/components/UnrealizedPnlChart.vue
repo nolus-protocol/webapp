@@ -13,7 +13,7 @@ import Chart from "@/common/components/Chart.vue";
 import { lineY, plot } from "@observablehq/plot";
 import { useI18n } from "vue-i18n";
 import { pointer, select, type Selection } from "d3";
-import { AssetUtils, EtlApi } from "@/common/utils";
+import { AssetUtils, EtlApi, isMobile } from "@/common/utils";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { ref } from "vue";
@@ -34,7 +34,7 @@ const data = ref<ChartData[]>([
 
 const chartHeight = 250;
 const marginLeft = 50;
-const chartWidth = 960;
+const chartWidth = isMobile() ? 450 : 950;
 const marginRight = 30;
 const marginBottom = 50;
 

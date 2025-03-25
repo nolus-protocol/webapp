@@ -11,6 +11,7 @@
 <style scoped lang="scss">
 html {
   #logo {
+    z-index: 1;
     background-image: url("@/assets/icons/logo-light.svg");
     background-size: contain;
     background-repeat: no-repeat;

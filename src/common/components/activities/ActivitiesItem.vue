@@ -6,12 +6,6 @@
         size="l"
         class="rounded bg-neutral-bg-4 p-1"
       />
-      <img
-        class="absolute right-[-5px] top-[15px]"
-        width="16"
-        v-if="icon"
-        :src="icon"
-      />
     </div>
     <div class="flex flex-col gap-2">
       <div class="flex flex-col">

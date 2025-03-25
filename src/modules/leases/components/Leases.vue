@@ -199,7 +199,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
       const pnl = {
         percent: item.pnlPercent.toString(2),
         amount: CurrencyUtils.formatPrice(item.pnlAmount.toString()),
-        status: item.pnlAmount.isPositive() || item.pnlAmount.isZero()
+        status: item.pnlAmount.isPositive()
       };
       const date = item.leaseData?.timestamp
         ? `${formatDate(item.leaseData?.timestamp?.toString())?.toUpperCase()}`

@@ -33,7 +33,7 @@ const transactionData = computed(
         },
         {
           value: props.transaction.historyData.action,
-          class: "max-w-[140px]"
+          class: "max-w-[140px] capitalize"
         },
         {
           value: props.transaction.historyData.timestamp ?? props.transaction.block,

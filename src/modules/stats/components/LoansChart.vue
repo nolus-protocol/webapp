@@ -11,15 +11,15 @@
 <script lang="ts" setup>
 import Chart from "@/common/components/Chart.vue";
 import { barX, gridX, plot, ruleX } from "@observablehq/plot";
-import { AssetUtils, EtlApi } from "@/common/utils";
+import { AssetUtils, EtlApi, isMobile } from "@/common/utils";
 import { select, pointer, type Selection } from "d3";
 import { ref } from "vue";
 import { NATIVE_CURRENCY } from "@/config/global";
 const chartHeight = 500;
 const marginTop = 20;
 const marginBottom = 30;
-const marginLeft = 100;
-const width = 960;
+const marginLeft = isMobile() ? 50 : 100;
+const width = isMobile() ? 450 : 950;
 
 const chart = ref<typeof Chart>();
 const loans = ref<{ percentage: number; ticker: string; loan: string }[]>([]);

@@ -471,6 +471,11 @@ function isAmountValid() {
       const p = new Dec(price.amount);
       const amountInStable = new Dec(amnt.length == 0 ? "0" : amnt).mul(p);
 
+      const debt = getDebtValue();
+      const lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
+      const debtInCurrencies = debt.quo(new Dec(price.amount));
+      const minAmm = new Dec(minimumLeaseAmount).mul(new Dec(10 ** lpn.decimal_digits));
+
       const minAmountCurrency = minAmount.quo(p);
       const isLowerThanOrEqualsToZero = new Dec(amountInMinimalDenom.amount || "0").lte(new Dec(0));
 
@@ -488,16 +493,13 @@ function isAmountValid() {
         isValid = false;
       }
 
-      if (amountInStable.lt(minAmount)) {
+      if (debt.gt(minAmm) && amountInStable.lt(minAmount)) {
         amountErrorMsg.value = i18n.t("message.min-amount-allowed", {
           amount: minAmountCurrency.toString(Number(coinData!.decimal_digits)),
           currency: coinData!.shortName
         });
         isValid = false;
       }
-
-      const debt = getDebtValue();
-      const debtInCurrencies = debt.quo(new Dec(price.amount));
 
       const b = CurrencyUtils.convertDenomToMinimalDenom(
         balance.toString(),

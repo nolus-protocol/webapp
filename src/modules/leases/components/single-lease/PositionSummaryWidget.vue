@@ -23,7 +23,7 @@
 
     <div
       v-else
-      class="flex flex-col gap-6 md:flex-row md:gap-10"
+      class="!md:flex-col flex flex-col-reverse gap-6 md:flex-row md:gap-10"
     >
       <div class="flex flex-col gap-3">
         <BigNumber

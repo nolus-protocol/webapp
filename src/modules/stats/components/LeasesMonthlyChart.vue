@@ -11,14 +11,14 @@
 <script lang="ts" setup>
 import Chart from "@/common/components/Chart.vue";
 import { binX, rectY, ruleY } from "@observablehq/plot";
-import { AssetUtils, EtlApi } from "@/common/utils";
+import { AssetUtils, EtlApi, isMobile } from "@/common/utils";
 import { select, pointer, timeMonth, type Selection } from "d3";
 import { useI18n } from "vue-i18n";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { ref } from "vue";
 
 const chartHeight = 300;
-const chartWidth = 1000;
+const chartWidth = isMobile() ? 350 : 950;
 const marginBottom = 50;
 const marginLeft = 30;
 const marginRight = 30;

@@ -28,6 +28,7 @@ export const NATIVE_NETWORK = {
   leaseOpenEstimation: 2,
   leaseRepayEstimation: 3,
   leaseCloseEstimation: 1,
+  leaseStopLossTakeProfit: 3,
   delegateEstimation: 3,
   earnEstimation: 3,
   voteEstimation: 3,

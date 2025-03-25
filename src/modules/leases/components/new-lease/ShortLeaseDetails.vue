@@ -7,7 +7,6 @@
       />
       <span class="text-18 font-semibold text-typography-default">{{ $t("message.details") }}</span>
     </div>
-    <!-- TODO:: remove BTC -->
     <BigNumber
       label="Size"
       :amount="{
@@ -20,11 +19,11 @@
         hasSpace: true
       }"
       :secondary="{
-        amount: asset.ticker == 'BTC' ? (Number(totalLoan) * 100).toString() : totalLoan,
+        amount: totalLoan,
         type: CURRENCY_VIEW_TYPES.TOKEN,
         denom: asset.shortName,
-        maxDecimals: asset.ticker == 'BTC' ? asset.decimal_digits + 2 : asset.decimal_digits,
-        decimals: asset.ticker == 'BTC' ? (asset?.decimal_digits ?? 0) + 2 : asset.decimal_digits,
+        maxDecimals: asset.decimal_digits,
+        decimals: asset.decimal_digits,
         hasSpace: true
       }"
     />

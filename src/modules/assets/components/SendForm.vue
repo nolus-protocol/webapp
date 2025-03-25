@@ -1,5 +1,8 @@
 <template>
-  <div class="custom-scroll max-h-full flex-1 overflow-auto">
+  <div
+    id="dialog-scroll"
+    class="custom-scroll max-h-full flex-1 overflow-auto"
+  >
     <div class="flex max-w-[190px] flex-col gap-2 px-6 py-4">
       <label
         for="dropdown-btn-network"
@@ -305,7 +308,7 @@ const steps = computed(() => {
   if (tempRoute.value && network.value.chain_type == "evm") {
     const chains = getChainIds(tempRoute.value);
     const stps = [];
-    console.log(tempRoute.value);
+
     for (const [index, operation] of (tempRoute.value?.operations ?? []).entries()) {
       if (operation.transfer || operation.cctpTransfer) {
         const op = operation.transfer ?? operation.cctpTransfer;

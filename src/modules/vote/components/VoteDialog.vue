@@ -3,7 +3,6 @@
     ref="dialog"
     show-close
     :title="`&#35;${proposal.id} ${proposal.title}`"
-    class-list="md:h-auto"
   >
     <template v-slot:content>
       <div
@@ -36,7 +35,7 @@
         />
       </div>
       <div
-        class="thin-scroll proposal-modal w-full overflow-auto px-6 pb-6 text-left text-typography-default md:max-h-[40vh]"
+        class="thin-scroll proposal-modal w-full overflow-auto px-6 pb-6 text-left text-typography-default"
         v-html="description"
       ></div>
     </template>
@@ -166,9 +165,8 @@ watch(
   () => props.proposal,
   async () => {
     isVotingPeriod.value = (props.proposal.status as ProposalStatus) === ProposalStatus.PROPOSAL_STATUS_VOTING_PERIOD;
-
     description.value = marked.parse(props.proposal.summary, {
-      pedantic: true,
+      pedantic: false,
       gfm: true,
       breaks: true
     });
@@ -251,6 +249,9 @@ defineExpose({ show, hide });
 
 <style lang="scss">
 .proposal-modal {
+  ul {
+    padding-left: 32px;
+  }
   strong {
     @apply font-semibold;
   }

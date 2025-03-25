@@ -20,7 +20,7 @@
 import Chart from "@/common/components/Chart.vue";
 import { lineY, plot, ruleY } from "@observablehq/plot";
 import { pointer, select, type Selection } from "d3";
-import { AssetUtils, EtlApi } from "@/common/utils";
+import { AssetUtils, EtlApi, isMobile } from "@/common/utils";
 import { useI18n } from "vue-i18n";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { ref } from "vue";
@@ -29,7 +29,7 @@ type ChartData = { date: Date; borrowed: number; supplied: number };
 
 const chartHeight = 250;
 const marginLeft = 40;
-const chartWidth = 960;
+const chartWidth = isMobile() ? 450 : 950;
 const marginRight = 30;
 const marginBottom = 50;
 

@@ -12,7 +12,7 @@
           amount: delegated,
           type: CURRENCY_VIEW_TYPES.TOKEN,
           denom: NATIVE_ASSET.label,
-          maxDecimals: NATIVE_ASSET.decimal_digits,
+          maxDecimals: maxDecimals,
           minimalDenom: '',
           decimals: NATIVE_ASSET.decimal_digits,
           hasSpace: true,
@@ -105,11 +105,13 @@ import { CURRENCY_VIEW_TYPES, SvgIcon, Tooltip, Widget, type TableRowItemProps }
 import DelegationTable from "@/modules/stake/components/DelegationTable.vue";
 import UnbondingsTable from "@/modules/stake/components/UnbondingsTable.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
-import { NATIVE_ASSET } from "@/config/global";
+import { DECIMALS_AMOUNT, NATIVE_ASSET } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import type { IObjectKeys } from "@/common/types";
+import { computed } from "vue";
+import { Dec } from "@keplr-wallet/unit";
 
-defineProps<{
+const props = defineProps<{
   stableDelegated: string;
   delegated: string;
   validators: TableRowItemProps[];
@@ -118,4 +120,14 @@ defineProps<{
 }>();
 
 const wallet = useWalletStore();
+
+const maxDecimals = computed(() => {
+  const d = new Dec(props.delegated, NATIVE_ASSET.decimal_digits);
+  for (const decimals of DECIMALS_AMOUNT) {
+    if (d.gte(new Dec(decimals.amount))) {
+      return decimals.decimals;
+    }
+  }
+  return NATIVE_ASSET.decimal_digits;
+});
 </script>

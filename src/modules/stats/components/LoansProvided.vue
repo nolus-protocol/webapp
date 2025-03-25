@@ -58,7 +58,6 @@ import LoansChart from "@/modules/stats/components/LoansChart.vue";
 import { EtlApi, Logger } from "@/common/utils";
 import { onMounted, ref } from "vue";
 import { NATIVE_CURRENCY } from "@/config/global";
-import type { M } from "node_modules/vite/dist/node/types.d-aGj9QkWt";
 
 const loading = ref(true);
 const openPositionValue = ref("0");

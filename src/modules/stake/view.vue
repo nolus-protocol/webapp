@@ -200,7 +200,7 @@ async function loadDelegated() {
   const amount = new Dec(d.balance.amount);
   const stable = new Dec(d.balance.amount, NATIVE_ASSET.decimal_digits).mul(price);
 
-  delegated.value = amount.toString();
+  delegated.value = amount.truncate().toString();
   stableDelegated.value = stable.toString(2);
 
   if (promises.length == 0) {

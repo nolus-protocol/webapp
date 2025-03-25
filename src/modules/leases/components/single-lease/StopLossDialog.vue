@@ -100,7 +100,7 @@
           :loading="loading"
         />
         <p class="text-center text-12 text-typography-secondary">
-          {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.longOperationsEstimation }}{{ $t("message.sec") }}
+          {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.leaseStopLossTakeProfit }}{{ $t("message.sec") }}
         </p>
       </div>
     </template>
@@ -232,16 +232,17 @@ function getPrice() {
 const payout = computed(() => {
   const end_price = new Dec(amount.value.length == 0 ? 0 : amount.value);
   const end = totalAmount.value.mul(end_price);
+  const debt = lease.value?.debt ?? new Dec(0);
 
   switch (ProtocolsConfig[lease.value?.protocol!].type) {
     case PositionTypes.long: {
-      return AssetUtils.formatNumber(end.toString(), currency.value?.decimal_digits);
+      return AssetUtils.formatNumber(end.sub(debt).toString(), currency.value?.decimal_digits);
     }
     case PositionTypes.short: {
       const start_price = getPrice() ?? new Dec(0);
       const start = totalAmount.value.mul(start_price);
       const a = start.sub(end.sub(start));
-      return AssetUtils.formatNumber(a.toString(), currency.value?.decimal_digits);
+      return AssetUtils.formatNumber(a.sub(debt).toString(), currency.value?.decimal_digits);
     }
   }
 
