@@ -259,7 +259,6 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
   private async sequence() {
     try {
       const account = await this.getAccount(this.address!);
-
       return { sequence: account?.sequence, accountNumber: account?.accountNumber };
     } catch (error) {
       Logger.error(error);

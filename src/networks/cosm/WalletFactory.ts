@@ -22,7 +22,6 @@ const aminoTypes = {
 };
 
 const MsgTransferAmino = new AminoTypes(aminoTypes);
-const signer = ["getOfflineSigner", ""];
 
 async function createWallet(
   wallet: Wallet,
@@ -128,7 +127,7 @@ async function authenticateLedger(wallet: Wallet, network: NetworkData) {
   const transport = await getLedgerTransport();
   const accountNumbers = [0];
   const paths = accountNumbers.map(makeCosmoshubPath);
-  return await createWallet(
+  const w = await createWallet(
     wallet,
     new LedgerSigner(transport, {
       prefix: network.prefix,
@@ -139,6 +138,7 @@ async function authenticateLedger(wallet: Wallet, network: NetworkData) {
     network.gasPrice,
     network.explorer
   );
+  return w;
 }
 
 async function getLedgerTransport() {

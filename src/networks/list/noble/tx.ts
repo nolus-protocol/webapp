@@ -199,7 +199,7 @@ export type Exact<P, I extends P> = P extends Builtin
 export function createDepositForBurnWithCallerConverters(): AminoConverters {
   return {
     "/circle.cctp.v1.MsgDepositForBurnWithCaller": {
-      aminoType: "cosmos-sdk/MsgDepositForBurnWithCaller",
+      aminoType: "cctp/DepositForBurnWithCaller",
       toAmino: ({
         from,
         amount,

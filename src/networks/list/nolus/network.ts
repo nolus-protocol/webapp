@@ -1,12 +1,12 @@
 export const NETWORK = {
-  prefix: "osmo",
-  key: "OSMOSIS",
+  prefix: "nolus",
+  key: "NOLUS",
   gasMultiplier: 3.5,
   bip44Path: "44'/118'/0'/0/0",
   ibcTransferTimeout: 60,
-  ticker: "OSMO",
-  name: "Osmosis",
-  gasPrice: "0.003uosmo",
+  ticker: "NLS",
+  name: "Nolus",
+  gasPrice: "0.003unls",
   fees: {
     transfer_amount: 500
   }

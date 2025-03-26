@@ -22,8 +22,8 @@
         amount: totalLoan,
         type: CURRENCY_VIEW_TYPES.TOKEN,
         denom: asset.shortName,
-        maxDecimals: asset.decimal_digits,
-        decimals: asset.decimal_digits,
+        maxDecimals: assetLoan.decimal_digits,
+        decimals: assetLoan.decimal_digits,
         hasSpace: true
       }"
     />

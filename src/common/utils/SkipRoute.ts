@@ -75,9 +75,10 @@ export class SkipRouter {
       allowMultiTx: true,
       allowUnsafe: true,
       swapVenues: config.swapVenues,
-      experimentalFeatures: ["cctp"],
+      experimentalFeatures: ["hyperlane", "cctp", "stargate"],
       smartSwapOptions: {
-        splitRoutes: true
+        splitRoutes: true,
+        evm_swaps: true
       }
     };
     if (revert) {
@@ -279,6 +280,7 @@ export class SkipRouter {
           mintRecipient: msgJSON.mint_recipient
         });
       }
+
       default: {
         throw new Error("Action not supported");
       }

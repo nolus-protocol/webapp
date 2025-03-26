@@ -1,5 +1,8 @@
 import { CURRENT_NETWORK_KEY, DEFAULT_PRIMARY_NETWORK, NATIVE_NETWORK } from "@/config/global";
 
+import { NETWORK as NOLUS_NETWORK } from "./list/nolus/network";
+import { embedChainInfo as nolusChainInfo } from "./list/nolus/contants";
+
 import { NETWORK as OSMO_NETWORK } from "./list/osmosis/network";
 import { embedChainInfo as osmoChainInfo } from "./list/osmosis/contants";
 
@@ -619,6 +622,15 @@ export const NETWORKS_DATA: {
           return app?.networks?.[MANTRA_NETWORK.key] as ExternalCurrencies;
         },
         embedChainInfo: mantraChainInfo
+      },
+      NOLUS: {
+        ...NOLUS_NETWORK,
+        explorer: "https://ping.pub/nolus/tx",
+        currencies: () => {
+          const app = useApplicationStore();
+          return app?.networks?.[NOLUS_NETWORK.key] as ExternalCurrencies;
+        },
+        embedChainInfo: nolusChainInfo
       }
     }
   }
