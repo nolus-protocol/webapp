@@ -584,8 +584,8 @@
     "no-chartdata": "Insufficient Data",
     "no-chartdata-description": "Insufficient data to generate graph — check back later",
     "swap-stepper": "Swap",
-    "leases-home": "Position Value",
-    "leases-table": "Position Value",
+    "leases-home": "Value",
+    "leases-table": "Value",
     "view-breakdown": "View Breakdown"
   }
 }
