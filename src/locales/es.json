@@ -590,6 +590,7 @@
     "no-chartdata-description": "Insufficient historical data available to generate the graph",
     "swap-stepper": "Swap",
     "leases-home": "Leases",
-    "leases-table": "Leases"
+    "leases-table": "Leases",
+    "view-breakdown": "View Breakdown"
   }
 }

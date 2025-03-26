@@ -585,6 +585,7 @@
     "no-chartdata-description": "Insufficient data to generate graph — check back later",
     "swap-stepper": "Swap",
     "leases-home": "Margin",
-    "leases-table": "Margin"
+    "leases-table": "Margin",
+    "view-breakdown": "View Breakdown"
   }
 }

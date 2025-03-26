@@ -32,11 +32,12 @@
               <span class="font-semibold">
                 <Label
                   v-if="pnl.neutral"
-                  variant="info"
+                  variant="success"
                 >
                   <SvgIcon
                     name="arrow-up"
                     size="xs"
+                    class="fill-icon-success"
                   />
                   <span class="ml-1">{{ pnl.status ? "+" : "" }}{{ pnl.percent }}%</span>
                 </Label>

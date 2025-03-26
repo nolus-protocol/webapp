@@ -10,6 +10,27 @@
         tableWrapperClasses="min-w-[800px] pr-6 md:min-w-auto md:pr-0"
         @onSearchClear="search = ''"
       >
+        <div class="mb-4 flex">
+          <div class="flex flex-col gap-2">
+            <BigNumber
+              :label="$t('message.realized-pnl')"
+              :amount="{
+                amount: realized_pnl.toString(),
+                type: CURRENCY_VIEW_TYPES.CURRENCY,
+                denom: NATIVE_CURRENCY.symbol,
+                fontSize: 20,
+                fontSizeSmall: 20,
+                hide: hide
+              }"
+            />
+            <Button
+              :label="$t('message.view-breakdown')"
+              severity="secondary"
+              size="small"
+              @click="router.push(`/${RouteNames.LEASES}/pnl-log`)"
+            />
+          </div>
+        </div>
         <template v-slot:body>
           <template v-if="transactions.length > 0 || Object.keys(wallet.history).length > 0">
             <WalletHistoryTableRowWrapper />
@@ -52,8 +73,12 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Button, Table, type TableColumnProps, Widget } from "web-components";
 import { useWalletStore } from "@/common/stores/wallet";
-import { EtlApi, getCreatedAtForHuman, isMobile } from "@/common/utils";
+import { EtlApi, getCreatedAtForHuman, isMobile, WalletManager } from "@/common/utils";
 import { type ITransactionData } from "@/modules/history/types";
+import { CURRENCY_VIEW_TYPES } from "@/common/types";
+import { NATIVE_CURRENCY } from "@/config/global";
+import { RouteNames } from "@/router";
+import BigNumber from "@/common/components/BigNumber.vue";
 
 import HistoryTableRowWrapper from "./components/HistoryTableRowWrapper.vue";
 import ListHeader from "@/common/components/ListHeader.vue";
@@ -63,6 +88,8 @@ import type { HistoryData } from "./types/ITransaction";
 import { action, message } from "./common";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1/gov";
 import type { IObjectKeys } from "@/common/types";
+import { useRouter } from "vue-router";
+import { Dec } from "@keplr-wallet/unit";
 
 const showErrorDialog = ref(false);
 const errorMessage = ref("");
@@ -70,6 +97,9 @@ const transactions = ref([] as ITransactionData[] | IObjectKeys[] | any[]);
 const i18n = useI18n();
 const wallet = useWalletStore();
 const search = ref("");
+const router = useRouter();
+const hide = ref(WalletManager.getHideBalances());
+const realized_pnl = ref(new Dec(0));
 
 const voteMessages: { [key: string]: string } = {
   [VoteOption.VOTE_OPTION_ABSTAIN]: i18n.t(`message.abstained`).toLowerCase(),
@@ -114,6 +144,7 @@ const txs = computed(() => {
 
 onMounted(() => {
   loadTxs();
+  getRealizedPnl();
 });
 
 watch(
@@ -121,6 +152,7 @@ watch(
   () => {
     skip = 0;
     loadTxs();
+    getRealizedPnl();
   }
 );
 
@@ -165,6 +197,15 @@ async function loadTxs() {
     setTimeout(() => {
       loading.value = false;
     }, 200);
+  }
+}
+
+async function getRealizedPnl() {
+  try {
+    const data = await EtlApi.fetchRealizedPNL(wallet?.wallet?.address);
+    realized_pnl.value = new Dec(data.realized_pnl);
+  } catch (error) {
+    console.error(error);
   }
 }
 </script>
