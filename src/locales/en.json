@@ -4,7 +4,7 @@
     "keplr": "Keplr",
     "history": "History",
     "lease": "Lease",
-    "leases": "Margins",
+    "leases": "Margin",
     "earn": "Earn",
     "assets": "Assets",
     "asset": "Asset",
@@ -584,8 +584,8 @@
     "no-chartdata": "Insufficient Data",
     "no-chartdata-description": "Insufficient data to generate graph — check back later",
     "swap-stepper": "Swap",
-    "leases-home": "Margin",
-    "leases-table": "Margin",
+    "leases-home": "Position Value",
+    "leases-table": "Position Value",
     "view-breakdown": "View Breakdown"
   }
 }
