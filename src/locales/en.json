@@ -471,7 +471,7 @@
     "leases-monthly": "Positions monthly ($)",
     "open-interest": "Open interest",
     "unrealized-pnl-tooltip": "The profit or loss of open positions, fluctuating with market prices until the position is closed and gains or losses are realized",
-    "days-unrealized-pnL": "20 Days PnL",
+    "days-unrealized-pnL": "20 Days Open Positions Value",
     "view-all-activites": "View All",
     "no-notifications": "No notifications",
     "come-back-later": "Come back later",
