@@ -586,6 +586,15 @@
     "swap-stepper": "Swap",
     "leases-home": "Value",
     "leases-table": "Value",
-    "view-breakdown": "View Breakdown"
+    "view-breakdown": "View Breakdown",
+    "utilization_sub_osmosis_usdc": "USDC",
+    "utilization_sub_neutron_usdc": "USDC",
+    "utilization_sub_osmosis_sol": "SOL",
+    "utilization_sub_osmosis_statom": "STATOM",
+    "utilization_sub_osmosis_akt": "AKT",
+    "value-label": "Value:",
+    "debt-label": "Debt",
+    "value-chart-label": "Value",
+    "position-chart-label": "Debt"
   }
 }

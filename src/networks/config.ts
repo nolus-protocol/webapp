@@ -57,6 +57,12 @@ import { embedChainInfo as nobleChainInfo } from "./list/noble/contants";
 import { NETWORK as MANTRA_NETWORK } from "./list/mantra/network";
 import { embedChainInfo as mantraChainInfo } from "./list/mantra/contants";
 
+import { NETWORK as NILLION_NETWORK } from "./list/nillion/network";
+import { embedChainInfo as nillionChainInfo } from "./list/nillion/contants";
+
+import { NETWORK as XION_NETWORK } from "./list/xion/network";
+import { embedChainInfo as xionChainInfo } from "./list/xion/contants";
+
 import { NETWORK as ETHEREUM_NETWORK } from "./list/ethereum/network";
 import { NETWORK as BINANCE_NETWORK } from "./list/binance/network";
 import { NETWORK as ARBITRUM_NETWORK } from "./list/arbitrum/network";
@@ -345,6 +351,30 @@ export const SUPPORTED_NETWORKS_DATA: {
     forward: true,
     chain_type: ChainType.cosmos,
     icon: MantraIcon
+  },
+  XION: {
+    prefix: XION_NETWORK.prefix,
+    key: XION_NETWORK.key,
+    symbol: XION_NETWORK.ticker,
+    value: "xion",
+    label: "Xion",
+    native: false,
+    estimation: 20,
+    forward: true,
+    chain_type: ChainType.cosmos,
+    icon: "icon"
+  },
+  NILLION: {
+    prefix: NILLION_NETWORK.prefix,
+    key: NILLION_NETWORK.key,
+    symbol: NILLION_NETWORK.ticker,
+    value: "nillion",
+    label: "Nillion",
+    native: false,
+    estimation: 20,
+    forward: true,
+    chain_type: ChainType.cosmos,
+    icon: "icon"
   }
 };
 
@@ -447,7 +477,10 @@ export const NETWORKS_DATA: {
       SUPPORTED_NETWORKS_DATA.NOBLE,
       SUPPORTED_NETWORKS_DATA.MANTRA,
       SUPPORTED_NETWORKS_DATA.ETHEREUM,
-      SUPPORTED_NETWORKS_DATA.ARBITRUM
+      SUPPORTED_NETWORKS_DATA.ARBITRUM,
+      SUPPORTED_NETWORKS_DATA.XION,
+      SUPPORTED_NETWORKS_DATA.NILLION
+
       // SUPPORTED_NETWORKS_DATA.CUDOS
       // SUPPORTED_NETWORKS_DATA.BINANCE
     ],
@@ -631,6 +664,24 @@ export const NETWORKS_DATA: {
           return app?.networks?.[NOLUS_NETWORK.key] as ExternalCurrencies;
         },
         embedChainInfo: nolusChainInfo
+      },
+      XION: {
+        ...XION_NETWORK,
+        explorer: "https://ping.pub/xion/tx",
+        currencies: () => {
+          const app = useApplicationStore();
+          return app?.networks?.[XION_NETWORK.key] as ExternalCurrencies;
+        },
+        embedChainInfo: xionChainInfo
+      },
+      NILLION: {
+        ...NILLION_NETWORK,
+        explorer: "https://www.mintscan.io/nillion/tx",
+        currencies: () => {
+          const app = useApplicationStore();
+          return app?.networks?.[NILLION_NETWORK.key] as ExternalCurrencies;
+        },
+        embedChainInfo: nillionChainInfo
       }
     }
   }

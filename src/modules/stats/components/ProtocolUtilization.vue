@@ -28,7 +28,7 @@ import ChartUtilizaiton from "./ChartUtilizaiton.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 
 import { Table, type TableColumnProps, TableRow, type TableRowItemProps, Widget } from "web-components";
-import { AppUtils, AssetUtils, EnvNetworkUtils, EtlApi, Logger } from "@/common/utils";
+import { AppUtils, EnvNetworkUtils, EtlApi, Logger } from "@/common/utils";
 
 import { computed, h, onMounted, ref } from "vue";
 import { useApplicationStore } from "@/common/stores/application";
@@ -69,7 +69,7 @@ const assets = computed<TableRowItemProps[]>(() => {
       items: [
         {
           value: "USDC",
-          subValue: "USDC",
+          subValue: i18n.t("message.utilization_sub_osmosis_usdc"),
           image: osmoUsdc,
           variant: "left"
         },
@@ -94,7 +94,7 @@ const assets = computed<TableRowItemProps[]>(() => {
       items: [
         {
           value: "USDC",
-          subValue: "USDC",
+          subValue: i18n.t("message.utilization_sub_neutron_usdc"),
           image: neutronUsdc,
           variant: "left"
         },
@@ -119,7 +119,7 @@ const assets = computed<TableRowItemProps[]>(() => {
       items: [
         {
           value: "SOL",
-          subValue: "Solana",
+          subValue: i18n.t("message.utilization_sub_osmosis_sol"),
           image: osmosisSol,
           variant: "left"
         },
@@ -144,7 +144,7 @@ const assets = computed<TableRowItemProps[]>(() => {
       items: [
         {
           value: "BTC",
-          subValue: "Bitcoin",
+          subValue: i18n.t("message.utilization_sub_osmosis_sol"),
           image: osmosisBtc,
           variant: "left"
         },
@@ -169,7 +169,7 @@ const assets = computed<TableRowItemProps[]>(() => {
       items: [
         {
           value: "stAtom",
-          subValue: "Stride Staked Atom",
+          subValue: i18n.t("message.utilization_sub_osmosis_statom"),
           image: osmosisStAtom,
           variant: "left"
         },
@@ -194,7 +194,7 @@ const assets = computed<TableRowItemProps[]>(() => {
       items: [
         {
           value: "AKT",
-          subValue: "Alash",
+          subValue: i18n.t("message.utilization_sub_osmosis_akt"),
           image: osmosisAkt,
           variant: "left"
         },

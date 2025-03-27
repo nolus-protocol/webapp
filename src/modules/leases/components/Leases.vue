@@ -77,26 +77,6 @@
               hide: hide
             }"
           />
-          <span class="hidden border-r border-border-color md:block" />
-          <div class="flex flex-col gap-2">
-            <BigNumber
-              :label="$t('message.realized-pnl')"
-              :amount="{
-                amount: realized_pnl.toString(),
-                type: CURRENCY_VIEW_TYPES.CURRENCY,
-                denom: NATIVE_CURRENCY.symbol,
-                fontSize: 20,
-                fontSizeSmall: 20,
-                hide: hide
-              }"
-            />
-            <Button
-              :label="$t('message.pnl-history')"
-              severity="secondary"
-              size="small"
-              @click="router.push(`/${RouteNames.LEASES}/pnl-log`)"
-            />
-          </div>
         </div>
         <template v-slot:body>
           <TableRow
@@ -134,7 +114,7 @@ import SharePnLDialog from "@/modules/leases/components/single-lease/SharePnLDia
 import { useI18n } from "vue-i18n";
 import { type Component, computed, h, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { CURRENCY_VIEW_TYPES, type LeaseData } from "@/common/types";
-import { AssetUtils, EtlApi, formatDate, isTablet, Logger, WalletManager } from "@/common/utils";
+import { AssetUtils, formatDate, isTablet, Logger, WalletManager } from "@/common/utils";
 
 import { useLeases } from "@/common/composables";
 import { Coin, Dec } from "@keplr-wallet/unit";
@@ -155,7 +135,6 @@ const { leases, getLeases, leaseLoaded } = useLeases((error: Error | any) => {})
 const activeLeases = ref(new Dec(0));
 const pnl = ref(new Dec(0));
 const debt = ref(new Dec(0));
-const realized_pnl = ref(new Dec(0));
 const pnl_percent = ref(new Dec(0));
 const router = useRouter();
 const wallet = useWalletStore();
@@ -508,20 +487,6 @@ watch(
   }
 );
 
-watch(
-  () => wallet.wallet,
-  async () => {
-    try {
-      getRealizedPnl();
-    } catch (e) {
-      Logger.error(e);
-    }
-  },
-  {
-    immediate: true
-  }
-);
-
 function setLeases() {
   try {
     let db = new Dec(0);
@@ -567,15 +532,6 @@ function setLeases() {
     });
   } catch (e) {
     Logger.error(e);
-  }
-}
-
-async function getRealizedPnl() {
-  try {
-    const data = await EtlApi.fetchRealizedPNL(wallet?.wallet?.address);
-    realized_pnl.value = new Dec(data.realized_pnl);
-  } catch (error) {
-    console.error(error);
   }
 }
 

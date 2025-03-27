@@ -103,6 +103,12 @@ export const ASSETS = {
   },
   OM: {
     coinGeckoId: "mantra-dao"
+  },
+  NIL: {
+    coinGeckoId: "nillion"
+  },
+  XION: {
+    coinGeckoId: "xion-2"
   }
 };
 

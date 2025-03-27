@@ -49,5 +49,29 @@
         "api": "https://noble-api.polkachu.com"
       }
     ]
+  },
+  "XION": {
+    "primary": {
+      "rpc": "https://rpc.xion-mainnet-1.burnt.com:443/",
+      "api": "https://api.xion-mainnet-1.burnt.com/"
+    },
+    "fallback": [
+      {
+        "rpc": "https://xion-rpc.lavenderfive.com:443",
+        "api": "https://xion-api.lavenderfive.com"
+      }
+    ]
+  },
+  "NILLION": {
+    "primary": {
+      "rpc": "https://nillion-rpc.lavenderfive.com/",
+      "api": "https://nillion-api.lavenderfive.com/"
+    },
+    "fallback": [
+      {
+        "rpc": "https://nillion-rpc.lavenderfive.com/",
+        "api": "https://nillion-api.lavenderfive.com/"
+      }
+    ]
   }
 }

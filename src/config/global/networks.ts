@@ -57,7 +57,9 @@ export const SUPPORTED_NETWORKS = [
   "INJECTIVE",
   "COMPOSABLE",
   "NOBLE",
-  "MANTRA"
+  "MANTRA",
+  "XION",
+  "NILLION"
 ];
 
 export const IGNORED_NETWORKS = ["NOLUS"];

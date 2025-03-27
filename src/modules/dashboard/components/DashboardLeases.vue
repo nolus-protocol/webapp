@@ -34,28 +34,7 @@
               }
             }"
             :loading="loaded"
-          />
-          <BigNumber
-            :label="$t('message.leases-home')"
-            :amount="{
-              amount: activeLeases.toString(),
-              type: CURRENCY_VIEW_TYPES.CURRENCY,
-              denom: NATIVE_CURRENCY.symbol,
-              fontSize: 20,
-              fontSizeSmall: 20
-            }"
-            :loading="loaded"
-          />
-          <BigNumber
-            :label="$t('message.debt')"
-            :amount="{
-              amount: debt.toString(),
-              type: CURRENCY_VIEW_TYPES.CURRENCY,
-              denom: NATIVE_CURRENCY.symbol,
-              fontSize: 20,
-              fontSizeSmall: 20
-            }"
-            :loading="loaded"
+            :loadingWidth="'80px'"
           />
         </div>
         <UnrealizedPnlChart class="mt-4" />
@@ -101,9 +80,7 @@ import { NATIVE_CURRENCY } from "@/config/global";
 import { useRouter } from "vue-router";
 
 const { leases, getLeases } = useLeases((error: Error | any) => {});
-const activeLeases = ref(new Dec(0));
 const pnl = ref(new Dec(0));
-const debt = ref(new Dec(0));
 const pnl_percent = ref(new Dec(0));
 const count = ref(0);
 
@@ -165,8 +142,6 @@ function setLeases() {
       db = db.add(lease.debt as Dec);
       pl = pl.add(lease.pnlAmount as Dec);
     }
-    activeLeases.value = ls;
-    debt.value = db;
     pnl.value = pl;
     count.value = c;
     if (c) {

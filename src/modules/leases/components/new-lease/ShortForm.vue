@@ -634,7 +634,7 @@ const borrowStable = computed(() => {
 });
 
 const stepperTransfer = computed(() => {
-  const a = new Dec(amount.value);
+  const a = new Dec(amount.value.length > 0 ? amount.value : 0);
   return a.add(borrowStable.value);
 });
 </script>

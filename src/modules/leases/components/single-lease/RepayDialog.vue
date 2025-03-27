@@ -506,13 +506,15 @@ function isAmountValid() {
         "",
         coinData.decimal_digits
       ).amount.toDec();
-
       if (b.gt(debt) && debt.gt(minAmountCurrency)) {
-        const n = new Dec(debtInCurrencies.truncate().toString(), coinData.decimal_digits);
-        amountErrorMsg.value = i18n.t("message.lease-only-max-error", {
-          maxAmount: n.toString(coinData.decimal_digits),
-          symbol: coinData.shortName
-        });
+        if (debt.gt(minAmm) && amountInStable.gt(minAmount)) {
+          const n = new Dec(debtInCurrencies.truncate().toString(), coinData.decimal_digits);
+          amountErrorMsg.value = i18n.t("message.lease-only-max-error", {
+            maxAmount: n.toString(coinData.decimal_digits),
+            symbol: coinData.shortName
+          });
+        }
+
         isValid = false;
       }
     } else {

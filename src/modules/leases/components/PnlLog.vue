@@ -133,7 +133,7 @@ watch(
 );
 
 function goBack() {
-  router.push({ path: `/${RouteNames.LEASES}` });
+  router.push({ path: `/${RouteNames.HISTORY}` });
 }
 
 async function loadLoans() {

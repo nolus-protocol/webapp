@@ -146,7 +146,9 @@ export const CONTRACTS: ContractConfig = {
           "CUDOS",
           "ALL_BTC",
           "ALL_SOL",
-          "OM"
+          "OM",
+          "XION",
+          "NIL"
         ],
         stable: "USDC_NOBLE",
         type: PositionTypes.long,
