@@ -483,11 +483,11 @@ const stable = computed(() => {
     case PositionTypes.long: {
       const price = oracle.prices?.[`${ticker}@${protocol}`];
 
-      const value = new Dec(amount!.amount, asset?.decimal_digits).mul(new Dec(price.amount));
+      const value = new Dec(amount!.amount, assetLoan.value?.decimal_digits).mul(new Dec(price.amount));
       return value.toString(NATIVE_CURRENCY.maximumFractionDigits);
     }
     case PositionTypes.short: {
-      const value = new Dec(amount!.amount, asset!.decimal_digits);
+      const value = new Dec(amount!.amount, assetLoan.value!.decimal_digits);
       return value.toString(NATIVE_CURRENCY.maximumFractionDigits);
     }
   }
