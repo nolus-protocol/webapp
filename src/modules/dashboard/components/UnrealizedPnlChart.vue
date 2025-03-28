@@ -170,12 +170,13 @@ async function loadData() {
       .map((item) => new Date(item))
       .sort((a, b) => a.getTime() - b.getTime());
     const items = [];
+
     for (const date of dates) {
       const d = data[date.toISOString()];
       items.push({
         date,
-        debt: d?.debt ? Number(d?.debt) : undefined,
-        position: d?.position ? Number(d?.position) : undefined
+        debt: d?.debt ? Number(d?.debt) : 0,
+        position: d?.position ? Number(d?.position) : 0
       });
     }
     data_position.value = items;

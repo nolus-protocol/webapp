@@ -268,5 +268,6 @@
   "value-label": "Value:",
   "debt-label": "Debt",
   "value-chart-label": "Value",
-  "position-chart-label": "Debt"
+  "position-chart-label": "Debt",
+  "repay-liquidation-price": "Liquidaiton price {data}"
 }

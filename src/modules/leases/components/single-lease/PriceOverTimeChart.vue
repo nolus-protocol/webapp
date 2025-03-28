@@ -46,7 +46,7 @@ const i18n = useI18n();
 const app = useApplicationStore();
 
 const chartHeight = 250;
-const marginLeft = 40;
+const marginLeft = 60;
 const chartWidth = isMobile() ? 350 : 950;
 const marginRight = 30;
 const marginBottom = 50;

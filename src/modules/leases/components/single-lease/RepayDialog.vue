@@ -85,6 +85,13 @@
             </div>
             <div class="flex items-center gap-2 text-14">
               <SvgIcon
+                name="check-solid"
+                class="fill-icon-success"
+              />
+              <p :innerHTML="$t('message.repay-liquidation-price', { data: liquidation })"></p>
+            </div>
+            <div class="flex items-center gap-2 text-14">
+              <SvgIcon
                 name="info"
                 class="fill-icon-secondary"
               />
@@ -667,5 +674,36 @@ const debtData = computed(() => {
   }
 
   return "";
+});
+
+const liquidation = computed(() => {
+  const leaseInfo = lease.value?.leaseStatus.opened;
+  if (!leaseInfo) {
+    return `${NATIVE_CURRENCY.symbol}0.00`;
+  }
+
+  let liquidation = new Dec(0);
+  const ticker = CurrencyDemapping[leaseInfo.amount.ticker!]?.ticker ?? leaseInfo.amount.ticker;
+  const unitAssetInfo = app.currenciesData![`${ticker!}@${lease.value?.protocol}`];
+  const stableTicker = CurrencyDemapping[leaseInfo.principal_due.ticker!]?.ticker ?? leaseInfo.principal_due.ticker;
+  const stableAssetInfo = app.currenciesData![`${stableTicker!}@${lease.value?.protocol}`];
+
+  let unitAsset = new Dec(leaseInfo.amount.amount, Number(unitAssetInfo!.decimal_digits));
+  let stableAsset = new Dec(leaseInfo.principal_due.amount, Number(stableAssetInfo!.decimal_digits)).sub(
+    new Dec(amount.value.length > 0 ? amount.value : 0)
+  );
+
+  switch (ProtocolsConfig[lease.value?.protocol!].type) {
+    case PositionTypes.long: {
+      liquidation = LeaseUtils.calculateLiquidation(stableAsset, unitAsset);
+      break;
+    }
+    case PositionTypes.short: {
+      liquidation = LeaseUtils.calculateLiquidationShort(unitAsset, stableAsset);
+      break;
+    }
+  }
+
+  return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(liquidation.toString(), stableAssetInfo.decimal_digits)}`;
 });
 </script>

@@ -17,7 +17,7 @@
     </WidgetHeader>
     <div>
       <template v-if="props.isVisible && !emptyState">
-        <div class="flex gap-8">
+        <div class="mb-6 flex gap-8">
           <BigNumber
             :label="$t('message.unrealized-pnl')"
             :amount="{
@@ -37,7 +37,7 @@
             :loadingWidth="'80px'"
           />
         </div>
-        <UnrealizedPnlChart class="mt-4" />
+        <UnrealizedPnlChart />
       </template>
       <template v-else>
         <EmptyState
