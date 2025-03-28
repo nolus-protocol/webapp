@@ -97,6 +97,8 @@ import EthereumIcon from "../assets/icons/networks/ethereum.svg?url";
 import ArbitrumIcon from "../assets/icons/networks/arbitrum.svg?url";
 import BinanceIcon from "../assets/icons/networks/binance.svg?url";
 import MantraIcon from "../assets/icons/networks/mantra.svg?url";
+import XionIcon from "../assets/icons/networks/xion.svg?url";
+import NillionIcon from "../assets/icons/networks/nillion.svg?url";
 
 export const PROOBUF_ONLY_NETWORK = [ARBITRUM_NETWORK.key];
 
@@ -362,7 +364,7 @@ export const SUPPORTED_NETWORKS_DATA: {
     estimation: 20,
     forward: true,
     chain_type: ChainType.cosmos,
-    icon: "icon"
+    icon: XionIcon
   },
   NILLION: {
     prefix: NILLION_NETWORK.prefix,
@@ -374,7 +376,7 @@ export const SUPPORTED_NETWORKS_DATA: {
     estimation: 20,
     forward: true,
     chain_type: ChainType.cosmos,
-    icon: "icon"
+    icon: NillionIcon
   }
 };
 

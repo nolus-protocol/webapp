@@ -33,7 +33,7 @@
             amount: amount,
             type: CURRENCY_VIEW_TYPES.TOKEN,
             denom: asset?.shortName ?? '',
-            decimals: asset?.decimal_digits ?? 0,
+            decimals: assetLoan?.decimal_digits ?? 0,
             hasSpace: true,
             around: true
           }"
@@ -346,6 +346,19 @@ const amount = computed(() => {
     }
     default: {
       return "0";
+    }
+  }
+});
+
+const assetLoan = computed(() => {
+  switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
+    case PositionTypes.long: {
+      return asset.value;
+    }
+    case PositionTypes.short: {
+      const p = props.lease?.protocol!;
+      const currency = app.currenciesData![`${ProtocolsConfig[p].stable}@${p}`];
+      return currency;
     }
   }
 });
