@@ -115,6 +115,7 @@
         :lease="lease!"
         severity="primary"
         v-if="TEMPLATES.paid == status"
+        size="medium"
       />
     </div>
     <SharePnLDialog ref="sharePnlDialog" />

@@ -30,7 +30,7 @@
     <template v-else>
       <Table
         searchable
-        :size="isTablet() ? '' : `${leasesData.length} leases`"
+        :size="isTablet() ? '' : `${leasesData.length} ${$t('message.leases-table-label')}`"
         :columns="leasesData.length > 0 ? columns : []"
         tableWrapperClasses="min-w-[900px] pr-6 md:min-w-auto md:p-0"
         :hide-values="isTablet() ? undefined : { text: $t('message.toggle-values'), value: hide }"
@@ -108,13 +108,12 @@ import { RouteNames } from "@/router";
 import BigNumber, { type IBigNumber } from "@/common/components/BigNumber.vue";
 import ListHeader from "@/common/components/ListHeader.vue";
 import EmptyState from "@/common/components/EmptyState.vue";
-import Collect, { type ICollect } from "./single-lease/Collect.vue";
 import SharePnLDialog from "@/modules/leases/components/single-lease/SharePnLDialog.vue";
 
 import { useI18n } from "vue-i18n";
 import { type Component, computed, h, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { CURRENCY_VIEW_TYPES, type LeaseData } from "@/common/types";
-import { AssetUtils, formatDate, isTablet, Logger, WalletManager } from "@/common/utils";
+import { AssetUtils, isTablet, Logger, WalletManager } from "@/common/utils";
 
 import { useLeases } from "@/common/composables";
 import { Coin, Dec } from "@keplr-wallet/unit";
@@ -123,11 +122,17 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useOracleStore } from "@/common/stores/oracle";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useApplicationStore } from "@/common/stores/application";
-import { MAX_DECIMALS, NATIVE_CURRENCY, PositionTypes, ProtocolsConfig, UPDATE_LEASES } from "@/config/global";
+import {
+  MAX_DECIMALS,
+  MID_DECIMALS,
+  NATIVE_CURRENCY,
+  PositionTypes,
+  ProtocolsConfig,
+  UPDATE_LEASES
+} from "@/config/global";
 import { CurrencyDemapping } from "@/config/currencies";
 import { useRouter } from "vue-router";
 import { getStatus, TEMPLATES } from "./common";
-import { SingleLeaseDialog } from "../enums";
 import type { IAction } from "./single-lease/Action.vue";
 import Action from "./single-lease/Action.vue";
 
@@ -144,16 +149,17 @@ const i18n = useI18n();
 const hide = ref(WalletManager.getHideBalances());
 const search = ref("");
 const sharePnlDialog = ref<typeof SharePnLDialog | null>(null);
+let openMenuId: string | null;
 
 let timeOut: NodeJS.Timeout;
 
 const columns: TableColumnProps[] = [
   { label: i18n.t("message.lease"), variant: "left", class: "max-w-[150px]" },
   { label: i18n.t("message.asset"), variant: "left" },
-  { label: i18n.t("message.type"), variant: "left", class: "max-w-[70px]" },
+  { label: i18n.t("message.type"), variant: "left", class: "max-w-[45px]" },
   { label: i18n.t("message.pnl"), class: "max-w-[200px]" },
   { label: i18n.t("message.lease-size") },
-  { label: i18n.t("message.opened-on"), class: "max-w-[200px]" },
+  { label: i18n.t("message.liquidation-lease-table"), class: "max-w-[200px]" },
   { label: "", class: "max-w-[180px]" }
 ];
 
@@ -164,10 +170,11 @@ const leasesData = computed<TableRowItemProps[]>(() => {
       if (param.length == 0) {
         return true;
       }
-
+      const c = app.currenciesData![`${item.leaseData?.leasePositionTicker}@${item.protocol}`];
       if (
         item.leaseAddress.toLowerCase().includes(param) ||
-        item.leaseData?.leasePositionTicker?.toLowerCase().includes(param)
+        item.leaseData?.leasePositionTicker?.toLowerCase().includes(param) ||
+        c.shortName?.toLowerCase()?.includes(param)
       ) {
         return true;
       }
@@ -180,9 +187,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
         amount: CurrencyUtils.formatPrice(item.pnlAmount.toString()),
         status: item.pnlAmount.isPositive() || item.pnlAmount.isZero()
       };
-      const date = item.leaseData?.timestamp
-        ? `${formatDate(item.leaseData?.timestamp?.toString())?.toUpperCase()}`
-        : "";
+      const liquidation = AssetUtils.formatNumber(item.liquidation.toString(), MID_DECIMALS, NATIVE_CURRENCY.symbol);
       const asset = getAsset(item as LeaseData)!;
       const amount = new Dec(getAmount(item as LeaseData) ?? 0, asset.decimal_digits);
       const stable = getPositionInStable(item as LeaseData);
@@ -201,7 +206,6 @@ const leasesData = computed<TableRowItemProps[]>(() => {
         items: [
           {
             value: getTitle(item as LeaseData),
-            // subValue: getSubValue(item as LeaseData),
             subValueClass: "text-typography-secondary rounded border-[1px] px-2 py-1 self-start	",
             variant: "left",
             click: () => {
@@ -211,14 +215,16 @@ const leasesData = computed<TableRowItemProps[]>(() => {
           },
           {
             image: getAssetIcon(item as LeaseData),
+            imageClass: "w-[32px] h-[32px]",
             value: asset.name,
             subValue: asset.shortName,
-            variant: "left"
+            variant: "left",
+            textClass: "line-clamp-1 [display:-webkit-box]"
           },
           {
             value: `${i18n.t(`message.${ProtocolsConfig[item.protocol].type}`)}`,
             variant: "left",
-            class: "max-w-[70px]"
+            class: "max-w-[45px]"
           },
           {
             component: () =>
@@ -238,7 +244,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
             ...value,
             class: "font-semibold"
           },
-          { value: date, class: "max-w-[200px]" },
+          { value: liquidation, class: "max-w-[200px]" },
           {
             component: () => [...actions],
             class: "max-w-[180px] pr-4 cursor-pointer"
@@ -388,9 +394,28 @@ function getPositionInStable(lease: LeaseData) {
 function getActions(lease: LeaseData) {
   const status = getStatus(lease as LeaseData);
   const actions = [
+    h<ButtonProps>(Button, {
+      label: i18n.t("message.details"),
+      severity: "secondary",
+      size: "medium",
+      key: `details-${lease.leaseAddress}`,
+      onClick: () => {
+        router.push(`/${RouteNames.LEASES}/${lease.protocol?.toLowerCase()}/${lease.leaseAddress}`);
+      }
+    }),
     h<IAction>(Action, {
       lease,
+      showCollect: status == TEMPLATES.paid && !isCollecting(lease),
+      showClose: status == TEMPLATES.opened,
       key: `action-${lease.leaseAddress}`,
+      opened: openMenuId == lease.leaseAddress,
+      onClick: (data: boolean) => {
+        if (data) {
+          openMenuId = lease.leaseAddress;
+        } else {
+          openMenuId = null;
+        }
+      },
       onSharePnl: () => {
         sharePnlDialog.value?.show(lease);
       }
@@ -401,53 +426,8 @@ function getActions(lease: LeaseData) {
     if (isClosing(lease) || isRepaying(lease)) {
       return [];
     }
-    actions.unshift(
-      h<ButtonProps>(Button, {
-        label: i18n.t("message.close"),
-        severity: "secondary",
-        size: "medium",
-        key: `close-${lease.leaseAddress}`,
-        onClick: () => {
-          router.push({
-            path: `/${RouteNames.LEASES}/${SingleLeaseDialog.CLOSE}/${lease.protocol?.toLowerCase()}/${lease.leaseAddress}`
-          });
-        }
-      })
-    );
   }
-  if (status == TEMPLATES.paid && !isCollecting(lease)) {
-    actions.unshift(
-      h<ICollect>(Collect, {
-        severity: "secondary",
-        lease: lease,
-        key: `collect-${lease.leaseAddress}`
-      })
-    );
-  }
-
   return actions;
-}
-
-function getSubValue(lease: LeaseData) {
-  const status = getStatus(lease as LeaseData);
-
-  if (status == TEMPLATES.opened) {
-    if (isClosing(lease)) {
-      return i18n.t("message.closing");
-    }
-
-    if (isRepaying(lease)) {
-      return i18n.t("message.repaying");
-    }
-  }
-
-  if (TEMPLATES.paid == status) {
-    if (isCollecting(lease)) {
-      return i18n.t("message.collecting");
-    }
-  }
-
-  return "";
 }
 
 function isClosing(lease: LeaseData) {

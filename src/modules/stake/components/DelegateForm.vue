@@ -1,54 +1,55 @@
 <template>
-  <AdvancedFormControl
-    id="receive-send"
-    :currencyOptions="assets"
-    class="px-6 py-4"
-    labelAdvanced
-    :balanceLabel="$t('message.balance')"
-    :selectedCurrencyOption="assets[0]"
-    placeholder="0"
-    :calculatedBalance="stable"
-    @input="onInput"
-    :error-msg="error"
-  >
-    <template v-slot:label>
-      <div class="flex items-center gap-1">
-        {{ $t("message.amount-in") }}
-        <span class="flex items-center gap-1 font-normal">
-          <img :src="NATIVE_ASSET.icon" /> {{ NATIVE_ASSET.label }}</span
-        >
-      </div>
-    </template>
-  </AdvancedFormControl>
-  <hr class="border-border-color" />
-  <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
-    <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
-    <template v-if="isEmpty">
-      <div class="flex items-center gap-2 text-14">
-        <SvgIcon
-          name="list-sparkle"
-          class="fill-icon-secondary"
-        />
-        {{ $t("message.preview-input") }}
-      </div>
-    </template>
-    <template v-else>
-      <div class="flex items-center gap-2 text-14">
-        <SvgIcon
-          name="check-solid"
-          class="fill-icon-success"
-        />
-        <p
-          class="flex-1"
-          :innerHTML="
-            $t('message.delegate-preview', { amount: `${input} ${NATIVE_ASSET.label}`, amountStable: stable })
-          "
-        ></p>
-      </div>
-    </template>
+  <div class="custom-scroll max-h-full flex-1 overflow-auto">
+    <AdvancedFormControl
+      id="receive-send"
+      :currencyOptions="assets"
+      class="px-6 py-4"
+      labelAdvanced
+      :balanceLabel="$t('message.balance')"
+      :selectedCurrencyOption="assets[0]"
+      placeholder="0"
+      :calculatedBalance="stable"
+      @input="onInput"
+      :error-msg="error"
+    >
+      <template v-slot:label>
+        <div class="flex items-center gap-1">
+          {{ $t("message.amount-in") }}
+          <span class="flex items-center gap-1 font-normal">
+            <img :src="NATIVE_ASSET.icon" /> {{ NATIVE_ASSET.label }}</span
+          >
+        </div>
+      </template>
+    </AdvancedFormControl>
+    <hr class="border-border-color" />
+    <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
+      <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
+      <template v-if="isEmpty">
+        <div class="flex items-center gap-2 text-14">
+          <SvgIcon
+            name="list-sparkle"
+            class="fill-icon-secondary"
+          />
+          {{ $t("message.preview-input") }}
+        </div>
+      </template>
+      <template v-else>
+        <div class="flex items-center gap-2 text-14">
+          <SvgIcon
+            name="check-solid"
+            class="fill-icon-success"
+          />
+          <p
+            class="flex-1"
+            :innerHTML="
+              $t('message.delegate-preview', { amount: `${input} ${NATIVE_ASSET.label}`, amountStable: stable })
+            "
+          ></p>
+        </div>
+      </template>
+    </div>
+    <hr class="border-border-color" />
   </div>
-  <hr class="border-border-color" />
-
   <div class="flex flex-1 flex-col justify-end">
     <hr class="border-border-color" />
     <div class="flex flex-col gap-2 p-6">

@@ -130,17 +130,6 @@
     <hr class="my-4 border-border-color" />
   </div>
   <div class="flex flex-col gap-2 p-6">
-    <!-- <button
-      v-if="network.chain_type == 'evm'"
-      :class="{ 'js-loading': isMetamaskLoading }"
-      class="bmt-2 flex items-center !text-12 font-semibold text-neutral-typography-200"
-      type="button"
-      @click="connectEvm"
-    >
-      <component :is="connection?.icon" />
-
-      {{ evmAddress == null || evmAddress?.length == 0 ? $t("message.connect") : evmAddress }}
-    </button> -->
     <Button
       size="large"
       severity="primary"
@@ -207,6 +196,7 @@ import { ErrorCodes } from "@/config/global";
 import { StepperVariant, Stepper } from "web-components";
 import { useApplicationStore } from "@/common/stores/application";
 import type { Chain } from "@skip-go/client";
+import { HYSTORY_ACTIONS } from "@/modules/history/types";
 
 const i18n = useI18n();
 const showDetails = ref(false);
@@ -325,7 +315,9 @@ const steps = computed(() => {
           icon: from.icon,
           token: {
             balance: AssetUtils.formatNumber(
-              new Dec(operation.amountOut, currency.value?.decimal_digits).toString(currency.value?.decimal_digits),
+              new Dec(index == 0 ? operation.amountIn : operation.amountOut, currency.value?.decimal_digits).toString(
+                currency.value?.decimal_digits
+              ),
               currency.value?.decimal_digits
             ),
             symbol: currency.value?.shortName
@@ -423,25 +415,15 @@ function destroyClient() {
 }
 
 function setHistory() {
-  // if (params.data == null) {
-  //   const data = {
-  //     id,
-  //     skipRouteConfig,
-  //     wallet: wallet.value,
-  //     client,
-  //     route,
-  //     selectedNetwork: selectedNetwork.value,
-  //     selectedCurrency: selectedCurrency.value,
-  //     amount: amount.value,
-  //     txHashes: txHashes.value,
-  //     step: step.value,
-  //     fee: fee.value,
-  //     fromAddress: wallet.value,
-  //     action: HYSTORY_ACTIONS.SEND,
-  //     errorMsg: errorMsg.value
-  //   };
-  //   walletStore.updateHistory(data);
-  // }
+  const data = {
+    id,
+    skipRoute: route,
+    currency: currency.value.from,
+    fromAddress: walletStore.wallet?.address,
+    receiverAddress: wallet.value,
+    type: HYSTORY_ACTIONS.SEND
+  };
+  walletStore.updateHistory(data, i18n);
 }
 
 watch(
@@ -750,7 +732,6 @@ async function transferAmount() {
         await walletStore.UPDATE_BALANCES();
       } catch (error: Error | any) {
         if (walletStore.history[id]) {
-          walletStore.history[id].step = CONFIRM_STEP.ERROR;
           walletStore.history[id].errorMsg = amountErrorMsg.value;
         }
         switch (error.code) {
@@ -770,7 +751,6 @@ async function transferAmount() {
       step.value = CONFIRM_STEP.ERROR;
 
       if (walletStore.history[id]) {
-        walletStore.history[id].step = CONFIRM_STEP.ERROR;
         walletStore.history[id].errorMsg = amountErrorMsg.value;
       }
     }
@@ -821,7 +801,6 @@ async function onSwapCosmos() {
         Logger.error(error);
 
         if (walletStore.history[id]) {
-          walletStore.history[id].step = CONFIRM_STEP.ERROR;
           walletStore.history[id].errorMsg = amountErrorMsg.value;
         }
       } finally {

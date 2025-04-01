@@ -182,6 +182,9 @@ const arcPath = (startAngle: number, endAngle: number) => {
 };
 
 const health = computed(() => {
+  if (props.lease?.leaseStatus.paid) {
+    return 100;
+  }
   if (props.lease?.leaseStatus.opened) {
     const { overdue_interest, overdue_margin, principal_due, amount, due_margin, due_interest } =
       props.lease?.leaseStatus.opened;

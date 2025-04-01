@@ -33,6 +33,7 @@ export type HistoryData = {
   historyData: {
     msg: string;
     action: string;
+    icon: string;
     timestamp: string;
     coin: CoinPretty;
     route?: SmallStepperProps;

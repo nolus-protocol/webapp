@@ -269,5 +269,10 @@
   "debt-label": "Debt",
   "value-chart-label": "Value",
   "position-chart-label": "Debt",
-  "repay-liquidation-price": "Liquidaiton price {data}"
+  "repay-liquidation-price": "Liquidaiton price {data}",
+  "asset-to-lease-short": "Sell",
+  "liquidation-lease-table": "Liquidation",
+  "dashboard-lease-title": "Open Positions",
+  "view-details": "View details",
+  "leases-table-label": "margins"
 }

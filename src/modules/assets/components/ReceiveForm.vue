@@ -1,5 +1,8 @@
 <template>
-  <div class="custom-scroll max-h-full flex-1 overflow-auto">
+  <div
+    id="dialog-scroll"
+    class="custom-scroll max-h-full flex-1 overflow-auto"
+  >
     <div class="flex max-w-[190px] flex-col gap-2 px-6 py-4">
       <label
         for="dropdown-btn-network"
@@ -183,6 +186,7 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { StepperVariant, Stepper } from "web-components";
 import { useApplicationStore } from "@/common/stores/application";
 import type { Chain } from "@skip-go/client";
+import { HYSTORY_ACTIONS } from "@/modules/history/types";
 
 const i18n = useI18n();
 const showDetails = ref(false);
@@ -311,7 +315,9 @@ const steps = computed(() => {
           icon: from.icon,
           token: {
             balance: AssetUtils.formatNumber(
-              new Dec(operation.amountOut, currency.value?.decimal_digits).toString(currency.value?.decimal_digits),
+              new Dec(index == 0 ? operation.amountIn : operation.amountOut, currency.value?.decimal_digits).toString(
+                currency.value?.decimal_digits
+              ),
               currency.value?.decimal_digits
             ),
             symbol: currency.value?.shortName
@@ -342,21 +348,21 @@ const steps = computed(() => {
   return [
     {
       label: i18n.t("message.send-stepper"),
-      icon: NATIVE_NETWORK.icon,
-      token: {
-        balance: AssetUtils.formatNumber(amount.value, currency.value?.decimal_digits),
-        symbol: currency.value?.shortName
-      },
-      meta: () => h("div", `${NATIVE_NETWORK.label} > ${network.value.label}`)
-    },
-    {
-      label: i18n.t("message.receive-stepper"),
       icon: network.value.icon,
       token: {
         balance: AssetUtils.formatNumber(amount.value, currency.value?.decimal_digits),
         symbol: currency.value?.shortName
       },
-      meta: () => h("div", `${network.value.label}`)
+      meta: () => h("div", `${network.value.label} > ${NATIVE_NETWORK.label}`)
+    },
+    {
+      label: i18n.t("message.receive-stepper"),
+      icon: NATIVE_NETWORK.icon,
+      token: {
+        balance: AssetUtils.formatNumber(amount.value, currency.value?.decimal_digits),
+        symbol: currency.value?.shortName
+      },
+      meta: () => h("div", `${NATIVE_NETWORK.label}`)
     }
   ];
 });
@@ -381,52 +387,15 @@ function destroyClient() {
 }
 
 function setHistory() {
-  // if (params.data == null) {
-  //   const data = {
-  //     id,
-  //     skipRouteConfig,
-  //     wallet: wallet.value,
-  //     route,
-  //     selectedNetwork: selectedNetwork.value,
-  //     selectedCurrency: selectedCurrency.value,
-  //     amount: amount.value,
-  //     txHashes: txHashes.value,
-  //     step: step.value,
-  //     fee: fee.value,
-  //     fromAddress: wallet.value,
-  //     action: HYSTORY_ACTIONS.RECEIVE,
-  //     errorMsg: errorMsg.value
-  //   };
-  //   walletStore.updateHistory(data);
-  // }
-}
-
-// watch(
-//   () => params.data,
-//   () => {
-//     setParams();
-//   },
-//   {
-//     deep: true
-//   }
-// );
-
-function setParams() {
-  // if (params.data) {
-  //   id = params.data.id;
-  //   skipRouteConfig = params.data.skipRouteConfig;
-  //   wallet.value = params.data.wallet;
-  //   route = params.data.route;
-  //   selectedNetwork.value = params.data.selectedNetwork;
-  //   amount.value = params.data.amount;
-  //   txHashes.value = params.data.txHashes;
-  //   step.value = params.data.step;
-  //   fee.value = params.data.fee;
-  //   wallet.value = params.data.fromAddress;
-  //   showConfirmScreen.value = true;
-  //   selectedCurrency.value = params.data.selectedCurrency;
-  //   errorMsg.value = params.data.errorMsg;
-  // }
+  const data = {
+    id,
+    skipRoute: route,
+    fromAddress: wallet.value,
+    currency: currency.value.from,
+    receiverAddress: walletStore.wallet.address,
+    type: HYSTORY_ACTIONS.RECEIVE
+  };
+  walletStore.updateHistory(data, i18n);
 }
 
 watch(
@@ -717,7 +686,6 @@ async function onSubmit() {
         amountErrorMsg.value = (error as Error).toString();
 
         if (walletStore.history[id]) {
-          walletStore.history[id].step = CONFIRM_STEP.ERROR;
           walletStore.history[id].errorMsg = amountErrorMsg.value;
         }
         Logger.error(error);
@@ -759,7 +727,6 @@ async function submit(wallets: { [key: string]: BaseWallet | MetaMaskWallet }) {
           url: wallet.explorer
         };
 
-        const index = txHashes.value.length;
         txHashes.value.push(element);
 
         if (walletStore.history[id]) {

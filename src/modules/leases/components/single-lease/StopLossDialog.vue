@@ -7,78 +7,79 @@
     @close-dialog="router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}`)"
   >
     <template v-slot:content>
-      <hr class="border-border-color" />
-      <div class="flex flex-col gap-4 px-6 py-4">
-        <AdvancedFormControl
-          id="stop-loss"
-          :label="$t('message.stop-loss-price-per')"
-          :currencyOptions="assets"
-          :disabled-currency-picker="true"
-          :disabled-input-field="isLoading"
-          :selectedCurrencyOption="assets[0]"
-          :value-only="amount"
-          @input="handleAmountChange"
-          :error-msg="amountErrorMsg"
-          placeholder="0"
-          :balanceLabel="
-            $t('message.current-price', {
-              asset: currency?.shortName
-            })
-          "
-        >
-          <template v-slot:label>
-            <div class="flex items-center gap-1">
-              {{ $t("message.amount-to-close") }}
-              <span class="flex items-center gap-1 font-normal"
-                ><img :src="currency?.icon" /> {{ currency?.label }}</span
-              >
-              <Tooltip :content="$t('message.stop-loss-tooltip')"
-                ><SvgIcon
-                  name="help"
-                  class="fill-icon-link"
-              /></Tooltip>
+      <div class="custom-scroll max-h-full flex-1 overflow-auto">
+        <hr class="border-border-color" />
+        <div class="flex flex-col gap-4 px-6 py-4">
+          <AdvancedFormControl
+            id="stop-loss"
+            :label="$t('message.stop-loss-price-per')"
+            :currencyOptions="assets"
+            :disabled-currency-picker="true"
+            :disabled-input-field="isLoading"
+            :selectedCurrencyOption="assets[0]"
+            :value-only="amount"
+            @input="handleAmountChange"
+            :error-msg="amountErrorMsg"
+            placeholder="0"
+            :balanceLabel="
+              $t('message.current-price', {
+                asset: currency?.shortName
+              })
+            "
+          >
+            <template v-slot:label>
+              <div class="flex items-center gap-1">
+                {{ $t("message.amount-to-close") }}
+                <span class="flex items-center gap-1 font-normal"
+                  ><img :src="currency?.icon" /> {{ currency?.label }}</span
+                >
+                <Tooltip :content="$t('message.stop-loss-tooltip')"
+                  ><SvgIcon
+                    name="help"
+                    class="fill-icon-link"
+                /></Tooltip>
+              </div>
+            </template>
+          </AdvancedFormControl>
+        </div>
+        <hr class="border-border-color" />
+        <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
+          <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
+          <template v-if="amount.length == 0 || amount == '0'">
+            <div class="flex items-center gap-2 text-14">
+              <SvgIcon
+                name="list-sparkle"
+                class="fill-icon-secondary"
+              />
+              {{ $t("message.preview-input") }}
             </div>
           </template>
-        </AdvancedFormControl>
-      </div>
-      <hr class="border-border-color" />
-      <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
-        <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
-        <template v-if="amount.length == 0 || amount == '0'">
-          <div class="flex items-center gap-2 text-14">
-            <SvgIcon
-              name="list-sparkle"
-              class="fill-icon-secondary"
-            />
-            {{ $t("message.preview-input") }}
-          </div>
-        </template>
-        <template v-else>
-          <div class="flex items-center gap-2 text-14">
-            <SvgIcon
-              name="check-solid"
-              class="fill-icon-success"
-            />
-            <p
-              class="flex-1"
-              :innerHTML="
-                $t('message.stoppings-close-price', {
-                  price: `${NATIVE_CURRENCY.symbol}${price}`,
-                  asset: currency.shortName
-                })
-              "
-            ></p>
-          </div>
-          <div class="flex items-center gap-2 text-14">
-            <SvgIcon
-              name="check-solid"
-              class="fill-icon-success"
-            />
-            {{ $t("message.stoppings-payout", { amount: `${NATIVE_CURRENCY.symbol}${payout}` }) }}
-          </div>
-        </template>
-      </div>
-      <!-- <hr class="border-border-color" />
+          <template v-else>
+            <div class="flex items-center gap-2 text-14">
+              <SvgIcon
+                name="check-solid"
+                class="fill-icon-success"
+              />
+              <p
+                class="flex-1"
+                :innerHTML="
+                  $t('message.stoppings-close-price', {
+                    price: `${NATIVE_CURRENCY.symbol}${price}`,
+                    asset: currency.shortName
+                  })
+                "
+              ></p>
+            </div>
+            <div class="flex items-center gap-2 text-14">
+              <SvgIcon
+                name="check-solid"
+                class="fill-icon-success"
+              />
+              {{ $t("message.stoppings-payout", { amount: `${NATIVE_CURRENCY.symbol}${payout}` }) }}
+            </div>
+          </template>
+        </div>
+        <!-- <hr class="border-border-color" />
       <div class="flex justify-end px-6 py-4">
         <Button
           :label="$t('message.show-transaction-details')"
@@ -89,7 +90,8 @@
           class="text-icon-default"
         />
       </div> -->
-      <hr class="border-border-color" />
+        <hr class="border-border-color" />
+      </div>
       <div class="flex flex-1 flex-col justify-end gap-2 p-6">
         <Button
           size="large"

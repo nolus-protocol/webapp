@@ -1,6 +1,6 @@
 import { type Store } from "../types";
 import { EtlApi, getCreatedAtForHuman } from "@/common/utils";
-import { action, message } from "@/modules/history/common";
+import { action, icon as iconFn, message } from "@/modules/history/common";
 import { i18n } from "@/i18n";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1/gov";
 
@@ -24,6 +24,7 @@ export async function loadActivities(this: Store) {
               msg,
               coin,
               action: action(d, i18n.global).toLowerCase(),
+              icon: iconFn(d, i18n.global).toLowerCase(),
               timestamp: getCreatedAtForHuman(d.timestamp),
               route,
               routeDetails
@@ -35,6 +36,7 @@ export async function loadActivities(this: Store) {
         return Promise.all(promises);
       });
       this.activities = { data: res, loaded: true };
+      console.log(this.activities.data);
     } else {
       this.activities = { data: [], loaded: true };
     }

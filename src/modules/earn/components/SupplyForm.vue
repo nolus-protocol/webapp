@@ -1,5 +1,8 @@
 <template>
-  <div class="custom-scroll max-h-full flex-1 overflow-auto">
+  <div
+    id="dialog-scroll"
+    class="custom-scroll max-h-full flex-1 overflow-auto"
+  >
     <AdvancedFormControl
       id="receive-send"
       :currencyOptions="assets"

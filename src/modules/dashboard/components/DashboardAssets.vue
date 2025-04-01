@@ -201,7 +201,8 @@ const assets = computed<TableRowItemProps[]>(() => {
           value: item.name,
           subValue: item.shortName,
           image: item.icon,
-          variant: "left"
+          variant: "left",
+          textClass: "line-clamp-1 [display:-webkit-box]"
         },
         { value: `${NATIVE_CURRENCY.symbol}${price}`, class: "hidden md:flex" },
         { value: `${balance}`, subValue: `${NATIVE_CURRENCY.symbol}${stable_balance}`, variant: "right" },

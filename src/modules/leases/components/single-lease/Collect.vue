@@ -1,8 +1,9 @@
 <template>
   <Button
+    :class="$attrs.class"
     :label="$t('message.collect')"
     :severity="severity"
-    size="medium"
+    :size="size"
     :disabled="isCollectDisabled"
     :loading="isCollectLoading || loadingCollect"
     @click="onClaimSubmit"
@@ -11,7 +12,7 @@
 
 <script lang="ts" setup>
 import type { LeaseData } from "@/common/types";
-import { Button, ToastType, type ButtonType } from "web-components";
+import { Button, ToastType, type ButtonSize, type ButtonType } from "web-components";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useI18n } from "vue-i18n";
 import { computed, inject, ref } from "vue";
@@ -22,6 +23,7 @@ import { Lease } from "@nolus/nolusjs/build/contracts";
 export interface ICollect {
   lease: LeaseData;
   severity: ButtonType;
+  size: ButtonSize;
 }
 
 const props = defineProps<ICollect>();

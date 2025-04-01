@@ -1,22 +1,22 @@
 <template>
   <Widget class="overflow-auto">
     <WidgetHeader
-      :label="isVisible ? '' : $t('message.leases')"
-      :icon="isVisible ? undefined : { name: 'leases', class: 'fill-icon-link' }"
-      :badge="isVisible ? undefined : { content: leases.length.toString() }"
+      :label="isVisible && !emptyState ? $t('message.dashboard-lease-title') : ''"
+      :icon="isVisible && !emptyState ? { name: 'leases', class: 'fill-icon-link' } : undefined"
+      :badge="isVisible && !emptyState ? { content: leases.length.toString() } : undefined"
     >
-      <template v-if="!isVisible">
+      <template v-if="isVisible && !emptyState">
         <Button
           v-if="wallet.wallet"
-          :label="$t('message.new-lease')"
+          :label="$t('message.view-details')"
           severity="secondary"
           size="large"
-          @click="() => router.push(`/${RouteNames.LEASES}/open/long`)"
+          @click="() => router.push(`/${RouteNames.LEASES}`)"
         />
       </template>
     </WidgetHeader>
     <div>
-      <template v-if="props.isVisible && !emptyState">
+      <template v-if="isVisible && !emptyState">
         <div class="mb-6 flex gap-8">
           <BigNumber
             :label="$t('message.unrealized-pnl')"

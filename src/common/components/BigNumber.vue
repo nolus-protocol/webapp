@@ -39,6 +39,7 @@
           class="flex gap-1 text-14 font-normal"
         >
           <Badge
+            class="!w-[20px]"
             v-if="pnlStatus?.badge"
             v-bind="pnlStatus?.badge"
           />

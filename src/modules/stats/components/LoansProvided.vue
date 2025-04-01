@@ -27,21 +27,6 @@
         }"
         :loading="loading"
       />
-      <BigNumber
-        :label="$t('message.unrealized-pnl')"
-        :label-tooltip="{
-          content: $t('message.unrealized-pnl-tooltip')
-        }"
-        :amount="{
-          amount: unraelizedPnl,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: NATIVE_CURRENCY.symbol,
-          fontSize: 20,
-          fontSizeSmall: 20,
-          decimals: 0
-        }"
-        :loading="loading"
-      />
     </div>
     <LoansChart />
   </Widget>
@@ -62,10 +47,9 @@ import { NATIVE_CURRENCY } from "@/config/global";
 const loading = ref(true);
 const openPositionValue = ref("0");
 const openInterest = ref("0");
-const unraelizedPnl = ref("0");
 
 onMounted(async () => {
-  await Promise.all([setOpenPositonsValue(), setOpenInterest(), setUnrealizedPnl()]).catch((e) => Logger.error(e));
+  await Promise.all([setOpenPositonsValue(), setOpenInterest()]).catch((e) => Logger.error(e));
 });
 
 async function setOpenPositonsValue() {
@@ -77,12 +61,6 @@ async function setOpenPositonsValue() {
 async function setOpenInterest() {
   const data = await EtlApi.fetchOpenInterest();
   openInterest.value = data.open_interest;
-  loading.value = false;
-}
-
-async function setUnrealizedPnl() {
-  const data = await EtlApi.fetchUnrealizedPnl();
-  unraelizedPnl.value = data.unrealized_pnl;
   loading.value = false;
 }
 </script>

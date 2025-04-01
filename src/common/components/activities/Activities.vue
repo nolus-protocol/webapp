@@ -23,10 +23,10 @@
           <div class="custom-scroll max-h-auto h-full overflow-y-auto md:max-h-[512px]">
             <ActivitiesItem
               v-for="transaction in wallet.activities.data"
-              :coinMinimalDenom="transaction.historyData?.coin?.currency?.coinMinimalDenom"
               :key="transaction.tx_hash"
+              :coinMinimalDenom="transaction.historyData?.coin?.currency?.coinMinimalDenom"
               :title="transaction.historyData.msg"
-              :type="transaction.historyData.action"
+              :type="transaction.historyData.icon"
               :time="transaction.historyData.timestamp"
               :route="transaction.historyData.route"
               @click="onActivityClick(transaction as any)"

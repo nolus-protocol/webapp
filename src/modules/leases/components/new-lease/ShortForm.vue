@@ -60,7 +60,7 @@
       <label
         for="dropdown-btn-asset-to-lease"
         class="text-16 font-semibold text-typography-default"
-        >{{ $t("message.asset-to-lease") }}</label
+        >{{ $t("message.asset-to-lease-short") }}</label
       >
       <Dropdown
         id="asset-to-lease"

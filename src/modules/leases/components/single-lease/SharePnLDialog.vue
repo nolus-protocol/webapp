@@ -6,34 +6,36 @@
     class-list="md:h-auto"
   >
     <template v-slot:content>
-      <div class="flex flex-col gap-6 px-6 pb-6 text-typography-default">
-        <div class="flex flex-col gap-4">
-          <span class="text-16">{{ $t("message.cover-design") }}</span>
-          <div class="flex justify-between">
-            <button
-              class="w-full max-w-[108px] overflow-hidden rounded"
-              v-for="(img, index) of images"
-              :class="{ selected: index == imageIndex }"
-              @click="setBackgroundIndex(index)"
-            >
-              <!-- <img :src="img" /> -->
+      <div class="custom-scroll max-h-full flex-1 overflow-auto">
+        <div class="flex flex-col gap-6 px-6 pb-6 text-typography-default">
+          <div class="flex flex-col gap-4">
+            <span class="text-16">{{ $t("message.cover-design") }}</span>
+            <div class="flex justify-between">
+              <button
+                class="w-full max-w-[108px] overflow-hidden rounded"
+                v-for="(img, index) of images"
+                :class="{ selected: index == imageIndex }"
+                @click="setBackgroundIndex(index)"
+              >
+                <!-- <img :src="img" /> -->
 
-              <canvas
-                :ref="(el) => (canvasRefs[index] = el as HTMLCanvasElement)"
-                class="w-full rounded"
-              ></canvas>
-            </button>
+                <canvas
+                  :ref="(el) => (canvasRefs[index] = el as HTMLCanvasElement)"
+                  class="w-full rounded"
+                ></canvas>
+              </button>
+            </div>
+          </div>
+          <div>
+            <canvas
+              class="w-full rounded"
+              ref="canvas"
+            ></canvas>
           </div>
         </div>
-        <div>
-          <canvas
-            class="w-full rounded"
-            ref="canvas"
-          ></canvas>
-        </div>
-      </div>
 
-      <hr class="border-border-color" />
+        <hr class="border-border-color" />
+      </div>
       <div class="flex gap-4 p-6">
         <Button
           size="medium"

@@ -463,6 +463,78 @@ export function action(msg: IObjectKeys, i18n: IObjectKeys) {
   }
 }
 
+export function icon(msg: IObjectKeys, i18n: IObjectKeys) {
+  switch (msg.type) {
+    case Messages["/cosmos.bank.v1beta1.MsgSend"]: {
+      return "assets";
+    }
+    case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
+      return "assets";
+    }
+    case Messages["/ibc.core.channel.v1.MsgRecvPacket"]: {
+      return "assets";
+    }
+    case Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]: {
+      try {
+        const data = JSON.parse(Buffer.from(msg.data.msg).toString());
+
+        if (data.open_lease) {
+          return "leases";
+        }
+
+        if (data.repay) {
+          return "leases";
+        }
+
+        if (data.close) {
+          return "leases";
+        }
+
+        if (data.claim_rewards) {
+          return "earn";
+        }
+
+        if (data.deposit) {
+          return "earn";
+        }
+
+        if (data.burn) {
+          return "earn";
+        }
+
+        if (data.close_position?.full_close) {
+          return "leases";
+        }
+
+        if (data.close_position?.partial_close) {
+          return "leases";
+        }
+      } catch (error) {
+        Logger.error(error);
+        return msg.type;
+      }
+    }
+    case Messages["/cosmos.gov.v1beta1.MsgVote"]: {
+      return "vote";
+    }
+    case Messages["/cosmos.staking.v1beta1.MsgDelegate"]: {
+      return "earn";
+    }
+    case Messages["/cosmos.staking.v1beta1.MsgUndelegate"]: {
+      return "earn";
+    }
+    case Messages["/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"]: {
+      return "earn";
+    }
+    case Messages["/cosmos.staking.v1beta1.MsgBeginRedelegate"]: {
+      return "earn";
+    }
+    default: {
+      return msg.typeUrl;
+    }
+  }
+}
+
 function truncateString(text: string) {
   return StringUtils.truncateString(text, 6, 6);
 }

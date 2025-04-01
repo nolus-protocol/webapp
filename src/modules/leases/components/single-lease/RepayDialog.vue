@@ -15,7 +15,10 @@
     "
   >
     <template v-slot:content>
-      <div class="custom-scroll max-h-full flex-1 overflow-auto">
+      <div
+        id="dialog-scroll"
+        class="custom-scroll max-h-full flex-1 overflow-auto"
+      >
         <hr class="border-border-color" />
         <div class="flex flex-col gap-4 px-2 py-4">
           <AdvancedFormControl

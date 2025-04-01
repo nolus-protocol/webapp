@@ -214,8 +214,12 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
       if (param.length == 0) {
         return true;
       }
-
-      if (item.key.toLowerCase().includes(param) || item.balance.denom.toLowerCase().includes(param)) {
+      const c = application.currenciesData![item.key];
+      if (
+        item.key.toLowerCase().includes(param) ||
+        item.balance.denom.toLowerCase().includes(param) ||
+        c.shortName?.toLowerCase()?.includes(param)
+      ) {
         return true;
       }
 

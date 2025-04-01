@@ -70,7 +70,6 @@ export class SkipRouter {
       destAssetDenom: destDenom,
       destAssetChainID: destSourceId ?? SkipRouter.chainID,
       cumulativeAffiliateFeeBPS: config.fee.toString(),
-      goFast: true,
       smartRelay: true,
       allowMultiTx: true,
       allowUnsafe: true,
