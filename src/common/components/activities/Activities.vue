@@ -22,7 +22,7 @@
         <div class="flex h-full flex-col">
           <div class="custom-scroll max-h-auto h-full overflow-y-auto md:max-h-[512px]">
             <ActivitiesItem
-              v-for="transaction in skipActivities"
+              v-for="transaction in wallet.historyItems"
               :key="transaction.historyData.id"
               :coinMinimalDenom="transaction.historyData?.coin?.currency?.coinMinimalDenom"
               :title="transaction.historyData.msg"
@@ -78,7 +78,7 @@
 import EmptyState from "@/common/components/EmptyState.vue";
 import ActivitiesItem from "./ActivitiesItem.vue";
 import TransactionDetails from "./TransactionDetails.vue";
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import { Button, Popover } from "web-components";
 import { useRouter } from "vue-router";
 import { RouteNames } from "@/router";
@@ -92,15 +92,6 @@ const isOpen = ref(false);
 
 const router = useRouter();
 const wallet = useWalletStore();
-
-const skipActivities = computed(() => {
-  const activites = [];
-  for (const key in wallet.history) {
-    activites.push(wallet.history[key]);
-  }
-
-  return activites.sort((a, b) => b.historyData.id - a.historyData.id);
-});
 
 const onActivityClick = (transaction: ITransactionData & HistoryData) => {
   transactionDialogRef.value?.show(transaction);

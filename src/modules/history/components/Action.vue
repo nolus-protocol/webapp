@@ -27,12 +27,14 @@
         {{ $t("message.details") }}
       </button>
       <button
+        v-if="!transaction.historyData.skipRoute"
         class="button-secondary w-full border-none px-3 py-3 text-left"
         @click="copyHash"
       >
         {{ $t("message.btn-tx-hash") }}
       </button>
       <button
+        v-if="!transaction.historyData.skipRoute"
         class="button-secondary w-full border-none px-3 py-3 text-left"
         @click="copyTxRaw"
       >

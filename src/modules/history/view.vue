@@ -35,7 +35,7 @@
           <template v-if="transactions.length > 0 || Object.keys(wallet.history).length > 0">
             <!-- <WalletHistoryTableRowWrapper /> -->
             <HistoryTableRowWrapper
-              v-for="transaction of skipActivities"
+              v-for="transaction of txsSkip"
               :transaction="transaction as any"
               :key="`${transaction.id}`"
             />
@@ -146,6 +146,24 @@ const txs = computed(() => {
   });
 });
 
+const txsSkip = computed(() => {
+  const param = search.value.toLowerCase();
+  return wallet.historyItems.filter((item) => {
+    if (param.length == 0) {
+      return true;
+    }
+
+    if (
+      item.historyData.receiverAddress.toLowerCase().includes(param) ||
+      item.historyData.fromAddress.toLowerCase().includes(param)
+    ) {
+      return true;
+    }
+
+    return false;
+  });
+});
+
 onMounted(() => {
   loadTxs();
   getRealizedPnl();
@@ -159,15 +177,6 @@ watch(
     getRealizedPnl();
   }
 );
-
-const skipActivities = computed(() => {
-  const activites = [];
-  for (const key in wallet.history) {
-    activites.push(wallet.history[key]);
-  }
-
-  return activites.sort((a, b) => b.historyData.id - a.historyData.id);
-});
 
 async function loadTxs() {
   try {

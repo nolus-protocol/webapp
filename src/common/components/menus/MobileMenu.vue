@@ -43,13 +43,11 @@
         </div>
         <div class="flex flex-col gap-1 pb-12">
           <RouterLink
+            @click="close"
             :to="{ name: RouteNames.STATS }"
             class="router-link flex h-[50px] items-center gap-2 border-b border-t border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
           >
-            <div
-              @click="close"
-              class="flex items-center gap-2"
-            >
+            <div class="flex items-center gap-2">
               <SvgIcon
                 name="bar-chart"
                 size="l"

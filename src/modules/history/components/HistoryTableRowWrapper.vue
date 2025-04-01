@@ -12,7 +12,8 @@ import { computed, h, ref } from "vue";
 import { Label, type LabelProps, TableRow, type TableRowItemProps } from "web-components";
 import TransactionDetails from "@/common/components/activities/TransactionDetails.vue";
 import Action, { type IAction } from "@/modules/history/components/Action.vue";
-import { CONFIRM_STEP, type IObjectKeys } from "@/common/types";
+import { CONFIRM_STEP } from "@/common/types";
+import { getCreatedAtForHuman } from "@/common/utils";
 
 const i18n = useI18n();
 const transactionDialogRef = ref<typeof TransactionDetails | null>(null);
@@ -37,7 +38,7 @@ const transactionData = computed(
           class: "max-w-[140px] capitalize"
         },
         {
-          value: props.transaction.historyData.timestamp ?? props.transaction.block,
+          value: getTimeStamp(),
           class: "max-w-[180px]"
         },
         {
@@ -55,6 +56,16 @@ const transactionData = computed(
       ]
     }) as TableRowItemProps
 );
+
+function getTimeStamp() {
+  if (props.transaction.historyData.skipRoute) {
+    return getCreatedAtForHuman(new Date(props.transaction.historyData.id!));
+  }
+  if (props.transaction.historyData.timestamp) {
+    return props.transaction.historyData.timestamp;
+  }
+  return props.transaction.block;
+}
 
 function getStatus() {
   switch (props.transaction.historyData.status) {

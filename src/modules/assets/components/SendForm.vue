@@ -817,8 +817,6 @@ async function onSwapCosmos() {
 
           walletStore.history[id].historyData.status = CONFIRM_STEP.ERROR;
         }
-
-        console.log(walletStore.history[id]);
       } finally {
         isLoading.value = false;
       }

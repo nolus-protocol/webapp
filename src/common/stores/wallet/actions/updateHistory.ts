@@ -3,7 +3,7 @@ import { type Store } from "../types";
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
 import { AssetUtils } from "@/common/utils/AssetUtils";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { getCreatedAtForHuman, StringUtils } from "@/common/utils";
+import { StringUtils } from "@/common/utils";
 import { Dec } from "@keplr-wallet/unit";
 import { h } from "vue";
 
@@ -42,7 +42,6 @@ export function updateHistory(this: Store, history: IObjectKeys, i18n: IObjectKe
   }
   history.action = i18n.t("message.transfer-history");
   history.icon = "assets";
-  history.timestamp = getCreatedAtForHuman(new Date(history.id));
   history.routeDetails = {
     steps: getSteps(history.skipRoute, i18n, currency, history.chains),
     activeStep: 0

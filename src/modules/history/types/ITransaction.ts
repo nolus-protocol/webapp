@@ -31,6 +31,7 @@ export interface ITransactionData {
 
 export type HistoryData = {
   historyData: {
+    id?: string;
     errorMsg?: string;
     msg: string;
     action: string;

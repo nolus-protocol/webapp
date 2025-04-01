@@ -78,7 +78,7 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { computed, ref, watch } from "vue";
 import { Coin, Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { AssetUtils, Logger } from "@/common/utils";
+import { AssetUtils, Logger, WalletManager } from "@/common/utils";
 import { NATIVE_CURRENCY, ProtocolsConfig } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
 import { CurrencyMappingEarn } from "@/config/currencies";
@@ -90,6 +90,8 @@ const oracle = useOracleStore();
 const app = useApplicationStore();
 const router = useRouter();
 const total = ref(new Dec(0));
+const hide = ref(WalletManager.getHideBalances());
+
 defineProps<{ isVisible: boolean }>();
 
 const columns: TableColumnProps[] = [
@@ -205,7 +207,11 @@ const assets = computed<TableRowItemProps[]>(() => {
           textClass: "line-clamp-1 [display:-webkit-box]"
         },
         { value: `${NATIVE_CURRENCY.symbol}${price}`, class: "hidden md:flex" },
-        { value: `${balance}`, subValue: `${NATIVE_CURRENCY.symbol}${stable_balance}`, variant: "right" },
+        {
+          value: hide.value ? "****" : `${balance}`,
+          subValue: hide.value ? "****" : `${NATIVE_CURRENCY.symbol}${stable_balance}`,
+          variant: "right"
+        },
         { value: apr(item.ibcData, item.key), class: "text-typography-success hidden md:flex" }
       ]
     };

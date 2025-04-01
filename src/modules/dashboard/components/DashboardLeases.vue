@@ -21,6 +21,7 @@
           <BigNumber
             :label="$t('message.unrealized-pnl')"
             :amount="{
+              hide: hide,
               amount: pnl.toString(),
               type: CURRENCY_VIEW_TYPES.CURRENCY,
               denom: NATIVE_CURRENCY.symbol
@@ -74,7 +75,7 @@ import { Intercom } from "@/common/utils/Intercom";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useOracleStore } from "@/common/stores/oracle";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { AssetUtils, Logger } from "@/common/utils";
+import { AssetUtils, Logger, WalletManager } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useRouter } from "vue-router";
@@ -89,8 +90,9 @@ const wallet = useWalletStore();
 const oracle = useOracleStore();
 const app = useApplicationStore();
 const loaded = ref(true);
+const hide = ref(WalletManager.getHideBalances());
 
-const props = defineProps<{ isVisible: boolean }>();
+defineProps<{ isVisible: boolean }>();
 
 watch(
   () => leases.value,
