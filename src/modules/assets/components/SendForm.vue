@@ -415,8 +415,11 @@ function destroyClient() {
 }
 
 function setHistory() {
+  const chains = getChainIds(tempRoute.value!);
+
   const data = {
     id,
+    chains,
     skipRoute: route,
     currency: currency.value.from,
     fromAddress: walletStore.wallet?.address,
@@ -488,7 +491,6 @@ async function onSubmitCosmos() {
       await onSwap();
     }
   } catch (e: Error | any) {
-    console.log(e);
     amountErrorMsg.value = e.toString();
   } finally {
     isDisabled.value = false;
@@ -732,7 +734,8 @@ async function transferAmount() {
         await walletStore.UPDATE_BALANCES();
       } catch (error: Error | any) {
         if (walletStore.history[id]) {
-          walletStore.history[id].errorMsg = amountErrorMsg.value;
+          walletStore.history[id].historyData.errorMsg = amountErrorMsg.value;
+          walletStore.history[id].historyData.status = CONFIRM_STEP.ERROR;
         }
         switch (error.code) {
           case ErrorCodes.GasError: {
@@ -751,7 +754,8 @@ async function transferAmount() {
       step.value = CONFIRM_STEP.ERROR;
 
       if (walletStore.history[id]) {
-        walletStore.history[id].errorMsg = amountErrorMsg.value;
+        walletStore.history[id].historyData.errorMsg = amountErrorMsg.value;
+        walletStore.history[id].historyData.status = CONFIRM_STEP.ERROR;
       }
     }
 
@@ -785,15 +789,16 @@ async function onSwapCosmos() {
 
         setHistory();
         await submit(wallets);
-
         await walletStore.UPDATE_BALANCES();
-        step.value = CONFIRM_STEP.SUCCESS;
-
-        if (walletStore.history[id]) {
-          walletStore.history[id].step = CONFIRM_STEP.SUCCESS;
-        }
 
         walletStore.loadActivities();
+
+        step.value = CONFIRM_STEP.SUCCESS;
+        walletStore.history[id].historyData.route.activeStep = walletStore.history[id].historyData.route.steps.length;
+        walletStore.history[id].historyData.routeDetails.activeStep =
+          walletStore.history[id].historyData.routeDetails.steps.length;
+        walletStore.history[id].historyData.status = CONFIRM_STEP.SUCCESS;
+
         onClose();
       } catch (error) {
         step.value = CONFIRM_STEP.ERROR;
@@ -801,8 +806,19 @@ async function onSwapCosmos() {
         Logger.error(error);
 
         if (walletStore.history[id]) {
-          walletStore.history[id].errorMsg = amountErrorMsg.value;
+          walletStore.history[id].historyData.errorMsg = amountErrorMsg.value;
+          walletStore.history[id].historyData.route.steps[
+            walletStore.history[id].historyData.route.activeStep
+          ].approval = true;
+
+          walletStore.history[id].historyData.routeDetails.steps[
+            walletStore.history[id].historyData.routeDetails.activeStep
+          ].approval = true;
+
+          walletStore.history[id].historyData.status = CONFIRM_STEP.ERROR;
         }
+
+        console.log(walletStore.history[id]);
       } finally {
         isLoading.value = false;
       }
@@ -817,6 +833,9 @@ async function onSwapCosmos() {
 
 async function submit(wallets: { [key: string]: BaseWallet | MetaMaskWallet }) {
   await SkipRouter.submitRoute(route!, wallets, async (tx: IObjectKeys, wallet: BaseWallet, chaindId: string) => {
+    walletStore.history[id].historyData.route.activeStep++;
+    walletStore.history[id].historyData.routeDetails.activeStep++;
+
     switch (wallet.constructor) {
       case MetaMaskWallet: {
         const element = {
@@ -828,7 +847,7 @@ async function submit(wallets: { [key: string]: BaseWallet | MetaMaskWallet }) {
         txHashes.value.push(element);
 
         if (walletStore.history[id]) {
-          walletStore.history[id].txHashes = txHashes.value;
+          walletStore.history[id].historyData.txHashes = txHashes.value;
         }
 
         await SkipRouter.track(chaindId, (tx as IObjectKeys).hash);
@@ -847,7 +866,7 @@ async function submit(wallets: { [key: string]: BaseWallet | MetaMaskWallet }) {
         txHashes.value.push(element);
 
         if (walletStore.history[id]) {
-          walletStore.history[id].txHashes = txHashes.value;
+          walletStore.history[id].historyData.txHashes = txHashes.value;
         }
 
         await wallet.broadcastTx(tx.txBytes as Uint8Array);

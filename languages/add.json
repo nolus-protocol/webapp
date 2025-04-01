@@ -274,5 +274,9 @@
   "liquidation-lease-table": "Liquidation",
   "dashboard-lease-title": "Open Positions",
   "view-details": "View details",
-  "leases-table-label": "margins"
+  "leases-table-label": "margins",
+  "additional-confirm": "Additional confirmation needed",
+  "additional-confirm-text": "This activity needs an additional confirmation to proceed.",
+  "sign-and-continue": "Sign and continue",
+  "alert-tx-details": "Alert"
 }

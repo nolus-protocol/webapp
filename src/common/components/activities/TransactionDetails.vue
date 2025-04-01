@@ -7,7 +7,30 @@
   >
     <template v-slot:content>
       <div class="flex flex-col gap-5 px-6 pb-6 text-typography-default">
-        <span>{{ data?.historyData.msg }}</span>
+        <Alert
+          v-if="data?.historyData.skipRoute"
+          :title="data?.historyData.errorMsg ? $t('message.alert-tx-details') : $t('message.additional-confirm')"
+          :type="data?.historyData.errorMsg ? AlertType.error : AlertType.warning"
+        >
+          <template v-slot:content>
+            <p class="my-1 text-14 font-normal text-typography-secondary">
+              {{ data?.historyData.errorMsg ?? $t("message.additional-confirm-text") }}
+            </p>
+            <div class="mt-2 flex gap-2">
+              <Button
+                :label="$t('message.sign-and-continue')"
+                severity="secondary"
+                size="small"
+                :loading="data?.historyData?.status == CONFIRM_STEP.PENDING"
+                :disabled="
+                  data?.historyData.errorMsg || data?.historyData?.status == CONFIRM_STEP.SUCCESS ? true : false
+                "
+              />
+            </div>
+          </template>
+        </Alert>
+
+        <span v-if="data?.historyData?.msg">{{ data?.historyData.msg }}</span>
         <div class="flex flex-col gap-3 rounded-lg border border-border-color bg-neutral-bg-1 p-4">
           <div class="flex flex-col">
             <span class="text-14 text-typography-secondary">{{ $t("message.account") }}</span>
@@ -35,7 +58,10 @@
             <span class="flex items-center gap-1 capitalize">{{ data?.historyData?.action }}</span>
           </div>
 
-          <hr class="border-t border-border-color" />
+          <hr
+            v-if="fee || !data?.historyData.skipRoute"
+            class="border-t border-border-color"
+          />
           <div
             class="flex flex-col"
             v-if="fee"
@@ -52,7 +78,10 @@
               class="flex font-semibold"
             />
           </div>
-          <div class="flex flex-col">
+          <div
+            class="flex flex-col"
+            v-if="!data?.historyData.skipRoute"
+          >
             <span class="text-14 text-typography-secondary">{{ $t("message.hash") }}</span>
             <div class="wrap truncate break-all text-16 font-semibold">{{ data?.tx_hash }}</div>
             <div class="mt-2 flex gap-2">
@@ -98,9 +127,9 @@ import type { ITransactionData } from "@/modules/history/types";
 import type { HistoryData } from "@/modules/history/types/ITransaction";
 import { AssetUtils, StringUtils } from "@/common/utils";
 import { useI18n } from "vue-i18n";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
+import { CONFIRM_STEP, CURRENCY_VIEW_TYPES } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
-import { StepperVariant, Stepper } from "web-components";
+import { StepperVariant, Stepper, Alert, AlertType } from "web-components";
 
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 

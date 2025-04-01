@@ -387,8 +387,11 @@ function destroyClient() {
 }
 
 function setHistory() {
+  const chains = getChainIds(tempRoute.value!);
+
   const data = {
     id,
+    chains,
     skipRoute: route,
     fromAddress: wallet.value,
     currency: currency.value.from,
@@ -460,7 +463,6 @@ async function onSubmitCosmos() {
       fee.value = coin(networkdata.fees.transfer_amount, currency.ibcData);
     }
   } catch (e: Error | any) {
-    console.log(e);
     amountErrorMsg.value = e.toString();
   }
 }
@@ -678,15 +680,25 @@ async function onSubmit() {
 
         walletStore.loadActivities();
         step.value = CONFIRM_STEP.SUCCESS;
-        if (walletStore.history[id]) {
-          walletStore.history[id].step = CONFIRM_STEP.SUCCESS;
-        }
+        walletStore.history[id].historyData.route.activeStep = walletStore.history[id].historyData.route.steps.length;
+        walletStore.history[id].historyData.routeDetails.activeStep =
+          walletStore.history[id].historyData.routeDetails.steps.length;
+        walletStore.history[id].historyData.status = CONFIRM_STEP.SUCCESS;
       } catch (error) {
         step.value = CONFIRM_STEP.ERROR;
         amountErrorMsg.value = (error as Error).toString();
 
         if (walletStore.history[id]) {
-          walletStore.history[id].errorMsg = amountErrorMsg.value;
+          walletStore.history[id].historyData.errorMsg = amountErrorMsg.value;
+          walletStore.history[id].historyData.route.steps[
+            walletStore.history[id].historyData.route.activeStep
+          ].approval = true;
+
+          walletStore.history[id].historyData.routeDetails.steps[
+            walletStore.history[id].historyData.routeDetails.activeStep
+          ].approval = true;
+
+          walletStore.history[id].historyData.status = CONFIRM_STEP.ERROR;
         }
         Logger.error(error);
       } finally {
@@ -702,6 +714,8 @@ async function onSubmit() {
 
 async function submit(wallets: { [key: string]: BaseWallet | MetaMaskWallet }) {
   await SkipRouter.submitRoute(route!, wallets, async (tx: IObjectKeys, wallet: BaseWallet, chaindId: string) => {
+    walletStore.history[id].historyData.route.activeStep++;
+    walletStore.history[id].historyData.routeDetails.activeStep++;
     switch (wallet.constructor) {
       case MetaMaskWallet: {
         const element = {
@@ -711,7 +725,7 @@ async function submit(wallets: { [key: string]: BaseWallet | MetaMaskWallet }) {
         };
         txHashes.value.push(element);
         if (walletStore.history[id]) {
-          walletStore.history[id].txHashes = txHashes.value;
+          walletStore.history[id].historyData.txHashes = txHashes.value;
         }
 
         await SkipRouter.track(chaindId, (tx as IObjectKeys).hash);
@@ -730,7 +744,7 @@ async function submit(wallets: { [key: string]: BaseWallet | MetaMaskWallet }) {
         txHashes.value.push(element);
 
         if (walletStore.history[id]) {
-          walletStore.history[id].txHashes = txHashes.value;
+          walletStore.history[id].historyData.txHashes = txHashes.value;
         }
 
         await wallet.broadcastTx(tx.txBytes as Uint8Array);

@@ -12,6 +12,7 @@ import { computed, h, ref } from "vue";
 import { Label, type LabelProps, TableRow, type TableRowItemProps } from "web-components";
 import TransactionDetails from "@/common/components/activities/TransactionDetails.vue";
 import Action, { type IAction } from "@/modules/history/components/Action.vue";
+import { CONFIRM_STEP, type IObjectKeys } from "@/common/types";
 
 const i18n = useI18n();
 const transactionDialogRef = ref<typeof TransactionDetails | null>(null);
@@ -40,7 +41,7 @@ const transactionData = computed(
           class: "max-w-[180px]"
         },
         {
-          component: () => h<LabelProps>(Label, { value: i18n.t(`message.completed`), variant: "success" }),
+          component: () => h<LabelProps>(Label, getStatus()),
           class: "max-w-[150px]"
         },
         {
@@ -54,6 +55,18 @@ const transactionData = computed(
       ]
     }) as TableRowItemProps
 );
+
+function getStatus() {
+  switch (props.transaction.historyData.status) {
+    case CONFIRM_STEP.PENDING: {
+      return { value: i18n.t(`message.loading`), variant: "warning" } as any;
+    }
+    case CONFIRM_STEP.ERROR: {
+      return { value: i18n.t(`message.error`), variant: "error" } as any;
+    }
+  }
+  return { value: i18n.t(`message.completed`), variant: "success" } as any;
+}
 
 const onActivityClick = () => {
   transactionDialogRef.value?.show(props.transaction);

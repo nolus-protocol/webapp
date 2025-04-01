@@ -36,7 +36,6 @@ export async function loadActivities(this: Store) {
         return Promise.all(promises);
       });
       this.activities = { data: res, loaded: true };
-      console.log(this.activities.data);
     } else {
       this.activities = { data: [], loaded: true };
     }

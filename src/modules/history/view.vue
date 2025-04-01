@@ -33,7 +33,12 @@
         </div>
         <template v-slot:body>
           <template v-if="transactions.length > 0 || Object.keys(wallet.history).length > 0">
-            <WalletHistoryTableRowWrapper />
+            <!-- <WalletHistoryTableRowWrapper /> -->
+            <HistoryTableRowWrapper
+              v-for="transaction of skipActivities"
+              :transaction="transaction as any"
+              :key="`${transaction.id}`"
+            />
             <HistoryTableRowWrapper
               :transaction="transaction"
               v-for="transaction of txs"
@@ -83,7 +88,6 @@ import BigNumber from "@/common/components/BigNumber.vue";
 import HistoryTableRowWrapper from "./components/HistoryTableRowWrapper.vue";
 import ListHeader from "@/common/components/ListHeader.vue";
 import EmptyState from "@/common/components/EmptyState.vue";
-import WalletHistoryTableRowWrapper from "@/modules/history/components/WalletHistoryTableRowWrapper.vue";
 import type { HistoryData } from "./types/ITransaction";
 import { action, message } from "./common";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1/gov";
@@ -155,6 +159,15 @@ watch(
     getRealizedPnl();
   }
 );
+
+const skipActivities = computed(() => {
+  const activites = [];
+  for (const key in wallet.history) {
+    activites.push(wallet.history[key]);
+  }
+
+  return activites.sort((a, b) => b.historyData.id - a.historyData.id);
+});
 
 async function loadTxs() {
   try {
