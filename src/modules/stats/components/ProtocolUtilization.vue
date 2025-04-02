@@ -144,7 +144,7 @@ const assets = computed<TableRowItemProps[]>(() => {
       items: [
         {
           value: "BTC",
-          subValue: i18n.t("message.utilization_sub_osmosis_sol"),
+          subValue: i18n.t("message.utilization_sub_osmosis_btc"),
           image: osmosisBtc,
           variant: "left"
         },

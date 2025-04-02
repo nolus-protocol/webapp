@@ -45,7 +45,8 @@
         </p>
         <p class="flex gap-1 self-end">
           {{ $t("message.estimated-tx-fee") }}:
-          <Tooltip
+          <span class="w-[18px]"> </span>
+          <!-- <Tooltip
             position="top"
             :content="$t('message.estimated-message')"
           >
@@ -54,7 +55,7 @@
               class="rouded-full"
               size="s"
             />
-          </Tooltip>
+          </Tooltip> -->
         </p>
       </div>
       <div

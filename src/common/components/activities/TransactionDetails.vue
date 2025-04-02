@@ -8,7 +8,7 @@
     <template v-slot:content>
       <div class="flex flex-col gap-5 px-6 pb-6 text-typography-default">
         <Alert
-          v-if="data?.historyData.skipRoute"
+          v-if="data?.historyData.skipRoute && data?.historyData?.status != CONFIRM_STEP.SUCCESS"
           :title="data?.historyData.errorMsg ? $t('message.alert-tx-details') : $t('message.additional-confirm')"
           :type="data?.historyData.errorMsg ? AlertType.error : AlertType.warning"
         >
@@ -22,9 +22,7 @@
                 severity="secondary"
                 size="small"
                 :loading="data?.historyData?.status == CONFIRM_STEP.PENDING"
-                :disabled="
-                  data?.historyData.errorMsg || data?.historyData?.status == CONFIRM_STEP.SUCCESS ? true : false
-                "
+                :disabled="data?.historyData.errorMsg ? true : false"
               />
             </div>
           </template>

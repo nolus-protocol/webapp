@@ -195,7 +195,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
       const actions: Component[] = getActions(item as LeaseData);
       const value = {
         subValue: `${NATIVE_CURRENCY.symbol}${stable}`,
-        value: `${amount.toString(asset.decimal_digits)} ${asset.shortName}`
+        value: `${amount.toString(asset.decimal_digits)}`
       };
 
       if (hide.value) {
@@ -217,8 +217,8 @@ const leasesData = computed<TableRowItemProps[]>(() => {
           {
             image: getAssetIcon(item as LeaseData),
             imageClass: "w-[32px] h-[32px]",
-            value: asset.name,
-            subValue: asset.shortName,
+            value: asset.shortName,
+            subValue: asset.name,
             variant: "left",
             textClass: "line-clamp-1 [display:-webkit-box]"
           },

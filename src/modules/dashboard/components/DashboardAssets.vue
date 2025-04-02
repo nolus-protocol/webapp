@@ -200,8 +200,8 @@ const assets = computed<TableRowItemProps[]>(() => {
     return {
       items: [
         {
-          value: item.name,
-          subValue: item.shortName,
+          value: item.shortName,
+          subValue: item.name,
           image: item.icon,
           variant: "left",
           textClass: "line-clamp-1 [display:-webkit-box]"

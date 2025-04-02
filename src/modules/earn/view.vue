@@ -269,8 +269,8 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
       return {
         items: [
           {
-            value: item.currency.name,
-            subValue: item.currency.shortName,
+            value: item.currency.shortName,
+            subValue: item.currency.name,
             image: item.currency.icon,
             variant: "left"
           },

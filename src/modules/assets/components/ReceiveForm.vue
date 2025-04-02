@@ -71,16 +71,6 @@
           class="text-16 font-semibold text-typography-default"
           >{{ $t("message.recipient") }}</label
         >
-        <Tooltip
-          position="top"
-          :content="$t('message.receive-tooltip')"
-        >
-          <SvgIcon
-            name="help"
-            class="rounded-full"
-            size="s"
-          />
-        </Tooltip>
       </div>
       <Input
         id="receipt-send-2"
