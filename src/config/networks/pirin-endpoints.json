@@ -16,8 +16,8 @@
   },
   "OSMOSIS": {
     "primary": {
-      "rpc": "https://osmosis-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3",
-      "api": "https://osmosis-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3"
+      "rpc": "https://rpc-osmosis.nolus.network",
+      "api": "https://lcd-osmosis.nolus.network"
     },
     "fallback": [
       {
@@ -28,8 +28,8 @@
   },
   "NEUTRON": {
     "primary": {
-      "rpc": "https://neutron-rpc.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/",
-      "api": "https://neutron-lcd.numia.xyz:443/apikey/sk_1b4b840981ef4568b32f5a7fe1667eb3/"
+      "rpc": "https://rpc-neutron.nolus.network",
+      "api": "https://lcd-neutron.nolus.network"
     },
     "fallback": [
       {
