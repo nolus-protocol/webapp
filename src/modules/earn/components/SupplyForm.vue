@@ -275,10 +275,10 @@ async function fetchDepositCapacity() {
 
       if (Number(supply?.amount) == 0 || !ProtocolsConfig[protocol].supply) {
         value[protocol] = false;
-        maxSupply.value[protocol] = new Int(-1);
+        maxSupply.value[protocol] = new Int(0);
       } else {
         value[protocol] = true;
-        maxSupply.value[protocol] = new Int(supply?.amount ?? 0);
+        maxSupply.value[protocol] = new Int(supply?.amount ?? -1);
       }
     };
 
