@@ -42,6 +42,8 @@ import osmosisSol from "@/assets/icons/osmosis-allsol.svg?url";
 import osmosisBtc from "@/assets/icons/osmosis-allbtc.svg?url";
 import osmosisStAtom from "@/assets/icons/osmosis-statom.svg?url";
 import osmosisAkt from "@/assets/icons/osmosis-akt.svg?url";
+import osmosisAtom from "@/assets/icons/osmosis-atom.svg?url";
+
 import type { UtilizationProps } from "../types";
 import { NolusClient } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
@@ -214,6 +216,32 @@ const assets = computed<TableRowItemProps[]>(() => {
           class: "text-typography-success"
         }
       ]
+    },
+
+    {
+      items: [
+        {
+          value: "ATOM",
+          subValue: i18n.t("message.utilization_sub_osmosis_atom"),
+          image: osmosisAtom,
+          variant: "left"
+        },
+        {
+          component: () =>
+            h<UtilizationProps>(ChartUtilizaiton, {
+              value: utilizationLevelOsmosisAtom.value,
+              icon: osmosisAtom,
+              deposit: depositAtom.value
+            }),
+          class: "hidden md:flex min-w-[200]"
+        },
+        { value: `${utilizationLevelOsmosisAtom.value}%`, class: "hidden md:flex font-semibold" },
+        { value: `${depositAtom.value}%` },
+        {
+          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_atom]) ?? 0).toFixed(2)}%`,
+          class: "text-typography-success"
+        }
+      ]
     }
   ] as TableRowItemProps[];
 });
@@ -236,6 +264,9 @@ const depositAllSol = ref("");
 const utilizationLevelOsmosisAkt = ref("0");
 const depositAkt = ref("");
 
+const utilizationLevelOsmosisAtom = ref("0");
+const depositAtom = ref("");
+
 const suppliedFunds = ref("0");
 
 const app = useApplicationStore();
@@ -249,6 +280,7 @@ onMounted(async () => {
     setUtilizationOsmosisAllBtc(),
     setUtilizationOsmosisAllSol(),
     setUtilizationOsmosisAkt(),
+    setUtilizationOsmosisAtom(),
     setSuppliedFunds()
   ]).catch((e) => Logger.error(e));
 });
@@ -316,6 +348,16 @@ async function setUtilizationOsmosisAkt() {
   const item = await data.json();
   depositAkt.value = capacity;
   utilizationLevelOsmosisAkt.value = Number(item[0]).toFixed(2);
+}
+
+async function setUtilizationOsmosisAtom() {
+  const [data, capacity] = await Promise.all([
+    fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_osmosis_atom}`),
+    getDepositCapacityMsg(AppUtils.getProtocols().osmosis_osmosis_atom)
+  ]);
+  const item = await data.json();
+  depositAtom.value = capacity;
+  utilizationLevelOsmosisAtom.value = Number(item[0]).toFixed(2);
 }
 
 async function getDepositCapacityMsg(protocol: string) {

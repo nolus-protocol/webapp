@@ -266,6 +266,7 @@
   "utilization_sub_osmosis_statom": "STATOM",
   "utilization_sub_osmosis_akt": "AKT",
   "utilization_sub_osmosis_btc": "BTC",
+  "utilization_sub_osmosis_atom": "ATOM",
   "value-label": "Value:",
   "debt-label": "Debt",
   "value-chart-label": "Value",

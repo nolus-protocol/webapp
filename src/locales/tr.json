@@ -617,6 +617,7 @@
     "additional-confirm-text": "This activity needs an additional confirmation to proceed.",
     "sign-and-continue": "Sign and continue",
     "alert-tx-details": "Alert",
-    "utilization_sub_osmosis_btc": "BTC"
+    "utilization_sub_osmosis_btc": "BTC",
+    "utilization_sub_osmosis_atom": "ATOM"
   }
 }

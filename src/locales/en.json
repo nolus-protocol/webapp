@@ -600,12 +600,13 @@
     "asset-to-lease-short": "Sell",
     "liquidation-lease-table": "Liquidation Trigger",
     "dashboard-lease-title": "Open Positions",
-    "view-details": "View details",
+    "view-details": "View More",
     "leases-table-label": "margins",
     "additional-confirm": "Additional confirmation needed",
     "additional-confirm-text": "This activity needs an additional confirmation to proceed.",
     "sign-and-continue": "Sign and continue",
     "alert-tx-details": "Alert",
-    "utilization_sub_osmosis_btc": "BTC"
+    "utilization_sub_osmosis_btc": "BTC",
+    "utilization_sub_osmosis_atom": "ATOM"
   }
 }
