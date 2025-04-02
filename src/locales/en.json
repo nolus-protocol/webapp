@@ -600,11 +600,11 @@
     "asset-to-lease-short": "Sell",
     "liquidation-lease-table": "Liquidation Trigger",
     "dashboard-lease-title": "Open Positions",
-    "view-details": "View details",
+    "view-details": "View More",
     "leases-table-label": "margins",
-    "additional-confirm": "Additional confirmation needed",
-    "additional-confirm-text": "This activity needs an additional confirmation to proceed.",
-    "sign-and-continue": "Sign and continue",
+    "additional-confirm": "Requires Two Signatures",
+    "additional-confirm-text": "This transaction requires two consecutive signatures to be completed",
+    "sign-and-continue": "Sign to Continue",
     "alert-tx-details": "Alert"
   }
 }
