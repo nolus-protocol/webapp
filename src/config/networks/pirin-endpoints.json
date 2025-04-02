@@ -9,8 +9,8 @@
     },
     "fallback": [
       {
-        "rpc": "https://rpc.nolus.network",
-        "api": "https://lcd.nolus.network"
+        "rpc": "https://nolus-rpc.publicnode.com:443",
+        "api": "https://nolus-rest.publicnode.com"
       }
     ]
   },
@@ -33,8 +33,8 @@
     },
     "fallback": [
       {
-        "rpc": "https://rpc-neutron-1.nolus.cros-nest.net",
-        "api": "https://rest-neutron-1.nolus.cros-nest.net"
+        "rpc": "https://rpc-lb.neutron.org/",
+        "api": "https://rest-lb.neutron.org"
       }
     ]
   },
@@ -47,30 +47,6 @@
       {
         "rpc": "https://noble-rpc.polkachu.com",
         "api": "https://noble-api.polkachu.com"
-      }
-    ]
-  },
-  "XION": {
-    "primary": {
-      "rpc": "https://rpc.xion-mainnet-1.burnt.com:443/",
-      "api": "https://api.xion-mainnet-1.burnt.com/"
-    },
-    "fallback": [
-      {
-        "rpc": "https://xion-rpc.lavenderfive.com:443",
-        "api": "https://xion-api.lavenderfive.com"
-      }
-    ]
-  },
-  "NILLION": {
-    "primary": {
-      "rpc": "https://nillion-rpc.lavenderfive.com/",
-      "api": "https://nillion-api.lavenderfive.com/"
-    },
-    "fallback": [
-      {
-        "rpc": "https://nillion-rpc.lavenderfive.com/",
-        "api": "https://nillion-api.lavenderfive.com/"
       }
     ]
   }
