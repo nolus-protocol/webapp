@@ -33,7 +33,7 @@
     },
     "fallback": [
       {
-        "rpc": "https://rpc-lb.neutron.org/",
+        "rpc": "https://rpc-lb.neutron.org",
         "api": "https://rest-lb.neutron.org"
       }
     ]
