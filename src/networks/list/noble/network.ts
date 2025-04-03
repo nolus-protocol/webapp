@@ -1,7 +1,7 @@
 export const NETWORK = {
   prefix: "noble",
   key: "NOBLE",
-  gasMupltiplier: 2.5,
+  gasMultiplier: 2.5,
   bip44Path: "44'/118'/0'/0/0",
   ibcTransferTimeout: 600,
   ticker: "USDC_NOBLE",

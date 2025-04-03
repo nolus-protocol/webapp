@@ -1,5 +1,6 @@
-@import "web-components/dist/assets/style.css";
+@use "web-components/dist/assets/style.css";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+

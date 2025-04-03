@@ -1,4 +1,4 @@
-import type { API, ARCHIVE_NODE, Endpoint, Node, News, SkipRouteConfigType, ProposalsConfigType } from "@/common/types";
+import type { API, ARCHIVE_NODE, Endpoint, Node, SkipRouteConfigType, ProposalsConfigType } from "@/common/types";
 
 import { connectComet } from "@cosmjs/tendermint-rpc";
 import { EnvNetworkUtils } from ".";
@@ -7,8 +7,6 @@ import {
   DOWNPAYMENT_RANGE_DEV,
   IGNORE_DOWNPAYMENT_ASSETS_URL,
   IGNORE_LEASE_ASSETS_URL,
-  NEWS_URL,
-  NEWS_WALLETS_PATH,
   IGNORE_ASSETS_URL
 } from "@/config/global";
 import { ChainConstants } from "@nolus/nolusjs";
@@ -17,6 +15,7 @@ import { SKIPROUTE_CONFIG_URL } from "@/config/global/swap";
 import { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL, isDev, isServe, languages, NETWORK } from "@/config/global";
 import { PROMOSALS_CONFIG_URL } from "@/config/global/proposals";
 import { FREE_INTEREST_URL } from "@/config/global/free-interest-url";
+import { DUE_PROJECTION_SECS_URL } from "@/config/global/due-projection-secs-url";
 
 export class AppUtils {
   public static LANGUAGE = "language";
@@ -35,7 +34,6 @@ export class AppUtils {
     interest_paid_to: string[];
   }>;
 
-  static news: Promise<News>;
   static skip_route_config: Promise<SkipRouteConfigType>;
   static proposals_config: Promise<ProposalsConfigType>;
 
@@ -44,6 +42,9 @@ export class AppUtils {
   }>;
 
   static freeInterest: Promise<string[]>;
+  static dueProjectionSecs: Promise<{
+    due_projection_secs: number;
+  }>;
   static ignoreLeaseAssets: Promise<string[]>;
   static ignoreDownpaymentAssets: Promise<string[]>;
   static ignoreAssets: Promise<string[]>;
@@ -93,7 +94,6 @@ export class AppUtils {
 
   static async fetchEndpoints(network: string) {
     const net = AppUtils.rpc?.[EnvNetworkUtils.getStoredNetworkName()]?.[network];
-
     if (net) {
       return net;
     }
@@ -157,6 +157,17 @@ export class AppUtils {
     return AppUtils.freeInterest;
   }
 
+  static async getDueProjectionSecs() {
+    const dueProjectionSecs = AppUtils.dueProjectionSecs;
+
+    if (dueProjectionSecs) {
+      return dueProjectionSecs;
+    }
+
+    AppUtils.dueProjectionSecs = AppUtils.fetchDueProjectionSecs();
+    return AppUtils.dueProjectionSecs;
+  }
+
   static async getFreeInterestAddress() {
     const freeInterestAdress = AppUtils.freeInterestAdress;
 
@@ -201,16 +212,6 @@ export class AppUtils {
     return AppUtils.ignoreAssets;
   }
 
-  static async getNews() {
-    if (this.news) {
-      return this.news;
-    }
-
-    const news = AppUtils.fetchNews();
-    this.news = news;
-    return news;
-  }
-
   static async getSkipRouteConfig() {
     if (this.skip_route_config) {
       return this.skip_route_config;
@@ -229,19 +230,6 @@ export class AppUtils {
     const proposals_config = AppUtils.fetchProposalsConfigRoute();
     this.proposals_config = proposals_config;
     return proposals_config;
-  }
-
-  static async getSingleNewAddresses(url = "") {
-    try {
-      if (!url.trim()) return [];
-
-      const data = await fetch(`${NEWS_WALLETS_PATH}${url}`);
-      const json = (await data.json()) as { addresses: string[] };
-
-      return json.addresses;
-    } catch (error) {
-      return [];
-    }
   }
 
   public static getProtocols() {
@@ -397,21 +385,6 @@ export class AppUtils {
     return json;
   }
 
-  private static async fetchNews() {
-    const url = await NEWS_URL;
-    const data = await fetch(url);
-    const json = (await data.json()) as News;
-    const n: News = {};
-
-    for (const k in json) {
-      if (AppUtils.getBanner(k)) {
-        n[k] = json[k];
-      }
-    }
-
-    return n;
-  }
-
   public static async fetchNetworkStatus() {
     const rpc = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
     const data = await fetch(`${rpc}/status`);
@@ -441,6 +414,13 @@ export class AppUtils {
   private static async fetchFreeInterest() {
     const data = await fetch(await FREE_INTEREST_URL);
     const json = (await data.json()) as string[];
+
+    return json;
+  }
+
+  private static async fetchDueProjectionSecs() {
+    const data = await fetch(await DUE_PROJECTION_SECS_URL);
+    const json = (await data.json()) as { due_projection_secs: number };
 
     return json;
   }

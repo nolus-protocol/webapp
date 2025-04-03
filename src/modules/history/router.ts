@@ -7,6 +7,7 @@ export const HistoryRouter: RouteRecordRaw = {
   component: () => import("./view.vue"),
   meta: {
     title: "Nolus Protocol - Transaction History",
+    key: RouteNames.HISTORY,
     description:
       "Review your activity on the Nolus Protocol. Access detailed records and insights of all your past transactions"
   }

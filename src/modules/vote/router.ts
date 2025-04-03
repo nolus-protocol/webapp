@@ -7,6 +7,7 @@ export const VoteRouter: RouteRecordRaw = {
   component: () => import("./view.vue"),
   meta: {
     title: "Nolus Protocol - Votes",
-    description: ""
+    description: "",
+    key: RouteNames.VOTE
   }
 };

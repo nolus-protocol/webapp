@@ -1,5 +1,7 @@
-import type { IObjectKeys } from "@/common/types";
+import type { CONFIRM_STEP, IObjectKeys } from "@/common/types";
 import type { Coin } from "@cosmjs/proto-signing";
+import type { CoinPretty } from "@keplr-wallet/unit";
+import type { MediumStepperProps, SmallStepperProps } from "web-components";
 
 export interface ITransaction {
   id: string;
@@ -26,3 +28,19 @@ export interface ITransactionData {
   value: string;
   data: IObjectKeys;
 }
+
+export type HistoryData = {
+  historyData: {
+    id?: string;
+    errorMsg?: string;
+    msg: string;
+    action: string;
+    icon: string;
+    timestamp: string;
+    coin: CoinPretty;
+    route?: SmallStepperProps;
+    routeDetails?: MediumStepperProps;
+    skipRoute?: IObjectKeys;
+    status: CONFIRM_STEP;
+  };
+};

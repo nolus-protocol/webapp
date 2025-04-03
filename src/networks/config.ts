@@ -1,5 +1,8 @@
 import { CURRENT_NETWORK_KEY, DEFAULT_PRIMARY_NETWORK, NATIVE_NETWORK } from "@/config/global";
 
+import { NETWORK as NOLUS_NETWORK } from "./list/nolus/network";
+import { embedChainInfo as nolusChainInfo } from "./list/nolus/contants";
+
 import { NETWORK as OSMO_NETWORK } from "./list/osmosis/network";
 import { embedChainInfo as osmoChainInfo } from "./list/osmosis/contants";
 
@@ -54,6 +57,12 @@ import { embedChainInfo as nobleChainInfo } from "./list/noble/contants";
 import { NETWORK as MANTRA_NETWORK } from "./list/mantra/network";
 import { embedChainInfo as mantraChainInfo } from "./list/mantra/contants";
 
+import { NETWORK as NILLION_NETWORK } from "./list/nillion/network";
+import { embedChainInfo as nillionChainInfo } from "./list/nillion/contants";
+
+import { NETWORK as XION_NETWORK } from "./list/xion/network";
+import { embedChainInfo as xionChainInfo } from "./list/xion/contants";
+
 import { NETWORK as ETHEREUM_NETWORK } from "./list/ethereum/network";
 import { NETWORK as BINANCE_NETWORK } from "./list/binance/network";
 import { NETWORK as ARBITRUM_NETWORK } from "./list/arbitrum/network";
@@ -65,12 +74,38 @@ import { ChainType, type EvmNetwork, type Network } from "@/common/types/Network
 import { NETWORK as CUDOS_NETWORK } from "./cudos/network";
 import { embedChainInfo as cudosChainInfo } from "./cudos/contants";
 
+import NolusIcon from "../assets/icons/networks/nolus.svg?url";
+import OsmosisIcon from "../assets/icons/networks/osmosis.svg?url";
+import CosmosIcon from "../assets/icons/networks/cosmos.svg?url";
+import AxelarIcon from "../assets/icons/networks/axelar.svg?url";
+import StrideIcon from "../assets/icons/networks/stride.svg?url";
+import JunoIcon from "../assets/icons/networks/juno.svg?url";
+import EvmosIcon from "../assets/icons/networks/evmos.svg?url";
+import PersistenceIcon from "../assets/icons/networks/persistence.svg?url";
+import SecretIcon from "../assets/icons/networks/secret.svg?url";
+import CelestiaIcon from "../assets/icons/networks/celestia.svg?url";
+import StarsIcon from "../assets/icons/networks/stars.svg?url";
+import QuicksilverIcon from "../assets/icons/networks/quicksilver.svg?url";
+import NeutronIcon from "../assets/icons/networks/neutron.svg?url";
+import DymensionIcon from "../assets/icons/networks/dymension.svg?url";
+import JackalIcon from "../assets/icons/networks/jkl.svg?url";
+import InjectiveIcon from "../assets/icons/networks/injective.svg?url";
+import ComposableIcon from "../assets/icons/networks/composable.svg?url";
+import NobleIcon from "../assets/icons/networks/noble.svg?url";
+import CudosIcon from "../assets/icons/networks/cudos.svg?url";
+import EthereumIcon from "../assets/icons/networks/ethereum.svg?url";
+import ArbitrumIcon from "../assets/icons/networks/arbitrum.svg?url";
+import BinanceIcon from "../assets/icons/networks/binance.svg?url";
+import MantraIcon from "../assets/icons/networks/mantra.svg?url";
+import XionIcon from "../assets/icons/networks/xion.svg?url";
+import NillionIcon from "../assets/icons/networks/nillion.svg?url";
+
 export const PROOBUF_ONLY_NETWORK = [ARBITRUM_NETWORK.key];
 
 export const SUPPORTED_NETWORKS_DATA: {
   [key: string]: Network | EvmNetwork;
 } = {
-  NOLUS: { ...NATIVE_NETWORK },
+  NOLUS: { ...NATIVE_NETWORK, icon: NolusIcon },
   OSMOSIS: {
     prefix: OSMO_NETWORK.prefix,
     key: OSMO_NETWORK.key,
@@ -79,7 +114,8 @@ export const SUPPORTED_NETWORKS_DATA: {
     label: "Osmosis",
     estimation: 20,
     native: false,
-    chain_type: ChainType.cosmos
+    chain_type: ChainType.cosmos,
+    icon: OsmosisIcon
   },
   COSMOS_HUB: {
     prefix: ATOM_NETWORK.prefix,
@@ -90,7 +126,8 @@ export const SUPPORTED_NETWORKS_DATA: {
     native: false,
     estimation: 20,
     forward: true,
-    chain_type: ChainType.cosmos
+    chain_type: ChainType.cosmos,
+    icon: CosmosIcon
   },
   AXELAR: {
     prefix: AXELAR_NETWORK.prefix,
@@ -101,7 +138,8 @@ export const SUPPORTED_NETWORKS_DATA: {
     native: false,
     estimation: 20,
     forward: true,
-    chain_type: ChainType.cosmos
+    chain_type: ChainType.cosmos,
+    icon: AxelarIcon
   },
   STRIDE: {
     prefix: STRIDE_NETWORK.prefix,
@@ -112,7 +150,8 @@ export const SUPPORTED_NETWORKS_DATA: {
     native: false,
     estimation: 20,
     forward: true,
-    chain_type: ChainType.cosmos
+    chain_type: ChainType.cosmos,
+    icon: StrideIcon
   },
   JUNO: {
     prefix: JUNO_NETWORK.prefix,
@@ -123,7 +162,8 @@ export const SUPPORTED_NETWORKS_DATA: {
     native: false,
     estimation: 20,
     forward: true,
-    chain_type: ChainType.cosmos
+    chain_type: ChainType.cosmos,
+    icon: JunoIcon
   },
   EVMOS: {
     prefix: EVMOS_NETWORK.prefix,
@@ -134,7 +174,8 @@ export const SUPPORTED_NETWORKS_DATA: {
     native: false,
     estimation: 20,
     forward: true,
-    chain_type: ChainType.cosmos
+    chain_type: ChainType.cosmos,
+    icon: EvmosIcon
   },
   PERSISTENCE: {
     prefix: PERSISTENCE_NETWORK.prefix,
@@ -145,7 +186,8 @@ export const SUPPORTED_NETWORKS_DATA: {
     native: false,
     estimation: 20,
     forward: true,
-    chain_type: ChainType.cosmos
+    chain_type: ChainType.cosmos,
+    icon: PersistenceIcon
   },
   SECRET: {
     prefix: SECRET_NETWORK.prefix,
@@ -156,7 +198,8 @@ export const SUPPORTED_NETWORKS_DATA: {
     native: false,
     estimation: 20,
     forward: true,
-    chain_type: ChainType.cosmos
+    chain_type: ChainType.cosmos,
+    icon: SecretIcon
   },
   CELESTIA: {
     prefix: CELESTIA_NETWORK.prefix,
@@ -167,7 +210,8 @@ export const SUPPORTED_NETWORKS_DATA: {
     native: false,
     estimation: 20,
     forward: true,
-    chain_type: ChainType.cosmos
+    chain_type: ChainType.cosmos,
+    icon: CelestiaIcon
   },
   STARGAZE: {
     prefix: STARGAZE_NETWORK.prefix,
@@ -178,7 +222,8 @@ export const SUPPORTED_NETWORKS_DATA: {
     native: false,
     estimation: 20,
     forward: true,
-    chain_type: ChainType.cosmos
+    chain_type: ChainType.cosmos,
+    icon: StarsIcon
   },
   QUICKSILVER: {
     prefix: QUICKSILVER_NETWORK.prefix,
@@ -189,7 +234,8 @@ export const SUPPORTED_NETWORKS_DATA: {
     native: false,
     estimation: 20,
     forward: true,
-    chain_type: ChainType.cosmos
+    chain_type: ChainType.cosmos,
+    icon: QuicksilverIcon
   },
   NEUTRON: {
     prefix: NEUTRON_NETWORK.prefix,
@@ -200,7 +246,8 @@ export const SUPPORTED_NETWORKS_DATA: {
     native: false,
     estimation: 20,
     forward: false,
-    chain_type: ChainType.cosmos
+    chain_type: ChainType.cosmos,
+    icon: NeutronIcon
   },
   DYMENSION: {
     prefix: DYMENSION_NETWORK.prefix,
@@ -211,7 +258,8 @@ export const SUPPORTED_NETWORKS_DATA: {
     native: false,
     estimation: 20,
     forward: true,
-    chain_type: ChainType.cosmos
+    chain_type: ChainType.cosmos,
+    icon: DymensionIcon
   },
   JACKAL: {
     prefix: JACKAL_NETWORK.prefix,
@@ -222,7 +270,8 @@ export const SUPPORTED_NETWORKS_DATA: {
     native: false,
     estimation: 20,
     forward: true,
-    chain_type: ChainType.cosmos
+    chain_type: ChainType.cosmos,
+    icon: JackalIcon
   },
   INJECTIVE: {
     prefix: INJECTIVE_NETWORK.prefix,
@@ -233,7 +282,8 @@ export const SUPPORTED_NETWORKS_DATA: {
     native: false,
     estimation: 20,
     forward: true,
-    chain_type: ChainType.cosmos
+    chain_type: ChainType.cosmos,
+    icon: InjectiveIcon
   },
   COMPOSABLE: {
     prefix: COMPOSABLE_NETWORK.prefix,
@@ -244,7 +294,8 @@ export const SUPPORTED_NETWORKS_DATA: {
     native: false,
     estimation: 20,
     forward: true,
-    chain_type: ChainType.cosmos
+    chain_type: ChainType.cosmos,
+    icon: ComposableIcon
   },
   NOBLE: {
     prefix: NOBLE_NETWORK.prefix,
@@ -255,7 +306,8 @@ export const SUPPORTED_NETWORKS_DATA: {
     native: false,
     estimation: 20,
     forward: true,
-    chain_type: ChainType.cosmos
+    chain_type: ChainType.cosmos,
+    icon: NobleIcon
   },
   CUDOS: {
     prefix: CUDOS_NETWORK.prefix,
@@ -266,25 +318,29 @@ export const SUPPORTED_NETWORKS_DATA: {
     native: false,
     estimation: 20,
     forward: true,
-    chain_type: ChainType.cosmos
+    chain_type: ChainType.cosmos,
+    icon: CudosIcon
   },
   ETHEREUM: {
     ...ETHEREUM_NETWORK,
     value: "ethereum",
     native: false,
-    chain_type: ChainType.evm
+    chain_type: ChainType.evm,
+    icon: EthereumIcon
   },
   ARBITRUM: {
     ...ARBITRUM_NETWORK,
     value: "arbitrum",
     native: false,
-    chain_type: ChainType.evm
+    chain_type: ChainType.evm,
+    icon: ArbitrumIcon
   },
   BINANCE: {
     ...BINANCE_NETWORK,
     value: "binance",
     native: false,
-    chain_type: ChainType.evm
+    chain_type: ChainType.evm,
+    icon: BinanceIcon
   },
   MANTRA: {
     prefix: MANTRA_NETWORK.prefix,
@@ -295,7 +351,32 @@ export const SUPPORTED_NETWORKS_DATA: {
     native: false,
     estimation: 20,
     forward: true,
-    chain_type: ChainType.cosmos
+    chain_type: ChainType.cosmos,
+    icon: MantraIcon
+  },
+  XION: {
+    prefix: XION_NETWORK.prefix,
+    key: XION_NETWORK.key,
+    symbol: XION_NETWORK.ticker,
+    value: "xion",
+    label: "Xion",
+    native: false,
+    estimation: 20,
+    forward: true,
+    chain_type: ChainType.cosmos,
+    icon: XionIcon
+  },
+  NILLION: {
+    prefix: NILLION_NETWORK.prefix,
+    key: NILLION_NETWORK.key,
+    symbol: NILLION_NETWORK.ticker,
+    value: "nillion",
+    label: "Nillion",
+    native: false,
+    estimation: 20,
+    forward: true,
+    chain_type: ChainType.cosmos,
+    icon: NillionIcon
   }
 };
 
@@ -398,7 +479,9 @@ export const NETWORKS_DATA: {
       SUPPORTED_NETWORKS_DATA.NOBLE,
       SUPPORTED_NETWORKS_DATA.MANTRA,
       SUPPORTED_NETWORKS_DATA.ETHEREUM,
-      SUPPORTED_NETWORKS_DATA.ARBITRUM
+      SUPPORTED_NETWORKS_DATA.ARBITRUM,
+      SUPPORTED_NETWORKS_DATA.XION,
+      SUPPORTED_NETWORKS_DATA.NILLION
 
       // SUPPORTED_NETWORKS_DATA.CUDOS
       // SUPPORTED_NETWORKS_DATA.BINANCE
@@ -574,6 +657,33 @@ export const NETWORKS_DATA: {
           return app?.networks?.[MANTRA_NETWORK.key] as ExternalCurrencies;
         },
         embedChainInfo: mantraChainInfo
+      },
+      NOLUS: {
+        ...NOLUS_NETWORK,
+        explorer: "https://ping.pub/nolus/tx",
+        currencies: () => {
+          const app = useApplicationStore();
+          return app?.networks?.[NOLUS_NETWORK.key] as ExternalCurrencies;
+        },
+        embedChainInfo: nolusChainInfo
+      },
+      XION: {
+        ...XION_NETWORK,
+        explorer: "https://ping.pub/xion/tx",
+        currencies: () => {
+          const app = useApplicationStore();
+          return app?.networks?.[XION_NETWORK.key] as ExternalCurrencies;
+        },
+        embedChainInfo: xionChainInfo
+      },
+      NILLION: {
+        ...NILLION_NETWORK,
+        explorer: "https://www.mintscan.io/nillion/tx",
+        currencies: () => {
+          const app = useApplicationStore();
+          return app?.networks?.[NILLION_NETWORK.key] as ExternalCurrencies;
+        },
+        embedChainInfo: nillionChainInfo
       }
     }
   }

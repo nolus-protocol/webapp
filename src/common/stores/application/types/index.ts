@@ -17,10 +17,10 @@ export type State = {
     [key: string]: string;
   };
   network: NetworkConfig | IObjectKeys;
+  protocolFilter: string;
   theme?: string;
   apr?: { [key: string]: number };
   dispatcherRewards?: number;
-  sessionExpired: boolean;
   currenciesData?: ExternalCurrencies;
   native?: ExternalCurrency;
   lpn?: ExternalCurrency[];

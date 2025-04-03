@@ -2,6 +2,8 @@ import type { ContractConfig } from "@/common/types";
 import { NATIVE_ASSET } from "./network";
 import { ProtocolsPirin, ProtocolsRila } from "@nolus/nolusjs/build/types/Networks";
 import { EnvNetworkUtils } from "@/common/utils";
+import neutron from "./../../assets/icons/networks/neutron.svg?url";
+import osmosis from "./../../assets/icons/networks/osmosis.svg?url";
 
 const network = EnvNetworkUtils.getStoredNetworkName();
 
@@ -12,23 +14,42 @@ export enum PositionTypes {
 
 export const CONTRACTS: ContractConfig = {
   testnet: {
-    longDefault: "OSMO@OSMOSIS-OSMOSIS-USDC_AXELAR",
     ignoreProtocolsInEarn: [],
     protocols: ProtocolsRila,
+    protocolsFilter: {
+      OSMOSIS: {
+        short: false,
+        key: "OSMOSIS",
+        image: osmosis,
+        native: "NLS@OSMOSIS-OSMOSIS-USDC_AXELAR",
+        hold: ["OSMOSIS-OSMOSIS-USDC_AXELAR"],
+        name: "Osmosis"
+      },
+      NEUTRON: {
+        short: false,
+        key: "NEUTRON",
+        image: neutron,
+        native: "NLS@NEUTRON-ASTROPORT-USDC_AXL",
+        hold: ["NEUTRON-ASTROPORT-USDC_AXL"],
+        name: "Neutron"
+      }
+    },
     protocolConfig: {
       "NEUTRON-ASTROPORT-USDC_AXL": {
         lease: true,
         currencies: ["NTRN", "USDC_AXELAR", "ATOM"],
         stable: "USDC_AXELAR",
         type: PositionTypes.long,
-        rewards: true
+        rewards: true,
+        supply: true
       },
       "OSMOSIS-OSMOSIS-USDC_AXELAR": {
         currencies: ["NLS", "OSMO", "USDC_AXELAR", "ATOM", "AKT", "JUNO"],
         stable: "USDC_AXELAR",
         lease: true,
         type: PositionTypes.long,
-        rewards: false
+        rewards: false,
+        supply: false
       }
     },
     dispatcher: {
@@ -42,35 +63,62 @@ export const CONTRACTS: ContractConfig = {
     }
   },
   mainnet: {
-    longDefault: "OSMO@OSMOSIS-OSMOSIS-USDC_NOBLE",
     ignoreProtocolsInEarn: [],
     protocols: ProtocolsPirin,
+    protocolsFilter: {
+      OSMOSIS: {
+        short: true,
+        key: "OSMOSIS",
+        image: osmosis,
+        native: "NLS@OSMOSIS-OSMOSIS-USDC_NOBLE",
+        hold: [
+          "OSMOSIS-OSMOSIS-USDC_AXELAR",
+          "OSMOSIS-OSMOSIS-USDC_NOBLE",
+          "OSMOSIS-OSMOSIS-ST_ATOM",
+          "OSMOSIS-OSMOSIS-ALL_BTC",
+          "OSMOSIS-OSMOSIS-ALL_SOL",
+          "OSMOSIS-OSMOSIS-ATOM",
+          "OSMOSIS-OSMOSIS-AKT"
+        ],
+        name: "Osmosis"
+      },
+      NEUTRON: {
+        short: false,
+        key: "NEUTRON",
+        native: "NLS@NEUTRON-ASTROPORT-USDC_NOBLE",
+        image: neutron,
+        hold: ["NEUTRON-ASTROPORT-USDC_AXELAR", "NEUTRON-ASTROPORT-USDC_NOBLE"],
+        name: "Neutron"
+      }
+    },
     protocolConfig: {
       "OSMOSIS-OSMOSIS-USDC_AXELAR": {
         currencies: ["USDC_AXELAR"],
         stable: "USDC_AXELAR",
         lease: false,
         type: PositionTypes.long,
-        rewards: false
+        rewards: false,
+        supply: false
       },
       "NEUTRON-ASTROPORT-USDC_AXELAR": {
         lease: false,
         currencies: ["USDC_AXELAR"],
         stable: "USDC_AXELAR",
         type: PositionTypes.long,
-        rewards: false
+        rewards: false,
+        supply: false
       },
       "NEUTRON-ASTROPORT-USDC_NOBLE": {
         lease: true,
-        currencies: ["NTRN", "USDC_NOBLE", "DYDX", "ST_TIA", "STK_ATOM", "ATOM", "D_ATOM"],
+        currencies: ["NLS", "NTRN", "USDC_NOBLE", "DYDX", "ST_TIA", "STK_ATOM", "ATOM", "D_ATOM"],
         stable: "USDC_NOBLE",
         type: PositionTypes.long,
-        rewards: true
+        rewards: true,
+        supply: true
       },
       "OSMOSIS-OSMOSIS-USDC_NOBLE": {
         lease: true,
         currencies: [
-          "NLS",
           "OSMO",
           "ST_OSMO",
           "ATOM",
@@ -98,11 +146,14 @@ export const CONTRACTS: ContractConfig = {
           "CUDOS",
           "ALL_BTC",
           "ALL_SOL",
-          "OM"
+          "OM",
+          "XION",
+          "NIL"
         ],
         stable: "USDC_NOBLE",
         type: PositionTypes.long,
-        rewards: true
+        rewards: true,
+        supply: true
       },
       "OSMOSIS-OSMOSIS-ST_ATOM": {
         only: [],
@@ -110,7 +161,8 @@ export const CONTRACTS: ContractConfig = {
         currencies: ["ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
         stable: "USDC_NOBLE",
         type: PositionTypes.short,
-        rewards: true
+        rewards: true,
+        supply: true
       },
       "OSMOSIS-OSMOSIS-ALL_BTC": {
         only: [],
@@ -118,7 +170,8 @@ export const CONTRACTS: ContractConfig = {
         currencies: ["ALL_BTC", "ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
         stable: "USDC_NOBLE",
         type: PositionTypes.short,
-        rewards: true
+        rewards: true,
+        supply: true
       },
       "OSMOSIS-OSMOSIS-ALL_SOL": {
         only: [],
@@ -126,7 +179,17 @@ export const CONTRACTS: ContractConfig = {
         currencies: ["ALL_SOL", "ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
         stable: "USDC_NOBLE",
         type: PositionTypes.short,
-        rewards: true
+        rewards: true,
+        supply: true
+      },
+      "OSMOSIS-OSMOSIS-ATOM": {
+        only: [],
+        lease: true,
+        currencies: ["ALL_SOL", "ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
+        stable: "USDC_NOBLE",
+        type: PositionTypes.short,
+        rewards: true,
+        supply: true
       },
       "OSMOSIS-OSMOSIS-AKT": {
         only: [],
@@ -134,7 +197,8 @@ export const CONTRACTS: ContractConfig = {
         currencies: ["ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
         type: PositionTypes.short,
         stable: "USDC_NOBLE",
-        rewards: true
+        rewards: true,
+        supply: true
       }
     },
     dispatcher: {
@@ -144,7 +208,7 @@ export const CONTRACTS: ContractConfig = {
     admin: {
       instance: "nolus1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsqxf8nd",
       codeId: "",
-      ignoreProtocols: ["OSMOSIS-OSMOSIS-ATOM", "OSMOSIS-OSMOSIS-OSMO, OSMOSIS-OSMOSIS-INJ"]
+      ignoreProtocols: []
     }
   }
 };
@@ -156,3 +220,17 @@ export const TIP = {
   amount: 0,
   denom: NATIVE_ASSET.denom
 };
+
+export const DefaultProtocolFilter = "OSMOSIS";
+
+export const SORT_PROTOCOLS = [
+  "OSMOSIS-OSMOSIS-ALL_BTC",
+  "OSMOSIS-OSMOSIS-ALL_SOL",
+  "OSMOSIS-OSMOSIS-ATOM",
+  "OSMOSIS-OSMOSIS-USDC_NOBLE",
+  "NEUTRON-ASTROPORT-USDC_NOBLE",
+  "OSMOSIS-OSMOSIS-ST_ATOM",
+  "OSMOSIS-OSMOSIS-AKT",
+  "OSMOSIS-OSMOSIS-USDC_AXELAR",
+  "NEUTRON-ASTROPORT-USDC_AXELAR"
+];

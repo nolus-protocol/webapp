@@ -4,7 +4,8 @@ import {
   type RouteRequest,
   affiliateFromJSON,
   type MsgsRequest,
-  type TxStatusResponse
+  type TxStatusResponse,
+  type Chain
 } from "@skip-go/client";
 
 import type { IObjectKeys, SkipRouteConfigType } from "../types";
@@ -32,6 +33,7 @@ class Swap extends SkipRouterLib {
 export class SkipRouter {
   private static client: Swap;
   private static chainID: string;
+  private static chains: Promise<Chain[]>;
 
   static async getClient(): Promise<Swap> {
     if (SkipRouter.client) {
@@ -68,13 +70,15 @@ export class SkipRouter {
       destAssetDenom: destDenom,
       destAssetChainID: destSourceId ?? SkipRouter.chainID,
       cumulativeAffiliateFeeBPS: config.fee.toString(),
+      goFast: true,
       smartRelay: true,
       allowMultiTx: true,
       allowUnsafe: true,
       swapVenues: config.swapVenues,
-      experimentalFeatures: ["cctp"],
+      experimentalFeatures: ["hyperlane", "cctp", "stargate"],
       smartSwapOptions: {
-        splitRoutes: true
+        splitRoutes: true,
+        evm_swaps: true
       }
     };
     if (revert) {
@@ -276,15 +280,7 @@ export class SkipRouter {
           mintRecipient: msgJSON.mint_recipient
         });
       }
-      //TODO: not use for now update if require
-      // case Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]: {
-      //   return MsgExecuteContract.fromPartial({
-      //     sender: msgJSON.sender,
-      //     contract: msgJSON.contract,
-      //     msg: toUtf8(JSON.stringify(msgJSON.msg)),
-      //     funds: msgJSON.funds
-      //   });
-      // }
+
       default: {
         throw new Error("Action not supported");
       }
@@ -292,7 +288,11 @@ export class SkipRouter {
   }
 
   static async getChains() {
+    if (SkipRouter.chains) {
+      return SkipRouter.chains;
+    }
     const client = await SkipRouter.getClient();
-    return client.chains({ includeEVM: true, includeSVM: false });
+    SkipRouter.chains = client.chains({ includeEVM: true, includeSVM: false });
+    return SkipRouter.chains;
   }
 }

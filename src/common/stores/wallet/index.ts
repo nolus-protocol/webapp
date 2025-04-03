@@ -14,7 +14,8 @@ const state = (): State => ({
   lppPrice: {},
   total_unls: { balance: new UnitCoin(NATIVE_ASSET.denom, new Int(0)) },
   history: {},
-  ignoreCurrencies: []
+  ignoreCurrencies: [],
+  activities: { loaded: false, data: [] }
 });
 
 const useWalletStore = defineStore("wallet", {

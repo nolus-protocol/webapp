@@ -103,6 +103,12 @@ export const ASSETS = {
   },
   OM: {
     coinGeckoId: "mantra-dao"
+  },
+  NIL: {
+    coinGeckoId: "nillion"
+  },
+  XION: {
+    coinGeckoId: "xion-2"
   }
 };
 
@@ -122,12 +128,6 @@ export const CurrencyMapping: {
   WBTC_AXELAR: {
     ticker: "WBTC"
   }
-  // ALL_SOL: {
-  //   ticker: "SOL"
-  // },
-  // ALL_BTC: {
-  //   ticker: "BTC"
-  // }
 };
 
 export const CurrencyMappingEarn: {

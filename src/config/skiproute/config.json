@@ -17,7 +17,8 @@
   ],
   "slippage": 1,
   "apiKey": "a974b954-b27a-4bae-81db-9003a244b04b",
-  "swap_currency": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4",
+  "swap_currency_osmosis": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4",
+  "swap_currency_neutron": "ibc/18161D8EFBD00FF5B7683EF8E923B8913453567FBE3FB6672D75712B0DEB6682",
   "swap_to_currency": "unls",
   "gas_multiplier": 2,
   "fee": 35,
@@ -25,14 +26,8 @@
   "osmosis-poolmanager": "osmo14p4cu64dlwavj7kga4s3mj6xglucj9t358r5mz",
   "neutron-astroport": "neutron1war9ee549tt9rla54g56ca78y969l6239pang9",
   "swapVenues": [
-    {
-      "name": "osmosis-poolmanager",
-      "chainID": "osmosis-1"
-    },
-    {
-      "name": "neutron-astroport",
-      "chainID": "neutron-1"
-    }
+    { "name": "osmosis-poolmanager", "chainID": "osmosis-1" },
+    { "name": "neutron-astroport", "chainID": "neutron-1" }
   ],
   "transfers": {
     "OSMOSIS": {
@@ -118,38 +113,16 @@
         {
           "from": "ibc/B92B80E837E4B1665024B7674D382AF07FE5D8D89797A0FEAF5356C8F173425C",
           "to": "ibc/164807F6226F91990F358C6467EEE8B162E437BDCD3DADEC3F0CE20693720795"
+        },
+        {
+          "from": "ibc/EA78F6D56E284DD5BA4E3606D8621295165B08F720D78DA5DAE2ACFD67D427B5",
+          "to": "ibc/2E3784772E70F7B3A638BA88F65C8BE125D3CDB6E28C6AABC51098C94F5E16A5"
+        },
+        {
+          "from": "ibc/15FAFC240963D999FA5F87982747F9BAA708EDD307DAA4CCDE2FF84ED2B4614D",
+          "to": "ibc/D37860EB1D2669F34B47A7BC48885853D5AB23642EF958CDEA35EB6074087064"
         }
       ]
-    },
-    "COSMOS_HUB": {
-      "currencies": [
-        { "from": "ibc/6CDD4663F2F09CD62285E2D45891FC149A3568E316CE3EBBE201A71A78A69388", "to": "uatom" },
-        { "from": "ibc/74329D0B6EAA37AD07FF44EC40D998357D1478C504AB5A9C91C3F42F1078A226", "to": "uatom" }
-      ]
-    },
-    "AXELAR": {
-      "currencies": [
-        {
-          "from": "unls",
-          "to": "ibc/37731EEEAE2D4A18C296FA1B3808719ACCBFFF7BF7F6A1D6EEA1044472B689E3"
-        },
-
-        { "from": "ibc/7FBDBEEEBA9C50C4BCDF7BF438EAB99E64360833D240B32655C96E319559E911", "to": "uusdc" },
-        { "from": "ibc/076CF690A9912E0B7A2CCA75B719D68AF7C20E4B0B6460569B333DDEB19BBBA1", "to": "uusdc" },
-        { "from": "ibc/A7C4A3FB19E88ABE60416125F9189DA680800F4CDD14E3C10C874E022BEFF04C", "to": "weth-wei" },
-        { "from": "ibc/84E70F4A34FB2DE135FD3A04FDDF53B7DA4206080AA785C8BAB7F8B26299A221", "to": "wbtc-satoshi" },
-        { "from": "ibc/1B03A71B8E6F6EF424411DC9326A8E0D25D096E4D2616425CFAF2AF06F0FE717", "to": "uaxl" }
-      ]
-    },
-    "STRIDE": {
-      "currencies": [
-        { "from": "ibc/FCFF8B19C61677F3B78E2A5AE3B4A34A8D23858D16905F253B8438B3AFD07FF8", "to": "stuatom" },
-        { "from": "ibc/AF5559D128329B6C753F15481BEC26E533B847A471074703FA4903E7E6F61BA1", "to": "stuosmo" },
-        { "from": "ibc/8D4FC51F696E03711B9B37A5787FB89BD2DDBAF788813478B002D552A12F9157", "to": "stutia" }
-      ]
-    },
-    "CELESTIA": {
-      "currencies": [{ "from": "ibc/6C349F0EB135C5FA99301758F35B87DB88403D690E5E314AB080401FEE4066E5", "to": "utia" }]
     },
     "NEUTRON": {
       "currencies": [
@@ -181,31 +154,13 @@
         }
       ]
     },
-    "JACKAL": {
-      "currencies": [{ "from": "ibc/28F026607184B151F1F7D7F5D8AE644528550EB05203A28B6233DFA923669876", "to": "ujkl" }]
-    },
-    "INJECTIVE": {
-      "currencies": [{ "from": "ibc/4DE84C92C714009D07AFEA7350AB3EC383536BB0FAAD7AF9C0F1A0BEA169304E", "to": "inj" }]
-    },
-    "NOBLE": {
-      "currencies": [
-        { "from": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4", "to": "uusdc" },
-        { "from": "ibc/18161D8EFBD00FF5B7683EF8E923B8913453567FBE3FB6672D75712B0DEB6682", "to": "uusdc" }
-      ]
-    },
-    "MANTRA": {
-      "currencies": [{ "from": "ibc/B92B80E837E4B1665024B7674D382AF07FE5D8D89797A0FEAF5356C8F173425C", "to": "uom" }]
-    },
     "ETHEREUM": {
       "currencies": [
         {
           "from": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4",
           "to": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
         },
-        {
-          "from": "unls",
-          "to": "0xb34e17562e4f1f63A2D4cF684eD8bC124e519771"
-        },
+        { "from": "unls", "to": "0xb34e17562e4f1f63A2D4cF684eD8bC124e519771" },
         {
           "from": "ibc/E45CFCB959F4F6D1065B7033EE49A88E606E6AD82E75725219B3D68B0FA89987",
           "to": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599"

@@ -3,9 +3,9 @@ import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import { cp } from "fs/promises";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
-
 import vue from "@vitejs/plugin-vue";
 import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
+import svgLoader from "vite-svg-loader";
 
 const downpayments_range_dir = fileURLToPath(new URL("./src/config/lease/downpayment-range", import.meta.url));
 const public_dir = "public";
@@ -33,6 +33,7 @@ async function configResolved() {
 export default defineConfig({
   plugins: [
     vue(),
+    svgLoader(),
     VueI18nPlugin({
       include: [resolve(__dirname, "./src/locales/**")],
       compositionOnly: true,
@@ -41,40 +42,21 @@ export default defineConfig({
     }),
     downpayments_range(),
     nodePolyfills({
-      include: ["path", "stream", "util", "crypto"],
+      include: ["stream", "util", "crypto"],
       exclude: ["http"],
       globals: {
         Buffer: true,
         global: true,
         process: true
-      },
-      overrides: {
-        fs: "memfs"
-      },
-      protocolImports: true
+      }
     })
   ],
   server: {
-    host: true,
-    port: 8081
+    host: "127.0.0.1"
   },
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url))
-    }
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        sourcemapExcludeSources: true,
-        manualChunks: (id) => {
-          const url = new URL(id, import.meta.url);
-          const chunkName = url.searchParams.get("chunkName");
-          if (chunkName) {
-            return chunkName;
-          }
-        }
-      }
     }
   },
   optimizeDeps: {

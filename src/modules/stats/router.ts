@@ -7,6 +7,7 @@ export const StatsRouter: RouteRecordRaw = {
   component: () => import("./view.vue"),
   meta: {
     title: "Nolus Protocol - Stats",
+    key: RouteNames.STATS,
     description:
       "Examine the stability and health of the Nolus Protocol. Access vital stats and metrics to ensure optimal performance and reliability"
   }

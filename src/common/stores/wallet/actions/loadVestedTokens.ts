@@ -31,11 +31,6 @@ export async function loadVestedTokens(this: Store): Promise<
     const start = new Date(accData.start_time * 1000);
     const end = new Date(vesting_account.end_time * 1000);
 
-    const from = `${start.toLocaleDateString("en-US", {
-      day: "2-digit"
-    })}/${start.toLocaleDateString("en-US", {
-      month: "2-digit"
-    })}/${start.toLocaleDateString("en-US", { year: "numeric" })}`;
     const to = `${end.toLocaleDateString("en-US", {
       day: "2-digit"
     })}/${end.toLocaleDateString("en-US", {
@@ -43,7 +38,7 @@ export async function loadVestedTokens(this: Store): Promise<
     })}/${end.toLocaleDateString("en-US", { year: "numeric" })}`;
 
     items.push({
-      endTime: `${from} - ${to}`,
+      endTime: `${to}`,
       amount: vesting_account.original_vesting[0]
     });
 

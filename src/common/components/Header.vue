@@ -1,100 +1,45 @@
 <template>
-  <div class="sidebar-header">
-    <Logo class="block lg:hidden" />
-    <div
-      id="wallet-nls"
-      ref="wallet"
-      class="float-right"
-    >
-      <button
-        v-if="walletStore.wallet"
-        :class="showWallet ? 'active' : false"
-        class="show-box-wallet btn-header with-icon rounded-r-none"
-        @click="showWallet = !showWallet"
+  <div
+    class="sticky left-0 top-0 z-10 flex w-full items-center justify-between border-b border-border-color bg-neutral-bg-2 px-4 py-2 shadow-larger lg:static lg:border-none lg:bg-transparent lg:px-8 lg:pr-4 lg:pt-6 lg:shadow-transparent"
+  >
+    <div class="flex items-center gap-2">
+      <SvgIcon
+        name="hamburger-menu"
+        class="cursor-pointer lg:hidden"
+        @click="toggleMobileNav"
+      />
+      <Logo
+        @click="router.push('/')"
+        class="relative hidden cursor-pointer md:flex lg:fixed"
+      />
+      <RouterLink
+        to="/"
+        class="md:hidden"
       >
-        <span
-          class="icon-wallet mr-0"
-          style="font-size: 1.5em !important; margin-right: 0"
-        >
-        </span>
-        <span class="nls-md-hidden text-12 font-normal text-neutral-typography-200">
-          {{ walletStore.walletName }}
-        </span>
-      </button>
-
-      <button
-        v-else
-        class="show-box-wallet btn-header with-icon rounded-r-none"
-        @click="showAuthDialog = !showAuthDialog"
-      >
-        <span
-          class="icon-wallet mr-0"
-          style="font-size: 1.5em !important; margin-right: 0"
-        >
-        </span>
-        <span class="nls-md-hidden text-12 font-normal text-neutral-typography-200">
-          {{ $t("message.connect-wallet") }}
-        </span>
-      </button>
-
-      <Transition
-        appear
-        name="collapse"
-      >
-        <WalletOpen v-show="showWallet" />
-      </Transition>
+        <NolusIcon />
+      </RouterLink>
     </div>
-
-    <Modal
-      v-if="showAuthDialog"
-      route="authenticate"
-      @close-modal="showAuthDialog = false"
-    >
-      <AuthDialog />
-    </Modal>
+    <HeaderMenu />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, provide, ref } from "vue";
-import { useWalletStore } from "@/common/stores/wallet";
-
-import WalletOpen from "@/common/components/WalletOpen.vue";
-import Modal from "@/common/components/modals/templates/Modal.vue";
-import AuthDialog from "@/common/components/modals/AuthDialog.vue";
+import { SvgIcon } from "web-components";
 import Logo from "@/common/components/Logo.vue";
+import NolusIcon from "@/assets/icons/nolus-icon.svg";
+import HeaderMenu from "@/common/components/menus/HeaderMenu.vue";
+import { useRouter } from "vue-router";
 
-const showWallet = ref(false);
-const showNotifications = ref(false);
-const notifications = ref(null as HTMLDivElement | null);
-const wallet = ref(null as HTMLDivElement | null);
-const walletStore = useWalletStore();
-const showAuthDialog = ref(false);
+const props = defineProps<{
+  toggleMobileNav: () => void;
+}>();
 
-onMounted(() => {
-  document.addEventListener("click", onClick);
-});
-
-onUnmounted(() => {
-  document.removeEventListener("click", onClick);
-});
-
-function onClick(event: MouseEvent) {
-  if (wallet.value) {
-    const isClickedOutside = wallet.value?.contains(event.target as Node);
-    if (!isClickedOutside) {
-      showWallet.value = false;
-    }
+const toggleMobileNav = () => {
+  if (props.toggleMobileNav) {
+    props.toggleMobileNav();
   }
-  if (notifications.value) {
-    const isClickedOutside = notifications.value?.contains(event.target as Node);
-    if (!isClickedOutside) {
-      showNotifications.value = false;
-    }
-  }
-}
-
-provide("toggle", () => {
-  showWallet.value = !showWallet.value;
-});
+};
+const router = useRouter();
 </script>
+
+<style scoped lang=""></style>

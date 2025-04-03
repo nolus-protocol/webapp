@@ -8,7 +8,7 @@ import { makeTimeoutTimestampInNs, MsgTransfer as MasgTransferInj } from "@injec
 
 import { DEFAULT_STD_FEE, TxGrpcApi, createTransaction, ChainRestTendermintApi } from "@injectivelabs/sdk-ts";
 
-const simulateIBCTrasnferInj: any = async (
+const simulateIBCTrasnferInj = async (
   signer: Pubkey,
   sequence: number,
   accountNumber: number,

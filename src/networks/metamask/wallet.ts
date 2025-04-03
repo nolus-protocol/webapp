@@ -2,8 +2,8 @@ import ABI from "./erc20.abi.json";
 import type { Window as MetamaskWindow } from "./window";
 import { Contract, ethers, isAddress } from "ethers";
 import type { Wallet } from "../wallet";
-import type { IObjectKeys } from "@/common/types";
-import { Logger } from "@/common/utils";
+import { WalletConnectMechanism, type IObjectKeys } from "@/common/types";
+import { Logger, WalletManager } from "@/common/utils";
 
 const confirmations = 1;
 
@@ -20,12 +20,24 @@ export class MetaMaskWallet implements Wallet {
     this.explorer = explorer;
   }
 
+  getWallet() {
+    switch (WalletManager.getWalletConnectMechanism()) {
+      case WalletConnectMechanism.KEPLR: {
+        return (window as MetamaskWindow).keplr?.ethereum;
+      }
+      case WalletConnectMechanism.LEAP: {
+        return (window as MetamaskWindow).leap?.ethereum;
+      }
+    }
+    return (window as MetamaskWindow).keplr?.ethereum;
+  }
+
   async connect(config: IObjectKeys, accountChangeCallback?: Function) {
-    const metamask = (window as MetamaskWindow).ethereum;
+    const metamask = this.getWallet();
     this.accountChangeCallback = accountChangeCallback as Function | null;
     if (metamask) {
       try {
-        this.web3 = new ethers.BrowserProvider((window as MetamaskWindow).ethereum);
+        this.web3 = new ethers.BrowserProvider(metamask);
 
         await this.switchNetwork(config);
 
@@ -34,7 +46,7 @@ export class MetaMaskWallet implements Wallet {
         this.rpc = config.rpcUrls[0];
         this.chainId = config.chainId;
 
-        (window as IObjectKeys).ethereum.on("accountsChanged", this.toggleAccounts);
+        metamask.on("accountsChanged", this.toggleAccounts);
       } catch (e: Error | any) {
         throw new Error(e);
       }
@@ -78,7 +90,7 @@ export class MetaMaskWallet implements Wallet {
   }
 
   destroy() {
-    (window as IObjectKeys).ethereum.removeListener("accountsChanged", this.toggleAccounts);
+    this.getWallet()?.removeListener("accountsChanged", this.toggleAccounts);
     this.web3.destroy();
   }
 

@@ -39,19 +39,21 @@ export async function connectKeplr(this: Store) {
     await keplrWindow.keplr?.enable(chainId);
 
     if (keplrWindow.getOfflineSignerOnlyAmino) {
-      const offlineSigner = keplrWindow.getOfflineSignerOnlyAmino(chainId);
+      const offlineSigner = keplrWindow.getOfflineSignerOnlyAmino(chainId, {
+        preferNoSetFee: true
+      });
       const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(offlineSigner as any);
       await nolusWalletOfflineSigner.useAccount();
 
       WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.KEPLR);
-      WalletManager.setPubKey(Buffer.from(nolusWalletOfflineSigner?.pubKey ?? "").toString("hex"));
+      WalletManager.setPubKey(Buffer.from((nolusWalletOfflineSigner?.pubKey ?? "") as string).toString("hex"));
 
       this.wallet = nolusWalletOfflineSigner;
       this.walletName = (await keplrWindow.keplr.getKey(chainId)).name;
-
       await this.UPDATE_BALANCES();
     }
   }
 
+  this.loadActivities();
   Intercom.load(this.wallet?.address);
 }

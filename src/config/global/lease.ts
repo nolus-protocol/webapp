@@ -60,51 +60,5 @@ export {
   IGNORE_ASSETS_URL
 };
 
-// export const FREE_INTEREST_ASSETS: string[] = [];
-
-// export const IGNORE_LEASE_ASSETS: string[] = [
-//   "JUNO",
-//   "EVMOS",
-//   "STRD",
-//   "LVN",
-//   "DYM",
-//   "Q_ATOM",
-//   "STARS",
-//   "PICA",
-//   "STK_ATOM",
-//   "ATOM@NEUTRON-ASTROPORT-USDC_NOBLE",
-//   "ST_TIA@NEUTRON-ASTROPORT-USDC_NOBLE",
-//   "USDC",
-//   "USDC_AXELAR",
-//   "STK_ATOM",
-//   "LVN",
-//   "EVMOS",
-//   "JKL",
-//   "CUDOS",
-//   "SCRT",
-//   "CRO",
-//   "WBTC_AXELAR",
-//   "WBTC"
-// ];
-
-// export const IGNORE_DOWNPAYMENT_ASSETS: string[] = [
-//   "STK_ATOM",
-//   "SCRT",
-//   "LVN",
-//   "JKL",
-//   "EVMOS",
-//   "NLS",
-//   "DYM",
-//   "CUDOS",
-//   "Q_ATOM",
-//   "JUNO",
-//   "STARS",
-//   "CRO",
-//   "STRD",
-//   "WBTC_AXELAR",
-//   "WBTC",
-//   "PICA"
-// ];
-
 export const IGNORE_LEASE_ASSETS_STABLES: string[] = ["USDC_NOBLE"];
 export const IGNORE_LEASES: string[] = ["nolus1mqezz2qs8cy8qx50yms0r6xc3lae20tms8dqq3t2tl7dd6gnxhxq3kz4uf"];

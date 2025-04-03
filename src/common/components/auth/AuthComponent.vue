@@ -1,91 +1,78 @@
 <template>
-  <div class="mb-8 grid grid-cols-2 gap-4">
-    <Boxes
-      v-for="connection in connections"
-      :key="connection.label"
-      :icon="connection.icon"
-      :label="connection.label"
-      @click="connection.onClick"
-    />
+  <TermsDialog ref="terms" />
+  <div class="flex flex-col gap-4 px-6 pb-6">
+    <div class="text-[14px] text-neutral-400">
+      {{ $t("message.policy") }}
+      <button
+        class="text-primary-50"
+        @click="onShowTermsModal"
+      >
+        {{ $t("message.terms-of-service") }}
+      </button>
+    </div>
+    <div class="flex flex-col gap-2">
+      <WalletBoxes
+        v-for="connection in connections"
+        :key="connection.label"
+        :icon="connection.icon"
+        :label="connection.label"
+        :type="connection.type"
+      />
+    </div>
+    <p class="font- flex items-center justify-center gap-1 text-14 font-semibold text-typography-secondary">
+      {{ $t("message.new-with-wallets") }}
+      <button
+        @click="router.push('learn-wallet')"
+        target="_blank"
+        class="flex items-center gap-1 text-typography-link"
+      >
+        {{ $t("message.learn-more") }}
+        <SvgIcon
+          name="arrow-external"
+          size="xs"
+          class="fill-icon-link"
+        />
+      </button>
+    </p>
   </div>
-
-  <div class="text-[13px] text-neutral-400">
-    {{ $t("message.policy") }}
-    <button
-      class="text-primary-50"
-      @click="onShowTermsModal"
-    >
-      {{ $t("message.terms-of-service") }}
-    </button>
-  </div>
-  <Modal
-    v-if="showTermsModal"
-    route="terms-of-service"
-    @close-modal="showTermsModal = false"
-  >
-    <TermsDialog></TermsDialog>
-  </Modal>
 </template>
 
 <script lang="ts" setup>
-import Modal from "@/common/components/modals/templates/Modal.vue";
-import TermsDialog from "@/common/components/modals/TermsDialog.vue";
-import { WalletActions } from "@/common/stores/wallet";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { Boxes } from "web-components";
+import { SvgIcon } from "web-components";
+import { WalletActions } from "@/common/stores/wallet";
+
+import WalletBoxes from "./WalletBoxes.vue";
+import TermsDialog from "../dialogs/TermsDialog.vue";
+import KeplrIcon from "@/assets/icons/wallets/keplr.svg?url";
+import LedgerIcon from "@/assets/icons/wallets/ledger.svg?url";
+import LeapIcon from "@/assets/icons/wallets/leapwallet.svg?url";
+import { useRouter } from "vue-router";
 
 const i18n = useI18n();
-
-const showTermsModal = ref(false);
-const props = defineProps({
-  switchView: {
-    type: Function,
-    required: true
-  }
-});
+const terms = ref<typeof TermsDialog>();
+const router = useRouter();
 
 const connections = {
   Keplr: {
-    icon: "icon-keplr",
+    icon: KeplrIcon,
     label: i18n.t("message.keplr"),
-    onClick: clickConnectToKeplr
+    type: WalletActions.CONNECT_KEPLR
   },
   Leap: {
-    icon: "icon-leap",
+    icon: LeapIcon,
     label: i18n.t("message.leap"),
-    onClick: clickConnectToLeap
+    type: WalletActions.CONNECT_LEAP
   },
   Ledger: {
-    icon: "icon-ledger",
+    icon: LedgerIcon,
     label: i18n.t("message.ledger"),
-    onClick: clickImportLedger
+    type: WalletActions.CONNECT_LEDGER
   }
 };
 
-function clickConnectToKeplr() {
-  props.switchView(WalletActions.CONNECT_KEPLR);
-}
-
-function clickConnectToLeap() {
-  props.switchView(WalletActions.CONNECT_LEAP);
-}
-
-function clickImportLedger() {
-  props.switchView(WalletActions.CONNECT_LEDGER);
-}
-
 function onShowTermsModal() {
-  showTermsModal.value = true;
+  terms.value?.show();
 }
 </script>
-<style lang="scss" scoped>
-.fake-button {
-  font-size: 14px;
-  padding: 19px 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-</style>

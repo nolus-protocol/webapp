@@ -11,6 +11,7 @@ import { useApplicationStore } from "../stores/application";
 import { useAdminStore } from "../stores/admin";
 import { EnvNetworkUtils } from ".";
 import { Hash } from "@keplr-wallet/crypto";
+import { useWalletStore } from "../stores/wallet";
 
 import {
   DECIMALS_AMOUNT,
@@ -23,6 +24,34 @@ import {
 } from "@/config/global";
 
 export class AssetUtils {
+  public static formatNumber(amount: number | string, decimals: number, symbol?: string) {
+    const a = Number(amount);
+    let sign = "";
+
+    if (a < 0) {
+      sign = "-";
+    }
+
+    return `${sign}${symbol ?? ""}${new Intl.NumberFormat("us-US", {
+      maximumFractionDigits: decimals,
+      minimumFractionDigits: decimals
+    })
+      .format(Math.abs(a))
+      .toString()}`;
+  }
+
+  public static getBalance(ibcData: string) {
+    const wallet = useWalletStore();
+
+    const asset = wallet?.balances.find((item) => item.balance.denom == ibcData);
+
+    if (asset) {
+      return asset;
+    }
+
+    throw new Error(`Currency not found: ${ibcData}`);
+  }
+
   public static getPriceByDenom(amount: number | string, denom: string) {
     const oracle = useOracleStore();
     const info = AssetUtils.getCurrencyByDenom(denom as string);

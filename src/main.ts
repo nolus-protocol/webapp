@@ -13,8 +13,9 @@ if (import.meta.env.VITE_MODE == Mode.prod) {
 }
 
 const app = createApp(App);
-app.use(setupI18n());
-app.use(createPinia());
 app.use(router);
+app.use(createPinia());
+
+app.use(setupI18n());
 
 app.mount("#app");

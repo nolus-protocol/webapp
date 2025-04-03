@@ -1,7 +1,5 @@
-import AssetPartial from "./AssetPartial.vue";
-import VestedAssetPartial from "./VestedAssetPartial.vue";
-import BannerComponent from "./BannerComponent.vue";
-import DashboardDaughnutChart from "./DashboardDaughnutChart.vue";
-import AssetsSkeleton from "./AssetsSkeleton.vue";
+import DashboardLeases from "./DashboardLeases.vue";
+import DashboardAssets from "./DashboardAssets.vue";
+import DashboardRewards from "./DashboardRewards.vue";
 
-export { AssetPartial, VestedAssetPartial, BannerComponent, DashboardDaughnutChart, AssetsSkeleton };
+export { DashboardLeases, DashboardAssets, DashboardRewards };

@@ -37,19 +37,21 @@ export async function connectLeap(this: Store) {
     await leapWindow.leap?.enable(chainId);
 
     if (leapWindow.leap.getOfflineSignerOnlyAmino) {
-      const offlineSigner = leapWindow.leap.getOfflineSignerOnlyAmino(chainId);
+      const offlineSigner = leapWindow.leap.getOfflineSignerOnlyAmino(chainId, {
+        preferNoSetFee: true
+      });
       const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(offlineSigner as any);
       await nolusWalletOfflineSigner.useAccount();
 
       WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.LEAP);
-      WalletManager.setPubKey(Buffer.from(nolusWalletOfflineSigner?.pubKey ?? "").toString("hex"));
+      WalletManager.setPubKey(Buffer.from((nolusWalletOfflineSigner?.pubKey ?? "") as string).toString("hex"));
 
       this.wallet = nolusWalletOfflineSigner;
       this.walletName = (await leapWindow.leap.getKey(chainId)).name;
-
       await this.UPDATE_BALANCES();
     }
   }
 
+  this.loadActivities();
   Intercom.load(this.wallet?.address);
 }

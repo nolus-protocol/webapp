@@ -1,26 +1,30 @@
 import { createRouter, createWebHistory, type NavigationGuardNext, type RouteLocationNormalized } from "vue-router";
-import { AssetsRouter } from "@/modules/dashboard/router";
+import { DashboardRouter } from "@/modules/dashboard/router";
 import { EarnRouter } from "@/modules/earn/router";
 import { AppUtils } from "@/common/utils";
 import { setLang } from "@/i18n";
+import { useWalletStore } from "@/common/stores/wallet";
 
 import { ApplicationActions, useApplicationStore } from "@/common/stores/application";
 import { StatsRouter } from "@/modules/stats/router";
-import { LeaseRouter } from "@/modules/lease/router";
+import { LeasesRouter } from "@/modules/leases/router";
 import { HistoryRouter } from "@/modules/history/router";
 import { VoteRouter } from "@/modules/vote/router";
+import { AssetsRouter } from "@/modules/assets/router";
+import { StakeRouter } from "@/modules/stake/router";
 import { RouteNames } from "./RouteNames";
 
 import MainLayout from "@/modules/view.vue";
-import { PnlHistoryRouter } from "@/modules/pnl-history/router";
-import { useWalletStore } from "@/common/stores/wallet";
-import { Intercom } from "@/common/utils/Intercom";
 
 const router = createRouter({
-  scrollBehavior(to, from, savedPosition) {
-    if (to.hash.length == 0 && from.hash.length == 0) {
-      return { top: 0, behavior: "instant" };
+  scrollBehavior(to, from) {
+    if (to.meta.key == from.meta.key) {
+      return false;
     }
+    if (to.hash.length > 0) {
+      return scrollHash(to.hash);
+    }
+    return { top: 0 } as any;
   },
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -28,7 +32,16 @@ const router = createRouter({
       path: "/",
       component: MainLayout,
       beforeEnter: [loadLanguage, loadData],
-      children: [AssetsRouter, LeaseRouter, EarnRouter, HistoryRouter, VoteRouter, StatsRouter, PnlHistoryRouter]
+      children: [
+        DashboardRouter,
+        LeasesRouter,
+        EarnRouter,
+        HistoryRouter,
+        VoteRouter,
+        StatsRouter,
+        AssetsRouter,
+        StakeRouter
+      ]
     },
     {
       path: "/:pathMatch(.*)",
@@ -59,8 +72,34 @@ router.beforeEach((to, from, next) => {
   next();
 });
 
-router.afterEach(() => {
-  Intercom.update();
-});
+router
+  .isReady()
+  .then(() => {
+    preloadAllRoutes();
+  })
+  .catch((e) => console.error(e));
+
+const preloadAllRoutes = () => {
+  router.getRoutes().forEach((route) => {
+    const preload = route.components?.default;
+    if (preload instanceof Function) {
+      (preload as Function)();
+    }
+  });
+};
+
+const scrollHash = (hash: string) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const element = document.querySelector(hash);
+      if (element) {
+        element.scrollIntoView({ inline: "end" });
+        resolve(false);
+      } else {
+        resolve(false);
+      }
+    }, 375);
+  });
+};
 
 export { router, RouteNames };

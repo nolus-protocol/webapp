@@ -10,10 +10,4 @@ export interface VoteComponentProps {
   vote: VoteOption | null;
 }
 
-export {
-  ProposalStatus,
-  type FinalTallyResult,
-  type Proposal,
-  type ProposalContent,
-  type TotalDeposit
-} from "./Proposal";
+export { type FinalTallyResult, type Proposal, type ProposalContent, type TotalDeposit } from "./Proposal";

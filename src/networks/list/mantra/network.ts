@@ -1,7 +1,7 @@
 export const NETWORK = {
   prefix: "mantra",
   key: "MANTRA",
-  gasMupltiplier: 2,
+  gasMultiplier: 2,
   bip44Path: "44'/118'/0'/0/0",
   ibcTransferTimeout: 600,
   ticker: "OM",

@@ -1,31 +1,20 @@
 <template>
-  <div
-    class="sidebar-container fixed left-0 top-0 hidden h-full w-full max-w-[210px] flex-col justify-between py-8 pl-8 lg:flex"
-  >
-    <div class="flex flex-col gap-20">
-      <Logo class="!static" />
-      <DesktopMenu class="flex flex-col gap-4" />
-    </div>
-    <div class="flex flex-col">
-      <div class="mb-[6px] flex flex-col gap-1 font-garet-medium">
-        <a
-          class="sidebar-element flex items-center gap-1 text-12"
-          href="https://hub.nolus.io"
-          target="_blank"
-        >
-          <span class="icon icon-hat" />
-          {{ $t("message.support") }}
-        </a>
-        <RouterLink
-          :to="{ name: RouteNames.STATS }"
-          class="sidebar-element flex items-center gap-1 text-12"
-        >
-          <span class="icon icon-stats" />
-          {{ $t("message.protocol-stats") }}
-        </RouterLink>
-      </div>
-      <p class="text-upper font-garet-medium text-12 text-neutral-400">
-        #<template v-if="block > 0">{{ block }} v{{ version }}</template>
+  <div class="fixed left-0 top-0 hidden h-full w-full max-w-[210px] flex-col justify-between pb-8 pl-8 pt-28 lg:flex">
+    <DesktopMenu class="flex flex-col gap-3" />
+    <div class="flex flex-col gap-1">
+      <RouterLink
+        :to="{ name: RouteNames.STATS }"
+        class="router-link flex h-[50px] items-center gap-2 rounded-full border border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
+      >
+        <SvgIcon
+          name="bar-chart"
+          size="l"
+        />
+        {{ $t("message.stats") }}
+      </RouterLink>
+      <p class="text-upper text-center text-12 text-typography-secondary">
+        #
+        <template v-if="block > 0">{{ block }} v{{ version }}</template>
       </p>
     </div>
   </div>
@@ -38,8 +27,8 @@ import { AppUtils, Logger } from "@/common/utils";
 import { UPDATE_BLOCK_INTERVAL } from "@/config/global";
 import { RouteNames } from "@/router";
 
-import Logo from "@/common/components/Logo.vue";
 import DesktopMenu from "@/common/components/menus/DesktopMenu.vue";
+import { SvgIcon } from "web-components";
 
 const block = ref(0);
 const version = ref("");
@@ -80,6 +69,20 @@ async function setVersion() {
 
 <style lang="scss" scoped>
 .router-link-exact-active {
-  @apply text-orange-active;
+  @apply rounded-full border border-border-default bg-neutral-bg-2 text-typography-link shadow-small;
+
+  svg {
+    @apply fill-icon-link;
+  }
+}
+
+.router-link:not(.router-link-exact-active) {
+  &:hover {
+    @apply rounded-full border border-border-default bg-neutral-bg-2 text-typography-link shadow-small;
+
+    svg {
+      @apply fill-icon-link;
+    }
+  }
 }
 </style>

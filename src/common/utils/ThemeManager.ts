@@ -13,6 +13,6 @@ export class ThemeManager {
     if (items.includes(theme as string)) {
       return APPEARANCE[theme as keyof typeof APPEARANCE];
     }
-    return APPEARANCE.light;
+    return APPEARANCE.sync;
   }
 }

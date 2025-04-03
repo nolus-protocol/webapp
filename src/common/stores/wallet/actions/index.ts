@@ -12,6 +12,7 @@ import { loadWalletName } from "./loadWalletName";
 import { updateBalances } from "./updateBalances";
 import { updateHistory } from "./updateHistory";
 import { ignoreAssets } from "./ignoreAssets";
+import { loadActivities } from "./loadActivities";
 
 export const actions = {
   [WalletActions.DISCONNECT]: disconnect,
@@ -25,5 +26,6 @@ export const actions = {
   [WalletActions.LOAD_STAKED_TOKENS]: loadStakedTokens,
   [WalletActions.LOAD_APR]: loadApr,
   updateHistory,
-  ignoreAssets
+  ignoreAssets,
+  loadActivities
 };

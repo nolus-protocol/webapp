@@ -13,6 +13,8 @@ export interface LeaseData {
   pnlAmount: Dec;
   fee: Dec;
   pnlPercent: Dec;
+  stableAsset: Dec;
+  unitAsset: Dec;
   leaseData: LeaseAttributes | undefined;
   balances: {
     amount: string;
@@ -26,18 +28,20 @@ export interface LeaseAttributes {
   pnlAmount: Dec;
   fee: Dec;
   downPayment: Dec;
-  downpaymentTicker: string | null;
-  price: Dec | null;
-  lpnPrice: Dec | null;
+  downpaymentTicker?: string;
+  price?: Dec;
+  lpnPrice?: Dec;
   leasePositionStable: Dec;
-  leasePositionTicker: string | null;
+  leasePositionTicker?: string;
   timestamp: Date;
-  ls_asset_symbol: string;
+  ls_asset_symbol?: string;
   repayment_value: Dec;
-  history: {
+  history?: {
     symbol: string;
     amount: string;
     type: string;
     time: string;
+    ls_amnt_symbol: string;
+    ls_amnt: string;
   }[];
 }

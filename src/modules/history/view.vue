@@ -1,86 +1,67 @@
 <template>
-  <div class="mb-sm-nolus-70 col-span-12">
-    <!-- Header -->
-    <div class="table-header mt-[25px] flex flex-wrap items-baseline justify-between px-4 lg:px-0">
-      <div class="left">
-        <h1 class="m-0 text-20 font-semibold text-neutral-typography-200">
-          {{ $t("message.history") }}
-        </h1>
-      </div>
-    </div>
-    <!-- History -->
-    <Table
-      :class="{ outline: hasOutline }"
-      :columns="columns"
-      class="async-loader mt-6"
-      columnsClasses="hidden md:flex"
-    >
-      <template v-slot:body>
-        <template v-if="!showSkeleton">
-          <TransitionGroup
-            appear
-            name="fade-long"
-          >
-            <div
-              v-for="tx of history"
-              :key="tx.key"
-            >
-              <HistoryTableLoadingRow
-                :action="tx.action"
-                :button="tx.step == CONFIRM_STEP.SUCCESS ? '' : $t('message.details')"
-                :fee="tx.fee.toString()"
-                :status="tx.status"
-                :date="tx.step == CONFIRM_STEP.SUCCESS ? getCreatedAtForHuman(tx.date)! : ''"
-                @button-click="openAction(tx.key)"
-              >
-                <template v-slot:status>
-                  <span
-                    v-if="tx.step == CONFIRM_STEP.SUCCESS"
-                    class="icon icon-success !text-[20px] text-success-100"
-                  >
-                  </span>
-                  <Spinner
-                    v-if="tx.step == CONFIRM_STEP.PENDING"
-                    class="mr-2"
-                  />
-                  <span
-                    v-if="tx.step == CONFIRM_STEP.ERROR"
-                    class="icon icon-close !text-[20px] text-danger-100"
-                  >
-                  </span>
-                </template>
-              </HistoryTableLoadingRow>
-            </div>
-            <div
-              v-for="transaction of transactions"
+  <div class="flex flex-col gap-8">
+    <ListHeader :title="$t('message.history')" />
+    <Widget class="overflow-x-auto md:overflow-auto">
+      <Table
+        searchable
+        @input="(e: Event) => (search = (e.target as HTMLInputElement).value)"
+        :size="isMobile() ? '' : `${transactions.length} transactions`"
+        :columns="transactions.length > 0 ? columns : []"
+        tableWrapperClasses="min-w-[800px] pr-6 md:min-w-auto md:pr-0"
+        @onSearchClear="search = ''"
+      >
+        <div class="mb-4 flex">
+          <div class="flex flex-col gap-2">
+            <BigNumber
+              :label="$t('message.realized-pnl')"
+              :amount="{
+                amount: realized_pnl.toString(),
+                type: CURRENCY_VIEW_TYPES.CURRENCY,
+                denom: NATIVE_CURRENCY.symbol,
+                fontSize: 20,
+                fontSizeSmall: 20,
+                hide: hide
+              }"
+            />
+            <Button
+              :label="$t('message.view-breakdown')"
+              severity="secondary"
+              size="small"
+              @click="router.push(`/${RouteNames.LEASES}/pnl-log`)"
+            />
+          </div>
+        </div>
+        <template v-slot:body>
+          <template v-if="transactions.length > 0 || Object.keys(wallet.history).length > 0">
+            <!-- <WalletHistoryTableRowWrapper /> -->
+            <HistoryTableRowWrapper
+              v-for="transaction of txsSkip"
+              :transaction="transaction as any"
+              :key="`${transaction.id}`"
+            />
+            <HistoryTableRowWrapper
+              :transaction="transaction"
+              v-for="transaction of txs"
               :key="`${transaction.tx_hash}_${transaction.index}`"
-            >
-              <HistoryTableRowWrapper :transaction="transaction" />
-            </div>
-            <div
-              v-if="transactions.length == 0 && Object.keys(wallet.history).length == 0"
-              class="h-[180px]"
-            >
-              <div class="nls-12 text-dark-grey flex h-full flex-col items-center justify-center">
-                <img
-                  class="m-4 inline-block"
-                  height="32"
-                  src="/src/assets/icons/empty_history.svg"
-                  width="32"
-                />
-                {{ $t("message.no-results") }}
-              </div>
-            </div>
-          </TransitionGroup>
+            />
+          </template>
+          <template v-if="!wallet.wallet || (loaded && transactions.length == 0)">
+            <EmptyState
+              :slider="[
+                {
+                  image: { name: 'no-entries' },
+                  title: $t('message.no-entries'),
+                  description: $t('message.empty-history')
+                }
+              ]"
+            />
+          </template>
         </template>
-        <template v-else>
-          <HistoryTableSkeleton />
-        </template>
-      </template>
-    </Table>
+      </Table>
+    </Widget>
     <div class="my-4 flex justify-center">
       <Button
-        v-if="visible"
+        v-if="!loaded && wallet.wallet"
         :label="$t('message.load-more')"
         :loading="loading"
         class="mx-auto"
@@ -90,96 +71,102 @@
       />
     </div>
   </div>
-  <Modal
-    v-if="showErrorDialog"
-    route="alert"
-    @close-modal="showErrorDialog = false"
-  >
-    <ErrorDialog
-      :message="errorMessage"
-      :title="$t('message.error-connecting')"
-      :try-button="onClickTryAgain"
-    />
-  </Modal>
-  <Modal
-    v-if="state.showModal"
-    :route="state.modalAction"
-    @close-modal="state.showModal = false"
-  >
-    <component
-      :is="modalOptions[state.modalAction]"
-      :data="state.data"
-      :route="state.modalAction"
-    />
-  </Modal>
 </template>
 
 <script lang="ts" setup>
-import Modal from "@/common/components/modals/templates/Modal.vue";
-import ErrorDialog from "@/common/components/modals/ErrorDialog.vue";
-
-import { HYSTORY_ACTIONS, type ITransactionData } from "./types";
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { AssetUtils, EtlApi, getCreatedAtForHuman } from "@/common/utils";
-import { Button, HistoryTableLoadingRow, Table, Spinner } from "web-components";
+import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-
-import HistoryTableRowWrapper from "@/modules/history/components/HistoryTableRowWrapper.vue";
-import HistoryTableSkeleton from "@/modules/history/components/HistoryTableSkeleton.vue";
+import { Button, Table, type TableColumnProps, Widget } from "web-components";
 import { useWalletStore } from "@/common/stores/wallet";
-import type { Coin } from "@keplr-wallet/types";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import { CONFIRM_STEP, type IObjectKeys } from "@/common/types";
-import type { EvmNetwork, Network } from "@/common/types/Network";
-import { Dec, type CoinPretty } from "@keplr-wallet/unit";
-import SendReceiveDialogV2 from "@/common/components/modals/SendReceiveDialogV2.vue";
-import SwapDialog from "@/common/components/modals/SwapDialog.vue";
+import { EtlApi, getCreatedAtForHuman, isMobile, WalletManager } from "@/common/utils";
+import { type ITransactionData } from "@/modules/history/types";
+import { CURRENCY_VIEW_TYPES } from "@/common/types";
+import { NATIVE_CURRENCY } from "@/config/global";
+import { RouteNames } from "@/router";
+import BigNumber from "@/common/components/BigNumber.vue";
+
+import HistoryTableRowWrapper from "./components/HistoryTableRowWrapper.vue";
+import ListHeader from "@/common/components/ListHeader.vue";
+import EmptyState from "@/common/components/EmptyState.vue";
+import type { HistoryData } from "./types/ITransaction";
+import { action, message } from "./common";
+import { VoteOption } from "cosmjs-types/cosmos/gov/v1/gov";
+import type { IObjectKeys } from "@/common/types";
+import { useRouter } from "vue-router";
+import { Dec } from "@keplr-wallet/unit";
 
 const showErrorDialog = ref(false);
 const errorMessage = ref("");
-const transactions = ref([] as ITransactionData[]);
+const transactions = ref([] as ITransactionData[] | IObjectKeys[] | any[]);
 const i18n = useI18n();
 const wallet = useWalletStore();
+const search = ref("");
+const router = useRouter();
+const hide = ref(WalletManager.getHideBalances());
+const realized_pnl = ref(new Dec(0));
 
-const columns = [
-  { label: i18n.t("message.tx-hash"), class: "max-w-[200px]" },
-  { label: i18n.t("message.action"), class: "!justify-start" },
-  { label: i18n.t("message.fee"), class: "max-w-[200px]" },
-  { label: i18n.t("message.time"), class: "max-w-[200px]" }
+const voteMessages: { [key: string]: string } = {
+  [VoteOption.VOTE_OPTION_ABSTAIN]: i18n.t(`message.abstained`).toLowerCase(),
+  [VoteOption.VOTE_OPTION_NO_WITH_VETO]: i18n.t(`message.veto`).toLowerCase(),
+  [VoteOption.VOTE_OPTION_YES]: i18n.t(`message.yes`).toLowerCase(),
+  [VoteOption.VOTE_OPTION_NO]: i18n.t(`message.no`).toLowerCase()
+};
+
+const columns: TableColumnProps[] = [
+  { label: i18n.t("message.history-transaction"), variant: "left" },
+  { label: i18n.t("message.category"), class: "max-w-[140px]" },
+  { label: i18n.t("message.time"), class: "max-w-[180px]" },
+  { label: i18n.t("message.status"), class: "max-w-[150px]" },
+  { label: i18n.t("message.action"), class: "max-w-[120px]" }
 ];
 
-const limit = 10;
+const limit = 50;
 let skip = 0;
 
 const loading = ref(false);
 const loaded = ref(false);
 const showSkeleton = ref(true);
-let timeout: NodeJS.Timeout;
 
-const modalOptions = {
-  [HYSTORY_ACTIONS.SEND]: SendReceiveDialogV2,
-  [HYSTORY_ACTIONS.RECEIVE]: SendReceiveDialogV2,
-  [HYSTORY_ACTIONS.SWAP]: SwapDialog
-};
+const txs = computed(() => {
+  const param = search.value.toLowerCase();
+  return transactions.value.filter((item) => {
+    if (param.length == 0) {
+      return true;
+    }
 
-const state = ref<{
-  showModal: boolean;
-  modalAction: HYSTORY_ACTIONS;
-  data: IObjectKeys | null;
-}>({
-  showModal: false,
-  modalAction: HYSTORY_ACTIONS.SEND,
-  data: null
+    if (
+      item.to.toLowerCase().includes(param) ||
+      item.from.toLowerCase().includes(param) ||
+      item.tx_hash.toLowerCase().includes(param)
+    ) {
+      return true;
+    }
+
+    return false;
+  });
+});
+
+const txsSkip = computed(() => {
+  const param = search.value.toLowerCase();
+  return wallet.historyItems.filter((item) => {
+    if (param.length == 0) {
+      return true;
+    }
+
+    if (
+      item.historyData.receiverAddress.toLowerCase().includes(param) ||
+      item.historyData.fromAddress.toLowerCase().includes(param)
+    ) {
+      return true;
+    }
+
+    return false;
+  });
 });
 
 onMounted(() => {
   loadTxs();
-});
-
-onUnmounted(() => {
-  if (timeout) {
-    clearTimeout(timeout);
-  }
+  getRealizedPnl();
 });
 
 watch(
@@ -187,30 +174,35 @@ watch(
   () => {
     skip = 0;
     loadTxs();
+    getRealizedPnl();
   }
 );
-
-const hasOutline = computed(() => {
-  if (window.innerWidth > 576) {
-    return true;
-  }
-  return transactions.value.length > 0;
-});
-
-const visible = computed(() => {
-  return !loaded.value;
-});
-
-function onClickTryAgain() {
-  loadTxs();
-}
 
 async function loadTxs() {
   try {
     if (wallet.wallet?.address) {
       loading.value = true;
-      const res = await EtlApi.fetchTXS(wallet.wallet?.address, skip, limit);
-      transactions.value = [...transactions.value, ...res] as ITransactionData[];
+      const res = await EtlApi.fetchTXS(wallet.wallet?.address, skip, limit).then((data) => {
+        const promises = [];
+        for (const d of data) {
+          const fn = async () => {
+            const [msg, coin, route, routeDetails] = await message(d, wallet.wallet?.address, i18n, voteMessages);
+
+            d.historyData = {
+              msg,
+              coin,
+              action: action(d, i18n).toLowerCase(),
+              timestamp: getCreatedAtForHuman(d.timestamp),
+              route,
+              routeDetails
+            };
+            return d;
+          };
+          promises.push(fn());
+        }
+        return Promise.all(promises);
+      });
+      transactions.value = [...transactions.value, ...res] as (ITransactionData & HistoryData)[];
       const loadedSender = res.length < limit;
       if (loadedSender) {
         loaded.value = true;
@@ -230,92 +222,12 @@ async function loadTxs() {
   }
 }
 
-const history = computed(() => {
-  const h = wallet.history;
-  const items = [];
-  for (const key in h) {
-    const item = h[key];
-    items.push({
-      date: new Date(item.id),
-      action: getAction(item),
-      status: i18n.t(`message.${item.step}-History`),
-      fee: calculateFee(item.fee, item.selectedNetwork) as CoinPretty,
-      step: item.step,
-      key
-    });
-  }
-  return items.sort((a, b) => Number(b.key) - Number(a.key));
-});
-
-function getAction(item: IObjectKeys) {
-  switch (item.action) {
-    case HYSTORY_ACTIONS.SWAP: {
-      return i18n.t("message.swap-skip-action", {
-        amount: `${new Dec(item.amount).toString(item.selectedCurrency.decimal_digits)} ${item.selectedCurrency.shortName}`,
-        swapTo: `${new Dec(item.swapToAmount).toString(item.swapToSelectedCurrency.decimal_digits)} ${item.swapToSelectedCurrency.shortName}`
-      });
-    }
-    case HYSTORY_ACTIONS.RECEIVE: {
-      return i18n.t("message.receive-skip-action", {
-        amount: `${new Dec(item.amount).toString(item.selectedCurrency.decimal_digits)} ${item.selectedCurrency.shortName}`,
-        network: `${item.selectedNetwork.label}`
-      });
-    }
-    case HYSTORY_ACTIONS.SEND: {
-      return i18n.t("message.send-skip-action", {
-        amount: `${new Dec(item.amount).toString(item.selectedCurrency.decimal_digits)} ${item.selectedCurrency.shortName}`,
-        network: `${item.selectedNetwork.label}`
-      });
-    }
-  }
-  return "";
-}
-
-function calculateFee(coin: Coin, network: Network | EvmNetwork) {
-  switch (network.chain_type) {
-    case "cosmos": {
-      return calculateCosmosFee(coin, network);
-    }
-    case "evm": {
-      return calculateEvmFee(coin, network);
-    }
+async function getRealizedPnl() {
+  try {
+    const data = await EtlApi.fetchRealizedPNL(wallet?.wallet?.address);
+    realized_pnl.value = new Dec(data.realized_pnl);
+  } catch (error) {
+    console.error(error);
   }
 }
-
-function calculateCosmosFee(coin: Coin, _network: Network | EvmNetwork) {
-  const asset = AssetUtils.getCurrencyByDenom(coin.denom);
-  return CurrencyUtils.convertMinimalDenomToDenom(
-    coin.amount.toString(),
-    asset.ibcData,
-    asset.shortName,
-    asset.decimal_digits
-  );
-}
-
-function calculateEvmFee(coin: Coin, network: Network | EvmNetwork) {
-  return CurrencyUtils.convertMinimalDenomToDenom(
-    coin.amount.toString(),
-    coin.denom,
-    coin.denom,
-    (network as EvmNetwork).nativeCurrency.decimals
-  );
-}
-
-function openAction(key: string | number) {
-  state.value.data = wallet.history[key];
-  state.value.showModal = true;
-  state.value.modalAction = wallet.history[key].action;
-}
-
-watch(
-  () => wallet.history,
-  () => {
-    if (state.value.data) {
-      state.value.data = wallet.history[state.value.data.id];
-    }
-  },
-  {
-    deep: true
-  }
-);
 </script>

@@ -1,590 +1,276 @@
 <template>
-  <div
-    class="mt-6 flex max-w-[100%] flex-col gap-6 border border-border-color bg-neutral-bg-50 p-4 shadow-field-normal md:flex-row lg:flex-wrap lg:rounded-xl lg:p-6"
-  >
-    <!-- Rewards -->
-    <div class="lg:w-[calc(50%-1.5rem)]">
-      <div class="flex items-center justify-between pb-0 pt-2">
-        <h2 class="my-0 text-left text-16 font-medium text-neutral-typography-200">
-          {{ $t("message.utilization-level") }}
-        </h2>
-      </div>
-      <div class="block border-b border-border-color">
-        <div class="gap-6px-3 earn-asset grid grid-cols-3 items-center justify-between py-2 md:grid-cols-3">
-          <div class="col-span-2 inline-flex items-center">
-            <div class="inline-block">
-              <div class="pt-3">
-                <p class="flex text-12 font-medium text-neutral-400">
-                  {{ $t("message.osmosis-noble") }}
-                </p>
-
-                <CurrencyComponent
-                  :amount="utilizationLevelOsmosis"
-                  :fontSize="40"
-                  :fontSizeSmall="32"
-                  :has-space="false"
-                  :isDenomInfront="false"
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  class="font-medium text-neutral-typography-200"
-                  denom="%"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="flex items-center justify-between px-0 pt-4 md:justify-start">
-        <div class="pt-3">
-          <p class="flex items-center text-12 font-medium text-neutral-400">
-            {{ $t("message.yield") }}
-            <Tooltip :content="$t('message.yield-tooltip')" />
-          </p>
-
-          <div class="flex items-center">
-            <img
-              class="mr-[6px]"
-              src="@/assets/icons/osmosis-usdc.svg"
-            />
-            <div>
-              <CurrencyComponent
-                :amount="(app.apr?.[AppUtils.getProtocols().osmosis_noble] ?? 0).toString()"
-                :fontSize="20"
-                :fontSizeSmall="16"
-                :has-space="false"
-                :isDenomInfront="false"
-                :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                class="font-medium text-neutral-typography-200"
-                denom="%"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="pl-6 pt-3">
-          <p class="flex items-center text-12 font-medium text-neutral-400">
-            {{ $t("message.optimal") }}
-            <Tooltip :content="$t('message.optimal-tooltip')" />
-          </p>
-
-          <CurrencyComponent
-            :amount="optimal"
-            :fontSize="16"
-            :fontSizeSmall="12"
-            :has-space="false"
-            :isDenomInfront="false"
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            class="font-medium text-neutral-typography-200"
-            denom="%"
-          />
-        </div>
-
-        <div class="pl-8 pt-3">
-          <p class="flex items-center text-12 font-medium text-neutral-400">
-            {{ $t("message.deposit-suspension") }}
-            <Tooltip :content="$t('message.deposit-suspension-tooltip')" />
-          </p>
-
-          <CurrencyComponent
-            :amount="depositSuspension"
-            :fontSize="16"
-            :fontSizeSmall="12"
-            :has-space="false"
-            :isDenomInfront="false"
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            class="font-medium text-neutral-typography-200"
-            denom="%"
-          />
-        </div>
-      </div>
-    </div>
-    <div class="lg:w-[calc(50%-1.5rem)]">
-      <div class="hidden items-center justify-between px-4 pb-0 pt-2 md:flex">
-        <h2 class="my-0 text-left text-16 font-medium text-neutral-typography-200">&nbsp;</h2>
-      </div>
-      <!-- Assets Container -->
-      <div class="block border-b border-border-color">
-        <div class="gap-6px-3 earn-asset grid grid-cols-3 items-center justify-between py-2 md:grid-cols-3">
-          <!-- Ticker -->
-          <div class="col-span-2 inline-flex items-center">
-            <div class="inline-block">
-              <div class="pt-3">
-                <p class="flex text-12 font-medium text-neutral-400">
-                  {{ $t("message.neutron") }}
-                </p>
-
-                <CurrencyComponent
-                  :amount="utilizationLevelNeutron"
-                  :fontSize="40"
-                  :fontSizeSmall="32"
-                  :has-space="false"
-                  :isDenomInfront="false"
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  class="font-medium text-neutral-typography-200"
-                  denom="%"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Assets Container -->
-      </div>
-      <div class="flex items-center justify-between px-0 pt-4 md:justify-start">
-        <div class="pt-3">
-          <p class="flex items-center text-12 font-medium text-neutral-400">
-            {{ $t("message.yield") }}
-            <Tooltip :content="$t('message.yield-tooltip')" />
-          </p>
-
-          <div class="flex items-center">
-            <img
-              class="mr-[6px]"
-              src="@/assets/icons/neutron-usdc.svg"
-            />
-            <div>
-              <CurrencyComponent
-                :amount="(app.apr?.[AppUtils.getProtocols().neutron_noble] ?? 0).toString()"
-                :fontSize="20"
-                :fontSizeSmall="16"
-                :has-space="false"
-                :isDenomInfront="false"
-                :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                class="font-medium text-neutral-typography-200"
-                denom="%"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="pl-6 pt-3">
-          <p class="flex items-center text-12 font-medium text-neutral-400">
-            {{ $t("message.optimal") }}
-            <Tooltip :content="$t('message.optimal-tooltip')" />
-          </p>
-
-          <CurrencyComponent
-            :amount="optimal"
-            :fontSize="16"
-            :fontSizeSmall="12"
-            :has-space="false"
-            :isDenomInfront="false"
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            class="font-medium text-neutral-typography-200"
-            denom="%"
-          />
-        </div>
-
-        <div class="pl-8 pt-3">
-          <p class="flex items-center text-12 font-medium text-neutral-400">
-            {{ $t("message.deposit-suspension") }}
-            <Tooltip :content="$t('message.deposit-suspension-tooltip')" />
-          </p>
-
-          <CurrencyComponent
-            :amount="depositSuspension"
-            :fontSize="16"
-            :fontSizeSmall="12"
-            :has-space="false"
-            :isDenomInfront="false"
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            class="font-medium text-neutral-typography-200"
-            denom="%"
-          />
-        </div>
-      </div>
-    </div>
-
-    <div class="lg:w-[calc(50%-1.5rem)]">
-      <!-- Assets Container -->
-      <div class="block border-b border-border-color">
-        <div class="gap-6px-3 earn-asset grid grid-cols-3 items-center justify-between py-2 md:grid-cols-3">
-          <!-- Ticker -->
-          <div class="col-span-2 inline-flex items-center">
-            <div class="inline-block">
-              <div class="pt-3">
-                <p class="flex text-12 font-medium text-neutral-400">
-                  {{ $t("message.osmosis-allbtc") }}
-                </p>
-
-                <CurrencyComponent
-                  :amount="utilizationLevelOsmosisAllBtc"
-                  :fontSize="40"
-                  :fontSizeSmall="32"
-                  :has-space="false"
-                  :isDenomInfront="false"
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  class="font-medium text-neutral-typography-200"
-                  denom="%"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Assets Container -->
-      </div>
-      <div class="flex items-center justify-between px-0 pt-4 md:justify-start">
-        <div class="pt-3">
-          <p class="flex items-center text-12 font-medium text-neutral-400">
-            {{ $t("message.yield") }}
-            <Tooltip :content="$t('message.yield-tooltip')" />
-          </p>
-
-          <div class="flex items-center">
-            <img
-              class="mr-[6px]"
-              src="@/assets/icons/osmosis-allbtc.svg"
-            />
-            <div>
-              <CurrencyComponent
-                :amount="(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_all_btc] ?? 0).toString()"
-                :fontSize="20"
-                :fontSizeSmall="16"
-                :has-space="false"
-                :isDenomInfront="false"
-                :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                class="font-medium text-neutral-typography-200"
-                denom="%"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="pl-6 pt-3">
-          <p class="flex items-center text-12 font-medium text-neutral-400">
-            {{ $t("message.optimal") }}
-            <Tooltip :content="$t('message.optimal-tooltip')" />
-          </p>
-
-          <CurrencyComponent
-            :amount="optimal"
-            :fontSize="16"
-            :fontSizeSmall="12"
-            :has-space="false"
-            :isDenomInfront="false"
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            class="font-medium text-neutral-typography-200"
-            denom="%"
-          />
-        </div>
-
-        <div class="pl-8 pt-3">
-          <p class="flex items-center text-12 font-medium text-neutral-400">
-            {{ $t("message.deposit-suspension") }}
-            <Tooltip :content="$t('message.deposit-suspension-tooltip')" />
-          </p>
-
-          <CurrencyComponent
-            :amount="depositSuspension"
-            :fontSize="16"
-            :fontSizeSmall="12"
-            :has-space="false"
-            :isDenomInfront="false"
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            class="font-medium text-neutral-typography-200"
-            denom="%"
-          />
-        </div>
-      </div>
-    </div>
-
-    <div class="lg:w-[calc(50%-1.5rem)]">
-      <!-- Assets Container -->
-      <div class="block border-b border-border-color">
-        <div class="gap-6px-3 earn-asset grid grid-cols-3 items-center justify-between py-2 md:grid-cols-3">
-          <!-- Ticker -->
-          <div class="col-span-2 inline-flex items-center">
-            <div class="inline-block">
-              <div class="pt-3">
-                <p class="flex text-12 font-medium text-neutral-400">
-                  {{ $t("message.osmosis-allsol") }}
-                </p>
-
-                <CurrencyComponent
-                  :amount="utilizationLevelOsmosisAllSol"
-                  :fontSize="40"
-                  :fontSizeSmall="32"
-                  :has-space="false"
-                  :isDenomInfront="false"
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  class="font-medium text-neutral-typography-200"
-                  denom="%"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Assets Container -->
-      </div>
-      <div class="flex items-center justify-between px-0 pt-4 md:justify-start">
-        <div class="pt-3">
-          <p class="flex items-center text-12 font-medium text-neutral-400">
-            {{ $t("message.yield") }}
-            <Tooltip :content="$t('message.yield-tooltip')" />
-          </p>
-
-          <div class="flex items-center">
-            <img
-              class="mr-[6px]"
-              src="@/assets/icons/osmosis-allsol.svg"
-            />
-            <div>
-              <CurrencyComponent
-                :amount="(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_all_sol] ?? 0).toString()"
-                :fontSize="20"
-                :fontSizeSmall="16"
-                :has-space="false"
-                :isDenomInfront="false"
-                :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                class="font-medium text-neutral-typography-200"
-                denom="%"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="pl-6 pt-3">
-          <p class="flex items-center text-12 font-medium text-neutral-400">
-            {{ $t("message.optimal") }}
-            <Tooltip :content="$t('message.optimal-tooltip')" />
-          </p>
-
-          <CurrencyComponent
-            :amount="optimal"
-            :fontSize="16"
-            :fontSizeSmall="12"
-            :has-space="false"
-            :isDenomInfront="false"
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            class="font-medium text-neutral-typography-200"
-            denom="%"
-          />
-        </div>
-
-        <div class="pl-8 pt-3">
-          <p class="flex items-center text-12 font-medium text-neutral-400">
-            {{ $t("message.deposit-suspension") }}
-            <Tooltip :content="$t('message.deposit-suspension-tooltip')" />
-          </p>
-
-          <CurrencyComponent
-            :amount="depositSuspension"
-            :fontSize="16"
-            :fontSizeSmall="12"
-            :has-space="false"
-            :isDenomInfront="false"
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            class="font-medium text-neutral-typography-200"
-            denom="%"
-          />
-        </div>
-      </div>
-    </div>
-
-    <div class="lg:w-[calc(50%-1.5rem)]">
-      <!-- Assets Container -->
-      <div class="block border-b border-border-color">
-        <div class="gap-6px-3 earn-asset grid grid-cols-3 items-center justify-between py-2 md:grid-cols-3">
-          <!-- Ticker -->
-          <div class="col-span-2 inline-flex items-center">
-            <div class="inline-block">
-              <div class="pt-3">
-                <p class="flex text-12 font-medium text-neutral-400">
-                  {{ $t("message.osmosis-st-atom") }}
-                </p>
-
-                <CurrencyComponent
-                  :amount="utilizationLevelOsmosisStAtom"
-                  :fontSize="40"
-                  :fontSizeSmall="32"
-                  :has-space="false"
-                  :isDenomInfront="false"
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  class="font-medium text-neutral-typography-200"
-                  denom="%"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Assets Container -->
-      </div>
-      <div class="flex items-center justify-between px-0 pt-4 md:justify-start">
-        <div class="pt-3">
-          <p class="flex items-center text-12 font-medium text-neutral-400">
-            {{ $t("message.yield") }}
-            <Tooltip :content="$t('message.yield-tooltip')" />
-          </p>
-
-          <div class="flex items-center">
-            <img
-              class="mr-[6px]"
-              src="@/assets/icons/osmosis-statom.svg"
-            />
-            <div>
-              <CurrencyComponent
-                :amount="(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_st_atom] ?? 0).toString()"
-                :fontSize="20"
-                :fontSizeSmall="16"
-                :has-space="false"
-                :isDenomInfront="false"
-                :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                class="font-medium text-neutral-typography-200"
-                denom="%"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="pl-6 pt-3">
-          <p class="flex items-center text-12 font-medium text-neutral-400">
-            {{ $t("message.optimal") }}
-            <Tooltip :content="$t('message.optimal-tooltip')" />
-          </p>
-
-          <CurrencyComponent
-            :amount="optimal"
-            :fontSize="16"
-            :fontSizeSmall="12"
-            :has-space="false"
-            :isDenomInfront="false"
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            class="font-medium text-neutral-typography-200"
-            denom="%"
-          />
-        </div>
-
-        <div class="pl-8 pt-3">
-          <p class="flex items-center text-12 font-medium text-neutral-400">
-            {{ $t("message.deposit-suspension") }}
-            <Tooltip :content="$t('message.deposit-suspension-tooltip')" />
-          </p>
-
-          <CurrencyComponent
-            :amount="depositSuspension"
-            :fontSize="16"
-            :fontSizeSmall="12"
-            :has-space="false"
-            :isDenomInfront="false"
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            class="font-medium text-neutral-typography-200"
-            denom="%"
-          />
-        </div>
-      </div>
-    </div>
-
-    <div class="lg:w-[calc(50%-1.5rem)]">
-      <!-- Assets Container -->
-      <div class="block border-b border-border-color">
-        <div class="gap-6px-3 earn-asset grid grid-cols-3 items-center justify-between py-2 md:grid-cols-3">
-          <!-- Ticker -->
-          <div class="col-span-2 inline-flex items-center">
-            <div class="inline-block">
-              <div class="pt-3">
-                <p class="flex text-12 font-medium text-neutral-400">
-                  {{ $t("message.osmosis-akt") }}
-                </p>
-
-                <CurrencyComponent
-                  :amount="utilizationLevelOsmosisAkt"
-                  :fontSize="40"
-                  :fontSizeSmall="32"
-                  :has-space="false"
-                  :isDenomInfront="false"
-                  :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                  class="font-medium text-neutral-typography-200"
-                  denom="%"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Assets Container -->
-      </div>
-      <div class="flex items-center justify-between px-0 pt-4 md:justify-start">
-        <div class="pt-3">
-          <p class="flex items-center text-12 font-medium text-neutral-400">
-            {{ $t("message.yield") }}
-            <Tooltip :content="$t('message.yield-tooltip')" />
-          </p>
-
-          <div class="flex items-center">
-            <img
-              class="mr-[6px]"
-              src="@/assets/icons/osmosis-akt.svg"
-            />
-            <div>
-              <CurrencyComponent
-                :amount="(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_akt] ?? 0).toString()"
-                :fontSize="20"
-                :fontSizeSmall="16"
-                :has-space="false"
-                :isDenomInfront="false"
-                :type="CURRENCY_VIEW_TYPES.CURRENCY"
-                class="font-medium text-neutral-typography-200"
-                denom="%"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="pl-6 pt-3">
-          <p class="flex items-center text-12 font-medium text-neutral-400">
-            {{ $t("message.optimal") }}
-            <Tooltip :content="$t('message.optimal-tooltip')" />
-          </p>
-
-          <CurrencyComponent
-            :amount="optimal"
-            :fontSize="16"
-            :fontSizeSmall="12"
-            :has-space="false"
-            :isDenomInfront="false"
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            class="font-medium text-neutral-typography-200"
-            denom="%"
-          />
-        </div>
-
-        <div class="pl-8 pt-3">
-          <p class="flex items-center text-12 font-medium text-neutral-400">
-            {{ $t("message.deposit-suspension") }}
-            <Tooltip :content="$t('message.deposit-suspension-tooltip')" />
-          </p>
-
-          <CurrencyComponent
-            :amount="depositSuspension"
-            :fontSize="16"
-            :fontSizeSmall="12"
-            :has-space="false"
-            :isDenomInfront="false"
-            :type="CURRENCY_VIEW_TYPES.CURRENCY"
-            class="font-medium text-neutral-typography-200"
-            denom="%"
-          />
-        </div>
-      </div>
-    </div>
-  </div>
+  <Widget>
+    <WidgetHeader :label="$t('message.utilization-level')" />
+    <BigNumber
+      :label="$t('message.supplied-funds')"
+      :amount="{
+        amount: suppliedFunds,
+        type: CURRENCY_VIEW_TYPES.CURRENCY,
+        denom: NATIVE_CURRENCY.symbol,
+        decimals: 0
+      }"
+    />
+    <Table :columns="columns">
+      <template v-slot:body>
+        <TableRow
+          v-for="(row, index) in assets"
+          :key="index"
+          :items="row.items"
+        />
+      </template>
+    </Table>
+  </Widget>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from "vue";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
-import { AppUtils, EtlApi, Logger } from "@/common/utils";
-import { Tooltip } from "web-components";
+import WidgetHeader from "@/common/components/WidgetHeader.vue";
+import ChartUtilizaiton from "./ChartUtilizaiton.vue";
+import BigNumber from "@/common/components/BigNumber.vue";
+
+import { Table, type TableColumnProps, TableRow, type TableRowItemProps, Widget } from "web-components";
+import { AppUtils, EnvNetworkUtils, EtlApi, Logger } from "@/common/utils";
+
+import { computed, h, onMounted, ref } from "vue";
 import { useApplicationStore } from "@/common/stores/application";
-import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
+import { useI18n } from "vue-i18n";
+import { NATIVE_CURRENCY, PERCENT, PERMILLE } from "@/config/global";
+import { CURRENCY_VIEW_TYPES } from "@/common/types";
+
+import osmoUsdc from "@/assets/icons/osmosis-usdc.svg?url";
+import neutronUsdc from "@/assets/icons/neutron-usdc.svg?url";
+import osmosisSol from "@/assets/icons/osmosis-allsol.svg?url";
+import osmosisBtc from "@/assets/icons/osmosis-allbtc.svg?url";
+import osmosisStAtom from "@/assets/icons/osmosis-statom.svg?url";
+import osmosisAkt from "@/assets/icons/osmosis-akt.svg?url";
+import osmosisAtom from "@/assets/icons/osmosis-atom.svg?url";
+
+import type { UtilizationProps } from "../types";
+import { NolusClient } from "@nolus/nolusjs";
+import { Lpp } from "@nolus/nolusjs/build/contracts";
+import { useAdminStore } from "@/common/stores/admin";
+
+const i18n = useI18n();
+
+const columns: TableColumnProps[] = [
+  { label: i18n.t("message.asset"), variant: "left" },
+  { label: "" },
+  { label: i18n.t("message.current-utilization"), class: "hidden md:flex" },
+  {
+    label: i18n.t("message.deposit-suspension"),
+    tooltip: { position: "top", content: i18n.t("message.deposit-suspension-tooltip") }
+  },
+  {
+    label: i18n.t("message.yield"),
+    tooltip: { position: "top", content: i18n.t("message.yield-tooltip") },
+    class: "hidden md:flex"
+  }
+];
+const assets = computed<TableRowItemProps[]>(() => {
+  return [
+    {
+      items: [
+        {
+          value: "USDC",
+          subValue: i18n.t("message.utilization_sub_osmosis_usdc"),
+          image: osmoUsdc,
+          variant: "left"
+        },
+        {
+          component: () =>
+            h<UtilizationProps>(ChartUtilizaiton, {
+              value: utilizationLevelOsmosis.value,
+              icon: osmoUsdc,
+              deposit: depositOsmosis.value
+            }),
+          class: "hidden md:flex w-full min-w-[200]"
+        },
+        { value: `${utilizationLevelOsmosis.value}%`, class: "hidden md:flex font-semibold" },
+        { value: `${depositNeutron.value}%` },
+        {
+          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_noble]) ?? 0).toFixed(2)}%`,
+          class: "text-typography-success"
+        }
+      ]
+    },
+    {
+      items: [
+        {
+          value: "USDC",
+          subValue: i18n.t("message.utilization_sub_neutron_usdc"),
+          image: neutronUsdc,
+          variant: "left"
+        },
+        {
+          component: () =>
+            h<UtilizationProps>(ChartUtilizaiton, {
+              value: utilizationLevelNeutron.value,
+              icon: neutronUsdc,
+              deposit: depositNeutron.value
+            }),
+          class: "hidden md:flex min-w-[200]"
+        },
+        { value: `${utilizationLevelNeutron.value}%`, class: "hidden md:flex font-semibold" },
+        { value: `${depositOsmosis.value}%` },
+        {
+          value: `${(Number(app.apr?.[AppUtils.getProtocols().neutron_noble]) ?? 0).toFixed(2)}%`,
+          class: "text-typography-success"
+        }
+      ]
+    },
+    {
+      items: [
+        {
+          value: "SOL",
+          subValue: i18n.t("message.utilization_sub_osmosis_sol"),
+          image: osmosisSol,
+          variant: "left"
+        },
+        {
+          component: () =>
+            h<UtilizationProps>(ChartUtilizaiton, {
+              value: utilizationLevelOsmosisAllSol.value,
+              icon: osmosisSol,
+              deposit: depositAllSol.value
+            }),
+          class: "hidden md:flex min-w-[200]"
+        },
+        { value: `${utilizationLevelOsmosisAllSol.value}%`, class: "hidden md:flex font-semibold" },
+        { value: `${depositAllSol.value}%` },
+        {
+          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_all_sol]) ?? 0).toFixed(2)}%`,
+          class: "text-typography-success"
+        }
+      ]
+    },
+    {
+      items: [
+        {
+          value: "BTC",
+          subValue: i18n.t("message.utilization_sub_osmosis_btc"),
+          image: osmosisBtc,
+          variant: "left"
+        },
+        {
+          component: () =>
+            h<UtilizationProps>(ChartUtilizaiton, {
+              value: utilizationLevelOsmosisAllBtc.value,
+              icon: osmosisBtc,
+              deposit: depositAllBtc.value
+            }),
+          class: "hidden md:flex min-w-[200]"
+        },
+        { value: `${utilizationLevelOsmosisAllBtc.value}%`, class: "hidden md:flex font-semibold" },
+        { value: `${depositAllBtc.value}%` },
+        {
+          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_all_btc]) ?? 0).toFixed(2)}%`,
+          class: "text-typography-success"
+        }
+      ]
+    },
+    {
+      items: [
+        {
+          value: "stAtom",
+          subValue: i18n.t("message.utilization_sub_osmosis_statom"),
+          image: osmosisStAtom,
+          variant: "left"
+        },
+        {
+          component: () =>
+            h<UtilizationProps>(ChartUtilizaiton, {
+              value: utilizationLevelOsmosis.value,
+              icon: osmosisStAtom,
+              deposit: depositStAtom.value
+            }),
+          class: "hidden md:flex min-w-[200]"
+        },
+        { value: `${utilizationLevelOsmosis.value}%`, class: "hidden md:flex font-semibold" },
+        { value: `${depositStAtom.value}%` },
+        {
+          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_st_atom]) ?? 0).toFixed(2)}%`,
+          class: "text-typography-success"
+        }
+      ]
+    },
+    {
+      items: [
+        {
+          value: "AKT",
+          subValue: i18n.t("message.utilization_sub_osmosis_akt"),
+          image: osmosisAkt,
+          variant: "left"
+        },
+        {
+          component: () =>
+            h<UtilizationProps>(ChartUtilizaiton, {
+              value: utilizationLevelOsmosisAkt.value,
+              icon: osmosisAkt,
+              deposit: depositAkt.value
+            }),
+          class: "hidden md:flex min-w-[200]"
+        },
+        { value: `${utilizationLevelOsmosisAkt.value}%`, class: "hidden md:flex font-semibold" },
+        { value: `${depositAkt.value}%` },
+        {
+          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_akt]) ?? 0).toFixed(2)}%`,
+          class: "text-typography-success"
+        }
+      ]
+    },
+
+    {
+      items: [
+        {
+          value: "ATOM",
+          subValue: i18n.t("message.utilization_sub_osmosis_atom"),
+          image: osmosisAtom,
+          variant: "left"
+        },
+        {
+          component: () =>
+            h<UtilizationProps>(ChartUtilizaiton, {
+              value: utilizationLevelOsmosisAtom.value,
+              icon: osmosisAtom,
+              deposit: depositAtom.value
+            }),
+          class: "hidden md:flex min-w-[200]"
+        },
+        { value: `${utilizationLevelOsmosisAtom.value}%`, class: "hidden md:flex font-semibold" },
+        { value: `${depositAtom.value}%` },
+        {
+          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_atom]) ?? 0).toFixed(2)}%`,
+          class: "text-typography-success"
+        }
+      ]
+    }
+  ] as TableRowItemProps[];
+});
 
 const utilizationLevelNeutron = ref("0");
-const utilizationLevelOsmosis = ref("0");
-const utilizationLevelOsmosisStAtom = ref("0");
-const utilizationLevelOsmosisAllBtc = ref("0");
-const utilizationLevelOsmosisAllSol = ref("0");
-const utilizationLevelOsmosisAkt = ref("0");
+const depositNeutron = ref("");
 
-const optimal = ref("70");
-const depositSuspension = ref("65");
+const utilizationLevelOsmosis = ref("0");
+const depositOsmosis = ref("");
+
+const utilizationLevelOsmosisStAtom = ref("0");
+const depositStAtom = ref("");
+
+const utilizationLevelOsmosisAllBtc = ref("0");
+const depositAllBtc = ref("");
+
+const utilizationLevelOsmosisAllSol = ref("0");
+const depositAllSol = ref("");
+
+const utilizationLevelOsmosisAkt = ref("0");
+const depositAkt = ref("");
+
+const utilizationLevelOsmosisAtom = ref("0");
+const depositAtom = ref("");
+
+const suppliedFunds = ref("0");
+
 const app = useApplicationStore();
+const admin = useAdminStore();
 
 onMounted(async () => {
   await Promise.all([
@@ -593,53 +279,92 @@ onMounted(async () => {
     setUtilizationOsmosisStAtom(),
     setUtilizationOsmosisAllBtc(),
     setUtilizationOsmosisAllSol(),
-    setUtilizationOsmosisAkt()
+    setUtilizationOsmosisAkt(),
+    setUtilizationOsmosisAtom(),
+    setSuppliedFunds()
   ]).catch((e) => Logger.error(e));
 });
 
+async function setSuppliedFunds() {
+  const data = await EtlApi.fetchSuppliedFunds();
+  suppliedFunds.value = data.amount;
+}
+
 async function setUtilizationNeutron() {
-  const data = await fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().neutron_noble}`);
+  const [data, capacity] = await Promise.all([
+    fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().neutron_noble}`),
+    getDepositCapacityMsg(AppUtils.getProtocols().neutron_noble)
+  ]);
   const item = await data.json();
-  utilizationLevelNeutron.value = item[0];
+  depositNeutron.value = capacity;
+  utilizationLevelNeutron.value = Number(item[0]).toFixed(2);
 }
 
 async function setUtilizationOsmosis() {
-  const data = await fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_noble}`);
+  const [data, capacity] = await Promise.all([
+    fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_noble}`),
+    getDepositCapacityMsg(AppUtils.getProtocols().osmosis_noble)
+  ]);
   const item = await data.json();
-  utilizationLevelOsmosis.value = item[0];
+  depositOsmosis.value = capacity;
+  utilizationLevelOsmosis.value = Number(item[0]).toFixed(2);
 }
 
 async function setUtilizationOsmosisStAtom() {
-  const data = await fetch(
-    `${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_osmosis_st_atom}`
-  );
+  const [data, capacity] = await Promise.all([
+    fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_osmosis_st_atom}`),
+    getDepositCapacityMsg(AppUtils.getProtocols().osmosis_osmosis_st_atom)
+  ]);
   const item = await data.json();
-  utilizationLevelOsmosisStAtom.value = item[0];
+  depositStAtom.value = capacity;
+  utilizationLevelOsmosisStAtom.value = Number(item[0]).toFixed(2);
 }
 
 async function setUtilizationOsmosisAllBtc() {
-  const data = await fetch(
-    `${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_osmosis_all_btc}`
-  );
+  const [data, capacity] = await Promise.all([
+    fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_osmosis_all_btc}`),
+    getDepositCapacityMsg(AppUtils.getProtocols().osmosis_osmosis_all_btc)
+  ]);
   const item = await data.json();
-  utilizationLevelOsmosisAllBtc.value = item[0];
+  depositAllBtc.value = capacity;
+  utilizationLevelOsmosisAllBtc.value = Number(item[0]).toFixed(2);
 }
 
 async function setUtilizationOsmosisAllSol() {
-  const data = await fetch(
-    `${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_osmosis_all_sol}`
-  );
+  const [data, capacity] = await Promise.all([
+    fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_osmosis_all_sol}`),
+    getDepositCapacityMsg(AppUtils.getProtocols().osmosis_osmosis_all_sol)
+  ]);
   const item = await data.json();
-  utilizationLevelOsmosisAllSol.value = item[0];
+  depositAllSol.value = capacity;
+  utilizationLevelOsmosisAllSol.value = Number(item[0]).toFixed(2);
 }
 
 async function setUtilizationOsmosisAkt() {
-  const data = await fetch(
-    `${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_osmosis_akt}`
-  );
+  const [data, capacity] = await Promise.all([
+    fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_osmosis_akt}`),
+    getDepositCapacityMsg(AppUtils.getProtocols().osmosis_osmosis_akt)
+  ]);
   const item = await data.json();
-  utilizationLevelOsmosisAkt.value = item[0];
+  depositAkt.value = capacity;
+  utilizationLevelOsmosisAkt.value = Number(item[0]).toFixed(2);
+}
+
+async function setUtilizationOsmosisAtom() {
+  const [data, capacity] = await Promise.all([
+    fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_osmosis_atom}`),
+    getDepositCapacityMsg(AppUtils.getProtocols().osmosis_osmosis_atom)
+  ]);
+  const item = await data.json();
+  depositAtom.value = capacity;
+  utilizationLevelOsmosisAtom.value = Number(item[0]).toFixed(2);
+}
+
+async function getDepositCapacityMsg(protocol: string) {
+  const client = await NolusClient.getInstance().getCosmWasmClient();
+  const lppClient = new Lpp(client, admin.protocols[EnvNetworkUtils.getStoredNetworkName()]![protocol].lpp);
+  const data = await lppClient.getLppConfig();
+  const percent = (data.min_utilization / PERMILLE) * PERCENT;
+  return `${percent}`;
 }
 </script>
-
-<style lang="" scoped></style>

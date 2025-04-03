@@ -48,4 +48,5 @@ export type State = {
   history: {
     [key: string]: IObjectKeys;
   };
+  activities: { data: IObjectKeys[]; loaded: boolean };
 };

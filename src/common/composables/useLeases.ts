@@ -6,9 +6,9 @@ import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 import { Lease, Leaser, type LeaserConfig, type LeaseStatus } from "@nolus/nolusjs/build/contracts";
 import { AppUtils, Logger, LeaseUtils, AssetUtils, WalletManager } from "@/common/utils";
 import {
+  Contracts,
   IGNORE_LEASES,
   INTEREST_DECIMALS,
-  isDev,
   MONTHS,
   NATIVE_ASSET,
   PERCENT,
@@ -23,17 +23,22 @@ import { useOracleStore } from "../stores/oracle";
 import { useApplicationStore } from "../stores/application";
 import { useWalletStore } from "../stores/wallet";
 import { Intercom } from "../utils/Intercom";
+import { RouteNames } from "@/router";
+import { useRouter } from "vue-router";
 
 export function useLeases(onError: (error: unknown) => void) {
   const leases = ref<LeaseData[]>([]);
   const leaseLoaded = ref(false);
   const wallet = useWalletStore();
+  const app = useApplicationStore();
 
   const getLeases = async () => {
     try {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
 
       const admin = useAdminStore();
+      const protocols = Contracts.protocolsFilter[app.protocolFilter];
+
       const promises: Promise<
         | {
             leaseAddress: string;
@@ -45,30 +50,32 @@ export function useLeases(onError: (error: unknown) => void) {
       const protocolPromises = [];
       const paginate = 50;
       for (const protocolKey in admin.contracts) {
-        const fn = async () => {
-          const protocol = admin.contracts![protocolKey];
-          const leaserClient = new Leaser(cosmWasmClient, protocol.leaser);
+        if (protocols.hold.includes(protocolKey)) {
+          const fn = async () => {
+            const protocol = admin.contracts![protocolKey];
+            const leaserClient = new Leaser(cosmWasmClient, protocol.leaser);
 
-          const openedLeases: string[] = (
-            await leaserClient.getCurrentOpenLeasesByOwner(WalletManager.getWalletAddress())
-          ).filter((item) => {
-            return !IGNORE_LEASES.includes(item);
-          });
+            const openedLeases: string[] = (
+              await leaserClient.getCurrentOpenLeasesByOwner(WalletManager.getWalletAddress())
+            ).filter((item) => {
+              return !IGNORE_LEASES.includes(item);
+            });
 
-          while (openedLeases.length > 0) {
-            const leases = openedLeases.splice(0, paginate);
-            const ps = [];
+            while (openedLeases.length > 0) {
+              const leases = openedLeases.splice(0, paginate);
+              const ps = [];
 
-            for (const leaseAddress of leases) {
-              const fn = fetchLease(leaseAddress, protocolKey);
-              ps.push(fn);
-              promises.push(fn);
+              for (const leaseAddress of leases) {
+                const fn = fetchLease(leaseAddress, protocolKey);
+                ps.push(fn);
+                promises.push(fn);
+              }
+              await Promise.all(ps);
             }
-            await Promise.all(ps);
-          }
-        };
+          };
 
-        protocolPromises.push(fn());
+          protocolPromises.push(fn());
+        }
       }
 
       await Promise.all(protocolPromises);
@@ -111,7 +118,7 @@ export function useLeases(onError: (error: unknown) => void) {
   });
 
   watch(
-    () => wallet.wallet,
+    () => [wallet.wallet?.address, app.protocolFilter],
     async () => {
       if (wallet.wallet) {
         await getLeases();
@@ -122,29 +129,33 @@ export function useLeases(onError: (error: unknown) => void) {
   return { leases, leaseLoaded, getLeases };
 }
 
-export function useLease(leaseAddress: string, onError: (error: unknown) => void) {
+export function useLease(leaseAddress: string, protocol: string, onError: (error: unknown) => void, period?: boolean) {
+  const lease = ref<LeaseData>();
+  const leaseLoaded = ref(false);
+  const router = useRouter();
+
   const getLease = async () => {
     try {
-      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const leaseClient = new Lease(cosmWasmClient, leaseAddress);
-      const leaseInfo: LeaseStatus = await leaseClient.getLeaseStatus();
-      return {
-        leaseAddress,
-        leaseStatus: leaseInfo
-      } as {
-        leaseAddress: string;
-        leaseStatus: LeaseStatus;
-      };
+      let secs = period ? await AppUtils.getDueProjectionSecs() : null;
+      const l = await fetchLease(leaseAddress, protocol.toUpperCase(), secs?.due_projection_secs);
+      if (l.leaseStatus.closed) {
+        router.push(`/${RouteNames.LEASES}`);
+        return;
+      }
+      lease.value = l;
     } catch (e) {
       onError(e);
+      Logger.error(e);
+    } finally {
+      leaseLoaded.value = true;
     }
   };
 
-  onMounted(async () => {
-    await getLease();
+  onMounted(() => {
+    getLease();
   });
 
-  return { getLease };
+  return { lease, leaseLoaded, getLease };
 }
 
 export function useLeaseConfig(protocol: string, onError: (error: unknown) => void) {
@@ -168,7 +179,7 @@ export function useLeaseConfig(protocol: string, onError: (error: unknown) => vo
   return { getLeaseConfig, config };
 }
 
-async function fetchLease(leaseAddress: string, protocolKey: string): Promise<LeaseData> {
+async function fetchLease(leaseAddress: string, protocolKey: string, period?: number): Promise<LeaseData> {
   const [cosmWasmClient, etl] = await Promise.all([
     NolusClient.getInstance().getCosmWasmClient(),
     AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)
@@ -180,7 +191,7 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
   const leaseClient = new Lease(cosmWasmClient, leaseAddress);
 
   const [leaseInfo, balancesReq, leaseData] = await Promise.all([
-    leaseClient.getLeaseStatus(),
+    leaseClient.getLeaseStatus(period),
     fetch(`${etl.api}/cosmos/bank/v1beta1/balances/${leaseAddress}`),
     LeaseUtils.getLeaseData(leaseAddress)
   ]);
@@ -196,6 +207,21 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
   let pnlPercent = new Dec(0);
   let pnlAmount = new Dec(0);
   let fee = leaseData?.fee ?? new Dec(0);
+  let unitAsset = new Dec(0);
+  let stableAsset = new Dec(0);
+
+  leaseData.downpaymentTicker =
+    leaseData.downpaymentTicker ??
+    CurrencyDemapping[leaseInfo.opening?.downpayment?.ticker as string]?.ticker ??
+    leaseInfo.opening?.downpayment.ticker;
+  leaseData.leasePositionTicker =
+    leaseData.leasePositionTicker ??
+    CurrencyDemapping[leaseInfo.opening?.loan.ticker as string]?.ticker ??
+    leaseInfo.opening?.loan.ticker;
+
+  if (!leaseData.ls_asset_symbol) {
+    leaseData.ls_asset_symbol = leaseData.leasePositionTicker;
+  }
 
   if (leaseInfo.opened) {
     const principal_due = new Dec(leaseInfo.opened.principal_due.amount);
@@ -224,9 +250,8 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
       CurrencyDemapping[leaseInfo.opened.principal_due.ticker!]?.ticker ?? leaseInfo.opened.principal_due.ticker;
     const stableAssetInfo = app.currenciesData![`${stableTicker!}@${protocolKey}`];
 
-    const unitAsset = new Dec(leaseInfo.opened.amount.amount, Number(unitAssetInfo!.decimal_digits));
-
-    const stableAsset = new Dec(leaseInfo.opened.principal_due.amount, Number(stableAssetInfo!.decimal_digits));
+    unitAsset = new Dec(leaseInfo.opened.amount.amount, Number(unitAssetInfo!.decimal_digits));
+    stableAsset = new Dec(leaseInfo.opened.principal_due.amount, Number(stableAssetInfo!.decimal_digits));
 
     switch (ProtocolsConfig[protocolKey].type) {
       case PositionTypes.long: {
@@ -257,19 +282,21 @@ async function fetchLease(leaseAddress: string, protocolKey: string): Promise<Le
     if (leaseData) {
       let lpn = AssetUtils.getLpnByProtocol(protocolKey);
       const lpnPrice = new Dec(oracleStore.prices[lpn.ibcData]?.amount);
-
       pnlAmount = currentAmount
         .sub(debt.mul(lpnPrice))
         .sub(leaseData?.downPayment)
         .add(fee)
         .sub(leaseData?.repayment_value);
+
       if (leaseData.downPayment.isPositive()) {
-        pnlPercent = pnlAmount.quo(leaseData?.downPayment).mul(new Dec(100));
+        pnlPercent = pnlAmount.quo(leaseData?.downPayment.add(leaseData?.repayment_value)).mul(new Dec(100));
       }
     }
   }
 
   return {
+    stableAsset,
+    unitAsset,
     fee,
     pnlAmount,
     pnlPercent,

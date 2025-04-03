@@ -3,7 +3,7 @@ export const NETWORK = {
   key: "BINANCE",
   label: "Binance",
   symbol: "BNB",
-  gasMupltiplier: 2,
+  gasMultiplier: 2,
   name: "BNB",
   explorer: "https://bscscan.com",
   fees: {

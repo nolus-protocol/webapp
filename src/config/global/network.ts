@@ -1,4 +1,4 @@
-import nlsIcon from "@/assets/icons/coins/nls.svg";
+import nlsIcon from "@/assets/icons/coins/nls.svg?url";
 import { ChainType } from "@/common/types/Network";
 
 export const NATIVE_CURRENCY = {
@@ -20,16 +20,23 @@ export const NATIVE_ASSET = {
 
 export const NATIVE_NETWORK = {
   prefix: "nolus",
-  value: "nls",
+  value: "nolus",
   label: "Nolus",
   native: true,
   estimation: 6,
   longOperationsEstimation: 20,
   leaseOpenEstimation: 2,
-  leaseRepayEstimation: 1,
+  leaseRepayEstimation: 3,
+  leaseCloseEstimation: 1,
+  leaseStopLossTakeProfit: 3,
+  delegateEstimation: 3,
+  earnEstimation: 3,
+  voteEstimation: 3,
+  transferEstimation: 6,
   key: "NOLUS",
   symbol: "NLS",
-  chain_type: ChainType.cosmos
+  chain_type: ChainType.cosmos,
+  icon: nlsIcon
 };
 
 export const STAKING = {
@@ -38,3 +45,5 @@ export const STAKING = {
   PERCENT: 0.05,
   SLICE: 3
 };
+
+export const LTV = 0.9;

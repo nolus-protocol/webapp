@@ -22,13 +22,12 @@ const aminoTypes = {
 };
 
 const MsgTransferAmino = new AminoTypes(aminoTypes);
-const signer = ["getOfflineSigner", ""];
 
 async function createWallet(
   wallet: Wallet,
   offlineDirectSigner: OfflineDirectSigner | OfflineAminoSigner | LedgerSigner,
   prefix: string,
-  gasMupltiplier: number,
+  gasMultiplier: number,
   gasPrice: string,
   explorer: string
 ): Promise<BaseWallet> {
@@ -39,7 +38,7 @@ async function createWallet(
     wallet.rpc,
     wallet.api,
     prefix,
-    gasMupltiplier,
+    gasMultiplier,
     gasPrice,
     explorer
   );
@@ -75,7 +74,7 @@ async function authenticateKeplr(wallet: Wallet, network: NetworkData) {
         wallet,
         offlineSigner as any,
         network.prefix,
-        network.gasMupltiplier,
+        network.gasMultiplier,
         network.gasPrice,
         network.explorer
       );
@@ -114,7 +113,7 @@ async function authenticateLeap(wallet: Wallet, network: NetworkData) {
         wallet,
         offlineSigner,
         network.prefix,
-        network.gasMupltiplier,
+        network.gasMultiplier,
         network.gasPrice,
         network.explorer
       );
@@ -128,17 +127,18 @@ async function authenticateLedger(wallet: Wallet, network: NetworkData) {
   const transport = await getLedgerTransport();
   const accountNumbers = [0];
   const paths = accountNumbers.map(makeCosmoshubPath);
-  return await createWallet(
+  const w = await createWallet(
     wallet,
     new LedgerSigner(transport, {
       prefix: network.prefix,
       hdPaths: paths as any
     }),
     network.prefix,
-    network.gasMupltiplier,
+    network.gasMultiplier,
     network.gasPrice,
     network.explorer
   );
+  return w;
 }
 
 async function getLedgerTransport() {

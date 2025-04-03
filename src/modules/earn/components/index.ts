@@ -1,6 +1,4 @@
-import EarnLpnAsset from "./EarnLpnAsset.vue";
-import EarnNativeAsset from "./EarnNativeAsset.vue";
-import EarnReward from "./EarnReward.vue";
-import EarnAssetSkeleton from "./EarnAssetSkeleton.vue";
+import EarnAssets from "./EarnAssets.vue";
+import EarnRewards from "./EarnRewards.vue";
 
-export { EarnLpnAsset, EarnNativeAsset, EarnReward, EarnAssetSkeleton };
+export { EarnAssets, EarnRewards };

@@ -58,19 +58,22 @@ export class LeaseUtils {
     return new Dec(0);
   }
 
-  public static async getLeaseData(leaseAddress: string): Promise<LeaseAttributes | undefined> {
+  public static async getLeaseData(leaseAddress: string): Promise<LeaseAttributes> {
     try {
       const result = await EtlApi.fetchLeaseOpening(leaseAddress);
 
       if (!result) {
-        const item = JSON.parse(localStorage.getItem(leaseAddress) ?? "{}");
-        item.timestamp = new Date();
-
-        item.downPayment = new Dec(0);
-        item.leasePositionStable = new Dec(0);
-        item.price = new Dec(0);
-        item.downPaymentFee = new Dec(0);
-        item.lpnPrice = new Dec(0);
+        const item = {
+          timestamp: new Date(),
+          downPayment: new Dec(0),
+          leasePositionStable: new Dec(0),
+          price: new Dec(0),
+          downPaymentFee: new Dec(0),
+          lpnPrice: new Dec(0),
+          fee: new Dec(0),
+          pnlAmount: new Dec(0),
+          repayment_value: new Dec(0)
+        };
 
         return item;
       }
@@ -95,19 +98,6 @@ export class LeaseUtils {
       const leasePositionStable = new Dec(result.lease.LS_loan_amnt_asset, lpn.decimal_digits);
       const downPayment = new Dec(result.lease.LS_cltr_amnt_stable, Number(downPaymentCurrency!.decimal_digits));
       const app = useApplicationStore();
-      // const ctrl_asset_ticker = CurrencyDemapping[result.lease.LS_cltr_symbol]?.ticker ?? result.lease.LS_cltr_symbol;
-
-      // const ctrl_currency = app.currenciesData![`${ctrl_asset_ticker}@${contract}`];
-      // const ls_asset_symbol = CurrencyDemapping[result.lease.LS_asset_symbol]?.ticker ?? result.lease.LS_asset_symbol;
-      // const lease_currency = app.currenciesData![`${ls_asset_symbol}@${contract}`];
-
-      // const ctrl_asset = new Dec(result.lease.LS_cltr_amnt_stable, ctrl_currency.decimal_digits);
-      // const loan = new Dec(result.lease.LS_loan_amnt_stable, lpn.decimal_digits);
-      // const total = ctrl_asset.add(loan);
-      // const loan_amnt_stable = new Dec(result.lease.LS_lpn_loan_amnt, lease_currency.decimal_digits).mul(
-      //   new Dec(result.lpn_price)
-      // );
-      // const downPaymentFee = total.sub(loan_amnt_stable);
 
       const currency = app.currenciesData![`${l_c}@${contract}`];
 
@@ -126,7 +116,7 @@ export class LeaseUtils {
         repayment_value: new Dec(result.repayment_value)
       };
     } catch (error) {
-      Logger.error(error);
+      throw error;
     }
   }
 }
