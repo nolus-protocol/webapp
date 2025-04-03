@@ -20,7 +20,8 @@ import {
   SUPPORTED_NETWORKS,
   NATIVE_NETWORK,
   NATIVE_ASSET,
-  ProtocolsConfig
+  ProtocolsConfig,
+  NATIVE_CURRENCY
 } from "@/config/global";
 
 export class AssetUtils {
@@ -32,7 +33,7 @@ export class AssetUtils {
       sign = "-";
     }
 
-    return `${sign}${symbol ?? ""}${new Intl.NumberFormat("us-US", {
+    return `${sign}${symbol ?? ""}${new Intl.NumberFormat(NATIVE_CURRENCY.locale, {
       maximumFractionDigits: decimals,
       minimumFractionDigits: decimals
     })
