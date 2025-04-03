@@ -4,7 +4,7 @@
       :label="$t('message.price')"
       :icon="{ name: 'line-chart', class: 'fill-icon-link' }"
     >
-      <div class="flex items-center gap-3">
+      <!-- <div class="flex items-center gap-3">
         <span>{{ $t("message.period") }}:</span>
         <Dropdown
           id="price"
@@ -19,7 +19,7 @@
           dropdownPosition="right"
           dropdownClassName="min-w-10"
         />
-      </div>
+      </div> -->
     </WidgetHeader>
     <PriceOverTimeChart
       :lease="lease"
