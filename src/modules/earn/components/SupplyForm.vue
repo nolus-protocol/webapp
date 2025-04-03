@@ -54,6 +54,7 @@
           ></p>
         </div>
         <EarnChart
+          :class="{ hidden: apr == 0 }"
           class="mt-4"
           :currencyKey="assets[selectedCurrency].key"
           :amount="decAmount"
@@ -191,6 +192,13 @@ const stable = computed(() => {
 
 onMounted(() => {
   fetchDepositCapacity();
+});
+
+const apr = computed(() => {
+  let [_, protocol] = assets.value[selectedCurrency.value].key.split("@");
+
+  const a = application.apr?.[protocol];
+  return a;
 });
 
 function onInput(data: string) {
