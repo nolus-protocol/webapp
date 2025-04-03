@@ -210,7 +210,7 @@ const payout = computed(() => {
 
   switch (ProtocolsConfig[lease.value?.protocol!].type) {
     case PositionTypes.long: {
-      return AssetUtils.formatNumber(end.sub.toString(), currency.value?.decimal_digits);
+      return AssetUtils.formatNumber(end.sub(debt).toString(), currency.value?.decimal_digits);
     }
     case PositionTypes.short: {
       const start_price = getPrice() ?? new Dec(0);
