@@ -50,14 +50,17 @@ export const validateAmount = (amount: string, denom: string, balance: number) =
 };
 
 export const validateAmountV2 = (amount: string, amount2: string) => {
+  amount = removeSpace(removeComma(amount?.toString() ?? ""));
+  amount2 = removeSpace(removeComma(amount2?.toString() ?? ""));
+
   const hasDot = amount?.at?.(0) == ".";
 
   if (!amount || hasDot) {
     return i18n.global.t("message.invalid-amount");
   }
 
-  const a = new Dec(amount.replace(",", ""));
-  const b = new Dec(amount2.replace(",", ""));
+  const a = new Dec(amount);
+  const b = new Dec(amount2);
 
   const isLowerThanOrEqualsToZero = a.lte(new Dec(0));
 
@@ -180,4 +183,13 @@ export const transferCurrency = async (denom: string, amount: string, receiverAd
   result.success = true;
 
   return result;
+};
+
+const removeComma = (n: string) => {
+  const re = new RegExp(",", "g");
+  return n.replace(re, "");
+};
+
+const removeSpace = (n: string) => {
+  return n.replace(" ", "");
 };
