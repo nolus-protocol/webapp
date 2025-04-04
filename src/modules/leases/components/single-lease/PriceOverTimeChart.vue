@@ -109,7 +109,8 @@ function getLiquidations() {
       asset = asset.add(new Dec(history.amount, unitAssetInfo.decimal_digits));
 
       if (history.ls_amnt) {
-        const unitAssetInfo2 = app.currenciesData![`${history.ls_amnt_symbol}@${protocolKey}`];
+        const t = CurrencyDemapping[history.ls_amnt_symbol!]?.ticker ?? history.ls_amnt_symbol;
+        const unitAssetInfo2 = app.currenciesData![`${t}@${protocolKey}`];
         asset2 = asset2.add(new Dec(history.ls_amnt, unitAssetInfo2.decimal_digits));
       }
 

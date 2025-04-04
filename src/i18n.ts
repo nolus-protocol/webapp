@@ -12,7 +12,7 @@ export function setupI18n() {
 }
 
 export function setI18nLanguage(locale: string) {
-  (i18n.global.locale as any).value = "en";
+  (i18n.global.locale as any).value = locale;
   document.querySelector("html")?.setAttribute("lang", locale);
 }
 

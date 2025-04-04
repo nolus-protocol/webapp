@@ -108,20 +108,19 @@ watch(
 async function setLanguage(item: DropdownOption) {
   AppUtils.setLang(`${item.value}`);
   await setLang(`${item.value}`);
-  window.location.reload();
 
-  // appearance.value = Object.keys(APPEARANCE).map((key) => {
-  //   return {
-  //     image: ThemeIcons[key as keyof typeof ThemeIcons],
-  //     value: APPEARANCE[key as keyof typeof APPEARANCE],
-  //     label: i18n.t(`message.${key}`)
-  //   };
-  // });
+  appearance.value = Object.keys(APPEARANCE).map((key) => {
+    return {
+      image: ThemeIcons[key as keyof typeof ThemeIcons],
+      value: APPEARANCE[key as keyof typeof APPEARANCE],
+      label: i18n.t(`message.${key}`)
+    };
+  });
 
-  // selectedAppearance.value = {
-  //   label: i18n.t(`message.${themeData}`),
-  //   value: themeData
-  // };
+  selectedAppearance.value = {
+    label: i18n.t(`message.${themeData}`),
+    value: themeData
+  };
 }
 </script>
 

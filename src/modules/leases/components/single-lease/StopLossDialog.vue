@@ -235,7 +235,6 @@ const payout = computed(() => {
   const end_price = new Dec(amount.value.length == 0 ? 0 : amount.value);
   const end = totalAmount.value.mul(end_price);
   const debt = lease.value?.debt ?? new Dec(0);
-
   switch (ProtocolsConfig[lease.value?.protocol!].type) {
     case PositionTypes.long: {
       return AssetUtils.formatNumber(end.sub(debt).toString(), currency.value?.decimal_digits);
