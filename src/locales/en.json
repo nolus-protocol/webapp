@@ -435,6 +435,10 @@
     "short": "Short",
     "light": "Light",
     "dark": "Dark",
-    "sync": "Sync with OS"
+    "sync": "Sync with OS",
+    "market-close": "Market Close",
+    "status-liquidation": "Liquidate",
+    "status-market-close": "Close",
+    "status-repay": "Repay"
   }
 }
