@@ -36,13 +36,20 @@ import { useI18n } from "vue-i18n";
 import { NATIVE_CURRENCY, PERCENT, PERMILLE } from "@/config/global";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 
-import osmoUsdc from "@/assets/icons/osmosis-usdc.svg?url";
-import neutronUsdc from "@/assets/icons/neutron-usdc.svg?url";
-import osmosisSol from "@/assets/icons/osmosis-allsol.svg?url";
-import osmosisBtc from "@/assets/icons/osmosis-allbtc.svg?url";
-import osmosisStAtom from "@/assets/icons/osmosis-statom.svg?url";
-import osmosisAkt from "@/assets/icons/osmosis-akt.svg?url";
-import osmosisAtom from "@/assets/icons/osmosis-atom.svg?url";
+const osmoUsdc =
+  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/osmosis-usdc.svg";
+const neutronUsdc =
+  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/neutron-usdc.svg";
+const osmosisSol =
+  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/osmosis-allsol.svg";
+const osmosisBtc =
+  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/osmosis-allbtc.svg";
+const osmosisStAtom =
+  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/osmosis-statom.svg";
+const osmosisAkt =
+  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/osmosis-akt.svg";
+const osmosisAtom =
+  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/osmosis-atom.svg";
 
 import type { UtilizationProps } from "../types";
 import { NolusClient } from "@nolus/nolusjs";

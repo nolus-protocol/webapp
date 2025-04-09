@@ -71,16 +71,6 @@
           class="text-16 font-semibold text-typography-default"
           >{{ $t("message.recipient") }}</label
         >
-        <Tooltip
-          position="top"
-          :content="$t('message.send-tooltip')"
-        >
-          <SvgIcon
-            name="help"
-            class="rounded-full"
-            size="s"
-          />
-        </Tooltip>
       </div>
       <Input
         id="receipt-send-2"
@@ -150,17 +140,7 @@ import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { Coin } from "@keplr-wallet/types";
 
 import { SwapStatus } from "../enums";
-import {
-  AdvancedFormControl,
-  Button,
-  Dropdown,
-  AssetItem,
-  Input,
-  Size,
-  SvgIcon,
-  Tooltip,
-  type AssetItemProps
-} from "web-components";
+import { AdvancedFormControl, Button, Dropdown, AssetItem, Input, Size, type AssetItemProps } from "web-components";
 import { MetaMaskWallet } from "@/networks/metamask";
 import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";

@@ -45,7 +45,9 @@
               hide: hide,
               amount: pnl.toString(),
               type: CURRENCY_VIEW_TYPES.CURRENCY,
-              denom: NATIVE_CURRENCY.symbol
+              denom: NATIVE_CURRENCY.symbol,
+              class:
+                pnl_percent.isPositive() || pnl_percent.isZero() ? 'text-typography-success' : 'text-typography-error'
             }"
             :pnl-status="{
               positive: pnl_percent.isPositive() || pnl_percent.isZero(),

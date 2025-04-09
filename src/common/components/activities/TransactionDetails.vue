@@ -13,7 +13,7 @@
           :type="data?.historyData.errorMsg ? AlertType.error : AlertType.warning"
         >
           <template v-slot:content>
-            <p class="my-1 text-14 font-normal text-typography-secondary">
+            <p class="my-1 break-all text-14 font-normal text-typography-secondary">
               {{ data?.historyData.errorMsg ?? $t("message.additional-confirm-text") }}
             </p>
             <div class="mt-2 flex gap-2">

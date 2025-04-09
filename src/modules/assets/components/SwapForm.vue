@@ -30,19 +30,7 @@
     />
     <div class="flex justify-end border-b border-t border-border-color px-6 py-4">
       <div class="flex flex-[3] flex-col gap-3 text-right text-16 font-normal text-typography-secondary">
-        <p class="flex gap-1 self-end">
-          {{ $t("message.price-impact") }}:
-          <Tooltip
-            position="top"
-            :content="$t('message.price-message')"
-          >
-            <SvgIcon
-              name="help"
-              class="rouded-full"
-              size="s"
-            />
-          </Tooltip>
-        </p>
+        <p class="flex gap-1 self-end">{{ $t("message.price-impact") }}:</p>
         <p class="flex gap-1 self-end">
           {{ $t("message.estimated-tx-fee") }}:
           <span class="w-[18px]"> </span>
@@ -142,14 +130,7 @@
 
 <script lang="ts" setup>
 import MultipleCurrencyComponent from "@/common/components/MultipleCurrencyComponent.vue";
-import {
-  Button,
-  SvgIcon,
-  Tooltip,
-  type AssetItemProps,
-  AssetItem,
-  type AdvancedCurrencyFieldOption
-} from "web-components";
+import { Button, type AssetItemProps, AssetItem, type AdvancedCurrencyFieldOption } from "web-components";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
 import { computed, inject, onMounted, ref } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";

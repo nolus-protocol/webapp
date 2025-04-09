@@ -157,7 +157,8 @@
           :amount="{
             amount: pnl.amount.toString(),
             type: CURRENCY_VIEW_TYPES.CURRENCY,
-            denom: '$'
+            denom: '$',
+            class: pnl.status ? 'text-typography-success' : 'text-typography-error'
           }"
           :pnl-status="{
             positive: pnl.status,
