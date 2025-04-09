@@ -46,10 +46,10 @@ const i18n = useI18n();
 const app = useApplicationStore();
 
 const chartHeight = 250;
-const marginLeft = 60;
+const marginLeft = 75;
 const chartWidth = isMobile() ? 350 : 950;
 const marginRight = 30;
-const marginBottom = 50;
+const marginBottom = 20;
 
 const likert = {
   order: ["Price", "Liquidation"]
@@ -111,11 +111,11 @@ function getLiquidations() {
       if (history.ls_amnt) {
         const t = CurrencyDemapping[history.ls_amnt_symbol!]?.ticker ?? history.ls_amnt_symbol;
         const unitAssetInfo2 = app.currenciesData![`${t}@${protocolKey}`];
+
         asset2 = asset2.add(new Dec(history.ls_amnt, unitAssetInfo2.decimal_digits));
       }
 
       const l = parceLiquidaitons(asset, asset2);
-
       liquidations.push({
         amount: l,
         date: new Date(history.time)
@@ -123,7 +123,6 @@ function getLiquidations() {
     }
   }
   const l = parceLiquidaitons(new Dec(0), new Dec(0));
-
   liquidations.unshift({
     amount: l,
     date: new Date()
@@ -139,13 +138,10 @@ function parceLiquidaitons(stableAdd: Dec, uAsset: Dec) {
     const protocolKey = props.lease?.protocol!;
     const ticker = CurrencyDemapping[leaseData.amount.ticker!]?.ticker ?? leaseData.amount.ticker;
     const stableTicker = CurrencyDemapping[leaseData.principal_due.ticker!]?.ticker ?? leaseData.principal_due.ticker;
-
     const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
     const stableAssetInfo = app.currenciesData![`${stableTicker!}@${protocolKey}`];
-
     const unitAsset = new Dec(leaseData.amount.amount, Number(unitAssetInfo!.decimal_digits));
     const stableAsset = new Dec(leaseData.principal_due.amount, Number(stableAssetInfo!.decimal_digits));
-
     switch (ProtocolsConfig[protocolKey].type) {
       case PositionTypes.long: {
         liquidation = LeaseUtils.calculateLiquidation(stableAsset.add(stableAdd), unitAsset.add(uAsset));

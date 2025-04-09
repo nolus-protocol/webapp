@@ -88,7 +88,6 @@
                 fontSizeSmall: 16
               }"
             />
-
             <BigNumber
               :loading="loading"
               :label="$t('message.interest-due')"
@@ -100,7 +99,8 @@
                 decimals: lpn?.decimal_digits ?? 0,
                 hasSpace: true,
                 fontSize: 16,
-                fontSizeSmall: 16
+                fontSizeSmall: 16,
+                class: interestDueStatus ? 'text-warning-100' : ''
               }"
             />
           </div>
@@ -270,7 +270,15 @@ import EmptyState from "@/common/components/EmptyState.vue";
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import PnlOverTimeChart from "./PnlOverTimeChart.vue";
-import { MID_DECIMALS, NATIVE_CURRENCY, PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
+import {
+  LEASE_DUE,
+  MID_DECIMALS,
+  NATIVE_CURRENCY,
+  PERCENT,
+  PERMILLE,
+  PositionTypes,
+  ProtocolsConfig
+} from "@/config/global";
 import { computed, inject, ref, watch } from "vue";
 import { useApplicationStore } from "@/common/stores/application";
 import { useOracleStore } from "@/common/stores/oracle";
@@ -565,6 +573,18 @@ const interestDue = computed(() => {
   }
 
   return "0";
+});
+
+const interestDueStatus = computed(() => {
+  const lease = props.lease?.leaseStatus?.opened;
+  if (lease) {
+    const isDue = new Dec(LEASE_DUE).gte(new Dec(lease.overdue_collect_in));
+    if (isDue) {
+      return true;
+    }
+    return false;
+  }
+  return false;
 });
 
 const interest = computed(() => {

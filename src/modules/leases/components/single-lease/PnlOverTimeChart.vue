@@ -53,11 +53,11 @@ import type { LeaseData } from "@/common/types";
 
 type ChartData = { amount: number; date: Date };
 
-const chartHeight = 260;
-const marginLeft = 60;
+const chartHeight = 250;
+const marginLeft = 75;
 const chartWidth = isMobile() ? 350 : 550;
-const marginRight = 50;
-const marginBottom = 60;
+const marginRight = 20;
+const marginBottom = 20;
 
 const i18n = useI18n();
 const chartTimeRange = ref(CHART_RANGES["1"]);
@@ -135,10 +135,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     x: {
       label: null,
       type: "time",
-      tickSize: 0,
-      tickRotate: 45,
-      tickFormat: (d) =>
-        new Date(d).toLocaleString("default", { month: "short", year: "2-digit", hour: "2-digit", minute: "2-digit" })
+      tickSize: 0
     },
     marks: [
       line(data.value, {
