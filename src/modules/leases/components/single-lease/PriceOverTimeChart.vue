@@ -101,11 +101,13 @@ function getLiquidations() {
   const protocolKey = props.lease?.protocol!;
 
   if (leaseData) {
-    const ticker = CurrencyDemapping[leaseData.amount.ticker!]?.ticker ?? leaseData.amount.ticker;
-    const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
     const historyElements = [...(props.lease?.leaseData?.history ?? [])].reverse();
 
     for (const history of historyElements) {
+      const ticker = CurrencyDemapping[history.symbol!]?.ticker ?? history.symbol;
+
+      const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
+
       asset = asset.add(new Dec(history.amount, unitAssetInfo.decimal_digits));
 
       if (history.ls_amnt) {
