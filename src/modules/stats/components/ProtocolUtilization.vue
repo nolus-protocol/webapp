@@ -64,12 +64,12 @@ const columns: TableColumnProps[] = [
   { label: i18n.t("message.current-utilization"), class: "hidden md:flex" },
   {
     label: i18n.t("message.deposit-suspension"),
-    tooltip: { position: "top", content: i18n.t("message.deposit-suspension-tooltip") }
+    tooltip: { position: "top", content: i18n.t("message.deposit-suspension-tooltip") },
+    class: "whitespace-pre"
   },
   {
     label: i18n.t("message.yield"),
-    tooltip: { position: "top", content: i18n.t("message.yield-tooltip") },
-    class: "hidden md:flex"
+    tooltip: { position: "top", content: i18n.t("message.yield-tooltip") }
   }
 ];
 const assets = computed<TableRowItemProps[]>(() => {
