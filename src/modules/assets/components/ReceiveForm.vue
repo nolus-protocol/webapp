@@ -146,17 +146,7 @@ import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { Coin } from "@keplr-wallet/types";
 
 import { SwapStatus } from "../enums";
-import {
-  AdvancedFormControl,
-  Button,
-  Dropdown,
-  AssetItem,
-  Input,
-  Size,
-  SvgIcon,
-  Tooltip,
-  type AssetItemProps
-} from "web-components";
+import { AdvancedFormControl, Button, Dropdown, AssetItem, Input, Size, type AssetItemProps } from "web-components";
 import { MetaMaskWallet } from "@/networks/metamask";
 import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";

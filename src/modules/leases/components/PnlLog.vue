@@ -176,7 +176,6 @@ const leasesHistory = computed(() => {
 
     const pnl = new Dec(item.LS_pnl);
     let pnl_status = pnl.isZero() || pnl.isPositive();
-
     return {
       items: [
         {
@@ -197,7 +196,7 @@ const leasesHistory = computed(() => {
           variant: "left"
         },
         {
-          value: i18n.t(`message.status-${item.Type}`),
+          value: i18n.t(`message.status-${item.LS_Close_Strategy ?? item.Type}`),
           class: "max-w-[100px]"
         },
         {

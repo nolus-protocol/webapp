@@ -32,7 +32,7 @@
         searchable
         :size="isTablet() ? '' : `${leasesData.length} ${$t('message.leases-table-label')}`"
         :columns="leasesData.length > 0 ? columns : []"
-        tableWrapperClasses="min-w-[900px] pr-6 md:min-w-auto md:p-0"
+        tableWrapperClasses="min-w-[1000px] pr-6 md:min-w-auto md:p-0"
         :hide-values="isTablet() ? undefined : { text: $t('message.toggle-values'), value: hide }"
         @hide-value="onHide"
         @onSearchClear="onSearch('')"
@@ -45,7 +45,9 @@
               hide: hide,
               amount: pnl.toString(),
               type: CURRENCY_VIEW_TYPES.CURRENCY,
-              denom: NATIVE_CURRENCY.symbol
+              denom: NATIVE_CURRENCY.symbol,
+              class:
+                pnl_percent.isPositive() || pnl_percent.isZero() ? 'text-typography-success' : 'text-typography-error'
             }"
             :pnl-status="{
               positive: pnl_percent.isPositive() || pnl_percent.isZero(),
@@ -161,7 +163,7 @@ const columns: TableColumnProps[] = [
   { label: i18n.t("message.pnl"), class: "max-w-[200px]" },
   { label: i18n.t("message.lease-size") },
   { label: i18n.t("message.liquidation-lease-table"), class: "max-w-[200px]" },
-  { label: "", class: "max-w-[180px]" }
+  { label: "", class: "max-w-[220px]" }
 ];
 
 const leasesData = computed<TableRowItemProps[]>(() => {
@@ -248,7 +250,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
           { value: liquidation, class: "max-w-[200px]" },
           {
             component: () => [...actions],
-            class: "max-w-[180px] pr-4 cursor-pointer"
+            class: "max-w-[220px] pr-4 cursor-pointer"
           }
         ]
       };

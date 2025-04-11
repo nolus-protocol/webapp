@@ -39,10 +39,7 @@
         v-html="description"
       ></div>
     </template>
-    <template
-      v-slot:footer
-      v-if="!!Number(delegatedTokensAmount.amount) && isVotingPeriod"
-    >
+    <template v-slot:footer>
       <div class="flex gap-3">
         <Button
           :label="$t('message.yes')"

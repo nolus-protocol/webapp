@@ -50,6 +50,7 @@ import { useApplicationStore } from "@/common/stores/application";
 import { getCreatedAtForHuman } from "@/common/utils";
 import { Dec } from "@keplr-wallet/unit";
 import EmptyState from "@/common/components/EmptyState.vue";
+import { CurrencyDemapping } from "@/config/currencies";
 
 const i18n = useI18n();
 const app = useApplicationStore();
@@ -66,11 +67,12 @@ const columns: TableColumnProps[] = [
 
 const leasesHistory = computed(() => {
   return (props.lease?.leaseData?.history ?? []).map((item) => {
-    const currency = app.currenciesData?.[`${item.symbol}@${props.lease!.protocol}`];
+    const tiker = CurrencyDemapping[item.symbol]?.ticker ?? item.symbol;
+    const currency = app.currenciesData?.[`${tiker}@${props.lease!.protocol}`];
     return {
       items: [
         {
-          value: `${i18n.t(`message.${item.type}`)} ${new Dec(item.amount, currency?.decimal_digits).toString(currency?.decimal_digits)} ${currency?.shortName}`,
+          value: `${i18n.t(`message.${item.type}${item.additional ? `-${item.additional}` : ""}`)} ${new Dec(item.amount, currency?.decimal_digits).toString(currency?.decimal_digits)} ${currency?.shortName}`,
           variant: "left",
           class: "text-typography-link font-semibold"
         },

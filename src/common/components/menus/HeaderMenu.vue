@@ -14,7 +14,7 @@
         :selected="option"
         :on-select="onSelect"
         :hideText="isMobile()"
-        dropdownPosition="right"
+        :position="isMobile() ? 'right' : 'left'"
       />
       <WalletInfo
         v-if="wallet.wallet"
