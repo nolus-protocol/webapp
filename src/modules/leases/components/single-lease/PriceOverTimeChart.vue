@@ -49,7 +49,7 @@ const chartHeight = 250;
 const marginLeft = 75;
 const chartWidth = isMobile() ? 350 : 950;
 const marginRight = 30;
-const marginBottom = 20;
+const marginBottom = 40;
 
 const likert = {
   order: ["Price", "Liquidation"]
