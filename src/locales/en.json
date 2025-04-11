@@ -439,6 +439,10 @@
     "market-close": "Market Close",
     "status-liquidation": "Liquidate",
     "status-market-close": "Close",
-    "status-repay": "Repay"
+    "status-repay": "Repay",
+    "status-take-profit": "Take Profit",
+    "status-stop-loss": "Stop loss",
+    "liquidation-overdue interest": "Liquidation Trigger overdue interest",
+    "liquidation-high liability": "Liquidation Trigger high liability"
   }
 }

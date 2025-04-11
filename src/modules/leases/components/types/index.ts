@@ -15,4 +15,6 @@ export interface ILoan {
   Block: Number;
   LS_asset_symbol: string;
   LS_loan_pool_id: string;
+  LS_Close_Strategy: string;
+  LS_Close_Strategy_Ltv: number;
 }

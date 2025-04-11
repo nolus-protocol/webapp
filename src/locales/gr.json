@@ -618,6 +618,10 @@
     "sign-and-continue": "Sign and continue",
     "alert-tx-details": "Alert",
     "utilization_sub_osmosis_btc": "BTC",
-    "utilization_sub_osmosis_atom": "ATOM"
+    "utilization_sub_osmosis_atom": "ATOM",
+    "status-take-profit": "Take Profit",
+    "status-stop-loss": "Stop loss",
+    "liquidation-overdue interest": "Liquidation Trigger overdue interest",
+    "liquidation-high liability": "Liquidation Trigger high liability"
   }
 }

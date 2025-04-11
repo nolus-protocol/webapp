@@ -57,7 +57,7 @@ const chartHeight = 250;
 const marginLeft = 75;
 const chartWidth = isMobile() ? 350 : 550;
 const marginRight = 20;
-const marginBottom = 20;
+const marginBottom = 30;
 
 const i18n = useI18n();
 const chartTimeRange = ref(CHART_RANGES["1"]);

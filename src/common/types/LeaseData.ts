@@ -43,5 +43,6 @@ export interface LeaseAttributes {
     time: string;
     ls_amnt_symbol: string;
     ls_amnt: string;
+    additional?: string;
   }[];
 }
