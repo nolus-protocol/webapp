@@ -419,7 +419,7 @@
     "position-chart-label": "Positions Debt",
     "repay-liquidation-price": "Liquidaiton price {data}",
     "asset-to-lease-short": "Sell",
-    "liquidation-lease-table": "Liquidation",
+    "liquidation-lease-table": "Liq. Trigger",
     "dashboard-lease-title": "Open Positions",
     "view-details": "View More",
     "leases-table-label": "margins",
