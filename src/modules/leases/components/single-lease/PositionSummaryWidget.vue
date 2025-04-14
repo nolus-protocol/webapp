@@ -66,7 +66,7 @@
               :loading="loading"
               :label="`${$t('message.price-per-asset')} ${asset?.shortName}`"
               :amount="{
-                amount: currentPrice,
+                amount: openedPrice,
                 type: CURRENCY_VIEW_TYPES.CURRENCY,
                 denom: NATIVE_CURRENCY.symbol,
                 decimals: MID_DECIMALS,
@@ -562,6 +562,19 @@ const currentPrice = computed(() => {
     props.lease?.leaseData?.leasePositionTicker;
 
   return oracle.prices[`${ticker}@${props.lease?.protocol}`]?.amount ?? "0";
+});
+
+const openedPrice = computed(() => {
+  switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
+    case PositionTypes.long: {
+      return (props.lease?.leaseData?.price ?? new Dec(0)).toString();
+    }
+    case PositionTypes.short: {
+      return (props.lease?.leaseData?.lpnPrice ?? new Dec(0)).toString();
+    }
+  }
+
+  return "0";
 });
 
 const interestDue = computed(() => {
