@@ -441,7 +441,7 @@
     "utilization_sub_osmosis_atom": "ATOM (Osmosis)",
     "status-take-profit": "Take Profit",
     "status-stop-loss": "Stop loss",
-    "liquidation-overdue interest": "Liquidation Trigger overdue interest",
-    "liquidation-high liability": "Liquidation Trigger high liability"
+    "liquidation-overdue interest": "Settle Interest",
+    "liquidation-high liability": "Liquidation Triggered"
   }
 }
