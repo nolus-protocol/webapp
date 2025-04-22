@@ -43,6 +43,10 @@ export interface CurrencyComponentProps {
   prettyZeros?: boolean;
   around?: boolean;
   hide?: boolean;
+  additional?: {
+    text: string;
+    class: string;
+  };
 }
 
 const props = withDefaults(defineProps<CurrencyComponentProps>(), {

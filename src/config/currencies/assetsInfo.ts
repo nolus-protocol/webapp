@@ -109,6 +109,15 @@ export const ASSETS = {
   },
   XION: {
     coinGeckoId: "xion-2"
+  },
+  ALL_ETH: {
+    coinGeckoId: "osmosis-alleth"
+  },
+  BABY: {
+    coinGeckoId: "babylon"
+  },
+  D_NTRN: {
+    coinGeckoId: "neutron-3"
   }
 };
 

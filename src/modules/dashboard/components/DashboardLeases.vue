@@ -117,8 +117,12 @@ function setLeases() {
     let db = new Dec(0);
     let ls = new Dec(0);
     let pl = new Dec(0);
-    let pnlPercent = new Dec(0);
     let c = 0;
+
+    let am = new Dec(0);
+    let dp = new Dec(0);
+    let rp = new Dec(0);
+
     for (const lease of leases.value) {
       if (lease.leaseStatus?.opened) {
         const dasset = app.currenciesData![`${lease.leaseStatus.opened.amount.ticker}@${lease.protocol}`];
@@ -134,11 +138,11 @@ function setLeases() {
 
         ls = ls.add(l);
         lease.debt = lease.debt.mul(new Dec(price.amount));
-        pnlPercent = pnlPercent.add(
-          lease.pnlAmount
-            .quo((downpayment as Dec).add((lease.leaseData?.repayment_value ?? new Dec(0)) as Dec))
-            .mul(new Dec(100))
-        );
+
+        am = am.add(lease.pnlAmount as Dec);
+        dp = dp.add(downpayment as Dec);
+        rp = rp.add((lease.leaseData?.repayment_value ?? new Dec(0)) as Dec);
+
         c++;
       }
       db = db.add(lease.debt as Dec);
@@ -146,9 +150,13 @@ function setLeases() {
     }
     pnl.value = pl;
     count.value = c;
-    if (c) {
-      pnl_percent.value = pnlPercent.quo(new Dec(c));
+
+    const amount = dp.add(rp);
+
+    if (!(amount.isZero() || am.isZero())) {
+      pnl_percent.value = am.quo(dp.add(rp)).mul(new Dec(100));
     }
+
     Intercom.update({
       PositionsUnrealizedPnlUSD: pl.toString(),
       PositionsDebtUSD: db.toString(),

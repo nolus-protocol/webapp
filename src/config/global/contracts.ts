@@ -110,7 +110,7 @@ export const CONTRACTS: ContractConfig = {
       },
       "NEUTRON-ASTROPORT-USDC_NOBLE": {
         lease: true,
-        currencies: ["NLS", "NTRN", "USDC_NOBLE", "DYDX", "ST_TIA", "STK_ATOM", "ATOM", "D_ATOM"],
+        currencies: ["NLS", "NTRN", "USDC_NOBLE", "DYDX", "ST_TIA", "STK_ATOM", "ATOM", "D_ATOM", "D_NTRN"],
         stable: "USDC_NOBLE",
         type: PositionTypes.long,
         rewards: true,
@@ -148,7 +148,9 @@ export const CONTRACTS: ContractConfig = {
           "ALL_SOL",
           "OM",
           "XION",
-          "NIL"
+          "NIL",
+          "ALL_ETH",
+          "BABY"
         ],
         stable: "USDC_NOBLE",
         type: PositionTypes.long,

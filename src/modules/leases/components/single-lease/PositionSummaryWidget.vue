@@ -142,7 +142,14 @@
                 denom: '%',
                 isDenomInfront: false,
                 fontSize: 16,
-                fontSizeSmall: 16
+                fontSizeSmall: 16,
+                class: { 'line-through': isFreeLease },
+                additional: isFreeLease
+                  ? {
+                      text: '0%',
+                      class: 'text-typography-success'
+                    }
+                  : undefined
               }"
             />
           </div>
@@ -279,14 +286,14 @@ import {
   PositionTypes,
   ProtocolsConfig
 } from "@/config/global";
-import { computed, inject, ref, watch } from "vue";
+import { computed, inject, onMounted, ref, watch } from "vue";
 import { useApplicationStore } from "@/common/stores/application";
 import { useOracleStore } from "@/common/stores/oracle";
 import { Dec } from "@keplr-wallet/unit";
 import { AssetUtils } from "@/common/utils/AssetUtils";
 import { CurrencyDemapping } from "@/config/currencies";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
-import { datePraser, Logger, walletOperation } from "@/common/utils";
+import { AppUtils, datePraser, Logger, walletOperation } from "@/common/utils";
 import { useRoute, useRouter } from "vue-router";
 import { SingleLeaseDialog } from "@/modules/leases/enums";
 import { getStatus, TEMPLATES } from "../common";
@@ -309,12 +316,18 @@ const i18n = useI18n();
 const route = useRoute();
 const reload = inject("reload", () => {});
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const freeInterest = ref<string[]>([]);
 
 const pnl = ref({
   percent: "0.00",
   amount: "0.00",
   status: true,
   neutral: true
+});
+
+onMounted(async () => {
+  const data = await AppUtils.getFreeInterestAddress();
+  freeInterest.value = data.interest_paid_to;
 });
 
 watch(
@@ -331,6 +344,13 @@ watch(
 
 const status = computed(() => {
   return getStatus(props.lease as LeaseData);
+});
+
+const isFreeLease = computed(() => {
+  if (freeInterest.value.includes(props.lease?.leaseAddress as string)) {
+    return true;
+  }
+  return false;
 });
 
 const amount = computed(() => {

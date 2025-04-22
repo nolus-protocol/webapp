@@ -136,7 +136,14 @@
           minimalDenom: '',
           decimals: 2,
           fontSize: 16,
-          fontSizeSmall: 16
+          fontSizeSmall: 16,
+          class: { 'line-through': isFreeLease },
+          additional: isFreeLease
+            ? {
+                text: '0%',
+                class: 'text-typography-success'
+              }
+            : undefined
         }"
       />
       <BigNumber
@@ -175,11 +182,11 @@ import BigNumber from "@/common/components/BigNumber.vue";
 import PositionPreviewChart from "./PositionPreviewChart.vue";
 import { Button, SvgIcon } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
-import { computed, onUnmounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { MONTHS, NATIVE_CURRENCY, PERCENT, ProtocolsConfig } from "@/config/global";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
-import { AssetUtils, LeaseUtils } from "@/common/utils";
+import { AppUtils, AssetUtils, LeaseUtils } from "@/common/utils";
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { SkipRouter } from "@/common/utils/SkipRoute";
@@ -198,6 +205,11 @@ const app = useApplicationStore();
 const showDetails = ref(false);
 const swapFee = ref(0);
 const swapStableFee = ref(0);
+const freeInterest = ref<string[]>([]);
+
+onMounted(async () => {
+  freeInterest.value = await AppUtils.getFreeInterest();
+});
 
 onUnmounted(() => {
   clearTimeout(time!);
@@ -213,6 +225,13 @@ watch(
     setSwapFee();
   }
 );
+
+const isFreeLease = computed(() => {
+  if (freeInterest.value.includes(props.lease?.borrow?.ticker as string)) {
+    return true;
+  }
+  return false;
+});
 
 const annualInterestRate = computed(() => {
   return (

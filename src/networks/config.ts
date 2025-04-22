@@ -63,6 +63,9 @@ import { embedChainInfo as nillionChainInfo } from "./list/nillion/contants";
 import { NETWORK as XION_NETWORK } from "./list/xion/network";
 import { embedChainInfo as xionChainInfo } from "./list/xion/contants";
 
+import { NETWORK as BABYLON_NETWORK } from "./list/babylon/network";
+import { embedChainInfo as babylonChainInfo } from "./list/babylon/contants";
+
 import { NETWORK as ETHEREUM_NETWORK } from "./list/ethereum/network";
 import { NETWORK as BINANCE_NETWORK } from "./list/binance/network";
 import { NETWORK as ARBITRUM_NETWORK } from "./list/arbitrum/network";
@@ -99,6 +102,7 @@ import BinanceIcon from "../assets/icons/networks/binance.svg?url";
 import MantraIcon from "../assets/icons/networks/mantra.svg?url";
 import XionIcon from "../assets/icons/networks/xion.svg?url";
 import NillionIcon from "../assets/icons/networks/nillion.svg?url";
+import BabylonIcon from "../assets/icons/networks/babylon.svg?url";
 
 export const PROOBUF_ONLY_NETWORK = [ARBITRUM_NETWORK.key];
 
@@ -377,6 +381,18 @@ export const SUPPORTED_NETWORKS_DATA: {
     forward: true,
     chain_type: ChainType.cosmos,
     icon: NillionIcon
+  },
+  BABYLON: {
+    prefix: BABYLON_NETWORK.prefix,
+    key: BABYLON_NETWORK.key,
+    symbol: BABYLON_NETWORK.ticker,
+    value: "babylon",
+    label: "Babylon",
+    native: false,
+    estimation: 20,
+    forward: true,
+    chain_type: ChainType.cosmos,
+    icon: BabylonIcon
   }
 };
 
@@ -481,7 +497,8 @@ export const NETWORKS_DATA: {
       SUPPORTED_NETWORKS_DATA.ETHEREUM,
       SUPPORTED_NETWORKS_DATA.ARBITRUM,
       SUPPORTED_NETWORKS_DATA.XION,
-      SUPPORTED_NETWORKS_DATA.NILLION
+      SUPPORTED_NETWORKS_DATA.NILLION,
+      SUPPORTED_NETWORKS_DATA.BABYLON
 
       // SUPPORTED_NETWORKS_DATA.CUDOS
       // SUPPORTED_NETWORKS_DATA.BINANCE
@@ -684,6 +701,15 @@ export const NETWORKS_DATA: {
           return app?.networks?.[NILLION_NETWORK.key] as ExternalCurrencies;
         },
         embedChainInfo: nillionChainInfo
+      },
+      BABYLON: {
+        ...BABYLON_NETWORK,
+        explorer: "https://www.mintscan.io/babylon/tx",
+        currencies: () => {
+          const app = useApplicationStore();
+          return app?.networks?.[BABYLON_NETWORK.key] as ExternalCurrencies;
+        },
+        embedChainInfo: babylonChainInfo
       }
     }
   }

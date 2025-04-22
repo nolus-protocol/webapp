@@ -24,6 +24,13 @@
           v-bind="amount"
           class="flex font-semibold text-typography-default"
         />
+        <span
+          v-if="amount?.additional"
+          :class="amount?.additional?.class"
+          class="flex font-semibold text-typography-default"
+        >
+          {{ amount.additional.text }}
+        </span>
       </template>
       <div
         v-else
@@ -65,6 +72,13 @@
           :font-size-small="12"
           class="flex font-normal text-typography-default"
         />
+        <span
+          v-if="amount?.additional"
+          :class="amount?.additional?.class"
+          class="flex font-semibold text-typography-default"
+        >
+          {{ amount.additional.text }}
+        </span>
       </template>
       <div
         v-else
