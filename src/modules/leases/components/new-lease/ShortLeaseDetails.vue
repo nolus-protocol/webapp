@@ -227,7 +227,7 @@ watch(
 );
 
 const isFreeLease = computed(() => {
-  if (freeInterest.value.includes(props.lease?.borrow?.ticker as string)) {
+  if (freeInterest.value.includes(props.loanCurrency)) {
     return true;
   }
   return false;

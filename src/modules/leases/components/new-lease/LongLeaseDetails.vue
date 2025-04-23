@@ -236,7 +236,9 @@ watch(
 );
 
 const isFreeLease = computed(() => {
-  if (freeInterest.value.includes(props.lease?.total?.ticker as string)) {
+  const [_, p] = props.loanCurrency.split("@");
+
+  if (freeInterest.value.includes(`${props.lease?.total?.ticker}@${p}`)) {
     return true;
   }
   return false;
