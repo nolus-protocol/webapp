@@ -18,21 +18,20 @@ import { AssetUtils } from "@/common/utils";
 import { NATIVE_CURRENCY, PERCENT } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { computed, ref, watch } from "vue";
-import { Dec } from "@keplr-wallet/unit";
+import { Dec, Int } from "@keplr-wallet/unit";
 import { useApplicationStore } from "@/common/stores/application";
 
 type ChartData = { amount: number; date: number };
 
 const data = ref<ChartData[]>([]);
 
-const period = 48;
-const days = 30;
+const period = 7;
 
 const chartHeight = 250;
-const marginLeft = 40;
+const marginLeft = 50;
 const chartWidth = 400;
 const marginRight = 30;
-const marginBottom = 50;
+const marginBottom = 65;
 const marginTop = 50;
 
 const i18n = useI18n();
@@ -74,7 +73,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       label: i18n.t("message.earn-chart-y"),
       round: true
     },
-    x: { ticks: 9, tickRotate: 15, type: "linear", tickFormat: (d) => `${d}m.` },
+    x: { ticks: 9, tickRotate: 15, type: "linear", tickFormat: (d) => `${d}y.` },
     marks: [
       lineY(data.value, {
         x: "date",
@@ -145,19 +144,18 @@ async function loadData() {
   if (apr.isZero()) {
     data.value = [];
   } else {
-    apr = apr.quo(new Dec(365));
     let amount = props.amount;
-
+    const value = [];
     for (let i = 0; i <= period; i++) {
-      const p = i * days;
-      const a = amount.add(apr.quo(new Dec(PERCENT)).mul(amount).mul(new Dec(p)));
-      amount = amount.add(a.sub(amount));
-
-      data.value.push({
+      let b = new Dec(1).add(apr).pow(new Int(i));
+      let a = amount.mul(b);
+      value.push({
         amount: Number(a.toString(2)),
         date: i
       });
     }
+
+    data.value = value;
   }
   chart.value?.update();
 }

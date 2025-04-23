@@ -1,6 +1,3 @@
 {
-  "status-take-profit": "Take Profit",
-  "status-stop-loss": "Stop loss",
-  "liquidation-overdue interest": "Settle Interest",
-  "liquidation-high liability": "Liquidation Triggered"
+  "tvl": "Total value locked"
 }

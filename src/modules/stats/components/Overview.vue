@@ -3,12 +3,24 @@
     <WidgetHeader :label="$t('message.overview')" />
     <div class="flex flex-col gap-3 md:flex-row md:gap-8">
       <BigNumber
+        :label="$t('message.tvl')"
+        :amount="{
+          amount: tvl,
+          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          denom: NATIVE_CURRENCY.symbol,
+          decimals: 0
+        }"
+        :loading="loading"
+      />
+      <BigNumber
         :label="$t('message.tx-volume')"
         :amount="{
           amount: txVolume,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
-          decimals: 0
+          decimals: 0,
+          fontSize: 20,
+          fontSizeSmall: 20
         }"
         :loading="loading"
       />
@@ -74,14 +86,21 @@ const txVolume = ref("0");
 const buybackTotal = ref("0");
 const realized_pnl = ref("0");
 const protocolRevenue = ref("0");
+const tvl = ref("0");
+
 const loading = ref(true);
 
 onMounted(async () => {
-  await Promise.all([setTxVolume(), setBuyBackTotal(), setRealizedPnl(), setProtocolRevenue()]).catch((e) =>
+  await Promise.all([setTVL(), setTxVolume(), setBuyBackTotal(), setRealizedPnl(), setProtocolRevenue()]).catch((e) =>
     Logger.error(e)
   );
   loading.value = false;
 });
+
+async function setTVL() {
+  const data = await EtlApi.fetchTVL();
+  tvl.value = data.total_value_locked;
+}
 
 async function setTxVolume() {
   const data = await EtlApi.fetchTxVolume();

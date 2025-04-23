@@ -34,9 +34,14 @@ export class EtlApi {
     );
   }
 
+  static async fetchTVL(): Promise<{ total_value_locked: string }> {
+    return fetch(`${EtlApi.getApiUrl()}/total-value-locked`).then((data) => data.json());
+  }
+
   static async fetchTxVolume(): Promise<{ total_tx_value: string }> {
     return fetch(`${EtlApi.getApiUrl()}/total-tx-value`).then((data) => data.json());
   }
+
   static async fetchLeaseMonthly(): Promise<IObjectKeys[]> {
     return fetch(`${EtlApi.getApiUrl()}/leases-monthly`).then((data) => data.json());
   }

@@ -190,8 +190,8 @@ const leasesHistory = computed(() => {
         },
         {
           image: currency.icon,
-          value: currency.name,
-          subValue: currency.shortName,
+          value: currency.shortName,
+          subValue: currency.name,
           class: "max-w-[200px]",
           variant: "left"
         },
