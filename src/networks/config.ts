@@ -69,6 +69,8 @@ import { embedChainInfo as babylonChainInfo } from "./list/babylon/contants";
 import { NETWORK as ETHEREUM_NETWORK } from "./list/ethereum/network";
 import { NETWORK as BINANCE_NETWORK } from "./list/binance/network";
 import { NETWORK as ARBITRUM_NETWORK } from "./list/arbitrum/network";
+import { NETWORK as AVALANCHE_NETWORK } from "./list/avalanche/network";
+import { NETWORK as BASE_NETWORK } from "./list/base/network";
 
 import { useApplicationStore } from "@/common/stores/application";
 import type { ExternalCurrencies, NetworkData } from "@/common/types";
@@ -103,6 +105,8 @@ import MantraIcon from "../assets/icons/networks/mantra.svg?url";
 import XionIcon from "../assets/icons/networks/xion.svg?url";
 import NillionIcon from "../assets/icons/networks/nillion.svg?url";
 import BabylonIcon from "../assets/icons/networks/babylon.svg?url";
+import AvalancheIcon from "../assets/icons/networks/avalanche.svg?url";
+import BaseIcon from "../assets/icons/networks/base.svg?url";
 
 export const PROOBUF_ONLY_NETWORK = [ARBITRUM_NETWORK.key];
 
@@ -393,6 +397,20 @@ export const SUPPORTED_NETWORKS_DATA: {
     forward: true,
     chain_type: ChainType.cosmos,
     icon: BabylonIcon
+  },
+  AVALANCHE: {
+    ...AVALANCHE_NETWORK,
+    value: "avalanche",
+    native: false,
+    chain_type: ChainType.evm,
+    icon: AvalancheIcon
+  },
+  BASE: {
+    ...BASE_NETWORK,
+    value: "base",
+    native: false,
+    chain_type: ChainType.evm,
+    icon: BaseIcon
   }
 };
 
@@ -498,10 +516,12 @@ export const NETWORKS_DATA: {
       SUPPORTED_NETWORKS_DATA.ARBITRUM,
       SUPPORTED_NETWORKS_DATA.XION,
       SUPPORTED_NETWORKS_DATA.NILLION,
-      SUPPORTED_NETWORKS_DATA.BABYLON
+      SUPPORTED_NETWORKS_DATA.BABYLON,
 
       // SUPPORTED_NETWORKS_DATA.CUDOS
-      // SUPPORTED_NETWORKS_DATA.BINANCE
+      SUPPORTED_NETWORKS_DATA.BINANCE,
+      SUPPORTED_NETWORKS_DATA.AVALANCHE,
+      SUPPORTED_NETWORKS_DATA.BASE
     ],
     supportedNetworks: {
       OSMOSIS: {
