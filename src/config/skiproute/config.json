@@ -178,6 +178,54 @@
           "to": "0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f"
         }
       ]
+    },
+    "AVALANCHE": {
+      "currencies": [
+        {
+          "from": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4",
+          "to": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E"
+        },
+        {
+          "from": "ibc/A7C4A3FB19E88ABE60416125F9189DA680800F4CDD14E3C10C874E022BEFF04C",
+          "to": "0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB"
+        },
+        {
+          "from": "ibc/84E70F4A34FB2DE135FD3A04FDDF53B7DA4206080AA785C8BAB7F8B26299A221",
+          "to": "0x152b9d0FdC40C096757F570A51E494bd4b943E50"
+        }
+      ]
+    },
+    "BASE": {
+      "currencies": [
+        {
+          "from": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4",
+          "to": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+        },
+        {
+          "from": "ibc/A7C4A3FB19E88ABE60416125F9189DA680800F4CDD14E3C10C874E022BEFF04C",
+          "to": "0x4200000000000000000000000000000000000006"
+        },
+        {
+          "from": "ibc/84E70F4A34FB2DE135FD3A04FDDF53B7DA4206080AA785C8BAB7F8B26299A221",
+          "to": "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf"
+        }
+      ]
+    },
+    "BINANCE": {
+      "currencies": [
+        {
+          "from": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4",
+          "to": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d"
+        },
+        {
+          "from": "ibc/A7C4A3FB19E88ABE60416125F9189DA680800F4CDD14E3C10C874E022BEFF04C",
+          "to": "0x2170ed0880ac9a755fd29b2688956bd959f933f8"
+        },
+        {
+          "from": "ibc/84E70F4A34FB2DE135FD3A04FDDF53B7DA4206080AA785C8BAB7F8B26299A221",
+          "to": "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c"
+        }
+      ]
     }
   }
 }
