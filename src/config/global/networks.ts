@@ -60,10 +60,10 @@ export const SUPPORTED_NETWORKS = [
   "MANTRA",
   "XION",
   "NILLION",
-  "BABYLON",
-  "BINANCE",
-  "AVALANCHE",
-  "BASE"
+  "BABYLON"
+  // "BINANCE",
+  // "AVALANCHE",
+  // "BASE"
 ];
 
 export const IGNORED_NETWORKS = ["NOLUS"];
