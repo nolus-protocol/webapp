@@ -18,5 +18,35 @@
         "rpc": "https://arbitrum.llamarpc.com"
       }
     ]
+  },
+  "AVALANCHE": {
+    "primary": {
+      "rpc": "https://avalanche-mainnet.infura.io/v3/469f9ca5d6b54bb9856d573c23adfd2c"
+    },
+    "fallback": [
+      {
+        "rpc": "https://avalanche.llamarpc.com"
+      }
+    ]
+  },
+  "BASE": {
+    "primary": {
+      "rpc": "https://base-mainnet.infura.io/v3/469f9ca5d6b54bb9856d573c23adfd2c"
+    },
+    "fallback": [
+      {
+        "rpc": "https://base.llamarpc.com"
+      }
+    ]
+  },
+  "BINANCE": {
+    "primary": {
+      "rpc": "https://bsc-mainnet.infura.io/v3/469f9ca5d6b54bb9856d573c23adfd2c"
+    },
+    "fallback": [
+      {
+        "rpc": "https://binance.llamarpc.com"
+      }
+    ]
   }
 }

@@ -507,6 +507,8 @@ function setLeases() {
       pl = pl.add(lease.pnlAmount as Dec);
     }
     pnl.value = pl;
+    activeLeases.value = ls;
+    debt.value = db;
 
     const amount = dp.add(rp);
 
