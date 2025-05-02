@@ -86,7 +86,7 @@
           severity="tertiary"
           icon="plus"
           iconPosition="left"
-          size="small"
+          size="smallfxpayout"
           class="text-icon-default"
         />
       </div> -->
@@ -207,15 +207,17 @@ const payout = computed(() => {
   const end_price = new Dec(amount.value.length == 0 ? 0 : amount.value);
   const end = totalAmount.value.mul(end_price);
   const debt = lease.value?.debt ?? new Dec(0);
+  const current_price = oracle.prices[currency.value.key];
 
   switch (ProtocolsConfig[lease.value?.protocol!].type) {
     case PositionTypes.long: {
       return AssetUtils.formatNumber(end.sub(debt).toString(), currency.value?.decimal_digits);
     }
     case PositionTypes.short: {
-      const start_price = getPrice() ?? new Dec(0);
-      const start = totalAmount.value.mul(start_price);
-      const a = start.sub(end.sub(start)).sub(debt);
+      const current_amount = totalAmount.value.mul(new Dec(current_price.amount));
+      const amount = debt.mul(end_price);
+
+      const a = current_amount.sub(amount);
       return AssetUtils.formatNumber(a.toString(), currency.value?.decimal_digits);
     }
   }
@@ -240,7 +242,9 @@ const totalAmount = computed(() => {
 
       const asset = app.currenciesData?.[`${lease?.value!.leaseData!.leasePositionTicker}@${lease?.value!.protocol}`]!;
       const price = oracle.prices?.[asset?.ibcData as string];
-      let k = new Dec(data?.amount ?? 0, currency.value.decimal_digits).quo(new Dec(price.amount));
+      const c =
+        app.currenciesData?.[`${ProtocolsConfig[lease?.value?.protocol as string].stable}@${lease?.value?.protocol}`];
+      let k = new Dec(data?.amount ?? 0, c?.decimal_digits ?? 0).quo(new Dec(price.amount));
       return k;
     }
   }
