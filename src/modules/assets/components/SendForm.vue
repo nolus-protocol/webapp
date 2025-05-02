@@ -519,10 +519,19 @@ async function setCosmosNetwork() {
   const currencies = [];
   const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[network.value.key].currencies;
   for (const c of data ?? []) {
-    const currency = AssetUtils.getCurrencyByDenom(c.from);
-    const balance = walletStore.balances.find((item) => item.balance.denom == c.from);
-    currency.balance = coin(balance?.balance?.amount.toString() ?? 0, c.to);
-    currencies.push(currency);
+    if (c.visible) {
+      if (app.protocolFilter == c.visible) {
+        const currency = AssetUtils.getCurrencyByDenom(c.from);
+        const balance = walletStore.balances.find((item) => item.balance.denom == c.from);
+        currency.balance = coin(balance?.balance?.amount.toString() ?? 0, c.to);
+        currencies.push(currency);
+      }
+    } else {
+      const currency = AssetUtils.getCurrencyByDenom(c.from);
+      const balance = walletStore.balances.find((item) => item.balance.denom == c.from);
+      currency.balance = coin(balance?.balance?.amount.toString() ?? 0, c.to);
+      currencies.push(currency);
+    }
   }
 
   const mappedCurrencies = currencies.map((item) => {
