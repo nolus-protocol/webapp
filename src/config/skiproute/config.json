@@ -154,6 +154,12 @@
         }
       ]
     },
+    "NOBLE": {
+     "currencies": [
+       { "from": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4", "to": "uusdc" },
+       { "from": "ibc/18161D8EFBD00FF5B7683EF8E923B8913453567FBE3FB6672D75712B0DEB6682", "to": "uusdc" }
+     ]
+   },
     "ETHEREUM": {
       "currencies": [
         {
