@@ -158,12 +158,6 @@
         }
       ]
     },
-    "NOBLE": {
-     "currencies": [
-       { "from": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4", "to": "uusdc" },
-       { "from": "ibc/18161D8EFBD00FF5B7683EF8E923B8913453567FBE3FB6672D75712B0DEB6682", "to": "uusdc" }
-     ]
-   },
     "ETHEREUM": {
       "currencies": [
         {
@@ -218,6 +212,20 @@
         {
           "from": "ibc/E45CFCB959F4F6D1065B7033EE49A88E606E6AD82E75725219B3D68B0FA89987",
           "to": "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf"
+        }
+      ]
+    },
+    "NOBLE": {
+      "currencies": [
+        {
+          "from": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4",
+          "to": "uusdc",
+          "visible": "OSMOSIS"
+        },
+        {
+          "from": "ibc/18161D8EFBD00FF5B7683EF8E923B8913453567FBE3FB6672D75712B0DEB6682",
+          "to": "uusdc",
+          "visible": "NEUTRON"
         }
       ]
     }

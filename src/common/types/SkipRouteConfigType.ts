@@ -21,6 +21,7 @@ export interface SkipRouteConfigType {
         from: string;
         to: string;
         native: boolean;
+        visible?: string;
       }[];
     };
   };
