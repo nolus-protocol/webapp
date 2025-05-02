@@ -128,7 +128,7 @@
       "currencies": [
         { "from": "ibc/3D6BC6E049CAEB905AC97031A42800588C58FB471EBDC7A3530FFCD0C3DC9E09", "to": "untrn" },
         {
-          "from": "",
+          "from": "ibc/2DA920A297BE3FD54A8793F69CC9CBC6B331FFD0FAB500A96637218BA7D5C64E",
           "to": "factory/neutron1frc0p5czd9uaaymdkug2njz7dc7j65jxukp9apmt9260a8egujkspms2t2/udntrn"
         },
         {
