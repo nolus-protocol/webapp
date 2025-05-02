@@ -216,22 +216,6 @@
           "to": "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf"
         }
       ]
-    },
-    "BINANCE": {
-      "currencies": [
-        {
-          "from": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4",
-          "to": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d"
-        },
-        {
-          "from": "ibc/7879B1CBBD2E07347002334792368E65C11A7D1629297D04B6A2155F557E02D4",
-          "to": "0x2170ed0880ac9a755fd29b2688956bd959f933f8"
-        },
-        {
-          "from": "ibc/E45CFCB959F4F6D1065B7033EE49A88E606E6AD82E75725219B3D68B0FA89987",
-          "to": "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c"
-        }
-      ]
     }
   }
 }
