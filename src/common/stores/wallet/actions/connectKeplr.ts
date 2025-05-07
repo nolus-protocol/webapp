@@ -43,6 +43,7 @@ export async function connectKeplr(this: Store) {
         preferNoSetFee: true
       });
       const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(offlineSigner as any);
+      console.log(nolusWalletOfflineSigner);
       await nolusWalletOfflineSigner.useAccount();
 
       WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.KEPLR);
