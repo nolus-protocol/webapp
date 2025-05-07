@@ -442,6 +442,7 @@
     "status-stop-loss": "Стоп-лосс",
     "liquidation-overdue interest": "Урегулировать проценты",
     "liquidation-high liability": "Началась ликвидация",
-    "tvl": "Общая стоимость заблокирована"
+    "tvl": "Общая стоимость заблокирована",
+    "walletconnect": "Walletconnect"
   }
 }

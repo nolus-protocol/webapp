@@ -623,6 +623,7 @@
     "status-stop-loss": "Stop loss",
     "liquidation-overdue interest": "Settle Interest",
     "liquidation-high liability": "Liquidation Triggered",
-    "tvl": "Total value locked"
+    "tvl": "Total value locked",
+    "walletconnect": "Walletconnect"
   }
 }

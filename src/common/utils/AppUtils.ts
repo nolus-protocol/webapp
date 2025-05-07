@@ -16,6 +16,7 @@ import { DOWNPAYMENT_RANGE_URL, FREE_INTEREST_ADDRESS_URL, isDev, isServe, langu
 import { PROMOSALS_CONFIG_URL } from "@/config/global/proposals";
 import { FREE_INTEREST_URL } from "@/config/global/free-interest-url";
 import { DUE_PROJECTION_SECS_URL } from "@/config/global/due-projection-secs-url";
+import { CHAIN_IDS_URLS } from "@/config/global/chainids-url";
 
 export class AppUtils {
   public static LANGUAGE = "language";
@@ -54,6 +55,12 @@ export class AppUtils {
       [key: string]: Promise<API>;
     };
   } = {};
+
+  static chainIds: Promise<{
+    [key: string]: {
+      [key: string]: string;
+    };
+  }>;
 
   static evmRpc: {
     [key: string]: Promise<API>;
@@ -232,6 +239,16 @@ export class AppUtils {
     return proposals_config;
   }
 
+  static async getChainIds() {
+    if (this.chainIds) {
+      return this.chainIds;
+    }
+
+    const chainIds = AppUtils.fetchChainIds();
+    this.chainIds = chainIds;
+    return chainIds;
+  }
+
   public static getProtocols() {
     return CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].protocols;
   }
@@ -397,6 +414,16 @@ export class AppUtils {
     };
 
     return json;
+  }
+
+  private static async fetchChainIds(): Promise<{
+    [key: string]: {
+      [key: string]: string;
+    };
+  }> {
+    const url = await CHAIN_IDS_URLS;
+    const data = await fetch(url);
+    return data.json();
   }
 
   private static async fetchSkipRoute(): Promise<SkipRouteConfigType> {

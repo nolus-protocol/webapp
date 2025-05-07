@@ -48,6 +48,8 @@ import TermsDialog from "../dialogs/TermsDialog.vue";
 import KeplrIcon from "@/assets/icons/wallets/keplr.svg?url";
 import LedgerIcon from "@/assets/icons/wallets/ledger.svg?url";
 import LeapIcon from "@/assets/icons/wallets/leapwallet.svg?url";
+import WalletconnectIcon from "@/assets/icons/wallets/walletconnect.svg?url";
+
 import { useRouter } from "vue-router";
 
 const i18n = useI18n();
@@ -64,6 +66,11 @@ const connections = {
     icon: LeapIcon,
     label: i18n.t("message.leap"),
     type: WalletActions.CONNECT_LEAP
+  },
+  Walletconnect: {
+    icon: WalletconnectIcon,
+    label: i18n.t("message.walletconnect"),
+    type: WalletActions.CONNECT_WC
   },
   Ledger: {
     icon: LedgerIcon,

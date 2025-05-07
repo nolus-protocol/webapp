@@ -1,0 +1,31 @@
+{
+  "cosmos": {
+    "NOLUS": "pirin-1",
+    "OSMOSIS": "osmosis-1",
+    "COSMOS_HUB": "cosmoshub-4",
+    "AXELAR": "axelar-dojo-1",
+    "STRIDE": "stride-1",
+    "JUNO": "juno-1",
+    "EVMOS": "evmos_9001-2",
+    "PERSISTENCE": "core-1",
+    "SECRET": "secret-4",
+    "CELESTIA": "celestia",
+    "STARGAZE": "stargaze-1",
+    "QUICKSILVER": "quicksilver-2",
+    "NEUTRON": "neutron-1",
+    "DYMENSION": "dymension_1100-1",
+    "JACKAL": "jackal-1",
+    "INJECTIVE": "injective-1",
+    "NOBLE": "noble-1",
+    "XION": "xion-mainnet-1",
+    "NILLION": "nillion-1",
+    "BABYLON": "bbn-1",
+    "MANTRA": "mantra-1"
+  },
+  "evm": {
+    "ETHEREUM": "1",
+    "AVALANCHE": "43114",
+    "ARBITRUM": "42161",
+    "BASE": "8453`"
+  }
+}
