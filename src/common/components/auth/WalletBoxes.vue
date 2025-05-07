@@ -5,7 +5,10 @@
     :disabled="disabled"
     @click="onClick"
   >
-    <img :src="icon" />
+    <img
+      width="32"
+      :src="icon"
+    />
     {{ label }}
     <Spinner
       v-if="disabled"

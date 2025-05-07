@@ -442,6 +442,7 @@
     "status-stop-loss": "Arrêter la perte",
     "liquidation-overdue interest": "Règlement des intérêts",
     "liquidation-high liability": "Liquidation déclenchée",
-    "tvl": "Valeur totale verrouillée"
+    "tvl": "Valeur totale verrouillée",
+    "walletconnect": "Walletconnect"
   }
 }

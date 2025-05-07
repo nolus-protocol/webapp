@@ -442,6 +442,7 @@
     "status-stop-loss": "Kaybı durdur",
     "liquidation-overdue interest": "Faizi Kapat",
     "liquidation-high liability": "Tasfiye Tetiklendi",
-    "tvl": "Toplam Değer Kilitli"
+    "tvl": "Toplam Değer Kilitli",
+    "walletconnect": "Walletconnect"
   }
 }

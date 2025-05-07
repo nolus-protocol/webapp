@@ -442,6 +442,7 @@
     "status-stop-loss": "Σταματήστε την απώλεια",
     "liquidation-overdue interest": "Διακανονισμός τόκου",
     "liquidation-high liability": "Εκκαθάριση ενεργοποιήθηκε",
-    "tvl": "Συνολική τιμή κλειδωμένη"
+    "tvl": "Συνολική τιμή κλειδωμένη",
+    "walletconnect": "Walletconnect"
   }
 }

@@ -88,6 +88,10 @@ export const walletOperation = async (operation: () => void) => {
       await walletStore[WalletActions.CONNECT_LEAP]();
       break;
     }
+    case WalletConnectMechanism.WALLET_WC: {
+      await walletStore[WalletActions.CONNECT_WC]();
+      break;
+    }
     case WalletConnectMechanism.LEDGER: {
       await walletStore[WalletActions.CONNECT_LEDGER]();
       break;

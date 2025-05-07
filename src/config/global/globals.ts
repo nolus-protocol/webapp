@@ -71,4 +71,6 @@ export const ZERO_DECIMALS = 6;
 export const MAX_DECIMALS = 8;
 export const MID_DECIMALS = 4;
 export const LedgerName = "Ledger";
+export const WalletConnectName = "WalletConnect";
+
 export const UNDELEGATE_DAYS = 21;
