@@ -33,9 +33,39 @@ function getClient(): Promise<SignClient> {
 }
 
 export async function connectWithWalletConnect(this: Store, callback?: Function) {
+  const { signer, signClient, session, chainId } = await getWalletConnectOfflineSigner(callback);
+
+  const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(signer);
+  await nolusWalletOfflineSigner.useAccount();
+  const key = await signClient.request<
+    {
+      address: string;
+      pubkey: string;
+    }[]
+  >({
+    topic: session.topic,
+    chainId: `cosmos:${chainId}`,
+    request: { method: "cosmos_getAccounts", params: { chainId } }
+  });
+
+  const w = key[0];
+  WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.WALLET_WC);
+  WalletManager.setPubKey(Buffer.from(w.pubkey, "base64").toString("hex"));
+
+  this.wallet = nolusWalletOfflineSigner;
+  this.walletName = WalletConnectName;
+  await this.UPDATE_BALANCES();
+  this.loadActivities();
+  Intercom.load(this.wallet.address);
+}
+
+export async function getWalletConnectOfflineSigner(callback?: Function, chId?: string) {
   const networkConfig = await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
-  NolusClient.setInstance(networkConfig.rpc);
-  const chainId = await NolusClient.getInstance().getChainId();
+
+  if (!chId) {
+    NolusClient.setInstance(networkConfig.rpc);
+    chId = await NolusClient.getInstance().getChainId();
+  }
 
   const signClient = await getClient();
   await signClient.auth.init();
@@ -96,33 +126,16 @@ export async function connectWithWalletConnect(this: Store, callback?: Function)
     session = await approval();
   }
 
-  const signer = makeWCOfflineSigner(signClient, session.topic, `cosmos:${chainId}`);
-  const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(signer);
-  await nolusWalletOfflineSigner.useAccount();
-  const key = await signClient.request<
-    {
-      address: string;
-      pubkey: string;
-    }[]
-  >({
-    topic: session.topic,
-    chainId: `cosmos:${chainId}`,
-    request: { method: "cosmos_getAccounts", params: { chainId } }
-  });
-
-  const w = key[0];
-  WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.WALLET_WC);
-  WalletManager.setPubKey(Buffer.from(w.pubkey, "base64").toString("hex"));
-  console.log(w);
-
-  this.wallet = nolusWalletOfflineSigner;
-  this.walletName = WalletConnectName;
-  await this.UPDATE_BALANCES();
-  this.loadActivities();
-  Intercom.load(this.wallet.address);
+  const signer = makeWCOfflineSigner(signClient, session.topic, `cosmos:${chId}`);
+  return {
+    signer,
+    signClient,
+    session,
+    chainId: chId
+  };
 }
 
-function makeWCOfflineSigner(
+export function makeWCOfflineSigner(
   signClient: SignClient,
   sessionTopic: string,
   cosmosNamespace: string
@@ -134,6 +147,7 @@ function makeWCOfflineSigner(
         chainId: cosmosNamespace,
         request: { method: "cosmos_getAccounts", params: {} }
       });
+
       const data = accounts.map(({ address, algo, pubkey }) => ({
         address,
         algo,

@@ -646,7 +646,7 @@ async function onSubmit() {
   if (!route || !WalletUtils.isAuth() || amountErrorMsg.value.length > 0) {
     return false;
   }
-  console.log(route);
+
   try {
     step.value = CONFIRM_STEP.PENDING;
 
