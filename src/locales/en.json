@@ -64,7 +64,7 @@
     "many_m": "minutes ago",
     "one_h": "1 hour ago",
     "many_h": "hours ago",
-    "deposit": "Deposit",
+    "deposit": "Supplied",
     "deposit-tooltip": "Amount of supplied assets",
     "appearance": "Appearance",
     "estimate-time": "Estimated processing time",
