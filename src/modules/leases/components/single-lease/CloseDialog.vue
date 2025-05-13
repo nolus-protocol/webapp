@@ -90,7 +90,7 @@
                   :innerHTML="
                     $t('message.preview-closed-paid-partuial-debt', {
                       amount: paidDebt,
-                      price: price,
+                      price: `${NATIVE_CURRENCY.symbol}${price}`,
                       asset: debtData.asset,
                       fee: debtData.fee
                     })
@@ -103,8 +103,7 @@
                   name="info"
                   class="fill-icon-secondary"
                 />
-                {{ $t("message.preview-closed-debt") }} {{ remaining.amount }} ({{ NATIVE_CURRENCY.symbol
-                }}{{ remaining.amountInStable }})
+                {{ $t("message.preview-closed-debt") }} {{ remaining }}
               </div>
 
               <div class="flex items-center gap-2 text-14">
@@ -127,7 +126,7 @@
                   :innerHTML="
                     $t('message.preview-closed-paid-debt', {
                       amount: debtData.debt,
-                      price: price,
+                      price: `${NATIVE_CURRENCY.symbol}${price}`,
                       asset: debtData.asset,
                       fee: debtData.fee
                     })
@@ -155,7 +154,7 @@
                   :innerHTML="
                     $t('message.preview-closed-paid-debt', {
                       amount: debtData.debt,
-                      price: price,
+                      price: `${NATIVE_CURRENCY.symbol}${price}`,
                       asset: debtData.asset,
                       fee: debtData.fee
                     })
@@ -351,11 +350,45 @@ const price = computed(() => {
 });
 
 const remaining = computed(() => {
-  return getAmountValue(amount.value == "" ? "0" : amount.value);
+  const data = getAmountValue(amount.value == "" ? "0" : amount.value);
+  switch (ProtocolsConfig[lease.value!.protocol].type) {
+    case PositionTypes.short: {
+      let lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
+      const price = new Dec(oracle.prices?.[lpn.key!]?.amount ?? 0);
+      const stable = data.amount.toDec().quo(price);
+
+      return `${AssetUtils.formatNumber(stable.toString(lpn.decimal_digits), lpn.decimal_digits)} ${lpn.shortName}`;
+    }
+    case PositionTypes.long: {
+      let lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
+      return `${AssetUtils.formatNumber(data.amountInStable.toDec().toString(lpn.decimal_digits), lpn.decimal_digits)} ${lpn.shortName}`;
+    }
+  }
 });
 
 const paidDebt = computed(() => {
-  return `${AssetUtils.formatNumber(amount.value, currency.value.decimal_digits)} ${currency.value.shortName} (${calculatedBalance.value})`;
+  switch (ProtocolsConfig[lease.value!.protocol].type) {
+    case PositionTypes.short: {
+      let lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
+      const price = new Dec(oracle.prices?.[lpn.key!]?.amount ?? 0);
+      const v = amount?.value?.length ? amount?.value : "0";
+      const stable = new Dec(v).quo(price);
+
+      return `${AssetUtils.formatNumber(stable.toString(lpn.decimal_digits), lpn.decimal_digits)} ${lpn.shortName}`;
+    }
+    case PositionTypes.long: {
+      const asset = assets.value[selectedCurrency.value];
+      if (!asset) {
+        return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber("0.00", NATIVE_CURRENCY.maximumFractionDigits)}`;
+      }
+      const price = new Dec(oracle.prices?.[asset.key!]?.amount ?? 0);
+      const v = amount?.value?.length ? amount?.value : "0";
+      const stable = price.mul(new Dec(v));
+      let lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
+
+      return `${AssetUtils.formatNumber(stable.toString(lpn.decimal_digits), lpn.decimal_digits)} ${lpn.shortName}`;
+    }
+  }
 });
 
 const debtData = computed(() => {
@@ -492,7 +525,6 @@ function onSetAmount(percent: number) {
   const a = total.value.mul(new Dec(percent).quo(new Dec(100)));
   amount.value = a.toString(currency!.value.decimal_digits);
 }
-
 const calculatedBalance = computed(() => {
   const asset = assets.value[selectedCurrency.value];
   if (!asset) {
@@ -503,7 +535,6 @@ const calculatedBalance = computed(() => {
   const stable = price.mul(new Dec(v));
   return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
 });
-
 const midPosition = computed(() => {
   const d = debt.value?.amount.toDec() ?? new Dec(0);
 
@@ -830,7 +861,6 @@ function getAmountValue(a: string) {
       vStable
     )
       .trim(true)
-      .maxDecimals(4)
       .hideDenom(true),
     amount: new CoinPretty(
       {

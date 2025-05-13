@@ -633,24 +633,19 @@ const detbPartial = computed(() => {
 
     switch (ProtocolsConfig[lease.value!.protocol].type) {
       case PositionTypes.short: {
-        const asset = d.mul(price);
         const rest = debtTotal.repayment.sub(d);
-        const restAsset = rest.mul(price);
         return {
-          // payment: `${AssetUtils.formatNumber(d.toString(), currecy.decimal_digits)} ${currecy.shortName} (${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(asset.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)})`,
-
           payment: `${AssetUtils.formatNumber(d.toString(), currecy.decimal_digits)} ${currecy.shortName}`,
-          rest: `${AssetUtils.formatNumber(rest.toString(), currecy.decimal_digits)} ${currecy.shortName} (${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(restAsset.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)})`
+          rest: `${AssetUtils.formatNumber(rest.toString(), currecy.decimal_digits)} ${currecy.shortName}`
         };
       }
       case PositionTypes.long: {
         const asset = d.quo(price);
         const rest = debtTotal.repayment.sub(d);
-        const restAsset = rest.quo(price);
         let lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
         return {
           payment: `${AssetUtils.formatNumber(asset.toString(), lpn.decimal_digits)} ${lpn.shortName}`,
-          rest: `${AssetUtils.formatNumber(restAsset.toString(), currecy.decimal_digits)} ${currecy.shortName} (${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(rest.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)})`
+          rest: `${AssetUtils.formatNumber(rest.toString(lpn.decimal_digits), lpn.decimal_digits)} ${lpn.shortName}`
         };
       }
     }
@@ -669,8 +664,6 @@ const debtData = computed(() => {
 
     switch (ProtocolsConfig[lease.value!.protocol].type) {
       case PositionTypes.short: {
-        const asset = d.mul(price);
-        // return `${AssetUtils.formatNumber(d.toString(), currecy.decimal_digits)} ${currecy.shortName} (${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(asset.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)})`;
         return `${AssetUtils.formatNumber(d.toString(), currecy.decimal_digits)} ${currecy.shortName}`;
       }
       case PositionTypes.long: {
