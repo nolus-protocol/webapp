@@ -443,6 +443,7 @@
     "liquidation-overdue interest": "利息の決済",
     "liquidation-high liability": "清算の発動",
     "tvl": "合計値がロックされました",
-    "walletconnect": "Walletconnect"
+    "walletconnect": "Walletconnect",
+    "latest": "Latest"
   }
 }

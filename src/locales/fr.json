@@ -443,6 +443,7 @@
     "liquidation-overdue interest": "Règlement des intérêts",
     "liquidation-high liability": "Liquidation déclenchée",
     "tvl": "Valeur totale verrouillée",
-    "walletconnect": "Walletconnect"
+    "walletconnect": "Walletconnect",
+    "latest": "Latest"
   }
 }

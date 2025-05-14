@@ -443,6 +443,7 @@
     "liquidation-overdue interest": "Урегулировать проценты",
     "liquidation-high liability": "Началась ликвидация",
     "tvl": "Общая стоимость заблокирована",
-    "walletconnect": "Walletconnect"
+    "walletconnect": "Walletconnect",
+    "latest": "Latest"
   }
 }

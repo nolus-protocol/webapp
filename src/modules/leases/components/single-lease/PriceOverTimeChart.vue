@@ -5,7 +5,12 @@
     :fns="[setData]"
     :getClosestDataPoint="getClosestDataPoint"
     :data-length="data.length"
-  />
+  >
+    <p class="text-16 font-semibold text-typography-default">
+      {{ $t("message.latest") }}
+    </p>
+    <span class="mt-1 text-16 text-typography-default"> 1 {{ currency.name }} = {{ currency.price }}</span>
+  </Chart>
   <div
     v-if="chart?.isLegendVisible"
     class="flex justify-center"
@@ -27,11 +32,12 @@ import { AssetUtils, EtlApi, isMobile, LeaseUtils } from "@/common/utils";
 import { CurrencyDemapping, CurrencyMapping } from "@/config/currencies";
 import { NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { plot, lineY, ruleY } from "@observablehq/plot";
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { pointer, select, type Selection } from "d3";
 import { useI18n } from "vue-i18n";
 import { Dec } from "@keplr-wallet/unit";
 import { useApplicationStore } from "@/common/stores/application";
+import { useOracleStore } from "@/common/stores/oracle";
 
 type ChartData = { Date: Date; Price: number; Liquidation: string | null };
 
@@ -44,9 +50,10 @@ const props = defineProps<{
 const chart = ref<typeof Chart>();
 const i18n = useI18n();
 const app = useApplicationStore();
+const oracle = useOracleStore();
 
 const chartHeight = 250;
-const marginLeft = 75;
+const marginLeft = 50;
 const chartWidth = isMobile() ? 350 : 950;
 const marginRight = 30;
 const marginBottom = 40;
@@ -61,6 +68,15 @@ watch(
     setData();
   }
 );
+
+const currency = computed(() => {
+  const c = app.currenciesData![`${props.lease?.leaseData?.leasePositionTicker}@${props.lease?.protocol}`];
+  const price = oracle.prices![`${props.lease?.leaseData?.leasePositionTicker}@${props.lease?.protocol}`];
+  return {
+    name: c?.shortName,
+    price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(price.amount, c.decimal_digits)}`
+  };
+});
 
 async function setData() {
   if (props.lease) {

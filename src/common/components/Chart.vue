@@ -3,6 +3,7 @@
     class="relative my-4"
     ref="container"
   >
+    <slot></slot>
     <div
       v-if="!disableSkeleton && isLoading"
       class="absolute h-full w-full"

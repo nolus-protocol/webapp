@@ -419,8 +419,8 @@ async function onUpdateNetwork(event: Network) {
         break;
       }
       case "evm": {
-        await setEvmNetwork();
         await connectEvm();
+        await setEvmNetwork();
         break;
       }
     }
@@ -554,7 +554,6 @@ async function setEvmNetwork() {
       from: item.ibcData
     };
   });
-
   if (client instanceof MetaMaskWallet) {
     for (const c of mappedCurrencies) {
       async function fn() {

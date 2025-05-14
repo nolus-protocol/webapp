@@ -443,6 +443,7 @@
     "liquidation-overdue interest": "结算利息",
     "liquidation-high liability": "已触发爆仓",
     "tvl": "锁定总价值",
-    "walletconnect": "Walletconnect"
+    "walletconnect": "Walletconnect",
+    "latest": "Latest"
   }
 }
