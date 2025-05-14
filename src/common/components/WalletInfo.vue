@@ -79,6 +79,8 @@ import { useI18n } from "vue-i18n";
 import KeplrIcon from "@/assets/icons/wallets/keplr.svg";
 import LedgerIcon from "@/assets/icons/wallets/ledger.svg";
 import LeapIcon from "@/assets/icons/wallets/leapwallet.svg";
+import WalletconnectIcon from "@/assets/icons/wallets/walletconnect.svg";
+
 import NolusIcon from "@/assets/icons/coins/nls.svg?url";
 
 import { useWalletStore } from "../stores/wallet";
@@ -106,6 +108,10 @@ const connections: {
   [WalletConnectMechanism.LEAP]: {
     icon: LeapIcon,
     label: i18n.t("message.leap")
+  },
+  [WalletConnectMechanism.WALLET_WC]: {
+    icon: WalletconnectIcon,
+    label: i18n.t("message.walletconnect")
   },
   [WalletConnectMechanism.LEDGER]: {
     icon: LedgerIcon,

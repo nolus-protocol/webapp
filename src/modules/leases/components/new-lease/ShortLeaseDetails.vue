@@ -10,13 +10,14 @@
     <BigNumber
       label="Size"
       :amount="{
-        amount: lease?.total.amount ?? '0',
+        amount: sizeAmount,
         type: CURRENCY_VIEW_TYPES.TOKEN,
         denom: assetLoan.shortName,
         maxDecimals: assetLoan.decimal_digits,
         minimalDenom: '',
         decimals: assetLoan?.decimal_digits,
-        hasSpace: true
+        hasSpace: true,
+        around: true
       }"
       :secondary="{
         amount: totalLoan,
@@ -88,7 +89,7 @@
             <BigNumber
               :label="$t('message.impact-and-dex-fees')"
               :amount="{
-                amount: swapFeeAmount,
+                amount: swapFeeAmount.toString(),
                 decimals: asset.decimal_digits,
                 type: CURRENCY_VIEW_TYPES.TOKEN,
                 denom: asset.shortName,
@@ -226,6 +227,16 @@ watch(
   }
 );
 
+const sizeAmount = computed(() => {
+  if (!props.lease?.total?.amount) {
+    return "0";
+  }
+  const decimals = new Dec(10 ** lpn.value.decimal_digits);
+  const fee = new Dec(swapStableFee.value, lpn.value.decimal_digits).mul(decimals);
+  const total = new Dec(props.lease?.total.amount ?? "0").sub(fee);
+  return total.truncate().toString();
+});
+
 const isFreeLease = computed(() => {
   if (freeInterest.value.includes(props.loanCurrency)) {
     return true;
@@ -240,9 +251,12 @@ const annualInterestRate = computed(() => {
 });
 
 const totalLoan = computed(() => {
+  if (!props.lease?.total?.amount) {
+    return "0";
+  }
   const price = new Dec(oracle.prices?.[asset.value.key!]?.amount ?? 0);
   const v = props.lease?.total?.amount ?? "0";
-  const amount = new Dec(v).quo(price);
+  const amount = new Dec(v).quo(price).sub(swapFeeAmount.value);
   return amount.toString(assetLoan.value.decimal_digits);
 });
 
@@ -301,7 +315,7 @@ const swapFeeAmount = computed(() => {
   const decimals = new Dec(10 ** lpn.value.decimal_digits);
   const v = new Dec(swapStableFee.value);
   const amount = v.quo(price).mul(decimals);
-  return amount.toString();
+  return amount;
 });
 
 const borrowStable = computed(() => {

@@ -11,12 +11,13 @@
     <BigNumber
       label="Size"
       :amount="{
-        amount: lease?.total.amount ?? '0',
+        amount: sizeAmount,
         type: CURRENCY_VIEW_TYPES.TOKEN,
         denom: asset.shortName,
         maxDecimals: asset.decimal_digits,
         minimalDenom: '',
         decimals: asset?.decimal_digits,
+        around: true,
         hasSpace: true
       }"
       :secondary="{
@@ -86,7 +87,7 @@
             <BigNumber
               :label="$t('message.impact-and-dex-fees')"
               :amount="{
-                amount: swapFeeAmount,
+                amount: swapFeeAmount.toString(),
                 decimals: asset.decimal_digits,
                 type: CURRENCY_VIEW_TYPES.TOKEN,
                 denom: asset.shortName,
@@ -250,10 +251,19 @@ const annualInterestRate = computed(() => {
   );
 });
 
+const sizeAmount = computed(() => {
+  if (!props.lease?.total?.amount) {
+    return "0";
+  }
+
+  const total = new Dec(props.lease?.total.amount ?? "0").sub(swapFeeAmount.value);
+  return total.truncate().toString();
+});
+
 const stable = computed(() => {
   const price = new Dec(oracle.prices?.[asset.value.key!]?.amount ?? 0);
   const v = props.lease?.total?.amount ?? "0";
-  const stable = price.mul(new Dec(v, asset.value.decimal_digits));
+  const stable = price.mul(new Dec(v, asset.value.decimal_digits)).sub(new Dec(swapStableFee.value));
   return `${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
 });
 
@@ -301,7 +311,7 @@ const swapFeeAmount = computed(() => {
   const decimals = new Dec(10 ** lpn.value.decimal_digits);
   const v = new Dec(swapStableFee.value);
   const amount = v.quo(price).mul(decimals);
-  return amount.toString();
+  return amount;
 });
 
 const borrowStable = computed(() => {

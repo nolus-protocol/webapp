@@ -34,8 +34,7 @@
             type: CURRENCY_VIEW_TYPES.TOKEN,
             denom: asset?.shortName ?? '',
             decimals: assetLoan?.decimal_digits ?? 0,
-            hasSpace: true,
-            around: true
+            hasSpace: true
           }"
           :secondary="{
             amount: stable,

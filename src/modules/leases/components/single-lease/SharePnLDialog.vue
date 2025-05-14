@@ -70,7 +70,7 @@ import shareImageTwo from "@/assets/icons/share-image-2.png?url";
 import shareImageThree from "@/assets/icons/share-image-3.png?url";
 import shareImageFour from "@/assets/icons/share-image-4.png?url";
 import type { LeaseData } from "@/common/types";
-import { PositionTypes, ProtocolsConfig } from "@/config/global";
+import { NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
 import { CurrencyDemapping } from "@/config/currencies";
 import { useOracleStore } from "@/common/stores/oracle";
@@ -124,7 +124,10 @@ const currentPrice = () => {
     case PositionTypes.long: {
       if (leaseData?.leaseStatus?.opening && leaseData?.leaseData) {
         const item = app.currenciesData?.[leaseData?.leaseData?.leasePositionTicker as string];
-        return AssetUtils.formatNumber(oracle.prices[item?.ibcData as string]?.amount ?? "0", asset()?.decimal_digits!);
+        return AssetUtils.formatNumber(
+          oracle.prices[item?.ibcData as string]?.amount ?? "0",
+          NATIVE_CURRENCY.maximumFractionDigits
+        );
       }
       break;
     }
@@ -132,7 +135,7 @@ const currentPrice = () => {
       if (leaseData?.leaseStatus?.opening && leaseData?.leaseData) {
         return AssetUtils.formatNumber(
           oracle.prices[`${leaseData.leaseStatus.opening.loan.ticker}@${leaseData.protocol}`]?.amount ?? "0",
-          asset()?.decimal_digits!
+          NATIVE_CURRENCY.maximumFractionDigits
         );
       }
     }
@@ -143,7 +146,7 @@ const currentPrice = () => {
 
   return AssetUtils.formatNumber(
     oracle.prices[`${ticker}@${leaseData?.protocol}`]?.amount ?? "0",
-    asset()?.decimal_digits!
+    NATIVE_CURRENCY.maximumFractionDigits
   );
 };
 
@@ -422,7 +425,7 @@ function setPricePerSymbol(ctx: CanvasRenderingContext2D) {
   ctx.fillText(
     `${i18n.t("message.price-per-symbol", {
       symbol: asset()?.shortName
-    })}: ${currentPrice()}`,
+    })}: $${currentPrice()}`,
     100,
     405
   );

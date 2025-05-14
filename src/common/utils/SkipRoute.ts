@@ -75,10 +75,10 @@ export class SkipRouter {
       allowMultiTx: true,
       allowUnsafe: true,
       swapVenues: config.swapVenues,
-      experimentalFeatures: ["hyperlane", "cctp", "stargate"],
+      experimentalFeatures: ["stargate", "eureka", "hyperlane", "cctp"],
       smartSwapOptions: {
         splitRoutes: true,
-        evm_swaps: true
+        evmSwaps: true
       }
     };
     if (revert) {
