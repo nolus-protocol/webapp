@@ -165,11 +165,7 @@
           "to": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
           "visible": "OSMOSIS"
         },
-        { "from": "unls", "to": "0xb34e17562e4f1f63A2D4cF684eD8bC124e519771" },
-        {
-          "from": "ibc/E45CFCB959F4F6D1065B7033EE49A88E606E6AD82E75725219B3D68B0FA89987",
-          "to": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599"
-        }
+        { "from": "unls", "to": "0xb34e17562e4f1f63A2D4cF684eD8bC124e519771" }
       ]
     },
     "ARBITRUM": {
