@@ -1,11 +1,15 @@
 import {
-  SkipClient as SkipRouterLib,
-  SKIP_API_URL,
+  setApiOptions,
+  chains as getChains,
+  route,
+  messages,
+  transactionStatus,
+  trackTransaction,
   type RouteRequest,
-  affiliateFromJSON,
-  type MsgsRequest,
+  type MessagesRequest,
   type TxStatusResponse,
-  type Chain
+  type Chain,
+  setClientOptions
 } from "@skip-go/client";
 
 import type { IObjectKeys, SkipRouteConfigType } from "../types";
@@ -24,9 +28,21 @@ enum Messages {
   "/circle.cctp.v1.MsgDepositForBurnWithCaller" = "/circle.cctp.v1.MsgDepositForBurnWithCaller"
 }
 
-class Swap extends SkipRouterLib {
-  constructor(data: { apiURL: string; apiKey: string }) {
-    super({ apiURL: data.apiURL });
+class Swap {
+  getChains = getChains;
+  route = route;
+
+  data: { apiKey: string };
+  messages = messages;
+  transactionStatus = transactionStatus;
+  trackTransaction = trackTransaction;
+  constructor(data: { apiKey: string }) {
+    console.log("enter");
+    // super({ apiURL: data.apiURL });
+    setClientOptions({});
+    const c = getChains();
+    c.then((e) => console.log(e)).catch((e) => console.log(e));
+    this.data = data;
   }
 }
 
@@ -43,7 +59,6 @@ export class SkipRouter {
     const config = await AppUtils.getSkipRouteConfig();
     const [client, status] = await Promise.all([
       new Swap({
-        apiURL: SKIP_API_URL,
         apiKey: config.apiKey
       }),
       SkipRouter.chainID ?? AppUtils.fetchNetworkStatus().then((status) => status.result.node_info.network)
@@ -86,8 +101,8 @@ export class SkipRouter {
     } else {
       request.amountIn = amount;
     }
-    const route: IObjectKeys = await client.route(request as RouteRequest);
-    route.revert = true;
+    const route = await client.route(request as RouteRequest);
+    // route.revert = true;
     return route;
   }
 
@@ -142,8 +157,8 @@ export class SkipRouter {
         request.sourceAssetDenom = route.sourceAssetDenom;
         request.destAssetDenom = route.destAssetDenom;
       }
-      const response = await client.messages(request as MsgsRequest);
-      for (const tx of response.txs) {
+      const response = await client.messages(request as MessagesRequest);
+      for (const tx of response?.txs ?? []) {
         const chaindId = (tx as IObjectKeys)?.cosmosTx?.chainID ?? (tx as IObjectKeys)?.evmTx?.chainID;
         const wallet = wallets[(tx as IObjectKeys)?.cosmosTx?.chainID ?? (tx as IObjectKeys)?.evmTx?.chainID];
 
@@ -189,9 +204,9 @@ export class SkipRouter {
     }
   }
 
-  static async fetchStatus(hash: string, chaindId: string): Promise<TxStatusResponse> {
+  static async fetchStatus(hash: string, chainId: string): Promise<TxStatusResponse> {
     const client = await SkipRouter.getClient();
-    const status = await client.transactionStatus({ chainID: chaindId, txHash: hash });
+    const status = await client.transactionStatus({ chainId, txHash: hash });
 
     if (status.error) {
       throw status.error;
@@ -213,7 +228,7 @@ export class SkipRouter {
     }
 
     await SkipRouter.wait(800);
-    return SkipRouter.fetchStatus(hash, chaindId);
+    return SkipRouter.fetchStatus(hash, chainId);
   }
 
   private static wait(ms: number) {
@@ -227,10 +242,10 @@ export class SkipRouter {
   private static getAffialates(route: IObjectKeys, config: SkipRouteConfigType) {
     if (route.swapVenue?.name) {
       const affiliateAddress = config[route.swapVenue.name as keyof typeof config] as string;
-      const affiliate = affiliateFromJSON({
+      const affiliate = {
         address: affiliateAddress,
         basis_points_fee: config.fee.toString()
-      });
+      };
       return [affiliate];
     }
 
@@ -241,7 +256,7 @@ export class SkipRouter {
     try {
       const client = await SkipRouter.getClient();
       await client.trackTransaction({
-        chainID: chainId,
+        chainId,
         txHash: hash
       });
     } catch (error) {
@@ -292,7 +307,7 @@ export class SkipRouter {
       return SkipRouter.chains;
     }
     const client = await SkipRouter.getClient();
-    SkipRouter.chains = client.chains({ includeEVM: true, includeSVM: false });
+    SkipRouter.chains = client.getChains({ includeEvm: true, includeSvm: false }) as Promise<Chain[]>;
     return SkipRouter.chains;
   }
 }
