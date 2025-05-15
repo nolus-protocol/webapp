@@ -42,7 +42,7 @@ export class Wallet {
     const client = this.stargateClient;
     const chainId = await client?.getChainId();
     if (!chainId) {
-      throw new Error("Chain ID is missing!");
+      throw new Error("Chain id is missing!");
     }
     return chainId;
   }

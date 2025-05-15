@@ -26,8 +26,8 @@
   "osmosis-poolmanager": "osmo14p4cu64dlwavj7kga4s3mj6xglucj9t358r5mz",
   "neutron-astroport": "neutron1war9ee549tt9rla54g56ca78y969l6239pang9",
   "swapVenues": [
-    { "name": "osmosis-poolmanager", "chainID": "osmosis-1" },
-    { "name": "neutron-astroport", "chainID": "neutron-1" }
+    { "name": "osmosis-poolmanager", "chainId": "osmosis-1" },
+    { "name": "neutron-astroport", "chainId": "neutron-1" }
   ],
   "transfers": {
     "OSMOSIS": {

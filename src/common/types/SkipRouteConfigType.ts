@@ -13,7 +13,7 @@ export interface SkipRouteConfigType {
   "neutron-astroport": string;
   swapVenues: {
     name: string;
-    chainID: string;
+    chainId: string;
   }[];
   transfers: {
     [key: string]: {

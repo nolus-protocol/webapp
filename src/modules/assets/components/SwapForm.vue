@@ -357,29 +357,30 @@ async function setRoute(token: Coin, revert = false) {
       loading.value = true;
       error.value = "";
       if (revert) {
-        route = await SkipRouter.getRoute(
+        route = (await SkipRouter.getRoute(
           selectedFirstCurrencyOption.value!.ibcData,
           selectedSecondCurrencyOption.value!.ibcData,
           token.amount.toString(),
           revert
-        );
-        firstInputAmount.value = new Dec(route.amountIn, selectedFirstCurrencyOption.value!.decimal_digits).toString(
+        )) as IObjectKeys;
+        firstInputAmount.value = new Dec(route?.amountIn, selectedFirstCurrencyOption.value!.decimal_digits).toString(
           selectedFirstCurrencyOption.value!.decimal_digits
         );
         amount.value = secondInputAmount.value;
       } else {
-        route = await SkipRouter.getRoute(
+        route = (await SkipRouter.getRoute(
           selectedFirstCurrencyOption.value!.ibcData,
           selectedSecondCurrencyOption.value!.ibcData,
           token.amount.toString(),
           revert
-        );
-        secondInputAmount.value = new Dec(route.amountOut, selectedSecondCurrencyOption.value!.decimal_digits).toString(
+        )) as IObjectKeys;
+        secondInputAmount.value = new Dec(
+          route?.amountOut,
           selectedSecondCurrencyOption.value!.decimal_digits
-        );
+        ).toString(selectedSecondCurrencyOption.value!.decimal_digits);
         swapToAmount.value = secondInputAmount.value;
       }
-      priceImapact.value = route.swapPriceImpactPercent ?? "0";
+      priceImapact.value = route?.swapPriceImpactPercent ?? "0";
       setSwapFee();
     } catch (e) {
       error.value = (e as Error).toString();
@@ -461,10 +462,10 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
 
   const chainToParse: { [key: string]: IObjectKeys } = {};
   const chains = (await SkipRouter.getChains()).filter((item) => {
-    if (item.chainID == native) {
+    if (item.chainId == native) {
       return false;
     }
-    return route!.chainIDs.includes(item.chainID);
+    return route!.chainIds.includes(item.chainId);
   });
 
   for (const chain of chains) {

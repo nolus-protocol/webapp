@@ -61,8 +61,8 @@ function getSteps(route: IObjectKeys, i18n: IObjectKeys, currency: IObjectKeys, 
   for (const [index, operation] of (route?.operations ?? []).entries()) {
     if (operation.transfer || operation.cctpTransfer) {
       const op = operation.transfer ?? operation.cctpTransfer;
-      const from = chains[op.fromChainID];
-      const to = chains[op.toChainID];
+      const from = chains[op.fromChainId];
+      const to = chains[op.toChainId];
       let label = i18n.t("message.send-stepper");
 
       if (index > 0 && index < route?.operations.length) {
