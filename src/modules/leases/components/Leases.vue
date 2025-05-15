@@ -483,7 +483,10 @@ function setLeases() {
 
     for (const lease of leases.value) {
       if (lease.leaseStatus?.opened) {
-        const dasset = app.currenciesData![`${lease.leaseStatus.opened.amount.ticker}@${lease.protocol}`];
+        const ticker =
+          CurrencyDemapping[lease.leaseStatus.opened.amount.ticker as keyof typeof CurrencyDemapping]?.ticker ??
+          lease.leaseStatus.opened.amount.ticker;
+        const dasset = app.currenciesData![`${ticker}@${lease.protocol}`];
         const lpn = AssetUtils.getLpnByProtocol(lease.protocol);
         const price = oracle.prices[lpn.key];
         const downpayment = lease.leaseData?.downPayment ? lease.leaseData?.downPayment : new Dec(0);

@@ -74,7 +74,7 @@ const currency = computed(() => {
   const price = oracle.prices![`${props.lease?.leaseData?.leasePositionTicker}@${props.lease?.protocol}`];
   return {
     name: c?.shortName,
-    price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(price.amount, c.decimal_digits)}`
+    price: price?.amount ? `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(price?.amount, c?.decimal_digits)}` : ""
   };
 });
 
