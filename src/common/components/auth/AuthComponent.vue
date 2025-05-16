@@ -67,11 +67,11 @@ const connections = {
     label: i18n.t("message.leap"),
     type: WalletActions.CONNECT_LEAP
   },
-  Walletconnect: {
-    icon: WalletconnectIcon,
-    label: i18n.t("message.walletconnect"),
-    type: WalletActions.CONNECT_WC
-  },
+  // Walletconnect: {
+  //   icon: WalletconnectIcon,
+  //   label: i18n.t("message.walletconnect"),
+  //   type: WalletActions.CONNECT_WC
+  // },
   Ledger: {
     icon: LedgerIcon,
     label: i18n.t("message.ledger"),
