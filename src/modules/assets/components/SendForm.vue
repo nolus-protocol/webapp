@@ -146,7 +146,7 @@ import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
 import { IGNORED_NETWORKS, MAX_DECIMALS } from "../../../config/global";
 
-import { BaseWallet, Wallet } from "@/networks";
+import { type BaseWallet, Wallet } from "@/networks";
 import {
   CONFIRM_STEP,
   type ExternalCurrency,
@@ -175,8 +175,8 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { ErrorCodes } from "@/config/global";
 import { StepperVariant, Stepper } from "web-components";
 import { useApplicationStore } from "@/common/stores/application";
-import type { Chain } from "@skip-go/client";
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
+import type { Chain, RouteResponse } from "@/common/types/skipRoute";
 
 const i18n = useI18n();
 const showDetails = ref(false);
@@ -225,7 +225,7 @@ const currency = computed(() => {
 
 let client: Wallet | MetaMaskWallet;
 let timeOut!: NodeJS.Timeout;
-let route: IObjectKeys | null;
+let route: RouteResponse | null;
 
 const walletStore = useWalletStore();
 const app = useApplicationStore();
@@ -276,7 +276,7 @@ const walletRef = computed(() => {
 
 const steps = computed(() => {
   if (tempRoute.value && network.value.chain_type == "evm") {
-    const chains = getChainIds(tempRoute.value);
+    const chains = getChainIds(tempRoute.value as RouteResponse);
     const stps = [];
 
     for (const [index, operation] of (tempRoute.value?.operations ?? []).entries()) {
@@ -395,7 +395,7 @@ function destroyClient() {
 }
 
 function setHistory() {
-  const chains = getChainIds(tempRoute.value!);
+  const chains = getChainIds(tempRoute.value! as RouteResponse);
 
   const data = {
     id,
@@ -467,7 +467,7 @@ async function onSubmitCosmos() {
     const isValid = validateAmount();
 
     if (isValid) {
-      route = (await getRoute()) as IObjectKeys;
+      route = await getRoute();
       await onSwap();
     }
   } catch (e: Error | any) {
@@ -497,7 +497,7 @@ async function onSubmitEvm() {
     }
 
     if (isValid) {
-      route = (await getRoute()) as IObjectKeys;
+      route = await getRoute();
       await onSwap();
     }
   } catch (e: Error | any) {
@@ -874,7 +874,7 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
     [native]: walletStore.wallet
   };
 
-  const chainToParse: { [key: string]: IObjectKeys } = getChains(route as IObjectKeys);
+  const chainToParse: { [key: string]: IObjectKeys } = getChains(route!);
 
   const promises = [];
   for (const chain in chainToParse) {
@@ -978,19 +978,19 @@ async function connectEvm() {
   }
 }
 
-function getChains(route?: IObjectKeys) {
+function getChains(route?: RouteResponse) {
   const chainToParse: { [key: string]: IObjectKeys } = {};
-  const native = walletStore.wallet.signer.chainId as string;
+  const native = walletStore.wallet.signer.chain_id as string;
   const chains = chainsData.filter((item) => {
-    if (item.chainId == native) {
+    if (item.chain_id == native) {
       return false;
     }
-    return route!.chainIds.includes(item.chainId);
+    return route!.chain_ids.includes(item.chain_id);
   });
 
   for (const chain of chains) {
     for (const key in SUPPORTED_NETWORKS_DATA) {
-      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chainName.toLowerCase()) {
+      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chain_name.toLowerCase()) {
         chainToParse[key] = SUPPORTED_NETWORKS_DATA[key];
       }
     }
@@ -999,16 +999,16 @@ function getChains(route?: IObjectKeys) {
   return chainToParse;
 }
 
-function getChainIds(route?: IObjectKeys) {
+function getChainIds(route?: RouteResponse) {
   const chainToParse: { [key: string]: IObjectKeys } = {};
   const chains = chainsData.filter((item) => {
-    return route!.chainIds.includes(item.chainId);
+    return route!.chain_ids.includes(item.chain_id);
   });
 
   for (const chain of chains) {
     for (const key in SUPPORTED_NETWORKS_DATA) {
-      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chainName.toLowerCase()) {
-        chainToParse[chain.chainId] = SUPPORTED_NETWORKS_DATA[key];
+      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chain_name.toLowerCase()) {
+        chainToParse[chain.chain_id] = SUPPORTED_NETWORKS_DATA[key];
       }
     }
   }

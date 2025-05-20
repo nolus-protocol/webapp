@@ -1,6 +1,6 @@
 export interface SkipRouteConfigType {
   blacklist: string[];
-  apiKey: string;
+  api_url: string;
   slippage: number;
   swap_currency_osmosis: string;
   swap_currency_neutron: string;
@@ -11,9 +11,9 @@ export interface SkipRouteConfigType {
   timeoutSeconds: string;
   "osmosis-poolmanager": string;
   "neutron-astroport": string;
-  swapVenues: {
+  swap_venues: {
     name: string;
-    chainId: string;
+    chain_id: string;
   }[];
   transfers: {
     [key: string]: {

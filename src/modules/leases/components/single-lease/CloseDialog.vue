@@ -616,10 +616,10 @@ async function setSwapFee() {
     }
     const [r] = await Promise.all([
       SkipRouter.getRoute(lease_currency.ibcData, currecy.ibcData, microAmount).then((data) => {
-        amountIn += Number(data.usdAmountIn ?? 0);
-        amountOut += Number(data.usdAmountOut ?? 0);
+        amountIn += Number(data.usd_amount_in ?? 0);
+        amountOut += Number(data.usd_amount_out ?? 0);
 
-        return Number(data?.swapPriceImpactPercent ?? 0);
+        return Number(data?.swap_price_impact_percent ?? 0);
       })
     ]);
 

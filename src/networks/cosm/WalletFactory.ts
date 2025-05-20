@@ -12,7 +12,7 @@ import { makeCosmoshubPath, type OfflineAminoSigner } from "@cosmjs/amino";
 import { createBankAminoConverters, createIbcAminoConverters } from "@cosmjs/stargate";
 import { AminoTypes } from "@cosmjs/stargate";
 import { WalletManager, WalletUtils, AppUtils, Logger } from "@/common//utils";
-import { BaseWallet } from "./BaseWallet";
+import { type BaseWallet } from "./BaseWallet";
 import { createDepositForBurnWithCallerConverters } from "../list/noble/tx";
 import { getWalletConnectOfflineSigner } from "@/common/stores/wallet/actions/connectWC";
 
@@ -32,6 +32,7 @@ async function createWallet(
   gasPrice: string,
   explorer: string
 ): Promise<BaseWallet> {
+  const { BaseWallet } = await import("./BaseWallet");
   const baseWallet = new BaseWallet(
     wallet.getTendermintClient(),
     offlineDirectSigner,

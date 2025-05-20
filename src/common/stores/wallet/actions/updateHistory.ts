@@ -59,10 +59,10 @@ export function updateHistory(this: Store, history: IObjectKeys, i18n: IObjectKe
 function getSteps(route: IObjectKeys, i18n: IObjectKeys, currency: IObjectKeys, chains: IObjectKeys[]) {
   const stps = [];
   for (const [index, operation] of (route?.operations ?? []).entries()) {
-    if (operation.transfer || operation.cctpTransfer) {
-      const op = operation.transfer ?? operation.cctpTransfer;
-      const from = chains[op.fromChainId];
-      const to = chains[op.toChainId];
+    if (operation.transfer || operation.cctp_transfer) {
+      const op = operation.transfer ?? operation.cctp_transfer;
+      const from = chains[op.from_chain_id];
+      const to = chains[op.to_chain_id];
       let label = i18n.t("message.send-stepper");
 
       if (index > 0 && index < route?.operations.length) {
@@ -74,7 +74,7 @@ function getSteps(route: IObjectKeys, i18n: IObjectKeys, currency: IObjectKeys, 
         icon: from.icon,
         token: {
           balance: AssetUtils.formatNumber(
-            new Dec(index == 0 ? operation.amountIn : operation.amountOut, currency?.decimal_digits).toString(
+            new Dec(index == 0 ? operation.amount_in : operation.amount_out, currency?.decimal_digits).toString(
               currency?.decimal_digits
             ),
             currency?.decimal_digits
@@ -90,7 +90,7 @@ function getSteps(route: IObjectKeys, i18n: IObjectKeys, currency: IObjectKeys, 
           icon: to.icon,
           token: {
             balance: AssetUtils.formatNumber(
-              new Dec(operation.amountOut, currency?.decimal_digits).toString(currency?.decimal_digits),
+              new Dec(operation.amount_out, currency?.decimal_digits).toString(currency?.decimal_digits),
               currency?.decimal_digits
             ),
             symbol: currency?.shortName
