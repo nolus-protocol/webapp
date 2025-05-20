@@ -149,16 +149,17 @@ import { h } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { MultipleCurrencyEventType, type IObjectKeys, type SkipRouteConfigType } from "@/common/types";
 import { useI18n } from "vue-i18n";
-import { BaseWallet } from "@/networks";
+import { type BaseWallet } from "@/networks";
 import { SwapStatus } from "../enums";
 import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { SkipRouter } from "@/common/utils/SkipRoute";
 import { MAX_DECIMALS } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
 import { StepperVariant, Stepper } from "web-components";
+import type { RouteResponse } from "@/common/types/skipRoute";
 
 let time: NodeJS.Timeout;
-let route: IObjectKeys | null;
+let route: RouteResponse | null;
 const timeOut = 600;
 const id = Date.now();
 
@@ -363,7 +364,7 @@ async function setRoute(token: Coin, revert = false) {
           token.amount.toString(),
           revert
         );
-        firstInputAmount.value = new Dec(route.amountIn, selectedFirstCurrencyOption.value!.decimal_digits).toString(
+        firstInputAmount.value = new Dec(route?.amount_in, selectedFirstCurrencyOption.value!.decimal_digits).toString(
           selectedFirstCurrencyOption.value!.decimal_digits
         );
         amount.value = secondInputAmount.value;
@@ -374,12 +375,13 @@ async function setRoute(token: Coin, revert = false) {
           token.amount.toString(),
           revert
         );
-        secondInputAmount.value = new Dec(route.amountOut, selectedSecondCurrencyOption.value!.decimal_digits).toString(
+        secondInputAmount.value = new Dec(
+          route?.amount_out,
           selectedSecondCurrencyOption.value!.decimal_digits
-        );
+        ).toString(selectedSecondCurrencyOption.value!.decimal_digits);
         swapToAmount.value = secondInputAmount.value;
       }
-      priceImapact.value = route.swapPriceImpactPercent ?? "0";
+      priceImapact.value = Number(route?.swap_price_impact_percent ?? "0");
       setSwapFee();
     } catch (e) {
       error.value = (e as Error).toString();
@@ -461,15 +463,15 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
 
   const chainToParse: { [key: string]: IObjectKeys } = {};
   const chains = (await SkipRouter.getChains()).filter((item) => {
-    if (item.chainID == native) {
+    if (item.chain_id == native) {
       return false;
     }
-    return route!.chainIDs.includes(item.chainID);
+    return route!.chain_ids.includes(item.chain_id);
   });
 
   for (const chain of chains) {
     for (const key in SUPPORTED_NETWORKS_DATA) {
-      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chainName) {
+      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chain_name) {
         chainToParse[key] = SUPPORTED_NETWORKS_DATA[key];
       }
     }

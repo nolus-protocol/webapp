@@ -94,9 +94,9 @@ export class MetaMaskWallet implements Wallet {
     this.web3.destroy();
   }
 
-  async setApprove({ amount, spender, tokenContract }: { amount: string; spender: string; tokenContract: string }) {
+  async setApprove({ amount, spender, token_contract }: { amount: string; spender: string; token_contract: string }) {
     const signer = await this.getSigner();
-    const contract = new ethers.Contract(tokenContract, ABI, signer);
+    const contract = new ethers.Contract(token_contract, ABI, signer);
     const data = await contract.approve(spender, amount);
     await this.web3.waitForTransaction(data.hash, confirmations);
   }

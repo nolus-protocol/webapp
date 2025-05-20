@@ -146,7 +146,7 @@ import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
 import { IGNORED_NETWORKS, MAX_DECIMALS } from "../../../config/global";
 
-import { BaseWallet, Wallet } from "@/networks";
+import { type BaseWallet, Wallet } from "@/networks";
 import {
   CONFIRM_STEP,
   type ExternalCurrency,
@@ -175,8 +175,8 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { ErrorCodes } from "@/config/global";
 import { StepperVariant, Stepper } from "web-components";
 import { useApplicationStore } from "@/common/stores/application";
-import type { Chain } from "@skip-go/client";
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
+import type { Chain, RouteResponse } from "@/common/types/skipRoute";
 
 const i18n = useI18n();
 const showDetails = ref(false);
@@ -225,7 +225,7 @@ const currency = computed(() => {
 
 let client: Wallet | MetaMaskWallet;
 let timeOut!: NodeJS.Timeout;
-let route: IObjectKeys | null;
+let route: RouteResponse | null;
 
 const walletStore = useWalletStore();
 const app = useApplicationStore();
@@ -276,14 +276,14 @@ const walletRef = computed(() => {
 
 const steps = computed(() => {
   if (tempRoute.value && network.value.chain_type == "evm") {
-    const chains = getChainIds(tempRoute.value);
+    const chains = getChainIds(tempRoute.value as RouteResponse);
     const stps = [];
 
     for (const [index, operation] of (tempRoute.value?.operations ?? []).entries()) {
       if (operation.transfer || operation.cctpTransfer) {
         const op = operation.transfer ?? operation.cctpTransfer;
-        const from = chains[op.fromChainID];
-        const to = chains[op.toChainID];
+        const from = chains[op.fromChainId];
+        const to = chains[op.toChainId];
         let label = i18n.t("message.send-stepper");
 
         if (index > 0 && index < tempRoute.value?.operations.length) {
@@ -395,7 +395,7 @@ function destroyClient() {
 }
 
 function setHistory() {
-  const chains = getChainIds(tempRoute.value!);
+  const chains = getChainIds(tempRoute.value! as RouteResponse);
 
   const data = {
     id,
@@ -819,7 +819,7 @@ async function onSwapCosmos() {
 }
 
 async function submit(wallets: { [key: string]: BaseWallet | MetaMaskWallet }) {
-  await SkipRouter.submitRoute(route!, wallets, async (tx: IObjectKeys, wallet: BaseWallet, chaindId: string) => {
+  await SkipRouter.submitRoute(route!, wallets, async (tx: IObjectKeys, wallet: BaseWallet, chainId: string) => {
     walletStore.history[id].historyData.route.activeStep++;
     walletStore.history[id].historyData.routeDetails.activeStep++;
 
@@ -837,8 +837,8 @@ async function submit(wallets: { [key: string]: BaseWallet | MetaMaskWallet }) {
           walletStore.history[id].historyData.txHashes = txHashes.value;
         }
 
-        await SkipRouter.track(chaindId, (tx as IObjectKeys).hash);
-        await SkipRouter.fetchStatus((tx as IObjectKeys).hash, chaindId);
+        await SkipRouter.track(chainId, (tx as IObjectKeys).hash);
+        await SkipRouter.fetchStatus((tx as IObjectKeys).hash, chainId);
         element.status = SwapStatus.success;
 
         break;
@@ -857,8 +857,8 @@ async function submit(wallets: { [key: string]: BaseWallet | MetaMaskWallet }) {
         }
 
         await wallet.broadcastTx(tx.txBytes as Uint8Array);
-        await SkipRouter.track(chaindId, (tx as IObjectKeys).txHash);
-        await SkipRouter.fetchStatus((tx as IObjectKeys).txHash, chaindId);
+        await SkipRouter.track(chainId, (tx as IObjectKeys).txHash);
+        await SkipRouter.fetchStatus((tx as IObjectKeys).txHash, chainId);
 
         element.status = SwapStatus.success;
 
@@ -874,7 +874,7 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
     [native]: walletStore.wallet
   };
 
-  const chainToParse: { [key: string]: IObjectKeys } = getChains(route as IObjectKeys);
+  const chainToParse: { [key: string]: IObjectKeys } = getChains(route!);
 
   const promises = [];
   for (const chain in chainToParse) {
@@ -919,14 +919,14 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
 }
 
 async function getRoute() {
-  let chaindId = await client.getChainId();
+  let chainId = await client.getChainId();
   const asset = assets.value[selectedCurrency.value];
 
   const transferAmount = Decimal.fromUserInput(amount.value, asset!.decimal_digits as number);
 
   switch (network.value.chain_type) {
     case "evm": {
-      chaindId = Number(chaindId).toString();
+      chainId = Number(chainId).toString();
       break;
     }
   }
@@ -937,7 +937,7 @@ async function getRoute() {
     transferAmount.atomics,
     false,
     undefined,
-    chaindId
+    chainId
   );
 
   return route;
@@ -952,10 +952,10 @@ async function connectEvm() {
     client = new MetaMaskWallet(net.explorer);
 
     const endpoint = await AppUtils.fetchEvmEndpoints(net.key);
-    const chaindId = await client.getChainId(endpoint.rpc);
+    const chainId = await client.getChainId(endpoint.rpc);
     await client.connect(
       {
-        chainId: chaindId,
+        chainId: chainId,
         chainName: net.label,
         rpcUrls: [endpoint.rpc],
         blockExplorerUrls: [net.explorer],
@@ -978,19 +978,19 @@ async function connectEvm() {
   }
 }
 
-function getChains(route?: IObjectKeys) {
+function getChains(route?: RouteResponse) {
   const chainToParse: { [key: string]: IObjectKeys } = {};
-  const native = walletStore.wallet.signer.chainId as string;
+  const native = walletStore.wallet.signer.chain_id as string;
   const chains = chainsData.filter((item) => {
-    if (item.chainID == native) {
+    if (item.chain_id == native) {
       return false;
     }
-    return route!.chainIDs.includes(item.chainID);
+    return route!.chain_ids.includes(item.chain_id);
   });
 
   for (const chain of chains) {
     for (const key in SUPPORTED_NETWORKS_DATA) {
-      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chainName.toLowerCase()) {
+      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chain_name.toLowerCase()) {
         chainToParse[key] = SUPPORTED_NETWORKS_DATA[key];
       }
     }
@@ -999,16 +999,16 @@ function getChains(route?: IObjectKeys) {
   return chainToParse;
 }
 
-function getChainIds(route?: IObjectKeys) {
+function getChainIds(route?: RouteResponse) {
   const chainToParse: { [key: string]: IObjectKeys } = {};
   const chains = chainsData.filter((item) => {
-    return route!.chainIDs.includes(item.chainID);
+    return route!.chain_ids.includes(item.chain_id);
   });
 
   for (const chain of chains) {
     for (const key in SUPPORTED_NETWORKS_DATA) {
-      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chainName.toLowerCase()) {
-        chainToParse[chain.chainID] = SUPPORTED_NETWORKS_DATA[key];
+      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chain_name.toLowerCase()) {
+        chainToParse[chain.chain_id] = SUPPORTED_NETWORKS_DATA[key];
       }
     }
   }

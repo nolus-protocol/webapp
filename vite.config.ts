@@ -67,5 +67,18 @@ export default defineConfig({
         global: "globalThis"
       }
     }
+  },
+  build: {
+    minify: "terser",
+    chunkSizeWarningLimit: 750,
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      },
+      format: {
+        comments: false
+      }
+    }
   }
 });

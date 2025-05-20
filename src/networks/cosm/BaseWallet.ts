@@ -2,7 +2,6 @@ import type { EncodeObject, OfflineSigner, TxBodyEncodeObject } from "@cosmjs/pr
 import type { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import type { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import type { Secp256k1Pubkey } from "@cosmjs/amino/build/pubkeys";
-import type { AuthExtension, BankExtension, SignerData, StakingExtension, TxExtension } from "@cosmjs/stargate";
 import type { Wallet } from "../wallet";
 import type { CometClient } from "@cosmjs/tendermint-rpc";
 
@@ -13,7 +12,6 @@ import { encodeSecp256k1Pubkey, type StdFee } from "@cosmjs/amino";
 
 import { sha256 } from "@cosmjs/crypto";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
-import { SigningCosmWasmClient, type SigningCosmWasmClientOptions } from "@cosmjs/cosmwasm-stargate";
 import { accountFromAny } from "./accountParser";
 import { encodeEthSecp256k1Pubkey, encodePubkey, type EthSecp256k1Pubkey } from "./encode";
 import { SUPPORTED_NETWORKS_DATA } from "../config";
@@ -29,16 +27,22 @@ import { simulateIBCTrasnferInj } from "../list/injective/tx";
 import { setupTxExtension } from "./setupTxExtension";
 
 import {
+  type AuthExtension,
+  type BankExtension,
   calculateFee,
   type DeliverTxResponse,
   QueryClient,
   setupAuthExtension,
   setupBankExtension,
-  setupStakingExtension
+  setupStakingExtension,
+  type SignerData,
+  type StakingExtension,
+  type TxExtension
 } from "@cosmjs/stargate";
 import type { MsgDelegate, MsgUndelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx";
 import type { MsgWithdrawDelegatorReward } from "cosmjs-types/cosmos/distribution/v1beta1/tx";
 import { MsgDepositForBurnWithCaller } from "../list/noble/tx";
+import { SigningCosmWasmClient, type SigningCosmWasmClientOptions } from "@cosmjs/cosmwasm-stargate";
 
 export class BaseWallet extends SigningCosmWasmClient implements Wallet {
   address!: string;

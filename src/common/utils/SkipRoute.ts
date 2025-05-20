@@ -1,14 +1,5 @@
-import {
-  SkipClient as SkipRouterLib,
-  SKIP_API_URL,
-  type RouteRequest,
-  affiliateFromJSON,
-  type MsgsRequest,
-  type TxStatusResponse,
-  type Chain
-} from "@skip-go/client";
-
 import type { IObjectKeys, SkipRouteConfigType } from "../types";
+import type { Chain, RouteRequest, RouteResponse, MessagesRequest, MessagesResponse } from "../types/skipRoute";
 
 import { AppUtils, Logger } from ".";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
@@ -24,15 +15,80 @@ enum Messages {
   "/circle.cctp.v1.MsgDepositForBurnWithCaller" = "/circle.cctp.v1.MsgDepositForBurnWithCaller"
 }
 
-class Swap extends SkipRouterLib {
-  constructor(data: { apiURL: string; apiKey: string }) {
-    super({ apiURL: data.apiURL });
+class Swap {
+  api_url: string;
+
+  constructor(data: { api_url: string }) {
+    this.api_url = data.api_url;
+  }
+
+  async getChains(): Promise<Chain[]> {
+    const data = await fetch(`${this.api_url}/info/chains?include_evm=true&include_svm=true`);
+    const items = await data.json();
+    return items.chains;
+  }
+
+  async getRoute(request: RouteRequest): Promise<RouteResponse> {
+    const data = await fetch(`${this.api_url}/fungible/route`, {
+      method: "POST",
+      body: JSON.stringify(request),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+    return data.json();
+  }
+
+  async getMessages(request: MessagesRequest): Promise<MessagesResponse> {
+    const data = await fetch(`${this.api_url}/fungible/msgs`, {
+      method: "POST",
+      body: JSON.stringify(request),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+    return data.json();
+  }
+
+  async getTransactionStatus({
+    chain_id,
+    tx_hash
+  }: {
+    chain_id: string;
+    tx_hash: string;
+  }): Promise<{ state: string; error: string }> {
+    const data = await fetch(`${this.api_url}/tx/status?chain_id=${chain_id}&tx_hash=${tx_hash}`, {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+    return data.json();
+  }
+
+  async getTransactionTrack({
+    chain_id,
+    tx_hash
+  }: {
+    chain_id: string;
+    tx_hash: string;
+  }): Promise<{ tx_hash: string; explorer_link: string }> {
+    const data = await fetch(`${this.api_url}/tx/track`, {
+      method: "POST",
+      body: JSON.stringify({
+        chain_id,
+        tx_hash
+      }),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+    return data.json();
   }
 }
 
 export class SkipRouter {
   private static client: Swap;
-  private static chainID: string;
+  private static chainId: string;
   private static chains: Promise<Chain[]>;
 
   static async getClient(): Promise<Swap> {
@@ -43,13 +99,12 @@ export class SkipRouter {
     const config = await AppUtils.getSkipRouteConfig();
     const [client, status] = await Promise.all([
       new Swap({
-        apiURL: SKIP_API_URL,
-        apiKey: config.apiKey
+        api_url: config.api_url
       }),
-      SkipRouter.chainID ?? AppUtils.fetchNetworkStatus().then((status) => status.result.node_info.network)
+      SkipRouter.chainId ?? AppUtils.fetchNetworkStatus().then((status) => status.result.node_info.network)
     ]);
 
-    SkipRouter.chainID = status;
+    SkipRouter.chainId = status;
     SkipRouter.client = client as Swap;
 
     return SkipRouter.client;
@@ -64,35 +119,36 @@ export class SkipRouter {
     destSourceId?: string
   ) {
     const [client, config] = await Promise.all([SkipRouter.getClient(), AppUtils.getSkipRouteConfig()]);
-    const request: IObjectKeys = {
-      sourceAssetDenom: sourceDenom,
-      sourceAssetChainID: sourceId ?? SkipRouter.chainID,
-      destAssetDenom: destDenom,
-      destAssetChainID: destSourceId ?? SkipRouter.chainID,
-      cumulativeAffiliateFeeBPS: config.fee.toString(),
-      goFast: true,
-      smartRelay: true,
-      allowMultiTx: true,
-      allowUnsafe: true,
-      swapVenues: config.swapVenues,
-      experimentalFeatures: ["stargate", "eureka", "hyperlane", "cctp"],
-      smartSwapOptions: {
-        splitRoutes: true,
-        evmSwaps: true
+    const request: RouteRequest = {
+      source_asset_denom: sourceDenom,
+      source_asset_chain_id: sourceId ?? SkipRouter.chainId,
+      dest_asset_denom: destDenom,
+      dest_asset_chain_id: destSourceId ?? SkipRouter.chainId,
+      cumulative_affiliate_fee_bps: config.fee.toString(),
+      go_fast: true,
+      smart_relay: true,
+      allow_multi_tx: true,
+      allow_unsafe: true,
+      swap_venues: config.swap_venues,
+      experimental_features: ["stargate", "eureka", "hyperlane", "cctp"],
+      smart_swap_options: {
+        split_routes: true,
+        evm_swaps: true
       }
     };
     if (revert) {
-      request.amountOut = amount;
+      request.amount_out = amount;
     } else {
-      request.amountIn = amount;
+      request.amount_in = amount;
     }
-    const route: IObjectKeys = await client.route(request as RouteRequest);
+
+    const route = await client.getRoute(request as RouteRequest);
     route.revert = true;
     return route;
   }
 
   static async submitRoute(
-    route: IObjectKeys,
+    route: RouteResponse,
     wallets: { [key: string]: BaseWallet | MetaMaskWallet },
     callback: Function
   ) {
@@ -104,7 +160,7 @@ export class SkipRouter {
   }
 
   private static async transaction(
-    route: IObjectKeys,
+    route: RouteResponse,
     wallets: { [key: string]: BaseWallet | MetaMaskWallet },
     callback: Function
   ) {
@@ -117,42 +173,56 @@ export class SkipRouter {
         addresses[key] = wallets[key].address!;
       }
 
-      for (const id of route.chainIDs) {
+      for (const id of route.chain_ids) {
         addressList.push(addresses[id]);
       }
-      const request: IObjectKeys = {
-        sourceAssetChainID: route.sourceAssetChainID,
-        destAssetChainID: route.destAssetChainID,
-        swapVenue: route.swapVenue,
-        timeoutSeconds: config.timeoutSeconds,
-        operations: route.operations,
-        slippageTolerancePercent: config.slippage.toString(),
-        addressList: addressList,
-        affiliates: SkipRouter.getAffialates(route, config)
+
+      const add: {
+        amount_in: string;
+        amount_out: string;
+        source_asset_denom: string;
+        dest_asset_denom: string;
+      } = {
+        amount_in: "",
+        amount_out: "",
+        source_asset_denom: "",
+        dest_asset_denom: ""
       };
 
       if (route.revert) {
-        request.amountIn = route.amountIn;
-        request.amountOut = route.amountOut;
-        request.sourceAssetDenom = route.sourceAssetDenom;
-        request.destAssetDenom = route.destAssetDenom;
+        add.amount_in = route.amount_in;
+        add.amount_out = route.amount_out;
+        add.source_asset_denom = route.source_asset_denom;
+        add.dest_asset_denom = route.dest_asset_denom;
       } else {
-        request.amountIn = route.amountOut;
-        request.amountOut = route.amountIn;
-        request.sourceAssetDenom = route.sourceAssetDenom;
-        request.destAssetDenom = route.destAssetDenom;
+        add.amount_in = route.amount_out;
+        add.amount_out = route.amount_in;
+        add.source_asset_denom = route.source_asset_denom;
+        add.dest_asset_denom = route.dest_asset_denom;
       }
-      const response = await client.messages(request as MsgsRequest);
-      for (const tx of response.txs) {
-        const chaindId = (tx as IObjectKeys)?.cosmosTx?.chainID ?? (tx as IObjectKeys)?.evmTx?.chainID;
-        const wallet = wallets[(tx as IObjectKeys)?.cosmosTx?.chainID ?? (tx as IObjectKeys)?.evmTx?.chainID];
+
+      const request: MessagesRequest = {
+        source_asset_chain_id: route.source_asset_chain_id,
+        dest_asset_chain_id: route.dest_asset_chain_id,
+        chain_ids_to_affiliates: SkipRouter.getAffialates(route, config),
+        timeout_seconds: config.timeoutSeconds,
+        operations: route.operations,
+        slippage_tolerance_percent: config.slippage.toString(),
+        address_list: addressList,
+        ...add
+      };
+
+      const response = await client.getMessages(request as MessagesRequest);
+
+      for (const tx of response?.txs ?? []) {
+        const chainId = tx?.cosmos_tx?.chain_id ?? tx?.evm_tx?.chain_id;
+        const wallet = wallets[tx?.cosmos_tx?.chain_id ?? tx?.evm_tx?.chain_id];
 
         switch (wallet.constructor) {
           case MetaMaskWallet: {
-            const msg = (tx as IObjectKeys).evmTx;
+            const msg = tx.evm_tx;
             const signer = await wallet.getSigner();
-
-            for (const t of msg.requiredERC20Approvals) {
+            for (const t of msg.required_erc20_approvals!) {
               await (wallet as any).setApprove(t);
             }
 
@@ -160,25 +230,25 @@ export class SkipRouter {
               account: wallet.address,
               to: msg.to as string,
               data: `0x${msg.data}`,
-              value: msg.value === "" ? undefined : BigInt(msg.value)
+              value: msg.value === "" ? undefined : BigInt(msg.value!)
             });
 
-            await callback(txData, wallet, chaindId);
+            await callback(txData, wallet, chainId);
 
             break;
           }
           default: {
             const msgs = [];
-            for (const m of (tx as IObjectKeys).cosmosTx.msgs) {
+            for (const m of tx.cosmos_tx.msgs) {
               const msgJSON = JSON.parse(m.msg);
               const message = SkipRouter.getTx(m, msgJSON);
               msgs.push({
                 msg: message,
-                msgTypeUrl: m.msgTypeURL
+                msgTypeUrl: m.msg_type_url
               });
             }
             const txData = await (wallet as BaseWallet).simulateMultiTx(msgs as any, "");
-            await callback(txData, wallet, chaindId);
+            await callback(txData, wallet, chainId);
 
             break;
           }
@@ -189,9 +259,9 @@ export class SkipRouter {
     }
   }
 
-  static async fetchStatus(hash: string, chaindId: string): Promise<TxStatusResponse> {
+  static async fetchStatus(hash: string, chainId: string): Promise<IObjectKeys> {
     const client = await SkipRouter.getClient();
-    const status = await client.transactionStatus({ chainID: chaindId, txHash: hash });
+    const status = await client.getTransactionStatus({ chain_id: chainId, tx_hash: hash });
 
     if (status.error) {
       throw status.error;
@@ -213,7 +283,7 @@ export class SkipRouter {
     }
 
     await SkipRouter.wait(800);
-    return SkipRouter.fetchStatus(hash, chaindId);
+    return SkipRouter.fetchStatus(hash, chainId);
   }
 
   private static wait(ms: number) {
@@ -227,22 +297,24 @@ export class SkipRouter {
   private static getAffialates(route: IObjectKeys, config: SkipRouteConfigType) {
     if (route.swapVenue?.name) {
       const affiliateAddress = config[route.swapVenue.name as keyof typeof config] as string;
-      const affiliate = affiliateFromJSON({
+      const affiliates = {
         address: affiliateAddress,
-        basis_points_fee: config.fee.toString()
-      });
-      return [affiliate];
+        basisPointsFee: config.fee.toString()
+      };
+      return {
+        [route.swapVenue.chainId as string]: { affiliates: [affiliates] }
+      };
     }
 
-    return [];
+    return {};
   }
 
   static async track(chainId: string, hash: string) {
     try {
       const client = await SkipRouter.getClient();
-      await client.trackTransaction({
-        chainID: chainId,
-        txHash: hash
+      await client.getTransactionTrack({
+        chain_id: chainId,
+        tx_hash: hash
       });
     } catch (error) {
       Logger.error(error);
@@ -250,7 +322,7 @@ export class SkipRouter {
   }
 
   private static getTx(msg: IObjectKeys, msgJSON: IObjectKeys) {
-    switch (msg.msgTypeURL) {
+    switch (msg.msg_type_url) {
       case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
         return MsgTransfer.fromPartial({
           sourcePort: msgJSON.source_port,
@@ -292,7 +364,7 @@ export class SkipRouter {
       return SkipRouter.chains;
     }
     const client = await SkipRouter.getClient();
-    SkipRouter.chains = client.chains({ includeEVM: true, includeSVM: false });
+    SkipRouter.chains = client.getChains() as Promise<Chain[]>;
     return SkipRouter.chains;
   }
 }
