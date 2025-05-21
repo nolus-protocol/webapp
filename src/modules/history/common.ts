@@ -308,6 +308,14 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
             null
           ];
         }
+        if (data.change_close_policy) {
+          return [
+            i18n.t("message.change-close-policy", {
+              address: truncateString(msg.data.contract)
+            }),
+            null
+          ];
+        }
 
         if (data.close_position?.partial_close) {
           const currency = AssetUtils.getCurrencyByTicker(data.close_position?.partial_close.amount.ticker);
@@ -405,7 +413,6 @@ export function action(msg: IObjectKeys, i18n: IObjectKeys) {
     case Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]: {
       try {
         const data = JSON.parse(Buffer.from(msg.data.msg).toString());
-
         if (data.open_lease) {
           return i18n.t("message.leases-history");
         }
@@ -436,6 +443,10 @@ export function action(msg: IObjectKeys, i18n: IObjectKeys) {
 
         if (data.close_position?.partial_close) {
           return i18n.t("message.leases-history");
+        }
+
+        if (data.change_close_policy) {
+          return i18n.t("message.close-policy");
         }
       } catch (error) {
         Logger.error(error);

@@ -1,4 +1,4 @@
 {
-  "walletconnect": "Walletconnect",
-  "latest": "Latest"
+  "close-policy": "Margin",
+  "change-close-policy": "Change close policy on position #{address}"
 }
