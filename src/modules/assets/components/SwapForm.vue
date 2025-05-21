@@ -432,8 +432,11 @@ async function onSwap() {
       };
 
       txHashes.value.push(element);
-
       await baseWallet.broadcastTx(tx.txBytes as Uint8Array);
+      const chainid = await baseWallet.getChainId();
+      await SkipRouter.track(chainid, (tx as IObjectKeys).txHash);
+      await SkipRouter.fetchStatus((tx as IObjectKeys).txHash, chainid);
+
       element.status = SwapStatus.success;
       await wallet.UPDATE_BALANCES();
       wallet.loadActivities();

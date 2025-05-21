@@ -214,10 +214,23 @@ async function fetchLease(leaseAddress: string, protocolKey: string, period?: nu
     leaseData.downpaymentTicker ??
     CurrencyDemapping[leaseInfo.opening?.downpayment?.ticker as string]?.ticker ??
     leaseInfo.opening?.downpayment.ticker;
-  leaseData.leasePositionTicker =
-    leaseData.leasePositionTicker ??
-    CurrencyDemapping[leaseInfo.opening?.loan.ticker as string]?.ticker ??
-    leaseInfo.opening?.loan.ticker;
+
+  switch (ProtocolsConfig[protocolKey!]?.type) {
+    case PositionTypes.long: {
+      leaseData.leasePositionTicker =
+        leaseData.leasePositionTicker ??
+        CurrencyDemapping[leaseInfo.opening?.currency as string]?.ticker ??
+        leaseInfo.opening?.currency;
+      break;
+    }
+    case PositionTypes.short: {
+      leaseData.leasePositionTicker =
+        leaseData.leasePositionTicker ??
+        CurrencyDemapping[leaseInfo.opening?.loan?.ticker as string]?.ticker ??
+        leaseInfo.opening?.loan?.ticker;
+      break;
+    }
+  }
 
   if (!leaseData.ls_asset_symbol) {
     leaseData.ls_asset_symbol = leaseData.leasePositionTicker;

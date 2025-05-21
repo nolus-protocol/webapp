@@ -195,6 +195,8 @@ const swapFee = ref(0);
 const sliderValue = ref(0);
 const loading = ref(false);
 const disabled = ref(false);
+const sliderValueDec = ref(new Dec(0));
+
 const reload = inject("reload", () => {});
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
@@ -222,6 +224,7 @@ const currency = computed(() => {
 function onSetAmount(percent: number) {
   const a = getRepayment(percent);
   sliderValue.value = percent;
+  sliderValueDec.value = new Dec(percent);
   amount.value = a?.repayment ? a.repayment.toString(currency!.value.decimal_digits) : "";
 }
 
@@ -323,6 +326,8 @@ function handleAmountChange(event: string) {
     if (percent.gt(new Dec(100))) {
       percent = new Dec(100);
     }
+    sliderValueDec.value = percent;
+
     sliderValue.value = Number(percent.toString(0));
   }
 }
@@ -423,6 +428,7 @@ function additionalInterest() {
   return new Dec(0);
 }
 
+//Set SWAP FEE
 const setSwapFee = async () => {
   clearTimeout(time);
   time = setTimeout(async () => {
@@ -604,7 +610,7 @@ watch(
 watch(
   () => [currency.value?.key],
   (currentValue, oldValue) => {
-    setSwapFee();
+    // setSwapFee();
   },
   {
     deep: true
@@ -624,7 +630,7 @@ function getPrice() {
 
 const detbPartial = computed(() => {
   const price = getPrice();
-  const debt = getRepayment(sliderValue.value);
+  const debt = getRepayment(Number(sliderValueDec.value.toString()));
   const debtTotal = getRepayment(100);
 
   const d = debt?.repayment;
@@ -640,7 +646,7 @@ const detbPartial = computed(() => {
         };
       }
       case PositionTypes.long: {
-        const asset = d.quo(price);
+        const asset = d;
         const rest = debtTotal.repayment.sub(d);
         let lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
         return {
@@ -668,7 +674,7 @@ const debtData = computed(() => {
       }
       case PositionTypes.long: {
         let lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
-        const asset = d.quo(price);
+        const asset = d;
         return `${AssetUtils.formatNumber(asset.toString(), lpn.decimal_digits)} ${lpn.shortName}`;
       }
     }

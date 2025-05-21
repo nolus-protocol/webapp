@@ -282,8 +282,8 @@ const steps = computed(() => {
     for (const [index, operation] of (tempRoute.value?.operations ?? []).entries()) {
       if (operation.transfer || operation.cctpTransfer) {
         const op = operation.transfer ?? operation.cctpTransfer;
-        const from = chains[op.fromChainId];
-        const to = chains[op.toChainId];
+        const from = chains[op.from_chain_id];
+        const to = chains[op.to_chain_id];
         let label = i18n.t("message.send-stepper");
 
         if (index > 0 && index < tempRoute.value?.operations.length) {
