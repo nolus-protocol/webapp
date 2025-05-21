@@ -417,7 +417,7 @@
     "debt-label": "Debt",
     "value-chart-label": "Positions Value",
     "position-chart-label": "Positions Debt",
-    "repay-liquidation-price": "Liquidaiton price {data}",
+    "repay-liquidation-price": "Liquidation price {data}",
     "asset-to-lease-short": "Sell",
     "liquidation-lease-table": "Liq. Trigger",
     "dashboard-lease-title": "Open Positions",
