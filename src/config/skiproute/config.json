@@ -162,24 +162,18 @@
       "currencies": [
         {
           "from": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4",
-          "to": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+          "to": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "visible": "OSMOSIS"
         },
-        { "from": "unls", "to": "0xb34e17562e4f1f63A2D4cF684eD8bC124e519771" },
-        {
-          "from": "ibc/E45CFCB959F4F6D1065B7033EE49A88E606E6AD82E75725219B3D68B0FA89987",
-          "to": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599"
-        }
+        { "from": "unls", "to": "0xb34e17562e4f1f63A2D4cF684eD8bC124e519771" }
       ]
     },
     "ARBITRUM": {
       "currencies": [
         {
           "from": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4",
-          "to": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-        },
-        {
-          "from": "ibc/E45CFCB959F4F6D1065B7033EE49A88E606E6AD82E75725219B3D68B0FA89987",
-          "to": "0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f"
+          "to": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+          "visible": "OSMOSIS"
         }
       ]
     },
@@ -187,7 +181,8 @@
       "currencies": [
         {
           "from": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4",
-          "to": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E"
+          "to": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+          "visible": "OSMOSIS"
         }
       ]
     },
@@ -195,21 +190,8 @@
       "currencies": [
         {
           "from": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4",
-          "to": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
-        }
-      ]
-    },
-    "NOBLE": {
-      "currencies": [
-        {
-          "from": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4",
-          "to": "uusdc",
+          "to": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
           "visible": "OSMOSIS"
-        },
-        {
-          "from": "ibc/18161D8EFBD00FF5B7683EF8E923B8913453567FBE3FB6672D75712B0DEB6682",
-          "to": "uusdc",
-          "visible": "NEUTRON"
         }
       ]
     }

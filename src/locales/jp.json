@@ -444,6 +444,8 @@
     "liquidation-high liability": "清算の発動",
     "tvl": "合計値がロックされました",
     "walletconnect": "Walletconnect",
-    "latest": "Latest"
+    "latest": "Latest",
+    "close-policy": "Margin",
+    "change-close-policy": "Change close policy on position #{address}"
   }
 }

@@ -446,6 +446,8 @@
     "liquidation-high liability": "Liquidation Triggered",
     "tvl": "Total Value Locked",
     "walletconnect": "Walletconnect",
-    "latest": "Latest"
+    "latest": "Latest",
+    "close-policy": "Margin",
+    "change-close-policy": "Change close policy on position #{address}"
   }
 }
