@@ -57,7 +57,7 @@
 
             <BigNumber
               :loading="loading"
-              :label="`${$t('message.price-per-asset')} ${asset?.shortName}`"
+              :label="`${$t('message.price-per-asset')} ${pricerPerAsset?.shortName}`"
               :amount="{
                 amount: openedPrice,
                 type: CURRENCY_VIEW_TYPES.CURRENCY,
@@ -377,6 +377,22 @@ const assetLoan = computed(() => {
     case PositionTypes.short: {
       const p = props.lease?.protocol!;
       const currency = app.currenciesData![`${ProtocolsConfig[p].stable}@${p}`];
+      return currency;
+    }
+  }
+});
+
+const pricerPerAsset = computed(() => {
+  switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
+    case PositionTypes.long: {
+      return asset.value;
+    }
+    case PositionTypes.short: {
+      const p = props.lease?.protocol!;
+      const ticker =
+        CurrencyDemapping[props.lease?.leaseData!.leasePositionTicker as string]?.ticker ??
+        props.lease?.leaseData!.leasePositionTicker;
+      const currency = app.currenciesData![`${ticker}@${p}`];
       return currency;
     }
   }
