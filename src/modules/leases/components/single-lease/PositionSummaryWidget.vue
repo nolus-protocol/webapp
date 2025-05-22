@@ -36,13 +36,7 @@
             decimals: assetLoan?.decimal_digits ?? 0,
             hasSpace: true
           }"
-          :secondary="{
-            amount: stable,
-            type: CURRENCY_VIEW_TYPES.CURRENCY,
-            denom: NATIVE_CURRENCY.symbol,
-            fontSize: 16,
-            fontSizeSmall: 16
-          }"
+          :secondary="stable"
         />
         <div class="flex flex-col gap-8 md:flex-row">
           <div class="flex flex-col gap-4">
@@ -299,6 +293,7 @@ import { getStatus, TEMPLATES } from "../common";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Lease } from "@nolus/nolusjs/build/contracts";
 import { useI18n } from "vue-i18n";
+import type { CurrencyComponentProps } from "@/common/components/CurrencyComponent.vue";
 
 const props = defineProps<{
   lease?: LeaseData;
@@ -366,11 +361,7 @@ const amount = computed(() => {
         props.lease!.leaseStatus?.opened?.amount ||
         props.lease!.leaseStatus.opening?.downpayment ||
         props.lease!.leaseStatus.paid?.amount;
-
-      const asset = app.currenciesData?.[`${props.lease!.leaseData!.leasePositionTicker}@${props.lease!.protocol}`]!;
-      const price = oracle.prices?.[asset?.ibcData as string];
-      let k = new Dec(data?.amount ?? 0).quo(new Dec(price.amount)).toString();
-      return k;
+      return new Dec(data?.amount ?? 0).toString();
     }
     default: {
       return "0";
@@ -474,7 +465,7 @@ const asset = computed(() => {
       return asset;
     }
     case PositionTypes.short: {
-      const item = AssetUtils.getCurrencyByTicker(props.lease?.leaseData?.leasePositionTicker as string);
+      const item = AssetUtils.getCurrencyByTicker(props.lease?.leaseData?.ls_asset_symbol as string);
 
       const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
       return asset;
@@ -482,11 +473,18 @@ const asset = computed(() => {
   }
 });
 
-const stable = computed(() => {
+const stable = computed<CurrencyComponentProps>(() => {
   const lease = props.lease;
+  const dflt = {
+    amount: "0",
+    type: CURRENCY_VIEW_TYPES.CURRENCY,
+    denom: NATIVE_CURRENCY.symbol,
+    fontSize: 16,
+    fontSizeSmall: 16
+  } as CurrencyComponentProps;
 
   if (!lease) {
-    return "0.00";
+    return dflt;
   }
 
   const amount =
@@ -505,22 +503,37 @@ const stable = computed(() => {
     ticker = CurrencyDemapping[ticker].ticker;
   }
 
-  const asset = app.currenciesData?.[`${ticker}@${protocol}`];
-
   switch (ProtocolsConfig[lease.protocol].type) {
     case PositionTypes.long: {
       const price = oracle.prices?.[`${ticker}@${protocol}`];
 
       const value = new Dec(amount!.amount, assetLoan.value?.decimal_digits).mul(new Dec(price.amount));
-      return value.toString(NATIVE_CURRENCY.maximumFractionDigits);
+
+      return {
+        amount: value.toString(NATIVE_CURRENCY.maximumFractionDigits),
+        type: CURRENCY_VIEW_TYPES.CURRENCY,
+        denom: NATIVE_CURRENCY.symbol,
+        fontSize: 16,
+        fontSizeSmall: 16
+      } as CurrencyComponentProps;
     }
     case PositionTypes.short: {
-      const value = new Dec(amount!.amount, assetLoan.value!.decimal_digits);
-      return value.toString(NATIVE_CURRENCY.maximumFractionDigits);
+      const ast = app.currenciesData?.[`${ticker}@${protocol}`];
+      const price = oracle.prices?.[ast?.key as string];
+      const value = new Dec(amount!.amount).quo(new Dec(price.amount));
+      return {
+        amount: value.toString(NATIVE_CURRENCY.maximumFractionDigits),
+        type: CURRENCY_VIEW_TYPES.TOKEN,
+        denom: ast?.shortName,
+        decimals: asset.value?.decimal_digits,
+        fontSize: 16,
+        fontSizeSmall: 16,
+        hasSpace: true
+      } as CurrencyComponentProps;
     }
   }
 
-  return "0";
+  return dflt;
 });
 
 const lpn = computed(() => {

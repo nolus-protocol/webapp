@@ -10,20 +10,19 @@
     <BigNumber
       label="Size"
       :amount="{
-        amount: totalLoan,
+        amount: sizeAmount,
         type: CURRENCY_VIEW_TYPES.TOKEN,
-        denom: asset.shortName,
-        maxDecimals: asset?.decimal_digits,
+        denom: assetLoan.shortName,
+        maxDecimals: assetLoan.decimal_digits,
         minimalDenom: '',
-        decimals: asset?.decimal_digits,
+        decimals: assetLoan?.decimal_digits,
         hasSpace: true,
         around: true
       }"
       :secondary="{
-        amount: sizeAmount,
-
+        amount: totalLoan,
         type: CURRENCY_VIEW_TYPES.TOKEN,
-        denom: assetLoan.shortName,
+        denom: asset.shortName,
         maxDecimals: assetLoan.decimal_digits,
         decimals: assetLoan.decimal_digits,
         hasSpace: true
