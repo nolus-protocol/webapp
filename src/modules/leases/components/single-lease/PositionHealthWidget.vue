@@ -208,20 +208,22 @@ const health = computed(() => {
     let fn = () => {
       switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
         case PositionTypes.long: {
-          return margin.mul(new Dec(marginPrice.amount));
+          const margin_total = margin.mul(new Dec(marginPrice.amount));
+          const ltv = margin_total.quo(priceAmount).sub(new Dec(0.2));
+          const health = new Dec(1).sub(ltv.quo(new Dec(0.7)));
+          return Math.min(100, Math.max(Number(health.mul(new Dec(PERCENT)).toString(2)), 0));
         }
         case PositionTypes.short: {
-          return margin.quo(new Dec(marginPrice.amount));
+          const price = new Dec(marginPrice.amount);
+          const value = props.lease!.unitAsset.quo(price);
+          const ltv = margin.quo(value).sub(new Dec(0.2));
+          const health = new Dec(1).sub(ltv.quo(new Dec(0.7)));
+          return Math.min(100, Math.max(Number(health.mul(new Dec(PERCENT)).toString(2)), 0));
         }
       }
     };
 
-    const margin_total = fn()!;
-    const ltv = margin_total.quo(priceAmount).sub(new Dec(0.2));
-
-    const health = new Dec(1).sub(ltv.quo(new Dec(0.7)));
-
-    return Math.min(100, Math.max(Number(health.mul(new Dec(PERCENT)).toString(2)), 0)); // 100% is the max value
+    return fn() as number;
   }
 
   return 0;

@@ -22,9 +22,19 @@ class Swap {
     this.api_url = data.api_url;
   }
 
+  private async checkError(response: Response) {
+    const items = await response.json();
+
+    if (response.status != 200) {
+      throw items;
+    }
+
+    return items;
+  }
+
   async getChains(): Promise<Chain[]> {
     const data = await fetch(`${this.api_url}/info/chains?include_evm=true&include_svm=true`);
-    const items = await data.json();
+    const items = await this.checkError(data);
     return items.chains;
   }
 
@@ -36,7 +46,7 @@ class Swap {
         "Content-Type": "application/json"
       }
     });
-    return data.json();
+    return this.checkError(data);
   }
 
   async getMessages(request: MessagesRequest): Promise<MessagesResponse> {
@@ -47,7 +57,7 @@ class Swap {
         "Content-Type": "application/json"
       }
     });
-    return data.json();
+    return this.checkError(data);
   }
 
   async getTransactionStatus({
@@ -62,7 +72,7 @@ class Swap {
         "Content-Type": "application/json"
       }
     });
-    return data.json();
+    return this.checkError(data);
   }
 
   async getTransactionTrack({
@@ -82,7 +92,7 @@ class Swap {
         "Content-Type": "application/json"
       }
     });
-    return data.json();
+    return this.checkError(data);
   }
 }
 

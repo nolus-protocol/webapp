@@ -295,7 +295,7 @@ const steps = computed(() => {
           icon: from.icon,
           token: {
             balance: AssetUtils.formatNumber(
-              new Dec(index == 0 ? operation.amountIn : operation.amountOut, currency.value?.decimal_digits).toString(
+              new Dec(index == 0 ? operation.amount_in : operation.amount_out, currency.value?.decimal_digits).toString(
                 currency.value?.decimal_digits
               ),
               currency.value?.decimal_digits
@@ -311,7 +311,7 @@ const steps = computed(() => {
             icon: to.icon,
             token: {
               balance: AssetUtils.formatNumber(
-                new Dec(operation.amountOut, currency.value?.decimal_digits).toString(currency.value?.decimal_digits),
+                new Dec(operation.amount_out, currency.value?.decimal_digits).toString(currency.value?.decimal_digits),
                 currency.value?.decimal_digits
               ),
               symbol: currency.value?.shortName
@@ -400,8 +400,9 @@ watch(
         timeOut = setTimeout(async () => {
           try {
             tempRoute.value = await getRoute();
-          } catch (e) {
+          } catch (e: Error | any) {
             console.log(e);
+            amountErrorMsg.value = e.message;
           }
         });
       }
