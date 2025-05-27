@@ -278,10 +278,9 @@ const steps = computed(() => {
   if (tempRoute.value && network.value.chain_type == "evm") {
     const chains = getChainIds(tempRoute.value as RouteResponse);
     const stps = [];
-
     for (const [index, operation] of (tempRoute.value?.operations ?? []).entries()) {
-      if (operation.transfer || operation.cctpTransfer) {
-        const op = operation.transfer ?? operation.cctpTransfer;
+      if (operation.go_fast_transfer || operation.transfer || operation.cctp_transfer) {
+        const op = operation.go_fast_transfer ?? operation.transfer ?? operation.cctp_transfer;
         const from = chains[op.from_chain_id];
         const to = chains[op.to_chain_id];
         let label = i18n.t("message.send-stepper");
@@ -295,7 +294,7 @@ const steps = computed(() => {
           icon: from.icon,
           token: {
             balance: AssetUtils.formatNumber(
-              new Dec(index == 0 ? operation.amountIn : operation.amountOut, currency.value?.decimal_digits).toString(
+              new Dec(index == 0 ? operation.amount_in : operation.amount_out, currency.value?.decimal_digits).toString(
                 currency.value?.decimal_digits
               ),
               currency.value?.decimal_digits
@@ -311,7 +310,7 @@ const steps = computed(() => {
             icon: to.icon,
             token: {
               balance: AssetUtils.formatNumber(
-                new Dec(operation.amountOut, currency.value?.decimal_digits).toString(currency.value?.decimal_digits),
+                new Dec(operation.amount_out, currency.value?.decimal_digits).toString(currency.value?.decimal_digits),
                 currency.value?.decimal_digits
               ),
               symbol: currency.value?.shortName
@@ -419,7 +418,8 @@ watch(
         timeOut = setTimeout(async () => {
           try {
             tempRoute.value = await getRoute();
-          } catch (e) {
+          } catch (e: Error | any) {
+            amountErrorMsg.value = e.message;
             console.log(e);
           }
         });
@@ -985,7 +985,7 @@ function getChains(route?: RouteResponse) {
     if (item.chain_id == native) {
       return false;
     }
-    return route!.chain_ids.includes(item.chain_id);
+    return route!.chain_ids?.includes(item.chain_id);
   });
 
   for (const chain of chains) {
@@ -1002,7 +1002,7 @@ function getChains(route?: RouteResponse) {
 function getChainIds(route?: RouteResponse) {
   const chainToParse: { [key: string]: IObjectKeys } = {};
   const chains = chainsData.filter((item) => {
-    return route!.chain_ids.includes(item.chain_id);
+    return route!.chain_ids?.includes?.(item.chain_id);
   });
 
   for (const chain of chains) {
