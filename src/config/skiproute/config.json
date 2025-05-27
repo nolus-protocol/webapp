@@ -1,5 +1,5 @@
 {
-  "api_url": "http://localhost:5051/skip",
+  "api_url": "https://beacon.nolus.network/skip",
   "blacklist": [
     "ibc/FFE21A5F04A89CD5E61A616EEE11A646D5DCF0A8DB60523F79C5ED28DA2642FA",
     "ibc/6DF8CF5C976851D152E2C7270B0AB25C4F9D64C0A46513A68D6CBB2662A98DF4",
