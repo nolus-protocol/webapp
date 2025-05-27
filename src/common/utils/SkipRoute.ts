@@ -82,7 +82,7 @@ class Swap {
     chain_id: string;
     tx_hash: string;
   }): Promise<{ tx_hash: string; explorer_link: string }> {
-    const data = await fetch(`${this.api_url}/tx/track`, {
+    const data = await fetch(`${this.api_url}/register`, {
       method: "POST",
       body: JSON.stringify({
         chain_id,
