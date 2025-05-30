@@ -7,6 +7,7 @@ export const REDDIT_ACCOUNT = "https://www.reddit.com/r/NolusPlatform";
 export const LINKEDIN_ACCOUNT = "https://www.linkedin.com/company/nolus-platform";
 export const DISCORD_ACCOUNT = "https://discord.com/invite/Rmwz8S6ZJP";
 export const SUPPORT_URL = "https://hub.nolus.io";
+export const INTERCOM_URL = "https://beacon.nolus.network/intercom";
 
 export enum APPEARANCE {
   light = "light",
