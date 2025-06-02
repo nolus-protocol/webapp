@@ -193,6 +193,15 @@ export const CONTRACTS: ContractConfig = {
         rewards: true,
         supply: true
       },
+      "OSMOSIS-OSMOSIS-OSMO": {
+        only: [],
+        lease: true,
+        currencies: ["ALL_SOL", "ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
+        stable: "USDC_NOBLE",
+        type: PositionTypes.short,
+        rewards: true,
+        supply: true
+      },
       "OSMOSIS-OSMOSIS-AKT": {
         only: [],
         lease: true,
@@ -210,7 +219,7 @@ export const CONTRACTS: ContractConfig = {
     admin: {
       instance: "nolus1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsqxf8nd",
       codeId: "",
-      ignoreProtocols: ["OSMOSIS-OSMOSIS-OSMO"]
+      ignoreProtocols: []
     }
   }
 };

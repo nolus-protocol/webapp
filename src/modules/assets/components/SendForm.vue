@@ -881,12 +881,14 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
     const fn = async function () {
       switch (chainToParse[chain].chain_type) {
         case "cosmos": {
-          const client = await WalletUtils.getWallet(chain);
-          const network = NETWORK_DATA;
-          const networkData = network?.supportedNetworks[chain];
-          const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
-          const chainId = await baseWallet.getChainId();
-          addrs[chainId] = baseWallet;
+          if (chain != NATIVE_NETWORK.key) {
+            const client = await WalletUtils.getWallet(chain);
+            const network = NETWORK_DATA;
+            const networkData = network?.supportedNetworks[chain];
+            const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
+            const chainId = await baseWallet.getChainId();
+            addrs[chainId] = baseWallet;
+          }
           break;
         }
         case "evm": {
