@@ -213,7 +213,8 @@ const stable = computed(() => {
       return value.toString(NATIVE_CURRENCY.maximumFractionDigits);
     }
     case PositionTypes.short: {
-      const value = new Dec(amount?.amount ?? 0, asset!.decimal_digits);
+      const c = app.currenciesData?.[`${ProtocolsConfig[protocol as string].stable}@${protocol}`];
+      const value = new Dec(amount?.amount ?? 0, c!.decimal_digits);
       return value.toString(NATIVE_CURRENCY.maximumFractionDigits);
     }
   }

@@ -74,6 +74,7 @@ export const CONTRACTS: ContractConfig = {
         hold: [
           "OSMOSIS-OSMOSIS-USDC_AXELAR",
           "OSMOSIS-OSMOSIS-USDC_NOBLE",
+          "OSMOSIS-OSMOSIS-OSMO",
           "OSMOSIS-OSMOSIS-ST_ATOM",
           "OSMOSIS-OSMOSIS-ALL_BTC",
           "OSMOSIS-OSMOSIS-ALL_SOL",
@@ -193,6 +194,15 @@ export const CONTRACTS: ContractConfig = {
         rewards: true,
         supply: true
       },
+      "OSMOSIS-OSMOSIS-OSMO": {
+        only: [],
+        lease: true,
+        currencies: ["ALL_SOL", "ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
+        stable: "USDC_NOBLE",
+        type: PositionTypes.short,
+        rewards: true,
+        supply: true
+      },
       "OSMOSIS-OSMOSIS-AKT": {
         only: [],
         lease: true,
@@ -210,7 +220,7 @@ export const CONTRACTS: ContractConfig = {
     admin: {
       instance: "nolus1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsqxf8nd",
       codeId: "",
-      ignoreProtocols: ["OSMOSIS-OSMOSIS-OSMO"]
+      ignoreProtocols: []
     }
   }
 };
@@ -229,6 +239,7 @@ export const SORT_PROTOCOLS = [
   "OSMOSIS-OSMOSIS-ALL_BTC",
   "OSMOSIS-OSMOSIS-ALL_SOL",
   "OSMOSIS-OSMOSIS-ATOM",
+  "OSMOSIS-OSMOSIS-OSMO",
   "OSMOSIS-OSMOSIS-USDC_NOBLE",
   "NEUTRON-ASTROPORT-USDC_NOBLE",
   "OSMOSIS-OSMOSIS-ST_ATOM",
