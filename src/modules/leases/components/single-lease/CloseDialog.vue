@@ -646,15 +646,27 @@ function isAmountValid() {
     const minAmountCurrency = AssetUtils.getCurrencyByTicker(
       config.value?.config.lease_position_spec.min_asset.ticker as string
     )!;
-    const minAmont = new Dec(
+    let minAmont = new Dec(
       config.value?.config.lease_position_spec.min_asset.amount ?? 0,
       Number(minAmountCurrency.decimal_digits)
     );
+
+    switch (ProtocolsConfig[lease.value!.protocol].type) {
+      case PositionTypes.short: {
+        const p = new Dec(
+          oracle.prices[
+            `${config.value?.config.lease_position_spec.min_asset.ticker as string}@${lease.value!.protocol}`
+          ].amount
+        );
+
+        minAmont = minAmont.mul(p);
+        break;
+      }
+    }
     const price = new Dec(oracle.prices[currency.key as string].amount);
 
     const minAmountTemp = new Dec(minimumLeaseAmount);
     const amountInStable = new Dec(a.length == 0 ? "0" : a).mul(price);
-
     if (amount || amount !== "") {
       const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(a, "", Number(currency.decimal_digits));
       const value = new Dec(amountInMinimalDenom.amount, Number(currency.decimal_digits));
