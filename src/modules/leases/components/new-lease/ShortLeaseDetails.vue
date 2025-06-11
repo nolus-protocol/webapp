@@ -231,8 +231,7 @@ const sizeAmount = computed(() => {
   if (!props.lease?.total?.amount) {
     return "0";
   }
-  const decimals = new Dec(10 ** lpn.value.decimal_digits);
-  const fee = new Dec(swapStableFee.value, lpn.value.decimal_digits).mul(decimals);
+  const fee = new Dec(swapStableFee.value, asset.value.decimal_digits);
   const total = new Dec(props.lease?.total.amount ?? "0").sub(fee);
   return total.truncate().toString();
 });
