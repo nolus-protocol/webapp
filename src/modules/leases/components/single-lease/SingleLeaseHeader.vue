@@ -141,6 +141,7 @@ import { useApplicationStore } from "@/common/stores/application";
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyDemapping } from "@/config/currencies";
 import { getStatus, TEMPLATES } from "../common";
+import type { OpenedOngoingState } from "@nolus/nolusjs/build/contracts/types/OpenedOngoingState";
 
 const sharePnlDialog = ref<typeof SharePnLDialog | null>(null);
 const router = useRouter();
@@ -173,8 +174,8 @@ watch(
 );
 
 const openedSubState = computed(() => {
-  const data = props.lease?.leaseStatus.opened;
-  if (data?.in_progress != null) {
+  const progress = props.lease?.leaseStatus.opened?.status as OpenedOngoingState;
+  if (progress?.in_progress != null) {
     return true;
   }
 

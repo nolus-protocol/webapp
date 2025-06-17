@@ -319,7 +319,7 @@ export class SkipRouter {
     return {};
   }
 
-  static async track(chainId: string, hash: string) {
+  static async track(chainId: string, hash: string, attempts = 0) {
     try {
       const client = await SkipRouter.getClient();
       await client.getTransactionTrack({
@@ -327,8 +327,15 @@ export class SkipRouter {
         tx_hash: hash
       });
     } catch (error) {
-      Logger.error(error);
+      await this.subTrack(chainId, hash, attempts);
     }
+  }
+
+  static async subTrack(chainId: string, hash: string, attempts = 0) {
+    try {
+      await SkipRouter.wait(4000);
+      await this.track(chainId, hash, attempts);
+    } catch (error) {}
   }
 
   private static getTx(msg: IObjectKeys, msgJSON: IObjectKeys) {
