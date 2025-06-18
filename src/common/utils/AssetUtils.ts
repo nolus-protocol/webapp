@@ -273,6 +273,7 @@ export class AssetUtils {
     }
 
     networks[NATIVE_NETWORK.key] = nolusMappedCurrencies;
+    console.log(networks);
     return {
       assetIcons,
       networks

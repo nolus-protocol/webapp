@@ -3,7 +3,7 @@ import type { LeaseAttributes } from "../types/LeaseData";
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
-import { AssetUtils, EtlApi, Logger } from ".";
+import { AssetUtils, EtlApi } from ".";
 import { CurrencyDemapping } from "@/config/currencies";
 import { useApplicationStore } from "../stores/application";
 

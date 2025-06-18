@@ -1,0 +1,219 @@
+{
+  "icons": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/currencies/icons",
+  "currencies": {
+    "NLS": { "name": "NOLUS", "shortName": "NLS", "coinGeckoId": "nolus" },
+    "OSMO": { "name": "Osmosis", "shortName": "OSMO", "coinGeckoId": "osmosis" },
+    "MILK_TIA": { "name": "Milk Staked TIA", "shortName": "milkTIA", "coinGeckoId": "milkyway-staked-tia" },
+    "LVN": { "name": "Levana", "shortName": "LVN", "coinGeckoId": "levana-protocol" },
+    "ALL_BTC": { "name": "Alloyed BTC", "shortName": "BTC", "coinGeckoId": "osmosis-allbtc" },
+    "ALL_SOL": { "name": "Alloyed SOL", "shortName": "SOL", "coinGeckoId": "osmosis-allsol" },
+    "ALL_ETH": { "name": "Alloyed ETH", "shortName": "ETH", "coinGeckoId": "osmosis-alleth" },
+    "USDC": { "name": "Axelar Wrapped USDC", "shortName": "USDC", "coinGeckoId": "usd-coin" },
+    "WETH": { "name": "Axelar Wrapped ETH", "shortName": "WETH", "coinGeckoId": "weth" },
+    "WBTC": { "name": "Axelar Wrapped BTC", "shortName": "WBTC", "coinGeckoId": "wrapped-bitcoin" },
+    "AXL": { "name": "Axelar", "shortName": "AXL", "coinGeckoId": "axelar" },
+    "ATOM": { "name": "Cosmos Hub", "shortName": "ATOM", "coinGeckoId": "cosmos" },
+    "ST_ATOM": { "name": "Stride Staked ATOM", "shortName": "stATOM", "coinGeckoId": "stride-staked-atom" },
+    "ST_OSMO": { "name": "Stride Staked OSMO", "shortName": "stOSMO", "coinGeckoId": "stride-staked-osmo" },
+    "ST_TIA": { "name": "Stride Staked TIA", "shortName": "stTIA", "coinGeckoId": "stride-staked-tia" },
+    "STRD": { "name": "Stride", "shortName": "STRD", "coinGeckoId": "stride" },
+    "AKT": { "name": "Akash", "shortName": "AKT", "coinGeckoId": "akash-network" },
+    "JUNO": { "name": "Juno", "shortName": "JUNO", "coinGeckoId": "juno-network" },
+    "EVMOS": { "name": "Evmos", "shortName": "EVMOS", "coinGeckoId": "evmos" },
+    "STK_ATOM": { "name": "Pstake Staked ATOM", "shortName": "stkATOM", "coinGeckoId": "stkatom" },
+    "SCRT": { "name": "Secret Network", "shortName": "SCRT", "coinGeckoId": "secret" },
+    "CRO": { "name": "Cronos", "shortName": "CRO", "coinGeckoId": "crypto-com-chain" },
+    "TIA": { "name": "Celestia", "shortName": "TIA", "coinGeckoId": "celestia" },
+    "STARS": { "name": "Stargaze", "shortName": "STARS", "coinGeckoId": "stargaze" },
+    "Q_ATOM": { "name": "Quicksilver Staked ATOM", "shortName": "qATOM", "coinGeckoId": "qatom" },
+    "NTRN": { "name": "Neutron", "shortName": "NTRN", "coinGeckoId": "neutron-3" },
+    "D_ATOM": { "name": "Drop Staked ATOM", "shortName": "dATOM", "coinGeckoId": null },
+    "D_NTRN": { "name": "Drop Staked NTRN", "shortName": "dNTRN", "coinGeckoId": "neutron-3" },
+    "DYDX": { "name": "dYdX Protocol", "shortName": "DYDX", "coinGeckoId": "dydx-chain" },
+    "JKL": { "name": "Jackal", "shortName": "JKL", "coinGeckoId": "jackal-protocol" },
+    "DYM": { "name": "Dymension", "shortName": "DYM", "coinGeckoId": "dymension" },
+    "INJ": { "name": "Injective", "shortName": "INJ", "coinGeckoId": "injective-protocol" },
+    "USDC_NOBLE": { "name": "Noble", "shortName": "USDC", "coinGeckoId": "usd-coin" },
+    "PICA": { "name": "Composable", "shortName": "PICA", "coinGeckoId": "picasso" },
+    "CUDOS": { "name": "Cudos", "shortName": "CUDOS", "coinGeckoId": "cudos" },
+    "OM": { "name": "Mantra", "shortName": "OM", "coinGeckoId": "mantra-dao" },
+    "NIL": { "name": "Nillion", "shortName": "NIL", "coinGeckoId": "nillion" },
+    "XION": { "name": "Xion", "shortName": "XION", "coinGeckoId": "xion-2" },
+    "BABY": { "name": "Babylon", "shortName": "BABY", "coinGeckoId": "babylon" }
+  },
+  "networks": {
+    "NOLUS": {
+      "native": ["NLS"],
+      "currencies": ["NLS"]
+    },
+    "OSMOSIS": {
+      "native": ["OSMO", "MILK_TIA", "LVN", "ALL_BTC", "ALL_SOL", "ALL_ETH"],
+      "currencies": [
+        "NLS",
+        "OSMO",
+        "ST_OSMO",
+        "ST_ATOM",
+        "USDC_AXELAR",
+        "WETH_AXELAR",
+        "WBTC_AXELAR",
+        "AKT",
+        "AXL",
+        "JUNO",
+        "EVMOS",
+        "SCRT",
+        "CRO",
+        "TIA",
+        "STARS",
+        "Q_ATOM",
+        "STRD",
+        "MILK_TIA",
+        "ST_TIA",
+        "JKL",
+        "DYM",
+        "INJ",
+        "USDC_NOBLE",
+        "LVN",
+        "PICA",
+        "CUDOS",
+        "ALL_BTC",
+        "ALL_SOL",
+        "OM",
+        "NIL",
+        "XION",
+        "ALL_ETH",
+        "BABY"
+      ]
+    },
+    "AXELAR": {
+      "native": ["USDC", "WETH", "WBTC", "AXL"],
+      "currencies": ["USDC", "WETH", "WBTC", "AXL"]
+    },
+    "COSMOS_HUB": {
+      "native": ["ATOM"],
+      "currencies": ["ATOM"]
+    },
+    "STRIDE": {
+      "native": ["ST_ATOM", "ST_OSMO", "ST_TIA", "STRD"],
+      "currencies": ["ST_ATOM", "ST_OSMO", "ST_TIA", "STRD"]
+    },
+    "AKASH": {
+      "native": ["AKT"],
+      "currencies": ["AKT"]
+    },
+    "JUNO": {
+      "native": ["JUNO"],
+      "currencies": ["JUNO"]
+    },
+    "EVMOS": {
+      "native": ["EVMOS"],
+      "currencies": ["EVMOS"]
+    },
+    "PERSISTENCE": {
+      "native": ["STK_ATOM"],
+      "currencies": ["STK_ATOM"]
+    },
+    "SECRET": {
+      "native": ["SCRT"],
+      "currencies": ["SCRT"]
+    },
+    "CRYPTO_ORG": {
+      "native": ["CRO"],
+      "currencies": ["CRO"]
+    },
+    "CELESTIA": {
+      "native": ["TIA"],
+      "currencies": ["TIA"]
+    },
+    "STARGAZE": {
+      "native": ["STARS"],
+      "currencies": ["STARS"]
+    },
+    "QUICKSILVER": {
+      "native": ["Q_ATOM"],
+      "currencies": ["Q_ATOM"]
+    },
+    "NEUTRON": {
+      "native": ["NTRN", "D_ATOM", "D_NTRN"],
+      "currencies": [
+        "NTRN",
+        "D_ATOM",
+        "USDC_AXELAR",
+        "USDC_NOBLE",
+        "ATOM",
+        "ST_ATOM",
+        "DYDX",
+        "NLS",
+        "TIA",
+        "ST_TIA",
+        "STK_ATOM",
+        "D_NTRN"
+      ]
+    },
+    "DYDX": {
+      "native": ["DYDX"],
+      "currencies": {
+        "DYDX": ["DYDX"]
+      }
+    },
+    "JACKAL": {
+      "native": ["JKL"],
+      "currencies": {
+        "JKL": ["JKL"]
+      }
+    },
+    "DYMENSION": {
+      "native": ["DYM"],
+      "currencies": {
+        "DYM": ["DYM"]
+      }
+    },
+    "INJECTIVE": {
+      "native": ["INJ"],
+      "currencies": {
+        "INJ": ["INJ"]
+      }
+    },
+    "NOBLE": {
+      "native": ["USDC_NOBLE"],
+      "currencies": {
+        "USDC_NOBLE": ["USDC_NOBLE"]
+      }
+    },
+    "COMPOSABLE": {
+      "native": ["PICA"],
+      "currencies": {
+        "PICA": ["PICA"]
+      }
+    },
+    "CUDOS": {
+      "native": ["CUDOS"],
+      "currencies": {
+        "CUDOS": ["CUDOS"]
+      }
+    },
+    "MANTRA": {
+      "native": ["OM"],
+      "currencies": {
+        "OM": ["OM"]
+      }
+    },
+    "NILLION": {
+      "native": ["NIL"],
+      "currencies": {
+        "NIL": ["NIL"]
+      }
+    },
+    "XION": {
+      "native": ["XION"],
+      "currencies": {
+        "XION": ["XION"]
+      }
+    },
+    "BABYLON": {
+      "native": ["BABY"],
+      "currencies": {
+        "BABY": ["BABY"]
+      }
+    }
+  }
+}
