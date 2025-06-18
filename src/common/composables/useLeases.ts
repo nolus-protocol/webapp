@@ -187,6 +187,7 @@ async function fetchLease(leaseAddress: string, protocolKey: string, period?: nu
 
   const oracleStore = useOracleStore();
   const app = useApplicationStore();
+  let lpn = AssetUtils.getLpnByProtocol(protocolKey);
 
   const leaseClient = new Lease(cosmWasmClient, leaseAddress);
 
@@ -289,18 +290,28 @@ async function fetchLease(leaseAddress: string, protocolKey: string, period?: nu
     let currentAmount = unitAsset.mul(currentPrice);
 
     for (const b of balances ?? []) {
-      const balance = new Dec(b.amount, Number(b.decimals));
-      currentAmount = currentAmount.add(balance);
+      switch (ProtocolsConfig[protocolKey].type) {
+        case PositionTypes.long: {
+          const balance = new Dec(b.amount, Number(b.decimals));
+          currentAmount = currentAmount.add(balance);
+          break;
+        }
+        case PositionTypes.short: {
+          const lpnPrice = new Dec(oracleStore.prices[b.key]?.amount);
+          const balance = new Dec(b.amount, Number(b.decimals)).mul(lpnPrice);
+          currentAmount = currentAmount.add(balance);
+          break;
+        }
+      }
     }
+
     if (leaseData) {
-      let lpn = AssetUtils.getLpnByProtocol(protocolKey);
       const lpnPrice = new Dec(oracleStore.prices[lpn.ibcData]?.amount);
       pnlAmount = currentAmount
         .sub(debt.mul(lpnPrice))
         .sub(leaseData?.downPayment)
         .add(fee)
         .sub(leaseData?.repayment_value);
-
       if (leaseData.downPayment.isPositive()) {
         pnlPercent = pnlAmount.quo(leaseData?.downPayment.add(leaseData?.repayment_value)).mul(new Dec(100));
       }
@@ -355,7 +366,8 @@ function getLeaseBalances(leaseInfo: LeaseStatus, protocolKey: string, balances:
         amount: item.amount,
         icon: currency.icon,
         decimals: currency.decimal_digits,
-        shortName: currency.shortName
+        shortName: currency.shortName,
+        key: `${ticker}@${protocolKey}`
       };
     });
 }
