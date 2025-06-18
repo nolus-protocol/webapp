@@ -138,6 +138,7 @@ import { useRouter } from "vue-router";
 import { getStatus, TEMPLATES } from "./common";
 import type { IAction } from "./single-lease/Action.vue";
 import Action from "./single-lease/Action.vue";
+import type { OpenedOngoingState } from "@nolus/nolusjs/build/contracts/types/OpenedOngoingState";
 
 const { leases, getLeases, leaseLoaded } = useLeases((error: Error | any) => {});
 const activeLeases = ref(new Dec(0));
@@ -434,9 +435,9 @@ function getActions(lease: LeaseData) {
 }
 
 function isClosing(lease: LeaseData) {
-  const data = lease.leaseStatus.opened;
+  const progress = lease.leaseStatus.opened?.status as OpenedOngoingState;
 
-  if (Object.prototype.hasOwnProperty.call(data?.in_progress ?? {}, "close")) {
+  if (Object.prototype.hasOwnProperty.call(progress ?? {}, "close")) {
     return true;
   }
 
@@ -444,9 +445,9 @@ function isClosing(lease: LeaseData) {
 }
 
 function isRepaying(lease: LeaseData) {
-  const data = lease.leaseStatus.opened;
+  const progress = lease.leaseStatus.opened?.status as OpenedOngoingState;
 
-  if (Object.prototype.hasOwnProperty.call(data?.in_progress ?? {}, "repayment")) {
+  if (Object.prototype.hasOwnProperty.call(progress ?? {}, "repayment")) {
     return true;
   }
 
