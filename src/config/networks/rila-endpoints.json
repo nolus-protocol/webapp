@@ -1,7 +1,7 @@
 {
   "downtime": 30,
-  "archive_node_rpc": "https://rila-cl.nolus.network:26657",
-  "archive_node_api": "https://rila-cl.nolus.network:1317",
+  "archive_node_rpc": "https://archive-rpc.nolus.network",
+  "archive_node_api": "https://archive-lcd.nolus.network",
   "NOLUS": {
     "primary": {
       "rpc": "https://rila-rpc.nolus.network",
