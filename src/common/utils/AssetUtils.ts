@@ -1,15 +1,15 @@
 import type { Currency, ExternalCurrency, NetworksInfo } from "@/common/types";
-import type { ProtocolContracts } from "@nolus/nolusjs/build/contracts";
+import { Oracle, type ProtocolContracts } from "@nolus/nolusjs/build/contracts";
 
 import { Networks, type NetworkData } from "@nolus/nolusjs/build/types/Networks";
 import { Dec } from "@keplr-wallet/unit";
-import { CurrencyUtils } from "@nolus/nolusjs";
+import { CurrencyUtils, NolusClient } from "@nolus/nolusjs";
 import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
 import { useOracleStore } from "@/common/stores/oracle";
 import { ASSETS, CurrencyDemapping, CurrencyMapping } from "@/config/currencies";
 import { useApplicationStore } from "../stores/application";
 import { useAdminStore } from "../stores/admin";
-import { EnvNetworkUtils } from ".";
+import { AppUtils, EnvNetworkUtils } from ".";
 import { Hash } from "@keplr-wallet/crypto";
 import { useWalletStore } from "../stores/wallet";
 
@@ -21,7 +21,8 @@ import {
   NATIVE_NETWORK,
   NATIVE_ASSET,
   ProtocolsConfig,
-  NATIVE_CURRENCY
+  NATIVE_CURRENCY,
+  Contracts
 } from "@/config/global";
 
 export class AssetUtils {
@@ -181,7 +182,67 @@ export class AssetUtils {
     return -1;
   }
 
+  public static async parseNetworksV2() {
+    const promises = [];
+
+    const [cosmWasmClient, networks] = await Promise.all([
+      NolusClient.getInstance().getCosmWasmClient(),
+      AppUtils.getCurrencies()
+    ]);
+
+    const app = useApplicationStore();
+    const admin = useAdminStore();
+    const network: { [key: string]: ExternalCurrency } = {};
+    const assetIcons: {
+      [key: string]: string;
+    } = {};
+
+    for (const protocolKey in admin.contracts) {
+      // if (Contracts.protocolsFilter[app.protocolFilter].hold.includes(protocolKey)) {
+      const fn = async () => {
+        const protocol = admin.contracts![protocolKey];
+        const oracleContract = new Oracle(cosmWasmClient, protocol.oracle);
+        const currencies = await oracleContract.getCurrencies();
+
+        for (const c of currencies) {
+          const name = c.ticker.replaceAll("_", "")?.toLocaleLowerCase();
+          const pr = protocolKey.split("-").at(0)?.toLocaleLowerCase();
+          const key = `${c.ticker}@${protocolKey}`;
+          assetIcons[key] = `${networks.icons}/${pr}-${name}.svg` as string;
+          network[`${c.ticker}@${protocolKey}`] = {
+            key,
+            name: networks.currencies[c.ticker].name,
+            shortName: networks.currencies[c.ticker].shortName,
+            symbol: networks.currencies[c.ticker].symbol,
+            decimal_digits: c.decimal_digits,
+            ticker: networks.currencies[c.ticker].shortName,
+            native: c.bank_symbol == NATIVE_ASSET.denom,
+            ibcData: c.bank_symbol,
+            icon: assetIcons[key],
+            coingeckoId: networks.currencies[c.ticker].coinGeckoId
+          };
+          const maped_key = networks.map[`${c.ticker}@${protocolKey}`];
+          if (maped_key) {
+            network[maped_key] = { ...network[`${c.ticker}@${protocolKey}`], key: maped_key };
+          }
+        }
+      };
+      promises.push(fn());
+      // }
+    }
+
+    await Promise.all(promises);
+    const result = {
+      assetIcons,
+      networks: { [NATIVE_NETWORK.key]: network }
+    };
+
+    return result;
+  }
+
   public static parseNetworks(ntwrks: NetworkData) {
+    return AssetUtils.parseNetworksV2();
+
     const networks: NetworksInfo = {};
 
     const assetIcons: {
@@ -273,10 +334,15 @@ export class AssetUtils {
     }
 
     networks[NATIVE_NETWORK.key] = nolusMappedCurrencies;
-    console.log(networks);
-    return {
+    console.log({
       assetIcons,
       networks
+    });
+    return {
+      assetIcons,
+      networks: {
+        [NATIVE_NETWORK.key]: nolusMappedCurrencies
+      }
     };
   }
 

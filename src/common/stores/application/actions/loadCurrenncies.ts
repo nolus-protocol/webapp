@@ -19,7 +19,7 @@ export async function loadCurrennncies(this: Store) {
       NolusClient.getInstance().getCosmWasmClient()
     ]);
 
-    const data = AssetUtils.parseNetworks(currenciesData as NetworkData);
+    const data = await AssetUtils.parseNetworks(currenciesData as NetworkData);
     const native = NolusAssetUtils.getNativeAsset(currenciesData as NetworkData);
 
     const lease: { [key: string]: string[] } = {};
@@ -28,6 +28,8 @@ export async function loadCurrennncies(this: Store) {
     const leasePromises = [];
 
     const admin = useAdminStore();
+
+    // console.log(JSON.stringify(data.networks));
 
     this.assetIcons = data.assetIcons;
     this.networks = data.networks;
@@ -54,7 +56,7 @@ export async function loadCurrennncies(this: Store) {
       lease[protocol] = [];
       lpnPromises.push(
         getLpn(cosmWasmClient, protocol, admin).then((lpn) => {
-          return data.networks[NATIVE_NETWORK.key][`${CurrencyDemapping[lpn]?.ticker ?? lpn}@${protocol}`];
+          return data.networks[NATIVE_NETWORK.key][`${lpn}@${protocol}`];
         })
       );
       leasePromises.push(
@@ -66,7 +68,6 @@ export async function loadCurrennncies(this: Store) {
         })
       );
     }
-
     const [lpns] = await Promise.all([Promise.all(lpnPromises), Promise.all(leasePromises)]);
     this.lpn = lpns;
     this.lease = lease;

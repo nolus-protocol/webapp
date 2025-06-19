@@ -22,3 +22,18 @@ export interface Currency {
   icon?: string;
   forward?: string[];
 }
+
+export interface CurrencyDefinition {
+  name: string;
+  shortName: string;
+  symbol: string;
+  coinGeckoId: string;
+}
+
+export interface CurrenciesConfig {
+  icons: string;
+  currencies: Record<string, CurrencyDefinition>;
+  map: {
+    [key: string]: string;
+  };
+}

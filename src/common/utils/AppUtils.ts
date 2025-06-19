@@ -1,3 +1,4 @@
+import type { CurrenciesConfig } from "../types/Networks";
 import type { API, ARCHIVE_NODE, Endpoint, Node, SkipRouteConfigType, ProposalsConfigType } from "@/common/types";
 
 import { connectComet } from "@cosmjs/tendermint-rpc";
@@ -17,6 +18,7 @@ import { PROMOSALS_CONFIG_URL } from "@/config/global/proposals";
 import { FREE_INTEREST_URL } from "@/config/global/free-interest-url";
 import { DUE_PROJECTION_SECS_URL } from "@/config/global/due-projection-secs-url";
 import { CHAIN_IDS_URLS } from "@/config/global/chainids-url";
+import { CURRENCIES_URL } from "@/config/global/currencies-url";
 
 export class AppUtils {
   public static LANGUAGE = "language";
@@ -69,6 +71,8 @@ export class AppUtils {
   static archive_node: {
     [key: string]: Promise<ARCHIVE_NODE>;
   } = {};
+
+  static currencies: Promise<CurrenciesConfig>;
 
   static isDev() {
     return isDev();
@@ -265,6 +269,16 @@ export class AppUtils {
         return AppUtils.getProtocols().osmosis_noble;
       }
     }
+  }
+
+  static async getCurrencies() {
+    if (this.currencies) {
+      return this.currencies;
+    }
+
+    const currencies = AppUtils.fetchCurrencies();
+    this.currencies = currencies;
+    return currencies;
   }
 
   private static async fetchArchiveNodes(): Promise<ARCHIVE_NODE> {
@@ -471,5 +485,11 @@ export class AppUtils {
     const json = (await data.json()) as string[];
 
     return json;
+  }
+
+  private static async fetchCurrencies(): Promise<CurrenciesConfig> {
+    const url = await CURRENCIES_URL;
+    const data = await fetch(url);
+    return data.json();
   }
 }
