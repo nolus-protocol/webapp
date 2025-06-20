@@ -31,6 +31,7 @@ export class Intercom {
 
   public static disconnect() {
     shutdown();
+    Intercom.loaded = false;
   }
 
   private static boot(wallet: string) {

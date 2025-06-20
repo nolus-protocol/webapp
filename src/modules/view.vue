@@ -31,6 +31,7 @@ import { Logger, WalletManager, walletOperation } from "@/common/utils";
 import Sidebar from "@/common/components/Sidebar.vue";
 import Header from "@/common/components/Header.vue";
 import MobileMenu from "@/common/components/menus/MobileMenu.vue";
+import { Intercom } from "@/common/utils/Intercom";
 
 let balanceInterval: NodeJS.Timeout | undefined;
 let pricesInterval: NodeJS.Timeout | undefined;
@@ -61,6 +62,7 @@ onUnmounted(() => {
 
 async function updateKeplr() {
   try {
+    Intercom.disconnect();
     await wallet.CONNECT_KEPLR();
     await loadNetwork();
     await wallet.UPDATE_BALANCES();
@@ -72,6 +74,7 @@ async function updateKeplr() {
 
 async function updateLeap() {
   try {
+    Intercom.disconnect();
     await wallet.CONNECT_LEAP();
     await loadNetwork();
     await wallet.UPDATE_BALANCES();
