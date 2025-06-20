@@ -224,6 +224,7 @@ import type {
   TransferOutOngoingState
 } from "@nolus/nolusjs/build/contracts";
 import { RouteNames } from "@/router";
+import type { OpenedOngoingState } from "@nolus/nolusjs/build/contracts/types/OpenedOngoingState";
 
 const route = useRoute();
 const OPENING_CHANNEL = "open_ica_account";
@@ -292,7 +293,7 @@ onUnmounted(() => {
 });
 
 const loadingPartialClose = computed(() => {
-  const data = lease.value?.leaseStatus.opened?.in_progress as CloseOngoingState;
+  const data = (lease.value?.leaseStatus.opened?.status as OpenedOngoingState)?.in_progress as CloseOngoingState;
 
   if (data?.close?.type == "Partial") {
     return true;
@@ -302,7 +303,7 @@ const loadingPartialClose = computed(() => {
 });
 
 const loadingFullClose = computed(() => {
-  const data = lease.value?.leaseStatus.opened?.in_progress as CloseOngoingState;
+  const data = (lease.value?.leaseStatus.opened?.status as OpenedOngoingState)?.in_progress as CloseOngoingState;
 
   if (data?.close?.type == "Full") {
     return true;
@@ -312,7 +313,7 @@ const loadingFullClose = computed(() => {
 });
 
 const loadingRepay = computed(() => {
-  const data = lease.value?.leaseStatus.opened;
+  const data = lease.value?.leaseStatus.opened?.status as OpenedOngoingState;
 
   if (Object.prototype.hasOwnProperty.call(data?.in_progress ?? {}, "repayment")) {
     return true;
@@ -332,7 +333,7 @@ const loadingCollect = computed(() => {
 });
 
 const loadingOngoingPartialLiquidation = computed(() => {
-  const data = lease.value?.leaseStatus.opened?.in_progress as LiquidationOngoingState;
+  const data = (lease.value?.leaseStatus.opened?.status as OpenedOngoingState)?.in_progress as LiquidationOngoingState;
   if (data?.liquidation?.type == "Partial" && data?.liquidation?.cause == "overdue") {
     return true;
   }
@@ -341,7 +342,7 @@ const loadingOngoingPartialLiquidation = computed(() => {
 });
 
 const loadingFullPartialLiquidation = computed(() => {
-  const data = lease.value?.leaseStatus.opened?.in_progress as LiquidationOngoingState;
+  const data = (lease.value?.leaseStatus.opened?.status as OpenedOngoingState)?.in_progress as LiquidationOngoingState;
 
   if (data?.liquidation?.type == "Full" && data?.liquidation?.cause == "overdue") {
     return true;
@@ -351,7 +352,7 @@ const loadingFullPartialLiquidation = computed(() => {
 });
 
 const loadingOngoingPartialLiquidationLiability = computed(() => {
-  const data = lease.value?.leaseStatus.opened?.in_progress as LiquidationOngoingState;
+  const data = (lease.value?.leaseStatus.opened?.status as OpenedOngoingState)?.in_progress as LiquidationOngoingState;
 
   if (data?.liquidation?.type == "Partial" && data?.liquidation?.cause == "liability") {
     return true;
@@ -361,7 +362,7 @@ const loadingOngoingPartialLiquidationLiability = computed(() => {
 });
 
 const loadingOngoingFullLiquidationLiability = computed(() => {
-  const data = lease.value?.leaseStatus.opened?.in_progress as LiquidationOngoingState;
+  const data = (lease.value?.leaseStatus.opened?.status as OpenedOngoingState)?.in_progress as LiquidationOngoingState;
 
   if (data?.liquidation?.type == "Full" && data?.liquidation?.cause == "liability") {
     return true;
