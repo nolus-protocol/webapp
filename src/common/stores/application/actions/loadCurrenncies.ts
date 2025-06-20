@@ -6,7 +6,6 @@ import type { Store as AdminStore } from "../../admin/types";
 import { IGNORE_LEASE_ASSETS_STABLES, NATIVE_ASSET, NATIVE_NETWORK, NETWORK } from "@/config/global";
 import { AssetUtils, EnvNetworkUtils, Logger } from "@/common/utils";
 import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
-import { ASSETS, CurrencyDemapping } from "@/config/currencies";
 import { NolusClient } from "@nolus/nolusjs";
 import { Lpp, Oracle } from "@nolus/nolusjs/build/contracts";
 import { useAdminStore } from "../../admin";
@@ -19,7 +18,7 @@ export async function loadCurrennncies(this: Store) {
       NolusClient.getInstance().getCosmWasmClient()
     ]);
 
-    const data = await AssetUtils.parseNetworks(currenciesData as NetworkData);
+    const data = await AssetUtils.parseNetworks();
     const native = NolusAssetUtils.getNativeAsset(currenciesData as NetworkData);
 
     const lease: { [key: string]: string[] } = {};
@@ -50,7 +49,7 @@ export async function loadCurrennncies(this: Store) {
       native: true,
       key: nativeCurrency.ticker,
       ibcData: nativeCurrency.symbol,
-      coingeckoId: ASSETS[NATIVE_ASSET.ticker as keyof typeof ASSETS].coinGeckoId
+      coingeckoId: nativeCurrency.coinGeckoId
     };
     for (const protocol of this.protocols) {
       lease[protocol] = [];

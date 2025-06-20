@@ -131,6 +131,7 @@ function setLeases() {
           lease.leaseStatus.opened.amount.ticker;
         const dasset = app.currenciesData![`${ticker}@${lease.protocol}`];
         const lpn = AssetUtils.getLpnByProtocol(lease.protocol);
+
         const price = oracle.prices[lpn.key];
         const downpayment = lease.leaseData?.downPayment ? lease.leaseData?.downPayment : new Dec(0);
         const dDecimal = Number(dasset!.decimal_digits);
@@ -141,7 +142,7 @@ function setLeases() {
         ).toDec();
 
         ls = ls.add(l);
-        lease.debt = lease.debt.mul(new Dec(price.amount));
+        lease.debt = lease.debt.mul(new Dec(price?.amount));
 
         am = am.add(lease.pnlAmount as Dec);
         dp = dp.add(downpayment as Dec);

@@ -1,12 +1,10 @@
-import type { Currency, ExternalCurrency, NetworksInfo } from "@/common/types";
+import type { ExternalCurrency } from "@/common/types";
 import { Oracle, type ProtocolContracts } from "@nolus/nolusjs/build/contracts";
 
-import { Networks, type NetworkData } from "@nolus/nolusjs/build/types/Networks";
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils, NolusClient } from "@nolus/nolusjs";
-import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
 import { useOracleStore } from "@/common/stores/oracle";
-import { ASSETS, CurrencyDemapping, CurrencyMapping } from "@/config/currencies";
+import { CurrencyDemapping } from "@/config/currencies";
 import { useApplicationStore } from "../stores/application";
 import { useAdminStore } from "../stores/admin";
 import { AppUtils, EnvNetworkUtils } from ".";
@@ -17,12 +15,10 @@ import {
   DECIMALS_AMOUNT,
   MAX_DECIMALS,
   ZERO_DECIMALS,
-  SUPPORTED_NETWORKS,
   NATIVE_NETWORK,
   NATIVE_ASSET,
   ProtocolsConfig,
-  NATIVE_CURRENCY,
-  Contracts
+  NATIVE_CURRENCY
 } from "@/config/global";
 
 export class AssetUtils {
@@ -182,7 +178,7 @@ export class AssetUtils {
     return -1;
   }
 
-  public static async parseNetworksV2() {
+  public static async parseNetworks() {
     const promises = [];
 
     const [cosmWasmClient, networks] = await Promise.all([
@@ -198,14 +194,13 @@ export class AssetUtils {
     } = {};
 
     for (const protocolKey in admin.contracts) {
-      // if (Contracts.protocolsFilter[app.protocolFilter].hold.includes(protocolKey)) {
       const fn = async () => {
         const protocol = admin.contracts![protocolKey];
         const oracleContract = new Oracle(cosmWasmClient, protocol.oracle);
         const currencies = await oracleContract.getCurrencies();
 
         for (const c of currencies) {
-          const name = c.ticker.replaceAll("_", "")?.toLocaleLowerCase();
+          const name = c.ticker.replace(/_/g, "")?.toLocaleLowerCase();
           const pr = protocolKey.split("-").at(0)?.toLocaleLowerCase();
           const key = `${c.ticker}@${protocolKey}`;
           assetIcons[key] = `${networks.icons}/${pr}-${name}.svg` as string;
@@ -228,7 +223,6 @@ export class AssetUtils {
         }
       };
       promises.push(fn());
-      // }
     }
 
     await Promise.all(promises);
@@ -238,187 +232,5 @@ export class AssetUtils {
     };
 
     return result;
-  }
-
-  public static parseNetworks(ntwrks: NetworkData) {
-    return AssetUtils.parseNetworksV2();
-
-    const networks: NetworksInfo = {};
-
-    const assetIcons: {
-      [key: string]: string;
-    } = {};
-
-    for (const k in ntwrks.networks.list) {
-      if (SUPPORTED_NETWORKS.includes(k)) {
-        if (networks[k] == null) {
-          networks[k] = {};
-        }
-
-        const assets: { [key: string]: Currency } = ntwrks.networks.list[k].currencies as {
-          [key: string]: Currency;
-        };
-
-        if (k == NATIVE_NETWORK.key) {
-          for (const p of NolusAssetUtils.getProtocols(ntwrks)) {
-            for (const key in ntwrks.networks.list[ntwrks.protocols[p].DexNetwork].currencies) {
-              const ck = `${key}@${p}`;
-              assets[ck] = ntwrks.networks.list[ntwrks.protocols[p].DexNetwork].currencies[key] as Currency;
-              assetIcons[ck] = ntwrks.networks.list[ntwrks.protocols[p].DexNetwork].currencies[key].icon as string;
-
-              if (CurrencyMapping[key]) {
-                assetIcons[`${CurrencyMapping[key].ticker}@${p}`] = ntwrks.networks.list[ntwrks.protocols[p].DexNetwork]
-                  .currencies[key].icon as string;
-              }
-
-              assets[ck].ibcData = NolusAssetUtils.makeIBCMinimalDenom(
-                key,
-                ntwrks!,
-                NATIVE_NETWORK.key as Networks,
-                ntwrks.protocols[p].DexNetwork as string
-              );
-            }
-          }
-        }
-
-        for (const ck in assets) {
-          const currency = assets[ck];
-          const [ti, pr] = ck.split("@");
-
-          if (currency.native) {
-            if (currency.native.ticker != NATIVE_ASSET.ticker) {
-              networks[k][ck] = {
-                ...currency.native,
-                icon: assetIcons[ck],
-                decimal_digits: Number(currency.native!.decimal_digits),
-                shortName: CurrencyDemapping[ck]?.name ?? currency.native?.ticker,
-                ticker: currency.native.ticker,
-                native: k == NATIVE_NETWORK.key ? false : true,
-                key: `${ck}`,
-                ibcData: currency.ibcData ?? currency?.native?.symbol,
-                coingeckoId: ASSETS[ti as keyof typeof ASSETS].coinGeckoId
-              };
-            }
-          }
-
-          if (currency.ibc) {
-            const n = ntwrks.networks.list[currency.ibc.network];
-            const c = n.currencies[currency.ibc.currency];
-            const ticker = n.currencies[currency?.ibc?.currency]?.ibc?.currency ?? currency?.ibc?.currency;
-
-            if (c) {
-              c;
-              networks[k][ck] = {
-                ...c.native!,
-                icon: assetIcons[ck],
-                decimal_digits: Number(c.native!.decimal_digits),
-                shortName: CurrencyMapping[ti]?.name ?? (c.native?.ticker as string),
-                ticker: ticker,
-                native: false,
-                key: `${ck}`,
-                ibcData: currency.ibcData,
-                coingeckoId: ASSETS[ticker as keyof typeof ASSETS].coinGeckoId
-              };
-            }
-          }
-        }
-      }
-    }
-
-    const nolusCurrencies: ExternalCurrency[] = [];
-    const nolusMappedCurrencies: { [key: string]: ExternalCurrency } = {};
-
-    for (const key in networks[NATIVE_NETWORK.key]) {
-      nolusCurrencies.push(networks[NATIVE_NETWORK.key][key]);
-      nolusMappedCurrencies[networks[NATIVE_NETWORK.key][key].key as string] = networks[NATIVE_NETWORK.key][key];
-    }
-
-    networks[NATIVE_NETWORK.key] = nolusMappedCurrencies;
-    console.log({
-      assetIcons,
-      networks
-    });
-    return {
-      assetIcons,
-      networks: {
-        [NATIVE_NETWORK.key]: nolusMappedCurrencies
-      }
-    };
-  }
-
-  public static getChannelDataByProtocol(
-    channels: {
-      a: {
-        network: string;
-        ch: string;
-      };
-      b: {
-        network: string;
-        ch: string;
-      };
-    }[],
-    protocol: string,
-    b: string
-  ) {
-    const channel = channels.find((item) => {
-      return item.a.network == protocol && item.b.network == b;
-    });
-
-    return channel;
-  }
-
-  public static getSourceChannel(
-    channels: {
-      a: {
-        network: string;
-        ch: string;
-      };
-      b: {
-        network: string;
-        ch: string;
-      };
-    }[],
-    a: string,
-    b: string,
-    source?: string
-  ) {
-    if (source) {
-      const channel = channels.find((item) => {
-        return item.a.network == a && item.b.network == b;
-      });
-
-      if (channel) {
-        if (channel.a.network == source) {
-          return channel.a.ch;
-        }
-
-        if (channel.b.network == source) {
-          return channel.b.ch;
-        }
-      }
-    }
-
-    const channel = channels.find((item) => {
-      return (item.a.network == a && item.b.network == b) || (item.a.network == b && item.b.network == a);
-    });
-
-    if (channel) {
-      if (channel.a.network == (source ?? b)) {
-        return channel.a.ch;
-      }
-
-      if (channel.b.network == (source ?? b)) {
-        return channel.b.ch;
-      }
-    }
-  }
-
-  static getIbc(path: string) {
-    return (
-      "ibc/" +
-      Buffer.from(Hash.sha256(Buffer.from(path)))
-        .toString("hex")
-        .toUpperCase()
-    );
   }
 }
