@@ -406,7 +406,6 @@ const debtData = computed(() => {
           fee: `${(swapFee.value * PERCENT).toFixed(NATIVE_CURRENCY.maximumFractionDigits)}% (${NATIVE_CURRENCY.symbol}${value.toString(NATIVE_CURRENCY.maximumFractionDigits)})`,
           asset: currecy.shortName,
           price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(price.toString(MAX_DECIMALS), MAX_DECIMALS)}`,
-          // debt: `${AssetUtils.formatNumber(asset.toString(), currecy.decimal_digits)} ${currecy.shortName} (${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(d.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)})`
           debt: `${AssetUtils.formatNumber(asset.toString(), currecy.decimal_digits)} ${currecy.shortName}`
         };
       }
@@ -420,7 +419,6 @@ const debtData = computed(() => {
           asset: currecy.shortName,
           price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(price.toString(MAX_DECIMALS), MAX_DECIMALS)}`,
           debt: ` ${AssetUtils.formatNumber(asset.toString(lpn.decimal_digits), lpn.decimal_digits)} ${lpn.shortName}`
-          // debt: `${AssetUtils.formatNumber(d.toString(), currecy.decimal_digits)} ${currecy.shortName} (${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(asset.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)})`
         };
       }
     }

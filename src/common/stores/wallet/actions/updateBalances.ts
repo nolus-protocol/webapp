@@ -2,8 +2,7 @@ import type { Store } from "../types";
 import { Logger, WalletManager, WalletUtils } from "@/common/utils";
 import { useApplicationStore } from "../../application";
 import { CurrencyMapping } from "@/config/currencies";
-import { AssetUtils, CurrencyUtils, NolusClient } from "@nolus/nolusjs";
-import { Networks } from "@nolus/nolusjs/build/types/Networks";
+import { CurrencyUtils, NolusClient } from "@nolus/nolusjs";
 import { coin } from "@cosmjs/amino";
 import { NATIVE_ASSET, ProtocolsConfig } from "@/config/global";
 
@@ -28,12 +27,7 @@ export async function updateBalances(this: Store) {
         shortName = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.name ?? shortName;
       }
 
-      const ibcDenom = AssetUtils.makeIBCMinimalDenom(
-        ticker,
-        app.networksData as any,
-        Networks.NOLUS,
-        app.networksData?.protocols[protocol].DexNetwork as string
-      );
+      const ibcDenom = currency.ibcData;
 
       if (set.has(ibcDenom)) {
         continue;

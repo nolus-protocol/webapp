@@ -8,7 +8,6 @@ import { CurrencyDemapping } from "@/config/currencies";
 import { useApplicationStore } from "../stores/application";
 import { useAdminStore } from "../stores/admin";
 import { AppUtils, EnvNetworkUtils } from ".";
-import { Hash } from "@keplr-wallet/crypto";
 import { useWalletStore } from "../stores/wallet";
 
 import {
@@ -20,6 +19,7 @@ import {
   ProtocolsConfig,
   NATIVE_CURRENCY
 } from "@/config/global";
+import { sha256 } from "@cosmjs/crypto";
 
 export class AssetUtils {
   public static formatNumber(amount: number | string, decimals: number, symbol?: string) {
@@ -186,7 +186,6 @@ export class AssetUtils {
       AppUtils.getCurrencies()
     ]);
 
-    const app = useApplicationStore();
     const admin = useAdminStore();
     const network: { [key: string]: ExternalCurrency } = {};
     const assetIcons: {
@@ -198,11 +197,12 @@ export class AssetUtils {
         const protocol = admin.contracts![protocolKey];
         const oracleContract = new Oracle(cosmWasmClient, protocol.oracle);
         const currencies = await oracleContract.getCurrencies();
-
+        const protocol_currencies = [...ProtocolsConfig[protocolKey].currencies];
         for (const c of currencies) {
           const name = c.ticker.replace(/_/g, "")?.toLocaleLowerCase();
           const pr = protocolKey.split("-").at(0)?.toLocaleLowerCase();
           const key = `${c.ticker}@${protocolKey}`;
+          protocol_currencies.push(c.ticker);
           assetIcons[key] = `${networks.icons}/${pr}-${name}.svg` as string;
           network[`${c.ticker}@${protocolKey}`] = {
             key,
@@ -221,6 +221,7 @@ export class AssetUtils {
             network[maped_key] = { ...network[`${c.ticker}@${protocolKey}`], key: maped_key };
           }
         }
+        ProtocolsConfig[protocolKey].currencies = protocol_currencies;
       };
       promises.push(fn());
     }
@@ -230,7 +231,27 @@ export class AssetUtils {
       assetIcons,
       networks: { [NATIVE_NETWORK.key]: network }
     };
-
     return result;
+  }
+
+  static getIbc(path: string) {
+    return (
+      "ibc/" +
+      Buffer.from(sha256(Buffer.from(path)))
+        .toString("hex")
+        .toUpperCase()
+    );
+  }
+
+  static getNative() {
+    const app = useApplicationStore();
+
+    for (const c in app.currenciesData) {
+      if (app.currenciesData[c].native) {
+        return app.currenciesData[c];
+      }
+    }
+
+    throw new Error(`Native currency not found`);
   }
 }

@@ -9,6 +9,7 @@ export class WalletManager {
   public static SHOW_SMALL_BALANCES = "show_small_balances";
   public static HIDE_BALANCES = "hide_balances";
   public static PROTOCOL_FILTER = "protocol_filter";
+  public static WALLET_CONNECT_URI = "WALLET_CONNECT_URI";
 
   public static saveWalletConnectMechanism(walletConnectMechanism: WalletConnectMechanism) {
     localStorage.setItem(this.WALLET_CONNECT_MECHANISM, walletConnectMechanism);
@@ -24,6 +25,16 @@ export class WalletManager {
 
   public static getPubKey(): string | null {
     return localStorage.getItem(this.WALLET_PUBKEY);
+  }
+
+  public static setWCuri(uri?: string) {
+    if (uri) {
+      localStorage.setItem(this.WALLET_CONNECT_URI, uri);
+    }
+  }
+
+  public static getWCuri(): string | null {
+    return localStorage.getItem(this.WALLET_CONNECT_URI);
   }
 
   public static setProtocolFilter(filter: string) {

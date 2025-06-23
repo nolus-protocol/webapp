@@ -443,7 +443,7 @@
     "liquidation-overdue interest": "结算利息",
     "liquidation-high liability": "已触发爆仓",
     "tvl": "锁定总价值",
-    "walletconnect": "Walletconnect",
+    "keplr-mobile": "Keplr mobile",
     "latest": "Latest",
     "close-policy": "Margin",
     "change-close-policy": "Change close policy on position #{address}"

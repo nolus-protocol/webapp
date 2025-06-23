@@ -184,9 +184,6 @@
               <span class="flex text-14 font-semibold text-typography-default">
                 {{ NATIVE_CURRENCY.symbol }}{{ stopLoss.amount }} {{ $t("message.per") }} {{ asset?.shortName }}
               </span>
-              <!-- <span class="flex text-12 text-typography-default">
-                {{ $t("message.max-loss") }}: {{ stopLoss.percent }}%
-              </span> -->
             </template>
             <div class="flex">
               <Button
@@ -225,9 +222,6 @@
               <span class="flex text-14 font-semibold text-typography-default">
                 {{ NATIVE_CURRENCY.symbol }}{{ takeProfit.amount }} {{ $t("message.per") }} {{ asset?.shortName }}
               </span>
-              <!-- <span class="flex text-12 text-typography-default">
-                {{ $t("message.max-profit") }}: {{ takeProfit.percent }}%
-              </span> -->
             </template>
             <div class="flex">
               <Button

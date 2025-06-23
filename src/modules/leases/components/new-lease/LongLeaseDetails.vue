@@ -160,7 +160,7 @@
         class="md:flex-[50%]"
         :label="$t('message.price-per-symbol', { symbol: asset.shortName })"
         :amount="{
-          amount: oracle.prices[loanCurrency].amount,
+          amount: oracle.prices[loanCurrency]?.amount ?? '0',
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
           decimals: 3,

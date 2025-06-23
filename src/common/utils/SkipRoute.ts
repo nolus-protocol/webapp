@@ -1,7 +1,7 @@
 import type { IObjectKeys, SkipRouteConfigType } from "../types";
 import type { Chain, RouteRequest, RouteResponse, MessagesRequest, MessagesResponse } from "../types/skipRoute";
 
-import { AppUtils, Logger } from ".";
+import { AppUtils } from ".";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 import type { BaseWallet } from "@/networks";
 import { MetaMaskWallet } from "@/networks/metamask";

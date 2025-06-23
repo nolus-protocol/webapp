@@ -17,8 +17,6 @@
                 :class="{ selected: index == imageIndex }"
                 @click="setBackgroundIndex(index)"
               >
-                <!-- <img :src="img" /> -->
-
                 <canvas
                   :ref="(el) => (canvasRefs[index] = el as HTMLCanvasElement)"
                   class="w-full rounded"

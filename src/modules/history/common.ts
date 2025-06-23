@@ -137,7 +137,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
       try {
         const data = JSON.parse(Buffer.from(msg.data.packet.data).toString());
         const d = `${msg.data.packet.destinationPort}/${msg.data.packet.destinationChannel}/${data.denom}`;
-        const denom = currency_mapper[d]; //?? AssetUtils.getIbc(d);
+        const denom = currency_mapper[d] ?? AssetUtils.getIbc(d);
         const coin = parseCoins(`${data.amount}${denom}`)[0];
         delete msg.fee_denom;
 

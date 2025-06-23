@@ -33,13 +33,11 @@
 </template>
 
 <script lang="ts" setup>
-import { Widget } from "web-components";
-
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
-
 import BigNumber from "@/common/components/BigNumber.vue";
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import LoansChart from "@/modules/stats/components/LoansChart.vue";
+import { Widget } from "web-components";
+import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { EtlApi, Logger } from "@/common/utils";
 import { onMounted, ref } from "vue";
 import { NATIVE_CURRENCY } from "@/config/global";

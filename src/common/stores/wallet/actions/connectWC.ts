@@ -74,6 +74,7 @@ export async function getWalletConnectOfflineSigner(callback?: Function, chId?: 
 
   signClient.on("session_request", (...args) => console.log(args));
   let session = signClient.session.getAll().at(-1);
+
   if (!session) {
     const chains = [];
     const chainsIds = await AppUtils.getChainIds();
@@ -82,7 +83,7 @@ export async function getWalletConnectOfflineSigner(callback?: Function, chId?: 
       chains.push(`cosmos:${chainsIds.cosmos[key]}`);
     }
     const { uri, approval } = await signClient.connect({
-      requiredNamespaces: {
+      optionalNamespaces: {
         cosmos: {
           methods: [
             "cosmos_getAccounts",
@@ -103,25 +104,8 @@ export async function getWalletConnectOfflineSigner(callback?: Function, chId?: 
       }
     });
 
-    const device = getDeviceInfo();
-    const encoded = encodeURIComponent(uri as string);
-
-    switch (device.os) {
-      case "Android": {
-        const universalURL = `intent://wcV2?${encoded}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`;
-        window.location.href = universalURL;
-        break;
-      }
-      case "iOS": {
-        const universalURL = `keplrwallet://wcV2?${encoded}`;
-        window.location.href = universalURL;
-        break;
-      }
-      default: {
-        callback?.(uri);
-        break;
-      }
-    }
+    WalletManager.setWCuri(uri);
+    redirect(uri, callback);
 
     session = await approval();
   }
@@ -135,6 +119,31 @@ export async function getWalletConnectOfflineSigner(callback?: Function, chId?: 
   };
 }
 
+export function redirect(uri?: string, callback?: Function) {
+  try {
+    const device = getDeviceInfo();
+    const encoded = encodeURIComponent(uri ?? "");
+    switch (device.os) {
+      case "Android": {
+        const universalURL = `intent://wcV2?${encoded}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`;
+        window.location.href = universalURL;
+        break;
+      }
+      case "iOS": {
+        const universalURL = `keplrwallet://wcV2?${uri}`;
+        window.location.href = universalURL;
+        break;
+      }
+      default: {
+        callback?.(uri);
+        break;
+      }
+    }
+  } catch (e: Error | any) {
+    console.error(e);
+  }
+}
+
 export function makeWCOfflineSigner(
   signClient: SignClient,
   sessionTopic: string,
@@ -142,6 +151,7 @@ export function makeWCOfflineSigner(
 ): OfflineDirectSigner {
   return {
     async getAccounts(): Promise<readonly AccountData[]> {
+      redirect(WalletManager.getWCuri() ?? undefined);
       const accounts: Array<{ address: string; algo: string; pubkey: string }> = await signClient.request({
         topic: sessionTopic,
         chainId: cosmosNamespace,
@@ -157,6 +167,7 @@ export function makeWCOfflineSigner(
     },
 
     async signDirect(signerAddress: string, signDoc: ProtoSignDoc): Promise<DirectSignResponse> {
+      redirect(WalletManager.getWCuri() ?? undefined);
       const base64Doc = {
         chainId: signDoc.chainId,
         accountNumber: signDoc.accountNumber.toString(),

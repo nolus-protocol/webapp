@@ -113,17 +113,6 @@
             </div>
           </template>
         </div>
-        <!-- <hr class="border-border-color" />
-      <div class="flex justify-end px-6 py-4">
-        <Button
-          :label="$t('message.show-transaction-details')"
-          severity="tertiary"
-          icon="plus"
-          iconPosition="left"
-          size="small"
-          class="text-icon-default"
-        />
-      </div> -->
         <hr class="border-border-color" />
       </div>
       <div class="flex flex-col gap-2 p-6">

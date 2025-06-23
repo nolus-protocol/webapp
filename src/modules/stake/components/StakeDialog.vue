@@ -62,5 +62,3 @@ function onChangeTab(event: number) {
   }
 }
 </script>
-
-<style scoped lang=""></style>

@@ -168,8 +168,7 @@ const leasesHistory = computed(() => {
 
     switch (ProtocolsConfig[protocol].type) {
       case PositionTypes.short: {
-        let lpn = app.networksData?.protocols?.[protocol].Lpn.dex_currency;
-        currency = app.currenciesData![`${lpn}@${protocol}`];
+        currency = AssetUtils.getLpnByProtocol(protocol);
         break;
       }
     }

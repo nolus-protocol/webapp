@@ -443,7 +443,7 @@
     "liquidation-overdue interest": "Règlement des intérêts",
     "liquidation-high liability": "Liquidation déclenchée",
     "tvl": "Valeur totale verrouillée",
-    "walletconnect": "Walletconnect",
+    "keplr-mobile": "Keplr mobile",
     "latest": "Latest",
     "close-policy": "Margin",
     "change-close-policy": "Change close policy on position #{address}"

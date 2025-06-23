@@ -83,7 +83,7 @@ async function onClick() {
     switch (props.type) {
       case WalletActions.CONNECT_WC: {
         await wallet[props.type as WalletActions.CONNECT_WC]?.((uri: string) => {
-          text.value = uri;
+          // text.value = uri;
         });
         break;
       }

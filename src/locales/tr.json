@@ -443,7 +443,7 @@
     "liquidation-overdue interest": "Faizi Kapat",
     "liquidation-high liability": "Tasfiye Tetiklendi",
     "tvl": "Toplam Değer Kilitli",
-    "walletconnect": "Walletconnect",
+    "keplr-mobile": "Keplr mobile",
     "latest": "Latest",
     "close-policy": "Margin",
     "change-close-policy": "Change close policy on position #{address}"

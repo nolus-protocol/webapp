@@ -51,7 +51,8 @@ export default defineConfig({
     })
   ],
   server: {
-    host: "127.0.0.1"
+    host: "127.0.0.1",
+    allowedHosts: ["26cc-45-90-90-54.ngrok-free.app"]
   },
   resolve: {
     alias: {

@@ -9,12 +9,6 @@
       "coinGeckoId": "milkyway-staked-tia",
       "symbol": "factory/osmo1f5vfcph2dvfeqcqkhetwv75fda69z7e5c2dldm3kvgj23crkv6wqcn47a0/umilkTIA"
     },
-    "LVN": {
-      "name": "Levana",
-      "shortName": "LVN",
-      "coinGeckoId": "levana-protocol",
-      "symbol": "factory/osmo1mlng7pz4pnyxtpq0akfwall37czyk9lukaucsrn30ameplhhshtqdvfm5c/ulvn"
-    },
     "ALL_BTC": {
       "name": "Alloyed BTC",
       "shortName": "BTC",

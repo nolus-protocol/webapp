@@ -26,11 +26,6 @@
         class="order-2 overflow-x-auto md:overflow-auto lg:order-none lg:flex-[60%]"
         :onSearch="onSearch"
       />
-      <!-- <EarnRewards
-        :rewards="lpnReward"
-        :stableRewards="lpnRewardStable"
-        class="order-1 lg:order-none lg:flex-[40%]"
-      /> -->
     </div>
     <router-view></router-view>
   </div>
