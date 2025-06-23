@@ -122,10 +122,9 @@ export async function getWalletConnectOfflineSigner(callback?: Function, chId?: 
 export function redirect(uri?: string, callback?: Function) {
   try {
     const device = getDeviceInfo();
-    const encoded = encodeURIComponent(uri ?? "");
     switch (device.os) {
       case "Android": {
-        const universalURL = `intent://wcV2?${encoded}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`;
+        const universalURL = `intent://wcV2?${uri}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`;
         window.location.href = universalURL;
         break;
       }
