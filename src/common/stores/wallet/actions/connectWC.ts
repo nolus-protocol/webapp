@@ -151,12 +151,14 @@ export function makeWCOfflineSigner(
 ): OfflineDirectSigner {
   return {
     async getAccounts(): Promise<readonly AccountData[]> {
-      redirect(WalletManager.getWCuri() ?? undefined);
-      const accounts: Array<{ address: string; algo: string; pubkey: string }> = await signClient.request({
-        topic: sessionTopic,
-        chainId: cosmosNamespace,
-        request: { method: "cosmos_getAccounts", params: {} }
-      });
+      const [accounts] = await Promise.all([
+        signClient.request({
+          topic: sessionTopic,
+          chainId: cosmosNamespace,
+          request: { method: "cosmos_getAccounts", params: {} }
+        }) as Promise<Array<{ address: string; algo: string; pubkey: string }>>,
+        redirect(WalletManager.getWCuri() ?? undefined)
+      ]);
 
       const data = accounts.map(({ address, algo, pubkey }) => ({
         address,
@@ -167,7 +169,6 @@ export function makeWCOfflineSigner(
     },
 
     async signDirect(signerAddress: string, signDoc: ProtoSignDoc): Promise<DirectSignResponse> {
-      redirect(WalletManager.getWCuri() ?? undefined);
       const base64Doc = {
         chainId: signDoc.chainId,
         accountNumber: signDoc.accountNumber.toString(),
@@ -175,25 +176,28 @@ export function makeWCOfflineSigner(
         bodyBytes: toBase64(signDoc.bodyBytes)
       };
 
-      const resp = await signClient.request<{
-        signed: {
-          chainId: string;
-          accountNumber: string;
-          authInfoBytes: string | Uint8Array;
-          bodyBytes: string | Uint8Array;
-        };
-        signature: {
-          pub_key: { type: string; value: string | Uint8Array };
-          signature: string | Uint8Array;
-        };
-      }>({
-        topic: sessionTopic,
-        chainId: cosmosNamespace,
-        request: {
-          method: "cosmos_signDirect",
-          params: { signerAddress, signDoc: base64Doc }
-        }
-      });
+      const [resp] = await Promise.all([
+        signClient.request<{
+          signed: {
+            chainId: string;
+            accountNumber: string;
+            authInfoBytes: string | Uint8Array;
+            bodyBytes: string | Uint8Array;
+          };
+          signature: {
+            pub_key: { type: string; value: string | Uint8Array };
+            signature: string | Uint8Array;
+          };
+        }>({
+          topic: sessionTopic,
+          chainId: cosmosNamespace,
+          request: {
+            method: "cosmos_signDirect",
+            params: { signerAddress, signDoc: base64Doc }
+          }
+        }),
+        redirect(WalletManager.getWCuri() ?? undefined)
+      ]);
 
       const normalize = (input: string | Uint8Array): Uint8Array =>
         typeof input === "string" ? fromBase64(input) : input;
