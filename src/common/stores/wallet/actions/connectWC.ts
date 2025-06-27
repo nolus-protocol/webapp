@@ -104,7 +104,6 @@ export async function getWalletConnectOfflineSigner(callback?: Function, chId?: 
       }
     });
 
-    WalletManager.setWCuri(uri);
     redirect(uri, callback);
 
     session = await approval();
@@ -156,7 +155,7 @@ export function makeWCOfflineSigner(
           chainId: cosmosNamespace,
           request: { method: "cosmos_getAccounts", params: {} }
         }) as Promise<Array<{ address: string; algo: string; pubkey: string }>>,
-        redirect(WalletManager.getWCuri() ?? undefined)
+        redirect("")
       ]);
 
       const data = accounts.map(({ address, algo, pubkey }) => ({
@@ -195,7 +194,7 @@ export function makeWCOfflineSigner(
             params: { signerAddress, signDoc: base64Doc }
           }
         }),
-        redirect(WalletManager.getWCuri() ?? undefined)
+        redirect("")
       ]);
 
       const normalize = (input: string | Uint8Array): Uint8Array =>
