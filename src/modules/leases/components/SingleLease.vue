@@ -8,7 +8,8 @@
       loadingOngoingPartialLiquidation ||
       loadingFullPartialLiquidation ||
       loadingOngoingPartialLiquidationLiability ||
-      loadingOngoingFullLiquidationLiability
+      loadingOngoingFullLiquidationLiability ||
+      loadintSlippageProtection
     "
   />
   <div class="flex flex-col gap-8">
@@ -160,6 +161,21 @@
             class="cursor-pointer font-normal text-typography-link"
           >
             {{ $t("message.liquidation-ongoingfull-liability-description-link") }}
+          </a>
+        </p>
+      </template>
+    </Alert>
+
+    <Alert
+      v-if="loadintSlippageProtection"
+      :title="$t('message.market-anomaly-title')"
+      :type="AlertType.info"
+    >
+      <template v-slot:content>
+        <p class="my-1 text-14 font-normal text-typography-secondary">
+          {{ $t("message.market-anomaly-title-desc") }}
+          <a class="cursor-pointer font-normal text-typography-link">
+            {{ $t("message.market-anomaly-title-desc-link") }}
           </a>
         </p>
       </template>
@@ -365,6 +381,16 @@ const loadingOngoingFullLiquidationLiability = computed(() => {
   const data = (lease.value?.leaseStatus.opened?.status as OpenedOngoingState)?.in_progress as LiquidationOngoingState;
 
   if (data?.liquidation?.type == "Full" && data?.liquidation?.cause == "liability") {
+    return true;
+  }
+
+  return false;
+});
+
+const loadintSlippageProtection = computed(() => {
+  const data = lease.value?.leaseStatus.opened?.status as string;
+
+  if (data == "slippage_protection_activated") {
     return true;
   }
 

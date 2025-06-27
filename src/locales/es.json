@@ -446,6 +446,9 @@
     "keplr-mobile": "Keplr mobile",
     "latest": "Latest",
     "close-policy": "Margin",
-    "change-close-policy": "Change close policy on position #{address}"
+    "change-close-policy": "Change close policy on position #{address}",
+    "market-anomaly-title": "Market Anomaly: Watch Mode Active",
+    "market-anomaly-title-desc": "Market Anomaly Guard (MAG) has paused liquidation due to unusually low DEX prices. Your position is safe for now while the system monitors for recovery.",
+    "market-anomaly-title-desc-link": "Learn how MAG safeguards from unfair liquidation"
   }
 }

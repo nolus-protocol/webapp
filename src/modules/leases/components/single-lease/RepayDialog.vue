@@ -377,7 +377,7 @@ function getRepayment(p: number) {
       };
     }
     case PositionTypes.long: {
-      const price = new Dec(oracle.prices[selectedCurrency!.key as string].amount);
+      const price = new Dec(oracle.prices[selectedCurrency!.key as string]?.amount ?? 1);
       const repayment = repaymentInStable.quo(price);
       return {
         repayment,

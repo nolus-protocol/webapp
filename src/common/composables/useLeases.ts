@@ -288,7 +288,6 @@ async function fetchLease(leaseAddress: string, protocolKey: string, period?: nu
 
     const currentPrice = new Dec(oracleStore.prices?.[unitAssetInfo!.ibcData as string]?.amount ?? "0");
     let currentAmount = unitAsset.mul(currentPrice);
-    console.log(ProtocolsConfig[protocolKey].type);
     for (const b of balances ?? []) {
       switch (ProtocolsConfig[protocolKey].type) {
         case PositionTypes.long: {

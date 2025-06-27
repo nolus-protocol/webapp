@@ -517,7 +517,7 @@ const stable = computed<CurrencyComponentProps>(() => {
     case PositionTypes.long: {
       const price = oracle.prices?.[`${ticker}@${protocol}`];
 
-      const value = new Dec(amount!.amount, assetLoan.value?.decimal_digits).mul(new Dec(price.amount));
+      const value = new Dec(amount!.amount, assetLoan.value?.decimal_digits).mul(new Dec(price?.amount));
 
       return {
         amount: value.toString(NATIVE_CURRENCY.maximumFractionDigits),
