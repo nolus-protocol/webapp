@@ -1,7 +1,7 @@
 {
   "icons": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/currencies/icons",
   "currencies": {
-    "NLS": { "name": "NOLUS", "shortName": "NLS", "coinGeckoId": "nolus", "symbol": "unls" },
+    "NLS": { "name": "Nolus", "shortName": "NLS", "coinGeckoId": "nolus", "symbol": "unls" },
     "OSMO": { "name": "Osmosis", "shortName": "OSMO", "coinGeckoId": "osmosis", "symbol": "uosmo" },
     "MILK_TIA": {
       "name": "Milk Staked TIA",
