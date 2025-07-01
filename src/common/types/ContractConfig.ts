@@ -2,6 +2,7 @@ import type { ContractInfo, ContractAdminInfo, IObjectKeys } from "@/common/type
 
 export interface ContractConfig {
   [key: string]: {
+    ignore: string[];
     mapPrices?: string;
     protocols: Protocols;
     protocolConfig: IObjectKeys;

@@ -78,7 +78,6 @@ const columns: TableColumnProps[] = [
 
 const filteredAssets = computed(() => {
   const balances = showSmallBalances.value ? wallet.currencies : filterSmallBalances(wallet.currencies);
-
   return balances.sort((a, b) => {
     const aAssetBalance = CurrencyUtils.calculateBalance(
       oracle.prices[a.key]?.amount,
@@ -150,11 +149,13 @@ function isEarn(denom: string) {
 
 function getApr(key: string) {
   let [ticker] = key.split("@");
+
   let asset = (app.lpn ?? []).find((item) => item.key == key);
   if (!asset) {
     ticker = CurrencyMappingEarn[ticker]?.ticker ?? ticker;
     asset = (app.lpn ?? []).find((item) => item.ticker == ticker);
   }
+
   const [_, protocol] = asset?.key.split("@") ?? [];
   return AssetUtils.formatNumber(app.apr?.[protocol] ?? 0, 2);
 }

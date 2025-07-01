@@ -17,7 +17,8 @@ import {
   NATIVE_NETWORK,
   NATIVE_ASSET,
   ProtocolsConfig,
-  NATIVE_CURRENCY
+  NATIVE_CURRENCY,
+  Contracts
 } from "@/config/global";
 import { sha256 } from "@cosmjs/crypto";
 
@@ -195,10 +196,14 @@ export class AssetUtils {
     for (const protocolKey in admin.contracts) {
       const fn = async () => {
         const protocol = admin.contracts![protocolKey];
+
         const oracleContract = new Oracle(cosmWasmClient, protocol.oracle);
         const currencies = await oracleContract.getCurrencies();
         const protocol_currencies = [...ProtocolsConfig[protocolKey].currencies];
         for (const c of currencies) {
+          if (Contracts.ignore.includes(protocolKey) && !ProtocolsConfig[protocolKey].currencies.includes(c.ticker)) {
+            continue;
+          }
           const name = c.ticker.replace(/_/g, "")?.toLocaleLowerCase();
           const pr = protocolKey.split("-").at(0)?.toLocaleLowerCase();
           const key = `${c.ticker}@${protocolKey}`;

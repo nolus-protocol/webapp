@@ -15,6 +15,7 @@ export enum PositionTypes {
 export const CONTRACTS: ContractConfig = {
   testnet: {
     ignoreProtocolsInEarn: [],
+    ignore: [],
     protocols: ProtocolsRila,
     protocolsFilter: {
       OSMOSIS: {
@@ -65,6 +66,7 @@ export const CONTRACTS: ContractConfig = {
   mainnet: {
     ignoreProtocolsInEarn: [],
     protocols: ProtocolsPirin,
+    ignore: ["OSMOSIS-OSMOSIS-USDC_AXELAR", "NEUTRON-ASTROPORT-USDC_AXELAR"],
     protocolsFilter: {
       OSMOSIS: {
         short: true,
@@ -94,7 +96,7 @@ export const CONTRACTS: ContractConfig = {
     },
     protocolConfig: {
       "OSMOSIS-OSMOSIS-USDC_AXELAR": {
-        currencies: ["USDC_AXELAR", "WETH_AXELAR", "WBTC_AXELAR"],
+        currencies: ["USDC_AXELAR", "USDC", "WETH", "WBTC", "WETH_AXELAR", "WBTC_AXELAR"],
         stable: "USDC_AXELAR",
         lease: false,
         type: PositionTypes.long,
