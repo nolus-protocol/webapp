@@ -14,7 +14,7 @@ import { AminoTypes } from "@cosmjs/stargate";
 import { WalletManager, WalletUtils, AppUtils, Logger } from "@/common//utils";
 import { type BaseWallet } from "./BaseWallet";
 import { createDepositForBurnWithCallerConverters } from "../list/noble/tx";
-import { getWalletConnectOfflineSigner } from "@/common/stores/wallet/actions/connectWC";
+// import { getWalletConnectOfflineSigner } from "@/common/stores/wallet/actions/connectWC";
 
 const aminoTypes = {
   ...createIbcAminoConverters(),
@@ -125,22 +125,22 @@ async function authenticateLeap(wallet: Wallet, network: NetworkData) {
   throw new Error("Failed to fetch wallet.");
 }
 
-async function authenticateWalletConnect(wallet: Wallet, network: NetworkData) {
-  try {
-    const chainId = await wallet.getChainId();
-    const { signer } = await getWalletConnectOfflineSigner(undefined, chainId);
-    return await createWallet(
-      wallet,
-      signer as any,
-      network.prefix,
-      network.gasMultiplier,
-      network.gasPrice,
-      network.explorer
-    );
-  } catch (e) {
-    throw e;
-  }
-}
+// async function authenticateWalletConnect(wallet: Wallet, network: NetworkData) {
+//   try {
+//     const chainId = await wallet.getChainId();
+//     const { signer } = await getWalletConnectOfflineSigner(undefined, chainId);
+//     return await createWallet(
+//       wallet,
+//       signer as any,
+//       network.prefix,
+//       network.gasMultiplier,
+//       network.gasPrice,
+//       network.explorer
+//     );
+//   } catch (e) {
+//     throw e;
+//   }
+// }
 
 async function authenticateLedger(wallet: Wallet, network: NetworkData) {
   const transport = await getLedgerTransport();
@@ -171,4 +171,4 @@ async function getLedgerTransport() {
   return await TransportWebUSB.create();
 }
 
-export { aminoTypes, authenticateLedger, authenticateKeplr, authenticateLeap, authenticateWalletConnect, createWallet };
+export { aminoTypes, authenticateLedger, authenticateKeplr, authenticateLeap, createWallet };

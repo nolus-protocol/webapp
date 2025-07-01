@@ -48,15 +48,12 @@ import TermsDialog from "../dialogs/TermsDialog.vue";
 import KeplrIcon from "@/assets/icons/wallets/keplr.svg?url";
 import LedgerIcon from "@/assets/icons/wallets/ledger.svg?url";
 import LeapIcon from "@/assets/icons/wallets/leapwallet.svg?url";
-import WalletconnectIcon from "@/assets/icons/wallets/walletconnect.svg?url";
 
 import { useRouter } from "vue-router";
-import { getDeviceInfo } from "@/common/utils/Device";
 
 const i18n = useI18n();
 const terms = ref<typeof TermsDialog>();
 const router = useRouter();
-type keys = "Keplr" | "Leap" | "Ledger" | "Walletconnect";
 
 const connections = computed(
   (): Record<
@@ -67,16 +64,6 @@ const connections = computed(
       type: WalletActions;
     }
   > => {
-    const device = getDeviceInfo();
-    if (device.isMobile) {
-      return {
-        Walletconnect: {
-          icon: WalletconnectIcon,
-          label: i18n.t("message.keplr-mobile"),
-          type: WalletActions.CONNECT_WC
-        }
-      };
-    }
     return {
       Keplr: {
         icon: KeplrIcon,
