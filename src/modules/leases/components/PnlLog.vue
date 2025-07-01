@@ -163,7 +163,7 @@ async function loadLoans() {
 const leasesHistory = computed(() => {
   return loans.value.map((item) => {
     const protocol = AssetUtils.getProtocolByContract(item.LS_loan_pool_id);
-    const ticker = CurrencyDemapping[item.LS_asset_symbol]?.ticker ?? item.LS_asset_symbol;
+    const ticker = item.LS_asset_symbol;
     let currency = app.currenciesData![`${ticker}@${protocol}`];
 
     switch (ProtocolsConfig[protocol].type) {
