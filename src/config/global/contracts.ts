@@ -105,7 +105,7 @@ export const CONTRACTS: ContractConfig = {
       },
       "NEUTRON-ASTROPORT-USDC_AXELAR": {
         lease: false,
-        currencies: ["USDC_AXELAR"],
+        currencies: ["USDC_AXELAR", "NTRN"],
         stable: "USDC_AXELAR",
         type: PositionTypes.long,
         rewards: false,

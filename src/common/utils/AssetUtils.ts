@@ -231,7 +231,14 @@ export class AssetUtils {
       promises.push(fn());
     }
 
-    await Promise.all(promises);
+    promises.push(AppUtils.getHistoryCurrencies());
+
+    const data = await Promise.all(promises);
+    const history = data.at(-1);
+
+    for (const h in history) {
+      network[h] = history[h];
+    }
     const result = {
       assetIcons,
       networks: { [NATIVE_NETWORK.key]: network }

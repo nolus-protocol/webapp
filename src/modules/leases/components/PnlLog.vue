@@ -87,7 +87,6 @@ import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
 import type { ILoan } from "./types";
 import { AssetUtils, EtlApi, getCreatedAtForHuman, Logger } from "@/common/utils";
-import { CurrencyDemapping } from "@/config/currencies";
 import { useApplicationStore } from "@/common/stores/application";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Dec, PricePretty } from "@keplr-wallet/unit";
@@ -165,6 +164,9 @@ const leasesHistory = computed(() => {
     const protocol = AssetUtils.getProtocolByContract(item.LS_loan_pool_id);
     const ticker = item.LS_asset_symbol;
     let currency = app.currenciesData![`${ticker}@${protocol}`];
+    if (!currency) {
+      console.log(ticker, protocol, currency);
+    }
 
     switch (ProtocolsConfig[protocol].type) {
       case PositionTypes.short: {

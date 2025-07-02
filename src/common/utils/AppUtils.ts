@@ -1,5 +1,13 @@
 import type { CurrenciesConfig } from "../types/Networks";
-import type { API, ARCHIVE_NODE, Endpoint, Node, SkipRouteConfigType, ProposalsConfigType } from "@/common/types";
+import type {
+  API,
+  ARCHIVE_NODE,
+  Endpoint,
+  Node,
+  SkipRouteConfigType,
+  ProposalsConfigType,
+  ExternalCurrency
+} from "@/common/types";
 
 import { connectComet } from "@cosmjs/tendermint-rpc";
 import { EnvNetworkUtils } from ".";
@@ -19,6 +27,7 @@ import { FREE_INTEREST_URL } from "@/config/global/free-interest-url";
 import { DUE_PROJECTION_SECS_URL } from "@/config/global/due-projection-secs-url";
 import { CHAIN_IDS_URLS } from "@/config/global/chainids-url";
 import { CURRENCIES_URL } from "@/config/global/currencies-url";
+import { HISTORY_CURRENCIES_URL } from "@/config/global/history-currencies-url";
 
 export class AppUtils {
   public static LANGUAGE = "language";
@@ -73,6 +82,7 @@ export class AppUtils {
   } = {};
 
   static currencies: Promise<CurrenciesConfig>;
+  static historyCurrencies: Promise<{ [key: string]: ExternalCurrency }>;
 
   static isDev() {
     return isDev();
@@ -269,6 +279,16 @@ export class AppUtils {
         return AppUtils.getProtocols().osmosis_noble;
       }
     }
+  }
+
+  static async getHistoryCurrencies() {
+    if (this.historyCurrencies) {
+      return this.historyCurrencies;
+    }
+
+    const historyCurrencies = AppUtils.fetchHistoryCurrencies();
+    this.historyCurrencies = historyCurrencies;
+    return historyCurrencies;
   }
 
   static async getCurrencies() {
@@ -489,6 +509,12 @@ export class AppUtils {
 
   private static async fetchCurrencies(): Promise<CurrenciesConfig> {
     const url = await CURRENCIES_URL;
+    const data = await fetch(url);
+    return data.json();
+  }
+
+  private static async fetchHistoryCurrencies(): Promise<{ [key: string]: ExternalCurrency }> {
+    const url = await HISTORY_CURRENCIES_URL;
     const data = await fetch(url);
     return data.json();
   }

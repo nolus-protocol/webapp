@@ -56,21 +56,10 @@
       "coinGeckoId": "stride-staked-tia",
       "symbol": "stutia"
     },
-    "STRD": { "name": "Stride", "shortName": "STRD", "coinGeckoId": "stride", "symbol": "ustrd" },
     "AKT": { "name": "Akash", "shortName": "AKT", "symbol": "uakt", "coinGeckoId": "akash-network" },
-    "JUNO": { "name": "Juno", "shortName": "JUNO", "coinGeckoId": "juno-network", "symbol": "ujuno" },
-    "EVMOS": { "name": "Evmos", "shortName": "EVMOS", "coinGeckoId": "evmos", "symbol": "aevmos" },
-    "STK_ATOM": {
-      "name": "Pstake Staked ATOM",
-      "shortName": "stkATOM",
-      "coinGeckoId": "stkatom",
-      "symbol": "stk/uatom"
-    },
     "SCRT": { "name": "Secret Network", "shortName": "SCRT", "coinGeckoId": "secret", "symbol": "uscrt" },
     "CRO": { "name": "Cronos", "shortName": "CRO", "coinGeckoId": "crypto-com-chain", "symbol": "basecro" },
     "TIA": { "name": "Celestia", "shortName": "TIA", "coinGeckoId": "celestia", "symbol": "utia" },
-    "STARS": { "name": "Stargaze", "shortName": "STARS", "coinGeckoId": "stargaze", "symbol": "ustars" },
-    "Q_ATOM": { "name": "Quicksilver Staked ATOM", "shortName": "qATOM", "coinGeckoId": "qatom", "symbol": "uqatom" },
     "NTRN": { "name": "Neutron", "shortName": "NTRN", "coinGeckoId": "neutron-3", "symbol": "untrn" },
     "D_ATOM": {
       "name": "Drop Staked ATOM",
@@ -86,11 +75,8 @@
     },
     "DYDX": { "name": "dYdX Protocol", "shortName": "DYDX", "coinGeckoId": "dydx-chain", "symbol": "adydx" },
     "JKL": { "name": "Jackal", "shortName": "JKL", "coinGeckoId": "jackal-protocol", "symbol": "ujkl" },
-    "DYM": { "name": "Dymension", "shortName": "DYM", "coinGeckoId": "dymension", "symbol": "adym" },
     "INJ": { "name": "Injective", "shortName": "INJ", "coinGeckoId": "injective-protocol", "symbol": "inj" },
     "USDC_NOBLE": { "name": "Noble", "shortName": "USDC", "coinGeckoId": "usd-coin", "symbol": "uusdc" },
-    "PICA": { "name": "Composable", "shortName": "PICA", "coinGeckoId": "picasso", "symbol": "ppica" },
-    "CUDOS": { "name": "Cudos", "shortName": "CUDOS", "coinGeckoId": "cudos", "symbol": "acudos" },
     "OM": { "name": "Mantra", "shortName": "OM", "coinGeckoId": "mantra-dao", "symbol": "uom" },
     "NIL": { "name": "Nillion", "shortName": "NIL", "coinGeckoId": "nillion", "symbol": "unil" },
     "XION": { "name": "Xion", "shortName": "XION", "coinGeckoId": "xion-2", "symbol": "uxion" },
