@@ -37,14 +37,14 @@ export const CONTRACTS: ContractConfig = {
     protocolConfig: {
       "NEUTRON-ASTROPORT-USDC_AXL": {
         lease: true,
-        currencies: ["NTRN", "USDC_AXELAR", "ATOM"],
+        currencies: [],
         stable: "USDC_AXELAR",
         type: PositionTypes.long,
         rewards: true,
         supply: true
       },
       "OSMOSIS-OSMOSIS-USDC_AXELAR": {
-        currencies: ["NLS", "OSMO", "USDC_AXELAR", "ATOM", "AKT", "JUNO"],
+        currencies: [],
         stable: "USDC_AXELAR",
         lease: true,
         type: PositionTypes.long,
@@ -72,8 +72,8 @@ export const CONTRACTS: ContractConfig = {
         image: osmosis,
         native: "NLS@OSMOSIS-OSMOSIS-USDC_NOBLE",
         hold: [
-          "OSMOSIS-OSMOSIS-USDC_AXELAR",
           "OSMOSIS-OSMOSIS-USDC_NOBLE",
+          "OSMOSIS-OSMOSIS-USDC_AXELAR",
           "OSMOSIS-OSMOSIS-OSMO",
           "OSMOSIS-OSMOSIS-ST_ATOM",
           "OSMOSIS-OSMOSIS-ALL_BTC",
@@ -94,24 +94,24 @@ export const CONTRACTS: ContractConfig = {
     },
     protocolConfig: {
       "OSMOSIS-OSMOSIS-USDC_AXELAR": {
-        currencies: ["USDC_AXELAR"],
+        currencies: ["USDC_AXELAR", "USDC", "WETH", "WBTC", "WETH_AXELAR", "WBTC_AXELAR"],
         stable: "USDC_AXELAR",
         lease: false,
         type: PositionTypes.long,
-        rewards: false,
+        rewards: true,
         supply: false
       },
       "NEUTRON-ASTROPORT-USDC_AXELAR": {
         lease: false,
-        currencies: ["USDC_AXELAR"],
+        currencies: ["USDC_AXELAR", "NTRN"],
         stable: "USDC_AXELAR",
         type: PositionTypes.long,
-        rewards: false,
+        rewards: true,
         supply: false
       },
       "NEUTRON-ASTROPORT-USDC_NOBLE": {
         lease: true,
-        currencies: ["NLS", "NTRN", "USDC_NOBLE", "DYDX", "ST_TIA", "STK_ATOM", "ATOM", "D_ATOM", "D_NTRN"],
+        currencies: [],
         stable: "USDC_NOBLE",
         type: PositionTypes.long,
         rewards: true,
@@ -119,40 +119,7 @@ export const CONTRACTS: ContractConfig = {
       },
       "OSMOSIS-OSMOSIS-USDC_NOBLE": {
         lease: true,
-        currencies: [
-          "OSMO",
-          "ST_OSMO",
-          "ATOM",
-          "ST_ATOM",
-          "USDC_NOBLE",
-          "WETH_AXELAR",
-          "WBTC_AXELAR",
-          "AKT",
-          "AXL",
-          "JUNO",
-          "EVMOS",
-          "SCRT",
-          "CRO",
-          "TIA",
-          "STARS",
-          "Q_ATOM",
-          "STRD",
-          "MILK_TIA",
-          "ST_TIA",
-          "JKL",
-          "DYM",
-          "INJ",
-          "LVN",
-          "PICA",
-          "CUDOS",
-          "ALL_BTC",
-          "ALL_SOL",
-          "OM",
-          "XION",
-          "NIL",
-          "ALL_ETH",
-          "BABY"
-        ],
+        currencies: [],
         stable: "USDC_NOBLE",
         type: PositionTypes.long,
         rewards: true,
@@ -160,8 +127,8 @@ export const CONTRACTS: ContractConfig = {
       },
       "OSMOSIS-OSMOSIS-ST_ATOM": {
         only: [],
-        lease: true,
-        currencies: ["ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
+        lease: false,
+        currencies: [],
         stable: "USDC_NOBLE",
         type: PositionTypes.short,
         rewards: true,
@@ -170,7 +137,7 @@ export const CONTRACTS: ContractConfig = {
       "OSMOSIS-OSMOSIS-ALL_BTC": {
         only: [],
         lease: true,
-        currencies: ["ALL_BTC", "ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
+        currencies: [],
         stable: "USDC_NOBLE",
         type: PositionTypes.short,
         rewards: true,
@@ -178,8 +145,8 @@ export const CONTRACTS: ContractConfig = {
       },
       "OSMOSIS-OSMOSIS-ALL_SOL": {
         only: [],
-        lease: true,
-        currencies: ["ALL_SOL", "ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
+        lease: false,
+        currencies: [],
         stable: "USDC_NOBLE",
         type: PositionTypes.short,
         rewards: true,
@@ -188,7 +155,7 @@ export const CONTRACTS: ContractConfig = {
       "OSMOSIS-OSMOSIS-ATOM": {
         only: [],
         lease: true,
-        currencies: ["ALL_SOL", "ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
+        currencies: [],
         stable: "USDC_NOBLE",
         type: PositionTypes.short,
         rewards: true,
@@ -197,7 +164,7 @@ export const CONTRACTS: ContractConfig = {
       "OSMOSIS-OSMOSIS-OSMO": {
         only: [],
         lease: true,
-        currencies: ["ALL_SOL", "ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
+        currencies: [],
         stable: "USDC_NOBLE",
         type: PositionTypes.short,
         rewards: true,
@@ -206,7 +173,7 @@ export const CONTRACTS: ContractConfig = {
       "OSMOSIS-OSMOSIS-AKT": {
         only: [],
         lease: true,
-        currencies: ["ATOM", "USDC_NOBLE", "OSMO", "ST_OSMO", "AKT", "AXL", "ST_ATOM"],
+        currencies: [],
         type: PositionTypes.short,
         stable: "USDC_NOBLE",
         rewards: true,
@@ -236,14 +203,14 @@ export const TIP = {
 export const DefaultProtocolFilter = "OSMOSIS";
 
 export const SORT_PROTOCOLS = [
+  "OSMOSIS-OSMOSIS-USDC_NOBLE",
   "OSMOSIS-OSMOSIS-ALL_BTC",
   "OSMOSIS-OSMOSIS-ALL_SOL",
   "OSMOSIS-OSMOSIS-ATOM",
   "OSMOSIS-OSMOSIS-OSMO",
-  "OSMOSIS-OSMOSIS-USDC_NOBLE",
-  "NEUTRON-ASTROPORT-USDC_NOBLE",
   "OSMOSIS-OSMOSIS-ST_ATOM",
   "OSMOSIS-OSMOSIS-AKT",
   "OSMOSIS-OSMOSIS-USDC_AXELAR",
+  "NEUTRON-ASTROPORT-USDC_NOBLE",
   "NEUTRON-ASTROPORT-USDC_AXELAR"
 ];

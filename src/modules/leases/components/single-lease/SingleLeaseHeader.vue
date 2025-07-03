@@ -175,7 +175,7 @@ watch(
 
 const openedSubState = computed(() => {
   const progress = props.lease?.leaseStatus.opened?.status as OpenedOngoingState;
-  if (progress?.in_progress != null) {
+  if (progress && progress?.in_progress != null) {
     return true;
   }
 
@@ -210,7 +210,7 @@ const stable = computed(() => {
   switch (ProtocolsConfig[lease.protocol].type) {
     case PositionTypes.long: {
       const price = oracle.prices?.[`${ticker}@${protocol}`];
-      const value = new Dec(amount?.amount ?? 0, asset?.decimal_digits).mul(new Dec(price.amount));
+      const value = new Dec(amount?.amount ?? 0, asset?.decimal_digits).mul(new Dec(price?.amount));
       return value.toString(NATIVE_CURRENCY.maximumFractionDigits);
     }
     case PositionTypes.short: {

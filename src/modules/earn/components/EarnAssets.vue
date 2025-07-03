@@ -1,9 +1,5 @@
 <template>
   <Widget>
-    <!-- <WidgetHeader
-      :label="$t('message.earning-assets')"
-      :icon="{ name: 'earn' }"
-    /> -->
     <EarnAssetsTable
       :items="items"
       :onSearch="onSearch"

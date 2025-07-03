@@ -102,5 +102,3 @@
 <script lang="ts" setup>
 import { Widget } from "web-components";
 </script>
-
-<style lang="scss" scoped></style>

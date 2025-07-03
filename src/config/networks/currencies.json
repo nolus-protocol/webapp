@@ -1,0 +1,92 @@
+{
+  "icons": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/currencies/icons",
+  "currencies": {
+    "NLS": { "name": "Nolus", "shortName": "NLS", "coinGeckoId": "nolus", "symbol": "unls" },
+    "OSMO": { "name": "Osmosis", "shortName": "OSMO", "coinGeckoId": "osmosis", "symbol": "uosmo" },
+    "MILK_TIA": {
+      "name": "Milk Staked TIA",
+      "shortName": "milkTIA",
+      "coinGeckoId": "milkyway-staked-tia",
+      "symbol": "factory/osmo1f5vfcph2dvfeqcqkhetwv75fda69z7e5c2dldm3kvgj23crkv6wqcn47a0/umilkTIA"
+    },
+    "ALL_BTC": {
+      "name": "Alloyed BTC",
+      "shortName": "BTC",
+      "coinGeckoId": "osmosis-allbtc",
+      "symbol": "factory/osmo1z6r6qdknhgsc0zeracktgpcxf43j6sekq07nw8sxduc9lg0qjjlqfu25e3/alloyed/allBTC"
+    },
+    "ALL_SOL": {
+      "name": "Alloyed SOL",
+      "shortName": "SOL",
+      "coinGeckoId": "osmosis-allsol",
+      "symbol": "factory/osmo1n3n75av8awcnw4jl62n3l48e6e4sxqmaf97w5ua6ddu4s475q5qq9udvx4/alloyed/allSOL"
+    },
+    "ALL_ETH": {
+      "name": "Alloyed ETH",
+      "shortName": "ETH",
+      "coinGeckoId": "osmosis-alleth",
+      "symbol": "factory/osmo1k6c8jln7ejuqwtqmay3yvzrg3kueaczl96pk067ldg8u835w0yhsw27twm/alloyed/allETH"
+    },
+    "USDC": { "name": "Axelar Wrapped USDC", "shortName": "USDC", "coinGeckoId": "usd-coin", "symbol": "uusdc" },
+    "USDC_AXELAR": { "name": "Axelar Wrapped USDC", "shortName": "USDC", "coinGeckoId": "usd-coin", "symbol": "uusdc" },
+    "WETH": { "name": "Axelar Wrapped ETH", "shortName": "WETH", "coinGeckoId": "weth", "symbol": "weth-wei" },
+    "WBTC": {
+      "name": "Axelar Wrapped BTC",
+      "shortName": "WBTC",
+      "coinGeckoId": "wrapped-bitcoin",
+      "symbol": "wbtc-satoshi"
+    },
+    "AXL": { "name": "Axelar", "shortName": "AXL", "coinGeckoId": "axelar", "symbol": "uaxl" },
+    "ATOM": { "name": "Cosmos Hub", "shortName": "ATOM", "coinGeckoId": "cosmos", "symbol": "uatom" },
+    "ST_ATOM": {
+      "name": "Stride Staked ATOM",
+      "shortName": "stATOM",
+      "coinGeckoId": "stride-staked-atom",
+      "symbol": "stuatom"
+    },
+    "ST_OSMO": {
+      "name": "Stride Staked OSMO",
+      "shortName": "stOSMO",
+      "coinGeckoId": "stride-staked-osmo",
+      "symbol": "stuosmo"
+    },
+    "ST_TIA": {
+      "name": "Stride Staked TIA",
+      "shortName": "stTIA",
+      "coinGeckoId": "stride-staked-tia",
+      "symbol": "stutia"
+    },
+    "AKT": { "name": "Akash", "shortName": "AKT", "symbol": "uakt", "coinGeckoId": "akash-network" },
+    "SCRT": { "name": "Secret Network", "shortName": "SCRT", "coinGeckoId": "secret", "symbol": "uscrt" },
+    "CRO": { "name": "Cronos", "shortName": "CRO", "coinGeckoId": "crypto-com-chain", "symbol": "basecro" },
+    "TIA": { "name": "Celestia", "shortName": "TIA", "coinGeckoId": "celestia", "symbol": "utia" },
+    "NTRN": { "name": "Neutron", "shortName": "NTRN", "coinGeckoId": "neutron-3", "symbol": "untrn" },
+    "D_ATOM": {
+      "name": "Drop Staked ATOM",
+      "shortName": "dATOM",
+      "coinGeckoId": "drop-staked-atom",
+      "symbol": "factory/neutron1k6hr0f83e7un2wjf29cspk7j69jrnskk65k3ek2nj9dztrlzpj6q00rtsa/udatom"
+    },
+    "D_NTRN": {
+      "name": "Drop Staked NTRN",
+      "shortName": "dNTRN",
+      "coinGeckoId": "neutron-3",
+      "symbol": "factory/neutron1frc0p5czd9uaaymdkug2njz7dc7j65jxukp9apmt9260a8egujkspms2t2/udntrn"
+    },
+    "DYDX": { "name": "dYdX Protocol", "shortName": "DYDX", "coinGeckoId": "dydx-chain", "symbol": "adydx" },
+    "JKL": { "name": "Jackal", "shortName": "JKL", "coinGeckoId": "jackal-protocol", "symbol": "ujkl" },
+    "INJ": { "name": "Injective", "shortName": "INJ", "coinGeckoId": "injective-protocol", "symbol": "inj" },
+    "USDC_NOBLE": { "name": "Noble", "shortName": "USDC", "coinGeckoId": "usd-coin", "symbol": "uusdc" },
+    "OM": { "name": "Mantra", "shortName": "OM", "coinGeckoId": "mantra-dao", "symbol": "uom" },
+    "NIL": { "name": "Nillion", "shortName": "NIL", "coinGeckoId": "nillion", "symbol": "unil" },
+    "XION": { "name": "Xion", "shortName": "XION", "coinGeckoId": "xion-2", "symbol": "uxion" },
+    "BABY": { "name": "Babylon", "shortName": "BABY", "coinGeckoId": "babylon", "symbol": "ubbn" },
+    "STARS": { "name": "Stargaze", "shortName": "STARS", "coinGeckoId": "stargaze", "symbol": "ustars" },
+    "STRD": { "name": "Stride", "shortName": "STRD", "coinGeckoId": "stride", "symbol": "ustrd" }
+  },
+  "map": {
+    "USDC@OSMOSIS-OSMOSIS-USDC_AXELAR": "USDC_AXELAR@OSMOSIS-OSMOSIS-USDC_AXELAR",
+    "WBTC@OSMOSIS-OSMOSIS-USDC_AXELAR": "WBTC_AXELAR@OSMOSIS-OSMOSIS-USDC_AXELAR",
+    "WETH@OSMOSIS-OSMOSIS-USDC_AXELAR": "WETH_AXELAR@OSMOSIS-OSMOSIS-USDC_AXELAR"
+  }
+}

@@ -74,6 +74,7 @@ export async function getWalletConnectOfflineSigner(callback?: Function, chId?: 
 
   signClient.on("session_request", (...args) => console.log(args));
   let session = signClient.session.getAll().at(-1);
+
   if (!session) {
     const chains = [];
     const chainsIds = await AppUtils.getChainIds();
@@ -82,7 +83,7 @@ export async function getWalletConnectOfflineSigner(callback?: Function, chId?: 
       chains.push(`cosmos:${chainsIds.cosmos[key]}`);
     }
     const { uri, approval } = await signClient.connect({
-      requiredNamespaces: {
+      optionalNamespaces: {
         cosmos: {
           methods: [
             "cosmos_getAccounts",
@@ -103,25 +104,7 @@ export async function getWalletConnectOfflineSigner(callback?: Function, chId?: 
       }
     });
 
-    const device = getDeviceInfo();
-    const encoded = encodeURIComponent(uri as string);
-
-    switch (device.os) {
-      case "Android": {
-        const universalURL = `intent://wcV2?${encoded}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`;
-        window.location.href = universalURL;
-        break;
-      }
-      case "iOS": {
-        const universalURL = `keplrwallet://wcV2?${encoded}`;
-        window.location.href = universalURL;
-        break;
-      }
-      default: {
-        callback?.(uri);
-        break;
-      }
-    }
+    redirect(uri, callback);
 
     session = await approval();
   }
@@ -135,6 +118,30 @@ export async function getWalletConnectOfflineSigner(callback?: Function, chId?: 
   };
 }
 
+export function redirect(uri?: string, callback?: Function) {
+  try {
+    const device = getDeviceInfo();
+    switch (device.os) {
+      case "Android": {
+        const universalURL = `intent://wcV2?${uri}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`;
+        window.location.href = universalURL;
+        break;
+      }
+      case "iOS": {
+        const universalURL = `keplrwallet://wcV2?${uri}`;
+        window.location.href = universalURL;
+        break;
+      }
+      default: {
+        callback?.(uri);
+        break;
+      }
+    }
+  } catch (e: Error | any) {
+    console.error(e);
+  }
+}
+
 export function makeWCOfflineSigner(
   signClient: SignClient,
   sessionTopic: string,
@@ -142,11 +149,14 @@ export function makeWCOfflineSigner(
 ): OfflineDirectSigner {
   return {
     async getAccounts(): Promise<readonly AccountData[]> {
-      const accounts: Array<{ address: string; algo: string; pubkey: string }> = await signClient.request({
-        topic: sessionTopic,
-        chainId: cosmosNamespace,
-        request: { method: "cosmos_getAccounts", params: {} }
-      });
+      const [accounts] = await Promise.all([
+        signClient.request({
+          topic: sessionTopic,
+          chainId: cosmosNamespace,
+          request: { method: "cosmos_getAccounts", params: {} }
+        }) as Promise<Array<{ address: string; algo: string; pubkey: string }>>,
+        redirect("")
+      ]);
 
       const data = accounts.map(({ address, algo, pubkey }) => ({
         address,
@@ -164,25 +174,28 @@ export function makeWCOfflineSigner(
         bodyBytes: toBase64(signDoc.bodyBytes)
       };
 
-      const resp = await signClient.request<{
-        signed: {
-          chainId: string;
-          accountNumber: string;
-          authInfoBytes: string | Uint8Array;
-          bodyBytes: string | Uint8Array;
-        };
-        signature: {
-          pub_key: { type: string; value: string | Uint8Array };
-          signature: string | Uint8Array;
-        };
-      }>({
-        topic: sessionTopic,
-        chainId: cosmosNamespace,
-        request: {
-          method: "cosmos_signDirect",
-          params: { signerAddress, signDoc: base64Doc }
-        }
-      });
+      const [resp] = await Promise.all([
+        signClient.request<{
+          signed: {
+            chainId: string;
+            accountNumber: string;
+            authInfoBytes: string | Uint8Array;
+            bodyBytes: string | Uint8Array;
+          };
+          signature: {
+            pub_key: { type: string; value: string | Uint8Array };
+            signature: string | Uint8Array;
+          };
+        }>({
+          topic: sessionTopic,
+          chainId: cosmosNamespace,
+          request: {
+            method: "cosmos_signDirect",
+            params: { signerAddress, signDoc: base64Doc }
+          }
+        }),
+        redirect("")
+      ]);
 
       const normalize = (input: string | Uint8Array): Uint8Array =>
         typeof input === "string" ? fromBase64(input) : input;

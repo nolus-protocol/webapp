@@ -4,7 +4,6 @@ import { isDev } from ".";
 export const DEFAULT_PRIMARY_NETWORK = import.meta.env.VITE_DEFAULT_NETWORK;
 export const NETWORKS: { [key: string]: NetworkAddress } = {
   testnet: {
-    currencies: () => import("@nolus/nolusjs/build/utils/currencies_testnet.json"),
     sendDefaultValue: "USDC_AXELAR@OSMOSIS-OSMOSIS-USDC_AXELAR",
     endpoints: isDev()
       ? import("../networks/rila-endpoints.json?url").then((t) => t.default)
@@ -19,7 +18,6 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
       : "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/evm-endpoints.json"
   },
   mainnet: {
-    currencies: () => import("@nolus/nolusjs/build/utils/currencies_mainnet.json"),
     sendDefaultValue: "USDC_NOBLE@OSMOSIS-OSMOSIS-USDC_NOBLE",
     endpoints: isDev()
       ? import("../networks/pirin-endpoints.json?url").then((t) => t.default)

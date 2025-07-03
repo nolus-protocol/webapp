@@ -160,8 +160,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
             meta: () => h("div", `${labelReceiver}`)
           }
         ];
-
-        const token = await fetchCurrency(coin);
+        const token = await fetchCurrency(coin, data.denom);
         const steps = [
           {
             icon: sender
@@ -186,7 +185,6 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
           }
         ];
       } catch (e) {
-        console.log(e);
         return msg.type;
       }
     }
@@ -562,12 +560,20 @@ function getCurrency(amount: Coin) {
   return token;
 }
 
-async function fetchCurrency(amount: Coin) {
+async function fetchCurrency(amount: Coin, symbol?: string) {
   let coin;
   try {
     coin = AssetUtils.getCurrencyByDenom(amount.denom);
   } catch (e) {
     console.log(e);
+  }
+
+  if (!coin && symbol) {
+    try {
+      coin = AssetUtils.getCurrencyBySymbol(symbol);
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   if (coin) {
@@ -580,9 +586,10 @@ async function fetchCurrency(amount: Coin) {
   }
 
   const api = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
-  const data = await fetch(`${api}/ibc/apps/transfer/v1/denom_traces/${amount.denom}`);
+  const data = await fetch(`${api}/cosmos/bank/v1beta1/denoms_metadata/${amount.denom}`);
   const json = await data.json();
-  const currency = AssetUtils.getCurrencyBySymbol(json.denom_trace.base_denom);
+  const c = json.denom_units?.at(0);
+  const currency = AssetUtils.getCurrencyBySymbol(c.denom);
 
   return CurrencyUtils.convertMinimalDenomToDenom(
     amount?.amount,

@@ -1,21 +1,4 @@
 <template>
-  <!-- <div class="flex items-center justify-end gap-3">
-    <span>{{ $t("message.period") }}:</span>
-    <Dropdown
-      id="price"
-      :on-select="
-        (data) => {
-          chartTimeRange = data;
-        }
-      "
-      :options="options"
-      :selected="options[0]"
-      class="w-20"
-      dropdownPosition="right"
-      dropdownClassName="min-w-10"
-    />
-  </div> -->
-
   <div class="chart-container overflow-hidden">
     <div
       class="h-0"

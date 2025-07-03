@@ -48,5 +48,3 @@ const options = Object.values(CHART_RANGES).map((value) => ({
   value: value.label
 }));
 </script>
-
-<style scoped lang=""></style>

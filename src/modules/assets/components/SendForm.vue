@@ -515,7 +515,6 @@ async function setCosmosNetwork() {
 
   disablePicker.value = true;
   const ntwrk = NETWORK_DATA;
-
   const currencies = [];
   const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[network.value.key].currencies;
   for (const c of data ?? []) {

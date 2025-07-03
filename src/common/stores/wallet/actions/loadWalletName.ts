@@ -11,10 +11,10 @@ export async function loadWalletName(this: Store) {
     case WalletConnectMechanism.LEAP: {
       break;
     }
-    case WalletConnectMechanism.WALLET_WC: {
-      this.walletName = WalletConnectName;
-      break;
-    }
+    // case WalletConnectMechanism.WALLET_WC: {
+    //   this.walletName = WalletConnectName;
+    //   break;
+    // }
     case WalletConnectMechanism.LEDGER: {
       this.walletName = LedgerName;
       break;

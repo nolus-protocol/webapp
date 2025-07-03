@@ -13,14 +13,14 @@ import { updateBalances } from "./updateBalances";
 import { updateHistory } from "./updateHistory";
 import { ignoreAssets } from "./ignoreAssets";
 import { loadActivities } from "./loadActivities";
-import { connectWithWalletConnect } from "./connectWC";
+// import { connectWithWalletConnect } from "./connectWC";
 
 export const actions = {
   [WalletActions.DISCONNECT]: disconnect,
   [WalletActions.CONNECT_KEPLR]: connectKeplr,
   [WalletActions.CONNECT_LEAP]: connectLeap,
   [WalletActions.CONNECT_LEDGER]: connectLedger,
-  [WalletActions.CONNECT_WC]: connectWithWalletConnect,
+  // [WalletActions.CONNECT_WC]: connectWithWalletConnect,
   [WalletActions.UPDATE_BALANCES]: updateBalances,
   [WalletActions.LOAD_VESTED_TOKENS]: loadVestedTokens,
   [WalletActions.LOAD_SUPPLIED_AMOUNT]: loadSuppliedAmount,

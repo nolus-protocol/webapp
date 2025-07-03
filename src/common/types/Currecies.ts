@@ -41,6 +41,22 @@ export interface ExternalCurrencies {
   [key: string]: ExternalCurrency;
 }
 
+export interface HistoryCurrency {
+  name: string;
+  symbol: string;
+  ticker: string;
+  decimal_digits: number;
+  icon: string;
+  shortName: string;
+  native: false;
+  coingeckoId: string;
+  protocols: {
+    [key: string]: {
+      ibcData: string;
+    };
+  };
+}
+
 export enum CURRENCY_VIEW_TYPES {
   TOKEN = "TOKEN",
   CURRENCY = "CURRENCY"

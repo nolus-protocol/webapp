@@ -113,17 +113,6 @@
             </div>
           </template>
         </div>
-        <!-- <hr class="border-border-color" />
-      <div class="flex justify-end px-6 py-4">
-        <Button
-          :label="$t('message.show-transaction-details')"
-          severity="tertiary"
-          icon="plus"
-          iconPosition="left"
-          size="small"
-          class="text-icon-default"
-        />
-      </div> -->
         <hr class="border-border-color" />
       </div>
       <div class="flex flex-col gap-2 p-6">
@@ -388,7 +377,7 @@ function getRepayment(p: number) {
       };
     }
     case PositionTypes.long: {
-      const price = new Dec(oracle.prices[selectedCurrency!.key as string].amount);
+      const price = new Dec(oracle.prices[selectedCurrency!.key as string]?.amount ?? 1);
       const repayment = repaymentInStable.quo(price);
       return {
         repayment,

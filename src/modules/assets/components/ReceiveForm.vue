@@ -116,16 +116,6 @@
     <hr class="my-4 border-border-color" />
   </div>
   <div class="flex flex-col gap-2 p-6">
-    <!-- <button
-      v-if="selectedNetwork.chain_type == 'evm'"
-      :class="{ 'js-loading': isMetamaskLoading }"
-      class="bmt-2 flex items-center !text-12 font-semibold text-neutral-typography-200"
-      type="button"
-      @click="connectEvm"
-    >
-      <component :is="connection?.icon" />
-      {{ evmAddress == null || evmAddress?.length == 0 ? $t("message.connect") : evmAddress }}
-    </button> -->
     <Button
       size="large"
       severity="primary"

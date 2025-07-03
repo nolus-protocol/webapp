@@ -383,7 +383,7 @@ function getPositionInStable(lease: LeaseData) {
     case PositionTypes.long: {
       const price = oracle.prices?.[`${ticker}@${protocol}`];
 
-      const value = new Dec(amount!.amount, asset?.decimal_digits).mul(new Dec(price.amount));
+      const value = new Dec(amount!.amount, asset?.decimal_digits).mul(new Dec(price?.amount));
       return value.toString(asset!.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : asset?.decimal_digits);
     }
     case PositionTypes.short: {
@@ -499,7 +499,7 @@ function setLeases() {
         ).toDec();
 
         ls = ls.add(l);
-        lease.debt = lease.debt.mul(new Dec(price.amount));
+        lease.debt = lease.debt.mul(new Dec(price?.amount));
 
         am = am.add(lease.pnlAmount as Dec);
         dp = dp.add(downpayment as Dec);

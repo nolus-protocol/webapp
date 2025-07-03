@@ -42,8 +42,7 @@ export default defineConfig({
     }),
     downpayments_range(),
     nodePolyfills({
-      include: ["stream", "util", "crypto"],
-      exclude: ["http"],
+      include: ["stream", "util", "crypto", "http", "https", "vm", "zlib"],
       globals: {
         Buffer: true,
         global: true,
@@ -52,7 +51,8 @@ export default defineConfig({
     })
   ],
   server: {
-    host: "127.0.0.1"
+    host: "127.0.0.1",
+    allowedHosts: []
   },
   resolve: {
     alias: {

@@ -1,5 +1,4 @@
 import type { ExternalCurrencies, ExternalCurrency, IObjectKeys, NetworkConfig, NetworksInfo } from "@/common/types";
-import type { NetworkData } from "@nolus/nolusjs/build/types/Networks";
 
 export enum ApplicationActions {
   LOAD_CURRENCIES = "LOAD_CURRENCIES",
@@ -12,7 +11,6 @@ export enum ApplicationActions {
 
 export type State = {
   networks?: NetworksInfo;
-  networksData?: NetworkData;
   assetIcons?: {
     [key: string]: string;
   };

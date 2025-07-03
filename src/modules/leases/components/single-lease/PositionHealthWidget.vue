@@ -208,7 +208,7 @@ const health = computed(() => {
     let fn = () => {
       switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
         case PositionTypes.long: {
-          const margin_total = margin.mul(new Dec(marginPrice.amount));
+          const margin_total = margin.mul(new Dec(marginPrice?.amount));
           const ltv = margin_total.quo(priceAmount).sub(new Dec(0.2));
           const health = new Dec(1).sub(ltv.quo(new Dec(0.7)));
           return Math.min(100, Math.max(Number(health.mul(new Dec(PERCENT)).toString(2)), 0));

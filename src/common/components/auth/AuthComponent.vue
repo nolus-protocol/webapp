@@ -38,7 +38,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { SvgIcon } from "web-components";
 import { WalletActions } from "@/common/stores/wallet";
@@ -48,7 +48,6 @@ import TermsDialog from "../dialogs/TermsDialog.vue";
 import KeplrIcon from "@/assets/icons/wallets/keplr.svg?url";
 import LedgerIcon from "@/assets/icons/wallets/ledger.svg?url";
 import LeapIcon from "@/assets/icons/wallets/leapwallet.svg?url";
-import WalletconnectIcon from "@/assets/icons/wallets/walletconnect.svg?url";
 
 import { useRouter } from "vue-router";
 
@@ -56,28 +55,34 @@ const i18n = useI18n();
 const terms = ref<typeof TermsDialog>();
 const router = useRouter();
 
-const connections = {
-  Keplr: {
-    icon: KeplrIcon,
-    label: i18n.t("message.keplr"),
-    type: WalletActions.CONNECT_KEPLR
-  },
-  Leap: {
-    icon: LeapIcon,
-    label: i18n.t("message.leap"),
-    type: WalletActions.CONNECT_LEAP
-  },
-  // Walletconnect: {
-  //   icon: WalletconnectIcon,
-  //   label: i18n.t("message.walletconnect"),
-  //   type: WalletActions.CONNECT_WC
-  // },
-  Ledger: {
-    icon: LedgerIcon,
-    label: i18n.t("message.ledger"),
-    type: WalletActions.CONNECT_LEDGER
+const connections = computed(
+  (): Record<
+    string,
+    {
+      icon: string;
+      label: string;
+      type: WalletActions;
+    }
+  > => {
+    return {
+      Keplr: {
+        icon: KeplrIcon,
+        label: i18n.t("message.keplr"),
+        type: WalletActions.CONNECT_KEPLR
+      },
+      Leap: {
+        icon: LeapIcon,
+        label: i18n.t("message.leap"),
+        type: WalletActions.CONNECT_LEAP
+      },
+      Ledger: {
+        icon: LedgerIcon,
+        label: i18n.t("message.ledger"),
+        type: WalletActions.CONNECT_LEDGER
+      }
+    };
   }
-};
+);
 
 function onShowTermsModal() {
   terms.value?.show();

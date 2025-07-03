@@ -87,7 +87,6 @@ import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
 import type { ILoan } from "./types";
 import { AssetUtils, EtlApi, getCreatedAtForHuman, Logger } from "@/common/utils";
-import { CurrencyDemapping } from "@/config/currencies";
 import { useApplicationStore } from "@/common/stores/application";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Dec, PricePretty } from "@keplr-wallet/unit";
@@ -163,13 +162,12 @@ async function loadLoans() {
 const leasesHistory = computed(() => {
   return loans.value.map((item) => {
     const protocol = AssetUtils.getProtocolByContract(item.LS_loan_pool_id);
-    const ticker = CurrencyDemapping[item.LS_asset_symbol]?.ticker ?? item.LS_asset_symbol;
+    const ticker = item.LS_asset_symbol;
     let currency = app.currenciesData![`${ticker}@${protocol}`];
 
     switch (ProtocolsConfig[protocol].type) {
       case PositionTypes.short: {
-        let lpn = app.networksData?.protocols?.[protocol].Lpn.dex_currency;
-        currency = app.currenciesData![`${lpn}@${protocol}`];
+        currency = AssetUtils.getLpnByProtocol(protocol);
         break;
       }
     }

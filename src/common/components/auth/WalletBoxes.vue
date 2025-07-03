@@ -81,12 +81,12 @@ async function onClick() {
   try {
     disabled.value = true;
     switch (props.type) {
-      case WalletActions.CONNECT_WC: {
-        await wallet[props.type as WalletActions.CONNECT_WC]?.((uri: string) => {
-          text.value = uri;
-        });
-        break;
-      }
+      // case WalletActions.CONNECT_WC: {
+      //   await wallet[props.type as WalletActions.CONNECT_WC]?.((uri: string) => {
+      //     // text.value = uri;
+      //   });
+      //   break;
+      // }
       default: {
         await wallet[props.type as WalletActions]?.();
         break;
