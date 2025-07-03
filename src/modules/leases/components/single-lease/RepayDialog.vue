@@ -154,7 +154,6 @@ import { AssetUtils, getMicroAmount, LeaseUtils, Logger, walletOperation } from 
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency } from "@/common/types";
 import { MAX_DECIMALS, minimumLeaseAmount, PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
-import { CurrencyDemapping } from "@/config/currencies";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import { CoinPretty, Dec, Int } from "@keplr-wallet/unit";
 import { h } from "vue";
@@ -344,7 +343,7 @@ function getRepayment(p: number) {
   const data = lease.value?.leaseStatus.opened!;
 
   const amount = outStandingDebt();
-  const ticker = CurrencyDemapping[data.principal_due.ticker!]?.ticker ?? data.principal_due.ticker;
+  const ticker = data.principal_due.ticker;
   const c = app.currenciesData![`${ticker!}@${lease.value!.protocol}`];
 
   const amountToRepay = CurrencyUtils.convertMinimalDenomToDenom(
@@ -679,9 +678,9 @@ const liquidation = computed(() => {
   }
 
   let liquidation = new Dec(0);
-  const ticker = CurrencyDemapping[leaseInfo.amount.ticker!]?.ticker ?? leaseInfo.amount.ticker;
+  const ticker = leaseInfo.amount.ticker;
   const unitAssetInfo = app.currenciesData![`${ticker!}@${lease.value?.protocol}`];
-  const stableTicker = CurrencyDemapping[leaseInfo.principal_due.ticker!]?.ticker ?? leaseInfo.principal_due.ticker;
+  const stableTicker = leaseInfo.principal_due.ticker;
   const stableAssetInfo = app.currenciesData![`${stableTicker!}@${lease.value?.protocol}`];
 
   let unitAsset = new Dec(leaseInfo.amount.amount, Number(unitAssetInfo!.decimal_digits));

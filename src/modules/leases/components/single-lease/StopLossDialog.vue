@@ -110,7 +110,6 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { AssetUtils, Logger, walletOperation } from "@/common/utils";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency } from "@/common/types";
-import { CurrencyDemapping } from "@/config/currencies";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import { Dec } from "@keplr-wallet/unit";
 import { useLease, useLeaseConfig } from "@/common/composables";
@@ -196,9 +195,7 @@ const assets = computed(() => {
 function getCurrency() {
   switch (ProtocolsConfig[lease.value?.protocol!].type) {
     case PositionTypes.long: {
-      const ticker =
-        CurrencyDemapping[lease.value?.leaseStatus?.opened?.amount?.ticker!]?.ticker ??
-        lease.value?.leaseStatus?.opened?.amount?.ticker;
+      const ticker = lease.value?.leaseStatus?.opened?.amount?.ticker;
       return app.currenciesData![`${ticker}@${lease.value!.protocol}`];
     }
     case PositionTypes.short: {

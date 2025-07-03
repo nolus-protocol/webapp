@@ -4,7 +4,6 @@ import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { AssetUtils, EtlApi } from ".";
-import { CurrencyDemapping } from "@/config/currencies";
 import { useApplicationStore } from "../stores/application";
 
 export class LeaseUtils {
@@ -79,18 +78,16 @@ export class LeaseUtils {
       }
 
       const downpaymentTicker = result.lease.LS_cltr_symbol;
-      const downPaymentCurrency = AssetUtils.getCurrencyByTicker(
-        CurrencyDemapping[downpaymentTicker]?.ticker ?? downpaymentTicker
-      );
+      const downPaymentCurrency = AssetUtils.getCurrencyByTicker(downpaymentTicker);
 
       const contract = AssetUtils.getProtocolByContract(result.lease.LS_loan_pool_id);
       const lpn = AssetUtils.getLpnByProtocol(contract);
-      let leasePositionTicker = CurrencyDemapping[result.lease.LS_asset_symbol]?.ticker ?? result.lease.LS_asset_symbol;
-      let l_c = CurrencyDemapping[result.lease.LS_asset_symbol]?.ticker ?? result.lease.LS_asset_symbol;
+      let leasePositionTicker = result.lease.LS_asset_symbol;
+      let l_c = result.lease.LS_asset_symbol;
 
       switch (ProtocolsConfig[contract].type) {
         case PositionTypes.short: {
-          leasePositionTicker = CurrencyDemapping[lpn.ticker]?.ticker ?? lpn.ticker;
+          leasePositionTicker = lpn.ticker;
           break;
         }
       }
@@ -98,7 +95,6 @@ export class LeaseUtils {
       const leasePositionStable = new Dec(result.lease.LS_loan_amnt_asset, lpn.decimal_digits);
       const downPayment = new Dec(result.lease.LS_cltr_amnt_stable, Number(downPaymentCurrency!.decimal_digits));
       const app = useApplicationStore();
-
       const currency = app.currenciesData![`${l_c}@${contract}`];
 
       return {

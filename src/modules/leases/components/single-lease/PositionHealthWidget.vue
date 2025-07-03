@@ -106,7 +106,6 @@
 <script lang="ts" setup>
 import { computed } from "vue";
 import { Widget } from "web-components";
-import { CurrencyDemapping } from "@/config/currencies";
 import { Dec } from "@keplr-wallet/unit";
 import { AssetUtils } from "@/common/utils";
 
@@ -195,7 +194,7 @@ const health = computed(() => {
 
     const l = AssetUtils.getLpnByProtocol(props.lease.protocol);
     const [t, p] = externalCurrencies[5].key.split("@");
-    const price = oracle.prices[`${CurrencyDemapping[t]?.ticker ?? t}@${props.lease.protocol}`];
+    const price = oracle.prices[`${t}@${props.lease.protocol}`];
 
     const marginPrice = oracle.prices[l.key];
     const priceAmount = new Dec(amount.amount, externalCurrencies[5].decimal_digits).mul(new Dec(price?.amount ?? 1));

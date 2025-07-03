@@ -209,7 +209,6 @@ import {
   ProtocolsConfig,
   WASM_EVENTS
 } from "@/config/global";
-import { CurrencyMapping } from "@/config/currencies";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import { Dec, Int } from "@keplr-wallet/unit";
 import { h } from "vue";
@@ -347,10 +346,6 @@ const coinList = computed(() => {
         return false;
       }
 
-      if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
-        ticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
-      }
-
       if (!app.lease?.[protocol].includes(ticker)) {
         return false;
       }
@@ -402,10 +397,6 @@ const balances = computed(() => {
 
     const lpns = ((app.lpn ?? []) as ExternalCurrency[]).map((item) => item.key as string);
 
-    if (CurrencyMapping[ticker as keyof typeof CurrencyMapping]) {
-      cticker = CurrencyMapping[ticker as keyof typeof CurrencyMapping]?.ticker;
-    }
-
     return lpns.includes(item.key as string) || app.leasesCurrencies.includes(cticker);
   });
 });
@@ -443,7 +434,6 @@ async function validateMinMaxValues(): Promise<boolean> {
 
     const [c, p] = selectedCurrency.key.split("@");
     const range = (await AppUtils.getDownpaymentRange(p))[c];
-
     if (currentBalance) {
       if (downPaymentAmount || downPaymentAmount !== "") {
         const price = oracle.prices[selectedDownPaymentCurrency.key as string];
@@ -487,6 +477,7 @@ async function validateMinMaxValues(): Promise<boolean> {
 
     return isValid;
   } catch (error) {
+    console.log(error);
     amountErrorMsg.value = i18n.t("message.integer-out-of-range");
     return false;
   }
@@ -546,17 +537,6 @@ async function calculate() {
 
       let [downPaymentTicker, protocol] = selectedDownPaymentCurrency.key.split("@");
       let [leaseTicker] = lease.key.split("@");
-
-      if (
-        CurrencyMapping[downPaymentTicker as keyof typeof CurrencyMapping] &&
-        (protocol == AppUtils.getProtocols().osmosis || protocol == AppUtils.getProtocols().osmosis_noble)
-      ) {
-        downPaymentTicker = CurrencyMapping[downPaymentTicker as keyof typeof CurrencyMapping]?.ticker;
-      }
-
-      if (CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]) {
-        leaseTicker = CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]?.ticker;
-      }
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const leaserClient = new Leaser(cosmWasmClient, admin.contracts![protocol].leaser);
@@ -620,10 +600,6 @@ async function openLease() {
       let [leaseTicker, protocol] = selectedCurrency.key.split("@");
 
       const leaserClient = new Leaser(cosmWasmClient, admin.contracts![protocol].leaser);
-
-      if (CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]) {
-        leaseTicker = CurrencyMapping[leaseTicker as keyof typeof CurrencyMapping]?.ticker;
-      }
 
       const { txHash, txBytes, usedFee } = await leaserClient.simulateOpenLeaseTx(
         wallet,

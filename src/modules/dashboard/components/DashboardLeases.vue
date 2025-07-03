@@ -79,7 +79,6 @@ import { AssetUtils, Logger, WalletManager } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useRouter } from "vue-router";
-import { CurrencyDemapping } from "@/config/currencies";
 
 const { leases, getLeases } = useLeases((error: Error | any) => {});
 const pnl = ref(new Dec(0));
@@ -126,9 +125,7 @@ function setLeases() {
 
     for (const lease of leases.value) {
       if (lease.leaseStatus?.opened) {
-        const ticker =
-          CurrencyDemapping[lease.leaseStatus.opened.amount.ticker as keyof typeof CurrencyDemapping]?.ticker ??
-          lease.leaseStatus.opened.amount.ticker;
+        const ticker = lease.leaseStatus.opened.amount.ticker;
         const dasset = app.currenciesData![`${ticker}@${lease.protocol}`];
         const lpn = AssetUtils.getLpnByProtocol(lease.protocol);
 

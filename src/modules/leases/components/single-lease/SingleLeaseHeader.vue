@@ -139,7 +139,6 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
 import { Dec } from "@keplr-wallet/unit";
-import { CurrencyDemapping } from "@/config/currencies";
 import { getStatus, TEMPLATES } from "../common";
 import type { OpenedOngoingState } from "@nolus/nolusjs/build/contracts/types/OpenedOngoingState";
 
@@ -199,10 +198,6 @@ const stable = computed(() => {
     let [t, p] = ticker.split("@");
     ticker = t;
     protocol = p;
-  }
-
-  if (CurrencyDemapping[ticker]) {
-    ticker = CurrencyDemapping[ticker].ticker;
   }
 
   const asset = app.currenciesData?.[`${ticker}@${protocol}`];
@@ -271,9 +266,7 @@ const currentPrice = computed(() => {
     }
   }
 
-  const ticker =
-    CurrencyDemapping[props.lease?.leaseData?.leasePositionTicker!]?.ticker ??
-    props.lease?.leaseData?.leasePositionTicker;
+  const ticker = props.lease?.leaseData?.leasePositionTicker;
 
   return AssetUtils.formatNumber(
     oracle.prices[`${ticker}@${props.lease?.protocol}`]?.amount ?? "0",

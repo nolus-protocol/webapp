@@ -41,9 +41,12 @@ import { Contracts } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
 import { useRouter } from "vue-router";
 import { ref } from "vue";
+import { useOracleStore } from "@/common/stores/oracle";
 
 const wallet = useWalletStore();
 const app = useApplicationStore();
+const oracle = useOracleStore();
+
 const router = useRouter();
 const disconnect = ref<typeof Disconnect>();
 
@@ -57,8 +60,9 @@ const options = Object.keys(Contracts.protocolsFilter).map((item) => {
 });
 const option = options.find((item) => item.value == WalletManager.getProtocolFilter());
 
-function onSelect(item: { value: string; label: string; icon: string }) {
+async function onSelect(item: { value: string; label: string; icon: string }) {
   app.setProtcolFilter(item.value);
+  await oracle.GET_PRICES();
   router.push("/");
 }
 </script>

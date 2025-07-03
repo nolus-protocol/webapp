@@ -251,7 +251,6 @@ import { AssetUtils, getMicroAmount, LeaseUtils, Logger, walletOperation } from 
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency } from "@/common/types";
 import { MAX_DECIMALS, minimumLeaseAmount, PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
-import { CurrencyDemapping } from "@/config/currencies";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import { CoinPretty, Dec, Int } from "@keplr-wallet/unit";
 import { useLease, useLeaseConfig } from "@/common/composables";
@@ -308,9 +307,7 @@ const assets = computed(() => {
   const data = [];
 
   if (lease.value) {
-    const ticker =
-      CurrencyDemapping[lease.value?.leaseStatus?.opened?.amount?.ticker!]?.ticker ??
-      lease.value?.leaseStatus?.opened?.amount?.ticker;
+    const ticker = lease.value?.leaseStatus?.opened?.amount?.ticker;
     const asset = app.currenciesData![`${ticker}@${lease.value!.protocol}`];
     const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
 
@@ -476,7 +473,7 @@ const lpn = computed(() => {
 
 const payout = computed(() => {
   const leaseInfo = lease.value?.leaseStatus.opened!;
-  const ticker = CurrencyDemapping[leaseInfo.amount.ticker!]?.ticker ?? leaseInfo.amount.ticker;
+  const ticker = leaseInfo.amount.ticker;
   const currency = app.currenciesData![`${ticker!}@${lease.value?.protocol}`];
   const price = new Dec(oracle.prices[currency!.key as string]?.amount ?? 0);
   const value = new Dec(amount.value.length == 0 ? 0 : amount.value).mul(price);
@@ -505,7 +502,7 @@ const payout = computed(() => {
 const positionLeft = computed(() => {
   const leaseInfo = lease.value?.leaseStatus.opened!;
 
-  const ticker = CurrencyDemapping[leaseInfo.amount.ticker!]?.ticker ?? leaseInfo.amount.ticker;
+  const ticker = leaseInfo.amount.ticker;
   const currency = app.currenciesData![`${ticker!}@${lease.value!.protocol}`];
   const a = new Dec(leaseInfo.amount.amount, Number(currency!.decimal_digits));
   const value = new Dec(amount.value.length == 0 ? 0 : amount.value);
@@ -719,7 +716,7 @@ function getRepayment(p: number) {
   const data = lease.value?.leaseStatus.opened!;
 
   const amount = outStandingDebt();
-  const ticker = CurrencyDemapping[data.principal_due.ticker!]?.ticker ?? data.principal_due.ticker;
+  const ticker = data.principal_due.ticker;
   const c = app.currenciesData![`${ticker!}@${lease.value!.protocol}`];
 
   const amountToRepay = CurrencyUtils.convertMinimalDenomToDenom(

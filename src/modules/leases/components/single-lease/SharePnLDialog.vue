@@ -70,7 +70,6 @@ import shareImageFour from "@/assets/icons/share-image-4.png?url";
 import type { LeaseData } from "@/common/types";
 import { NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
-import { CurrencyDemapping } from "@/config/currencies";
 import { useOracleStore } from "@/common/stores/oracle";
 
 const dialog = ref<typeof Dialog | null>(null);
@@ -139,8 +138,7 @@ const currentPrice = () => {
     }
   }
 
-  const ticker =
-    CurrencyDemapping[leaseData?.leaseData?.leasePositionTicker!]?.ticker ?? leaseData?.leaseData?.leasePositionTicker;
+  const ticker = leaseData?.leaseData?.leasePositionTicker;
 
   return AssetUtils.formatNumber(
     oracle.prices[`${ticker}@${leaseData?.protocol}`]?.amount ?? "0",

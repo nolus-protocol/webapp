@@ -133,7 +133,6 @@ import {
   ProtocolsConfig,
   UPDATE_LEASES
 } from "@/config/global";
-import { CurrencyDemapping } from "@/config/currencies";
 import { useRouter } from "vue-router";
 import { getStatus, TEMPLATES } from "./common";
 import type { IAction } from "./single-lease/Action.vue";
@@ -235,7 +234,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
               h<IBigNumber>(BigNumber, {
                 pnlStatus: {
                   positive: pnl.status,
-                  value: `${pnl.status ? "+" : ""}${pnl.percent}% (${pnl.amount})`,
+                  value: `${pnl.status ? "+" : ""}${pnl.percent}% (${hide.value ? "****" : pnl.amount})`,
                   badge: {
                     content: pnl.percent,
                     base: false
@@ -373,10 +372,6 @@ function getPositionInStable(lease: LeaseData) {
     protocol = p;
   }
 
-  if (CurrencyDemapping[ticker]) {
-    ticker = CurrencyDemapping[ticker].ticker;
-  }
-
   const asset = app.currenciesData?.[`${ticker}@${protocol}`];
 
   switch (ProtocolsConfig[lease.protocol].type) {
@@ -484,9 +479,7 @@ function setLeases() {
 
     for (const lease of leases.value) {
       if (lease.leaseStatus?.opened) {
-        const ticker =
-          CurrencyDemapping[lease.leaseStatus.opened.amount.ticker as keyof typeof CurrencyDemapping]?.ticker ??
-          lease.leaseStatus.opened.amount.ticker;
+        const ticker = lease.leaseStatus.opened.amount.ticker;
         const dasset = app.currenciesData![`${ticker}@${lease.protocol}`];
         const lpn = AssetUtils.getLpnByProtocol(lease.protocol);
         const price = oracle.prices[lpn.key];

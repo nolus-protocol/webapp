@@ -17,7 +17,6 @@ import {
   ProtocolsConfig
 } from "@/config/global";
 import { useAdminStore } from "@/common/stores/admin";
-import { CurrencyDemapping } from "@/config/currencies";
 import { Dec } from "@keplr-wallet/unit";
 import { useOracleStore } from "../stores/oracle";
 import { useApplicationStore } from "../stores/application";
@@ -211,24 +210,15 @@ async function fetchLease(leaseAddress: string, protocolKey: string, period?: nu
   let unitAsset = new Dec(0);
   let stableAsset = new Dec(0);
 
-  leaseData.downpaymentTicker =
-    leaseData.downpaymentTicker ??
-    CurrencyDemapping[leaseInfo.opening?.downpayment?.ticker as string]?.ticker ??
-    leaseInfo.opening?.downpayment.ticker;
+  leaseData.downpaymentTicker = leaseData.downpaymentTicker ?? leaseInfo.opening?.downpayment.ticker;
 
   switch (ProtocolsConfig[protocolKey!]?.type) {
     case PositionTypes.long: {
-      leaseData.leasePositionTicker =
-        leaseData.leasePositionTicker ??
-        CurrencyDemapping[leaseInfo.opening?.currency as string]?.ticker ??
-        leaseInfo.opening?.currency;
+      leaseData.leasePositionTicker = leaseData.leasePositionTicker ?? leaseInfo.opening?.currency;
       break;
     }
     case PositionTypes.short: {
-      leaseData.leasePositionTicker =
-        leaseData.leasePositionTicker ??
-        CurrencyDemapping[leaseInfo.opening?.loan?.ticker as string]?.ticker ??
-        leaseInfo.opening?.loan?.ticker;
+      leaseData.leasePositionTicker = leaseData.leasePositionTicker ?? leaseInfo.opening?.loan?.ticker;
       break;
     }
   }
@@ -257,11 +247,10 @@ async function fetchLease(leaseAddress: string, protocolKey: string, period?: nu
         MONTHS
     );
 
-    const ticker = CurrencyDemapping[leaseInfo.opened.amount.ticker!]?.ticker ?? leaseInfo.opened.amount.ticker;
+    const ticker = leaseInfo.opened.amount.ticker;
     const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
 
-    const stableTicker =
-      CurrencyDemapping[leaseInfo.opened.principal_due.ticker!]?.ticker ?? leaseInfo.opened.principal_due.ticker;
+    const stableTicker = leaseInfo.opened.principal_due.ticker;
     const stableAssetInfo = app.currenciesData![`${stableTicker!}@${protocolKey}`];
 
     unitAsset = new Dec(leaseInfo.opened.amount.amount, Number(unitAssetInfo!.decimal_digits));
@@ -281,7 +270,7 @@ async function fetchLease(leaseAddress: string, protocolKey: string, period?: nu
 
   if (leaseInfo.opened || leaseInfo.paid) {
     const lease = leaseInfo.opened ?? leaseInfo.paid;
-    const ticker = CurrencyDemapping[lease!.amount.ticker!]?.ticker ?? lease!.amount.ticker;
+    const ticker = lease!.amount.ticker;
 
     const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
     const unitAsset = new Dec(lease!.amount.amount, Number(unitAssetInfo!.decimal_digits));
@@ -332,11 +321,7 @@ function getLeaseBalances(leaseInfo: LeaseStatus, protocolKey: string, balances:
   const app = useApplicationStore();
 
   if (ticker) {
-    if (CurrencyDemapping[ticker]?.ticker) {
-      disable.push(app.currenciesData![`${CurrencyDemapping[ticker].ticker}@${protocolKey}`].ibcData as string);
-    } else {
-      disable.push(app.currenciesData![`${ticker}@${protocolKey}`].ibcData as string);
-    }
+    disable.push(app.currenciesData![`${ticker}@${protocolKey}`].ibcData as string);
   }
 
   return balances
