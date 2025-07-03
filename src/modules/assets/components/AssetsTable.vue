@@ -149,12 +149,13 @@ function isEarn(denom: string) {
 
 function getApr(key: string) {
   let [ticker] = key.split("@");
-  for (const p in app.apr ?? {}) {
-    if (p.includes(ticker)) {
-      return AssetUtils.formatNumber(app.apr?.[p] ?? 0, 2);
-    }
+  let asset = (app.lpn ?? []).find((item) => item.key == key);
+  if (!asset) {
+    ticker = CurrencyMappingEarn[ticker]?.ticker ?? ticker;
+    asset = (app.lpn ?? []).find((item) => item.ticker == ticker);
   }
-  return AssetUtils.formatNumber(0, 2);
+  const [_, protocol] = asset?.key.split("@") ?? [];
+  return AssetUtils.formatNumber(app.apr?.[protocol] ?? 0, 2);
 }
 
 function apr(denom: string, key: string) {

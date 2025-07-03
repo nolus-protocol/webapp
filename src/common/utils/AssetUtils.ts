@@ -18,7 +18,7 @@ import {
   NATIVE_ASSET,
   ProtocolsConfig,
   NATIVE_CURRENCY,
-  Contracts
+  SORT_PROTOCOLS
 } from "@/config/global";
 import { sha256 } from "@cosmjs/crypto";
 
@@ -80,9 +80,7 @@ export class AssetUtils {
     const application = useApplicationStore();
     for (const key in application.currenciesData) {
       const [t, p] = key.split("@");
-      const currencies = ProtocolsConfig[p].currencies;
-
-      if (t == ticker && currencies.includes(t)) {
+      if (t == ticker) {
         return application.currenciesData[key];
       }
     }
@@ -96,7 +94,7 @@ export class AssetUtils {
       const [t, p] = key.split("@");
       const currencies = ProtocolsConfig[p].currencies;
 
-      if (application.currenciesData[key].symbol == symbol && currencies.includes(t)) {
+      if (application.currenciesData[key].symbol == symbol) {
         return application.currenciesData[key];
       }
     }
@@ -108,9 +106,7 @@ export class AssetUtils {
     const application = useApplicationStore();
     for (const key in application.currenciesData) {
       const [t, p] = key.split("@");
-      const currencies = ProtocolsConfig[p].currencies;
-
-      if (denom == application.currenciesData[key].ibcData && currencies.includes(t)) {
+      if (denom == application.currenciesData[key].ibcData) {
         return application.currenciesData[key];
       }
     }
@@ -188,7 +184,7 @@ export class AssetUtils {
     ]);
 
     const admin = useAdminStore();
-    const network: { [key: string]: ExternalCurrency } = {};
+    const tempNetwork: { [key: string]: ExternalCurrency } = {};
     const assetIcons: {
       [key: string]: string;
     } = {};
@@ -201,15 +197,12 @@ export class AssetUtils {
         const currencies = await oracleContract.getCurrencies();
         const protocol_currencies = [...ProtocolsConfig[protocolKey].currencies];
         for (const c of currencies) {
-          if (Contracts.ignore.includes(protocolKey) && !ProtocolsConfig[protocolKey].currencies.includes(c.ticker)) {
-            continue;
-          }
           const name = c.ticker.replace(/_/g, "")?.toLocaleLowerCase();
           const pr = protocolKey.split("-").at(0)?.toLocaleLowerCase();
           const key = `${c.ticker}@${protocolKey}`;
           protocol_currencies.push(c.ticker);
           assetIcons[key] = `${networks.icons}/${pr}-${name}.svg` as string;
-          network[`${c.ticker}@${protocolKey}`] = {
+          tempNetwork[`${c.ticker}@${protocolKey}`] = {
             key,
             name: networks.currencies[c.ticker].name,
             shortName: networks.currencies[c.ticker].shortName,
@@ -223,7 +216,7 @@ export class AssetUtils {
           };
           const maped_key = networks.map[`${c.ticker}@${protocolKey}`];
           if (maped_key) {
-            network[maped_key] = { ...network[`${c.ticker}@${protocolKey}`], key: maped_key };
+            tempNetwork[maped_key] = { ...tempNetwork[`${c.ticker}@${protocolKey}`], key: maped_key };
           }
         }
         ProtocolsConfig[protocolKey].currencies = protocol_currencies;
@@ -237,8 +230,40 @@ export class AssetUtils {
     const history = data.at(-1);
 
     for (const h in history) {
-      network[h] = history[h];
+      for (const p in history[h].protocols) {
+        const q = history[h];
+        const k = `${h}@${p}`;
+        tempNetwork[k] = {
+          name: q.name,
+          symbol: q.symbol,
+          ticker: q.ticker,
+          decimal_digits: q.decimal_digits,
+          icon: q.icon,
+          shortName: q.shortName,
+          native: q.native,
+          coingeckoId: q.coingeckoId,
+          key: k,
+          ibcData: history[h].protocols[p].ibcData
+        } as ExternalCurrency;
+      }
     }
+
+    let items: ExternalCurrency[] = [];
+    const network: { [key: string]: ExternalCurrency } = {};
+    const sorted = Object.values(tempNetwork);
+
+    for (const protocol of SORT_PROTOCOLS) {
+      const c = sorted.reverse().filter((item) => {
+        const [_key, pr] = item.key.split("@");
+        return pr == protocol;
+      });
+      items = [...items, ...c];
+    }
+
+    for (const c of items) {
+      network[c.key] = c;
+    }
+
     const result = {
       assetIcons,
       networks: { [NATIVE_NETWORK.key]: network }

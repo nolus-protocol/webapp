@@ -164,9 +164,6 @@ const leasesHistory = computed(() => {
     const protocol = AssetUtils.getProtocolByContract(item.LS_loan_pool_id);
     const ticker = item.LS_asset_symbol;
     let currency = app.currenciesData![`${ticker}@${protocol}`];
-    if (!currency) {
-      console.log(ticker, protocol, currency);
-    }
 
     switch (ProtocolsConfig[protocol].type) {
       case PositionTypes.short: {

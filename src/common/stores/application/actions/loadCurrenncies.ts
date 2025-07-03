@@ -16,7 +16,6 @@ export async function loadCurrennncies(this: Store) {
       AssetUtils.parseNetworks()
     ]);
     this.currenciesData = data.networks[NATIVE_NETWORK.key];
-    console.log(this.currenciesData);
     const nativeCurrency = AssetUtils.getNative();
     const lease: { [key: string]: string[] } = {};
     const leasesCurrencies = new Set<string>();

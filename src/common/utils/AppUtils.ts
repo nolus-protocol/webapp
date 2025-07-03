@@ -28,6 +28,7 @@ import { DUE_PROJECTION_SECS_URL } from "@/config/global/due-projection-secs-url
 import { CHAIN_IDS_URLS } from "@/config/global/chainids-url";
 import { CURRENCIES_URL } from "@/config/global/currencies-url";
 import { HISTORY_CURRENCIES_URL } from "@/config/global/history-currencies-url";
+import type { HistoryCurrency } from "../types/Currecies";
 
 export class AppUtils {
   public static LANGUAGE = "language";
@@ -82,7 +83,7 @@ export class AppUtils {
   } = {};
 
   static currencies: Promise<CurrenciesConfig>;
-  static historyCurrencies: Promise<{ [key: string]: ExternalCurrency }>;
+  static historyCurrencies: Promise<{ [key: string]: HistoryCurrency }>;
 
   static isDev() {
     return isDev();
@@ -513,7 +514,7 @@ export class AppUtils {
     return data.json();
   }
 
-  private static async fetchHistoryCurrencies(): Promise<{ [key: string]: ExternalCurrency }> {
+  private static async fetchHistoryCurrencies(): Promise<{ [key: string]: HistoryCurrency }> {
     const url = await HISTORY_CURRENCIES_URL;
     const data = await fetch(url);
     return data.json();

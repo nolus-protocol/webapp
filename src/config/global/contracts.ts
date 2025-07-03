@@ -15,7 +15,6 @@ export enum PositionTypes {
 export const CONTRACTS: ContractConfig = {
   testnet: {
     ignoreProtocolsInEarn: [],
-    ignore: [],
     protocols: ProtocolsRila,
     protocolsFilter: {
       OSMOSIS: {
@@ -66,7 +65,6 @@ export const CONTRACTS: ContractConfig = {
   mainnet: {
     ignoreProtocolsInEarn: [],
     protocols: ProtocolsPirin,
-    ignore: ["OSMOSIS-OSMOSIS-USDC_AXELAR", "NEUTRON-ASTROPORT-USDC_AXELAR"],
     protocolsFilter: {
       OSMOSIS: {
         short: true,
@@ -74,8 +72,8 @@ export const CONTRACTS: ContractConfig = {
         image: osmosis,
         native: "NLS@OSMOSIS-OSMOSIS-USDC_NOBLE",
         hold: [
-          "OSMOSIS-OSMOSIS-USDC_AXELAR",
           "OSMOSIS-OSMOSIS-USDC_NOBLE",
+          "OSMOSIS-OSMOSIS-USDC_AXELAR",
           "OSMOSIS-OSMOSIS-OSMO",
           "OSMOSIS-OSMOSIS-ST_ATOM",
           "OSMOSIS-OSMOSIS-ALL_BTC",
@@ -100,7 +98,7 @@ export const CONTRACTS: ContractConfig = {
         stable: "USDC_AXELAR",
         lease: false,
         type: PositionTypes.long,
-        rewards: false,
+        rewards: true,
         supply: false
       },
       "NEUTRON-ASTROPORT-USDC_AXELAR": {
@@ -108,7 +106,7 @@ export const CONTRACTS: ContractConfig = {
         currencies: ["USDC_AXELAR", "NTRN"],
         stable: "USDC_AXELAR",
         type: PositionTypes.long,
-        rewards: false,
+        rewards: true,
         supply: false
       },
       "NEUTRON-ASTROPORT-USDC_NOBLE": {
@@ -205,14 +203,14 @@ export const TIP = {
 export const DefaultProtocolFilter = "OSMOSIS";
 
 export const SORT_PROTOCOLS = [
+  "OSMOSIS-OSMOSIS-USDC_NOBLE",
   "OSMOSIS-OSMOSIS-ALL_BTC",
   "OSMOSIS-OSMOSIS-ALL_SOL",
   "OSMOSIS-OSMOSIS-ATOM",
   "OSMOSIS-OSMOSIS-OSMO",
-  "OSMOSIS-OSMOSIS-USDC_NOBLE",
-  "NEUTRON-ASTROPORT-USDC_NOBLE",
   "OSMOSIS-OSMOSIS-ST_ATOM",
   "OSMOSIS-OSMOSIS-AKT",
   "OSMOSIS-OSMOSIS-USDC_AXELAR",
+  "NEUTRON-ASTROPORT-USDC_NOBLE",
   "NEUTRON-ASTROPORT-USDC_AXELAR"
 ];

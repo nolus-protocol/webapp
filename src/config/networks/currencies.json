@@ -80,7 +80,9 @@
     "OM": { "name": "Mantra", "shortName": "OM", "coinGeckoId": "mantra-dao", "symbol": "uom" },
     "NIL": { "name": "Nillion", "shortName": "NIL", "coinGeckoId": "nillion", "symbol": "unil" },
     "XION": { "name": "Xion", "shortName": "XION", "coinGeckoId": "xion-2", "symbol": "uxion" },
-    "BABY": { "name": "Babylon", "shortName": "BABY", "coinGeckoId": "babylon", "symbol": "ubbn" }
+    "BABY": { "name": "Babylon", "shortName": "BABY", "coinGeckoId": "babylon", "symbol": "ubbn" },
+    "STARS": { "name": "Stargaze", "shortName": "STARS", "coinGeckoId": "stargaze", "symbol": "ustars" },
+    "STRD": { "name": "Stride", "shortName": "STRD", "coinGeckoId": "stride", "symbol": "ustrd" }
   },
   "map": {
     "USDC@OSMOSIS-OSMOSIS-USDC_AXELAR": "USDC_AXELAR@OSMOSIS-OSMOSIS-USDC_AXELAR",
