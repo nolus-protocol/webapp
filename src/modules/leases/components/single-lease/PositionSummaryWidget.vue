@@ -278,7 +278,6 @@ import { useApplicationStore } from "@/common/stores/application";
 import { useOracleStore } from "@/common/stores/oracle";
 import { Dec } from "@keplr-wallet/unit";
 import { AssetUtils } from "@/common/utils/AssetUtils";
-import { CurrencyDemapping } from "@/config/currencies";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { AppUtils, datePraser, Logger, walletOperation } from "@/common/utils";
 import { useRoute, useRouter } from "vue-router";
@@ -383,9 +382,7 @@ const pricerPerAsset = computed(() => {
     }
     case PositionTypes.short: {
       const p = props.lease?.protocol!;
-      const ticker =
-        CurrencyDemapping[props.lease?.leaseData!.leasePositionTicker as string]?.ticker ??
-        props.lease?.leaseData!.leasePositionTicker;
+      const ticker = props.lease?.leaseData!.leasePositionTicker;
       const currency = app.currenciesData![`${ticker}@${p}`];
       return currency;
     }
@@ -509,10 +506,6 @@ const stable = computed<CurrencyComponentProps>(() => {
     protocol = p;
   }
 
-  if (CurrencyDemapping[ticker]) {
-    ticker = CurrencyDemapping[ticker].ticker;
-  }
-
   switch (ProtocolsConfig[lease.protocol].type) {
     case PositionTypes.long: {
       const price = oracle.prices?.[`${ticker}@${protocol}`];
@@ -599,9 +592,7 @@ const currentPrice = computed(() => {
     }
   }
 
-  const ticker =
-    CurrencyDemapping[props.lease?.leaseData?.leasePositionTicker!]?.ticker ??
-    props.lease?.leaseData?.leasePositionTicker;
+  const ticker = props.lease?.leaseData?.leasePositionTicker;
 
   return oracle.prices[`${ticker}@${props.lease?.protocol}`]?.amount ?? "0";
 });

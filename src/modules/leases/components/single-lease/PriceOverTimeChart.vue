@@ -29,7 +29,6 @@ import Chart from "@/common/components/Chart.vue";
 
 import type { LeaseData } from "@/common/types";
 import { AssetUtils, EtlApi, isMobile, LeaseUtils } from "@/common/utils";
-import { CurrencyDemapping, CurrencyMapping } from "@/config/currencies";
 import { NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { plot, lineY, ruleY } from "@observablehq/plot";
 import { computed, ref, watch } from "vue";
@@ -122,14 +121,14 @@ function getLiquidations() {
     const historyElements = [...(props.lease?.leaseData?.history ?? [])].reverse();
 
     for (const history of historyElements) {
-      const ticker = CurrencyDemapping[history.symbol!]?.ticker ?? history.symbol;
+      const ticker = history.symbol;
 
       const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
 
       asset = asset.add(new Dec(history.amount, unitAssetInfo.decimal_digits));
 
       if (history.ls_amnt) {
-        const t = CurrencyDemapping[history.ls_amnt_symbol!]?.ticker ?? history.ls_amnt_symbol;
+        const t = history.ls_amnt_symbol;
         const unitAssetInfo2 = app.currenciesData![`${t}@${protocolKey}`];
 
         asset2 = asset2.add(new Dec(history.ls_amnt, unitAssetInfo2.decimal_digits));
@@ -156,8 +155,8 @@ function parceLiquidaitons(stableAdd: Dec, uAsset: Dec) {
   const leaseData = props.lease?.leaseStatus?.opened;
   if (leaseData) {
     const protocolKey = props.lease?.protocol!;
-    const ticker = CurrencyDemapping[leaseData.amount.ticker!]?.ticker ?? leaseData.amount.ticker;
-    const stableTicker = CurrencyDemapping[leaseData.principal_due.ticker!]?.ticker ?? leaseData.principal_due.ticker;
+    const ticker = leaseData.amount.ticker;
+    const stableTicker = leaseData.principal_due.ticker;
     const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
     const stableAssetInfo = app.currenciesData![`${stableTicker!}@${protocolKey}`];
     const unitAsset = new Dec(leaseData.amount.amount, Number(unitAssetInfo!.decimal_digits));
@@ -184,7 +183,7 @@ async function loadData(intetval: string) {
         ? props.lease!.leaseData.leasePositionTicker.split("@")
         : [props.lease?.leaseData?.leasePositionTicker as string, props.lease!.protocol];
 
-      const ticker = CurrencyMapping[key]?.ticker ?? key;
+      const ticker = key;
       const prices = await EtlApi.fetchPriceSeries(ticker, protocol, intetval);
 
       return prices;

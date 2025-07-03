@@ -208,7 +208,6 @@ import {
   ProtocolsConfig,
   WASM_EVENTS
 } from "@/config/global";
-import { CurrencyMapping } from "@/config/currencies";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import { Dec, Int } from "@keplr-wallet/unit";
 import { h } from "vue";
@@ -488,13 +487,6 @@ async function calculate() {
       const [_c, protocol] = loanCurrency.key.split("@");
 
       let [downPaymentTicker, _p] = currency.key.split("@");
-
-      if (
-        CurrencyMapping[downPaymentTicker as keyof typeof CurrencyMapping] &&
-        (protocol == AppUtils.getProtocols().osmosis || protocol == AppUtils.getProtocols().osmosis_noble)
-      ) {
-        downPaymentTicker = CurrencyMapping[downPaymentTicker as keyof typeof CurrencyMapping]?.ticker;
-      }
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const admin = useAdminStore();

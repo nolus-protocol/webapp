@@ -5,7 +5,6 @@ import { useApplicationStore } from "../../application";
 import { useAdminStore } from "../../admin";
 import { Oracle } from "@nolus/nolusjs/build/contracts";
 import { Dec } from "@keplr-wallet/unit";
-import { CurrencyDemapping } from "@/config/currencies";
 import { AssetUtils } from "@/common/utils";
 import { Contracts } from "@/config/global";
 
@@ -18,7 +17,6 @@ export async function getPrices(this: State) {
 
     const pr: Prices = {};
     const promises = [];
-
     for (const protocolKey in admin.contracts) {
       if (Contracts.protocolsFilter[app.protocolFilter].hold.includes(protocolKey)) {
         const fn = async () => {
@@ -26,6 +24,7 @@ export async function getPrices(this: State) {
           const oracleContract = new Oracle(cosmWasmClient, protocol.oracle);
 
           const [data, lpnPrice] = await Promise.all([oracleContract.getPrices(), getLpnPrice(oracleContract)]);
+
           const lpn = AssetUtils.getLpnByProtocol(protocolKey);
           const baseCurrency = app.currenciesData![`${lpnPrice.amount_quote}@${protocolKey}`];
           const decimals = lpn.decimal_digits - baseCurrency.decimal_digits;
@@ -34,7 +33,7 @@ export async function getPrices(this: State) {
           pr[lpn.key as string] = { symbol: lpn.ticker as string, amount: lpnPrice.price.toString() };
 
           for (const price of (data as IObjectKeys).prices) {
-            const ticker = CurrencyDemapping[price.amount.ticker]?.ticker ?? price.amount.ticker;
+            const ticker = price.amount.ticker;
             const currency = app.currenciesData![`${ticker}@${protocolKey}`];
             if (currency) {
               const diff = currency.decimal_digits - lpn.decimal_digits;
@@ -67,6 +66,6 @@ async function getLpnPrice(oracleContract: Oracle) {
   const price = await oracleContract.getStablePrice(lpn);
   return {
     price: new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount)),
-    amount_quote: CurrencyDemapping[price.amount_quote.ticker!]?.ticker ?? price.amount_quote.ticker
+    amount_quote: price.amount_quote.ticker
   };
 }

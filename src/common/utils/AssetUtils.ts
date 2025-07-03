@@ -4,7 +4,6 @@ import { Oracle, type ProtocolContracts } from "@nolus/nolusjs/build/contracts";
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils, NolusClient } from "@nolus/nolusjs";
 import { useOracleStore } from "@/common/stores/oracle";
-import { CurrencyDemapping } from "@/config/currencies";
 import { useApplicationStore } from "../stores/application";
 import { useAdminStore } from "../stores/admin";
 import { AppUtils, EnvNetworkUtils } from ".";
@@ -76,7 +75,6 @@ export class AssetUtils {
   }
 
   public static getCurrencyByTicker(ticker: string) {
-    ticker = CurrencyDemapping[ticker]?.ticker ?? ticker;
     const application = useApplicationStore();
     for (const key in application.currenciesData) {
       const [t, p] = key.split("@");

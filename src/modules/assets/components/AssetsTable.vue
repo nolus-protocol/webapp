@@ -45,7 +45,6 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { AssetUtils, Logger, WalletManager } from "@/common/utils";
 import { NATIVE_CURRENCY, ProtocolsConfig } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
-import { CurrencyMappingEarn } from "@/config/currencies";
 import type { ExternalCurrency } from "@/common/types";
 import { isMobile } from "@/common/utils";
 
@@ -151,7 +150,6 @@ function getApr(key: string) {
   let [ticker] = key.split("@");
   let asset = (app.lpn ?? []).find((item) => item.key == key);
   if (!asset) {
-    ticker = CurrencyMappingEarn[ticker]?.ticker ?? ticker;
     asset = (app.lpn ?? []).find((item) => item.ticker == ticker);
   }
   const [_, protocol] = asset?.key.split("@") ?? [];
