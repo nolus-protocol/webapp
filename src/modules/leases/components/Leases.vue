@@ -432,7 +432,7 @@ function getActions(lease: LeaseData) {
 function isClosing(lease: LeaseData) {
   const progress = lease.leaseStatus.opened?.status as OpenedOngoingState;
 
-  if (Object.prototype.hasOwnProperty.call(progress ?? {}, "close")) {
+  if (Object.prototype.hasOwnProperty.call(progress.in_progress ?? {}, "close")) {
     return true;
   }
 
@@ -442,7 +442,7 @@ function isClosing(lease: LeaseData) {
 function isRepaying(lease: LeaseData) {
   const progress = lease.leaseStatus.opened?.status as OpenedOngoingState;
 
-  if (Object.prototype.hasOwnProperty.call(progress ?? {}, "repayment")) {
+  if (Object.prototype.hasOwnProperty.call(progress.in_progress ?? {}, "repayment")) {
     return true;
   }
 
