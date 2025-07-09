@@ -206,7 +206,7 @@ export class AssetUtils {
             shortName: networks.currencies[c.ticker].shortName,
             symbol: networks.currencies[c.ticker].symbol,
             decimal_digits: c.decimal_digits,
-            ticker: networks.currencies[c.ticker].shortName,
+            ticker: c.ticker,
             native: c.bank_symbol == NATIVE_ASSET.denom,
             ibcData: c.bank_symbol,
             icon: assetIcons[key],
