@@ -1,6 +1,6 @@
 import { resolve } from "node:path";
 import { fileURLToPath, URL } from "node:url";
-import { defineConfig } from "vite";
+import { build, defineConfig, InlineConfig } from "vite";
 import { cp } from "fs/promises";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import vue from "@vitejs/plugin-vue";
@@ -9,6 +9,7 @@ import svgLoader from "vite-svg-loader";
 
 const downpayments_range_dir = fileURLToPath(new URL("./src/config/lease/downpayment-range", import.meta.url));
 const public_dir = "public";
+const worker = resolve(__dirname, "src/push/worker.ts");
 
 const downpayments_range = () => ({
   name: "downpayments-range-copy",
@@ -29,10 +30,60 @@ async function configResolved() {
   await cp(downpayments_range_dir, public_locales_dir, { recursive: true });
 }
 
-// https://vitejs.dev/config/
-export default defineConfig({
+async function bundleWorker(data: any) {
+  const config = {
+    configFile: false,
+    root: process.cwd(),
+    build: {
+      minify: "terser",
+      terserOptions: {
+        compress: { drop_console: true, drop_debugger: true },
+        format: { comments: false }
+      },
+      chunkSizeWarningLimit: 750,
+      lib: {
+        entry: worker,
+        name: "worker",
+        fileName: "worker"
+      },
+      outDir: resolve(__dirname, "dist"),
+      emptyOutDir: false
+    }
+  } as InlineConfig;
+
+  if (data?.config?.mode == "serve") {
+    config.build!.minify = false;
+    config.build!.outDir = resolve(__dirname, public_dir);
+  }
+
+  await build(config as InlineConfig);
+}
+
+const buildWorkerPlugin = () => ({
+  name: "build-workercopy",
+  closeBundle: bundleWorker,
+  configureServer: bundleWorker,
+
+  handleHotUpdate: async ({ file, server }: { file: string; server: any }) => {
+    if (!file.includes(worker)) {
+      return;
+    }
+    await bundleWorker({
+      config: {
+        mode: "serve"
+      }
+    });
+    server.ws.send({
+      type: "full-reload",
+      path: "*"
+    });
+  }
+});
+
+const nolus = defineConfig({
   plugins: [
     vue(),
+    buildWorkerPlugin(),
     svgLoader(),
     VueI18nPlugin({
       include: [resolve(__dirname, "./src/locales/**")],
@@ -50,6 +101,9 @@ export default defineConfig({
       }
     })
   ],
+  define: {
+    "import.meta.env.APP_VERSION": JSON.stringify(process.env.npm_package_version)
+  },
   server: {
     host: "127.0.0.1",
     allowedHosts: []
@@ -82,3 +136,5 @@ export default defineConfig({
     }
   }
 });
+
+export default nolus;

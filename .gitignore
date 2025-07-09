@@ -19,6 +19,9 @@ coverage
 /cypress/videos/
 /cypress/screenshots/
 public/downpayment-range/*
+public/worker.js
+public/worker.umd.cjs
+
 
 # Editor directories and files
 .idea

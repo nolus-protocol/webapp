@@ -1,4 +1,6 @@
 <template>
+  <button @click="test">SUBSRIBE</button>
+
   <RouterView />
   <div class="toast">
     <Toast
@@ -12,15 +14,28 @@
 
 <script lang="ts" setup>
 import { RouterView } from "vue-router";
-import { provide, ref, watch } from "vue";
+import { onMounted, provide, ref, watch } from "vue";
 import { Toast, ToastType } from "web-components";
 
 import { useApplicationStore } from "@/common/stores/application";
 import { APPEARANCE } from "./config/global";
+import { initWorker, notificationSubscribe } from "./push/lib";
 
 let interval: NodeJS.Timeout;
 
 provide("onShowToast", onShowToast);
+
+async function test() {
+  try {
+    await notificationSubscribe("nolus1ncc58ptqrkd7r7uk60dx4eufvvqf2edhtktv0q");
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+onMounted(() => {
+  initWorker();
+});
 
 const application = useApplicationStore();
 const toast = ref({
@@ -73,5 +88,9 @@ div.toast {
   left: 50%;
   -webkit-transform: translateX(-50%);
   transform: translateX(-50%);
+}
+button {
+  z-index: 11111;
+  position: absolute;
 }
 </style>
