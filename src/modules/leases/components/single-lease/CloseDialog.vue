@@ -636,7 +636,7 @@ function isAmountValid() {
   amountErrorMsg.value = "";
   if (lease.value) {
     const a = amount.value;
-    const currency = AssetUtils.getCurrencyByTicker(lease.value.leaseStatus.opened!.amount.ticker!);
+    const currency = app.currenciesData![`${lease.value.leaseStatus.opened!.amount.ticker}@${lease.value!.protocol}`];
     const debt = new Dec(lease.value.leaseStatus.opened!.amount.amount, Number(currency.decimal_digits));
     const minAmountCurrency = AssetUtils.getCurrencyByTicker(
       config.value?.config.lease_position_spec.min_asset.ticker as string
