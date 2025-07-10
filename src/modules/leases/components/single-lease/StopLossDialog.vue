@@ -75,7 +75,7 @@
                 name="check-solid"
                 class="fill-icon-success"
               />
-              {{ $t("message.stoppings-payout", { amount: `${NATIVE_CURRENCY.symbol}${payout}` }) }}
+              {{ $t("message.stoppings-payout", { amount: `${payout}` }) }}
             </div>
           </template>
         </div>
@@ -220,15 +220,17 @@ function getPrice() {
 const payout = computed(() => {
   const end_price = new Dec(amount.value.length == 0 ? 0 : amount.value);
   const end = totalAmount.value.mul(end_price);
-  const debt = lease.value?.debt ?? new Dec(0);
   switch (ProtocolsConfig[lease.value?.protocol!].type) {
     case PositionTypes.long: {
-      return AssetUtils.formatNumber(end.sub(debt).toString(), currency.value?.decimal_digits);
+      const debt = lease.value?.debt ?? new Dec(0);
+      return AssetUtils.formatNumber(end.sub(debt).toString(), currency.value?.decimal_digits, NATIVE_CURRENCY.symbol);
     }
     case PositionTypes.short: {
       const start_price = getPrice() ?? new Dec(0);
       const start = totalAmount.value.mul(start_price);
       const a = start.sub(end.sub(start));
+      const debt = (lease.value?.debt ?? new Dec(0)).mul(start_price);
+
       return AssetUtils.formatNumber(a.sub(debt).toString(), currency.value?.decimal_digits);
     }
   }

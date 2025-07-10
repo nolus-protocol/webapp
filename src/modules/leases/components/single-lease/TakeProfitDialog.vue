@@ -75,7 +75,7 @@
                 name="check-solid"
                 class="fill-icon-success"
               />
-              {{ $t("message.stoppings-payout", { amount: `${NATIVE_CURRENCY.symbol}${payout}` }) }}
+              {{ $t("message.stoppings-payout", { amount: `${payout}` }) }}
             </div>
           </template>
         </div>
@@ -199,14 +199,14 @@ const payout = computed(() => {
 
   switch (ProtocolsConfig[lease.value?.protocol!].type) {
     case PositionTypes.long: {
-      return AssetUtils.formatNumber(end.sub(debt).toString(), currency.value?.decimal_digits);
+      return AssetUtils.formatNumber(end.sub(debt).toString(), currency.value?.decimal_digits, NATIVE_CURRENCY.symbol);
     }
     case PositionTypes.short: {
       const current_amount = totalAmount.value.mul(new Dec(current_price.amount));
       const amount = debt.mul(end_price);
-
       const a = current_amount.sub(amount);
-      return AssetUtils.formatNumber(a.toString(), currency.value?.decimal_digits);
+
+      return AssetUtils.formatNumber(a.toString(), currency.value?.decimal_digits, NATIVE_CURRENCY.symbol);
     }
   }
 
