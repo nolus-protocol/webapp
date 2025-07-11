@@ -128,6 +128,7 @@ watch(
   () => {
     skip = 0;
     loadLoans();
+    setRealizedPnl();
   }
 );
 
