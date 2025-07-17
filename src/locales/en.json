@@ -1,4 +1,16 @@
 {
+  "push": {
+    "ltv-title": "LTV > {{percent}}%",
+    "ltv-title-risk": " Risk! LTV > {{percent}}%",
+    "ltv-title-high-risk": " Risk! LTV > {{percent}}%",
+    "ltv-title-partial-liquidation": "Partial Liquidation",
+    "ltv-title-full-liquidation": "Full Liquidation",
+    "liquidations-funding": "Consider funding your {{ticker}} position",
+    "liquidations-funding-recommended": "Funding your {{ticker}} position is recommended",
+    "liquidations-fund-now": "{{ticker}} position is close to liquidation! Fund now",
+    "liquidations-partially-liquidated": "{{ticker}} position is partially liquidated. LTV back at {{percent}}%",
+    "liquidations-fully-liquidated": "{{ticker}} position has been fully liquidated"
+  },
   "message": {
     "connect-wallet": "Connect",
     "keplr": "Keplr",
@@ -451,6 +463,8 @@
     "change-close-policy": "Change close policy on position #{address}",
     "market-anomaly-title": "Market Anomaly: Watch Mode Active",
     "market-anomaly-title-desc": "Market Anomaly Guard (MAG) has paused liquidation due to unusually low DEX prices. Your position is safe for now while the system monitors for recovery.",
-    "market-anomaly-title-desc-link": "Learn how MAG safeguards from unfair liquidation"
+    "market-anomaly-title-desc-link": "Learn how MAG safeguards from unfair liquidation",
+    "subscribed": "Subscribed",
+    "unsubscribed": "Unsubscribed"
   }
 }
