@@ -7,7 +7,7 @@ let languages: {
   };
 } = {
   en: {
-    url: "http://localhost:8080/locales/en.json"
+    url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/en.json"
   },
   ru: {
     url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/ru.json"
