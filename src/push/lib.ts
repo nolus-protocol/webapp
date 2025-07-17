@@ -1,6 +1,6 @@
-import { publicKey } from "./config";
+import { AppUtils } from "@/common/utils";
+import { publicKey, host } from "./config";
 import { STATUS } from "./global";
-import { subscribe } from "./subscribe";
 
 let register: Promise<ServiceWorkerRegistration>;
 
@@ -10,7 +10,6 @@ export function notificationSubscribe(
   try {
     return requestPermissions(address);
   } catch (e) {
-    console.error(e);
     throw e;
   }
 }
@@ -29,14 +28,14 @@ async function subscribeUser(
 async function initSW(address: string): Promise<PushSubscription | typeof STATUS.not_supported> {
   if ("serviceWorker" in navigator) {
     const register = await getWorker();
-    subscribeUser(register, address);
+    return subscribeUser(register, address);
   }
   return Promise.resolve(STATUS.not_supported);
 }
 
 function getWorker() {
   if (!register) {
-    register = navigator.serviceWorker.register(`./worker.js`);
+    register = navigator.serviceWorker.register(`/worker.js`, { scope: "/" });
   }
   return register;
 }
@@ -52,22 +51,25 @@ export async function requestPermissions(
   });
 }
 
+export async function subscribe(subscription: PushSubscription | null, address: string): Promise<string> {
+  if (subscription) {
+    const item = { address, data: subscription };
+    const response = await fetch(`${host}/subscribe`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(item)
+    });
+    const text = await response.text();
+    return text === STATUS.subscribed ? STATUS.subscribed : text;
+  }
+  return Promise.resolve(STATUS.rejected);
+}
+
 export async function initWorker() {
   try {
-    const register = await getWorker();
-
-    if (register.waiting) {
-      register.waiting.postMessage({ type: "SKIP_WAITING" });
-    }
-
-    register.addEventListener("updatefound", () => {
-      const newSW = register.installing!;
-      newSW.addEventListener("statechange", () => {
-        if (newSW.state === "installed") {
-          newSW.postMessage({ type: "SKIP_WAITING" });
-        }
-      });
-    });
+    const lang = AppUtils.getLang();
+    AppUtils.setLangDb(lang.key);
+    await getWorker();
   } catch (e) {
     console.error(e);
   }

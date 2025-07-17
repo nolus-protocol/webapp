@@ -8,31 +8,145 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope;
 
-import { urlB64ToUint8Array } from "./helpers.ts";
+import type { IObjectKeys } from "@/common/types/IObjectKeys.ts";
+import { truncateString, urlB64ToUint8Array } from "./helpers.ts";
 import { publicKey, redirect } from "./config.ts";
 import { host } from "./config.ts";
+import { translate } from "./locales.ts";
+import { DefaultLtv, PushNotifications } from "./global.ts";
+import { idbGet } from "./database.ts";
+
+const icon = "/icons/icon-128x128.png";
+const defaultLanguage = "en";
+const permille = 1000;
+
+async function handlePushEvent(event: PushEvent) {
+  let payload: IObjectKeys = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch (err) {
+    console.error("Failed to parse push payload:", err);
+  }
+
+  const [title, notification] = await parseNotification(payload);
+  return self.registration.showNotification(title, notification);
+}
+
+async function parseNotification(payload: IObjectKeys): Promise<[string, NotificationOptions]> {
+  const lang = (await idbGet("language")) ?? defaultLanguage;
+  switch (payload.type) {
+    case PushNotifications.Funding: {
+      const [title, message] = await Promise.all([
+        translate(lang, "ltv-title", { percent: payload.data.ltv / permille }),
+        translate(lang, "liquidations-funding", { ticker: truncateString(payload.data.position, 8, 8) })
+      ]);
+
+      const notification: NotificationOptions = {
+        body: message,
+        icon: icon,
+        badge: icon,
+        data: {
+          url: `${redirect}leases`,
+          timestamp: Date.now()
+        }
+      };
+      return [title, notification];
+    }
+    case PushNotifications.FundingRecommended: {
+      const [title, message] = await Promise.all([
+        translate(lang, "ltv-title-risk", { percent: payload.data.ltv / permille }),
+        translate(lang, "liquidations-funding-recommended", { ticker: truncateString(payload.data.position, 8, 8) })
+      ]);
+
+      const notification: NotificationOptions = {
+        body: message,
+        icon: icon,
+        badge: icon,
+        data: {
+          url: `${redirect}leases`,
+          timestamp: Date.now()
+        }
+      };
+      return [title, notification];
+    }
+    case PushNotifications.FundNow: {
+      const [title, message] = await Promise.all([
+        translate(lang, "ltv-title-high-risk", { percent: payload.data.ltv / permille }),
+        translate(lang, "liquidations-fund-now", { ticker: truncateString(payload.data.position, 8, 8) })
+      ]);
+
+      const notification: NotificationOptions = {
+        body: message,
+        icon: icon,
+        badge: icon,
+        data: {
+          url: `${redirect}leases`,
+          timestamp: Date.now()
+        }
+      };
+      return [title, notification];
+    }
+    case PushNotifications.PartiallyLiquidated: {
+      const [title, message] = await Promise.all([
+        translate(lang, "ltv-title-partial-liquidation", {}),
+        translate(lang, "liquidations-partially-liquidated", {
+          ticker: truncateString(payload.data.position, 8, 8),
+          percent: DefaultLtv / permille
+        })
+      ]);
+
+      const notification: NotificationOptions = {
+        body: message,
+        icon: icon,
+        badge: icon,
+        data: {
+          url: `${redirect}leases`,
+          timestamp: Date.now()
+        }
+      };
+      return [title, notification];
+    }
+    case PushNotifications.FullyLiquidated: {
+      const [title, message] = await Promise.all([
+        translate(lang, "ltv-title-full-liquidation", {}),
+        translate(lang, "liquidations-fully-liquidated", {
+          ticker: truncateString(payload.data.position, 8, 8)
+        })
+      ]);
+
+      const notification: NotificationOptions = {
+        body: message,
+        icon: icon,
+        badge: icon,
+        data: {
+          url: `${redirect}leases`,
+          timestamp: Date.now()
+        }
+      };
+      return [title, notification];
+    }
+  }
+
+  const notification: NotificationOptions = {
+    body: "You have a new notification.",
+    icon: icon,
+    badge: icon,
+    data: {
+      url: redirect,
+      timestamp: Date.now()
+    }
+  };
+
+  return ["Notification", notification];
+}
 
 self.addEventListener("push", async (event) => {
-  if (event.data) {
-    const notification = event.data.json();
-    // const options: NotificationOptions = {
-    //   body: notification.body,
-    //   icon: "/icons/icon-128x128.png",
-    //   badge: "/icons/icon-128x128.png",
-    //   data: {
-    //     url: notification.url ?? redirect,
-    //     dateOfArrival: Date.now(),
-    //     primaryKey: 1
-    //   }
-    // };
-
-    event.waitUntil(self.registration.showNotification(notification.title, notification.options));
-  }
+  event.waitUntil(handlePushEvent(event));
 });
 
 self.addEventListener("notificationclick", (event: NotificationEvent) => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url ?? redirect;
+  const targetUrl = event.notification.data?.url;
   event.waitUntil(self.clients.openWindow(targetUrl));
 });
 
@@ -51,11 +165,10 @@ self.addEventListener("pushsubscriptionchange", (event: PushSubscriptionChangeEv
   );
 });
 
-self.addEventListener("install", () => self.skipWaiting());
-self.addEventListener("activate", (evt) => evt.waitUntil(self.clients.claim()));
+self.addEventListener("install", () => {
+  self.skipWaiting();
+});
 
-self.addEventListener("message", (evt) => {
-  if (evt.data?.type === "SKIP_WAITING") {
-    self.skipWaiting();
-  }
+self.addEventListener("activate", (evt) => {
+  evt.waitUntil(self.clients.claim());
 });

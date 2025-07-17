@@ -29,6 +29,7 @@ import { CHAIN_IDS_URLS } from "@/config/global/chainids-url";
 import { CURRENCIES_URL } from "@/config/global/currencies-url";
 import { HISTORY_CURRENCIES_URL } from "@/config/global/history-currencies-url";
 import type { HistoryCurrency } from "../types/Currecies";
+import { idbPut } from "@/push/database";
 
 export class AppUtils {
   public static LANGUAGE = "language";
@@ -95,6 +96,7 @@ export class AppUtils {
 
   public static setLang(lang: string) {
     localStorage.setItem(this.LANGUAGE, lang);
+    this.setLangDb(lang);
   }
 
   static getLang() {
@@ -104,6 +106,10 @@ export class AppUtils {
       return languages[theme as keyof typeof languages];
     }
     return languages.en;
+  }
+
+  public static setLangDb(lang: string) {
+    idbPut(this.LANGUAGE, lang);
   }
 
   public static setBannerInvisible(key: string) {

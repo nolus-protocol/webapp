@@ -10,6 +10,7 @@ import svgLoader from "vite-svg-loader";
 const downpayments_range_dir = fileURLToPath(new URL("./src/config/lease/downpayment-range", import.meta.url));
 const public_dir = "public";
 const worker = resolve(__dirname, "src/push/worker.ts");
+const locales_dir = fileURLToPath(new URL("./src/locales", import.meta.url));
 
 const downpayments_range = () => ({
   name: "downpayments-range-copy",
@@ -28,6 +29,25 @@ const downpayments_range = () => ({
 async function configResolved() {
   const public_locales_dir = fileURLToPath(new URL(`./${public_dir}/downpayment-range`, import.meta.url));
   await cp(downpayments_range_dir, public_locales_dir, { recursive: true });
+}
+
+const locales = () => ({
+  name: "locales-copy",
+  configResolved: configLocales,
+  handleHotUpdate: async ({ file, server }: { file: string; server: any }) => {
+    if (file.includes(locales_dir)) {
+      await configLocales();
+      server.ws.send({
+        type: "full-reload",
+        path: "*"
+      });
+    }
+  }
+});
+
+async function configLocales() {
+  const public_locales_dir = fileURLToPath(new URL(`./${public_dir}/locales`, import.meta.url));
+  await cp(locales_dir, public_locales_dir, { recursive: true });
 }
 
 async function bundleWorker(data: any) {
@@ -83,7 +103,6 @@ const buildWorkerPlugin = () => ({
 const nolus = defineConfig({
   plugins: [
     vue(),
-    buildWorkerPlugin(),
     svgLoader(),
     VueI18nPlugin({
       include: [resolve(__dirname, "./src/locales/**")],
@@ -91,7 +110,6 @@ const nolus = defineConfig({
       strictMessage: false,
       runtimeOnly: false
     }),
-    downpayments_range(),
     nodePolyfills({
       include: ["stream", "util", "crypto", "http", "https", "vm", "zlib"],
       globals: {
@@ -99,7 +117,10 @@ const nolus = defineConfig({
         global: true,
         process: true
       }
-    })
+    }),
+    buildWorkerPlugin(),
+    downpayments_range(),
+    locales()
   ],
   define: {
     "import.meta.env.APP_VERSION": JSON.stringify(process.env.npm_package_version)

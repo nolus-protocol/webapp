@@ -21,6 +21,7 @@ coverage
 public/downpayment-range/*
 public/worker.js
 public/worker.umd.cjs
+public/locales/*
 
 
 # Editor directories and files

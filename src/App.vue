@@ -1,6 +1,4 @@
 <template>
-  <button @click="test">SUBSRIBE</button>
-
   <RouterView />
   <div class="toast">
     <Toast
@@ -19,19 +17,11 @@ import { Toast, ToastType } from "web-components";
 
 import { useApplicationStore } from "@/common/stores/application";
 import { APPEARANCE } from "./config/global";
-import { initWorker, notificationSubscribe } from "./push/lib";
+import { initWorker } from "./push/lib";
 
 let interval: NodeJS.Timeout;
 
 provide("onShowToast", onShowToast);
-
-async function test() {
-  try {
-    await notificationSubscribe("nolus1ncc58ptqrkd7r7uk60dx4eufvvqf2edhtktv0q");
-  } catch (e) {
-    console.log(e);
-  }
-}
 
 onMounted(() => {
   initWorker();

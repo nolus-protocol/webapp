@@ -1,3 +1,4 @@
+import type { IObjectKeys } from "@/common/types";
 import { Buffer } from "buffer";
 
 export function urlB64ToUint8Array(base64String: string) {
@@ -11,4 +12,20 @@ export function urlB64ToUint8Array(base64String: string) {
     outputArray[i] = rawData.charCodeAt(i);
   }
   return outputArray;
+}
+
+export function templateParser(expression: string, valueObj: IObjectKeys) {
+  const templateMatcher = /{{\s?([^{}\s]*)\s?}}/g;
+  return expression.replace(templateMatcher, (_substring: string, value: string) => {
+    const keys = value.split(".");
+    const parsedValue = keys.reduce((acc, key) => {
+      acc = acc[key];
+      return acc;
+    }, valueObj);
+    return String(parsedValue);
+  });
+}
+
+export function truncateString(str: string, front: number, back: number): string {
+  return `${str.substring(0, front)}...${str.substring(str.length - back, str.length)}`;
 }
