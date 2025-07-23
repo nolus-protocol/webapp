@@ -35,7 +35,7 @@
       :disabled-currency-picker="isLoading"
       :disabled-input-field="isLoading"
       @on-selected-currency="
-        (option) => {
+        (option: any) => {
           selectedCurrency = assets.findIndex((item) => item == option);
           selectedLoanCurrency = 0;
         }
@@ -283,6 +283,7 @@ const currency = computed(() => {
 
 const assets = computed(() => {
   const data = [];
+
   for (const asset of (totalBalances.value as ExternalCurrency[]) ?? []) {
     const [ticker, protocol] = asset.key.split("@");
 
@@ -325,6 +326,7 @@ const assets = computed(() => {
 
 const coinList = computed(() => {
   let currencies: ExternalCurrency[] = [];
+
   for (const protocol of app.protocols) {
     if (ProtocolsConfig[protocol].type == PositionTypes.short && ProtocolsConfig[protocol].lease) {
       const c =

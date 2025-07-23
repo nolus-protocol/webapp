@@ -73,6 +73,5 @@ async function getLpn(client: CosmWasmClient, protocol: string, admin: AdminStor
 async function getLease(client: CosmWasmClient, protocol: string, admin: AdminStore) {
   const oracleClient = new Oracle(client, admin.protocols[EnvNetworkUtils.getStoredNetworkName()]![protocol].oracle);
   const currencies = await oracleClient.getCurrencies();
-
   return NolusAssetUtils.findTickersByGroup(currencies, "lease");
 }

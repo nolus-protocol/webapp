@@ -127,7 +127,7 @@ export const CONTRACTS: ContractConfig = {
       },
       "OSMOSIS-OSMOSIS-ST_ATOM": {
         only: [],
-        lease: false,
+        lease: true,
         currencies: [],
         stable: "USDC_NOBLE",
         type: PositionTypes.short,

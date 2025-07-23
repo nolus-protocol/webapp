@@ -36,7 +36,7 @@
       :disabled-currency-picker="isLoading"
       :disabled-input-field="isLoading"
       @on-selected-currency="
-        (option) => {
+        (option: any) => {
           selectedCurrency = assets.findIndex((item) => item == option);
           selectedLoanCurrency = 0;
         }
@@ -288,7 +288,6 @@ const currency = computed(() => {
 const assets = computed(() => {
   const data = [];
   const protocols = Contracts.protocolsFilter[app.protocolFilter];
-
   const b = ((balances.value as ExternalCurrency[]) ?? []).filter((item) => {
     const [_, p] = item.key.split("@");
 
@@ -297,6 +296,7 @@ const assets = computed(() => {
     }
     return false;
   });
+
   for (const asset of b) {
     const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
     const balance = AssetUtils.formatNumber(value.toString(), asset.decimal_digits);
@@ -388,7 +388,6 @@ const balances = computed(() => {
     }
 
     const lpns = ((app.lpn ?? []) as ExternalCurrency[]).map((item) => item.key as string);
-
     return lpns.includes(item.key as string) || app.leasesCurrencies.includes(cticker);
   });
 });
