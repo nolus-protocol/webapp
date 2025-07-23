@@ -50,8 +50,7 @@
             ...item,
             abbreviation: item.label,
             name: item.name,
-            balance: item.balance.value,
-            max_decimals: item.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : item.decimal_digits
+            balance: item.balance.value
           })
       "
       :selected-currency-option="currency"
@@ -199,7 +198,6 @@ import type { ExternalCurrency, IObjectKeys } from "@/common/types";
 import {
   Contracts,
   INTEREST_DECIMALS,
-  MAX_DECIMALS,
   MAX_POSITION,
   MIN_POSITION,
   PERCENT,
@@ -229,7 +227,6 @@ const showDetails = ref(false);
 
 const freeInterest = ref<string[]>();
 const ignoreLeaseAssets = ref<string[]>();
-const ignoreDownpaymentAssets = ref<string[]>();
 const selectedCurrency = ref(0);
 const selectedLoanCurrency = ref(0);
 const isLoading = ref(false);
@@ -243,14 +240,12 @@ const ltd = ref((MAX_POSITION / PERCENT) * PERMILLE);
 const leaseApply = ref<LeaseApply | null>();
 
 onMounted(async () => {
-  const [freeInterestv, ignoreLeaseAssetsv, ignoreDownpaymentAssetsv] = await Promise.all([
+  const [freeInterestv, ignoreLeaseAssetsv] = await Promise.all([
     AppUtils.getFreeInterest(),
-    AppUtils.getIgnoreLeaseAssets(),
-    AppUtils.getIgnoreDownpaymentAssets()
+    AppUtils.getIgnoreLeaseLongAssets()
   ]);
   freeInterest.value = freeInterestv;
   ignoreLeaseAssets.value = ignoreLeaseAssetsv;
-  ignoreDownpaymentAssets.value = ignoreDownpaymentAssetsv;
 });
 
 watch(
@@ -388,10 +383,7 @@ const balances = computed(() => {
       return false;
     }
 
-    if (
-      ignoreDownpaymentAssets.value?.includes(ticker) ||
-      ignoreDownpaymentAssets.value?.includes(`${ticker}@${protocol}`)
-    ) {
+    if (ignoreLeaseAssets.value?.includes(ticker) || ignoreLeaseAssets.value?.includes(`${ticker}@${protocol}`)) {
       return false;
     }
 

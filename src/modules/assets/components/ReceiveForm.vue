@@ -49,8 +49,7 @@
             ...item,
             abbreviation: item.label,
             name: item.name,
-            balance: item.balance.value,
-            max_decimals: item.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : item.decimal_digits
+            balance: item.balance.value
           })
       "
     />
@@ -140,7 +139,7 @@ import { AdvancedFormControl, Button, Dropdown, AssetItem, Input, Size, type Ass
 import { MetaMaskWallet } from "@/networks/metamask";
 import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
-import { IGNORED_NETWORKS, MAX_DECIMALS } from "../../../config/global";
+import { IGNORED_NETWORKS } from "../../../config/global";
 
 import { type BaseWallet, Wallet } from "@/networks";
 import { CONFIRM_STEP, type IObjectKeys, type Network, type SkipRouteConfigType } from "@/common/types";

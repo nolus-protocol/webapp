@@ -12,15 +12,20 @@
 
 <script lang="ts" setup>
 import { RouterView } from "vue-router";
-import { provide, ref, watch } from "vue";
+import { onMounted, provide, ref, watch } from "vue";
 import { Toast, ToastType } from "web-components";
 
 import { useApplicationStore } from "@/common/stores/application";
 import { APPEARANCE } from "./config/global";
+import { initWorker } from "./push/lib";
 
 let interval: NodeJS.Timeout;
 
 provide("onShowToast", onShowToast);
+
+onMounted(() => {
+  initWorker();
+});
 
 const application = useApplicationStore();
 const toast = ref({
@@ -73,5 +78,9 @@ div.toast {
   left: 50%;
   -webkit-transform: translateX(-50%);
   transform: translateX(-50%);
+}
+button {
+  z-index: 11111;
+  position: absolute;
 }
 </style>

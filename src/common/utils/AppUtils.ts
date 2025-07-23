@@ -1,21 +1,14 @@
+import type { HistoryCurrency } from "../types/Currecies";
 import type { CurrenciesConfig } from "../types/Networks";
-import type {
-  API,
-  ARCHIVE_NODE,
-  Endpoint,
-  Node,
-  SkipRouteConfigType,
-  ProposalsConfigType,
-  ExternalCurrency
-} from "@/common/types";
+import type { API, ARCHIVE_NODE, Endpoint, Node, SkipRouteConfigType, ProposalsConfigType } from "@/common/types";
 
 import { connectComet } from "@cosmjs/tendermint-rpc";
 import { EnvNetworkUtils } from ".";
 import {
   CONTRACTS,
   DOWNPAYMENT_RANGE_DEV,
-  IGNORE_DOWNPAYMENT_ASSETS_URL,
-  IGNORE_LEASE_ASSETS_URL,
+  IGNORE_LEASE_LONG_ASSETS_URL,
+  IGNORE_LEASE_SHORT_ASSETS_URL,
   IGNORE_ASSETS_URL
 } from "@/config/global";
 import { ChainConstants } from "@nolus/nolusjs";
@@ -28,7 +21,7 @@ import { DUE_PROJECTION_SECS_URL } from "@/config/global/due-projection-secs-url
 import { CHAIN_IDS_URLS } from "@/config/global/chainids-url";
 import { CURRENCIES_URL } from "@/config/global/currencies-url";
 import { HISTORY_CURRENCIES_URL } from "@/config/global/history-currencies-url";
-import type { HistoryCurrency } from "../types/Currecies";
+import { idbPut } from "@/push/database";
 
 export class AppUtils {
   public static LANGUAGE = "language";
@@ -58,8 +51,9 @@ export class AppUtils {
   static dueProjectionSecs: Promise<{
     due_projection_secs: number;
   }>;
-  static ignoreLeaseAssets: Promise<string[]>;
-  static ignoreDownpaymentAssets: Promise<string[]>;
+  static ignoreLeaseLongAssets: Promise<string[]>;
+  static ignoreLeaseShortAssets: Promise<string[]>;
+
   static ignoreAssets: Promise<string[]>;
 
   static rpc: {
@@ -95,6 +89,7 @@ export class AppUtils {
 
   public static setLang(lang: string) {
     localStorage.setItem(this.LANGUAGE, lang);
+    this.setLangDb(lang);
   }
 
   static getLang() {
@@ -104,6 +99,10 @@ export class AppUtils {
       return languages[theme as keyof typeof languages];
     }
     return languages.en;
+  }
+
+  public static setLangDb(lang: string) {
+    idbPut(this.LANGUAGE, lang);
   }
 
   public static setBannerInvisible(key: string) {
@@ -201,26 +200,26 @@ export class AppUtils {
     return AppUtils.freeInterestAdress;
   }
 
-  static async getIgnoreLeaseAssets() {
-    const ignoreLeaseAssets = AppUtils.ignoreLeaseAssets;
+  static async getIgnoreLeaseLongAssets() {
+    const ignoreLeaseLongAssets = AppUtils.ignoreLeaseLongAssets;
 
-    if (ignoreLeaseAssets) {
-      return ignoreLeaseAssets;
+    if (ignoreLeaseLongAssets) {
+      return ignoreLeaseLongAssets;
     }
 
-    AppUtils.ignoreLeaseAssets = AppUtils.fetchIgnoreLeaseAssets();
-    return AppUtils.ignoreLeaseAssets;
+    AppUtils.ignoreLeaseLongAssets = AppUtils.fetchIgnoreLeaseLongAssets();
+    return AppUtils.ignoreLeaseLongAssets;
   }
 
-  static async getIgnoreDownpaymentAssets() {
-    const ignoreDownpaymentAssets = AppUtils.ignoreDownpaymentAssets;
+  static async getIgnoreLeaseShortAssets() {
+    const ignoreLeaseShortAssets = AppUtils.ignoreLeaseShortAssets;
 
-    if (ignoreDownpaymentAssets) {
-      return ignoreDownpaymentAssets;
+    if (ignoreLeaseShortAssets) {
+      return ignoreLeaseShortAssets;
     }
 
-    AppUtils.ignoreDownpaymentAssets = AppUtils.fetchIgnoreDownpaymentAssets();
-    return AppUtils.ignoreDownpaymentAssets;
+    AppUtils.ignoreLeaseShortAssets = AppUtils.fetchIgnoreLeaseShortAssets();
+    return AppUtils.ignoreLeaseShortAssets;
   }
 
   static async getIgnoreAssets() {
@@ -487,15 +486,15 @@ export class AppUtils {
     return json;
   }
 
-  private static async fetchIgnoreLeaseAssets() {
-    const data = await fetch(await IGNORE_LEASE_ASSETS_URL);
+  private static async fetchIgnoreLeaseLongAssets() {
+    const data = await fetch(await IGNORE_LEASE_LONG_ASSETS_URL);
     const json = (await data.json()) as string[];
 
     return json;
   }
 
-  private static async fetchIgnoreDownpaymentAssets() {
-    const data = await fetch(await IGNORE_DOWNPAYMENT_ASSETS_URL);
+  private static async fetchIgnoreLeaseShortAssets() {
+    const data = await fetch(await IGNORE_LEASE_SHORT_ASSETS_URL);
     const json = (await data.json()) as string[];
 
     return json;

@@ -49,8 +49,7 @@
             ...item,
             abbreviation: item.label,
             name: item.name,
-            balance: item.balance.value,
-            max_decimals: item.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : item.decimal_digits
+            balance: item.balance.value
           })
       "
       :selected-currency-option="currency"
@@ -198,7 +197,6 @@ import type { ExternalCurrency, IObjectKeys } from "@/common/types";
 import {
   Contracts,
   INTEREST_DECIMALS,
-  MAX_DECIMALS,
   MAX_POSITION,
   MIN_POSITION,
   PERCENT,
@@ -227,6 +225,8 @@ const onShowToast = inject("onShowToast", (data: { type: ToastType; message: str
 const reload = inject("reload", () => {});
 
 const freeInterest = ref<string[]>();
+const ignoreLeaseAssets = ref<string[]>();
+
 const selectedCurrency = ref(0);
 const selectedLoanCurrency = ref(0);
 const isLoading = ref(false);
@@ -239,8 +239,12 @@ const leaseApply = ref<LeaseApply | null>();
 const showDetails = ref(false);
 
 onMounted(async () => {
-  const [freeInterestv] = await Promise.all([AppUtils.getFreeInterest()]);
+  const [freeInterestv, ignoreLeaseAssetsv] = await Promise.all([
+    AppUtils.getFreeInterest(),
+    AppUtils.getIgnoreLeaseShortAssets()
+  ]);
   freeInterest.value = freeInterestv;
+  ignoreLeaseAssets.value = ignoreLeaseAssetsv;
 });
 
 watch(
@@ -280,6 +284,12 @@ const currency = computed(() => {
 const assets = computed(() => {
   const data = [];
   for (const asset of (totalBalances.value as ExternalCurrency[]) ?? []) {
+    const [ticker, protocol] = asset.key.split("@");
+
+    if (ignoreLeaseAssets.value?.includes(ticker) || ignoreLeaseAssets.value?.includes(`${ticker}@${protocol}`)) {
+      continue;
+    }
+
     const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
     const balance = AssetUtils.formatNumber(value.toString(), asset.decimal_digits);
     const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
@@ -315,12 +325,16 @@ const assets = computed(() => {
 
 const coinList = computed(() => {
   let currencies: ExternalCurrency[] = [];
-
   for (const protocol of app.protocols) {
     if (ProtocolsConfig[protocol].type == PositionTypes.short && ProtocolsConfig[protocol].lease) {
       const c =
         app.lpn?.filter((item) => {
-          const [_, p] = item.key.split("@");
+          const [ticker, p] = item.key.split("@");
+
+          if (ignoreLeaseAssets.value?.includes(ticker) || ignoreLeaseAssets.value?.includes(`${ticker}@${protocol}`)) {
+            return false;
+          }
+
           if (p == protocol) {
             return true;
           }
