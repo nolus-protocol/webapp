@@ -47,8 +47,7 @@
                   ...item,
                   abbreviation: item.label,
                   name: item.name,
-                  balance: item.balance.value,
-                  max_decimals: item.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : item.decimal_digits
+                  balance: item.balance.value
                 })
             "
             :selected-currency-option="currency"
@@ -153,7 +152,7 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { AssetUtils, getMicroAmount, LeaseUtils, Logger, walletOperation } from "@/common/utils";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency } from "@/common/types";
-import { MAX_DECIMALS, minimumLeaseAmount, PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
+import { minimumLeaseAmount, PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import { CoinPretty, Dec, Int } from "@keplr-wallet/unit";
 import { h } from "vue";

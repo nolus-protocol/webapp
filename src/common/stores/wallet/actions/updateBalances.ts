@@ -15,7 +15,6 @@ export async function updateBalances(this: Store) {
 
     for (const key in currencies) {
       const currency = app.currenciesData![key];
-      let shortName = currency.shortName;
       const [ticker, protocol] = key.split("@");
 
       if (!ProtocolsConfig[protocol].currencies.includes(ticker)) {

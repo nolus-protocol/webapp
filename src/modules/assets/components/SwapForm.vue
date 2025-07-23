@@ -23,8 +23,7 @@
             ...item,
             abbreviation: item.label,
             name: item.name,
-            balance: item.balance.value,
-            max_decimals: item.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : item.decimal_digits
+            balance: item.balance.value
           })
       "
     />
@@ -143,7 +142,6 @@ import { type BaseWallet } from "@/networks";
 import { SwapStatus } from "../enums";
 import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { SkipRouter } from "@/common/utils/SkipRoute";
-import { MAX_DECIMALS } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
 import { StepperVariant, Stepper } from "web-components";
 import type { RouteResponse } from "@/common/types/skipRoute";

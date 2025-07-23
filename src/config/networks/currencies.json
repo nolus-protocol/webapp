@@ -27,7 +27,7 @@
       "coinGeckoId": "osmosis-alleth",
       "symbol": "factory/osmo1k6c8jln7ejuqwtqmay3yvzrg3kueaczl96pk067ldg8u835w0yhsw27twm/alloyed/allETH"
     },
-    "USDC": { "name": "Axelar Wrapped USDC", "shortName": "USDC", "coinGeckoId": "usd-coin", "symbol": "uusdc" },
+    "USDC": { "name": "Axelar Wrapped USDC", "shortName": "USDC.axl", "coinGeckoId": "usd-coin", "symbol": "uusdc" },
     "USDC_AXELAR": { "name": "Axelar Wrapped USDC", "shortName": "USDC", "coinGeckoId": "usd-coin", "symbol": "uusdc" },
     "WETH": { "name": "Axelar Wrapped ETH", "shortName": "WETH", "coinGeckoId": "weth", "symbol": "weth-wei" },
     "WBTC": {

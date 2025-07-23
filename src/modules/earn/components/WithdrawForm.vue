@@ -23,8 +23,7 @@
             ...item,
             abbreviation: item.label,
             name: item.name,
-            balance: item.balance.value,
-            max_decimals: item.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : item.decimal_digits
+            balance: item.balance.value
           })
       "
     >
@@ -99,7 +98,7 @@ import { CurrencyUtils, NolusClient, type NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { useAdminStore } from "@/common/stores/admin";
 import { h } from "vue";
-import { MAX_DECIMALS, Contracts } from "@/config/global";
+import { Contracts } from "@/config/global";
 import { useI18n } from "vue-i18n";
 
 const assets = computed(() => {

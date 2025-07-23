@@ -24,8 +24,7 @@
             abbreviation: item.label,
             name: item.name,
             balance: item.balance.value,
-            info: item.disabled ? () => h(Info) : null,
-            max_decimals: item.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : item.decimal_digits
+            info: item.disabled ? () => h(Info) : null
           })
       "
     >
@@ -95,7 +94,7 @@ import { Dec, Int } from "@keplr-wallet/unit";
 import { AssetUtils, getMicroAmount, Logger, validateAmountV2, walletOperation } from "@/common/utils";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
-import { ProtocolsConfig, SORT_PROTOCOLS, MAX_DECIMALS, Contracts } from "@/config/global";
+import { ProtocolsConfig, SORT_PROTOCOLS, Contracts } from "@/config/global";
 import { CurrencyUtils, NolusClient, type NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { useAdminStore } from "@/common/stores/admin";
