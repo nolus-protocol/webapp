@@ -264,7 +264,8 @@ const stable = computed(() => {
   const price = new Dec(oracle.prices?.[asset.value.key!]?.amount ?? 0);
   const v = props.lease?.total?.amount ?? "0";
   const stable = price.mul(new Dec(v, asset.value.decimal_digits)).sub(new Dec(swapStableFee.value));
-  return `${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+
+  return stable.toString();
 });
 
 const asset = computed(() => {
@@ -300,7 +301,7 @@ const downPaymentStable = computed(() => {
 
 const borrowAmount = computed(() => {
   const price = new Dec(oracle.prices?.[asset.value.key!]?.amount ?? 0);
-  const decimals = new Dec(10 ** lpn.value.decimal_digits);
+  const decimals = new Dec(10 ** asset.value.decimal_digits);
   const v = borrowStable.value;
   const amount = v.quo(price).mul(decimals);
   return amount.truncate().toString();
@@ -308,7 +309,7 @@ const borrowAmount = computed(() => {
 
 const swapFeeAmount = computed(() => {
   const price = new Dec(oracle.prices?.[asset.value.key!]?.amount ?? 0);
-  const decimals = new Dec(10 ** lpn.value.decimal_digits);
+  const decimals = new Dec(10 ** asset.value.decimal_digits);
   const v = new Dec(swapStableFee.value);
   const amount = v.quo(price).mul(decimals);
   return amount;
