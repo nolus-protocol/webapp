@@ -309,7 +309,7 @@ const borrowAmount = computed(() => {
 
 const swapFeeAmount = computed(() => {
   const price = new Dec(oracle.prices?.[asset.value.key!]?.amount ?? 0);
-  const decimals = new Dec(10 ** lpn.value.decimal_digits);
+  const decimals = new Dec(10 ** asset.value.decimal_digits);
   const v = new Dec(swapStableFee.value);
   const amount = v.quo(price).mul(decimals);
   return amount;
