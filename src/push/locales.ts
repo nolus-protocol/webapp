@@ -7,31 +7,31 @@ let languages: {
   };
 } = {
   en: {
-    url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/en.json"
+    url: `https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/en.json`
   },
   ru: {
-    url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/ru.json"
+    url: `https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/ru.json`
   },
   cn: {
-    url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/cn.json"
+    url: `https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/cn.json`
   },
   fr: {
-    url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/fr.json"
+    url: `https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/fr.json`
   },
   es: {
-    url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/es.json"
+    url: `https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/es.json`
   },
   gr: {
-    url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/gr.json"
+    url: `https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/gr.json`
   },
   tr: {
-    url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/tr.json"
+    url: `https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/tr.json`
   },
   id: {
-    url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/id.json"
+    url: `https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/id.json`
   },
   jp: {
-    url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/jp.json"
+    url: `https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/jp.json`
   }
 };
 
