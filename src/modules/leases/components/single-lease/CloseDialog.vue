@@ -392,13 +392,12 @@ const debtData = computed(() => {
   const price = getPrice();
   const debt = getRepayment(100);
   const d = debt?.repayment;
-
   if (price && d) {
     const currecy = app.currenciesData![`${lease.value?.leaseData!.leasePositionTicker}@${lease.value!.protocol}`];
     switch (ProtocolsConfig[lease.value!.protocol].type) {
       case PositionTypes.short: {
         const asset = d.quo(price);
-        const value = d.mul(new Dec(swapFee.value));
+        const value = new Dec(amount.value).mul(new Dec(swapFee.value));
         return {
           fee: `${(swapFee.value * PERCENT).toFixed(NATIVE_CURRENCY.maximumFractionDigits)}% (${NATIVE_CURRENCY.symbol}${value.toString(NATIVE_CURRENCY.maximumFractionDigits)})`,
           asset: currecy.shortName,
@@ -408,7 +407,7 @@ const debtData = computed(() => {
       }
       case PositionTypes.long: {
         const asset = d.mul(price);
-        const value = asset.mul(new Dec(swapFee.value));
+        const value = new Dec(amount.value).mul(price).mul(new Dec(swapFee.value));
         let lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
 
         return {
