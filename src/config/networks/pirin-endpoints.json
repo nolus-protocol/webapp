@@ -33,7 +33,7 @@
     },
     "fallback": [
       {
-        "rpc": "https://neutron-rpc.publicnode.com:443",
+        "rpc": "https://neutron-rpc.publicnode.com",
         "api": "https://neutron-rest.publicnode.com"
       }
     ]
