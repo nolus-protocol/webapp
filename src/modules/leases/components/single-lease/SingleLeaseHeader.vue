@@ -193,8 +193,7 @@ const stable = computed(() => {
   let protocol = lease.protocol;
 
   let ticker = lease.leaseData!.leasePositionTicker!;
-
-  if (ticker.includes("@")) {
+  if (ticker?.includes("@")) {
     let [t, p] = ticker.split("@");
     ticker = t;
     protocol = p;
