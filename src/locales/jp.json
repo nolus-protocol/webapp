@@ -377,7 +377,7 @@
     "preview-closed": "このポジションはクローズされます",
     "preview-closed-paid": "支払われます",
     "preview-closed-paid-debt": "借金は全額返済されます - <strong>{amount}</strong> は、{asset} あたり <strong>{price}</strong> のレートで、<strong>{fee} の DEX 手数料</strong>が適用されます。",
-    "preview-closed-rest": "この位置に留まるだろう",
+    "preview-closed-rest": "will be transferred to your wallet",
     "supply-preview": "<strong>{amount}</strong> をご提供いただきます",
     "preview-closed-debt": "負債残高は、",
     "delegate-nls-2": "ネットワーク活動を収入に変える",

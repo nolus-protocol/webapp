@@ -111,19 +111,12 @@
         "
         v-if="TEMPLATES.opened == status && !openedSubState"
       />
-      <Collect
-        :lease="lease!"
-        severity="primary"
-        v-if="TEMPLATES.paid == status"
-        size="medium"
-      />
     </div>
     <SharePnLDialog ref="sharePnlDialog" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import Collect from "./Collect.vue";
 import type { LeaseData } from "@/common/types";
 import { computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";

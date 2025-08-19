@@ -404,7 +404,7 @@ function getActions(lease: LeaseData) {
     }),
     h<IAction>(Action, {
       lease,
-      showCollect: status == TEMPLATES.paid && !isCollecting(lease),
+      showCollect: false,
       showClose: status == TEMPLATES.opened,
       key: `action-${lease.leaseAddress}`,
       opened: openMenuId == lease.leaseAddress,

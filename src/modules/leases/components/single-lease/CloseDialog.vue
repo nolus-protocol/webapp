@@ -204,8 +204,8 @@
                   name="check-solid"
                   class="fill-icon-success"
                 />
-                {{ $t("message.preview-closed-paid") }}
                 <strong>{{ payout }} {{ lpn }}</strong>
+                {{ $t("message.preview-closed-rest") }}
               </div>
 
               <div class="flex items-center gap-2 text-14">

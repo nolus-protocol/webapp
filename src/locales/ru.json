@@ -377,7 +377,7 @@
     "preview-closed": "Эта позиция будет закрыта",
     "preview-closed-paid": "Вам выплатят",
     "preview-closed-paid-debt": "Ваш долг будет полностью погашен: <strong>{amount}</strong> по ставке <strong>{price} за {asset}</strong> с <strong>{fee} в виде комиссий DEX</strong>",
-    "preview-closed-rest": "останется на этом посту",
+    "preview-closed-rest": "will be transferred to your wallet",
     "supply-preview": "Вы предоставите <strong>{amount}</strong>",
     "preview-closed-debt": "Непогашенный долг составит",
     "delegate-nls-2": "Превратите сетевую активность в доход",

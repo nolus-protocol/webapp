@@ -377,7 +377,7 @@
     "preview-closed": "Αυτή η θέση θα κλείσει",
     "preview-closed-paid": "Θα αποπληρωθείς",
     "preview-closed-paid-debt": "Το χρέος σου θα εξοφληθεί πλήρως - <strong>{amount}</strong> με επιτόκιο <strong>{price} ανά {asset}</strong> με <strong>{fee} σε χρεώσεις DEX</strong>",
-    "preview-closed-rest": "θα παραμείνουν σε αυτή τη θέση",
+    "preview-closed-rest": "will be transferred to your wallet",
     "supply-preview": "Θα παράσχεις <strong>{amount}</strong>",
     "preview-closed-debt": "Ανεξόφλητο χρέος θα είναι",
     "delegate-nls-2": "Μετάτρεψε τη Δραστηριότητα Δικτύου σε Εισόδημα",

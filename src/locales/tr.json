@@ -377,7 +377,7 @@
     "preview-closed": "Bu pozisyon kapatılacak",
     "preview-closed-paid": "Size ödeme yapılacak",
     "preview-closed-paid-debt": "Borcunuzun tamamı ödenecektir - <strong>{amount}</strong>, {asset} başına <strong>{price} oranında</strong> ve <strong>DEX ücretlerinde {fee}</strong>",
-    "preview-closed-rest": "bu pozisyonda kalacak",
+    "preview-closed-rest": "will be transferred to your wallet",
     "supply-preview": "<strong>{amount}</strong> sağlayacaksınız",
     "preview-closed-debt": "Ödenmemiş borç olacak",
     "delegate-nls-2": "Ağ Etkinliğini Gelire Dönüştürün",

@@ -377,7 +377,7 @@
     "preview-closed": "该职位将被关闭",
     "preview-closed-paid": "您将得到报酬",
     "preview-closed-paid-debt": "您的债务将被全额还清 - <strong>{amount}</strong>，利率为每 {asset}<strong>{price}</strong>，并包含 <strong>{fee} DEX 费用</strong>",
-    "preview-closed-rest": "将保留在这个位置",
+    "preview-closed-rest": "will be transferred to your wallet",
     "supply-preview": "您将提供<strong>{amount}</strong>",
     "preview-closed-debt": "未偿债务将",
     "delegate-nls-2": "将网络活动转化为收入",

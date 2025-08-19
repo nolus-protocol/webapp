@@ -377,7 +377,7 @@
     "preview-closed": "Esta posición estará cerrada.",
     "preview-closed-paid": "se te pagará",
     "preview-closed-paid-debt": "Su deuda se cancelará en su totalidad: <strong>{amount}</strong> a una tasa de <strong>{price} por {asset}</strong> con <strong>{fee} en tarifas DEX</strong>",
-    "preview-closed-rest": "permanecerá en esta posición",
+    "preview-closed-rest": "will be transferred to your wallet",
     "supply-preview": "Proporcionarás <strong>{amount}</strong>",
     "preview-closed-debt": "La deuda pendiente será",
     "delegate-nls-2": "Convierta la actividad de la red en ingresos",
