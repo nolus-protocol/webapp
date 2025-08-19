@@ -19,6 +19,7 @@ import { idbGet } from "./database.ts";
 const icon = "/icons/icon-128x128.png";
 const defaultLanguage = "en";
 const permille = 1000;
+const version = 1;
 
 async function handlePushEvent(event: PushEvent) {
   let payload: IObjectKeys = {};
@@ -170,5 +171,6 @@ self.addEventListener("install", () => {
 });
 
 self.addEventListener("activate", (evt) => {
+  console.log(version);
   evt.waitUntil(self.clients.claim());
 });

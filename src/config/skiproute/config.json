@@ -107,6 +107,10 @@
           "to": "factory/osmo1n3n75av8awcnw4jl62n3l48e6e4sxqmaf97w5ua6ddu4s475q5qq9udvx4/alloyed/allSOL"
         },
         {
+          "from": "ibc/7879B1CBBD2E07347002334792368E65C11A7D1629297D04B6A2155F557E02D4",
+          "to": "factory/osmo1k6c8jln7ejuqwtqmay3yvzrg3kueaczl96pk067ldg8u835w0yhsw27twm/alloyed/allETH"
+        },
+        {
           "from": "ibc/EA78F6D56E284DD5BA4E3606D8621295165B08F720D78DA5DAE2ACFD67D427B5",
           "to": "ibc/2E3784772E70F7B3A638BA88F65C8BE125D3CDB6E28C6AABC51098C94F5E16A5"
         },
