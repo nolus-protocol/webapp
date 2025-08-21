@@ -408,10 +408,6 @@
     "delegate-preview": "Oylama gücü açısından ilk üçün dışındaki doğrulayıcılara <strong>{amount} ({amountStable})</strong> yetkisi verecek ve %5 veya daha düşük bir komisyon uygulayacaksınız",
     "undelegate-preview": "<strong>{date}</strong> tarihine kadar kaldırılacak olan <strong>{amount} ({amountStable})</strong> çekeceksiniz",
     "withdraw-rewards-preview": "<strong>{amount} ({amountStable})</strong> çekeceksiniz",
-    "closing-partial-title": "Devam Eden Kısmi Pozisyon Kapatma",
-    "closing-partial-description": "Bu pozisyon kısmen kapatılıyor. Bu genellikle bir dakikadan az sürer",
-    "closing-full-title": "Devam Eden Tam Pozisyon Kapatma",
-    "closing-full-description": "Bu pozisyon tamamen kapatılıyor. Bu genellikle bir dakikadan az sürer",
     "liquidation-ongoinfull-title": "Devam Eden Faiz Tahsilatları",
     "liquidation-ongoinfull-description": "Genellikle bir dakikadan kısa sürede tamamlanır.",
     "liquidation-ongoinfull-description-link": "Faiz tahsilatı hakkında daha fazla bilgi edinin",
@@ -464,6 +460,8 @@
     "market-anomaly-title-desc-link": "Learn how MAG safeguards from unfair liquidation",
     "subscribed": "Subscribed",
     "unsubscribed": "Unsubscribed",
-    "and": "and"
+    "and": "and",
+    "close-title": "Ongoing Position Close",
+    "close-description": "This position is being partially or fully closed. The process usually takes less than a minute."
   }
 }

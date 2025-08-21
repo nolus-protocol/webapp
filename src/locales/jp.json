@@ -408,10 +408,6 @@
     "delegate-preview": "<strong>{amount} ({amountStable})</strong> を議決権の点で上位 3 つを超えるバリデーターに委任し、5% 以下の手数料を課します。",
     "undelegate-preview": "<strong>{amount} ({amountStable})</strong> を出金します。この金額は <strong>{date}</strong> までに解除されます。",
     "withdraw-rewards-preview": "<strong>{amount} ({amountStable})</strong> を引き出します。",
-    "closing-partial-title": "進行中の部分ポジションクローズ",
-    "closing-partial-description": "このポジションは部分的にクローズされています。通常、これには 1 分もかかりません",
-    "closing-full-title": "継続的なフルポジションクローズ",
-    "closing-full-description": "このポジションは完全にクローズされています。通常、これには 1 分もかかりません",
     "liquidation-ongoinfull-title": "継続的な利息の徴収",
     "liquidation-ongoinfull-description": "通常は 1 分以内に完了します。",
     "liquidation-ongoinfull-description-link": "利息徴収について詳しくはこちら",
@@ -464,6 +460,8 @@
     "market-anomaly-title-desc-link": "Learn how MAG safeguards from unfair liquidation",
     "subscribed": "Subscribed",
     "unsubscribed": "Unsubscribed",
-    "and": "and"
+    "and": "and",
+    "close-title": "Ongoing Position Close",
+    "close-description": "This position is being partially or fully closed. The process usually takes less than a minute."
   }
 }

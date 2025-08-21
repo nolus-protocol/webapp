@@ -408,10 +408,6 @@
     "delegate-preview": "Θα εκχωρήσεις το <strong>{amount} ({amountStable})</strong> σε επικυρωτές πέρα ​​από τους τρεις πρώτους όσον αφορά την ισχύ ψήφου και θα σου επιβληθεί προμήθεια 5% ή χαμηλότερη",
     "undelegate-preview": "Θα αποσύρεις το <strong>{amount} ({amountStable})</strong> το οποίο θα αφαιρεθεί από το <strong>{date}</strong>",
     "withdraw-rewards-preview": "Θα κάνεις ανάληψη <strong>{amount} ({amountStable})</strong>",
-    "closing-partial-title": "Μερικό Κλείσιμο θέσης σε εξέλιξη",
-    "closing-partial-description": "Αυτή η θέση κλείνει μερικώς. Αυτό συνήθως διαρκεί λιγότερο από ένα λεπτό",
-    "closing-full-title": "Σε εξέλιξη Κλείσιμο ολόκληρης της θέσης",
-    "closing-full-description": "Αυτή η θέση κλείνει πλήρως. Αυτό συνήθως διαρκεί λιγότερο από ένα λεπτό",
     "liquidation-ongoinfull-title": "Συνεχής συλλογή τόκων",
     "liquidation-ongoinfull-description": "Τυπικά ολοκληρώνεται σε λιγότερο από ένα λεπτό.",
     "liquidation-ongoinfull-description-link": "Μάθε περισσότερα σχετικά με τη συλλογή ενδιαφερόντων",
@@ -464,6 +460,8 @@
     "market-anomaly-title-desc-link": "Learn how MAG safeguards from unfair liquidation",
     "subscribed": "Subscribed",
     "unsubscribed": "Unsubscribed",
-    "and": "and"
+    "and": "and",
+    "close-title": "Ongoing Position Close",
+    "close-description": "This position is being partially or fully closed. The process usually takes less than a minute."
   }
 }

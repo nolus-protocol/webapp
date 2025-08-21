@@ -3,8 +3,7 @@
     :lease="lease"
     :loading="
       status == TEMPLATES.opening ||
-      loadingPartialClose ||
-      loadingFullClose ||
+      loadingClose ||
       loadingOngoingPartialLiquidation ||
       loadingFullPartialLiquidation ||
       loadingOngoingPartialLiquidationLiability ||
@@ -31,25 +30,13 @@
     </Alert>
 
     <Alert
-      v-if="loadingPartialClose"
-      :title="$t('message.closing-partial-title')"
+      v-if="loadingClose"
+      :title="$t('message.close-title')"
       :type="AlertType.info"
     >
       <template v-slot:content>
         <p class="my-1 text-14 font-normal text-typography-secondary">
-          {{ $t("message.closing-partial-description") }}
-        </p>
-      </template>
-    </Alert>
-
-    <Alert
-      v-if="loadingFullClose"
-      :title="$t('message.closing-full-title')"
-      :type="AlertType.info"
-    >
-      <template v-slot:content>
-        <p class="my-1 text-14 font-normal text-typography-secondary">
-          {{ $t("message.closing-full-description") }}
+          {{ $t("message.close-description") }}
         </p>
       </template>
     </Alert>
@@ -185,8 +172,7 @@
     <PositionSummaryWidget
       :lease="lease"
       :loading="
-        loadingPartialClose ||
-        loadingFullClose ||
+        loadingClose ||
         loadingOngoingPartialLiquidation ||
         loadingFullPartialLiquidation ||
         loadingOngoingPartialLiquidationLiability ||
@@ -198,8 +184,7 @@
         :lease="lease"
         :loading="
           status == TEMPLATES.opening ||
-          loadingPartialClose ||
-          loadingFullClose ||
+          loadingClose ||
           loadingOngoingPartialLiquidation ||
           loadingFullPartialLiquidation ||
           loadingOngoingPartialLiquidationLiability ||
@@ -308,20 +293,10 @@ onUnmounted(() => {
   clearInterval(timeOut);
 });
 
-const loadingPartialClose = computed(() => {
+const loadingClose = computed(() => {
   const data = (lease.value?.leaseStatus.opened?.status as OpenedOngoingState)?.in_progress as CloseOngoingState;
 
-  if (data?.close?.type == "Partial") {
-    return true;
-  }
-
-  return false;
-});
-
-const loadingFullClose = computed(() => {
-  const data = (lease.value?.leaseStatus.opened?.status as OpenedOngoingState)?.in_progress as CloseOngoingState;
-
-  if (data?.close?.type == "Full") {
+  if (data?.close) {
     return true;
   }
 
