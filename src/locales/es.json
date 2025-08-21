@@ -408,10 +408,6 @@
     "delegate-preview": "Delegarás <strong>{amount} ({amountStable})</strong> a validadores que se encuentren más allá de los tres primeros en términos de poder de voto e impondrás una comisión del 5 % o menos.",
     "undelegate-preview": "Retirarás <strong>{amount} ({amountStable})</strong> que se liberará antes del <strong>{date}</strong>",
     "withdraw-rewards-preview": "Retirarás <strong>{amount} ({amountStable})</strong>",
-    "closing-partial-title": "Cierre de posición parcial en curso",
-    "closing-partial-description": "Esta posición se está cerrando parcialmente. Esto suele tardar menos de un minuto.",
-    "closing-full-title": "Cierre de posición completa en curso",
-    "closing-full-description": "Esta posición se está cerrando por completo. Esto suele tardar menos de un minuto.",
     "liquidation-ongoinfull-title": "Cobro de intereses continuo",
     "liquidation-ongoinfull-description": "Normalmente se completa en menos de un minuto.",
     "liquidation-ongoinfull-description-link": "Obtenga más información sobre el cobro de intereses",
@@ -464,6 +460,8 @@
     "market-anomaly-title-desc-link": "Learn how MAG safeguards from unfair liquidation",
     "subscribed": "Subscribed",
     "unsubscribed": "Unsubscribed",
-    "and": "and"
+    "and": "and",
+    "close-title": "Ongoing Position Close",
+    "close-description": "This position is being partially or fully closed. The process usually takes less than a minute."
   }
 }

@@ -408,10 +408,6 @@
     "delegate-preview": "您将<strong>{amount} ({amountStable})</strong>委托给投票权前三名之外的验证人，并收取 5% 或更低的佣金",
     "undelegate-preview": "您将提取<strong>{amount} ({amountStable})</strong>，该金额将在<strong>{date}</strong>之前解除绑定",
     "withdraw-rewards-preview": "您将提取<strong>{amount} ({amountStable})</strong>",
-    "closing-partial-title": "持续部分平仓",
-    "closing-partial-description": "该职位正在部分关闭。这通常需要不到一分钟的时间",
-    "closing-full-title": "持续全仓平仓",
-    "closing-full-description": "该仓位已完全关闭。这通常需要不到一分钟的时间",
     "liquidation-ongoinfull-title": "持续收取利息",
     "liquidation-ongoinfull-description": "通常在一分钟内完成。",
     "liquidation-ongoinfull-description-link": "了解更多关于利息收集的信息",
@@ -464,6 +460,8 @@
     "market-anomaly-title-desc-link": "Learn how MAG safeguards from unfair liquidation",
     "subscribed": "Subscribed",
     "unsubscribed": "Unsubscribed",
-    "and": "and"
+    "and": "and",
+    "close-title": "Ongoing Position Close",
+    "close-description": "This position is being partially or fully closed. The process usually takes less than a minute."
   }
 }

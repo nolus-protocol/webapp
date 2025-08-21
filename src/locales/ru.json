@@ -408,10 +408,6 @@
     "delegate-preview": "Вы делегируете <strong>{amount} ({amountStable})</strong> валидаторам, не входящим в тройку лидеров по количеству голосов, и взимаете комиссию в размере 5 % или ниже.",
     "undelegate-preview": "Вы снимете <strong>{amount} ({amountStable})</strong>, которая будет отменена до <strong>{date}</strong>.",
     "withdraw-rewards-preview": "Вы снимете <strong>{amount} ({amountStable})</strong>",
-    "closing-partial-title": "Продолжается закрытие частичной позиции",
-    "closing-partial-description": "Позиция частично закрывается. Обычно это занимает меньше минуты",
-    "closing-full-title": "Продолжается закрытие полной позиции",
-    "closing-full-description": "Данная позиция полностью закрывается. Обычно это занимает меньше минуты",
     "liquidation-ongoinfull-title": "Постоянный сбор процентов",
     "liquidation-ongoinfull-description": "Обычно завершается менее чем за минуту.",
     "liquidation-ongoinfull-description-link": "Узнайте больше о сборе процентов",
@@ -464,6 +460,8 @@
     "market-anomaly-title-desc-link": "Learn how MAG safeguards from unfair liquidation",
     "subscribed": "Subscribed",
     "unsubscribed": "Unsubscribed",
-    "and": "and"
+    "and": "and",
+    "close-title": "Ongoing Position Close",
+    "close-description": "This position is being partially or fully closed. The process usually takes less than a minute."
   }
 }

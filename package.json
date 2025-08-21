@@ -36,7 +36,7 @@
     "@ledgerhq/hw-transport-webhid": "^6.30.3",
     "@ledgerhq/hw-transport-webusb": "^6.29.7",
     "@ledgerhq/logs": "^6.13.0",
-    "@nolus/nolusjs": "3.6.1",
+    "@nolus/nolusjs": "3.6.2",
     "@observablehq/plot": "^0.6.17",
     "@walletconnect/sign-client": "^2.21.8",
     "cosmjs-types": "^0.10.1",
