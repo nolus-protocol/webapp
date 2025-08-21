@@ -105,14 +105,6 @@
                 />
                 {{ $t("message.preview-closed-debt") }} {{ remaining }}
               </div>
-
-              <div class="flex items-center gap-2 text-14">
-                <SvgIcon
-                  name="info"
-                  class="fill-icon-secondary"
-                />
-                {{ positionLeft }} {{ $t("message.preview-closed-rest") }}
-              </div>
             </template>
 
             <template v-if="sliderValue == midPosition">
@@ -136,10 +128,18 @@
 
               <div class="flex items-center gap-2 text-14">
                 <SvgIcon
-                  name="info"
-                  class="fill-icon-secondary"
+                  name="check-solid"
+                  class="fill-icon-success"
                 />
                 {{ positionLeft }} {{ $t("message.preview-closed-rest") }}
+              </div>
+
+              <div class="flex items-center gap-2 text-14">
+                <SvgIcon
+                  name="check-solid"
+                  class="fill-icon-success"
+                />
+                {{ $t("message.preview-closed") }}
               </div>
             </template>
 
@@ -162,21 +162,32 @@
                 ></p>
               </div>
 
-              <div class="flex items-center gap-2 text-14">
+              <!-- <div class="flex items-center gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
                   class="fill-icon-success"
                 />
                 {{ $t("message.preview-closed-paid") }}
                 <strong>{{ payout }} {{ lpn }}</strong>
+              </div> -->
+
+              <div class="flex items-center gap-2 text-14">
+                <SvgIcon
+                  name="check-solid"
+                  class="fill-icon-success"
+                />
+                <div>
+                  <strong>{{ payout }} {{ lpn }}</strong> {{ $t("message.and") }} <strong>{{ positionLeft }}</strong>
+                  {{ $t("message.preview-closed-rest") }}
+                </div>
               </div>
 
               <div class="flex items-center gap-2 text-14">
                 <SvgIcon
-                  name="info"
-                  class="fill-icon-secondary"
+                  name="check-solid"
+                  class="fill-icon-success"
                 />
-                {{ positionLeft }} {{ $t("message.preview-closed-rest") }}
+                {{ $t("message.preview-closed") }}
               </div>
             </template>
 
