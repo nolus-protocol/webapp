@@ -9,7 +9,7 @@
         :key="slide.image?.name"
       >
         <div
-          class="flex w-full flex-col items-center justify-center gap-y-4 self-center pb-4 text-center transition-transform duration-300"
+          class="top-0 flex w-full flex-col items-center justify-center gap-y-4 self-center pb-4 text-center transition-transform duration-300"
           :style="{
             transform: `translateX(${(index - currentIndex) * 100}%)`,
             position: slider.length > 1 ? 'absolute' : 'relative'
