@@ -174,31 +174,31 @@ const assets = computed<TableRowItemProps[]>(() => {
         }
       ]
     },
-    {
-      items: [
-        {
-          value: "stAtom",
-          subValue: i18n.t("message.utilization_sub_osmosis_statom"),
-          image: osmosisStAtom,
-          variant: "left"
-        },
-        {
-          component: () =>
-            h<UtilizationProps>(ChartUtilizaiton, {
-              value: utilizationLevelOsmosis.value,
-              icon: osmosisStAtom,
-              deposit: depositStAtom.value
-            }),
-          class: "hidden md:flex min-w-[200]"
-        },
-        { value: `${utilizationLevelOsmosis.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositStAtom.value}%` },
-        {
-          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_st_atom]) ?? 0).toFixed(2)}%`,
-          class: "text-typography-success"
-        }
-      ]
-    },
+    // {
+    //   items: [
+    //     {
+    //       value: "stAtom",
+    //       subValue: i18n.t("message.utilization_sub_osmosis_statom"),
+    //       image: osmosisStAtom,
+    //       variant: "left"
+    //     },
+    //     {
+    //       component: () =>
+    //         h<UtilizationProps>(ChartUtilizaiton, {
+    //           value: utilizationLevelOsmosis.value,
+    //           icon: osmosisStAtom,
+    //           deposit: depositStAtom.value
+    //         }),
+    //       class: "hidden md:flex min-w-[200]"
+    //     },
+    //     { value: `${utilizationLevelOsmosis.value}%`, class: "hidden md:flex font-semibold" },
+    //     { value: `${depositStAtom.value}%` },
+    //     {
+    //       value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_st_atom]) ?? 0).toFixed(2)}%`,
+    //       class: "text-typography-success"
+    //     }
+    //   ]
+    // },
     {
       items: [
         {
@@ -259,8 +259,8 @@ const depositNeutron = ref("");
 const utilizationLevelOsmosis = ref("0");
 const depositOsmosis = ref("");
 
-const utilizationLevelOsmosisStAtom = ref("0");
-const depositStAtom = ref("");
+// const utilizationLevelOsmosisStAtom = ref("0");
+// const depositStAtom = ref("");
 
 const utilizationLevelOsmosisAllBtc = ref("0");
 const depositAllBtc = ref("");
@@ -283,7 +283,7 @@ onMounted(async () => {
   await Promise.all([
     setUtilizationNeutron(),
     setUtilizationOsmosis(),
-    setUtilizationOsmosisStAtom(),
+    // setUtilizationOsmosisStAtom(),
     setUtilizationOsmosisAllBtc(),
     setUtilizationOsmosisAllSol(),
     setUtilizationOsmosisAkt(),
@@ -317,15 +317,15 @@ async function setUtilizationOsmosis() {
   utilizationLevelOsmosis.value = Number(item[0]).toFixed(2);
 }
 
-async function setUtilizationOsmosisStAtom() {
-  const [data, capacity] = await Promise.all([
-    fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_osmosis_st_atom}`),
-    getDepositCapacityMsg(AppUtils.getProtocols().osmosis_osmosis_st_atom)
-  ]);
-  const item = await data.json();
-  depositStAtom.value = capacity;
-  utilizationLevelOsmosisStAtom.value = Number(item[0]).toFixed(2);
-}
+// async function setUtilizationOsmosisStAtom() {
+//   const [data, capacity] = await Promise.all([
+//     fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_osmosis_st_atom}`),
+//     getDepositCapacityMsg(AppUtils.getProtocols().osmosis_osmosis_st_atom)
+//   ]);
+//   const item = await data.json();
+//   depositStAtom.value = capacity;
+//   utilizationLevelOsmosisStAtom.value = Number(item[0]).toFixed(2);
+// }
 
 async function setUtilizationOsmosisAllBtc() {
   const [data, capacity] = await Promise.all([
