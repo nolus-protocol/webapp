@@ -18,6 +18,8 @@ export interface ContractConfig {
         hold: string[];
       };
     };
+    native?: IObjectKeys;
+    leaseConfig: string[];
   };
 }
 

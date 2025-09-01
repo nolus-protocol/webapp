@@ -171,6 +171,5 @@ self.addEventListener("install", () => {
 });
 
 self.addEventListener("activate", (evt) => {
-  console.log(version);
   evt.waitUntil(self.clients.claim());
 });

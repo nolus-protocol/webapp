@@ -1,0 +1,17 @@
+{
+  "downtime": 30,
+  "archive_node_rpc": "https://vitosha-rpc.nolus.network",
+  "archive_node_api": "https://vitosha-lcd.nolus.network/",
+  "NOLUS": {
+    "primary": {
+      "rpc": "https://vitosha-rpc.nolus.network",
+      "api": "https://vitosha-lcd.nolus.network/"
+    },
+    "fallback": [
+      {
+        "rpc": "https://vitosha-rpc.nolus.network",
+        "api": "https://vitosha-lcd.nolus.network/"
+      }
+    ]
+  }
+}

@@ -2,7 +2,7 @@ import type { Store } from "../types";
 import type { CosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 import type { Store as AdminStore } from "../../admin/types";
 
-import { IGNORE_LEASE_ASSETS_STABLES, NATIVE_ASSET, NATIVE_NETWORK, ProtocolsConfig } from "@/config/global";
+import { Contracts, IGNORE_LEASE_ASSETS_STABLES, NATIVE_ASSET, NATIVE_NETWORK, ProtocolsConfig } from "@/config/global";
 import { AssetUtils, EnvNetworkUtils, Logger } from "@/common/utils";
 import { AssetUtils as NolusAssetUtils } from "@nolus/nolusjs/build/utils/AssetUtils";
 import { NolusClient } from "@nolus/nolusjs";
@@ -41,7 +41,7 @@ export async function loadCurrennncies(this: Store) {
       coingeckoId: nativeCurrency.coingeckoId
     };
     for (const protocol of this.protocols) {
-      lease[protocol] = [];
+      lease[protocol] = [...Contracts.leaseConfig];
       lpnPromises.push(
         getLpn(cosmWasmClient, protocol, admin).then((lpn) => {
           return data.networks[NATIVE_NETWORK.key][`${lpn}@${protocol}`];

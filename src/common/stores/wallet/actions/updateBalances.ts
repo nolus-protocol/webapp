@@ -12,11 +12,9 @@ export async function updateBalances(this: Store) {
     const app = useApplicationStore();
     const currencies = app.currenciesData;
     const set = new Set();
-
     for (const key in currencies) {
       const currency = app.currenciesData![key];
       const [ticker, protocol] = key.split("@");
-
       if (!ProtocolsConfig[protocol].currencies.includes(ticker)) {
         continue;
       }

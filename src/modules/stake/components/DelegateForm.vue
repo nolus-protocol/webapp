@@ -196,6 +196,7 @@ async function delegate() {
       });
     }
   } catch (err: Error | any) {
+    console.log(err);
     error.value = err.toString();
     Logger.error(error);
   } finally {

@@ -3,6 +3,20 @@ import { isDev } from ".";
 
 export const DEFAULT_PRIMARY_NETWORK = import.meta.env.VITE_DEFAULT_NETWORK;
 export const NETWORKS: { [key: string]: NetworkAddress } = {
+  devnet: {
+    sendDefaultValue: "USDC_AXELAR@OSMOSIS-OSMOSIS-USDC_AXELAR",
+    endpoints: isDev()
+      ? import("../networks/vitosha-endpoints.json?url").then((t) => t.default)
+      : "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/vitosha-endpoints.json",
+    chainName: "Nolus Devnet",
+    explorer: "https://devnet.ping.pub/nolus/tx",
+    govern: "https://devnet.ping.pub/nolus/gov",
+    staking: "https://devnet.ping.pub/nolus/staking",
+    etlApi: "http://localhost:8082/api",
+    evmEndpoints: isDev()
+      ? import("../networks/evm-endpoints?url").then((t) => t.default)
+      : "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/evm-endpoints.json"
+  },
   testnet: {
     sendDefaultValue: "USDC_AXELAR@OSMOSIS-OSMOSIS-USDC_AXELAR",
     endpoints: isDev()
@@ -12,7 +26,7 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
     explorer: "https://testnet.ping.pub/nolus/tx",
     govern: "https://testnet.ping.pub/nolus/gov",
     staking: "https://testnet.ping.pub/nolus/staking",
-    etlApi: "https://etl-cl.nolus.network:8081/api",
+    etlApi: "http://localhost:8082/api",
     evmEndpoints: isDev()
       ? import("../networks/evm-endpoints?url").then((t) => t.default)
       : "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/networks/evm-endpoints.json"

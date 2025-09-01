@@ -17,7 +17,8 @@ import {
   NATIVE_ASSET,
   ProtocolsConfig,
   NATIVE_CURRENCY,
-  SORT_PROTOCOLS
+  SORT_PROTOCOLS,
+  Contracts
 } from "@/config/global";
 import { sha256 } from "@cosmjs/crypto";
 
@@ -186,7 +187,6 @@ export class AssetUtils {
     const assetIcons: {
       [key: string]: string;
     } = {};
-
     for (const protocolKey in admin.contracts) {
       const fn = async () => {
         const protocol = admin.contracts![protocolKey];
@@ -262,6 +262,10 @@ export class AssetUtils {
       network[c.key] = c;
     }
 
+    if (Contracts.native) {
+      network[Contracts.native.key] = Contracts.native as ExternalCurrency;
+    }
+
     const result = {
       assetIcons,
       networks: { [NATIVE_NETWORK.key]: network }
@@ -280,7 +284,6 @@ export class AssetUtils {
 
   static getNative() {
     const app = useApplicationStore();
-
     for (const c in app.currenciesData) {
       if (app.currenciesData[c].native) {
         return app.currenciesData[c];

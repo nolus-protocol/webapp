@@ -1,5 +1,5 @@
 import type { HistoryCurrency } from "../types/Currecies";
-import type { CurrenciesConfig } from "../types/Networks";
+import { MAINNET_NAME, type CurrenciesConfig } from "../types/Networks";
 import type { API, ARCHIVE_NODE, Endpoint, Node, SkipRouteConfigType, ProposalsConfigType } from "@/common/types";
 
 import { connectComet } from "@cosmjs/tendermint-rpc";
@@ -267,21 +267,12 @@ export class AppUtils {
     return CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].protocols;
   }
 
-  public static getDefaultProtocol() {
-    switch (EnvNetworkUtils.getStoredNetworkName()) {
-      case "mainnet": {
-        return AppUtils.getProtocols().osmosis_noble;
-      }
-      case "testnet": {
-        return AppUtils.getProtocols().osmosis;
-      }
-      default: {
-        return AppUtils.getProtocols().osmosis_noble;
-      }
-    }
-  }
-
   static async getHistoryCurrencies() {
+    const chain = EnvNetworkUtils.getStoredNetworkName();
+    if (chain != MAINNET_NAME) {
+      return {};
+    }
+
     if (this.historyCurrencies) {
       return this.historyCurrencies;
     }

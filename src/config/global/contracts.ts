@@ -13,7 +13,7 @@ export enum PositionTypes {
 }
 
 export const CONTRACTS: ContractConfig = {
-  testnet: {
+  devnet: {
     ignoreProtocolsInEarn: [],
     protocols: ProtocolsRila,
     protocolsFilter: {
@@ -22,22 +22,22 @@ export const CONTRACTS: ContractConfig = {
         key: "OSMOSIS",
         image: osmosis,
         native: "NLS@OSMOSIS-OSMOSIS-USDC_AXELAR",
-        hold: ["OSMOSIS-OSMOSIS-USDC_AXELAR"],
+        hold: ["OSMOSIS-OSMOSIS-USDC_AXELAR", "OSMOSIS-OSMOSIS-OSMO"],
         name: "Osmosis"
       },
       NEUTRON: {
         short: false,
         key: "NEUTRON",
         image: neutron,
-        native: "NLS@NEUTRON-ASTROPORT-USDC_AXL",
-        hold: ["NEUTRON-ASTROPORT-USDC_AXL"],
+        native: "NLS@NEUTRON-ASTROPORT-USDC_AXELAR",
+        hold: ["NEUTRON-ASTROPORT-USDC_AXELAR"],
         name: "Neutron"
       }
     },
     protocolConfig: {
-      "NEUTRON-ASTROPORT-USDC_AXL": {
+      "NEUTRON-ASTROPORT-USDC_AXELAR": {
         lease: true,
-        currencies: [],
+        currencies: ["USDC_AXELAR", "NTRN", "ATOM", "NLS"],
         stable: "USDC_AXELAR",
         type: PositionTypes.long,
         rewards: true,
@@ -45,11 +45,20 @@ export const CONTRACTS: ContractConfig = {
       },
       "OSMOSIS-OSMOSIS-USDC_AXELAR": {
         currencies: [],
-        stable: "USDC_AXELAR",
+        stable: "USDC",
         lease: true,
         type: PositionTypes.long,
-        rewards: false,
-        supply: false
+        rewards: true,
+        supply: true
+      },
+      "OSMOSIS-OSMOSIS-OSMO": {
+        only: [],
+        lease: true,
+        currencies: [],
+        stable: "USDC",
+        type: PositionTypes.short,
+        rewards: true,
+        supply: true
       }
     },
     dispatcher: {
@@ -60,7 +69,91 @@ export const CONTRACTS: ContractConfig = {
       instance: "nolus17p9rzwnnfxcjp32un9ug7yhhzgtkhvl9jfksztgw5uh69wac2pgsmc5xhq",
       codeId: "",
       ignoreProtocols: []
-    }
+    },
+    native: {
+      coingeckoId: "nolus",
+      decimal_digits: 6,
+      ibcData: "unls",
+      icon: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/currencies/icons/neutron-nls.svg",
+      key: "NLS@NEUTRON-ASTROPORT-USDC_AXELAR",
+      name: "Nolus",
+      native: true,
+      shortName: "NLS",
+      symbol: "unls",
+      ticker: "NLS"
+    },
+    leaseConfig: ["USDC_AXELAR", "USDC"]
+  },
+  testnet: {
+    ignoreProtocolsInEarn: [],
+    protocols: ProtocolsRila,
+    protocolsFilter: {
+      OSMOSIS: {
+        short: false,
+        key: "OSMOSIS",
+        image: osmosis,
+        native: "NLS@OSMOSIS-OSMOSIS-USDC_AXELAR",
+        hold: ["OSMOSIS-OSMOSIS-USDC_AXELAR", "OSMOSIS-OSMOSIS-OSMO"],
+        name: "Osmosis"
+      },
+      NEUTRON: {
+        short: false,
+        key: "NEUTRON",
+        image: neutron,
+        native: "NLS@NEUTRON-ASTROPORT-USDC_AXELAR",
+        hold: ["NEUTRON-ASTROPORT-USDC_AXELAR"],
+        name: "Neutron"
+      }
+    },
+    protocolConfig: {
+      "NEUTRON-ASTROPORT-USDC_AXELAR": {
+        lease: true,
+        currencies: ["USDC_AXELAR", "NTRN", "ATOM", "NLS"],
+        stable: "USDC_AXELAR",
+        type: PositionTypes.long,
+        rewards: true,
+        supply: true
+      },
+      "OSMOSIS-OSMOSIS-USDC_AXELAR": {
+        currencies: [],
+        stable: "USDC",
+        lease: true,
+        type: PositionTypes.long,
+        rewards: true,
+        supply: true
+      },
+      "OSMOSIS-OSMOSIS-OSMO": {
+        only: [],
+        lease: true,
+        currencies: [],
+        stable: "USDC",
+        type: PositionTypes.short,
+        rewards: true,
+        supply: true
+      }
+    },
+    dispatcher: {
+      instance: "nolus1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrqrr2r7y",
+      codeId: ""
+    },
+    admin: {
+      instance: "nolus17p9rzwnnfxcjp32un9ug7yhhzgtkhvl9jfksztgw5uh69wac2pgsmc5xhq",
+      codeId: "",
+      ignoreProtocols: []
+    },
+    native: {
+      coingeckoId: "nolus",
+      decimal_digits: 6,
+      ibcData: "unls",
+      icon: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/currencies/icons/neutron-nls.svg",
+      key: "NLS@NEUTRON-ASTROPORT-USDC_AXELAR",
+      name: "Nolus",
+      native: true,
+      shortName: "NLS",
+      symbol: "unls",
+      ticker: "NLS"
+    },
+    leaseConfig: ["USDC_AXELAR", "USDC"]
   },
   mainnet: {
     ignoreProtocolsInEarn: [],
@@ -178,7 +271,8 @@ export const CONTRACTS: ContractConfig = {
       instance: "nolus1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsqxf8nd",
       codeId: "",
       ignoreProtocols: []
-    }
+    },
+    leaseConfig: []
   }
 };
 

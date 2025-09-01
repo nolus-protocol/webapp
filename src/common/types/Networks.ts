@@ -1,6 +1,6 @@
 import type { ExternalCurrency } from "./";
 
-export type Networks = "testnet" | "mainnet";
+export type Networks = "testnet" | "mainnet" | "devnet";
 export interface NetworksInfo {
   [key: string]: {
     [key: string]: ExternalCurrency;
@@ -37,3 +37,5 @@ export interface CurrenciesConfig {
     [key: string]: string;
   };
 }
+
+export const MAINNET_NAME = "mainnet";
