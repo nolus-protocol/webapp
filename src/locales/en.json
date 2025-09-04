@@ -464,6 +464,7 @@
     "unsubscribed": "Alerts disabled on this device",
     "and": "and",
     "close-title": "Ongoing Position Close",
-    "close-description": "This position is being partially or fully closed. The process usually takes less than a minute."
+    "close-description": "This position is being partially or fully closed. The process usually takes less than a minute.",
+    "metamask": "Metamask"
   }
 }

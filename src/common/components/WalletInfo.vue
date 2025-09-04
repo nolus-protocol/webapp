@@ -113,6 +113,10 @@ const connections: {
   //   icon: WalletconnectIcon,
   //   label: i18n.t("message.walletconnect")
   // },
+  [WalletConnectMechanism.EVM_METAMASK]: {
+    icon: LeapIcon,
+    label: i18n.t("message.metamask")
+  },
   [WalletConnectMechanism.LEDGER]: {
     icon: LedgerIcon,
     label: i18n.t("message.ledger")

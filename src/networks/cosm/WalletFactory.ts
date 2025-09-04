@@ -11,7 +11,7 @@ import { makeCosmoshubPath, type OfflineAminoSigner } from "@cosmjs/amino";
 
 import { createBankAminoConverters, createIbcAminoConverters } from "@cosmjs/stargate";
 import { AminoTypes } from "@cosmjs/stargate";
-import { WalletManager, WalletUtils, AppUtils, Logger } from "@/common//utils";
+import { WalletManager, WalletUtils, AppUtils, Logger } from "@/common/utils";
 import { type BaseWallet } from "./BaseWallet";
 import { createDepositForBurnWithCallerConverters } from "../list/noble/tx";
 // import { getWalletConnectOfflineSigner } from "@/common/stores/wallet/actions/connectWC";
