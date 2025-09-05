@@ -4,7 +4,7 @@
     searchable
     :size="isMobile() ? '' : `${items.length} ${$t('message.assets')}`"
     tableWrapperClasses="pr-6 md:min-w-auto md:p-0"
-    tableClasses="min-w-[610px]"
+    tableClasses="min-w-[600px]"
     @input="(e: Event) => onSearch((e.target as HTMLInputElement).value)"
     @onSearchClear="onSearch('')"
   >

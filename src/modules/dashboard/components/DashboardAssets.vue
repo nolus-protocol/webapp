@@ -40,7 +40,7 @@
     />
     <Table
       :columns="columns"
-      tableClasses="min-w-[700px]"
+      tableClasses="min-w-[600px]"
       class="px-6"
     >
       <template v-slot:body>
