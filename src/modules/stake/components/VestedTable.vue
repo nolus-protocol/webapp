@@ -1,13 +1,16 @@
 <template>
-  <Table :columns="columns">
+  <Table
+    :columns="columns"
+    tableClasses="min-w-[500px]"
+  >
     <template v-slot:body>
-      <div class="thin-scroll max-h-[600px] overflow-auto pr-2">
-        <TableRow
-          v-for="(row, index) in assets"
-          :key="index"
-          :items="row.items"
-        />
-      </div>
+      <!-- <div class="thin-scroll max-h-[600px] overflow-auto pr-2"> -->
+      <TableRow
+        v-for="(row, index) in assets"
+        :key="index"
+        :items="row.items"
+      />
+      <!-- </div> -->
     </template>
   </Table>
 </template>
@@ -32,7 +35,7 @@ const columns: TableColumnProps[] = [
   { label: i18n.t("message.balance"), class: "max-w-[200px]" },
   {
     label: i18n.t("message.release-schedule"),
-    class: "hidden md:flex max-w-[200px]",
+    class: "md:flex max-w-[200px]",
     tooltip: { content: i18n.t("message.release-schedule-tooltip") }
   }
 ];
@@ -70,7 +73,7 @@ const assets = computed(() => {
           variant: "right",
           class: " max-w-[200px]"
         },
-        { value: item.endTime, class: "hidden md:flex max-w-[200px]" }
+        { value: item.endTime, class: "md:flex max-w-[200px]" }
       ]
     });
   }

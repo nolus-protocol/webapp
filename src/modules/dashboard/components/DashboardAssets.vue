@@ -40,6 +40,7 @@
     />
     <Table
       :columns="columns"
+      tableClasses="min-w-[700px]"
       class="px-6"
     >
       <template v-slot:body>
@@ -95,12 +96,12 @@ defineProps<{ isVisible: boolean }>();
 
 const columns: TableColumnProps[] = [
   { label: i18n.t("message.assets"), variant: "left" },
-  { label: i18n.t("message.price"), class: "hidden md:flex" },
+  { label: i18n.t("message.price"), class: "md:flex" },
   { label: i18n.t("message.balance") },
   {
     label: i18n.t("message.yield"),
     tooltip: { position: "top", content: i18n.t("message.earn-apr-tooltip") },
-    class: "hidden md:flex"
+    class: "md:flex"
   }
 ];
 
@@ -204,13 +205,13 @@ const assets = computed<TableRowItemProps[]>(() => {
           variant: "left",
           textClass: "line-clamp-1 [display:-webkit-box]"
         },
-        { value: `${NATIVE_CURRENCY.symbol}${price}`, class: "hidden md:flex" },
+        { value: `${NATIVE_CURRENCY.symbol}${price}`, class: "md:flex" },
         {
           value: hide.value ? "****" : `${balance}`,
           subValue: hide.value ? "****" : `${NATIVE_CURRENCY.symbol}${stable_balance}`,
           variant: "right"
         },
-        { value: apr(item.ibcData, item.key), class: "text-typography-success hidden md:flex" }
+        { value: apr(item.ibcData, item.key), class: "text-typography-success md:flex" }
       ]
     };
   });

@@ -7,6 +7,7 @@
     @togle-value="setSmallBalancesState"
     :hide-values="{ text: $t('message.toggle-values'), value: hide }"
     @hide-value="onHide"
+    tableClasses="min-w-[700px]"
     @on-input="(e: Event) => onSearch((e.target as HTMLInputElement).value)"
     header-classes="md:flex-row flex-col items-stretch md:items-center gap-4 md:gap-2"
     @onSearchClear="onSearch('')"
@@ -66,12 +67,12 @@ const search = ref("");
 
 const columns: TableColumnProps[] = [
   { label: i18n.t("message.assets"), variant: "left" },
-  { label: i18n.t("message.price"), class: "hidden md:flex" },
+  { label: i18n.t("message.price"), class: "md:flex" },
   { label: i18n.t("message.balance") },
   {
     label: i18n.t("message.yield"),
     tooltip: { position: "top", content: i18n.t("message.earn-apr-tooltip") },
-    class: "hidden md:flex"
+    class: "md:flex"
   }
 ];
 
@@ -211,9 +212,9 @@ const assets = computed<TableRowItemProps[]>(() => {
             variant: "left",
             textClass: "line-clamp-1 [display:-webkit-box]"
           },
-          { value: `${NATIVE_CURRENCY.symbol}${price}`, class: "hidden md:flex" },
+          { value: `${NATIVE_CURRENCY.symbol}${price}`, class: "md:flex" },
           value,
-          { value: apr(item.ibcData, item.key), class: "text-typography-success hidden md:flex" }
+          { value: apr(item.ibcData, item.key), class: "text-typography-success md:flex" }
         ]
       } as TableRowItemProps;
     });

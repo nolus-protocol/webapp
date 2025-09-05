@@ -2,19 +2,18 @@
   <Table
     v-if="validators?.length > 0"
     :columns="columns"
+    tableClasses="min-w-[650px]"
   >
     <template v-slot:body>
-      <div class="thin-scroll overflow-auto pr-2">
-        <TableRow
-          v-for="(row, index) in validators"
-          :key="index"
-          :items="row.items"
-        />
-      </div>
+      <TableRow
+        v-for="(row, index) in validators"
+        :key="index"
+        :items="row.items"
+      />
     </template>
     <template v-slot:footer>
       <Button
-        class="md:float-end"
+        class="w-full md:float-end md:w-auto"
         :label="$t('message.manage-validators')"
         severity="secondary"
         icon="arrow-external"
@@ -61,8 +60,8 @@ const i18n = useI18n();
 
 const columns: TableColumnProps[] = [
   { label: i18n.t("message.validator"), variant: "left" },
-  { label: i18n.t("message.amount-delegated"), class: "hidden md:flex" },
-  { label: i18n.t("message.comm"), class: "hidden md:flex max-w-[100px]" },
+  { label: i18n.t("message.amount-delegated"), class: "md:flex" },
+  { label: i18n.t("message.comm"), class: "md:flex max-w-[100px]" },
   { label: i18n.t("message.status"), class: "max-w-[150px]" }
 ];
 

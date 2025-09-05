@@ -7,7 +7,8 @@
         @input="(e: Event) => (search = (e.target as HTMLInputElement).value)"
         :size="isMobile() ? '' : `${transactions.length} transactions`"
         :columns="transactions.length > 0 ? columns : []"
-        tableWrapperClasses="min-w-[800px] pr-6 md:min-w-auto md:pr-0"
+        tableClasses="min-w-[800px]"
+        tableWrapperClasses="md:min-w-auto md:pr-0"
         @onSearchClear="search = ''"
       >
         <div class="mb-4 flex">

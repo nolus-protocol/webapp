@@ -179,9 +179,9 @@ async function loadDelegated() {
             value: `${amount_label} ${NATIVE_ASSET.label}`,
             subValue: `${NATIVE_CURRENCY.symbol}${stable_label}`,
             variant: "right",
-            class: "hidden md:flex"
+            class: "md:flex"
           },
-          { value: `${rate}%`, class: "hidden md:flex max-w-[100px]" },
+          { value: `${rate}%`, class: "md:flex max-w-[100px]" },
           {
             class: "max-w-[150px]",
             component: () =>

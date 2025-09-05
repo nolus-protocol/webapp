@@ -32,7 +32,8 @@
         searchable
         :size="isTablet() ? '' : `${leasesData.length} ${$t('message.leases-table-label')}`"
         :columns="leasesData.length > 0 ? columns : []"
-        tableWrapperClasses="min-w-[1000px] pr-6 md:min-w-auto md:p-0"
+        tableWrapperClasses="pr-6 md:min-w-auto md:p-0"
+        tableClasses="min-w-[1000px]"
         :hide-values="isTablet() ? undefined : { text: $t('message.toggle-values'), value: hide }"
         @hide-value="onHide"
         @onSearchClear="onSearch('')"
@@ -245,7 +246,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
           },
           {
             ...value,
-            class: "font-semibold"
+            class: "font-semibold break-all"
           },
           { value: liquidation, class: "max-w-[200px]" },
           {

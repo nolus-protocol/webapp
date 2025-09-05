@@ -43,7 +43,7 @@
       <!-- <PositionPreviewChart /> -->
       <Table
         :columns="leasesHistory.length > 0 ? columns : []"
-        :class="[{ 'min-w-[600px]': leasesHistory.length > 0 }]"
+        table-classes="min-w-[700px]"
       >
         <template v-slot:body>
           <TableRow
@@ -113,7 +113,7 @@ const columns: TableColumnProps[] = [
   { label: i18n.t("message.asset"), variant: "left", class: "max-w-[200px]" },
   { label: i18n.t("message.action"), class: "max-w-[100px]" },
   { label: i18n.t("message.realized"), class: "max-w-[200px]" },
-  { label: i18n.t("message.date-capitalize"), class: "max-w-[150px]" }
+  { label: i18n.t("message.date-capitalize"), class: "max-w-[200px] w-full" }
 ];
 
 const loans = ref([] as ILoan[]);
@@ -212,7 +212,7 @@ const leasesHistory = computed(() => {
         },
         {
           value: getCreatedAtForHuman(new Date(item.LS_timestamp)) as string,
-          class: "max-w-[150px]"
+          class: "max-w-[200px]"
         }
       ]
     };
