@@ -66,6 +66,7 @@ import { Intercom } from "@/common/utils/Intercom";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
+import RedelegateButton from "./components/RedelegateButton.vue";
 
 let interval: NodeJS.Timeout | undefined;
 const wallet = useWalletStore();
@@ -87,6 +88,11 @@ const rewards = ref<
 >();
 const unboundingDelegations = ref<IObjectKeys[]>([]);
 const vestedTokens = ref([] as { endTime: string; amount: { amount: string; denom: string } }[]);
+
+provide("onReload", async () => {
+  console.log("reload");
+  await Promise.allSettled([loadDelegated(), loadDelegator(), loadUnboundingDelegations(), loadVested()]);
+});
 
 onMounted(async () => {
   try {
@@ -173,7 +179,8 @@ async function loadDelegated() {
           {
             value: validator.description.moniker,
             subValue: validator.description.website,
-            variant: "left"
+            variant: "left",
+            class: "break-all"
           },
           {
             value: `${amount_label} ${NATIVE_ASSET.label}`,
@@ -183,10 +190,10 @@ async function loadDelegated() {
           },
           { value: `${rate}%`, class: "md:flex max-w-[100px]" },
           {
-            class: "max-w-[150px]",
+            class: "max-w-[140px]",
             component: () =>
               validator.jailed
-                ? h<LabelProps>(Label, { value: i18n.t("message.jailed"), variant: "error" })
+                ? h(RedelegateButton, { src: item.delegation.validator_address, amount: item.balance.amount })
                 : h<LabelProps>(Label, { value: i18n.t("message.active"), variant: "secondary" })
           }
         ]

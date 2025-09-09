@@ -43,7 +43,7 @@
       <!-- <PositionPreviewChart /> -->
       <Table
         :columns="leasesHistory.length > 0 ? columns : []"
-        table-classes="min-w-[700px]"
+        table-classes="min-w-[660px]"
       >
         <template v-slot:body>
           <TableRow

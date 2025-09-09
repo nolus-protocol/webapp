@@ -10,7 +10,10 @@
         decimals: 0
       }"
     />
-    <Table :columns="columns">
+    <Table
+      :columns="columns"
+      table-classes="min-w-[420px]"
+    >
       <template v-slot:body>
         <TableRow
           v-for="(row, index) in assets"
@@ -60,12 +63,12 @@ const i18n = useI18n();
 
 const columns: TableColumnProps[] = [
   { label: i18n.t("message.asset"), variant: "left" },
-  { label: "" },
+  { label: "", class: "hidden md:flex" },
   { label: i18n.t("message.current-utilization"), class: "hidden md:flex" },
   {
     label: i18n.t("message.deposit-suspension"),
     tooltip: { position: "top", content: i18n.t("message.deposit-suspension-tooltip") },
-    class: "whitespace-pre"
+    class: "whitespace-pre max-w-[120px]"
   },
   {
     label: i18n.t("message.yield"),
@@ -80,7 +83,8 @@ const assets = computed<TableRowItemProps[]>(() => {
           value: "USDC",
           subValue: i18n.t("message.utilization_sub_osmosis_usdc"),
           image: osmoUsdc,
-          variant: "left"
+          variant: "left",
+          class: "break-all"
         },
         {
           component: () =>
@@ -92,7 +96,7 @@ const assets = computed<TableRowItemProps[]>(() => {
           class: "hidden md:flex w-full min-w-[200]"
         },
         { value: `${utilizationLevelOsmosis.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositNeutron.value}%` },
+        { value: `${depositNeutron.value}%`, class: "max-w-[120px]" },
         {
           value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_noble]) ?? 0).toFixed(2)}%`,
           class: "text-typography-success"
@@ -105,7 +109,8 @@ const assets = computed<TableRowItemProps[]>(() => {
           value: "USDC",
           subValue: i18n.t("message.utilization_sub_neutron_usdc"),
           image: neutronUsdc,
-          variant: "left"
+          variant: "left",
+          class: "break-all"
         },
         {
           component: () =>
@@ -117,7 +122,7 @@ const assets = computed<TableRowItemProps[]>(() => {
           class: "hidden md:flex min-w-[200]"
         },
         { value: `${utilizationLevelNeutron.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositOsmosis.value}%` },
+        { value: `${depositOsmosis.value}%`, class: "max-w-[120px]" },
         {
           value: `${(Number(app.apr?.[AppUtils.getProtocols().neutron_noble]) ?? 0).toFixed(2)}%`,
           class: "text-typography-success"
@@ -130,7 +135,8 @@ const assets = computed<TableRowItemProps[]>(() => {
           value: "SOL",
           subValue: i18n.t("message.utilization_sub_osmosis_sol"),
           image: osmosisSol,
-          variant: "left"
+          variant: "left",
+          class: "break-all"
         },
         {
           component: () =>
@@ -142,7 +148,7 @@ const assets = computed<TableRowItemProps[]>(() => {
           class: "hidden md:flex min-w-[200]"
         },
         { value: `${utilizationLevelOsmosisAllSol.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositAllSol.value}%` },
+        { value: `${depositAllSol.value}%`, class: "max-w-[120px]" },
         {
           value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_all_sol]) ?? 0).toFixed(2)}%`,
           class: "text-typography-success"
@@ -155,7 +161,8 @@ const assets = computed<TableRowItemProps[]>(() => {
           value: "BTC",
           subValue: i18n.t("message.utilization_sub_osmosis_btc"),
           image: osmosisBtc,
-          variant: "left"
+          variant: "left",
+          class: "break-all"
         },
         {
           component: () =>
@@ -167,7 +174,7 @@ const assets = computed<TableRowItemProps[]>(() => {
           class: "hidden md:flex min-w-[200]"
         },
         { value: `${utilizationLevelOsmosisAllBtc.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositAllBtc.value}%` },
+        { value: `${depositAllBtc.value}%`, class: "max-w-[120px]" },
         {
           value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_all_btc]) ?? 0).toFixed(2)}%`,
           class: "text-typography-success"
@@ -179,7 +186,7 @@ const assets = computed<TableRowItemProps[]>(() => {
     //     {
     //       value: "stAtom",
     //       subValue: i18n.t("message.utilization_sub_osmosis_statom"),
-    //       image: osmosisStAtom,
+    // image: osmosisStAtom,
     //       variant: "left"
     //     },
     //     {
@@ -205,7 +212,8 @@ const assets = computed<TableRowItemProps[]>(() => {
           value: "AKT",
           subValue: i18n.t("message.utilization_sub_osmosis_akt"),
           image: osmosisAkt,
-          variant: "left"
+          variant: "left",
+          class: "break-all"
         },
         {
           component: () =>
@@ -217,7 +225,7 @@ const assets = computed<TableRowItemProps[]>(() => {
           class: "hidden md:flex min-w-[200]"
         },
         { value: `${utilizationLevelOsmosisAkt.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositAkt.value}%` },
+        { value: `${depositAkt.value}%`, class: "max-w-[120px]" },
         {
           value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_akt]) ?? 0).toFixed(2)}%`,
           class: "text-typography-success"
@@ -231,7 +239,8 @@ const assets = computed<TableRowItemProps[]>(() => {
           value: "ATOM",
           subValue: i18n.t("message.utilization_sub_osmosis_atom"),
           image: osmosisAtom,
-          variant: "left"
+          variant: "left",
+          class: "break-all"
         },
         {
           component: () =>
@@ -243,7 +252,7 @@ const assets = computed<TableRowItemProps[]>(() => {
           class: "hidden md:flex min-w-[200]"
         },
         { value: `${utilizationLevelOsmosisAtom.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositAtom.value}%` },
+        { value: `${depositAtom.value}%`, class: "max-w-[120px]" },
         {
           value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_atom]) ?? 0).toFixed(2)}%`,
           class: "text-typography-success"

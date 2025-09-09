@@ -7,7 +7,7 @@
     @togle-value="setSmallBalancesState"
     :hide-values="{ text: $t('message.toggle-values'), value: hide }"
     @hide-value="onHide"
-    tableClasses="min-w-[600px]"
+    tableClasses="min-w-[530px]"
     @on-input="(e: Event) => onSearch((e.target as HTMLInputElement).value)"
     header-classes="md:flex-row flex-col items-stretch md:items-center gap-4 md:gap-2"
     @onSearchClear="onSearch('')"

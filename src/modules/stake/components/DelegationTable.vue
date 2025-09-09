@@ -2,7 +2,7 @@
   <Table
     v-if="validators?.length > 0"
     :columns="columns"
-    tableClasses="min-w-[650px]"
+    tableClasses="min-w-[470px]"
   >
     <template v-slot:body>
       <TableRow
@@ -13,7 +13,7 @@
     </template>
     <template v-slot:footer>
       <Button
-        class="w-full md:float-end md:w-auto"
+        class="mt-4 w-full md:float-end md:w-auto"
         :label="$t('message.manage-validators')"
         severity="secondary"
         icon="arrow-external"
@@ -59,10 +59,10 @@ import { NETWORK } from "@/config/global";
 const i18n = useI18n();
 
 const columns: TableColumnProps[] = [
-  { label: i18n.t("message.validator"), variant: "left" },
+  { label: i18n.t("message.validator"), variant: "left", class: "break-all" },
   { label: i18n.t("message.amount-delegated"), class: "md:flex" },
   { label: i18n.t("message.comm"), class: "md:flex max-w-[100px]" },
-  { label: i18n.t("message.status"), class: "max-w-[150px]" }
+  { label: i18n.t("message.status"), class: "max-w-[140px]" }
 ];
 
 function openLink() {

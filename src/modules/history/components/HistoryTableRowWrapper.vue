@@ -31,7 +31,7 @@ const transactionData = computed(
           value: props.transaction.historyData.msg,
           variant: "left",
           click: onActivityClick,
-          class: "text-typography-link cursor-pointer font-semibold"
+          class: "text-typography-link cursor-pointer font-semibold break-all"
         },
         {
           value: props.transaction.historyData.action,
