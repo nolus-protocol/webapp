@@ -84,7 +84,7 @@ export async function getWalletConnectOfflineSigner(callback?: Function, chId?: 
       chains.push(`cosmos:${chainsIds.cosmos[key]}`);
     }
     const { uri, approval } = await signClient.connect({
-      optionalNamespaces: {
+      requiredNamespaces: {
         cosmos: {
           methods: [
             "cosmos_getAccounts",
@@ -109,7 +109,6 @@ export async function getWalletConnectOfflineSigner(callback?: Function, chId?: 
 
     session = await approval();
   }
-
   const signer = makeWCOfflineSigner(signClient, session.topic, `cosmos:${chId}`);
   return {
     signer,
@@ -124,20 +123,15 @@ export function redirect(uri?: string, callback?: Function) {
     const device = getDeviceInfo();
     switch (device.os) {
       case "Android": {
-        clearTimeout(timeOut);
-        timeOut = setTimeout(() => {
-          const universalURL = `intent://wcV2${uri ? `?${uri}` : ""}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`;
-          window.location.href = universalURL;
-        }, 500);
+        const universalURL = uri
+          ? `intent://wcV2?${uri}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`
+          : `intent://wcV2#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`;
+        window.location.href = universalURL;
         break;
       }
       case "iOS": {
-        clearTimeout(timeOut);
-        timeOut = setTimeout(() => {
-          const universalURL = `keplrwallet://wcV2${uri ? `?${uri}` : ""}`;
-          window.location.href = universalURL;
-        }, 500);
-
+        const universalURL = uri ? `keplrwallet://wcV2?${uri}` : `keplrwallet://`;
+        window.location.href = universalURL;
         break;
       }
       default: {
@@ -150,6 +144,17 @@ export function redirect(uri?: string, callback?: Function) {
   }
 }
 
+async function withMobileOpen<T>(send: () => Promise<T>): Promise<T> {
+  const p = send();
+  const device = getDeviceInfo();
+
+  if (["Android", "iOS"].includes(device.os)) {
+    clearTimeout(timeOut);
+    timeOut = setTimeout(() => redirect(), 250);
+  }
+  return p;
+}
+
 export function makeWCOfflineSigner(
   signClient: SignClient,
   sessionTopic: string,
@@ -157,14 +162,13 @@ export function makeWCOfflineSigner(
 ): OfflineDirectSigner {
   return {
     async getAccounts(): Promise<readonly AccountData[]> {
-      const [accounts] = await Promise.all([
-        signClient.request({
+      const accounts = await withMobileOpen(() =>
+        signClient.request<Array<{ address: string; algo: string; pubkey: string }>>({
           topic: sessionTopic,
           chainId: cosmosNamespace,
           request: { method: "cosmos_getAccounts", params: {} }
-        }) as Promise<Array<{ address: string; algo: string; pubkey: string }>>,
-        redirect("")
-      ]);
+        })
+      );
 
       const data = accounts.map(({ address, algo, pubkey }) => ({
         address,
@@ -182,7 +186,7 @@ export function makeWCOfflineSigner(
         bodyBytes: toBase64(signDoc.bodyBytes)
       };
 
-      const [resp] = await Promise.all([
+      const resp = await withMobileOpen(() =>
         signClient.request<{
           signed: {
             chainId: string;
@@ -197,13 +201,9 @@ export function makeWCOfflineSigner(
         }>({
           topic: sessionTopic,
           chainId: cosmosNamespace,
-          request: {
-            method: "cosmos_signDirect",
-            params: { signerAddress, signDoc: base64Doc }
-          }
-        }),
-        redirect("")
-      ]);
+          request: { method: "cosmos_signDirect", params: { signerAddress, signDoc: base64Doc } }
+        })
+      );
 
       const normalize = (input: string | Uint8Array): Uint8Array =>
         typeof input === "string" ? fromBase64(input) : input;
