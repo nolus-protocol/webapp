@@ -13,7 +13,7 @@ import { getDeviceInfo } from "@/common/utils/Device";
 import { WalletConnectName } from "@/config/global";
 
 let client: Promise<SignClient> | undefined;
-let timeOut: NodeJS.Timeout;
+const WC_URI = "WC_URI";
 
 function getClient(): Promise<SignClient> {
   if (!client) {
@@ -105,7 +105,7 @@ export async function getWalletConnectOfflineSigner(callback?: Function, chId?: 
       }
     });
 
-    redirect(uri, callback);
+    redirect(uri as string, callback);
 
     session = await approval();
   }
@@ -118,19 +118,24 @@ export async function getWalletConnectOfflineSigner(callback?: Function, chId?: 
   };
 }
 
-export function redirect(uri?: string, callback?: Function) {
+export function redirect(uri: string, callback?: Function) {
   try {
     const device = getDeviceInfo();
+    if (!uri) {
+      uri = localStorage.getItem(WC_URI) as string;
+    } else {
+      localStorage.setItem(WC_URI, uri);
+    }
     switch (device.os) {
       case "Android": {
         const universalURL = uri
-          ? `intent://wcV2?${uri}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`
+          ? `intent://wcV2?${encodeURIComponent(uri)}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`
           : `intent://wcV2#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`;
         window.location.href = universalURL;
         break;
       }
       case "iOS": {
-        const universalURL = uri ? `keplrwallet://wcV2?${uri}` : `keplrwallet://wcV2`;
+        const universalURL = uri ? `keplrwallet://wcV2?${encodeURIComponent(uri)}` : `keplrwallet://wcV2`;
         window.location.href = universalURL;
         break;
       }
@@ -146,12 +151,13 @@ export function redirect(uri?: string, callback?: Function) {
 
 async function withMobileOpen<T>(send: () => Promise<T>): Promise<T> {
   const p = send();
-  const device = getDeviceInfo();
+  // const device = getDeviceInfo();
 
-  if (["Android", "iOS"].includes(device.os)) {
-    clearTimeout(timeOut);
-    timeOut = setTimeout(() => redirect(), 250);
-  }
+  // if (["Android", "iOS"].includes(device.os)) {
+  //   clearTimeout(timeOut);
+  //   timeOut = setTimeout(() => redirect(), 250);
+  // }
+  redirect("");
   return p;
 }
 
