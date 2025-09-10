@@ -13,6 +13,7 @@ import { getDeviceInfo } from "@/common/utils/Device";
 import { WalletConnectName } from "@/config/global";
 
 let client: Promise<SignClient> | undefined;
+let timeOut: NodeJS.Timeout;
 
 function getClient(): Promise<SignClient> {
   if (!client) {
@@ -123,13 +124,20 @@ export function redirect(uri?: string, callback?: Function) {
     const device = getDeviceInfo();
     switch (device.os) {
       case "Android": {
-        const universalURL = `intent://wcV2${uri ? `?${uri}` : ""}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`;
-        window.location.href = universalURL;
+        clearTimeout(timeOut);
+        timeOut = setTimeout(() => {
+          const universalURL = `intent://wcV2${uri ? `?${uri}` : ""}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`;
+          window.location.href = universalURL;
+        }, 500);
         break;
       }
       case "iOS": {
-        const universalURL = `keplrwallet://wcV2${uri ? `?${uri}` : ""}`;
-        window.location.href = universalURL;
+        clearTimeout(timeOut);
+        timeOut = setTimeout(() => {
+          const universalURL = `keplrwallet://wcV2${uri ? `?${uri}` : ""}`;
+          window.location.href = universalURL;
+        }, 500);
+
         break;
       }
       default: {
