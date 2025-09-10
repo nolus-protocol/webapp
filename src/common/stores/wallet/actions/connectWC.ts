@@ -123,12 +123,12 @@ export function redirect(uri?: string, callback?: Function) {
     const device = getDeviceInfo();
     switch (device.os) {
       case "Android": {
-        const universalURL = `intent://wcV2?${uri}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`;
+        const universalURL = `intent://wcV2${uri ? `?${uri}` : ""}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`;
         window.location.href = universalURL;
         break;
       }
       case "iOS": {
-        const universalURL = `keplrwallet://wcV2?${uri}`;
+        const universalURL = `keplrwallet://wcV2${uri ? `?${uri}` : ""}`;
         window.location.href = universalURL;
         break;
       }
