@@ -130,7 +130,7 @@ export function redirect(uri?: string, callback?: Function) {
         break;
       }
       case "iOS": {
-        const universalURL = uri ? `keplrwallet://wcV2?${uri}` : `keplrwallet://`;
+        const universalURL = uri ? `keplrwallet://wcV2?${uri}` : `keplrwallet://wcV2`;
         window.location.href = universalURL;
         break;
       }
