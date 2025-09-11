@@ -129,13 +129,13 @@ export function redirect(uri: string, callback?: Function) {
     switch (device.os) {
       case "Android": {
         const universalURL = uri
-          ? `intent://wcV2?${encodeURIComponent(uri)}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`
+          ? `intent://wcV2?${uri}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`
           : `intent://wcV2#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`;
         window.location.href = universalURL;
         break;
       }
       case "iOS": {
-        const universalURL = uri ? `keplrwallet://wcV2?${encodeURIComponent(uri)}` : `keplrwallet://wcV2`;
+        const universalURL = uri ? `keplrwallet://wcV2?${uri}` : `keplrwallet://wcV2`;
         window.location.href = universalURL;
         break;
       }
@@ -151,12 +151,6 @@ export function redirect(uri: string, callback?: Function) {
 
 async function withMobileOpen<T>(send: () => Promise<T>): Promise<T> {
   const p = send();
-  // const device = getDeviceInfo();
-
-  // if (["Android", "iOS"].includes(device.os)) {
-  //   clearTimeout(timeOut);
-  //   timeOut = setTimeout(() => redirect(), 250);
-  // }
   redirect("");
   return p;
 }

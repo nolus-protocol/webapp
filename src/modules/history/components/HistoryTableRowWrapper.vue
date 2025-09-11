@@ -1,5 +1,8 @@
 <template>
-  <TableRow :items="transactionData.items" />
+  <TableRow
+    :scrollable="false"
+    :items="transactionData.items"
+  />
   <TransactionDetails ref="transactionDialogRef" />
 </template>
 
@@ -35,7 +38,7 @@ const transactionData = computed(
         },
         {
           value: props.transaction.historyData.action,
-          class: "max-w-[140px] capitalize"
+          class: "max-w-[100px] capitalize"
         },
         {
           value: getTimeStamp(),

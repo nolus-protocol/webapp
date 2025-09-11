@@ -108,8 +108,8 @@ const showSkeleton = ref(true);
 const router = useRouter();
 
 const columns: TableColumnProps[] = [
-  { label: i18n.t("message.type"), variant: "left", class: "max-w-[150px]" },
   { label: i18n.t("message.contract-id"), variant: "left" },
+  { label: i18n.t("message.type"), variant: "left", class: "max-w-[80px]" },
   { label: i18n.t("message.asset"), variant: "left", class: "max-w-[200px]" },
   { label: i18n.t("message.action"), class: "max-w-[100px]" },
   { label: i18n.t("message.realized"), class: "max-w-[200px]" },
@@ -178,13 +178,13 @@ const leasesHistory = computed(() => {
     return {
       items: [
         {
-          component: getType(item),
-          class: "max-w-[150px] cursor-pointer",
+          value: `#${item.LS_contract_id.slice(-8)}`,
+          class: "text-typography-link cursor-pointer",
           variant: "left"
         },
         {
-          value: `#${item.LS_contract_id.slice(-8)}`,
-          class: "text-typography-link cursor-pointer",
+          component: getType(item),
+          class: "max-w-[80px] cursor-pointer",
           variant: "left"
         },
         {

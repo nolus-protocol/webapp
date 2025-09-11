@@ -90,7 +90,6 @@ const unboundingDelegations = ref<IObjectKeys[]>([]);
 const vestedTokens = ref([] as { endTime: string; amount: { amount: string; denom: string } }[]);
 
 provide("onReload", async () => {
-  console.log("reload");
   await Promise.allSettled([loadDelegated(), loadDelegator(), loadUnboundingDelegations(), loadVested()]);
 });
 
@@ -153,14 +152,16 @@ async function loadDelegator() {
 }
 
 async function loadDelegated() {
-  const delegations = await NetworkUtils.loadDelegations();
+  const delegations = (await NetworkUtils.loadDelegations()).sort((a, b) => {
+    const ab = new Dec(a.balance.amount);
+    const bb = new Dec(b.balance.amount);
+    return Number(bb.sub(ab).toString(8));
+  });
   const promises = [];
-  const data: TableRowItemProps[] = [];
   let decimalDelegated = new Dec(0);
 
   const currency = AssetUtils.getCurrencyByTicker(NATIVE_ASSET.ticker);
   const price = new Dec(oracle.prices?.[currency.key]?.amount ?? 0);
-
   for (const item of delegations) {
     const d = new Dec(item.balance.amount);
     decimalDelegated = decimalDelegated.add(d);
@@ -174,7 +175,7 @@ async function loadDelegated() {
       const amount_label = AssetUtils.formatNumber(amount.toString(), 3);
       const stable_label = AssetUtils.formatNumber(stable.toString(), 2);
 
-      data.push({
+      return {
         items: [
           {
             value: validator.description.moniker,
@@ -197,7 +198,7 @@ async function loadDelegated() {
                 : h<LabelProps>(Label, { value: i18n.t("message.active"), variant: "secondary" })
           }
         ]
-      });
+      };
     }
 
     promises.push(fn());
@@ -216,7 +217,7 @@ async function loadDelegated() {
     showEmpty.value = false;
   }
 
-  await Promise.all(promises);
+  const data = (await Promise.all(promises)) as TableRowItemProps[];
   validators.value = data;
 
   Intercom.update({

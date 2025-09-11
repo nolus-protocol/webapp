@@ -75,7 +75,6 @@ async function delegate() {
           amount: coin(item.value, data.denom)
         };
       });
-      console.log(delegations);
       const { txHash, txBytes, usedFee } = await wallet.wallet.simulateRedelegateTx(delegations);
 
       await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
@@ -95,8 +94,7 @@ async function delegate() {
 }
 
 async function getValidators() {
-  const delegatorValidators = await NetworkUtils.loadDelegatorValidators();
-
+  const delegatorValidators = (await NetworkUtils.loadDelegatorValidators()).filter((e) => !e.jailed);
   if (delegatorValidators.length > 0) {
     return delegatorValidators;
   }

@@ -26,18 +26,21 @@
       class="!md:flex-col flex flex-col-reverse gap-6 md:flex-row md:gap-10"
     >
       <div class="flex flex-col gap-3">
-        <BigNumber
-          :loading="loading"
-          :label="$t('message.lease-size')"
-          :amount="{
-            amount: amount,
-            type: CURRENCY_VIEW_TYPES.TOKEN,
-            denom: asset?.shortName ?? '',
-            decimals: assetLoan?.decimal_digits ?? 0,
-            hasSpace: true
-          }"
-          :secondary="stable"
-        />
+        <Tooltip :content="amount_tooltip">
+          <BigNumber
+            :loading="loading"
+            :label="$t('message.lease-size')"
+            :amount="{
+              amount: amount,
+              type: CURRENCY_VIEW_TYPES.TOKEN,
+              denom: asset?.shortName ?? '',
+              decimals: assetLoan?.decimal_digits ?? 0,
+              hasSpace: true,
+              maxDecimals: MAX_DECIMALS
+            }"
+            :secondary="stable"
+          />
+        </Tooltip>
         <div class="flex flex-col gap-8 md:flex-row">
           <div class="flex flex-col gap-4">
             <BigNumber
@@ -266,6 +269,7 @@ import BigNumber from "@/common/components/BigNumber.vue";
 import PnlOverTimeChart from "./PnlOverTimeChart.vue";
 import {
   LEASE_DUE,
+  MAX_DECIMALS,
   MID_DECIMALS,
   NATIVE_CURRENCY,
   PERCENT,
@@ -338,6 +342,11 @@ const isFreeLease = computed(() => {
     return true;
   }
   return false;
+});
+
+const amount_tooltip = computed(() => {
+  const a = new Dec(amount.value.toString(), assetLoan.value?.decimal_digits ?? 0);
+  return `${AssetUtils.formatNumber(a.toString(), assetLoan.value?.decimal_digits ?? 0)} ${asset.value?.shortName ?? ""}`;
 });
 
 const amount = computed(() => {

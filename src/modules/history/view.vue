@@ -4,11 +4,11 @@
     <Widget class="overflow-x-auto md:overflow-auto">
       <Table
         searchable
+        :scrollable="false"
         @input="(e: Event) => (search = (e.target as HTMLInputElement).value)"
         :size="isMobile() ? '' : `${transactions.length} transactions`"
         :columns="transactions.length > 0 ? columns : []"
-        tableClasses="min-w-[660px]"
-        tableWrapperClasses="md:min-w-auto md:pr-0"
+        tableWrapperClasses="md:min-w-auto md:pr-0 min-w-[1060px]"
         @onSearchClear="search = ''"
       >
         <div class="mb-4 flex">
@@ -115,7 +115,7 @@ const voteMessages: { [key: string]: string } = {
 
 const columns: TableColumnProps[] = [
   { label: i18n.t("message.history-transaction"), variant: "left" },
-  { label: i18n.t("message.category"), class: "max-w-[140px]" },
+  { label: i18n.t("message.category"), class: "max-w-[100px]" },
   { label: i18n.t("message.time"), class: "max-w-[180px]" },
   { label: i18n.t("message.status"), class: "max-w-[150px]" },
   { label: i18n.t("message.action"), class: "max-w-[120px]" }

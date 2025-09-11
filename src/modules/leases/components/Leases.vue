@@ -139,6 +139,7 @@ import { getStatus, TEMPLATES } from "./common";
 import type { IAction } from "./single-lease/Action.vue";
 import Action from "./single-lease/Action.vue";
 import type { OpenedOngoingState } from "@nolus/nolusjs/build/contracts/types/OpenedOngoingState";
+import TableNumber from "@/common/components/TableNumber.vue";
 
 const { leases, getLeases, leaseLoaded } = useLeases((error: Error | any) => {});
 const activeLeases = ref(new Dec(0));
@@ -198,7 +199,8 @@ const leasesData = computed<TableRowItemProps[]>(() => {
       const actions: Component[] = getActions(item as LeaseData);
       const value = {
         subValue: `${NATIVE_CURRENCY.symbol}${stable}`,
-        value: `${amount.toString(asset.decimal_digits)}`
+        value: `${amount.toString(MAX_DECIMALS)}`,
+        tooltip: `${amount.toString(asset.decimal_digits)}`
       };
 
       if (hide.value) {
@@ -210,7 +212,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
         items: [
           {
             value: getTitle(item as LeaseData),
-            subValueClass: "text-typography-secondary rounded border-[1px] px-2 py-1 self-start	",
+            subValueClass: "text-typography-secondary rounded border-[1px] px-2 py-1 self-start",
             variant: "left",
             click: () => {
               router.push(`/${RouteNames.LEASES}/${item.protocol.toLocaleLowerCase()}/${item.leaseAddress}`);
@@ -245,7 +247,13 @@ const leasesData = computed<TableRowItemProps[]>(() => {
             class: "max-w-[200px]"
           },
           {
-            ...value,
+            // ...value,
+            component: () =>
+              h(TableNumber, {
+                value: value.value,
+                subValue: value.subValue,
+                tooltip: value.tooltip
+              }),
             class: "font-semibold break-all"
           },
           { value: liquidation, class: "max-w-[200px]" },
