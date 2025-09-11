@@ -51,6 +51,7 @@ import LeapIcon from "@/assets/icons/wallets/leapwallet.svg?url";
 import WalletConnectIcon from "@/assets/icons/wallets/walletconnect.svg?url";
 
 import { useRouter } from "vue-router";
+import { getDeviceInfo } from "@/common/utils/Device";
 
 const i18n = useI18n();
 const terms = ref<typeof TermsDialog>();
@@ -65,6 +66,18 @@ const connections = computed(
       type: WalletActions;
     }
   > => {
+    // const device = getDeviceInfo();
+
+    // if (device.os == "Android") {
+    //   return {
+    //     Keplr: {
+    //       icon: KeplrIcon,
+    //       label: i18n.t("message.keplr"),
+    //       type: WalletActions.CONNECT_WC
+    //     }
+    //   };
+    // }
+
     return {
       Keplr: {
         icon: KeplrIcon,
@@ -80,11 +93,6 @@ const connections = computed(
         icon: LedgerIcon,
         label: i18n.t("message.ledger"),
         type: WalletActions.CONNECT_LEDGER
-      },
-      WalletConnect: {
-        icon: WalletConnectIcon,
-        label: i18n.t("message.wallet-connect"),
-        type: WalletActions.CONNECT_WC
       }
     };
   }

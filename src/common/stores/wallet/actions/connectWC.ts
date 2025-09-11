@@ -13,7 +13,6 @@ import { getDeviceInfo } from "@/common/utils/Device";
 import { WalletConnectName } from "@/config/global";
 
 let client: Promise<SignClient> | undefined;
-const WC_URI = "WC_URI";
 
 function getClient(): Promise<SignClient> {
   if (!client) {
@@ -121,11 +120,6 @@ export async function getWalletConnectOfflineSigner(callback?: Function, chId?: 
 export function redirect(uri: string, callback?: Function) {
   try {
     const device = getDeviceInfo();
-    if (!uri) {
-      uri = localStorage.getItem(WC_URI) as string;
-    } else {
-      localStorage.setItem(WC_URI, uri);
-    }
     switch (device.os) {
       case "Android": {
         const universalURL = uri
