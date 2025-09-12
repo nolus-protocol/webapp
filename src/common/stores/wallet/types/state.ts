@@ -49,4 +49,8 @@ export type State = {
     [key: string]: IObjectKeys;
   };
   activities: { data: IObjectKeys[]; loaded: boolean };
+  wallet_connect: {
+    toast: boolean;
+    url: string;
+  };
 };

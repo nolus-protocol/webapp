@@ -15,7 +15,11 @@ const state = (): State => ({
   total_unls: { balance: new UnitCoin(NATIVE_ASSET.denom, new Int(0)) },
   history: {},
   ignoreCurrencies: [],
-  activities: { loaded: false, data: [] }
+  activities: { loaded: false, data: [] },
+  wallet_connect: {
+    toast: false,
+    url: ""
+  }
 });
 
 const useWalletStore = defineStore("wallet", {

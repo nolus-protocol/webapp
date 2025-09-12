@@ -5,14 +5,18 @@ import type { SignDoc as ProtoSignDoc } from "cosmjs-types/cosmos/tx/v1beta1/tx"
 import SignClient from "@walletconnect/sign-client";
 import { AppUtils, WalletManager } from "@/common/utils";
 import { ChainConstants, NolusClient, NolusWalletFactory } from "@nolus/nolusjs";
-import { WalletConnectMechanism } from "@/common/types";
+import { WalletConnectMechanism, type IObjectKeys } from "@/common/types";
 import { Buffer } from "buffer";
 import { Intercom } from "@/common/utils/Intercom";
 import { toBase64, fromBase64 } from "@cosmjs/encoding";
 import { getDeviceInfo } from "@/common/utils/Device";
 import { WalletConnectName } from "@/config/global";
+import { useWalletStore } from "..";
 
 let client: Promise<SignClient> | undefined;
+let accounts: {
+  [key: string]: Promise<AccountData[]>;
+} = {};
 
 function getClient(): Promise<SignClient> {
   if (!client) {
@@ -37,6 +41,7 @@ export async function connectWithWalletConnect(this: Store, callback?: Function)
 
   const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(signer);
   await nolusWalletOfflineSigner.useAccount();
+  redirect("");
   const key = await signClient.request<
     {
       address: string;
@@ -83,7 +88,7 @@ export async function getWalletConnectOfflineSigner(callback?: Function, chId?: 
       chains.push(`cosmos:${chainsIds.cosmos[key]}`);
     }
     const { uri, approval } = await signClient.connect({
-      requiredNamespaces: {
+      optionalNamespaces: {
         cosmos: {
           methods: [
             "cosmos_getAccounts",
@@ -109,6 +114,7 @@ export async function getWalletConnectOfflineSigner(callback?: Function, chId?: 
     session = await approval();
   }
   const signer = makeWCOfflineSigner(signClient, session.topic, `cosmos:${chId}`);
+
   return {
     signer,
     signClient,
@@ -117,20 +123,26 @@ export async function getWalletConnectOfflineSigner(callback?: Function, chId?: 
   };
 }
 
+function showDeepLink(url: string) {
+  const wallet = useWalletStore();
+  wallet.wallet_connect.toast = true;
+  wallet.wallet_connect.url = url;
+}
+
 export function redirect(uri: string, callback?: Function) {
   try {
     const device = getDeviceInfo();
     switch (device.os) {
       case "Android": {
-        const universalURL = uri
-          ? `intent://wcV2?${uri}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`
-          : `intent://wcV2#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`;
-        window.location.href = universalURL;
+        showDeepLink(
+          uri
+            ? `intent://wcV2?${uri}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`
+            : `intent://wcV2#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`
+        );
         break;
       }
       case "iOS": {
-        const universalURL = uri ? `keplrwallet://wcV2?${uri}` : `keplrwallet://wcV2`;
-        window.location.href = universalURL;
+        showDeepLink(uri ? `keplrwallet://wcV2?${uri}` : `keplrwallet://wcV2`);
         break;
       }
       default: {
@@ -143,10 +155,54 @@ export function redirect(uri: string, callback?: Function) {
   }
 }
 
-async function withMobileOpen<T>(send: () => Promise<T>): Promise<T> {
-  const p = send();
-  redirect("");
-  return p;
+function getAccountData(signClient: SignClient, cosmosNamespace: string) {
+  try {
+    let session = signClient.session.getAll().at(-1);
+    const k = JSON.parse(session?.sessionProperties?.keys as string) as IObjectKeys[];
+    const [_, chainid] = cosmosNamespace.split(":");
+    const chain = k.find((item) => {
+      return item.chainId == chainid;
+    });
+    if (!chain) {
+      throw new Error(`${cosmosNamespace} not found`);
+    }
+    return { valid: true, address: chain.bech32Address, algo: chain.algo, pubkey: fromBase64(chain.pubKey) };
+  } catch (e) {
+    return { valid: false };
+  }
+}
+async function requestAccounts(signClient: SignClient, sessionTopic: string, cosmosNamespace: string) {
+  const cached = accounts[cosmosNamespace];
+
+  if (cached) {
+    redirect("");
+    return cached;
+  }
+
+  const nsParts = cosmosNamespace.split(":");
+  const rawChainId = nsParts.length > 1 ? nsParts[1] : cosmosNamespace;
+
+  const fn = (async () => {
+    try {
+      redirect("");
+      const a = await signClient.request<Array<{ address: string; algo: string; pubkey: string }>>({
+        topic: sessionTopic,
+        chainId: cosmosNamespace, // e.g. "cosmos:nolus-rila"
+        request: { method: "cosmos_getAccounts", params: { chainId: rawChainId } }
+      });
+      return a.map(({ address, algo, pubkey }) => ({
+        address,
+        algo,
+        pubkey: fromBase64(pubkey)
+      })) as AccountData[];
+    } catch (err) {
+      delete accounts[cosmosNamespace];
+      throw err;
+    }
+  })();
+
+  accounts[cosmosNamespace] = fn;
+  return fn;
 }
 
 export function makeWCOfflineSigner(
@@ -156,20 +212,14 @@ export function makeWCOfflineSigner(
 ): OfflineDirectSigner {
   return {
     async getAccounts(): Promise<readonly AccountData[]> {
-      const accounts = await withMobileOpen(() =>
-        signClient.request<Array<{ address: string; algo: string; pubkey: string }>>({
-          topic: sessionTopic,
-          chainId: cosmosNamespace,
-          request: { method: "cosmos_getAccounts", params: {} }
-        })
-      );
+      const acc = getAccountData(signClient, cosmosNamespace);
 
-      const data = accounts.map(({ address, algo, pubkey }) => ({
-        address,
-        algo,
-        pubkey: fromBase64(pubkey)
-      })) as AccountData[];
-      return data;
+      if (acc.valid) {
+        return [acc] as AccountData[];
+      }
+
+      const accounts = await requestAccounts(signClient, sessionTopic, cosmosNamespace);
+      return accounts;
     },
 
     async signDirect(signerAddress: string, signDoc: ProtoSignDoc): Promise<DirectSignResponse> {
@@ -180,24 +230,22 @@ export function makeWCOfflineSigner(
         bodyBytes: toBase64(signDoc.bodyBytes)
       };
 
-      const resp = await withMobileOpen(() =>
-        signClient.request<{
-          signed: {
-            chainId: string;
-            accountNumber: string;
-            authInfoBytes: string | Uint8Array;
-            bodyBytes: string | Uint8Array;
-          };
-          signature: {
-            pub_key: { type: string; value: string | Uint8Array };
-            signature: string | Uint8Array;
-          };
-        }>({
-          topic: sessionTopic,
-          chainId: cosmosNamespace,
-          request: { method: "cosmos_signDirect", params: { signerAddress, signDoc: base64Doc } }
-        })
-      );
+      const resp = await signClient.request<{
+        signed: {
+          chainId: string;
+          accountNumber: string;
+          authInfoBytes: string | Uint8Array;
+          bodyBytes: string | Uint8Array;
+        };
+        signature: {
+          pub_key: { type: string; value: string | Uint8Array };
+          signature: string | Uint8Array;
+        };
+      }>({
+        topic: sessionTopic,
+        chainId: cosmosNamespace,
+        request: { method: "cosmos_signDirect", params: { signerAddress, signDoc: base64Doc } }
+      });
 
       const normalize = (input: string | Uint8Array): Uint8Array =>
         typeof input === "string" ? fromBase64(input) : input;
