@@ -28,6 +28,8 @@
       class="shadow-md ml-4 cursor-pointer select-none rounded-md bg-blue-600 px-3 py-1 text-sm font-semibold text-white hover:bg-blue-700"
       :href="wallet.wallet_connect.url"
       @click="wallet.wallet_connect.toast = false"
+      rel="noopener"
+      @click.stop
     >
       Continue
     </a>

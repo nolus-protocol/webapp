@@ -175,7 +175,6 @@ async function requestAccounts(signClient: SignClient, sessionTopic: string, cos
   const cached = accounts[cosmosNamespace];
 
   if (cached) {
-    redirect("");
     return cached;
   }
 
