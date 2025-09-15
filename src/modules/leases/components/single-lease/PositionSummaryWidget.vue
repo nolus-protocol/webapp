@@ -346,14 +346,14 @@ const amount = computed(() => {
       const data =
         props.lease!.leaseStatus?.opened?.amount ||
         props.lease!.leaseStatus.opening?.downpayment ||
-        props.lease!.leaseStatus.paid?.amount;
+        props.lease!.leaseStatus.closing?.amount;
       return data?.amount ?? "0";
     }
     case PositionTypes.short: {
       const data =
         props.lease!.leaseStatus?.opened?.amount ||
         props.lease!.leaseStatus.opening?.downpayment ||
-        props.lease!.leaseStatus.paid?.amount;
+        props.lease!.leaseStatus.closing?.amount;
       return new Dec(data?.amount ?? 0).toString();
     }
     default: {
@@ -464,7 +464,7 @@ const asset = computed(() => {
     case PositionTypes.long: {
       const ticker =
         props.lease?.leaseStatus?.opened?.amount.ticker ||
-        props.lease?.leaseStatus?.paid?.amount.ticker ||
+        props.lease?.leaseStatus?.closing?.amount.ticker ||
         props.lease?.leaseStatus?.opening?.downpayment.ticker;
       const item = AssetUtils.getCurrencyByTicker(ticker as string);
 
@@ -495,7 +495,7 @@ const stable = computed<CurrencyComponentProps>(() => {
   }
 
   const amount =
-    lease.leaseStatus?.opened?.amount || lease.leaseStatus.opening?.downpayment || lease.leaseStatus.paid?.amount;
+    lease.leaseStatus?.opened?.amount || lease.leaseStatus.opening?.downpayment || lease.leaseStatus.closing?.amount;
   let protocol = lease.protocol;
 
   let ticker = lease.leaseData!.leasePositionTicker!;

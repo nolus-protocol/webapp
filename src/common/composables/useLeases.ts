@@ -268,8 +268,8 @@ async function fetchLease(leaseAddress: string, protocolKey: string, period?: nu
     }
   }
 
-  if (leaseInfo.opened || leaseInfo.paid) {
-    const lease = leaseInfo.opened ?? leaseInfo.paid;
+  if (leaseInfo.opened || leaseInfo.closing) {
+    const lease = leaseInfo.opened ?? leaseInfo.closing;
     const ticker = lease!.amount.ticker;
 
     const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
@@ -317,7 +317,7 @@ async function fetchLease(leaseAddress: string, protocolKey: string, period?: nu
 
 function getLeaseBalances(leaseInfo: LeaseStatus, protocolKey: string, balances: Coin[]) {
   const disable = [NATIVE_ASSET.denom];
-  const ticker = leaseInfo?.paid?.amount.ticker;
+  const ticker = leaseInfo?.closing?.amount.ticker;
   const app = useApplicationStore();
 
   if (ticker) {

@@ -100,7 +100,7 @@ const asset = () => {
     case PositionTypes.long: {
       const ticker =
         leaseData?.leaseStatus?.opened?.amount.ticker ||
-        leaseData?.leaseStatus?.paid?.amount.ticker ||
+        leaseData?.leaseStatus?.closing?.amount.ticker ||
         leaseData?.leaseStatus?.opening?.downpayment.ticker;
       const item = AssetUtils.getCurrencyByTicker(ticker as string);
 

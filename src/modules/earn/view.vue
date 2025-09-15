@@ -156,7 +156,7 @@ async function loadLPNCurrency() {
         }
 
         const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
-        const amount = new Dec(depositBalance.balance).mul(calculatedPrice).roundUp();
+        const amount = new Dec(depositBalance.amount).mul(calculatedPrice).roundUp();
         usdAmount = usdAmount.add(
           new Dec(oracle.prices?.[lpn.key]?.amount ?? 0).mul(new Dec(amount, lpn.decimal_digits))
         );

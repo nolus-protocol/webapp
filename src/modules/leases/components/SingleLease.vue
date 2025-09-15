@@ -314,7 +314,7 @@ const loadingRepay = computed(() => {
 });
 
 const loadingCollect = computed(() => {
-  const data = lease.value?.leaseStatus.paid;
+  const data = lease.value?.leaseStatus.closing;
 
   if (data?.in_progress == "transfer_in_init" || data?.in_progress == "transfer_in_finish") {
     return true;

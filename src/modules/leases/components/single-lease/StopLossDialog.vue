@@ -386,14 +386,14 @@ const totalAmount = computed(() => {
       const data =
         lease?.value!.leaseStatus?.opened?.amount ||
         lease?.value!.leaseStatus.opening?.downpayment ||
-        lease?.value!.leaseStatus.paid?.amount;
+        lease?.value!.leaseStatus.closing?.amount;
       return new Dec(data?.amount ?? "0", currency.value.decimal_digits);
     }
     case PositionTypes.short: {
       const data =
         lease?.value!.leaseStatus?.opened?.amount ||
         lease?.value!.leaseStatus.opening?.downpayment ||
-        lease?.value!.leaseStatus.paid?.amount;
+        lease?.value!.leaseStatus.closing?.amount;
 
       const asset = app.currenciesData?.[`${lease?.value!.leaseData!.leasePositionTicker}@${lease?.value!.protocol}`]!;
       const price = oracle.prices?.[asset?.ibcData as string];

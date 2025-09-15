@@ -36,7 +36,7 @@ const isCollectLoading = ref(false);
 const isCollectDisabled = ref(false);
 
 async function onClaim(lease: LeaseData) {
-  const data = lease.leaseStatus.paid;
+  const data = lease.leaseStatus.closing;
   if (data) {
     try {
       isCollectLoading.value = true;
@@ -74,7 +74,7 @@ async function onClaimSubmit() {
 }
 
 const loadingCollect = computed(() => {
-  const data = props.lease.leaseStatus.paid;
+  const data = props.lease.leaseStatus.closing;
 
   if (data?.in_progress == "transfer_in_init" || data?.in_progress == "transfer_in_finish") {
     return true;

@@ -206,7 +206,7 @@ async function fetchDepositBalance() {
         ]);
 
         const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
-        const amount = new Dec(depositBalance.balance).mul(calculatedPrice);
+        const amount = new Dec(depositBalance.amount).mul(calculatedPrice);
 
         return { coin: new Coin(lpn.ibcData, amount.roundUp().toString()), key: lpn.key };
       }
@@ -275,7 +275,7 @@ async function transferAmount() {
       if (microAmount.mAmount.amount.equals(asset.coin.amount as Int)) {
         const walletAddress = walletStore.wallet?.address ?? WalletManager.getWalletAddress();
         const amount = await lppClient.getLenderDeposit(walletAddress as string);
-        microAmount.mAmount.amount = new Dec(amount.balance).truncate();
+        microAmount.mAmount.amount = new Dec(amount.amount).truncate();
       } else {
         microAmount.mAmount.amount = new Dec(microAmount.mAmount.amount).quo(calculatedPrice).truncate();
       }
