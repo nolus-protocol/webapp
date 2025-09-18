@@ -181,7 +181,7 @@ const arcPath = (startAngle: number, endAngle: number) => {
 };
 
 const health = computed(() => {
-  if (props.lease?.leaseStatus.paid) {
+  if (props.lease?.leaseStatus.closing) {
     return 100;
   }
   if (props.lease?.leaseStatus.opened) {

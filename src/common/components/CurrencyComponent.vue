@@ -43,6 +43,7 @@ export interface CurrencyComponentProps {
   prettyZeros?: boolean;
   around?: boolean;
   hide?: boolean;
+  tooltip?: boolean;
   additional?: {
     text: string;
     class: string;

@@ -14,11 +14,12 @@
         amount: sizeAmount,
         type: CURRENCY_VIEW_TYPES.TOKEN,
         denom: asset.shortName,
-        maxDecimals: asset.decimal_digits,
+        maxDecimals: MAX_DECIMALS,
         minimalDenom: '',
         decimals: asset?.decimal_digits,
         around: true,
-        hasSpace: true
+        hasSpace: true,
+        tooltip: true
       }"
       :secondary="{
         amount: stable,
@@ -193,7 +194,7 @@ import PositionPreviewChart from "./PositionPreviewChart.vue";
 import { Button, SvgIcon } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { MONTHS, NATIVE_CURRENCY, PERCENT } from "@/config/global";
+import { MAX_DECIMALS, MONTHS, NATIVE_CURRENCY, PERCENT } from "@/config/global";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
 import { AppUtils, AssetUtils, LeaseUtils } from "@/common/utils";

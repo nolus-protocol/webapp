@@ -17,7 +17,7 @@ export function getStatus(lease: LeaseData) {
     return TEMPLATES.opened;
   }
 
-  if (lease?.leaseStatus?.paid) {
+  if (lease?.leaseStatus?.closing) {
     return TEMPLATES.paid;
   }
 

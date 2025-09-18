@@ -23,7 +23,7 @@ export async function loadSuppliedAmount(this: Store) {
       ]);
 
       const p = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
-      suppliedBalance[protocolKey] = depositBalance.balance;
+      suppliedBalance[protocolKey] = depositBalance.amount;
       lppPrice[protocolKey as string] = p;
     };
 

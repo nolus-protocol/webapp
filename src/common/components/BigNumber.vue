@@ -17,13 +17,27 @@
     </div>
     <div class="flex items-center gap-2">
       <template v-if="!loading">
-        <CurrencyComponent
-          v-if="amount"
-          :font-size="32"
-          :font-size-small="32"
-          v-bind="amount"
-          class="flex font-semibold text-typography-default"
-        />
+        <Tooltip
+          v-if="amount?.tooltip"
+          :content="amount_tooltip"
+        >
+          <CurrencyComponent
+            v-if="amount"
+            :font-size="32"
+            :font-size-small="32"
+            v-bind="amount"
+            class="flex font-semibold text-typography-default"
+          />
+        </Tooltip>
+        <template v-else>
+          <CurrencyComponent
+            v-if="amount"
+            :font-size="32"
+            :font-size-small="32"
+            v-bind="amount"
+            class="flex font-semibold text-typography-default"
+          />
+        </template>
         <span
           v-if="amount?.additional"
           :class="amount?.additional?.class"
@@ -93,7 +107,9 @@
 import { Badge, SvgIcon, Tooltip, type TooltipProps } from "web-components";
 import CurrencyComponent, { type CurrencyComponentProps } from "@/common/components/CurrencyComponent.vue";
 import type { IBadgeProps } from "web-components/dist/src/components/atoms/badge/types";
-import type { Component } from "vue";
+import { computed, type Component } from "vue";
+import { AssetUtils } from "../utils";
+import { Dec } from "@keplr-wallet/unit";
 
 export interface IBigNumber {
   label?: string;
@@ -110,5 +126,13 @@ export interface IBigNumber {
   loading?: boolean;
   loadingWidth?: string;
 }
-defineProps<IBigNumber>();
+const props = defineProps<IBigNumber>();
+
+const amount_tooltip = computed(() => {
+  if (props.amount?.tooltip) {
+    const a = new Dec(props.amount.amount ?? 0, props.amount.decimals ?? 0);
+    return `~${AssetUtils.formatNumber(a.toString(props.amount.decimals), props.amount.decimals ?? 0)}`;
+  }
+  return "";
+});
 </script>

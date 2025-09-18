@@ -283,9 +283,8 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         if (data.burn) {
           const protocol = AssetUtils.getProtocolByContract(msg.data.contract);
           const lpn = AssetUtils.getLpnByProtocol(protocol);
-
           const token = CurrencyUtils.convertMinimalDenomToDenom(
-            data.burn.amount,
+            data.burn.amount?.amount ?? 0,
             lpn.ibcData!,
             lpn.shortName!,
             Number(lpn.decimal_digits)

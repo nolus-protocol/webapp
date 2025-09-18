@@ -332,7 +332,7 @@ function getAsset(lease: LeaseData) {
     case PositionTypes.long: {
       const ticker =
         lease.leaseStatus?.opened?.amount.ticker ||
-        lease.leaseStatus?.paid?.amount.ticker ||
+        lease.leaseStatus?.closing?.amount.ticker ||
         lease.leaseStatus?.opening?.downpayment.ticker;
       const item = AssetUtils.getCurrencyByTicker(ticker as string);
 
@@ -351,12 +351,16 @@ function getAmount(lease: LeaseData) {
   switch (ProtocolsConfig[lease.protocol].type) {
     case PositionTypes.long: {
       const data =
-        lease.leaseStatus?.opened?.amount || lease.leaseStatus.opening?.downpayment || lease.leaseStatus.paid?.amount;
+        lease.leaseStatus?.opened?.amount ||
+        lease.leaseStatus.opening?.downpayment ||
+        lease.leaseStatus.closing?.amount;
       return data?.amount ?? "0";
     }
     case PositionTypes.short: {
       const data =
-        lease.leaseStatus?.opened?.amount || lease.leaseStatus.opening?.downpayment || lease.leaseStatus.paid?.amount;
+        lease.leaseStatus?.opened?.amount ||
+        lease.leaseStatus.opening?.downpayment ||
+        lease.leaseStatus.closing?.amount;
 
       const asset = app.currenciesData?.[`${lease.leaseData!.leasePositionTicker}@${lease.protocol}`]!;
       const lease_asset = app.currenciesData?.[`${lease.leaseData!.ls_asset_symbol}@${lease.protocol}`]!;
@@ -370,7 +374,7 @@ function getAmount(lease: LeaseData) {
 
 function getPositionInStable(lease: LeaseData) {
   const amount =
-    lease.leaseStatus?.opened?.amount || lease.leaseStatus.opening?.downpayment || lease.leaseStatus.paid?.amount;
+    lease.leaseStatus?.opened?.amount || lease.leaseStatus.opening?.downpayment || lease.leaseStatus.closing?.amount;
   let protocol = lease.protocol;
 
   let ticker = lease.leaseData!.leasePositionTicker!;
@@ -459,7 +463,7 @@ function isRepaying(lease: LeaseData) {
 }
 
 function isCollecting(lease: LeaseData) {
-  const data = lease.leaseStatus.paid;
+  const data = lease.leaseStatus.closing;
 
   if (data?.in_progress == "transfer_in_init" || data?.in_progress == "transfer_in_finish") {
     return true;
