@@ -25,6 +25,7 @@ export async function loadCurrennncies(this: Store) {
     const admin = useAdminStore();
     this.assetIcons = data.assetIcons;
     this.networks = data.networks;
+    this.map_keys = data.map_keys;
     this.protocols = Object.keys(ProtocolsConfig);
     this.lpn = [];
 

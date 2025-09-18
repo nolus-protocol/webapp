@@ -257,14 +257,13 @@ export class AssetUtils {
       });
       items = [...items, ...c];
     }
-
     for (const c of items) {
       network[c.key] = c;
     }
-
     const result = {
       assetIcons,
-      networks: { [NATIVE_NETWORK.key]: network }
+      networks: { [NATIVE_NETWORK.key]: network },
+      map_keys: networks.map
     };
     return result;
   }
