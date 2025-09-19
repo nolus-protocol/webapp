@@ -87,7 +87,7 @@ export const CONTRACTS: ContractConfig = {
         key: "NEUTRON",
         native: "NLS@NEUTRON-ASTROPORT-USDC_NOBLE",
         image: neutron,
-        hold: ["NEUTRON-ASTROPORT-USDC_AXELAR", "NEUTRON-ASTROPORT-USDC_NOBLE"],
+        hold: ["NEUTRON-ASTROPORT-USDC_NOBLE"],
         name: "Neutron"
       }
     },
@@ -96,14 +96,6 @@ export const CONTRACTS: ContractConfig = {
         currencies: ["USDC_AXELAR", "USDC", "WETH", "WBTC", "WETH_AXELAR", "WBTC_AXELAR"],
         stable: "USDC_AXELAR",
         lease: false,
-        type: PositionTypes.long,
-        rewards: true,
-        supply: false
-      },
-      "NEUTRON-ASTROPORT-USDC_AXELAR": {
-        lease: false,
-        currencies: ["USDC_AXELAR", "NTRN"],
-        stable: "USDC_AXELAR",
         type: PositionTypes.long,
         rewards: true,
         supply: false
@@ -177,7 +169,7 @@ export const CONTRACTS: ContractConfig = {
     admin: {
       instance: "nolus1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsqxf8nd",
       codeId: "",
-      ignoreProtocols: []
+      ignoreProtocols: ["NEUTRON-ASTROPORT-USDC_AXELAR"]
     }
   }
 };
@@ -200,6 +192,5 @@ export const SORT_PROTOCOLS = [
   "OSMOSIS-OSMOSIS-OSMO",
   "OSMOSIS-OSMOSIS-AKT",
   "OSMOSIS-OSMOSIS-USDC_AXELAR",
-  "NEUTRON-ASTROPORT-USDC_NOBLE",
-  "NEUTRON-ASTROPORT-USDC_AXELAR"
+  "NEUTRON-ASTROPORT-USDC_NOBLE"
 ];

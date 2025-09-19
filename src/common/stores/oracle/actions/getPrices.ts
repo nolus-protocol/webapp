@@ -14,7 +14,6 @@ export async function getPrices(this: State) {
 
     const app = useApplicationStore();
     const admin = useAdminStore();
-
     const pr: Prices = {};
     const promises = [];
     for (const protocolKey in admin.contracts) {
@@ -32,6 +31,10 @@ export async function getPrices(this: State) {
           pr[lpn.ibcData as string] = { symbol: lpn.ticker as string, amount: lpnPrice.price.toString() };
           pr[lpn.key as string] = { symbol: lpn.ticker as string, amount: lpnPrice.price.toString() };
 
+          if (app.map_keys[lpn.key as string]) {
+            pr[app.map_keys[lpn.key]] = pr[lpn.key as string];
+          }
+
           for (const price of (data as IObjectKeys).prices) {
             const ticker = price.amount.ticker;
             const currency = app.currenciesData![`${ticker}@${protocolKey}`];
@@ -47,6 +50,9 @@ export async function getPrices(this: State) {
               };
               pr[currency.ibcData as string] = tokenPrice;
               pr[currency.key as string] = tokenPrice;
+              if (app.map_keys[currency.key]) {
+                pr[app.map_keys[currency.key]] = pr[currency.key as string];
+              }
             }
           }
         };

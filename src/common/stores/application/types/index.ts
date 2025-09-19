@@ -14,6 +14,7 @@ export type State = {
   assetIcons?: {
     [key: string]: string;
   };
+  map_keys: { [key: string]: string };
   network: NetworkConfig | IObjectKeys;
   protocolFilter: string;
   theme?: string;

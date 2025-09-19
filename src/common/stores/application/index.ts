@@ -9,7 +9,8 @@ const state = (): State => ({
   theme: "",
   protocolFilter: DefaultProtocolFilter,
   protocols: [] as string[],
-  leasesCurrencies: [] as string[]
+  leasesCurrencies: [] as string[],
+  map_keys: {}
 });
 
 const useApplicationStore = defineStore("application", {
