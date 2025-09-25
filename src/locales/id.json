@@ -646,6 +646,7 @@
     "close-description": "This position is being partially or fully closed. The process usually takes less than a minute.",
     "jailed-tooltip": "A jailed validator is a blockchain node temporarily excluded for misbehavior or poor performance.",
     "redelagate": "Delegate",
-    "keplr-wallet-connect": "Keplr wallet connect"
+    "keplr-wallet-connect": "Wallet connect",
+    "download-csv": "Download CSV"
   }
 }

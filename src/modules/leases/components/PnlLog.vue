@@ -32,14 +32,23 @@
       ]"
     />
     <template v-else>
-      <BigNumber
-        :label="$t('message.realized-pnl')"
-        :amount="{
-          amount: pnl.toString(),
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: NATIVE_CURRENCY.symbol
-        }"
-      />
+      <div class="flex items-center justify-between">
+        <BigNumber
+          :label="$t('message.realized-pnl')"
+          :amount="{
+            amount: pnl.toString(),
+            type: CURRENCY_VIEW_TYPES.CURRENCY,
+            denom: NATIVE_CURRENCY.symbol
+          }"
+        />
+        <Button
+          :label="$t('message.download-csv')"
+          severity="secondary"
+          size="small"
+          :loading="loadingPnl"
+          @click="downloadCsv()"
+        />
+      </div>
       <!-- <PositionPreviewChart /> -->
       <Table
         :columns="leasesHistory.length > 0 ? columns : []"
@@ -83,7 +92,7 @@ import {
 } from "web-components";
 import { computed, h, onMounted, ref, watch } from "vue";
 import BigNumber from "@/common/components/BigNumber.vue";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
+import { CURRENCY_VIEW_TYPES, type IObjectKeys } from "@/common/types";
 import { NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
 import type { ILoan } from "./types";
 import { AssetUtils, EtlApi, getCreatedAtForHuman, Logger } from "@/common/utils";
@@ -101,6 +110,7 @@ const pnl = ref(new Dec(0));
 
 const limit = 10;
 let skip = 0;
+const loadingPnl = ref(false);
 
 const loading = ref(false);
 const loaded = ref(false);
@@ -108,15 +118,17 @@ const showSkeleton = ref(true);
 const router = useRouter();
 
 const columns: TableColumnProps[] = [
-  { label: i18n.t("message.contract-id"), variant: "left" },
-  { label: i18n.t("message.type"), variant: "left", class: "max-w-[80px]" },
-  { label: i18n.t("message.asset"), variant: "left", class: "max-w-[200px]" },
-  { label: i18n.t("message.action"), class: "max-w-[100px]" },
-  { label: i18n.t("message.realized"), class: "max-w-[200px]" },
+  { label: i18n.t("message.contract-id"), variant: "left", class: "max-w-[120px]" },
+  { label: i18n.t("message.type"), variant: "left", class: "max-w-[200px]" },
+  { label: i18n.t("message.asset"), variant: "left" },
+  { label: i18n.t("message.action") },
+  { label: i18n.t("message.realized") },
   { label: i18n.t("message.date-capitalize"), class: "max-w-[200px] w-full" }
 ];
 
 const loans = ref([] as ILoan[]);
+const filename = "data.csv";
+const delimiter = ",";
 
 onMounted(() => {
   loadLoans();
@@ -179,24 +191,22 @@ const leasesHistory = computed(() => {
       items: [
         {
           value: `#${item.LS_contract_id.slice(-8)}`,
-          class: "text-typography-link cursor-pointer",
+          class: "text-typography-link cursor-pointer max-w-[120px]",
           variant: "left"
         },
         {
           component: getType(item),
-          class: "max-w-[80px] cursor-pointer",
+          class: "max-w-[200px] cursor-pointer",
           variant: "left"
         },
         {
           image: currency.icon,
           value: currency.shortName,
           subValue: currency.name,
-          class: "max-w-[200px]",
           variant: "left"
         },
         {
-          value: i18n.t(`message.status-${item.LS_Close_Strategy ?? item.Type}`),
-          class: "max-w-[100px]"
+          value: i18n.t(`message.status-${item.LS_Close_Strategy ?? item.Type}`)
         },
         {
           value: new PricePretty(
@@ -208,7 +218,7 @@ const leasesHistory = computed(() => {
             },
             pnl.quo(new Dec(10 ** currency.decimal_digits))
           ),
-          class: `max-w-[200px] ${pnl_status ? "text-typography-success" : "text-typography-error"}`
+          class: `${pnl_status ? "text-typography-success" : "text-typography-error"}`
         },
         {
           value: getCreatedAtForHuman(new Date(item.LS_timestamp)) as string,
@@ -241,6 +251,48 @@ async function setRealizedPnl() {
   } catch (error) {
     console.error(error);
   }
+}
+
+function jsonToCsv(rows: IObjectKeys[]) {
+  const esc = (v: string) => {
+    if (v == null) return "";
+    const s = String(v);
+    return /[",\n\r]/.test(s) || s.includes(delimiter) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+
+  const cols: string[] = [];
+  for (const r of rows) for (const k of Object.keys(r)) if (!cols.includes(k)) cols.push(k);
+
+  const lines = [];
+  lines.push(cols.map(esc).join(delimiter));
+
+  for (const r of rows) {
+    lines.push(cols.map((c) => esc(r[c])).join(delimiter));
+  }
+  return lines.join("\r\n");
+}
+
+async function downloadCsv() {
+  if (!wallet.wallet?.address) {
+    return;
+  }
+
+  loadingPnl.value = true;
+
+  const data = await EtlApi.fetchRealizedPNLData(wallet.wallet?.address);
+  const csv = "\uFEFF" + jsonToCsv(data);
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  loadingPnl.value = false;
 }
 </script>
 

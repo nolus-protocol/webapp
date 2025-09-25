@@ -73,6 +73,10 @@ export class EtlApi {
     return fetch(`${EtlApi.getApiUrl()}/realized-pnl?address=${address}`).then((data) => data.json());
   }
 
+  static async fetchRealizedPNLData(address: string): Promise<IObjectKeys[]> {
+    return fetch(`${EtlApi.getApiUrl()}/realized-pnl-data?address=${address}`).then((data) => data.json());
+  }
+
   static async fetchRealizedPNLStats(): Promise<IObjectKeys> {
     return fetch(`${EtlApi.getApiUrl()}/realized-pnl-stats`).then((data) => data.json());
   }
