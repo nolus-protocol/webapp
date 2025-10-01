@@ -32,7 +32,7 @@
       ]"
     />
     <template v-else>
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col justify-between gap-2 md:flex-row md:items-center">
         <BigNumber
           :label="$t('message.realized-pnl')"
           :amount="{
@@ -44,7 +44,7 @@
         <Button
           :label="$t('message.download-csv')"
           severity="secondary"
-          size="small"
+          size="large"
           :loading="loadingPnl"
           @click="downloadCsv()"
         />
@@ -98,7 +98,7 @@ import type { ILoan } from "./types";
 import { AssetUtils, EtlApi, getCreatedAtForHuman, Logger } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
 import { useWalletStore } from "@/common/stores/wallet";
-import { Dec, PricePretty } from "@keplr-wallet/unit";
+import { Dec } from "@keplr-wallet/unit";
 import { RouteNames } from "@/router";
 import { useRouter } from "vue-router";
 import EmptyState from "@/common/components/EmptyState.vue";
@@ -188,6 +188,11 @@ const leasesHistory = computed(() => {
     const pnl = new Dec(item.LS_pnl, currency.decimal_digits);
     let pnl_amount = AssetUtils.formatNumber(item.LS_pnl, NORMAL_DECIMALS, NATIVE_CURRENCY.symbol);
     let pnl_status = pnl.isZero() || pnl.isPositive();
+
+    const raw = item.LS_timestamp;
+    const iso = raw.replace(" ", "T").replace(" UTC", "Z");
+    const date = new Date(iso);
+
     return {
       items: [
         {
@@ -214,7 +219,7 @@ const leasesHistory = computed(() => {
           class: `${pnl_status ? "text-typography-success" : "text-typography-error"}`
         },
         {
-          value: getCreatedAtForHuman(new Date(item.LS_timestamp)) as string,
+          value: getCreatedAtForHuman(date) as string,
           class: "max-w-[200px]"
         }
       ]

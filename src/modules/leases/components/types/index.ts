@@ -10,7 +10,7 @@ export interface ILoan {
   LS_amnt: string;
   LS_amnt_stable: string;
   LS_pnl: string;
-  LS_timestamp: Date;
+  LS_timestamp: string;
   Type: string;
   Block: Number;
   LS_asset_symbol: string;

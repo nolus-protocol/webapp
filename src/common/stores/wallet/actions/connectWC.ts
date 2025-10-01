@@ -11,12 +11,13 @@ import { Intercom } from "@/common/utils/Intercom";
 import { toBase64, fromBase64 } from "@cosmjs/encoding";
 import { getDeviceInfo } from "@/common/utils/Device";
 import { WalletConnectName } from "@/config/global";
-import { useWalletStore } from "..";
 
 let client: Promise<SignClient> | undefined;
 let accounts: {
   [key: string]: Promise<AccountData[]>;
 } = {};
+const INTERVAL = 800;
+let time_out: NodeJS.Timeout;
 
 function getClient(): Promise<SignClient> {
   if (!client) {
@@ -124,9 +125,26 @@ export async function getWalletConnectOfflineSigner(callback?: Function, chId?: 
 }
 
 function showDeepLink(url: string) {
-  const wallet = useWalletStore();
-  wallet.wallet_connect.toast = true;
-  wallet.wallet_connect.url = url;
+  const device = getDeviceInfo();
+  switch (device.os) {
+    case "Android": {
+      clearTimeout(time_out);
+      time_out = setTimeout(() => {
+        window.location.href = url;
+      }, INTERVAL);
+      // const wallet = useWalletStore();
+      // wallet.wallet_connect.toast = true;
+      // wallet.wallet_connect.url = url;
+      break;
+    }
+    case "iOS": {
+      window.location.href = url;
+      break;
+    }
+    default: {
+      break;
+    }
+  }
 }
 
 export function redirect(uri: string, callback?: Function) {
