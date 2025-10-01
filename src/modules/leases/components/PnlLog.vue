@@ -93,7 +93,7 @@ import {
 import { computed, h, onMounted, ref, watch } from "vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import { CURRENCY_VIEW_TYPES, type IObjectKeys } from "@/common/types";
-import { NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
+import { NATIVE_CURRENCY, NORMAL_DECIMALS, PositionTypes, ProtocolsConfig } from "@/config/global";
 import type { ILoan } from "./types";
 import { AssetUtils, EtlApi, getCreatedAtForHuman, Logger } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
@@ -176,7 +176,7 @@ const leasesHistory = computed(() => {
   return loans.value.map((item) => {
     const protocol = AssetUtils.getProtocolByContract(item.LS_loan_pool_id);
     const ticker = item.LS_asset_symbol;
-    let currency = app.currenciesData![`${ticker}@${protocol}`];
+    let currency = AssetUtils.getCurrencyByTicker(ticker);
 
     switch (ProtocolsConfig[protocol].type) {
       case PositionTypes.short: {
@@ -185,7 +185,8 @@ const leasesHistory = computed(() => {
       }
     }
 
-    const pnl = new Dec(item.LS_pnl);
+    const pnl = new Dec(item.LS_pnl, currency.decimal_digits);
+    let pnl_amount = AssetUtils.formatNumber(item.LS_pnl, NORMAL_DECIMALS, NATIVE_CURRENCY.symbol);
     let pnl_status = pnl.isZero() || pnl.isPositive();
     return {
       items: [
@@ -209,15 +210,7 @@ const leasesHistory = computed(() => {
           value: i18n.t(`message.status-${item.LS_Close_Strategy ?? item.Type}`)
         },
         {
-          value: new PricePretty(
-            {
-              currency: "usd",
-              symbol: "$",
-              locale: "en-US",
-              maxDecimals: NATIVE_CURRENCY.maximumFractionDigits
-            },
-            pnl.quo(new Dec(10 ** currency.decimal_digits))
-          ),
+          value: pnl_amount,
           class: `${pnl_status ? "text-typography-success" : "text-typography-error"}`
         },
         {

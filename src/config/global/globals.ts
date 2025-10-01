@@ -71,6 +71,8 @@ export const INTERCOM_API = "hbjifswh";
 export const ZERO_DECIMALS = 6;
 export const MAX_DECIMALS = 8;
 export const MID_DECIMALS = 4;
+export const NORMAL_DECIMALS = 2;
+
 export const LedgerName = "Ledger";
 export const WalletConnectName = "WalletConnect";
 
