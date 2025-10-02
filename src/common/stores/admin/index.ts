@@ -5,7 +5,8 @@ import { actions } from "./actions";
 import { getters } from "./getters";
 
 const state = (): State => ({
-  protocols: {}
+  protocols: {},
+  history_protocols: {}
 });
 
 const useAdminStore = defineStore("admin", {
