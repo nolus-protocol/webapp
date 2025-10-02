@@ -6,10 +6,14 @@
     :getClosestDataPoint="getClosestDataPoint"
     :data-length="data.length"
   >
-    <p class="text-16 font-semibold text-typography-default">
-      {{ $t("message.latest") }}
-    </p>
-    <span class="mt-1 text-16 text-typography-default"> 1 {{ currency.name }} = {{ currency.price }}</span>
+    <Tooltip :content="currency.price">
+      <div class="flex items-center gap-2">
+        <p class="text-16 font-semibold text-typography-default">
+          {{ $t("message.latest") }}
+        </p>
+        <span class="text-16 text-typography-default"> 1 {{ currency.name }} = {{ currency.pretty_price }}</span>
+      </div>
+    </Tooltip>
   </Chart>
   <div
     v-if="chart?.isLegendVisible"
@@ -26,10 +30,11 @@
 
 <script lang="ts" setup>
 import Chart from "@/common/components/Chart.vue";
+import { Tooltip } from "web-components";
 
 import type { LeaseData } from "@/common/types";
 import { AssetUtils, EtlApi, isMobile, LeaseUtils } from "@/common/utils";
-import { NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
+import { MAX_DECIMALS, NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { plot, lineY, ruleY } from "@observablehq/plot";
 import { computed, ref, watch } from "vue";
 import { pointer, select, type Selection } from "d3";
@@ -75,6 +80,9 @@ const currency = computed(() => {
     name: c?.shortName,
     price: price?.amount
       ? `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(price?.amount ?? 0, c?.decimal_digits)}`
+      : "",
+    pretty_price: price?.amount
+      ? `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(price?.amount ?? 0, MAX_DECIMALS)}`
       : ""
   };
 });
