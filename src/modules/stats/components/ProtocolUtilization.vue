@@ -68,7 +68,7 @@ const columns: TableColumnProps[] = [
   {
     label: i18n.t("message.deposit-suspension"),
     tooltip: { position: "top", content: i18n.t("message.deposit-suspension-tooltip") },
-    class: "whitespace-pre max-w-[120px]"
+    class: "whitespace-pre max-w-[200px]"
   },
   {
     label: i18n.t("message.yield"),
@@ -96,7 +96,7 @@ const assets = computed<TableRowItemProps[]>(() => {
           class: "hidden md:flex w-full min-w-[200]"
         },
         { value: `${utilizationLevelOsmosis.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositNeutron.value}%`, class: "max-w-[120px]" },
+        { value: `${depositNeutron.value}%`, class: "max-w-[200px]" },
         {
           value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_noble]) ?? 0).toFixed(2)}%`,
           class: "text-typography-success"
@@ -122,7 +122,7 @@ const assets = computed<TableRowItemProps[]>(() => {
           class: "hidden md:flex min-w-[200]"
         },
         { value: `${utilizationLevelNeutron.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositOsmosis.value}%`, class: "max-w-[120px]" },
+        { value: `${depositOsmosis.value}%`, class: "max-w-[200px]" },
         {
           value: `${(Number(app.apr?.[AppUtils.getProtocols().neutron_noble]) ?? 0).toFixed(2)}%`,
           class: "text-typography-success"
@@ -148,7 +148,7 @@ const assets = computed<TableRowItemProps[]>(() => {
           class: "hidden md:flex min-w-[200]"
         },
         { value: `${utilizationLevelOsmosisAllSol.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositAllSol.value}%`, class: "max-w-[120px]" },
+        { value: `${depositAllSol.value}%`, class: "max-w-[200px]" },
         {
           value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_all_sol]) ?? 0).toFixed(2)}%`,
           class: "text-typography-success"
@@ -174,7 +174,7 @@ const assets = computed<TableRowItemProps[]>(() => {
           class: "hidden md:flex min-w-[200]"
         },
         { value: `${utilizationLevelOsmosisAllBtc.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositAllBtc.value}%`, class: "max-w-[120px]" },
+        { value: `${depositAllBtc.value}%`, class: "max-w-[200px]" },
         {
           value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_all_btc]) ?? 0).toFixed(2)}%`,
           class: "text-typography-success"
@@ -225,7 +225,7 @@ const assets = computed<TableRowItemProps[]>(() => {
           class: "hidden md:flex min-w-[200]"
         },
         { value: `${utilizationLevelOsmosisAkt.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositAkt.value}%`, class: "max-w-[120px]" },
+        { value: `${depositAkt.value}%`, class: "max-w-[200px]" },
         {
           value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_akt]) ?? 0).toFixed(2)}%`,
           class: "text-typography-success"
@@ -252,7 +252,7 @@ const assets = computed<TableRowItemProps[]>(() => {
           class: "hidden md:flex min-w-[200]"
         },
         { value: `${utilizationLevelOsmosisAtom.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositAtom.value}%`, class: "max-w-[120px]" },
+        { value: `${depositAtom.value}%`, class: "max-w-[200px]" },
         {
           value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_atom]) ?? 0).toFixed(2)}%`,
           class: "text-typography-success"

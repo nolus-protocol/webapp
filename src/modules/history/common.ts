@@ -299,7 +299,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
 
         if (data.close_position?.full_close) {
           return [
-            i18n.t("message.partial-close-action", {
+            i18n.t("message.full-close-action", {
               contract: truncateString(msg.data.contract)
             }),
             null
