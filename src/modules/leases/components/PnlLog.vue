@@ -96,7 +96,6 @@ import { CURRENCY_VIEW_TYPES, type IObjectKeys } from "@/common/types";
 import { NATIVE_CURRENCY, NORMAL_DECIMALS, PositionTypes, ProtocolsConfig } from "@/config/global";
 import type { ILoan } from "./types";
 import { AssetUtils, EtlApi, getCreatedAtForHuman, Logger } from "@/common/utils";
-import { useApplicationStore } from "@/common/stores/application";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { RouteNames } from "@/router";
@@ -104,7 +103,6 @@ import { useRouter } from "vue-router";
 import EmptyState from "@/common/components/EmptyState.vue";
 
 const i18n = useI18n();
-const app = useApplicationStore();
 const wallet = useWalletStore();
 const pnl = ref(new Dec(0));
 
@@ -190,8 +188,7 @@ const leasesHistory = computed(() => {
     let pnl_status = pnl.isZero() || pnl.isPositive();
 
     const raw = item.LS_timestamp;
-    const iso = raw.replace(" ", "T").replace(" UTC", "Z");
-    const date = new Date(iso);
+    const date = new Date(raw);
 
     return {
       items: [

@@ -1,5 +1,5 @@
 import type { Protocol, Store } from "@/common/stores/admin/types";
-import { EnvNetworkUtils } from "@/common/utils";
+import { AppUtils, EnvNetworkUtils } from "@/common/utils";
 import { NolusClient } from "@nolus/nolusjs";
 import { CONTRACTS } from "@/config/global";
 import { Admin } from "@nolus/nolusjs/build/contracts";
@@ -31,8 +31,9 @@ export async function getProtocols(this: Store) {
       promises.push(fn());
     }
 
-    await Promise.all(promises);
+    const [_data, historyProtocols] = await Promise.all([Promise.all(promises), AppUtils.getHistoryProtocols()]);
     this.protocols[network] = protocolData;
+    this.history_protocols = historyProtocols;
   } catch (error: Error | any) {
     throw new Error(error);
   }

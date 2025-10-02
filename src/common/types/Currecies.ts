@@ -57,6 +57,11 @@ export interface HistoryCurrency {
   };
 }
 
+export interface HistoryProtocols {
+  contract: string;
+  lpn: string;
+}
+
 export enum CURRENCY_VIEW_TYPES {
   TOKEN = "TOKEN",
   CURRENCY = "CURRENCY"

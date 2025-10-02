@@ -42,6 +42,7 @@ export async function loadCurrennncies(this: Store) {
       coingeckoId: nativeCurrency.coingeckoId
     };
     for (const protocol of this.protocols) {
+      if (ProtocolsConfig[protocol].ignore) continue;
       lease[protocol] = [];
       lpnPromises.push(
         getLpn(cosmWasmClient, protocol, admin).then((lpn) => {

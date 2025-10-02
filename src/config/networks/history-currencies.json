@@ -185,6 +185,24 @@
       }
     }
   },
+  "JKL": {
+    "name": "Jackal",
+    "symbol": "ujkl",
+    "ticker": "JKL",
+    "decimal_digits": 6,
+    "icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/currencies/icons/osmosis-jkl.svg",
+    "shortName": "JKL",
+    "native": false,
+    "coingeckoId": "jackal-protocol",
+    "protocols": {
+      "NEUTRON-ASTROPORT-USDC_NOBLE": {
+        "ibcData": "ibc/28f026607184b151f1f7d7f5d8ae644528550eb05203a28b6233dfa923669876"
+      },
+      "NEUTRON-ASTROPORT-USDC_AXELAR": {
+        "ibcData": "ibc/28f026607184b151f1f7d7f5d8ae644528550eb05203a28b6233dfa923669876"
+      }
+    }
+  },
   "ST_TIA": {
     "name": "Stride Staked TIA",
     "symbol": "stutia",

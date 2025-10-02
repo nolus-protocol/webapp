@@ -1,6 +1,5 @@
 import type { ExternalCurrency } from "@/common/types";
 import { Oracle, type ProtocolContracts } from "@nolus/nolusjs/build/contracts";
-
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils, NolusClient } from "@nolus/nolusjs";
 import { useOracleStore } from "@/common/stores/oracle";
@@ -8,6 +7,7 @@ import { useApplicationStore } from "../stores/application";
 import { useAdminStore } from "../stores/admin";
 import { AppUtils, EnvNetworkUtils } from ".";
 import { useWalletStore } from "../stores/wallet";
+import { sha256 } from "@cosmjs/crypto";
 
 import {
   DECIMALS_AMOUNT,
@@ -19,7 +19,6 @@ import {
   NATIVE_CURRENCY,
   SORT_PROTOCOLS
 } from "@/config/global";
-import { sha256 } from "@cosmjs/crypto";
 
 export class AssetUtils {
   public static formatNumber(amount: number | string, decimals: number, symbol?: string) {
@@ -89,9 +88,6 @@ export class AssetUtils {
   public static getCurrencyBySymbol(symbol: string) {
     const application = useApplicationStore();
     for (const key in application.currenciesData) {
-      const [t, p] = key.split("@");
-      const currencies = ProtocolsConfig[p].currencies;
-
       if (application.currenciesData[key].symbol == symbol) {
         return application.currenciesData[key];
       }
@@ -124,17 +120,31 @@ export class AssetUtils {
         }
       }
     }
+
+    for (const key in admin.history_protocols) {
+      if (admin.history_protocols[key]?.contract == contract) {
+        return key;
+      }
+    }
     throw new Error(`Contract not found ${contract}`);
   }
 
   public static getLpnByProtocol(protocol: string) {
     const app = useApplicationStore();
+    const admin = useAdminStore();
+
     for (const lpn of app.lpn ?? []) {
       const [_, p] = lpn.key.split("@");
       if (p == protocol) {
         return lpn;
       }
     }
+
+    for (const key in admin.history_protocols) {
+      const lpn = AssetUtils.getCurrencyByTicker(admin.history_protocols[key].lpn);
+      return lpn;
+    }
+
     throw new Error(`Lpn not found ${protocol}`);
   }
 

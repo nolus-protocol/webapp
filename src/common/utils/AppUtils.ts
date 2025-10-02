@@ -1,4 +1,4 @@
-import type { HistoryCurrency } from "../types/Currecies";
+import type { HistoryCurrency, HistoryProtocols } from "../types/Currecies";
 import type { CurrenciesConfig } from "../types/Networks";
 import type { API, ARCHIVE_NODE, Endpoint, Node, SkipRouteConfigType, ProposalsConfigType } from "@/common/types";
 
@@ -21,6 +21,8 @@ import { DUE_PROJECTION_SECS_URL } from "@/config/global/due-projection-secs-url
 import { CHAIN_IDS_URLS } from "@/config/global/chainids-url";
 import { CURRENCIES_URL } from "@/config/global/currencies-url";
 import { HISTORY_CURRENCIES_URL } from "@/config/global/history-currencies-url";
+import { HISTORY_PROTOCOLS_URL } from "@/config/global/history-protocols-url";
+
 import { idbPut } from "@/push/database";
 
 export class AppUtils {
@@ -78,6 +80,7 @@ export class AppUtils {
 
   static currencies: Promise<CurrenciesConfig>;
   static historyCurrencies: Promise<{ [key: string]: HistoryCurrency }>;
+  static historyProtocols: Promise<{ [key: string]: HistoryProtocols }>;
 
   static isDev() {
     return isDev();
@@ -289,6 +292,16 @@ export class AppUtils {
     const historyCurrencies = AppUtils.fetchHistoryCurrencies();
     this.historyCurrencies = historyCurrencies;
     return historyCurrencies;
+  }
+
+  static async getHistoryProtocols() {
+    if (this.historyProtocols) {
+      return this.historyProtocols;
+    }
+
+    const historyProtocols = AppUtils.fetchHistoryProtocols();
+    this.historyProtocols = historyProtocols;
+    return historyProtocols;
   }
 
   static async getCurrencies() {
@@ -515,6 +528,12 @@ export class AppUtils {
 
   private static async fetchHistoryCurrencies(): Promise<{ [key: string]: HistoryCurrency }> {
     const url = await HISTORY_CURRENCIES_URL;
+    const data = await fetch(url);
+    return data.json();
+  }
+
+  private static async fetchHistoryProtocols(): Promise<{ [key: string]: HistoryProtocols }> {
+    const url = await HISTORY_PROTOCOLS_URL;
     const data = await fetch(url);
     return data.json();
   }

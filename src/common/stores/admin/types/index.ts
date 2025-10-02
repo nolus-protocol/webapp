@@ -1,9 +1,13 @@
 import type { Networks } from "@/common/types";
+import type { HistoryProtocols } from "@/common/types/Currecies";
 import type { ProtocolContracts } from "@nolus/nolusjs/build/contracts";
 
 export type State = {
   protocols: {
     [key in Networks]?: Protocol;
+  };
+  history_protocols: {
+    [key: string]: HistoryProtocols;
   };
 };
 

@@ -1,0 +1,10 @@
+{
+  "OSMOSIS-OSMOSIS-ST_ATOM": {
+    "contract": "nolus1jufcaqm6657xmfltdezzz85quz92rmtd88jk5x0hq9zqseem32ysjdm990",
+    "lpn": "ST_ATOM"
+  },
+  "NEUTRON-ASTROPORT-USDC_AXELAR": {
+    "contract": "nolus1qqcr7exupnymvg6m63eqwu8pd4n5x6r5t3pyyxdy7r97rcgajmhqy3gn94",
+    "lpn": "USDC_AXELAR"
+  }
+}

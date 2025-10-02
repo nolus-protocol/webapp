@@ -100,6 +100,15 @@ export const CONTRACTS: ContractConfig = {
         rewards: true,
         supply: false
       },
+      "NEUTRON-ASTROPORT-USDC_AXELAR": {
+        lease: false,
+        currencies: [],
+        stable: "USDC_AXELAR",
+        type: PositionTypes.long,
+        rewards: false,
+        supply: false,
+        ignore: true
+      },
       "NEUTRON-ASTROPORT-USDC_NOBLE": {
         lease: true,
         currencies: [],
@@ -160,6 +169,16 @@ export const CONTRACTS: ContractConfig = {
         stable: "USDC_NOBLE",
         rewards: true,
         supply: true
+      },
+      "OSMOSIS-OSMOSIS-ST_ATOM": {
+        only: [],
+        lease: false,
+        currencies: [],
+        type: PositionTypes.short,
+        stable: "USDC_NOBLE",
+        rewards: false,
+        supply: false,
+        ignore: true
       }
     },
     dispatcher: {
