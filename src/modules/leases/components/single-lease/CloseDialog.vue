@@ -45,6 +45,8 @@
               </div>
             </template>
           </AdvancedFormControl>
+          <!-- :label-mid="`${$t('message.debt')} (~${debt?.amount?.toString() ?? ''})`" -->
+          <!-- :label-right="`${$t('message.full-position')} (~${AssetUtils.formatNumber(total?.toString(currency?.decimal_digits), currency?.decimal_digits) ?? ''})`" -->
           <div class="mt-2 px-4 py-3">
             <Slider
               :min-position="0"
@@ -53,8 +55,8 @@
               :value="sliderValue"
               @on-drag="onSetAmount"
               :label-left="`0`"
-              :label-mid="`${$t('message.debt')} (~${debt?.amount?.toString() ?? ''})`"
-              :label-right="`${$t('message.full-position')} (~${AssetUtils.formatNumber(total?.toString(currency?.decimal_digits), currency?.decimal_digits) ?? ''})`"
+              :label-mid="`${$t('message.debt')}`"
+              :label-right="`${$t('message.full-position')}`"
               @click-right-label="() => onSetAmount(100)"
               @click-left-label="() => onSetAmount(0)"
               @click-mid-label="

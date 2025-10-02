@@ -53,13 +53,14 @@
             :selected-currency-option="currency"
           />
           <div class="px-6 py-3">
+            <!-- :label-right="`${$t('message.debt')} (~${debt?.amount?.toString() ?? ''})`" -->
             <Slider
               :min-position="0"
               :max-position="100"
               :value="sliderValue"
               @on-drag="onSetAmount"
               :label-left="`0`"
-              :label-right="`${$t('message.debt')} (~${debt?.amount?.toString() ?? ''})`"
+              :label-right="`${$t('message.debt')}`"
               @click-right-label="() => onSetAmount(100)"
               @click-left-label="() => onSetAmount(0)"
             />
