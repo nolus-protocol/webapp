@@ -468,6 +468,7 @@
     "jailed-tooltip": "A jailed validator is a blockchain node temporarily excluded for misbehavior or poor performance.",
     "redelagate": "Delegate",
     "keplr-wallet-connect": "Wallet connect",
-    "download-csv": "Download CSV"
+    "download-csv": "Download CSV",
+    "full-close-action": "Close margin position {contract}"
   }
 }
