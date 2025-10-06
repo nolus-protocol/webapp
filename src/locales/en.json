@@ -99,9 +99,9 @@
     "min": "min",
     "send-action": "Send {amount} to {address}",
     "receive-action": "Receive {amount} from {address}",
-    "open-position-action": "Open {position} position on {ticker} with {amount}",
-    "repay-position-action": "Repay {amount} for lease position {contract}",
-    "close-position-action": "Collect tokens from lease position {contract}",
+    "open-position-action": "Open position on {ticker} with {amount}",
+    "repay-position-action": "Repay {amount} for position {contract}",
+    "close-position-action": "Collect tokens from position {contract}",
     "claim-position-action": "Claim staking rewards from {address}",
     "vote-position-action": "Vote {vote} on proposal #{propose}",
     "redelegate-action": "Redelegate {amount} to {address}",
@@ -467,7 +467,7 @@
     "close-description": "This position is being partially or fully closed. The process usually takes less than a minute.",
     "jailed-tooltip": "A jailed validator is a blockchain node temporarily excluded for misbehavior or poor performance.",
     "redelagate": "Delegate",
-    "keplr-wallet-connect": "Wallet connect",
+    "keplr-wallet-connect": "Wallet Connect (beta)",
     "download-csv": "Download CSV",
     "full-close-action": "Close margin position {contract}"
   }
