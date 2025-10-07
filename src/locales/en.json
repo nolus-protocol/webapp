@@ -141,7 +141,7 @@
     "price-per-symbol": "Price per {symbol}",
     "supply-limit-error": "The current deposit limit is {amount}",
     "lease-min-amount": "The position past this close should worth at least {amount} {symbol}",
-    "partial-close-action": "Close {amount} {ticker} from lease position {contract}",
+    "partial-close-action": "Close {amount} {ticker} from position {contract}",
     "min-amount-allowed": "The minimum allowed {currency} amount is {amount}",
     "buyback": "Buyback",
     "read-more": "Read More",
