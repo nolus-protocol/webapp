@@ -1,15 +1,5 @@
 {
   "push": {
-    "ltv-title": "",
-    "ltv-title-risk": "",
-    "ltv-title-high-risk": "",
-    "ltv-title-partial-liquidation": "",
-    "ltv-title-full-liquidation": "",
-    "liquidations-funding": "",
-    "liquidations-funding-recommended": "",
-    "liquidations-fund-now": "",
-    "liquidations-partially-liquidated": "",
-    "liquidations-fully-liquidated": ""
   },
   "message": {
     "connect-wallet": "连接",
@@ -452,22 +442,6 @@
     "liquidation-high liability": "已触发爆仓",
     "tvl": "锁定总价值",
     "keplr-mobile": "Keplr mobile",
-    "latest": "",
-    "close-policy": "",
-    "change-close-policy": "",
-    "market-anomaly-title": "",
-    "market-anomaly-title-desc": "",
-    "market-anomaly-title-desc-link": "",
-    "subscribed": "",
-    "unsubscribed": "",
-    "and": "",
-    "close-title": "",
-    "close-description": "",
-    "jailed-tooltip": "",
-    "redelagate": "",
-    "keplr-wallet-connect": "",
-    "download-csv": "",
-    "full-close-action": "",
     "Success": "成功",
     "Error": "错误"
   }
