@@ -1,5 +1,15 @@
 {
   "push": {
+    "ltv-title": "警告！健康度低于 7.5%",
+    "ltv-title-risk": "警告！健康度低于 5%",
+    "ltv-title-high-risk": "危险！健康度低于 3%",
+    "ltv-title-partial-liquidation": "部分清算",
+    "ltv-title-full-liquidation": "完全清算",
+    "liquidations-funding": "请考虑为 {{ticker}} 仓位补充资金",
+    "liquidations-funding-recommended": "建议为 {{ticker}} 仓位补充资金",
+    "liquidations-fund-now": "{{ticker}} 仓位接近被清算！立即补充资金",
+    "liquidations-partially-liquidated": "{{ticker}} 仓位已被部分清算。健康度已回到 10%",
+    "liquidations-fully-liquidated": "{{ticker}} 仓位已被完全清算"
   },
   "message": {
     "connect-wallet": "连接",
@@ -439,6 +449,26 @@
     "status-take-profit": "止盈",
     "status-stop-loss": "止损",
     "liquidation-overdue interest": "结算利息",
-    "liquidation-high liability": "已触发爆仓"
+    "liquidation-high liability": "已触发爆仓",
+    "Success": "成功",
+    "Error": "错误",
+    "tvl": "总锁定价值",
+    "keplr-mobile": "Keplr 移动端",
+    "latest": "最新",
+    "close-policy": "保证金",
+    "change-close-policy": "更改仓位 #{address} 的平仓策略",
+    "market-anomaly-title": "市场异常：观察模式已启用",
+    "market-anomaly-title-desc": "由于 DEX 价格异常偏低，Market Anomaly Guard (MAG) 已暂停清算。在系统监控恢复期间，您的仓位暂时安全。",
+    "market-anomaly-title-desc-link": "了解 MAG 如何防止不公平清算",
+    "subscribed": "已在此设备上启用提醒",
+    "unsubscribed": "已在此设备上关闭提醒",
+    "and": "和",
+    "close-title": "仓位平仓进行中",
+    "close-description": "该仓位正在进行部分或全部平仓。该过程通常耗时不到一分钟。",
+    "jailed-tooltip": "被监禁的验证人是指因不当行为或表现不佳而被暂时排除在网络之外的区块链节点。",
+    "redelagate": "委托",
+    "keplr-wallet-connect": "Wallet Connect (测试版)",
+    "download-csv": "下载 CSV",
+    "full-close-action": "平仓 {contract}"
   }
 }

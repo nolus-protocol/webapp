@@ -1,6 +1,15 @@
 {
   "push": {
-
+    "ltv-title": "Attention ! La santé est inférieure à 7,5 %",
+    "ltv-title-risk": "Attention ! La santé est inférieure à 5 %",
+    "ltv-title-high-risk": "Danger ! La santé est inférieure à 3 %",
+    "ltv-title-partial-liquidation": "Liquidation partielle",
+    "ltv-title-full-liquidation": "Liquidation totale",
+    "liquidations-funding": "Envisagez d’ajouter des fonds à votre position {{ticker}}",
+    "liquidations-funding-recommended": "Il est recommandé d’ajouter des fonds à votre position {{ticker}}",
+    "liquidations-fund-now": "La position {{ticker}} est proche de la liquidation ! Ajoutez des fonds maintenant",
+    "liquidations-partially-liquidated": "La position {{ticker}} a été partiellement liquidée. La santé est revenue à 10 %",
+    "liquidations-fully-liquidated": "La position {{ticker}} a été totalement liquidée"
   },
   "message": {
     "connect-wallet": "Connecter",
@@ -441,6 +450,25 @@
     "status-stop-loss": "Arrêter la perte",
     "liquidation-overdue interest": "Règlement des intérêts",
     "liquidation-high liability": "Liquidation déclenchée",
-    "tvl": "Valeur totale verrouillée"
+    "tvl": "Valeur totale verrouillée",
+    "Success": "Succès",
+    "Error": "Erreur",
+    "keplr-mobile": "Keplr mobile",
+    "latest": "Derniers",
+    "close-policy": "Marge",
+    "change-close-policy": "Modifier la politique de clôture de la position #{address}",
+    "market-anomaly-title": "Anomalie de marché : mode surveillance activé",
+    "market-anomaly-title-desc": "Le Market Anomaly Guard (MAG) a suspendu les liquidations en raison de prix DEX inhabituellement bas. Votre position est en sécurité pour le moment pendant que le système surveille un éventuel rétablissement.",
+    "market-anomaly-title-desc-link": "Découvrez comment MAG protège contre les liquidations injustes",
+    "subscribed": "Alertes activées sur cet appareil",
+    "unsubscribed": "Alertes désactivées sur cet appareil",
+    "and": "et",
+    "close-title": "Clôture de position en cours",
+    "close-description": "Cette position est en cours de clôture partielle ou totale. Le processus prend généralement moins d’une minute.",
+    "jailed-tooltip": "Un validateur « jailed » est un nœud de blockchain temporairement exclu pour comportement fautif ou performances insuffisantes.",
+    "redelagate": "Déléguer",
+    "keplr-wallet-connect": "Wallet Connect (bêta)",
+    "download-csv": "Télécharger le fichier CSV",
+    "full-close-action": "Clôturer la position {contract}"
   }
 }

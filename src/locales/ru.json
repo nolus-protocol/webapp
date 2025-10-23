@@ -1,5 +1,15 @@
 {
   "push": {
+    "ltv-title": "Внимание! Здоровье ниже 7.5%",
+    "ltv-title-risk": "Внимание! Здоровье ниже 5%",
+    "ltv-title-high-risk": "Опасность! Здоровье ниже 3%",
+    "ltv-title-partial-liquidation": "Частичная ликвидация",
+    "ltv-title-full-liquidation": "Полная ликвидация",
+    "liquidations-funding": "Рассмотрите пополнение позиции {{ticker}}",
+    "liquidations-funding-recommended": "Рекомендуется пополнить позицию {{ticker}}",
+    "liquidations-fund-now": "Позиция {{ticker}} близка к ликвидации! Пополните сейчас",
+    "liquidations-partially-liquidated": "Позиция {{ticker}} частично ликвидирована. Здоровье восстановлено до 10%",
+    "liquidations-fully-liquidated": "Позиция {{ticker}} полностью ликвидирована"
   },
   "message": {
     "connect-wallet": "Подключить",
@@ -440,6 +450,25 @@
     "status-stop-loss": "Стоп-лосс",
     "liquidation-overdue interest": "Урегулировать проценты",
     "liquidation-high liability": "Началась ликвидация",
-    "tvl": "Общая стоимость заблокирована"
+    "tvl": "Общая стоимость заблокирована",
+    "Success": "Успешно",
+    "Error": "Ошибка",
+    "keplr-mobile": "Keplr для мобильных",
+    "latest": "Последнее",
+    "close-policy": "Маржа",
+    "change-close-policy": "Изменить политику закрытия для позиции #{address}",
+    "market-anomaly-title": "Аномалия рынка: режим наблюдения активен",
+    "market-anomaly-title-desc": "Market Anomaly Guard (MAG) приостановил ликвидации из-за аномально низких цен на DEX. Сейчас ваша позиция в безопасности, пока система следит за восстановлением.",
+    "market-anomaly-title-desc-link": "Узнайте, как MAG защищает от несправедливой ликвидации",
+    "subscribed": "Уведомления включены на этом устройстве",
+    "unsubscribed": "Уведомления отключены на этом устройстве",
+    "and": "и",
+    "close-title": "Идёт закрытие позиции",
+    "close-description": "Эта позиция частично или полностью закрывается. Обычно это занимает меньше минуты.",
+    "jailed-tooltip": "Заблокированный валидатор — это узел блокчейна, временно исключённый за нарушения или низкую производительность.",
+    "redelagate": "Делегировать",
+    "keplr-wallet-connect": "Wallet Connect (бета)",
+    "download-csv": "Скачать CSV",
+    "full-close-action": "Закрыть позицию {contract}"
   }
 }

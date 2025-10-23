@@ -1,5 +1,15 @@
 {
   "push": {
+    "ltv-title": "Peringatan! Kesehatan di bawah 7.5%",
+    "ltv-title-risk": "Peringatan! Kesehatan di bawah 5%",
+    "ltv-title-high-risk": "Bahaya! Kesehatan di bawah 3%",
+    "ltv-title-partial-liquidation": "Likuidasi Parsial",
+    "ltv-title-full-liquidation": "Likuidasi Penuh",
+    "liquidations-funding": "Pertimbangkan untuk mendanai posisi {{ticker}} Anda",
+    "liquidations-funding-recommended": "Disarankan untuk mendanai posisi {{ticker}} Anda",
+    "liquidations-fund-now": "Posisi {{ticker}} hampir terkena likuidasi! Danai sekarang",
+    "liquidations-partially-liquidated": "Posisi {{ticker}} telah dilikuidasi sebagian. Kesehatan kembali ke 10%",
+    "liquidations-fully-liquidated": "Posisi {{ticker}} telah dilikuidasi sepenuhnya"
   },
   "message": {
     "connect-wallet": "Hubungkan Wallet",
@@ -621,6 +631,24 @@
     "status-stop-loss": "Stop loss",
     "liquidation-overdue interest": "Settle Interest",
     "liquidation-high liability": "Liquidation Triggered",
-    "tvl": "Total value locked"
+    "tvl": "Total value locked",
+    "debt-paid": "Utang Anda akan dilunasi sepenuhnya",
+    "keplr-mobile": "Keplr mobile",
+    "latest": "Terbaru",
+    "close-policy": "Margin",
+    "change-close-policy": "Ubah kebijakan penutupan pada posisi #{address}",
+    "market-anomaly-title": "Anomali Pasar: Mode Pantau Aktif",
+    "market-anomaly-title-desc": "Market Anomaly Guard (MAG) telah menghentikan sementara likuidasi karena harga DEX yang tidak biasa rendah. Posisi Anda aman untuk saat ini sementara sistem memantau pemulihan.",
+    "market-anomaly-title-desc-link": "Pelajari bagaimana MAG melindungi dari likuidasi yang tidak adil",
+    "subscribed": "Notifikasi diaktifkan di perangkat ini",
+    "unsubscribed": "Notifikasi dinonaktifkan di perangkat ini",
+    "and": "dan",
+    "close-title": "Penutupan Posisi Sedang Berlangsung",
+    "close-description": "Posisi ini sedang ditutup sebagian atau sepenuhnya. Prosesnya biasanya memerlukan kurang dari satu menit.",
+    "jailed-tooltip": "Validator yang berstatus jailed adalah node blockchain yang sementara dikeluarkan karena pelanggaran atau kinerja buruk.",
+    "redelagate": "Delegasikan",
+    "keplr-wallet-connect": "Wallet Connect (beta)",
+    "download-csv": "Unduh CSV",
+    "full-close-action": "Tutup posisi {contract}"
   }
 }
