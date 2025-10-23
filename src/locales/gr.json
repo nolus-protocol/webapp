@@ -467,6 +467,8 @@
     "redelagate": "Delegate",
     "keplr-wallet-connect": "Wallet connect",
     "download-csv": "Download CSV",
-    "full-close-action": "Close margin position {contract}"
+    "full-close-action": "Close margin position {contract}",
+    "Success": "Επιτυχία",
+    "Error": "Σφάλμα"
   }
 }
