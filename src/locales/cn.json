@@ -439,10 +439,6 @@
     "status-take-profit": "止盈",
     "status-stop-loss": "止损",
     "liquidation-overdue interest": "结算利息",
-    "liquidation-high liability": "已触发爆仓",
-    "tvl": "锁定总价值",
-    "keplr-mobile": "Keplr mobile",
-    "Success": "成功",
-    "Error": "错误"
+    "liquidation-high liability": "已触发爆仓"
   }
 }

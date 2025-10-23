@@ -1,15 +1,6 @@
 {
   "push": {
-    "ltv-title": "Warning! Health is below 7.5%",
-    "ltv-title-risk": "Warning! Health is below 5%",
-    "ltv-title-high-risk": "Danger! Health is below 3%",
-    "ltv-title-partial-liquidation": "Partial Liquidation",
-    "ltv-title-full-liquidation": "Full Liquidation",
-    "liquidations-funding": "Consider funding your {{ticker}} position",
-    "liquidations-funding-recommended": "Funding your {{ticker}} position is recommended",
-    "liquidations-fund-now": "{{ticker}} position is close to liquidation! Fund now",
-    "liquidations-partially-liquidated": "{{ticker}} position is partially liquidated. Health is back at 10%",
-    "liquidations-fully-liquidated": "{{ticker}} position has been fully liquidated"
+
   },
   "message": {
     "connect-wallet": "Connecter",
@@ -450,25 +441,6 @@
     "status-stop-loss": "Arrêter la perte",
     "liquidation-overdue interest": "Règlement des intérêts",
     "liquidation-high liability": "Liquidation déclenchée",
-    "tvl": "Valeur totale verrouillée",
-    "keplr-mobile": "Keplr mobile",
-    "latest": "Latest",
-    "close-policy": "Margin",
-    "change-close-policy": "Change close policy on position #{address}",
-    "market-anomaly-title": "Market Anomaly: Watch Mode Active",
-    "market-anomaly-title-desc": "Market Anomaly Guard (MAG) has paused liquidation due to unusually low DEX prices. Your position is safe for now while the system monitors for recovery.",
-    "market-anomaly-title-desc-link": "Learn how MAG safeguards from unfair liquidation",
-    "subscribed": "Subscribed",
-    "unsubscribed": "Unsubscribed",
-    "and": "and",
-    "close-title": "Ongoing Position Close",
-    "close-description": "This position is being partially or fully closed. The process usually takes less than a minute.",
-    "jailed-tooltip": "A jailed validator is a blockchain node temporarily excluded for misbehavior or poor performance.",
-    "redelagate": "Delegate",
-    "keplr-wallet-connect": "Wallet connect",
-    "download-csv": "Download CSV",
-    "full-close-action": "Close margin position {contract}",
-    "Success": "Succès",
-    "Error": "Erreur"
+    "tvl": "Valeur totale verrouillée"
   }
 }
