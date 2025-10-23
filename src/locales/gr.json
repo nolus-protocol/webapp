@@ -1,5 +1,15 @@
 {
   "push": {
+    "ltv-title": "Προειδοποίηση! Η υγεία είναι κάτω από 7.5%",
+    "ltv-title-risk": "Προειδοποίηση! Η υγεία είναι κάτω από 5%",
+    "ltv-title-high-risk": "Κίνδυνος! Η υγεία είναι κάτω από 3%",
+    "ltv-title-partial-liquidation": "Μερική ρευστοποίηση",
+    "ltv-title-full-liquidation": "Πλήρης ρευστοποίηση",
+    "liquidations-funding": "Σκεφτείτε να χρηματοδοτήσετε τη θέση σας σε {{ticker}}",
+    "liquidations-funding-recommended": "Συνιστάται να χρηματοδοτήσετε τη θέση σας σε {{ticker}}",
+    "liquidations-fund-now": "Η θέση σε {{ticker}} είναι κοντά σε ρευστοποίηση! Χρηματοδοτήστε τώρα",
+    "liquidations-partially-liquidated": "Η θέση σε {{ticker}} ρευστοποιήθηκε μερικώς. Η υγεία επανήλθε στο 10%",
+    "liquidations-fully-liquidated": "Η θέση σε {{ticker}} έχει ρευστοποιηθεί πλήρως"
   },
   "message": {
     "connect-wallet": "Σύνδεση",
@@ -440,6 +450,25 @@
     "status-stop-loss": "Σταματήστε την απώλεια",
     "liquidation-overdue interest": "Διακανονισμός τόκου",
     "liquidation-high liability": "Εκκαθάριση ενεργοποιήθηκε",
-    "tvl": "Συνολική τιμή κλειδωμένη"
+    "tvl": "Συνολική τιμή κλειδωμένη",
+    "Success": "Επιτυχία",
+    "Error": "Σφάλμα",
+    "keplr-mobile": "Keplr για κινητό",
+    "latest": "Τελευταίο",
+    "close-policy": "Περιθώριο",
+    "change-close-policy": "Αλλάξτε την πολιτική κλεισίματος στη θέση #{address}",
+    "market-anomaly-title": "Ανωμαλία Αγοράς: Ενεργή Λειτουργία Παρακολούθησης",
+    "market-anomaly-title-desc": "Το Market Anomaly Guard (MAG) έχει θέσει σε παύση τις ρευστοποιήσεις λόγω ασυνήθιστα χαμηλών τιμών στα DEX. Η θέση σας είναι προς το παρόν ασφαλής όσο το σύστημα παρακολουθεί για ανάκαμψη.",
+    "market-anomaly-title-desc-link": "Μάθετε πώς το MAG προστατεύει από άδικες ρευστοποιήσεις",
+    "subscribed": "Οι ειδοποιήσεις είναι ενεργές σε αυτήν τη συσκευή",
+    "unsubscribed": "Οι ειδοποιήσεις είναι απενεργοποιημένες σε αυτήν τη συσκευή",
+    "and": "και",
+    "close-title": "Κλείσιμο θέσης σε εξέλιξη",
+    "close-description": "Η θέση αυτή κλείνει μερικώς ή πλήρως. Η διαδικασία συνήθως διαρκεί λιγότερο από ένα λεπτό.",
+    "jailed-tooltip": "Ένας «φυλακισμένος» επικυρωτής είναι ένας κόμβος blockchain που αποκλείεται προσωρινά λόγω κακής συμπεριφοράς ή χαμηλής απόδοσης.",
+    "redelagate": "Εκχώρηση",
+    "keplr-wallet-connect": "Wallet Connect (beta)",
+    "download-csv": "Λήψη CSV",
+    "full-close-action": "Κλείσιμο θέσης {contract}"
   }
 }

@@ -1,5 +1,15 @@
 {
   "push": {
+    "ltv-title": "Warning! Health is below 7.5%",
+    "ltv-title-risk": "Warning! Health is below 5%",
+    "ltv-title-high-risk": "Danger! Health is below 3%",
+    "ltv-title-partial-liquidation": "Kısmi Likidasyon",
+    "ltv-title-full-liquidation": "Tam Likidasyon",
+    "liquidations-funding": "{{ticker}} pozisyonunuza fon eklemeyi düşünün",
+    "liquidations-funding-recommended": "{{ticker}} pozisyonunuza fon eklemeniz önerilir",
+    "liquidations-fund-now": "{{ticker}} pozisyonu likidasyona çok yakın! Şimdi fon ekleyin",
+    "liquidations-partially-liquidated": "{{ticker}} position is partially liquidated. Health is back at 10%",
+    "liquidations-fully-liquidated": "{{ticker}} pozisyonu tamamen likide edildi"
   },
   "message": {
     "connect-wallet": "Bağlamak",
@@ -440,6 +450,25 @@
     "status-stop-loss": "Kaybı durdur",
     "liquidation-overdue interest": "Faizi Kapat",
     "liquidation-high liability": "Tasfiye Tetiklendi",
-    "tvl": "Toplam Değer Kilitli"
+    "tvl": "Toplam Değer Kilitli",
+    "Success": "Başarılı",
+    "Error": "Hata",
+    "keplr-mobile": "Keplr mobil",
+    "latest": "En son",
+    "close-policy": "Marjin",
+    "change-close-policy": "Pozisyon #{address} için kapatma politikasını değiştir",
+    "market-anomaly-title": "Piyasa Anomalisi: İzleme Modu Aktif",
+    "market-anomaly-title-desc": "Market Anomaly Guard (MAG), olağan dışı düşük DEX fiyatları nedeniyle likidasyonu duraklattı. Sistem toparlanmayı izlerken pozisyonunuz şimdilik güvende.",
+    "market-anomaly-title-desc-link": "MAG'in haksız likidasyona karşı nasıl koruma sağladığını öğrenin",
+    "subscribed": "Bu cihazda uyarılar etkin",
+    "unsubscribed": "Bu cihazda uyarılar devre dışı",
+    "and": "ve",
+    "close-title": "Pozisyon kapatma devam ediyor",
+    "close-description": "Bu pozisyon kısmen veya tamamen kapatılıyor. Süreç genellikle bir dakikadan az sürer.",
+    "jailed-tooltip": "Cezalı bir doğrulayıcı, kötü davranış veya düşük performans nedeniyle geçici olarak dışlanan bir blokzinciri düğümüdür.",
+    "redelagate": "Delege Et",
+    "keplr-wallet-connect": "Wallet Connect (beta)",
+    "download-csv": "CSV indir",
+    "full-close-action": "Pozisyonu kapat {contract}"
   }
 }

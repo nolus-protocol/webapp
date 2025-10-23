@@ -1,6 +1,15 @@
 {
   "push": {
-
+    "ltv-title": "警告！健全性が7.5%未満です",
+    "ltv-title-risk": "警告！健全性が5%未満です",
+    "ltv-title-high-risk": "危険！健全性が3%未満です",
+    "ltv-title-partial-liquidation": "部分清算",
+    "ltv-title-full-liquidation": "全清算",
+    "liquidations-funding": "{{ticker}}のポジションへの資金追加をご検討ください",
+    "liquidations-funding-recommended": "{{ticker}}のポジションへの資金追加を推奨します",
+    "liquidations-fund-now": "{{ticker}}のポジションが清算寸前です！今すぐ資金を追加",
+    "liquidations-partially-liquidated": "{{ticker}}のポジションは一部清算されました。健全性は10%に回復しました",
+    "liquidations-fully-liquidated": "{{ticker}}のポジションは全清算されました"
   },
   "message": {
     "connect-wallet": "接続する",
@@ -441,6 +450,25 @@
     "status-stop-loss": "ストップロス",
     "liquidation-overdue interest": "利息の決済",
     "liquidation-high liability": "清算の発動",
-    "tvl": "合計値がロックされました"
+    "tvl": "合計値がロックされました",
+    "Success": "成功",
+    "Error": "エラー",
+    "keplr-mobile": "Keplr Mobile",
+    "latest": "最新",
+    "close-policy": "証拠金",
+    "change-close-policy": "ポジション#{address}のクローズポリシーを変更",
+    "market-anomaly-title": "市場異常: 監視モードが有効",
+    "market-anomaly-title-desc": "Market Anomaly Guard（MAG）は、異常に低いDEX価格のため清算を一時停止しました。システムが回復を監視している間、現時点ではポジションは安全です。",
+    "market-anomaly-title-desc-link": "MAGが不当な清算から保護する仕組みを確認",
+    "subscribed": "このデバイスでアラートを有効にしました",
+    "unsubscribed": "このデバイスでアラートを無効にしました",
+    "and": "と",
+    "close-title": "ポジションをクローズ中",
+    "close-description": "このポジションは部分または全てクローズ中です。処理は通常1分未満で完了します。",
+    "jailed-tooltip": "Jailed状態のバリデータは、不正行為や低パフォーマンスにより一時的にネットワークから除外されたブロックチェーンノードです。",
+    "redelagate": "委任",
+    "keplr-wallet-connect": "Wallet Connect (ベータ)",
+    "download-csv": "CSVをダウンロード",
+    "full-close-action": "ポジション{contract}をクローズ"
   }
 }
