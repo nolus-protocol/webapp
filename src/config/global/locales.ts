@@ -51,6 +51,11 @@ let languages: {
     key: "jp",
     label: "日本語",
     url: import("../../locales/jp.json?url").then((t) => t.default)
+  },
+  kr: {
+    key: "kr",
+    label: "한국어",
+    url: import("../../locales/kr.json?url").then((t) => t.default)
   }
 };
 
@@ -100,6 +105,11 @@ if (!isDev()) {
       key: "jp",
       label: "日本語",
       url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/jp.json"
+    },
+    kr: {
+      key: "kr",
+      label: "한국어",
+      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/kr.json"
     }
   };
 }
