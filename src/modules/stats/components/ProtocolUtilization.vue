@@ -61,7 +61,7 @@ import { useAdminStore } from "@/common/stores/admin";
 
 const i18n = useI18n();
 
-const columns: TableColumnProps[] = [
+const columns = computed<TableColumnProps[]>(() => [
   { label: i18n.t("message.asset"), variant: "left" },
   { label: "", class: "hidden md:flex" },
   { label: i18n.t("message.current-utilization"), class: "hidden md:flex" },
@@ -74,7 +74,7 @@ const columns: TableColumnProps[] = [
     label: i18n.t("message.yield"),
     tooltip: { position: "top", content: i18n.t("message.yield-tooltip") }
   }
-];
+]);
 const assets = computed<TableRowItemProps[]>(() => {
   return [
     {

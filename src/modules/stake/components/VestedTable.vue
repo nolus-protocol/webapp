@@ -30,7 +30,7 @@ const i18n = useI18n();
 const oracle = useOracleStore();
 const wallet = useWalletStore();
 
-const columns: TableColumnProps[] = [
+const columns = computed<TableColumnProps[]>(() => [
   { label: i18n.t("message.asset"), variant: "left" },
   { label: i18n.t("message.balance"), class: "max-w-[200px]" },
   {
@@ -38,7 +38,7 @@ const columns: TableColumnProps[] = [
     class: "md:flex max-w-[200px]",
     tooltip: { content: i18n.t("message.release-schedule-tooltip") }
   }
-];
+]);
 
 const props = defineProps<{
   vestedTokens: { endTime: string; amount: { amount: string; denom: string } }[];

@@ -293,8 +293,9 @@ async function transferAmount() {
         type: ToastType.success,
         message: i18n.t("message.withdraw-successful")
       });
-    } catch (error) {
-      Logger.error(error);
+    } catch (e) {
+      Logger.error(e);
+      error.value = (e as Error).message;
     } finally {
       loading.value = false;
     }

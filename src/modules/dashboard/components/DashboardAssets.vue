@@ -95,7 +95,7 @@ const hide = ref(WalletManager.getHideBalances());
 
 defineProps<{ isVisible: boolean }>();
 
-const columns: TableColumnProps[] = [
+const columns = computed<TableColumnProps[]>(() => [
   { label: i18n.t("message.assets"), variant: "left" },
   { label: i18n.t("message.price"), class: "md:flex hidden" },
   { label: i18n.t("message.balance") },
@@ -104,7 +104,7 @@ const columns: TableColumnProps[] = [
     tooltip: { position: "top", content: i18n.t("message.earn-apr-tooltip") },
     class: "md:flex hidden"
   }
-];
+]);
 
 const filteredAssets = computed(() => {
   const balances = wallet.currencies;

@@ -55,15 +55,16 @@ import { useI18n } from "vue-i18n";
 import { Button, Table, type TableColumnProps, TableRow, type TableRowItemProps } from "web-components";
 import EmptyState from "@/common/components/EmptyState.vue";
 import { NETWORK } from "@/config/global";
+import { computed } from "vue";
 
 const i18n = useI18n();
 
-const columns: TableColumnProps[] = [
+const columns = computed<TableColumnProps[]>(() => [
   { label: i18n.t("message.validator"), variant: "left", class: "break-all" },
   { label: i18n.t("message.amount-delegated"), class: "md:flex" },
   { label: i18n.t("message.comm"), class: "md:flex max-w-[100px]" },
   { label: i18n.t("message.status"), class: "max-w-[140px]" }
-];
+]);
 
 function openLink() {
   window.open(NETWORK.staking, "_blank");

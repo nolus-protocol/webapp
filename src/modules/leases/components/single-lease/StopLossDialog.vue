@@ -312,7 +312,7 @@ async function onSendClick() {
   try {
     disabled.value = true;
     await walletOperation(operation);
-  } catch (error: Error | any) {
+  } catch (e: Error | any) {
   } finally {
     disabled.value = false;
   }

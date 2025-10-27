@@ -57,12 +57,12 @@ const props = defineProps<{
   lease?: LeaseData;
 }>();
 
-const columns: TableColumnProps[] = [
+const columns = computed<TableColumnProps[]>(() => [
   { label: i18n.t("message.history-transaction"), variant: "left" },
   { label: i18n.t("message.date-pascal-case"), class: "max-w-[180px]" },
   { label: i18n.t("message.status"), class: "max-w-[110px]" },
   { label: i18n.t("message.action"), class: "max-w-[70px]" }
-];
+]);
 
 const leasesHistory = computed(() => {
   return (props.lease?.leaseData?.history ?? []).map((item) => {

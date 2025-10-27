@@ -23,10 +23,11 @@
 import { Table, type TableColumnProps, TableRow, type TableRowItemProps } from "web-components";
 import { useI18n } from "vue-i18n";
 import { isMobile } from "@/common/utils";
+import { computed } from "vue";
 
 const i18n = useI18n();
 
-const columns: TableColumnProps[] = [
+const columns = computed<TableColumnProps[]>(() => [
   { label: i18n.t("message.asset"), variant: "left" },
   { label: i18n.t("message.deposit"), tooltip: { position: "top", content: i18n.t("message.deposit-tooltip") } },
   { label: i18n.t("message.yield"), tooltip: { position: "top", content: i18n.t("message.yield-tooltip") } },
@@ -34,7 +35,7 @@ const columns: TableColumnProps[] = [
     label: i18n.t("message.availability"),
     tooltip: { position: "top", content: i18n.t("message.availability-tooltip") }
   }
-];
+]);
 
 defineProps<{
   items: TableRowItemProps[];

@@ -29,11 +29,11 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 const i18n = useI18n();
 const oracle = useOracleStore();
 
-const columns: TableColumnProps[] = [
+const columns = computed<TableColumnProps[]>(() => [
   { label: i18n.t("message.asset"), variant: "left" },
   { label: i18n.t("message.amount-undelegate"), class: "max-w-[200px]" },
   { label: i18n.t("message.time-left"), class: "hidden md:flex max-w-[120px]" }
-];
+]);
 
 const props = defineProps<{
   unboundingDelegations: IObjectKeys[];

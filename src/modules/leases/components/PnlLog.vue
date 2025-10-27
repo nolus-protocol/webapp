@@ -115,14 +115,14 @@ const loaded = ref(false);
 const showSkeleton = ref(true);
 const router = useRouter();
 
-const columns: TableColumnProps[] = [
+const columns = computed<TableColumnProps[]>(() => [
   { label: i18n.t("message.contract-id"), variant: "left", class: "max-w-[120px]" },
   { label: i18n.t("message.type"), variant: "left", class: "max-w-[200px]" },
   { label: i18n.t("message.asset"), variant: "left" },
   { label: i18n.t("message.action") },
   { label: i18n.t("message.realized") },
   { label: i18n.t("message.date-capitalize"), class: "max-w-[200px] w-full" }
-];
+]);
 
 const loans = ref([] as ILoan[]);
 const filename = "data.csv";

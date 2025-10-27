@@ -65,7 +65,7 @@ const showSmallBalances = computed(() => {
 });
 const search = ref("");
 
-const columns: TableColumnProps[] = [
+const columns = computed<TableColumnProps[]>(() => [
   { label: i18n.t("message.assets"), variant: "left" },
   { label: i18n.t("message.price"), class: "md:flex" },
   { label: i18n.t("message.balance") },
@@ -74,7 +74,7 @@ const columns: TableColumnProps[] = [
     tooltip: { position: "top", content: i18n.t("message.earn-apr-tooltip") },
     class: "md:flex"
   }
-];
+]);
 
 const filteredAssets = computed(() => {
   const balances = showSmallBalances.value ? wallet.currencies : filterSmallBalances(wallet.currencies);

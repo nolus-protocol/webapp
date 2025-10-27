@@ -372,7 +372,7 @@ async function setRoute(token: Coin, revert = false) {
       priceImapact.value = Number(route?.swap_price_impact_percent ?? "0");
       setSwapFee();
     } catch (e) {
-      error.value = (e as Error).toString();
+      error.value = (e as Error).message;
       route = null;
       Logger.error(e);
     } finally {

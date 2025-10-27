@@ -43,6 +43,7 @@ import { select } from "d3";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { Logger } from "../utils";
 import { Spinner } from "web-components";
+import { useI18n } from "vue-i18n";
 import EmptyState from "@/common/components/EmptyState.vue";
 
 export interface IChart {
@@ -61,6 +62,7 @@ const isLoading = ref(true);
 const maxHeight = ref(0);
 const container = ref<HTMLDivElement | null>();
 const plotContainer = ref<HTMLElement | null>(null);
+const i18n = useI18n();
 
 onMounted(async () => {
   await props.updateChart(plotContainer.value, tooltip);
@@ -70,6 +72,14 @@ onMounted(async () => {
 
 onUnmounted(() => {
   tooltip.remove();
+});
+
+watch(i18n.locale, async () => {
+  try {
+    await props.updateChart(plotContainer.value, tooltip);
+  } catch (e) {
+    console.error(e);
+  }
 });
 
 const isLegendVisible = computed(() => {

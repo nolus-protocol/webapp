@@ -113,13 +113,13 @@ const voteMessages: { [key: string]: string } = {
   [VoteOption.VOTE_OPTION_NO]: i18n.t(`message.no`).toLowerCase()
 };
 
-const columns: TableColumnProps[] = [
+const columns = computed<TableColumnProps[]>(() => [
   { label: i18n.t("message.category"), class: "max-w-[100px]", variant: "left" },
   { label: i18n.t("message.history-transaction"), variant: "left" },
   { label: i18n.t("message.time"), class: "max-w-[180px]" },
   { label: i18n.t("message.status"), class: "max-w-[150px]" },
   { label: i18n.t("message.action"), class: "max-w-[120px]" }
-];
+]);
 
 const limit = 50;
 let skip = 0;

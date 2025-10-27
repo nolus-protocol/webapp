@@ -777,7 +777,7 @@ async function onSendClick() {
   try {
     disabled.value = true;
     await walletOperation(marketCloseLease);
-  } catch (error: Error | any) {
+  } catch (e: Error | any) {
   } finally {
     disabled.value = false;
   }
@@ -802,8 +802,9 @@ async function marketCloseLease() {
         type: ToastType.success,
         message: i18n.t("message.toast-closed")
       });
-    } catch (error: Error | any) {
-      Logger.error(error);
+    } catch (e: Error | any) {
+      Logger.error(e);
+      amountErrorMsg.value = (e as Error).message;
     } finally {
       loading.value = false;
     }

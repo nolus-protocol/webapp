@@ -229,8 +229,8 @@ async function onVoteEmit(vote: VoteOption) {
         })
       });
     }
-  } catch (error: Error | any) {
-    Logger.error(error);
+  } catch (e: Error | any) {
+    Logger.error(e);
   } finally {
     isLoading.value = -1;
     isDisabled.value = false;

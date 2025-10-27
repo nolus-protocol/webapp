@@ -158,7 +158,7 @@ let openMenuId: string | null;
 
 let timeOut: NodeJS.Timeout;
 
-const columns: TableColumnProps[] = [
+const columns = computed<TableColumnProps[]>(() => [
   { label: i18n.t("message.lease"), variant: "left", class: "max-w-[150px]" },
   { label: i18n.t("message.asset"), variant: "left" },
   { label: i18n.t("message.type"), variant: "left", class: "max-w-[45px]" },
@@ -166,7 +166,7 @@ const columns: TableColumnProps[] = [
   { label: i18n.t("message.lease-size") },
   { label: i18n.t("message.liquidation-lease-table"), class: "max-w-[200px]" },
   { label: "", class: "max-w-[220px]" }
-];
+]);
 
 const leasesData = computed<TableRowItemProps[]>(() => {
   const param = search.value.toLowerCase();

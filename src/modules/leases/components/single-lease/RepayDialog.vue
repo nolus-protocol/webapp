@@ -548,7 +548,7 @@ async function onSendClick() {
   try {
     disabled.value = true;
     await walletOperation(repayLease);
-  } catch (error: Error | any) {
+  } catch (e: Error | any) {
   } finally {
     disabled.value = false;
   }
@@ -580,8 +580,9 @@ async function repayLease() {
         type: ToastType.success,
         message: i18n.t("message.toast-repaid")
       });
-    } catch (error: Error | any) {
-      Logger.error(error);
+    } catch (e: Error | any) {
+      amountErrorMsg.value = (e as Error).message;
+      Logger.error(e);
     } finally {
       loading.value = false;
     }
