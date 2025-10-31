@@ -106,7 +106,6 @@ import { NATIVE_ASSET } from "@/config/global";
 import { formatDateTime, Logger, NetworkUtils, walletOperation } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";
 import { MsgVote } from "cosmjs-types/cosmos/gov/v1/tx";
-import { longify } from "@cosmjs/stargate/build/queryclient";
 import { useI18n } from "vue-i18n";
 
 const dialog = ref<typeof Dialog | null>(null);
@@ -212,7 +211,7 @@ async function onVoteEmit(vote: VoteOption) {
     if (wallet.wallet) {
       const typeUrl = "/cosmos.gov.v1beta1.MsgVote";
       const voteMsg = MsgVote.fromPartial({
-        proposalId: longify(props.proposal.id),
+        proposalId: BigInt(props.proposal.id),
         voter: wallet.wallet!.address,
         option: vote
       });
