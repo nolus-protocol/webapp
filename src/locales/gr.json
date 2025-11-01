@@ -5,11 +5,11 @@
     "ltv-title-high-risk": "Κίνδυνος! Η υγεία είναι κάτω από 3%",
     "ltv-title-partial-liquidation": "Μερική ρευστοποίηση",
     "ltv-title-full-liquidation": "Πλήρης ρευστοποίηση",
-    "liquidations-funding": "Σκεφτείτε να χρηματοδοτήσετε τη θέση σας σε {{ticker}}",
-    "liquidations-funding-recommended": "Συνιστάται να χρηματοδοτήσετε τη θέση σας σε {{ticker}}",
-    "liquidations-fund-now": "Η θέση σε {{ticker}} είναι κοντά σε ρευστοποίηση! Χρηματοδοτήστε τώρα",
-    "liquidations-partially-liquidated": "Η θέση σε {{ticker}} ρευστοποιήθηκε μερικώς. Η υγεία επανήλθε στο 10%",
-    "liquidations-fully-liquidated": "Η θέση σε {{ticker}} έχει ρευστοποιηθεί πλήρως"
+    "liquidations-funding": "Σκεφτείτε να χρηματοδοτήσετε τη θέση σας σε {ticker}",
+    "liquidations-funding-recommended": "Συνιστάται να χρηματοδοτήσετε τη θέση σας σε {ticker}",
+    "liquidations-fund-now": "Η θέση σε {ticker} είναι κοντά σε ρευστοποίηση! Χρηματοδοτήστε τώρα",
+    "liquidations-partially-liquidated": "Η θέση σε {ticker} ρευστοποιήθηκε μερικώς. Η υγεία επανήλθε στο 10%",
+    "liquidations-fully-liquidated": "Η θέση σε {ticker} έχει ρευστοποιηθεί πλήρως"
   },
   "message": {
     "connect-wallet": "Σύνδεση",

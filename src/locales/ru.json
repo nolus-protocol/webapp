@@ -5,11 +5,11 @@
     "ltv-title-high-risk": "Опасность! Здоровье ниже 3%",
     "ltv-title-partial-liquidation": "Частичная ликвидация",
     "ltv-title-full-liquidation": "Полная ликвидация",
-    "liquidations-funding": "Рассмотрите пополнение позиции {{ticker}}",
-    "liquidations-funding-recommended": "Рекомендуется пополнить позицию {{ticker}}",
-    "liquidations-fund-now": "Позиция {{ticker}} близка к ликвидации! Пополните сейчас",
-    "liquidations-partially-liquidated": "Позиция {{ticker}} частично ликвидирована. Здоровье восстановлено до 10%",
-    "liquidations-fully-liquidated": "Позиция {{ticker}} полностью ликвидирована"
+    "liquidations-funding": "Рассмотрите пополнение позиции {ticker}",
+    "liquidations-funding-recommended": "Рекомендуется пополнить позицию {ticker}",
+    "liquidations-fund-now": "Позиция {ticker} близка к ликвидации! Пополните сейчас",
+    "liquidations-partially-liquidated": "Позиция {ticker} частично ликвидирована. Здоровье восстановлено до 10%",
+    "liquidations-fully-liquidated": "Позиция {ticker} полностью ликвидирована"
   },
   "message": {
     "connect-wallet": "Подключить",

@@ -5,11 +5,11 @@
     "ltv-title-high-risk": "Danger! Health is below 3%",
     "ltv-title-partial-liquidation": "Partial Liquidation",
     "ltv-title-full-liquidation": "Full Liquidation",
-    "liquidations-funding": "Consider funding your {{ticker}} position",
-    "liquidations-funding-recommended": "Funding your {{ticker}} position is recommended",
-    "liquidations-fund-now": "{{ticker}} position is close to liquidation! Fund now",
-    "liquidations-partially-liquidated": "{{ticker}} position is partially liquidated. Health is back at 10%",
-    "liquidations-fully-liquidated": "{{ticker}} position has been fully liquidated"
+    "liquidations-funding": "Consider funding your {ticker} position",
+    "liquidations-funding-recommended": "Funding your {ticker} position is recommended",
+    "liquidations-fund-now": "{ticker} position is close to liquidation! Fund now",
+    "liquidations-partially-liquidated": "{ticker} position is partially liquidated. Health is back at 10%",
+    "liquidations-fully-liquidated": "{ticker} position has been fully liquidated"
   },
   "message": {
     "connect-wallet": "Connect",

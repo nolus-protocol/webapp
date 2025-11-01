@@ -32,6 +32,9 @@ let languages: {
   },
   jp: {
     url: `https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/jp.json`
+  },
+  kr: {
+    url: `https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/kr.json`
   }
 };
 

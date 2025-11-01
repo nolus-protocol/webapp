@@ -154,6 +154,33 @@ const nolus = defineConfig({
       format: {
         comments: false
       }
+    },
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (id.includes("node_modules")) {
+            if (["vue", "pinia"].find((a) => id.includes(a))) {
+              return "vue-vendor";
+            }
+
+            if (["cosmjs", "@keplr-wallet", "ethers", "@nolus/nolusjs"].find((a) => id.includes(a))) {
+              return "blockchain";
+            }
+
+            if (["@injectivelabs", "@ledgerhq", "@walletconnect"].find((a) => id.includes(a))) {
+              return "blockchain_utils";
+            }
+
+            if (["marked", "d3", "@intercom", "qrcode", "@observablehq/plot"].find((a) => id.includes(a))) {
+              return "utils";
+            }
+
+            if (["web-components"].find((a) => id.includes(a))) {
+              return "web-components";
+            }
+          }
+        }
+      }
     }
   }
 });

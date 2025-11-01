@@ -18,10 +18,8 @@ export function setI18nLanguage(locale: string) {
 
 export async function loadLocaleMessages(locale: string) {
   const lang = languages[locale as keyof typeof languages] ?? languages.en;
-  const url = await lang.url;
-  const data = await fetch(url);
-  const messages = await data.json();
-  i18n.global.setLocaleMessage(locale, messages);
+  const data = await lang.load();
+  i18n.global.setLocaleMessage(locale, data);
   return nextTick();
 }
 
