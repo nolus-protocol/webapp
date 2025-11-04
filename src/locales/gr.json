@@ -469,6 +469,7 @@
     "redelagate": "Εκχώρηση",
     "keplr-wallet-connect": "Wallet Connect (beta)",
     "download-csv": "Λήψη CSV",
-    "full-close-action": "Κλείσιμο θέσης {contract}"
+    "full-close-action": "Κλείσιμο θέσης {contract}",
+    "metamask": "Metamask"
   }
 }

@@ -14,6 +14,7 @@ import { updateHistory } from "./updateHistory";
 import { ignoreAssets } from "./ignoreAssets";
 import { loadActivities } from "./loadActivities";
 import { connectWithWalletConnect } from "./connectWC";
+import { connectMetamask } from "./connectMetamask";
 
 export const actions = {
   [WalletActions.DISCONNECT]: disconnect,
@@ -21,6 +22,7 @@ export const actions = {
   [WalletActions.CONNECT_LEAP]: connectLeap,
   [WalletActions.CONNECT_LEDGER]: connectLedger,
   [WalletActions.CONNECT_WC]: connectWithWalletConnect,
+  [WalletActions.CONNECT_EVM_METAMASK]: connectMetamask,
   [WalletActions.UPDATE_BALANCES]: updateBalances,
   [WalletActions.LOAD_VESTED_TOKENS]: loadVestedTokens,
   [WalletActions.LOAD_SUPPLIED_AMOUNT]: loadSuppliedAmount,

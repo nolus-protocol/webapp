@@ -105,7 +105,7 @@ import { NATIVE_NETWORK } from "../../../config/global/network";
 import { NATIVE_ASSET } from "@/config/global";
 import { formatDateTime, Logger, NetworkUtils, walletOperation } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";
-import { MsgVote } from "cosmjs-types/cosmos/gov/v1/tx";
+import { MsgVote } from "cosmjs-types/cosmos/gov/v1beta1/tx";
 import { useI18n } from "vue-i18n";
 
 const dialog = ref<typeof Dialog | null>(null);

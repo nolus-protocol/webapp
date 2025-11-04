@@ -80,6 +80,7 @@ import KeplrIcon from "@/assets/icons/wallets/keplr.svg";
 import LedgerIcon from "@/assets/icons/wallets/ledger.svg";
 import LeapIcon from "@/assets/icons/wallets/leapwallet.svg";
 import WalletconnectIcon from "@/assets/icons/wallets/walletconnect.svg";
+import MetamaskIcon from "@/assets/icons/wallets/metamask.svg";
 
 import NolusIcon from "@/assets/icons/coins/nls.svg?url";
 
@@ -112,6 +113,10 @@ const connections: {
   [WalletConnectMechanism.WALLET_WC]: {
     icon: WalletconnectIcon,
     label: i18n.t("message.walletconnect")
+  },
+  [WalletConnectMechanism.EVM_METAMASK]: {
+    icon: MetamaskIcon,
+    label: i18n.t("message.metamask")
   },
   [WalletConnectMechanism.LEDGER]: {
     icon: LedgerIcon,

@@ -469,6 +469,7 @@
     "redelagate": "委托",
     "keplr-wallet-connect": "Wallet Connect (测试版)",
     "download-csv": "下载 CSV",
-    "full-close-action": "平仓 {contract}"
+    "full-close-action": "平仓 {contract}",
+    "metamask": "Metamask"
   }
 }

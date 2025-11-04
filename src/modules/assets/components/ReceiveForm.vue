@@ -12,7 +12,7 @@
       <Dropdown
         id="network"
         :on-select="onUpdateNetwork"
-        :options="networks"
+        :options="all_networks"
         :size="Size.medium"
         searchable
         :selected="network"
@@ -130,7 +130,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { EvmNetwork } from "@/common/types/Network";
+import { ChainType, type EvmNetwork } from "@/common/types/Network";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { Coin } from "@keplr-wallet/types";
 
@@ -156,6 +156,7 @@ import { StepperVariant, Stepper } from "web-components";
 import { useApplicationStore } from "@/common/stores/application";
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
 import type { RouteResponse, Chain } from "@/common/types/skipRoute";
+import { WalletTypes } from "@/networks/types";
 
 const i18n = useI18n();
 const showDetails = ref(false);
@@ -227,6 +228,17 @@ let skipRouteConfig: SkipRouteConfigType | null;
 let id = Date.now();
 const onClose = inject("close", () => {});
 
+const all_networks = computed<(Network | EvmNetwork | any)[]>(() => {
+  switch (walletStore.wallet?.signer?.type) {
+    case WalletTypes.evm: {
+      return networks.value.filter((item: Network) => item.chain_type == ChainType.evm);
+    }
+    default: {
+      return networks.value;
+    }
+  }
+});
+
 onMounted(async () => {
   try {
     const [config, chns] = await Promise.all([AppUtils.getSkipRouteConfig(), SkipRouter.getChains()]);
@@ -240,9 +252,16 @@ onMounted(async () => {
       return false;
     }) as (Network | EvmNetwork)[];
 
-    networks.value = [...n].filter((item) => !IGNORED_NETWORKS.includes(item.key));
-    selectedNetwork.value = networks.value.findIndex((item: Network) => item.key == app.protocolFilter);
-    await onUpdateNetwork(networks.value[selectedNetwork.value]);
+    networks.value = [...n].filter((item) => {
+      return !IGNORED_NETWORKS.includes(item.key);
+    });
+    const index = all_networks.value.findIndex((item: Network) => item.key == app.protocolFilter);
+    if (index < 0) {
+      selectedNetwork.value = 0;
+    } else {
+      selectedNetwork.value = index;
+    }
+    await onUpdateNetwork(all_networks.value[selectedNetwork.value]);
   } catch (error) {
     Logger.error(error);
   }
@@ -257,7 +276,7 @@ onUnmounted(() => {
 });
 
 const network = computed(() => {
-  return networks.value[selectedNetwork.value];
+  return all_networks.value[selectedNetwork.value];
 });
 
 const currency = computed(() => {
@@ -401,7 +420,7 @@ watch(
 
 async function onUpdateNetwork(event: Network) {
   tempRoute.value = null;
-  selectedNetwork.value = networks.value.findIndex((item) => item.key == event.key);
+  selectedNetwork.value = all_networks.value.findIndex((item) => item == event);
   if (!event.native) {
     switch (event.chain_type) {
       case "cosmos": {
@@ -788,6 +807,7 @@ async function getRoute() {
   const asset = assets.value[selectedCurrency.value];
 
   const transferAmount = Decimal.fromUserInput(amount.value, asset!.decimal_digits as number);
+  const options: IObjectKeys = {};
 
   switch (network.value.chain_type) {
     case "evm": {
@@ -796,7 +816,24 @@ async function getRoute() {
     }
   }
 
-  const route = await SkipRouter.getRoute(asset.balance.denom, asset.from!, transferAmount.atomics, false, chainId);
+  switch (walletStore.wallet?.signer?.type) {
+    case WalletTypes.evm: {
+      options.smart_relay = false;
+      options.allow_multi_tx = false;
+
+      break;
+    }
+  }
+
+  const route = await SkipRouter.getRoute(
+    asset.balance.denom,
+    asset.from!,
+    transferAmount.atomics,
+    false,
+    chainId,
+    null,
+    options
+  );
   return route;
 }
 

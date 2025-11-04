@@ -469,6 +469,7 @@
     "redelagate": "Delege Et",
     "keplr-wallet-connect": "Wallet Connect (beta)",
     "download-csv": "CSV indir",
-    "full-close-action": "Pozisyonu kapat {contract}"
+    "full-close-action": "Pozisyonu kapat {contract}",
+    "metamask": "Metamask"
   }
 }

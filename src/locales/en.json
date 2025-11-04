@@ -469,6 +469,7 @@
     "redelagate": "Delegate",
     "keplr-wallet-connect": "Wallet Connect (beta)",
     "download-csv": "Download CSV",
-    "full-close-action": "Close position {contract}"
+    "full-close-action": "Close position {contract}",
+    "metamask": "Metamask"
   }
 }

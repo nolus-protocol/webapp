@@ -12,7 +12,7 @@
       <Dropdown
         id="network"
         :on-select="onUpdateNetwork"
-        :options="networks"
+        :options="all_networks"
         :size="Size.medium"
         searchable
         :selected="network"
@@ -135,7 +135,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { EvmNetwork } from "@/common/types/Network";
+import { ChainType, type EvmNetwork } from "@/common/types/Network";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { Coin } from "@keplr-wallet/types";
 
@@ -177,6 +177,7 @@ import { StepperVariant, Stepper } from "web-components";
 import { useApplicationStore } from "@/common/stores/application";
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
 import type { Chain, RouteResponse } from "@/common/types/skipRoute";
+import { WalletTypes } from "@/networks/types";
 
 const i18n = useI18n();
 const showDetails = ref(false);
@@ -229,8 +230,7 @@ let route: RouteResponse | null;
 
 const walletStore = useWalletStore();
 const app = useApplicationStore();
-
-const networks = ref<(Network | EvmNetwork | any)[]>([SUPPORTED_NETWORKS_DATA[app.protocolFilter]]);
+const networks = ref<(Network | EvmNetwork | any)[]>(NETWORK_DATA.list);
 const oracle = useOracleStore();
 
 const selectedNetwork = ref(0);
@@ -256,8 +256,19 @@ const wallet = ref(walletStore.wallet?.address);
 const isMetamaskLoading = ref(false);
 const onClose = inject("close", () => {});
 
+const all_networks = computed<(Network | EvmNetwork | any)[]>(() => {
+  switch (walletStore.wallet?.signer?.type) {
+    case WalletTypes.evm: {
+      return networks.value.filter((item: Network) => item.chain_type == ChainType.evm);
+    }
+    default: {
+      return networks.value;
+    }
+  }
+});
+
 const network = computed(() => {
-  return networks.value[selectedNetwork.value];
+  return all_networks.value[selectedNetwork.value];
 });
 
 const networkCurrenciesRef = computed(() => {
@@ -357,9 +368,15 @@ onMounted(async () => {
       }
       return false;
     }) as (Network | EvmNetwork)[];
-
-    networks.value = [...n].filter((item) => !IGNORED_NETWORKS.includes(item.key));
-    selectedNetwork.value = networks.value.findIndex((item: Network) => item.key == app.protocolFilter);
+    networks.value = [...n].filter((item) => {
+      return !IGNORED_NETWORKS.includes(item.key);
+    });
+    const index = all_networks.value.findIndex((item: Network) => item.key == app.protocolFilter);
+    if (index < 0) {
+      selectedNetwork.value = 0;
+    } else {
+      selectedNetwork.value = index;
+    }
     await onUpdateNetwork(network.value);
   } catch (error) {
     Logger.error(error);
@@ -437,7 +454,7 @@ watch(
 
 async function onUpdateNetwork(event: Network) {
   tempRoute.value = null;
-  selectedNetwork.value = networks.value.findIndex((item) => item == event);
+  selectedNetwork.value = all_networks.value.findIndex((item) => item == event);
   if (!event.native) {
     switch (event.chain_type) {
       case "cosmos": {
@@ -874,7 +891,6 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
   };
 
   const chainToParse: { [key: string]: IObjectKeys } = getChains(route!);
-
   const promises = [];
   for (const chain in chainToParse) {
     const fn = async function () {
@@ -924,10 +940,20 @@ async function getRoute() {
   const asset = assets.value[selectedCurrency.value];
 
   const transferAmount = Decimal.fromUserInput(amount.value, asset!.decimal_digits as number);
+  const options: IObjectKeys = {};
 
   switch (network.value.chain_type) {
     case "evm": {
       chainId = Number(chainId).toString();
+      break;
+    }
+  }
+
+  switch (walletStore.wallet?.signer?.type) {
+    case WalletTypes.evm: {
+      options.smart_relay = false;
+      options.allow_multi_tx = false;
+
       break;
     }
   }
@@ -938,7 +964,8 @@ async function getRoute() {
     transferAmount.atomics,
     false,
     undefined,
-    chainId
+    chainId,
+    options
   );
 
   return route;
@@ -967,7 +994,6 @@ async function connectEvm() {
         wallet.value = (client as MetaMaskWallet).address;
       }
     );
-
     evmAddress.value = client.shortAddress;
     wallet.value = client.address;
     await setEvmNetwork();

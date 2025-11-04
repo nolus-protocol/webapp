@@ -1,0 +1,1 @@
+export { MetaMaskWallet } from "./wallet";

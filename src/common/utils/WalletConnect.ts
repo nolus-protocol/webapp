@@ -8,7 +8,7 @@ import { useWalletStore, WalletActions } from "@/common/stores/wallet";
 import { AssetUtils, WalletManager } from ".";
 import { type NetworkData, WalletConnectMechanism } from "@/common/types";
 import { authenticateKeplr, authenticateLeap, authenticateLedger, type BaseWallet, type Wallet } from "@/networks";
-import { authenticateWalletConnect } from "@/networks/cosm/WalletFactory";
+import { authenticateMetamask, authenticateWalletConnect } from "@/networks/cosm/WalletFactory";
 
 export const validateAddress = (address: string) => {
   if (!address || address.trim() == "") {
@@ -93,6 +93,10 @@ export const walletOperation = async (operation: () => void) => {
       await walletStore[WalletActions.CONNECT_WC]();
       break;
     }
+    case WalletConnectMechanism.EVM_METAMASK: {
+      await walletStore[WalletActions.CONNECT_EVM_METAMASK]();
+      break;
+    }
     case WalletConnectMechanism.LEDGER: {
       await walletStore[WalletActions.CONNECT_LEDGER]();
       break;
@@ -121,6 +125,9 @@ export const externalWalletOperation = async (
     case WalletConnectMechanism.WALLET_WC: {
       return operation(await authenticateWalletConnect(wallet, networkData));
     }
+    case WalletConnectMechanism.WALLET_WC: {
+      return operation(await authenticateMetamask(wallet, networkData));
+    }
     case WalletConnectMechanism.LEDGER: {
       return operation(await authenticateLedger(wallet, networkData));
     }
@@ -140,6 +147,9 @@ export const externalWallet = async (wallet: Wallet, networkData: NetworkData) =
     }
     case WalletConnectMechanism.WALLET_WC: {
       return await authenticateWalletConnect(wallet, networkData);
+    }
+    case WalletConnectMechanism.EVM_METAMASK: {
+      return await authenticateMetamask(wallet, networkData);
     }
     case WalletConnectMechanism.LEDGER: {
       return await authenticateLedger(wallet, networkData);

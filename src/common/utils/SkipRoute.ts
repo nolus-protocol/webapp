@@ -126,7 +126,8 @@ export class SkipRouter {
     amount: string,
     revert: boolean = false,
     sourceId?: string,
-    destSourceId?: string
+    destSourceId?: string,
+    options: IObjectKeys = {}
   ) {
     const [client, config] = await Promise.all([SkipRouter.getClient(), AppUtils.getSkipRouteConfig()]);
     const request: RouteRequest = {
@@ -144,7 +145,8 @@ export class SkipRouter {
       smart_swap_options: {
         split_routes: true,
         evm_swaps: true
-      }
+      },
+      ...options
     };
     if (revert) {
       request.amount_out = amount;

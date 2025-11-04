@@ -4,6 +4,7 @@ import { Contract, ethers, isAddress } from "ethers";
 import type { Wallet } from "../wallet";
 import { WalletConnectMechanism, type IObjectKeys } from "@/common/types";
 import { Logger, WalletManager } from "@/common/utils";
+import { WalletTypes } from "../types";
 
 const confirmations = 1;
 
@@ -15,6 +16,7 @@ export class MetaMaskWallet implements Wallet {
   chainId!: string;
   accountChangeCallback!: Function | null;
   explorer: string;
+  type: string = WalletTypes.evm;
 
   constructor(explorer: string) {
     this.explorer = explorer;
@@ -27,6 +29,9 @@ export class MetaMaskWallet implements Wallet {
       }
       case WalletConnectMechanism.LEAP: {
         return (window as MetamaskWindow).leap?.ethereum;
+      }
+      case WalletConnectMechanism.EVM_METAMASK: {
+        return (window as MetamaskWindow)?.ethereum;
       }
     }
     return (window as MetamaskWindow).keplr?.ethereum;

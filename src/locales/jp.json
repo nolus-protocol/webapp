@@ -469,6 +469,7 @@
     "redelagate": "委任",
     "keplr-wallet-connect": "Wallet Connect (ベータ)",
     "download-csv": "CSVをダウンロード",
-    "full-close-action": "ポジション{contract}をクローズ"
+    "full-close-action": "ポジション{contract}をクローズ",
+    "metamask": "Metamask"
   }
 }
