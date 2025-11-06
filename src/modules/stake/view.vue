@@ -152,11 +152,18 @@ async function loadDelegator() {
 }
 
 async function loadDelegated() {
-  const delegations = (await NetworkUtils.loadDelegations()).sort((a, b) => {
-    const ab = new Dec(a.balance.amount);
-    const bb = new Dec(b.balance.amount);
-    return Number(bb.sub(ab).toString(8));
-  });
+  const delegations = (await NetworkUtils.loadDelegations())
+    .sort((a, b) => {
+      const ab = new Dec(a.balance.amount);
+      const bb = new Dec(b.balance.amount);
+      return Number(bb.sub(ab).toString(8));
+    })
+    .filter((item) => {
+      if (new Dec(item.balance.amount).isZero()) {
+        return false;
+      }
+      return true;
+    });
   const promises = [];
   let decimalDelegated = new Dec(0);
 
@@ -170,7 +177,6 @@ async function loadDelegated() {
       const validator = (await NetworkUtils.loadValidator(item.delegation.validator_address)).validator;
       const rate = new Dec(validator.commission.commission_rates.rate).mul(new Dec(PERCENT)).toString(0);
       const amount = new Dec(item.balance.amount, NATIVE_ASSET.decimal_digits);
-
       const stable = amount.mul(price);
       const amount_label = AssetUtils.formatNumber(amount.toString(), 3);
       const stable_label = AssetUtils.formatNumber(stable.toString(), 2);
