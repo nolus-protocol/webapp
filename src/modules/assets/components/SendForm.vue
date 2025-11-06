@@ -951,9 +951,11 @@ async function getRoute() {
 
   switch (walletStore.wallet?.signer?.type) {
     case WalletTypes.evm: {
-      options.smart_relay = false;
       options.allow_multi_tx = false;
-
+      options.smart_swap_options = {
+        split_routes: false, // if you ALSO want to avoid split swaps, set this to false
+        evm_swaps: true
+      };
       break;
     }
   }
