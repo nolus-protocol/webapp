@@ -26,7 +26,7 @@
             :font-size="32"
             :font-size-small="32"
             v-bind="amount"
-            class="flex font-semibold text-typography-default"
+            class="flex break-keep font-semibold text-typography-default"
           />
         </Tooltip>
         <template v-else>
@@ -35,13 +35,13 @@
             :font-size="32"
             :font-size-small="32"
             v-bind="amount"
-            class="flex font-semibold text-typography-default"
+            class="flex break-keep font-semibold text-typography-default"
           />
         </template>
         <span
           v-if="amount?.additional"
           :class="amount?.additional?.class"
-          class="flex font-semibold text-typography-default"
+          class="flex break-keep font-semibold text-typography-default"
         >
           {{ amount.additional.text }}
         </span>
@@ -89,7 +89,7 @@
         <span
           v-if="amount?.additional"
           :class="amount?.additional?.class"
-          class="flex font-semibold text-typography-default"
+          class="flex break-keep font-semibold text-typography-default"
         >
           {{ amount.additional.text }}
         </span>
