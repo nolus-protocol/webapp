@@ -31,6 +31,15 @@
         <span v-if="data?.historyData?.msg">{{ data?.historyData.msg }}</span>
         <div class="flex flex-col gap-3 rounded-lg border border-border-color bg-neutral-bg-1 p-4">
           <div class="flex flex-col">
+            <span class="text-14 text-typography-secondary">{{ $t("message.status") }}</span>
+            <span
+              class="flex items-center gap-1 text-typography-error"
+              :class="status.class"
+              >{{ status.title }}</span
+            >
+          </div>
+
+          <div class="flex flex-col">
             <span class="text-14 text-typography-secondary">{{ $t("message.account") }}</span>
             <span class="flex items-center gap-1"
               ><img
@@ -119,7 +128,7 @@
 <script lang="ts" setup>
 import nlsIcon from "@/assets/icons/networks/nolus.svg?url";
 import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
-import { computed, inject, onBeforeUnmount, ref, h } from "vue";
+import { computed, inject, onBeforeUnmount, ref } from "vue";
 import { Button, Dialog, ToastType } from "web-components";
 import type { ITransactionData } from "@/modules/history/types";
 import type { HistoryData } from "@/modules/history/types/ITransaction";
@@ -149,6 +158,29 @@ const fee = computed(() => {
     };
   }
   return null;
+});
+
+const status = computed(() => {
+  switch (data.value?.historyData?.status) {
+    case CONFIRM_STEP.PENDING: {
+      return {
+        title: i18n.t(`message.${CONFIRM_STEP.PENDING}`),
+        class: "text-typography-warning"
+      };
+    }
+    case CONFIRM_STEP.ERROR: {
+      return {
+        title: i18n.t(`message.${CONFIRM_STEP.PENDING}`),
+        class: "text-typography-error"
+      };
+    }
+    default: {
+      return {
+        title: i18n.t(`message.completed`),
+        class: "text-typography-success"
+      };
+    }
+  }
 });
 
 function copyHash() {
