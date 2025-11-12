@@ -121,7 +121,7 @@
 import MultipleCurrencyComponent from "@/common/components/MultipleCurrencyComponent.vue";
 import { Button, type AssetItemProps, AssetItem, type AdvancedCurrencyFieldOption } from "web-components";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
-import { computed, inject, onMounted, ref } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
 import {
   AppUtils,
@@ -243,7 +243,19 @@ const balances = computed(() => {
   });
 });
 
-onMounted(async () => {
+watch(
+  () => applicaiton.init,
+  () => {
+    if (applicaiton.init) {
+      onInit();
+    }
+  },
+  {
+    immediate: true
+  }
+);
+
+async function onInit() {
   try {
     const config = await AppUtils.getSkipRouteConfig();
     const protocol = applicaiton.protocolFilter.toLowerCase();
@@ -257,7 +269,7 @@ onMounted(async () => {
   } catch (error) {
     Logger.error(error);
   }
-});
+}
 
 async function onNextClick() {
   if (validateInputs().length == 0) {

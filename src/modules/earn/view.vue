@@ -40,7 +40,7 @@ import { RouteNames } from "@/router";
 import { EarnAssets } from "./components";
 import { EarnAssetsDialog } from "./enums";
 
-import { computed, h, onMounted, onUnmounted, provide, ref, watch } from "vue";
+import { computed, h, onUnmounted, provide, ref, watch } from "vue";
 import { type LabelProps, type TableRowItemProps } from "web-components";
 import type { Asset } from "./types";
 import { claimRewardsMsg, Lpp, type ContractData } from "@nolus/nolusjs/build/contracts";
@@ -84,7 +84,19 @@ const lpnRewardStable = ref("0.00");
 const claimContractData = ref([] as ContractData[]);
 const search = ref("");
 
-onMounted(async () => {
+watch(
+  () => application.init,
+  () => {
+    if (application.init) {
+      onInit();
+    }
+  },
+  {
+    immediate: true
+  }
+);
+
+async function onInit() {
   try {
     await Promise.allSettled([loadLPNCurrency(), loadRewards()]);
     interval = setInterval(async () => {
@@ -93,7 +105,7 @@ onMounted(async () => {
   } catch (e: Error | any) {
     Logger.error(e);
   }
-});
+}
 
 onUnmounted(() => {
   clearInterval(interval);

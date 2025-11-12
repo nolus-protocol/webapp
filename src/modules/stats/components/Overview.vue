@@ -79,23 +79,37 @@ import LeasesMonthlyChart from "@/modules/stats/components/LeasesMonthlyChart.vu
 import { Widget } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { EtlApi, Logger } from "@/common/utils";
-import { onMounted, ref } from "vue";
+import { ref, watch } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
+import { useApplicationStore } from "@/common/stores/application";
 
 const txVolume = ref("0");
 const buybackTotal = ref("0");
 const realized_pnl = ref("0");
 const protocolRevenue = ref("0");
 const tvl = ref("0");
+const app = useApplicationStore();
 
 const loading = ref(true);
 
-onMounted(async () => {
+watch(
+  () => app.init,
+  () => {
+    if (app.init) {
+      onInit();
+    }
+  },
+  {
+    immediate: true
+  }
+);
+
+async function onInit() {
   await Promise.all([setTVL(), setTxVolume(), setBuyBackTotal(), setRealizedPnl(), setProtocolRevenue()]).catch((e) =>
     Logger.error(e)
   );
   loading.value = false;
-});
+}
 
 async function setTVL() {
   const data = await EtlApi.fetchTVL();

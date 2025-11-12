@@ -43,13 +43,13 @@ const responses = ref<{ name: string; value: number; ticker: string; price: stri
   {
     name: i18n.t("message.borrowed-taxes"),
     value: zero,
-    ticker: `${new Dec(props.borrowAmount, props.borrowAsset.decimal_digits).toString(props.borrowAsset.decimal_digits)} ${props.borrowAsset.shortName}`,
+    ticker: `${new Dec(props.borrowAmount, props.borrowAsset?.decimal_digits ?? 0).toString(props.borrowAsset?.decimal_digits ?? 0)} ${props.borrowAsset?.shortName ?? ""}`,
     price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(props.borrowStable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
   },
   {
     name: i18n.t("message.downpayment"),
     value: zero,
-    ticker: `${new Dec(props.downPaymentAmount, props.downPaymentAsset.decimal_digits).toString(props.downPaymentAsset.decimal_digits)} ${props.downPaymentAsset.shortName}`,
+    ticker: `${new Dec(props.downPaymentAmount, props.downPaymentAsset?.decimal_digits ?? 0).toString(props.downPaymentAsset?.decimal_digits ?? 0)} ${props.downPaymentAsset?.shortName ?? ""}`,
     price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(props.downPaymentStable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
   }
 ]);
@@ -76,13 +76,13 @@ async function setStats() {
     {
       name: i18n.t("message.borrowed-taxes"),
       value: v1 == 0 ? zero : v1,
-      ticker: `${new Dec(props.borrowAmount, props.borrowAsset.decimal_digits).toString(props.borrowAsset.decimal_digits)} ${props.borrowAsset.shortName}`,
+      ticker: `${new Dec(props.borrowAmount, props.borrowAsset?.decimal_digits ?? 0).toString(props.borrowAsset?.decimal_digits ?? 0)} ${props.borrowAsset?.shortName ?? ""}`,
       price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(props.borrowStable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
     },
     {
       name: i18n.t("message.downpayment"),
       value: v2 == 0 ? zero : v2,
-      ticker: `${new Dec(props.downPaymentAmount, props.downPaymentAsset.decimal_digits).toString(props.downPaymentAsset.decimal_digits)} ${props.downPaymentAsset.shortName}`,
+      ticker: `${new Dec(props.downPaymentAmount, props.downPaymentAsset?.decimal_digits ?? 0).toString(props.downPaymentAsset?.decimal_digits ?? 0)} ${props.downPaymentAsset?.shortName ?? ""}`,
       price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(props.downPaymentStable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
     }
   ];

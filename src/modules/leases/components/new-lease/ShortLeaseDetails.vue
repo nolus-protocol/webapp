@@ -12,7 +12,7 @@
       :amount="{
         amount: sizeAmount,
         type: CURRENCY_VIEW_TYPES.TOKEN,
-        denom: assetLoan.shortName,
+        denom: assetLoan?.shortName,
         maxDecimals: MAX_DECIMALS,
         minimalDenom: '',
         decimals: assetLoan?.decimal_digits,
@@ -23,9 +23,9 @@
       :secondary="{
         amount: totalLoan,
         type: CURRENCY_VIEW_TYPES.TOKEN,
-        denom: asset.shortName,
-        maxDecimals: assetLoan.decimal_digits,
-        decimals: assetLoan.decimal_digits,
+        denom: asset?.shortName,
+        maxDecimals: assetLoan?.decimal_digits,
+        decimals: assetLoan?.decimal_digits,
         hasSpace: true
       }"
     />
@@ -150,9 +150,9 @@
       />
       <BigNumber
         class="md:flex-[50%]"
-        :label="$t('message.price-per-symbol', { symbol: asset.shortName })"
+        :label="$t('message.price-per-symbol', { symbol: asset?.shortName })"
         :amount="{
-          amount: oracle.prices[loanCurrency].amount,
+          amount: oracle.prices[loanCurrency]?.amount,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
           decimals: 3,
@@ -261,13 +261,13 @@ const totalLoan = computed(() => {
 });
 
 const assetLoan = computed(() => {
-  const [t, p] = asset.value.key.split("@");
-  const currency = app.currenciesData![`${ProtocolsConfig[p].stable}@${p}`];
+  const [t, p] = asset.value?.key?.split("@") ?? [];
+  const currency = app.currenciesData?.[`${ProtocolsConfig[p]?.stable}@${p}`];
   return currency;
 });
 
 const asset = computed(() => {
-  const currency = app.currenciesData![props.loanCurrency];
+  const currency = app.currenciesData?.[props.loanCurrency];
   return currency;
 });
 
@@ -278,7 +278,7 @@ const lpn = computed(() => {
 });
 
 const downPaymentAsset = computed(() => {
-  const currency = app.currenciesData![props.downpaymentCurrency];
+  const currency = app.currenciesData?.[props.downpaymentCurrency];
   return currency;
 });
 
@@ -334,20 +334,24 @@ const calculateLique = computed(() => {
 });
 
 const percentLique = computed(() => {
-  const a = asset.value;
-  const [_, protocol] = a.key.split("@");
-  const lpn = AssetUtils.getLpnByProtocol(protocol);
+  try {
+    const a = asset.value;
+    const [_, protocol] = a?.key?.split("@") ?? [];
+    const lpn = AssetUtils.getLpnByProtocol(protocol);
 
-  const price = new Dec(oracle.prices[lpn.key]?.amount ?? "0", a.decimal_digits);
-  const lprice = getLquidation();
+    const price = new Dec(oracle.prices[lpn.key]?.amount ?? "0", a.decimal_digits);
+    const lprice = getLquidation();
 
-  if (lprice.isZero() || price.isZero()) {
-    return `0`;
+    if (lprice.isZero() || price.isZero()) {
+      return `0`;
+    }
+
+    const p = price.sub(lprice).quo(price);
+
+    return `${p.abs().mul(new Dec(100)).toString(0)}`;
+  } catch (e) {
+    return "0";
   }
-
-  const p = price.sub(lprice).quo(price);
-
-  return `${p.abs().mul(new Dec(100)).toString(0)}`;
 });
 
 function getLquidation() {

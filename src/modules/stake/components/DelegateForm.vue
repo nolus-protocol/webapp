@@ -108,11 +108,15 @@ const assets = computed(() => {
 });
 
 const stable = computed(() => {
-  const currency = AssetUtils.getCurrencyByTicker(NATIVE_ASSET.ticker);
-  const price = new Dec(oracle.prices?.[currency.key]?.amount ?? 0);
-  const v = input?.value?.length ? input?.value : "0";
-  const stable = price.mul(new Dec(v));
-  return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+  try {
+    const currency = AssetUtils.getCurrencyByTicker(NATIVE_ASSET.ticker);
+    const price = new Dec(oracle.prices?.[currency.key]?.amount ?? 0);
+    const v = input?.value?.length ? input?.value : "0";
+    const stable = price.mul(new Dec(v));
+    return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+  } catch (e) {
+    return "";
+  }
 });
 
 const isEmpty = computed(() => {

@@ -470,6 +470,7 @@
     "keplr-wallet-connect": "Wallet Connect (beta)",
     "download-csv": "Download CSV",
     "full-close-action": "Close position {contract}",
-    "metamask": "Metamask"
+    "metamask": "Metamask",
+    "walletconnect": "Walletconnect"
   }
 }

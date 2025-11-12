@@ -93,7 +93,7 @@
 </template>
 
 <script lang="ts" setup>
-import { inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { inject, onBeforeUnmount, ref, watch } from "vue";
 import { marked } from "marked";
 import { type Coin, coin } from "@cosmjs/amino";
 import type { FinalTallyResult, Proposal } from "@/modules/vote/types";
@@ -107,6 +107,7 @@ import { formatDateTime, Logger, NetworkUtils, walletOperation } from "@/common/
 import { useWalletStore } from "@/common/stores/wallet";
 import { MsgVote } from "cosmjs-types/cosmos/gov/v1beta1/tx";
 import { useI18n } from "vue-i18n";
+import { useApplicationStore } from "@/common/stores/application";
 
 const dialog = ref<typeof Dialog | null>(null);
 const delegatedTokensAmount = ref({} as Coin);
@@ -118,6 +119,7 @@ const isDisabled = ref(false);
 const isLoading = ref(-1);
 const wallet = useWalletStore();
 const i18n = useI18n();
+const app = useApplicationStore();
 
 const props = defineProps<{
   proposal: Proposal;
@@ -133,9 +135,21 @@ const labels = ref({
   no_with_veto_count: i18n.t(`message.no_with_veto_count`)
 });
 
-onMounted(async () => {
+watch(
+  () => app.init,
+  () => {
+    if (app.init) {
+      onInit();
+    }
+  },
+  {
+    immediate: true
+  }
+);
+
+async function onInit() {
   await loadDelegated();
-});
+}
 
 onBeforeUnmount(() => {
   hide();

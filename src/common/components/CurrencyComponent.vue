@@ -51,7 +51,9 @@ export interface CurrencyComponentProps {
 }
 
 const props = withDefaults(defineProps<CurrencyComponentProps>(), {
+  denom: "",
   maxDecimals: 0,
+  decimals: 0,
   fontSize: 16,
   SmallFontSize: 16,
   hasSpace: false,

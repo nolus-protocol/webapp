@@ -155,7 +155,7 @@ import {
   type SkipRouteConfigType
 } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
-import { computed, onMounted, onUnmounted, ref, watch, h, inject } from "vue";
+import { computed, onUnmounted, ref, watch, h, inject } from "vue";
 import { useI18n } from "vue-i18n";
 import {
   AppUtils,
@@ -357,7 +357,19 @@ const steps = computed(() => {
   ];
 });
 
-onMounted(async () => {
+watch(
+  () => app.init,
+  () => {
+    if (app.init) {
+      onInit();
+    }
+  },
+  {
+    immediate: true
+  }
+);
+
+async function onInit() {
   try {
     const [config, chns] = await Promise.all([AppUtils.getSkipRouteConfig(), SkipRouter.getChains()]);
     skipRouteConfig = config;
@@ -381,7 +393,7 @@ onMounted(async () => {
   } catch (error) {
     Logger.error(error);
   }
-});
+}
 
 onUnmounted(() => {
   clearTimeout(timeOut!);
@@ -720,7 +732,7 @@ async function transferAmount() {
       const element = {
         hash: txHash,
         status: SwapStatus.pending,
-        url: null
+        url: null as string
       };
 
       const index = txHashes.value.length;

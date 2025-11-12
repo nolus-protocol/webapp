@@ -74,7 +74,7 @@ watch(
 );
 
 const currency = computed(() => {
-  const c = app.currenciesData![`${props.lease?.leaseData?.leasePositionTicker}@${props.lease?.protocol}`];
+  const c = app.currenciesData?.[`${props.lease?.leaseData?.leasePositionTicker}@${props.lease?.protocol}`];
   const price = oracle.prices![`${props.lease?.leaseData?.leasePositionTicker}@${props.lease?.protocol}`];
   return {
     name: c?.shortName,

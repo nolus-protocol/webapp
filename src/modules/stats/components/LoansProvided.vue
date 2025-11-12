@@ -39,16 +39,30 @@ import LoansChart from "@/modules/stats/components/LoansChart.vue";
 import { Widget } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { EtlApi, Logger } from "@/common/utils";
-import { onMounted, ref } from "vue";
+import { ref, watch } from "vue";
 import { NATIVE_CURRENCY } from "@/config/global";
+import { useApplicationStore } from "@/common/stores/application";
 
 const loading = ref(true);
 const openPositionValue = ref("0");
 const openInterest = ref("0");
+const app = useApplicationStore();
 
-onMounted(async () => {
+watch(
+  () => app.init,
+  () => {
+    if (app.init) {
+      onInit();
+    }
+  },
+  {
+    immediate: true
+  }
+);
+
+async function onInit() {
   await Promise.all([setOpenPositonsValue(), setOpenInterest()]).catch((e) => Logger.error(e));
-});
+}
 
 async function setOpenPositonsValue() {
   const data = await EtlApi.fetchOpenPositionValue();

@@ -90,7 +90,7 @@ import {
   SvgIcon,
   Button
 } from "web-components";
-import { computed, h, onMounted, ref, watch } from "vue";
+import { computed, h, ref, watch } from "vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import { CURRENCY_VIEW_TYPES, type IObjectKeys } from "@/common/types";
 import { NATIVE_CURRENCY, NORMAL_DECIMALS, PositionTypes, ProtocolsConfig } from "@/config/global";
@@ -101,9 +101,11 @@ import { Dec } from "@keplr-wallet/unit";
 import { RouteNames } from "@/router";
 import { useRouter } from "vue-router";
 import EmptyState from "@/common/components/EmptyState.vue";
+import { useApplicationStore } from "@/common/stores/application";
 
 const i18n = useI18n();
 const wallet = useWalletStore();
+const app = useApplicationStore();
 const pnl = ref(new Dec(0));
 
 const limit = 10;
@@ -128,10 +130,22 @@ const loans = ref([] as ILoan[]);
 const filename = "data.csv";
 const delimiter = ",";
 
-onMounted(() => {
+watch(
+  () => app.init,
+  () => {
+    if (app.init) {
+      onInit();
+    }
+  },
+  {
+    immediate: true
+  }
+);
+
+async function onInit() {
   loadLoans();
   setRealizedPnl();
-});
+}
 
 watch(
   () => wallet.wallet,

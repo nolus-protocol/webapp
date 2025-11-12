@@ -144,7 +144,7 @@ import { IGNORED_NETWORKS } from "../../../config/global";
 import { type BaseWallet, Wallet } from "@/networks";
 import { CONFIRM_STEP, type IObjectKeys, type Network, type SkipRouteConfigType } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
-import { computed, onMounted, onUnmounted, ref, watch, h, inject } from "vue";
+import { computed, onUnmounted, ref, watch, h, inject } from "vue";
 import { useI18n } from "vue-i18n";
 import { AppUtils, AssetUtils, externalWallet, Logger, walletOperation, WalletUtils } from "@/common/utils";
 import { coin } from "@cosmjs/stargate";
@@ -239,7 +239,19 @@ const all_networks = computed<(Network | EvmNetwork | any)[]>(() => {
   }
 });
 
-onMounted(async () => {
+watch(
+  () => app.init,
+  () => {
+    if (app.init) {
+      onInit();
+    }
+  },
+  {
+    immediate: true
+  }
+);
+
+async function onInit() {
   try {
     const [config, chns] = await Promise.all([AppUtils.getSkipRouteConfig(), SkipRouter.getChains()]);
     skipRouteConfig = config;
@@ -265,7 +277,7 @@ onMounted(async () => {
   } catch (error) {
     Logger.error(error);
   }
-});
+}
 
 onUnmounted(() => {
   if (client && step.value != CONFIRM_STEP.PENDING) {

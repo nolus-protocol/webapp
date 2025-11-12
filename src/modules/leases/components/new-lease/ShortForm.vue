@@ -163,14 +163,14 @@
   </div>
   <ShortLeaseDetails
     :downpaymen-amount="amount"
-    :downpayment-currency="currency.key"
+    :downpayment-currency="currency?.key"
     :lease="leaseApply"
-    :loan-currency="coinList[selectedLoanCurrency].key"
+    :loan-currency="coinList[selectedLoanCurrency]?.key"
   />
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, onMounted, ref, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import {
   AdvancedFormControl,
   Button,
@@ -238,14 +238,26 @@ const ltd = ref((MAX_POSITION / PERCENT) * PERMILLE);
 const leaseApply = ref<LeaseApply | null>();
 const showDetails = ref(false);
 
-onMounted(async () => {
+watch(
+  () => app.init,
+  () => {
+    if (app.init) {
+      onInit();
+    }
+  },
+  {
+    immediate: true
+  }
+);
+
+async function onInit() {
   const [freeInterestv, ignoreLeaseAssetsv] = await Promise.all([
     AppUtils.getFreeInterest(),
     AppUtils.getIgnoreLeaseShortAssets()
   ]);
   freeInterest.value = freeInterestv;
   ignoreLeaseAssets.value = ignoreLeaseAssetsv;
-});
+}
 
 watch(
   () => [selectedCurrency.value, amount.value, selectedLoanCurrency.value, ltd.value],
@@ -261,12 +273,13 @@ watch(
 
 const totalBalances = computed(() => {
   let currencies: ExternalCurrency[] = [];
-
+  const b = walletStore.balances;
   for (const protocol in ProtocolsConfig) {
     if (ProtocolsConfig[protocol].type == PositionTypes.short) {
       for (const c of ProtocolsConfig[protocol].currencies) {
         const item = app.currenciesData?.[`${c}@${protocol}`];
-        let balance = walletStore.balances.find((c) => c.balance.denom == item?.ibcData);
+
+        let balance = b.find((c) => c.balance.denom == item?.ibcData);
         if (currencies.findIndex((item) => item.balance.denom == balance?.balance.denom) == -1) {
           currencies.push({ ...item, balance: balance?.balance } as ExternalCurrency);
         }
@@ -319,6 +332,7 @@ const assets = computed(() => {
       price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
     });
   }
+
   return data.sort((a, b) => {
     return Number(b.stable.sub(a.stable).toString(8));
   });

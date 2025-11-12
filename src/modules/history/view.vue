@@ -75,7 +75,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Button, Table, type TableColumnProps, Widget } from "web-components";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -95,6 +95,7 @@ import { VoteOption } from "cosmjs-types/cosmos/gov/v1/gov";
 import type { IObjectKeys } from "@/common/types";
 import { useRouter } from "vue-router";
 import { Dec } from "@keplr-wallet/unit";
+import { useApplicationStore } from "@/common/stores/application";
 
 const showErrorDialog = ref(false);
 const errorMessage = ref("");
@@ -103,6 +104,7 @@ const i18n = useI18n();
 const wallet = useWalletStore();
 const search = ref("");
 const router = useRouter();
+const app = useApplicationStore();
 const hide = ref(WalletManager.getHideBalances());
 const realized_pnl = ref(new Dec(0));
 
@@ -165,10 +167,22 @@ const txsSkip = computed(() => {
   });
 });
 
-onMounted(() => {
+watch(
+  () => app.init,
+  () => {
+    if (app.init) {
+      onInit();
+    }
+  },
+  {
+    immediate: true
+  }
+);
+
+async function onInit() {
   loadTxs();
   getRealizedPnl();
-});
+}
 
 watch(
   () => wallet.wallet,

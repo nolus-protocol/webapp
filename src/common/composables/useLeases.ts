@@ -1,6 +1,6 @@
 import type { LeaseData } from "@/common/types";
 import type { Coin } from "@cosmjs/proto-signing";
-import { ref, onMounted, watch } from "vue";
+import { ref, watch } from "vue";
 
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 import { Lease, Leaser, type LeaserConfig, type LeaseStatus } from "@nolus/nolusjs/build/contracts";
@@ -108,13 +108,25 @@ export function useLeases(onError: (error: unknown) => void) {
     }
   };
 
-  onMounted(async () => {
+  watch(
+    () => app.init,
+    () => {
+      if (app.init) {
+        init();
+      }
+    },
+    {
+      immediate: true
+    }
+  );
+
+  async function init() {
     if (wallet.wallet) {
       await getLeases();
     } else {
       leaseLoaded.value = true;
     }
-  });
+  }
 
   watch(
     () => [wallet.wallet?.address, app.protocolFilter],
@@ -132,6 +144,7 @@ export function useLease(leaseAddress: string, protocol: string, onError: (error
   const lease = ref<LeaseData>();
   const leaseLoaded = ref(false);
   const router = useRouter();
+  const app = useApplicationStore();
 
   const getLease = async () => {
     try {
@@ -150,15 +163,24 @@ export function useLease(leaseAddress: string, protocol: string, onError: (error
     }
   };
 
-  onMounted(() => {
-    getLease();
-  });
+  watch(
+    () => app.init,
+    () => {
+      if (app.init) {
+        getLease();
+      }
+    },
+    {
+      immediate: true
+    }
+  );
 
   return { lease, leaseLoaded, getLease };
 }
 
 export function useLeaseConfig(protocol: string, onError: (error: unknown) => void) {
   const config = ref<LeaserConfig>();
+  const app = useApplicationStore();
 
   const getLeaseConfig = async () => {
     try {
@@ -171,9 +193,17 @@ export function useLeaseConfig(protocol: string, onError: (error: unknown) => vo
     }
   };
 
-  onMounted(async () => {
-    await getLeaseConfig();
-  });
+  watch(
+    () => app.init,
+    async () => {
+      if (app.init) {
+        getLeaseConfig();
+      }
+    },
+    {
+      immediate: true
+    }
+  );
 
   return { getLeaseConfig, config };
 }

@@ -33,7 +33,7 @@ import BigNumber from "@/common/components/BigNumber.vue";
 import { Table, type TableColumnProps, TableRow, type TableRowItemProps, Widget } from "web-components";
 import { AppUtils, EnvNetworkUtils, EtlApi, Logger } from "@/common/utils";
 
-import { computed, h, onMounted, ref } from "vue";
+import { computed, h, ref, watch } from "vue";
 import { useApplicationStore } from "@/common/stores/application";
 import { useI18n } from "vue-i18n";
 import { NATIVE_CURRENCY, PERCENT, PERMILLE } from "@/config/global";
@@ -288,7 +288,19 @@ const suppliedFunds = ref("0");
 const app = useApplicationStore();
 const admin = useAdminStore();
 
-onMounted(async () => {
+watch(
+  () => app.init,
+  () => {
+    if (app.init) {
+      onInit();
+    }
+  },
+  {
+    immediate: true
+  }
+);
+
+async function onInit() {
   await Promise.all([
     setUtilizationNeutron(),
     setUtilizationOsmosis(),
@@ -299,7 +311,7 @@ onMounted(async () => {
     setUtilizationOsmosisAtom(),
     setSuppliedFunds()
   ]).catch((e) => Logger.error(e));
-});
+}
 
 async function setSuppliedFunds() {
   const data = await EtlApi.fetchSuppliedFunds();

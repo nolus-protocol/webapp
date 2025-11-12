@@ -21,7 +21,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref } from "vue";
+import { onUnmounted, ref, watch } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useOracleStore } from "@/common/stores/oracle";
 import { useApplicationStore } from "@/common/stores/application";
@@ -45,12 +45,15 @@ const showErrorDialog = ref(false);
 const errorMessage = ref("");
 const mobileMenu = ref<typeof MobileMenu | null>(null);
 
-onMounted(async () => {
-  walletOperation(() => {});
-  window.addEventListener("keplr_keystorechange", updateKeplr);
-  window.addEventListener("leap_keystorechange", updateLeap);
-  checkBalances();
-});
+watch(
+  () => app.init,
+  () => {
+    walletOperation(() => {});
+    window.addEventListener("keplr_keystorechange", updateKeplr);
+    window.addEventListener("leap_keystorechange", updateLeap);
+    checkBalances();
+  }
+);
 
 onUnmounted(() => {
   clearInterval(balanceInterval);
