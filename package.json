@@ -44,10 +44,11 @@
     "vue": "^3.5.22",
     "vue-i18n": "11.1.12",
     "vue-router": "^4.6.3",
-    "web-components": "github:nolus-protocol/web-components#v2.0.41"
+    "web-components": "github:nolus-protocol/web-components#v2.0.42"
   },
   "devDependencies": {
     "@intlify/unplugin-vue-i18n": "^11.0.1",
+    "@rollup/plugin-inject": "^5.0.5",
     "@tsconfig/node22": "^22.0.2",
     "@types/d3": "^7.4.3",
     "@types/d3-time": "^3.0.4",
@@ -69,7 +70,6 @@
     "terser": "^5.44.0",
     "typescript": "~5.8.3",
     "vite": "^7.1.12",
-    "vite-plugin-node-polyfills": "^0.24.0",
     "vite-svg-loader": "^5.1.0"
   }
 }

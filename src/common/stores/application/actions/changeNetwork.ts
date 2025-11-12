@@ -23,6 +23,18 @@ export async function changeNetwork(this: Store) {
 
     await admin.GET_PROTOCOLS();
     await this.LOAD_CURRENCIES();
+
+    loadWalletData.bind(this)();
+  } catch (error: Error | any) {
+    throw new Error(error);
+  }
+}
+
+async function loadWalletData(this: Store) {
+  try {
+    const walletStore = useWalletStore();
+    const oracle = useOracleStore();
+
     await Promise.allSettled([
       walletStore.UPDATE_BALANCES(),
       oracle.GET_PRICES(),

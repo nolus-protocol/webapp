@@ -123,7 +123,7 @@ async function checkPrices() {
 <style lang="scss" scoped>
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 350ms ease;
+  transition: opacity 250ms ease;
 }
 .fade-enter,
 .fade-leave-to {

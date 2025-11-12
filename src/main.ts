@@ -1,3 +1,5 @@
+import "./polyfills";
+
 import { createPinia } from "pinia";
 import { setupI18n } from "@/i18n";
 import { router } from "@/router";
