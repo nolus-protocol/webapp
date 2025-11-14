@@ -1,7 +1,7 @@
 <template>
   <ListHeader :title="$t('message.leases')">
     <Button
-      v-if="wallet.wallet"
+      v-if="wallet.wallet && !isProtocolDisabled"
       :label="$t('message.new-lease')"
       severity="primary"
       size="large"
@@ -127,6 +127,7 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useApplicationStore } from "@/common/stores/application";
 import {
+  Contracts,
   MAX_DECIMALS,
   MID_DECIMALS,
   NATIVE_CURRENCY,
@@ -167,6 +168,11 @@ const columns = computed<TableColumnProps[]>(() => [
   { label: i18n.t("message.liquidation-lease-table"), class: "max-w-[200px]" },
   { label: "", class: "max-w-[220px]" }
 ]);
+
+const isProtocolDisabled = computed(() => {
+  const protocols = Contracts.protocolsFilter[app.protocolFilter];
+  return protocols.disabled;
+});
 
 const leasesData = computed<TableRowItemProps[]>(() => {
   const param = search.value.toLowerCase();
