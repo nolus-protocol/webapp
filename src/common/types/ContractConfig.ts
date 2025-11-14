@@ -16,6 +16,7 @@ export interface ContractConfig {
         native: string;
         image: string;
         hold: string[];
+        disabled?: boolean;
       };
     };
   };

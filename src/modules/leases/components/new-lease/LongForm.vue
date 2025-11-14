@@ -155,7 +155,7 @@
         :label="$t('message.open-position')"
         @click="onOpenLease()"
         :loading="isLoading"
-        :disabled="isDisabled"
+        :disabled="isDisabled || isProtocolDisabled"
       />
       <p class="text-center text-12 text-typography-secondary">
         {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.leaseOpenEstimation }}{{ $t("message.min") }}
@@ -279,6 +279,11 @@ const totalBalances = computed(() => {
 const isShortEnabled = computed(() => {
   const protocols = Contracts.protocolsFilter[app.protocolFilter];
   return protocols.short;
+});
+
+const isProtocolDisabled = computed(() => {
+  const protocols = Contracts.protocolsFilter[app.protocolFilter];
+  return protocols.disabled;
 });
 
 const currency = computed(() => {
