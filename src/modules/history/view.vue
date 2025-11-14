@@ -1,6 +1,16 @@
 <template>
   <div class="flex flex-col gap-8">
-    <ListHeader :title="$t('message.history')" />
+    <div class="flex justify-between">
+      <ListHeader :title="$t('message.realized-pnl')" />
+      <Button
+        :label="$t('message.view-breakdown')"
+        severity="secondary"
+        size="small"
+        @click="router.push(`/${RouteNames.LEASES}/pnl-log`)"
+      />
+    </div>
+    <RealisedPnl />
+    <ListHeader :title="$t('message.activities')" />
     <Widget class="overflow-x-auto md:overflow-auto">
       <Table
         searchable
@@ -11,27 +21,7 @@
         @onSearchClear="search = ''"
         tableClasses="min-w-[1060px]"
       >
-        <div class="mb-4 flex">
-          <div class="flex flex-col gap-2">
-            <BigNumber
-              :label="$t('message.realized-pnl')"
-              :amount="{
-                amount: realized_pnl.toString(),
-                type: CURRENCY_VIEW_TYPES.CURRENCY,
-                denom: NATIVE_CURRENCY.symbol,
-                fontSize: 20,
-                fontSizeSmall: 20,
-                hide: hide
-              }"
-            />
-            <Button
-              :label="$t('message.view-breakdown')"
-              severity="secondary"
-              size="small"
-              @click="router.push(`/${RouteNames.LEASES}/pnl-log`)"
-            />
-          </div>
-        </div>
+        <Filter />
         <template v-slot:body>
           <template v-if="transactions.length > 0 || Object.keys(wallet.history).length > 0">
             <!-- <WalletHistoryTableRowWrapper /> -->
@@ -81,10 +71,9 @@ import { Button, Table, type TableColumnProps, Widget } from "web-components";
 import { useWalletStore } from "@/common/stores/wallet";
 import { EtlApi, getCreatedAtForHuman, isMobile, WalletManager } from "@/common/utils";
 import { type ITransactionData } from "@/modules/history/types";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
-import { NATIVE_CURRENCY } from "@/config/global";
 import { RouteNames } from "@/router";
-import BigNumber from "@/common/components/BigNumber.vue";
+import RealisedPnl from "./components/RealisedPnl.vue";
+import Filter from "./components/Filter.vue";
 
 import HistoryTableRowWrapper from "./components/HistoryTableRowWrapper.vue";
 import ListHeader from "@/common/components/ListHeader.vue";

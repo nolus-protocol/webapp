@@ -471,6 +471,15 @@
     "download-csv": "Download CSV",
     "full-close-action": "Close position {contract}",
     "metamask": "Metamask",
-    "walletconnect": "Walletconnect"
+    "walletconnect": "Walletconnect",
+    "add-filter": "Add filter",
+    "filter-by-category": "Filter by category",
+    "filter-category": "Category",
+    "filter-lease-id": "Lease ID",
+    "filter-positions": "Positions",
+    "filter-transfers": "Transfers",
+    "filter-earn": "Earn",
+    "filter-staking": "Staking",
+    "apply-filter": "Apply filter"
   }
 }
