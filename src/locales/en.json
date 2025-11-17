@@ -474,6 +474,7 @@
     "walletconnect": "Walletconnect",
     "add-filter": "Add filter",
     "filter-by-category": "Filter by category",
+    "filter-by-lease": "Filter by position id",
     "filter-category": "Category",
     "filter-lease-id": "Lease ID",
     "filter-positions": "Positions",
