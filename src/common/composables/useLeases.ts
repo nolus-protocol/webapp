@@ -94,7 +94,6 @@ export function useLeases(onError: (error: unknown) => void) {
           return true;
         })
         .sort((a, b) => (b.leaseData?.timestamp?.getTime() ?? 0) - (a.leaseData?.timestamp?.getTime() ?? 0));
-
       leases.value = items as LeaseData[];
       const attributes: {
         PositionsCount: number;
