@@ -198,7 +198,13 @@ const leasesData = computed<TableRowItemProps[]>(() => {
         amount: CurrencyUtils.formatPrice(item.pnlAmount.toString()),
         status: item.pnlAmount.isPositive() || item.pnlAmount.isZero()
       };
-      const liquidation = AssetUtils.formatNumber(item.liquidation.toString(), MID_DECIMALS, NATIVE_CURRENCY.symbol);
+      const liquidation = item.leaseStatus.opening
+        ? { component: () => h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" }) }
+        : {
+            value: AssetUtils.formatNumber(item.liquidation.toString(), MID_DECIMALS, NATIVE_CURRENCY.symbol),
+            class: "max-w-[200px]"
+          };
+
       const asset = getAsset(item as LeaseData)!;
       const amount = new Dec(getAmount(item as LeaseData) ?? 0, asset.decimal_digits);
       const stable = getPositionInStable(item as LeaseData);
@@ -240,29 +246,32 @@ const leasesData = computed<TableRowItemProps[]>(() => {
           },
           {
             component: () =>
-              h<IBigNumber>(BigNumber, {
-                pnlStatus: {
-                  positive: pnl.status,
-                  value: `${pnl.status ? "+" : ""}${pnl.percent}% (${hide.value ? "****" : pnl.amount})`,
-                  badge: {
-                    content: pnl.percent,
-                    base: false
-                  }
-                }
-              }),
+              item.leaseStatus.opening
+                ? h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" })
+                : h<IBigNumber>(BigNumber, {
+                    pnlStatus: {
+                      positive: pnl.status,
+                      value: `${pnl.status ? "+" : ""}${pnl.percent}% (${hide.value ? "****" : pnl.amount})`,
+                      badge: {
+                        content: pnl.percent,
+                        base: false
+                      }
+                    }
+                  }),
             class: "max-w-[200px]"
           },
           {
-            // ...value,
             component: () =>
-              h(TableNumber, {
-                value: value.value,
-                subValue: value.subValue,
-                tooltip: value.tooltip
-              }),
+              item.leaseStatus.opening
+                ? h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" })
+                : h(TableNumber, {
+                    value: value.value,
+                    subValue: value.subValue,
+                    tooltip: value.tooltip
+                  }),
             class: "font-semibold break-all"
           },
-          { value: liquidation, class: "max-w-[200px]" },
+          liquidation,
           {
             component: () => [...actions],
             class: "max-w-[220px] pr-4 cursor-pointer"
@@ -316,16 +325,13 @@ function getTitle(item: LeaseData) {
 function getAssetIcon(item: LeaseData) {
   switch (ProtocolsConfig[item.protocol].type) {
     case PositionTypes.long: {
-      if (item.leaseStatus?.opening && item.leaseData) {
-        return (
-          (app.assetIcons?.[item.leaseData?.leasePositionTicker as string] as string) ??
-          app.assetIcons?.[`${item.leaseStatus.opening.loan.ticker}@${item.protocol}`]
-        );
+      if (item.leaseStatus?.opening) {
+        return app.assetIcons?.[`${item.leaseStatus.opening.currency}@${item.protocol}`]!;
       }
       break;
     }
     case PositionTypes.short: {
-      if (item.leaseStatus?.opening && item.leaseData) {
+      if (item.leaseStatus?.opening) {
         return app.assetIcons?.[`${item.leaseStatus.opening.loan.ticker}@${item.protocol}`]!;
       }
     }
@@ -339,7 +345,7 @@ function getAsset(lease: LeaseData) {
       const ticker =
         lease.leaseStatus?.opened?.amount.ticker ||
         lease.leaseStatus?.closing?.amount.ticker ||
-        lease.leaseStatus?.opening?.downpayment.ticker;
+        lease.leaseStatus?.opening?.currency;
       const item = AssetUtils.getCurrencyByTicker(ticker as string);
 
       const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
@@ -385,7 +391,7 @@ function getPositionInStable(lease: LeaseData) {
 
   let ticker = lease.leaseData!.leasePositionTicker!;
 
-  if (ticker.includes("@")) {
+  if (ticker?.includes?.("@")) {
     let [t, p] = ticker.split("@");
     ticker = t;
     protocol = p;
