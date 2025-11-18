@@ -141,6 +141,7 @@ import type { IAction } from "./single-lease/Action.vue";
 import Action from "./single-lease/Action.vue";
 import type { OpenedOngoingState } from "@nolus/nolusjs/build/contracts/types/OpenedOngoingState";
 import TableNumber from "@/common/components/TableNumber.vue";
+import type { CloseOngoingState } from "@nolus/nolusjs/build/contracts";
 
 const { leases, getLeases, leaseLoaded } = useLeases((error: Error | any) => {});
 const activeLeases = ref(new Dec(0));
@@ -198,7 +199,11 @@ const leasesData = computed<TableRowItemProps[]>(() => {
         amount: CurrencyUtils.formatPrice(item.pnlAmount.toString()),
         status: item.pnlAmount.isPositive() || item.pnlAmount.isZero()
       };
-      const liquidation = item.leaseStatus.opening
+      const loading =
+        item.leaseStatus.opening ??
+        item.leaseStatus.closing ??
+        ((item.leaseStatus.opened?.status as OpenedOngoingState).in_progress as CloseOngoingState)?.close;
+      const liquidation = loading
         ? { component: () => h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" }) }
         : {
             value: AssetUtils.formatNumber(item.liquidation.toString(), MID_DECIMALS, NATIVE_CURRENCY.symbol),
@@ -246,7 +251,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
           },
           {
             component: () =>
-              item.leaseStatus.opening
+              loading
                 ? h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" })
                 : h<IBigNumber>(BigNumber, {
                     pnlStatus: {
@@ -262,7 +267,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
           },
           {
             component: () =>
-              item.leaseStatus.opening
+              loading
                 ? h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" })
                 : h(TableNumber, {
                     value: value.value,
