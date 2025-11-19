@@ -3,7 +3,13 @@ import type { Coin } from "@cosmjs/proto-signing";
 import { ref, watch } from "vue";
 
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
-import { Lease, Leaser, type LeaserConfig, type LeaseStatus } from "@nolus/nolusjs/build/contracts";
+import {
+  Lease,
+  Leaser,
+  type CloseOngoingState,
+  type LeaserConfig,
+  type LeaseStatus
+} from "@nolus/nolusjs/build/contracts";
 import { AppUtils, Logger, LeaseUtils, AssetUtils, WalletManager } from "@/common/utils";
 import {
   Contracts,
@@ -24,6 +30,7 @@ import { useWalletStore } from "../stores/wallet";
 import { Intercom } from "../utils/Intercom";
 import { RouteNames } from "@/router";
 import { useRouter } from "vue-router";
+import type { OpenedOngoingState } from "@nolus/nolusjs/build/contracts/types/OpenedOngoingState";
 
 export function useLeases(onError: (error: unknown) => void) {
   const leases = ref<LeaseData[]>([]);
@@ -87,7 +94,6 @@ export function useLeases(onError: (error: unknown) => void) {
           return true;
         })
         .sort((a, b) => (b.leaseData?.timestamp?.getTime() ?? 0) - (a.leaseData?.timestamp?.getTime() ?? 0));
-
       leases.value = items as LeaseData[];
       const attributes: {
         PositionsCount: number;
@@ -307,12 +313,14 @@ async function fetchLease(leaseAddress: string, protocolKey: string, period?: nu
 
     const currentPrice = new Dec(oracleStore.prices?.[unitAssetInfo!.ibcData as string]?.amount ?? "0");
     let currentAmount = unitAsset.mul(currentPrice);
-    for (const b of balances ?? []) {
-      const lpnPrice = new Dec(oracleStore.prices[b.key]?.amount);
-      const balance = new Dec(b.amount, Number(b.decimals)).mul(lpnPrice);
-      currentAmount = currentAmount.add(balance);
-    }
 
+    if (!((leaseInfo.opened?.status as OpenedOngoingState)?.in_progress as CloseOngoingState)?.close) {
+      for (const b of balances ?? []) {
+        const lpnPrice = new Dec(oracleStore.prices[b.key]?.amount);
+        const balance = new Dec(b.amount, Number(b.decimals)).mul(lpnPrice);
+        currentAmount = currentAmount.add(balance);
+      }
+    }
     if (leaseData) {
       const lpnPrice = new Dec(oracleStore.prices[lpn.ibcData]?.amount);
       pnlAmount = currentAmount

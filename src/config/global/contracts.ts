@@ -31,7 +31,8 @@ export const CONTRACTS: ContractConfig = {
         image: neutron,
         native: "NLS@NEUTRON-ASTROPORT-USDC_AXL",
         hold: ["NEUTRON-ASTROPORT-USDC_AXL"],
-        name: "Neutron"
+        name: "Neutron",
+        disabled: true
       }
     },
     protocolConfig: {
@@ -88,7 +89,8 @@ export const CONTRACTS: ContractConfig = {
         native: "NLS@NEUTRON-ASTROPORT-USDC_NOBLE",
         image: neutron,
         hold: ["NEUTRON-ASTROPORT-USDC_NOBLE"],
-        name: "Neutron"
+        name: "Neutron",
+        disabled: true
       }
     },
     protocolConfig: {

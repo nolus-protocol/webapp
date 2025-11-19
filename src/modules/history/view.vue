@@ -21,7 +21,7 @@
         @onSearchClear="search = ''"
         tableClasses="min-w-[1060px]"
       >
-        <Filter />
+        <Filter @onFilter="onFliter" />
         <template v-slot:body>
           <template v-if="transactions.length > 0 || Object.keys(wallet.history).length > 0">
             <!-- <WalletHistoryTableRowWrapper /> -->
@@ -94,8 +94,8 @@ const wallet = useWalletStore();
 const search = ref("");
 const router = useRouter();
 const app = useApplicationStore();
-const hide = ref(WalletManager.getHideBalances());
 const realized_pnl = ref(new Dec(0));
+const filters = ref<IObjectKeys>({});
 
 const voteMessages: { [key: string]: string } = {
   [VoteOption.VOTE_OPTION_ABSTAIN]: i18n.t(`message.abstained`).toLowerCase(),
@@ -182,11 +182,11 @@ watch(
   }
 );
 
-async function loadTxs() {
+async function loadTxs(refresh = false) {
   try {
     if (wallet.wallet?.address) {
       loading.value = true;
-      const res = await EtlApi.fetchTXS(wallet.wallet?.address, skip, limit).then((data) => {
+      const res = await EtlApi.fetchTXS(wallet.wallet?.address, skip, limit, filters.value).then((data) => {
         const promises = [];
         for (const d of data) {
           const fn = async () => {
@@ -206,6 +206,9 @@ async function loadTxs() {
         }
         return Promise.all(promises);
       });
+      if (refresh) {
+        transactions.value = [];
+      }
       transactions.value = [...transactions.value, ...res] as (ITransactionData & HistoryData)[];
       const loadedSender = res.length < limit;
       if (loadedSender) {
@@ -233,5 +236,11 @@ async function getRealizedPnl() {
   } catch (error) {
     console.error(error);
   }
+}
+
+function onFliter(f: IObjectKeys) {
+  skip = 0;
+  filters.value = f;
+  loadTxs(true);
 }
 </script>

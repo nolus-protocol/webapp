@@ -5,29 +5,38 @@
       class="cursor-pointer"
       name="close"
       size="xs"
-      @click="onClose"
+      @click="onClose()"
     />
   </div>
 
-  <Input
-    id="dropdown-search"
-    class="flex-1"
-    type="search"
-    v-model="search"
-    @input.stop="(e) => (search = (e.target as HTMLInputElement).value)"
-  />
+  <div class="mx-2">
+    <Input
+      id="dropdown-search"
+      class="flex-1"
+      type="search"
+      :size="Size.small"
+      v-model="search"
+      @on-search-clear="search = ''"
+      @input.stop="(e) => (search = (e.target as HTMLInputElement).value)"
+    />
+  </div>
 
   <div
     ref="listContainer"
-    class="max-h-64 overflow-auto px-4 pb-4"
+    class="mt-2 max-h-64 overflow-auto border-t border-border-color bg-neutral-bg-1 pb-4"
   >
+    <span class="mb-4 block w-full border-b border-border-color py-2 pl-2 text-12">
+      {{ $t("message.lease") }}
+    </span>
+
     <div
       v-for="item in positions"
-      :key="item.id"
-      class="mb-1"
+      :key="item.contract"
+      class="mb-1 px-2"
     >
       <Checkbox
-        :id="`position-${item.id}`"
+        class="py-1 text-16 font-normal text-typography-default text-typography-link"
+        :id="item.contract"
         :label="item.label"
         v-model="item.checked"
       />
@@ -37,8 +46,8 @@
       ref="loadMoreRef"
       class="text-typography-subtle py-2 text-center text-12"
     >
-      <span v-if="isLoading">{{ $t("message.loading") }}</span>
-      <span v-else-if="!hasMore">{{ $t("message.no-more-items") }}</span>
+      <span v-if="loading">{{ $t("message.loading") }}...</span>
+      <span v-else-if="loaded">{{ $t("message.no-more-items") }}</span>
       <span v-else>{{ $t("message.scroll-to-load-more") }}</span>
     </div>
   </div>
@@ -46,89 +55,76 @@
   <div class="flex justify-end border-t border-border-color p-3">
     <Button
       ref="popoverParent"
-      :label="$t('message.apply-filter')"
+      :label="`${$t('message.apply-filter')}${selectedPositions.length > 0 ? `(${selectedPositions.length})` : ''}`"
       severity="secondary"
       size="small"
+      @click="onApply"
     />
   </div>
 </template>
 
 <script lang="ts" setup>
+import { useWalletStore } from "@/common/stores/wallet";
+import type { IObjectKeys } from "@/common/types";
+import { EtlApi } from "@/common/utils";
 import { inject, ref, onMounted, onBeforeUnmount, computed, watch } from "vue";
-import { Checkbox, SvgIcon, Button, Input } from "web-components";
+import { Checkbox, SvgIcon, Button, Input, Size } from "web-components";
 
-const onClose = inject("close", () => {});
+const onClose = inject("close", (filters?: IObjectKeys) => {});
 
 const search = ref("");
-
-// list state
 interface PositionItem {
-  id: number | string;
+  contract: string;
   label: string;
   checked: boolean;
 }
 
+let timer: NodeJS.Timeout;
+let skip = 0;
 const positions = ref<PositionItem[]>([]);
-const page = ref(0);
-const pageSize = 20;
-const isLoading = ref(false);
-const hasMore = ref(true);
+const limit = 50;
+const loading = ref(false);
+const loaded = ref(false);
+const wallet = useWalletStore();
+const selectedPositions = computed(() => positions.value.filter((p) => p.checked).map((p) => p.contract));
 
-// refs for infinite scroll
 const listContainer = ref<HTMLElement | null>(null);
 const loadMoreRef = ref<HTMLElement | null>(null);
+const throtthle = 400;
 
 let observer: IntersectionObserver | null = null;
 
-// fake API loader – replace with your real API call
-async function fetchPositions(page: number, pageSize: number, searchTerm: string) {
-  // TODO: use your real API here
-  // This is just a demo that generates data
-  return new Promise<{ data: PositionItem[]; hasMore: boolean }>((resolve) => {
-    setTimeout(() => {
-      const start = page * pageSize;
-      const end = start + pageSize;
-      const total = 200; // imagine 200 positions
+async function fetchPositions(): Promise<PositionItem[]> {
+  return EtlApi.fetch_search_leases(wallet.wallet?.address, skip, limit, search.value).then((data) => {
+    const items: PositionItem[] = data.map((item) => {
+      return {
+        contract: item,
+        label: `#${item.slice(-8)}`,
+        checked: false
+      };
+    });
 
-      const rawItems = Array.from({ length: Math.max(0, Math.min(end, total) - start) }, (_, i) => {
-        const id = start + i;
-        return {
-          id,
-          label: `Position #${id}`,
-          checked: false
-        };
-      });
-
-      // simple client-side search filter (optional)
-      const filtered = searchTerm
-        ? rawItems.filter((item) => item.label.toLowerCase().includes(searchTerm.toLowerCase()))
-        : rawItems;
-
-      resolve({
-        data: filtered,
-        hasMore: end < total
-      });
-    }, 400);
+    return items;
   });
 }
 
 async function loadMore() {
-  if (isLoading.value || !hasMore.value) return;
+  if (loading.value || loaded.value) return;
 
-  isLoading.value = true;
+  loading.value = true;
   try {
-    const res = await fetchPositions(page.value, pageSize, search.value);
-    positions.value.push(...res.data);
-    hasMore.value = res.hasMore;
-    if (res.hasMore) {
-      page.value += 1;
+    const res = await fetchPositions();
+    skip += limit;
+    positions.value.push(...res);
+    const isLoaded = res.length < limit;
+    if (isLoaded) {
+      loaded.value = true;
     }
   } finally {
-    isLoading.value = false;
+    loading.value = false;
   }
 }
 
-// Infinite scroll observer
 function setupObserver() {
   if (!loadMoreRef.value || observer) return;
 
@@ -166,17 +162,26 @@ onBeforeUnmount(() => {
   cleanupObserver();
 });
 
-// if search changes, reset list + reload
 watch(
   () => search.value,
   async () => {
-    positions.value = [];
-    page.value = 0;
-    hasMore.value = true;
-    await loadMore();
+    clearTimeout(timer);
+    timer = setTimeout(async () => {
+      skip = 0;
+      positions.value = [];
+      loaded.value = false;
+      await loadMore();
+    }, throtthle);
   }
 );
 
-// example: computed selected ids (you can emit this up if needed)
-const selectedPositions = computed(() => positions.value.filter((p) => p.checked).map((p) => p.id));
+function onApply() {
+  if (selectedPositions.value.length > 0) {
+    return onClose({
+      positions_ids: selectedPositions.value.map((item) => item)
+    });
+  }
+
+  onClose({});
+}
 </script>

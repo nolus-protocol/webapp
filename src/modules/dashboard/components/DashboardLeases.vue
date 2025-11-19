@@ -47,9 +47,10 @@
               image: { name: 'new-lease' },
               title: $t('message.start-lease'),
               description: $t('message.start-lease-description'),
-              button: wallet.wallet
-                ? { name: $t('message.open-position'), icon: 'plus', url: '/leases/open/long' }
-                : undefined,
+              button:
+                wallet.wallet && !isProtocolDisabled
+                  ? { name: $t('message.open-position'), icon: 'plus', url: '/leases/open/long' }
+                  : undefined,
               link: { label: $t('message.learn-new-leases'), url: `/learn-leases` }
             }
           ]"
@@ -77,7 +78,7 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { AssetUtils, Logger, WalletManager } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
-import { NATIVE_CURRENCY } from "@/config/global";
+import { Contracts, NATIVE_CURRENCY } from "@/config/global";
 import { useRouter } from "vue-router";
 
 const { leases, getLeases } = useLeases((error: Error | any) => {});
@@ -93,6 +94,11 @@ const loaded = ref(true);
 const hide = ref(WalletManager.getHideBalances());
 
 defineProps<{ isVisible: boolean }>();
+
+const isProtocolDisabled = computed(() => {
+  const protocols = Contracts.protocolsFilter[app.protocolFilter];
+  return protocols.disabled;
+});
 
 watch(
   () => leases.value,

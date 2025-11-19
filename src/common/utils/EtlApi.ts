@@ -89,8 +89,19 @@ export class EtlApi {
     return fetch(`${EtlApi.getApiUrl()}/time-series`).then((data) => data.json());
   }
 
-  static async fetchTXS(address: string, skip: number, limit: number): Promise<IObjectKeys[]> {
-    return fetch(`${EtlApi.getApiUrl()}/txs?address=${address}&skip=${skip}&limit=${limit}`).then(async (data) => {
+  static async fetchTXS(address: string, skip: number, limit: number, filters: IObjectKeys): Promise<IObjectKeys[]> {
+    const filter = Object.keys(filters ?? {});
+    let url = `${EtlApi.getApiUrl()}/txs?address=${address}&skip=${skip}&limit=${limit}`;
+
+    if (filter.length > 0) {
+      url += `&filter=${filter.join(",")}`;
+    }
+
+    if (filters?.positions_ids?.length > 0) {
+      url += `&to=${filters.positions_ids.join(",")}`;
+    }
+
+    return fetch(url).then(async (data) => {
       const items = await data.json();
 
       return items.map((item: IObjectKeys) => {
@@ -100,6 +111,18 @@ export class EtlApi {
         item.data = registry.decode(any);
         return item;
       });
+    });
+  }
+
+  static async fetch_search_leases(address: string, skip: number, limit: number, search: string): Promise<string[]> {
+    let url = `${EtlApi.getApiUrl()}/leases-search?address=${address}&skip=${skip}&limit=${limit}`;
+
+    if (search?.length > 0) {
+      url += `&search=${search}`;
+    }
+
+    return fetch(url).then(async (data) => {
+      return data.json();
     });
   }
 }

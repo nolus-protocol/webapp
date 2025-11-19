@@ -1,39 +1,63 @@
 <template>
   <Widget>
-    <WidgetHeader :label="$t('message.leased-assets-total')" />
-    <div class="flex flex-col gap-4 md:flex-row md:gap-8">
+    <div
+      class="flex flex-col gap-4 md:flex-row md:gap-8"
+      v-if="!disabled()"
+    >
       <BigNumber
-        :label="$t('message.open-posiitons-value')"
+        :label="$t('message.total-pnl')"
         :amount="{
-          amount: '1',
+          amount: pnl,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
-          decimals: 0
+          decimals: NORMAL_DECIMALS
         }"
         :loading="loading"
       />
       <BigNumber
-        :label="$t('message.open-interest')"
+        :label="$t('message.volume')"
         :label-tooltip="{
-          content: $t('message.open-interest-tooltip')
+          content: $t('message.volume-tooltip')
         }"
         :amount="{
-          amount: '1',
+          amount: tx_volume,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
           fontSize: 20,
           fontSizeSmall: 20,
-          decimals: 0
+          decimals: NORMAL_DECIMALS
+        }"
+        :loading="loading"
+      />
+      <BigNumber
+        :label="$t('message.win-rate')"
+        :label-tooltip="{
+          content: $t('message.win-rate-tooltip')
+        }"
+        :amount="{
+          amount: win_rate,
+          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          denom: '%',
+          fontSize: 20,
+          fontSizeSmall: 20,
+          decimals: NORMAL_DECIMALS,
+          isDenomInfront: false
         }"
         :loading="loading"
       />
     </div>
+
+    <div class="mt-2 flex flex-col">
+      <span class="text-20 font-semibold text-typography-default">{{ $t("message.distribution") }}</span>
+      <span class="mt-2 text-14 font-normal text-typography-default">{{ $t("message.pnl-count-percent") }}</span>
+    </div>
+
     <Chart
       ref="chart"
       :updateChart="updateChart"
       :fns="[setStats]"
       :getClosestDataPoint="getClosestDataPoint"
-      :data-length="loans.length"
+      :data-length="chart_data.length"
     />
   </Widget>
 </template>
@@ -41,49 +65,75 @@
 <script lang="ts" setup>
 import Chart from "@/common/components/Chart.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
-import WidgetHeader from "@/common/components/WidgetHeader.vue";
 
 import { barX, gridX, plot, ruleX } from "@observablehq/plot";
-import { AssetUtils, EtlApi, isMobile } from "@/common/utils";
+import { EtlApi, isMobile, WalletManager } from "@/common/utils";
 import { select, pointer, type Selection } from "d3";
-import { ref } from "vue";
-import { NATIVE_CURRENCY } from "@/config/global";
+import { NATIVE_CURRENCY, NORMAL_DECIMALS } from "@/config/global";
 import { Widget } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
+import { ref, watch } from "vue";
+import { useWalletStore } from "@/common/stores/wallet";
 
-const chartHeight = 500;
-const marginTop = 20;
+const chartHeight = 125;
+const marginTop = 0;
 const marginBottom = 30;
-const marginLeft = isMobile() ? 50 : 100;
+const marginLeft = isMobile() ? 50 : 50;
 const width = isMobile() ? 450 : 950;
-const loading = ref(false);
+const loading = ref(true);
 
 const chart = ref<typeof Chart>();
-const loans = ref<{ percentage: number; ticker: string; loan: string }[]>([]);
+const chart_data = ref<{ percentage: number; ticker: string; loan: string }[]>([]);
+const wallet = useWalletStore();
+const pnl = ref("0");
+const tx_volume = ref("0");
+const win_rate = ref("0");
+
+type Data = {
+  pnl: number;
+  tx_volume: number;
+  win_rate: string;
+  bucket: {
+    bucket: string;
+    positions: number;
+    share_percent: string;
+  }[];
+};
+
+const disabled = () => (WalletManager.getWalletConnectMechanism() ? false : true);
+
+watch(
+  () => wallet.wallet,
+  () => {
+    setStats();
+  }
+);
 
 async function setStats() {
-  const data = await fetch(`${EtlApi.getApiUrl()}/leased-assets`);
-  const items: { loan: string; asset: string }[] = await data.json();
-  let total = 0;
-
-  for (const i of items) {
-    total += Number(i.loan);
+  if (disabled()) {
+    loading.value = false;
+    chart.value?.update();
+    return;
   }
 
-  loans.value = items
-    .map((item) => {
-      const [key, protocol] = item.asset.split(" ");
-      const currency = AssetUtils.getCurrencyByTicker(key);
+  if (!disabled() && !wallet.wallet) {
+    return;
+  }
+  const data = await fetch(`${EtlApi.getApiUrl()}/history-stats?address=${wallet.wallet?.address}`);
+  const result: Data = await data.json();
 
-      const loan = (Number(item.loan) / total) * 100;
-      return {
-        ticker: `${currency?.shortName ?? key}${protocol ? ` ${protocol}` : ""}`,
-        percentage: loan,
-        loan: item.loan
-      };
-    })
-    .sort((a, b) => b.percentage - a.percentage);
+  pnl.value = result.pnl.toString();
+  tx_volume.value = result.tx_volume.toString();
+  win_rate.value = result.win_rate.toString();
 
+  chart_data.value = result.bucket.map((item) => {
+    return {
+      ticker: item.bucket,
+      percentage: Number(item.share_percent),
+      loan: item.positions.toString()
+    };
+  });
+  loading.value = false;
   chart.value?.update();
 }
 
@@ -102,7 +152,6 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       width: "100%"
     },
     x: {
-      percent: true,
       label: null
     },
     y: {
@@ -110,7 +159,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     },
     marks: [
       ruleX([0]),
-      barX(loans.value, {
+      barX(chart_data.value, {
         x: "percentage",
         y: "ticker",
         rx2: 2,
@@ -130,9 +179,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
       const nearestData = getClosestDataPoint(y);
       if (nearestData) {
-        tooltip.html(
-          `<strong>${nearestData.ticker}:</strong> $${AssetUtils.formatNumber(nearestData.loan, NATIVE_CURRENCY.maximumFractionDigits)}`
-        );
+        tooltip.html(`<strong>${nearestData.ticker}:</strong> ${nearestData.loan}`);
 
         const node = tooltip.node()!.getBoundingClientRect();
         const height = node.height;
@@ -152,11 +199,11 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 function getClosestDataPoint(yPosition: number) {
   const plotAreaHeight = chartHeight - marginTop - marginBottom;
   const adjustedY = yPosition - marginTop;
-  const barHeight = plotAreaHeight / loans.value.length;
+  const barHeight = plotAreaHeight / chart_data.value.length;
   const barIndex = Math.floor(adjustedY / barHeight);
 
-  if (barIndex >= 0 && barIndex < loans.value.length) {
-    return loans.value[barIndex];
+  if (barIndex >= 0 && barIndex < chart_data.value.length) {
+    return chart_data.value[barIndex];
   }
 
   return null;

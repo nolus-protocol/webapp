@@ -481,6 +481,16 @@
     "filter-transfers": "Transfers",
     "filter-earn": "Earn",
     "filter-staking": "Staking",
-    "apply-filter": "Apply filter"
+    "apply-filter": "Apply filter",
+    "total-pnl": "Total Pnl",
+    "volume": "Volume",
+    "volume-tooltip": "Volume tooltip",
+    "win-rate": "Win Rate",
+    "win-rate-tooltip": "Win Rate",
+    "distribution": "Distribution",
+    "pnl-count-percent": "Positions Count Per PnL (%)",
+    "no-more-items": "No more positions",
+    "scroll-to-load-more": "Scroll to load more",
+    "wallet-connect": "Wallet Connect"
   }
 }

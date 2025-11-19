@@ -1,7 +1,7 @@
 <template>
   <ListHeader :title="$t('message.leases')">
     <Button
-      v-if="wallet.wallet"
+      v-if="wallet.wallet && !isProtocolDisabled"
       :label="$t('message.new-lease')"
       severity="primary"
       size="large"
@@ -127,6 +127,7 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useApplicationStore } from "@/common/stores/application";
 import {
+  Contracts,
   MAX_DECIMALS,
   MID_DECIMALS,
   NATIVE_CURRENCY,
@@ -140,6 +141,7 @@ import type { IAction } from "./single-lease/Action.vue";
 import Action from "./single-lease/Action.vue";
 import type { OpenedOngoingState } from "@nolus/nolusjs/build/contracts/types/OpenedOngoingState";
 import TableNumber from "@/common/components/TableNumber.vue";
+import type { CloseOngoingState } from "@nolus/nolusjs/build/contracts";
 
 const { leases, getLeases, leaseLoaded } = useLeases((error: Error | any) => {});
 const activeLeases = ref(new Dec(0));
@@ -168,6 +170,11 @@ const columns = computed<TableColumnProps[]>(() => [
   { label: "", class: "max-w-[220px]" }
 ]);
 
+const isProtocolDisabled = computed(() => {
+  const protocols = Contracts.protocolsFilter[app.protocolFilter];
+  return protocols.disabled;
+});
+
 const leasesData = computed<TableRowItemProps[]>(() => {
   const param = search.value.toLowerCase();
   const items = leases.value
@@ -192,7 +199,17 @@ const leasesData = computed<TableRowItemProps[]>(() => {
         amount: CurrencyUtils.formatPrice(item.pnlAmount.toString()),
         status: item.pnlAmount.isPositive() || item.pnlAmount.isZero()
       };
-      const liquidation = AssetUtils.formatNumber(item.liquidation.toString(), MID_DECIMALS, NATIVE_CURRENCY.symbol);
+      const loading =
+        item.leaseStatus.opening ??
+        item.leaseStatus.closing ??
+        ((item.leaseStatus.opened?.status as OpenedOngoingState).in_progress as CloseOngoingState)?.close;
+      const liquidation = loading
+        ? { component: () => h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" }) }
+        : {
+            value: AssetUtils.formatNumber(item.liquidation.toString(), MID_DECIMALS, NATIVE_CURRENCY.symbol),
+            class: "max-w-[200px]"
+          };
+
       const asset = getAsset(item as LeaseData)!;
       const amount = new Dec(getAmount(item as LeaseData) ?? 0, asset.decimal_digits);
       const stable = getPositionInStable(item as LeaseData);
@@ -234,29 +251,32 @@ const leasesData = computed<TableRowItemProps[]>(() => {
           },
           {
             component: () =>
-              h<IBigNumber>(BigNumber, {
-                pnlStatus: {
-                  positive: pnl.status,
-                  value: `${pnl.status ? "+" : ""}${pnl.percent}% (${hide.value ? "****" : pnl.amount})`,
-                  badge: {
-                    content: pnl.percent,
-                    base: false
-                  }
-                }
-              }),
+              loading
+                ? h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" })
+                : h<IBigNumber>(BigNumber, {
+                    pnlStatus: {
+                      positive: pnl.status,
+                      value: `${pnl.status ? "+" : ""}${pnl.percent}% (${hide.value ? "****" : pnl.amount})`,
+                      badge: {
+                        content: pnl.percent,
+                        base: false
+                      }
+                    }
+                  }),
             class: "max-w-[200px]"
           },
           {
-            // ...value,
             component: () =>
-              h(TableNumber, {
-                value: value.value,
-                subValue: value.subValue,
-                tooltip: value.tooltip
-              }),
+              loading
+                ? h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" })
+                : h(TableNumber, {
+                    value: value.value,
+                    subValue: value.subValue,
+                    tooltip: value.tooltip
+                  }),
             class: "font-semibold break-all"
           },
-          { value: liquidation, class: "max-w-[200px]" },
+          liquidation,
           {
             component: () => [...actions],
             class: "max-w-[220px] pr-4 cursor-pointer"
@@ -310,16 +330,13 @@ function getTitle(item: LeaseData) {
 function getAssetIcon(item: LeaseData) {
   switch (ProtocolsConfig[item.protocol].type) {
     case PositionTypes.long: {
-      if (item.leaseStatus?.opening && item.leaseData) {
-        return (
-          (app.assetIcons?.[item.leaseData?.leasePositionTicker as string] as string) ??
-          app.assetIcons?.[`${item.leaseStatus.opening.loan.ticker}@${item.protocol}`]
-        );
+      if (item.leaseStatus?.opening) {
+        return app.assetIcons?.[`${item.leaseStatus.opening.currency}@${item.protocol}`]!;
       }
       break;
     }
     case PositionTypes.short: {
-      if (item.leaseStatus?.opening && item.leaseData) {
+      if (item.leaseStatus?.opening) {
         return app.assetIcons?.[`${item.leaseStatus.opening.loan.ticker}@${item.protocol}`]!;
       }
     }
@@ -333,7 +350,7 @@ function getAsset(lease: LeaseData) {
       const ticker =
         lease.leaseStatus?.opened?.amount.ticker ||
         lease.leaseStatus?.closing?.amount.ticker ||
-        lease.leaseStatus?.opening?.downpayment.ticker;
+        lease.leaseStatus?.opening?.currency;
       const item = AssetUtils.getCurrencyByTicker(ticker as string);
 
       const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
@@ -379,7 +396,7 @@ function getPositionInStable(lease: LeaseData) {
 
   let ticker = lease.leaseData!.leasePositionTicker!;
 
-  if (ticker.includes("@")) {
+  if (ticker?.includes?.("@")) {
     let [t, p] = ticker.split("@");
     ticker = t;
     protocol = p;

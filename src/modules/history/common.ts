@@ -6,7 +6,7 @@ import { AppUtils, AssetUtils, Logger, StringUtils } from "@/common/utils";
 import { Contracts, NATIVE_NETWORK, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { Buffer } from "buffer";
 import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
-import { decode } from "bech32";
+import { bech32 } from "bech32";
 import { SUPPORTED_NETWORKS_DATA } from "@/networks";
 import { h } from "vue";
 
@@ -600,7 +600,7 @@ async function fetchCurrency(amount: Coin, symbol?: string) {
 
 function getChainName(address: string) {
   try {
-    const decoded = decode(address);
+    const decoded = bech32.decode(address);
     return decoded.prefix;
   } catch (error) {
     console.error("Invalid address format:", error);

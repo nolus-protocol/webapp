@@ -45,6 +45,7 @@ import { Button, Popover } from "web-components";
 import { provide, ref } from "vue";
 import FilterCategory from "./FilterCategory.vue";
 import FilterLeaseId from "./FilterLeaseId.vue";
+import type { IObjectKeys } from "@/common/types";
 
 enum Templates {
   default,
@@ -55,10 +56,15 @@ enum Templates {
 const template = ref(Templates.default);
 const popoverParent = ref();
 const isOpen = ref(false);
+const emitter = defineEmits(["onFilter"]);
+
 provide("close", onClose);
 
-function onClose() {
+function onClose(filters: IObjectKeys) {
   isOpen.value = !isOpen.value;
   template.value = Templates.default;
+  if (filters) {
+    emitter("onFilter", filters);
+  }
 }
 </script>
