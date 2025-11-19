@@ -491,6 +491,7 @@
     "pnl-count-percent": "Positions Count Per PnL (%)",
     "no-more-items": "No more positions",
     "scroll-to-load-more": "Scroll to load more",
-    "wallet-connect": "Wallet Connect"
+    "wallet-connect": "Wallet Connect",
+    "clear-filter": "Clear filter"
   }
 }

@@ -1,56 +1,54 @@
 <template>
   <Widget>
-    <div
-      class="flex flex-col gap-4 md:flex-row md:gap-8"
-      v-if="!disabled()"
-    >
-      <BigNumber
-        :label="$t('message.total-pnl')"
-        :amount="{
-          amount: pnl,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: NATIVE_CURRENCY.symbol,
-          decimals: NORMAL_DECIMALS
-        }"
-        :loading="loading"
-      />
-      <BigNumber
-        :label="$t('message.volume')"
-        :label-tooltip="{
-          content: $t('message.volume-tooltip')
-        }"
-        :amount="{
-          amount: tx_volume,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: NATIVE_CURRENCY.symbol,
-          fontSize: 20,
-          fontSizeSmall: 20,
-          decimals: NORMAL_DECIMALS
-        }"
-        :loading="loading"
-      />
-      <BigNumber
-        :label="$t('message.win-rate')"
-        :label-tooltip="{
-          content: $t('message.win-rate-tooltip')
-        }"
-        :amount="{
-          amount: win_rate,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: '%',
-          fontSize: 20,
-          fontSizeSmall: 20,
-          decimals: NORMAL_DECIMALS,
-          isDenomInfront: false
-        }"
-        :loading="loading"
-      />
-    </div>
-
-    <div class="mt-2 flex flex-col">
-      <span class="text-20 font-semibold text-typography-default">{{ $t("message.distribution") }}</span>
-      <span class="mt-2 text-14 font-normal text-typography-default">{{ $t("message.pnl-count-percent") }}</span>
-    </div>
+    <template v-if="!disabled()">
+      <div class="flex flex-col gap-4 md:flex-row md:gap-8">
+        <BigNumber
+          :label="$t('message.total-pnl')"
+          :amount="{
+            amount: pnl,
+            type: CURRENCY_VIEW_TYPES.CURRENCY,
+            denom: NATIVE_CURRENCY.symbol,
+            decimals: NORMAL_DECIMALS
+          }"
+          :loading="loading"
+        />
+        <BigNumber
+          :label="$t('message.volume')"
+          :label-tooltip="{
+            content: $t('message.volume-tooltip')
+          }"
+          :amount="{
+            amount: tx_volume,
+            type: CURRENCY_VIEW_TYPES.CURRENCY,
+            denom: NATIVE_CURRENCY.symbol,
+            fontSize: 20,
+            fontSizeSmall: 20,
+            decimals: NORMAL_DECIMALS
+          }"
+          :loading="loading"
+        />
+        <BigNumber
+          :label="$t('message.win-rate')"
+          :label-tooltip="{
+            content: $t('message.win-rate-tooltip')
+          }"
+          :amount="{
+            amount: win_rate,
+            type: CURRENCY_VIEW_TYPES.CURRENCY,
+            denom: '%',
+            fontSize: 20,
+            fontSizeSmall: 20,
+            decimals: NORMAL_DECIMALS,
+            isDenomInfront: false
+          }"
+          :loading="loading"
+        />
+      </div>
+      <div class="mt-2 flex flex-col">
+        <span class="text-20 font-semibold text-typography-default">{{ $t("message.distribution") }}</span>
+        <span class="mt-2 text-14 font-normal text-typography-default">{{ $t("message.pnl-count-percent") }}</span>
+      </div>
+    </template>
 
     <Chart
       ref="chart"
@@ -110,31 +108,36 @@ watch(
 );
 
 async function setStats() {
-  if (disabled()) {
+  try {
+    if (disabled()) {
+      loading.value = false;
+      chart.value?.update();
+      return;
+    }
+
+    if (!disabled() && !wallet.wallet) {
+      return;
+    }
+    const data = await fetch(`${EtlApi.getApiUrl()}/history-stats?address=${wallet.wallet?.address}`);
+    const result: Data = await data.json();
+
+    pnl.value = result.pnl.toString();
+    tx_volume.value = result.tx_volume.toString();
+    win_rate.value = result.win_rate.toString();
+
+    chart_data.value = result.bucket.map((item) => {
+      return {
+        ticker: item.bucket,
+        percentage: Number(item.share_percent),
+        loan: item.positions.toString()
+      };
+    });
     loading.value = false;
     chart.value?.update();
-    return;
+  } catch (e) {
+    loading.value = false;
+    chart.value?.update();
   }
-
-  if (!disabled() && !wallet.wallet) {
-    return;
-  }
-  const data = await fetch(`${EtlApi.getApiUrl()}/history-stats?address=${wallet.wallet?.address}`);
-  const result: Data = await data.json();
-
-  pnl.value = result.pnl.toString();
-  tx_volume.value = result.tx_volume.toString();
-  win_rate.value = result.win_rate.toString();
-
-  chart_data.value = result.bucket.map((item) => {
-    return {
-      ticker: item.bucket,
-      percentage: Number(item.share_percent),
-      loan: item.positions.toString()
-    };
-  });
-  loading.value = false;
-  chart.value?.update();
 }
 
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {

@@ -1,14 +1,26 @@
 <template>
   <div class="mb-4">
-    <Button
-      ref="popoverParent"
-      :label="$t('message.add-filter')"
-      severity="badge"
-      size="small"
-      icon="plus"
-      icon-position="left"
-      @click="isOpen = !isOpen"
-    />
+    <div ref="popoverParent">
+      <Button
+        v-if="hasFilters"
+        :label="$t('message.clear-filter')"
+        severity="badge"
+        size="small"
+        icon="close"
+        icon-position="left"
+        @click="trigger"
+      />
+      <template v-else>
+        <Button
+          :label="$t('message.add-filter')"
+          severity="badge"
+          size="small"
+          icon="plus"
+          icon-position="left"
+          @click="trigger"
+        />
+      </template>
+    </div>
   </div>
   <Popover
     v-if="isOpen"
@@ -57,13 +69,28 @@ const template = ref(Templates.default);
 const popoverParent = ref();
 const isOpen = ref(false);
 const emitter = defineEmits(["onFilter"]);
+const hasFilters = ref(false);
 
 provide("close", onClose);
+
+function trigger() {
+  template.value = Templates.default;
+
+  if (hasFilters.value) {
+    hasFilters.value = false;
+    emitter("onFilter", {});
+    return;
+  }
+
+  isOpen.value = !isOpen.value;
+}
 
 function onClose(filters: IObjectKeys) {
   isOpen.value = !isOpen.value;
   template.value = Templates.default;
+
   if (filters) {
+    hasFilters.value = true;
     emitter("onFilter", filters);
   }
 }

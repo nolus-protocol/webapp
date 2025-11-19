@@ -58,7 +58,7 @@
         class="mx-auto"
         severity="secondary"
         size="medium"
-        @click="loadTxs"
+        @click="loadTxs()"
       />
     </div>
   </div>
@@ -177,6 +177,8 @@ watch(
   () => wallet.wallet,
   () => {
     skip = 0;
+    transactions.value = [];
+
     loadTxs();
     getRealizedPnl();
   }

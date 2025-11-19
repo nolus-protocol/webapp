@@ -89,7 +89,7 @@ export class EtlApi {
     return fetch(`${EtlApi.getApiUrl()}/time-series`).then((data) => data.json());
   }
 
-  static async fetchTXS(address: string, skip: number, limit: number, filters: IObjectKeys): Promise<IObjectKeys[]> {
+  static async fetchTXS(address: string, skip: number, limit: number, filters?: IObjectKeys): Promise<IObjectKeys[]> {
     const filter = Object.keys(filters ?? {});
     let url = `${EtlApi.getApiUrl()}/txs?address=${address}&skip=${skip}&limit=${limit}`;
 
