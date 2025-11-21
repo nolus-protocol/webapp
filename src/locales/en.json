@@ -218,7 +218,7 @@
     "wallets": "Account",
     "hello": "Hello",
     "hello-stranger": "Hello Stranger!",
-    "online": "Online",
+    "online": "Connected",
     "wallet-connected": "Wallet Connected",
     "wallet-disconnected": "Wallet Disconnected",
     "address-coppied": "Address Copied Successfully",
