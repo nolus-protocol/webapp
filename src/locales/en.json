@@ -175,7 +175,7 @@
     "open-short-position-action": "Open {position} position on {LPN_ticker} with {amount}",
     "pnl-history": "Realized PnL",
     "contract-id": "Contract id",
-    "realized-pnl": "Realized PnL",
+    "realized-pnl": "Realized PnL Log",
     "realized": "Realized",
     "liquidation": "Liquidation Trigger",
     "select-wallet": "Select Wallet",
