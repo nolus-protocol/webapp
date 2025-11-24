@@ -40,7 +40,7 @@
             content: $t('message.project-anual-return-tooltip')
           }"
           :amount="{
-            amount: stableAmount,
+            amount: anualYield,
             type: CURRENCY_VIEW_TYPES.CURRENCY,
             denom: NATIVE_CURRENCY.symbol,
             fontSize: 20,
