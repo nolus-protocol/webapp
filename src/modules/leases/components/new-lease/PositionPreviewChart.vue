@@ -22,7 +22,7 @@ import { useI18n } from "vue-i18n";
 import { select, pointer, type Selection } from "d3";
 
 const marginBottom = 50;
-const marginLeft = 30;
+const marginLeft = 50;
 const marginRight = 30;
 const chart = ref<typeof Chart>();
 
@@ -91,8 +91,7 @@ async function setStats() {
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
   if (!plotContainer) return;
 
-  plotContainer.innerHTML = "";
-  const plotChart = plot({
+  const nextChart = plot({
     className: "position-preview-chart",
     y: { label: null, ticks: 3, tickFormat: (d) => `$${d}`, tickSize: 0, line: true },
     marginBottom,
@@ -108,7 +107,14 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         insetBottom: 0,
         clip: "frame"
       }),
-      barY([responses.value[0]], { x: "name", y: "value", fill: "#19A96C", rx: 6, insetBottom: 0, clip: "frame" }),
+      barY([responses.value[0]], {
+        x: "name",
+        y: "value",
+        fill: "#19A96C",
+        rx: 6,
+        insetBottom: 0,
+        clip: "frame"
+      }),
       text(responses.value, {
         x: "name",
         y: "value",
@@ -123,24 +129,31 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     ]
   });
 
-  plotContainer.appendChild(plotChart);
+  const prevChart = plotContainer.firstChild as HTMLElement | null;
+  if (prevChart) {
+    plotContainer.replaceChild(nextChart, prevChart);
+  } else {
+    plotContainer.appendChild(nextChart);
+  }
 
-  select(plotChart).selectAll("rect").transition().duration(600).attr("opacity", 1);
-
-  select(plotChart)
+  select(nextChart)
     .on("mousemove", (event) => {
-      const [x] = pointer(event, plotChart);
-      const width = plotChart.clientWidth;
+      const [x] = pointer(event, nextChart as any);
+      const width = (nextChart as HTMLElement).clientWidth;
 
       const closestData = getClosestDataPoint(x, width);
       if (closestData) {
         tooltip.html(
-          `<strong>${i18n.t("message.amount")}</strong> $${AssetUtils.formatNumber(closestData.value, NATIVE_CURRENCY.maximumFractionDigits)}`
+          `<strong>${i18n.t("message.amount")}</strong> $${AssetUtils.formatNumber(
+            closestData.value,
+            NATIVE_CURRENCY.maximumFractionDigits
+          )}`
         );
 
-        const node = tooltip?.node()!.getBoundingClientRect();
+        const node = tooltip.node()!.getBoundingClientRect();
         const height = node.height;
         const width = node.width;
+
         tooltip
           .style("opacity", 1)
           .style("left", `${event.pageX - width / 2}px`)

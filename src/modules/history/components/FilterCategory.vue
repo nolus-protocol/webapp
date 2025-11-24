@@ -80,10 +80,6 @@ function onApply() {
     filters.staking = true;
   }
 
-  if (positions.value && transfers.value && earn.value && staking.value) {
-    return onClose({});
-  }
-
   onClose(filters);
 }
 </script>

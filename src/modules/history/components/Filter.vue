@@ -1,25 +1,45 @@
 <template>
   <div class="mb-4">
-    <div ref="popoverParent">
+    <div class="flex gap-4">
+      <Label
+        variant="secondary"
+        v-if="categoryFilters.length > 0"
+      >
+        <span class="font-normal">{{ $t("message.filter-category") }}:</span>
+        <span class="ml-1 font-medium">{{ categoryFilters }}</span>
+
+        <SvgIcon
+          class="ml-1 cursor-pointer"
+          name="close"
+          size="xs"
+          @click="clear"
+        />
+      </Label>
+
+      <Label
+        variant="secondary"
+        v-if="leaseFilters.length > 0"
+      >
+        <span class="font-normal">{{ $t("message.position-id") }}:</span>
+        <span class="ml-1 font-medium">{{ leaseFilters }}</span>
+
+        <SvgIcon
+          class="ml-1 cursor-pointer"
+          name="close"
+          size="xs"
+          @click="clear"
+        />
+      </Label>
+
       <Button
-        v-if="hasFilters"
-        :label="$t('message.clear-filter')"
+        ref="popoverParent"
+        :label="$t('message.add-filter')"
         severity="badge"
         size="small"
-        icon="close"
+        icon="plus"
         icon-position="left"
         @click="trigger"
       />
-      <template v-else>
-        <Button
-          :label="$t('message.add-filter')"
-          severity="badge"
-          size="small"
-          icon="plus"
-          icon-position="left"
-          @click="trigger"
-        />
-      </template>
     </div>
   </div>
   <Popover
@@ -53,11 +73,12 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, Popover } from "web-components";
-import { provide, ref } from "vue";
+import { Button, Popover, Label, SvgIcon } from "web-components";
+import { computed, provide, ref } from "vue";
 import FilterCategory from "./FilterCategory.vue";
 import FilterLeaseId from "./FilterLeaseId.vue";
 import type { IObjectKeys } from "@/common/types";
+import { useI18n } from "vue-i18n";
 
 enum Templates {
   default,
@@ -69,28 +90,45 @@ const template = ref(Templates.default);
 const popoverParent = ref();
 const isOpen = ref(false);
 const emitter = defineEmits(["onFilter"]);
-const hasFilters = ref(false);
+const appliedFilters = ref();
+const i18n = useI18n();
 
 provide("close", onClose);
+
+const categoryFilters = computed(() => {
+  const categories = ["positions", "transfers", "earn", "staking"];
+  return categories
+    .filter((item) => {
+      if (appliedFilters.value?.[item]) {
+        return true;
+      }
+      return false;
+    })
+    .map((item) => i18n.t(`message.filter-${item}`))
+    .join(", ");
+});
+
+const leaseFilters = computed(() => {
+  const leases: string[] = appliedFilters.value?.positions_ids ?? [];
+  return leases.map((item) => `#${item.slice(-6)}`).join(", ");
+});
 
 function trigger() {
   template.value = Templates.default;
 
-  if (hasFilters.value) {
-    hasFilters.value = false;
-    emitter("onFilter", {});
-    return;
-  }
-
   isOpen.value = !isOpen.value;
+}
+
+function clear() {
+  emitter("onFilter", {});
+  appliedFilters.value = {};
 }
 
 function onClose(filters: IObjectKeys) {
   isOpen.value = !isOpen.value;
   template.value = Templates.default;
-
+  appliedFilters.value = filters;
   if (filters) {
-    hasFilters.value = true;
     emitter("onFilter", filters);
   }
 }

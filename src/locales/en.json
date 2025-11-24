@@ -224,7 +224,7 @@
     "address-coppied": "Address Copied Successfully",
     "unrealized-pnl": "PnL",
     "debt": "Debt",
-    "total-value": "Total Value",
+    "total-value": "Your Deposits",
     "view-all-assets": "View All Assets",
     "show-small-balances": "Small balances",
     "toggle-values": "Toggle values",
@@ -492,6 +492,12 @@
     "no-more-items": "No more positions",
     "scroll-to-load-more": "Scroll to load more",
     "wallet-connect": "Wallet Connect",
-    "clear-filter": "Clear filter"
+    "clear-filter": "Clear filter",
+    "position-id": "Position id",
+    "total-value-tooltip": "Your Deposits tooltip",
+    "earn-yield": "Earn Yield",
+    "earn-yield-tooltip": "Earn Yield tooltip",
+    "project-anual-return": "Projected Annual Return",
+    "project-anual-return-tooltip": "Projected Annual Return tooltip"
   }
 }

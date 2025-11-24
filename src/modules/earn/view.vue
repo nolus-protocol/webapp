@@ -22,6 +22,8 @@
     <div class="flex flex-col gap-8 lg:flex-row">
       <EarnAssets
         :stableAmount="stableAmount"
+        :anualYield="anualYield"
+        :earningsAmount="earningsAmount"
         :items="assetsRows"
         class="order-2 overflow-x-auto md:overflow-auto lg:order-none lg:flex-[60%]"
         :onSearch="onSearch"
@@ -45,11 +47,13 @@ import { type LabelProps, type TableRowItemProps } from "web-components";
 import type { Asset } from "./types";
 import { claimRewardsMsg, Lpp, type ContractData } from "@nolus/nolusjs/build/contracts";
 
-import { AssetUtils, Logger, WalletManager } from "@/common/utils";
+import { AssetUtils, EtlApi, Logger, WalletManager } from "@/common/utils";
 import {
   Contracts,
   NATIVE_ASSET,
   NATIVE_CURRENCY,
+  NORMAL_DECIMALS,
+  PERCENT,
   ProtocolsConfig,
   SORT_PROTOCOLS,
   UPDATE_REWARDS_INTERVAL
@@ -73,6 +77,8 @@ const oracle = useOracleStore();
 const i18n = useI18n();
 const router = useRouter();
 const stableAmount = ref("0.00");
+const earningsAmount = ref("0.00");
+
 const lpnReward = ref<
   {
     amount: string;
@@ -98,9 +104,9 @@ watch(
 
 async function onInit() {
   try {
-    await Promise.allSettled([loadLPNCurrency(), loadRewards()]);
+    await Promise.allSettled([loadLPNCurrency(), loadEarnings()]);
     interval = setInterval(async () => {
-      await Promise.allSettled([loadLPNCurrency(), loadRewards()]);
+      await Promise.allSettled([loadLPNCurrency(), loadEarnings()]);
     }, UPDATE_REWARDS_INTERVAL);
   } catch (e: Error | any) {
     Logger.error(e);
@@ -114,12 +120,19 @@ onUnmounted(() => {
 watch(
   () => [wallet.balances, application.protocolFilter],
   async (value) => {
-    await Promise.allSettled([loadLPNCurrency(), loadRewards()]);
+    await Promise.allSettled([loadLPNCurrency(), loadEarnings()]);
   }
 );
 
 function onSearch(data: string) {
   search.value = data;
+}
+
+async function loadEarnings() {
+  if (wallet.wallet?.address) {
+    const res = await EtlApi.featchEarnings(wallet.wallet?.address);
+    earningsAmount.value = res.earnings;
+  }
 }
 
 async function loadLPNCurrency() {
@@ -149,7 +162,6 @@ async function loadLPNCurrency() {
         const contract = admin.contracts![protocol].lpp;
         const lppClient = new Lpp(cosmWasmClient, contract);
         let s = true;
-
         claimContract.push({
           contractAddress: contract,
           msg: claimRewardsMsg()
@@ -162,7 +174,6 @@ async function loadLPNCurrency() {
           lppClient.getPrice(),
           lppClient.getDepositCapacity()
         ]);
-
         if (Number(supply?.amount) == 0 || !ProtocolsConfig[protocol].supply) {
           s = false;
         }
@@ -213,6 +224,23 @@ async function loadLPNCurrency() {
     return true;
   });
 }
+
+const anualYield = computed(() => {
+  let amount = new Dec(0);
+  for (const balance of lpnAsset.value) {
+    const c = application.currenciesData![balance.key!];
+    const [_ticker, protocol] = balance.key?.split("@") ?? [];
+    const apr = new Dec((application.apr?.[protocol] ?? 0) / PERCENT);
+
+    const stable_b = CurrencyUtils.calculateBalance(
+      oracle.prices[balance.key]?.amount,
+      new Coin(balance.balance.denom, balance.balance.amount.toString()),
+      c.decimal_digits
+    ).toDec();
+    amount = amount.add(stable_b.mul(apr));
+  }
+  return amount.toString(NORMAL_DECIMALS);
+});
 
 const assetsRows = computed<TableRowItemProps[]>(() => {
   const param = search.value.toLowerCase();
@@ -330,7 +358,6 @@ async function loadRewards() {
       stableAmount: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(2), 2)}`,
       icon: NATIVE_ASSET.icon
     });
-
     lpnReward.value = data;
     lpnRewardStable.value = stable.toString(2);
   } catch (e) {

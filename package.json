@@ -44,7 +44,7 @@
     "vue": "^3.5.24",
     "vue-i18n": "11.1.12",
     "vue-router": "^4.6.3",
-    "web-components": "github:nolus-protocol/web-components#v2.0.43"
+    "web-components": "github:nolus-protocol/web-components#v2.0.44"
   },
   "devDependencies": {
     "@intlify/unplugin-vue-i18n": "^11.0.1",

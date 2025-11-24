@@ -89,7 +89,15 @@ export class EtlApi {
     return fetch(`${EtlApi.getApiUrl()}/time-series`).then((data) => data.json());
   }
 
+  static async featchEarnings(address: string): Promise<IObjectKeys> {
+    return fetch(`${EtlApi.getApiUrl()}/earnings?address=${address}`).then((data) => data.json());
+  }
+
   static async fetchTXS(address: string, skip: number, limit: number, filters?: IObjectKeys): Promise<IObjectKeys[]> {
+    if (filters.positions && filters.transfers && filters.earn && filters.staking) {
+      filters = {};
+    }
+
     const filter = Object.keys(filters ?? {});
     let url = `${EtlApi.getApiUrl()}/txs?address=${address}&skip=${skip}&limit=${limit}`;
 
