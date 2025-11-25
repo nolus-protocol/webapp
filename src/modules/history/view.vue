@@ -5,7 +5,7 @@
       <Button
         :label="$t('message.view-breakdown')"
         severity="secondary"
-        size="small"
+        size="medium"
         @click="router.push(`/${RouteNames.LEASES}/pnl-log`)"
       />
     </div>
@@ -69,7 +69,7 @@ import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Button, Table, type TableColumnProps, Widget } from "web-components";
 import { useWalletStore } from "@/common/stores/wallet";
-import { EtlApi, getCreatedAtForHuman, isMobile, WalletManager } from "@/common/utils";
+import { EtlApi, getCreatedAtForHuman, isMobile } from "@/common/utils";
 import { type ITransactionData } from "@/modules/history/types";
 import { RouteNames } from "@/router";
 import RealisedPnl from "./components/RealisedPnl.vue";

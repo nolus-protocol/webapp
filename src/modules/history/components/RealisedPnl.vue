@@ -120,7 +120,6 @@ async function setStats() {
     }
     const data = await fetch(`${EtlApi.getApiUrl()}/history-stats?address=${wallet.wallet?.address}`);
     const result: Data = await data.json();
-
     pnl.value = result.pnl.toString();
     tx_volume.value = result.tx_volume.toString();
     win_rate.value = result.win_rate.toString();
@@ -143,22 +142,20 @@ async function setStats() {
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
   if (!plotContainer) return;
 
+  const bucketOrder = ["<0", "0-50", "51–100", "101–300", "301+"];
   plotContainer.innerHTML = "";
 
   const plotChart = plot({
     width,
     height: chartHeight,
-    marginLeft: marginLeft,
-    marginTop: marginTop,
-    marginBottom: marginBottom,
-    style: {
-      width: "100%"
-    },
-    x: {
-      label: null
-    },
+    marginLeft,
+    marginTop,
+    marginBottom,
+    style: { width: "100%" },
+    x: { label: null },
     y: {
-      label: null
+      label: null,
+      domain: bucketOrder // force order
     },
     marks: [
       ruleX([0]),
@@ -166,8 +163,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         x: "percentage",
         y: "ticker",
         rx2: 2,
-        fill: "#3470E2",
-        sort: { y: "x", reverse: true }
+        fill: "#3470E2"
       }),
       gridX({})
     ]

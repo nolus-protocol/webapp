@@ -32,6 +32,7 @@
       </Label>
 
       <Button
+        v-if="categoryFilters.length == 0 && leaseFilters.length == 0"
         ref="popoverParent"
         :label="$t('message.add-filter')"
         severity="badge"

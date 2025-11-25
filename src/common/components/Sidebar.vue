@@ -3,6 +3,16 @@
     <DesktopMenu class="flex flex-col gap-3" />
     <div class="flex flex-col gap-1">
       <RouterLink
+        :to="{ name: RouteNames.VOTE }"
+        class="router-link flex h-[50px] items-center gap-2 rounded-full border border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
+      >
+        <SvgIcon
+          name="vote"
+          size="l"
+        />
+        {{ $t("message.vote") }}
+      </RouterLink>
+      <RouterLink
         :to="{ name: RouteNames.STATS }"
         class="router-link flex h-[50px] items-center gap-2 rounded-full border border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
       >

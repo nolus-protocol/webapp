@@ -24,7 +24,9 @@ import { RouteNames } from "@/router";
 import { SvgIcon } from "web-components";
 
 const filteredRouteNames = computed(() => {
-  return Object.values(RouteNames).filter((name) => name !== RouteNames.STATS);
+  return Object.values(RouteNames).filter(
+    (name) => ![RouteNames.STATS, RouteNames.DASHBOARD, RouteNames.VOTE].includes(name)
+  );
 });
 </script>
 

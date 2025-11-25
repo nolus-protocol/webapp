@@ -4,7 +4,7 @@
       :items="items"
       :onSearch="onSearch"
     >
-      <div class="flex gap-8">
+      <div class="my-2 flex flex-col gap-8 md:flex-row">
         <BigNumber
           :label="$t('message.total-value')"
           :labelTooltip="{
