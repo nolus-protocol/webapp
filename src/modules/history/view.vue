@@ -5,7 +5,7 @@
       <Button
         :label="$t('message.view-breakdown')"
         severity="secondary"
-        size="medium"
+        size="large"
         @click="router.push(`/${RouteNames.LEASES}/pnl-log`)"
       />
     </div>

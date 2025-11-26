@@ -93,7 +93,12 @@ export class EtlApi {
     return fetch(`${EtlApi.getApiUrl()}/earnings?address=${address}`).then((data) => data.json());
   }
 
-  static async fetchTXS(address: string, skip: number, limit: number, filters?: IObjectKeys): Promise<IObjectKeys[]> {
+  static async fetchTXS(
+    address: string,
+    skip: number,
+    limit: number,
+    filters: IObjectKeys = {}
+  ): Promise<IObjectKeys[]> {
     if (filters.positions && filters.transfers && filters.earn && filters.staking) {
       filters = {};
     }

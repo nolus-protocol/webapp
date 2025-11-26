@@ -13,7 +13,6 @@ export async function loadActivities(this: Store) {
         [VoteOption.VOTE_OPTION_YES]: i18n.global.t(`message.yes`).toLowerCase(),
         [VoteOption.VOTE_OPTION_NO]: i18n.global.t(`message.no`).toLowerCase()
       };
-
       this.activities.loaded = false;
       const res = await EtlApi.fetchTXS(this.wallet?.address, 0, 10).then((data) => {
         const promises = [];
@@ -40,6 +39,7 @@ export async function loadActivities(this: Store) {
       this.activities = { data: [], loaded: true };
     }
   } catch (e: Error | any) {
+    console.warn(e);
   } finally {
     this.activities.loaded = true;
   }
