@@ -205,6 +205,7 @@ import {
   POSITIONS,
   PositionTypes,
   ProtocolsConfig,
+  SORT_LEASE,
   WASM_EVENTS
 } from "@/config/global";
 import type { AssetBalance } from "@/common/stores/wallet/types";
@@ -349,7 +350,7 @@ const assets = computed(() => {
 });
 
 const coinList = computed(() => {
-  return balances.value
+  const list = balances.value
     .filter((item) => {
       let [ticker, protocol] = item.key.split("@");
 
@@ -378,6 +379,17 @@ const coinList = computed(() => {
         icon: item.icon as string
       };
     });
+
+  const sortOrder = new Map(SORT_LEASE.map((t, i) => [t, i]));
+
+  return list.sort((a, b) => {
+    const aIndex = sortOrder.get(a.ticker);
+    const bIndex = sortOrder.get(b.ticker);
+    if (aIndex === undefined && bIndex === undefined) return 0;
+    if (aIndex !== undefined && bIndex === undefined) return -1;
+    if (aIndex === undefined && bIndex !== undefined) return 1;
+    return (aIndex as number) - (bIndex as number);
+  });
 });
 
 const calculatedBalance = computed(() => {
