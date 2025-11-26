@@ -5,11 +5,11 @@
     "ltv-title-high-risk": "危险！健康度低于 3%",
     "ltv-title-partial-liquidation": "部分清算",
     "ltv-title-full-liquidation": "完全清算",
-    "liquidations-funding": "请考虑为 {{ticker}} 仓位补充资金",
-    "liquidations-funding-recommended": "建议为 {{ticker}} 仓位补充资金",
-    "liquidations-fund-now": "{{ticker}} 仓位接近被清算！立即补充资金",
-    "liquidations-partially-liquidated": "{{ticker}} 仓位已被部分清算。健康度已回到 10%",
-    "liquidations-fully-liquidated": "{{ticker}} 仓位已被完全清算"
+    "liquidations-funding": "请考虑为 {ticker} 仓位补充资金",
+    "liquidations-funding-recommended": "建议为 {ticker} 仓位补充资金",
+    "liquidations-fund-now": "{ticker} 仓位接近被清算！立即补充资金",
+    "liquidations-partially-liquidated": "{ticker} 仓位已被部分清算。健康度已回到 10%",
+    "liquidations-fully-liquidated": "{ticker} 仓位已被完全清算"
   },
   "message": {
     "connect-wallet": "连接",
@@ -469,6 +469,7 @@
     "redelagate": "委托",
     "keplr-wallet-connect": "Wallet Connect (测试版)",
     "download-csv": "下载 CSV",
-    "full-close-action": "平仓 {contract}"
+    "full-close-action": "平仓 {contract}",
+    "metamask": "Metamask"
   }
 }

@@ -49,6 +49,7 @@ import KeplrIcon from "@/assets/icons/wallets/keplr.svg?url";
 import LedgerIcon from "@/assets/icons/wallets/ledger.svg?url";
 import LeapIcon from "@/assets/icons/wallets/leapwallet.svg?url";
 import WalletConnectIcon from "@/assets/icons/wallets/walletconnect.svg?url";
+import MetamaskIcon from "@/assets/icons/wallets/metamask.svg?url";
 
 import { useRouter } from "vue-router";
 
@@ -76,6 +77,11 @@ const connections = computed(
         label: i18n.t("message.leap"),
         type: WalletActions.CONNECT_LEAP
       },
+      // EvmMetamask: {
+      //   icon: MetamaskIcon,
+      //   label: i18n.t("message.metamask"),
+      //   type: WalletActions.CONNECT_EVM_METAMASK
+      // },
       Ledger: {
         icon: LedgerIcon,
         label: i18n.t("message.ledger"),

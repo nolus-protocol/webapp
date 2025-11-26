@@ -163,9 +163,9 @@ const lpnBalances = ref<
 
 const stable = computed(() => {
   const currency = assets.value[selectedCurrency.value];
-  const asset = application.currenciesData![currency.value];
+  const asset = application.currenciesData?.[currency?.value];
 
-  const price = new Dec(oracle.prices?.[asset.key]?.amount ?? 0);
+  const price = new Dec(oracle.prices?.[asset?.key]?.amount ?? 0);
   const v = input?.value?.length ? input?.value : "0";
   const stable = price.mul(new Dec(v));
   return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;

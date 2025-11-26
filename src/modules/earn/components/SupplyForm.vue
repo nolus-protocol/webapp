@@ -68,7 +68,7 @@
       severity="primary"
       :label="$t('message.supply')"
       @click="onNextClick"
-      :disabled="disabled || assets[selectedCurrency].disabled"
+      :disabled="disabled || assets[selectedCurrency]?.disabled"
       :loading="loading"
     />
     <p class="text-center text-12 text-typography-secondary">
@@ -87,7 +87,7 @@ import {
   AssetItem,
   ToastType
 } from "web-components";
-import { computed, inject, onMounted, ref } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
 import { Dec, Int } from "@keplr-wallet/unit";
@@ -104,61 +104,65 @@ import { useI18n } from "vue-i18n";
 import EarnChart from "./EarnChart.vue";
 
 const assets = computed(() => {
-  const protocols = Contracts.protocolsFilter[application.protocolFilter];
-  const lpns = application.lpn?.filter((item) => {
-    const c = application.currenciesData![item.key!];
-    const [_currency, protocol] = c.key!.split("@");
+  try {
+    const protocols = Contracts.protocolsFilter[application.protocolFilter];
+    const lpns = application.lpn?.filter((item) => {
+      const c = application.currenciesData![item.key!];
+      const [_currency, protocol] = c.key!.split("@");
 
-    if (protocols.hold.includes(protocol)) {
-      return true;
-    }
-    return false;
-  });
-
-  const data = [];
-
-  for (const lpn of lpns ?? []) {
-    const [_, p] = lpn.key.split("@");
-    const asset = AssetUtils.getBalance(lpn.ibcData);
-    const value = new Dec(asset.balance.amount, lpn.decimal_digits);
-
-    const balance = AssetUtils.formatNumber(value.toString(), lpn.decimal_digits);
-    const price = new Dec(oracle.prices?.[lpn.key]?.amount ?? 0);
-    const stable = price.mul(value);
-    data.push({
-      key: lpn.key,
-      disabled: !supply.value[p],
-      name: lpn.name,
-      value: lpn.key,
-      label: lpn.shortName,
-      ibcData: lpn.ibcData,
-      icon: lpn.icon,
-      balance: { value: balance, ticker: lpn.shortName },
-      stable,
-      decimal_digits: lpn.decimal_digits,
-      price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
+      if (protocols.hold.includes(protocol)) {
+        return true;
+      }
+      return false;
     });
-  }
-  let items = [];
 
-  for (const protocol of SORT_PROTOCOLS) {
-    const index = data.findIndex((item) => {
-      const [_key, pr] = item.value.split("@");
-      return pr == protocol;
-    });
-    if (index > -1) {
-      items.push(data[index]);
-      data.splice(index, 1);
+    const data = [];
+
+    for (const lpn of lpns ?? []) {
+      const [_, p] = lpn.key.split("@");
+      const asset = AssetUtils.getBalance(lpn.ibcData);
+      const value = new Dec(asset.balance.amount, lpn.decimal_digits);
+
+      const balance = AssetUtils.formatNumber(value.toString(), lpn.decimal_digits);
+      const price = new Dec(oracle.prices?.[lpn.key]?.amount ?? 0);
+      const stable = price.mul(value);
+      data.push({
+        key: lpn.key,
+        disabled: !supply.value[p],
+        name: lpn.name,
+        value: lpn.key,
+        label: lpn.shortName,
+        ibcData: lpn.ibcData,
+        icon: lpn.icon,
+        balance: { value: balance, ticker: lpn.shortName },
+        stable,
+        decimal_digits: lpn.decimal_digits,
+        price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
+      });
     }
+    let items = [];
+
+    for (const protocol of SORT_PROTOCOLS) {
+      const index = data.findIndex((item) => {
+        const [_key, pr] = item.value.split("@");
+        return pr == protocol;
+      });
+      if (index > -1) {
+        items.push(data[index]);
+        data.splice(index, 1);
+      }
+    }
+
+    items = items
+      .sort((a, b) => {
+        return Number(b.stable.sub(a.stable).toString(8));
+      })
+      .sort((a, b) => (a.disabled === b.disabled ? 0 : a.disabled ? 1 : -1));
+
+    return items;
+  } catch (e) {
+    return [];
   }
-
-  items = items
-    .sort((a, b) => {
-      return Number(b.stable.sub(a.stable).toString(8));
-    })
-    .sort((a, b) => (a.disabled === b.disabled ? 0 : a.disabled ? 1 : -1));
-
-  return items;
 });
 
 const walletStore = useWalletStore();
@@ -181,17 +185,29 @@ const selectedCurrency = ref(0);
 
 const stable = computed(() => {
   const currency = assets.value[selectedCurrency.value];
-  const asset = application.currenciesData![currency.value];
+  const asset = application.currenciesData?.[currency?.value];
 
-  const price = new Dec(oracle.prices?.[asset.key]?.amount ?? 0);
+  const price = new Dec(oracle.prices?.[asset?.key]?.amount ?? 0);
   const v = input?.value?.length ? input?.value : "0";
   const stable = price.mul(new Dec(v));
   return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
 });
 
-onMounted(() => {
+watch(
+  () => application.init,
+  () => {
+    if (application.init) {
+      onInit();
+    }
+  },
+  {
+    immediate: true
+  }
+);
+
+async function onInit() {
   fetchDepositCapacity();
-});
+}
 
 const apr = computed(() => {
   let [_, protocol] = assets.value[selectedCurrency.value].key.split("@");

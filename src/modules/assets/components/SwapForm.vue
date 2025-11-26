@@ -8,7 +8,7 @@
       :itemsHeadline="[$t('message.assets'), $t('message.balance')]"
       :selected-first-currency-option="selectedAsset"
       :selected-second-currency-option="selectedSecondCurrencyOption"
-      :disabled="disabled || loadingTx"
+      :disabled="disabledByWallet || disabled || loadingTx"
       @on-first-change="updateAmount"
       @on-second-change="updateSwapToAmount"
       :first-input-value="firstInputAmount?.toString()"
@@ -108,7 +108,7 @@
       severity="primary"
       :label="$t('message.swap')"
       :loading="loading || loadingTx"
-      :disabled="disabled"
+      :disabled="disabledByWallet || disabled"
       @click="onNextClick"
     />
     <p class="text-center text-12 text-typography-secondary">
@@ -121,7 +121,7 @@
 import MultipleCurrencyComponent from "@/common/components/MultipleCurrencyComponent.vue";
 import { Button, type AssetItemProps, AssetItem, type AdvancedCurrencyFieldOption } from "web-components";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
-import { computed, inject, onMounted, ref } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
 import {
   AppUtils,
@@ -145,6 +145,7 @@ import { SkipRouter } from "@/common/utils/SkipRoute";
 import { useApplicationStore } from "@/common/stores/application";
 import { StepperVariant, Stepper } from "web-components";
 import type { RouteResponse } from "@/common/types/skipRoute";
+import { WalletTypes } from "@/networks/types";
 
 let time: NodeJS.Timeout;
 let route: RouteResponse | null;
@@ -174,6 +175,17 @@ const disabled = ref(false);
 const loadingTx = ref(false);
 const priceImapact = ref(0);
 const onClose = inject("close", () => {});
+
+const disabledByWallet = computed(() => {
+  switch (wallet.wallet?.signer?.type) {
+    case WalletTypes.evm: {
+      return true;
+    }
+    default: {
+      return false;
+    }
+  }
+});
 
 const assets = computed(() => {
   const data = [];
@@ -231,7 +243,19 @@ const balances = computed(() => {
   });
 });
 
-onMounted(async () => {
+watch(
+  () => applicaiton.init,
+  () => {
+    if (applicaiton.init) {
+      onInit();
+    }
+  },
+  {
+    immediate: true
+  }
+);
+
+async function onInit() {
   try {
     const config = await AppUtils.getSkipRouteConfig();
     const protocol = applicaiton.protocolFilter.toLowerCase();
@@ -245,7 +269,7 @@ onMounted(async () => {
   } catch (error) {
     Logger.error(error);
   }
-});
+}
 
 async function onNextClick() {
   if (validateInputs().length == 0) {

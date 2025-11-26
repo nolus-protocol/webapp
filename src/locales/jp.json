@@ -5,11 +5,11 @@
     "ltv-title-high-risk": "危険！健全性が3%未満です",
     "ltv-title-partial-liquidation": "部分清算",
     "ltv-title-full-liquidation": "全清算",
-    "liquidations-funding": "{{ticker}}のポジションへの資金追加をご検討ください",
-    "liquidations-funding-recommended": "{{ticker}}のポジションへの資金追加を推奨します",
-    "liquidations-fund-now": "{{ticker}}のポジションが清算寸前です！今すぐ資金を追加",
-    "liquidations-partially-liquidated": "{{ticker}}のポジションは一部清算されました。健全性は10%に回復しました",
-    "liquidations-fully-liquidated": "{{ticker}}のポジションは全清算されました"
+    "liquidations-funding": "{ticker}のポジションへの資金追加をご検討ください",
+    "liquidations-funding-recommended": "{ticker}のポジションへの資金追加を推奨します",
+    "liquidations-fund-now": "{ticker}のポジションが清算寸前です！今すぐ資金を追加",
+    "liquidations-partially-liquidated": "{ticker}のポジションは一部清算されました。健全性は10%に回復しました",
+    "liquidations-fully-liquidated": "{ticker}のポジションは全清算されました"
   },
   "message": {
     "connect-wallet": "接続する",
@@ -469,6 +469,7 @@
     "redelagate": "委任",
     "keplr-wallet-connect": "Wallet Connect (ベータ)",
     "download-csv": "CSVをダウンロード",
-    "full-close-action": "ポジション{contract}をクローズ"
+    "full-close-action": "ポジション{contract}をクローズ",
+    "metamask": "Metamask"
   }
 }

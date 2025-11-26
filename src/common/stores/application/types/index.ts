@@ -10,6 +10,7 @@ export enum ApplicationActions {
 }
 
 export type State = {
+  init: boolean;
   networks?: NetworksInfo;
   assetIcons?: {
     [key: string]: string;

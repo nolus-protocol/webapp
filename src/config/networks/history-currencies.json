@@ -177,6 +177,9 @@
     "native": false,
     "coingeckoId": "stkatom",
     "protocols": {
+      "OSMOSIS-OSMOSIS-USDC_NOBLE": {
+        "ibcData": "ibc/DAAD372DB7DD45BBCFA4DDD40CA9793E9D265D1530083AB41A8A0C53C3EBE865"
+      },
       "NEUTRON-ASTROPORT-USDC_NOBLE": {
         "ibcData": "ibc/DAC47DFAA22682AAFFE28D1B3969BBF6405311F0A3F1228C45519AAE81CD9B9E"
       },
@@ -221,6 +224,24 @@
       },
       "NEUTRON-ASTROPORT-USDC_AXELAR": {
         "ibcData": "ibc/8D4FC51F696E03711B9B37A5787FB89BD2DDBAF788813478B002D552A12F9157"
+      }
+    }
+  },
+  "USDC_AXELAR": {
+    "name": "USDC Axelar",
+    "symbol": "uusdc",
+    "ticker": "USDC_AXELAR",
+    "decimal_digits": 6,
+    "icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/currencies/icons/osmosis-usdc.svg",
+    "shortName": "USDC",
+    "native": false,
+    "coingeckoId": "usdc",
+    "protocols": {
+      "OSMOSIS-OSMOSIS-USDC_NOBLE": {
+        "ibcData": "ibc/076CF690A9912E0B7A2CCA75B719D68AF7C20E4B0B6460569B333DDEB19BBBA1"
+      },
+      "OSMOSIS-OSMOSIS-USDC_AXELAR": {
+        "ibcData": "ibc/076CF690A9912E0B7A2CCA75B719D68AF7C20E4B0B6460569B333DDEB19BBBA1"
       }
     }
   }

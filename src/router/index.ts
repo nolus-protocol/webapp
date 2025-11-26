@@ -15,6 +15,7 @@ import { StakeRouter } from "@/modules/stake/router";
 import { RouteNames } from "./RouteNames";
 
 import MainLayout from "@/modules/view.vue";
+import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 
 const router = createRouter({
   scrollBehavior(to, from) {
@@ -31,7 +32,7 @@ const router = createRouter({
     {
       path: "/",
       component: MainLayout,
-      beforeEnter: [loadLanguage, loadData],
+      beforeEnter: [loadLanguage],
       children: [
         DashboardRouter,
         LeasesRouter,
@@ -53,13 +54,6 @@ const router = createRouter({
 async function loadLanguage(to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) {
   await setLang(AppUtils.getLang().key);
   return next();
-}
-
-async function loadData() {
-  const app = useApplicationStore();
-  const wallet = useWalletStore();
-  app[ApplicationActions.LOAD_THEME]();
-  await Promise.all([app[ApplicationActions.CHANGE_NETWORK](), wallet.ignoreAssets()]);
 }
 
 router.beforeEach((to, from, next) => {

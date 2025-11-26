@@ -10,9 +10,6 @@ export async function changeNetwork(this: Store) {
   try {
     const rpc = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
     NolusClient.setInstance(rpc);
-
-    const walletStore = useWalletStore();
-    const oracle = useOracleStore();
     const admin = useAdminStore();
 
     this.protocolFilter = WalletManager.getProtocolFilter();
@@ -23,12 +20,25 @@ export async function changeNetwork(this: Store) {
 
     await admin.GET_PROTOCOLS();
     await this.LOAD_CURRENCIES();
+
+    loadWalletData.bind(this)();
+  } catch (error: Error | any) {
+    throw new Error(error);
+  }
+}
+
+async function loadWalletData(this: Store) {
+  try {
+    const walletStore = useWalletStore();
+    const oracle = useOracleStore();
+
     await Promise.allSettled([
       walletStore.UPDATE_BALANCES(),
       oracle.GET_PRICES(),
       this.LOAD_APR_REWARDS(),
       walletStore.LOAD_APR()
     ]);
+    this.init = true;
   } catch (error: Error | any) {
     throw new Error(error);
   }

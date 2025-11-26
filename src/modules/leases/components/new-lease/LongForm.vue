@@ -164,14 +164,14 @@
   </div>
   <LongLeaseDetails
     :downpaymen-amount="amount"
-    :downpayment-currency="currency.key"
+    :downpayment-currency="currency?.key"
     :lease="leaseApply"
-    :loan-currency="coinList[selectedLoanCurrency].key"
+    :loan-currency="coinList[selectedLoanCurrency]?.key"
   />
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, onMounted, ref, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import {
   AdvancedFormControl,
   Button,
@@ -239,14 +239,26 @@ const amountErrorMsg = ref("");
 const ltd = ref((MAX_POSITION / PERCENT) * PERMILLE);
 const leaseApply = ref<LeaseApply | null>();
 
-onMounted(async () => {
+watch(
+  () => app.init,
+  () => {
+    if (app.init) {
+      onInit();
+    }
+  },
+  {
+    immediate: true
+  }
+);
+
+async function onInit() {
   const [freeInterestv, ignoreLeaseAssetsv] = await Promise.all([
     AppUtils.getFreeInterest(),
     AppUtils.getIgnoreLeaseLongAssets()
   ]);
   freeInterest.value = freeInterestv;
   ignoreLeaseAssets.value = ignoreLeaseAssetsv;
-});
+}
 
 watch(
   () => [selectedCurrency.value, amount.value, selectedLoanCurrency.value, ltd.value],
@@ -319,7 +331,7 @@ const assets = computed(() => {
       balance: {
         value: balance,
         ticker: asset.shortName!,
-        denom: asset.balance.denom,
+        denom: asset.balance?.denom,
         amount: asset.balance?.amount
       },
       ibcData: (asset as ExternalCurrency).ibcData,
@@ -381,7 +393,11 @@ const calculatedBalance = computed(() => {
 
 const balances = computed(() => {
   return totalBalances.value.filter((item) => {
-    const [ticker, protocol] = item.key.split("@");
+    if (!item.key) {
+      return false;
+    }
+
+    const [ticker, protocol] = item.key?.split("@") ?? [];
     let cticker = ticker;
 
     if (!ProtocolsConfig[protocol].lease) {

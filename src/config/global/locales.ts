@@ -4,58 +4,58 @@ let languages: {
   [key: string]: {
     key: string;
     label: string;
-    url: string | Promise<string>;
+    load: () => Promise<Record<string, any>>;
   };
 } = {
   en: {
     key: "en",
     label: "English",
-    url: import("../../locales/en.json?url").then((t) => t.default)
+    load: () => import("../../locales/en.json").then((t) => t.default)
   },
   ru: {
     key: "ru",
     label: "Русский",
-    url: import("../../locales/ru.json?url").then((t) => t.default)
+    load: () => import("../../locales/ru.json").then((t) => t.default)
   },
   cn: {
     key: "cn",
     label: "中文",
-    url: import("../../locales/cn.json?url").then((t) => t.default)
+    load: () => import("../../locales/cn.json").then((t) => t.default)
   },
   fr: {
     key: "fr",
     label: "Français",
-    url: import("../../locales/fr.json?url").then((t) => t.default)
+    load: () => import("../../locales/fr.json").then((t) => t.default)
   },
   es: {
     key: "es",
     label: "Español",
-    url: import("../../locales/es.json?url").then((t) => t.default)
+    load: () => import("../../locales/es.json").then((t) => t.default)
   },
   gr: {
     key: "gr",
     label: "Ελληνικά",
-    url: import("../../locales/gr.json?url").then((t) => t.default)
+    load: () => import("../../locales/gr.json").then((t) => t.default)
   },
   tr: {
     key: "tr",
     label: "Türkçe",
-    url: import("../../locales/tr.json?url").then((t) => t.default)
+    load: () => import("../../locales/tr.json").then((t) => t.default)
   },
   id: {
     key: "id",
     label: "Bahasa Indo",
-    url: import("../../locales/id.json?url").then((t) => t.default)
+    load: () => import("../../locales/id.json").then((t) => t.default)
   },
   jp: {
     key: "jp",
     label: "日本語",
-    url: import("../../locales/jp.json?url").then((t) => t.default)
+    load: () => import("../../locales/jp.json").then((t) => t.default)
   },
   kr: {
     key: "kr",
     label: "한국어",
-    url: import("../../locales/kr.json?url").then((t) => t.default)
+    load: () => import("../../locales/kr.json").then((t) => t.default)
   }
 };
 
@@ -64,52 +64,62 @@ if (!isDev()) {
     en: {
       key: "en",
       label: "English",
-      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/en.json"
+      load: () =>
+        fetch("https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/en.json").then((d) => d.json())
     },
     ru: {
       key: "ru",
       label: "Русский",
-      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/ru.json"
+      load: () =>
+        fetch("https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/ru.json").then((d) => d.json())
     },
     cn: {
       key: "cn",
       label: "中文",
-      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/cn.json"
+      load: () =>
+        fetch("https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/cn.json").then((d) => d.json())
     },
     fr: {
       key: "fr",
       label: "Français",
-      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/fr.json"
+      load: () =>
+        fetch("https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/fr.json").then((d) => d.json())
     },
     es: {
       key: "es",
       label: "Español",
-      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/es.json"
+      load: () =>
+        fetch("https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/es.json").then((d) => d.json())
     },
     gr: {
       key: "gr",
       label: "Ελληνικά",
-      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/gr.json"
+      load: () =>
+        fetch("https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/gr.json").then((d) => d.json())
     },
     tr: {
       key: "tr",
       label: "Türkçe",
-      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/tr.json"
+      load: () =>
+        fetch("https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/tr.json").then((d) => d.json())
     },
     id: {
       key: "id",
       label: "Bahasa Indo",
-      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/id.json"
+      load: () =>
+        fetch("https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/id.json").then((d) => d.json())
     },
     jp: {
       key: "jp",
       label: "日本語",
-      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/jp.json"
+      load: () =>
+        fetch("https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/jp.json").then((d) => d.json())
     },
     kr: {
       key: "kr",
       label: "한국어",
-      url: "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/kr.json"
+      load: () =>
+        fetch("https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/locales/kr.json").then((d) => d.json())
     }
   };
 }

@@ -44,6 +44,19 @@
         <div class="flex flex-col gap-1 pb-12">
           <RouterLink
             @click="close"
+            :to="{ name: RouteNames.VOTE }"
+            class="router-link flex h-[50px] items-center gap-2 border-b border-t border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
+          >
+            <div class="flex items-center gap-2">
+              <SvgIcon
+                name="vote"
+                size="l"
+              />
+              {{ $t("message.vote") }}
+            </div>
+          </RouterLink>
+          <RouterLink
+            @click="close"
             :to="{ name: RouteNames.STATS }"
             class="router-link flex h-[50px] items-center gap-2 border-b border-t border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
           >
@@ -77,7 +90,9 @@ const toggleMobileNav = ref(false);
 const toggleMenuWrapper = ref(false);
 
 const filteredRouteNames = computed(() => {
-  return Object.values(RouteNames).filter((name) => name !== RouteNames.STATS);
+  return Object.values(RouteNames).filter(
+    (name) => ![RouteNames.STATS, RouteNames.DASHBOARD, RouteNames.VOTE].includes(name)
+  );
 });
 
 const block = ref(0);

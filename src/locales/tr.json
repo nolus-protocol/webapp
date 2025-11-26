@@ -5,11 +5,11 @@
     "ltv-title-high-risk": "Danger! Health is below 3%",
     "ltv-title-partial-liquidation": "Kısmi Likidasyon",
     "ltv-title-full-liquidation": "Tam Likidasyon",
-    "liquidations-funding": "{{ticker}} pozisyonunuza fon eklemeyi düşünün",
-    "liquidations-funding-recommended": "{{ticker}} pozisyonunuza fon eklemeniz önerilir",
-    "liquidations-fund-now": "{{ticker}} pozisyonu likidasyona çok yakın! Şimdi fon ekleyin",
-    "liquidations-partially-liquidated": "{{ticker}} position is partially liquidated. Health is back at 10%",
-    "liquidations-fully-liquidated": "{{ticker}} pozisyonu tamamen likide edildi"
+    "liquidations-funding": "{ticker} pozisyonunuza fon eklemeyi düşünün",
+    "liquidations-funding-recommended": "{ticker} pozisyonunuza fon eklemeniz önerilir",
+    "liquidations-fund-now": "{ticker} pozisyonu likidasyona çok yakın! Şimdi fon ekleyin",
+    "liquidations-partially-liquidated": "{ticker} position is partially liquidated. Health is back at 10%",
+    "liquidations-fully-liquidated": "{ticker} pozisyonu tamamen likide edildi"
   },
   "message": {
     "connect-wallet": "Bağlamak",
@@ -469,6 +469,7 @@
     "redelagate": "Delege Et",
     "keplr-wallet-connect": "Wallet Connect (beta)",
     "download-csv": "CSV indir",
-    "full-close-action": "Pozisyonu kapat {contract}"
+    "full-close-action": "Pozisyonu kapat {contract}",
+    "metamask": "Metamask"
   }
 }

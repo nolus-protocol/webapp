@@ -822,8 +822,8 @@ function getCurrency() {
   const c = currency.value;
 
   return {
-    ticker: c.ticker,
-    amount: microAmount.mAmount.amount.toString()
+    amount: microAmount.mAmount.amount.toString(),
+    ticker: c.ticker
   };
 }
 

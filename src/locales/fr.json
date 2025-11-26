@@ -5,11 +5,11 @@
     "ltv-title-high-risk": "Danger ! La santé est inférieure à 3 %",
     "ltv-title-partial-liquidation": "Liquidation partielle",
     "ltv-title-full-liquidation": "Liquidation totale",
-    "liquidations-funding": "Envisagez d’ajouter des fonds à votre position {{ticker}}",
-    "liquidations-funding-recommended": "Il est recommandé d’ajouter des fonds à votre position {{ticker}}",
-    "liquidations-fund-now": "La position {{ticker}} est proche de la liquidation ! Ajoutez des fonds maintenant",
-    "liquidations-partially-liquidated": "La position {{ticker}} a été partiellement liquidée. La santé est revenue à 10 %",
-    "liquidations-fully-liquidated": "La position {{ticker}} a été totalement liquidée"
+    "liquidations-funding": "Envisagez d’ajouter des fonds à votre position {ticker}",
+    "liquidations-funding-recommended": "Il est recommandé d’ajouter des fonds à votre position {ticker}",
+    "liquidations-fund-now": "La position {ticker} est proche de la liquidation ! Ajoutez des fonds maintenant",
+    "liquidations-partially-liquidated": "La position {ticker} a été partiellement liquidée. La santé est revenue à 10 %",
+    "liquidations-fully-liquidated": "La position {ticker} a été totalement liquidée"
   },
   "message": {
     "connect-wallet": "Connecter",
@@ -469,6 +469,7 @@
     "redelagate": "Déléguer",
     "keplr-wallet-connect": "Wallet Connect (bêta)",
     "download-csv": "Télécharger le fichier CSV",
-    "full-close-action": "Clôturer la position {contract}"
+    "full-close-action": "Clôturer la position {contract}",
+    "metamask": "Metamask"
   }
 }

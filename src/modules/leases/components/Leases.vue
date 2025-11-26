@@ -39,7 +39,7 @@
         @onSearchClear="onSearch('')"
         @on-input="(e: Event) => onSearch((e.target as HTMLInputElement).value)"
       >
-        <div class="flex gap-8">
+        <div class="flex flex-col gap-8 md:flex-row">
           <BigNumber
             :label="$t('message.unrealized-pnl')"
             :amount="{

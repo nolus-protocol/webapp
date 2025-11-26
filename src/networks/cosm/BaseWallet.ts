@@ -43,6 +43,7 @@ import type { MsgDelegate, MsgUndelegate } from "cosmjs-types/cosmos/staking/v1b
 import type { MsgWithdrawDelegatorReward } from "cosmjs-types/cosmos/distribution/v1beta1/tx";
 import { MsgDepositForBurnWithCaller } from "../list/noble/tx";
 import { SigningCosmWasmClient, type SigningCosmWasmClientOptions } from "@cosmjs/cosmwasm-stargate";
+import { WalletTypes } from "../types";
 
 export class BaseWallet extends SigningCosmWasmClient implements Wallet {
   address!: string;
@@ -54,6 +55,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
   queryClientBase: QueryClient & AuthExtension & BankExtension & StakingExtension & TxExtension;
   gasMultiplier: number;
   explorer: string;
+  type: string = WalletTypes.cosmos;
 
   protected gasPriceData: string;
   protected offlineSigner: OfflineSigner;

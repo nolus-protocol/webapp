@@ -1,6 +1,16 @@
 <template>
   <div class="flex flex-col gap-8">
-    <ListHeader :title="$t('message.history')" />
+    <div class="flex justify-between">
+      <ListHeader :title="$t('message.realized-pnl')" />
+      <Button
+        :label="$t('message.view-breakdown')"
+        severity="secondary"
+        size="large"
+        @click="router.push(`/${RouteNames.LEASES}/pnl-log`)"
+      />
+    </div>
+    <RealisedPnl />
+    <ListHeader :title="$t('message.activities')" />
     <Widget class="overflow-x-auto md:overflow-auto">
       <Table
         searchable
@@ -11,27 +21,7 @@
         @onSearchClear="search = ''"
         tableClasses="min-w-[1060px]"
       >
-        <div class="mb-4 flex">
-          <div class="flex flex-col gap-2">
-            <BigNumber
-              :label="$t('message.realized-pnl')"
-              :amount="{
-                amount: realized_pnl.toString(),
-                type: CURRENCY_VIEW_TYPES.CURRENCY,
-                denom: NATIVE_CURRENCY.symbol,
-                fontSize: 20,
-                fontSizeSmall: 20,
-                hide: hide
-              }"
-            />
-            <Button
-              :label="$t('message.view-breakdown')"
-              severity="secondary"
-              size="small"
-              @click="router.push(`/${RouteNames.LEASES}/pnl-log`)"
-            />
-          </div>
-        </div>
+        <Filter @onFilter="onFliter" />
         <template v-slot:body>
           <template v-if="transactions.length > 0 || Object.keys(wallet.history).length > 0">
             <!-- <WalletHistoryTableRowWrapper /> -->
@@ -68,23 +58,22 @@
         class="mx-auto"
         severity="secondary"
         size="medium"
-        @click="loadTxs"
+        @click="loadTxs()"
       />
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Button, Table, type TableColumnProps, Widget } from "web-components";
 import { useWalletStore } from "@/common/stores/wallet";
-import { EtlApi, getCreatedAtForHuman, isMobile, WalletManager } from "@/common/utils";
+import { EtlApi, getCreatedAtForHuman, isMobile } from "@/common/utils";
 import { type ITransactionData } from "@/modules/history/types";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
-import { NATIVE_CURRENCY } from "@/config/global";
 import { RouteNames } from "@/router";
-import BigNumber from "@/common/components/BigNumber.vue";
+import RealisedPnl from "./components/RealisedPnl.vue";
+import Filter from "./components/Filter.vue";
 
 import HistoryTableRowWrapper from "./components/HistoryTableRowWrapper.vue";
 import ListHeader from "@/common/components/ListHeader.vue";
@@ -95,6 +84,7 @@ import { VoteOption } from "cosmjs-types/cosmos/gov/v1/gov";
 import type { IObjectKeys } from "@/common/types";
 import { useRouter } from "vue-router";
 import { Dec } from "@keplr-wallet/unit";
+import { useApplicationStore } from "@/common/stores/application";
 
 const showErrorDialog = ref(false);
 const errorMessage = ref("");
@@ -103,8 +93,9 @@ const i18n = useI18n();
 const wallet = useWalletStore();
 const search = ref("");
 const router = useRouter();
-const hide = ref(WalletManager.getHideBalances());
+const app = useApplicationStore();
 const realized_pnl = ref(new Dec(0));
+const filters = ref<IObjectKeys>({});
 
 const voteMessages: { [key: string]: string } = {
   [VoteOption.VOTE_OPTION_ABSTAIN]: i18n.t(`message.abstained`).toLowerCase(),
@@ -165,25 +156,39 @@ const txsSkip = computed(() => {
   });
 });
 
-onMounted(() => {
+watch(
+  () => app.init,
+  () => {
+    if (app.init) {
+      onInit();
+    }
+  },
+  {
+    immediate: true
+  }
+);
+
+async function onInit() {
   loadTxs();
   getRealizedPnl();
-});
+}
 
 watch(
   () => wallet.wallet,
   () => {
     skip = 0;
+    transactions.value = [];
+
     loadTxs();
     getRealizedPnl();
   }
 );
 
-async function loadTxs() {
+async function loadTxs(refresh = false) {
   try {
     if (wallet.wallet?.address) {
       loading.value = true;
-      const res = await EtlApi.fetchTXS(wallet.wallet?.address, skip, limit).then((data) => {
+      const res = await EtlApi.fetchTXS(wallet.wallet?.address, skip, limit, filters.value).then((data) => {
         const promises = [];
         for (const d of data) {
           const fn = async () => {
@@ -203,6 +208,9 @@ async function loadTxs() {
         }
         return Promise.all(promises);
       });
+      if (refresh) {
+        transactions.value = [];
+      }
       transactions.value = [...transactions.value, ...res] as (ITransactionData & HistoryData)[];
       const loadedSender = res.length < limit;
       if (loadedSender) {
@@ -230,5 +238,11 @@ async function getRealizedPnl() {
   } catch (error) {
     console.error(error);
   }
+}
+
+function onFliter(f: IObjectKeys) {
+  skip = 0;
+  filters.value = f;
+  loadTxs(true);
 }
 </script>

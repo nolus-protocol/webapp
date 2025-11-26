@@ -56,7 +56,7 @@ import VestedOverview from "./components/VestedOverview.vue";
 
 import { StakeDialog } from "@/modules/stake/enums";
 import { DelegationOverview, StakingRewards } from "./components";
-import { h, onMounted, onUnmounted, provide, ref, watch } from "vue";
+import { h, onUnmounted, provide, ref, watch } from "vue";
 import { AssetUtils, Logger, NetworkUtils } from "@/common/utils";
 import { NATIVE_ASSET, NATIVE_CURRENCY, PERCENT, UPDATE_REWARDS_INTERVAL } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -67,10 +67,13 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import RedelegateButton from "./components/RedelegateButton.vue";
+import { useApplicationStore } from "@/common/stores/application";
 
 let interval: NodeJS.Timeout | undefined;
 const wallet = useWalletStore();
 const oracle = useOracleStore();
+const app = useApplicationStore();
+
 const i18n = useI18n();
 const router = useRouter();
 
@@ -93,7 +96,19 @@ provide("onReload", async () => {
   await Promise.allSettled([loadDelegated(), loadDelegator(), loadUnboundingDelegations(), loadVested()]);
 });
 
-onMounted(async () => {
+watch(
+  () => app.init,
+  () => {
+    if (app.init) {
+      onInit();
+    }
+  },
+  {
+    immediate: true
+  }
+);
+
+async function onInit() {
   try {
     await Promise.all([loadDelegated(), loadDelegator(), loadUnboundingDelegations(), loadVested()]);
 
@@ -103,7 +118,7 @@ onMounted(async () => {
   } catch (e: Error | any) {
     Logger.error(e);
   }
-});
+}
 
 onUnmounted(() => {
   clearInterval(interval);

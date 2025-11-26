@@ -44,19 +44,20 @@
 
 <script lang="ts" setup>
 import ListHeader from "@/common/components/ListHeader.vue";
-import { computed, onMounted, onUnmounted, ref } from "vue";
-import { Dec } from "@keplr-wallet/unit";
+import { computed, onUnmounted, ref, watch } from "vue";
 import { ChainConstants } from "@nolus/nolusjs";
 import { Button } from "web-components";
 import { AppUtils } from "@/common/utils";
 import { type Proposal } from "@/modules/vote/types";
 import { ProposalItemWrapper, ProposalSkeleton, VoteDialog } from "@/modules/vote/components";
 import { useFetchGovernanceProposals, useLoadBondedTokens, useLoadTallying } from "./composable";
+import { useApplicationStore } from "@/common/stores/application";
 
 const dialog = ref<InstanceType<typeof VoteDialog> | null>(null);
 const initialLoad = ref(false);
 const showSkeleton = ref(true);
 const loading = ref(false);
+const app = useApplicationStore();
 
 const pagination = ref({
   total: 0,
@@ -74,13 +75,25 @@ const { fetchGovernanceProposals, fetchProposalData, fetchData, LOAD_TIMEOUT, li
 const { loadBondedTokens, bondedTokens } = useLoadBondedTokens();
 const { loadTallying, quorum } = useLoadTallying();
 
-onMounted(async () => {
+watch(
+  () => app.init,
+  () => {
+    if (app.init) {
+      onInit();
+    }
+  },
+  {
+    immediate: true
+  }
+);
+
+async function onInit() {
   await Promise.allSettled([
     fetchGovernanceProposals({ timeout, pagination, proposals, initialLoad, showSkeleton }),
     loadBondedTokens(),
     loadTallying()
   ]);
-});
+}
 
 onUnmounted(() => {
   if (timeout) {

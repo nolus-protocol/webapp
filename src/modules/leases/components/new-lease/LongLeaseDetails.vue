@@ -13,7 +13,7 @@
       :amount="{
         amount: sizeAmount,
         type: CURRENCY_VIEW_TYPES.TOKEN,
-        denom: asset.shortName,
+        denom: asset?.shortName,
         maxDecimals: MAX_DECIMALS,
         minimalDenom: '',
         decimals: asset?.decimal_digits,
@@ -159,7 +159,7 @@
       />
       <BigNumber
         class="md:flex-[50%]"
-        :label="$t('message.price-per-symbol', { symbol: asset.shortName })"
+        :label="$t('message.price-per-symbol', { symbol: asset?.shortName })"
         :amount="{
           amount: oracle.prices[loanCurrency]?.amount ?? '0',
           type: CURRENCY_VIEW_TYPES.CURRENCY,
@@ -238,7 +238,7 @@ watch(
 );
 
 const isFreeLease = computed(() => {
-  const [_, p] = props.loanCurrency.split("@");
+  const [_, p] = props.loanCurrency?.split("@") ?? [];
 
   if (freeInterest.value.includes(`${props.lease?.total?.ticker}@${p}`)) {
     return true;
@@ -262,15 +262,15 @@ const sizeAmount = computed(() => {
 });
 
 const stable = computed(() => {
-  const price = new Dec(oracle.prices?.[asset.value.key!]?.amount ?? 0);
+  const price = new Dec(oracle.prices?.[asset.value?.key!]?.amount ?? 0);
   const v = props.lease?.total?.amount ?? "0";
-  const stable = price.mul(new Dec(v, asset.value.decimal_digits)).sub(new Dec(swapStableFee.value));
+  const stable = price.mul(new Dec(v, asset.value?.decimal_digits ?? 0)).sub(new Dec(swapStableFee.value));
 
   return stable.toString();
 });
 
 const asset = computed(() => {
-  const currency = app.currenciesData![props.loanCurrency];
+  const currency = app.currenciesData?.[props.loanCurrency];
   return currency;
 });
 
@@ -281,7 +281,7 @@ const lpn = computed(() => {
 });
 
 const downPaymentAsset = computed(() => {
-  const currency = app.currenciesData![props.downpaymentCurrency];
+  const currency = app.currenciesData?.[props.downpaymentCurrency];
   return currency;
 });
 
@@ -339,7 +339,7 @@ const calculateLique = computed(() => {
 });
 
 const percentLique = computed(() => {
-  const price = new Dec(oracle.prices[asset.value!.ibcData as string]?.amount ?? "0", asset.value.decimal_digits);
+  const price = new Dec(oracle.prices[asset.value?.ibcData as string]?.amount ?? "0", asset.value?.decimal_digits ?? 0);
   const lprice = getLquidation();
 
   if (lprice.isZero() || price.isZero()) {

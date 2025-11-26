@@ -11,10 +11,11 @@ import { makeCosmoshubPath, type OfflineAminoSigner } from "@cosmjs/amino";
 
 import { createBankAminoConverters, createIbcAminoConverters } from "@cosmjs/stargate";
 import { AminoTypes } from "@cosmjs/stargate";
-import { WalletManager, WalletUtils, AppUtils, Logger } from "@/common//utils";
+import { WalletManager, WalletUtils, AppUtils, Logger } from "@/common/utils";
 import { type BaseWallet } from "./BaseWallet";
 import { createDepositForBurnWithCallerConverters } from "../list/noble/tx";
 import { getWalletConnectOfflineSigner } from "@/common/stores/wallet/actions/connectWC";
+import { MetaMaskWallet } from "../evm";
 
 const aminoTypes = {
   ...createIbcAminoConverters(),
@@ -129,6 +130,26 @@ export async function authenticateWalletConnect(wallet: Wallet, network: Network
   try {
     const chainId = await wallet.getChainId();
     const { signer } = await getWalletConnectOfflineSigner(undefined, chainId);
+    return await createWallet(
+      wallet,
+      signer as any,
+      network.prefix,
+      network.gasMultiplier,
+      network.gasPrice,
+      network.explorer
+    );
+  } catch (e) {
+    throw e;
+  }
+}
+
+export async function authenticateMetamask(wallet: Wallet, network: NetworkData) {
+  try {
+    const node = await AppUtils.fetchEndpoints(network.key);
+    const metamask = new MetaMaskWallet();
+    await metamask.connectCustom(node, network);
+    const signer = metamask.makeWCOfflineSigner();
+
     return await createWallet(
       wallet,
       signer as any,

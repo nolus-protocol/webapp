@@ -5,11 +5,11 @@
     "ltv-title-high-risk": "위험! 건강도가 3% 미만입니다",
     "ltv-title-partial-liquidation": "부분 청산",
     "ltv-title-full-liquidation": "완전 청산",
-    "liquidations-funding": "보유 중인 {{ticker}} 포지션에 자금 추가를 고려하세요",
-    "liquidations-funding-recommended": "{{ticker}} 포지션에 자금 추가를 권장합니다",
-    "liquidations-fund-now": "{{ticker}} 포지션이 청산 임박 상태입니다! 지금 자금을 추가하세요",
-    "liquidations-partially-liquidated": "{{ticker}} 포지션이 부분 청산되었습니다. 건강도가 10%로 복구되었습니다",
-    "liquidations-fully-liquidated": "{{ticker}} 포지션이 완전 청산되었습니다"
+    "liquidations-funding": "보유 중인 {ticker} 포지션에 자금 추가를 고려하세요",
+    "liquidations-funding-recommended": "{ticker} 포지션에 자금 추가를 권장합니다",
+    "liquidations-fund-now": "{ticker} 포지션이 청산 임박 상태입니다! 지금 자금을 추가하세요",
+    "liquidations-partially-liquidated": "{ticker} 포지션이 부분 청산되었습니다. 건강도가 10%로 복구되었습니다",
+    "liquidations-fully-liquidated": "{ticker} 포지션이 완전 청산되었습니다"
   },
   "message": {
     "connect-wallet": "지갑 연결",

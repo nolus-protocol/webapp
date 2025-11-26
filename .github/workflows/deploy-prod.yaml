@@ -16,7 +16,7 @@ jobs:
   build:
     name: Build static files
     runs-on: ubuntu-latest
-    container: node:20.9.0
+    container: node:22.15.0
 
     steps:
       - uses: actions/checkout@v3

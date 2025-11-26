@@ -19,3 +19,10 @@ export enum Messages {
   "/ibc.core.channel.v1.MsgRecvPacket" = "/ibc.core.channel.v1.MsgRecvPacket",
   "/cosmos.staking.v1beta1.MsgBeginRedelegate" = "/cosmos.staking.v1beta1.MsgBeginRedelegate"
 }
+
+export enum Filter {
+  Transfers = "Transfers",
+  Earn = "Earn",
+  Staking = "Staking",
+  Positions = "Positions"
+}
