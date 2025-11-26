@@ -494,7 +494,7 @@
     "wallet-connect": "Wallet Connect",
     "clear-filter": "Clear filter",
     "position-id": "Position id",
-    "total-value-tooltip": "Your Deposits tooltip",
+    "total-value-tooltip": "Total amount of your deposited assets shown in dollar value",
     "earn-yield": "Yield Earned",
     "earn-yield-tooltip": "Total yield accumulated to date in dollar value based on realized earnings",
     "project-anual-return": "Annual Projection",
