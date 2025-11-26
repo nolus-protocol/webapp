@@ -77,11 +77,11 @@ const connections = computed(
         label: i18n.t("message.leap"),
         type: WalletActions.CONNECT_LEAP
       },
-      EvmMetamask: {
-        icon: MetamaskIcon,
-        label: i18n.t("message.metamask"),
-        type: WalletActions.CONNECT_EVM_METAMASK
-      },
+      // EvmMetamask: {
+      //   icon: MetamaskIcon,
+      //   label: i18n.t("message.metamask"),
+      //   type: WalletActions.CONNECT_EVM_METAMASK
+      // },
       Ledger: {
         icon: LedgerIcon,
         label: i18n.t("message.ledger"),
