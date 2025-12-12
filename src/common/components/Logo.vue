@@ -20,17 +20,18 @@ html {
     height: 32px;
   }
 
-  &.dark {
+  &.dark,
+  &.sync {
     #logo {
       background-image: url("@/assets/icons/logo-dark.svg");
     }
   }
-  &.sync {
-    #logo {
-      @media (prefers-color-scheme: dark) {
-        background-image: url("@/assets/icons/logo-dark.svg");
-      }
-    }
-  }
+  // &.sync {
+  //   #logo {
+  //     @media (prefers-color-scheme: dark) {
+  //       background-image: url("@/assets/icons/logo-dark.svg");
+  //     }
+  //   }
+  // }
 }
 </style>

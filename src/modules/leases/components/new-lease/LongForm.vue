@@ -96,7 +96,7 @@
     </div>
     <hr class="my-4 border-border-color" />
 
-    <div class="mt-4 flex flex-col justify-end px-4">
+    <!-- <div class="mt-4 flex flex-col justify-end px-4">
       <Button
         v-if="showDetails"
         :label="$t('message.hide-transaction-details')"
@@ -147,7 +147,7 @@
         :variant="StepperVariant.MEDIUM"
       />
     </div>
-    <hr class="my-4 border-border-color" />
+    <hr class="my-4 border-border-color" /> -->
     <div class="flex flex-col gap-2 p-6">
       <Button
         size="large"

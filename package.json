@@ -7,8 +7,8 @@
   "type": "module",
   "scripts": {
     "serve": "vite --port 8080 --mode serve --host",
-    "build": "vite build --mode development",
-    "build:production": "vite build --mode production",
+    "build": "vite build --mode development && vite build --mode development --outDir dist/server --ssr src/entry-server.ts",
+    "build:production": "vite build --mode production && vite build --mode production --outDir dist/server --ssr src/entry-server.ts",
     "preview": "vite preview --port 8080 --host",
     "format": "prettier --write src",
     "prepare": "husky"
@@ -34,17 +34,20 @@
     "@nolus/nolusjs": "^3.7.3",
     "@observablehq/plot": "^0.6.17",
     "@walletconnect/sign-client": "^2.23.0",
+    "compression": "^1.8.1",
     "cosmjs-types": "^0.10.1",
     "cosmjs-types-legacy": "npm:cosmjs-types@0.8.0",
     "d3": "^7.9.0",
     "ethers": "^6.15.0",
+    "express": "^5.2.1",
     "marked": "^17.0.0",
     "pinia": "^3.0.4",
     "qrcode": "^1.5.4",
+    "sirv": "^3.0.2",
     "vue": "^3.5.24",
     "vue-i18n": "11.1.12",
     "vue-router": "^4.6.3",
-    "web-components": "github:nolus-protocol/web-components#v2.0.44"
+    "web-components": "github:nolus-protocol/web-components#v2.0.46"
   },
   "devDependencies": {
     "@intlify/unplugin-vue-i18n": "^11.0.1",

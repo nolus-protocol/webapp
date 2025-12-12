@@ -52,6 +52,8 @@ import WalletConnectIcon from "@/assets/icons/wallets/walletconnect.svg?url";
 import MetamaskIcon from "@/assets/icons/wallets/metamask.svg?url";
 
 import { useRouter } from "vue-router";
+import { isServe } from "@/config/global";
+import type { IObjectKeys } from "@/common/types";
 
 const i18n = useI18n();
 const terms = ref<typeof TermsDialog>();
@@ -66,22 +68,13 @@ const connections = computed(
       type: WalletActions;
     }
   > => {
-    return {
+    const auth: IObjectKeys = {
       Keplr: {
         icon: KeplrIcon,
         label: i18n.t("message.keplr"),
         type: WalletActions.CONNECT_KEPLR
       },
-      Leap: {
-        icon: LeapIcon,
-        label: i18n.t("message.leap"),
-        type: WalletActions.CONNECT_LEAP
-      },
-      // EvmMetamask: {
-      //   icon: MetamaskIcon,
-      //   label: i18n.t("message.metamask"),
-      //   type: WalletActions.CONNECT_EVM_METAMASK
-      // },
+
       Ledger: {
         icon: LedgerIcon,
         label: i18n.t("message.ledger"),
@@ -93,6 +86,21 @@ const connections = computed(
         type: WalletActions.CONNECT_WC
       }
     };
+
+    if (isServe()) {
+      auth.Leap = {
+        icon: LeapIcon,
+        label: i18n.t("message.leap"),
+        type: WalletActions.CONNECT_LEAP
+      };
+      auth.EvmMetamask = {
+        icon: MetamaskIcon,
+        label: i18n.t("message.metamask"),
+        type: WalletActions.CONNECT_EVM_METAMASK
+      };
+    }
+
+    return auth;
   }
 );
 

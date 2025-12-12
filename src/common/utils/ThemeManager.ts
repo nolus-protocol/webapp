@@ -1,10 +1,12 @@
 import { APPEARANCE } from "@/config/global";
+import { setCookie } from "./cookieUtils";
 
 export class ThemeManager {
   public static THEME_DATA = "theme_data";
 
   public static saveThemeData(theme: string) {
     localStorage.setItem(this.THEME_DATA, theme);
+    setCookie(this.THEME_DATA, theme);
   }
 
   public static getThemeData(): string {

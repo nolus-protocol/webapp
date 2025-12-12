@@ -56,7 +56,9 @@ export interface IChart {
 }
 
 const minLength = 3;
-const tooltip = select("body").append("div").attr("class", "custom-tooltip").style("opacity", 0);
+const tooltip = import.meta.env.SSR
+  ? null
+  : select("body").append("div").attr("class", "custom-tooltip").style("opacity", 0);
 const props = defineProps<IChart>();
 const isLoading = ref(true);
 const maxHeight = ref(0);
@@ -65,13 +67,17 @@ const plotContainer = ref<HTMLElement | null>(null);
 const i18n = useI18n();
 
 onMounted(async () => {
-  await props.updateChart(plotContainer.value, tooltip);
-  const items = props.fns.map((item) => item());
-  await Promise.all(items).catch((e) => Logger.error(e));
+  if (!import.meta.env.SSR) {
+    await props.updateChart(plotContainer.value, tooltip);
+    const items = props.fns.map((item) => item());
+    await Promise.all(items).catch((e) => Logger.error(e));
+  }
 });
 
 onUnmounted(() => {
-  tooltip.remove();
+  if (!import.meta.env.SSR) {
+    tooltip.remove();
+  }
 });
 
 watch(i18n.locale, async () => {
@@ -87,8 +93,10 @@ const isLegendVisible = computed(() => {
 });
 
 function update() {
-  props.updateChart(plotContainer.value, tooltip);
-  isLoading.value = false;
+  if (!import.meta.env.SSR) {
+    props.updateChart(plotContainer.value, tooltip);
+    isLoading.value = false;
+  }
 }
 
 watch(
