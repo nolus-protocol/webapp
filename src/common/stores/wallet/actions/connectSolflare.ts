@@ -5,22 +5,22 @@ import { NolusWalletFactory } from "@nolus/nolusjs";
 import { WalletConnectMechanism } from "@/common/types";
 import { Buffer } from "buffer";
 import { Intercom } from "@/common/utils/Intercom";
-import { MetaMaskWallet } from "@/networks/evm";
-import { MetamaskName } from "@/config/global";
+import { SolanaWallet } from "@/networks/sol";
+import { SolflareName } from "@/config/global";
 
-export async function connectMetamask(this: Store) {
-  const metamask = new MetaMaskWallet();
-  const { pubkeyAny } = await metamask.connect(WalletConnectMechanism.EVM_METAMASK);
-  const signer = metamask.makeWCOfflineSigner();
+export async function connectSolflare(this: Store) {
+  const sol = new SolanaWallet();
+  const { pubkeyAny } = await sol.connect();
+  const signer = sol.makeWCOfflineSigner();
 
   const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(signer);
   await nolusWalletOfflineSigner.useAccount();
 
-  WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.EVM_METAMASK);
+  WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.SOL_SOLFLARE);
   WalletManager.setPubKey(Buffer.from(pubkeyAny).toString("hex"));
 
   this.wallet = nolusWalletOfflineSigner;
-  this.walletName = MetamaskName;
+  this.walletName = SolflareName;
   await this.UPDATE_BALANCES();
   this.loadActivities();
   Intercom.load(this.wallet.address);

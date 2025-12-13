@@ -76,5 +76,7 @@ export const NORMAL_DECIMALS = 2;
 export const LedgerName = "Ledger";
 export const WalletConnectName = "WalletConnect";
 export const MetamaskName = "Metamask";
+export const PhantomName = "Phantom";
+export const SolflareName = "Solflare";
 
 export const UNDELEGATE_DAYS = 21;

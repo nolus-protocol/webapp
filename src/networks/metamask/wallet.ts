@@ -30,7 +30,14 @@ export class MetaMaskWallet implements Wallet {
       case WalletConnectMechanism.LEAP: {
         return (window as MetamaskWindow).leap?.ethereum;
       }
+      case WalletConnectMechanism.EVM_PHANTOM: {
+        return (window as MetamaskWindow)?.phantom?.ethereum;
+      }
       case WalletConnectMechanism.EVM_METAMASK: {
+        const p0 = (window as MetamaskWindow)?.ethereum?.providers?.pop?.();
+        if (p0) {
+          return p0;
+        }
         return (window as MetamaskWindow)?.ethereum;
       }
     }

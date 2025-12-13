@@ -3,8 +3,7 @@ import { MsgDelegate, MsgUndelegate, MsgBeginRedelegate } from "cosmjs-types/cos
 import { MsgWithdrawDelegatorReward } from "cosmjs-types/cosmos/distribution/v1beta1/tx";
 import { MsgVote } from "cosmjs-types/cosmos/gov/v1beta1/tx";
 import { MsgTransfer as IbcMsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
-import { MsgExecuteContract, MsgInstantiateContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
-import type { IObjectKeys } from "@/common/types";
+import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 
 const td = new TextDecoder();
 

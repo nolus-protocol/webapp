@@ -14,7 +14,9 @@ import { updateHistory } from "./updateHistory";
 import { ignoreAssets } from "./ignoreAssets";
 import { loadActivities } from "./loadActivities";
 import { connectWithWalletConnect } from "./connectWC";
+import { connectPhantom } from "./connectPhantom";
 import { connectMetamask } from "./connectMetamask";
+import { connectSolflare } from "./connectSolflare";
 
 export const actions = {
   [WalletActions.DISCONNECT]: disconnect,
@@ -23,6 +25,8 @@ export const actions = {
   [WalletActions.CONNECT_LEDGER]: connectLedger,
   [WalletActions.CONNECT_WC]: connectWithWalletConnect,
   [WalletActions.CONNECT_EVM_METAMASK]: connectMetamask,
+  [WalletActions.CONNECT_EVM_PHANTOM]: connectPhantom,
+  [WalletActions.CONNECT_SOL_SOLFLARE]: connectSolflare,
   [WalletActions.UPDATE_BALANCES]: updateBalances,
   [WalletActions.LOAD_VESTED_TOKENS]: loadVestedTokens,
   [WalletActions.LOAD_SUPPLIED_AMOUNT]: loadSuppliedAmount,

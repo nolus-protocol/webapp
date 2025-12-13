@@ -499,6 +499,8 @@
     "earn-yield-tooltip": "Total yield accumulated to date in dollar value based on realized earnings",
     "project-anual-return": "Annual Projection",
     "project-anual-return-tooltip": "Estimated yearly return in dollar value based on current yield rates",
-    "claim-rewards-dashboard": "Claim staking rewards"
+    "claim-rewards-dashboard": "Claim staking rewards",
+    "phantom": "Phantom",
+    "solflare": "Solflare"
   }
 }
