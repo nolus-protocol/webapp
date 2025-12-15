@@ -1,7 +1,7 @@
 <template>
   <Widget>
     <WidgetHeader
-      :label="$t('message.staking-rewards')"
+      :label="$t('message.staking-rewards-widget')"
       :icon="{ name: 'list-sparkle' }"
     >
     </WidgetHeader>
@@ -18,7 +18,7 @@
 
       <BigNumber
         v-if="!isEmpty"
-        :label="$t('message.unclaimed-staking')"
+        :label="$t('message.unclaimed-staking-widget')"
         :amount="{
           amount: stableRewards,
           type: CURRENCY_VIEW_TYPES.CURRENCY,

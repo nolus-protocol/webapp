@@ -501,6 +501,8 @@
     "project-anual-return-tooltip": "Estimated yearly return in dollar value based on current yield rates",
     "claim-rewards-dashboard": "Claim staking rewards",
     "phantom": "Phantom",
-    "solflare": "Solflare"
+    "solflare": "Solflare",
+    "unclaimed-staking-widget": "Unclaimed",
+    "staking-rewards-widget": "Staking Rewards"
   }
 }
