@@ -232,15 +232,12 @@
     "symbol": "uusdc",
     "ticker": "USDC_AXELAR",
     "decimal_digits": 6,
-    "icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/currencies/icons/osmosis-usdc.svg",
+    "icon": "https://raw.githubusercontent.com/nolus-protocol/webapp/main/src/config/currencies/icons/neutron-usdc.svg",
     "shortName": "USDC",
     "native": false,
     "coingeckoId": "usdc",
     "protocols": {
-      "OSMOSIS-OSMOSIS-USDC_NOBLE": {
-        "ibcData": "ibc/076CF690A9912E0B7A2CCA75B719D68AF7C20E4B0B6460569B333DDEB19BBBA1"
-      },
-      "OSMOSIS-OSMOSIS-USDC_AXELAR": {
+      "NEUTRON-ASTROPORT-USDC_AXELAR": {
         "ibcData": "ibc/076CF690A9912E0B7A2CCA75B719D68AF7C20E4B0B6460569B333DDEB19BBBA1"
       }
     }

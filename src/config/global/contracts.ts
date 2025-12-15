@@ -205,6 +205,7 @@ export const TIP = {
 
 export const DefaultProtocolFilter = "OSMOSIS";
 
+//add deleted protocols
 export const SORT_PROTOCOLS = [
   "OSMOSIS-OSMOSIS-USDC_NOBLE",
   "OSMOSIS-OSMOSIS-ALL_BTC",
@@ -213,7 +214,8 @@ export const SORT_PROTOCOLS = [
   "OSMOSIS-OSMOSIS-OSMO",
   "OSMOSIS-OSMOSIS-AKT",
   "OSMOSIS-OSMOSIS-USDC_AXELAR",
-  "NEUTRON-ASTROPORT-USDC_NOBLE"
+  "NEUTRON-ASTROPORT-USDC_NOBLE",
+  "NEUTRON-ASTROPORT-USDC_AXELAR"
 ];
 
 export const SORT_LEASE = ["ALL_BTC", "ALL_ETH", "ATOM"];
