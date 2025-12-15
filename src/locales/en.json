@@ -502,7 +502,7 @@
     "claim-rewards-dashboard": "Claim staking rewards",
     "phantom": "Phantom",
     "solflare": "Solflare",
-    "unclaimed-staking-widget": "Unclaimed",
-    "staking-rewards-widget": "Staking Rewards"
+    "unclaimed-staking-widget": "NLS staking rewards",
+    "staking-rewards-widget": "Earnings"
   }
 }
