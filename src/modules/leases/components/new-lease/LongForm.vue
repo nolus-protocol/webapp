@@ -275,7 +275,6 @@ watch(
 
 const totalBalances = computed(() => {
   let currencies: ExternalCurrency[] = [];
-
   for (const protocol in ProtocolsConfig) {
     if (ProtocolsConfig[protocol].type == PositionTypes.long) {
       for (const c of ProtocolsConfig[protocol].currencies) {
@@ -285,7 +284,6 @@ const totalBalances = computed(() => {
       }
     }
   }
-
   return currencies;
 });
 

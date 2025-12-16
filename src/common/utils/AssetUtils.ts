@@ -196,14 +196,15 @@ export class AssetUtils {
     const assetIcons: {
       [key: string]: string;
     } = {};
-
+    console.log("enter");
     for (const protocolKey in admin.contracts) {
       const fn = async () => {
         const protocol = admin.contracts![protocolKey];
 
         const oracleContract = new Oracle(cosmWasmClient, protocol.oracle);
         const currencies = await oracleContract.getCurrencies();
-        const protocol_currencies = [...ProtocolsConfig[protocolKey].currencies];
+        console.log(ProtocolsConfig[protocolKey].currencies);
+        const protocol_currencies = [];
         for (const c of currencies) {
           const name = c.ticker.replace(/_/g, "")?.toLocaleLowerCase();
           const pr = protocolKey.split("-").at(0)?.toLocaleLowerCase();
