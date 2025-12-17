@@ -93,6 +93,10 @@ export class EtlApi {
     return fetch(`${EtlApi.getApiUrl()}/earnings?address=${address}`).then((data) => data.json());
   }
 
+  static async fetchLpWithdraw(tx: string): Promise<IObjectKeys> {
+    return fetch(`${EtlApi.getApiUrl()}/lp-withdraw?tx=${tx}`).then((data) => data.json());
+  }
+
   static async fetchTXS(
     address: string,
     skip: number,

@@ -8,7 +8,9 @@
             amount: pnl,
             type: CURRENCY_VIEW_TYPES.CURRENCY,
             denom: NATIVE_CURRENCY.symbol,
-            decimals: NORMAL_DECIMALS
+            decimals: NORMAL_DECIMALS,
+            fontSize: isMobile() ? 20 : 32,
+            fontSizeSmall: isMobile() ? 20 : 32
           }"
           :loading="loading"
         />

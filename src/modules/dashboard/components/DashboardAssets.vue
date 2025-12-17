@@ -35,7 +35,9 @@
       :amount="{
         amount: total.toString(2),
         type: CURRENCY_VIEW_TYPES.CURRENCY,
-        denom: NATIVE_CURRENCY.symbol
+        denom: NATIVE_CURRENCY.symbol,
+        fontSize: isMobile() ? 20 : 32,
+        fontSizeSmall: isMobile() ? 20 : 32
       }"
     />
     <Table
@@ -80,7 +82,7 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { computed, ref, watch } from "vue";
 import { Coin, Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { AssetUtils, Logger, WalletManager } from "@/common/utils";
+import { AssetUtils, isMobile, Logger, WalletManager } from "@/common/utils";
 import { NATIVE_CURRENCY, ProtocolsConfig } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
 import { useRouter } from "vue-router";

@@ -188,11 +188,11 @@ async function loadTxs(refresh = false) {
   try {
     if (wallet.wallet?.address) {
       loading.value = true;
-      const res = await EtlApi.fetchTXS(wallet.wallet?.address, skip, limit, filters.value).then((data) => {
+      const res = await EtlApi.fetchTXS("", skip, limit, filters.value).then((data) => {
         const promises = [];
         for (const d of data) {
           const fn = async () => {
-            const [msg, coin, route, routeDetails] = await message(d, wallet.wallet?.address, i18n, voteMessages);
+            const [msg, coin, route, routeDetails] = await message(d, "", i18n, voteMessages);
 
             d.historyData = {
               msg,

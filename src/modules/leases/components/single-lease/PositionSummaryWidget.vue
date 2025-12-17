@@ -36,7 +36,9 @@
               denom: asset?.shortName ?? '',
               decimals: assetLoan?.decimal_digits ?? 0,
               hasSpace: true,
-              maxDecimals: MAX_DECIMALS
+              maxDecimals: MAX_DECIMALS,
+              fontSize: isMobile() ? 20 : 32,
+              fontSizeSmall: isMobile() ? 20 : 32
             }"
             :secondary="stable"
           />
@@ -161,7 +163,9 @@
             amount: pnl.amount.toString(),
             type: CURRENCY_VIEW_TYPES.CURRENCY,
             denom: '$',
-            class: pnl.status ? 'text-typography-success' : 'text-typography-error'
+            class: pnl.status ? 'text-typography-success' : 'text-typography-error',
+            fontSize: isMobile() ? 20 : 32,
+            fontSizeSmall: isMobile() ? 20 : 32
           }"
           :pnl-status="{
             positive: pnl.status,
@@ -283,7 +287,7 @@ import { useOracleStore } from "@/common/stores/oracle";
 import { Dec } from "@keplr-wallet/unit";
 import { AssetUtils } from "@/common/utils/AssetUtils";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
-import { AppUtils, datePraser, Logger, walletOperation } from "@/common/utils";
+import { AppUtils, datePraser, isMobile, Logger, walletOperation } from "@/common/utils";
 import { useRoute, useRouter } from "vue-router";
 import { SingleLeaseDialog } from "@/modules/leases/enums";
 import { getStatus, TEMPLATES } from "../common";

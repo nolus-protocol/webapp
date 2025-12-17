@@ -14,7 +14,9 @@
           :amount="{
             amount: stableAmount,
             type: CURRENCY_VIEW_TYPES.CURRENCY,
-            denom: NATIVE_CURRENCY.symbol
+            denom: NATIVE_CURRENCY.symbol,
+            fontSize: isMobile() ? 20 : 32,
+            fontSizeSmall: isMobile() ? 20 : 32
           }"
         />
 
@@ -67,6 +69,7 @@ import EarnAssetsTable from "@/modules/earn/components/EarnAssetsTable.vue";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import BigNumber from "@/common/components/BigNumber.vue";
 import { NATIVE_CURRENCY } from "@/config/global";
+import { isMobile } from "@/common/utils";
 
 defineProps<{
   items: TableRowItemProps[];

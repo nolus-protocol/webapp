@@ -12,7 +12,9 @@
         :amount="{
           amount: earningsAmount,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: NATIVE_CURRENCY.symbol
+          denom: NATIVE_CURRENCY.symbol,
+          fontSize: isMobile() ? 20 : 32,
+          fontSizeSmall: isMobile() ? 20 : 32
         }"
       />
 
@@ -22,7 +24,9 @@
         :amount="{
           amount: stableRewards,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: NATIVE_CURRENCY.symbol
+          denom: NATIVE_CURRENCY.symbol,
+          fontSize: isMobile() ? 20 : 32,
+          fontSizeSmall: isMobile() ? 20 : 32
         }"
       />
 
@@ -63,11 +67,11 @@ import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import EmptyState from "@/common/components/EmptyState.vue";
 
-import { Button, Widget, Asset } from "web-components";
+import { Button, Widget } from "web-components";
 import { CURRENCY_VIEW_TYPES, type IObjectKeys } from "@/common/types";
-import { AssetUtils, EtlApi, Logger, NetworkUtils, walletOperation } from "@/common/utils";
+import { AssetUtils, EtlApi, isMobile, Logger, NetworkUtils, walletOperation } from "@/common/utils";
 import { Dec } from "@keplr-wallet/unit";
-import { NATIVE_CURRENCY, UPDATE_REWARDS_INTERVAL } from "@/config/global";
+import { NATIVE_CURRENCY } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { computed, ref, watch } from "vue";
 import { useOracleStore } from "@/common/stores/oracle";

@@ -8,7 +8,9 @@
           amount: openPositionValue,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
-          decimals: 0
+          decimals: 0,
+          fontSize: isMobile() ? 20 : 32,
+          fontSizeSmall: isMobile() ? 20 : 32
         }"
         :loading="loading"
       />
@@ -38,7 +40,7 @@ import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import LoansChart from "@/modules/stats/components/LoansChart.vue";
 import { Widget } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
-import { EtlApi, Logger } from "@/common/utils";
+import { EtlApi, isMobile, Logger } from "@/common/utils";
 import { ref, watch } from "vue";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";

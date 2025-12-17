@@ -47,6 +47,8 @@
               amount: pnl.toString(),
               type: CURRENCY_VIEW_TYPES.CURRENCY,
               denom: NATIVE_CURRENCY.symbol,
+              fontSize: isMobile() ? 20 : 32,
+              fontSizeSmall: isMobile() ? 20 : 32,
               class:
                 pnl_percent.isPositive() || pnl_percent.isZero() ? 'text-typography-success' : 'text-typography-error'
             }"
@@ -117,7 +119,7 @@ import SharePnLDialog from "@/modules/leases/components/single-lease/SharePnLDia
 import { useI18n } from "vue-i18n";
 import { type Component, computed, h, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { CURRENCY_VIEW_TYPES, type LeaseData } from "@/common/types";
-import { AssetUtils, isTablet, Logger, WalletManager } from "@/common/utils";
+import { AssetUtils, isMobile, isTablet, Logger, WalletManager } from "@/common/utils";
 
 import { useLeases } from "@/common/composables";
 import { Coin, Dec } from "@keplr-wallet/unit";

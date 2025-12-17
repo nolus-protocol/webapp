@@ -23,7 +23,9 @@
         :amount="{
           amount: stableRewards,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: NATIVE_CURRENCY.symbol
+          denom: NATIVE_CURRENCY.symbol,
+          fontSize: isMobile() ? 20 : 32,
+          fontSizeSmall: isMobile() ? 20 : 32
         }"
       />
     </div>
@@ -53,7 +55,7 @@
 import { Asset, Button, ToastType, Widget } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { NATIVE_CURRENCY } from "@/config/global";
-import { AssetUtils, Logger, NetworkUtils, walletOperation } from "@/common/utils";
+import { AssetUtils, isMobile, Logger, NetworkUtils, walletOperation } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { inject, ref } from "vue";
