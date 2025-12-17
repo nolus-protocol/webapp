@@ -4,7 +4,7 @@
     "NLS": { "name": "Nolus", "shortName": "NLS", "coinGeckoId": "nolus", "symbol": "unls" },
     "OSMO": { "name": "Osmosis", "shortName": "OSMO", "coinGeckoId": "osmosis", "symbol": "uosmo" },
     "MILK_TIA": {
-      "name": "Milk Staked TIA",
+      "name": "Milk TIA",
       "shortName": "milkTIA",
       "coinGeckoId": "milkyway-staked-tia",
       "symbol": "factory/osmo1f5vfcph2dvfeqcqkhetwv75fda69z7e5c2dldm3kvgj23crkv6wqcn47a0/umilkTIA"
@@ -27,11 +27,11 @@
       "coinGeckoId": "osmosis-alleth",
       "symbol": "factory/osmo1k6c8jln7ejuqwtqmay3yvzrg3kueaczl96pk067ldg8u835w0yhsw27twm/alloyed/allETH"
     },
-    "USDC": { "name": "Axelar Wrapped USDC", "shortName": "USDC.axl", "coinGeckoId": "usd-coin", "symbol": "uusdc" },
-    "USDC_AXELAR": { "name": "Axelar Wrapped USDC", "shortName": "USDC", "coinGeckoId": "usd-coin", "symbol": "uusdc" },
-    "WETH": { "name": "Axelar Wrapped ETH", "shortName": "WETH", "coinGeckoId": "weth", "symbol": "weth-wei" },
+    "USDC": { "name": "Axelar USDC", "shortName": "USDC.axl", "coinGeckoId": "usd-coin", "symbol": "uusdc" },
+    "USDC_AXELAR": { "name": "Axelar USDC", "shortName": "USDC", "coinGeckoId": "usd-coin", "symbol": "uusdc" },
+    "WETH": { "name": "Axelar ETH", "shortName": "WETH", "coinGeckoId": "weth", "symbol": "weth-wei" },
     "WBTC": {
-      "name": "Axelar Wrapped BTC",
+      "name": "Axelar BTC",
       "shortName": "WBTC",
       "coinGeckoId": "wrapped-bitcoin",
       "symbol": "wbtc-satoshi"
@@ -39,19 +39,19 @@
     "AXL": { "name": "Axelar", "shortName": "AXL", "coinGeckoId": "axelar", "symbol": "uaxl" },
     "ATOM": { "name": "Cosmos Hub", "shortName": "ATOM", "coinGeckoId": "cosmos", "symbol": "uatom" },
     "ST_ATOM": {
-      "name": "Stride Staked ATOM",
+      "name": "Stride ATOM",
       "shortName": "stATOM",
       "coinGeckoId": "stride-staked-atom",
       "symbol": "stuatom"
     },
     "ST_OSMO": {
-      "name": "Stride Staked OSMO",
+      "name": "Stride OSMO",
       "shortName": "stOSMO",
       "coinGeckoId": "stride-staked-osmo",
       "symbol": "stuosmo"
     },
     "ST_TIA": {
-      "name": "Stride Staked TIA",
+      "name": "Stride TIA",
       "shortName": "stTIA",
       "coinGeckoId": "stride-staked-tia",
       "symbol": "stutia"
@@ -62,13 +62,13 @@
     "TIA": { "name": "Celestia", "shortName": "TIA", "coinGeckoId": "celestia", "symbol": "utia" },
     "NTRN": { "name": "Neutron", "shortName": "NTRN", "coinGeckoId": "neutron-3", "symbol": "untrn" },
     "D_ATOM": {
-      "name": "Drop Staked ATOM",
+      "name": "Drop ATOM",
       "shortName": "dATOM",
       "coinGeckoId": "drop-staked-atom",
       "symbol": "factory/neutron1k6hr0f83e7un2wjf29cspk7j69jrnskk65k3ek2nj9dztrlzpj6q00rtsa/udatom"
     },
     "D_NTRN": {
-      "name": "Drop Staked NTRN",
+      "name": "Drop NTRN",
       "shortName": "dNTRN",
       "coinGeckoId": "neutron-3",
       "symbol": "factory/neutron1frc0p5czd9uaaymdkug2njz7dc7j65jxukp9apmt9260a8egujkspms2t2/udntrn"
