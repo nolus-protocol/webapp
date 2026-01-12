@@ -16,14 +16,10 @@ export async function loadAprRewards(this: Store) {
     );
     const apr: { [key: string]: number } = {};
     const promises = [dispatcherClient.calculateRewards().catch((e) => 40)];
+    const data = await EtlApi.fetchPools();
 
-    for (const protocolKey in admin.contracts) {
-      const fn = async () => {
-        const data = await EtlApi.fetchEarnApr(protocolKey).catch((e) => ({ earn_apr: 0 }));
-        apr[protocolKey] = data.earn_apr;
-        return data.earn_apr;
-      };
-      promises.push(fn());
+    for (const p of data.protocols) {
+      apr[p.protocol] = p.earn_apr;
     }
 
     const [dispatcherRewards] = await Promise.all(promises);
