@@ -13,7 +13,7 @@
     @onSearchClear="onSearch('')"
   >
     <BigNumber
-      :label="$t('message.total-value')"
+      :label="$t('message.assets-title')"
       :amount="{
         amount: total.toString(2),
         hide: hide,
@@ -129,7 +129,7 @@ function setAvailableAssets() {
   wallet.currencies.forEach((asset) => {
     const currency = AssetUtils.getCurrencyByDenom(asset.balance.denom);
     const assetBalance = CurrencyUtils.calculateBalance(
-      oracle.prices[asset.key]?.amount ?? 0,
+      oracle.prices[asset.key]?.amount ?? "0",
       new Coin(currency.ibcData, asset.balance.amount.toString()),
       Number(currency.decimal_digits)
     );
