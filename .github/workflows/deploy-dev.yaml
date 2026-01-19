@@ -5,71 +5,24 @@ on:
     branches:
       - dev
 
-env:
-  BUCKET_NAME: app-dev.nolus.io
-  CLOUDFRONT_ID: E2LBZO2KACZIF
-  AWS_REGION: eu-west-1
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
-
 jobs:
-  build:
-    name: Build static files
-    runs-on: ubuntu-22.04 # Explicitly specifying the runner version
-    container: node:22.15.0
+  build-and-deploy:
+    name: Build and deploy
+    runs-on: [self-hosted, frontend-deploy]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
       - name: Build
         run: |
           npm install
           npm run build
 
-      - name: Archive src
-        uses: actions/upload-artifact@v4 # Updated to the latest version
-        with:
-          name: src
-          path: dist/
-
-  deploy:
-    name: Deploy to AWS
-    runs-on: ubuntu-22.04 # Explicitly specifying the runner version
-    environment: development
-    needs: build
-
-    steps:
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Download src
-        uses: actions/download-artifact@v4 # Updated to the latest version
-        with:
-          name: src
-          path: dist/
-
-      - name: Sync bucket
+      - name: Deploy via rclone
         run: |
-          aws s3 sync dist/ s3://${BUCKET_NAME}
-
-  invalidate-cache:
-    name: Invalidate cache
-    runs-on: ubuntu-22.04 # Explicitly specifying the runner version
-    environment: development
-    needs: deploy
-
-    steps:
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Invalidate cloudfront cache
-        run: |
-          aws cloudfront create-invalidation --distribution-id ${CLOUDFRONT_ID} --paths "/*" --output table
-          echo "Cache invalidation usually takes a couple of minutes"
+          rclone sync dist/ :sftp,host=10.133.133.11,user=deploy,key_file=~/.ssh/id_ed25519:/opt/deploy/builds/app-dev/ --verbose
