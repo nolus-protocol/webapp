@@ -4,6 +4,7 @@
 html,
 body {
   @apply h-full w-full bg-neutral-bg-1;
+  -webkit-font-smoothing: antialiased;
 }
 
 ::-webkit-scrollbar {
