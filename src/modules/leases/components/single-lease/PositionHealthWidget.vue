@@ -68,7 +68,7 @@
         ></div>
         <div
           v-else
-          class="text-32 font-semibold"
+          class="text-40 font-semibold"
         >
           {{ health }}%
         </div>

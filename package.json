@@ -41,6 +41,7 @@
     "ethers": "^6.16.0",
     "express": "^5.2.1",
     "marked": "^17.0.0",
+    "motion-plus-vue": "^1.5.1",
     "pinia": "^3.0.4",
     "protobufjs": "^8.0.0",
     "qrcode": "^1.5.4",

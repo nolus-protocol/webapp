@@ -3,7 +3,7 @@
     ref="dialog"
     :title="$t(`message.share-position`)"
     showClose
-    class-list="md:h-auto"
+    class-list="md:h-fit"
   >
     <template v-slot:content>
       <div class="custom-scroll max-h-full flex-1 overflow-auto">

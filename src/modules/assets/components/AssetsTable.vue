@@ -19,8 +19,7 @@
         hide: hide,
         type: CURRENCY_VIEW_TYPES.CURRENCY,
         denom: NATIVE_CURRENCY.symbol,
-        fontSize: isMobile() ? 20 : 32,
-        fontSizeSmall: isMobile() ? 20 : 32
+        fontSize: isMobile() ? 20 : 40
       }"
     />
 

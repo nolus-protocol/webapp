@@ -16,6 +16,7 @@
       /></Tooltip>
     </div>
     <div class="flex items-center gap-2">
+      
       <template v-if="!loading">
         <Tooltip
           v-if="amount?.tooltip"
@@ -23,8 +24,8 @@
         >
           <CurrencyComponent
             v-if="amount"
-            :font-size="32"
-            :font-size-small="32"
+            :font-size="40"
+            :font-size-small="40"
             v-bind="amount"
             class="flex break-keep font-semibold text-typography-default"
           />
@@ -32,8 +33,8 @@
         <template v-else>
           <CurrencyComponent
             v-if="amount"
-            :font-size="32"
-            :font-size-small="32"
+            :font-size="40"
+            :font-size-small="40"
             v-bind="amount"
             class="flex break-keep font-semibold text-typography-default"
           />
@@ -52,6 +53,7 @@
         :style="[{ width: loadingWidth ?? '100%', height: `${amount?.fontSize || 32 * 1.2}px` }]"
       ></div>
     </div>
+
     <template v-if="pnlStatus">
       <template v-if="!loading">
         <div

@@ -48,7 +48,6 @@
               type: CURRENCY_VIEW_TYPES.CURRENCY,
               denom: NATIVE_CURRENCY.symbol,
               fontSize: isMobile() ? 20 : 32,
-              fontSizeSmall: isMobile() ? 20 : 32,
               class:
                 pnl_percent.isPositive() || pnl_percent.isZero() ? 'text-typography-success' : 'text-typography-error'
             }"
@@ -68,7 +67,6 @@
               type: CURRENCY_VIEW_TYPES.CURRENCY,
               denom: NATIVE_CURRENCY.symbol,
               fontSize: 20,
-              fontSizeSmall: 20,
               hide: hide
             }"
           />
@@ -79,7 +77,6 @@
               type: CURRENCY_VIEW_TYPES.CURRENCY,
               denom: NATIVE_CURRENCY.symbol,
               fontSize: 20,
-              fontSizeSmall: 20,
               hide: hide
             }"
           />

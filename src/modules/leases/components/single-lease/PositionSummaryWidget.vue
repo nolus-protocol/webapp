@@ -37,8 +37,7 @@
               decimals: assetLoan?.decimal_digits ?? 0,
               hasSpace: true,
               maxDecimals: MAX_DECIMALS,
-              fontSize: isMobile() ? 20 : 32,
-              fontSizeSmall: isMobile() ? 20 : 32
+              fontSize: isMobile() ? 20 : 32
             }"
             :secondary="stable"
           />
@@ -55,8 +54,7 @@
                 denom: lpn?.shortName ?? '',
                 decimals: lpn?.decimal_digits ?? 0,
                 hasSpace: true,
-                fontSize: 16,
-                fontSizeSmall: 16
+                fontSize: 16
               }"
             />
 
@@ -68,8 +66,7 @@
                 type: CURRENCY_VIEW_TYPES.CURRENCY,
                 denom: NATIVE_CURRENCY.symbol,
                 decimals: MID_DECIMALS,
-                fontSize: 16,
-                fontSizeSmall: 16
+                fontSize: 16
               }"
             />
 
@@ -82,8 +79,7 @@
                 type: CURRENCY_VIEW_TYPES.CURRENCY,
                 denom: `${NATIVE_CURRENCY.symbol}`,
                 decimals: 4,
-                fontSize: 16,
-                fontSizeSmall: 16
+                fontSize: 16
               }"
             />
             <BigNumber
@@ -97,7 +93,6 @@
                 decimals: lpn?.decimal_digits ?? 0,
                 hasSpace: true,
                 fontSize: 16,
-                fontSizeSmall: 16,
                 class: interestDueStatus ? 'text-warning-100' : ''
               }"
             />
@@ -112,8 +107,7 @@
                 type: CURRENCY_VIEW_TYPES.CURRENCY,
                 denom: NATIVE_CURRENCY.symbol,
                 hasSpace: false,
-                fontSize: 16,
-                fontSizeSmall: 16
+                fontSize: 16
               }"
             />
 
@@ -125,8 +119,7 @@
                 amount: fee,
                 type: CURRENCY_VIEW_TYPES.CURRENCY,
                 denom: NATIVE_CURRENCY.symbol,
-                fontSize: 16,
-                fontSizeSmall: 16
+                fontSize: 16
               }"
             />
 
@@ -140,7 +133,6 @@
                 denom: '%',
                 isDenomInfront: false,
                 fontSize: 16,
-                fontSizeSmall: 16,
                 class: { 'line-through': isFreeLease },
                 additional: isFreeLease
                   ? {
@@ -164,8 +156,7 @@
             type: CURRENCY_VIEW_TYPES.CURRENCY,
             denom: '$',
             class: pnl.status ? 'text-typography-success' : 'text-typography-error',
-            fontSize: isMobile() ? 20 : 32,
-            fontSizeSmall: isMobile() ? 20 : 32
+            fontSize: isMobile() ? 20 : 32
           }"
           :pnl-status="{
             positive: pnl.status,
@@ -499,8 +490,7 @@ const stable = computed<CurrencyComponentProps>(() => {
     amount: "0",
     type: CURRENCY_VIEW_TYPES.CURRENCY,
     denom: NATIVE_CURRENCY.symbol,
-    fontSize: 16,
-    fontSizeSmall: 16
+    fontSize: 16
   } as CurrencyComponentProps;
 
   if (!lease) {
@@ -529,8 +519,7 @@ const stable = computed<CurrencyComponentProps>(() => {
         amount: value.toString(NATIVE_CURRENCY.maximumFractionDigits),
         type: CURRENCY_VIEW_TYPES.CURRENCY,
         denom: NATIVE_CURRENCY.symbol,
-        fontSize: 16,
-        fontSizeSmall: 16
+        fontSize: 16
       } as CurrencyComponentProps;
     }
     case PositionTypes.short: {
@@ -543,7 +532,6 @@ const stable = computed<CurrencyComponentProps>(() => {
         denom: ast?.shortName,
         decimals: asset.value?.decimal_digits,
         fontSize: 16,
-        fontSizeSmall: 16,
         hasSpace: true
       } as CurrencyComponentProps;
     }
