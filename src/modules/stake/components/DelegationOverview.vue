@@ -17,8 +17,7 @@
           decimals: NATIVE_ASSET.decimal_digits,
           hasSpace: true,
           class: 'leading-[36px]',
-          fontSize: isMobile() ? 20 : 32,
-          fontSizeSmall: isMobile() ? 20 : 32
+          fontSize: isMobile() ? 20 : 32
         }"
         :secondary="{
           amount: stableDelegated,
@@ -38,8 +37,7 @@
           decimals: 2,
           hasSpace: false,
           class: 'leading-[36px]',
-          fontSize: isMobile() ? 20 : 32,
-          fontSizeSmall: isMobile() ? 20 : 32
+          fontSize: isMobile() ? 20 : 32
         }"
       />
       <template v-if="!showEmpty">
@@ -55,8 +53,7 @@
             class: 'leading-[36px]',
             denom: '%',
             isDenomInfront: false,
-            fontSize: isMobile() ? 20 : 32,
-            fontSizeSmall: isMobile() ? 20 : 32
+            fontSize: isMobile() ? 20 : 32
           }"
         />
       </template>

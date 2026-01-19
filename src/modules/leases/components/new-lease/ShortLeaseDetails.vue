@@ -53,8 +53,7 @@
               type: CURRENCY_VIEW_TYPES.TOKEN,
               denom: downPaymentAsset.shortName,
               hasSpace: true,
-              fontSize: 16,
-              fontSizeSmall: 16
+              fontSize: 16
             }"
             :secondary="{
               amount: downPaymentStable.toString(),
@@ -75,8 +74,7 @@
                 type: CURRENCY_VIEW_TYPES.TOKEN,
                 denom: asset.shortName,
                 hasSpace: true,
-                fontSize: 16,
-                fontSizeSmall: 16
+                fontSize: 16
               }"
               :secondary="{
                 amount: borrowStable.toString(),
@@ -95,8 +93,7 @@
                 type: CURRENCY_VIEW_TYPES.TOKEN,
                 denom: asset.shortName,
                 hasSpace: true,
-                fontSize: 16,
-                fontSizeSmall: 16
+                fontSize: 16
               }"
               :secondary="{
                 amount: swapStableFee.toString(),
@@ -138,7 +135,6 @@
           minimalDenom: '',
           decimals: 2,
           fontSize: 16,
-          fontSizeSmall: 16,
           class: { 'line-through': isFreeLease },
           additional: isFreeLease
             ? {
@@ -156,8 +152,7 @@
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
           decimals: 3,
-          fontSize: 16,
-          fontSizeSmall: 16
+          fontSize: 16
         }"
       />
       <BigNumber
@@ -170,8 +165,7 @@
           maxDecimals: 0,
           minimalDenom: '',
           decimals: 0,
-          fontSize: 16,
-          fontSizeSmall: 16
+          fontSize: 16
         }"
       />
     </div>

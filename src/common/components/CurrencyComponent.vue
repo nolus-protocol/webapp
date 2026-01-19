@@ -30,7 +30,6 @@ export interface CurrencyComponentProps {
   decimals?: number;
   maxDecimals?: number;
   fontSize?: number;
-  fontSizeSmall?: number;
   hasSpace?: boolean;
   isDenomInfront?: boolean;
   defaultZeroValue?: string;
@@ -49,20 +48,12 @@ const props = withDefaults(defineProps<CurrencyComponentProps>(), {
   maxDecimals: 2,
   decimals: 2,
   fontSize: 16,
-  SmallFontSize: 16,
   hasSpace: false,
   isDenomInfront: true,
   prettyZeros: false
 });
 
 const isMounted = ref(false);
-
-const smallFontSize = computed(() => {
-  if (props.fontSizeSmall) {
-    return props.fontSizeSmall;
-  }
-  return props.fontSize - 2;
-});
 
 const amount = computed(() => {
   switch (props.type) {
