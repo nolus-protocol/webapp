@@ -193,9 +193,9 @@ const amount = computed(() => {
 });
 
 onMounted(() => {
-  setTimeout(() => {
+  requestAnimationFrame(() => {
     isMounted.value = true;
-  }, 50);
+  });
 });
 </script>
 <style>
