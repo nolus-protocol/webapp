@@ -9,7 +9,8 @@
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
           decimals: 0,
-          fontSize: isMobile() ? 20 : 32
+          fontSize: isMobile() ? 20 : 32,
+          animatedReveal: true
         }"
         :loading="loading"
       />
@@ -20,7 +21,8 @@
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
           decimals: 0,
-          fontSize: 20
+          fontSize: 20,
+          animatedReveal: true
         }"
         :loading="loading"
       />
@@ -31,7 +33,8 @@
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
           decimals: 0,
-          fontSize: 20
+          fontSize: 20,
+          animatedReveal: true
         }"
         :loading="loading"
       />
@@ -42,7 +45,8 @@
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
           fontSize: 20,
-          decimals: 0
+          decimals: 0,
+          animatedReveal: true
         }"
         :loading="loading"
       />
@@ -55,7 +59,8 @@
           decimals: 0,
           hasSpace: true,
           isDenomInfront: false,
-          fontSize: 20
+          fontSize: 20,
+          animatedReveal: true
         }"
         :loading="loading"
       />

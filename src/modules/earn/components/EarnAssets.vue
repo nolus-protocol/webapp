@@ -15,7 +15,8 @@
             amount: stableAmount,
             type: CURRENCY_VIEW_TYPES.CURRENCY,
             denom: NATIVE_CURRENCY.symbol,
-            fontSize: isMobile() ? 20 : 32
+            fontSize: isMobile() ? 20 : 32,
+            animatedReveal: true
           }"
         />
 
@@ -29,7 +30,8 @@
             amount: earningsAmount,
             type: CURRENCY_VIEW_TYPES.CURRENCY,
             denom: NATIVE_CURRENCY.symbol,
-            fontSize: 20
+            fontSize: 20,
+            animatedReveal: true
           }"
         />
 
@@ -43,7 +45,8 @@
             amount: anualYield,
             type: CURRENCY_VIEW_TYPES.CURRENCY,
             denom: NATIVE_CURRENCY.symbol,
-            fontSize: 20
+            fontSize: 20,
+            animatedReveal: true
           }"
         />
       </div>

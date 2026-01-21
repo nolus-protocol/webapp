@@ -24,8 +24,7 @@
         >
           <CurrencyComponent
             v-if="amount"
-            :font-size="40"
-            :font-size-small="40"
+            :font-size="32"
             v-bind="amount"
             class="flex break-keep font-semibold text-typography-default"
           />
@@ -33,8 +32,7 @@
         <template v-else>
           <CurrencyComponent
             v-if="amount"
-            :font-size="40"
-            :font-size-small="40"
+            :font-size="32"
             v-bind="amount"
             class="flex break-keep font-semibold text-typography-default"
           />
@@ -85,7 +83,6 @@
           :denom="secondary?.denom"
           :type="secondary?.type"
           :font-size="12"
-          :font-size-small="12"
           class="flex font-normal text-typography-default"
         />
         <span
