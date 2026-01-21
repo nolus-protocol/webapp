@@ -10,7 +10,7 @@
         <template v-if="around">~</template>
         <template v-if="animatedReveal">
           <AnimateNumber
-            :value="isMounted ? props.amount : 0"
+            :value="isMounted ? numberAmount : 0"
             :format="{ minimumFractionDigits: maxDecimals, maximumFractionDigits: maxDecimals }"
           />
         </template>
@@ -28,7 +28,7 @@
         <template v-if="around">~</template>
         <template v-if="animatedReveal">
           <AnimateNumber
-            :value="isMounted ? props.amount : 0"
+            :value="isMounted ? numberAmount : 0"
             :format="{ minimumFractionDigits: maxDecimals, maximumFractionDigits: maxDecimals }"
           />
         </template>
@@ -47,6 +47,7 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { AnimateNumber } from "motion-plus-vue";
+import { Dec } from "@keplr-wallet/unit";
 
 export interface CurrencyComponentProps {
   type: string;
@@ -82,6 +83,10 @@ const props = withDefaults(defineProps<CurrencyComponentProps>(), {
 });
 
 const isMounted = ref(false);
+
+const numberAmount = computed(() => {
+  return new Dec(props.amount, props.decimals).abs().toString(props.decimals);
+});
 
 const amount = computed(() => {
   switch (props.type) {
