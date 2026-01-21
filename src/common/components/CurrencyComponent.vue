@@ -5,8 +5,8 @@
         :class="[`text-${fontSize}`, $attrs.class]"
         class="items-center"
       >
-        {{ amount.symbol }}
-        <template v-if="isDenomInfront"> {{ amount.denom }}<template v-if="hasSpace">&nbsp;</template> </template>
+        {{ amount.symbol
+        }}<template v-if="isDenomInfront"> {{ amount.denom }}<template v-if="hasSpace">&nbsp;</template> </template>
         <template v-if="around">~</template>
         <template v-if="animatedReveal">
           <AnimateNumber
@@ -17,7 +17,7 @@
         <template v-else>
           {{ amount.beforeDecimal + amount.afterDecimal }}
         </template>
-        <template v-if="!isDenomInfront"> <template v-if="hasSpace">&nbsp;</template>{{ amount.denom }} </template>
+        <template v-if="!isDenomInfront"> <template v-if="hasSpace">&nbsp;</template>{{ amount.denom }}</template>
       </span>
     </template>
     <template v-if="type == CURRENCY_VIEW_TYPES.TOKEN">

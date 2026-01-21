@@ -3,7 +3,7 @@
     ref="dialog"
     :title="$t(`message.take-profit`)"
     showClose
-    :disable-close="true"
+    :disable-close="false"
     @close-dialog="router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}`)"
   >
     <template v-slot:content>

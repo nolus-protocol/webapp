@@ -25,6 +25,7 @@
               amount: pnl.toString(),
               type: CURRENCY_VIEW_TYPES.CURRENCY,
               denom: NATIVE_CURRENCY.symbol,
+              animatedReveal: true,
               fontSize: isMobile() ? 20 : 32
             }"
             :pnl-status="{
