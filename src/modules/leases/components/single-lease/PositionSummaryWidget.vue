@@ -37,7 +37,8 @@
               decimals: assetLoan?.decimal_digits ?? 0,
               hasSpace: true,
               maxDecimals: MAX_DECIMALS,
-              fontSize: isMobile() ? 20 : 32
+              fontSize: isMobile() ? 20 : 32,
+              animatedReveal: true
             }"
             :secondary="stable"
           />
@@ -156,7 +157,8 @@
             type: CURRENCY_VIEW_TYPES.CURRENCY,
             denom: '$',
             class: pnl.status ? 'text-typography-success' : 'text-typography-error',
-            fontSize: isMobile() ? 20 : 32
+            fontSize: isMobile() ? 20 : 32,
+            animatedReveal: true
           }"
           :pnl-status="{
             positive: pnl.status,

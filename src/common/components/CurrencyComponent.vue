@@ -2,15 +2,41 @@
   <div>
     <template v-if="type == CURRENCY_VIEW_TYPES.CURRENCY">
       <span :class="[`text-${fontSize}`, $attrs.class]" class="items-center">
-        {{ amount.symbol
-        }}<template v-if="isDenomInfront">{{ amount.denom }}<template v-if="hasSpace">&nbsp;</template></template
-        ><template v-if="around">~</template><template v-if="!hide"><AnimateNumber :value="isMounted ? Number((amount.beforeDecimal+amount.afterDecimal).replace(/,/g, '')) : 0"/></template><template v-else>{{ amount.beforeDecimal+amount.afterDecimal }}</template><template v-if="!isDenomInfront"><template v-if="hasSpace">&nbsp;</template>{{ amount.denom }}</template>
+        {{ amount.symbol }}
+        <template v-if="isDenomInfront">
+          {{ amount.denom }}<template v-if="hasSpace">&nbsp;</template>
+        </template>
+        <template v-if="around">~</template>
+        <template v-if="animatedReveal">
+          <AnimateNumber
+            :value="isMounted ? Number((amount.beforeDecimal + amount.afterDecimal).replace(/,/g, '')) : 0"
+            :format="{ minimumFractionDigits: maxDecimals, maximumFractionDigits: maxDecimals }"
+          />
+        </template>
+        <template v-else>
+          {{ amount.beforeDecimal + amount.afterDecimal }}
+        </template>
+        <template v-if="!isDenomInfront">
+          <template v-if="hasSpace">&nbsp;</template>{{ amount.denom }}
+        </template>
       </span>
     </template>
     <template v-if="type == CURRENCY_VIEW_TYPES.TOKEN">
-      <span :class="[`text-${fontSize}`, $attrs.class]" class="items-center"><template v-if="around">~</template><template v-if="!hide"><AnimateNumber :value="isMounted ? Number((amount.beforeDecimal+amount.afterDecimal).replace(/,/g, '')) : 0" :format="{ minimumFractionDigits: maxDecimals, maximumFractionDigits: maxDecimals }" /></template><template v-else>{{ amount.beforeDecimal+amount.afterDecimal }}</template><template v-if="hasSpace">&nbsp;</template>{{ amount.denom }}</span
-      >
+      <span :class="[`text-${fontSize}`, $attrs.class]" class="items-center">
+        <template v-if="around">~</template>
+        <template v-if="animatedReveal">
+          <AnimateNumber 
+            :value="isMounted ? Number((amount.beforeDecimal + amount.afterDecimal).replace(/,/g, '')) : 0" 
+            :format="{ minimumFractionDigits: maxDecimals, maximumFractionDigits: maxDecimals }" 
+          />
+        </template>
+        <template v-else>
+          {{ amount.beforeDecimal + amount.afterDecimal }}
+        </template>
+        <template v-if="hasSpace">&nbsp;</template>{{ amount.denom }}
+      </span>
     </template>
+
   </div>
 </template>
 
@@ -37,6 +63,7 @@ export interface CurrencyComponentProps {
   around?: boolean;
   hide?: boolean;
   tooltip?: boolean;
+  animatedReveal?: boolean;
   additional?: {
     text: string;
     class: string;
@@ -50,7 +77,8 @@ const props = withDefaults(defineProps<CurrencyComponentProps>(), {
   fontSize: 16,
   hasSpace: false,
   isDenomInfront: true,
-  prettyZeros: false
+  prettyZeros: false,
+  animatedReveal: false,
 });
 
 const isMounted = ref(false);
@@ -165,7 +193,9 @@ const amount = computed(() => {
 });
 
 onMounted(() => {
-  isMounted.value = true;
+  setTimeout(() => {
+    isMounted.value = true;
+  }, 50);
 });
 </script>
 <style>
