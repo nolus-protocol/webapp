@@ -53,8 +53,18 @@ if (cluster.isPrimary) {
       try {
         const url = req.originalUrl;
         const cookies = parseCookies(req.headers.cookie || "");
-        const theme_data = cookies.theme_data ?? "dark";
-        const language = cookies.language ?? "en";
+
+        let theme_data = cookies.theme_data;
+        let language = cookies.language;
+
+        if (!theme_data) {
+          theme_data = "dark";
+        }
+
+        if (!language) {
+          language = "en";
+        }
+
         const rendered = await render(url, { theme_data, language });
 
         const html = template
