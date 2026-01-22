@@ -1,12 +1,33 @@
 <template>
-  <div class="flex justify-center">
-    <div class="flex items-center">
-      <span class="m-2 block h-[8px] w-[20px] rounded bg-green-400"></span>{{ $t("message.supplied") }}
+  <div class="flex">
+    <div class="flex flex-1 justify-center">
+      <div class="flex items-center">
+        <span class="m-2 block h-[8px] w-[20px] rounded bg-green-400"></span>{{ $t("message.supplied") }}
+      </div>
+      <div class="flex items-center">
+        <span class="m-2 block h-[8px] w-[20px] rounded bg-blue-500"></span>{{ $t("message.borrowed-chart") }}
+      </div>
     </div>
-    <div class="flex items-center">
-      <span class="m-2 block h-[8px] w-[20px] rounded bg-blue-500"></span>{{ $t("message.borrowed-chart") }}
+
+    <div class="flex items-center gap-3">
+      <span>{{ $t("message.period") }}:</span>
+      <Dropdown
+        id="period"
+        :on-select="
+          (data) => {
+            chartTimeRange = data;
+            loadData();
+          }
+        "
+        :options="options"
+        :selected="options[0]"
+        class="w-20"
+        dropdownPosition="right"
+        dropdownClassName="min-w-10"
+      />
     </div>
   </div>
+
   <Chart
     ref="chart"
     :updateChart="updateChart"
@@ -24,6 +45,7 @@ import { AssetUtils, EtlApi, isMobile } from "@/common/utils";
 import { useI18n } from "vue-i18n";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { ref } from "vue";
+import { Dropdown } from "web-components";
 
 type ChartData = { date: Date; borrowed: number; supplied: number };
 
@@ -36,6 +58,15 @@ const marginBottom = 50;
 const data = ref<ChartData[]>([]);
 const i18n = useI18n();
 const chart = ref<typeof Chart>();
+
+const options = ref([
+  { label: `3${i18n.t("message.month_abr")}`, value: "3m" },
+  { label: `6${i18n.t("message.month_abr")}`, value: "6m" },
+  { label: `12${i18n.t("message.month_abr")}`, value: "12m" },
+  { label: i18n.t("message.all"), value: "all" }
+]);
+
+const chartTimeRange = ref(options.value[0]);
 
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
   if (!plotContainer) return;
@@ -136,7 +167,7 @@ function getClosestDataPoint(cPosition: number) {
 }
 
 async function loadData() {
-  const response = await EtlApi.fetchTimeSeries();
+  const response = await EtlApi.fetchTimeSeries(chartTimeRange.value.value);
   data.value = response
     .map((d) => ({
       date: new Date(d.lp_pool_timestamp),

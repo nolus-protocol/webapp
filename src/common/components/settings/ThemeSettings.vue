@@ -46,7 +46,7 @@
 <script lang="ts" setup>
 import { h, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { type DropdownOption, Dropdown, Size } from "web-components";
+import { type DropdownOption, Dropdown } from "web-components";
 import { WalletManager } from "@/common/utils";
 import { useOracleStore } from "@/common/stores/oracle";
 

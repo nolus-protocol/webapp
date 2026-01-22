@@ -78,7 +78,37 @@ const connections = computed(
       }
     };
 
-    if (isDev()) {
+    // if (isDev()) {
+    //   auth.EvmPhantom = {
+    //     icon: PhantomIcon,
+    //     label: i18n.t("message.phantom"),
+    //     type: WalletActions.CONNECT_EVM_PHANTOM
+    //   };
+    //   auth.SolFlare = {
+    //     icon: SolflareIcon,
+    //     label: i18n.t("message.solflare"),
+    //     type: WalletActions.CONNECT_SOL_SOLFLARE
+    //   };
+    //   auth.EvmMetamask = {
+    //     icon: MetamaskIcon,
+    //     label: i18n.t("message.metamask"),
+    //     type: WalletActions.CONNECT_EVM_METAMASK
+    //   };
+    // }
+
+    auth.WalletConnect = {
+      icon: WalletConnectIcon,
+      label: i18n.t("message.keplr-wallet-connect"),
+      type: WalletActions.CONNECT_WC
+    };
+
+    auth.Ledger = {
+      icon: LedgerIcon,
+      label: i18n.t("message.ledger"),
+      type: WalletActions.CONNECT_LEDGER
+    };
+
+    if (isServe()) {
       auth.EvmPhantom = {
         icon: PhantomIcon,
         label: i18n.t("message.phantom"),
@@ -94,21 +124,6 @@ const connections = computed(
         label: i18n.t("message.metamask"),
         type: WalletActions.CONNECT_EVM_METAMASK
       };
-    }
-
-    auth.WalletConnect = {
-      icon: WalletConnectIcon,
-      label: i18n.t("message.keplr-wallet-connect"),
-      type: WalletActions.CONNECT_WC
-    };
-
-    auth.Ledger = {
-      icon: LedgerIcon,
-      label: i18n.t("message.ledger"),
-      type: WalletActions.CONNECT_LEDGER
-    };
-
-    if (isServe()) {
       auth.Leap = {
         icon: LeapIcon,
         label: i18n.t("message.leap"),
