@@ -11,7 +11,6 @@
     ref="dialog"
     show-close
     :title="$t('message.select-wallet')"
-    class-list="md:h-auto"
   >
     <template v-slot:content>
       <AuthComponent />
