@@ -8,7 +8,9 @@
           amount: tvl,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
-          decimals: 0
+          decimals: 0,
+          fontSize: isMobile() ? 20 : 32,
+          animatedReveal: true
         }"
         :loading="loading"
       />
@@ -20,7 +22,7 @@
           denom: NATIVE_CURRENCY.symbol,
           decimals: 0,
           fontSize: 20,
-          fontSizeSmall: 20
+          animatedReveal: true
         }"
         :loading="loading"
       />
@@ -32,7 +34,7 @@
           denom: NATIVE_CURRENCY.symbol,
           decimals: 0,
           fontSize: 20,
-          fontSizeSmall: 20
+          animatedReveal: true
         }"
         :loading="loading"
       />
@@ -43,8 +45,8 @@
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
           fontSize: 20,
-          fontSizeSmall: 20,
-          decimals: 0
+          decimals: 0,
+          animatedReveal: true
         }"
         :loading="loading"
       />
@@ -58,7 +60,7 @@
           hasSpace: true,
           isDenomInfront: false,
           fontSize: 20,
-          fontSizeSmall: 20
+          animatedReveal: true
         }"
         :loading="loading"
       />
@@ -78,7 +80,7 @@ import LeasesMonthlyChart from "@/modules/stats/components/LeasesMonthlyChart.vu
 
 import { Widget } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
-import { EtlApi, Logger } from "@/common/utils";
+import { EtlApi, isMobile, Logger } from "@/common/utils";
 import { ref, watch } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";

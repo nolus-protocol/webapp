@@ -50,8 +50,12 @@ import LedgerIcon from "@/assets/icons/wallets/ledger.svg?url";
 import LeapIcon from "@/assets/icons/wallets/leapwallet.svg?url";
 import WalletConnectIcon from "@/assets/icons/wallets/walletconnect.svg?url";
 import MetamaskIcon from "@/assets/icons/wallets/metamask.svg?url";
+import PhantomIcon from "@/assets/icons/wallets/phantom.svg?url";
+import SolflareIcon from "@/assets/icons/wallets/solflare.svg?url";
 
 import { useRouter } from "vue-router";
+import { isDev, isServe } from "@/config/global";
+import type { IObjectKeys } from "@/common/types";
 
 const i18n = useI18n();
 const terms = ref<typeof TermsDialog>();
@@ -66,33 +70,68 @@ const connections = computed(
       type: WalletActions;
     }
   > => {
-    return {
+    const auth: IObjectKeys = {
       Keplr: {
         icon: KeplrIcon,
         label: i18n.t("message.keplr"),
         type: WalletActions.CONNECT_KEPLR
-      },
-      Leap: {
+      }
+    };
+
+    // if (isDev()) {
+    //   auth.EvmPhantom = {
+    //     icon: PhantomIcon,
+    //     label: i18n.t("message.phantom"),
+    //     type: WalletActions.CONNECT_EVM_PHANTOM
+    //   };
+    //   auth.SolFlare = {
+    //     icon: SolflareIcon,
+    //     label: i18n.t("message.solflare"),
+    //     type: WalletActions.CONNECT_SOL_SOLFLARE
+    //   };
+    //   auth.EvmMetamask = {
+    //     icon: MetamaskIcon,
+    //     label: i18n.t("message.metamask"),
+    //     type: WalletActions.CONNECT_EVM_METAMASK
+    //   };
+    // }
+
+    auth.WalletConnect = {
+      icon: WalletConnectIcon,
+      label: i18n.t("message.keplr-wallet-connect"),
+      type: WalletActions.CONNECT_WC
+    };
+
+    auth.Ledger = {
+      icon: LedgerIcon,
+      label: i18n.t("message.ledger"),
+      type: WalletActions.CONNECT_LEDGER
+    };
+
+    if (isServe()) {
+      auth.EvmPhantom = {
+        icon: PhantomIcon,
+        label: i18n.t("message.phantom"),
+        type: WalletActions.CONNECT_EVM_PHANTOM
+      };
+      auth.SolFlare = {
+        icon: SolflareIcon,
+        label: i18n.t("message.solflare"),
+        type: WalletActions.CONNECT_SOL_SOLFLARE
+      };
+      auth.EvmMetamask = {
+        icon: MetamaskIcon,
+        label: i18n.t("message.metamask"),
+        type: WalletActions.CONNECT_EVM_METAMASK
+      };
+      auth.Leap = {
         icon: LeapIcon,
         label: i18n.t("message.leap"),
         type: WalletActions.CONNECT_LEAP
-      },
-      // EvmMetamask: {
-      //   icon: MetamaskIcon,
-      //   label: i18n.t("message.metamask"),
-      //   type: WalletActions.CONNECT_EVM_METAMASK
-      // },
-      Ledger: {
-        icon: LedgerIcon,
-        label: i18n.t("message.ledger"),
-        type: WalletActions.CONNECT_LEDGER
-      },
-      WalletConnect: {
-        icon: WalletConnectIcon,
-        label: i18n.t("message.keplr-wallet-connect"),
-        type: WalletActions.CONNECT_WC
-      }
-    };
+      };
+    }
+
+    return auth;
   }
 );
 

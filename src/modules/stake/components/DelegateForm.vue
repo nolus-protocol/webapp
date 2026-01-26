@@ -153,7 +153,6 @@ function validateInputs() {
 async function delegate() {
   try {
     loading.value = true;
-
     if (wallet.wallet && error.value.length == 0) {
       let validators = await getValidators();
       let division = STAKING.VALIDATORS_NUMBER;
@@ -187,7 +186,6 @@ async function delegate() {
           amount: coin(item.value, data.denom)
         };
       });
-
       const { txHash, txBytes, usedFee } = await wallet.wallet.simulateDelegateTx(delegations);
 
       await wallet.wallet?.broadcastTx(txBytes as Uint8Array);

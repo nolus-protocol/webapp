@@ -1,32 +1,53 @@
 <template>
   <div>
     <template v-if="type == CURRENCY_VIEW_TYPES.CURRENCY">
-      <span :class="[`text-${fontSize}`, $attrs.class]">
+      <span
+        :class="[`text-${fontSize}`, $attrs.class]"
+        class="items-center"
+      >
         {{ amount.symbol
-        }}<template v-if="isDenomInfront">{{ amount.denom }}<template v-if="hasSpace">&nbsp;</template></template
-        ><template v-if="around">~</template>{{ amount.beforeDecimal }}
-      </span>
-      <span :class="[`text-${smallFontSize}`, $attrs.class]"
-        >{{ amount.afterDecimal
-        }}<template v-if="!isDenomInfront"><template v-if="hasSpace">&nbsp;</template>{{ amount.denom }}</template>
+        }}<template v-if="isDenomInfront"> {{ amount.denom }}<template v-if="hasSpace">&nbsp;</template> </template>
+        <template v-if="around">~</template>
+        <template v-if="animatedReveal">
+          <AnimateNumber
+            :value="isMounted ? numberAmount : 0"
+            :format="{ minimumFractionDigits: maxDecimals, maximumFractionDigits: maxDecimals }"
+          />
+        </template>
+        <template v-else>
+          {{ amount.beforeDecimal + amount.afterDecimal }}
+        </template>
+        <template v-if="!isDenomInfront"> <template v-if="hasSpace">&nbsp;</template>{{ amount.denom }}</template>
       </span>
     </template>
     <template v-if="type == CURRENCY_VIEW_TYPES.TOKEN">
-      <span :class="[`text-${fontSize}`, $attrs.class]"
-        ><template v-if="around">~</template>{{ amount.beforeDecimal }}</span
+      <span
+        :class="[`text-${fontSize}`, $attrs.class]"
+        class="items-center"
       >
-      <span :class="[`text-${smallFontSize}`, $attrs.class]"
-        >{{ amount.afterDecimal }}<template v-if="hasSpace">&nbsp;</template>{{ amount.denom }}</span
-      >
+        <template v-if="around">~</template>
+        <template v-if="animatedReveal">
+          <AnimateNumber
+            :value="isMounted ? numberAmount : 0"
+            :format="{ minimumFractionDigits: maxDecimals, maximumFractionDigits: maxDecimals }"
+          />
+        </template>
+        <template v-else>
+          {{ amount.beforeDecimal + amount.afterDecimal }}
+        </template>
+        <template v-if="hasSpace">&nbsp;</template>{{ amount.denom }}
+      </span>
     </template>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
+import { AnimateNumber } from "motion-plus-vue";
+import { Dec } from "@keplr-wallet/unit";
 
 export interface CurrencyComponentProps {
   type: string;
@@ -36,7 +57,6 @@ export interface CurrencyComponentProps {
   decimals?: number;
   maxDecimals?: number;
   fontSize?: number;
-  fontSizeSmall?: number;
   hasSpace?: boolean;
   isDenomInfront?: boolean;
   defaultZeroValue?: string;
@@ -44,6 +64,7 @@ export interface CurrencyComponentProps {
   around?: boolean;
   hide?: boolean;
   tooltip?: boolean;
+  animatedReveal?: boolean;
   additional?: {
     text: string;
     class: string;
@@ -55,17 +76,16 @@ const props = withDefaults(defineProps<CurrencyComponentProps>(), {
   maxDecimals: 2,
   decimals: 2,
   fontSize: 16,
-  SmallFontSize: 16,
   hasSpace: false,
   isDenomInfront: true,
-  prettyZeros: false
+  prettyZeros: false,
+  animatedReveal: false
 });
 
-const smallFontSize = computed(() => {
-  if (props.fontSizeSmall) {
-    return props.fontSizeSmall;
-  }
-  return props.fontSize - 2;
+const isMounted = ref(false);
+
+const numberAmount = computed(() => {
+  return new Dec(props.amount, props.decimals).abs().toString(props.decimals);
 });
 
 const amount = computed(() => {
@@ -176,5 +196,16 @@ const amount = computed(() => {
     afterDecimal: ""
   };
 });
+
+onMounted(() => {
+  requestAnimationFrame(() => {
+    isMounted.value = true;
+  });
+});
 </script>
-<style lang="scss" scoped></style>
+<style>
+.number-section-fraction,
+.number-section-integer {
+  align-items: flex-end !important;
+}
+</style>

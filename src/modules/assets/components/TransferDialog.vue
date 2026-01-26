@@ -48,7 +48,6 @@ onBeforeUnmount(() => {
 
 const activeTabIndex = computed(() => {
   const tab = route.params.tab as string;
-
   if (tab === AssetsDialog.SWAP) return 0;
   if (tab === AssetsDialog.RECEIVE) return 1;
   if (tab === AssetsDialog.SEND) return 2;

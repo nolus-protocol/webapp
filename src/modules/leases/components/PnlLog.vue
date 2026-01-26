@@ -38,7 +38,8 @@
           :amount="{
             amount: pnl.toString(),
             type: CURRENCY_VIEW_TYPES.CURRENCY,
-            denom: NATIVE_CURRENCY.symbol
+            denom: NATIVE_CURRENCY.symbol,
+            fontSize: isMobile() ? 20 : 32
           }"
         />
         <Button
@@ -95,7 +96,7 @@ import BigNumber from "@/common/components/BigNumber.vue";
 import { CURRENCY_VIEW_TYPES, type IObjectKeys } from "@/common/types";
 import { NATIVE_CURRENCY, NORMAL_DECIMALS, PositionTypes, ProtocolsConfig } from "@/config/global";
 import type { ILoan } from "./types";
-import { AssetUtils, EtlApi, getCreatedAtForHuman, Logger } from "@/common/utils";
+import { AssetUtils, EtlApi, getCreatedAtForHuman, isMobile, Logger } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { RouteNames } from "@/router";

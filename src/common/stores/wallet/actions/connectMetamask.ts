@@ -10,7 +10,7 @@ import { MetamaskName } from "@/config/global";
 
 export async function connectMetamask(this: Store) {
   const metamask = new MetaMaskWallet();
-  const { pubkeyAny } = await metamask.connect();
+  const { pubkeyAny } = await metamask.connect(WalletConnectMechanism.EVM_METAMASK);
   const signer = metamask.makeWCOfflineSigner();
 
   const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(signer);

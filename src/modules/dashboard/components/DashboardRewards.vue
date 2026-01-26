@@ -1,37 +1,53 @@
 <template>
   <Widget>
     <WidgetHeader
-      :label="$t('message.staking-rewards')"
+      :label="$t('message.staking-rewards-widget')"
       :icon="{ name: 'list-sparkle' }"
     >
+    </WidgetHeader>
+    <div class="flex flex-col gap-y-6">
+      <BigNumber
+        v-if="!isEmpty"
+        :label="$t('message.earn-yield')"
+        :amount="{
+          amount: earningsAmount,
+          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          denom: NATIVE_CURRENCY.symbol,
+          fontSize: isMobile() ? 20 : 32,
+          animatedReveal: true
+        }"
+      />
+
+      <BigNumber
+        v-if="!isEmpty"
+        :label="$t('message.unclaimed-staking-widget')"
+        :amount="{
+          amount: stableRewards,
+          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          denom: NATIVE_CURRENCY.symbol,
+          fontSize: isMobile() ? 20 : 32,
+          animatedReveal: true
+        }"
+      />
+
       <Button
         v-if="!isEmpty"
-        :label="$t('message.claim-rewards')"
+        class="self-start"
+        :label="$t('message.claim-rewards-dashboard')"
         severity="secondary"
         size="large"
         :loading="loadingStaking"
         :disabled="disabled"
         @click="onWithdrawRewards"
       />
-    </WidgetHeader>
-    <div class="flex flex-col gap-y-2">
-      <BigNumber
-        v-if="!isEmpty"
-        :label="$t('message.unclaimed-staking')"
-        :amount="{
-          amount: stableRewards,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: NATIVE_CURRENCY.symbol
-        }"
-      />
     </div>
-    <Asset
+    <!-- <Asset
       v-if="!isEmpty"
       v-for="reward of rewards"
       :icon="reward.icon"
       :amount="reward.amount"
       :stable-amount="`${reward.stableAmount}`"
-    />
+    /> -->
 
     <EmptyState
       v-if="isEmpty"
@@ -51,9 +67,9 @@ import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import EmptyState from "@/common/components/EmptyState.vue";
 
-import { Button, Widget, Asset } from "web-components";
+import { Button, Widget } from "web-components";
 import { CURRENCY_VIEW_TYPES, type IObjectKeys } from "@/common/types";
-import { AssetUtils, Logger, NetworkUtils, walletOperation } from "@/common/utils";
+import { AssetUtils, EtlApi, isMobile, Logger, NetworkUtils, walletOperation } from "@/common/utils";
 import { Dec } from "@keplr-wallet/unit";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -67,6 +83,7 @@ const props = defineProps<{
 const wallet = useWalletStore();
 const oracle = useOracleStore();
 const emptyState = ref(false);
+const earningsAmount = ref("0.00");
 
 const loadingStaking = ref(false);
 const disabled = ref(false);
@@ -87,7 +104,7 @@ watch(
   () => [wallet.wallet, oracle.prices],
   async () => {
     try {
-      await setRewards();
+      await Promise.all([setRewards(), loadEarnings()]);
     } catch (e) {
       Logger.error(e);
     }
@@ -141,6 +158,13 @@ async function onWithdrawRewards() {
     Logger.error(error);
   } finally {
     disabled.value = false;
+  }
+}
+
+async function loadEarnings() {
+  if (wallet.wallet?.address) {
+    const res = await EtlApi.featchEarnings(wallet.wallet?.address);
+    earningsAmount.value = res.earnings;
   }
 }
 

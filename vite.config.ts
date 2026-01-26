@@ -184,6 +184,9 @@ const nolus = defineConfig({
     downpayments_range(),
     locales()
   ],
+  ssr: {
+    noExternal: ["@nolus/nolusjs", "bech32"]
+  },
   define: {
     "import.meta.env.APP_VERSION": JSON.stringify(process.env.npm_package_version)
   },

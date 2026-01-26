@@ -16,7 +16,9 @@
           minimalDenom: '',
           decimals: NATIVE_ASSET.decimal_digits,
           hasSpace: true,
-          class: 'leading-[36px]'
+          class: 'leading-[36px]',
+          fontSize: isMobile() ? 20 : 32,
+          animatedReveal: true
         }"
         :secondary="{
           amount: stableDelegated,
@@ -35,7 +37,9 @@
           minimalDenom: '',
           decimals: 2,
           hasSpace: false,
-          class: 'leading-[36px]'
+          class: 'leading-[36px]',
+          fontSize: isMobile() ? 20 : 32,
+          animatedReveal: true
         }"
       />
       <template v-if="!showEmpty">
@@ -43,14 +47,16 @@
         <BigNumber
           :label="$t('message.yield')"
           :label-tooltip="{
-            content: $t('message.yield-tooltip')
+            content: $t('message.yield-overview-tooltip')
           }"
           :amount="{
             amount: wallet.apr.toString(),
             type: CURRENCY_VIEW_TYPES.CURRENCY,
             class: 'leading-[36px]',
             denom: '%',
-            isDenomInfront: false
+            isDenomInfront: false,
+            fontSize: isMobile() ? 20 : 32,
+            animatedReveal: true
           }"
         />
       </template>
@@ -110,6 +116,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import type { IObjectKeys } from "@/common/types";
 import { computed } from "vue";
 import { Dec } from "@keplr-wallet/unit";
+import { isMobile } from "@/common/utils";
 
 const props = defineProps<{
   stableDelegated: string;

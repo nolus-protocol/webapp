@@ -24,7 +24,9 @@
               hide: hide,
               amount: pnl.toString(),
               type: CURRENCY_VIEW_TYPES.CURRENCY,
-              denom: NATIVE_CURRENCY.symbol
+              denom: NATIVE_CURRENCY.symbol,
+              animatedReveal: true,
+              fontSize: isMobile() ? 20 : 32
             }"
             :pnl-status="{
               positive: pnl_percent.isPositive() || pnl_percent.isZero(),
@@ -76,7 +78,7 @@ import { Intercom } from "@/common/utils/Intercom";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useOracleStore } from "@/common/stores/oracle";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { AssetUtils, Logger, WalletManager } from "@/common/utils";
+import { AssetUtils, isMobile, Logger, WalletManager } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
 import { Contracts, NATIVE_CURRENCY } from "@/config/global";
 import { useRouter } from "vue-router";

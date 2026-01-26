@@ -16,6 +16,7 @@ import { type BaseWallet } from "./BaseWallet";
 import { createDepositForBurnWithCallerConverters } from "../list/noble/tx";
 import { getWalletConnectOfflineSigner } from "@/common/stores/wallet/actions/connectWC";
 import { MetaMaskWallet } from "../evm";
+import { SolanaWallet } from "../sol";
 
 const aminoTypes = {
   ...createIbcAminoConverters(),
@@ -149,6 +150,46 @@ export async function authenticateMetamask(wallet: Wallet, network: NetworkData)
     const metamask = new MetaMaskWallet();
     await metamask.connectCustom(node, network);
     const signer = metamask.makeWCOfflineSigner();
+
+    return await createWallet(
+      wallet,
+      signer as any,
+      network.prefix,
+      network.gasMultiplier,
+      network.gasPrice,
+      network.explorer
+    );
+  } catch (e) {
+    throw e;
+  }
+}
+
+export async function authenticateEvmPhantom(wallet: Wallet, network: NetworkData) {
+  try {
+    const node = await AppUtils.fetchEndpoints(network.key);
+    const metamask = new MetaMaskWallet();
+    await metamask.connectCustom(node, network);
+    const signer = metamask.makeWCOfflineSigner();
+
+    return await createWallet(
+      wallet,
+      signer as any,
+      network.prefix,
+      network.gasMultiplier,
+      network.gasPrice,
+      network.explorer
+    );
+  } catch (e) {
+    throw e;
+  }
+}
+
+export async function authenticateSolFlare(wallet: Wallet, network: NetworkData) {
+  try {
+    const node = await AppUtils.fetchEndpoints(network.key);
+    const sol = new SolanaWallet();
+    await sol.connectCustom(node, network);
+    const signer = sol.makeWCOfflineSigner();
 
     return await createWallet(
       wallet,

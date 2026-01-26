@@ -3,7 +3,7 @@
     ref="dialog"
     :title="$t('message.transaction-details')"
     showClose
-    class-list="md:h-auto"
+    class-list="md:h-fit"
   >
     <template v-slot:content>
       <div class="flex flex-col gap-5 px-6 pb-6 text-typography-default">

@@ -14,6 +14,10 @@ export class EtlApi {
     return NETWORK.etlApi;
   }
 
+  static async fetchPools(): Promise<IObjectKeys> {
+    return fetch(`${EtlApi.getApiUrl()}/pools`).then((data) => data.json());
+  }
+
   static async fetchEarnApr(protocol: string): Promise<IObjectKeys> {
     return fetch(`${EtlApi.getApiUrl()}/earn-apr?protocol=${protocol}`).then((data) => data.json());
   }
@@ -85,12 +89,21 @@ export class EtlApi {
     return fetch(`${EtlApi.getApiUrl()}/supplied-funds`).then((data) => data.json());
   }
 
-  static async fetchTimeSeries(): Promise<IObjectKeys[]> {
-    return fetch(`${EtlApi.getApiUrl()}/time-series`).then((data) => data.json());
+  static async fetchTimeSeries(period: string): Promise<IObjectKeys[]> {
+    let p = "";
+
+    if (period) {
+      p = `period=${period}`;
+    }
+    return fetch(`${EtlApi.getApiUrl()}/supplied-borrowed-history?${p}`).then((data) => data.json());
   }
 
   static async featchEarnings(address: string): Promise<IObjectKeys> {
     return fetch(`${EtlApi.getApiUrl()}/earnings?address=${address}`).then((data) => data.json());
+  }
+
+  static async fetchLpWithdraw(tx: string): Promise<IObjectKeys> {
+    return fetch(`${EtlApi.getApiUrl()}/lp-withdraw?tx=${tx}`).then((data) => data.json());
   }
 
   static async fetchTXS(

@@ -3,7 +3,7 @@
     id="dialog-scroll"
     class="custom-scroll max-h-full flex-1 overflow-auto"
   >
-    <div class="flex max-w-[190px] flex-col gap-2 px-6 py-4">
+    <!-- <div class="flex max-w-[190px] flex-col gap-2 px-6 py-4">
       <label
         for="dropdown-btn-network"
         class="text-16 font-semibold text-typography-default"
@@ -19,7 +19,7 @@
         :disabled="isDisabled"
       />
     </div>
-    <hr class="border-border-color" />
+    <hr class="border-border-color" /> -->
     <AdvancedFormControl
       id="receive"
       searchable
@@ -82,7 +82,7 @@
 
     <hr class="my-4 border-border-color" />
 
-    <div class="mt-4 flex flex-col justify-end px-4">
+    <!-- <div class="mt-4 flex flex-col justify-end px-4">
       <Button
         v-if="showDetails"
         :label="$t('message.hide-transaction-details')"
@@ -112,7 +112,7 @@
         :variant="StepperVariant.MEDIUM"
       />
     </div>
-    <hr class="my-4 border-border-color" />
+    <hr class="my-4 border-border-color" /> -->
   </div>
   <div class="flex flex-col gap-2 p-6">
     <Button

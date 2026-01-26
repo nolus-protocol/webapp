@@ -19,29 +19,30 @@
   }
 }
 
+// body.sync {
+//   @media (prefers-color-scheme: dark) {
+//     div.status {
+//       background-color: #2B384B;
+//     }
+
+//     .state-loading {
+//       background-color: #2B384B;
+
+//       &::before {
+//         background: #c9c9c917;
+//       }
+//     }
+//   }
+// }
+
+body.dark,
 body.sync {
-  @media (prefers-color-scheme: dark) {
-    div.status {
-      background-color: #2B384B;
-    }
-
-    .state-loading {
-      background-color: #2B384B;
-
-      &::before {
-        background: #c9c9c917;
-      }
-    }
-  }
-}
-
-body.dark {
   div.status {
-    background-color: #2B384B;
+    background-color: #2b384b;
   }
 
   .state-loading {
-    background-color: #2B384B;
+    background-color: #2b384b;
 
     &::before {
       background: #c9c9c917;

@@ -24,6 +24,7 @@ import { HISTORY_CURRENCIES_URL } from "@/config/global/history-currencies-url";
 import { HISTORY_PROTOCOLS_URL } from "@/config/global/history-protocols-url";
 
 import { idbPut } from "@/push/database";
+import { setCookie } from "./cookieUtils";
 
 export class AppUtils {
   public static LANGUAGE = "language";
@@ -92,6 +93,7 @@ export class AppUtils {
 
   public static setLang(lang: string) {
     localStorage.setItem(this.LANGUAGE, lang);
+    setCookie(this.LANGUAGE, lang);
     this.setLangDb(lang);
   }
 

@@ -26,6 +26,7 @@
     </template>
     <template #content>
       <!-- <AvatarSettings /> -->
+
       <ThemeSettings />
     </template>
   </Popover>

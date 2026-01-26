@@ -2,7 +2,7 @@ import type { IObjectKeys } from "@/common/types";
 import { type Coin, parseCoins } from "@cosmjs/proto-signing";
 
 import { Messages } from "./types";
-import { AppUtils, AssetUtils, Logger, StringUtils } from "@/common/utils";
+import { AppUtils, AssetUtils, EtlApi, Logger, StringUtils } from "@/common/utils";
 import { Contracts, NATIVE_NETWORK, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { Buffer } from "buffer";
 import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
@@ -283,8 +283,9 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         if (data.burn) {
           const protocol = AssetUtils.getProtocolByContract(msg.data.contract);
           const lpn = AssetUtils.getLpnByProtocol(protocol);
+          const widthraw = await EtlApi.fetchLpWithdraw(msg.tx_hash);
           const token = CurrencyUtils.convertMinimalDenomToDenom(
-            data.burn.amount?.amount ?? 0,
+            widthraw.LP_amnt_asset ?? 0,
             lpn.ibcData!,
             lpn.shortName!,
             Number(lpn.decimal_digits)

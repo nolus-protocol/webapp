@@ -7,7 +7,8 @@
         amount: suppliedFunds,
         type: CURRENCY_VIEW_TYPES.CURRENCY,
         denom: NATIVE_CURRENCY.symbol,
-        decimals: 0
+        decimals: 0,
+        fontSize: isMobile() ? 20 : 32
       }"
     />
     <Table
@@ -31,7 +32,7 @@ import ChartUtilizaiton from "./ChartUtilizaiton.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 
 import { Table, type TableColumnProps, TableRow, type TableRowItemProps, Widget } from "web-components";
-import { AppUtils, EnvNetworkUtils, EtlApi, Logger } from "@/common/utils";
+import { AppUtils, EnvNetworkUtils, EtlApi, isMobile, Logger } from "@/common/utils";
 
 import { computed, h, ref, watch } from "vue";
 import { useApplicationStore } from "@/common/stores/application";

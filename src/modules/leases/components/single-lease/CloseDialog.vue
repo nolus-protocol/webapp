@@ -3,7 +3,7 @@
     ref="dialog"
     :title="$t(`message.close`)"
     showClose
-    :disable-close="true"
+    :disable-close="false"
     @close-dialog="
       () => {
         const path =

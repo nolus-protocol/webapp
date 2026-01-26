@@ -1,21 +1,22 @@
 import { getBytes, hashMessage, hexlify, SigningKey, type Eip1193Provider, toUtf8Bytes } from "ethers";
 import { PubKey as PubKeyProto } from "cosmjs-types/cosmos/crypto/secp256k1/keys";
 import { ripemd160, sha256 } from "@cosmjs/crypto";
-import { encode as encodeBnch32, toWords } from "bech32";
+import { bech32 } from "bech32";
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 import { toBase64 } from "@cosmjs/encoding";
 
 import { AuthInfo, TxBody, type SignDoc as ProtoSignDoc } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import type { Wallet } from "../wallet";
-import { AppUtils, EnvNetworkUtils } from "@/common/utils";
+import { AppUtils, EnvNetworkUtils, WalletManager } from "@/common/utils";
 import { KeplrEmbedChainInfo } from "@/config/global";
 import type { AccountData, DirectSignResponse, OfflineDirectSigner, Algo } from "@cosmjs/proto-signing";
 import type { ChainInfo } from "@keplr-wallet/types";
-import { anyToLegacy, reorderCoinsDeep } from "./utilities";
+import { anyToLegacy, reorderCoinsDeep } from "../utilities";
 import { ensureEip191AuthInfoBytes, personalSignJSON } from "./sign";
 import { WalletTypes } from "../types";
-import type { API, NetworkData } from "@/common/types";
+import { WalletConnectMechanism, type API, type NetworkData } from "@/common/types";
 import { StargateClient } from "@cosmjs/stargate";
+import type { Window as MetamaskWindow } from "../metamask/window";
 
 export class MetaMaskWallet implements Wallet {
   address!: string;
@@ -27,6 +28,22 @@ export class MetaMaskWallet implements Wallet {
   chainId: string;
 
   constructor() {}
+
+  private getProvider(provider?: string) {
+    const p = WalletManager.getWalletConnectMechanism() ?? provider;
+    switch (p) {
+      case WalletConnectMechanism.EVM_PHANTOM: {
+        return (window as MetamaskWindow)?.phantom?.ethereum;
+      }
+      default: {
+        const p0 = (window as MetamaskWindow)?.ethereum?.providers?.pop?.();
+        if (p0) {
+          return p0;
+        }
+        return (window as MetamaskWindow)?.ethereum;
+      }
+    }
+  }
 
   async getChainId() {
     return this.chainId;
@@ -44,7 +61,7 @@ export class MetaMaskWallet implements Wallet {
     return data;
   }
 
-  async connect() {
+  async connect(provider: string) {
     const networkConfig = await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
     NolusClient.setInstance(networkConfig.rpc);
     const chainId = await NolusClient.getInstance().getChainId();
@@ -54,14 +71,14 @@ export class MetaMaskWallet implements Wallet {
       networkConfig.rpc as string,
       networkConfig.api as string
     );
-    const data = await this.getWallet(chainInfo);
+    const data = await this.getWallet(chainInfo, provider);
     this.address = data.bech32Addr;
     this.chainId = chainId;
     return data;
   }
 
-  private async getWallet(chainInfo: ChainInfo) {
-    const ethereum = (window as any).ethereum as Eip1193Provider;
+  private async getWallet(chainInfo: ChainInfo, provider?: string) {
+    const ethereum = this.getProvider(provider) as Eip1193Provider;
 
     await ethereum.request({ method: "eth_requestAccounts" });
     const ethAddress = (await ethereum.request({ method: "eth_accounts" }))[0];
@@ -86,8 +103,7 @@ export class MetaMaskWallet implements Wallet {
 
     const sha = sha256(compressed);
     const rip = ripemd160(sha);
-    const bech32Addr = encodeBnch32(chainInfo.bech32Config.bech32PrefixAccAddr, toWords(rip));
-
+    const bech32Addr = bech32.encode(chainInfo.bech32Config.bech32PrefixAccAddr, bech32.toWords(rip));
     this.pubKey = compressed;
     this.address = bech32Addr;
     this.ethAddress = ethAddress;
@@ -99,7 +115,7 @@ export class MetaMaskWallet implements Wallet {
     const pubkey = this.pubKey;
     const algo = this.algo;
     const ethAddress = this.ethAddress;
-    const ethereum = (window as any).ethereum as Eip1193Provider;
+    const ethereum = this.getProvider() as Eip1193Provider;
     const chainId = this.chainId;
 
     return {

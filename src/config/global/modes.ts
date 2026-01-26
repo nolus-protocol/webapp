@@ -5,9 +5,9 @@ export enum Mode {
 }
 
 export const isDev = () => {
-  return import.meta.env.VITE_MODE == Mode.dev || import.meta.env.VITE_MODE == Mode.serve;
+  return import.meta.env.VITE_MODE == Mode.dev || import.meta.env.VITE_MODE == Mode.serve || import.meta.env.SSR;
 };
 
 export const isServe = () => {
-  return import.meta.env.VITE_MODE == Mode.serve;
+  return import.meta.env.VITE_MODE == Mode.serve || import.meta.env.SSR;
 };

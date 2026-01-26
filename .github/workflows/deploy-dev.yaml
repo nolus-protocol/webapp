@@ -18,11 +18,23 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Build
+      - name: Build SSR
         run: |
           npm install
           npm run build
 
+      - name: Prepare deployment bundle
+        run: |
+          mkdir -p deploy-bundle
+          cp -r dist/ deploy-bundle/
+          cp -r server/ deploy-bundle/
+          cp package.json deploy-bundle/
+          cd deploy-bundle && npm install --production --ignore-scripts
+
       - name: Deploy via rclone
         run: |
-          rclone sync dist/ :sftp,host=10.133.133.11,user=deploy,key_file=~/.ssh/id_ed25519:/opt/deploy/builds/app-dev/ --verbose
+          rclone sync deploy-bundle/ :sftp,host=10.133.133.11,user=deploy,key_file=~/.ssh/id_ed25519:/opt/deploy/builds/app-dev/ --verbose
+
+      - name: Restart SSR server
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no deploy@10.133.133.11 "sudo systemctl restart webapp-dev"
