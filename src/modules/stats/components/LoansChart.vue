@@ -36,11 +36,17 @@ async function setStats() {
   loans.value = items
     .map((item) => {
       const [key, protocol] = item.asset.split(" ");
-      const currency = AssetUtils.getCurrencyByTicker(key);
+      let shortName = key;
+      try {
+        const currency = AssetUtils.getCurrencyByTicker(key);
+        shortName = currency?.shortName ?? key;
+      } catch {
+        // Currency not found in registry, use ticker as-is
+      }
 
       const loan = (Number(item.loan) / total) * 100;
       return {
-        ticker: `${currency?.shortName ?? key}${protocol ? ` ${protocol}` : ""}`,
+        ticker: `${shortName}${protocol ? ` ${protocol}` : ""}`,
         percentage: loan,
         loan: item.loan
       };
