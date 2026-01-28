@@ -32,12 +32,12 @@ import ChartUtilizaiton from "./ChartUtilizaiton.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 
 import { Table, type TableColumnProps, TableRow, type TableRowItemProps, Widget } from "web-components";
-import { AppUtils, EnvNetworkUtils, EtlApi, isMobile, Logger } from "@/common/utils";
+import { AppUtils, EtlApi, isMobile, Logger } from "@/common/utils";
 
 import { computed, h, ref, watch } from "vue";
 import { useApplicationStore } from "@/common/stores/application";
 import { useI18n } from "vue-i18n";
-import { NATIVE_CURRENCY, PERCENT, PERMILLE } from "@/config/global";
+import { NATIVE_CURRENCY } from "@/config/global";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 
 const osmoUsdc =
@@ -56,9 +56,6 @@ const osmosisAtom =
   "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/osmosis-atom.svg";
 
 import type { UtilizationProps } from "../types";
-import { NolusClient } from "@nolus/nolusjs";
-import { Lpp } from "@nolus/nolusjs/build/contracts";
-import { useAdminStore } from "@/common/stores/admin";
 
 const i18n = useI18n();
 
@@ -287,7 +284,6 @@ const depositAtom = ref("");
 const suppliedFunds = ref("0");
 
 const app = useApplicationStore();
-const admin = useAdminStore();
 
 watch(
   () => app.init,
@@ -303,13 +299,7 @@ watch(
 
 async function onInit() {
   await Promise.all([
-    setUtilizationNeutron(),
-    setUtilizationOsmosis(),
-    // setUtilizationOsmosisStAtom(),
-    setUtilizationOsmosisAllBtc(),
-    setUtilizationOsmosisAllSol(),
-    setUtilizationOsmosisAkt(),
-    setUtilizationOsmosisAtom(),
+    fetchPoolsData(),
     setSuppliedFunds()
   ]).catch((e) => Logger.error(e));
 }
@@ -319,81 +309,54 @@ async function setSuppliedFunds() {
   suppliedFunds.value = data.amount;
 }
 
-async function setUtilizationNeutron() {
-  const [data, capacity] = await Promise.all([
-    fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().neutron_noble}`),
-    getDepositCapacityMsg(AppUtils.getProtocols().neutron_noble)
-  ]);
-  const item = await data.json();
-  depositNeutron.value = capacity;
-  utilizationLevelNeutron.value = Number(item[0]).toFixed(2);
-}
+async function fetchPoolsData() {
+  const response = await fetch(`${EtlApi.getApiUrl()}/pools`);
+  const data = await response.json();
 
-async function setUtilizationOsmosis() {
-  const [data, capacity] = await Promise.all([
-    fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_noble}`),
-    getDepositCapacityMsg(AppUtils.getProtocols().osmosis_noble)
-  ]);
-  const item = await data.json();
-  depositOsmosis.value = capacity;
-  utilizationLevelOsmosis.value = Number(item[0]).toFixed(2);
-}
+  // Create a map for easy lookup by protocol name
+  const poolsMap: { [key: string]: { utilization: string; deposit_suspension: string } } = {};
+  for (const pool of data.protocols) {
+    poolsMap[pool.protocol] = {
+      utilization: pool.utilization,
+      deposit_suspension: pool.deposit_suspension
+    };
+  }
 
-// async function setUtilizationOsmosisStAtom() {
-//   const [data, capacity] = await Promise.all([
-//     fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_osmosis_st_atom}`),
-//     getDepositCapacityMsg(AppUtils.getProtocols().osmosis_osmosis_st_atom)
-//   ]);
-//   const item = await data.json();
-//   depositStAtom.value = capacity;
-//   utilizationLevelOsmosisStAtom.value = Number(item[0]).toFixed(2);
-// }
+  // Set utilization and deposit suspension for each protocol
+  const neutron = poolsMap[AppUtils.getProtocols().neutron_noble];
+  if (neutron) {
+    utilizationLevelNeutron.value = Number(neutron.utilization).toFixed(2);
+    depositNeutron.value = neutron.deposit_suspension;
+  }
 
-async function setUtilizationOsmosisAllBtc() {
-  const [data, capacity] = await Promise.all([
-    fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_osmosis_all_btc}`),
-    getDepositCapacityMsg(AppUtils.getProtocols().osmosis_osmosis_all_btc)
-  ]);
-  const item = await data.json();
-  depositAllBtc.value = capacity;
-  utilizationLevelOsmosisAllBtc.value = Number(item[0]).toFixed(2);
-}
+  const osmosis = poolsMap[AppUtils.getProtocols().osmosis_noble];
+  if (osmosis) {
+    utilizationLevelOsmosis.value = Number(osmosis.utilization).toFixed(2);
+    depositOsmosis.value = osmosis.deposit_suspension;
+  }
 
-async function setUtilizationOsmosisAllSol() {
-  const [data, capacity] = await Promise.all([
-    fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_osmosis_all_sol}`),
-    getDepositCapacityMsg(AppUtils.getProtocols().osmosis_osmosis_all_sol)
-  ]);
-  const item = await data.json();
-  depositAllSol.value = capacity;
-  utilizationLevelOsmosisAllSol.value = Number(item[0]).toFixed(2);
-}
+  const allBtc = poolsMap[AppUtils.getProtocols().osmosis_osmosis_all_btc];
+  if (allBtc) {
+    utilizationLevelOsmosisAllBtc.value = Number(allBtc.utilization).toFixed(2);
+    depositAllBtc.value = allBtc.deposit_suspension;
+  }
 
-async function setUtilizationOsmosisAkt() {
-  const [data, capacity] = await Promise.all([
-    fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_osmosis_akt}`),
-    getDepositCapacityMsg(AppUtils.getProtocols().osmosis_osmosis_akt)
-  ]);
-  const item = await data.json();
-  depositAkt.value = capacity;
-  utilizationLevelOsmosisAkt.value = Number(item[0]).toFixed(2);
-}
+  const allSol = poolsMap[AppUtils.getProtocols().osmosis_osmosis_all_sol];
+  if (allSol) {
+    utilizationLevelOsmosisAllSol.value = Number(allSol.utilization).toFixed(2);
+    depositAllSol.value = allSol.deposit_suspension;
+  }
 
-async function setUtilizationOsmosisAtom() {
-  const [data, capacity] = await Promise.all([
-    fetch(`${EtlApi.getApiUrl()}/utilization-level?protocol=${AppUtils.getProtocols().osmosis_osmosis_atom}`),
-    getDepositCapacityMsg(AppUtils.getProtocols().osmosis_osmosis_atom)
-  ]);
-  const item = await data.json();
-  depositAtom.value = capacity;
-  utilizationLevelOsmosisAtom.value = Number(item[0]).toFixed(2);
-}
+  const akt = poolsMap[AppUtils.getProtocols().osmosis_osmosis_akt];
+  if (akt) {
+    utilizationLevelOsmosisAkt.value = Number(akt.utilization).toFixed(2);
+    depositAkt.value = akt.deposit_suspension;
+  }
 
-async function getDepositCapacityMsg(protocol: string) {
-  const client = await NolusClient.getInstance().getCosmWasmClient();
-  const lppClient = new Lpp(client, admin.protocols[EnvNetworkUtils.getStoredNetworkName()]![protocol].lpp);
-  const data = await lppClient.getLppConfig();
-  const percent = (data.min_utilization / PERMILLE) * PERCENT;
-  return `${percent}`;
+  const atom = poolsMap[AppUtils.getProtocols().osmosis_osmosis_atom];
+  if (atom) {
+    utilizationLevelOsmosisAtom.value = Number(atom.utilization).toFixed(2);
+    depositAtom.value = atom.deposit_suspension;
+  }
 }
 </script>
