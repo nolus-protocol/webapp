@@ -18,6 +18,8 @@ function parseCookies(cookieHeader = "") {
   return out;
 }
 
+const PORT = process.env.PORT || 5050;
+
 if (cluster.isPrimary) {
   const numCPUs = os.cpus().length;
 
@@ -38,8 +40,8 @@ if (cluster.isPrimary) {
   const base = "/";
   const httpServer = createServer(server);
 
-  httpServer.listen(5050, () => {
-    console.log(`Process: ${process.pid} listening on port 5050`);
+  httpServer.listen(PORT, () => {
+    console.log(`Process: ${process.pid} listening on port ${PORT}`);
   });
 
   async function initServer() {
