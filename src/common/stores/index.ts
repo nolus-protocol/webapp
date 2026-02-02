@@ -12,7 +12,7 @@ export { useStakingStore } from "./staking";
 export { useEarnStore } from "./earn";
 export { useCampaignsStore } from "./campaigns";
 export { useReferralsStore } from "./referrals";
+export { useHistoryStore } from "./history";
 
-// Application stores
-export { useApplicationStore, ApplicationActions } from "./application";
+// Wallet store (connection and vesting only)
 export { useWalletStore, WalletActions } from "./wallet";

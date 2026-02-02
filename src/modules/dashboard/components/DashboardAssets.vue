@@ -78,6 +78,7 @@ import BigNumber from "@/common/components/BigNumber.vue";
 import { AssetsDialog } from "@/modules/assets/enums";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/common/stores/wallet";
+import { useBalancesStore } from "@/common/stores/balances";
 import { usePricesStore } from "@/common/stores/prices";
 import { computed, ref, watch } from "vue";
 import { Coin, Dec } from "@keplr-wallet/unit";
@@ -86,13 +87,16 @@ import { isMobile, Logger, WalletManager } from "@/common/utils";
 import { getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_CURRENCY, ProtocolsConfig } from "@/config/global";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
+import { useEarnStore } from "@/common/stores/earn";
 import { useRouter } from "vue-router";
 
 const i18n = useI18n();
 const wallet = useWalletStore();
+const balancesStore = useBalancesStore();
 const pricesStore = usePricesStore();
-const app = useApplicationStore();
+const configStore = useConfigStore();
+const earnStore = useEarnStore();
 const router = useRouter();
 const total = ref(new Dec(0));
 const hide = ref(WalletManager.getHideBalances());
@@ -111,7 +115,7 @@ const columns = computed<TableColumnProps[]>(() => [
 ]);
 
 const filteredAssets = computed(() => {
-  const balances = wallet.currencies;
+  const balances = balancesStore.filteredBalances;
   return balances
     .sort((a, b) => {
       const aAssetBalance = CurrencyUtils.calculateBalance(
@@ -132,7 +136,7 @@ const filteredAssets = computed(() => {
 });
 
 watch(
-  () => [wallet.wallet, pricesStore.prices, wallet.balances],
+  () => [wallet.wallet, pricesStore.prices, balancesStore.balances],
   async () => {
     try {
       setAvailableAssets();
@@ -147,7 +151,7 @@ watch(
 
 function setAvailableAssets() {
   let totalAssets = new Dec(0);
-  wallet.currencies.forEach((asset) => {
+  balancesStore.filteredBalances.forEach((asset) => {
     const currency = getCurrencyByDenom(asset.balance.denom);
     const assetBalance = CurrencyUtils.calculateBalance(
       pricesStore.prices[asset.key]?.price ?? "0",
@@ -166,18 +170,18 @@ function isEarn(denom: string) {
     return false;
   }
 
-  const lpns = (app.lpn ?? []).map((item) => item.ticker);
+  const lpns = (configStore.lpn ?? []).map((item) => item.ticker);
   return lpns.includes(curency.ticker);
 }
 
 function getApr(key: string) {
   let [ticker] = key.split("@");
-  let asset = (app.lpn ?? []).find((item) => item.key == key);
+  let asset = (configStore.lpn ?? []).find((item) => item.key == key);
   if (!asset) {
-    asset = (app.lpn ?? []).find((item) => item.ticker == ticker);
+    asset = (configStore.lpn ?? []).find((item) => item.ticker == ticker);
   }
   const [_, protocol] = asset?.key.split("@") ?? [];
-  return formatNumber(app.apr?.[protocol] ?? 0, 2);
+  return formatNumber(earnStore.getProtocolApr(protocol) ?? 0, 2);
 }
 
 function apr(denom: string, key: string) {
@@ -185,7 +189,7 @@ function apr(denom: string, key: string) {
     return `${getApr(key)}%`;
   }
 
-  if (app.native?.ibcData == denom) {
+  if (configStore.native?.ibcData == denom) {
     return `${formatNumber(wallet.apr, 2)}%`;
   }
 }

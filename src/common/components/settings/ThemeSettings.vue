@@ -52,9 +52,9 @@ import { usePricesStore } from "@/common/stores/prices";
 
 import { setLang } from "@/i18n";
 import { APPEARANCE, languages } from "@/config/global";
-import { ThemeManager } from "@/common/utils";
+import { ThemeManager, setTheme as setThemeUtil, getTheme } from "@/common/utils/ThemeManager";
 import { getLanguage, setLanguage as setLangUtil } from "@/common/utils/LanguageUtils";
-import { ApplicationActions, useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 import { useRouter } from "vue-router";
 import { Contracts } from "@/config/global";
 
@@ -65,7 +65,7 @@ import SyncIcon from "@/assets/icons/theme/sync.svg";
 const i18n = useI18n();
 const lang = getLanguage();
 const themeData = ThemeManager.getThemeData();
-const application = useApplicationStore();
+const configStore = useConfigStore();
 const pricesStore = usePricesStore();
 const router = useRouter();
 
@@ -116,18 +116,11 @@ const appearance = ref(
 
 function onUpdateTheme(theme: string) {
   ThemeManager.saveThemeData(theme);
-  application[ApplicationActions.SET_THEME](theme);
+  selectedAppearance.value = {
+    label: i18n.t(`message.${theme}`),
+    value: theme
+  };
 }
-
-watch(
-  () => application.theme,
-  (value) => {
-    selectedAppearance.value = {
-      label: i18n.t(`message.${value}`),
-      value: `${value}`
-    };
-  }
-);
 
 async function setLanguage(item: DropdownOption) {
   setLangUtil(`${item.value}`);
@@ -148,7 +141,7 @@ async function setLanguage(item: DropdownOption) {
 }
 
 async function onSelect(item: { value: string; label: string; icon: string }) {
-  application.setProtcolFilter(item.value);
+  configStore.setProtocolFilter(item.value);
   await pricesStore.fetchPrices();
   router.push("/");
 }

@@ -260,10 +260,9 @@ import { AdvancedFormControl, Button, Dialog, Tooltip, Slider, SvgIcon, ToastTyp
 import { RouteNames } from "@/router";
 
 import { useWalletStore } from "@/common/stores/wallet";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
-import { useConfigStore } from "@/common/stores/config";
 import { getMicroAmount, LeaseUtils, Logger, walletOperation } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol, getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
@@ -286,9 +285,8 @@ const route = useRoute();
 const router = useRouter();
 const pricesStore = usePricesStore();
 const walletStore = useWalletStore();
-const app = useApplicationStore();
-const leasesStore = useLeasesStore();
 const configStore = useConfigStore();
+const leasesStore = useLeasesStore();
 const i18n = useI18n();
 
 const amount = ref("");
@@ -343,7 +341,7 @@ const assets = computed(() => {
 
   if (lease.value && lease.value.status === "opened") {
     const ticker = lease.value.amount.ticker;
-    const asset = app.currenciesData![`${ticker}@${lease.value.protocol}`];
+    const asset = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
     const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
 
     data.push({
@@ -429,7 +427,7 @@ const debtData = computed(() => {
   const d = debt?.repayment;
   if (price && d && lease.value) {
     const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
-    const currecy = app.currenciesData![`${ticker}@${lease.value.protocol}`];
+    const currecy = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
     switch (ProtocolsConfig[lease.value.protocol].type) {
       case PositionTypes.short: {
         const asset = d.quo(price);
@@ -498,7 +496,7 @@ const lpn = computed(() => {
   const [_key, protocol] = currency.value.key.split("@");
   const lpnData = getLpnByProtocol(protocol);
 
-  for (const lpn of app.lpn ?? []) {
+  for (const lpn of configStore.lpn ?? []) {
     const [_, p] = lpn.key.split("@");
     if (p == protocol) {
       return lpn.shortName;
@@ -510,7 +508,7 @@ const lpn = computed(() => {
 const payout = computed(() => {
   if (!lease.value || lease.value.status !== "opened") return "0.00";
   const ticker = lease.value.amount.ticker;
-  const currencyData = app.currenciesData![`${ticker}@${lease.value.protocol}`];
+  const currencyData = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
   const price = new Dec(pricesStore.prices[currencyData!.key as string]?.price ?? 0);
   const value = new Dec(amount.value.length == 0 ? 0 : amount.value).mul(price);
 
@@ -539,7 +537,7 @@ const positionLeft = computed(() => {
   if (!lease.value || lease.value.status !== "opened") return "0.00";
 
   const ticker = lease.value.amount.ticker;
-  const currencyData = app.currenciesData![`${ticker}@${lease.value.protocol}`];
+  const currencyData = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
   const a = new Dec(lease.value.amount.amount, Number(currencyData!.decimal_digits));
   const value = new Dec(amount.value.length == 0 ? 0 : amount.value);
   const left = a.sub(value);
@@ -632,7 +630,7 @@ async function setSwapFee() {
     switch (ProtocolsConfig[lease.value?.protocol!].type) {
       case PositionTypes.short: {
         const stable = ProtocolsConfig[lease.value!.protocol].stable;
-        const currecy = app.currenciesData![`${stable}@${lease.value!.protocol}`];
+        const currecy = configStore.currenciesData![`${stable}@${lease.value!.protocol}`];
         microAmount = CurrencyUtils.convertDenomToMinimalDenom(
           debt.value!.amount.toDec().toString(),
           currecy.ibcData,
@@ -668,7 +666,7 @@ function isAmountValid() {
   amountErrorMsg.value = "";
   if (lease.value && lease.value.status === "opened") {
     const a = amount.value;
-    const currencyData = app.currenciesData![`${lease.value.amount.ticker}@${lease.value.protocol}`];
+    const currencyData = configStore.currenciesData![`${lease.value.amount.ticker}@${lease.value.protocol}`];
     const debtAmount = new Dec(lease.value.amount.amount, Number(currencyData.decimal_digits));
     const minAssetTicker = config.value?.config.lease_position_spec.min_asset.ticker as string;
     const minAmountCurrency = getCurrencyByTicker(minAssetTicker)!;
@@ -740,7 +738,7 @@ function getRepayment(p: number) {
 
   const amount = outStandingDebt();
   const ticker = lease.value.debt.ticker;
-  const c = app.currenciesData![`${ticker}@${lease.value.protocol}`];
+  const c = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
 
   const amountToRepay = CurrencyUtils.convertMinimalDenomToDenom(
     amount.toString(),

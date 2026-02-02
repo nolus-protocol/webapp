@@ -1,11 +1,9 @@
-import { available } from "./available";
-import { currencies } from "./currencies";
-import { history } from "./history";
+import { history, historyItems, activities } from "./history";
 import { vestTokens } from "./vestTokens";
 
 export const getters = {
-  available,
   vestTokens,
-  currencies,
-  historyItems: history
+  history,
+  historyItems,
+  activities
 };

@@ -190,7 +190,8 @@ import { tabs } from "../types";
 
 import LongLeaseDetails from "@/modules/leases/components/new-lease/LongLeaseDetails.vue";
 import { useWalletStore } from "@/common/stores/wallet";
-import { useApplicationStore } from "@/common/stores/application";
+import { useBalancesStore } from "@/common/stores/balances";
+import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { getMicroAmount, Logger, walletOperation } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
@@ -216,15 +217,14 @@ import { Dec, Int } from "@keplr-wallet/unit";
 import { h } from "vue";
 import { useI18n } from "vue-i18n";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
-import { useConfigStore } from "@/common/stores/config";
 import { Leaser, type LeaseApply } from "@nolus/nolusjs/build/contracts";
 import { useRouter } from "vue-router";
 
 const activeTabIdx = 0;
 const walletStore = useWalletStore();
-const app = useApplicationStore();
-const pricesStore = usePricesStore();
+const balancesStore = useBalancesStore();
 const configStore = useConfigStore();
+const pricesStore = usePricesStore();
 const i18n = useI18n();
 const router = useRouter();
 const showDetails = ref(false);
@@ -244,9 +244,9 @@ const ltd = ref((MAX_POSITION / PERCENT) * PERMILLE);
 const leaseApply = ref<LeaseApply | null>();
 
 watch(
-  () => app.init,
+  () => configStore.initialized,
   () => {
-    if (app.init) {
+    if (configStore.initialized) {
       onInit();
     }
   },
@@ -281,9 +281,9 @@ const totalBalances = computed(() => {
   for (const protocol in ProtocolsConfig) {
     if (ProtocolsConfig[protocol].type == PositionTypes.long) {
       for (const c of ProtocolsConfig[protocol].currencies) {
-        const item = app.currenciesData?.[`${c}@${protocol}`];
-        let balance = walletStore.balances.find((c) => c.balance.denom == item?.ibcData);
-        currencies.push({ ...item, balance: balance?.balance } as ExternalCurrency);
+        const item = configStore.currenciesData?.[`${c}@${protocol}`];
+        let balance = balancesStore.balances.find((c) => c.denom == item?.ibcData);
+        currencies.push({ ...item, balance: balance } as ExternalCurrency);
       }
     }
   }
@@ -291,12 +291,12 @@ const totalBalances = computed(() => {
 });
 
 const isShortEnabled = computed(() => {
-  const protocols = Contracts.protocolsFilter[app.protocolFilter];
+  const protocols = Contracts.protocolsFilter[configStore.protocolFilter];
   return protocols.short;
 });
 
 const isProtocolDisabled = computed(() => {
-  const protocols = Contracts.protocolsFilter[app.protocolFilter];
+  const protocols = Contracts.protocolsFilter[configStore.protocolFilter];
   return protocols.disabled;
 });
 
@@ -306,7 +306,7 @@ const currency = computed(() => {
 
 const assets = computed(() => {
   const data = [];
-  const protocols = Contracts.protocolsFilter[app.protocolFilter];
+  const protocols = Contracts.protocolsFilter[configStore.protocolFilter];
   const b = ((balances.value as ExternalCurrency[]) ?? []).filter((item) => {
     const [_, p] = item.key.split("@");
 
@@ -360,7 +360,7 @@ const coinList = computed(() => {
         return false;
       }
 
-      if (!app.lease?.[protocol].includes(ticker)) {
+      if (!configStore.lease?.[protocol].includes(ticker)) {
         return false;
       }
 
@@ -368,7 +368,7 @@ const coinList = computed(() => {
         return false;
       }
 
-      return app.leasesCurrencies.includes(ticker);
+      return configStore.leaseCurrencies.includes(ticker);
     })
     .map((item) => {
       return {
@@ -421,8 +421,8 @@ const balances = computed(() => {
       return false;
     }
 
-    const lpns = ((app.lpn ?? []) as ExternalCurrency[]).map((item) => item.key as string);
-    return lpns.includes(item.key as string) || app.leasesCurrencies.includes(cticker);
+    const lpns = ((configStore.lpn ?? []) as ExternalCurrency[]).map((item) => item.key as string);
+    return lpns.includes(item.key as string) || configStore.leaseCurrencies.includes(cticker);
   });
 });
 

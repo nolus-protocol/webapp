@@ -181,7 +181,7 @@ import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { MAX_DECIMALS, MONTHS, NATIVE_CURRENCY, PERCENT, ProtocolsConfig } from "@/config/global";
 import { usePricesStore } from "@/common/stores/prices";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 import { LeaseUtils } from "@/common/utils";
 import { getCurrencyByTicker, getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { getFreeInterest } from "@/common/utils/LeaseConfigService";
@@ -199,7 +199,7 @@ const props = defineProps<{
   downpaymentCurrency: string;
 }>();
 const pricesStore = usePricesStore();
-const app = useApplicationStore();
+const configStore = useConfigStore();
 const showDetails = ref(false);
 const swapFee = ref(0);
 const swapStableFee = ref(0);
@@ -258,12 +258,12 @@ const totalLoan = computed(() => {
 
 const assetLoan = computed(() => {
   const [t, p] = asset.value?.key?.split("@") ?? [];
-  const currency = app.currenciesData?.[`${ProtocolsConfig[p]?.stable}@${p}`];
+  const currency = configStore.currenciesData?.[`${ProtocolsConfig[p]?.stable}@${p}`];
   return currency;
 });
 
 const asset = computed(() => {
-  const currency = app.currenciesData?.[props.loanCurrency];
+  const currency = configStore.currenciesData?.[props.loanCurrency];
   return currency;
 });
 
@@ -274,12 +274,12 @@ const lpn = computed(() => {
 });
 
 const downPaymentAsset = computed(() => {
-  const currency = app.currenciesData?.[props.downpaymentCurrency];
+  const currency = configStore.currenciesData?.[props.downpaymentCurrency];
   return currency;
 });
 
 const loanAsset = computed(() => {
-  const currency = app.currenciesData![props.loanCurrency];
+  const currency = configStore.currenciesData![props.loanCurrency];
   return currency;
 });
 

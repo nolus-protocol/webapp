@@ -236,6 +236,10 @@ export class BackendApiClient {
   // Currencies & Prices
   // =========================================================================
 
+  async getCurrencies(): Promise<import("./types").CurrenciesResponse> {
+    return this.request<import("./types").CurrenciesResponse>("GET", "/api/currencies");
+  }
+
   async getPrices(): Promise<PriceData> {
     const response = await this.request<PricesResponse>("GET", "/api/prices");
     const priceData: PriceData = {};

@@ -19,7 +19,8 @@ import { NATIVE_CURRENCY, PERCENT } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { computed, ref, watch } from "vue";
 import { Dec, Int } from "@keplr-wallet/unit";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
+import { useEarnStore } from "@/common/stores/earn";
 
 type ChartData = { amount: number; date: number };
 
@@ -36,12 +37,13 @@ const marginTop = 50;
 
 const i18n = useI18n();
 const wallet = useWalletStore();
-const app = useApplicationStore();
+const configStore = useConfigStore();
+const earnStore = useEarnStore();
 const chart = ref<typeof Chart>();
 const props = defineProps<{ amount: Dec; currencyKey: string }>();
 
 const currency = computed(() => {
-  return app.currenciesData![props.currencyKey];
+  return configStore.currenciesData![props.currencyKey];
 });
 
 watch(
@@ -162,6 +164,6 @@ async function loadData() {
 
 function getApr(key: string) {
   let [_, protocol] = key.split("@");
-  return (app.apr?.[protocol] ?? 0) / PERCENT;
+  return earnStore.getProtocolApr(protocol) / PERCENT;
 }
 </script>

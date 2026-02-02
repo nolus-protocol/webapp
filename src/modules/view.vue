@@ -24,7 +24,8 @@
 import { onUnmounted, ref, watch } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
 import { usePricesStore } from "@/common/stores/prices";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
+import { useEarnStore } from "@/common/stores/earn";
 import { UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL } from "@/config/global";
 import { IntercomService, Logger, WalletManager, walletOperation } from "@/common/utils";
 
@@ -38,14 +39,15 @@ let sessionTimeOut: NodeJS.Timeout | undefined;
 
 const wallet = useWalletStore();
 const pricesStore = usePricesStore();
-const app = useApplicationStore();
+const configStore = useConfigStore();
+const earnStore = useEarnStore();
 
 const showErrorDialog = ref(false);
 const errorMessage = ref("");
 const mobileMenu = ref<typeof MobileMenu | null>(null);
 
 watch(
-  () => app.init,
+  () => configStore.initialized,
   () => {
     walletOperation(() => {});
     window.addEventListener("keplr_keystorechange", updateKeplr);
@@ -89,7 +91,7 @@ async function updateLeap() {
 
 async function loadNetwork() {
   try {
-    await Promise.all([wallet.LOAD_APR(), app.LOAD_APR_REWARDS(), checkBalances(), checkPrices()]);
+    await Promise.all([wallet.LOAD_APR(), earnStore.fetchPools(), checkBalances(), checkPrices()]);
   } catch (error: Error | any) {
     Logger.error(error);
     showErrorDialog.value = true;

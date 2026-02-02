@@ -38,11 +38,9 @@
 
 <script lang="ts" setup>
 import { RouterView } from "vue-router";
-import { onMounted, provide, ref, watch } from "vue";
+import { onMounted, provide, ref } from "vue";
 import { Toast, ToastType } from "web-components";
 
-import { useApplicationStore } from "@/common/stores/application";
-import { APPEARANCE } from "./config/global";
 import { initWorker } from "./push/lib";
 import { useWalletStore } from "./common/stores/wallet";
 import { getCookie, setCookie } from "./common/utils/cookieUtils";
@@ -65,11 +63,10 @@ onMounted(() => {
 
   const theme_data = getCookie(ThemeManager.THEME_DATA);
   if (!theme_data) {
-    setCookie(ThemeManager.THEME_DATA, application.theme);
+    setCookie(ThemeManager.THEME_DATA, ThemeManager.getThemeData());
   }
 });
 
-const application = useApplicationStore();
 const toast = ref({
   show: false,
   type: ToastType.success,
@@ -87,27 +84,6 @@ function onShowToast({ type, message }: { type: ToastType; message: string }) {
     toast.value.show = false;
   }, 4000);
 }
-
-watch(
-  () => application.theme,
-  () => {
-    if (application.theme) {
-      const themes = Object.keys(APPEARANCE);
-      document.body.classList.forEach((item) => {
-        if (themes.includes(item)) {
-          document.body.classList.remove(item);
-        }
-      });
-      document.documentElement.classList.forEach((item) => {
-        if (themes.includes(item)) {
-          document.documentElement.classList.remove(item);
-        }
-      });
-      document.body.classList.add(application.theme);
-      document.documentElement.classList.add(application.theme);
-    }
-  }
-);
 </script>
 
 <style lang="scss" scoped>

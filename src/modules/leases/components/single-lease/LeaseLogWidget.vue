@@ -46,13 +46,13 @@ import {
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import { computed, h } from "vue";
 import type { LeaseInfo } from "@/common/api";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 import { getCreatedAtForHuman } from "@/common/utils";
 import { Dec } from "@keplr-wallet/unit";
 import EmptyState from "@/common/components/EmptyState.vue";
 
 const i18n = useI18n();
-const app = useApplicationStore();
+const configStore = useConfigStore();
 const props = defineProps<{
   lease?: LeaseInfo | null;
 }>();
@@ -67,7 +67,7 @@ const columns = computed<TableColumnProps[]>(() => [
 const leasesHistory = computed(() => {
   return (props.lease?.etl_data?.history ?? []).map((item) => {
     const ticker = item.symbol ?? "";
-    const currency = app.currenciesData?.[`${ticker}@${props.lease!.protocol}`];
+    const currency = configStore.currenciesData?.[`${ticker}@${props.lease!.protocol}`];
     return {
       items: [
         {

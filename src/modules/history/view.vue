@@ -84,7 +84,7 @@ import { VoteOption } from "cosmjs-types/cosmos/gov/v1/gov";
 import type { IObjectKeys } from "@/common/types";
 import { useRouter } from "vue-router";
 import { Dec } from "@keplr-wallet/unit";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 
 const showErrorDialog = ref(false);
 const errorMessage = ref("");
@@ -93,7 +93,7 @@ const i18n = useI18n();
 const wallet = useWalletStore();
 const search = ref("");
 const router = useRouter();
-const app = useApplicationStore();
+const configStore = useConfigStore();
 const realized_pnl = ref(new Dec(0));
 const filters = ref<IObjectKeys>({});
 
@@ -157,9 +157,9 @@ const txsSkip = computed(() => {
 });
 
 watch(
-  () => app.init,
+  () => configStore.initialized,
   () => {
-    if (app.init) {
+    if (configStore.initialized) {
       onInit();
     }
   },

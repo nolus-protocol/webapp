@@ -41,17 +41,17 @@ import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { EtlApi, isMobile, Logger } from "@/common/utils";
 import { ref, watch } from "vue";
 import { NATIVE_CURRENCY } from "@/config/global";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 
 const loading = ref(true);
 const openPositionValue = ref("0");
 const openInterest = ref("0");
-const app = useApplicationStore();
+const configStore = useConfigStore();
 
 watch(
-  () => app.init,
+  () => configStore.initialized,
   () => {
-    if (app.init) {
+    if (configStore.initialized) {
       onInit();
     }
   },

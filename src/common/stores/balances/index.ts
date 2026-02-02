@@ -2,12 +2,15 @@
  * Balances Store - User wallet balances from backend
  *
  * Uses WebSocket for real-time updates when wallet is connected.
- * Replaces direct RPC balance queries.
+ * Replaces direct RPC balance queries and the old wallet store balance management.
  */
 
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { BackendApi, WebSocketClient, type BalanceInfo, type BalancesResponse, type Unsubscribe } from "@/common/api";
+import { useConfigStore } from "../config";
+import { Contracts, NATIVE_ASSET } from "@/config/global";
+import type { ExternalCurrency } from "@/common/types";
 
 export const useBalancesStore = defineStore("balances", () => {
   // State - stores array of BalanceInfo from backend
@@ -17,6 +20,9 @@ export const useBalancesStore = defineStore("balances", () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
   const lastUpdated = ref<Date | null>(null);
+  
+  // Ignored currencies (user preference)
+  const ignoredCurrencies = ref<string[]>([]);
 
   // WebSocket subscription handle
   let unsubscribe: Unsubscribe | null = null;
@@ -37,6 +43,64 @@ export const useBalancesStore = defineStore("balances", () => {
     const map = new Map<string, BalanceInfo>();
     balances.value.forEach((b) => map.set(b.key, b));
     return map;
+  });
+
+  /**
+   * Get balances filtered by current protocol filter
+   * Replaces the old wallet store's `currencies` getter
+   */
+  const filteredBalances = computed((): ExternalCurrency[] => {
+    const configStore = useConfigStore();
+    const protocolConfig = Contracts.protocolsFilter[configStore.protocolFilter];
+    
+    if (!protocolConfig) {
+      return [];
+    }
+
+    const result: ExternalCurrency[] = [];
+
+    for (const balance of balances.value) {
+      // Get currency info from config store
+      let currency = configStore.getCurrencyByDenom(balance.denom);
+      
+      if (!currency) {
+        continue;
+      }
+
+      // Handle native asset - use protocol-specific native key
+      const [ticker] = currency.key.split("@");
+      if (ticker === NATIVE_ASSET.ticker && protocolConfig.native) {
+        const nativeCurrency = configStore.currenciesData[protocolConfig.native];
+        if (nativeCurrency) {
+          currency = nativeCurrency;
+        }
+      }
+
+      const [, protocol] = currency.key.split("@");
+
+      // Skip ignored currencies and currencies not in the current protocol's hold list
+      if (ignoredCurrencies.value.includes(currency.ticker) || !protocolConfig.hold.includes(protocol)) {
+        continue;
+      }
+
+      // Convert to ExternalCurrency format with balance
+      result.push({
+        ...currency,
+        balance: {
+          denom: balance.denom,
+          amount: balance.amount,
+        },
+      } as ExternalCurrency);
+    }
+
+    return result;
+  });
+
+  /**
+   * Get native asset balance
+   */
+  const nativeBalance = computed(() => {
+    return balanceByDenom.value.get(NATIVE_ASSET.denom);
   });
 
   /**
@@ -158,6 +222,63 @@ export const useBalancesStore = defineStore("balances", () => {
     error.value = null;
   }
 
+  /**
+   * Add a currency to the ignore list
+   */
+  function ignoreCurrency(ticker: string): void {
+    if (!ignoredCurrencies.value.includes(ticker)) {
+      ignoredCurrencies.value.push(ticker);
+      saveIgnoredCurrencies();
+    }
+  }
+
+  /**
+   * Remove a currency from the ignore list
+   */
+  function unignoreCurrency(ticker: string): void {
+    const index = ignoredCurrencies.value.indexOf(ticker);
+    if (index > -1) {
+      ignoredCurrencies.value.splice(index, 1);
+      saveIgnoredCurrencies();
+    }
+  }
+
+  /**
+   * Set ignored currencies list
+   */
+  function setIgnoredCurrencies(tickers: string[]): void {
+    ignoredCurrencies.value = tickers;
+    saveIgnoredCurrencies();
+  }
+
+  /**
+   * Save ignored currencies to localStorage
+   */
+  function saveIgnoredCurrencies(): void {
+    try {
+      localStorage.setItem("ignored_currencies", JSON.stringify(ignoredCurrencies.value));
+    } catch (e) {
+      console.warn("[BalancesStore] Failed to save ignored currencies:", e);
+    }
+  }
+
+  /**
+   * Load ignored currencies from localStorage
+   */
+  function loadIgnoredCurrencies(): void {
+    try {
+      const stored = localStorage.getItem("ignored_currencies");
+      if (stored) {
+        ignoredCurrencies.value = JSON.parse(stored);
+      }
+    } catch (e) {
+      console.warn("[BalancesStore] Failed to load ignored currencies:", e);
+    }
+  }
+
+  // Load ignored currencies on store creation
+  loadIgnoredCurrencies();
+
   return {
     // State
     balances,
@@ -166,10 +287,13 @@ export const useBalancesStore = defineStore("balances", () => {
     loading,
     error,
     lastUpdated,
+    ignoredCurrencies,
 
     // Computed
     hasBalances,
     isConnected,
+    filteredBalances,
+    nativeBalance,
 
     // Getters
     getBalance,
@@ -184,5 +308,8 @@ export const useBalancesStore = defineStore("balances", () => {
     unsubscribeFromUpdates,
     setAddress,
     clear,
+    ignoreCurrency,
+    unignoreCurrency,
+    setIgnoredCurrencies,
   };
 });

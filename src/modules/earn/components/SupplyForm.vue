@@ -95,11 +95,11 @@ import { getMicroAmount, Logger, validateAmountV2, walletOperation } from "@/com
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getBalance } from "@/common/utils/BalanceLookup";
 import { usePricesStore } from "@/common/stores/prices";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
+import { useEarnStore } from "@/common/stores/earn";
 import { ProtocolsConfig, SORT_PROTOCOLS, Contracts } from "@/config/global";
 import { CurrencyUtils, NolusClient, type NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
-import { useConfigStore } from "@/common/stores/config";
 import { h } from "vue";
 
 const pricesStore = usePricesStore();
@@ -107,11 +107,14 @@ import Info from "./Info.vue";
 import { useI18n } from "vue-i18n";
 import EarnChart from "./EarnChart.vue";
 
+const configStore = useConfigStore();
+const earnStore = useEarnStore();
+
 const assets = computed(() => {
   try {
-    const protocols = Contracts.protocolsFilter[application.protocolFilter];
-    const lpns = application.lpn?.filter((item) => {
-      const c = application.currenciesData![item.key!];
+    const protocols = Contracts.protocolsFilter[configStore.protocolFilter];
+    const lpns = configStore.lpn?.filter((item) => {
+      const c = configStore.currenciesData![item.key!];
       const [_currency, protocol] = c.key!.split("@");
 
       if (protocols.hold.includes(protocol)) {
@@ -170,8 +173,6 @@ const assets = computed(() => {
 });
 
 const walletStore = useWalletStore();
-const application = useApplicationStore();
-const configStore = useConfigStore();
 const loadLPNCurrency = inject("loadLPNCurrency", () => false);
 const onClose = inject("close", () => {});
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
@@ -188,7 +189,7 @@ const selectedCurrency = ref(0);
 
 const stable = computed(() => {
   const currency = assets.value[selectedCurrency.value];
-  const asset = application.currenciesData?.[currency?.value];
+  const asset = configStore.currenciesData?.[currency?.value];
 
   const price = new Dec(pricesStore.prices?.[asset?.key]?.price ?? "0");
   const v = input?.value?.length ? input?.value : "0";
@@ -197,9 +198,9 @@ const stable = computed(() => {
 });
 
 watch(
-  () => application.init,
+  () => configStore.initialized,
   () => {
-    if (application.init) {
+    if (configStore.initialized) {
       onInit();
     }
   },
@@ -215,7 +216,7 @@ async function onInit() {
 const apr = computed(() => {
   let [_, protocol] = assets.value[selectedCurrency.value].key.split("@");
 
-  const a = application.apr?.[protocol];
+  const a = earnStore.getProtocolApr(protocol);
   return a;
 });
 
@@ -252,7 +253,7 @@ async function transferAmount() {
   if (wallet && error.value === "") {
     try {
       loading.value = true;
-      const currency = application.currenciesData![assets.value[selectedCurrency.value].value];
+      const currency = configStore.currenciesData![assets.value[selectedCurrency.value].value];
       const microAmount = getMicroAmount(currency.ibcData, input.value);
 
       const [_currency, protocol] = currency.key.split("@");
@@ -285,7 +286,7 @@ async function transferAmount() {
 }
 
 async function fetchDepositCapacity() {
-  const lpns = application.lpn;
+  const lpns = configStore.lpn;
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
   const value: { [key: string]: boolean } = {};
   const data = [];

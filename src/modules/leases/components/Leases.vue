@@ -128,7 +128,7 @@ import { IntercomService } from "@/common/utils/IntercomService";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 import {
   Contracts,
   MAX_DECIMALS,
@@ -153,7 +153,7 @@ const debt = ref(new Dec(0));
 const pnl_percent = ref(new Dec(0));
 const router = useRouter();
 const wallet = useWalletStore();
-const app = useApplicationStore();
+const configStore = useConfigStore();
 const i18n = useI18n();
 const hide = ref(WalletManager.getHideBalances());
 const search = ref("");
@@ -173,7 +173,7 @@ const columns = computed<TableColumnProps[]>(() => [
 ]);
 
 const isProtocolDisabled = computed(() => {
-  const protocols = Contracts.protocolsFilter[app.protocolFilter];
+  const protocols = Contracts.protocolsFilter[configStore.protocolFilter];
   return protocols.disabled;
 });
 
@@ -185,7 +185,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
         return true;
       }
       const positionTicker = item.etl_data?.lease_position_ticker ?? item.amount.ticker;
-      const c = app.currenciesData?.[`${positionTicker}@${item.protocol}`];
+      const c = configStore.currenciesData?.[`${positionTicker}@${item.protocol}`];
       if (
         item.address.toLowerCase().includes(param) ||
         positionTicker?.toLowerCase().includes(param) ||
@@ -342,17 +342,17 @@ function getAssetIcon(item: LeaseInfo) {
   switch (ProtocolsConfig[item.protocol]?.type) {
     case PositionTypes.long: {
       if (item.status === "opening" && item.opening_info) {
-        return app.assetIcons?.[`${item.opening_info.currency}@${item.protocol}`]!;
+        return configStore.assetIcons?.[`${item.opening_info.currency}@${item.protocol}`]!;
       }
       break;
     }
     case PositionTypes.short: {
       if (item.status === "opening" && item.opening_info) {
-        return app.assetIcons?.[`${item.opening_info.loan.ticker}@${item.protocol}`]!;
+        return configStore.assetIcons?.[`${item.opening_info.loan.ticker}@${item.protocol}`]!;
       }
     }
   }
-  return app.assetIcons?.[`${positionTicker}@${item.protocol}`] as string;
+  return configStore.assetIcons?.[`${positionTicker}@${item.protocol}`] as string;
 }
 
 function getAsset(lease: LeaseInfo) {

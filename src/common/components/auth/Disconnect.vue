@@ -74,13 +74,13 @@ import { Logger, StringUtils, WalletManager, isMobile } from "@/common/utils";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { RouteNames } from "@/router";
-import { ApplicationActions, useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 
 const wallet = useWalletStore();
 const dialog = ref();
 const i18n = useI18n();
 const router = useRouter();
-const application = useApplicationStore();
+const configStore = useConfigStore();
 
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
@@ -114,7 +114,7 @@ async function onClickDisconnect() {
       type: ToastType.success,
       message: i18n.t("message.wallet-disconnected")
     });
-    await application[ApplicationActions.CHANGE_NETWORK]();
+    await configStore.refresh();
   } catch (error) {
     Logger.error(error);
   }

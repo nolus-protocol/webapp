@@ -73,6 +73,7 @@ import { AdvancedFormControl, Button, ToastType, SvgIcon } from "web-components"
 import { computed, inject, ref } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY, NATIVE_NETWORK, STAKING } from "../../../config/global/network";
 import { useWalletStore } from "@/common/stores/wallet";
+import { useBalancesStore } from "@/common/stores/balances";
 import { Dec } from "@keplr-wallet/unit";
 import { Logger, NetworkUtils, Utils, validateAmountV2, walletOperation } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
@@ -84,6 +85,7 @@ import { useI18n } from "vue-i18n";
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
 const wallet = useWalletStore();
+const balancesStore = useBalancesStore();
 const pricesStore = usePricesStore();
 const input = ref("0");
 const error = ref("");
@@ -95,7 +97,7 @@ const onClose = inject("close", () => {});
 
 const assets = computed(() => {
   const balance = formatNumber(
-    new Dec(wallet.total_unls.balance.amount, NATIVE_ASSET.decimal_digits).toString(NATIVE_ASSET.decimal_digits),
+    new Dec(balancesStore.nativeBalance?.amount ?? "0", NATIVE_ASSET.decimal_digits).toString(NATIVE_ASSET.decimal_digits),
     NATIVE_ASSET.decimal_digits
   );
 

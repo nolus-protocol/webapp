@@ -94,18 +94,19 @@ import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { getMicroAmount, Logger, validateAmountV2, WalletManager, walletOperation } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { usePricesStore } from "@/common/stores/prices";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 import { CurrencyUtils, NolusClient, type NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
-import { useConfigStore } from "@/common/stores/config";
 import { h } from "vue";
 import { Contracts } from "@/config/global";
 import { useI18n } from "vue-i18n";
 
+const configStore = useConfigStore();
+
 const assets = computed(() => {
-  const protocols = Contracts.protocolsFilter[application.protocolFilter];
-  const lpns = application.lpn?.filter((item) => {
-    const c = application.currenciesData![item.key!];
+  const protocols = Contracts.protocolsFilter[configStore.protocolFilter];
+  const lpns = configStore.lpn?.filter((item) => {
+    const c = configStore.currenciesData![item.key!];
     const [_currency, protocol] = c.key!.split("@");
 
     if (protocols.hold.includes(protocol)) {
@@ -144,8 +145,6 @@ const assets = computed(() => {
 const i18n = useI18n();
 const walletStore = useWalletStore();
 const pricesStore = usePricesStore();
-const application = useApplicationStore();
-const configStore = useConfigStore();
 const loadLPNCurrency = inject("loadLPNCurrency", () => false);
 const onClose = inject("close", () => {});
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
@@ -164,7 +163,7 @@ const lpnBalances = ref<
 
 const stable = computed(() => {
   const currency = assets.value[selectedCurrency.value];
-  const asset = application.currenciesData?.[currency?.value];
+  const asset = configStore.currenciesData?.[currency?.value];
 
   const price = new Dec(pricesStore.prices[asset?.key]?.price ?? 0);
   const v = input?.value?.length ? input?.value : "0";
@@ -191,7 +190,7 @@ watch(
 
 async function fetchDepositBalance() {
   try {
-    const lpns = application.lpn;
+    const lpns = configStore.lpn;
     const data = [];
 
     for (const lpn of lpns ?? []) {
@@ -241,7 +240,7 @@ async function onNextClick() {
 
 async function onValidateAmount() {
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-  const currency = application.currenciesData![assets.value[selectedCurrency.value].value];
+  const currency = configStore.currenciesData![assets.value[selectedCurrency.value].value];
   const [_currency, protocol] = currency.key.split("@");
   const lppClient = new Lpp(cosmWasmClient, configStore.contracts[protocol].lpp);
   const data = await lppClient.getLppBalance();
@@ -261,7 +260,7 @@ async function transferAmount() {
     try {
       loading.value = true;
 
-      const currency = application.currenciesData![assets.value[selectedCurrency.value].value];
+      const currency = configStore.currenciesData![assets.value[selectedCurrency.value].value];
       const microAmount = getMicroAmount(currency.ibcData, input.value);
       const asset = lpnBalances.value.find((item) => item.key == currency.key)!;
 

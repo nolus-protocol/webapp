@@ -1,106 +1,90 @@
 /**
  * CurrencyLookup - Currency lookup utilities
  *
- * Provides methods to look up currency information from the application store.
+ * Provides methods to look up currency information from the config store.
+ * All functions delegate to useConfigStore which holds currencies data from the backend.
  */
 
-import type { ExternalCurrency } from "@/common/types";
-import { useApplicationStore } from "../stores/application";
+import type { CurrencyInfo } from "@/common/api";
 import { useConfigStore } from "../stores/config";
 
 /**
  * Get currency by denom and protocol
  */
-export function getCurrency(denom: string, protocol: string): ExternalCurrency {
-  const application = useApplicationStore();
+export function getCurrency(denom: string, protocol: string): CurrencyInfo {
+  const configStore = useConfigStore();
+  const currency = configStore.getCurrency(denom, protocol);
 
-  for (const key in application.currenciesData) {
-    const [_ticker, pr] = application.currenciesData[key].key.split("@");
-    if (application.currenciesData[key].ibcData === denom && protocol === pr) {
-      return application.currenciesData[key];
-    }
+  if (!currency) {
+    throw new Error(`Currency not found: ${denom} ${protocol}`);
   }
 
-  throw new Error(`Currency not found: ${denom} ${protocol}`);
+  return currency;
 }
 
 /**
  * Get currency by ticker
  */
-export function getCurrencyByTicker(ticker: string): ExternalCurrency {
-  const application = useApplicationStore();
+export function getCurrencyByTicker(ticker: string): CurrencyInfo {
+  const configStore = useConfigStore();
+  const currency = configStore.getCurrencyByTicker(ticker);
 
-  for (const key in application.currenciesData) {
-    const [t] = key.split("@");
-    if (t === ticker) {
-      return application.currenciesData[key];
-    }
+  if (!currency) {
+    throw new Error(`Currency not found: ${ticker}`);
   }
 
-  throw new Error(`Currency not found: ${ticker}`);
+  return currency;
 }
 
 /**
  * Get currency by symbol
  */
-export function getCurrencyBySymbol(symbol: string): ExternalCurrency {
-  const application = useApplicationStore();
+export function getCurrencyBySymbol(symbol: string): CurrencyInfo {
+  const configStore = useConfigStore();
+  const currency = configStore.getCurrencyBySymbol(symbol);
 
-  for (const key in application.currenciesData) {
-    if (application.currenciesData[key].symbol === symbol) {
-      return application.currenciesData[key];
-    }
+  if (!currency) {
+    throw new Error(`Currency not found: ${symbol}`);
   }
 
-  throw new Error(`Currency not found: ${symbol}`);
+  return currency;
 }
 
 /**
  * Get currency by IBC denom
  */
-export function getCurrencyByDenom(denom: string): ExternalCurrency {
-  const application = useApplicationStore();
+export function getCurrencyByDenom(denom: string): CurrencyInfo {
+  const configStore = useConfigStore();
+  const currency = configStore.getCurrencyByDenom(denom);
 
-  for (const key in application.currenciesData) {
-    if (denom === application.currenciesData[key].ibcData) {
-      return application.currenciesData[key];
-    }
+  if (!currency) {
+    throw new Error(`Currency not found: ${denom}`);
   }
 
-  throw new Error(`Currency not found: ${denom}`);
+  return currency;
 }
 
 /**
  * Get native currency
  */
-export function getNativeCurrency(): ExternalCurrency {
-  const app = useApplicationStore();
+export function getNativeCurrency(): CurrencyInfo {
+  const configStore = useConfigStore();
+  const currency = configStore.getNativeCurrency();
 
-  for (const c in app.currenciesData) {
-    if (app.currenciesData[c].native) {
-      return app.currenciesData[c];
-    }
+  if (!currency) {
+    throw new Error(`Native currency not found`);
   }
 
-  throw new Error(`Native currency not found`);
+  return currency;
 }
 
 /**
  * Get LPN (Liquidity Pool Native) currency by protocol
  * Returns null if not found (caller should handle)
  */
-export function getLpnByProtocol(protocol: string): ExternalCurrency | null {
-  const app = useApplicationStore();
-
-  for (const lpn of app.lpn ?? []) {
-    if (!lpn?.key) continue;
-    const [, p] = lpn.key.split("@");
-    if (p === protocol) {
-      return lpn;
-    }
-  }
-
-  return null;
+export function getLpnByProtocol(protocol: string): CurrencyInfo | null {
+  const configStore = useConfigStore();
+  return configStore.getLpnByProtocol(protocol);
 }
 
 /**
@@ -108,65 +92,43 @@ export function getLpnByProtocol(protocol: string): ExternalCurrency | null {
  */
 export function getProtocolByContract(contract: string): string {
   const configStore = useConfigStore();
+  const protocol = configStore.getProtocolByContract(contract);
 
-  for (const protocol in configStore.contracts) {
-    const contracts = configStore.contracts[protocol];
-    for (const key in contracts) {
-      const p = contracts[key as keyof typeof contracts];
-      if (p === contract) {
-        return protocol;
-      }
-    }
+  if (!protocol) {
+    throw new Error(`Contract not found ${contract}`);
   }
 
-  throw new Error(`Contract not found ${contract}`);
+  return protocol;
 }
 
 /**
  * Try to get currency by denom, returns null instead of throwing
  */
-export function tryGetCurrencyByDenom(denom: string): ExternalCurrency | null {
-  try {
-    return getCurrencyByDenom(denom);
-  } catch {
-    return null;
-  }
+export function tryGetCurrencyByDenom(denom: string): CurrencyInfo | null {
+  const configStore = useConfigStore();
+  return configStore.tryGetCurrencyByDenom(denom);
 }
 
 /**
  * Try to get currency by ticker, returns null instead of throwing
  */
-export function tryGetCurrencyByTicker(ticker: string): ExternalCurrency | null {
-  try {
-    return getCurrencyByTicker(ticker);
-  } catch {
-    return null;
-  }
+export function tryGetCurrencyByTicker(ticker: string): CurrencyInfo | null {
+  const configStore = useConfigStore();
+  return configStore.tryGetCurrencyByTicker(ticker);
 }
 
 /**
  * Get all currencies as an array
  */
-export function getAllCurrencies(): ExternalCurrency[] {
-  const application = useApplicationStore();
-  return Object.values(application.currenciesData || {});
+export function getAllCurrencies(): CurrencyInfo[] {
+  const configStore = useConfigStore();
+  return configStore.getAllCurrencies();
 }
 
 /**
  * Get currencies for a specific protocol
  */
-export function getCurrenciesByProtocol(protocol: string): ExternalCurrency[] {
-  const application = useApplicationStore();
-  const currencies: ExternalCurrency[] = [];
-
-  for (const key in application.currenciesData) {
-    const [, p] = key.split("@");
-    if (p === protocol) {
-      currencies.push(application.currenciesData[key]);
-    }
-  }
-
-  return currencies;
+export function getCurrenciesByProtocol(protocol: string): CurrencyInfo[] {
+  const configStore = useConfigStore();
+  return configStore.getCurrenciesByProtocol(protocol);
 }
-
-

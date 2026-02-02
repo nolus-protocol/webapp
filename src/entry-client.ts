@@ -1,19 +1,19 @@
 /**
- * Client Entry Point (New Architecture)
+ * Client Entry Point
  *
  * This entry point:
  * - Initializes the Vue application
  * - Sets up the backend connection via useConnectionStore
- * - Loads theme and initial data
- * - Watches wallet changes to sync with new stores
+ * - Initializes theme from localStorage
+ * - Watches wallet changes to sync with stores
  */
 
 import { watch } from "vue";
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
 import { createApp } from "./main";
 import { fetchEndpoints } from "./common/utils/EndpointService";
+import { initTheme } from "./common/utils/ThemeManager";
 import { useConnectionStore } from "./common/stores/connection";
-import { ApplicationActions, useApplicationStore } from "./common/stores/application";
 import { useWalletStore } from "./common/stores/wallet";
 
 const { app, router } = createApp();
@@ -26,11 +26,10 @@ async function bootstrap() {
   // Mount the app first
   app.mount("#app");
 
-  // Initialize theme
-  const appStore = useApplicationStore();
-  appStore[ApplicationActions.LOAD_THEME]();
+  // Initialize theme from localStorage (no store needed)
+  initTheme();
 
-  // Initialize backend connection and stores
+  // Initialize backend connection and stores (config, currencies, prices, etc.)
   const connectionStore = useConnectionStore();
   await connectionStore.initializeApp();
 
@@ -52,9 +51,6 @@ async function bootstrap() {
     },
     { immediate: true }
   );
-
-  // Change network
-  await appStore[ApplicationActions.CHANGE_NETWORK]();
 
   console.log("[App] Initialized successfully");
 }

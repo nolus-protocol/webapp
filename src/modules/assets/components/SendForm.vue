@@ -155,6 +155,7 @@ import {
   type SkipRouteConfigType
 } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
+import { useBalancesStore } from "@/common/stores/balances";
 import { computed, onUnmounted, ref, watch, h, inject } from "vue";
 import { useI18n } from "vue-i18n";
 import {
@@ -176,7 +177,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { usePricesStore } from "@/common/stores/prices";
 import { ErrorCodes } from "@/config/global";
 import { StepperVariant, Stepper } from "web-components";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
 import type { Chain, RouteResponse } from "@/common/types/skipRoute";
 import { WalletTypes } from "@/networks/types";
@@ -231,12 +232,13 @@ let timeOut!: NodeJS.Timeout;
 let route: RouteResponse | null;
 
 const walletStore = useWalletStore();
-const app = useApplicationStore();
+const balancesStore = useBalancesStore();
+const configStore = useConfigStore();
 const networks = ref<(Network | EvmNetwork | any)[]>(NETWORK_DATA.list);
 const pricesStore = usePricesStore();
 
 const selectedNetwork = ref(0);
-const networkCurrencies = ref<ExternalCurrency[] | AssetBalance[]>(walletStore.currencies);
+const networkCurrencies = ref<ExternalCurrency[] | AssetBalance[]>(balancesStore.filteredBalances);
 const selectedCurrency = ref(0);
 const amount = ref("");
 const amountErrorMsg = ref("");
@@ -275,7 +277,7 @@ const network = computed(() => {
 
 const networkCurrenciesRef = computed(() => {
   if (network.value.native) {
-    return walletStore.currencies;
+    return balancesStore.filteredBalances;
   }
   return networkCurrencies.value;
 });
@@ -360,9 +362,9 @@ const steps = computed(() => {
 });
 
 watch(
-  () => app.init,
+  () => configStore.initialized,
   () => {
-    if (app.init) {
+    if (configStore.initialized) {
       onInit();
     }
   },
@@ -385,7 +387,7 @@ async function onInit() {
     networks.value = [...n].filter((item) => {
       return !IGNORED_NETWORKS.includes(item.key);
     });
-    const index = all_networks.value.findIndex((item: Network) => item.key == app.protocolFilter);
+    const index = all_networks.value.findIndex((item: Network) => item.key == configStore.protocolFilter);
     if (index < 0) {
       selectedNetwork.value = 0;
     } else {
@@ -512,7 +514,7 @@ function setNativeNetwork() {
   amountErrorMsg.value = "";
   route = null;
 
-  networkCurrencies.value = walletStore.currencies;
+  networkCurrencies.value = balancesStore.filteredBalances;
   selectedCurrency.value = 0;
 }
 
@@ -550,16 +552,16 @@ async function setCosmosNetwork() {
   const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[network.value.key].currencies;
   for (const c of data ?? []) {
     if (c.visible) {
-      if (app.protocolFilter == c.visible) {
+      if (configStore.protocolFilter == c.visible) {
         const currency = getCurrencyByDenom(c.from);
-        const balance = walletStore.balances.find((item) => item.balance.denom == c.from);
-        currency.balance = coin(balance?.balance?.amount.toString() ?? 0, c.to);
+        const balance = balancesStore.getBalanceInfo(c.from);
+        currency.balance = coin(balance?.amount?.toString() ?? 0, c.to);
         currencies.push(currency);
       }
     } else {
       const currency = getCurrencyByDenom(c.from);
-      const balance = walletStore.balances.find((item) => item.balance.denom == c.from);
-      currency.balance = coin(balance?.balance?.amount.toString() ?? 0, c.to);
+      const balance = balancesStore.getBalanceInfo(c.from);
+      currency.balance = coin(balance?.amount?.toString() ?? 0, c.to);
       currencies.push(currency);
     }
   }
@@ -599,8 +601,8 @@ async function setEvmNetwork() {
 
   for (const c of data ?? []) {
     const currency = getCurrencyByDenom(c.from);
-    const balance = walletStore.balances.find((item) => item.balance.denom == c.from);
-    currency.balance = coin(balance?.balance?.amount.toString() ?? 0, c.to);
+    const balance = balancesStore.getBalanceInfo(c.from);
+    currency.balance = coin(balance?.amount?.toString() ?? 0, c.to);
     currencies.push(currency);
   }
 

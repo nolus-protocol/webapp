@@ -72,7 +72,7 @@ import { NETWORK as ARBITRUM_NETWORK } from "./list/arbitrum/network";
 import { NETWORK as AVALANCHE_NETWORK } from "./list/avalanche/network";
 import { NETWORK as BASE_NETWORK } from "./list/base/network";
 
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 import type { ExternalCurrencies, NetworkData } from "@/common/types";
 import { ChainType, type EvmNetwork, type Network } from "@/common/types/Network";
 
@@ -449,8 +449,8 @@ export const NETWORKS_DATA: {
         ...OSMO_NETWORK,
         explorer: "https://testnet.mintscan.io/osmosis-testnet/txs",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[OSMO_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(OSMO_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: osmoChainInfo
       },
@@ -458,8 +458,8 @@ export const NETWORKS_DATA: {
         ...ATOM_NETWORK,
         explorer: "https://testnet.mintscan.io/cosmoshub-testnet/txs",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[ATOM_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(ATOM_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: atomChainInfo
       },
@@ -467,8 +467,8 @@ export const NETWORKS_DATA: {
         ...AXELAR_NETWORK,
         explorer: "https://testnet.mintscan.io/axelar-testnet/txs",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[AXELAR_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(AXELAR_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: alexarChainInfo
       },
@@ -476,8 +476,8 @@ export const NETWORKS_DATA: {
         ...JUNO_NETWORK,
         explorer: "https://testnet.mintscan.io/juno-testnet/txs",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[JUNO_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(JUNO_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: junoChainInfo
       },
@@ -485,8 +485,8 @@ export const NETWORKS_DATA: {
         ...NEUTRON_NETWORK,
         explorer: "https://testnet.mintscan.io/neutron-testnet/txs",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[NEUTRON_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(NEUTRON_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: neutronChainInfo
       }
@@ -528,8 +528,8 @@ export const NETWORKS_DATA: {
         ...OSMO_NETWORK,
         explorer: "https://mintscan.io/osmosis/transactions",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[OSMO_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(OSMO_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: osmoChainInfo
       },
@@ -537,8 +537,8 @@ export const NETWORKS_DATA: {
         ...ATOM_NETWORK,
         explorer: "https://mintscan.io/cosmoshub/transactions",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[ATOM_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(ATOM_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: atomChainInfo
       },
@@ -546,8 +546,8 @@ export const NETWORKS_DATA: {
         ...AXELAR_NETWORK,
         explorer: "https://mintscan.io/axelar/transactions",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[AXELAR_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(AXELAR_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: alexarChainInfo
       },
@@ -555,8 +555,8 @@ export const NETWORKS_DATA: {
         ...STRIDE_NETWORK,
         explorer: "https://mintscan.io/stride/transactions",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[STRIDE_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(STRIDE_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: strideChainInfo
       },
@@ -564,8 +564,8 @@ export const NETWORKS_DATA: {
         ...JUNO_NETWORK,
         explorer: "https://mintscan.io/juno/transactions",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[JUNO_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(JUNO_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: junoChainInfo
       },
@@ -573,8 +573,8 @@ export const NETWORKS_DATA: {
         ...EVMOS_NETWORK,
         explorer: "https://mintscan.io/evmos/transactions",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[EVMOS_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(EVMOS_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: evmosChainInfo
       },
@@ -582,8 +582,8 @@ export const NETWORKS_DATA: {
         ...PERSISTENCE_NETWORK,
         explorer: "https://mintscan.io/persistence/transactions",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[PERSISTENCE_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(PERSISTENCE_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: persistenceChainInfo
       },
@@ -591,8 +591,8 @@ export const NETWORKS_DATA: {
         ...SECRET_NETWORK,
         explorer: "https://mintscan.io/secret/transactions",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[SECRET_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(SECRET_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: secretChainInfo
       },
@@ -600,8 +600,8 @@ export const NETWORKS_DATA: {
         ...STARGAZE_NETWORK,
         explorer: "https://mintscan.io/stargaze/transactions",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[STARGAZE_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(STARGAZE_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: stargazeChainInfo
       },
@@ -609,8 +609,8 @@ export const NETWORKS_DATA: {
         ...CELESTIA_NETWORK,
         explorer: "https://mintscan.io/celestia/transactions",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[CELESTIA_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(CELESTIA_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: celestiaChainInfo
       },
@@ -618,8 +618,8 @@ export const NETWORKS_DATA: {
         ...QUICKSILVER_NETWORK,
         explorer: "https://mintscan.io/quicksilver/transactions",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[QUICKSILVER_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(QUICKSILVER_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: quicksilverChainInfo
       },
@@ -627,8 +627,8 @@ export const NETWORKS_DATA: {
         ...NEUTRON_NETWORK,
         explorer: "https://mintscan.io/neutron/txs",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[NEUTRON_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(NEUTRON_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: neutronChainInfo
       },
@@ -636,8 +636,8 @@ export const NETWORKS_DATA: {
         ...DYMENSION_NETWORK,
         explorer: "https://mintscan.io/dymension/txs",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[DYMENSION_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(DYMENSION_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: dymensionChainInfo
       },
@@ -645,8 +645,8 @@ export const NETWORKS_DATA: {
         ...JACKAL_NETWORK,
         explorer: "https://ping.pub/jackal/tx",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[JACKAL_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(JACKAL_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: jackalChainInfo
       },
@@ -654,8 +654,8 @@ export const NETWORKS_DATA: {
         ...INJECTIVE_NETWORK,
         explorer: "https://ping.pub/injective/tx",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[INJECTIVE_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(INJECTIVE_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: injectiveChainInfo
       },
@@ -663,8 +663,8 @@ export const NETWORKS_DATA: {
         ...COMPOSABLE_NETWORK,
         explorer: "https://ping.pub/picasso/tx",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[COMPOSABLE_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(COMPOSABLE_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: composableChainInfo
       },
@@ -672,8 +672,8 @@ export const NETWORKS_DATA: {
         ...NOBLE_NETWORK,
         explorer: "https://ping.pub/noble/tx",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[NOBLE_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(NOBLE_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: nobleChainInfo
       },
@@ -681,8 +681,8 @@ export const NETWORKS_DATA: {
         ...CUDOS_NETWORK,
         explorer: "https://ping.pub/cudos/tx",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[CUDOS_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(CUDOS_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: cudosChainInfo
       },
@@ -690,8 +690,8 @@ export const NETWORKS_DATA: {
         ...MANTRA_NETWORK,
         explorer: "https://www.mintscan.io/mantra/tx",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[MANTRA_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(MANTRA_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: mantraChainInfo
       },
@@ -699,8 +699,8 @@ export const NETWORKS_DATA: {
         ...NOLUS_NETWORK,
         explorer: "https://ping.pub/nolus/tx",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[NOLUS_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(NOLUS_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: nolusChainInfo
       },
@@ -708,8 +708,8 @@ export const NETWORKS_DATA: {
         ...XION_NETWORK,
         explorer: "https://ping.pub/xion/tx",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[XION_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(XION_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: xionChainInfo
       },
@@ -717,8 +717,8 @@ export const NETWORKS_DATA: {
         ...NILLION_NETWORK,
         explorer: "https://www.mintscan.io/nillion/tx",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[NILLION_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(NILLION_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: nillionChainInfo
       },
@@ -726,8 +726,8 @@ export const NETWORKS_DATA: {
         ...BABYLON_NETWORK,
         explorer: "https://www.mintscan.io/babylon/tx",
         currencies: () => {
-          const app = useApplicationStore();
-          return app?.networks?.[BABYLON_NETWORK.key] as ExternalCurrencies;
+          const configStore = useConfigStore();
+          return configStore.getCurrenciesForNetwork(BABYLON_NETWORK.key) as ExternalCurrencies;
         },
         embedChainInfo: babylonChainInfo
       }

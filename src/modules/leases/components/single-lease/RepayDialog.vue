@@ -148,7 +148,8 @@ import {
 import { RouteNames } from "@/router";
 
 import { useWalletStore } from "@/common/stores/wallet";
-import { useApplicationStore } from "@/common/stores/application";
+import { useBalancesStore } from "@/common/stores/balances";
+import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { getMicroAmount, LeaseUtils, Logger, walletOperation } from "@/common/utils";
@@ -174,7 +175,8 @@ const route = useRoute();
 const router = useRouter();
 const pricesStore = usePricesStore();
 const walletStore = useWalletStore();
-const app = useApplicationStore();
+const balancesStore = useBalancesStore();
+const configStore = useConfigStore();
 const leasesStore = useLeasesStore();
 const i18n = useI18n();
 
@@ -215,9 +217,9 @@ async function fetchLease() {
 }
 
 watch(
-  () => app.init,
+  () => configStore.initialized,
   () => {
-    if (app.init) {
+    if (configStore.initialized) {
       fetchLease();
     }
   },
@@ -317,12 +319,12 @@ const balances = computed(() => {
 const totalBalances = computed(() => {
   const assets = [];
 
-  for (const key in app.currenciesData ?? {}) {
-    const currency = app.currenciesData![key];
+  for (const key in configStore.currenciesData ?? {}) {
+    const currency = configStore.currenciesData![key];
     const c = { ...currency };
-    const item = walletStore.balances.find((item) => item.balance.denom == currency.ibcData);
+    const item = balancesStore.balances.find((item) => item.denom == currency.ibcData);
     if (item) {
-      c.balance = item!.balance;
+      c.balance = item;
       assets.push(c);
     }
   }
@@ -446,7 +448,7 @@ const setSwapFee = async () => {
     
     const lease_currency = currency.value;
     const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
-    const currecy = app.currenciesData![`${ticker}@${lease.value.protocol}`];
+    const currecy = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
 
     const microAmount = CurrencyUtils.convertDenomToMinimalDenom(
       debt.value!.amount.toDec().toString(),
@@ -644,7 +646,7 @@ const detbPartial = computed(() => {
   const d = debt?.repayment;
   if (price && d && debtTotal && lease.value) {
     const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
-    const currecy = app.currenciesData![`${ticker}@${lease.value.protocol}`];
+    const currecy = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
 
     switch (ProtocolsConfig[lease.value.protocol].type) {
       case PositionTypes.short: {
@@ -676,7 +678,7 @@ const debtData = computed(() => {
 
   if (price && d && lease.value) {
     const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
-    const currecy = app.currenciesData![`${ticker}@${lease.value.protocol}`];
+    const currecy = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
 
     switch (ProtocolsConfig[lease.value.protocol].type) {
       case PositionTypes.short: {
@@ -700,7 +702,7 @@ const liquidation = computed(() => {
 
   let liquidationVal = new Dec(0);
   const ticker = lease.value.amount.ticker;
-  const unitAssetInfo = app.currenciesData![`${ticker}@${lease.value.protocol}`];
+  const unitAssetInfo = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
   const lpn = getLpnByProtocol(lease.value.protocol);
 
   let unitAsset = new Dec(lease.value.amount.amount, Number(unitAssetInfo?.decimal_digits ?? 0));

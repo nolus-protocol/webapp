@@ -123,6 +123,7 @@ import { Button, type AssetItemProps, AssetItem, type AdvancedCurrencyFieldOptio
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
 import { computed, inject, ref, watch } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
+import { useBalancesStore } from "@/common/stores/balances";
 import {
   externalWallet,
   Logger,
@@ -142,7 +143,7 @@ import { type BaseWallet } from "@/networks";
 import { SwapStatus } from "../enums";
 import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { SkipRouter } from "@/common/utils/SkipRoute";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 import { StepperVariant, Stepper } from "web-components";
 import type { RouteResponse } from "@/common/types/skipRoute";
 import { WalletTypes } from "@/networks/types";
@@ -153,8 +154,9 @@ const timeOut = 600;
 const id = Date.now();
 
 const wallet = useWalletStore();
+const balancesStore = useBalancesStore();
 const pricesStore = usePricesStore();
-const applicaiton = useApplicationStore();
+const configStore = useConfigStore();
 const i18n = useI18n();
 
 const blacklist = ref<string[]>([]);
@@ -235,8 +237,8 @@ const selectedAsset = computed(() => {
 });
 
 const balances = computed(() => {
-  return wallet.currencies.filter((item) => {
-    if (wallet.ignoreCurrencies.includes(item.ticker as string)) {
+  return balancesStore.filteredBalances.filter((item) => {
+    if (balancesStore.ignoredCurrencies.includes(item.ticker as string)) {
       return false;
     }
     return !blacklist.value.includes(item.ibcData);
@@ -244,9 +246,9 @@ const balances = computed(() => {
 });
 
 watch(
-  () => applicaiton.init,
+  () => configStore.initialized,
   () => {
-    if (applicaiton.init) {
+    if (configStore.initialized) {
       onInit();
     }
   },
@@ -258,7 +260,7 @@ watch(
 async function onInit() {
   try {
     const config = await getSkipRouteConfig();
-    const protocol = applicaiton.protocolFilter.toLowerCase();
+    const protocol = configStore.protocolFilter.toLowerCase();
     blacklist.value = config.blacklist;
     selectedFirstCurrencyOption.value = assets.value.find(
       (item) => item.ibcData == config[`swap_currency_${protocol}` as keyof SkipRouteConfigType]

@@ -36,7 +36,6 @@ import { isMobile } from "@/common/utils";
 import { getProtocols } from "@/common/utils/ConfigService";
 
 import { computed, h } from "vue";
-import { useApplicationStore } from "@/common/stores/application";
 import { useEarnStore } from "@/common/stores/earn";
 import { useI18n } from "vue-i18n";
 import { NATIVE_CURRENCY } from "@/config/global";
@@ -92,7 +91,7 @@ const assets = computed<TableRowItemProps[]>(() => {
         { value: `${utilizationLevelOsmosis.value}%`, class: "hidden md:flex font-semibold" },
         { value: `${depositNeutron.value}%`, class: "max-w-[200px]" },
         {
-          value: `${(Number(app.apr?.[getProtocols().osmosis_noble]) ?? 0).toFixed(2)}%`,
+          value: `${earnStore.getProtocolApr(getProtocols().osmosis_noble).toFixed(2)}%`,
           class: "text-typography-success"
         }
       ]
@@ -118,7 +117,7 @@ const assets = computed<TableRowItemProps[]>(() => {
         { value: `${utilizationLevelNeutron.value}%`, class: "hidden md:flex font-semibold" },
         { value: `${depositOsmosis.value}%`, class: "max-w-[200px]" },
         {
-          value: `${(Number(app.apr?.[getProtocols().neutron_noble]) ?? 0).toFixed(2)}%`,
+          value: `${earnStore.getProtocolApr(getProtocols().neutron_noble).toFixed(2)}%`,
           class: "text-typography-success"
         }
       ]
@@ -144,7 +143,7 @@ const assets = computed<TableRowItemProps[]>(() => {
         { value: `${utilizationLevelOsmosisAllSol.value}%`, class: "hidden md:flex font-semibold" },
         { value: `${depositAllSol.value}%`, class: "max-w-[200px]" },
         {
-          value: `${(Number(app.apr?.[getProtocols().osmosis_osmosis_all_sol]) ?? 0).toFixed(2)}%`,
+          value: `${earnStore.getProtocolApr(getProtocols().osmosis_osmosis_all_sol).toFixed(2)}%`,
           class: "text-typography-success"
         }
       ]
@@ -170,7 +169,7 @@ const assets = computed<TableRowItemProps[]>(() => {
         { value: `${utilizationLevelOsmosisAllBtc.value}%`, class: "hidden md:flex font-semibold" },
         { value: `${depositAllBtc.value}%`, class: "max-w-[200px]" },
         {
-          value: `${(Number(app.apr?.[getProtocols().osmosis_osmosis_all_btc]) ?? 0).toFixed(2)}%`,
+          value: `${earnStore.getProtocolApr(getProtocols().osmosis_osmosis_all_btc).toFixed(2)}%`,
           class: "text-typography-success"
         }
       ]
@@ -195,7 +194,7 @@ const assets = computed<TableRowItemProps[]>(() => {
     //     { value: `${utilizationLevelOsmosis.value}%`, class: "hidden md:flex font-semibold" },
     //     { value: `${depositStAtom.value}%` },
     //     {
-    //       value: `${(Number(app.apr?.[getProtocols().osmosis_osmosis_st_atom]) ?? 0).toFixed(2)}%`,
+    //       value: `${earnStore.getProtocolApr(getProtocols().osmosis_osmosis_st_atom).toFixed(2)}%`,
     //       class: "text-typography-success"
     //     }
     //   ]
@@ -221,7 +220,7 @@ const assets = computed<TableRowItemProps[]>(() => {
         { value: `${utilizationLevelOsmosisAkt.value}%`, class: "hidden md:flex font-semibold" },
         { value: `${depositAkt.value}%`, class: "max-w-[200px]" },
         {
-          value: `${(Number(app.apr?.[getProtocols().osmosis_osmosis_akt]) ?? 0).toFixed(2)}%`,
+          value: `${earnStore.getProtocolApr(getProtocols().osmosis_osmosis_akt).toFixed(2)}%`,
           class: "text-typography-success"
         }
       ]
@@ -248,7 +247,7 @@ const assets = computed<TableRowItemProps[]>(() => {
         { value: `${utilizationLevelOsmosisAtom.value}%`, class: "hidden md:flex font-semibold" },
         { value: `${depositAtom.value}%`, class: "max-w-[200px]" },
         {
-          value: `${(Number(app.apr?.[getProtocols().osmosis_osmosis_atom]) ?? 0).toFixed(2)}%`,
+          value: `${earnStore.getProtocolApr(getProtocols().osmosis_osmosis_atom).toFixed(2)}%`,
           class: "text-typography-success"
         }
       ]
@@ -256,7 +255,6 @@ const assets = computed<TableRowItemProps[]>(() => {
   ] as TableRowItemProps[];
 });
 
-const app = useApplicationStore();
 const earnStore = useEarnStore();
 
 // Compute supplied funds from earn store stats

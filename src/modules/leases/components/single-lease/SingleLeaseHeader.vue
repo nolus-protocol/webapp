@@ -128,7 +128,7 @@ import { SingleLeaseDialog } from "@/modules/leases/enums";
 import SharePnLDialog from "@/modules/leases/components/single-lease/SharePnLDialog.vue";
 import { NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { usePricesStore } from "@/common/stores/prices";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 import { Dec } from "@keplr-wallet/unit";
 import { TEMPLATES } from "../common";
 import type { LeaseInfo } from "@/common/api";
@@ -144,7 +144,7 @@ const props = defineProps<{
 }>();
 
 const pricesStore = usePricesStore();
-const app = useApplicationStore();
+const configStore = useConfigStore();
 
 const pnl = computed(() => {
   if (!props.displayData) {
@@ -171,14 +171,14 @@ const stable = computed(() => {
   const posType = props.displayData.positionType;
   const ticker = props.lease.amount.ticker;
   const protocol = props.lease.protocol;
-  const asset = app.currenciesData?.[`${ticker}@${protocol}`];
+  const asset = configStore.currenciesData?.[`${ticker}@${protocol}`];
 
   if (posType === PositionTypes.long) {
     const price = pricesStore.prices[`${ticker}@${protocol}`];
     const value = new Dec(props.lease.amount.amount, asset?.decimal_digits ?? 0).mul(new Dec(price?.price ?? "0"));
     return value.toString(NATIVE_CURRENCY.maximumFractionDigits);
   } else if (posType === PositionTypes.short) {
-    const c = app.currenciesData?.[`${ProtocolsConfig[protocol]?.stable}@${protocol}`];
+    const c = configStore.currenciesData?.[`${ProtocolsConfig[protocol]?.stable}@${protocol}`];
     const value = new Dec(props.lease.amount.amount, c?.decimal_digits ?? 0);
     return value.toString(NATIVE_CURRENCY.maximumFractionDigits);
   }

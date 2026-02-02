@@ -29,15 +29,15 @@ import { Logger } from "@/common/utils";
 import { computed, inject, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Spinner, ToastType } from "web-components";
-import { useApplicationStore } from "@/common/stores/application";
+import { getTheme, resolveTheme } from "@/common/utils/ThemeManager";
 
 const disabled = ref(false);
 const wallet = useWalletStore();
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 const i18n = useI18n();
-const application = useApplicationStore();
 const colors = computed(() => {
-  switch (application.theme) {
+  const theme = resolveTheme(getTheme());
+  switch (theme) {
     case "dark": {
       return {
         dark: "#fff",

@@ -78,7 +78,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useLeasesStore } from "@/common/stores/leases";
 import { usePricesStore } from "@/common/stores/prices";
 import { isMobile, Logger, WalletManager } from "@/common/utils";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 import { Contracts, NATIVE_CURRENCY } from "@/config/global";
 import { useRouter } from "vue-router";
 
@@ -86,7 +86,7 @@ const router = useRouter();
 const wallet = useWalletStore();
 const leasesStore = useLeasesStore();
 const pricesStore = usePricesStore();
-const app = useApplicationStore();
+const configStore = useConfigStore();
 
 const hide = ref(WalletManager.getHideBalances());
 
@@ -106,7 +106,7 @@ watch(
 );
 
 const isProtocolDisabled = computed(() => {
-  const protocols = Contracts.protocolsFilter[app.protocolFilter];
+  const protocols = Contracts.protocolsFilter[configStore.protocolFilter];
   return protocols.disabled;
 });
 

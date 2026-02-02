@@ -22,7 +22,7 @@ import {
   type Unsubscribe,
 } from "@/common/api";
 import { usePricesStore } from "../prices";
-import { useApplicationStore } from "../application";
+import { useConfigStore } from "../config";
 import { LeaseCalculator, type LeaseDisplayData } from "@/common/utils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 
@@ -80,12 +80,12 @@ export const useLeasesStore = defineStore("leases", () => {
    */
   const totalCollateralUsd = computed(() => {
     const pricesStore = usePricesStore();
-    const app = useApplicationStore();
+    const configStore = useConfigStore();
     let total = new Dec(0);
 
     for (const lease of openLeases.value) {
       const ticker = lease.amount.ticker;
-      const currency = app.currenciesData?.[`${ticker}@${lease.protocol}`];
+      const currency = configStore.currenciesData[`${ticker}@${lease.protocol}`];
       if (currency) {
         const price = pricesStore.getPriceAsNumber(currency.key);
         const amount = new Dec(lease.amount.amount, currency.decimal_digits);
@@ -121,7 +121,7 @@ export const useLeasesStore = defineStore("leases", () => {
    */
   function createLeaseCalculator(): LeaseCalculator {
     const pricesStore = usePricesStore();
-    const app = useApplicationStore();
+    const configStore = useConfigStore();
 
     return new LeaseCalculator(
       // Price provider
@@ -131,13 +131,12 @@ export const useLeasesStore = defineStore("leases", () => {
       // Currency provider
       {
         getCurrency: (ticker: string, protocol: string) => {
-          const currency = app.currenciesData?.[`${ticker}@${protocol}`];
+          const currency = configStore.currenciesData[`${ticker}@${protocol}`];
           return currency ? { key: currency.key, decimal_digits: currency.decimal_digits } : undefined;
         },
         getLpnCurrency: (protocol: string) => {
           const lpn = getLpnByProtocol(protocol);
-          const app = useApplicationStore();
-          const lpnCurrency = lpn?.key ? app.currenciesData?.[lpn.key] : null;
+          const lpnCurrency = lpn?.key ? configStore.currenciesData[lpn.key] : null;
           return lpnCurrency ? { key: lpnCurrency.key, decimal_digits: lpnCurrency.decimal_digits } : undefined;
         },
       }

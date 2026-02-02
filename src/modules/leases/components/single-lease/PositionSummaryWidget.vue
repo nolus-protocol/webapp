@@ -272,7 +272,7 @@ import {
   ProtocolsConfig
 } from "@/config/global";
 import { computed, inject, onMounted, ref, watch } from "vue";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { Dec } from "@keplr-wallet/unit";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
@@ -296,7 +296,7 @@ const props = defineProps<{
   loading: boolean;
 }>();
 
-const app = useApplicationStore();
+const configStore = useConfigStore();
 const pricesStore = usePricesStore();
 const router = useRouter();
 const walletStore = useWalletStore();
@@ -360,7 +360,7 @@ const assetLoan = computed(() => {
     return asset.value;
   } else if (posType === PositionTypes.short) {
     const p = props.lease?.protocol!;
-    const currency = app.currenciesData![`${ProtocolsConfig[p]?.stable}@${p}`];
+    const currency = configStore.currenciesData![`${ProtocolsConfig[p]?.stable}@${p}`];
     return currency;
   }
   return asset.value;
@@ -373,7 +373,7 @@ const pricerPerAsset = computed(() => {
   } else if (posType === PositionTypes.short) {
     const p = props.lease?.protocol!;
     const ticker = props.lease?.etl_data?.lease_position_ticker;
-    const currency = app.currenciesData![`${ticker}@${p}`];
+    const currency = configStore.currenciesData![`${ticker}@${p}`];
     return currency;
   }
   return asset.value;
@@ -429,7 +429,7 @@ const stable = computed<CurrencyComponentProps>(() => {
   } else if (posType === PositionTypes.short) {
     const ticker = props.lease.etl_data?.lease_position_ticker ?? props.lease.amount.ticker;
     const protocol = props.lease.protocol;
-    const ast = app.currenciesData?.[`${ticker}@${protocol}`];
+    const ast = configStore.currenciesData?.[`${ticker}@${protocol}`];
     const price = pricesStore.prices[ast?.key as string];
     const value = assetAmount.quo(new Dec(price?.price ?? "1"));
     return {

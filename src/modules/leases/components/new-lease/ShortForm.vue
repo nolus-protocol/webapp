@@ -189,7 +189,8 @@ import { tabs } from "../types";
 
 import ShortLeaseDetails from "@/modules/leases/components/new-lease/ShortLeaseDetails.vue";
 import { useWalletStore } from "@/common/stores/wallet";
-import { useApplicationStore } from "@/common/stores/application";
+import { useBalancesStore } from "@/common/stores/balances";
+import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { getMicroAmount, Logger, walletOperation } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
@@ -215,13 +216,13 @@ import { Dec, Int } from "@keplr-wallet/unit";
 import { h } from "vue";
 import { useI18n } from "vue-i18n";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
-import { useConfigStore } from "@/common/stores/config";
 import { Leaser, type LeaseApply } from "@nolus/nolusjs/build/contracts";
 import { useRouter } from "vue-router";
 
 const activeTabIdx = 1;
 const walletStore = useWalletStore();
-const app = useApplicationStore();
+const balancesStore = useBalancesStore();
+const configStore = useConfigStore();
 const pricesStore = usePricesStore();
 const i18n = useI18n();
 const router = useRouter();
@@ -243,9 +244,9 @@ const leaseApply = ref<LeaseApply | null>();
 const showDetails = ref(false);
 
 watch(
-  () => app.init,
+  () => configStore.initialized,
   () => {
-    if (app.init) {
+    if (configStore.initialized) {
       onInit();
     }
   },
@@ -277,15 +278,15 @@ watch(
 
 const totalBalances = computed(() => {
   let currencies: ExternalCurrency[] = [];
-  const b = walletStore.balances;
+  const b = balancesStore.balances;
   for (const protocol in ProtocolsConfig) {
     if (ProtocolsConfig[protocol].type == PositionTypes.short) {
       for (const c of ProtocolsConfig[protocol].currencies) {
-        const item = app.currenciesData?.[`${c}@${protocol}`];
+        const item = configStore.currenciesData?.[`${c}@${protocol}`];
 
-        let balance = b.find((c) => c.balance.denom == item?.ibcData);
-        if (currencies.findIndex((item) => item.balance.denom == balance?.balance.denom) == -1) {
-          currencies.push({ ...item, balance: balance?.balance } as ExternalCurrency);
+        let balance = b.find((c) => c.denom == item?.ibcData);
+        if (currencies.findIndex((item) => item.balance.denom == balance?.denom) == -1) {
+          currencies.push({ ...item, balance: balance } as ExternalCurrency);
         }
       }
     }
@@ -345,10 +346,10 @@ const assets = computed(() => {
 const coinList = computed(() => {
   let currencies: ExternalCurrency[] = [];
 
-  for (const protocol of app.protocols) {
+  for (const protocol of configStore.protocols) {
     if (ProtocolsConfig[protocol].type == PositionTypes.short && ProtocolsConfig[protocol].lease) {
       const c =
-        app.lpn?.filter((item) => {
+        configStore.lpn?.filter((item) => {
           const [ticker, p] = item.key.split("@");
 
           if (ignoreLeaseAssets.value?.includes(ticker) || ignoreLeaseAssets.value?.includes(`${ticker}@${protocol}`)) {
@@ -400,7 +401,7 @@ const swapAmount = computed(() => {
   let total = leaseApply.value?.total;
   const selectedDownPaymentCurrency = currency.value;
   let [_, protocol] = selectedDownPaymentCurrency.key.split("@");
-  const stable = app.currenciesData![`${ProtocolsConfig[protocol].stable}@${protocol}`];
+  const stable = configStore.currenciesData![`${ProtocolsConfig[protocol].stable}@${protocol}`];
   const a = new Dec(total?.amount ?? 0, stable.decimal_digits);
   return `${formatNumber(a.toString(), stable.decimal_digits)} ${stable.shortName}`;
 });
@@ -534,14 +535,13 @@ async function calculate() {
       let [downPaymentTicker, _p] = currency.key.split("@");
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const configStore = useConfigStore();
 
       const leaserClient = new Leaser(cosmWasmClient, configStore.contracts[protocol].leaser);
 
       const makeLeaseApplyResp = await leaserClient.leaseQuote(
         microAmount.mAmount.amount.toString(),
         downPaymentTicker,
-        app.lease?.[protocol][0] as string,
+        configStore.lease?.[protocol][0] as string,
         ltd.value
       );
 

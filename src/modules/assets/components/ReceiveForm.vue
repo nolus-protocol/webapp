@@ -157,7 +157,7 @@ import { SkipRouter } from "@/common/utils/SkipRoute";
 import { Dec } from "@keplr-wallet/unit";
 import { usePricesStore } from "@/common/stores/prices";
 import { StepperVariant, Stepper } from "web-components";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
 import type { RouteResponse, Chain } from "@/common/types/skipRoute";
 import { WalletTypes } from "@/networks/types";
@@ -207,7 +207,7 @@ let route: RouteResponse | null;
 
 const walletStore = useWalletStore();
 const pricesStore = usePricesStore();
-const app = useApplicationStore();
+const configStore = useConfigStore();
 const networks = ref<(Network | EvmNetwork | any)[]>(NETWORK_DATA.list);
 
 const selectedNetwork = ref(0);
@@ -244,9 +244,9 @@ const all_networks = computed<(Network | EvmNetwork | any)[]>(() => {
 });
 
 watch(
-  () => app.init,
+  () => configStore.initialized,
   () => {
-    if (app.init) {
+    if (configStore.initialized) {
       onInit();
     }
   },
@@ -271,7 +271,7 @@ async function onInit() {
     networks.value = [...n].filter((item) => {
       return !IGNORED_NETWORKS.includes(item.key);
     });
-    const index = all_networks.value.findIndex((item: Network) => item.key == app.protocolFilter);
+    const index = all_networks.value.findIndex((item: Network) => item.key == configStore.protocolFilter);
     if (index < 0) {
       selectedNetwork.value = 0;
     } else {
@@ -500,7 +500,7 @@ async function setCosmosNetwork() {
   const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[network.value.key].currencies;
   for (const c of data ?? []) {
     if (c.visible) {
-      if (app.protocolFilter == c.visible) {
+      if (configStore.protocolFilter == c.visible) {
         const currency = getCurrencyByDenom(c.from);
         currency.balance = coin(0, c.to);
         currencies.push(currency);

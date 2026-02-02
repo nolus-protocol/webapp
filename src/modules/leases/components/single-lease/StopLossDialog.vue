@@ -105,7 +105,7 @@ import { AdvancedFormControl, Button, Dialog, Tooltip, SvgIcon, ToastType } from
 import { RouteNames } from "@/router";
 
 import { useWalletStore } from "@/common/stores/wallet";
-import { useApplicationStore } from "@/common/stores/application";
+
 import { usePricesStore } from "@/common/stores/prices";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { useConfigStore } from "@/common/stores/config";
@@ -127,7 +127,7 @@ const route = useRoute();
 const router = useRouter();
 const pricesStore = usePricesStore();
 const walletStore = useWalletStore();
-const app = useApplicationStore();
+
 const leasesStore = useLeasesStore();
 const configStore = useConfigStore();
 const i18n = useI18n();
@@ -222,7 +222,7 @@ function getCurrency() {
   switch (ProtocolsConfig[lease.value.protocol].type) {
     case PositionTypes.long: {
       const ticker = lease.value.amount.ticker;
-      return app.currenciesData![`${ticker}@${lease.value.protocol}`];
+      return configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
     }
     case PositionTypes.short: {
       const lpn = getLpnByProtocol(lease.value.protocol);
@@ -411,7 +411,7 @@ const totalAmount = computed(() => {
     }
     case PositionTypes.short: {
       const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
-      const asset = app.currenciesData?.[`${ticker}@${lease.value.protocol}`]!;
+      const asset = configStore.currenciesData?.[`${ticker}@${lease.value.protocol}`]!;
       const price = pricesStore.prices[asset?.ibcData as string];
       let k = new Dec(lease.value.amount.amount ?? 0, currency.value.decimal_digits).quo(new Dec(price.price));
       return k;

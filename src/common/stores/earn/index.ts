@@ -45,6 +45,18 @@ export const useEarnStore = defineStore("earn", () => {
   });
 
   /**
+   * APR/APY by protocol - replaces old app.apr
+   * Returns a map of protocol key to APY percentage
+   */
+  const protocolApr = computed<{ [protocol: string]: number }>(() => {
+    const result: { [protocol: string]: number } = {};
+    for (const pool of pools.value) {
+      result[pool.protocol] = pool.apy;
+    }
+    return result;
+  });
+
+  /**
    * Get pool by protocol key
    */
   function getPool(protocol: string): EarnPool | undefined {
@@ -63,6 +75,13 @@ export const useEarnStore = defineStore("earn", () => {
    */
   function getPoolByAddress(lppAddress: string): EarnPool | undefined {
     return pools.value.find((p) => p.lpp_address === lppAddress);
+  }
+
+  /**
+   * Get APR/APY for a specific protocol
+   */
+  function getProtocolApr(protocol: string): number {
+    return protocolApr.value[protocol] ?? 0;
   }
 
   /**
@@ -206,11 +225,13 @@ export const useEarnStore = defineStore("earn", () => {
     hasPositions,
     poolCount,
     totalDeposited,
+    protocolApr,
 
     // Getters
     getPool,
     getPosition,
     getPoolByAddress,
+    getProtocolApr,
 
     // Actions
     fetchPools,

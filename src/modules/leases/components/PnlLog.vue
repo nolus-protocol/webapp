@@ -104,11 +104,11 @@ import { Dec } from "@keplr-wallet/unit";
 import { RouteNames } from "@/router";
 import { useRouter } from "vue-router";
 import EmptyState from "@/common/components/EmptyState.vue";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 
 const i18n = useI18n();
 const wallet = useWalletStore();
-const app = useApplicationStore();
+const configStore = useConfigStore();
 const pnl = ref(new Dec(0));
 
 const limit = 10;
@@ -134,9 +134,9 @@ const filename = "data.csv";
 const delimiter = ",";
 
 watch(
-  () => app.init,
+  () => configStore.initialized,
   () => {
-    if (app.init) {
+    if (configStore.initialized) {
       onInit();
     }
   },

@@ -106,7 +106,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useStakingStore } from "@/common/stores/staking";
 import { MsgVote } from "cosmjs-types/cosmos/gov/v1beta1/tx";
 import { useI18n } from "vue-i18n";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 
 const dialog = ref<typeof Dialog | null>(null);
 const description = ref();
@@ -118,7 +118,7 @@ const isLoading = ref(-1);
 const wallet = useWalletStore();
 const stakingStore = useStakingStore();
 const i18n = useI18n();
-const app = useApplicationStore();
+const configStore = useConfigStore();
 
 const props = defineProps<{
   proposal: Proposal;
@@ -135,9 +135,9 @@ const labels = ref({
 });
 
 watch(
-  () => app.init,
+  () => configStore.initialized,
   () => {
-    if (app.init) {
+    if (configStore.initialized) {
       onInit();
     }
   },

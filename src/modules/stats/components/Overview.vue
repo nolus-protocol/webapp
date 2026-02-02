@@ -83,21 +83,21 @@ import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { EtlApi, isMobile, Logger } from "@/common/utils";
 import { ref, watch } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 
 const txVolume = ref("0");
 const buybackTotal = ref("0");
 const realized_pnl = ref("0");
 const protocolRevenue = ref("0");
 const tvl = ref("0");
-const app = useApplicationStore();
+const configStore = useConfigStore();
 
 const loading = ref(true);
 
 watch(
-  () => app.init,
+  () => configStore.initialized,
   () => {
-    if (app.init) {
+    if (configStore.initialized) {
       onInit();
     }
   },

@@ -5,7 +5,7 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { EtlApi } from ".";
 import { getCurrencyByTicker, getProtocolByContract, getLpnByProtocol } from "./CurrencyLookup";
-import { useApplicationStore } from "../stores/application";
+import { useConfigStore } from "../stores/config";
 
 export class LeaseUtils {
   public static calculateLiquidation(unit: Dec, price: Dec) {
@@ -95,8 +95,8 @@ export class LeaseUtils {
 
       const leasePositionStable = new Dec(result.lease.LS_loan_amnt_asset, lpn.decimal_digits);
       const downPayment = new Dec(result.lease.LS_cltr_amnt_stable, Number(downPaymentCurrency!.decimal_digits));
-      const app = useApplicationStore();
-      const currency = app.currenciesData![`${l_c}@${contract}`];
+      const configStore = useConfigStore();
+      const currency = configStore.currenciesData[`${l_c}@${contract}`];
 
       return {
         history: result?.history ?? [],

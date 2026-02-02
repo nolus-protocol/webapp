@@ -50,14 +50,14 @@ import { Button } from "web-components";
 import { type Proposal } from "@/modules/vote/types";
 import { ProposalItemWrapper, ProposalSkeleton, VoteDialog } from "@/modules/vote/components";
 import { useFetchGovernanceProposals, useLoadBondedTokens, useLoadTallying } from "./composable";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 import { fetchEndpoints } from "@/common/utils/EndpointService";
 
 const dialog = ref<InstanceType<typeof VoteDialog> | null>(null);
 const initialLoad = ref(false);
 const showSkeleton = ref(true);
 const loading = ref(false);
-const app = useApplicationStore();
+const configStore = useConfigStore();
 
 const pagination = ref({
   total: 0,
@@ -76,9 +76,9 @@ const { loadBondedTokens, bondedTokens } = useLoadBondedTokens();
 const { loadTallying, quorum } = useLoadTallying();
 
 watch(
-  () => app.init,
+  () => configStore.initialized,
   () => {
-    if (app.init) {
+    if (configStore.initialized) {
       onInit();
     }
   },

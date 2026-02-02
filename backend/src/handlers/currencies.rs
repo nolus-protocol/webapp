@@ -14,20 +14,40 @@ use crate::handlers::config::get_config;
 use crate::query_types::AddressQuery;
 use crate::AppState;
 
-/// Currency information with all details
+/// Currency information with all details needed by frontend
+/// Matches the frontend ExternalCurrency interface
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CurrencyInfo {
     pub key: String,
     pub ticker: String,
     pub symbol: String,
     pub name: String,
+    #[serde(rename = "shortName")]
+    pub short_name: String,
     pub decimal_digits: u8,
-    pub bank_symbol: String,
-    pub protocol: String,
-    pub group: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub icon: Option<String>,
+    #[serde(rename = "ibcData")]
+    pub ibc_data: String,
+    pub icon: String,
     pub native: bool,
+    #[serde(rename = "coingeckoId")]
+    pub coingecko_id: Option<String>,
+    /// Protocol this currency belongs to
+    pub protocol: String,
+    /// Currency group from Oracle (lease, lpn, native, etc.)
+    pub group: String,
+}
+
+/// Full currencies response for frontend
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CurrenciesResponse {
+    /// All currencies indexed by key (TICKER@PROTOCOL)
+    pub currencies: HashMap<String, CurrencyInfo>,
+    /// LPN currencies (one per protocol)
+    pub lpn: Vec<CurrencyInfo>,
+    /// Lease-able currency tickers
+    pub lease_currencies: Vec<String>,
+    /// Currency key mappings (aliases)
+    pub map: HashMap<String, String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -62,11 +82,11 @@ pub struct BalanceInfo {
 }
 
 /// GET /api/currencies
-/// Returns list of all supported currencies from all active protocols
+/// Returns full currencies data for frontend including metadata from config
 /// Uses request coalescing to deduplicate concurrent requests
 pub async fn get_currencies(
     State(state): State<Arc<AppState>>,
-) -> Result<Json<Vec<CurrencyInfo>>, AppError> {
+) -> Result<Json<CurrenciesResponse>, AppError> {
     // Use get_or_fetch to coalesce concurrent requests
     let result = state
         .cache
@@ -78,14 +98,14 @@ pub async fn get_currencies(
         .await
         .map_err(AppError::Internal)?;
 
-    let currencies: Vec<CurrencyInfo> = serde_json::from_value(result)
+    let response: CurrenciesResponse = serde_json::from_value(result)
         .map_err(|e| AppError::Internal(format!("Failed to deserialize currencies: {}", e)))?;
 
-    Ok(Json(currencies))
+    Ok(Json(response))
 }
 
 /// Internal function to fetch currencies from all protocols
-/// Separated from handler to enable request coalescing
+/// Merges Oracle contract data with static metadata from currencies.json
 async fn fetch_currencies_internal(state: Arc<AppState>) -> Result<serde_json::Value, String> {
     debug!("Fetching currencies from Oracle contracts");
 
@@ -94,8 +114,16 @@ async fn fetch_currencies_internal(state: Arc<AppState>) -> Result<serde_json::V
         .await
         .map_err(|e| format!("Failed to get config: {}", e))?;
 
-    let mut currencies = Vec::new();
-    let mut seen_keys = std::collections::HashSet::new();
+    // Load currency metadata from config store
+    let currencies_config = state
+        .config_store
+        .load_currencies()
+        .await
+        .map_err(|e| format!("Failed to load currencies config: {}", e))?;
+
+    let mut currencies_map: HashMap<String, CurrencyInfo> = HashMap::new();
+    let mut lpn_currencies: Vec<CurrencyInfo> = Vec::new();
+    let mut lease_currencies_set: std::collections::HashSet<String> = std::collections::HashSet::new();
 
     // Fetch currencies from all protocols in parallel
     let protocols: Vec<_> = config.0.protocols.iter().collect();
@@ -105,9 +133,10 @@ async fn fetch_currencies_internal(state: Arc<AppState>) -> Result<serde_json::V
             let chain_client = state.chain_client.clone();
             let oracle = protocol_info.contracts.oracle.clone();
             let protocol_name = (*protocol_name).clone();
+            let lpn_ticker = protocol_info.lpn.clone();
             async move {
                 let result = chain_client.get_oracle_currencies(&oracle).await;
-                (protocol_name, result)
+                (protocol_name, lpn_ticker, result)
             }
         })
         .collect();
@@ -115,35 +144,60 @@ async fn fetch_currencies_internal(state: Arc<AppState>) -> Result<serde_json::V
     let currency_results = join_all(currency_futures).await;
 
     // Process results
-    for (protocol_name, result) in currency_results {
+    for (protocol_name, lpn_ticker, result) in currency_results {
         match result {
             Ok(oracle_currencies) => {
                 for currency in oracle_currencies {
                     let key = format!("{}@{}", currency.ticker, protocol_name);
-
-                    // Skip duplicates (same currency might exist in multiple protocols)
-                    if seen_keys.contains(&key) {
-                        continue;
-                    }
-                    seen_keys.insert(key.clone());
-
                     let is_native = currency.bank_symbol == "unls";
+                    let is_lpn = currency.ticker == lpn_ticker;
 
-                    currencies.push(CurrencyInfo {
+                    // Get metadata from currencies.json config
+                    let metadata = currencies_config.currencies.get(&currency.ticker);
+
+                    // Build icon URL: /assets/icons/currencies/{network}-{ticker}.svg
+                    let network_prefix = protocol_name.split('-').next().unwrap_or("osmosis").to_lowercase();
+                    let ticker_lower = currency.ticker.replace('_', "").to_lowercase();
+                    let icon = format!(
+                        "{}/{}-{}.svg",
+                        currencies_config.icons, network_prefix, ticker_lower
+                    );
+
+                    let currency_info = CurrencyInfo {
                         key: key.clone(),
                         ticker: currency.ticker.clone(),
-                        symbol: currency.ticker.clone(), // TODO: Map to display symbol
-                        name: currency.ticker.clone(),   // TODO: Map to full name
+                        symbol: metadata.map(|m| m.symbol.clone()).unwrap_or_else(|| currency.bank_symbol.clone()),
+                        name: metadata.map(|m| m.name.clone()).unwrap_or_else(|| currency.ticker.clone()),
+                        short_name: metadata.map(|m| m.short_name.clone()).unwrap_or_else(|| currency.ticker.clone()),
                         decimal_digits: currency.decimal_digits,
-                        bank_symbol: currency.bank_symbol,
-                        protocol: protocol_name.clone(),
-                        group: currency.group,
-                        icon: Some(format!(
-                            "/assets/icons/currencies/{}.svg",
-                            currency.ticker.to_lowercase()
-                        )),
+                        ibc_data: currency.bank_symbol.clone(),
+                        icon,
                         native: is_native,
-                    });
+                        coingecko_id: metadata.map(|m| m.coin_gecko_id.clone()),
+                        protocol: protocol_name.clone(),
+                        group: currency.group.clone(),
+                    };
+
+                    // Track LPN currencies
+                    if is_lpn {
+                        lpn_currencies.push(currency_info.clone());
+                    }
+
+                    // Track lease currencies
+                    if currency.group == "lease" {
+                        lease_currencies_set.insert(currency.ticker.clone());
+                    }
+
+                    currencies_map.insert(key.clone(), currency_info);
+
+                    // Handle mapped keys (aliases) from currencies.json
+                    if let Some(mapped_key) = currencies_config.map.get(&key) {
+                        if let Some(currency_info) = currencies_map.get(&key).cloned() {
+                            let mut aliased = currency_info;
+                            aliased.key = mapped_key.clone();
+                            currencies_map.insert(mapped_key.clone(), aliased);
+                        }
+                    }
                 }
             }
             Err(e) => {
@@ -156,7 +210,48 @@ async fn fetch_currencies_internal(state: Arc<AppState>) -> Result<serde_json::V
         }
     }
 
-    serde_json::to_value(&currencies).map_err(|e| format!("Failed to serialize currencies: {}", e))
+    // Load history currencies for backwards compatibility
+    if let Ok(history_config) = state.config_store.load_history_currencies().await {
+        for (ticker, history_currency) in history_config.currencies {
+            for (protocol, protocol_data) in history_currency.protocols {
+                let key = format!("{}@{}", ticker, protocol);
+                
+                // Only add if not already present (Oracle data takes precedence)
+                if !currencies_map.contains_key(&key) {
+                    let network_prefix = protocol.split('-').next().unwrap_or("osmosis").to_lowercase();
+                    let ticker_lower = ticker.replace('_', "").to_lowercase();
+                    
+                    currencies_map.insert(key.clone(), CurrencyInfo {
+                        key: key.clone(),
+                        ticker: ticker.clone(),
+                        symbol: history_currency.symbol.clone(),
+                        name: history_currency.name.clone(),
+                        short_name: history_currency.short_name.clone(),
+                        decimal_digits: history_currency.decimal_digits as u8,
+                        ibc_data: protocol_data.ibc_data,
+                        icon: if history_currency.icon.is_empty() {
+                            format!("{}/{}-{}.svg", currencies_config.icons, network_prefix, ticker_lower)
+                        } else {
+                            history_currency.icon.clone()
+                        },
+                        native: history_currency.native,
+                        coingecko_id: history_currency.coingecko_id.clone(),
+                        protocol,
+                        group: "history".to_string(),
+                    });
+                }
+            }
+        }
+    }
+
+    let response = CurrenciesResponse {
+        currencies: currencies_map,
+        lpn: lpn_currencies,
+        lease_currencies: lease_currencies_set.into_iter().collect(),
+        map: currencies_config.map,
+    };
+
+    serde_json::to_value(&response).map_err(|e| format!("Failed to serialize currencies: {}", e))
 }
 
 /// GET /api/currencies/:key
@@ -165,17 +260,23 @@ pub async fn get_currency(
     State(state): State<Arc<AppState>>,
     Path(key): Path<String>,
 ) -> Result<Json<CurrencyInfo>, AppError> {
-    let currencies = get_currencies(State(state)).await?;
+    let response = get_currencies(State(state)).await?;
 
-    currencies
-        .0
-        .iter()
-        .find(|c| c.key == key || c.ticker == key)
-        .cloned()
-        .map(Json)
-        .ok_or_else(|| AppError::NotFound {
-            resource: format!("Currency {}", key),
-        })
+    // Try exact key match first
+    if let Some(currency) = response.0.currencies.get(&key) {
+        return Ok(Json(currency.clone()));
+    }
+
+    // Try finding by ticker
+    for currency in response.0.currencies.values() {
+        if currency.ticker == key {
+            return Ok(Json(currency.clone()));
+        }
+    }
+
+    Err(AppError::NotFound {
+        resource: format!("Currency {}", key),
+    })
 }
 
 /// GET /api/prices
@@ -342,7 +443,7 @@ pub async fn get_balances(
     );
 
     let bank_balances = bank_balances_result?;
-    let currencies = currencies_result?;
+    let currencies_response = currencies_result?;
     let prices_response = prices_result?;
     let prices = &prices_response.0.prices;
 
@@ -350,12 +451,14 @@ pub async fn get_balances(
     let mut total_usd = 0.0_f64;
 
     for bank_balance in bank_balances {
-        // Find currency info for this denom
-        if let Some(currency) = currencies
+        // Find currency info for this denom (ibcData matches bank_symbol)
+        let currency = currencies_response
             .0
-            .iter()
-            .find(|c| c.bank_symbol == bank_balance.denom)
-        {
+            .currencies
+            .values()
+            .find(|c| c.ibc_data == bank_balance.denom);
+
+        if let Some(currency) = currency {
             // Calculate USD value (using human-readable amount for USD calculation)
             let amount_f64: f64 = bank_balance.amount.parse().unwrap_or(0.0);
             let decimal_factor = 10_f64.powi(currency.decimal_digits as i32);

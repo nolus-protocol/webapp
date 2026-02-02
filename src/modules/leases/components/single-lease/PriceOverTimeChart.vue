@@ -42,7 +42,7 @@ import { computed, ref, watch } from "vue";
 import { pointer, select, type Selection } from "d3";
 import { useI18n } from "vue-i18n";
 import { Dec } from "@keplr-wallet/unit";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 
 type ChartData = { Date: Date; Price: number; Liquidation: string | null };
@@ -55,7 +55,7 @@ const props = defineProps<{
 
 const chart = ref<typeof Chart>();
 const i18n = useI18n();
-const app = useApplicationStore();
+const configStore = useConfigStore();
 const pricesStore = usePricesStore();
 
 const chartHeight = 250;
@@ -77,7 +77,7 @@ watch(
 
 const currency = computed(() => {
   const ticker = props.lease?.etl_data?.lease_position_ticker ?? props.lease?.amount?.ticker;
-  const c = app.currenciesData?.[`${ticker}@${props.lease?.protocol}`];
+  const c = configStore.currenciesData?.[`${ticker}@${props.lease?.protocol}`];
   const price = pricesStore.prices[`${ticker}@${props.lease?.protocol}`];
   return {
     name: c?.shortName,
@@ -133,7 +133,7 @@ function getLiquidations() {
     for (const history of historyElements) {
       const ticker = history.symbol;
 
-      const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
+      const unitAssetInfo = configStore.currenciesData![`${ticker!}@${protocolKey}`];
       if (unitAssetInfo) {
         asset = asset.add(new Dec(history.amount ?? "0", unitAssetInfo.decimal_digits));
       }
@@ -159,9 +159,9 @@ function parceLiquidaitons(stableAdd: Dec, uAsset: Dec) {
   if (props.lease?.status === "opened") {
     const protocolKey = props.lease?.protocol!;
     const ticker = props.lease?.amount.ticker;
-    const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
+    const unitAssetInfo = configStore.currenciesData![`${ticker!}@${protocolKey}`];
     const lpn = getLpnByProtocol(protocolKey);
-    const stableAssetInfo = lpn ? app.currenciesData?.[lpn.key] : null;
+    const stableAssetInfo = lpn ? configStore.currenciesData?.[lpn.key] : null;
     
     const unitAsset = new Dec(props.lease.amount.amount, Number(unitAssetInfo?.decimal_digits ?? 0));
     const stableAsset = new Dec(props.lease.debt.principal, Number(stableAssetInfo?.decimal_digits ?? 0));
