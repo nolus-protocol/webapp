@@ -24,10 +24,10 @@ import Chart from "@/common/components/Chart.vue";
 import { lineY, plot, ruleY } from "@observablehq/plot";
 import { useI18n } from "vue-i18n";
 import { pointer, select, type Selection } from "d3";
-import { EtlApi, isMobile } from "@/common/utils";
+import { isMobile } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_CURRENCY } from "@/config/global";
-import { useWalletStore } from "@/common/stores/wallet";
+import { useWalletStore, useAnalyticsStore } from "@/common/stores";
 import { ref, watch } from "vue";
 
 type ChartData = { position?: number; debt?: number; date: Date };
@@ -42,12 +42,27 @@ const marginBottom = 50;
 
 const i18n = useI18n();
 const wallet = useWalletStore();
+const analyticsStore = useAnalyticsStore();
 const chart = ref<typeof Chart>();
 
+// Watch for position/debt data changes from analytics store
 watch(
-  () => wallet.wallet,
+  () => analyticsStore.positionDebtValue,
+  (response) => {
+    if (response) {
+      processPositionDebtData(response);
+    }
+  },
+  { immediate: true }
+);
+
+// Also watch for wallet changes to trigger fetch
+watch(
+  () => wallet.wallet?.address,
   () => {
-    loadData();
+    if (wallet.wallet?.address && !analyticsStore.positionDebtValue) {
+      loadData();
+    }
   },
   { immediate: true }
 );
@@ -149,39 +164,42 @@ function getClosestDataPoint(cPosition: number) {
   return closest;
 }
 
+function processPositionDebtData(response: any) {
+  const data: { [key: string]: { position?: string; debt?: string } } = {};
+
+  for (const item of response.position || []) {
+    data[new Date(item.time).toISOString()] = { position: item.amount };
+  }
+
+  for (const item of response.debt || []) {
+    const d = new Date(item.time).toISOString();
+    if (data[d]) {
+      data[d].debt = item.amount;
+    } else {
+      data[d] = { debt: item.amount };
+    }
+  }
+
+  const dates = Object.keys(data)
+    .map((item) => new Date(item))
+    .sort((a, b) => a.getTime() - b.getTime());
+  const items = [];
+
+  for (const date of dates) {
+    const d = data[date.toISOString()];
+    items.push({
+      date,
+      debt: d?.debt ? Number(d?.debt) : 0,
+      position: d?.position ? Number(d?.position) : 0
+    });
+  }
+  data_position.value = items;
+  chart.value?.update();
+}
+
 async function loadData() {
   if (wallet.wallet?.address) {
-    const response = await EtlApi.fetchPositionDebtValue(wallet.wallet?.address);
-    const data: { [key: string]: { position?: string; debt?: string } } = {};
-
-    for (const item of response.position) {
-      data[new Date(item.time).toISOString()] = { position: item.amount };
-    }
-
-    for (const item of response.debt) {
-      const d = new Date(item.time).toISOString();
-      if (data[d]) {
-        data[d].debt = item.amount;
-      } else {
-        data[d] = { debt: item.amount };
-      }
-    }
-
-    const dates = Object.keys(data)
-      .map((item) => new Date(item))
-      .sort((a, b) => a.getTime() - b.getTime());
-    const items = [];
-
-    for (const date of dates) {
-      const d = data[date.toISOString()];
-      items.push({
-        date,
-        debt: d?.debt ? Number(d?.debt) : 0,
-        position: d?.position ? Number(d?.position) : 0
-      });
-    }
-    data_position.value = items;
-    chart.value?.update();
+    await analyticsStore.fetchPositionDebtValue();
   }
 }
 </script>

@@ -38,42 +38,32 @@ import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import LoansChart from "@/modules/stats/components/LoansChart.vue";
 import { Widget } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
-import { EtlApi, isMobile, Logger } from "@/common/utils";
-import { ref, watch } from "vue";
+import { isMobile } from "@/common/utils";
+import { computed, watch } from "vue";
 import { NATIVE_CURRENCY } from "@/config/global";
-import { useConfigStore } from "@/common/stores/config";
+import { useConfigStore, useStatsStore } from "@/common/stores";
 
-const loading = ref(true);
-const openPositionValue = ref("0");
-const openInterest = ref("0");
 const configStore = useConfigStore();
+const statsStore = useStatsStore();
+
+// Computed properties from store
+const openPositionValue = computed(() => 
+  statsStore.loansStats.openPositionValue?.open_position_value ?? "0"
+);
+const openInterest = computed(() => 
+  statsStore.loansStats.openInterest?.open_interest ?? "0"
+);
+const loading = computed(() => statsStore.loansStatsLoading && !statsStore.hasLoansStats);
 
 watch(
   () => configStore.initialized,
   () => {
-    if (configStore.initialized) {
-      onInit();
+    if (configStore.initialized && !statsStore.initialized) {
+      statsStore.initialize();
     }
   },
   {
     immediate: true
   }
 );
-
-async function onInit() {
-  try {
-    // Use batch endpoint - single request instead of 2 separate requests
-    const data = await EtlApi.fetchLoansStatsBatch();
-
-    if (data.open_position_value) {
-      openPositionValue.value = data.open_position_value.open_position_value;
-    }
-    if (data.open_interest) {
-      openInterest.value = data.open_interest.open_interest;
-    }
-  } catch (e) {
-    Logger.error(e);
-  }
-  loading.value = false;
-}
 </script>

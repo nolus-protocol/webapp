@@ -67,77 +67,62 @@ import Chart from "@/common/components/Chart.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 
 import { barX, gridX, plot, ruleX } from "@observablehq/plot";
-import { EtlApi, isMobile, WalletManager } from "@/common/utils";
+import { isMobile, WalletManager } from "@/common/utils";
 import { select, pointer, type Selection } from "d3";
 import { NATIVE_CURRENCY, NORMAL_DECIMALS } from "@/config/global";
 import { Widget } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
-import { ref, watch } from "vue";
-import { useWalletStore } from "@/common/stores/wallet";
+import { ref, watch, computed, onMounted } from "vue";
+import { useAnalyticsStore } from "@/common/stores";
 
 const chartHeight = 125;
 const marginTop = 0;
 const marginBottom = 30;
 const marginLeft = isMobile() ? 50 : 50;
 const width = isMobile() ? 450 : 950;
-const loading = ref(true);
 
 const chart = ref<typeof Chart>();
 const chart_data = ref<{ percentage: number; ticker: string; loan: string }[]>([]);
-const wallet = useWalletStore();
-const pnl = ref("0");
-const tx_volume = ref("0");
-const win_rate = ref("0");
+const analyticsStore = useAnalyticsStore();
 
-type Data = {
-  pnl: number;
-  tx_volume: number;
-  win_rate: string;
-  bucket: {
-    bucket: string;
-    positions: number;
-    share_percent: string;
-  }[];
-};
+const pnl = computed(() => analyticsStore.historyStats?.pnl?.toString() ?? "0");
+const tx_volume = computed(() => analyticsStore.historyStats?.tx_volume?.toString() ?? "0");
+const win_rate = computed(() => analyticsStore.historyStats?.win_rate?.toString() ?? "0");
+const loading = computed(() => analyticsStore.historyDataLoading && !analyticsStore.hasHistoryData);
 
 const disabled = () => (WalletManager.getWalletConnectMechanism() ? false : true);
 
+// Watch for history stats changes to update chart data
 watch(
-  () => wallet.wallet,
-  () => {
-    setStats();
-  }
+  () => analyticsStore.historyStats,
+  (stats) => {
+    if (stats?.bucket) {
+      chart_data.value = stats.bucket.map((item: { bucket: string; positions: number; share_percent: string }) => {
+        return {
+          ticker: item.bucket,
+          percentage: Number(item.share_percent),
+          loan: item.positions.toString()
+        };
+      });
+    }
+    chart.value?.update();
+  },
+  { immediate: true }
 );
 
+onMounted(() => {
+  setStats();
+});
+
 async function setStats() {
-  try {
-    if (disabled()) {
-      loading.value = false;
-      chart.value?.update();
-      return;
-    }
-
-    if (!disabled() && !wallet.wallet) {
-      return;
-    }
-    const result: Data = await EtlApi.fetchHistoryStats(wallet.wallet?.address!);
-    pnl.value = result.pnl.toString();
-    tx_volume.value = result.tx_volume.toString();
-    win_rate.value = result.win_rate.toString();
-
-    chart_data.value = result.bucket.map((item) => {
-      return {
-        ticker: item.bucket,
-        percentage: Number(item.share_percent),
-        loan: item.positions.toString()
-      };
-    });
-    loading.value = false;
+  if (disabled()) {
     chart.value?.update();
-  } catch (e) {
-    loading.value = false;
-    chart.value?.update();
+    return;
   }
+
+  // Data will be fetched by analyticsStore when address is set
+  // Just trigger chart update
+  chart.value?.update();
 }
 
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {

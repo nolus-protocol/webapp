@@ -100,6 +100,7 @@ import { EtlApi, getCreatedAtForHuman, isMobile, Logger } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getLpnByProtocol, getProtocolByContract } from "@/common/utils/CurrencyLookup";
 import { useWalletStore } from "@/common/stores/wallet";
+import { useAnalyticsStore } from "@/common/stores";
 import { Dec } from "@keplr-wallet/unit";
 import { RouteNames } from "@/router";
 import { useRouter } from "vue-router";
@@ -108,14 +109,20 @@ import { useConfigStore } from "@/common/stores/config";
 
 const i18n = useI18n();
 const wallet = useWalletStore();
+const analyticsStore = useAnalyticsStore();
 const configStore = useConfigStore();
-const pnl = ref(new Dec(0));
+
+// Realized PnL from analytics store
+const pnl = computed(() => {
+  const realized = analyticsStore.realizedPnl?.realized_pnl;
+  return realized ? new Dec(realized) : new Dec(0);
+});
 
 const limit = 10;
 let skip = 0;
 const loadingPnl = ref(false);
 
-const loading = ref(false);
+const loading = computed(() => analyticsStore.realizedPnlListLoading);
 const loaded = ref(false);
 const showSkeleton = ref(true);
 const router = useRouter();
@@ -166,8 +173,7 @@ function goBack() {
 async function loadLoans() {
   try {
     if (wallet.wallet?.address) {
-      loading.value = true;
-      const res = await EtlApi.fetchPNL(wallet.wallet?.address, skip, limit);
+      const res = await analyticsStore.fetchPnlList(skip, limit);
       loans.value = [...loans.value, ...res] as ILoan[];
       const loadedSender = res.length < limit;
       if (loadedSender) {
@@ -180,10 +186,6 @@ async function loadLoans() {
     showSkeleton.value = false;
   } catch (e: Error | any) {
     Logger.error(e);
-  } finally {
-    setTimeout(() => {
-      loading.value = false;
-    }, 200);
   }
 }
 
@@ -257,11 +259,10 @@ function getType(item: ILoan) {
 }
 
 async function setRealizedPnl() {
-  try {
-    const data = await EtlApi.fetchRealizedPNL(wallet?.wallet?.address);
-    pnl.value = new Dec(data.realized_pnl);
-  } catch (error) {
-    console.error(error);
+  // Realized PnL is now fetched by analyticsStore when address is set
+  // The pnl computed property reads from analyticsStore.realizedPnl
+  if (!analyticsStore.realizedPnl && wallet.wallet?.address) {
+    await analyticsStore.fetchRealizedPnl();
   }
 }
 
@@ -291,7 +292,9 @@ async function downloadCsv() {
 
   loadingPnl.value = true;
 
-  const data = await EtlApi.fetchRealizedPNLData(wallet.wallet?.address);
+  // Use analyticsStore to fetch realized PnL data
+  await analyticsStore.fetchRealizedPnlData();
+  const data = analyticsStore.realizedPnlData ?? [];
   const csv = "\uFEFF" + jsonToCsv(data);
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);

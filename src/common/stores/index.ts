@@ -13,6 +13,8 @@ export { useEarnStore } from "./earn";
 export { useCampaignsStore } from "./campaigns";
 export { useReferralsStore } from "./referrals";
 export { useHistoryStore } from "./history";
+export { useStatsStore } from "./stats";
+export { useAnalyticsStore } from "./analytics";
 
 // Wallet store (connection and vesting only)
 export { useWalletStore, WalletActions } from "./wallet";

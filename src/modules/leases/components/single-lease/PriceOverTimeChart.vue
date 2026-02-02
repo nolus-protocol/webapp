@@ -33,7 +33,7 @@ import Chart from "@/common/components/Chart.vue";
 import { Tooltip } from "web-components";
 
 import type { LeaseInfo } from "@/common/api";
-import { EtlApi, isMobile, LeaseUtils } from "@/common/utils";
+import { isMobile, LeaseUtils } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { MAX_DECIMALS, NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
@@ -44,6 +44,7 @@ import { useI18n } from "vue-i18n";
 import { Dec } from "@keplr-wallet/unit";
 import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
+import { useAnalyticsStore } from "@/common/stores";
 
 type ChartData = { Date: Date; Price: number; Liquidation: string | null };
 
@@ -57,6 +58,7 @@ const chart = ref<typeof Chart>();
 const i18n = useI18n();
 const configStore = useConfigStore();
 const pricesStore = usePricesStore();
+const analyticsStore = useAnalyticsStore();
 
 const chartHeight = 250;
 const marginLeft = 50;
@@ -191,13 +193,13 @@ async function loadData(intetval: string) {
         ? ticker.split("@")
         : [ticker as string, props.lease!.protocol];
 
-      const prices = await EtlApi.fetchPriceSeries(key, protocol, intetval);
+      const prices = await analyticsStore.fetchPriceSeries(key, protocol, intetval);
       return prices;
     }
     case PositionTypes.short: {
       const lpn = getLpnByProtocol(props.lease?.protocol!);
       let [key, protocol] = lpn.key.split("@");
-      const prices = await EtlApi.fetchPriceSeries(key, protocol, intetval);
+      const prices = await analyticsStore.fetchPriceSeries(key, protocol, intetval);
       return prices;
     }
   }

@@ -11,12 +11,14 @@
 <script lang="ts" setup>
 import Chart from "@/common/components/Chart.vue";
 import { barX, gridX, plot, ruleX } from "@observablehq/plot";
-import { EtlApi, isMobile } from "@/common/utils";
+import { isMobile } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { select, pointer, type Selection } from "d3";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { NATIVE_CURRENCY } from "@/config/global";
+import { useStatsStore } from "@/common/stores";
+
 const chartHeight = 500;
 const marginTop = 20;
 const marginBottom = 30;
@@ -25,9 +27,20 @@ const width = isMobile() ? 450 : 950;
 
 const chart = ref<typeof Chart>();
 const loans = ref<{ percentage: number; ticker: string; loan: string }[]>([]);
+const statsStore = useStatsStore();
 
-async function setStats() {
-  const items: { loan: string; asset: string }[] = await EtlApi.fetchLeasedAssets();
+// Watch for leasedAssets changes from store
+watch(
+  () => statsStore.leasedAssets,
+  (items) => {
+    if (items) {
+      processLeasedAssets(items as { loan: string; asset: string }[]);
+    }
+  },
+  { immediate: true }
+);
+
+function processLeasedAssets(items: { loan: string; asset: string }[]) {
   let total = 0;
 
   for (const i of items) {
@@ -55,6 +68,13 @@ async function setStats() {
     .sort((a, b) => b.percentage - a.percentage);
 
   chart.value?.update();
+}
+
+async function setStats() {
+  // Data is now fetched by statsStore, just trigger a refresh if needed
+  if (!statsStore.leasedAssets) {
+    await statsStore.fetchLeasedAssets();
+  }
 }
 
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {

@@ -62,13 +62,11 @@ import EmptyState from "@/common/components/EmptyState.vue";
 
 import { Button, Widget } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
-import { EtlApi, isMobile, Logger, walletOperation } from "@/common/utils";
+import { isMobile, Logger, walletOperation } from "@/common/utils";
 import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { Dec } from "@keplr-wallet/unit";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
-import { useWalletStore } from "@/common/stores/wallet";
-import { useStakingStore } from "@/common/stores/staking";
-import { usePricesStore } from "@/common/stores/prices";
+import { useWalletStore, useStakingStore, usePricesStore, useAnalyticsStore } from "@/common/stores";
 import { computed, ref, watch } from "vue";
 
 const props = defineProps<{
@@ -78,10 +76,15 @@ const props = defineProps<{
 const wallet = useWalletStore();
 const stakingStore = useStakingStore();
 const pricesStore = usePricesStore();
+const analyticsStore = useAnalyticsStore();
 
-const earningsAmount = ref("0.00");
 const loadingStaking = ref(false);
 const disabled = ref(false);
+
+// Earnings from analytics store
+const earningsAmount = computed(() => 
+  analyticsStore.earnings?.earnings ?? "0.00"
+);
 
 // Set staking address when wallet connects/disconnects
 watch(
@@ -89,7 +92,7 @@ watch(
   async (address) => {
     if (address) {
       await stakingStore.setAddress(address);
-      await loadEarnings();
+      // Analytics store is initialized by connection store
     } else {
       stakingStore.clear();
     }
@@ -109,17 +112,6 @@ const stableRewards = computed(() => {
   const stable = rewardsAmount.mul(new Dec(price));
   return stable.toString(NATIVE_CURRENCY.maximumFractionDigits);
 });
-
-async function loadEarnings() {
-  if (wallet.wallet?.address) {
-    try {
-      const res = await EtlApi.fetchEarnings(wallet.wallet.address);
-      earningsAmount.value = res.earnings;
-    } catch (e) {
-      Logger.error(e);
-    }
-  }
-}
 
 async function onWithdrawRewards() {
   try {

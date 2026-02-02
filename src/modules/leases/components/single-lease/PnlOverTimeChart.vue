@@ -31,9 +31,10 @@ import { pointer, select, type Selection } from "d3";
 
 import { CHART_RANGES, NATIVE_CURRENCY } from "@/config/global";
 import { useI18n } from "vue-i18n";
-import { EtlApi, isMobile } from "@/common/utils";
+import { isMobile } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import type { LeaseInfo } from "@/common/api";
+import { useAnalyticsStore } from "@/common/stores";
 
 type ChartData = { amount: number; date: Date };
 
@@ -62,6 +63,7 @@ const data = ref<ChartData[]>([
 ]);
 const chart = ref<typeof Chart>();
 const props = defineProps<{ lease?: LeaseInfo | null }>();
+const analyticsStore = useAnalyticsStore();
 
 const gradientHTML = `
 <svg xmlns="http://www.w3.org/2000/svg" width="502" height="83" viewBox="0 0 502 83" fill="none">
@@ -77,9 +79,9 @@ const gradientHTML = `
 
 async function setData() {
   if (props.lease?.address) {
-    const response = await EtlApi.fetchPnlOverTime(props.lease?.address, chartTimeRange.value.days);
-    if (response.length > 0) {
-      data.value = response.map((d) => ({
+    await analyticsStore.fetchPnlOverTime(chartTimeRange.value.days);
+    if (analyticsStore.pnlOverTime.length > 0) {
+      data.value = analyticsStore.pnlOverTime.map((d) => ({
         date: new Date(d.date),
         amount: Number(d.amount)
       }));

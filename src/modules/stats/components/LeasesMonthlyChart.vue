@@ -11,12 +11,13 @@
 <script lang="ts" setup>
 import Chart from "@/common/components/Chart.vue";
 import { binX, rectY, ruleY } from "@observablehq/plot";
-import { EtlApi, isMobile } from "@/common/utils";
+import { isMobile } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { select, pointer, timeMonth, type Selection } from "d3";
 import { useI18n } from "vue-i18n";
 import { NATIVE_CURRENCY } from "@/config/global";
-import { ref } from "vue";
+import { ref, watch } from "vue";
+import { useStatsStore } from "@/common/stores";
 
 const chartHeight = 300;
 const chartWidth = isMobile() ? 350 : 950;
@@ -27,17 +28,30 @@ const chart = ref<typeof Chart>();
 
 const i18n = useI18n();
 const loans = ref<{ amount: number; date: Date }[]>([]);
+const statsStore = useStatsStore();
+
+// Watch for monthlyLeases changes from store
+watch(
+  () => statsStore.monthlyLeases,
+  (response) => {
+    if (response && response.length > 0) {
+      loans.value = response
+        .map((d) => ({
+          date: new Date(d.date as string),
+          amount: d.amount as number
+        }))
+        .reverse();
+      chart.value?.update();
+    }
+  },
+  { immediate: true }
+);
 
 async function setStats() {
-  const response = await EtlApi.fetchLeaseMonthly();
-  loans.value = response
-    .map((d) => ({
-      date: new Date(d.date),
-      amount: d.amount
-    }))
-    .reverse();
-
-  chart.value?.update();
+  // Data is now fetched by statsStore, just trigger a refresh if needed
+  if (statsStore.monthlyLeases.length === 0) {
+    await statsStore.fetchMonthlyLeases();
+  }
 }
 
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {

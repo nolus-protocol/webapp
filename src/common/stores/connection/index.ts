@@ -16,6 +16,8 @@ import { useBalancesStore } from "../balances";
 import { useLeasesStore } from "../leases";
 import { useStakingStore } from "../staking";
 import { useEarnStore } from "../earn";
+import { useStatsStore } from "../stats";
+import { useAnalyticsStore } from "../analytics";
 
 export const useConnectionStore = defineStore("connection", () => {
   // State
@@ -60,12 +62,14 @@ export const useConnectionStore = defineStore("connection", () => {
       const pricesStore = usePricesStore();
       const stakingStore = useStakingStore();
       const earnStore = useEarnStore();
+      const statsStore = useStatsStore();
 
       await Promise.all([
         configStore.initialize(),
         pricesStore.initialize(),
         stakingStore.initialize(),
         earnStore.initialize(),
+        statsStore.initialize(),
       ]);
 
       appInitialized.value = true;
@@ -92,12 +96,14 @@ export const useConnectionStore = defineStore("connection", () => {
     const leasesStore = useLeasesStore();
     const stakingStore = useStakingStore();
     const earnStore = useEarnStore();
+    const analyticsStore = useAnalyticsStore();
 
     await Promise.all([
       balancesStore.setAddress(address),
       leasesStore.setOwner(address),
       stakingStore.setAddress(address),
       earnStore.setAddress(address),
+      analyticsStore.setAddress(address),
     ]);
   }
 
@@ -112,11 +118,13 @@ export const useConnectionStore = defineStore("connection", () => {
     const leasesStore = useLeasesStore();
     const stakingStore = useStakingStore();
     const earnStore = useEarnStore();
+    const analyticsStore = useAnalyticsStore();
 
     balancesStore.clear();
     leasesStore.clear();
     stakingStore.clear();
     earnStore.clear();
+    analyticsStore.clear();
   }
 
   /**
@@ -126,22 +134,26 @@ export const useConnectionStore = defineStore("connection", () => {
     const pricesStore = usePricesStore();
     const earnStore = useEarnStore();
     const stakingStore = useStakingStore();
+    const statsStore = useStatsStore();
 
     const promises: Promise<void>[] = [
       pricesStore.fetchPrices(),
       earnStore.refresh(),
       stakingStore.fetchValidators(),
+      statsStore.refresh(),
     ];
 
     if (walletAddress.value) {
       const balancesStore = useBalancesStore();
       const leasesStore = useLeasesStore();
+      const analyticsStore = useAnalyticsStore();
 
       promises.push(
         balancesStore.fetchBalances(),
         leasesStore.fetchLeases(),
         stakingStore.fetchPositions(),
-        earnStore.fetchPositions()
+        earnStore.fetchPositions(),
+        analyticsStore.refresh()
       );
     }
 
@@ -161,7 +173,9 @@ export const useConnectionStore = defineStore("connection", () => {
 
     // Cleanup all stores
     const pricesStore = usePricesStore();
+    const statsStore = useStatsStore();
     pricesStore.cleanup();
+    statsStore.cleanup();
 
     disconnectWallet();
 

@@ -41,12 +41,13 @@
 import Chart from "@/common/components/Chart.vue";
 import { lineY, plot, ruleY } from "@observablehq/plot";
 import { pointer, select, type Selection } from "d3";
-import { EtlApi, isMobile } from "@/common/utils";
+import { isMobile } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { useI18n } from "vue-i18n";
 import { NATIVE_CURRENCY } from "@/config/global";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { Dropdown } from "web-components";
+import { useStatsStore } from "@/common/stores";
 
 type ChartData = { date: Date; borrowed: number; supplied: number };
 
@@ -59,6 +60,25 @@ const marginBottom = 50;
 const data = ref<ChartData[]>([]);
 const i18n = useI18n();
 const chart = ref<typeof Chart>();
+const statsStore = useStatsStore();
+
+// Watch for supplyBorrowHistory changes from store
+watch(
+  () => statsStore.supplyBorrowHistory,
+  (response) => {
+    if (response && response.length > 0) {
+      data.value = response
+        .map((d) => ({
+          date: new Date(d.lp_pool_timestamp as string),
+          borrowed: d.borrowed as number,
+          supplied: d.supplied as number
+        }))
+        .reverse();
+      chart.value?.update();
+    }
+  },
+  { immediate: true }
+);
 
 const options = ref([
   { label: `3${i18n.t("message.month_abr")}`, value: "3m" },
@@ -168,16 +188,8 @@ function getClosestDataPoint(cPosition: number) {
 }
 
 async function loadData() {
-  const response = await EtlApi.fetchTimeSeries(chartTimeRange.value.value);
-  data.value = response
-    .map((d) => ({
-      date: new Date(d.lp_pool_timestamp),
-      borrowed: d.borrowed,
-      supplied: d.supplied
-    }))
-    .reverse();
-
-  chart.value?.update();
+  // Fetch with the current time range
+  await statsStore.fetchSupplyBorrowHistory(chartTimeRange.value.value);
 }
 </script>
 

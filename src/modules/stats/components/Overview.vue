@@ -80,55 +80,31 @@ import LeasesMonthlyChart from "@/modules/stats/components/LeasesMonthlyChart.vu
 
 import { Widget } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
-import { EtlApi, isMobile, Logger } from "@/common/utils";
-import { ref, watch } from "vue";
+import { isMobile } from "@/common/utils";
+import { computed, watch } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
-import { useConfigStore } from "@/common/stores/config";
+import { useConfigStore, useStatsStore } from "@/common/stores";
 
-const txVolume = ref("0");
-const buybackTotal = ref("0");
-const realized_pnl = ref("0");
-const protocolRevenue = ref("0");
-const tvl = ref("0");
 const configStore = useConfigStore();
+const statsStore = useStatsStore();
 
-const loading = ref(true);
+// Computed properties from store
+const tvl = computed(() => statsStore.overview.tvl);
+const txVolume = computed(() => statsStore.overview.txVolume);
+const buybackTotal = computed(() => statsStore.overview.buybackTotal);
+const realized_pnl = computed(() => statsStore.overview.realizedPnlStats);
+const protocolRevenue = computed(() => statsStore.overview.revenue);
+const loading = computed(() => statsStore.overviewLoading && !statsStore.hasOverviewData);
 
 watch(
   () => configStore.initialized,
   () => {
-    if (configStore.initialized) {
-      onInit();
+    if (configStore.initialized && !statsStore.initialized) {
+      statsStore.initialize();
     }
   },
   {
     immediate: true
   }
 );
-
-async function onInit() {
-  try {
-    // Use batch endpoint - single request instead of 5 separate requests
-    const data = await EtlApi.fetchStatsOverviewBatch();
-
-    if (data.tvl) {
-      tvl.value = data.tvl.total_value_locked;
-    }
-    if (data.tx_volume) {
-      txVolume.value = data.tx_volume.total_tx_value;
-    }
-    if (data.buyback_total) {
-      buybackTotal.value = data.buyback_total.buyback_total;
-    }
-    if (data.realized_pnl_stats) {
-      realized_pnl.value = data.realized_pnl_stats.amount;
-    }
-    if (data.revenue) {
-      protocolRevenue.value = data.revenue.revenue;
-    }
-  } catch (e) {
-    Logger.error(e);
-  }
-  loading.value = false;
-}
 </script>
