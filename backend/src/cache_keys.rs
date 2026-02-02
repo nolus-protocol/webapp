@@ -46,17 +46,6 @@ pub mod config {
 pub mod apr {
     /// Staking APR
     pub const STAKING_APR: &str = "staking_apr";
-
-    /// Earn APR for all pools
-    pub const EARN_APR_ALL: &str = "earn_apr_all";
-
-    /// Protocol-specific earn APR (use with format!)
-    pub const EARN_APR_PREFIX: &str = "earn_apr:";
-
-    /// Build a protocol-specific APR key
-    pub fn earn_apr_key(protocol: &str) -> String {
-        format!("{}{}", EARN_APR_PREFIX, protocol)
-    }
 }
 
 /// Cache keys for pool data
@@ -146,5 +135,3 @@ pub mod etl {
     /// User history batch
     pub const USER_HISTORY: &str = "etl:batch:user-history";
 }
-
-

@@ -143,15 +143,6 @@ pub struct PoolInfo {
     pub deposit_cap: Option<String>,
 }
 
-/// Earn APR response
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EarnAprResponse {
-    pub protocol: String,
-    pub apr: f64,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub utilization: Option<f64>,
-}
-
 // ============================================================================
 // User-Specific Types
 // ============================================================================
@@ -400,4 +391,3 @@ pub struct LpWithdrawResponse {
 // ============================================================================
 // Tests
 // ============================================================================
-

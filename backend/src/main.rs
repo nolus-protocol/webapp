@@ -41,7 +41,10 @@ mod test_utils;
 use crate::config::AppConfig;
 use crate::config_store::ConfigStore;
 use crate::handlers::websocket::WebSocketManager;
-use crate::translations::{TranslationStorage, openai::{OpenAIClient, OpenAIConfig}};
+use crate::translations::{
+    openai::{OpenAIClient, OpenAIConfig},
+    TranslationStorage,
+};
 
 /// Application state shared across all handlers
 pub struct AppState {
@@ -238,7 +241,6 @@ fn create_router(state: Arc<AppState>) -> Router {
     // ETL proxy routes
     let etl_routes = Router::new()
         .route("/pools", get(handlers::etl_proxy::proxy_pools))
-        .route("/earn-apr", get(handlers::etl_proxy::proxy_earn_apr))
         .route("/ls-opening", get(handlers::etl_proxy::proxy_lease_opening))
         .route("/prices", get(handlers::etl_proxy::proxy_price_series))
         .route(
@@ -331,7 +333,10 @@ fn create_router(state: Arc<AppState>) -> Router {
     let read_routes = Router::new()
         // Health check
         .route("/health", get(handlers::admin::health_check))
-        .route("/health/detailed", get(handlers::admin::detailed_health_check))
+        .route(
+            "/health/detailed",
+            get(handlers::admin::detailed_health_check),
+        )
         // Configuration
         .route("/config", get(handlers::config::get_config))
         .route("/config/protocols", get(handlers::config::get_protocols))

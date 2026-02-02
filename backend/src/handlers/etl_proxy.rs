@@ -10,12 +10,7 @@
 
 use std::sync::Arc;
 
-use axum::{
-    extract::State,
-    http::StatusCode,
-    response::IntoResponse,
-    Json,
-};
+use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use reqwest::Client;
 use serde::Deserialize;
 use tracing::debug;
@@ -23,22 +18,20 @@ use tracing::debug;
 use crate::AppState;
 
 // Re-export macros for use in this module
-use crate::{
-    etl_proxy_typed, etl_proxy_typed_with_params, etl_proxy_typed_paginated,
-    etl_batch_handler_typed,
-};
 use crate::cache_keys;
+use crate::{
+    etl_batch_handler_typed, etl_proxy_typed, etl_proxy_typed_paginated,
+    etl_proxy_typed_with_params,
+};
 
 // Import typed response types
 use super::etl_types::{
-    TvlResponse, TxVolumeResponse, BuybackTotalResponse, RevenueResponse,
-    OpenPositionValueResponse, OpenInterestResponse, UnrealizedPnlResponse,
-    RealizedPnlStatsResponse, SuppliedFundsResponse, LeasedAssetsResponse,
-    PoolsResponse, EarnAprResponse, LeasesMonthlyResponse,
-    LeaseOpeningResponse, LeaseClosingResponse, LeasesSearchResponse,
-    TxsResponse, LpWithdrawResponse, EarningsResponse, UserRealizedPnlResponse,
-    RealizedPnlDataResponse, PositionDebtValueResponse, HistoryStatsResponse,
-    PnlOverTimeResponse, PriceSeriesResponse, TimeSeriesResponse,
+    BuybackTotalResponse, EarningsResponse, HistoryStatsResponse, LeaseClosingResponse,
+    LeaseOpeningResponse, LeasedAssetsResponse, LeasesMonthlyResponse, LeasesSearchResponse,
+    LpWithdrawResponse, OpenInterestResponse, OpenPositionValueResponse, PnlOverTimeResponse,
+    PoolsResponse, PositionDebtValueResponse, PriceSeriesResponse, RealizedPnlDataResponse,
+    RealizedPnlStatsResponse, RevenueResponse, SuppliedFundsResponse, TimeSeriesResponse,
+    TvlResponse, TxVolumeResponse, TxsResponse, UnrealizedPnlResponse, UserRealizedPnlResponse,
 };
 
 // ============================================================================
@@ -58,33 +51,127 @@ pub struct ProxyQuery {
 // ============================================================================
 
 etl_proxy_typed!(proxy_pools, "pools", PoolsResponse, cache_keys::etl::POOLS);
-etl_proxy_typed!(proxy_tvl, "total-value-locked", TvlResponse, cache_keys::etl::TVL);
-etl_proxy_typed!(proxy_tx_volume, "total-tx-value", TxVolumeResponse, cache_keys::etl::TX_VOLUME);
-etl_proxy_typed!(proxy_leases_monthly, "leases-monthly", LeasesMonthlyResponse, cache_keys::etl::LEASES_MONTHLY);
-etl_proxy_typed!(proxy_open_position_value, "open-position-value", OpenPositionValueResponse, cache_keys::etl::OPEN_POSITION_VALUE);
-etl_proxy_typed!(proxy_open_interest, "open-interest", OpenInterestResponse, cache_keys::etl::OPEN_INTEREST);
-etl_proxy_typed!(proxy_unrealized_pnl, "unrealized-pnl", UnrealizedPnlResponse, cache_keys::etl::UNREALIZED_PNL);
-etl_proxy_typed!(proxy_realized_pnl_stats, "realized-pnl-stats", RealizedPnlStatsResponse, cache_keys::etl::REALIZED_PNL_STATS);
-etl_proxy_typed!(proxy_supplied_funds, "supplied-funds", SuppliedFundsResponse, cache_keys::etl::SUPPLIED_FUNDS);
-etl_proxy_typed!(proxy_leased_assets, "leased-assets", LeasedAssetsResponse, cache_keys::etl::LEASED_ASSETS);
-etl_proxy_typed!(proxy_buyback_total, "buyback-total", BuybackTotalResponse, cache_keys::etl::BUYBACK_TOTAL);
-etl_proxy_typed!(proxy_revenue, "revenue", RevenueResponse, cache_keys::etl::REVENUE);
+etl_proxy_typed!(
+    proxy_tvl,
+    "total-value-locked",
+    TvlResponse,
+    cache_keys::etl::TVL
+);
+etl_proxy_typed!(
+    proxy_tx_volume,
+    "total-tx-value",
+    TxVolumeResponse,
+    cache_keys::etl::TX_VOLUME
+);
+etl_proxy_typed!(
+    proxy_leases_monthly,
+    "leases-monthly",
+    LeasesMonthlyResponse,
+    cache_keys::etl::LEASES_MONTHLY
+);
+etl_proxy_typed!(
+    proxy_open_position_value,
+    "open-position-value",
+    OpenPositionValueResponse,
+    cache_keys::etl::OPEN_POSITION_VALUE
+);
+etl_proxy_typed!(
+    proxy_open_interest,
+    "open-interest",
+    OpenInterestResponse,
+    cache_keys::etl::OPEN_INTEREST
+);
+etl_proxy_typed!(
+    proxy_unrealized_pnl,
+    "unrealized-pnl",
+    UnrealizedPnlResponse,
+    cache_keys::etl::UNREALIZED_PNL
+);
+etl_proxy_typed!(
+    proxy_realized_pnl_stats,
+    "realized-pnl-stats",
+    RealizedPnlStatsResponse,
+    cache_keys::etl::REALIZED_PNL_STATS
+);
+etl_proxy_typed!(
+    proxy_supplied_funds,
+    "supplied-funds",
+    SuppliedFundsResponse,
+    cache_keys::etl::SUPPLIED_FUNDS
+);
+etl_proxy_typed!(
+    proxy_leased_assets,
+    "leased-assets",
+    LeasedAssetsResponse,
+    cache_keys::etl::LEASED_ASSETS
+);
+etl_proxy_typed!(
+    proxy_buyback_total,
+    "buyback-total",
+    BuybackTotalResponse,
+    cache_keys::etl::BUYBACK_TOTAL
+);
+etl_proxy_typed!(
+    proxy_revenue,
+    "revenue",
+    RevenueResponse,
+    cache_keys::etl::REVENUE
+);
 
 // ============================================================================
 // Proxy Handlers with Query Parameters
 // ============================================================================
 
-etl_proxy_typed_with_params!(proxy_earn_apr, "earn-apr", EarnAprResponse, ["protocol"]);
-etl_proxy_typed_with_params!(proxy_lease_opening, "ls-opening", LeaseOpeningResponse, ["lease"]);
-etl_proxy_typed_with_params!(proxy_price_series, "prices", PriceSeriesResponse, ["interval", "key", "protocol"]);
-etl_proxy_typed_with_params!(proxy_pnl_over_time, "pnl-over-time", PnlOverTimeResponse, ["interval", "address"]);
-etl_proxy_typed_with_params!(proxy_position_debt_value, "position-debt-value", PositionDebtValueResponse, ["address"]);
-etl_proxy_typed_with_params!(proxy_realized_pnl, "realized-pnl", UserRealizedPnlResponse, ["address"]);
-etl_proxy_typed_with_params!(proxy_realized_pnl_data, "realized-pnl-data", RealizedPnlDataResponse, ["address"]);
-etl_proxy_typed_with_params!(proxy_time_series, "supplied-borrowed-history", TimeSeriesResponse, ["period"]);
+etl_proxy_typed_with_params!(
+    proxy_lease_opening,
+    "ls-opening",
+    LeaseOpeningResponse,
+    ["lease"]
+);
+etl_proxy_typed_with_params!(
+    proxy_price_series,
+    "prices",
+    PriceSeriesResponse,
+    ["interval", "key", "protocol"]
+);
+etl_proxy_typed_with_params!(
+    proxy_pnl_over_time,
+    "pnl-over-time",
+    PnlOverTimeResponse,
+    ["interval", "address"]
+);
+etl_proxy_typed_with_params!(
+    proxy_position_debt_value,
+    "position-debt-value",
+    PositionDebtValueResponse,
+    ["address"]
+);
+etl_proxy_typed_with_params!(
+    proxy_realized_pnl,
+    "realized-pnl",
+    UserRealizedPnlResponse,
+    ["address"]
+);
+etl_proxy_typed_with_params!(
+    proxy_realized_pnl_data,
+    "realized-pnl-data",
+    RealizedPnlDataResponse,
+    ["address"]
+);
+etl_proxy_typed_with_params!(
+    proxy_time_series,
+    "supplied-borrowed-history",
+    TimeSeriesResponse,
+    ["period"]
+);
 etl_proxy_typed_with_params!(proxy_earnings, "earnings", EarningsResponse, ["address"]);
 etl_proxy_typed_with_params!(proxy_lp_withdraw, "lp-withdraw", LpWithdrawResponse, ["tx"]);
-etl_proxy_typed_with_params!(proxy_history_stats, "history-stats", HistoryStatsResponse, ["address"]);
+etl_proxy_typed_with_params!(
+    proxy_history_stats,
+    "history-stats",
+    HistoryStatsResponse,
+    ["address"]
+);
 
 // ============================================================================
 // Proxy Handlers with Pagination
@@ -152,7 +239,11 @@ etl_batch_handler_typed!(
         (tvl, "total-value-locked", TvlResponse),
         (tx_volume, "total-tx-value", TxVolumeResponse),
         (buyback_total, "buyback-total", BuybackTotalResponse),
-        (realized_pnl_stats, "realized-pnl-stats", RealizedPnlStatsResponse),
+        (
+            realized_pnl_stats,
+            "realized-pnl-stats",
+            RealizedPnlStatsResponse
+        ),
         (revenue, "revenue", RevenueResponse),
     ]
 );
@@ -169,7 +260,11 @@ etl_batch_handler_typed!(
     LoansStatsBatch,
     cache_keys::etl::LOANS_STATS,
     [
-        (open_position_value, "open-position-value", OpenPositionValueResponse),
+        (
+            open_position_value,
+            "open-position-value",
+            OpenPositionValueResponse
+        ),
         (open_interest, "open-interest", OpenInterestResponse),
     ]
 );
@@ -189,7 +284,11 @@ etl_batch_handler_typed!(
     [
         (earnings, "earnings", EarningsResponse),
         (realized_pnl, "realized-pnl", UserRealizedPnlResponse),
-        (position_debt_value, "position-debt-value", PositionDebtValueResponse),
+        (
+            position_debt_value,
+            "position-debt-value",
+            PositionDebtValueResponse
+        ),
     ]
 );
 
@@ -206,7 +305,11 @@ etl_batch_handler_typed!(
     cache_keys::etl::USER_HISTORY,
     [
         (history_stats, "history-stats", HistoryStatsResponse),
-        (realized_pnl_data, "realized-pnl-data", RealizedPnlDataResponse),
+        (
+            realized_pnl_data,
+            "realized-pnl-data",
+            RealizedPnlDataResponse
+        ),
     ]
 );
 
@@ -272,4 +375,3 @@ async fn proxy_post(client: &Client, url: &str, body: serde_json::Value) -> impl
 // ============================================================================
 // Tests
 // ============================================================================
-

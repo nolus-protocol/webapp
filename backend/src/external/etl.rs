@@ -238,7 +238,7 @@ impl EtlClient {
 
     /// Fetch TVL
     pub async fn fetch_tvl(&self) -> Result<EtlTvlResponse, AppError> {
-        let url = self.url().endpoint("tvl");
+        let url = self.url().endpoint("total-value-locked");
         debug!("Fetching TVL from {}", url);
 
         self.client
@@ -250,23 +250,6 @@ impl EtlClient {
             .check_status(API_NAME, "TVL")
             .await?
             .parse_json(API_NAME, "TVL")
-            .await
-    }
-
-    /// Fetch earn APR for a protocol
-    pub async fn fetch_earn_apr(&self, protocol: &str) -> Result<EtlEarnApr, AppError> {
-        let url = self.url().with_query("earn-apr", &[("protocol", protocol)]);
-        debug!("Fetching earn APR from {}", url);
-
-        self.client
-            .get(&url)
-            .send()
-            .await
-            .with_context(API_NAME, "fetch earn APR")
-            .await?
-            .check_status(API_NAME, "earn APR")
-            .await?
-            .parse_json(API_NAME, "earn APR")
             .await
     }
 }
@@ -412,11 +395,4 @@ pub struct EtlTransaction {
 pub struct EtlTvlResponse {
     pub total: Option<String>,
     pub by_protocol: Option<serde_json::Value>,
-}
-
-/// Earn APR from ETL API
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EtlEarnApr {
-    pub protocol: String,
-    pub apr: Option<String>,
 }
