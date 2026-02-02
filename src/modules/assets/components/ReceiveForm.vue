@@ -913,8 +913,9 @@ function getChains(route?: RouteResponse) {
 
   for (const chain of chains) {
     for (const key in SUPPORTED_NETWORKS_DATA) {
-      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chain_name.toLowerCase()) {
-        chainToParse[key] = SUPPORTED_NETWORKS_DATA[key];
+      const networkData = SUPPORTED_NETWORKS_DATA[key];
+      if (networkData?.value == chain.chain_name.toLowerCase()) {
+        chainToParse[key] = networkData;
       }
     }
   }
@@ -930,8 +931,9 @@ function getChainIds(route?: RouteResponse) {
 
   for (const chain of chains) {
     for (const key in SUPPORTED_NETWORKS_DATA) {
-      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chain_name.toLowerCase()) {
-        chainToParse[chain.chain_id] = SUPPORTED_NETWORKS_DATA[key];
+      const networkData = SUPPORTED_NETWORKS_DATA[key];
+      if (networkData?.value == chain.chain_name.toLowerCase()) {
+        chainToParse[chain.chain_id] = networkData;
       }
     }
   }

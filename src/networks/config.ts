@@ -1,5 +1,4 @@
-import { NATIVE_NETWORK } from "@/config/global";
-// Import directly from networks.ts to avoid circular dependency through barrel file
+// Import directly from source files to avoid circular dependency through barrel files
 import { CURRENT_NETWORK_KEY, DEFAULT_PRIMARY_NETWORK } from "@/config/global/networks";
 
 import { NETWORK as NOLUS_NETWORK } from "./list/nolus/network";
@@ -112,309 +111,370 @@ import BaseIcon from "../assets/icons/networks/base.svg?url";
 
 export const PROOBUF_ONLY_NETWORK = [ARBITRUM_NETWORK.key];
 
-export const SUPPORTED_NETWORKS_DATA: {
-  [key: string]: Network | EvmNetwork;
-} = {
-  NOLUS: { ...NATIVE_NETWORK, icon: NolusIcon },
-  OSMOSIS: {
-    prefix: OSMO_NETWORK.prefix,
-    key: OSMO_NETWORK.key,
-    symbol: OSMO_NETWORK.ticker,
-    value: "osmosis",
-    label: "Osmosis",
-    estimation: 20,
-    native: false,
-    chain_type: ChainType.cosmos,
-    icon: OsmosisIcon
-  },
-  COSMOS_HUB: {
-    prefix: ATOM_NETWORK.prefix,
-    key: ATOM_NETWORK.key,
-    symbol: ATOM_NETWORK.ticker,
-    value: "cosmoshub",
-    label: "Cosmos Hub",
-    native: false,
-    estimation: 20,
-    forward: true,
-    chain_type: ChainType.cosmos,
-    icon: CosmosIcon
-  },
-  AXELAR: {
-    prefix: AXELAR_NETWORK.prefix,
-    key: AXELAR_NETWORK.key,
-    symbol: AXELAR_NETWORK.ticker,
-    value: "axelar",
-    label: "Axelar",
-    native: false,
-    estimation: 20,
-    forward: true,
-    chain_type: ChainType.cosmos,
-    icon: AxelarIcon
-  },
-  STRIDE: {
-    prefix: STRIDE_NETWORK.prefix,
-    key: STRIDE_NETWORK.key,
-    symbol: STRIDE_NETWORK.ticker,
-    value: "stride",
-    label: "Stride",
-    native: false,
-    estimation: 20,
-    forward: true,
-    chain_type: ChainType.cosmos,
-    icon: StrideIcon
-  },
-  JUNO: {
-    prefix: JUNO_NETWORK.prefix,
-    key: JUNO_NETWORK.key,
-    symbol: JUNO_NETWORK.ticker,
-    value: "juno",
-    label: "Juno",
-    native: false,
-    estimation: 20,
-    forward: true,
-    chain_type: ChainType.cosmos,
-    icon: JunoIcon
-  },
-  EVMOS: {
-    prefix: EVMOS_NETWORK.prefix,
-    key: EVMOS_NETWORK.key,
-    symbol: EVMOS_NETWORK.ticker,
-    value: "evmos",
-    label: "Evmos",
-    native: false,
-    estimation: 20,
-    forward: true,
-    chain_type: ChainType.cosmos,
-    icon: EvmosIcon
-  },
-  PERSISTENCE: {
-    prefix: PERSISTENCE_NETWORK.prefix,
-    key: PERSISTENCE_NETWORK.key,
-    symbol: PERSISTENCE_NETWORK.ticker,
-    value: "persistence",
-    label: "Persistence",
-    native: false,
-    estimation: 20,
-    forward: true,
-    chain_type: ChainType.cosmos,
-    icon: PersistenceIcon
-  },
-  SECRET: {
-    prefix: SECRET_NETWORK.prefix,
-    key: SECRET_NETWORK.key,
-    symbol: SECRET_NETWORK.ticker,
-    value: "secret",
-    label: "Secret",
-    native: false,
-    estimation: 20,
-    forward: true,
-    chain_type: ChainType.cosmos,
-    icon: SecretIcon
-  },
-  CELESTIA: {
-    prefix: CELESTIA_NETWORK.prefix,
-    key: CELESTIA_NETWORK.key,
-    symbol: CELESTIA_NETWORK.ticker,
-    value: "celestia",
-    label: "Celestia",
-    native: false,
-    estimation: 20,
-    forward: true,
-    chain_type: ChainType.cosmos,
-    icon: CelestiaIcon
-  },
-  STARGAZE: {
-    prefix: STARGAZE_NETWORK.prefix,
-    key: STARGAZE_NETWORK.key,
-    symbol: STARGAZE_NETWORK.ticker,
-    value: "stargaze",
-    label: "Stargaze",
-    native: false,
-    estimation: 20,
-    forward: true,
-    chain_type: ChainType.cosmos,
-    icon: StarsIcon
-  },
-  QUICKSILVER: {
-    prefix: QUICKSILVER_NETWORK.prefix,
-    key: QUICKSILVER_NETWORK.key,
-    symbol: QUICKSILVER_NETWORK.ticker,
-    value: "quicksilver",
-    label: "Quicksilver",
-    native: false,
-    estimation: 20,
-    forward: true,
-    chain_type: ChainType.cosmos,
-    icon: QuicksilverIcon
-  },
-  NEUTRON: {
-    prefix: NEUTRON_NETWORK.prefix,
-    key: NEUTRON_NETWORK.key,
-    symbol: NEUTRON_NETWORK.ticker,
-    value: "neutron",
-    label: "Neutron",
-    native: false,
-    estimation: 20,
-    forward: false,
-    chain_type: ChainType.cosmos,
-    icon: NeutronIcon
-  },
-  DYMENSION: {
-    prefix: DYMENSION_NETWORK.prefix,
-    key: DYMENSION_NETWORK.key,
-    symbol: DYMENSION_NETWORK.ticker,
-    value: "dymension",
-    label: "Dymension",
-    native: false,
-    estimation: 20,
-    forward: true,
-    chain_type: ChainType.cosmos,
-    icon: DymensionIcon
-  },
-  JACKAL: {
-    prefix: JACKAL_NETWORK.prefix,
-    key: JACKAL_NETWORK.key,
-    symbol: JACKAL_NETWORK.ticker,
-    value: "jackal",
-    label: "Jackal",
-    native: false,
-    estimation: 20,
-    forward: true,
-    chain_type: ChainType.cosmos,
-    icon: JackalIcon
-  },
-  INJECTIVE: {
-    prefix: INJECTIVE_NETWORK.prefix,
-    key: INJECTIVE_NETWORK.key,
-    symbol: INJECTIVE_NETWORK.ticker,
-    value: "injective",
-    label: "Injective",
-    native: false,
-    estimation: 20,
-    forward: true,
-    chain_type: ChainType.cosmos,
-    icon: InjectiveIcon
-  },
-  COMPOSABLE: {
-    prefix: COMPOSABLE_NETWORK.prefix,
-    key: COMPOSABLE_NETWORK.key,
-    symbol: COMPOSABLE_NETWORK.ticker,
-    value: "composable",
-    label: "Composable",
-    native: false,
-    estimation: 20,
-    forward: true,
-    chain_type: ChainType.cosmos,
-    icon: ComposableIcon
-  },
-  NOBLE: {
-    prefix: NOBLE_NETWORK.prefix,
-    key: NOBLE_NETWORK.key,
-    symbol: NOBLE_NETWORK.ticker,
-    value: "noble",
-    label: "Noble",
-    native: false,
-    estimation: 20,
-    forward: true,
-    chain_type: ChainType.cosmos,
-    icon: NobleIcon
-  },
-  CUDOS: {
-    prefix: CUDOS_NETWORK.prefix,
-    key: CUDOS_NETWORK.key,
-    symbol: CUDOS_NETWORK.ticker,
-    value: "cudos",
-    label: "Cudos",
-    native: false,
-    estimation: 20,
-    forward: true,
-    chain_type: ChainType.cosmos,
-    icon: CudosIcon
-  },
-  ETHEREUM: {
-    ...ETHEREUM_NETWORK,
-    value: "ethereum",
-    native: false,
-    chain_type: ChainType.evm,
-    icon: EthereumIcon
-  },
-  ARBITRUM: {
-    ...ARBITRUM_NETWORK,
-    value: "arbitrum",
-    native: false,
-    chain_type: ChainType.evm,
-    icon: ArbitrumIcon
-  },
-  BINANCE: {
-    ...BINANCE_NETWORK,
-    value: "binance",
-    native: false,
-    chain_type: ChainType.evm,
-    icon: BinanceIcon
-  },
-  MANTRA: {
-    prefix: MANTRA_NETWORK.prefix,
-    key: MANTRA_NETWORK.key,
-    symbol: MANTRA_NETWORK.ticker,
-    value: "mantra",
-    label: "Mantra",
-    native: false,
-    estimation: 20,
-    forward: true,
-    chain_type: ChainType.cosmos,
-    icon: MantraIcon
-  },
-  XION: {
-    prefix: XION_NETWORK.prefix,
-    key: XION_NETWORK.key,
-    symbol: XION_NETWORK.ticker,
-    value: "xion",
-    label: "Xion",
-    native: false,
-    estimation: 20,
-    forward: true,
-    chain_type: ChainType.cosmos,
-    icon: XionIcon
-  },
-  NILLION: {
-    prefix: NILLION_NETWORK.prefix,
-    key: NILLION_NETWORK.key,
-    symbol: NILLION_NETWORK.ticker,
-    value: "nillion",
-    label: "Nillion",
-    native: false,
-    estimation: 20,
-    forward: true,
-    chain_type: ChainType.cosmos,
-    icon: NillionIcon
-  },
-  BABYLON: {
-    prefix: BABYLON_NETWORK.prefix,
-    key: BABYLON_NETWORK.key,
-    symbol: BABYLON_NETWORK.ticker,
-    value: "babylon",
-    label: "Babylon",
-    native: false,
-    estimation: 20,
-    forward: true,
-    chain_type: ChainType.cosmos,
-    icon: BabylonIcon
-  },
-  AVALANCHE: {
-    ...AVALANCHE_NETWORK,
-    value: "avalanche",
-    native: false,
-    chain_type: ChainType.evm,
-    icon: AvalancheIcon
-  },
-  BASE: {
-    ...BASE_NETWORK,
-    value: "base",
-    native: false,
-    chain_type: ChainType.evm,
-    icon: BaseIcon
-  }
+/**
+ * Network icon mapping - static assets that don't depend on backend config
+ */
+const NETWORK_ICONS: { [key: string]: string } = {
+  NOLUS: NolusIcon,
+  OSMOSIS: OsmosisIcon,
+  COSMOS_HUB: CosmosIcon,
+  AXELAR: AxelarIcon,
+  STRIDE: StrideIcon,
+  JUNO: JunoIcon,
+  EVMOS: EvmosIcon,
+  PERSISTENCE: PersistenceIcon,
+  SECRET: SecretIcon,
+  CELESTIA: CelestiaIcon,
+  STARGAZE: StarsIcon,
+  QUICKSILVER: QuicksilverIcon,
+  NEUTRON: NeutronIcon,
+  DYMENSION: DymensionIcon,
+  JACKAL: JackalIcon,
+  INJECTIVE: InjectiveIcon,
+  COMPOSABLE: ComposableIcon,
+  NOBLE: NobleIcon,
+  CUDOS: CudosIcon,
+  ETHEREUM: EthereumIcon,
+  ARBITRUM: ArbitrumIcon,
+  BINANCE: BinanceIcon,
+  MANTRA: MantraIcon,
+  XION: XionIcon,
+  NILLION: NillionIcon,
+  BABYLON: BabylonIcon,
+  AVALANCHE: AvalancheIcon,
+  BASE: BaseIcon
 };
+
+/**
+ * Get icon for a network by key
+ */
+export function getNetworkIcon(key: string): string | undefined {
+  return NETWORK_ICONS[key];
+}
+
+/**
+ * Get supported networks data - built dynamically to avoid circular dependency issues
+ * This function is safe to call at any time as it doesn't rely on store initialization
+ */
+export function getSupportedNetworksData(): { [key: string]: Network | EvmNetwork } {
+  return {
+    NOLUS: {
+      prefix: NOLUS_NETWORK.prefix,
+      value: "nolus",
+      label: NOLUS_NETWORK.name,
+      native: true,
+      estimation: 6,
+      key: NOLUS_NETWORK.key,
+      symbol: NOLUS_NETWORK.ticker,
+      chain_type: ChainType.cosmos,
+      icon: NolusIcon
+    },
+    OSMOSIS: {
+      prefix: OSMO_NETWORK.prefix,
+      key: OSMO_NETWORK.key,
+      symbol: OSMO_NETWORK.ticker,
+      value: "osmosis",
+      label: "Osmosis",
+      estimation: 20,
+      native: false,
+      chain_type: ChainType.cosmos,
+      icon: OsmosisIcon
+    },
+    COSMOS_HUB: {
+      prefix: ATOM_NETWORK.prefix,
+      key: ATOM_NETWORK.key,
+      symbol: ATOM_NETWORK.ticker,
+      value: "cosmoshub",
+      label: "Cosmos Hub",
+      native: false,
+      estimation: 20,
+      forward: true,
+      chain_type: ChainType.cosmos,
+      icon: CosmosIcon
+    },
+    AXELAR: {
+      prefix: AXELAR_NETWORK.prefix,
+      key: AXELAR_NETWORK.key,
+      symbol: AXELAR_NETWORK.ticker,
+      value: "axelar",
+      label: "Axelar",
+      native: false,
+      estimation: 20,
+      forward: true,
+      chain_type: ChainType.cosmos,
+      icon: AxelarIcon
+    },
+    STRIDE: {
+      prefix: STRIDE_NETWORK.prefix,
+      key: STRIDE_NETWORK.key,
+      symbol: STRIDE_NETWORK.ticker,
+      value: "stride",
+      label: "Stride",
+      native: false,
+      estimation: 20,
+      forward: true,
+      chain_type: ChainType.cosmos,
+      icon: StrideIcon
+    },
+    JUNO: {
+      prefix: JUNO_NETWORK.prefix,
+      key: JUNO_NETWORK.key,
+      symbol: JUNO_NETWORK.ticker,
+      value: "juno",
+      label: "Juno",
+      native: false,
+      estimation: 20,
+      forward: true,
+      chain_type: ChainType.cosmos,
+      icon: JunoIcon
+    },
+    EVMOS: {
+      prefix: EVMOS_NETWORK.prefix,
+      key: EVMOS_NETWORK.key,
+      symbol: EVMOS_NETWORK.ticker,
+      value: "evmos",
+      label: "Evmos",
+      native: false,
+      estimation: 20,
+      forward: true,
+      chain_type: ChainType.cosmos,
+      icon: EvmosIcon
+    },
+    PERSISTENCE: {
+      prefix: PERSISTENCE_NETWORK.prefix,
+      key: PERSISTENCE_NETWORK.key,
+      symbol: PERSISTENCE_NETWORK.ticker,
+      value: "persistence",
+      label: "Persistence",
+      native: false,
+      estimation: 20,
+      forward: true,
+      chain_type: ChainType.cosmos,
+      icon: PersistenceIcon
+    },
+    SECRET: {
+      prefix: SECRET_NETWORK.prefix,
+      key: SECRET_NETWORK.key,
+      symbol: SECRET_NETWORK.ticker,
+      value: "secret",
+      label: "Secret",
+      native: false,
+      estimation: 20,
+      forward: true,
+      chain_type: ChainType.cosmos,
+      icon: SecretIcon
+    },
+    CELESTIA: {
+      prefix: CELESTIA_NETWORK.prefix,
+      key: CELESTIA_NETWORK.key,
+      symbol: CELESTIA_NETWORK.ticker,
+      value: "celestia",
+      label: "Celestia",
+      native: false,
+      estimation: 20,
+      forward: true,
+      chain_type: ChainType.cosmos,
+      icon: CelestiaIcon
+    },
+    STARGAZE: {
+      prefix: STARGAZE_NETWORK.prefix,
+      key: STARGAZE_NETWORK.key,
+      symbol: STARGAZE_NETWORK.ticker,
+      value: "stargaze",
+      label: "Stargaze",
+      native: false,
+      estimation: 20,
+      forward: true,
+      chain_type: ChainType.cosmos,
+      icon: StarsIcon
+    },
+    QUICKSILVER: {
+      prefix: QUICKSILVER_NETWORK.prefix,
+      key: QUICKSILVER_NETWORK.key,
+      symbol: QUICKSILVER_NETWORK.ticker,
+      value: "quicksilver",
+      label: "Quicksilver",
+      native: false,
+      estimation: 20,
+      forward: true,
+      chain_type: ChainType.cosmos,
+      icon: QuicksilverIcon
+    },
+    NEUTRON: {
+      prefix: NEUTRON_NETWORK.prefix,
+      key: NEUTRON_NETWORK.key,
+      symbol: NEUTRON_NETWORK.ticker,
+      value: "neutron",
+      label: "Neutron",
+      native: false,
+      estimation: 20,
+      forward: false,
+      chain_type: ChainType.cosmos,
+      icon: NeutronIcon
+    },
+    DYMENSION: {
+      prefix: DYMENSION_NETWORK.prefix,
+      key: DYMENSION_NETWORK.key,
+      symbol: DYMENSION_NETWORK.ticker,
+      value: "dymension",
+      label: "Dymension",
+      native: false,
+      estimation: 20,
+      forward: true,
+      chain_type: ChainType.cosmos,
+      icon: DymensionIcon
+    },
+    JACKAL: {
+      prefix: JACKAL_NETWORK.prefix,
+      key: JACKAL_NETWORK.key,
+      symbol: JACKAL_NETWORK.ticker,
+      value: "jackal",
+      label: "Jackal",
+      native: false,
+      estimation: 20,
+      forward: true,
+      chain_type: ChainType.cosmos,
+      icon: JackalIcon
+    },
+    INJECTIVE: {
+      prefix: INJECTIVE_NETWORK.prefix,
+      key: INJECTIVE_NETWORK.key,
+      symbol: INJECTIVE_NETWORK.ticker,
+      value: "injective",
+      label: "Injective",
+      native: false,
+      estimation: 20,
+      forward: true,
+      chain_type: ChainType.cosmos,
+      icon: InjectiveIcon
+    },
+    COMPOSABLE: {
+      prefix: COMPOSABLE_NETWORK.prefix,
+      key: COMPOSABLE_NETWORK.key,
+      symbol: COMPOSABLE_NETWORK.ticker,
+      value: "composable",
+      label: "Composable",
+      native: false,
+      estimation: 20,
+      forward: true,
+      chain_type: ChainType.cosmos,
+      icon: ComposableIcon
+    },
+    NOBLE: {
+      prefix: NOBLE_NETWORK.prefix,
+      key: NOBLE_NETWORK.key,
+      symbol: NOBLE_NETWORK.ticker,
+      value: "noble",
+      label: "Noble",
+      native: false,
+      estimation: 20,
+      forward: true,
+      chain_type: ChainType.cosmos,
+      icon: NobleIcon
+    },
+    CUDOS: {
+      prefix: CUDOS_NETWORK.prefix,
+      key: CUDOS_NETWORK.key,
+      symbol: CUDOS_NETWORK.ticker,
+      value: "cudos",
+      label: "Cudos",
+      native: false,
+      estimation: 20,
+      forward: true,
+      chain_type: ChainType.cosmos,
+      icon: CudosIcon
+    },
+    ETHEREUM: {
+      ...ETHEREUM_NETWORK,
+      value: "ethereum",
+      native: false,
+      chain_type: ChainType.evm,
+      icon: EthereumIcon
+    },
+    ARBITRUM: {
+      ...ARBITRUM_NETWORK,
+      value: "arbitrum",
+      native: false,
+      chain_type: ChainType.evm,
+      icon: ArbitrumIcon
+    },
+    BINANCE: {
+      ...BINANCE_NETWORK,
+      value: "binance",
+      native: false,
+      chain_type: ChainType.evm,
+      icon: BinanceIcon
+    },
+    MANTRA: {
+      prefix: MANTRA_NETWORK.prefix,
+      key: MANTRA_NETWORK.key,
+      symbol: MANTRA_NETWORK.ticker,
+      value: "mantra",
+      label: "Mantra",
+      native: false,
+      estimation: 20,
+      forward: true,
+      chain_type: ChainType.cosmos,
+      icon: MantraIcon
+    },
+    XION: {
+      prefix: XION_NETWORK.prefix,
+      key: XION_NETWORK.key,
+      symbol: XION_NETWORK.ticker,
+      value: "xion",
+      label: "Xion",
+      native: false,
+      estimation: 20,
+      forward: true,
+      chain_type: ChainType.cosmos,
+      icon: XionIcon
+    },
+    NILLION: {
+      prefix: NILLION_NETWORK.prefix,
+      key: NILLION_NETWORK.key,
+      symbol: NILLION_NETWORK.ticker,
+      value: "nillion",
+      label: "Nillion",
+      native: false,
+      estimation: 20,
+      forward: true,
+      chain_type: ChainType.cosmos,
+      icon: NillionIcon
+    },
+    BABYLON: {
+      prefix: BABYLON_NETWORK.prefix,
+      key: BABYLON_NETWORK.key,
+      symbol: BABYLON_NETWORK.ticker,
+      value: "babylon",
+      label: "Babylon",
+      native: false,
+      estimation: 20,
+      forward: true,
+      chain_type: ChainType.cosmos,
+      icon: BabylonIcon
+    },
+    AVALANCHE: {
+      ...AVALANCHE_NETWORK,
+      value: "avalanche",
+      native: false,
+      chain_type: ChainType.evm,
+      icon: AvalancheIcon
+    },
+    BASE: {
+      ...BASE_NETWORK,
+      value: "base",
+      native: false,
+      chain_type: ChainType.evm,
+      icon: BaseIcon
+    }
+  };
+}
+
+/**
+ * SUPPORTED_NETWORKS_DATA - For backward compatibility
+ * @deprecated Use getSupportedNetworksData() instead to avoid circular dependency issues
+ */
+export const SUPPORTED_NETWORKS_DATA: { [key: string]: Network | EvmNetwork } = getSupportedNetworksData();
 
 export const NETWORKS_DATA: {
   [key: string]: {

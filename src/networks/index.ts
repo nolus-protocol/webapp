@@ -1,6 +1,6 @@
 export { type BaseWallet } from "./cosm/BaseWallet";
 export { Wallet } from "./cosm/Wallet";
-export { NETWORKS_DATA, NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "./config";
+export { NETWORKS_DATA, NETWORK_DATA, SUPPORTED_NETWORKS_DATA, getSupportedNetworksData, getNetworkIcon } from "./config";
 
 export {
   aminoTypes,
