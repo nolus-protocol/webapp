@@ -1,5 +1,4 @@
 import type { MultisigThresholdPubkey, Pubkey, SinglePubkey } from "@cosmjs/amino";
-import { toBase64 } from "@cosmjs/encoding";
 import {
   encodeEd25519Pubkey,
   encodeSecp256k1Pubkey,
@@ -13,30 +12,10 @@ import { PubKey as CosmosCryptoEd25519Pubkey } from "cosmjs-types/cosmos/crypto/
 import { LegacyAminoPubKey } from "cosmjs-types/cosmos/crypto/multisig/keys";
 import { PubKey as CosmosCryptoSecp256k1Pubkey } from "cosmjs-types-legacy/cosmos/crypto/secp256k1/keys";
 import { Any } from "cosmjs-types/google/protobuf/any";
-import { useConfigStore } from "@/common/stores/config";
-
-// Network prefixes for special encoding - these are protocol constants
-const INJECTIVE_PREFIX = "inj";
-
-export interface EthSecp256k1Pubkey extends SinglePubkey {
-  readonly type: "tendermint/PubKeyEthSecp256k1";
-  readonly value: string;
-}
-
-export function encodeEthSecp256k1Pubkey(pubkey: Uint8Array): EthSecp256k1Pubkey {
-  if (pubkey.length !== 33 || (pubkey[0] !== 0x02 && pubkey[0] !== 0x03)) {
-    throw new Error("Public key must be compressed ethsecp256k1, i.e. 33 bytes starting with 0x02 or 0x03");
-  }
-  return {
-    type: pubkeyType.ethsecp256k1,
-    value: toBase64(pubkey)
-  };
-}
 
 export const pubkeyType = {
   /** @see https://github.com/tendermint/tendermint/blob/v0.33.0/crypto/secp256k1/secp256k1.go#L23 */
   secp256k1: "tendermint/PubKeySecp256k1" as const,
-  ethsecp256k1: "tendermint/PubKeyEthSecp256k1" as const,
   /** @see https://github.com/tendermint/tendermint/blob/v0.33.0/crypto/ed25519/ed25519.go#L22 */
   ed25519: "tendermint/PubKeyEd25519" as const,
   /** @see https://github.com/tendermint/tendermint/blob/v0.33.0/crypto/sr25519/codec.go#L12 */
@@ -44,29 +23,7 @@ export const pubkeyType = {
   multisigThreshold: "tendermint/PubKeyMultisigThreshold" as const
 };
 
-export function encodePubkey(pubkey: Pubkey, network?: string | number): Any {
-  // Check for Injective - use config store if available, fallback to constant
-  let injectivePrefix = INJECTIVE_PREFIX;
-  try {
-    const configStore = useConfigStore();
-    const injectiveNetwork = configStore.getNetwork("INJECTIVE");
-    if (injectiveNetwork) {
-      injectivePrefix = injectiveNetwork.prefix;
-    }
-  } catch {
-    // Store not initialized, use default
-  }
-  
-  if (network == injectivePrefix) {
-    const pubkeyProto = CosmosCryptoSecp256k1Pubkey.fromPartial({
-      key: fromBase64(pubkey.value)
-    });
-    return Any.fromPartial({
-      typeUrl: "/injective.crypto.v1beta1.ethsecp256k1.PubKey",
-      value: Uint8Array.from(CosmosCryptoSecp256k1Pubkey.encode(pubkeyProto).finish())
-    });
-  }
-
+export function encodePubkey(pubkey: Pubkey): Any {
   if (isSecp256k1Pubkey(pubkey)) {
     const pubkeyProto = CosmosCryptoSecp256k1Pubkey.fromPartial({
       key: fromBase64(pubkey.value)
@@ -83,14 +40,6 @@ export function encodePubkey(pubkey: Pubkey, network?: string | number): Any {
       typeUrl: "/cosmos.crypto.ed25519.PubKey",
       value: Uint8Array.from(CosmosCryptoEd25519Pubkey.encode(pubkeyProto).finish())
     });
-  } else if (isEthSecp256k1Pubkey(pubkey)) {
-    const pubkeyProto = CosmosCryptoSecp256k1Pubkey.fromPartial({
-      key: fromBase64(pubkey.value)
-    });
-    return Any.fromPartial({
-      typeUrl: "/ethermint.crypto.v1.ethsecp256k1.PubKey",
-      value: Uint8Array.from(CosmosCryptoSecp256k1Pubkey.encode(pubkeyProto).finish())
-    });
   } else if (isMultisigThresholdPubkey(pubkey)) {
     const pubkeyProto = LegacyAminoPubKey.fromPartial({
       threshold: Uint53.fromString(pubkey.value.threshold).toNumber(),
@@ -105,17 +54,11 @@ export function encodePubkey(pubkey: Pubkey, network?: string | number): Any {
   }
 }
 
-export function isEthSecp256k1Pubkey(pubkey: Pubkey): pubkey is EthSecp256k1Pubkey {
-  return (pubkey as EthSecp256k1Pubkey).type === "tendermint/PubKeyEthSecp256k1";
-}
-
 export function decodePubkey(pubkey?: Any | null): Pubkey | null {
   if (!pubkey || !pubkey.value) {
     return null;
   }
   switch (pubkey.typeUrl) {
-    case "/injective.crypto.v1beta1.ethsecp256k1.PubKey":
-    case "/ethermint.crypto.v1.ethsecp256k1.PubKey":
     case "/cosmos.crypto.secp256k1.PubKey":
     case "/cosmos.crypto.ed25519.PubKey": {
       return anyToSinglePubkey(pubkey);
@@ -142,8 +85,6 @@ export function anyToSinglePubkey(pubkey: Any): SinglePubkey {
       const { key } = CosmosCryptoEd25519Pubkey.decode(pubkey.value);
       return encodeEd25519Pubkey(key);
     }
-    case "/injective.crypto.v1beta1.ethsecp256k1.PubKey":
-    case "/ethermint.crypto.v1.ethsecp256k1.PubKey":
     case "/cosmos.crypto.secp256k1.PubKey": {
       const { key } = CosmosCryptoSecp256k1Pubkey.decode(pubkey.value);
       return encodeSecp256k1Pubkey(key);

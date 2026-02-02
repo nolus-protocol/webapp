@@ -13,14 +13,7 @@ import { encodeSecp256k1Pubkey, type StdFee } from "@cosmjs/amino";
 import { sha256 } from "@cosmjs/crypto";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 import { accountFromAny } from "./accountParser";
-import { encodeEthSecp256k1Pubkey, encodePubkey, type EthSecp256k1Pubkey } from "./encode";
-import { useConfigStore } from "@/common/stores/config";
-
-// Network prefixes for special wallet handling - these are protocol constants
-const EVMOS_PREFIX = "evmos";
-const DYMENSION_PREFIX = "dym";
-const INJECTIVE_PREFIX = "inj";
-const CUDOS_PREFIX = "cudos";
+import { encodePubkey } from "./encode";
 import { isOfflineDirectSigner, makeAuthInfoBytes, makeSignDoc } from "@cosmjs/proto-signing";
 
 import { makeSignDoc as makeSignDocAmino } from "@cosmjs/amino";
@@ -29,7 +22,6 @@ import { Int53 } from "@cosmjs/math";
 import { assert } from "@cosmjs/utils";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
 import { Logger } from "@/common/utils";
-import { simulateIBCTrasnferInj } from "../list/injective/tx";
 import { setupTxExtension } from "./setupTxExtension";
 
 import {
@@ -139,7 +131,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
       value: MsgSend | MsgExecuteContract | MsgTransfer;
     },
     memo: string,
-    pubkey: EthSecp256k1Pubkey | Secp256k1Pubkey,
+    pubkey: Secp256k1Pubkey,
     sequence: { sequence?: number; accountNumber?: number }
   ) {
     const { gasInfo } = await this.queryClientBase.tx.simulate(
@@ -151,14 +143,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
     return gasInfo;
   }
 
-  private getPubKey(pubKey?: Uint8Array) {
-    // These networks use ethsecp256k1 encoding
-    const ethSecp256k1Prefixes = [EVMOS_PREFIX, DYMENSION_PREFIX, INJECTIVE_PREFIX, CUDOS_PREFIX];
-    
-    if (ethSecp256k1Prefixes.includes(this.prefix)) {
-      return encodeEthSecp256k1Pubkey(pubKey ?? (this.pubKey as Uint8Array));
-    }
-    
+  private getPubKey(pubKey?: Uint8Array): Secp256k1Pubkey {
     return encodeSecp256k1Pubkey(pubKey ?? (this.pubKey as Uint8Array));
   }
 
@@ -235,27 +220,6 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
       memo
     });
 
-    if (this.prefix == INJECTIVE_PREFIX) {
-      const { sequence, accountNumber } = await this.sequence();
-
-      const data = await simulateIBCTrasnferInj(this.getPubKey(), sequence!, accountNumber!, {
-        toAddress: toAddress,
-        amount: amount,
-        sender: this.address?.toString() as string,
-        sourcePort,
-        sourceChannel,
-        memo
-      });
-      return await this.simulateTx(
-        msg,
-        "/ibc.applications.transfer.v1.MsgTransfer",
-        gasMultiplier,
-        gasPrice,
-        "",
-        data.gasInfo
-      );
-    }
-
     return await this.simulateTx(msg, "/ibc.applications.transfer.v1.MsgTransfer", gasMultiplier, gasPrice, "");
   }
 
@@ -322,7 +286,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
     }
-    const pubkey = encodePubkey(this.getPubKey(accountFromSigner.pubkey), this.prefix);
+    const pubkey = encodePubkey(this.getPubKey(accountFromSigner.pubkey));
     const signMode = SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
     //@ts-ignore
     const msgs = messages.map((msg) => this.aminoTypes.toAmino(msg));
@@ -368,7 +332,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
     }
-    const pubkey = encodePubkey(this.getPubKey(accountFromSigner.pubkey), this.prefix);
+    const pubkey = encodePubkey(this.getPubKey(accountFromSigner.pubkey));
     const txBody: TxBodyEncodeObject = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
       value: {
