@@ -20,10 +20,6 @@ export class EtlApi {
     return fetch(`${EtlApi.getApiUrl()}/pools`).then((data) => data.json());
   }
 
-  static async fetchEarnApr(protocol: string): Promise<IObjectKeys> {
-    return fetch(`${EtlApi.getApiUrl()}/earn-apr?protocol=${protocol}`).then((data) => data.json());
-  }
-
   static async fetchLeaseOpening(leaseAddres: string): Promise<IObjectKeys> {
     return fetch(`${EtlApi.getApiUrl()}/ls-opening?lease=${leaseAddres}`).then((data) => data.json());
   }
