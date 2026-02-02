@@ -80,6 +80,44 @@ pub struct NetworkConfig {
     /// Decimal digits for native token
     #[serde(default = "default_decimal_digits")]
     pub decimal_digits: u8,
+    /// Token symbol (e.g., "NLS", "OSMO")
+    pub symbol: String,
+    /// Chain name value for routing (e.g., "nolus", "osmosis")
+    pub value: String,
+    /// Whether this is the native network
+    #[serde(default)]
+    pub native: bool,
+    /// Estimated transaction time in seconds (for cosmos chains)
+    #[serde(default)]
+    pub estimation: Option<u32>,
+    /// Estimated duration for EVM chains
+    #[serde(default)]
+    pub estimation_duration: Option<u32>,
+    /// Estimation type for EVM chains (e.g., "min")
+    #[serde(default)]
+    pub estimation_type: Option<String>,
+    /// Whether to use packet forwarding
+    #[serde(default)]
+    pub forward: Option<bool>,
+    /// Chain type: "cosmos" or "evm"
+    pub chain_type: String,
+    /// Icon path
+    pub icon: String,
+    /// Gas multiplier (for EVM chains)
+    #[serde(default)]
+    pub gas_multiplier: Option<u32>,
+    /// Transfer fees (for EVM chains)
+    #[serde(default)]
+    pub fees_transfer: Option<u64>,
+    /// Native currency name (for EVM chains)
+    #[serde(default)]
+    pub native_currency_name: Option<String>,
+    /// Native currency symbol (for EVM chains)
+    #[serde(default)]
+    pub native_currency_symbol: Option<String>,
+    /// Native currency decimals (for EVM chains)
+    #[serde(default)]
+    pub native_currency_decimals: Option<u8>,
 }
 
 /// Native asset configuration

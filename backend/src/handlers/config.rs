@@ -63,6 +63,29 @@ pub struct NetworkInfo {
     pub native_denom: String,
     pub gas_price: String,
     pub explorer: String,
+    pub symbol: String,
+    pub value: String,
+    pub native: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub estimation: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub estimation_duration: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub estimation_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub forward: Option<bool>,
+    pub chain_type: String,
+    pub icon: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gas_multiplier: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fees_transfer: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub native_currency_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub native_currency_symbol: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub native_currency_decimals: Option<u8>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -217,6 +240,20 @@ async fn fetch_config_internal(state: Arc<AppState>) -> Result<serde_json::Value
                 native_denom: config.native_denom,
                 gas_price: config.gas_price,
                 explorer: config.explorer,
+                symbol: config.symbol,
+                value: config.value,
+                native: config.native,
+                estimation: config.estimation,
+                estimation_duration: config.estimation_duration,
+                estimation_type: config.estimation_type,
+                forward: config.forward,
+                chain_type: config.chain_type,
+                icon: config.icon,
+                gas_multiplier: config.gas_multiplier,
+                fees_transfer: config.fees_transfer,
+                native_currency_name: config.native_currency_name,
+                native_currency_symbol: config.native_currency_symbol,
+                native_currency_decimals: config.native_currency_decimals,
             }
         })
         .collect();

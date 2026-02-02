@@ -162,6 +162,20 @@ export const useConfigStore = defineStore("config", () => {
     return map;
   });
 
+  /** Networks indexed by key for quick lookup */
+  const supportedNetworksData = computed<{ [key: string]: NetworkInfo }>(() => {
+    const result: { [key: string]: NetworkInfo } = {};
+    for (const network of networks.value) {
+      result[network.key] = network;
+    }
+    return result;
+  });
+
+  /** Get the native network (Nolus) */
+  const nativeNetwork = computed<NetworkInfo | undefined>(() => {
+    return networks.value.find(n => n.native);
+  });
+
   // ==========================================================================
   // Computed - Currencies
   // ==========================================================================
@@ -215,6 +229,16 @@ export const useConfigStore = defineStore("config", () => {
 
   function getContracts(protocol: string): ProtocolContracts | undefined {
     return contracts.value[protocol];
+  }
+
+  /** Get network by prefix (e.g., "nolus", "osmo") */
+  function getNetworkByPrefix(prefix: string): NetworkInfo | undefined {
+    return networks.value.find(n => n.prefix === prefix);
+  }
+
+  /** Get network by value (e.g., "nolus", "osmosis") */
+  function getNetworkByValue(value: string): NetworkInfo | undefined {
+    return networks.value.find(n => n.value === value.toLowerCase());
   }
 
   // ==========================================================================
@@ -423,6 +447,8 @@ export const useConfigStore = defineStore("config", () => {
     protocolKeys,
     protocolCount,
     contracts,
+    supportedNetworksData,
+    nativeNetwork,
 
     // Computed - Currencies
     currenciesData,
@@ -436,6 +462,8 @@ export const useConfigStore = defineStore("config", () => {
     getProtocol,
     getNetwork,
     getNetworkByChainId,
+    getNetworkByPrefix,
+    getNetworkByValue,
     getContracts,
 
     // Getters - Currencies

@@ -9,7 +9,7 @@ import { Contracts, NATIVE_NETWORK, PositionTypes, ProtocolsConfig } from "@/con
 import { Buffer } from "buffer";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { bech32 } from "bech32";
-import { SUPPORTED_NETWORKS_DATA } from "@/networks";
+import { useConfigStore } from "@/common/stores/config";
 import { h } from "vue";
 import { BackendApi } from "@/common/api";
 
@@ -615,9 +615,11 @@ function getChainName(address: string) {
 
 function getIcon(prefix: string) {
   try {
-    for (const key in SUPPORTED_NETWORKS_DATA) {
-      if (SUPPORTED_NETWORKS_DATA[key].prefix == prefix) {
-        return SUPPORTED_NETWORKS_DATA[key].icon;
+    const configStore = useConfigStore();
+    const supportedNetworks = configStore.supportedNetworksData;
+    for (const key in supportedNetworks) {
+      if (supportedNetworks[key].prefix == prefix) {
+        return supportedNetworks[key].icon;
       }
     }
   } catch (error) {
@@ -628,9 +630,11 @@ function getIcon(prefix: string) {
 
 function getChainLabel(prefix: string) {
   try {
-    for (const key in SUPPORTED_NETWORKS_DATA) {
-      if (SUPPORTED_NETWORKS_DATA[key].prefix == prefix) {
-        return SUPPORTED_NETWORKS_DATA[key].label;
+    const configStore = useConfigStore();
+    const supportedNetworks = configStore.supportedNetworksData;
+    for (const key in supportedNetworks) {
+      if (supportedNetworks[key].prefix == prefix) {
+        return supportedNetworks[key].name;
       }
     }
   } catch (error) {

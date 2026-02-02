@@ -14,7 +14,13 @@ import { sha256 } from "@cosmjs/crypto";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 import { accountFromAny } from "./accountParser";
 import { encodeEthSecp256k1Pubkey, encodePubkey, type EthSecp256k1Pubkey } from "./encode";
-import { SUPPORTED_NETWORKS_DATA } from "../config";
+import { useConfigStore } from "@/common/stores/config";
+
+// Network prefixes for special wallet handling - these are protocol constants
+const EVMOS_PREFIX = "evmos";
+const DYMENSION_PREFIX = "dym";
+const INJECTIVE_PREFIX = "inj";
+const CUDOS_PREFIX = "cudos";
 import { isOfflineDirectSigner, makeAuthInfoBytes, makeSignDoc } from "@cosmjs/proto-signing";
 
 import { makeSignDoc as makeSignDocAmino } from "@cosmjs/amino";
@@ -146,23 +152,14 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
   }
 
   private getPubKey(pubKey?: Uint8Array) {
-    switch (this.prefix) {
-      case SUPPORTED_NETWORKS_DATA.EVMOS.prefix: {
-        return encodeEthSecp256k1Pubkey(pubKey ?? (this.pubKey as Uint8Array));
-      }
-      case SUPPORTED_NETWORKS_DATA.DYMENSION.prefix: {
-        return encodeEthSecp256k1Pubkey(pubKey ?? (this.pubKey as Uint8Array));
-      }
-      case SUPPORTED_NETWORKS_DATA.INJECTIVE.prefix: {
-        return encodeEthSecp256k1Pubkey(pubKey ?? (this.pubKey as Uint8Array));
-      }
-      case SUPPORTED_NETWORKS_DATA.CUDOS.prefix: {
-        return encodeEthSecp256k1Pubkey(pubKey ?? (this.pubKey as Uint8Array));
-      }
-      default: {
-        return encodeSecp256k1Pubkey(pubKey ?? (this.pubKey as Uint8Array));
-      }
+    // These networks use ethsecp256k1 encoding
+    const ethSecp256k1Prefixes = [EVMOS_PREFIX, DYMENSION_PREFIX, INJECTIVE_PREFIX, CUDOS_PREFIX];
+    
+    if (ethSecp256k1Prefixes.includes(this.prefix)) {
+      return encodeEthSecp256k1Pubkey(pubKey ?? (this.pubKey as Uint8Array));
     }
+    
+    return encodeSecp256k1Pubkey(pubKey ?? (this.pubKey as Uint8Array));
   }
 
   public async useAccount(): Promise<boolean> {
@@ -238,7 +235,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
       memo
     });
 
-    if (this.prefix == SUPPORTED_NETWORKS_DATA.INJECTIVE.prefix) {
+    if (this.prefix == INJECTIVE_PREFIX) {
       const { sequence, accountNumber } = await this.sequence();
 
       const data = await simulateIBCTrasnferInj(this.getPubKey(), sequence!, accountNumber!, {

@@ -69,6 +69,20 @@ export interface NetworkInfo {
   native_denom: string;
   gas_price: string;
   explorer: string;
+  symbol: string;
+  value: string;
+  native: boolean;
+  estimation?: number;
+  estimation_duration?: number;
+  estimation_type?: string;
+  forward?: boolean;
+  chain_type: string;
+  icon: string;
+  gas_multiplier?: number;
+  fees_transfer?: number;
+  native_currency_name?: string;
+  native_currency_symbol?: string;
+  native_currency_decimals?: number;
 }
 
 export interface NativeAssetInfo {

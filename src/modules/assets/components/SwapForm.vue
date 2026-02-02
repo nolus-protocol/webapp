@@ -141,7 +141,7 @@ import { MultipleCurrencyEventType, type IObjectKeys, type SkipRouteConfigType }
 import { useI18n } from "vue-i18n";
 import { type BaseWallet } from "@/networks";
 import { SwapStatus } from "../enums";
-import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
+import { NETWORK_DATA } from "@/networks/config";
 import { SkipRouter } from "@/common/utils/SkipRoute";
 import { useConfigStore } from "@/common/stores/config";
 import { useHistoryStore } from "@/common/stores/history";
@@ -488,9 +488,10 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
     return route!.chain_ids.includes(item.chain_id);
   });
 
+  const supportedNetworks = configStore.supportedNetworksData;
   for (const chain of chains) {
-    for (const key in SUPPORTED_NETWORKS_DATA) {
-      const networkData = SUPPORTED_NETWORKS_DATA[key];
+    for (const key in supportedNetworks) {
+      const networkData = supportedNetworks[key];
       if (networkData?.value == chain.chain_name) {
         chainToParse[key] = networkData;
       }

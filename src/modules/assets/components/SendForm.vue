@@ -142,7 +142,7 @@ import type { Coin } from "@keplr-wallet/types";
 import { SwapStatus } from "../enums";
 import { AdvancedFormControl, Button, Dropdown, AssetItem, Input, Size, type AssetItemProps } from "web-components";
 import { MetaMaskWallet } from "@/networks/metamask";
-import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
+import { NETWORK_DATA } from "@/networks/config";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
 import { IGNORED_NETWORKS } from "../../../config/global";
 
@@ -1035,9 +1035,10 @@ function getChains(route?: RouteResponse) {
     return route!.chain_ids?.includes(item.chain_id);
   });
 
+  const supportedNetworks = configStore.supportedNetworksData;
   for (const chain of chains) {
-    for (const key in SUPPORTED_NETWORKS_DATA) {
-      const networkData = SUPPORTED_NETWORKS_DATA[key];
+    for (const key in supportedNetworks) {
+      const networkData = supportedNetworks[key];
       if (networkData?.value == chain.chain_name.toLowerCase()) {
         chainToParse[key] = networkData;
       }
@@ -1053,9 +1054,10 @@ function getChainIds(route?: RouteResponse) {
     return route!.chain_ids?.includes?.(item.chain_id);
   });
 
+  const supportedNetworks = configStore.supportedNetworksData;
   for (const chain of chains) {
-    for (const key in SUPPORTED_NETWORKS_DATA) {
-      const networkData = SUPPORTED_NETWORKS_DATA[key];
+    for (const key in supportedNetworks) {
+      const networkData = supportedNetworks[key];
       if (networkData?.value == chain.chain_name.toLowerCase()) {
         chainToParse[chain.chain_id] = networkData;
       }
