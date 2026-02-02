@@ -86,13 +86,13 @@
             label: $t('message.swap'),
             icon: NATIVE_NETWORK.icon,
             // token: {
-            //   balance: AssetUtils.formatNumber(amount, selectedAsset?.decimal_digits),
+            //   balance: formatNumber(amount, selectedAsset?.decimal_digits),
             //   symbol: selectedAsset?.label
             // },
             tokenComponent: () =>
               h(
                 'div',
-                `${AssetUtils.formatNumber(amount, NATIVE_CURRENCY.maximumFractionDigits)} ${selectedAsset?.label} > ${AssetUtils.formatNumber(swapToAmount, NATIVE_CURRENCY.maximumFractionDigits)} ${selectedSecondCurrencyOption?.label}`
+                `${formatNumber(amount, NATIVE_CURRENCY.maximumFractionDigits)} ${selectedAsset?.label} > ${formatNumber(swapToAmount, NATIVE_CURRENCY.maximumFractionDigits)} ${selectedSecondCurrencyOption?.label}`
               ),
             meta: () => h('div', `${NATIVE_NETWORK.label}`)
           }
@@ -124,16 +124,16 @@ import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network"
 import { computed, inject, ref, watch } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
 import {
-  AppUtils,
-  AssetUtils,
   externalWallet,
   Logger,
   validateAmountV2,
   walletOperation,
   WalletUtils
 } from "@/common/utils";
+import { getSkipRouteConfig } from "@/common/utils/ConfigService";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
-import { useOracleStore } from "@/common/stores/oracle";
+import { usePricesStore } from "@/common/stores/prices";
 import { h } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { MultipleCurrencyEventType, type IObjectKeys, type SkipRouteConfigType } from "@/common/types";
@@ -153,7 +153,7 @@ const timeOut = 600;
 const id = Date.now();
 
 const wallet = useWalletStore();
-const oracle = useOracleStore();
+const pricesStore = usePricesStore();
 const applicaiton = useApplicationStore();
 const i18n = useI18n();
 
@@ -192,9 +192,9 @@ const assets = computed(() => {
 
   for (const asset of balances.value ?? []) {
     const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
-    const balance = AssetUtils.formatNumber(value.toString(), asset.decimal_digits);
+    const balance = formatNumber(value.toString(), asset.decimal_digits);
 
-    const price = new Dec(oracle.prices?.[asset.key]?.amount ?? 0);
+    const price = new Dec(pricesStore.prices[asset.key]?.price ?? 0);
     const stable = price.mul(value);
 
     data.push({
@@ -206,7 +206,7 @@ const assets = computed(() => {
       decimal_digits: asset.decimal_digits,
       balance: { value: balance, ticker: asset.shortName },
       stable,
-      price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
+      price: `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
     });
   }
 
@@ -216,17 +216,17 @@ const assets = computed(() => {
 });
 
 const firstCalculatedBalance = computed(() => {
-  const price = new Dec(oracle.prices?.[selectedFirstCurrencyOption.value?.value!]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[selectedFirstCurrencyOption.value?.value!]?.price ?? 0);
   const v = amount?.value?.length ? amount?.value : "0";
   const stable = price.mul(new Dec(v));
-  return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+  return `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
 });
 
 const secondCalculatedBalance = computed(() => {
-  const price = new Dec(oracle.prices?.[selectedSecondCurrencyOption.value?.value!]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[selectedSecondCurrencyOption.value?.value!]?.price ?? 0);
   const v = swapToAmount?.value?.length ? swapToAmount?.value : "0";
   const stable = price.mul(new Dec(v));
-  return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+  return `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
 });
 
 const selectedAsset = computed(() => {
@@ -257,7 +257,7 @@ watch(
 
 async function onInit() {
   try {
-    const config = await AppUtils.getSkipRouteConfig();
+    const config = await getSkipRouteConfig();
     const protocol = applicaiton.protocolFilter.toLowerCase();
     blacklist.value = config.blacklist;
     selectedFirstCurrencyOption.value = assets.value.find(
@@ -318,7 +318,7 @@ async function setSwapFee() {
   const asset = selectedSecondCurrencyOption.value;
 
   if (asset) {
-    const config = await AppUtils.getSkipRouteConfig();
+    const config = await getSkipRouteConfig();
     const fee = new Dec(config.fee).quo(new Dec(10000)).mul(new Dec(amount, asset.decimal_digits));
     const coin = CurrencyUtils.convertDenomToMinimalDenom(fee.toString(), asset.ibcData, asset.decimal_digits);
     swapFee.value = CurrencyUtils.convertMinimalDenomToDenom(

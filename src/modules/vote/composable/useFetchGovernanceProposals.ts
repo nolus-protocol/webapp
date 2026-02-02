@@ -1,8 +1,9 @@
 import { ref, type Ref } from "vue";
-import { AppUtils, Logger, WalletManager } from "@/common/utils";
-import { ChainConstants } from "@nolus/nolusjs";
+import { Logger, WalletManager } from "@/common/utils";
 import { type Proposal } from "@/modules/vote/types";
 import { ProposalStatus } from "web-components";
+import { BackendApi } from "@/common/api";
+import { getProposalsConfig } from "@/common/utils/ConfigService";
 
 export const useFetchGovernanceProposals = () => {
   const LOAD_TIMEOUT = 500;
@@ -21,24 +22,40 @@ export const useFetchGovernanceProposals = () => {
     initialLoad: Ref<boolean>;
     showSkeleton: Ref<boolean>;
   }) => {
-    const node = await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
+    const address = WalletManager.getWalletAddress();
+    
+    const [proposalsResponse, proposalsConfig] = await Promise.all([
+      BackendApi.getProposals(limit.value, address || undefined),
+      getProposalsConfig()
+    ]);
 
-    const data = await fetchData(
-      `${node.api}/cosmos/gov/v1/proposals?pagination.limit=${limit.value}&pagination.reverse=true&pagination.countTotal=true`
+    // Filter out hidden proposals
+    const filteredProposals = proposalsResponse.proposals.filter(
+      (item) => !proposalsConfig.hide.includes(item.id)
     );
-    if (!data) return;
 
-    const promises = [];
+    // Map to the expected Proposal type
+    const mappedProposals: Proposal[] = filteredProposals.map((p) => ({
+      id: p.id,
+      status: p.status as ProposalStatus,
+      final_tally_result: p.final_tally_result,
+      submit_time: p.submit_time,
+      deposit_end_time: p.deposit_end_time,
+      voting_start_time: p.voting_start_time,
+      voting_end_time: p.voting_end_time,
+      title: p.title,
+      summary: p.summary,
+      messages: p.messages,
+      metadata: p.metadata,
+      tally: p.tally,
+      voted: p.voted
+    }));
 
-    for (const item of data.proposals) {
-      if (item.status == ProposalStatus.PROPOSAL_STATUS_VOTING_PERIOD) {
-        promises.push(fetchProposalData(item));
-      }
-    }
-
-    await Promise.all(promises);
-    proposals.value = data.proposals;
-    pagination.value = data.pagination;
+    proposals.value = mappedProposals;
+    pagination.value = {
+      total: parseInt(proposalsResponse.pagination.total, 10),
+      next_key: proposalsResponse.pagination.next_key || ""
+    };
 
     initialLoad.value = true;
     timeout = setTimeout(() => {
@@ -48,11 +65,19 @@ export const useFetchGovernanceProposals = () => {
 
   const fetchData = async (url: string) => {
     try {
-      const [reqProposals, reqConfig] = await Promise.all([fetch(url), AppUtils.getProposalsConfig()]);
+      const [proposalsResponse, reqConfig] = await Promise.all([
+        BackendApi.getProposals(limit.value),
+        getProposalsConfig()
+      ]);
 
-      const data = await reqProposals.json();
-      data.proposals = data.proposals.filter((item: Proposal) => !reqConfig.hide.includes(item.id));
-      return data;
+      const filteredProposals = proposalsResponse.proposals.filter(
+        (item) => !reqConfig.hide.includes(item.id)
+      );
+
+      return {
+        proposals: filteredProposals,
+        pagination: proposalsResponse.pagination
+      };
     } catch (error: Error | any) {
       Logger.error(error);
       return null;
@@ -62,20 +87,17 @@ export const useFetchGovernanceProposals = () => {
   const fetchProposalData = async (proposal: Proposal) => {
     const address = WalletManager.getWalletAddress();
     try {
-      const node = await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
-      const promises = [
-        fetch(`${node.api}/cosmos/gov/v1/proposals/${proposal.id}/tally`)
-          .then((d) => d.json())
-          .then((item) => {
-            proposal.tally = item.tally;
-          })
+      const promises: Promise<void>[] = [
+        BackendApi.getProposalTally(proposal.id).then((response) => {
+          proposal.tally = response.tally;
+        })
       ];
+
       if (address) {
         promises.push(
-          fetch(`${node.api}/cosmos/gov/v1/proposals/${proposal.id}/votes/${address}`)
-            .then((d) => d.json())
-            .then((item) => {
-              proposal.voted = item?.vote?.options?.length > 0;
+          BackendApi.getProposalVote(proposal.id, address)
+            .then((response) => {
+              proposal.voted = response?.vote?.options?.length > 0;
             })
             .catch((e) => {
               Logger.error(e);
@@ -83,6 +105,7 @@ export const useFetchGovernanceProposals = () => {
             })
         );
       }
+
       await Promise.allSettled(promises);
     } catch (error: Error | any) {
       Logger.error(error);

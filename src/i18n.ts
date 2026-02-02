@@ -13,9 +13,7 @@ export function setupI18n() {
 
 export function setI18nLanguage(locale: string) {
   (i18n.global.locale as any).value = locale;
-  if (!import.meta.env.SSR) {
-    document.querySelector("html")?.setAttribute("lang", locale);
-  }
+  document.querySelector("html")?.setAttribute("lang", locale);
 }
 
 export async function loadLocaleMessages(locale: string) {

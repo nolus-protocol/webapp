@@ -1,5 +1,4 @@
 import type { IObjectKeys } from "@/common/types";
-import { NETWORK } from "@/config/global";
 import { defaultRegistryTypes } from "@cosmjs/stargate";
 import { Registry } from "@cosmjs/proto-signing";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
@@ -9,9 +8,12 @@ import { Buffer } from "buffer";
 const registry = new Registry(defaultRegistryTypes);
 registry.register("/cosmwasm.wasm.v1.MsgExecuteContract", MsgExecuteContract);
 
+// Backend URL - same as BackendApi
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+
 export class EtlApi {
   static getApiUrl() {
-    return NETWORK.etlApi;
+    return `${BACKEND_URL}/api/etl`;
   }
 
   static async fetchPools(): Promise<IObjectKeys> {
@@ -98,7 +100,7 @@ export class EtlApi {
     return fetch(`${EtlApi.getApiUrl()}/supplied-borrowed-history?${p}`).then((data) => data.json());
   }
 
-  static async featchEarnings(address: string): Promise<IObjectKeys> {
+  static async fetchEarnings(address: string): Promise<IObjectKeys> {
     return fetch(`${EtlApi.getApiUrl()}/earnings?address=${address}`).then((data) => data.json());
   }
 
@@ -150,5 +152,73 @@ export class EtlApi {
     return fetch(url).then(async (data) => {
       return data.json();
     });
+  }
+
+  static async fetchLeasedAssets(): Promise<IObjectKeys> {
+    return fetch(`${EtlApi.getApiUrl()}/leased-assets`).then((data) => data.json());
+  }
+
+  static async fetchBuybackTotal(): Promise<IObjectKeys> {
+    return fetch(`${EtlApi.getApiUrl()}/buyback-total`).then((data) => data.json());
+  }
+
+  static async fetchRevenue(): Promise<IObjectKeys> {
+    return fetch(`${EtlApi.getApiUrl()}/revenue`).then((data) => data.json());
+  }
+
+  static async fetchHistoryStats(address: string): Promise<IObjectKeys> {
+    return fetch(`${EtlApi.getApiUrl()}/history-stats?address=${address}`).then((data) => data.json());
+  }
+
+  // ============================================================================
+  // Batch endpoints - fetch multiple resources in a single request
+  // ============================================================================
+
+  /**
+   * Fetch all stats overview data in a single request
+   * Returns: tvl, tx_volume, buyback_total, realized_pnl_stats, revenue
+   */
+  static async fetchStatsOverviewBatch(): Promise<{
+    tvl: { total_value_locked: string } | null;
+    tx_volume: { total_tx_value: string } | null;
+    buyback_total: { buyback_total: string } | null;
+    realized_pnl_stats: { amount: string } | null;
+    revenue: { revenue: string } | null;
+  }> {
+    return fetch(`${EtlApi.getApiUrl()}/batch/stats-overview`).then((data) => data.json());
+  }
+
+  /**
+   * Fetch loans stats data in a single request
+   * Returns: open_position_value, open_interest
+   */
+  static async fetchLoansStatsBatch(): Promise<{
+    open_position_value: IObjectKeys | null;
+    open_interest: IObjectKeys | null;
+  }> {
+    return fetch(`${EtlApi.getApiUrl()}/batch/loans-stats`).then((data) => data.json());
+  }
+
+  /**
+   * Fetch user dashboard data in a single request
+   * Returns: earnings, realized_pnl, position_debt_value
+   */
+  static async fetchUserDashboardBatch(address: string): Promise<{
+    earnings: IObjectKeys | null;
+    realized_pnl: IObjectKeys | null;
+    position_debt_value: IObjectKeys | null;
+  }> {
+    return fetch(`${EtlApi.getApiUrl()}/batch/user-dashboard?address=${address}`).then((data) => data.json());
+  }
+
+  /**
+   * Fetch user history data in a single request
+   * Returns: history_stats, realized_pnl_data
+   */
+  static async fetchUserHistoryBatch(address: string): Promise<{
+    history_stats: IObjectKeys | null;
+    realized_pnl_data: IObjectKeys[] | null;
+  }> {
+    return fetch(`${EtlApi.getApiUrl()}/batch/user-history?address=${address}`).then((data) => data.json());
   }
 }

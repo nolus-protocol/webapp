@@ -54,7 +54,8 @@
 import { Asset, Button, ToastType, Widget } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { NATIVE_CURRENCY } from "@/config/global";
-import { AssetUtils, isMobile, Logger, NetworkUtils, walletOperation } from "@/common/utils";
+import { isMobile, Logger, NetworkUtils, walletOperation } from "@/common/utils";
+import { getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { inject, ref } from "vue";
@@ -103,7 +104,7 @@ async function requestClaim() {
           const coin = item?.reward?.[0];
 
           if (coin) {
-            const asset = AssetUtils.getCurrencyByDenom(coin.denom);
+            const asset = getCurrencyByDenom(coin.denom);
             const amount = new Dec(coin.amount, asset.decimal_digits);
 
             if (amount.isPositive()) {

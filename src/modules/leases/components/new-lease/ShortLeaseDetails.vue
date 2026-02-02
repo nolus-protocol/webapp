@@ -148,7 +148,7 @@
         class="md:flex-[50%]"
         :label="$t('message.price-per-symbol', { symbol: asset?.shortName })"
         :amount="{
-          amount: oracle.prices[loanCurrency]?.amount,
+          amount: pricesStore.prices[loanCurrency]?.price ?? '0',
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
           decimals: 3,
@@ -180,9 +180,11 @@ import { Button, SvgIcon } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { MAX_DECIMALS, MONTHS, NATIVE_CURRENCY, PERCENT, ProtocolsConfig } from "@/config/global";
-import { useOracleStore } from "@/common/stores/oracle";
+import { usePricesStore } from "@/common/stores/prices";
 import { useApplicationStore } from "@/common/stores/application";
-import { AppUtils, AssetUtils, LeaseUtils } from "@/common/utils";
+import { LeaseUtils } from "@/common/utils";
+import { getCurrencyByTicker, getLpnByProtocol } from "@/common/utils/CurrencyLookup";
+import { getFreeInterest } from "@/common/utils/LeaseConfigService";
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { SkipRouter } from "@/common/utils/SkipRoute";
@@ -196,7 +198,7 @@ const props = defineProps<{
   downpaymenAmount: string;
   downpaymentCurrency: string;
 }>();
-const oracle = useOracleStore();
+const pricesStore = usePricesStore();
 const app = useApplicationStore();
 const showDetails = ref(false);
 const swapFee = ref(0);
@@ -204,7 +206,7 @@ const swapStableFee = ref(0);
 const freeInterest = ref<string[]>([]);
 
 onMounted(async () => {
-  freeInterest.value = await AppUtils.getFreeInterest();
+  freeInterest.value = await getFreeInterest();
 });
 
 onUnmounted(() => {
@@ -248,7 +250,7 @@ const totalLoan = computed(() => {
   if (!props.lease?.total?.amount) {
     return "0";
   }
-  const price = new Dec(oracle.prices?.[asset.value.key!]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[asset.value.key!]?.price ?? 0);
   const v = props.lease?.total?.amount ?? "0";
   const amount = new Dec(v).quo(price).sub(swapFeeAmount.value);
   return amount.toString(assetLoan.value.decimal_digits);
@@ -267,7 +269,7 @@ const asset = computed(() => {
 
 const lpn = computed(() => {
   const [t, p] = loanAsset.value.key.split("@");
-  const lpn = AssetUtils.getLpnByProtocol(p);
+  const lpn = getLpnByProtocol(p);
   return lpn;
 });
 
@@ -282,7 +284,7 @@ const loanAsset = computed(() => {
 });
 
 const downPaymentAmount = computed(() => {
-  const price = new Dec(oracle.prices?.[downPaymentAsset.value.key!]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[downPaymentAsset.value.key!]?.price ?? 0);
   const decimals = new Dec(10 ** downPaymentAsset.value.decimal_digits);
   const v = downPaymentStable.value;
   const amount = v.quo(price).mul(decimals);
@@ -290,14 +292,14 @@ const downPaymentAmount = computed(() => {
 });
 
 const downPaymentStable = computed(() => {
-  const price = new Dec(oracle.prices?.[downPaymentAsset.value.key!]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[downPaymentAsset.value.key!]?.price ?? 0);
   const v = props.downpaymenAmount.length == 0 ? "0" : props.downpaymenAmount;
   const stable = price.mul(new Dec(v));
   return stable;
 });
 
 const borrowAmount = computed(() => {
-  const price = new Dec(oracle.prices?.[asset.value.key!]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[asset.value.key!]?.price ?? 0);
   const decimals = new Dec(10 ** lpn.value.decimal_digits);
   const v = borrowStable.value;
   const amount = v.quo(price).mul(decimals);
@@ -305,7 +307,7 @@ const borrowAmount = computed(() => {
 });
 
 const swapFeeAmount = computed(() => {
-  const price = new Dec(oracle.prices?.[asset.value.key!]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[asset.value.key!]?.price ?? 0);
   const decimals = new Dec(10 ** lpn.value.decimal_digits);
   const v = new Dec(swapStableFee.value);
   const amount = v.quo(price).mul(decimals);
@@ -313,7 +315,7 @@ const swapFeeAmount = computed(() => {
 });
 
 const borrowStable = computed(() => {
-  const price = new Dec(oracle.prices?.[lpn.value.key!]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[lpn.value.key!]?.price ?? 0);
   const v = props.lease?.borrow?.amount ?? "0";
   const stable = price.mul(new Dec(v, lpn.value.decimal_digits));
   return stable;
@@ -331,9 +333,9 @@ const percentLique = computed(() => {
   try {
     const a = asset.value;
     const [_, protocol] = a?.key?.split("@") ?? [];
-    const lpn = AssetUtils.getLpnByProtocol(protocol);
+    const lpn = getLpnByProtocol(protocol);
 
-    const price = new Dec(oracle.prices[lpn.key]?.amount ?? "0", a.decimal_digits);
+    const price = new Dec(pricesStore.prices[lpn.key]?.price ?? "0", a.decimal_digits);
     const lprice = getLquidation();
 
     if (lprice.isZero() || price.isZero()) {
@@ -351,8 +353,8 @@ const percentLique = computed(() => {
 function getLquidation() {
   const lease = props.lease;
   if (lease) {
-    const unitAssetInfo = AssetUtils.getCurrencyByTicker(lease.borrow.ticker!);
-    const stableAssetInfo = AssetUtils.getCurrencyByTicker(lease.total.ticker!);
+    const unitAssetInfo = getCurrencyByTicker(lease.borrow.ticker!);
+    const stableAssetInfo = getCurrencyByTicker(lease.total.ticker!);
 
     const unitAsset = new Dec(getBorrowedAmount(), Number(unitAssetInfo!.decimal_digits));
 
@@ -392,7 +394,7 @@ const setSwapFee = async () => {
         currency.decimal_digits
       ).amount.toString();
 
-      const lpn = AssetUtils.getLpnByProtocol(p);
+      const lpn = getLpnByProtocol(p);
       let amountIn = 0;
       let amountOut = 0;
       const [r, r2] = await Promise.all([

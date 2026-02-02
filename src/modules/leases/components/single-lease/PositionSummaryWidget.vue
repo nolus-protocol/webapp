@@ -193,7 +193,7 @@
                 size="small"
                 @click="
                   router.push({
-                    path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.leaseAddress}/${SingleLeaseDialog.STOP_LOSS}`
+                    path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.address}/${SingleLeaseDialog.STOP_LOSS}`
                   })
                 "
               />
@@ -231,7 +231,7 @@
                 size="small"
                 @click="
                   router.push({
-                    path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.leaseAddress}/${SingleLeaseDialog.TAKE_PROFIT}`
+                    path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.address}/${SingleLeaseDialog.TAKE_PROFIT}`
                   })
                 "
               />
@@ -257,7 +257,7 @@
 <script lang="ts" setup>
 import { Button, SvgIcon, ToastType, Tooltip, Widget } from "web-components";
 
-import { CURRENCY_VIEW_TYPES, type LeaseData } from "@/common/types";
+import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { RouteNames } from "@/router";
 
 import EmptyState from "@/common/components/EmptyState.vue";
@@ -265,37 +265,39 @@ import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import PnlOverTimeChart from "./PnlOverTimeChart.vue";
 import {
-  LEASE_DUE,
   MAX_DECIMALS,
   MID_DECIMALS,
   NATIVE_CURRENCY,
-  PERCENT,
-  PERMILLE,
   PositionTypes,
   ProtocolsConfig
 } from "@/config/global";
 import { computed, inject, onMounted, ref, watch } from "vue";
 import { useApplicationStore } from "@/common/stores/application";
-import { useOracleStore } from "@/common/stores/oracle";
+import { usePricesStore } from "@/common/stores/prices";
 import { Dec } from "@keplr-wallet/unit";
-import { AssetUtils } from "@/common/utils/AssetUtils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { getCurrencyByTicker, getCurrencyByDenom, getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
-import { AppUtils, datePraser, isMobile, Logger, walletOperation } from "@/common/utils";
+import { datePraser, isMobile, Logger, walletOperation } from "@/common/utils";
+import { getFreeInterestAddress } from "@/common/utils/LeaseConfigService";
 import { useRoute, useRouter } from "vue-router";
 import { SingleLeaseDialog } from "@/modules/leases/enums";
-import { getStatus, TEMPLATES } from "../common";
+import { TEMPLATES } from "../common";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Lease } from "@nolus/nolusjs/build/contracts";
 import { useI18n } from "vue-i18n";
 import type { CurrencyComponentProps } from "@/common/components/CurrencyComponent.vue";
+import type { LeaseInfo } from "@/common/api";
+import type { LeaseDisplayData } from "@/common/stores/leases";
 
 const props = defineProps<{
-  lease?: LeaseData;
+  lease?: LeaseInfo | null;
+  displayData?: LeaseDisplayData | null;
   loading: boolean;
 }>();
 
 const app = useApplicationStore();
-const oracle = useOracleStore();
+const pricesStore = usePricesStore();
 const router = useRouter();
 const walletStore = useWalletStore();
 const loadingStopLoss = ref(false);
@@ -306,36 +308,38 @@ const reload = inject("reload", () => {});
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 const freeInterest = ref<string[]>([]);
 
-const pnl = ref({
-  percent: "0.00",
-  amount: "0.00",
-  status: true,
-  neutral: true
+const pnl = computed(() => {
+  if (!props.displayData) {
+    return { percent: "0.00", amount: "0.00", status: true, neutral: true };
+  }
+  return {
+    percent: props.displayData.pnlPercent.toString(2),
+    amount: props.displayData.pnlAmount.toString(),
+    status: props.displayData.pnlPositive,
+    neutral: false
+  };
 });
 
 onMounted(async () => {
-  const data = await AppUtils.getFreeInterestAddress();
+  const data = await getFreeInterestAddress();
   freeInterest.value = data.interest_paid_to;
 });
 
-watch(
-  () => props.lease,
-  () => {
-    pnl.value = {
-      percent: props.lease!.pnlPercent.toString(2),
-      amount: props.lease!.pnlAmount.toString(),
-      status: props.lease!.pnlAmount.isPositive() || props.lease!.pnlAmount.isZero(),
-      neutral: false
-    };
-  }
-);
-
 const status = computed(() => {
-  return getStatus(props.lease as LeaseData);
+  if (!props.lease) return TEMPLATES.opening;
+  switch (props.lease.status) {
+    case "opening": return TEMPLATES.opening;
+    case "opened": return TEMPLATES.opened;
+    case "paid_off": return TEMPLATES.paid;
+    case "closing": return TEMPLATES.paid;
+    case "closed": return TEMPLATES.closed;
+    case "liquidated": return TEMPLATES.liquidated;
+    default: return TEMPLATES.opening;
+  }
 });
 
 const isFreeLease = computed(() => {
-  if (freeInterest.value.includes(props.lease?.leaseAddress as string)) {
+  if (freeInterest.value.includes(props.lease?.address as string)) {
     return true;
   }
   return false;
@@ -343,151 +347,59 @@ const isFreeLease = computed(() => {
 
 const amount_tooltip = computed(() => {
   const a = new Dec(amount.value.toString(), assetLoan.value?.decimal_digits ?? 0);
-  return `${AssetUtils.formatNumber(a.toString(), assetLoan.value?.decimal_digits ?? 0)} ${asset.value?.shortName ?? ""}`;
+  return `${formatNumber(a.toString(), assetLoan.value?.decimal_digits ?? 0)} ${asset.value?.shortName ?? ""}`;
 });
 
 const amount = computed(() => {
-  switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
-    case PositionTypes.long: {
-      const data =
-        props.lease!.leaseStatus?.opened?.amount ||
-        props.lease!.leaseStatus.opening?.downpayment ||
-        props.lease!.leaseStatus.closing?.amount;
-      return data?.amount ?? "0";
-    }
-    case PositionTypes.short: {
-      const data =
-        props.lease!.leaseStatus?.opened?.amount ||
-        props.lease!.leaseStatus.opening?.downpayment ||
-        props.lease!.leaseStatus.closing?.amount;
-      return new Dec(data?.amount ?? 0).toString();
-    }
-    default: {
-      return "0";
-    }
-  }
+  return props.lease?.amount?.amount ?? "0";
 });
 
 const assetLoan = computed(() => {
-  switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
-    case PositionTypes.long: {
-      return asset.value;
-    }
-    case PositionTypes.short: {
-      const p = props.lease?.protocol!;
-      const currency = app.currenciesData![`${ProtocolsConfig[p].stable}@${p}`];
-      return currency;
-    }
+  const posType = props.displayData?.positionType;
+  if (posType === PositionTypes.long) {
+    return asset.value;
+  } else if (posType === PositionTypes.short) {
+    const p = props.lease?.protocol!;
+    const currency = app.currenciesData![`${ProtocolsConfig[p]?.stable}@${p}`];
+    return currency;
   }
+  return asset.value;
 });
 
 const pricerPerAsset = computed(() => {
-  switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
-    case PositionTypes.long: {
-      return asset.value;
-    }
-    case PositionTypes.short: {
-      const p = props.lease?.protocol!;
-      const ticker = props.lease?.leaseData!.leasePositionTicker;
-      const currency = app.currenciesData![`${ticker}@${p}`];
-      return currency;
-    }
+  const posType = props.displayData?.positionType;
+  if (posType === PositionTypes.long) {
+    return asset.value;
+  } else if (posType === PositionTypes.short) {
+    const p = props.lease?.protocol!;
+    const ticker = props.lease?.etl_data?.lease_position_ticker;
+    const currency = app.currenciesData![`${ticker}@${p}`];
+    return currency;
   }
+  return asset.value;
 });
 
 const stopLoss = computed(() => {
-  const data = props.lease?.leaseStatus.opened?.close_policy.stop_loss;
-  const price = getPrice()!;
-
-  if (!!data && !!price) {
-    switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
-      case PositionTypes.long: {
-        const p = props.lease.stableAsset.quo(new Dec(data).quo(new Dec(PERMILLE))).quo(props.lease.unitAsset);
-        return {
-          percent: data / (PERMILLE / PERCENT),
-          amount: p.toString(asset.value?.decimal_digits)
-        };
-      }
-      case PositionTypes.short: {
-        const p = props.lease.unitAsset.mul(new Dec(data).quo(new Dec(PERMILLE))).quo(props.lease.stableAsset);
-        return {
-          percent: data / (PERMILLE / PERCENT),
-          amount: p.toString(asset.value?.decimal_digits)
-        };
-      }
-    }
-  }
-
-  return null;
+  return props.displayData?.stopLoss
+    ? { percent: props.displayData.stopLoss.percent, amount: props.displayData.stopLoss.price.toString(asset.value?.decimal_digits) }
+    : null;
 });
 
 const takeProfit = computed(() => {
-  const data = props.lease?.leaseStatus.opened?.close_policy.take_profit;
-  const price = getPrice()!;
-
-  if (!!data && !!price) {
-    switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
-      case PositionTypes.long: {
-        const p = props.lease.stableAsset.quo(new Dec(data).quo(new Dec(PERMILLE))).quo(props.lease.unitAsset);
-        return {
-          percent: data / (PERMILLE / PERCENT),
-          amount: p.toString(asset.value?.decimal_digits)
-        };
-      }
-      case PositionTypes.short: {
-        const p = props.lease.unitAsset.mul(new Dec(data).quo(new Dec(PERMILLE))).quo(props.lease.stableAsset);
-        return {
-          percent: data / (PERMILLE / PERCENT),
-          amount: p.toString(asset.value?.decimal_digits)
-        };
-      }
-    }
-  }
-
-  return null;
+  return props.displayData?.takeProfit
+    ? { percent: props.displayData.takeProfit.percent, amount: props.displayData.takeProfit.price.toString(asset.value?.decimal_digits) }
+    : null;
 });
 
-function getPrice() {
-  switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
-    case PositionTypes.long: {
-      return props.lease?.leaseData?.price;
-    }
-    case PositionTypes.short: {
-      return props.lease?.leaseData?.lpnPrice;
-    }
-  }
-
-  return new Dec(0);
-}
-
 const asset = computed(() => {
-  if (props.lease?.leaseStatus?.opening && props.lease?.leaseData) {
-    const item = app.currenciesData?.[props.lease.leaseData?.leasePositionTicker as string];
-    return item;
-  }
-
-  switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
-    case PositionTypes.long: {
-      const ticker =
-        props.lease?.leaseStatus?.opened?.amount.ticker ||
-        props.lease?.leaseStatus?.closing?.amount.ticker ||
-        props.lease?.leaseStatus?.opening?.downpayment.ticker;
-      const item = AssetUtils.getCurrencyByTicker(ticker as string);
-
-      const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
-      return asset;
-    }
-    case PositionTypes.short: {
-      const item = AssetUtils.getCurrencyByTicker(props.lease?.leaseData?.ls_asset_symbol as string);
-
-      const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
-      return asset;
-    }
-  }
+  if (!props.lease) return undefined;
+  const ticker = props.lease.amount.ticker;
+  const protocol = props.lease.protocol;
+  const item = getCurrencyByTicker(ticker);
+  return item ? getCurrencyByDenom(item.ibcData as string) : undefined;
 });
 
 const stable = computed<CurrencyComponentProps>(() => {
-  const lease = props.lease;
   const dflt = {
     amount: "0",
     type: CURRENCY_VIEW_TYPES.CURRENCY,
@@ -495,48 +407,39 @@ const stable = computed<CurrencyComponentProps>(() => {
     fontSize: 16
   } as CurrencyComponentProps;
 
-  if (!lease) {
+  if (!props.lease || !props.displayData) {
     return dflt;
   }
 
-  const amount =
-    lease.leaseStatus?.opened?.amount || lease.leaseStatus.opening?.downpayment || lease.leaseStatus.closing?.amount;
-  let protocol = lease.protocol;
+  const posType = props.displayData.positionType;
+  const assetAmount = new Dec(props.lease.amount.amount, assetLoan.value?.decimal_digits ?? 0);
 
-  let ticker = lease.leaseData!.leasePositionTicker!;
+  if (posType === PositionTypes.long) {
+    const ticker = props.lease.amount.ticker;
+    const protocol = props.lease.protocol;
+    const price = pricesStore.prices[`${ticker}@${protocol}`];
+    const value = assetAmount.mul(new Dec(price?.price ?? "0"));
 
-  if (ticker.includes("@")) {
-    let [t, p] = ticker.split("@");
-    ticker = t;
-    protocol = p;
-  }
-
-  switch (ProtocolsConfig[lease.protocol].type) {
-    case PositionTypes.long: {
-      const price = oracle.prices?.[`${ticker}@${protocol}`];
-
-      const value = new Dec(amount!.amount, assetLoan.value?.decimal_digits).mul(new Dec(price?.amount));
-
-      return {
-        amount: value.toString(NATIVE_CURRENCY.maximumFractionDigits),
-        type: CURRENCY_VIEW_TYPES.CURRENCY,
-        denom: NATIVE_CURRENCY.symbol,
-        fontSize: 16
-      } as CurrencyComponentProps;
-    }
-    case PositionTypes.short: {
-      const ast = app.currenciesData?.[`${ticker}@${protocol}`];
-      const price = oracle.prices?.[ast?.key as string];
-      const value = new Dec(amount!.amount).quo(new Dec(price.amount));
-      return {
-        amount: value.toString(NATIVE_CURRENCY.maximumFractionDigits),
-        type: CURRENCY_VIEW_TYPES.TOKEN,
-        denom: ast?.shortName,
-        decimals: asset.value?.decimal_digits,
-        fontSize: 16,
-        hasSpace: true
-      } as CurrencyComponentProps;
-    }
+    return {
+      amount: value.toString(NATIVE_CURRENCY.maximumFractionDigits),
+      type: CURRENCY_VIEW_TYPES.CURRENCY,
+      denom: NATIVE_CURRENCY.symbol,
+      fontSize: 16
+    } as CurrencyComponentProps;
+  } else if (posType === PositionTypes.short) {
+    const ticker = props.lease.etl_data?.lease_position_ticker ?? props.lease.amount.ticker;
+    const protocol = props.lease.protocol;
+    const ast = app.currenciesData?.[`${ticker}@${protocol}`];
+    const price = pricesStore.prices[ast?.key as string];
+    const value = assetAmount.quo(new Dec(price?.price ?? "1"));
+    return {
+      amount: value.toString(NATIVE_CURRENCY.maximumFractionDigits),
+      type: CURRENCY_VIEW_TYPES.TOKEN,
+      denom: ast?.shortName,
+      decimals: asset.value?.decimal_digits,
+      fontSize: 16,
+      hasSpace: true
+    } as CurrencyComponentProps;
   }
 
   return dflt;
@@ -544,141 +447,73 @@ const stable = computed<CurrencyComponentProps>(() => {
 
 const lpn = computed(() => {
   if (props.lease) {
-    const l = AssetUtils.getLpnByProtocol(props.lease!.protocol);
-    return l;
+    return getLpnByProtocol(props.lease.protocol);
   }
+  return undefined;
 });
 
 const debt = computed(() => {
-  if (props.lease) {
-    const microAmount = CurrencyUtils.convertDenomToMinimalDenom(
-      props.lease.debt.toString(),
-      lpn.value!.ibcData,
-      lpn.value!.decimal_digits
-    ).amount.toString();
-    return microAmount;
+  if (props.lease && lpn.value) {
+    // totalDebt is already in minimal denom (raw units), just return as-is for display
+    // The BigNumber component will handle formatting based on the lpn.decimal_digits
+    const totalDebt = props.displayData?.totalDebt ?? new Dec(0);
+    return totalDebt.toString();
   }
   return "0";
 });
 
 const downPayment = computed(() => {
-  if (props.lease) {
-    const amount = props.lease.leaseData?.downPayment.add(props.lease.leaseData?.repayment_value);
-
-    return amount!.toString(NATIVE_CURRENCY.maximumFractionDigits);
+  if (props.displayData) {
+    const amount = props.displayData.downPayment.add(props.displayData.repaymentValue);
+    return amount.toString(NATIVE_CURRENCY.maximumFractionDigits);
   }
   return "0";
 });
 
 const fee = computed(() => {
-  if (props.lease) {
-    const amount = props.lease.leaseData?.fee;
-
-    return amount!.toString(NATIVE_CURRENCY.maximumFractionDigits);
+  if (props.displayData) {
+    return props.displayData.fee.toString(NATIVE_CURRENCY.maximumFractionDigits);
   }
   return "0";
 });
 
-const currentPrice = computed(() => {
-  switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
-    case PositionTypes.long: {
-      if (props.lease?.leaseStatus?.opening && props.lease?.leaseData) {
-        const item = app.currenciesData?.[props.lease?.leaseData?.leasePositionTicker as string];
-        return oracle.prices[item?.ibcData as string]?.amount ?? "0";
-      }
-      break;
-    }
-    case PositionTypes.short: {
-      if (props.lease?.leaseStatus?.opening && props.lease?.leaseData) {
-        return oracle.prices[`${props.lease.leaseStatus.opening.loan.ticker}@${props.lease.protocol}`]?.amount ?? "0";
-      }
-    }
-  }
-
-  const ticker = props.lease?.leaseData?.leasePositionTicker;
-
-  return oracle.prices[`${ticker}@${props.lease?.protocol}`]?.amount ?? "0";
-});
-
 const openedPrice = computed(() => {
-  switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
-    case PositionTypes.long: {
-      return (props.lease?.leaseData?.price ?? new Dec(0)).toString();
-    }
-    case PositionTypes.short: {
-      return (props.lease?.leaseData?.lpnPrice ?? new Dec(0)).toString();
-    }
+  if (props.displayData) {
+    return props.displayData.openingPrice.toString();
   }
-
   return "0";
 });
 
 const interestDue = computed(() => {
-  const data = props.lease?.leaseStatus?.opened;
-
-  if (data) {
-    const due = props.lease!.interestDue;
-    return due.toString();
+  if (props.displayData && props.lease?.status === "opened") {
+    return props.displayData.interestDue.toString();
   }
-
   return "0";
 });
 
 const interestDueStatus = computed(() => {
-  const lease = props.lease?.leaseStatus?.opened;
-  if (lease) {
-    const isDue = new Dec(LEASE_DUE).gte(new Dec(lease.overdue_collect_in));
-    if (isDue) {
-      return true;
-    }
-    return false;
-  }
-  return false;
+  return props.displayData?.interestDueWarning ?? false;
 });
 
 const interest = computed(() => {
-  const data = props.lease;
-
-  if (data) {
-    return data.interest.toString(2);
+  if (props.displayData) {
+    return props.displayData.interestRate.toString(2);
   }
-
   return "0.00";
 });
 
 const liquidation = computed(() => {
-  const lease = props.lease?.leaseStatus?.opened;
-  if (lease) {
-    return `${props.lease.liquidation!.toString(MID_DECIMALS)}`;
+  if (props.displayData && props.lease?.status === "opened") {
+    return props.displayData.liquidationPrice.toString(MID_DECIMALS);
   }
   return "0";
 });
-
-const liquidationPercent = computed(() => {
-  const lease = props.lease?.leaseStatus?.opened;
-  if (lease) {
-    const price = props.lease.liquidation;
-    const cPrice = getCurrentPrice()!;
-    const diff = cPrice.sub(price);
-    const percent = diff.quo(cPrice).mul(new Dec(PERCENT)).mul(new Dec(-1)).toString(2);
-    return `${percent}`;
-  }
-  return "0";
-});
-
-function getCurrentPrice() {
-  const key = `${props.lease?.leaseData?.leasePositionTicker}@${props.lease?.protocol}`;
-  const price = oracle.prices[key];
-  return new Dec(price?.amount ?? 0);
-}
 
 const interestDueDate = computed(() => {
-  const lease = props.lease?.leaseStatus?.opened;
-  let date = new Date();
-  if (lease) {
-    date = new Date(date.getTime() + Number(lease.overdue_collect_in) / 1000 / 1000);
+  if (props.displayData?.interestDueDate) {
+    return datePraser(props.displayData.interestDueDate.toISOString(), true);
   }
-  return datePraser(date.toISOString(), true);
+  return datePraser(new Date().toISOString(), true);
 });
 
 async function onRemoveStopLoss() {
@@ -689,20 +524,15 @@ async function onRemoveStopLoss() {
 
 async function onSetStopLoss() {
   const wallet = walletStore.wallet as NolusWallet;
-  if (wallet) {
+  if (wallet && props.lease) {
     try {
       loadingStopLoss.value = true;
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const leaseClient = new Lease(cosmWasmClient, props.lease?.leaseAddress!);
-      const price = getPrice();
+      const leaseClient = new Lease(cosmWasmClient, props.lease.address);
 
-      if (!price) {
-        return;
-      }
-
-      const takeProfit = props.lease?.leaseStatus.opened?.close_policy.take_profit;
-      const { txHash, txBytes, usedFee } = await leaseClient.simulateChangeClosePolicyTx(wallet, null, takeProfit);
+      const takeProfitValue = props.lease.close_policy?.take_profit;
+      const { txBytes } = await leaseClient.simulateChangeClosePolicyTx(wallet, null, takeProfitValue);
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
       walletStore.loadActivities();
       reload();
@@ -726,20 +556,15 @@ async function onRemoveTakeProfit() {
 
 async function onSetTakeProfit() {
   const wallet = walletStore.wallet as NolusWallet;
-  if (wallet) {
+  if (wallet && props.lease) {
     try {
       loadingTakeProfit.value = true;
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const leaseClient = new Lease(cosmWasmClient, props.lease?.leaseAddress!);
-      const price = getPrice();
+      const leaseClient = new Lease(cosmWasmClient, props.lease.address);
 
-      if (!price) {
-        return;
-      }
-
-      const stopLoss = props.lease?.leaseStatus.opened?.close_policy.stop_loss;
-      const { txHash, txBytes, usedFee } = await leaseClient.simulateChangeClosePolicyTx(wallet, stopLoss, null);
+      const stopLossValue = props.lease.close_policy?.stop_loss;
+      const { txBytes } = await leaseClient.simulateChangeClosePolicyTx(wallet, stopLossValue, null);
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
       walletStore.loadActivities();
       reload();

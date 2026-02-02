@@ -2,13 +2,16 @@ import type { IObjectKeys } from "@/common/types";
 import { type Coin, parseCoins } from "@cosmjs/proto-signing";
 
 import { Messages } from "./types";
-import { AppUtils, AssetUtils, EtlApi, Logger, StringUtils } from "@/common/utils";
+import { EtlApi, Logger, StringUtils } from "@/common/utils";
+import { getCurrencyByDenom, getCurrencyByTicker, getCurrencyBySymbol, getProtocolByContract, getLpnByProtocol } from "@/common/utils/CurrencyLookup";
+import { getIbc } from "@/common/utils/IbcUtils";
 import { Contracts, NATIVE_NETWORK, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { Buffer } from "buffer";
-import { ChainConstants, CurrencyUtils } from "@nolus/nolusjs";
+import { CurrencyUtils } from "@nolus/nolusjs";
 import { bech32 } from "bech32";
 import { SUPPORTED_NETWORKS_DATA } from "@/networks";
 import { h } from "vue";
+import { BackendApi } from "@/common/api";
 
 const currency_mapper: { [key: string]: string } = {
   "transfer/channel-0/transfer/channel-783/unls": "unls"
@@ -137,7 +140,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
       try {
         const data = JSON.parse(Buffer.from(msg.data.packet.data).toString());
         const d = `${msg.data.packet.destinationPort}/${msg.data.packet.destinationChannel}/${data.denom}`;
-        const denom = currency_mapper[d] ?? AssetUtils.getIbc(d);
+        const denom = currency_mapper[d] ?? getIbc(d);
         const coin = parseCoins(`${data.amount}${denom}`)[0];
         delete msg.fee_denom;
 
@@ -194,8 +197,8 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
 
         if (data.open_lease) {
           const token = getCurrency(msg.data.funds[0]);
-          const cr = AssetUtils.getCurrencyByTicker(data.open_lease.currency);
-          const item = AssetUtils.getProtocolByContract(msg.data.contract);
+          const cr = getCurrencyByTicker(data.open_lease.currency);
+          const item = getProtocolByContract(msg.data.contract);
           const protocol = ProtocolsConfig[item];
           const steps = [
             {
@@ -207,12 +210,12 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
           ];
 
           if (protocol.type == PositionTypes.short) {
-            const lpn = AssetUtils.getLpnByProtocol(item);
+            const lpn = getLpnByProtocol(item);
 
             return [
               i18n.t("message.open-short-position-action", {
                 ticker: cr?.shortName,
-                LPN_ticker: lpn.shortName,
+                LPN_ticker: lpn?.shortName ?? "",
                 position: i18n.t(`message.${protocol.type}`).toLowerCase(),
                 amount: token.toString()
               }),
@@ -281,8 +284,11 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         }
 
         if (data.burn) {
-          const protocol = AssetUtils.getProtocolByContract(msg.data.contract);
-          const lpn = AssetUtils.getLpnByProtocol(protocol);
+          const protocol = getProtocolByContract(msg.data.contract);
+          const lpn = getLpnByProtocol(protocol);
+          if (!lpn) {
+            return msg.type;
+          }
           const widthraw = await EtlApi.fetchLpWithdraw(msg.tx_hash);
           const token = CurrencyUtils.convertMinimalDenomToDenom(
             widthraw.LP_amnt_asset ?? 0,
@@ -316,7 +322,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         }
 
         if (data.close_position?.partial_close) {
-          const currency = AssetUtils.getCurrencyByTicker(data.close_position?.partial_close.amount.ticker);
+          const currency = getCurrencyByTicker(data.close_position?.partial_close.amount.ticker);
           const token = CurrencyUtils.convertMinimalDenomToDenom(
             data.close_position?.partial_close.amount.amount,
             currency?.ibcData!,
@@ -549,7 +555,7 @@ function truncateString(text: string) {
 }
 
 function getCurrency(amount: Coin) {
-  const info = AssetUtils.getCurrencyByDenom(amount.denom);
+  const info = getCurrencyByDenom(amount.denom);
   const token = CurrencyUtils.convertMinimalDenomToDenom(
     amount?.amount,
     info?.ibcData,
@@ -563,14 +569,14 @@ function getCurrency(amount: Coin) {
 async function fetchCurrency(amount: Coin, symbol?: string) {
   let coin;
   try {
-    coin = AssetUtils.getCurrencyByDenom(amount.denom);
+    coin = getCurrencyByDenom(amount.denom);
   } catch (e) {
     console.log(e);
   }
 
   if (!coin && symbol) {
     try {
-      coin = AssetUtils.getCurrencyBySymbol(symbol);
+      coin = getCurrencyBySymbol(symbol);
     } catch (e) {
       console.log(e);
     }
@@ -585,11 +591,9 @@ async function fetchCurrency(amount: Coin, symbol?: string) {
     );
   }
 
-  const api = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
-  const data = await fetch(`${api}/cosmos/bank/v1beta1/denoms_metadata/${amount.denom}`);
-  const json = await data.json();
-  const c = json.denom_units?.at(0);
-  const currency = AssetUtils.getCurrencyBySymbol(c.denom);
+  const metadata = await BackendApi.getDenomMetadata(amount.denom);
+  const c = metadata?.denom_units?.at(0);
+  const currency = getCurrencyBySymbol(c?.denom ?? amount.denom);
 
   return CurrencyUtils.convertMinimalDenomToDenom(
     amount?.amount,
@@ -637,7 +641,7 @@ function getChainLabel(prefix: string) {
 
 function getIconByContract(contract: string) {
   try {
-    const protocol = AssetUtils.getProtocolByContract(contract);
+    const protocol = getProtocolByContract(contract);
     for (const key in Contracts.protocolsFilter) {
       if (Contracts.protocolsFilter[key].hold.includes(protocol)) {
         return Contracts.protocolsFilter[key].image;

@@ -1,4 +1,4 @@
-import { ApplicationActions } from "..";
+import { ApplicationActions } from "../types";
 import { loadCurrennncies } from "./loadCurrenncies";
 import { changeNetwork } from "./changeNetwork";
 import { setTheme } from "./setTheme";

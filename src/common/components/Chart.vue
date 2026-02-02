@@ -56,9 +56,7 @@ export interface IChart {
 }
 
 const minLength = 3;
-const tooltip = import.meta.env.SSR
-  ? null
-  : select("body").append("div").attr("class", "custom-tooltip").style("opacity", 0);
+const tooltip = select("body").append("div").attr("class", "custom-tooltip").style("opacity", 0);
 const props = defineProps<IChart>();
 const isLoading = ref(true);
 const maxHeight = ref(0);
@@ -67,17 +65,20 @@ const plotContainer = ref<HTMLElement | null>(null);
 const i18n = useI18n();
 
 onMounted(async () => {
-  if (!import.meta.env.SSR) {
+  // First run all the data fetching functions
+  const items = props.fns.map((item) => item());
+  await Promise.all(items).catch((e) => Logger.error(e));
+  // After data is loaded, update the chart and clear loading state
+  // Note: update() will be called by the parent via chart.value?.update()
+  // But if it wasn't called (old usage pattern), we still need to clear loading
+  if (isLoading.value && plotContainer.value) {
     await props.updateChart(plotContainer.value, tooltip);
-    const items = props.fns.map((item) => item());
-    await Promise.all(items).catch((e) => Logger.error(e));
+    isLoading.value = false;
   }
 });
 
 onUnmounted(() => {
-  if (!import.meta.env.SSR) {
-    tooltip.remove();
-  }
+  tooltip.remove();
 });
 
 watch(i18n.locale, async () => {
@@ -93,10 +94,8 @@ const isLegendVisible = computed(() => {
 });
 
 function update() {
-  if (!import.meta.env.SSR) {
-    props.updateChart(plotContainer.value, tooltip);
-    isLoading.value = false;
-  }
+  props.updateChart(plotContainer.value, tooltip);
+  isLoading.value = false;
 }
 
 watch(

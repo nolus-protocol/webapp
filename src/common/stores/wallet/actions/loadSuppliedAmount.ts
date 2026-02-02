@@ -1,37 +1,36 @@
 import type { Store } from "../types";
 import { Dec } from "@keplr-wallet/unit";
-import { WalletManager } from "@/common/utils";
-import { useAdminStore } from "../../admin";
-import { NolusClient } from "@nolus/nolusjs";
-import { Lpp } from "@nolus/nolusjs/build/contracts";
+import { WalletManager, WalletUtils } from "@/common/utils";
+import { BackendApi, type EarnPositionsResponse } from "@/common/api";
 
 export async function loadSuppliedAmount(this: Store) {
-  const admin = useAdminStore();
   const walletAddress = this?.wallet?.address ?? WalletManager.getWalletAddress();
-  const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-  const promises = [];
-  const suppliedBalance: { [protocol: string]: string } = {};
-  const lppPrice: { [protocol: string]: Dec } = {};
-  for (const protocolKey in admin.contracts) {
-    const fn = async () => {
-      const protocol = admin.contracts![protocolKey];
-      const lppClient = new Lpp(cosmWasmClient, protocol.lpp);
-
-      const [depositBalance, price] = await Promise.all([
-        lppClient.getLenderDeposit(walletAddress as string),
-        lppClient.getPrice()
-      ]);
-
-      const p = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
-      suppliedBalance[protocolKey] = depositBalance.amount;
-      lppPrice[protocolKey as string] = p;
-    };
-
-    promises.push(fn());
+  
+  if (!WalletUtils.isAuth() || !walletAddress) {
+    this.suppliedBalance = {};
+    this.lppPrice = {};
+    return;
   }
 
-  await Promise.all(promises);
+  try {
+    // Fetch earn positions from backend - returns EarnPositionsResponse
+    const response: EarnPositionsResponse = await BackendApi.getEarnPositions(walletAddress);
+    
+    const suppliedBalance: { [protocol: string]: string } = {};
+    const lppPrice: { [protocol: string]: Dec } = {};
 
-  this.suppliedBalance = suppliedBalance;
-  this.lppPrice = lppPrice;
+    for (const position of response.positions) {
+      // Use deposited_nlpn (nLPN receipt tokens) for the supplied balance
+      suppliedBalance[position.protocol] = position.deposited_nlpn;
+      // Use lpp_price for the nLPN to LPN conversion ratio
+      lppPrice[position.protocol] = new Dec(position.lpp_price || "1");
+    }
+
+    this.suppliedBalance = suppliedBalance;
+    this.lppPrice = lppPrice;
+  } catch (e) {
+    console.error("[loadSuppliedAmount] Failed to load earn positions:", e);
+    this.suppliedBalance = {};
+    this.lppPrice = {};
+  }
 }

@@ -49,7 +49,7 @@
         {{ $t("message.share-position") }}
       </button>
       <button
-        v-if="getStatus(lease) == TEMPLATES.opened"
+        v-if="getLeaseStatus(lease) == TEMPLATES.opened"
         @click="repay"
         class="button-secondary w-full border-none px-3 py-3 text-left"
       >
@@ -69,13 +69,13 @@
 import Collect from "./Collect.vue";
 import { onMounted, ref } from "vue";
 import { Button, Popover } from "web-components";
-import type { LeaseData } from "@/common/types";
+import type { LeaseInfo } from "@/common/api";
 import { useRouter } from "vue-router";
 import { RouteNames } from "@/router";
-import { getStatus, TEMPLATES } from "../common";
+import { getLeaseStatus, TEMPLATES } from "../common";
 import { SingleLeaseDialog } from "../../enums";
 
-export type IAction = { lease: LeaseData; showCollect: boolean; showClose: boolean; opened: boolean };
+export type IAction = { lease: LeaseInfo; showCollect: boolean; showClose: boolean; opened: boolean };
 
 const props = defineProps<IAction>();
 
@@ -94,19 +94,19 @@ function sharePnl() {
 }
 
 function repay() {
-  router.push(`/${RouteNames.LEASES}/repay/${props.lease.protocol.toLocaleLowerCase()}/${props.lease.leaseAddress}`);
+  router.push(`/${RouteNames.LEASES}/repay/${props.lease.protocol.toLocaleLowerCase()}/${props.lease.address}`);
   close();
 }
 
 function onClose() {
   router.push(
-    `/${RouteNames.LEASES}/${SingleLeaseDialog.CLOSE}/${props.lease.protocol.toLocaleLowerCase()}/${props.lease.leaseAddress}`
+    `/${RouteNames.LEASES}/${SingleLeaseDialog.CLOSE}/${props.lease.protocol.toLocaleLowerCase()}/${props.lease.address}`
   );
   close();
 }
 
 function history() {
-  router.push(`/${RouteNames.LEASES}/${props.lease.protocol.toLocaleLowerCase()}/${props.lease.leaseAddress}#history`);
+  router.push(`/${RouteNames.LEASES}/${props.lease.protocol.toLocaleLowerCase()}/${props.lease.address}#history`);
   close();
 }
 

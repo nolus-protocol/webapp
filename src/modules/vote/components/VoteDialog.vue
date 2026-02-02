@@ -41,7 +41,7 @@
     </template>
     <template
       v-slot:footer
-      v-if="!!Number(delegatedTokensAmount.amount) && isVotingPeriod"
+      v-if="hasDelegatedTokens && isVotingPeriod"
     >
       <div class="flex gap-3">
         <Button
@@ -93,24 +93,22 @@
 </template>
 
 <script lang="ts" setup>
-import { inject, onBeforeUnmount, ref, watch } from "vue";
+import { computed, inject, onBeforeUnmount, ref, watch } from "vue";
 import { marked } from "marked";
-import { type Coin, coin } from "@cosmjs/amino";
 import type { FinalTallyResult, Proposal } from "@/modules/vote/types";
 import { Dec } from "@keplr-wallet/unit";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { Button, Dialog, ProposalStatus, ProposalVotingLine, ToastType } from "web-components";
 import { NATIVE_NETWORK } from "../../../config/global/network";
 
-import { NATIVE_ASSET } from "@/config/global";
-import { formatDateTime, Logger, NetworkUtils, walletOperation } from "@/common/utils";
+import { formatDateTime, Logger, walletOperation } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";
+import { useStakingStore } from "@/common/stores/staking";
 import { MsgVote } from "cosmjs-types/cosmos/gov/v1beta1/tx";
 import { useI18n } from "vue-i18n";
 import { useApplicationStore } from "@/common/stores/application";
 
 const dialog = ref<typeof Dialog | null>(null);
-const delegatedTokensAmount = ref({} as Coin);
 const description = ref();
 const quorum = ref("");
 const turnout = ref("");
@@ -118,6 +116,7 @@ const isVotingPeriod = ref(false);
 const isDisabled = ref(false);
 const isLoading = ref(-1);
 const wallet = useWalletStore();
+const stakingStore = useStakingStore();
 const i18n = useI18n();
 const app = useApplicationStore();
 
@@ -148,31 +147,33 @@ watch(
 );
 
 async function onInit() {
-  await loadDelegated();
+  // Load staking data if wallet is connected
+  if (wallet.wallet?.address) {
+    await stakingStore.setAddress(wallet.wallet.address);
+  }
 }
 
 onBeforeUnmount(() => {
   hide();
 });
 
-async function loadDelegated() {
-  const delegations = await NetworkUtils.loadDelegations();
-  let decimalDelegated = new Dec(0);
-
-  for (const item of delegations) {
-    const d = new Dec(item.balance.amount);
-    decimalDelegated = decimalDelegated.add(d);
-  }
-
-  delegatedTokensAmount.value = coin(decimalDelegated.truncate().toString(), NATIVE_ASSET.denom);
-}
-
+// Watch for wallet changes
 watch(
-  () => wallet.wallet,
-  () => {
-    loadDelegated();
+  () => wallet.wallet?.address,
+  async (address) => {
+    if (address) {
+      await stakingStore.setAddress(address);
+    } else {
+      stakingStore.clear();
+    }
   }
 );
+
+// Check if user has delegated tokens (can vote)
+const hasDelegatedTokens = computed(() => {
+  const totalStaked = new Dec(stakingStore.totalStaked);
+  return totalStaked.isPositive();
+});
 
 watch(
   () => props.proposal,
@@ -230,7 +231,7 @@ async function onVoteEmit(vote: VoteOption) {
         option: vote
       });
 
-      const { txHash, txBytes, usedFee } = await wallet.wallet!.simulateTx(voteMsg, typeUrl);
+      const { txBytes } = await wallet.wallet!.simulateTx(voteMsg, typeUrl);
 
       await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
       hide();

@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { LeaseData } from "@/common/types";
+import type { LeaseInfo } from "@/common/api";
 import { Button, ToastType, type ButtonSize, type ButtonType } from "web-components";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useI18n } from "vue-i18n";
@@ -21,7 +21,7 @@ import { NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { Lease } from "@nolus/nolusjs/build/contracts";
 
 export interface ICollect {
-  lease: LeaseData;
+  lease: LeaseInfo;
   severity: ButtonType;
   size: ButtonSize;
 }
@@ -35,15 +35,14 @@ const reload = inject("reload", () => {});
 const isCollectLoading = ref(false);
 const isCollectDisabled = ref(false);
 
-async function onClaim(lease: LeaseData) {
-  const data = lease.leaseStatus.closing;
-  if (data) {
+async function onClaim(lease: LeaseInfo) {
+  if (lease.status === "closing" || lease.status === "paid_off") {
     try {
       isCollectLoading.value = true;
 
       const wallet = walletStore.wallet as NolusWallet;
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const leaseClient = new Lease(cosmWasmClient, lease.leaseAddress);
+      const leaseClient = new Lease(cosmWasmClient, lease.address);
 
       const { txHash, txBytes, usedFee } = await leaseClient.simulateClosePositionLeaseTx(wallet);
 
@@ -74,10 +73,12 @@ async function onClaimSubmit() {
 }
 
 const loadingCollect = computed(() => {
-  const data = props.lease.leaseStatus.closing;
-
-  if (data?.in_progress == "transfer_in_init" || data?.in_progress == "transfer_in_finish") {
-    return true;
+  // Check if lease is in closing status with in_progress state
+  if (props.lease.status === "closing" && props.lease.in_progress) {
+    const inProgress = props.lease.in_progress;
+    if (inProgress === "transfer_in_init" || inProgress === "transfer_in_finish") {
+      return true;
+    }
   }
 
   return false;

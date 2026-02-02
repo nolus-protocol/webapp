@@ -1,0 +1,97 @@
+[package]
+name = "nolus-backend"
+version = "0.1.0"
+edition = "2021"
+authors = ["Nolus Protocol"]
+description = "Backend server for Nolus webapp"
+
+[dependencies]
+# Web framework
+axum = { version = "0.8", features = ["ws", "macros"] }
+axum-extra = { version = "0.10", features = ["typed-header"] }
+tower = { version = "0.5", features = ["full"] }
+tower-http = { version = "0.6", features = ["cors", "compression-gzip", "fs", "trace"] }
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+futures = "0.3"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# HTTP client
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+
+# URL encoding
+urlencoding = "2.1"
+
+# Configuration
+config = "0.14"
+dotenvy = "0.15"
+
+# Logging & tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Error handling
+thiserror = "1"
+anyhow = "1"
+
+# Async trait support
+async-trait = "0.1"
+
+# Caching
+moka = { version = "0.12", features = ["future"] }
+
+# Concurrent HashMap for WebSocket connections
+dashmap = "6"
+
+# Cryptography (for Intercom JWT, address validation)
+hmac = "0.12"
+sha2 = "0.10"
+hex = "0.4"
+bech32 = "0.11"
+jsonwebtoken = "9"
+
+# Decimal math
+rust_decimal = { version = "1", features = ["serde", "serde-with-str"] }
+
+# Date/time
+chrono = { version = "0.4", features = ["serde"] }
+
+# UUID for request IDs
+uuid = { version = "1", features = ["v4"] }
+
+# Rate limiting
+governor = "0.6"
+
+# Cosmos SDK types (for transaction building)
+cosmrs = { version = "0.16", features = ["cosmwasm"] }
+cosmwasm-std = "2"
+base64 = "0.22"
+prost = "0.12"
+
+# Regex for placeholder validation (translations)
+regex = "1"
+lazy_static = "1"
+
+# Macro utilities for identifier concatenation
+paste = "1.0"
+
+[dev-dependencies]
+tokio-test = "0.4"
+wiremock = "0.6"
+criterion = { version = "0.5", features = ["async_tokio"] }
+tokio-tungstenite = "0.21"
+futures = "0.3"
+tempfile = "3.10"
+
+[[bench]]
+name = "benchmarks"
+harness = false
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

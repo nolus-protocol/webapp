@@ -1,26 +1,33 @@
 import type { Store } from "../types";
-import { AppUtils, WalletManager, WalletUtils } from "@/common/utils";
-import { ChainConstants } from "@nolus/nolusjs";
+import { WalletManager, WalletUtils } from "@/common/utils";
 import { Coin, Int } from "@keplr-wallet/unit";
 import { NATIVE_ASSET } from "@/config/global";
+import { BackendApi, type StakingPositionsResponse } from "@/common/api";
 
 export async function loadStakedTokens(this: Store) {
   if (!WalletUtils.isAuth()) {
+    this.stakingBalance = new Coin(NATIVE_ASSET.denom, new Int(0));
     return false;
   }
 
   try {
-    const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
-    const data = await fetch(`${url}/cosmos/staking/v1beta1/delegations/${WalletManager.getWalletAddress()}`);
-    const json = await data.json();
+    const walletAddress = WalletManager.getWalletAddress();
+    if (!walletAddress) {
+      this.stakingBalance = new Coin(NATIVE_ASSET.denom, new Int(0));
+      return false;
+    }
 
-    if (json.delegation_responses) {
+    // Backend returns StakingPositionsResponse with delegations array
+    const response: StakingPositionsResponse = await BackendApi.getStakingPositions(walletAddress);
+
+    if (response.delegations && response.delegations.length > 0) {
       const s = new Coin(NATIVE_ASSET.denom, new Int(0));
-      let am = new Int(0);
-      for (const item of json.delegation_responses) {
-        am = am.add(new Int(item.balance.amount));
+      let totalAmount = new Int(0);
+      for (const delegation of response.delegations) {
+        // Each delegation has a balance object with denom and amount
+        totalAmount = totalAmount.add(new Int(delegation.balance.amount));
       }
-      s.amount = am;
+      s.amount = totalAmount;
       this.stakingBalance = s;
     } else {
       this.stakingBalance = new Coin(NATIVE_ASSET.denom, new Int(0));

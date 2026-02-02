@@ -78,18 +78,20 @@ import BigNumber from "@/common/components/BigNumber.vue";
 import { AssetsDialog } from "@/modules/assets/enums";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/common/stores/wallet";
-import { useOracleStore } from "@/common/stores/oracle";
+import { usePricesStore } from "@/common/stores/prices";
 import { computed, ref, watch } from "vue";
 import { Coin, Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { AssetUtils, isMobile, Logger, WalletManager } from "@/common/utils";
+import { isMobile, Logger, WalletManager } from "@/common/utils";
+import { getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_CURRENCY, ProtocolsConfig } from "@/config/global";
 import { useApplicationStore } from "@/common/stores/application";
 import { useRouter } from "vue-router";
 
 const i18n = useI18n();
 const wallet = useWalletStore();
-const oracle = useOracleStore();
+const pricesStore = usePricesStore();
 const app = useApplicationStore();
 const router = useRouter();
 const total = ref(new Dec(0));
@@ -113,13 +115,13 @@ const filteredAssets = computed(() => {
   return balances
     .sort((a, b) => {
       const aAssetBalance = CurrencyUtils.calculateBalance(
-        oracle.prices[a.key]?.amount,
+        pricesStore.prices[a.key]?.price,
         new Coin(a.balance.denom, a.balance.amount.toString()),
         a.decimal_digits as number
       ).toDec();
 
       const bAssetBalance = CurrencyUtils.calculateBalance(
-        oracle.prices[b.key]?.amount,
+        pricesStore.prices[b.key]?.price,
         new Coin(b.balance.denom, b.balance.amount.toString()),
         b.decimal_digits as number
       ).toDec();
@@ -130,7 +132,7 @@ const filteredAssets = computed(() => {
 });
 
 watch(
-  () => [wallet.wallet, oracle.prices, wallet.balances],
+  () => [wallet.wallet, pricesStore.prices, wallet.balances],
   async () => {
     try {
       setAvailableAssets();
@@ -146,9 +148,9 @@ watch(
 function setAvailableAssets() {
   let totalAssets = new Dec(0);
   wallet.currencies.forEach((asset) => {
-    const currency = AssetUtils.getCurrencyByDenom(asset.balance.denom);
+    const currency = getCurrencyByDenom(asset.balance.denom);
     const assetBalance = CurrencyUtils.calculateBalance(
-      oracle.prices[asset.key]?.amount ?? 0,
+      pricesStore.prices[asset.key]?.price ?? "0",
       new Coin(currency.ibcData, asset.balance.amount.toString()),
       Number(currency.decimal_digits)
     );
@@ -158,7 +160,7 @@ function setAvailableAssets() {
 }
 
 function isEarn(denom: string) {
-  const curency = AssetUtils.getCurrencyByDenom(denom);
+  const curency = getCurrencyByDenom(denom);
   const [_, protocol] = curency.key.split("@");
   if (!ProtocolsConfig[protocol].rewards) {
     return false;
@@ -175,7 +177,7 @@ function getApr(key: string) {
     asset = (app.lpn ?? []).find((item) => item.ticker == ticker);
   }
   const [_, protocol] = asset?.key.split("@") ?? [];
-  return AssetUtils.formatNumber(app.apr?.[protocol] ?? 0, 2);
+  return formatNumber(app.apr?.[protocol] ?? 0, 2);
 }
 
 function apr(denom: string, key: string) {
@@ -184,21 +186,21 @@ function apr(denom: string, key: string) {
   }
 
   if (app.native?.ibcData == denom) {
-    return `${AssetUtils.formatNumber(wallet.apr, 2)}%`;
+    return `${formatNumber(wallet.apr, 2)}%`;
   }
 }
 
 const assets = computed<TableRowItemProps[]>(() => {
   return filteredAssets.value.map((item) => {
     const stable_b = CurrencyUtils.calculateBalance(
-      oracle.prices[item.key]?.amount,
+      pricesStore.prices[item.key]?.price,
       new Coin(item.balance.denom, item.balance.amount.toString()),
       item.decimal_digits
     ).toDec();
 
-    const price = AssetUtils.formatNumber(oracle.prices[item.key]?.amount ?? 0, 4);
-    const balance = AssetUtils.formatNumber(new Dec(item.balance.amount, item.decimal_digits).toString(3), 3);
-    const stable_balance = AssetUtils.formatNumber(stable_b.toString(2), 2);
+    const price = formatNumber(pricesStore.prices[item.key]?.price ?? "0", 4);
+    const balance = formatNumber(new Dec(item.balance.amount, item.decimal_digits).toString(3), 3);
+    const stable_balance = formatNumber(stable_b.toString(2), 2);
     return {
       items: [
         {

@@ -1,19 +1,13 @@
 import { ref } from "vue";
-import { ChainConstants } from "@nolus/nolusjs";
 import { Dec } from "@keplr-wallet/unit";
-
-import { AppUtils } from "@/common/utils";
+import { BackendApi } from "@/common/api";
 
 export const useLoadTallying = () => {
   const quorum = ref(new Dec(0));
 
   const loadTallying = async () => {
-    const node = await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
-
-    const res = await fetch(`${node.api}/cosmos/gov/v1/params/tallying`);
-    const data = await res.json();
-
-    quorum.value = new Dec(data.params.quorum);
+    const response = await BackendApi.getTallyingParams();
+    quorum.value = new Dec(response.params.quorum);
   };
 
   return {

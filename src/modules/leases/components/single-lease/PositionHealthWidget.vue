@@ -106,18 +106,15 @@
 <script lang="ts" setup>
 import { computed } from "vue";
 import { Widget } from "web-components";
-import { Dec } from "@keplr-wallet/unit";
-import { AssetUtils } from "@/common/utils";
 
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import HealthArrow from "@/assets/icons/lease/health-arrow.svg";
 import EmptyState from "@/common/components/EmptyState.vue";
-import { useOracleStore } from "@/common/stores/oracle";
-import type { LeaseData } from "@/common/types";
-import { getStatus, TEMPLATES } from "../common";
-import { PERCENT, PositionTypes, ProtocolsConfig } from "@/config/global";
+import { TEMPLATES } from "../common";
 import { useRoute, useRouter } from "vue-router";
 import { RouteNames } from "@/router";
+import type { LeaseInfo } from "@/common/api";
+import type { LeaseDisplayData } from "@/common/stores/leases";
 
 const radius = 112;
 const centerX = 128;
@@ -133,7 +130,8 @@ enum status {
 
 const props = withDefaults(
   defineProps<{
-    lease?: LeaseData;
+    lease?: LeaseInfo | null;
+    displayData?: LeaseDisplayData | null;
     greenLimit?: number;
     yellowLimit?: number;
     loading?: boolean;
@@ -144,7 +142,7 @@ const props = withDefaults(
   }
 );
 
-const healTitle = computed((item) => {
+const healTitle = computed(() => {
   if (health.value >= props.greenLimit) {
     return status.green;
   }
@@ -155,9 +153,9 @@ const healTitle = computed((item) => {
   if (health.value <= props.yellowLimit) {
     return status.red;
   }
+  return status.red;
 });
 
-const oracle = useOracleStore();
 const greenEndAngle = computed(() => (props.greenLimit / 100) * 180);
 const yellowEndAngle = computed(() => (props.yellowLimit / 100) * 180);
 const rotationStyle = computed(() => {
@@ -181,54 +179,23 @@ const arcPath = (startAngle: number, endAngle: number) => {
 };
 
 const health = computed(() => {
-  if (props.lease?.leaseStatus.closing) {
-    return 100;
+  // Use pre-computed health from displayData
+  if (props.displayData) {
+    return props.displayData.health;
   }
-  if (props.lease?.leaseStatus.opened) {
-    const { overdue_interest, overdue_margin, principal_due, amount, due_margin, due_interest } =
-      props.lease?.leaseStatus.opened;
-
-    const externalCurrencies = [overdue_interest, overdue_margin, due_margin, due_interest, principal_due, amount].map(
-      (amount) => AssetUtils.getCurrencyByTicker(amount?.ticker as string)
-    );
-
-    const l = AssetUtils.getLpnByProtocol(props.lease.protocol);
-    const [t, p] = externalCurrencies[5].key.split("@");
-    const price = oracle.prices[`${t}@${props.lease.protocol}`];
-
-    const marginPrice = oracle.prices[l.key];
-    const priceAmount = new Dec(amount.amount, externalCurrencies[5].decimal_digits).mul(new Dec(price?.amount ?? 1));
-    const margin = new Dec(overdue_interest.amount, externalCurrencies[0].decimal_digits)
-      .add(new Dec(overdue_margin.amount, externalCurrencies[1].decimal_digits))
-      .add(new Dec(due_margin.amount, externalCurrencies[2].decimal_digits))
-      .add(new Dec(due_interest.amount, externalCurrencies[3].decimal_digits))
-      .add(new Dec(principal_due.amount, externalCurrencies[4].decimal_digits));
-
-    let fn = () => {
-      switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
-        case PositionTypes.long: {
-          const margin_total = margin.mul(new Dec(marginPrice?.amount));
-          const ltv = margin_total.quo(priceAmount).sub(new Dec(0.2));
-          const health = new Dec(1).sub(ltv.quo(new Dec(0.7)));
-          return Math.min(100, Math.max(Number(health.mul(new Dec(PERCENT)).toString(2)), 0));
-        }
-        case PositionTypes.short: {
-          const price = new Dec(marginPrice.amount);
-          const value = props.lease!.unitAsset.quo(price);
-          const ltv = margin.quo(value).sub(new Dec(0.2));
-          const health = new Dec(1).sub(ltv.quo(new Dec(0.7)));
-          return Math.min(100, Math.max(Number(health.mul(new Dec(PERCENT)).toString(2)), 0));
-        }
-      }
-    };
-
-    return fn() as number;
-  }
-
   return 0;
 });
 
 const leaseStatus = computed(() => {
-  return getStatus(props.lease as LeaseData);
+  if (!props.lease) return TEMPLATES.opening;
+  switch (props.lease.status) {
+    case "opening": return TEMPLATES.opening;
+    case "opened": return TEMPLATES.opened;
+    case "paid_off": return TEMPLATES.paid;
+    case "closing": return TEMPLATES.paid;
+    case "closed": return TEMPLATES.closed;
+    case "liquidated": return TEMPLATES.liquidated;
+    default: return TEMPLATES.opening;
+  }
 });
 </script>

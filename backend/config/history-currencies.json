@@ -1,0 +1,245 @@
+{
+  "LVN": {
+    "name": "Levana",
+    "symbol": "factory/osmo1mlng7pz4pnyxtpq0akfwall37czyk9lukaucsrn30ameplhhshtqdvfm5c/ulvn",
+    "ticker": "LVN",
+    "decimal_digits": 6,
+    "icon": "/assets/icons/currencies/osmosis-lvn.svg",
+    "shortName": "LVN",
+    "native": false,
+    "coingeckoId": "levana-protocol",
+    "protocols": {
+      "OSMOSIS-OSMOSIS-USDC_NOBLE": {
+        "ibcData": "ibc/4786BEBBFDD989C467C4552AD73065D8B2578230B8428B3B9275D540EB04C851"
+      }
+    }
+  },
+  "OM": {
+    "name": "Mantra",
+    "symbol": "uom",
+    "ticker": "OM",
+    "decimal_digits": 6,
+    "icon": "/assets/icons/currencies/osmosis-om.svg",
+    "shortName": "OM",
+    "native": false,
+    "coingeckoId": "mantra-dao",
+    "protocols": {
+      "OSMOSIS-OSMOSIS-USDC_NOBLE": {
+        "ibcData": "ibc/B92B80E837E4B1665024B7674D382AF07FE5D8D89797A0FEAF5356C8F173425C"
+      }
+    }
+  },
+  "CUDOS": {
+    "name": "Cudos",
+    "symbol": "acudos",
+    "ticker": "CUDOS",
+    "decimal_digits": 18,
+    "icon": "/assets/icons/currencies/osmosis-cudos.svg",
+    "shortName": "CUDOS",
+    "native": false,
+    "coingeckoId": "cudos",
+    "protocols": {
+      "OSMOSIS-OSMOSIS-USDC_NOBLE": {
+        "ibcData": "ibc/BB9810E7FE8836311126F15BE0B20E7463189751840F8C3FEF3AC8F87D8AB7C8"
+      }
+    }
+  },
+  "STRD": {
+    "name": "Stride",
+    "symbol": "ustrd",
+    "ticker": "STRD",
+    "decimal_digits": 6,
+    "icon": "/assets/icons/currencies/osmosis-strd.svg",
+    "shortName": "STRD",
+    "native": false,
+    "coingeckoId": "stride",
+    "protocols": {
+      "OSMOSIS-OSMOSIS-USDC_NOBLE": {
+        "ibcData": "ibc/04CA9067228BB51F1C39A506DA00DF07E1496D8308DD21E8EF66AD6169FA722B"
+      }
+    }
+  },
+  "JUNO": {
+    "name": "Juno",
+    "symbol": "ujuno",
+    "ticker": "JUNO",
+    "decimal_digits": 6,
+    "icon": "/assets/icons/currencies/osmosis-juno.svg",
+    "shortName": "JUNO",
+    "native": false,
+    "coingeckoId": "juno-network",
+    "protocols": {
+      "OSMOSIS-OSMOSIS-USDC_NOBLE": {
+        "ibcData": "ibc/4F3E83AB35529435E4BFEA001F5D935E7250133347C4E1010A9C77149EF0394C"
+      },
+      "OSMOSIS-OSMOSIS-USDC_AXELAR": {
+        "ibcData": "ibc/4F3E83AB35529435E4BFEA001F5D935E7250133347C4E1010A9C77149EF0394C"
+      }
+    }
+  },
+  "EVMOS": {
+    "name": "Evmos",
+    "symbol": "aevmos",
+    "ticker": "EVMOS",
+    "decimal_digits": 18,
+    "icon": "/assets/icons/currencies/osmosis-evmos.svg",
+    "shortName": "EVMOS",
+    "native": false,
+    "coingeckoId": "evmos",
+    "protocols": {
+      "OSMOSIS-OSMOSIS-USDC_NOBLE": {
+        "ibcData": "ibc/A59A9C955F1AB8B76671B00C1A0482C64A6590352944BB5880E5122358F7E1CE"
+      },
+      "OSMOSIS-OSMOSIS-USDC_AXELAR": {
+        "ibcData": "ibc/A59A9C955F1AB8B76671B00C1A0482C64A6590352944BB5880E5122358F7E1CE"
+      }
+    }
+  },
+  "STARS": {
+    "name": "Stargaze",
+    "symbol": "ustars",
+    "ticker": "STARS",
+    "decimal_digits": 6,
+    "icon": "/assets/icons/currencies/osmosis-stars.svg",
+    "shortName": "STARS",
+    "native": false,
+    "coingeckoId": "stargaze",
+    "protocols": {
+      "OSMOSIS-OSMOSIS-USDC_NOBLE": {
+        "ibcData": "ibc/11E3CF372E065ACB1A39C531A3C7E7E03F60B5D0653AD2139D31128ACD2772B5"
+      },
+      "OSMOSIS-OSMOSIS-USDC_AXELAR": {
+        "ibcData": "ibc/11E3CF372E065ACB1A39C531A3C7E7E03F60B5D0653AD2139D31128ACD2772B5"
+      }
+    }
+  },
+  "Q_ATOM": {
+    "name": "Quicksilver Staked ATOM",
+    "symbol": "uqatom",
+    "ticker": "Q_ATOM",
+    "decimal_digits": 6,
+    "icon": "/assets/icons/currencies/osmosis-qatom.svg",
+    "shortName": "qATOM",
+    "native": false,
+    "coingeckoId": "qatom",
+    "protocols": {
+      "OSMOSIS-OSMOSIS-USDC_NOBLE": {
+        "ibcData": "ibc/317FCA2D7554F55BBCD0019AB36F7FEA18B6D161F462AF5E565068C719A29F20"
+      },
+      "OSMOSIS-OSMOSIS-USDC_AXELAR": {
+        "ibcData": "ibc/317FCA2D7554F55BBCD0019AB36F7FEA18B6D161F462AF5E565068C719A29F20"
+      }
+    }
+  },
+  "DYM": {
+    "name": "Dymension",
+    "symbol": "adym",
+    "ticker": "DYM",
+    "decimal_digits": 18,
+    "icon": "/assets/icons/currencies/osmosis-dym.svg",
+    "shortName": "DYM",
+    "native": false,
+    "coingeckoId": "dymension",
+    "protocols": {
+      "OSMOSIS-OSMOSIS-USDC_NOBLE": {
+        "ibcData": "ibc/9C7F70E92CCBA0F2DC94796B0682955E090676EA7A2F8E0A4611956B79CB4406"
+      },
+      "OSMOSIS-OSMOSIS-USDC_AXELAR": {
+        "ibcData": "ibc/9C7F70E92CCBA0F2DC94796B0682955E090676EA7A2F8E0A4611956B79CB4406"
+      }
+    }
+  },
+  "PICA": {
+    "name": "Composable",
+    "symbol": "ppica",
+    "ticker": "PICA",
+    "decimal_digits": 12,
+    "icon": "/assets/icons/currencies/osmosis-pica.svg",
+    "shortName": "PICA",
+    "native": false,
+    "coingeckoId": "picasso",
+    "protocols": {
+      "OSMOSIS-OSMOSIS-USDC_NOBLE": {
+        "ibcData": "ibc/7F2DC2A595EDCAEC1C03D607C6DC3C79EDDC029A53D16C0788835C1A9AA06306"
+      },
+      "OSMOSIS-OSMOSIS-USDC_AXELAR": {
+        "ibcData": "ibc/7F2DC2A595EDCAEC1C03D607C6DC3C79EDDC029A53D16C0788835C1A9AA06306"
+      }
+    }
+  },
+  "STK_ATOM": {
+    "name": "Pstake Staked ATOM",
+    "symbol": "stk/uatom",
+    "ticker": "STK_ATOM",
+    "decimal_digits": 6,
+    "icon": "/assets/icons/currencies/neutron-stkatom.svg",
+    "shortName": "stkATOM",
+    "native": false,
+    "coingeckoId": "stkatom",
+    "protocols": {
+      "OSMOSIS-OSMOSIS-USDC_NOBLE": {
+        "ibcData": "ibc/DAAD372DB7DD45BBCFA4DDD40CA9793E9D265D1530083AB41A8A0C53C3EBE865"
+      },
+      "NEUTRON-ASTROPORT-USDC_NOBLE": {
+        "ibcData": "ibc/DAC47DFAA22682AAFFE28D1B3969BBF6405311F0A3F1228C45519AAE81CD9B9E"
+      },
+      "NEUTRON-ASTROPORT-USDC_AXELAR": {
+        "ibcData": "ibc/DAC47DFAA22682AAFFE28D1B3969BBF6405311F0A3F1228C45519AAE81CD9B9E"
+      }
+    }
+  },
+  "JKL": {
+    "name": "Jackal",
+    "symbol": "ujkl",
+    "ticker": "JKL",
+    "decimal_digits": 6,
+    "icon": "/assets/icons/currencies/osmosis-jkl.svg",
+    "shortName": "JKL",
+    "native": false,
+    "coingeckoId": "jackal-protocol",
+    "protocols": {
+      "NEUTRON-ASTROPORT-USDC_NOBLE": {
+        "ibcData": "ibc/28f026607184b151f1f7d7f5d8ae644528550eb05203a28b6233dfa923669876"
+      },
+      "NEUTRON-ASTROPORT-USDC_AXELAR": {
+        "ibcData": "ibc/28f026607184b151f1f7d7f5d8ae644528550eb05203a28b6233dfa923669876"
+      }
+    }
+  },
+  "ST_TIA": {
+    "name": "Stride Staked TIA",
+    "symbol": "stutia",
+    "ticker": "ST_TIA",
+    "decimal_digits": 6,
+    "icon": "/assets/icons/currencies/neutron-sttia.svg",
+    "shortName": "stTIA",
+    "native": false,
+    "coingeckoId": "stride-staked-tia",
+    "protocols": {
+      "OSMOSIS-OSMOSIS-USDC_AXELAR": {
+        "ibcData": "8D4FC51F696E03711B9B37A5787FB89BD2DDBAF788813478B002D552A12F9157"
+      },
+      "NEUTRON-ASTROPORT-USDC_NOBLE": {
+        "ibcData": "ibc/13B5CDC63B4A997453AF882CFC67BFDF932910C1BF3795C34B89548F2C5B1CD1"
+      },
+      "NEUTRON-ASTROPORT-USDC_AXELAR": {
+        "ibcData": "ibc/8D4FC51F696E03711B9B37A5787FB89BD2DDBAF788813478B002D552A12F9157"
+      }
+    }
+  },
+  "USDC_AXELAR": {
+    "name": "USDC Axelar",
+    "symbol": "uusdc",
+    "ticker": "USDC_AXELAR",
+    "decimal_digits": 6,
+    "icon": "/assets/icons/currencies/neutron-usdc.svg",
+    "shortName": "USDC",
+    "native": false,
+    "coingeckoId": "usdc",
+    "protocols": {
+      "NEUTRON-ASTROPORT-USDC_AXELAR": {
+        "ibcData": "ibc/076CF690A9912E0B7A2CCA75B719D68AF7C20E4B0B6460569B333DDEB19BBBA1"
+      }
+    }
+  }
+}

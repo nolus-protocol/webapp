@@ -1,7 +1,8 @@
 import type { IObjectKeys, SkipRouteConfigType } from "../types";
 import type { Chain, RouteRequest, RouteResponse, MessagesRequest, MessagesResponse } from "../types/skipRoute";
 
-import { AppUtils } from ".";
+import { fetchNetworkStatus, getSkipRouteConfig } from "./ConfigService";
+import { BackendApi } from "@/common/api";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 import type { BaseWallet } from "@/networks";
 import { MetaMaskWallet } from "@/networks/metamask";
@@ -15,49 +16,21 @@ enum Messages {
   "/circle.cctp.v1.MsgDepositForBurnWithCaller" = "/circle.cctp.v1.MsgDepositForBurnWithCaller"
 }
 
+/**
+ * Swap class - Routes all Skip API calls through the Rust backend
+ */
 class Swap {
-  api_url: string;
-
-  constructor(data: { api_url: string }) {
-    this.api_url = data.api_url;
-  }
-
-  private async checkError(response: Response) {
-    const items = await response.json();
-
-    if (response.status != 200) {
-      throw items;
-    }
-
-    return items;
-  }
-
   async getChains(): Promise<Chain[]> {
-    const data = await fetch(`${this.api_url}/info/chains?include_evm=true&include_svm=true`);
-    const items = await this.checkError(data);
-    return items.chains;
+    const chains = await BackendApi.getSkipChains(true, true);
+    return chains as Chain[];
   }
 
   async getRoute(request: RouteRequest): Promise<RouteResponse> {
-    const data = await fetch(`${this.api_url}/fungible/route`, {
-      method: "POST",
-      body: JSON.stringify(request),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-    return this.checkError(data);
+    return BackendApi.getSkipRoute(request as IObjectKeys) as Promise<RouteResponse>;
   }
 
   async getMessages(request: MessagesRequest): Promise<MessagesResponse> {
-    const data = await fetch(`${this.api_url}/fungible/msgs`, {
-      method: "POST",
-      body: JSON.stringify(request),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-    return this.checkError(data);
+    return BackendApi.getSkipMessages(request as IObjectKeys) as Promise<MessagesResponse>;
   }
 
   async getTransactionStatus({
@@ -67,12 +40,11 @@ class Swap {
     chain_id: string;
     tx_hash: string;
   }): Promise<{ state: string; error: string }> {
-    const data = await fetch(`${this.api_url}/tx/status?chain_id=${chain_id}&tx_hash=${tx_hash}`, {
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-    return this.checkError(data);
+    const status = await BackendApi.getSkipStatus(chain_id, tx_hash);
+    return {
+      state: status.state,
+      error: status.error || ""
+    };
   }
 
   async getTransactionTrack({
@@ -82,17 +54,11 @@ class Swap {
     chain_id: string;
     tx_hash: string;
   }): Promise<{ tx_hash: string; explorer_link: string }> {
-    const data = await fetch(`${this.api_url}/register`, {
-      method: "POST",
-      body: JSON.stringify({
-        chain_id,
-        tx_hash
-      }),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-    return this.checkError(data);
+    const response = await BackendApi.trackSkipTransaction(chain_id, tx_hash);
+    return {
+      tx_hash: response.tx_hash,
+      explorer_link: response.explorer_link || ""
+    };
   }
 }
 
@@ -106,12 +72,10 @@ export class SkipRouter {
       return SkipRouter.client;
     }
 
-    const config = await AppUtils.getSkipRouteConfig();
+    // Initialize client (no longer needs api_url - uses BackendApi)
     const [client, status] = await Promise.all([
-      new Swap({
-        api_url: config.api_url
-      }),
-      SkipRouter.chainId ?? AppUtils.fetchNetworkStatus().then((status) => status.result.node_info.network)
+      new Swap(),
+      SkipRouter.chainId ?? fetchNetworkStatus().then((status) => status.result.node_info.network)
     ]);
 
     SkipRouter.chainId = status;
@@ -129,7 +93,7 @@ export class SkipRouter {
     destSourceId?: string,
     options: IObjectKeys = {}
   ) {
-    const [client, config] = await Promise.all([SkipRouter.getClient(), AppUtils.getSkipRouteConfig()]);
+    const [client, config] = await Promise.all([SkipRouter.getClient(), getSkipRouteConfig()]);
     const request: RouteRequest = {
       source_asset_denom: sourceDenom,
       source_asset_chain_id: sourceId ?? SkipRouter.chainId,
@@ -177,7 +141,7 @@ export class SkipRouter {
     callback: Function
   ) {
     try {
-      const [client, config] = await Promise.all([SkipRouter.getClient(), AppUtils.getSkipRouteConfig()]);
+      const [client, config] = await Promise.all([SkipRouter.getClient(), getSkipRouteConfig()]);
       const addressList = [];
       const addresses: Record<string, string> = {};
 

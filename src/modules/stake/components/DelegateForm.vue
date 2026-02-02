@@ -74,15 +74,17 @@ import { computed, inject, ref } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY, NATIVE_NETWORK, STAKING } from "../../../config/global/network";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
-import { AssetUtils, Logger, NetworkUtils, Utils, validateAmountV2, walletOperation } from "@/common/utils";
-import { useOracleStore } from "@/common/stores/oracle";
+import { Logger, NetworkUtils, Utils, validateAmountV2, walletOperation } from "@/common/utils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
+import { usePricesStore } from "@/common/stores/prices";
 import { coin } from "@cosmjs/stargate";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useI18n } from "vue-i18n";
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
 const wallet = useWalletStore();
-const oracle = useOracleStore();
+const pricesStore = usePricesStore();
 const input = ref("0");
 const error = ref("");
 const loading = ref(false);
@@ -92,7 +94,7 @@ const loadDelegated = inject("loadDelegated", () => false);
 const onClose = inject("close", () => {});
 
 const assets = computed(() => {
-  const balance = AssetUtils.formatNumber(
+  const balance = formatNumber(
     new Dec(wallet.total_unls.balance.amount, NATIVE_ASSET.decimal_digits).toString(NATIVE_ASSET.decimal_digits),
     NATIVE_ASSET.decimal_digits
   );
@@ -109,11 +111,11 @@ const assets = computed(() => {
 
 const stable = computed(() => {
   try {
-    const currency = AssetUtils.getCurrencyByTicker(NATIVE_ASSET.ticker);
-    const price = new Dec(oracle.prices?.[currency.key]?.amount ?? 0);
+    const currency = getCurrencyByTicker(NATIVE_ASSET.ticker);
+    const price = new Dec(pricesStore.prices[currency.key]?.price ?? 0);
     const v = input?.value?.length ? input?.value : "0";
     const stable = price.mul(new Dec(v));
-    return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+    return `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
   } catch (e) {
     return "";
   }

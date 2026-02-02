@@ -32,8 +32,10 @@
 import Chart from "@/common/components/Chart.vue";
 import { Tooltip } from "web-components";
 
-import type { LeaseData } from "@/common/types";
-import { AssetUtils, EtlApi, isMobile, LeaseUtils } from "@/common/utils";
+import type { LeaseInfo } from "@/common/api";
+import { EtlApi, isMobile, LeaseUtils } from "@/common/utils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { MAX_DECIMALS, NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
 import { plot, lineY, ruleY } from "@observablehq/plot";
 import { computed, ref, watch } from "vue";
@@ -41,20 +43,20 @@ import { pointer, select, type Selection } from "d3";
 import { useI18n } from "vue-i18n";
 import { Dec } from "@keplr-wallet/unit";
 import { useApplicationStore } from "@/common/stores/application";
-import { useOracleStore } from "@/common/stores/oracle";
+import { usePricesStore } from "@/common/stores/prices";
 
 type ChartData = { Date: Date; Price: number; Liquidation: string | null };
 
 const data = ref<ChartData[]>([]);
 const props = defineProps<{
-  lease?: LeaseData;
+  lease?: LeaseInfo | null;
   interval: string;
 }>();
 
 const chart = ref<typeof Chart>();
 const i18n = useI18n();
 const app = useApplicationStore();
-const oracle = useOracleStore();
+const pricesStore = usePricesStore();
 
 const chartHeight = 250;
 const marginLeft = 50;
@@ -74,15 +76,16 @@ watch(
 );
 
 const currency = computed(() => {
-  const c = app.currenciesData?.[`${props.lease?.leaseData?.leasePositionTicker}@${props.lease?.protocol}`];
-  const price = oracle.prices![`${props.lease?.leaseData?.leasePositionTicker}@${props.lease?.protocol}`];
+  const ticker = props.lease?.etl_data?.lease_position_ticker ?? props.lease?.amount?.ticker;
+  const c = app.currenciesData?.[`${ticker}@${props.lease?.protocol}`];
+  const price = pricesStore.prices[`${ticker}@${props.lease?.protocol}`];
   return {
     name: c?.shortName,
-    price: price?.amount
-      ? `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(price?.amount ?? 0, c?.decimal_digits)}`
+    price: price?.price
+      ? `${NATIVE_CURRENCY.symbol}${formatNumber(price?.price ?? 0, c?.decimal_digits)}`
       : "",
-    pretty_price: price?.amount
-      ? `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(price?.amount ?? 0, MAX_DECIMALS)}`
+    pretty_price: price?.price
+      ? `${NATIVE_CURRENCY.symbol}${formatNumber(price?.price ?? 0, MAX_DECIMALS)}`
       : ""
   };
 });
@@ -105,7 +108,7 @@ async function setData() {
         return {
           Date: now,
           Price: price,
-          Liquidation: props.lease?.leaseStatus.opening ? null : l.amount.toString()
+          Liquidation: props.lease?.status === "opening" ? null : l.amount.toString()
         };
       })
       .reverse();
@@ -122,30 +125,23 @@ function getLiquidations() {
     date: Date;
   }[] = [];
 
-  const leaseData = props.lease?.leaseStatus?.opened;
   const protocolKey = props.lease?.protocol!;
 
-  if (leaseData) {
-    const historyElements = [...(props.lease?.leaseData?.history ?? [])].reverse();
+  if (props.lease?.status === "opened") {
+    const historyElements = [...(props.lease?.etl_data?.history ?? [])].reverse();
 
     for (const history of historyElements) {
       const ticker = history.symbol;
 
       const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
-
-      asset = asset.add(new Dec(history.amount, unitAssetInfo.decimal_digits));
-
-      if (history.ls_amnt) {
-        const t = history.ls_amnt_symbol;
-        const unitAssetInfo2 = app.currenciesData![`${t}@${protocolKey}`];
-
-        asset2 = asset2.add(new Dec(history.ls_amnt, unitAssetInfo2.decimal_digits));
+      if (unitAssetInfo) {
+        asset = asset.add(new Dec(history.amount ?? "0", unitAssetInfo.decimal_digits));
       }
 
       const l = parceLiquidaitons(asset, asset2);
       liquidations.push({
         amount: l,
-        date: new Date(history.time)
+        date: new Date(history.timestamp ?? Date.now())
       });
     }
   }
@@ -160,16 +156,17 @@ function getLiquidations() {
 
 function parceLiquidaitons(stableAdd: Dec, uAsset: Dec) {
   let liquidation = new Dec(0);
-  const leaseData = props.lease?.leaseStatus?.opened;
-  if (leaseData) {
+  if (props.lease?.status === "opened") {
     const protocolKey = props.lease?.protocol!;
-    const ticker = leaseData.amount.ticker;
-    const stableTicker = leaseData.principal_due.ticker;
+    const ticker = props.lease?.amount.ticker;
     const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
-    const stableAssetInfo = app.currenciesData![`${stableTicker!}@${protocolKey}`];
-    const unitAsset = new Dec(leaseData.amount.amount, Number(unitAssetInfo!.decimal_digits));
-    const stableAsset = new Dec(leaseData.principal_due.amount, Number(stableAssetInfo!.decimal_digits));
-    switch (ProtocolsConfig[protocolKey].type) {
+    const lpn = getLpnByProtocol(protocolKey);
+    const stableAssetInfo = lpn ? app.currenciesData?.[lpn.key] : null;
+    
+    const unitAsset = new Dec(props.lease.amount.amount, Number(unitAssetInfo?.decimal_digits ?? 0));
+    const stableAsset = new Dec(props.lease.debt.principal, Number(stableAssetInfo?.decimal_digits ?? 0));
+    
+    switch (ProtocolsConfig[protocolKey]?.type) {
       case PositionTypes.long: {
         liquidation = LeaseUtils.calculateLiquidation(stableAsset.add(stableAdd), unitAsset.add(uAsset));
         break;
@@ -185,22 +182,22 @@ function parceLiquidaitons(stableAdd: Dec, uAsset: Dec) {
 }
 
 async function loadData(intetval: string) {
-  switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
+  const posType = ProtocolsConfig[props.lease?.protocol!]?.type;
+  const ticker = props.lease?.etl_data?.lease_position_ticker ?? props.lease?.amount?.ticker;
+  
+  switch (posType) {
     case PositionTypes.long: {
-      let [key, protocol]: string[] = props.lease?.leaseData?.leasePositionTicker?.includes("@")
-        ? props.lease!.leaseData.leasePositionTicker.split("@")
-        : [props.lease?.leaseData?.leasePositionTicker as string, props.lease!.protocol];
+      let [key, protocol]: string[] = ticker?.includes("@")
+        ? ticker.split("@")
+        : [ticker as string, props.lease!.protocol];
 
-      const ticker = key;
-      const prices = await EtlApi.fetchPriceSeries(ticker, protocol, intetval);
-
+      const prices = await EtlApi.fetchPriceSeries(key, protocol, intetval);
       return prices;
     }
     case PositionTypes.short: {
-      const lpn = AssetUtils.getLpnByProtocol(props.lease?.protocol!);
+      const lpn = getLpnByProtocol(props.lease?.protocol!);
       let [key, protocol] = lpn.key.split("@");
       const prices = await EtlApi.fetchPriceSeries(key, protocol, intetval);
-
       return prices;
     }
   }
@@ -262,7 +259,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
       if (closestData) {
         tooltip.html(
-          `<strong>${i18n.t("message.price")}:</strong> $${AssetUtils.formatNumber(closestData.Price, NATIVE_CURRENCY.maximumFractionDigits)}<br><strong>${i18n.t("message.chart-liquidation-tooltip")}:</strong> $${AssetUtils.formatNumber(closestData.Liquidation!, NATIVE_CURRENCY.maximumFractionDigits)}`
+          `<strong>${i18n.t("message.price")}:</strong> $${formatNumber(closestData.Price, NATIVE_CURRENCY.maximumFractionDigits)}<br><strong>${i18n.t("message.chart-liquidation-tooltip")}:</strong> $${formatNumber(closestData.Liquidation!, NATIVE_CURRENCY.maximumFractionDigits)}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();

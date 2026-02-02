@@ -23,22 +23,21 @@
 <script lang="ts" setup>
 import { onUnmounted, ref, watch } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
-import { useOracleStore } from "@/common/stores/oracle";
+import { usePricesStore } from "@/common/stores/prices";
 import { useApplicationStore } from "@/common/stores/application";
 import { UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL } from "@/config/global";
-import { Logger, WalletManager, walletOperation } from "@/common/utils";
+import { IntercomService, Logger, WalletManager, walletOperation } from "@/common/utils";
 
 import Sidebar from "@/common/components/Sidebar.vue";
 import Header from "@/common/components/Header.vue";
 import MobileMenu from "@/common/components/menus/MobileMenu.vue";
-import { Intercom } from "@/common/utils/Intercom";
 
 let balanceInterval: NodeJS.Timeout | undefined;
 let pricesInterval: NodeJS.Timeout | undefined;
 let sessionTimeOut: NodeJS.Timeout | undefined;
 
 const wallet = useWalletStore();
-const oracle = useOracleStore();
+const pricesStore = usePricesStore();
 const app = useApplicationStore();
 
 const showErrorDialog = ref(false);
@@ -65,7 +64,7 @@ onUnmounted(() => {
 
 async function updateKeplr() {
   try {
-    Intercom.disconnect();
+    IntercomService.getInstance().disconnect();
     await wallet.CONNECT_KEPLR();
     await loadNetwork();
     await wallet.UPDATE_BALANCES();
@@ -77,7 +76,7 @@ async function updateKeplr() {
 
 async function updateLeap() {
   try {
-    Intercom.disconnect();
+    IntercomService.getInstance().disconnect();
     await wallet.CONNECT_LEAP();
     await loadNetwork();
     await wallet.UPDATE_BALANCES();
@@ -114,7 +113,7 @@ async function checkBalances() {
 async function checkPrices() {
   pricesInterval = setInterval(async () => {
     try {
-      await oracle.GET_PRICES();
+      await pricesStore.fetchPrices();
     } catch (error: Error | any) {
       showErrorDialog.value = true;
       errorMessage.value = error?.message;

@@ -1,5 +1,6 @@
 import { type Store } from "../types";
-import { AppUtils, WalletManager } from "@/common/utils";
+import { WalletManager } from "@/common/utils";
+import { fetchEndpoints } from "@/common/utils/EndpointService";
 import { ChainConstants, NolusClient, NolusWalletFactory } from "@nolus/nolusjs";
 import { WalletConnectMechanism } from "@/common/types";
 import { makeCosmoshubPath } from "@cosmjs/amino";
@@ -9,7 +10,7 @@ import { LedgerName } from "@/config/global";
 
 import BluetoothTransport from "@ledgerhq/hw-transport-web-ble";
 import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
-import { Intercom } from "@/common/utils/Intercom";
+import { IntercomService } from "@/common/utils/IntercomService";
 
 export async function connectLedger(this: Store, payload: { isBluetooth?: boolean } = {}) {
   let breakLoop = false;
@@ -18,7 +19,7 @@ export async function connectLedger(this: Store, payload: { isBluetooth?: boolea
   const to = setTimeout(() => (breakLoop = true), 30000);
   const accountNumbers = [0];
   const paths = accountNumbers.map(makeCosmoshubPath);
-  const networkConfig = await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
+  const networkConfig = await fetchEndpoints(ChainConstants.CHAIN_KEY);
 
   NolusClient.setInstance(networkConfig.rpc);
 
@@ -55,7 +56,7 @@ export async function connectLedger(this: Store, payload: { isBluetooth?: boolea
   await this.UPDATE_BALANCES();
   this.loadActivities();
 
-  Intercom.load(this.wallet?.address);
+  IntercomService.load(this.wallet?.address as string, "ledger");
 
   clearTimeout(to);
 }

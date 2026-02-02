@@ -1,6 +1,7 @@
 import type { State } from "../types";
 import type { ExternalCurrency } from "@/common/types";
-import { Logger, AssetUtils } from "@/common/utils";
+import { Logger } from "@/common/utils";
+import { getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { useApplicationStore } from "../../application";
 import { Contracts, NATIVE_ASSET } from "@/config/global";
 
@@ -10,7 +11,7 @@ export function currencies(state: State) {
   const protocols = Contracts.protocolsFilter[app.protocolFilter];
   try {
     for (const c of state.balances) {
-      let asset = AssetUtils.getCurrencyByDenom(c.balance.denom);
+      let asset = getCurrencyByDenom(c.balance.denom);
       const [k, _p] = asset.key.split("@");
 
       if (k == NATIVE_ASSET.ticker) {

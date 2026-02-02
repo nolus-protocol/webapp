@@ -7,6 +7,5 @@ export interface NetworkAddress {
   staking: string;
   sendDefaultValue: string;
   endpoints: Promise<string> | string;
-  etlApi: string;
   evmEndpoints: Promise<string> | string;
 }

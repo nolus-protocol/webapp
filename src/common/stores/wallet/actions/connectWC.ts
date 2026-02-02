@@ -3,14 +3,17 @@ import type { AccountData, DirectSignResponse, OfflineDirectSigner } from "@cosm
 import type { SignDoc as ProtoSignDoc } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 import SignClient from "@walletconnect/sign-client";
-import { AppUtils, WalletManager } from "@/common/utils";
+import { WalletManager } from "@/common/utils";
+import { fetchEndpoints } from "@/common/utils/EndpointService";
+import { getChainIds } from "@/common/utils/ConfigService";
 import { ChainConstants, NolusClient, NolusWalletFactory } from "@nolus/nolusjs";
 import { WalletConnectMechanism, type IObjectKeys } from "@/common/types";
 import { Buffer } from "buffer";
-import { Intercom } from "@/common/utils/Intercom";
+import { IntercomService } from "@/common/utils/IntercomService";
 import { toBase64, fromBase64 } from "@cosmjs/encoding";
 import { getDeviceInfo } from "@/common/utils/Device";
 import { WalletConnectName } from "@/config/global";
+import nolusIcon from "@/assets/icons/networks/nolus.svg";
 
 let client: Promise<SignClient> | undefined;
 let accounts: {
@@ -29,7 +32,8 @@ function getClient(): Promise<SignClient> {
           "Nolus Protocol is a Web3 financial suite that offers an innovative approach to money markets with a novel lease solution to further develop the DeFi space",
         url: window.location.origin,
         icons: [
-          "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/networks/nolus.svg"
+          // Use absolute URL from current origin for local asset
+          `${window.location.origin}${nolusIcon}`
         ]
       }
     });
@@ -62,11 +66,11 @@ export async function connectWithWalletConnect(this: Store, callback?: Function)
   this.walletName = WalletConnectName;
   await this.UPDATE_BALANCES();
   this.loadActivities();
-  Intercom.load(this.wallet.address);
+  IntercomService.load(this.wallet.address, "walletconnect");
 }
 
 export async function getWalletConnectOfflineSigner(callback?: Function, chId?: string) {
-  const networkConfig = await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
+  const networkConfig = await fetchEndpoints(ChainConstants.CHAIN_KEY);
 
   if (!chId) {
     NolusClient.setInstance(networkConfig.rpc);
@@ -83,7 +87,7 @@ export async function getWalletConnectOfflineSigner(callback?: Function, chId?: 
 
   if (!session) {
     const chains = [];
-    const chainsIds = await AppUtils.getChainIds();
+    const chainsIds = await getChainIds();
 
     for (const key in chainsIds.cosmos) {
       chains.push(`cosmos:${chainsIds.cosmos[key]}`);

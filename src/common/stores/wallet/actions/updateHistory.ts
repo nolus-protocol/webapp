@@ -1,14 +1,15 @@
 import { CONFIRM_STEP, type IObjectKeys } from "@/common/types";
 import { type Store } from "../types";
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
-import { AssetUtils } from "@/common/utils/AssetUtils";
+import { getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { StringUtils } from "@/common/utils";
 import { Dec } from "@keplr-wallet/unit";
 import { h } from "vue";
 
 export function updateHistory(this: Store, history: IObjectKeys, i18n: IObjectKeys) {
-  const currency = AssetUtils.getCurrencyByDenom(history.currency);
+  const currency = getCurrencyByDenom(history.currency);
 
   switch (history.type) {
     case HYSTORY_ACTIONS.RECEIVE: {
@@ -73,7 +74,7 @@ function getSteps(route: IObjectKeys, i18n: IObjectKeys, currency: IObjectKeys, 
         label,
         icon: from.icon,
         token: {
-          balance: AssetUtils.formatNumber(
+          balance: formatNumber(
             new Dec(index == 0 ? operation.amount_in : operation.amount_out, currency?.decimal_digits).toString(
               currency?.decimal_digits
             ),
@@ -89,7 +90,7 @@ function getSteps(route: IObjectKeys, i18n: IObjectKeys, currency: IObjectKeys, 
           label: i18n.t("message.receive-stepper"),
           icon: to.icon,
           token: {
-            balance: AssetUtils.formatNumber(
+            balance: formatNumber(
               new Dec(operation.amount_out, currency?.decimal_digits).toString(currency?.decimal_digits),
               currency?.decimal_digits
             ),

@@ -7,7 +7,8 @@ import { toBase64 } from "@cosmjs/encoding";
 
 import { AuthInfo, TxBody, type SignDoc as ProtoSignDoc } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import type { Wallet } from "../wallet";
-import { AppUtils, EnvNetworkUtils, WalletManager } from "@/common/utils";
+import { EnvNetworkUtils, WalletManager } from "@/common/utils";
+import { fetchEndpoints } from "@/common/utils/EndpointService";
 import { KeplrEmbedChainInfo } from "@/config/global";
 import type { AccountData, DirectSignResponse, OfflineDirectSigner, Algo } from "@cosmjs/proto-signing";
 import type { ChainInfo } from "@keplr-wallet/types";
@@ -62,7 +63,7 @@ export class MetaMaskWallet implements Wallet {
   }
 
   async connect(provider: string) {
-    const networkConfig = await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
+    const networkConfig = await fetchEndpoints(ChainConstants.CHAIN_KEY);
     NolusClient.setInstance(networkConfig.rpc);
     const chainId = await NolusClient.getInstance().getChainId();
     const chainInfo = KeplrEmbedChainInfo(

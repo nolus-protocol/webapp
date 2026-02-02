@@ -45,7 +45,7 @@ import {
 } from "web-components";
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import { computed, h } from "vue";
-import type { LeaseData } from "@/common/types";
+import type { LeaseInfo } from "@/common/api";
 import { useApplicationStore } from "@/common/stores/application";
 import { getCreatedAtForHuman } from "@/common/utils";
 import { Dec } from "@keplr-wallet/unit";
@@ -54,7 +54,7 @@ import EmptyState from "@/common/components/EmptyState.vue";
 const i18n = useI18n();
 const app = useApplicationStore();
 const props = defineProps<{
-  lease?: LeaseData;
+  lease?: LeaseInfo | null;
 }>();
 
 const columns = computed<TableColumnProps[]>(() => [
@@ -65,17 +65,17 @@ const columns = computed<TableColumnProps[]>(() => [
 ]);
 
 const leasesHistory = computed(() => {
-  return (props.lease?.leaseData?.history ?? []).map((item) => {
-    const tiker = item.symbol;
-    const currency = app.currenciesData?.[`${tiker}@${props.lease!.protocol}`];
+  return (props.lease?.etl_data?.history ?? []).map((item) => {
+    const ticker = item.symbol ?? "";
+    const currency = app.currenciesData?.[`${ticker}@${props.lease!.protocol}`];
     return {
       items: [
         {
-          value: `${i18n.t(`message.${item.type}${item.additional ? `-${item.additional}` : ""}`)} ${new Dec(item.amount, currency?.decimal_digits).toString(currency?.decimal_digits)} ${currency?.shortName}`,
+          value: `${i18n.t(`message.${item.action}`)} ${new Dec(item.amount ?? "0", currency?.decimal_digits).toString(currency?.decimal_digits)} ${currency?.shortName ?? ""}`,
           variant: "left",
           class: "text-typography-link font-semibold"
         },
-        { value: getCreatedAtForHuman(new Date(item.time)), class: "max-w-[180px]" },
+        { value: getCreatedAtForHuman(new Date(item.timestamp ?? Date.now())), class: "max-w-[180px]" },
         {
           component: () => h<LabelProps>(Label, { value: i18n.t("message.success"), variant: "success" }),
           class: "max-w-[110px]"

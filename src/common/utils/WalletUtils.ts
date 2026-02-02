@@ -4,7 +4,7 @@ import type { Window as KeplrWindow } from "@keplr-wallet/types/build/window";
 import { KeyUtils } from "@nolus/nolusjs";
 import { WalletManager } from ".";
 import { Wallet, NETWORK_DATA } from "@/networks";
-import { AppUtils } from "./AppUtils";
+import { fetchEndpoints } from "./EndpointService";
 
 export class WalletUtils {
   public static async getKeplr(): Promise<Keplr | undefined> {
@@ -61,7 +61,7 @@ export class WalletUtils {
 
   public static async getWallet(key: string): Promise<Wallet> {
     const network = NETWORK_DATA;
-    const node = await AppUtils.fetchEndpoints(network.supportedNetworks[key].key);
+    const node = await fetchEndpoints(network.supportedNetworks[key].key);
     const client = await Wallet.getInstance(node.rpc, node.api);
     return client;
   }

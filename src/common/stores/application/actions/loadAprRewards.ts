@@ -1,14 +1,12 @@
 import type { Store } from "../types";
 import { NolusClient } from "@nolus/nolusjs";
 import { Treasury } from "@nolus/nolusjs/build/contracts";
-import { useAdminStore } from "../../admin";
 import { EnvNetworkUtils, EtlApi, Logger } from "@/common/utils";
 import { CONTRACTS } from "@/config/global";
 import { INTEREST_DECIMALS } from "@/config/global";
 
 export async function loadAprRewards(this: Store) {
   try {
-    const admin = useAdminStore();
     const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
     const dispatcherClient = new Treasury(
       cosmWasmClient,

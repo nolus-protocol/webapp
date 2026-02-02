@@ -107,7 +107,7 @@ import { Badge, SvgIcon, Tooltip, type TooltipProps } from "web-components";
 import CurrencyComponent, { type CurrencyComponentProps } from "@/common/components/CurrencyComponent.vue";
 import type { IBadgeProps } from "web-components/dist/src/components/atoms/badge/types";
 import { computed, type Component } from "vue";
-import { AssetUtils } from "../utils";
+import { formatNumber } from "../utils/NumberFormatUtils";
 import { Dec } from "@keplr-wallet/unit";
 
 export interface IBigNumber {
@@ -130,7 +130,7 @@ const props = defineProps<IBigNumber>();
 const amount_tooltip = computed(() => {
   if (props.amount?.tooltip) {
     const a = new Dec(props.amount.amount ?? 0, props.amount.decimals ?? 0);
-    return `~${AssetUtils.formatNumber(a.toString(props.amount.decimals), props.amount.decimals ?? 0)}`;
+    return `~${formatNumber(a.toString(props.amount.decimals), props.amount.decimals ?? 0)}`;
   }
   return "";
 });

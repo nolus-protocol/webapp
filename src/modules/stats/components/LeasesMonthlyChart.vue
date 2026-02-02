@@ -11,7 +11,8 @@
 <script lang="ts" setup>
 import Chart from "@/common/components/Chart.vue";
 import { binX, rectY, ruleY } from "@observablehq/plot";
-import { AssetUtils, EtlApi, isMobile } from "@/common/utils";
+import { EtlApi, isMobile } from "@/common/utils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { select, pointer, timeMonth, type Selection } from "d3";
 import { useI18n } from "vue-i18n";
 import { NATIVE_CURRENCY } from "@/config/global";
@@ -77,7 +78,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const closestData = getClosestDataPoint(x);
       if (closestData) {
         tooltip.html(
-          `<strong>${i18n.t("message.amount")}</strong> $${AssetUtils.formatNumber(closestData.amount, NATIVE_CURRENCY.maximumFractionDigits)}`
+          `<strong>${i18n.t("message.amount")}</strong> $${formatNumber(closestData.amount, NATIVE_CURRENCY.maximumFractionDigits)}`
         );
 
         const node = tooltip?.node()!.getBoundingClientRect();

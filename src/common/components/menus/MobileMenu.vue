@@ -83,8 +83,9 @@ import { computed, onMounted, provide, ref } from "vue";
 import { RouteNames } from "@/router";
 import { SvgIcon } from "web-components";
 import { UPDATE_BLOCK_INTERVAL } from "@/config/global";
-import { ChainConstants, NolusClient } from "@nolus/nolusjs";
-import { AppUtils, Logger } from "@/common/utils";
+import { NolusClient } from "@nolus/nolusjs";
+import { Logger } from "@/common/utils";
+import { BackendApi } from "@/common/api";
 
 const toggleMobileNav = ref(false);
 const toggleMenuWrapper = ref(false);
@@ -121,11 +122,8 @@ async function setBlock() {
 
 async function setVersion() {
   try {
-    const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
-
-    const data = await fetch(`${url}/abci_info`);
-    const res = await data.json();
-    version.value = res?.result?.response.version;
+    const nodeInfo = await BackendApi.getNodeInfo();
+    version.value = nodeInfo.version;
   } catch (error: Error | any) {
     Logger.error(error);
   }

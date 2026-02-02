@@ -32,28 +32,24 @@ import ChartUtilizaiton from "./ChartUtilizaiton.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 
 import { Table, type TableColumnProps, TableRow, type TableRowItemProps, Widget } from "web-components";
-import { AppUtils, EtlApi, isMobile, Logger } from "@/common/utils";
+import { isMobile } from "@/common/utils";
+import { getProtocols } from "@/common/utils/ConfigService";
 
-import { computed, h, ref, watch } from "vue";
+import { computed, h } from "vue";
 import { useApplicationStore } from "@/common/stores/application";
+import { useEarnStore } from "@/common/stores/earn";
 import { useI18n } from "vue-i18n";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 
-const osmoUsdc =
-  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/osmosis-usdc.svg";
-const neutronUsdc =
-  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/neutron-usdc.svg";
-const osmosisSol =
-  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/osmosis-allsol.svg";
-const osmosisBtc =
-  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/osmosis-allbtc.svg";
-const osmosisStAtom =
-  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/osmosis-statom.svg";
-const osmosisAkt =
-  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/osmosis-akt.svg";
-const osmosisAtom =
-  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/osmosis-atom.svg";
+// Import icons from local assets
+import osmoUsdc from "@/assets/icons/osmosis-usdc.svg";
+import neutronUsdc from "@/assets/icons/neutron-usdc.svg";
+import osmosisSol from "@/assets/icons/osmosis-allsol.svg";
+import osmosisBtc from "@/assets/icons/osmosis-allbtc.svg";
+import osmosisStAtom from "@/assets/icons/osmosis-statom.svg";
+import osmosisAkt from "@/assets/icons/osmosis-akt.svg";
+import osmosisAtom from "@/assets/icons/osmosis-atom.svg";
 
 import type { UtilizationProps } from "../types";
 
@@ -96,7 +92,7 @@ const assets = computed<TableRowItemProps[]>(() => {
         { value: `${utilizationLevelOsmosis.value}%`, class: "hidden md:flex font-semibold" },
         { value: `${depositNeutron.value}%`, class: "max-w-[200px]" },
         {
-          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_noble]) ?? 0).toFixed(2)}%`,
+          value: `${(Number(app.apr?.[getProtocols().osmosis_noble]) ?? 0).toFixed(2)}%`,
           class: "text-typography-success"
         }
       ]
@@ -122,7 +118,7 @@ const assets = computed<TableRowItemProps[]>(() => {
         { value: `${utilizationLevelNeutron.value}%`, class: "hidden md:flex font-semibold" },
         { value: `${depositOsmosis.value}%`, class: "max-w-[200px]" },
         {
-          value: `${(Number(app.apr?.[AppUtils.getProtocols().neutron_noble]) ?? 0).toFixed(2)}%`,
+          value: `${(Number(app.apr?.[getProtocols().neutron_noble]) ?? 0).toFixed(2)}%`,
           class: "text-typography-success"
         }
       ]
@@ -148,7 +144,7 @@ const assets = computed<TableRowItemProps[]>(() => {
         { value: `${utilizationLevelOsmosisAllSol.value}%`, class: "hidden md:flex font-semibold" },
         { value: `${depositAllSol.value}%`, class: "max-w-[200px]" },
         {
-          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_all_sol]) ?? 0).toFixed(2)}%`,
+          value: `${(Number(app.apr?.[getProtocols().osmosis_osmosis_all_sol]) ?? 0).toFixed(2)}%`,
           class: "text-typography-success"
         }
       ]
@@ -174,7 +170,7 @@ const assets = computed<TableRowItemProps[]>(() => {
         { value: `${utilizationLevelOsmosisAllBtc.value}%`, class: "hidden md:flex font-semibold" },
         { value: `${depositAllBtc.value}%`, class: "max-w-[200px]" },
         {
-          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_all_btc]) ?? 0).toFixed(2)}%`,
+          value: `${(Number(app.apr?.[getProtocols().osmosis_osmosis_all_btc]) ?? 0).toFixed(2)}%`,
           class: "text-typography-success"
         }
       ]
@@ -199,7 +195,7 @@ const assets = computed<TableRowItemProps[]>(() => {
     //     { value: `${utilizationLevelOsmosis.value}%`, class: "hidden md:flex font-semibold" },
     //     { value: `${depositStAtom.value}%` },
     //     {
-    //       value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_st_atom]) ?? 0).toFixed(2)}%`,
+    //       value: `${(Number(app.apr?.[getProtocols().osmosis_osmosis_st_atom]) ?? 0).toFixed(2)}%`,
     //       class: "text-typography-success"
     //     }
     //   ]
@@ -225,7 +221,7 @@ const assets = computed<TableRowItemProps[]>(() => {
         { value: `${utilizationLevelOsmosisAkt.value}%`, class: "hidden md:flex font-semibold" },
         { value: `${depositAkt.value}%`, class: "max-w-[200px]" },
         {
-          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_akt]) ?? 0).toFixed(2)}%`,
+          value: `${(Number(app.apr?.[getProtocols().osmosis_osmosis_akt]) ?? 0).toFixed(2)}%`,
           class: "text-typography-success"
         }
       ]
@@ -252,7 +248,7 @@ const assets = computed<TableRowItemProps[]>(() => {
         { value: `${utilizationLevelOsmosisAtom.value}%`, class: "hidden md:flex font-semibold" },
         { value: `${depositAtom.value}%`, class: "max-w-[200px]" },
         {
-          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_atom]) ?? 0).toFixed(2)}%`,
+          value: `${(Number(app.apr?.[getProtocols().osmosis_osmosis_atom]) ?? 0).toFixed(2)}%`,
           class: "text-typography-success"
         }
       ]
@@ -260,103 +256,44 @@ const assets = computed<TableRowItemProps[]>(() => {
   ] as TableRowItemProps[];
 });
 
-const utilizationLevelNeutron = ref("0");
-const depositNeutron = ref("");
-
-const utilizationLevelOsmosis = ref("0");
-const depositOsmosis = ref("");
-
-// const utilizationLevelOsmosisStAtom = ref("0");
-// const depositStAtom = ref("");
-
-const utilizationLevelOsmosisAllBtc = ref("0");
-const depositAllBtc = ref("");
-
-const utilizationLevelOsmosisAllSol = ref("0");
-const depositAllSol = ref("");
-
-const utilizationLevelOsmosisAkt = ref("0");
-const depositAkt = ref("");
-
-const utilizationLevelOsmosisAtom = ref("0");
-const depositAtom = ref("");
-
-const suppliedFunds = ref("0");
-
 const app = useApplicationStore();
+const earnStore = useEarnStore();
 
-watch(
-  () => app.init,
-  () => {
-    if (app.init) {
-      onInit();
-    }
-  },
-  {
-    immediate: true
+// Compute supplied funds from earn store stats
+const suppliedFunds = computed(() => {
+  return earnStore.stats?.total_supplied ?? "0";
+});
+
+// Helper to get pool data by protocol
+function getPoolData(protocolKey: string) {
+  const pool = earnStore.getPool(protocolKey);
+  if (!pool) {
+    return { utilization: "0", depositSuspension: "0" };
   }
-);
-
-async function onInit() {
-  await Promise.all([
-    fetchPoolsData(),
-    setSuppliedFunds()
-  ]).catch((e) => Logger.error(e));
+  // Utilization is a decimal (0.0 - 1.0), convert to percentage
+  const utilization = (parseFloat(pool.utilization) * 100).toFixed(2);
+  // Deposit suspension threshold - if utilization >= this, deposits are paused
+  // This comes from the pool config, default to utilization-based check
+  const depositSuspension = parseFloat(pool.utilization) >= 1 ? "100" : "90";
+  return { utilization, depositSuspension };
 }
 
-async function setSuppliedFunds() {
-  const data = await EtlApi.fetchSuppliedFunds();
-  suppliedFunds.value = data.amount;
-}
+// Computed values for each protocol
+const utilizationLevelNeutron = computed(() => getPoolData(getProtocols().neutron_noble).utilization);
+const depositNeutron = computed(() => getPoolData(getProtocols().neutron_noble).depositSuspension);
 
-async function fetchPoolsData() {
-  const response = await fetch(`${EtlApi.getApiUrl()}/pools`);
-  const data = await response.json();
+const utilizationLevelOsmosis = computed(() => getPoolData(getProtocols().osmosis_noble).utilization);
+const depositOsmosis = computed(() => getPoolData(getProtocols().osmosis_noble).depositSuspension);
 
-  // Create a map for easy lookup by protocol name
-  const poolsMap: { [key: string]: { utilization: string; deposit_suspension: string } } = {};
-  for (const pool of data.protocols) {
-    poolsMap[pool.protocol] = {
-      utilization: pool.utilization,
-      deposit_suspension: pool.deposit_suspension
-    };
-  }
+const utilizationLevelOsmosisAllBtc = computed(() => getPoolData(getProtocols().osmosis_osmosis_all_btc).utilization);
+const depositAllBtc = computed(() => getPoolData(getProtocols().osmosis_osmosis_all_btc).depositSuspension);
 
-  // Set utilization and deposit suspension for each protocol
-  const neutron = poolsMap[AppUtils.getProtocols().neutron_noble];
-  if (neutron) {
-    utilizationLevelNeutron.value = Number(neutron.utilization).toFixed(2);
-    depositNeutron.value = neutron.deposit_suspension;
-  }
+const utilizationLevelOsmosisAllSol = computed(() => getPoolData(getProtocols().osmosis_osmosis_all_sol).utilization);
+const depositAllSol = computed(() => getPoolData(getProtocols().osmosis_osmosis_all_sol).depositSuspension);
 
-  const osmosis = poolsMap[AppUtils.getProtocols().osmosis_noble];
-  if (osmosis) {
-    utilizationLevelOsmosis.value = Number(osmosis.utilization).toFixed(2);
-    depositOsmosis.value = osmosis.deposit_suspension;
-  }
+const utilizationLevelOsmosisAkt = computed(() => getPoolData(getProtocols().osmosis_osmosis_akt).utilization);
+const depositAkt = computed(() => getPoolData(getProtocols().osmosis_osmosis_akt).depositSuspension);
 
-  const allBtc = poolsMap[AppUtils.getProtocols().osmosis_osmosis_all_btc];
-  if (allBtc) {
-    utilizationLevelOsmosisAllBtc.value = Number(allBtc.utilization).toFixed(2);
-    depositAllBtc.value = allBtc.deposit_suspension;
-  }
-
-  const allSol = poolsMap[AppUtils.getProtocols().osmosis_osmosis_all_sol];
-  if (allSol) {
-    utilizationLevelOsmosisAllSol.value = Number(allSol.utilization).toFixed(2);
-    depositAllSol.value = allSol.deposit_suspension;
-  }
-
-  const akt = poolsMap[AppUtils.getProtocols().osmosis_osmosis_akt];
-  if (akt) {
-    utilizationLevelOsmosisAkt.value = Number(akt.utilization).toFixed(2);
-    depositAkt.value = akt.deposit_suspension;
-  }
-
-  const atom = poolsMap[AppUtils.getProtocols().osmosis_osmosis_atom];
-  if (atom) {
-    utilizationLevelOsmosisAtom.value = Number(atom.utilization).toFixed(2);
-    depositAtom.value = atom.deposit_suspension;
-  }
-}
+const utilizationLevelOsmosisAtom = computed(() => getPoolData(getProtocols().osmosis_osmosis_atom).utilization);
+const depositAtom = computed(() => getPoolData(getProtocols().osmosis_osmosis_atom).depositSuspension);
 </script>

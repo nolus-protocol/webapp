@@ -3,7 +3,7 @@
     <WidgetHeader
       :label="isVisible && !emptyState ? $t('message.dashboard-lease-title') : ''"
       :icon="isVisible && !emptyState ? { name: 'leases', class: 'fill-icon-link' } : undefined"
-      :badge="isVisible && !emptyState ? { content: leases.length.toString() } : undefined"
+      :badge="isVisible && !emptyState ? { content: leasesStore.openLeases.length.toString() } : undefined"
     >
       <template v-if="isVisible && !emptyState">
         <Button
@@ -29,14 +29,14 @@
               fontSize: isMobile() ? 20 : 32
             }"
             :pnl-status="{
-              positive: pnl_percent.isPositive() || pnl_percent.isZero(),
-              value: `${pnl_percent.isPositive() || pnl_percent.isZero() ? '+' : '-'}${pnl_percent.abs().toString(2)}%`,
+              positive: pnlPercent.isPositive() || pnlPercent.isZero(),
+              value: `${pnlPercent.isPositive() || pnlPercent.isZero() ? '+' : '-'}${pnlPercent.abs().toString(2)}%`,
               badge: {
-                content: pnl_percent.toString(),
+                content: pnlPercent.toString(),
                 base: false
               }
             }"
-            :loading="loaded"
+            :loading="leasesStore.loading"
             :loadingWidth="'80px'"
           />
         </div>
@@ -71,111 +71,109 @@ import EmptyState from "@/common/components/EmptyState.vue";
 import { Button, Widget } from "web-components";
 import { RouteNames } from "@/router";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
-import { useLeases } from "@/common/composables";
 import { computed, ref, watch } from "vue";
-import { Coin, Dec } from "@keplr-wallet/unit";
-import { Intercom } from "@/common/utils/Intercom";
+import { Dec } from "@keplr-wallet/unit";
+import { IntercomService } from "@/common/utils/IntercomService";
 import { useWalletStore } from "@/common/stores/wallet";
-import { useOracleStore } from "@/common/stores/oracle";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import { AssetUtils, isMobile, Logger, WalletManager } from "@/common/utils";
+import { useLeasesStore } from "@/common/stores/leases";
+import { usePricesStore } from "@/common/stores/prices";
+import { isMobile, Logger, WalletManager } from "@/common/utils";
 import { useApplicationStore } from "@/common/stores/application";
 import { Contracts, NATIVE_CURRENCY } from "@/config/global";
 import { useRouter } from "vue-router";
 
-const { leases, getLeases } = useLeases((error: Error | any) => {});
-const pnl = ref(new Dec(0));
-const pnl_percent = ref(new Dec(0));
-const count = ref(0);
-
 const router = useRouter();
 const wallet = useWalletStore();
-const oracle = useOracleStore();
+const leasesStore = useLeasesStore();
+const pricesStore = usePricesStore();
 const app = useApplicationStore();
-const loaded = ref(true);
+
 const hide = ref(WalletManager.getHideBalances());
 
 defineProps<{ isVisible: boolean }>();
+
+// Set owner when wallet connects/disconnects
+watch(
+  () => wallet.wallet?.address,
+  async (address) => {
+    if (address) {
+      await leasesStore.setOwner(address);
+    } else {
+      leasesStore.clear();
+    }
+  },
+  { immediate: true }
+);
 
 const isProtocolDisabled = computed(() => {
   const protocols = Contracts.protocolsFilter[app.protocolFilter];
   return protocols.disabled;
 });
 
-watch(
-  () => leases.value,
-  () => {
-    setLeases();
-  }
-);
-
-watch(
-  () => wallet.wallet,
-  () => {
-    getLeases();
-  }
-);
-
 const emptyState = computed(() => {
-  return !loaded.value && count.value == 0;
+  return !leasesStore.loading && leasesStore.openLeases.length === 0;
 });
 
-function setLeases() {
-  try {
-    let db = new Dec(0);
-    let ls = new Dec(0);
-    let pl = new Dec(0);
-    let c = 0;
-
-    let am = new Dec(0);
-    let dp = new Dec(0);
-    let rp = new Dec(0);
-
-    for (const lease of leases.value) {
-      if (lease.leaseStatus?.opened) {
-        const ticker = lease.leaseStatus.opened.amount.ticker;
-        const dasset = app.currenciesData![`${ticker}@${lease.protocol}`];
-        const lpn = AssetUtils.getLpnByProtocol(lease.protocol);
-
-        const price = oracle.prices[lpn.key];
-        const downpayment = lease.leaseData?.downPayment ? lease.leaseData?.downPayment : new Dec(0);
-        const dDecimal = Number(dasset!.decimal_digits);
-        const l = CurrencyUtils.calculateBalance(
-          oracle.prices[dasset.key]?.amount,
-          new Coin(dasset.ibcData, lease.leaseStatus.opened.amount.amount),
-          dDecimal
-        ).toDec();
-
-        ls = ls.add(l);
-        lease.debt = lease.debt.mul(new Dec(price?.amount));
-
-        am = am.add(lease.pnlAmount as Dec);
-        dp = dp.add(downpayment as Dec);
-        rp = rp.add((lease.leaseData?.repayment_value ?? new Dec(0)) as Dec);
-
-        c++;
-      }
-      db = db.add(lease.debt as Dec);
-      pl = pl.add(lease.pnlAmount as Dec);
+// Calculate PnL from open leases
+const pnl = computed(() => {
+  let total = new Dec(0);
+  for (const lease of leasesStore.openLeases) {
+    if (lease.pnl?.amount) {
+      total = total.add(new Dec(lease.pnl.amount));
     }
-    pnl.value = pl;
-    count.value = c;
-
-    const amount = dp.add(rp);
-
-    if (!(amount.isZero() || am.isZero())) {
-      pnl_percent.value = am.quo(dp.add(rp)).mul(new Dec(100));
-    }
-
-    Intercom.update({
-      PositionsUnrealizedPnlUSD: pl.toString(),
-      PositionsDebtUSD: db.toString(),
-      Positionsvalueusd: ls.toString()
-    });
-  } catch (e) {
-    Logger.error(e);
-  } finally {
-    loaded.value = false;
   }
-}
+  return total;
+});
+
+// Calculate PnL percentage
+const pnlPercent = computed(() => {
+  let totalPnl = new Dec(0);
+  let totalDownpayment = new Dec(0);
+
+  for (const lease of leasesStore.openLeases) {
+    if (lease.pnl) {
+      totalPnl = totalPnl.add(new Dec(lease.pnl.amount));
+      totalDownpayment = totalDownpayment.add(new Dec(lease.pnl.downpayment || "0"));
+    }
+  }
+
+  if (totalDownpayment.isZero()) {
+    return new Dec(0);
+  }
+
+  return totalPnl.quo(totalDownpayment).mul(new Dec(100));
+});
+
+// Update Intercom with lease stats
+watch(
+  () => [leasesStore.openLeases, pricesStore.prices],
+  () => {
+    try {
+      const leasesData = leasesStore.getLeasesWithDisplayData();
+      const openLeasesData = leasesData.filter(
+        (d) => d.lease.status === "opened" || d.lease.status === "opening"
+      );
+
+      let totalDebtUsd = new Dec(0);
+      let totalValueUsd = new Dec(0);
+      let totalPnl = new Dec(0);
+
+      for (const data of openLeasesData) {
+        totalDebtUsd = totalDebtUsd.add(data.totalDebtUsd);
+        totalValueUsd = totalValueUsd.add(data.assetValueUsd);
+        totalPnl = totalPnl.add(data.pnlAmount);
+      }
+
+      IntercomService.updatePositions({
+        count: openLeasesData.length,
+        valueUsd: totalValueUsd.toString(),
+        debtUsd: totalDebtUsd.toString(),
+        unrealizedPnlUsd: totalPnl.toString()
+      });
+    } catch (e) {
+      Logger.error(e);
+    }
+  },
+  { deep: true }
+);
 </script>

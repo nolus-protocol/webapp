@@ -118,14 +118,15 @@ import SharePnLDialog from "@/modules/leases/components/single-lease/SharePnLDia
 
 import { useI18n } from "vue-i18n";
 import { type Component, computed, h, onMounted, onUnmounted, provide, ref, watch } from "vue";
-import { CURRENCY_VIEW_TYPES, type LeaseData } from "@/common/types";
-import { AssetUtils, isMobile, isTablet, Logger, WalletManager } from "@/common/utils";
+import { CURRENCY_VIEW_TYPES } from "@/common/types";
+import { isMobile, isTablet, Logger, WalletManager } from "@/common/utils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { getCurrencyByTicker, getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 
-import { useLeases } from "@/common/composables";
-import { Coin, Dec } from "@keplr-wallet/unit";
-import { Intercom } from "@/common/utils/Intercom";
+import { Dec } from "@keplr-wallet/unit";
+import { IntercomService } from "@/common/utils/IntercomService";
 import { useWalletStore } from "@/common/stores/wallet";
-import { useOracleStore } from "@/common/stores/oracle";
+import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useApplicationStore } from "@/common/stores/application";
 import {
@@ -138,21 +139,20 @@ import {
   UPDATE_LEASES
 } from "@/config/global";
 import { useRouter } from "vue-router";
-import { getStatus, TEMPLATES } from "./common";
 import type { IAction } from "./single-lease/Action.vue";
 import Action from "./single-lease/Action.vue";
-import type { OpenedOngoingState } from "@nolus/nolusjs/build/contracts/types/OpenedOngoingState";
 import TableNumber from "@/common/components/TableNumber.vue";
-import type { CloseOngoingState } from "@nolus/nolusjs/build/contracts";
+import type { LeaseInfo } from "@/common/api";
 
-const { leases, getLeases, leaseLoaded } = useLeases((error: Error | any) => {});
+const leasesStore = useLeasesStore();
+const leaseLoaded = computed(() => !leasesStore.loading || leasesStore.leases.length > 0);
+const leases = computed(() => leasesStore.leases);
 const activeLeases = ref(new Dec(0));
 const pnl = ref(new Dec(0));
 const debt = ref(new Dec(0));
 const pnl_percent = ref(new Dec(0));
 const router = useRouter();
 const wallet = useWalletStore();
-const oracle = useOracleStore();
 const app = useApplicationStore();
 const i18n = useI18n();
 const hide = ref(WalletManager.getHideBalances());
@@ -184,11 +184,12 @@ const leasesData = computed<TableRowItemProps[]>(() => {
       if (param.length == 0) {
         return true;
       }
-      const c = app.currenciesData![`${item.leaseData?.leasePositionTicker}@${item.protocol}`];
+      const positionTicker = item.etl_data?.lease_position_ticker ?? item.amount.ticker;
+      const c = app.currenciesData?.[`${positionTicker}@${item.protocol}`];
       if (
-        item.leaseAddress.toLowerCase().includes(param) ||
-        item.leaseData?.leasePositionTicker?.toLowerCase().includes(param) ||
-        c.shortName?.toLowerCase()?.includes(param)
+        item.address.toLowerCase().includes(param) ||
+        positionTicker?.toLowerCase().includes(param) ||
+        c?.shortName?.toLowerCase()?.includes(param)
       ) {
         return true;
       }
@@ -196,30 +197,29 @@ const leasesData = computed<TableRowItemProps[]>(() => {
       return false;
     })
     .map((item) => {
-      const pnl = {
-        percent: item.pnlPercent.toString(2),
-        amount: CurrencyUtils.formatPrice(item.pnlAmount.toString()),
-        status: item.pnlAmount.isPositive() || item.pnlAmount.isZero()
+      try {
+      const displayData = leasesStore.getLeaseDisplayData(item);
+      const pnlData = {
+        percent: displayData.pnlPercent.toString(2),
+        amount: CurrencyUtils.formatPrice(displayData.pnlAmount.toString()),
+        status: displayData.pnlPositive
       };
-      const loading =
-        item.leaseStatus.opening ??
-        item.leaseStatus.closing ??
-        ((item.leaseStatus.opened?.status as OpenedOngoingState).in_progress as CloseOngoingState)?.close;
+      const loading = isLeaseInProgress(item);
       const liquidation = loading
         ? { component: () => h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" }) }
         : {
-            value: AssetUtils.formatNumber(item.liquidation.toString(), MID_DECIMALS, NATIVE_CURRENCY.symbol),
+            value: formatNumber(displayData.liquidationPrice.toString(), MID_DECIMALS, NATIVE_CURRENCY.symbol),
             class: "max-w-[200px]"
           };
 
-      const asset = getAsset(item as LeaseData)!;
-      const amount = new Dec(getAmount(item as LeaseData) ?? 0, asset.decimal_digits);
-      const stable = getPositionInStable(item as LeaseData);
-      const actions: Component[] = getActions(item as LeaseData);
+      const asset = getAsset(item);
+      const amount = displayData.unitAsset;
+      const stable = displayData.assetValueUsd;
+      const actions: Component[] = getActions(item, displayData);
       const value = {
-        subValue: `${NATIVE_CURRENCY.symbol}${stable}`,
+        subValue: `${NATIVE_CURRENCY.symbol}${stable.toString(MAX_DECIMALS)}`,
         value: `${amount.toString(MAX_DECIMALS)}`,
-        tooltip: `${amount.toString(asset.decimal_digits)}`
+        tooltip: `${amount.toString(asset?.decimal_digits ?? 6)}`
       };
 
       if (hide.value) {
@@ -230,24 +230,24 @@ const leasesData = computed<TableRowItemProps[]>(() => {
       return {
         items: [
           {
-            value: getTitle(item as LeaseData),
+            value: getTitle(item),
             subValueClass: "text-typography-secondary rounded border-[1px] px-2 py-1 self-start",
             variant: "left",
             click: () => {
-              router.push(`/${RouteNames.LEASES}/${item.protocol.toLocaleLowerCase()}/${item.leaseAddress}`);
+              router.push(`/${RouteNames.LEASES}/${item.protocol.toLocaleLowerCase()}/${item.address}`);
             },
             class: "text-typography-link font-semibold max-w-[150px] cursor-pointer"
           },
           {
-            image: getAssetIcon(item as LeaseData),
+            image: getAssetIcon(item),
             imageClass: "w-[32px] h-[32px]",
-            value: asset.shortName,
-            subValue: asset.name,
+            value: asset?.shortName ?? "",
+            subValue: asset?.name ?? "",
             variant: "left",
             textClass: "line-clamp-1 [display:-webkit-box]"
           },
           {
-            value: `${i18n.t(`message.${ProtocolsConfig[item.protocol].type}`)}`,
+            value: `${i18n.t(`message.${ProtocolsConfig[item.protocol]?.type ?? "long"}`)}`,
             variant: "left",
             class: "max-w-[45px]"
           },
@@ -257,10 +257,10 @@ const leasesData = computed<TableRowItemProps[]>(() => {
                 ? h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" })
                 : h<IBigNumber>(BigNumber, {
                     pnlStatus: {
-                      positive: pnl.status,
-                      value: `${pnl.status ? "+" : ""}${pnl.percent}% (${hide.value ? "****" : pnl.amount})`,
+                      positive: pnlData.status,
+                      value: `${pnlData.status ? "+" : ""}${pnlData.percent}% (${hide.value ? "****" : pnlData.amount})`,
                       badge: {
-                        content: pnl.percent,
+                        content: pnlData.percent,
                         base: false
                       }
                     }
@@ -285,13 +285,22 @@ const leasesData = computed<TableRowItemProps[]>(() => {
           }
         ]
       };
-    });
-  return items as TableRowItemProps[];
+      } catch (e) {
+        Logger.error("[Leases] Error processing lease:", item.address, e);
+        return null;
+      }
+    }).filter((item): item is TableRowItemProps => item !== null);
+  return items;
 });
 
-onMounted(() => {
+onMounted(async () => {
+  // Initialize leases store with wallet address
+  if (wallet.wallet?.address) {
+    await leasesStore.setOwner(wallet.wallet.address);
+  }
+  
   timeOut = setInterval(() => {
-    getLeases();
+    leasesStore.refresh();
   }, UPDATE_LEASES);
 });
 
@@ -300,194 +309,122 @@ onUnmounted(() => {
 });
 
 function reload() {
-  getLeases();
+  leasesStore.refresh();
 }
 
-function getTitle(item: LeaseData) {
-  if (item.leaseStatus.opening) {
+function getTitle(item: LeaseInfo) {
+  if (item.status === "opening") {
     return `${i18n.t("message.opening")}...`;
   }
 
-  const status = getStatus(item);
-
-  if (status == TEMPLATES.opened) {
-    if (isClosing(item)) {
+  if (item.status === "opened") {
+    if (item.in_progress && "close" in item.in_progress) {
       return `${i18n.t("message.closing")}...`;
     }
 
-    if (isRepaying(item)) {
+    if (item.in_progress && "repayment" in item.in_progress) {
       return `${i18n.t("message.repaying")}...`;
     }
   }
 
-  if (TEMPLATES.paid == status) {
-    if (isCollecting(item)) {
+  if (item.status === "paid_off") {
+    if (item.in_progress && "transfer_in" in item.in_progress) {
       return `${i18n.t("message.collecting")}...`;
     }
   }
 
-  return `#${item.leaseAddress.slice(-8)}`;
+  return `#${item.address.slice(-8)}`;
 }
 
-function getAssetIcon(item: LeaseData) {
-  switch (ProtocolsConfig[item.protocol].type) {
+function getAssetIcon(item: LeaseInfo) {
+  const positionTicker = item.etl_data?.lease_position_ticker ?? item.amount.ticker;
+  
+  switch (ProtocolsConfig[item.protocol]?.type) {
     case PositionTypes.long: {
-      if (item.leaseStatus?.opening) {
-        return app.assetIcons?.[`${item.leaseStatus.opening.currency}@${item.protocol}`]!;
+      if (item.status === "opening" && item.opening_info) {
+        return app.assetIcons?.[`${item.opening_info.currency}@${item.protocol}`]!;
       }
       break;
     }
     case PositionTypes.short: {
-      if (item.leaseStatus?.opening) {
-        return app.assetIcons?.[`${item.leaseStatus.opening.loan.ticker}@${item.protocol}`]!;
+      if (item.status === "opening" && item.opening_info) {
+        return app.assetIcons?.[`${item.opening_info.loan.ticker}@${item.protocol}`]!;
       }
     }
   }
-  return app.assetIcons?.[`${item.leaseData?.leasePositionTicker}@${item.protocol}`] as string;
+  return app.assetIcons?.[`${positionTicker}@${item.protocol}`] as string;
 }
 
-function getAsset(lease: LeaseData) {
-  switch (ProtocolsConfig[lease.protocol].type) {
-    case PositionTypes.long: {
-      const ticker =
-        lease.leaseStatus?.opened?.amount.ticker ||
-        lease.leaseStatus?.closing?.amount.ticker ||
-        lease.leaseStatus?.opening?.currency;
-      const item = AssetUtils.getCurrencyByTicker(ticker as string);
-
-      const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
-      return asset;
+function getAsset(lease: LeaseInfo) {
+  try {
+    const positionType = ProtocolsConfig[lease.protocol]?.type ?? PositionTypes.long;
+    
+    switch (positionType) {
+      case PositionTypes.long: {
+        const ticker = lease.amount.ticker || lease.opening_info?.currency;
+        if (!ticker) return null;
+        const item = getCurrencyByTicker(ticker as string);
+        const asset = getCurrencyByDenom(item?.ibcData as string);
+        return asset;
+      }
+      case PositionTypes.short: {
+        const positionTicker = lease.etl_data?.lease_position_ticker ?? lease.amount.ticker;
+        if (!positionTicker) return null;
+        const item = getCurrencyByTicker(positionTicker as string);
+        const asset = getCurrencyByDenom(item?.ibcData as string);
+        return asset;
+      }
     }
-    case PositionTypes.short: {
-      const item = AssetUtils.getCurrencyByTicker(lease.leaseData!.leasePositionTicker as string);
-      const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
-      return asset;
-    }
+  } catch (e) {
+    Logger.error("[Leases] Error getting asset for lease:", lease.address, e);
+    return null;
   }
 }
 
-function getAmount(lease: LeaseData) {
-  switch (ProtocolsConfig[lease.protocol].type) {
-    case PositionTypes.long: {
-      const data =
-        lease.leaseStatus?.opened?.amount ||
-        lease.leaseStatus.opening?.downpayment ||
-        lease.leaseStatus.closing?.amount;
-      return data?.amount ?? "0";
-    }
-    case PositionTypes.short: {
-      const data =
-        lease.leaseStatus?.opened?.amount ||
-        lease.leaseStatus.opening?.downpayment ||
-        lease.leaseStatus.closing?.amount;
-
-      const asset = app.currenciesData?.[`${lease.leaseData!.leasePositionTicker}@${lease.protocol}`]!;
-      const lease_asset = app.currenciesData?.[`${lease.leaseData!.ls_asset_symbol}@${lease.protocol}`]!;
-      const price = oracle.prices?.[asset?.ibcData as string];
-      return new Dec(data!.amount, lease_asset.decimal_digits)
-        .quo(new Dec(price.amount))
-        .toString(lease_asset.decimal_digits);
-    }
-  }
-}
-
-function getPositionInStable(lease: LeaseData) {
-  const amount =
-    lease.leaseStatus?.opened?.amount || lease.leaseStatus.opening?.downpayment || lease.leaseStatus.closing?.amount;
-  let protocol = lease.protocol;
-
-  let ticker = lease.leaseData!.leasePositionTicker!;
-
-  if (ticker?.includes?.("@")) {
-    let [t, p] = ticker.split("@");
-    ticker = t;
-    protocol = p;
-  }
-
-  const asset = app.currenciesData?.[`${ticker}@${protocol}`];
-
-  switch (ProtocolsConfig[lease.protocol].type) {
-    case PositionTypes.long: {
-      const price = oracle.prices?.[`${ticker}@${protocol}`];
-
-      const value = new Dec(amount!.amount, asset?.decimal_digits).mul(new Dec(price?.amount));
-      return value.toString(asset!.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : asset?.decimal_digits);
-    }
-    case PositionTypes.short: {
-      const value = new Dec(amount!.amount, asset!.decimal_digits);
-      return value.toString(asset!.decimal_digits > MAX_DECIMALS ? MAX_DECIMALS : asset?.decimal_digits);
-    }
-  }
-
-  return "0";
-}
-
-function getActions(lease: LeaseData) {
-  const status = getStatus(lease as LeaseData);
+function getActions(lease: LeaseInfo, displayData: LeaseDisplayData) {
+  const isOpened = lease.status === "opened";
   const actions = [
     h<ButtonProps>(Button, {
       label: i18n.t("message.details"),
       severity: "secondary",
       size: "medium",
-      key: `details-${lease.leaseAddress}`,
+      key: `details-${lease.address}`,
       onClick: () => {
-        router.push(`/${RouteNames.LEASES}/${lease.protocol?.toLowerCase()}/${lease.leaseAddress}`);
+        router.push(`/${RouteNames.LEASES}/${lease.protocol?.toLowerCase()}/${lease.address}`);
       }
     }),
     h<IAction>(Action, {
       lease,
       showCollect: false,
-      showClose: status == TEMPLATES.opened,
-      key: `action-${lease.leaseAddress}`,
-      opened: openMenuId == lease.leaseAddress,
+      showClose: isOpened,
+      key: `action-${lease.address}`,
+      opened: openMenuId == lease.address,
       onClick: (data: boolean) => {
         if (data) {
-          openMenuId = lease.leaseAddress;
+          openMenuId = lease.address;
         } else {
           openMenuId = null;
         }
       },
       onSharePnl: () => {
-        sharePnlDialog.value?.show(lease);
+        sharePnlDialog.value?.show(lease, displayData);
       }
     })
   ];
 
-  if (status == TEMPLATES.opened) {
-    if (isClosing(lease) || isRepaying(lease)) {
-      return [];
-    }
+  if (isOpened && displayData.inProgressType) {
+    return [];
   }
   return actions;
 }
 
-function isClosing(lease: LeaseData) {
-  const progress = lease.leaseStatus.opened?.status as OpenedOngoingState;
-
-  if (Object.prototype.hasOwnProperty.call(progress.in_progress ?? {}, "close")) {
+function isLeaseInProgress(lease: LeaseInfo): boolean {
+  if (lease.status === "opening" || lease.status === "closing") {
     return true;
   }
-
-  return false;
-}
-
-function isRepaying(lease: LeaseData) {
-  const progress = lease.leaseStatus.opened?.status as OpenedOngoingState;
-
-  if (Object.prototype.hasOwnProperty.call(progress.in_progress ?? {}, "repayment")) {
+  if (lease.in_progress) {
     return true;
   }
-
-  return false;
-}
-
-function isCollecting(lease: LeaseData) {
-  const data = lease.leaseStatus.closing;
-
-  if (data?.in_progress == "transfer_in_init" || data?.in_progress == "transfer_in_finish") {
-    return true;
-  }
-
   return false;
 }
 
@@ -498,43 +435,42 @@ watch(
   }
 );
 
+// Watch for wallet changes to update the store
+watch(
+  () => wallet.wallet?.address,
+  async (newAddress) => {
+    if (newAddress) {
+      await leasesStore.setOwner(newAddress);
+    } else {
+      leasesStore.clear();
+    }
+  }
+);
+
 function setLeases() {
   try {
     let db = new Dec(0);
     let ls = new Dec(0);
     let pl = new Dec(0);
-    let c = 0;
 
     let am = new Dec(0);
     let dp = new Dec(0);
     let rp = new Dec(0);
 
     for (const lease of leases.value) {
-      if (lease.leaseStatus?.opened) {
-        const ticker = lease.leaseStatus.opened.amount.ticker;
-        const dasset = app.currenciesData![`${ticker}@${lease.protocol}`];
-        const lpn = AssetUtils.getLpnByProtocol(lease.protocol);
-        const price = oracle.prices[lpn.key];
-        const downpayment = lease.leaseData?.downPayment ? lease.leaseData?.downPayment : new Dec(0);
-        const dDecimal = Number(dasset!.decimal_digits);
-        const l = CurrencyUtils.calculateBalance(
-          oracle.prices[dasset.key]?.amount,
-          new Coin(dasset.ibcData, lease.leaseStatus.opened.amount.amount),
-          dDecimal
-        ).toDec();
-
-        ls = ls.add(l);
-        lease.debt = lease.debt.mul(new Dec(price?.amount));
-
-        am = am.add(lease.pnlAmount as Dec);
-        dp = dp.add(downpayment as Dec);
-        rp = rp.add((lease.leaseData?.repayment_value ?? new Dec(0)) as Dec);
-
-        c++;
+      const displayData = leasesStore.getLeaseDisplayData(lease);
+      
+      if (lease.status === "opened") {
+        ls = ls.add(displayData.assetValueUsd);
+        am = am.add(displayData.pnlAmount);
+        dp = dp.add(displayData.downPayment);
+        rp = rp.add(displayData.repaymentValue);
       }
-      db = db.add(lease.debt as Dec);
-      pl = pl.add(lease.pnlAmount as Dec);
+      
+      db = db.add(displayData.totalDebtUsd);
+      pl = pl.add(displayData.pnlAmount);
     }
+    
     pnl.value = pl;
     activeLeases.value = ls;
     debt.value = db;
@@ -545,10 +481,12 @@ function setLeases() {
       pnl_percent.value = am.quo(dp.add(rp)).mul(new Dec(100));
     }
 
-    Intercom.update({
-      PositionsUnrealizedPnlUSD: pl.toString(),
-      PositionsDebtUSD: db.toString(),
-      Positionsvalueusd: ls.toString()
+    const openedCount = leases.value.filter((l) => l.status === "opened").length;
+    IntercomService.updatePositions({
+      count: openedCount,
+      valueUsd: ls.toString(),
+      debtUsd: db.toString(),
+      unrealizedPnlUsd: pl.toString()
     });
   } catch (e) {
     Logger.error(e);

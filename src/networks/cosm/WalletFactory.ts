@@ -11,7 +11,8 @@ import { makeCosmoshubPath, type OfflineAminoSigner } from "@cosmjs/amino";
 
 import { createBankAminoConverters, createIbcAminoConverters } from "@cosmjs/stargate";
 import { AminoTypes } from "@cosmjs/stargate";
-import { WalletManager, WalletUtils, AppUtils, Logger } from "@/common/utils";
+import { WalletManager, WalletUtils, Logger } from "@/common/utils";
+import { fetchEndpoints } from "@/common/utils/EndpointService";
 import { type BaseWallet } from "./BaseWallet";
 import { createDepositForBurnWithCallerConverters } from "../list/noble/tx";
 import { getWalletConnectOfflineSigner } from "@/common/stores/wallet/actions/connectWC";
@@ -63,7 +64,7 @@ async function authenticateKeplr(wallet: Wallet, network: NetworkData) {
 
     try {
       chainId = await wallet.getChainId();
-      const node = await AppUtils.fetchEndpoints(network.key);
+      const node = await fetchEndpoints(network.key);
       await keplrWindow.keplr?.experimentalSuggestChain(network.embedChainInfo(chainId, node.rpc, node.api));
     } catch (e) {
       throw new Error("Failed to fetch suggest chain.");
@@ -101,7 +102,7 @@ async function authenticateLeap(wallet: Wallet, network: NetworkData) {
 
     try {
       chainId = await wallet.getChainId();
-      const node = await AppUtils.fetchEndpoints(network.key);
+      const node = await fetchEndpoints(network.key);
       await leapWindow.leap?.experimentalSuggestChain(network.embedChainInfo(chainId, node.rpc, node.api));
     } catch (e) {
       Logger.error(e);
@@ -146,7 +147,7 @@ export async function authenticateWalletConnect(wallet: Wallet, network: Network
 
 export async function authenticateMetamask(wallet: Wallet, network: NetworkData) {
   try {
-    const node = await AppUtils.fetchEndpoints(network.key);
+    const node = await fetchEndpoints(network.key);
     const metamask = new MetaMaskWallet();
     await metamask.connectCustom(node, network);
     const signer = metamask.makeWCOfflineSigner();
@@ -166,7 +167,7 @@ export async function authenticateMetamask(wallet: Wallet, network: NetworkData)
 
 export async function authenticateEvmPhantom(wallet: Wallet, network: NetworkData) {
   try {
-    const node = await AppUtils.fetchEndpoints(network.key);
+    const node = await fetchEndpoints(network.key);
     const metamask = new MetaMaskWallet();
     await metamask.connectCustom(node, network);
     const signer = metamask.makeWCOfflineSigner();
@@ -186,7 +187,7 @@ export async function authenticateEvmPhantom(wallet: Wallet, network: NetworkDat
 
 export async function authenticateSolFlare(wallet: Wallet, network: NetworkData) {
   try {
-    const node = await AppUtils.fetchEndpoints(network.key);
+    const node = await fetchEndpoints(network.key);
     const sol = new SolanaWallet();
     await sol.connectCustom(node, network);
     const signer = sol.makeWCOfflineSigner();

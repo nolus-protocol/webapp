@@ -1,9 +1,9 @@
-import { Intercom } from "@/common/utils/Intercom";
+import { IntercomService } from "@/common/utils/IntercomService";
 import type { Store } from "../types";
 
 export function disconnect(this: Store) {
   this.wallet = undefined;
   this.walletName = undefined;
   this.loadActivities();
-  Intercom.disconnect();
+  IntercomService.disconnect();
 }

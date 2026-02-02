@@ -61,18 +61,19 @@ watch(
 );
 
 async function onInit() {
-  await Promise.all([setOpenPositonsValue(), setOpenInterest()]).catch((e) => Logger.error(e));
-}
+  try {
+    // Use batch endpoint - single request instead of 2 separate requests
+    const data = await EtlApi.fetchLoansStatsBatch();
 
-async function setOpenPositonsValue() {
-  const data = await EtlApi.fetchOpenPositionValue();
-  openPositionValue.value = data.open_position_value;
-  loading.value = false;
-}
-
-async function setOpenInterest() {
-  const data = await EtlApi.fetchOpenInterest();
-  openInterest.value = data.open_interest;
+    if (data.open_position_value) {
+      openPositionValue.value = data.open_position_value.open_position_value;
+    }
+    if (data.open_interest) {
+      openInterest.value = data.open_interest.open_interest;
+    }
+  } catch (e) {
+    Logger.error(e);
+  }
   loading.value = false;
 }
 </script>

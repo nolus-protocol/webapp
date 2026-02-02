@@ -1,5 +1,3 @@
-import { isServe } from "./modes";
-
 export const TWITTER_ACCOUNT = "https://twitter.com/NolusPlatform";
 export const TELEGRAM_ACCOUNT = "https://t.me/NolusPlatform";
 export const MEDIUM_ACCOUNT = "https://medium.com/nolusplatform";
@@ -7,7 +5,10 @@ export const REDDIT_ACCOUNT = "https://www.reddit.com/r/NolusPlatform";
 export const LINKEDIN_ACCOUNT = "https://www.linkedin.com/company/nolus-platform";
 export const DISCORD_ACCOUNT = "https://discord.com/invite/Rmwz8S6ZJP";
 export const SUPPORT_URL = "https://hub.nolus.io";
-export const INTERCOM_URL = "https://beacon.nolus.network/intercom";
+
+// Intercom JWT token endpoint - uses backend instead of beacon
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+export const INTERCOM_URL = `${BACKEND_URL}/api/intercom/hash`;
 
 export enum APPEARANCE {
   light = "light",
@@ -39,16 +40,8 @@ export const UPDATE_REWARDS_INTERVAL = 60 * 1000;
 export const SESSION_TIME = 25 * 60 * 1000;
 export const UPDATE_LEASES = 10000;
 
-let update_balance_interval = 8 * 1000; // 5s;
-let update_prices_interval = 15 * 1000;
-
-if (isServe()) {
-  update_balance_interval = 60 * 1000;
-  update_prices_interval = 60 * 1000;
-}
-
-export const UPDATE_BALANCE_INTERVAL = update_balance_interval;
-export const UPDATE_PRICES_INTERVAL = update_prices_interval;
+export const UPDATE_BALANCE_INTERVAL = 8 * 1000;
+export const UPDATE_PRICES_INTERVAL = 15 * 1000;
 
 export const MONTHS = 12;
 

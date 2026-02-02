@@ -5,7 +5,8 @@ import { Dec, Int } from "@keplr-wallet/unit";
 import { fromBech32 } from "@cosmjs/encoding";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
-import { AssetUtils, WalletManager } from ".";
+import { WalletManager } from ".";
+import { getCurrencyByDenom } from "./CurrencyLookup";
 import { type NetworkData, WalletConnectMechanism } from "@/common/types";
 import { authenticateKeplr, authenticateLeap, authenticateLedger, type BaseWallet, type Wallet } from "@/networks";
 import {
@@ -35,7 +36,7 @@ export const validateAmount = (amount: string, denom: string, balance: number) =
     return i18n.global.t("message.invalid-amount");
   }
 
-  const asset = AssetUtils.getCurrencyByDenom(denom);
+  const asset = getCurrencyByDenom(denom);
   const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, asset.ibcData, asset.decimal_digits);
   const zero = CurrencyUtils.convertDenomToMinimalDenom("0", asset.ibcData, asset.decimal_digits).amount.toDec();
 
@@ -180,7 +181,7 @@ export const externalWallet = async (wallet: Wallet, networkData: NetworkData) =
 };
 
 export const getMicroAmount = (denom: string, amount: string) => {
-  const asset = AssetUtils.getCurrencyByDenom(denom);
+  const asset = getCurrencyByDenom(denom);
   const mAmount = CurrencyUtils.convertDenomToMinimalDenom(amount, asset.ibcData, asset.decimal_digits);
 
   return { coinMinimalDenom: asset.ibcData, coinDecimals: asset.decimal_digits, mAmount };
@@ -205,7 +206,7 @@ export const transferCurrency = async (denom: string, amount: string, receiverAd
     return result;
   }
 
-  const asset = AssetUtils.getCurrencyByDenom(denom);
+  const asset = getCurrencyByDenom(denom);
   const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, asset.ibcData, asset.decimal_digits);
 
   const funds: Coin[] = [

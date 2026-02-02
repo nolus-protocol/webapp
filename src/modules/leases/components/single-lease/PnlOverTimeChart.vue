@@ -31,8 +31,9 @@ import { pointer, select, type Selection } from "d3";
 
 import { CHART_RANGES, NATIVE_CURRENCY } from "@/config/global";
 import { useI18n } from "vue-i18n";
-import { AssetUtils, EtlApi, isMobile } from "@/common/utils";
-import type { LeaseData } from "@/common/types";
+import { EtlApi, isMobile } from "@/common/utils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import type { LeaseInfo } from "@/common/api";
 
 type ChartData = { amount: number; date: Date };
 
@@ -60,7 +61,7 @@ const data = ref<ChartData[]>([
   }
 ]);
 const chart = ref<typeof Chart>();
-const props = defineProps<{ lease?: LeaseData }>();
+const props = defineProps<{ lease?: LeaseInfo | null }>();
 
 const gradientHTML = `
 <svg xmlns="http://www.w3.org/2000/svg" width="502" height="83" viewBox="0 0 502 83" fill="none">
@@ -75,8 +76,8 @@ const gradientHTML = `
 `;
 
 async function setData() {
-  if (props.lease?.leaseAddress) {
-    const response = await EtlApi.fetchPnlOverTime(props.lease?.leaseAddress, chartTimeRange.value.days);
+  if (props.lease?.address) {
+    const response = await EtlApi.fetchPnlOverTime(props.lease?.address, chartTimeRange.value.days);
     if (response.length > 0) {
       data.value = response.map((d) => ({
         date: new Date(d.date),
@@ -112,7 +113,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       grid: true,
       label: null,
       labelArrow: false,
-      tickFormat: (d) => `${AssetUtils.formatNumber(d, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`,
+      tickFormat: (d) => `${formatNumber(d, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`,
       tickSize: 0
     },
     x: {
@@ -141,7 +142,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
       if (closestData) {
         tooltip.html(
-          `<strong>${i18n.t("message.amount")}:</strong> ${AssetUtils.formatNumber(closestData.amount, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`
+          `<strong>${i18n.t("message.amount")}:</strong> ${formatNumber(closestData.amount, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();

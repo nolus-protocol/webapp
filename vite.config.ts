@@ -2,67 +2,18 @@ import type { InlineConfig, HmrContext, ViteDevServer, Plugin as VitePlugin } fr
 import type { NormalizedOutputOptions, OutputBundle, PluginContext } from "rollup";
 import { resolve } from "node:path";
 import { fileURLToPath, URL } from "node:url";
-import { build, defineConfig } from "vite";
-import { cp } from "fs/promises";
+import { build, defineConfig, loadEnv } from "vite";
 import vue from "@vitejs/plugin-vue";
 import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
 import svgLoader from "vite-svg-loader";
 import inject from "@rollup/plugin-inject";
 import crypto from "node:crypto";
 
-const downpayments_range_dir = fileURLToPath(new URL("./src/config/lease/downpayment-range", import.meta.url));
 const public_dir = "public";
 const worker = resolve(__dirname, "src/push/worker.ts");
-const locales_dir = fileURLToPath(new URL("./src/locales", import.meta.url));
 
 const injections = inject({
   Buffer: ["buffer", "Buffer"] // whenever code uses Buffer, import it from 'buffer'
-});
-
-async function copyDownpaymentRange(): Promise<void> {
-  const public_locales_dir = fileURLToPath(new URL(`./${public_dir}/downpayment-range`, import.meta.url));
-  await cp(downpayments_range_dir, public_locales_dir, { recursive: true });
-}
-
-async function copyLocales(): Promise<void> {
-  const public_locales_dir = fileURLToPath(new URL(`./${public_dir}/locales`, import.meta.url));
-  await cp(locales_dir, public_locales_dir, { recursive: true });
-}
-
-const downpayments_range = (): VitePlugin => ({
-  name: "downpayments-range-copy",
-
-  async configResolved() {
-    await copyDownpaymentRange();
-  },
-
-  async handleHotUpdate(ctx: HmrContext) {
-    if (ctx.file.includes(downpayments_range_dir)) {
-      await copyDownpaymentRange();
-      ctx.server.ws.send({
-        type: "full-reload",
-        path: "*"
-      });
-    }
-  }
-});
-
-const locales = (): VitePlugin => ({
-  name: "locales-copy",
-
-  async configResolved() {
-    await copyLocales();
-  },
-
-  async handleHotUpdate(ctx: HmrContext) {
-    if (ctx.file.includes(locales_dir)) {
-      await copyLocales();
-      ctx.server.ws.send({
-        type: "full-reload",
-        path: "*"
-      });
-    }
-  }
 });
 
 type WorkerContext = ViteDevServer | { config?: { mode?: string } } | undefined;
@@ -169,61 +120,64 @@ const deinlineFontDataUrls = (): VitePlugin => {
   };
 };
 
-const nolus = defineConfig({
-  plugins: [
-    vue(),
-    deinlineFontDataUrls(),
-    svgLoader(),
-    VueI18nPlugin({
-      include: [resolve(__dirname, "./src/locales/**")],
-      compositionOnly: true,
-      strictMessage: false,
-      runtimeOnly: false
-    }),
-    buildWorkerPlugin(),
-    downpayments_range(),
-    locales()
-  ],
-  ssr: {
-    noExternal: ["@nolus/nolusjs", "bech32"]
-  },
-  define: {
-    "import.meta.env.APP_VERSION": JSON.stringify(process.env.npm_package_version)
-  },
-  server: {
-    host: "127.0.0.1",
-    allowedHosts: []
-  },
-  resolve: {
-    alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url))
-    }
-  },
-  optimizeDeps: {
-    exclude: [],
-    esbuildOptions: {
-      sourcemap: false,
-      define: {
-        global: "globalThis"
-      }
-    }
-  },
-  build: {
-    minify: "terser",
-    chunkSizeWarningLimit: 750,
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true
-      },
-      format: {
-        comments: false
+const nolus = defineConfig(({ mode }) => {
+  // Load env file based on mode
+  const env = loadEnv(mode, process.cwd(), "");
+
+  return {
+    plugins: [
+      vue(),
+      deinlineFontDataUrls(),
+      svgLoader(),
+      VueI18nPlugin({
+        compositionOnly: true,
+        strictMessage: false,
+        runtimeOnly: false
+      }),
+      buildWorkerPlugin()
+    ],
+
+    define: {
+      "import.meta.env.APP_VERSION": JSON.stringify(process.env.npm_package_version),
+      // Expose backend URLs to the client (loaded from .env files)
+      "import.meta.env.VITE_BACKEND_URL": JSON.stringify(env.VITE_BACKEND_URL || ""),
+      "import.meta.env.VITE_WS_URL": JSON.stringify(env.VITE_WS_URL || "")
+    },
+    server: {
+      host: "127.0.0.1",
+      allowedHosts: []
+    },
+    resolve: {
+      alias: {
+        "@": fileURLToPath(new URL("./src", import.meta.url))
       }
     },
-    rollupOptions: {
-      plugins: [injections]
+    optimizeDeps: {
+      exclude: [],
+      esbuildOptions: {
+        sourcemap: false,
+        define: {
+          global: "globalThis"
+        }
+      }
+    },
+    build: {
+      minify: "terser",
+      chunkSizeWarningLimit: 750,
+      terserOptions: {
+        compress: {
+          drop_console: true,
+          drop_debugger: true
+        },
+        format: {
+          comments: false
+        }
+      },
+      rollupOptions: {
+        plugins: [injections]
+      }
     }
-  }
+  };
 });
 
 export default nolus;

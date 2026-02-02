@@ -1,0 +1,55 @@
+{
+  "networks": {
+    "noble": {
+      "name": "Noble",
+      "chain_id": "noble-1",
+      "prefix": "noble",
+      "native_denom": "ustake",
+      "gas_price": "0.025ustake",
+      "explorer": "https://www.mintscan.io/noble",
+      "decimal_digits": 6
+    },
+    "neutron": {
+      "name": "Neutron",
+      "chain_id": "neutron-1",
+      "prefix": "neutron",
+      "native_denom": "untrn",
+      "gas_price": "0.025untrn",
+      "explorer": "https://www.mintscan.io/neutron",
+      "decimal_digits": 6
+    },
+    "nolus": {
+      "name": "Nolus",
+      "chain_id": "pirin-1",
+      "prefix": "nolus",
+      "native_denom": "unls",
+      "gas_price": "0.0025unls",
+      "explorer": "https://explorer.nolus.io",
+      "decimal_digits": 6
+    },
+    "cosmos_hub": {
+      "name": "Cosmos Hub",
+      "chain_id": "cosmoshub-4",
+      "prefix": "cosmos",
+      "native_denom": "uatom",
+      "gas_price": "0.025uatom",
+      "explorer": "https://www.mintscan.io/cosmos",
+      "decimal_digits": 6
+    },
+    "osmosis": {
+      "name": "Osmosis",
+      "chain_id": "osmosis-1",
+      "prefix": "osmo",
+      "native_denom": "uosmo",
+      "gas_price": "0.025uosmo",
+      "explorer": "https://www.mintscan.io/osmosis",
+      "decimal_digits": 6
+    }
+  },
+  "native_asset": {
+    "ticker": "NLS",
+    "symbol": "NLS",
+    "denom": "unls",
+    "decimal_digits": 6
+  }
+}

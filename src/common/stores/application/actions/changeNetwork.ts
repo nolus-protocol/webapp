@@ -1,16 +1,17 @@
 import type { Store } from "../types";
 import { DEFAULT_PRIMARY_NETWORK, NETWORKS } from "@/config/global";
-import { AppUtils, EnvNetworkUtils, WalletManager } from "@/common/utils";
+import { EnvNetworkUtils, WalletManager } from "@/common/utils";
+import { fetchEndpoints } from "@/common/utils/EndpointService";
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
-import { useOracleStore } from "@/common/stores/oracle";
+import { usePricesStore } from "@/common/stores/prices";
+import { useConfigStore } from "@/common/stores/config";
 import { useWalletStore } from "../../wallet";
-import { useAdminStore } from "../../admin";
 
 export async function changeNetwork(this: Store) {
   try {
-    const rpc = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
+    const rpc = (await fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
     NolusClient.setInstance(rpc);
-    const admin = useAdminStore();
+    const configStore = useConfigStore();
 
     this.protocolFilter = WalletManager.getProtocolFilter();
     this.network.networkName = EnvNetworkUtils.getStoredNetworkName() || DEFAULT_PRIMARY_NETWORK;
@@ -18,7 +19,7 @@ export async function changeNetwork(this: Store) {
       ...NETWORKS[this.network.networkName]
     };
 
-    await admin.GET_PROTOCOLS();
+    await configStore.fetchConfig();
     await this.LOAD_CURRENCIES();
 
     loadWalletData.bind(this)();
@@ -30,11 +31,11 @@ export async function changeNetwork(this: Store) {
 async function loadWalletData(this: Store) {
   try {
     const walletStore = useWalletStore();
-    const oracle = useOracleStore();
+    const pricesStore = usePricesStore();
 
     await Promise.allSettled([
       walletStore.UPDATE_BALANCES(),
-      oracle.GET_PRICES(),
+      pricesStore.fetchPrices(),
       this.LOAD_APR_REWARDS(),
       walletStore.LOAD_APR()
     ]);

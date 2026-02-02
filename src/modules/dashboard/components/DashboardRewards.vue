@@ -41,13 +41,6 @@
         @click="onWithdrawRewards"
       />
     </div>
-    <!-- <Asset
-      v-if="!isEmpty"
-      v-for="reward of rewards"
-      :icon="reward.icon"
-      :amount="reward.amount"
-      :stable-amount="`${reward.stableAmount}`"
-    /> -->
 
     <EmptyState
       v-if="isEmpty"
@@ -68,86 +61,64 @@ import BigNumber from "@/common/components/BigNumber.vue";
 import EmptyState from "@/common/components/EmptyState.vue";
 
 import { Button, Widget } from "web-components";
-import { CURRENCY_VIEW_TYPES, type IObjectKeys } from "@/common/types";
-import { AssetUtils, EtlApi, isMobile, Logger, NetworkUtils, walletOperation } from "@/common/utils";
+import { CURRENCY_VIEW_TYPES } from "@/common/types";
+import { EtlApi, isMobile, Logger, walletOperation } from "@/common/utils";
+import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { Dec } from "@keplr-wallet/unit";
-import { NATIVE_CURRENCY } from "@/config/global";
+import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
+import { useStakingStore } from "@/common/stores/staking";
+import { usePricesStore } from "@/common/stores/prices";
 import { computed, ref, watch } from "vue";
-import { useOracleStore } from "@/common/stores/oracle";
 
 const props = defineProps<{
   showEmpty: boolean;
 }>();
 
 const wallet = useWalletStore();
-const oracle = useOracleStore();
-const emptyState = ref(false);
-const earningsAmount = ref("0.00");
+const stakingStore = useStakingStore();
+const pricesStore = usePricesStore();
 
+const earningsAmount = ref("0.00");
 const loadingStaking = ref(false);
 const disabled = ref(false);
-const rewards = ref<
-  {
-    amount: string;
-    stableAmount: string;
-    icon: string;
-  }[]
->();
-const stableRewards = ref("0.00");
+
+// Set staking address when wallet connects/disconnects
+watch(
+  () => wallet.wallet?.address,
+  async (address) => {
+    if (address) {
+      await stakingStore.setAddress(address);
+      await loadEarnings();
+    } else {
+      stakingStore.clear();
+    }
+  },
+  { immediate: true }
+);
 
 const isEmpty = computed(() => {
-  return props.showEmpty || emptyState.value;
+  return props.showEmpty || !stakingStore.hasPositions;
 });
 
-watch(
-  () => [wallet.wallet, oracle.prices],
-  async () => {
+// Calculate staking rewards in USD
+const stableRewards = computed(() => {
+  const nativeCurrency = getCurrencyByTicker(NATIVE_ASSET.ticker);
+  const price = nativeCurrency ? pricesStore.getPriceAsNumber(nativeCurrency.key) : 0;
+  const rewardsAmount = new Dec(stakingStore.totalRewards, NATIVE_ASSET.decimal_digits);
+  const stable = rewardsAmount.mul(new Dec(price));
+  return stable.toString(NATIVE_CURRENCY.maximumFractionDigits);
+});
+
+async function loadEarnings() {
+  if (wallet.wallet?.address) {
     try {
-      await Promise.all([setRewards(), loadEarnings()]);
+      const res = await EtlApi.fetchEarnings(wallet.wallet.address);
+      earningsAmount.value = res.earnings;
     } catch (e) {
       Logger.error(e);
     }
-  },
-  {
-    immediate: true
   }
-);
-
-async function setRewards() {
-  if (!wallet.wallet) {
-    return false;
-  }
-  const delegator = await NetworkUtils.loadDelegator();
-  const data: {
-    amount: string;
-    stableAmount: string;
-    icon: string;
-  }[] = [];
-  let stable = new Dec(0);
-  (delegator?.total ?? [])?.forEach((item: IObjectKeys) => {
-    const currency = AssetUtils.getCurrencyByDenom(item.denom);
-    const total = new Dec(new Dec(item?.amount ?? 0).truncate(), currency.decimal_digits);
-    const price = new Dec(oracle.prices?.[currency.key]?.amount ?? 0);
-    const s = price.mul(total);
-
-    data.push({
-      amount: `${AssetUtils.formatNumber(total.toString(), currency.decimal_digits)} ${currency.shortName}`,
-      stableAmount: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(s.toString(2), 2)}`,
-      icon: currency.icon
-    });
-
-    stable = stable.add(s);
-  });
-
-  if (delegator.rewards.length == 0) {
-    emptyState.value = true;
-  } else {
-    emptyState.value = false;
-  }
-
-  rewards.value = data;
-  stableRewards.value = stable.toString(NATIVE_CURRENCY.maximumFractionDigits);
 }
 
 async function onWithdrawRewards() {
@@ -161,45 +132,31 @@ async function onWithdrawRewards() {
   }
 }
 
-async function loadEarnings() {
-  if (wallet.wallet?.address) {
-    const res = await EtlApi.featchEarnings(wallet.wallet?.address);
-    earningsAmount.value = res.earnings;
-  }
-}
-
 async function requestClaim() {
   try {
     loadingStaking.value = true;
     if (wallet.wallet) {
-      const delegator = await NetworkUtils.loadDelegator();
-
-      const data = delegator.rewards
-        .filter((item: any) => {
-          const coin = item?.reward?.[0];
-
-          if (coin) {
-            const asset = AssetUtils.getCurrencyByDenom(coin.denom);
-            const amount = new Dec(coin.amount, asset.decimal_digits);
-
-            if (amount.isPositive()) {
-              return true;
-            }
-          }
-
-          return false;
+      // Build claim data from staking store rewards
+      const data = stakingStore.rewards
+        .filter((reward) => {
+          // Check if any reward has positive amount
+          return reward.rewards.some((r) => {
+            const amount = new Dec(r.amount, NATIVE_ASSET.decimal_digits);
+            return amount.isPositive();
+          });
         })
-        .map((item: any) => {
-          return {
-            validator: item.validator_address,
-            delegator: wallet.wallet?.address
-          };
-        });
+        .map((reward) => ({
+          validator: reward.validator_address,
+          delegator: wallet.wallet?.address
+        }));
 
-      const { txHash, txBytes, usedFee } = await wallet.wallet.simulateWithdrawRewardTx(data);
-      await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
+      if (data.length > 0) {
+        const { txBytes } = await wallet.wallet.simulateWithdrawRewardTx(data);
+        await wallet.wallet.broadcastTx(txBytes as Uint8Array);
 
-      setRewards();
+        // Refresh staking data after claim
+        await stakingStore.fetchPositions();
+      }
     }
 
     wallet.loadActivities();

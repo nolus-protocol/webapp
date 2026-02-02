@@ -96,7 +96,9 @@ import BigNumber from "@/common/components/BigNumber.vue";
 import { CURRENCY_VIEW_TYPES, type IObjectKeys } from "@/common/types";
 import { NATIVE_CURRENCY, NORMAL_DECIMALS, PositionTypes, ProtocolsConfig } from "@/config/global";
 import type { ILoan } from "./types";
-import { AssetUtils, EtlApi, getCreatedAtForHuman, isMobile, Logger } from "@/common/utils";
+import { EtlApi, getCreatedAtForHuman, isMobile, Logger } from "@/common/utils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { getCurrencyByTicker, getLpnByProtocol, getProtocolByContract } from "@/common/utils/CurrencyLookup";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Dec } from "@keplr-wallet/unit";
 import { RouteNames } from "@/router";
@@ -187,19 +189,19 @@ async function loadLoans() {
 
 const leasesHistory = computed(() => {
   return loans.value.map((item) => {
-    const protocol = AssetUtils.getProtocolByContract(item.LS_loan_pool_id);
+    const protocol = getProtocolByContract(item.LS_loan_pool_id);
     const ticker = item.LS_asset_symbol;
-    let currency = AssetUtils.getCurrencyByTicker(ticker);
+    let currency = getCurrencyByTicker(ticker);
 
     switch (ProtocolsConfig[protocol].type) {
       case PositionTypes.short: {
-        currency = AssetUtils.getLpnByProtocol(protocol);
+        currency = getLpnByProtocol(protocol);
         break;
       }
     }
 
     const pnl = new Dec(item.LS_pnl, currency.decimal_digits);
-    let pnl_amount = AssetUtils.formatNumber(item.LS_pnl, NORMAL_DECIMALS, NATIVE_CURRENCY.symbol);
+    let pnl_amount = formatNumber(item.LS_pnl, NORMAL_DECIMALS, NATIVE_CURRENCY.symbol);
     let pnl_status = pnl.isZero() || pnl.isPositive();
 
     const raw = item.LS_timestamp;
@@ -240,7 +242,7 @@ const leasesHistory = computed(() => {
 });
 
 function getType(item: ILoan) {
-  const protocol = AssetUtils.getProtocolByContract(item.LS_loan_pool_id);
+  const protocol = getProtocolByContract(item.LS_loan_pool_id);
 
   switch (ProtocolsConfig[protocol].type) {
     case PositionTypes.short: {

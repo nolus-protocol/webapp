@@ -47,11 +47,11 @@ import ListHeader from "@/common/components/ListHeader.vue";
 import { computed, onUnmounted, ref, watch } from "vue";
 import { ChainConstants } from "@nolus/nolusjs";
 import { Button } from "web-components";
-import { AppUtils } from "@/common/utils";
 import { type Proposal } from "@/modules/vote/types";
 import { ProposalItemWrapper, ProposalSkeleton, VoteDialog } from "@/modules/vote/components";
 import { useFetchGovernanceProposals, useLoadBondedTokens, useLoadTallying } from "./composable";
 import { useApplicationStore } from "@/common/stores/application";
+import { fetchEndpoints } from "@/common/utils/EndpointService";
 
 const dialog = ref<InstanceType<typeof VoteDialog> | null>(null);
 const initialLoad = ref(false);
@@ -107,7 +107,7 @@ const visible = computed(() => {
 
 async function loadMoreProposals() {
   loading.value = true;
-  const node = await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
+  const node = await fetchEndpoints(ChainConstants.CHAIN_KEY);
 
   const data = await fetchData(
     `${node.api}/cosmos/gov/v1/proposals?pagination.limit=${limit.value}&pagination.key=${pagination.value.next_key}&pagination.reverse=true&pagination.countTotal=true`

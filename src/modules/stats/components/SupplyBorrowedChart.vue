@@ -41,7 +41,8 @@
 import Chart from "@/common/components/Chart.vue";
 import { lineY, plot, ruleY } from "@observablehq/plot";
 import { pointer, select, type Selection } from "d3";
-import { AssetUtils, EtlApi, isMobile } from "@/common/utils";
+import { EtlApi, isMobile } from "@/common/utils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { useI18n } from "vue-i18n";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { ref } from "vue";
@@ -119,7 +120,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
       if (closestData) {
         tooltip.html(
-          `<strong>${i18n.t("message.supplied")}:</strong> $${AssetUtils.formatNumber(closestData.supplied, NATIVE_CURRENCY.maximumFractionDigits)}<br><strong>${i18n.t("message.borrowed-chart")}:</strong> $${AssetUtils.formatNumber(closestData.borrowed, NATIVE_CURRENCY.maximumFractionDigits)}`
+          `<strong>${i18n.t("message.supplied")}:</strong> $${formatNumber(closestData.supplied, NATIVE_CURRENCY.maximumFractionDigits)}<br><strong>${i18n.t("message.borrowed-chart")}:</strong> $${formatNumber(closestData.borrowed, NATIVE_CURRENCY.maximumFractionDigits)}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();

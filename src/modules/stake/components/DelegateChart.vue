@@ -13,7 +13,7 @@ import Chart from "@/common/components/Chart.vue";
 import { lineY, plot } from "@observablehq/plot";
 import { useI18n } from "vue-i18n";
 import { pointer, select, type Selection } from "d3";
-import { AssetUtils } from "@/common/utils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_ASSET, NATIVE_CURRENCY, PERCENT } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { ref, watch } from "vue";
@@ -89,7 +89,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const closestData = getClosestDataPoint(x);
       if (closestData) {
         tooltip.html(
-          `<strong>${i18n.t("message.amount")}</strong> ${AssetUtils.formatNumber(closestData.amount, NATIVE_CURRENCY.maximumFractionDigits)} ${NATIVE_ASSET.label}`
+          `<strong>${i18n.t("message.amount")}</strong> ${formatNumber(closestData.amount, NATIVE_CURRENCY.maximumFractionDigits)} ${NATIVE_ASSET.label}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();

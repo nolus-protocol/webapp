@@ -24,7 +24,8 @@ import Chart from "@/common/components/Chart.vue";
 import { lineY, plot, ruleY } from "@observablehq/plot";
 import { useI18n } from "vue-i18n";
 import { pointer, select, type Selection } from "d3";
-import { AssetUtils, EtlApi, isMobile } from "@/common/utils";
+import { EtlApi, isMobile } from "@/common/utils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { ref, watch } from "vue";
@@ -67,7 +68,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       type: "linear",
       grid: true,
       label: i18n.t("message.days-unrealized-pnL"),
-      tickFormat: (d) => `${AssetUtils.formatNumber(d, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`
+      tickFormat: (d) => `${formatNumber(d, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`
     },
     x: { type: "time", label: i18n.t("message.date-capitalize") },
     marks: [
@@ -99,9 +100,9 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const closestData = getClosestDataPoint(x);
       if (closestData) {
         tooltip.html(
-          `<strong>${i18n.t("message.value-label")}</strong> ${AssetUtils.formatNumber(closestData?.position ?? 0, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}
+          `<strong>${i18n.t("message.value-label")}</strong> ${formatNumber(closestData?.position ?? 0, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}
           <br>
-          <strong>${i18n.t("message.debt-label")}</strong> ${AssetUtils.formatNumber(closestData?.debt ?? 0, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`
+          <strong>${i18n.t("message.debt-label")}</strong> ${formatNumber(closestData?.debt ?? 0, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();

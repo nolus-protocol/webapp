@@ -1,12 +1,13 @@
 import type { Window as KeplrWindow } from "@keplr-wallet/types/build/window";
 import { type Store } from "../types";
 
-import { AppUtils, EnvNetworkUtils, WalletManager, WalletUtils } from "@/common/utils";
+import { EnvNetworkUtils, WalletManager, WalletUtils } from "@/common/utils";
+import { fetchEndpoints } from "@/common/utils/EndpointService";
 import { ChainConstants, NolusClient, NolusWalletFactory } from "@nolus/nolusjs";
 import { WalletConnectMechanism } from "@/common/types";
 import { KeplrEmbedChainInfo } from "@/config/global/keplr";
 import { Buffer } from "buffer";
-import { Intercom } from "@/common/utils/Intercom";
+import { IntercomService } from "@/common/utils/IntercomService";
 
 export async function connectKeplr(this: Store) {
   await WalletUtils.getKeplr();
@@ -20,7 +21,7 @@ export async function connectKeplr(this: Store) {
     let chainId = "";
 
     try {
-      const networkConfig = await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY);
+      const networkConfig = await fetchEndpoints(ChainConstants.CHAIN_KEY);
       NolusClient.setInstance(networkConfig.rpc);
 
       chainId = await NolusClient.getInstance().getChainId();
@@ -55,5 +56,5 @@ export async function connectKeplr(this: Store) {
   }
 
   this.loadActivities();
-  Intercom.load(this.wallet?.address);
+  IntercomService.load(this.wallet?.address as string, "keplr");
 }

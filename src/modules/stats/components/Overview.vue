@@ -107,36 +107,28 @@ watch(
 );
 
 async function onInit() {
-  await Promise.all([setTVL(), setTxVolume(), setBuyBackTotal(), setRealizedPnl(), setProtocolRevenue()]).catch((e) =>
-    Logger.error(e)
-  );
+  try {
+    // Use batch endpoint - single request instead of 5 separate requests
+    const data = await EtlApi.fetchStatsOverviewBatch();
+
+    if (data.tvl) {
+      tvl.value = data.tvl.total_value_locked;
+    }
+    if (data.tx_volume) {
+      txVolume.value = data.tx_volume.total_tx_value;
+    }
+    if (data.buyback_total) {
+      buybackTotal.value = data.buyback_total.buyback_total;
+    }
+    if (data.realized_pnl_stats) {
+      realized_pnl.value = data.realized_pnl_stats.amount;
+    }
+    if (data.revenue) {
+      protocolRevenue.value = data.revenue.revenue;
+    }
+  } catch (e) {
+    Logger.error(e);
+  }
   loading.value = false;
-}
-
-async function setTVL() {
-  const data = await EtlApi.fetchTVL();
-  tvl.value = data.total_value_locked;
-}
-
-async function setTxVolume() {
-  const data = await EtlApi.fetchTxVolume();
-  txVolume.value = data.total_tx_value;
-}
-
-async function setBuyBackTotal() {
-  const data = await fetch(`${EtlApi.getApiUrl()}/buyback-total`);
-  const item = await data.json();
-  buybackTotal.value = item.buyback_total;
-}
-
-async function setRealizedPnl() {
-  const data = await EtlApi.fetchRealizedPNLStats();
-  realized_pnl.value = data.amount;
-}
-
-async function setProtocolRevenue() {
-  const data = await fetch(`${EtlApi.getApiUrl()}/revenue`);
-  const item = await data.json();
-  protocolRevenue.value = item.revenue;
 }
 </script>

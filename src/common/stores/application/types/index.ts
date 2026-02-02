@@ -29,4 +29,8 @@ export type State = {
   leasesCurrencies: string[];
 };
 
-export type Store = ReturnType<(typeof import(".."))["useApplicationStore"]>; // (3)
+// Store type for action methods - includes state properties and common methods
+// This avoids circular import from useApplicationStore
+export type Store = State & {
+  $patch: (partial: Partial<State> | ((state: State) => void)) => void;
+};

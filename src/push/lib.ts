@@ -1,4 +1,4 @@
-import { AppUtils } from "@/common/utils";
+import { getLanguage, setLanguageDb } from "@/common/utils/LanguageUtils";
 import { publicKey, host } from "./config";
 import { STATUS } from "./global";
 
@@ -67,8 +67,8 @@ export async function subscribe(subscription: PushSubscription | null, address: 
 
 export async function initWorker() {
   try {
-    const lang = AppUtils.getLang();
-    AppUtils.setLangDb(lang.key);
+    const lang = getLanguage();
+    setLanguageDb(lang.key);
     await getWorker();
   } catch (e) {
     console.error(e);

@@ -32,10 +32,11 @@
 
 <script lang="ts" setup>
 import { onMounted, ref } from "vue";
-import { ChainConstants, NolusClient } from "@nolus/nolusjs";
-import { AppUtils, Logger } from "@/common/utils";
+import { NolusClient } from "@nolus/nolusjs";
+import { Logger } from "@/common/utils";
 import { UPDATE_BLOCK_INTERVAL } from "@/config/global";
 import { RouteNames } from "@/router";
+import { BackendApi } from "@/common/api";
 
 import DesktopMenu from "@/common/components/menus/DesktopMenu.vue";
 import { SvgIcon } from "web-components";
@@ -66,11 +67,8 @@ async function setBlock() {
 
 async function setVersion() {
   try {
-    const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
-
-    const data = await fetch(`${url}/abci_info`);
-    const res = await data.json();
-    version.value = res?.result?.response.version;
+    const nodeInfo = await BackendApi.getNodeInfo();
+    version.value = nodeInfo.version;
   } catch (error: Error | any) {
     Logger.error(error);
   }

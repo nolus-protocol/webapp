@@ -1,9 +1,9 @@
-import { Intercom } from "@/common/utils/Intercom";
+import { IntercomService } from "@/common/utils/IntercomService";
 import type { Store } from "../types";
-import { AppUtils, WalletManager, WalletUtils } from "@/common/utils";
+import { WalletManager, WalletUtils } from "@/common/utils";
 import { NATIVE_ASSET } from "@/config/global";
 import { Dec } from "@keplr-wallet/unit";
-import { ChainConstants } from "@nolus/nolusjs";
+import { BackendApi } from "@/common/api";
 
 export async function loadVestedTokens(this: Store): Promise<
   {
@@ -18,17 +18,31 @@ export async function loadVestedTokens(this: Store): Promise<
     return [];
   }
 
-  const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).api;
-  const data = await fetch(`${url}/cosmos/auth/v1beta1/accounts/${WalletManager.getWalletAddress()}`);
+  const address = WalletManager.getWalletAddress();
+  if (!address) {
+    this.vest = [];
+    this.delegated_vesting = undefined;
+    this.delegated_free = undefined;
+    return [];
+  }
 
-  const json = await data.json();
-  const accData = json.account;
+  const response = await BackendApi.getAccount(address);
+  const accData = response.account as {
+    base_vesting_account?: {
+      end_time: number;
+      original_vesting: { amount: string; denom: string }[];
+      delegated_vesting: { amount: string; denom: string }[];
+      delegated_free: { amount: string; denom: string }[];
+    };
+    start_time?: number;
+  };
+
   const vesting_account = accData?.base_vesting_account;
   const items = [];
   const vest = [];
 
   if (vesting_account) {
-    const start = new Date(accData.start_time * 1000);
+    const start = new Date((accData.start_time || 0) * 1000);
     const end = new Date(vesting_account.end_time * 1000);
 
     const to = `${end.toLocaleDateString("en-US", {
@@ -51,8 +65,9 @@ export async function loadVestedTokens(this: Store): Promise<
     this.vest = vest;
     this.delegated_vesting = vesting_account.delegated_vesting[0];
     this.delegated_free = vesting_account.delegated_free[0];
-    Intercom.update({
-      Nlsamountvested: new Dec(vest?.[0].amount?.amount ?? 0, NATIVE_ASSET.decimal_digits).toString()
+    IntercomService.updateVesting({
+      vestedNls: new Dec(vest?.[0].amount?.amount ?? 0, NATIVE_ASSET.decimal_digits).toString(),
+      isVestingAccount: true
     });
   } else {
     this.vest = [];

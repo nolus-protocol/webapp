@@ -120,8 +120,7 @@ async function setStats() {
     if (!disabled() && !wallet.wallet) {
       return;
     }
-    const data = await fetch(`${EtlApi.getApiUrl()}/history-stats?address=${wallet.wallet?.address}`);
-    const result: Data = await data.json();
+    const result: Data = await EtlApi.fetchHistoryStats(wallet.wallet?.address!);
     pnl.value = result.pnl.toString();
     tx_volume.value = result.tx_volume.toString();
     win_rate.value = result.win_rate.toString();

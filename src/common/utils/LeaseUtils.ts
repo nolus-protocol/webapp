@@ -1,9 +1,10 @@
 import type { OpenedLeaseInfo } from "@nolus/nolusjs/build/contracts";
-import type { LeaseAttributes } from "../types/LeaseData";
+import type { LeaseAttributes } from "../types/LeaseAttributes";
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
-import { AssetUtils, EtlApi } from ".";
+import { EtlApi } from ".";
+import { getCurrencyByTicker, getProtocolByContract, getLpnByProtocol } from "./CurrencyLookup";
 import { useApplicationStore } from "../stores/application";
 
 export class LeaseUtils {
@@ -23,7 +24,7 @@ export class LeaseUtils {
 
   public static getDebt(data: OpenedLeaseInfo | undefined) {
     if (data) {
-      const item = AssetUtils.getCurrencyByTicker(data.principal_due.ticker!);
+      const item = getCurrencyByTicker(data.principal_due.ticker!);
       const amount = new Dec(data.principal_due.amount)
         .add(new Dec(data.overdue_margin.amount))
         .add(new Dec(data.overdue_interest.amount))
@@ -78,10 +79,10 @@ export class LeaseUtils {
       }
 
       const downpaymentTicker = result.lease.LS_cltr_symbol;
-      const downPaymentCurrency = AssetUtils.getCurrencyByTicker(downpaymentTicker);
+      const downPaymentCurrency = getCurrencyByTicker(downpaymentTicker);
 
-      const contract = AssetUtils.getProtocolByContract(result.lease.LS_loan_pool_id);
-      const lpn = AssetUtils.getLpnByProtocol(contract);
+      const contract = getProtocolByContract(result.lease.LS_loan_pool_id);
+      const lpn = getLpnByProtocol(contract);
       let leasePositionTicker = result.lease.LS_asset_symbol;
       let l_c = result.lease.LS_asset_symbol;
 

@@ -132,7 +132,8 @@ import { computed, inject, onBeforeUnmount, ref } from "vue";
 import { Button, Dialog, ToastType } from "web-components";
 import type { ITransactionData } from "@/modules/history/types";
 import type { HistoryData } from "@/modules/history/types/ITransaction";
-import { AssetUtils, StringUtils } from "@/common/utils";
+import { StringUtils } from "@/common/utils";
+import { getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { useI18n } from "vue-i18n";
 import { CONFIRM_STEP, CURRENCY_VIEW_TYPES } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -150,7 +151,7 @@ onBeforeUnmount(() => {
 
 const fee = computed(() => {
   if (data.value?.fee_denom) {
-    const currencty = AssetUtils.getCurrencyByDenom(data.value.fee_denom);
+    const currencty = getCurrencyByDenom(data.value.fee_denom);
     return {
       denom: currencty.shortName,
       amount: data.value.fee_amount,

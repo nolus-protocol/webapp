@@ -11,7 +11,9 @@
 <script lang="ts" setup>
 import Chart from "@/common/components/Chart.vue";
 import { barX, gridX, plot, ruleX } from "@observablehq/plot";
-import { AssetUtils, EtlApi, isMobile } from "@/common/utils";
+import { EtlApi, isMobile } from "@/common/utils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { select, pointer, type Selection } from "d3";
 import { ref } from "vue";
 import { NATIVE_CURRENCY } from "@/config/global";
@@ -25,8 +27,7 @@ const chart = ref<typeof Chart>();
 const loans = ref<{ percentage: number; ticker: string; loan: string }[]>([]);
 
 async function setStats() {
-  const data = await fetch(`${EtlApi.getApiUrl()}/leased-assets`);
-  const items: { loan: string; asset: string }[] = await data.json();
+  const items: { loan: string; asset: string }[] = await EtlApi.fetchLeasedAssets();
   let total = 0;
 
   for (const i of items) {
@@ -38,7 +39,7 @@ async function setStats() {
       const [key, protocol] = item.asset.split(" ");
       let shortName = key;
       try {
-        const currency = AssetUtils.getCurrencyByTicker(key);
+        const currency = getCurrencyByTicker(key);
         shortName = currency?.shortName ?? key;
       } catch {
         // Currency not found in registry, use ticker as-is
@@ -100,7 +101,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const nearestData = getClosestDataPoint(y);
       if (nearestData) {
         tooltip.html(
-          `<strong>${nearestData.ticker}:</strong> $${AssetUtils.formatNumber(nearestData.loan, NATIVE_CURRENCY.maximumFractionDigits)}`
+          `<strong>${nearestData.ticker}:</strong> $${formatNumber(nearestData.loan, NATIVE_CURRENCY.maximumFractionDigits)}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();

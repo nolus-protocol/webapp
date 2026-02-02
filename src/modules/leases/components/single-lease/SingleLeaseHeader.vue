@@ -8,7 +8,7 @@
         @click="goBack"
       />
       <div class="flex flex-col">
-        <div class="text-24 font-semibold text-typography-default">#{{ lease?.leaseAddress.slice(-8) }}</div>
+        <div class="text-24 font-semibold text-typography-default">#{{ lease?.address?.slice(-8) }}</div>
         <div class="flex items-center gap-4">
           <div class="flex gap-1 text-14 text-typography-default">
             {{ $t("message.type") }}:<span class="font-semibold">
@@ -63,7 +63,7 @@
           </div>
           <div class="hidden gap-1 text-14 text-typography-default md:flex">
             {{ $t("message.opened-on") }}:<span class="font-semibold">{{
-              lease?.leaseData ? formatDate(lease!.leaseData!.timestamp.toString()) : ""
+              lease?.opened_at ? formatDate(lease.opened_at) : ""
             }}</span>
           </div>
           <div class="hidden gap-1 text-14 text-typography-default md:flex">
@@ -86,7 +86,7 @@
         icon="share"
         iconPosition="left"
         size="medium"
-        @click="sharePnlDialog?.show(lease)"
+        @click="sharePnlDialog?.show(lease, displayData)"
         v-if="TEMPLATES.opened == status"
       />
       <Button
@@ -95,7 +95,7 @@
         size="medium"
         @click="
           router.push({
-            path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.leaseAddress}/${SingleLeaseDialog.REPAY}`
+            path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.address}/${SingleLeaseDialog.REPAY}`
           })
         "
         v-if="TEMPLATES.opened == status && !openedSubState"
@@ -106,7 +106,7 @@
         size="medium"
         @click="
           router.push({
-            path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.leaseAddress}/${SingleLeaseDialog.CLOSE}`
+            path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.address}/${SingleLeaseDialog.CLOSE}`
           })
         "
         v-if="TEMPLATES.opened == status && !openedSubState"
@@ -117,153 +117,73 @@
 </template>
 
 <script lang="ts" setup>
-import type { LeaseData } from "@/common/types";
-import { computed, ref, watch } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { Button, Label, SvgIcon } from "web-components";
 
 import { RouteNames } from "@/router";
-import { AssetUtils, formatDate } from "@/common/utils";
+import { formatDate } from "@/common/utils";
 import { SingleLeaseDialog } from "@/modules/leases/enums";
 
 import SharePnLDialog from "@/modules/leases/components/single-lease/SharePnLDialog.vue";
 import { NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import { useOracleStore } from "@/common/stores/oracle";
+import { usePricesStore } from "@/common/stores/prices";
 import { useApplicationStore } from "@/common/stores/application";
 import { Dec } from "@keplr-wallet/unit";
-import { getStatus, TEMPLATES } from "../common";
-import type { OpenedOngoingState } from "@nolus/nolusjs/build/contracts/types/OpenedOngoingState";
+import { TEMPLATES } from "../common";
+import type { LeaseInfo } from "@/common/api";
+import type { LeaseDisplayData } from "@/common/stores/leases";
 
 const sharePnlDialog = ref<typeof SharePnLDialog | null>(null);
 const router = useRouter();
 
-const pnl = ref({
-  percent: "0.00",
-  amount: CurrencyUtils.formatPrice("0.00"),
-  status: true,
-  neutral: true
-});
-
 const props = defineProps<{
-  lease?: LeaseData;
+  lease?: LeaseInfo | null;
+  displayData?: LeaseDisplayData | null;
   loading?: boolean;
 }>();
 
-const oracle = useOracleStore();
+const pricesStore = usePricesStore();
 const app = useApplicationStore();
 
-watch(
-  () => props.lease,
-  () => {
-    pnl.value = {
-      percent: props.lease!.pnlPercent.toString(2),
-      amount: CurrencyUtils.formatPrice(props.lease!.pnlAmount.toString()),
-      status: props.lease!.pnlAmount.isPositive() || props.lease!.pnlAmount.isZero(),
-      neutral: false
-    };
+const pnl = computed(() => {
+  if (!props.displayData) {
+    return { percent: "0.00", amount: "0.00", status: true, neutral: true };
   }
-);
+  return {
+    percent: props.displayData.pnlPercent.toString(2),
+    amount: props.displayData.pnlAmount.toString(),
+    status: props.displayData.pnlPositive,
+    neutral: false
+  };
+});
 
 const openedSubState = computed(() => {
-  const progress = props.lease?.leaseStatus.opened?.status as OpenedOngoingState;
-  if (progress && progress?.in_progress != null) {
-    return true;
-  }
-
-  return false;
+  // Check if there's an in-progress operation
+  return props.displayData?.inProgressType != null;
 });
 
 const stable = computed(() => {
-  const lease = props.lease;
-
-  if (!lease) {
+  if (!props.lease || !props.displayData) {
     return "0.00";
   }
 
-  const amount =
-    lease.leaseStatus?.opened?.amount || lease.leaseStatus.opening?.downpayment || lease.leaseStatus.closing?.amount;
-  let protocol = lease.protocol;
-
-  let ticker = lease.leaseData!.leasePositionTicker!;
-  if (ticker?.includes("@")) {
-    let [t, p] = ticker.split("@");
-    ticker = t;
-    protocol = p;
-  }
-
+  const posType = props.displayData.positionType;
+  const ticker = props.lease.amount.ticker;
+  const protocol = props.lease.protocol;
   const asset = app.currenciesData?.[`${ticker}@${protocol}`];
 
-  switch (ProtocolsConfig[lease.protocol].type) {
-    case PositionTypes.long: {
-      const price = oracle.prices?.[`${ticker}@${protocol}`];
-      const value = new Dec(amount?.amount ?? 0, asset?.decimal_digits).mul(new Dec(price?.amount));
-      return value.toString(NATIVE_CURRENCY.maximumFractionDigits);
-    }
-    case PositionTypes.short: {
-      const c = app.currenciesData?.[`${ProtocolsConfig[protocol as string].stable}@${protocol}`];
-      const value = new Dec(amount?.amount ?? 0, c!.decimal_digits);
-      return value.toString(NATIVE_CURRENCY.maximumFractionDigits);
-    }
+  if (posType === PositionTypes.long) {
+    const price = pricesStore.prices[`${ticker}@${protocol}`];
+    const value = new Dec(props.lease.amount.amount, asset?.decimal_digits ?? 0).mul(new Dec(price?.price ?? "0"));
+    return value.toString(NATIVE_CURRENCY.maximumFractionDigits);
+  } else if (posType === PositionTypes.short) {
+    const c = app.currenciesData?.[`${ProtocolsConfig[protocol]?.stable}@${protocol}`];
+    const value = new Dec(props.lease.amount.amount, c?.decimal_digits ?? 0);
+    return value.toString(NATIVE_CURRENCY.maximumFractionDigits);
   }
 
   return "0";
-});
-
-const asset = computed(() => {
-  if (props.lease?.leaseStatus?.opening && props.lease?.leaseData) {
-    const item = app.currenciesData?.[props.lease.leaseData?.leasePositionTicker as string];
-    return item;
-  }
-
-  switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
-    case PositionTypes.long: {
-      const ticker =
-        props.lease?.leaseStatus?.opened?.amount.ticker ||
-        props.lease?.leaseStatus?.closing?.amount.ticker ||
-        props.lease?.leaseStatus?.opening?.downpayment.ticker;
-      const item = AssetUtils.getCurrencyByTicker(ticker as string);
-
-      const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
-      return asset;
-    }
-    case PositionTypes.short: {
-      const item = AssetUtils.getCurrencyByTicker(props.lease?.leaseData?.leasePositionTicker as string);
-
-      const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
-      return asset;
-    }
-  }
-});
-
-const currentPrice = computed(() => {
-  switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
-    case PositionTypes.long: {
-      if (props.lease?.leaseStatus?.opening && props.lease?.leaseData) {
-        const item = app.currenciesData?.[props.lease?.leaseData?.leasePositionTicker as string];
-        return AssetUtils.formatNumber(
-          oracle.prices[item?.ibcData as string]?.amount ?? "0",
-          asset.value?.decimal_digits!
-        );
-      }
-      break;
-    }
-    case PositionTypes.short: {
-      if (props.lease?.leaseStatus?.opening && props.lease?.leaseData) {
-        return AssetUtils.formatNumber(
-          oracle.prices[`${props.lease.leaseStatus.opening.loan.ticker}@${props.lease.protocol}`]?.amount ?? "0",
-          asset.value?.decimal_digits!
-        );
-      }
-    }
-  }
-
-  const ticker = props.lease?.leaseData?.leasePositionTicker;
-
-  return AssetUtils.formatNumber(
-    oracle.prices[`${ticker}@${props.lease?.protocol}`]?.amount ?? "0",
-    asset.value?.decimal_digits!
-  );
 });
 
 function goBack() {
@@ -271,6 +191,15 @@ function goBack() {
 }
 
 const status = computed(() => {
-  return getStatus(props.lease as LeaseData);
+  if (!props.lease) return TEMPLATES.opening;
+  switch (props.lease.status) {
+    case "opening": return TEMPLATES.opening;
+    case "opened": return TEMPLATES.opened;
+    case "paid_off": return TEMPLATES.paid;
+    case "closing": return TEMPLATES.paid;
+    case "closed": return TEMPLATES.closed;
+    case "liquidated": return TEMPLATES.liquidated;
+    default: return TEMPLATES.opening;
+  }
 });
 </script>

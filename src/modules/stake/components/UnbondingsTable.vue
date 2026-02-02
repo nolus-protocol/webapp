@@ -21,13 +21,15 @@ import { Table, type TableColumnProps, TableRow, type TableRowItemProps } from "
 import type { IObjectKeys } from "@/common/types";
 import { computed } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
-import { useOracleStore } from "@/common/stores/oracle";
-import { AssetUtils, datePraser } from "@/common/utils";
+import { usePricesStore } from "@/common/stores/prices";
+import { datePraser } from "@/common/utils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { Coin, Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 
 const i18n = useI18n();
-const oracle = useOracleStore();
+const pricesStore = usePricesStore();
 
 const columns = computed<TableColumnProps[]>(() => [
   { label: i18n.t("message.asset"), variant: "left" },
@@ -42,12 +44,12 @@ const props = defineProps<{
 
 const assets = computed(() => {
   const data: TableRowItemProps[] = [];
-  const asset = AssetUtils.getCurrencyByTicker(NATIVE_ASSET.ticker);
-  const price = oracle.prices[asset.key]?.amount;
+  const asset = getCurrencyByTicker(NATIVE_ASSET.ticker);
+  const price = pricesStore.prices[asset.key]?.price;
 
   for (const validator of props.unboundingDelegations) {
     for (const item of validator.entries) {
-      const balance = AssetUtils.formatNumber(new Dec(item.balance, asset.decimal_digits).toString(3), 3);
+      const balance = formatNumber(new Dec(item.balance, asset.decimal_digits).toString(3), 3);
 
       const stable_b = CurrencyUtils.calculateBalance(
         price,
@@ -55,7 +57,7 @@ const assets = computed(() => {
         asset.decimal_digits
       ).toDec();
 
-      const stable_balance = AssetUtils.formatNumber(stable_b.toString(2), 2);
+      const stable_balance = formatNumber(stable_b.toString(2), 2);
 
       data.push({
         items: [

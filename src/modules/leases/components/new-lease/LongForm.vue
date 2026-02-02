@@ -132,7 +132,7 @@
             label: $t('message.stepper-transfer-position'),
             icon: getIconByProtocol()!,
             token: {
-              balance: AssetUtils.formatNumber(stepperTransfer.toString(), assets[selectedCurrency]?.decimal_digits),
+              balance: formatNumber(stepperTransfer.toString(), assets[selectedCurrency]?.decimal_digits),
               symbol: assets[selectedCurrency]?.label
             },
             meta: () => h('div', `${NATIVE_NETWORK.label} > ${protocolName}`)
@@ -191,8 +191,11 @@ import { tabs } from "../types";
 import LongLeaseDetails from "@/modules/leases/components/new-lease/LongLeaseDetails.vue";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useApplicationStore } from "@/common/stores/application";
-import { useOracleStore } from "@/common/stores/oracle";
-import { AppUtils, AssetUtils, getMicroAmount, Logger, walletOperation } from "@/common/utils";
+import { usePricesStore } from "@/common/stores/prices";
+import { getMicroAmount, Logger, walletOperation } from "@/common/utils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
+import { getFreeInterest, getIgnoreLeaseLongAssets, getDownpaymentRange } from "@/common/utils/LeaseConfigService";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency, IObjectKeys } from "@/common/types";
 import {
@@ -213,15 +216,15 @@ import { Dec, Int } from "@keplr-wallet/unit";
 import { h } from "vue";
 import { useI18n } from "vue-i18n";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
-import { useAdminStore } from "@/common/stores/admin";
+import { useConfigStore } from "@/common/stores/config";
 import { Leaser, type LeaseApply } from "@nolus/nolusjs/build/contracts";
 import { useRouter } from "vue-router";
 
 const activeTabIdx = 0;
 const walletStore = useWalletStore();
 const app = useApplicationStore();
-const oracle = useOracleStore();
-const admin = useAdminStore();
+const pricesStore = usePricesStore();
+const configStore = useConfigStore();
 const i18n = useI18n();
 const router = useRouter();
 const showDetails = ref(false);
@@ -254,8 +257,8 @@ watch(
 
 async function onInit() {
   const [freeInterestv, ignoreLeaseAssetsv] = await Promise.all([
-    AppUtils.getFreeInterest(),
-    AppUtils.getIgnoreLeaseLongAssets()
+    getFreeInterest(),
+    getIgnoreLeaseLongAssets()
   ]);
   freeInterest.value = freeInterestv;
   ignoreLeaseAssets.value = ignoreLeaseAssetsv;
@@ -315,9 +318,9 @@ const assets = computed(() => {
 
   for (const asset of b) {
     const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
-    const balance = AssetUtils.formatNumber(value.toString(), asset.decimal_digits);
+    const balance = formatNumber(value.toString(), asset.decimal_digits);
     const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
-    const price = new Dec(oracle.prices?.[asset.key]?.amount ?? 0);
+    const price = new Dec(pricesStore.prices[asset.key]?.price ?? 0);
     const stable = price.mul(value);
 
     data.push({
@@ -339,7 +342,7 @@ const assets = computed(() => {
       ticker: asset.ticker!,
       key: asset.key,
       stable,
-      price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
+      price: `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
     });
   }
   return data.sort((a, b) => {
@@ -393,12 +396,12 @@ const coinList = computed(() => {
 const calculatedBalance = computed(() => {
   const asset = assets.value[selectedCurrency.value];
   if (!asset) {
-    return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber("0.00", NATIVE_CURRENCY.maximumFractionDigits)}`;
+    return `${NATIVE_CURRENCY.symbol}${formatNumber("0.00", NATIVE_CURRENCY.maximumFractionDigits)}`;
   }
-  const price = new Dec(oracle.prices?.[asset.key!]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[asset.key!]?.price ?? 0);
   const v = amount?.value?.length ? amount?.value : "0";
   const stable = price.mul(new Dec(v));
-  return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+  return `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
 });
 
 const balances = computed(() => {
@@ -428,7 +431,7 @@ const swapAmount = computed(() => {
   const currency = coinList.value[selectedLoanCurrency.value];
   const a = new Dec(total?.amount ?? 0, currency.decimal_digits);
 
-  return `${AssetUtils.formatNumber(a.toString(), currency.decimal_digits)} ${currency.label}`;
+  return `${formatNumber(a.toString(), currency.decimal_digits)} ${currency.label}`;
 });
 
 function handleAmountChange(event: string) {
@@ -455,16 +458,17 @@ async function validateMinMaxValues(): Promise<boolean> {
     const currentBalance = selectedDownPaymentCurrency;
 
     const [c, p] = selectedCurrency.key.split("@");
-    const range = (await AppUtils.getDownpaymentRange(p))[c];
+    const range = (await getDownpaymentRange(p))[c];
     if (currentBalance) {
       if (downPaymentAmount || downPaymentAmount !== "") {
-        const price = oracle.prices[selectedDownPaymentCurrency.key as string];
+        const priceData = pricesStore.prices[selectedDownPaymentCurrency.key as string];
+        const priceAmount = priceData?.price ?? "0";
 
         const max = new Dec(range?.max ?? 0);
         const min = new Dec(range?.min ?? 0);
 
-        const leaseMax = max.quo(new Dec(price.amount));
-        const leaseMin = min.quo(new Dec(price.amount));
+        const leaseMax = max.quo(new Dec(priceAmount));
+        const leaseMin = min.quo(new Dec(priceAmount));
 
         const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
           downPaymentAmount,
@@ -472,7 +476,7 @@ async function validateMinMaxValues(): Promise<boolean> {
           currentBalance.decimal_digits
         );
         const balance = CurrencyUtils.calculateBalance(
-          price.amount,
+          priceAmount,
           downPaymentAmountInMinimalDenom,
           currentBalance.decimal_digits
         ).toDec();
@@ -561,7 +565,7 @@ async function calculate() {
       let [leaseTicker] = lease.key.split("@");
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const leaserClient = new Leaser(cosmWasmClient, admin.contracts![protocol].leaser);
+      const leaserClient = new Leaser(cosmWasmClient, configStore.contracts[protocol].leaser);
 
       const makeLeaseApplyResp = await leaserClient.leaseQuote(
         microAmount.mAmount.amount.toString(),
@@ -617,11 +621,10 @@ async function openLease() {
       ];
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const admin = useAdminStore();
 
       let [leaseTicker, protocol] = selectedCurrency.key.split("@");
 
-      const leaserClient = new Leaser(cosmWasmClient, admin.contracts![protocol].leaser);
+      const leaserClient = new Leaser(cosmWasmClient, configStore.contracts[protocol].leaser);
 
       const { txHash, txBytes, usedFee } = await leaserClient.simulateOpenLeaseTx(
         wallet,
@@ -688,8 +691,8 @@ const protocolName = computed(() => {
 
 const borrowStable = computed(() => {
   let [_, protocol] = currency.value.key.split("@");
-  const lpn = AssetUtils.getLpnByProtocol(protocol);
-  const price = new Dec(oracle.prices?.[lpn.key!]?.amount ?? 0);
+  const lpn = getLpnByProtocol(protocol);
+  const price = new Dec(pricesStore.prices[lpn.key!]?.price ?? 0);
   const v = leaseApply.value?.borrow?.amount ?? "0";
   const stable = price.mul(new Dec(v, lpn.decimal_digits));
   return stable;

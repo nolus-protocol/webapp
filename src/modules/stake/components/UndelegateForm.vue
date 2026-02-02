@@ -70,17 +70,20 @@ import { AdvancedFormControl, Button, ToastType, SvgIcon } from "web-components"
 import { computed, inject, ref, watch } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
 import { useWalletStore } from "@/common/stores/wallet";
+import { useStakingStore } from "@/common/stores/staking";
 import { Dec } from "@keplr-wallet/unit";
-import { AssetUtils, formatDateTime, Logger, NetworkUtils, validateAmountV2, walletOperation } from "@/common/utils";
-import { useOracleStore } from "@/common/stores/oracle";
+import { formatDateTime, Logger, validateAmountV2, walletOperation } from "@/common/utils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
+import { usePricesStore } from "@/common/stores/prices";
 import { coin } from "@cosmjs/stargate";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import type { IObjectKeys } from "@/common/types";
 import { useI18n } from "vue-i18n";
 import { UNDELEGATE_DAYS } from "@/config/global";
 
 const wallet = useWalletStore();
-const oracle = useOracleStore();
+const stakingStore = useStakingStore();
+const pricesStore = usePricesStore();
 const i18n = useI18n();
 
 const input = ref("0");
@@ -88,16 +91,17 @@ const error = ref("");
 const loading = ref(false);
 const disabled = ref(false);
 const loadDelegated = inject("loadDelegated", () => false);
-const delegatedData = ref<IObjectKeys[]>([]);
 const onClose = inject("close", () => {});
 
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
+// Use staking store delegations - fetch on wallet change
 watch(
-  () => wallet.wallet,
-  async () => {
-    const [delegated] = await Promise.all([NetworkUtils.loadDelegations()]);
-    delegatedData.value = delegated;
+  () => wallet.wallet?.address,
+  async (address) => {
+    if (address) {
+      await stakingStore.fetchPositions();
+    }
   },
   {
     immediate: true
@@ -111,14 +115,9 @@ const date = computed(() => {
 });
 
 const assets = computed(() => {
-  let amount = new Dec(0, NATIVE_ASSET.decimal_digits);
-
-  for (const item of delegatedData.value) {
-    const d = new Dec(item.balance.amount, NATIVE_ASSET.decimal_digits);
-    amount = amount.add(d);
-  }
-
-  const balance = AssetUtils.formatNumber(amount.toString(NATIVE_ASSET.decimal_digits), NATIVE_ASSET.decimal_digits);
+  // Use staking store delegations
+  const amount = new Dec(stakingStore.totalStaked, NATIVE_ASSET.decimal_digits);
+  const balance = formatNumber(amount.toString(NATIVE_ASSET.decimal_digits), NATIVE_ASSET.decimal_digits);
 
   return [
     {
@@ -132,11 +131,11 @@ const assets = computed(() => {
 
 const stable = computed(() => {
   try {
-    const currency = AssetUtils.getCurrencyByTicker(NATIVE_ASSET.ticker);
-    const price = new Dec(oracle.prices?.[currency.key]?.amount ?? 0);
+    const currency = getCurrencyByTicker(NATIVE_ASSET.ticker);
+    const price = new Dec(pricesStore.prices[currency.key]?.price ?? 0);
     const v = input?.value?.length ? input?.value : "0";
     const stable = price.mul(new Dec(v));
-    return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+    return `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
   } catch (e) {
     return "";
   }
@@ -183,22 +182,23 @@ async function undelegate() {
       let amountToTransferDecimal = amountToTransfer.amount.toDec();
       const transactions = [];
 
-      for (const item of delegatedData.value) {
-        const amount = new Dec(item.balance.amount);
+      // Use staking store delegations
+      for (const delegation of stakingStore.delegations) {
+        const amount = new Dec(delegation.balance.amount);
 
         const rest = amountToTransferDecimal.sub(amount);
 
         if (rest.isNegative() || rest.isZero()) {
           const transfer = new Dec(amountToTransferDecimal.toString());
           transactions.push({
-            validator: item.delegation.validator_address,
+            validator: delegation.validator_address,
             amount: coin(transfer.truncate().toString(), NATIVE_ASSET.denom)
           });
           break;
         } else {
           const transfer = new Dec(amount.toString());
           transactions.push({
-            validator: item.delegation.validator_address,
+            validator: delegation.validator_address,
             amount: coin(transfer.truncate().toString(), NATIVE_ASSET.denom)
           });
         }
@@ -209,7 +209,7 @@ async function undelegate() {
       const { txHash, txBytes, usedFee } = await wallet.wallet.simulateUndelegateTx(transactions);
 
       await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
-      await Promise.all([loadDelegated(), wallet.UPDATE_BALANCES()]);
+      await Promise.all([loadDelegated(), wallet.UPDATE_BALANCES(), stakingStore.fetchPositions()]);
       wallet.loadActivities();
       onClose();
       onShowToast({

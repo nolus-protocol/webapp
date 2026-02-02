@@ -46,7 +46,7 @@ import { APPEARANCE } from "./config/global";
 import { initWorker } from "./push/lib";
 import { useWalletStore } from "./common/stores/wallet";
 import { getCookie, setCookie } from "./common/utils/cookieUtils";
-import { AppUtils, ThemeManager } from "./common/utils";
+import { LANGUAGE_KEY, ThemeManager } from "./common/utils";
 import { useI18n } from "vue-i18n";
 
 let interval: NodeJS.Timeout;
@@ -56,18 +56,16 @@ const i18n = useI18n();
 provide("onShowToast", onShowToast);
 
 onMounted(() => {
-  if (!import.meta.env.SSR) {
-    initWorker();
-    const language = getCookie(AppUtils.LANGUAGE);
-    if (!language) {
-      const locale = i18n.locale.value;
-      setCookie(AppUtils.LANGUAGE, locale);
-    }
+  initWorker();
+  const language = getCookie(LANGUAGE_KEY);
+  if (!language) {
+    const locale = i18n.locale.value;
+    setCookie(LANGUAGE_KEY, locale);
+  }
 
-    const theme_data = getCookie(ThemeManager.THEME_DATA);
-    if (!theme_data) {
-      setCookie(ThemeManager.THEME_DATA, application.theme);
-    }
+  const theme_data = getCookie(ThemeManager.THEME_DATA);
+  if (!theme_data) {
+    setCookie(ThemeManager.THEME_DATA, application.theme);
   }
 });
 

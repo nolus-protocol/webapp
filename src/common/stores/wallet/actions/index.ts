@@ -1,4 +1,4 @@
-import { WalletActions } from "..";
+import { WalletActions } from "../types";
 
 import { connectKeplr } from "./connectKeplr";
 import { connectLeap } from "./connectLeap";

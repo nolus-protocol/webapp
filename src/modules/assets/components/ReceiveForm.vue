@@ -146,12 +146,16 @@ import { CONFIRM_STEP, type IObjectKeys, type Network, type SkipRouteConfigType 
 import { useWalletStore } from "@/common/stores/wallet";
 import { computed, onUnmounted, ref, watch, h, inject } from "vue";
 import { useI18n } from "vue-i18n";
-import { AppUtils, AssetUtils, externalWallet, Logger, walletOperation, WalletUtils } from "@/common/utils";
+import { externalWallet, Logger, walletOperation, WalletUtils } from "@/common/utils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { getCurrencyByDenom, getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
+import { getSkipRouteConfig } from "@/common/utils/ConfigService";
+import { fetchEvmEndpoints } from "@/common/utils/EndpointService";
 import { coin } from "@cosmjs/stargate";
 import { Decimal } from "@cosmjs/math";
 import { SkipRouter } from "@/common/utils/SkipRoute";
 import { Dec } from "@keplr-wallet/unit";
-import { useOracleStore } from "@/common/stores/oracle";
+import { usePricesStore } from "@/common/stores/prices";
 import { StepperVariant, Stepper } from "web-components";
 import { useApplicationStore } from "@/common/stores/application";
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
@@ -166,10 +170,10 @@ const assets = computed(() => {
 
   for (const asset of networkCurrencies.value ?? []) {
     const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
-    const balance = AssetUtils.formatNumber(value.toString(), asset.decimal_digits!);
+    const balance = formatNumber(value.toString(), asset.decimal_digits!);
 
-    const currency = AssetUtils.getCurrencyByDenom(asset.from!);
-    const price = new Dec(oracle.prices?.[currency.key]?.amount ?? 0);
+    const currency = getCurrencyByDenom(asset.from!);
+    const price = new Dec(pricesStore.prices[currency.key]?.price ?? 0);
     const stable = price.mul(value);
     data.push({
       name: currency.name,
@@ -189,7 +193,7 @@ const assets = computed(() => {
       sybmol: asset.symbol,
       ticker: asset.ticker,
       stable,
-      price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
+      price: `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
     });
   }
   return data.sort((a, b) => {
@@ -202,7 +206,7 @@ let timeOut!: NodeJS.Timeout;
 let route: RouteResponse | null;
 
 const walletStore = useWalletStore();
-const oracle = useOracleStore();
+const pricesStore = usePricesStore();
 const app = useApplicationStore();
 const networks = ref<(Network | EvmNetwork | any)[]>(NETWORK_DATA.list);
 
@@ -253,7 +257,7 @@ watch(
 
 async function onInit() {
   try {
-    const [config, chns] = await Promise.all([AppUtils.getSkipRouteConfig(), SkipRouter.getChains()]);
+    const [config, chns] = await Promise.all([getSkipRouteConfig(), SkipRouter.getChains()]);
     skipRouteConfig = config;
     chainsData = chns;
 
@@ -314,7 +318,7 @@ const steps = computed(() => {
           label,
           icon: from.icon,
           token: {
-            balance: AssetUtils.formatNumber(
+            balance: formatNumber(
               new Dec(index == 0 ? operation.amount_in : operation.amount_out, currency.value?.decimal_digits).toString(
                 currency.value?.decimal_digits
               ),
@@ -330,7 +334,7 @@ const steps = computed(() => {
             label: i18n.t("message.receive-stepper"),
             icon: to.icon,
             token: {
-              balance: AssetUtils.formatNumber(
+              balance: formatNumber(
                 new Dec(operation.amount_out, currency.value?.decimal_digits).toString(currency.value?.decimal_digits),
                 currency.value?.decimal_digits
               ),
@@ -350,7 +354,7 @@ const steps = computed(() => {
       label: i18n.t("message.send-stepper"),
       icon: network.value.icon,
       token: {
-        balance: AssetUtils.formatNumber(amount.value, currency.value?.decimal_digits),
+        balance: formatNumber(amount.value, currency.value?.decimal_digits),
         symbol: currency.value?.shortName
       },
       meta: () => h("div", `${network.value.label} > ${NATIVE_NETWORK.label}`)
@@ -359,7 +363,7 @@ const steps = computed(() => {
       label: i18n.t("message.receive-stepper"),
       icon: NATIVE_NETWORK.icon,
       token: {
-        balance: AssetUtils.formatNumber(amount.value, currency.value?.decimal_digits),
+        balance: formatNumber(amount.value, currency.value?.decimal_digits),
         symbol: currency.value?.shortName
       },
       meta: () => h("div", `${NATIVE_NETWORK.label}`)
@@ -370,14 +374,14 @@ const steps = computed(() => {
 const calculatedBalance = computed(() => {
   const asset = assets.value[selectedCurrency.value];
   if (!asset) {
-    return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber("0.00", NATIVE_CURRENCY.maximumFractionDigits)}`;
+    return `${NATIVE_CURRENCY.symbol}${formatNumber("0.00", NATIVE_CURRENCY.maximumFractionDigits)}`;
   }
 
-  const currency = AssetUtils.getCurrencyByDenom(asset.from!);
-  const price = new Dec(oracle.prices?.[currency.key!]?.amount ?? 0);
+  const currency = getCurrencyByDenom(asset.from!);
+  const price = new Dec(pricesStore.prices[currency.key!]?.price ?? 0);
   const v = amount?.value?.length ? amount?.value : "0";
   const stable = price.mul(new Dec(v));
-  return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+  return `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
 });
 
 function destroyClient() {
@@ -460,7 +464,7 @@ async function onSubmitCosmos() {
     if (isValid) {
       route = await getRoute();
       const networkdata = NETWORK_DATA?.supportedNetworks[network.value.key];
-      const currency = AssetUtils.getCurrencyByTicker(networkdata.ticker);
+      const currency = getCurrencyByTicker(networkdata.ticker);
       fee.value = coin(networkdata.fees.transfer_amount, currency.ibcData);
     }
   } catch (e: Error | any) {
@@ -497,12 +501,12 @@ async function setCosmosNetwork() {
   for (const c of data ?? []) {
     if (c.visible) {
       if (app.protocolFilter == c.visible) {
-        const currency = AssetUtils.getCurrencyByDenom(c.from);
+        const currency = getCurrencyByDenom(c.from);
         currency.balance = coin(0, c.to);
         currencies.push(currency);
       }
     } else {
-      const currency = AssetUtils.getCurrencyByDenom(c.from);
+      const currency = getCurrencyByDenom(c.from);
       currency.balance = coin(0, c.to);
       currencies.push(currency);
     }
@@ -556,7 +560,7 @@ async function setEvmNetwork() {
   const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[network.value.key].currencies;
 
   for (const c of data ?? []) {
-    const currency = AssetUtils.getCurrencyByDenom(c.from);
+    const currency = getCurrencyByDenom(c.from);
     currency.native = c.native;
     currency.balance = coin(0, c.to);
     currencies.push(currency);
@@ -790,7 +794,7 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
         case "evm": {
           const net = network.value as EvmNetwork;
           const client = new MetaMaskWallet(net.explorer);
-          const endpoint = await AppUtils.fetchEvmEndpoints(net.key);
+          const endpoint = await fetchEvmEndpoints(net.key);
           const chainId = await client.getChainId(endpoint.rpc);
 
           await client.connect({
@@ -858,7 +862,7 @@ async function connectEvm() {
 
     const net = network.value as EvmNetwork;
     client = new MetaMaskWallet(net.explorer);
-    const endpoint = await AppUtils.fetchEvmEndpoints(net.key);
+    const endpoint = await fetchEvmEndpoints(net.key);
     const chainId = await client.getChainId(endpoint.rpc);
     await client.connect(
       {

@@ -91,12 +91,13 @@ import { computed, inject, ref, watch } from "vue";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
-import { AssetUtils, getMicroAmount, Logger, validateAmountV2, WalletManager, walletOperation } from "@/common/utils";
-import { useOracleStore } from "@/common/stores/oracle";
+import { getMicroAmount, Logger, validateAmountV2, WalletManager, walletOperation } from "@/common/utils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { usePricesStore } from "@/common/stores/prices";
 import { useApplicationStore } from "@/common/stores/application";
 import { CurrencyUtils, NolusClient, type NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
-import { useAdminStore } from "@/common/stores/admin";
+import { useConfigStore } from "@/common/stores/config";
 import { h } from "vue";
 import { Contracts } from "@/config/global";
 import { useI18n } from "vue-i18n";
@@ -118,9 +119,9 @@ const assets = computed(() => {
   for (const lpn of lpns ?? []) {
     const asset = lpnBalances.value.find((item) => item.key == lpn.key);
     const value = new Dec(asset?.coin?.amount.toString() ?? 0, lpn.decimal_digits);
-    const balance = AssetUtils.formatNumber(value.toString(), lpn.decimal_digits);
+    const balance = formatNumber(value.toString(), lpn.decimal_digits);
 
-    const price = new Dec(oracle.prices?.[lpn.key]?.amount ?? 0);
+    const price = new Dec(pricesStore.prices[lpn.key]?.price ?? 0);
     const stable = price.mul(value);
 
     data.push({
@@ -131,7 +132,7 @@ const assets = computed(() => {
       balance: { value: balance, ticker: lpn.shortName },
       stable,
       decimal_digits: lpn.decimal_digits,
-      price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
+      price: `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
     });
   }
 
@@ -142,9 +143,9 @@ const assets = computed(() => {
 
 const i18n = useI18n();
 const walletStore = useWalletStore();
-const oracle = useOracleStore();
+const pricesStore = usePricesStore();
 const application = useApplicationStore();
-const admin = useAdminStore();
+const configStore = useConfigStore();
 const loadLPNCurrency = inject("loadLPNCurrency", () => false);
 const onClose = inject("close", () => {});
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
@@ -165,10 +166,10 @@ const stable = computed(() => {
   const currency = assets.value[selectedCurrency.value];
   const asset = application.currenciesData?.[currency?.value];
 
-  const price = new Dec(oracle.prices?.[asset?.key]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[asset?.key]?.price ?? 0);
   const v = input?.value?.length ? input?.value : "0";
   const stable = price.mul(new Dec(v));
-  return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+  return `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
 });
 
 const isEmpty = computed(() => {
@@ -199,7 +200,7 @@ async function fetchDepositBalance() {
         const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
         const [_currency, protocol] = lpn.key.split("@");
 
-        const lppClient = new Lpp(cosmWasmClient, admin.contracts![protocol].lpp);
+        const lppClient = new Lpp(cosmWasmClient, configStore.contracts[protocol].lpp);
         const [depositBalance, price] = await Promise.all([
           lppClient.getLenderDeposit(walletAddress as string),
           lppClient.getPrice()
@@ -242,7 +243,7 @@ async function onValidateAmount() {
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
   const currency = application.currenciesData![assets.value[selectedCurrency.value].value];
   const [_currency, protocol] = currency.key.split("@");
-  const lppClient = new Lpp(cosmWasmClient, admin.contracts![protocol].lpp);
+  const lppClient = new Lpp(cosmWasmClient, configStore.contracts[protocol].lpp);
   const data = await lppClient.getLppBalance();
   const amount = CurrencyUtils.convertDenomToMinimalDenom(input.value, currency.ibcData, currency.decimal_digits);
   const balance = new Int(data.balance.amount);
@@ -267,7 +268,7 @@ async function transferAmount() {
       const [_currency, protocol] = currency.key.split("@");
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const lppClient = new Lpp(cosmWasmClient, admin.contracts![protocol].lpp);
+      const lppClient = new Lpp(cosmWasmClient, configStore.contracts[protocol].lpp);
       const price = await lppClient.getPrice();
 
       const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));

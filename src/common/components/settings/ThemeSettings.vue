@@ -48,11 +48,12 @@ import { h, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { type DropdownOption, Dropdown } from "web-components";
 import { WalletManager } from "@/common/utils";
-import { useOracleStore } from "@/common/stores/oracle";
+import { usePricesStore } from "@/common/stores/prices";
 
 import { setLang } from "@/i18n";
 import { APPEARANCE, languages } from "@/config/global";
-import { AppUtils, ThemeManager } from "@/common/utils";
+import { ThemeManager } from "@/common/utils";
+import { getLanguage, setLanguage as setLangUtil } from "@/common/utils/LanguageUtils";
 import { ApplicationActions, useApplicationStore } from "@/common/stores/application";
 import { useRouter } from "vue-router";
 import { Contracts } from "@/config/global";
@@ -62,10 +63,10 @@ import LightIcon from "@/assets/icons/theme/light.svg";
 import SyncIcon from "@/assets/icons/theme/sync.svg";
 
 const i18n = useI18n();
-const lang = AppUtils.getLang();
+const lang = getLanguage();
 const themeData = ThemeManager.getThemeData();
 const application = useApplicationStore();
-const oracle = useOracleStore();
+const pricesStore = usePricesStore();
 const router = useRouter();
 
 const selectedAppearance = ref({
@@ -129,7 +130,7 @@ watch(
 );
 
 async function setLanguage(item: DropdownOption) {
-  AppUtils.setLang(`${item.value}`);
+  setLangUtil(`${item.value}`);
   await setLang(`${item.value}`);
 
   appearance.value = Object.keys(APPEARANCE).map((key) => {
@@ -148,7 +149,7 @@ async function setLanguage(item: DropdownOption) {
 
 async function onSelect(item: { value: string; label: string; icon: string }) {
   application.setProtcolFilter(item.value);
-  await oracle.GET_PRICES();
+  await pricesStore.fetchPrices();
   router.push("/");
 }
 </script>

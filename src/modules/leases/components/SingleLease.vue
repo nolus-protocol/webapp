@@ -1,6 +1,7 @@
 <template>
   <SingleLeaseHeader
     :lease="lease"
+    :display-data="displayData"
     :loading="
       status == TEMPLATES.opening ||
       loadingClose ||
@@ -168,9 +169,10 @@
       </template>
     </Alert>
 
-    <PriceWidget :lease="lease" />
+    <PriceWidget :lease="lease" :display-data="displayData" />
     <PositionSummaryWidget
       :lease="lease"
+      :display-data="displayData"
       :loading="
         loadingClose ||
         loadingOngoingPartialLiquidation ||
@@ -182,6 +184,7 @@
     <div class="flex flex-col gap-8 md:flex-row">
       <PositionHealthWidget
         :lease="lease"
+        :display-data="displayData"
         :loading="
           status == TEMPLATES.opening ||
           loadingClose ||
@@ -193,7 +196,7 @@
       />
       <!-- <StrategiesWidget :lease="lease" /> -->
     </div>
-    <template v-if="lease?.leaseData">
+    <template v-if="lease?.etl_data">
       <LeaseLogWidget :lease="lease" />
     </template>
   </div>
@@ -211,38 +214,49 @@ import PositionSummaryWidget from "./single-lease/PositionSummaryWidget.vue";
 import PositionHealthWidget from "./single-lease/PositionHealthWidget.vue";
 import LeaseLogWidget from "./single-lease/LeaseLogWidget.vue";
 import { useRoute, useRouter } from "vue-router";
-import { useLease } from "@/common/composables";
 import { Logger } from "@/common/utils";
-import { computed, onMounted, onUnmounted, provide } from "vue";
+import { computed, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { Alert, AlertType, Stepper, StepperVariant } from "web-components";
-import { getStatus, TEMPLATES } from "./common";
-import type { LeaseData } from "@/common/types";
+import { TEMPLATES } from "./common";
 import { Contracts, NATIVE_NETWORK, UPDATE_LEASES } from "@/config/global";
-import type {
-  BuyAssetOngoingState,
-  CloseOngoingState,
-  LiquidationOngoingState,
-  TransferOutOngoingState
-} from "@nolus/nolusjs/build/contracts";
 import { RouteNames } from "@/router";
-import type { OpenedOngoingState } from "@nolus/nolusjs/build/contracts/types/OpenedOngoingState";
+import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
+import type { LeaseInfo } from "@/common/api";
 
 const route = useRoute();
-const OPENING_CHANNEL = "open_ica_account";
 const router = useRouter();
+const leasesStore = useLeasesStore();
 
 let timeOut: NodeJS.Timeout;
+
+// Lease state
+const lease = ref<LeaseInfo | null>(null);
+const leaseAddress = computed(() => route.params.id as string);
+const protocol = computed(() => (route.params.protocol as string).toUpperCase());
+
+// Computed display data for child components
+const displayData = computed<LeaseDisplayData | null>(() => {
+  if (!lease.value) return null;
+  return leasesStore.getLeaseDisplayData(lease.value);
+});
+
+async function getLease() {
+  try {
+    const result = await leasesStore.fetchLeaseDetails(leaseAddress.value, protocol.value);
+    if (result) {
+      lease.value = result;
+    }
+  } catch (error) {
+    Logger.error(error);
+  }
+}
 
 function reload() {
   getLease();
 }
 
-const { lease, getLease } = useLease(route.params.id as string, route.params.protocol as string, (error) => {
-  Logger.error(error);
-});
-
 const steps = computed(() => {
-  const protocol = getProtocolIcon()!;
+  const protocolIcon = getProtocolIcon()!;
 
   return [
     {
@@ -251,39 +265,47 @@ const steps = computed(() => {
     },
     {
       label: "",
-      icon: protocol
+      icon: protocolIcon
     },
     {
       label: "",
-      icon: protocol
+      icon: protocolIcon
     }
   ];
 });
 
 const status = computed(() => {
-  return getStatus(lease.value as LeaseData);
+  if (!lease.value) return TEMPLATES.opening;
+  switch (lease.value.status) {
+    case "opening": return TEMPLATES.opening;
+    case "opened": return TEMPLATES.opened;
+    case "paid_off": return TEMPLATES.paid;
+    case "closing": return TEMPLATES.paid; // closing shows as paid template
+    case "closed": return TEMPLATES.closed;
+    case "liquidated": return TEMPLATES.liquidated;
+    default: return TEMPLATES.opening;
+  }
 });
 
 const openingSubState = computed(() => {
-  const data = lease.value?.leaseStatus.opening;
-  if (OPENING_CHANNEL == data?.in_progress) {
+  if (!lease.value || lease.value.status !== "opening") {
     return 1;
   }
-
-  const state = data?.in_progress as TransferOutOngoingState | BuyAssetOngoingState;
-
-  if ((state as TransferOutOngoingState)?.transfer_out) {
-    return 2;
+  
+  const inProgress = lease.value.in_progress;
+  if (!inProgress) return 1;
+  
+  if ("opening" in inProgress) {
+    const stage = inProgress.opening.stage;
+    if (stage === "open_ica_account") return 1;
+    if (stage === "transfer_out" || stage === "buy_asset") return 2;
   }
-
-  if ((state as BuyAssetOngoingState)?.buy_asset) {
-    return 2;
-  }
-
+  
   return 3;
 });
 
 onMounted(() => {
+  getLease();
   timeOut = setInterval(() => {
     getLease();
   }, UPDATE_LEASES);
@@ -293,82 +315,49 @@ onUnmounted(() => {
   clearInterval(timeOut);
 });
 
+// Watch for route changes
+watch(
+  () => route.params.id,
+  () => getLease()
+);
+
 const loadingClose = computed(() => {
-  const data = (lease.value?.leaseStatus.opened?.status as OpenedOngoingState)?.in_progress as CloseOngoingState;
-
-  if (data?.close) {
-    return true;
-  }
-
-  return false;
+  return displayData.value?.inProgressType === "close";
 });
 
 const loadingRepay = computed(() => {
-  const data = lease.value?.leaseStatus.opened?.status as OpenedOngoingState;
-
-  if (Object.prototype.hasOwnProperty.call(data?.in_progress ?? {}, "repayment")) {
-    return true;
-  }
-
-  return false;
+  return displayData.value?.inProgressType === "repayment";
 });
 
 const loadingCollect = computed(() => {
-  const data = lease.value?.leaseStatus.closing;
-
-  if (data?.in_progress == "transfer_in_init" || data?.in_progress == "transfer_in_finish") {
-    return true;
-  }
-
-  return false;
+  return displayData.value?.inProgressType === "transfer_in";
 });
 
 const loadingOngoingPartialLiquidation = computed(() => {
-  const data = (lease.value?.leaseStatus.opened?.status as OpenedOngoingState)?.in_progress as LiquidationOngoingState;
-  if (data?.liquidation?.type == "Partial" && data?.liquidation?.cause == "overdue") {
-    return true;
+  if (!lease.value?.in_progress) return false;
+  if ("liquidation" in lease.value.in_progress) {
+    return lease.value.in_progress.liquidation.cause === "overdue";
   }
-
   return false;
 });
 
 const loadingFullPartialLiquidation = computed(() => {
-  const data = (lease.value?.leaseStatus.opened?.status as OpenedOngoingState)?.in_progress as LiquidationOngoingState;
-
-  if (data?.liquidation?.type == "Full" && data?.liquidation?.cause == "overdue") {
-    return true;
-  }
-
   return false;
 });
 
 const loadingOngoingPartialLiquidationLiability = computed(() => {
-  const data = (lease.value?.leaseStatus.opened?.status as OpenedOngoingState)?.in_progress as LiquidationOngoingState;
-
-  if (data?.liquidation?.type == "Partial" && data?.liquidation?.cause == "liability") {
-    return true;
+  if (!lease.value?.in_progress) return false;
+  if ("liquidation" in lease.value.in_progress) {
+    return lease.value.in_progress.liquidation.cause === "liability";
   }
-
   return false;
 });
 
 const loadingOngoingFullLiquidationLiability = computed(() => {
-  const data = (lease.value?.leaseStatus.opened?.status as OpenedOngoingState)?.in_progress as LiquidationOngoingState;
-
-  if (data?.liquidation?.type == "Full" && data?.liquidation?.cause == "liability") {
-    return true;
-  }
-
   return false;
 });
 
 const loadintSlippageProtection = computed(() => {
-  const data = lease.value?.leaseStatus.opened?.status as string;
-
-  if (data == "slippage_protection_activated") {
-    return true;
-  }
-
   return false;
 });
 
@@ -386,4 +375,5 @@ function getProtocolIcon() {
 }
 
 provide("reload", reload);
+provide("displayData", displayData);
 </script>

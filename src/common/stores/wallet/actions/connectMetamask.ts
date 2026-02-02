@@ -4,7 +4,7 @@ import { WalletManager } from "@/common/utils";
 import { NolusWalletFactory } from "@nolus/nolusjs";
 import { WalletConnectMechanism } from "@/common/types";
 import { Buffer } from "buffer";
-import { Intercom } from "@/common/utils/Intercom";
+import { IntercomService } from "@/common/utils/IntercomService";
 import { MetaMaskWallet } from "@/networks/evm";
 import { MetamaskName } from "@/config/global";
 
@@ -23,5 +23,5 @@ export async function connectMetamask(this: Store) {
   this.walletName = MetamaskName;
   await this.UPDATE_BALANCES();
   this.loadActivities();
-  Intercom.load(this.wallet.address);
+  IntercomService.load(this.wallet.address, "metamask");
 }

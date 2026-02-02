@@ -1,5 +1,4 @@
 import {
-  createMemoryHistory,
   createRouter,
   createWebHistory,
   type NavigationGuardNext,
@@ -7,7 +6,7 @@ import {
 } from "vue-router";
 import { DashboardRouter } from "@/modules/dashboard/router";
 import { EarnRouter } from "@/modules/earn/router";
-import { AppUtils } from "@/common/utils";
+import { getLanguage } from "@/common/utils/LanguageUtils";
 import { setLang } from "@/i18n";
 
 import { StatsRouter } from "@/modules/stats/router";
@@ -19,13 +18,9 @@ import { StakeRouter } from "@/modules/stake/router";
 import { RouteNames } from "./RouteNames";
 
 import MainLayout from "@/modules/view.vue";
-import { inject } from "vue";
 
 const router = createRouter({
   scrollBehavior(to, from) {
-    if (import.meta.env.SSR) {
-      return;
-    }
     if (to.meta.key == from.meta.key) {
       return false;
     }
@@ -34,7 +29,7 @@ const router = createRouter({
     }
     return { top: 0 } as any;
   },
-  history: import.meta.env.SSR ? createMemoryHistory() : createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: "/",
@@ -58,42 +53,24 @@ const router = createRouter({
   ]
 });
 
-function getLang() {
-  if (import.meta.env.SSR) {
-    const ssrContext = inject("ssrContext", {
-      theme: "dark",
-      language: "en"
-    });
-
-    return ssrContext.language;
-  }
-  return AppUtils.getLang().key;
-}
-
 async function loadLanguage(to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) {
-  const lang = getLang();
+  const lang = getLanguage().key;
   await setLang(lang);
   return next();
 }
 
 router.beforeEach((to, from, next) => {
-  if (!import.meta.env.SSR) {
-    const description: HTMLElement | null = document.querySelector('meta[name="description"]');
-    window.document.title = to.meta.title as string;
-    if (description) {
-      description.setAttribute("content", to.meta.description as string);
-    }
+  const description: HTMLElement | null = document.querySelector('meta[name="description"]');
+  window.document.title = to.meta.title as string;
+  if (description) {
+    description.setAttribute("content", to.meta.description as string);
   }
-
   next();
 });
 
 router
   .isReady()
   .then(() => {
-    if (import.meta.env.SSR) {
-      return;
-    }
     preloadAllRoutes();
   })
   .catch((e) => console.error(e));
