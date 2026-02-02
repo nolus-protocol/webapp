@@ -230,9 +230,6 @@ pub struct SkipRouteConfig {
     /// Swap venues
     #[serde(default)]
     pub swap_venues: Vec<SwapVenue>,
-    /// Transfer configurations per chain
-    #[serde(default)]
-    pub transfers: HashMap<String, TransferConfig>,
 }
 
 fn default_slippage() -> u32 {
@@ -258,25 +255,6 @@ pub struct SwapVenue {
     pub name: String,
     /// Chain ID
     pub chain_id: String,
-}
-
-/// Transfer configuration for a chain
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransferConfig {
-    /// Currency transfer routes
-    pub currencies: Vec<CurrencyTransfer>,
-}
-
-/// Individual currency transfer route
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CurrencyTransfer {
-    /// Source denom
-    pub from: String,
-    /// Destination denom
-    pub to: String,
-    /// Visible network (optional - only used by some chains like EVM bridges)
-    #[serde(default)]
-    pub visible: Option<String>,
 }
 
 // ============================================================================
